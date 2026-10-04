@@ -1,0 +1,401 @@
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Result download / import half of the job lifecycle.
+
+Split out of ``queue_manager`` as a mixin so the download policy (total
+deadline, ``Content-Length`` verification, bounded retries, prompt cancel,
+progress reporting) has room to live somewhere readable. ``FeatureQueue``
+inherits it; every method here is a ``FeatureQueue`` method and relies on
+``self._notify`` / ``self._pump`` / ``self._jobs`` from that class.
+
+Threading contract, which is the easiest thing to get wrong here:
+``_bg_download`` is a daemon thread. Nothing it runs may touch ``bpy`` or
+call ``self._notify()``. It writes plain byte counts onto the ``Job`` and a
+main-thread ``bpy.app.timers`` tick turns those into UI updates.
+"""
+
+import os
+import threading
+import time
+
+import bpy
+
+from mixar.config.logging_config import get_logger
+from mixar.modules.common.i18n import iface_, n_
+
+from ..constants import DOWNLOAD_PROGRESS_REFRESH_S, LOG_PREFIX
+from .downloader import DownloadCancelled, download_file
+from .error_helpers import classify_error
+from .failure_info import clean_reason
+from .job import Job, JobState, TERMINAL_STATES
+from .model_io import import_file
+
+logger = get_logger(__name__)
+
+
+def _split_object_names(object_names) -> list:
+    """``import_file`` returns comma-joined names; custom jobs may pass lists."""
+    if isinstance(object_names, (list, tuple, set)):
+        return [name for name in object_names if name]
+    if isinstance(object_names, str) and object_names:
+        return [part for part in (p.strip() for p in object_names.split(",")) if part]
+    return []
+
+
+def _record_output_landed(job: Job, file_type: str, object_names, *,
+                          resolve_uids: bool) -> None:
+    """Telemetry only — must never fail (or slow) a finishing import.
+
+    Captures ``generation.output_landed`` (identifiers and counts only —
+    never object names or payload contents) and registers the landing with
+    the rejection tracker. Object names are resolved to ``session_uid``s
+    immediately and then discarded.
+    """
+    try:
+        names = _split_object_names(object_names)
+        uids = None
+        if resolve_uids:
+            uids = set()
+            for name in names:
+                obj = bpy.data.objects.get(name)
+                uid = getattr(obj, "session_uid", None)
+                if uid is not None:
+                    uids.add(uid)
+        from mixar.modules.common.analytics import rejection_events
+        from mixar.modules.common.analytics.capture import capture
+        from mixar.modules.common.analytics.constants import EVENT_OUTPUT_LANDED
+        capture(EVENT_OUTPUT_LANDED, {
+            "job_id": getattr(job, "backend_job_id", "") or "",
+            "feature_key": getattr(job, "feature_key", "") or "",
+            "service": getattr(job, "service", "")
+            or getattr(job, "job_type", "") or "",
+            "file_type": str(file_type),
+            "object_count": len(names),
+        }, context=bpy.context)
+        rejection_events.note_output_landed("generation", uids or None)
+    except Exception:
+        pass
+
+
+class DownloadMixin:
+    """``FeatureQueue`` methods covering RUNNING_DOWNLOAD through terminal."""
+
+    def _finish_custom_success(self, job: Job, object_names=""):
+        if job.state == JobState.CANCELLED:
+            self._pump()
+            return None
+        job.imported_object_names = object_names
+        job.state = JobState.SUCCESS
+        # Image/texture results create no scene objects — land without uids.
+        _record_output_landed(job, "CUSTOM", object_names, resolve_uids=False)
+        self._notify()
+        self._pump()
+        return None
+
+    def _begin_download(self, job: Job, result_files: list) -> None:
+        # Hook: let the job handle non-standard results (images, textures, etc.)
+        def _custom_done(names=""):
+            return self._finish_custom_success(job, names)
+
+        def _custom_error(msg):
+            return self._finish_failed(job, msg)
+
+        if job.handle_result(result_files, _custom_done, _custom_error):
+            return  # Job takes responsibility
+
+        # Pick the output native to the job before falling back to the first
+        # vendor artifact. VIDEO matters when a response also carries a still.
+        preferred_order = ["VIDEO", "GLB", "OBJ", "FBX"]
+        chosen = None
+        for pref in preferred_order:
+            for rf in result_files or []:
+                if rf.get("type", "").upper() == pref and rf.get("url"):
+                    chosen = rf
+                    break
+            if chosen:
+                break
+        if not chosen and result_files:
+            chosen = result_files[0]
+
+        if not chosen or not chosen.get("url"):
+            job.state = JobState.FAILED
+            job.error = "No downloadable result file"
+            job.user_message = n_("No result available — please retry")
+            self._notify()
+            self._pump()
+            return
+
+        file_type = chosen.get("type", "GLB").upper()
+        url = chosen["url"]
+
+        job.download_bytes = 0
+        job.download_total_bytes = 0
+        job.download_attempt = 0
+        job.download_started_at = time.monotonic()
+
+        # Deferred import: queue_manager imports this module at load time.
+        from .queue_manager import _ensure_sync_watchdog
+
+        # The watchdog is the backstop for a worker thread that dies without
+        # registering either callback. Ensure it here too: a should_skip_poll
+        # job reaches RUNNING_DOWNLOAD without ever passing through the poll
+        # branch that normally starts it.
+        _ensure_sync_watchdog()
+        self._start_download_progress_timer(job)
+
+        def _on_progress(transferred, total, attempt):
+            # Runs on the download thread. Plain attribute writes ONLY —
+            # bpy and self._notify() are main-thread-only. The queue UI picks
+            # these up through _start_download_progress_timer below.
+            job.download_bytes = transferred
+            job.download_total_bytes = total
+            job.download_attempt = attempt
+
+        def _should_cancel():
+            return job.state == JobState.CANCELLED
+
+        def _bg_download():
+            try:
+                filepath = download_file(
+                    url,
+                    file_type,
+                    on_progress=_on_progress,
+                    should_cancel=_should_cancel,
+                )
+            except DownloadCancelled:
+                # download_file already removed the temp file. Route through
+                # the normal failure path, which no-ops on a CANCELLED job
+                # and just pumps the queue.
+                def _cancel_cb():
+                    return self._finish_failed(job, "Download cancelled")
+
+                bpy.app.timers.register(_cancel_cb, first_interval=0.0)
+                return
+            except Exception as e:
+                logger.error(
+                    "%s download failed for %s: %s", LOG_PREFIX, job.id, e
+                )
+                # Capture error message now — Python 3 deletes `e` when
+                # the except block exits, so the closure can't reference it.
+                err_msg = f"Download failed: {e}"
+                friendly = (
+                    getattr(e, "user_message", "")
+                    or classify_error(e)
+                    or n_("Download failed — please retry")
+                )
+
+                def _fail_cb():
+                    return self._finish_failed(job, err_msg, friendly)
+
+                bpy.app.timers.register(_fail_cb, first_interval=0.0)
+                return
+
+            def _import_cb():
+                return self._finish_import(job, filepath, file_type)
+
+            bpy.app.timers.register(_import_cb, first_interval=0.0)
+
+        threading.Thread(target=_bg_download, daemon=True).start()
+
+    def _start_download_progress_timer(self, job: Job) -> None:
+        """Refresh the queue row while *job* downloads. Main thread only.
+
+        The queue UIList reads ``substate_text`` off the WindowManager mirror,
+        and that mirror is only rebuilt by ``_notify()`` — so byte counts
+        written by the download thread are invisible until something on the
+        main thread notifies. The blink pump redraws but does not re-sync, so
+        it cannot serve this. Hence a timer: it is the main thread, so calling
+        _notify() from it is safe, and it self-unregisters the moment the job
+        leaves RUNNING_DOWNLOAD. Only notifies when the byte count actually
+        moved, so a stalled transfer costs nothing.
+        """
+        last_seen = [-1]
+
+        def _tick():
+            if job.state != JobState.RUNNING_DOWNLOAD:
+                return None  # terminal, cancelled, or import started
+            if job.download_bytes != last_seen[0]:
+                last_seen[0] = job.download_bytes
+                self._notify()
+            return DOWNLOAD_PROGRESS_REFRESH_S
+
+        bpy.app.timers.register(
+            _tick, first_interval=DOWNLOAD_PROGRESS_REFRESH_S,
+        )
+
+    def _finish_import(self, job: Job, filepath: str, file_type: str):
+        # Cancelled, or already failed by the RUNNING_DOWNLOAD watchdog while
+        # this thread was still running: drop the file, free the slot, and
+        # never resurrect a job that has already reached a terminal state.
+        # The membership check covers clear_all() (e.g. a load_post file
+        # switch): a job dropped from the queue must not import its result
+        # into the newly opened file even if its state read as
+        # RUNNING_DOWNLOAD just before the drop.
+        if job.state != JobState.RUNNING_DOWNLOAD or not any(
+            j is job for j in self._jobs
+        ):
+            try:
+                os.remove(filepath)
+            except OSError:
+                pass
+            self._pump()
+            return None
+
+        try:
+            import_options = dict(getattr(job, "import_options", None) or {})
+            if file_type.upper() == "VIDEO":
+                import_options.setdefault("scene_name", job.scene_name)
+                import_options.setdefault(
+                    "generation_prompt",
+                    str(getattr(job, "payload", {}).get("prompt") or ""),
+                )
+            with _pinned_scene(job.scene_name, _job_session_id(job)):
+                obj_names = import_file(
+                    filepath, file_type, import_options,
+                )
+            job.on_imported(obj_names)
+            job.state = JobState.SUCCESS
+            _record_output_landed(job, file_type, obj_names, resolve_uids=True)
+        except Exception as e:
+            job.state = JobState.FAILED
+            job.error = f"Import failed: {e}"
+            job.user_message = n_("Failed to import the generated model")
+            job.error_class = "import"
+            job.error_reason = clean_reason(f"{type(e).__name__}: {e}")
+            # Don't leave the downloaded temp file behind — repeated failed
+            # imports would otherwise accumulate multi-MB files in tempdir.
+            try:
+                os.remove(filepath)
+            except OSError:
+                pass
+        else:
+            # Outside the import's try: the objects are already in the scene
+            # and the job is already SUCCESS, so a failure in undo bookkeeping
+            # must not flip a completed, paid-for import to FAILED and delete
+            # the file it would be retried from. push_undo_step never raises,
+            # but importing it can -- the utils package pulls in PIL/numpy,
+            # which is also why the import is deferred out of the bootstrap
+            # path.
+            #
+            # Without the step, Blender's next Ctrl+Z rewinds past the import
+            # and the generated object is gone beyond redo, because the forward
+            # step predates it too.
+            try:
+                from mixar.modules.common.utils.undo import push_undo_step
+                push_undo_step(
+                    iface_("Import {name}").format(name=job.label) if job.label
+                    else n_("Import Generated Result")
+                )
+            except Exception as undo_error:  # noqa: BLE001 — never demote a success
+                logger.warning(
+                    "%s undo checkpoint for %s skipped: %s",
+                    LOG_PREFIX, job.label or "import", undo_error,
+                )
+
+        self._notify()
+        self._pump()
+        return None  # one-shot
+
+    def _finish_failed(self, job: Job, message: str, user_message: str = ""):
+        # Cancelled, or already failed by a watchdog — keep the first terminal
+        # verdict (and its user-facing message) rather than overwriting it.
+        if job.state in TERMINAL_STATES:
+            self._pump()
+            return None
+        job.state = JobState.FAILED
+        job.error = message
+        if message != "Download cancelled":
+            job.error_class = "download"
+            job.error_reason = clean_reason(message)
+        if user_message:
+            job.user_message = user_message
+        self._notify()
+        self._pump()
+        return None  # one-shot
+
+
+def _job_session_id(job) -> str:
+    ref = getattr(job, "agent_ref", None) or {}
+    try:
+        return str(ref.get("session_id") or "")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def resolve_job_scene(scene_name: str, session_id: str = ""):
+    """The scene a job was submitted from.
+
+    An agent job (``session_id`` set) resolves by its chat session: a tab
+    renamed while a multi-minute job ran is still the same tab, and a tab
+    closed and its name reused by a NEW tab is not — the name is accepted
+    only when that scene still carries the session. A job whose tab is gone
+    returns None and fails rather than landing in another tab. A manual
+    enqueue (no session, no scene name) falls back to the scene the window
+    shows, as it always did; a manual job WITH a scene name whose scene is
+    gone also returns None.
+    """
+    target = None
+    if session_id:
+        try:
+            from mixar.modules.common.agent_execution.document import scene_for_session
+            target = scene_for_session(session_id, bpy)
+        except Exception:  # noqa: BLE001
+            target = None
+        if target is None and scene_name:
+            named = bpy.data.scenes.get(scene_name)
+            if named is not None and _scene_session(named) == session_id:
+                target = named
+        return target
+    if scene_name:
+        return bpy.data.scenes.get(scene_name)
+    return getattr(bpy.context, "scene", None)
+
+
+def _scene_session(scene) -> str:
+    try:
+        return str(getattr(scene, "mixie_session_id", "") or "")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+class _pinned_scene:
+    """Import into the job's originating scene, whatever tab the window shows.
+
+    Importers link into ``context.scene``; the window's scene is flipped for
+    the import and restored afterwards (the same pin the agent script path
+    uses). A job whose scene is gone imports nowhere: it fails.
+    """
+
+    def __init__(self, scene_name, session_id: str = ""):
+        self.scene_name = scene_name or ""
+        self.session_id = session_id or ""
+        self.window = None
+        self.shown = None
+
+    def __enter__(self):
+        if not self.scene_name and not self.session_id:
+            return self
+        target = resolve_job_scene(self.scene_name, self.session_id)
+        if target is None:
+            raise RuntimeError(f"originating scene {self.scene_name!r} no longer exists")
+        wm = bpy.context.window_manager
+        self.window = getattr(bpy.context, "window", None) or next(iter(wm.windows), None)
+        if self.window is not None and self.window.scene is not target:
+            self.shown = self.window.scene
+            self.window.scene = target
+            try:
+                from mixar.modules.common.scenes_log import slog
+                slog("gen.deliver", target, target=target.name, was=getattr(self.shown, "name", ""))
+            except Exception:  # noqa: BLE001
+                pass
+        return self
+
+    def __exit__(self, *exc):
+        if self.window is not None and self.shown is not None:
+            try:
+                self.window.scene = self.shown
+            except Exception:  # noqa: BLE001
+                pass
+        return False

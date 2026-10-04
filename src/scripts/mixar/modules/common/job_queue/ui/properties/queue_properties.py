@@ -1,0 +1,377 @@
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""WindowManager-level mirror PropertyGroup for the unified queue UIList.
+
+Canonical job state lives in ``FeatureQueue`` (Python singleton).  This
+mirror is a read-only projection that the queue manager refreshes via
+per-feature listeners so Blender's ``UIList`` can render every job
+across every feature as a single flat list, with a filter chip for
+All / Active / Done / Failed.
+
+It is attached to ``WindowManager`` — NOT ``Scene`` — on purpose: the
+mirror is a live projection of Python-singleton state, so it must not be
+undo-tracked or serialized. On ``Scene`` an undo/redo would snap the
+collection back to whatever it held at that undo step, making the queue
+rows vanish (undo) or reappear (redo). WindowManager data participates in
+neither undo nor .blend persistence, matching ``generation_params``.
+"""
+
+import time
+
+import bpy
+from bpy.app.handlers import persistent
+from bpy.props import (
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    IntProperty,
+    PointerProperty,
+    StringProperty,
+)
+from bpy.types import PropertyGroup
+
+from mixar.modules.common.job_queue.core.labels import feature_label, model_label
+
+from mixar.modules.common.job_queue.core.job import TERMINAL_STATES
+from mixar.modules.common.job_queue.core.queue_manager import all_queues, get_queue
+from mixar.modules.common.job_queue.ui.queue_selection import on_active_index_changed
+
+
+FILTER_ITEMS = (
+    ('ALL', "All", "Show every job"),
+    ('ACTIVE', "Active", "Show pending or running jobs"),
+    ('DONE', "Done", "Show successfully completed jobs"),
+    ('FAILED', "Failed", "Show failed or cancelled jobs"),
+)
+
+
+class MixieQueueItemPG(PropertyGroup):
+    job_id: StringProperty(name="Job ID", default="")
+    feature_key: StringProperty(name="Feature Key", default="")
+    label: StringProperty(name="Label", default="")
+    display_label: StringProperty(name="Display Label", default="")
+    # Backend service key joins queue jobs to dynamic catalog labels.
+    service: StringProperty(name="Service", default="")
+    origin_capability_key: StringProperty(
+        name="Origin Capability",
+        default="",
+    )
+    # The model/engine slug the job was submitted with (e.g. "hunyuan_pro_v3",
+    # "pro"). Shown next to the job-type pill so two jobs of the same type but
+    # different models are distinguishable. Empty for jobs that carry no model.
+    model: StringProperty(name="Model", default="")
+    state: StringProperty(name="State", default="")
+    substate_text: StringProperty(name="Substate", default="")
+    error: StringProperty(name="Error", default="")
+    user_message: StringProperty(name="User Message", default="")
+    # Failed-job explanation, resolved once by core/failure_info.py so the
+    # UIList, the island Queue tab (C++) and the copy action all agree:
+    # headline = short status word ("Blocked by content policy"), message =
+    # the one readable line, reason = the provider/backend's own words (empty
+    # when it would repeat the message), hint = what to do, details = all of
+    # it plus support ids, for tooltips and the clipboard.
+    error_class: StringProperty(name="Error Class", default="")
+    error_headline: StringProperty(name="Error Headline", default="")
+    error_message: StringProperty(name="Error Message", default="")
+    error_reason: StringProperty(name="Error Reason", default="")
+    error_hint: StringProperty(name="Error Hint", default="")
+    error_details: StringProperty(name="Error Details", default="")
+    created_at: FloatProperty(name="Created At", default=0.0)
+    finished_at: FloatProperty(name="Finished At", default=0.0)
+    # C++-consumable metadata for the agent island's Queue tab: the catalog
+    # labels are Python-only lookups and Job timestamps are time.monotonic()
+    # (no C++-comparable base), so the sync stamps resolved strings plus a
+    # unix-epoch creation time the island can subtract from time(NULL).
+    type_label: StringProperty(name="Generation Type", default="")
+    model_label: StringProperty(name="Model", default="")
+    # INT, not float: a float32 cannot hold a unix epoch. Its ULP at 1.79e9
+    # is 128 s, so the elapsed clock read up to a minute wrong and ticked in
+    # ~2-minute jumps (a 95 s-old job displayed as 1:11). Whole seconds are
+    # all an m:ss clock needs, and int32 holds them exactly.
+    created_epoch: IntProperty(name="Created (unix seconds)", default=0)
+    elapsed_done: FloatProperty(name="Frozen Elapsed", default=0.0)
+
+
+class MixieUnifiedQueuePG(PropertyGroup):
+    items: CollectionProperty(type=MixieQueueItemPG)
+    active_index: IntProperty(default=0, update=on_active_index_changed)
+    filter_mode: EnumProperty(
+        name="Filter",
+        items=FILTER_ITEMS,
+        default='ALL',
+    )
+
+
+classes = (
+    MixieQueueItemPG,
+    MixieUnifiedQueuePG,
+)
+
+
+# ---------------------------------------------------------------------------
+# Mirror sync — one listener attached to every FeatureQueue; each tick
+# rebuilds the unified list from all queues.
+# ---------------------------------------------------------------------------
+
+
+def _mirror_failure(item, job) -> None:
+    from mixar.modules.common.job_queue.core.job import JobState
+    from mixar.modules.common.job_queue.core import failure_info as fi
+
+    state = getattr(job, "state", None)
+    if state not in (JobState.FAILED, JobState.CANCELLED):
+        for name in ("error_class", "error_headline", "error_message",
+                     "error_reason", "error_hint", "error_details"):
+            if getattr(item, name, ""):
+                setattr(item, name, "")
+        return
+    if state == JobState.CANCELLED:
+        item.error_class = "cancelled"
+        item.error_headline = "Cancelled"
+        item.error_message = "Cancelled"
+        item.error_reason = item.error_hint = ""
+        item.error_details = "Cancelled"
+        return
+    item.error_class = getattr(job, "error_class", "") or ""
+    item.error_headline = fi.failure_headline(job)
+    item.error_message = fi.failure_message(job)
+    item.error_reason = fi.failure_reason(job)
+    item.error_hint = fi.failure_hint(job)
+    item.error_details = fi.failure_details(job)
+
+
+def _sync_mirror(_queue) -> None:
+    """Rebuild the unified scene-side mirror from every FeatureQueue snapshot."""
+    import mixar.modules.common.job_queue.ui.queue_selection as _sel_mod
+
+    try:
+        wm = bpy.context.window_manager
+    except Exception:
+        return
+    if wm is None or not hasattr(wm, "mixie_queue"):
+        return
+
+    pg = wm.mixie_queue
+
+    # Selected job identity, so we can preserve selection across rebuild.
+    prev_key = ""
+    if 0 <= pg.active_index < len(pg.items):
+        prev_key = pg.items[pg.active_index].job_id
+
+    _sel_mod._suppress_selection = True
+    try:
+        # Collect every job, newest first.
+        rows = []
+        for q in all_queues():
+            for job in q.snapshot():
+                rows.append((q.feature_key, job))
+        rows.sort(key=lambda r: getattr(r[1], "created_at", 0.0), reverse=True)
+
+        pg.items.clear()
+        new_index = -1
+        now = time.monotonic()
+        for i, (feature_key, job) in enumerate(rows):
+            # Stamp finished_at the first time we sync a terminal job so
+            # the row's elapsed clock freezes at the completion instant.
+            # Uses monotonic to match Job.created_at — mixing clocks would
+            # break elapsed = finished_at - created_at.
+            if job.state in TERMINAL_STATES and not job.finished_at:
+                job.finished_at = now
+
+            item = pg.items.add()
+            item.job_id = job.id
+            item.feature_key = feature_key
+            item.label = job.label
+            item.display_label = getattr(job, "display_label", "") or ""
+            # Backend generation identity lives on the canonical Job. Generic
+            # jobs also carry job_type before their submit ACK arrives.
+            item.service = (
+                getattr(job, "service", "")
+                or getattr(job, "job_type", "")
+                or ""
+            )
+            item.origin_capability_key = (
+                getattr(job, "origin_capability_key", "") or ""
+            )
+            item.model = getattr(job, "model", "") or ""
+            item.state = (
+                job.state.value if hasattr(job.state, "value") else str(job.state)
+            )
+            item.substate_text = job.substate_text()
+            item.error = str(job.error or "")
+            item.user_message = str(job.user_message or "")
+            _mirror_failure(item, job)
+            item.created_at = getattr(job, "created_at", 0.0)
+            item.finished_at = getattr(job, "finished_at", 0.0)
+            item.type_label = feature_label(
+                item.origin_capability_key, item.service, item.feature_key
+            )
+            item.model_label = model_label(item.service, item.model)
+            item.created_epoch = (
+                int(time.time() - (now - item.created_at)) if item.created_at else 0
+            )
+            item.elapsed_done = (
+                max(0.0, item.finished_at - item.created_at)
+                if (item.finished_at and item.created_at)
+                else 0.0
+            )
+            if prev_key and item.job_id == prev_key:
+                new_index = i
+
+        if new_index >= 0:
+            pg.active_index = new_index
+        elif pg.active_index >= len(pg.items):
+            pg.active_index = max(0, len(pg.items) - 1)
+    finally:
+        _sel_mod._suppress_selection = False
+
+    # Whenever the queue changes, make sure the blink pump is running if a
+    # RUNNING_* job exists. The pump self-terminates when the queue idles.
+    try:
+        from mixar.modules.common.job_queue.ui import queue_status_icons
+        queue_status_icons.start_blink_if_needed()
+    except Exception:
+        pass
+
+
+def _attach_listeners() -> None:
+    """Attach the unified _sync_mirror to every known feature queue."""
+    from mixar.modules.common.job_queue.constants import (
+        FEATURE_ANIMATE,
+        FEATURE_BRUSH_GEN,
+        FEATURE_HUNYUAN_PART,
+        FEATURE_HUNYUAN_RAPID,
+        FEATURE_HUNYUAN_UV,
+        FEATURE_IMAGE_TO_3D_PRO,
+        FEATURE_IMAGEGEN,
+        FEATURE_VIDEO_GEN,
+        FEATURE_VIDEO_UPSCALE,
+        FEATURE_LOOKDEV,
+        FEATURE_LOOKDEV360,
+        FEATURE_MATGEN,
+        FEATURE_MESH_SEGMENT,
+        FEATURE_MODEL_3D,
+        FEATURE_PBR_GEN,
+        FEATURE_RETOPOLOGY,
+        FEATURE_SCENE_GEN,
+        FEATURE_SCENE_GEN_HP,
+        FEATURE_SCENE_GEN_LP,
+        FEATURE_SCENE_RECON,
+        FEATURE_SMART_SEGMENT,
+        FEATURE_TRIPO_SEGMENT,
+        FEATURE_WORLD_LABS,
+    )
+
+    # NOTE: a queue missing from this tuple still accepts and runs jobs — the
+    # generate footer reads it directly and will happily report "1 job in
+    # queue" — but _sync_mirror is never attached, so the job never appears in
+    # the Queue panel. Any new FEATURE_* queue must be added here too.
+    _FEATURES = (
+        FEATURE_IMAGE_TO_3D_PRO, FEATURE_RETOPOLOGY, FEATURE_SCENE_GEN_HP,
+        FEATURE_SCENE_GEN_LP, FEATURE_HUNYUAN_RAPID, FEATURE_HUNYUAN_PART,
+        FEATURE_HUNYUAN_UV, FEATURE_MODEL_3D, FEATURE_IMAGEGEN, FEATURE_VIDEO_GEN,
+        FEATURE_LOOKDEV, FEATURE_LOOKDEV360, FEATURE_MATGEN, FEATURE_BRUSH_GEN,
+        FEATURE_MESH_SEGMENT, FEATURE_SCENE_GEN, FEATURE_SCENE_RECON,
+        FEATURE_ANIMATE, FEATURE_PBR_GEN, FEATURE_TRIPO_SEGMENT,
+        FEATURE_SMART_SEGMENT, FEATURE_WORLD_LABS, FEATURE_VIDEO_UPSCALE,
+    )
+    for feat in _FEATURES:
+        try:
+            get_queue(feat).add_listener(_sync_mirror)
+        except Exception:
+            pass
+
+
+@persistent
+def _reset_queues_on_file_load(_filepath):
+    """Start every opened file with an empty queue.
+
+    The FeatureQueue singletons and this WindowManager mirror are process-global
+    and not stored in the .blend, so without this the previous file's completed/
+    failed (and any in-flight) jobs linger in the Queue panel after opening
+    another file, with now-stale scene/node references.
+    """
+    try:
+        for queue in all_queues():
+            queue.clear_all()
+    except Exception:
+        pass
+    # Guarantee the mirror reflects the now-empty queues even if none exist yet.
+    try:
+        _sync_mirror(None)
+    except Exception:
+        pass
+
+
+def _force_list_text_sel_white():
+    """Make the highlighted UIList row's text white.
+
+    The fork's factory theme (and any user prefs saved from it) ships a
+    dark ``wcol_list_item.text_sel``, which renders the selected queue
+    row's text near-black on the green selection bar. The factory default
+    is fixed in userdef_default_theme.c; this runtime pass covers builds
+    predating that fix and previously saved preferences. Runs on a timer:
+    theme writes must stay off the draw path.
+    """
+    import bpy
+    try:
+        theme = bpy.context.preferences.themes[0]
+        theme.user_interface.wcol_list_item.text_sel = (1.0, 1.0, 1.0)
+    except Exception:
+        pass
+    return None
+
+
+def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        try:
+            register_class(cls)
+        except ValueError:
+            pass
+
+    bpy.app.timers.register(_force_list_text_sel_white, first_interval=0.5)
+
+    if not hasattr(bpy.types.WindowManager, "mixie_queue"):
+        bpy.types.WindowManager.mixie_queue = PointerProperty(type=MixieUnifiedQueuePG)
+
+    _attach_listeners()
+
+    if _reset_queues_on_file_load not in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.append(_reset_queues_on_file_load)
+
+    # Deferred preview-icon load — mutates bpy.data via bpy.utils.previews,
+    # so it MUST run on a timer tick, never inside a draw_item callback.
+    try:
+        from mixar.modules.common.job_queue.ui import queue_status_icons
+        queue_status_icons.register()
+    except Exception:
+        pass
+
+
+def unregister():
+    from bpy.utils import unregister_class
+
+    try:
+        bpy.app.handlers.load_post.remove(_reset_queues_on_file_load)
+    except ValueError:
+        pass
+
+    try:
+        from mixar.modules.common.job_queue.ui import queue_status_icons
+        queue_status_icons.unregister()
+    except Exception:
+        pass
+
+    try:
+        delattr(bpy.types.WindowManager, "mixie_queue")
+    except AttributeError:
+        pass
+
+    for cls in reversed(classes):
+        try:
+            unregister_class(cls)
+        except (RuntimeError, ValueError):
+            pass

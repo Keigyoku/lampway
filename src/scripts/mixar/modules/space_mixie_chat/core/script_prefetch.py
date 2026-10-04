@@ -1,0 +1,175 @@
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Enqueue-time asset prefetch for texture and terrain import scripts.
+
+Scripts execute synchronously on Blender's main thread, so any network wait
+inside a script freezes the UI (macOS beach ball). For known asset-consuming
+tools the asset URLs are visible in the script text the moment it arrives on
+the WebSocket thread — so we start downloading them THERE, and the executor
+timer simply holds the script (UI fully responsive, one cheap flag check per
+tick) until the cache is warm. Execution then pays only image decode/node building or native library append, not the network.
+
+The prefetch is best-effort in that it never blocks the UI, but it is not
+silent about failure: a prefetch that fails, or that passes the wait cap, has
+the script REFUSED with an explicit error rather than falling through to a
+main-thread download — that fallback is the UI freeze the prefetch exists to
+prevent. Only a script we start no prefetch for (an unknown tool, or one with
+no extractable asset URL) keeps the old in-build download path.
+"""
+
+from __future__ import annotations
+
+import re
+import threading
+import time
+from typing import Optional
+
+from mixar.config.logging_config import get_logger
+
+logger = get_logger(__name__)
+
+# Tools whose scripts embed downloadable texture assets. Extend as new heavy
+# apply tools appear; anything not listed keeps today's behavior exactly.
+PREFETCH_TOOLS = frozenset({"create_layered_material", "import_terrain_asset"})
+
+# Never hold a script longer than this waiting for its assets — past the cap
+# the prefetch is EXPIRED and the script is refused, so the UI still never
+# pays for a main-thread download. Well under the backend's 240s tool timeout.
+PREFETCH_WAIT_CAP_SECONDS = 90.0
+
+# Global cap on concurrent asset downloads across ALL queued scripts. A
+# parallel texturing wave enqueues 10+ apply scripts in a burst, each with
+# 6-8 assets — without a shared cap that's dozens of simultaneous sockets to
+# the same S3 host. Plain daemon threads (not a ThreadPoolExecutor) so a hung
+# download can never delay Blender's exit.
+_DOWNLOAD_SLOTS = threading.BoundedSemaphore(8)
+
+_URL_RE = re.compile(r"https?://[^\s\"'\\)\]}>]+")
+_IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp", ".exr", ".tif", ".tiff")
+
+
+def extract_asset_urls(script: str, extensions=_IMAGE_EXTENSIONS) -> list[str]:
+    """Image-asset URLs embedded in a script's text (manifest JSON etc.).
+
+    Filters to image file extensions on the URL path (query strings — e.g.
+    S3 presigned params — are ignored for the check but kept in the URL).
+    """
+    urls: list[str] = []
+    for url in _URL_RE.findall(script or ""):
+        path = url.split("?", 1)[0].lower()
+        if path.endswith(extensions):
+            urls.append(url)
+    return list(dict.fromkeys(urls))
+
+
+# Prefetch states reported by ScriptAssetPrefetch.state(). The executor
+# pumps hold a PENDING script, run a READY one, and REFUSE a FAILED/EXPIRED
+# one with an explicit error instead of letting the script download on the
+# main thread (mixar/modules/common/agent_execution/pump.py).
+PENDING = "pending"
+READY = "ready"
+FAILED = "failed"
+EXPIRED = "expired"
+
+
+class ScriptAssetPrefetch:
+    """Handle for one script's background asset prefetch.
+
+    ``state()`` and ``ready()`` are cheap and main-thread-safe. ``ready()``
+    (legacy) is true once every download has finished — success or recorded
+    failure — or the wait cap has passed; ``state()`` distinguishes those.
+    """
+
+    def __init__(self, urls: list[str], *, terrain=False):
+        self._done = threading.Event()
+        self._deadline = time.monotonic() + PREFETCH_WAIT_CAP_SECONDS
+        self._errors: dict[str, str] = {}
+        self.url_count = len(urls)
+        thread = threading.Thread(
+            target=self._run, args=(urls,), name="mixar-script-prefetch", daemon=True
+        )
+        self._terrain = terrain
+        try:
+            thread.start()
+        except Exception as exc:
+            self._errors["<prefetch>"] = type(exc).__name__
+            self._done.set()
+
+    def _run(self, urls: list[str]) -> None:
+        started = time.monotonic()
+        errors = self._errors
+        try:
+            # Network + disk only — never bpy — so worker threads are safe.
+            if self._terrain:
+                from .sandbox_modules import RESTRICTED_URLLIB
+                from mixar.modules.common.agent_execution import asset_cache
+
+                def download_to_tempfile(url):
+                    RESTRICTED_URLLIB._check_url(url)
+                    return asset_cache.download(url, opener=RESTRICTED_URLLIB._urlopen)
+            else:
+                from mixar.modules.paint.layered_build.download import download_to_tempfile
+
+            def _fetch(url: str) -> None:
+                with _DOWNLOAD_SLOTS:
+                    try:
+                        download_to_tempfile(url)
+                    except Exception as exc:  # noqa: BLE001 — collected below
+                        errors[url] = f"{type(exc).__name__}: {exc}"
+
+            workers = [
+                threading.Thread(target=_fetch, args=(u,), daemon=True) for u in urls
+            ]
+            for w in workers:
+                w.start()
+            for w in workers:
+                w.join()
+            if errors:
+                logger.warning(
+                    "script prefetch: %d/%d assets failed (the script will be "
+                    "refused)", len(errors), len(urls),
+                )
+        except Exception as exc:  # noqa: BLE001 — best-effort by contract
+            logger.warning("script prefetch failed: %s", type(exc).__name__)
+            errors["<prefetch>"] = f"{type(exc).__name__}: {exc}"
+        finally:
+            logger.debug(
+                "script prefetch finished: %d url(s) in %.2fs",
+                len(urls), time.monotonic() - started,
+            )
+            self._done.set()
+
+    def ready(self) -> bool:
+        return self._done.is_set() or time.monotonic() >= self._deadline
+
+    def state(self) -> str:
+        """PENDING while downloading; READY / FAILED once done; EXPIRED past the cap."""
+        if self._done.is_set():
+            return FAILED if self._errors else READY
+        if time.monotonic() >= self._deadline:
+            return EXPIRED
+        return PENDING
+
+    def failed_urls(self) -> list[str]:
+        return list(self._errors)
+
+
+def maybe_start_prefetch(script: str, tool_name: str) -> Optional[ScriptAssetPrefetch]:
+    """Start a background asset prefetch for a heavy apply script, or None.
+
+    Called from the WebSocket thread at enqueue time — the whole point is
+    that downloads overlap the time the script spends queued, instead of
+    blocking the main thread during execution.
+    """
+    if tool_name not in PREFETCH_TOOLS:
+        return None
+    terrain = tool_name == "import_terrain_asset"
+    urls = extract_asset_urls(script, (".blend",) if terrain else _IMAGE_EXTENSIONS)
+    if not urls:
+        return None
+    logger.info(
+        "prefetching %d asset(s) for queued %s script", len(urls), tool_name
+    )
+    return ScriptAssetPrefetch(urls, terrain=terrain)

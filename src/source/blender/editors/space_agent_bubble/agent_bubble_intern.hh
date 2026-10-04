@@ -1,0 +1,117 @@
+/* SPDX-FileCopyrightText: 2026 Mixar Authors
+ * SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
+/** \file
+ * \ingroup spagentbubble
+ *
+ * Internal header for the Agent Bubble editor space.
+ */
+
+#pragma once
+
+#include "BLI_rect.h"
+
+/* Mixar 5.2 port: namespace wrap. */
+namespace blender {
+
+struct ARegion;
+struct bContext;
+struct wmOperatorType;
+struct wmEvent;
+bool agent_bubble_should_dismiss(bContext *C, const wmEvent *event, void *bubble, void *pill);
+struct wmWindowManager;
+
+/* -------------------------------------------------------------------- */
+/** \name Header Region (status pill)
+ * \{ */
+
+/* True only after native frost and framebuffer alpha are both available.
+ * Unsupported systems retain opaque beds. */
+bool agent_bubble_pill_bed_is_transparent();
+
+/* Replace a straight RGBA wash with premultiplied framebuffer pixels. */
+void agent_bubble_replace_frost_wash(const rctf *rect, const float rgba[4]);
+
+/* Same capability decision for the expanded island's region beds. */
+bool agent_bubble_island_bed_is_transparent();
+
+void agent_bubble_header_region_init(wmWindowManager *wm, ARegion *region);
+void agent_bubble_header_region_draw(const bContext *C, ARegion *region);
+
+void agent_bubble_composer_focus_request(bContext *C, void *ghost_window);
+void agent_bubble_composer_focus_tick(bContext *C, void *ghost_window, bool minimised);
+void agent_bubble_composer_focus_if_pending(bContext *C);
+bool agent_bubble_composer_has_focused_draft(const bContext *C, void *ghost_window);
+
+/** \} */
+
+/* Main + footer regions reuse mixie chat's custom-drawn callbacks
+ * (see space_agent_bubble.cc). SpaceAgentBubble is layout-identical
+ * to SpaceMixieChat, so the cast inside those callbacks is valid. */
+
+/* -------------------------------------------------------------------- */
+/** \name Operators
+ * \{ */
+
+/* Opens the Agent Bubble in a small chrome-less TEMP window via
+ * WM_window_open_temp. Python idname: mixar.agent_bubble_show_window. */
+void MIXAR_OT_agent_bubble_show_window(wmOperatorType *ot);
+
+/* Resizes the Agent Bubble floating window via the platform-specific
+ * Mixar_WindowForceSize helper (Cocoa / Win32). Python idname:
+ * mixar.bubble_set_size(width, height). */
+void MIXAR_OT_bubble_set_size(wmOperatorType *ot);
+
+/* Sync collapsed bubble height and resize floor with pending image attachments.
+ * Python idname: mixar.bubble_sync_attachment_size. */
+void MIXAR_OT_bubble_sync_attachment_size(wmOperatorType *ot);
+
+/* Hands off window-drag tracking to the native platform code path
+ * via Mixar_WindowBeginDrag (AppKit on macOS, WM_NCLBUTTONDOWN on
+ * Win32). Python idname: mixar.bubble_window_begin_drag. Called once
+ * by the Python drag op; the OS handles per-frame tracking from
+ * there until the user releases the mouse. */
+void MIXAR_OT_bubble_window_begin_drag(wmOperatorType *ot);
+void MIXAR_OT_bubble_window_update_drag(wmOperatorType *ot);
+void MIXAR_OT_bubble_window_end_drag(wmOperatorType *ot);
+
+/* Yellow traffic-light click: hides the bubble window (orderOut on
+ * macOS, ShowWindow SW_HIDE on Win32), detaches the pill so it
+ * survives the cascade, and snaps the pill to the centre-bottom.
+ * Python idname: mixar.bubble_minimise. */
+void MIXAR_OT_bubble_minimise(wmOperatorType *ot);
+
+/* Pill click while minimised: shows the bubble again and re-attaches
+ * the pill above its top-left. No-op when not minimised. Python
+ * idname: mixar.bubble_restore. */
+void MIXAR_OT_bubble_restore(wmOperatorType *ot);
+
+/* Green traffic-light click: toggles the bubble between collapsed
+ * and expanded heights via Mixar_WindowForceSize. Python idname:
+ * mixar.bubble_toggle_expand. */
+void MIXAR_OT_bubble_toggle_expand(wmOperatorType *ot);
+
+/* Set custom background colour (RGBA) for the bubble.  Alpha 0
+ * disables the override and falls back to the theme.  Python idname:
+ * mixar.bubble_set_bg_color(r, g, b, a). */
+void MIXAR_OT_bubble_set_bg_color(wmOperatorType *ot);
+
+/* Sketch / Voice tab lock. The strip stays clickable so the press does
+ * not fall through to the window drag. Python idname:
+ * mixar.bubble_tab_locked. */
+void MIXAR_OT_bubble_tab_locked(wmOperatorType *ot);
+
+/* Voice button on the minimised Sketch pill: claims a pill click that lands on
+ * the button and toggles dictation. Python idname: mixar.bubble_pill_voice
+ * (asked first by the pill gesture in bubble_header_drag_op.py). */
+void MIXAR_OT_bubble_pill_voice(wmOperatorType *ot);
+
+/* Make the host window key again (macOS/Windows; no-op elsewhere), so typing
+ * over a frozen Sketch viewport continues after a pill control is clicked. */
+void agent_bubble_return_key_to_host();
+
+/** \} */
+
+}  // namespace blender

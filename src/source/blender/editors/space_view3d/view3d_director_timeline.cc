@@ -1,0 +1,233 @@
+/* SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
+/** \file
+ * \ingroup spview3d
+ *
+ * Poll-driven native keyframe timeline dock for Director mode.
+ */
+
+#include <algorithm>
+
+#include "MEM_guardedalloc.h"
+
+#include "BLI_listbase.h"
+#include "BLI_rect.h"
+
+#include "BKE_context.hh"
+#include "BKE_screen.hh"
+
+#include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+
+#include "ED_screen.hh"
+
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_shader_shared_utils.hh"
+#include "GPU_state.hh"
+
+#include "RNA_access.hh"
+
+#include "UI_interface.hh"
+#include "UI_interface_c.hh"
+#include "UI_resources.hh"
+
+#include "WM_api.hh"
+#include "WM_types.hh"
+
+#include "view3d_director_cinema.hh"
+#include "view3d_director_timeline.hh"
+/* Mixar 5.2 port: namespace wrap. */
+namespace blender {
+
+namespace {
+
+constexpr double PLAYBACK_REDRAW_INTERVAL = 1.0 / 30.0;
+
+wmTimer *g_playback_redraw_timer = nullptr;
+
+void playback_redraw_timer_update(const bContext *C, const bool enabled)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  if (!wm) {
+    return;
+  }
+  if (enabled) {
+    if (!g_playback_redraw_timer && CTX_wm_window(C)) {
+      g_playback_redraw_timer = WM_event_timer_add_notifier(
+          wm, CTX_wm_window(C), NC_SPACE | ND_SPACE_VIEW3D, PLAYBACK_REDRAW_INTERVAL);
+    }
+  }
+  else if (g_playback_redraw_timer) {
+    WM_event_timer_remove(wm, nullptr, g_playback_redraw_timer);
+    g_playback_redraw_timer = nullptr;
+  }
+}
+
+/* Region exit (area close, window close, file load): the playback timer
+ * belongs to the window that hosted this region, and wm_window_free drops
+ * every timer of a dying window — leaving the static pointing at freed
+ * memory. Remove it here, while it is still alive, so playback in a
+ * surviving viewport recreates a fresh one on its next draw. */
+static void director_timeline_region_exit(wmWindowManager *wm, ARegion * /*region*/)
+{
+  if (g_playback_redraw_timer && wm) {
+    WM_event_timer_remove(wm, nullptr, g_playback_redraw_timer);
+  }
+  g_playback_redraw_timer = nullptr;
+}
+
+bool director_timeline_poll(const RegionPollParams *params)
+{
+  DirectorViewState state;
+  const bool visible = view3d_director_state_read(CTX_data_scene(params->context), &state) &&
+                       state.active && state.timeline_expanded;
+  if (!visible) {
+    playback_redraw_timer_update(params->context, false);
+  }
+  return visible;
+}
+
+void director_timeline_draw(const bContext *C, ARegion *region)
+{
+  DirectorViewState state;
+  if (!view3d_director_state_read(CTX_data_scene(C), &state) || !state.active) {
+    return;
+  }
+  /* CLEAR FIRST. This is an ordinary opaque region (RGN_TYPE_CHANNELS is not
+   * in View3D's overlap set), so nothing clears its framebuffer for us, and
+   * the dock's own panel is translucent glass inset 8 px from the edges.
+   * Without this the previous frame stays underneath and every redraw
+   * composites onto it: the ruler, the keyframes and the transport all leave
+   * ghosts of where they used to be, and the inset border never repaints at
+   * all. Every other channel/footer region in Blender opens the same way. */
+  ui::theme::frame_buffer_clear(TH_BACK);
+  ED_region_pixelspace(region);
+  GPU_blend(GPU_BLEND_ALPHA);
+  const int margin = std::max(6, int(8.0f * UI_SCALE_FAC));
+  const int unit = std::max(18, int(20.0f * UI_SCALE_FAC));
+  const bool playing = ED_screen_animation_playing(CTX_wm_manager(C)) != nullptr;
+  playback_redraw_timer_update(C, playing);
+  /* The unit is the VIEWPORT's fit, not this one-row dock's. */
+  ScrArea *area = CTX_wm_area(C);
+  const ARegion *main_region = area ? BKE_area_find_region_type(area, RGN_TYPE_WINDOW) : nullptr;
+  cinema_unit_begin(main_region);
+  cinema_qa_begin(region);
+  cinema_draw_dock_panel(region);
+
+  ui::Block *block = ui::block_begin(
+      C, region, "mixar_director_timeline", blender::ui::EmbossType::Emboss);
+  ui::block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
+  /* Same as the viewport surface: the Interpolation popup refreshes. */
+  ui::block_flag_enable(block, ui::BLOCK_MIXAR_POPUPS_REFRESH);
+  /* The designed dock row is half of the wide surface, so it is gated on the
+   * SAME test the columns use — and that test reads the VIEWPORT region, not
+   * this dock (whose own height is one control row). Below the gate the old
+   * viewport rail draws instead, and the two together stacked duplicate
+   * controls on one screen. */
+  const bool full = main_region != nullptr && cinema_surface_fits(main_region);
+  if (full) {
+    cinema_draw_dock_controls(block, C, region, state, playing);
+  }
+  else {
+    cinema_draw_dock_compact(block, region, state, playing);
+  }
+  DirectorTimelineRuntime *runtime = view3d_director_timeline_runtime_ensure(region);
+  const int content_top = region->winy - int(cinema_dock_control_height(full));
+  view3d_director_timeline_draw_content(region, state, runtime, margin, unit, content_top);
+  ui::block_end(C, block);
+  ui::block_draw(C, block);
+  GPU_blend(GPU_BLEND_NONE);
+}
+
+void director_timeline_listener(const wmRegionListenerParams *params)
+{
+  const wmNotifier *notifier = params->notifier;
+  if (ELEM(notifier->category, NC_SCENE, NC_ANIMATION, NC_SPACE) ||
+      (notifier->category == NC_SCREEN && notifier->data == ND_ANIMPLAY))
+  {
+    ED_region_tag_redraw(params->region);
+  }
+}
+
+}  // namespace
+
+void view3d_director_timeline_region_ensure(ScrArea *area)
+{
+  if (!area || area->spacetype != SPACE_VIEW3D) {
+    return;
+  }
+
+  if (ARegion *existing = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS)) {
+    /* A layout saved by an earlier build carries THAT build's height, and
+     * nothing else ever revisits it — the height below is only ever written
+     * when the region is created. The dock's height is fixed, so ANY other
+     * height is put back: a short one would collapse the keyframe strip, and
+     * a tall one is a resize from a build that still allowed dragging it. */
+    if (existing->sizey != VIEW3D_DIRECTOR_TIMELINE_HEIGHT) {
+      existing->sizey = VIEW3D_DIRECTOR_TIMELINE_HEIGHT;
+    }
+    existing->flag |= RGN_FLAG_NO_USER_RESIZE;
+    return;
+  }
+
+  /* Builds made before the Director dock used RGN_TYPE_FOOTER, whose height
+   * Blender hard-clamps to one header row. Retype a saved legacy region before
+   * adding a new one so existing workspaces recover the full timeline. */
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_FOOTER);
+  if (region) {
+    region->regiontype = RGN_TYPE_CHANNELS;
+  }
+  else {
+    region = BKE_area_region_new();
+    ARegion *window_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+    if (window_region) {
+      BLI_insertlinkbefore(&area->regionbase, window_region, region);
+    }
+    else {
+      BLI_addtail(&area->regionbase, region);
+    }
+    region->regiontype = RGN_TYPE_CHANNELS;
+  }
+
+  /* ED_area_and_region_types_init() has already run when SpaceType.init is
+   * called. RGN_TYPE_CHANNELS is intentionally used as an otherwise-unused
+   * View3D region type because RGN_TYPE_FOOTER ignores custom heights. */
+  region->alignment = RGN_ALIGN_BOTTOM;
+  region->sizey = VIEW3D_DIRECTOR_TIMELINE_HEIGHT;
+  /* Fixed height: `area.cc` gives this region no edge action zone, and the
+   * flag makes `region_scale` put the size back should anything start one. */
+  region->flag |= RGN_FLAG_TEMP_REGIONDATA | RGN_FLAG_POLL_FAILED | RGN_FLAG_NO_USER_RESIZE;
+  /* The normal type-assignment pass preceded this callback. Without this,
+   * ED_area_init() dereferences a null runtime type while visiting the newly
+   * inserted region. */
+  region->runtime->type = BKE_regiontype_from_id(area->type, region->regiontype);
+}
+
+void view3d_director_timeline_region_register(SpaceType *st)
+{
+  ARegionType *art = MEM_new_zeroed<ARegionType>("spacetype view3d director timeline region");
+  art->regionid = RGN_TYPE_CHANNELS;
+  art->prefsizey = VIEW3D_DIRECTOR_TIMELINE_HEIGHT;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
+  art->poll = director_timeline_poll;
+  art->init = view3d_director_timeline_region_init;
+  art->draw = director_timeline_draw;
+  art->exit = director_timeline_region_exit;
+  art->free = view3d_director_timeline_region_free;
+  art->duplicate = view3d_director_timeline_region_duplicate;
+  art->listener = director_timeline_listener;
+  BLI_addhead(&st->regiontypes, art);
+
+  /* Keep the old type readable long enough for SpaceType.init to migrate it.
+   * Without a registered type, opening a .blend saved by the first Director
+   * build would fail before view3d_director_timeline_region_ensure() runs. */
+  art = MEM_new_zeroed<ARegionType>("spacetype view3d legacy director timeline region");
+  art->regionid = RGN_TYPE_FOOTER;
+  art->poll = director_timeline_poll;
+  BLI_addhead(&st->regiontypes, art);
+}
+}  // namespace blender

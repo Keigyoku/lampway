@@ -1,0 +1,486 @@
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""
+Image utilities for Mixie Chat attachments.
+
+Provides functions for image validation, base64 encoding, and thumbnail generation.
+"""
+
+import base64
+import os
+import uuid
+from io import BytesIO
+from typing import Optional
+
+import bpy
+
+from .attachment_validation import is_video_attachment
+
+from mixar.config.logging_config import get_logger
+from mixar.modules.common.i18n import rpt_
+
+from ..constants import (
+    MAX_IMAGE_DIMENSION,
+    MAX_IMAGE_SIZE_BYTES,
+    SUPPORTED_IMAGE_FORMATS,
+    THUMBNAIL_SIZE,
+    VIDEO_ATTACHMENT_REJECTED,
+    VIDEO_FILE_FORMATS,
+)
+
+logger = get_logger(__name__)
+
+try:
+    from PIL import Image as PILImage
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
+
+
+def get_mixar_screenshots_dir() -> str:
+    """Get (and create if needed) the Mixar screenshots directory.
+
+    Uses a 'mixar_screenshots' subfolder inside Blender's temp directory.
+    This avoids macOS symlink issues (/var -> /private/var) and keeps
+    temp images in a well-known, Blender-managed location.
+
+    Returns:
+        Absolute path to the screenshots directory.
+    """
+    import bpy
+    base = bpy.app.tempdir or os.path.join(os.path.expanduser('~'), '.mixar', 'cache')
+    screenshots_dir = os.path.join(base, 'mixar_screenshots')
+    os.makedirs(screenshots_dir, exist_ok=True)
+    return screenshots_dir
+
+
+# Sensitive paths that should never be accessed
+BLOCKED_PATH_PATTERNS = (
+    '/etc/',
+    '/root/',
+    '/.ssh/',
+    '/.gnupg/',
+    '/private/',
+    '/.config/',
+    '/var/log/',
+    '/proc/',
+    '/sys/',
+    '\\windows\\system32',
+    '\\program files',
+)
+
+
+def _is_path_safe(filepath: str) -> tuple[bool, str]:
+    """
+    Validate that a filepath is safe to access.
+
+    Checks for path traversal attempts and blocks access to sensitive directories.
+
+    Args:
+        filepath: Path to validate
+
+    Returns:
+        Tuple of (is_safe, error_message)
+    """
+    if not filepath:
+        return False, rpt_("Empty filepath")
+
+    # Resolve to absolute path to detect traversal attempts
+    try:
+        abs_path = os.path.realpath(filepath)
+    except (OSError, ValueError) as e:
+        return False, rpt_("Invalid path: {error}").format(error=e)
+
+    # Check for path traversal (original path different from resolved)
+    # This catches attempts like "../../../etc/passwd"
+    normalized_input = os.path.normpath(filepath)
+    if '..' in filepath and abs_path != os.path.realpath(normalized_input):
+        return False, rpt_("Path traversal detected")
+
+    # Allow temp directories (on macOS /var/folders resolves to /private/var/folders)
+    import tempfile
+    allowed_roots = [os.path.realpath(tempfile.gettempdir())]
+    if os.name == 'posix':
+        allowed_roots.append(os.path.realpath('/tmp'))
+    try:
+        import bpy
+        if bpy.app.tempdir:
+            allowed_roots.append(os.path.realpath(bpy.app.tempdir))
+    except Exception:
+        pass
+    for allowed in allowed_roots:
+        if abs_path.startswith(allowed + os.sep) or abs_path == allowed:
+            return True, ""
+
+    # Block sensitive directories - normalize separators for cross-platform matching
+    lower_path = abs_path.lower().replace('\\', '/')
+    for blocked in BLOCKED_PATH_PATTERNS:
+        if blocked.lower().replace('\\', '/') in lower_path:
+            return False, rpt_("Access to sensitive path blocked: {path}").format(path=blocked)
+
+    return True, ""
+
+
+# Preview collection for thumbnails
+_preview_collection = None
+
+
+def get_preview_collection():
+    """Get or create the preview collection for chat thumbnails."""
+    global _preview_collection
+    if _preview_collection is None:
+        import bpy.utils.previews
+        _preview_collection = bpy.utils.previews.new()
+    return _preview_collection
+
+
+def cleanup_preview_collection():
+    """Clean up the preview collection on unregister."""
+    global _preview_collection
+    if _preview_collection is not None:
+        import bpy.utils.previews
+        bpy.utils.previews.remove(_preview_collection)
+        _preview_collection = None
+
+
+def _same_file_path(a: str, b: str) -> bool:
+    """Compare Blender/file-system paths defensively."""
+    if not a or not b:
+        return False
+    try:
+        a_abs = os.path.realpath(bpy.path.abspath(a))
+        b_abs = os.path.realpath(bpy.path.abspath(b))
+    except Exception:
+        try:
+            a_abs = os.path.realpath(a)
+            b_abs = os.path.realpath(b)
+        except Exception:
+            return False
+    return a_abs == b_abs
+
+
+def cleanup_loaded_file_image(filepath: str) -> None:
+    """Remove an unowned file image that was loaded only for chat drawing.
+
+    The C++ chat renderer loads file attachments into ``bpy.data.images`` via
+    ``BKE_image_load_exists``. Attachment/message removal only clears RNA
+    records, so explicitly drop the matching image datablock when it has no
+    other Blender users.
+    """
+    if not filepath:
+        return
+
+    basename = os.path.basename(filepath)
+    candidates = []
+    if basename and basename in bpy.data.images:
+        candidates.append(bpy.data.images[basename])
+
+    try:
+        candidates.extend(
+            img for img in bpy.data.images
+            if img not in candidates and _same_file_path(getattr(img, "filepath", ""), filepath)
+        )
+    except Exception:
+        pass
+
+    for img in candidates:
+        if not _same_file_path(getattr(img, "filepath", ""), filepath):
+            continue
+        if getattr(img, "users", 0) > 0:
+            continue
+        try:
+            bpy.data.images.remove(img)
+        except Exception:
+            logger.debug("Failed to remove chat image datablock: %s", filepath, exc_info=True)
+
+
+def cleanup_loaded_file_images(filepaths) -> None:
+    """Remove unowned chat-loaded image datablocks for multiple paths."""
+    for filepath in filepaths:
+        cleanup_loaded_file_image(filepath)
+
+
+def collect_message_file_image_paths(message) -> list[str]:
+    """Collect file-backed image paths referenced by a chat message."""
+    paths: list[str] = []
+
+    for att in getattr(message, "attachments", ()):
+        if getattr(att, "image_source", "") == "FILE" and getattr(att, "image_path", ""):
+            paths.append(att.image_path)
+
+    for item in getattr(message, "image_items", ()):
+        for attr in ("local_path", "thumbnail_url", "url"):
+            path = getattr(item, attr, "")
+            if path and os.path.exists(path):
+                paths.append(path)
+
+    return paths
+
+
+def validate_image_file(filepath: str) -> tuple[bool, str]:
+    """
+    Validate an image file for chat attachment.
+
+    Performs security checks including:
+    - Path traversal prevention
+    - File extension validation
+    - File size limits
+    - Image dimension limits (memory exhaustion prevention)
+
+    Args:
+        filepath: Path to the image file
+
+    Returns:
+        Tuple of (is_valid, error_message)
+    """
+    if not filepath:
+        return False, rpt_("No file path provided")
+
+    # Security: Validate path before any file operations
+    is_safe, error = _is_path_safe(filepath)
+    if not is_safe:
+        return False, error
+
+    if not os.path.isfile(filepath):
+        return False, rpt_("File does not exist or is not a regular file")
+
+    # Check file extension
+    ext = os.path.splitext(filepath)[1].lower()
+    if ext in VIDEO_FILE_FORMATS:
+        return False, rpt_(VIDEO_ATTACHMENT_REJECTED)
+    if ext not in SUPPORTED_IMAGE_FORMATS:
+        return False, rpt_("Unsupported format: {format}. Supported: {formats}").format(
+            format=ext, formats=', '.join(SUPPORTED_IMAGE_FORMATS))
+
+    # Check file size
+    try:
+        file_size = os.path.getsize(filepath)
+    except OSError:
+        return False, rpt_("File is no longer accessible")
+    if file_size > MAX_IMAGE_SIZE_BYTES:
+        size_mb = file_size / (1024 * 1024)
+        max_mb = MAX_IMAGE_SIZE_BYTES / (1024 * 1024)
+        return False, rpt_("File too large: {size:.1f}MB (max {max:.0f}MB)").format(size=size_mb, max=max_mb)
+
+    # Security: Validate image dimensions to prevent memory exhaustion
+    if HAS_PIL:
+        try:
+            with PILImage.open(filepath) as img:
+                width, height = img.size
+                if width > MAX_IMAGE_DIMENSION or height > MAX_IMAGE_DIMENSION:
+                    return False, rpt_(
+                        "Image dimensions too large: {width}x{height} (max {max}x{max})"
+                    ).format(width=width, height=height, max=MAX_IMAGE_DIMENSION)
+                img.verify()
+        except (OSError, ValueError, SyntaxError, PILImage.DecompressionBombError) as e:
+            return False, rpt_("Could not read image: {error}").format(error=e)
+
+    return True, ""
+
+
+def image_file_to_base64(filepath: str) -> Optional[str]:
+    """
+    Convert an image file to base64 string.
+
+    Args:
+        filepath: Path to the image file
+
+    Returns:
+        Base64 encoded string or None on error
+    """
+    # Security: Validate path before opening to prevent path traversal
+    is_safe, error = _is_path_safe(filepath)
+    if not is_safe:
+        logger.error(f"Path validation failed: {error}")
+        return None
+
+    try:
+        with open(filepath, 'rb') as f:
+            image_data = f.read()
+        return base64.b64encode(image_data).decode('utf-8')
+    except (OSError, IOError) as e:
+        logger.error(f"Error encoding image file: {e}")
+        return None
+
+
+def blend_image_to_base64(image_name: str) -> Optional[str]:
+    """
+    Convert a Blender data image to base64 PNG string.
+
+    Reads pixels directly from the image's internal buffer to avoid
+    modifying the original image (setting filepath_raw on a generated
+    image permanently changes it to file-based, causing pink display).
+
+    Args:
+        image_name: Name of the image in bpy.data.images
+
+    Returns:
+        Base64 encoded PNG string or None on error
+    """
+    if image_name not in bpy.data.images:
+        logger.error(f"Image not found in blend data: {image_name}")
+        return None
+
+    image = bpy.data.images[image_name]
+
+    try:
+        from mixar.modules.common.utils.image_utils import image_to_png_bytes
+        png_data = image_to_png_bytes(image)
+        return base64.b64encode(png_data).decode('utf-8')
+    except (OSError, IOError, RuntimeError, ValueError) as e:
+        logger.error(f"Error encoding blend image: {e}")
+        return None
+
+
+# Extension -> mime for the uncompressed fallback. The compressed path reports
+# its own mime (always image/jpeg), so this is only consulted when compression
+# was skipped and the original bytes go up as-is.
+_FALLBACK_MIME_BY_EXT = {
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.bmp': 'image/bmp',
+    '.tiff': 'image/tiff',
+    '.tif': 'image/tiff',
+}
+
+
+def encode_attachment_for_upload(
+    image_path_or_name: str, source: str
+) -> Optional[tuple[str, str]]:
+    """Encode a pending chat attachment for the chat request body.
+
+    This is the ONE encode path for outgoing attachments. It downscales and
+    JPEG re-encodes first (see ``core.attachment_compression``) so a camera
+    photo travels as a few hundred KB instead of several MB — the previous
+    behaviour uploaded the original file bytes on the FILE path and a
+    full-resolution RGBA PNG on the BLEND_DATA path, and the latter routinely
+    overshot the backend's raw-payload ceiling and had the image dropped
+    before its own compression pass could run.
+
+    Compression failing is never fatal: the original bytes are uploaded
+    instead, exactly as before.
+
+    ``source='FILE'`` is safe on the encoder thread pool. ``'BLEND_DATA'``
+    reads ``bpy.data`` and MUST run on the main thread.
+
+    Returns:
+        ``(base64_string, mime_type)``, or ``None`` on error.
+    """
+    if is_video_attachment(image_path_or_name, source):
+        logger.warning(VIDEO_ATTACHMENT_REJECTED)
+        return None
+
+    from .attachment_compression import (
+        compress_blend_image_for_chat,
+        compress_file_for_chat,
+    )
+
+    if source == 'FILE':
+        compressed = compress_file_for_chat(image_path_or_name)
+        if compressed is not None:
+            data, mime = compressed
+            return base64.b64encode(data).decode('utf-8'), mime
+        ext = os.path.splitext(image_path_or_name)[1].lower()
+        b64 = image_file_to_base64(image_path_or_name)
+        return (b64, _FALLBACK_MIME_BY_EXT.get(ext, 'image/png')) if b64 else None
+
+    if source == 'BLEND_DATA':
+        compressed = compress_blend_image_for_chat(image_path_or_name)
+        if compressed is not None:
+            data, mime = compressed
+            return base64.b64encode(data).decode('utf-8'), mime
+        b64 = blend_image_to_base64(image_path_or_name)
+        return (b64, 'image/png') if b64 else None
+
+    logger.error(f"Unknown image source: {source}")
+    return None
+
+
+def get_image_thumbnail_id(image_path_or_name: str, source: str) -> int:
+    """
+    Get or generate a thumbnail preview ID for an image.
+
+    Args:
+        image_path_or_name: File path or blend image name
+        source: Either 'FILE' or 'BLEND_DATA'
+
+    Returns:
+        Preview icon ID, or 0 if generation failed
+    """
+    pcoll = get_preview_collection()
+
+    # Create a unique key for this image
+    key = f"{source}:{image_path_or_name}"
+
+    if key in pcoll:
+        return pcoll[key].icon_id
+
+    try:
+        if source == 'FILE':
+            if os.path.exists(image_path_or_name):
+                preview = pcoll.load(key, image_path_or_name, 'IMAGE')
+                return preview.icon_id
+        elif source == 'BLEND_DATA':
+            if image_path_or_name in bpy.data.images:
+                image = bpy.data.images[image_path_or_name]
+                # For blend images, we need to use the image's preview
+                if image.preview:
+                    return image.preview.icon_id
+                # Generate preview if not available
+                image.preview_ensure()
+                if image.preview:
+                    return image.preview.icon_id
+    except Exception as e:
+        logger.error(f"Error generating thumbnail: {e}")
+
+    return 0
+
+
+def get_blend_images() -> list[dict]:
+    """
+    Get list of available images in bpy.data.images.
+
+    Returns:
+        List of dicts with 'name', 'width', 'height', 'has_data' keys
+    """
+    images = []
+    for image in bpy.data.images:
+        # Skip render results and viewer images
+        if image.type in {'RENDER_RESULT', 'COMPOSITING'} or image.source == 'MOVIE':
+            continue
+
+        images.append({
+            'name': image.name,
+            'width': image.size[0],
+            'height': image.size[1],
+            'has_data': image.has_data,
+            'filepath': image.filepath if image.filepath else None,
+        })
+
+    return images
+
+
+def get_image_display_name(image_path_or_name: str, source: str) -> str:
+    """
+    Get a display-friendly name for an image.
+
+    Args:
+        image_path_or_name: File path or blend image name
+        source: Either 'FILE' or 'BLEND_DATA'
+
+    Returns:
+        Display name for the image
+    """
+    if source == 'FILE':
+        return os.path.basename(image_path_or_name)
+    else:
+        return image_path_or_name
+
+
+def clear_thumbnail_cache():
+    """Clear all cached thumbnails."""
+    pcoll = get_preview_collection()
+    pcoll.clear()

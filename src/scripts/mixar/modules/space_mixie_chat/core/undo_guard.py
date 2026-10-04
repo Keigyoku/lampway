@@ -1,0 +1,352 @@
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""
+Undo Guard for Mixie Chat Messages.
+
+Prevents Blender's undo/redo from affecting chat messages.
+Before any undo or redo, we snapshot the current messages.
+After undo/redo completes, we restore them so chat history persists.
+"""
+
+import bpy
+from bpy.app.handlers import persistent
+
+from mixar.config.logging_config import get_logger
+
+logger = get_logger(__name__)
+
+# Temporary snapshot held between pre/post handler pairs.
+_saved_messages = None
+# The tabs' view and live runs, taken with the messages (core/undo_tab_guard.py).
+_saved_view = None
+_saved_runs = None
+
+
+def _snapshot_single_scene(scene):
+    """Deep-copy all chat message data from a single scene.
+
+    Returns a list of plain dicts so the data is fully independent of
+    the Blender datablock that undo is about to roll back.
+    """
+    if not scene or not hasattr(scene, 'mixie_chat_messages'):
+        return []
+
+    messages = []
+    for msg in scene.mixie_chat_messages:
+        msg_data = {
+            'sender': msg.sender,
+            'text': msg.text,
+            'message_type': msg.message_type,
+            'metadata': msg.metadata,
+            'bubble_id': msg.bubble_id,
+            'loader_visible': msg.loader_visible,
+            'loader_texts': msg.loader_texts,
+            'loader_rotate_ms': msg.loader_rotate_ms,
+            'loader_current_index': msg.loader_current_index,
+            'loader_spinner_index': msg.loader_spinner_index,
+            'content': msg.content,
+            'ephemeral': msg.ephemeral,
+            'input_type': msg.input_type,
+            'attachments': [
+                {
+                    'image_path': att.image_path,
+                    'image_source': att.image_source,
+                    'display_name': att.display_name,
+                }
+                for att in msg.attachments
+            ],
+            'todo_items': [
+                {
+                    'item_id': todo.item_id,
+                    'text': todo.text,
+                    'status': todo.status,
+                }
+                for todo in msg.todo_items
+            ],
+            'action_items': [
+                {
+                    'label': action.label,
+                    'value': action.value,
+                    'style': action.style,
+                    # Asset-picker identity: without it an undo while the
+                    # question is pending collapses the Library-style picker
+                    # back to plain text buttons (core/asset_picker.py).
+                    'asset_name': action.asset_name,
+                    'library': action.library,
+                    'blend_file': action.blend_file,
+                    'asset_type': action.asset_type,
+                    'score': action.score,
+                    'image': action.image,
+                }
+                for action in msg.action_items
+            ],
+            'image_items': [
+                {
+                    'url': img.url,
+                    'alt': img.alt,
+                    'caption': img.caption,
+                    'thumbnail_url': img.thumbnail_url,
+                    'local_path': img.local_path,
+                    'width': img.width,
+                    'height': img.height,
+                    'step_id': img.step_id,
+                }
+                for img in msg.image_items
+            ],
+            # Steps block (tool-call rows) + its collapsed/summary state. Without
+            # these, an undo restores messages with the plan but no "Used N tools".
+            'steps_summary': msg.steps_summary,
+            'steps_collapsed': msg.steps_collapsed,
+            'images_collapsed': msg.images_collapsed,
+            'step_items': [
+                {
+                    'item_id': step.item_id,
+                    'kind': step.kind,
+                    'label': step.label,
+                    'target': step.target,
+                    'detail': step.detail,
+                    'status': step.status,
+                    'expanded': step.expanded,
+                    'call_id': step.call_id,
+                }
+                for step in msg.step_items
+            ],
+            # Thinking block ("Thought for Ns" dropdown). Without these, an undo
+            # wipes the reasoning text from every message.
+            'thinking_text': msg.thinking_text,
+            'thinking_active': msg.thinking_active,
+            'thinking_duration_ms': msg.thinking_duration_ms,
+            'thinking_collapsed': msg.thinking_collapsed,
+        }
+        messages.append(msg_data)
+
+    return messages
+
+
+def _snapshot_key(scene) -> str:
+    """The key a scene's snapshot is filed under: its chat session id when
+    it has one, else its name. Every scene tab is auto-named from its first
+    prompt, so an undo past that rename restores the OLD name — a snapshot
+    filed by name would then miss and the tab's transcript would not come
+    back. The session id survives the rename."""
+    sid = getattr(scene, 'mixie_session_id', '') or ''
+    return f"session:{sid}" if sid else f"name:{scene.name}"
+
+
+def _snapshot_all_scenes():
+    """Snapshot chat messages from ALL scenes.
+
+    Returns a dict of {key: [messages]} (see `_snapshot_key`) so each
+    scene's messages can be restored to the correct scene after undo/redo,
+    even if the active scene changes or a scene is renamed.
+    """
+    snapshots = {}
+    for scene in bpy.data.scenes:
+        if hasattr(scene, 'mixie_chat_messages'):
+            snapshot = _snapshot_single_scene(scene)
+            snapshots[_snapshot_key(scene)] = snapshot
+            # A scene that had no session id at snapshot time but gains one
+            # after the undo (or the reverse) still restores by name.
+            snapshots.setdefault(f"name:{scene.name}", snapshot)
+    return snapshots
+
+
+def _restore_single_scene(scene, snapshot):
+    """Write a snapshot back into a scene's chat message collection."""
+    if not scene or not hasattr(scene, 'mixie_chat_messages'):
+        return
+
+    scene.mixie_chat_messages.clear()
+
+    for msg_data in snapshot:
+        msg = scene.mixie_chat_messages.add()
+        msg.sender = msg_data['sender']
+        msg.text = msg_data['text']
+        msg.message_type = msg_data['message_type']
+        msg.metadata = msg_data['metadata']
+        msg.bubble_id = msg_data['bubble_id']
+        msg.loader_visible = msg_data['loader_visible']
+        msg.loader_texts = msg_data['loader_texts']
+        msg.loader_rotate_ms = msg_data['loader_rotate_ms']
+        msg.loader_current_index = msg_data['loader_current_index']
+        msg.loader_spinner_index = msg_data['loader_spinner_index']
+        msg.content = msg_data['content']
+        msg.ephemeral = msg_data['ephemeral']
+        msg.input_type = msg_data['input_type']
+
+        for att_data in msg_data['attachments']:
+            att = msg.attachments.add()
+            att.image_path = att_data['image_path']
+            att.image_source = att_data['image_source']
+            att.display_name = att_data['display_name']
+
+        for todo_data in msg_data['todo_items']:
+            todo = msg.todo_items.add()
+            todo.item_id = todo_data['item_id']
+            todo.text = todo_data['text']
+            todo.status = todo_data['status']
+
+        for action_data in msg_data['action_items']:
+            action = msg.action_items.add()
+            action.label = action_data['label']
+            action.value = action_data['value']
+            action.style = action_data['style']
+            for key in ('asset_name', 'library', 'blend_file', 'asset_type', 'score', 'image'):
+                if key in action_data:
+                    setattr(action, key, action_data[key])
+
+        for img_data in msg_data['image_items']:
+            img = msg.image_items.add()
+            img.url = img_data['url']
+            img.alt = img_data['alt']
+            img.caption = img_data['caption']
+            img.thumbnail_url = img_data['thumbnail_url']
+            img.local_path = img_data['local_path']
+            img.width = img_data['width']
+            img.height = img_data['height']
+            img.step_id = img_data.get('step_id', '')
+
+        # Steps block + state (.get for snapshots taken before this field existed).
+        msg.steps_summary = msg_data.get('steps_summary', '')
+        msg.steps_collapsed = msg_data.get('steps_collapsed', True)
+        msg.images_collapsed = msg_data.get('images_collapsed', False)
+        for step_data in msg_data.get('step_items', []):
+            step = msg.step_items.add()
+            step.item_id = step_data['item_id']
+            step.kind = step_data['kind']
+            step.label = step_data['label']
+            step.target = step_data['target']
+            step.detail = step_data['detail']
+            step.status = step_data['status']
+            step.expanded = step_data['expanded']
+            step.call_id = step_data.get('call_id', '')
+
+        # Thinking block + state.
+        msg.thinking_text = msg_data.get('thinking_text', '')
+        msg.thinking_active = msg_data.get('thinking_active', False)
+        msg.thinking_duration_ms = msg_data.get('thinking_duration_ms', 0)
+        msg.thinking_collapsed = msg_data.get('thinking_collapsed', True)
+
+
+def _restore_all_scenes(snapshots):
+    """Restore chat messages to ALL scenes from a snapshot dict."""
+    for scene in bpy.data.scenes:
+        snapshot = snapshots.get(_snapshot_key(scene))
+        if snapshot is None:
+            snapshot = snapshots.get(f"name:{scene.name}")
+        if snapshot is not None:
+            _restore_single_scene(scene, snapshot)
+
+
+# -- Tabs: the view does not move, no run outlives its tab -------------------
+
+
+def _snapshot_tabs():
+    """The windows' scenes and the live runs, for `undo_tab_guard`."""
+    try:
+        from .session import get_session_manager
+        from .undo_tab_guard import snapshot_runs, snapshot_view
+        windows = list(bpy.context.window_manager.windows)
+        return snapshot_view(windows), snapshot_runs(list(bpy.data.scenes), get_session_manager())
+    except Exception:  # noqa: BLE001 — a snapshot never breaks undo
+        logger.debug("Tab snapshot before undo failed", exc_info=True)
+        return None, None
+
+
+def _repair_tabs():
+    """Put every window back where it was and cancel runs whose tab is gone."""
+    global _saved_view, _saved_runs
+    view, runs = _saved_view, _saved_runs
+    _saved_view = _saved_runs = None
+    if view is None and runs is None:
+        return
+    try:
+        from .undo_tab_guard import repair_after_undo
+        repair_after_undo(view or {}, runs or {})
+    except Exception:  # noqa: BLE001 — a repair never breaks undo
+        logger.warning("Tab repair after undo failed", exc_info=True)
+
+
+# -- Handlers ----------------------------------------------------------------
+
+@persistent
+def _on_undo_pre(scene):
+    """Snapshot messages from ALL scenes before undo."""
+    global _saved_messages, _saved_view, _saved_runs
+    _saved_messages = _snapshot_all_scenes()
+    _saved_view, _saved_runs = _snapshot_tabs()
+
+
+def _notice_if_agents_running() -> None:
+    """Undo is one stack for the whole document: while another tab's agent is
+    running, say so once (a fixed toast id collapses repeated presses)."""
+    try:
+        from .session import get_session_manager
+        if not get_session_manager().has_active_session():
+            return
+        from mixar.modules.common.notifications import get_notification_store
+        from mixar.modules.common.scenes_log import slog
+        get_notification_store().push(
+            'warning', "Undo affects every tab while an agent is running", '',
+            id="mixie_undo_all_tabs", ttl_ms=4000)
+        slog("undo.banner", None)
+    except Exception:  # noqa: BLE001 — a notice never breaks undo
+        pass
+
+
+@persistent
+def _on_undo_post(scene):
+    """Restore messages to ALL scenes after undo."""
+    global _saved_messages
+    if _saved_messages is not None:
+        _restore_all_scenes(_saved_messages)
+        _saved_messages = None
+    _repair_tabs()
+    _notice_if_agents_running()
+
+
+@persistent
+def _on_redo_pre(scene):
+    """Snapshot messages from ALL scenes before redo."""
+    global _saved_messages, _saved_view, _saved_runs
+    _saved_messages = _snapshot_all_scenes()
+    _saved_view, _saved_runs = _snapshot_tabs()
+
+
+@persistent
+def _on_redo_post(scene):
+    """Restore messages to ALL scenes after redo."""
+    global _saved_messages
+    if _saved_messages is not None:
+        _restore_all_scenes(_saved_messages)
+        _saved_messages = None
+    _repair_tabs()
+    _notice_if_agents_running()
+
+
+# -- Registration ------------------------------------------------------------
+
+_handlers = (
+    (bpy.app.handlers.undo_pre, _on_undo_pre),
+    (bpy.app.handlers.undo_post, _on_undo_post),
+    (bpy.app.handlers.redo_pre, _on_redo_pre),
+    (bpy.app.handlers.redo_post, _on_redo_post),
+)
+
+
+def register():
+    """Install undo/redo handlers to protect chat messages."""
+    for handler_list, fn in _handlers:
+        if fn not in handler_list:
+            handler_list.append(fn)
+    logger.info("Chat undo guard registered")
+
+
+def unregister():
+    """Remove undo/redo handlers."""
+    for handler_list, fn in _handlers:
+        if fn in handler_list:
+            handler_list.remove(fn)
+    logger.info("Chat undo guard unregistered")

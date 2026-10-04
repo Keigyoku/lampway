@@ -1,0 +1,403 @@
+# SPDX-FileCopyrightText: 2025 Mixar Authors
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""
+Moodboard Media Operators
+
+Operators for adding images and videos to the moodboard.
+"""
+
+import bpy
+from bpy.types import Operator
+from bpy.props import (
+    StringProperty,
+    CollectionProperty,
+    EnumProperty,
+    FloatProperty,
+    BoolProperty,
+)
+
+from mixar.modules.common.i18n import n_, rpt_, tip_
+from ...core.media_import import load_media_file_to_board
+from ...core.moodboard_utils import place_new_moodboard_item
+from ....common.utils.file_select_utils import file_select_guard, mark_file_select_executed
+from ....common.utils.platform_utils import format_shortcut
+
+# The loader lives in ``core/media_import.py`` so non-UI callers (the chat
+# composer's attachment mirroring) can reuse it without importing an operator
+# module. Kept under the local name the operators below already use.
+_load_media_from_filepath = load_media_file_to_board
+
+
+def _media_filter_glob():
+    """Build the file picker filter from Blender's compiled media support."""
+    image_extensions = set(getattr(bpy.path, "extensions_image", ()))
+    movie_extensions = set(getattr(bpy.path, "extensions_movie", ()))
+    return ";".join(f"*{ext}" for ext in sorted(image_extensions | movie_extensions))
+
+
+class MIXIE_OT_moodboard_add_image(Operator):
+    """Import image or video file(s) and add them to the moodboard"""
+
+    bl_idname = "mixie.moodboard_add_image"
+    bl_label = "Add Media to Moodboard"
+    bl_description = (
+        f"Import image or video files and add them to the moodboard "
+        f"({format_shortcut('I')})"
+    )
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def description(cls, context, properties):
+        return tip_("Import image or video files and add them to the moodboard "
+                    "({shortcut})").format(shortcut=format_shortcut('I'))
+
+    filepath: StringProperty(
+        name="File Path",
+        description="Path to the image or video file",
+        subtype='FILE_PATH'
+    )
+
+    directory: StringProperty(
+        name="Directory",
+        description="Directory of the selected file(s)",
+        subtype='DIR_PATH'
+    )
+
+    files: CollectionProperty(
+        name="Files",
+        type=bpy.types.OperatorFileListElement
+    )
+
+    filter_glob: StringProperty(
+        default=_media_filter_glob(),
+        options={'HIDDEN'}
+    )
+
+    def invoke(self, context, event):
+        if not file_select_guard(self, context):
+            return {'FINISHED'}
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        import os
+
+        scene = context.scene
+
+        # Build list of filepaths from multi-selection
+        filepaths = []
+        if self.files and self.directory:
+            for file_elem in self.files:
+                if file_elem.name:
+                    full_path = os.path.join(self.directory, file_elem.name)
+                    filepaths.append(full_path)
+
+        # Fallback to single filepath if no multi-selection
+        if not filepaths and self.filepath:
+            filepaths.append(self.filepath)
+
+        if not filepaths:
+            self.report({'WARNING'}, "No file selected")
+            return {'CANCELLED'}
+
+        added_count = 0
+
+        # Each item is dropped into the nearest free slot near the viewport
+        # centre so uploads never stack on top of existing board media.
+        for i, raw_filepath in enumerate(filepaths):
+            # Validate and normalize the file path to prevent path traversal
+            try:
+                filepath = os.path.abspath(os.path.realpath(raw_filepath))
+            except (OSError, ValueError) as e:
+                self.report({'WARNING'}, rpt_("Invalid file path: {error}").format(error=e))
+                continue
+
+            if not os.path.isfile(filepath):
+                self.report({'WARNING'}, rpt_("File not found: {filepath}").format(
+                    filepath=filepath))
+                continue
+
+            item = _load_media_from_filepath(scene, filepath)
+            if item is None:
+                self.report({'WARNING'}, rpt_("Failed to load media: {filepath}").format(
+                    filepath=filepath))
+                continue
+
+            added_count += 1
+
+        if added_count == 0:
+            self.report({'ERROR'}, "No media could be loaded")
+            return {'CANCELLED'}
+        elif added_count == 1:
+            self.report({'INFO'}, "Added 1 media item to moodboard")
+        else:
+            self.report({'INFO'}, rpt_("Added {added_count} media items to moodboard").format(
+                added_count=added_count))
+
+        mark_file_select_executed(self)
+        return {'FINISHED'}
+
+
+# Blender requirement: enum-items callbacks must keep the returned strings
+# referenced from Python, otherwise they can be garbage-collected while the
+# UI still points at them (crashes/garbled text).
+_existing_image_items = []
+
+
+def _get_existing_images(self, context):
+    """Build enum items from images already loaded in Blender."""
+    global _existing_image_items
+    items = []
+    for i, img in enumerate(bpy.data.images):
+        # Skip internal/viewer images
+        if img.name.startswith('.') or img.type == 'RENDER_RESULT' or img.type == 'COMPOSITING':
+            continue
+        desc = f"{img.size[0]}x{img.size[1]}"
+        # 5-tuple with the image's preview icon so the search popup shows
+        # a thumbnail per row (operator enum popups have no automatic ID
+        # icon lookup, unlike prop()/template_ID browse dropdowns).
+        try:
+            preview = img.preview_ensure()
+            icon_id = preview.icon_id if preview else 0
+        except Exception:
+            icon_id = 0
+        items.append((img.name, img.name, desc, icon_id, i))
+    if not items:
+        items.append(('NONE', "No images available", "", 0, 0))
+    _existing_image_items = items
+    return items
+
+
+class MIXIE_OT_moodboard_add_existing_image(Operator):
+    """Pick image or video media already loaded in Blender"""
+
+    bl_idname = "mixie.moodboard_add_existing_image"
+    bl_label = "Add Existing Media"
+    bl_description = "Pick an image or video already loaded in Blender"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_property = "image_name"
+
+    image_name: EnumProperty(
+        name="Image",
+        description="Choose an existing image",
+        items=_get_existing_images,
+    )
+
+    def invoke(self, context, event):
+        context.window_manager.invoke_search_popup(self)
+        return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        if self.image_name == 'NONE':
+            self.report({'WARNING'}, "No images available in this file")
+            return {'CANCELLED'}
+
+        img = bpy.data.images.get(self.image_name)
+        if not img:
+            self.report({'WARNING'}, rpt_("Image '{image_name}' not found").format(
+                image_name=self.image_name))
+            return {'CANCELLED'}
+
+        scene = context.scene
+
+        # Add to moodboard collection, positioned into visible free space.
+        item = scene.mixie_moodboard_images.add()
+        item.image = img
+        item.scale = 1.0
+        item.z_order = len(scene.mixie_moodboard_images) - 1
+        place_new_moodboard_item(scene, item)
+
+        self.report({'INFO'}, rpt_("Added '{name}' to moodboard").format(name=img.name))
+        return {'FINISHED'}
+
+
+def _grab_external_clipboard():
+    """What the OS clipboard holds: a PIL image, a list of file paths, or None.
+
+    Returns ``(content, error)``; ``error`` is a user-facing message when the
+    clipboard could not be read at all (Pillow missing, platform failure).
+    """
+    try:
+        from PIL import ImageGrab
+    except ImportError:
+        return None, n_("Pillow is required for clipboard paste. Install it with: pip install Pillow")
+    try:
+        return ImageGrab.grabclipboard(), None
+    except Exception as e:
+        return None, rpt_("Failed to read clipboard: {error}").format(error=e)
+
+
+def _is_our_export(content, exported_size) -> bool:
+    """Whether the OS clipboard still holds the still our own copy put there.
+
+    The export is a best-effort PNG of the first copied still; every platform
+    hands it back at the same pixel size, so a size match reads as "ours" and
+    anything else (another picture, a copied file list) as something the user
+    copied more recently in another application -- which then wins.
+    """
+    if exported_size is None:
+        return False
+    size = getattr(content, "size", None)
+    try:
+        return size is not None and (int(size[0]), int(size[1])) == tuple(exported_size)
+    except (IndexError, TypeError, ValueError):
+        return False
+
+
+class MIXIE_OT_moodboard_paste_image(Operator):
+    """Paste the copied moodboard items, or an image from the system clipboard"""
+
+    bl_idname = "mixie.moodboard_paste_image"
+    bl_label = "Paste"
+    bl_description = (
+        f"Paste what was copied on a moodboard -- in this or another Mixar "
+        f"instance -- or an image from the system clipboard ({format_shortcut('V')})"
+    )
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def description(cls, context, properties):
+        return tip_("Paste what was copied on a moodboard -- in this or another Mixar "
+                    "instance -- or an image from the system clipboard ({shortcut})").format(
+            shortcut=format_shortcut('V'))
+
+    # Cursor position (canvas coords) captured at invoke so the paste lands
+    # under the mouse instead of at the viewport centre.
+    cursor_x: FloatProperty(options={'HIDDEN'})
+    cursor_y: FloatProperty(options={'HIDDEN'})
+    use_cursor: BoolProperty(default=False, options={'HIDDEN'})
+
+    def invoke(self, context, event):
+        region = context.region
+        view2d = getattr(region, "view2d", None) if region else None
+        if view2d is not None:
+            self.cursor_x, self.cursor_y = view2d.region_to_view(
+                event.mouse_region_x, event.mouse_region_y
+            )
+            self.use_cursor = True
+        else:
+            self.use_cursor = False
+        return self.execute(context)
+
+    def execute(self, context):
+        import os
+        import tempfile
+
+        scene = context.scene
+        anchor = (self.cursor_x, self.cursor_y) if self.use_cursor else None
+
+        # Primary path: the moodboard clipboard -- this process's last copy,
+        # or the on-disk buffer another Mixar instance wrote more recently
+        # (images, movies, text boxes, nodes and links; lossless). The one
+        # thing that outranks it is a picture the user copied in ANOTHER
+        # application since: the copy put its first still on the OS clipboard
+        # and recorded that still's size, so a different picture there is
+        # newer than our copy and wins. With nothing recorded (a copy of a
+        # movie, text or nodes; a failed export) the moodboard clipboard wins,
+        # as Blender's own copy buffer always does.
+        from ...core.moodboard_clipboard import (
+            clipboard_exported_size,
+            has_clipboard,
+            paste_clipboard,
+        )
+        clip_img = None
+        clipboard_read = False
+        if has_clipboard():
+            exported = clipboard_exported_size()
+            external_is_newer = False
+            if exported is not None:
+                clip_img, error = _grab_external_clipboard()
+                clipboard_read = error is None
+                external_is_newer = clip_img is not None and not _is_our_export(clip_img, exported)
+            if not external_is_newer:
+                pasted = paste_clipboard(scene, anchor=anchor)
+                if pasted:
+                    for area in context.screen.areas:
+                        if area.type == 'MIXIE':
+                            area.tag_redraw()
+                    self.report({'INFO'}, (rpt_("Pasted {count} item") if pasted == 1
+                                           else rpt_("Pasted {count} items")).format(count=pasted))
+                    return {'FINISHED'}
+                clip_img = None
+                clipboard_read = False
+
+        # Fallback: an external image from the system clipboard via Pillow.
+        if not clipboard_read:
+            clip_img, error = _grab_external_clipboard()
+            if error:
+                self.report({'ERROR'}, error)
+                return {'CANCELLED'}
+
+        if clip_img is None:
+            self.report({'WARNING'}, "No image found in clipboard")
+            return {'CANCELLED'}
+
+        # ImageGrab.grabclipboard() may return a list of file paths on some
+        # platforms (e.g. Windows when files are copied).  Handle both cases.
+        if isinstance(clip_img, list):
+            # List of file paths — use the first supported image file
+            image_extensions = {'.png', '.jpg', '.jpeg', '.bmp', '.tga', '.tiff', '.webp'}
+            filepath = None
+            for entry in clip_img:
+                if isinstance(entry, str) and os.path.splitext(entry)[1].lower() in image_extensions:
+                    filepath = entry
+                    break
+
+            if filepath is None:
+                self.report({'WARNING'}, "No image found in clipboard")
+                return {'CANCELLED'}
+
+            item = _load_media_from_filepath(context.scene, filepath, anchor=anchor)
+            if item is None:
+                self.report({'ERROR'}, "Failed to load clipboard image")
+                return {'CANCELLED'}
+
+            self.report({'INFO'}, "Pasted image from clipboard")
+            return {'FINISHED'}
+
+        # PIL Image object — save to a temporary file then load via the helper
+        try:
+            # Convert to RGBA for PNG compatibility
+            if clip_img.mode not in ('RGB', 'RGBA'):
+                clip_img = clip_img.convert('RGBA')
+
+            with tempfile.NamedTemporaryFile(
+                suffix='.png', prefix='mixar_clipboard_', delete=False
+            ) as tmp:
+                tmp_path = tmp.name
+
+            clip_img.save(tmp_path, format='PNG')
+        except Exception as e:
+            self.report({'ERROR'}, rpt_("Failed to save clipboard image: {error}").format(error=e))
+            return {'CANCELLED'}
+
+        try:
+            item = _load_media_from_filepath(context.scene, tmp_path, anchor=anchor)
+        finally:
+            # Clean up temp file regardless of outcome
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+        if item is None:
+            self.report({'ERROR'}, "Failed to load clipboard image")
+            return {'CANCELLED'}
+
+        # Rename the Blender image to something descriptive rather than the
+        # temp-file name that was just deleted.
+        if item.image:
+            item.image.name = "Clipboard Image"
+
+        self.report({'INFO'}, "Pasted image from clipboard")
+        return {'FINISHED'}
+
+
+classes = (
+    MIXIE_OT_moodboard_add_image,
+    MIXIE_OT_moodboard_add_existing_image,
+    MIXIE_OT_moodboard_paste_image,
+)

@@ -1,0 +1,427 @@
+/* SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
+/** \file
+ * \ingroup spview3d
+ *
+ * Native Flow-styled popups for the Director camera gate and tool rail.
+ *
+ * Presentation lives here; behavior stays owned by the Python operators
+ * every row invokes (`mixar.director_*`). RNA sliders bind straight to the
+ * registered Director/camera properties, so no value logic is duplicated.
+ */
+
+#include <algorithm>
+
+#include "BKE_context.hh"
+
+#include "BLT_translation.hh"
+
+#include "DNA_camera_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+
+#include "RNA_access.hh"
+
+#include "UI_interface.hh"
+#include "UI_interface_c.hh"
+#include "UI_resources.hh"
+
+#include "../interface/interface_mixar_profile_card.hh"
+
+#include "view3d_director.hh"
+#include "view3d_director_overlay_intern.hh"
+/* Mixar 5.2 port: namespace wrap. */
+namespace blender {
+
+bool director_popup_data_get(bContext *C, DirectorPopupData *r_data)
+{
+  Scene *scene = CTX_data_scene(C);
+  if (!view3d_director_state_read(scene, &r_data->state) || !r_data->state.available) {
+    return false;
+  }
+  view3d_director_state_pointer(scene, &r_data->state_ptr);
+  if (view3d_director_active_shot_pointer(scene, &r_data->shot_ptr)) {
+    PropertyRNA *camera_prop = RNA_struct_find_property(&r_data->shot_ptr, "camera");
+    if (camera_prop) {
+      PointerRNA camera_ptr = RNA_property_pointer_get(&r_data->shot_ptr, camera_prop);
+      Object *object = static_cast<Object *>(camera_ptr.data);
+      if (object && object->type == OB_CAMERA) {
+        r_data->camera_object = object;
+        r_data->camera = id_cast<Camera *>(object->data);
+        r_data->camera_data_ptr = RNA_id_pointer_create(&r_data->camera->id);
+      }
+    }
+  }
+  r_data->editable = r_data->camera != nullptr && !r_data->state.locked;
+  return true;
+}
+
+ui::Block *director_popup_block_begin(bContext *C, ARegion *region, const char *name)
+{
+  ui::Block *block = ui::block_begin(C, region, name, blender::ui::EmbossType::Emboss);
+  ui::block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
+  return block;
+}
+
+/* The bounds padding block_end applies around the rows. */
+static int director_popup_pad()
+{
+  return int(0.4f * UI_UNIT_X);
+}
+
+int director_popup_width(const void *arg, const int fallback)
+{
+  if (arg == nullptr) {
+    return fallback;
+  }
+  const float bar_w = *static_cast<const float *>(arg);
+  if (bar_w <= 0.0f) {
+    return fallback;
+  }
+  return std::max(int(bar_w) - director_popup_pad() * 2, UI_UNIT_X * 6);
+}
+
+void director_popup_block_end(ui::Block *block)
+{
+  ui::block_direction_set(block, ui::UI_DIR_DOWN);
+  ui::block_bounds_set_normal(block, director_popup_pad());
+  /* A detached chip under its bar: all four corners round. */
+  ui::block_flag_enable(block, ui::BLOCK_MIXAR_ROUND_ALL);
+  /* STAYS OPEN until the pointer leaves it or something outside is clicked.
+   *
+   * Without this a Director popup closed on the first row pressed, which made
+   * every one of them a one-setting-per-open affair: switch Depth of Field on
+   * and it vanished before the f-stop could be touched; pick Orthographic and
+   * it vanished before the scale could be. These are settings panels, not
+   * menus picking one item.
+   *
+   * The other half of the contract: a popup that stays open has to show what
+   * its rows just changed. Upstream creates every block-button popup with
+   * `can_refresh` false, so a lit chip or a value stayed as it was when the
+   * popup opened until it was closed and opened again (Depth of Field was
+   * where that was reported). The Cinema overlay and dock blocks carry
+   * `BLOCK_MIXAR_POPUPS_REFRESH`, which `button_activate_init` turns into a
+   * refreshable popup: after every row runs it is rebuilt from its create
+   * function. Rows may therefore follow a value a row inside changes. */
+  ui::block_flag_enable(block, ui::BLOCK_KEEP_OPEN);
+}
+
+void director_popup_state(ui::Button *but, const bool active, const bool enabled)
+{
+  if (active) {
+    ui::button_flag_enable(but, ui::BUT_ACTIVE_DEFAULT);
+  }
+  if (!enabled) {
+    ui::button_flag_enable(but, ui::BUT_DISABLED);
+  }
+  /* Paint as the Cinema surface's row class rather than a stock widget, so
+   * a list matches the block it opened from. The kind follows the button
+   * type: a NumSlider is the Slider track; a Row toggle stays an Option
+   * that lights from UI_SELECT (its value lives in `hardmax`, which the tag
+   * never writes); a Text or Menu field is left STOCK for now (a Field
+   * paints nothing idle — see MixarCinemaRowKind::Field); anything else is
+   * the option row, the graded chip when live. */
+  switch (ui::UI_mixar_button_type(but)) {
+    case ui::ButtonType::NumSlider:
+      ui::UI_mixar_cinema_row_tag(but, ui::MixarCinemaRowKind::Slider);
+      break;
+    case ui::ButtonType::Text:
+    case ui::ButtonType::Menu:
+      break;
+    case ui::ButtonType::Row:
+      ui::UI_mixar_cinema_row_tag(but, ui::MixarCinemaRowKind::Option);
+      break;
+    default:
+      ui::UI_mixar_cinema_row_tag(
+          but, active ? ui::MixarCinemaRowKind::Active : ui::MixarCinemaRowKind::Option);
+      break;
+  }
+}
+
+void director_popup_section_label(ui::Block *block,
+                                  const char *text,
+                                  const int y,
+                                  const int width)
+{
+  ui::Button *label = ui::uiDefBut(block,
+                                   ui::ButtonType::Label,
+                                   text,
+                                   0,
+                                   y,
+                                   short(width),
+                                   short(UI_UNIT_Y * 0.85f),
+                                   nullptr,
+                                   0,
+                                   0,
+                                   std::nullopt);
+  /* Every Director popup's captions read as the surface's 12 px caption
+   * (dim, no chrome) rather than a stock label. */
+  ui::UI_mixar_cinema_row_tag(label, ui::MixarCinemaRowKind::Caption);
+}
+
+namespace {
+
+ui::Button *popup_op_button(ui::Block *block,
+                       const char *operator_id,
+                       const int icon,
+                       const char *label,
+                       const int x,
+                       const int y,
+                       const int width,
+                       const int height,
+                       const char *tooltip)
+{
+  return director_overlay_operator_button(
+      block, operator_id, icon, label, x, y, width, height, tooltip);
+}
+
+/* -------------------------------------------------------------------- */
+/* Aspect: named output formats. */
+
+ui::Block *aspect_popup_create(bContext *C, ARegion *region, void *arg)
+{
+  ui::Block *block = director_popup_block_begin(C, region, __func__);
+  DirectorPopupData data;
+  if (!director_popup_data_get(C, &data) || !data.camera) {
+    director_popup_section_label(block, IFACE_("No active shot camera"), 0, UI_UNIT_X * 10);
+    director_popup_block_end(block);
+    return block;
+  }
+  const Scene *scene = CTX_data_scene(C);
+
+  struct AspectPreset {
+    const char *identifier;
+    const char *label;
+    int ratio_width;
+    int ratio_height;
+  };
+  /* Ratios only — mirrors ASPECT_PRESETS in `director/constants.py`. */
+  const AspectPreset presets[] = {
+      {"PHOTO", "3:2", 3, 2},
+      {"SMARTPHONE", "4:3", 4, 3},
+      {"WIDE", "16:9", 16, 9},
+      {"CINEMA_185", "1.85:1", 185, 100},
+      {"CINEMA_239", "2.39:1", 239, 100},
+      {"VERTICAL", "9:16", 9, 16},
+      {"SQUARE", "1:1", 1, 1},
+  };
+  const int width = director_popup_width(arg, UI_UNIT_X * 12);
+  const int row_h = int(UI_UNIT_Y * 1.15f);
+  int y = 0;
+  bool matched = false;
+  for (const AspectPreset &preset : presets) {
+    y -= row_h;
+    ui::Button *but = popup_op_button(block,
+                                 "MIXAR_OT_director_set_aspect",
+                                 ICON_NONE,
+                                 preset.label,
+                                 0,
+                                 y,
+                                 width,
+                                 row_h,
+                                 TIP_("Set this output aspect ratio"));
+    RNA_enum_set_identifier(
+        C, ui::button_operator_ptr_ensure(but), "preset", preset.identifier);
+    const bool active = int64_t(scene->r.xsch) * preset.ratio_height ==
+                        int64_t(scene->r.ysch) * preset.ratio_width;
+    director_popup_state(but, active, data.editable);
+    matched |= active;
+  }
+
+  /* A ratio the presets do not cover, edited HERE.
+   *
+   * It used to be a single row running an operator with
+   * `invoke_props_dialog`, which is Blender's stock dialog — grey chrome,
+   * OK/Cancel, nothing like the glass popup it was opened from. A ratio is
+   * two numbers, and the popup already stays open, so the two numbers live in
+   * it: `state.custom_aspect_x/y` as ordinary RNA fields, and one row that
+   * applies them. The caption is lit when nothing above matched, so the
+   * section still REPORTS that the frame is on a custom shape. */
+  const int gap = int(UI_UNIT_Y * 0.25f);
+  const int label_h = int(UI_UNIT_Y * 0.85f);
+  y -= gap + label_h;
+  director_popup_section_label(
+      block, matched ? IFACE_("Custom") : IFACE_("Custom (in use)"), y, width);
+
+  y -= row_h;
+  const int half_w = (width - gap) / 2;
+  ui::Button *ratio_x = ui::uiDefButR(block,
+                                      ui::ButtonType::Num,
+                                      "",
+                                      0,
+                                      y,
+                                      short(half_w),
+                                      short(row_h),
+                                      &data.state_ptr,
+                                      "custom_aspect_x",
+                                      0,
+                                      0,
+                                      0,
+                                      TIP_("Width side of the ratio"));
+  director_popup_state(ratio_x, false, data.editable);
+  ui::Button *ratio_y = ui::uiDefButR(block,
+                                      ui::ButtonType::Num,
+                                      "",
+                                      half_w + gap,
+                                      y,
+                                      short(width - half_w - gap),
+                                      short(row_h),
+                                      &data.state_ptr,
+                                      "custom_aspect_y",
+                                      0,
+                                      0,
+                                      0,
+                                      TIP_("Height side of the ratio"));
+  director_popup_state(ratio_y, false, data.editable);
+
+  y -= gap + row_h;
+  ui::Button *custom = popup_op_button(block,
+                                       "MIXAR_OT_director_set_custom_aspect",
+                                       ICON_NONE,
+                                       IFACE_("Frame at this ratio"),
+                                       0,
+                                       y,
+                                       width,
+                                       row_h,
+                                       TIP_("Frame this camera at the ratio above"));
+  director_popup_state(custom, !matched, data.editable);
+
+  director_popup_block_end(block);
+  return block;
+}
+
+/* -------------------------------------------------------------------- */
+/* Moves: one-click cinematic camera moves, timing, and handheld. */
+
+ui::Block *moves_popup_create(bContext *C, ARegion *region, void *arg)
+{
+  ui::Block *block = director_popup_block_begin(C, region, __func__);
+  DirectorPopupData data;
+  if (!director_popup_data_get(C, &data) || !data.camera) {
+    director_popup_section_label(block, IFACE_("No active shot camera"), 0, UI_UNIT_X * 10);
+    director_popup_block_end(block);
+    return block;
+  }
+
+  struct MovePair {
+    const char *section;
+    const char *left_identifier;
+    int left_icon;
+    const char *left_label;
+    const char *right_identifier;
+    int right_icon;
+    const char *right_label;
+  };
+  const MovePair pairs[] = {
+      {N_("Orbit"),
+       "ORBIT_LEFT",
+       ICON_LOOP_BACK,
+       N_("Left"),
+       "ORBIT_RIGHT",
+       ICON_LOOP_FORWARDS,
+       N_("Right")},
+      {N_("Dolly"), "DOLLY_IN", ICON_ZOOM_IN, N_("In"), "DOLLY_OUT", ICON_ZOOM_OUT, N_("Out")},
+      {N_("Crane"), "CRANE_UP", ICON_TRIA_UP, N_("Up"), "CRANE_DOWN", ICON_TRIA_DOWN, N_("Down")},
+      {N_("Pan"), "PAN_LEFT", ICON_BACK, N_("Left"), "PAN_RIGHT", ICON_FORWARD, N_("Right")},
+  };
+  const int width = director_popup_width(arg, UI_UNIT_X * 12);
+  const int row_h = int(UI_UNIT_Y * 1.15f);
+  const int label_h = int(UI_UNIT_Y * 0.85f);
+  const int gap = int(UI_UNIT_Y * 0.25f);
+  const int half_w = (width - gap) / 2;
+  int y = 0;
+
+  for (const MovePair &pair : pairs) {
+    y -= label_h;
+    director_popup_section_label(block, IFACE_(pair.section), y, width);
+    y -= row_h;
+    ui::Button *left = popup_op_button(block,
+                                  "MIXAR_OT_director_camera_move",
+                                  pair.left_icon,
+                                  IFACE_(pair.left_label),
+                                  0,
+                                  y,
+                                  half_w,
+                                  row_h,
+                                  TIP_("Capture this move as sparse keyframes"));
+    RNA_enum_set_identifier(
+        C, ui::button_operator_ptr_ensure(left), "move", pair.left_identifier);
+    director_popup_state(left, false, data.editable);
+    ui::Button *right = popup_op_button(block,
+                                   "MIXAR_OT_director_camera_move",
+                                   pair.right_icon,
+                                   IFACE_(pair.right_label),
+                                   half_w + gap,
+                                   y,
+                                   half_w,
+                                   row_h,
+                                   TIP_("Capture this move as sparse keyframes"));
+    RNA_enum_set_identifier(
+        C, ui::button_operator_ptr_ensure(right), "move", pair.right_identifier);
+    director_popup_state(right, false, data.editable);
+    y -= gap;
+  }
+
+  y -= gap + row_h;
+  ui::Button *spacing = ui::uiDefButR(block,
+                             ui::ButtonType::NumSlider,
+                             IFACE_("Keyframe Spacing"),
+                             0,
+                             y,
+                             short(width),
+                             short(row_h),
+                             &data.state_ptr,
+                             "beat_seconds",
+                             0,
+                             0,
+                             0,
+                             std::nullopt);
+  director_popup_state(spacing, false, data.editable);
+
+  y -= gap + row_h;
+  ui::Button *handheld = ui::uiDefIconTextButR(block,
+                                      ui::ButtonType::Toggle,
+                                      ICON_FORCE_TURBULENCE,
+                                      IFACE_("Handheld"),
+                                      0,
+                                      y,
+                                      short(half_w),
+                                      short(row_h),
+                                      &data.shot_ptr,
+                                      "handheld",
+                                      0,
+                                      std::nullopt);
+  director_popup_state(handheld, false, data.editable);
+  ui::Button *intensity = ui::uiDefButR(block,
+                               ui::ButtonType::NumSlider,
+                               "",
+                               half_w + gap,
+                               y,
+                               short(half_w),
+                               short(row_h),
+                               &data.shot_ptr,
+                               "handheld_strength",
+                               0,
+                               0,
+                               0,
+                               std::nullopt);
+  director_popup_state(intensity, false, data.editable);
+
+  director_popup_block_end(block);
+  return block;
+}
+
+}  // namespace
+
+ui::Block *view3d_director_aspect_popup_create(bContext *C, ARegion *region, void *arg)
+{
+  return aspect_popup_create(C, region, arg);
+}
+
+ui::Block *view3d_director_moves_popup_create(bContext *C, ARegion *region, void *arg)
+{
+  return moves_popup_create(C, region, arg);
+}
+}  // namespace blender

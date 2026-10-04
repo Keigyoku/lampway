@@ -1,0 +1,211 @@
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Operators for one-click plugin import.
+
+- ``mixie.scan_blender_plugins`` — find the newest vanilla Blender
+  install and populate the checklist with its user plugins.
+- ``mixie.plugin_import_select`` — tick / untick every row.
+- ``mixie.import_blender_plugins`` — copy all listed plugins into Mixar
+  and enable the ticked ones, then report a summary.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import bpy
+from bpy.props import BoolProperty
+from bpy.types import Operator
+
+from mixar.config.logging_config import get_logger
+from mixar.modules.common.i18n import iface_, n_, rpt_
+
+from ...core.enumerate import list_user_plugins
+from ...core.importer import import_all
+from ...constants import PLUGIN_IMPORT_TOAST_ID, PLUGIN_IMPORT_TOAST_TTL_MS
+from ...core.source_select import select_source
+
+logger = get_logger(__name__)
+
+
+def _state(context):
+    return getattr(context.window_manager, "mixie_plugin_import", None)
+
+
+class MIXIE_OT_scan_blender_plugins(Operator):
+    bl_idname = "mixie.scan_blender_plugins"
+    bl_label = "Scan for Blender Plugins"
+    bl_description = (
+        "Find your newest installed Blender version and list its "
+        "user-installed add-ons and extensions"
+    )
+    bl_options = {"REGISTER", "INTERNAL"}
+
+    def execute(self, context):
+        state = _state(context)
+        if state is None:
+            self.report({"ERROR"}, "Plugin import state unavailable")
+            return {"CANCELLED"}
+
+        # Newest-by-number is the wrong source: Blender creates a version's
+        # config dir on first launch, so an empty 5.1 next to a populated
+        # 5.0 would make Scan report nothing. select_source() prefers the
+        # newest version that actually has plugins.
+        choice = select_source()
+        if choice is None:
+            state.scanned = False
+            state.plugins.clear()
+            self.report(
+                {"WARNING"},
+                "No Blender installation found to import plugins from",
+            )
+            return {"CANCELLED"}
+
+        version, version_dir = choice.version, choice.path
+        plugins = choice.plugins
+
+        state.plugins.clear()
+        for info in plugins:
+            item = state.plugins.add()
+            item.name = info.name
+            item.label = info.label
+            item.kind = info.kind
+            item.enable = True
+            item.status = ""
+        state.source_version = version
+        state.source_path = str(version_dir)
+        state.active_index = 0
+        state.scanned = True
+        state.last_summary = ""
+
+        self.report(
+            {"INFO"},
+            rpt_("Found {count} plugin(s) in Blender {version}").format(
+                count=len(plugins), version=version),
+        )
+        return {"FINISHED"}
+
+
+class MIXIE_OT_plugin_import_select(Operator):
+    bl_idname = "mixie.plugin_import_select"
+    bl_label = "Select Plugins"
+    bl_description = "Tick or untick every plugin in the list"
+    bl_options = {"REGISTER", "INTERNAL"}
+
+    select: BoolProperty(default=True)
+
+    def execute(self, context):
+        state = _state(context)
+        if state is not None:
+            for item in state.plugins:
+                item.enable = self.select
+        return {"FINISHED"}
+
+
+class MIXIE_OT_import_blender_plugins(Operator):
+    bl_idname = "mixie.import_blender_plugins"
+    bl_label = "Import Plugins into Mixar"
+    bl_description = (
+        "Copy every listed plugin into Mixar and enable the ticked ones"
+    )
+    bl_options = {"REGISTER", "INTERNAL"}
+
+    @classmethod
+    def poll(cls, context):
+        state = _state(context)
+        return bool(state and state.scanned and len(state.plugins))
+
+    def execute(self, context):
+        state = _state(context)
+        if state is None or not state.source_path:
+            self.report({"ERROR"}, "Nothing scanned — run Scan first")
+            return {"CANCELLED"}
+
+        version_dir = Path(state.source_path)
+        plugins = list_user_plugins(version_dir)
+        if not plugins:
+            self.report({"WARNING"}, "No plugins found at the scanned location")
+            return {"CANCELLED"}
+
+        selection = {item.name: item.enable for item in state.plugins}
+        summary = import_all(plugins, selection)
+
+        # Mirror per-plugin outcome back into the checklist rows.
+        status_by_name = {}
+        for outcome in summary.items:
+            status_by_name[outcome.name] = outcome.enable_status or outcome.import_status
+        for item in state.plugins:
+            item.status = status_by_name.get(item.name, "")
+
+        template = n_(
+            "Imported {imported}, already present {already_present}, "
+            "failed {failed} · enabled {enabled}"
+        )
+        if summary.enable_failed:
+            template = n_(
+                "Imported {imported}, already present {already_present}, "
+                "failed {failed} · enabled {enabled}, {enable_failed} couldn't enable"
+            )
+        msg = rpt_(template).format(
+            imported=summary.imported, already_present=summary.already_present,
+            failed=summary.failed, enabled=summary.enabled,
+            enable_failed=summary.enable_failed,
+        )
+        state.last_summary = msg
+
+        # Surface the first real failure reason (missing dep, bad module id,
+        # register() error) so the user doesn't have to read the console.
+        first_fail = next(
+            (o for o in summary.items if o.message), None
+        )
+        reason = ""
+        if first_fail is not None:
+            reason = f"{first_fail.name}: {first_fail.message}"
+            logger.warning("Plugin import first failure — %s", reason)
+            state.last_summary += f"\n{reason}"
+
+        _notify_summary(summary, reason)
+        report_level = "WARNING" if (summary.failed or summary.enable_failed) else "INFO"
+        self.report({report_level}, msg)
+        return {"FINISHED"}
+
+
+def _notify_summary(summary, first_failure: str = "") -> None:
+    """Report the import outcome as a viewport notification.
+
+    Same bottom-left toast lane as every other alert. A clean import fades on
+    its own; any failure stays until dismissed and names the first reason.
+    """
+    lines = [iface_("Imported: {count}").format(count=summary.imported)]
+    if summary.already_present:
+        lines.append(iface_("Already in Mixar: {count}").format(count=summary.already_present))
+    lines.append(iface_("Enabled: {count}").format(count=summary.enabled))
+    if summary.failed:
+        lines.append(iface_("Failed to copy: {count}").format(count=summary.failed))
+    if summary.enable_failed:
+        lines.append(iface_("Couldn't enable: {count}").format(count=summary.enable_failed))
+
+    had_failure = bool(summary.failed or summary.enable_failed)
+    if had_failure and first_failure:
+        lines.append(first_failure)
+    try:
+        from mixar.modules.common.notifications import get_notification_store
+
+        get_notification_store().push(
+            "warning" if had_failure else "success",
+            "Blender Plugin Import",
+            body="\n".join(lines),
+            ttl_ms=0 if had_failure else PLUGIN_IMPORT_TOAST_TTL_MS,
+            id=PLUGIN_IMPORT_TOAST_ID,
+        )
+    except Exception as e:  # noqa: BLE001 — self.report still carries it
+        logger.debug("plugin import notification failed: %s", e)
+
+
+classes = (
+    MIXIE_OT_scan_blender_plugins,
+    MIXIE_OT_plugin_import_select,
+    MIXIE_OT_import_blender_plugins,
+)

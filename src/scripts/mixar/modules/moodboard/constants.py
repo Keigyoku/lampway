@@ -1,0 +1,500 @@
+# SPDX-FileCopyrightText: 2025 Mixar Authors
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""
+Moodboard Module Constants
+
+Centralized configuration values for the moodboard module.
+"""
+
+from mixar.modules.common.constants import SKETCH_COLOR_RGBA
+from mixar.modules.common.i18n import n_
+
+# ============================================================================
+# JOB QUEUE IDENTIFIERS
+# ============================================================================
+
+SCENE_GEN_CAPABILITY_KEY = "scene_gen"
+# The Segments to 3D service moved to its own "Character Parts" capability
+# (backend catalog migration); segment-flow composite jobs stamp this key so
+# their queue badge follows the Character Parts label instead of Scene Gen.
+CHARACTER_PARTS_CAPABILITY_KEY = "character_parts"
+# Frozen backend contract: the job_queue job_type / service key stays
+# "scene_gen" even though the service's capability moved to Character Parts.
+SCENE_GEN_JOB_TYPE = "scene_gen"
+# NOTE: the model slug is deliberately NOT a constant here. Model rows are
+# server-owned and change without a client release, so the submit path reads
+# the service's default from the generation catalog
+# (``generation_params.catalog_default_model``) and aborts when the catalog
+# cannot answer.
+
+# ============================================================================
+# TURNAROUND / MULTI-VIEW DETECTION
+# ============================================================================
+
+# The multi-view set holds COMPANIONS ONLY. The main image is the Model Gen
+# tab's Input Image and is never a member of the group — so there is no
+# 'main', 'front' or 'none' label here. The seven ids below are exactly the
+# vendor's ``ViewType`` enum (backend modules/hunyuan/schemas/requests.py);
+# Hunyuan Pro takes 1 frontal image + these 7 angles, 8 images maximum.
+TURNAROUND_VIEW_TYPES = (
+    ('left', "Left", "Left side view"),
+    ('right', "Right", "Right side view"),
+    ('back', "Back", "Rear view"),
+    ('top', "Top", "Top-down view"),
+    ('bottom', "Bottom", "Bottom-up view"),
+    ('left_front', "Left Front", "Three-quarter view from the left"),
+    ('right_front', "Right Front", "Three-quarter view from the right"),
+)
+
+# Assignment order for "Add Selected" — the next unused angle is handed out
+# from this sequence, so the common left/right/back turnaround needs no
+# dropdown fiddling at all.
+TURNAROUND_VIEW_ORDER = tuple(item[0] for item in TURNAROUND_VIEW_TYPES)
+
+# Label a detached image falls back to. Meaningless on its own: membership is
+# ``turnaround_group != ""``, never the view type.
+TURNAROUND_VIEW_DEFAULT = TURNAROUND_VIEW_ORDER[0]
+
+# Vendor cap: 1 frontal + 7 angles. The Input Image is the frontal one, so the
+# group itself tops out at seven companions.
+TURNAROUND_MAX_COMPANIONS = len(TURNAROUND_VIEW_ORDER)
+
+
+# ---------------------------------------------------------------------------
+# detect-views response vocabulary (NOT view_type labels)
+# ---------------------------------------------------------------------------
+
+# ``panels[0].view_type`` is always this: the sheet's front orthographic,
+# falling back to its hero render when the sheet has no front. It becomes the
+# tab's Input Image — never a group member.
+DETECT_PANEL_MAIN = 'main'
+
+# Returned only when the sheet has BOTH a front and a hero render. No vendor
+# ``ViewType`` describes it, so it is not a companion either: it lands on the
+# moodboard untagged next to the main, as an alternative Input Image for
+# stylised sheets that reconstruct badly from the flat front.
+DETECT_PANEL_HERO = 'hero'
+
+# ============================================================================
+# IMAGE EDITING CONSTANTS
+# ============================================================================
+
+# Image display size (must match C++ MOODBOARD_IMAGE_BASE_SIZE)
+MOODBOARD_IMAGE_BASE_SIZE = 700.0
+
+# Horizontal offset between original and masked image
+MOODBOARD_IMAGE_SPACING = 50.0
+
+# Horizontal gap between multiple images added at once
+MOODBOARD_MULTI_IMAGE_GAP = 50.0
+
+# Maximum number of concentric rings searched when looking for a free slot to
+# drop a newly added image so it does not overlap existing moodboard images.
+MOODBOARD_MAX_PLACEMENT_RING = 16
+
+# ============================================================================
+# CHARACTER COMPONENT DETAIL WORKFLOW
+# ============================================================================
+
+# Image Gen receives an ordered source/cutout/mask reference set. Two inputs
+# are the minimum that can preserve both the selected pixels and the exact
+# binary SAM3 selection; models that cannot accept both fail closed.
+CHARACTER_COMPONENT_REQUIRED_REFERENCES = 2
+CHARACTER_COMPONENT_FULL_CONTEXT_REFERENCES = 3
+CHARACTER_COMPONENT_REFERENCE_ROLES = {
+    False: ("component_cutout", "selection_mask"),
+    True: ("full_context", "component_cutout", "selection_mask"),
+}
+
+# SAM3 runs on a resized upload, so its mask crop is mapped onto the original
+# source before resizing. A materially different aspect ratio means the source
+# was edited after segmentation and the mask must not be applied silently.
+CHARACTER_COMPONENT_ASPECT_TOLERANCE = 0.015
+CHARACTER_COMPONENT_MASK_THRESHOLD = 128
+CHARACTER_COMPONENT_CROP_PADDING = 0.18
+CHARACTER_COMPONENT_MIN_PADDING_PX = 16
+CHARACTER_COMPONENT_MAX_REFERENCE_DIMENSION = 2048
+# White, not mid-gray: this cutout is both the node-card preview the user reads
+# as "what I selected" and the component_cutout reference sent to image gen.
+# A neutral gray reads as part of the subject, so the model kept treating the
+# backdrop as material to reinterpret, and every view invented a different one.
+# White is the same backdrop the generated views are asked to render on, which
+# keeps the reference and its outputs on one consistent ground.
+CHARACTER_COMPONENT_BACKGROUND_RGB = (255, 255, 255)
+CHARACTER_COMPONENT_JPEG_QUALITY = 92
+
+CHARACTER_COMPONENT_IMAGE_ROLES = (
+    ('NONE', "Ordinary Image", "Image outside a character-component workflow"),
+    ('REFERENCE', "Reference", "Source/reference moodboard image"),
+    (
+        'COMPONENT_DETAIL',
+        "Component Detail",
+        "Detailed image generated from a named SAM3 character component",
+    ),
+    (
+        'DEBUG_MASK',
+        "Debug SAM3 Mask",
+        "Developer-only raw mask returned by SAM3",
+    ),
+)
+
+CHARACTER_COMPONENT_REFERENCE_GUIDANCE = {
+    False: (
+        "Reference image 1 is the only target appearance: a padded cutout of "
+        "the selected component on a neutral background. Reference image 2 is "
+        "a control mask, not visual content: white pixels define the only "
+        "allowed subject and black pixels must be excluded."
+    ),
+    True: (
+        "Reference image 1 is the full character and defines the overall "
+        "identity and design language only; do not reproduce the full character. "
+        "Reference image 2 is the target appearance: a padded cutout of the "
+        "selected component on a neutral background. Reference image 3 is a "
+        "control mask, not visual content: white pixels define the only allowed "
+        "subject and black pixels must be excluded."
+    ),
+}
+
+CHARACTER_COMPONENT_DETAIL_PROMPT = (
+    "Create high-detail standalone reference images of the exact character "
+    "component named {component_name}. {reference_guidance} Treat the binary "
+    "mask as a hard spatial constraint. Never render the mask's black/white "
+    "graphics, mask edges, background, or objects outside its white region. "
+    "Preserve the "
+    "selected component's silhouette, proportions, construction, colors, "
+    "materials, surface details, wear, and art style. Do not redesign it and "
+    "do not merge it with neighboring body parts, clothing, or equipment. "
+    "When overlap hides part of the component, complete only the necessary "
+    "occluded surfaces consistently with the visible design. Show the whole "
+    "component once, centered and unobstructed, as a clean orthographic-style "
+    "product reference on a plain neutral background. If multiple outputs are "
+    "requested, make each output a distinct useful view (front, side, rear, "
+    "or close-up) rather than a collage or duplicate. No character body, no "
+    "unselected gear, no extra objects, and no text or labels."
+)
+
+# ============================================================================
+# IMAGE PROPERTY DEFAULTS
+# ============================================================================
+
+IMAGE_POSITION_X_DEFAULT = 0.0
+IMAGE_POSITION_Y_DEFAULT = 0.0
+IMAGE_SCALE_DEFAULT = 1.0
+IMAGE_SCALE_MIN = 0.1
+IMAGE_SCALE_MAX = 50.0
+IMAGE_Z_ORDER_DEFAULT = 0
+IMAGE_ROTATION_DEFAULT = 0.0
+IMAGE_ROTATION_MIN = -360.0
+IMAGE_ROTATION_MAX = 360.0
+IMAGE_FLIP_HORIZONTAL_DEFAULT = False
+IMAGE_FLIP_VERTICAL_DEFAULT = False
+IMAGE_SELECTED_DEFAULT = False
+
+# ============================================================================
+# TEXTBOX PROPERTY DEFAULTS
+# ============================================================================
+
+TEXTBOX_TEXT_DEFAULT = "Text"
+TEXTBOX_POSITION_X_DEFAULT = 0.0
+TEXTBOX_POSITION_Y_DEFAULT = 0.0
+TEXTBOX_FONT_SIZE_DEFAULT = 48
+TEXTBOX_FONT_SIZE_MIN = 8
+TEXTBOX_FONT_SIZE_MAX = 500
+TEXTBOX_COLOR_DEFAULT = (1.0, 1.0, 1.0, 1.0)
+TEXTBOX_BACKGROUND_COLOR_DEFAULT = (0.0, 0.0, 0.0, 0.0)
+TEXTBOX_WIDTH_DEFAULT = 400.0
+TEXTBOX_WIDTH_MIN = 50.0
+TEXTBOX_WIDTH_MAX = 2000.0
+TEXTBOX_HEIGHT_DEFAULT = 100.0
+TEXTBOX_HEIGHT_MIN = 30.0
+TEXTBOX_HEIGHT_MAX = 2000.0
+TEXTBOX_ROTATION_DEFAULT = 0.0
+TEXTBOX_ROTATION_MIN = -360.0
+TEXTBOX_ROTATION_MAX = 360.0
+TEXTBOX_Z_ORDER_DEFAULT = 0
+
+# ============================================================================
+# SCENE PROPERTY DEFAULTS
+# ============================================================================
+
+MOODBOARD_SELECTED_INDEX_DEFAULT = -1
+MOODBOARD_PROMPT_DEFAULT = ""
+MOODBOARD_GLOBAL_CONTEXT_DEFAULT = ""
+MOODBOARD_USE_STYLE_CONTEXT_DEFAULT = True
+MOODBOARD_ASPECT_RATIO_DEFAULT = '16:9'
+
+# ============================================================================
+# ENUM VALUES
+# ============================================================================
+
+# NOTE: there is deliberately no GEMINI_MODELS list here. The image_gen models
+# are catalog rows served under the catalog's OWN slugs ('pro', 'flash-3-1'),
+# not raw vendor ids — keeping a second vocabulary client-side is how the two
+# drifted apart. The Model dropdown builds its items from
+# ``generation_catalog_cache.get_model_enum_items('image_gen')``.
+
+ASPECT_RATIOS = [
+    ('1:1', "1:1 Square", "Square aspect ratio"),
+    ('16:9', "16:9 Wide", "Widescreen aspect ratio"),
+    ('9:16', "9:16 Portrait", "Portrait aspect ratio"),
+    ('4:3', "4:3", "Standard aspect ratio"),
+    ('3:4', "3:4", "Portrait aspect ratio"),
+    ('21:9', "21:9 Ultrawide", "Ultra-wide aspect ratio")
+]
+
+TEXT_ALIGNMENTS = [
+    ('LEFT', "Left", "Align text to the left"),
+    ('CENTER', "Center", "Center text"),
+    ('RIGHT', "Right", "Align text to the right")
+]
+
+EDIT_TOOL_TYPES = [
+    ('NONE', "None", "No tool active"),
+    ('CROP', "Crop", "Crop tool"),
+    ('BOX_MASK', "Box Mask", "Box mask selection"),
+    ('LASSO', "Lasso", "Lasso selection"),
+    ('MAGIC_SELECT', "Magic Select", "AI-powered object selection"),
+    ('ANNOTATE', "Annotate", "Draw freehand notes on a reference image"),
+]
+
+# ============================================================================
+# TOOL SETTINGS
+# ============================================================================
+
+# Lasso tool minimum distance between points (in normalized 0-1 space)
+LASSO_MIN_DISTANCE_THRESHOLD = 0.0001
+
+# Lasso tool minimum number of points required for mask
+LASSO_MIN_POINTS = 3
+
+# A server-side inference can become stranded in queued/generating state (for
+# example after a GPU worker failure). Never leave a moodboard tool pending
+# forever. Individual status/download HTTP calls have shorter transport
+# timeouts; this is the end-to-end lifecycle deadline.
+SCENE_SEGMENT_REQUEST_TIMEOUT_SECONDS = 120.0
+SCENE_SEGMENT_POLL_INTERVAL_SECONDS = 0.5
+SCENE_SEGMENT_HTTP_TIMEOUT_SECONDS = 30.0
+# The backend proxies the upload to SAM3 with its own 120s timeout
+# (SCENE_SEGMENT_API_TIMEOUT) and answers with the upstream error when that
+# expires; a client timeout equal to it fires first and hides that answer.
+SCENE_SEGMENT_UPLOAD_TIMEOUT_SECONDS = 135.0
+
+# Freehand annotation defaults. Width is measured in display pixels at the
+# image's base scale and grows with image/canvas zoom.
+# Display-space sRGB, matching the native canvas stroke renderer (#696F6C).
+ANNOTATION_COLOR_DEFAULT = SKETCH_COLOR_RGBA
+ANNOTATION_WIDTH_DEFAULT = 4.0
+ANNOTATION_WIDTH_MIN = 1.0
+ANNOTATION_WIDTH_MAX = 32.0
+ANNOTATION_MIN_DISTANCE = 0.001
+ANNOTATION_MAX_POINTS_PER_STROKE = 4096
+CANVAS_ANNOTATION_SAMPLE_PX = 2.0
+
+# Warning threshold for reference image count
+REFERENCE_IMAGES_MAX_WITH_WARNING = 14
+
+# ============================================================================
+# SIDEBAR LAYOUT CONSTANTS (must match C++ constants)
+# ============================================================================
+
+# Sidebar dimensions
+SIDEBAR_WIDTH_DEFAULT = 320
+SIDEBAR_MIN_WIDTH = 240
+SIDEBAR_MAX_WIDTH = 600
+SIDEBAR_PADDING = 12
+SIDEBAR_SECTION_SPACING = 16
+SIDEBAR_ELEMENT_SPACING = 8
+
+# UI element sizes
+SIDEBAR_BUTTON_HEIGHT = 36
+SIDEBAR_GENERATE_BUTTON_HEIGHT = 48
+IMAGE_TYPE_BUTTON_SIZE = 80
+IMAGE_TYPE_GRID_COLUMNS = 2
+UPLOAD_ZONE_HEIGHT = 120
+MODEL_TYPE_BUTTON_WIDTH = 140
+POSE_BUTTON_SIZE = 60
+LICENSE_BUTTON_WIDTH = 140
+
+# Header
+HEADER_HEIGHT = 48
+HEADER_ICON_SIZE = 24
+
+# Cost indicator
+COST_INDICATOR_HEIGHT = 32
+COST_INDICATOR_ICON_SIZE = 16
+
+# Generate button scale factor (used in popup draw methods)
+GENERATE_BUTTON_SCALE_Y = 1.4
+
+# Sidebar Python UI spacing tokens
+SEP_SECTION = 0.8     # Between major sections
+SEP_INTRA   = 0.15    # Between elements inside a box
+SEP_FOOTER  = 1.0     # Before the generate button
+HINT_SCALE_Y = 0.85   # Subtle info/constraint labels
+
+# Colors (RGBA tuples)
+SIDEBAR_UPLOAD_ZONE_BORDER = (0.5, 0.5, 0.5, 0.5)
+SIDEBAR_GENERATE_BUTTON_BG = (0.6, 0.8, 0.3, 1.0)  # Green
+SIDEBAR_GENERATE_BUTTON_HOVER = (0.7, 0.9, 0.4, 1.0)
+
+# ============================================================================
+# SCENE ASSET FILLER CONSTANTS
+# ============================================================================
+
+# Minimum similarity score to accept an asset library match
+MIN_SIMILARITY_SCORE = 0.3
+
+# Maximum number of prompts per batch search request
+BATCH_SEARCH_CHUNK_SIZE = 20
+
+# ============================================================================
+# MOODBOARD GRAPH STRING LENGTH CONTRACT
+# ============================================================================
+
+# Frozen contract with the C++ canvas. Every value below MUST stay strictly
+# smaller than the fixed stack buffer the corresponding ``RNA_string_get`` call
+# writes into, mirroring the existing moodboard textbox pairing
+# (``maxlen=2048`` <-> ``char text_buffer[4096]``). Without a ``maxlen`` an RNA
+# string is unbounded and ``RNA_string_get`` is strcpy-shaped, so a long value —
+# a catalog-published ``label``, or ``object_names`` written by an agent script —
+# smashes the stack during draw. The C++ side additionally clamps on read
+# (``mixie_rna_string_get_clamped``), because ``maxlen`` is only enforced on
+# assignment and a .blend saved by an older build can still carry a longer value.
+GRAPH_NODE_ID_MAXLEN = 64          # <-> char node_id[128]
+GRAPH_SOCKET_ID_MAXLEN = 96        # <-> char socket_id[128] / to_socket[128]
+GRAPH_ACCEPTED_TYPES_MAXLEN = 96
+GRAPH_SERVICE_KEY_MAXLEN = 96
+GRAPH_MODEL_SLUG_MAXLEN = 128
+GRAPH_LABEL_MAXLEN = 192           # <-> char label[256] / title[256]
+GRAPH_DESCRIPTION_MAXLEN = 512
+GRAPH_WIDGET_MAXLEN = 48           # <-> char widget[64]
+GRAPH_OBJECT_NAMES_MAXLEN = 2048   # <-> char names[4096]
+GRAPH_JOB_ID_MAXLEN = 128
+GRAPH_ERROR_MAXLEN = 512
+GRAPH_PARAM_NAME_MAXLEN = 96
+GRAPH_PROGRESS_MAXLEN = 96          # <-> char progress[128]
+GRAPH_NOTICE_MAXLEN = 192           # <-> char notice[256]
+# Canvas grid Ctrl snaps to during a move. Must equal MOODBOARD_SNAP_GRID in
+# mixie_intern.hh: the C++ media/node drags and the Python grab modal move the
+# same items, so a mismatch would snap them to two different grids depending on
+# which gesture was used.
+GRAPH_SNAP_GRID = 40.0
+# Prompt fields (the node's and the sidebar tabs'). Deliberately generous:
+# video models in particular take long, shot-by-shot production notes, and the
+# old 4096 was a guess that no provider actually asks for. Still BOUNDED --
+# an RNA string without a maxlen is unbounded, which is the overflow hazard
+# `test_node_graph_hardening` exists to prevent. NOT part of the
+# GRAPH_*_MAXLEN <-> MIXIE_*_BUF pairings: C++ only ever reads a prompt through
+# `mixie_rna_string_get_clamped` into MIXIE_GRAPH_PROMPT_PREVIEW_BUF, a
+# deliberately tiny one-line preview buffer that truncates by design.
+GRAPH_PROMPT_MAXLEN = 32768
+
+# ---------------------------------------------------------------------------
+# Canvas frames (grouping)
+# ---------------------------------------------------------------------------
+# A frame is a FIRST-CLASS canvas object with its own rect, name and colour --
+# not a bounding box derived from whichever items happen to carry an index.
+# That is what lets a frame be empty, be dragged to open canvas, be resized to
+# claim space, and adopt what is dropped inside it. Membership is the item's
+# own `frame_id` (a stable string), never a collection index: the legacy
+# `group_index` had to be renumbered by hand in three separate operators every
+# time a group was removed.
+FRAME_NAME_MAXLEN = 96             # <-> char name[128] (MIXIE_FRAME_NAME_BUF)
+
+# Eight pastels, CYCLED (`len(frames) % 8`) rather than picked at random: a
+# random pick gives two adjacent frames the same colour about one time in
+# eight and is not reproducible in QA. What is stored is the INDEX, so the
+# palette can be retuned later and saved boards follow it.
+#
+# Must equal `FRAME_PALETTE` in `mixie_moodboard_frame_geometry.cc`, which is the
+# painter's own copy -- `tests/moodboard/test_frame_ui.py` pins the two
+# together. The swatch menu here is the only Python reader.
+FRAME_PALETTE = (
+    (n_("Rose"), (0.96, 0.64, 0.64)),
+    (n_("Apricot"), (0.97, 0.79, 0.61)),
+    (n_("Butter"), (0.95, 0.91, 0.63)),
+    (n_("Mint"), (0.72, 0.89, 0.66)),
+    (n_("Aqua"), (0.64, 0.86, 0.85)),
+    (n_("Sky"), (0.65, 0.77, 0.94)),
+    (n_("Lilac"), (0.76, 0.69, 0.93)),
+    (n_("Orchid"), (0.94, 0.69, 0.84)),
+)
+FRAME_PALETTE_SIZE = len(FRAME_PALETTE)
+
+# A frame created from a selection wraps its members with this much slack on
+# every side (canvas units), so the members are not flush against the border.
+FRAME_SELECTION_PADDING = 56.0
+# A frame created with nothing selected: somewhere to drop things into.
+FRAME_DEFAULT_WIDTH = 900.0
+FRAME_DEFAULT_HEIGHT = 640.0
+# Floors. A frame narrower than its own name plus its action row is unusable,
+# and a resize must not be able to invert the rect. Mirrored as
+# MOODBOARD_FRAME_MIN_W/H in mixie_intern.hh.
+FRAME_MIN_WIDTH = 220.0
+FRAME_MIN_HEIGHT = 160.0
+
+
+# Editable node templates: identity, label, icon, catalog capability.
+# The canvas strip prioritizes 3D, video and mesh, then reveals the rest in
+# this list order as width allows; every entry stays in the + menu.
+NODE_TEMPLATES = (
+    ('IMAGE_GEN', n_("Generate Image"), 'IMAGE_DATA', 'image_gen'),
+    ('MODEL_3D', n_("Image to 3D"), 'MESH_DATA', 'model_gen'),
+    ('VIDEO_GEN', n_("Video Generation"), 'FILE_MOVIE', 'video_gen'),
+    ('VIDEO_UPSCALE', n_("Upscale Video"), 'FULLSCREEN_ENTER', 'video_upscale'),
+    ('WORLD_LABS', n_("Generate Splat"), 'WORLD', 'world_labs'),
+    ('PBR_GEN', n_("PBR Generation"), 'TEXTURE', 'pbr_generation'),
+    ('RETOPOLOGY', n_("Retopology"), 'MOD_REMESH', 'retopology'),
+    ('MESH_SEGMENT', n_("Mesh Segmentation"), 'MOD_EXPLODE', 'mesh_segmentation'),
+    ('AUTO_RIG', n_("Auto Rig"), 'ARMATURE_DATA', 'animate'),
+    ('MESH_REFERENCE', n_("Add Mesh"), 'OUTLINER_OB_MESH', None),
+    ('CHARACTER_PARTS', n_("Character Parts"), 'OUTLINER_OB_ARMATURE', 'character_parts'),
+    ('CHARACTER_SHEET_3D', n_("Character Sheet to 3D"), 'COMMUNITY', 'model_gen'),
+)
+
+# Display-only explanations when a catalog omits help. Match captions, never
+# payload keys; options, defaults, limits and model-specific rules stay in the catalog.
+PARAMETER_HELP_BY_LABEL = {
+    'aspect ratio': n_("The shape of the result, expressed as width:height. Wider ratios suit landscapes; taller ratios suit portraits."),
+    'resolution': n_("The detail level of the result. Higher settings can preserve finer detail and produce larger files."),
+    'image size': n_("The dimensions and orientation of the generated image."),
+    'images': n_("How many images to create in one generation."),
+    'number of images': n_("How many images to create in one generation."),
+    'style': n_("The visual treatment applied to the generated image."),
+    'texture': n_("Generate surface color and appearance for the mesh."),
+    'pbr': n_("Generate material maps for physically based shading, so the surface responds to scene lighting."),
+    'pbr textures': n_("Generate material maps for physically based shading, so the surface responds to scene lighting."),
+    'pbr materials': n_("Generate material maps for physically based shading, so the surface responds to scene lighting."),
+    'face limit': n_("The maximum polygon budget for the mesh. A lower limit keeps geometry lighter; a higher limit allows more detail."),
+    'face count': n_("The requested polygon count. Lower values keep the mesh lighter; higher values allow more geometric detail."),
+    'face target': n_("The target polygon count after simplification. Lower values reduce geometry and may remove small details."),
+    'texture quality': n_("The level of detail used when generating surface textures."),
+    'texture size': n_("The pixel dimensions of the texture maps. Larger maps can hold finer detail and use more memory."),
+    'remesh': n_("Rebuild the mesh's topology as part of generation."),
+    'quad topology': n_("Request topology built from four-sided faces for easier mesh editing."),
+    'granularity': n_("How finely the model separates the input into parts. Finer settings can separate smaller details."),
+    'split by connectivity': n_("Separate disconnected pieces of geometry into individual parts."),
+    'generate audio': n_("Include generated sound with the video."),
+    'generate mesh': n_("Create mesh geometry from the input."),
+    'simplify mesh': n_("Reduce mesh complexity after reconstruction."),
+    'min mask pixels': n_("The minimum mask area, in pixels. Increasing it filters out smaller regions."),
+    'vertex color': n_("Store color on the mesh vertices; the available color detail depends on the geometry."),
+    'bake textures': n_("Bake surface appearance into texture maps for the mesh."),
+    'texture baking': n_("Bake surface appearance into texture maps for the mesh."),
+    'compression': n_("How the generated asset is compressed for storage and transfer."),
+    'alignment': n_("How generated textures are aligned to the source image or mesh geometry."),
+    'seed': n_("Controls the random starting point. Reusing a seed with the same settings helps compare variations."),
+    'texture seed': n_("Controls the random starting point for texture generation. Reuse it with the same settings to compare variations."),
+    'rig type': n_("The type of rig to create for posing and animating the mesh."),
+    'skeleton': n_("The skeleton structure used to rig the mesh."),
+    'guidance': n_("How strongly the generation follows its guidance. Higher values emphasize that guidance."),
+    'steps': n_("The number of refinement steps used during generation. More steps can take longer."),
+    'format': n_("The file format used to store the generated image."),
+}
+
+# Canvas navigation remains available during text placement and inline editing.
+TEXTBOX_NAVIGATION_EVENTS = frozenset({'WHEELUPMOUSE', 'WHEELDOWNMOUSE',
+    'WHEELLEFTMOUSE', 'WHEELRIGHTMOUSE', 'TRACKPADZOOM', 'TRACKPADPAN'})

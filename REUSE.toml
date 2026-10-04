@@ -1,0 +1,181 @@
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+version = 1
+
+[[annotations]]
+path = ["docs/development/moodboard-video-playback/*", "tests/qa/evidence/agent-session-robustness/*"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+[[annotations]]
+path = "docs/development/scenes-drawer-transparency/*"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+[[annotations]]
+path = [
+  "docs/development/forest-runtime-fixed.png",
+  "docs/development/forest-review-viewport.png",
+  "docs/development/modeling-bicycle.png",
+  "docs/development/modeling-forest-fixed.png",
+  "docs/development/modeling-forest-terrain.png",
+  "docs/development/modeling-spiral-staircase.png",
+  "docs/development/modeling-vanity.png",
+  "docs/development/watch-performance-live.png",
+  "docs/development/watch-performance-plates.png",
+  "tests/qa/modeling_prompt_cases.json",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+[[annotations]]
+path = "docs/development/scene-performance-merge.png"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+[[annotations]]
+path = [
+  ".env.example",
+  ".gitignore",
+  ".gitmodules",
+  ".publicignore",
+  ".serena/.gitignore",
+  "Makefile",
+  "VERSION",
+  "scripts/windows/codesign-tools/.gitignore",
+  "scripts/windows/codesign-tools/metadata.json",
+  "src/build_files/windows/*.cmd",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# Test fixtures: data files with no comment syntax for an inline header.
+[[annotations]]
+path = "tests/**/fixtures/*.json"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+[[annotations]]
+path = "src/release/**"
+precedence = "closest"
+SPDX-FileCopyrightText = "Open-source contributors"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+[[annotations]]
+path = [
+  "src/scripts/mixar/modules/onboarding/assets/**",
+  "src/scripts/mixar/modules/space_mixie_chat/core/assets/*.mp3",
+  "src/scripts/mixar/modules/testing/*.json",
+  "src/scripts/mixar/modules/texel_density/texel/*.json",
+  "src/scripts/startup/bl_app_templates_system/**/*.blend",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "Open-source contributors"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# Files derived from ucupaint (https://github.com/ucupumar/ucupaint, GPL-3.0-or-later).
+# lib.blend was originally based on ucupaint's lib_281.blend; the Python files
+# listed below adapt ucupaint patterns for layer/channel handling and UI.
+# Distributed under GPL-3.0-or-later to remain compatible with the upstream
+# license. See NOTICE.md and SOURCE_CORRESPONDENCE.md for full attribution.
+[[annotations]]
+path = [
+  "src/scripts/mixar/modules/paint/core/lib/lib.blend",
+  "src/scripts/mixar/modules/paint/core/io/connections/layer_connections_blend.py",
+  "src/scripts/mixar/modules/paint/core/io/connections/layer_connections_height.py",
+  "src/scripts/mixar/modules/paint/core/io/connections/layer_connections_main.py",
+  "src/scripts/mixar/modules/paint/core/io/connections/layer_connections_normal.py",
+  "src/scripts/mixar/modules/paint/core/io/connections/layer_connections_normal_height.py",
+  "src/scripts/mixar/modules/paint/core/layer/create_channels.py",
+  "src/scripts/mixar/modules/paint/ui/lists/channel_uilist.py",
+  "src/scripts/mixar/modules/paint/ui/utils/ui_helpers_texture_sets_channels.py",
+]
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "ucupumar (https://github.com/ucupumar)",
+  "2026 Adeveda Enterprises Private Limited",
+]
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Mixar brand assets (logos, icons, wordmarks). These are NOT under the
+# GPL-3.0-or-later source license. They are governed by the separate
+# LicenseRef-Mixar-Brand terms in LICENSES/LicenseRef-Mixar-Brand.txt.
+# Forks redistributing Mixar App source must remove or replace these
+# assets in any built artifacts. See TRADEMARKS.md.
+[[annotations]]
+path = [
+  "src/release/darwin/Mixar.app/Contents/Resources/Mixar_Legacy_Document_Icon.icns",
+  "src/release/darwin/Mixar.app/Contents/Resources/mixar_icon.icns",
+  "src/release/datafiles/blender_icons16/icon16_mixar_icon.dat",
+  "src/release/datafiles/blender_icons32/icon32_mixar_icon.dat",
+  "src/release/datafiles/icons_svg/mixar_icon.svg",
+  "src/release/datafiles/icons_svg/credits_upgrade.svg",
+  "src/release/datafiles/icons_svg/credits_slide.svg",
+  "src/release/datafiles/icons_svg/credits_refer.svg",
+  "src/release/datafiles/icons_svg/credits_creator.svg",
+  "src/release/datafiles/mixar_icons.svg",
+  "src/scripts/mixar/modules/common/notifications/assets/mixie_mascot.webp",
+  "src/release/freedesktop/icons/scalable/apps/mixar.svg",
+  "src/release/freedesktop/icons/symbolic/apps/mixar-symbolic.svg",
+  "src/release/windows/icons/winmixar.ico",
+  "src/release/windows/icons/winmixarfile.ico",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
+SPDX-License-Identifier = "LicenseRef-Mixar-Brand"
+
+[[annotations]]
+path = [
+  "docs/open-source/asset-provenance-review.csv",
+  "docs/open-source/audit/**",
+  "docs/development/i18n-translation/review_notes.json",
+  "docs/development/i18n-translation/terms/*.json",
+  "docs/development/i18n-translation/logical/*.json",
+  "scripts/dev/tour_subtitles/*.json",
+  "scripts/dev/tour_subtitles/*.txt",
+  "scripts/dev/tour_subtitles/*.srt",
+  "src/scripts/mixar/modules/common/i18n/locale/*.po",
+  "docs/development/posthog-blastoff/*.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Excerpts of Blender's own interface translations (term glossaries for
+# translators), extracted from upstream locale/po.
+[[annotations]]
+path = "docs/development/i18n-translation/glossary/*.json"
+precedence = "override"
+SPDX-FileCopyrightText = "2012-2026 Blender Authors"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+# Unmodified KIRI 3DGS Render distribution files that cannot safely carry
+# inline SPDX comments (binary assets and shader payloads). The vendored
+# distribution includes its upstream Apache-2.0 license.
+[[annotations]]
+path = [
+  "src/scripts/addons_core/kiri_3dgs_render/Important",
+  "src/scripts/addons_core/kiri_3dgs_render/assets/3DGS Render APPEND V4.blend",
+  "src/scripts/addons_core/kiri_3dgs_render/assets/Addon speel 2.png",
+  "src/scripts/addons_core/kiri_3dgs_render/assets/SuperHive Logo White.png",
+  "src/scripts/addons_core/kiri_3dgs_render/assets/composite_frag.glsl",
+  "src/scripts/addons_core/kiri_3dgs_render/assets/composite_vert.glsl",
+  "src/scripts/addons_core/kiri_3dgs_render/assets/frag.glsl",
+  "src/scripts/addons_core/kiri_3dgs_render/assets/vert.glsl",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "KIRI Engine contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "src/release/datafiles/fonts/ClashGrotesk-Regular.otf"
+SPDX-FileCopyrightText = "Indian Type Foundry"
+SPDX-License-Identifier = "LicenseRef-ITF-FFL"

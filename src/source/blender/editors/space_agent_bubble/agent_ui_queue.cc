@@ -1,0 +1,448 @@
+/* SPDX-FileCopyrightText: 2026 Mixar Authors
+ * SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
+/** \file
+ * \ingroup spagentbubble
+ *
+ * Queue tab for the Agent island.
+ *
+ * Renders the unified job queue — the `wm.mixie_queue` WindowManager mirror
+ * that the moodboard N-panel's Queue tab lists through a UIList — as island
+ * rows: a rounded backplate per job, status dot + title on the left, status
+ * word on the right, a cancel cross on active rows. Data is read-only via
+ * RNA; every action goes through the queue's EXISTING operators
+ * (`mixie.queue_cancel_job`, `mixie.queue_clear_all_completed`) or the stock
+ * `wm.context_set_int` on `mixie_queue.active_index`, whose update callback
+ * is the queue-selection hook the N-panel list already uses. No timers here:
+ * the queue's own blink timer pumps redraws while anything is active, and
+ * AGENT_BUBBLE is in QUEUE_SURFACE_AREA_TYPES.
+ */
+
+#include "agent_ui_text.hh"
+
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <ctime>
+
+#include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_time.h"
+#include "BLI_utildefines.h"
+#include "BLT_translation.hh"
+
+#include "BKE_context.hh"
+
+#include "DNA_screen_types.h"
+
+#include "GPU_state.hh"
+
+#include "RNA_access.hh"
+
+#include "UI_interface.hh"
+#include "UI_interface_c.hh"
+
+#include "WM_types.hh"
+
+#include "UI_mixar.hh"
+#include "UI_mixar_tokens.hh"
+#include "agent_ui_pane_kit.hh"
+#include "agent_ui_queue.hh"
+#include "agent_ui_queue_intern.hh"
+
+/* Mixar 5.2 port: namespace wrap. */
+namespace blender {
+
+namespace {
+
+/* -------------------------------------------------------------------- */
+/** \name Row metrics — all in island units, scaled by `u` at use.
+ * \{ */
+
+/* The queue reads at its OWN scale, not the kit's.
+ *
+ * Every other pane is chips and a prompt — a handful of short labels with air
+ * around them. The queue is a dense two-line list, and at the kit's 18/15 it
+ * was the one pane you had to lean in to read. The row grows with the type so
+ * the two lines keep their breathing room (they are placed as fractions of
+ * QROW_H); the cost is roughly one fewer visible row, which is
+ * the right trade for a list whose whole job is to be glanceable. */
+#define QROW_H 76.0f            /* Row backplate height. */
+#define QROW_GAP 10.0f          /* Vertical gap between rows. */
+#define QROW_PAD_X 18.0f        /* Row inner horizontal padding. */
+#define QROW_DOT_R 6.0f         /* Status dot radius — scaled with the type. */
+#define QROW_CANCEL_W 40.0f     /* Cancel cross hit width at the row's right edge. */
+#define QPANEL_PAD PANE_INSET_X /* Panel inset — the kit strip inset. */
+#define QHEADER_H 54.0f         /* Status summary + Clear finished strip above the rows. */
+/* "Why it failed" card under the rows while the selected job is FAILED.
+ * Fixed height: the navigation operator recomputes row capacity without
+ * drawing, so it must not depend on how long a failure reason is. */
+#define QFAILURE_CARD_H 236.0f
+
+/** \} */
+
+}  // namespace
+
+agent_queue::QueueLayout agent_queue::layout(const rctf &panel,
+                                             float u,
+                                             int total,
+                                             const bool failure_card)
+{
+  QueueLayout result{};
+  const float pad = QPANEL_PAD * u;
+  result.row_height = QROW_H * u;
+  result.row_gap = QROW_GAP * u;
+  result.rows = {
+      panel.xmin + pad, panel.xmax - pad, panel.ymin + pad, panel.ymax - pad - QHEADER_H * u};
+  result.failure = {0.0f, 0.0f, 0.0f, 0.0f};
+  /* The card takes the bottom of the panel, but never more than half of the
+   * list area: on a short island the rows stay usable and the card's text is
+   * budgeted to whatever height it got. */
+  if (failure_card) {
+    const float card_h = std::min(QFAILURE_CARD_H * u, BLI_rctf_size_y(&result.rows) * 0.5f);
+    result.failure = result.rows;
+    result.failure.ymax = result.failure.ymin + card_h;
+    result.rows.ymin = result.failure.ymax + QROW_GAP * u;
+  }
+  result.footer = result.rows;
+  result.footer.ymax = result.footer.ymin + ui::mixar_tokens::control_height * u;
+  auto capacity = [&]() {
+    return std::max(0,
+                    int((BLI_rctf_size_y(&result.rows) + result.row_gap) /
+                        (result.row_height + result.row_gap)));
+  };
+  result.capacity = capacity();
+  if (total > result.capacity) {
+    result.rows.ymin = result.footer.ymax + result.row_gap;
+    result.capacity = capacity();
+  }
+  return result;
+}
+
+void agent_ui_queue_draw(const bContext *C, ARegion *region, const rctf &panel, const float u)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  using namespace agent_queue;
+  const QueueLayout metrics = layout(
+      panel, u, total_rows(wm), active_failure_present(wm));
+  const QueueData data = gather_rows(wm, metrics.capacity);
+  const auto &rows = data.rows;
+  const int row_count = data.total;
+  const int active_index = data.active_index;
+
+  const float pad = QPANEL_PAD * u;
+  const float row_h = QROW_H * u;
+  const float row_gap = QROW_GAP * u;
+  const ui::MixarTextStyle title_style = ui::mixar_text_style(ui::MixarTextRole::ListTitle, agent_ui_text_unit());
+  const ui::MixarTextStyle meta_style = ui::mixar_text_style(ui::MixarTextRole::ListMeta, agent_ui_text_unit());
+
+  const float list_left = panel.xmin + pad;
+  const float list_right = panel.xmax - pad;
+  const float header_h = QHEADER_H * u;
+  float y_top = panel.ymax - pad;
+
+  const auto &palette = ui::mixar_tokens::mixar_zen();
+  const float *col_text = palette.text;
+  const float *col_dim = palette.secondary;
+  const float *col_accent = palette.focus;
+  const float *col_done = palette.focus;
+  const float *col_pending = palette.warning;
+  const float *col_failed = palette.danger;
+
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  /* Shared panel wash (pane kit) — the queue backdrops like every pane. */
+  pane_wash_paint(panel, u);
+
+  if (row_count == 0) {
+    /* Say what the tab is for, not just that it is empty. */
+    const float cx = (panel.xmin + panel.xmax) * 0.5f;
+    const float cy = (panel.ymin + panel.ymax) * 0.5f;
+    ui::mixar_label_center(
+        IFACE_("No generations yet"), cx, cy + title_style.size * 0.8f, title_style, col_text);
+    const std::string sub = ui::mixar_fit_text(
+        IFACE_("Image, 3D, video and splat jobs show up here with their progress and any errors"),
+        list_right - list_left,
+        meta_style);
+    ui::mixar_label_center(sub.c_str(), cx, cy - meta_style.size * 0.9f, meta_style, col_dim);
+    GPU_blend(GPU_BLEND_NONE);
+    return;
+  }
+
+  /* Status summary and actions share the header strip: "2 running · 1 queued
+   * · 3 done · 1 failed" says at a glance what "N jobs · N active" did not —
+   * whether anything needs attention. Zero buckets are left out. */
+  const bool any_terminal = data.any_terminal;
+  {
+    /* Count templates, translated per draw (never keep the pointer). */
+    const struct {
+      int count;
+      const char *word;
+      const float *color;
+    } buckets[] = {{data.running, N_("%d running"), col_accent},
+                   {data.pending, N_("%d queued"), col_pending},
+                   {data.done, N_("%d done"), col_dim},
+                   {data.failed, N_("%d failed"), col_failed}};
+    const float cy = y_top - header_h * 0.5f;
+    float x = list_left;
+    bool first = true;
+    for (const auto &bucket : buckets) {
+      if (bucket.count <= 0) {
+        continue;
+      }
+      char count_text[40];
+      SNPRINTF(count_text, IFACE_(bucket.word), bucket.count);
+      char part[64];
+      SNPRINTF(part, "%s%s", first ? "" : " \xC2\xB7 ", count_text);
+      ui::mixar_label_left(part, x, cy, meta_style, bucket.color);
+      x += ui::mixar_text_width(part, meta_style);
+      first = false;
+    }
+  }
+
+  const int shown = rows.size();
+  Vector<rctf> row_rects(shown);
+  ui::Block *block = ui::block_begin(
+      C, region, "agent_island_queue", blender::ui::EmbossType::None);
+
+  /* Clear finished. */
+  if (any_terminal) {
+    const float cy = panel.ymax - pad - header_h * 0.5f;
+    const char *clear_label = IFACE_("Clear finished");
+    const float w = pane_action_chip_w(clear_label, false, u);
+    ui::Button *clear = uiDefButO(block,
+                                  ui::ButtonType::But,
+                                  "mixie.queue_clear_all_completed",
+                                  blender::wm::OpCallContext::InvokeDefault,
+                                  clear_label,
+                                  int(list_right - w),
+                                  int(cy - ui::mixar_tokens::control_height * u * 0.5f),
+                                  short(w),
+                                  short(ui::mixar_tokens::control_height * u),
+                                  TIP_("Remove all finished jobs from the queue"));
+    ui::mixar_style_button(clear, ui::MixarComponent::Action, ui::MixarVariant::Secondary, u, agent_ui_text_unit());
+  }
+
+  for (int i = 0; i < shown; i++) {
+    const QueueRow &row = rows[i];
+    const float row_top = metrics.rows.ymax - float(i) * (row_h + row_gap);
+    const float row_bottom = row_top - row_h;
+    const bool cancellable = row.is_running || row.is_pending;
+    const float cancel_w = cancellable ? QROW_CANCEL_W * u : 0.0f;
+    row_rects[i] = {list_left, list_right - cancel_w, row_bottom, row_top};
+
+    if (row.is_running || row.is_pending) {
+      ui::Button *but = uiDefButO(block,
+                                  ui::ButtonType::But,
+                                  "mixie.queue_cancel_job",
+                                  blender::wm::OpCallContext::InvokeDefault,
+                                  "×",
+                                  int(list_right - cancel_w),
+                                  int(row_bottom),
+                                  short(cancel_w),
+                                  short(row_h),
+                                  TIP_("Cancel this job"));
+      ui::mixar_style_button(but, ui::MixarComponent::Action, ui::MixarVariant::Ghost, u, agent_ui_text_unit());
+      if (but) {
+        PointerRNA *op_ptr = ui::button_operator_ptr_ensure(but);
+        RNA_string_set(op_ptr, "feature_key", row.feature_key);
+        RNA_string_set(op_ptr, "job_id", row.job_id);
+      }
+    }
+
+    /* Row select — drives the mirror's active_index, whose update callback is
+     * the queue-selection hook (frames the imported result, etc.). The rect
+     * stops short of the cancel zone so the two never overlap. */
+    ui::Button *sel = uiDefButO(block,
+                                ui::ButtonType::But,
+                                "wm.context_set_int",
+                                blender::wm::OpCallContext::InvokeDefault,
+                                row.title.c_str(),
+                                int(list_left),
+                                int(row_bottom),
+                                short(list_right - cancel_w - list_left),
+                                short(row_h),
+                                TIP_("Select this job"));
+    ui::mixar_style_button(sel, ui::MixarComponent::Surface, ui::MixarVariant::Secondary, u, agent_ui_text_unit());
+    ui::mixar_button_lit_set(sel, rows[i].mirror_index == active_index);
+    /* A failed row's tooltip is its whole explanation; others say what the
+     * job is and where it stands. */
+    std::string tip = row.title;
+    if (row.is_failed && !row.is_cancelled) {
+      tip += "\n" + row.failure.details + "\nClick for details.";
+    }
+    else {
+      if (row.type_label[0]) {
+        tip += std::string("\n") + row.type_label +
+               (row.model_label[0] ? std::string(" \xC2\xB7 ") + row.model_label : "");
+      }
+      if (row.status[0]) {
+        tip += std::string("\n") + row.status;
+      }
+    }
+    ui::mixar_button_tooltip_owned(sel, tip.c_str());
+    if (sel) {
+      PointerRNA *op_ptr = ui::button_operator_ptr_ensure(sel);
+      RNA_string_set(op_ptr, "data_path", "window_manager.mixie_queue.active_index");
+      RNA_int_set(op_ptr, "value", rows[i].mirror_index);
+    }
+  }
+
+  if (data.total > shown && shown > 0) {
+    const char *labels[] = {N_("First"), N_("Previous"), N_("Next"), N_("Last")};
+    const Navigation actions[] = {FIRST, PAGE, PAGE, LAST};
+    const float button_w = 100.0f * u;
+    const float gap = 8.0f * u;
+    for (int i = 0; i < 4; i++) {
+      const float x = metrics.footer.xmax - (4 - i) * (button_w + gap) + gap;
+      ui::Button *button = uiDefButO(block,
+                                     ui::ButtonType::But,
+                                     "mixar.queue_navigate",
+                                     wm::OpCallContext::InvokeDefault,
+                                     IFACE_(labels[i]),
+                                     int(x),
+                                     int(metrics.footer.ymin),
+                                     short(button_w),
+                                     short(ui::mixar_tokens::control_height * u),
+                                     TIP_("Browse queue jobs"));
+      ui::mixar_style_button(button, ui::MixarComponent::Action, ui::MixarVariant::Secondary, u, agent_ui_text_unit());
+      if (button) {
+        PointerRNA *ptr = ui::button_operator_ptr_ensure(button);
+        RNA_enum_set(ptr, "action", actions[i]);
+        RNA_float_set(ptr, "delta", i == 1 ? -1.0f : 1.0f);
+        if (i < 2 ? data.visible.first == 0 : data.visible.end() == data.total) {
+          ui::button_flag_enable(button, ui::BUT_DISABLED);
+        }
+      }
+    }
+  }
+
+  if (data.has_selected_failure && BLI_rctf_size_y(&metrics.failure) > 0.0f) {
+    failure_card_draw(block, data.selected_failure, metrics.failure, u);
+  }
+
+  ui::block_end(C, block);
+  ui::block_draw(C, block);
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  for (int i = 0; i < shown; i++) {
+    const QueueRow &row = rows[i];
+    const rctf &rect = row_rects[i];
+    const bool selected = rows[i].mirror_index == active_index;
+    const float *row_dim = selected ? palette.text : palette.secondary;
+
+    const float cy = (rect.ymin + rect.ymax) * 0.5f;
+    const float dot_r = QROW_DOT_R * u;
+    const float dot_cx = rect.xmin + QROW_PAD_X * u + dot_r;
+
+    /* Status dot; running rows breathe with the queue blink timer's pump. */
+    float dot_col[4];
+    if (row.is_running) {
+      memcpy(dot_col, col_accent, sizeof(dot_col));
+      const float phase = float(BLI_time_now_seconds() * 2.0);
+      dot_col[3] = 0.55f + 0.45f * fabsf(sinf(phase));
+    }
+    else if (row.is_done) {
+      memcpy(dot_col, col_done, sizeof(dot_col));
+    }
+    else if (row.is_failed) {
+      memcpy(dot_col, col_failed, sizeof(dot_col));
+    }
+    else {
+      memcpy(dot_col, col_pending, sizeof(dot_col));
+    }
+    rctf dot;
+    dot.xmin = dot_cx - dot_r;
+    dot.xmax = dot_cx + dot_r;
+    dot.ymin = cy - dot_r;
+    dot.ymax = cy + dot_r;
+    pane_fill_round(&dot, dot_r, dot_col);
+
+    /* Two-line row, matching the moodboard queue's information:
+     *   line 1: dot + title ................ elapsed clock [cancel]
+     *   line 2:       type - model ......... status word */
+    const float cy1 = rect.ymax - row_h * 0.30f;
+    const float cy2 = rect.ymin + row_h * 0.26f;
+    const float right_edge = rect.xmax - QROW_PAD_X * u;
+
+    /* Elapsed clock: ticking for live rows (the queue blink timer pumps the
+     * redraws), frozen at the completion duration for terminal rows. */
+    char clock[32] = "";
+    if (row.is_running || row.is_pending) {
+      if (row.created_epoch > 0.0) {
+        format_elapsed(double(time(nullptr)) - row.created_epoch, clock);
+      }
+    }
+    else if (row.elapsed_done > 0.0f) {
+      format_elapsed(double(row.elapsed_done), clock);
+    }
+    if (clock[0]) {
+      ui::mixar_label_right(clock, right_edge, cy1, meta_style, row_dim);
+    }
+
+    /* Title between dot and clock. */
+    const float title_x = dot_cx + dot_r + 12.0f * u;
+    const float title_max_w = right_edge - ui::mixar_text_width(clock, meta_style) - 16.0f * u - title_x;
+    const std::string title = ui::mixar_fit_text(row.title.c_str(), title_max_w, title_style);
+    ui::mixar_label_left(title.c_str(), title_x, cy1, title_style, col_text);
+
+    /* Metadata line: generation type - model, dim; status word right. */
+    char status[64];
+    BLI_strncpy(status, row.status, sizeof(status));
+    const float status_max_w = (rect.xmax - rect.xmin) * 0.35f;
+    const std::string fitted_status = ui::mixar_fit_text(status, status_max_w, meta_style);
+    ui::mixar_label_right(fitted_status.c_str(),
+                          right_edge,
+                          cy2,
+                          meta_style,
+                          row.is_failed && !selected ? col_failed : row_dim);
+
+    char meta[160] = "";
+    if (row.is_failed && !row.is_cancelled) {
+      /* A failed row says WHY right in the list: the provider's reason when
+       * there is one (it is the specific part), else the message. */
+      const std::string &why = row.failure.reason.empty() ? row.failure.message :
+                                                            row.failure.reason;
+      STRNCPY(meta, why.c_str());
+    }
+    else if (row.type_label[0] && row.model_label[0]) {
+      SNPRINTF(meta, "%s \xC2\xB7 %s", row.type_label, row.model_label);
+    }
+    else if (row.type_label[0]) {
+      BLI_strncpy(meta, row.type_label, sizeof(meta));
+    }
+    else if (row.model_label[0]) {
+      BLI_strncpy(meta, row.model_label, sizeof(meta));
+    }
+    if (meta[0]) {
+      const float meta_max_w = right_edge - ui::mixar_text_width(fitted_status.c_str(), meta_style) -
+                               16.0f * u - title_x;
+      const std::string fitted_meta = ui::mixar_fit_text(meta, meta_max_w, meta_style);
+      ui::mixar_label_left(fitted_meta.c_str(), title_x, cy2, meta_style, row_dim);
+    }
+  }
+
+  if (shown < row_count) {
+    char range[128];
+    if (shown) {
+      SNPRINTF(range,
+               IFACE_("%d–%d of %d"),
+               data.visible.first + 1,
+               data.visible.end(),
+               data.total);
+    }
+    else {
+      BLI_strncpy(range, IFACE_("Increase window height to view jobs"), sizeof(range));
+    }
+    ui::mixar_label_left(
+        range, metrics.footer.xmin, BLI_rctf_cent_y(&metrics.footer), meta_style, col_dim);
+  }
+
+  GPU_blend(GPU_BLEND_NONE);
+}
+
+}  // namespace blender

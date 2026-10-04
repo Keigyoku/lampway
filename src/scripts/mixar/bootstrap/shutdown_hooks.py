@@ -1,0 +1,161 @@
+# SPDX-FileCopyrightText: 2026 Mixar Authors
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""
+Global shutdown hooks.
+
+Several long-lived singletons (HTTP client + connection pool, async
+executor + queue processor, WebSocket client, SSE handlers, image
+encoder thread pool, toast draw handler) expose ``cleanup_*`` /
+``stop_*`` functions that were never wired into the addon teardown
+path. On Blender exit / addon reload the daemon threads were torn down
+mid-syscall and their captured payloads (requests sessions, urllib3
+pools, queued callbacks, websocket frames) leaked.
+
+This bootstrap module calls each cleanup in a defensive ``try``/``except``
+block during ``unregister`` and also registers an ``atexit`` mirror so
+the hard-exit path still gets a chance to flush.
+"""
+
+from __future__ import annotations
+
+import atexit
+
+from mixar.config.logging_config import get_logger
+
+logger = get_logger(__name__)
+
+_atexit_registered = False
+
+
+def _safe(label: str, fn, *args, **kwargs) -> None:
+    """Run ``fn`` swallowing every exception (shutdown must never raise)."""
+    try:
+        fn(*args, **kwargs)
+    except Exception as exc:  # noqa: BLE001 - shutdown path, log and continue
+        logger.debug("Shutdown hook %s failed: %s", label, exc)
+
+
+def _run_all_cleanups(reason: str = "atexit") -> None:
+    """Invoke every known cleanup_/stop_ entry point in dependency order."""
+    # 1. Stop producers first (operator-facing cleanup), then drain consumers.
+    try:
+        from mixar.modules.mcp_bridge.core import lease as mcp_lease, runtime as mcp_runtime
+        _safe("stop_mcp_relay", mcp_runtime.unregister, shutdown=(reason == "atexit"))
+        _safe("stop_mcp_leases", mcp_lease.unregister, shutdown=(reason == "atexit"))
+    except ImportError:
+        pass
+
+    try:
+        from mixar.modules.space_mixie_chat.core.voice import shutdown
+        _safe("stop_dictation", shutdown, app_exit=(reason == "atexit"))
+    except ImportError:
+        pass
+
+    try:
+        from mixar.bootstrap.analytics_module import capture_session_ended
+        _safe("capture_session_ended", capture_session_ended, reason)
+    except ImportError:
+        pass
+
+    try:
+        from mixar.modules.common.analytics import shutdown as shutdown_analytics
+        _safe("shutdown_analytics", shutdown_analytics)
+    except ImportError:
+        pass
+
+    try:
+        from mixar.modules.space_mixie_chat.core.turn_transport import (
+            cleanup_all_turn_handlers,
+        )
+        _safe("cleanup_all_turn_handlers", cleanup_all_turn_handlers,
+              app_exit=(reason == "atexit"))
+    except ImportError:
+        pass
+
+    try:
+        from mixar.modules.space_mixie_chat.ui.operators.chat_ops import (
+            cleanup_image_encoder,
+        )
+        _safe("cleanup_image_encoder", cleanup_image_encoder)
+    except ImportError:
+        pass
+
+    try:
+        from mixar.modules.common.notifications.toast_timer import (
+            cleanup_toast_timer,
+        )
+        # On the atexit path bpy.data is already freed (BPY_python_end runs
+        # after BKE_blender_free), so the toast cleanup must skip its RNA
+        # write and draw-handler removal or it segfaults on quit.
+        _safe("cleanup_toast_timer", cleanup_toast_timer, app_exit=(reason == "atexit"))
+    except ImportError:
+        pass
+
+    # 2. Stop the API queue processor + executor (drain in-flight callbacks).
+    try:
+        from mixar.modules.common.api.processor import stop_api_processor
+        _safe("stop_api_processor", stop_api_processor)
+    except ImportError:
+        pass
+
+    try:
+        from mixar.modules.common.api.executor import stop_executor
+        _safe("stop_executor", stop_executor, wait=False)
+    except ImportError:
+        pass
+
+    # 3. Close transport singletons (HTTP session + WebSocket).
+    try:
+        from mixar.modules.common.api.client import cleanup_http_client
+        _safe("cleanup_http_client", cleanup_http_client)
+    except ImportError:
+        pass
+
+    try:
+        from mixar.modules.common.websocket.client import (
+            cleanup_websocket_client,
+        )
+        _safe("cleanup_websocket_client", cleanup_websocket_client)
+    except ImportError:
+        pass
+
+    # 4. Kill any headless create_model sandbox child processes we spawned, so a
+    #    parent quit never leaves an orphaned --background Mixar running.
+    try:
+        from mixar.bootstrap.sandbox_supervisor import kill_all
+        _safe("kill_sandbox_children", kill_all)
+    except ImportError:
+        pass
+
+    # 5. Kill the managed local llama-server — it holds gigabytes of RAM and
+    #    must never outlive Blender (same contract as the sandbox children).
+    try:
+        from mixar.modules.local_models.core.server_supervisor import stop_all
+        _safe("stop_local_model_server", stop_all)
+    except ImportError:
+        pass
+
+    # 6. Stop the agent models catalog scheduling main-thread work. Flag-only:
+    #    BPY_python_end runs after BKE_blender_free(), so an atexit hook that
+    #    touched bpy data would be a use-after-free (tests/test_shutdown_hooks_atexit.py).
+    try:
+        from mixar.modules.byok.core.models_cache import mark_shutdown
+        _safe("stop_agent_models_cache", mark_shutdown)
+    except ImportError:
+        pass
+
+
+def register() -> None:
+    """Register the atexit fallback so hard-exit paths still flush."""
+    global _atexit_registered
+    if not _atexit_registered:
+        atexit.register(_run_all_cleanups)
+        _atexit_registered = True
+
+
+def unregister() -> None:
+    """Normal addon-disable / Blender-quit path: flush every cleanup."""
+    _run_all_cleanups("quit")

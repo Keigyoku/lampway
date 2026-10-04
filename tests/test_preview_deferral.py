@@ -1,0 +1,431 @@
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""The held-open ``render_viewport(quality="final")`` tool call.
+
+A script result of ``{"__deferred_preview__": key}`` must not be answered by
+the executor tick; a timer poller answers the ORIGINAL request id with the
+preview's terminal state, the queue keeps draining meanwhile, the liveness
+probe reports the pending call, and a file load or a bounded wait fails it.
+"""
+
+import importlib.util
+from pathlib import Path
+import sys
+from types import ModuleType, SimpleNamespace
+from unittest.mock import MagicMock
+
+import pytest
+
+from mixar.modules.common.agent_execution.request import ExecutionRequest
+
+ROOT = Path(__file__).resolve().parents[1]
+CHAT_ROOT = ROOT / "src/scripts/mixar/modules/space_mixie_chat"
+KEY = "c" * 32
+
+
+def _fake_client(monkeypatch):
+    client = MagicMock()
+    client.is_connected = True
+    jc = ModuleType("mixar.modules.space_mixie_chat.core.jsonrpc_client")
+    jc.get_jsonrpc_client = lambda: client
+    monkeypatch.setitem(sys.modules, jc.__name__, jc)
+    return client
+
+
+@pytest.fixture
+def deferral(monkeypatch):
+    from mixar.modules.space_mixie_chat.core import preview_deferral as module
+
+    fake = MagicMock(name="bpy")
+    fake.app.handlers.load_pre = []
+    fake.app.timers.is_registered.return_value = False
+    monkeypatch.setattr(module, "bpy", fake)
+    polls = {"value": {"job_id": KEY, "status": "running", "scene_session": "s"}}
+    monkeypatch.setattr(module.preview_render, "poll", lambda key: dict(polls["value"]))
+    monkeypatch.setattr(module, "_pending", None)
+    monkeypatch.setenv("MIXAR_SCENES_DOSSIER_DIR", "0")
+    module.polls = polls
+    yield module
+    module._pending = None
+
+
+def _req(request_id="req-1", tool_name="render_viewport"):
+    return ExecutionRequest(request_id=request_id, script="", tool_name=tool_name,
+                            session_id="sess")
+
+
+def test_deferral_registers_a_poller_and_holds_the_request(deferral, monkeypatch):
+    client = _fake_client(monkeypatch)
+    assert deferral.defer_response(_req(), KEY) is True
+    deferral.bpy.app.timers.register.assert_called_once()
+    assert deferral.bpy.app.timers.register.call_args[0][0] is deferral._pending["timer"]
+    assert deferral._on_load_pre in deferral.bpy.app.handlers.load_pre
+    client.queue_response.assert_not_called()
+    assert deferral._tick() == deferral.POLL_INTERVAL_S  # still running
+    client.queue_response.assert_not_called()
+
+
+def test_terminal_poll_answers_the_original_request_once(deferral, monkeypatch):
+    client = _fake_client(monkeypatch)
+    deferral.defer_response(_req("req-7"), KEY)
+    deferral.polls["value"] = {
+        "job_id": KEY, "status": "done", "image_url": "data:image/png;base64,AA==",
+        "scene_advanced": False, "scene_session": "s",
+        "render": {"engine": "CYCLES", "device": "CPU", "samples": 32,
+                   "width": 768, "height": 576, "elapsed_seconds": 1.5},
+    }
+    assert deferral._tick() is None
+    client.queue_response.assert_called_once()
+    request_id, result = client.queue_response.call_args[0]
+    assert request_id == "req-7"
+    assert result["success"] is True and result["status"] == "done"
+    assert result["image_url"].startswith("data:image/png;base64,")
+    assert result["render"]["samples"] == 32 and result["scene_session"] == "s"
+    assert deferral.get_pending_inflight() is None
+    assert deferral._tick() is None  # nothing pending: never answers twice
+    client.queue_response.assert_called_once()
+
+
+@pytest.mark.parametrize("status", ["cancelled", "lost", "failed"])
+def test_every_terminal_state_is_an_ordinary_tool_result(deferral, monkeypatch, status):
+    client = _fake_client(monkeypatch)
+    deferral.defer_response(_req(), KEY)
+    deferral.polls["value"] = {"job_id": KEY, "status": status, "error": "x"}
+    deferral._tick()
+    _rid, result = client.queue_response.call_args[0]
+    assert result["success"] is False and result["status"] == status
+    assert "image_url" not in result
+
+
+def test_bounded_wait_times_out_and_leaves_the_job_alone(deferral, monkeypatch):
+    client = _fake_client(monkeypatch)
+    deferral.defer_response(_req("req-2"), KEY)
+    started = deferral._pending["started"]
+    monkeypatch.setattr(deferral.time, "monotonic",
+                        lambda: started + deferral.PREVIEW_DEFERRED_MAX_S + 1)
+    assert deferral._tick() is None
+    request_id, result = client.queue_response.call_args[0]
+    assert request_id == "req-2"
+    assert result == {"job_id": KEY, "status": "running", "scene_session": "s",
+                      "success": False, "error": "preview_timeout"}
+    assert deferral._pending is None
+
+
+def test_liveness_reports_the_pending_tool_call_with_its_own_name(deferral, monkeypatch):
+    _fake_client(monkeypatch)
+    deferral.defer_response(_req("req-3", tool_name="render_viewport"), KEY)
+    info = deferral.get_pending_inflight()
+    assert info["tool_name"] == "render_viewport"
+    assert info["request_id"] == "req-3" and info["session_id"] == "sess"
+    assert info["job_id"] == KEY and info["elapsed_s"] >= 0
+    assert "render_preview" not in (CHAT_ROOT / "core/preview_deferral.py").read_text()
+
+
+def test_executor_liveness_falls_back_to_the_pending_deferral(deferral, monkeypatch):
+    _fake_client(monkeypatch)
+    from mixar.modules.space_mixie_chat.core import main_thread_executor as mte
+
+    monkeypatch.setattr(mte, "_inflight", None)
+    assert mte.get_inflight_script() is None
+    deferral.defer_response(_req("req-4"), KEY)
+    assert mte.get_inflight_script()["request_id"] == "req-4"
+
+
+def test_file_load_fails_the_pending_request_immediately(deferral, monkeypatch):
+    client = _fake_client(monkeypatch)
+    deferral.defer_response(_req("req-5"), KEY)
+    timer = deferral._pending["timer"]
+    deferral.bpy.app.timers.is_registered.return_value = True
+    deferral._on_load_pre(None)
+    request_id, result = client.queue_response.call_args[0]
+    assert request_id == "req-5"
+    assert result == {"success": False, "error": "scene_unavailable", "job_id": KEY}
+    deferral.bpy.app.timers.unregister.assert_called_once_with(timer)
+    assert deferral._tick() is None
+    client.queue_response.assert_called_once()
+
+
+def test_a_second_deferral_supersedes_the_first(deferral, monkeypatch):
+    client = _fake_client(monkeypatch)
+    deferral.defer_response(_req("req-old"), KEY)
+    old_timer = deferral._pending["timer"]
+    deferral.defer_response(_req("req-new"), KEY)
+    request_id, result = client.queue_response.call_args[0]
+    assert request_id == "req-old" and result["error"] == "preview_superseded"
+    assert deferral.get_pending_inflight()["request_id"] == "req-new"
+    assert old_timer() is None
+    assert deferral.get_pending_inflight()["request_id"] == "req-new"
+
+
+def test_deferred_key_is_only_read_from_successful_dict_results(deferral):
+    assert deferral.deferred_preview_key({"success": True, "__deferred_preview__": KEY}) == KEY
+    # The backend's own convention: print("__RESULT__" + json.dumps(...)).
+    printed = {"success": True,
+               "output": 'starting\n__RESULT__{"__deferred_preview__": "%s"}\n' % KEY}
+    assert deferral.deferred_preview_key(printed) == KEY
+    assert deferral.deferred_preview_key({"success": True, "output": "__RESULT__not json"}) is None
+    assert deferral.deferred_preview_key({"success": True, "output": '__RESULT__{"status": "failed"}'}) is None
+    assert deferral.deferred_preview_key({"success": False, "__deferred_preview__": KEY}) is None
+    assert deferral.deferred_preview_key({"success": True, "__deferred_preview__": 3}) is None
+    assert deferral.deferred_preview_key({"success": True}) is None
+    assert deferral.deferred_preview_key(None) is None
+
+
+# --------------------------------------------------------------------------
+# The executor tick: skip respond, keep draining
+# --------------------------------------------------------------------------
+
+
+def _load_executor(monkeypatch):
+    for name in ("bpy", "bmesh", "mathutils", "bpy_extras", "imbuf"):
+        monkeypatch.setitem(sys.modules, name, MagicMock(name=name))
+    for name, path in (
+        ("mixar", ROOT / "src/scripts/mixar"),
+        ("mixar.modules", ROOT / "src/scripts/mixar/modules"),
+        ("mixar.modules.space_mixie_chat", CHAT_ROOT),
+        ("mixar.modules.space_mixie_chat.core", CHAT_ROOT / "core"),
+    ):
+        package = ModuleType(name)
+        package.__path__ = [str(path)]
+        monkeypatch.setitem(sys.modules, name, package)
+    module_name = "mixar.modules.space_mixie_chat.core.main_thread_executor"
+    spec = importlib.util.spec_from_file_location(
+        module_name, CHAT_ROOT / "core" / "main_thread_executor.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, module_name, module)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.fixture
+def executor(monkeypatch, deferral):
+    module = _load_executor(monkeypatch)
+    monkeypatch.setattr(module, "_execution_gate_until", 0.0)
+    module.lanes.clear()  # the per-session script lanes (parallel scenes)
+    for name, attrs in (
+        ("queue_processor", {"drain_pending_events": lambda: None}),
+        ("lane_scene_sweep", {"schedule_lane_scene_sweep": lambda: None}),
+        ("steps_recorder", {"record_step_start": lambda *a, **kw: None,
+                            "record_step_end": lambda *a, **kw: None}),
+    ):
+        stub = ModuleType("mixar.modules.space_mixie_chat.core." + name)
+        for attr, value in attrs.items():
+            setattr(stub, attr, value)
+        monkeypatch.setitem(sys.modules, stub.__name__, stub)
+    session_mod = ModuleType("mixar.modules.space_mixie_chat.core.session")
+    session = MagicMock()
+    session.has_active_session.return_value = True
+    session_mod.get_session_manager = lambda: session
+    monkeypatch.setitem(sys.modules, session_mod.__name__, session_mod)
+    monkeypatch.setattr(module, "route_request", lambda *a: (None, False, None))
+    monkeypatch.setattr(module, "archive_history", lambda *a: None)
+    monkeypatch.setattr(module, "restore_after", lambda *a: None)
+    fake_executor = MagicMock()
+    fake_executor._execution_lock.locked.return_value = False
+    monkeypatch.setattr(module, "get_executor", lambda: fake_executor)
+    return module
+
+
+def _queue(module, request_id):
+    from mixar.modules.common.agent_execution.request import ExecutionRequest
+
+    module.lanes.enqueue(ExecutionRequest.from_legacy(
+        (request_id, "x", "render_viewport", "sess", None, None)))
+
+
+def test_deferred_result_skips_respond_and_the_queue_keeps_draining(
+    executor, deferral, monkeypatch
+):
+    """The preview's reply is held open while the queue keeps draining: a
+    script that arrives during the live preview is REFUSED at once (the
+    render_gate), never parked behind it, and the preview still delivers."""
+    import importlib
+
+    client = _fake_client(monkeypatch)
+    gate = importlib.import_module("mixar.modules.space_mixie_chat.core.render_gate")
+    rendering = {"kind": None}
+    monkeypatch.setattr(gate.render_slot, "native_render_kind", lambda: rendering["kind"])
+    ran = []
+
+    def _execute(req, ex, on_success=None, **_kw):
+        ran.append(req.request_id)
+        return {"success": True, "__deferred_preview__": KEY}
+
+    monkeypatch.setattr(executor.pump, "execute_request", _execute)
+    _queue(executor, "req-1")
+    _queue(executor, "req-2")
+
+    assert executor._process_one_request() == 0.50  # more work queued
+    client.queue_response.assert_not_called()  # req-1 is held open
+    assert executor.get_inflight_script()["request_id"] == "req-1"
+    deferral.bpy.app.timers.register.assert_called_once()
+
+    rendering["kind"] = "preview"  # the job req-1 started is now running
+    executor._process_one_request()  # req-2 answered at once, not held
+    assert ran == ["req-1"]
+    request_id, refusal = client.queue_response.call_args[0]
+    assert request_id == "req-2"
+    assert refusal["error_type"] == "render_in_progress" and refusal["render_kind"] == "preview"
+    assert not executor.lanes.pending()
+
+    rendering["kind"] = None
+    deferral.polls["value"] = {"job_id": KEY, "status": "done", "image_url": "data:image/png;base64,AA=="}
+    assert deferral._tick() is None
+    assert client.queue_response.call_args[0][0] == "req-1"
+    assert client.queue_response.call_args[0][1]["status"] == "done"
+    assert executor.get_inflight_script() is None
+
+
+def test_executor_flush_fails_a_pending_deferral(executor, deferral, monkeypatch):
+    client = _fake_client(monkeypatch)
+    deferral.defer_response(_req("req-9"), KEY)
+    executor.cleanup()
+    request_id, result = client.queue_response.call_args[0]
+    assert request_id == "req-9" and result["error"] == "executor_reset"
+
+
+def _origin(deferral, monkeypatch):
+    scene = SimpleNamespace(name="Origin", mixie_session_id="sess")
+    other = SimpleNamespace(name="Other", mixie_session_id="other")
+    deferral.bpy.context.scene = other
+    deferral.bpy.data.scenes.get.side_effect = lambda name: scene if name == scene.name else None
+    deferral.bpy.data.scenes.__iter__.side_effect = lambda: iter([scene, other])
+    steps = ModuleType("mixar.modules.space_mixie_chat.core.steps_recorder")
+    steps.record_step_start = MagicMock()
+    steps.record_step_end = MagicMock()
+    monkeypatch.setitem(sys.modules, steps.__name__, steps)
+    routing = sys.modules.get("mixar.modules.space_mixie_chat.core.main_thread_routing")
+    if routing:
+        monkeypatch.setattr(routing, "archive_history", MagicMock())
+    return scene, steps
+
+
+@pytest.mark.parametrize("status", ["done", "cancelled", "lost", "failed"])
+def test_terminal_step_finishes_in_origin_after_tab_switch(deferral, monkeypatch, status):
+    client = _fake_client(monkeypatch)
+    scene, steps = _origin(deferral, monkeypatch)
+    req = _req()
+    deferral.defer_response(req, KEY, scene=scene,
+                            initial_result={"created_objects": ["Camera"],
+                                            "output": '__RESULT__{"__deferred_preview__":"bad"}'})
+    steps.record_step_end.assert_not_called()
+    deferral._tick()
+    steps.record_step_end.assert_not_called()
+    deferral.polls["value"] = {"job_id": KEY, "status": status}
+    deferral._tick()
+    steps.record_step_end.assert_called_once()
+    args = steps.record_step_end.call_args.args
+    assert args[0] is scene and args[1] == req.request_id
+    assert args[2]["success"] is (status == "done")
+    assert args[2]["created_objects"] == ["Camera"]
+    assert "output" not in args[2] and "__deferred_preview__" not in args[2]
+    assert args[3] == "sess" and req.timing["render_wait_ms"] >= 0
+    assert client.queue_response.call_args.args[1] == args[2]
+
+
+@pytest.mark.parametrize("path", ["timeout", "load", "registration", "poll", "superseded"])
+def test_every_aborted_deferral_finishes_the_step_once(deferral, monkeypatch, path):
+    _fake_client(monkeypatch)
+    scene, steps = _origin(deferral, monkeypatch)
+    if path == "registration":
+        deferral.bpy.app.timers.register.side_effect = RuntimeError("injected")
+    deferral.defer_response(_req(), KEY, scene=scene)
+    if path == "timeout":
+        started = deferral._pending["started"]
+        monkeypatch.setattr(deferral.time, "monotonic", lambda: started + 300)
+        deferral._tick()
+    elif path == "load":
+        deferral._on_load_pre()
+    elif path == "poll":
+        monkeypatch.setattr(deferral.preview_render, "poll", MagicMock(side_effect=RuntimeError("injected")))
+        deferral._tick()
+    elif path == "superseded":
+        deferral.defer_response(_req("replacement"), KEY, scene=scene)
+    steps.record_step_end.assert_called_once()
+    assert steps.record_step_end.call_args.args[2]["success"] is False
+
+
+def test_session_flush_preserves_another_tabs_render(deferral, monkeypatch):
+    client = _fake_client(monkeypatch)
+    scene, steps = _origin(deferral, monkeypatch)
+    deferral.defer_response(_req(), KEY, scene=scene)
+    assert not deferral.fail_pending("executor_reset", session_id="other")
+    client.queue_response.assert_not_called()
+    assert deferral.fail_pending("executor_reset", session_id="sess")
+    assert deferral._pending is None
+    steps.record_step_end.assert_called_once()
+
+
+def test_executor_leaves_step_and_history_open_until_render_terminal(executor, deferral, monkeypatch):
+    import importlib
+
+    _fake_client(monkeypatch)
+    scene, steps = _origin(deferral, monkeypatch)
+    gate = importlib.import_module("mixar.modules.space_mixie_chat.core.render_gate")
+    monkeypatch.setattr(gate.render_slot, "native_render_kind", lambda: None)
+    monkeypatch.setattr(executor, "route_request", lambda *a: (scene, True, None))
+    archive = MagicMock()
+    monkeypatch.setattr(executor, "archive_history", archive)
+    monkeypatch.setattr(executor.pump, "execute_request",
+                        lambda *a, **kw: {"success": True, "__deferred_preview__": KEY})
+    _queue(executor, "render")
+    executor._process_one_request()
+    steps.record_step_start.assert_called_once()
+    steps.record_step_end.assert_not_called()
+    archive.assert_not_called()
+    deferral.polls["value"] = {"job_id": KEY, "status": "done"}
+    deferral._tick()
+    steps.record_step_end.assert_called_once()
+
+
+def test_off_thread_abort_marshals_scene_access(executor, deferral, monkeypatch):
+    import threading
+
+    client = _fake_client(monkeypatch)
+    scene, steps = _origin(deferral, monkeypatch)
+    callbacks = []
+    monkeypatch.setattr(executor, "run_on_main_thread", callbacks.append)
+    deferral.defer_response(_req(), KEY, scene=scene)
+    worker = threading.Thread(target=lambda: deferral.fail_pending("executor_reset"))
+    worker.start()
+    worker.join(timeout=2)
+    assert not worker.is_alive()
+    client.queue_response.assert_called_once()
+    steps.record_step_end.assert_not_called()
+    assert len(callbacks) == 1
+    callbacks[0]()
+    steps.record_step_end.assert_called_once()
+
+
+def test_shutdown_never_reads_freed_scene_data(executor, deferral, monkeypatch):
+    client = _fake_client(monkeypatch)
+    scene, steps = _origin(deferral, monkeypatch)
+    deferral.defer_response(_req(), KEY, scene=scene)
+    scene_access = MagicMock(side_effect=AssertionError("bpy already freed"))
+    monkeypatch.setattr(deferral, "_origin_scene", scene_access)
+    executor.cleanup(shutdown=True)
+    client.queue_response.assert_called_once()
+    steps.record_step_end.assert_not_called()
+    scene_access.assert_not_called()
+
+
+def test_preview_row_label_does_not_claim_completion_while_running():
+    from mixar.modules.space_mixie_chat.core.steps_format import (
+        begin_step_on_bubble, finish_step_on_bubble,
+    )
+    class Rows(list):
+        def add(self):
+            row = SimpleNamespace()
+            self.append(row)
+            return row
+    bubble = SimpleNamespace(step_items=Rows())
+    begin_step_on_bubble(bubble, 'preview', 'render_viewport')
+    assert bubble.step_items[0].status == 'RUNNING'
+    assert bubble.step_items[0].label == 'Viewport render'
+    finish_step_on_bubble(bubble, 'preview', {'success': True, 'created_objects': ['Render Camera']})
+    assert bubble.step_items[0].status == 'DONE'
+    assert bubble.step_items[0].label == 'Viewport render'
+    assert bubble.step_items[0].target == ''

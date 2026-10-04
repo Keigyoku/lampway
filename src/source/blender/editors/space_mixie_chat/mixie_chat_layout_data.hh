@@ -1,0 +1,746 @@
+/* SPDX-FileCopyrightText: 2025 Blender Authors
+ * SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
+/** \file
+ * \ingroup spmixiechat
+ *
+ * Data types for message layout, property caching, and per-instance runtime state.
+ * Split from mixie_chat_intern.hh for modularity.
+ */
+
+#pragma once
+
+#include "BLI_rect.h"
+#include "BLI_vector.hh"
+
+#include "mixie_chat_ui_types.hh"
+/* Mixar 5.2 port: namespace wrap. */
+namespace blender {
+
+struct PointerRNA;
+struct PropertyRNA;
+struct SpaceMixieChat;
+
+/* -------------------------------------------------------------------- */
+/** \name Property Cache (mixie_chat_props.cc)
+ * \{ */
+
+struct ChatMessageProps {
+  /* Legacy properties */
+  PropertyRNA *sender;
+  PropertyRNA *text;
+  PropertyRNA *attachments;
+  PropertyRNA *message_type;
+  PropertyRNA *metadata;
+
+  /* Slot-based properties */
+  PropertyRNA *bubble_id;
+  PropertyRNA *loader_visible;
+  PropertyRNA *loader_texts;
+  PropertyRNA *loader_rotate_ms;
+  PropertyRNA *loader_current_index;
+  PropertyRNA *loader_spinner_index;
+  PropertyRNA *content;
+  PropertyRNA *ephemeral;
+  PropertyRNA *todo_items;
+  PropertyRNA *action_items;
+  PropertyRNA *image_items;
+
+  /* Feedback properties */
+  PropertyRNA *feedback_visible;
+  PropertyRNA *feedback_rating;
+  PropertyRNA *feedback_comment_expanded;
+  PropertyRNA *feedback_status;
+  PropertyRNA *feedback_submitted_comment;
+  PropertyRNA *feedback_comment;
+
+  /* Steps slot */
+  PropertyRNA *step_items;
+  PropertyRNA *steps_summary;
+  PropertyRNA *steps_collapsed;
+  PropertyRNA *images_collapsed;
+
+  /* Thinking dropdown (finalized) */
+  PropertyRNA *thinking_text;
+  PropertyRNA *thinking_active;
+  PropertyRNA *thinking_duration_ms;
+  PropertyRNA *thinking_collapsed;
+  /* USER bubbles: short delivery note drawn above the bubble ("queued")
+   * while an interjection awaits the backend's ack. */
+  PropertyRNA *delivery_hint;
+
+  bool initialized;
+};
+
+struct ChatAttachmentProps {
+  PropertyRNA *image_path;
+  PropertyRNA *image_source;
+  PropertyRNA *display_name;
+  bool initialized;
+};
+
+/* Slot collection item properties */
+struct ChatTodoItemProps {
+  PropertyRNA *item_id;
+  PropertyRNA *text;
+  PropertyRNA *status;
+  bool initialized;
+};
+
+struct ChatActionItemProps {
+  PropertyRNA *label;
+  PropertyRNA *value;
+  PropertyRNA *style;
+  /* Asset-picker preview thumbnail (bpy image name); may be null when the
+   * scripts overlay predates the property — buttons then render text-only. */
+  PropertyRNA *image;
+  bool initialized;
+};
+
+struct ChatImageItemProps {
+  PropertyRNA *url;
+  PropertyRNA *alt;
+  PropertyRNA *caption;
+  PropertyRNA *thumbnail_url;
+  PropertyRNA *local_path;
+  PropertyRNA *width;
+  PropertyRNA *height;
+  PropertyRNA *step_id;
+  bool initialized;
+};
+
+struct ChatStepItemProps {
+  PropertyRNA *item_id;
+  PropertyRNA *kind;
+  PropertyRNA *label;
+  PropertyRNA *target;
+  PropertyRNA *detail;
+  PropertyRNA *status;
+  PropertyRNA *expanded;
+  bool initialized;
+};
+
+extern ChatMessageProps g_msg_props;
+extern ChatAttachmentProps g_att_props;
+extern ChatTodoItemProps g_todo_props;
+extern ChatActionItemProps g_action_props;
+extern ChatImageItemProps g_image_props;
+extern ChatStepItemProps g_step_props;
+
+void init_message_property_cache(PointerRNA *msg_ptr);
+void init_todo_item_property_cache(PointerRNA *item_ptr);
+void init_action_item_property_cache(PointerRNA *item_ptr);
+void init_image_item_property_cache(PointerRNA *item_ptr);
+void init_attachment_property_cache(PointerRNA *att_ptr);
+void init_step_item_property_cache(PointerRNA *item_ptr);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Slot Data Population (mixie_chat_slots.cc)
+ * \{ */
+
+struct MessageLayoutData;
+
+/**
+ * Populate slot presence flags and data for a slot-based message.
+ * Returns true if the message is slot-based, false otherwise.
+ */
+bool populate_slot_layout_data(PointerRNA *msg_ptr, MessageLayoutData *layout);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Performance: Layout Cache
+ * \{ */
+
+/**
+ * Cached layout data for a single attachment.
+ * Stores path, dimensions, and loaded image to avoid redundant image loading.
+ */
+struct AttachmentLayout {
+  char path[1024];  /* Image path */
+  int source;       /* Image source type */
+  float height;     /* Calculated height for this attachment */
+};
+
+/**
+ * Cached layout data for a single message.
+ * Stores all calculated dimensions to avoid redundant calculations.
+ *
+ * Supports both legacy message_type rendering and slot-based rendering.
+ * When slot fields are populated (has_* flags), they take precedence.
+ */
+struct MessageLayoutData {
+  float y_pos;
+  float bubble_x;
+  float bubble_width;
+  float bubble_height;
+  float content_width;
+  float text_height;
+  float attachments_height;
+  ChatBubbleStyle style;
+  int message_index;
+  bool is_user;
+  bool is_error;  /* True if message_type == ERROR */
+  /* True when the bubble renders parsed markdown segments (top-aligned)
+   * rather than plain wrapped text (vertically centered) — the selection
+   * text rect depends on which one the draw pass used. */
+  bool is_markdown_content;
+  blender::Vector<AttachmentLayout> attachments;  /* Cached attachment data */
+
+  /* Action buttons (Copy/Retry) - shown on hover */
+  ChatActionButton action_buttons[3];
+  int action_button_count;
+
+  /* Legacy fields (kept for layout cache compatibility, zeroed) */
+  OptionBubbleData option_bubbles[CHAT_MAX_OPTION_BUBBLES];
+  int option_bubble_count;
+  float option_bubbles_total_height;
+  bool is_todo_list;
+  char *todo_combined_text;
+  float todo_combined_text_height;
+  bool is_thinking_message;
+
+  /* -------------------------------------------------------------------------
+   * Slot-based rendering fields (new architecture)
+   * When these are populated, they take precedence over legacy fields.
+   * ------------------------------------------------------------------------- */
+
+  /* Slot presence flags - determined by checking RNA property values */
+  bool has_loader;     /* loader_visible is true */
+  bool has_content;    /* content property has text */
+  bool has_ephemeral;  /* ephemeral property has text */
+  bool has_todo;       /* todo_items collection has items */
+  bool has_actions;    /* action_items collection has items */
+  bool has_images;     /* image_items collection has items */
+  bool is_slot_based;  /* True if bubble_id is set (slot-based message) */
+
+  /* Loader slot data */
+  LoaderSlotData loader;
+
+  /* Cached text for clipboard copy (allocated, freed by clear_layout_cache) */
+  char *copy_text;
+
+  /* Content slot (allocated, caller frees) */
+  char *content_text;
+  float content_text_height;
+
+  /* Ephemeral slot (allocated, caller frees, FIFO limited) */
+  char *ephemeral_text;
+  float ephemeral_height;
+
+  /* Todo items from slot (slot-based alternative to option_bubbles) */
+  TodoItemSlotData slot_todo_items[SLOT_MAX_TODO_ITEMS];
+  int slot_todo_count;
+  float slot_todo_height;
+
+  /* Bubble ID for slot action click dispatch */
+  char bubble_id[128];
+
+  /* Action items from slot */
+  ActionSlotData slot_actions[SLOT_MAX_ACTION_ITEMS];
+  int slot_action_count;
+  float slot_actions_height;
+
+  /* Image items from slot */
+  ImageSlotData slot_images[SLOT_MAX_IMAGE_ITEMS];
+  int slot_image_count;
+  float slot_images_height;
+
+  /* Feedback row (post-response rating) */
+  bool has_feedback;       /* feedback_visible is true */
+  int feedback_rating;     /* 0=unrated, 1-5 */
+  float feedback_row_height;
+  FeedbackVoteData feedback_votes[FEEDBACK_VOTE_COUNT];
+  rctf feedback_comment_bounds;
+  bool feedback_comment_hovered;
+  bool feedback_comment_expanded;  /* inline comment field visible */
+  float feedback_comment_input_height;  /* extra height for input row */
+  int feedback_status; /* 0=idle, 1=sending, 2=received, 3=failed */
+  char feedback_submitted_comment[FEEDBACK_COMMENT_DISPLAY_MAX]; /* accepted comment */
+  float feedback_submitted_comment_height; /* wrapped read-only comment block */
+
+  /* Steps block slot */
+  bool has_steps;
+  StepItemSlotData slot_steps[SLOT_MAX_STEP_ITEMS];
+  int slot_step_count;
+  float slot_steps_height;
+  bool steps_collapsed;
+  char steps_summary[256];
+  rctf steps_header_bounds;  /* block header hit area */
+
+  /* "Viewed N images" block: the bubble's step-tagged capture tiles, drawn
+   * under the steps block with its own collapse state (mixie_chat_steps.cc). */
+  bool images_collapsed;
+  float slot_gallery_height;
+  rctf images_header_bounds;
+  bool images_header_hovered;
+  /* One row of the NEWEST tiles; the rest sit behind a "+N" chip that opens
+   * the lightbox (which still steps through every tile). */
+  int gallery_hidden;            /* tiles not shown in the row */
+  int gallery_first_hidden;      /* slot_images index the chip opens */
+  rctf gallery_more_bounds;      /* the chip's hit area, zero when none */
+  bool gallery_more_hovered;
+
+  /* Thinking block. When thinking_active, it renders as a LIVE pinned panel
+   * (spinner + streaming FIFO text); when finalized it collapses to the
+   * "Thought for Ns" dropdown. */
+  bool has_thinking;
+  bool thinking_active;
+  char thinking_text[4096];  /* fixed buffer; long reasoning is truncated */
+  bool thinking_collapsed;
+  int thinking_duration_ms;
+  float thinking_height;
+  rctf thinking_header_bounds;  /* dropdown header hit area */
+};
+
+/**
+ * One clickable copy chip on a markdown code block (mixie_chat_code_copy.cc).
+ * Bounds are in View2D view coords like the message action buttons; rebuilt
+ * on every messages draw pass. The code text is NOT stored here — clicks
+ * re-resolve it from the message's metadata through the markdown parse
+ * cache, so per-frame rebuilds allocate nothing.
+ */
+struct CodeCopyHit {
+  rctf bounds = {0, 0, 0, 0};
+  int message_index = -1;
+  int seg_index = -1;
+};
+
+/**
+ * Text rect of one rendered markdown segment (mixie_chat_code_copy.cc).
+ * Character-level selection in markdown bubbles maps clicks against the
+ * SEGMENT's own text/font/wrap — mapping the raw markdown string over the
+ * laid-out bubble put the highlight nowhere near the glyphs (code blocks
+ * use the mono font, a narrower wrap width, and a language header row).
+ * Rebuilt every messages draw pass, view coords.
+ */
+struct MarkdownSegHit {
+  rctf text_rect = {0, 0, 0, 0};
+  int message_index = -1;
+  int seg_index = -1;
+  bool mono = false; /* mono font (code block) vs default font */
+  int font_size = 0;
+};
+
+/* Get the layout cache for button hit testing (from SpaceMixieChat runtime) */
+const blender::Vector<MessageLayoutData> &mixie_chat_get_layout_cache(
+    struct SpaceMixieChat *smixie);
+
+/**
+ * Clear layout cache and free memory for a specific space instance.
+ * Call when space is destroyed to prevent leaks.
+ */
+void mixie_chat_clear_layout_cache(struct SpaceMixieChat *smixie);
+/* Same, but keeps the vector's buffer for the rebuild that follows. */
+void mixie_chat_clear_layout_cache_for_rebuild(struct SpaceMixieChat *smixie);
+
+/**
+ * Reset property caches to prevent stale pointers.
+ * Call when space is destroyed.
+ */
+void mixie_chat_clear_property_caches();
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Empty Chat Prompt Bubbles
+ * \{ */
+
+#define CHAT_EMPTY_PROMPT_COUNT 4
+
+/**
+ * Structure to store empty state prompt bubble data.
+ * Used for hit testing and hover state tracking.
+ */
+struct EmptyPromptBubble {
+  const char *text;
+  rctf bounds;
+  bool is_hovered;
+};
+
+/**
+ * Chat modes for each empty prompt (ASK, GENERATE, AGENT).
+ * Used to automatically switch chat mode when a prompt is clicked.
+ */
+extern const char *g_empty_prompt_modes[CHAT_EMPTY_PROMPT_COUNT];
+
+/**
+ * Generate sub-types for each empty prompt (IMAGE_GEN, IMAGE_TO_3D, etc.).
+ * Only applies when mode is GENERATE. Empty string means no generate type.
+ */
+extern const char *g_empty_prompt_generate_types[CHAT_EMPTY_PROMPT_COUNT];
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Chat History Overlay
+ * \{ */
+
+/**
+ * One visible row of the past-chats overlay (mixie_chat_history_overlay.cc).
+ * Bounds are in region pixel coords (screen-space, like the scroll
+ * indicator), rebuilt on every overlay draw.
+ */
+struct HistoryRowHit {
+  rctf bounds = {0, 0, 0, 0};        /* whole row hit area */
+  rctf delete_bounds = {0, 0, 0, 0}; /* trailing X button hit area */
+  bool is_hovered = false;
+  bool delete_hovered = false;
+  /** Row-top offset from the top of the scrollable content (px, grows
+   * downward). Keyboard navigation uses it to scroll a selected row into
+   * view without re-deriving the grouped layout. */
+  float content_top = 0.0f;
+  char session_id[128] = ""; /* chat session id, or the checkpoint id */
+  char title[200] = "";      /* row label, exported as a QA target */
+  char group[64] = "";       /* section the row sits in (QA target detail) */
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Project Rules Overlay
+ * \{ */
+
+/**
+ * One wrapped visual line of the rules editor (mixie_chat_rules_overlay.cc).
+ * Byte spans into MixieChatRuntime::rules_text; rebuilt whenever the text
+ * or the wrap width changes.
+ */
+struct RulesLineSpan {
+  int start = 0;      /* byte offset of the line start in rules_text */
+  int len = 0;        /* bytes on this line, excluding any trailing '\n' */
+  float top = 0.0f;   /* px offset from content top, grows downward */
+};
+
+/**
+ * One rule card in the scrollable list (mixie_chat_rules_overlay.cc).
+ * Bounds in region pixels, rebuilt on every overlay draw — same scheme as
+ * HistoryRowHit.
+ */
+struct RuleRowHit {
+  rctf bounds = {0, 0, 0, 0};        /* whole card */
+  rctf toggle_bounds = {0, 0, 0, 0}; /* enable/disable pill */
+  rctf edit_bounds = {0, 0, 0, 0};   /* pencil button under the toggle */
+  rctf scope_bounds = {0, 0, 0, 0};  /* Global/Project chip */
+  rctf delete_bounds = {0, 0, 0, 0}; /* trailing X button */
+  bool is_hovered = false;
+  bool toggle_hovered = false;
+  bool edit_hovered = false;
+  bool scope_hovered = false;
+  bool delete_hovered = false;
+  bool enabled = true;
+  bool is_global = false;
+  /** Card-top offset from the top of the scrollable content (px). */
+  float content_top = 0.0f;
+  float height = 0.0f;
+  int index = 0; /* index into the WM rule-entries mirror */
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Per-Instance Runtime State
+ * \{ */
+
+/**
+ * Per-instance runtime data for MixieChat space.
+ * Stored in SpaceMixieChat->runtime, NOT saved to files.
+ * Each chat panel gets its own independent copy.
+ */
+struct MixieChatRuntime {
+  /** Cached message layout data for hit testing and drawing. */
+  blender::Vector<MessageLayoutData> layout_cache;
+
+  /** Previous content height for auto-scroll detection. */
+  float prev_total_height;
+
+  /** Previous window Y size for resize detection. */
+  int prev_winy;
+
+  /** Optional view band: when valid, the message view occupies only this
+   * region-local sub-rect instead of the whole region. Set per-frame by the
+   * Agent Bubble island (whose single region also hosts the composer and
+   * header) before calling mixie_chat_draw_messages; never set by the chat
+   * editor, whose main region IS the message area. Drives the View2D mask,
+   * the wrap width, and every winx/winy-derived scroll clamp, so wheel
+   * scrolling and scrollers operate on the visible band, not the window. */
+  bool view_band_valid = false;
+  rcti view_band = {0, 0, 0, 0};
+
+  /** Layout cache invalidation: previous message count. */
+  int prev_msg_count = 0;
+
+  /** Layout cache invalidation: previous region width. */
+  int prev_winx = 0;
+
+  /** Layout cache invalidation: previous scene layout epoch. */
+  int prev_layout_epoch = -1;
+
+  /** Layout cache invalidation: whether streaming was active last frame. */
+  bool prev_had_active_stream = false;
+
+  /** Cached total height from last layout rebuild. */
+  float cached_total_height = 0.0f;
+
+  /** Empty state prompt bubbles (hover/bounds per instance). */
+  EmptyPromptBubble empty_prompts[CHAT_EMPTY_PROMPT_COUNT];
+
+  /** Whether empty prompts are currently visible for this instance. */
+  bool empty_prompts_visible;
+
+  /** Empty state entrance animation: start timestamp (0 = not started). */
+  double empty_anim_start = 0.0;
+
+  /** Whether to restart animation next time empty state appears. */
+  bool empty_anim_reset = true;
+
+  /** Message slide-in animation: timestamp when newest message appeared. */
+  double slide_anim_start = 0.0;
+
+  /** Message slide-in: index of the message being animated (-1 = none). */
+  int slide_anim_msg_index = -1;
+
+  /** Copy feedback: message index that was last copied (-1 = none). */
+  int copy_feedback_msg_index = -1;
+
+  /** Copy feedback: timestamp when copy was triggered. */
+  double copy_feedback_time = 0.0;
+
+  /** Copy chips on markdown code blocks — rebuilt every messages draw pass
+   * (mixie_chat_code_copy.cc owns hover/feedback state + click dispatch). */
+  blender::Vector<CodeCopyHit> code_copy_hits;
+
+  /** Rendered markdown segment text rects — rebuilt every messages draw
+   * pass; selection in markdown bubbles hit-tests and highlights against
+   * these (mixie_chat_code_copy.cc collector). */
+  blender::Vector<MarkdownSegHit> md_seg_hits;
+
+  /** When >= 0, the active selection (sel_message_index/sel_start/sel_end
+   * on the space) indexes THIS markdown segment's text instead of the
+   * message's raw copy text. -1 for plain-text bubbles. */
+  int sel_md_seg = -1;
+
+  /** Scroll-to-bottom indicator: bounds in screen-space for click testing. */
+  rctf scroll_indicator_bounds = {0, 0, 0, 0};
+
+  /** Scroll-to-bottom indicator: whether it's currently visible. */
+  bool scroll_indicator_visible = false;
+
+  /** Scroll-to-bottom indicator: fade animation start time. */
+  double scroll_indicator_fade_start = 0.0;
+
+  /** Scroll-to-bottom indicator: whether fading in (true) or out (false). */
+  bool scroll_indicator_fading_in = false;
+
+  /** Scroll-to-bottom indicator: bounce animation start time (new msg while scrolled up). */
+  double scroll_indicator_bounce_start = 0.0;
+
+  /* -- Past-chats overlay (mixie_chat_history_overlay.cc) -------------- */
+
+  /** History overlay: visibility mirrored from the Python-registered
+   * WindowManager bool during draw (events check this, never RNA). */
+  bool history_overlay_active = false;
+  /** History overlay: mode (HistoryMode) of the last draw, so switching the
+   * open card between chats and checkpoints resets the search, scroll and
+   * armed row like opening it does. -1 = not drawn yet. */
+  int history_mode_last = -1;
+
+  /** History overlay: panel bounds in region pixels (click-away test). */
+  rctf history_panel_bounds = {0, 0, 0, 0};
+
+  /** History overlay: scrollable list viewport in region pixels — rows
+   * only hit-test / hover inside it (they scissor-clip to it too). */
+  rctf history_list_bounds = {0, 0, 0, 0};
+
+  /** History overlay: header close (X) button + search field rects. */
+  rctf history_close_bounds = {0, 0, 0, 0};
+  rctf history_search_bounds = {0, 0, 0, 0};
+  bool history_close_hovered = false;
+
+  /** History overlay: smooth scrolling. `history_scroll_px` is the drawn
+   * offset (px from content top), eased every draw toward
+   * `history_scroll_target` (wheel / trackpad / keyboard write the
+   * target only). */
+  float history_scroll_px = 0.0f;
+  float history_scroll_target = 0.0f;
+  double history_scroll_last_time = 0.0;
+
+  /** History overlay: content + viewport heights from the last draw —
+   * the event side clamps scroll targets with these. */
+  float history_content_h = 0.0f;
+  float history_view_h = 0.0f;
+
+  /** History overlay: type-to-filter query (UTF-8, always focused while
+   * the overlay is open; edited by the overlay key handler). */
+  char history_search[96] = "";
+
+  /** History overlay: keyboard-selected row (index into history_rows,
+   * -1 = none). Arrow keys move it, Enter opens, Delete arms delete. */
+  int history_sel = -1;
+
+  /** History overlay: open animation start time (0 = not animating). */
+  double history_anim_start = 0.0;
+
+  /** History overlay: session id armed for delete (arm-to-confirm: the
+   * first X click arms the row — it turns red with a "Delete?" label —
+   * and a second X click deletes; any other click/ESC disarms). Replaces
+   * the OS confirm popup, which anchored its OK button under the cursor,
+   * i.e. exactly on the X. Empty = nothing armed. */
+  char history_confirm_id[128] = "";
+
+  /** History overlay: hit rects for ALL filtered rows in list order
+   * (rebuilt per draw; rows scrolled out of view keep their offscreen
+   * bounds — hit tests additionally require history_list_bounds). */
+  blender::Vector<HistoryRowHit> history_rows;
+
+  /* -- Project-rules overlay (mixie_chat_rules_overlay.cc) ------------- */
+
+  /** Rules overlay: visibility mirrored from the Python-registered
+   * WindowManager bool during draw (events check this, never RNA). */
+  bool rules_overlay_active = false;
+
+  /** Rules overlay: panel / editable-text-field / close-X bounds in
+   * region pixels (click-away, caret placement, close hit tests). */
+  rctf rules_panel_bounds = {0, 0, 0, 0};
+  rctf rules_text_bounds = {0, 0, 0, 0};
+  rctf rules_close_bounds = {0, 0, 0, 0};
+  bool rules_close_hovered = false;
+
+  /** Rules overlay: smooth scrolling, same scheme as the history overlay
+   * (events write the target, draw eases the drawn offset toward it). */
+  float rules_scroll_px = 0.0f;
+  float rules_scroll_target = 0.0f;
+  double rules_scroll_last_time = 0.0;
+
+  /** Rules overlay: content + viewport heights from the last draw. */
+  float rules_content_h = 0.0f;
+  float rules_view_h = 0.0f;
+
+  /** Rules overlay: open animation start time (0 = not animating). */
+  double rules_anim_start = 0.0;
+
+  /** Rules overlay: the edit buffer (UTF-8, mirrors scene.mixie_chat_rules;
+   * every edit writes through so the Python cross-scene mirror runs) and
+   * the caret byte offset within it. Size must stay in lockstep with
+   * RULES_TEXT_MAX / the Python CHAT_RULES_MAXLEN. */
+  char rules_text[10000] = "";
+  int rules_cursor = 0;
+
+  /** Rules overlay: selection anchor (byte offset, -1 = none). A
+   * selection is the range between the anchor and rules_cursor — set by
+   * click-drag, Shift+navigation, or Ctrl/Cmd+A (anchor 0, cursor end).
+   * Typing/pasting replaces the selection, Backspace/Delete removes it,
+   * plain navigation or a click collapses it. */
+  int rules_sel_anchor = -1;
+
+  /** Rules overlay: true while a left-drag selection is in progress
+   * (mouse-move extends the selection until the button releases). */
+  bool rules_sel_dragging = false;
+
+  /** Rules overlay: time of the last local edit — draws only resync the
+   * buffer from the scene when it diverged and no edit happened recently
+   * (another chat surface, or Python, changed the rules). */
+  double rules_last_edit_time = 0.0;
+
+  /** Rules overlay: preserved caret x for consecutive Up/Down presses
+   * (negative = derive from the current caret position). */
+  float rules_caret_goal_x = -1.0f;
+
+  /** Rules overlay: wrap metrics from the last draw — the event side
+   * relayouts with these after each edit (0 until the first draw). */
+  float rules_wrap_w = 0.0f;
+  float rules_line_h = 0.0f;
+  int rules_text_px = 0;
+
+  /** Rules overlay: wrapped visual lines of the ACTIVE editor (composer
+   * or the card being edited; rebuilt on text/width change). */
+  blender::Vector<RulesLineSpan> rules_lines;
+
+  /** Rules overlay: which rule card is being edited in place. -1 = the
+   * composer (new-rule box) is the active editor. */
+  int rules_editing_index = -1;
+
+  /** Rules overlay: hit rects for every rule card in list order (rebuilt
+   * per draw; offscreen cards keep their bounds — mouse hits additionally
+   * require rules_list_bounds). */
+  blender::Vector<RuleRowHit> rules_rows;
+
+  /** Rules overlay: list viewport + Submit button bounds. */
+  rctf rules_list_bounds = {0, 0, 0, 0};
+  rctf rules_submit_bounds = {0, 0, 0, 0};
+  bool rules_submit_hovered = false;
+
+  /** Rules overlay: rule index armed for delete (arm-to-confirm, same as
+   * the history overlay's X: first click arms, second deletes; any other
+   * click / ESC disarms). -1 = nothing armed. */
+  int rules_confirm_delete = -1;
+
+  /** Rules overlay: internal caret-follow offset of the active editor
+   * (px from its content top) when its text outgrows the editor box, and
+   * the editor's inner text height from the last draw (events pass it to
+   * the caret-follow helper after edits). */
+  float rules_editor_scroll = 0.0f;
+  float rules_editor_view_h = 0.0f;
+
+  /* -- Scribble ink overlay (mixie_chat_ink_overlay.cc) ---------------- */
+
+  /** Ink overlay: visibility mirrored from the Python-registered
+   * WindowManager bool during draw (events check this, never RNA). The
+   * event-side auto-open paths (stylus press on the composer / on empty
+   * chat background) pre-latch it so the very first press already draws
+   * ink — the draw only runs its opening init when it sees the RNA flag
+   * flip while this is still false. */
+  bool ink_overlay_active = false;
+
+  /** Ink overlay: flat stroke store. Points are region-local pixels
+   * (y up) + pressure 0..1; strokes index into the point array via
+   * ink_stroke_starts. Caps are a frozen contract with the Python
+   * validator (SCRIBBLE_MAX_STROKES / SCRIBBLE_MAX_POINTS). */
+  float ink_points[4096][3];
+  int ink_stroke_starts[64];
+  int ink_point_count = 0;
+  int ink_stroke_count = 0;
+
+  /** Ink overlay: true between pen-down and pen-up of the stroke being
+   * captured (the live stroke is ink_stroke_count - 1). */
+  bool ink_stroke_live = false;
+
+  /** Ink overlay: wall time of the last pen-up — the idle-commit timer
+   * converts pending strokes INK_IDLE_COMMIT_SEC after it. */
+  double ink_last_penup_time = 0.0;
+
+  /** Ink overlay: point-store-full latch, so the "canvas full" hint draws
+   * once instead of re-triggering per denied sample. */
+  bool ink_store_full = false;
+
+  /** Ink overlay: chrome hit rects + hover state (hint-bar buttons). */
+  rctf ink_close_bounds = {0, 0, 0, 0};
+  rctf ink_clear_bounds = {0, 0, 0, 0};
+  bool ink_close_hovered = false;
+  bool ink_clear_hovered = false;
+
+  /** Ink overlay: open animation start time (0 = not animating). */
+  double ink_anim_start = 0.0;
+};
+
+/** Ink stroke store capacities (the array sizes above). */
+inline constexpr int CHAT_INK_MAX_POINTS = 4096;
+inline constexpr int CHAT_INK_MAX_STROKES = 64;
+
+/**
+ * Get or create runtime for a SpaceMixieChat instance.
+ * Allocates MixieChatRuntime on first call.
+ */
+MixieChatRuntime *mixie_chat_ensure_runtime(struct SpaceMixieChat *smixie);
+
+/**
+ * Free runtime data for a SpaceMixieChat instance.
+ */
+void mixie_chat_free_runtime(struct SpaceMixieChat *smixie);
+
+/** \} */
+}  // namespace blender

@@ -1,0 +1,486 @@
+# SPDX-FileCopyrightText: 2025 Mixar Authors
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""
+Lasso Select SAM Integration Operators
+
+Operators for triggering SAM mask refinement after lasso selection.
+"""
+
+import json
+import tempfile
+import os
+
+import bpy
+from bpy.types import Operator
+
+from mixar.config.logging_config import get_logger
+from mixar.modules.common.i18n import rpt_
+
+logger = get_logger(__name__)
+
+from ...constants import LASSO_MIN_POINTS
+from ...core.scene_segment_manager import get_scene_segment_manager
+from ...core.segment_overlay import recomposite_display_image
+from ...core.canvas_context import redraw_moodboard_canvases
+from ...core.mask_tool_feedback import clear_status, set_status, toast_failure
+
+
+_redraw_all = redraw_moodboard_canvases
+
+def _reset_lasso_state(state):
+    """Reset lasso selection state."""
+    state.lasso_points.clear()
+    state.lasso_loops.clear()
+    state.lasso_select_has_selection = False
+    state.lasso_select_pending = False
+    state.active_tool = 'NONE'
+    state.target_image_index = -1
+    state.lasso_creates_nodes = False
+    clear_status()
+
+
+def _create_segment_from_mask(
+    scene,
+    image_index,
+    mask_bytes,
+    base_name,
+    outline_points=None,
+    raw_mask_bytes=None,
+):
+    """Add segment to image's segment collection and recomposite."""
+    mask_temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix='_mask.png', delete=False) as f:
+            f.write(mask_bytes)
+            mask_temp_path = f.name
+
+        mask_img = bpy.data.images.load(mask_temp_path, check_existing=False)
+
+        if mask_img.size[0] == 0 or mask_img.size[1] == 0:
+            bpy.data.images.remove(mask_img)
+            logger.error("[LassoSelectSAM] Invalid mask dimensions")
+            return False
+
+        img_item = scene.mixie_moodboard_images[image_index]
+        next_index = len(img_item.segments) + 1
+        segment_name = f"{base_name} {next_index}"
+
+        mask_img.name = f"{img_item.image.name}_{segment_name}_mask"
+        mask_img.pack()
+
+        segment = img_item.segments.add()
+        segment.mask_image = mask_img
+        segment.active = True
+        # Keep the source artwork visible after SAM3 refinement while leaving
+        # a magenta boundary so each original lasso remains identifiable.
+        segment.show_overlay = True
+        segment.outline_only = True
+        if outline_points:
+            segment.selection_outline = json.dumps(outline_points, separators=(",", ":"))
+        segment.index = next_index
+        segment.name = segment_name
+
+        recomposite_display_image(img_item)
+
+        # Multi Lasso Mask node action: spawn one connected MASK_DETAIL node per
+        # refined loop. Best-effort — a node failure must not abort segmentation.
+        if getattr(scene.mixie_edit_tool_state, "lasso_creates_nodes", False):
+            try:
+                from ...core.node_graph import create_mask_detail_node
+
+                create_mask_detail_node(scene, img_item, segment)
+            except Exception as node_exc:
+                logger.warning(
+                    "[LassoSelectSAM] Could not create mask-detail node: %s",
+                    node_exc,
+                )
+
+        from ...core.component_debug import (
+            add_mask_bytes_preview,
+            add_sam3_mask_preview,
+        )
+
+        if raw_mask_bytes:
+            add_mask_bytes_preview(
+                scene,
+                image_index,
+                raw_mask_bytes,
+                segment_name,
+                "Raw SAM3 Mask",
+            )
+        add_sam3_mask_preview(
+            scene,
+            image_index,
+            mask_img,
+            segment_name,
+            label="Constrained Lasso Mask",
+        )
+        logger.debug("[LassoSelectSAM] Added %s", segment_name)
+        return True
+
+    except Exception as e:
+        logger.error("[LassoSelectSAM] Failed to create segment: %s", e)
+        return False
+    finally:
+        if mask_temp_path:
+            try:
+                os.unlink(mask_temp_path)
+            except OSError:
+                pass
+
+
+
+def _create_mask_from_polygon(width, height, points):
+    """
+    Create binary mask from polygon points using scanline algorithm.
+    Points are normalized (0-1), mask is height x width.
+    Returns numpy array with 1.0 for inside, 0.0 for outside.
+    """
+    import numpy as np
+
+    # Scale points to pixel coordinates
+    pixel_points = [(p[0] * width, p[1] * height) for p in points]
+
+    mask = np.zeros((height, width), dtype=np.float32)
+
+    # Scanline fill algorithm for efficiency
+    # Get bounding box
+    xs = [p[0] for p in pixel_points]
+    ys = [p[1] for p in pixel_points]
+    min_y = max(0, int(min(ys)))
+    max_y = min(height - 1, int(max(ys)))
+
+    for y in range(min_y, max_y + 1):
+        # Find intersections with polygon edges
+        intersections = []
+        n = len(pixel_points)
+        for i in range(n):
+            p1x, p1y = pixel_points[i]
+            p2x, p2y = pixel_points[(i + 1) % n]
+
+            if p1y == p2y:
+                continue
+
+            if min(p1y, p2y) <= y < max(p1y, p2y):
+                # Calculate x intersection
+                x_intersect = p1x + (y - p1y) * (p2x - p1x) / (p2y - p1y)
+                intersections.append(x_intersect)
+
+        # Sort intersections and fill between pairs
+        intersections.sort()
+        for i in range(0, len(intersections) - 1, 2):
+            x_start = max(0, int(intersections[i]))
+            x_end = min(width - 1, int(intersections[i + 1]))
+            mask[y, x_start:x_end + 1] = 1.0
+
+    return mask
+
+
+def _export_mask_as_png(mask_array, width, height):
+    """
+    Export numpy mask array as PNG bytes.
+    Returns PNG bytes or None on error.
+    """
+    import numpy as np
+
+    mask_temp_path = None
+    mask_img = None
+    try:
+        # Create temporary Blender image for mask
+        mask_img = bpy.data.images.new(
+            name="_temp_lasso_mask",
+            width=width,
+            height=height,
+            alpha=False
+        )
+
+        # Set pixels (grayscale mask as RGB)
+        pixels = np.zeros((height, width, 4), dtype=np.float32)
+        pixels[:, :, 0] = mask_array  # R
+        pixels[:, :, 1] = mask_array  # G
+        pixels[:, :, 2] = mask_array  # B
+        pixels[:, :, 3] = 1.0  # A
+
+        mask_img.pixels.foreach_set(pixels.flatten())
+
+        # Save to temp file using image.save() — save_render() reads format from
+        # scene render settings (ignoring image.file_format) and may save EXR/JPEG
+        # instead of PNG depending on the user's render output configuration.
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
+            mask_temp_path = f.name
+
+        mask_img.file_format = 'PNG'
+        mask_img.filepath_raw = mask_temp_path
+        mask_img.save()
+
+        # Read bytes
+        with open(mask_temp_path, 'rb') as f:
+            mask_bytes = f.read()
+
+        return mask_bytes
+
+    except Exception as e:
+        logger.error("[LassoSelectSAM] Failed to export mask: %s", e)
+        return None
+    finally:
+        if mask_temp_path:
+            try:
+                os.unlink(mask_temp_path)
+            except OSError:
+                pass
+        if mask_img is not None:
+            try:
+                bpy.data.images.remove(mask_img)
+            except Exception:
+                pass
+
+
+def _get_upload_dimensions(img_item):
+    """
+    Return the (width, height) of the image as uploaded to the backend.
+
+    The backend receives a possibly-resized (compressed) version of the image.
+    The mask must match these dimensions so the backend can apply it correctly.
+    Prefer the dimensions acknowledged by the upload endpoint, then the local
+    compressed cache, and finally the original image dimensions.
+    """
+    try:
+        uploaded_size = get_scene_segment_manager().get_uploaded_image_size(
+            img_item.image
+        )
+        if uploaded_size:
+            return uploaded_size
+        if (img_item.compressed_image and
+                len(img_item.compressed_image.size) >= 2 and
+                img_item.compressed_image.size[0] > 0):
+            return img_item.compressed_image.size[0], img_item.compressed_image.size[1]
+    except Exception:
+        pass
+    return img_item.image.size[0], img_item.image.size[1]
+
+
+def _build_lasso_mask(img_item, points):
+    """
+    Create and export the lasso mask at the correct dimensions for the backend.
+
+    The mask must have the same width/height as the image that was uploaded to
+    the scene-segment API, which may differ from the original image when it was
+    resized during compression.  Using mismatched dimensions causes the backend
+    to ignore the mask and segment the entire scene (issue #506).
+
+    Args:
+        img_item: MixieMoodboardImageItem with image and optional compressed_image
+        points: List of (x, y) normalized lasso polygon points
+
+    Returns:
+        PNG bytes for the mask, or None on error.
+    """
+    width, height = _get_upload_dimensions(img_item)
+    mask_array = _create_mask_from_polygon(width, height, points)
+    return _export_mask_as_png(mask_array, width, height)
+
+
+class MIXIE_OT_lasso_select_sam(Operator):
+    """Refine lasso selection using SAM"""
+    bl_idname = "mixie.lasso_select_sam"
+    bl_label = "Refine Selection"
+    bl_options = {'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        if not hasattr(context.scene, 'mixie_edit_tool_state'):
+            return False
+        state = context.scene.mixie_edit_tool_state
+        return (state.lasso_select_has_selection and
+                not state.lasso_select_pending and
+                state.target_image_index >= 0 and
+                (
+                    len(state.lasso_loops) > 0
+                    or len(state.lasso_points) >= LASSO_MIN_POINTS
+                ))
+
+    def execute(self, context):
+        scene = context.scene
+        state = scene.mixie_edit_tool_state
+
+        if state.target_image_index < 0:
+            self.report({'ERROR'}, "No target image")
+            return {'CANCELLED'}
+
+        if state.target_image_index >= len(scene.mixie_moodboard_images):
+            self.report({'ERROR'}, "Invalid image index")
+            _reset_lasso_state(state)
+            return {'CANCELLED'}
+
+        img_item = scene.mixie_moodboard_images[state.target_image_index]
+        if not img_item.image:
+            self.report({'ERROR'}, "Invalid image")
+            _reset_lasso_state(state)
+            return {'CANCELLED'}
+
+        # Read all completed loops. Keep the single-loop fallback for files
+        # created before multi-loop capture was introduced.
+        loops = [
+            [(point.x, point.y) for point in loop.points]
+            for loop in state.lasso_loops
+            if len(loop.points) >= LASSO_MIN_POINTS
+        ]
+        if not loops and len(state.lasso_points) >= LASSO_MIN_POINTS:
+            loops = [[(p.x, p.y) for p in state.lasso_points]]
+        if not loops:
+            self.report({'ERROR'}, "No valid lasso loops")
+            _reset_lasso_state(state)
+            return {'CANCELLED'}
+
+        manager = get_scene_segment_manager()
+
+        # Check if image is uploaded
+        if not manager.is_ready(img_item.image):
+            # Queue upload first — capture lasso points before the async callback
+            # The upload is folded into this one wait; the user is never
+            # told to wait for it separately.
+            state.lasso_select_pending = True
+            set_status("Refining lasso selection…")
+
+            target_idx = state.target_image_index
+            # Capture loops now so the closure has stable copies.
+            captured_loops = [list(loop) for loop in loops]
+
+            def on_upload_complete(success, message):
+                if success:
+                    # Re-fetch img_item inside callback in case the collection
+                    # changed while the upload was in flight.
+                    current_img_item = scene.mixie_moodboard_images[target_idx]
+                    mask_bytes = [
+                        _build_lasso_mask(current_img_item, loop)
+                        for loop in captured_loops
+                    ]
+                    if all(mask_bytes):
+                        _perform_mask_segmentations(
+                            scene, target_idx, mask_bytes, captured_loops
+                        )
+                    else:
+                        _reset_lasso_state(state)
+                        logger.error("[LassoSelectSAM] Failed to create mask after upload")
+                else:
+                    logger.error("[LassoSelectSAM] Upload failed: %s", message)
+                    toast_failure(message, upload=True)
+                    _reset_lasso_state(state)
+                _redraw_all()
+
+            manager.queue_upload(img_item.image, img_item=img_item,
+                                 on_complete=on_upload_complete)
+            _redraw_all()
+            return {'FINISHED'}
+
+        # Image already uploaded — create mask at the correct (compressed) dimensions
+        # so it matches what the backend has stored for this job.
+        mask_bytes = [_build_lasso_mask(img_item, loop) for loop in loops]
+        if not all(mask_bytes):
+            self.report({'ERROR'}, "Failed to create one or more lasso masks")
+            _reset_lasso_state(state)
+            return {'CANCELLED'}
+
+        # Image ready, process loops sequentially. Each completed SAM3 result
+        # is inserted immediately, so a long batch remains visibly progressive.
+        _perform_mask_segmentations(
+            scene, state.target_image_index, mask_bytes, loops
+        )
+        return {'FINISHED'}
+
+
+def _perform_mask_segmentations(
+    scene, target_idx, masks, outlines=None, index=0, _retry=False
+):
+    """Refine loops one at a time and add each returned mask immediately."""
+    state = scene.mixie_edit_tool_state
+
+    if index >= len(masks):
+        _reset_lasso_state(state)
+        _redraw_all()
+        return
+
+    def on_complete(success: bool, refined_mask_bytes, message: str):
+        if success and refined_mask_bytes:
+            outline = outlines[index] if outlines and index < len(outlines) else None
+            from ...core.mask_guidance import constrain_refined_mask
+
+            try:
+                constrained_mask = constrain_refined_mask(
+                    refined_mask_bytes, masks[index]
+                )
+            except ValueError as exc:
+                logger.warning("[LassoSelectSAM] Rejected mask: %s", exc)
+                _perform_mask_segmentations(
+                    scene, target_idx, masks, outlines, index + 1
+                )
+                return
+            _create_segment_from_mask(
+                scene,
+                target_idx,
+                constrained_mask,
+                "Lasso Segment",
+                outline,
+                raw_mask_bytes=refined_mask_bytes,
+            )
+            # Continue only after the current result is visible on the board.
+            _perform_mask_segmentations(scene, target_idx, masks, outlines, index + 1)
+            return
+
+        error_msg = message or rpt_("Unknown error")
+        if "timed out" in error_msg.lower():
+            logger.error("[LassoSelectSAM] %s", error_msg)
+            toast_failure(error_msg)
+            _reset_lasso_state(state)
+            _redraw_all()
+            return
+        if error_msg == "expired" and not _retry:
+            logger.error("[LassoSelectSAM] Job expired, re-uploading and retrying...")
+            _upload_and_retry_lasso(scene, target_idx, masks, outlines, index)
+            return
+        logger.warning("[LassoSelectSAM] Refinement failed: %s", error_msg)
+        toast_failure(error_msg)
+
+        # A failed loop should not prevent later loops from appearing.
+        _perform_mask_segmentations(scene, target_idx, masks, outlines, index + 1)
+
+    img_item = scene.mixie_moodboard_images[target_idx]
+    manager = get_scene_segment_manager()
+    state.lasso_select_pending = True
+    set_status("Refining lasso selection…")
+    manager.request_mask_segmentation(
+        image=img_item.image,
+        mask_bytes=masks[index],
+        on_complete=on_complete
+    )
+
+    _redraw_all()
+
+
+def _upload_and_retry_lasso(scene, target_idx, masks, outlines, index):
+    """Re-upload image and retry lasso segmentation after expiry."""
+    state = scene.mixie_edit_tool_state
+    img_item = scene.mixie_moodboard_images[target_idx]
+    manager = get_scene_segment_manager()
+
+    def on_upload_complete(success, message):
+        if success:
+            _perform_mask_segmentations(
+                scene, target_idx, masks, outlines, index=index, _retry=True
+            )
+        else:
+            logger.debug("[LassoSelectSAM] Re-upload failed: %s", message)
+            toast_failure(message, upload=True)
+            _reset_lasso_state(state)
+            _redraw_all()
+
+    manager.queue_upload(img_item.image, img_item=img_item,
+                         on_complete=on_upload_complete)
+
+
+classes = (
+    MIXIE_OT_lasso_select_sam,
+)

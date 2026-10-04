@@ -1,0 +1,472 @@
+REM SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+REM
+REM SPDX-License-Identifier: GPL-2.0-or-later
+
+@echo off
+setlocal enabledelayedexpansion
+
+REM Mixar Build Script for Windows
+REM All build logic lives here. build_ninja.bat / build_ms.bat are thin wrappers.
+REM BUILD_WITH_NINJA can be pre-set by callers; otherwise auto-detected here.
+
+echo ============================================================
+echo Mixar Build Script
+echo ============================================================
+
+REM --- [1/8] Generator Selection ---
+REM build_ninja.bat sets BUILD_WITH_NINJA=1  (force Ninja)
+REM build_ms.bat    sets BUILD_WITH_NINJA=0  (force MSBuild; normalize to unset so all downstream
+REM                                           "if defined BUILD_WITH_NINJA" checks work correctly)
+REM Not set at all  -> auto-detect (prefer Ninja: system PATH, then VS-bundled)
+if "%BUILD_WITH_NINJA%"=="0" (
+    set "BUILD_WITH_NINJA="
+    echo [1/8] Using Visual Studio MSBuild ^(pre-selected^)...
+) else if defined BUILD_WITH_NINJA (
+    echo [1/8] Using Ninja build system ^(pre-selected^)...
+) else (
+    where ninja >nul 2>&1
+    if !ERRORLEVEL! equ 0 (
+        set "BUILD_WITH_NINJA=1"
+        echo [1/8] Ninja detected on PATH, using Ninja build system...
+    ) else (
+        for %%E in (Community Professional Enterprise BuildTools) do (
+            if exist "%ProgramFiles%\Microsoft Visual Studio\2022\%%E\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe" (
+                if not defined BUILD_WITH_NINJA set "BUILD_WITH_NINJA=1"
+            )
+        )
+        if defined BUILD_WITH_NINJA (
+            echo [1/8] VS-bundled Ninja detected, using Ninja build system...
+        ) else (
+            echo [1/8] Ninja not found, using Visual Studio ^(MSBuild^) build system...
+        )
+    )
+)
+
+REM --- Settings ---
+set "SCRIPT_DIR=%~dp0"
+REM Read .env with delayed expansion disabled so values containing ! survive.
+setlocal DisableDelayedExpansion
+call "%SCRIPT_DIR%settings.bat"
+if %ERRORLEVEL% neq 0 (
+    echo Error: Failed to load settings
+    exit /b 1
+)
+setlocal EnableDelayedExpansion
+
+set "BLENDER_BUILD_ENV=Release"
+
+if "%MIXAR_ENV%"=="" (
+    echo Warning: MIXAR_ENV is empty, defaulting to Prod
+    set "MIXAR_ENV=Prod"
+)
+set "BUILD_ENV_DIR=%BUILD_DIR%\%MIXAR_ENV%"
+
+if defined BUILD_WITH_NINJA (
+    echo Generator  : Ninja ^(parallel: %BUILD_CORES% cores^)
+) else (
+    echo Generator  : Visual Studio MSBuild ^(parallel: %BUILD_CORES% cores^)
+)
+echo Build dir  : %BUILD_ENV_DIR%
+echo Environment: %MIXAR_ENV%
+echo.
+
+REM --- [2/8] Build Start ---
+echo [2/8] Starting build at %TIME%...
+
+REM --- [3/8] Overlay ---
+echo [3/8] Overlaying Mixar sources onto source...
+call "%SCRIPT_DIR%overlay.bat"
+if %ERRORLEVEL% neq 0 (
+    echo Error: Overlay failed
+    exit /b 1
+)
+echo [3/8] Overlay complete at %TIME%
+
+REM Fix future timestamps (Ninja only).
+REM Future-dated upstream files always appear newer than compiled objects, forcing full rebuilds.
+REM Normalize them to a stable epoch (2000-01-01): cmake sees the same value every run,
+REM and epoch is older than any real compiled object so Ninja skips unchanged files.
+if defined BUILD_WITH_NINJA (
+    echo Normalizing future-dated source timestamps to stable epoch...
+    powershell -NoProfile -Command "$ep=[DateTime]::new(2000,1,1); Get-ChildItem -Path '%SOURCE_DIR%' -Recurse -File | Where-Object{$_.LastWriteTime -gt (Get-Date)} | ForEach-Object{$_.LastWriteTime=$ep}" 2>nul
+)
+
+REM --- [4/8] Header Generation ---
+if not exist "%BUILD_ENV_DIR%" mkdir "%BUILD_ENV_DIR%"
+
+echo [4/8] Generating environment config header for: %MIXAR_ENV%...
+if not exist "%SOURCE_DIR%\source\creator" mkdir "%SOURCE_DIR%\source\creator"
+
+set "HEADER_FILE=%SOURCE_DIR%\source\creator\mixar_env_config.h"
+set "HEADER_TMP=%HEADER_FILE%.tmp"
+
+REM Write to temp file first; only overwrite if content changed (preserves timestamp when unchanged,
+REM preventing unnecessary recompilation of all files that include this header).
+(
+echo #pragma once
+echo // Auto-generated file - DO NOT EDIT
+echo // Generated for environment: %MIXAR_ENV%
+echo.
+echo #define MIXAR_BASE_URL "%MIXAR_BACKEND_URL%"
+echo #define MIXAR_FRONTEND_BASE_URL "%MIXAR_FRONTEND_URL%"
+echo #define MIXAR_CURRENT_ENV "%MIXAR_ENV%"
+echo.
+echo // Environment-specific macros for conditional compilation
+) > "%HEADER_TMP%"
+
+if "%MIXAR_ENV%"=="Prod" (
+    echo #define MIXAR_ENV_PROD>> "%HEADER_TMP%"
+) else if "%MIXAR_ENV%"=="Dev" (
+    echo #define MIXAR_ENV_DEV>> "%HEADER_TMP%"
+) else if "%MIXAR_ENV%"=="UAT" (
+    echo #define MIXAR_ENV_UAT>> "%HEADER_TMP%"
+) else if "%MIXAR_ENV%"=="Uat" (
+    echo #define MIXAR_ENV_UAT>> "%HEADER_TMP%"
+) else (
+    echo #define MIXAR_ENV_PROD>> "%HEADER_TMP%"
+)
+
+fc /b "%HEADER_FILE%" "%HEADER_TMP%" >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    copy /y "%HEADER_TMP%" "%HEADER_FILE%" >nul
+    echo Header updated.
+) else (
+    echo Header unchanged, timestamp preserved.
+)
+del "%HEADER_TMP%"
+
+REM Emit the build-frozen Python env marker (mirrors mixar_env_config.h
+REM on the Python side). Gates mixar.config.config.get_dev_bypass_credentials
+REM behind a value that cannot be flipped by editing the bundled mixar.json.
+if "%MIXAR_ENV%"=="Dev" (
+    set "BUILD_ENV_DEV_BYPASS=True"
+) else (
+    set "BUILD_ENV_DEV_BYPASS=False"
+)
+if not exist "%SOURCE_DIR%\scripts\mixar\config" mkdir "%SOURCE_DIR%\scripts\mixar\config"
+(
+    echo # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+    echo # SPDX-License-Identifier: GPL-2.0-or-later
+    echo # Auto-generated by scripts/windows/build.bat - DO NOT EDIT
+    echo BUILD_ENVIRONMENT = "%MIXAR_ENV%"
+    echo DEV_BYPASS_ALLOWED = %BUILD_ENV_DEV_BYPASS%
+) > "%SOURCE_DIR%\scripts\mixar\config\_build_env.py"
+
+REM --- Visual Studio Environment (Ninja only) ---
+REM vcvarsall must be set up before cmake configure and before the build step.
+set "TOOLCHAIN_CMAKE_ARGS="
+if defined BUILD_WITH_NINJA (
+    set "VCVARSALL="
+    for %%E in (Community Professional Enterprise BuildTools) do (
+        if exist "%ProgramFiles%\Microsoft Visual Studio\2022\%%E\VC\Auxiliary\Build\vcvarsall.bat" (
+            set "VCVARSALL=%ProgramFiles%\Microsoft Visual Studio\2022\%%E\VC\Auxiliary\Build\vcvarsall.bat"
+        )
+        if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\%%E\VC\Auxiliary\Build\vcvarsall.bat" (
+            set "VCVARSALL=%ProgramFiles(x86)%\Microsoft Visual Studio\2022\%%E\VC\Auxiliary\Build\vcvarsall.bat"
+        )
+    )
+    if not defined VCVARSALL (
+        echo Error: Visual Studio 2022 not found. Install VS2022 with C++ workload.
+        exit /b 1
+    )
+    for %%V in ("!VCVARSALL!") do set "VC_TOOLS_VERSION_FILE=%%~dpVMicrosoft.VCToolsVersion.default.txt"
+    set "VS_TOOLSET_VERSION="
+    if exist "!VC_TOOLS_VERSION_FILE!" set /p VS_TOOLSET_VERSION=<"!VC_TOOLS_VERSION_FILE!"
+    if not defined VS_TOOLSET_VERSION (
+        echo Error: Visual Studio's default C++ toolset version was not found.
+        exit /b 1
+    )
+    echo Setting up Visual Studio toolchain for Ninja...
+    call "!VCVARSALL!" x64 -vcvars_ver=!VS_TOOLSET_VERSION!
+    if !ERRORLEVEL! neq 0 (
+        echo Error: Failed to initialize Visual Studio environment
+        exit /b 1
+    )
+    if not "!VCToolsVersion!"=="!VS_TOOLSET_VERSION!" (
+        echo Error: Could not activate MSVC !VS_TOOLSET_VERSION!. Open a fresh terminal and retry.
+        exit /b 1
+    )
+    REM A previous configure may still pin an older installed MSVC toolset.
+    REM Give CMake the active compiler explicitly so an update is discovered.
+    set "ACTIVE_CL=!VCToolsInstallDir!bin\Hostx64\x64\cl.exe"
+    if not exist "!ACTIVE_CL!" (
+        echo Error: Active Visual Studio x64 compiler was not found: !ACTIVE_CL!
+        exit /b 1
+    )
+    echo Compiler     : !ACTIVE_CL!
+    set "TOOLCHAIN_CMAKE_ARGS=-DCMAKE_C_COMPILER:FILEPATH="!ACTIVE_CL!" -DCMAKE_CXX_COMPILER:FILEPATH="!ACTIVE_CL!""
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%prepare_toolchain.ps1" -RootDir "%ROOT_DIR%" -BuildDir "%BUILD_ENV_DIR%" -Compiler "!ACTIVE_CL!"
+    if !ERRORLEVEL! neq 0 exit /b 1
+)
+
+REM --- CUDA / OptiX Selection ---
+REM MIXAR_CUDA and MIXAR_CUDA_BINARIES come from .env via settings.bat and are
+REM interpreted by cmake\mixar_overrides.cmake, which is the ONE place that
+REM decides. Normalize them here so the cache check can clear stale toolkit
+REM discovery when CUDA becomes available after a CPU-only configure.
+REM settings.bat's .env reader keeps everything after the "=", so strip a
+REM trailing "# comment" and any spaces from these three before anyone (here or
+REM CMake, which inherits them) reads them. Deliberately NOT done in the .env
+REM reader itself: a DEV_BYPASS_PASSWORD is allowed to contain a "#".
+if defined MIXAR_CUDA for /f "tokens=1 delims=#" %%V in ("%MIXAR_CUDA%") do set "MIXAR_CUDA=%%V"
+if defined MIXAR_CUDA_BINARIES for /f "tokens=1 delims=#" %%V in ("%MIXAR_CUDA_BINARIES%") do set "MIXAR_CUDA_BINARIES=%%V"
+if defined MIXAR_CUDA_ARCH for /f "tokens=1 delims=#" %%V in ("%MIXAR_CUDA_ARCH%") do set "MIXAR_CUDA_ARCH=%%V"
+if defined MIXAR_CUDA set "MIXAR_CUDA=%MIXAR_CUDA: =%"
+if defined MIXAR_CUDA_BINARIES set "MIXAR_CUDA_BINARIES=%MIXAR_CUDA_BINARIES: =%"
+
+set "CUDA_WANT=ON"
+for %%F in (0 off no n false) do if /i "%MIXAR_CUDA%"=="%%F" set "CUDA_WANT=OFF"
+set "CUBIN_WANT=ON"
+for %%F in (0 off no n false) do if /i "%MIXAR_CUDA_BINARIES%"=="%%F" set "CUBIN_WANT=OFF"
+if "%CUDA_WANT%"=="OFF" set "CUBIN_WANT=OFF"
+
+set "CUDA_CMAKE_ARGS="
+if "%CUDA_WANT%"=="OFF" (
+    echo CUDA/OptiX   : disabled by MIXAR_CUDA=%MIXAR_CUDA%
+    set "CUDA_CMAKE_ARGS=-DWITH_CYCLES_DEVICE_CUDA=OFF -DWITH_CYCLES_CUDA_BINARIES=OFF -DWITH_CYCLES_DEVICE_OPTIX=OFF"
+    goto :cuda_cache_check
+)
+
+REM --- CUDA Toolkit Detection ---
+set "CUDA_FOUND="
+if defined CUDA_PATH (
+    if exist "%CUDA_PATH%\bin\nvcc.exe" (
+        set "CUDA_FOUND=1"
+        set "CUDA_TOOLKIT_ROOT=%CUDA_PATH%"
+    )
+)
+if not defined CUDA_FOUND (
+    for /d %%V in ("%ProgramFiles%\NVIDIA GPU Computing Toolkit\CUDA\v*") do (
+        if exist "%%V\bin\nvcc.exe" (
+            set "CUDA_FOUND=1"
+            set "CUDA_TOOLKIT_ROOT=%%V"
+        )
+    )
+)
+if defined CUDA_FOUND (
+    echo CUDA toolkit : !CUDA_TOOLKIT_ROOT!
+    "!CUDA_TOOLKIT_ROOT!\bin\nvcc.exe" --version 2>nul | findstr /C:"release"
+    REM Set CUDA_PATH so CMake's find_package(CUDA) auto-detects the toolkit.
+    set "CUDA_PATH=!CUDA_TOOLKIT_ROOT!"
+    if "%CUBIN_WANT%"=="OFF" (
+        echo CUDA binaries: skipped by MIXAR_CUDA_BINARIES=%MIXAR_CUDA_BINARIES%
+        set "CUDA_CMAKE_ARGS=-DWITH_CYCLES_CUDA_BINARIES=OFF"
+    )
+) else (
+    echo Warning: CUDA toolkit not found. CUDA support will be disabled.
+    echo   Install from: https://developer.nvidia.com/cuda-downloads
+    REM No nvcc means no cubins either - the overrides force both ON.
+    set "CUDA_WANT=OFF"
+    set "CUBIN_WANT=OFF"
+    set "CUDA_CMAKE_ARGS=-DWITH_CYCLES_DEVICE_CUDA=OFF -DWITH_CYCLES_CUDA_BINARIES=OFF"
+)
+
+REM --- OptiX SDK Detection ---
+set "OPTIX_FOUND="
+for /d %%D in ("%ProgramData%\NVIDIA Corporation\OptiX SDK*") do (
+    if exist "%%D\include\optix.h" (
+        set "OPTIX_FOUND=1"
+        set "OPTIX_SDK_ROOT=%%D"
+    )
+)
+if defined OPTIX_FOUND (
+    echo OptiX SDK    : !OPTIX_SDK_ROOT!
+    REM Set OPTIX_ROOT_DIR env var so CMake's FindOptiX auto-detects the SDK.
+    set "OPTIX_ROOT_DIR=!OPTIX_SDK_ROOT!"
+) else (
+    echo Warning: OptiX SDK not found. OptiX support will be disabled.
+    echo   Install from: https://developer.nvidia.com/optix/downloads
+    set "CUDA_CMAKE_ARGS=!CUDA_CMAKE_ARGS! -DWITH_CYCLES_DEVICE_OPTIX=OFF"
+)
+
+:cuda_cache_check
+REM --- CUDA Cache Check ---
+REM Turning CUDA ON where the cache says OFF WIPES the cache, because the
+REM toolkit was found this run and every cached CUDA_*-NOTFOUND has to go.
+REM Every other mismatch is just a flipped .env, so it re-runs configure IN
+REM PLACE: object files survive and only the Cycles GPU targets rebuild -
+REM a wipe there would charge a full Blender rebuild for a one-line setting.
+set "FORCE_RECONFIGURE="
+if exist "%BUILD_ENV_DIR%\CMakeCache.txt" (
+    set "CUDA_CACHED=OFF"
+    findstr /C:"WITH_CYCLES_DEVICE_CUDA:BOOL=ON" "%BUILD_ENV_DIR%\CMakeCache.txt" >nul 2>&1
+    if !ERRORLEVEL! equ 0 set "CUDA_CACHED=ON"
+    set "CUBIN_CACHED=OFF"
+    findstr /C:"WITH_CYCLES_CUDA_BINARIES:BOOL=ON" "%BUILD_ENV_DIR%\CMakeCache.txt" >nul 2>&1
+    if !ERRORLEVEL! equ 0 set "CUBIN_CACHED=ON"
+    if not "!CUDA_CACHED!"=="%CUDA_WANT%" set "FORCE_RECONFIGURE=1"
+    if not "!CUBIN_CACHED!"=="%CUBIN_WANT%" set "FORCE_RECONFIGURE=1"
+    set "CUDA_WIPE="
+    if "%CUDA_WANT%"=="ON" if "!CUDA_CACHED!"=="OFF" set "CUDA_WIPE=1"
+    if defined FORCE_RECONFIGURE (
+        echo Cache has CUDA=!CUDA_CACHED! binaries=!CUBIN_CACHED!, want CUDA=%CUDA_WANT% binaries=%CUBIN_WANT%
+        if defined CUDA_WIPE (
+            echo Cache was configured without a CUDA toolkit, wiping it...
+            del /q "%BUILD_ENV_DIR%\CMakeCache.txt" 2>nul
+            rmdir /s /q "%BUILD_ENV_DIR%\CMakeFiles" 2>nul
+            if defined BUILD_WITH_NINJA del /q "%BUILD_ENV_DIR%\build.ninja" 2>nul
+            echo CUDA cache invalidated.
+        ) else (
+            echo Re-running CMake configure in place ^(object files are kept^)...
+        )
+    )
+)
+
+REM --- Generator Switch Detection ---
+REM Clean stale cmake cache when switching between Ninja and MSBuild.
+REM IMPORTANT: match CMAKE_GENERATOR:INTERNAL= specifically.
+REM "Visual Studio" appears in MSVC compiler paths in ANY cmake cache (even Ninja builds),
+REM so a broad search for "Visual Studio" would always fire and wipe the Ninja cache.
+if defined BUILD_WITH_NINJA (
+    if exist "%BUILD_ENV_DIR%\CMakeCache.txt" (
+        findstr /C:"CMAKE_GENERATOR:INTERNAL=Visual Studio" "%BUILD_ENV_DIR%\CMakeCache.txt" >nul 2>&1
+        if !ERRORLEVEL! equ 0 (
+            echo Detected stale Visual Studio cache, cleaning for Ninja...
+            del /q "%BUILD_ENV_DIR%\CMakeCache.txt" 2>nul
+            rmdir /s /q "%BUILD_ENV_DIR%\CMakeFiles" 2>nul
+            del /q "%BUILD_ENV_DIR%\build.ninja" 2>nul
+            echo Cache cleaned.
+        )
+    )
+) else (
+    if exist "%BUILD_ENV_DIR%\CMakeCache.txt" (
+        findstr /C:"CMAKE_GENERATOR:INTERNAL=Ninja" "%BUILD_ENV_DIR%\CMakeCache.txt" >nul 2>&1
+        if !ERRORLEVEL! equ 0 (
+            echo Detected stale Ninja cache, cleaning for Visual Studio...
+            del /q "%BUILD_ENV_DIR%\CMakeCache.txt" 2>nul
+            rmdir /s /q "%BUILD_ENV_DIR%\CMakeFiles" 2>nul
+            echo Cache cleaned.
+        )
+    )
+)
+
+REM --- [5/8] CMake Configure ---
+REM Always configure after overlay, as build.sh does. Restored upstream CMake
+REM files can be older than build.ninja, so Ninja's timestamp check alone can
+REM keep compiling targets removed by a branch switch. Object files survive.
+echo [5/8] Configuring CMake...
+echo   Blender: %BLENDER_BUILD_ENV%   Mixar: %MIXAR_ENV%   Platform: %PLATFORM%
+
+cmake -C "%CMAKE_DIR%\mixar_overrides.cmake" ^
+    %CMAKE_GENERATOR_ARGS% ^
+    -S "%SOURCE_DIR%" ^
+    -B "%BUILD_ENV_DIR%" ^
+    -DCMAKE_BUILD_TYPE=%BLENDER_BUILD_ENV% ^
+    -DWITH_WINDOWS_RELEASE_PDB=OFF ^
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ^
+    %TOOLCHAIN_CMAKE_ARGS% ^
+    %CUDA_CMAKE_ARGS%
+
+if %ERRORLEVEL% neq 0 (
+    echo Error: CMake configuration failed
+    exit /b 1
+)
+echo [5/8] CMake configuration complete at %TIME%
+
+REM --- [6/8] Build ---
+echo [6/8] Building...
+if defined BUILD_WITH_NINJA (
+    cmake --build "%BUILD_ENV_DIR%" -- -j%BUILD_CORES%
+) else (
+    cmake --build "%BUILD_ENV_DIR%" --config "%BLENDER_BUILD_ENV%" --parallel %BUILD_CORES%
+)
+if %ERRORLEVEL% neq 0 (
+    echo Error: Build failed
+    exit /b 1
+)
+
+REM Install to BUILD_ENV_DIR\bin — same output location for both Ninja and MSBuild.
+echo Installing build artifacts...
+if defined BUILD_WITH_NINJA (
+    cmake --install "%BUILD_ENV_DIR%" --prefix "%BUILD_ENV_DIR%\bin"
+) else (
+    cmake --install "%BUILD_ENV_DIR%" --prefix "%BUILD_ENV_DIR%\bin" --config "%BLENDER_BUILD_ENV%"
+)
+if %ERRORLEVEL% neq 0 (
+    echo Error: Install failed
+    exit /b 1
+)
+echo [6/8] Build complete at %TIME%
+
+REM --- Find embedded Python (used by steps 7 and 8) ---
+set "PY_BASE=%BUILD_ENV_DIR%\bin"
+set "PYTHON_BIN="
+for %%P in (
+    "%PY_BASE%\%BLENDER_VERSION%\python\bin\python.exe"
+    "%PY_BASE%\%BLENDER_VERSION%\python\bin\python3.exe"
+) do (
+    if exist "%%~P" (
+        set "PYTHON_BIN=%%~P"
+        goto :found_python
+    )
+)
+
+:found_python
+if not defined PYTHON_BIN (
+    echo Error: Python binary not found under: %PY_BASE%\%BLENDER_VERSION%\python\bin
+    exit /b 1
+)
+
+echo Found Python: %PYTHON_BIN%
+
+REM --- [7/8] Config File ---
+echo [7/8] Generating runtime configuration for bundle...
+set "BUNDLE_CONFIG_DIR=%BUILD_ENV_DIR%\bin\%BLENDER_VERSION%\config"
+"!PYTHON_BIN!" -s "%ROOT_DIR%\scripts\generate_config.py" --output "%BUNDLE_CONFIG_DIR%\mixar.json"
+if !ERRORLEVEL! neq 0 (
+    echo Error: Failed to generate runtime configuration
+    exit /b 1
+)
+
+REM --- [8/8] Python Packages ---
+echo [8/8] Installing Python packages for Mixar...
+set "SITE_PACKAGES=%PY_BASE%\%BLENDER_VERSION%\python\lib\site-packages"
+set "REQUIREMENTS_FILE=%SCRIPT_DIR%..\python_requirements.txt"
+
+REM Bootstrap pip if not available (Blender's embedded Python may lack it)
+REM Ignore user-site packages so unrelated tools cannot satisfy or conflict with
+REM bundled dependencies; import checks must inspect the embedded installation.
+"!PYTHON_BIN!" -s -m pip --version >nul 2>&1
+if !ERRORLEVEL! neq 0 (
+    echo Bootstrapping pip with ensurepip...
+    "!PYTHON_BIN!" -s -m ensurepip --upgrade
+    if !ERRORLEVEL! neq 0 (
+        echo Error: Failed to bootstrap pip in embedded Python
+        exit /b 1
+    )
+)
+
+echo Site-packages: %SITE_PACKAGES%
+if not exist "%SITE_PACKAGES%" mkdir "%SITE_PACKAGES%"
+
+"!PYTHON_BIN!" -s -m pip install --upgrade --target "%SITE_PACKAGES%" -r "%REQUIREMENTS_FILE%"
+if !ERRORLEVEL! neq 0 (
+    echo Error: Failed to install Python packages
+    exit /b 1
+)
+
+REM Verify critical packages are importable by Blender's Python
+"!PYTHON_BIN!" -s -c "import websocket; print('  websocket-client:', websocket.__version__)"
+if !ERRORLEVEL! neq 0 (
+    echo Error: websocket-client installed but not importable — site-packages path mismatch
+    exit /b 1
+)
+"!PYTHON_BIN!" -s -c "import truststore; print('  truststore:', truststore.__version__)"
+if !ERRORLEVEL! neq 0 (
+    echo Error: truststore installed but not importable — enterprise TLS trust would silently fall back to certifi
+    exit /b 1
+)
+"!PYTHON_BIN!" "%ROOT_DIR%\scripts\check_python_runtime.py"
+if !ERRORLEVEL! neq 0 (
+    echo Error: Bundled MCP runtime dependencies failed to import
+    exit /b 1
+)
+echo Successfully installed and verified Python packages
+
+echo.
+echo ============================================================
+echo === Build Complete at %TIME% ===
+echo ============================================================
+echo Run Mixar using: %BUILD_ENV_DIR%\bin\mixar.exe
+echo ============================================================
+exit /b 0

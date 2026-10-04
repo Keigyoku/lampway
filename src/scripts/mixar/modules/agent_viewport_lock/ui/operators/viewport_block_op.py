@@ -1,0 +1,284 @@
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""
+Agent viewport input block.
+
+A background modal operator that runs while the agent is executing a
+turn. It consumes canvas-editing input (mouse clicks + transform/edit
+hotkeys) **only when the pointer is over a 3D viewport**, so the user
+can't select or edit objects out from under the agent — but it passes
+camera navigation (orbit / pan / zoom, including Mac trackpad
+gestures) and leaves every other editor (chat, moodboard, sidebars,
+properties) fully interactive.
+
+The Zen Moodboard drawer overlaps the viewport WINDOW rectangle. Its
+painted canvas, resize edge and grip must pass through before checking that rectangle;
+native hit testing keeps this aligned with the slide, resize and UI scale.
+The drawer's transparent remainder remains locked viewport space.
+
+Notification toasts draw INSIDE the viewport but are conceptually a
+layer above it, so a left-press landing on a toast control is passed
+through too — otherwise no toast could be dismissed or actioned for the
+whole duration of an agent turn (window modal handlers run before the
+region's toast UI handler, so this modal is the only place that can
+yield).
+
+The viewport's top header (the Zen scene toolbar) overlaps the WINDOW
+rectangle too. It is chrome, not canvas: an event Blender would route to
+one of its controls passes through (native ``Area.mixar_header_contains``,
+the event system's own overlap query), so render, shading, playback and
+export stay usable and the halo frames the canvas below it. Empty toolbar
+space between controls falls through to the canvas in Blender, so it stays
+locked here.
+
+The Parallel Agents panel (the worker cards docked bottom-left of the
+viewport, VIEW_3D EXECUTE region) is another such layer: its cards exist
+almost only WHILE the agent is running, and its eye / dismiss / chevron
+controls sit inside the WINDOW region's rect. A left-press over that region
+is handed to the panel's own click operator (``view3d.agent_panel_click``,
+the C++ hit-test) from here; a press the panel does not claim stays
+consumed, so an empty part of the card band never falls through to
+viewport selection mid-turn.
+
+Started programmatically by the bootstrap tick when the agent enters
+BUSY / MODIFYING; self-stops via a short timer when the agent leaves
+those states (so the first post-completion click isn't eaten).
+"""
+
+from __future__ import annotations
+
+import bpy
+from bpy.types import Operator
+
+from mixar.config.logging_config import get_logger
+from mixar.modules.agent_viewport_lock.constants import (
+    BLOCK_KEY_TYPES,
+    BLOCK_MOUSE_TYPES,
+    BLOCK_TIMER_S,
+    NAV_PASS_TYPES,
+    VIEW_KEY_PASS_TYPES,
+)
+from mixar.modules.agent_viewport_lock.core.state_probe import (
+    is_agent_executing,
+)
+
+logger = get_logger(__name__)
+
+# Module-level guard so the bootstrap tick doesn't stack multiple
+# modal instances. Set True on invoke, cleared on finish/cancel.
+_running = False
+
+# These native mouse-capture operators consume LEFTMOUSE RELEASE and finish.
+# Armed tools and keyboard transforms are deliberately not included.
+_MOODBOARD_MOUSE_DRAGS = (
+    "VIEW3D_OT_moodboard_drawer_grip",
+    "MIXIE_OT_moodboard_select_image",
+    "MIXIE_OT_moodboard_graph_select",
+    "MIXIE_OT_moodboard_frame_select",
+    "MIXIE_OT_moodboard_box_select",
+)
+
+
+def is_running() -> bool:
+    return _running
+
+
+def reset_running_guard() -> None:
+    """Clear the running guard.
+
+    Modal operators never survive a .blend load — Blender tears the
+    running instance down when it rebuilds the screens, but our
+    module-level ``_running`` flag (Python module state, which DOES
+    survive a file load) can be left stuck at True if cancel() wasn't
+    called. That stale flag then blocks the bootstrap tick from ever
+    re-invoking the modal on the new file. The load_post handler calls
+    this so the lock re-arms after open/new-file."""
+    global _running
+    _running = False
+
+
+class MIXAR_OT_agent_viewport_block(Operator):
+    """Block 3D-viewport editing while the agent is running.
+
+    Passes through navigation and all non-viewport input; consumes
+    clicks and edit hotkeys over the viewport canvas.
+    """
+
+    bl_idname = "mixar.agent_viewport_block"
+    bl_label = "Agent Viewport Lock"
+    bl_options = {"REGISTER", "INTERNAL"}
+
+    _timer = None
+
+    def invoke(self, context, event):
+        global _running
+        if _running:
+            # Already one running — don't stack.
+            return {"CANCELLED"}
+        if not is_agent_executing():
+            return {"CANCELLED"}
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(BLOCK_TIMER_S, window=context.window)
+        wm.modal_handler_add(self)
+        _running = True
+        return {"RUNNING_MODAL"}
+
+    def modal(self, context, event):
+        # Stop as soon as the agent is no longer executing. The timer
+        # drives this check ~20x/sec so the lock lifts promptly.
+        if not is_agent_executing():
+            self._finish(context)
+            return {"FINISHED"}
+
+        # A lock can start after a workspace viewer (the orchestrator resumes
+        # while its workers are still building). Let that read-only modal own
+        # input in either handler order; it consumes edits behind the preview.
+        win = context.window
+        if win and win.modal_operators.get('VIEW3D_OT_workspace_viewer') is not None:
+            return {"PASS_THROUGH"}
+
+        et = event.type
+
+        if et in NAV_PASS_TYPES or et in VIEW_KEY_PASS_TYPES:
+            return {"PASS_THROUGH"}
+
+        # Only intercept when the pointer is over a 3D viewport canvas.
+        if et in BLOCK_MOUSE_TYPES or et in BLOCK_KEY_TYPES:
+            # If the lock started during a drag, it precedes that older modal.
+            # Deliver its captured release even outside the board so the drag
+            # can end. Never unlock a fresh viewport press or an armed tool.
+            if (et == 'LEFTMOUSE' and event.value == 'RELEASE' and win
+                    and any(win.modal_operators.get(name) is not None
+                            for name in _MOODBOARD_MOUSE_DRAGS)):
+                return {"PASS_THROUGH"}
+            region = self._view3d_region_under_pointer(context, event)
+            if region is not None:
+                # Notifications float above the locked viewport: let the
+                # press reach the region's toast UI handler so toasts stay
+                # dismissable/actionable while the agent works. Safe — a
+                # control hit is consumed there (WM_UI_HANDLER_BREAK), so
+                # it never reaches the select/edit keymaps.
+                #
+                # PRESS only, deliberately: the C++ handler acts solely on
+                # LEFTMOUSE press, and passing the release too would let
+                # Blender synthesize a CLICK that DOES reach those keymaps.
+                if (et == 'LEFTMOUSE' and event.value == 'PRESS'
+                        and self._on_toast_control(region, event)):
+                    return {"PASS_THROUGH"}
+                if et == 'LEFTMOUSE' and event.value == 'PRESS':
+                    # Worker cards: let the panel hit-test the press. Claimed
+                    # or not, the press is consumed here so nothing under
+                    # the card band can select or edit mid-turn.
+                    self._forward_to_agent_panel(context, event)
+                return {"RUNNING_MODAL"}  # consume → blocked
+
+        return {"PASS_THROUGH"}
+
+    # -- helpers -----------------------------------------------------------
+
+    @staticmethod
+    def _view3d_region_under_pointer(context, event):
+        """The VIEW_3D WINDOW region under the mouse, or None.
+
+        Window-relative ``event.mouse_x/y`` are compared against each
+        region's window offset + size. Returns the region (not a bool) so
+        callers can convert to the region-local coordinates the toast
+        bounds are recorded in.
+        """
+        win = context.window
+        if win is None or win.screen is None:
+            return None
+        mx, my = event.mouse_x, event.mouse_y
+        for area in win.screen.areas:
+            if area.type != 'VIEW_3D':
+                continue
+            if area.mixar_moodboard_contains(mx, my):
+                return None
+            # The Scenes drawer (parallel scene tabs) floats over the canvas
+            # on the left; switching or adding a tab mid-turn is the point.
+            contains_scenes = getattr(area, "mixar_scenes_drawer_contains", None)
+            if contains_scenes is not None and contains_scenes(mx, my):
+                return None
+            if area.mixar_header_contains(mx, my):
+                return None
+            for region in area.regions:
+                if region.type != 'WINDOW':
+                    continue
+                if (region.x <= mx <= region.x + region.width and
+                        region.y <= my <= region.y + region.height):
+                    return region
+        return None
+
+    @staticmethod
+    def _agent_panel_region_under_pointer(context, event):
+        """The VIEW_3D EXECUTE region (Parallel Agents panel) under the
+        mouse, as ``(area, region)``, or None. The region is poll-driven and
+        sized 1x1 while no cards are shown, so a hit here means the panel is
+        actually on screen."""
+        win = context.window
+        if win is None or win.screen is None:
+            return None
+        mx, my = event.mouse_x, event.mouse_y
+        for area in win.screen.areas:
+            if area.type != 'VIEW_3D':
+                continue
+            for region in area.regions:
+                if region.type != 'EXECUTE' or region.width <= 1:
+                    continue
+                if (region.x <= mx <= region.x + region.width and
+                        region.y <= my <= region.y + region.height):
+                    return area, region
+        return None
+
+    def _forward_to_agent_panel(self, context, event) -> bool:
+        """Hand a left-press over the Parallel Agents panel to its own click
+        operator. Window modal handlers run before region handlers, so
+        without this the panel's eye / dismiss / chevron are dead for the
+        whole turn — exactly when the cards are on screen. Returns True when
+        the panel claimed the press."""
+        hit = self._agent_panel_region_under_pointer(context, event)
+        if hit is None:
+            return False
+        area, region = hit
+        try:
+            with context.temp_override(window=context.window, area=area,
+                                       region=region):
+                result = bpy.ops.view3d.agent_panel_click('INVOKE_DEFAULT')
+        except Exception as e:  # noqa: BLE001 — never break the lock
+            logger.debug("agent panel forward skipped: %s", e)
+            return False
+        return 'FINISHED' in result
+
+    @staticmethod
+    def _on_toast_control(region, event) -> bool:
+        """True if the click lands on a toast button / close X / link."""
+        try:
+            from mixar.modules.common.notifications.toast_renderer import (
+                point_in_any_toast_control,
+            )
+            return point_in_any_toast_control(
+                region.as_pointer(),
+                event.mouse_x - region.x,
+                event.mouse_y - region.y,
+            )
+        except Exception as e:  # noqa: BLE001 — never break the lock
+            logger.debug("toast hit-test skipped: %s", e)
+            return False
+
+    def _finish(self, context):
+        global _running
+        if self._timer is not None:
+            try:
+                context.window_manager.event_timer_remove(self._timer)
+            except Exception:  # noqa: BLE001
+                pass
+            self._timer = None
+        _running = False
+
+    def cancel(self, context):
+        self._finish(context)
+
+
+classes = (MIXAR_OT_agent_viewport_block,)

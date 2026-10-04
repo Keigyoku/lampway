@@ -1,0 +1,240 @@
+/* SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later */
+
+/** \file
+ * \ingroup spview3d
+ *
+ * Flow-inspired lens, navigation, aspect, and frame tools pinned to the
+ * live camera gate of the Director viewport.
+ */
+
+#include <algorithm>
+#include <cmath>
+#include <numeric>
+
+#include "BLI_math_base.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
+
+#include "BKE_context.hh"
+
+#include "BLT_translation.hh"
+
+#include "DNA_camera_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
+
+#include "ED_view3d.hh"
+
+#include "UI_interface.hh"
+#include "UI_interface_c.hh"
+#include "UI_mixar.hh"
+#include "UI_resources.hh"
+
+#include "view3d_director.hh"
+#include "view3d_director_overlay_intern.hh"
+/* Mixar 5.2 port: namespace wrap. */
+namespace blender {
+
+namespace {
+
+bool camera_border_get(const bContext *C, const ARegion *region, rctf *r_border)
+{
+  const View3D *v3d = CTX_wm_view3d(C);
+  const RegionView3D *rv3d = CTX_wm_region_view3d(C);
+  if (!v3d || !v3d->camera || !rv3d || rv3d->persp != RV3D_CAMOB) {
+    return false;
+  }
+  ED_view3d_calc_camera_border(CTX_data_scene(C),
+                               CTX_data_ensure_evaluated_depsgraph(C),
+                               region,
+                               v3d,
+                               rv3d,
+                               false,
+                               r_border);
+  r_border->xmin = std::clamp(r_border->xmin, 0.0f, float(region->winx));
+  r_border->xmax = std::clamp(r_border->xmax, 0.0f, float(region->winx));
+  r_border->ymin = std::clamp(r_border->ymin, 0.0f, float(region->winy));
+  r_border->ymax = std::clamp(r_border->ymax, 0.0f, float(region->winy));
+  return BLI_rctf_size_x(r_border) > 0.0f && BLI_rctf_size_y(r_border) > 0.0f;
+}
+
+/* Directors think in millimetres, never field-of-view degrees. */
+void camera_lens_label(const View3D *v3d, char *label, const int label_size)
+{
+  const Object *object = v3d ? v3d->camera : nullptr;
+  const Camera *camera = object && object->type == OB_CAMERA ?
+                             id_cast<const Camera *>(object->data) :
+                             nullptr;
+  if (!camera) {
+    BLI_strncpy(label, IFACE_("Camera Lens"), label_size);
+    return;
+  }
+  if (camera->type == CAM_ORTHO) {
+    BLI_snprintf(label, label_size, "%s  ▾", IFACE_("Orthographic"));
+    return;
+  }
+  if (camera->type == CAM_PANO) {
+    BLI_snprintf(label, label_size, "%s  ▾", IFACE_("Panoramic"));
+    return;
+  }
+  BLI_snprintf(label, label_size, "%dmm  ▾", int(std::round(camera->lens)));
+}
+
+bool aspect_matches(const int width,
+                    const int height,
+                    const int ratio_width,
+                    const int ratio_height)
+{
+  return int64_t(width) * ratio_height == int64_t(height) * ratio_width;
+}
+
+void camera_aspect_label(const Scene *scene, char *label, const int label_size)
+{
+  const int width = std::max(scene->r.xsch, 1);
+  const int height = std::max(scene->r.ysch, 1);
+  if (aspect_matches(width, height, 3, 2)) {
+    BLI_snprintf(label, label_size, "%s  3:2  ▾", IFACE_("Photography"));
+  }
+  else if (aspect_matches(width, height, 4, 3)) {
+    BLI_snprintf(label, label_size, "%s  4:3  ▾", IFACE_("Smartphone"));
+  }
+  else if (aspect_matches(width, height, 16, 9)) {
+    BLI_snprintf(label, label_size, "%s  16:9  ▾", IFACE_("Video / TV"));
+  }
+  else if (aspect_matches(width, height, 185, 100)) {
+    BLI_snprintf(label, label_size, "%s  1.85:1  ▾", IFACE_("Cinema"));
+  }
+  else if (aspect_matches(width, height, 239, 100)) {
+    BLI_snprintf(label, label_size, "%s  2.39:1  ▾", IFACE_("Cinema"));
+  }
+  else if (aspect_matches(width, height, 9, 16)) {
+    BLI_snprintf(label, label_size, "%s  9:16  ▾", IFACE_("Social"));
+  }
+  else if (width == height) {
+    BLI_snprintf(label, label_size, "%s  1:1  ▾", IFACE_("Square"));
+  }
+  else {
+    const int divisor = std::gcd(width, height);
+    BLI_snprintf(label,
+                 label_size,
+                 "%s  %d:%d  ▾",
+                 IFACE_("Aspect"),
+                 width / divisor,
+                 height / divisor);
+  }
+}
+
+}  // namespace
+
+void view3d_director_frame_controls_draw(ui::Block *block,
+                                         const bContext *C,
+                                         const ARegion *region,
+                                         const DirectorViewState &state,
+                                         const int unit,
+                                         const int gap)
+{
+  rctf border;
+  if (!state.has_camera || !camera_border_get(C, region, &border)) {
+    return;
+  }
+  const int button_h = unit * 2;
+  const int lens_w = unit * 8;
+  const int aspect_w = unit * 8;
+  const int inset = gap * 2;
+  const int border_w = int(BLI_rctf_size_x(&border));
+  const int navigate_w = unit * 5;
+  if (border_w < navigate_w + aspect_w + inset * 2 + gap ||
+      BLI_rctf_size_y(&border) < button_h * 3)
+  {
+    return;
+  }
+
+  const int left = int(border.xmin) + inset;
+  const int right = int(border.xmax) - inset;
+  const int bottom = int(border.ymin) + inset;
+  const int top = int(border.ymax) - button_h - inset;
+  char lens_label[96];
+  char aspect_label[96];
+  camera_lens_label(CTX_wm_view3d(C), lens_label, sizeof(lens_label));
+  camera_aspect_label(CTX_data_scene(C), aspect_label, sizeof(aspect_label));
+
+  ui::Button *lens = ui::uiDefBlockBut(block,
+                              view3d_director_lens_popup_create,
+                              nullptr,
+                              lens_label,
+                              left,
+                              top,
+                              short(lens_w),
+                              short(button_h),
+                              TIP_("Choose the lens type and focal length"));
+  ui::mixar_style_button(lens, ui::MixarComponent::Dropdown);
+  director_overlay_disable_button(lens, state.locked);
+
+  /* Precise stays hidden until its role is clear; Navigate is a plain text
+   * action — no icon, so the gate reads as one word. */
+  ui::Button *navigate = ui::uiDefButO(block,
+                              ui::ButtonType::But,
+                              "MIXAR_OT_director_navigate",
+                              blender::wm::OpCallContext::InvokeRegionWin,
+                              IFACE_("Navigate"),
+                              left,
+                              bottom,
+                              short(navigate_w),
+                              short(button_h),
+                              TIP_("Navigate with WASD and mouse"));
+  ui::mixar_style_button(navigate, ui::MixarComponent::Action, ui::MixarVariant::Secondary);
+  ui::mixar_button_lit_set(navigate, state.navigate_mode);
+  if (state.navigate_mode) {
+    ui::button_flag_enable(navigate, ui::BUT_ACTIVE_DEFAULT);
+  }
+  director_overlay_disable_button(navigate, state.locked);
+
+  ui::Button *aspect = ui::uiDefBlockBut(block,
+                                view3d_director_aspect_popup_create,
+                                nullptr,
+                                aspect_label,
+                                right - aspect_w,
+                                bottom,
+                                short(aspect_w),
+                                short(button_h),
+                                TIP_("Choose the shot output aspect ratio"));
+  ui::mixar_style_button(aspect, ui::MixarComponent::Dropdown);
+  director_overlay_disable_button(aspect, state.locked);
+
+  const float dot_size = std::max(7.0f, 8.0f * UI_SCALE_FAC);
+  /* Frame tools are view-only, so they stay enabled on locked takes. */
+  const int frame_tools_right = right - int(dot_size) - gap;
+  if (border_w > lens_w + button_h * 3 + inset * 2 + gap * 3) {
+    director_overlay_operator_button(block,
+                                     "MIXAR_OT_director_fit_frame",
+                                     ICON_FULLSCREEN_ENTER,
+                                     "",
+                                     frame_tools_right - button_h,
+                                     top,
+                                     button_h,
+                                     button_h,
+                                     TIP_("Fill the viewport with the camera frame; click again "
+                                          "to shrink it back"));
+    director_overlay_operator_button(
+        block,
+        "MIXAR_OT_director_drag_frame",
+        ICON_VIEW_PAN,
+        "",
+        frame_tools_right - button_h * 2 - gap,
+        top,
+        button_h,
+        button_h,
+        TIP_("Move the camera frame; scroll resizes, click places, Esc reverts"));
+  }
+  const rctf active_dot = {border.xmax - inset - dot_size,
+                           border.xmax - inset,
+                           border.ymax - inset - dot_size,
+                           border.ymax - inset};
+  const float active_color[4] = {0.25f, 0.92f, 0.52f, 1.0f};
+  ui::draw_roundbox_corner_set(ui::CNR_ALL);
+  ui::draw_roundbox_4fv(&active_dot, true, dot_size * 0.5f, active_color);
+}
+}  // namespace blender

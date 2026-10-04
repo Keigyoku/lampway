@@ -1,0 +1,500 @@
+# SPDX-FileCopyrightText: 2025 Mixar Authors
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Moodboard Modal Transform Operators
+
+Interactive modal operators for grab, rotate and scale of moodboard items.
+"""
+
+import math
+
+import bpy
+from bpy.types import Operator
+
+from mixar.modules.common.i18n import rpt_
+from .transform_ops import (
+    get_all_items_to_transform,
+    calculate_selection_pivot,
+    tag_mixie_redraw,
+)
+
+
+# Everything a grab can move, by the kind recorded in `_initial_positions`.
+# Nodes are in here because a duplicated node has to be placeable with the
+# mouse exactly like a duplicated image -- and because pressing G with a node
+# selected should do the obvious thing.
+_GRAB_COLLECTIONS = {
+    'IMAGE': "mixie_moodboard_images",
+    'TEXTBOX': "mixie_moodboard_textboxes",
+    'ACTION_NODE': "mixie_moodboard_action_nodes",
+    'ASSET_NODE': "mixie_moodboard_asset_nodes",
+    # A frame carries `position_x`/`position_y` like every other kind, which is
+    # what lets one capture move it. Its MEMBERS travel with it because
+    # `get_all_items_to_transform` expands a selected frame into them -- not
+    # because the frame drags them, so the two never double-apply the delta.
+    'FRAME': "mixie_moodboard_frames",
+}
+
+
+def _grab_item(scene, item_type, index):
+    """Resolve one recorded (kind, index) back to its item, or None.
+
+    The collection can shrink under a running modal (an undo, a delete from
+    another window), so every lookup is bounds-checked rather than trusted.
+    """
+    collection = getattr(scene, _GRAB_COLLECTIONS.get(item_type, ""), None)
+    if collection is None or index >= len(collection):
+        return None
+    return collection[index]
+
+
+def _selected_graph_nodes(scene):
+    """(kind, index, x, y) for each selected inference and 3D asset node.
+
+    Frames ride along here: a selected frame moves as one object, and its
+    members are added separately by `get_all_items_to_transform`.
+    """
+    from .transform_ops import get_selected_frame_ids
+
+    frame_ids = get_selected_frame_ids(scene)
+    recorded = []
+    for item_type in ('ACTION_NODE', 'ASSET_NODE'):
+        collection = getattr(scene, _GRAB_COLLECTIONS[item_type], ())
+        for index, node in enumerate(collection):
+            in_moved_frame = bool(frame_ids) and getattr(node, "frame_id", "") in frame_ids
+            if node.selected or in_moved_frame:
+                recorded.append(
+                    (item_type, index, node.position_x, node.position_y)
+                )
+    for index, frame in enumerate(getattr(scene, _GRAB_COLLECTIONS['FRAME'], ())):
+        if frame.selected:
+            recorded.append(('FRAME', index, frame.position_x, frame.position_y))
+    return recorded
+
+
+class MIXIE_OT_moodboard_grab(Operator):
+    """Move selected moodboard items interactively"""
+
+    bl_idname = "mixie.moodboard_grab"
+    bl_label = "Grab/Move"
+    bl_description = (
+        "Move selected images, text boxes and nodes (G). Hold Ctrl to snap"
+    )
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Store initial View2D mouse position and item positions
+    _initial_view_x: float = 0.0
+    _initial_view_y: float = 0.0
+
+    def _get_view_coords(self, context, event):
+        """Convert screen coordinates to View2D coordinates."""
+        region = context.region
+        if region and hasattr(region, 'view2d'):
+            return region.view2d.region_to_view(
+                event.mouse_region_x, event.mouse_region_y
+            )
+        return event.mouse_region_x, event.mouse_region_y
+
+    def _resolve_membership(self, context):
+        """Re-resolve the frame of every item this grab actually moved.
+
+        A frame that travelled is deliberately NOT a reason to re-resolve
+        anything else: its own members moved with it and keep their
+        membership, and items it passed over were never part of the gesture.
+        """
+        scene = context.scene
+        moved = []
+        for item_type, index, _x, _y in self._initial_positions:
+            if item_type == 'FRAME':
+                continue
+            item = _grab_item(scene, item_type, index)
+            if item is not None:
+                moved.append(item)
+        if not moved:
+            return
+        try:
+            from mixar.modules.moodboard.core.frames import resolve_membership
+
+            resolve_membership(scene, moved)
+        except Exception:  # noqa: BLE001 — a modal must never die on this
+            pass
+
+    def modal(self, context, event):
+        if event.type == 'MOUSEMOVE':
+            # Get current mouse position in View2D coordinates
+            view_x, view_y = self._get_view_coords(context, event)
+
+            # Calculate delta in View2D space (1:1 with item positions)
+            delta_x = view_x - self._initial_view_x
+            delta_y = view_y - self._initial_view_y
+
+            if event.ctrl and self._initial_positions:
+                # Same rule as the C++ drags: snap the FIRST recorded item to
+                # the grid and shift the rest by the same delta, so a mixed
+                # selection of images, text boxes and nodes keeps its shape.
+                from mixar.modules.moodboard.constants import GRAPH_SNAP_GRID
+
+                _kind, _index, anchor_x, anchor_y = self._initial_positions[0]
+                delta_x = (
+                    round((anchor_x + delta_x) / GRAPH_SNAP_GRID) * GRAPH_SNAP_GRID
+                    - anchor_x
+                )
+                delta_y = (
+                    round((anchor_y + delta_y) / GRAPH_SNAP_GRID) * GRAPH_SNAP_GRID
+                    - anchor_y
+                )
+
+            scene = context.scene
+
+            # Update positions of all selected items (with bounds checking)
+            for item_type, index, init_x, init_y in self._initial_positions:
+                item = _grab_item(scene, item_type, index)
+                if item is None:
+                    continue
+                item.position_x = init_x + delta_x
+                item.position_y = init_y + delta_y
+
+            tag_mixie_redraw(context)
+            return {'RUNNING_MODAL'}
+
+        elif event.type in {'LEFTMOUSE', 'RET', 'NUMPAD_ENTER'} and event.value == 'PRESS':
+            # Confirm the move, then re-resolve frame membership: dragging an
+            # item INTO a frame is how it joins one. Only on confirm, and only
+            # for the items that moved -- a frame sweeping over the board must
+            # not adopt whatever it passed over (see `resolve_membership`).
+            self._resolve_membership(context)
+            count = len(self._initial_positions)
+            self.report({'INFO'}, rpt_("Moved {count} item(s)").format(count=count))
+            return {'FINISHED'}
+
+        elif event.type in {'RIGHTMOUSE', 'ESC'} and event.value == 'PRESS':
+            # Cancel - restore original positions
+            scene = context.scene
+            for item_type, index, init_x, init_y in self._initial_positions:
+                item = _grab_item(scene, item_type, index)
+                if item is None:
+                    continue
+                item.position_x = init_x
+                item.position_y = init_y
+
+            tag_mixie_redraw(context)
+            self.report({'INFO'}, "Move cancelled")
+            return {'CANCELLED'}
+
+        return {'PASS_THROUGH'}
+
+    def invoke(self, context, event):
+        scene = context.scene
+
+        # Store initial mouse position in View2D coordinates
+        self._initial_view_x, self._initial_view_y = self._get_view_coords(context, event)
+
+        # Get all items to transform (including groups)
+        image_indices, textbox_indices = get_all_items_to_transform(scene)
+
+        # Store initial positions of all items to be transformed
+        self._initial_positions = []
+
+        for i in image_indices:
+            if i < len(scene.mixie_moodboard_images):
+                img = scene.mixie_moodboard_images[i]
+                self._initial_positions.append(
+                    ('IMAGE', i, img.position_x, img.position_y)
+                )
+
+        for i in textbox_indices:
+            if i < len(scene.mixie_moodboard_textboxes):
+                tb = scene.mixie_moodboard_textboxes[i]
+                self._initial_positions.append(
+                    ('TEXTBOX', i, tb.position_x, tb.position_y)
+                )
+
+        self._initial_positions.extend(_selected_graph_nodes(scene))
+
+        if not self._initial_positions:
+            self.report({'WARNING'}, "No items selected to move")
+            return {'CANCELLED'}
+
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class MIXIE_OT_moodboard_rotate(Operator):
+    """Rotate selected moodboard items interactively based on mouse movement"""
+
+    bl_idname = "mixie.moodboard_rotate"
+    bl_label = "Rotate"
+    bl_description = "Rotate selected images and text boxes interactively (R)"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Store initial state
+    _pivot_x: float = 0.0
+    _pivot_y: float = 0.0
+    _prev_mouse_angle: float = 0.0
+    _cumulative_rotation: float = 0.0  # Track total rotation to avoid atan2 wrap issues
+
+    def _get_mouse_angle(self, event):
+        """Calculate the angle from pivot to mouse position."""
+        dx = event.mouse_region_x - self._pivot_x
+        dy = event.mouse_region_y - self._pivot_y
+        return math.degrees(math.atan2(dy, dx))
+
+    def _normalize_angle_delta(self, delta):
+        """Normalize angle delta to handle wrap-around at +/-180 degrees."""
+        # Bring delta into -180 to +180 range
+        while delta > 180.0:
+            delta -= 360.0
+        while delta < -180.0:
+            delta += 360.0
+        return delta
+
+    def modal(self, context, event):
+        if event.type == 'MOUSEMOVE':
+            # Calculate angle delta from PREVIOUS mouse position (not initial)
+            current_angle = self._get_mouse_angle(event)
+            raw_delta = current_angle - self._prev_mouse_angle
+
+            # Normalize to handle +/-180 degree wrap-around
+            normalized_delta = self._normalize_angle_delta(raw_delta)
+
+            # Accumulate the rotation
+            self._cumulative_rotation += normalized_delta
+
+            # Update previous angle for next frame
+            self._prev_mouse_angle = current_angle
+
+            # Use cumulative rotation for the actual transformation
+            angle_rad = math.radians(self._cumulative_rotation)
+
+            scene = context.scene
+
+            # Update rotations and positions of all items (with bounds checking)
+            for item_type, index, init_rotation, init_x, init_y in self._initial_states:
+                # Calculate new rotation
+                new_rotation = (init_rotation + self._cumulative_rotation) % 360.0
+
+                # Calculate new position (rotate around pivot)
+                dx = init_x - self._pivot_x
+                dy = init_y - self._pivot_y
+                cos_a = math.cos(angle_rad)
+                sin_a = math.sin(angle_rad)
+                new_x = self._pivot_x + dx * cos_a - dy * sin_a
+                new_y = self._pivot_y + dx * sin_a + dy * cos_a
+
+                if item_type == 'IMAGE':
+                    if index < len(scene.mixie_moodboard_images):
+                        img = scene.mixie_moodboard_images[index]
+                        img.rotation = new_rotation
+                        img.position_x = new_x
+                        img.position_y = new_y
+                elif item_type == 'TEXTBOX':
+                    if index < len(scene.mixie_moodboard_textboxes):
+                        tb = scene.mixie_moodboard_textboxes[index]
+                        tb.rotation = new_rotation
+                        tb.position_x = new_x
+                        tb.position_y = new_y
+
+            tag_mixie_redraw(context)
+            return {'RUNNING_MODAL'}
+
+        elif event.type in {'LEFTMOUSE', 'RET', 'NUMPAD_ENTER'} and event.value == 'PRESS':
+            # Confirm the rotation
+            count = len(self._initial_states)
+            self.report({'INFO'}, rpt_("Rotated {count} item(s)").format(count=count))
+            return {'FINISHED'}
+
+        elif event.type in {'RIGHTMOUSE', 'ESC'} and event.value == 'PRESS':
+            # Cancel - restore original rotations and positions
+            scene = context.scene
+            for item_type, index, init_rotation, init_x, init_y in self._initial_states:
+                if item_type == 'IMAGE':
+                    if index < len(scene.mixie_moodboard_images):
+                        img = scene.mixie_moodboard_images[index]
+                        img.rotation = init_rotation
+                        img.position_x = init_x
+                        img.position_y = init_y
+                elif item_type == 'TEXTBOX':
+                    if index < len(scene.mixie_moodboard_textboxes):
+                        tb = scene.mixie_moodboard_textboxes[index]
+                        tb.rotation = init_rotation
+                        tb.position_x = init_x
+                        tb.position_y = init_y
+
+            tag_mixie_redraw(context)
+            self.report({'INFO'}, "Rotation cancelled")
+            return {'CANCELLED'}
+
+        return {'PASS_THROUGH'}
+
+    def invoke(self, context, event):
+        scene = context.scene
+
+        # Get all items to transform (including groups)
+        image_indices, textbox_indices = get_all_items_to_transform(scene)
+
+        # Store initial states (rotation and position) of all items to be transformed
+        self._initial_states = []
+
+        for i in image_indices:
+            if i < len(scene.mixie_moodboard_images):
+                img = scene.mixie_moodboard_images[i]
+                self._initial_states.append(
+                    ('IMAGE', i, img.rotation, img.position_x, img.position_y)
+                )
+
+        for i in textbox_indices:
+            if i < len(scene.mixie_moodboard_textboxes):
+                tb = scene.mixie_moodboard_textboxes[i]
+                self._initial_states.append(
+                    ('TEXTBOX', i, tb.rotation, tb.position_x, tb.position_y)
+                )
+
+        if not self._initial_states:
+            self.report({'WARNING'}, "No items selected to rotate")
+            return {'CANCELLED'}
+
+        # Calculate pivot point (center of selection) using shared utility
+        self._pivot_x, self._pivot_y = calculate_selection_pivot(scene)
+
+        # Initialize rotation tracking
+        self._prev_mouse_angle = self._get_mouse_angle(event)
+        self._cumulative_rotation = 0.0
+
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class MIXIE_OT_moodboard_scale(Operator):
+    """Scale selected moodboard items interactively based on mouse movement"""
+
+    bl_idname = "mixie.moodboard_scale"
+    bl_label = "Scale"
+    bl_description = "Scale selected images and text boxes interactively (S)"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # Scale sensitivity - pixels of mouse movement for 1x scale change
+    # Lower = more sensitive, Higher = less sensitive
+    SCALE_PIXELS_PER_UNIT = 100.0
+
+    # Store initial state
+    _pivot_x: float = 0.0
+    _pivot_y: float = 0.0
+    _initial_mouse_x: float = 0.0
+
+    def modal(self, context, event):
+        if event.type == 'MOUSEMOVE':
+            # Calculate scale factor from horizontal mouse movement
+            # Moving right = scale up, moving left = scale down
+            delta_x = event.mouse_region_x - self._initial_mouse_x
+
+            # Convert pixel movement to scale factor
+            # 100 pixels right = 2x scale, 100 pixels left = 0.5x scale (approx)
+            scale_factor = 1.0 + (delta_x / self.SCALE_PIXELS_PER_UNIT)
+
+            # Clamp scale factor to reasonable range
+            scale_factor = max(0.1, min(10.0, scale_factor))
+
+            scene = context.scene
+
+            # Update scales and positions (with bounds checking)
+            for item_type, index, init_scale, init_width, init_height, init_x, init_y in self._initial_states:
+                # Calculate new position (scale distance from pivot)
+                dx = init_x - self._pivot_x
+                dy = init_y - self._pivot_y
+                new_x = self._pivot_x + dx * scale_factor
+                new_y = self._pivot_y + dy * scale_factor
+
+                if item_type == 'IMAGE':
+                    if index < len(scene.mixie_moodboard_images):
+                        img = scene.mixie_moodboard_images[index]
+                        img.scale = init_scale * scale_factor
+                        img.position_x = new_x
+                        img.position_y = new_y
+                elif item_type == 'TEXTBOX':
+                    if index < len(scene.mixie_moodboard_textboxes):
+                        tb = scene.mixie_moodboard_textboxes[index]
+                        # For textboxes, scale width and height
+                        tb.width = init_width * scale_factor
+                        tb.height = init_height * scale_factor
+                        tb.position_x = new_x
+                        tb.position_y = new_y
+
+            tag_mixie_redraw(context)
+            return {'RUNNING_MODAL'}
+
+        elif event.type in {'LEFTMOUSE', 'RET', 'NUMPAD_ENTER'} and event.value == 'PRESS':
+            # Confirm the scale
+            count = len(self._initial_states)
+            self.report({'INFO'}, rpt_("Scaled {count} item(s)").format(count=count))
+            return {'FINISHED'}
+
+        elif event.type in {'RIGHTMOUSE', 'ESC'} and event.value == 'PRESS':
+            # Cancel - restore original scales and positions
+            scene = context.scene
+            for item_type, index, init_scale, init_width, init_height, init_x, init_y in self._initial_states:
+                if item_type == 'IMAGE':
+                    if index < len(scene.mixie_moodboard_images):
+                        img = scene.mixie_moodboard_images[index]
+                        img.scale = init_scale
+                        img.position_x = init_x
+                        img.position_y = init_y
+                elif item_type == 'TEXTBOX':
+                    if index < len(scene.mixie_moodboard_textboxes):
+                        tb = scene.mixie_moodboard_textboxes[index]
+                        tb.width = init_width
+                        tb.height = init_height
+                        tb.position_x = init_x
+                        tb.position_y = init_y
+
+            tag_mixie_redraw(context)
+            self.report({'INFO'}, "Scale cancelled")
+            return {'CANCELLED'}
+
+        return {'PASS_THROUGH'}
+
+    def invoke(self, context, event):
+        scene = context.scene
+
+        # Get all items to transform (including groups)
+        image_indices, textbox_indices = get_all_items_to_transform(scene)
+
+        # Store initial states (scale/size and position) of all items to be transformed
+        self._initial_states = []
+
+        for i in image_indices:
+            if i < len(scene.mixie_moodboard_images):
+                img = scene.mixie_moodboard_images[i]
+                # For images: store scale and position
+                self._initial_states.append(
+                    ('IMAGE', i, img.scale, 0, 0, img.position_x, img.position_y)
+                )
+
+        for i in textbox_indices:
+            if i < len(scene.mixie_moodboard_textboxes):
+                tb = scene.mixie_moodboard_textboxes[i]
+                # For textboxes: store width, height and position
+                self._initial_states.append(
+                    ('TEXTBOX', i, 1.0, tb.width, tb.height, tb.position_x, tb.position_y)
+                )
+
+        if not self._initial_states:
+            self.report({'WARNING'}, "No items selected to scale")
+            return {'CANCELLED'}
+
+        # Calculate pivot point (center of selection) using shared utility
+        self._pivot_x, self._pivot_y = calculate_selection_pivot(scene)
+
+        # Store initial mouse x position for horizontal movement scaling
+        self._initial_mouse_x = event.mouse_region_x
+
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+
+classes = (
+    MIXIE_OT_moodboard_grab,
+    MIXIE_OT_moodboard_rotate,
+    MIXIE_OT_moodboard_scale,
+)

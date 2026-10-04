@@ -1,0 +1,370 @@
+# SPDX-FileCopyrightText: 2025 Mixar Authors
+# SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""
+Mixie Chat Image Operators
+
+Operators for image attachment handling in the chat interface.
+"""
+
+import os
+
+import bpy
+from bpy.props import CollectionProperty, EnumProperty, IntProperty, StringProperty
+from bpy.types import Operator, OperatorFileListElement
+from bpy_extras.io_utils import ImportHelper
+
+from mixar.modules.common.i18n import rpt_, tip_
+from ...constants import MAX_ATTACHMENTS_PER_MESSAGE, SUPPORTED_IMAGE_FORMATS, VIDEO_ATTACHMENT_REJECTED
+from ...core import (
+    cleanup_loaded_file_image,
+    cleanup_loaded_file_images,
+    get_blend_images,
+    get_image_display_name,
+    validate_image_file,
+)
+from ...core.attachment_board_sync import (
+    find_attachment_for_file,
+    mirror_attachment_to_moodboard,
+)
+from ...core.model_attachment import MODEL_EXTENSIONS, import_model_attachment, is_model_file
+from ...core.ui_utils import redraw_chat_areas, sync_bubble_attachment_size_deferred
+
+
+class MIXIE_CHAT_OT_add_image_from_file(Operator, ImportHelper):
+    """Add images or 3D models from files, up to the per-message limit"""
+    bl_idname = "mixie_chat.add_image_from_file"
+    bl_label = "Add Images or 3D Models"
+    bl_options = {'REGISTER'}
+
+    # ImportHelper settings
+    filter_glob: StringProperty(
+        default=";".join(f"*{ext}" for ext in sorted(SUPPORTED_IMAGE_FORMATS | MODEL_EXTENSIONS)),
+        options={'HIDDEN'}
+    )
+
+    # Multi-file selection support
+    files: CollectionProperty(type=OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+    directory: StringProperty(subtype='DIR_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+    filepath: StringProperty(subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+
+    @classmethod
+    def poll(cls, context):
+        if context.scene is None:
+            return False
+        attachments = context.scene.mixie_chat_pending_attachments
+        return len(attachments) < MAX_ATTACHMENTS_PER_MESSAGE
+
+    def execute(self, context):
+        scene = context.scene
+        attachments = scene.mixie_chat_pending_attachments
+
+        # Build list of files to add
+        if self.files and any(f.name for f in self.files):
+            filepaths = [
+                os.path.join(self.directory, f.name)
+                for f in self.files if f.name
+            ]
+        else:
+            filepaths = [self.filepath]
+
+        added = 0
+        rejected = 0
+        for filepath in filepaths:
+            if len(attachments) >= MAX_ATTACHMENTS_PER_MESSAGE:
+                self.report({'WARNING'}, rpt_("Attachment limit ({count}) reached").format(
+                    count=MAX_ATTACHMENTS_PER_MESSAGE))
+                break
+
+            # #1268: a 3D model file is imported into the scene AT ATTACH
+            # TIME (client-side; the path never leaves the addon) and the
+            # attachment records the imported object names. Skip the moodboard
+            # mirror — the board is image-only.
+            if is_model_file(filepath):
+                # A re-drop must not import another scene object before we
+                # discover that its attachment already exists.
+                if any(att.image_source == 'MODEL_FILE' and
+                       os.path.realpath(att.image_path) == os.path.realpath(filepath)
+                       for att in attachments):
+                    continue
+                result = import_model_attachment(filepath)
+                if not result.get("success"):
+                    rejected += 1
+                    self.report(
+                        {'WARNING'},
+                        rpt_("Skipped {name}: {error}").format(
+                            name=os.path.basename(filepath), error=result.get('error')),
+                    )
+                    continue
+                attachment = attachments.add()
+                attachment.image_path = filepath
+                attachment.image_source = 'MODEL_FILE'
+                attachment.display_name = result["display_name"]
+                attachment.imported_object_names = ",".join(
+                    result["imported_object_names"]
+                )
+                added += 1
+                continue
+
+            is_valid, error = validate_image_file(filepath)
+            if not is_valid:
+                rejected += 1
+                self.report({'WARNING'}, rpt_("Cannot add {name}: {error}").format(
+                    name=os.path.basename(filepath), error=error))
+                continue
+
+            # Skip duplicates — a FILE pill for the same path, or a board
+            # pill (moodboard-origin BLEND_DATA) whose image was loaded
+            # from this file: the drop would otherwise show twice.
+            if find_attachment_for_file(attachments, filepath) is not None:
+                continue
+
+            attachment = attachments.add()
+            attachment.image_path = filepath
+            attachment.image_source = 'FILE'
+            attachment.display_name = get_image_display_name(filepath, 'FILE')
+            mirror_attachment_to_moodboard(scene, filepath, 'FILE')
+            added += 1
+
+        if added == 0:
+            if not rejected:
+                self.report({'INFO'}, "These references are already attached")
+            return {'CANCELLED'}
+
+        redraw_chat_areas()
+        sync_bubble_attachment_size_deferred(force_attachment_height=True)
+
+        for area in context.screen.areas:
+            if area.type == 'AGENT_BUBBLE':
+                for region in area.regions:
+                    if region.type == 'TOOLS':
+                        region.tag_redraw()
+
+        self.report({'INFO'}, rpt_("Added {count} image(s)").format(count=added))
+        return {'FINISHED'}
+
+
+class MIXIE_CHAT_OT_add_image_from_blend(Operator):
+    """Add an image attachment from blend file data"""
+    bl_idname = "mixie_chat.add_image_from_blend"
+    bl_label = "Add from Blend"
+    bl_options = {'REGISTER'}
+    bl_property = "image_name"
+
+    def get_blend_images_enum(self, context):
+        """Get available images as enum items."""
+        items = []
+        images = get_blend_images()
+
+        if not images:
+            items.append(('NONE', "No images available", "No images in blend file"))
+            return items
+
+        for img in images:
+            name = img['name']
+            dims = f"{img['width']}x{img['height']}"
+            desc = (tip_("{size} - Has data") if img['has_data']
+                    else tip_("{size} - No data")).format(size=dims)
+            items.append((name, name, desc))
+
+        return items
+
+    image_name: EnumProperty(
+        name="Image",
+        description="Select image from blend file",
+        items=get_blend_images_enum,
+        options={'SKIP_SAVE'},
+    )
+    # Native Image-ID drags carry an exact name; a dynamic picker enum may
+    # change order or omit an entry while the drop is being dispatched.
+    dropped_image_name: StringProperty(options={'HIDDEN', 'SKIP_SAVE'})
+
+    @classmethod
+    def poll(cls, context):
+        if context.scene is None:
+            return False
+        attachments = context.scene.mixie_chat_pending_attachments
+        return len(attachments) < MAX_ATTACHMENTS_PER_MESSAGE
+
+    def invoke(self, context, event):
+        # Check if there are any images
+        images = get_blend_images()
+        if not images:
+            self.report({'WARNING'}, "No images available in blend file")
+            return {'CANCELLED'}
+
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "image_name")
+
+    def execute(self, context):
+        image_name = self.dropped_image_name or self.image_name
+        if image_name == 'NONE':
+            self.report({'WARNING'}, "No image selected")
+            return {'CANCELLED'}
+
+        scene = context.scene
+
+        # Check if already added
+        for att in scene.mixie_chat_pending_attachments:
+            if att.image_path == image_name and att.image_source == 'BLEND_DATA':
+                self.report({'WARNING'}, "Image already added")
+                return {'CANCELLED'}
+
+        # Verify image exists and has data
+        if image_name not in bpy.data.images:
+            self.report({'ERROR'}, "Image not found in blend file")
+            return {'CANCELLED'}
+
+        image = bpy.data.images[image_name]
+        if image.source == 'MOVIE':
+            self.report({'WARNING'}, VIDEO_ATTACHMENT_REJECTED)
+            return {'CANCELLED'}
+        if not image.has_data:
+            self.report({'WARNING'}, "Image has no pixel data")
+            return {'CANCELLED'}
+
+        if image.filepath and find_attachment_for_file(
+                scene.mixie_chat_pending_attachments, image.filepath) is not None:
+            self.report({'INFO'}, "Image already attached")
+            return {'CANCELLED'}
+
+        # Add to pending attachments
+        attachment = scene.mixie_chat_pending_attachments.add()
+        attachment.image_path = image_name
+        attachment.image_source = 'BLEND_DATA'
+        attachment.display_name = get_image_display_name(image_name, 'BLEND_DATA')
+
+        # Attached images are also board images.
+        mirror_attachment_to_moodboard(scene, image_name, 'BLEND_DATA')
+
+        # Notify UI to refresh
+        redraw_chat_areas()
+        sync_bubble_attachment_size_deferred(force_attachment_height=True)
+
+        self.report({'INFO'}, rpt_("Added: {name}").format(name=attachment.display_name))
+        return {'FINISHED'}
+
+
+class MIXIE_CHAT_OT_remove_attachment(Operator):
+    """Remove an image attachment"""
+    bl_idname = "mixie_chat.remove_attachment"
+    bl_label = "Remove Attachment"
+    bl_options = {'REGISTER'}
+
+    index: IntProperty(
+        name="Index",
+        description="Index of attachment to remove",
+        default=0,
+        min=0
+    )
+    attachment_path: StringProperty(options={'HIDDEN', 'SKIP_SAVE'})
+    attachment_source: StringProperty(options={'HIDDEN', 'SKIP_SAVE'})
+
+    @classmethod
+    def poll(cls, context):
+        if context.scene is None:
+            return False
+        return len(context.scene.mixie_chat_pending_attachments) > 0
+
+    def execute(self, context):
+        attachments = context.scene.mixie_chat_pending_attachments
+        index = self.index
+        if self.attachment_path:
+            # A drawn button may outlive a collection reorder. Resolve its
+            # owned identity at click time instead of removing a new neighbor.
+            index = next((i for i, att in enumerate(attachments)
+                          if att.image_path == self.attachment_path and
+                          att.image_source == self.attachment_source), -1)
+            if index < 0:
+                return {'CANCELLED'}
+
+        if index < 0 or index >= len(attachments):
+            self.report({'ERROR'}, "Invalid attachment index")
+            return {'CANCELLED'}
+
+        att = attachments[index]
+        if getattr(att, "scribble_view", ""):
+            from mixar.modules.scribble_mark.core import preview
+            preview.discard_view(context.scene, context.window_manager, att.scribble_view)
+            return {'FINISHED'}
+        name = att.display_name
+        image_path = att.image_path
+        image_source = att.image_source
+
+        # Deselect the board image this pill stands for FIRST. Otherwise
+        # the moodboard polling tick (~200 ms) re-adds the attachment
+        # immediately and the X-click appears to do nothing. Doing this
+        # before the remove() also keeps the polling signature
+        # consistent. Not only for moodboard-origin pills: a dropped
+        # FILE image is mirrored onto the board, and once selected there
+        # the sync de-dupes against this very pill — so removing it must
+        # release the board selection too (chat_sync_dedupe owns the
+        # FILE-path / BLEND_DATA-name identity rules).
+        if image_source in {'FILE', 'BLEND_DATA'}:
+            try:
+                from mixar.modules.moodboard.core.chat_sync import (
+                    deselect_moodboard_image_for_attachment,
+                )
+                deselect_moodboard_image_for_attachment(
+                    context.scene, image_path, image_source
+                )
+            except Exception as e:  # noqa: BLE001
+                # Never block the remove if the moodboard module isn't
+                # loaded — fall through to the standard remove path.
+                # Logged at DEBUG so it's discoverable but doesn't spam
+                # the console on every X-click in a no-moodboard setup.
+                import logging
+                logging.getLogger(__name__).debug(
+                    "moodboard deselect skipped: %s", e, exc_info=True
+                )
+
+        attachments.remove(index)
+        if image_source == 'FILE':
+            cleanup_loaded_file_image(image_path)
+
+        # Notify UI to refresh
+        redraw_chat_areas()
+
+        self.report({'INFO'}, rpt_("Removed: {name}").format(name=name))
+        return {'FINISHED'}
+
+
+class MIXIE_CHAT_OT_clear_attachments(Operator):
+    """Clear all pending attachments"""
+    bl_idname = "mixie_chat.clear_attachments"
+    bl_label = "Clear Attachments"
+    bl_options = {'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.scene is None:
+            return False
+        return len(context.scene.mixie_chat_pending_attachments) > 0
+
+    def execute(self, context):
+        paths = [
+            att.image_path
+            for att in context.scene.mixie_chat_pending_attachments
+            if att.image_source == 'FILE' and att.image_path
+        ]
+        context.scene.mixie_chat_pending_attachments.clear()
+        cleanup_loaded_file_images(paths)
+
+        # Notify UI to refresh
+        redraw_chat_areas()
+
+        self.report({'INFO'}, "Cleared all attachments")
+        return {'FINISHED'}
+
+
+classes = (
+    MIXIE_CHAT_OT_add_image_from_file,
+    MIXIE_CHAT_OT_add_image_from_blend,
+    MIXIE_CHAT_OT_remove_attachment,
+    MIXIE_CHAT_OT_clear_attachments,
+)
