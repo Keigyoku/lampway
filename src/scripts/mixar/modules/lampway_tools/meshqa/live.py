@@ -216,6 +216,11 @@ def read_tags(cfg: QAConfig, apply=True, close_round=False, mislabel_to=None) ->
               "hole_loops": sorted({cid for r in tagged["hole"] for cid in r["loops"]}),
               "orphans": [r["stroke"] for r in tagged["hole"] if r["orphan"]],
               "deleted": 0, "shells": [], "relabelled": 0, "relabels_needing_a_target": [], "decisions": 0}
+    if not apply:                                                  # a dry run still says which green strokes need a target
+        for r in tagged["mislabel"]:
+            faces = sorted({int(orig[f]) for f in r["faces"] if orig[f] >= 0})
+            if faces:
+                report["relabels_needing_a_target"].append({"stroke": r["stroke"], "faces_orig": faces, "islands": r["islands"]})
     if apply:
         parts = list(json.load(open(cfg.recipe))["parts"])
         rulings = Rulings(cfg.rulings_dir, cfg.piece, parts=parts)
