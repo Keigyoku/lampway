@@ -9,8 +9,11 @@ import base64
 import hashlib
 import hmac
 import json
+import os
 import secrets
+import tempfile
 import time
+from pathlib import Path
 from typing import Optional
 
 
@@ -58,14 +61,17 @@ class Auth:
     MAX_REPLAYS = 256                    # Idempotency-Key replays remembered; the oldest is dropped past it
 
     def __init__(self, *, secret: str, email: str, name: str, password: str,
-                 access_ttl_s: int, credits: int):
+                 access_ttl_s: int, credits: int, store_path=None):
         self._secret = secret
         self.email = email
         self.name = name
         self._password = password
         self._access_ttl_s = access_ttl_s
         self.credits = credits
-        self._refresh_tokens: set[str] = set()
+        # Refresh tokens outlive the process: the client rotates its pair every hour, and a token that died with the
+        # server signed the client out after every restart. Kept in the state dir at 0600 when a path is given.
+        self._store_path = Path(store_path) if store_path else None
+        self._refresh_tokens: set[str] = self._load_tokens()
         self._pkce_codes: dict[str, tuple[str, float]] = {}
         # Idempotency-Key -> (refresh token it was used with, pair it produced)
         self._refresh_replays: dict[str, tuple[str, dict]] = {}
@@ -88,7 +94,32 @@ class Auth:
         })
         refresh = secrets.token_urlsafe(48)
         self._refresh_tokens.add(refresh)
+        self._save_tokens()
         return {"access_token": access, "refresh_token": refresh, "token_type": "bearer"}
+
+    def _load_tokens(self) -> set:
+        if self._store_path is None:
+            return set()
+        try:
+            data = json.loads(self._store_path.read_text(encoding="utf-8"))
+            return {t for t in data.get("refresh_tokens", []) if isinstance(t, str)} if isinstance(data, dict) else set()
+        except (OSError, ValueError):
+            return set()
+
+    def _save_tokens(self) -> None:
+        if self._store_path is None:
+            return
+        self._store_path.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=self._store_path.parent, prefix=".refresh")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                json.dump({"refresh_tokens": sorted(self._refresh_tokens)[-64:]}, fh)
+            os.chmod(tmp, 0o600)
+            os.replace(tmp, self._store_path)
+        except BaseException:
+            if os.path.exists(tmp):
+                os.unlink(tmp)
+            raise
 
     def verify_access(self, token: str) -> Optional[dict]:
         return verify_jwt(self._secret, token)
@@ -108,7 +139,7 @@ class Auth:
         if not refresh_token or refresh_token not in self._refresh_tokens:
             return None
         self._refresh_tokens.discard(refresh_token)
-        pair = self.issue_pair()
+        pair = self.issue_pair()                      # issue_pair saves the set (the used token gone, the new one in)
         if idempotency_key:
             self._refresh_replays[idempotency_key] = (refresh_token, pair)
             while len(self._refresh_replays) > self.MAX_REPLAYS:

@@ -118,6 +118,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         password=settings.user_password,
         access_ttl_s=settings.access_token_ttl_s,
         credits=settings.fake_credits,
+        store_path=settings.state_dir / "refresh_tokens.json",
     )
 
     async def login(request: Request):
