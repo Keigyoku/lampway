@@ -206,24 +206,38 @@ DEFS = [
     Def("lampway_asset_acceptance", "Workflow, engine acceptance: identity / orientation / geometry / materials gates for a candidate "
         "asset (optionally against a `reference` object), each with reasons, and an overall `accepted`. Lists what it did not check.",
         [P("object", required=True), P("reference", desc="An approved object to compare bounds against"),
-         P("tolerance", "number", "Fraction of the reference diagonal, default 0.1")], api="asset_acceptance"),
+         P("tolerance", "number", "Fraction of the reference diagonal, default 0.1"),
+         P("source_hash", desc="sha256 of the approved source: identity fails unless the object records it (mesh_prep does) or is identical to it")],
+        api="asset_acceptance"),
     Def("lampway_rig_armor", "Workflow, fit existing armor: fit a copy `<object>_fit` to an armature (bone = one bone at full weight for "
         "rigid plates; body = weights transferred from the aligned body; else heat map), then measure edge stretch over a pose set. "
         "The original is never bound.", [P("object", required=True), P("armature", required=True), P("bone"), P("body"),
-        P("max_stretch", "number", "Accept limit; default 1.001 rigid, 1.35 deforming")], api="rig_armor"),
+        P("max_stretch", "number", "Accept limit; default 1.001 rigid, 1.35 deforming"),
+        P("clearance_body", desc="The body rigged to the same armature: every pose is judged by the piece's distance to it (the only check that can fail a rigid plate)"),
+        P("min_clearance_m", "number", "Smallest accepted clearance, default 0"),
+        P("seam_limit_m", "number", "Widest accepted seam gap between plates, default 0.01 [unverified default]"),
+        P("poses", "array", "Pose objects; default is the wiki's eight poses (idle ... weapon_grip)")], api="rig_armor"),
     Def("lampway_auto_rig", "Auto Rig: a UE-named humanoid armature `<object>_rig` placed from landmarks measured on a T-pose mesh "
         "(standing on Z, facing -Y by default; _l/_r are the FIGURE's own sides), the mesh parented with heat-map weights and a "
         "proximity fallback for vertices heat cannot solve. Test it with lampway_pose_test: a rig is not a claim of deformation "
         "quality. engine=studio:tripo is the Auto Rig slot (answers with action and price).", [P("object", required=True),
         P("kind", desc="humanoid"), P("weights", desc="auto | proximity"), P("facing", desc="-Y (default) | +Y"),
-        P("engine", desc="algorithmic (default) | studio:tripo")], api="auto_rig"),
+        P("engine", desc="algorithmic (default) | studio:tripo"),
+        P("copy", "boolean", "Rig a copy `<object>_rigged` and leave the source untouched (default true); false rigs in place")], api="auto_rig"),
     Def("lampway_bind_to_armature", "Bind a piece (armor) to an armature: mode rigid = ONE bone at full weight (plates; give `bone`), "
         "transfer = weights copied from `source` (the aligned body; for deforming pieces), auto = heat-map weights.",
         [P("object", required=True), P("armature", required=True), P("mode", desc="rigid (default) | transfer | auto"),
          P("bone"), P("source", desc="The body whose weights are transferred (mode transfer)")], api="bind_to_armature"),
     Def("lampway_pose_test", "Rotate bones and MEASURE the evaluated mesh: max/min edge stretch and the largest vertex displacement per pose "
         "(a rigid plate on one bone must read stretch 1.0). `poses`: [{name, bone, rotate: [x, y, z] degrees}]; every pose is reset.",
-        [P("armature", required=True), P("object", required=True), P("poses", "array", "Pose objects", required=True)], api="pose_test"),
+        [P("armature", required=True), P("object", required=True), P("poses", "array", "Pose objects", required=True),
+         P("clearance_body", desc="A body rigged to the same armature: reports the clearance of the piece to it in every pose"),
+         P("seam_radius_m", "number", "Vertex pairs of different shells closer than this at rest are a seam, default 0.02")], api="pose_test"),
+    Def("lampway_detail_normals", "Micro depth for a textured_atlas material without the relief map: per-material tiling detail normals box-projected "
+        "in object space (metals take their ambientCG NormalGL maps; cloth and leather a small bump from their colour), blended by the material's "
+        "per-texel masks. Idempotent: its 'DN:' nodes are replaced on a re-run. strengths: {plate, gold, cloth, leather}.",
+        [P("material", required=True), P("strengths", "object", "Per-layer strengths, defaults plate 0.6, gold 0.45, cloth 0.25, leather 0.3"),
+         P("ambientcg_dir", desc="The ambientCG folder (default: the settings / LAMPWAY_AMBIENTCG_DIR)")], api="detail_normals"),
     Def("lampway_image_to_3d", "Image to 3D / multi-view WITHOUT a model: mode hull = the visual hull of two or more cardinal views "
         "(images = {\"Front\": path, \"Left\": path, ...}; Front u=+X, Left u=-Y; silhouettes from alpha or the corner colour), "
         "extrude = a rounded or slab extrusion of Front (+Back) for paired pieces (depth in metres), relief = a luminance relief of one "

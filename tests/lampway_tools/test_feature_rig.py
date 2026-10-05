@@ -13,7 +13,7 @@ from features_support import run
 def test_a_humanoid_gets_a_ue_named_skeleton_inside_its_bounds_and_every_vertex_is_weighted(tmp_path):
     r = run(tmp_path, '''
 body = humanoid("body")
-res = call("auto_rig", object="body", kind="humanoid")
+res = call("auto_rig", object="body", kind="humanoid", copy=False)          # in place: this test is about the weights ON the source
 rig = bpy.data.objects.get(res.get("armature", ""))
 bones = {b.name: [list(b.head_local), list(b.tail_local)] for b in rig.data.bones} if rig else {}
 me = body.data
@@ -62,7 +62,7 @@ print("RESULT", json.dumps({"res": res, "vg": vg, "weights": sorted(weights), "p
 def test_a_deforming_piece_gets_its_weights_transferred_from_the_body_and_bends_where_the_body_does(tmp_path):
     r = run(tmp_path, '''
 body = humanoid("body")
-call("auto_rig", object="body", kind="humanoid")
+call("auto_rig", object="body", kind="humanoid", copy=False)          # the transfer donor must carry the weights
 sleeve = boxes("sleeve", [((-0.55, 0, 1.30), (0.62, 0.16, 0.16))])      # the right arm: -X
 res = call("bind_to_armature", object="sleeve", armature="body_rig", mode="transfer", source="body")
 vg = sorted(g.name for g in sleeve.vertex_groups)
@@ -93,7 +93,7 @@ def test_the_proximity_fallback_weights_every_vertex_on_its_nearest_bones(tmp_pa
     """Heat can fail on non-manifold or open meshes; the fallback is a real algorithm, tested on its own."""
     r = run(tmp_path, '''
 body = humanoid("body")
-res = call("auto_rig", object="body", weights="proximity")
+res = call("auto_rig", object="body", weights="proximity", copy=False)
 me = body.data
 bad = sum(1 for v in me.vertices if abs(sum(g.weight for g in v.groups) - 1.0) > 1e-3)
 arm_l = [v for v in me.vertices if v.co.x > 0.3]

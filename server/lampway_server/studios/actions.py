@@ -223,6 +223,29 @@ def _v_save(args, jail):
         raise ActionError("save needs expect_utilization (the panel's % for the shown attempt)") from None
 
 
+def _stamp(args):
+    stamp = str(args.get("stamp") or "").strip()
+    if not stamp:
+        raise ActionError("the original is selected by its card stamp ('MM-DD HH:MM', or '*' for any loaded card) and its face count")
+    return stamp
+
+
+def _v_regen_pick(args, jail):
+    """retry / harvest: the original = its card stamp + its face count (the driver refuses when they do not match what is shown)."""
+    return {"stamp": _stamp(args), "faces": _int(args.get("faces"), "faces")}
+
+
+def _v_regen_sift(args, jail):
+    n = _int(5 if args.get("n") is None else args["n"], "n")
+    if not 1 <= n <= 10:
+        raise ActionError("n is 1 to 10 free retries per sift (each is discarded and banked in the History)")
+    return {"faces": _int(args.get("faces"), "faces"), "n": n}
+
+
+def _v_regen_discard(args, jail):
+    return {"expect_faces": _int(args["expect_faces"], "expect_faces")} if args.get("expect_faces") not in (None, "") else {}
+
+
 def _v_fetch(args, jail):
     return {"stamp": str(args.get("stamp") or ""), "expect": _int(args.get("expect") or 4, "expect")}
 
@@ -258,6 +281,18 @@ ACTIONS = {a.id: a for a in [
            run_args=lambda c, o: ["pick", "--attempt", str(c["attempt"]), "--out", o]),
     Action("tripo.uv.save", "tripo", "Save the shown UV attempt onto the copy (free)", "tripo_uv", validate=_v_save,
            run_args=lambda c, o: ["save", "--expect-utilization", str(c["expect_utilization"])]),
+    Action("tripo.regen.retry", "tripo", "One free seed reroll on an ORIGINAL (Edit Mesh Retry; the modal stays open to score it)", "tripo_regen", needs_out_dir=True,
+           validate=_v_regen_pick, run_args=lambda c, o: ["retry", o, c["stamp"], str(c["faces"])]),
+    Action("tripo.regen.sift", "tripo", "N free seed rerolls on an original, each discarded (banked in History)", "tripo_regen", needs_out_dir=True,
+           validate=_v_regen_sift, run_args=lambda c, o: ["sift", o, str(c["faces"]), "--n", str(c["n"])]),
+    Action("tripo.regen.harvest", "tripo", "Download every History version (banked rerolls) of an original", "tripo_regen", needs_out_dir=True,
+           validate=_v_regen_pick, run_args=lambda c, o: ["harvest", o, c["stamp"], str(c["faces"])]),
+    Action("tripo.regen.collect", "tripo", "Wait for a reroll already running in the open modal and download it", "tripo_regen", needs_out_dir=True,
+           validate=_v_none, run_args=lambda c, o: ["collect", o]),
+    Action("tripo.regen.apply", "tripo", "Keep the Current Version: commits the new seed onto the original (the old one stays in History)", "tripo_regen",
+           validate=_v_none, run_args=lambda c, o: ["apply"]),
+    Action("tripo.regen.discard", "tripo", "Throw the Current Version away; verifies the original's face count is back", "tripo_regen",
+           validate=_v_regen_discard, run_args=lambda c, o: ["discard"] + (["--expect-faces", str(c["expect_faces"])] if c.get("expect_faces") else [])),
     Action("tripo.fetch", "tripo", "Download the variants of one generation by its card stamp", "tripo_fetch", needs_out_dir=True,
            validate=_v_fetch, run_args=lambda c, o: [o, c["stamp"], "--expect", str(c["expect"])]),
 ]}

@@ -112,3 +112,18 @@ def test_the_meshpaint_tool_is_one_api_call_with_its_stage():
     assert 'api.call("meshpaint"' in s and args_of(s) == {"stage": "prompt", "view": "Left"}
     with pytest.raises(T.UnknownTool, match="stage"):
         T.script_for("lampway_meshpaint", {"view": "Left"})
+
+
+def test_wave0_tools_expose_the_new_arguments_to_the_agent():
+    """Wave 0: detail_normals has a caller; asset_acceptance takes source_hash; rig_armor takes the clearance and seam arguments; auto_rig takes copy;
+    pose_test takes clearance_body. Every argument reaches the script (an undeclared one would be dropped)."""
+    byname = {t.name: t for t in T.TOOLS}
+    assert "lampway_detail_normals" in byname
+    s = T.script_for("lampway_detail_normals", {"material": "textured_x", "strengths": {"plate": 0.9}, "ambientcg_dir": "acg"})
+    assert 'api.call("detail_normals"' in s and args_of(s) == {"material": "textured_x", "strengths": {"plate": 0.9}, "ambientcg_dir": "acg"}
+    for name, extra in (("lampway_asset_acceptance", {"source_hash": "ab" * 32}),
+                        ("lampway_rig_armor", {"clearance_body": "body_rigged", "min_clearance_m": 0.01, "seam_limit_m": 0.02}),
+                        ("lampway_auto_rig", {"copy": False}), ("lampway_pose_test", {"clearance_body": "b", "seam_radius_m": 0.03})):
+        args = {"object": "o", "armature": "a", "poses": []}
+        got = args_of(T.script_for(name, {**args, **extra}))
+        assert all(got.get(k) == v for k, v in extra.items()), (name, got)

@@ -663,11 +663,11 @@ def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algor
 
 
 @tool
-def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y"):
+def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y", copy=True):
     """A UE-named humanoid armature ``<object>_rig`` placed from landmarks measured on a T-pose mesh, the mesh parented with heat-map
     weights (proximity fallback for the vertices heat cannot solve). ``_l``/``_r`` are the figure's own sides. engine=studio:tripo
-    is the Auto Rig slot (answers with action and price)."""
-    return _F_rig.auto_rig(object, kind, engine, weights, facing)
+    is the Auto Rig slot (answers with action and price). The source mesh is never touched: ``<object>_rigged`` is the rigged copy (copy=false rigs in place)."""
+    return _F_rig.auto_rig(object, kind, engine, weights, facing, copy)
 
 
 @tool
@@ -678,10 +678,11 @@ def bind_to_armature(object, armature, mode="rigid", bone="", source=""):
 
 
 @tool
-def pose_test(armature, object, poses):
-    """Rotate bones ([{name, bone, rotate: [x, y, z] degrees}]) and measure the evaluated mesh: max/min edge stretch and the largest
-    vertex displacement per pose; every pose is reset afterwards."""
-    return _F_rig.pose_test(armature, object, poses)
+def pose_test(armature, object, poses, clearance_body="", seam_radius_m=0.02):
+    """Rotate bones ([{name, bone, rotate: [x, y, z] degrees}] or {name, bones: [{bone, rotate}]}) and measure the evaluated mesh: max/min edge
+    stretch, the largest vertex displacement, the seam gap growth between shells, and with ``clearance_body`` the clearance to that posed body;
+    every pose is reset afterwards."""
+    return _F_rig.pose_test(armature, object, poses, clearance_body, seam_radius_m)
 
 
 @tool
@@ -713,17 +714,27 @@ def mesh_prep(object, merge_distance=1e-5):
 
 
 @tool
-def asset_acceptance(object, reference="", tolerance=0.1):
+def asset_acceptance(object, reference="", tolerance=0.1, source_hash=""):
     """Workflow: identity, orientation, geometry and materials gates for a candidate asset (against an optional reference), each with
-    reasons, and an overall accepted flag. It lists what it did not check (engine import, collision, skeleton)."""
-    return _F_wf.asset_acceptance(object, reference, tolerance)
+    reasons, and an overall accepted flag. Identity fails unless the object records the source it came from and that matches the
+    reference (or ``source_hash``). It lists what it did not check (engine import, collision, skeleton)."""
+    return _F_wf.asset_acceptance(object, reference, tolerance, source_hash)
 
 
 @tool
-def rig_armor(object, armature, bone="", body="", poses=None, max_stretch=None):
+def rig_armor(object, armature, bone="", body="", poses=None, max_stretch=None, clearance_body="", min_clearance_m=0.0, seam_limit_m=0.01):
     """Workflow: fit a copy ``<object>_fit`` of a piece to an armature (bone=one bone at full weight for rigid plates, body=weights
     transferred from the aligned body, else heat map), then measure edge stretch over a pose set. The original is never bound."""
-    return _F_wf.rig_armor(object, armature, bone, body, poses, max_stretch)
+    return _F_wf.rig_armor(object, armature, bone, body, poses, max_stretch, clearance_body, min_clearance_m, seam_limit_m)
+
+
+@tool
+def detail_normals(material, strengths=None, ambientcg_dir=""):
+    """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
+    NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
+    replaced on a re-run. strengths: {plate, gold, cloth, leather}; ambientcg_dir defaults to the settings' / LAMPWAY_AMBIENTCG_DIR."""
+    from . import detail_normals as DN
+    return DN.apply(material, strengths, ambientcg_dir or getattr(_settings(), "ambientcg_dir", None) or None)
 
 
 @tool
@@ -792,7 +803,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "qa_descriptors", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals")
 
 
 def call(name: str, payload: str = "{}") -> dict:

@@ -292,3 +292,39 @@ async def test_another_studios_driver_resolves_under_its_own_shelf_folder(tmp_pa
     monkeypatch.setitem(A.ACTIONS, "hi3d.state", A.Action("hi3d.state", "hi3d", "Read Hi3D", "hi3d_state", validate=A._v_none, run_args=lambda c, o: ["state"]))
     with pytest.raises(ActionError, match="LAMPWAY_STUDIO_SHELF"):
         await s.plan("hi3d.state", {}, by="agent")
+
+
+# ------------------------------------------------------------------ tripo.regen: free seed rerolls on the Studio (Wave 0: the driver was bundled with no action row)
+REGEN = ("tripo.regen.retry", "tripo.regen.sift", "tripo.regen.harvest", "tripo.regen.collect", "tripo.regen.apply", "tripo.regen.discard")
+
+
+def test_the_regen_driver_has_an_action_row_for_every_verb_and_none_of_them_spends():
+    assert set(REGEN) <= set(ACTIONS)
+    assert not any(ACTIONS[a].needs_approval for a in REGEN), "a whole-piece regen is free on the captain's plan"
+    assert all(ACTIONS[a].driver == "tripo_regen" and ACTIONS[a].studio == "tripo" for a in REGEN)
+    assert "tripo.regen.region" not in ACTIONS, "an exact-region retry needs the captain's approval flag: not offered as an action"
+
+
+async def test_regen_actions_run_the_bundled_driver_with_the_verb_and_validated_arguments(tmp_path):
+    s, ex, _ = svc(tmp_path, {"tripo_regen": "credits: 1450\nfaces: 30000\n"}, shelf=False)
+    out = await s.plan("tripo.regen.retry", {"stamp": "10-04 12:00", "faces": 30000}, by="agent")
+    assert out["state"] == "running" and s.approvals() == []
+    await s.wait(out["job"]["id"])
+    argv = ex.calls[-1]["argv"]
+    assert argv[1:3] == ["-m", "lampway_server.studios.tripo.tripo_regen"] and argv[3] == "retry" and argv[5:] == ["10-04 12:00", "30000"] and ex.calls[-1]["armed"] is True
+    out = await s.plan("tripo.regen.sift", {"faces": 30000, "n": 3}, by="agent")
+    await s.wait(out["job"]["id"])
+    assert ex.calls[-1]["argv"][3] == "sift" and ex.calls[-1]["argv"][-2:] == ["--n", "3"]
+    for verb, args in (("apply", {}), ("discard", {"expect_faces": 30000})):
+        await s.wait((await s.plan(f"tripo.regen.{verb}", args, by="agent"))["job"]["id"])
+        assert ex.calls[-1]["argv"][3] == verb
+    assert ex.calls[-1]["argv"][-2:] == ["--expect-faces", "30000"]
+
+
+async def test_regen_arguments_are_validated_before_any_driver_runs(tmp_path):
+    s, ex, _ = svc(tmp_path, shelf=False)
+    for action, args in (("tripo.regen.retry", {"stamp": "10-04 12:00"}), ("tripo.regen.retry", {"stamp": "", "faces": 3}),
+                         ("tripo.regen.sift", {"faces": 3, "n": 0}), ("tripo.regen.sift", {"faces": 3, "n": 11}), ("tripo.regen.harvest", {"faces": "x", "stamp": "s"})):
+        with pytest.raises(ActionError):
+            await s.plan(action, args, by="agent")
+    assert ex.calls == []

@@ -128,16 +128,17 @@ def _parent(ob, arm_ob, auto):
     bpy.ops.object.parent_set(type="ARMATURE_AUTO" if auto else "ARMATURE_NAME")
 
 
-def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y"):
+def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y", copy=True):
     if engine != "algorithmic":
         return C.studio_slot("rig", engine)
     if kind not in KINDS:
         raise C.FeatureError(f"unknown kind {kind!r}; the kinds are {', '.join(KINDS)} (a creature needs the studio slot)")
     if weights not in ("auto", "proximity"):
         raise C.FeatureError(f"unknown weights {weights!r}; auto (heat map, proximity fallback) | proximity")
-    ob = C.need_object(object)
+    src = C.need_object(object)
+    ob = C.duplicate(src, "_rigged") if copy else src                              # parenting and weighting mutate: the source is never touched by default
     L = landmarks(_world_points(ob), facing)
-    arm_ob = _build_armature(ob, f"{ob.name}_rig", _bone_table(L))
+    arm_ob = _build_armature(ob, f"{src.name}_rig", _bone_table(L))
     used = "proximity"
     if weights == "auto":
         _parent(ob, arm_ob, auto=True)
@@ -150,7 +151,7 @@ def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", faci
         _proximity_weights(ob, arm_ob, only=set(missing))
         used = "heat+proximity" if used == "heat" else used
     final_missing = _unweighted(ob)
-    return {"armature": arm_ob.name, "source": ob.name, "kind": kind,
+    return {"armature": arm_ob.name, "source": src.name, "mesh": ob.name, "kind": kind,
             "report": {"bones": len(arm_ob.data.bones), "weights": used if used == "proximity" else "heat",
                        "weights_detail": used, "heat_failed_vertices": len(missing), "unweighted_vertices": len(final_missing),
                        "height": round(L["h"], 4), "facing": facing}}
@@ -202,11 +203,81 @@ def bind_to_armature(object, armature, mode="rigid", bone="", source=""):
     return {"object": ob.name, "armature": arm_ob.name, "mode": mode, "source": body.name, "proximity_filled_vertices": len(bare)}
 
 
-def pose_test(armature, object, poses):
-    """Rotate bones (Euler degrees on the pose bone), evaluate the mesh, measure the maximum edge stretch (current / rest length)
-    and the largest vertex displacement; every pose is reset afterwards."""
+def _pose_bones(pose) -> list:
+    """[(bone, euler degrees)] of one pose: ``bones`` (several) or the single ``bone`` + ``rotate``; neither = the rest pose."""
+    if pose.get("bones"):
+        return [(b["bone"], b.get("rotate", [0, 0, 0])) for b in pose["bones"]]
+    if pose.get("bone"):
+        return [(pose["bone"], pose.get("rotate", [0, 0, 0]))]
+    return []
+
+
+def _shell_labels(n_verts, edges) -> np.ndarray:
+    parent = list(range(n_verts))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+    for a, b in edges:
+        ra, rb = find(int(a)), find(int(b))
+        if ra != rb:
+            parent[ra] = rb
+    return np.array([find(i) for i in range(n_verts)])
+
+
+MAX_SEAM_PAIRS = 50000
+
+
+def _seam_pairs(rest, edges, radius):
+    """Vertex pairs of DIFFERENT shells closer than ``radius`` at rest: the seams between plates. Edge stretch is per mesh edge and never sees them."""
+    from mathutils import kdtree
+    labels = _shell_labels(len(rest), edges)
+    tree = kdtree.KDTree(len(rest))
+    for i, p in enumerate(rest):
+        tree.insert(p, i)
+    tree.balance()
+    pairs = []
+    for i, p in enumerate(rest):
+        for _co, j, _d in tree.find_range(p, radius):
+            if j > i and labels[i] != labels[j]:
+                pairs.append((i, j))
+                if len(pairs) >= MAX_SEAM_PAIRS:
+                    return np.array(pairs, dtype=np.int64)
+    return np.array(pairs, dtype=np.int64).reshape(-1, 2)
+
+
+def _body_tree(body):
+    from mathutils.bvhtree import BVHTree
+    ev = body.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    me = ev.to_mesh()
+    m = ev.matrix_world
+    tree = BVHTree.FromPolygons([m @ v.co for v in me.vertices], [tuple(p.vertices) for p in me.polygons])
+    ev.to_mesh_clear()
+    return tree
+
+
+def _clearance(points, body) -> dict:
+    """Signed distance of the piece's vertices to the (posed) body: positive outside it, negative inside."""
+    tree = _body_tree(body)
+    signed = []
+    for p in points:
+        v = Vector(p)
+        loc, nrm, _i, dist = tree.find_nearest(v)
+        signed.append(dist if (v - loc).dot(nrm) >= 0 else -dist)
+    signed = np.array(signed)
+    return {"min_m": round(float(signed.min()), 6) if len(signed) else 0.0, "penetrating_vertices": int((signed < -1e-6).sum())}
+
+
+def pose_test(armature, object, poses, clearance_body="", seam_radius_m=0.02):
+    """Rotate bones (Euler degrees on the pose bone; a pose may move several bones), evaluate the mesh and measure per pose: the maximum edge
+    stretch (current / rest length), the largest vertex displacement, the SEAM GAP growth (vertex pairs of different shells within
+    ``seam_radius_m`` at rest: how far apart they end up) and, with ``clearance_body``, the distance to that body posed by the same
+    armature. Every pose is reset afterwards."""
     arm_ob = C.need_object(armature, "ARMATURE")
     ob = C.need_object(object)
+    body = C.need_object(clearance_body) if clearance_body else None
     rest = _evaluated(ob)
     me = ob.data
     edges = np.empty(len(me.edges) * 2, dtype=np.int64)
@@ -214,22 +285,33 @@ def pose_test(armature, object, poses):
     edges = edges.reshape(-1, 2)
     rest_len = np.linalg.norm(rest[edges[:, 0]] - rest[edges[:, 1]], axis=1)
     keep = rest_len > 1e-9
+    pairs = _seam_pairs(rest, edges, seam_radius_m)
+    rest_gap = np.linalg.norm(rest[pairs[:, 0]] - rest[pairs[:, 1]], axis=1) if len(pairs) else np.zeros(0)
     out = []
     for pose in poses:
-        pb = arm_ob.pose.bones.get(pose.get("bone", ""))
-        if pb is None:
-            raise C.FeatureError(f"no bone {pose.get('bone')!r} in {armature!r}")
-        pb.rotation_mode = "XYZ"
-        before = tuple(pb.rotation_euler)
-        pb.rotation_euler = [math.radians(float(a)) for a in pose.get("rotate", [0, 0, 0])]
+        moved = []
+        for bone, rotate in _pose_bones(pose):
+            pb = arm_ob.pose.bones.get(bone)
+            if pb is None:
+                raise C.FeatureError(f"no bone {bone!r} in {armature!r}; the bones are: {sorted(b.name for b in arm_ob.data.bones)[:30]}")
+            pb.rotation_mode = "XYZ"
+            moved.append((pb, tuple(pb.rotation_euler)))
+            pb.rotation_euler = [math.radians(float(a)) for a in rotate]
         bpy.context.view_layer.update()
         cur = _evaluated(ob)
         cur_len = np.linalg.norm(cur[edges[:, 0]] - cur[edges[:, 1]], axis=1)
-        out.append({"name": pose.get("name", pose["bone"]), "bone": pb.name,
-                    "max_edge_stretch": round(float((cur_len[keep] / rest_len[keep]).max()), 6) if keep.any() else 1.0,
-                    "min_edge_stretch": round(float((cur_len[keep] / rest_len[keep]).min()), 6) if keep.any() else 1.0,
-                    "max_vertex_displacement": round(float(np.linalg.norm(cur - rest, axis=1).max()), 6)})
-        pb.rotation_euler = before
+        gap = float((np.linalg.norm(cur[pairs[:, 0]] - cur[pairs[:, 1]], axis=1) - rest_gap).max()) if len(pairs) else 0.0
+        names = [pb.name for pb, _b in moved]
+        row = {"name": pose.get("name") or (names[0] if names else "rest"), "bone": names[0] if names else "", "bones": names,
+               "max_edge_stretch": round(float((cur_len[keep] / rest_len[keep]).max()), 6) if keep.any() else 1.0,
+               "min_edge_stretch": round(float((cur_len[keep] / rest_len[keep]).min()), 6) if keep.any() else 1.0,
+               "max_vertex_displacement": round(float(np.linalg.norm(cur - rest, axis=1).max()), 6),
+               "seam_gap_m": round(max(gap, 0.0), 6), "seam_pairs": int(len(pairs))}
+        if body is not None:
+            row["clearance"] = _clearance(cur, body)
+        out.append(row)
+        for pb, before in moved:
+            pb.rotation_euler = before
         bpy.context.view_layer.update()
     return {"armature": arm_ob.name, "object": ob.name, "poses": out}
 
