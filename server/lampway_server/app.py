@@ -8,8 +8,10 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse
 from starlette.routing import Route
 
+from .agent_settings import AgentSettingsStore
 from .auth import Auth
 from .config import Settings
+from .rest import stub_routes
 
 _PKCE_FIELDS = ("port", "code_challenge", "code_challenge_method", "state", "source")
 
@@ -118,8 +120,11 @@ def create_app(settings: Settings, provider=None) -> Starlette:
         Route("/app/desktop-login", desktop_login_get, methods=["GET"]),
         Route("/app/desktop-login", desktop_login_post, methods=["POST"]),
     ]
+    store = AgentSettingsStore(settings.state_dir)
+    routes += stub_routes(auth, store, settings)
     app = Starlette(routes=routes)
     app.state.settings = settings
     app.state.auth = auth
+    app.state.store = store
     app.state.provider = provider
     return app
