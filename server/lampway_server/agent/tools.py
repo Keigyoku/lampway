@@ -5,6 +5,7 @@ blender.execute_script (executor.py); the reply envelope is executor_result.py's
 import json
 
 from .providers.base import ToolSpec
+from . import lampway_tools as lt
 
 RUN_BLENDER_PYTHON = "run_blender_python"
 SCENE_SUMMARY = "scene_summary"
@@ -62,6 +63,7 @@ TOOLS = [
     ),
 ]
 
+TOOLS = TOOLS + lt.SPECS
 TOOL_NAMES = {t.name for t in TOOLS}
 
 
@@ -77,6 +79,11 @@ def script_for(name: str, arguments: dict) -> str:
         return script
     if name == SCENE_SUMMARY:
         return SCENE_SUMMARY_SCRIPT
+    if name in lt.BY_NAME:
+        try:
+            return lt.build_script(lt.BY_NAME[name], arguments)
+        except lt.BadArguments as exc:
+            raise UnknownTool(str(exc)) from exc
     raise UnknownTool(f"unknown tool {name!r}")
 
 

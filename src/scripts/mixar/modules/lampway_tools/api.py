@@ -303,3 +303,27 @@ def run_tool(name, args=(), timeout=3600):
         jailed.append(str(S.resolve_in_root(a, s.project_root)) if ("/" in a and not a.startswith("--")) or a.startswith(("..", "~")) else a)
     res = RUN.run(name, jailed, s, timeout=float(timeout), log_dir=s.project_root / "logs")
     return {"rc": res.rc, "output": res.stdout, "log": res.log, "timed_out": res.timed_out, "ok_run": res.rc == 0}
+
+
+# ---- the door the agent's scripts use
+
+TOOL_FUNCS = ("status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool")
+
+
+def call(name: str, payload: str = "{}") -> dict:
+    """``api.call("qa_candidates", '{"draw": true}')``: a public tool function by name with its keyword arguments as a JSON
+    object. The agent's scripts carry the arguments as one string literal, so no argument value can change the script."""
+    if name not in TOOL_FUNCS:
+        return {"ok": False, "error": f"no tool function {name!r}; the functions are {', '.join(TOOL_FUNCS)}",
+                "help": ["Call `api.status()` to see what is configured"]}
+    try:
+        kwargs = json.loads(payload or "{}")
+        if not isinstance(kwargs, dict):
+            raise ValueError("the payload must be a JSON object")
+    except ValueError as exc:
+        return {"ok": False, "error": f"bad payload: {exc}", "help": ["Pass the arguments as one JSON object"]}
+    try:
+        return globals()[name](**kwargs)
+    except TypeError as exc:
+        return {"ok": False, "error": f"bad arguments for {name}: {exc}", "help": ["Check the tool's parameters"]}

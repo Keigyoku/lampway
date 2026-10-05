@@ -167,3 +167,19 @@ print("RESULT", json.dumps({"started": started, "status": st, "loaded": "demo_t1
     assert res["started"]["ok"] is True and res["started"]["job"].startswith("rebuild-")
     assert res["status"]["state"] == "done" and res["status"]["loaded"] == "demo_t1_textured"
     assert res["loaded"] is True and res["prev_hidden"] is True
+
+
+def test_call_is_the_one_door_the_agent_scripts_use(tmp_path):
+    r = run(tmp_path, '''
+ok = api.call("status", "{}")
+unknown = api.call("settings_set_everything", "{}")
+bad_json = api.call("status", "{nope")
+private = api.call("_settings", "{}")
+tool = api.call("run_tool", json.dumps({"name": "nope", "args": []}))
+print("RESULT", json.dumps({"ok": ok["ok"], "unknown": unknown, "bad_json": bad_json["ok"], "private": private["ok"], "tool": tool["error"]}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    res = r.results[0]
+    assert res["ok"] is True and res["bad_json"] is False and res["private"] is False
+    assert res["unknown"]["ok"] is False and "no tool function" in res["unknown"]["error"]
+    assert "no tool" in res["tool"]

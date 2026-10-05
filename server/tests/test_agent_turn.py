@@ -153,7 +153,7 @@ def test_the_provider_receives_the_user_message_and_our_tool_definitions(fake, p
         fake.run_turn(ws, command_id, on_script=lambda p: {"success": True})
     request = provider.requests[0]
     assert request.messages[-1].role == "user" and "hi there" in request.messages[-1].text()
-    assert {t.name for t in request.tools} == {"run_blender_python", "scene_summary"}
+    assert {"run_blender_python", "scene_summary", "lampway_qa_candidates"} <= {t.name for t in request.tools}
     assert request.system
 
 

@@ -69,7 +69,7 @@ async def test_anthropic_provider_translates_the_request_and_streams_text_then_t
     assert body["stream"] is True
     assert body["system"] == "You are Lampway." or body["system"][0]["text"] == "You are Lampway."
     names = [t["name"] for t in body["tools"]]
-    assert names == ["run_blender_python", "scene_summary"]
+    assert names[:2] == ["run_blender_python", "scene_summary"] and "lampway_qa_candidates" in names
     assert body["tools"][0]["input_schema"]["required"] == ["script"]
     assert body["messages"][0] == {"role": "user", "content": [{"type": "text", "text": "Add a cube"}]}
     assert body["messages"][1]["role"] == "assistant"
@@ -128,7 +128,7 @@ async def test_openai_compatible_provider_translates_the_request_and_streams_tex
         "name": "run_blender_python", "arguments": json.dumps({"script": "import bpy"})}}]
     assert body["messages"][3] == {"role": "tool", "tool_call_id": "call_1",
                                    "content": '{"success": true, "created_objects": ["Cube"]}'}
-    assert [t["function"]["name"] for t in body["tools"]] == ["run_blender_python", "scene_summary"]
+    assert [t["function"]["name"] for t in body["tools"]][:2] == ["run_blender_python", "scene_summary"]
     assert body["tools"][0]["type"] == "function"
 
     assert events == [Text("Adding "), Text("a cube."),
