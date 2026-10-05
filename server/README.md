@@ -41,7 +41,7 @@ client's frames; no Blender, no network, no model).
 | `LAMPWAY_ACCESS_TTL_S` | `3600` | Access-token lifetime. Keep it well above 120 s: the client refreshes whenever `exp` is nearer than that. |
 | `LAMPWAY_STATE_DIR` | `$XDG_STATE_HOME/lampway-server` | Where the secret and the agent settings (`agent_settings.json`, 0600) live. |
 | `LAMPWAY_FAKE_CREDITS` | `100000` | Credits shown in the profile card and the usage meter. |
-| `LAMPWAY_PROVIDER` | `mock` | `mock` (no model: lists the scene and echoes it), `anthropic`, `openai`. |
+| `LAMPWAY_PROVIDER` | `mock` | `mock` (no model: lists the scene and echoes it; a chat message starting `py:` runs the rest as a Blender script), `anthropic`, `openai`. |
 | `LAMPWAY_ANTHROPIC_MODEL` | `claude-sonnet-5-5` | Model for the Anthropic provider. `ANTHROPIC_API_KEY` comes from the environment (or an `ant auth login` profile). |
 | `OPENAI_BASE_URL` / `LAMPWAY_OPENAI_MODEL` / `OPENAI_API_KEY` | `http://127.0.0.1:11434/v1` / *(required)* / *(optional)* | OpenAI-compatible `chat/completions` endpoint (Ollama, LM Studio, llama.cpp, vLLM, OpenAI). |
 | `LAMPWAY_LOG_LEVEL` | `INFO` | Python logging level. Debug logs name methods and ids, never payloads or keys. |
