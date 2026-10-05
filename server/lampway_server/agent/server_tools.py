@@ -87,6 +87,29 @@ LOCALS = [
     Local("studio_seed_catalog", "List the local catalog of every 3D seed with proportion scores and audit verdicts (no signed URLs are stored).",
           "seed_db", [A("piece"), A("by", desc="score (default) or created")], 60),
 ]
+_TEX = (" Texturing comes LAST (the driver refuses unless the model's History holds a Smart UV step) and acts on the saved "
+        "COPY the owner selected in Studio. Every setting is read back before Generate; the price must be the expected one."
+        " Defaults to a DRY RUN (set + verify, nothing generated). A real run needs dry_run=false, an out_dir, AND the owner's own"
+        " LAMPWAY_STUDIO_ARMED=1 in the server's environment; it spends credits (Texture 8K = 30, PBR = 5), so never pass"
+        " dry_run=false unless the user asked for exactly that generation.")
+LOCALS += [
+    Local("studio_tripo_texture_state", "Read-only: the Texture panel's settings and price, and the selected model's History stamps.",
+          "tripo_texture", [], 180),
+    Local("studio_tripo_refs", "Replace the four reference images of the Texture tool (the generation plates by default) with the "
+          "given ones, in Studio's slot order." + _TEX, "tripo_texture",
+          [A("front", required=True, path=True), A("left", required=True, path=True), A("right", required=True, path=True),
+           A("back", required=True, path=True)], 300),
+    Local("studio_tripo_texture", "Tripo Studio Texture on the selected Smart UV clone, at a resolution, with or without Remove "
+          "Lighting." + _TEX, "tripo_texture",
+          [A("res", desc="2K | 4K | 8K (default 8K)"), A("remove_lighting", "boolean", "Default true"),
+           A("expect_price", "integer", "Default 30"), A("out_dir", desc="Where the FBX and the extracted maps go (a real run)", path=True),
+           A("dry_run", "boolean", "Default true")], 1500),
+    Local("studio_tripo_pbr", "Tripo Studio PBR (normal / roughness / metallic) on the selected textured clone." + _TEX, "tripo_texture",
+          [A("expect_price", "integer", "Default 5"), A("out_dir", desc="Where the FBX and the extracted maps go (a real run)", path=True),
+           A("dry_run", "boolean", "Default true")], 1500),
+    Local("studio_tripo_restore", "Make one History version of the selected model current again (free; the current one stays in "
+          "History). The stamp is as Studio shows it, MM-DD HH:MM.", "tripo_texture", [A("stamp", required=True)], 180),
+]
 LOCALS.append(Local(
     "studio_image_generate", "Painted variants of a clay render (the mesh-paint step): through the configured image backend, "
     "`tripo` (Tripo Studio driver: GPT Image 2.5, 4 images, 4K, free quota) or `codex_cli` (the owner's own Codex login, only if "
@@ -145,6 +168,24 @@ def command(name: str, arguments: dict) -> list:
                 cmd += ["--expect", str(int(arguments["expect"]))]
         if name != "studio_tripo_fetch" and arguments.get("dry_run", True) is not False:
             cmd.append("--dry-run")
+    elif name in ("studio_tripo_texture_state", "studio_tripo_refs", "studio_tripo_texture", "studio_tripo_pbr", "studio_tripo_restore"):
+        if name == "studio_tripo_texture_state":
+            cmd += ["state"]
+        elif name == "studio_tripo_refs":
+            cmd += ["refs"] + [x for v in ("front", "left", "right", "back") for x in (f"--{v}", val(v))]
+        elif name == "studio_tripo_restore":
+            cmd += ["restore", "--stamp", str(arguments["stamp"])]
+        else:
+            if name == "studio_tripo_texture":
+                cmd += ["texture", "--res", str(arguments.get("res") or "8K"), "--expect-price", str(int(arguments.get("expect_price") or 30))]
+                if arguments.get("remove_lighting", True) is not False:
+                    cmd.append("--remove-lighting")
+            else:
+                cmd += ["pbr", "--expect-price", str(int(arguments.get("expect_price") or 5))]
+            if arguments.get("dry_run", True) is False:
+                if not arguments.get("out_dir"):
+                    raise BadToolCall(f"{name} with dry_run=false needs out_dir (where the FBX and maps go)")
+                cmd += ["--go", "--out", val("out_dir")]
     elif name == "studio_seed_catalog":
         cmd += ["list"]
         if arguments.get("piece"):

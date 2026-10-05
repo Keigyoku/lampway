@@ -60,3 +60,46 @@ def _selected(button):
 
 def region_refusal(approved):
     return None if approved else "exact-region substitution needs the captain's approval flag"
+
+
+# ---- the Texture + PBR driver (tripo_texture.py), tested against the owner's recorded texture dry run
+
+def texture_problems(st, *, res, remove_lighting, expect_price):
+    """``st`` is the Texture panel as PANEL_JS reads it back: {remove_lighting: 'true'|'false'|None, res: [{t, on|state}],
+    button: 'Generate Texture <price>', disabled}. Every requested setting must read back, and the price must be the expected one."""
+    bad = []
+    want = "true" if remove_lighting else "false"
+    if (st.get("remove_lighting") or "") != want:
+        bad.append(f"Remove Lighting reads {st.get('remove_lighting')!r}, wanted {want}")
+    rows = st.get("res") or []
+    on = [r["t"] for r in rows if r.get("on") is True or r.get("state") == "on"]
+    if on != [res]:
+        bad.append(f"resolution {res} not the one selected (selected: {on or 'none'})")
+    bad += _button_problems(st, expect_price, "Texture")
+    return bad
+
+
+def pbr_problems(st, *, expect_price):
+    return _button_problems(st, expect_price, "PBR")
+
+
+def _button_problems(st, expect_price, kind):
+    bad = []
+    button = st.get("button") or ""
+    if not button:
+        bad.append(f"no Generate {kind} button read back")
+    else:
+        digits = re.findall(r"(\d+)\s*$", button)
+        if not digits or int(digits[0]) != int(expect_price):
+            bad.append(f"price reads {button!r}, expected {expect_price}")
+    if st.get("disabled"):
+        bad.append("the Generate button is disabled")
+    return bad
+
+
+def texturing_last_refusal(history):
+    """Texturing comes LAST: the selected model's History must hold a Smart UV step (the texture fills its islands; any
+    geometry or UV step after a texture discards it). ``history`` rows: {stamp, icon}."""
+    if any(str(h.get("icon") or "").endswith(":uv") or "uv" in str(h.get("icon") or "").split(":")[-1] for h in history or []):
+        return None
+    return "texturing-last guard: no Smart UV step in this model's History"

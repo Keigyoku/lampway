@@ -225,3 +225,44 @@ def test_an_upload_over_the_sites_limit_is_refused_before_any_browser(tmp_path):
     small = tmp_path / "small.png"
     small.write_bytes(b"x")
     assert relief_gen.too_big([str(big), str(small)]) == [str(big)]
+
+
+# ---- the Texture + PBR driver (tripo_texture.py): its checks against the owner's recorded texture dry run
+
+TEXTURE = json.loads((FIX / "tripo_texture_dry_run.json").read_text())
+
+
+def test_the_recorded_texture_panel_passes_as_requested():
+    st = TEXTURE["state"]
+    assert verify.texture_problems(st, res="8K", remove_lighting=True, expect_price=30) == []
+
+
+def test_a_texture_panel_that_differs_from_the_request_is_refused_with_each_difference_named():
+    st = TEXTURE["state"]
+    bad = verify.texture_problems(st, res="4K", remove_lighting=False, expect_price=30)
+    assert any("4K" in b for b in bad) and any("lighting" in b.lower() for b in bad)
+    assert any("price" in b for b in verify.texture_problems(st, res="8K", remove_lighting=True, expect_price=25))
+    disabled = {**st, "disabled": True}
+    assert any("disabled" in b for b in verify.texture_problems(disabled, res="8K", remove_lighting=True, expect_price=30))
+
+
+def test_the_pbr_panel_is_judged_by_its_price_and_button():
+    assert verify.pbr_problems({"button": "Generate PBR 5", "disabled": False}, expect_price=5) == []
+    assert verify.pbr_problems({"button": "Generate PBR 10", "disabled": False}, expect_price=5)
+    assert verify.pbr_problems({"button": None, "disabled": None}, expect_price=5)
+
+
+def test_texturing_comes_last_so_a_history_without_a_smart_uv_step_is_refused():
+    assert verify.texturing_last_refusal([{"stamp": "10-05 14:02", "icon": "i-tripo:uv"}, {"stamp": "Current Version", "icon": None}]) is None
+    assert "Smart UV" in verify.texturing_last_refusal([{"stamp": "10-05 14:02", "icon": "i-tripo:remesh"}])
+    assert "Smart UV" in verify.texturing_last_refusal([])
+
+
+def test_the_texture_driver_refuses_to_click_generate_unless_armed(monkeypatch, capsys):
+    """run_and_fetch is the only path that clicks Generate; it starts with the guard."""
+    import asyncio
+    from lampway_server.studios.tripo import tripo_texture
+    monkeypatch.delenv("LAMPWAY_STUDIO_ARMED", raising=False)
+    with pytest.raises(SystemExit):
+        asyncio.run(tripo_texture.run_and_fetch(object(), "/tmp/never"))
+    assert "LAMPWAY_STUDIO_ARMED=1" in capsys.readouterr().out

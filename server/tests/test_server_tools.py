@@ -127,3 +127,37 @@ def test_a_refusal_from_the_backend_is_an_error_result(root, monkeypatch):
     monkeypatch.setattr(IG, "generate", real)
     text, is_error = ST.run("studio_image_generate", {"prompt_file": "/etc/passwd", "out_dir": "o"})
     assert is_error is True and "outside the project root" in text
+
+
+# ---- the Texture + PBR driver as server tools: no --go unless dry_run is false; the driver's own guard still needs arming
+
+def test_the_texture_tool_sets_and_verifies_without_go_by_default(monkeypatch, tmp_path):
+    from lampway_server.agent import server_tools as ST
+    monkeypatch.setenv("LAMPWAY_PROJECT_ROOT", str(tmp_path))
+    cmd = ST.command("studio_tripo_texture", {"res": "8K", "remove_lighting": True, "expect_price": 30})
+    assert cmd[1:3] == ["-m", "lampway_server.studios.tripo.tripo_texture"] and cmd[3] == "texture"
+    assert "--res" in cmd and cmd[cmd.index("--res") + 1] == "8K" and "--remove-lighting" in cmd
+    assert cmd[cmd.index("--expect-price") + 1] == "30" and "--go" not in cmd
+    live = ST.command("studio_tripo_texture", {"res": "8K", "expect_price": 30, "dry_run": False, "out_dir": "tex/run1"})
+    assert "--go" in live and live[live.index("--out") + 1] == str(tmp_path / "tex/run1")
+    with pytest.raises(ST.BadToolCall):
+        ST.command("studio_tripo_texture", {"res": "8K", "expect_price": 30, "dry_run": False})      # --go needs an out_dir
+    with pytest.raises(ST.BadToolCall):
+        ST.command("studio_tripo_texture", {"res": "8K", "expect_price": 30, "out_dir": "/etc/x", "dry_run": False})
+
+
+def test_the_pbr_restore_refs_and_state_verbs_are_tools(monkeypatch, tmp_path):
+    from lampway_server.agent import server_tools as ST
+    monkeypatch.setenv("LAMPWAY_PROJECT_ROOT", str(tmp_path))
+    assert ST.command("studio_tripo_texture_state", {})[3] == "state"
+    pbr = ST.command("studio_tripo_pbr", {"expect_price": 5})
+    assert pbr[3] == "pbr" and pbr[pbr.index("--expect-price") + 1] == "5" and "--go" not in pbr
+    restore = ST.command("studio_tripo_restore", {"stamp": "10-05 14:02"})
+    assert restore[3:] == ["restore", "--stamp", "10-05 14:02"]
+    for v in ("front", "left", "right", "back"):
+        (tmp_path / f"{v}.png").write_bytes(b"x")
+    refs = ST.command("studio_tripo_refs", {"front": "front.png", "left": "left.png", "right": "right.png", "back": "back.png"})
+    assert refs[3] == "refs" and refs[refs.index("--back") + 1] == str(tmp_path / "back.png")
+    assert all(ST.is_local(n) for n in ("studio_tripo_texture", "studio_tripo_pbr", "studio_tripo_restore", "studio_tripo_refs", "studio_tripo_texture_state"))
+    spec = ST.BY_NAME["studio_tripo_texture"].spec()
+    assert "credits" in spec.description and "dry_run" in spec.parameters["properties"]

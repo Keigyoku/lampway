@@ -1,0 +1,25 @@
+{
+ "requested": {
+  "remove_lighting": true,
+  "res": "8K"
+ },
+ "state": {
+  "remove_lighting": "true",
+  "res": [
+   {
+    "t": "2K",
+    "state": "off"
+   },
+   {
+    "t": "4K",
+    "state": "off"
+   },
+   {
+    "t": "8K",
+    "state": "on"
+   }
+  ],
+  "button": "Generate Texture 30",
+  "disabled": false
+ }
+}
