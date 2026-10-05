@@ -113,7 +113,10 @@ class StudioService:
             return self._refused(action, f"the read back timed out after {PLAN_TIMEOUT_S:.0f} s")
         parsed = toon.parse(text)
         if parsed.error or rc != 0:
-            return self._refused(action, parsed.error or text.strip()[-300:] or f"the driver exited {rc}")
+            reason = parsed.error or text.strip()[-300:] or f"the driver exited {rc}"
+            if "texturing-last guard" in reason:
+                reason += ". Smart UV the saved copy first: tripo.uv.unwrap (a texture fills the Smart UV islands; a geometry or UV step after it discards the texture)"
+            return self._refused(action, reason)
         plan = action.read_plan(parsed, clean)
         if plan.problems:
             return self._refused(action, "; ".join(plan.problems))

@@ -152,7 +152,47 @@ def _v_texture(args, jail):
     res = str(args.get("res") or "8K")
     if res not in ("2K", "4K", "8K"):
         raise ActionError("res is 2K, 4K or 8K")
-    return {"res": res, "remove_lighting": args.get("remove_lighting", True) is not False}
+    refs_set = args.get("refs_set")
+    if refs_set not in (None, "", "generation", "painted"):
+        raise ActionError("refs_set is generation or painted (the plates the Texture tool was given; recorded in the receipt)")
+    clean = {"res": res, "remove_lighting": args.get("remove_lighting", True) is not False}
+    if refs_set:
+        clean["refs_set"] = refs_set
+    return clean
+
+
+REFS_SETS = ("generation", "painted", "custom")
+
+
+def _v_refs(args, jail):
+    """The Texture tool's four reference slots: the generation plates (most detail), our painted plates (our palette) or custom ones. A paired piece carries front and back only."""
+    if args.get("set") not in REFS_SETS:
+        raise ActionError("set is generation, painted or custom: which plates the Texture tool is given (the captain chooses per piece)")
+    paired = bool(args.get("paired"))
+    want = ("front", "back") if paired else ("front", "left", "right", "back")
+    if any(not args.get(v) for v in want):
+        raise ActionError("a paired piece needs the front and back plates only" if paired
+                          else "the Texture tool needs the front, left, right and back plates (paired pieces: paired=true with front and back only)")
+    clean = {v: jail(args[v]) for v in want}
+    clean.update(set=args["set"], paired=paired)
+    return clean
+
+
+def _refs_argv(clean, out_dir):
+    argv = ["refs"]
+    for v in ("front", "left", "right", "back"):
+        if v in clean:
+            argv += [f"--{v}", clean[v]]
+    if clean["paired"]:
+        argv += ["--views", "front,back"]
+    return argv + ["--set", clean["set"], "--out", out_dir]
+
+
+def _v_restore(args, jail):
+    stamp = str(args.get("stamp") or "").strip()
+    if not stamp:
+        raise ActionError("restore needs the History card's stamp, as Studio shows it ('MM-DD HH:MM')")
+    return {"stamp": stamp}
 
 
 def _texture_args(clean, out_dir):
@@ -167,7 +207,10 @@ def _read_texture(parsed, clean):
     except ValueError:
         st = {}
     problems = [] if kv.get("verified") is True else ["the settings did not read back as requested"]
-    return Plan(_price_digits(st.get("button")), {"res": clean["res"], "remove_lighting": clean["remove_lighting"], "button": st.get("button")}, problems)
+    settings = {"res": clean["res"], "remove_lighting": clean["remove_lighting"], "button": st.get("button")}
+    if clean.get("refs_set"):
+        settings["refs_set"] = clean["refs_set"]
+    return Plan(_price_digits(st.get("button")), settings, problems)
 
 
 def _read_pbr(parsed, clean):
@@ -253,6 +296,12 @@ def _v_fetch(args, jail):
 ACTIONS = {a.id: a for a in [
     Action("tripo.state", "tripo", "Read the live Studio state", "tripo_texture", validate=_v_none, plan_args=None,
            run_args=lambda c, o: ["state"]),
+    Action("tripo.texture.state", "tripo", "Read the Texture panel (settings, price) and the History stamps with their icons", "tripo_texture", validate=_v_none, plan_args=None,
+           run_args=lambda c, o: ["state"]),
+    Action("tripo.texture.refs", "tripo", "Choose the Texture tool's four reference plates (generation | painted | custom); a receipt lists their sha256", "tripo_texture",
+           needs_out_dir=True, validate=_v_refs, run_args=_refs_argv),
+    Action("tripo.texture.restore", "tripo", "Make a History version current again (free; the current one stays in History)", "tripo_texture", validate=_v_restore,
+           run_args=lambda c, o: ["restore", "--stamp", c["stamp"]]),
     Action("tripo.mesh", "tripo", "Smart Mesh: 4 variants at maximum polycount", "tripo_mesh", needs_approval=True, expected_price=100,
            needs_out_dir=True, validate=_v_mesh, plan_args=lambda c, o: _mesh_argv(c, o) + ["--dry-run"], run_args=_mesh_argv,
            read_plan=_read_mesh),

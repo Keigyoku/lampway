@@ -63,7 +63,10 @@ def parse_args(argv):
     sub.add_parser('state')
     r = sub.add_parser('refs')
     for v in ('front', 'left', 'right', 'back'):
-        r.add_argument('--' + v, required=True)
+        r.add_argument('--' + v)
+    r.add_argument('--views', default='front,left,right,back')      # 'front,back' for a paired piece: only those slots are filled
+    r.add_argument('--set', default='custom', choices=('generation', 'painted', 'custom'))
+    r.add_argument('--out')
     t = sub.add_parser('texture')
     t.add_argument('--res', choices=('2K', '4K', '8K'), required=True)
     t.add_argument('--remove-lighting', action='store_true')
@@ -175,13 +178,21 @@ async def main(a):
                 await pg.wait_for_timeout(300)
                 await pg.mouse.click(*pos)
                 await pg.wait_for_timeout(800)
-            for f in (a.front, a.left, a.right, a.back):
+            slots = [v for v in a.views.split(',') if v]
+            files = {v: getattr(a, v) for v in slots}
+            if any(not f for f in files.values()):
+                _ax.refuse(f'refs needs a file for each of: {slots}', [])
+            for f in files.values():
                 await pg.locator('input[type=file][accept*="image"]').first.set_input_files(f)
                 await pg.wait_for_timeout(4000)
             n = await pg.evaluate("() => [...document.querySelectorAll('input[type=file][accept*=\"image\"]')].length", isolated_context=False)
             if n:
                 _ax.refuse(f'{n} reference slot(s) still empty after upload', [])
-            _ax.kv({'refs': 'front, left, right, back uploaded'})
+            if a.out:
+                os.makedirs(a.out, exist_ok=True)
+                with open(os.path.join(a.out, 'refs.json'), 'w') as fh:
+                    json.dump(verify.refs_receipt(files, a.set), fh, indent=1)
+            _ax.kv({'refs': f"{', '.join(slots)} uploaded", 'set': a.set})
             return
         if a.verb == 'texture':
             await open_tool(pg, 'Texture')

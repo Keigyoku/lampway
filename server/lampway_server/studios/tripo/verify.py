@@ -103,3 +103,14 @@ def texturing_last_refusal(history):
     if any(str(h.get("icon") or "").endswith(":uv") or "uv" in str(h.get("icon") or "").split(":")[-1] for h in history or []):
         return None
     return "texturing-last guard: no Smart UV step in this model's History"
+
+
+def refs_receipt(files, set_name):
+    """What `refs` placed: the set chosen (generation | painted | custom) and the sha256 of each file, so a later texture can say which plates it was given.
+    ``files`` maps slot -> path; a paired piece carries front and back only."""
+    import hashlib
+    out = {}
+    for slot, path in files.items():
+        with open(path, "rb") as fh:
+            out[slot] = {"path": path, "sha256": hashlib.sha256(fh.read()).hexdigest()}
+    return {"set": set_name, "paired": sorted(files) == ["back", "front"], "files": out}
