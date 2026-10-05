@@ -146,15 +146,16 @@ DEFS = [
         "design over it as flat albedo (4 variants per view, studio_image_generate); pick 1 of 4 per view by silhouette IoU; plates with "
         "the clay alpha; projection at 4096 with no warp; masks; the projected albedo as a live-material toggle. `stage`: setup (once: "
         "piece, mesh, design_dir, tag, recipe, relief_dir, out_root, template_material, lift), clay, prompt (view: writes the prompt "
-        "file and returns the references and out_dir to hand to studio_image_generate), pick (view, optional file; default the best by "
+        "file and returns the references and out_dir to hand to studio_image_generate), image (view, count 1-4, live: generate that ONE view through the configured image backend, e.g. OpenRouter; costs money when live), pick (view, optional file; default the best by "
         "IoU), plates, project (background job), run (ALL of it as one background job; live=true to really generate: otherwise the "
         "image backend only dry-runs), albedo (material, on), status. Poll lampway_job_status for jobs." + _PATHS,
-        [P("stage", desc="setup | clay | prompt | pick | plates | project | run | albedo | status", required=True),
+        [P("stage", desc="setup | clay | prompt | image | pick | plates | project | run | albedo | status", required=True),
          P("piece"), P("mesh"), P("design_dir"), P("tag"), P("recipe"), P("relief_dir"), P("out_root"), P("template_material"),
          P("lift", "number"), P("turn", "number"), P("clay_res", "integer"), P("res", "integer", "Clay render size for stage clay"),
          P("view", desc="Front | Back | Left | Right"), P("file", desc="A variant to pick instead of the best"),
          P("require_all", "boolean", "Plates: all four views must be picked (default true)"), P("material", desc="The _albedo material"),
-         P("on", "boolean", "Albedo on or off"), P("live", "boolean", "Really generate (default a dry run)")], api="meshpaint"),
+         P("on", "boolean", "Albedo on or off"), P("live", "boolean", "Really generate (default a dry run)"),
+         P("count", "integer", "Stage image: images to make, 1-4 (default 4)")], api="meshpaint"),
     # ---- the parts tools
     Def("lampway_delete_caps", "Delete a cap that closes an opening that must stay open (neck bowl, waist fan, arm dome) by ray-casting "
         "through a rectangular footprint; UVs kept; writes a NEW file." + _PATHS, [

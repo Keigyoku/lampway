@@ -158,7 +158,7 @@ for n in ("mask_plate.png", "detail_height_u16.png", "v3_colour_atlas.png"):
     Image.fromarray(np.full((4, 4, 3), 99, np.uint8)).save(root + "/demo/out/p1_meshpaint/" + n)
 n = tm.node_tree.nodes.new("ShaderNodeTexImage"); n.image = bpy.data.images.load(root + "/demo/out/p1_meshpaint/mask_plate.png")
 order = []
-def fake_generate(view, prompt_file, refs, out_dir, live):
+def fake_generate(view, prompt_file, refs, out_dir, live, count=4):
     order.append((view, len(refs), live))
     clay = np.asarray(Image.open(refs[0]).convert("RGB")).astype(int)
     mask = np.abs(clay - clay[0, 0]).max(-1) > 8
@@ -199,7 +199,7 @@ print("RESULT", json.dumps({"order": order, "state": j.state, "err": j.error, "p
 def test_a_dry_run_backend_stops_the_job_with_the_instruction_to_pass_live(tmp_path):
     r = run(tmp_path, '''
 setup(clay_res=64)
-def refuse(view, pf, refs, out, live):
+def refuse(view, pf, refs, out, live, count=4):
     raise RuntimeError("the image backend ran as a DRY RUN: pass live=true")
 api._mp_generate_cmd = refuse
 started = api.meshpaint("run")
@@ -210,3 +210,27 @@ print("RESULT", json.dumps({"state": jobs.get(started["job"]).state, "err": jobs
 ''', timeout=300)
     assert r.rc == 0, r.out[-2500:]
     assert r.results[0]["state"] == "failed" and "live=true" in r.results[0]["err"]
+
+
+def test_the_image_stage_makes_images_for_ONE_view_through_the_backend_with_the_clay_render_first_and_the_requested_count(tmp_path):
+    r = run(tmp_path, '''
+seen = []
+def fake_generate(view, prompt_file, refs, out_dir, live, count=4):
+    seen.append({"view": view, "refs": [os.path.basename(x) for x in refs], "live": live, "count": count, "prompt": open(prompt_file).read()[:40]})
+    os.makedirs(out_dir, exist_ok=True)
+    Image.fromarray(np.full((8, 8, 3), 50, np.uint8)).save(out_dir + "/1.png")
+    return [out_dir + "/1.png"]
+api._mp_generate_cmd = fake_generate
+setup(clay_res=64); api.meshpaint("clay", res=64)
+dry = api.meshpaint("image", view="Front")
+live = api.meshpaint("image", view="Front", live=True, count=1)
+bad = api.meshpaint("image", view="Front", live=True, count=9)
+print("RESULT", json.dumps({"seen": seen, "dry": dry, "live": live, "bad": bad}), flush=True)
+''', timeout=300)
+    assert r.rc == 0, r.out[-2500:]
+    res = r.results[0]
+    assert [x["view"] for x in res["seen"]] == ["Front", "Front"] and res["seen"][0]["live"] is False and res["seen"][1]["live"] is True
+    assert res["seen"][0]["count"] == 4 and res["seen"][1]["count"] == 1
+    assert res["seen"][1]["refs"][0] == "clay_Front.png" and res["seen"][1]["prompt"]
+    assert res["live"]["ok"] is True and len(res["live"]["files"]) == 1 and res["live"]["view"] == "Front"
+    assert res["bad"]["ok"] is False and "count" in res["bad"]["error"]
