@@ -339,6 +339,12 @@ DEFS = [
         [P("object", required=True), P("source", required=True, desc="the rigged body"), P("max_distance", "number", "0..0.5, default 0.05"), P("max_normal_angle", "number", "degrees, default 30"),
          P("flip_normals", "boolean", "default true"), P("inpaint_mode", desc="point (default) | surface (robust)"), P("limit_groups", "integer", "default 4, 0 = no cap"),
          P("deform_only", "boolean", "default true"), P("name", desc="the new object's name"), P("engine", desc="algorithmic (default) | robust")], api="weight_transfer"),
+    Def("lampway_garment_clearance", "How far a piece sits from the body in rest and named poses: the signed distance (positive outside, negative inside) of every piece vertex to the body posed by its armature. "
+        "pose_set rest | wiki8 | a list [{name, bone, rotate: [x, y, z degrees]} | {name, bones: [...]}]; poses are reset afterwards. Per pose: min_clearance_m, penetrating_vertices, max_depth_m, worst_region, the "
+        "blocking body triangles and pass (every vertex clears its target: clearance_target_m, default 0.015, or the target of the piece's vertex group named in `classes`). Also pass_pose_count and closest_pose. "
+        "Refused: an unskinned body, a piece more than 0.5 m away (run place_piece first).",
+        [P("piece", required=True), P("body", required=True), P("armature", required=True), P("pose_set", desc="rest (default) | wiki8 | a list of poses"),
+         P("clearance_target_m", "number", "0..0.1, default 0.015"), P("classes", "object", "{vertex group: target metres}")], api="garment_clearance"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "

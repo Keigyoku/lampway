@@ -1013,6 +1013,17 @@ def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, fl
 
 
 @tool
+def garment_clearance(piece, body, armature, pose_set="rest", clearance_target_m=0.015, classes=None):
+    """How far a piece sits from the body in rest and named poses: the signed distance of every piece vertex to the body posed by `armature` (positive outside, negative inside). pose_set is 'rest', 'wiki8'
+    (the eight stress poses) or a list [{name, bone, rotate: [x, y, z degrees]} | {name, bones: [{bone, rotate}]}]; the poses are reset afterwards. Per pose: min_clearance_m, penetrating_vertices, max_depth_m,
+    worst_region [x, y, z] and the body triangles that block most; `pass` when every vertex clears its target (clearance_target_m, default 0.015, or the target of the piece's vertex group named in
+    `classes` {group: metres}: rigid and cloth parts differ). Also pass_pose_count and closest_pose. Refused: a body with no Armature modifier (the body needs an armature) and a piece more than 0.5 m
+    from the body (run place_piece first)."""
+    from .features import clearance as _CL
+    return _CL.run(piece, body, armature, pose_set, clearance_target_m, classes)
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
