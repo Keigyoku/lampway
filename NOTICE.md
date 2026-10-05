@@ -63,3 +63,9 @@ The Cinema Mode button uses Clash Grotesk Regular by Indian Type Foundry,
 obtained from [Fontshare](https://www.fontshare.com/fonts/clash-grotesk) under
 the [ITF Free Font License](LICENSES/LicenseRef-ITF-FFL.txt). The font is used
 for application UI only and is excluded from public source snapshots.
+
+### Audited, not incorporated
+
+The third-party Blender add-ons and tools reviewed for the feature pass (Robust Weight Transfer, TexTools-Blender, UniV,
+AutoRemesher, NifTools) are not part of Lampway: no code from them was copied. The decisions and licences are in
+[docs/lampway/resource-audit.md](docs/lampway/resource-audit.md).
