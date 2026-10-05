@@ -24,7 +24,7 @@ def test_every_lampway_tool_is_in_the_agents_tool_list_with_a_schema():
                    "lampway_qa_rulings", "lampway_rebuild_setup", "lampway_rebuild", "lampway_job_status", "lampway_run_tool",
                    "lampway_delete_caps", "lampway_render_owner", "lampway_split_relief", "lampway_transfer_parts",
                    "lampway_apply_part_fixes", "lampway_mesh_to_npz", "lampway_proportion_ratios", "lampway_place_piece",
-                   "lampway_pose_clearance", "lampway_mesh_compare", "lampway_pauldron_symmetry", "run_blender_python", "scene_summary"):
+                   "lampway_pose_clearance", "lampway_mesh_compare", "lampway_pauldron_symmetry", "lampway_meshpaint", "run_blender_python", "scene_summary"):
         assert expect in names, expect
     for t in T.TOOLS:
         assert t.parameters["type"] == "object" and t.description and len(t.description) > 30, t.name
@@ -105,3 +105,10 @@ def test_every_tool_script_passes_the_clients_sandbox_dunder_rules():
         script = T.script_for(t.name, sample)
         attrs = {n.attr for n in ast.walk(ast.parse(script)) if isinstance(n, ast.Attribute)}
         assert not (attrs & blocked), t.name
+
+
+def test_the_meshpaint_tool_is_one_api_call_with_its_stage():
+    s = T.script_for("lampway_meshpaint", {"stage": "prompt", "view": "Left", "junk": 1})
+    assert 'api.call("meshpaint"' in s and args_of(s) == {"stage": "prompt", "view": "Left"}
+    with pytest.raises(T.UnknownTool, match="stage"):
+        T.script_for("lampway_meshpaint", {"view": "Left"})

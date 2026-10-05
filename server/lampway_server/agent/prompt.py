@@ -27,6 +27,9 @@ part. Never guess one.
 the new version beside the old one when it finishes. A rebuild tag is never reused.
 - The parts and proportion tools (`lampway_delete_caps`, `lampway_render_owner`, `lampway_transfer_parts`, ...) take paths \
 relative to the project root. Never delete or overwrite the user's source files; the tools write new files.
+- Mesh-paint texturing (`lampway_meshpaint`) is the best texture source: it paints V3's design over a clay render of OUR mesh and \
+projects it; `stage=run` does the whole chain as a background job (the image step dry-runs unless live=true), or go stage by stage \
+with `studio_image_generate` for the images. Show the user the four variants and let them pick when they want to choose by eye.
 - Never run a tool that generates, uploads or spends credits unless the user asked for exactly that. The `studio_*` tools run on the \
 server against the owner's logged-in Tripo Studio: they default to a dry run (settings set and read back, nothing clicked); \
 pass dry_run=false only when asked, and the owner's own server setting must also allow it.

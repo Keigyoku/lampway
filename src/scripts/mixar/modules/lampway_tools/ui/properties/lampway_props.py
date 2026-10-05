@@ -40,6 +40,18 @@ class LampwayToolsProps(PropertyGroup):
     rb_color_full: BoolProperty(name="Colour at full resolution", default=False)
     rb_ornament: StringProperty(name="Ornament", default="", description="max_tris:reach_px:min_share, e.g. 600:24:0.25 at 4096")
     rb_mesh_gold: BoolProperty(name="Gold from mesh relief", default=False)
+    # ---- Mesh-paint texturing
+    mp_mesh: StringProperty(name="Rebuilt mesh", subtype="FILE_PATH", description="The rebuild's patched UV mesh (fbx) the clay renders are made from")
+    mp_design_dir: StringProperty(name="Design plates", subtype="DIR_PATH", description="V3's plates: Front.png, Back.png, Left.png, Right.png")
+    mp_recipe: StringProperty(name="Recipe", subtype="FILE_PATH")
+    mp_relief_dir: StringProperty(name="Relief views", subtype="DIR_PATH")
+    mp_out_root: StringProperty(name="Rebuild outputs", subtype="DIR_PATH", description="The rebuild's out_root (holds patched/)")
+    mp_tag: StringProperty(name="Rebuild tag", default="p1", description="The rebuild whose mesh and maps the projection reuses")
+    mp_template: StringProperty(name="Template material")
+    mp_lift: FloatProperty(name="Lift", unit="LENGTH")
+    mp_live: BoolProperty(name="Generate for real", default=False,
+                          description="Off = a dry run (the image backend verifies its settings, nothing is generated or spent). On needs the owner's own arming of the backend")
+    mp_albedo: BoolProperty(name="Albedo base colour", default=True, description="The projected albedo as the live material's base colour")
     # ---- other tools
     tool: EnumProperty(name="Tool", items=_tool_items)
     tool_args: StringProperty(name="Arguments", description="The tool's arguments, space separated (paths relative to the project root)")

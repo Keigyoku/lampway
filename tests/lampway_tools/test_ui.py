@@ -49,9 +49,9 @@ print("RESULT", json.dumps({"ops": ops, "panels": panels, "has_props": hasattr(b
 ''')
     assert r.rc == 0, r.out[-2500:]
     res = r.results[0]
-    for op in ("qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags", "rebuild", "run_tool", "settings_open"):
+    for op in ("qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags", "rebuild", "run_tool", "settings_open", "meshpaint_run", "meshpaint_albedo"):
         assert op in res["ops"], op
-    assert "LAMPWAY_PT_main" in res["panels"] and "LAMPWAY_PT_qa" in res["panels"] and res["has_props"] is True
+    assert {"LAMPWAY_PT_main", "LAMPWAY_PT_qa", "LAMPWAY_PT_meshpaint"} <= set(res["panels"]) and res["has_props"] is True
     assert "Traceback" not in r.out and "Failed to" not in r.out
 
 

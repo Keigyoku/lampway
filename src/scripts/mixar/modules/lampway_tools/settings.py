@@ -28,7 +28,7 @@ class PathOutsideProject(ValueError):
     pass
 
 
-_FIELDS = ("project_root", "python_science", "python_browser", "blender", "nice", "tiles_dir", "ambientcg_dir", "hdri")
+_FIELDS = ("project_root", "python_science", "python_browser", "blender", "nice", "tiles_dir", "ambientcg_dir", "hdri", "python_server", "server_dir")
 
 
 @dataclass
@@ -40,7 +40,9 @@ class Settings:
     nice             the CPU niceness of every batch run (he works live while they run)
     tiles_dir        the folder of <Name>_BaseColor_Tile1024 colour tiles render_textured.py uses
     ambientcg_dir    the ambientCG material folders (Metal009, Metal048C) the metal normals and colours come from
-    hdri             the studio .hdr the textured render is lit with"""
+    hdri             the studio .hdr the textured render is lit with
+    python_server    a python that can run lampway_server (the mesh-paint image backend runs there, not in the app)
+    server_dir       the directory holding the lampway_server package (the repo's server/)"""
 
     project_root: Path = None
     python_science: Optional[Path] = None
@@ -50,6 +52,8 @@ class Settings:
     tiles_dir: Optional[Path] = None
     ambientcg_dir: Optional[Path] = None
     hdri: Optional[Path] = None
+    python_server: Optional[Path] = None
+    server_dir: Optional[Path] = None
 
 
 def _settings_file(home=None) -> Path:

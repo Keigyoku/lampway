@@ -84,6 +84,24 @@ class LAMPWAY_PT_rebuild(Panel):
         col.operator("lampway.rebuild", icon="FILE_REFRESH")
 
 
+class LAMPWAY_PT_meshpaint(Panel):
+    bl_idname = "LAMPWAY_PT_meshpaint"
+    bl_label = "Mesh-paint texturing"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Lampway"
+    bl_parent_id = "LAMPWAY_PT_main"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        p = context.scene.lampway_tools
+        for prop in ("mp_mesh", "mp_design_dir", "mp_recipe", "mp_relief_dir", "mp_out_root", "mp_tag", "mp_template", "mp_lift", "mp_live"):
+            col.prop(p, prop)
+        col.operator("lampway.meshpaint_run", icon="BRUSH_DATA")
+        col.operator("lampway.meshpaint_albedo", icon="SHADING_TEXTURE")
+
+
 class LAMPWAY_PT_tools(Panel):
     bl_idname = "LAMPWAY_PT_tools"
     bl_label = "Parts and proportion tools"
@@ -101,4 +119,4 @@ class LAMPWAY_PT_tools(Panel):
         col.operator("lampway.run_tool", icon="PLAY")
 
 
-classes = [LAMPWAY_PT_main, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_tools]
+classes = [LAMPWAY_PT_main, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]

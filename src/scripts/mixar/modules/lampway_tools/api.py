@@ -23,7 +23,9 @@ import bpy
 
 from . import TOOLS_VERSION
 from . import jobs
+from . import albedo as AB
 from . import live_load
+from . import meshpaint as MP
 from . import rebuild as RB
 from . import runner as RUN
 from . import settings as S
@@ -305,9 +307,193 @@ def run_tool(name, args=(), timeout=3600):
     return {"rc": res.rc, "output": res.stdout, "log": res.log, "timed_out": res.timed_out, "ok_run": res.rc == 0}
 
 
+# ---- mesh-paint texturing (one entry for the panel button and the agent tool)
+
+_MP_STAGES = ("setup", "clay", "prompt", "pick", "plates", "project", "run", "albedo", "status")
+_MP_KEY = "lampway_meshpaint"
+_mp_generate_cmd = None                  # replaced by tests: the real thing runs lampway_server.imagegen under the server python
+
+
+def _mp_setup_path(piece, root) -> Path:
+    return Path(root) / piece / "meshpaint" / "setup.json"
+
+
+def _mp_load():
+    raw = bpy.context.scene.get(_MP_KEY)
+    if not raw:
+        raise LookupError("no mesh-paint setup on this scene: call meshpaint(stage='setup', piece=..., mesh=..., design_dir=...) first")
+    setup = json.loads(Path(json.loads(raw)["setup"]).read_text(encoding="utf-8"))
+    spec = MP.MeshPaintSpec(piece=setup["piece"], mesh=setup["mesh"], design_dir=setup["design_dir"], work_dir=setup["work_dir"],
+                            turn=setup["turn"], clay_res=setup["clay_res"])
+    return spec, setup
+
+
+def _mp_run_tool(name, args, s, timeout=900):
+    res = RUN.run(name, [str(a) for a in args], s, timeout=timeout, log_dir=s.project_root / "logs")
+    if res.rc != 0:
+        raise RuntimeError(f"{name} failed (rc {res.rc}): {res.stdout.strip()[-400:]}")
+    return res
+
+
+def _mp_clay(spec, s, res=None):
+    out = Path(spec.work_dir) / "clay"
+    out.mkdir(parents=True, exist_ok=True)
+    for view in MP.VIEWS:
+        _mp_run_tool("clay_view", [spec.mesh, out / f"clay_{view}.png", view, res or spec.clay_res, "--turn", spec.turn], s, 300)
+    return {"views": list(MP.VIEWS), "dir": str(out)}
+
+
+def _mp_plates(spec, s, require_all=True):
+    args = MP.plate_args(spec, require_all)
+    _mp_run_tool("mesh_paint_set", args, s, 300)
+    return {"set": args[1]}
+
+
+def _mp_projection(spec, setup, s, tag):
+    base = RB.RebuildSpec(piece=spec.piece, source_mesh="", owner="", recipe=setup["recipe"], candidates="", decisions="", deletions="",
+                          relabels_orig="", texel_overrides="", relief_dir=setup["relief_dir"], plates_dir="", out_root=setup["out_root"],
+                          turn=spec.turn)
+    return MP.projection_spec(base, spec)
+
+
+def _mp_project_job(spec, setup, s, tag):
+    proj = _mp_projection(spec, setup, s, tag)
+    if not (Path(spec.work_dir) / "set").is_dir():
+        raise LookupError("no plate set yet: pick a variant for each view and run stage 'plates' first")
+    piece, template, lift, turn = spec.piece, setup["template_material"], setup["lift"], spec.turn
+
+    def work():
+        rep = _rebuild_run(proj, tag, s, resume=True, only=("relief_project", "material_masks"), out_name=MP.output_name(tag),
+                           log_dir=Path(proj.out_root) / "logs" / MP.output_name(tag))
+        if not rep["ok"]:
+            raise RuntimeError(f"step {rep['failed']} failed: {rep.get('error') or rep['steps'][-1].get('tail', '')[-300:]}")
+        return rep
+
+    def land(job):
+        rep = job.result
+        name = f"{piece}_{tag}_meshpaint_textured"
+        res_ = live_load.load_rebuild(rep["mesh"], rep["out"], name, template, hide=[], lift=lift, turn=turn)
+        job.loaded = res_["name"]
+        atlas = Path(rep["out"]) / "v3_colour_atlas.png"
+        if atlas.exists():                                    # the projected albedo as the live material's base colour toggle
+            ab = AB.apply(res_["material"], str(atlas))
+            bpy.data.objects[res_["name"]].data.materials.clear()
+            bpy.data.objects[res_["name"]].data.materials.append(bpy.data.materials[ab["material"]])
+            job.albedo = ab["material"]
+
+    job = jobs.start("meshpaint-project", work, on_done=land)
+    jobs.ensure_timer()
+    return job
+
+
+def _mp_generate(spec, setup, s, view, prompt, refs, out_dir, live):
+    """Run the image backend (the server's imagegen module under the server python) for one view; returns the image files."""
+    prompt_file = Path(spec.work_dir) / "prompts" / f"{view}.txt"
+    prompt_file.parent.mkdir(parents=True, exist_ok=True)
+    prompt_file.write_text(prompt, encoding="utf-8")
+    if _mp_generate_cmd is not None:
+        return _mp_generate_cmd(view, str(prompt_file), refs, out_dir, live)
+    if not s.python_server or not s.server_dir:
+        raise RUN.ToolUnavailable("the image backend runs in the Lampway server's python: set LAMPWAY_PYTHON_SERVER and LAMPWAY_SERVER_DIR (the repo's server/)")
+    import os
+    import subprocess
+    cmd = ["nice", "-n", str(s.nice), str(s.python_server), "-m", "lampway_server.imagegen", "--prompt-file", str(prompt_file),
+           "--out", out_dir, "--count", "4"] + [x for r in refs for x in ("--ref", r)] + (["--live"] if live else [])
+    env = dict(os.environ, PYTHONPATH=f"{s.server_dir}{os.pathsep}{os.environ.get('PYTHONPATH', '')}", LAMPWAY_PROJECT_ROOT=str(s.project_root))
+    p = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=7200)
+    if p.returncode != 0:
+        raise RuntimeError(f"the image backend refused or failed for {view}: {(p.stdout + p.stderr).strip()[-500:]}")
+    if not live:
+        raise RuntimeError(f"{view}: the image backend ran as a DRY RUN (settings verified, nothing generated): pass live=true "
+                           "(Tripo also needs the owner's LAMPWAY_STUDIO_ARMED=1; codex_cli needs LAMPWAY_LOCAL_CLI=1)")
+    return sorted(str(f) for f in Path(out_dir).glob("*") if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp") and f.stem.isdigit())
+
+
+@tool
+def meshpaint(stage, **kw):
+    """Mesh-paint texturing. Stages: setup, clay, prompt, pick, plates, project, run (all of it, background), albedo, status."""
+    s = _settings()
+    if stage not in _MP_STAGES:
+        raise ValueError(f"unknown stage {stage!r}; the stages are {', '.join(_MP_STAGES)}")
+    if stage == "setup":
+        piece = kw["piece"]
+        work = str(s.project_root / piece / "meshpaint")
+        data = {"piece": piece, "mesh": _p(kw["mesh"]), "design_dir": _p(kw["design_dir"]), "work_dir": work, "tag": kw["tag"],
+                "recipe": _p(kw["recipe"]), "relief_dir": _p(kw["relief_dir"]), "out_root": _p(kw["out_root"]),
+                "template_material": kw["template_material"], "lift": float(kw.get("lift", 0.0)), "turn": float(kw.get("turn", -90.0)),
+                "clay_res": int(kw.get("clay_res", 2048))}
+        path = _mp_setup_path(piece, s.project_root)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, indent=1), encoding="utf-8")
+        bpy.context.scene[_MP_KEY] = json.dumps({"setup": str(path)})
+        return {"saved": str(path), "work_dir": work}
+    if stage == "albedo":
+        name = kw.get("material")
+        if not name:
+            raise ValueError("albedo needs material (the _albedo material)")
+        AB.set_albedo(name, bool(kw.get("on", True)))
+        return {"material": name, "on": AB.state(name)}
+    spec, setup = _mp_load()
+    if stage == "status":
+        picks = MP.load_picks(spec)
+        return {"piece": spec.piece, "work_dir": spec.work_dir, "clay": (Path(spec.work_dir) / "clay").is_dir(),
+                "picks": picks, "plates": (Path(spec.work_dir) / "set").is_dir(), "tag": setup["tag"]}
+    if stage == "clay":
+        return _mp_clay(spec, s, kw.get("res"))
+    if stage == "prompt":
+        view = kw["view"]
+        if view not in MP.VIEWS:
+            raise ValueError(f"view {view!r}: one of {list(MP.VIEWS)}")
+        picks = MP.load_picks(spec)
+        cons = MP.consistency_view(view, [v for v in MP.ORDER if v in picks])
+        text = MP.prompt_for(view, cons)
+        pf = Path(spec.work_dir) / "prompts" / f"{view}.txt"
+        pf.parent.mkdir(parents=True, exist_ok=True)
+        pf.write_text(text, encoding="utf-8")
+        return {"view": view, "consistency": cons, "prompt_file": str(pf), "refs": MP.refs_for(spec, view, cons, picks),
+                "out_dir": str(Path(spec.work_dir) / "runs" / view)}
+    if stage == "pick":
+        view = kw["view"]
+        clay = Path(spec.work_dir) / "clay" / f"clay_{view}.png"
+        run_dir = Path(spec.work_dir) / "runs" / view
+        if kw.get("file"):
+            chosen = _p(kw["file"])
+            iou = MP.silhouette_iou(clay, chosen)
+            ranking = [(chosen, iou)]
+        else:
+            ranking = MP.rank_variants(run_dir, clay)
+            if not ranking:
+                raise FileNotFoundError(f"no variants in {run_dir}: generate them first (studio_image_generate)")
+            chosen, iou = ranking[0]
+        MP.record_pick(spec, view, chosen, iou)
+        return {"view": view, "picked": chosen, "iou": round(iou, 4), "ranking": [{"file": f, "iou": round(i, 4)} for f, i in ranking]}
+    if stage == "plates":
+        return _mp_plates(spec, s, kw.get("require_all", True))
+    if stage == "project":
+        job = _mp_project_job(spec, setup, s, kw.get("tag") or setup["tag"])
+        return {"job": job.id, "tag": kw.get("tag") or setup["tag"], "next": f"api.job_status('{job.id}')"}
+    # run: everything, as one background job
+    tag, live = kw.get("tag") or setup["tag"], bool(kw.get("live", False))
+    if not live and _mp_generate_cmd is None:
+        pass                                             # a dry run is allowed: it fails the job with the instruction to pass live=true
+
+    def work():
+        rep = MP.run_all(spec, clay=lambda: _mp_clay(spec, s), generate=lambda v, pr, refs, out: _mp_generate(spec, setup, s, v, pr, refs, out, live),
+                         plates=lambda: _mp_plates(spec, s), project=lambda: None)
+        return rep
+
+    def landed(job):
+        pj = _mp_project_job(spec, setup, s, tag)
+        job.followup = pj.id
+
+    job = jobs.start("meshpaint-run", work, on_done=landed)
+    jobs.ensure_timer()
+    return {"job": job.id, "tag": tag, "next": f"api.job_status('{job.id}')"}
+
+
 # ---- the door the agent's scripts use
 
-TOOL_FUNCS = ("status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
+TOOL_FUNCS = ("meshpaint", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
               "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool")
 
 

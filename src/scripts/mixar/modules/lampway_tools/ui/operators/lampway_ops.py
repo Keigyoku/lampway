@@ -35,8 +35,12 @@ def summarize(res: dict) -> str:
         if res["relabels_needing_a_target"]:
             s += f"; green strokes {[r['stroke'] for r in res['relabels_needing_a_target']]} still need a target part"
         return s
+    if "job" in res and "next" in res and "tag" not in res:
+        return f"started {res['job']}"
     if "job" in res:
         return f"started {res['job']}: the new version loads beside the old one when it finishes"
+    if "material" in res and "on" in res:
+        return f"{res['material']}: albedo {'on' if res['on'] else 'off'}"
     if "drawn" in res:
         return f"drew {res['drawn']} candidates into {res['collection']}"
     if "layers" in res:
@@ -162,6 +166,35 @@ class LAMPWAY_OT_run_tool(_ApiOp):
         return self._finish(context, {"ok": True, "job": job.id})
 
 
+class LAMPWAY_OT_meshpaint_run(_ApiOp):
+    """Mesh-paint texturing: clay render per view, the image backend paints the design over it, pick the best of four per view, plates, projection at 4096 with no warp, masks, then load it with the albedo toggle"""
+    bl_idname = "lampway.meshpaint_run"
+    bl_label = "Mesh-paint texture"
+
+    def execute(self, context):
+        p = context.scene.lampway_tools
+        res = api.meshpaint("setup", piece=p.qa_piece or "piece", mesh=p.mp_mesh, design_dir=p.mp_design_dir, tag=p.mp_tag, recipe=p.mp_recipe,
+                            relief_dir=p.mp_relief_dir, out_root=p.mp_out_root, template_material=p.mp_template, lift=p.mp_lift)
+        if not res["ok"]:
+            return self._finish(context, res)
+        return self._finish(context, api.meshpaint("run", live=p.mp_live))
+
+
+class LAMPWAY_OT_meshpaint_albedo(_ApiOp):
+    """Switch the live material between the textured look and the projected albedo"""
+    bl_idname = "lampway.meshpaint_albedo"
+    bl_label = "Toggle albedo"
+
+    def execute(self, context):
+        p = context.scene.lampway_tools
+        ob = context.active_object
+        name = next((m.name for m in (ob.data.materials if ob and ob.type == "MESH" else []) if m and m.name.endswith("_albedo")), "")
+        if not name:
+            return self._finish(context, {"ok": False, "error": "the active object has no _albedo material (run mesh-paint texturing first)"})
+        p.mp_albedo = not p.mp_albedo
+        return self._finish(context, api.meshpaint("albedo", material=name, on=p.mp_albedo))
+
+
 class LAMPWAY_OT_settings_open(Operator):
     """Project root, interpreters and texture libraries"""
     bl_idname = "lampway.settings_open"
@@ -188,4 +221,5 @@ class LAMPWAY_OT_settings_open(Operator):
 
 
 classes = [LAMPWAY_OT_qa_setup, LAMPWAY_OT_qa_tag_layers, LAMPWAY_OT_qa_candidates, LAMPWAY_OT_qa_draw, LAMPWAY_OT_qa_read_tags,
-           LAMPWAY_OT_rebuild_setup, LAMPWAY_OT_rebuild, LAMPWAY_OT_run_tool, LAMPWAY_OT_settings_open]
+           LAMPWAY_OT_rebuild_setup, LAMPWAY_OT_rebuild, LAMPWAY_OT_meshpaint_run, LAMPWAY_OT_meshpaint_albedo,
+           LAMPWAY_OT_run_tool, LAMPWAY_OT_settings_open]
