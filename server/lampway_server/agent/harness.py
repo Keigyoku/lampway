@@ -258,3 +258,11 @@ def import_script(artifact_id: str) -> str:
         "from mixar.modules.common.agent_execution import staging\n"
         f"_p = json.loads({json.dumps(data)})\n"
         "__RESULT__ = staging.import_artifact(_p['artifact_id'])\n")
+
+
+def reset_script() -> str:
+    """Run on the WORKER first: a headless Blender boots with the default Camera/Cube/Light; the worker starts from an empty scene so
+    that only what it makes is staged back (staging.reset_worker_scene)."""
+    return (
+        "from mixar.modules.common.agent_execution import staging\n"
+        "__RESULT__ = staging.reset_worker_scene()\n")

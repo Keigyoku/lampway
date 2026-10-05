@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Optional
 
 from . import lampway_tools as lt
-from .harness import Harness, HarnessError, export_script, import_script, stage_script
+from .harness import Harness, HarnessError, export_script, import_script, reset_script, stage_script
 from .providers.base import Message, ModelRequest, Text, ToolCall, ToolSpec
 from .tools import RUN_BLENDER_PYTHON, SCENE_SUMMARY, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -346,6 +346,10 @@ class SwarmManager:
             worker.handle = await harness.bind_task(run, self._task_id(swarm, worker), worker.connection_id)
             worker.status = "running"
             await self._todo(swarm)
+            reset = await harness.run_script(run, worker.handle, turn_id=ctx.turn_id, call_id=f"{worker.id}-reset",
+                                             tool_name="swarm_reset", script=reset_script())
+            if not (isinstance(reset, dict) and reset.get("success")):
+                raise RuntimeError(f"{worker.id} could not clear its scene: {_clip_json(reset)}")
             if worker.objects:
                 await self._seed(swarm, worker, ctx)
             for _round in range(MAX_WORKER_ROUNDS):

@@ -105,6 +105,14 @@ def test_the_swarm_speaks_v3_activate_spawn_bind_envelope_stage_commit_status(se
     assert not any(s["session_id"].startswith("agentlane:") for s in (p for m, p in fleet.requests if m == "blender.execute_script"))
 
 
+def test_every_worker_starts_from_an_empty_scene_before_anything_else(settings):
+    """Live (2026-10-05): a headless worker boots with Blender's default Camera/Cube/Light, and they were staged back as 'its work'."""
+    fleet, frames, *_ = run_swarm(settings, ("a", "b"))
+    for worker in fleet.workers.values():
+        runs = [f["params"] for f in worker.frames if f.get("method") == "blender.execute_script"]
+        assert runs[0]["tool_name"] == "swarm_reset" and "reset_worker_scene" in runs[0]["script"]
+
+
 def test_three_workers_that_all_draw_the_same_collection_name_all_land_in_the_users_scene(settings):
     fleet, frames, *_ = run_swarm(settings)
     landed = fleet.parent.collections["Mixie Agent"]

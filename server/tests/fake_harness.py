@@ -66,6 +66,10 @@ class FakeWorker(threading.Thread):
         refused = self.fleet.refuse_worker_script(self, params)
         if refused:
             return {"success": False, "error": refused, "error_type": "not_assigned"}
+        if "reset_worker_scene" in script:
+            self.world.collections.clear()
+            self.world.objects.clear()
+            return {"success": True, "method": "read_homefile"}
         if "staging.stage_collection" in script:
             p = _literal(script)
             names = [o for o in self.world.objects if o not in set(p["skip"])]
