@@ -6,6 +6,7 @@
 import bpy
 
 from mixar.modules.common.i18n import n_
+from mixar.modules.common.ui_guard import operator_exists
 
 from ...core import viewport_guides, zen_toolbar_layout as tiers
 from ...core.zen_scene import render_samples_binding, sky_enabled
@@ -162,10 +163,11 @@ def draw_guides(layout, context):
     view = context.space_data
     shading = view.shading
     guides = layout.mixar_surface(theme="ZEN").row(align=True)
-    guides.operator(
-        "mixar.zen_toggle_guides", text="", icon="GRID",
-        depress=viewport_guides.guides_shown(view),
-    )
+    if operator_exists("mixar.zen_toggle_guides"):      # not yet, during boot: drawing it would be reported on every redraw
+        guides.operator(
+            "mixar.zen_toggle_guides", text="", icon="GRID",
+            depress=viewport_guides.guides_shown(view),
+        )
     guides.mixar_style(component="TOOLBAR", variant="GHOST")
     chip = layout.mixar_surface(theme="ZEN").row(align=True)
     chip.enabled = shading.type in {"SOLID", "WIREFRAME"}
@@ -203,6 +205,7 @@ def draw_cinema(layout, context):
     row = layout.mixar_surface(theme="ZEN", density="COMPACT").row()
     row.ui_units_x = 9.0
     active = bool(state.is_directing)
-    row.operator("mixar.director_finish" if active else "mixar.director_enter",
-                 text="Cinema Mode", icon="CINEMA_REEL", depress=active)
+    idname = "mixar.director_finish" if active else "mixar.director_enter"
+    if operator_exists(idname):
+        row.operator(idname, text="Cinema Mode", icon="CINEMA_REEL", depress=active)
     style(row, "PRIMARY")
