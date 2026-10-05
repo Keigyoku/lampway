@@ -246,6 +246,14 @@ DEFS = [
         "planned and priced: the captain confirms spends in the Studios panel and what depends on it waits.",
         [P("action", required=True), P("name", desc="The graph's name"), P("graph", "object", "The graph (define)"), P("inputs", "object", "Values for {{name}} placeholders"),
          P("from_node", desc="rerun: the node to start from"), P("version", desc="version / rollback: the version name"), P("template"), P("description")], api="workflow_graph"),
+    Def("lampway_plate_pick", "Plates stage: stage prompt (the plate-4k-crisper template + variables for a view; render it and generate 4 images per view), score (rank the 4 "
+        "regenerations in variants_dir against the approved V3 plate v3_dir/<View>.png by silhouette IoU x structure x (1 - colour error)), cut (the pick's deterministic alpha), "
+        "run (score + cut + margins/aspect/view-correspondence checks -> <piece>/plates_4k_alpha/<View>.png + alpha.json), status. `pick` 1-4 is the captain's override. Paired "
+        "pieces: Front and Back only. Free and local; never overwrites.",
+        [P("stage", required=True, desc="prompt | score | cut | run | status"), P("piece", required=True), P("view", desc="Front | Back | Left | Right"), P("paired", "boolean", "Front and Back only"),
+         P("v3_dir", desc="Folder with <View>.png (RGBA) of the approved plates"), P("variants_dir", desc="Folder with 1.jpg..4.jpg for the view"), P("design_words", desc="prompt: the design inventory"),
+         P("palette", desc="prompt: the colours"), P("pick", "integer", "1-4: the captain's choice"), P("bg_threshold", "number", "0.01..0.2, default 0.06"),
+         P("opening_iters", "integer", "default 3"), P("min_px", "integer", "Refuse variants smaller than this, default 1024")], api="plate_pick"),
     Def("lampway_detail_normals", "Micro depth for a textured_atlas material without the relief map: per-material tiling detail normals box-projected "
         "in object space (metals take their ambientCG NormalGL maps; cloth and leather a small bump from their colour), blended by the material's "
         "per-texel masks. Idempotent: its 'DN:' nodes are replaced on a re-run. strengths: {plate, gold, cloth, leather}.",

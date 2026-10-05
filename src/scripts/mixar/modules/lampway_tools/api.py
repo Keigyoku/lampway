@@ -768,6 +768,16 @@ def workflow_graph(action, name="", graph=None, inputs=None, from_node="", versi
 
 
 @tool
+def plate_pick(stage, piece="", view="Front", paired=False, v3_dir="", variants_dir="", design_words="", palette="", pick=None, bg_threshold=0.06, opening_iters=3, min_px=1024):
+    """Plates stage of the piece pipeline. prompt: the library template (plate-4k-crisper) and its variables for one view (render it, generate 4 images per view); score: rank
+    the 4 regenerations (variants_dir/1..4) against the approved V3 plate (v3_dir/<View>.png, RGBA): silhouette IoU x DoG structure x (1 - colour error); cut: the pick's alpha
+    (luminance threshold, opening, fill holes, 1 px feather); run: score + cut + checks (margins, aspect, view correspondence) -> <piece>/plates_4k_alpha/<View>.png + alpha.json;
+    status. A captain's `pick` (1-4) overrides the best score. Paired pieces: Front and Back only. Free, local, never overwrites."""
+    from .pipeline import plates as PL
+    return PL.tool(stage, str(_settings().project_root), piece, view, paired, _p(v3_dir), _p(variants_dir), design_words, palette, pick, bg_threshold, opening_iters, min_px)
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
@@ -842,7 +852,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "qa_descriptors", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick")
 
 
 def call(name: str, payload: str = "{}") -> dict:
