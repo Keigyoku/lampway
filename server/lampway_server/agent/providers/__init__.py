@@ -24,4 +24,11 @@ def make_provider(settings, chatgpt_auth=None):
         from .chatgpt_plan import ChatGPTPlanProvider
         auth = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
         return ChatGPTPlanProvider(auth, settings.chatgpt_model)
+    if settings.provider in ("codex_cli", "claude_cli"):
+        # The owner's own official CLIs, for personal use. Off unless enabled; the refusal carries the terms caveat.
+        from .. import cli_adapters
+        cli_adapters.require_enabled(settings.state_dir)
+        if settings.provider == "codex_cli":
+            return cli_adapters.CodexCLIProvider(model=os.environ.get("LAMPWAY_CODEX_MODEL", ""))
+        return cli_adapters.ClaudeCLIProvider(model=os.environ.get("LAMPWAY_CLAUDE_MODEL", ""))
     raise ValueError(f"unknown LAMPWAY_PROVIDER {settings.provider!r}")

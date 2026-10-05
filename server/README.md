@@ -129,3 +129,19 @@ local apps), implemented from the documented flow (developers.openai.com/siwc/to
   all apps; you set this app's weekly cap in ChatGPT Settings > Usage; nothing falls back to another billing path.
 * It does NOT use Codex's login or `~/.codex/auth.json` (those tokens belong to Codex's own client id).
 * `server/tests/test_chatgpt_live.py` runs the real checks once a consented token exists.
+
+## Local CLI adapters (`LAMPWAY_PROVIDER=codex_cli` / `claude_cli`) - personal use, OFF by default
+
+A provider that calls the official `codex exec` / `claude -p` binaries you are already logged into on this machine, and an image
+backend through `codex exec '$imagegen'`. No token is read, copied or stored: the code never opens `~/.codex/auth.json` or
+`~/.claude/.credentials.json`; it only starts the binaries. Tools work through a one-line text protocol (`TOOL_CALL {...}`), so the
+model is plain text in and out (Claude runs with `--tools ""`, Codex with a read-only sandbox).
+
+Enable it yourself: `LAMPWAY_LOCAL_CLI=1` (exactly `1`) or `{"enabled": true}` in `<state>/local_cli.json`. Without it the provider
+refuses to start and says why.
+
+**Terms caveat.** For your own use on your own machine this is you running OpenAI's and Anthropic's own clients. Shipping it as a
+feature for other people is a grey area for OpenAI and, for Claude, collides with Anthropic's rule (code.claude.com/docs/en/
+legal-and-compliance): *"Anthropic does not permit third-party developers to offer Claude.ai login into their own applications, or
+to route requests through Free, Pro, or Max plan credentials on behalf of their users."* The public build therefore ships it off, and
+the compliant routes stay the `anthropic` provider (API key) and `chatgpt_plan` (Sign in with ChatGPT).
