@@ -41,7 +41,8 @@ class Def:
         for p in self.params:
             prop = {"type": p.type, "description": p.desc}
             if p.type == "array":
-                prop["items"] = {"type": "object"} if p.name in ("poses", "waypoints", "anchors", "landmarks", "axis", "plane_origin", "depths_mm") else {"type": "string"}
+                prop["items"] = ({"type": "object"} if p.name in ("poses", "waypoints", "anchors", "landmarks", "axis", "plane_origin", "depths_mm", "claims") else
+                                 {"type": "number"} if p.name in ("frame_range", "frames_with_pose") else {"type": "array"} if p.name == "twist" else {"type": "string"})
             props[p.name] = prop
             if p.required:
                 req.append(p.name)
@@ -383,6 +384,48 @@ DEFS = [
         [P("stage", required=True, desc="labels | pose | bind | report"), P("piece"), P("side", desc="r (default) | l"), P("labels", "object", "{plate: bone}"), P("roles", "object", "{plate: role}"),
          P("overrides", "object", "{plate: {mode}}"), P("by", desc="agent (default) | captain")], api="fit_glove"),
     Def("lampway_fit_state", "The descriptor / question / answer fit loop: NOT BUILT. Answers needs_decision: is the Laya / fit-model route still the direction now that fit_validate measures the fit?", [], api="fit_state"),
+    Def("lampway_anim_reference_render", "The character at rest from a KNOWN orthographic camera on a plain grey background, front and side, with the camera recorded: the start images of the animation-from-video set. "
+        "Writes ref_<view>.png, ref_<view>_mask.png and cameras.json (orthographic scale, px_per_m, centre, axes) in a throw-away Workbench scene, anti-aliasing off: the grey is exact and two renders are byte-identical. "
+        "Refused: a perspective camera, a posed character, no skinned model, a figure whose feet or head leave the frame. Free.",
+        [P("character", required=True, desc="object (its children are included) or collection"), P("views", "array", "front, side (default both)"), P("size", desc="WIDTHxHEIGHT, default 720x1280"),
+         P("background", desc="#RRGGBB, default #808080"), P("camera", "object", "{ortho_scale, center, height_m}: default fit-to-height with a 6 % margin"), P("out_dir", desc="default anim/reference")], api="anim_reference_render"),
+    Def("lampway_animation_retarget", "Bake an animation from one skeleton onto another: a NEW Action on the target, rest poses compensated (the target bone turns by the source bone's world rotation, whatever either "
+        "rest is), the root following the source's travel scaled by the pelvis-height ratio, and measured (world-direction error of what was baked, foot slide, edge stretch of check_objects). source: an armature in "
+        "the scene or a project-relative .fbx/.bvh/.glb; mapping 'auto' reads bone names (Mixamo, Rigify, UE, Bip01) to labels and sides; dry_run shows the mapping first. method 'constraints' is Copy Rotation + "
+        "NLA bake and does NOT compensate a different rest pose. Refused: no action, humanoid set not covered (missing labels listed), scale outside 0.01..100, a file outside the project.",
+        [P("source", required=True), P("target", required=True), P("action", desc="name, 'all', or the source's active"), P("mapping", desc="auto | preset name"), P("method", desc="matrix (default) | constraints"),
+         P("root_motion", desc="keep | in_place"), P("scale", desc="auto or a number"), P("frame_range", "array", "[start, end]"), P("fps", "number"), P("check_objects", "array", "meshes bound to the target"),
+         P("sample_frames", "integer", "2..64, default 8"), P("name", desc="default <action>_rt"), P("dry_run", "boolean"), P("keep_source", "boolean")], api="animation_retarget"),
+    Def("lampway_anim_multiview_fit", "Motion from ONE split-screen clip (front + side), orthographic: per-panel 2D keypoints (JSON, 15 joints in the order of pipeline.anim_mv.JOINTS) triangulated to 3D, the side view's "
+        "near/far leg labels corrected from the FRONT view, pelvis-relative, held frames listed, the grid clip's parallax giving the root speed. Refused: panels out of sync, no scale. single_view=true is the control "
+        "that cannot tell legs apart (it says so). The 2D detector (stage detect) is not wired: needs_approval; supply keypoints. Free.",
+        [P("front", required=True, desc="front-panel keypoints JSON"), P("side", required=True, desc="side-panel keypoints JSON"), P("calibration", "object", "{px_per_m}"), P("cameras", desc="cameras.json of anim_reference_render"),
+         P("fps", "number"), P("single_view", "boolean"), P("grid_frames", "array", "PNGs of the side-track grid clip"), P("stage", desc="fit (default) | detect"), P("out", desc="default anim/multiview/fit.json")], api="anim_multiview_fit"),
+    Def("lampway_anim_check", "Judge a tracked motion against BOTH views' masks and the ground, with numbers: G-OUT-front >= 0.80, G-OUT-side >= 0.85, G-LEGS >= 85 %, G-FOOT-SLIDE <= 1 cm, G-FOOT-PLANT <= 1 cm, G-TWIST "
+        "<= 5 deg (unverified without twist), G-CLAIMS. Controls run on the same take (a fore-aft mirrored copy must fail G-LEGS, a dragged foot must fail the slide gate); a check whose controls cannot fail does not "
+        "pass. A single view is refused. Thresholds are proposed; G-TOE is unverified.",
+        [P("poses", required=True, desc="the anim_multiview_fit file"), P("masks", "object", "{front: dir, side: dir} of silhouette PNGs"), P("rendered", "object", "{front, side} dirs of posed silhouettes"),
+         P("cameras", desc="cameras.json: a capsule stand-in silhouette is drawn when rendered is absent"), P("twist", "array", "[tracker yaws, refined yaws] in radians"), P("claims", "array", "[{text, measurement}]"),
+         P("out", desc="default anim/check.json")], api="anim_check"),
+    Def("lampway_anim_loop_export", "Turn a checked multi-stride take into one seamless loop (period found and refined, strides averaged by phase) with the export gates: G-LOOP <= 1 deg, G-LOOP-WRAP, G-SPEED "
+        "within 5 %, G-STRIDES >= 4, G-SKEL against reference_bones. Refused: a take that failed anim_check, one stride, an export onto Manny. The AnimSequence, G-FIDELITY and G-ENGINE need the user's UE editor leg: "
+        "reported not_run / unverified, never a pass.",
+        [P("take", required=True, desc="JSON {quats, bones, root_y_m, fps, planted_foot_speed_mps}"), P("cycle", desc="auto | strides:N"), P("fps", "number", "30 default (24 the clips' native: the user's call)"),
+         P("skeleton", desc="metahuman_base_skel"), P("check", desc="the anim_check file"), P("strides_note", desc="the user's note accepting 2-3 strides"), P("reference_bones", "array", "the reference bone names"),
+         P("loop_tolerance_deg", "number"), P("out", desc="default anim/loop")], api="anim_loop_export"),
+    Def("lampway_anim_clip", "Plan ONE character clip as a DRY RUN: the lampway_video_gen arguments (locked-camera prompt, Seedance 2.0, 720p 9:16 5 s), the list price (22.5 Higgsfield credits; $0.76 or $0.46 with the front "
+        "clip as reference on OpenRouter, derived) and nothing spent. Run it with lampway_video_gen (the user confirms the cost), then gate the file with lampway_video_gate kind=clip; a failed gate is not retried.",
+        [P("reference_image", required=True), P("view", desc="front | side"), P("motion", desc="walk | jog | run | idle | text"), P("driver_video", desc="the front clip, for the side view"),
+         P("route", desc="higgsfield (default) | openrouter"), P("model"), P("duration", "integer", ">= 4"), P("resolution"), P("aspect_ratio", desc="9:16"), P("generate_audio", "boolean"),
+         P("has_camera_record", "boolean")], api="anim_clip"),
+    Def("lampway_anim_track", "Body tracking, video to the MetaHuman skeleton: the provider is the USER's decision, so this answers needs_decision with the question and the model slots (GEM-X, hosted SAM 3D Body, "
+        "Uthana: all needs_approval) and names anim_multiview_fit as the primary tracker. Refused: gvhmr with shipping=true (research-only licence), no mask_dir, mha_markerless off Windows. stage coverage: >= 90 % of frames. "
+        "Nothing is run or spent.",
+        [P("provider"), P("shipping", "boolean"), P("clip"), P("mask_dir"), P("camera"), P("skeleton"), P("stage", desc="plan | coverage"), P("frames_with_pose", "array", "frame indices"), P("total_frames", "integer")], api="anim_track"),
+    Def("lampway_anim_from_video", "The animation-from-video pipeline as ONE dry-run plan: reference render (free) -> clip (the only paid step, one spend card at list price) -> track (provider decision open) -> check -> loop "
+        "export, with the decisions.jsonl path. stock_first refuses when a stock animation already has the move (retarget it). Nothing is run or spent; a failed gate stops the run and a clip is never re-drawn without the user.",
+        [P("character", required=True), P("motion"), P("views", "array"), P("stock_first", "boolean"), P("provider_track"), P("route"), P("out_package"), P("stock_inventory", "array", "names of stock animations"),
+         P("anim_dir")], api="anim_from_video"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "

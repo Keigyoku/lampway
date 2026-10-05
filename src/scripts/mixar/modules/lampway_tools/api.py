@@ -1163,6 +1163,105 @@ def animation_retarget(source, target, action=None, mapping="auto", method="matr
     return _AN.retarget(source, target, action, mapping, method, root_motion, scale, frame_range, fps, check_objects, sample_frames, name, dry_run, str(_settings().project_root), keep_source)
 
 
+def _gray_loader():
+    """path -> 2-D float array 0..1: PIL when the interpreter has it, Blender's own image loader otherwise."""
+    try:
+        from PIL import Image
+        import numpy as _np
+        return lambda path: _np.asarray(Image.open(path).convert("L"), float) / 255.0
+    except ImportError:
+        import bpy
+        import numpy as _np
+
+        def load(path):
+            img = bpy.data.images.load(path)
+            try:
+                w, h = img.size
+                px = _np.array(img.pixels[:], dtype=_np.float32).reshape(h, w, 4)[::-1]
+                return px[..., :3].mean(axis=-1)
+            finally:
+                bpy.data.images.remove(img)
+        return load
+
+
+@tool
+def anim_multiview_fit(front, side, calibration=None, cameras="", fps=24.0, single_view=False, grid_frames=None, stage="fit", out="anim/multiview/fit.json"):
+    """Motion from ONE split-screen clip (front + side), orthographic: triangulate per-panel 2D joints (JSON {keypoints: [[[u, v] x 15 joints] per frame], conf?}, joint order = pipeline.anim_mv.JOINTS) into 3D, the side
+    view's near/far leg and arm labels put right from the FRONT view (heights, then continuity), pelvis-relative (a drifting camera is not travel), one floor row for both panels. calibration {px_per_m} or `cameras`
+    (the cameras.json of anim_reference_render: the render cameras are the video cameras). Refused: panels out of sync ('re-generate'), a missing scale. Held (duplicate) frames are listed with the true motion rate.
+    grid_frames: PNGs of the side-track grid clip: the floor's parallax gives the root speed. single_view=true is the control that cannot tell legs apart (it says so). Writes `out`. stage 'detect' (the RTMW 2D
+    detector) is not wired: it answers needs_approval; supply the keypoints. Free, no model."""
+    from .pipeline import anim_io as _IO
+    if stage == "detect":
+        return {"ok": False, "state": "needs_approval", "reason": "the RTMW whole-body 2D detector (rtmlib, ONNX) is a model download and a runner this build does not carry: supply per-panel keypoints (stage fit)"}
+    if stage != "fit":
+        raise ValueError("stage is fit | detect")
+    grid = None
+    if grid_frames:
+        load = _gray_loader()
+        grid = [load(_p(g)) for g in grid_frames]
+    return _IO.multiview_fit(_p(front), _p(side), calibration, _p(cameras) or None, float(fps), bool(single_view), grid, _p(out))
+
+
+@tool
+def anim_check(poses, masks=None, rendered=None, cameras="", twist=None, claims=None, out="anim/check.json"):
+    """Judge a tracked motion (the anim_multiview_fit file) against BOTH views' silhouette masks (dirs of PNG: {front, side}; a single view cannot settle which leg is in front: refused) and the ground. Gates with
+    their numbers: G-OUT-front >= 0.80 and G-OUT-side >= 0.85 outline IoU, G-LEGS >= 85 % of lifted frames' lifted foot travelling forward, G-FOOT-SLIDE <= 1 cm, G-FOOT-PLANT <= 1 cm, G-TWIST <= 5 deg (when
+    twist = [tracker yaws, refined yaws] radians is given, else unverified), G-CLAIMS (claims [{text, measurement}]). Controls run on THIS take: a fore-aft mirrored copy must read about 0 on G-LEGS and a dragged
+    stance foot must fail the slide gate; a check whose controls cannot fail does not pass. rendered: dirs of posed silhouettes; without them a capsule stand-in is drawn through `cameras`. Thresholds are proposed.
+    G-TOE is unverified. Writes `out`."""
+    from .pipeline import anim_io as _IO
+    load = _gray_loader()
+    return _IO.check(_p(poses), {k: _p(v) for k, v in (masks or {}).items()}, {k: _p(v) for k, v in rendered.items()} if rendered else None, _p(cameras) or None,
+                     twist, claims, load, _p(out))
+
+
+@tool
+def anim_loop_export(take, cycle="auto", fps=30.0, skeleton="metahuman_base_skel", check="", strides_note="", reference_bones=None, loop_tolerance_deg=None, out="anim/loop"):
+    """Turn a checked multi-stride take into one seamless loop: the period found by autocorrelation and refined by least squares across strides (cycle 'auto' or 'strides:N'), strides averaged by PHASE into
+    loop.json, and the export gates with their numbers: G-LOOP (<= 1 deg between strides, root offset one period), G-LOOP-WRAP, G-SPEED (planted-foot speed within 5 % of the root's), G-STRIDES (>= 4, or >= 2 with
+    `strides_note`), G-SKEL (the bone set against `reference_bones`; unverified without it). `take` JSON: {quats [frame][bone][w,x,y,z], bones, root_y_m, fps, planted_foot_speed_mps}. Refused: a take that failed
+    anim_check (`check` file), one stride, an export onto Manny. G-FIDELITY and G-ENGINE and the AnimSequence itself need the user's UE editor leg: reported not_run/unverified, never a pass."""
+    from .pipeline import anim_io as _IO
+    return _IO.loop_export(_p(take), float(fps), cycle, skeleton, loop_tolerance_deg, _p(check) or None, strides_note, reference_bones, _p(out))
+
+
+@tool
+def anim_clip(reference_image, view="front", motion="walk", driver_video="", route="higgsfield", model="", duration=5, resolution="720p", aspect_ratio="9:16", generate_audio=False, has_camera_record=True):
+    """Plan ONE character clip (the locked-camera prompt 'locked camera, no cuts, no zoom, the whole body and feet in frame, <motion> in place', Seedance 2.0, 720p 9:16 5 s) as a DRY RUN: the lampway_video_gen
+    arguments, the list price (22.5 Higgsfield credits; $0.76, or $0.46 with the front clip as video reference, on OpenRouter: derived, not measured) and nothing spent. The side clip takes the front clip as
+    driver_video. Refused: a 16:9 clip, under 4 s, a reference without its recorded camera. Run the plan with lampway_video_gen (the user confirms the cost), then gate the file with lampway_video_gate
+    kind=clip: 24 fps all distinct, 720x1280, 5.0 s, figure >= 1000 px not touching the border, locked camera, >= 4 strides. A failed gate is NOT retried: every draw is a new charge."""
+    from .pipeline import anim_plan as _AP
+    return _AP.clip_plan(reference_image, view, motion, driver_video or None, route, model or None, duration, resolution, aspect_ratio, generate_audio, has_camera_record)
+
+
+@tool
+def anim_track(provider=None, shipping=True, clip="", mask_dir="", camera="", skeleton="metahuman_base_skel", stage="plan", frames_with_pose=None, total_frames=0):
+    """Body tracking, video to the MetaHuman skeleton: the provider is the USER's decision, so stage plan answers needs_decision with the question and the model slots (GEM-X, hosted SAM 3D Body, Uthana: all
+    needs_approval) and names anim_multiview_fit as the primary tracker that needs no provider. Refused: gvhmr with shipping=true (licence: research and non-profit only, needs SMPL-X; shipping=false tags the
+    output prototype and not exportable), no mask_dir, mha_markerless off Windows. stage coverage: frames_with_pose / total_frames must reach 90 %. Nothing is run or spent."""
+    from .pipeline import anim_plan as _AP
+    if stage == "coverage":
+        return _AP.coverage_gate(list(frames_with_pose or []), int(total_frames))
+    if stage != "plan":
+        raise ValueError("stage is plan | coverage")
+    return _AP.track_plan(provider, shipping, clip, mask_dir, camera, skeleton)
+
+
+@tool
+def anim_from_video(character, motion="walk", views=None, stock_first=True, provider_track=None, route="higgsfield", out_package="", stock_inventory=None, anim_dir=""):
+    """The animation-from-video pipeline as ONE dry-run plan: anim_reference_render (free) -> anim_clip (the only paid step: one spend card, '2 clips, 45 credits' at list price) -> anim_track (the provider
+    decision stays open: needs_decision) -> anim_check -> anim_loop_export, with the decisions.jsonl path the run would write. stock_first refuses when a stock animation (stock_inventory names) already has the
+    move: retarget it with animation_retarget. Nothing is run or spent; each step is the tool of that name, a failed gate stops the run, and a clip is never re-drawn without the user."""
+    from .pipeline import anim_plan as _AP
+    p = {"character": character, "motion": motion, "views": views, "stock_first": stock_first, "provider_track": provider_track, "route": route, "out_package": out_package,
+         "stock_inventory": stock_inventory or []}
+    if anim_dir:
+        p["anim_dir"] = anim_dir
+    return _AP.plan_steps(p)
+
+
 @tool
 def fit_state(stage="describe", **kw):
     """The descriptor / question / answer fit loop. Not built: answers needs_decision (is the Laya / fit-model route still the direction now that fit_validate measures the fit?). The question, the reason and a

@@ -10,13 +10,20 @@ from pathlib import Path
 from ..videojobs import PREFIX
 from .providers.base import ToolSpec
 
-NAMES = {"lampway_video_gen", "lampway_video_models"}
+NAMES = {"lampway_video_gen", "lampway_video_models", "lampway_video_gate"}
 
 
 def specs() -> list:
     return [
         ToolSpec("lampway_video_models", "List the video models (OpenRouter's, and Higgsfield's when signed in) with their durations, resolutions and the per-purpose "
                  "defaults (bulk, loop, motion). Prices are in lampway_video_gen's dry run.", {"type": "object", "properties": {}, "additionalProperties": False}),
+        ToolSpec("lampway_video_gate", "Deterministic gates on a video file in the project (no model, no spend, ffmpeg only). kind loop: closure_diff and wrap_jump (closed when <= 6 and <= 2.0); fix=pingpong writes a SECOND "
+                 "file <name>_loop.mp4 (forward then reversed: closed by construction) and never touches the source. kind clip: the character-clip gates (24 fps all distinct, 720x1280, 5.0 s, figure >= 1000 px not touching "
+                 "the border, locked camera, >= 4 strides: unverified without foot_contacts). kind duplicates: held frames and the true motion rate. kind upscale: video vs `source` at `factor` (size, duration, fps, SSIM, a "
+                 "'no gain over Lanczos' flag). kind edit: video vs `source` with a region `mask` PNG (outside-mask PSNR >= 35 dB, length within a frame). Thresholds are proposed.",
+                 {"type": "object", "properties": {"kind": {"type": "string", "description": "loop | clip | duplicates | upscale | edit"}, "video": {"type": "string", "description": "project-relative path"},
+                  "source": {"type": "string"}, "mask": {"type": "string"}, "factor": {"type": "number"}, "fix": {"type": "string", "description": "pingpong"},
+                  "foot_contacts": {"type": "array", "items": {"type": "number"}, "description": "frame indices of the foot contacts, from the tracker"}}, "required": ["kind", "video"], "additionalProperties": False}),
         ToolSpec("lampway_video_gen", "Generate a video. Default is a DRY RUN: the validated parameters and the price. `purpose` picks the default model: bulk (HeyGen), "
                  "loop (Seedance 1.5 Pro, first = last frame from one image) motion (Seedance 2.0 Mini with a driving video), edit (FLUX Video Edit: a source video in `videos` and the instruction as the prompt) or upscale (FLUX Video Upscale: one source video, `upscale_factor` 1.5 to 3). OpenRouter models: dry_run=false runs "
                  "within the per-job cap and the session budget and saves an .mp4 in the project. Higgsfield models (model `higgsfield/<id>`; incl. hf_mult_motion_control "
@@ -50,6 +57,13 @@ async def call(system, name: str, arguments: dict) -> tuple:
     try:
         if system is None:
             return "video generation is not available on this server", True
+        if name == "lampway_video_gate":
+            from .. import videogate as VGT
+            root = system.root
+            paths = {k: str(_jail(root, arguments[k])) for k in ("video", "source", "mask") if arguments.get(k)}
+            result = await asyncio.to_thread(VGT.run_gate, arguments.get("kind"), paths["video"], paths.get("source"), paths.get("mask"), arguments.get("factor"), arguments.get("fix"),
+                                              arguments.get("foot_contacts"))
+            return json.dumps(result, default=lambda o: o.item() if hasattr(o, "item") else str(o)), False
         if name == "lampway_video_models":
             rows = await asyncio.to_thread(system.video_models)
             return json.dumps({"purposes": system.settings.video_purposes, "per_job_cap_usd": system.settings.video_max_job_usd,

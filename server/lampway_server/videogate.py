@@ -40,13 +40,15 @@ def probe(path: str) -> dict:
             "duration": float((data.get("format") or {}).get("duration") or 0)}
 
 
-def decode(path: str, max_frames: int = 1000) -> list:
-    """Every frame as an (h, w, 3) uint8 array."""
+def decode(path: str, max_frames: int = 1000, gray: bool = False) -> list:
+    """Every frame as an (h, w, 3) uint8 array, or (h, w) with gray=True (a third of the memory: the clip gates only need luminance)."""
     info = probe(path)
     w, h = info["width"], info["height"]
-    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-frames:v", str(max_frames), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True, timeout=300).stdout
-    n = len(raw) // (w * h * 3)
-    return [np.frombuffer(raw, np.uint8, w * h * 3, i * w * h * 3).reshape(h, w, 3) for i in range(n)]
+    ch = 1 if gray else 3
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-frames:v", str(max_frames), "-f", "rawvideo", "-pix_fmt", "gray" if gray else "rgb24", "-"], capture_output=True, timeout=300).stdout
+    n = len(raw) // (w * h * ch)
+    shape = (h, w) if gray else (h, w, 3)
+    return [np.frombuffer(raw, np.uint8, w * h * ch, i * w * h * ch).reshape(shape) for i in range(n)]
 
 
 def pingpong_file(src: str, dst: str) -> str:
@@ -204,3 +206,39 @@ def clip_gates(frames, fps: float, duration: float, size: tuple, foot_contacts=N
         strides = max(0, len(foot_contacts) - 1)
         gates["G-CLIP-strides"] = {"passed": strides >= MIN_STRIDES, "value": strides, "message": f"{strides} strides (>= {MIN_STRIDES})"}
     return {"gates": gates, "passed": all(g["passed"] is not False for g in gates.values()), "complete": not unverified, "unverified": unverified}
+
+
+# ------------------------------------------------------------------------------------------------------------ the tool's entry
+def run_gate(kind, video, source=None, mask=None, factor=None, fix=None, foot_contacts=None, loader=None) -> dict:
+    """Decode the file(s) and run one gate. Paths arrive already resolved inside the project. ``loader`` reads a mask PNG to a 2-D array (default: PIL)."""
+    if kind == "loop":
+        frames = decode(video)
+        c = closure(frames)
+        out = loop_gate(c)
+        if fix == "pingpong":
+            dst = video.rsplit(".", 1)[0] + "_loop.mp4"
+            pingpong_file(video, dst)
+            out["fixed_file"] = dst
+            out["fixed"] = loop_gate(closure(decode(dst)))
+        elif fix:
+            raise VideoGateError("fix is pingpong")
+        return out
+    if kind == "duplicates":
+        info = probe(video)
+        return duplicate_frames(decode(video), info["fps"] or 24.0)
+    if kind == "clip":
+        info = probe(video)
+        return clip_gates(decode(video, gray=True), info["fps"], info["duration"], (info["width"], info["height"]), foot_contacts)
+    if kind == "upscale":
+        if not source or not factor:
+            raise VideoGateError("an upscale gate needs the source video and the factor")
+        si, oi = probe(source), probe(video)
+        return upscale_gate(decode(source), decode(video), float(factor), si["fps"], oi["fps"])
+    if kind == "edit":
+        if not source or not mask:
+            raise VideoGateError("an edit gate needs the region mask (a PNG, white where the edit is allowed) and the source video")
+        if loader is None:
+            from PIL import Image
+            loader = lambda p: np.asarray(Image.open(p).convert("L"))
+        return edit_gate(decode(source), decode(video), loader(mask) > 127)
+    raise VideoGateError("kind is loop | clip | duplicates | upscale | edit")
