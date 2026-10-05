@@ -129,3 +129,57 @@ def reset_worker_scene() -> dict:
             except Exception:
                 pass
     return {"success": True, "method": "manual", "removed": removed}
+
+
+# --- Lampway additions: hand a worker the objects it must work ON ---------------------------------------------------
+# Mixar's harness moves results worker -> parent only; a worker that works on an existing piece (Mesh QA on Boots1_uv) needs the
+# reverse. The parent copies the named objects into a staged artifact (``export_copies``, run by the server as a trusted script on
+# the PARENT), the worker loads it first thing (``import_artifact``, trusted script on the WORKER). Same staging directory, same
+# bare-uuid artifact ids, same hash discipline as the commit direction.
+
+def export_copies(artifact_id: str, object_names: Iterable[str], instance_id: str = "") -> dict:
+    """Write the named objects (with their data) of THIS scene to a native artifact and leave the scene exactly as it was."""
+    import bpy
+
+    from .artifacts import sha256_file
+    from .paths import staging_dir
+
+    if not is_artifact_id(artifact_id):
+        raise ValueError("artifact_id must be a bare uuid")
+    iid = instance_id or str(getattr(bpy.context.window_manager, "mixie_instance_id", "") or "")
+    names = list(object_names)
+    missing = [n for n in names if bpy.data.objects.get(n) is None]
+    if missing or not names:
+        raise LookupError(f"no object(s) {missing or names!r}; the objects are: {sorted(o.name for o in bpy.data.objects)[:40]}")
+    holder = bpy.data.collections.new("lw_export_" + artifact_id[:8])
+    try:
+        for n in names:
+            holder.objects.link(bpy.data.objects[n])
+        path = os.path.join(staging_dir(iid), f"{artifact_id}.blend")
+        bpy.data.libraries.write(path, {holder}, fake_user=True)
+    finally:
+        for ob in list(holder.objects):
+            holder.objects.unlink(ob)
+        bpy.data.collections.remove(holder)
+    return {"artifact_id": artifact_id, "object_names": names, "content_hash": sha256_file(path), "size_bytes": os.path.getsize(path)}
+
+
+def import_artifact(artifact_id: str) -> dict:
+    """Load a parent-exported artifact into THIS (worker) scene: its objects land in the scene's own collection."""
+    import bpy
+
+    if not is_artifact_id(artifact_id):
+        raise ValueError("artifact_id must be a bare uuid")
+    path = os.path.join(staging_root(), f"{artifact_id}.blend")
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"artifact {artifact_id} is not in this worker's staging directory")
+    with bpy.data.libraries.load(path, link=False) as (src, dst):
+        dst.collections = list(src.collections)
+    names = []
+    for coll in [c for c in dst.collections if c is not None]:
+        for ob in list(coll.all_objects):
+            if ob.name not in bpy.context.scene.collection.all_objects:
+                bpy.context.scene.collection.objects.link(ob)
+            names.append(ob.name)
+        bpy.data.collections.remove(coll)
+    return {"artifact_id": artifact_id, "object_names": names}
