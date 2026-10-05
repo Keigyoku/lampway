@@ -564,10 +564,22 @@ def export_piece(object, out_dir, textures=(), note=""):
     return {"out_dir": str(out), "fbx": str(fbx), "textures": [str(p) for p in copied], "readme": str(out / "README.md")}
 
 
+# ---- the Mixar-docs features (features/): proven algorithmic code, a studio slot behind the same interface
+
+from .features import retopo as _F_retopo                  # noqa: E402
+
+
+@tool
+def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic", symmetry=False):
+    """A new all-quad mesh ``<object>_retopo`` near ``target_faces`` (QuadriFlow, voxel fallback) with a measured report;
+    the original is untouched. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
+    return _F_retopo.retopo(object, target_faces, method, engine, symmetry)
+
+
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo")
 
 
 def call(name: str, payload: str = "{}") -> dict:

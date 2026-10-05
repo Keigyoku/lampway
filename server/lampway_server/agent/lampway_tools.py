@@ -161,6 +161,12 @@ DEFS = [
         "is not changed." + _PATHS, [P("object", desc="The object to export", required=True), P("out_dir", required=True),
         P("textures", "array", "The maps to ship (e.g. the pbr_merge outputs)"), P("note", desc="A line for the README")],
         api="export_piece"),
+    Def("lampway_retopo", "Retopology: a NEW all-quad mesh `<object>_retopo` near target_faces (QuadriFlow; voxel remesh as the fallback) "
+        "with a measured report (faces, quads, non-manifold and open-boundary edges, surface deviation). The original is untouched; "
+        "keep it until the replacement passes your checks. engine=studio:tripo answers with the studio action and its price for the "
+        "owner's approval and clicks nothing.", [P("object", desc="Mesh object name", required=True),
+        P("target_faces", "integer", "Default 2000"), P("method", desc="quadriflow (default) | voxel"),
+        P("engine", desc="algorithmic (default) | studio:tripo"), P("symmetry", "boolean")], api="retopo"),
     Def("lampway_pbr_merge", "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, "
         "Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are "
         "filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on "
