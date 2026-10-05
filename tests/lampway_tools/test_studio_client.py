@@ -158,7 +158,9 @@ from mixar.modules.lampway_tools.ui.operators import studio_ops
 from mixar.modules.lampway_tools import studio_state
 VIEW = {"values": {"provider": "chatgpt_plan", "chatgpt_model": "gpt-6.1-sol", "chatgpt_effort": "medium", "swarm_provider": "claude_cli",
         "claude_swarm_model": "claude-sonnet-5-5", "openrouter_swarm_model": "deepseek/deepseek-v4.1-flash", "image_backend": "openrouter",
-        "openrouter_image_model": "openai/gpt-image-2.5-sunburst", "openrouter_image_size": "2880x2880", "openrouter_image_quality": "high"},
+        "openrouter_image_model": "openai/gpt-image-2.5-sunburst", "openrouter_image_size": "2880x2880", "openrouter_image_quality": "high",
+        "image_purposes": {"plates": {"model": "openai/gpt-image-2.5-flare", "size": "2880x2880"}, "mask": {"model": "google/gemini-3.1-flash-image"},
+                           "concept": {"model": "black-forest-labs/flux-3-image", "resolution": "2K"}, "tile": {"model": "openai/gpt-image-2.5-flare", "size": "2048x2048"}}},
         "source": {}, "choices": {"main_providers": ["mock", "chatgpt_plan", "openrouter"], "swarm_providers": ["", "claude_cli", "openrouter"],
         "efforts": ["", "low", "medium", "high"], "image_backends": ["tripo", "openrouter"], "image_qualities": ["", "high"]}}
 SAVED = []
@@ -176,7 +178,8 @@ def test_the_provider_dialog_loads_the_server_values_and_saves_only_what_changed
     r = run(PROVIDERS + '''
 bpy.ops.lampway.providers_open("INVOKE_DEFAULT") if False else None
 op_ok = bpy.ops.lampway.providers_save("EXEC_DEFAULT", main_provider="openrouter", chatgpt_effort="medium", swarm_provider="claude_cli",
-                                       image_backend="openrouter", image_model="openai/gpt-image-2.5-flare", image_size="2048x1152", image_quality="high")
+                                       image_backend="openrouter", image_model="openai/gpt-image-2.5-flare", image_size="2048x1152", image_quality="high",
+                                       plates_size="2160x3840", plates_model="openai/gpt-image-2.5-flare", concept_resolution="4K", mask_model="sourceful/riverflow-v2.5-pro")
 try:
     bpy.ops.lampway.providers_save("EXEC_DEFAULT", image_size="4K"); bad = None
 except RuntimeError as e: bad = str(e)[:160]
@@ -186,6 +189,7 @@ print("RESULT", json.dumps({"ok": sorted(op_ok), "saved": SAVED, "bad": bad, "ms
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
     assert o["ok"] == ["FINISHED"]
-    assert o["saved"][0] == {"provider": "openrouter", "openrouter_image_model": "openai/gpt-image-2.5-flare", "openrouter_image_size": "2048x1152"}, \
-        "only the fields that differ from what the server has are sent"
+    assert o["saved"][0] == {"provider": "openrouter", "openrouter_image_model": "openai/gpt-image-2.5-flare", "openrouter_image_size": "2048x1152",
+                             "image_purposes": {"plates": {"size": "2160x3840"}, "concept": {"resolution": "4K"}, "mask": {"model": "sourceful/riverflow-v2.5-pro"}}}, \
+        "only the fields that differ from what the server has are sent (the unchanged plates model is not)"
     assert "WIDTHxHEIGHT" in o["bad"] and "WIDTHxHEIGHT" in o["msg"]

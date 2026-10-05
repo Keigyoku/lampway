@@ -110,6 +110,8 @@ def seen(settings, monkeypatch):
     rows = []
 
     def handler(request):
+        if request.method == "GET":                      # the endpoints lookup: unreadable here, so the model family decides
+            return httpx.Response(404, json={})
         rows.append(json.loads(request.content))
         return httpx.Response(200, json={"data": [{"b64_json": base64.b64encode(PNG).decode(), "media_type": "image/png"}], "usage": {"cost": 0.01}})
     monkeypatch.setattr(IG, "openrouter_transport", httpx.MockTransport(handler))
@@ -133,7 +135,7 @@ def test_a_call_can_choose_its_own_size_or_aspect_ratio_for_a_non_square_plate(s
     assert seen[-1]["size"] == "2880x2880"
     with pytest.raises(ValueError, match="size"):
         IG.openrouter_images("p", [], 1, size="4K")
-    with pytest.raises(ValueError, match="pixel"):
+    with pytest.raises(ValueError, match="budget"):
         IG.openrouter_images("p", [], 1, size="3840x3840")
     with pytest.raises(ValueError, match="aspect"):
         IG.openrouter_images("p", [], 1, aspect_ratio="wide")

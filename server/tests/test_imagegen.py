@@ -139,6 +139,8 @@ def orouter(root, monkeypatch):
     seen = []
 
     def handler(request):
+        if request.method == "GET":                      # the endpoints lookup: the model family decides what it takes
+            return httpx.Response(404, json={})
         seen.append({"url": str(request.url), "auth": request.headers.get("authorization"), "body": json.loads(request.content)})
         return httpx.Response(200, json={"created": 1, "data": [{"b64_json": base64.b64encode(PNG).decode(), "media_type": "image/png"}],
                                          "usage": {"cost": 0.04}})
@@ -155,7 +157,7 @@ def test_openrouter_is_a_backend_choice(monkeypatch):
 def test_openrouter_dry_run_sends_nothing_and_says_what_it_would_do(root, orouter):
     r = IG.generate("openrouter", "p.txt", ["clay.png", "design.png"], "runs/Front", count=1)
     assert r["dry_run"] is True and r["files"] == [] and orouter == []
-    assert "google/gemini-3.1-flash-image" in r["output"] and "2 reference" in r["output"]
+    assert "openai/gpt-image-2.5-flare" in r["output"] and "2 reference" in r["output"]       # the plates purpose
 
 
 def test_openrouter_live_sends_the_prompt_and_the_references_in_order_and_writes_the_image(root, orouter):
@@ -163,7 +165,7 @@ def test_openrouter_live_sends_the_prompt_and_the_references_in_order_and_writes
     sent = orouter[0]
     assert sent["url"] == "https://openrouter.ai/api/v1/images" and sent["auth"] == f"Bearer {KEY}"
     body = sent["body"]
-    assert body["model"] == "google/gemini-3.1-flash-image" and body["prompt"] == "paint it flat"
+    assert body["model"] == "openai/gpt-image-2.5-flare" and body["prompt"] == "paint it flat" and body["size"] == "2880x2880"   # plates
     urls = [ref["image_url"]["url"] for ref in body["input_references"]]
     assert urls == ["data:image/png;base64," + base64.b64encode(b"x").decode(),
                     "data:image/png;base64," + base64.b64encode(b"design-bytes").decode()]

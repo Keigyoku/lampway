@@ -5,6 +5,7 @@ keys stay in the environment, a key file or the sign-in stores."""
 import json
 import os
 import re
+import copy
 from dataclasses import replace
 from pathlib import Path
 
@@ -16,6 +17,9 @@ EFFORTS = ("", "minimal", "low", "medium", "high", "xhigh")
 IMAGE_BACKENDS = ("tripo", "codex_cli", "openrouter")
 IMAGE_QUALITIES = ("", "auto", "low", "medium", "high", "xhigh", "max")
 MAX_IMAGE_PIXELS = 2880 * 2880                                 # measured 2026-10-05 on GPT Image 2.5: 2880x2880 works, 3840x3840 exceeds the budget
+MAX_IMAGE_EDGE = 3840                                           # ... and no edge may pass 3840 (2160x3840 is within both)
+PURPOSES = ("plates", "mask", "concept", "tile")
+RESOLUTIONS = ("", "1K", "2K", "4K")
 _MODEL = re.compile(r"^[\w./:\-]{0,100}$")
 _SIZE = re.compile(r"^(\d{3,5})x(\d{3,5})$")
 
@@ -45,9 +49,33 @@ def check_size(v) -> str:
     m = _SIZE.match(str(v))
     if not m:
         raise PrefsError("size must be WIDTHxHEIGHT, e.g. 2880x2880 (the images API refuses '4K')")
-    if int(m.group(1)) * int(m.group(2)) > MAX_IMAGE_PIXELS:
-        raise PrefsError(f"size {v} exceeds the pixel budget ({MAX_IMAGE_PIXELS} px = 2880x2880; 3840x3840 was refused by the model)")
+    w, h = int(m.group(1)), int(m.group(2))
+    if w * h > MAX_IMAGE_PIXELS or max(w, h) > MAX_IMAGE_EDGE:
+        raise PrefsError(f"size {v} is outside the model's budget (about 8.3 MP and at most {MAX_IMAGE_EDGE} per edge: 2880x2880 and 2160x3840 work, "
+                         "3840x3840 was refused)")
     return v
+
+
+def check_purposes(v):
+    """A partial {purpose: {model?, size?, resolution?, quality?}}: each purpose carries its own image model and size / resolution."""
+    if not isinstance(v, dict) or not v:
+        raise PrefsError(f"must be an object of purposes {list(PURPOSES)}")
+    out = {}
+    for purpose, cfg in v.items():
+        if purpose not in PURPOSES:
+            raise PrefsError(f"unknown purpose {purpose!r}; the purposes are {list(PURPOSES)}")
+        if not isinstance(cfg, dict) or not cfg:
+            raise PrefsError(f"{purpose} must be an object")
+        row = {}
+        for key, val in cfg.items():
+            try:
+                row[key] = {"model": _model, "size": check_size, "resolution": _enum(RESOLUTIONS), "quality": _enum(IMAGE_QUALITIES)}[key](val)
+            except KeyError:
+                raise PrefsError(f"{purpose}: {key!r} is not a setting (model, size, resolution, quality)") from None
+            except PrefsError as exc:
+                raise PrefsError(f"{purpose}.{key}: {exc}") from None
+        out[purpose] = row
+    return out
 
 
 FIELDS = {
@@ -55,14 +83,15 @@ FIELDS = {
     "chatgpt_effort": _enum(EFFORTS), "chatgpt_swarm_model": _model, "chatgpt_swarm_effort": _enum(EFFORTS),
     "swarm_provider": _enum(SWARM_PROVIDERS), "claude_swarm_model": _model, "openrouter_model": _model, "openrouter_swarm_model": _model,
     "image_backend": _enum(IMAGE_BACKENDS), "openrouter_image_model": _model, "openrouter_image_size": check_size,
-    "openrouter_image_quality": _enum(IMAGE_QUALITIES),
+    "openrouter_image_quality": _enum(IMAGE_QUALITIES), "image_purposes": check_purposes,
 }
 MAIN_FIELDS = {"provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model"}
 
 
 def choices() -> dict:
     return {"main_providers": list(MAIN_PROVIDERS), "swarm_providers": list(SWARM_PROVIDERS), "efforts": list(EFFORTS),
-            "image_backends": list(IMAGE_BACKENDS), "image_qualities": list(IMAGE_QUALITIES), "max_image_pixels": MAX_IMAGE_PIXELS}
+            "image_backends": list(IMAGE_BACKENDS), "image_qualities": list(IMAGE_QUALITIES), "max_image_pixels": MAX_IMAGE_PIXELS,
+            "image_purposes": list(PURPOSES), "image_resolutions": list(RESOLUTIONS)}
 
 
 def _path(state_dir) -> Path:
@@ -102,19 +131,36 @@ def validate(values: dict) -> dict:
     return clean
 
 
+def merge_values(base: dict, values: dict) -> dict:
+    """``base`` updated with ``values``; the image purposes merge per purpose and per key (a partial update keeps the rest)."""
+    out = copy.deepcopy(base)
+    for key, value in values.items():
+        if key == "image_purposes":
+            cur = out.setdefault("image_purposes", {})
+            for purpose, cfg in value.items():
+                cur.setdefault(purpose, {}).update(cfg)
+        else:
+            out[key] = value
+    return out
+
+
 def apply(settings: Settings, values: dict) -> Settings:
     for key, value in values.items():
-        setattr(settings, key, value)
+        if key == "image_purposes":
+            for purpose, cfg in value.items():
+                settings.image_purposes.setdefault(purpose, {}).update(cfg)
+        else:
+            setattr(settings, key, value)
     return settings
 
 
 def trial(settings: Settings, values: dict) -> Settings:
-    return apply(replace(settings), values)
+    return apply(replace(settings, image_purposes=copy.deepcopy(settings.image_purposes)), values)
 
 
 def view(settings: Settings) -> dict:
     saved = load(settings.state_dir)
-    return {"values": {k: getattr(settings, k) for k in FIELDS}, "source": {k: ("saved" if k in saved else "env") for k in FIELDS},
+    return {"values": {k: copy.deepcopy(getattr(settings, k)) for k in FIELDS}, "source": {k: ("saved" if k in saved else "env") for k in FIELDS},
             "choices": choices()}
 
 

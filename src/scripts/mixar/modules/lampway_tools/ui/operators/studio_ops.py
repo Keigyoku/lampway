@@ -175,7 +175,12 @@ class LAMPWAY_OT_studio_import(_StudioOp):
 _PROVIDER_FIELDS = {          # operator prop -> the server's setting
     "main_provider": "provider", "chatgpt_model": "chatgpt_model", "chatgpt_effort": "chatgpt_effort", "swarm_provider": "swarm_provider",
     "claude_swarm_model": "claude_swarm_model", "openrouter_swarm_model": "openrouter_swarm_model", "image_backend": "image_backend",
-    "image_model": "openrouter_image_model", "image_size": "openrouter_image_size", "image_quality": "openrouter_image_quality"}
+    "image_model": "openrouter_image_model", "image_size": "openrouter_image_size", "image_quality": "openrouter_image_quality",
+    # one image model per purpose: plates / mesh-paint, material-ID masks, concepts, seamless tiles
+    "plates_model": ("image_purposes", "plates", "model"), "plates_size": ("image_purposes", "plates", "size"),
+    "mask_model": ("image_purposes", "mask", "model"), "concept_model": ("image_purposes", "concept", "model"),
+    "concept_resolution": ("image_purposes", "concept", "resolution"), "tile_model": ("image_purposes", "tile", "model"),
+    "tile_size": ("image_purposes", "tile", "size")}
 _CHOICES = {"main_provider": "main_providers", "swarm_provider": "swarm_providers", "chatgpt_effort": "efforts",
             "image_backend": "image_backends", "image_quality": "image_qualities"}
 DEFAULT_WORD = "default"     # typed for a setting whose server value is the empty default
@@ -198,6 +203,13 @@ class _ProviderProps:
     image_model: StringProperty(name="Image model", description="OpenRouter image model, e.g. openai/gpt-image-2.5-sunburst (precision) or -flare (speed)")
     image_size: StringProperty(name="Image size", description="WIDTHxHEIGHT within the pixel budget (2880x2880 works), or default")
     image_quality: StringProperty(name="Image quality", description="auto, low, medium, high, xhigh, max, or default", search=_suggest("image_quality"))
+    plates_model: StringProperty(name="Plates model", description="Mesh-paint plates, e.g. openai/gpt-image-2.5-flare (or sourceful/riverflow-v2.5-pro: flattest albedo, slower, dearer)")
+    plates_size: StringProperty(name="Plates size", description="WIDTHxHEIGHT, e.g. 2880x2880 or 2160x3840 for a tall plate (at most 3840 per edge, ~8.3 MP)")
+    mask_model: StringProperty(name="Mask model", description="Material-ID / mask drafts: flat colour regions, e.g. google/gemini-3.1-flash-image")
+    concept_model: StringProperty(name="Concept model", description="Concepts / moodboard, e.g. black-forest-labs/flux-3-image. It redesigns the piece: never for projection")
+    concept_resolution: StringProperty(name="Concept resolution", description="1K, 2K or 4K for models that take resolution, or default")
+    tile_model: StringProperty(name="Tile model", description="Seamless tiles, e.g. openai/gpt-image-2.5-flare")
+    tile_size: StringProperty(name="Tile size", description="WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048")
 
 
 def _server_values():
@@ -217,7 +229,11 @@ def _save_changes(op, context):
             if wanted == "":
                 continue                                           # not given: unchanged
             wanted = "" if wanted == DEFAULT_WORD else wanted
-            if wanted != current.get(key):
+            if isinstance(key, tuple):                             # image_purposes -> purpose -> setting
+                _, purpose, name = key
+                if wanted != (current.get("image_purposes", {}).get(purpose) or {}).get(name):
+                    changed.setdefault("image_purposes", {}).setdefault(purpose, {})[name] = wanted
+            elif wanted != current.get(key):
                 changed[key] = wanted
         if not changed:
             return op._done(context, "nothing changed")
@@ -249,7 +265,11 @@ class LAMPWAY_OT_providers_open(_ProviderProps, _StudioOp):
         except studio_client.StudioError as exc:
             return self._done(context, str(exc), ok=False)
         for prop, key in _PROVIDER_FIELDS.items():
-            setattr(self, prop, values.get(key) or DEFAULT_WORD if prop in _CHOICES else values.get(key, ""))
+            if isinstance(key, tuple):
+                got = (values.get("image_purposes", {}).get(key[1]) or {}).get(key[2], "")
+                setattr(self, prop, got or (DEFAULT_WORD if key[2] == "resolution" else ""))
+            else:
+                setattr(self, prop, values.get(key) or DEFAULT_WORD if prop in _CHOICES else values.get(key, ""))
         return context.window_manager.invoke_props_dialog(self, width=520)
 
     def execute(self, context):

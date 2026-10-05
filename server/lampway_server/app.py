@@ -587,9 +587,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
                 make_swarm_provider(trial, "worker-1", chatgpt_auth=chatgpt)
         except (provider_prefs.PrefsError, ValueError, RuntimeError, OSError) as exc:
             return JSONResponse({"detail": str(exc)}, status_code=400)
-        saved = provider_prefs.load(settings.state_dir)
-        saved.update(values)
-        provider_prefs.save(settings.state_dir, saved)
+        provider_prefs.save(settings.state_dir, provider_prefs.merge_values(provider_prefs.load(settings.state_dir), values))
         provider_prefs.apply(settings, values)
         if new_main is not None:
             agent.provider = new_main

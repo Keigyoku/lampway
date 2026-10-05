@@ -120,6 +120,7 @@ LOCALS.append(Local(
      A("out_dir", required=True, path=True), A("backend", desc="tripo (default), codex_cli, or openrouter (an OpenRouter image model; paid, counted against the session spend ceiling, live=true only when asked)"), A("count", "integer", "Default 4"),
      A("size", desc="openrouter only: WIDTHxHEIGHT for this call (e.g. 2048x1152), within the model's pixel budget"),
      A("aspect_ratio", desc="openrouter only: e.g. 3:2 for a non-square plate; the largest size the budget allows"),
+     A("purpose", desc="openrouter only: plates (mesh-paint, default) | mask (material-ID drafts) | concept (moodboard; redesigns the piece, never for projection) | tile (seamless); each has its own model and size in the Providers dialog"),
      A("live", "boolean", "Default false")], 3600))
 BY_NAME = {d.name: d for d in LOCALS}
 SPECS = [d.spec() for d in LOCALS]
@@ -223,7 +224,7 @@ def _run_imagegen(arguments: dict) -> tuple:
                 raise BadToolCall(f"studio_image_generate needs {key}")
         res = IG.generate(arguments.get("backend") or IG.backend_name(), arguments["prompt_file"], arguments.get("refs") or [],
                           arguments["out_dir"], int(arguments.get("count") or 4), bool(arguments.get("live")),
-                          str(arguments.get("size") or ""), str(arguments.get("aspect_ratio") or ""))
+                          str(arguments.get("size") or ""), str(arguments.get("aspect_ratio") or ""), str(arguments.get("purpose") or "plates"))
     except (BadToolCall, IG.ImageGenError, ValueError) as exc:
         return str(exc), True
     lines = [f"backend: {res['backend']}", f"dry_run: {str(res['dry_run']).lower()}", f"images: {len(res['files'])}"] + [f"  {f}" for f in res["files"]]

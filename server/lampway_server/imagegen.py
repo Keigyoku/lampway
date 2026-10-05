@@ -50,7 +50,7 @@ def _images(out: Path) -> list:
     return sorted(str(p) for p in out.glob("*") if p.suffix.lower() in _IMG and p.stem.isdigit()) if out.exists() else []
 
 
-def generate(backend: str, prompt_file: str, refs, out_dir: str, count: int = 4, live: bool = False, size: str = "", aspect_ratio: str = "") -> dict:
+def generate(backend: str, prompt_file: str, refs, out_dir: str, count: int = 4, live: bool = False, size: str = "", aspect_ratio: str = "", purpose: str = "plates") -> dict:
     """Returns {backend, files, dry_run, output}. ``refs`` in order: the clay render first, then any painted consistency view,
     then the design plate (the prompts name them first / second / third)."""
     if backend not in BACKENDS:
@@ -59,7 +59,7 @@ def generate(backend: str, prompt_file: str, refs, out_dir: str, count: int = 4,
     ref_paths = [ST.jail(r) for r in refs]
     out = ST.jail(out_dir)
     if backend == "openrouter":
-        return _openrouter(prompt_path, ref_paths, Path(out), int(count), live, size, aspect_ratio)
+        return _openrouter(prompt_path, ref_paths, Path(out), int(count), live, size, aspect_ratio, purpose)
     if backend == "tripo":
         cmd = ST.command("studio_tripo_image", {"out_dir": out_dir, "prompt_file": prompt_file, "refs": list(refs),
                                                 "count": str(count), "dry_run": not live}, allow_live=True)   # free quota only; the owner's armed env still applies
@@ -104,7 +104,74 @@ def size_for_aspect(aspect: str) -> str:
     return f"{int(w // 16 * 16)}x{int(h // 16 * 16)}"          # flooring both sides keeps the product within the budget
 
 
-def openrouter_images(prompt: str, references: list, count: int, size: str = "", aspect_ratio: str = "") -> list:
+_SUPPORTED: dict = {}                # model id -> the supported_parameters its endpoints list (cached for the process)
+
+
+def supported_parameters_fallback(model: str):
+    """What a model family takes when its endpoints cannot be read: GPT Image takes ``size``; FLUX 3, Seedream, Gemini, Riverflow and
+    Qwen take ``resolution`` + ``aspect_ratio``. None = unknown (nothing is validated)."""
+    if model.startswith("openai/gpt-image"):
+        return {"size", "quality", "input_references"}
+    if model.startswith(("black-forest-labs/", "bytedance-seed/", "google/", "sourceful/", "qwen/")):
+        return {"resolution", "aspect_ratio", "input_references"}
+    return None
+
+
+def supported_parameters(client, key: str, model: str):
+    """GET /images/models/<id>/endpoints -> the union of supported_parameters; cached; the family table when the lookup fails."""
+    from .agent.providers.openrouter import BASE_URL, REFERER, TITLE
+    if model in _SUPPORTED:
+        return _SUPPORTED[model]
+    found = None
+    try:
+        resp = client.get(f"{BASE_URL}/images/models/{model}/endpoints", headers={"Authorization": f"Bearer {key}", "HTTP-Referer": REFERER, "X-Title": TITLE})
+        if resp.status_code == 200:
+            eps = ((resp.json().get("data") or {}).get("endpoints")) or []
+            found = {p for e in eps for p in (e.get("supported_parameters") or [])} or None
+    except Exception:  # noqa: BLE001 - validation is best effort; the request itself is the authority
+        found = None
+    _SUPPORTED[model] = found if found is not None else supported_parameters_fallback(model)
+    return _SUPPORTED[model]
+
+
+def _purpose_body(client, key, settings, purpose, size, aspect_ratio):
+    """(model, extra body params) for a purpose, validated against the model's supported parameters: one it does not list is refused."""
+    from .provider_prefs import PURPOSES
+    if purpose not in PURPOSES:
+        raise ValueError(f"unknown purpose {purpose!r}; the purposes are {list(PURPOSES)}")
+    cfg = settings.image_purposes.get(purpose) or {}
+    model = cfg.get("model")
+    if not model:
+        raise ValueError(f"the {purpose} purpose has no image model: choose one in the Providers dialog")
+    supported = supported_parameters(client, key, model)
+
+    def need(param):
+        if supported is not None and param not in supported:
+            raise ValueError(f"{model} does not take {param} (it lists: {', '.join(sorted(supported))}); change the {purpose} purpose in the Providers dialog")
+    extra = {}
+    if size:
+        need("size")
+        extra["size"] = _checked_size(size)
+    elif aspect_ratio:
+        if supported is not None and "aspect_ratio" in supported:
+            extra["aspect_ratio"] = aspect_ratio
+            size_for_aspect(aspect_ratio)                       # validates the shape
+        else:
+            need("size")
+            extra["size"] = size_for_aspect(aspect_ratio)
+    elif cfg.get("size"):
+        need("size")
+        extra["size"] = cfg["size"]
+    if cfg.get("resolution"):
+        need("resolution")
+        extra["resolution"] = cfg["resolution"]
+    if cfg.get("quality"):
+        need("quality")
+        extra["quality"] = cfg["quality"]
+    return model, extra
+
+
+def openrouter_images(prompt: str, references: list, count: int, size: str = "", aspect_ratio: str = "", purpose: str = "") -> list:
     """``count`` images from OpenRouter's images API (one request each), as ``[(bytes, media_type)]``; ``references`` are
     image bytes sent as data URLs. The key comes from the environment, every request is refused past the session spend
     ceiling, and the reported cost goes on the shared ledger."""
@@ -115,10 +182,11 @@ def openrouter_images(prompt: str, references: list, count: int, size: str = "",
     if not 1 <= int(count) <= 4:
         raise ValueError("the openrouter backend makes at most 4 images per generation (one request each)")
     settings = provider_prefs.effective()
-    if size:
-        size = _checked_size(size)
-    elif aspect_ratio:
-        size = size_for_aspect(aspect_ratio)
+    if not purpose:                                     # the pre-purpose path: the one global image model, size and quality
+        if size:
+            size = _checked_size(size)
+        elif aspect_ratio:
+            size = size_for_aspect(aspect_ratio)
     model = settings.openrouter_image_model
     refs = [{"type": "image_url", "image_url": {"url": f"data:{_sniff_mime(data)};base64," + base64.b64encode(data).decode()}}
             for data in references]
@@ -126,13 +194,17 @@ def openrouter_images(prompt: str, references: list, count: int, size: str = "",
     ledger = spend_ledger(settings)
     out = []
     with httpx.Client(transport=openrouter_transport, timeout=300.0) as client:
+        if purpose:
+            model, extra = _purpose_body(client, key, settings, purpose, size, aspect_ratio)
+        else:
+            extra = {}
+            if size or settings.openrouter_image_size:
+                extra["size"] = size or settings.openrouter_image_size
+            if settings.openrouter_image_quality:
+                extra["quality"] = settings.openrouter_image_quality
         for i in range(1, int(count) + 1):
             ledger.check()
-            body = {"model": model, "prompt": prompt}
-            if size or settings.openrouter_image_size:
-                body["size"] = size or settings.openrouter_image_size
-            if settings.openrouter_image_quality:
-                body["quality"] = settings.openrouter_image_quality
+            body = {"model": model, "prompt": prompt, **extra}
             if refs:
                 body["input_references"] = refs
             resp = client.post(f"{BASE_URL}/images", json=body, headers={
@@ -170,13 +242,15 @@ def openrouter_image_backend(model: str, payload: dict):
     count = int(params.get("number_of_images") or 1)
     refs = [base64.b64decode(r) for r in (payload.get("reference_images_b64") or [])[:MAX_REFERENCE_IMAGES] if isinstance(r, str)]
     return ImageOutput(images=openrouter_images(prompt, refs, count, size=str(params.get("size") or ""),
-                                                aspect_ratio=str(params.get("aspect_ratio") or "")), image_name=str(payload.get("image_name") or ""))
+                                                aspect_ratio=str(params.get("aspect_ratio") or ""),
+                                                purpose=str(params.get("purpose") or "plates")), image_name=str(payload.get("image_name") or ""))
 
 
-def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: bool, size: str = "", aspect_ratio: str = "") -> dict:
+def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: bool, size: str = "", aspect_ratio: str = "",
+                purpose: str = "plates") -> dict:
     from . import provider_prefs
     settings = provider_prefs.effective()
-    model = settings.openrouter_image_model
+    model = (settings.image_purposes.get(purpose) or {}).get("model") or settings.openrouter_image_model
     if not 1 <= count <= 4:
         raise ValueError("the openrouter backend makes at most 4 images per generation (one request each)")
     if not live:
@@ -184,7 +258,7 @@ def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: 
                 "output": f"dry run: would send {count} request(s) to {model} with {len(ref_paths)} reference image(s); nothing sent"}
     from .agent.providers import spend_ledger
     prompt = Path(prompt_path).read_text(encoding="utf-8").strip()
-    images = openrouter_images(prompt, [Path(p).read_bytes() for p in ref_paths], count, size=size, aspect_ratio=aspect_ratio)
+    images = openrouter_images(prompt, [Path(p).read_bytes() for p in ref_paths], count, size=size, aspect_ratio=aspect_ratio, purpose=purpose)
     out.mkdir(parents=True, exist_ok=True)
     files = []
     for i, (data, media_type) in enumerate(images, 1):

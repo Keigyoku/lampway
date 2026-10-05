@@ -11,6 +11,17 @@ def _default_state_dir() -> Path:
     return Path(base) / "lampway-server"
 
 
+# One image model per PURPOSE (the bake-off of 2026-10-05, scratch/subs/bakeoff): plates / mesh-paint, material-ID masks, concepts, seamless tiles.
+# size = WIDTHxHEIGHT for models that take `size` (GPT Image 2.5: at most 3840 per edge within ~8.3 MP); resolution = 1K/2K/4K for the models
+# that take `resolution` + `aspect_ratio` instead (FLUX 3, Seedream, Gemini, Riverflow). An empty value is not sent.
+DEFAULT_IMAGE_PURPOSES = {
+    "plates": {"model": "openai/gpt-image-2.5-flare", "size": "2880x2880", "resolution": "", "quality": ""},
+    "mask": {"model": "google/gemini-3.1-flash-image", "size": "", "resolution": "", "quality": ""},
+    "concept": {"model": "black-forest-labs/flux-3-image", "size": "", "resolution": "2K", "quality": ""},
+    "tile": {"model": "openai/gpt-image-2.5-flare", "size": "2048x2048", "resolution": "", "quality": ""},
+}
+
+
 @dataclass
 class Settings:
     host: str = "127.0.0.1"
@@ -40,6 +51,7 @@ class Settings:
     openrouter_image_model: str = "google/gemini-3.1-flash-image"
     openrouter_image_size: str = ""                    # e.g. 2880x2880 (GPT Image 2.5's pixel budget refuses 3840x3840); '' = provider default
     openrouter_image_quality: str = ""                 # auto/low/medium/high/xhigh/max; '' = provider default
+    image_purposes: dict = field(default_factory=lambda: {k: dict(v) for k, v in DEFAULT_IMAGE_PURPOSES.items()})
     openrouter_stt_model: str = "google/gemini-3.8-flash"      # dictation: an audio-input model
     openrouter_max_tokens: int = 4096                  # per request, always sent
     openrouter_budget_usd: float = 3.0                 # session spend ceiling: past it every OpenRouter call is refused
