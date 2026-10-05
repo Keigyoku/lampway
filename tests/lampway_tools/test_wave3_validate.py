@@ -143,3 +143,15 @@ res(a["poses"][0])
 '''), timeout=300)
     d = r.results[-1]
     assert d["verdict"] == "REFUSED" and d["pieces"] == {} and "expect" in d["why"]
+
+
+def test_a_pose_that_breathes_the_part_one_percent_fails_the_rigid_residual_because_scale_is_never_fitted_per_pose():
+    r = run_script(_measure_script('''
+arm = armature()
+orig = cube("orig", s=0.2, loc=(0, 0, 1.4)); piece = cube("piece", s=0.2, loc=(0, 0, 1.4)); weights(piece, arm, lambda c: {"upperarm_l": 1.0})
+a = api.fit_validate("measure", piece="p", bound="piece", original="orig", roles={"p": "metal"},
+                     poses=[{"name": "rest"}, {"name": "breathe", "bone": "upperarm_l", "rotate": [0, 0, 0], "scale": 1.05}])
+res({"rest": a["poses"][0]["pieces"]["p"]["rigid_residual_mm"], "breathe": a["poses"][1]["pieces"]["p"]["rigid_residual_mm"]})
+'''), timeout=300)
+    d = r.results[-1]
+    assert d["rest"] < 0.01 and d["breathe"] > 2.0, d            # a 5 % scale of a 0.2 m cube about 0.4 m away from the bone head is millimetres of residual

@@ -26,7 +26,7 @@ def _part_vertices(ob, name, roles):
 
 
 def _pose(arm, pose):
-    bones = pose.get("bones") or ([{"bone": pose["bone"], "rotate": pose.get("rotate", [0, 0, 0])}] if pose.get("bone") else [])
+    bones = pose.get("bones") or ([{"bone": pose["bone"], "rotate": pose.get("rotate", [0, 0, 0]), "scale": pose.get("scale")}] if pose.get("bone") else [])
     moved = []
     for b in bones:
         pb = arm.pose.bones.get(b["bone"])
@@ -35,13 +35,18 @@ def _pose(arm, pose):
         pb.rotation_mode = "XYZ"
         moved.append((pb, tuple(pb.rotation_euler)))
         pb.rotation_euler = [math.radians(float(a)) for a in b.get("rotate", [0, 0, 0])]
+        if b.get("scale") is not None:
+            moved[-1] = (*moved[-1], tuple(pb.scale))
+            pb.scale = [float(b["scale"])] * 3 if not isinstance(b["scale"], (list, tuple)) else b["scale"]
     bpy.context.view_layer.update()
     return moved
 
 
 def _restore(moved):
-    for pb, before in moved:
-        pb.rotation_euler = before
+    for item in moved:
+        item[0].rotation_euler = item[1]
+        if len(item) > 2:
+            item[0].scale = item[2]
     bpy.context.view_layer.update()
 
 
