@@ -2,33 +2,33 @@
 registration, authorize/token with S256 PKCE, refresh rotation) and the MCP endpoint (streamable HTTP JSON-RPC: initialize, tools/list,
 tools/call for models_explore, balance, generate_video / generate_image with get_cost and unlim_choice, media_upload + the presigned PUT +
 media_confirm, jobs_wait, motion_control). The response BODY shapes of the tools are an assumption (the SPEC gives names and params);
-the live read-only diff after sign-in is what checks them."""
+the live read-only diff after sign-in is what checks them.
+
+What IS recorded from the live server (tests/fixtures/higgsfield, dumped by ``python -m lampway_server.higgsfield_diff --dump``): the tool
+DEFINITIONS (every tools/call is validated against the live inputSchema and refused like the live server would), the model catalogues (page
+size, ``has_more`` / ``next_page_token`` / ``after``) and the balance body. generate_video / generate_image / motion_control take ONE argument,
+``params``; ``calls`` records the unwrapped params so a test reads the request, while ``schema_errors`` lists every refused request."""
 
 import base64
 import hashlib
 import json
 import uuid
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import httpx
 
+from . import schema_check
+
+FIXTURES = Path(__file__).parent / "fixtures" / "higgsfield"
+RECORDED_TOOLS = {t["name"]: t for t in json.loads((FIXTURES / "tools_list.json").read_text(encoding="utf-8"))}
+RECORDED_MODELS = {k: json.loads((FIXTURES / f"models_{k}.json").read_text(encoding="utf-8"))["items"] for k in ("video", "image")}
+PARAMS_TOOLS = ("generate_video", "generate_image", "motion_control")
+
 MCP = "https://mcp.higgsfield.ai/mcp"
 AS = "https://clerk.higgsfield.ai"
 META = "https://mcp.higgsfield.ai/.well-known/oauth-protected-resource/mcp"
-
-MODELS = {
-    "video": [
-        {"id": "seedance1_5", "name": "Seedance 1.5 Pro", "durations": [4, 8, 12], "resolutions": ["480p", "720p", "1080p"],
-         "aspect_ratios": ["16:9", "9:16", "1:1"], "medias": [{"roles": ["start_image", "end_image"]}], "supports_audio": False},
-        {"id": "seedance_2_0", "name": "Seedance 2.0", "durations": list(range(4, 16)), "resolutions": ["480p", "720p", "1080p", "4k"],
-         "aspect_ratios": ["16:9", "9:16", "1:1"], "medias": [{"roles": ["start_image", "end_image", "image_references", "video_references", "audio_references"]}],
-         "supports_unlim": True},
-        {"id": "hf_mult_motion_control", "name": "Genjutsu (motion transfer)", "durations": [5, 10], "resolutions": ["720p"],
-         "aspect_ratios": ["16:9", "9:16"], "medias": [{"roles": ["image_references", "video_references"]}]},
-    ],
-    "image": [{"id": "gpt_image_2_5", "name": "GPT Image 2.5", "aspect_ratios": ["1:1", "3:2", "2:3"], "resolutions": ["1k", "2k"]}],
-}
-COSTS = {"seedance1_5": 9.6, "seedance_2_0": 45.0, "hf_mult_motion_control": 30.0, "gpt_image_2_5": 3.0}
+COSTS = {"seedance1_5": 9.6, "seedance_2_0": 45.0, "hf_mult_motion_control": 30.0, "kling3_0_motion_control": 24.0, "gpt_image_2_5": 3.0}      # measured (SPEC)
 
 
 class FakeHiggsfield:
@@ -48,6 +48,9 @@ class FakeHiggsfield:
         self.media = {}
         self.balance = 623.86
         self.unauthorised_once = False
+        self.preset_recommendation = None   # {"id", "name"}: get_cost answers a recommendation instead of a price until declined_preset_id names it
+        self.max_page = None                # a server that clamps ``limit`` (the live default page is 20)
+        self.schema_errors = []             # (tool, [violations]) for every request the live schema would refuse
 
     # ---------------------------------------------------------------- transport
     def transport(self):
@@ -125,11 +128,16 @@ class FakeHiggsfield:
         if mid is None:
             return httpx.Response(202)
         if method == "tools/list":
-            return self._ok(mid, {"tools": [{"name": n, "description": n, "inputSchema": {"type": "object"}} for n in (
-                "models_explore", "generate_video", "generate_image", "media_upload", "media_confirm", "jobs_wait", "motion_control",
-                "balance", "transactions", "generate_video_batch", "show_generation_by_ids", "media_import_url")]})
+            others = ("transactions", "generate_video_batch", "show_generation_by_ids", "media_import_url")
+            return self._ok(mid, {"tools": list(RECORDED_TOOLS.values()) + [{"name": n, "description": n, "inputSchema": {"type": "object"}} for n in others]})
         if method == "tools/call":
             name, args = msg["params"]["name"], msg["params"].get("arguments") or {}
+            problems = schema_check.check(args, RECORDED_TOOLS[name]["inputSchema"]) if name in RECORDED_TOOLS else []
+            if problems:
+                self.schema_errors.append((name, problems))
+                return self._ok(mid, {"content": [{"type": "text", "text": f"invalid arguments for {name}: " + "; ".join(problems)}], "isError": True})
+            if name in PARAMS_TOOLS:
+                args = args["params"] if isinstance(args["params"], dict) else json.loads(args["params"])
             self.calls.append((name, args))
             fn = getattr(self, "tool_" + name, None)
             if fn is None:
@@ -146,13 +154,17 @@ class FakeHiggsfield:
 
     # -------------------------------------------------------------------- tools
     def tool_balance(self, a):
-        return {"plan": "plus", "credits": self.balance}
+        return {"subscription_plan_type": "plus", "credits": self.balance}
 
     def tool_models_explore(self, a):
-        kind = a.get("type") or "video"
+        rows = RECORDED_MODELS.get(a.get("type") or "video", [])
         if a.get("action") == "get":
-            return next((m for m in MODELS.get(kind, []) if m["id"] == a.get("model_id")), {"error": "not found"})
-        return {"models": MODELS.get(kind, [])}
+            return next((m for m in rows if m["id"] == a.get("model_id")), {"error": "not found"})
+        start, limit = int(a.get("after") or 0), min(int(a.get("limit") or 20), self.max_page or 10**6)       # the live page size is 20; the cursor is the offset
+        out = {"items": rows[start:start + limit], "has_more": start + limit < len(rows), "unlim": {"available": False, "expires_at": None, "remaining": None}}
+        if out["has_more"]:
+            out["next_page_token"] = str(start + limit)
+        return out
 
     def _generate(self, a, kind):
         if self.fail_next_generate == "timeout":
@@ -160,13 +172,17 @@ class FakeHiggsfield:
             raise httpx.ReadTimeout("simulated transport timeout")
         mid = a["model"]
         if a.get("get_cost"):
+            rec = self.preset_recommendation
+            if rec and a.get("declined_preset_id") != rec["id"] and a.get("preset_id") != rec["id"]:
+                return {"preset_recommendation": {"preset_id": rec["id"], "name": rec["name"], "reason": "a preset fits this prompt"},
+                        "message": f"Higgsfield recommends the preset {rec['name']}; pass declined_preset_id to decline it."}
             return {"get_cost": True, "credits": COSTS.get(mid, 5.0), "model": mid}
         if self.unlim_question and a.get("use_unlim") is None and mid == "seedance_2_0":
             return {"unlim_choice": {"question": "Use your unlimited allowance for this generation?", "options": [True, False]}}
         count = int(a.get("count") or 1)
         ids = []
         for _ in range(count):
-            jid = "job-" + uuid.uuid4().hex[:8]
+            jid = str(uuid.uuid4())
             self.jobs[jid] = {"polls": 0, "kind": kind, "model": mid}
             ids.append(jid)
         return {"jobs": [{"index": i, "job_id": j} for i, j in enumerate(ids)]}
@@ -177,22 +193,17 @@ class FakeHiggsfield:
     def tool_generate_image(self, a):
         return self._generate(a, "image")
 
-    def tool_motion_control(self, a):
-        if a.get("get_cost"):
-            return {"get_cost": True, "credits": 24.0}
-        jid = "job-" + uuid.uuid4().hex[:8]
-        self.jobs[jid] = {"polls": 0, "kind": "video", "model": "kling3_motion"}
-        return {"jobs": [{"index": 0, "job_id": jid}]}
-
     def tool_media_upload(self, a):
         out = []
         for i, f in enumerate(a.get("files") or [{}]):
-            mid = "media-" + uuid.uuid4().hex[:8]
-            self.media[mid] = {"type": a.get("type")}
+            mid = str(uuid.uuid4())
+            self.media[mid] = {"filename": f.get("filename")}
             out.append({"media_id": mid, "upload_url": f"https://upload.higgsfield.test/{mid}", "content_type": f.get("content_type")})
         return {"uploads": out}
 
     def tool_media_confirm(self, a):
+        for m in a.get("media_ids") or [a.get("media_id")]:
+            self.media.setdefault(m, {})["confirmed_as"] = a["type"]
         return {"confirmed": a.get("media_ids") or [a.get("media_id")]}
 
     def tool_jobs_wait(self, a):

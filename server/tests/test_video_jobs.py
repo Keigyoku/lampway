@@ -131,7 +131,7 @@ def test_higgsfield_models_join_the_catalogue_once_signed_in(stack):
     sign_in_higgsfield(auth, hf)
     caps = {c["key"]: c for c in fake.get("/api/v1/generation-catalog").json()["data"]["capabilities"]}
     vids = {m["slug"]: m for m in caps["video_gen"]["services"][0]["models"]}
-    assert {"higgsfield/seedance1_5", "higgsfield/seedance_2_0", "higgsfield/hf_mult_motion_control", "higgsfield/kling_motion_control"} <= set(vids)
+    assert {"higgsfield/seedance1_5", "higgsfield/seedance_2_0", "higgsfield/hf_mult_motion_control", "higgsfield/kling3_0_motion_control"} <= set(vids)
     assert vids["higgsfield/seedance1_5"]["parameters"]["duration"]["enum"] == [4, 8, 12] and "Higgsfield" in vids["higgsfield/seedance1_5"]["label"]
     imgs = {m["slug"] for m in caps["image_gen"]["services"][0]["models"]}
     assert "higgsfield/gpt_image_2_5" in imgs
@@ -292,7 +292,7 @@ def test_genjutsu_and_kling_motion_transfer_take_a_character_image_and_a_driving
     sign_in_higgsfield(auth, hf)
     img = upload(fake, "image", PNG, "c.png", "image/png")
     vid = upload(fake, "video", MP4, "d.mp4", "video/mp4")
-    for slug, tool in (("higgsfield/hf_mult_motion_control", "generate_video"), ("higgsfield/kling_motion_control", "motion_control")):
+    for slug in ("higgsfield/hf_mult_motion_control", "higgsfield/kling3_0_motion_control"):
         jid = submit(fake, "video_gen", slug, {"prompt": "dance", "params": {"duration": 5, "resolution": "720p"},
                                                 "reference_image_s3_keys": [img["s3_key"]], "reference_video_s3_keys": [vid["s3_key"]]})
         time.sleep(0.25)
@@ -300,9 +300,9 @@ def test_genjutsu_and_kling_motion_transfer_take_a_character_image_and_a_driving
         assert fake.post(f"/app/studio/approvals/{ap['id']}/confirm", json={"price": ap["price"]}).status_code == 200
         assert wait_for(fake, jid)["state"] == "succeeded"
         call = hf_calls(hf)[-1]
-        assert call[0] == tool
-    assert any(m["role"] == "video_references" for m in hf_calls(hf)[0][1]["medias"])
-    assert hf_calls(hf)[1][1]["image_id"] and hf_calls(hf)[1][1]["motion_video_id"]
+        assert call[0] == "generate_video" and call[1]["model"] == slug.split("/")[1]
+        assert {m["role"] for m in call[1]["medias"]} == {"image_references", "video_references"}
+    assert hf.schema_errors == [], "every request is valid against the recorded live schemas"
 
 
 def test_a_higgsfield_image_job_is_gated_too(stack):
@@ -347,3 +347,20 @@ def test_the_agent_tool_plans_a_higgsfield_clip_and_cannot_spend_it(stack):
     assert p["dry_run"] is True and p["estimate_usd"] == pytest.approx(0.10) and orv.posts == []
     live, err3 = asyncio.run(VT.call(system, "lampway_video_gen", {"model": "heygen/heygen-video-1", "prompt": "x", "duration": 5, "resolution": "480p", "dry_run": False}))
     assert err3 is False and json.loads(live)["video_file"].endswith(".mp4") and len(orv.posts) == 1
+
+
+def test_a_preset_recommendation_fails_the_job_naming_the_preset_and_a_template_job_declines_it_and_still_waits_for_the_captain(stack):
+    fake, orv, hf, auth, *_ = stack
+    sign_in_higgsfield(auth, hf)
+    hf.preset_recommendation = {"id": "preset-in-the-dark", "name": "IN THE DARK"}
+    jid = submit(fake, "video_gen", "higgsfield/seedance1_5", {"prompt": "x", "params": {"duration": 8, "resolution": "720p"}})
+    snap = wait_for(fake, jid, states=("failed",))
+    assert "IN THE DARK" in snap["error"] and "preset-in-the-dark" in snap["error"] and hf_calls(hf) == [] and not fake.get("/app/studio").json()["approvals"]
+    jid = submit(fake, "video_gen", "higgsfield/seedance1_5", {"prompt": "x", "params": {"duration": 8, "resolution": "720p", "literal": True}})
+    time.sleep(0.3)
+    ap = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending")
+    assert ap["price"] == pytest.approx(9.6) and hf_calls(hf) == [], "declined, priced, and nothing is submitted before the captain's click"
+    assert fake.post(f"/app/studio/approvals/{ap['id']}/confirm", json={"price": 9.6}).status_code == 200
+    assert wait_for(fake, jid)["state"] == "succeeded"
+    sent = hf_calls(hf)[0][1]
+    assert sent["declined_preset_id"] == "preset-in-the-dark" and "literal" not in sent and "preset_id" not in sent

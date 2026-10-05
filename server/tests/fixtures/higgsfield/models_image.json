@@ -1,0 +1,2565 @@
+{
+ "has_more": false,
+ "items": [
+  {
+   "aspect_ratios": [
+    "1:1",
+    "16:9",
+    "9:16",
+    "4:3",
+    "3:4",
+    "3:2",
+    "2:3"
+   ],
+   "description": "Realistic UGC, fashion editorial and character generation",
+   "id": "soul_2",
+   "medias": [
+    {
+     "description": "roles: image x1",
+     "max": 1,
+     "name": "medias",
+     "roles": [
+      "image"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Higgsfield Soul 2.0",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "2k",
+     "description": "Output quality tier shown as 1.5k or 2k",
+     "name": "quality",
+     "options": [
+      "1.5k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Soul-ID for personalized generation. Get one from soul_list.",
+     "name": "soul_id",
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Higgsfield",
+   "supports_unlim": true,
+   "tags": [
+    "ugc",
+    "fashion",
+    "editorial",
+    "realistic",
+    "character",
+    "character-generation",
+    "soul",
+    "portrait",
+    "v2",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16",
+    "3:2",
+    "2:3",
+    "21:9"
+   ],
+   "description": "Cinema-grade stills and concept art",
+   "id": "soul_cinematic",
+   "medias": [
+    {
+     "max": 1,
+     "name": "medias",
+     "roles": [
+      "image"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Soul Cinema",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "2k",
+     "description": "Output quality tier shown as 1.5k or 2k",
+     "name": "quality",
+     "options": [
+      "1.5k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Soul Cinema Character ID for personalized cinematic generation.",
+     "name": "soul_id",
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Higgsfield",
+   "tags": [
+    "cinematic",
+    "dramatic",
+    "concept-art",
+    "lighting",
+    "soul",
+    "film"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "21:9",
+    "9:16",
+    "3:2",
+    "2:3"
+   ],
+   "description": "Next-gen GPT Image model with 1k/2k/4k resolution and low/medium/high quality tiers",
+   "id": "gpt_image_2",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "GPT Image 2",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k",
+      "4k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "low",
+     "description": "Image quality",
+     "name": "quality",
+     "options": [
+      "low",
+      "medium",
+      "high"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "OpenAI",
+   "supports_unlim": true,
+   "tags": [
+    "text-rendering",
+    "editing",
+    "typography",
+    "photorealistic",
+    "4k",
+    "high-resolution",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "4:5",
+    "5:4",
+    "16:9",
+    "9:16",
+    "21:9"
+   ],
+   "description": "Cinematic stills, up to 4K resolution",
+   "id": "cinematic_studio_2_5",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Cinema Studio Image 2.5",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k",
+      "4k"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Higgsfield",
+   "tags": [
+    "cinematic",
+    "4k",
+    "high-resolution",
+    "dramatic",
+    "film"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "auto",
+    "1:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "4:5",
+    "5:4",
+    "9:16",
+    "16:9",
+    "21:9"
+   ],
+   "description": "One-click product image ads for social campaigns",
+   "id": "marketing_studio_image",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Marketing Studio Image",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k",
+      "4k"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Higgsfield",
+   "tags": [
+    "marketing",
+    "ads",
+    "product",
+    "social-media",
+    "creative"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "3:2",
+    "2:3",
+    "16:9",
+    "9:16",
+    "4:3",
+    "3:4",
+    "21:9",
+    "27:16",
+    "16:27",
+    "9:8",
+    "8:9",
+    "4:9",
+    "9:4",
+    "auto"
+   ],
+   "description": "DTC ad image generation with brand-kit-aware prompts, avatars, products, and curated ad formats",
+   "id": "ms_image",
+   "medias": [
+    {
+     "max": 14,
+     "name": "medias",
+     "roles": [
+      "image"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "DTC Ads",
+   "output_type": "image",
+   "parameters": [
+    {
+     "description": "REQUIRED. Marketing Studio image style id. There is no default \u2014 calling `generate_image` with `model='ms_image'` without `style_id` returns an error. REQUIRED WORKFLOW: BEFORE calling `generate_image` with `model='ms_image'`, you MUST first call `show_marketing_studio` with `type='image_style'` and let the user pick a style. Style is the dominant creative driver for ms_image output, so silently defaulting would produce a result the user didn't ask for. Only proceed once the user has named a specific style id from the listing.",
+     "name": "style_id",
+     "required": "required",
+     "type": "string"
+    },
+    {
+     "description": "Marketing Studio brand kit id. List/create via `show_marketing_studio` with `type='brand_kit'`. When set, the chosen kit's logo, images, colours, fonts, and tone are folded into the prompt. The kit must be `status: 'completed'`.",
+     "name": "brand_kit_id",
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "1k",
+     "description": "Output resolution.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k",
+      "4k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "low",
+     "description": "Output quality. Affects cost.",
+     "name": "quality",
+     "options": [
+      "low",
+      "medium",
+      "high"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": 1,
+     "description": "Number of images generated per job (1-20). Cost scales linearly. Distinct from `count`, which controls how many jobs are submitted in parallel.",
+     "max": 20,
+     "min": 1,
+     "name": "batch_size",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "description": "Up to 4 Marketing Studio product ids. List products via `show_marketing_studio` with `type='product'`. Server pre-resolves their media inputs and runs IP check before queueing.",
+     "max": 4,
+     "name": "product_ids",
+     "required": "optional",
+     "type": "string_array"
+    },
+    {
+     "description": "Optional folder placement.",
+     "name": "folder_id",
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Higgsfield",
+   "tags": [
+    "marketing",
+    "ads",
+    "product",
+    "brand-kit",
+    "ad-format",
+    "avatar",
+    "dtc"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16"
+   ],
+   "description": "Auto-selects the best image model based on prompt intent",
+   "id": "image_auto",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Auto",
+   "output_type": "image",
+   "parameters": [],
+   "provider_name": "Higgsfield",
+   "tags": [
+    "auto",
+    "smart",
+    "routing",
+    "editing",
+    "generation"
+   ]
+  },
+  {
+   "aspect_ratios": [],
+   "description": "Animate a character image into a game-ready sprite sheet PNG with optional atlas and audio metadata",
+   "id": "autosprite",
+   "medias": [
+    {
+     "description": "Single character image to animate into a sprite sheet (role: image).",
+     "max": 1,
+     "name": "medias",
+     "required": true,
+     "roles": [
+      "image"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "AutoSprite Animation",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "idle",
+     "description": "Animation preset. Use 'custom' with prompt and name for a custom animation.",
+     "name": "kind",
+     "options": [
+      "idle",
+      "walk",
+      "run",
+      "attack",
+      "jump",
+      "custom",
+      "iso_idle_up",
+      "iso_idle_northeast",
+      "iso_idle_right",
+      "iso_idle_southeast",
+      "iso_idle_down",
+      "iso_walk_up",
+      "iso_walk_northeast",
+      "iso_walk_right",
+      "iso_walk_southeast",
+      "iso_walk_down",
+      "iso_run_up",
+      "iso_run_northeast",
+      "iso_run_right",
+      "iso_run_southeast",
+      "iso_run_down",
+      "iso_jump_up",
+      "iso_jump_northeast",
+      "iso_jump_right",
+      "iso_jump_southeast",
+      "iso_jump_down"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Custom animation name. Required only when kind is 'custom'.",
+     "name": "name",
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "turbo",
+     "description": "Generation quality/cost tier. 'turbo' is fastest and cheapest; 'max' is highest cost.",
+     "name": "video_tier",
+     "options": [
+      "turbo",
+      "pro",
+      "max"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": 25,
+     "description": "Number of frames in the sprite sheet.",
+     "max": 64,
+     "min": 2,
+     "name": "frame_count",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 256,
+     "description": "Frame width/height in pixels.",
+     "max": 512,
+     "min": 32,
+     "name": "frame_size",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": "default",
+     "description": "Background removal mode.",
+     "name": "remove_bg",
+     "options": [
+      "default",
+      "ultra"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": false,
+     "description": "Generate sound effects when available. Adds cost.",
+     "name": "with_sound",
+     "required": "optional",
+     "type": "bool"
+    },
+    {
+     "default": true,
+     "description": "Whether the source character is humanoid.",
+     "name": "is_humanoid",
+     "required": "optional",
+     "type": "bool"
+    }
+   ],
+   "provider_name": "Higgsfield",
+   "tags": [
+    "sprite",
+    "spritesheet",
+    "animation",
+    "game",
+    "character",
+    "pixel",
+    "atlas",
+    "image-to-animation"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "16:9"
+   ],
+   "description": "Consistent cinematic character identity",
+   "id": "soul_cast",
+   "medias": [],
+   "name": "Soul Cast",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": 50,
+     "description": "Generation budget (10-500)",
+     "name": "budget",
+     "required": "optional",
+     "type": "number"
+    }
+   ],
+   "provider_name": "Higgsfield",
+   "tags": [
+    "character",
+    "identity",
+    "consistent",
+    "cinematic",
+    "persona"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16",
+    "3:2",
+    "2:3",
+    "21:9",
+    "9:21"
+   ],
+   "description": "Environment and location generation",
+   "id": "soul_location",
+   "medias": [],
+   "name": "Soul Location",
+   "output_type": "image",
+   "parameters": [],
+   "provider_name": "Higgsfield",
+   "tags": [
+    "environment",
+    "location",
+    "background",
+    "scene",
+    "landscape"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "16:9",
+    "9:16",
+    "4:3",
+    "3:4",
+    "3:2",
+    "2:3"
+   ],
+   "description": "Realistic UGC, fashion editorial and character generation",
+   "id": "soul_v2",
+   "medias": [
+    {
+     "description": "roles: image x1",
+     "max": 1,
+     "name": "medias",
+     "roles": [
+      "image"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Higgsfield Soul 2.0",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "2k",
+     "description": "Output quality tier shown as 1.5k or 2k",
+     "name": "quality",
+     "options": [
+      "1.5k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Soul-ID for personalized generation. Get one from soul_list.",
+     "name": "soul_id",
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Higgsfield",
+   "supports_unlim": true,
+   "tags": [
+    "ugc",
+    "fashion",
+    "editorial",
+    "realistic",
+    "character",
+    "character-generation",
+    "soul",
+    "portrait",
+    "v2",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16"
+   ],
+   "description": "Super fast, stylized text-to-image",
+   "id": "z_image",
+   "medias": [],
+   "name": "Z Image",
+   "output_type": "image",
+   "parameters": [],
+   "provider_name": "Tongyi-MAI",
+   "tags": [
+    "fast",
+    "budget",
+    "stylized",
+    "quick"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "4:5",
+    "5:4",
+    "9:16",
+    "16:9",
+    "21:9"
+   ],
+   "description": "Realistic images, budget-friendly",
+   "id": "nano_banana",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Nano Banana",
+   "output_type": "image",
+   "parameters": [],
+   "provider_name": "Google",
+   "supports_unlim": true,
+   "tags": [
+    "budget",
+    "realistic",
+    "affordable",
+    "text-to-image",
+    "image-to-image",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "4:5",
+    "5:4",
+    "9:16",
+    "16:9",
+    "21:9"
+   ],
+   "description": "Ultimate quality, text and diagrams",
+   "id": "nano_banana_pro",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Nano Banana Pro",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "2k",
+     "description": "Output resolution.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k",
+      "4k"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Google",
+   "supports_unlim": true,
+   "tags": [
+    "quality",
+    "text-rendering",
+    "diagrams",
+    "photorealistic",
+    "versatile",
+    "4k",
+    "text-to-image",
+    "image-to-image",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "auto",
+    "1:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "4:5",
+    "5:4",
+    "9:16",
+    "16:9",
+    "21:9"
+   ],
+   "description": "",
+   "id": "nano_banana_2_shots",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Nano Banana Pro",
+   "output_type": "image",
+   "parameters": [],
+   "provider_name": "",
+   "tags": []
+  },
+  {
+   "aspect_ratios": [
+    "auto",
+    "1:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "4:5",
+    "5:4",
+    "9:16",
+    "16:9",
+    "21:9"
+   ],
+   "description": "Fast, next-gen high-quality images",
+   "id": "nano_banana_2",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references",
+      "mask"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Nano Banana 2",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k",
+      "4k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": false,
+     "description": "Whether to restrict the edit to the supplied mask.",
+     "name": "is_inpaint",
+     "required": "optional",
+     "type": "bool"
+    }
+   ],
+   "provider_name": "Google",
+   "supports_unlim": true,
+   "tags": [
+    "fast",
+    "high-quality",
+    "photorealistic",
+    "versatile",
+    "4k",
+    "text-to-image",
+    "image-to-image",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "auto",
+    "1:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "4:5",
+    "5:4",
+    "9:16",
+    "16:9",
+    "21:9"
+   ],
+   "description": "Lite next-gen high-quality images",
+   "id": "nano_banana_2_lite",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references",
+      "mask"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Nano Banana 2 Lite",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution.",
+     "name": "resolution",
+     "options": [
+      "1k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "HIGH",
+     "description": "Depth of internal reasoning before generation.",
+     "name": "thinking",
+     "options": [
+      "MINIMAL",
+      "HIGH"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": false,
+     "description": "Whether to restrict the edit to the supplied mask.",
+     "name": "is_inpaint",
+     "required": "optional",
+     "type": "bool"
+    }
+   ],
+   "provider_name": "Google",
+   "tags": [
+    "fast",
+    "high-quality",
+    "photorealistic",
+    "versatile",
+    "text-to-image",
+    "image-to-image"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "16:9",
+    "3:2",
+    "21:9",
+    "3:4",
+    "9:16",
+    "2:3"
+   ],
+   "description": "4K output, precise control, transformations",
+   "id": "seedream_v4_5",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Seedream 4.5",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "basic",
+     "description": "Output quality tier. 'basic' renders up to 4K; 'high' renders up to ~6K.",
+     "name": "quality",
+     "options": [
+      "basic",
+      "high"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Bytedance",
+   "supports_unlim": true,
+   "tags": [
+    "4k",
+    "high-resolution",
+    "precise",
+    "transformations",
+    "editing",
+    "control",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16"
+   ],
+   "description": "Multiple model variants (pro, flex, max), precise prompt adherence",
+   "id": "flux_2",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "FLUX.2",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "pro",
+     "description": "FLUX.2 model variant.",
+     "name": "variant",
+     "options": [
+      "pro",
+      "flex",
+      "max"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Black Forest Labs",
+   "supports_unlim": true,
+   "tags": [
+    "precise",
+    "prompt-adherence",
+    "creative",
+    "versatile",
+    "pro",
+    "quality",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [],
+   "description": "Expands an image beyond its borders with FLUX.2 [pro]: per-side pixel expansion painted as a coherent, seamless scene extension. Negative values crop that side instead; an all-crop request is served locally for free without the model.",
+   "id": "flux_2_pro_outpaint",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "FLUX.2 Pro Outpaint",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": 0,
+     "description": "Pixels to expand at the top of the image; a negative value crops the top by that many pixels instead.",
+     "max": 2048,
+     "min": -8192,
+     "name": "expand_top",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 0,
+     "description": "Pixels to expand at the bottom of the image; a negative value crops the bottom by that many pixels instead.",
+     "max": 2048,
+     "min": -8192,
+     "name": "expand_bottom",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 0,
+     "description": "Pixels to expand on the left of the image; a negative value crops the left by that many pixels instead.",
+     "max": 2048,
+     "min": -8192,
+     "name": "expand_left",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 0,
+     "description": "Pixels to expand on the right of the image; a negative value crops the right by that many pixels instead.",
+     "max": 2048,
+     "min": -8192,
+     "name": "expand_right",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "description": "Optional folder placement for the generated image.",
+     "name": "folder_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Black Forest Labs",
+   "tags": [
+    "outpaint",
+    "image-edit",
+    "photorealism",
+    "quality"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "auto",
+    "21:9",
+    "2:1",
+    "16:9",
+    "3:2",
+    "7:5",
+    "4:3",
+    "5:4",
+    "1:1",
+    "4:5",
+    "3:4",
+    "5:7",
+    "2:3",
+    "9:16",
+    "1:2"
+   ],
+   "description": "FLUX 3 image generation and editing with up to ten reference images",
+   "id": "flux_3_image",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "FLUX 3 Image",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution class. Exact pixel dimensions depend on aspect ratio.",
+     "name": "resolution",
+     "options": [
+      "768sq",
+      "1k",
+      "1.5k",
+      "2k",
+      "4k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": 1,
+     "description": "Number of output images to generate.",
+     "max": 4,
+     "min": 1,
+     "name": "batch_size",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "description": "Optional folder to place generated images in.",
+     "name": "folder_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Black Forest Labs",
+   "tags": [
+    "text-to-image",
+    "image-to-image",
+    "editing",
+    "multi-reference",
+    "4k"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16"
+   ],
+   "description": "Context-aware editing and style transfer",
+   "id": "flux_kontext",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Flux Kontext",
+   "output_type": "image",
+   "parameters": [],
+   "provider_name": "Black Forest Labs",
+   "tags": [
+    "editing",
+    "style-transfer",
+    "context-aware",
+    "typography",
+    "remix"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "auto",
+    "16:9",
+    "9:16",
+    "4:3",
+    "3:4",
+    "3:2",
+    "2:3",
+    "21:9"
+   ],
+   "description": "Versatile photorealistic generation",
+   "id": "kling_omni_image",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Kling O1 Image",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Kling",
+   "supports_unlim": true,
+   "tags": [
+    "photorealistic",
+    "versatile",
+    "wide-aspect-ratio",
+    "realistic",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "3:2",
+    "2:3",
+    "auto"
+   ],
+   "description": "Powerful editing, best text rendering",
+   "id": "openai_hazel",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "OpenAI Hazel",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "medium",
+     "description": "Rendering quality / detail level.",
+     "name": "quality",
+     "options": [
+      "low",
+      "medium",
+      "high"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "OpenAI",
+   "tags": [
+    "text-rendering",
+    "editing",
+    "typography",
+    "logos",
+    "diagram",
+    "infographic"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "auto",
+    "1:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16",
+    "21:9",
+    "27:16",
+    "16:27",
+    "9:8",
+    "8:9",
+    "4:5",
+    "5:4"
+   ],
+   "description": "GPT Image 2.5 generation and editing with Flare and Sunburst variants",
+   "id": "gpt_image_2_5",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "GPT Image 2.5",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "flare",
+     "description": "Model variant.",
+     "name": "variant",
+     "options": [
+      "flare",
+      "sunburst"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "low",
+     "description": "Rendering quality.",
+     "name": "quality",
+     "options": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "1k",
+     "description": "Output resolution.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k",
+      "4k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Background handling. Omit to keep the model default.",
+     "name": "background",
+     "nullable": true,
+     "options": [
+      "auto",
+      "opaque",
+      "transparent"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "OpenAI",
+   "tags": [
+    "image-generation",
+    "editing",
+    "reference-images",
+    "4k",
+    "text-rendering"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "16:9",
+    "9:16",
+    "4:3",
+    "3:4",
+    "3:2",
+    "2:3",
+    "21:9"
+   ],
+   "description": "",
+   "id": "soul_cinema_studio",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "soul_cinema_studio",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "2k",
+     "description": "Output resolution tier (1.5K or 2K).",
+     "name": "quality",
+     "options": [
+      "1.5k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Optional preset style id to apply to the generation.",
+     "name": "style_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Optional custom reference id (e.g. a saved character or style reference).",
+     "name": "custom_reference_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": false,
+     "description": "Automatically expand and enrich the prompt before generation.",
+     "name": "enhance_prompt",
+     "required": "optional",
+     "type": "bool"
+    }
+   ],
+   "provider_name": "",
+   "tags": []
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16",
+    "21:9"
+   ],
+   "description": "Visual reasoning, instruction-based editing",
+   "id": "seedream_v5_lite",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Seedream 5.0 Lite",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "basic",
+     "description": "Output quality tier.",
+     "name": "quality",
+     "options": [
+      "basic",
+      "high"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Bytedance",
+   "supports_unlim": true,
+   "tags": [
+    "editing",
+    "instruction",
+    "reasoning",
+    "versatile",
+    "smart",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "auto",
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16",
+    "3:2",
+    "2:3",
+    "21:9"
+   ],
+   "description": "Fast image generation and instruction-based editing, up to 2K",
+   "id": "seedream_5_0_flash",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Seedream 5.0 Flash",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "2k",
+     "description": "Output resolution tier.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "1.5k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Optional width stored in generation metadata; not sent to the provider.",
+     "min": 1,
+     "name": "width",
+     "nullable": true,
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "description": "Optional height stored in generation metadata; not sent to the provider.",
+     "min": 1,
+     "name": "height",
+     "nullable": true,
+     "required": "optional",
+     "type": "number"
+    }
+   ],
+   "provider_name": "Bytedance",
+   "tags": [
+    "editing",
+    "instruction",
+    "flash",
+    "2k"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16",
+    "3:2",
+    "2:3",
+    "21:9"
+   ],
+   "description": "Pro-tier visual reasoning, instruction-based editing, up to 2K",
+   "id": "seedream_v5_pro",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Seedream 5.0 Pro",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "2k",
+     "description": "Output resolution tier.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "1.5k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Optional output width stored with the generation.",
+     "min": 1,
+     "name": "width",
+     "nullable": true,
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "description": "Optional output height stored with the generation.",
+     "min": 1,
+     "name": "height",
+     "nullable": true,
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": false,
+     "description": "Remove the background from the generated image.",
+     "name": "remove_bg",
+     "required": "optional",
+     "type": "bool"
+    },
+    {
+     "default": false,
+     "description": "Treat the request as an inpaint/edit of the reference image(s) instead of a fresh generation.",
+     "name": "is_inpaint",
+     "required": "optional",
+     "type": "bool"
+    }
+   ],
+   "provider_name": "Bytedance",
+   "supports_unlim": true,
+   "tags": [
+    "editing",
+    "instruction",
+    "reasoning",
+    "pro",
+    "2k",
+    "unlim"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16",
+    "3:2",
+    "2:3",
+    "21:9"
+   ],
+   "description": "3D Jutsu Angles powered by Seedream 5.0 Pro",
+   "id": "3d_jutsu_angles",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "3D Jutsu Angles",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "2k",
+     "description": "Output resolution tier.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "1.5k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Optional output width stored with the generation.",
+     "min": 1,
+     "name": "width",
+     "nullable": true,
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "description": "Optional output height stored with the generation.",
+     "min": 1,
+     "name": "height",
+     "nullable": true,
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": false,
+     "description": "Remove the background from the generated image.",
+     "name": "remove_bg",
+     "required": "optional",
+     "type": "bool"
+    },
+    {
+     "default": false,
+     "description": "Treat the request as an inpaint/edit of the reference image(s) instead of a fresh generation.",
+     "name": "is_inpaint",
+     "required": "optional",
+     "type": "bool"
+    }
+   ],
+   "provider_name": "Bytedance",
+   "tags": [
+    "editing",
+    "angles",
+    "2k"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "auto",
+    "1:2",
+    "2:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16"
+   ],
+   "description": "Expressive, high-contrast generation and editing",
+   "id": "grok_image",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Grok Image",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "std",
+     "description": "Generation mode: standard or higher-fidelity quality.",
+     "name": "mode",
+     "options": [
+      "std",
+      "quality"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "xAI",
+   "tags": [
+    "expressive",
+    "high-contrast",
+    "editing",
+    "creative",
+    "bold"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "auto",
+    "1:2",
+    "2:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16"
+   ],
+   "description": "Next-generation image creation and editing from xAI",
+   "id": "grok_image_2_0",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Grok Image 2.0",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "medium",
+     "description": "Generation quality level.",
+     "name": "quality",
+     "options": [
+      "low",
+      "medium"
+     ],
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "xAI",
+   "tags": [
+    "expressive",
+    "high-contrast",
+    "editing",
+    "creative",
+    "bold"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "auto",
+    "1:1",
+    "1:2",
+    "2:1",
+    "2:3",
+    "3:2",
+    "4:5",
+    "5:4",
+    "9:16",
+    "16:9",
+    "5:8",
+    "8:5",
+    "3:4",
+    "4:3",
+    "9:22",
+    "22:9",
+    "9:23",
+    "23:9",
+    "3:8",
+    "8:3",
+    "5:12",
+    "12:5",
+    "1:3",
+    "3:1"
+   ],
+   "description": "Ideogram 4.5 image generation and transformation with up to five source images",
+   "id": "ideogram_4_5",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references",
+      "mask"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Ideogram 4.5",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "2k",
+     "description": "Output resolution. Masked edits use source geometry.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "high",
+     "description": "Generation quality. Very low requires a source image.",
+     "name": "quality",
+     "options": [
+      "very_low",
+      "low",
+      "medium",
+      "high"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "auto",
+     "description": "Prompt enhancement mode.",
+     "name": "magic_prompt",
+     "options": [
+      "auto",
+      "on",
+      "off"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Optional generation seed.",
+     "max": 2147483647,
+     "min": 0,
+     "name": "seed",
+     "nullable": true,
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 1,
+     "description": "Number of images to generate.",
+     "max": 4,
+     "min": 1,
+     "name": "batch_size",
+     "required": "optional",
+     "type": "number"
+    }
+   ],
+   "provider_name": "Ideogram",
+   "tags": [
+    "text-to-image",
+    "image-to-image",
+    "editing",
+    "typography"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "3:4",
+    "4:3",
+    "4:5",
+    "5:4",
+    "3:2",
+    "2:3",
+    "16:9",
+    "9:16"
+   ],
+   "description": "V4.1 image generation with selectable model_type for standard exploration, vector logos/icons, utility product shots/mockups, and utility_vector brand assets",
+   "id": "recraft_v4_1",
+   "medias": [],
+   "name": "Recraft V4.1",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "1k",
+     "description": "Output resolution: 1k for everyday work, 2k for larger assets.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": "standard",
+     "description": "Recraft V4.1 variant. standard is expressive and exploratory; vector is for logos, typography, icons, and SVG-like illustration; utility is cleaner, flatter, front-facing, and predictable for product shots and mockups; utility_vector combines utility simplicity with vector output.",
+     "name": "model_type",
+     "options": [
+      "standard",
+      "vector",
+      "utility",
+      "utility_vector"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Optional color palette, up to 10 colors. Each color must be #RRGGBB: six hex digits with leading # and no alpha channel.",
+     "name": "colors",
+     "required": "optional",
+     "type": "string_array"
+    },
+    {
+     "description": "Optional #RRGGBB background color with no alpha channel, or null. Use for controlled flat backgrounds, brand swatches, product mockups, icons, and vector-style work.",
+     "name": "background_color",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Recraft",
+   "tags": [
+    "photorealistic",
+    "illustration",
+    "typography",
+    "logos",
+    "icons",
+    "vector",
+    "utility",
+    "product",
+    "mockups",
+    "brand",
+    "palette",
+    "text-to-image"
+   ]
+  },
+  {
+   "aspect_ratios": [],
+   "description": "",
+   "id": "image_background_remover",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Image Background Remover",
+   "output_type": "image",
+   "parameters": [],
+   "provider_name": "",
+   "tags": []
+  },
+  {
+   "aspect_ratios": [
+    "auto",
+    "1:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "4:5",
+    "5:4",
+    "9:16",
+    "16:9",
+    "21:9"
+   ],
+   "description": "",
+   "id": "outpaint",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Outpaint",
+   "output_type": "image",
+   "parameters": [
+    {
+     "description": "Optional folder placement for the generated image.",
+     "name": "folder_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "",
+   "tags": []
+  },
+  {
+   "aspect_ratios": [],
+   "description": "",
+   "id": "topaz_image",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Topaz",
+   "output_type": "image",
+   "parameters": [
+    {
+     "description": "Target output width in pixels.",
+     "min": 1,
+     "name": "output_width",
+     "required": "required",
+     "type": "number"
+    },
+    {
+     "description": "Target output height in pixels.",
+     "min": 1,
+     "name": "output_height",
+     "required": "required",
+     "type": "number"
+    },
+    {
+     "default": false,
+     "description": "Enable dedicated face enhancement.",
+     "name": "face_enhancement",
+     "required": "optional",
+     "type": "bool"
+    },
+    {
+     "default": 0,
+     "description": "Face enhancement creativity (0-1). Applies when face_enhancement is enabled.",
+     "max": 1,
+     "min": 0,
+     "name": "face_enhancement_creativity",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 0,
+     "description": "Face enhancement strength (0-1). Applies when face_enhancement is enabled.",
+     "max": 1,
+     "min": 0,
+     "name": "face_enhancement_strength",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": "Standard V2",
+     "description": "Topaz enhancement model.",
+     "name": "variant",
+     "options": [
+      "Standard V2",
+      "Low Resolution V2",
+      "CGI",
+      "High Fidelity V2",
+      "Text Refine"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": 0,
+     "description": "Sharpening amount (0-1).",
+     "max": 1,
+     "min": 0,
+     "name": "sharpen",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 0,
+     "description": "Denoising amount (0-1).",
+     "max": 1,
+     "min": 0,
+     "name": "denoise",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "description": "Destination folder id.",
+     "name": "folder_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "",
+   "tags": []
+  },
+  {
+   "aspect_ratios": [],
+   "description": "",
+   "id": "topaz_image_generative",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Topaz",
+   "output_type": "image",
+   "parameters": [
+    {
+     "description": "Target output width in pixels.",
+     "min": 1,
+     "name": "output_width",
+     "required": "required",
+     "type": "number"
+    },
+    {
+     "description": "Target output height in pixels.",
+     "min": 1,
+     "name": "output_height",
+     "required": "required",
+     "type": "number"
+    },
+    {
+     "default": "Redefine",
+     "description": "Topaz generative upscale model variant.",
+     "name": "variant",
+     "options": [
+      "Standard MAX",
+      "Redefine",
+      "Recovery",
+      "Recovery V2"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": true,
+     "description": "Automatically generate a guiding prompt from the image.",
+     "name": "autoprompt",
+     "required": "optional",
+     "type": "bool"
+    },
+    {
+     "default": 1,
+     "description": "Creativity level (1-6); higher adds more detail.",
+     "max": 6,
+     "min": 1,
+     "name": "creativity",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 1,
+     "description": "Texture strength (1-5).",
+     "max": 5,
+     "min": 1,
+     "name": "texture",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 0,
+     "description": "Sharpening amount (0-1).",
+     "max": 1,
+     "min": 0,
+     "name": "sharpen",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 0,
+     "description": "Denoising amount (0-1).",
+     "max": 1,
+     "min": 0,
+     "name": "denoise",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": false,
+     "description": "Enable face enhancement.",
+     "name": "face_enhancement",
+     "required": "optional",
+     "type": "bool"
+    },
+    {
+     "default": 0,
+     "description": "Face enhancement creativity (0-1).",
+     "max": 1,
+     "min": 0,
+     "name": "face_enhancement_creativity",
+     "required": "optional",
+     "type": "number"
+    },
+    {
+     "default": 0,
+     "description": "Face enhancement strength (0-1).",
+     "max": 1,
+     "min": 0,
+     "name": "face_enhancement_strength",
+     "required": "optional",
+     "type": "number"
+    }
+   ],
+   "provider_name": "",
+   "tags": []
+  },
+  {
+   "aspect_ratios": [],
+   "description": "",
+   "id": "image_decompose",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Image Decompose",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "granular",
+     "description": "Decomposition granularity. 'granular' = split into many fine-grained layers; 'standard' = fewer, coarser layers.",
+     "name": "mode",
+     "options": [
+      "granular",
+      "standard"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Destination folder id for the generated results.",
+     "name": "folder_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "",
+   "tags": []
+  },
+  {
+   "aspect_ratios": [],
+   "description": "",
+   "id": "bytedance_image_upscale",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Bytedance Image Upscale",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "4k",
+     "description": "Target upscale resolution.",
+     "name": "resolution",
+     "options": [
+      "2k",
+      "4k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": false,
+     "description": "Remove the background from the upscaled image.",
+     "name": "remove_bg",
+     "required": "optional",
+     "type": "bool"
+    }
+   ],
+   "provider_name": "",
+   "tags": []
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "4:3",
+    "3:4",
+    "16:9",
+    "9:16",
+    "3:2",
+    "2:3",
+    "21:9"
+   ],
+   "description": "",
+   "id": "cinematic_studio_image",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "image_references"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Cinematic Studio Image",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": "2k",
+     "description": "Output resolution.",
+     "name": "resolution",
+     "options": [
+      "1k",
+      "2k",
+      "4k"
+     ],
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Camera model preset id selecting the virtual camera body.",
+     "name": "camera_model_id",
+     "required": "required",
+     "type": "string"
+    },
+    {
+     "description": "Camera lens preset id selecting the lens type.",
+     "name": "camera_lens_id",
+     "required": "required",
+     "type": "string"
+    },
+    {
+     "description": "Focal length preset id controlling field of view and perspective.",
+     "name": "camera_focal_length_id",
+     "required": "required",
+     "type": "string"
+    },
+    {
+     "description": "Optional aperture preset id controlling depth of field.",
+     "name": "camera_aperture_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "",
+   "tags": []
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "3:2",
+    "2:3",
+    "4:3",
+    "3:4",
+    "9:16",
+    "16:9"
+   ],
+   "description": "Marketing Studio product shots, posters, and ad creatives",
+   "id": "marketing_studio_2_image",
+   "medias": [
+    {
+     "name": "medias",
+     "roles": [
+      "input_images",
+      "product_image",
+      "character_photo",
+      "model_image"
+     ],
+     "type": "image"
+    }
+   ],
+   "name": "Marketing Studio Product Shot",
+   "output_type": "image",
+   "parameters": [
+    {
+     "description": "Image format to generate.",
+     "name": "type",
+     "options": [
+      "product_shots",
+      "product_shots_people",
+      "poster",
+      "ads",
+      "marketplace"
+     ],
+     "required": "required",
+     "type": "string"
+    },
+    {
+     "description": "Catalog style id from GET /marketing-studio-v2/catalog (mutually exclusive with preset_id).",
+     "name": "style_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Preset id from the preset feed, to recreate that preset (mutually exclusive with style_id).",
+     "name": "preset_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "description": "Only for type=ads|marketplace: extra creative notes.",
+     "name": "notes",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    },
+    {
+     "default": false,
+     "description": "Only for type=ads|marketplace: cast a generated person into the ad.",
+     "name": "want_person",
+     "required": "optional",
+     "type": "bool"
+    },
+    {
+     "description": "Optional folder to place the generated image in.",
+     "name": "folder_id",
+     "nullable": true,
+     "required": "optional",
+     "type": "string"
+    }
+   ],
+   "provider_name": "Higgsfield",
+   "tags": [
+    "marketing",
+    "ads",
+    "product",
+    "poster",
+    "marketplace",
+    "social-media"
+   ]
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "16:9",
+    "9:16",
+    "4:3",
+    "3:4",
+    "3:2",
+    "2:3",
+    "5:4",
+    "4:5",
+    "21:9",
+    "9:21"
+   ],
+   "description": "",
+   "id": "cinematic_studio_soul_cast",
+   "medias": [],
+   "name": "Cinematic Studio Soul Cast",
+   "output_type": "image",
+   "parameters": [
+    {
+     "default": 50,
+     "description": "Generation budget controlling the amount of compute spent.",
+     "name": "budget",
+     "required": "optional",
+     "type": "number"
+    }
+   ],
+   "provider_name": "",
+   "tags": []
+  },
+  {
+   "aspect_ratios": [
+    "1:1",
+    "16:9",
+    "9:16",
+    "4:3",
+    "3:4",
+    "3:2",
+    "2:3",
+    "21:9",
+    "9:21"
+   ],
+   "description": "",
+   "id": "cinematic_studio_soul_location",
+   "medias": [],
+   "name": "Cinematic Studio Soul Location",
+   "output_type": "image",
+   "parameters": [],
+   "provider_name": "",
+   "tags": []
+  }
+ ],
+ "unlim": {
+  "available": false,
+  "expires_at": null,
+  "remaining": null
+ }
+}
