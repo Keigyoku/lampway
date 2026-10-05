@@ -86,7 +86,7 @@ def workspace(tmp_path, monkeypatch, set_addon_projects_root):
     monkeypatch.setattr(bpy.utils, "user_resource", lambda *_a, **_k: str(addons_dir))
     monkeypatch.setitem(sys.modules, "addon_utils", _AddonUtils)
     _AddonUtils.enabled = []
-    root = set_addon_projects_root(tmp_path / "Mixar Addons")
+    root = set_addon_projects_root(tmp_path / "Lampway Addons")
     service = AddonProjectService(tmp_path / "state")
     project_id = service.link_workspace_root()["project_id"]
     wire = {"protocol_version": PROTOCOL_VERSION, "project_id": project_id,

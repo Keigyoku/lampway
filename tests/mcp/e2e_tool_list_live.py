@@ -91,7 +91,7 @@ async def real_sign_out(replay):
         replay.check("signed_out_lists_every_tool_at_once", SCENE_TOOL in names and seconds < 5,
                      {"seconds": seconds, "count": len(names)})
         result, _, text = await s.call("scene_overview")
-        replay.check("signed_out_scene_call_says_sign_in", result.is_error and "Sign in to Mixar" in text, text[:160])
+        replay.check("signed_out_scene_call_says_sign_in", result.is_error and "Sign in to Lampway" in text, text[:160])
         state = await context(s)
         replay.check("signed_out_context", state.get("scene_tools") == "signed_out" and state.get("next_step"), state)
         replay.qa.eval("result = list(bpy.ops.mixie_chat.login())")
@@ -196,7 +196,7 @@ async def both_signed_in(replay):
         replay.check("both_signed_in_user_is_asked_to_choose",
                      len(instances) == 2 and all(i["signed_in"] and i["connected"] for i in instances), listing)
         result, _, text = await s.call("scene_overview")
-        replay.check("both_signed_in_scene_call_says_choose", result.is_error and "Several Mixar" in text, text[:160])
+        replay.check("both_signed_in_scene_call_says_choose", result.is_error and "Several Lampway" in text, text[:160])
         first = next(r["instance_id"] for r, _ in replay.records() if r["pid"] != replay.second.pid)
         await s.call("mixar_ui_context", {"instance": first})
         result, _, text = await s.call("scene_overview")

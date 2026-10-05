@@ -13,7 +13,7 @@ from mixar.modules.common.i18n import rpt_
 class MIXAR_OT_connector_start_sidecar(Operator):
     bl_idname = "mixar.connector_start_sidecar"
     bl_label = "Start Connector Sidecar"
-    bl_description = "Expose Mixar to the hub over loopback HTTP"
+    bl_description = "Expose Lampway to the hub over loopback HTTP"
 
     def execute(self, context):
         settings = context.window_manager.mixar_connector
@@ -25,7 +25,7 @@ class MIXAR_OT_connector_start_sidecar(Operator):
 class MIXAR_OT_connector_export_unreal(Operator):
     bl_idname = "mixar.connector_export_unreal"
     bl_label = "Export Scene to Unreal"
-    bl_description = "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
+    bl_description = "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
 
     def execute(self, context):
         settings = context.window_manager.mixar_connector

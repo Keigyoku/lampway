@@ -29,7 +29,7 @@ class MixiePluginItem(PropertyGroup):
     kind: StringProperty(name="Kind", default="")  # 'addon' | 'extension'
     enable: BoolProperty(
         name="Enable",
-        description="Enable this plugin in Mixar after importing it",
+        description="Enable this plugin in Lampway after importing it",
         default=True,
     )
     status: StringProperty(name="Status", default="")

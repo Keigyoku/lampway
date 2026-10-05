@@ -25,7 +25,7 @@ from bpy.props import EnumProperty, FloatProperty, IntProperty, StringProperty
 _REVISION_PROP = "mixar_generations_revision"
 
 SOURCE_ITEMS = (
-    ('AI', "AI generations", "Everything Mixar has generated for you"),
+    ('AI', "AI generations", "Everything Lampway has generated for you"),
     ('LIBRARY', "My Libraries", "Browse the folders you connected: assets, images and videos"),
 )
 

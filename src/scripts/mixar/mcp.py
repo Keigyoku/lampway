@@ -54,10 +54,10 @@ def discover(instance_id=None):
         except (OSError, ValueError, http.client.HTTPException):
             continue
     if not candidates:
-        raise RuntimeError("Open Mixar, sign in, then use the profile menu > Connect AI Apps (MCP) to enable MCP.")
+        raise RuntimeError("Open Lampway, sign in, then use the profile menu > Connect AI Apps (MCP) to enable MCP.")
     if len(candidates) != 1:
         ids = ", ".join(item["instance_id"] for item in candidates)
-        raise RuntimeError("Several Mixar windows are available; use --instance with one of: " + ids)
+        raise RuntimeError("Several Lampway windows are available; use --instance with one of: " + ids)
     return candidates[0]
 
 
@@ -97,7 +97,7 @@ class StdioBridge:
             if "id" not in request:
                 return
             if not 200 <= status < 300:
-                message = "Mixar connector returned HTTP %d" % status
+                message = "Lampway connector returned HTTP %d" % status
                 try:
                     message = json.loads(body).get("error", message)
                 except (ValueError, AttributeError):
@@ -132,7 +132,7 @@ def configuration(client, python=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", choices=("claude", "codex"))
-    parser.add_argument("--instance", help="Pin one running Mixar instance")
+    parser.add_argument("--instance", help="Pin one running Lampway instance")
     parser.add_argument("--session", help="Pin a scene session UUID")
     parser.add_argument("--legacy-proxy", action="store_true", help=argparse.SUPPRESS)
     options = parser.parse_args()

@@ -14,7 +14,7 @@ from bpy.types import Panel
 
 
 class MIXAR_UV_PT_selection(Panel):
-    """Selection panel for Mixar UV Properties space - Tool-based (no header button)"""
+    """Selection panel for Lampway UV Properties space - Tool-based (no header button)"""
     bl_label = "Selection"
     bl_idname = "MIXAR_UV_PT_selection"
     bl_space_type = 'IMAGE_EDITOR'

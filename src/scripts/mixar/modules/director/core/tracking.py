@@ -21,7 +21,7 @@ from .shot_api import shot_scene
 #: Custom property marking an empty Director created to aim at.
 FOCUS_MARKER = "mixar_director_focus"
 #: Base name for those empties; Blender uniquifies it.
-FOCUS_BASENAME = n_("Mixar Focus")
+FOCUS_BASENAME = n_("Lampway Focus")
 #: Below this the origin IS the centre and no helper is worth creating.
 FOCUS_EPSILON = 1.0e-4
 

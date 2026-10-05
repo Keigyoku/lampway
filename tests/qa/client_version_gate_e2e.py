@@ -29,7 +29,7 @@ SCENE = 'drv.main_window().scene'
 CORE = 'mixar.modules.space_mixie_chat.core'
 OUT = Path(os.environ.get('QA_SCENARIO_OUT', '/tmp/version-gate-qa'))
 PROMPT = 'Reply with exactly the word OK and change nothing in the scene.'
-OUTDATED = 'Your Mixar version is outdated'
+OUTDATED = 'Your Lampway version is outdated'
 LATEST_RELEASE = os.environ.get('QA_RELEASE_VERSION')  # default: newest published stable
 
 

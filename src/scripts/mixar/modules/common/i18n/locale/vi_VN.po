@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: vi_VN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "Hàng đang hoạt động trong danh sách lịch sử trò chuyện c�
 msgid "Share Usage Data"
 msgstr "Chia Sẻ Dữ Liệu Sử Dụng"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "Chia sẻ các sự kiện sử dụng sản phẩm không kèm nội dung để giúp cải thiện Mixar"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "Chia sẻ các sự kiện sử dụng sản phẩm không kèm nội dung để giúp cải thiện Lampway"
 
 msgid "No generation services"
 msgstr "Không có dịch vụ sinh tạo"
@@ -170,8 +170,8 @@ msgstr "Tên mô-đun trình bổ sung không hợp lệ"
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "Không tìm thấy điểm vào trình bổ sung đã cấu hình trong dự án được liên kết"
 
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "Thư mục được liên kết không có siêu dữ liệu dự án Mixar hợp lệ"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "Thư mục được liên kết không có siêu dữ liệu dự án Lampway hợp lệ"
 
 msgid "The project metadata version is not supported"
 msgstr "Phiên bản siêu dữ liệu dự án không được hỗ trợ"
@@ -194,7 +194,7 @@ msgstr "Điểm vào phải là tên của một mô-đun cấp cao nhất"
 msgid "Set an active add-on before changing its enabled state"
 msgstr "Hãy đặt trình bổ sung đang hoạt động trước khi thay đổi trạng thái bật của nó"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "Thư Viện"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "Mở Cửa Sổ Bong Bóng Tác Nhân"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "Mở Bong Bóng Tác Nhân trong cửa sổ nổi riêng"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "Thao tác C++ mixar.agent_bubble_show_window chưa được đăng ký — hãy xây dựng lại Mixar (make build) để nạp thao tác spacetype agent_bubble."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "Thao tác C++ mixar.agent_bubble_show_window chưa được đăng ký — hãy xây dựng lại Lampway (make build) để nạp thao tác spacetype agent_bubble."
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "Không thể mở cửa sổ Bong Bóng Tác Nhân: {error}"
@@ -651,8 +651,8 @@ msgstr ""
 msgid "AI generations"
 msgstr "Sản phẩm sinh tạo AI"
 
-msgid "Everything Mixar has generated for you"
-msgstr "Mọi thứ Mixar đã sinh tạo cho bạn"
+msgid "Everything Lampway has generated for you"
+msgstr "Mọi thứ Lampway đã sinh tạo cho bạn"
 
 msgid "My Libraries"
 msgstr ""
@@ -1421,17 +1421,17 @@ msgstr "Hãy liên hệ bộ phận hỗ trợ — hiện không có nhà cung c
 msgid "Select a provider with available models"
 msgstr "Chọn một nhà cung cấp có mô hình khả dụng"
 
-msgid "Managed by Mixar"
-msgstr "Do Mixar quản lý"
+msgid "Managed by Lampway"
+msgstr "Do Lampway quản lý"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar tải xuống và chạy một mô hình được tuyển chọn trên máy tính này"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway tải xuống và chạy một mô hình được tuyển chọn trên máy tính này"
 
 msgid "Custom local server"
 msgstr "Máy chủ cục bộ tùy chỉnh"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "Trỏ Mixar đến một máy chủ tương thích OpenAI mà bạn đang chạy (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "Trỏ Lampway đến một máy chủ tương thích OpenAI mà bạn đang chạy (Ollama, LM Studio, llama.cpp, ...)"
 
 msgid "Invalid form data — please reach out to support."
 msgstr "Dữ liệu biểu mẫu không hợp lệ — vui lòng liên hệ bộ phận hỗ trợ."
@@ -1553,8 +1553,8 @@ msgstr "Chưa chọn mô hình"
 msgid "Reset Agent Model"
 msgstr "Hoàn Lại Mô Hình Tác Nhân"
 
-msgid "Clear the saved model and let Mixar choose"
-msgstr "Xóa mô hình đã lưu và để Mixar tự chọn"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "Xóa mô hình đã lưu và để Lampway tự chọn"
 
 msgid "Could not change model"
 msgstr "Không thể đổi mô hình"
@@ -1577,8 +1577,8 @@ msgstr "Đang Hoạt Động"
 msgid "Not configured"
 msgstr "Chưa cấu hình"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "Chạy tác nhân Mixar trên nhà cung cấp của riêng bạn — không trừ tín dụng Mixar khi đang bật."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "Chạy tác nhân Lampway trên nhà cung cấp của riêng bạn — không trừ tín dụng Lampway khi đang bật."
 
 msgid "Current Configuration"
 msgstr "Cấu Hình Hiện Tại"
@@ -1604,8 +1604,8 @@ msgstr "Xóa Khóa API…"
 msgid "Provider Setup"
 msgstr "Thiết Lập Nhà Cung Cấp"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "Được lưu dạng mã hóa, chỉ dùng cho các yêu cầu tác nhân Mixar — sau khi lưu chỉ hiển thị bản xem trước đã che."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "Được lưu dạng mã hóa, chỉ dùng cho các yêu cầu tác nhân Lampway — sau khi lưu chỉ hiển thị bản xem trước đã che."
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
 msgstr "Chọn mô hình hỗ trợ gọi công cụ / hàm — tác nhân cần tính năng này."
@@ -1631,8 +1631,8 @@ msgstr "Chạy  codex login  trong terminal, sau đó nạp hoặc dán toàn b�
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "nội dung của ~/.codex/auth.json (nút dán đọc từ bảng nhớ tạm của bạn)."
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "Dùng gói đăng ký ChatGPT của bạn — không trừ tín dụng Mixar."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "Dùng gói đăng ký ChatGPT của bạn — không trừ tín dụng Lampway."
 
 msgid "Couldn't apply your changes"
 msgstr "Không thể áp dụng thay đổi của bạn"
@@ -1640,23 +1640,23 @@ msgstr "Không thể áp dụng thay đổi của bạn"
 msgid "Remove your API key?"
 msgstr "Xóa khóa API của bạn?"
 
-msgid "The agent will use Mixar's default provider again."
-msgstr "Tác nhân sẽ dùng lại nhà cung cấp mặc định của Mixar."
+msgid "The agent will use Lampway's default provider again."
+msgstr "Tác nhân sẽ dùng lại nhà cung cấp mặc định của Lampway."
 
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "Tín dụng Mixar sẽ bị trừ cho các yêu cầu tác nhân sau này."
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "Tín dụng Lampway sẽ bị trừ cho các yêu cầu tác nhân sau này."
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "Tác nhân Mixar hiện chạy trên nhà cung cấp của bạn — không trừ tín dụng Mixar."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "Tác nhân Lampway hiện chạy trên nhà cung cấp của bạn — không trừ tín dụng Lampway."
 
 msgid "API key removed"
 msgstr "Đã xóa khóa API"
 
-msgid "The agent is back on Mixar's default provider."
-msgstr "Tác nhân đã trở lại nhà cung cấp mặc định của Mixar."
+msgid "The agent is back on Lampway's default provider."
+msgstr "Tác nhân đã trở lại nhà cung cấp mặc định của Lampway."
 
-msgid "Mixar credits are charged for agent requests again."
-msgstr "Tín dụng Mixar lại bị trừ cho các yêu cầu tác nhân."
+msgid "Lampway credits are charged for agent requests again."
+msgstr "Tín dụng Lampway lại bị trừ cho các yêu cầu tác nhân."
 
 msgid "Try Again"
 msgstr "Thử Lại"
@@ -1691,8 +1691,8 @@ msgstr "Đã tải xuống — chưa chạy"
 msgid "Not downloaded"
 msgstr "Chưa tải xuống"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "Chạy hoàn toàn trên máy tính này — lời nhắc của bạn không bao giờ rời khỏi máy trừ khi qua cơ chế điều phối tác nhân của Mixar."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "Chạy hoàn toàn trên máy tính này — lời nhắc của bạn không bao giờ rời khỏi máy trừ khi qua cơ chế điều phối tác nhân của Lampway."
 
 msgid "Cancel Download"
 msgstr "Hủy Tải Xuống"
@@ -1730,8 +1730,8 @@ msgstr "Quét Lại Ứng Dụng Cục Bộ"
 msgid "Rescan this computer for running local AI apps"
 msgstr "Quét lại máy tính này để tìm các ứng dụng AI cục bộ đang chạy"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "Dùng khóa API riêng của bạn cho tác nhân Mixar. Khi đang bật, tín dụng Mixar không bị trừ cho các yêu cầu tác nhân."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "Dùng khóa API riêng của bạn cho tác nhân Lampway. Khi đang bật, tín dụng Lampway không bị trừ cho các yêu cầu tác nhân."
 
 msgid "Validate with the provider and save your API key"
 msgstr "Xác thực với nhà cung cấp và lưu khóa API của bạn"
@@ -1844,8 +1844,8 @@ msgstr "Nhà cung cấp LLM"
 msgid "Model to use with the selected provider"
 msgstr "Mô hình dùng với nhà cung cấp đã chọn"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "Khóa API của bạn được lưu dạng mã hóa và chỉ dùng cho các yêu cầu tác nhân Mixar. Sau khi lưu, chỉ hiển thị bản xem trước đã che."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "Khóa API của bạn được lưu dạng mã hóa và chỉ dùng cho các yêu cầu tác nhân Lampway. Sau khi lưu, chỉ hiển thị bản xem trước đã che."
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "Bất kỳ slug mô hình nào từ openrouter.ai/models (ví dụ anthropic/claude-opus-4.8)"
@@ -1859,8 +1859,8 @@ msgstr "Nội dung của ~/.codex/auth.json (hãy chạy `codex login` trước)
 msgid "Local mode"
 msgstr "Chế độ cục bộ"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "Do Mixar quản lý, hoặc máy chủ cục bộ của riêng bạn"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Do Lampway quản lý, hoặc máy chủ cục bộ của riêng bạn"
 
 msgid "Local model"
 msgstr "Mô hình cục bộ"
@@ -1889,11 +1889,11 @@ msgstr "Đúng khi máy chủ báo byok_active cho người dùng này"
 msgid "Dialog State"
 msgstr "Trạng Thái Hộp Thoại"
 
-msgid "Set Mixie Mode"
-msgstr "Đặt Chế Độ Mixie"
+msgid "Set Lampway Agent Mode"
+msgstr "Đặt Chế Độ Lampway Agent"
 
-msgid "Switch to a specific Mixie mode"
-msgstr "Chuyển sang một chế độ Mixie cụ thể"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "Chuyển sang một chế độ Lampway Agent cụ thể"
 
 msgid "Mode"
 msgstr "Chế Độ"
@@ -1928,8 +1928,8 @@ msgstr "Cao"
 msgid "Non-contiguous enum value 27"
 msgstr "Giá trị enum không liên tục 27"
 
-msgid "Mixie v3 run active"
-msgstr "Lượt chạy Mixie v3 đang hoạt động"
+msgid "Lampway Agent v3 run active"
+msgstr "Lượt chạy Lampway Agent v3 đang hoạt động"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "Máy chủ đã từ chối yêu cầu đồng bộ lịch sử. Hãy cập nhật ứng dụng và nền phụ trợ, rồi kết nối lại."
@@ -2420,10 +2420,10 @@ msgstr "Loại không gian cần chuyển sang"
 msgid "No active area"
 msgstr "Không có vùng đang hoạt động"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "Hành động bộ mẫu cục bộ"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "Tăng bộ đếm dữ liệu mẫu của nhà phát triển; không sinh tạo hay thay đổi cảnh"
 
-msgid "Mixar UI Gallery"
-msgstr "Bộ Mẫu Giao Diện Mixar"
+msgid "Lampway UI Gallery"
+msgstr "Bộ Mẫu Giao Diện Lampway"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "Kiểm tra các thành phần gốc dùng chung bằng dữ liệu mẫu cục bộ"
@@ -2468,8 +2468,8 @@ msgstr "Quyền Riêng Tư"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "Sự đồng ý thu thập dữ liệu từ xa, đặt ở nơi người dùng thường tìm để từ chối."
 
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "Chia sẻ những tính năng Mixar bạn sử dụng, để giúp cải thiện sản phẩm."
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "Chia sẻ những tính năng Lampway bạn sử dụng, để giúp cải thiện sản phẩm."
 
 msgid "Your prompts, files, and scene content are never included."
 msgstr "Lời nhắc, tập tin và nội dung cảnh của bạn không bao giờ được đưa vào."
@@ -2477,7 +2477,7 @@ msgstr "Lời nhắc, tập tin và nội dung cảnh của bạn không bao gi�
 msgid "Privacy Policy"
 msgstr "Chính Sách Quyền Riêng Tư"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "Gốc"
 msgid "Blender theme"
 msgstr "Chủ đề Blender"
 
-msgid "Legacy Mixar"
-msgstr "Mixar Cũ"
+msgid "Legacy Lampway"
+msgstr "Lampway Cũ"
 
 msgid "Compatibility profile"
 msgstr "Hồ sơ tương thích"
@@ -2624,11 +2624,11 @@ msgstr "Gọn"
 msgid "Denser chrome recipe"
 msgstr "Công thức khung dày đặc hơn"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "Hãy chuyển Mixar vào thư mục Applications để cập nhật tại chỗ"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "Hãy chuyển Lampway vào thư mục Applications để cập nhật tại chỗ"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar không chạy từ một gói ứng dụng"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway không chạy từ một gói ứng dụng"
 
 msgid "No permission to update {path}"
 msgstr "Không có quyền cập nhật {path}"
@@ -2660,8 +2660,8 @@ msgstr "Thiếu trình cài đặt đã tải xuống"
 msgid "Could not start the updater"
 msgstr "Không thể khởi động trình cập nhật"
 
-msgid "Mixar didn't close"
-msgstr "Mixar chưa đóng"
+msgid "Lampway didn't close"
+msgstr "Lampway chưa đóng"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "Cập nhật trong ứng dụng không được hỗ trợ trên nền tảng này"
@@ -2687,32 +2687,32 @@ msgstr "Đã tải xuống {size}"
 msgid "Starting download…"
 msgstr "Đang bắt đầu tải xuống…"
 
-msgid "Downloading Mixar {version}"
-msgstr "Đang tải xuống Mixar {version}"
+msgid "Downloading Lampway {version}"
+msgstr "Đang tải xuống Lampway {version}"
 
-msgid "Mixar will restart to finish updating."
-msgstr "Mixar sẽ khởi động lại để hoàn tất cập nhật."
+msgid "Lampway will restart to finish updating."
+msgstr "Lampway sẽ khởi động lại để hoàn tất cập nhật."
 
-msgid "Mixar Update Ready"
-msgstr "Bản Cập Nhật Mixar Đã Sẵn Sàng"
+msgid "Lampway Update Ready"
+msgstr "Bản Cập Nhật Lampway Đã Sẵn Sàng"
 
 msgid "Version {version} is ready to install."
 msgstr "Phiên bản {version} đã sẵn sàng để cài đặt."
 
-msgid "Mixar Update Required"
-msgstr "Cần Cập Nhật Mixar"
+msgid "Lampway Update Required"
+msgstr "Cần Cập Nhật Lampway"
 
-msgid "Mixar Update Available"
-msgstr "Có Bản Cập Nhật Mixar"
+msgid "Lampway Update Available"
+msgstr "Có Bản Cập Nhật Lampway"
 
 msgid "Version {version} is available."
 msgstr "Đã có phiên bản {version}."
 
-msgid "This update is required to continue using Mixar."
-msgstr "Bản cập nhật này là bắt buộc để tiếp tục sử dụng Mixar."
+msgid "This update is required to continue using Lampway."
+msgstr "Bản cập nhật này là bắt buộc để tiếp tục sử dụng Lampway."
 
-msgid "Mixar will restart to apply it."
-msgstr "Mixar sẽ khởi động lại để áp dụng."
+msgid "Lampway will restart to apply it."
+msgstr "Lampway sẽ khởi động lại để áp dụng."
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error} — hãy dùng Tải Xuống để cập nhật qua trình duyệt."
@@ -2729,11 +2729,11 @@ msgstr "Bấm Khởi Động Lại & Cập Nhật để cài đặt lại."
 msgid "Update paused"
 msgstr "Đã tạm dừng cập nhật"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar chưa đóng nên bản cập nhật chưa được cài đặt."
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway chưa đóng nên bản cập nhật chưa được cài đặt."
 
-msgid "Mixar is up to date"
-msgstr "Mixar đã được cập nhật mới nhất"
+msgid "Lampway is up to date"
+msgstr "Lampway đã được cập nhật mới nhất"
 
 msgid "You're running the latest version ({version})."
 msgstr "Bạn đang dùng phiên bản mới nhất ({version})."
@@ -2747,11 +2747,11 @@ msgstr "Hãy kiểm tra kết nối internet và thử lại."
 msgid "Update didn't take effect"
 msgstr "Bản cập nhật chưa có hiệu lực"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Đã cài đặt Mixar {target} nhưng phiên bản {running} lại được khởi động. Hãy cài đặt lại từ trang tải xuống."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Đã cài đặt Lampway {target} nhưng phiên bản {running} lại được khởi động. Hãy cài đặt lại từ trang tải xuống."
 
-msgid "Updated to Mixar {version}"
-msgstr "Đã cập nhật lên Mixar {version}"
+msgid "Updated to Lampway {version}"
+msgstr "Đã cập nhật lên Lampway {version}"
 
 msgid "The update was installed successfully."
 msgstr "Bản cập nhật đã được cài đặt thành công."
@@ -2765,8 +2765,8 @@ msgstr "{reason} Bạn có thể tải xuống bản cập nhật từ trang t�
 msgid "Update was not installed"
 msgstr "Bản cập nhật chưa được cài đặt"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "Mixar vẫn đang chạy khi trình cài đặt cố khởi động."
+msgid "Lampway was still running when the installer tried to start."
+msgstr "Lampway vẫn đang chạy khi trình cài đặt cố khởi động."
 
 msgid "The downloaded installer failed its signature check."
 msgstr "Trình cài đặt đã tải xuống không vượt qua kiểm tra chữ ký."
@@ -2774,8 +2774,8 @@ msgstr "Trình cài đặt đã tải xuống không vượt qua kiểm tra ch�
 msgid "The downloaded installer could not be opened."
 msgstr "Không thể mở trình cài đặt đã tải xuống."
 
-msgid "Mixar could not be replaced on disk."
-msgstr "Không thể thay thế Mixar trên đĩa."
+msgid "Lampway could not be replaced on disk."
+msgstr "Không thể thay thế Lampway trên đĩa."
 
 msgid "The installation was cancelled."
 msgstr "Quá trình cài đặt đã bị hủy."
@@ -2786,8 +2786,8 @@ msgstr "Windows Installer đã báo một lỗi nghiêm trọng."
 msgid "The installer did not finish."
 msgstr "Trình cài đặt chưa hoàn tất."
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "Khởi động lại Mixar và cài đặt bản cập nhật đã tải xuống"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "Khởi động lại Lampway và cài đặt bản cập nhật đã tải xuống"
 
 msgid "Save Changes"
 msgstr "Lưu Thay Đổi"
@@ -2795,14 +2795,14 @@ msgstr "Lưu Thay Đổi"
 msgid "Save the current file before restarting"
 msgstr "Lưu tập tin hiện tại trước khi khởi động lại"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "Đang tải xuống bản cập nhật — Mixar sẽ khởi động lại khi sẵn sàng"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "Đang tải xuống bản cập nhật — Lampway sẽ khởi động lại khi sẵn sàng"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar sẽ đóng và cập nhật lên {version}."
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway sẽ đóng và cập nhật lên {version}."
 
 msgid "It reopens automatically when the update is done."
 msgstr "Ứng dụng sẽ tự động mở lại khi cập nhật xong."
@@ -2831,14 +2831,14 @@ msgstr "Dừng tải xuống bản cập nhật"
 msgid "This update is required and cannot be cancelled"
 msgstr "Bản cập nhật này là bắt buộc và không thể hủy"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "Mở trang tải xuống Mixar trong trình duyệt mặc định"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "Mở trang tải xuống Lampway trong trình duyệt mặc định"
 
 msgid "Check for Updates"
 msgstr "Kiểm Tra Cập Nhật"
 
-msgid "Check whether a newer version of Mixar is available"
-msgstr "Kiểm tra xem có phiên bản Mixar mới hơn không"
+msgid "Check whether a newer version of Lampway is available"
+msgstr "Kiểm tra xem có phiên bản Lampway mới hơn không"
 
 msgid "An update check is already in progress"
 msgstr "Đang có một lần kiểm tra cập nhật diễn ra"
@@ -2849,8 +2849,8 @@ msgstr "Đang kiểm tra cập nhật…"
 msgid "Update Available"
 msgstr "Có Bản Cập Nhật"
 
-msgid "Show details for the pending Mixar update"
-msgstr "Hiển thị chi tiết bản cập nhật Mixar đang chờ"
+msgid "Show details for the pending Lampway update"
+msgstr "Hiển thị chi tiết bản cập nhật Lampway đang chờ"
 
 msgid "View Changelog"
 msgstr "Xem Nhật Ký Thay Đổi"
@@ -2969,14 +2969,14 @@ msgstr "Tên hiển thị trong lời chào tài khoản"
 msgid "Newer File Version"
 msgstr "Phiên Bản Tập Tin Mới Hơn"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
-msgstr "Cảnh báo người dùng rằng tập tin đã được lưu bởi phiên bản Mixar mới hơn"
+msgid "Warn user that the file was saved by a newer Lampway version"
+msgstr "Cảnh báo người dùng rằng tập tin đã được lưu bởi phiên bản Lampway mới hơn"
 
 msgid "File Version"
 msgstr "Phiên Bản Tập Tin"
 
-msgid "This file was saved by Mixar version {version}."
-msgstr "Tập tin này đã được lưu bởi Mixar phiên bản {version}."
+msgid "This file was saved by Lampway version {version}."
+msgstr "Tập tin này đã được lưu bởi Lampway phiên bản {version}."
 
 msgid "Some data may be missing or incorrect."
 msgstr "Một số dữ liệu có thể bị thiếu hoặc không chính xác."
@@ -2990,8 +2990,8 @@ msgstr "Không có đối tượng khung lưới nào để xuất khẩu"
 msgid "Start Connector Sidecar"
 msgstr "Khởi Động Sidecar Kết Nối"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "Cung cấp Mixar cho hub qua HTTP loopback"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "Cung cấp Lampway cho hub qua HTTP loopback"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
 msgstr "Sidecar kết nối tại 127.0.0.1:{port}"
@@ -2999,8 +2999,8 @@ msgstr "Sidecar kết nối tại 127.0.0.1:{port}"
 msgid "Export Scene to Unreal"
 msgstr "Xuất Khẩu Cảnh sang Unreal"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "Xuất khẩu cảnh Mixar hiện tại thành USD/FBX/GLB sẵn sàng cho Unreal"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "Xuất khẩu cảnh Lampway hiện tại thành USD/FBX/GLB sẵn sàng cho Unreal"
 
 msgid "Exported {filename} ({count} meshes)"
 msgstr "Đã xuất khẩu {filename} ({count} khung lưới)"
@@ -3020,8 +3020,8 @@ msgstr ""
 msgid "Hub Sidecar"
 msgstr "Sidecar Hub"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "Cung cấp phiên Mixar này cho mixar-connector qua HTTP loopback"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "Cung cấp phiên Lampway này cho mixar-connector qua HTTP loopback"
 
 msgid "Sidecar Port"
 msgstr "Cổng Sidecar"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,8 +3119,8 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
-msgstr "Máy Quay Phim Cảnh Quay Mixar"
+msgid "Lampway Shot Camera"
+msgstr "Máy Quay Phim Cảnh Quay Lampway"
 
 msgid "Shot"
 msgstr "Cảnh Quay"
@@ -3563,8 +3563,8 @@ msgstr "Cảnh quay không có máy quay phim"
 msgid "Capture at least one camera beat before locking"
 msgstr "Hãy chụp ít nhất một nhịp máy quay phim trước khi khóa"
 
-msgid "Mixar Focus"
-msgstr "Lấy Nét Mixar"
+msgid "Lampway Focus"
+msgstr "Lấy Nét Lampway"
 
 msgid "Rendering…"
 msgstr "Đang kết xuất…"
@@ -4241,8 +4241,8 @@ msgstr "Tiến Độ Kết Xuất"
 msgid "Render Status"
 msgstr "Trạng Thái Kết Xuất"
 
-msgid "Mixar Camera Export"
-msgstr "Xuất Khẩu Máy Quay Phim Mixar"
+msgid "Lampway Camera Export"
+msgstr "Xuất Khẩu Máy Quay Phim Lampway"
 
 msgid "Export this scene's camera animation to the Moodboard"
 msgstr "Xuất khẩu hoạt họa máy quay phim của cảnh này sang Bảng Cảm Hứng"
@@ -4493,14 +4493,14 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
-msgstr "Đạo Diễn Mixar"
+msgid "Lampway Director"
+msgstr "Đạo Diễn Lampway"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "Các cảnh quay đạo diễn máy quay phim thưa của cảnh này"
 
-msgid "Mixar Output"
-msgstr "Đầu Ra Mixar"
+msgid "Lampway Output"
+msgstr "Đầu Ra Lampway"
 
 msgid "Output aspect ratio this camera frames for"
 msgstr "Tỷ lệ khung hình đầu ra mà máy quay phim này đóng khung"
@@ -4964,19 +4964,19 @@ msgstr "Mô hình của máy chủ cục bộ"
 msgid "Local model last error"
 msgstr "Lỗi gần nhất của mô hình cục bộ"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,26 +7789,26 @@ msgstr "Văn Bản Lỗi"
 msgid "Error message if job failed"
 msgstr "Thông điệp lỗi nếu tác vụ thất bại"
 
-msgid "Mixie Moodboard Images"
-msgstr "Hình Ảnh Bảng Cảm Hứng Mixie"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Hình Ảnh Bảng Cảm Hứng Lampway Agent"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "Tập hợp các hình ảnh tham chiếu trong chế độ Bảng Cảm Hứng"
 
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Hộp Văn Bản Bảng Cảm Hứng Mixie"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Hộp Văn Bản Bảng Cảm Hứng Lampway Agent"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "Tập hợp các hộp văn bản trong chế độ Bảng Cảm Hứng"
 
-msgid "Mixie Moodboard Frames"
-msgstr "Khung Bảng Cảm Hứng Mixie"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Khung Bảng Cảm Hứng Lampway Agent"
 
 msgid "Canvas frames grouping board items"
 msgstr "Các khung trên khung vẽ dùng để nhóm các mục của bảng"
 
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Nhóm Bảng Cảm Hứng Mixie (cũ)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Nhóm Bảng Cảm Hứng Lampway Agent (cũ)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "Đã được thay bằng mixie_moodboard_frames; giữ lại để chuyển đổi"
@@ -8917,7 +8917,7 @@ msgstr "Đã đồng bộ {count} hình ảnh bảng cảm hứng"
 msgid "Attach Selected Moodboard Image"
 msgstr "Đính Kèm Hình Ảnh Bảng Cảm Hứng Đã Chọn"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
 msgstr ""
 
 msgid "Nothing selected to copy"
@@ -9244,7 +9244,7 @@ msgstr "Không thể đọc bảng nhớ tạm: {error}"
 msgid "Paste"
 msgstr "Dán"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
 msgstr ""
 
 msgid "Pasted {count} item"
@@ -10642,13 +10642,13 @@ msgstr "Chú Thích Bảng Cảm Hứng"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
-msgstr "Chào mừng đến với Mixar"
+msgid "Welcome to Lampway"
+msgstr "Chào mừng đến với Lampway"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,20 +10669,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
-msgstr "ID Lịch Sử Thao Tác Mixar"
+msgid "Lampway Operation History ID"
+msgstr "ID Lịch Sử Thao Tác Lampway"
 
 msgid "Persistent per-scene id keying this scene's operation history."
 msgstr "ID cố định theo từng cảnh, dùng làm khóa cho lịch sử thao tác của cảnh này."
@@ -13051,8 +13051,8 @@ msgstr "Tên của kênh cần xuất khẩu"
 msgid "File format for export"
 msgstr "Định dạng tập tin để xuất khẩu"
 
-msgid "No active Mixar node found"
-msgstr "Không tìm thấy nút Mixar đang hoạt động"
+msgid "No active Lampway node found"
+msgstr "Không tìm thấy nút Lampway đang hoạt động"
 
 msgid "Exported '{name}' to {path}"
 msgstr "Đã xuất khẩu '{name}' tới {path}"
@@ -13201,8 +13201,8 @@ msgstr "Nướng hình ảnh tạm thời của tầng lớp, có thể hữu í
 msgid "Bake Temporary Image"
 msgstr "Nướng Hình Ảnh Tạm Thời"
 
-msgid "No active Mixar node found!"
-msgstr "Không tìm thấy nút Mixar đang hoạt động!"
+msgid "No active Lampway node found!"
+msgstr "Không tìm thấy nút Lampway đang hoạt động!"
 
 msgid "No active layer found!"
 msgstr "Không tìm thấy tầng lớp đang hoạt động!"
@@ -13345,8 +13345,8 @@ msgstr "Nướng Kênh Vào Màu Điểm Đỉnh"
 msgid "Bake All Materials"
 msgstr "Nướng Toàn Bộ Nguyên Vật Liệu"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "Nướng toàn bộ nguyên vật liệu có nút Mixar Paint thay vì chỉ nguyên vật liệu đang hoạt động"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "Nướng toàn bộ nguyên vật liệu có nút Lampway Paint thay vì chỉ nguyên vật liệu đang hoạt động"
 
 msgid "Target Vertex Color Name"
 msgstr "Tên Màu Điểm Đỉnh Mục Tiêu"
@@ -13574,8 +13574,8 @@ msgstr ""
 msgid "Copy Image Path To Clipboard"
 msgstr "Sao Chép Đường Dẫn Hình Ảnh Vào Bảng Nhớ Tạm"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint: sao chép đường dẫn tập tin hình ảnh vào bảng nhớ tạm của hệ thống"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint: sao chép đường dẫn tập tin hình ảnh vào bảng nhớ tạm của hệ thống"
 
 msgid "Copied: {text}"
 msgstr "Đã sao chép: {text}"
@@ -13583,8 +13583,8 @@ msgstr "Đã sao chép: {text}"
 msgid "Open Containing Image Folder"
 msgstr "Mở Thư Mục Chứa Hình Ảnh"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint: mở thư mục chứa tập tin hình ảnh và làm nổi bật tập tin đó"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint: mở thư mục chứa tập tin hình ảnh và làm nổi bật tập tin đó"
 
 msgid "File does not exist"
 msgstr "Tập tin không tồn tại"
@@ -15054,8 +15054,8 @@ msgstr "Bật màn chắn lọc"
 msgid "Active Mask"
 msgstr "Màn Chắn Lọc Đang Hoạt Động"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Màn chắn lọc đang hoạt động cho chế độ sơn và chế độ biên soạn của Blender, hoặc chế độ xem trước Màn Chắn Lọc của Mixar Paint"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Màn chắn lọc đang hoạt động cho chế độ sơn và chế độ biên soạn của Blender, hoặc chế độ xem trước Màn Chắn Lọc của Lampway Paint"
 
 msgid "Mask Source Input"
 msgstr "Đầu Vào Nguồn Màn Chắn Lọc"
@@ -15156,14 +15156,14 @@ msgstr "Nướng Toàn Bộ Kênh"
 msgid "Delete Baked Images"
 msgstr "Xóa Hình Ảnh Đã Nướng"
 
-msgid "New Mixar Paint Modifier"
-msgstr "Bộ Điều Chỉnh Mixar Paint Mới"
+msgid "New Lampway Paint Modifier"
+msgstr "Bộ Điều Chỉnh Lampway Paint Mới"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Di Chuyển Bộ Điều Chỉnh Mixar Paint"
+msgid "Move Lampway Paint Modifier"
+msgstr "Di Chuyển Bộ Điều Chỉnh Lampway Paint"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Loại Bỏ Bộ Điều Chỉnh Mixar Paint"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Loại Bỏ Bộ Điều Chỉnh Lampway Paint"
 
 msgid "Add Channel Modifier"
 msgstr "Thêm Bộ Điều Chỉnh Kênh"
@@ -15297,8 +15297,8 @@ msgstr "Kênh '{name}' đã tồn tại"
 msgid "Build Layered Material"
 msgstr "Dựng Nguyên Vật Liệu Nhiều Tầng Lớp"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "Dựng nguyên vật liệu Mixar Paint từ tệp kê khai nguyên vật liệu nhiều tầng lớp"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "Dựng nguyên vật liệu Lampway Paint từ tệp kê khai nguyên vật liệu nhiều tầng lớp"
 
 msgid "Manifest JSON"
 msgstr "JSON Kê Khai"
@@ -15921,8 +15921,8 @@ msgstr "Đổi tên tầng lớp này"
 msgid "New name for the layer"
 msgstr "Tên mới cho tầng lớp"
 
-msgid "No active Mixar node"
-msgstr "Không có nút Mixar đang hoạt động"
+msgid "No active Lampway node"
+msgstr "Không có nút Lampway đang hoạt động"
 
 msgid "Name cannot be empty"
 msgstr "Tên không được để trống"
@@ -16071,11 +16071,11 @@ msgstr "Trở lại góc nhìn tính chất tầng lớp"
 msgid "Add different types of masks to the active layer"
 msgstr "Thêm các thể loại màn chắn lọc khác nhau vào tầng lớp đang hoạt động"
 
-msgid "Remove Mixar Paint Node"
-msgstr "Loại Bỏ Nút Mixar Paint"
+msgid "Remove Lampway Paint Node"
+msgstr "Loại Bỏ Nút Lampway Paint"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Loại bỏ nút Mixar Paint nhưng giữ lại toàn bộ hình ảnh kênh đã nướng"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Loại bỏ nút Lampway Paint nhưng giữ lại toàn bộ hình ảnh kênh đã nướng"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "Thiết lập nút {addon} này chưa được nướng!"
@@ -16227,8 +16227,8 @@ msgstr "Áp dụng nguyên vật liệu vào tầng lớp Tô Phủ đang hoạt
 msgid "Material '{name}' not found in registry"
 msgstr "Không tìm thấy nguyên vật liệu '{name}' trong sổ đăng ký"
 
-msgid "No active Mixar Paint node found"
-msgstr "Không tìm thấy nút Mixar Paint đang hoạt động"
+msgid "No active Lampway Paint node found"
+msgstr "Không tìm thấy nút Lampway Paint đang hoạt động"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "Đã áp dụng nguyên vật liệu '{name}' vào tầng lớp có sẵn"
@@ -16431,8 +16431,8 @@ msgstr "Không Có Nguyên Vật Liệu Dựa Trên Tầng Lớp Đang Hoạt Đ
 msgid "To use texture baking:"
 msgstr "Để dùng tính năng nướng chất liệu:"
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. Chọn một đối tượng có nguyên vật liệu Mixar"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. Chọn một đối tượng có nguyên vật liệu Lampway"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "  2. Hoặc tạo một nguyên vật liệu dựa trên tầng lớp mới"
@@ -16533,8 +16533,8 @@ msgstr "Nền phụ trợ sơn chưa được khởi tạo"
 msgid "Paint UI not initialized"
 msgstr "Giao diện sơn chưa được khởi tạo"
 
-msgid "No Mixar material found"
-msgstr "Không tìm thấy nguyên vật liệu Mixar"
+msgid "No Lampway material found"
+msgstr "Không tìm thấy nguyên vật liệu Lampway"
 
 msgid "No layer based material"
 msgstr "Không có nguyên vật liệu dựa trên tầng lớp"
@@ -16551,8 +16551,8 @@ msgstr "Chưa chọn tầng lớp nào"
 msgid "No active material"
 msgstr "Không có nguyên vật liệu đang hoạt động"
 
-msgid "No Mixar node found"
-msgstr "Không tìm thấy nút Mixar"
+msgid "No Lampway node found"
+msgstr "Không tìm thấy nút Lampway"
 
 msgid "Backend layer not found"
 msgstr "Không tìm thấy tầng lớp nền phụ trợ"
@@ -17227,17 +17227,17 @@ msgstr "Tầng lớp đang được tập trung/lựa chọn"
 msgid "How this layer blends with layers below"
 msgstr "Cách tầng lớp này pha trộn với các tầng lớp bên dưới"
 
-msgid "Mixar Layer Index"
-msgstr "Chỉ Số Tầng Lớp Mixar"
+msgid "Lampway Layer Index"
+msgstr "Chỉ Số Tầng Lớp Lampway"
 
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "Chỉ số trong bộ sưu tập mixar_mp.layers của Mixar"
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "Chỉ số trong bộ sưu tập mixar_mp.layers của Lampway"
 
-msgid "Mixar Group Node"
-msgstr "Nút Nhóm Mixar"
+msgid "Lampway Group Node"
+msgstr "Nút Nhóm Lampway"
 
-msgid "Name of the Mixar group node"
-msgstr "Tên nút nhóm Mixar"
+msgid "Name of the Lampway group node"
+msgstr "Tên nút nhóm Lampway"
 
 msgid "Updating Property"
 msgstr "Đang Cập Nhật Tính Chất"
@@ -18312,8 +18312,8 @@ msgstr "Màu của đối tượng khác"
 msgid "Other Objects Channels"
 msgstr "Kênh của Đối Tượng Khác"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "Các kênh Mixar Paint của đối tượng khác"
+msgid "Other object's Lampway Paint channels"
+msgstr "Các kênh Lampway Paint của đối tượng khác"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "Điểm Đỉnh/Cạnh/Mặt Đã Chọn"
@@ -18639,17 +18639,17 @@ msgstr ""
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
 msgstr ""
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
 msgstr ""
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "bật thất bại (có thể không tương thích với Blender 5.0)"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
-msgstr "Mang trình bổ sung và trình mở rộng từ bản cài đặt Blender hiện có vào Mixar."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
+msgstr "Mang trình bổ sung và trình mở rộng từ bản cài đặt Blender hiện có vào Lampway."
 
 msgid "Scan for Blender Plugins"
 msgstr "Quét Tìm Plugin Blender"
@@ -18672,14 +18672,14 @@ msgstr "Bật sau khi nhập khẩu:"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "Mọi plugin trong danh sách đều được sao chép vào; các plugin được đánh dấu sẽ được bật."
 
-msgid "Import into Mixar"
-msgstr "Nhập Khẩu vào Mixar"
+msgid "Import into Lampway"
+msgstr "Nhập Khẩu vào Lampway"
 
 msgid "Imported"
 msgstr "Đã Nhập Khẩu"
 
-msgid "Already in Mixar"
-msgstr "Đã Có trong Mixar"
+msgid "Already in Lampway"
+msgstr "Đã Có trong Lampway"
 
 msgid "Copy failed"
 msgstr "Sao chép thất bại"
@@ -18705,11 +18705,11 @@ msgstr "Chọn Plugin"
 msgid "Tick or untick every plugin in the list"
 msgstr "Đánh dấu hoặc bỏ đánh dấu mọi plugin trong danh sách"
 
-msgid "Import Plugins into Mixar"
-msgstr "Nhập Khẩu Plugin vào Mixar"
+msgid "Import Plugins into Lampway"
+msgstr "Nhập Khẩu Plugin vào Lampway"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
-msgstr "Sao chép mọi plugin trong danh sách vào Mixar và bật các plugin được đánh dấu"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
+msgstr "Sao chép mọi plugin trong danh sách vào Lampway và bật các plugin được đánh dấu"
 
 msgid "Nothing scanned — run Scan first"
 msgstr "Chưa quét gì — hãy chạy Quét trước"
@@ -18726,8 +18726,8 @@ msgstr "Đã nhập khẩu {imported}, đã có sẵn {already_present}, thất 
 msgid "Imported: {count}"
 msgstr "Đã nhập khẩu: {count}"
 
-msgid "Already in Mixar: {count}"
-msgstr "Đã có trong Mixar: {count}"
+msgid "Already in Lampway: {count}"
+msgstr "Đã có trong Lampway: {count}"
 
 msgid "Enabled: {count}"
 msgstr "Đã bật: {count}"
@@ -18744,8 +18744,8 @@ msgstr "Nhập Khẩu từ Blender"
 msgid "{count} found"
 msgstr "Tìm thấy {count}"
 
-msgid "Enable this plugin in Mixar after importing it"
-msgstr "Bật plugin này trong Mixar sau khi nhập khẩu"
+msgid "Enable this plugin in Lampway after importing it"
+msgstr "Bật plugin này trong Lampway sau khi nhập khẩu"
 
 msgid "Blender Version"
 msgstr "Phiên Bản Blender"
@@ -18798,14 +18798,14 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
-msgstr "Đồ Thị Cảnh Mixar"
+msgid "Lampway Scene Graph"
+msgstr "Đồ Thị Cảnh Lampway"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "Đồ thị cảnh theo từng cảnh mà tác nhân có thể đọc (JSON). Chỉ tồn tại khi chạy."
 
-msgid "Mixar Scene Graph Query Result"
-msgstr "Kết Quả Truy Vấn Đồ Thị Cảnh Mixar"
+msgid "Lampway Scene Graph Query Result"
+msgstr "Kết Quả Truy Vấn Đồ Thị Cảnh Lampway"
 
 msgid "JSON result of the last scene-graph query operator call."
 msgstr "Kết quả JSON của lần gọi thao tác truy vấn đồ thị cảnh gần nhất."
@@ -19524,8 +19524,8 @@ msgstr "Video cần chế độ Video. Hãy xóa video để gửi cho Tác Nhâ
 msgid "User ID"
 msgstr "ID Người Dùng"
 
-msgid "User ID for Mixie Chat login"
-msgstr "ID người dùng để đăng nhập Mixie Chat"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "ID người dùng để đăng nhập Lampway Agent Chat"
 
 msgid "Agent expects: {formats}"
 msgstr "Tác nhân chấp nhận: {formats}"
@@ -19983,11 +19983,11 @@ msgstr "Hãy hoàn tất chữ viết tay trước khi bắt đầu nhập bằn
 msgid "Sign in to use voice input."
 msgstr "Hãy đăng nhập để dùng nhập bằng giọng nói."
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "Hãy khởi chạy Mixar từ Finder để cho phép truy cập micrô."
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "Hãy khởi chạy Lampway từ Finder để cho phép truy cập micrô."
 
-msgid "Allow microphone access for Mixar in system privacy settings."
-msgstr "Hãy cho phép Mixar truy cập micrô trong cài đặt quyền riêng tư của hệ thống."
+msgid "Allow microphone access for Lampway in system privacy settings."
+msgstr "Hãy cho phép Lampway truy cập micrô trong cài đặt quyền riêng tư của hệ thống."
 
 msgid "Allow microphone"
 msgstr "Cho phép micrô"
@@ -20034,8 +20034,8 @@ msgstr "Hãy đăng nhập lại."
 msgid "Login Failed"
 msgstr "Đăng Nhập Thất Bại"
 
-msgid "Sign in with your Mixar account"
-msgstr "Đăng nhập bằng tài khoản Mixar"
+msgid "Sign in with your Lampway account"
+msgstr "Đăng nhập bằng tài khoản Lampway"
 
 msgid "Waiting for browser..."
 msgstr "Đang chờ trình duyệt..."
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "Bảng Điều Khiển"
 
-msgid "About Mixar"
-msgstr "Giới Thiệu Mixar"
+msgid "About Lampway"
+msgstr "Giới Thiệu Lampway"
 
 msgid "Documentation"
 msgstr "Tài Liệu"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "Đã xuất khẩu bản sao không kèm trò chuyện (đã lược bỏ {count} tin nhắn từ {scenes} cảnh)."
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Mixar Chat: Xuất Khẩu .blend không Kèm Lịch Sử Trò Chuyện"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Lampway Chat: Xuất Khẩu .blend không Kèm Lịch Sử Trò Chuyện"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "Sinh tạo hiện không khả dụng. Hãy làm tươi lại danh mục và thử lại."
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Thêm Quy Tắc"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "Định nghĩa quy tắc cho Mixie. Thay đổi có hiệu lực từ tin nhắn hoặc câu trả lời tiếp theo; quy tắc toàn cục áp dụng trong mọi tập tin Mixar. Yêu cầu hiện tại được ưu tiên hơn quy tắc dự án và quy tắc toàn cục"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Định nghĩa quy tắc cho Mixie. Thay đổi có hiệu lực từ tin nhắn hoặc câu trả lời tiếp theo; quy tắc toàn cục áp dụng trong mọi tập tin Lampway. Yêu cầu hiện tại được ưu tiên hơn quy tắc dự án và quy tắc toàn cục"
 
 msgid "Rule operation failed"
 msgstr "Thao tác quy tắc thất bại"
@@ -22138,8 +22138,8 @@ msgstr "Văn bản của sự kiện nhận dạng giọng nói được lấy r
 msgid "Materials: {count}"
 msgstr "Nguyên Vật Liệu: {count}"
 
-msgid "No Mixar material active"
-msgstr "Không có nguyên vật liệu Mixar nào đang hoạt động"
+msgid "No Lampway material active"
+msgstr "Không có nguyên vật liệu Lampway nào đang hoạt động"
 
 msgid "{channel} Settings"
 msgstr "Sắp Đặt {channel}"
@@ -22801,8 +22801,8 @@ msgstr "Tỷ Lệ Y"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "Đổi tỷ lệ các UV đã chọn theo chiều Y (theo từng bước)"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Tính chất của công cụ Chú Thích cho không gian Tính Chất UV của Mixar."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Tính chất của công cụ Chú Thích cho không gian Tính Chất UV của Lampway."
 
 msgid "Annotate Line"
 msgstr "Chú Thích Đường Thẳng"
@@ -22828,14 +22828,14 @@ msgstr "Phong cách Đầu"
 msgid "Toggle UV Sidebar"
 msgstr "Bật/Tắt Thanh Bên UV"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "Bật/tắt thanh bên UV của Mixar trong Trình Biên Soạn Hình Ảnh"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "Bật/tắt thanh bên UV của Lampway trong Trình Biên Soạn Hình Ảnh"
 
 msgid "Open UV Sidebar"
 msgstr "Mở Thanh Bên UV"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Mở thanh bên UV của Mixar nếu đang ẩn"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Mở thanh bên UV của Lampway nếu đang ẩn"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "Trạng thái trống hiển thị khi không có tính chất UV nào khả dụng"
@@ -22858,8 +22858,8 @@ msgstr "Xuất Khẩu Bố Trí UV"
 msgid "Export UV layout using stored properties"
 msgstr "Xuất khẩu bố trí UV bằng các tính chất đã lưu"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "Bảng Xuất Khẩu UV cho không gian Tính Chất UV của Mixar"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "Bảng Xuất Khẩu UV cho không gian Tính Chất UV của Lampway"
 
 msgid "UV UI not initialized"
 msgstr "Giao diện UV chưa được khởi tạo"
@@ -22975,8 +22975,8 @@ msgstr "Dán UV"
 msgid "Functions"
 msgstr "Chức Năng"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Bảng Chức Năng UV cho không gian Tính Chất UV của Mixar - dựa trên công cụ (không có nút tiêu đề)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Bảng Chức Năng UV cho không gian Tính Chất UV của Lampway - dựa trên công cụ (không có nút tiêu đề)"
 
 msgid "Seam"
 msgstr "Đường Khâu"
@@ -23104,8 +23104,8 @@ msgstr "Không có hình ảnh trong trình biên soạn UV"
 msgid "Material '{name}' created and applied"
 msgstr "Đã tạo và áp dụng nguyên vật liệu '{name}'"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Bảng Hình Ảnh cho không gian Tính Chất UV của Mixar."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Bảng Hình Ảnh cho không gian Tính Chất UV của Lampway."
 
 msgid "Save As"
 msgstr "Lưu Thành"
@@ -23137,8 +23137,8 @@ msgstr "Khổ Ảnh"
 msgid "Invert All Colors"
 msgstr "Đảo Nghịch Toàn Bộ Màu"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Bảng khe nguyên vật liệu cho không gian Tính Chất UV của Mixar"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Bảng khe nguyên vật liệu cho không gian Tính Chất UV của Lampway"
 
 msgid "No active object"
 msgstr "Không có đối tượng đang hoạt động"
@@ -23182,8 +23182,8 @@ msgstr "Tạo các vùng tùy chỉnh trong không gian UV để đóng gói"
 msgid "{label} unavailable"
 msgstr "{label} không khả dụng"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Bảng Bố Trí cho không gian Tính Chất UV của Mixar."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Bảng Bố Trí cho không gian Tính Chất UV của Lampway."
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "Tính chất uv.pack_islands không khả dụng"
@@ -23329,8 +23329,8 @@ msgstr "Phóng Chiếu"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "Phóng chiếu UV bằng thể loại và các tính chất hiển thị trong bảng Phóng Chiếu"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Trạng thái giao diện UV của Mixar chưa được khởi tạo"
+msgid "Lampway UV UI state not initialized"
+msgstr "Trạng thái giao diện UV của Lampway chưa được khởi tạo"
 
 msgid "Unknown projection type: {type}"
 msgstr "Thể loại phóng chiếu không xác định: {type}"
@@ -23461,8 +23461,8 @@ msgstr "Chọn cái Kết Nối"
 msgid "Select linked UVs"
 msgstr "Chọn các UV kết nối"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Bảng Lựa Chọn cho không gian Tính Chất UV của Mixar - dựa trên công cụ (không có nút tiêu đề)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Bảng Lựa Chọn cho không gian Tính Chất UV của Lampway - dựa trên công cụ (không có nút tiêu đề)"
 
 msgid "Basic Selection"
 msgstr "Lựa Chọn Cơ Bản"
@@ -23503,8 +23503,8 @@ msgstr "Chọn Tách Phân"
 msgid "Select Overlap"
 msgstr "Chọn cái Chồng Gối Lên Nhau"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Bảng Mật Độ Texel cho không gian Tính Chất UV của Mixar"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Bảng Mật Độ Texel cho không gian Tính Chất UV của Lampway"
 
 msgid "Activate Grab Tool"
 msgstr "Kích Hoạt Công Cụ Túm Nắm"
@@ -23548,8 +23548,8 @@ msgstr "Trung tâm hóa góc nhìn vào con trỏ"
 msgid "UV Sculpt Tools"
 msgstr "Công Cụ Điêu Khắc UV"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Bảng Công Cụ Điêu Khắc UV cho không gian Tính Chất UV của Mixar - dựa trên công cụ (không có nút tiêu đề)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Bảng Công Cụ Điêu Khắc UV cho không gian Tính Chất UV của Lampway - dựa trên công cụ (không có nút tiêu đề)"
 
 msgid "Grab"
 msgstr "Nắm"
@@ -23668,8 +23668,8 @@ msgstr "Áp dụng phép đổi tỷ lệ cho các UV đã chọn"
 msgid "Snapping"
 msgstr "Bắt Dính"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Bảng Bắt Dính cho không gian Tính Chất UV của Mixar"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Bảng Bắt Dính cho không gian Tính Chất UV của Lampway"
 
 msgid "Snapping Options"
 msgstr "Tùy Chọn Bắt Dính"
@@ -23719,8 +23719,8 @@ msgstr "Mở gói bằng phương pháp và các tính chất hiển thị trong
 msgid "Unknown unwrap method: {method}"
 msgstr "Phương pháp mở gói không xác định: {method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Bảng kết hợp Mở Gói + Phóng Chiếu cho không gian Tính Chất UV của Mixar."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Bảng kết hợp Mở Gói + Phóng Chiếu cho không gian Tính Chất UV của Lampway."
 
 msgid "Live Unwrap"
 msgstr "Mở Gói Trực Tuyến"
@@ -23796,7 +23796,7 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
@@ -23804,7 +23804,7 @@ msgstr ""
 "\n"
 "Lớp bao quanh `image.new`, đặt sẵn `tiled=True` trong\n"
 "hộp thoại tính chất của thao tác. Được dùng làm thao tác `new=` cho\n"
-"`template_ID` trong các bảng UV của Mixar để hộp thoại mở ra với\n"
+"`template_ID` trong các bảng UV của Lampway để hộp thoại mở ra với\n"
 "ô chọn Xếp Ô Cờ đã được đánh dấu. `image.new` bên dưới thực hiện\n"
 "việc tạo và gán ID thực tế.\n"
 
@@ -23826,8 +23826,8 @@ msgstr "Phủ Nền Ô"
 msgid "Fill UDIM tile"
 msgstr "Phủ nền ô UDIM"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "Bảng Bộ UV cho không gian Tính Chất UV của Mixar."
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "Bảng Bộ UV cho không gian Tính Chất UV của Lampway."
 
 msgid "UV Maps"
 msgstr "Ánh Xạ UV"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "Công Cụ"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Bảng Công Cụ cho không gian Tính Chất UV của Mixar — hiển thị khi\n"
+"Bảng Công Cụ cho không gian Tính Chất UV của Lampway — hiển thị khi\n"
 "công cụ `builtin.uv_tool` trên thanh công cụ đang hoạt động."
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,14 +24070,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Chuyển Mixar sang Chế Độ Zen (cổng nhìn tối giản + Bong Bóng Tác Nhân + bảng cảm hứng)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "Chuyển Lampway sang Chế Độ Zen (cổng nhìn tối giản + Bong Bóng Tác Nhân + bảng cảm hứng)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Không thể tạo không gian làm việc Chế Độ Zen — không có khuôn mẫu nào khả dụng"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "Chuyển Mixar sang Chế Độ Engine (đầy đủ các không gian làm việc kiểu Blender)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "Chuyển Lampway sang Chế Độ Engine (đầy đủ các không gian làm việc kiểu Blender)"
 
 msgid "Modeling workspace not found"
 msgstr "Không tìm thấy không gian làm việc Mô Hình Hóa"
@@ -24298,17 +24298,17 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
-msgstr "Tập tin được lưu bởi phiên bản Mixar mới hơn (%d.%d), một số dữ liệu có thể bị mất"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
+msgstr "Tập tin được lưu bởi phiên bản Lampway mới hơn (%d.%d), một số dữ liệu có thể bị mất"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "Tập tin được lưu bởi một phiên bản mới hơn, hãy mở bằng Mixar %s hoặc mới hơn"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "Tập tin được lưu bởi một phiên bản mới hơn, hãy mở bằng Lampway %s hoặc mới hơn"
 
 msgid "Failed to read mixar file '%s': %s"
 msgstr "Không đọc được tập tin mixar '%s': %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
-msgstr "Không thể đọc tập tin mixar '%s', phần tiêu đề không đầy đủ, có thể từ một phiên bản Mixar mới hơn"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr "Không thể đọc tập tin mixar '%s', phần tiêu đề không đầy đủ, có thể từ một phiên bản Lampway mới hơn"
 
 msgid "Failed to read file '%s', not a mixar file"
 msgstr "Không đọc được tập tin '%s', không phải là tập tin mixar"
@@ -24316,14 +24316,14 @@ msgstr "Không đọc được tập tin '%s', không phải là tập tin mixar
 msgid "Unable to open mixar <memory>"
 msgstr "Không thể mở mixar <memory>"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Tập tin Mixar '%s' được tạo bởi một phiên bản Mixar tương lai và chứa các tên ID dài hơn mức hiện được hỗ trợ. Các tên này đã bị cắt ngắn."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Tập tin Lampway '%s' được tạo bởi một phiên bản Lampway tương lai và chứa các tên ID dài hơn mức hiện được hỗ trợ. Các tên này đã bị cắt ngắn."
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Tập tin Mixar '%s' có vẻ bị hỏng, chứa các tên ID không hợp lệ. Các tên này đã bị cắt ngắn."
+msgstr "Tập tin Lampway '%s' có vẻ bị hỏng, chứa các tên ID không hợp lệ. Các tên này đã bị cắt ngắn."
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
-msgstr "Thư viện '%s' được tạo bởi một phiên bản Mixar tương lai và chứa các tên ID dài hơn mức hiện được hỗ trợ. Điều này có thể gây thiếu dữ liệu kết nối, hãy cân nhắc mở và lưu lại thư viện đó bằng phiên bản Mixar hiện tại."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
+msgstr "Thư viện '%s' được tạo bởi một phiên bản Lampway tương lai và chứa các tên ID dài hơn mức hiện được hỗ trợ. Điều này có thể gây thiếu dữ liệu kết nối, hãy cân nhắc mở và lưu lại thư viện đó bằng phiên bản Lampway hiện tại."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: Dữ liệu tham chiếu đến tập tin .mixar chính: '%s' từ %s"
@@ -24454,8 +24454,8 @@ msgstr "Hỏi Mixie bất cứ điều gì..."
 msgid "Write your prompt here..."
 msgstr "Viết lời nhắc của bạn tại đây..."
 
-msgid "Everything Mixar has generated"
-msgstr "Mọi thứ Mixar đã sinh tạo"
+msgid "Everything Lampway has generated"
+msgstr "Mọi thứ Lampway đã sinh tạo"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -25771,14 +25771,14 @@ msgstr "Xóa Bản Xem Trước Mixie3D"
 msgid "Delete a segmented image from the preview history"
 msgstr "Xóa một hình ảnh đã phân đoạn khỏi lịch sử xem trước"
 
-msgid "Mixar agent bubble loading…"
-msgstr "Đang nạp bong bóng tác nhân Mixar…"
+msgid "Lampway agent bubble loading…"
+msgstr "Đang nạp bong bóng tác nhân Lampway…"
 
 msgid "Show Agent Bubble"
 msgstr "Hiển Thị Bong Bóng Tác Nhân"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
-msgstr "Mở lớp phủ bong bóng tác nhân nổi, cho phép người dùng trò chuyện với tác nhân AI từ bất cứ đâu trong giao diện Mixar"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
+msgstr "Mở lớp phủ bong bóng tác nhân nổi, cho phép người dùng trò chuyện với tác nhân AI từ bất cứ đâu trong giao diện Lampway"
 
 msgid "Chat is still loading. Please drop the asset again."
 msgstr ""
@@ -25822,8 +25822,8 @@ msgstr "Thêm hình ảnh đã thả làm tệp đính kèm trò chuyện"
 msgid "Dropped image datablock"
 msgstr "Khối dữ liệu hình ảnh đã thả"
 
-msgid "Tell me about the features in Mixar"
-msgstr "Hãy cho tôi biết về các tính năng trong Mixar"
+msgid "Tell me about the features in Lampway"
+msgstr "Hãy cho tôi biết về các tính năng trong Lampway"
 
 msgid "Generate a futuristic sci-fi character concept"
 msgstr "Sinh tạo ý tưởng nhân vật khoa học viễn tưởng mang phong cách tương lai"
@@ -26755,14 +26755,14 @@ msgstr "Các thao tác nướng và xử lý chất liệu"
 msgid "Texture set management for PBR workflows"
 msgstr "Quản lý bộ chất liệu cho quy trình PBR"
 
-msgid "Mixar UV Editor"
-msgstr "Trình Biên Soạn UV Mixar"
+msgid "Lampway UV Editor"
+msgstr "Trình Biên Soạn UV Lampway"
 
-msgid "Mixar UV editing mode"
-msgstr "Chế độ biên soạn UV của Mixar"
+msgid "Lampway UV editing mode"
+msgstr "Chế độ biên soạn UV của Lampway"
 
-msgid "Mixar Layers Properties"
-msgstr "Tính chất tầng lớp của Mixar"
+msgid "Lampway Layers Properties"
+msgstr "Tính chất tầng lớp của Lampway"
 
 msgid "Reference image board like PureRef"
 msgstr "Bảng hình ảnh tham chiếu giống PureRef"
@@ -26770,8 +26770,8 @@ msgstr "Bảng hình ảnh tham chiếu giống PureRef"
 msgid "Mixie Space"
 msgstr "Không Gian Mixie"
 
-msgid "Mixie editor for Mixar"
-msgstr "Trình biên soạn Mixie cho Mixar"
+msgid "Mixie editor for Lampway"
+msgstr "Trình biên soạn Mixie cho Lampway"
 
 msgid "Mixie editor mode"
 msgstr "Chế độ trình biên soạn Mixie"
@@ -26779,8 +26779,8 @@ msgstr "Chế độ trình biên soạn Mixie"
 msgid "Agent Bubble Space"
 msgstr "Không Gian Bong Bóng Tác Nhân"
 
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Trình biên soạn lớp phủ trò chuyện tác nhân nổi cho Mixar"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Trình biên soạn lớp phủ trò chuyện tác nhân nổi cho Lampway"
 
 msgid "Top Bar Space"
 msgstr "Không Gian Thanh Đỉnh"
@@ -26788,23 +26788,23 @@ msgstr "Không Gian Thanh Đỉnh"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "Thanh đỉnh chứa dải thẻ không gian làm việc và các trình đơn của trình biên soạn"
 
-msgid "Mixar Layers Space"
-msgstr "Không Gian Tầng Lớp Mixar"
+msgid "Lampway Layers Space"
+msgstr "Không Gian Tầng Lớp Lampway"
 
-msgid "Mixar texture layer stack management"
-msgstr "Quản lý chồng tầng lớp chất liệu của Mixar"
+msgid "Lampway texture layer stack management"
+msgstr "Quản lý chồng tầng lớp chất liệu của Lampway"
 
-msgid "Mixar Properties Space"
-msgstr "Không Gian Tính Chất Mixar"
+msgid "Lampway Properties Space"
+msgstr "Không Gian Tính Chất Lampway"
 
-msgid "Mixar layer and texture properties"
-msgstr "Tính chất tầng lớp và chất liệu của Mixar"
+msgid "Lampway layer and texture properties"
+msgstr "Tính chất tầng lớp và chất liệu của Lampway"
 
-msgid "Mixar Assets Space"
-msgstr "Không Gian Tài Sản Mixar"
+msgid "Lampway Assets Space"
+msgstr "Không Gian Tài Sản Lampway"
 
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "Thư viện nguyên vật liệu thông minh, đầu bút và chất liệu của Mixar"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "Thư viện nguyên vật liệu thông minh, đầu bút và chất liệu của Lampway"
 
 msgid "Texture sets management"
 msgstr "Quản lý bộ chất liệu"
@@ -26812,8 +26812,8 @@ msgstr "Quản lý bộ chất liệu"
 msgid "Use Blender's theme"
 msgstr "Dùng kiểu mẫu của Blender"
 
-msgid "Mixar Zen components"
-msgstr "Các thành phần Zen của Mixar"
+msgid "Lampway Zen components"
+msgstr "Các thành phần Zen của Lampway"
 
 msgid "Compatibility appearance"
 msgstr "Giao diện tương thích"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "Vùng Toàn Cục"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "Các vùng toàn cục của cửa sổ (thanh đỉnh, thanh trạng thái). Phần mở rộng của Mixar — được phơi bày để phần hướng dẫn làm quen có thể truy cập thanh đỉnh nhằm vẽ lại."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "Các vùng toàn cục của cửa sổ (thanh đỉnh, thanh trạng thái). Phần mở rộng của Lampway — được phơi bày để phần hướng dẫn làm quen có thể truy cập thanh đỉnh nhằm vẽ lại."
 
 msgid "QA UI Dump"
 msgstr "Kết Xuất Dữ Liệu Giao Diện QA"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "Ảnh chụp JSON của mọi thành tố giao diện đang hoạt động (nhãn, thao tác, tính chất, hình chữ nhật trong không gian cửa sổ, trạng thái) cho bộ kiểm thử QA của Mixar"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "Ảnh chụp JSON của mọi thành tố giao diện đang hoạt động (nhãn, thao tác, tính chất, hình chữ nhật trong không gian cửa sổ, trạng thái) cho bộ kiểm thử QA của Lampway"
 
 msgid "Window Resizing"
 msgstr "Đang Đổi Kích Thước Cửa Sổ"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "Ghi khung hình QA đòi hỏi --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,11 +27982,11 @@ msgstr "Micrô bị treo hoặc bộ đệm thu âm bị tràn"
 msgid "Microphone disconnected"
 msgstr "Micrô đã bị ngắt kết nối"
 
-msgid "Mixar File View"
-msgstr "Duyệt Tập Tin Mixar"
+msgid "Lampway File View"
+msgstr "Duyệt Tập Tin Lampway"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
-msgstr "Đại diện đã bị xóa khỏi Mixar (%d đại diện đã được tự động chuyển đổi thành thư viện vượt quyền, %d đại diện không thể chuyển đổi và đã bị xóa đi). Hãy cân nhắc lưu lại bất kỳ tập tin .mixar thư viện nào bằng phiên bản Mixar mới nhất"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
+msgstr "Đại diện đã bị xóa khỏi Lampway (%d đại diện đã được tự động chuyển đổi thành thư viện vượt quyền, %d đại diện không thể chuyển đổi và đã bị xóa đi). Hãy cân nhắc lưu lại bất kỳ tập tin .mixar thư viện nào bằng phiên bản Lampway mới nhất"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
 msgstr "Không thể lưu tập tin mixar, đường dẫn \"%s\" không thể viết được"
@@ -27994,11 +27994,11 @@ msgstr "Không thể lưu tập tin mixar, đường dẫn \"%s\" không thể v
 msgid "Cannot save mixar file, path \"%s\" is a directory"
 msgstr "Không thể lưu tập tin mixar, đường dẫn \"%s\" là một thư mục"
 
-msgid "Mixar will start next time as it is now."
-msgstr "Lần sau Mixar sẽ khởi động với trạng thái như hiện tại."
+msgid "Lampway will start next time as it is now."
+msgstr "Lần sau Lampway sẽ khởi động với trạng thái như hiện tại."
 
-msgid "Load Factory Mixar Preferences"
-msgstr "Nạp Cài Đặt Sở Thích Mixar của Xưởng Sản Xuất"
+msgid "Load Factory Lampway Preferences"
+msgstr "Nạp Cài Đặt Sở Thích Lampway của Xưởng Sản Xuất"
 
 msgid "Load user interface setup from the .mixar file"
 msgstr "Nạp sắp đặt về giao diện người dùng từ tập tin .mixar"
@@ -28006,14 +28006,14 @@ msgstr "Nạp sắp đặt về giao diện người dùng từ tập tin .mixar
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr "Cho phép tập tin .mixar thi hành tập lệnh tự động. Sắp đặt mặc định nằm trong cài đặt sở thích của hệ thống"
 
-msgid "Open a Mixar file"
-msgstr "Mở một tập tin Mixar"
+msgid "Open a Lampway file"
+msgstr "Mở một tập tin Lampway"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr "Nạp sắp đặt về giao diện người dùng trong tập tin .mixar"
 
-msgid "Mixar Files"
-msgstr "Tập Tin Mixar"
+msgid "Lampway Files"
+msgstr "Tập Tin Lampway"
 
 msgid "Show only .mixar files"
 msgstr "Chỉ hiển thị các tập tin .mixar"
@@ -28039,26 +28039,26 @@ msgstr "Lưu thành tập tin .mixar"
 msgid "Save as .blend file"
 msgstr "Lưu thành tập tin .blend"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "Lưu tập tin Mixar hiện tại với tên có số tịnh tiến để ngăn việc viết đè lên bất kỳ tập tin hiện có nào"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "Lưu tập tin Lampway hiện tại với tên có số tịnh tiến để ngăn việc viết đè lên bất kỳ tập tin hiện có nào"
 
-msgid "Save Mixar File"
-msgstr "Lưu Tập Tin Mixar"
+msgid "Save Lampway File"
+msgstr "Lưu Tập Tin Lampway"
 
-msgid "Save the current Mixar file"
-msgstr "Lưu tập tin Mixar hiện tại"
+msgid "Save the current Lampway file"
+msgstr "Lưu tập tin Lampway hiện tại"
 
-msgid "Exit Mixar after saving"
-msgstr "Thoát Mixar sau khi lưu"
+msgid "Exit Lampway after saving"
+msgstr "Thoát Lampway sau khi lưu"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
-msgstr "Tập tin này được lưu bằng phiên bản mới hơn của Mixar (%s)."
+msgid "This file was saved by a newer version of Lampway (%s)."
+msgstr "Tập tin này được lưu bằng phiên bản mới hơn của Lampway (%s)."
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
-msgstr "Việc lưu nó bằng Mixar này (%s) có thể gây ra mất mát dữ liệu."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
+msgstr "Việc lưu nó bằng Lampway này (%s) có thể gây ra mất mát dữ liệu."
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "Tập tin này được quản lý bởi hệ thống tài sản Mixar. Nó chỉ có thể được"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "Tập tin này được quản lý bởi hệ thống tài sản Lampway. Nó chỉ có thể được"
 
 msgid "Filter .mixar files"
 msgstr "Thanh lọc các tập tin .mixar"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
-msgstr "Có thể đã có các trình điều vận đồ họa mới hơn với khả năng tương thích tốt hơn với Mixar."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
+msgstr "Có thể đã có các trình điều vận đồ họa mới hơn với khả năng tương thích tốt hơn với Lampway."
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "Nâng cấp lên phiên bản macOS mới nhất có thể cải thiện khả năng hỗ trợ Mixar"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "Nâng cấp lên phiên bản macOS mới nhất có thể cải thiện khả năng hỗ trợ Lampway"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Mixar sẽ đóng lại ngay bây giờ."
+msgid "Lampway will now close."
+msgstr "Lampway sẽ đóng lại ngay bây giờ."

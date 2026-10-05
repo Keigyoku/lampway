@@ -299,7 +299,7 @@ MAX_MESH_VERTICES_FOR_GROUP = 2_000_000
 # every mark also lands in the .blend as a named, addressable noun.
 
 #: Collection holding baked mark cameras. Hidden from render.
-MARK_COLLECTION = "Mixar Marks"
+MARK_COLLECTION = "Lampway Marks"
 
 #: Baked view camera, formatted with the mark's serial: mixar_mark_view_0001.
 MARK_CAMERA_PREFIX = "mixar_mark_view_"

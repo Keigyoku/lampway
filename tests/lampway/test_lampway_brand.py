@@ -41,10 +41,12 @@ def _string_literals(path):
 def test_identity_constants():
     assert brand.PRODUCT_NAME == "Lampway"
     assert brand.AGENT_NAME == "Lampway Agent"
-    assert brand.WEBSITE_URL == "https://lampway.app"
-    assert brand.website_url("/docs") == "https://lampway.app/docs"
-    assert brand.website_url("docs#connect-ai-apps") == "https://lampway.app/docs#connect-ai-apps"
-    assert brand.website_url() == "https://lampway.app"
+    assert brand.WEBSITE_URL == brand.REPO_URL == "https://github.com/Keigyoku/lampway"
+    assert brand.website_url("/docs") == brand.docs_url() == brand.REPO_URL + "/blob/main/docs/lampway/README.md"
+    assert brand.website_url("docs#connect-ai-apps") == brand.REPO_URL + "/blob/main/docs/lampway/connect-ai-apps.md"
+    assert brand.website_url("/bug-report") == brand.REPO_URL + "/issues/new" and brand.website_url("/downloads") == brand.REPO_URL + "/releases"
+    assert brand.website_url("/legal/privacy-policy") == brand.docs_url("privacy")
+    assert brand.website_url() == brand.REPO_URL
 
 
 def test_cpp_brand_header_mirrors_python():

@@ -68,7 +68,7 @@ def _gate():
     if ownership.active():
         raise UIError("ui_busy", "Release UI control before changing scenes")
     if _user_modal(wm):
-        raise UIError("ui_busy", "The user has an operation open in Mixar (a dialog, a transform or a "
+        raise UIError("ui_busy", "The user has an operation open in Lampway (a dialog, a transform or a "
                                  "paint stroke); ask them to finish or cancel it, then try again")
 
 
@@ -84,7 +84,7 @@ def preflight(name: str, args: dict) -> None:
     a clean "failed" receipt instead of an uncertain one."""
     _gate()
     if name == "mixar_scene_new" and len(_ops().real_scenes()) >= MAX_SCENES:
-        raise UIError("scene_limit", f"Mixar already has {MAX_SCENES} scene tabs; reuse or close one")
+        raise UIError("scene_limit", f"Lampway already has {MAX_SCENES} scene tabs; reuse or close one")
     if name == "mixar_scene_switch":
         _target(args["session"])
 

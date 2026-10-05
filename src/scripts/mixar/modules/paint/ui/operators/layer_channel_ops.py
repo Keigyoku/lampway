@@ -64,7 +64,7 @@ class LAYERS_OT_ToggleLayerChannel(Operator):
         """
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -225,7 +225,7 @@ class CHANNEL_OT_ToggleCustomOverride(Operator):
         """
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -323,7 +323,7 @@ class CHANNEL_OT_ToggleImageOverride(Operator):
         """
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -424,7 +424,7 @@ class CHANNEL_OT_ActivateOverrideFromLuminance(Operator):
         """
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -523,7 +523,7 @@ class CHANNEL_OT_ToggleNormalImageOverride(Operator):
         """
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp

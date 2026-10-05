@@ -63,14 +63,14 @@ DESTRUCTIVE = {"mixar_project_open"}
 DOMAINS = {name: ("scenes" if name.startswith(("mixar_scene", "mixar_project")) else "ui") for name in SCHEMAS}
 DESCRIPTIONS = {
     "mixar_ui_context": "Read UI readiness and current/bound scene. Explicitly select an instance or bind its current session after changing documents. Can release your input ownership.",
-    "mixar_ui_observe": "Inspect visible Mixar controls and regions. Returns fresh opaque context/target handles; optionally a screenshot. Inspect before each action.",
-    "mixar_ui_act": "Drive one observed Mixar control or region through native events. User input cancels control. Gesture points are normalized bottom-left region coordinates. Never blindly retry an uncertain action.",
+    "mixar_ui_observe": "Inspect visible Lampway controls and regions. Returns fresh opaque context/target handles; optionally a screenshot. Inspect before each action.",
+    "mixar_ui_act": "Drive one observed Lampway control or region through native events. User input cancels control. Gesture points are normalized bottom-left region coordinates. Never blindly retry an uncertain action.",
     "mixar_ui_wait": "Wait for matching visible controls to appear/disappear, with a bounded deadline. No Python expressions.",
     "mixar_ui_call_status": "Recover a local UI action's durable receipt without executing it again.",
-    "mixar_scenes": "List the open Mixar scene tabs: name, session id, state and which one is shown. Free.",
-    "mixar_scene_new": "Create a new Mixar scene tab exactly like the app's + New scene (camera, light, the current tab's render/unit/colour settings), show it, and pin this connection to it so later scene and UI tools target it. Use this instead of bpy.data.scenes.new in a script. Free.",
+    "mixar_scenes": "List the open Lampway scene tabs: name, session id, state and which one is shown. Free.",
+    "mixar_scene_new": "Create a new Lampway scene tab exactly like the app's + New scene (camera, light, the current tab's render/unit/colour settings), show it, and pin this connection to it so later scene and UI tools target it. Use this instead of bpy.data.scenes.new in a script. Free.",
     "mixar_scene_switch": "Pin this connection to an existing scene tab by its session id from mixar_scenes and show it in the app. Free.",
-    "mixar_projects": "List the user's recent Mixar project files (name, folder, last modified, which is open) and whether the open file has unsaved changes. Use when the user asks to continue earlier work. Free.",
+    "mixar_projects": "List the user's recent Lampway project files (name, folder, last modified, which is open) and whether the open file has unsaved changes. Use when the user asks to continue earlier work. Free.",
     "mixar_project_open": "Open a recent project by its id from mixar_projects, replacing the open file, and pin this connection to its shown scene tab so later tools target it. Refused while the open file is still working (an agent task, a render or running generation jobs). If the open file has unsaved changes it is refused unless unsaved is 'save' or 'discard': ask the user which first, never choose for them. Free.",
 }
 

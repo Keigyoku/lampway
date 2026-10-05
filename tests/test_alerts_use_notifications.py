@@ -115,7 +115,7 @@ def test_plugin_import_summary_is_a_toast():
     ops._notify_summary(clean, "")
     [item] = _pushed("Blender Plugin Import")
     assert item.type.value == "success"
-    assert item.body == "Imported: 3\nAlready in Mixar: 1\nEnabled: 2"
+    assert item.body == "Imported: 3\nAlready in Lampway: 1\nEnabled: 2"
     assert not item.is_sticky
 
     broken = SimpleNamespace(

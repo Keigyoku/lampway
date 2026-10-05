@@ -450,7 +450,7 @@ class MIXAR_OT_project(Operator):
         wm = context.window_manager
         ui = getattr(wm, 'mixar_uv_ui', None)
         if ui is None:
-            self.report({'ERROR'}, "Mixar UV UI state not initialized")
+            self.report({'ERROR'}, "Lampway UV UI state not initialized")
             return {'CANCELLED'}
 
         op_idname = _PROJECTION_OPERATOR.get(ui.projection_type)

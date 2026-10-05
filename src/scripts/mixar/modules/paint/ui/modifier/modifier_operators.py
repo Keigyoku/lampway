@@ -31,8 +31,8 @@ from .modifier_popup import CHANNEL_OT_ModifiersPopup
 
 class MNewMPaintModifier(bpy.types.Operator):
     bl_idname = "wm.m_new_mpaint_modifier"
-    bl_label = "New Mixar Paint Modifier"
-    bl_description = "New Mixar Paint Modifier"
+    bl_label = "New Lampway Paint Modifier"
+    bl_description = "New Lampway Paint Modifier"
     bl_options = {"REGISTER", "UNDO"}
 
     type: EnumProperty(
@@ -120,8 +120,8 @@ class MNewMPaintModifier(bpy.types.Operator):
 
 class MMoveMPaintModifier(bpy.types.Operator):
     bl_idname = "wm.m_move_mpaint_modifier"
-    bl_label = "Move Mixar Paint Modifier"
-    bl_description = "Move Mixar Paint Modifier"
+    bl_label = "Move Lampway Paint Modifier"
+    bl_description = "Move Lampway Paint Modifier"
     bl_options = {"REGISTER", "UNDO"}
 
     direction: EnumProperty(
@@ -204,8 +204,8 @@ class MMoveMPaintModifier(bpy.types.Operator):
 
 class MRemoveMPaintModifier(bpy.types.Operator):
     bl_idname = "wm.m_remove_mpaint_modifier"
-    bl_label = "Remove Mixar Paint Modifier"
-    bl_description = "Remove Mixar Paint Modifier"
+    bl_label = "Remove Lampway Paint Modifier"
+    bl_description = "Remove Lampway Paint Modifier"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod

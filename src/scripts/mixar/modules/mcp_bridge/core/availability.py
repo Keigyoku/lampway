@@ -15,17 +15,17 @@ from . import tool_snapshot
 
 CATALOG_TIMEOUT_SECONDS = 7
 
-RECONNECT = ("ask the user to reconnect the Mixar MCP server (Claude Code: /mcp, then reconnect mixar; "
+RECONNECT = ("ask the user to reconnect the Lampway MCP server (Claude Code: /mcp, then reconnect mixar; "
              "Codex: start a new session)")
 NEXT_STEPS = {
     "available": "",
     "reconnect": "The scene tools were not available when this session started; " + RECONNECT + ".",
-    "signed_out": "Ask the user to sign in to Mixar, then try again.",
-    "starting": "Mixar is starting; wait a moment and try again.",
-    "absent": "Mixar is not open; ask the user to open Mixar and sign in, then try again.",
-    "connecting": "Mixar is signed in but still connecting to its server; wait a moment and try again.",
-    "choose": "Several Mixar apps are open; call mixar_ui_context with one of their instance ids.",
-    "closed": "The Mixar app this connection used was closed; call mixar_ui_context to choose a running one.",
+    "signed_out": "Ask the user to sign in to Lampway, then try again.",
+    "starting": "Lampway is starting; wait a moment and try again.",
+    "absent": "Lampway is not open; ask the user to open Lampway and sign in, then try again.",
+    "connecting": "Lampway is signed in but still connecting to its server; wait a moment and try again.",
+    "choose": "Several Lampway apps are open; call mixar_ui_context with one of their instance ids.",
+    "closed": "The Lampway app this connection used was closed; call mixar_ui_context to choose a running one.",
 }
 
 

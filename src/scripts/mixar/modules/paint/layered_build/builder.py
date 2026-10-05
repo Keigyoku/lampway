@@ -119,7 +119,7 @@ def build_layered_material(manifest: dict, obj=None):
     layer = build_base_pbr_layer(base_layer_spec, obj)
     if layer is None:
         raise RuntimeError(
-            "Base PBR layer was not created (no active Mixar paint node or no maps bound)"
+            "Base PBR layer was not created (no active Lampway paint node or no maps bound)"
         )
     # Capture the name now — building details mutates mp.layers and invalidates refs.
     base_name = layer.name

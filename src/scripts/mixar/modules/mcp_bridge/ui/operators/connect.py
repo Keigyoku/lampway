@@ -19,7 +19,7 @@ from ...core.setup import connection_config, launch, render, stable_launch
 
 #: App names are product names: a context with no catalog entries keeps
 #: "Cursor" from being shown as a translated word.
-PRODUCT_NAMES = "Mixar product name"
+PRODUCT_NAMES = "Lampway product name"
 APP_ITEMS = [(key, name, "") for key, name, _how in app_configs.APPS]
 SNIPPET_COLUMNS = 72
 
@@ -33,7 +33,7 @@ def _signed_in(context):
 def _refuse_signed_out(op, context):
     if _signed_in(context):
         return False
-    op.report({'ERROR'}, "Sign in to Mixar before connecting AI apps")
+    op.report({'ERROR'}, "Sign in to Lampway before connecting AI apps")
     return True
 
 
@@ -61,7 +61,7 @@ def _snippet_lines(text):
 class MIXAR_OT_mcp_setup(Operator):
     bl_idname = "mixar.connect_ai"
     bl_label = "Connect AI Apps (MCP)"
-    bl_description = "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+    bl_description = "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
     app: EnumProperty(name="App", items=APP_ITEMS, default='CLAUDE_CODE', translation_context=PRODUCT_NAMES)
 
     def execute(self, context):
@@ -72,9 +72,9 @@ class MIXAR_OT_mcp_setup(Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="Let your AI assistant use Mixar scenes and controls.")
+        layout.label(text="Let your AI assistant use Lampway scenes and controls.")
         if not _signed_in(context):
-            layout.label(text="Sign in to Mixar to connect AI apps.", icon='INFO')
+            layout.label(text="Sign in to Lampway to connect AI apps.", icon='INFO')
             layout.operator("mixie_chat.login", text="Sign In")
             if runtime.enabled():
                 # Turning MCP off never needs an account (the session may have expired).
@@ -83,7 +83,7 @@ class MIXAR_OT_mcp_setup(Operator):
                 row.operator("mixar.set_mcp_enabled", text="Disable").enabled = False
             return
         layout.label(text="Scene and UI tools are free; only AI generation uses credits.")
-        layout.label(text="Your AI app can start Mixar when needed.")
+        layout.label(text="Your AI app can start Lampway when needed.")
         row = layout.row()
         if runtime.enabled():
             row.label(text="MCP enabled", icon='CHECKMARK')
@@ -94,7 +94,7 @@ class MIXAR_OT_mcp_setup(Operator):
         row = layout.row()
         row.alignment = 'LEFT'
         row.enabled = runtime.enabled()
-        row.operator("mixar.set_mcp_ui_control", text="Let AI apps control Mixar's interface",
+        row.operator("mixar.set_mcp_ui_control", text="Let AI apps control Lampway's interface",
                      icon='CHECKBOX_HLT' if on else 'CHECKBOX_DEHLT', emboss=False).enabled = not on
         layout.separator()
         layout.prop(self, "app")
@@ -124,7 +124,7 @@ class MIXAR_OT_mcp_setup(Operator):
 class MIXAR_OT_set_mcp_enabled(Operator):
     bl_idname = "mixar.set_mcp_enabled"
     bl_label = "Enable MCP"
-    bl_description = "Allow local AI clients to use your Mixar account and scenes"
+    bl_description = "Allow local AI clients to use your Lampway account and scenes"
     enabled: BoolProperty(default=True)
 
     def execute(self, context):
@@ -136,7 +136,7 @@ class MIXAR_OT_set_mcp_enabled(Operator):
         else:
             runtime.refresh()
         if not saved:
-            self.report({'WARNING'}, "MCP preference applies until Mixar closes; saving failed")
+            self.report({'WARNING'}, "MCP preference applies until Lampway closes; saving failed")
         elif self.enabled and not runtime.is_running():
             self.report({'WARNING'}, "MCP is waiting for the desktop connection")
         elif self.enabled:
@@ -148,8 +148,8 @@ class MIXAR_OT_set_mcp_enabled(Operator):
 
 class MIXAR_OT_set_mcp_ui_control(Operator):
     bl_idname = "mixar.set_mcp_ui_control"
-    bl_label = "Let AI Apps Control Mixar's Interface"
-    bl_description = ("Let connected AI apps see Mixar's interface and click, type and drag in it. "
+    bl_label = "Let AI Apps Control Lampway's Interface"
+    bl_description = ("Let connected AI apps see Lampway's interface and click, type and drag in it. "
                       "Your own mouse or keyboard always takes control back. Scene tools work either way")
     enabled: BoolProperty(default=True)
 
@@ -157,11 +157,11 @@ class MIXAR_OT_set_mcp_ui_control(Operator):
         saved = add_config("mcp_ui_control", self.enabled)
         runtime.refresh()
         if not saved:
-            self.report({'WARNING'}, "This applies until Mixar closes; saving the preference failed")
+            self.report({'WARNING'}, "This applies until Lampway closes; saving the preference failed")
         elif self.enabled:
-            self.report({'INFO'}, "AI apps can now control Mixar's interface")
+            self.report({'INFO'}, "AI apps can now control Lampway's interface")
         else:
-            self.report({'INFO'}, "AI apps can no longer control Mixar's interface")
+            self.report({'INFO'}, "AI apps can no longer control Lampway's interface")
         return {'FINISHED'}
 
 
@@ -184,8 +184,8 @@ class MIXAR_OT_copy_mcp_setup(Operator):
 
 class MIXAR_OT_mcp_add_to_app(Operator):
     bl_idname = "mixar.mcp_add_to_app"
-    bl_label = "Add Mixar to App"
-    bl_description = ("Enable MCP and add Mixar to this app's MCP servers: Claude Code through its "
+    bl_label = "Add Lampway to App"
+    bl_description = ("Enable MCP and add Lampway to this app's MCP servers: Claude Code through its "
                       "claude mcp command, Codex in its config.toml (the previous file is kept as a backup)")
     app: EnumProperty(items=[item for item in APP_ITEMS if item[0] in app_configs.ADDABLE],
                       translation_context=PRODUCT_NAMES)
@@ -196,9 +196,9 @@ class MIXAR_OT_mcp_add_to_app(Operator):
         _enable(self)
         command, args = launch(bpy.utils.resource_path('LOCAL'), bpy.app.binary_path, True)
         if not app_add.start(self.app, command, args):
-            self.report({'INFO'}, "Already adding Mixar to this app")
+            self.report({'INFO'}, "Already adding Lampway to this app")
             return {'CANCELLED'}
-        self.report({'INFO'}, rpt_("Adding Mixar to {app}…").format(app=app_configs.label(self.app)))
+        self.report({'INFO'}, rpt_("Adding Lampway to {app}…").format(app=app_configs.label(self.app)))
         return {'FINISHED'}
 
 

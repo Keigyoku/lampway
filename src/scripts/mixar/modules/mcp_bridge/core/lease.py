@@ -38,7 +38,7 @@ _transport_generation = 0
 
 #: A connection's scene vanishes when another document is opened (File > New or
 #: Open, a reopened project); nothing picks the new one silently.
-DOCUMENT_CHANGED = ("Another Mixar document was opened, so this connection's scene is gone. Bind the scene "
+DOCUMENT_CHANGED = ("Another Lampway document was opened, so this connection's scene is gone. Bind the scene "
                     "now shown with mixar_ui_context(session=<its session_id>), or list tabs with mixar_scenes "
                     "and pick one with mixar_scene_switch, then inspect before editing")
 
@@ -90,7 +90,7 @@ def _receipt(operation):
 def begin_operation(params):
     """Acquire an idle scene. Repeating an active operation never extends it."""
     if not _enabled():
-        return _failure("mcp_disabled", "Enable MCP in Mixar first (profile menu > Connect AI Apps (MCP))")
+        return _failure("mcp_disabled", "Enable MCP in Lampway first (profile menu > Connect AI Apps (MCP))")
     try:
         operation_id = _uuid(params.get("operation_id"))
         session_id = _uuid(params["session_id"]) if params.get("session_id") else ""
@@ -133,7 +133,7 @@ def begin_operation(params):
                 return _failure("operation_conflict", "Operation belongs to another scene")
             return _receipt(existing)
         if session.get_state(scene) == SessionState.OFFLINE:
-            return _failure("scene_offline", "Mixar is not connected to its server; wait for it to reconnect")
+            return _failure("scene_offline", "Lampway is not connected to its server; wait for it to reconnect")
         if session.get_state(scene) != SessionState.IDLE or session.run_open(scene):
             return _failure("scene_busy", "An agent is working in this scene tab")
         if session.get_session_id(scene) in _operations:

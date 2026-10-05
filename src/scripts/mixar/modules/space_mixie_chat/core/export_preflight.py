@@ -17,7 +17,7 @@ CHECK_LABELS = {
     "transforms": "Rotation and scale applied",
     "modifiers": "Modifiers applied",
     "packed_images": "Material images packed",
-    "mixar_bakes": "Mixar Paint materials baked",
+    "mixar_bakes": "Lampway Paint materials baked",
 }
 # Formats that carry no materials or textures: the material checks cannot
 # block them and repair never packs or bakes for them.

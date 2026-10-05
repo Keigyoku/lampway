@@ -101,7 +101,7 @@ class MLayerMask(bpy.types.PropertyGroup):
 
     active_edit: BoolProperty(
         name="Active Mask",
-        description="Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode",
+        description="Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode",
         default=False,
         update=update_mask_active_edit,
     )

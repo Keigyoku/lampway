@@ -204,7 +204,7 @@ class MExportBakedChannel(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -302,7 +302,7 @@ class MExportAllBakedChannels(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp

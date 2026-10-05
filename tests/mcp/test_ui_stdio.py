@@ -18,7 +18,7 @@ def test_sdk_initializes_and_exposes_ui_without_blender_or_backend(tmp_path):
         async with stdio_client(StdioServerParameters(command=sys.executable, args=[str(script)], env=env)) as streams:
             async with ClientSession(*streams) as session:
                 result = await asyncio.wait_for(session.initialize(), 5)
-                assert result.server_info.name == "Mixar"
+                assert result.server_info.name == "Lampway"
                 prompts = await session.list_prompts()
                 assert prompts.prompts[0].name == "build-and-verify"
                 prompt = await session.get_prompt("build-and-verify", {"goal": "make a cube"})
@@ -30,5 +30,5 @@ def test_sdk_initializes_and_exposes_ui_without_blender_or_backend(tmp_path):
                 assert {"mixar_ui_context", "mixar_ui_observe", "mixar_ui_act", "mixar_ui_call_status"} <= names
                 status = await session.call_tool("mixar_ui_context", {})
                 assert status.is_error
-                assert "Mixar is not open" in str(status.content)  # Nothing installed here.
+                assert "Lampway is not open" in str(status.content)  # Nothing installed here.
     asyncio.run(run())

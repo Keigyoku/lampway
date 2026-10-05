@@ -93,7 +93,7 @@ def _prop_row_if_exists(col, owner, label_text, prop_name):
 
 
 class MIXAR_UV_PT_pack_islands(Panel):
-    """Layout panel for the Mixar UV Properties space."""
+    """Layout panel for the Lampway UV Properties space."""
     bl_label = "Layout"
     bl_idname = "MIXAR_UV_PT_pack_islands"
     bl_space_type = 'IMAGE_EDITOR'

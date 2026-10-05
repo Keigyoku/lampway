@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: nl_NL\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "Actieve rij in de chatgeschiedenislijst van de zwevende bubbel"
 msgid "Share Usage Data"
 msgstr "Gebruiksgegevens delen"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "Deelt productgebruiksgebeurtenissen zonder inhoud om Mixar te helpen verbeteren"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "Deelt productgebruiksgebeurtenissen zonder inhoud om Lampway te helpen verbeteren"
 
 msgid "No generation services"
 msgstr "Geen generatiediensten"
@@ -170,7 +170,7 @@ msgstr "De modulenaam van de add-on is ongeldig"
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "Het ingestelde entrypoint van de add-on is niet gevonden in het gekoppelde project"
 
-msgid "The linked folder has no valid Mixar project metadata"
+msgid "The linked folder has no valid Lampway project metadata"
 msgstr "De gekoppelde map bevat geen geldige Mixar-projectmetadata"
 
 msgid "The project metadata version is not supported"
@@ -194,7 +194,7 @@ msgstr "Het entrypoint moet één modulenaam op het hoogste niveau zijn"
 msgid "Set an active add-on before changing its enabled state"
 msgstr "Stel een actieve add-on in voordat u de in-/uitgeschakelde status wijzigt"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "Bibliotheek"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "Venster van Agentbubbel openen"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "Opent de Agentbubbel in een eigen zwevend venster"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "C++-operator mixar.agent_bubble_show_window is niet geregistreerd — bouw Mixar opnieuw (make build) om de agent_bubble-spacetype-operator op te nemen."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "C++-operator mixar.agent_bubble_show_window is niet geregistreerd — bouw Lampway opnieuw (make build) om de agent_bubble-spacetype-operator op te nemen."
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "Kon het venster van de Agentbubbel niet openen: {error}"
@@ -651,8 +651,8 @@ msgstr ""
 msgid "AI generations"
 msgstr "AI-generaties"
 
-msgid "Everything Mixar has generated for you"
-msgstr "Alles wat Mixar voor u heeft gegenereerd"
+msgid "Everything Lampway has generated for you"
+msgstr "Alles wat Lampway voor u heeft gegenereerd"
 
 msgid "My Libraries"
 msgstr ""
@@ -1421,17 +1421,17 @@ msgstr "Neem contact op met support — er zijn momenteel geen providers ingesch
 msgid "Select a provider with available models"
 msgstr "Selecteer een provider met beschikbare modellen"
 
-msgid "Managed by Mixar"
-msgstr "Beheerd door Mixar"
+msgid "Managed by Lampway"
+msgstr "Beheerd door Lampway"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar downloadt en draait een geselecteerd model op deze computer"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway downloadt en draait een geselecteerd model op deze computer"
 
 msgid "Custom local server"
 msgstr "Aangepaste lokale server"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "Verwijst Mixar naar een OpenAI-compatibele server die u al draait (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "Verwijst Lampway naar een OpenAI-compatibele server die u al draait (Ollama, LM Studio, llama.cpp, ...)"
 
 msgid "Invalid form data — please reach out to support."
 msgstr "Ongeldige formuliergegevens — neem contact op met support."
@@ -1553,8 +1553,8 @@ msgstr "Geen model geselecteerd"
 msgid "Reset Agent Model"
 msgstr "Agentmodel resetten"
 
-msgid "Clear the saved model and let Mixar choose"
-msgstr "Wist het opgeslagen model en laat Mixar kiezen"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "Wist het opgeslagen model en laat Lampway kiezen"
 
 msgid "Could not change model"
 msgstr "Kon het model niet wijzigen"
@@ -1577,7 +1577,7 @@ msgstr "Actief"
 msgid "Not configured"
 msgstr "Niet geconfigureerd"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
 msgstr "Draai de Mixar-agent bij uw eigen provider — zolang dit actief is, worden er geen Mixar-credits in rekening gebracht."
 
 msgid "Current Configuration"
@@ -1604,7 +1604,7 @@ msgstr "API-sleutel verwijderen…"
 msgid "Provider Setup"
 msgstr "Provider instellen"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
 msgstr "Versleuteld opgeslagen, alleen gebruikt voor verzoeken van de Mixar-agent — na het opslaan wordt alleen een gemaskeerde weergave getoond."
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
@@ -1631,7 +1631,7 @@ msgstr "Voer  codex login  uit in uw terminal en laad of plak daarna de volledig
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "inhoud van ~/.codex/auth.json (de plakknop leest uw klembord)."
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
 msgstr "Gebruikt uw ChatGPT-abonnement — er worden geen Mixar-credits in rekening gebracht."
 
 msgid "Couldn't apply your changes"
@@ -1640,22 +1640,22 @@ msgstr "Kon uw wijzigingen niet toepassen"
 msgid "Remove your API key?"
 msgstr "Uw API-sleutel verwijderen?"
 
-msgid "The agent will use Mixar's default provider again."
-msgstr "De agent gebruikt weer de standaardprovider van Mixar."
+msgid "The agent will use Lampway's default provider again."
+msgstr "De agent gebruikt weer de standaardprovider van Lampway."
 
-msgid "Mixar credits will be charged for future agent requests."
+msgid "Lampway credits will be charged for future agent requests."
 msgstr "Voor toekomstige agentverzoeken worden Mixar-credits in rekening gebracht."
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
 msgstr "De Mixar-agent draait nu bij uw provider — er worden geen Mixar-credits in rekening gebracht."
 
 msgid "API key removed"
 msgstr "API-sleutel verwijderd"
 
-msgid "The agent is back on Mixar's default provider."
-msgstr "De agent is terug op de standaardprovider van Mixar."
+msgid "The agent is back on Lampway's default provider."
+msgstr "De agent is terug op de standaardprovider van Lampway."
 
-msgid "Mixar credits are charged for agent requests again."
+msgid "Lampway credits are charged for agent requests again."
 msgstr "Voor agentverzoeken worden weer Mixar-credits in rekening gebracht."
 
 msgid "Try Again"
@@ -1691,8 +1691,8 @@ msgstr "Gedownload — niet actief"
 msgid "Not downloaded"
 msgstr "Niet gedownload"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "Draait volledig op deze computer — uw prompts verlaten deze alleen via de agentorkestratie van Mixar."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "Draait volledig op deze computer — uw prompts verlaten deze alleen via de agentorkestratie van Lampway."
 
 msgid "Cancel Download"
 msgstr "Download annuleren"
@@ -1730,7 +1730,7 @@ msgstr "Lokale apps opnieuw scannen"
 msgid "Rescan this computer for running local AI apps"
 msgstr "Scant deze computer opnieuw op actieve lokale AI-apps"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
 msgstr "Gebruikt uw eigen API-sleutel voor de Mixar-agent. Zolang dit actief is, worden er voor agentverzoeken geen Mixar-credits in rekening gebracht."
 
 msgid "Validate with the provider and save your API key"
@@ -1844,7 +1844,7 @@ msgstr "LLM-provider"
 msgid "Model to use with the selected provider"
 msgstr "Model om te gebruiken met de geselecteerde provider"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
 msgstr "Uw API-sleutel wordt versleuteld opgeslagen en alleen gebruikt voor verzoeken van de Mixar-agent. Na het opslaan wordt alleen een gemaskeerde weergave getoond."
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
@@ -1859,8 +1859,8 @@ msgstr "Inhoud van ~/.codex/auth.json (voer eerst `codex login` uit)"
 msgid "Local mode"
 msgstr "Lokale modus"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "Beheerd door Mixar, of uw eigen lokale server"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Beheerd door Lampway, of uw eigen lokale server"
 
 msgid "Local model"
 msgstr "Lokaal model"
@@ -1889,10 +1889,10 @@ msgstr "Waar als de server byok_active meldt voor deze gebruiker"
 msgid "Dialog State"
 msgstr "Dialoogstatus"
 
-msgid "Set Mixie Mode"
+msgid "Set Lampway Agent Mode"
 msgstr "Mixie-modus instellen"
 
-msgid "Switch to a specific Mixie mode"
+msgid "Switch to a specific Lampway Agent mode"
 msgstr "Schakelt over naar een specifieke Mixie-modus"
 
 msgid "Mode"
@@ -1928,8 +1928,8 @@ msgstr "Hoog"
 msgid "Non-contiguous enum value 27"
 msgstr "Niet-aaneengesloten enumwaarde 27"
 
-msgid "Mixie v3 run active"
-msgstr "Mixie v3-run actief"
+msgid "Lampway Agent v3 run active"
+msgstr "Lampway Agent v3-run actief"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "De server heeft het verzoek om de geschiedenis te synchroniseren geweigerd. Werk de app en de backend bij en maak daarna opnieuw verbinding."
@@ -2420,10 +2420,10 @@ msgstr "Het ruimtetype waarnaar wordt overgeschakeld"
 msgid "No active area"
 msgstr "Geen actief gebied"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "Lokale galerijactie"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "Verhoogt de teller van de ontwikkelaarsfixture; geen generatie of scènewijzigingen"
 
-msgid "Mixar UI Gallery"
-msgstr "Mixar UI-galerij"
+msgid "Lampway UI Gallery"
+msgstr "Lampway UI-galerij"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "Inspecteert gedeelde native componenten met lokale fixturegegevens"
@@ -2468,7 +2468,7 @@ msgstr "Privacy"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "Toestemming voor telemetrie, geplaatst waar gebruikers gewoonlijk kijken om zich af te melden."
 
-msgid "Shares which Mixar features you use, to help improve the product."
+msgid "Shares which Lampway features you use, to help improve the product."
 msgstr "Deelt welke Mixar-functies u gebruikt om het product te helpen verbeteren."
 
 msgid "Your prompts, files, and scene content are never included."
@@ -2477,7 +2477,7 @@ msgstr "Uw prompts, bestanden en scène-inhoud worden nooit meegestuurd."
 msgid "Privacy Policy"
 msgstr "Privacybeleid"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "Native"
 msgid "Blender theme"
 msgstr "Blender-thema"
 
-msgid "Legacy Mixar"
-msgstr "Mixar (verouderd)"
+msgid "Legacy Lampway"
+msgstr "Lampway (verouderd)"
 
 msgid "Compatibility profile"
 msgstr "Compatibiliteitsprofiel"
@@ -2624,11 +2624,11 @@ msgstr "Compact"
 msgid "Denser chrome recipe"
 msgstr "Compacter chromerecept"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "Verplaats Mixar naar uw map Apps om ter plekke bij te werken"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "Verplaats Lampway naar uw map Apps om ter plekke bij te werken"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar wordt niet uitgevoerd vanuit een app-bundel"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway wordt niet uitgevoerd vanuit een app-bundel"
 
 msgid "No permission to update {path}"
 msgstr "Geen toestemming om {path} bij te werken"
@@ -2660,8 +2660,8 @@ msgstr "Het gedownloade installatieprogramma ontbreekt"
 msgid "Could not start the updater"
 msgstr "Kon het updateprogramma niet starten"
 
-msgid "Mixar didn't close"
-msgstr "Mixar is niet afgesloten"
+msgid "Lampway didn't close"
+msgstr "Lampway is niet afgesloten"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "In-app-updates worden op dit platform niet ondersteund"
@@ -2687,32 +2687,32 @@ msgstr "{size} gedownload"
 msgid "Starting download…"
 msgstr "Download starten…"
 
-msgid "Downloading Mixar {version}"
-msgstr "Mixar {version} downloaden"
+msgid "Downloading Lampway {version}"
+msgstr "Lampway {version} downloaden"
 
-msgid "Mixar will restart to finish updating."
-msgstr "Mixar wordt opnieuw gestart om het bijwerken te voltooien."
+msgid "Lampway will restart to finish updating."
+msgstr "Lampway wordt opnieuw gestart om het bijwerken te voltooien."
 
-msgid "Mixar Update Ready"
+msgid "Lampway Update Ready"
 msgstr "Mixar-update gereed"
 
 msgid "Version {version} is ready to install."
 msgstr "Versie {version} is klaar om te installeren."
 
-msgid "Mixar Update Required"
+msgid "Lampway Update Required"
 msgstr "Mixar-update vereist"
 
-msgid "Mixar Update Available"
+msgid "Lampway Update Available"
 msgstr "Mixar-update beschikbaar"
 
 msgid "Version {version} is available."
 msgstr "Versie {version} is beschikbaar."
 
-msgid "This update is required to continue using Mixar."
-msgstr "Deze update is vereist om Mixar te blijven gebruiken."
+msgid "This update is required to continue using Lampway."
+msgstr "Deze update is vereist om Lampway te blijven gebruiken."
 
-msgid "Mixar will restart to apply it."
-msgstr "Mixar wordt opnieuw gestart om deze toe te passen."
+msgid "Lampway will restart to apply it."
+msgstr "Lampway wordt opnieuw gestart om deze toe te passen."
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error} — gebruik Downloaden om via uw browser bij te werken."
@@ -2729,11 +2729,11 @@ msgstr "Klik op Herstarten en bijwerken om opnieuw te installeren."
 msgid "Update paused"
 msgstr "Update gepauzeerd"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar is niet afgesloten, dus de update is niet geïnstalleerd."
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway is niet afgesloten, dus de update is niet geïnstalleerd."
 
-msgid "Mixar is up to date"
-msgstr "Mixar is up-to-date"
+msgid "Lampway is up to date"
+msgstr "Lampway is up-to-date"
 
 msgid "You're running the latest version ({version})."
 msgstr "U gebruikt de nieuwste versie ({version})."
@@ -2747,11 +2747,11 @@ msgstr "Controleer uw internetverbinding en probeer het opnieuw."
 msgid "Update didn't take effect"
 msgstr "Update is niet doorgevoerd"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Mixar {target} is geïnstalleerd, maar versie {running} is gestart. Installeer opnieuw vanaf de downloadpagina."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Lampway {target} is geïnstalleerd, maar versie {running} is gestart. Installeer opnieuw vanaf de downloadpagina."
 
-msgid "Updated to Mixar {version}"
-msgstr "Bijgewerkt naar Mixar {version}"
+msgid "Updated to Lampway {version}"
+msgstr "Bijgewerkt naar Lampway {version}"
 
 msgid "The update was installed successfully."
 msgstr "De update is geïnstalleerd."
@@ -2765,8 +2765,8 @@ msgstr "{reason} U kunt de update downloaden vanaf de downloadpagina."
 msgid "Update was not installed"
 msgstr "Update is niet geïnstalleerd"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "Mixar was nog actief toen het installatieprogramma probeerde te starten."
+msgid "Lampway was still running when the installer tried to start."
+msgstr "Lampway was nog actief toen het installatieprogramma probeerde te starten."
 
 msgid "The downloaded installer failed its signature check."
 msgstr "Het gedownloade installatieprogramma heeft de handtekeningcontrole niet doorstaan."
@@ -2774,8 +2774,8 @@ msgstr "Het gedownloade installatieprogramma heeft de handtekeningcontrole niet 
 msgid "The downloaded installer could not be opened."
 msgstr "Het gedownloade installatieprogramma kon niet worden geopend."
 
-msgid "Mixar could not be replaced on disk."
-msgstr "Mixar kon niet worden vervangen op schijf."
+msgid "Lampway could not be replaced on disk."
+msgstr "Lampway kon niet worden vervangen op schijf."
 
 msgid "The installation was cancelled."
 msgstr "De installatie is geannuleerd."
@@ -2786,8 +2786,8 @@ msgstr "Windows Installer heeft een fatale fout gemeld."
 msgid "The installer did not finish."
 msgstr "Het installatieprogramma is niet voltooid."
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "Herstart Mixar en installeert de gedownloade update"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "Herstart Lampway en installeert de gedownloade update"
 
 msgid "Save Changes"
 msgstr "Wijzigingen opslaan"
@@ -2795,14 +2795,14 @@ msgstr "Wijzigingen opslaan"
 msgid "Save the current file before restarting"
 msgstr "Slaat het huidige bestand op voor het herstarten"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "Update wordt gedownload — Mixar wordt opnieuw gestart zodra deze gereed is"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "Update wordt gedownload — Lampway wordt opnieuw gestart zodra deze gereed is"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar wordt afgesloten en bijgewerkt naar {version}."
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway wordt afgesloten en bijgewerkt naar {version}."
 
 msgid "It reopens automatically when the update is done."
 msgstr "Het wordt automatisch opnieuw geopend wanneer de update klaar is."
@@ -2831,14 +2831,14 @@ msgstr "Stopt het downloaden van de update"
 msgid "This update is required and cannot be cancelled"
 msgstr "Deze update is vereist en kan niet worden geannuleerd"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "Opent de downloadpagina van Mixar in de standaardbrowser"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "Opent de downloadpagina van Lampway in de standaardbrowser"
 
 msgid "Check for Updates"
 msgstr "Controleren op updates"
 
-msgid "Check whether a newer version of Mixar is available"
-msgstr "Controleert of er een nieuwere versie van Mixar beschikbaar is"
+msgid "Check whether a newer version of Lampway is available"
+msgstr "Controleert of er een nieuwere versie van Lampway beschikbaar is"
 
 msgid "An update check is already in progress"
 msgstr "Er wordt al gecontroleerd op updates"
@@ -2849,7 +2849,7 @@ msgstr "Controleren op updates…"
 msgid "Update Available"
 msgstr "Update beschikbaar"
 
-msgid "Show details for the pending Mixar update"
+msgid "Show details for the pending Lampway update"
 msgstr "Toont details van de openstaande Mixar-update"
 
 msgid "View Changelog"
@@ -2969,13 +2969,13 @@ msgstr "Weergavenaam voor de accountbegroeting"
 msgid "Newer File Version"
 msgstr "Nieuwere bestandsversie"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
+msgid "Warn user that the file was saved by a newer Lampway version"
 msgstr "Waarschuwt de gebruiker dat het bestand is opgeslagen met een nieuwere Mixar-versie"
 
 msgid "File Version"
 msgstr "Bestandsversie"
 
-msgid "This file was saved by Mixar version {version}."
+msgid "This file was saved by Lampway version {version}."
 msgstr "Dit bestand is opgeslagen met Mixar-versie {version}."
 
 msgid "Some data may be missing or incorrect."
@@ -2990,8 +2990,8 @@ msgstr "Er zijn geen mesh-objecten beschikbaar om te exporteren"
 msgid "Start Connector Sidecar"
 msgstr "Connector-sidecar starten"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "Stelt Mixar via loopback-HTTP beschikbaar voor de hub"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "Stelt Lampway via loopback-HTTP beschikbaar voor de hub"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
 msgstr "Connector-sidecar op 127.0.0.1:{port}"
@@ -2999,7 +2999,7 @@ msgstr "Connector-sidecar op 127.0.0.1:{port}"
 msgid "Export Scene to Unreal"
 msgstr "Scène naar Unreal exporteren"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
 msgstr "Exporteert de huidige Mixar-scène als USD/FBX/GLB, klaar voor Unreal"
 
 msgid "Exported {filename} ({count} meshes)"
@@ -3020,7 +3020,7 @@ msgstr ""
 msgid "Hub Sidecar"
 msgstr "Hub-sidecar"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
 msgstr "Stelt deze Mixar-sessie via loopback-HTTP beschikbaar voor mixar-connector"
 
 msgid "Sidecar Port"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,7 +3119,7 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
+msgid "Lampway Shot Camera"
 msgstr "Mixar-shotcamera"
 
 msgid "Shot"
@@ -3563,7 +3563,7 @@ msgstr "Het shot heeft geen camera"
 msgid "Capture at least one camera beat before locking"
 msgstr "Leg minstens één cameramoment vast voordat u vergrendelt"
 
-msgid "Mixar Focus"
+msgid "Lampway Focus"
 msgstr ""
 
 msgid "Rendering…"
@@ -4241,7 +4241,7 @@ msgstr "Rendervoortgang"
 msgid "Render Status"
 msgstr "Renderstatus"
 
-msgid "Mixar Camera Export"
+msgid "Lampway Camera Export"
 msgstr "Mixar-camera-export"
 
 msgid "Export this scene's camera animation to the Moodboard"
@@ -4493,13 +4493,13 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
+msgid "Lampway Director"
 msgstr ""
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "Spaarzame cameraregieshots voor deze scène"
 
-msgid "Mixar Output"
+msgid "Lampway Output"
 msgstr "Mixar-uitvoer"
 
 msgid "Output aspect ratio this camera frames for"
@@ -4964,19 +4964,19 @@ msgstr "Model lokale server"
 msgid "Local model last error"
 msgstr "Laatste fout lokaal model"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,25 +7789,25 @@ msgstr "Fouttekst"
 msgid "Error message if job failed"
 msgstr "Foutmelding als de taak is mislukt"
 
-msgid "Mixie Moodboard Images"
+msgid "Lampway Agent Moodboard Images"
 msgstr "Mixie-moodboardafbeeldingen"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "Verzameling referentieafbeeldingen in de moodboardmodus"
 
-msgid "Mixie Moodboard Text Boxes"
+msgid "Lampway Agent Moodboard Text Boxes"
 msgstr "Mixie-moodboardtekstvakken"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "Verzameling tekstvakken in de moodboardmodus"
 
-msgid "Mixie Moodboard Frames"
+msgid "Lampway Agent Moodboard Frames"
 msgstr "Mixie-moodboardkaders"
 
 msgid "Canvas frames grouping board items"
 msgstr "Canvaskaders die borditems groeperen"
 
-msgid "Mixie Moodboard Groups (legacy)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
 msgstr "Mixie-moodboardgroepen (verouderd)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
@@ -8917,7 +8917,7 @@ msgstr "{count} moodboardafbeeldingen gesynchroniseerd"
 msgid "Attach Selected Moodboard Image"
 msgstr "Geselecteerde moodboardafbeelding bijvoegen"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
 msgstr ""
 
 msgid "Nothing selected to copy"
@@ -9244,7 +9244,7 @@ msgstr "Lezen van klembord mislukt: {error}"
 msgid "Paste"
 msgstr "Plakken"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
 msgstr ""
 
 msgid "Pasted {count} item"
@@ -10642,13 +10642,13 @@ msgstr "Moodboardannotaties"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
-msgstr "Welkom bij Mixar"
+msgid "Welcome to Lampway"
+msgstr "Welkom bij Lampway"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,19 +10669,19 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
+msgid "Lampway Operation History ID"
 msgstr "Mixar-bewerkingsgeschiedenis-ID"
 
 msgid "Persistent per-scene id keying this scene's operation history."
@@ -13051,7 +13051,7 @@ msgstr "Naam van het te exporteren kanaal"
 msgid "File format for export"
 msgstr "Bestandsformaat voor export"
 
-msgid "No active Mixar node found"
+msgid "No active Lampway node found"
 msgstr "Geen actieve Mixar-node gevonden"
 
 msgid "Exported '{name}' to {path}"
@@ -13201,7 +13201,7 @@ msgstr "Bakt een tijdelijke afbeelding van de laag; kan helpen om glitches met C
 msgid "Bake Temporary Image"
 msgstr "Tijdelijke afbeelding bakken"
 
-msgid "No active Mixar node found!"
+msgid "No active Lampway node found!"
 msgstr "Geen actieve Mixar-node gevonden!"
 
 msgid "No active layer found!"
@@ -13345,8 +13345,8 @@ msgstr "Kanaal naar puntkleur bakken"
 msgid "Bake All Materials"
 msgstr "Alle materialen bakken"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "Bakt alle materialen met Mixar Paint-nodes in plaats van alleen het actieve"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "Bakt alle materialen met Lampway Paint-nodes in plaats van alleen het actieve"
 
 msgid "Target Vertex Color Name"
 msgstr "Naam doelpuntkleur"
@@ -13574,8 +13574,8 @@ msgstr ""
 msgid "Copy Image Path To Clipboard"
 msgstr "Afbeeldingspad naar klembord kopiëren"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint: kopieert het bestandspad van de afbeelding naar het systeemklembord"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint: kopieert het bestandspad van de afbeelding naar het systeemklembord"
 
 msgid "Copied: {text}"
 msgstr "Gekopieerd: {text}"
@@ -13583,8 +13583,8 @@ msgstr "Gekopieerd: {text}"
 msgid "Open Containing Image Folder"
 msgstr "Map met afbeelding openen"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint: opent de map met het afbeeldingsbestand en markeert het"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint: opent de map met het afbeeldingsbestand en markeert het"
 
 msgid "File does not exist"
 msgstr "Bestand bestaat niet"
@@ -15054,8 +15054,8 @@ msgstr "Schakelt het masker in"
 msgid "Active Mask"
 msgstr "Actief masker"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Actief masker voor de verf- en bewerkingsmodus van Blender, of de maskervoorbeeldmodus van Mixar Paint"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Actief masker voor de verf- en bewerkingsmodus van Blender, of de maskervoorbeeldmodus van Lampway Paint"
 
 msgid "Mask Source Input"
 msgstr "Broninvoer masker"
@@ -15156,14 +15156,14 @@ msgstr "Alle kanalen bakken"
 msgid "Delete Baked Images"
 msgstr "Gebakken afbeeldingen verwijderen"
 
-msgid "New Mixar Paint Modifier"
-msgstr "Nieuwe Mixar Paint-aanpasser"
+msgid "New Lampway Paint Modifier"
+msgstr "Nieuwe Lampway Paint-aanpasser"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Mixar Paint-aanpasser verplaatsen"
+msgid "Move Lampway Paint Modifier"
+msgstr "Lampway Paint-aanpasser verplaatsen"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Mixar Paint-aanpasser verwijderen"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Lampway Paint-aanpasser verwijderen"
 
 msgid "Add Channel Modifier"
 msgstr "Kanaalaanpasser toevoegen"
@@ -15297,7 +15297,7 @@ msgstr "Kanaal '{name}' bestaat al"
 msgid "Build Layered Material"
 msgstr "Gelaagd materiaal bouwen"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
+msgid "Build a Lampway paint material from a layered-material manifest"
 msgstr "Bouwt een Mixar-verfmateriaal op basis van een manifest voor gelaagde materialen"
 
 msgid "Manifest JSON"
@@ -15921,7 +15921,7 @@ msgstr "Hernoemt deze laag"
 msgid "New name for the layer"
 msgstr "Nieuwe naam voor de laag"
 
-msgid "No active Mixar node"
+msgid "No active Lampway node"
 msgstr "Geen actieve Mixar-node"
 
 msgid "Name cannot be empty"
@@ -16071,11 +16071,11 @@ msgstr "Keert terug naar de weergave met laageigenschappen"
 msgid "Add different types of masks to the active layer"
 msgstr "Voegt verschillende soorten maskers toe aan de actieve laag"
 
-msgid "Remove Mixar Paint Node"
-msgstr "Mixar Paint-node verwijderen"
+msgid "Remove Lampway Paint Node"
+msgstr "Lampway Paint-node verwijderen"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Verwijdert de Mixar Paint-node, maar behoudt alle gebakken kanaalafbeeldingen"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Verwijdert de Lampway Paint-node, maar behoudt alle gebakken kanaalafbeeldingen"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "Deze {addon}-node-opbouw is nog niet gebakken!"
@@ -16227,8 +16227,8 @@ msgstr "Past het materiaal toe op de actieve vullaag in plaats van een nieuwe la
 msgid "Material '{name}' not found in registry"
 msgstr "Materiaal '{name}' niet gevonden in register"
 
-msgid "No active Mixar Paint node found"
-msgstr "Geen actieve Mixar Paint-node gevonden"
+msgid "No active Lampway Paint node found"
+msgstr "Geen actieve Lampway Paint-node gevonden"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "Materiaal '{name}' toegepast op bestaande laag"
@@ -16431,7 +16431,7 @@ msgstr "Geen laaggebaseerd materiaal actief"
 msgid "To use texture baking:"
 msgstr "Om texturen te bakken:"
 
-msgid "  1. Select an object with a Mixar material"
+msgid "  1. Select an object with a Lampway material"
 msgstr "  1. Selecteer een object met een Mixar-materiaal"
 
 msgid "  2. Or create a new layer-based material"
@@ -16533,7 +16533,7 @@ msgstr "Verfbackend niet geïnitialiseerd"
 msgid "Paint UI not initialized"
 msgstr "Verf-UI niet geïnitialiseerd"
 
-msgid "No Mixar material found"
+msgid "No Lampway material found"
 msgstr "Geen Mixar-materiaal gevonden"
 
 msgid "No layer based material"
@@ -16551,7 +16551,7 @@ msgstr "Geen laag geselecteerd"
 msgid "No active material"
 msgstr "Geen actief materiaal"
 
-msgid "No Mixar node found"
+msgid "No Lampway node found"
 msgstr "Geen Mixar-node gevonden"
 
 msgid "Backend layer not found"
@@ -17227,16 +17227,16 @@ msgstr "De laag is momenteel gefocust/geselecteerd"
 msgid "How this layer blends with layers below"
 msgstr "Hoe deze laag mengt met de onderliggende lagen"
 
-msgid "Mixar Layer Index"
+msgid "Lampway Layer Index"
 msgstr "Mixar-laagindex"
 
-msgid "Index in Mixar mixar_mp.layers collection"
+msgid "Index in Lampway mixar_mp.layers collection"
 msgstr "Index in de Mixar-collectie mixar_mp.layers"
 
-msgid "Mixar Group Node"
+msgid "Lampway Group Node"
 msgstr "Mixar-groepsnode"
 
-msgid "Name of the Mixar group node"
+msgid "Name of the Lampway group node"
 msgstr "Naam van de Mixar-groepsnode"
 
 msgid "Updating Property"
@@ -18312,8 +18312,8 @@ msgstr "Kleur van een ander object"
 msgid "Other Objects Channels"
 msgstr "Kanalen van andere objecten"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "Mixar Paint-kanalen van een ander object"
+msgid "Other object's Lampway Paint channels"
+msgstr "Lampway Paint-kanalen van een ander object"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "Geselecteerde punten/randen/vlakken"
@@ -18639,17 +18639,17 @@ msgstr ""
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
 msgstr ""
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
 msgstr ""
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "inschakelen mislukt (mogelijk niet compatibel met Blender 5.0)"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
-msgstr "Haal add-ons en extensies uit uw bestaande Blender-installatie naar Mixar."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
+msgstr "Haal add-ons en extensies uit uw bestaande Blender-installatie naar Lampway."
 
 msgid "Scan for Blender Plugins"
 msgstr "Zoeken naar Blender-plug-ins"
@@ -18672,14 +18672,14 @@ msgstr "Inschakelen na importeren:"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "Alle vermelde plug-ins worden gekopieerd; aangevinkte worden ingeschakeld."
 
-msgid "Import into Mixar"
-msgstr "Importeren in Mixar"
+msgid "Import into Lampway"
+msgstr "Importeren in Lampway"
 
 msgid "Imported"
 msgstr "Geïmporteerd"
 
-msgid "Already in Mixar"
-msgstr "Al in Mixar"
+msgid "Already in Lampway"
+msgstr "Al in Lampway"
 
 msgid "Copy failed"
 msgstr "Kopiëren mislukt"
@@ -18705,11 +18705,11 @@ msgstr "Plug-ins selecteren"
 msgid "Tick or untick every plugin in the list"
 msgstr "Vinkt alle plug-ins in de lijst aan of uit"
 
-msgid "Import Plugins into Mixar"
-msgstr "Plug-ins importeren in Mixar"
+msgid "Import Plugins into Lampway"
+msgstr "Plug-ins importeren in Lampway"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
-msgstr "Kopieert alle vermelde plug-ins naar Mixar en schakelt de aangevinkte in"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
+msgstr "Kopieert alle vermelde plug-ins naar Lampway en schakelt de aangevinkte in"
 
 msgid "Nothing scanned — run Scan first"
 msgstr "Niets gescand — voer eerst een scan uit"
@@ -18726,8 +18726,8 @@ msgstr "Geïmporteerd {imported}, al aanwezig {already_present}, mislukt {failed
 msgid "Imported: {count}"
 msgstr "Geïmporteerd: {count}"
 
-msgid "Already in Mixar: {count}"
-msgstr "Al in Mixar: {count}"
+msgid "Already in Lampway: {count}"
+msgstr "Al in Lampway: {count}"
 
 msgid "Enabled: {count}"
 msgstr "Ingeschakeld: {count}"
@@ -18744,8 +18744,8 @@ msgstr "Importeren uit Blender"
 msgid "{count} found"
 msgstr "{count} gevonden"
 
-msgid "Enable this plugin in Mixar after importing it"
-msgstr "Schakelt deze plug-in in Mixar in na het importeren"
+msgid "Enable this plugin in Lampway after importing it"
+msgstr "Schakelt deze plug-in in Lampway in na het importeren"
 
 msgid "Blender Version"
 msgstr "Blender Versie"
@@ -18798,13 +18798,13 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
+msgid "Lampway Scene Graph"
 msgstr "Mixar-scènegraaf"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "Scènegraaf per scène die de agent kan lezen (JSON). Alleen tijdens runtime."
 
-msgid "Mixar Scene Graph Query Result"
+msgid "Lampway Scene Graph Query Result"
 msgstr "Queryresultaat Mixar-scènegraaf"
 
 msgid "JSON result of the last scene-graph query operator call."
@@ -19524,8 +19524,8 @@ msgstr "Video's vereisen de videomodus. Verwijder de video om naar de agent te v
 msgid "User ID"
 msgstr "Gebruikers-ID"
 
-msgid "User ID for Mixie Chat login"
-msgstr "Gebruikers-ID om in te loggen bij Mixie Chat"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "Gebruikers-ID om in te loggen bij Lampway Agent Chat"
 
 msgid "Agent expects: {formats}"
 msgstr "Agent verwacht: {formats}"
@@ -19983,11 +19983,11 @@ msgstr "Rond het handschrift af voordat u spraakinvoer start."
 msgid "Sign in to use voice input."
 msgstr "Log in om spraakinvoer te gebruiken."
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "Start Mixar vanuit Finder om microfoontoegang toe te staan."
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "Start Lampway vanuit Finder om microfoontoegang toe te staan."
 
-msgid "Allow microphone access for Mixar in system privacy settings."
-msgstr "Sta microfoontoegang voor Mixar toe in de privacyinstellingen van het systeem."
+msgid "Allow microphone access for Lampway in system privacy settings."
+msgstr "Sta microfoontoegang voor Lampway toe in de privacyinstellingen van het systeem."
 
 msgid "Allow microphone"
 msgstr "Microfoon toestaan"
@@ -20034,7 +20034,7 @@ msgstr "Log opnieuw in."
 msgid "Login Failed"
 msgstr "Inloggen mislukt"
 
-msgid "Sign in with your Mixar account"
+msgid "Sign in with your Lampway account"
 msgstr "Log in met uw Mixar-account"
 
 msgid "Waiting for browser..."
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "Dashboard"
 
-msgid "About Mixar"
-msgstr "Over Mixar"
+msgid "About Lampway"
+msgstr "Over Lampway"
 
 msgid "Documentation"
 msgstr "Documentatie"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "Kopie zonder chat geëxporteerd ({count} bericht(en) weggelaten uit {scenes} scène(s))."
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Mixar Chat: .blend exporteren zonder chatgeschiedenis"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Lampway Chat: .blend exporteren zonder chatgeschiedenis"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "Generatie is momenteel niet beschikbaar. Ververs de catalogus en probeer het opnieuw."
@@ -20882,7 +20882,7 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Regels toevoegen"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
 msgstr "Definieert regels voor Mixie. Wijzigingen gelden vanaf uw volgende bericht of antwoord; globale regels gelden in elk Mixar-bestand. Uw huidige verzoek heeft voorrang op project- en globale regels"
 
 msgid "Rule operation failed"
@@ -22138,7 +22138,7 @@ msgstr "Tekst van de laatst opgehaalde gebeurtenis van de spraakherkenner"
 msgid "Materials: {count}"
 msgstr "Materialen: {count}"
 
-msgid "No Mixar material active"
+msgid "No Lampway material active"
 msgstr "Geen Mixar-materiaal actief"
 
 msgid "{channel} Settings"
@@ -22801,8 +22801,8 @@ msgstr "Y schalen"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "Schaalt geselecteerde UV's in Y-richting (stapsgewijs)"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Eigenschappen van het annotatiegereedschap voor de ruimte Mixar UV-eigenschappen."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Eigenschappen van het annotatiegereedschap voor de ruimte Lampway UV-eigenschappen."
 
 msgid "Annotate Line"
 msgstr "Annotatielijn"
@@ -22828,14 +22828,14 @@ msgstr "Stijl begin"
 msgid "Toggle UV Sidebar"
 msgstr "UV-zijbalk aan/uit"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "Schakelt de Mixar UV-zijbalk in de afbeeldingseditor in of uit"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "Schakelt de Lampway UV-zijbalk in de afbeeldingseditor in of uit"
 
 msgid "Open UV Sidebar"
 msgstr "UV-zijbalk openen"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Opent de Mixar UV-zijbalk als deze verborgen is"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Opent de Lampway UV-zijbalk als deze verborgen is"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "Lege status die wordt getoond als er geen UV-eigenschappen beschikbaar zijn"
@@ -22858,8 +22858,8 @@ msgstr "Exporteer UV Indeling"
 msgid "Export UV layout using stored properties"
 msgstr "Exporteert de UV-indeling met de opgeslagen eigenschappen"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "UV-exportpaneel voor de ruimte Mixar UV-eigenschappen"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "UV-exportpaneel voor de ruimte Lampway UV-eigenschappen"
 
 msgid "UV UI not initialized"
 msgstr "UV-UI niet geïnitialiseerd"
@@ -22975,8 +22975,8 @@ msgstr "UV's plakken"
 msgid "Functions"
 msgstr "Functies"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Paneel UV-functies voor de ruimte Mixar UV-eigenschappen - gereedschapsgebaseerd (geen knop in de kopbalk)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Paneel UV-functies voor de ruimte Lampway UV-eigenschappen - gereedschapsgebaseerd (geen knop in de kopbalk)"
 
 msgid "Seam"
 msgstr "Naad"
@@ -23104,8 +23104,8 @@ msgstr "Geen afbeelding in de UV-editor"
 msgid "Material '{name}' created and applied"
 msgstr "Materiaal '{name}' gemaakt en toegepast"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Afbeeldingspaneel voor de ruimte Mixar UV-eigenschappen."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Afbeeldingspaneel voor de ruimte Lampway UV-eigenschappen."
 
 msgid "Save As"
 msgstr "Opslaan Als"
@@ -23137,8 +23137,8 @@ msgstr "Afbeeldingsgrootte"
 msgid "Invert All Colors"
 msgstr "Alle kleuren omkeren"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Materiaalslotpaneel voor de ruimte Mixar UV-eigenschappen"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Materiaalslotpaneel voor de ruimte Lampway UV-eigenschappen"
 
 msgid "No active object"
 msgstr "Geen actief object"
@@ -23182,8 +23182,8 @@ msgstr "Maakt aangepaste gebieden in de UV-ruimte om in te pakken"
 msgid "{label} unavailable"
 msgstr "{label} niet beschikbaar"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Indelingspaneel voor de ruimte Mixar UV-eigenschappen."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Indelingspaneel voor de ruimte Lampway UV-eigenschappen."
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "Eigenschappen van uv.pack_islands niet beschikbaar"
@@ -23329,8 +23329,8 @@ msgstr "Projecteren"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "Projecteert UV's met het type en de eigenschappen uit het paneel Projectie"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Status van Mixar UV-UI niet geïnitialiseerd"
+msgid "Lampway UV UI state not initialized"
+msgstr "Status van Lampway UV-UI niet geïnitialiseerd"
 
 msgid "Unknown projection type: {type}"
 msgstr "Onbekend projectietype: {type}"
@@ -23461,8 +23461,8 @@ msgstr "Selecteer Aaneengesloten"
 msgid "Select linked UVs"
 msgstr "Selecteert gekoppelde UV's"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Selectiepaneel voor de ruimte Mixar UV-eigenschappen - gereedschapsgebaseerd (geen knop in de kopbalk)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Selectiepaneel voor de ruimte Lampway UV-eigenschappen - gereedschapsgebaseerd (geen knop in de kopbalk)"
 
 msgid "Basic Selection"
 msgstr "Basisselectie"
@@ -23503,8 +23503,8 @@ msgstr "Selecteer Splits"
 msgid "Select Overlap"
 msgstr "Overlap selecteren"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Paneel Texeldichtheid voor de ruimte Mixar UV-eigenschappen"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Paneel Texeldichtheid voor de ruimte Lampway UV-eigenschappen"
 
 msgid "Activate Grab Tool"
 msgstr "Grijpgereedschap activeren"
@@ -23548,8 +23548,8 @@ msgstr "Centreert de weergave op de cursor"
 msgid "UV Sculpt Tools"
 msgstr "UV-beeldhouwgereedschappen"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Paneel UV-beeldhouwgereedschappen voor de ruimte Mixar UV-eigenschappen - gereedschapsgebaseerd (geen knop in de kopbalk)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Paneel UV-beeldhouwgereedschappen voor de ruimte Lampway UV-eigenschappen - gereedschapsgebaseerd (geen knop in de kopbalk)"
 
 msgid "Grab"
 msgstr "Grijpen"
@@ -23668,8 +23668,8 @@ msgstr "Past een schaaltransformatie toe op geselecteerde UV's"
 msgid "Snapping"
 msgstr "Snappen"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Snappaneel voor de ruimte Mixar UV-eigenschappen"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Snappaneel voor de ruimte Lampway UV-eigenschappen"
 
 msgid "Snapping Options"
 msgstr "Snapopties"
@@ -23719,8 +23719,8 @@ msgstr "Vouwt uit met de methode en eigenschappen uit het paneel Uitvouwen"
 msgid "Unknown unwrap method: {method}"
 msgstr "Onbekende uitvouwmethode: {method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Gecombineerd paneel Uitvouwen + projecteren voor de ruimte Mixar UV-eigenschappen."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Gecombineerd paneel Uitvouwen + projecteren voor de ruimte Lampway UV-eigenschappen."
 
 msgid "Live Unwrap"
 msgstr "Live uitvouwen"
@@ -23796,7 +23796,7 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
@@ -23804,7 +23804,7 @@ msgstr ""
 "\n"
 "Wrapper rond `image.new` die `tiled=True` vooraf instelt in het\n"
 "eigenschappendialoogvenster van de operator. Wordt gebruikt als de `new=`-operator voor\n"
-"`template_ID` in Mixar UV-panelen, zodat het dialoogvenster opent met het\n"
+"`template_ID` in Lampway UV-panelen, zodat het dialoogvenster opent met het\n"
 "selectievakje Tegels al aangevinkt. De onderliggende `image.new` voert\n"
 "het eigenlijke aanmaken en de ID-toewijzing uit.\n"
 
@@ -23826,8 +23826,8 @@ msgstr "Tegel vullen"
 msgid "Fill UDIM tile"
 msgstr "Vult een UDIM-tegel"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "Paneel UV-set voor de ruimte Mixar UV-eigenschappen."
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "Paneel UV-set voor de ruimte Lampway UV-eigenschappen."
 
 msgid "UV Maps"
 msgstr "UV-maps"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "Gereedschappen"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Gereedschapspaneel voor de ruimte Mixar UV-eigenschappen — wordt getoond als het\n"
+"Gereedschapspaneel voor de ruimte Lampway UV-eigenschappen — wordt getoond als het\n"
 "werkbalkgereedschap `builtin.uv_tool` actief is."
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,14 +24070,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Schakelt Mixar over naar de Zen-modus (minimale viewport + Agentbubbel + moodboard)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "Schakelt Lampway over naar de Zen-modus (minimale viewport + Agentbubbel + moodboard)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Kan de werkruimte voor de Zen-modus niet maken — geen sjabloon beschikbaar"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "Schakelt Mixar over naar de Engine-modus (volledige werkruimten in Blender-stijl)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "Schakelt Lampway over naar de Engine-modus (volledige werkruimten in Blender-stijl)"
 
 msgid "Modeling workspace not found"
 msgstr "Werkruimte Modeling niet gevonden"
@@ -24298,32 +24298,32 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
 msgstr "Bestand opgeslagen met een nieuwere Mixar-versie (%d.%d), sommige gegevens kunnen verloren gaan"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "Het bestand is opgeslagen met een nieuwere versie; open het met Mixar %s of later"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "Het bestand is opgeslagen met een nieuwere versie; open het met Lampway %s of later"
 
 msgid "Failed to read mixar file '%s': %s"
 msgstr "Kan Mixar-bestand '%s' niet lezen: %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
-msgstr "Kan Mixar-bestand '%s' niet lezen: onvolledige header, mogelijk afkomstig van een nieuwere versie van Mixar"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr "Kan Mixar-bestand '%s' niet lezen: onvolledige header, mogelijk afkomstig van een nieuwere versie van Lampway"
 
 msgid "Failed to read file '%s', not a mixar file"
 msgstr "Kan bestand '%s' niet lezen: geen Mixar-bestand"
 
 msgid "Unable to open mixar <memory>"
-msgstr "Kan Mixar <memory> niet openen"
+msgstr "Kan Lampway <memory> niet openen"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Mixar-bestand '%s' is gemaakt met een toekomstige versie van Mixar en bevat ID-namen die langer zijn dan momenteel wordt ondersteund. Deze zijn ingekort."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Mixar-bestand '%s' is gemaakt met een toekomstige versie van Lampway en bevat ID-namen die langer zijn dan momenteel wordt ondersteund. Deze zijn ingekort."
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
 msgstr "Mixar-bestand '%s' lijkt beschadigd; het bevat ongeldige ID-namen. Deze zijn ingekort."
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
-msgstr "Bibliotheek '%s' is gemaakt met een toekomstige versie van Mixar en bevat ID-namen die langer zijn dan momenteel wordt ondersteund. Hierdoor kunnen gekoppelde gegevens ontbreken; overweeg die bibliotheek te openen en opnieuw op te slaan met de huidige Mixar-versie."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
+msgstr "Bibliotheek '%s' is gemaakt met een toekomstige versie van Lampway en bevat ID-namen die langer zijn dan momenteel wordt ondersteund. Hierdoor kunnen gekoppelde gegevens ontbreken; overweeg die bibliotheek te openen en opnieuw op te slaan met de huidige Mixar-versie."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: gegevens verwijzen naar het hoofdbestand .mixar: '%s' uit %s"
@@ -24454,8 +24454,8 @@ msgstr "Vraag Mixie wat u maar wilt..."
 msgid "Write your prompt here..."
 msgstr "Schrijf hier uw prompt..."
 
-msgid "Everything Mixar has generated"
-msgstr "Alles wat Mixar heeft gegenereerd"
+msgid "Everything Lampway has generated"
+msgstr "Alles wat Lampway heeft gegenereerd"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -25771,13 +25771,13 @@ msgstr "Mixie3D-voorbeeld verwijderen"
 msgid "Delete a segmented image from the preview history"
 msgstr "Verwijdert een gesegmenteerde afbeelding uit de voorbeeldgeschiedenis"
 
-msgid "Mixar agent bubble loading…"
+msgid "Lampway agent bubble loading…"
 msgstr "Mixar-agentbubbel wordt geladen…"
 
 msgid "Show Agent Bubble"
 msgstr "Agentbubbel tonen"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
 msgstr "Opent de zwevende agentbubbel-overlay waarmee de gebruiker overal in de Mixar-interface met de AI-agent kan chatten"
 
 msgid "Chat is still loading. Please drop the asset again."
@@ -25822,8 +25822,8 @@ msgstr "Voegt een neergezette afbeelding toe als chatbijlage"
 msgid "Dropped image datablock"
 msgstr "Neergezet afbeeldingsdatablok"
 
-msgid "Tell me about the features in Mixar"
-msgstr "Vertel me over de functies van Mixar"
+msgid "Tell me about the features in Lampway"
+msgstr "Vertel me over de functies van Lampway"
 
 msgid "Generate a futuristic sci-fi character concept"
 msgstr "Genereer een futuristisch sciencefiction-personageconcept"
@@ -26755,13 +26755,13 @@ msgstr "Bewerkingen voor het bakken en verwerken van texturen"
 msgid "Texture set management for PBR workflows"
 msgstr "Beheer van texturesets voor PBR-workflows"
 
-msgid "Mixar UV Editor"
-msgstr "Mixar UV-editor"
+msgid "Lampway UV Editor"
+msgstr "Lampway UV-editor"
 
-msgid "Mixar UV editing mode"
-msgstr "Mixar UV-bewerkmodus"
+msgid "Lampway UV editing mode"
+msgstr "Lampway UV-bewerkmodus"
 
-msgid "Mixar Layers Properties"
+msgid "Lampway Layers Properties"
 msgstr "Eigenschappen van Mixar-lagen"
 
 msgid "Reference image board like PureRef"
@@ -26770,8 +26770,8 @@ msgstr "Bord met referentieafbeeldingen zoals PureRef"
 msgid "Mixie Space"
 msgstr "Mixie-ruimte"
 
-msgid "Mixie editor for Mixar"
-msgstr "Mixie-editor voor Mixar"
+msgid "Mixie editor for Lampway"
+msgstr "Mixie-editor voor Lampway"
 
 msgid "Mixie editor mode"
 msgstr "Mixie-editormodus"
@@ -26779,8 +26779,8 @@ msgstr "Mixie-editormodus"
 msgid "Agent Bubble Space"
 msgstr "Ruimte Agentbubbel"
 
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Zwevende agentchat-overlayeditor voor Mixar"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Zwevende agentchat-overlayeditor voor Lampway"
 
 msgid "Top Bar Space"
 msgstr "Ruimte bovenbalk"
@@ -26788,22 +26788,22 @@ msgstr "Ruimte bovenbalk"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "Bovenbalk met de tabbladen van de werkruimten en de editormenu's"
 
-msgid "Mixar Layers Space"
+msgid "Lampway Layers Space"
 msgstr "Ruimte Mixar-lagen"
 
-msgid "Mixar texture layer stack management"
+msgid "Lampway texture layer stack management"
 msgstr "Beheer van de Mixar-textuurlagenstapel"
 
-msgid "Mixar Properties Space"
+msgid "Lampway Properties Space"
 msgstr "Ruimte Mixar-eigenschappen"
 
-msgid "Mixar layer and texture properties"
+msgid "Lampway layer and texture properties"
 msgstr "Mixar-laag- en textuureigenschappen"
 
-msgid "Mixar Assets Space"
+msgid "Lampway Assets Space"
 msgstr "Ruimte Mixar-assets"
 
-msgid "Mixar smart materials, brushes, and textures library"
+msgid "Lampway smart materials, brushes, and textures library"
 msgstr "Mixar-bibliotheek met slimme materialen, kwasten en texturen"
 
 msgid "Texture sets management"
@@ -26812,8 +26812,8 @@ msgstr "Beheer van texturesets"
 msgid "Use Blender's theme"
 msgstr "Gebruikt het thema van Blender"
 
-msgid "Mixar Zen components"
-msgstr "Mixar Zen-componenten"
+msgid "Lampway Zen components"
+msgstr "Lampway Zen-componenten"
 
 msgid "Compatibility appearance"
 msgstr "Compatibiliteitsweergave"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "Globale gebieden"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
 msgstr "Vensterglobale gebieden (bovenbalk, statusbalk). Mixar-uitbreiding — beschikbaar gemaakt zodat de onboarding de bovenbalk kan aanspreken om opnieuw te tekenen."
 
 msgid "QA UI Dump"
 msgstr "QA-UI-dump"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "JSON-momentopname van alle actieve UI-widgets (labels, operators, eigenschappen, rechthoeken in vensterruimte, status) voor de Mixar QA-harness"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "JSON-momentopname van alle actieve UI-widgets (labels, operators, eigenschappen, rechthoeken in vensterruimte, status) voor de Lampway QA-harness"
 
 msgid "Window Resizing"
 msgstr "Venstergrootte wordt gewijzigd"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "QA-framecapture vereist --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,11 +27982,11 @@ msgstr "Microfoon vastgelopen of opnamebuffer overgelopen"
 msgid "Microphone disconnected"
 msgstr "Microfoon losgekoppeld"
 
-msgid "Mixar File View"
+msgid "Lampway File View"
 msgstr "Mixar-bestandsweergave"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
-msgstr "Proxy's zijn uit Mixar verwijderd (%d proxy's zijn automatisch omgezet naar bibliotheekoverrides, %d proxy's konden niet worden omgezet en zijn gewist). Overweeg alle .mixar-bibliotheekbestanden opnieuw op te slaan met de nieuwste Mixar-versie"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
+msgstr "Proxy's zijn uit Lampway verwijderd (%d proxy's zijn automatisch omgezet naar bibliotheekoverrides, %d proxy's konden niet worden omgezet en zijn gewist). Overweeg alle .mixar-bibliotheekbestanden opnieuw op te slaan met de nieuwste Mixar-versie"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
 msgstr "Kan Mixar-bestand niet opslaan, pad \"%s\" is niet beschrijfbaar"
@@ -27994,11 +27994,11 @@ msgstr "Kan Mixar-bestand niet opslaan, pad \"%s\" is niet beschrijfbaar"
 msgid "Cannot save mixar file, path \"%s\" is a directory"
 msgstr "Kan Mixar-bestand niet opslaan, pad \"%s\" is een map"
 
-msgid "Mixar will start next time as it is now."
-msgstr "Mixar start de volgende keer zoals het nu is."
+msgid "Lampway will start next time as it is now."
+msgstr "Lampway start de volgende keer zoals het nu is."
 
-msgid "Load Factory Mixar Preferences"
-msgstr "Fabrieksinstellingen van Mixar laden"
+msgid "Load Factory Lampway Preferences"
+msgstr "Fabrieksinstellingen van Lampway laden"
 
 msgid "Load user interface setup from the .mixar file"
 msgstr "Laadt de indeling van de gebruikersinterface uit het .mixar-bestand"
@@ -28006,13 +28006,13 @@ msgstr "Laadt de indeling van de gebruikersinterface uit het .mixar-bestand"
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr "Staat toe dat het .mixar-bestand automatisch scripts uitvoert; de standaardwaarde is beschikbaar in de systeeminstellingen"
 
-msgid "Open a Mixar file"
+msgid "Open a Lampway file"
 msgstr "Opent een Mixar-bestand"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr "Laadt de indeling van de gebruikersinterface in het .mixar-bestand"
 
-msgid "Mixar Files"
+msgid "Lampway Files"
 msgstr "Mixar-bestanden"
 
 msgid "Show only .mixar files"
@@ -28039,26 +28039,26 @@ msgstr "Opslaan als .mixar-bestand"
 msgid "Save as .blend file"
 msgstr "Opslaan als .blend-bestand"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
 msgstr "Slaat het huidige Mixar-bestand op met een numeriek opgehoogde naam die geen bestaande bestanden overschrijft"
 
-msgid "Save Mixar File"
+msgid "Save Lampway File"
 msgstr "Mixar-bestand opslaan"
 
-msgid "Save the current Mixar file"
+msgid "Save the current Lampway file"
 msgstr "Slaat het huidige Mixar-bestand op"
 
-msgid "Exit Mixar after saving"
-msgstr "Sluit Mixar af na het opslaan"
+msgid "Exit Lampway after saving"
+msgstr "Sluit Lampway af na het opslaan"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
-msgstr "Dit bestand is opgeslagen met een nieuwere versie van Mixar (%s)."
+msgid "This file was saved by a newer version of Lampway (%s)."
+msgstr "Dit bestand is opgeslagen met een nieuwere versie van Lampway (%s)."
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
-msgstr "Opslaan met deze Mixar (%s) kan tot gegevensverlies leiden."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
+msgstr "Opslaan met deze Lampway (%s) kan tot gegevensverlies leiden."
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "Dit bestand wordt beheerd door het assetsysteem van Mixar. Het kan alleen worden"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "Dit bestand wordt beheerd door het assetsysteem van Lampway. Het kan alleen worden"
 
 msgid "Filter .mixar files"
 msgstr ".mixar-bestanden filteren"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
 msgstr "Er zijn mogelijk nieuwere grafische stuurprogramma's beschikbaar met betere Mixar-compatibiliteit."
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "Upgraden naar de nieuwste macOS-versie kan de ondersteuning voor Mixar verbeteren"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "Upgraden naar de nieuwste macOS-versie kan de ondersteuning voor Lampway verbeteren"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Mixar wordt nu afgesloten."
+msgid "Lampway will now close."
+msgstr "Lampway wordt nu afgesloten."

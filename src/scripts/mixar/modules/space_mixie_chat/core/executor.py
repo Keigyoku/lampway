@@ -118,7 +118,7 @@ class ScriptExecutor(SceneStateMixin, HandlerCleanupMixin):
         if self._window_on_lane_scene():
             logger.debug("Closing undo checkpoint skipped: window pinned to a lane scene")
             return
-        if not self._push_undo_checkpoint("Mixie Chat Turn"):
+        if not self._push_undo_checkpoint("Lampway Agent Chat Turn"):
             logger.warning("Closing undo checkpoint failed - the turn's work may not be redoable")
 
     def _should_push_undo(self, grouping: bool = None) -> bool:
@@ -155,7 +155,7 @@ class ScriptExecutor(SceneStateMixin, HandlerCleanupMixin):
             return False
         return False
 
-    def _push_undo_checkpoint(self, message: str = "Mixie Chat Script") -> bool:
+    def _push_undo_checkpoint(self, message: str = "Lampway Agent Chat Script") -> bool:
         """Push an undo checkpoint; retry once inside an explicit window
         context (undo_push's poll fails when the script runs without one).
         Returns True only when a checkpoint was actually created."""

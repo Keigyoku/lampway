@@ -41,7 +41,7 @@ class MIXAR_OT_unwrap(Operator):
         wm = context.window_manager
         ui = getattr(wm, 'mixar_uv_ui', None)
         if ui is None:
-            self.report({'ERROR'}, "Mixar UV UI state not initialized")
+            self.report({'ERROR'}, "Lampway UV UI state not initialized")
             return {'CANCELLED'}
 
         method = ui.unwrap_method

@@ -81,7 +81,7 @@ def register():
         bpy.types.WindowManager,
         WM_PROP_TOUR_STATE,
         bpy.props.StringProperty(
-            name="Mixar Tour State",
+            name="Lampway Tour State",
             description="JSON snapshot of the interactive tour's runner state",
             default="",
             options={"SKIP_SAVE"},
@@ -91,7 +91,7 @@ def register():
         bpy.types.WindowManager,
         WM_PROP_TOUR_QA_TARGETS,
         bpy.props.StringProperty(
-            name="Mixar Tour QA Targets",
+            name="Lampway Tour QA Targets",
             description="JSON list of the tour's clickable control rects",
             default="",
             options={"SKIP_SAVE"},

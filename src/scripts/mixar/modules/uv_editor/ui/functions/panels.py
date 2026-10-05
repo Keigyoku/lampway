@@ -14,7 +14,7 @@ from bpy.types import Panel
 
 
 class MIXAR_UV_PT_functions(Panel):
-    """UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"""
+    """UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"""
     bl_label = "Functions"
     bl_idname = "MIXAR_UV_PT_functions"
     bl_space_type = 'IMAGE_EDITOR'

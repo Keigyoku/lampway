@@ -68,7 +68,7 @@ def _active_tool_from_image_editor(context):
 
 
 class MIXAR_UV_PT_annotate(Panel):
-    """Annotate tool properties for the Mixar UV Properties space."""
+    """Annotate tool properties for the Lampway UV Properties space."""
     bl_label = "Annotate"
     bl_idname = "MIXAR_UV_PT_annotate"
     bl_space_type = 'IMAGE_EDITOR'

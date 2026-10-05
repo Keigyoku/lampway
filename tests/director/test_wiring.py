@@ -829,7 +829,7 @@ def test_handheld_is_noise_modifiers_not_keyframes():
     shot_api = _read("core/shot_api.py")
     popup = (VIEW3D / "view3d_director_popup.cc").read_text(encoding="utf-8")
 
-    assert 'HANDHELD_MODIFIER_NAME = "Mixar Handheld"' in handheld
+    assert 'HANDHELD_MODIFIER_NAME = "Lampway Handheld"' in handheld
     assert "modifiers.new(type='NOISE')" in handheld
     assert "modifier.name == HANDHELD_MODIFIER_NAME" in handheld
     assert "keyframe_insert" not in handheld

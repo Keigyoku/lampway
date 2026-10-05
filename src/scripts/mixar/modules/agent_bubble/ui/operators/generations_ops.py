@@ -56,7 +56,7 @@ from mixar.modules.common.i18n import rpt_
 logger = logging.getLogger(__name__)
 
 #: Must match ``asset_search/constants.py:GENERATION_LIBRARY_NAME``.
-GENERATIONS_LIBRARY_NAME = "Mixar Generations"
+GENERATIONS_LIBRARY_NAME = "Lampway Generations"
 
 #: ``<dir>/<file>.blend/<IDType>/<name>`` — an asset's library-relative
 #: identifier, with either separator (Windows builds it with ``\\``).
@@ -318,7 +318,7 @@ class MIXAR_OT_generations_open_folder(Operator):
 
 
 class MIXAR_OT_generations_remove_library(Operator):
-    """Disconnect a library folder from Mixar (its files stay on disk)."""
+    """Disconnect a library folder from Lampway (its files stay on disk)."""
 
     bl_idname = "mixar.generations_remove_library"
     bl_label = "Remove Library"
@@ -338,7 +338,7 @@ class MIXAR_OT_generations_remove_library(Operator):
         if name == GENERATIONS_LIBRARY_NAME:
             # The auto-archive: removing it would only have it re-registered
             # on the next generation, and AI generations shows it anyway.
-            self.report({'ERROR'}, "Mixar Generations is managed automatically")
+            self.report({'ERROR'}, "Lampway Generations is managed automatically")
             return {'CANCELLED'}
         try:
             libs = context.preferences.filepaths.asset_libraries

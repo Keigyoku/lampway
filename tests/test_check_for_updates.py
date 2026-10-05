@@ -152,7 +152,7 @@ def test_first_check_announces_and_records(monkeypatch):
 
     trigger._on_check_success(_response())
 
-    assert _toast().title == "Mixar Update Available"
+    assert _toast().title == "Lampway Update Available"
     assert fake.value == "3.9.0=available"
 
 
@@ -194,7 +194,7 @@ def test_interactive_check_re_announces(monkeypatch):
 
     trigger._on_check_success(_response())
 
-    assert _toast().title == "Mixar Update Available"
+    assert _toast().title == "Lampway Update Available"
 
 
 def test_forced_update_re_announces_every_check(monkeypatch):
@@ -204,7 +204,7 @@ def test_forced_update_re_announces_every_check(monkeypatch):
 
     trigger._on_check_success(_response(force_update=True))
 
-    assert _toast().title == "Mixar Update Required"
+    assert _toast().title == "Lampway Update Required"
 
 
 # ============================================================================

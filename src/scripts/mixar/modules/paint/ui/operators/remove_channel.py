@@ -226,7 +226,7 @@ class CHANNELS_OT_RemoveChannel(Operator):
         """
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         tree = node.node_tree

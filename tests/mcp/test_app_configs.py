@@ -14,20 +14,20 @@ import pytest
 from mixar.modules.mcp_bridge.core import app_configs
 from mixar.modules.mcp_bridge.core.setup import render
 
-LAUNCHER = "/Users/me/.mixar/connector/mixar-mcp"
+LAUNCHER = "/Users/me/.lampway/connector/lampway-mcp"
 
 
 def test_every_app_renders_the_same_launcher_in_its_format(monkeypatch):
     monkeypatch.setattr(sys, "platform", "darwin")
     out = {key: render(key, LAUNCHER, []) for key, _name, _how in app_configs.APPS}
-    assert shlex.split(out["CLAUDE_CODE"]) == ["claude", "mcp", "add", "--scope", "user", "mixar", "--", LAUNCHER]
-    assert tomllib.loads(out["CODEX"])["mcp_servers"]["mixar"] == {
+    assert shlex.split(out["CLAUDE_CODE"]) == ["claude", "mcp", "add", "--scope", "user", "lampway", "--", LAUNCHER]
+    assert tomllib.loads(out["CODEX"])["mcp_servers"]["lampway"] == {
         "command": LAUNCHER, "args": [], "tool_timeout_sec": 610}
     assert json.loads(out["CLAUDE_DESKTOP"]) == json.loads(out["JSON"]) == {
-        "mcpServers": {"mixar": {"command": LAUNCHER, "args": []}}}
-    assert json.loads(out["CURSOR"])["mcpServers"]["mixar"]["type"] == "stdio"
-    assert json.loads(out["VSCODE"])["servers"]["mixar"]["command"] == LAUNCHER
-    opencode = json.loads(out["OPENCODE"])["mcp"]["mixar"]
+        "mcpServers": {"lampway": {"command": LAUNCHER, "args": []}}}
+    assert json.loads(out["CURSOR"])["mcpServers"]["lampway"]["type"] == "stdio"
+    assert json.loads(out["VSCODE"])["servers"]["lampway"]["command"] == LAUNCHER
+    opencode = json.loads(out["OPENCODE"])["mcp"]["lampway"]
     assert opencode["command"] == [LAUNCHER] and opencode["timeout"] >= 30_000
     assert out["COMMAND"] == LAUNCHER
 
@@ -63,15 +63,15 @@ def codex(tmp_path):
     return path
 
 
-def test_codex_gets_mixar_appended_and_keeps_everything_else(codex):
+def test_codex_gets_lampway_appended_and_keeps_everything_else(codex):
     codex.write_text(EXISTING)
     assert app_configs.add_to_codex(LAUNCHER, [], codex) == ("added", "")
     text = codex.read_text()
     assert text.startswith(EXISTING.rstrip("\n")) and "# my settings" in text
     data = tomllib.loads(text)
-    assert data["mcp_servers"]["mixar"]["tool_timeout_sec"] == 610
+    assert data["mcp_servers"]["lampway"]["tool_timeout_sec"] == 610
     assert data["mcp_servers"]["other"] == {"command": "other-server"}
-    assert codex.with_name("config.toml.mixar-backup").read_text() == EXISTING
+    assert codex.with_name("config.toml.lampway-backup").read_text() == EXISTING
 
 
 def test_codex_already_set_up_is_left_alone(codex):
@@ -82,11 +82,11 @@ def test_codex_already_set_up_is_left_alone(codex):
 
 
 def test_codex_stale_entry_is_replaced_with_its_sub_tables(codex):
-    codex.write_text(EXISTING + '\n[mcp_servers.mixar]\ncommand = "/old/mixar-mcp"\n\n'
-                     '[mcp_servers.mixar.env]\nX = "1"\n\n[tui]\ntheme = "dark"\n')
+    codex.write_text(EXISTING + '\n[mcp_servers.lampway]\ncommand = "/old/mixar-mcp"\n\n'
+                     '[mcp_servers.lampway.env]\nX = "1"\n\n[tui]\ntheme = "dark"\n')
     assert app_configs.add_to_codex(LAUNCHER, [], codex) == ("updated", "")
     data = tomllib.loads(codex.read_text())
-    assert data["mcp_servers"]["mixar"] == {"command": LAUNCHER, "args": [], "tool_timeout_sec": 610}
+    assert data["mcp_servers"]["lampway"] == {"command": LAUNCHER, "args": [], "tool_timeout_sec": 610}
     assert data["tui"] == {"theme": "dark"} and data["mcp_servers"]["other"]
 
 
@@ -119,18 +119,18 @@ def fake_claude(monkeypatch, responses):
 
 
 def test_claude_code_is_added_through_its_own_command(monkeypatch):
-    calls = fake_claude(monkeypatch, [(0, "Added stdio MCP server mixar")])
+    calls = fake_claude(monkeypatch, [(0, "Added stdio MCP server lampway"), (1, "No MCP server found with name: mixar")])
     assert app_configs.add_to_claude_code(LAUNCHER, [], cli="/bin/claude") == ("added", "")
-    assert calls == [["mcp", "add"]]
+    assert calls == [["mcp", "add"], ["mcp", "get"]], "after adding, an old `mixar` entry is looked for (and retired when present)"
 
 
 def test_claude_code_existing_entry_is_kept_or_replaced(monkeypatch):
-    fake_claude(monkeypatch, [(1, "MCP server mixar already exists in user config"),
-                              (0, "mixar:\n  Scope: User config\n  Command: " + LAUNCHER)])
+    fake_claude(monkeypatch, [(1, "MCP server lampway already exists in user config"),
+                              (0, "lampway:\n  Scope: User config\n  Command: " + LAUNCHER), (1, "")])
     assert app_configs.add_to_claude_code(LAUNCHER, [], cli="/bin/claude") == ("already", "")
-    calls = fake_claude(monkeypatch, [(1, "already exists"), (0, "Command: /old/path"), (0, "Removed"), (0, "Added")])
+    calls = fake_claude(monkeypatch, [(1, "already exists"), (0, "Command: /old/path"), (0, "Removed"), (0, "Added"), (1, "")])
     assert app_configs.add_to_claude_code(LAUNCHER, [], cli="/bin/claude") == ("updated", "")
-    assert calls == [["mcp", "add"], ["mcp", "get"], ["mcp", "remove"], ["mcp", "add"]]
+    assert calls == [["mcp", "add"], ["mcp", "get"], ["mcp", "remove"], ["mcp", "add"], ["mcp", "get"]]
 
 
 def test_claude_code_missing_cli_points_to_the_copy_button(monkeypatch):

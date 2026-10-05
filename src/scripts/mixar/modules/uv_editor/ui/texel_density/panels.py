@@ -17,7 +17,7 @@ from mixar.modules.texel_density.texel.ui import panel_draw
 
 
 class MIXAR_UV_PT_texel_density(Panel):
-    """Texel Density panel for Mixar UV Properties space"""
+    """Texel Density panel for Lampway UV Properties space"""
     bl_label = "Texel Density"
     bl_idname = "MIXAR_UV_PT_texel_density"
     bl_space_type = 'IMAGE_EDITOR'

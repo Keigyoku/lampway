@@ -6,7 +6,7 @@
 
 from mixar.modules.common.i18n import n_
 
-DIRECTOR_CAMERA_BASENAME = n_("Mixar Shot Camera")
+DIRECTOR_CAMERA_BASENAME = n_("Lampway Shot Camera")
 DIRECTOR_SHOT_BASENAME = n_("Shot")
 DIRECTOR_TEXT_SUFFIX = ".camera.json"
 
@@ -179,7 +179,7 @@ BEAT_INTERPOLATION_ITEMS = (
 ) + INTERPOLATION_ITEMS
 
 # Name of the Track To constraint Director owns on a tracking shot camera.
-TRACK_CONSTRAINT_NAME = "Mixar Director Track"
+TRACK_CONSTRAINT_NAME = "Lampway Director Track"
 
 SHOT_STATE_ITEMS = (
     (

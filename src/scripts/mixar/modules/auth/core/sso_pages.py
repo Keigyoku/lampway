@@ -76,7 +76,7 @@ SUCCESS_PAGE = """<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <meta name="referrer" content="no-referrer">
-  <title>Login Successful — Mixar</title>
+  <title>Login Successful — Lampway</title>
   <link rel="icon" href="data:,">
   <style>
     @font-face { font-family: 'ClashGrotesk'; font-weight: 400; font-style: normal; font-display: swap;
@@ -110,14 +110,14 @@ SUCCESS_PAGE = """<!DOCTYPE html>
 </head>
 <body>
   <main class="card" aria-labelledby="success-title">
-    <p class="brand" aria-label="Mixar">mixar</p>
+    <p class="brand" aria-label="Lampway">mixar</p>
     <div class="check" aria-hidden="true">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="20 6 9 17 4 12" />
       </svg>
     </div>
     <h1 id="success-title">Login successful</h1>
-    <p class="message">You can close this tab and return to Mixar.</p>
+    <p class="message">You can close this tab and return to Lampway.</p>
   </main>
   <script>window.close();</script>
 </body>

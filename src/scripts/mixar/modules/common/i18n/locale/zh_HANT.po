@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "浮動氣泡聊天歷史列表中的作用中列"
 msgid "Share Usage Data"
 msgstr "分享使用資料"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "分享不含內容的產品使用事件，協助改善 Mixar"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "分享不含內容的產品使用事件，協助改善 Lampway"
 
 msgid "No generation services"
 msgstr "無生成服務"
@@ -170,8 +170,8 @@ msgstr "附加元件模組名稱無效"
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "在已連結的專案中找不到設定的附加元件進入點"
 
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "已連結的資料夾沒有有效的 Mixar 專案中繼資料"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "已連結的資料夾沒有有效的 Lampway 專案中繼資料"
 
 msgid "The project metadata version is not supported"
 msgstr "不支援此專案中繼資料版本"
@@ -194,7 +194,7 @@ msgstr "進入點必須是單一頂層模組名稱"
 msgid "Set an active add-on before changing its enabled state"
 msgstr "變更啟用狀態前，請先設定作用中附加元件"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "藏庫"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "開啟智慧代理氣泡視窗"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "在獨立的浮動視窗中開啟智慧代理氣泡"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "C++ 操作器 mixar.agent_bubble_show_window 未註冊——請重新建置 Mixar（make build）以載入 agent_bubble 空間類型操作器。"
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "C++ 操作器 mixar.agent_bubble_show_window 未註冊——請重新建置 Lampway（make build）以載入 agent_bubble 空間類型操作器。"
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "無法開啟智慧代理氣泡視窗：{error}"
@@ -651,8 +651,8 @@ msgstr ""
 msgid "AI generations"
 msgstr "AI 生成內容"
 
-msgid "Everything Mixar has generated for you"
-msgstr "Mixar 為你生成的所有內容"
+msgid "Everything Lampway has generated for you"
+msgstr "Lampway 為你生成的所有內容"
 
 msgid "My Libraries"
 msgstr ""
@@ -1421,17 +1421,17 @@ msgstr "請聯絡支援團隊——目前沒有啟用的供應商"
 msgid "Select a provider with available models"
 msgstr "選取有可用模型的供應商"
 
-msgid "Managed by Mixar"
-msgstr "由 Mixar 管理"
+msgid "Managed by Lampway"
+msgstr "由 Lampway 管理"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar 會在此電腦上下載並執行精選模型"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway 會在此電腦上下載並執行精選模型"
 
 msgid "Custom local server"
 msgstr "自訂本機伺服器"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "讓 Mixar 連線至你已在執行的 OpenAI 相容伺服器（Ollama、LM Studio、llama.cpp...）"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "讓 Lampway 連線至你已在執行的 OpenAI 相容伺服器（Ollama、LM Studio、llama.cpp...）"
 
 msgid "Invalid form data — please reach out to support."
 msgstr "表單資料無效——請聯絡支援團隊。"
@@ -1553,8 +1553,8 @@ msgstr "未選取模型"
 msgid "Reset Agent Model"
 msgstr "重設智慧代理模型"
 
-msgid "Clear the saved model and let Mixar choose"
-msgstr "清除已儲存的模型，交由 Mixar 選擇"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "清除已儲存的模型，交由 Lampway 選擇"
 
 msgid "Could not change model"
 msgstr "無法變更模型"
@@ -1577,8 +1577,8 @@ msgstr "作用中"
 msgid "Not configured"
 msgstr "未設定"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "在你自己的供應商上執行 Mixar 智慧代理——啟用期間不會扣除 Mixar 點數。"
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "在你自己的供應商上執行 Lampway 智慧代理——啟用期間不會扣除 Lampway 點數。"
 
 msgid "Current Configuration"
 msgstr "目前設定"
@@ -1604,8 +1604,8 @@ msgstr "移除 API 金鑰…"
 msgid "Provider Setup"
 msgstr "供應商設定"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "加密儲存，僅用於 Mixar 智慧代理要求——儲存後只會顯示遮蔽的預覽。"
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "加密儲存，僅用於 Lampway 智慧代理要求——儲存後只會顯示遮蔽的預覽。"
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
 msgstr "請選擇支援工具 / 函式呼叫的模型——智慧代理需要此功能。"
@@ -1631,8 +1631,8 @@ msgstr "在終端機中執行  codex login  ，然後載入或貼上完整的"
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "~/.codex/auth.json 內容（貼上按鈕會讀取你的剪貼簿）。"
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "使用你的 ChatGPT 訂閱方案——不會扣除 Mixar 點數。"
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "使用你的 ChatGPT 訂閱方案——不會扣除 Lampway 點數。"
 
 msgid "Couldn't apply your changes"
 msgstr "無法套用你的變更"
@@ -1640,23 +1640,23 @@ msgstr "無法套用你的變更"
 msgid "Remove your API key?"
 msgstr "要移除你的 API 金鑰嗎？"
 
-msgid "The agent will use Mixar's default provider again."
-msgstr "智慧代理將再次使用 Mixar 的預設供應商。"
+msgid "The agent will use Lampway's default provider again."
+msgstr "智慧代理將再次使用 Lampway 的預設供應商。"
 
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "之後的智慧代理要求將扣除 Mixar 點數。"
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "之後的智慧代理要求將扣除 Lampway 點數。"
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "Mixar 智慧代理現在於你的供應商上執行——不會扣除 Mixar 點數。"
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "Lampway 智慧代理現在於你的供應商上執行——不會扣除 Lampway 點數。"
 
 msgid "API key removed"
 msgstr "已移除 API 金鑰"
 
-msgid "The agent is back on Mixar's default provider."
-msgstr "智慧代理已改回使用 Mixar 的預設供應商。"
+msgid "The agent is back on Lampway's default provider."
+msgstr "智慧代理已改回使用 Lampway 的預設供應商。"
 
-msgid "Mixar credits are charged for agent requests again."
-msgstr "智慧代理要求將再次扣除 Mixar 點數。"
+msgid "Lampway credits are charged for agent requests again."
+msgstr "智慧代理要求將再次扣除 Lampway 點數。"
 
 msgid "Try Again"
 msgstr "再試一次"
@@ -1691,8 +1691,8 @@ msgstr "已下載——未執行"
 msgid "Not downloaded"
 msgstr "未下載"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "完全在此電腦上執行——除了透過 Mixar 的智慧代理協調外，你的提示詞絕不會離開此電腦。"
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "完全在此電腦上執行——除了透過 Lampway 的智慧代理協調外，你的提示詞絕不會離開此電腦。"
 
 msgid "Cancel Download"
 msgstr "取消下載"
@@ -1730,8 +1730,8 @@ msgstr "重新掃描本機應用程式"
 msgid "Rescan this computer for running local AI apps"
 msgstr "重新掃描此電腦上執行中的本機 AI 應用程式"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "為 Mixar 智慧代理使用你自己的 API 金鑰。啟用期間，智慧代理要求不會扣除 Mixar 點數。"
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "為 Lampway 智慧代理使用你自己的 API 金鑰。啟用期間，智慧代理要求不會扣除 Lampway 點數。"
 
 msgid "Validate with the provider and save your API key"
 msgstr "向供應商驗證並儲存你的 API 金鑰"
@@ -1844,8 +1844,8 @@ msgstr "LLM 供應商"
 msgid "Model to use with the selected provider"
 msgstr "與所選供應商搭配使用的模型"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "你的 API 金鑰會加密儲存，且僅用於 Mixar 智慧代理要求。儲存後只會顯示遮蔽的預覽。"
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "你的 API 金鑰會加密儲存，且僅用於 Lampway 智慧代理要求。儲存後只會顯示遮蔽的預覽。"
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "openrouter.ai/models 中的任何模型代號（例如 anthropic/claude-opus-4.8）"
@@ -1859,8 +1859,8 @@ msgstr "~/.codex/auth.json 的內容（請先執行 `codex login`）"
 msgid "Local mode"
 msgstr "本機模式"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "由 Mixar 管理，或使用你自己的本機伺服器"
+msgid "Managed by Lampway, or your own local server"
+msgstr "由 Lampway 管理，或使用你自己的本機伺服器"
 
 msgid "Local model"
 msgstr "本機模型"
@@ -1889,11 +1889,11 @@ msgstr "伺服器回報此使用者為 byok_active 時為真"
 msgid "Dialog State"
 msgstr "對話框狀態"
 
-msgid "Set Mixie Mode"
-msgstr "設定 Mixie 模式"
+msgid "Set Lampway Agent Mode"
+msgstr "設定 Lampway Agent 模式"
 
-msgid "Switch to a specific Mixie mode"
-msgstr "切換至特定的 Mixie 模式"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "切換至特定的 Lampway Agent 模式"
 
 msgid "Mode"
 msgstr "模式"
@@ -1928,8 +1928,8 @@ msgstr "高"
 msgid "Non-contiguous enum value 27"
 msgstr "不連續的列舉值 27"
 
-msgid "Mixie v3 run active"
-msgstr "Mixie v3 執行作用中"
+msgid "Lampway Agent v3 run active"
+msgstr "Lampway Agent v3 執行作用中"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "伺服器拒絕了歷史同步要求。請更新應用程式和後端，然後重新連線。"
@@ -2420,10 +2420,10 @@ msgstr "要切換的空間類型"
 msgid "No active area"
 msgstr "沒有作用中的區域"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "本機展示庫動作"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "遞增開發者測試資料計數器；不會進行生成或變更場景"
 
-msgid "Mixar UI Gallery"
-msgstr "Mixar UI 展示庫"
+msgid "Lampway UI Gallery"
+msgstr "Lampway UI 展示庫"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "使用本機測試資料檢查共用的原生元件"
@@ -2468,8 +2468,8 @@ msgstr "隱私"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "遙測同意設定，放在使用者慣常尋找退出選項的位置。"
 
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "分享你使用了哪些 Mixar 功能，協助改善產品。"
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "分享你使用了哪些 Lampway 功能，協助改善產品。"
 
 msgid "Your prompts, files, and scene content are never included."
 msgstr "絕不包含你的提示詞、檔案和場景內容。"
@@ -2477,7 +2477,7 @@ msgstr "絕不包含你的提示詞、檔案和場景內容。"
 msgid "Privacy Policy"
 msgstr "隱私權政策"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "原生"
 msgid "Blender theme"
 msgstr "Blender 佈景主題"
 
-msgid "Legacy Mixar"
-msgstr "舊版 Mixar"
+msgid "Legacy Lampway"
+msgstr "舊版 Lampway"
 
 msgid "Compatibility profile"
 msgstr "相容性設定檔"
@@ -2624,11 +2624,11 @@ msgstr "精簡"
 msgid "Denser chrome recipe"
 msgstr "更緊密的外框配方"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "將 Mixar 移至「應用程式」資料夾即可直接更新"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "將 Lampway 移至「應用程式」資料夾即可直接更新"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar 並非從應用程式套件執行"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway 並非從應用程式套件執行"
 
 msgid "No permission to update {path}"
 msgstr "沒有更新 {path} 的權限"
@@ -2660,8 +2660,8 @@ msgstr "找不到已下載的安裝程式"
 msgid "Could not start the updater"
 msgstr "無法啟動更新程式"
 
-msgid "Mixar didn't close"
-msgstr "Mixar 未關閉"
+msgid "Lampway didn't close"
+msgstr "Lampway 未關閉"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "此平台不支援應用程式內更新"
@@ -2687,32 +2687,32 @@ msgstr "已下載 {size}"
 msgid "Starting download…"
 msgstr "正在開始下載…"
 
-msgid "Downloading Mixar {version}"
-msgstr "正在下載 Mixar {version}"
+msgid "Downloading Lampway {version}"
+msgstr "正在下載 Lampway {version}"
 
-msgid "Mixar will restart to finish updating."
-msgstr "Mixar 將重新啟動以完成更新。"
+msgid "Lampway will restart to finish updating."
+msgstr "Lampway 將重新啟動以完成更新。"
 
-msgid "Mixar Update Ready"
-msgstr "Mixar 更新已就緒"
+msgid "Lampway Update Ready"
+msgstr "Lampway 更新已就緒"
 
 msgid "Version {version} is ready to install."
 msgstr "版本 {version} 已可安裝。"
 
-msgid "Mixar Update Required"
-msgstr "需要更新 Mixar"
+msgid "Lampway Update Required"
+msgstr "需要更新 Lampway"
 
-msgid "Mixar Update Available"
-msgstr "有可用的 Mixar 更新"
+msgid "Lampway Update Available"
+msgstr "有可用的 Lampway 更新"
 
 msgid "Version {version} is available."
 msgstr "已推出版本 {version}。"
 
-msgid "This update is required to continue using Mixar."
-msgstr "必須安裝此更新才能繼續使用 Mixar。"
+msgid "This update is required to continue using Lampway."
+msgstr "必須安裝此更新才能繼續使用 Lampway。"
 
-msgid "Mixar will restart to apply it."
-msgstr "Mixar 將重新啟動以套用更新。"
+msgid "Lampway will restart to apply it."
+msgstr "Lampway 將重新啟動以套用更新。"
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error}——請使用「下載」透過瀏覽器更新。"
@@ -2729,11 +2729,11 @@ msgstr "點擊「重新啟動並更新」以再次安裝。"
 msgid "Update paused"
 msgstr "更新已暫停"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar 未關閉，因此未安裝更新。"
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway 未關閉，因此未安裝更新。"
 
-msgid "Mixar is up to date"
-msgstr "Mixar 已是最新版本"
+msgid "Lampway is up to date"
+msgstr "Lampway 已是最新版本"
 
 msgid "You're running the latest version ({version})."
 msgstr "你正在使用最新版本（{version}）。"
@@ -2747,11 +2747,11 @@ msgstr "請檢查網際網路連線後再試一次。"
 msgid "Update didn't take effect"
 msgstr "更新未生效"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "已安裝 Mixar {target}，但啟動的是版本 {running}。請從下載頁面重新安裝。"
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "已安裝 Lampway {target}，但啟動的是版本 {running}。請從下載頁面重新安裝。"
 
-msgid "Updated to Mixar {version}"
-msgstr "已更新至 Mixar {version}"
+msgid "Updated to Lampway {version}"
+msgstr "已更新至 Lampway {version}"
 
 msgid "The update was installed successfully."
 msgstr "更新已成功安裝。"
@@ -2765,8 +2765,8 @@ msgstr "{reason}你可以從下載頁面下載更新。"
 msgid "Update was not installed"
 msgstr "未安裝更新"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "安裝程式嘗試啟動時，Mixar 仍在執行。"
+msgid "Lampway was still running when the installer tried to start."
+msgstr "安裝程式嘗試啟動時，Lampway 仍在執行。"
 
 msgid "The downloaded installer failed its signature check."
 msgstr "已下載的安裝程式未通過簽章檢查。"
@@ -2774,8 +2774,8 @@ msgstr "已下載的安裝程式未通過簽章檢查。"
 msgid "The downloaded installer could not be opened."
 msgstr "無法開啟已下載的安裝程式。"
 
-msgid "Mixar could not be replaced on disk."
-msgstr "無法取代磁碟上的 Mixar。"
+msgid "Lampway could not be replaced on disk."
+msgstr "無法取代磁碟上的 Lampway。"
 
 msgid "The installation was cancelled."
 msgstr "安裝已取消。"
@@ -2786,8 +2786,8 @@ msgstr "Windows Installer 回報了嚴重錯誤。"
 msgid "The installer did not finish."
 msgstr "安裝程式未完成。"
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "重新啟動 Mixar 並安裝已下載的更新"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "重新啟動 Lampway 並安裝已下載的更新"
 
 msgid "Save Changes"
 msgstr "儲存變更"
@@ -2795,14 +2795,14 @@ msgstr "儲存變更"
 msgid "Save the current file before restarting"
 msgstr "重新啟動前儲存目前檔案"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "正在下載更新——就緒後 Mixar 將重新啟動"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "正在下載更新——就緒後 Lampway 將重新啟動"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar 將關閉並更新至 {version}。"
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway 將關閉並更新至 {version}。"
 
 msgid "It reopens automatically when the update is done."
 msgstr "更新完成後會自動重新開啟。"
@@ -2831,14 +2831,14 @@ msgstr "停止下載更新"
 msgid "This update is required and cannot be cancelled"
 msgstr "此更新為必要更新，無法取消"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "在預設瀏覽器中開啟 Mixar 下載頁面"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "在預設瀏覽器中開啟 Lampway 下載頁面"
 
 msgid "Check for Updates"
 msgstr "檢查更新"
 
-msgid "Check whether a newer version of Mixar is available"
-msgstr "檢查是否有較新版本的 Mixar"
+msgid "Check whether a newer version of Lampway is available"
+msgstr "檢查是否有較新版本的 Lampway"
 
 msgid "An update check is already in progress"
 msgstr "更新檢查已在進行中"
@@ -2849,8 +2849,8 @@ msgstr "正在檢查更新…"
 msgid "Update Available"
 msgstr "有可用的更新"
 
-msgid "Show details for the pending Mixar update"
-msgstr "顯示待安裝 Mixar 更新的詳細資訊"
+msgid "Show details for the pending Lampway update"
+msgstr "顯示待安裝 Lampway 更新的詳細資訊"
 
 msgid "View Changelog"
 msgstr "檢視變更記錄"
@@ -2969,14 +2969,14 @@ msgstr "帳號問候語中的顯示名稱"
 msgid "Newer File Version"
 msgstr "較新的檔案版本"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
-msgstr "警告使用者此檔案是由較新版本的 Mixar 儲存"
+msgid "Warn user that the file was saved by a newer Lampway version"
+msgstr "警告使用者此檔案是由較新版本的 Lampway 儲存"
 
 msgid "File Version"
 msgstr "檔案版本"
 
-msgid "This file was saved by Mixar version {version}."
-msgstr "此檔案是由 Mixar 版本 {version} 儲存。"
+msgid "This file was saved by Lampway version {version}."
+msgstr "此檔案是由 Lampway 版本 {version} 儲存。"
 
 msgid "Some data may be missing or incorrect."
 msgstr "部分資料可能遺失或不正確。"
@@ -2990,8 +2990,8 @@ msgstr "沒有可匯出的網格物體"
 msgid "Start Connector Sidecar"
 msgstr "啟動連接器輔助程序"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "透過回送 HTTP 將 Mixar 公開給中樞"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "透過回送 HTTP 將 Lampway 公開給中樞"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
 msgstr "連接器輔助程序位於 127.0.0.1:{port}"
@@ -2999,8 +2999,8 @@ msgstr "連接器輔助程序位於 127.0.0.1:{port}"
 msgid "Export Scene to Unreal"
 msgstr "將場景匯出至 Unreal"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "將目前 Mixar 場景匯出為可供 Unreal 使用的 USD/FBX/GLB"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "將目前 Lampway 場景匯出為可供 Unreal 使用的 USD/FBX/GLB"
 
 msgid "Exported {filename} ({count} meshes)"
 msgstr "已匯出 {filename}（{count} 個網格）"
@@ -3020,8 +3020,8 @@ msgstr "中樞 :7734 · Unreal MCP :8000/mcp · UnrealMCP TCP :55557"
 msgid "Hub Sidecar"
 msgstr "中樞輔助程序"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "透過回送 HTTP 將此 Mixar 工作階段公開給 mixar-connector"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "透過回送 HTTP 將此 Lampway 工作階段公開給 mixar-connector"
 
 msgid "Sidecar Port"
 msgstr "輔助程序連接埠"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,8 +3119,8 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
-msgstr "Mixar 鏡頭相機"
+msgid "Lampway Shot Camera"
+msgstr "Lampway 鏡頭相機"
 
 msgid "Shot"
 msgstr "鏡頭"
@@ -3563,8 +3563,8 @@ msgstr "此鏡頭沒有相機"
 msgid "Capture at least one camera beat before locking"
 msgstr "鎖定前請至少擷取一個相機節拍"
 
-msgid "Mixar Focus"
-msgstr "Mixar 焦點"
+msgid "Lampway Focus"
+msgstr "Lampway 焦點"
 
 msgid "Rendering…"
 msgstr "算繪中…"
@@ -4241,8 +4241,8 @@ msgstr "算繪進度"
 msgid "Render Status"
 msgstr "算繪狀態"
 
-msgid "Mixar Camera Export"
-msgstr "Mixar 相機匯出"
+msgid "Lampway Camera Export"
+msgstr "Lampway 相機匯出"
 
 msgid "Export this scene's camera animation to the Moodboard"
 msgstr "將此場景的相機動畫匯出至情緒板"
@@ -4493,14 +4493,14 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
-msgstr "Mixar 導演"
+msgid "Lampway Director"
+msgstr "Lampway 導演"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "此場景的稀疏相機執導鏡頭"
 
-msgid "Mixar Output"
-msgstr "Mixar 輸出"
+msgid "Lampway Output"
+msgstr "Lampway 輸出"
 
 msgid "Output aspect ratio this camera frames for"
 msgstr "此相機取景所用的輸出寬長比"
@@ -4964,19 +4964,19 @@ msgstr "本機伺服器模型"
 msgid "Local model last error"
 msgstr "本機模型最後錯誤"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,26 +7789,26 @@ msgstr "錯誤文字"
 msgid "Error message if job failed"
 msgstr "任務失敗時的錯誤訊息"
 
-msgid "Mixie Moodboard Images"
-msgstr "Mixie 情緒板影像"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Lampway Agent 情緒板影像"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "情緒板模式中的參考影像集合"
 
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Mixie 情緒板文字方塊"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Lampway Agent 情緒板文字方塊"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "情緒板模式中的文字方塊集合"
 
-msgid "Mixie Moodboard Frames"
-msgstr "Mixie 情緒板框"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Lampway Agent 情緒板框"
 
 msgid "Canvas frames grouping board items"
 msgstr "將畫板項目分組的畫布框"
 
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Mixie 情緒板群組（舊版）"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Lampway Agent 情緒板群組（舊版）"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "已由 mixie_moodboard_frames 取代；保留以供遷移"
@@ -8917,7 +8917,7 @@ msgstr "已同步 {count} 張情緒板影像"
 msgid "Attach Selected Moodboard Image"
 msgstr "附加所選情緒板影像"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
 msgstr ""
 
 msgid "Nothing selected to copy"
@@ -9244,7 +9244,7 @@ msgstr "無法讀取剪貼簿：{error}"
 msgid "Paste"
 msgstr "貼上"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
 msgstr ""
 
 msgid "Pasted {count} item"
@@ -10642,13 +10642,13 @@ msgstr "情緒板註解"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
-msgstr "歡迎使用 Mixar"
+msgid "Welcome to Lampway"
+msgstr "歡迎使用 Lampway"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,20 +10669,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
-msgstr "Mixar 操作歷史 ID"
+msgid "Lampway Operation History ID"
+msgstr "Lampway 操作歷史 ID"
 
 msgid "Persistent per-scene id keying this scene's operation history."
 msgstr "每個場景持久保存的 ID，用於對應此場景的操作歷史。"
@@ -13051,8 +13051,8 @@ msgstr "要匯出的通道名稱"
 msgid "File format for export"
 msgstr "匯出的檔案格式"
 
-msgid "No active Mixar node found"
-msgstr "找不到作用中的 Mixar 節點"
+msgid "No active Lampway node found"
+msgstr "找不到作用中的 Lampway 節點"
 
 msgid "Exported '{name}' to {path}"
 msgstr "已將「{name}」匯出至 {path}"
@@ -13201,8 +13201,8 @@ msgstr "烘培層的暫存影像，有助於避免 Cycles 出現異常"
 msgid "Bake Temporary Image"
 msgstr "烘培暫存影像"
 
-msgid "No active Mixar node found!"
-msgstr "找不到作用中的 Mixar 節點！"
+msgid "No active Lampway node found!"
+msgstr "找不到作用中的 Lampway 節點！"
 
 msgid "No active layer found!"
 msgstr "找不到作用中的層！"
@@ -13345,8 +13345,8 @@ msgstr "將通道烘培為頂點色彩"
 msgid "Bake All Materials"
 msgstr "烘培所有材質"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "烘培所有含 Mixar Paint 節點的材質，而不僅是作用中的材質"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "烘培所有含 Lampway Paint 節點的材質，而不僅是作用中的材質"
 
 msgid "Target Vertex Color Name"
 msgstr "目標頂點色彩名稱"
@@ -13574,8 +13574,8 @@ msgstr ""
 msgid "Copy Image Path To Clipboard"
 msgstr "複製影像路徑至剪貼簿"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint：將影像檔案路徑複製到系統剪貼簿"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint：將影像檔案路徑複製到系統剪貼簿"
 
 msgid "Copied: {text}"
 msgstr "已複製：{text}"
@@ -13583,8 +13583,8 @@ msgstr "已複製：{text}"
 msgid "Open Containing Image Folder"
 msgstr "開啟影像所在資料夾"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint：開啟影像檔案所在的資料夾並標示該檔案"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint：開啟影像檔案所在的資料夾並標示該檔案"
 
 msgid "File does not exist"
 msgstr "檔案不存在"
@@ -15054,8 +15054,8 @@ msgstr "啟用遮罩"
 msgid "Active Mask"
 msgstr "作用中遮罩"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "用於 Blender 繪製模式與編輯模式，或 Mixar Paint 遮罩預覽模式的作用中遮罩"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "用於 Blender 繪製模式與編輯模式，或 Lampway Paint 遮罩預覽模式的作用中遮罩"
 
 msgid "Mask Source Input"
 msgstr "遮罩來源輸入"
@@ -15156,14 +15156,14 @@ msgstr "烘培所有通道"
 msgid "Delete Baked Images"
 msgstr "刪除已烘培影像"
 
-msgid "New Mixar Paint Modifier"
-msgstr "新增 Mixar Paint 修改器"
+msgid "New Lampway Paint Modifier"
+msgstr "新增 Lampway Paint 修改器"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "移動 Mixar Paint 修改器"
+msgid "Move Lampway Paint Modifier"
+msgstr "移動 Lampway Paint 修改器"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "移除 Mixar Paint 修改器"
+msgid "Remove Lampway Paint Modifier"
+msgstr "移除 Lampway Paint 修改器"
 
 msgid "Add Channel Modifier"
 msgstr "加入通道修改器"
@@ -15297,8 +15297,8 @@ msgstr "通道「{name}」已存在"
 msgid "Build Layered Material"
 msgstr "建置分層材質"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "從分層材質清單建置 Mixar 繪製材質"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "從分層材質清單建置 Lampway 繪製材質"
 
 msgid "Manifest JSON"
 msgstr "清單 JSON"
@@ -15921,8 +15921,8 @@ msgstr "重新命名此層"
 msgid "New name for the layer"
 msgstr "層的新名稱"
 
-msgid "No active Mixar node"
-msgstr "沒有作用中的 Mixar 節點"
+msgid "No active Lampway node"
+msgstr "沒有作用中的 Lampway 節點"
 
 msgid "Name cannot be empty"
 msgstr "名稱不能為空"
@@ -16071,11 +16071,11 @@ msgstr "返回層屬性檢視"
 msgid "Add different types of masks to the active layer"
 msgstr "為作用中的層加入不同類型的遮罩"
 
-msgid "Remove Mixar Paint Node"
-msgstr "移除 Mixar Paint 節點"
+msgid "Remove Lampway Paint Node"
+msgstr "移除 Lampway Paint 節點"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "移除 Mixar Paint 節點，但保留所有已烘培的通道影像"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "移除 Lampway Paint 節點，但保留所有已烘培的通道影像"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "此 {addon} 節點設定尚未烘培！"
@@ -16227,8 +16227,8 @@ msgstr "將材質套用至作用中的填充層，而不建立新層"
 msgid "Material '{name}' not found in registry"
 msgstr "登錄檔中找不到材質「{name}」"
 
-msgid "No active Mixar Paint node found"
-msgstr "找不到作用中的 Mixar Paint 節點"
+msgid "No active Lampway Paint node found"
+msgstr "找不到作用中的 Lampway Paint 節點"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "已將材質「{name}」套用至既有層"
@@ -16431,8 +16431,8 @@ msgstr "沒有作用中的分層材質"
 msgid "To use texture baking:"
 msgstr "若要使用紋理烘培："
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. 選取帶有 Mixar 材質的物體"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. 選取帶有 Lampway 材質的物體"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "  2. 或建立新的分層材質"
@@ -16533,8 +16533,8 @@ msgstr "繪製後端未初始化"
 msgid "Paint UI not initialized"
 msgstr "繪製介面未初始化"
 
-msgid "No Mixar material found"
-msgstr "找不到 Mixar 材質"
+msgid "No Lampway material found"
+msgstr "找不到 Lampway 材質"
 
 msgid "No layer based material"
 msgstr "沒有分層材質"
@@ -16551,8 +16551,8 @@ msgstr "未選取層"
 msgid "No active material"
 msgstr "沒有作用中的材質"
 
-msgid "No Mixar node found"
-msgstr "找不到 Mixar 節點"
+msgid "No Lampway node found"
+msgstr "找不到 Lampway 節點"
 
 msgid "Backend layer not found"
 msgstr "找不到後端層"
@@ -17227,17 +17227,17 @@ msgstr "層目前已聚焦/選取"
 msgid "How this layer blends with layers below"
 msgstr "此層與下方各層的交混方式"
 
-msgid "Mixar Layer Index"
-msgstr "Mixar 層索引"
+msgid "Lampway Layer Index"
+msgstr "Lampway 層索引"
 
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "在 Mixar mixar_mp.layers 集合中的索引"
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "在 Lampway mixar_mp.layers 集合中的索引"
 
-msgid "Mixar Group Node"
-msgstr "Mixar 群組節點"
+msgid "Lampway Group Node"
+msgstr "Lampway 群組節點"
 
-msgid "Name of the Mixar group node"
-msgstr "Mixar 群組節點的名稱"
+msgid "Name of the Lampway group node"
+msgstr "Lampway 群組節點的名稱"
 
 msgid "Updating Property"
 msgstr "正在更新屬性"
@@ -18312,8 +18312,8 @@ msgstr "其他物體的色彩"
 msgid "Other Objects Channels"
 msgstr "其他物體通道"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "其他物體的 Mixar Paint 通道"
+msgid "Other object's Lampway Paint channels"
+msgstr "其他物體的 Lampway Paint 通道"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "所選頂點/邊/面"
@@ -18639,17 +18639,17 @@ msgstr ""
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
 msgstr ""
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
 msgstr ""
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "啟用失敗（可能與 Blender 5.0 不相容）"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
-msgstr "將現有 Blender 安裝中的附加元件與擴充功能帶入 Mixar。"
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
+msgstr "將現有 Blender 安裝中的附加元件與擴充功能帶入 Lampway。"
 
 msgid "Scan for Blender Plugins"
 msgstr "掃描 Blender 外掛程式"
@@ -18672,14 +18672,14 @@ msgstr "匯入後啟用："
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "所有列出的外掛程式都會複製進來；已勾選的會被啟用。"
 
-msgid "Import into Mixar"
-msgstr "匯入 Mixar"
+msgid "Import into Lampway"
+msgstr "匯入 Lampway"
 
 msgid "Imported"
 msgstr "已匯入"
 
-msgid "Already in Mixar"
-msgstr "已在 Mixar 中"
+msgid "Already in Lampway"
+msgstr "已在 Lampway 中"
 
 msgid "Copy failed"
 msgstr "複製失敗"
@@ -18705,11 +18705,11 @@ msgstr "選取外掛程式"
 msgid "Tick or untick every plugin in the list"
 msgstr "勾選或取消勾選列表中的所有外掛程式"
 
-msgid "Import Plugins into Mixar"
-msgstr "將外掛程式匯入 Mixar"
+msgid "Import Plugins into Lampway"
+msgstr "將外掛程式匯入 Lampway"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
-msgstr "將所有列出的外掛程式複製到 Mixar，並啟用已勾選的項目"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
+msgstr "將所有列出的外掛程式複製到 Lampway，並啟用已勾選的項目"
 
 msgid "Nothing scanned — run Scan first"
 msgstr "尚未掃描，請先執行掃描"
@@ -18726,8 +18726,8 @@ msgstr "已匯入 {imported}，已存在 {already_present}，失敗 {failed} · 
 msgid "Imported: {count}"
 msgstr "已匯入：{count}"
 
-msgid "Already in Mixar: {count}"
-msgstr "已在 Mixar 中：{count}"
+msgid "Already in Lampway: {count}"
+msgstr "已在 Lampway 中：{count}"
 
 msgid "Enabled: {count}"
 msgstr "已啟用：{count}"
@@ -18744,8 +18744,8 @@ msgstr "從 Blender 匯入"
 msgid "{count} found"
 msgstr "找到 {count} 個"
 
-msgid "Enable this plugin in Mixar after importing it"
-msgstr "匯入後在 Mixar 中啟用此外掛程式"
+msgid "Enable this plugin in Lampway after importing it"
+msgstr "匯入後在 Lampway 中啟用此外掛程式"
 
 msgid "Blender Version"
 msgstr "Blender 版本"
@@ -18798,14 +18798,14 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
-msgstr "Mixar 場景圖"
+msgid "Lampway Scene Graph"
+msgstr "Lampway 場景圖"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "每個場景各自的、可供智慧代理讀取的場景圖（JSON）。僅限執行階段。"
 
-msgid "Mixar Scene Graph Query Result"
-msgstr "Mixar 場景圖查詢結果"
+msgid "Lampway Scene Graph Query Result"
+msgstr "Lampway 場景圖查詢結果"
 
 msgid "JSON result of the last scene-graph query operator call."
 msgstr "上一次場景圖查詢操作器呼叫的 JSON 結果。"
@@ -19524,8 +19524,8 @@ msgstr "視訊需要視訊模式。請移除視訊後再傳送給智慧代理。
 msgid "User ID"
 msgstr "使用者 ID"
 
-msgid "User ID for Mixie Chat login"
-msgstr "Mixie 聊天登入用的使用者 ID"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "Lampway Agent 聊天登入用的使用者 ID"
 
 msgid "Agent expects: {formats}"
 msgstr "智慧代理預期的格式：{formats}"
@@ -19983,11 +19983,11 @@ msgstr "請先完成手寫，再開始語音輸入。"
 msgid "Sign in to use voice input."
 msgstr "請登入以使用語音輸入。"
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "請從 Finder 啟動 Mixar，以允許存取麥克風。"
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "請從 Finder 啟動 Lampway，以允許存取麥克風。"
 
-msgid "Allow microphone access for Mixar in system privacy settings."
-msgstr "請在系統隱私權設定中允許 Mixar 存取麥克風。"
+msgid "Allow microphone access for Lampway in system privacy settings."
+msgstr "請在系統隱私權設定中允許 Lampway 存取麥克風。"
 
 msgid "Allow microphone"
 msgstr "允許麥克風"
@@ -20034,8 +20034,8 @@ msgstr "請重新登入。"
 msgid "Login Failed"
 msgstr "登入失敗"
 
-msgid "Sign in with your Mixar account"
-msgstr "使用你的 Mixar 帳號登入"
+msgid "Sign in with your Lampway account"
+msgstr "使用你的 Lampway 帳號登入"
 
 msgid "Waiting for browser..."
 msgstr "正在等待瀏覽器..."
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "儀表板"
 
-msgid "About Mixar"
-msgstr "關於 Mixar"
+msgid "About Lampway"
+msgstr "關於 Lampway"
 
 msgid "Documentation"
 msgstr "文件"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "已匯出移除聊天內容的副本（已從 {scenes} 個場景中省略 {count} 則訊息）。"
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Mixar 聊天：匯出不含聊天歷史的 .blend"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Lampway 聊天：匯出不含聊天歷史的 .blend"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "目前無法使用生成功能。請重新整理編目後再試一次。"
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "加入規則"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "為 Mixie 定義規則。變更會在你的下一則訊息或回答時生效；全域規則適用於每個 Mixar 檔案。你目前的請求優先於專案規則與全域規則"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "為 Mixie 定義規則。變更會在你的下一則訊息或回答時生效；全域規則適用於每個 Lampway 檔案。你目前的請求優先於專案規則與全域規則"
 
 msgid "Rule operation failed"
 msgstr "規則操作失敗"
@@ -22138,8 +22138,8 @@ msgstr "最近取出之語音辨識器事件的文字"
 msgid "Materials: {count}"
 msgstr "材質：{count}"
 
-msgid "No Mixar material active"
-msgstr "沒有作用中的 Mixar 材質"
+msgid "No Lampway material active"
+msgstr "沒有作用中的 Lampway 材質"
 
 msgid "{channel} Settings"
 msgstr "{channel} 設定"
@@ -22801,8 +22801,8 @@ msgstr "縮放 Y"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "沿 Y 方向縮放所選 UV（增量）"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Mixar UV 屬性空間的註解工具屬性。"
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Lampway UV 屬性空間的註解工具屬性。"
 
 msgid "Annotate Line"
 msgstr "註記線"
@@ -22828,14 +22828,14 @@ msgstr "樣式開始"
 msgid "Toggle UV Sidebar"
 msgstr "切換 UV 側欄"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "在影像編輯器中切換 Mixar UV 側欄"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "在影像編輯器中切換 Lampway UV 側欄"
 
 msgid "Open UV Sidebar"
 msgstr "開啟 UV 側欄"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "若 Mixar UV 側欄已隱藏則將其開啟"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "若 Lampway UV 側欄已隱藏則將其開啟"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "沒有可用的 UV 屬性時顯示的空白狀態"
@@ -22858,8 +22858,8 @@ msgstr "匯出 UV 配置"
 msgid "Export UV layout using stored properties"
 msgstr "使用已儲存的屬性匯出 UV 配置"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "Mixar UV 屬性空間的 UV 匯出面板"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "Lampway UV 屬性空間的 UV 匯出面板"
 
 msgid "UV UI not initialized"
 msgstr "UV 介面尚未初始化"
@@ -22975,8 +22975,8 @@ msgstr "貼上 UV"
 msgid "Functions"
 msgstr "功能"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Mixar UV 屬性空間的 UV 功能面板 - 基於工具（無標頭欄按鈕）"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Lampway UV 屬性空間的 UV 功能面板 - 基於工具（無標頭欄按鈕）"
 
 msgid "Seam"
 msgstr "縫線"
@@ -23104,8 +23104,8 @@ msgstr "UV 編輯器中沒有影像"
 msgid "Material '{name}' created and applied"
 msgstr "已建立並套用材質「{name}」"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Mixar UV 屬性空間的影像面板。"
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Lampway UV 屬性空間的影像面板。"
 
 msgid "Save As"
 msgstr "另存為"
@@ -23137,8 +23137,8 @@ msgstr "影像大小"
 msgid "Invert All Colors"
 msgstr "反轉所有色彩"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Mixar UV 屬性空間的材質槽面板"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Lampway UV 屬性空間的材質槽面板"
 
 msgid "No active object"
 msgstr "無作用中物體"
@@ -23182,8 +23182,8 @@ msgstr "在 UV 空間中建立用於打包的自訂區域"
 msgid "{label} unavailable"
 msgstr "{label} 無法使用"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Mixar UV 屬性空間的配置面板。"
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Lampway UV 屬性空間的配置面板。"
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "uv.pack_islands 屬性無法使用"
@@ -23329,8 +23329,8 @@ msgstr "投影"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "使用「投影」面板中顯示的類型與屬性來投影 UV"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Mixar UV 介面狀態尚未初始化"
+msgid "Lampway UV UI state not initialized"
+msgstr "Lampway UV 介面狀態尚未初始化"
 
 msgid "Unknown projection type: {type}"
 msgstr "未知的投影類型：{type}"
@@ -23461,8 +23461,8 @@ msgstr "選取連結項"
 msgid "Select linked UVs"
 msgstr "選取相連的 UV"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Mixar UV 屬性空間的選取面板 - 基於工具（無標頭欄按鈕）"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Lampway UV 屬性空間的選取面板 - 基於工具（無標頭欄按鈕）"
 
 msgid "Basic Selection"
 msgstr "基本選取"
@@ -23503,8 +23503,8 @@ msgstr "選取分割"
 msgid "Select Overlap"
 msgstr "選取重疊"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Mixar UV 屬性空間的紋素密度面板"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Lampway UV 屬性空間的紋素密度面板"
 
 msgid "Activate Grab Tool"
 msgstr "啟用抓取工具"
@@ -23548,8 +23548,8 @@ msgstr "將視圖置中於游標"
 msgid "UV Sculpt Tools"
 msgstr "UV 雕塑工具"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Mixar UV 屬性空間的 UV 雕塑工具面板 - 基於工具（無標頭欄按鈕）"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Lampway UV 屬性空間的 UV 雕塑工具面板 - 基於工具（無標頭欄按鈕）"
 
 msgid "Grab"
 msgstr "抓取"
@@ -23668,8 +23668,8 @@ msgstr "對所選 UV 套用縮放變換"
 msgid "Snapping"
 msgstr "吸附"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Mixar UV 屬性空間的吸附面板"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Lampway UV 屬性空間的吸附面板"
 
 msgid "Snapping Options"
 msgstr "吸附選項"
@@ -23719,8 +23719,8 @@ msgstr "使用「拆解」面板中顯示的方法與屬性進行拆解"
 msgid "Unknown unwrap method: {method}"
 msgstr "未知的拆解方法：{method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Mixar UV 屬性空間的拆解＋投影合併面板。"
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Lampway UV 屬性空間的拆解＋投影合併面板。"
 
 msgid "Live Unwrap"
 msgstr "即時拆解"
@@ -23796,14 +23796,14 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
 "建立新影像（預設啟用「分塊」）\n"
 "\n"
 "包裝 `image.new` 的操作器，會在\n"
-"操作器的屬性對話框中預設 `tiled=True`。在 Mixar UV 面板中作為\n"
+"操作器的屬性對話框中預設 `tiled=True`。在 Lampway UV 面板中作為\n"
 "`template_ID` 的 `new=` 操作器使用，讓對話框開啟時\n"
 "「分塊」核取方塊已勾選。實際的建立與 ID 指定\n"
 "由底層的 `image.new` 執行。\n"
@@ -23826,8 +23826,8 @@ msgstr "填充格磚"
 msgid "Fill UDIM tile"
 msgstr "填入 UDIM 分塊"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "Mixar UV 屬性空間的 UV 集面板。"
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "Lampway UV 屬性空間的 UV 集面板。"
 
 msgid "UV Maps"
 msgstr "UV 映射"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "工具"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Mixar UV 屬性空間的工具面板 — 當\n"
+"Lampway UV 屬性空間的工具面板 — 當\n"
 "`builtin.uv_tool` 工具列工具為作用中時顯示。"
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,14 +24070,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "將 Mixar 切換為 Zen 模式（精簡視圖區＋智慧代理氣泡＋情緒板）"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "將 Lampway 切換為 Zen 模式（精簡視圖區＋智慧代理氣泡＋情緒板）"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "無法建立 Zen 模式工作空間 — 沒有可用的範本"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "將 Mixar 切換為 Engine 模式（完整的 Blender 風格工作空間）"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "將 Lampway 切換為 Engine 模式（完整的 Blender 風格工作空間）"
 
 msgid "Modeling workspace not found"
 msgstr "找不到建模工作空間"
@@ -24298,17 +24298,17 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
-msgstr "檔案由較新版本的 Mixar（%d.%d）儲存，部分資料可能會遺失"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
+msgstr "檔案由較新版本的 Lampway（%d.%d）儲存，部分資料可能會遺失"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "此檔案由較新版本儲存，請使用 Mixar %s 或更新版本開啟"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "此檔案由較新版本儲存，請使用 Lampway %s 或更新版本開啟"
 
 msgid "Failed to read mixar file '%s': %s"
 msgstr "讀取 mixar 檔案「%s」失敗：%s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
-msgstr "無法讀取 mixar 檔案「%s」，檔頭不完整，可能來自較新版本的 Mixar"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr "無法讀取 mixar 檔案「%s」，檔頭不完整，可能來自較新版本的 Lampway"
 
 msgid "Failed to read file '%s', not a mixar file"
 msgstr "讀取檔案「%s」失敗，此檔案不是 mixar 檔案"
@@ -24316,14 +24316,14 @@ msgstr "讀取檔案「%s」失敗，此檔案不是 mixar 檔案"
 msgid "Unable to open mixar <memory>"
 msgstr "無法開啟 mixar <memory>"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Mixar 檔案「%s」由未來版本的 Mixar 建立，其中包含超過目前支援長度的 ID 名稱。這些名稱已被截斷。"
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Lampway 檔案「%s」由未來版本的 Lampway 建立，其中包含超過目前支援長度的 ID 名稱。這些名稱已被截斷。"
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Mixar 檔案「%s」似乎已損毀，其中包含無效的 ID 名稱。這些名稱已被截斷。"
+msgstr "Lampway 檔案「%s」似乎已損毀，其中包含無效的 ID 名稱。這些名稱已被截斷。"
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
-msgstr "藏庫「%s」由未來版本的 Mixar 建立，其中包含超過目前支援長度的 ID 名稱。這可能導致連結的資料遺失，請考慮使用目前版本的 Mixar 開啟並重新儲存該藏庫。"
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
+msgstr "藏庫「%s」由未來版本的 Lampway 建立，其中包含超過目前支援長度的 ID 名稱。這可能導致連結的資料遺失，請考慮使用目前版本的 Lampway 開啟並重新儲存該藏庫。"
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB：資料參照了主 .mixar 檔案：「%s」，來自 %s"
@@ -24454,8 +24454,8 @@ msgstr "向 Mixie 提出任何問題..."
 msgid "Write your prompt here..."
 msgstr "在此輸入提示詞..."
 
-msgid "Everything Mixar has generated"
-msgstr "Mixar 生成的所有內容"
+msgid "Everything Lampway has generated"
+msgstr "Lampway 生成的所有內容"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -25771,14 +25771,14 @@ msgstr "刪除 Mixie3D 預覽"
 msgid "Delete a segmented image from the preview history"
 msgstr "從預覽歷史中刪除分割影像"
 
-msgid "Mixar agent bubble loading…"
-msgstr "Mixar 智慧代理氣泡載入中…"
+msgid "Lampway agent bubble loading…"
+msgstr "Lampway 智慧代理氣泡載入中…"
 
 msgid "Show Agent Bubble"
 msgstr "顯示智慧代理氣泡"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
-msgstr "開啟浮動的智慧代理氣泡疊層，讓使用者可在 Mixar 介面的任何位置與 AI 智慧代理聊天"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
+msgstr "開啟浮動的智慧代理氣泡疊層，讓使用者可在 Lampway 介面的任何位置與 AI 智慧代理聊天"
 
 msgid "Chat is still loading. Please drop the asset again."
 msgstr ""
@@ -25822,8 +25822,8 @@ msgstr "將拖放的影像加入為聊天附件"
 msgid "Dropped image datablock"
 msgstr "拖放的影像資料塊"
 
-msgid "Tell me about the features in Mixar"
-msgstr "告訴我 Mixar 有哪些功能"
+msgid "Tell me about the features in Lampway"
+msgstr "告訴我 Lampway 有哪些功能"
 
 msgid "Generate a futuristic sci-fi character concept"
 msgstr "生成未來感科幻角色概念"
@@ -26755,14 +26755,14 @@ msgstr "紋理烘培與處理操作"
 msgid "Texture set management for PBR workflows"
 msgstr "PBR 工作流程的紋理集管理"
 
-msgid "Mixar UV Editor"
-msgstr "Mixar UV 編輯器"
+msgid "Lampway UV Editor"
+msgstr "Lampway UV 編輯器"
 
-msgid "Mixar UV editing mode"
-msgstr "Mixar UV 編輯模式"
+msgid "Lampway UV editing mode"
+msgstr "Lampway UV 編輯模式"
 
-msgid "Mixar Layers Properties"
-msgstr "Mixar 層屬性"
+msgid "Lampway Layers Properties"
+msgstr "Lampway 層屬性"
 
 msgid "Reference image board like PureRef"
 msgstr "類似 PureRef 的參考影像畫板"
@@ -26770,8 +26770,8 @@ msgstr "類似 PureRef 的參考影像畫板"
 msgid "Mixie Space"
 msgstr "Mixie 空間"
 
-msgid "Mixie editor for Mixar"
-msgstr "Mixar 的 Mixie 編輯器"
+msgid "Mixie editor for Lampway"
+msgstr "Lampway 的 Mixie 編輯器"
 
 msgid "Mixie editor mode"
 msgstr "Mixie 編輯器模式"
@@ -26779,8 +26779,8 @@ msgstr "Mixie 編輯器模式"
 msgid "Agent Bubble Space"
 msgstr "智慧代理氣泡空間"
 
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Mixar 的浮動智慧代理聊天疊層編輯器"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Lampway 的浮動智慧代理聊天疊層編輯器"
 
 msgid "Top Bar Space"
 msgstr "頂列空間"
@@ -26788,23 +26788,23 @@ msgstr "頂列空間"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "包含工作空間分頁列與編輯器選單的頂列"
 
-msgid "Mixar Layers Space"
-msgstr "Mixar 層空間"
+msgid "Lampway Layers Space"
+msgstr "Lampway 層空間"
 
-msgid "Mixar texture layer stack management"
-msgstr "Mixar 紋理層堆疊管理"
+msgid "Lampway texture layer stack management"
+msgstr "Lampway 紋理層堆疊管理"
 
-msgid "Mixar Properties Space"
-msgstr "Mixar 屬性空間"
+msgid "Lampway Properties Space"
+msgstr "Lampway 屬性空間"
 
-msgid "Mixar layer and texture properties"
-msgstr "Mixar 層與紋理屬性"
+msgid "Lampway layer and texture properties"
+msgstr "Lampway 層與紋理屬性"
 
-msgid "Mixar Assets Space"
-msgstr "Mixar 素材空間"
+msgid "Lampway Assets Space"
+msgstr "Lampway 素材空間"
 
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "Mixar 智慧材質、筆刷與紋理藏庫"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "Lampway 智慧材質、筆刷與紋理藏庫"
 
 msgid "Texture sets management"
 msgstr "紋理集管理"
@@ -26812,8 +26812,8 @@ msgstr "紋理集管理"
 msgid "Use Blender's theme"
 msgstr "使用 Blender 的佈景主題"
 
-msgid "Mixar Zen components"
-msgstr "Mixar Zen 元件"
+msgid "Lampway Zen components"
+msgstr "Lampway Zen 元件"
 
 msgid "Compatibility appearance"
 msgstr "相容外觀"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "全域區域"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "視窗全域區域（頂列、狀態列）。Mixar 擴充功能 — 公開此項，讓導覽流程能指定頂列以重新繪製。"
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "視窗全域區域（頂列、狀態列）。Lampway 擴充功能 — 公開此項，讓導覽流程能指定頂列以重新繪製。"
 
 msgid "QA UI Dump"
 msgstr "QA 介面傾印"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "所有即時介面小工具（標籤、操作器、屬性、視窗空間矩形、狀態）的 JSON 快照，供 Mixar QA 測試工具使用"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "所有即時介面小工具（標籤、操作器、屬性、視窗空間矩形、狀態）的 JSON 快照，供 Lampway QA 測試工具使用"
 
 msgid "Window Resizing"
 msgstr "視窗調整大小中"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "QA 畫面擷取需要 --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,23 +27982,23 @@ msgstr "麥克風停滯或擷取緩衝區溢位"
 msgid "Microphone disconnected"
 msgstr "麥克風已中斷連線"
 
-msgid "Mixar File View"
-msgstr "Mixar 檔案檢視"
+msgid "Lampway File View"
+msgstr "Lampway 檔案檢視"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
-msgstr "代理已從 Mixar 中移除（%d 個代理已自動轉換為藏庫凌駕，%d 個代理無法轉換並已清除）。建議使用最新版 Mixar 重新儲存所有藏庫 .mixar 檔案"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
+msgstr "代理已從 Lampway 中移除（%d 個代理已自動轉換為藏庫凌駕，%d 個代理無法轉換並已清除）。建議使用最新版 Lampway 重新儲存所有藏庫 .mixar 檔案"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
-msgstr "無法儲存 Mixar 檔案，路徑「%s」無法寫入"
+msgstr "無法儲存 Lampway 檔案，路徑「%s」無法寫入"
 
 msgid "Cannot save mixar file, path \"%s\" is a directory"
-msgstr "無法儲存 Mixar 檔案，路徑「%s」是目錄"
+msgstr "無法儲存 Lampway 檔案，路徑「%s」是目錄"
 
-msgid "Mixar will start next time as it is now."
-msgstr "Mixar 下次啟動時將維持目前的狀態。"
+msgid "Lampway will start next time as it is now."
+msgstr "Lampway 下次啟動時將維持目前的狀態。"
 
-msgid "Load Factory Mixar Preferences"
-msgstr "載入 Mixar 原廠偏好設定"
+msgid "Load Factory Lampway Preferences"
+msgstr "載入 Lampway 原廠偏好設定"
 
 msgid "Load user interface setup from the .mixar file"
 msgstr "從 .mixar 檔案載入使用者介面配置"
@@ -28006,14 +28006,14 @@ msgstr "從 .mixar 檔案載入使用者介面配置"
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr "允許 .mixar 檔案自動執行腳本，預設值取自系統偏好設定"
 
-msgid "Open a Mixar file"
-msgstr "開啟 Mixar 檔案"
+msgid "Open a Lampway file"
+msgstr "開啟 Lampway 檔案"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr "載入 .mixar 檔案中的使用者介面配置"
 
-msgid "Mixar Files"
-msgstr "Mixar 檔案"
+msgid "Lampway Files"
+msgstr "Lampway 檔案"
 
 msgid "Show only .mixar files"
 msgstr "僅顯示 .mixar 檔案"
@@ -28039,26 +28039,26 @@ msgstr "儲存為 .mixar 檔案"
 msgid "Save as .blend file"
 msgstr "儲存為 .blend 檔案"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "以遞增數字的名稱儲存目前的 Mixar 檔案，不會覆寫任何現有檔案"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "以遞增數字的名稱儲存目前的 Lampway 檔案，不會覆寫任何現有檔案"
 
-msgid "Save Mixar File"
-msgstr "儲存 Mixar 檔案"
+msgid "Save Lampway File"
+msgstr "儲存 Lampway 檔案"
 
-msgid "Save the current Mixar file"
-msgstr "儲存目前的 Mixar 檔案"
+msgid "Save the current Lampway file"
+msgstr "儲存目前的 Lampway 檔案"
 
-msgid "Exit Mixar after saving"
-msgstr "儲存後結束 Mixar"
+msgid "Exit Lampway after saving"
+msgstr "儲存後結束 Lampway"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
-msgstr "此檔案是由較新版本的 Mixar（%s）所儲存。"
+msgid "This file was saved by a newer version of Lampway (%s)."
+msgstr "此檔案是由較新版本的 Lampway（%s）所儲存。"
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
-msgstr "使用此版本的 Mixar（%s）儲存可能會導致資料遺失。"
+msgid "Saving it with this Lampway (%s) may cause loss of data."
+msgstr "使用此版本的 Lampway（%s）儲存可能會導致資料遺失。"
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "此檔案由 Mixar 素材系統管理。它只能"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "此檔案由 Lampway 素材系統管理。它只能"
 
 msgid "Filter .mixar files"
 msgstr "過濾 .mixar 檔案"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
-msgstr "可能有與 Mixar 相容性更佳的新版顯示卡驅動程式。"
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
+msgstr "可能有與 Lampway 相容性更佳的新版顯示卡驅動程式。"
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "升級至最新版 macOS 可能會改善 Mixar 支援"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "升級至最新版 macOS 可能會改善 Lampway 支援"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Mixar 即將關閉。"
+msgid "Lampway will now close."
+msgstr "Lampway 即將關閉。"

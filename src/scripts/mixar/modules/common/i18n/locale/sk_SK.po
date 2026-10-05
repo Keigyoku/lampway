@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: sk_SK\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "Aktívny riadok v zozname histórie chatu plávajúcej bubliny"
 msgid "Share Usage Data"
 msgstr "Zdieľať údaje o používaní"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "Zdieľa udalosti o používaní produktu bez obsahu a pomáha tak zlepšovať Mixar"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "Zdieľa udalosti o používaní produktu bez obsahu a pomáha tak zlepšovať Lampway"
 
 msgid "No generation services"
 msgstr "Žiadne služby generovania"
@@ -170,8 +170,8 @@ msgstr "Názov modulu doplnku je neplatný"
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "Nastavený vstupný bod doplnku sa v prepojenom projekte nenašiel"
 
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "Prepojený priečinok nemá platné metaúdaje projektu Mixar"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "Prepojený priečinok nemá platné metaúdaje projektu Lampway"
 
 msgid "The project metadata version is not supported"
 msgstr "Verzia metaúdajov projektu nie je podporovaná"
@@ -194,7 +194,7 @@ msgstr "Vstupný bod musí byť názov jedného modulu najvyššej úrovne"
 msgid "Set an active add-on before changing its enabled state"
 msgstr "Pred zmenou stavu povolenia nastavte aktívny doplnok"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "Knižnica"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "Otvoriť okno bubliny agenta"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "Otvorí bublinu agenta vo vlastnom plávajúcom okne"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "Operátor C++ mixar.agent_bubble_show_window nie je zaregistrovaný — znova zostavte Mixar (make build), aby sa načítal operátor typu priestoru agent_bubble."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "Operátor C++ mixar.agent_bubble_show_window nie je zaregistrovaný — znova zostavte Lampway (make build), aby sa načítal operátor typu priestoru agent_bubble."
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "Okno bubliny agenta sa nepodarilo otvoriť: {error}"
@@ -651,8 +651,8 @@ msgstr ""
 msgid "AI generations"
 msgstr "Generovania AI"
 
-msgid "Everything Mixar has generated for you"
-msgstr "Všetko, čo pre vás Mixar vygeneroval"
+msgid "Everything Lampway has generated for you"
+msgstr "Všetko, čo pre vás Lampway vygeneroval"
 
 msgid "My Libraries"
 msgstr ""
@@ -1421,17 +1421,17 @@ msgstr "Kontaktujte podporu — momentálne nie sú povolení žiadni poskytovat
 msgid "Select a provider with available models"
 msgstr "Vyberte poskytovateľa s dostupnými modelmi"
 
-msgid "Managed by Mixar"
-msgstr "Spravuje Mixar"
+msgid "Managed by Lampway"
+msgstr "Spravuje Lampway"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar stiahne a spustí vybraný model na tomto počítači"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway stiahne a spustí vybraný model na tomto počítači"
 
 msgid "Custom local server"
 msgstr "Vlastný lokálny server"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "Nasmeruje Mixar na server kompatibilný s OpenAI, ktorý už prevádzkujete (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "Nasmeruje Lampway na server kompatibilný s OpenAI, ktorý už prevádzkujete (Ollama, LM Studio, llama.cpp, ...)"
 
 msgid "Invalid form data — please reach out to support."
 msgstr "Neplatné údaje formulára — kontaktujte podporu."
@@ -1553,8 +1553,8 @@ msgstr "Nie je vybraný žiadny model"
 msgid "Reset Agent Model"
 msgstr "Resetovať model agenta"
 
-msgid "Clear the saved model and let Mixar choose"
-msgstr "Vymaže uložený model a výber ponechá na aplikácii Mixar"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "Vymaže uložený model a výber ponechá na aplikácii Lampway"
 
 msgid "Could not change model"
 msgstr "Model sa nepodarilo zmeniť"
@@ -1577,8 +1577,8 @@ msgstr "Aktívne"
 msgid "Not configured"
 msgstr "Nenastavené"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "Spúšťajte agenta Mixar u vlastného poskytovateľa — kým je to aktívne, kredity Mixar sa neúčtujú."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "Spúšťajte agenta Lampway u vlastného poskytovateľa — kým je to aktívne, kredity Lampway sa neúčtujú."
 
 msgid "Current Configuration"
 msgstr "Aktuálna konfigurácia"
@@ -1604,8 +1604,8 @@ msgstr "Odstrániť kľúč API…"
 msgid "Provider Setup"
 msgstr "Nastavenie poskytovateľa"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "Uložený šifrovane, používa sa iba na požiadavky agenta Mixar — po uložení sa zobrazí iba maskovaný náhľad."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "Uložený šifrovane, používa sa iba na požiadavky agenta Lampway — po uložení sa zobrazí iba maskovaný náhľad."
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
 msgstr "Vyberte model, ktorý podporuje volanie nástrojov/funkcií — agent to potrebuje."
@@ -1631,8 +1631,8 @@ msgstr "Spustite  codex login  v termináli, potom načítajte alebo vložte cel
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "obsah ~/.codex/auth.json (tlačidlo vloženia číta vašu schránku)."
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "Používa vaše predplatné ChatGPT — kredity Mixar sa neúčtujú."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "Používa vaše predplatné ChatGPT — kredity Lampway sa neúčtujú."
 
 msgid "Couldn't apply your changes"
 msgstr "Vaše zmeny sa nepodarilo použiť"
@@ -1640,23 +1640,23 @@ msgstr "Vaše zmeny sa nepodarilo použiť"
 msgid "Remove your API key?"
 msgstr "Odstrániť váš kľúč API?"
 
-msgid "The agent will use Mixar's default provider again."
-msgstr "Agent bude znova používať predvoleného poskytovateľa Mixar."
+msgid "The agent will use Lampway's default provider again."
+msgstr "Agent bude znova používať predvoleného poskytovateľa Lampway."
 
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "Za budúce požiadavky agenta sa budú účtovať kredity Mixar."
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "Za budúce požiadavky agenta sa budú účtovať kredity Lampway."
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "Agent Mixar teraz beží u vášho poskytovateľa — kredity Mixar sa neúčtujú."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "Agent Lampway teraz beží u vášho poskytovateľa — kredity Lampway sa neúčtujú."
 
 msgid "API key removed"
 msgstr "Kľúč API odstránený"
 
-msgid "The agent is back on Mixar's default provider."
-msgstr "Agent sa vrátil k predvolenému poskytovateľovi Mixar."
+msgid "The agent is back on Lampway's default provider."
+msgstr "Agent sa vrátil k predvolenému poskytovateľovi Lampway."
 
-msgid "Mixar credits are charged for agent requests again."
-msgstr "Za požiadavky agenta sa opäť účtujú kredity Mixar."
+msgid "Lampway credits are charged for agent requests again."
+msgstr "Za požiadavky agenta sa opäť účtujú kredity Lampway."
 
 msgid "Try Again"
 msgstr "Skúsiť znova"
@@ -1691,8 +1691,8 @@ msgstr "Stiahnuté — nespustené"
 msgid "Not downloaded"
 msgstr "Nestiahnuté"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "Beží úplne na tomto počítači — vaše výzvy ho nikdy neopustia, okrem orchestrácie agenta Mixar."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "Beží úplne na tomto počítači — vaše výzvy ho nikdy neopustia, okrem orchestrácie agenta Lampway."
 
 msgid "Cancel Download"
 msgstr "Zrušiť sťahovanie"
@@ -1730,8 +1730,8 @@ msgstr "Znova vyhľadať lokálne aplikácie"
 msgid "Rescan this computer for running local AI apps"
 msgstr "Znova prehľadá tento počítač a hľadá spustené lokálne aplikácie AI"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "Použije váš vlastný kľúč API pre agenta Mixar. Kým je aktívny, za požiadavky agenta sa neúčtujú kredity Mixar."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "Použije váš vlastný kľúč API pre agenta Lampway. Kým je aktívny, za požiadavky agenta sa neúčtujú kredity Lampway."
 
 msgid "Validate with the provider and save your API key"
 msgstr "Overí kľúč API u poskytovateľa a uloží ho"
@@ -1844,8 +1844,8 @@ msgstr "Poskytovateľ LLM"
 msgid "Model to use with the selected provider"
 msgstr "Model, ktorý sa použije s vybraným poskytovateľom"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "Váš kľúč API je uložený šifrovane a používa sa iba na požiadavky agenta Mixar. Po uložení sa zobrazí iba maskovaný náhľad."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "Váš kľúč API je uložený šifrovane a používa sa iba na požiadavky agenta Lampway. Po uložení sa zobrazí iba maskovaný náhľad."
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "Ľubovoľný identifikátor modelu z openrouter.ai/models (napr. anthropic/claude-opus-4.8)"
@@ -1859,8 +1859,8 @@ msgstr "Obsah ~/.codex/auth.json (najprv spustite `codex login`)"
 msgid "Local mode"
 msgstr "Lokálny režim"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "Spravuje Mixar, alebo váš vlastný lokálny server"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Spravuje Lampway, alebo váš vlastný lokálny server"
 
 msgid "Local model"
 msgstr "Lokálny model"
@@ -1889,11 +1889,11 @@ msgstr "Pravda, keď server pre tohto používateľa hlási byok_active"
 msgid "Dialog State"
 msgstr "Stav dialógu"
 
-msgid "Set Mixie Mode"
-msgstr "Nastaviť režim Mixie"
+msgid "Set Lampway Agent Mode"
+msgstr "Nastaviť režim Lampway Agent"
 
-msgid "Switch to a specific Mixie mode"
-msgstr "Prepne na konkrétny režim Mixie"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "Prepne na konkrétny režim Lampway Agent"
 
 msgid "Mode"
 msgstr "Režim"
@@ -1928,8 +1928,8 @@ msgstr "Vysoká"
 msgid "Non-contiguous enum value 27"
 msgstr "Nesúvislá hodnota výčtu 27"
 
-msgid "Mixie v3 run active"
-msgstr "Beh Mixie v3 je aktívny"
+msgid "Lampway Agent v3 run active"
+msgstr "Beh Lampway Agent v3 je aktívny"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "Server odmietol požiadavku na synchronizáciu histórie. Aktualizujte aplikáciu a backend a potom sa znova pripojte."
@@ -2420,10 +2420,10 @@ msgstr "Typ priestoru, na ktorý sa má prepnúť"
 msgid "No active area"
 msgstr "Žiadna aktívna oblasť"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "Lokálna akcia galérie"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "Zvýši vývojárske počítadlo testovacích údajov; bez generovania a zmien scény"
 
-msgid "Mixar UI Gallery"
-msgstr "Galéria UI Mixar"
+msgid "Lampway UI Gallery"
+msgstr "Galéria UI Lampway"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "Preskúma zdieľané natívne komponenty pomocou lokálnych testovacích údajov"
@@ -2468,8 +2468,8 @@ msgstr "Súkromie"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "Súhlas s telemetriou, umiestnený tam, kde používatelia zvyčajne hľadajú možnosť odhlásenia."
 
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "Zdieľa, ktoré funkcie Mixar používate, a pomáha tak zlepšovať produkt."
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "Zdieľa, ktoré funkcie Lampway používate, a pomáha tak zlepšovať produkt."
 
 msgid "Your prompts, files, and scene content are never included."
 msgstr "Vaše výzvy, súbory a obsah scény sa nikdy nezahŕňajú."
@@ -2477,7 +2477,7 @@ msgstr "Vaše výzvy, súbory a obsah scény sa nikdy nezahŕňajú."
 msgid "Privacy Policy"
 msgstr "Zásady ochrany osobných údajov"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "Natívny"
 msgid "Blender theme"
 msgstr "Téma Blenderu"
 
-msgid "Legacy Mixar"
-msgstr "Starší Mixar"
+msgid "Legacy Lampway"
+msgstr "Starší Lampway"
 
 msgid "Compatibility profile"
 msgstr "Profil kompatibility"
@@ -2624,11 +2624,11 @@ msgstr "Kompaktné"
 msgid "Denser chrome recipe"
 msgstr "Hustejší recept rámca"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "Presuňte Mixar do priečinka Aplikácie, aby sa dal aktualizovať na mieste"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "Presuňte Lampway do priečinka Aplikácie, aby sa dal aktualizovať na mieste"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar nie je spustený z balíka aplikácie"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway nie je spustený z balíka aplikácie"
 
 msgid "No permission to update {path}"
 msgstr "Chýba oprávnenie na aktualizáciu {path}"
@@ -2660,8 +2660,8 @@ msgstr "Stiahnutý inštalátor chýba"
 msgid "Could not start the updater"
 msgstr "Nástroj aktualizácie sa nepodarilo spustiť"
 
-msgid "Mixar didn't close"
-msgstr "Mixar sa nezatvoril"
+msgid "Lampway didn't close"
+msgstr "Lampway sa nezatvoril"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "Aktualizácie v aplikácii nie sú na tejto platforme podporované"
@@ -2687,32 +2687,32 @@ msgstr "Stiahnuté: {size}"
 msgid "Starting download…"
 msgstr "Spúšťa sa sťahovanie…"
 
-msgid "Downloading Mixar {version}"
-msgstr "Sťahuje sa Mixar {version}"
+msgid "Downloading Lampway {version}"
+msgstr "Sťahuje sa Lampway {version}"
 
-msgid "Mixar will restart to finish updating."
-msgstr "Mixar sa reštartuje, aby dokončil aktualizáciu."
+msgid "Lampway will restart to finish updating."
+msgstr "Lampway sa reštartuje, aby dokončil aktualizáciu."
 
-msgid "Mixar Update Ready"
-msgstr "Aktualizácia Mixar je pripravená"
+msgid "Lampway Update Ready"
+msgstr "Aktualizácia Lampway je pripravená"
 
 msgid "Version {version} is ready to install."
 msgstr "Verzia {version} je pripravená na inštaláciu."
 
-msgid "Mixar Update Required"
-msgstr "Vyžaduje sa aktualizácia Mixar"
+msgid "Lampway Update Required"
+msgstr "Vyžaduje sa aktualizácia Lampway"
 
-msgid "Mixar Update Available"
-msgstr "Je dostupná aktualizácia Mixar"
+msgid "Lampway Update Available"
+msgstr "Je dostupná aktualizácia Lampway"
 
 msgid "Version {version} is available."
 msgstr "Je dostupná verzia {version}."
 
-msgid "This update is required to continue using Mixar."
-msgstr "Táto aktualizácia je potrebná na ďalšie používanie aplikácie Mixar."
+msgid "This update is required to continue using Lampway."
+msgstr "Táto aktualizácia je potrebná na ďalšie používanie aplikácie Lampway."
 
-msgid "Mixar will restart to apply it."
-msgstr "Mixar sa reštartuje, aby ju použil."
+msgid "Lampway will restart to apply it."
+msgstr "Lampway sa reštartuje, aby ju použil."
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error} — na aktualizáciu cez prehliadač použite Stiahnuť."
@@ -2729,11 +2729,11 @@ msgstr "Kliknutím na Reštartovať a aktualizovať ju znova nainštalujete."
 msgid "Update paused"
 msgstr "Aktualizácia pozastavená"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar sa nezatvoril, preto aktualizácia nebola nainštalovaná."
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway sa nezatvoril, preto aktualizácia nebola nainštalovaná."
 
-msgid "Mixar is up to date"
-msgstr "Mixar je aktuálny"
+msgid "Lampway is up to date"
+msgstr "Lampway je aktuálny"
 
 msgid "You're running the latest version ({version})."
 msgstr "Používate najnovšiu verziu ({version})."
@@ -2747,11 +2747,11 @@ msgstr "Skontrolujte internetové pripojenie a skúste to znova."
 msgid "Update didn't take effect"
 msgstr "Aktualizácia sa neprejavila"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Nainštaloval sa Mixar {target}, ale spustila sa verzia {running}. Preinštalujte ho zo stránky na stiahnutie."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Nainštaloval sa Lampway {target}, ale spustila sa verzia {running}. Preinštalujte ho zo stránky na stiahnutie."
 
-msgid "Updated to Mixar {version}"
-msgstr "Aktualizované na Mixar {version}"
+msgid "Updated to Lampway {version}"
+msgstr "Aktualizované na Lampway {version}"
 
 msgid "The update was installed successfully."
 msgstr "Aktualizácia bola úspešne nainštalovaná."
@@ -2765,8 +2765,8 @@ msgstr "{reason} Aktualizáciu si môžete stiahnuť zo stránky na stiahnutie."
 msgid "Update was not installed"
 msgstr "Aktualizácia nebola nainštalovaná"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "Mixar bol stále spustený, keď sa inštalátor pokúsil spustiť."
+msgid "Lampway was still running when the installer tried to start."
+msgstr "Lampway bol stále spustený, keď sa inštalátor pokúsil spustiť."
 
 msgid "The downloaded installer failed its signature check."
 msgstr "Stiahnutý inštalátor neprešiel kontrolou podpisu."
@@ -2774,8 +2774,8 @@ msgstr "Stiahnutý inštalátor neprešiel kontrolou podpisu."
 msgid "The downloaded installer could not be opened."
 msgstr "Stiahnutý inštalátor sa nepodarilo otvoriť."
 
-msgid "Mixar could not be replaced on disk."
-msgstr "Mixar sa nepodarilo nahradiť na disku."
+msgid "Lampway could not be replaced on disk."
+msgstr "Lampway sa nepodarilo nahradiť na disku."
 
 msgid "The installation was cancelled."
 msgstr "Inštalácia bola zrušená."
@@ -2786,8 +2786,8 @@ msgstr "Windows Installer ohlásil závažnú chybu."
 msgid "The installer did not finish."
 msgstr "Inštalátor sa nedokončil."
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "Reštartuje Mixar a nainštaluje stiahnutú aktualizáciu"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "Reštartuje Lampway a nainštaluje stiahnutú aktualizáciu"
 
 msgid "Save Changes"
 msgstr "Uložiť zmeny"
@@ -2795,14 +2795,14 @@ msgstr "Uložiť zmeny"
 msgid "Save the current file before restarting"
 msgstr "Pred reštartom uloží aktuálny súbor"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "Sťahuje sa aktualizácia — Mixar sa reštartuje, keď bude pripravená"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "Sťahuje sa aktualizácia — Lampway sa reštartuje, keď bude pripravená"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar sa zatvorí a aktualizuje na verziu {version}."
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway sa zatvorí a aktualizuje na verziu {version}."
 
 msgid "It reopens automatically when the update is done."
 msgstr "Po dokončení aktualizácie sa automaticky znova otvorí."
@@ -2831,14 +2831,14 @@ msgstr "Zastaví sťahovanie aktualizácie"
 msgid "This update is required and cannot be cancelled"
 msgstr "Táto aktualizácia je povinná a nemožno ju zrušiť"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "Otvorí stránku na stiahnutie Mixar v predvolenom prehliadači"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "Otvorí stránku na stiahnutie Lampway v predvolenom prehliadači"
 
 msgid "Check for Updates"
 msgstr "Vyhľadať aktualizácie"
 
-msgid "Check whether a newer version of Mixar is available"
-msgstr "Overí, či je dostupná novšia verzia Mixar"
+msgid "Check whether a newer version of Lampway is available"
+msgstr "Overí, či je dostupná novšia verzia Lampway"
 
 msgid "An update check is already in progress"
 msgstr "Kontrola aktualizácií už prebieha"
@@ -2849,8 +2849,8 @@ msgstr "Vyhľadávajú sa aktualizácie…"
 msgid "Update Available"
 msgstr "Dostupná aktualizácia"
 
-msgid "Show details for the pending Mixar update"
-msgstr "Zobrazí podrobnosti o čakajúcej aktualizácii Mixar"
+msgid "Show details for the pending Lampway update"
+msgstr "Zobrazí podrobnosti o čakajúcej aktualizácii Lampway"
 
 msgid "View Changelog"
 msgstr "Zobraziť zoznam zmien"
@@ -2969,14 +2969,14 @@ msgstr "Zobrazované meno pre pozdrav účtu"
 msgid "Newer File Version"
 msgstr "Novšia verzia súboru"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
-msgstr "Upozorní používateľa, že súbor bol uložený novšou verziou Mixar"
+msgid "Warn user that the file was saved by a newer Lampway version"
+msgstr "Upozorní používateľa, že súbor bol uložený novšou verziou Lampway"
 
 msgid "File Version"
 msgstr "Verzia súboru"
 
-msgid "This file was saved by Mixar version {version}."
-msgstr "Tento súbor bol uložený verziou Mixar {version}."
+msgid "This file was saved by Lampway version {version}."
+msgstr "Tento súbor bol uložený verziou Lampway {version}."
 
 msgid "Some data may be missing or incorrect."
 msgstr "Niektoré údaje môžu chýbať alebo byť nesprávne."
@@ -2990,8 +2990,8 @@ msgstr "Nie sú dostupné žiadne objekty povrchovej siete na export"
 msgid "Start Connector Sidecar"
 msgstr "Spustiť pomocný proces konektora"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "Sprístupní Mixar hubu cez lokálne HTTP (loopback)"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "Sprístupní Lampway hubu cez lokálne HTTP (loopback)"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
 msgstr "Pomocný proces konektora na 127.0.0.1:{port}"
@@ -2999,8 +2999,8 @@ msgstr "Pomocný proces konektora na 127.0.0.1:{port}"
 msgid "Export Scene to Unreal"
 msgstr "Exportovať scénu do Unreal"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "Exportuje aktuálnu scénu Mixar ako USD/FBX/GLB pripravené pre Unreal"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "Exportuje aktuálnu scénu Lampway ako USD/FBX/GLB pripravené pre Unreal"
 
 msgid "Exported {filename} ({count} meshes)"
 msgstr "Exportované {filename} (povrchové siete: {count})"
@@ -3020,8 +3020,8 @@ msgstr ""
 msgid "Hub Sidecar"
 msgstr "Pomocný proces hubu"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "Sprístupní túto reláciu Mixar pre mixar-connector cez lokálne HTTP (loopback)"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "Sprístupní túto reláciu Lampway pre mixar-connector cez lokálne HTTP (loopback)"
 
 msgid "Sidecar Port"
 msgstr "Port pomocného procesu"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,8 +3119,8 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
-msgstr "Kamera kamerového záberu Mixar"
+msgid "Lampway Shot Camera"
+msgstr "Kamera kamerového záberu Lampway"
 
 msgid "Shot"
 msgstr "Kamerový záber"
@@ -3563,8 +3563,8 @@ msgstr "Kamerový záber nemá kameru"
 msgid "Capture at least one camera beat before locking"
 msgstr "Pred zamknutím zachyťte aspoň jeden moment kamery"
 
-msgid "Mixar Focus"
-msgstr "Zaostrenie Mixar"
+msgid "Lampway Focus"
+msgstr "Zaostrenie Lampway"
 
 msgid "Rendering…"
 msgstr "Prekresľuje sa…"
@@ -4241,8 +4241,8 @@ msgstr "Priebeh prekresľovania"
 msgid "Render Status"
 msgstr "Stav prekresľovania"
 
-msgid "Mixar Camera Export"
-msgstr "Export kamery Mixar"
+msgid "Lampway Camera Export"
+msgstr "Export kamery Lampway"
 
 msgid "Export this scene's camera animation to the Moodboard"
 msgstr "Exportuje animáciu kamery tejto scény na moodboard"
@@ -4493,14 +4493,14 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
-msgstr "Režisér Mixar"
+msgid "Lampway Director"
+msgstr "Režisér Lampway"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "Riedke kamerové zábery réžie kamery pre túto scénu"
 
-msgid "Mixar Output"
-msgstr "Výstup Mixar"
+msgid "Lampway Output"
+msgstr "Výstup Lampway"
 
 msgid "Output aspect ratio this camera frames for"
 msgstr "Výstupný pomer strán, pre ktorý táto kamera komponuje obraz"
@@ -4964,19 +4964,19 @@ msgstr "Model lokálneho servera"
 msgid "Local model last error"
 msgstr "Posledná chyba lokálneho modelu"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,26 +7789,26 @@ msgstr "Text chyby"
 msgid "Error message if job failed"
 msgstr "Chybová správa, ak úloha zlyhala"
 
-msgid "Mixie Moodboard Images"
-msgstr "Obrázky moodboardu Mixie"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Obrázky moodboardu Lampway Agent"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "Kolekcia referenčných obrázkov v režime Moodboard"
 
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Textové polia moodboardu Mixie"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Textové polia moodboardu Lampway Agent"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "Kolekcia textových polí v režime Moodboard"
 
-msgid "Mixie Moodboard Frames"
-msgstr "Rámy moodboardu Mixie"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Rámy moodboardu Lampway Agent"
 
 msgid "Canvas frames grouping board items"
 msgstr "Rámy plátna zoskupujúce položky tabule"
 
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Skupiny moodboardu Mixie (staršie)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Skupiny moodboardu Lampway Agent (staršie)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "Nahradené mixie_moodboard_frames; ponechané kvôli migrácii"
@@ -8917,8 +8917,8 @@ msgstr "Synchronizované obrázky z moodboardu: {count}"
 msgid "Attach Selected Moodboard Image"
 msgstr "Priložiť vybraný obrázok z moodboardu"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
-msgstr "Kopírovať vybrané obrázky, videá, textové polia a inferenčné uzly (s ich prepojeniami a výsledkami); prilepte ich skratkou {shortcut} v tejto alebo inej inštancii Mixar"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
+msgstr "Kopírovať vybrané obrázky, videá, textové polia a inferenčné uzly (s ich prepojeniami a výsledkami); prilepte ich skratkou {shortcut} v tejto alebo inej inštancii Lampway"
 
 msgid "Nothing selected to copy"
 msgstr "Nie je nič vybrané na kopírovanie"
@@ -9244,8 +9244,8 @@ msgstr "Schránku sa nepodarilo prečítať: {error}"
 msgid "Paste"
 msgstr "Prilepiť"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
-msgstr "Prilepte to, čo bolo skopírované na moodboarde — v tejto alebo inej inštancii Mixar — alebo obrázok zo systémovej schránky ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
+msgstr "Prilepte to, čo bolo skopírované na moodboarde — v tejto alebo inej inštancii Lampway — alebo obrázok zo systémovej schránky ({shortcut})"
 
 msgid "Pasted {count} item"
 msgstr "Prilepená položka: {count}"
@@ -10642,13 +10642,13 @@ msgstr "Poznámky moodboardu"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
-msgstr "Vitajte v aplikácii Mixar"
+msgid "Welcome to Lampway"
+msgstr "Vitajte v aplikácii Lampway"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,20 +10669,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
-msgstr "ID histórie operácií Mixar"
+msgid "Lampway Operation History ID"
+msgstr "ID histórie operácií Lampway"
 
 msgid "Persistent per-scene id keying this scene's operation history."
 msgstr "Trvalé ID pre každú scénu, ktoré identifikuje históriu operácií tejto scény."
@@ -13051,8 +13051,8 @@ msgstr "Názov kanála na export"
 msgid "File format for export"
 msgstr "Formát súboru na export"
 
-msgid "No active Mixar node found"
-msgstr "Nenašiel sa žiadny aktívny uzol Mixar"
+msgid "No active Lampway node found"
+msgstr "Nenašiel sa žiadny aktívny uzol Lampway"
 
 msgid "Exported '{name}' to {path}"
 msgstr "Exportované '{name}' do {path}"
@@ -13201,8 +13201,8 @@ msgstr "Zapiecť dočasný obrázok vrstvy, môže predísť chybám zobrazenia 
 msgid "Bake Temporary Image"
 msgstr "Zapiecť dočasný obrázok"
 
-msgid "No active Mixar node found!"
-msgstr "Nenašiel sa žiadny aktívny uzol Mixar!"
+msgid "No active Lampway node found!"
+msgstr "Nenašiel sa žiadny aktívny uzol Lampway!"
 
 msgid "No active layer found!"
 msgstr "Nenašla sa žiadna aktívna vrstva!"
@@ -13345,8 +13345,8 @@ msgstr "Zapiecť kanál do farby vrcholov"
 msgid "Bake All Materials"
 msgstr "Zapiecť všetky materiály"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "Zapiecť všetky materiály s uzlami Mixar Paint, nielen aktívny"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "Zapiecť všetky materiály s uzlami Lampway Paint, nielen aktívny"
 
 msgid "Target Vertex Color Name"
 msgstr "Názov cieľovej farby vrcholov"
@@ -13574,8 +13574,8 @@ msgstr ""
 msgid "Copy Image Path To Clipboard"
 msgstr "Kopírovať cestu k obrázku do schránky"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint skopíruje cestu k súboru obrázka do systémovej schránky"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint skopíruje cestu k súboru obrázka do systémovej schránky"
 
 msgid "Copied: {text}"
 msgstr "Skopírované: {text}"
@@ -13583,8 +13583,8 @@ msgstr "Skopírované: {text}"
 msgid "Open Containing Image Folder"
 msgstr "Otvoriť priečinok s obrázkom"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint otvorí priečinok so súborom obrázka a zvýrazní ho"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint otvorí priečinok so súborom obrázka a zvýrazní ho"
 
 msgid "File does not exist"
 msgstr "Súbor neexistuje"
@@ -15054,8 +15054,8 @@ msgstr "Povoliť masku"
 msgid "Active Mask"
 msgstr "Aktívna maska"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Aktívna maska pre režim maľovania a úprav Blendera alebo režim náhľadu masky Mixar Paint"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Aktívna maska pre režim maľovania a úprav Blendera alebo režim náhľadu masky Lampway Paint"
 
 msgid "Mask Source Input"
 msgstr "Vstup zdroja masky"
@@ -15156,14 +15156,14 @@ msgstr "Zapiecť všetky kanály"
 msgid "Delete Baked Images"
 msgstr "Odstrániť zapecené obrázky"
 
-msgid "New Mixar Paint Modifier"
-msgstr "Nový modifikátor Mixar Paint"
+msgid "New Lampway Paint Modifier"
+msgstr "Nový modifikátor Lampway Paint"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Presunúť modifikátor Mixar Paint"
+msgid "Move Lampway Paint Modifier"
+msgstr "Presunúť modifikátor Lampway Paint"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Odstrániť modifikátor Mixar Paint"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Odstrániť modifikátor Lampway Paint"
 
 msgid "Add Channel Modifier"
 msgstr "Pridať modifikátor kanála"
@@ -15297,8 +15297,8 @@ msgstr "Kanál '{name}' už existuje"
 msgid "Build Layered Material"
 msgstr "Zostaviť vrstvený materiál"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "Zostaviť materiál Mixar Paint z manifestu vrstveného materiálu"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "Zostaviť materiál Lampway Paint z manifestu vrstveného materiálu"
 
 msgid "Manifest JSON"
 msgstr "JSON manifestu"
@@ -15921,8 +15921,8 @@ msgstr "Premenovať túto vrstvu"
 msgid "New name for the layer"
 msgstr "Nový názov vrstvy"
 
-msgid "No active Mixar node"
-msgstr "Žiadny aktívny uzol Mixar"
+msgid "No active Lampway node"
+msgstr "Žiadny aktívny uzol Lampway"
 
 msgid "Name cannot be empty"
 msgstr "Názov nemôže byť prázdny"
@@ -16071,11 +16071,11 @@ msgstr "Vrátiť sa na pohľad vlastností vrstvy"
 msgid "Add different types of masks to the active layer"
 msgstr "Pridať rôzne typy masiek k aktívnej vrstve"
 
-msgid "Remove Mixar Paint Node"
-msgstr "Odstrániť uzol Mixar Paint"
+msgid "Remove Lampway Paint Node"
+msgstr "Odstrániť uzol Lampway Paint"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Odstrániť uzol Mixar Paint, ale ponechať všetky zapecené obrázky kanálov"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Odstrániť uzol Lampway Paint, ale ponechať všetky zapecené obrázky kanálov"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "Toto nastavenie uzlov {addon} ešte nie je zapecené!"
@@ -16227,8 +16227,8 @@ msgstr "Použiť materiál na aktívnu vrstvu výplne namiesto vytvorenia novej 
 msgid "Material '{name}' not found in registry"
 msgstr "Materiál '{name}' sa v registri nenašiel"
 
-msgid "No active Mixar Paint node found"
-msgstr "Nenašiel sa žiadny aktívny uzol Mixar Paint"
+msgid "No active Lampway Paint node found"
+msgstr "Nenašiel sa žiadny aktívny uzol Lampway Paint"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "Materiál '{name}' použitý na existujúcu vrstvu"
@@ -16431,8 +16431,8 @@ msgstr "Nie je aktívny žiadny vrstvový materiál"
 msgid "To use texture baking:"
 msgstr "Použitie zapekania textúr:"
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. Vyberte objekt s materiálom Mixar"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. Vyberte objekt s materiálom Lampway"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "  2. Alebo vytvorte nový vrstvový materiál"
@@ -16533,8 +16533,8 @@ msgstr "Backend maľby nie je inicializovaný"
 msgid "Paint UI not initialized"
 msgstr "Rozhranie maľby nie je inicializované"
 
-msgid "No Mixar material found"
-msgstr "Nenašiel sa žiadny materiál Mixar"
+msgid "No Lampway material found"
+msgstr "Nenašiel sa žiadny materiál Lampway"
 
 msgid "No layer based material"
 msgstr "Žiadny vrstvový materiál"
@@ -16551,8 +16551,8 @@ msgstr "Nie je vybraná žiadna vrstva"
 msgid "No active material"
 msgstr "Žiadny aktívny materiál"
 
-msgid "No Mixar node found"
-msgstr "Nenašiel sa žiadny uzol Mixar"
+msgid "No Lampway node found"
+msgstr "Nenašiel sa žiadny uzol Lampway"
 
 msgid "Backend layer not found"
 msgstr "Vrstva backendu sa nenašla"
@@ -17227,17 +17227,17 @@ msgstr "Vrstva je momentálne zameraná/vybraná"
 msgid "How this layer blends with layers below"
 msgstr "Spôsob prelínania tejto vrstvy s vrstvami pod ňou"
 
-msgid "Mixar Layer Index"
-msgstr "Index vrstvy Mixar"
+msgid "Lampway Layer Index"
+msgstr "Index vrstvy Lampway"
 
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "Index v kolekcii Mixar mixar_mp.layers"
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "Index v kolekcii Lampway mixar_mp.layers"
 
-msgid "Mixar Group Node"
-msgstr "Skupinový uzol Mixar"
+msgid "Lampway Group Node"
+msgstr "Skupinový uzol Lampway"
 
-msgid "Name of the Mixar group node"
-msgstr "Názov skupinového uzla Mixar"
+msgid "Name of the Lampway group node"
+msgstr "Názov skupinového uzla Lampway"
 
 msgid "Updating Property"
 msgstr "Aktualizuje sa vlastnosť"
@@ -18312,8 +18312,8 @@ msgstr "Farba iného objektu"
 msgid "Other Objects Channels"
 msgstr "Kanály iných objektov"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "Kanály Mixar Paint iného objektu"
+msgid "Other object's Lampway Paint channels"
+msgstr "Kanály Lampway Paint iného objektu"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "Vybrané vrcholy/hrany/plôšky"
@@ -18639,16 +18639,16 @@ msgstr "Podpora aplikácie"
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
-msgstr "Adresár doplnkov Mixar sa nepodarilo vytvoriť — skontrolujte oprávnenia priečinka vášho používateľského profilu."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
+msgstr "Adresár doplnkov Lampway sa nepodarilo vytvoriť — skontrolujte oprávnenia priečinka vášho používateľského profilu."
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
-msgstr "Adresár rozšírení Mixar sa nepodarilo vytvoriť — skontrolujte oprávnenia priečinka vášho používateľského profilu."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
+msgstr "Adresár rozšírení Lampway sa nepodarilo vytvoriť — skontrolujte oprávnenia priečinka vášho používateľského profilu."
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "povolenie zlyhalo (môže byť nekompatibilné s Blenderom 5.0)"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
 msgstr "Preneste doplnky a rozšírenia z existujúcej inštalácie Blenderu do Mixaru."
 
 msgid "Scan for Blender Plugins"
@@ -18672,13 +18672,13 @@ msgstr "Po importe povoliť:"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "Skopírujú sa všetky uvedené zásuvné moduly; označené sa povolia."
 
-msgid "Import into Mixar"
+msgid "Import into Lampway"
 msgstr "Importovať do Mixaru"
 
 msgid "Imported"
 msgstr "Importované"
 
-msgid "Already in Mixar"
+msgid "Already in Lampway"
 msgstr "Už je v Mixari"
 
 msgid "Copy failed"
@@ -18705,10 +18705,10 @@ msgstr "Vybrať zásuvné moduly"
 msgid "Tick or untick every plugin in the list"
 msgstr "Označí alebo zruší označenie všetkých zásuvných modulov v zozname"
 
-msgid "Import Plugins into Mixar"
+msgid "Import Plugins into Lampway"
 msgstr "Importovať zásuvné moduly do Mixaru"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
 msgstr "Skopíruje všetky uvedené zásuvné moduly do Mixaru a povolí označené"
 
 msgid "Nothing scanned — run Scan first"
@@ -18726,7 +18726,7 @@ msgstr "Importované: {imported}, už prítomné: {already_present}, zlyhané: {
 msgid "Imported: {count}"
 msgstr "Importované: {count}"
 
-msgid "Already in Mixar: {count}"
+msgid "Already in Lampway: {count}"
 msgstr "Už v Mixari: {count}"
 
 msgid "Enabled: {count}"
@@ -18744,7 +18744,7 @@ msgstr "Importovať z Blenderu"
 msgid "{count} found"
 msgstr "Nájdené: {count}"
 
-msgid "Enable this plugin in Mixar after importing it"
+msgid "Enable this plugin in Lampway after importing it"
 msgstr "Po importe povolí tento zásuvný modul v Mixari"
 
 msgid "Blender Version"
@@ -18798,14 +18798,14 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
-msgstr "Graf scény Mixar"
+msgid "Lampway Scene Graph"
+msgstr "Graf scény Lampway"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "Graf scény čitateľný agentom pre každú scénu (JSON). Iba za behu."
 
-msgid "Mixar Scene Graph Query Result"
-msgstr "Výsledok dotazu na graf scény Mixar"
+msgid "Lampway Scene Graph Query Result"
+msgstr "Výsledok dotazu na graf scény Lampway"
 
 msgid "JSON result of the last scene-graph query operator call."
 msgstr "Výsledok JSON posledného volania operátora dotazu na graf scény."
@@ -19524,8 +19524,8 @@ msgstr "Videá vyžadujú režim Video. Ak chcete odoslať správu agentovi, ods
 msgid "User ID"
 msgstr "ID používateľa"
 
-msgid "User ID for Mixie Chat login"
-msgstr "ID používateľa na prihlásenie do chatu Mixie"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "ID používateľa na prihlásenie do chatu Lampway Agent"
 
 msgid "Agent expects: {formats}"
 msgstr "Agent očakáva: {formats}"
@@ -19983,11 +19983,11 @@ msgstr "Pred spustením hlasového vstupu dokončite rukopis."
 msgid "Sign in to use voice input."
 msgstr "Na použitie hlasového vstupu sa prihláste."
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "Spustite Mixar z Findera, aby ste mohli povoliť prístup k mikrofónu."
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "Spustite Lampway z Findera, aby ste mohli povoliť prístup k mikrofónu."
 
-msgid "Allow microphone access for Mixar in system privacy settings."
-msgstr "Povoľte aplikácii Mixar prístup k mikrofónu v systémových nastaveniach súkromia."
+msgid "Allow microphone access for Lampway in system privacy settings."
+msgstr "Povoľte aplikácii Lampway prístup k mikrofónu v systémových nastaveniach súkromia."
 
 msgid "Allow microphone"
 msgstr "Povoliť mikrofón"
@@ -20034,8 +20034,8 @@ msgstr "Prihláste sa znova."
 msgid "Login Failed"
 msgstr "Prihlásenie zlyhalo"
 
-msgid "Sign in with your Mixar account"
-msgstr "Prihláste sa účtom Mixar"
+msgid "Sign in with your Lampway account"
+msgstr "Prihláste sa účtom Lampway"
 
 msgid "Waiting for browser..."
 msgstr "Čaká sa na prehliadač..."
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "Ovládací panel"
 
-msgid "About Mixar"
-msgstr "O aplikácii Mixar"
+msgid "About Lampway"
+msgstr "O aplikácii Lampway"
 
 msgid "Documentation"
 msgstr "Dokumentácia"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "Exportovaná kópia bez chatu (vynechané správy: {count}, scény: {scenes})."
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Mixar Chat: Exportovať .blend bez histórie chatu"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Lampway Chat: Exportovať .blend bez histórie chatu"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "Generovanie momentálne nie je k dispozícii. Obnovte katalóg a skúste to znova."
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Pridať pravidlá"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "Definujte pravidlá pre Mixie. Zmeny sa použijú pri vašej ďalšej správe alebo odpovedi; globálne pravidlá platia v každom súbore Mixar. Vaša aktuálna požiadavka má prednosť pred pravidlami projektu aj globálnymi pravidlami"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Definujte pravidlá pre Mixie. Zmeny sa použijú pri vašej ďalšej správe alebo odpovedi; globálne pravidlá platia v každom súbore Lampway. Vaša aktuálna požiadavka má prednosť pred pravidlami projektu aj globálnymi pravidlami"
 
 msgid "Rule operation failed"
 msgstr "Operácia s pravidlom zlyhala"
@@ -22138,8 +22138,8 @@ msgstr "Text poslednej vybratej udalosti rozpoznávača reči"
 msgid "Materials: {count}"
 msgstr "Materiály: {count}"
 
-msgid "No Mixar material active"
-msgstr "Žiadny aktívny materiál Mixar"
+msgid "No Lampway material active"
+msgstr "Žiadny aktívny materiál Lampway"
 
 msgid "{channel} Settings"
 msgstr "Nastavenia {channel}"
@@ -22801,8 +22801,8 @@ msgstr "Mierka Y"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "Škálovať vybrané UV v smere Y (prírastkovo)"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Vlastnosti nástroja poznámky pre priestor vlastností UV Mixar."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Vlastnosti nástroja poznámky pre priestor vlastností UV Lampway."
 
 msgid "Annotate Line"
 msgstr "Čiara poznámky"
@@ -22828,14 +22828,14 @@ msgstr "Začiatok štýlu"
 msgid "Toggle UV Sidebar"
 msgstr "Prepnúť bočný panel UV"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "Prepnúť bočný panel UV Mixar v editore obrázkov"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "Prepnúť bočný panel UV Lampway v editore obrázkov"
 
 msgid "Open UV Sidebar"
 msgstr "Otvoriť bočný panel UV"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Otvoriť bočný panel UV Mixar, ak je skrytý"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Otvoriť bočný panel UV Lampway, ak je skrytý"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "Prázdny stav zobrazený, keď nie sú dostupné vlastnosti UV"
@@ -22858,8 +22858,8 @@ msgstr "Exportovať UV rozloženie"
 msgid "Export UV layout using stored properties"
 msgstr "Exportovať rozloženie UV pomocou uložených vlastností"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "Panel exportu UV pre priestor vlastností UV Mixar"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "Panel exportu UV pre priestor vlastností UV Lampway"
 
 msgid "UV UI not initialized"
 msgstr "Rozhranie UV nie je inicializované"
@@ -22975,8 +22975,8 @@ msgstr "Prilepiť UV"
 msgid "Functions"
 msgstr "Funkcie"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Panel UV funkcií pre priestor vlastností Mixar UV – na základe nástroja (bez tlačidla v záhlaví)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Panel UV funkcií pre priestor vlastností Lampway UV – na základe nástroja (bez tlačidla v záhlaví)"
 
 msgid "Seam"
 msgstr "Šev"
@@ -23104,8 +23104,8 @@ msgstr "V UV editore nie je žiadny obrázok"
 msgid "Material '{name}' created and applied"
 msgstr "Materiál '{name}' bol vytvorený a použitý"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Panel obrázka pre priestor vlastností Mixar UV."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Panel obrázka pre priestor vlastností Lampway UV."
 
 msgid "Save As"
 msgstr "Uložiť ako"
@@ -23137,8 +23137,8 @@ msgstr "Veľkosť obrázka"
 msgid "Invert All Colors"
 msgstr "Invertovať všetky farby"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Panel zásuviek materiálov pre priestor vlastností Mixar UV"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Panel zásuviek materiálov pre priestor vlastností Lampway UV"
 
 msgid "No active object"
 msgstr "Neaktívny objekt"
@@ -23182,8 +23182,8 @@ msgstr "Vytvorí vlastné oblasti v UV priestore na balenie"
 msgid "{label} unavailable"
 msgstr "{label} nie je dostupné"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Panel rozloženia pre priestor vlastností Mixar UV."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Panel rozloženia pre priestor vlastností Lampway UV."
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "Vlastnosti uv.pack_islands nie sú dostupné"
@@ -23329,8 +23329,8 @@ msgstr "Premietnuť"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "Premietne UV pomocou typu a vlastností zobrazených v paneli Premietanie"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Stav rozhrania Mixar UV nie je inicializovaný"
+msgid "Lampway UV UI state not initialized"
+msgstr "Stav rozhrania Lampway UV nie je inicializovaný"
 
 msgid "Unknown projection type: {type}"
 msgstr "Neznámy typ premietania: {type}"
@@ -23461,8 +23461,8 @@ msgstr "Vybrať prepojené"
 msgid "Select linked UVs"
 msgstr "Vyberie prepojené UV"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Panel výberu pre priestor vlastností Mixar UV – na základe nástroja (bez tlačidla v záhlaví)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Panel výberu pre priestor vlastností Lampway UV – na základe nástroja (bez tlačidla v záhlaví)"
 
 msgid "Basic Selection"
 msgstr "Základný výber"
@@ -23503,8 +23503,8 @@ msgstr "Rozdeliť výber"
 msgid "Select Overlap"
 msgstr "Vybrať presahujúce"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Panel hustoty texelov pre priestor vlastností Mixar UV"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Panel hustoty texelov pre priestor vlastností Lampway UV"
 
 msgid "Activate Grab Tool"
 msgstr "Aktivovať nástroj Uchopiť"
@@ -23548,8 +23548,8 @@ msgstr "Vycentruje pohľad na kurzor"
 msgid "UV Sculpt Tools"
 msgstr "Nástroje UV tvarovania"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Panel nástrojov UV tvarovania pre priestor vlastností Mixar UV – na základe nástroja (bez tlačidla v záhlaví)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Panel nástrojov UV tvarovania pre priestor vlastností Lampway UV – na základe nástroja (bez tlačidla v záhlaví)"
 
 msgid "Grab"
 msgstr "Uchopiť"
@@ -23668,8 +23668,8 @@ msgstr "Použije transformáciu mierky na vybrané UV"
 msgid "Snapping"
 msgstr "Prichytenie"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Panel prichytenia pre priestor vlastností Mixar UV"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Panel prichytenia pre priestor vlastností Lampway UV"
 
 msgid "Snapping Options"
 msgstr "Možnosti prichytenia"
@@ -23719,8 +23719,8 @@ msgstr "Rozvinie pomocou metódy a vlastností zobrazených v paneli Rozvinúť"
 msgid "Unknown unwrap method: {method}"
 msgstr "Neznáma metóda rozvinutia: {method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Kombinovaný panel Rozvinúť + Premietnuť pre priestor vlastností Mixar UV."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Kombinovaný panel Rozvinúť + Premietnuť pre priestor vlastností Lampway UV."
 
 msgid "Live Unwrap"
 msgstr "Aktuálne rozvinúť"
@@ -23796,7 +23796,7 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
@@ -23804,7 +23804,7 @@ msgstr ""
 "\n"
 "Obal okolo `image.new`, ktorý vopred nastaví `tiled=True` v\n"
 "dialógu vlastností operátora. Používa sa ako operátor `new=` pre\n"
-"`template_ID` v paneloch Mixar UV, aby sa dialóg otvoril so\n"
+"`template_ID` v paneloch Lampway UV, aby sa dialóg otvoril so\n"
 "začiarknutým políčkom Tiled. Samotné vytvorenie a priradenie ID\n"
 "vykoná `image.new`.\n"
 
@@ -23826,8 +23826,8 @@ msgstr "Vyplniť dlaždicu"
 msgid "Fill UDIM tile"
 msgstr "Vyplní dlaždicu UDIM"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "Panel sady UV pre priestor vlastností Mixar UV."
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "Panel sady UV pre priestor vlastností Lampway UV."
 
 msgid "UV Maps"
 msgstr "UV mapy"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "Nástroje"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Panel nástroja pre priestor vlastností Mixar UV – zobrazí sa, keď je\n"
+"Panel nástroja pre priestor vlastností Lampway UV – zobrazí sa, keď je\n"
 "aktívny nástroj `builtin.uv_tool` na paneli nástrojov."
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,14 +24070,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Prepne Mixar do režimu Zen (minimálny záber + bublina agenta + moodboard)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "Prepne Lampway do režimu Zen (minimálny záber + bublina agenta + moodboard)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Pracovný priestor režimu Zen sa nepodarilo vytvoriť – nie je dostupná žiadna šablóna"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "Prepne Mixar do režimu Engine (úplné pracovné priestory v štýle Blendera)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "Prepne Lampway do režimu Engine (úplné pracovné priestory v štýle Blendera)"
 
 msgid "Modeling workspace not found"
 msgstr "Pracovný priestor Modelovanie sa nenašiel"
@@ -24298,16 +24298,16 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
 msgstr "Súbor bol uložený novšou verziou Mixaru (%d.%d), niektoré údaje sa môžu stratiť"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
 msgstr "Súbor bol uložený novšou verziou, otvorte ho v Mixare %s alebo novšom"
 
 msgid "Failed to read mixar file '%s': %s"
 msgstr "Nepodarilo sa načítať súbor mixar '%s': %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
 msgstr "Súbor mixar '%s' nemožno načítať, neúplná hlavička, môže pochádzať z novšej verzie Mixaru"
 
 msgid "Failed to read file '%s', not a mixar file"
@@ -24316,13 +24316,13 @@ msgstr "Nepodarilo sa načítať súbor '%s', nie je to súbor mixar"
 msgid "Unable to open mixar <memory>"
 msgstr "Nemožno otvoriť mixar <memory>"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Súbor Mixar '%s' bol vytvorený budúcou verziou Mixaru a obsahuje názvy ID dlhšie, než sú momentálne podporované. Tieto názvy boli skrátené."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Súbor Lampway '%s' bol vytvorený budúcou verziou Mixaru a obsahuje názvy ID dlhšie, než sú momentálne podporované. Tieto názvy boli skrátené."
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Súbor Mixar '%s' je zrejme poškodený, obsahuje neplatné názvy ID. Tieto názvy boli skrátené."
+msgstr "Súbor Lampway '%s' je zrejme poškodený, obsahuje neplatné názvy ID. Tieto názvy boli skrátené."
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
 msgstr "Knižnica '%s' bola vytvorená budúcou verziou Mixaru a obsahuje názvy ID dlhšie, než sú momentálne podporované. Môže to spôsobiť chýbajúce prepojené údaje, zvážte otvorenie a opätovné uloženie tejto knižnice v aktuálnej verzii Mixaru."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
@@ -24454,8 +24454,8 @@ msgstr "Opýtajte sa Mixie na čokoľvek..."
 msgid "Write your prompt here..."
 msgstr "Sem napíšte výzvu..."
 
-msgid "Everything Mixar has generated"
-msgstr "Všetko, čo Mixar vygeneroval"
+msgid "Everything Lampway has generated"
+msgstr "Všetko, čo Lampway vygeneroval"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -25771,13 +25771,13 @@ msgstr "Odstrániť náhľad Mixie3D"
 msgid "Delete a segmented image from the preview history"
 msgstr "Odstráni segmentovaný obrázok z histórie náhľadov"
 
-msgid "Mixar agent bubble loading…"
-msgstr "Bublina agenta Mixar sa načítava…"
+msgid "Lampway agent bubble loading…"
+msgstr "Bublina agenta Lampway sa načítava…"
 
 msgid "Show Agent Bubble"
 msgstr "Zobraziť bublinu agenta"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
 msgstr "Otvorí plávajúcu bublinu agenta, cez ktorú môže používateľ chatovať s AI agentom odkiaľkoľvek v rozhraní Mixaru"
 
 msgid "Chat is still loading. Please drop the asset again."
@@ -25822,7 +25822,7 @@ msgstr "Pridá pustený obrázok ako prílohu chatu"
 msgid "Dropped image datablock"
 msgstr "Dátový blok pusteného obrázka"
 
-msgid "Tell me about the features in Mixar"
+msgid "Tell me about the features in Lampway"
 msgstr "Povedz mi o funkciách Mixaru"
 
 msgid "Generate a futuristic sci-fi character concept"
@@ -26755,14 +26755,14 @@ msgstr "Operácie zapekania a spracovania textúr"
 msgid "Texture set management for PBR workflows"
 msgstr "Správa sád textúr pre pracovné postupy PBR"
 
-msgid "Mixar UV Editor"
-msgstr "UV editor Mixar"
+msgid "Lampway UV Editor"
+msgstr "UV editor Lampway"
 
-msgid "Mixar UV editing mode"
+msgid "Lampway UV editing mode"
 msgstr "Režim úprav UV v Mixare"
 
-msgid "Mixar Layers Properties"
-msgstr "Vlastnosti vrstiev Mixar"
+msgid "Lampway Layers Properties"
+msgstr "Vlastnosti vrstiev Lampway"
 
 msgid "Reference image board like PureRef"
 msgstr "Tabuľa referenčných obrázkov ako PureRef"
@@ -26770,8 +26770,8 @@ msgstr "Tabuľa referenčných obrázkov ako PureRef"
 msgid "Mixie Space"
 msgstr "Priestor Mixie"
 
-msgid "Mixie editor for Mixar"
-msgstr "Editor Mixie pre Mixar"
+msgid "Mixie editor for Lampway"
+msgstr "Editor Mixie pre Lampway"
 
 msgid "Mixie editor mode"
 msgstr "Režim editora Mixie"
@@ -26779,8 +26779,8 @@ msgstr "Režim editora Mixie"
 msgid "Agent Bubble Space"
 msgstr "Priestor bubliny agenta"
 
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Editor plávajúceho chatu s agentom pre Mixar"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Editor plávajúceho chatu s agentom pre Lampway"
 
 msgid "Top Bar Space"
 msgstr "Priestor horného panela"
@@ -26788,23 +26788,23 @@ msgstr "Priestor horného panela"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "Horný panel obsahujúci pás kariet pracovných priestorov a ponuky editorov"
 
-msgid "Mixar Layers Space"
-msgstr "Priestor vrstiev Mixar"
+msgid "Lampway Layers Space"
+msgstr "Priestor vrstiev Lampway"
 
-msgid "Mixar texture layer stack management"
-msgstr "Správa zásobníka vrstiev textúr Mixar"
+msgid "Lampway texture layer stack management"
+msgstr "Správa zásobníka vrstiev textúr Lampway"
 
-msgid "Mixar Properties Space"
-msgstr "Priestor vlastností Mixar"
+msgid "Lampway Properties Space"
+msgstr "Priestor vlastností Lampway"
 
-msgid "Mixar layer and texture properties"
-msgstr "Vlastnosti vrstiev a textúr Mixar"
+msgid "Lampway layer and texture properties"
+msgstr "Vlastnosti vrstiev a textúr Lampway"
 
-msgid "Mixar Assets Space"
-msgstr "Priestor aktív Mixar"
+msgid "Lampway Assets Space"
+msgstr "Priestor aktív Lampway"
 
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "Knižnica inteligentných materiálov, štetcov a textúr Mixar"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "Knižnica inteligentných materiálov, štetcov a textúr Lampway"
 
 msgid "Texture sets management"
 msgstr "Správa sád textúr"
@@ -26812,8 +26812,8 @@ msgstr "Správa sád textúr"
 msgid "Use Blender's theme"
 msgstr "Použije motív Blendera"
 
-msgid "Mixar Zen components"
-msgstr "Komponenty Mixar Zen"
+msgid "Lampway Zen components"
+msgstr "Komponenty Lampway Zen"
 
 msgid "Compatibility appearance"
 msgstr "Vzhľad kompatibility"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "Globálne oblasti"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "Oblasti globálne pre okno (horný panel, stavový panel). Rozšírenie Mixar — sprístupnené, aby úvodné predstavenie mohlo odkázať na horný panel kvôli prekresleniu."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "Oblasti globálne pre okno (horný panel, stavový panel). Rozšírenie Lampway — sprístupnené, aby úvodné predstavenie mohlo odkázať na horný panel kvôli prekresleniu."
 
 msgid "QA UI Dump"
 msgstr "Výpis rozhrania QA"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "Snímka JSON všetkých živých prvkov rozhrania (nápisy, operátory, vlastnosti, obdĺžniky priestoru okna, stav) pre testovaciu súpravu QA Mixar"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "Snímka JSON všetkých živých prvkov rozhrania (nápisy, operátory, vlastnosti, obdĺžniky priestoru okna, stav) pre testovaciu súpravu QA Lampway"
 
 msgid "Window Resizing"
 msgstr "Zmena veľkosti okna"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "Zachytenie snímky QA vyžaduje --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,10 +27982,10 @@ msgstr "Mikrofón sa zasekol alebo pretekla vyrovnávacia pamäť záznamu"
 msgid "Microphone disconnected"
 msgstr "Mikrofón sa odpojil"
 
-msgid "Mixar File View"
-msgstr "Pohľad na súbory Mixar"
+msgid "Lampway File View"
+msgstr "Pohľad na súbory Lampway"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
 msgstr "Proxy boli z Mixaru odstránené (%d proxy bolo automaticky skonvertovaných na prepísania knižnice, %d proxy sa nepodarilo skonvertovať a boli vymazané). Zvážte opätovné uloženie ľubovoľného knižničného súboru .mixar najnovšou verziou Mixaru"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
@@ -27994,10 +27994,10 @@ msgstr "Súbor mixar nie je možné uložiť, cesta \"%s\" nie je zapisovateľn�
 msgid "Cannot save mixar file, path \"%s\" is a directory"
 msgstr "Súbor mixar nie je možné uložiť, cesta \"%s\" je priečinok"
 
-msgid "Mixar will start next time as it is now."
-msgstr "Mixar sa nabudúce spustí tak, ako je teraz."
+msgid "Lampway will start next time as it is now."
+msgstr "Lampway sa nabudúce spustí tak, ako je teraz."
 
-msgid "Load Factory Mixar Preferences"
+msgid "Load Factory Lampway Preferences"
 msgstr "Načítať továrenské predvoľby Mixaru"
 
 msgid "Load user interface setup from the .mixar file"
@@ -28006,14 +28006,14 @@ msgstr "Načítať nastavenie užívateľského rozhrania zo súboru .mixar"
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr "Povoliť súboru .mixar automatické spúšťanie skriptov, predvolené je dostupné zo systémových predvoľieb"
 
-msgid "Open a Mixar file"
-msgstr "Otvoriť súbor Mixar"
+msgid "Open a Lampway file"
+msgstr "Otvoriť súbor Lampway"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr "Načítať nastavenie užívateľského rozhrania v súbore .mixar"
 
-msgid "Mixar Files"
-msgstr "Súbory Mixar"
+msgid "Lampway Files"
+msgstr "Súbory Lampway"
 
 msgid "Show only .mixar files"
 msgstr "Ukázať iba súbory .mixar"
@@ -28039,26 +28039,26 @@ msgstr "Uložiť ako súbor .mixar"
 msgid "Save as .blend file"
 msgstr "Uložiť ako súbor .blend"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "Uložiť aktuálny súbor Mixar s číselne zvýšeným názvom, ktorý neprepíše žiadne existujúce súbory"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "Uložiť aktuálny súbor Lampway s číselne zvýšeným názvom, ktorý neprepíše žiadne existujúce súbory"
 
-msgid "Save Mixar File"
-msgstr "Uložiť súbor Mixar"
+msgid "Save Lampway File"
+msgstr "Uložiť súbor Lampway"
 
-msgid "Save the current Mixar file"
-msgstr "Uložiť aktuálny súbor Mixar"
+msgid "Save the current Lampway file"
+msgstr "Uložiť aktuálny súbor Lampway"
 
-msgid "Exit Mixar after saving"
-msgstr "Ukončiť Mixar po uložení"
+msgid "Exit Lampway after saving"
+msgstr "Ukončiť Lampway po uložení"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
+msgid "This file was saved by a newer version of Lampway (%s)."
 msgstr "Tento súbor bol uložený novšou verziou Mixaru (%s)."
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
 msgstr "Jeho uložením v tomto Mixare (%s) môže dôjsť k strate údajov."
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "Tento súbor spravuje systém aktív Mixar. Môže byť iba"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "Tento súbor spravuje systém aktív Lampway. Môže byť iba"
 
 msgid "Filter .mixar files"
 msgstr "Filtrovať súbory .mixar"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
 msgstr "Môžu byť dostupné novšie grafické ovládače s lepšou kompatibilitou s Mixarom."
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
 msgstr "Aktualizácia na najnovšiu verziu macOS môže zlepšiť podporu Mixaru"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Mixar sa teraz zatvorí."
+msgid "Lampway will now close."
+msgstr "Lampway sa teraz zatvorí."

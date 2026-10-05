@@ -94,9 +94,9 @@ LOCAL_PROVIDER_ITEM = (
 
 # Managed vs custom sub-mode of the Local provider form.
 LOCAL_MODE_ITEMS = (
-    ('MANAGED', "Managed by Mixar",
-     "Mixar downloads and runs a curated model on this computer"),
+    ('MANAGED', "Managed by Lampway",
+     "Lampway downloads and runs a curated model on this computer"),
     ('CUSTOM', "Custom local server",
-     "Point Mixar at an OpenAI-compatible server you already run "
+     "Point Lampway at an OpenAI-compatible server you already run "
      "(Ollama, LM Studio, llama.cpp, ...)"),
 )

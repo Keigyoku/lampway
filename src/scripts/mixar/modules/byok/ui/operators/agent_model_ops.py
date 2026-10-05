@@ -123,7 +123,7 @@ class MIXAR_OT_agent_model_set(Operator):
 
 
 class MIXAR_OT_agent_model_reset(Operator):
-    """Clear the saved model and let Mixar choose"""
+    """Clear the saved model and let Lampway choose"""
 
     bl_idname = "mixar.agent_model_reset"
     bl_label = "Reset Agent Model"

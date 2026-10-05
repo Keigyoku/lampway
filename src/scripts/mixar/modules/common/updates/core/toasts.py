@@ -77,10 +77,10 @@ def push_downloading_toast(info) -> None:
 
     get_notification_store().push(
         type_str="update",
-        title=rpt_("Downloading Mixar {version}").format(version=info.latest_version),
+        title=rpt_("Downloading Lampway {version}").format(version=info.latest_version),
         body=(
             f"{_download_body(get_update_state())}\n"
-            + rpt_("Mixar will restart to finish updating.")
+            + rpt_("Lampway will restart to finish updating.")
         ),
         priority="critical" if forced else "normal",
         actions=actions,
@@ -128,7 +128,7 @@ def push_update_available_toast(info) -> None:
     )
 
     if install_state is InstallState.READY:
-        title = n_("Mixar Update Ready")
+        title = n_("Lampway Update Ready")
         body = rpt_("Version {version} is ready to install.").format(version=info.latest_version)
     else:
         # No percentage here, deliberately. Staging runs in the background
@@ -136,13 +136,13 @@ def push_update_available_toast(info) -> None:
         # "Downloading 45%" for anyone who wants the detail. Progress
         # belongs in the toast only once the user has pressed Restart &
         # Update and is actually waiting — see push_downloading_toast.
-        title = n_("Mixar Update Required") if forced else n_("Mixar Update Available")
+        title = n_("Lampway Update Required") if forced else n_("Lampway Update Available")
         body = rpt_("Version {version} is available.").format(version=info.latest_version)
 
     if forced:
-        body += " " + rpt_("This update is required to continue using Mixar.")
+        body += " " + rpt_("This update is required to continue using Lampway.")
     if can_self_install:
-        body += " " + rpt_("Mixar will restart to apply it.")
+        body += " " + rpt_("Lampway will restart to apply it.")
     if info.changelog_summary:
         body += f"\n{info.changelog_summary}"
     # The reason the primary button fell back to the browser. Without it a
@@ -202,7 +202,7 @@ def push_install_aborted_toast() -> None:
     get_notification_store().push(
         type_str="warning",
         title=n_("Update paused"),
-        body=rpt_("Mixar didn't close, so the update was not installed.") + "\n" + retry,
+        body=rpt_("Lampway didn't close, so the update was not installed.") + "\n" + retry,
         priority="normal",
         actions=[NotificationAction(
             label=n_("Restart & Update"), operator="mixar.restart_to_update",
@@ -245,7 +245,7 @@ def push_up_to_date_toast() -> None:
 
     get_notification_store().push(
         type_str="success",
-        title=n_("Mixar is up to date"),
+        title=n_("Lampway is up to date"),
         body=rpt_("You're running the latest version ({version}).").format(
             version=get_current_version()),
         priority="normal",
@@ -301,13 +301,13 @@ def report_previous_update_result() -> None:
             _push_update_outcome_toast(
                 "error",
                 n_("Update didn't take effect"),
-                rpt_("Mixar {target} was installed but version {running} started. "
+                rpt_("Lampway {target} was installed but version {running} started. "
                      "Reinstall from the downloads page.").format(target=target, running=running),
             )
             return
         _push_update_outcome_toast(
             "success",
-            rpt_("Updated to Mixar {version}").format(version=target or running),
+            rpt_("Updated to Lampway {version}").format(version=target or running),
             n_("The update was installed successfully."),
             ttl_ms=8000,
         )
@@ -346,13 +346,13 @@ def _failure_reason(result) -> str:
     stage = result.get("stage", "")
     code = result.get("exit", "")
     if stage == "wait":
-        return rpt_("Mixar was still running when the installer tried to start.")
+        return rpt_("Lampway was still running when the installer tried to start.")
     if stage == "verify":
         return rpt_("The downloaded installer failed its signature check.")
     if stage in ("mount", "unpack"):
         return rpt_("The downloaded installer could not be opened.")
     if stage in ("copy", "swap"):
-        return rpt_("Mixar could not be replaced on disk.")
+        return rpt_("Lampway could not be replaced on disk.")
     if code == "1602":
         return rpt_("The installation was cancelled.")
     if code == "1603":

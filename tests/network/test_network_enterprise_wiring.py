@@ -59,7 +59,7 @@ def test_byok_transport_failures_are_classified():
     )
     assert "classify_network_error(" in source
     assert "log_network_failure(" in source
-    assert "Could not reach Mixar" not in source
+    assert "Could not reach Lampway" not in source
     assert "Unable to connect to server" not in source
 
 

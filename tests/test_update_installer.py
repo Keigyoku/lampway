@@ -67,7 +67,7 @@ def setup_function(_fn):
 # ---------------------------------------------------------------------------
 
 
-def _writable_location(monkeypatch, target="C:/Program Files/Mixar"):
+def _writable_location(monkeypatch, target="C:/Program Files/Lampway"):
     location = app_paths.InstallLocation(
         target, True, "", relaunch_candidates=[target + "/mixar-launcher.exe"],
     )
@@ -124,7 +124,7 @@ def test_read_only_install_is_refused_with_its_reason(monkeypatch):
     monkeypatch.setattr(
         installer.app_paths, "get_install_location",
         lambda: app_paths.InstallLocation(
-            "/Applications/Mixar.app", False, "No permission to update /Applications",
+            "/Applications/Lampway.app", False, "No permission to update /Applications",
         ),
     )
 
@@ -142,8 +142,8 @@ def test_read_only_install_is_refused_with_its_reason(monkeypatch):
 def test_translocated_bundle_is_never_updated_in_place(monkeypatch):
     """Writes into an App Translocation mount vanish — refuse instead."""
     translocated = (
-        "/private/var/folders/ab/AppTranslocation/XYZ/d/Mixar.app"
-        "/Contents/MacOS/Mixar"
+        "/private/var/folders/ab/AppTranslocation/XYZ/d/Lampway.app"
+        "/Contents/MacOS/Lampway"
     )
     monkeypatch.setattr(app_paths, "_binary_path", lambda: translocated)
 
@@ -154,9 +154,9 @@ def test_translocated_bundle_is_never_updated_in_place(monkeypatch):
 
 
 def test_macos_target_is_the_enclosing_bundle(monkeypatch, tmp_path):
-    bundle = tmp_path / "Mixar.app"
+    bundle = tmp_path / "Lampway.app"
     (bundle / "Contents" / "MacOS").mkdir(parents=True)
-    binary = bundle / "Contents" / "MacOS" / "Mixar"
+    binary = bundle / "Contents" / "MacOS" / "Lampway"
     binary.write_text("")
     monkeypatch.setattr(app_paths, "_binary_path", lambda: str(binary))
 
@@ -168,17 +168,17 @@ def test_macos_target_is_the_enclosing_bundle(monkeypatch, tmp_path):
 
 def test_windows_relaunch_falls_back_to_the_default_directory(monkeypatch):
     monkeypatch.setenv("ProgramFiles", r"C:\Program Files")
-    candidates = app_paths._windows_relaunch_candidates(r"C:\Program Files\Mixar 3.3")
+    candidates = app_paths._windows_relaunch_candidates(r"C:\Program Files\Lampway 3.3")
 
     # os.path.join is the separator authority — these strings are built on
     # whatever platform the suite runs on; Windows joins with a backslash.
     assert candidates[0] == os.path.join(
-        r"C:\Program Files\Mixar 3.3", "mixar-launcher.exe",
+        r"C:\Program Files\Lampway 3.3", "mixar-launcher.exe",
     )
     # An install that moves directories during the upgrade still comes back:
     # at least one candidate sits outside the version-stamped directory.
     assert any(
-        candidate.endswith("mixar-launcher.exe") and "Mixar 3.3" not in candidate
+        candidate.endswith("mixar-launcher.exe") and "Lampway 3.3" not in candidate
         for candidate in candidates
     )
 
@@ -190,11 +190,11 @@ def test_windows_relaunch_falls_back_to_the_default_directory(monkeypatch):
 
 def _windows_script(**overrides):
     kwargs = dict(
-        installer_path=r"C:\ProgramData\Mixar\Updates\Mixar-3.4.0.msi",
-        staging_dir=r"C:\ProgramData\Mixar\Updates",
+        installer_path=r"C:\ProgramData\Lampway\Updates\Mixar-3.4.0.msi",
+        staging_dir=r"C:\ProgramData\Lampway\Updates",
         version="3.4.0",
         pid=4242,
-        relaunch_candidates=[r"C:\Program Files\Mixar\mixar-launcher.exe"],
+        relaunch_candidates=[r"C:\Program Files\Lampway\mixar-launcher.exe"],
         require_signature=False,
     )
     kwargs.update(overrides)
@@ -224,7 +224,7 @@ def test_windows_helper_relaunches_even_when_the_install_fails():
     script = _windows_script()
 
     install_marker = script.index(":installed")
-    relaunch = script.index('start "" "C:\\Program Files\\Mixar\\mixar-launcher.exe"')
+    relaunch = script.index('start "" "C:\\Program Files\\Lampway\\mixar-launcher.exe"')
     assert relaunch > install_marker
     assert "goto relaunched" in script
 
@@ -279,9 +279,9 @@ def test_windows_helper_refuses_paths_that_break_batch_quoting(tmp_path):
 
 def _macos_script(**overrides):
     kwargs = dict(
-        installer_path="/Users/x/Library/Application Support/Mixar/Updates/Mixar-3.4.0.dmg",
-        staging_dir="/Users/x/Library/Application Support/Mixar/Updates",
-        target_bundle="/Applications/Mixar.app",
+        installer_path="/Users/x/Library/Application Support/Lampway/Updates/Mixar-3.4.0.dmg",
+        staging_dir="/Users/x/Library/Application Support/Lampway/Updates",
+        target_bundle="/Applications/Lampway.app",
         version="3.4.0",
         pid=777,
         expected_team="ABCDE12345",
@@ -303,9 +303,9 @@ def test_macos_helper_waits_then_mounts_and_swaps():
 
 def test_macos_helper_installs_over_the_running_bundle_path():
     """The DMG's own bundle name is ignored — the installed path wins."""
-    script = _macos_script(target_bundle="/Applications/Mixar 3.3.app")
+    script = _macos_script(target_bundle="/Applications/Lampway 3.3.app")
 
-    assert "TARGET='/Applications/Mixar 3.3.app'" in script
+    assert "TARGET='/Applications/Lampway 3.3.app'" in script
 
 
 def test_macos_helper_restores_the_old_bundle_if_the_swap_fails():
@@ -341,7 +341,7 @@ def test_macos_helper_always_reopens_the_app():
 def test_macos_helper_quotes_paths_with_spaces():
     script = _macos_script()
 
-    assert "INSTALLER='/Users/x/Library/Application Support/Mixar/Updates/Mixar-3.4.0.dmg'" in script
+    assert "INSTALLER='/Users/x/Library/Application Support/Lampway/Updates/Mixar-3.4.0.dmg'" in script
 
 
 # ---------------------------------------------------------------------------

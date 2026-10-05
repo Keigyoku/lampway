@@ -141,7 +141,7 @@ def register():
         'mixie_moodboard_images',
         CollectionProperty(
             type=MixieMoodboardImage,
-            name="Mixie Moodboard Images",
+            name="Lampway Agent Moodboard Images",
             description="Collection of reference images in Moodboard mode",
         ),
     )
@@ -149,7 +149,7 @@ def register():
         'mixie_moodboard_textboxes',
         CollectionProperty(
             type=MixieMoodboardTextBox,
-            name="Mixie Moodboard Text Boxes",
+            name="Lampway Agent Moodboard Text Boxes",
             description="Collection of text boxes in Moodboard mode",
         ),
     )
@@ -157,7 +157,7 @@ def register():
         'mixie_moodboard_frames',
         CollectionProperty(
             type=MixieMoodboardFrame,
-            name="Mixie Moodboard Frames",
+            name="Lampway Agent Moodboard Frames",
             description="Canvas frames grouping board items",
         ),
     )
@@ -167,7 +167,7 @@ def register():
         'mixie_moodboard_groups',
         CollectionProperty(
             type=MixieMoodboardGroup,
-            name="Mixie Moodboard Groups (legacy)",
+            name="Lampway Agent Moodboard Groups (legacy)",
             description="Superseded by mixie_moodboard_frames; retained for migration",
         ),
     )

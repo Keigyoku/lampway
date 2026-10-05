@@ -96,7 +96,7 @@ def test_a_mac_app_that_cannot_be_opened_is_not_starting(tmp_path, monkeypatch, 
     """/usr/bin/open itself always starts; its exit status says whether Mixar could be opened."""
     from types import SimpleNamespace
     monkeypatch.setenv("MIXAR_MCP_DISCOVERY_DIR", str(tmp_path / "discovery"))
-    app = tmp_path / "Mixar.app" / "Contents" / "MacOS" / "Mixar"
+    app = tmp_path / "Lampway.app" / "Contents" / "MacOS" / "Lampway"
     app.parent.mkdir(parents=True)
     app.write_text("")
     monkeypatch.setattr(installation.sys, "platform", "darwin")

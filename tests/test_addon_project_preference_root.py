@@ -39,7 +39,7 @@ def test_workspace_root_is_the_preference(tmp_path, service, monkeypatch, fake_h
     # Outside Blender the Preference reads as unset → the default, expanded
     # at use time; the folder counts only once it exists on disk.
     assert workspace_module.preferred_root_value() == ""
-    assert workspace_module.configured_workspace_root() == fake_home / "Mixar Addons"
+    assert workspace_module.configured_workspace_root() == fake_home / "Lampway Addons"
     assert service.get_workspace_root() is None
     root = tmp_path / "projects"
     root.mkdir()
@@ -150,7 +150,7 @@ def test_legacy_workspace_json_waits_for_a_blender_context(
     legacy.write_text(json.dumps({"root": str(tmp_path)}), encoding="utf-8")
     monkeypatch.setattr(workspace_module, "_preferences", lambda: None)
 
-    assert service.ensure_workspace_root() == (fake_home / "Mixar Addons").resolve()
+    assert service.ensure_workspace_root() == (fake_home / "Lampway Addons").resolve()
     assert legacy.exists()
 
 
@@ -163,7 +163,7 @@ def test_ensure_workspace_root_creates_and_reuses_default(
 ):
     root = service.ensure_workspace_root()
 
-    assert root == (fake_home / "Mixar Addons").resolve()
+    assert root == (fake_home / "Lampway Addons").resolve()
     assert root.is_dir()
     # Idempotent.
     assert service.ensure_workspace_root() == root
@@ -178,7 +178,7 @@ def test_ensure_workspace_root_creates_and_reuses_default(
 def test_ensure_workspace_root_fails_structurally_on_file_collision(
     tmp_path, service, fake_home
 ):
-    (fake_home / "Mixar Addons").write_text("not a folder", encoding="utf-8")
+    (fake_home / "Lampway Addons").write_text("not a folder", encoding="utf-8")
 
     with pytest.raises(AddonProjectError) as error:
         service.ensure_workspace_root()
@@ -196,7 +196,7 @@ def test_first_send_sets_up_default_root_and_proceeds(
     # the send PROCEEDS (True means fall through to build_project_context).
     recorder = _ReportRecorder()
     assert link_operators.ensure_addon_project_ready(recorder) is True
-    root = fake_home / "Mixar Addons"
+    root = fake_home / "Lampway Addons"
     assert root.is_dir()
     manifest = json.loads(
         (root / ".mixar" / "addon-project.json").read_text(encoding="utf-8")
@@ -205,8 +205,8 @@ def test_first_send_sets_up_default_root_and_proceeds(
     assert scene.mixie_addon_project_id == manifest["project_id"]
     assert recorder.reports == [(
         "INFO",
-        "Add-ons will be created in 'Mixar Addons' — change the folder "
-        "under Mixar Preferences",
+        "Add-ons will be created in 'Lampway Addons' — change the folder "
+        "under Lampway Preferences",
     )]
     assert service.describe(manifest["project_id"])["success"] is True
 
@@ -229,7 +229,7 @@ def test_the_projects_folder_is_a_preference_with_the_native_folder_field():
     assert "subtype='DIR_PATH'" in prop
     assert "update=_save_on_update" in prop
     assert "from mixar.modules.addon_project.constants import DEFAULT_WORKSPACE_DIR" in props
-    assert DEFAULT_WORKSPACE_DIR == "~/Mixar Addons"
+    assert DEFAULT_WORKSPACE_DIR == "~/Lampway Addons"
     # Drawn as a native prop in its own Preferences section, wired into the
     # Mixar Preferences panel.
     assert 'prop(prefs, "addon_projects_dir")' in helpers

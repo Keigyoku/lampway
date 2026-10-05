@@ -100,7 +100,7 @@ class MIXAR_OT_agent_bubble_open_window(Operator):
             self.report(
                 {'ERROR'},
                 "C++ operator mixar.agent_bubble_show_window is not "
-                "registered — rebuild Mixar (make build) to pick up "
+                "registered — rebuild Lampway (make build) to pick up "
                 "the agent_bubble spacetype operator.",
             )
             print("[agent_bubble] open_window: cpp op not registered")

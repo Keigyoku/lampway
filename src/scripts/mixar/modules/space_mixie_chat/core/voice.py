@@ -157,9 +157,9 @@ def _begin_capture(s):
         s.transport.timings['local_setup_ms'] = round((s.permission_at - s.began) * 1000, 1)
     permission = aud._mixar_capture_permission()
     if permission == -2:
-        raise RuntimeError(rpt_('Launch Mixar from Finder to allow microphone access.'))
+        raise RuntimeError(rpt_('Launch Lampway from Finder to allow microphone access.'))
     if permission < 0:
-        raise RuntimeError(rpt_('Allow microphone access for Mixar in system privacy settings.'))
+        raise RuntimeError(rpt_('Allow microphone access for Lampway in system privacy settings.'))
     if permission != 1:
         _status(n_('Allow microphone'))
         return

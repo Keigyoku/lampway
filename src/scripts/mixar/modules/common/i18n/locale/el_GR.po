@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: el_GR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "Ενεργή γραμμή στη λίστα ιστορικού συνο�
 msgid "Share Usage Data"
 msgstr "Κοινοποίηση δεδομένων χρήσης"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "Κοινοποιεί συμβάντα χρήσης του προϊόντος χωρίς περιεχόμενο, για τη βελτίωση του Mixar"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "Κοινοποιεί συμβάντα χρήσης του προϊόντος χωρίς περιεχόμενο, για τη βελτίωση του Lampway"
 
 msgid "No generation services"
 msgstr "Καμία υπηρεσία παραγωγής"
@@ -170,8 +170,8 @@ msgstr "Το όνομα λειτουργικής μονάδας του προσ�
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "Το ρυθμισμένο σημείο εισόδου του προσθέτου δεν βρέθηκε στο συνδεδεμένο έργο"
 
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "Ο συνδεδεμένος φάκελος δεν έχει έγκυρα μεταδεδομένα έργου Mixar"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "Ο συνδεδεμένος φάκελος δεν έχει έγκυρα μεταδεδομένα έργου Lampway"
 
 msgid "The project metadata version is not supported"
 msgstr "Η έκδοση μεταδεδομένων του έργου δεν υποστηρίζεται"
@@ -194,7 +194,7 @@ msgstr "Το σημείο εισόδου πρέπει να είναι ένα ό�
 msgid "Set an active add-on before changing its enabled state"
 msgstr "Ορίστε ένα ενεργό πρόσθετο πριν αλλάξετε την κατάσταση ενεργοποίησής του"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "Βιβλιοθήκη"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "Άνοιγμα παραθύρου φούσκας πράκτορα"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "Ανοίγει τη φούσκα πράκτορα σε δικό της αιωρούμενο παράθυρο"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "Ο τελεστής C++ mixar.agent_bubble_show_window δεν είναι καταχωρισμένος — ξαναχτίστε το Mixar (make build) για να συμπεριληφθεί ο τελεστής τύπου χώρου agent_bubble."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "Ο τελεστής C++ mixar.agent_bubble_show_window δεν είναι καταχωρισμένος — ξαναχτίστε το Lampway (make build) για να συμπεριληφθεί ο τελεστής τύπου χώρου agent_bubble."
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "Αποτυχία ανοίγματος του παραθύρου φούσκας πράκτορα: {error}"
@@ -651,8 +651,8 @@ msgstr ""
 msgid "AI generations"
 msgstr "Παραγωγές ΤΝ"
 
-msgid "Everything Mixar has generated for you"
-msgstr "Ό,τι έχει δημιουργήσει το Mixar για εσάς"
+msgid "Everything Lampway has generated for you"
+msgstr "Ό,τι έχει δημιουργήσει το Lampway για εσάς"
 
 msgid "My Libraries"
 msgstr ""
@@ -1421,17 +1421,17 @@ msgstr "Επικοινωνήστε με την υποστήριξη — δεν �
 msgid "Select a provider with available models"
 msgstr "Επιλέξτε έναν πάροχο με διαθέσιμα μοντέλα"
 
-msgid "Managed by Mixar"
-msgstr "Διαχειρίζεται το Mixar"
+msgid "Managed by Lampway"
+msgstr "Διαχειρίζεται το Lampway"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Το Mixar κατεβάζει και εκτελεί ένα επιμελημένο μοντέλο σε αυτόν τον υπολογιστή"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Το Lampway κατεβάζει και εκτελεί ένα επιμελημένο μοντέλο σε αυτόν τον υπολογιστή"
 
 msgid "Custom local server"
 msgstr "Προσαρμοσμένος τοπικός διακομιστής"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "Στρέψτε το Mixar σε έναν διακομιστή συμβατό με OpenAI που ήδη εκτελείτε (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "Στρέψτε το Lampway σε έναν διακομιστή συμβατό με OpenAI που ήδη εκτελείτε (Ollama, LM Studio, llama.cpp, ...)"
 
 msgid "Invalid form data — please reach out to support."
 msgstr "Μη έγκυρα δεδομένα φόρμας — επικοινωνήστε με την υποστήριξη."
@@ -1553,8 +1553,8 @@ msgstr "Δεν επιλέχθηκε μοντέλο"
 msgid "Reset Agent Model"
 msgstr "Επαναφορά μοντέλου πράκτορα"
 
-msgid "Clear the saved model and let Mixar choose"
-msgstr "Καθαρίζει το αποθηκευμένο μοντέλο και αφήνει το Mixar να επιλέξει"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "Καθαρίζει το αποθηκευμένο μοντέλο και αφήνει το Lampway να επιλέξει"
 
 msgid "Could not change model"
 msgstr "Δεν ήταν δυνατή η αλλαγή μοντέλου"
@@ -1577,8 +1577,8 @@ msgstr "Ενεργό"
 msgid "Not configured"
 msgstr "Δεν έχει ρυθμιστεί"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "Εκτελέστε τον πράκτορα Mixar στον δικό σας πάροχο — οι πιστώσεις Mixar δεν χρεώνονται όσο είναι ενεργό."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "Εκτελέστε τον πράκτορα Lampway στον δικό σας πάροχο — οι πιστώσεις Lampway δεν χρεώνονται όσο είναι ενεργό."
 
 msgid "Current Configuration"
 msgstr "Τρέχουσα ρύθμιση"
@@ -1604,8 +1604,8 @@ msgstr "Αφαίρεση κλειδιού API…"
 msgid "Provider Setup"
 msgstr "Ρύθμιση παρόχου"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "Αποθηκεύεται κρυπτογραφημένο και χρησιμοποιείται μόνο για αιτήματα του πράκτορα Mixar — μετά την αποθήκευση εμφανίζεται μόνο καλυμμένη προεπισκόπηση."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "Αποθηκεύεται κρυπτογραφημένο και χρησιμοποιείται μόνο για αιτήματα του πράκτορα Lampway — μετά την αποθήκευση εμφανίζεται μόνο καλυμμένη προεπισκόπηση."
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
 msgstr "Επιλέξτε μοντέλο που υποστηρίζει κλήση εργαλείων / συναρτήσεων — ο πράκτορας το χρειάζεται."
@@ -1631,8 +1631,8 @@ msgstr "Εκτελέστε  codex login  στο τερματικό και μετ
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "περιεχόμενο του ~/.codex/auth.json (το κουμπί επικόλλησης διαβάζει το πρόχειρο)."
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "Χρησιμοποιεί τη συνδρομή ChatGPT σας — οι πιστώσεις Mixar δεν χρεώνονται."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "Χρησιμοποιεί τη συνδρομή ChatGPT σας — οι πιστώσεις Lampway δεν χρεώνονται."
 
 msgid "Couldn't apply your changes"
 msgstr "Δεν ήταν δυνατή η εφαρμογή των αλλαγών σας"
@@ -1640,23 +1640,23 @@ msgstr "Δεν ήταν δυνατή η εφαρμογή των αλλαγών �
 msgid "Remove your API key?"
 msgstr "Αφαίρεση του κλειδιού API σας;"
 
-msgid "The agent will use Mixar's default provider again."
-msgstr "Ο πράκτορας θα χρησιμοποιήσει ξανά τον προεπιλεγμένο πάροχο του Mixar."
+msgid "The agent will use Lampway's default provider again."
+msgstr "Ο πράκτορας θα χρησιμοποιήσει ξανά τον προεπιλεγμένο πάροχο του Lampway."
 
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "Οι πιστώσεις Mixar θα χρεώνονται για μελλοντικά αιτήματα του πράκτορα."
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "Οι πιστώσεις Lampway θα χρεώνονται για μελλοντικά αιτήματα του πράκτορα."
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "Ο πράκτορας Mixar εκτελείται πλέον στον πάροχό σας — οι πιστώσεις Mixar δεν χρεώνονται."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "Ο πράκτορας Lampway εκτελείται πλέον στον πάροχό σας — οι πιστώσεις Lampway δεν χρεώνονται."
 
 msgid "API key removed"
 msgstr "Το κλειδί API αφαιρέθηκε"
 
-msgid "The agent is back on Mixar's default provider."
-msgstr "Ο πράκτορας επέστρεψε στον προεπιλεγμένο πάροχο του Mixar."
+msgid "The agent is back on Lampway's default provider."
+msgstr "Ο πράκτορας επέστρεψε στον προεπιλεγμένο πάροχο του Lampway."
 
-msgid "Mixar credits are charged for agent requests again."
-msgstr "Οι πιστώσεις Mixar χρεώνονται ξανά για αιτήματα του πράκτορα."
+msgid "Lampway credits are charged for agent requests again."
+msgstr "Οι πιστώσεις Lampway χρεώνονται ξανά για αιτήματα του πράκτορα."
 
 msgid "Try Again"
 msgstr "Δοκιμή ξανά"
@@ -1691,8 +1691,8 @@ msgstr "Λήφθηκε — δεν εκτελείται"
 msgid "Not downloaded"
 msgstr "Δεν έχει ληφθεί"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "Εκτελείται εξ ολοκλήρου σε αυτόν τον υπολογιστή — οι προτροπές σας δεν φεύγουν από αυτόν, εκτός μέσω της ενορχήστρωσης πράκτορα του Mixar."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "Εκτελείται εξ ολοκλήρου σε αυτόν τον υπολογιστή — οι προτροπές σας δεν φεύγουν από αυτόν, εκτός μέσω της ενορχήστρωσης πράκτορα του Lampway."
 
 msgid "Cancel Download"
 msgstr "Ακύρωση λήψης"
@@ -1730,8 +1730,8 @@ msgstr "Επανασάρωση τοπικών εφαρμογών"
 msgid "Rescan this computer for running local AI apps"
 msgstr "Ξανασαρώνει αυτόν τον υπολογιστή για τοπικές εφαρμογές ΤΝ που εκτελούνται"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "Χρησιμοποιήστε το δικό σας κλειδί API για τον πράκτορα Mixar. Όσο είναι ενεργό, οι πιστώσεις Mixar δεν χρεώνονται για αιτήματα του πράκτορα."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "Χρησιμοποιήστε το δικό σας κλειδί API για τον πράκτορα Lampway. Όσο είναι ενεργό, οι πιστώσεις Lampway δεν χρεώνονται για αιτήματα του πράκτορα."
 
 msgid "Validate with the provider and save your API key"
 msgstr "Επικυρώνει με τον πάροχο και αποθηκεύει το κλειδί API σας"
@@ -1844,8 +1844,8 @@ msgstr "Πάροχος LLM"
 msgid "Model to use with the selected provider"
 msgstr "Μοντέλο για χρήση με τον επιλεγμένο πάροχο"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "Το κλειδί API σας αποθηκεύεται κρυπτογραφημένο και χρησιμοποιείται μόνο για αιτήματα του πράκτορα Mixar. Μετά την αποθήκευση εμφανίζεται μόνο καλυμμένη προεπισκόπηση."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "Το κλειδί API σας αποθηκεύεται κρυπτογραφημένο και χρησιμοποιείται μόνο για αιτήματα του πράκτορα Lampway. Μετά την αποθήκευση εμφανίζεται μόνο καλυμμένη προεπισκόπηση."
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "Οποιοδήποτε slug μοντέλου από το openrouter.ai/models (π.χ. anthropic/claude-opus-4.8)"
@@ -1859,8 +1859,8 @@ msgstr "Περιεχόμενο του ~/.codex/auth.json (εκτελέστε π�
 msgid "Local mode"
 msgstr "Τοπική κατάσταση"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "Διαχειρίζεται το Mixar ή ο δικός σας τοπικός διακομιστής"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Διαχειρίζεται το Lampway ή ο δικός σας τοπικός διακομιστής"
 
 msgid "Local model"
 msgstr "Τοπικό μοντέλο"
@@ -1889,11 +1889,11 @@ msgstr "Αληθές όταν ο διακομιστής αναφέρει byok_ac
 msgid "Dialog State"
 msgstr "Κατάσταση διαλόγου"
 
-msgid "Set Mixie Mode"
-msgstr "Ορισμός κατάστασης Mixie"
+msgid "Set Lampway Agent Mode"
+msgstr "Ορισμός κατάστασης Lampway Agent"
 
-msgid "Switch to a specific Mixie mode"
-msgstr "Αλλάζει σε συγκεκριμένη κατάσταση Mixie"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "Αλλάζει σε συγκεκριμένη κατάσταση Lampway Agent"
 
 msgid "Mode"
 msgstr "Κατάσταση"
@@ -1928,8 +1928,8 @@ msgstr "Υψηλό"
 msgid "Non-contiguous enum value 27"
 msgstr "Μη συνεχόμενη τιμή απαρίθμησης 27"
 
-msgid "Mixie v3 run active"
-msgstr "Εκτέλεση Mixie v3 ενεργή"
+msgid "Lampway Agent v3 run active"
+msgstr "Εκτέλεση Lampway Agent v3 ενεργή"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "Ο διακομιστής απέρριψε το αίτημα συγχρονισμού ιστορικού. Ενημερώστε την εφαρμογή και τον διακομιστή και επανασυνδεθείτε."
@@ -2420,10 +2420,10 @@ msgstr "Ο τύπος χώρου προς τον οποίο γίνεται η α
 msgid "No active area"
 msgstr "Καμία ενεργή περιοχή"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "Τοπική ενέργεια συλλογής"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "Αυξάνει τον μετρητή δοκιμίου προγραμματιστή· χωρίς παραγωγή ή αλλαγές σκηνής"
 
-msgid "Mixar UI Gallery"
-msgstr "Συλλογή περιβάλλοντος Mixar"
+msgid "Lampway UI Gallery"
+msgstr "Συλλογή περιβάλλοντος Lampway"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "Επιθεωρεί κοινά εγγενή στοιχεία με τοπικά δεδομένα δοκιμίου"
@@ -2468,8 +2468,8 @@ msgstr "Απόρρητο"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "Συναίνεση τηλεμετρίας, τοποθετημένη εκεί όπου οι χρήστες κοιτούν συνήθως για να εξαιρεθούν."
 
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "Κοινοποιεί ποιες λειτουργίες του Mixar χρησιμοποιείτε, για τη βελτίωση του προϊόντος."
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "Κοινοποιεί ποιες λειτουργίες του Lampway χρησιμοποιείτε, για τη βελτίωση του προϊόντος."
 
 msgid "Your prompts, files, and scene content are never included."
 msgstr "Οι προτροπές, τα αρχεία και το περιεχόμενο της σκηνής σας δεν περιλαμβάνονται ποτέ."
@@ -2477,7 +2477,7 @@ msgstr "Οι προτροπές, τα αρχεία και το περιεχόμ�
 msgid "Privacy Policy"
 msgstr "Πολιτική απορρήτου"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "Εγγενές"
 msgid "Blender theme"
 msgstr "Θέμα Blender"
 
-msgid "Legacy Mixar"
-msgstr "Παλαιό Mixar"
+msgid "Legacy Lampway"
+msgstr "Παλαιό Lampway"
 
 msgid "Compatibility profile"
 msgstr "Προφίλ συμβατότητας"
@@ -2624,11 +2624,11 @@ msgstr "Συμπαγές"
 msgid "Denser chrome recipe"
 msgstr "Πυκνότερη συνταγή εμφάνισης"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "Μετακινήστε το Mixar στον φάκελο Applications για ενημέρωση επιτόπου"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "Μετακινήστε το Lampway στον φάκελο Applications για ενημέρωση επιτόπου"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Το Mixar δεν εκτελείται από πακέτο εφαρμογής"
+msgid "Lampway is not running from an application bundle"
+msgstr "Το Lampway δεν εκτελείται από πακέτο εφαρμογής"
 
 msgid "No permission to update {path}"
 msgstr "Δεν υπάρχει άδεια ενημέρωσης του {path}"
@@ -2660,8 +2660,8 @@ msgstr "Το ληφθέν πρόγραμμα εγκατάστασης λείπε
 msgid "Could not start the updater"
 msgstr "Δεν ήταν δυνατή η εκκίνηση του προγράμματος ενημέρωσης"
 
-msgid "Mixar didn't close"
-msgstr "Το Mixar δεν έκλεισε"
+msgid "Lampway didn't close"
+msgstr "Το Lampway δεν έκλεισε"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "Οι ενημερώσεις μέσα στην εφαρμογή δεν υποστηρίζονται σε αυτή την πλατφόρμα"
@@ -2687,32 +2687,32 @@ msgstr "Λήφθηκαν {size}"
 msgid "Starting download…"
 msgstr "Έναρξη λήψης…"
 
-msgid "Downloading Mixar {version}"
-msgstr "Λήψη Mixar {version}"
+msgid "Downloading Lampway {version}"
+msgstr "Λήψη Lampway {version}"
 
-msgid "Mixar will restart to finish updating."
-msgstr "Το Mixar θα επανεκκινηθεί για να ολοκληρώσει την ενημέρωση."
+msgid "Lampway will restart to finish updating."
+msgstr "Το Lampway θα επανεκκινηθεί για να ολοκληρώσει την ενημέρωση."
 
-msgid "Mixar Update Ready"
-msgstr "Η ενημέρωση Mixar είναι έτοιμη"
+msgid "Lampway Update Ready"
+msgstr "Η ενημέρωση Lampway είναι έτοιμη"
 
 msgid "Version {version} is ready to install."
 msgstr "Η έκδοση {version} είναι έτοιμη για εγκατάσταση."
 
-msgid "Mixar Update Required"
-msgstr "Απαιτείται ενημέρωση Mixar"
+msgid "Lampway Update Required"
+msgstr "Απαιτείται ενημέρωση Lampway"
 
-msgid "Mixar Update Available"
-msgstr "Διατίθεται ενημέρωση Mixar"
+msgid "Lampway Update Available"
+msgstr "Διατίθεται ενημέρωση Lampway"
 
 msgid "Version {version} is available."
 msgstr "Η έκδοση {version} είναι διαθέσιμη."
 
-msgid "This update is required to continue using Mixar."
-msgstr "Αυτή η ενημέρωση απαιτείται για να συνεχίσετε να χρησιμοποιείτε το Mixar."
+msgid "This update is required to continue using Lampway."
+msgstr "Αυτή η ενημέρωση απαιτείται για να συνεχίσετε να χρησιμοποιείτε το Lampway."
 
-msgid "Mixar will restart to apply it."
-msgstr "Το Mixar θα επανεκκινηθεί για να την εφαρμόσει."
+msgid "Lampway will restart to apply it."
+msgstr "Το Lampway θα επανεκκινηθεί για να την εφαρμόσει."
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error} — χρησιμοποιήστε τη Λήψη για ενημέρωση μέσω του προγράμματος περιήγησης."
@@ -2729,11 +2729,11 @@ msgstr "Πατήστε Επανεκκίνηση και ενημέρωση για
 msgid "Update paused"
 msgstr "Η ενημέρωση παύθηκε"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Το Mixar δεν έκλεισε, οπότε η ενημέρωση δεν εγκαταστάθηκε."
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Το Lampway δεν έκλεισε, οπότε η ενημέρωση δεν εγκαταστάθηκε."
 
-msgid "Mixar is up to date"
-msgstr "Το Mixar είναι ενημερωμένο"
+msgid "Lampway is up to date"
+msgstr "Το Lampway είναι ενημερωμένο"
 
 msgid "You're running the latest version ({version})."
 msgstr "Εκτελείτε την πιο πρόσφατη έκδοση ({version})."
@@ -2747,11 +2747,11 @@ msgstr "Ελέγξτε τη σύνδεσή σας στο διαδίκτυο κα
 msgid "Update didn't take effect"
 msgstr "Η ενημέρωση δεν εφαρμόστηκε"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Εγκαταστάθηκε το Mixar {target}, αλλά ξεκίνησε η έκδοση {running}. Εγκαταστήστε ξανά από τη σελίδα λήψεων."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Εγκαταστάθηκε το Lampway {target}, αλλά ξεκίνησε η έκδοση {running}. Εγκαταστήστε ξανά από τη σελίδα λήψεων."
 
-msgid "Updated to Mixar {version}"
-msgstr "Ενημερώθηκε στο Mixar {version}"
+msgid "Updated to Lampway {version}"
+msgstr "Ενημερώθηκε στο Lampway {version}"
 
 msgid "The update was installed successfully."
 msgstr "Η ενημέρωση εγκαταστάθηκε με επιτυχία."
@@ -2765,8 +2765,8 @@ msgstr "{reason} Μπορείτε να κατεβάσετε την ενημέρ�
 msgid "Update was not installed"
 msgstr "Η ενημέρωση δεν εγκαταστάθηκε"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "Το Mixar εκτελούνταν ακόμη όταν το πρόγραμμα εγκατάστασης προσπάθησε να ξεκινήσει."
+msgid "Lampway was still running when the installer tried to start."
+msgstr "Το Lampway εκτελούνταν ακόμη όταν το πρόγραμμα εγκατάστασης προσπάθησε να ξεκινήσει."
 
 msgid "The downloaded installer failed its signature check."
 msgstr "Το ληφθέν πρόγραμμα εγκατάστασης απέτυχε στον έλεγχο υπογραφής."
@@ -2774,8 +2774,8 @@ msgstr "Το ληφθέν πρόγραμμα εγκατάστασης απέτυ
 msgid "The downloaded installer could not be opened."
 msgstr "Το ληφθέν πρόγραμμα εγκατάστασης δεν άνοιξε."
 
-msgid "Mixar could not be replaced on disk."
-msgstr "Το Mixar δεν αντικαταστάθηκε στον δίσκο."
+msgid "Lampway could not be replaced on disk."
+msgstr "Το Lampway δεν αντικαταστάθηκε στον δίσκο."
 
 msgid "The installation was cancelled."
 msgstr "Η εγκατάσταση ακυρώθηκε."
@@ -2786,8 +2786,8 @@ msgstr "Το Windows Installer ανέφερε μοιραίο σφάλμα."
 msgid "The installer did not finish."
 msgstr "Το πρόγραμμα εγκατάστασης δεν ολοκληρώθηκε."
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "Επανεκκινήστε το Mixar και εγκαταστήστε τη ληφθείσα ενημέρωση"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "Επανεκκινήστε το Lampway και εγκαταστήστε τη ληφθείσα ενημέρωση"
 
 msgid "Save Changes"
 msgstr "Αποθήκευση αλλαγών"
@@ -2795,14 +2795,14 @@ msgstr "Αποθήκευση αλλαγών"
 msgid "Save the current file before restarting"
 msgstr "Αποθηκεύει το τρέχον αρχείο πριν από την επανεκκίνηση"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "Λήψη ενημέρωσης — το Mixar θα επανεκκινηθεί όταν είναι έτοιμη"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "Λήψη ενημέρωσης — το Lampway θα επανεκκινηθεί όταν είναι έτοιμη"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Το Mixar θα κλείσει και θα ενημερωθεί στην {version}."
+msgid "Lampway will close and update to {version}."
+msgstr "Το Lampway θα κλείσει και θα ενημερωθεί στην {version}."
 
 msgid "It reopens automatically when the update is done."
 msgstr "Ανοίγει ξανά αυτόματα όταν ολοκληρωθεί η ενημέρωση."
@@ -2831,14 +2831,14 @@ msgstr "Διακοπή λήψης της ενημέρωσης"
 msgid "This update is required and cannot be cancelled"
 msgstr "Αυτή η ενημέρωση απαιτείται και δεν ακυρώνεται"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "Ανοίγει τη σελίδα λήψεων του Mixar στο προεπιλεγμένο πρόγραμμα περιήγησης"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "Ανοίγει τη σελίδα λήψεων του Lampway στο προεπιλεγμένο πρόγραμμα περιήγησης"
 
 msgid "Check for Updates"
 msgstr "Έλεγχος ενημερώσεων"
 
-msgid "Check whether a newer version of Mixar is available"
-msgstr "Ελέγχει αν υπάρχει νεότερη έκδοση του Mixar"
+msgid "Check whether a newer version of Lampway is available"
+msgstr "Ελέγχει αν υπάρχει νεότερη έκδοση του Lampway"
 
 msgid "An update check is already in progress"
 msgstr "Ένας έλεγχος ενημέρωσης είναι ήδη σε εξέλιξη"
@@ -2849,8 +2849,8 @@ msgstr "Έλεγχος ενημερώσεων…"
 msgid "Update Available"
 msgstr "Διατίθεται ενημέρωση"
 
-msgid "Show details for the pending Mixar update"
-msgstr "Εμφανίζει λεπτομέρειες για την εκκρεμή ενημέρωση Mixar"
+msgid "Show details for the pending Lampway update"
+msgstr "Εμφανίζει λεπτομέρειες για την εκκρεμή ενημέρωση Lampway"
 
 msgid "View Changelog"
 msgstr "Προβολή αρχείου αλλαγών"
@@ -2969,14 +2969,14 @@ msgstr "Εμφανιζόμενο όνομα για τον χαιρετισμό �
 msgid "Newer File Version"
 msgstr "Νεότερη έκδοση αρχείου"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
-msgstr "Προειδοποιεί ότι το αρχείο αποθηκεύτηκε από νεότερη έκδοση Mixar"
+msgid "Warn user that the file was saved by a newer Lampway version"
+msgstr "Προειδοποιεί ότι το αρχείο αποθηκεύτηκε από νεότερη έκδοση Lampway"
 
 msgid "File Version"
 msgstr "Έκδοση αρχείου"
 
-msgid "This file was saved by Mixar version {version}."
-msgstr "Αυτό το αρχείο αποθηκεύτηκε από την έκδοση Mixar {version}."
+msgid "This file was saved by Lampway version {version}."
+msgstr "Αυτό το αρχείο αποθηκεύτηκε από την έκδοση Lampway {version}."
 
 msgid "Some data may be missing or incorrect."
 msgstr "Ορισμένα δεδομένα μπορεί να λείπουν ή να είναι εσφαλμένα."
@@ -2990,8 +2990,8 @@ msgstr "Δεν υπάρχουν διαθέσιμα αντικείμενα πολ
 msgid "Start Connector Sidecar"
 msgstr "Εκκίνηση πλευρικής διεργασίας σύνδεσης"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "Εκθέτει το Mixar στο κέντρο μέσω loopback HTTP"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "Εκθέτει το Lampway στο κέντρο μέσω loopback HTTP"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
 msgstr "Πλευρική διεργασία σύνδεσης στο 127.0.0.1:{port}"
@@ -2999,8 +2999,8 @@ msgstr "Πλευρική διεργασία σύνδεσης στο 127.0.0.1:{p
 msgid "Export Scene to Unreal"
 msgstr "Εξαγωγή σκηνής στο Unreal"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "Εξάγει την τρέχουσα σκηνή Mixar ως USD/FBX/GLB έτοιμο για Unreal"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "Εξάγει την τρέχουσα σκηνή Lampway ως USD/FBX/GLB έτοιμο για Unreal"
 
 msgid "Exported {filename} ({count} meshes)"
 msgstr "Εξήχθη το {filename} ({count} πολύγωνα)"
@@ -3020,8 +3020,8 @@ msgstr "Κέντρο :7734 · Unreal MCP :8000/mcp · UnrealMCP TCP :55557"
 msgid "Hub Sidecar"
 msgstr "Πλευρική διεργασία κέντρου"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "Εκθέτει αυτή τη συνεδρία Mixar στο mixar-connector μέσω loopback HTTP"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "Εκθέτει αυτή τη συνεδρία Lampway στο mixar-connector μέσω loopback HTTP"
 
 msgid "Sidecar Port"
 msgstr "Θύρα πλευρικής διεργασίας"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,8 +3119,8 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
-msgstr "Κάμερα πλάνου Mixar"
+msgid "Lampway Shot Camera"
+msgstr "Κάμερα πλάνου Lampway"
 
 msgid "Shot"
 msgstr "Πλάνο"
@@ -3563,8 +3563,8 @@ msgstr "Το πλάνο δεν έχει κάμερα"
 msgid "Capture at least one camera beat before locking"
 msgstr "Καταγράψτε τουλάχιστον μία στιγμή κάμερας πριν το κλείδωμα"
 
-msgid "Mixar Focus"
-msgstr "Εστίαση Mixar"
+msgid "Lampway Focus"
+msgstr "Εστίαση Lampway"
 
 msgid "Rendering…"
 msgstr "Απόδοση…"
@@ -4241,8 +4241,8 @@ msgstr "Πρόοδος απόδοσης"
 msgid "Render Status"
 msgstr "Κατάσταση απόδοσης"
 
-msgid "Mixar Camera Export"
-msgstr "Εξαγωγή κάμερας Mixar"
+msgid "Lampway Camera Export"
+msgstr "Εξαγωγή κάμερας Lampway"
 
 msgid "Export this scene's camera animation to the Moodboard"
 msgstr "Εξάγει την κίνηση κάμερας αυτής της σκηνής στο Moodboard"
@@ -4493,14 +4493,14 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
-msgstr "Director Mixar"
+msgid "Lampway Director"
+msgstr "Director Lampway"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "Αραιά πλάνα κατεύθυνσης κάμερας για αυτή τη σκηνή"
 
-msgid "Mixar Output"
-msgstr "Έξοδος Mixar"
+msgid "Lampway Output"
+msgstr "Έξοδος Lampway"
 
 msgid "Output aspect ratio this camera frames for"
 msgstr "Αναλογία εξόδου για την οποία καδράρει αυτή η κάμερα"
@@ -4964,19 +4964,19 @@ msgstr "Μοντέλο τοπικού διακομιστή"
 msgid "Local model last error"
 msgstr "Τελευταίο σφάλμα τοπικού μοντέλου"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,26 +7789,26 @@ msgstr "Κείμενο σφάλματος"
 msgid "Error message if job failed"
 msgstr "Μήνυμα σφάλματος αν η εργασία απέτυχε"
 
-msgid "Mixie Moodboard Images"
-msgstr "Εικόνες Moodboard του Mixie"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Εικόνες Moodboard του Lampway Agent"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "Συλλογή εικόνων αναφοράς στην κατάσταση Moodboard"
 
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Πλαίσια κειμένου Moodboard του Mixie"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Πλαίσια κειμένου Moodboard του Lampway Agent"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "Συλλογή πλαισίων κειμένου στην κατάσταση Moodboard"
 
-msgid "Mixie Moodboard Frames"
-msgstr "Πλαίσια Moodboard του Mixie"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Πλαίσια Moodboard του Lampway Agent"
 
 msgid "Canvas frames grouping board items"
 msgstr "Πλαίσια καμβά που ομαδοποιούν στοιχεία του πίνακα"
 
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Γκρουπ Moodboard του Mixie (παλαιά)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Γκρουπ Moodboard του Lampway Agent (παλαιά)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "Αντικαταστάθηκαν από τα mixie_moodboard_frames· διατηρούνται για μεταφορά"
@@ -8917,8 +8917,8 @@ msgstr "Συγχρονίστηκαν {count} εικόνες Moodboard"
 msgid "Attach Selected Moodboard Image"
 msgstr "Επισύναψη επιλεγμένης εικόνας Moodboard"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
-msgstr "Αντιγράφει τις επιλεγμένες εικόνες, τα βίντεο, τα πλαίσια κειμένου και τους κόμβους συμπερασμού (με τις συνδέσεις και τα αποτελέσματά τους)· επικόλληση με {shortcut} σε αυτή ή σε άλλη παρουσία του Mixar"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
+msgstr "Αντιγράφει τις επιλεγμένες εικόνες, τα βίντεο, τα πλαίσια κειμένου και τους κόμβους συμπερασμού (με τις συνδέσεις και τα αποτελέσματά τους)· επικόλληση με {shortcut} σε αυτή ή σε άλλη παρουσία του Lampway"
 
 msgid "Nothing selected to copy"
 msgstr "Δεν έχει επιλεγεί κάτι για αντιγραφή"
@@ -9244,8 +9244,8 @@ msgstr "Αποτυχία ανάγνωσης προχείρου: {error}"
 msgid "Paste"
 msgstr "Επικόλληση"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
-msgstr "Επικολλά ό,τι αντιγράφηκε σε ένα Moodboard — σε αυτή ή σε άλλη παρουσία του Mixar — ή μια εικόνα από το πρόχειρο του συστήματος ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
+msgstr "Επικολλά ό,τι αντιγράφηκε σε ένα Moodboard — σε αυτή ή σε άλλη παρουσία του Lampway — ή μια εικόνα από το πρόχειρο του συστήματος ({shortcut})"
 
 msgid "Pasted {count} item"
 msgstr "Επικολλήθηκε {count} στοιχείο"
@@ -10642,13 +10642,13 @@ msgstr "Σχολιασμοί Moodboard"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
-msgstr "Καλώς ήρθατε στο Mixar"
+msgid "Welcome to Lampway"
+msgstr "Καλώς ήρθατε στο Lampway"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,20 +10669,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
-msgstr "Αναγνωριστικό ιστορικού λειτουργιών Mixar"
+msgid "Lampway Operation History ID"
+msgstr "Αναγνωριστικό ιστορικού λειτουργιών Lampway"
 
 msgid "Persistent per-scene id keying this scene's operation history."
 msgstr "Μόνιμο αναγνωριστικό ανά σκηνή που κλειδώνει το ιστορικό λειτουργιών αυτής της σκηνής."
@@ -13051,8 +13051,8 @@ msgstr "Όνομα του καναλιού προς εξαγωγή"
 msgid "File format for export"
 msgstr "Μορφή αρχείου για εξαγωγή"
 
-msgid "No active Mixar node found"
-msgstr "Δεν βρέθηκε ενεργός κόμβος Mixar"
+msgid "No active Lampway node found"
+msgstr "Δεν βρέθηκε ενεργός κόμβος Lampway"
 
 msgid "Exported '{name}' to {path}"
 msgstr "Το «{name}» εξήχθη στο {path}"
@@ -13201,8 +13201,8 @@ msgstr "Φτιάχνει προσωρινή εικόνα στρώματος, χ�
 msgid "Bake Temporary Image"
 msgstr "Φτιάξε προσωρινή εικόνα"
 
-msgid "No active Mixar node found!"
-msgstr "Δεν βρέθηκε ενεργός κόμβος Mixar!"
+msgid "No active Lampway node found!"
+msgstr "Δεν βρέθηκε ενεργός κόμβος Lampway!"
 
 msgid "No active layer found!"
 msgstr "Δεν βρέθηκε ενεργό στρώμα!"
@@ -13345,8 +13345,8 @@ msgstr "Φτιάξε κανάλι σε χρώμα κορυφής"
 msgid "Bake All Materials"
 msgstr "Φτιάξε όλα τα υλικά"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "Φτιάχνει όλα τα υλικά με κόμβους Mixar Paint και όχι μόνο το ενεργό"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "Φτιάχνει όλα τα υλικά με κόμβους Lampway Paint και όχι μόνο το ενεργό"
 
 msgid "Target Vertex Color Name"
 msgstr "Όνομα χρώματος κορυφής προορισμού"
@@ -13574,8 +13574,8 @@ msgstr "WebP"
 msgid "Copy Image Path To Clipboard"
 msgstr "Αντιγραφή διαδρομής εικόνας στο πρόχειρο"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Το Mixar Paint αντιγράφει τη διαδρομή αρχείου εικόνας στο πρόχειρο συστήματος"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Το Lampway Paint αντιγράφει τη διαδρομή αρχείου εικόνας στο πρόχειρο συστήματος"
 
 msgid "Copied: {text}"
 msgstr "Αντιγράφηκε: {text}"
@@ -13583,8 +13583,8 @@ msgstr "Αντιγράφηκε: {text}"
 msgid "Open Containing Image Folder"
 msgstr "Άνοιγμα φακέλου που περιέχει την εικόνα"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Το Mixar Paint ανοίγει τον φάκελο που περιέχει το αρχείο εικόνας και το επισημαίνει"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Το Lampway Paint ανοίγει τον φάκελο που περιέχει το αρχείο εικόνας και το επισημαίνει"
 
 msgid "File does not exist"
 msgstr "Το αρχείο δεν υπάρχει"
@@ -15054,8 +15054,8 @@ msgstr "Ενεργοποιεί τη μάσκα."
 msgid "Active Mask"
 msgstr "Ενεργή μάσκα"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Ενεργή μάσκα για την κατάσταση ζωγραφικής και επεξεργασίας του Blender, ή για την κατάσταση προεπισκόπησης μάσκας του Mixar Paint."
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Ενεργή μάσκα για την κατάσταση ζωγραφικής και επεξεργασίας του Blender, ή για την κατάσταση προεπισκόπησης μάσκας του Lampway Paint."
 
 msgid "Mask Source Input"
 msgstr "Είσοδος πηγής μάσκας"
@@ -15156,14 +15156,14 @@ msgstr "Φτιάξε όλα τα κανάλια"
 msgid "Delete Baked Images"
 msgstr "Διαγραφή φτιαγμένων εικόνων"
 
-msgid "New Mixar Paint Modifier"
-msgstr "Νέος τροποποιητής Mixar Paint"
+msgid "New Lampway Paint Modifier"
+msgstr "Νέος τροποποιητής Lampway Paint"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Μετακίνηση τροποποιητή Mixar Paint"
+msgid "Move Lampway Paint Modifier"
+msgstr "Μετακίνηση τροποποιητή Lampway Paint"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Αφαίρεση τροποποιητή Mixar Paint"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Αφαίρεση τροποποιητή Lampway Paint"
 
 msgid "Add Channel Modifier"
 msgstr "Προσθήκη τροποποιητή καναλιού"
@@ -15297,8 +15297,8 @@ msgstr "Το κανάλι '{name}' υπάρχει ήδη."
 msgid "Build Layered Material"
 msgstr "Κατασκευή υλικού με στρώματα"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "Κατασκευάζει υλικό ζωγραφικής Mixar από δήλωση υλικού με στρώματα."
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "Κατασκευάζει υλικό ζωγραφικής Lampway από δήλωση υλικού με στρώματα."
 
 msgid "Manifest JSON"
 msgstr "JSON δήλωσης"
@@ -15921,8 +15921,8 @@ msgstr "Μετονομάζει αυτό το στρώμα."
 msgid "New name for the layer"
 msgstr "Νέο όνομα για το στρώμα."
 
-msgid "No active Mixar node"
-msgstr "Δεν υπάρχει ενεργός κόμβος Mixar."
+msgid "No active Lampway node"
+msgstr "Δεν υπάρχει ενεργός κόμβος Lampway."
 
 msgid "Name cannot be empty"
 msgstr "Το όνομα δεν μπορεί να είναι κενό."
@@ -16071,11 +16071,11 @@ msgstr "Επιστρέφει στην προβολή ιδιοτήτων του �
 msgid "Add different types of masks to the active layer"
 msgstr "Προσθέτει διαφορετικούς τύπους μασκών στο ενεργό στρώμα."
 
-msgid "Remove Mixar Paint Node"
-msgstr "Αφαίρεση κόμβου Mixar Paint"
+msgid "Remove Lampway Paint Node"
+msgstr "Αφαίρεση κόμβου Lampway Paint"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Αφαιρεί τον κόμβο Mixar Paint, αλλά κρατά όλες τις φτιαγμένες εικόνες καναλιών."
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Αφαιρεί τον κόμβο Lampway Paint, αλλά κρατά όλες τις φτιαγμένες εικόνες καναλιών."
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "Αυτή η διάταξη κόμβων {addon} δεν έχει φτιαχτεί ακόμη!"
@@ -16227,8 +16227,8 @@ msgstr "Εφαρμόζει το υλικό στο ενεργό στρώμα γε
 msgid "Material '{name}' not found in registry"
 msgstr "Το υλικό '{name}' δεν βρέθηκε στο μητρώο."
 
-msgid "No active Mixar Paint node found"
-msgstr "Δεν βρέθηκε ενεργός κόμβος Mixar Paint."
+msgid "No active Lampway Paint node found"
+msgstr "Δεν βρέθηκε ενεργός κόμβος Lampway Paint."
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "Το υλικό '{name}' εφαρμόστηκε σε υπάρχον στρώμα."
@@ -16431,8 +16431,8 @@ msgstr "Δεν υπάρχει ενεργό υλικό με στρώματα"
 msgid "To use texture baking:"
 msgstr "Για φτιάξιμο υφών:"
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. Επιλέξτε ένα αντικείμενο με υλικό Mixar"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. Επιλέξτε ένα αντικείμενο με υλικό Lampway"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "  2. Ή δημιουργήστε ένα νέο υλικό με στρώματα"
@@ -16533,8 +16533,8 @@ msgstr "Το σύστημα ζωγραφικής δεν έχει αρχικοπ�
 msgid "Paint UI not initialized"
 msgstr "Η διεπαφή ζωγραφικής δεν έχει αρχικοποιηθεί."
 
-msgid "No Mixar material found"
-msgstr "Δεν βρέθηκε υλικό Mixar."
+msgid "No Lampway material found"
+msgstr "Δεν βρέθηκε υλικό Lampway."
 
 msgid "No layer based material"
 msgstr "Δεν υπάρχει υλικό με στρώματα."
@@ -16551,8 +16551,8 @@ msgstr "Δεν έχει επιλεγεί στρώμα."
 msgid "No active material"
 msgstr "Δεν υπάρχει ενεργό υλικό."
 
-msgid "No Mixar node found"
-msgstr "Δεν βρέθηκε κόμβος Mixar."
+msgid "No Lampway node found"
+msgstr "Δεν βρέθηκε κόμβος Lampway."
 
 msgid "Backend layer not found"
 msgstr "Δεν βρέθηκε στρώμα στο σύστημα."
@@ -17227,17 +17227,17 @@ msgstr "Το στρώμα είναι εστιασμένο/επιλεγμένο."
 msgid "How this layer blends with layers below"
 msgstr "Πώς αυτό το στρώμα αναμιγνύεται με τα από κάτω."
 
-msgid "Mixar Layer Index"
-msgstr "Δείκτης στρώματος Mixar"
+msgid "Lampway Layer Index"
+msgstr "Δείκτης στρώματος Lampway"
 
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "Δείκτης στη συλλογή mixar_mp.layers του Mixar."
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "Δείκτης στη συλλογή mixar_mp.layers του Lampway."
 
-msgid "Mixar Group Node"
-msgstr "Κόμβος γκρουπ Mixar"
+msgid "Lampway Group Node"
+msgstr "Κόμβος γκρουπ Lampway"
 
-msgid "Name of the Mixar group node"
-msgstr "Όνομα του κόμβου γκρουπ Mixar."
+msgid "Name of the Lampway group node"
+msgstr "Όνομα του κόμβου γκρουπ Lampway."
 
 msgid "Updating Property"
 msgstr "Ιδιότητα υπό ενημέρωση"
@@ -18312,8 +18312,8 @@ msgstr "Χρώμα άλλου αντικειμένου."
 msgid "Other Objects Channels"
 msgstr "Κανάλια άλλων αντικειμένων"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "Κανάλια Mixar Paint άλλου αντικειμένου."
+msgid "Other object's Lampway Paint channels"
+msgstr "Κανάλια Lampway Paint άλλου αντικειμένου."
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "Επιλεγμένες κορυφές/ακμές/όψεις"
@@ -18639,17 +18639,17 @@ msgstr "Application Support"
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
-msgstr "Δεν ήταν δυνατή η δημιουργία του φακέλου πρόσθετων του Mixar — ελέγξτε τα δικαιώματα στον φάκελο του προφίλ σας."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
+msgstr "Δεν ήταν δυνατή η δημιουργία του φακέλου πρόσθετων του Lampway — ελέγξτε τα δικαιώματα στον φάκελο του προφίλ σας."
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
-msgstr "Δεν ήταν δυνατή η δημιουργία του φακέλου επεκτάσεων του Mixar — ελέγξτε τα δικαιώματα στον φάκελο του προφίλ σας."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
+msgstr "Δεν ήταν δυνατή η δημιουργία του φακέλου επεκτάσεων του Lampway — ελέγξτε τα δικαιώματα στον φάκελο του προφίλ σας."
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "η ενεργοποίηση απέτυχε (μπορεί να μην είναι συμβατό με το Blender 5.0)"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
-msgstr "Φέρνει πρόσθετα και επεκτάσεις από την υπάρχουσα εγκατάσταση Blender στο Mixar."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
+msgstr "Φέρνει πρόσθετα και επεκτάσεις από την υπάρχουσα εγκατάσταση Blender στο Lampway."
 
 msgid "Scan for Blender Plugins"
 msgstr "Σάρωση για πρόσθετα Blender"
@@ -18672,14 +18672,14 @@ msgstr "Ενεργοποίηση μετά την εισαγωγή:"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "Όλα τα πρόσθετα της λίστας αντιγράφονται· τα σημειωμένα ενεργοποιούνται."
 
-msgid "Import into Mixar"
-msgstr "Εισαγωγή στο Mixar"
+msgid "Import into Lampway"
+msgstr "Εισαγωγή στο Lampway"
 
 msgid "Imported"
 msgstr "Εισήχθη"
 
-msgid "Already in Mixar"
-msgstr "Υπάρχει ήδη στο Mixar"
+msgid "Already in Lampway"
+msgstr "Υπάρχει ήδη στο Lampway"
 
 msgid "Copy failed"
 msgstr "Η αντιγραφή απέτυχε"
@@ -18705,11 +18705,11 @@ msgstr "Επιλογή προσθέτων"
 msgid "Tick or untick every plugin in the list"
 msgstr "Σημειώνει ή ξεσημειώνει κάθε πρόσθετο της λίστας."
 
-msgid "Import Plugins into Mixar"
-msgstr "Εισαγωγή προσθέτων στο Mixar"
+msgid "Import Plugins into Lampway"
+msgstr "Εισαγωγή προσθέτων στο Lampway"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
-msgstr "Αντιγράφει κάθε πρόσθετο της λίστας στο Mixar και ενεργοποιεί τα σημειωμένα."
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
+msgstr "Αντιγράφει κάθε πρόσθετο της λίστας στο Lampway και ενεργοποιεί τα σημειωμένα."
 
 msgid "Nothing scanned — run Scan first"
 msgstr "Δεν έγινε σάρωση — εκτελέστε πρώτα τη Σάρωση."
@@ -18726,8 +18726,8 @@ msgstr "Εισήχθησαν {imported}, υπάρχουν ήδη {already_presen
 msgid "Imported: {count}"
 msgstr "Εισήχθησαν: {count}"
 
-msgid "Already in Mixar: {count}"
-msgstr "Υπάρχουν ήδη στο Mixar: {count}"
+msgid "Already in Lampway: {count}"
+msgstr "Υπάρχουν ήδη στο Lampway: {count}"
 
 msgid "Enabled: {count}"
 msgstr "Ενεργοποιήθηκαν: {count}"
@@ -18744,8 +18744,8 @@ msgstr "Εισαγωγή από το Blender"
 msgid "{count} found"
 msgstr "Βρέθηκαν: {count}"
 
-msgid "Enable this plugin in Mixar after importing it"
-msgstr "Ενεργοποιεί αυτό το πρόσθετο στο Mixar μετά την εισαγωγή."
+msgid "Enable this plugin in Lampway after importing it"
+msgstr "Ενεργοποιεί αυτό το πρόσθετο στο Lampway μετά την εισαγωγή."
 
 msgid "Blender Version"
 msgstr "Έκδοση Blender"
@@ -18798,14 +18798,14 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
-msgstr "Γράφος σκηνής Mixar"
+msgid "Lampway Scene Graph"
+msgstr "Γράφος σκηνής Lampway"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "Γράφος σκηνής αναγνώσιμος από τον πράκτορα, ανά σκηνή (JSON). Μόνο κατά τον χρόνο εκτέλεσης."
 
-msgid "Mixar Scene Graph Query Result"
-msgstr "Αποτέλεσμα ερωτήματος γράφου σκηνής Mixar"
+msgid "Lampway Scene Graph Query Result"
+msgstr "Αποτέλεσμα ερωτήματος γράφου σκηνής Lampway"
 
 msgid "JSON result of the last scene-graph query operator call."
 msgstr "Αποτέλεσμα JSON της τελευταίας κλήσης τελεστή ερωτήματος γράφου σκηνής."
@@ -19524,8 +19524,8 @@ msgstr "Τα βίντεο απαιτούν κατάσταση βίντεο. Αφ
 msgid "User ID"
 msgstr "Αναγνωριστικό χρήστη"
 
-msgid "User ID for Mixie Chat login"
-msgstr "Αναγνωριστικό χρήστη για σύνδεση στη συνομιλία Mixie."
+msgid "User ID for Lampway Agent Chat login"
+msgstr "Αναγνωριστικό χρήστη για σύνδεση στη συνομιλία Lampway Agent."
 
 msgid "Agent expects: {formats}"
 msgstr "Ο πράκτορας αναμένει: {formats}"
@@ -19983,11 +19983,11 @@ msgstr "Ολοκληρώστε το χειρόγραφο πριν ξεκινήσ
 msgid "Sign in to use voice input."
 msgstr "Συνδεθείτε για να χρησιμοποιήσετε τη φωνητική εισαγωγή."
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "Εκκινήστε το Mixar από το Finder για να επιτρέψετε πρόσβαση στο μικρόφωνο."
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "Εκκινήστε το Lampway από το Finder για να επιτρέψετε πρόσβαση στο μικρόφωνο."
 
-msgid "Allow microphone access for Mixar in system privacy settings."
-msgstr "Επιτρέψτε την πρόσβαση στο μικρόφωνο για το Mixar στις ρυθμίσεις απορρήτου του συστήματος."
+msgid "Allow microphone access for Lampway in system privacy settings."
+msgstr "Επιτρέψτε την πρόσβαση στο μικρόφωνο για το Lampway στις ρυθμίσεις απορρήτου του συστήματος."
 
 msgid "Allow microphone"
 msgstr "Να επιτραπεί το μικρόφωνο"
@@ -20034,8 +20034,8 @@ msgstr "Συνδεθείτε ξανά."
 msgid "Login Failed"
 msgstr "Η σύνδεση απέτυχε"
 
-msgid "Sign in with your Mixar account"
-msgstr "Συνδεθείτε με τον λογαριασμό Mixar"
+msgid "Sign in with your Lampway account"
+msgstr "Συνδεθείτε με τον λογαριασμό Lampway"
 
 msgid "Waiting for browser..."
 msgstr "Αναμονή για το πρόγραμμα περιήγησης..."
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "Πίνακας ελέγχου"
 
-msgid "About Mixar"
-msgstr "Σχετικά με το Mixar"
+msgid "About Lampway"
+msgstr "Σχετικά με το Lampway"
 
 msgid "Documentation"
 msgstr "Τεκμηρίωση"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "Εξήχθη αντίγραφο χωρίς συνομιλία (παραλείφθηκαν μηνύματα: {count}, από σκηνές: {scenes})."
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Συνομιλία Mixar: εξαγωγή .blend χωρίς ιστορικό συνομιλίας"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Συνομιλία Lampway: εξαγωγή .blend χωρίς ιστορικό συνομιλίας"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "Η παραγωγή δεν είναι διαθέσιμη αυτή τη στιγμή. Ανανεώστε τον κατάλογο και δοκιμάστε ξανά."
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Προσθήκη κανόνων"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "Ορίζει κανόνες για το Mixie. Οι αλλαγές εφαρμόζονται στο επόμενο μήνυμα ή την επόμενη απάντησή σας· οι καθολικοί κανόνες ισχύουν σε κάθε αρχείο Mixar. Το τρέχον αίτημά σας έχει προτεραιότητα έναντι των κανόνων έργου και των καθολικών."
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Ορίζει κανόνες για το Mixie. Οι αλλαγές εφαρμόζονται στο επόμενο μήνυμα ή την επόμενη απάντησή σας· οι καθολικοί κανόνες ισχύουν σε κάθε αρχείο Lampway. Το τρέχον αίτημά σας έχει προτεραιότητα έναντι των κανόνων έργου και των καθολικών."
 
 msgid "Rule operation failed"
 msgstr "Η ενέργεια κανόνα απέτυχε."
@@ -22138,8 +22138,8 @@ msgstr "Κείμενο του τελευταίου συμβάντος αναγν
 msgid "Materials: {count}"
 msgstr "Υλικά: {count}"
 
-msgid "No Mixar material active"
-msgstr "Δεν υπάρχει ενεργό υλικό Mixar."
+msgid "No Lampway material active"
+msgstr "Δεν υπάρχει ενεργό υλικό Lampway."
 
 msgid "{channel} Settings"
 msgstr "Ρυθμίσεις {channel}"
@@ -22801,8 +22801,8 @@ msgstr "Μεγέθυνση Y"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "Μεγεθύνει τα επιλεγμένα UV κατά τον άξονα Y (βηματικά)"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Ιδιότητες εργαλείου σχολιασμού για τον χώρο ιδιοτήτων UV του Mixar."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Ιδιότητες εργαλείου σχολιασμού για τον χώρο ιδιοτήτων UV του Lampway."
 
 msgid "Annotate Line"
 msgstr "Γραμμή σχολιασμού"
@@ -22828,14 +22828,14 @@ msgstr "Αρχή στυλ"
 msgid "Toggle UV Sidebar"
 msgstr "Εναλλαγή πλευρικής στήλης UV"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "Εναλλάσσει την πλευρική στήλη UV του Mixar στον επεξεργαστή εικόνας"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "Εναλλάσσει την πλευρική στήλη UV του Lampway στον επεξεργαστή εικόνας"
 
 msgid "Open UV Sidebar"
 msgstr "Άνοιγμα πλευρικής στήλης UV"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Ανοίγει την πλευρική στήλη UV του Mixar αν είναι κρυφή"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Ανοίγει την πλευρική στήλη UV του Lampway αν είναι κρυφή"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "Κενή κατάσταση όταν δεν υπάρχουν διαθέσιμες ιδιότητες UV"
@@ -22858,8 +22858,8 @@ msgstr "Εξαγωγή διάταξης UV"
 msgid "Export UV layout using stored properties"
 msgstr "Εξάγει τη διάταξη UV με τις αποθηκευμένες ιδιότητες"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "Ταμπλό εξαγωγής UV για τον χώρο ιδιοτήτων UV του Mixar"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "Ταμπλό εξαγωγής UV για τον χώρο ιδιοτήτων UV του Lampway"
 
 msgid "UV UI not initialized"
 msgstr "Το περιβάλλον UV δεν αρχικοποιήθηκε"
@@ -22975,8 +22975,8 @@ msgstr "Επικόλληση UV"
 msgid "Functions"
 msgstr "Λειτουργίες"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Ταμπλό λειτουργιών UV για τον χώρο ιδιοτήτων UV του Mixar — με βάση το εργαλείο (χωρίς κουμπί κεφαλίδας)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Ταμπλό λειτουργιών UV για τον χώρο ιδιοτήτων UV του Lampway — με βάση το εργαλείο (χωρίς κουμπί κεφαλίδας)"
 
 msgid "Seam"
 msgstr "Ραφή"
@@ -23104,8 +23104,8 @@ msgstr "Καμία εικόνα στον επεξεργαστή UV"
 msgid "Material '{name}' created and applied"
 msgstr "Το υλικό «{name}» δημιουργήθηκε και εφαρμόστηκε"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Ταμπλό εικόνας για τον χώρο ιδιοτήτων UV του Mixar."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Ταμπλό εικόνας για τον χώρο ιδιοτήτων UV του Lampway."
 
 msgid "Save As"
 msgstr "Αποθήκευση ως"
@@ -23137,8 +23137,8 @@ msgstr "Μέγεθος εικόνας"
 msgid "Invert All Colors"
 msgstr "Αντιστροφή όλων των χρωμάτων"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Ταμπλό υποδοχής υλικού για τον χώρο ιδιοτήτων UV του Mixar"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Ταμπλό υποδοχής υλικού για τον χώρο ιδιοτήτων UV του Lampway"
 
 msgid "No active object"
 msgstr "Κανένα ενεργό αντικείμενο"
@@ -23182,8 +23182,8 @@ msgstr "Δημιουργεί προσαρμοσμένες περιοχές στ�
 msgid "{label} unavailable"
 msgstr "Το {label} δεν είναι διαθέσιμο"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Ταμπλό διάταξης για τον χώρο ιδιοτήτων UV του Mixar."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Ταμπλό διάταξης για τον χώρο ιδιοτήτων UV του Lampway."
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "Οι ιδιότητες uv.pack_islands δεν είναι διαθέσιμες"
@@ -23329,8 +23329,8 @@ msgstr "Προβολή"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "Προβάλλει UV με τον τύπο και τις ιδιότητες του ταμπλό Προβολή"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Η κατάσταση περιβάλλοντος UV του Mixar δεν αρχικοποιήθηκε"
+msgid "Lampway UV UI state not initialized"
+msgstr "Η κατάσταση περιβάλλοντος UV του Lampway δεν αρχικοποιήθηκε"
 
 msgid "Unknown projection type: {type}"
 msgstr "Άγνωστος τύπος προβολής: {type}"
@@ -23461,8 +23461,8 @@ msgstr "Επιλογή Συνδεδεμένων"
 msgid "Select linked UVs"
 msgstr "Επιλογή συνδεδεμένων UV"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Ταμπλό επιλογής για τον χώρο ιδιοτήτων UV του Mixar — με βάση το εργαλείο (χωρίς κουμπί κεφαλίδας)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Ταμπλό επιλογής για τον χώρο ιδιοτήτων UV του Lampway — με βάση το εργαλείο (χωρίς κουμπί κεφαλίδας)"
 
 msgid "Basic Selection"
 msgstr "Βασική επιλογή"
@@ -23503,8 +23503,8 @@ msgstr "Επιλογή χωρισμένων"
 msgid "Select Overlap"
 msgstr "Επιλογή επικαλυπτόμενων"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Ταμπλό πυκνότητας τέξελ για τον χώρο ιδιοτήτων UV του Mixar"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Ταμπλό πυκνότητας τέξελ για τον χώρο ιδιοτήτων UV του Lampway"
 
 msgid "Activate Grab Tool"
 msgstr "Ενεργοποίηση εργαλείου πιασίματος"
@@ -23548,8 +23548,8 @@ msgstr "Κεντράρει την όψη στον δρομέα"
 msgid "UV Sculpt Tools"
 msgstr "Εργαλεία γλυπτικής UV"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Ταμπλό εργαλείων γλυπτικής UV για τον χώρο ιδιοτήτων UV του Mixar — με βάση το εργαλείο (χωρίς κουμπί κεφαλίδας)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Ταμπλό εργαλείων γλυπτικής UV για τον χώρο ιδιοτήτων UV του Lampway — με βάση το εργαλείο (χωρίς κουμπί κεφαλίδας)"
 
 msgid "Grab"
 msgstr "Πιάσιμο"
@@ -23668,8 +23668,8 @@ msgstr "Εφαρμόζει μετασχηματισμό μεγέθυνσης σ�
 msgid "Snapping"
 msgstr "Κούμπωμα"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Ταμπλό κουμπώματος για τον χώρο ιδιοτήτων UV του Mixar"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Ταμπλό κουμπώματος για τον χώρο ιδιοτήτων UV του Lampway"
 
 msgid "Snapping Options"
 msgstr "Επιλογές κουμπώματος"
@@ -23719,8 +23719,8 @@ msgstr "Ξεδίπλωμα με τη μέθοδο και τις ιδιότητε
 msgid "Unknown unwrap method: {method}"
 msgstr "Άγνωστη μέθοδος ξεδιπλώματος: {method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Συνδυασμένο ταμπλό ξεδιπλώματος και προβολής για τον χώρο ιδιοτήτων UV του Mixar."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Συνδυασμένο ταμπλό ξεδιπλώματος και προβολής για τον χώρο ιδιοτήτων UV του Lampway."
 
 msgid "Live Unwrap"
 msgstr "Ζωντανό ξεδίπλωμα"
@@ -23796,7 +23796,7 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
@@ -23804,7 +23804,7 @@ msgstr ""
 "\n"
 "Περιτύλιγμα γύρω από το `image.new` που προρυθμίζει `tiled=True` στο\n"
 "παράθυρο ιδιοτήτων του τελεστή. Χρησιμοποιείται ως τελεστής `new=` για το\n"
-"`template_ID` στα ταμπλό UV του Mixar, ώστε το παράθυρο να ανοίγει με το\n"
+"`template_ID` στα ταμπλό UV του Lampway, ώστε το παράθυρο να ανοίγει με το\n"
 "πλαίσιο επιλογής Πλακιδωτό ήδη επιλεγμένο. Το υποκείμενο `image.new` κάνει\n"
 "την πραγματική δημιουργία και την ανάθεση ID.\n"
 
@@ -23826,8 +23826,8 @@ msgstr "Συμπλήρωμα πλακιδίου"
 msgid "Fill UDIM tile"
 msgstr "Συμπληρώνει πλακίδιο UDIM"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "Ταμπλό συνόλου UV για τον χώρο ιδιοτήτων UV του Mixar."
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "Ταμπλό συνόλου UV για τον χώρο ιδιοτήτων UV του Lampway."
 
 msgid "UV Maps"
 msgstr "Χάρτες UV"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "Εργαλεία"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Ταμπλό εργαλείων για τον χώρο ιδιοτήτων UV του Mixar — εμφανίζεται όταν είναι\n"
+"Ταμπλό εργαλείων για τον χώρο ιδιοτήτων UV του Lampway — εμφανίζεται όταν είναι\n"
 "ενεργό το εργαλείο γραμμής `builtin.uv_tool`."
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,14 +24070,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Μετάβαση του Mixar στην κατάσταση Zen (ελάχιστη προβολή 3D + φούσκα πράκτορα + Moodboard)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "Μετάβαση του Lampway στην κατάσταση Zen (ελάχιστη προβολή 3D + φούσκα πράκτορα + Moodboard)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Δεν ήταν δυνατή η δημιουργία χώρου εργασίας κατάστασης Zen — δεν υπάρχει διαθέσιμο πρότυπο"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "Μετάβαση του Mixar στην κατάσταση Engine (πλήρεις χώροι εργασίας στυλ Blender)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "Μετάβαση του Lampway στην κατάσταση Engine (πλήρεις χώροι εργασίας στυλ Blender)"
 
 msgid "Modeling workspace not found"
 msgstr "Ο χώρος εργασίας μοντελοποίησης δεν βρέθηκε"
@@ -24298,17 +24298,17 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
-msgstr "Το αρχείο αποθηκεύτηκε από νεότερη έκδοση Mixar (%d.%d), ορισμένα δεδομένα μπορεί να χαθούν"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
+msgstr "Το αρχείο αποθηκεύτηκε από νεότερη έκδοση Lampway (%d.%d), ορισμένα δεδομένα μπορεί να χαθούν"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "Το αρχείο αποθηκεύτηκε από νεότερη έκδοση, ανοίξτε το με Mixar %s ή νεότερο"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "Το αρχείο αποθηκεύτηκε από νεότερη έκδοση, ανοίξτε το με Lampway %s ή νεότερο"
 
 msgid "Failed to read mixar file '%s': %s"
 msgstr "Αποτυχία ανάγνωσης αρχείου mixar «%s»: %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
-msgstr "Αδυναμία ανάγνωσης αρχείου mixar «%s», ελλιπής κεφαλίδα, ίσως από νεότερη έκδοση του Mixar"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr "Αδυναμία ανάγνωσης αρχείου mixar «%s», ελλιπής κεφαλίδα, ίσως από νεότερη έκδοση του Lampway"
 
 msgid "Failed to read file '%s', not a mixar file"
 msgstr "Αποτυχία ανάγνωσης αρχείου «%s», δεν είναι αρχείο mixar"
@@ -24316,14 +24316,14 @@ msgstr "Αποτυχία ανάγνωσης αρχείου «%s», δεν είν
 msgid "Unable to open mixar <memory>"
 msgstr "Αδυναμία ανοίγματος mixar <memory>"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Το αρχείο Mixar «%s» δημιουργήθηκε από μελλοντική έκδοση του Mixar και περιέχει ονόματα ID μεγαλύτερα από τα υποστηριζόμενα. Αυτά περικόπηκαν."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Το αρχείο Lampway «%s» δημιουργήθηκε από μελλοντική έκδοση του Lampway και περιέχει ονόματα ID μεγαλύτερα από τα υποστηριζόμενα. Αυτά περικόπηκαν."
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Το αρχείο Mixar «%s» φαίνεται κατεστραμμένο και περιέχει άκυρα ονόματα ID. Αυτά περικόπηκαν."
+msgstr "Το αρχείο Lampway «%s» φαίνεται κατεστραμμένο και περιέχει άκυρα ονόματα ID. Αυτά περικόπηκαν."
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
-msgstr "Η βιβλιοθήκη «%s» δημιουργήθηκε από μελλοντική έκδοση του Mixar και περιέχει ονόματα ID μεγαλύτερα από τα υποστηριζόμενα. Αυτό μπορεί να προκαλέσει ελλείποντα συνδεδεμένα δεδομένα· σκεφτείτε να ανοίξετε και να ξανααποθηκεύσετε αυτή τη βιβλιοθήκη με την τρέχουσα έκδοση Mixar."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
+msgstr "Η βιβλιοθήκη «%s» δημιουργήθηκε από μελλοντική έκδοση του Lampway και περιέχει ονόματα ID μεγαλύτερα από τα υποστηριζόμενα. Αυτό μπορεί να προκαλέσει ελλείποντα συνδεδεμένα δεδομένα· σκεφτείτε να ανοίξετε και να ξανααποθηκεύσετε αυτή τη βιβλιοθήκη με την τρέχουσα έκδοση Lampway."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: Τα δεδομένα αναφέρονται στο κύριο αρχείο .mixar: «%s» από %s"
@@ -24454,8 +24454,8 @@ msgstr "Ρωτήστε τη Mixie οτιδήποτε..."
 msgid "Write your prompt here..."
 msgstr "Γράψτε την προτροπή σας εδώ..."
 
-msgid "Everything Mixar has generated"
-msgstr "Ό,τι έχει παραγάγει το Mixar"
+msgid "Everything Lampway has generated"
+msgstr "Ό,τι έχει παραγάγει το Lampway"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -25771,14 +25771,14 @@ msgstr "Διαγραφή προεπισκόπησης Mixie3D"
 msgid "Delete a segmented image from the preview history"
 msgstr "Διαγράφει τμηματοποιημένη εικόνα από το ιστορικό προεπισκόπησης"
 
-msgid "Mixar agent bubble loading…"
-msgstr "Φόρτωση φούσκας πράκτορα Mixar…"
+msgid "Lampway agent bubble loading…"
+msgstr "Φόρτωση φούσκας πράκτορα Lampway…"
 
 msgid "Show Agent Bubble"
 msgstr "Εμφάνιση φούσκας πράκτορα"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
-msgstr "Ανοίγει την αιωρούμενη επικάλυψη φούσκας πράκτορα που επιτρέπει συνομιλία με τον πράκτορα ΤΝ από οπουδήποτε στο περιβάλλον Mixar"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
+msgstr "Ανοίγει την αιωρούμενη επικάλυψη φούσκας πράκτορα που επιτρέπει συνομιλία με τον πράκτορα ΤΝ από οπουδήποτε στο περιβάλλον Lampway"
 
 msgid "Chat is still loading. Please drop the asset again."
 msgstr ""
@@ -25822,8 +25822,8 @@ msgstr "Προσθέτει αποθεμένη εικόνα ως συνημμέν
 msgid "Dropped image datablock"
 msgstr "Μπλοκ δεδομένων αποθεμένης εικόνας"
 
-msgid "Tell me about the features in Mixar"
-msgstr "Πείτε μου για τις δυνατότητες του Mixar"
+msgid "Tell me about the features in Lampway"
+msgstr "Πείτε μου για τις δυνατότητες του Lampway"
 
 msgid "Generate a futuristic sci-fi character concept"
 msgstr "Δημιουργία φουτουριστικής ιδέας χαρακτήρα επιστημονικής φαντασίας"
@@ -26755,14 +26755,14 @@ msgstr "Ενέργειες φτιαξίματος και επεξεργασία�
 msgid "Texture set management for PBR workflows"
 msgstr "Διαχείριση συνόλων υφών για ροές εργασίας PBR"
 
-msgid "Mixar UV Editor"
-msgstr "Επεξεργαστής UV Mixar"
+msgid "Lampway UV Editor"
+msgstr "Επεξεργαστής UV Lampway"
 
-msgid "Mixar UV editing mode"
-msgstr "Κατάσταση επεξεργασίας UV Mixar"
+msgid "Lampway UV editing mode"
+msgstr "Κατάσταση επεξεργασίας UV Lampway"
 
-msgid "Mixar Layers Properties"
-msgstr "Ιδιότητες στρωμάτων Mixar"
+msgid "Lampway Layers Properties"
+msgstr "Ιδιότητες στρωμάτων Lampway"
 
 msgid "Reference image board like PureRef"
 msgstr "Πίνακας εικόνων αναφοράς όπως το PureRef"
@@ -26770,8 +26770,8 @@ msgstr "Πίνακας εικόνων αναφοράς όπως το PureRef"
 msgid "Mixie Space"
 msgstr "Χώρος Mixie"
 
-msgid "Mixie editor for Mixar"
-msgstr "Επεξεργαστής Mixie για το Mixar"
+msgid "Mixie editor for Lampway"
+msgstr "Επεξεργαστής Mixie για το Lampway"
 
 msgid "Mixie editor mode"
 msgstr "Κατάσταση επεξεργαστή Mixie"
@@ -26779,8 +26779,8 @@ msgstr "Κατάσταση επεξεργαστή Mixie"
 msgid "Agent Bubble Space"
 msgstr "Χώρος φούσκας πράκτορα"
 
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Επεξεργαστής αιωρούμενης επικάλυψης συνομιλίας πράκτορα για το Mixar"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Επεξεργαστής αιωρούμενης επικάλυψης συνομιλίας πράκτορα για το Lampway"
 
 msgid "Top Bar Space"
 msgstr "Χώρος επάνω γραμμής"
@@ -26788,23 +26788,23 @@ msgstr "Χώρος επάνω γραμμής"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "Επάνω γραμμή με τη λωρίδα καρτελών χώρου εργασίας και τα μενού επεξεργαστή"
 
-msgid "Mixar Layers Space"
-msgstr "Χώρος στρωμάτων Mixar"
+msgid "Lampway Layers Space"
+msgstr "Χώρος στρωμάτων Lampway"
 
-msgid "Mixar texture layer stack management"
-msgstr "Διαχείριση στοίβας στρωμάτων υφής Mixar"
+msgid "Lampway texture layer stack management"
+msgstr "Διαχείριση στοίβας στρωμάτων υφής Lampway"
 
-msgid "Mixar Properties Space"
-msgstr "Χώρος ιδιοτήτων Mixar"
+msgid "Lampway Properties Space"
+msgstr "Χώρος ιδιοτήτων Lampway"
 
-msgid "Mixar layer and texture properties"
-msgstr "Ιδιότητες στρώματος και υφής Mixar"
+msgid "Lampway layer and texture properties"
+msgstr "Ιδιότητες στρώματος και υφής Lampway"
 
-msgid "Mixar Assets Space"
-msgstr "Χώρος πόρων Mixar"
+msgid "Lampway Assets Space"
+msgstr "Χώρος πόρων Lampway"
 
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "Βιβλιοθήκη έξυπνων υλικών, πινέλων και υφών Mixar"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "Βιβλιοθήκη έξυπνων υλικών, πινέλων και υφών Lampway"
 
 msgid "Texture sets management"
 msgstr "Διαχείριση συνόλων υφών"
@@ -26812,8 +26812,8 @@ msgstr "Διαχείριση συνόλων υφών"
 msgid "Use Blender's theme"
 msgstr "Χρήση θέματος Blender"
 
-msgid "Mixar Zen components"
-msgstr "Συστατικά Zen του Mixar"
+msgid "Lampway Zen components"
+msgstr "Συστατικά Zen του Lampway"
 
 msgid "Compatibility appearance"
 msgstr "Εμφάνιση συμβατότητας"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "Καθολικές περιοχές"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "Καθολικές περιοχές παραθύρου (επάνω γραμμή, γραμμή κατάστασης). Επέκταση Mixar — εκτίθεται ώστε η εισαγωγή να μπορεί να απευθυνθεί στην επάνω γραμμή για επανασχεδίαση."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "Καθολικές περιοχές παραθύρου (επάνω γραμμή, γραμμή κατάστασης). Επέκταση Lampway — εκτίθεται ώστε η εισαγωγή να μπορεί να απευθυνθεί στην επάνω γραμμή για επανασχεδίαση."
 
 msgid "QA UI Dump"
 msgstr "Αποτύπωση περιβάλλοντος QA"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "Στιγμιότυπο JSON όλων των ζωντανών γραφικών στοιχείων (ετικέτες, τελεστές, ιδιότητες, ορθογώνια χώρου παραθύρου, κατάσταση) για το σύστημα QA του Mixar"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "Στιγμιότυπο JSON όλων των ζωντανών γραφικών στοιχείων (ετικέτες, τελεστές, ιδιότητες, ορθογώνια χώρου παραθύρου, κατάσταση) για το σύστημα QA του Lampway"
 
 msgid "Window Resizing"
 msgstr "Αλλαγή μεγέθους παραθύρου"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "Η καταγραφή καρέ QA απαιτεί --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,11 +27982,11 @@ msgstr "Το μικρόφωνο κόλλησε ή η προσωρινή μνήμ
 msgid "Microphone disconnected"
 msgstr "Το μικρόφωνο αποσυνδέθηκε"
 
-msgid "Mixar File View"
-msgstr "Προβολή αρχείων Mixar"
+msgid "Lampway File View"
+msgstr "Προβολή αρχείων Lampway"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
-msgstr "Οι πληρεξούσιοι αφαιρέθηκαν από το Mixar (%d πληρεξούσιοι μετατράπηκαν αυτόματα σε παρακάμψεις βιβλιοθήκης, %d πληρεξούσιοι δεν μπόρεσαν να μετατραπούν και καθαρίστηκαν). Σκεφτείτε να ξανααποθηκεύσετε κάθε αρχείο βιβλιοθήκης .mixar με τη νεότερη έκδοση Mixar"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
+msgstr "Οι πληρεξούσιοι αφαιρέθηκαν από το Lampway (%d πληρεξούσιοι μετατράπηκαν αυτόματα σε παρακάμψεις βιβλιοθήκης, %d πληρεξούσιοι δεν μπόρεσαν να μετατραπούν και καθαρίστηκαν). Σκεφτείτε να ξανααποθηκεύσετε κάθε αρχείο βιβλιοθήκης .mixar με τη νεότερη έκδοση Lampway"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
 msgstr "Αδυναμία αποθήκευσης αρχείου mixar, η διαδρομή «%s» δεν είναι εγγράψιμη"
@@ -27994,11 +27994,11 @@ msgstr "Αδυναμία αποθήκευσης αρχείου mixar, η δια�
 msgid "Cannot save mixar file, path \"%s\" is a directory"
 msgstr "Αδυναμία αποθήκευσης αρχείου mixar, η διαδρομή «%s» είναι κατάλογος"
 
-msgid "Mixar will start next time as it is now."
-msgstr "Το Mixar θα ξεκινήσει την επόμενη φορά όπως είναι τώρα."
+msgid "Lampway will start next time as it is now."
+msgstr "Το Lampway θα ξεκινήσει την επόμενη φορά όπως είναι τώρα."
 
-msgid "Load Factory Mixar Preferences"
-msgstr "Φόρτωση εργοστασιακών προτιμήσεων Mixar"
+msgid "Load Factory Lampway Preferences"
+msgstr "Φόρτωση εργοστασιακών προτιμήσεων Lampway"
 
 msgid "Load user interface setup from the .mixar file"
 msgstr "Φόρτωση διάταξης περιβάλλοντος από το αρχείο .mixar"
@@ -28006,14 +28006,14 @@ msgstr "Φόρτωση διάταξης περιβάλλοντος από το �
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr "Να επιτρέπεται στο αρχείο .mixar να εκτελεί σενάρια αυτόματα· η προεπιλογή είναι διαθέσιμη από τις προτιμήσεις συστήματος"
 
-msgid "Open a Mixar file"
-msgstr "Άνοιγμα αρχείου Mixar"
+msgid "Open a Lampway file"
+msgstr "Άνοιγμα αρχείου Lampway"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr "Φόρτωση διάταξης περιβάλλοντος στο αρχείο .mixar"
 
-msgid "Mixar Files"
-msgstr "Αρχεία Mixar"
+msgid "Lampway Files"
+msgstr "Αρχεία Lampway"
 
 msgid "Show only .mixar files"
 msgstr "Εμφάνιση μόνο αρχείων .mixar"
@@ -28039,26 +28039,26 @@ msgstr "Αποθήκευση ως αρχείο .mixar"
 msgid "Save as .blend file"
 msgstr "Αποθήκευση ως αρχείο .blend"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "Αποθήκευση του τρέχοντος αρχείου Mixar με αριθμητικά αυξημένο όνομα που δεν αντικαθιστά υπάρχοντα αρχεία"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "Αποθήκευση του τρέχοντος αρχείου Lampway με αριθμητικά αυξημένο όνομα που δεν αντικαθιστά υπάρχοντα αρχεία"
 
-msgid "Save Mixar File"
-msgstr "Αποθήκευση αρχείου Mixar"
+msgid "Save Lampway File"
+msgstr "Αποθήκευση αρχείου Lampway"
 
-msgid "Save the current Mixar file"
-msgstr "Αποθήκευση του τρέχοντος αρχείου Mixar"
+msgid "Save the current Lampway file"
+msgstr "Αποθήκευση του τρέχοντος αρχείου Lampway"
 
-msgid "Exit Mixar after saving"
-msgstr "Έξοδος από το Mixar μετά την αποθήκευση"
+msgid "Exit Lampway after saving"
+msgstr "Έξοδος από το Lampway μετά την αποθήκευση"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
-msgstr "Αυτό το αρχείο αποθηκεύτηκε από νεότερη έκδοση του Mixar (%s)."
+msgid "This file was saved by a newer version of Lampway (%s)."
+msgstr "Αυτό το αρχείο αποθηκεύτηκε από νεότερη έκδοση του Lampway (%s)."
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
-msgstr "Η αποθήκευσή του με αυτό το Mixar (%s) μπορεί να προκαλέσει απώλεια δεδομένων."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
+msgstr "Η αποθήκευσή του με αυτό το Lampway (%s) μπορεί να προκαλέσει απώλεια δεδομένων."
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "Αυτό το αρχείο διαχειρίζεται το σύστημα πόρων του Mixar. Μπορεί μόνο να"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "Αυτό το αρχείο διαχειρίζεται το σύστημα πόρων του Lampway. Μπορεί μόνο να"
 
 msgid "Filter .mixar files"
 msgstr "Φιλτράρισμα αρχείων .mixar"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
-msgstr "Νεότεροι οδηγοί γραφικών μπορεί να είναι διαθέσιμοι με καλύτερη συμβατότητα Mixar."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
+msgstr "Νεότεροι οδηγοί γραφικών μπορεί να είναι διαθέσιμοι με καλύτερη συμβατότητα Lampway."
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "Η αναβάθμιση στην τελευταία έκδοση macOS μπορεί να βελτιώσει την υποστήριξη Mixar"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "Η αναβάθμιση στην τελευταία έκδοση macOS μπορεί να βελτιώσει την υποστήριξη Lampway"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Το Mixar θα κλείσει τώρα."
+msgid "Lampway will now close."
+msgstr "Το Lampway θα κλείσει τώρα."

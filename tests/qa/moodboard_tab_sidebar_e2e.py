@@ -77,7 +77,7 @@ result=capture_frame()
 
 
 def sidebar_tabs(qa):
-    for label in ('Mixar', 'Tool'):
+    for label in ('Lampway', 'Tool'):
         query = {'area_type': 'VIEW_3D', 'surface': 'panel_tab', 'text': label}
         hits = qa.find(**query)['widgets']
         assert len(hits) == 1, hits

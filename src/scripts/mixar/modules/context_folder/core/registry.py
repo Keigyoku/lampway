@@ -88,7 +88,7 @@ class FolderRegistry:
                 del folders[key]
                 raise ContextFolderError(
                     "registry_write_failed",
-                    n_("Could not save the folder attachment. Check access to your Mixar settings and try again."),
+                    n_("Could not save the folder attachment. Check access to your Lampway settings and try again."),
                 ) from exc
             return key
 

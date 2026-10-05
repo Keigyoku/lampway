@@ -29,7 +29,7 @@ from .placement import PlacementError, apply_placement, is_identity, parse_place
 
 logger = get_logger(__name__)
 
-DEFAULT_TARGET_COLLECTION = "Mixie Agent"
+DEFAULT_TARGET_COLLECTION = "Lampway Agent Agent"
 # Modes in which a stroke may be mid-way; appending then risks interleaving
 # with a paint/sculpt operator's undo step. Edit mode is fine.
 _DEFERRED_MODES = ("SCULPT", "PAINT_TEXTURE", "PAINT_VERTEX", "PAINT_WEIGHT", "PAINT_GPENCIL",

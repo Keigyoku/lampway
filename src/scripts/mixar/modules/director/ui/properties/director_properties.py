@@ -460,14 +460,14 @@ def register():
             bpy.utils.register_class(cls)
     bpy.types.Scene.mixar_director = PointerProperty(
         type=MixarDirectorState,
-        name="Mixar Director",
+        name="Lampway Director",
         description="Sparse camera-direction shots for this scene",
     )
     # On the camera DATA, not the object: a ratio belongs to the lens the
     # director framed with, and it travels with the camera into another file.
     bpy.types.Camera.mixar_director_output = PointerProperty(
         type=MixarDirectorCameraOutput,
-        name="Mixar Output",
+        name="Lampway Output",
         description="Output aspect ratio this camera frames for",
     )
 

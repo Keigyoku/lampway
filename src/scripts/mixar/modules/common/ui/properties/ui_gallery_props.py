@@ -18,7 +18,7 @@ class MIXAR_PG_ui_gallery(bpy.types.PropertyGroup):
     theme: EnumProperty(name="Profile", items=(
         ("ZEN", "Zen", "Shared Zen components"),
         ("NATIVE", "Native", "Blender theme"),
-        ("LEGACY_MIXAR", "Legacy Mixar", "Compatibility profile"),
+        ("LEGACY_MIXAR", "Legacy Lampway", "Compatibility profile"),
     ), options={"SKIP_SAVE"})
     density: EnumProperty(name="Density", items=(
         ("DEFAULT", "Default", "Generation-pane control spacing"),

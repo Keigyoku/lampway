@@ -35,7 +35,7 @@ def _on_load_post(*_args):
         if file_ver > MIXAR_PY_VERSION:
             if not forward_compat_warned:
                 logger.warning(
-                    "File was saved by newer Mixar (Python version %s > %s)",
+                    "File was saved by newer Lampway (Python version %s > %s)",
                     file_ver, MIXAR_PY_VERSION,
                 )
                 forward_compat_warned = True

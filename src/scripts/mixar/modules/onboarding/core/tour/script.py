@@ -107,7 +107,7 @@ def _keys(id_, title, rows, at_pct, appear=None, disappear=None):
 
 MIXAR_INTRO = Tour(
     id="mixar-intro",
-    title="Welcome to Mixar",
+    title="Welcome to Lampway",
     # Timed to Naman's take of 2026-09-28: DeepFilterNet3 (25 dB limit),
     # silences over ~0.9 s trimmed to ~0.75 s on the source's 30 fps frame
     # grid — ~1.1 s after the five lines the tour waits on, so each pause

@@ -117,7 +117,7 @@ def export_scene_for_unreal(fmt: str = "usd", object_names: list[str] | None = N
         meshes = _select_export_objects(object_names)
         result = _run_operator(fmt, filepath)
         if "FINISHED" not in result:
-            raise RuntimeError(f"Mixar exporter returned {sorted(result)}")
+            raise RuntimeError(f"Lampway exporter returned {sorted(result)}")
         return {
             "ok": True,
             "format": fmt,

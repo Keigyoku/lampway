@@ -82,7 +82,7 @@ def _draw_placeholder_ui(layout, context):
     col = box.column(align=True)
     col.scale_y = 0.9
     col.label(text="To use texture baking:", icon='DOT')
-    col.label(text="  1. Select an object with a Mixar material")
+    col.label(text="  1. Select an object with a Lampway material")
     col.label(text="  2. Or create a new layer-based material")
 
     col.separator()

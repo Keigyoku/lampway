@@ -169,7 +169,7 @@ def register():
     WM.byok_form_api_key = StringProperty(
         name="API Key",
         description=(
-            "Your API key is stored encrypted and used only for Mixar agent requests. "
+            "Your API key is stored encrypted and used only for Lampway agent requests. "
             "After saving, only a masked preview is shown."
         ),
         maxlen=BYOK_API_KEY_MAX_LENGTH,
@@ -203,7 +203,7 @@ def register():
     # --- Local (this computer) form fields (shown when provider == 'local') ---
     WM.byok_form_local_mode = EnumProperty(
         name="Local mode",
-        description="Managed by Mixar, or your own local server",
+        description="Managed by Lampway, or your own local server",
         items=LOCAL_MODE_ITEMS,
         default='MANAGED',
         update=_local_mode_changed,
