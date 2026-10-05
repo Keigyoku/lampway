@@ -97,7 +97,9 @@ def explicitly_configured(environ=None) -> bool:
 
 def exec_code(code: str, g: dict) -> None:
     """Run ``code`` in namespace ``g`` (no window context: the plain runner, used by tests and headless)."""
-    exec(compile(code, "<mcp>", "exec"), g)
+    from .human_gate import scripting
+    with scripting():                               # a bridge-driven tool is a script too: it cannot confirm a Studio spend
+        exec(compile(code, "<mcp>", "exec"), g)
 
 
 def _window():

@@ -13,6 +13,12 @@ from bpy.types import PropertyGroup
 from mixar.modules.lampway_tools import runner
 
 
+def _studio_items(self, context):
+    from mixar.modules.lampway_tools import studio_state
+    rows = studio_state.STATE["actions"] or [{"id": "tripo.state", "label": "Read the Studio state (refresh first)"}]
+    return [(a["id"], a["label"][:40], a["label"]) for a in rows]
+
+
 def _tool_items(self, context):
     return [(t.name, t.name, t.summary) for t in runner.TOOLS.values()]
 
@@ -54,6 +60,8 @@ class LampwayToolsProps(PropertyGroup):
     mp_albedo: BoolProperty(name="Albedo base colour", default=True, description="The projected albedo as the live material's base colour")
     # ---- other tools
     tool: EnumProperty(name="Tool", items=_tool_items)
+    studio_action: EnumProperty(name="Studio action", items=_studio_items)
+    studio_args: StringProperty(name="Arguments", default="{}", description="The action's arguments as JSON, paths inside the project root")
     feature: EnumProperty(name="Feature", items=[
         ("retopo", "Retopology", "A new all-quad mesh near a target face count"), ("uv_unwrap", "UV unwrap", "A packed UV layout on a new mesh"),
         ("segment_mesh", "Mesh segment", "Split into part objects"), ("auto_rig", "Auto rig", "A UE-named humanoid armature"),

@@ -209,7 +209,9 @@ class ScriptExecutor(SceneStateMixin, HandlerCleanupMixin):
                 error="Previous script still executing",
             )
         try:
-            return self._execute_locked(script, push_undo, session_id)
+            from mixar.modules.lampway_tools.human_gate import scripting
+            with scripting():                       # no script, agent's or worker's, may confirm a Studio spend (human_gate.py)
+                return self._execute_locked(script, push_undo, session_id)
         finally:
             self._execution_lock.release()
 

@@ -9,7 +9,7 @@ import textwrap
 import bpy
 from bpy.types import Panel
 
-from mixar.modules.lampway_tools import api, jobs
+from mixar.modules.lampway_tools import api, jobs, studio_state
 
 
 class LAMPWAY_PT_main(Panel):
@@ -140,6 +140,51 @@ class LAMPWAY_PT_qa_review(Panel):
         col.operator("lampway.qa_refresh", icon="COLOR")
 
 
+class LAMPWAY_PT_studios(Panel):
+    bl_idname = "LAMPWAY_PT_studios"
+    bl_label = "Studios (online)"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Lampway"
+    bl_parent_id = "LAMPWAY_PT_main"
+
+    def draw(self, context):
+        layout = self.layout
+        st = studio_state.STATE
+        top = layout.row(align=True)
+        top.operator("lampway.studio_refresh", icon="FILE_REFRESH")
+        top.label(text="shelf engine" if st["engine"].get("shelf") else "bundled drivers")
+        if st["error"]:
+            layout.label(text=st["error"][:80], icon="ERROR")
+        waiting = studio_state.pending()
+        if waiting:
+            box = layout.box()
+            box.label(text="Waiting for YOUR confirmation", icon="TIME")
+            for ap in waiting:
+                col = box.column(align=True)
+                col.label(text=f"{ap['label']}")
+                col.label(text=f"{ap['price']} credits, read back from Studio")
+                row = col.row(align=True)
+                c = row.operator("lampway.studio_confirm", text="Confirm and spend", icon="CHECKMARK")
+                c.approval_id, c.price, c.label = ap["id"], int(ap["price"]), ap["label"]
+                row.operator("lampway.studio_reject", text="Reject", icon="X").approval_id = ap["id"]
+        p = context.scene.lampway_tools
+        plan = layout.column(align=True)
+        plan.prop(p, "studio_action", text="")
+        plan.prop(p, "studio_args", text="")
+        op = plan.operator("lampway.studio_plan", text="Plan (clicks nothing)", icon="VIEWZOOM")
+        op.action, op.args_json = p.studio_action, p.studio_args
+        for job in list(reversed(st["jobs"]))[:5]:
+            row = layout.box().column(align=True)
+            row.label(text=f"{job['label']}: {job['state']}", icon="CHECKMARK" if job["state"] == "done" else "TIME" if job["state"] == "running" else "ERROR")
+            if job.get("error"):
+                row.label(text=job["error"][:70])
+            for f in job.get("files", [])[:6]:
+                if f["name"].lower().endswith((".glb", ".gltf", ".fbx", ".obj")):
+                    imp = row.operator("lampway.studio_import", text=f"Import {f['name']}", icon="IMPORT")
+                    imp.job_id, imp.name = job["id"], f["name"]
+
+
 class LAMPWAY_PT_features(Panel):
     bl_idname = "LAMPWAY_PT_features"
     bl_label = "Features"
@@ -158,4 +203,4 @@ class LAMPWAY_PT_features(Panel):
             col.label(text=p.last_message[:80])
 
 
-classes = [LAMPWAY_PT_main, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
+classes = [LAMPWAY_PT_main, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
