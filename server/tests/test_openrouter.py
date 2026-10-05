@@ -191,3 +191,28 @@ def test_the_spend_log_path_can_be_named_by_the_environment_for_child_processes(
     monkeypatch.setenv("LAMPWAY_SPEND_LOG", str(tmp_path / "shared.jsonl"))
     ledger = spend_ledger(Settings.from_env({"LAMPWAY_STATE_DIR": str(tmp_path / "state")}))
     assert ledger.log_path == tmp_path / "shared.jsonl"
+
+
+def test_a_log_record_without_the_key_is_left_exactly_as_it_was_so_structured_formatters_still_work(caplog):
+    """uvicorn's access formatter reads record.args as (client, method, path, version, status); the redaction must not flatten it."""
+    from lampway_server.agent.providers.openrouter import install_log_redaction
+    install_log_redaction(FAKE_KEY)
+    record = logging.getLogger("lampway.test.untouched").makeRecord(
+        "lampway.test.untouched", logging.INFO, "f.py", 1, '%s - "%s %s HTTP/%s" %d',
+        ("127.0.0.1:1", "GET", "/app/swarm", "1.1", 200), None)
+    assert record.args == ("127.0.0.1:1", "GET", "/app/swarm", "1.1", 200)
+    assert record.msg == '%s - "%s %s HTTP/%s" %d'
+
+
+async def test_an_error_chunk_inside_a_200_stream_is_raised_not_swallowed():
+    """OpenRouter reports a mid-stream failure (rate limit, provider error) as an SSE chunk carrying `error`; before this a swarm
+    worker saw an empty reply and 'finished' with nothing."""
+    body = chunks([{"error": {"message": f"rate limited {FAKE_KEY}", "code": 429}}])
+
+    def handler(request):
+        return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=body.encode())
+
+    provider, _ = make(handler)
+    with pytest.raises(RuntimeError) as raised:
+        [e async for e in provider.stream(REQUEST)]
+    assert "429" in str(raised.value) and "rate limited" in str(raised.value) and FAKE_KEY not in str(raised.value)

@@ -72,8 +72,13 @@ class _RedactingFilter(logging.Filter):
         self._secret = secret
 
     def filter(self, record: logging.LogRecord) -> bool:
-        record.msg = redact(record.getMessage(), self._secret)
-        record.args = ()
+        try:
+            text = record.getMessage()
+        except Exception:  # noqa: BLE001 - a malformed record is not ours to judge
+            return True
+        if self._secret in text or _KEY_SHAPE.search(text):       # untouched otherwise: formatters read record.args
+            record.msg = redact(text, self._secret)
+            record.args = ()
         return True
 
 
@@ -184,6 +189,10 @@ class OpenRouterProvider(OpenAICompatProvider):
         self.ledger.check()
 
     def _on_chunk(self, chunk: dict) -> None:
+        error = chunk.get("error")
+        if error:                                                  # a failure reported inside a 200 stream
+            detail = error if isinstance(error, str) else f"{error.get('code', '')} {error.get('message', '')}".strip()
+            raise RuntimeError(redact(f"OpenRouter reported an error in the stream: {detail}", self._api_key))
         usage = chunk.get("usage")
         if isinstance(usage, dict) and isinstance(usage.get("cost"), (int, float)):
             self.ledger.add(usage["cost"], self.label)

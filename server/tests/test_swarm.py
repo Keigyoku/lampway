@@ -245,3 +245,23 @@ async def test_blender_not_answering_to_the_lane_script_is_a_tool_error_not_a_cr
     manager = SwarmManager(factory_for({}), silent)
     text, is_error = await manager.call("swarm_start", {"tasks": TASKS}, ctx(None))
     assert is_error and "could not" in text.lower() and manager.swarms == {}
+
+
+async def test_a_worker_whose_model_says_nothing_at_all_is_failed_not_done():
+    class Silent(ScriptedProvider):
+        async def stream(self, request):
+            return
+            yield  # pragma: no cover
+
+    scripts = worker_scripts()
+
+    def make(label):
+        return Silent() if label == "worker-3" else ScriptedProvider(list(scripts[label]))
+
+    blender = FakeBlender()
+    manager = SwarmManager(make, blender)
+    info = await start(manager, blender)
+    text, is_error = await manager.call("swarm_collect", {"swarm_id": info["swarm_id"]}, ctx(blender))
+    by_name = {w["name"]: w for w in json.loads(text)["workers"]}
+    assert by_name["gamma"]["status"] == "failed" and "empty" in by_name["gamma"]["error"]
+    assert by_name["alpha"]["status"] == "done"

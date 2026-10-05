@@ -300,7 +300,9 @@ class SwarmManager:
                 messages.append(Message("assistant", ([{"type": "text", "text": text}] if text else []) + [
                     {"type": "tool_call", "id": c.id, "name": c.name, "arguments": c.arguments} for c in calls]))
                 if not calls:
-                    worker.summary = text.strip()
+                    if not text.strip() and worker.tool_calls == 0:      # nothing said, nothing done: not a finished task
+                        raise RuntimeError("the model returned an empty response")
+                    worker.summary = text.strip() or "(no summary)"
                     worker.status = "done"
                     ctx.progress(f"{worker.id} ({worker.name}) done")
                     return
