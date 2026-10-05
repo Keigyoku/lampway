@@ -1072,6 +1072,35 @@ def engine_import_check(package_dir, engine="unreal", collision=None, receipt=No
 
 
 @tool
+def fit_body(verb, armature="", mesh="", glb="", native_asset="", uproject="", sidecar="", out="fit/body"):
+    """The body for fitting as one hashed package. build: writes <out>/<sha8>/ with joints.json (parents before children; head, tail and rest axes in metres), body.npz when `mesh` is given, body.glb, the
+    NATIVE weights sidecar.json when `sidecar` names a file the user's UE editor leg wrote, and receipt.json with the sha256 of every file. verify (out = the package dir): recompute every hash, refused
+    with 'the body asset changed: rebuild the package'. weights: refuses unless the package has a native sidecar ('weights come from the native asset'; a GLB body carries only 4 influences). Only the
+    project-native body is accepted (native_asset under /Game/MetaHumans/); the editor leg itself (uproject) is not run from here."""
+    from .features import fit_body as _FB
+    if verb == "build":
+        return _FB.build(armature, mesh, glb, native_asset, uproject, sidecar, out, str(_settings().project_root))
+    if verb == "verify":
+        return _FB.verify(_p(out))
+    if verb == "weights":
+        return _FB.need_weights(_p(out))
+    if verb == "show":
+        return json.loads((Path(_p(out)) / "receipt.json").read_text())
+    raise ValueError("verb is build | verify | weights | show")
+
+
+@tool
+def fit_export(object, armature, out_dir, body, textures=None, validation="", bind_check="", note="", allow_unverified=False, _bone_axis="Z"):
+    """The rigged export of a fitted piece, behind gates, with a read-back. Refuses (each names its fix): a missing validation or one with FAIL/UNPROVEN, roles with no declared limits (unless
+    allow_unverified=true, and then the README says 'limits: proposed; roles without limits: ...'), a bind_check that is not ok, textures whose merge.json mesh_sha256 is not this mesh (a geometry step
+    discards the texture: re-run steps 13-14), vertex groups naming a bone the body package does not have, an existing out_dir. Writes <object>.fbx with the contract settings (primary bone axis Z, secondary X,
+    leaf bones off, units applied), Textures/, README.md (files with sha256, conventions, validation counts, limits status, read-back) and export.json, then READS THE FBX BACK and compares every joint's
+    position and axes with the body package (positions to 0.1 mm, axes to 0.5 degrees): a position-only check passed exports whose frames were 90 degrees off, so it is never the gate."""
+    from .features import fit_export as _FE
+    return _FE.run(object, armature, out_dir, _p(body), textures, validation, bind_check, note, allow_unverified, str(_settings().project_root), _bone_axis)
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
