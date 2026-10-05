@@ -156,6 +156,18 @@ DEFS = [
          P("require_all", "boolean", "Plates: all four views must be picked (default true)"), P("material", desc="The _albedo material"),
          P("on", "boolean", "Albedo on or off"), P("live", "boolean", "Really generate (default a dry run)"),
          P("count", "integer", "Stage image: images to make, 1-4 (default 4)")], api="meshpaint"),
+    Def("lampway_pbr_merge", "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, "
+        "Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are "
+        "filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on "
+        "non-metal classes. Writes merge.json beside the maps." + _PATHS, [
+        P("out_dir", required=True), P("base", desc="Studio base colour map", flag="--base", required=True),
+        P("normal", flag="--normal", required=True), P("rough", flag="--rough", required=True), P("metal", flag="--metal", required=True),
+        P("masks", desc="Directory with mask_*.png and texel_face.npy (the projection's)", flag="--masks", required=True),
+        P("albedo", desc="Our projected albedo atlas (v3_colour_atlas.png)", flag="--albedo", required=True),
+        P("mesh_npz", desc="The piece_uv npz", flag="--mesh-npz", required=True), P("orig_poly", flag="--orig-poly", required=True),
+        P("params", desc="live_material_params.json (palette per mask, metal_zero_on, normal strength)", flag="--params", required=True),
+        P("res", "integer", "Map size, default 4096", flag="--res"), P("base_res", "integer", "Base colour size, default 8192", flag="--base-res"),
+        P("ao", desc="An AO map for ORM.R", flag="--ao"), P("dilate", "integer", flag="--dilate")], batch="pbr_merge"),
     # ---- the parts tools
     Def("lampway_delete_caps", "Delete a cap that closes an opening that must stay open (neck bowl, waist fan, arm dome) by ray-casting "
         "through a rectangular footprint; UVs kept; writes a NEW file." + _PATHS, [

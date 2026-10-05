@@ -63,6 +63,7 @@ TOOLS = dict([
     _t("apply_part_fixes", "numpy", "partseg/apply_part_fixes.py", "apply an auditor's part fixes to an owner map"),
     _t("relief_project", "science", "texlib/relief_project.py", "project view reliefs and plate colour into the UV atlas"),
     _t("material_masks", "science", "texlib/material_masks.py", "material masks from the projected colour and each part's class"),
+    _t("pbr_merge", "science", "texlib/pbr_merge.py", "engine-ready PBR set: studio maps kept, patches filled, palette and metal fixes baked in"),
     _t("proportion_ratios", "numpy", "proportion/proportion_ratios.py", "scale-free landmark ratios against the body (the primary proportion score)"),
     _t("place_piece", "numpy", "proportion/place_piece.py", "place a torso piece on the body the way the audits do"),
     _t("pauldron_symmetry", "numpy", "proportion/pauldron_symmetry.py", "left versus mirrored-right shoulder height maps"),
