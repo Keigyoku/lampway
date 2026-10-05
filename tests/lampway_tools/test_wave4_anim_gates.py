@@ -174,3 +174,12 @@ def test_the_controls_prove_the_measures_can_fail_on_this_very_take():
     assert good["slide_falsifier_cm"] > 1.0 and good["slide_falsifier_ok"] is True
     flat = np.zeros((40, len(MV.JOINTS), 3)); flat[:, :, 2] = 0.0
     assert AG.controls(flat, FPS)["leg_swap_ok"] is False                    # a take with no lifted foot cannot show the measure discriminates: not a pass
+
+
+def test_a_check_whose_controls_cannot_fail_does_not_pass_even_when_every_gate_number_does(monkeypatch):
+    m = np.zeros((100, 60), bool); m[10:90, 20:40] = True
+    args = dict(masks={"front": [m], "side": [m]}, rendered={"front": [m], "side": [m]})
+    assert AG.check(_walk(), FPS, **args)["passed"] is True
+    monkeypatch.setattr(AG, "controls", lambda J, fps: {"leg_swap_ok": False, "slide_falsifier_ok": True, "leg_swap_share": 0.9, "slide_falsifier_cm": 5.0})
+    out = AG.check(_walk(), FPS, **args)
+    assert out["controls_ok"] is False and out["passed"] is False and all(g["passed"] for g in out["gates"])
