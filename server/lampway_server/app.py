@@ -6,12 +6,13 @@ from urllib.parse import parse_qs, urlencode
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse
-from starlette.routing import Route
+from starlette.routing import Route, WebSocketRoute
 
 from .agent_settings import AgentSettingsStore
 from .auth import Auth
 from .config import Settings
 from .rest import stub_routes
+from .ws import AgentSocket, ConnectionHub
 
 _PKCE_FIELDS = ("port", "code_challenge", "code_challenge_method", "state", "source")
 
@@ -122,7 +123,14 @@ def create_app(settings: Settings, provider=None) -> Starlette:
     ]
     store = AgentSettingsStore(settings.state_dir)
     routes += stub_routes(auth, store, settings)
+    hub = ConnectionHub()
+
+    async def agent_ws(websocket):
+        await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub).run()
+
+    routes.append(WebSocketRoute("/api/agent/ws/{instance_id}", agent_ws))
     app = Starlette(routes=routes)
+    app.state.hub = hub
     app.state.settings = settings
     app.state.auth = auth
     app.state.store = store
