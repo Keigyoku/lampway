@@ -193,3 +193,31 @@ def test_the_openrouter_image_backend_makes_one_request_per_image_with_the_refer
     assert len(seen) == 2 and seen[0]["prompt"] == "a lamp" and seen[0]["input_references"][0]["image_url"]["url"].startswith("data:image/png;base64,")
     assert "Authorization" not in json.dumps(seen)
     assert (tmp_path / "spend.jsonl").exists()
+
+
+def test_the_image_model_size_and_quality_come_from_the_settings_and_are_absent_unset(tmp_path, monkeypatch):
+    """GPT Image 2.5 on OpenRouter is images-API only; its pixel budget refuses 3840x3840 and takes 2880x2880 (measured
+    2026-10-05), and `resolution: 4K` alone came back 1024 - so an explicit size is the setting that matters."""
+    import base64
+    import httpx
+    from lampway_server import imagegen
+
+    seen = []
+
+    def handler(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, json={"data": [{"b64_json": base64.b64encode(PNG).decode(), "media_type": "image/png"}], "usage": {"cost": 0.01}})
+
+    monkeypatch.setattr(imagegen, "openrouter_transport", httpx.MockTransport(handler))
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-" + "a" * 40)
+    monkeypatch.setenv("LAMPWAY_SPEND_LOG", str(tmp_path / "spend.jsonl"))
+    monkeypatch.setenv("LAMPWAY_OPENROUTER_BUDGET_USD", "1")
+    monkeypatch.setenv("LAMPWAY_OPENROUTER_IMAGE_MODEL", "openai/gpt-image-2.5-sunburst")
+    monkeypatch.setenv("LAMPWAY_OPENROUTER_IMAGE_SIZE", "2880x2880")
+    monkeypatch.setenv("LAMPWAY_OPENROUTER_IMAGE_QUALITY", "high")
+    imagegen.openrouter_images("a lamp", [], 1)
+    monkeypatch.delenv("LAMPWAY_OPENROUTER_IMAGE_SIZE")
+    monkeypatch.delenv("LAMPWAY_OPENROUTER_IMAGE_QUALITY")
+    imagegen.openrouter_images("a lamp", [], 1)
+    assert seen[0]["model"] == "openai/gpt-image-2.5-sunburst" and seen[0]["size"] == "2880x2880" and seen[0]["quality"] == "high"
+    assert "size" not in seen[1] and "quality" not in seen[1]
