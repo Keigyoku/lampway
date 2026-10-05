@@ -978,6 +978,41 @@ def fit_pose(kind, **kw):
 
 
 @tool
+def weight_audit(action, object, armature, intended=None, max_influences=4, side=None):
+    """Read-only audit of a skinned mesh's weights, or a plan for how to bind it. audit: unweighted vertices, vertices over the influence cap, sums that are not 1, per-bone counts and mean weight, a rigid
+    check (`intended` {rigid_bone}: vertices with any other influence), a side check (a *_l group on a right-side mesh; `side` left|right, else inferred from the mesh's x), and the competing-bone hotspots
+    (vertices where two bones each carry >= 20 %); `pass` ignores hotspots. An object with no bone-named groups or no Armature modifier is told to bind first. plan: nearest-bone histogram of the
+    geometry -> rigid (>= 90 % of the vertices on one bone) or deforming (it spans bones that rotate against each other), with the bone(s), joint_span and reason. Nothing is changed."""
+    from .features import weights as _W
+    if action == "audit":
+        return _W.audit(object, armature, intended, max_influences, side)
+    if action == "plan":
+        return _W.plan(object, armature)
+    raise ValueError("action is audit | plan")
+
+
+@tool
+def weight_cleanup(object, armature, ops, mirror_from=None):
+    """Fix weights on a COPY named <object>_wclean (the original stays). ops, in order: {op: normalize}, {op: limit, max_influences: 4}, {op: remove_influence, bone, region: {bbox: [[x0,y0,z0],[x1,y1,z1]]} |
+    {vertex_group}} (refused when it would take one bone off more than 40 % of the vertices: that is a rebind, not a cleanup; never leaves a vertex with no weight), {op: smooth, iterations, factor, region},
+    {op: rigid, bone, region} (full weight on one bone). Returns the ops applied with the vertices each changed and the weight_audit of the result. mirror_from is not built (it needs a verified symmetric mesh)."""
+    from .features import weights as _W
+    return _W.cleanup(object, armature, ops, mirror_from)
+
+
+@tool
+def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic"):
+    """Copy skin weights from a rigged body onto a piece. Each piece vertex is matched to the closest point on the body's (deformed) surface and takes the barycentric weights when the distance <=
+    max_distance (default 0.05 m, at most 0.5) and its normal is within max_normal_angle (default 30 degrees; a flipped normal also counts when flip_normals); every vertex with no trustworthy match is
+    inpainted so armpits, crotch and chest-to-arm gaps blend without painting. engine algorithmic: a harmonic fill over the mesh graph (Blender's python); engine robust: the SIGGRAPH Asia 2023 method
+    (robust Laplacian, biharmonic constrained solve) in the science python (needs LAMPWAY_PYTHON_SCIENCE with numpy scipy libigl robust_laplacian). limit_groups caps the influences (default 4, 0 = no cap).
+    The source must carry vertex groups and exactly one Armature modifier; the piece must have no topology modifiers. Result: a NEW object <object>_wt (or `name`) with the body's groups and Armature; the
+    original is untouched. Returns matched_fraction, inpainted_vertices, groups_written, the influence histogram and unweighted_vertices."""
+    from .features import weights as _W
+    return _W.transfer(object, source, max_distance, max_normal_angle, flip_normals, inpaint_mode, limit_groups, deform_only, name, engine)
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are

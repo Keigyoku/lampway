@@ -325,6 +325,20 @@ DEFS = [
          P("record_step", "integer", "record: which step"), P("artefacts", "array", "record: files produced"), P("mesh_hash", desc="record: the mesh+UV hash at that step"), P("note")], api="armor_piece_pipeline"),
     Def("lampway_fit_pose", "The closest pose of the body to a piece. chest: routed to pose_clearance. helmet | waist | boots | gauntlets: needs_decision - the bones, axes and ranges to sweep are the user's to rule; "
         "the contract's proposals are included, marked unverified.", [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets")], api="fit_pose"),
+    Def("lampway_weight_audit", "Read-only audit of a skinned mesh's weights, or a plan for how to bind it. audit: unweighted vertices, vertices over the influence cap, sums not 1, per-bone counts and mean weight, a "
+        "rigid check (intended {rigid_bone}: vertices with any other influence), a side check (a *_l group on a right-side mesh), and competing-bone hotspots (two bones each >= 20 %). plan: rigid (>= 90 % of the "
+        "vertices nearest one bone) or deforming (it spans bones that rotate against each other), with the bone(s) and the reason. An unbound object is told to bind first. Nothing is changed.",
+        [P("action", required=True, desc="audit | plan"), P("object", required=True), P("armature", required=True), P("intended", "object", "{rigid_bone: name}"),
+         P("max_influences", "integer", "1..8, default 4"), P("side", desc="left | right (default: inferred from the mesh)")], api="weight_audit"),
+    Def("lampway_weight_cleanup", "Fix weights on a COPY named <object>_wclean. ops in order: {op: normalize}, {op: limit, max_influences}, {op: remove_influence, bone, region: {bbox} | {vertex_group}} (refused over "
+        "40 % of the vertices: that is a rebind; never leaves a vertex unweighted), {op: smooth, iterations, factor, region}, {op: rigid, bone, region}. Returns the ops applied and the audit of the result.",
+        [P("object", required=True), P("armature", required=True), P("ops", "array", "the ops", required=True), P("mirror_from", desc="not built")], api="weight_cleanup"),
+    Def("lampway_weight_transfer", "Copy skin weights from a rigged body onto a piece by closest-surface matching (distance <= max_distance, default 0.05 m, and normal within max_normal_angle, default 30), then "
+        "inpaint every unmatched vertex so armpits and gaps blend. engine algorithmic: a harmonic fill; robust: the SIGGRAPH Asia 2023 biharmonic method in the science python. Source needs vertex groups and "
+        "exactly one Armature modifier. Result: a NEW object <object>_wt with the body's groups (capped at limit_groups, default 4). The original is untouched.",
+        [P("object", required=True), P("source", required=True, desc="the rigged body"), P("max_distance", "number", "0..0.5, default 0.05"), P("max_normal_angle", "number", "degrees, default 30"),
+         P("flip_normals", "boolean", "default true"), P("inpaint_mode", desc="point (default) | surface (robust)"), P("limit_groups", "integer", "default 4, 0 = no cap"),
+         P("deform_only", "boolean", "default true"), P("name", desc="the new object's name"), P("engine", desc="algorithmic (default) | robust")], api="weight_transfer"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "
