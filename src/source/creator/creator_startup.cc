@@ -83,6 +83,14 @@ void cleanup_auth_system(void) {
 #endif
 
 const char* get_mixar_base_url() {
+    // LAMPWAY: runtime configuration first. The Python side reads the same
+    // variable (mixar.config.brand.ENV_BACKEND_URL) on top of mixar.json, so
+    // one environment variable moves both halves; the baked macro is only
+    // the build-time default.
+    const char* runtime = getenv("LAMPWAY_BACKEND_URL");
+    if (runtime != NULL && runtime[0] != '\0') {
+        return runtime;
+    }
     return MIXAR_BASE_URL;
 }
 
@@ -426,11 +434,23 @@ static bool exchange_desktop_code(const char* code, const char* code_verifier) {
     char url[512];
     snprintf(url, sizeof(url), "%s/api/v1/auth/desktop/token", get_mixar_base_url());
 
-    // Refuse non-HTTPS schemes. Loopback is intentionally NOT excepted —
-    // Mixar's backend is always remote in every shipped configuration, and
-    // an OAuth token-exchange endpoint should never be reached over plain
-    // HTTP, even in development.
-    if (strncmp(url, "https://", 8) != 0) {
+    // Refuse non-HTTPS schemes. Upstream excepts nothing: its backend is
+    // always remote, and an OAuth token-exchange endpoint should never be
+    // reached over plain HTTP.
+    //
+    // LAMPWAY: our backend is a LOCAL server, so plain http is accepted for
+    // loopback hosts only (127.0.0.1 / localhost). Any other http:// URL is
+    // still refused: a passive attacker on the path could seed tokens.
+    bool scheme_ok = (strncmp(url, "https://", 8) == 0);
+#ifdef LAMPWAY
+    if (!scheme_ok) {
+        scheme_ok = (strncmp(url, "http://127.0.0.1/", 17) == 0 ||
+                     strncmp(url, "http://127.0.0.1:", 17) == 0 ||
+                     strncmp(url, "http://localhost/", 17) == 0 ||
+                     strncmp(url, "http://localhost:", 17) == 0);
+    }
+#endif
+    if (!scheme_ok) {
         fprintf(stderr, "exchange_desktop_code: refusing non-HTTPS URL: %s\n", url);
         return false;
     }

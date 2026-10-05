@@ -78,6 +78,19 @@ else()
   message(STATUS "Mixar: CUDA/OptiX OFF (MIXAR_CUDA=$ENV{MIXAR_CUDA})")
 endif()
 
+# LAMPWAY: this is the Lampway fork. ON skips the native keyring login gate in
+# creator.cc (login is the Python browser SSO against OUR server) and lets the
+# native token exchange reach a plain-http LOOPBACK backend. OFF rebuilds the
+# upstream behaviour. The display name feeds the macOS bundle name; the
+# C++ strings come from source/blender/blenlib/BLI_lampway_brand.h.
+set(LAMPWAY ON CACHE BOOL "Lampway fork build: skip the native login gate, allow a loopback http backend")
+set(LAMPWAY_PRODUCT_NAME "Lampway" CACHE STRING "Lampway: product name shown to users")
+if(LAMPWAY)
+  message(STATUS "Lampway: native login gate OFF (Python SSO owns login)")
+else()
+  message(STATUS "Lampway: OFF - upstream native login gate kept")
+endif()
+
 # sccache compiler launcher - auto-enabled when sccache is on PATH.
 # On Windows, Blender's platform_win32.cmake handles /Z7 and compiler launcher
 # when WITH_WINDOWS_SCCACHE is ON. On other platforms, we set the launcher directly.
