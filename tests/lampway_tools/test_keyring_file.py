@@ -12,11 +12,30 @@ import stat
 import sys
 from pathlib import Path
 
-import keyring.errors
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src/scripts"))
-from mixar.modules.lampway_tools import keyring_file  # noqa: E402
+
+# Other test files stub `keyring` in sys.modules when they are collected, and a stub is not a package: import the REAL one,
+# briefly, then put the stubs back so this file neither fails to collect nor changes what later files see.
+_stubs = {k: v for k, v in sys.modules.items() if k == "keyring" or k.startswith("keyring.")}
+for _k in _stubs:
+    del sys.modules[_k]
+try:
+    import keyring.errors  # noqa: E402
+    from mixar.modules.lampway_tools import keyring_file  # noqa: E402
+finally:
+    _real = {k: v for k, v in sys.modules.items() if k == "keyring" or k.startswith("keyring.")}
+    for _k in _real:
+        del sys.modules[_k]
+    sys.modules.update(_stubs)
+
+
+@pytest.fixture
+def real_keyring(monkeypatch):
+    """The real keyring package for one test, whatever other files stubbed."""
+    for name, module in _real.items():
+        monkeypatch.setitem(sys.modules, name, module)
 
 
 @pytest.fixture
@@ -72,7 +91,7 @@ def test_default_path_is_under_lampway_home(monkeypatch, tmp_path):
     assert keyring_file.keyring_path() == tmp_path / "home" / "keyring.json"
 
 
-def test_it_is_a_usable_keyring_backend_by_dotted_name(tmp_path, monkeypatch):
+def test_it_is_a_usable_keyring_backend_by_dotted_name(tmp_path, monkeypatch, real_keyring):
     monkeypatch.setenv("LAMPWAY_KEYRING_FILE", str(tmp_path / "k.json"))
     monkeypatch.setenv("PYTHON_KEYRING_BACKEND", "mixar.modules.lampway_tools.keyring_file.FileKeyring")
     import keyring
