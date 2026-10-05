@@ -34,6 +34,7 @@ log = logging.getLogger("lampway.swarm")
 
 MAX_WORKERS = 6
 MAX_WORKER_ROUNDS = 24
+MODEL_ROUND_TIMEOUT_S = 300.0      # one model call (a headless CLI process can wedge); the worker fails, the others go on
 _RESULT_CLIP = 6000
 _CALL_LOG_MAX = 40
 _CALL_LOG_CHARS = 600
@@ -348,13 +349,7 @@ class SwarmManager:
             if worker.objects:
                 await self._seed(swarm, worker, ctx)
             for _round in range(MAX_WORKER_ROUNDS):
-                text_parts, calls = [], []
-                async for event in provider.stream(ModelRequest(system, list(messages), tools)):
-                    if isinstance(event, Text):
-                        text_parts.append(event.text)
-                    elif isinstance(event, ToolCall):
-                        calls.append(event)
-                text = "".join(text_parts)
+                text, calls = await self._model_round(provider, ModelRequest(system, list(messages), tools))
                 messages.append(Message("assistant", ([{"type": "text", "text": text}] if text else []) + [
                     {"type": "tool_call", "id": c.id, "name": c.name, "arguments": c.arguments} for c in calls]))
                 if not calls:
@@ -388,6 +383,21 @@ class SwarmManager:
                 if worker.connection_id:
                     await harness.shutdown_worker(worker.connection_id)
                 await self._todo(swarm)
+
+    @staticmethod
+    async def _model_round(provider, request) -> tuple[str, list]:
+        async def one():
+            text_parts, calls = [], []
+            async for event in provider.stream(request):
+                if isinstance(event, Text):
+                    text_parts.append(event.text)
+                elif isinstance(event, ToolCall):
+                    calls.append(event)
+            return "".join(text_parts), calls
+        try:
+            return await asyncio.wait_for(one(), MODEL_ROUND_TIMEOUT_S)
+        except asyncio.TimeoutError:
+            raise RuntimeError(f"the model did not answer within {MODEL_ROUND_TIMEOUT_S:.0f}s") from None
 
     async def _seed(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
         """Copy the worker's input objects from the user's scene into its own: the parent stages them, the worker loads them."""

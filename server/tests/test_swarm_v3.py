@@ -185,3 +185,19 @@ def test_collecting_twice_or_an_unknown_swarm_is_an_error_and_the_task_list_is_v
     assert asyncio.run(mgr.call("swarm_start", {"tasks": []}, ctx))[1] is True
     assert "at most" in asyncio.run(mgr.call("swarm_start", {"tasks": [{"name": "a", "prompt": "b"}] * 7}, ctx))[0]
     assert "objects" in asyncio.run(mgr.call("swarm_start", {"tasks": [{"name": "a", "prompt": "b", "objects": [3]}]}, ctx))[0]
+
+
+class HangingProvider:
+    """A model call that never returns (a headless CLI that wedged)."""
+    async def stream(self, request):
+        import asyncio
+        await asyncio.sleep(3600)
+        yield  # pragma: no cover
+
+
+def test_a_worker_whose_model_call_never_returns_fails_with_the_timeout_and_the_others_finish(settings, monkeypatch):
+    from lampway_server.agent import swarm
+    monkeypatch.setattr(swarm, "MODEL_ROUND_TIMEOUT_S", 0.3)
+    fleet, frames, *_ = run_swarm(settings, ("a", "b"), worker_factory=lambda label: HangingProvider() if label == "worker-1" else worker_provider(label))
+    last = [e["todo"] for e in events(frames) if "todo" in e][-1]
+    assert [r["status"] for r in last] == ["FAILED", "DONE"]
