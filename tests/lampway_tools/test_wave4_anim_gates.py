@@ -166,3 +166,11 @@ def test_a_take_that_failed_the_check_is_refused_before_any_loop_work():
     with pytest.raises(AG.GateError, match="run anim_check; G-LEGS failed"):
         AG.require_check({"passed": False, "gates": [{"id": "G-LEGS", "passed": False}]})
     AG.require_check({"passed": True, "gates": []})
+
+
+def test_the_controls_prove_the_measures_can_fail_on_this_very_take():
+    good = AG.controls(_walk(), FPS)
+    assert good["leg_swap_share"] <= 0.05 and good["leg_swap_ok"] is True
+    assert good["slide_falsifier_cm"] > 1.0 and good["slide_falsifier_ok"] is True
+    flat = np.zeros((40, len(MV.JOINTS), 3)); flat[:, :, 2] = 0.0
+    assert AG.controls(flat, FPS)["leg_swap_ok"] is False                    # a take with no lifted foot cannot show the measure discriminates: not a pass

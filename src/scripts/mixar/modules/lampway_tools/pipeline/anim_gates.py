@@ -98,6 +98,25 @@ def motion_gates(J, fps) -> dict:
             "G-FOOT-PLANT": _gate("G-FOOT-PLANT", round(plant["max_height_cm"], 3), plant["max_height_cm"] <= THRESHOLDS["G-FOOT-PLANT"], f"stance foot {plant['max_height_cm']:.2f} cm above the floor")}
 
 
+def controls(J, fps) -> dict:
+    """Run the measures against known-bad copies of THIS take: a fore-aft mirrored skeleton must read near 0 on the leg-identity metric, and a stance foot dragged 5 cm must fail the slide gate.
+    A take with no lifted foot cannot show the leg measure discriminates: that is reported as not ok, never as a pass."""
+    J = np.asarray(J, float)
+    swapped = J.copy()
+    pel = J[:, MV.IDX["pelvis"], 1:2]
+    swapped[:, :, 1] = -(J[:, :, 1] - pel) + pel
+    sw = legs_forward_share(swapped, fps)
+    dragged = J.copy()
+    for s_ in ("l", "r"):
+        i = MV.IDX[f"foot_{s_}"]
+        for a, b in _phases(J[:, i, 2] <= STANCE_HEIGHT_M):
+            if b - a >= 2:
+                dragged[a:b, i, 1] += np.linspace(0.0, 0.05, b - a)
+    sl = foot_slide(dragged, fps)
+    return {"leg_swap_share": round(sw["share"], 4), "leg_swap_ok": bool(sw["lifted_frames"] > 0 and sw["share"] <= 0.5),
+            "slide_falsifier_cm": round(sl["max_slide_cm"], 3), "slide_falsifier_ok": bool(sl["max_slide_cm"] > THRESHOLDS["G-FOOT-SLIDE"])}
+
+
 def check(J, fps, masks=None, rendered=None, twist=None, claims=None) -> dict:
     """Every motion gate with its number. Needs BOTH views' masks; the outline gates need the posed silhouettes. twist = (tracker yaw, refined yaw) arrays; claims = [{text, measurement}]."""
     masks = masks or {}
@@ -122,7 +141,9 @@ def check(J, fps, masks=None, rendered=None, twist=None, claims=None) -> dict:
         share = sum(1 for c in claims if c.get("measurement") is not None) / len(claims) if claims else 1.0
         gates.append(_gate("G-CLAIMS", round(share, 3), share >= 1.0, "every claim carries a measurement" if share >= 1.0 else
                            "advisory claims not counted: no measurement attached: " + "; ".join(c["text"] for c in claims if c.get("measurement") is None)))
-    return {"gates": gates, "passed": all(g["passed"] for g in gates), "unverified": unverified, "complete": not unverified}
+    ctl = controls(J, fps)
+    controls_ok = ctl["leg_swap_ok"] and ctl["slide_falsifier_ok"]
+    return {"gates": gates, "controls": ctl, "controls_ok": controls_ok, "passed": all(g["passed"] for g in gates) and controls_ok, "unverified": unverified, "complete": not unverified}
 
 
 def require_check(result) -> None:

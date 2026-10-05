@@ -132,3 +132,21 @@ def replay(out_dir, executors) -> dict:
         if _sha(res["artefact"]) != r["artefact_sha256"]:
             mismatches.append(r["tool"])
     return {"identical": not mismatches, "mismatches": mismatches, "steps": len(rows)}
+
+
+def plan_steps(params) -> dict:
+    """The whole pipeline as one dry-run plan: five steps, one spend card, the tracker decision still open, nothing spent."""
+    stock_check(params.get("motion", ""), params.get("stock_inventory") or [], params.get("stock_first", True))
+    views = list(params.get("views") or ["front", "side"])
+    route = params.get("route", "higgsfield")
+    out_dir = params.get("anim_dir", "anim/" + str(params.get("character", "character")))
+    card = {"credits": HIGGSFIELD_CREDITS * len(views), "usd": round(OPENROUTER_USD["plain"] + OPENROUTER_USD["with_reference_video"] * (len(views) - 1), 2),
+            "text": f"{len(views)} clips, {HIGGSFIELD_CREDITS * len(views):g} credits (list price)", "route": route}
+    track = track_plan(provider=params.get("provider_track"), shipping=True, clip="(clip)", mask_dir="(masks)", camera="(cameras.json)", host=params.get("host"))
+    steps = [{"id": "reference", "tool": "anim_reference_render", "status": "planned", "cost": 0, "params": {"character": params.get("character"), "views": views}},
+             {"id": "clips", "tool": "anim_clip", "status": "needs_confirm", "cost": card["credits"], "params": {"motion": params.get("motion"), "views": views, "route": route}},
+             {"id": "track", "tool": "anim_track", "status": track["state"], "cost": 0, "params": {"provider": params.get("provider_track")}, "question": track["question"], "primary": track["primary"]},
+             {"id": "check", "tool": "anim_check", "status": "planned", "cost": 0, "params": {}},
+             {"id": "export", "tool": "anim_loop_export", "status": "planned", "cost": 0, "params": {"out_package": params.get("out_package")}}]
+    return {"ok": True, "spend": False, "total_cost": 0, "spend_card": card, "steps": steps, "decisions": out_dir.rstrip("/") + "/decisions.jsonl",
+            "open_decisions": [track["question"]], "next": "run the free step, show the spend card; the user confirms the clips; a failed gate stops the run and is never retried"}

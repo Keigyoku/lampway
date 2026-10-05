@@ -144,3 +144,15 @@ def test_a_stock_animation_for_the_move_stops_the_plan_and_says_retarget():
         AP.stock_check("walk", ["MF_Unarmed_Walk_Fwd", "MM_Idle"], stock_first=True)
     AP.stock_check("walk", ["MF_Unarmed_Walk_Fwd"], stock_first=False)
     AP.stock_check("flip", ["MF_Unarmed_Walk_Fwd"], stock_first=True)
+
+
+def test_the_composite_plan_lists_the_five_steps_with_one_spend_card_and_the_open_provider_decision():
+    plan = AP.plan_steps({"character": "Warrior", "motion": "walk", "views": ["front", "side"], "route": "higgsfield", "out_package": "/Game/Titan/Anim/Warrior", "stock_inventory": ["MM_Idle"]})
+    assert [s["tool"] for s in plan["steps"]] == ["anim_reference_render", "anim_clip", "anim_track", "anim_check", "anim_loop_export"]
+    assert plan["spend_card"]["credits"] == 45.0 and plan["spend"] is False and plan["total_cost"] == 0
+    assert plan["steps"][1]["status"] == "needs_confirm" and plan["steps"][0]["status"] == "planned" and plan["steps"][0]["cost"] == 0
+    assert plan["steps"][2]["status"] == "needs_decision" and plan["steps"][2]["tool"] == "anim_track"
+    assert plan["decisions"].endswith("decisions.jsonl")
+    with pytest.raises(AP.PlanError, match="stock animation exists for this move"):
+        AP.plan_steps({"character": "Warrior", "motion": "idle", "stock_inventory": ["MM_Idle"]})
+    assert AP.plan_steps({"character": "Warrior", "motion": "idle", "stock_inventory": ["MM_Idle"], "stock_first": False})["ok"]
