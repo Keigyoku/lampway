@@ -105,7 +105,7 @@ class FakeFleet:
         self.workers: dict[str, FakeWorker] = {}
         self.artifacts: dict = {}
         self.parent = World()
-        self.parent.collections["Mixie Agent"] = []
+        self.parent.collections["Lampway Agent"] = []
         self.frames: list = []
         self.runs: dict = {}                # session -> {run_id, epoch, revoked, tasks{task: fence}}
         self.ops: dict = {}                 # operation id -> {hash, state, receipt}

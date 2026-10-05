@@ -61,7 +61,7 @@ bpy.context.scene.mixie_session_id = "S1"
 D = handlers.dispatch
 def commit(art, task, op, epoch, fence, name=None, payload=None):
     base = {"op": "append_collection", "run_id": "R1", "task_id": task, "artifact_id": art["artifact_id"],
-            "content_hash": art["content_hash"], "collection_name": name or art["collection_name"], "target_collection": "Mixie Agent"}
+            "content_hash": art["content_hash"], "collection_name": name or art["collection_name"], "target_collection": "Lampway Agent"}
     h = hashlib.sha256(json.dumps(payload or base, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     return D("agent.execution.commit", {**base, "turn_epoch": epoch, "generation": 0, "fence_token": fence, "operation_id": op, "payload_hash": h})
 def activate(epoch=100, run="R1"):
@@ -109,7 +109,7 @@ def test_three_worker_processes_each_stage_their_own_artifact_and_all_three_comm
 arts = {arts!r}
 res = {{"activate": activate(), "binds": [bind(f"w{{i}}", 1) for i in (1, 2, 3)]}}
 res["commits"] = [commit(a, f"w{{i + 1}}", f"op{{i}}", 100, 1) for i, a in enumerate(arts)]
-agent = bpy.data.collections["Mixie Agent"]
+agent = bpy.data.collections["Lampway Agent"]
 res["children"] = sorted(c.name for c in agent.children)
 res["objects"] = sorted(o.name for c in agent.children for o in c.all_objects)
 res["status"] = D("agent.execution.status", {{"operation_ids": ["op0", "op1", "op2", "nope"]}})
@@ -159,7 +159,7 @@ other = commit(a, "t1", "opX", 100, 1, name="different")
 J_ = J.get_journal()
 rec = J_.op_get("opX")
 print("RESULT", json.dumps({{"first": first, "replay": replay, "other": other, "state": rec["state"],
-                              "children": [c.name for c in bpy.data.collections["Mixie Agent"].children]}}, default=str))
+                              "children": [c.name for c in bpy.data.collections["Lampway Agent"].children]}}, default=str))
 ''')
     assert out["first"]["success"] and out["first"]["state"] == "applied"
     assert out["replay"]["success"] and out["replay"]["replayed"] is True and len(out["children"]) == 1
@@ -213,7 +213,7 @@ print("RESULT", json.dumps(m))
 art = {art!r}
 activate(); bind("t1", 1)
 res = commit(art, "t1", "op1", 100, 1)
-top = bpy.data.collections["Mixie Agent"]
+top = bpy.data.collections["Lampway Agent"]
 boots = top.children["boots"]
 print("RESULT", json.dumps({{"res": res, "children": [c.name for c in boots.children], "qa": sorted(o.name for o in boots.children["QA_boots"].objects),
                              "direct": sorted(o.name for o in boots.objects)}}, default=str))

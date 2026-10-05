@@ -6,7 +6,7 @@ Mixar's client already ships this model ("harness v3"); the server speaks it:
     loop: every worker script goes to the worker's socket on its constant routing session with a v3 envelope. Workers share nothing:
     a worker's ``bpy.data`` is its own, so the name collisions of the old in-process lane scenes cannot happen;
   * the worker's objects reach the user's scene only through the typed ``append_collection`` commit of a worker-staged native
-    artifact into "Mixie Agent", under the client's epoch / fence / document checks, journalled PREPARED then APPLIED
+    artifact into the AGENT_COLLECTION (brand.py), under the client's epoch / fence / document checks, journalled PREPARED then APPLIED
     (``swarm_collect``); a refused commit fails that task, never the others;
   * the chat's ``todo`` slot carries one row per task with live status, which is what the client's Parallel Agents panel (cat avatar,
     name, task, outcome) projects (agent_panel/core/cards.py).
@@ -25,6 +25,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Optional
 
+from ..brand import AGENT_COLLECTION
 from . import lampway_tools as lt
 from .harness import Harness, HarnessError, export_script, import_script, reset_script, stage_script
 from .providers.base import Message, ModelRequest, Text, ToolCall, ToolSpec
@@ -52,7 +53,7 @@ SWARM_SPECS = [
           "short `name` (letters/digits) and a self-contained `prompt` (the worker sees only its prompt, not this conversation); "
           "`objects` lists the scene objects the worker must work on (they are copied into its scene first). Each worker shows as a "
           "card in the Parallel Agents panel. Returns the swarm id and the workers at once; call swarm_collect to wait for them and "
-          "bring their work into the scene (appended under the collection 'Mixie Agent').",
+          f"bring their work into the scene (appended under the collection '{AGENT_COLLECTION}').",
           {"tasks": {"type": "array", "description": "One entry per worker.", "items": {
               "type": "object", "properties": {"name": {"type": "string"}, "prompt": {"type": "string"},
                                                "objects": {"type": "array", "items": {"type": "string"}}},
@@ -63,7 +64,7 @@ SWARM_SPECS = [
           {"swarm_id": {"type": "string"}, "worker": {"type": "string", "description": "A worker id such as worker-2."}},
           ["swarm_id", "worker"]),
     _spec("swarm_collect", "Wait until every worker has finished, then append each finished worker's staged result to the scene "
-          "(collection 'Mixie Agent') and stop the workers. Returns each worker's status, summary, the objects it made and the "
+          f"(collection '{AGENT_COLLECTION}') and stop the workers. Returns each worker's status, summary, the objects it made and the "
           "client's receipt for each commit. Call it once per swarm.",
           {"swarm_id": {"type": "string"}}, ["swarm_id"]),
 ]
@@ -148,7 +149,7 @@ def worker_system_prompt(worker: Worker) -> str:
     return (f"You are {worker.id}, one worker of a swarm. Your task is named \"{worker.name}\". You run in your OWN Blender process "
             "with your own scene: nothing you do can touch the user's scene or another worker's, and nothing of theirs is visible "
             f"to you. {inputs}When you finish, everything you made is brought into the user's scene automatically (appended under "
-            "the collection 'Mixie Agent'), so you only create things and report; do not try to export or save.\n"
+            f"the collection '{AGENT_COLLECTION}'), so you only create things and report; do not try to export or save.\n"
             f"- Name what you create so it can be told apart (start names with `{worker.name}_`).\n"
             "- Use `run_blender_python` (the data API `bpy.data` is the reliable way) and `scene_summary` to check your work. "
             "The sandbox has no os/sys/subprocess/file system.\n"
@@ -293,7 +294,7 @@ class SwarmManager:
         await self._todo(swarm)
         await self._finish(swarm)
         return {"swarm_id": swarm.id, "workers": [w.public() for w in swarm.workers], "operations": operations,
-                "target_collection": "Mixie Agent"}
+                "target_collection": AGENT_COLLECTION}
 
     async def _commit(self, swarm: Swarm, worker: Worker) -> None:
         art = worker.handle.artifact or {}

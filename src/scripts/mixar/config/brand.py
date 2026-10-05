@@ -23,6 +23,9 @@ PRODUCT_NAME = "Lampway"
 #: Display name of the in-app agent (upstream: "Mixie"). The owner may rename it.
 AGENT_NAME = "Lampway Agent"
 
+#: The collection the agent's work lands in (the v3 harness commit). The server defines the same value once in lampway_server/brand.py; tests/lampway pins the two together.
+AGENT_COLLECTION = AGENT_NAME
+
 #: Where Lampway lives: the public GitHub repository. Every link shown to users
 #: (docs, bug report, downloads, privacy policy ...) is built from it; none points
 #: at upstream's website. One constant; change it here.

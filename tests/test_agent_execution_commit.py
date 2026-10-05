@@ -129,7 +129,7 @@ def _params(env, **over):
         "run_id": "r1", "turn_epoch": 1, "task_id": "t1", "generation": 0, "fence_token": 0,
         "operation_id": "op-1", "payload_hash": "ph-1", "op": "append_collection",
         "artifact_id": env.aid, "content_hash": env.hash, "collection_name": "wc_task1",
-        "object_names": ["Cube", "Cube.001"], "target_collection": "Lampway Agent Agent",
+        "object_names": ["Cube", "Cube.001"], "target_collection": "Lampway Agent",
     }
     p.update(over)
     return p
@@ -140,9 +140,9 @@ def test_applied_receipt_and_selection_preserved(env):
     assert out["success"] and out["state"] == "applied"
     r = out["receipt"]
     assert r["created_object_names"] == ["Cube", "Cube.001"]
-    assert r["collection_name"] == "wc_task1" and r["target_collection"] == "Lampway Agent Agent"
+    assert r["collection_name"] == "wc_task1" and r["target_collection"] == "Lampway Agent"
     assert "document_epoch" in r and "applied_at" in r
-    target = env.bpy.context.scene.collection.children.get("Lampway Agent Agent")
+    target = env.bpy.context.scene.collection.children.get("Lampway Agent")
     assert target is not None and target.children.get("wc_task1") is not None
     assert env.bpy.context.view_layer.objects.active is env.bpy.user[0]
     assert env.bpy.user[0].selected is True
@@ -370,8 +370,8 @@ def test_the_commit_lands_in_the_sessions_scene_not_the_context_scene(env):
     out = commit.append_collection(_params(env), bpy_module=env.bpy, journal=env.journal)
     assert out["success"]
     own = env.bpy.data.scenes[1]
-    assert own.collection.children.get("Lampway Agent Agent") is not None
-    assert env.bpy.other.collection.children.get("Lampway Agent Agent") is None
+    assert own.collection.children.get("Lampway Agent") is not None
+    assert env.bpy.other.collection.children.get("Lampway Agent") is None
 
 
 def test_a_session_without_a_unique_scene_refuses_the_commit(env):

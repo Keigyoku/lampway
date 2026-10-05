@@ -98,7 +98,7 @@ def test_the_swarm_speaks_v3_activate_spawn_bind_envelope_stage_commit_status(se
     parent_scripts = [p["tool_name"] for m, p in fleet.requests if m == "blender.execute_script"]
     assert "swarm_lanes" not in parent_scripts and "swarm_merge" not in parent_scripts
     commits = [p for m, p in fleet.requests if m == "agent.execution.commit"]
-    assert len(commits) == 2 and all(c["op"] == "append_collection" and c["target_collection"] == "Mixie Agent" for c in commits)
+    assert len(commits) == 2 and all(c["op"] == "append_collection" and c["target_collection"] == "Lampway Agent" for c in commits)
     assert all(c["artifact_id"] and c["content_hash"] and c["operation_id"] and len(c["payload_hash"]) == 64 for c in commits)
     statuses = [p for m, p in fleet.requests if m == "agent.execution.status"]
     assert statuses and set(statuses[-1]["operation_ids"]) == {c["operation_id"] for c in commits}
@@ -115,7 +115,7 @@ def test_every_worker_starts_from_an_empty_scene_before_anything_else(settings):
 
 def test_three_workers_that_all_draw_the_same_collection_name_all_land_in_the_users_scene(settings):
     fleet, frames, *_ = run_swarm(settings)
-    landed = fleet.parent.collections["Mixie Agent"]
+    landed = fleet.parent.collections["Lampway Agent"]
     assert len(landed) == 3, "each worker owns its process: nobody wipes anybody's markers"
     objs = sorted(o for c in landed for o in c["objects"])
     assert objs == sorted(f"w{n}_{s}" for n in (1, 2, 3) for s in ("L000", "label"))
@@ -129,7 +129,7 @@ def test_a_refused_commit_fails_the_task_and_names_the_clients_reason(settings):
     fleet, frames, *_ = run_swarm(settings, ("a", "b"), configure=lambda f: setattr(f, "reject_commits", "stale_fence"))
     last = [e["todo"] for e in events(frames) if "todo" in e][-1]
     assert {r["status"] for r in last} == {"FAILED"}
-    assert fleet.parent.collections["Mixie Agent"] == []
+    assert fleet.parent.collections["Lampway Agent"] == []
 
 
 def test_a_worker_that_cannot_be_spawned_is_a_failed_card_not_a_hang_and_nothing_is_bound_or_committed(settings):
@@ -165,7 +165,7 @@ def test_a_worker_connection_that_is_not_a_sandbox_of_this_parent_is_never_drive
 
 def test_the_system_prompt_teaches_the_v3_swarm_not_lane_scenes():
     from lampway_server.agent.prompt import SYSTEM_PROMPT
-    for token in ("swarm_start", "swarm_collect", "swarm_cancel", "Mixie Agent", "objects", "OWN Blender process"):
+    for token in ("swarm_start", "swarm_collect", "swarm_cancel", "Lampway Agent", "objects", "OWN Blender process"):
         assert token in SYSTEM_PROMPT
     assert "lane" not in SYSTEM_PROMPT
 
