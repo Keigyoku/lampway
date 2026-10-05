@@ -47,12 +47,13 @@ class ConnectionHub:
 
 
 class AgentSocket:
-    def __init__(self, websocket: WebSocket, instance_id: str, auth, hub: ConnectionHub, agent=None):
+    def __init__(self, websocket: WebSocket, instance_id: str, auth, hub: ConnectionHub, agent=None, jobs=None):
         self.ws = websocket
         self.instance_id = instance_id
         self.auth = auth
         self.hub = hub
         self.agent = agent
+        self.jobs = jobs
         self.client_capabilities: list[str] = []
         self.handshake_done = False
         self._send_lock = asyncio.Lock()
@@ -211,10 +212,11 @@ class AgentSocket:
         return {"notifications": []}
 
     async def _job_sync(self, params):
-        return {"jobs": []}
+        return {"jobs": self.jobs.snapshots() if self.jobs is not None else []}
 
     async def _job_get(self, params):
-        return {"job": None}
+        job = self.jobs.get(str(params.get("job_id") or "")) if self.jobs is not None else None
+        return {"job": self.jobs.snapshot(job) if job is not None else None}
 
 
 class ClientRpcError(Exception):

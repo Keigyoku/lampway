@@ -79,29 +79,35 @@ def generate(backend: str, prompt_file: str, refs, out_dir: str, count: int = 4,
     return {"backend": "codex_cli", "files": files, "dry_run": False, "output": f"{len(files)} image(s) through codex $imagegen"}
 
 
-def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: bool) -> dict:
+def _sniff_mime(data: bytes) -> str:
+    if data[:4] == b"\x89PNG":
+        return "image/png"
+    if data[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if data[8:12] == b"WEBP":
+        return "image/webp"
+    return "image/png"
+
+
+def openrouter_images(prompt: str, references: list, count: int) -> list:
+    """``count`` images from OpenRouter's images API (one request each), as ``[(bytes, media_type)]``; ``references`` are
+    image bytes sent as data URLs. The key comes from the environment, every request is refused past the session spend
+    ceiling, and the reported cost goes on the shared ledger."""
     import httpx
     from .agent.providers import spend_ledger
     from .agent.providers.openrouter import BASE_URL, REFERER, TITLE, redact, resolve_api_key
     from .config import Settings
-    if not 1 <= count <= 4:
+    if not 1 <= int(count) <= 4:
         raise ValueError("the openrouter backend makes at most 4 images per generation (one request each)")
     settings = Settings.from_env()
     model = settings.openrouter_image_model
-    if not live:
-        return {"backend": "openrouter", "files": [], "dry_run": True,
-                "output": f"dry run: would send {count} request(s) to {model} with {len(ref_paths)} reference image(s); nothing sent"}
-    prompt = Path(prompt_path).read_text(encoding="utf-8").strip()
-    refs = []
-    for path in ref_paths:
-        mime = mimetypes.guess_type(path)[0] or "image/png"
-        refs.append({"type": "image_url", "image_url": {"url": f"data:{mime};base64," + base64.b64encode(Path(path).read_bytes()).decode()}})
+    refs = [{"type": "image_url", "image_url": {"url": f"data:{_sniff_mime(data)};base64," + base64.b64encode(data).decode()}}
+            for data in references]
     key = resolve_api_key()
     ledger = spend_ledger(settings)
-    out.mkdir(parents=True, exist_ok=True)
-    files = []
+    out = []
     with httpx.Client(transport=openrouter_transport, timeout=300.0) as client:
-        for i in range(1, count + 1):
+        for i in range(1, int(count) + 1):
             ledger.check()
             body = {"model": model, "prompt": prompt}
             if refs:
@@ -117,10 +123,43 @@ def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: 
             items = data.get("data") or []
             if not items or not items[0].get("b64_json"):
                 raise ImageGenError(f"OpenRouter returned no image for request {i}")
-            ext = {"image/jpeg": ".jpg", "image/webp": ".webp"}.get(items[0].get("media_type"), ".png")
-            target = out / f"{i}{ext}"
-            target.write_bytes(base64.b64decode(items[0]["b64_json"]))
-            files.append(str(target))
+            media_type = items[0].get("media_type") or "image/png"
+            out.append((base64.b64decode(items[0]["b64_json"]), media_type))
+    return out
+
+
+def openrouter_image_backend(model: str, payload: dict):
+    """The job-queue backend for the client's ``image_gen`` service (jobqueue.py): ``payload`` is what the client sends
+    ({prompt, params{number_of_images}, reference_images_b64, image_name})."""
+    from .jobqueue import ImageOutput, MAX_REFERENCE_IMAGES
+    prompt = str(payload.get("prompt") or "").strip()
+    if not prompt:
+        raise ValueError("image_gen needs a prompt")
+    params = payload.get("params") if isinstance(payload.get("params"), dict) else {}
+    count = int(params.get("number_of_images") or 1)
+    refs = [base64.b64decode(r) for r in (payload.get("reference_images_b64") or [])[:MAX_REFERENCE_IMAGES] if isinstance(r, str)]
+    return ImageOutput(images=openrouter_images(prompt, refs, count), image_name=str(payload.get("image_name") or ""))
+
+
+def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: bool) -> dict:
+    from .config import Settings
+    settings = Settings.from_env()
+    model = settings.openrouter_image_model
+    if not 1 <= count <= 4:
+        raise ValueError("the openrouter backend makes at most 4 images per generation (one request each)")
+    if not live:
+        return {"backend": "openrouter", "files": [], "dry_run": True,
+                "output": f"dry run: would send {count} request(s) to {model} with {len(ref_paths)} reference image(s); nothing sent"}
+    from .agent.providers import spend_ledger
+    prompt = Path(prompt_path).read_text(encoding="utf-8").strip()
+    images = openrouter_images(prompt, [Path(p).read_bytes() for p in ref_paths], count)
+    out.mkdir(parents=True, exist_ok=True)
+    files = []
+    for i, (data, media_type) in enumerate(images, 1):
+        target = out / f"{i}{ {'image/jpeg': '.jpg', 'image/webp': '.webp'}.get(media_type, '.png') }"
+        target.write_bytes(data)
+        files.append(str(target))
+    ledger = spend_ledger(settings)
     return {"backend": "openrouter", "files": files, "dry_run": False,
             "output": f"{len(files)} image(s) from {model}; session spend ${ledger.spent:.4f} of ${ledger.ceiling_usd:.2f}"}
 

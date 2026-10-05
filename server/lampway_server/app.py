@@ -14,8 +14,10 @@ from .agent_settings import AgentSettingsStore
 from .auth import Auth
 from .chatgpt_auth import ChatGPTAuth, LoginDeclined, LoginError
 from .config import Settings
-from .rest import stub_routes
+from .jobqueue import BadJob, JobQueue, UnknownService
+from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub
+from starlette.responses import Response
 
 _PKCE_FIELDS = ("port", "code_challenge", "code_challenge_method", "state", "source")
 
@@ -94,7 +96,19 @@ def unauthorized(message="Not authenticated"):
     return JSONResponse({"detail": message}, status_code=401)
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None) -> Starlette:
+def default_job_backends(settings: Settings) -> dict:
+    """The generation backends this server can run: OpenRouter's images API when its key resolves, else none (and the
+    catalog stays empty, which hides the client's generation tabs rather than offering a job that cannot run)."""
+    from . import imagegen
+    from .agent.providers.openrouter import KeyMissing, resolve_api_key
+    try:
+        resolve_api_key()
+    except KeyMissing:
+        return {}
+    return {"image_gen": imagegen.openrouter_image_backend}
+
+
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None) -> Starlette:
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
     auth = Auth(
         secret=settings.resolve_jwt_secret(),
@@ -230,15 +244,74 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         Route("/app/desktop-login", desktop_login_post, methods=["POST"]),
     ]
     store = AgentSettingsStore(settings.state_dir)
-    routes += stub_routes(auth, store, settings)
     hub = ConnectionHub()
+    jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
+                    f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model})
+    routes += stub_routes(auth, store, settings, jobs)
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label)  # noqa: E731
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
                      swarm_provider_factory=swarm_provider_factory)
 
     async def agent_ws(websocket):
-        await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent).run()
+        await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
+
+    # ---- the job queue (jobqueue.py): the client's generation surfaces
+    def _bearer_ok(request: Request) -> bool:
+        token = bearer_token(request)
+        return bool(token) and auth.verify_access(token) is not None
+
+    async def job_submit(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        try:
+            body = await request.json()
+        except ValueError:
+            body = {}
+        body = body if isinstance(body, dict) else {}
+        try:
+            job = jobs.submit(str(body.get("service") or ""), str(body.get("model") or ""), body.get("payload"),
+                              body.get("idempotency_key") or None, request.headers.get("x-mixar-job-origin", "user"))
+        except (UnknownService, BadJob) as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=422)
+        return JSONResponse(envelope(jobs.snapshot(job)))
+
+    async def job_get(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        job = jobs.get(request.path_params["job_id"])
+        if job is None:
+            return JSONResponse({"detail": "no such job"}, status_code=404)
+        return JSONResponse(envelope(jobs.snapshot(job)))
+
+    async def job_cancel(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        job = jobs.cancel(request.path_params["job_id"])
+        if job is None:
+            return JSONResponse({"detail": "no such job"}, status_code=404)
+        return JSONResponse(envelope(jobs.snapshot(job)))
+
+    async def job_info(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        service = request.path_params["job_type"]
+        return JSONResponse(envelope({"service": service, "available": service in jobs.backends, "queue_length": 0}))
+
+    async def job_file(request: Request):
+        found = jobs.file(request.path_params["token"], request.path_params["name"])
+        if found is None:
+            return JSONResponse({"detail": "no such file"}, status_code=404)
+        data, media_type = found
+        return Response(data, media_type=media_type, headers={"Content-Length": str(len(data)), "Cache-Control": "private, max-age=3600"})
+
+    routes += [
+        Route("/api/v1/job-queue/jobs", job_submit, methods=["POST"]),
+        Route("/api/v1/job-queue/jobs/{job_id}", job_get, methods=["GET"]),
+        Route("/api/v1/job-queue/jobs/{job_id}", job_cancel, methods=["DELETE"]),
+        Route("/api/v1/job-queue/info/{job_type}", job_info, methods=["GET"]),
+        Route("/api/v1/jobs/files/{token}/{name}", job_file, methods=["GET"]),
+    ]
 
     routes.append(WebSocketRoute("/api/agent/ws/{instance_id}", agent_ws))
 
@@ -272,4 +345,5 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     app.state.store = store
     app.state.provider = provider
     app.state.chatgpt = chatgpt
+    app.state.jobs = jobs
     return app

@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from blender_run import run_script  # noqa: E402
+from blender_run import lampway_bin, run_script  # noqa: E402
 
 PRE = '''
 import bpy, json, os, time, shutil
@@ -38,7 +38,7 @@ def setup(**kw):
 
 def run(tmp_path, body, **kw):
     return run_script(PRE.replace("ROOT", repr(str(tmp_path))) + body,
-                      env={"LAMPWAY_PROJECT_ROOT": str(tmp_path), "LAMPWAY_HOME": str(tmp_path / "home"), "LAMPWAY_BLENDER": str(Path(__file__).resolve().parents[2] / "build/Dev/bin/mixar")}, **kw)
+                      env={"LAMPWAY_PROJECT_ROOT": str(tmp_path), "LAMPWAY_HOME": str(tmp_path / "home"), "LAMPWAY_BLENDER": str(lampway_bin())}, **kw)   # the binary under test, never a hard-coded Dev build
 
 
 def test_setup_then_clay_renders_the_four_views_with_the_real_tool(tmp_path):

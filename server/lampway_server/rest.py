@@ -58,7 +58,7 @@ async def _json(request: Request) -> dict:
     return body if isinstance(body, dict) else {}
 
 
-def stub_routes(auth, store, settings):
+def stub_routes(auth, store, settings, jobs=None):
     guard = require_bearer(auth)
 
     @guard
@@ -88,13 +88,13 @@ def stub_routes(auth, store, settings):
 
     @guard
     async def generation_catalog(request):
-        return cached(request, envelope({
-            "catalog_version": CATALOG_VERSION, "capabilities": [], "styles": {}, "credit_costs": {},
-        }))
+        catalog = jobs.catalog() if jobs is not None else {"capabilities": [], "styles": {}, "credit_costs": {}}
+        return cached(request, envelope({"catalog_version": CATALOG_VERSION, **catalog}))
 
     @guard
     async def chat_options(request):
-        return cached(request, envelope({"catalog_version": CATALOG_VERSION, "options": []}))
+        options = jobs.chat_options() if jobs is not None else []
+        return cached(request, envelope({"catalog_version": CATALOG_VERSION, "options": options}))
 
     @guard
     async def agent_models(request):
