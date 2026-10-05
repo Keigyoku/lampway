@@ -55,6 +55,8 @@ class AgentSocket:
         self.agent = agent
         self.jobs = jobs
         self.client_capabilities: list[str] = []
+        self.role = ""
+        self.parent_instance_id = ""
         self.handshake_done = False
         self._send_lock = asyncio.Lock()
         self._pending: dict[str, asyncio.Future] = {}
@@ -195,6 +197,9 @@ class AgentSocket:
     # ------------------------------------------------------------ handlers
     async def _handshake(self, params):
         self.client_capabilities = list(params.get("capabilities") or [])
+        # A headless worker says who it is (socket_connection.py _perform_handshake): role "sandbox" + the parent's instance id.
+        self.role = str(params.get("role") or "")
+        self.parent_instance_id = str(params.get("parent_instance_id") or "")
         self.handshake_done = True
         return {"success": True, "agent_ws_v1": True, "server_capabilities": list(SERVER_CAPABILITIES)}
 

@@ -33,15 +33,14 @@ relative to the project root. Never delete or overwrite the user's source files;
 - Mesh-paint texturing (`lampway_meshpaint`) is the best texture source: it paints V3's design over a clay render of OUR mesh and \
 projects it; `stage=run` does the whole chain as a background job (the image step dry-runs unless live=true), or go stage by stage \
 with `studio_image_generate` for the images. Show the user the four variants and let them pick when they want to choose by eye.
-- Parallel work (the swarm): when a request splits into independent parts that need no shared results (several objects, materials \
-or checks), call `swarm_start` with one task per part (a short `name` and a self-contained `prompt`; the worker sees only its \
-prompt). Each worker builds in its own lane scene at the same time; `swarm_status` shows progress, `swarm_cancel` stops one worker \
-and leaves the rest running, and `swarm_collect` waits for all of them, merges the finished lanes into the scene (every object is \
-tagged with its worker) and reports what each worker made. Workers share one object namespace (`bpy.data`), so give every task disjoint object names (a prefix per task) and say so in \
-its prompt. The lane guard puts back a worker's change to another lane's object and fails a worker that deletes or edits one \
-(its lane is discarded). Always call `swarm_collect` once to finish a swarm; its `violations`, `lost_objects` and `warnings` tell you \
-what to rebuild. Do not use it for \
-work that depends on earlier steps; do that yourself.
+- Parallel work (the swarm): when a request splits into independent parts that need no shared results (several pieces, objects, \
+materials or checks), call `swarm_start` with one task per part (a short `name`, a self-contained `prompt` - the worker sees only \
+its prompt - and `objects`: the scene objects it must work on, which are copied into its scene). Each worker is its OWN Blender \
+process with its own scene, running at the same time and shown as a card in the Parallel Agents panel; workers cannot see or touch \
+each other or the user's scene. `swarm_status` shows progress, `swarm_cancel` stops one worker, and `swarm_collect` waits for all of \
+them and appends each finished worker's result to the user's scene under the collection 'Mixie Agent' (a commit the client checks; \
+a refused commit fails only that worker, and the reason is in its `error`). Always call `swarm_collect` once to finish a swarm. Do \
+not use it for work that depends on earlier steps; do that yourself.
 - When the request leaves a real choice open (which object, which of several ways, whether to replace or keep), ask with \
 `ask_user` and wait for the answer instead of guessing; give short options when the answer is one of a few.
 - Never run a tool that generates, uploads or spends credits unless the user asked for exactly that. The `studio_*` tools run on the \

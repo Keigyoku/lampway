@@ -1,32 +1,32 @@
-"""The swarm: several worker agents in one scene, each in its own lane scene, run by the orchestrator's tools.
+"""The swarm: several worker agents, each in its OWN headless Blender process, on the client's execution harness (harness.py).
 
-How the client does it (space_mixie_chat/ARCHITECTURE.md "Scene routing per session"; main_thread_executor.py; session.py):
-  * a worker's ``blender.execute_script`` carries ``session_id == agent_ctx.chat_session_id == "agentlane:<parent>:<n>"``;
-    the executor switches the window to the scene whose ``mixie_session_id`` is that string, runs the script there, and
-    restores the foreground scene. A lane that has no scene is REJECTED ("no scene for session"), never run in the active
-    scene, so a worker cannot touch the parent by accident;
-  * ``has_active_session`` maps a lane to its parent through the lane scene's ``mixar_workspace_main_session``;
-  * the client runs scripts one at a time on the main thread, round-robin across lanes, so workers overlap in thinking and
-    take turns in Blender: edits cannot interleave, and a worker's objects live in its own scene until they are merged.
+Mixar's client already ships this model ("harness v3"); the server speaks it:
+  * ``swarm_start`` activates a run on the parent (``agent.execution.activate``), then for every task spawns a headless worker
+    through the parent's sandbox supervisor, binds the task to it (``agent.execution.bind_task``) and runs the worker's own agent
+    loop: every worker script goes to the worker's socket on its constant routing session with a v3 envelope. Workers share nothing:
+    a worker's ``bpy.data`` is its own, so the name collisions of the old in-process lane scenes cannot happen;
+  * the worker's objects reach the user's scene only through the typed ``append_collection`` commit of a worker-staged native
+    artifact into "Mixie Agent", under the client's epoch / fence / document checks, journalled PREPARED then APPLIED
+    (``swarm_collect``); a refused commit fails that task, never the others;
+  * the chat's ``todo`` slot carries one row per task with live status, which is what the client's Parallel Agents panel (cat avatar,
+    name, task, outcome) projects (agent_panel/core/cards.py).
 
-So the server plays the orchestrator: ``swarm_start`` creates the lane scenes with ONE script on the parent session, then runs
-the workers as concurrent agent loops; ``swarm_cancel`` stops one; ``swarm_collect`` waits for the rest, then merges each kept
-lane into the parent scene (tagging every object with ``lw_worker``) and deletes the lanes, discarding a cancelled or failed
-worker's lane. Every worker's script results are recorded against it, which is what makes each result attributable.
+A task may list ``objects``: the parent copies them to a staged artifact the worker loads first, so a worker can work ON a piece
+(the QA tools); what it makes comes back the same way.
 
-Lanes isolate scenes, not ``bpy.data``, so every worker script is wrapped by the lane guard (lane_guard.py): objects outside
-the worker's lane are fingerprinted before the body and checked after it in the same main-thread slot; what can be put back
-is, and a deletion or edit fails the worker, whose lane is then discarded.
+The in-process lane scenes (``agentlane:`` sessions, the lane guard) are gone: the client still supports them for its own
+foreground fan-out, but this server no longer needs them for anything.
 """
 
 import asyncio
 import json
 import logging
+import uuid
 from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Optional
 
 from . import lampway_tools as lt
-from . import lane_guard
+from .harness import Harness, HarnessError, export_script, import_script, stage_script
 from .providers.base import Message, ModelRequest, Text, ToolCall, ToolSpec
 from .tools import RUN_BLENDER_PYTHON, SCENE_SUMMARY, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -34,8 +34,6 @@ log = logging.getLogger("lampway.swarm")
 
 MAX_WORKERS = 6
 MAX_WORKER_ROUNDS = 24
-LANE_SCRIPT = "swarm_lanes"
-MERGE_SCRIPT = "swarm_merge"
 _RESULT_CLIP = 6000
 _CALL_LOG_MAX = 40
 _CALL_LOG_CHARS = 600
@@ -48,23 +46,30 @@ def _spec(name, description, properties, required):
 
 SWARM_SPECS = [
     _spec("swarm_start",
-          "Start worker agents that each build in their OWN lane scene at the same time, one per task. Use it when the request "
-          "splits into independent parts (objects, materials, checks) that do not need each other's results. Each task needs a "
-          "short `name` (letters/digits) and a self-contained `prompt` (the worker sees only its prompt, not this conversation). "
-          "Returns the swarm id and the workers at once; call swarm_collect to wait for them and merge their work into the scene.",
+          "Start worker agents, one per task, each in its OWN headless Blender process, all at the same time. Use it when the request "
+          "splits into independent parts (pieces, objects, materials, checks) that do not need each other's results. Each task needs a "
+          "short `name` (letters/digits) and a self-contained `prompt` (the worker sees only its prompt, not this conversation); "
+          "`objects` lists the scene objects the worker must work on (they are copied into its scene first). Each worker shows as a "
+          "card in the Parallel Agents panel. Returns the swarm id and the workers at once; call swarm_collect to wait for them and "
+          "bring their work into the scene (appended under the collection 'Mixie Agent').",
           {"tasks": {"type": "array", "description": "One entry per worker.", "items": {
-              "type": "object", "properties": {"name": {"type": "string"}, "prompt": {"type": "string"}},
+              "type": "object", "properties": {"name": {"type": "string"}, "prompt": {"type": "string"},
+                                               "objects": {"type": "array", "items": {"type": "string"}}},
               "required": ["name", "prompt"], "additionalProperties": False}}}, ["tasks"]),
     _spec("swarm_status", "Where each worker of a swarm is: status, tool calls so far, objects it has created.",
           {"swarm_id": {"type": "string"}}, ["swarm_id"]),
-    _spec("swarm_cancel", "Stop one worker of a running swarm; the others keep running. Its lane is discarded at collect time.",
+    _spec("swarm_cancel", "Stop one worker of a running swarm; the others keep running. Nothing of it is brought into the scene.",
           {"swarm_id": {"type": "string"}, "worker": {"type": "string", "description": "A worker id such as worker-2."}},
           ["swarm_id", "worker"]),
-    _spec("swarm_collect", "Wait until every worker has finished, then merge each finished worker's lane into the scene and "
-          "remove the lanes. Returns each worker's status, summary and the objects it created. Call it once per swarm.",
+    _spec("swarm_collect", "Wait until every worker has finished, then append each finished worker's staged result to the scene "
+          "(collection 'Mixie Agent') and stop the workers. Returns each worker's status, summary, the objects it made and the "
+          "client's receipt for each commit. Call it once per swarm.",
           {"swarm_id": {"type": "string"}}, ["swarm_id"]),
 ]
 SWARM_NAMES = {s.name for s in SWARM_SPECS}
+
+TODO_STATUS = {"pending": "PENDING", "running": "IN_PROGRESS", "staged": "IN_PROGRESS", "done": "DONE", "failed": "FAILED",
+               "cancelled": "FAILED"}
 
 
 def is_swarm_tool(name: str) -> bool:
@@ -78,7 +83,9 @@ class SwarmContext:
     session_id: str
     turn_id: str
     call_id: str
+    run_id: str = ""
     progress: Callable[[str], None] = lambda text: None
+    emit_todo: Optional[Callable[[list], Awaitable]] = None      # the chat's todo slot: the Parallel Agents cards
 
 
 @dataclass
@@ -86,26 +93,32 @@ class Worker:
     id: str
     name: str
     prompt: str
-    lane: str
-    scene_name: str
-    status: str = "pending"          # pending | running | done | failed | cancelled
+    objects: list = field(default_factory=list)
+    connection_id: str = ""
+    status: str = "pending"          # pending | running | staged | done | failed | cancelled
     tool_calls: int = 0
     created: list = field(default_factory=list)
     summary: str = ""
     error: str = ""
     calls: list = field(default_factory=list)       # what this worker did, for the owner (not sent to the model)
-    violations: list = field(default_factory=list)  # what the lane guard caught (lane_guard.py)
+    handle: object = None
+    receipt: Optional[dict] = None
+    inputs_loaded: list = field(default_factory=list)
     task: Optional[asyncio.Task] = None
 
     def public(self) -> dict:
-        out = {"id": self.id, "name": self.name, "lane": self.lane, "status": self.status, "tool_calls": self.tool_calls,
+        out = {"id": self.id, "name": self.name, "status": self.status, "tool_calls": self.tool_calls,
                "created_objects": list(self.created), "summary": self.summary}
+        if self.objects:
+            out["inputs"] = list(self.objects)
         if self.error:
             out["error"] = self.error
+        if self.receipt:
+            out["receipt"] = self.receipt
         return out
 
     def detail(self) -> dict:
-        return {**self.public(), "calls": self.calls, "violations": self.violations}
+        return {**self.public(), "connection_id": self.connection_id, "calls": self.calls}
 
 
 @dataclass
@@ -113,6 +126,9 @@ class Swarm:
     id: str
     parent_session: str
     workers: list
+    run: object = None
+    harness: object = None
+    emit_todo: Optional[Callable[[list], Awaitable]] = None
     collected: bool = False
 
 
@@ -126,80 +142,46 @@ def worker_tools() -> list:
 
 
 def worker_system_prompt(worker: Worker) -> str:
-    return (f"You are {worker.id}, one worker of a swarm that is building in Blender at the same time as other workers. "
-            f"Your task is named \"{worker.name}\". You run in your OWN scene (a lane); what you create there is merged into the "
-            "user's scene when you finish, so create things there and do not look for the user's other objects.\n"
-            f"- Give every object you create a name that starts with `{worker.name}_` so it can be told apart from the others'.\n"
-            "- Other workers' objects are visible to you in `bpy.data` under THEIR names. You must never delete, rename, move or "
-            "otherwise modify an object you did not create yourself, and never look an object up by a name you did not just give it; "
-            "if a name you want is taken, pick another one that starts with your prefix. The lane guard checks every script: a "
-            "change to an object outside your lane is put back and reported to you, and deleting or editing one stops you and "
-            "discards your lane.\n"
+    inputs = (f"The objects {', '.join(worker.objects)} have been copied into your scene for you to work on. "
+              if worker.objects else "Your scene starts empty. ")
+    return (f"You are {worker.id}, one worker of a swarm. Your task is named \"{worker.name}\". You run in your OWN Blender process "
+            "with your own scene: nothing you do can touch the user's scene or another worker's, and nothing of theirs is visible "
+            f"to you. {inputs}When you finish, everything you made is brought into the user's scene automatically (appended under "
+            "the collection 'Mixie Agent'), so you only create things and report; do not try to export or save.\n"
+            f"- Name what you create so it can be told apart (start names with `{worker.name}_`).\n"
             "- Use `run_blender_python` (the data API `bpy.data` is the reliable way) and `scene_summary` to check your work. "
             "The sandbox has no os/sys/subprocess/file system.\n"
             "- Do only your task; do not wait for or coordinate with other workers. Keep it to a handful of tool calls.\n"
             "- When done, reply with ONE plain sentence saying what you made, naming the objects.")
 
 
-def lane_script(parent: str, lanes: list) -> str:
-    """One script on the PARENT session that creates every lane scene. The data travels as a JSON string literal, so no task
-    name or prompt can change the code."""
-    data = json.dumps([{"scene": w.scene_name, "lane": w.lane} for w in lanes])
-    return (
-        "import bpy, json\n"
-        f"_lanes = json.loads({json.dumps(data)})\n"
-        f"_parent = {json.dumps(parent)}\n"
-        "_made = []\n"
-        "for _spec in _lanes:\n"
-        "    _scene = bpy.data.scenes.new(_spec['scene'])\n"
-        "    _scene.mixie_session_id = _spec['lane']\n"
-        "    _scene['mixar_workspace_main_session'] = _parent\n"
-        "    _made.append(_scene.name)\n"
-        "__RESULT__ = {'lanes': _made}\n")
-
-
-def merge_script(plan: list) -> str:
-    """One script on the parent session: link each kept lane's objects into the parent scene tagged with their worker, discard the
-    rest, remove every lane scene."""
-    data = json.dumps(plan)
-    return (
-        "import bpy, json\n"
-        f"_plan = json.loads({json.dumps(data)})\n"
-        "_parent = bpy.context.scene\n"
-        "_merged = {}\n"
-        "_discarded = {}\n"
-        "_lane_objects = {}\n"
-        "for _w in _plan:\n"
-        "    _lane = bpy.data.scenes.get(_w['scene'])\n"
-        "    if _lane is None:\n"
-        "        continue\n"
-        "    _objects = list(_lane.collection.all_objects)\n"
-        "    _colls = [_lane.collection] + list(_lane.collection.children_recursive)\n"
-        "    _lane_objects[_w['id']] = [_ob.name for _ob in _objects]\n"
-        "    if _w['keep']:\n"
-        "        for _ob in _objects:\n"
-        "            _ob['lw_worker'] = _w['id']\n"
-        "            _ob['lw_worker_name'] = _w['name']\n"
-        "            _parent.collection.objects.link(_ob)\n"
-        "            for _c in _colls:\n"
-        "                if _ob.name in _c.objects:\n"
-        "                    _c.objects.unlink(_ob)\n"
-        "        _merged[_w['id']] = [_ob.name for _ob in _objects]\n"
-        "    else:\n"
-        "        _discarded[_w['id']] = [_ob.name for _ob in _objects]\n"
-        "        for _ob in _objects:\n"
-        "            bpy.data.objects.remove(_ob, do_unlink=True)\n"
-        "    bpy.data.scenes.remove(_lane)\n"
-        "__RESULT__ = {'merged': _merged, 'discarded': _discarded, 'lane_objects': _lane_objects}\n")
+def _head(prompt: str) -> str:
+    line = prompt.strip().splitlines()[0] if prompt.strip() else ""
+    return line[:90]
 
 
 class SwarmManager:
-    def __init__(self, provider_factory: Callable[[str], object], run_script: RunScript, *, max_workers: int = MAX_WORKERS):
+    def __init__(self, provider_factory: Callable[[str], object], run_script: RunScript, *, max_workers: int = MAX_WORKERS,
+                 script_timeout_s: float = 600.0):
         self.provider_factory = provider_factory
         self.run_script = run_script
         self.max_workers = max_workers
+        self.script_timeout_s = script_timeout_s
         self.swarms: dict[str, Swarm] = {}
+        self._harness: dict = {}                      # parent socket -> Harness
         self._seq = 0
+
+    def harness_for(self, socket) -> Harness:
+        h = self._harness.get(socket)
+        if h is None:
+            h = self._harness[socket] = Harness(socket, script_timeout_s=self.script_timeout_s)
+        return h
+
+    def socket_closed(self, socket) -> None:
+        self._harness.pop(socket, None)
+        for swarm in self.swarms.values():
+            if swarm.harness is not None and swarm.harness.socket is socket and not swarm.collected:
+                self.cancel_all(swarm)
 
     # ------------------------------------------------------------- the tools
     async def call(self, name: str, arguments: dict, ctx: SwarmContext) -> tuple[str, bool]:
@@ -210,6 +192,8 @@ class SwarmManager:
             return json.dumps(await handler(arguments, ctx), default=str), False
         except SwarmError as exc:
             return str(exc), True
+        except HarnessError as exc:
+            return f"{name} could not run: {exc}", True
         except asyncio.CancelledError:
             raise
         except Exception as exc:  # noqa: BLE001 - Blender silent or gone: the model is told, the turn goes on
@@ -232,24 +216,21 @@ class SwarmManager:
             if not (isinstance(task, dict) and isinstance(task.get("name"), str) and isinstance(task.get("prompt"), str)
                     and task["name"].strip() and task["prompt"].strip()):
                 raise SwarmError(f"task {i} needs a non-empty string `name` and `prompt`")
-            clean.append((_safe_name(task["name"], i), task["prompt"]))
+            objects = task.get("objects") or []
+            if not (isinstance(objects, list) and all(isinstance(o, str) and o for o in objects)):
+                raise SwarmError(f"task {i}: `objects` must be a list of object names")
+            clean.append((_safe_name(task["name"], i), task["prompt"], list(dict.fromkeys(objects))))
+        harness = self.harness_for(ctx.socket)
+        run = await harness.activate(ctx.run_id or str(uuid.uuid4()), ctx.session_id)
         self._seq += 1
         swarm_id = f"sw{self._seq}"
-        workers = []
-        for n, (name, prompt) in enumerate(clean, 1):
-            lane = f"agentlane:{ctx.session_id}:{n}"
-            workers.append(Worker(f"worker-{n}", name, prompt, lane, f"{swarm_id}_{name}"))
-        swarm = Swarm(swarm_id, ctx.session_id, workers)
-        result = await self.run_script(ctx.socket, session_id=ctx.session_id, chat_session_id=ctx.session_id,
-                                       turn_id=ctx.turn_id, call_id=ctx.call_id, tool_name=LANE_SCRIPT,
-                                       script=lane_script(ctx.session_id, workers))
-        if not (isinstance(result, dict) and result.get("success")):
-            raise SwarmError(f"the lane scenes could not be created: {json.dumps(result, default=str)[:400]}")
+        workers = [Worker(f"worker-{n}", name, prompt, objects) for n, (name, prompt, objects) in enumerate(clean, 1)]
+        swarm = Swarm(swarm_id, ctx.session_id, workers, run=run, harness=harness, emit_todo=ctx.emit_todo)
         self.swarms[swarm_id] = swarm
+        await self._todo(swarm)
         for worker in workers:
-            worker.status = "running"
             worker.task = asyncio.create_task(self._run_worker(swarm, worker, ctx))
-        ctx.progress(f"{len(workers)} workers started")
+        ctx.progress(f"{len(workers)} workers starting")
         return {"swarm_id": swarm_id, "workers": [w.public() for w in workers]}
 
     async def _status(self, arguments, ctx) -> dict:
@@ -267,46 +248,81 @@ class SwarmManager:
 
     @staticmethod
     def cancel_worker(worker: Worker) -> None:
-        if worker.status == "running":
+        if worker.status in ("pending", "running", "staged"):
             worker.status = "cancelled"
             if worker.task is not None:
                 worker.task.cancel()
+
+    def _task_id(self, swarm: Swarm, worker: Worker) -> str:
+        return f"{swarm.id}:{worker.id}"
+
+    async def _todo(self, swarm: Swarm) -> None:
+        """The chat's todo slot, whole list each time (slot_processor _apply_todo_slot replaces it): the Parallel Agents cards."""
+        if swarm.emit_todo is None:
+            return
+        rows = [{"id": self._task_id(swarm, w), "text": f"{w.name}: {_head(w.prompt)}"[:200], "status": TODO_STATUS[w.status]}
+                for w in swarm.workers]
+        try:
+            await swarm.emit_todo(rows)
+        except Exception:  # noqa: BLE001 - a closed stream must not stop the work
+            log.debug("could not emit the todo slot", exc_info=True)
 
     async def _collect(self, arguments, ctx) -> dict:
         swarm = self._get(arguments)
         if swarm.collected:
             raise SwarmError(f"swarm {swarm.id} was already collected")
+        if ctx.emit_todo is not None:
+            swarm.emit_todo = ctx.emit_todo
         try:
             await asyncio.gather(*(w.task for w in swarm.workers if w.task is not None), return_exceptions=True)
         except asyncio.CancelledError:                          # the orchestrator's turn was stopped: stop the workers too
             self.cancel_all(swarm)
             raise
         swarm.collected = True
-        plan = [{"id": w.id, "name": w.name, "scene": w.scene_name, "keep": w.status == "done"} for w in swarm.workers]
-        merge = await self.run_script(ctx.socket, session_id=ctx.session_id, chat_session_id=ctx.session_id,
-                                      turn_id=ctx.turn_id, call_id=ctx.call_id, tool_name=MERGE_SCRIPT,
-                                      script=merge_script(plan))
-        out = {"swarm_id": swarm.id, "workers": [w.public() for w in swarm.workers],
-               "merge": {k: v for k, v in (merge or {}).items() if k in ("success", "merged", "discarded", "error")},
-               "lost_objects": {}, "warnings": [],
-               "violations": {w.id: w.violations for w in swarm.workers if w.violations}}
-        if not (isinstance(merge, dict) and merge.get("success")):
-            out["merge_failed"] = True
-            return out
-        held = merge.get("lane_objects") or {}
+        operations = {}
         for w in swarm.workers:
-            if w.status != "done" or w.id not in held:
-                continue
-            lost = [n for n in w.created if n not in held[w.id]]
-            if lost:
-                out["lost_objects"][w.id] = lost
-                out["warnings"].append(
-                    f"{w.id} ({w.name}) made {', '.join(lost)} but it was gone from its lane at merge time: another worker's "
-                    "script probably deleted or renamed it (lanes isolate scenes, not bpy.data). Rebuild it.")
+            if w.status == "staged":
+                await self._commit(swarm, w)
+        ids = [w.handle.operation_id for w in swarm.workers if w.handle is not None and w.handle.operation_id]
+        if ids:
+            try:
+                operations = await swarm.harness.status(ids)
+            except Exception as exc:  # noqa: BLE001
+                operations = {"error": str(exc)}
+        await self._todo(swarm)
+        await self._finish(swarm)
+        return {"swarm_id": swarm.id, "workers": [w.public() for w in swarm.workers], "operations": operations,
+                "target_collection": "Mixie Agent"}
+
+    async def _commit(self, swarm: Swarm, worker: Worker) -> None:
+        art = worker.handle.artifact or {}
+        if not art.get("object_count"):
+            worker.status = "done"
+            worker.summary = (worker.summary + " (it made no objects, so nothing was added to the scene)").strip()
+            return
+        try:
+            result = await swarm.harness.commit(swarm.run, worker.handle, worker.name)
+            worker.receipt = result.get("receipt") or {}
+            worker.created = list(worker.receipt.get("created_object_names") or worker.created)
+            worker.status = "done"
+        except HarnessError as exc:
+            worker.status = "failed"
+            worker.error = f"{exc.error_type or 'commit_refused'}: {exc}"[:500]
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            worker.status = "failed"
+            worker.error = f"commit failed: {type(exc).__name__}: {exc}"[:500]
+
+    async def _finish(self, swarm: Swarm) -> None:
+        """Stop the workers; revoke the tasks, and the run once none of its swarms is still open."""
         for w in swarm.workers:
-            if w.status == "failed" and w.violations:
-                out["warnings"].append(f"{w.id} ({w.name}) was stopped by the lane guard ({w.error}); its lane was discarded.")
-        return out
+            if w.handle is not None:
+                await swarm.harness.revoke(swarm.run, w.handle.task_id)
+            if w.connection_id:
+                await swarm.harness.shutdown_worker(w.connection_id)
+        if all(s.collected for s in self.swarms.values() if s.run is swarm.run):
+            await swarm.harness.revoke(swarm.run)
 
     def cancel_all(self, swarm: Swarm) -> None:
         for worker in swarm.workers:
@@ -319,11 +335,18 @@ class SwarmManager:
 
     # ------------------------------------------------------------ one worker
     async def _run_worker(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
+        harness, run = swarm.harness, swarm.run
         provider = self.provider_factory(worker.id)
         system = worker_system_prompt(worker)
         tools = worker_tools()
         messages = [Message.user_text(worker.prompt)]
         try:
+            worker.connection_id = await harness.spawn_worker()
+            worker.handle = await harness.bind_task(run, self._task_id(swarm, worker), worker.connection_id)
+            worker.status = "running"
+            await self._todo(swarm)
+            if worker.objects:
+                await self._seed(swarm, worker, ctx)
             for _round in range(MAX_WORKER_ROUNDS):
                 text_parts, calls = [], []
                 async for event in provider.stream(ModelRequest(system, list(messages), tools)):
@@ -338,56 +361,73 @@ class SwarmManager:
                     if not text.strip() and worker.tool_calls == 0:      # nothing said, nothing done: not a finished task
                         raise RuntimeError("the model returned an empty response")
                     worker.summary = text.strip() or "(no summary)"
-                    worker.status = "done"
-                    ctx.progress(f"{worker.id} ({worker.name}) done")
+                    await self._stage(swarm, worker, ctx)
+                    worker.status = "staged"
+                    ctx.progress(f"{worker.id} ({worker.name}) finished")
                     return
                 results = []
                 for call in calls:
-                    content, is_error = await self._worker_tool(worker, ctx, call)
+                    content, is_error = await self._worker_tool(swarm, worker, ctx, call)
                     worker.tool_calls += 1
                     results.append({"type": "tool_result", "tool_call_id": call.id, "content": content, "is_error": is_error})
-                    if worker.status == "failed":                        # the lane guard: an unrestorable touch
-                        ctx.progress(f"{worker.id} ({worker.name}) failed: {worker.error}")
-                        return
                 messages.append(Message("user", results))
                 ctx.progress(f"{worker.id} ({worker.name}): {worker.tool_calls} tool calls, {len(worker.created)} objects")
-            worker.summary = "stopped after too many tool calls"
-            worker.status = "failed"
-            worker.error = worker.summary
+            raise RuntimeError("stopped after too many tool calls")
         except asyncio.CancelledError:
             worker.status = "cancelled"
+            await self._todo(swarm)
             raise
         except Exception as exc:  # noqa: BLE001 - one worker's failure must not end the others
             worker.status = "failed"
-            worker.error = str(exc)[:500]
+            worker.error = (f"{exc.error_type}: {exc}" if isinstance(exc, HarnessError) and exc.error_type else str(exc))[:500]
             log.warning("%s failed: %s", worker.id, worker.error)
+        finally:
+            if worker.status in ("failed", "cancelled"):
+                if worker.handle is not None:
+                    await harness.revoke(run, worker.handle.task_id)
+                if worker.connection_id:
+                    await harness.shutdown_worker(worker.connection_id)
+                await self._todo(swarm)
 
-    async def _worker_tool(self, worker: Worker, ctx: SwarmContext, call: ToolCall) -> tuple[str, bool]:
+    async def _seed(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
+        """Copy the worker's input objects from the user's scene into its own: the parent stages them, the worker loads them."""
+        artifact_id = str(uuid.uuid4())
+        sent = await self.run_script(ctx.socket, session_id=ctx.session_id, chat_session_id=ctx.session_id, turn_id=ctx.turn_id,
+                                     call_id=f"{worker.id}-export", tool_name="swarm_export",
+                                     script=export_script(artifact_id, worker.objects))
+        if not (isinstance(sent, dict) and sent.get("success")):
+            raise RuntimeError(f"could not copy {', '.join(worker.objects)} for {worker.id}: {_clip_json(sent)}")
+        got = await swarm.harness.run_script(swarm.run, worker.handle, turn_id=ctx.turn_id, call_id=f"{worker.id}-import",
+                                             tool_name="swarm_import", script=import_script(artifact_id))
+        if not (isinstance(got, dict) and got.get("success")):
+            raise RuntimeError(f"{worker.id} could not load its inputs: {_clip_json(got)}")
+        worker.inputs_loaded = list(got.get("object_names") or [])
+
+    async def _stage(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
+        artifact_id = str(uuid.uuid4())
+        skip = list(worker.inputs_loaded)
+        got = await swarm.harness.run_script(swarm.run, worker.handle, turn_id=ctx.turn_id, call_id=f"{worker.id}-stage",
+                                             tool_name="swarm_stage", script=stage_script(artifact_id, worker.name, skip))
+        if not (isinstance(got, dict) and got.get("success")):
+            raise RuntimeError(f"{worker.id} could not stage its result: {_clip_json(got)}")
+        worker.handle.artifact = got
+        for name in got.get("object_names") or []:
+            if name not in worker.created:
+                worker.created.append(name)
+
+    async def _worker_tool(self, swarm: Swarm, worker: Worker, ctx: SwarmContext, call: ToolCall) -> tuple[str, bool]:
         try:
             script = script_for(call.name, call.arguments)
         except UnknownTool as exc:
             return str(exc), True
-        result = await self.run_script(ctx.socket, session_id=worker.lane, chat_session_id=worker.lane, turn_id=ctx.turn_id,
-                                       call_id=call.id, tool_name=call.name,
-                                       script=lane_guard.guarded_script(worker.scene_name, script))
-        result, guard = lane_guard.unwrap(result)
+        result = await swarm.harness.run_script(swarm.run, worker.handle, turn_id=ctx.turn_id, call_id=call.id,
+                                                tool_name=call.name, script=script)
         created = []
         if isinstance(result, dict):
             for name in result.get("created_objects") or []:
                 created.append(name)
                 if name not in worker.created:
                     worker.created.append(name)
-        guard_note = ""
-        if guard:
-            for old, new in (guard.get("renamed_own") or {}).items():
-                worker.created = [new if n == old else n for n in worker.created]
-                created = [new if n == old else n for n in created]
-            worker.violations.extend(guard.get("violations") or [])
-            guard_note = lane_guard.describe(guard)
-            if guard.get("unrestored"):
-                worker.status = "failed"
-                worker.error = (f"touched objects outside its lane that cannot be put back: "
-                                f"{', '.join(guard['unrestored'])}")
         if len(worker.calls) < _CALL_LOG_MAX:
             worker.calls.append({"tool": call.name, "script": script[:_CALL_LOG_CHARS],
                                  "success": bool(isinstance(result, dict) and result.get("success")),
@@ -395,13 +435,15 @@ class SwarmManager:
                                  "created": created})
         text, is_error = format_tool_result(result)
         text = text[:_RESULT_CLIP] + "...[clipped]" if len(text) > _RESULT_CLIP else text
-        if guard_note:
-            return f"{guard_note}\n{text}", True
         return text, is_error
 
 
 class SwarmError(ValueError):
     pass
+
+
+def _clip_json(value) -> str:
+    return json.dumps(value, default=str)[:300]
 
 
 def _safe_name(name: str, index: int) -> str:

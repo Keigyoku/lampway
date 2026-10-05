@@ -76,7 +76,8 @@ class AgentHub:
         self.sessions: dict[str, Session] = {}
         self.commands: dict[str, Command] = {}
         # The swarm's workers think with their own (cheaper) provider; with none configured they share the main one.
-        self.swarm = SwarmManager(swarm_provider_factory or (lambda label: self.provider), self._blender_script)
+        self.swarm = SwarmManager(swarm_provider_factory or (lambda label: self.provider), self._blender_script,
+                                  script_timeout_s=script_timeout_s)
 
     # ------------------------------------------------------------ dispatch
     async def handle(self, socket, method: str, request_id, params: dict):
@@ -103,6 +104,7 @@ class AgentHub:
         await socket.reply(request_id, result)
 
     def socket_closed(self, socket):
+        self.swarm.socket_closed(socket)
         for session in self.sessions.values():
             turn = session.current
             if turn is not None and turn.task is not None and getattr(turn, "socket", None) is socket:
@@ -388,8 +390,11 @@ class AgentHub:
             pending.append(asyncio.ensure_future(
                 stream.emit_quietly({"bubble_id": bubble_id, "steps": {"items": list(steps)}})))
 
+        async def emit_todo(rows):
+            await stream.emit_quietly({"bubble_id": bubble_id, "todo": rows})
+
         ctx = SwarmContext(socket=socket, session_id=session.session_id, turn_id=turn.turn_id, call_id=call.id,
-                           progress=progress)
+                           run_id=turn.run_id, progress=progress, emit_todo=emit_todo if stream is not None else None)
         try:
             return await self.swarm.call(call.name, call.arguments, ctx)
         finally:
