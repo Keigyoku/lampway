@@ -48,8 +48,13 @@ _HELP = {
 }
 
 
+_REGISTRY = []
+
+
 def tool(fn):
-    """Return {'ok': True, ...} from the function's dict, or {'ok': False, 'error', 'help'} for a refusal."""
+    """Return {'ok': True, ...} from the function's dict, or {'ok': False, 'error', 'help'} for a refusal. The function joins TOOL_FUNCS, the door the agent's scripts call by name."""
+    _REGISTRY.append(fn.__name__)
+
     @functools.wraps(fn)
     def wrapper(*a, **kw):
         try:
@@ -637,14 +642,21 @@ from .features import texture as _F_texture                # noqa: E402
 from .features import video as _F_video                    # noqa: E402
 from .features import segment as _F_segment                # noqa: E402
 from .features import uv as _F_uv                          # noqa: E402
+from .features import uv_rectify as _F_uvr                # noqa: E402
+from .features import uv_layout as _F_uvl                  # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
 
 @tool
-def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic", symmetry=False):
-    """A new all-quad mesh ``<object>_retopo`` near ``target_faces`` (QuadriFlow, voxel fallback) with a measured report;
-    the original is untouched. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
-    return _F_retopo.retopo(object, target_faces, method, engine, symmetry)
+def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic", symmetry=False, adaptivity=1.0, anisotropy=1.0, sharp_edge=90.0, smooth_normal=0.0, edge_scaling=1.0,
+           timeout=900, fallback=False, hard_surface=False):
+    """A new all-quad mesh ``<object>_retopo`` near ``target_faces`` (QuadriFlow, voxel fallback, or AutoRemesher) with a measured report; the original is untouched. method=autoremesher runs the Qt-free
+    lampway-quadremesh configured by the settings key autoremesher_bin (never an argument: the app downloads nothing) niced in its own process group with a timeout: adaptivity 0..1, anisotropy 0..1, sharp_edge
+    30..180 degrees, smooth_normal 0..180, edge_scaling 1..4, timeout 10..3600 s; refused: symmetry, a target above 3x the source, an engine that exits non-zero (its last 20 log lines; fallback=true uses the
+    voxel remesh instead). The result has no UV layer. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
+    s = _settings()
+    return _F_retopo.retopo(object, target_faces, method, engine, symmetry, True, adaptivity, anisotropy, sharp_edge, smooth_normal, edge_scaling, timeout, fallback, hard_surface,
+                            str(s.autoremesher_bin or ""), str(s.project_root), s.nice)
 
 
 @tool
@@ -784,6 +796,27 @@ def uv_score(objects=None, files=None, res=1024, out="uv_score.json", gates=None
     headless Blender (the live scene is untouched). Each row carries gates {pass, failed} (overlap <= 0.005, flipped <= 0.02, off-density <= 0.05, overridable). `best` is advice: the user picks."""
     from .features import uv_score as _UVS
     return _UVS.run(objects, files, res, out, str(_settings().project_root), gates)
+
+
+@tool
+def uv_rectify(object, op="auto", islands=None, edges=None, evenness=0.0, geometry_ratio=0.5, keep_length=True, name="", discard_texture=False):
+    """Straighten, rectify and gridify UV islands of strap-like geometry (straps, belts, bracers, skirt strips) on a NEW object ``<object>_rect``; the 3D mesh and the source's UVs are never changed. op auto: an
+    island of quads forming a regular grid is gridified (quad-ring propagation; the spacing is the mean 3D edge length per column and row, `evenness` 0..1 blends it toward uniform, `geometry_ratio` 0..1 blends the
+    aspect between the grid counts and the 3D lengths); a non-grid island with a bounding aspect over 3 is rectified; any other is SKIPPED with the reason, never dropped. op rectify: one simple boundary loop onto a
+    rectangle from four corners (largest turns), the interior solved harmonically. op straighten: `edges` [[v, v], ...] an ordered chain goes onto an axis-aligned line at its cumulative 3D lengths (keep_length), the
+    island's boundary stays, the rest relaxes. `islands` are ids from uv_score. Returns per island rectangularity (UV area / bounding box) and stretch p90/p10 before and after. Refused: no UV layer, a textured
+    object (texturing comes last: discard_texture=true to override), a chain that is not one path inside one island."""
+    return _F_uvr.run(object, op, islands, edges, evenness, geometry_ratio, keep_length, name, discard_texture, str(_settings().project_root))
+
+
+@tool
+def uv_layout(object, ops=None, world_axis="z", per_face=False, mirror_axis="x", match_tolerance=0.003, padding=0.01, repack=False, name="", discard_texture=False):
+    """Island layout operations the packer does not do, on a NEW object ``<object>_lay`` (the source keeps its UVs). ops (default [orient]): orient (each island to its minimal axis-aligned box), align_world (rotate so
+    world_axis x|y|z|auto maps to UV +V, from the UV->3D Jacobian), stack_mirrored (islands whose geometry mirrors across mirror_axis, symmetric Chamfer <= match_tolerance metres: NOT a face-count rule, share one UV
+    vertex by vertex; the mesh must be centred on the plane; stacking overlaps UVs so bake_maps refuses it unless stacked_ok), fix_flipped (the minority-winding islands are mirrored in U), sort (a shelf layout, padding).
+    Returns oriented/aligned/flipped_fixed counts, the stacked pairs with their Chamfer distance, and a report (accidental overlap excluding stacked, the deliberate stacked overlap, flipped fraction, coverage).
+    per_face is not built. Refused: unknown op, no UV layer, a textured object (discard_texture=true overrides), an off-plane mesh for stacking."""
+    return _F_uvl.run(object, ops, world_axis, per_face, mirror_axis, match_tolerance, padding, repack, name, discard_texture, str(_settings().project_root))
 
 
 @tool
@@ -1344,8 +1377,8 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 
 # ---- the door the agent's scripts use
 
-TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "qa_descriptors", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick", "uv_score", "uv_texel_density", "mesh_defect_scan", "silhouette_compare", "seed_audit", "fit_place", "fit_openings")
+# Every @tool function, in definition order: derived, not listed by hand (a hand-kept list let 26 tools of Waves 2-4 be functions and Defs the agent could not run).
+TOOL_FUNCS = tuple(_REGISTRY)
 
 
 def call(name: str, payload: str = "{}") -> dict:

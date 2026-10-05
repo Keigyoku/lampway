@@ -150,3 +150,26 @@ def run(name: str, args, s: Optional[S.Settings] = None, timeout: Optional[float
         hint = f"(truncated, {len(out)} chars total" + (f" - full log: {log}" if log else "") + ")"
         out = hint + "\n" + out[-max_chars:]
     return Result(rc, out, log, cmd, timed_out)
+
+
+def run_exe(cmd, timeout, cwd=None, nice=15, env=None) -> dict:
+    """Run a configured executable niced in its OWN process group, with LAMPWAY_BRIDGE_PORT=0 and a hard timeout that kills the whole group. Returns {rc, log, timed_out, seconds}.
+    The executable path comes from settings, never from an agent's arguments; stdout and stderr are merged into ``log`` (lines)."""
+    import signal
+    import time
+    e = dict(os.environ)
+    e.update({"LAMPWAY_BRIDGE_PORT": "0"})
+    e.update(env or {})
+    t0 = time.time()
+    proc = subprocess.Popen(["nice", "-n", str(int(nice))] + [str(c) for c in cmd], cwd=cwd, env=e, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=True)
+    timed_out = False
+    try:
+        out, _ = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        out, _ = proc.communicate()
+    return {"rc": None if timed_out else proc.returncode, "log": (out or "").splitlines(), "timed_out": timed_out, "seconds": round(time.time() - t0, 3)}

@@ -29,7 +29,7 @@ class PathOutsideProject(ValueError):
 
 
 _FIELDS = ("project_root", "python_science", "python_browser", "blender", "nice", "tiles_dir", "ambientcg_dir", "hdri", "python_server", "server_dir",
-           "image_backend")
+           "image_backend", "autoremesher_bin")
 _TEXT_FIELDS = ("image_backend",)          # plain strings; everything else but nice is a path
 
 
@@ -45,7 +45,8 @@ class Settings:
     hdri             the studio .hdr the textured render is lit with
     python_server    a python that can run lampway_server (the mesh-paint image backend runs there, not in the app)
     server_dir       the directory holding the lampway_server package (the repo's server/)
-    image_backend    the mesh-paint image backend: tripo | codex_cli | openrouter (unset = the backend's own default)"""
+    image_backend    the mesh-paint image backend: tripo | codex_cli | openrouter (unset = the backend's own default)
+    autoremesher_bin the lampway-quadremesh executable (native/quadremesh/build.sh) that retopo method=autoremesher runs: the app never downloads one"""
 
     project_root: Path = None
     python_science: Optional[Path] = None
@@ -58,6 +59,7 @@ class Settings:
     python_server: Optional[Path] = None
     server_dir: Optional[Path] = None
     image_backend: Optional[str] = None
+    autoremesher_bin: Optional[Path] = None
 
 
 def _settings_file(home=None) -> Path:

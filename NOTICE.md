@@ -69,3 +69,13 @@ for application UI only and is excluded from public source snapshots.
 The third-party Blender add-ons and tools reviewed for the feature pass (Robust Weight Transfer, TexTools-Blender, UniV,
 AutoRemesher, NifTools) are not part of Lampway: no code from them was copied. The decisions and licences are in
 [docs/lampway/resource-audit.md](docs/lampway/resource-audit.md).
+
+### AutoRemesher (built on request, not distributed)
+
+`native/quadremesh/` is Lampway's own Qt-free command line around the quad-remeshing core of AutoRemesher
+(<https://github.com/huxingyi/autoremesher>, MIT, Copyright (c) 2026 Dust3D Project). The AutoRemesher
+sources are not part of this repository: `native/quadremesh/build.sh` fetches the pinned commit when a user
+builds the executable, and Lampway's retopo tool runs that executable as a separate process (configured by the
+`autoremesher_bin` setting; the app downloads nothing). Anyone who redistributes a built executable must carry
+the MIT notice and the notices of its bundled TBB (Apache-2.0), Eigen (MPL-2.0), meshoptimizer (MIT) and
+isotropicremesher sources.
