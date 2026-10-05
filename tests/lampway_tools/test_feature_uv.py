@@ -58,6 +58,7 @@ print("RESULT", json.dumps({"studio": call("uv_unwrap", object="body", engine="s
 ''')
     out = r.results[0]
     assert out["studio"]["needs_approval"] is True and "Smart UV" in out["studio"]["action"] and "20 credits" in out["studio"]["price"]
+    assert out["studio"]["studio_action"] == "tripo.uv.unwrap" and "studio_plan" in out["studio"]["how"] and "Client" in out["studio"]["how"]
     assert out["bad_method"]["ok"] is False and "magic" in out["bad_method"]["error"]
     assert out["bad_engine"]["ok"] is False and "nowhere" in out["bad_engine"]["error"]
 

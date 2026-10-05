@@ -51,6 +51,7 @@ print("RESULT", json.dumps({"res": res, "objects": sorted(o.name for o in bpy.da
     out = r.results[0]
     assert out["res"]["ok"] is False and out["res"]["needs_approval"] is True
     assert out["res"]["studio"] == "tripo" and out["res"]["action"] and "credits" in out["res"]["price"]
+    assert out["res"]["studio_action"] is None and "no Tripo Studio driver" in out["res"]["how"], "the shelf has no retopology driver yet: say so"
     assert out["objects"] == ["dense"]
 
 

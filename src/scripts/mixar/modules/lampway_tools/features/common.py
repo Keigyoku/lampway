@@ -20,6 +20,10 @@ STUDIO_ACTIONS = {
 }
 
 
+# (feature, studio) -> the server's Studio action id (studios/actions.py); absent = no driver exists yet
+STUDIO_ACTION_IDS = {("uv", "tripo"): "tripo.uv.unwrap", ("image_to_3d", "tripo"): "tripo.mesh", ("texture", "tripo"): "tripo.texture"}
+
+
 class FeatureError(ValueError):
     pass
 
@@ -34,9 +38,13 @@ def studio_slot(feature: str, engine: str) -> dict:
         known = sorted({s for (f, s) in STUDIO_ACTIONS if f == feature})
         raise FeatureError(f"{feature} has no studio:{studio} driver yet; its drivers: {known or 'none'}. "
                            "(The meshy and hi3d driver folders on the owner's shelf are empty; only Tripo's exist.)")
-    return {"ok": False, "needs_approval": True, "studio": studio, "action": action, "price": price,
-            "how": f"Ask the owner to approve this exact action and price, then run the matching studio_* tool with dry_run=false; "
-                   f"it also needs the owner's LAMPWAY_STUDIO_ARMED=1 in the server's environment.",
+    studio_action = STUDIO_ACTION_IDS.get((feature, studio))
+    how = ("Ask the owner to approve this exact action and price: call studio_plan with action "
+           f"{studio_action!r}; the driver reads the price back (nothing is clicked) and the CAPTAIN confirms it in the Client's Studios panel. "
+           "The result lands in the scene from there." if studio_action else
+           f"There is no Tripo Studio driver for {feature} on the owner's shelf yet (it has mesh, Smart UV, texture, image), so nothing can run; "
+           "use engine='algorithmic'.")
+    return {"ok": False, "needs_approval": True, "studio": studio, "studio_action": studio_action, "action": action, "price": price, "how": how,
             "error": f"{action} spends credits: nothing was clicked; it needs the owner's approval of the price first"}
 
 
