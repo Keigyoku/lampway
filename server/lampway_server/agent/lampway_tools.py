@@ -254,6 +254,17 @@ DEFS = [
          P("v3_dir", desc="Folder with <View>.png (RGBA) of the approved plates"), P("variants_dir", desc="Folder with 1.jpg..4.jpg for the view"), P("design_words", desc="prompt: the design inventory"),
          P("palette", desc="prompt: the colours"), P("pick", "integer", "1-4: the captain's choice"), P("bg_threshold", "number", "0.01..0.2, default 0.06"),
          P("opening_iters", "integer", "default 3"), P("min_px", "integer", "Refuse variants smaller than this, default 1024")], api="plate_pick"),
+    Def("lampway_uv_score", "Score UV layouts on measurements, not by eye (the shelf's uv_score): utilization (rasterised at res 256..4096), overlap, UV islands, stretch p90/p10, the fraction "
+        "of area off by 2x, flipped (mirrored) faces, seam length and a composite score; each row has gates {pass, failed}. objects: mesh objects in the scene; files: .fbx/.glb Smart UV "
+        "attempts inside the project root (measured in a headless Blender, the live scene untouched). `best` is advice: the captain picks (tripo.uv.pick, then save).",
+        [P("objects", "array", "Mesh object names"), P("files", "array", "Project-relative .fbx/.glb paths"), P("res", "integer", "256..4096, default 1024"),
+         P("out", desc="Report path under the project root, default uv_score.json"), P("gates", "object", "{max_overlap, max_flipped, max_off_density_2x}")], api="uv_score"),
+    Def("lampway_uv_texel_density", "Set and equalise texel density per UV island on a NEW object `<object>_td` (the source keeps its UVs), repack, and report the density achieved "
+        "(before/after density_cv, coverage, overlap, per-island scales, shortfall). target: px/metre, 'N px/cm' or 'auto' (the current mean); weights {material | vertex group | island:N: 0.1..4}; "
+        "texture_size a power of two. Refuses a textured object (a UV change discards the texture) unless discard_texture.",
+        [P("object", required=True), P("texture_size", "integer", "Power of two, default 2048"), P("target", desc="px/metre | 'N px/cm' | auto (default)"),
+         P("weights", "object", "{material | vertex group | island:N: factor}"), P("mode", desc="island (default) | all"), P("repack", "boolean", "default true"),
+         P("margin", "number", "UV units 0..0.05, default 0.005"), P("name", desc="Default <object>_td"), P("discard_texture", "boolean", "Allow a textured object")], api="uv_texel_density"),
     Def("lampway_detail_normals", "Micro depth for a textured_atlas material without the relief map: per-material tiling detail normals box-projected "
         "in object space (metals take their ambientCG NormalGL maps; cloth and leather a small bump from their colour), blended by the material's "
         "per-texel masks. Idempotent: its 'DN:' nodes are replaced on a re-run. strengths: {plate, gold, cloth, leather}.",

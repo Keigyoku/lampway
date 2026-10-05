@@ -144,3 +144,12 @@ def test_piece_ratios_is_a_batch_tool_with_the_kind_first_and_the_clearance_as_a
     assert 'api.call("run_tool"' in s
     got = args_of(s)
     assert got["name"] == "piece_ratios" and got["args"][:5] == ["boots", "s.json", "b.npz", "a=a.npz:-90", "b=b.npz:-90"] and got["args"][5:] == ["--clear-mm", "20"], got
+
+
+def test_uv_tools_reach_blender_with_their_arguments():
+    names = {t.name for t in T.TOOLS}
+    assert {"lampway_uv_score", "lampway_uv_texel_density"} <= names
+    got = args_of(T.script_for("lampway_uv_score", {"files": ["a.fbx"], "res": 2048, "gates": {"max_overlap": 0.01}, "junk": 1}))
+    assert got == {"files": ["a.fbx"], "res": 2048, "gates": {"max_overlap": 0.01}}
+    got = args_of(T.script_for("lampway_uv_texel_density", {"object": "boot", "weights": {"face": 1.5}, "target": "10.24 px/cm"}))
+    assert got == {"object": "boot", "weights": {"face": 1.5}, "target": "10.24 px/cm"}

@@ -65,6 +65,7 @@ TOOLS = dict([
     _t("material_masks", "science", "texlib/material_masks.py", "material masks from the projected colour and each part's class"),
     _t("pbr_merge", "science", "texlib/pbr_merge.py", "engine-ready PBR set: studio maps kept, patches filled, palette and metal fixes baked in"),
     _t("proportion_ratios", "numpy", "proportion/proportion_ratios.py", "scale-free landmark ratios against the body (the primary proportion score)"),
+    _t("uv_score", "blender", "texlib/uv_score.py", "score UV layouts of files on measurements (utilization, overlap, islands, stretch, flipped, seams)"),
     _t("piece_ratios", "numpy", "proportion/piece_ratios.py", "proportion scores of helmet / waist / boots / gauntlets against the body (NEW, unvalidated)"),
     _t("place_piece", "numpy", "proportion/place_piece.py", "place a torso piece on the body the way the audits do"),
     _t("pauldron_symmetry", "numpy", "proportion/pauldron_symmetry.py", "left versus mirrored-right shoulder height maps"),

@@ -778,6 +778,24 @@ def plate_pick(stage, piece="", view="Front", paired=False, v3_dir="", variants_
 
 
 @tool
+def uv_score(objects=None, files=None, res=1024, out="uv_score.json", gates=None):
+    """Score UV layouts on measurements, not by eye: utilization (rasterised at res, 256..4096), overlap, UV-connected islands, stretch p90/p10, the fraction of area off by 2x, flipped
+    (mirrored) faces, seam length and a composite score (the shelf's uv_score). objects: mesh objects in the scene; files: .fbx/.glb attempts inside the project root, measured in a
+    headless Blender (the live scene is untouched). Each row carries gates {pass, failed} (overlap <= 0.005, flipped <= 0.02, off-density <= 0.05, overridable). `best` is advice: the captain picks."""
+    from .features import uv_score as _UVS
+    return _UVS.run(objects, files, res, out, str(_settings().project_root), gates)
+
+
+@tool
+def uv_texel_density(object, texture_size=2048, target="auto", weights=None, mode="island", repack=True, margin=0.005, name="", discard_texture=False):
+    """Set and equalise texel density per UV island on a NEW object `<object>_td` (the source keeps its UVs), then repack and report the density actually achieved. target: px/metre,
+    'N px/cm' or 'auto' (the current mean: only the spread changes); weights: {material | vertex group | island:N: factor 0.1..4}; mode island | all; texture_size a power of two.
+    The layout is only ever shrunk to fit 0..1 (`shortfall` = achieved/requested says so). Refuses a textured object (a UV change discards the texture) unless discard_texture."""
+    from .features import uv_texel as _UVT
+    return _UVT.run(object, texture_size, target, weights, mode, repack, margin, name, discard_texture, str(_settings().project_root))
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
@@ -852,7 +870,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "qa_descriptors", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick", "uv_score", "uv_texel_density")
 
 
 def call(name: str, payload: str = "{}") -> dict:
