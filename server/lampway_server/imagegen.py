@@ -110,6 +110,10 @@ def openrouter_images(prompt: str, references: list, count: int) -> list:
         for i in range(1, int(count) + 1):
             ledger.check()
             body = {"model": model, "prompt": prompt}
+            if settings.openrouter_image_size:
+                body["size"] = settings.openrouter_image_size
+            if settings.openrouter_image_quality:
+                body["quality"] = settings.openrouter_image_quality
             if refs:
                 body["input_references"] = refs
             resp = client.post(f"{BASE_URL}/images", json=body, headers={
