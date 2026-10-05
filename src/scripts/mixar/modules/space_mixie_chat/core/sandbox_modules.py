@@ -285,9 +285,11 @@ class _UrlResponse:
 
 
 def _allowed_asset_hosts():
-    """Hosts a sandboxed script may GET from (asset CDNs only). Env-overridable."""
+    """Hosts a sandboxed script may GET from (asset CDNs plus loopback, so our
+    local asset server works). Env-overridable with MIXAR_ASSET_HOSTS."""
     import os
-    raw = os.environ.get("MIXAR_ASSET_HOSTS", "amazonaws.com,cloudflarestorage.com")
+    from mixar.config.brand import DEFAULT_ASSET_HOSTS
+    raw = os.environ.get("MIXAR_ASSET_HOSTS", ",".join(DEFAULT_ASSET_HOSTS))
     return tuple(h.strip().lower() for h in raw.split(",") if h.strip())
 
 

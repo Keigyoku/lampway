@@ -8,7 +8,7 @@ The card opens with "Welcome, <name> !", so it needs something short and
 personal. ``/auth/me`` returns an optional ``name``; when it is absent
 (most SSO signups never set one) the email's local part is the only
 signal available, and reads correctly for the common cases
-(``rahul@mixar.app`` → "Rahul").
+(``rahul@example.com`` → "Rahul").
 
 Kept pure and separate from ``state`` so the derivation is unit-testable
 and so a malformed name can never break the card draw.

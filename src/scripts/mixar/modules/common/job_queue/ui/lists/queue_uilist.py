@@ -8,6 +8,7 @@ import time
 
 from bpy.types import UIList
 
+from mixar.config.brand import website_url
 from mixar.modules.common.job_queue.core.error_helpers import sanitize_message
 from mixar.modules.common.job_queue.core.job import JobState
 from mixar.modules.common.job_queue.core.labels import feature_label, format_elapsed
@@ -40,7 +41,7 @@ _FAILED_STATE_VALUES = {
 
 _TERMINAL_STATE_VALUES = _DONE_STATE_VALUES | _FAILED_STATE_VALUES
 
-_BUG_REPORT_URL = "https://www.mixar.app/bug-report"
+_BUG_REPORT_URL = website_url("/bug-report")
 
 # Centralized queue layout tokens. Generation names remain backend-owned;
 # these values only control the native Blender presentation.

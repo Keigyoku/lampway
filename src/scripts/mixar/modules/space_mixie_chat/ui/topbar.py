@@ -4,13 +4,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """
-Mixar Profile Dropdown — injected into Blender's main top bar.
+Profile Dropdown — injected into Blender's main top bar.
 
 The user-profile dropdown (account actions, AI connections, Docs and Logout) used to
-live in the Mixie Chat editor header. It's been promoted to the global
+live in the agent chat editor header. It's been promoted to the global
 top bar (`TOPBAR_HT_upper_bar`, RIGHT region) so it's reachable from
-every editor — including the floating Agent Bubble — and so the Mixie
-Chat header can stay tightly focused on chat-specific controls.
+every editor — including the floating Agent Bubble — and so the agent
+chat header can stay tightly focused on chat-specific controls.
 
 How it integrates with upstream Blender's top bar:
 
@@ -31,6 +31,8 @@ from __future__ import annotations
 
 import bpy
 from bpy.types import Header, Panel
+
+from mixar.config.brand import PRODUCT_NAME, website_url
 
 from ..constants import SOUND_FEEDBACK_WIDTHS, SessionState  # noqa: F401  (kept for parity)
 from ..core import avatar_icon, sound_feedback
@@ -93,14 +95,14 @@ class MIXAR_PT_profile(Panel):
         layout.separator()
 
         layout.operator(
-            "wm.url_open", text="About Mixar", icon='INFO',
-        ).url = "https://www.mixar.app/about"
+            "wm.url_open", text=f"About {PRODUCT_NAME}", icon='INFO',
+        ).url = website_url("/about")
         layout.operator(
             "wm.url_open", text="Documentation", icon='HELP',
-        ).url = "https://www.mixar.app/docs"
+        ).url = website_url("/docs")
         layout.operator(
             "wm.url_open", text="Report a Bug", icon='URL',
-        ).url = "https://www.mixar.app/bug-report"
+        ).url = website_url("/bug-report")
 
         layout.separator()
 

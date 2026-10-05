@@ -47,7 +47,7 @@ enum class MixarCardElement : uint8_t {
   None = 0,
   /** "Welcome, Rahul !" — oversized, full-contrast. */
   Heading,
-  /** "(rahul@mixar.app)" — small, dim. */
+  /** "(rahul@example.com)" — small, dim. */
   Muted,
   /** "Usage Remaining" — small, one tier brighter than #Muted so the section
    * reads as a heading rather than as more metadata. */

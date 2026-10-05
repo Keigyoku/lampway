@@ -190,7 +190,8 @@ def test_the_dialog_copies_one_standard_config_and_links_the_guide(monkeypatch):
     root = "/Applications/Mixar App.app/Contents/Resources/5.2"
     server = json.loads(connection_config("JSON", root))["mcpServers"]["mixar"]
     assert server["command"].startswith(root) and set(server) == {"command", "args"}
-    assert SETUP_GUIDE_URL == "https://www.mixar.app/docs#connect-ai-apps"
+    from mixar.config.brand import website_url
+    assert SETUP_GUIDE_URL == website_url("/docs#connect-ai-apps")
     from pathlib import Path
     dialog = (Path(__file__).parents[2] / "src/scripts/mixar/modules/mcp_bridge/ui/operators/connect.py").read_text()
     assert 'text="Copy MCP Config"' in dialog and 'text="Setup Guide"' in dialog

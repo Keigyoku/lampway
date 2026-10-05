@@ -116,7 +116,9 @@ class TOPBAR_MT_editor_menus(Menu):
         if getattr(context.area, "show_menus", False):
             layout.menu("TOPBAR_MT_blender", text="", icon='MIXAR_ICON')
         else:
-            layout.menu("TOPBAR_MT_blender", text="Mixar")
+            # LAMPWAY: product name (mirrors mixar.config.brand.PRODUCT_NAME;
+            # bl_ui may load before bootstrap puts `mixar` on sys.path).
+            layout.menu("TOPBAR_MT_blender", text="Lampway")
 
         layout.menu("TOPBAR_MT_file")
         layout.menu("TOPBAR_MT_edit")
@@ -129,7 +131,7 @@ class TOPBAR_MT_editor_menus(Menu):
 
 
 class TOPBAR_MT_blender(Menu):
-    bl_label = "Mixar"
+    bl_label = "Lampway"  # LAMPWAY: mirrors mixar.config.brand.PRODUCT_NAME
 
     def draw(self, _context):
         layout = self.layout
@@ -602,9 +604,13 @@ class TOPBAR_MT_help(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("wm.url_open", text="Tutorials", icon='FILE_MOVIE').url = "https://www.youtube.com/@Mixar3D"
-        layout.operator("wm.url_open", text="Documentation", icon='HELP').url = "https://www.mixar.app/docs"
-        layout.operator("wm.url_open", text="Report a Bug", icon='URL').url = "https://www.mixar.app/bug-report"
+        # LAMPWAY: every link is built from the fork's one website constant.
+        # Imported at draw time: bl_ui can load before bootstrap puts `mixar`
+        # on sys.path, and the Help menu is only drawn long after that.
+        from mixar.config.brand import website_url
+
+        layout.operator("wm.url_open", text="Documentation", icon='HELP').url = website_url("/docs")
+        layout.operator("wm.url_open", text="Report a Bug", icon='URL').url = website_url("/bug-report")
         layout.separator()
         # The onboarding tour opens this menu with the row highlighted while
         # it talks about the program (WindowManager ID property it sets).
@@ -612,7 +618,7 @@ class TOPBAR_MT_help(Menu):
         highlighted = wm is not None and wm.get("mixar_tour_highlight") == "creator_program"
         layout.operator(
             "wm.url_open", text="Creator Program", icon='COMMUNITY', depress=highlighted,
-        ).url = "https://www.mixar.app/creator-program"
+        ).url = website_url("/creator-program")
 
 
 class TOPBAR_MT_file_context_menu(Menu):

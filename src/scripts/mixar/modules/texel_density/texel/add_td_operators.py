@@ -8,6 +8,8 @@ from bpy.props import StringProperty
 from datetime import datetime
 import webbrowser
 
+from mixar.config.brand import WEBSITE_URL
+
 from . import utils
 from .core_td_operators import find_image_editor_area
 
@@ -259,7 +261,7 @@ class OpenURL(bpy.types.Operator):
 	url: bpy.props.StringProperty(
 		name="URL",
 		description="Destination URL",
-		default="https://mixar.app"
+		default=WEBSITE_URL
 	)
 
 	def execute(self, _):

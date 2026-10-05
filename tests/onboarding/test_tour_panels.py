@@ -55,7 +55,7 @@ def test_help_menu_has_the_creator_program_entry_highlighted_by_the_tour():
     cls = next(n for n in ast.walk(tree)
                if isinstance(n, ast.ClassDef) and n.name == "TOPBAR_MT_help")
     src = ast.get_source_segment(TOPBAR.read_text(), cls)
-    assert "https://www.mixar.app/creator-program" in src
+    assert 'website_url("/creator-program")' in src
     assert 'text="Creator Program"' in src
     assert "depress=highlighted" in src
     assert f'"{actions_extra.HIGHLIGHT_KEY}"' in src

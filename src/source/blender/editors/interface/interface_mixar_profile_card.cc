@@ -41,6 +41,8 @@
 #include "UI_mixar_chrome.hh"
 #include "UI_resources.hh"
 
+#include "BLI_lampway_brand.h"
+
 #include "interface_intern.hh"
 #include "interface_mixar_card_icons.hh"
 #include "interface_mixar_card_paint.hh"
@@ -52,9 +54,10 @@ namespace blender::ui {
 
 namespace {
 
-/* Documentation/support destinations — same URLs the previous menu used. */
-constexpr const char *MIXAR_URL_DOCS = "https://www.mixar.app/docs";
-constexpr const char *MIXAR_URL_BUG = "https://www.mixar.app/bug-report";
+/* Documentation/support destinations. LAMPWAY: built from the fork's one
+ * website constant (BLI_lampway_brand.h), never the upstream host. */
+constexpr const char *MIXAR_URL_DOCS = LAMPWAY_WEBSITE_URL "/docs";
+constexpr const char *MIXAR_URL_BUG = LAMPWAY_WEBSITE_URL "/bug-report";
 
 /* Dashboard handoff target for the top-up CTA; must match
  * `modules/common/usage/constants.py:HANDOFF_TARGET_*`. */

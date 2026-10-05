@@ -16,6 +16,8 @@ the fallback for platforms/installations that cannot self-install.
 
 from enum import Enum
 
+from mixar.config.brand import website_url
+
 # ============================================================================
 # PLATFORM MAPPING
 # ============================================================================
@@ -73,7 +75,7 @@ OP_CANCEL_UPDATE_DOWNLOAD = "mixar.cancel_update_download"
 # Public downloads page — where the update toast's [Download] button goes
 # when the backend doesn't supply a per-release browser URL.
 # Overridable at runtime via mixar.json ("updates" -> "downloads_url").
-DOWNLOADS_PAGE_URL = "https://www.mixar.app/downloads"
+DOWNLOADS_PAGE_URL = website_url("/downloads")
 
 # ============================================================================
 # DOWNLOAD POLICY
