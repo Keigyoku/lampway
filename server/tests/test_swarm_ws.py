@@ -28,7 +28,7 @@ def test_a_swarm_turn_routes_lanes_workers_and_merge_to_the_right_sessions(setti
         [Text("Both workers finished.")]])
     app = create_app(settings, provider=main, swarm_provider_factory=worker_provider)
     scripts = []
-    with TestClient(app) as http:
+    with TestClient(app, base_url="http://127.0.0.1:8787") as http:
         fake = FakeMixarClient(http, password=settings.user_password)
         fake.login()
 

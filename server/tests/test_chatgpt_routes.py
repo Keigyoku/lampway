@@ -21,7 +21,7 @@ def stack(tmp_path):
     settings = Settings(state_dir=tmp_path / "state", jwt_secret="s", provider="mock", port=8787)
     app = create_app(settings, chatgpt_auth=CA.ChatGPTAuth(
         settings.state_dir, http=httpx.Client(transport=httpx.MockTransport(fake.handler)), redirect_port=8787, jwks=lambda: JWKS))
-    with TestClient(app, follow_redirects=False) as client:
+    with TestClient(app, follow_redirects=False, base_url="http://127.0.0.1:8787") as client:
         yield client, fake, app
 
 
@@ -33,7 +33,7 @@ def test_the_page_offers_continue_with_chatgpt_when_signed_out(stack):
 
 def test_start_redirects_to_openais_authorization_page_with_the_documented_parameters(stack):
     client, _, _ = stack
-    r = client.get("/app/chatgpt/start")
+    r = client.post("/app/chatgpt/start")
     assert r.status_code == 302
     u = urlparse(r.headers["location"])
     q = {k: v[0] for k, v in parse_qs(u.query).items()}
@@ -44,7 +44,7 @@ def test_start_redirects_to_openais_authorization_page_with_the_documented_param
 
 def test_the_callback_completes_the_sign_in_and_the_page_links_to_manage_usage(stack):
     client, fake, app = stack
-    r = client.get("/app/chatgpt/start")
+    r = client.post("/app/chatgpt/start")
     q = {k: v[0] for k, v in parse_qs(urlparse(r.headers["location"]).query).items()}
     fake.nonce = q["nonce"]
     cb = client.get("/auth/callback", params={"code": "CODE", "state": q["state"], "client_id": ISSUED, "scope": SCOPES})
@@ -62,7 +62,7 @@ def test_a_forged_callback_is_refused(stack):
 
 def test_declining_consent_shows_how_to_retry_and_stores_nothing(stack):
     client, _, app = stack
-    r = client.get("/app/chatgpt/start")
+    r = client.post("/app/chatgpt/start")
     state = parse_qs(urlparse(r.headers["location"]).query)["state"][0]
     cb = client.get("/auth/callback", params={"error": "access_denied", "state": state})
     assert cb.status_code == 200 and "not authorized" in cb.text and "Continue with ChatGPT" in cb.text

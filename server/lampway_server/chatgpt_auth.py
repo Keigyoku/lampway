@@ -93,6 +93,8 @@ def _b64(raw: bytes) -> str:
 
 
 class ChatGPTAuth:
+    MAX_PENDING = 16                     # sign-in attempts kept in memory; the oldest is dropped past it
+
     def __init__(self, state_dir, *, http: Optional[httpx.Client] = None, app_name: str = "Lampway", redirect_port: int = 8787,
                  jwks: Optional[Callable[[], dict]] = None, clock: Callable[[], float] = time.time):
         self.dir = Path(state_dir)
@@ -167,6 +169,8 @@ class ChatGPTAuth:
         attempt = Attempt(f"{AUTHORIZE_URL}?{urlencode(params)}", state, nonce, verifier, self.redirect_uri,
                           params["client_id"], registering, acct.get("subject") if acct else None)
         self._pending[state] = attempt
+        while len(self._pending) > self.MAX_PENDING:
+            self._pending.pop(next(iter(self._pending)))
         return attempt
 
     def complete_login(self, query: dict) -> dict:

@@ -55,6 +55,7 @@ class Auth:
     """One account; token pairs; PKCE codes; idempotent refresh."""
 
     PKCE_CODE_TTL_S = 300
+    MAX_REPLAYS = 256                    # Idempotency-Key replays remembered; the oldest is dropped past it
 
     def __init__(self, *, secret: str, email: str, name: str, password: str,
                  access_ttl_s: int, credits: int):
@@ -110,6 +111,8 @@ class Auth:
         pair = self.issue_pair()
         if idempotency_key:
             self._refresh_replays[idempotency_key] = (refresh_token, pair)
+            while len(self._refresh_replays) > self.MAX_REPLAYS:
+                self._refresh_replays.pop(next(iter(self._refresh_replays)))
         return pair
 
     # ---------------------------------------------------------------- PKCE

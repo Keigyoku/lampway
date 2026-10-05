@@ -35,6 +35,54 @@ def render_login_page(fields: dict, error: str = "") -> str:
 <button type="submit">Continue</button></form></body></html>"""
 
 
+LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
+
+
+def host_allowed(host_header: str, bind_host: str) -> bool:
+    """True when the request's Host names this server: a loopback name or the configured bind host. Anything else
+    (a DNS name rebound to 127.0.0.1, a look-alike) is not us."""
+    raw = (host_header or "").strip()
+    if not raw:
+        return False
+    try:
+        hostname = urlparse(f"//{raw}").hostname or ""
+    except ValueError:
+        return False
+    return hostname in LOOPBACK_HOSTS or (bool(bind_host) and hostname == bind_host.strip("[]").lower())
+
+
+class HostGuard:
+    """ASGI middleware: 421 for every HTTP request (and a refused WebSocket) whose Host is not ours."""
+
+    def __init__(self, app, bind_host: str):
+        self.app = app
+        self.bind_host = bind_host
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] in ("http", "websocket"):
+            host = next((v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"host"), "")
+            if not host_allowed(host, self.bind_host):
+                if scope["type"] == "http":
+                    response = JSONResponse({"detail": "Misdirected request: this server answers only its own host"},
+                                            status_code=421)
+                    await response(scope, receive, send)
+                else:
+                    await send({"type": "websocket.close", "code": 1008})
+                return
+        await self.app(scope, receive, send)
+
+
+def loopback_origin(request: Request) -> bool:
+    """A missing Origin (a plain form post) or one naming a loopback host."""
+    origin = request.headers.get("origin")
+    if not origin:
+        return True
+    try:
+        return (urlparse(origin).hostname or "") in LOOPBACK_HOSTS
+    except ValueError:
+        return False
+
+
 def bearer_token(request: Request):
     header = request.headers.get("authorization", "")
     if header.lower().startswith("bearer "):
@@ -128,7 +176,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
             head = ('<p>Signed in, but ChatGPT plan usage is not enabled for this sign-in. '
                     '<a href="/app/chatgpt/start">Enable it</a> or use an API key.</p>')
         else:
-            head = '<p><a href="/app/chatgpt/start"><button>Continue with ChatGPT</button></a></p>'
+            head = '<form method="post" action="/app/chatgpt/start"><button>Continue with ChatGPT</button></form>'
         return HTMLResponse(f"""<!doctype html><html><head><meta charset="utf-8"><title>Lampway - ChatGPT plan</title>
 <style>body{{font-family:sans-serif;max-width:34em;margin:4em auto}}</style></head><body><h1>Lampway</h1>
 <h2>ChatGPT plan usage</h2>{body}{head}
@@ -139,6 +187,10 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         return _chatgpt_page("")
 
     async def chatgpt_start(request: Request):
+        """Begins a sign-in attempt, so it is a POST from a loopback page: a sandboxed script's GET or a cross-site
+        navigation cannot start one."""
+        if not loopback_origin(request):
+            return JSONResponse({"detail": "cross-origin sign-in refused"}, status_code=403)
         return RedirectResponse(chatgpt.start_login().url, status_code=302)
 
     async def chatgpt_callback(request: Request):
@@ -158,8 +210,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         return JSONResponse(chatgpt.status())
 
     async def chatgpt_signout(request: Request):
-        origin = request.headers.get("origin")
-        if origin and urlparse(origin).hostname not in ("127.0.0.1", "localhost"):
+        if not loopback_origin(request):
             return JSONResponse({"detail": "cross-origin sign-out refused"}, status_code=403)
         import asyncio
         await asyncio.to_thread(chatgpt.sign_out)
@@ -167,7 +218,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
 
     routes = [
         Route("/app/chatgpt", chatgpt_home, methods=["GET"]),
-        Route("/app/chatgpt/start", chatgpt_start, methods=["GET"]),
+        Route("/app/chatgpt/start", chatgpt_start, methods=["POST"]),
         Route("/auth/callback", chatgpt_callback, methods=["GET"]),
         Route("/app/chatgpt/status", chatgpt_status, methods=["GET"]),
         Route("/app/chatgpt/signout", chatgpt_signout, methods=["POST"]),
@@ -214,6 +265,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     app = Starlette(routes=routes)
+    app.add_middleware(HostGuard, bind_host=settings.host)
     app.state.hub = hub
     app.state.settings = settings
     app.state.auth = auth

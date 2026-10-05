@@ -156,6 +156,9 @@ class FakeMixarClient:
         headers = {"x-telemetry-consent": "1", "X-Mixar-Locale": "en_US"}
         if token:
             headers["Authorization"] = f"Bearer {token}"
+        # Starlette's TestClient opens WebSockets against "testserver" whatever the base_url; name the host the server
+        # answers to (the host guard refuses the rest).
+        headers = {**headers, "host": "127.0.0.1:8787"}
         return self.http.websocket_connect(f"/api/agent/ws/{self.instance_id}", headers=headers)
 
     def handshake_frame(self):

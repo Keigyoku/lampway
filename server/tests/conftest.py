@@ -43,7 +43,7 @@ def app(settings, provider):
 
 @pytest.fixture
 def http(app):
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://127.0.0.1:8787") as client:   # the Host the server answers to
         yield client
 
 
