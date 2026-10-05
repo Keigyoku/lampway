@@ -10,6 +10,7 @@ from . import server_tools as st
 
 RUN_BLENDER_PYTHON = "run_blender_python"
 SCENE_SUMMARY = "scene_summary"
+ASK_USER = "ask_user"
 
 SCENE_SUMMARY_SCRIPT = '''import bpy
 _objects = []
@@ -64,6 +65,23 @@ TOOLS = [
     ),
 ]
 
+TOOLS.append(ToolSpec(
+    name=ASK_USER,
+    description=(
+        "Ask the user one question and wait for the answer before going on: a choice to make, a detail the request "
+        "leaves open, or approval of a plan. Give short `options` when the answer is one of a few; leave them out for a "
+        "free-text answer. The turn pauses until the user answers; their answer comes back as this tool's result."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {"question": {"type": "string", "description": "The question, in plain language."},
+                       "options": {"type": "array", "items": {"type": "string"},
+                                   "description": "The choices to offer (2 to 6 short labels), if any."}},
+        "required": ["question"],
+        "additionalProperties": False,
+    },
+))
+
 TOOLS = TOOLS + lt.SPECS + st.SPECS
 TOOL_NAMES = {t.name for t in TOOLS}
 
@@ -80,6 +98,8 @@ def script_for(name: str, arguments: dict) -> str:
         return script
     if name == SCENE_SUMMARY:
         return SCENE_SUMMARY_SCRIPT
+    if name == ASK_USER:
+        raise UnknownTool("ask_user is answered by the user, not by Blender")
     if st.is_local(name):
         raise UnknownTool(f"{name} runs on the server, not in Blender")
     if name in lt.BY_NAME:

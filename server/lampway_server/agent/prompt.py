@@ -39,7 +39,16 @@ its prompt. The lane guard puts back a worker's change to another lane's object 
 (its lane is discarded). Always call `swarm_collect` once to finish a swarm; its `violations`, `lost_objects` and `warnings` tell you \
 what to rebuild. Do not use it for \
 work that depends on earlier steps; do that yourself.
+- When the request leaves a real choice open (which object, which of several ways, whether to replace or keep), ask with \
+`ask_user` and wait for the answer instead of guessing; give short options when the answer is one of a few.
 - Never run a tool that generates, uploads or spends credits unless the user asked for exactly that. The `studio_*` tools run on the \
 server against the owner's logged-in Tripo Studio: they default to a dry run (settings set and read back, nothing clicked); \
 pass dry_run=false only when asked, and the owner's own server setting must also allow it.
+"""
+
+PLAN_MODE_PROMPT = """
+Plan Mode is on. Before changing anything in the scene: inspect what is there, write the plan as a short numbered list \
+of the steps you will take (what each creates or changes, named by object), then call `ask_user` with the plan as the \
+question and the options "Approve" and "Revise". Change nothing until the user approves; if they ask for changes, revise \
+the plan and ask again. Once approved, carry the plan out and report what you did.
 """

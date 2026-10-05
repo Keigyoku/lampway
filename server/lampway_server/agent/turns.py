@@ -20,11 +20,11 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Optional
 
-from .prompt import SYSTEM_PROMPT
+from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Text, ToolCall
 from . import server_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
-from .tools import TOOLS, UnknownTool, format_tool_result, script_for
+from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
 
 log = logging.getLogger("lampway.agent")
 
@@ -40,6 +40,8 @@ class Turn:
     events: list[dict] = field(default_factory=list)  # payloads by seq
     status: str = "running"  # running | ended | abandoned
     task: Optional[asyncio.Task] = None
+    plan_mode: bool = False
+    asked: bool = False       # ended on an ask_user question: the run stays in progress until the answer
 
     @property
     def last_seq(self) -> int:
@@ -53,6 +55,8 @@ class Session:
     turns: dict[str, Turn] = field(default_factory=dict)
     last_turn_id: Optional[str] = None
     current: Optional[Turn] = None
+    pending_question: Optional[dict] = None   # {interrupt_id, call_id, question} while an ask_user waits for its answer
+    bookmarks: dict = field(default_factory=dict)   # checkpoint request_id -> len(messages) at the mark
 
 
 @dataclass
@@ -117,7 +121,7 @@ class AgentHub:
         message = payload.get("message")
         if not session_id or not isinstance(message, str):
             raise InvalidParams("payload.session_id and payload.message are required")
-        return self._admit(socket, command_id, session_id, message)
+        return self._admit(socket, command_id, session_id, message, plan_mode=bool(payload.get("plan_required")))
 
     async def _input(self, socket, params):
         command_id, payload = _command_parts(params)
@@ -126,14 +130,24 @@ class AgentHub:
         if not session_id or not isinstance(text, str):
             raise InvalidParams("payload.session_id and payload.text are required")
         answers = payload.get("answers")
+        session = self._session(session_id)
+        pending = session.pending_question
+        interrupt_id = str(payload.get("interrupt_id") or "")
+        if pending is not None and (not interrupt_id or interrupt_id == pending["interrupt_id"]):
+            # The answer to an ask_user question: it is the tool's result, and the model goes on from there.
+            answer = text.strip() or ", ".join(str(a) for a in (answers or [])) or "(no answer)"
+            session.messages.append(Message("user", [{"type": "tool_result", "tool_call_id": pending["call_id"],
+                                                      "content": answer, "is_error": False}]))
+            session.pending_question = None
+            return self._admit(socket, command_id, session_id, None, plan_mode=pending.get("plan_mode", False))
         if answers:
             text = f"{text}\n{answers}" if text else str(answers)
         return self._admit(socket, command_id, session_id, text)
 
-    def _admit(self, socket, command_id, session_id, user_text):
+    def _admit(self, socket, command_id, session_id, user_text, plan_mode=False):
         session = self._session(session_id)
         command = self.commands[command_id] = Command(command_id, session_id)
-        turn = Turn(session_id, command_id, str(uuid.uuid4()))
+        turn = Turn(session_id, command_id, str(uuid.uuid4()), plan_mode=plan_mode)
         turn.socket = socket  # type: ignore[attr-defined]
         session.turns[command_id] = turn
         session.last_turn_id = command_id
@@ -196,10 +210,30 @@ class AgentHub:
         return {"status": "success"}
 
     async def _checkpoint_mark(self, socket, params):
+        """Bookmark the conversation where it stands (turn_checkpoints.py: sent after a scene snapshot is written)."""
+        _command_id, payload = _command_parts(params)
+        session = self.sessions.get(str(payload.get("session_id") or ""))
+        request_id = str(payload.get("request_id") or "")
+        if session is None or not request_id:
+            return {"ok": True, "has_conversation": False}
+        session.bookmarks[request_id] = len(session.messages)
         return {"ok": True, "has_conversation": True}
 
     async def _checkpoint_rewind(self, socket, params):
-        return {"ok": False, "has_conversation": True}
+        """Forget every turn after the bookmark the restored scene was taken at. ``has_conversation: false`` tells the
+        client there is nothing to rewind to and to start a new session (checkpoint_backend.py)."""
+        _command_id, payload = _command_parts(params)
+        session = self.sessions.get(str(payload.get("session_id") or ""))
+        request_id = str(payload.get("request_id") or "")
+        if session is None or request_id not in session.bookmarks:
+            return {"ok": True, "has_conversation": False}
+        if session.current is not None and session.current.task is not None:
+            session.current.task.cancel()
+        keep = session.bookmarks[request_id]
+        del session.messages[keep:]
+        session.bookmarks = {rid: n for rid, n in session.bookmarks.items() if n <= keep}
+        session.pending_question = None
+        return {"ok": True, "has_conversation": True}
 
     # ------------------------------------------------------------ the turn
     async def _run_turn(self, socket, session: Session, turn: Turn, command: Command, user_text: str,
@@ -225,7 +259,8 @@ class AgentHub:
             await stream.emit({"type": "run_status", "run_id": turn.run_id, "status": "in_progress"})
             await stream.emit({"bubble_id": bubble_id,
                                "loader": {"visible": True, "texts": ["Thinking..."], "rotate_ms": 2000}})
-            session.messages.append(Message.user_text(user_text))
+            if user_text is not None:                      # None: resuming after an ask_user answer
+                session.messages.append(Message.user_text(user_text))
             await self._agent_loop(socket, session, turn, stream, bubble_id, steps)
         except asyncio.CancelledError:
             status = "cancelled"
@@ -246,7 +281,8 @@ class AgentHub:
                 await stream.emit_quietly({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
             await stream.emit_quietly({"bubble_id": bubble_id, "loader": {"visible": False},
                                        "ephemeral": {"clear": True}})
-            await stream.emit_quietly({"type": "turn_end", "status": status, "run_id": turn.run_id})
+            await stream.emit_quietly({"type": "turn_end", "status": "in_progress" if turn.asked and status == "completed" else status,
+                                       "run_id": turn.run_id})
             turn.status = "ended"
             await socket.notify("agent.turn.ended", {
                 "session_id": session.session_id, "turn_id": turn.turn_id, "last_seq": turn.last_seq,
@@ -259,8 +295,9 @@ class AgentHub:
                 session.current = None
 
     async def _agent_loop(self, socket, session, turn, stream, bubble_id, steps):
+        system = self.system_prompt + (PLAN_MODE_PROMPT if turn.plan_mode else "")
         for _round in range(64):
-            request = ModelRequest(self.system_prompt, list(session.messages), list(TOOLS) + SWARM_SPECS)
+            request = ModelRequest(system, list(session.messages), list(TOOLS) + SWARM_SPECS)
             text_parts: list[str] = []
             calls: list[ToolCall] = []
             async for event in self.provider.stream(request):
@@ -277,6 +314,10 @@ class AgentHub:
                 if text:
                     await stream.emit({"bubble_id": bubble_id, "content": {"set": text}})
                 return
+            question = next((c for c in calls if c.name == ASK_USER), None)
+            if question is not None:
+                await self._ask(session, turn, stream, bubble_id, text, question)
+                return
             results = []
             for call in calls:
                 steps.append({"id": call.id, "kind": "tool", "label": call.name, "target": "",
@@ -289,6 +330,23 @@ class AgentHub:
                                 "is_error": is_error})
             session.messages.append(Message("user", results))
         await stream.emit({"bubble_id": bubble_id, "content": {"set": "I stopped after too many tool calls."}})
+
+    async def _ask(self, session, turn, stream, bubble_id, text, call: ToolCall):
+        """End the turn on the model's question: a bubble the client renders as a choice (or a text prompt), whose answer
+        comes back as agent.input with the interrupt id and resumes the model with the answer as the tool's result."""
+        args = call.arguments if isinstance(call.arguments, dict) else {}
+        question = str(args.get("question") or "").strip() or "Which do you want?"
+        options = [str(o).strip() for o in (args.get("options") or []) if str(o).strip()][:6]
+        interrupt_id = f"q_{uuid.uuid4().hex[:12]}"
+        session.pending_question = {"interrupt_id": interrupt_id, "call_id": call.id, "question": question,
+                                    "plan_mode": turn.plan_mode}
+        turn.asked = True
+        body = f"{text.strip()}\n\n{question}" if text.strip() else question
+        event = {"bubble_id": bubble_id, "content": {"set": body}, "interrupt_id": interrupt_id,
+                 "input_type": "choice" if options else "text"}
+        if options:
+            event["actions"] = [{"label": o, "value": o, "style": "primary" if i == 0 else "default"} for i, o in enumerate(options)]
+        await stream.emit(event)
 
     async def _run_tool(self, socket, session, turn, call: ToolCall, stream=None, bubble_id=None,
                         steps=None) -> tuple[str, bool]:
