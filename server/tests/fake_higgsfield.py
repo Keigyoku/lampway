@@ -59,6 +59,9 @@ class FakeHiggsfield:
         if request.method == "PUT" and "upload.higgsfield.test" in url:
             self.puts.append((url, request.content))
             return httpx.Response(200)
+        if request.method == "GET" and "cdn.higgsfield.test" in url:
+            return httpx.Response(200, content=(b"\x00\x00\x00\x18ftypmp42video" if url.endswith(".mp4") else b"\x89PNG\r\n\x1a\nimg"),
+                                  headers={"content-type": "video/mp4" if url.endswith(".mp4") else "image/png"})
         if url == META:
             return httpx.Response(200, json={"resource": MCP, "authorization_servers": [AS, "https://fnf-device-auth.higgsfield.ai"],
                                               "scopes_supported": ["openid", "email", "offline_access"]})
