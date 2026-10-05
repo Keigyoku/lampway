@@ -19,6 +19,8 @@
 #   MIXAR_CUDA           0 (default: no CUDA/OptiX/cubins) | 1
 #   MIXAR_BACKEND_URL    baked backend; default https://lampway.invalid (never
 #   MIXAR_FRONTEND_URL   resolves, RFC 2606) so a build cannot reach mixar.app
+#   CC / CXX             compilers; default gcc-14/g++-14 when present (Blender
+#                        5.2 refuses GCC < 14; Ubuntu 24.04's default is 13)
 #   BUILD_CORES          parallel jobs (default: nproc, via settings.sh)
 #   LAMPWAY_MIN_FREE_GB  refuse to start a big step below this (default 100)
 #   LAMPWAY_LOG_DIR      where build logs go (default build/logs)
@@ -37,6 +39,26 @@ LAMPWAY_MIN_FREE_GB="${LAMPWAY_MIN_FREE_GB:-100}"
 LAMPWAY_LOG_DIR="${LAMPWAY_LOG_DIR:-$ROOT_DIR/build/logs}"
 LIB_SUBMODULE="lib/linux_x64"
 BINARY="$ROOT_DIR/build/$MIXAR_ENV/bin/mixar"
+MIN_COMPILER_MAJOR=14
+
+# Compiler: an explicit CC/CXX wins; otherwise prefer the versioned GCC 14
+# pair Ubuntu 24.04 ships beside its default GCC 13; otherwise the defaults.
+pick_compiler() {
+    if [[ -n "${CC:-}" ]]; then
+        CXX="${CXX:-c++}"
+    elif command -v gcc-14 >/dev/null 2>&1 && command -v g++-14 >/dev/null 2>&1; then
+        CC=gcc-14; CXX=g++-14
+    else
+        CC="${CC:-gcc}"; CXX="${CXX:-g++}"
+    fi
+}
+pick_compiler
+
+compiler_major() {
+    local v
+    v="$("$1" -dumpfullversion 2>/dev/null || "$1" -dumpversion 2>/dev/null || true)"
+    echo "${v%%.*}" | tr -dc '0-9'
+}
 
 die() { echo "build_linux.sh: $*" >&2; exit "${_rc:-1}"; }
 say() { echo "[lampway] $*"; }
@@ -88,8 +110,20 @@ check_deps() {
             pkg-config --exists "$m" 2>/dev/null || missing+=("pkg-config:$m")
         done
     fi
+    local compiler major
+    for compiler in "$CC" "$CXX"; do
+        if command -v "$compiler" >/dev/null 2>&1; then
+            major="$(compiler_major "$compiler")"
+            if [[ -z "$major" ]] || (( major < MIN_COMPILER_MAJOR )); then
+                missing+=("$compiler>=${MIN_COMPILER_MAJOR}(found ${major:-?})")
+            fi
+        else
+            missing+=("$compiler")
+        fi
+    done
     if (( ${#missing[@]} > 0 )); then
         echo "build_linux.sh: missing build tools: ${missing[*]}" >&2
+        echo "  Blender 5.2 needs GCC >= ${MIN_COMPILER_MAJOR} (or clang >= 17); set CC/CXX or install gcc-14 g++-14." >&2
         echo "  on Ubuntu 24.04: $APT_HINT" >&2
         return 2
     fi
@@ -195,6 +229,8 @@ mixar_env=$MIXAR_ENV
 mixar_cuda=$MIXAR_CUDA
 mixar_backend_url=$MIXAR_BACKEND_URL
 mixar_frontend_url=$MIXAR_FRONTEND_URL
+cc=$CC
+cxx=$CXX
 upstream_pin=$(upstream_pin)
 upstream_head=$(upstream_head)
 lib_submodule=$LIB_SUBMODULE
@@ -212,13 +248,26 @@ build() {
     mkdir -p "$LAMPWAY_LOG_DIR"
     stamp="$(date +%Y%m%dT%H%M%S)"
     log="$LAMPWAY_LOG_DIR/build-$MIXAR_ENV-$stamp.log"
-    export MIXAR_ENV MIXAR_CUDA MIXAR_BACKEND_URL MIXAR_FRONTEND_URL
+    export MIXAR_ENV MIXAR_CUDA MIXAR_BACKEND_URL MIXAR_FRONTEND_URL CC CXX
+    # CMake caches the compiler on the first configure and refuses to switch;
+    # a cache left by a configure with another compiler (e.g. the GCC 13 that
+    # fails Blender's version gate) must go. Object files are untouched.
+    local cache="$ROOT_DIR/build/$MIXAR_ENV/CMakeCache.txt" cached_cc want_cc
+    if [[ -f "$cache" ]]; then
+        cached_cc="$(sed -n 's/^CMAKE_C_COMPILER:[A-Z]*=//p' "$cache" | head -n1)"
+        want_cc="$(command -v "$CC")"
+        if [[ -n "$cached_cc" && "$(readlink -f "$cached_cc")" != "$(readlink -f "$want_cc")" ]]; then
+            say "CMake cache was configured with $cached_cc, this run uses $want_cc: dropping the cache"
+            rm -f "$cache"
+            rm -rf "$ROOT_DIR/build/$MIXAR_ENV/CMakeFiles"
+        fi
+    fi
     # Ninja when available: cmake honours CMAKE_GENERATOR for a fresh build dir
     # and ignores it for an existing one, so this never fights a prior configure.
     if command -v ninja >/dev/null 2>&1; then
         export CMAKE_GENERATOR="${CMAKE_GENERATOR:-Ninja}"
     fi
-    say "build: MIXAR_ENV=$MIXAR_ENV MIXAR_CUDA=$MIXAR_CUDA BUILD_CORES=${BUILD_CORES:-$(nproc)}"
+    say "build: MIXAR_ENV=$MIXAR_ENV MIXAR_CUDA=$MIXAR_CUDA BUILD_CORES=${BUILD_CORES:-$(nproc)} CC=$CC CXX=$CXX"
     say "build: MIXAR_BACKEND_URL=$MIXAR_BACKEND_URL MIXAR_FRONTEND_URL=$MIXAR_FRONTEND_URL log=$log"
     start="$(date +%s)"
     "$ROOT_DIR/scripts/unix/build.sh" 2>&1 | tee "$log"

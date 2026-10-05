@@ -166,6 +166,70 @@ def test_check_deps_fails_naming_missing_build_tools(fake_root: Path) -> None:
     assert "cmake" in result.stderr
 
 
+def _stub(bin_dir: Path, name: str, body: str) -> None:
+    path = bin_dir / name
+    path.write_text("#!/bin/sh\n" + body + "\n")
+    path.chmod(0o755)
+
+
+@pytest.fixture
+def toolchain_bin(fake_root: Path) -> Path:
+    """A PATH with every required command stubbed green except the compiler."""
+    bin_dir = fake_root / "toolbin"
+    bin_dir.mkdir()
+    for tool in ("bash", "sh", "git", "dirname", "readlink", "basename", "cat",
+                 "env", "sed", "tail", "head", "tr", "cut", "grep", "awk",
+                 "stat", "df", "date", "mkdir", "nproc", "tee", "pwd"):
+        src = shutil.which(tool)
+        if src:
+            os.symlink(src, bin_dir / tool)
+    for tool in ("cmake", "make", "python3", "rsync", "ninja"):
+        _stub(bin_dir, tool, "exit 0")
+    _stub(bin_dir, "pkg-config", "exit 0")
+    return bin_dir
+
+
+def test_check_deps_rejects_a_gcc_older_than_14(
+    fake_root: Path, toolchain_bin: Path
+) -> None:
+    # Blender 5.2's CMakeLists.txt refuses GCC < 14; surface that before
+    # configure instead of 3000 lines into the log.
+    for name in ("gcc", "g++", "c++", "cc"):
+        _stub(toolchain_bin, name, 'echo "13.3.0"')
+    result = _run(fake_root, "--check-deps", {"PATH": str(toolchain_bin)})
+    assert result.returncode == 2
+    assert "gcc" in result.stderr.lower()
+    assert "14" in result.stderr
+
+
+def test_plan_prefers_a_versioned_gcc_14_when_the_default_is_older(
+    fake_root: Path, toolchain_bin: Path
+) -> None:
+    for name in ("gcc", "g++", "c++", "cc"):
+        _stub(toolchain_bin, name, 'echo "13.3.0"')
+    _stub(toolchain_bin, "gcc-14", 'echo "14.2.0"')
+    _stub(toolchain_bin, "g++-14", 'echo "14.2.0"')
+    result = _run_plan(fake_root, {"PATH": str(toolchain_bin)})
+    assert result.returncode == 0, result.stderr
+    plan = _kv(result.stdout)
+    assert plan["cc"] == "gcc-14"
+    assert plan["cxx"] == "g++-14"
+
+
+def test_plan_honours_an_explicit_cc_and_cxx(
+    fake_root: Path, toolchain_bin: Path
+) -> None:
+    _stub(toolchain_bin, "mycc", 'echo "15.0.0"')
+    _stub(toolchain_bin, "mycxx", 'echo "15.0.0"')
+    result = _run_plan(
+        fake_root, {"PATH": str(toolchain_bin), "CC": "mycc", "CXX": "mycxx"}
+    )
+    assert result.returncode == 0, result.stderr
+    plan = _kv(result.stdout)
+    assert plan["cc"] == "mycc"
+    assert plan["cxx"] == "mycxx"
+
+
 def test_real_worktree_plan_matches_git_gitlink() -> None:
     pinned = _git(REPO_ROOT, "rev-parse", "HEAD:upstream")
     result = _run_plan(REPO_ROOT)
