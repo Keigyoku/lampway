@@ -30,7 +30,7 @@ class ServiceRegistry:
 
     def register(self, key: str, backend: Callable, catalog_row: dict, spend: bool = False, confirm_price: Optional[Callable] = None, backend_name: str = "") -> None:
         if key not in WIRE_KEYS:
-            raise ValueError(f"service {key!r} is not a Mixar client job type; the client sends: {', '.join(WIRE_KEYS)}")
+            raise ValueError(f"service {key!r} is not a Lampway client job type; the client sends: {', '.join(WIRE_KEYS)}")
         if spend and confirm_price is None:
             raise ValueError(f"service {key!r} spends: register it with confirm_price(payload) -> the price the captain confirms")
         if not isinstance(catalog_row, dict) or not catalog_row.get("models"):
