@@ -24,8 +24,13 @@ low = bpy.data.objects[a['low']]
 highs = [bpy.data.objects[n] for n in a['high']]
 sc = bpy.context.scene
 sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = a['samples']
+if sc.world is None:
+    sc.world = bpy.data.worlds.new('bake_world')      # AO reads the world's light settings; a scene without a world bakes it black
+sc.world.light_settings.distance = max(a['max_ray_m'] * 4, 1e-3)
 size = a['size']; margin = a['margin_px']
 BAKE = {'normal': 'NORMAL', 'albedo': 'DIFFUSE', 'ao': 'AO'}
+for attr in ('visible_camera', 'visible_diffuse', 'visible_glossy', 'visible_transmission', 'visible_volume_scatter', 'visible_shadow'):
+    setattr(low, attr, False)      # the target must not occlude the donor: a decimated copy sits partly outside it and would black out the AO
 mat = bpy.data.materials.new(low.name + '_baked'); mat.use_nodes = True
 low.data.materials.clear(); low.data.materials.append(mat)
 nt = mat.node_tree

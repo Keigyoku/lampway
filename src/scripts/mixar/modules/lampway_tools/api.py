@@ -878,9 +878,9 @@ def parts_critique(stage, piece, recipe="", transfer_dir="", piece_uv="", owner_
 
 
 @tool
-def palette_fit(stage, piece, studio_base="", albedo="", masks="", classes=None, material="", name="", source="fit", metal_zero_on=None, statistic="median", space="linear", min_texels=1000):
+def palette_fit(stage, piece, studio_base="", albedo="", masks="", classes=None, material="", name="", source="fit", metal_zero_on=None, statistic="median", space="srgb", min_texels=1000):
     """Fit the per-class Hue/Saturation/Value of the studio colours to the mesh-paint albedo, nudge it live, and hand pbr_merge its params. fit: per class the median HSV of the studio base under
-    the class mask vs the albedo under the same mask (hue_shift, sat_mul, val_mul), measured in LINEAR light (Blender's node works on linear; space=srgb overshoots V), plus `residual` (mean |dRGB|
+    the class mask vs the albedo under the same mask (hue_shift, sat_mul, val_mul), measured in sRGB by default (the recorded chest fit is the sRGB median: reproduced to 0.02 on gold and plate, worst class 0.19; space=linear for a linear-light consumer), plus `residual` (mean |dRGB|
     after applying it) and a named reason for every skipped class (mask under min_texels); images of different size are resampled to the larger. apply_live: a COPY of `material` gets a
     Hue/Saturation/Value node per class mixed by its mask, labelled PAL: (idempotent). read_live: the sliders read back (the person's nudge is law). write_params: <piece>/pbr/live_material_params.json
     from source fit | live; refuses while a non-metal class (everything but gold and plate) is missing from metal_zero_on: "red is cloth: metallic must be 0 there"."""

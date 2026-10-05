@@ -293,13 +293,13 @@ DEFS = [
          P("min_faces", "integer", "default 50"), P("limit", "integer", "judge batch 1..20, default 12"), P("turn", "number", "render: degrees about Z, default -90"),
          P("by", desc="agent (default) | model | captain")], api="parts_critique"),
     Def("lampway_palette_fit", "Fit the per-class Hue/Saturation/Value of the studio colours to the mesh-paint albedo, nudge it live, then write the params pbr_merge reads. stage fit: per class the median "
-        "HSV of the studio base under the class mask vs the albedo under the same mask -> hue_shift, sat_mul, val_mul, measured in LINEAR light, plus a residual and a named reason for each skipped class; "
+        "HSV of the studio base under the class mask vs the albedo under the same mask -> hue_shift, sat_mul, val_mul, measured in sRGB by default (the recorded chest fit is the sRGB median), space=linear optional, plus a residual and a named reason for each skipped class; "
         "apply_live: a copy of `material` with a Hue/Saturation/Value node per class mixed by its mask (labelled PAL:, idempotent) for the user to nudge; read_live: read his sliders back (his nudge is law, "
         "the fit is advice); write_params: <piece>/pbr/live_material_params.json from source fit | live (refused while a cloth/leather class is not in metal_zero_on).",
         [P("stage", required=True, desc="fit | apply_live | read_live | write_params"), P("piece", required=True), P("studio_base", desc="BaseColor map (png)"), P("albedo", desc="v3_colour_atlas.png"),
          P("masks", desc="directory with mask_<class>.png"), P("classes", "array", "default gold, plate, red, linen, leather, embroidery"), P("material", desc="scene material (apply_live, read_live, live write_params)"),
          P("name", desc="the copy's name"), P("source", desc="write_params: fit (default) | live"), P("metal_zero_on", "array", "classes with metallic forced to 0"),
-         P("statistic", desc="median (default) | mean"), P("space", desc="linear (default) | srgb"), P("min_texels", "integer", "default 1000")], api="palette_fit"),
+         P("statistic", desc="median (default) | mean"), P("space", desc="srgb (default) | linear"), P("min_texels", "integer", "default 1000")], api="palette_fit"),
     Def("lampway_bake_maps", "Bake a high-poly donor (`source`: a name or a list) into a UV-mapped low-poly `target`: normal (tangent), albedo (Cycles COLOR pass only: no lighting, by construction) and ao, "
         "in a niced HEADLESS Cycles worker, never the live scene. size a power of two 32..8192 (default 2048), margin_px default size/128 (>= 2), cage_extrusion_m 0..0.2 or auto, max_ray_m, samples 1..512. "
         "Refused before running, each with its fix: no UV (unwrap first), overlapping UVs, unapplied non-uniform scale, source == target, a pair not aligned (bbox centres > 2 % of the diagonal), an "

@@ -49,7 +49,7 @@ def plan(high, low, maps, size, margin_px, cage_extrusion_m, max_ray_m, samples,
         s = np.array(ob.scale)
         if s.max() / max(s.min(), 1e-12) > 1 + SCALE_TOL and not np.allclose(ob.scale, ob.scale[0]):
             raise C.FeatureError(f"{ob.name} has an unapplied non-uniform scale {tuple(round(x, 3) for x in ob.scale)}: apply scale first (ray distances are in world units)")
-    row = UI.measure_object(lo, 256)
+    row = UI.measure_object(lo, min(int(size), 2048))      # measured at the bake size: at 256 px neighbouring islands of a dense unwrap share texels and read as overlap
     if "error" in row:
         raise C.FeatureError(f"{lo.name} has no UV layer: unwrap first (lampway_uv_unwrap)")
     if row["overlap"] > OVERLAP_MAX and not allow_overlap:

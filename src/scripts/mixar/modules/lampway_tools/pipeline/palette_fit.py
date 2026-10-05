@@ -5,8 +5,7 @@
 """palette_fit, the numeric half: fit the per-class Hue/Saturation/Value correction of the studio colours to the mesh-paint albedo, and write the params file ``pbr_merge`` reads.
 
 Per class: the median HSV of the studio base under the class mask against the median HSV of the albedo under the same mask; ``hue_shift`` is the wrapped difference of hue,
-``sat_mul = S_target / S_studio``, ``val_mul = V_target / V_studio`` (the recorded fit's arithmetic: gold 0.726/0.742 = 0.978, 0.682/0.522 = 1.306). The colours are measured in LINEAR
-light by default because the consumer, Blender's Hue/Saturation node, works on linear colour (``pbr_merge``'s measured note: a fit taken in sRGB overshoots V). ``residual`` is new: the
+``sat_mul = S_target / S_studio``, ``val_mul = V_target / V_studio`` (the recorded fit's arithmetic: gold 0.726/0.742 = 0.978, 0.682/0.522 = 1.306). Measured on the user's chest (2026-10-05, p17 albedo vs the pbrA studio base, all six classes): the RECORDED fit is the MEDIAN in sRGB (plate 0.818/0.677 against the recorded 0.813/0.677, gold 1.311 against 1.308, worst class difference 0.19; linear-median misses by 4.0, sRGB-mean by 0.64) and its residual after applying the palette is lower than the linear fit's (gold 0.144 against 0.190). So sRGB median is the default; ``space="linear"`` stays for a consumer that applies the palette in linear light (``pbr_merge`` notes that Blender's node does). ``residual`` is new: the
 mean |dRGB| over the class's texels, in linear, after the palette is applied to the studio colour, so "it fits" has a number. The fit is advice and the nudge is law. Pure numpy + PIL.
 """
 
@@ -87,7 +86,7 @@ def _load_mask(path, size):
     return np.asarray(im) > 127
 
 
-def fit(studio_base, albedo, masks_dir, classes=DEFAULT_CLASSES, statistic="median", space="linear", min_texels=MIN_TEXELS):
+def fit(studio_base, albedo, masks_dir, classes=DEFAULT_CLASSES, statistic="median", space="srgb", min_texels=MIN_TEXELS):
     if statistic not in ("median", "mean"):
         raise PaletteError("statistic must be median or mean")
     if space not in ("linear", "srgb"):

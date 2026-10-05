@@ -49,7 +49,7 @@ def _scene(tmp_path, classes, space="linear", size=64):
 
 def test_the_fit_reproduces_the_recorded_multipliers(tmp_path):
     studio, albedo, masks = _scene(tmp_path, {k: (v[0], v[1]) for k, v in RECORDED.items()}, size=128)
-    res = PF.fit(studio, albedo, masks, list(RECORDED), min_texels=100)
+    res = PF.fit(studio, albedo, masks, list(RECORDED), space="linear", min_texels=100)
     for k, (_a, _b, sat, val) in RECORDED.items():
         row = res["palette"][k]
         assert row["sat_mul"] == pytest.approx(sat, abs=0.02) and row["val_mul"] == pytest.approx(val, abs=0.02), (k, row)
@@ -59,7 +59,7 @@ def test_the_fit_reproduces_the_recorded_multipliers(tmp_path):
 def test_feeding_the_studio_base_as_the_albedo_is_the_identity(tmp_path):                 # the falsifier
     classes = {"gold": ((0.12, 0.74, 0.5), (0.12, 0.74, 0.5)), "plate": ((0.6, 0.7, 0.37), (0.6, 0.7, 0.37))}
     studio, _albedo, masks = _scene(tmp_path, classes)
-    res = PF.fit(studio, studio, masks, list(classes), min_texels=100)
+    res = PF.fit(studio, studio, masks, list(classes), space="linear", min_texels=100)
     for row in res["palette"].values():
         assert row["hue_shift"] == pytest.approx(0, abs=1e-6) and row["sat_mul"] == pytest.approx(1, abs=1e-6) and row["val_mul"] == pytest.approx(1, abs=1e-6)
     assert max(res["residual"].values()) < 1e-6
@@ -147,3 +147,25 @@ def test_apply_live_twice_leaves_one_node_set_and_read_live_returns_the_slider()
     r = run.results[-1]
     assert r["labels"].count("PAL: gold hsv") == 1 and r["labels"].count("PAL: red mix") == 1 and len([l for l in r["labels"] if l.endswith(" hsv")]) == 2
     assert r["gold_val"] == 1.1 and abs(r["gold_hue"] - 0.03) < 1e-3 and r["source_untouched"]
+
+
+def test_the_real_chest_reproduces_the_recorded_fit_as_the_median_in_srgb():
+    """The measured answer to the contract's open question: on the user's chest (shelf pieces; skipped when the shelf is not configured) the recorded multipliers are the sRGB MEDIAN."""
+    import os
+    shelf = os.environ.get("LAMPWAY_SHELF_SCRATCH")
+    if not shelf or not (Path(shelf) / "tripo_texture/palette_A_to_albedo.json").exists():
+        pytest.skip("LAMPWAY_SHELF_SCRATCH not set to the shelf's scratch folder")
+    import tempfile
+    Image.MAX_IMAGE_PIXELS = None
+    rec = json.loads((Path(shelf) / "tripo_texture/palette_A_to_albedo.json").read_text())
+    base = next((Path(shelf) / "tripo_texture/pbrA").glob("pbrA_BaseColor_*.png"), None)
+    md = Path(shelf) / "relief_proj/p17_albedo_4k"
+    if base is None or not md.exists():
+        pytest.skip("the chest's pbrA base or p17 masks are not on this shelf")
+    tmp = Path(tempfile.mkdtemp()) / "studio4k.png"
+    Image.open(base).convert("RGB").resize((4096, 4096), Image.LANCZOS).save(tmp)
+    classes = ["gold", "plate", "red", "linen", "leather", "embroidery"]
+    res = {sp: PF.fit(str(tmp), str(md / "v3_colour_atlas.png"), str(md), classes, "median", sp) for sp in ("srgb", "linear")}
+    err = {sp: max(max(abs(r["palette"][c]["sat_mul"] - rec[c]["sat_mul"]), abs(r["palette"][c]["val_mul"] - rec[c]["val_mul"])) for c in classes) for sp, r in res.items()}
+    assert err["srgb"] < 0.25 and err["linear"] > 1.0, err
+    assert abs(res["srgb"]["palette"]["plate"]["val_mul"] - rec["plate"]["val_mul"]) < 0.02 and abs(res["srgb"]["palette"]["gold"]["val_mul"] - rec["gold"]["val_mul"]) < 0.02

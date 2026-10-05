@@ -130,3 +130,16 @@ def test_a_round_trip_changes_only_the_targeted_parts(parts, tmp_path):
     before = np.load(Path(parts["td"]) / "owner_tri.npy")
     assert {int(a) for a in np.unique(before[before != tri])} == {0}                  # only plate_L's triangles moved
     assert (tri[before == 2] == 2).all() and (tri[before == 3] == 3).all()
+
+
+def test_the_pre_pass_flags_exactly_the_islands_the_real_chest_transfer_marked():
+    """Acceptance on the user's chest transfer (shelf pieces; skipped without LAMPWAY_SHELF_SCRATCH): the 90 islands transfer_parts flagged are the 90 this flags; raising --weak flags more."""
+    import os
+    shelf = os.environ.get("LAMPWAY_SHELF_SCRATCH")
+    td = Path(shelf or "/nonexistent") / "parts_transfer"
+    if not (td / "r1/islands.json").exists() or not (td / "recipe_r7_with_dropped.json").exists():
+        pytest.skip("LAMPWAY_SHELF_SCRATCH is not set to the shelf's scratch folder")
+    rows = json.loads((td / "r1/islands.json").read_text())
+    fl = PC.flags(str(td / "r1"), str(td / "recipe_r7_with_dropped.json"))
+    assert sorted(r["island"] for r in fl["islands"]) == sorted(r["island"] for r in rows if r["flag"]) and len(fl["islands"]) == json.loads((td / "r1/transfer.json").read_text())["islands_flagged"]
+    assert len(PC.flags(str(td / "r1"), str(td / "recipe_r7_with_dropped.json"), weak=1.0)["islands"]) > len(fl["islands"])
