@@ -358,6 +358,10 @@ def _mp_project_job(spec, setup, s, tag):
     proj = _mp_projection(spec, setup, s, tag)
     if not (Path(spec.work_dir) / "set").is_dir():
         raise LookupError("no plate set yet: pick a variant for each view and run stage 'plates' first")
+    patched = Path(proj.out_root) / "patched" / f"{spec.piece}_{tag}_uv_front-y.npz"
+    if not patched.exists():
+        raise LookupError(f"no rebuild for tag {tag!r} yet ({patched} is missing): the projection reuses the rebuild's patched "
+                          f"mesh, so run lampway_rebuild(tag={tag!r}) first, or name the tag of an existing rebuild")
     piece, template, lift, turn = spec.piece, setup["template_material"], setup["lift"], spec.turn
 
     def work():

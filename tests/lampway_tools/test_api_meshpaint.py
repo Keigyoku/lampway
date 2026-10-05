@@ -95,6 +95,7 @@ def test_project_runs_in_the_background_with_the_plates_then_loads_the_result_an
 from mixar.modules.lampway_tools import rebuild as RB
 os.makedirs(root + "/demo/out/patched", exist_ok=True); os.makedirs(root + "/demo/out/p1_meshpaint", exist_ok=True)
 shutil.copy(root + "/demo/m.fbx", root + "/demo/out/patched/demo_p1_uv.fbx")
+np.savez(root + "/demo/out/patched/demo_p1_uv_front-y.npz", POLY=np.zeros(1))   # the rebuild's patched mesh the projection reuses
 for n in ("mask_plate.png", "detail_height_u16.png", "v3_colour_atlas.png"):
     Image.fromarray(np.full((4, 4, 3), 99, np.uint8)).save(root + "/demo/out/p1_meshpaint/" + n)
 n = tm.node_tree.nodes.new("ShaderNodeTexImage"); n.image = bpy.data.images.load(root + "/demo/out/p1_meshpaint/mask_plate.png")
@@ -154,6 +155,7 @@ def test_the_one_button_run_goes_clay_then_each_view_then_plates_then_the_projec
     r = run(tmp_path, '''
 os.makedirs(root + "/demo/out/patched", exist_ok=True); os.makedirs(root + "/demo/out/p1_meshpaint", exist_ok=True)
 shutil.copy(root + "/demo/m.fbx", root + "/demo/out/patched/demo_p1_uv.fbx")
+np.savez(root + "/demo/out/patched/demo_p1_uv_front-y.npz", POLY=np.zeros(1))   # the rebuild's patched mesh the projection reuses
 for n in ("mask_plate.png", "detail_height_u16.png", "v3_colour_atlas.png"):
     Image.fromarray(np.full((4, 4, 3), 99, np.uint8)).save(root + "/demo/out/p1_meshpaint/" + n)
 n = tm.node_tree.nodes.new("ShaderNodeTexImage"); n.image = bpy.data.images.load(root + "/demo/out/p1_meshpaint/mask_plate.png")
@@ -280,3 +282,17 @@ print("RESULT", json.dumps({"PYTHONHOME": seen["env"].get("PYTHONHOME"), "PYTHON
     env = r.results[0]
     assert env["PYTHONHOME"] is None
     assert env["PYTHONPATH"] == "/tmp/srv"
+
+
+def test_project_refuses_with_the_instruction_when_the_tags_rebuild_does_not_exist_yet(tmp_path):
+    """The projection reuses the rebuild's patched mesh (<out_root>/patched/<piece>_<tag>_uv_front-y.npz); without it the
+    job died on a numpy FileNotFoundError minutes later (seen live). It is a refusal up front now, naming the step."""
+    r = run(tmp_path, '''
+setup(); api.meshpaint("clay", res=64)
+os.makedirs(root + "/demo/meshpaint/set", exist_ok=True)
+res = api.meshpaint("project", tag="p1")
+print("RESULT", json.dumps({"res": res}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    res = r.results[0]["res"]
+    assert res["ok"] is False and "rebuild" in res["error"] and "p1" in res["error"]
