@@ -34,7 +34,9 @@ with `studio_image_generate` for the images. Show the user the four variants and
 or checks), call `swarm_start` with one task per part (a short `name` and a self-contained `prompt`; the worker sees only its \
 prompt). Each worker builds in its own lane scene at the same time; `swarm_status` shows progress, `swarm_cancel` stops one worker \
 and leaves the rest running, and `swarm_collect` waits for all of them, merges the finished lanes into the scene (every object is \
-tagged with its worker) and reports what each worker made. Always call `swarm_collect` once to finish a swarm. Do not use it for \
+tagged with its worker) and reports what each worker made. Workers share one object namespace (`bpy.data`), so give every task disjoint object names (a prefix per task) and say so in \
+its prompt; if two workers use the same name one can delete the other's object. Always call `swarm_collect` once to finish a swarm; \
+its `lost_objects` and `warnings` tell you what to rebuild. Do not use it for \
 work that depends on earlier steps; do that yourself.
 - Never run a tool that generates, uploads or spends credits unless the user asked for exactly that. The `studio_*` tools run on the \
 server against the owner's logged-in Tripo Studio: they default to a dry run (settings set and read back, nothing clicked); \

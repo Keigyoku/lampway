@@ -124,6 +124,9 @@ def worker_system_prompt(worker: Worker) -> str:
             f"Your task is named \"{worker.name}\". You run in your OWN scene (a lane); what you create there is merged into the "
             "user's scene when you finish, so create things there and do not look for the user's other objects.\n"
             f"- Give every object you create a name that starts with `{worker.name}_` so it can be told apart from the others'.\n"
+            "- Other workers' objects are visible to you in `bpy.data` under THEIR names. You must never delete, rename, move or "
+            "otherwise modify an object you did not create yourself, and never look an object up by a name you did not just give it; "
+            "if a name you want is taken, pick another one that starts with your prefix.\n"
             "- Use `run_blender_python` (the data API `bpy.data` is the reliable way) and `scene_summary` to check your work. "
             "The sandbox has no os/sys/subprocess/file system.\n"
             "- Do only your task; do not wait for or coordinate with other workers. Keep it to a handful of tool calls.\n"
@@ -157,12 +160,14 @@ def merge_script(plan: list) -> str:
         "_parent = bpy.context.scene\n"
         "_merged = {}\n"
         "_discarded = {}\n"
+        "_lane_objects = {}\n"
         "for _w in _plan:\n"
         "    _lane = bpy.data.scenes.get(_w['scene'])\n"
         "    if _lane is None:\n"
         "        continue\n"
         "    _objects = list(_lane.collection.all_objects)\n"
         "    _colls = [_lane.collection] + list(_lane.collection.children_recursive)\n"
+        "    _lane_objects[_w['id']] = [_ob.name for _ob in _objects]\n"
         "    if _w['keep']:\n"
         "        for _ob in _objects:\n"
         "            _ob['lw_worker'] = _w['id']\n"
@@ -177,7 +182,7 @@ def merge_script(plan: list) -> str:
         "        for _ob in _objects:\n"
         "            bpy.data.objects.remove(_ob, do_unlink=True)\n"
         "    bpy.data.scenes.remove(_lane)\n"
-        "__RESULT__ = {'merged': _merged, 'discarded': _discarded}\n")
+        "__RESULT__ = {'merged': _merged, 'discarded': _discarded, 'lane_objects': _lane_objects}\n")
 
 
 class SwarmManager:
@@ -274,9 +279,21 @@ class SwarmManager:
                                       turn_id=ctx.turn_id, call_id=ctx.call_id, tool_name=MERGE_SCRIPT,
                                       script=merge_script(plan))
         out = {"swarm_id": swarm.id, "workers": [w.public() for w in swarm.workers],
-               "merge": {k: v for k, v in (merge or {}).items() if k in ("success", "merged", "discarded", "error")}}
+               "merge": {k: v for k, v in (merge or {}).items() if k in ("success", "merged", "discarded", "error")},
+               "lost_objects": {}, "warnings": []}
         if not (isinstance(merge, dict) and merge.get("success")):
             out["merge_failed"] = True
+            return out
+        held = merge.get("lane_objects") or {}
+        for w in swarm.workers:
+            if w.status != "done" or w.id not in held:
+                continue
+            lost = [n for n in w.created if n not in held[w.id]]
+            if lost:
+                out["lost_objects"][w.id] = lost
+                out["warnings"].append(
+                    f"{w.id} ({w.name}) made {', '.join(lost)} but it was gone from its lane at merge time: another worker's "
+                    "script probably deleted or renamed it (lanes isolate scenes, not bpy.data). Rebuild it.")
         return out
 
     def cancel_all(self, swarm: Swarm) -> None:

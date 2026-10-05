@@ -14,7 +14,7 @@ import pytest
 
 from lampway_server.agent.providers.base import Text, ToolCall
 from lampway_server.agent.providers.mock import ScriptedProvider
-from lampway_server.agent.swarm import SWARM_SPECS, SwarmManager, is_swarm_tool
+from lampway_server.agent.swarm import SWARM_SPECS, SwarmManager, Worker, is_swarm_tool
 
 pytestmark = pytest.mark.anyio
 
@@ -280,3 +280,50 @@ async def test_every_worker_keeps_a_record_of_its_calls_for_the_owner_but_the_mo
     assert call["created"] == ["alpha_obj"]
     assert "calls" not in json.loads(text)["workers"][0]
     assert alpha.detail()["calls"] == alpha.calls
+
+
+async def test_an_object_a_worker_made_that_is_gone_from_its_lane_at_merge_time_is_reported_as_lost_with_a_warning():
+    """Lanes isolate scenes, not bpy.data: a worker that does bpy.data.objects.remove('shared_cube') removes another lane's object.
+    The merge script lists what each lane really holds; the server compares it with what each worker made."""
+    class Blender(FakeBlender):
+        async def __call__(self, socket, **kw):
+            result = await super().__call__(socket, **kw)
+            if kw["tool_name"] == "swarm_merge":
+                return {"success": True, "merged": {}, "discarded": {},
+                        "lane_objects": {"worker-1": [], "worker-2": ["beta_obj"], "worker-3": ["gamma_obj"]}}
+            return result
+
+    blender = Blender()
+    manager = SwarmManager(factory_for(worker_scripts()), blender)
+    info = await start(manager, blender)
+    text, _ = await manager.call("swarm_collect", {"swarm_id": info["swarm_id"]}, ctx(blender))
+    result = json.loads(text)
+    assert result["lost_objects"] == {"worker-1": ["alpha_obj"]}
+    assert any("worker-1" in w and "alpha_obj" in w for w in result["warnings"])
+    assert "lane_objects" not in result["merge"]
+
+
+async def test_a_clean_swarm_has_no_lost_objects_and_no_warnings():
+    class Blender(FakeBlender):
+        async def __call__(self, socket, **kw):
+            result = await super().__call__(socket, **kw)
+            if kw["tool_name"] == "swarm_merge":
+                return {"success": True, "merged": {}, "discarded": {},
+                        "lane_objects": {"worker-1": ["alpha_obj"], "worker-2": ["beta_obj"], "worker-3": ["gamma_obj"]}}
+            return result
+
+    blender = Blender()
+    manager = SwarmManager(factory_for(worker_scripts()), blender)
+    info = await start(manager, blender)
+    text, _ = await manager.call("swarm_collect", {"swarm_id": info["swarm_id"]}, ctx(blender))
+    result = json.loads(text)
+    assert result["lost_objects"] == {} and result["warnings"] == []
+
+
+async def test_the_workers_are_told_not_to_touch_objects_they_did_not_create():
+    from lampway_server.agent.prompt import SYSTEM_PROMPT
+    w = Worker("worker-1", "alpha", "p", "agentlane:x:1", "s")
+    from lampway_server.agent.swarm import worker_system_prompt
+    text = worker_system_prompt(w)
+    assert "bpy.data" in text and "never delete" in text.lower() and "did not create" in text
+    assert "disjoint" in SYSTEM_PROMPT or "different names" in SYSTEM_PROMPT

@@ -78,3 +78,27 @@ def test_a_discarded_lane_leaves_nothing_behind_and_the_kept_ones_are_untouched(
     assert {t[1]: t[2] for t in res["tagged"]} == {"worker-1": 100, "worker-3": 300}
     assert len(res["in_parent"]) == 3 and set(res["all_objects"]) == set(res["in_parent"])
     assert "worker-2" in res["merge"]["discarded"] and "worker-2" not in res["merge"]["merged"]
+
+
+def test_the_merge_reports_what_each_lane_really_held_so_an_object_deleted_by_another_lane_shows_up_as_missing():
+    ws = workers(["one", "two"])
+    plan = [{"id": w.id, "name": w.name, "scene": w.scene_name, "keep": True} for w in ws]
+    src = f'''
+import bpy, json
+if not hasattr(bpy.types.Scene, "mixie_session_id"):
+    bpy.types.Scene.mixie_session_id = bpy.props.StringProperty()
+for _o in list(bpy.data.objects):
+    bpy.data.objects.remove(_o)
+parent = bpy.context.scene
+parent.mixie_session_id = {PARENT!r}
+{SW.lane_script(PARENT, ws)}
+lanes = {{s.mixie_session_id: s for s in bpy.data.scenes if s.mixie_session_id.startswith("agentlane:")}}
+for i, w in enumerate({[w.lane for w in ws]!r}, 1):
+    ob = bpy.data.objects.new("cube_%d" % i, bpy.data.meshes.new("m%d" % i)); lanes[w].collection.objects.link(ob)
+bpy.data.objects.remove(bpy.data.objects["cube_2"])        # what another lane's `bpy.data.objects.remove(...)` does to it
+{SW.merge_script(plan)}
+print("RESULT", json.dumps(__RESULT__))
+'''
+    r = run_script(src)
+    assert r.rc == 0, r.out[-2500:]
+    assert r.results[0]["lane_objects"] == {"worker-1": ["cube_1"], "worker-2": []}
