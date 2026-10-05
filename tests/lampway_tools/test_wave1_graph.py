@@ -55,7 +55,7 @@ def test_a_spend_node_is_never_run_and_what_depends_on_it_waits(g):
     graphs.define("boots", dict(GRAPH, nodes=GRAPH["nodes"] + [{"id": "after_tex", "tool": "export_piece", "args": {"object": "@tex.object"}, "after": ["tex"]}]),
                   inputs={"piece": "Boots1"})
     res = graphs.run("boots")
-    assert res["states"]["tex"] == "planned_only" and "captain confirms" in res["messages"]["tex"] and res["states"]["after_tex"] == "blocked"
+    assert res["states"]["tex"] == "planned_only" and "user confirms" in res["messages"]["tex"] and res["states"]["after_tex"] == "blocked"
     assert res["states"]["prep"] == res["states"]["uv"] == res["states"]["out"] == "done"
     assert "texture_gen" not in [t for t, _ in ex.calls]
 

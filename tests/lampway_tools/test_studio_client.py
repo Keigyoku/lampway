@@ -11,6 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from blender_run import run_script  # noqa: E402
+import tempfile
 
 PRE = '''
 import bpy, json, threading
