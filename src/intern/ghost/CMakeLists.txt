@@ -273,6 +273,12 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     endif()
 
     add_definitions(-DWITH_GHOST_X11)
+  else()
+    # Mixar: the Agent Bubble references the Mixar_Window* helpers under
+    # __linux__ whatever the backend; without X11 they are inert stubs.
+    list(APPEND SRC
+      intern/GHOST_MixarNoX11.cc
+    )
   endif()
 
   if(WITH_GHOST_WAYLAND)
