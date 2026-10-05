@@ -169,3 +169,32 @@ def test_the_token_is_only_ever_in_the_authorization_header():
 
     collect(provider(handler, auth=FakeAuth("SECRET-TOKEN")), req(Message.user_text("hi")))
     assert "SECRET-TOKEN" not in seen["url"] and "SECRET-TOKEN" not in seen["body"]
+
+
+def test_a_reasoning_effort_is_sent_as_reasoning_effort_and_absent_by_default():
+    seen = []
+
+    def handler(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, content=OK, headers={"content-type": "text/event-stream"})
+
+    collect(provider(handler, effort="medium"), req(Message.user_text("hi")))
+    collect(provider(handler), req(Message.user_text("hi")))
+    assert seen[0]["reasoning"] == {"effort": "medium"} and "reasoning" not in seen[1]
+
+
+def test_an_unknown_effort_is_refused_at_construction():
+    with pytest.raises(ValueError):
+        provider(lambda r: None, effort="max")
+
+
+def test_the_swarm_on_chatgpt_plan_uses_its_own_model_and_effort(tmp_path):
+    from lampway_server.config import Settings
+    from lampway_server.agent.providers import make_provider, make_swarm_provider
+    s = Settings.from_env({"LAMPWAY_STATE_DIR": str(tmp_path), "LAMPWAY_PROVIDER": "chatgpt_plan", "LAMPWAY_CHATGPT_MODEL": "gpt-6.1-sol",
+                           "LAMPWAY_CHATGPT_EFFORT": "medium", "LAMPWAY_CHATGPT_SWARM_MODEL": "gpt-6.1-sol", "LAMPWAY_CHATGPT_SWARM_EFFORT": "low"})
+    shared = FakeAuth()
+    main, worker = make_provider(s, chatgpt_auth=shared), make_swarm_provider(s, "worker-1", chatgpt_auth=shared)
+    assert main.auth is shared and worker.auth is shared          # one sign-in: rotating refresh tokens must never be refreshed twice
+    assert isinstance(main, ChatGPTPlanProvider) and isinstance(worker, ChatGPTPlanProvider)
+    assert (main.model, main.effort) == ("gpt-6.1-sol", "medium") and (worker.model, worker.effort) == ("gpt-6.1-sol", "low")

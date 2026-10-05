@@ -21,6 +21,7 @@ import httpx
 from .base import Message, ModelRequest, ProviderEvent, Text, ToolCall, ToolSpec
 
 BASE_URL = "https://api.openai.com/v1"
+EFFORTS = {"", "minimal", "low", "medium", "high"}                # Responses API reasoning.effort; '' leaves it unset
 NAMESPACE = "lampway"
 USAGE_URL = "https://chatgpt.com/settings/usage"
 
@@ -46,10 +47,13 @@ class ChatGPTPlanError(RuntimeError):
 class ChatGPTPlanProvider:
     name = "chatgpt_plan"
 
-    def __init__(self, auth, model: str, *, base_url: str = BASE_URL, transport=None,
+    def __init__(self, auth, model: str, *, effort: str = "", base_url: str = BASE_URL, transport=None,
                  http_client: Optional[httpx.AsyncClient] = None, timeout: float = 600.0):
+        if effort not in EFFORTS:
+            raise ValueError(f"reasoning effort {effort!r} is not one of {sorted(EFFORTS)}")
         self.auth = auth
         self.model = model
+        self.effort = effort                                         # '' = the model's default; sent as reasoning.effort
         self.base_url = base_url.rstrip("/")
         self.client = http_client or httpx.AsyncClient(transport=transport, timeout=timeout)
 
@@ -57,6 +61,8 @@ class ChatGPTPlanProvider:
         token = await self.auth.access_token()                     # NotSignedIn / PlanUsageDisabled stop here, before any request
         body = {"model": self.model, "instructions": request.system, "store": False, "stream": True,
                 "input": [item for m in request.messages for item in self._items(m)]}
+        if self.effort:
+            body["reasoning"] = {"effort": self.effort}
         if request.tools:
             body["tools"] = [self._namespace(request.tools)]
         headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "text/event-stream"}

@@ -27,6 +27,11 @@ class Settings:
     openai_base_url: str = "http://127.0.0.1:11434/v1"
     openai_model: str = ""
     chatgpt_model: str = "gpt-6.1-sol"                 # the documented example model; the account's own list is at /app/chatgpt/status
+    chatgpt_effort: str = ""                           # reasoning.effort for the main agent ('' = model default)
+    chatgpt_swarm_model: str = "gpt-6.1-sol"           # swarm workers on the same ChatGPT plan
+    chatgpt_swarm_effort: str = "low"
+    swarm_provider: str = ""                           # '' = the main provider's own swarm path; or claude_cli / chatgpt_plan / openrouter
+    claude_swarm_model: str = "claude-sonnet-5-5"      # swarm workers on the owner's own `claude` CLI (local CLI switch required)
     openrouter_model: str = "anthropic/claude-sonnet-5.5"       # the main agent
     # swarm workers. stealth/space-bunny-alpha is free but answered "502 Provider returned an empty response" to 6 of 6
     # concurrent worker requests (2026-10-05, probe in reports/tools.md), which a swarm is; deepseek-v4.1-flash served 6 of 6.
@@ -55,6 +60,11 @@ class Settings:
             openai_base_url=env.get("OPENAI_BASE_URL", "http://127.0.0.1:11434/v1"),
             openai_model=env.get("LAMPWAY_OPENAI_MODEL", ""),
             chatgpt_model=env.get("LAMPWAY_CHATGPT_MODEL", "gpt-6.1-sol"),
+            chatgpt_effort=env.get("LAMPWAY_CHATGPT_EFFORT", ""),
+            chatgpt_swarm_model=env.get("LAMPWAY_CHATGPT_SWARM_MODEL", env.get("LAMPWAY_CHATGPT_MODEL", "gpt-6.1-sol")),
+            chatgpt_swarm_effort=env.get("LAMPWAY_CHATGPT_SWARM_EFFORT", "low"),
+            swarm_provider=env.get("LAMPWAY_SWARM_PROVIDER", ""),
+            claude_swarm_model=env.get("LAMPWAY_CLAUDE_SWARM_MODEL", "claude-sonnet-5-5"),
             openrouter_model=env.get("LAMPWAY_OPENROUTER_MODEL", "anthropic/claude-sonnet-5.5"),
             openrouter_swarm_model=env.get("LAMPWAY_OPENROUTER_SWARM_MODEL", "deepseek/deepseek-v4.1-flash"),
             openrouter_image_model=env.get("LAMPWAY_OPENROUTER_IMAGE_MODEL", "google/gemini-3.1-flash-image"),
