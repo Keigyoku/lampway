@@ -25,6 +25,16 @@ Blocked capabilities:
 import builtins
 import types
 
+try:
+    from . import sandbox_paths
+except ImportError:
+    # Several tests load this file on its own (spec_from_file_location, no package); load the gate the same way.
+    import importlib.util as _ilu
+    import os as _os
+    _spec = _ilu.spec_from_file_location("sandbox_paths", _os.path.join(_os.path.dirname(__file__), "sandbox_paths.py"))
+    sandbox_paths = _ilu.module_from_spec(_spec)
+    _spec.loader.exec_module(sandbox_paths)
+
 
 # ---------------------------------------------------------------------------
 # Cross-package module leaks
@@ -71,6 +81,13 @@ _DENIED_SUBMODULES = frozenset({
     "numpy.f2py",        # compiles and loads native extensions
     "numpy.distutils",   # build machinery: compilers, subprocesses
     "numpy.testing",     # pytest bootstrapping
+    # numpy's file format internals: read_array(allow_pickle=...) and open_memmap reach files without the gate that
+    # wraps numpy.load/save (sandbox_paths), and DataSource opens any path or URL.
+    "numpy.lib.format",
+    "numpy.lib.npyio",
+    "numpy.lib._npyio_impl",
+    "numpy.lib._format_impl",
+    "numpy.lib._datasource",
 })
 
 # Same-package ATTRIBUTES that are not safe for the same reason -- they run
@@ -78,6 +95,7 @@ _DENIED_SUBMODULES = frozenset({
 # script already reaches through, and these turn it into an arbitrary-code
 # loader without leaving the `bpy` package.
 _DENIED_ATTRS = {
+    "numpy": frozenset({"DataSource", "memmap"}),   # open any path/URL; map any file read-write
     "bpy.utils": frozenset({
         "execfile",
         "load_scripts",
@@ -140,6 +158,10 @@ def safe_module(module, root: str = None):
                     f"bridges out of Python."
                 )
             value = getattr(module, attr)
+            if name.startswith("bpy.ops.") and callable(value) and not isinstance(value, types.ModuleType):
+                # Every operator reached through bpy.ops.<mod>.<op>: its path arguments go through the
+                # file-system gate, and the operators that run Python from a file are refused.
+                return sandbox_paths.guard_operator(f"{name[len('bpy.ops.'):]}.{attr}", value)
             if isinstance(value, types.ModuleType):
                 child = getattr(value, "__name__", "")
                 if child in _DENIED_SUBMODULES:
@@ -154,7 +176,8 @@ def safe_module(module, root: str = None):
                     f"{name}.{attr} is not available in the sandbox: it is the "
                     f"'{child}' module, outside the '{root}' package."
                 )
-            return value
+            # numpy's file functions, matched by identity so every alias is the same gate.
+            return sandbox_paths.gated_function(value)
 
         def __dir__(self):
             return [
@@ -230,24 +253,19 @@ class RestrictedString:
 
 
 def restricted_open(path, mode='r', *args, **kwargs):
-    """Restricted open(): read-only by default, writes limited to temp directory."""
-    import os.path as _osp
-    import tempfile as _tf
+    """Restricted open(): reads inside the sandbox's read roots, writes inside its write roots (sandbox_paths).
 
+    Both are judged on the RESOLVED path by common-path containment: a symlink out of a root and a prefix-collision
+    directory (``/tmp/root`` vs ``/tmp/rootx``) are refused. An integer file descriptor is refused: it would name a
+    file the gate never saw."""
+    if isinstance(path, int):
+        raise PermissionError("open() on a file descriptor is not available in the sandbox")
     mode_str = str(mode)
     is_write = any(c in mode_str for c in ('w', 'a', 'x', '+'))
-
     if is_write:
-        real = _osp.realpath(str(path))
-        # realpath the prefix too: on macOS /var is a symlink to /private/var, so a
-        # realpath'd target never starts with the un-normalized gettempdir() -> blocked.
-        temp_prefix = _osp.realpath(_tf.gettempdir())
-        if not real.startswith(temp_prefix):
-            raise PermissionError(
-                f"open() with write mode is restricted to temp directory. "
-                f"Cannot write to: {path}"
-            )
-
+        sandbox_paths.check_write(path)
+    else:
+        sandbox_paths.check_read(path)
     return builtins.open(path, mode, *args, **kwargs)
 
 

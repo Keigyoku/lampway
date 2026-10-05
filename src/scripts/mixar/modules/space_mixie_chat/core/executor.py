@@ -47,6 +47,7 @@ from .executor_result import ExecutionResult  # noqa: F401 — re-exported
 from .sandbox_validator import validate_script_ast
 from .sandbox_transform import snapshot_collection_iterations
 from .sandbox_mesh import guard_from_mesh, guard_mesh_conversions
+from .sandbox_paths import guard_file_method, guard_file_methods
 from .executor_scene_state import SceneStateMixin
 
 
@@ -257,7 +258,8 @@ class ScriptExecutor(SceneStateMixin, HandlerCleanupMixin):
             # Security: only safe, non-dangerous modules are pre-injected.
             # NOT exposed at all: os, pathlib -- the real modules grant
             # os.system/os.environ/Path.write_text etc., a full sandbox escape.
-            # filesystem access is limited to the restricted open/tempfile below.
+            # Every file path (open, numpy, bpy.ops, datablock methods) goes through
+            # sandbox_paths: reads and writes only inside the sandbox's roots.
             import math
             import re
             import random
@@ -413,6 +415,10 @@ class ScriptExecutor(SceneStateMixin, HandlerCleanupMixin):
             tree = snapshot_collection_iterations(tree)
             tree = guard_mesh_conversions(tree)
             exec_namespace["_mixar_guard_from_mesh"] = guard_from_mesh
+            # Path-taking methods (ndarray.tofile, Image.save_render, bpy.data.libraries.write, ...)
+            # go through the file-system gate; see sandbox_paths.
+            tree = guard_file_methods(tree)
+            exec_namespace["_mixar_guard_file_method"] = guard_file_method
 
             # Execute the script in the sandboxed namespace
             compiled = compile(tree, "<agent_script>", "exec")  # noqa: S102

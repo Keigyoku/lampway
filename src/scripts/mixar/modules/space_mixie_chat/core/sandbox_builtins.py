@@ -15,6 +15,7 @@ import json
 from typing import Any
 
 from .sandbox_validator import _BLOCKED_DUNDER_ATTRS
+from .sandbox_paths import FILE_METHOD_NAMES, guard_file_method
 
 # Restricted builtins whitelist for safe script execution
 # Excludes dangerous functions like: eval, exec, compile, __import__,
@@ -92,6 +93,9 @@ def get_safe_builtins() -> dict:
         if name == "from_mesh":
             from .sandbox_mesh import guard_from_mesh
             return guard_from_mesh(value)
+        if name in FILE_METHOD_NAMES:
+            # A computed name reaches the same gate the AST pass gives the literal one.
+            return guard_file_method(value)
         return value
 
     def _safe_hasattr(obj, name):
