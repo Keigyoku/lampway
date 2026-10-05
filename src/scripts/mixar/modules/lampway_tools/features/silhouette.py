@@ -1,0 +1,141 @@
+# SPDX-FileCopyrightText: 2026 Keigyoku
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""silhouette_compare: render two meshes (or a mesh and a plate) from the SAME cameras and report silhouette IoU, area ratio, centroid shift and contact-landmark drift per view,
+gating "reject drift that changes identity or side" (specs/wiki/silhouette_compare.md). The camera is fixed by the approved source ``a`` (orthographic, Workbench, transparent
+film, subject-height framing like render.py), so a candidate that moved or scaled shows it; a mirrored candidate fails the view that sees the mirror, not the one that does not.
+A plate image is compared after fitting both masks by bounding box (the shelf's fidelity.py convention), because a plate carries no camera."""
+
+from pathlib import Path
+
+import bpy
+import numpy as np
+from mathutils import Vector
+from mathutils.bvhtree import BVHTree
+
+from . import common as C
+from . import render as R
+
+VIEWS = ("Front", "Back", "Left", "Right")
+
+
+def _render_mask(ob, camera_from, view, size, tmp):
+    """The alpha mask (size x size bool) of ``ob`` seen by the camera framed on ``camera_from``."""
+    lo, hi = R.bbox_world(camera_from)
+    center = (lo + hi) / 2
+    dim = hi - lo
+    ext = max(dim.x, dim.y, dim.z) * 1.15
+    sc = bpy.data.scenes.new("lw_cmp")
+    cam_data = bpy.data.cameras.new("lw_cmp_cam")
+    cam_data.type, cam_data.ortho_scale = "ORTHO", ext
+    cam = bpy.data.objects.new("lw_cmp_cam", cam_data)
+    target = bpy.data.objects.new("lw_cmp_target", None)
+    target.location = center
+    try:
+        for o in (ob, cam, target):
+            sc.collection.objects.link(o)
+        cam.location = center + Vector(R.TO_CAMERA[view]) * (ext * 2 + dim.length)
+        con = cam.constraints.new("TRACK_TO")
+        con.target, con.track_axis, con.up_axis = target, "TRACK_NEGATIVE_Z", "UP_Y"
+        sc.camera = cam
+        r = sc.render
+        r.engine, r.resolution_x, r.resolution_y, r.resolution_percentage, r.film_transparent = "BLENDER_WORKBENCH", size, size, 100, True
+        r.image_settings.file_format, r.image_settings.color_mode = "PNG", "RGBA"
+        sc.display.shading.light, sc.display.shading.color_type = "FLAT", "SINGLE"
+        r.filepath = str(tmp)
+        bpy.ops.render.render(write_still=True, scene=sc.name)
+    finally:
+        sc.collection.objects.unlink(ob) if ob.name in sc.collection.objects else None
+        for o in (cam, target):
+            bpy.data.objects.remove(o)
+        bpy.data.scenes.remove(sc)
+        bpy.data.cameras.remove(cam_data)
+    from PIL import Image
+    return np.asarray(Image.open(tmp).convert("RGBA"))[..., 3] > 8
+
+
+def _image_mask(path, size):
+    from PIL import Image
+    im = Image.open(path).convert("RGBA")
+    a = np.asarray(im)
+    if a[..., 3].min() < 255:
+        m = a[..., 3] > 127
+    else:                                                                    # no alpha: a flat background (the corner colour)
+        corners = np.concatenate([a[:8, :8, :3].reshape(-1, 3), a[-8:, -8:, :3].reshape(-1, 3)])
+        if corners.std(axis=0).max() > 12:
+            raise C.FeatureError("the plate needs an alpha or a flat background (see plate_pick)")
+        bg = np.median(corners, axis=0)
+        m = np.abs(a[..., :3].astype(float) - bg).max(-1) > 20
+    return np.asarray(Image.fromarray((m * 255).astype(np.uint8)).resize((size, size))) > 127
+
+
+def _fit(mask, size):
+    ys, xs = np.nonzero(mask)
+    if not len(ys):
+        return mask
+    from PIL import Image
+    crop = Image.fromarray((mask[ys.min():ys.max() + 1, xs.min():xs.max() + 1] * 255).astype(np.uint8)).resize((size, size))
+    return np.asarray(crop) > 127
+
+
+def _iou(a, b):
+    return float((a & b).sum() / max((a | b).sum(), 1))
+
+
+def _centroid(m):
+    ys, xs = np.nonzero(m)
+    return np.array([xs.mean(), ys.mean()]) if len(ys) else np.zeros(2)
+
+
+def _drift(a, b, landmarks):
+    """3D distance from each landmark (a point on ``a``, world space) to the nearest surface point of ``b``."""
+    tree = BVHTree.FromObject(b, bpy.context.evaluated_depsgraph_get())
+    out = []
+    for lm in landmarks:
+        p = Vector(lm["point"])
+        loc = tree.find_nearest(p)[0]
+        out.append({"name": lm["name"], "d": round(float((loc - p).length), 6)})
+    return out
+
+
+def run(a, b, root, piece="", views=None, size=512, min_iou=0.9, landmarks=None):
+    views = list(views or VIEWS)
+    if any(v not in VIEWS for v in views):
+        raise C.FeatureError(f"views are {', '.join(VIEWS)}")
+    if not 128 <= int(size) <= 2048:
+        raise C.FeatureError("size is 128..2048")
+    size = int(size)
+    oa = C.need_object(a)
+    image = isinstance(b, str) and (Path(b).suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"))
+    ob = None if image else C.need_object(b)
+    if ob is oa:
+        raise C.FeatureError("a and b are the same object: compare the approved source with the candidate")
+    for o in [x for x in (oa, ob) if x is not None]:
+        if max(abs(s - 1.0) for s in o.scale) > 1e-4:
+            raise C.FeatureError(f"scale not applied on {o.name}: apply it first")
+    outdir = Path(root) / (piece or oa.name) / "compare"
+    outdir.mkdir(parents=True, exist_ok=True)
+    rows, images = [], []
+    from PIL import Image
+    tmp = outdir / ".tmp.png"
+    for v in views:
+        ma = _render_mask(oa, oa, v, size, tmp)
+        if image:
+            mb = _image_mask(b, size)
+            ma, mb = _fit(ma, size), _fit(mb, size)
+        else:
+            mb = _render_mask(ob, oa, v, size, tmp)
+        row = {"view": v, "iou": round(_iou(ma, mb), 4), "area_ratio": round(float(mb.sum() / max(ma.sum(), 1)), 4),
+               "centroid_shift_frac": round(float(np.linalg.norm(_centroid(ma) - _centroid(mb)) / size), 4)}
+        if landmarks and ob is not None:
+            row["landmark_drift_m"] = _drift(oa, ob, landmarks)
+        rows.append(row)
+        sbs = np.zeros((size, size * 2, 3), np.uint8)
+        sbs[:, :size, 0], sbs[:, size:, 1] = ma * 255, mb * 255
+        p = outdir / f"{v}_{oa.name}_vs_{ob.name if ob else Path(b).stem}.png"
+        Image.fromarray(sbs).save(p)
+        images.append(str(p))
+    tmp.unlink(missing_ok=True)
+    worst = min(r["iou"] for r in rows)
+    return {"views": rows, "worst_iou": worst, "min_iou": float(min_iou), "pass": worst >= float(min_iou), "images": images}

@@ -41,7 +41,7 @@ class Def:
         for p in self.params:
             prop = {"type": p.type, "description": p.desc}
             if p.type == "array":
-                prop["items"] = {"type": "object"} if p.name in ("poses", "waypoints", "anchors") else {"type": "string"}
+                prop["items"] = {"type": "object"} if p.name in ("poses", "waypoints", "anchors", "landmarks") else {"type": "string"}
             props[p.name] = prop
             if p.required:
                 req.append(p.name)
@@ -265,6 +265,16 @@ DEFS = [
         [P("object", required=True), P("texture_size", "integer", "Power of two, default 2048"), P("target", desc="px/metre | 'N px/cm' | auto (default)"),
          P("weights", "object", "{material | vertex group | island:N: factor}"), P("mode", desc="island (default) | all"), P("repack", "boolean", "default true"),
          P("margin", "number", "UV units 0..0.05, default 0.005"), P("name", desc="Default <object>_td"), P("discard_texture", "boolean", "Allow a textured object")], api="uv_texel_density"),
+    Def("lampway_mesh_defect_scan", "A read-only clay inspection: typed defect candidates for the captain's decisions, NEVER an edit. kinds (default all): open_loop, floating_shell (a small shell "
+        ">3 mm from the body), intersection (faces crossing faces, by BVH), thin (thinner than thin_threshold_m inward; default 0.002, unverified), flipped_shell (closed or open), degenerate, "
+        "isolated_tri. Each candidate: id, kind, descriptor {faces, area_m2, centroid, bbox, normal, rim_length_m}, rule_verdict (keep|delete|hole|ambiguous), rule, severity. More than "
+        "max_candidates: the first N plus truncated and total.", [P("object", required=True), P("piece"), P("kinds", "array", "Subset of the kinds"),
+                                                          P("thin_threshold_m", "number", "0.0001..0.05"), P("max_candidates", "integer", "1..500, default 100")], api="mesh_defect_scan"),
+    Def("lampway_silhouette_compare", "Did the piece drift? Render the approved source `a` and the candidate `b` (a mesh, or a plate image with an alpha or a flat background) from the SAME "
+        "orthographic cameras (Front/Back/Left/Right, framed on a) and report per view the silhouette IoU, area ratio, centroid shift and, with landmarks [{name, point}] in world space, the "
+        "drift to b's surface. `pass` = worst IoU >= min_iou (default 0.9, a placeholder). Side-by-side PNGs under <root>/<piece>/compare/. A mirrored candidate fails the view that sees it.",
+        [P("a", required=True), P("b", required=True, desc="A mesh object name or a plate image path"), P("piece"), P("views", "array", "Subset of Front, Back, Left, Right"),
+         P("size", "integer", "128..2048, default 512"), P("min_iou", "number", "0..1"), P("landmarks", "array", "[{name, point: [x, y, z]}] in world space")], api="silhouette_compare"),
     Def("lampway_detail_normals", "Micro depth for a textured_atlas material without the relief map: per-material tiling detail normals box-projected "
         "in object space (metals take their ambientCG NormalGL maps; cloth and leather a small bump from their colour), blended by the material's "
         "per-texel masks. Idempotent: its 'DN:' nodes are replaced on a re-run. strengths: {plate, gold, cloth, leather}.",

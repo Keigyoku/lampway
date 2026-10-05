@@ -796,6 +796,25 @@ def uv_texel_density(object, texture_size=2048, target="auto", weights=None, mod
 
 
 @tool
+def mesh_defect_scan(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100):
+    """A read-only clay inspection: typed defect candidates for the captain's decisions, never an edit. kinds (default all): open_loop (boundary loops), floating_shell (a small shell
+    >3 mm from the body), intersection (faces crossing faces, by BVH), thin (thinner than thin_threshold_m inward, default 2 mm, an unverified default), flipped_shell (a shell pointing
+    into itself, closed or open), degenerate (zero-area faces), isolated_tri. Each candidate: id, kind, descriptor {faces, area_m2, centroid, bbox, normal, rim_length_m}, rule_verdict
+    (keep | delete | hole | ambiguous), rule, severity. More than max_candidates (1..500): the first N plus truncated and total."""
+    from .features import defect_scan as _DS
+    return _DS.run(object, piece, kinds, thin_threshold_m, max_candidates)
+
+
+@tool
+def silhouette_compare(a, b, piece="", views=None, size=512, min_iou=0.9, landmarks=None):
+    """Did the piece drift? Render the approved source `a` and the candidate `b` (a mesh, or a plate image with an alpha or a flat background) from the SAME orthographic cameras
+    (Front/Back/Left/Right, framed on `a`) and report per view the silhouette IoU, area ratio, centroid shift and, with landmarks [{name, point}] in world space, the drift to b's
+    surface; `pass` = worst IoU >= min_iou (0.9 is a placeholder, unverified). Side-by-side PNGs go to <root>/<piece>/compare/. A mirrored candidate fails the view that sees the mirror."""
+    from .features import silhouette as _SIL
+    return _SIL.run(a, b, str(_settings().project_root), piece, views, size, min_iou, landmarks)
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
@@ -870,7 +889,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "qa_descriptors", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick", "uv_score", "uv_texel_density")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick", "uv_score", "uv_texel_density", "mesh_defect_scan", "silhouette_compare")
 
 
 def call(name: str, payload: str = "{}") -> dict:
