@@ -35,7 +35,8 @@ class ImageGenError(RuntimeError):
 
 
 def backend_name() -> str:
-    name = os.environ.get("LAMPWAY_IMAGE_BACKEND", "tripo")
+    from . import provider_prefs
+    name = provider_prefs.effective().image_backend
     if name not in BACKENDS:
         raise ValueError(f"unknown image backend {name!r}; the backends are {', '.join(BACKENDS)}")
     return name
@@ -49,7 +50,7 @@ def _images(out: Path) -> list:
     return sorted(str(p) for p in out.glob("*") if p.suffix.lower() in _IMG and p.stem.isdigit()) if out.exists() else []
 
 
-def generate(backend: str, prompt_file: str, refs, out_dir: str, count: int = 4, live: bool = False) -> dict:
+def generate(backend: str, prompt_file: str, refs, out_dir: str, count: int = 4, live: bool = False, size: str = "", aspect_ratio: str = "") -> dict:
     """Returns {backend, files, dry_run, output}. ``refs`` in order: the clay render first, then any painted consistency view,
     then the design plate (the prompts name them first / second / third)."""
     if backend not in BACKENDS:
@@ -58,7 +59,7 @@ def generate(backend: str, prompt_file: str, refs, out_dir: str, count: int = 4,
     ref_paths = [ST.jail(r) for r in refs]
     out = ST.jail(out_dir)
     if backend == "openrouter":
-        return _openrouter(prompt_path, ref_paths, Path(out), int(count), live)
+        return _openrouter(prompt_path, ref_paths, Path(out), int(count), live, size, aspect_ratio)
     if backend == "tripo":
         cmd = ST.command("studio_tripo_image", {"out_dir": out_dir, "prompt_file": prompt_file, "refs": list(refs),
                                                 "count": str(count), "dry_run": not live}, allow_live=True)   # free quota only; the owner's armed env still applies
@@ -89,17 +90,35 @@ def _sniff_mime(data: bytes) -> str:
     return "image/png"
 
 
-def openrouter_images(prompt: str, references: list, count: int) -> list:
+def size_for_aspect(aspect: str) -> str:
+    """WIDTHxHEIGHT for an aspect ratio ('3:2'), as large as the image model's pixel budget allows, both sides multiples of 16."""
+    from .provider_prefs import MAX_IMAGE_PIXELS
+    try:
+        a, b = (float(x) for x in str(aspect).split(":"))
+        if a <= 0 or b <= 0:
+            raise ValueError
+    except ValueError:
+        raise ValueError(f"aspect_ratio must look like 3:2, not {aspect!r}") from None
+    h = (MAX_IMAGE_PIXELS * b / a) ** 0.5
+    w = h * a / b
+    return f"{int(w // 16 * 16)}x{int(h // 16 * 16)}"          # flooring both sides keeps the product within the budget
+
+
+def openrouter_images(prompt: str, references: list, count: int, size: str = "", aspect_ratio: str = "") -> list:
     """``count`` images from OpenRouter's images API (one request each), as ``[(bytes, media_type)]``; ``references`` are
     image bytes sent as data URLs. The key comes from the environment, every request is refused past the session spend
     ceiling, and the reported cost goes on the shared ledger."""
     import httpx
     from .agent.providers import spend_ledger
     from .agent.providers.openrouter import BASE_URL, REFERER, TITLE, redact, resolve_api_key
-    from .config import Settings
+    from . import provider_prefs
     if not 1 <= int(count) <= 4:
         raise ValueError("the openrouter backend makes at most 4 images per generation (one request each)")
-    settings = Settings.from_env()
+    settings = provider_prefs.effective()
+    if size:
+        size = _checked_size(size)
+    elif aspect_ratio:
+        size = size_for_aspect(aspect_ratio)
     model = settings.openrouter_image_model
     refs = [{"type": "image_url", "image_url": {"url": f"data:{_sniff_mime(data)};base64," + base64.b64encode(data).decode()}}
             for data in references]
@@ -110,8 +129,8 @@ def openrouter_images(prompt: str, references: list, count: int) -> list:
         for i in range(1, int(count) + 1):
             ledger.check()
             body = {"model": model, "prompt": prompt}
-            if settings.openrouter_image_size:
-                body["size"] = settings.openrouter_image_size
+            if size or settings.openrouter_image_size:
+                body["size"] = size or settings.openrouter_image_size
             if settings.openrouter_image_quality:
                 body["quality"] = settings.openrouter_image_quality
             if refs:
@@ -132,6 +151,14 @@ def openrouter_images(prompt: str, references: list, count: int) -> list:
     return out
 
 
+def _checked_size(size: str) -> str:
+    from . import provider_prefs
+    try:
+        return provider_prefs.check_size(size)
+    except provider_prefs.PrefsError as exc:
+        raise ValueError(str(exc)) from None
+
+
 def openrouter_image_backend(model: str, payload: dict):
     """The job-queue backend for the client's ``image_gen`` service (jobqueue.py): ``payload`` is what the client sends
     ({prompt, params{number_of_images}, reference_images_b64, image_name})."""
@@ -142,12 +169,13 @@ def openrouter_image_backend(model: str, payload: dict):
     params = payload.get("params") if isinstance(payload.get("params"), dict) else {}
     count = int(params.get("number_of_images") or 1)
     refs = [base64.b64decode(r) for r in (payload.get("reference_images_b64") or [])[:MAX_REFERENCE_IMAGES] if isinstance(r, str)]
-    return ImageOutput(images=openrouter_images(prompt, refs, count), image_name=str(payload.get("image_name") or ""))
+    return ImageOutput(images=openrouter_images(prompt, refs, count, size=str(params.get("size") or ""),
+                                                aspect_ratio=str(params.get("aspect_ratio") or "")), image_name=str(payload.get("image_name") or ""))
 
 
-def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: bool) -> dict:
-    from .config import Settings
-    settings = Settings.from_env()
+def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: bool, size: str = "", aspect_ratio: str = "") -> dict:
+    from . import provider_prefs
+    settings = provider_prefs.effective()
     model = settings.openrouter_image_model
     if not 1 <= count <= 4:
         raise ValueError("the openrouter backend makes at most 4 images per generation (one request each)")
@@ -156,7 +184,7 @@ def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: 
                 "output": f"dry run: would send {count} request(s) to {model} with {len(ref_paths)} reference image(s); nothing sent"}
     from .agent.providers import spend_ledger
     prompt = Path(prompt_path).read_text(encoding="utf-8").strip()
-    images = openrouter_images(prompt, [Path(p).read_bytes() for p in ref_paths], count)
+    images = openrouter_images(prompt, [Path(p).read_bytes() for p in ref_paths], count, size=size, aspect_ratio=aspect_ratio)
     out.mkdir(parents=True, exist_ok=True)
     files = []
     for i, (data, media_type) in enumerate(images, 1):

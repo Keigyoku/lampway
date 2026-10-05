@@ -18,7 +18,7 @@ from .auth import Auth
 from .chatgpt_auth import ChatGPTAuth, LoginDeclined, LoginError
 from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
-from . import dictation, logredact, matgen
+from . import dictation, logredact, matgen, provider_prefs
 from .assetsearch import AssetIndex
 from .mcp import McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
@@ -131,6 +131,7 @@ def default_job_backends(settings: Settings) -> dict:
 
 def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None) -> Starlette:
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
+    provider_prefs.apply(settings, provider_prefs.load(settings.state_dir))        # the owner's saved provider choices win over the environment
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
     auth = Auth(
         secret=settings.resolve_jwt_secret(),
@@ -565,11 +566,42 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
                Route("/app/studio/jobs/{job_id}", studio_job, methods=["GET"]),
                Route("/app/studio/jobs/{job_id}/files/{name}", studio_job_file, methods=["GET"]),
                Route("/app/studio/jobs/{job_id}/acknowledge-hung", studio_ack_hung, methods=["POST"])]
+    # ---- provider setup from the Client (main / swarm / image), saved in the state dir
+    async def provider_get(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        return JSONResponse(provider_prefs.view(settings))
+
+    async def provider_put(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        body = await _json_body(request)
+        try:
+            values = provider_prefs.validate(body.get("values"))
+            trial = provider_prefs.trial(settings, values)
+            new_main = None
+            if provider_prefs.MAIN_FIELDS & set(values):
+                new_main = make_provider(trial, chatgpt_auth=chatgpt)              # built BEFORE anything changes: a refusal leaves it all as it was
+            if {"swarm_provider", "provider", "claude_swarm_model", "openrouter_swarm_model", "chatgpt_swarm_model",
+                    "chatgpt_swarm_effort"} & set(values):
+                make_swarm_provider(trial, "worker-1", chatgpt_auth=chatgpt)
+        except (provider_prefs.PrefsError, ValueError, RuntimeError, OSError) as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=400)
+        saved = provider_prefs.load(settings.state_dir)
+        saved.update(values)
+        provider_prefs.save(settings.state_dir, saved)
+        provider_prefs.apply(settings, values)
+        if new_main is not None:
+            agent.provider = new_main
+        return JSONResponse(provider_prefs.view(settings))
+
+    routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"])]
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     app = Starlette(routes=routes)
     app.add_middleware(HostGuard, bind_host=settings.host)
     app.state.hub = hub
+    app.state.agent = agent
     app.state.settings = settings
     app.state.auth = auth
     app.state.store = store

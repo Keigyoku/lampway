@@ -36,6 +36,7 @@ class Settings:
     # swarm workers. stealth/space-bunny-alpha is free but answered "502 Provider returned an empty response" to 6 of 6
     # concurrent worker requests (2026-10-05, probe in reports/tools.md), which a swarm is; deepseek-v4.1-flash served 6 of 6.
     openrouter_swarm_model: str = "deepseek/deepseek-v4.1-flash"
+    image_backend: str = "tripo"                       # tripo | codex_cli | openrouter (mesh-paint and the image slot)
     openrouter_image_model: str = "google/gemini-3.1-flash-image"
     openrouter_image_size: str = ""                    # e.g. 2880x2880 (GPT Image 2.5's pixel budget refuses 3840x3840); '' = provider default
     openrouter_image_quality: str = ""                 # auto/low/medium/high/xhigh/max; '' = provider default
@@ -69,6 +70,7 @@ class Settings:
             claude_swarm_model=env.get("LAMPWAY_CLAUDE_SWARM_MODEL", "claude-sonnet-5-5"),
             openrouter_model=env.get("LAMPWAY_OPENROUTER_MODEL", "anthropic/claude-sonnet-5.5"),
             openrouter_swarm_model=env.get("LAMPWAY_OPENROUTER_SWARM_MODEL", "deepseek/deepseek-v4.1-flash"),
+            image_backend=env.get("LAMPWAY_IMAGE_BACKEND", "tripo"),
             openrouter_image_model=env.get("LAMPWAY_OPENROUTER_IMAGE_MODEL", "google/gemini-3.1-flash-image"),
             openrouter_image_size=env.get("LAMPWAY_OPENROUTER_IMAGE_SIZE", ""),
             openrouter_image_quality=env.get("LAMPWAY_OPENROUTER_IMAGE_QUALITY", ""),

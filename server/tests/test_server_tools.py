@@ -103,8 +103,8 @@ def test_it_calls_the_backend_with_jailed_paths_and_reports_the_files(root, monk
     from lampway_server import imagegen as IG
     seen = {}
 
-    def fake(backend, prompt_file, refs, out_dir, count=4, live=False):
-        seen.update(backend=backend, prompt_file=prompt_file, refs=refs, out_dir=out_dir, count=count, live=live)
+    def fake(backend, prompt_file, refs, out_dir, count=4, live=False, size="", aspect_ratio=""):
+        seen.update(backend=backend, prompt_file=prompt_file, refs=refs, out_dir=out_dir, count=count, live=live, size=size, aspect_ratio=aspect_ratio)
         return {"backend": backend, "files": [str(root / "runs/1.png")], "dry_run": not live, "output": "ok"}
 
     monkeypatch.setattr(IG, "generate", fake)

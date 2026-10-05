@@ -118,6 +118,8 @@ LOCALS.append(Local(
     "owner's LAMPWAY_STUDIO_ARMED=1. Never pass live=true unless the user asked for exactly that.", "imagegen",
     [A("prompt_file", required=True, path=True), A("refs", "array", "Reference images in order", path=True),
      A("out_dir", required=True, path=True), A("backend", desc="tripo (default), codex_cli, or openrouter (an OpenRouter image model; paid, counted against the session spend ceiling, live=true only when asked)"), A("count", "integer", "Default 4"),
+     A("size", desc="openrouter only: WIDTHxHEIGHT for this call (e.g. 2048x1152), within the model's pixel budget"),
+     A("aspect_ratio", desc="openrouter only: e.g. 3:2 for a non-square plate; the largest size the budget allows"),
      A("live", "boolean", "Default false")], 3600))
 BY_NAME = {d.name: d for d in LOCALS}
 SPECS = [d.spec() for d in LOCALS]
@@ -220,7 +222,8 @@ def _run_imagegen(arguments: dict) -> tuple:
             if not arguments.get(key):
                 raise BadToolCall(f"studio_image_generate needs {key}")
         res = IG.generate(arguments.get("backend") or IG.backend_name(), arguments["prompt_file"], arguments.get("refs") or [],
-                          arguments["out_dir"], int(arguments.get("count") or 4), bool(arguments.get("live")))
+                          arguments["out_dir"], int(arguments.get("count") or 4), bool(arguments.get("live")),
+                          str(arguments.get("size") or ""), str(arguments.get("aspect_ratio") or ""))
     except (BadToolCall, IG.ImageGenError, ValueError) as exc:
         return str(exc), True
     lines = [f"backend: {res['backend']}", f"dry_run: {str(res['dry_run']).lower()}", f"images: {len(res['files'])}"] + [f"  {f}" for f in res["files"]]
