@@ -4,6 +4,7 @@ tiles. Each purpose carries its own model and size/resolution; a request is vali
 
 import base64
 import json
+from pathlib import Path
 
 import httpx
 import pytest
@@ -17,7 +18,7 @@ from .fake_client import FakeMixarClient
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"x"
 ENDPOINTS = {
-    "openai/gpt-image-2.5-flare": ["size", "quality", "input_references"],
+    "openai/gpt-image-2.5-flare": [],
     "google/gemini-3.1-flash-image": ["resolution", "aspect_ratio", "input_references"],
     "black-forest-labs/flux-3-image": ["resolution", "aspect_ratio", "input_references"],
     "sourceful/riverflow-v2.5-pro": ["resolution", "aspect_ratio", "input_references"],
@@ -38,7 +39,10 @@ def wire(settings, monkeypatch):
             model = request.url.path.split("/images/models/")[1].removesuffix("/endpoints")
             if model not in ENDPOINTS:
                 return httpx.Response(404, json={"error": "no such model"})
-            return httpx.Response(200, json={"data": {"endpoints": [{"supported_parameters": ENDPOINTS[model], "pricing": {}}]}})
+            if model == "openai/gpt-image-2.5-flare":          # the REAL recorded response (GPT Image 2.5): endpoints at the top level, no `size` listed
+                real = json.loads((Path(__file__).parent / "fixtures" / "image_endpoints_gpt_image_2_5.json").read_text())
+                return httpx.Response(200, json=dict(real, id=model))
+            return httpx.Response(200, json={"id": model, "endpoints": [{"supported_parameters": {p: {"type": "enum"} for p in ENDPOINTS[model]}}]})
         posts.append(json.loads(request.content))
         return httpx.Response(200, json={"data": [{"b64_json": base64.b64encode(PNG).decode(), "media_type": "image/png"}], "usage": {"cost": 0.02}})
     monkeypatch.setattr(IG, "openrouter_transport", httpx.MockTransport(handler))
@@ -115,3 +119,18 @@ def test_the_job_payload_and_the_tool_choose_the_purpose(wire):
     assert "purpose" in ST.BY_NAME["studio_image_generate"].spec().parameters["properties"]
     with pytest.raises(ValueError, match="purpose"):
         IG.openrouter_images("p", [], 1, purpose="poster")
+
+
+def test_the_real_gpt_image_endpoint_record_is_parsed_and_size_is_an_accepted_passthrough_for_the_openai_family(wire):
+    posts, gets = wire
+    real = json.loads((Path(__file__).parent / "fixtures" / "image_endpoints_gpt_image_2_5.json").read_text())
+    assert "endpoints" in real and "size" not in real["endpoints"][0]["supported_parameters"], "the premise: the live record lists no size"
+    with httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(200, json=real))) as c:
+        got = IG.supported_parameters(c, "k", "openai/gpt-image-2.5-sunburst")
+    assert {"aspect_ratio", "quality", "input_references"} <= got, "parsed from the top-level endpoints, supported_parameters being a dict"
+    IG.openrouter_images("p", [], 1, purpose="plates")
+    IG.openrouter_images("p", [], 1, purpose="plates", size="2160x3840")
+    assert posts[0]["size"] == "2880x2880" and posts[1]["size"] == "2160x3840"
+    for bad in ("3840x3840", "4096x2048"):
+        with pytest.raises(ValueError, match="budget"):
+            IG.openrouter_images("p", [], 1, purpose="plates", size=bad)

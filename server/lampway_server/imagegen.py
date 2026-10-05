@@ -126,10 +126,19 @@ def supported_parameters(client, key: str, model: str):
     try:
         resp = client.get(f"{BASE_URL}/images/models/{model}/endpoints", headers={"Authorization": f"Bearer {key}", "HTTP-Referer": REFERER, "X-Title": TITLE})
         if resp.status_code == 200:
-            eps = ((resp.json().get("data") or {}).get("endpoints")) or []
-            found = {p for e in eps for p in (e.get("supported_parameters") or [])} or None
+            body = resp.json()
+            # the live response has ``endpoints`` at the TOP level (an older assumption nested it under ``data``); each record's
+            # supported_parameters is an object keyed by parameter name (a list is accepted too)
+            eps = body.get("endpoints") or (body.get("data") or {}).get("endpoints") or []
+            names = set()
+            for e in eps:
+                sp = e.get("supported_parameters") or {}
+                names |= set(sp) if isinstance(sp, dict) else set(sp)
+            found = names or None
     except Exception:  # noqa: BLE001 - validation is best effort; the request itself is the authority
         found = None
+    if found is not None and model.startswith("openai/gpt-image"):
+        found = found | {"size"}                  # measured 2026-10-05: an accepted passthrough that the record does not list (<= 3840 per edge, ~8.3 MP)
     _SUPPORTED[model] = found if found is not None else supported_parameters_fallback(model)
     return _SUPPORTED[model]
 
