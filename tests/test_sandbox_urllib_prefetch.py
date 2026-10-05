@@ -35,6 +35,9 @@ def _load_sandbox_modules():
 @pytest.fixture(autouse=True)
 def isolated_cache(monkeypatch, tmp_path):
     monkeypatch.setattr(asset_cache.tempfile, "gettempdir", lambda: str(tmp_path))
+    # These tests were written against upstream's CDN allow-list; Lampway's default is loopback only, and the env override
+    # is the documented door for a setup that needs a CDN (see config/brand.py DEFAULT_ASSET_HOSTS).
+    monkeypatch.setenv("MIXAR_ASSET_HOSTS", "amazonaws.com,cloudflarestorage.com,127.0.0.1,localhost")
 
 
 _FakeResponse = io.BytesIO

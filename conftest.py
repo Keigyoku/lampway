@@ -54,7 +54,9 @@ def _preload_real_optional_modules():
     """
     import importlib
 
-    for name in ("numpy", "PIL", "PIL.Image", "PIL.ImageOps"):
+    # ``requests`` too: a dozen test files stub it with a MagicMock when it is absent, and a MagicMock is not a package,
+    # so ``from requests.adapters import HTTPAdapter`` in common/api failed for every later file (test_lampway_brand).
+    for name in ("numpy", "PIL", "PIL.Image", "PIL.ImageOps", "requests", "requests.adapters", "urllib3", "urllib3.util.retry"):
         try:
             importlib.import_module(name)
         except ImportError:
