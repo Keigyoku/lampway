@@ -583,7 +583,7 @@ class TestRefreshIdempotency(unittest.TestCase):
 class TestPersistedAttemptRecovery(unittest.TestCase):
     """The real safe-storage loader must discard invalid markers, not wedge."""
 
-    _STORAGE_KEY = ("MixarSafeStorage", "RefreshAttempt")
+    _STORAGE_KEY = ("LampwaySafeStorage", "RefreshAttempt")
     _VALID_DIGEST = "a" * 64
     _VALID_UUID4 = "2f4d4a9e-9d3b-4c5e-8a2f-1b3c4d5e6f70"
     _VALID_UUID1 = "aaaaaaaa-aaaa-1aaa-8aaa-aaaaaaaaaaaa"

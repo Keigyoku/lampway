@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Re-sign a local macOS build with the stable dev identity so the Keychain
-# "Always Allow" for the MixarSafeStorage login tokens persists across
+# "Always Allow" for the LampwaySafeStorage login tokens persists across
 # rebuilds (see setup_dev_codesign.sh for the why). Opt-in through
 # MIXAR_DEV_SIGN_ID in .env; a no-op elsewhere or when unset.
 #

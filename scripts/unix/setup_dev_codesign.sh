@@ -11,7 +11,7 @@ set -euo pipefail
 # Why: `make build` produces an ad-hoc signed binary whose code-signing
 # identity is the binary's own hash, so every rebuild looks like a brand-new
 # app to the macOS Keychain. The login tokens Mixar stores under the
-# "MixarSafeStorage" Keychain service are ACL-bound to the app that wrote
+# "LampwaySafeStorage" Keychain service are ACL-bound to the app that wrote
 # them, so each rebuild triggers the "Mixar wants your confidential
 # information stored in keychain" SecurityAgent prompt and "Always Allow"
 # never persists. Signing every build with the SAME certificate makes the

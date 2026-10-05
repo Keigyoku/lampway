@@ -26,6 +26,11 @@ AGENT_NAME = "Lampway Agent"
 #: The collection the agent's work lands in (the v3 harness commit). The server defines the same value once in lampway_server/brand.py; tests/lampway pins the two together.
 AGENT_COLLECTION = AGENT_NAME
 
+#: The OS keyring service the login pair is stored under (macOS Keychain service, Secret Service attribute, Windows credential target suffix). Lampway's
+#: own, so a stock Mixar install on the same machine is neither read nor overwritten. The C++ side names the same value (LAMPWAY_KEYRING_SERVICE); there is
+#: deliberately NO migration of an old token: it is a credential for another backend.
+KEYRING_SERVICE = "LampwaySafeStorage"
+
 #: The approved attribution wording (specs/brand/REBRAND.md section 8), the ONE place the text lives. Splash and About show the short line; the README
 #: footer and NOTICE carry the long one. tests/lampway/test_shipped_metadata.py matches both verbatim in the files that ship them.
 ATTRIBUTION_SHORT = (

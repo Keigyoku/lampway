@@ -19,6 +19,7 @@ import requests
 
 from mixar.modules.common.i18n import rpt_
 
+from ....config.brand import KEYRING_SERVICE
 from ....config.config import get_server_url
 from ...common.network import classify_network_error, log_network_failure
 from ....config.logging_config import get_logger
@@ -28,7 +29,7 @@ from .device import get_device_id
 logger = get_logger(__name__)
 
 # Windows-specific credential handling to match C++ implementation
-# C++ uses TargetName format: "MixarSafeStorage@AccessToken" and "MixarSafeStorage@RefreshToken"
+# C++ uses TargetName format: "AccessToken@LampwaySafeStorage" and "RefreshToken@LampwaySafeStorage"
 # Python keyring uses a different format, causing inconsistency
 
 _is_windows = platform.system() == "Windows"
@@ -42,9 +43,9 @@ if _is_windows:
     CRED_PERSIST_LOCAL_MACHINE = 2
 
     # Use username@service format (matches Python keyring's compound format)
-    WIN_TARGET_NAME_ACCESS = "AccessToken@MixarSafeStorage"
-    WIN_TARGET_NAME_REFRESH = "RefreshToken@MixarSafeStorage"
-    WIN_TARGET_NAME_REFRESH_ATTEMPT = "RefreshAttempt@MixarSafeStorage"
+    WIN_TARGET_NAME_ACCESS = f"AccessToken@{KEYRING_SERVICE}"
+    WIN_TARGET_NAME_REFRESH = f"RefreshToken@{KEYRING_SERVICE}"
+    WIN_TARGET_NAME_REFRESH_ATTEMPT = f"RefreshAttempt@{KEYRING_SERVICE}"
 
     class CREDENTIAL(ctypes.Structure):
         _fields_ = [
@@ -131,7 +132,7 @@ def get_access_token():
             token = _win_get_password(WIN_TARGET_NAME_ACCESS)
         else:
             # Use keyring for macOS/Linux
-            token = keyring.get_password("MixarSafeStorage", "AccessToken")
+            token = keyring.get_password(KEYRING_SERVICE, "AccessToken")
         return token if token else ""
     except Exception as e:
         logger.warning(f"Failed to retrieve access token: {e}")
@@ -146,7 +147,7 @@ def store_access_token(token):
             return _win_set_password(WIN_TARGET_NAME_ACCESS, "AccessToken", token)
         else:
             # Use keyring for macOS/Linux
-            keyring.set_password("MixarSafeStorage", "AccessToken", token)
+            keyring.set_password(KEYRING_SERVICE, "AccessToken", token)
             return True
     except Exception as e:
         logger.error(f"Failed to store access token: {e}")
@@ -161,7 +162,7 @@ def delete_access_token():
             return _win_delete_password(WIN_TARGET_NAME_ACCESS)
         else:
             # Use keyring for macOS/Linux
-            keyring.delete_password("MixarSafeStorage", "AccessToken")
+            keyring.delete_password(KEYRING_SERVICE, "AccessToken")
             return True
     except Exception as e:
         logger.warning(f"Failed to delete access token: {e}")
@@ -176,7 +177,7 @@ def get_refresh_token():
             token = _win_get_password(WIN_TARGET_NAME_REFRESH)
         else:
             # Use keyring for macOS/Linux
-            token = keyring.get_password("MixarSafeStorage", "RefreshToken")
+            token = keyring.get_password(KEYRING_SERVICE, "RefreshToken")
         return token if token else ""
     except Exception as e:
         logger.warning(f"Failed to retrieve refresh token: {e}")
@@ -191,7 +192,7 @@ def store_refresh_token(token):
             return _win_set_password(WIN_TARGET_NAME_REFRESH, "RefreshToken", token)
         else:
             # Use keyring for macOS/Linux
-            keyring.set_password("MixarSafeStorage", "RefreshToken", token)
+            keyring.set_password(KEYRING_SERVICE, "RefreshToken", token)
             return True
     except Exception as e:
         logger.error(f"Failed to store refresh token: {e}")
@@ -206,7 +207,7 @@ def delete_refresh_token():
             return _win_delete_password(WIN_TARGET_NAME_REFRESH)
         else:
             # Use keyring for macOS/Linux
-            keyring.delete_password("MixarSafeStorage", "RefreshToken")
+            keyring.delete_password(KEYRING_SERVICE, "RefreshToken")
             return True
     except Exception as e:
         logger.warning(f"Failed to delete refresh token: {e}")
@@ -232,7 +233,7 @@ def _load_persisted_refresh_attempt():
         if _is_windows:
             raw = _win_get_password(WIN_TARGET_NAME_REFRESH_ATTEMPT)
         else:
-            raw = keyring.get_password("MixarSafeStorage", "RefreshAttempt")
+            raw = keyring.get_password(KEYRING_SERVICE, "RefreshAttempt")
     except Exception as e:
         logger.error(f"Failed to read pending refresh attempt: {e}")
         return False, None
@@ -284,7 +285,7 @@ def _persist_refresh_attempt(attempt):
                 "RefreshAttempt",
                 raw,
             )
-        keyring.set_password("MixarSafeStorage", "RefreshAttempt", raw)
+        keyring.set_password(KEYRING_SERVICE, "RefreshAttempt", raw)
         return True
     except Exception as e:
         logger.error(f"Failed to persist pending refresh attempt: {e}")
@@ -296,10 +297,10 @@ def _delete_persisted_refresh_attempt():
     try:
         if _is_windows:
             return _win_delete_password(WIN_TARGET_NAME_REFRESH_ATTEMPT)
-        raw = keyring.get_password("MixarSafeStorage", "RefreshAttempt")
+        raw = keyring.get_password(KEYRING_SERVICE, "RefreshAttempt")
         if not raw:
             return True
-        keyring.delete_password("MixarSafeStorage", "RefreshAttempt")
+        keyring.delete_password(KEYRING_SERVICE, "RefreshAttempt")
         return True
     except Exception as e:
         logger.error(f"Failed to delete pending refresh attempt: {e}")
