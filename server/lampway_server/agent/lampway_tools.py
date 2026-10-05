@@ -115,15 +115,20 @@ DEFS = [
     Def("lampway_qa_draw", "Draw the candidates into the scene (collection QA_<piece>): tubes along open loops, rings around floating "
         "shells, each labelled with its id (and verdict, once proposed), so the captain can review them and answer with the tag layers. "
         "A re-run replaces only this piece's collection.", [P("piece"), P("collection"), P("prefix")], api="qa_draw"),
-    Def("lampway_qa_propose", "PROPOSE a verdict per candidate: {id: {verdict: delete|hole|mislabel|keep, note?, target?}}. Writes "
-        "<piece>_proposals.json and recolours the markers (delete red, hole yellow, mislabel green, keep grey; label `<id> <VERDICT>`). "
-        "A proposal is NOT a ruling and never changes the mesh: only the captain's tags or typed answers become rulings.",
-        [P("proposals", "object", "{candidate id: {verdict, note, target}}", required=True), P("piece"), P("by", desc="Who proposes, default agent")],
+    Def("lampway_qa_propose", "PROPOSE verdicts for a piece's candidates and recolour the markers (delete red, hole yellow, mislabel green, "
+        "keep grey and hidden; label `<id> <VERDICT>`). RULES FIRST: called with no `proposals`, the proven rules decide every candidate "
+        "their descriptors make clear (each reason names its rule) and the rest comes back as `ambiguous` - judge only those, in small "
+        "batches, from lampway_qa_descriptors, then call this again with `proposals` {id: {verdict, reason}} (rules=false). A re-run of "
+        "the rules never replaces your row. A proposal is NOT a ruling and never changes the mesh: only the captain's tags or typed "
+        "answers become rulings.",
+        [P("proposals", "object", "{candidate id: {verdict: delete|hole|mislabel|keep, reason, target}}; omit to run the rules"),
+         P("piece"), P("by", desc="Who proposes, default agent"), P("rules", "boolean", "Run the rules too (default: only when no proposals)")],
         api="qa_propose"),
-    Def("lampway_chat_transcript", "Read the chat transcript: each message's best text (a user message's text, an agent bubble's live "
-        "narration while its turn runs, or its final answer), whether it is still running, its thinking text and tool steps. Use this "
-        "instead of reading scene.mixie_chat_messages[i].content, which is empty for user messages and for running agent bubbles.",
-        [P("last", "integer", "Only the final N messages"), P("include_steps", "boolean")], api="chat_transcript"),
+    Def("lampway_qa_descriptors", "COMPACT descriptors of a piece's candidates (never segments, never the candidate files themselves) in small "
+        "batches: `ids` picks some; `ambiguous_only` = those with no proposal yet; `limit` (max 20) and `offset` page. Read these, not the "
+        "candidates JSON, to judge what the rules left ambiguous (large rims, backfacing hits, shells near the float threshold).",
+        [P("piece"), P("ids", "array", "Candidate ids"), P("ambiguous_only", "boolean"), P("limit", "integer"), P("offset", "integer")],
+        api="qa_descriptors"),
     Def("lampway_qa_proposals", "Read the proposals so far for a piece, with counts per verdict.", [P("piece")], api="qa_proposals"),
     Def("lampway_qa_read_tags", "Read the captain's Red/Green/Yellow annotation strokes: faces and Smart UV islands per stroke, the "
         "candidate loops a Hole stroke circles or runs along (or an orphan the generator missed), and the floating shell a Delete "

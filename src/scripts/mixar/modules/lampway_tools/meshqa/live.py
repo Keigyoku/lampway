@@ -203,7 +203,7 @@ def draw_candidates(cfg: QAConfig, collection=None, prefix=None) -> dict:
     prefix = _prefix(cfg, prefix)
     live = live_matrix(cfg)
     rot = live.to_3x3()
-    proposals = P.load(cfg.rulings_dir, cfg.piece).get("proposals", {})
+    proposals = P.as_map(P.load_rows(cfg.rulings_dir, cfg.piece))
     old = bpy.data.collections.get(name)
     if old:
         for o in list(old.objects):
@@ -239,6 +239,7 @@ def draw_candidates(cfg: QAConfig, collection=None, prefix=None) -> dict:
         o = bpy.data.objects.new(prefix + c["id"], cu)
         o.data.materials.append(mat)
         col.objects.link(o)
+        o.hide_viewport = o.hide_render = (verdict == "keep")        # a KEEP marker is out of the way
         tc = bpy.data.curves.new(prefix + c["id"] + "_label", "FONT")
         tc.body = _label(c["id"], verdict)
         tc.size = 0.014
@@ -246,6 +247,7 @@ def draw_candidates(cfg: QAConfig, collection=None, prefix=None) -> dict:
         t = bpy.data.objects.new(prefix + c["id"] + "_label", tc)
         t.data.materials.append(mat)
         col.objects.link(t)
+        t.hide_viewport = t.hide_render = (verdict == "keep")
         n = rot @ Vector(c["facing"])
         t.location = live @ Vector(c["centroid_m"]) + n * 0.02
         t.rotation_euler = n.to_track_quat("Z", "Y").to_euler()
@@ -257,7 +259,7 @@ def recolour(cfg: QAConfig, collection=None, prefix=None) -> dict:
     """Recolour and relabel the piece's existing markers from its proposals (no redraw; the geometry stays)."""
     cand = _load_candidates(cfg)
     prefix = _prefix(cfg, prefix)
-    proposals = P.load(cfg.rulings_dir, cfg.piece).get("proposals", {})
+    proposals = P.as_map(P.load_rows(cfg.rulings_dir, cfg.piece))
     changed = 0
     for c in cand["candidates"]:
         verdict = (proposals.get(c["id"]) or {}).get("verdict")
@@ -268,10 +270,11 @@ def recolour(cfg: QAConfig, collection=None, prefix=None) -> dict:
                 continue
             o.data.materials.clear()
             o.data.materials.append(mat)
+            o.hide_viewport = o.hide_render = (verdict == "keep")
             if is_label:
                 o.data.body = _label(c["id"], verdict)
         changed += 1
-    return {"recoloured": changed, "proposals": P.counts({"proposals": proposals})}
+    return {"recoloured": changed, "proposals": P.counts(list(proposals.values()))}
 
 
 def _shift(c, live):

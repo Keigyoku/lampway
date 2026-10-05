@@ -20,8 +20,9 @@ Mesh QA and the rebuild loop (the `lampway_*` tools; they work on a piece the us
 - `lampway_status` shows what is configured. `lampway_qa_setup` points mesh QA at a mesh object once per scene.
 - `lampway_qa_candidates` finds open loops and floating shells; `lampway_qa_draw` draws them for review.
 - Several pieces can be QA'd in one scene: set each up with its own `piece`; every QA tool takes `piece` and draws into `QA_<piece>`. \
-`lampway_qa_propose` records YOUR proposed verdict per candidate (delete/hole/mislabel/keep) and recolours the markers; a proposal is \
-never a ruling - only the user's tags or typed answers are.
+`lampway_qa_propose` with no arguments runs the proven rules (every reason names its rule) and returns the `ambiguous` ids; read \
+those in small batches with `lampway_qa_descriptors` (never open the candidates JSON: it holds geometry and is huge) and propose your \
+verdicts with `proposals`. A proposal is never a ruling - only the user's tags or typed answers are.
 - The user answers by drawing on the mesh with the Annotate tool on three layers: Red = Delete, Green = Mislabel, \
 Yellow = Hole. `lampway_qa_read_tags` turns the strokes into faces, Smart UV islands and loops and writes the decision \
 log and the rulings. A Green stroke needs a target part: ask the user, or pass `mislabel_to` only when they said which \

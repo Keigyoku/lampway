@@ -33,6 +33,7 @@ from .meshqa import decisions as D
 from .meshqa import live as L
 from .meshqa import marks as M
 from .meshqa import proposals as QP
+from .meshqa import rules as QR
 from .meshqa.rulings import Rulings
 
 _rebuild_run = RB.run                    # replaced by tests: the real thing is minutes of batch work
@@ -157,26 +158,65 @@ def qa_draw(piece="", collection="", prefix=None):
     return L.draw_candidates(L.load_config(bpy.context.scene, piece or None), collection or None, prefix)
 
 
-@tool
-def qa_propose(proposals, piece="", by="agent", collection="", prefix=None):
-    """Write the proposed verdict per candidate ({id: {verdict: delete|hole|mislabel|keep, note?, target?}}) to
-    ``<piece>_proposals.json`` and recolour the piece's markers (delete red, hole yellow, mislabel green, keep grey; the label
-    reads ``<id> <VERDICT>``). A proposal is NOT a ruling: only the captain's tags or typed answers become rulings."""
-    cfg = L.load_config(bpy.context.scene, piece or None)
-    cand = json.loads(cfg.candidates_path.read_text(encoding="utf-8")) if cfg.candidates_path.exists() else None
-    if cand is None:
+def _qa_candidates_by_id(cfg) -> dict:
+    if not cfg.candidates_path.exists():
         raise FileNotFoundError(f"{cfg.candidates_path} does not exist: compute the candidates first")
-    data = QP.merge(cfg.rulings_dir, cfg.piece, cfg.session, proposals, [c["id"] for c in cand["candidates"]], by=by)
-    out = L.recolour(cfg, collection or None, prefix)
-    return {"piece": cfg.piece, "path": str(QP.path_for(cfg.rulings_dir, cfg.piece)), "counts": QP.counts(data), **out}
+    return {c["id"]: c for c in json.loads(cfg.candidates_path.read_text(encoding="utf-8"))["candidates"]}
+
+
+@tool
+def qa_propose(proposals=None, piece="", by="agent", rules=None, collection="", prefix=None):
+    """Propose a verdict per candidate and recolour the piece's markers (delete red, hole yellow, mislabel green, keep grey and hidden;
+    the label reads ``<id> <VERDICT>``). RULES FIRST: with no ``proposals`` the rules (meshqa/rules.py) decide every candidate their
+    descriptors make clear and each reason names its rule; the rest is returned as ``ambiguous`` for YOUR judgement, which you give as
+    ``proposals`` ({id: {verdict: delete|hole|mislabel|keep, reason?, target?}}, ``rules`` false). A re-run of the rules never replaces a
+    row somebody else wrote. A proposal is NOT a ruling: only the captain's tags or typed answers become rulings."""
+    cfg = L.load_config(bpy.context.scene, piece or None)
+    cands = _qa_candidates_by_id(cfg)
+    run_rules = (proposals is None) if rules is None else bool(rules)
+    new_rows, out = [], {}
+    if proposals is not None:
+        new_rows += QP.validate(proposals, cands, by=by)
+    if run_rules:
+        res = QR.propose(list(cands.values()), QR.Params(float_mm=cfg.float_mm))
+        new_rows += QP.rule_rows(res["verdicts"])
+        out["ambiguous"], out["ambiguous_why"] = res["ambiguous"], res["ambiguous_why"]
+        out["applied"] = QP.counts(QP.rule_rows(res["verdicts"]))
+    rows = QP.merge(QP.load_rows(cfg.rulings_dir, cfg.piece), new_rows, rules_run=run_rules)
+    path = QP.save(cfg.rulings_dir, cfg.piece, rows)
+    if not run_rules:
+        decided = {r["id"] for r in rows}
+        out["ambiguous"] = [i for i in cands if i not in decided]
+    out.update(L.recolour(cfg, collection or None, prefix))
+    return {"piece": cfg.piece, "path": str(path), "counts": QP.counts(rows), **out}
 
 
 @tool
 def qa_proposals(piece=""):
-    """The proposals so far for the piece, with their counts (for the review panel and for agents)."""
+    """The proposals so far for the piece (rows {id, kind, verdict, reason, by}), with counts per verdict."""
     cfg = L.load_config(bpy.context.scene, piece or None)
-    data = QP.load(cfg.rulings_dir, cfg.piece)
-    return {"piece": cfg.piece, "counts": QP.counts(data), "proposals": data.get("proposals", {})}
+    rows = QP.load_rows(cfg.rulings_dir, cfg.piece)
+    return {"piece": cfg.piece, "counts": QP.counts(rows), "proposals": QP.as_map(rows)}
+
+
+@tool
+def qa_descriptors(piece="", ids=None, ambiguous_only=False, limit=10, offset=0):
+    """COMPACT descriptors (never segments_m) of the piece's candidates, in small batches: ``ids`` picks some, ``ambiguous_only`` the ones
+    nobody has proposed a verdict for yet. ``limit`` is capped at 20; page with ``offset``. This is what a model reads to judge what the
+    rules left ambiguous."""
+    cfg = L.load_config(bpy.context.scene, piece or None)
+    cands = _qa_candidates_by_id(cfg)
+    wanted = list(cands)
+    if ids:
+        wanted = [i for i in ids if i in cands]
+    if ambiguous_only:
+        decided = {r["id"] for r in QP.load_rows(cfg.rulings_dir, cfg.piece)}
+        wanted = [i for i in wanted if i not in decided]
+    limit = max(1, min(int(limit), 20))
+    offset = max(0, int(offset))
+    batch = wanted[offset:offset + limit]
+    return {"piece": cfg.piece, "total": len(wanted), "offset": offset, "next_offset": offset + limit if offset + limit < len(wanted) else None,
+            "descriptors": [QR.compact(cands[i]) for i in batch]}
 
 
 @tool
@@ -755,7 +795,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 
 # ---- the door the agent's scripts use
 
-TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
+TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "qa_descriptors", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
               "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture")
 
 

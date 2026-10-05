@@ -89,7 +89,7 @@ call("qa_setup", object="piece", piece="a", offset=[0, 0, 0.5], **common)
 call("qa_candidates", piece="a", draw=True)
 bad_verdict = call("qa_propose", piece="a", proposals={"L000": {"verdict": "maybe"}})
 bad_id = call("qa_propose", piece="a", proposals={"L999": {"verdict": "delete"}})
-ok = call("qa_propose", piece="a", proposals={"L000": {"verdict": "hole", "note": "open collar"}, "S000": {"verdict": "delete"}})
+ok = call("qa_propose", piece="a", proposals={"L000": {"verdict": "hole", "reason": "open collar"}, "S000": {"verdict": "delete"}})
 def colour(name):
     m = bpy.data.objects[name].data.materials[0]
     return [round(x, 2) for x in m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value[:3]]
@@ -97,7 +97,7 @@ ok2 = call("qa_propose", piece="a", proposals={"L000": {"verdict": "keep"}})
 state = {n: colour(n) for n in ("a_L000", "a_S000")}
 labels = {n: bpy.data.objects[n].data.body for n in ("a_L000_label", "a_S000_label")}
 rd = work + "/a/rulings"
-prop = json.load(open(rd + "/a_proposals.json"))
+prop = {r["id"]: r for r in json.load(open(rd + "/a_proposals.json"))}
 read = call("qa_read_tags", piece="a", apply=True)
 print("RESULT", json.dumps({"bad_verdict": bad_verdict, "bad_id": bad_id, "ok": ok, "ok2": ok2, "state": state, "labels": labels, "prop": prop,
     "has_decisions": os.path.exists(rd + "/decisions.jsonl") and os.path.getsize(rd + "/decisions.jsonl") > 0,
@@ -111,6 +111,6 @@ print("RESULT", json.dumps({"bad_verdict": bad_verdict, "bad_id": bad_id, "ok": 
     assert o["state"]["a_S000"][0] > 0.8 and o["state"]["a_S000"][1] < 0.3, "DELETE is red"
     assert abs(o["state"]["a_L000"][0] - o["state"]["a_L000"][2]) < 0.1 and o["state"]["a_L000"][0] < 0.7, "KEEP is grey"
     assert o["labels"] == {"a_L000_label": "L000 KEEP", "a_S000_label": "S000 DELETE"}
-    assert o["prop"]["proposals"]["L000"]["verdict"] == "keep" and o["prop"]["proposals"]["S000"]["verdict"] == "delete"
+    assert o["prop"]["L000"]["verdict"] == "keep" and o["prop"]["S000"]["verdict"] == "delete" and o["prop"]["L000"]["by"] == "agent"
     assert o["has_decisions"] is False and o["has_deletions"] is False, "a proposal is not a ruling"
     assert o["read"]["ok"] is True and o["read"]["decisions"] == 0
