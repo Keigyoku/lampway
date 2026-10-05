@@ -156,6 +156,11 @@ DEFS = [
          P("require_all", "boolean", "Plates: all four views must be picked (default true)"), P("material", desc="The _albedo material"),
          P("on", "boolean", "Albedo on or off"), P("live", "boolean", "Really generate (default a dry run)"),
          P("count", "integer", "Stage image: images to make, 1-4 (default 4)")], api="meshpaint"),
+    Def("lampway_export_piece", "Export a finished piece for the engine: the object as FBX into out_dir, its texture maps copied "
+        "under Textures/, and a README naming every file, what each map is (ORM order, normal convention) and its sha256. The scene "
+        "is not changed." + _PATHS, [P("object", desc="The object to export", required=True), P("out_dir", required=True),
+        P("textures", "array", "The maps to ship (e.g. the pbr_merge outputs)"), P("note", desc="A line for the README")],
+        api="export_piece"),
     Def("lampway_pbr_merge", "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, "
         "Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are "
         "filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on "

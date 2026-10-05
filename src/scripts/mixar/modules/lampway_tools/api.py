@@ -504,10 +504,70 @@ def meshpaint(stage, **kw):
     return {"job": job.id, "tag": tag, "next": f"api.job_status('{job.id}')"}
 
 
+# ---- the export (PIECE_PIPELINE step 15): FBX + Textures/ + README, the look is judged in the engine
+
+_MAP_NOTES = (("BaseColor", "base colour, sRGB"), ("ORM", "R = occlusion, G = roughness, B = metallic (Unreal order), linear"),
+              ("Normal_DX", "tangent-space normal, DirectX convention (green down): Unreal"),
+              ("Normal_GL", "tangent-space normal, OpenGL convention (green up): Unity, Blender, Godot"),
+              ("Roughness", "linear"), ("Metallic", "linear"))
+
+
+@tool
+def export_piece(object, out_dir, textures=(), note=""):
+    """Export ``object`` as FBX into ``out_dir`` with its texture maps copied under Textures/ and a README that names
+    every file, what each map is, and its sha256. Nothing in the scene is changed: the selection is restored."""
+    import hashlib
+    import shutil
+    s = _settings()
+    ob = bpy.data.objects.get(object)
+    if ob is None:
+        raise LookupError(f"no object named {object!r}; the meshes are: {sorted(o.name for o in bpy.data.objects if o.type == 'MESH')}")
+    out = Path(_p(out_dir, s.project_root))
+    S.resolve_in_root(out, s.project_root)
+    maps = [Path(_p(t, s.project_root)) for t in textures]
+    missing = [str(m) for m in maps if not m.is_file()]
+    if missing:
+        raise FileNotFoundError(f"texture(s) not found: {', '.join(missing)}")
+    (out / "Textures").mkdir(parents=True, exist_ok=True)
+    fbx = out / f"{ob.name}.fbx"
+    selected = [o for o in bpy.context.selected_objects]
+    active = bpy.context.view_layer.objects.active
+    try:
+        for o in bpy.context.selected_objects:
+            o.select_set(False)
+        ob.select_set(True)
+        bpy.context.view_layer.objects.active = ob
+        bpy.ops.export_scene.fbx(filepath=str(fbx), use_selection=True, path_mode="COPY", embed_textures=False,
+                                 mesh_smooth_type="FACE", add_leaf_bones=False)
+    finally:
+        for o in bpy.data.objects:
+            o.select_set(o in selected)
+        bpy.context.view_layer.objects.active = active
+    copied = []
+    for m in maps:
+        dst = out / "Textures" / m.name
+        shutil.copyfile(m, dst)
+        copied.append(dst)
+    sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+    lines = [f"# {ob.name}", "", f"Exported by Lampway from the object `{ob.name}` ({len(ob.data.polygons)} polygons, "
+             f"{len(ob.data.uv_layers)} UV layer(s)).", ""]
+    if note:
+        lines += [note, ""]
+    lines += ["## Files", "", f"- `{fbx.name}` (FBX, selection only, textures not embedded) sha256 {sha(fbx)}"]
+    for dst in copied:
+        kind = next((n for key, n in _MAP_NOTES if key.lower() in dst.name.lower()), "texture map")
+        lines.append(f"- `Textures/{dst.name}`: {kind}; sha256 {sha(dst)}")
+    lines += ["", "## Conventions", "", "- ORM packs occlusion / roughness / metallic in R / G / B (Unreal Engine's order); "
+              "with no AO map R is 1.", "- Normal_DX is the DirectX convention (green down) for Unreal; Normal_GL is OpenGL "
+              "(green up) for Unity, Blender and Godot: use one, never both.", "- BaseColor is sRGB; every other map is linear.", ""]
+    (out / "README.md").write_text("\n".join(lines), encoding="utf-8")
+    return {"out_dir": str(out), "fbx": str(fbx), "textures": [str(p) for p in copied], "readme": str(out / "README.md")}
+
+
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece")
 
 
 def call(name: str, payload: str = "{}") -> dict:
