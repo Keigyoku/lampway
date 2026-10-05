@@ -32,6 +32,7 @@ class Settings:
     # concurrent worker requests (2026-10-05, probe in reports/tools.md), which a swarm is; deepseek-v4.1-flash served 6 of 6.
     openrouter_swarm_model: str = "deepseek/deepseek-v4.1-flash"
     openrouter_image_model: str = "google/gemini-3.1-flash-image"
+    openrouter_stt_model: str = "google/gemini-3.8-flash"      # dictation: an audio-input model
     openrouter_max_tokens: int = 4096                  # per request, always sent
     openrouter_budget_usd: float = 3.0                 # session spend ceiling: past it every OpenRouter call is refused
 
@@ -57,6 +58,7 @@ class Settings:
             openrouter_model=env.get("LAMPWAY_OPENROUTER_MODEL", "anthropic/claude-sonnet-5.5"),
             openrouter_swarm_model=env.get("LAMPWAY_OPENROUTER_SWARM_MODEL", "deepseek/deepseek-v4.1-flash"),
             openrouter_image_model=env.get("LAMPWAY_OPENROUTER_IMAGE_MODEL", "google/gemini-3.1-flash-image"),
+            openrouter_stt_model=env.get("LAMPWAY_OPENROUTER_STT_MODEL", "google/gemini-3.8-flash"),
             openrouter_max_tokens=int(env.get("LAMPWAY_OPENROUTER_MAX_TOKENS", "4096")),
             openrouter_budget_usd=float(env.get("LAMPWAY_OPENROUTER_BUDGET_USD", "3.0")),
         )

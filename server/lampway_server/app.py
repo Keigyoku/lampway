@@ -17,11 +17,11 @@ from .auth import Auth
 from .chatgpt_auth import ChatGPTAuth, LoginDeclined, LoginError
 from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
-from . import logredact, matgen
+from . import dictation, logredact, matgen
 from .assetsearch import AssetIndex
 from .mcp import McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
-from .ws import AgentSocket, ConnectionHub
+from .ws import AgentSocket, ConnectionHub, bearer_from
 from starlette.responses import Response
 
 _PKCE_FIELDS = ("port", "code_challenge", "code_challenge_method", "state", "source")
@@ -113,7 +113,7 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None) -> Starlette:
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
     auth = Auth(
@@ -455,6 +455,12 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     ]
 
     routes.append(WebSocketRoute("/api/agent/ws/{instance_id}", agent_ws))
+
+    stt = None if transcriber is False else (transcriber if transcriber is not None else dictation.default_transcriber(settings))
+
+    async def dictation_ws(websocket):
+        await dictation.run(websocket, auth, stt, bearer_from)
+    routes.append(WebSocketRoute("/api/v1/dictation/ws", dictation_ws))
 
     async def swarm_status(request: Request):
         token = bearer_token(request)
