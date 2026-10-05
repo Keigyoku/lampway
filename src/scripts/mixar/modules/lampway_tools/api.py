@@ -950,6 +950,34 @@ def pbr_pack(action, maps=None, convention="both", name="", metal_zero_masks=Non
 
 
 @tool
+def armor_piece_pipeline(piece, mode="plan", from_step=1, to_step=15, paired=None, topology="Quad", v3_dir="", record_step=None, artefacts=None, mesh_hash=None, note=""):
+    """Run one armour piece from V3 plates to an engine-ready export as 15 ordered, gated steps (the user's runbook mapped to Lampway's tools and the Tripo Studio actions). plan: every step with
+    its tool, arguments, state (done | ready | waiting | needs_approval) and planned credits (mesh 100, Smart UV 20, texture 30, PBR 5 = 155 for a whole piece); start: the same, refused when
+    from_step > 1 has no run record; record: append one step's result (artefacts with sha256, mesh_hash) to <piece>/pipeline/run.json - a geometry step after the texture makes the texture stale and
+    the next run says to re-run step 13. Laws kept: texturing comes last (no texture or PBR without a recorded Smart UV step), Studio actions land on a saved copy, pose before rig. It never confirms a
+    spend and never arms the Studio: needs_approval rows wait for the user's click in the Studios panel. A piece is one of Helmet1, Chest1, Waist1, Gauntlets1, Boots1 (paired: front and back views only)."""
+    from .pipeline import armor_piece as _AP
+    root = str(_settings().project_root)
+    if mode == "record":
+        if record_step is None:
+            raise ValueError("record needs record_step (1..15)")
+        return {"ok": True, "record": _AP.record(root, piece, record_step, [_p(a) for a in artefacts or []], mesh_hash, note)}
+    if mode == "start":
+        return _AP.start(root, piece, from_step, to_step, paired=paired, topology=topology, v3_dir=v3_dir)
+    if mode == "plan":
+        return _AP.plan(root, piece, from_step, to_step, paired=paired, topology=topology, v3_dir=v3_dir)
+    raise ValueError("mode is plan | start | record")
+
+
+@tool
+def fit_pose(kind, **kw):
+    """The closest pose of the body to a piece. chest: routed to pose_clearance (arms lowered and swung, then the spine and neck pitch chain). helmet, waist, boots, gauntlets: answers needs_decision -
+    the bones, axes and ranges to sweep are the user's to rule; the contract's proposals come with it, marked unverified."""
+    from . import posing as _PO
+    return _PO.fit_pose(kind)
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are

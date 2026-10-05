@@ -29,6 +29,7 @@ SUFFIXES = {
     ".plist", ".rc", ".toml", ".svg", ".json", ".in", ".txt", ".example",
 }
 ROOTS = ("src", "scripts", "cmake", ".env.example", "REUSE.toml", "Makefile")
+EXCLUDED_NAMES = {"pii_allow.txt", "prepublish_gate.py"}      # the PII gate lists the upstream domain to ALLOW it and plants fake hosts for its self-test
 EXCLUDED_PARTS = {"tests", "qa", "testing", "__pycache__", "locale", "upstream", "LICENSES"}
 
 
@@ -41,7 +42,7 @@ def _production_files():
         for file in path.rglob("*"):
             if not file.is_file():
                 continue
-            if EXCLUDED_PARTS & set(file.relative_to(ROOT).parts):
+            if EXCLUDED_PARTS & set(file.relative_to(ROOT).parts) or file.name in EXCLUDED_NAMES:
                 continue
             if file.suffix in SUFFIXES or file.name in ("CMakeLists.txt", "Makefile"):
                 yield file

@@ -316,6 +316,15 @@ DEFS = [
         [P("action", required=True, desc="pack | audit | swap_base_color"), P("maps", "object", "{base, normal, rough, metal, ao} project paths (pack)"), P("convention", desc="dx | gl | both (default)"),
          P("name", desc="output folder name (pack)"), P("metal_zero_masks", "array", "mask pngs of cloth/leather classes (pack)"), P("object", desc="mesh object (audit, swap_base_color)"),
          P("new_base", desc="the new colour map (swap_base_color)"), P("uv_hash", desc="the colour map producer's UV hash (swap_base_color)")], api="pbr_pack"),
+    Def("lampway_armor_piece_pipeline", "One armour piece from V3 plates to an engine-ready export as 15 ordered, gated steps (the user's runbook mapped to Lampway's tools and Tripo Studio actions). mode plan: every "
+        "step with tool, arguments, state (done | ready | waiting | needs_approval) and planned credits (mesh 100, Smart UV 20, texture 30, PBR 5: 155 for a piece); start: the same but refused when from_step > 1 "
+        "has no run record; record: append one step's result (artefacts with sha256, mesh_hash) to <piece>/pipeline/run.json - a geometry step after the texture marks it stale. Laws: texturing last, Studio "
+        "actions on a saved copy, pose before rig. It NEVER confirms a spend: needs_approval rows wait for the user's click.",
+        [P("piece", required=True, desc="Helmet1 | Chest1 | Waist1 | Gauntlets1 | Boots1"), P("mode", desc="plan (default) | start | record"), P("from_step", "integer", "1..15"), P("to_step", "integer", "1..15"),
+         P("paired", "boolean", "front and back views only (default true for Gauntlets1, Boots1)"), P("topology", desc="Quad | Triangle"), P("v3_dir", desc="the V3 plates folder"),
+         P("record_step", "integer", "record: which step"), P("artefacts", "array", "record: files produced"), P("mesh_hash", desc="record: the mesh+UV hash at that step"), P("note")], api="armor_piece_pipeline"),
+    Def("lampway_fit_pose", "The closest pose of the body to a piece. chest: routed to pose_clearance. helmet | waist | boots | gauntlets: needs_decision - the bones, axes and ranges to sweep are the user's to rule; "
+        "the contract's proposals are included, marked unverified.", [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets")], api="fit_pose"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "

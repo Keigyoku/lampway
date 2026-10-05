@@ -38,6 +38,7 @@ SCAN = ("src/scripts/mixar", "src/scripts/startup", "server/lampway_server", "sc
         "CONTRIBUTING.md", "MAINTAINERS.md", ".env.example", "src/release/freedesktop", "src/build_files/cmake/packaging.cmake")
 SUFFIXES = {".py", ".sh", ".bat", ".md", ".xml", ".desktop", ".cmake", ".example", ".toml", ".json"}
 SKIP_PARTS = {"tests", "testing", "locale", "__pycache__"}
+SKIP_FILES = {"pii_allow.txt", "prepublish_gate.py"}       # the PII gate's own self-test plants fake hosts
 URL = re.compile(r"https?://([A-Za-z0-9.\-]+)")
 
 
@@ -67,7 +68,7 @@ def _files(roots):
             yield p
         elif p.is_dir():
             for f in p.rglob("*"):
-                if f.is_file() and f.suffix in SUFFIXES and not SKIP_PARTS & set(f.relative_to(ROOT).parts):
+                if f.is_file() and f.suffix in SUFFIXES and f.name not in SKIP_FILES and not SKIP_PARTS & set(f.relative_to(ROOT).parts):
                     yield f
 
 
