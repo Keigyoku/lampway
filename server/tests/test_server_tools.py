@@ -89,3 +89,41 @@ def test_a_studio_tool_in_a_turn_never_asks_blender_for_a_script(fake, provider,
     assert any(f.get("method") == "agent.turn.ended" for f in frames)
     tool_result = [m for m in provider.requests[-1].messages[-1].content if m.get("type") == "tool_result"][0]
     assert "credits: 9000" in tool_result["content"]
+
+
+# ---- the image backend as a tool (mesh-paint)
+
+def test_the_image_generate_tool_is_listed_local_and_defaults_to_not_live(root):
+    assert ST.is_local("studio_image_generate")
+    spec = next(t for t in T.TOOLS if t.name == "studio_image_generate")
+    assert "prompt_file" in spec.parameters["required"] and "dry run" in spec.description.lower()
+
+
+def test_it_calls_the_backend_with_jailed_paths_and_reports_the_files(root, monkeypatch):
+    from lampway_server import imagegen as IG
+    seen = {}
+
+    def fake(backend, prompt_file, refs, out_dir, count=4, live=False):
+        seen.update(backend=backend, prompt_file=prompt_file, refs=refs, out_dir=out_dir, count=count, live=live)
+        return {"backend": backend, "files": [str(root / "runs/1.png")], "dry_run": not live, "output": "ok"}
+
+    monkeypatch.setattr(IG, "generate", fake)
+    text, is_error = ST.run("studio_image_generate", {"prompt_file": "p.txt", "refs": ["clay.png"], "out_dir": "runs/Front", "backend": "codex_cli"})
+    assert is_error is False and "runs/1.png" in text and seen["live"] is False and seen["backend"] == "codex_cli"
+    ST.run("studio_image_generate", {"prompt_file": "p.txt", "out_dir": "runs/Front", "live": True})
+    assert seen["live"] is True
+
+
+def test_a_refusal_from_the_backend_is_an_error_result(root, monkeypatch):
+    from lampway_server import imagegen as IG
+
+    def boom(*a, **k):
+        raise IG.ImageGenError("the Tripo driver refused or failed: not armed")
+
+    real = IG.generate
+    monkeypatch.setattr(IG, "generate", boom)
+    text, is_error = ST.run("studio_image_generate", {"prompt_file": "p.txt", "out_dir": "o"})
+    assert is_error is True and "not armed" in text
+    monkeypatch.setattr(IG, "generate", real)
+    text, is_error = ST.run("studio_image_generate", {"prompt_file": "/etc/passwd", "out_dir": "o"})
+    assert is_error is True and "outside the project root" in text

@@ -55,6 +55,7 @@ class RebuildSpec:
     color_full: bool = False
     ornament: str = ""                                      # max_tris:reach_px:min_share, e.g. 600:24:0.25 at 4096
     mesh_gold: bool = False
+    no_flow: bool = False                                   # plates painted over the mesh's own render are aligned: no relief warp
 
 
 @dataclass
@@ -69,8 +70,8 @@ class Step:
 _TAG = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 
 
-def _dirs(spec: RebuildSpec, tag: str):
-    return Path(spec.out_root) / "patched", Path(spec.out_root) / tag
+def _dirs(spec: RebuildSpec, tag: str, out_name: Optional[str] = None):
+    return Path(spec.out_root) / "patched", Path(spec.out_root) / (out_name or tag)
 
 
 def mask_env(spec: RebuildSpec, tag: str) -> dict:
@@ -92,10 +93,10 @@ def mask_env(spec: RebuildSpec, tag: str) -> dict:
     }
 
 
-def plan(spec: RebuildSpec, tag: str) -> list:
+def plan(spec: RebuildSpec, tag: str, out_name: Optional[str] = None) -> list:
     if not _TAG.match(tag):
         raise ValueError(f"tag {tag!r} must be a plain name (letters, digits, _ . -)")
-    P, O = _dirs(spec, tag)
+    P, O = _dirs(spec, tag, out_name)
     base = str(P / f"{spec.piece}_{tag}")
     patch_args = [spec.source_mesh, spec.owner, spec.recipe, spec.candidates, spec.decisions, base,
                   "--deletions", spec.deletions]
@@ -109,7 +110,8 @@ def plan(spec: RebuildSpec, tag: str) -> list:
         Step("mesh_to_npz", "mesh_to_npz", [f"{base}_uv.npz", "piece_uv", f"{base}_uv.fbx"], {}, [f"{base}_uv.npz"]),
         Step("maps", None, [str(P), spec.piece, tag, spec.texel_overrides], {}, [front, f"{base}_owner_tri.npy", f"{base}_force_class_tri.json"]),
         Step("relief_project", "relief_project", [front, spec.relief_dir, spec.plates_dir, str(O), str(spec.res)],
-             {"RP_COLOR_FULL": "1" if spec.color_full else "0", "RP_MESH_HEIGHT": "25" if spec.mesh_gold else "0"},
+             {"RP_COLOR_FULL": "1" if spec.color_full else "0", **({"RP_NO_FLOW": "1"} if spec.no_flow else {}),
+              "RP_MESH_HEIGHT": "25" if spec.mesh_gold else "0"},
              [str(O / "detail_height_u16.png")]),
         Step("material_masks", "material_masks", [str(O), f"{base}_owner_tri.npy", spec.recipe, str(O), front],
              mask_env(spec, tag), [str(O / "masks.json")]),
@@ -144,12 +146,17 @@ def make_maps(patched_dir: str, piece: str, tag: str, texel_overrides: str, turn
 
 
 def run(spec: RebuildSpec, tag: str, settings, runner: Callable = RUN.run, resume: bool = False,
-        maps: Callable = make_maps, log_dir=None, timeout: Optional[float] = None) -> dict:
+        maps: Callable = make_maps, log_dir=None, timeout: Optional[float] = None, only=None, out_name: Optional[str] = None) -> dict:
     """Run the plan; returns {'ok', 'steps': [{name, rc, seconds?}], 'skipped': [...], 'failed': name | None, 'out': ...}."""
-    steps = plan(spec, tag)
+    steps = plan(spec, tag, out_name)
+    if only is not None:
+        unknown = [n for n in only if n not in {s.name for s in steps}]
+        if unknown:
+            raise ValueError(f"unknown step(s) {unknown}; the steps are {[s.name for s in steps]}")
+        steps = [s for s in steps if s.name in only]
     if not resume:
         check_fresh(spec, tag)
-    P, O = _dirs(spec, tag)
+    P, O = _dirs(spec, tag, out_name)
     P.mkdir(parents=True, exist_ok=True)
     O.mkdir(parents=True, exist_ok=True)
     report = {"ok": True, "steps": [], "skipped": [], "failed": None, "patched": str(P), "out": str(O),

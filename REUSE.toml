@@ -182,3 +182,13 @@ SPDX-License-Identifier = "Apache-2.0"
 path = "src/release/datafiles/fonts/ClashGrotesk-Regular.otf"
 SPDX-FileCopyrightText = "Indian Type Foundry"
 SPDX-License-Identifier = "LicenseRef-ITF-FFL"
+
+# Lampway tool data files (prompts for the mesh-paint texturing workflow, test fixtures recorded from the owner's own runs).
+[[annotations]]
+path = [
+  "src/scripts/mixar/modules/lampway_tools/scripts/texlib/prompts/*.txt",
+  "server/tests/fixtures/*.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Keigyoku"
+SPDX-License-Identifier = "GPL-3.0-or-later"

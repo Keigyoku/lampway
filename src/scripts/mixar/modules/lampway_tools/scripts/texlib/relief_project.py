@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# Ported from the owner's tool shelf (tools/texlib/relief_project.py, sha256 a1449d248e54) on 2026-10-05. The header below, with the
+# Ported from the owner's tool shelf (tools/texlib/relief_project.py, sha256 0b6fa16d4501) on 2026-10-05. The header below, with the
 # measured rules behind the code, is the original's; paths and interpreters now come from Lampway's configuration.
 # SPIKE (2026-10-04): project view reliefs (scripts/studios/tripo/relief_gen.py: one 8-bit depth PNG per V3 turnaround view, in the view's own
 # frame) onto a UV-mapped mesh and write a DETAIL height map in the mesh's UV atlas (the captain: "I want to see what
@@ -62,6 +62,7 @@ FINE_W = 0.6       # weight of the tile fine band against the whole-view band
 # sampling. RP_COLOR_FULL=1 samples the colour from the plate at its own resolution at the flow-warped frame position (alignment
 # stays in the 1024 frame, scaled by plate/F). RP_MESH_HEIGHT=<iters> also writes mesh_height_m.npy: each texel's signed offset
 # from a Taubin-smoothed copy of the MESH (the mesh's own raised detail, aligned by construction) for gold-on-relief masks.
+NO_FLOW = os.environ.get('RP_NO_FLOW', '0') == '1'   # plates painted over the mesh's own render are aligned already: no relief warp
 COLOR_FULL = os.environ.get('RP_COLOR_FULL', '0') == '1'; MESH_HEIGHT_IT = int(os.environ.get('RP_MESH_HEIGHT', '0'))
 
 
@@ -160,6 +161,7 @@ def main(npz, views_dir, v3_dir, out, res=2048, strength=STRENGTH_M, preblur=PRE
         zb, zfid = raster(T, depth, F, F, zbuf=True); zcov = (zfid >= 0).reshape(F, F); zb = zb.reshape(F, F)
         both = zcov & alpha
         rel, c0, c1, f95, flow = align_dense(rel, zb, both)
+        if NO_FLOW: flow = np.zeros_like(flow)
         if COLOR_FULL:
             colF = np.asarray(Image.open(os.path.join(v3_dir, f'{view}.png')).convert('RGB')).astype(np.float32) / 255; kc = colF.shape[0] / F
         else:

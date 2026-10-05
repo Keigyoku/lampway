@@ -56,6 +56,8 @@ TOOLS = dict([
     _t("mesh_compare", "blender", "proportion/mesh_compare.py", "compare candidate meshes with a reference, matcap renders"),
     _t("pose_clearance", "blender", "proportion/pose_clearance.py", "the MetaHuman's closest pose and residual blocking surfaces"),
     _t("render_textured", "blender", "texlib/render_textured.py", "textured look of a parts set on its shared atlas"),
+    _t("clay_view", "blender", "texlib/clay_view.py", "orthographic clay render of a mesh from a cardinal view (the mesh-paint input)"),
+    _t("mesh_paint_set", "numpy", "texlib/mesh_paint_set.py", "projection plate set from mesh-paint results: picked painted views with their clay-render alpha"),
     _t("split_relief", "science", "partseg/split_relief.py", "split a raised relief out of its part as a material-only part"),
     _t("transfer_parts", "science", "partseg/transfer_parts.py", "carry an approved part set onto a new seed"),
     _t("apply_part_fixes", "numpy", "partseg/apply_part_fixes.py", "apply an auditor's part fixes to an owner map"),

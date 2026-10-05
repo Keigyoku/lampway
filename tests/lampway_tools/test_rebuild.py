@@ -189,3 +189,37 @@ def test_the_whole_loop_reproduces_the_captains_recorded_rebuild(tmp_path):
     assert (mine["faces_out"], mine["patch_faces"], mine["relabelled"]) == (rec["faces_out"], rec["patch_faces"], rec["relabelled"])
     assert (np.load(tmp_path / "out/patched/chest_t1_owner_poly.npy") == np.load(Q / "patched/chest_p17_owner_poly.npy")).all()
     assert json.load(open(tmp_path / "out/t1/masks.json"))                      # the masks step produced its shares
+
+
+# ---- projection into an existing rebuild (mesh-paint plates): no flow warp, a separate output directory, only two steps
+
+def test_no_flow_sets_the_projection_flag(tmp_path):
+    steps = {x.name: x for x in RB.plan(spec(tmp_path, no_flow=True, color_full=True), "p10")}
+    assert steps["relief_project"].env == {"RP_COLOR_FULL": "1", "RP_NO_FLOW": "1", "RP_MESH_HEIGHT": "0"}
+    assert "RP_NO_FLOW" not in {x.name: x for x in RB.plan(spec(tmp_path), "p10")}["relief_project"].env
+
+
+def test_an_output_name_separates_the_projection_from_the_rebuilds_own_directory(tmp_path):
+    steps = {x.name: x for x in RB.plan(spec(tmp_path), "p10", out_name="p10_meshpaint")}
+    O = str(tmp_path / "out" / "p10_meshpaint")
+    assert steps["relief_project"].args[3] == O and steps["material_masks"].args[0] == O
+    P = str(tmp_path / "out" / "patched")
+    assert steps["relief_project"].args[0] == f"{P}/chest_p10_uv_front-y.npz"           # still the rebuild's own mesh
+    assert steps["material_masks"].env["MM_FORCE_CLASS"] == f"{P}/chest_p10_force_class_tri.json"
+
+
+def test_only_runs_just_the_named_steps_on_an_existing_tag(tmp_path):
+    s = spec(tmp_path)
+    calls = []
+
+    class Res:
+        rc, stdout, log = 0, "", None
+
+    rep = RB.run(s, "p10", settings=object(), runner=lambda tool, *a, **k: calls.append(tool) or Res(), resume=True,
+                 only=("relief_project", "material_masks"), out_name="p10_mp", maps=lambda *a, **k: {})
+    assert calls == ["relief_project", "material_masks"] and rep["ok"] and rep["out"].endswith("p10_mp")
+
+
+def test_only_with_an_unknown_step_is_refused(tmp_path):
+    with pytest.raises(ValueError, match="unknown step"):
+        RB.run(spec(tmp_path), "p10", settings=object(), only=("nope",), resume=True, runner=lambda *a, **k: None)
