@@ -120,6 +120,10 @@ DEFS = [
         "A proposal is NOT a ruling and never changes the mesh: only the captain's tags or typed answers become rulings.",
         [P("proposals", "object", "{candidate id: {verdict, note, target}}", required=True), P("piece"), P("by", desc="Who proposes, default agent")],
         api="qa_propose"),
+    Def("lampway_chat_transcript", "Read the chat transcript: each message's best text (a user message's text, an agent bubble's live "
+        "narration while its turn runs, or its final answer), whether it is still running, its thinking text and tool steps. Use this "
+        "instead of reading scene.mixie_chat_messages[i].content, which is empty for user messages and for running agent bubbles.",
+        [P("last", "integer", "Only the final N messages"), P("include_steps", "boolean")], api="chat_transcript"),
     Def("lampway_qa_proposals", "Read the proposals so far for a piece, with counts per verdict.", [P("piece")], api="qa_proposals"),
     Def("lampway_qa_read_tags", "Read the captain's Red/Green/Yellow annotation strokes: faces and Smart UV islands per stroke, the "
         "candidate loops a Hole stroke circles or runs along (or an orphan the generator missed), and the floating shell a Delete "

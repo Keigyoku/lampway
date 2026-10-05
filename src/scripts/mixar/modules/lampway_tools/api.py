@@ -649,6 +649,27 @@ def pose_test(armature, object, poses):
 
 
 @tool
+def chat_transcript(last=0, include_steps=True):
+    """The chat transcript for an external driver. ``scene.mixie_chat_messages[i].content`` is empty for a user message (its text
+    is in ``.text``) and for an agent bubble while its turn runs (live narration is in ``.ephemeral`` and ``.thinking_text``,
+    tool calls in ``step_items``; ``.content`` holds only the curated final answer). Each row carries the best text of all of
+    them, whether it is still running, and the steps. ``last`` = only the final N messages."""
+    msgs = list(bpy.context.scene.mixie_chat_messages)
+    first = max(0, len(msgs) - int(last)) if last else 0
+    rows = []
+    for i in range(first, len(msgs)):
+        m = msgs[i]
+        content, text, live = m.content, m.text, m.ephemeral
+        running = bool(m.loader_visible or m.thinking_active or (live and not content))
+        row = {"index": i, "sender": m.sender, "bubble_id": m.bubble_id, "text": content or text or live, "content": content,
+               "running": running, "thinking": m.thinking_text}
+        if include_steps:
+            row["steps"] = [st.label for st in m.step_items]
+        rows.append(row)
+    return {"count": len(msgs), "messages": rows}
+
+
+@tool
 def mesh_prep(object, merge_distance=1e-5):
     """Workflow: a branch ``<object>_prep`` of a generated mesh with its source hash recorded, loose and doubled vertices removed and
     inverted normals fixed; a before/after report. The source is untouched."""
@@ -734,7 +755,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 
 # ---- the door the agent's scripts use
 
-TOOL_FUNCS = ("meshpaint", "qa_propose", "qa_proposals", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
+TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
               "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture")
 
 
