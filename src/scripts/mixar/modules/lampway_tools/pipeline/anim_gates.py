@@ -153,6 +153,11 @@ def require_check(result) -> None:
 
 
 # --------------------------------------------------------------------------------------------------------- loop and export
+def _strides(n, period):
+    """Whole strides in n frames; half a frame of tolerance (a period found to a hundredth of a frame must not lose its last stride to rounding)."""
+    return int(np.floor((n - 1 + 0.5) / period))
+
+
 def _fix(q):
     q = np.asarray(q, float)
     ref = q[0]
@@ -195,13 +200,32 @@ def detect_period(q) -> float:
         y0, y1, y2 = ac[best - 1], ac[best], ac[best + 1]
         den = y0 - 2 * y1 + y2
         best = best + (0.5 * (y0 - y2) / den if den else 0.0)
-    return float(best)
+    return _refine_period(q, float(best))
+
+
+def _refine_period(q, p0, span=0.6, steps=121, phases=16):
+    """Fine search around the autocorrelation peak: the period at which each stride matches the next one best (least squares over phases)."""
+    n = len(q)
+    best_p, best_c = p0, None
+    for p in np.linspace(p0 - span, p0 + span, steps):
+        strides = _strides(n, p)
+        if strides < 2:
+            continue
+        c = 0.0
+        for k in range(strides - 1):
+            for ph in range(phases):
+                t = ph * p / phases
+                a, b = _at(q, k * p + t), _at(q, (k + 1) * p + t)
+                c += float(((a - b * np.sign((a * b).sum(axis=-1, keepdims=True) + 1e-12)) ** 2).sum())
+        if best_c is None or c < best_c:
+            best_p, best_c = float(p), c
+    return best_p
 
 
 def phase_average_loop(q, period, n_frames=None) -> dict:
     """Average the strides by PHASE into one loop (periodic by construction). Returns {frames: (N, B, 4), strides, period}."""
     q = np.asarray(q, float)
-    strides = int(np.floor((len(q) - 1) / period))
+    strides = _strides(len(q), period)
     if strides < 1:
         raise GateError("the take is shorter than one period")
     n = int(n_frames or round(period))
@@ -223,7 +247,7 @@ def check_target_skeleton(name: str) -> None:
 def loop_gates(q, period, root_y_m, fps, planted_foot_speed_mps, skeleton, strides_note=None, loop_tolerance_deg=None) -> dict:
     q = np.asarray(q, float)
     root = np.asarray(root_y_m, float)
-    strides = int(np.floor((len(q) - 1) / period))
+    strides = _strides(len(q), period)
     if strides < 2:
         raise GateError("a one-stride cycle hitches at the loop: need >= 2, 4 recommended")
     tol = THRESHOLDS["G-LOOP"] if loop_tolerance_deg is None else loop_tolerance_deg
