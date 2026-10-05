@@ -275,6 +275,13 @@ DEFS = [
         "drift to b's surface. `pass` = worst IoU >= min_iou (default 0.9, a placeholder). Side-by-side PNGs under <root>/<piece>/compare/. A mirrored candidate fails the view that sees it.",
         [P("a", required=True), P("b", required=True, desc="A mesh object name or a plate image path"), P("piece"), P("views", "array", "Subset of Front, Back, Left, Right"),
          P("size", "integer", "128..2048, default 512"), P("min_iou", "number", "0..1"), P("landmarks", "array", "[{name, point: [x, y, z]}] in world space")], api="silhouette_compare"),
+    Def("lampway_seed_audit", "Rank a piece's seeds (the 4 generation variants, then the pick plus its rerolls). stage measure: per seed the dihedral fold counts (>120 and >90 degrees), boundary "
+        "and non-manifold edges, components and closed bowls across the opening, ranked PROPORTIONS first (scores {seed: score_rms}; within 5 % is a tie), DEFECTS second, V3 fidelity third; "
+        "lineup: front + side Workbench renders (420 px, never Cycles); judge: the packet (numbers + renders, at most 6 seeds) for you to propose verdicts from; record: audit.json from your "
+        "proposals - a decision row is written only for by=captain (your verdict is a proposal, not a ruling). seeds are npz paths (mesh_to_npz output) inside the project root.",
+        [P("stage", required=True, desc="measure | lineup | judge | record"), P("piece", required=True), P("seeds", "array", "npz paths"),
+         P("scores", "object", "{seed id: score_rms} from the proportion tools"), P("proposals", "object", "{seed: {verdict: usable|fix|reject, defects, rank}} (record)"),
+         P("by", desc="agent (default) | model | captain"), P("turn", "number", "lineup: degrees about Z, default -90 (Tripo FBX)"), P("engine", desc="lineup: WORKBENCH only")], api="seed_audit"),
     Def("lampway_detail_normals", "Micro depth for a textured_atlas material without the relief map: per-material tiling detail normals box-projected "
         "in object space (metals take their ambientCG NormalGL maps; cloth and leather a small bump from their colour), blended by the material's "
         "per-texel masks. Idempotent: its 'DN:' nodes are replaced on a re-run. strengths: {plate, gold, cloth, leather}.",

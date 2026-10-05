@@ -153,3 +153,8 @@ def test_uv_tools_reach_blender_with_their_arguments():
     assert got == {"files": ["a.fbx"], "res": 2048, "gates": {"max_overlap": 0.01}}
     got = args_of(T.script_for("lampway_uv_texel_density", {"object": "boot", "weights": {"face": 1.5}, "target": "10.24 px/cm"}))
     assert got == {"object": "boot", "weights": {"face": 1.5}, "target": "10.24 px/cm"}
+
+
+def test_seed_audit_reaches_blender_with_its_proposals_as_an_object():
+    got = args_of(T.script_for("lampway_seed_audit", {"stage": "record", "piece": "Boots1", "proposals": {"v1": {"verdict": "usable"}}, "by": "model"}))
+    assert got == {"stage": "record", "piece": "Boots1", "proposals": {"v1": {"verdict": "usable"}}, "by": "model"}

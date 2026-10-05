@@ -815,6 +815,20 @@ def silhouette_compare(a, b, piece="", views=None, size=512, min_iou=0.9, landma
 
 
 @tool
+def seed_audit(stage, piece, seeds=None, scores=None, proposals=None, by="agent", turn=-90.0, engine="WORKBENCH"):
+    """Rank a piece's seeds (the 4 generation variants, then the pick plus its rerolls). measure: per seed the dihedral fold counts (>120 and >90 degrees), boundary / non-manifold edges,
+    components and closed bowls across the opening, ranked PROPORTIONS first (scores {seed: score_rms}; within 5 % is a tie), DEFECTS second, V3 fidelity third; lineup: front + side Workbench
+    renders at 420 px per seed (never Cycles); judge: the packet (numbers + renders, at most 6 seeds) for a model to propose verdicts; record: audit.json from the proposals, a decision
+    row only when by=captain (a model's or agent's verdict is not a ruling). seeds are npz paths (mesh_to_npz output) inside the project root."""
+    root = str(_settings().project_root)
+    if stage == "lineup":
+        from .features import seed_lineup as _SL
+        return _SL.run(piece, seeds, root, turn, engine)
+    from .pipeline import seed_audit as _SA
+    return _SA.run(root, stage, piece, seeds, scores, proposals, by)
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
@@ -889,7 +903,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "qa_descriptors", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick", "uv_score", "uv_texel_density", "mesh_defect_scan", "silhouette_compare")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick", "uv_score", "uv_texel_density", "mesh_defect_scan", "silhouette_compare", "seed_audit")
 
 
 def call(name: str, payload: str = "{}") -> dict:
