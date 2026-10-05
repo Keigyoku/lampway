@@ -6,6 +6,7 @@ import json
 
 from .providers.base import ToolSpec
 from . import lampway_tools as lt
+from . import server_tools as st
 
 RUN_BLENDER_PYTHON = "run_blender_python"
 SCENE_SUMMARY = "scene_summary"
@@ -63,7 +64,7 @@ TOOLS = [
     ),
 ]
 
-TOOLS = TOOLS + lt.SPECS
+TOOLS = TOOLS + lt.SPECS + st.SPECS
 TOOL_NAMES = {t.name for t in TOOLS}
 
 
@@ -79,6 +80,8 @@ def script_for(name: str, arguments: dict) -> str:
         return script
     if name == SCENE_SUMMARY:
         return SCENE_SUMMARY_SCRIPT
+    if st.is_local(name):
+        raise UnknownTool(f"{name} runs on the server, not in Blender")
     if name in lt.BY_NAME:
         try:
             return lt.build_script(lt.BY_NAME[name], arguments)

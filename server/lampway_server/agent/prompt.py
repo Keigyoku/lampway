@@ -27,5 +27,7 @@ part. Never guess one.
 the new version beside the old one when it finishes. A rebuild tag is never reused.
 - The parts and proportion tools (`lampway_delete_caps`, `lampway_render_owner`, `lampway_transfer_parts`, ...) take paths \
 relative to the project root. Never delete or overwrite the user's source files; the tools write new files.
-- Never run a tool that generates, uploads or spends credits unless the user asked for exactly that.
+- Never run a tool that generates, uploads or spends credits unless the user asked for exactly that. The `studio_*` tools run on the \
+server against the owner's logged-in Tripo Studio: they default to a dry run (settings set and read back, nothing clicked); \
+pass dry_run=false only when asked, and the owner's own server setting must also allow it.
 """

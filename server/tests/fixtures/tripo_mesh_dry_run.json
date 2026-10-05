@@ -1,0 +1,54 @@
+{
+ "tool": "tripo_mesh.py",
+ "date": "2026-10-04T16:23:47",
+ "inputs": {
+  "Front": {
+   "file": "Front.png",
+   "sha256": "95e545c55488ce06883699d642458ad917675354aea723f7b841f4e23c94a3e6"
+  },
+  "Left": {
+   "file": "Left.png",
+   "sha256": "3c485100727d6bb74ee3fff7417c4259e89fc17a21790c36b96d6617d708da4c"
+  },
+  "Right": {
+   "file": "Right.png",
+   "sha256": "9da3161747580900698c3476f3be84a969fc5fc36aa8575852f76952672d2efe"
+  },
+  "Back": {
+   "file": "Back.png",
+   "sha256": "e89eedf33622bc93438b34d8c8667250c44b793b782038ead5d381da931b132c"
+  }
+ },
+ "credits_before": 9875,
+ "slot_map": {
+  "Front": 0,
+  "Left": 1,
+  "Right": 2,
+  "Back": 3
+ },
+ "thumbnails_seen": 4,
+ "polycount_max_shown": "50000",
+ "topology_buttons": [
+  {
+   "t": "Quad\nNew",
+   "cls": "flex transition items-center box-border justify-center text-3 c-gray-400 border border-white-10 data-[state=on]:c-gray-100 data-[state=on]:border-purple-1 data-[state=on]:bg-purple-20 enabled:hover:bg-white-5 p-0 rounded-2 flex-1 h-8 cursor-pointer",
+   "st": "off"
+  },
+  {
+   "t": "Triangle",
+   "cls": "flex transition items-center box-border justify-center text-3 c-gray-400 border border-white-10 data-[state=on]:c-gray-100 data-[state=on]:border-purple-1 data-[state=on]:bg-purple-20 enabled:hover:bg-white-5 p-0 rounded-2 flex-1 h-8 cursor-pointer",
+   "st": "on"
+  }
+ ],
+ "polycount_read_back": "50000",
+ "polycount_slider": "50000/50000",
+ "generations_state": {
+  "1": "off",
+  "2": "off",
+  "4": "on"
+ },
+ "panel_text": "Generate Model | HD Model | General Settings | Topology | Members Only | Privacy | Number of Generation | New | 1 | 2 | 4 | Customize Poly Counts | AI Model | P2.0",
+ "generate_button": "Generate 100",
+ "privacy": "Sharing Only",
+ "dry_run": true
+}

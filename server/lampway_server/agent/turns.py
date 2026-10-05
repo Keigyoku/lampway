@@ -22,6 +22,7 @@ from typing import Optional
 
 from .prompt import SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Text, ToolCall
+from . import server_tools
 from .tools import TOOLS, UnknownTool, format_tool_result, script_for
 
 log = logging.getLogger("lampway.agent")
@@ -285,6 +286,8 @@ class AgentHub:
         await stream.emit({"bubble_id": bubble_id, "content": {"set": "I stopped after too many tool calls."}})
 
     async def _run_tool(self, socket, session, turn, call: ToolCall) -> tuple[str, bool]:
+        if server_tools.is_local(call.name):                       # the studio drivers: on this machine, never in Blender
+            return await asyncio.to_thread(server_tools.run, call.name, call.arguments)
         try:
             script = script_for(call.name, call.arguments)
         except UnknownTool as exc:

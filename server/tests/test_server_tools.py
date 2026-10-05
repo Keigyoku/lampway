@@ -1,0 +1,91 @@
+"""Server-side agent tools: the studio drivers. They never go through Blender; the agent loop runs them locally as a
+subprocess under the configured browser python. Read-only and dry-run by default; a generation needs BOTH dry_run=false in
+the call AND the owner's LAMPWAY_STUDIO_ARMED=1 in the server's environment (the driver refuses otherwise)."""
+
+import pytest
+
+from lampway_server.agent import server_tools as ST
+from lampway_server.agent import tools as T
+from lampway_server.agent.providers.base import Text, ToolCall
+from tests.test_agent_turn import start_chat
+
+
+@pytest.fixture
+def root(tmp_path, monkeypatch):
+    monkeypatch.setenv("LAMPWAY_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("LAMPWAY_PYTHON_BROWSER", "/venv/bin/python")
+    return tmp_path
+
+
+def test_the_studio_tools_are_listed_and_marked_local():
+    names = {t.name for t in T.TOOLS}
+    for n in ("studio_tripo_state", "studio_tripo_image", "studio_tripo_mesh", "studio_tripo_fetch", "studio_seed_catalog"):
+        assert n in names and ST.is_local(n)
+    assert not ST.is_local("lampway_qa_candidates") and not ST.is_local("run_blender_python")
+
+
+def test_image_generation_is_a_dry_run_unless_the_call_says_otherwise(root):
+    cmd = ST.command("studio_tripo_image", {"out_dir": "plates/g1", "prompt_file": "plates/p.txt", "refs": ["plates/v3.png"]})
+    assert cmd[:3] == ["/venv/bin/python", "-m", "lampway_server.studios.tripo.tripo_image"]
+    assert "--dry-run" in cmd
+    assert cmd[3] == str(root / "plates/g1") and cmd[4] == str(root / "plates/p.txt")
+    assert cmd[cmd.index("--ref") + 1] == str(root / "plates/v3.png")
+    live = ST.command("studio_tripo_image", {"out_dir": "o", "prompt_file": "p", "dry_run": False})
+    assert "--dry-run" not in live
+
+
+def test_the_image_count_is_never_below_four(root):
+    cmd = ST.command("studio_tripo_image", {"out_dir": "o", "prompt_file": "p"})
+    assert cmd[cmd.index("--count") + 1] == "4"
+    with pytest.raises(ST.BadToolCall):
+        ST.command("studio_tripo_image", {"out_dir": "o", "prompt_file": "p", "count": "2"})
+
+
+def test_mesh_generation_takes_the_four_cardinal_views_and_defaults_to_a_dry_run(root):
+    cmd = ST.command("studio_tripo_mesh", {"out_dir": "m", "front": "f.png", "left": "l.png", "right": "r.png", "back": "b.png"})
+    assert "--dry-run" in cmd and cmd[cmd.index("--topology") + 1] == "Quad"
+    with pytest.raises(ST.BadToolCall, match="back"):
+        ST.command("studio_tripo_mesh", {"out_dir": "m", "front": "f", "left": "l", "right": "r"})
+
+
+def test_every_path_is_jailed_to_the_project_root(root):
+    with pytest.raises(ST.BadToolCall, match="outside the project root"):
+        ST.command("studio_tripo_image", {"out_dir": "/etc", "prompt_file": "p"})
+    with pytest.raises(ST.BadToolCall, match="outside the project root"):
+        ST.command("studio_tripo_fetch", {"out_dir": "../x", "stamp": "10-04 12:00"})
+
+
+def test_the_environment_the_driver_gets_carries_the_arming_only_from_the_servers_own(root, monkeypatch):
+    monkeypatch.delenv("LAMPWAY_STUDIO_ARMED", raising=False)
+    assert "LAMPWAY_STUDIO_ARMED" not in ST.environment()
+    monkeypatch.setenv("LAMPWAY_STUDIO_ARMED", "1")
+    assert ST.environment()["LAMPWAY_STUDIO_ARMED"] == "1"            # the owner's setting, passed on; a tool call cannot set it
+
+
+def test_a_tool_call_cannot_arm_the_guard(root):
+    cmd = ST.command("studio_tripo_state", {"LAMPWAY_STUDIO_ARMED": "1", "env": {"LAMPWAY_STUDIO_ARMED": "1"}})
+    assert "LAMPWAY_STUDIO_ARMED=1" not in " ".join(cmd)
+
+
+def test_run_returns_the_drivers_output_and_marks_a_nonzero_exit_as_an_error(root, monkeypatch):
+    monkeypatch.setattr(ST, "_exec", lambda cmd, env, timeout: (1, "error: studio guard is not armed\n"))
+    text, is_error = ST.run("studio_tripo_state", {})
+    assert is_error is True and "not armed" in text
+    monkeypatch.setattr(ST, "_exec", lambda cmd, env, timeout: (0, "bin: x\ncredits: 9000\n"))
+    assert ST.run("studio_tripo_state", {}) == ("bin: x\ncredits: 9000\n", False)
+
+
+def test_a_studio_tool_in_a_turn_never_asks_blender_for_a_script(fake, provider, monkeypatch, root):
+    monkeypatch.setattr(ST, "_exec", lambda cmd, env, timeout: (0, "credits: 9000\n"))
+    provider.script.append([Text("Checking Studio."), ToolCall(id="c1", name="studio_tripo_state", arguments={})])
+    provider.script.append([Text("Done.")])
+    scripts = []
+    fake.login()
+    with fake.connect_ws() as ws:
+        fake.handshake(ws)
+        _, command_id = start_chat(fake, ws, "what is in Studio?")
+        frames = fake.run_turn(ws, command_id, on_script=lambda p: scripts.append(p) or fake.execute_script_result(p["script"]))
+    assert scripts == []
+    assert any(f.get("method") == "agent.turn.ended" for f in frames)
+    tool_result = [m for m in provider.requests[-1].messages[-1].content if m.get("type") == "tool_result"][0]
+    assert "credits: 9000" in tool_result["content"]
