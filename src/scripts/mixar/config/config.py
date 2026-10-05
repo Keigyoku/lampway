@@ -33,6 +33,7 @@ import os
 import json
 import bpy
 
+from . import brand
 from .logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -226,10 +227,23 @@ def get_environment():
     return config.get('environment', 'Prod')
 
 
+def _backend_override():
+    """``LAMPWAY_BACKEND_URL`` from the environment, or '' when unset/blank."""
+    return os.environ.get(brand.ENV_BACKEND_URL, "").strip().rstrip("/")
+
+
 def get_server_url():
-    """Get the API server URL (resolved at build time via env vars)."""
+    """The backend URL: runtime override > bundled ``mixar.json`` > Lampway default.
+
+    Lampway talks to OUR server. The bundled value is baked at build time
+    (``scripts/generate_config.py``); ``LAMPWAY_BACKEND_URL`` overrides it
+    for one run without touching any file.
+    """
+    override = _backend_override()
+    if override:
+        return override
     config = get_config()
-    return config.get('backend_url', 'https://api.mixar.app')
+    return config.get('backend_url') or brand.DEFAULT_BACKEND_URL
 
 
 def get_dev_bypass_credentials() -> tuple:
@@ -274,10 +288,14 @@ def set_ui_mode(mode: str) -> bool:
 
 
 def get_frontend_url():
-    """Get the frontend URL (resolved at build time via env vars).
+    """The frontend URL used for browser-facing pages (the SSO login page).
 
-    Used for browser-facing pages like SSO login.
-    Falls back to the API server URL if frontend_url is not configured.
+    Our server serves the login page itself, so the frontend follows the
+    backend: a ``LAMPWAY_BACKEND_URL`` override applies to both, and without
+    a bundled ``frontend_url`` the backend URL is used.
     """
+    override = _backend_override()
+    if override:
+        return override
     config = get_config()
-    return config.get('frontend_url', get_server_url())
+    return config.get('frontend_url') or get_server_url()
