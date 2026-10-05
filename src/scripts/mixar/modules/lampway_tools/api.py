@@ -878,6 +878,43 @@ def parts_critique(stage, piece, recipe="", transfer_dir="", piece_uv="", owner_
 
 
 @tool
+def palette_fit(stage, piece, studio_base="", albedo="", masks="", classes=None, material="", name="", source="fit", metal_zero_on=None, statistic="median", space="linear", min_texels=1000):
+    """Fit the per-class Hue/Saturation/Value of the studio colours to the mesh-paint albedo, nudge it live, and hand pbr_merge its params. fit: per class the median HSV of the studio base under
+    the class mask vs the albedo under the same mask (hue_shift, sat_mul, val_mul), measured in LINEAR light (Blender's node works on linear; space=srgb overshoots V), plus `residual` (mean |dRGB|
+    after applying it) and a named reason for every skipped class (mask under min_texels); images of different size are resampled to the larger. apply_live: a COPY of `material` gets a
+    Hue/Saturation/Value node per class mixed by its mask, labelled PAL: (idempotent). read_live: the sliders read back (the person's nudge is law). write_params: <piece>/pbr/live_material_params.json
+    from source fit | live; refuses while a non-metal class (everything but gold and plate) is missing from metal_zero_on: "red is cloth: metallic must be 0 there"."""
+    from .pipeline import palette_fit as _PF
+    root = Path(str(_settings().project_root))
+    base = root / piece / "pbr"
+    order = list(classes or _PF.DEFAULT_CLASSES)
+    if stage == "fit":
+        res = _PF.fit(_p(studio_base), _p(albedo), _p(masks), order, statistic, space, int(min_texels))
+        base.mkdir(parents=True, exist_ok=True)
+        (base / "palette_fit.json").write_text(json.dumps(res, indent=1))
+        return {**res, "path": str(base / "palette_fit.json")}
+    if stage == "apply_live":
+        from . import palette_live as _PL
+        fitted = json.loads((base / "palette_fit.json").read_text())["palette"] if (base / "palette_fit.json").exists() else {}
+        use = [c for c in order if c in fitted]
+        if not use:
+            raise LookupError("no fitted palette: run stage fit first")
+        return _PL.apply(material, _p(masks), fitted, use, name)
+    if stage == "read_live":
+        from . import palette_live as _PL
+        return {"ok": True, "palette": _PL.read(material, order if classes else None)}
+    if stage == "write_params":
+        if source == "live":
+            from . import palette_live as _PL
+            palette = _PL.read(material, order if classes else None)
+        else:
+            palette = json.loads((base / "palette_fit.json").read_text())["palette"]
+        used = [c for c in order if c in palette]
+        return _PF.write_params(palette, used, str(base / "live_material_params.json"), metal_zero_on if metal_zero_on is not None else ("red", "linen", "leather", "embroidery"))
+    raise ValueError("stage must be fit | apply_live | read_live | write_params")
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are

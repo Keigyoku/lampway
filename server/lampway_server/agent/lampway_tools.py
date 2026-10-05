@@ -292,6 +292,14 @@ DEFS = [
          P("proposals", "array", "fix proposals (write_fixes, check)"), P("fixes", desc="a recorded fixes.json (check)"), P("weak", "number", "default 0.6"), P("far_mm", "number", "default 30"),
          P("min_faces", "integer", "default 50"), P("limit", "integer", "judge batch 1..20, default 12"), P("turn", "number", "render: degrees about Z, default -90"),
          P("by", desc="agent (default) | model | captain")], api="parts_critique"),
+    Def("lampway_palette_fit", "Fit the per-class Hue/Saturation/Value of the studio colours to the mesh-paint albedo, nudge it live, then write the params pbr_merge reads. stage fit: per class the median "
+        "HSV of the studio base under the class mask vs the albedo under the same mask -> hue_shift, sat_mul, val_mul, measured in LINEAR light, plus a residual and a named reason for each skipped class; "
+        "apply_live: a copy of `material` with a Hue/Saturation/Value node per class mixed by its mask (labelled PAL:, idempotent) for the captain to nudge; read_live: read his sliders back (his nudge is law, "
+        "the fit is advice); write_params: <piece>/pbr/live_material_params.json from source fit | live (refused while a cloth/leather class is not in metal_zero_on).",
+        [P("stage", required=True, desc="fit | apply_live | read_live | write_params"), P("piece", required=True), P("studio_base", desc="BaseColor map (png)"), P("albedo", desc="v3_colour_atlas.png"),
+         P("masks", desc="directory with mask_<class>.png"), P("classes", "array", "default gold, plate, red, linen, leather, embroidery"), P("material", desc="scene material (apply_live, read_live, live write_params)"),
+         P("name", desc="the copy's name"), P("source", desc="write_params: fit (default) | live"), P("metal_zero_on", "array", "classes with metallic forced to 0"),
+         P("statistic", desc="median (default) | mean"), P("space", desc="linear (default) | srgb"), P("min_texels", "integer", "default 1000")], api="palette_fit"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the captain has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "
