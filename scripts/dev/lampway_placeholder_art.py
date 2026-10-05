@@ -181,14 +181,14 @@ def version() -> str:
         return "dev"
 
 
-BRAND_DIR = ROOT / "docs/brand"
+BRAND_DIR = pathlib.Path(__file__).resolve().parent / "brand_art"
 
 
 def rasterize(svg_path, width, height=None, text_edit=None):
     """Rasterize a brand SVG with ImageMagick (``magick``), transparent where the SVG is; ``text_edit`` maps strings to replace in the SVG first."""
     magick = shutil.which("magick") or shutil.which("convert")
     if magick is None:
-        raise SystemExit("ImageMagick (magick) is required to rasterize docs/brand/*.svg")
+        raise SystemExit("ImageMagick (magick) is required to rasterize scripts/dev/brand_art/*.svg")
     svg = pathlib.Path(svg_path).read_text(encoding="utf-8")
     for old, new in (text_edit or {}).items():
         svg = svg.replace(old, new)
@@ -202,7 +202,7 @@ def rasterize(svg_path, width, height=None, text_edit=None):
 
 
 def render_splash(width=1672, height=941):
-    """The splash concept of docs/brand, with the version line filled from VERSION."""
+    """The splash concept of brand_art, with the version line filled from VERSION."""
     return rasterize(BRAND_DIR / "splash_concept.svg", width, height, {"v0.1.0": f"v{version()}"})
 
 

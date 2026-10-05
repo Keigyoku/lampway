@@ -79,7 +79,8 @@ def test_an_old_installation_json_is_read_once_and_written_to_the_new_location(t
 def test_the_setup_guide_is_our_docs_not_mixars_website():
     assert "mixar" not in constants.SETUP_GUIDE_URL.lower() and constants.SETUP_GUIDE_URL.startswith(brand.WEBSITE_URL)
     assert constants.SETUP_GUIDE_URL.endswith("/docs/#connect-ai-apps")
-    assert (Path(__file__).resolve().parents[2] / "site/docs/index.html").exists(), "the page the dialog opens exists in the repo"
+    routes = (Path(__file__).resolve().parents[2] / "src/scripts/mixar/config/site_routes.txt").read_text().split()
+    assert "/docs/" in routes, "the page the dialog opens is on the site's route list"
 
 
 CODEX_OLD = '''model = "gpt-6"

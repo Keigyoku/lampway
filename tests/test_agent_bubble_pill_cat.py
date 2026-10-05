@@ -86,7 +86,7 @@ def pose_samples() -> dict[str, dict[str, float]]:
 
 
 def test_painter_draws_the_lampway_spark_not_the_upstream_mascot():
-    """The pill and the Parallel Agents cards draw a flame in a ring (docs/brand/logo_agent_spark.svg); the upstream black cat is gone from the painter."""
+    """The pill and the Parallel Agents cards draw a flame in a ring (scripts/dev/brand_art/logo_agent_spark.svg); the upstream black cat is gone from the painter."""
     assert "static void draw_spark(" in CAT_CC and "flame(" in CAT_CC and "ring(" in CAT_CC
     assert "0.929f, 0.725f, 0.267f" in CAT_CC          # Flame #EDB944
     for cat_part in ("draw_eyes", "void ear(", "catchlight", "pose.look_x", "mixie_cat_eval_pose"):

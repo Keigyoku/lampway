@@ -11,7 +11,7 @@ Three scans, each exits non-zero on a finding:
   --git REVRANGE        every commit in the range (git log REVRANGE): author and committer email must be a
                         noreply address, the message and every ADDED line are scanned
 
-  python3 prepublish_gate.py --tree . --media site_v2 --git origin/main..HEAD
+  python3 prepublish_gate.py --tree . --media docs --git origin/main..HEAD
   python3 prepublish_gate.py --self-test        # plants one of each offender and checks the gate sees it
 
 Secret VALUES are never printed: a match shows its first 4 characters then ***.

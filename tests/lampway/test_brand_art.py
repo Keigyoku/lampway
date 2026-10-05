@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The shipped art is Lampway's identity (docs/brand), not the placeholder lamp (rebrand defect 7).
+"""The shipped art is Lampway's identity (scripts/dev/brand_art), not the placeholder lamp (rebrand defect 7).
 
-``scripts/dev/lampway_placeholder_art.py`` writes every datafile the build embeds. Its splash must be the splash concept of ``docs/brand`` (Night
+``scripts/dev/lampway_placeholder_art.py`` writes every datafile the build embeds. Its splash must be the splash concept of ``scripts/dev/brand_art`` (Night
 background, the lantern mark, the wordmark, the approved attribution sentence, the product version), and its icons the app-icon tile, in the brand's
 Flame colour #EDB944. The old placeholder used a different amber (232,184,74), so a regression to it fails here.
 """

@@ -4,7 +4,7 @@
 
 """G7: every link a user can follow leads somewhere that exists, and only to hosts we chose.
 
-* every path ``brand.website_url()`` can produce is a page of ``site/`` (listed in ``site/sitemap.xml`` and present on disk), so the 404s of the
+* every path ``brand.website_url()`` can produce is in ``src/scripts/mixar/config/site_routes.txt`` (the route list of the lampway-site repository), so the 404s of the
   rebrand audit (finding 2) cannot come back;
 * every ``http(s)`` host in the client, the server, the scripts and the shipped metadata is on a short allow-list (our site and repository, the
   providers the code legitimately calls, W3C/SPDX schema namespaces, the build's dependencies). ``lampway.app`` and ``lampway.org`` are other
@@ -14,7 +14,6 @@
 import pathlib
 import re
 import sys
-import xml.etree.ElementTree as ET
 from urllib.parse import urlparse
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -43,9 +42,9 @@ URL = re.compile(r"https?://([A-Za-z0-9.\-]+)")
 
 
 def _site_pages():
-    ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
-    locs = [e.text for e in ET.parse(ROOT / "site/sitemap.xml").getroot().findall("s:url/s:loc", ns)]
-    return {urlparse(loc).path for loc in locs}
+    """The checked-in route list (kept in sync with the lampway-site repository)."""
+    lines = (ROOT / "src/scripts/mixar/config/site_routes.txt").read_text(encoding="utf-8").splitlines()
+    return {l.strip() for l in lines if l.strip() and not l.startswith("#")}
 
 
 def _hosts_in(files):
@@ -77,11 +76,7 @@ def test_every_website_url_is_a_page_of_our_site():
     for path in CALL_SITE_PATHS:
         url = urlparse(brand.website_url(path))
         assert url.netloc == "lampway.dev", (path, url)
-        assert (url.path or "/") in pages, f"{path!r} -> {url.path} is not in site/sitemap.xml"
-        page = ROOT / "site" / url.path.strip("/") / "index.html" if url.path.strip("/") else ROOT / "site/index.html"
-        assert page.is_file(), page
-        if url.fragment:
-            assert f'id="{url.fragment}"' in page.read_text(encoding="utf-8"), (path, url.fragment)
+        assert (url.path or "/") in pages, f"{path!r} -> {url.path} is not in site_routes.txt"
     assert urlparse(brand.docs_url()).path == "/docs/"
     assert brand.docs_url("connect-ai-apps") == brand.website_url("/docs#connect-ai-apps")
 

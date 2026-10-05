@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: 2026 Lampway contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Lampway splash concept, 1672 x 941 (the size the build embeds). Text is live <text> in system fonts for the mock;
+     the shipped splash.png is rendered from this with the brand fonts. Version line is filled by the build. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1672 941" width="1672" height="941" role="img" aria-labelledby="t">
+  <title id="t">Lampway splash</title>
+  <defs>
+    <radialGradient id="g" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#EDB944" stop-opacity=".30"/>
+      <stop offset="1" stop-color="#EDB944" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1672" height="941" fill="#0E1016"/>
+  <!-- the light the mark throws -->
+  <circle cx="470" cy="410" r="380" fill="url(#g)"/>
+  <!-- mark, scaled 4.4x -->
+  <g transform="translate(170 -10) scale(4.4)" fill="none" stroke="#ECE8DF" stroke-linecap="round" stroke-linejoin="round" stroke-width="8">
+    <path d="M30 104 H100"/>
+    <path d="M44 104 V50 C44 34 56 26 76 26"/>
+    <path d="M76 26 V33" stroke-width="5"/>
+    <rect x="64" y="35" width="24" height="36" rx="8" stroke-width="5"/>
+    <path d="M76 43 C70 50 69 57 76 64 C83 57 82 50 76 43 Z" fill="#EDB944" stroke="none"/>
+  </g>
+  <!-- wordmark, monoline, scaled 2.9x -->
+  <g transform="translate(760 300) scale(2.3)" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#ECE8DF">
+      <path d="M14 10 V70"/><circle cx="49" cy="52" r="18"/><path d="M67 34 V70"/>
+      <path d="M84 34 V70"/><path d="M84 50 C84 30 110 30 110 50 V70"/><path d="M110 50 C110 30 136 30 136 50 V70"/>
+      <path d="M152 34 V94"/><circle cx="170" cy="52" r="18"/>
+    </g>
+    <g stroke="#EDB944">
+      <path d="M200 34 L212 70 L224 40 L236 70 L248 34"/><circle cx="285" cy="52" r="18"/><path d="M303 34 V70"/>
+      <path d="M320 34 L336 68"/><path d="M352 34 L328 94"/>
+    </g>
+  </g>
+  <text x="770" y="600" font-family="Fraunces, 'Iowan Old Style', Georgia, serif" font-size="38" fill="#ECE8DF">Your AI, your subscriptions, your studio.</text>
+  <text x="770" y="656" font-family="'IBM Plex Mono', ui-monospace, Menlo, monospace" font-size="26" fill="#A9A69D">v0.1.0  ·  GPL-3.0-or-later</text>
+  <text x="170" y="852" font-family="'IBM Plex Sans', system-ui, sans-serif" font-size="20" fill="#A9A69D">Independent open-source project, started from the GPL-licensed Mixar client and built on Blender.</text>
+  <text x="170" y="882" font-family="'IBM Plex Sans', system-ui, sans-serif" font-size="20" fill="#A9A69D">Not affiliated with or endorsed by Mixar, Adeveda Enterprises Private Limited or the Blender Foundation.</text>
+</svg>

@@ -10,5 +10,5 @@ while read local_ref local_sha remote_ref remote_sha; do
   python3 "$GATE" --git "$range" || { echo "pre-push: blocked by the pre-publish gate (see above). Fix, or amend the commits." >&2; exit 1; }
 done
 # media shipped in the tree (site folders, docs images)
-for d in site site_v2 docs; do [ -d "$d" ] && { python3 "$GATE" --media "$d" || exit 1; }; done
+for d in docs; do [ -d "$d" ] && { python3 "$GATE" --media "$d" || exit 1; }; done
 exit 0

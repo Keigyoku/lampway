@@ -8,7 +8,7 @@
 
 namespace blender {
 
-/** The agent avatar's ring colour per worker (docs/brand/BRAND.md 5.1, "worker colours"); the name is always shown beside it so colour is never the
+/** The agent avatar's ring colour per worker (the brand pack's worker colours); the name is always shown beside it so colour is never the
  * only cue. Index 1 (Dusk) is the main agent's own colour. */
 struct MixieCatStyle {
   const char *name;

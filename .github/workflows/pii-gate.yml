@@ -20,7 +20,7 @@ jobs:
           [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ] && base=$(git merge-base HEAD origin/main)
           python3 scripts/lampway/prepublish_gate.py --git "$base..HEAD"
       - name: Media metadata in shipped folders
-        run: for d in site site_v2 docs; do [ -d "$d" ] && python3 scripts/lampway/prepublish_gate.py --media "$d"; done; true
+        run: for d in docs; do [ -d "$d" ] && python3 scripts/lampway/prepublish_gate.py --media "$d"; done; true
       - name: Secrets (gitleaks, whole history of this branch)
         uses: gitleaks/gitleaks-action@v2
         env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }

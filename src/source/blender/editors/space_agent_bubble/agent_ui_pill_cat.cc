@@ -91,7 +91,7 @@ void polygon(const float (*points)[2],
   immUnbindProgram();
 }
 
-/** Lampway's agent avatar, "Spark" (docs/brand/logo_agent_spark.svg): a ring in the worker's colour around a small flame. Working alternates two flame
+/** Lampway's agent avatar, "Spark" (scripts/dev/brand_art/logo_agent_spark.svg): a ring in the worker's colour around a small flame. Working alternates two flame
  * frames every 1.6 s (the second one ghosted), offline shows the flame out with a grey wisp. All coordinates are in a unit square (-0.5..0.5, y up),
  * mapped from the SVG's 64 px frame. */
 void disc(float cx, float cy, float radius, float pixel, const float color[4])

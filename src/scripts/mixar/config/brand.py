@@ -50,7 +50,7 @@ ATTRIBUTION_LONG = (
 REPO_URL = "https://github.com/Keigyoku/lampway"
 
 #: Where Lampway's pages live. Every link shown to users (docs, bug report, downloads, privacy policy ...) is built from it; none points at
-#: upstream's website. tests/lampway/test_site_links.py requires every page below to exist in the repository's site/ folder.
+#: upstream's website. the page list is src/scripts/mixar/config/site_routes.txt, kept in sync with the lampway-site repository; tests/lampway/test_site_links.py requires every in-app path to be in it.
 WEBSITE_URL = "https://lampway.dev"
 
 #: Our documentation.

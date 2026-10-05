@@ -1,0 +1,15 @@
+# Page paths of https://lampway.dev that the app links to or the site serves; one per line. Kept in sync with the lampway-site repository (generated from its sitemap.xml
+# plus every path brand.py links to). tests/lampway/test_site_links.py requires every in-app URL path to be listed here.
+/
+/about/
+/bug-report/
+/docs/
+/downloads/
+/features/
+/help/
+/legal/privacy-policy/
+/privacy/
+/roadmap/
+/tutorials/
+/vault/
+/vault/overview/

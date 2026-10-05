@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: 2026 Lampway contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Lampway mark, draft B "the lantern": a rounded lantern with a carrying arc and one flame. Family tie to the older
+     Lampway Vault (which also uses a lantern); kept as the alternative to draft A. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256" role="img" aria-labelledby="t">
+  <title id="t">Lampway (lantern)</title>
+  <style>
+    .line { fill: none; stroke: #1B1B22; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+    .cap  { fill: #1B1B22; }
+    .flame { fill: #EDB944; }
+    .glow  { fill: #EDB944; opacity: .22; }
+    @media (prefers-color-scheme: dark) { .line { stroke: #ECE8DF; } .cap { fill: #ECE8DF; } }
+  </style>
+  <circle class="glow" cx="64" cy="76" r="24"/>
+  <!-- carrying arc -->
+  <path class="line" d="M48 30 C48 12 80 12 80 30"/>
+  <!-- cap and base -->
+  <rect class="cap" x="40" y="30" width="48" height="8" rx="4"/>
+  <rect class="cap" x="40" y="106" width="48" height="8" rx="4"/>
+  <!-- glass -->
+  <path class="line" d="M46 42 V102 M82 42 V102"/>
+  <path class="flame" d="M64 54 C54 66 52 78 64 90 C76 78 74 66 64 54 Z"/>
+</svg>

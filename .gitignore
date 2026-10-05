@@ -76,7 +76,6 @@ build/
 develop-eggs/
 dist/
 downloads/
-!/site/downloads/
 eggs/
 .eggs/
 ./upstream/lib/
@@ -173,7 +172,6 @@ venv.bak/
 
 # mkdocs documentation
 /site
-!/site
 
 # mypy
 .mypy_cache/
