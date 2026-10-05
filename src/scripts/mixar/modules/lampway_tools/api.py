@@ -1024,6 +1024,35 @@ def garment_clearance(piece, body, armature, pose_set="rest", clearance_target_m
 
 
 @tool
+def fit_validate(stage, piece="", bound="", original="", poses=None, roles=None, limits=None, body="", armature="", validation=None):
+    """Measure a bound piece through poses against its ORIGINAL shell, and judge it. stage measure (engine blender): `bound` the piece with an Armature modifier, `original` the pre-fit source shell (REQUIRED
+    - measuring against a baked rest hides the distortion; same vertex count), `poses` [{name, bone, rotate: [x, y, z degrees], expect: {bone, axis, min_deg}} | {name, bones: [...]}], `roles` {part: metal |
+    leather | cloth | embroidery} (from the user or the recipe, never a render's colour; a part is the vertex group of that name, or the whole piece when there is one role). Per pose and part: rigid residual
+    with the scale FIXED (a breathing pose fails), edge strain, the seam gap, crossings of `body`; rest_fidelity (the source similarity: scale, rms, max mm); a crossing control when `body` is given (the piece
+    is pushed 1 cm into the skin: a counter that cannot see it makes the run UNPROVEN). A pose whose expect fails is REFUSED and not measured. Verdicts: PASS | FAIL | UNVERIFIED (no limits for the role: cloth,
+    leather, embroidery have none) | REFUSED | UNPROVEN; limits default to PROPOSED metal limits (1 mm rigid, 1 % strain, 1 mm seam: unverified placeholders) and the status rides along; ok only when nothing is
+    unverified. stage judge: re-judge a validation (dict or file) under new `limits`."""
+    from .features import validate_pose as _VP
+    from .pipeline import validate as _V
+    if stage == "measure":
+        return _VP.measure(piece, bound, original, poses or [{"name": "rest"}], roles, limits, body or None, armature or None)
+    if stage == "judge":
+        v = json.loads(Path(_p(validation)).read_text()) if isinstance(validation, str) else dict(validation or {})
+        if not v.get("poses"):
+            raise ValueError("judge needs a validation with poses (the output of measure)")
+        lim = limits or _V.PROPOSED
+        judges = []
+        for row in v["poses"]:
+            for part in row.get("pieces", {}).values():
+                part["judge"] = _V.judge(part["role"], {"rigid_residual_mm": part["rigid_residual_mm"], "strain_max_pct": part["strain_max"], "seam_gap_mm_max": part["seam_gap_mm_max"], "crossings_body": part.get("crossings_body")}, lim)
+                judges.append(part["judge"])
+        v["limits"] = lim
+        v["summary"] = _V.summarize(judges, (v.get("crossing_control") or {}).get("ok") is not False)
+        return v
+    raise ValueError("stage is measure | judge")
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are

@@ -345,6 +345,14 @@ DEFS = [
         "Refused: an unskinned body, a piece more than 0.5 m away (run place_piece first).",
         [P("piece", required=True), P("body", required=True), P("armature", required=True), P("pose_set", desc="rest (default) | wiki8 | a list of poses"),
          P("clearance_target_m", "number", "0..0.1, default 0.015"), P("classes", "object", "{vertex group: target metres}")], api="garment_clearance"),
+    Def("lampway_fit_validate", "Measure a bound piece through poses against its ORIGINAL shell and judge it. measure: `bound` (an Armature-modified piece), `original` (the pre-fit source shell, REQUIRED: a baked rest "
+        "hides the distortion; same vertex count), `poses` [{name, bone, rotate: [x, y, z], expect: {bone, axis, min_deg}} | {name, bones}], `roles` {part: metal | leather | cloth | embroidery} (the user's or the recipe's, "
+        "never a render's colour). Per pose and part: rigid residual with the scale FIXED, edge strain, seam gap, crossings of `body`; rest_fidelity (scale, rms, max mm vs the original); a crossing control when `body` is "
+        "given. A pose whose expect fails is REFUSED, not measured. Verdicts PASS | FAIL | UNVERIFIED (no limits for the role) | REFUSED | UNPROVEN; default limits are PROPOSED metal limits (placeholders) and the "
+        "status rides along. judge: re-judge a validation under new limits.",
+        [P("stage", required=True, desc="measure | judge"), P("piece", desc="the piece's name"), P("bound", desc="the bound object"), P("original", desc="the pre-fit source shell"),
+         P("poses", "array", "the poses"), P("roles", "object", "{part: role}"), P("limits", "object", "{status, metal: {rigid_max_mm, strain_max_pct, seam_gap_mm}}"), P("body", desc="the posed body for crossings"),
+         P("armature", desc="default: the piece's Armature modifier"), P("validation", desc="judge: a validation dict or file")], api="fit_validate"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "
