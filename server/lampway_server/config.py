@@ -66,6 +66,7 @@ class Settings:
     openrouter_stt_model: str = "google/gemini-3.8-flash"      # dictation: an audio-input model
     openrouter_max_tokens: int = 4096                  # per request, always sent
     openrouter_budget_usd: float = 3.0                 # session spend ceiling: past it every OpenRouter call is refused
+    sources: dict = field(default_factory=dict, compare=False)      # field -> env | saved | default (provider_prefs.apply_saved fills it)
 
     @classmethod
     def from_env(cls, env=None) -> "Settings":

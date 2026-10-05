@@ -138,7 +138,7 @@ def default_job_backends(settings: Settings) -> dict:
 
 def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None) -> Starlette:
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
-    provider_prefs.apply(settings, provider_prefs.load(settings.state_dir))        # the owner's saved provider choices win over the environment
+    provider_prefs.apply_saved(settings, provider_prefs.load(settings.state_dir))   # the saved provider choices apply where the environment is silent (an env var is the session's override)
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
     auth = Auth(
         secret=settings.resolve_jwt_secret(),
@@ -769,7 +769,8 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             return unauthorized()
         body = await _json_body(request)
         try:
-            values = provider_prefs.validate(body.get("values"))
+            saved_values = provider_prefs.validate(body.get("values"))
+            values = {k: v for k, v in saved_values.items() if settings.sources.get(k) != "env"}      # a field the environment sets stays as it has it this session
             trial = provider_prefs.trial(settings, values)
             new_main = None
             if provider_prefs.MAIN_FIELDS & set(values):
@@ -779,8 +780,9 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
                 make_swarm_provider(trial, "worker-1", chatgpt_auth=chatgpt)
         except (provider_prefs.PrefsError, ValueError, RuntimeError, OSError) as exc:
             return JSONResponse({"detail": str(exc)}, status_code=400)
-        provider_prefs.save(settings.state_dir, provider_prefs.merge_values(provider_prefs.load(settings.state_dir), values))
+        provider_prefs.save(settings.state_dir, provider_prefs.merge_values(provider_prefs.load(settings.state_dir), saved_values))
         provider_prefs.apply(settings, values)
+        settings.sources.update({k: "saved" for k in values})
         if new_main is not None:
             agent.provider = new_main
         return JSONResponse(provider_prefs.view(settings))

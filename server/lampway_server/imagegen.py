@@ -16,6 +16,7 @@ Also a command: ``python -m lampway_server.imagegen --backend tripo --prompt-fil
 
 import argparse
 import json
+import logging
 import base64
 import mimetypes
 import os
@@ -27,6 +28,7 @@ from .agent import server_tools as ST
 from .studios import axi
 
 BACKENDS = ("tripo", "codex_cli", "openrouter")
+log = logging.getLogger("lampway.imagegen")
 openrouter_transport = None          # tests inject an httpx transport here; None means the real network
 _IMG = (".png", ".jpg", ".jpeg", ".webp")
 
@@ -172,6 +174,7 @@ def _purpose_body(client, key, settings, purpose, size, aspect_ratio, override=N
         if supported is not None and param not in supported:
             raise ValueError(f"{model} does not take {param} (it lists: {', '.join(sorted(supported))}); change the {purpose} purpose in the Providers dialog")
     extra = {}
+    env_size = settings.openrouter_image_size if settings.sources.get("openrouter_image_size") == "env" and not override else ""
     if size:
         need("size")
         extra["size"] = _checked_size(size)
@@ -182,15 +185,23 @@ def _purpose_body(client, key, settings, purpose, size, aspect_ratio, override=N
         else:
             need("size")
             extra["size"] = size_for_aspect(aspect_ratio)
+    elif env_size and (supported is None or "size" in supported):
+        extra["size"] = _checked_size(env_size)
     elif cfg.get("size"):
         need("size")
         extra["size"] = cfg["size"]
+    if env_size and "size" not in extra:
+        log.info("the session size %s (env LAMPWAY_OPENROUTER_IMAGE_SIZE) is not used: %s does not take size", env_size, model)
     if cfg.get("resolution"):
         need("resolution")
         extra["resolution"] = cfg["resolution"]
     if cfg.get("quality"):
         need("quality")
         extra["quality"] = cfg["quality"]
+    if extra.get("size"):
+        origin = "argument" if size else ("env" if env_size and extra["size"] == env_size else
+                                          ("saved prefs" if settings.sources.get("image_purposes") == "saved" else "default"))
+        log.info("image size %s for purpose %s on %s (from %s)", extra["size"], purpose, model, origin)
     return model, extra
 
 
@@ -308,6 +319,9 @@ def main(argv=None) -> int:
     ap.add_argument("--ref", action="append", default=[], help="a reference image; with --template a role=path pair, or paths in the template's order")
     ap.add_argument("--out", required=True)
     ap.add_argument("--count", type=int, default=4)
+    ap.add_argument("--size", default="", help="WIDTHxHEIGHT for models that take size (explicit: beats the environment and the saved purpose)")
+    ap.add_argument("--aspect", default="", help="an aspect ratio such as 16:9 for models that take aspect_ratio")
+    ap.add_argument("--purpose", default="plates", help="the image purpose whose model and defaults apply: plates | mask | concept | tile")
     ap.add_argument("--live", action="store_true", help="really generate (tripo also needs LAMPWAY_STUDIO_ARMED=1)")
     ap.add_argument("--print-prompt", action="store_true", help="render the template, print the prompt and its ordered references; generate nothing")
     a = ap.parse_args(argv)
@@ -343,9 +357,15 @@ def main(argv=None) -> int:
             extra["model"] = rendered.get("model") or ""
         elif not prompt_file:
             raise ValueError("give --prompt-file or --template")
-        if backend == "openrouter" and extra:
+        if a.size:
+            extra["size"] = _checked_size(a.size)
+        if a.aspect:
+            extra["aspect_ratio"] = a.aspect
+        if a.purpose not in provider_prefs_purposes():
+            raise ValueError(f"unknown purpose {a.purpose!r}; the purposes are {list(provider_prefs_purposes())}")
+        if backend == "openrouter" and (extra or a.purpose != "plates"):
             res = _openrouter(ST.jail(prompt_file), [ST.jail(r) for r in refs], Path(ST.jail(a.out)), int(a.count), a.live, extra.get("size", ""),
-                              extra.get("aspect_ratio", ""), "plates", extra.get("model", ""), extra.get("resolution", ""), extra.get("quality", ""))
+                              extra.get("aspect_ratio", ""), a.purpose, extra.get("model", ""), extra.get("resolution", ""), extra.get("quality", ""))
         else:
             res = generate(backend, prompt_file, refs, a.out, a.count, a.live)
         if rendered is not None or a.live:
@@ -364,6 +384,11 @@ def main(argv=None) -> int:
     axi.kv({"backend": res["backend"], "dry_run": res["dry_run"], "images": len(res["files"]), **({"template": rendered["template"], "prompt_file": prompt_file} if rendered else {})})
     axi.table("files", [{"file": f} for f in res["files"]], ["file"])
     return 0
+
+
+def provider_prefs_purposes():
+    from .provider_prefs import PURPOSES
+    return PURPOSES
 
 
 def _coerce(v: str):

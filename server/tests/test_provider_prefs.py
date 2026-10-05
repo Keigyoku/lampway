@@ -39,7 +39,7 @@ def test_get_shows_the_effective_values_where_each_comes_from_and_the_choices(cl
     out = fake.get("/app/provider-settings").json()
     v = out["values"]
     assert v["provider"] == "mock" and v["swarm_provider"] == "" and v["openrouter_image_model"] and "chatgpt_effort" in v and "image_backend" in v
-    assert set(out["source"].values()) <= {"env", "saved"}
+    assert set(out["source"].values()) <= {"env", "saved", "default"}
     c = out["choices"]
     assert {"mock", "chatgpt_plan", "claude_cli", "openrouter"} <= set(c["main_providers"]) and {"", "claude_cli", "openrouter"} <= set(c["swarm_providers"])
     assert set(c["image_backends"]) == {"tripo", "codex_cli", "openrouter"} and "high" in c["image_qualities"] and "medium" in c["efforts"]
@@ -55,7 +55,7 @@ def test_put_saves_applies_and_survives_a_restart(client, settings, monkeypatch)
         "openrouter_image_quality": "high"}})
     assert out.status_code == 200, out.text
     got = out.json()
-    assert got["values"]["openrouter_image_size"] == "2880x2880" and got["source"]["openrouter_image_size"] == "saved" and got["source"]["provider"] == "env"
+    assert got["values"]["openrouter_image_size"] == "2880x2880" and got["source"]["openrouter_image_size"] == "saved" and got["source"]["provider"] in ("env", "default")
     path = settings.state_dir / "provider_prefs.json"
     assert path.exists() and stat.S_IMODE(os.stat(path).st_mode) == 0o600 and json.loads(path.read_text())["openrouter_image_quality"] == "high"
     assert app.state.settings.swarm_provider == "openrouter"

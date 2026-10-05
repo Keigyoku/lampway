@@ -195,6 +195,34 @@ def merge_values(base: dict, values: dict) -> dict:
     return out
 
 
+# The environment variable each setting can be given for a session (Settings.from_env reads the same names). PRECEDENCE, one rule everywhere:
+# an explicit call argument > the environment for a session > the saved Providers-dialog choices > the defaults.
+ENV_VARS = {"provider": "LAMPWAY_PROVIDER", "anthropic_model": "LAMPWAY_ANTHROPIC_MODEL", "openai_model": "LAMPWAY_OPENAI_MODEL",
+            "chatgpt_model": "LAMPWAY_CHATGPT_MODEL", "chatgpt_effort": "LAMPWAY_CHATGPT_EFFORT", "chatgpt_swarm_model": "LAMPWAY_CHATGPT_SWARM_MODEL",
+            "chatgpt_swarm_effort": "LAMPWAY_CHATGPT_SWARM_EFFORT", "swarm_provider": "LAMPWAY_SWARM_PROVIDER", "claude_swarm_model": "LAMPWAY_CLAUDE_SWARM_MODEL",
+            "openrouter_model": "LAMPWAY_OPENROUTER_MODEL", "openrouter_swarm_model": "LAMPWAY_OPENROUTER_SWARM_MODEL", "image_backend": "LAMPWAY_IMAGE_BACKEND",
+            "openrouter_image_model": "LAMPWAY_OPENROUTER_IMAGE_MODEL", "openrouter_image_size": "LAMPWAY_OPENROUTER_IMAGE_SIZE",
+            "openrouter_image_quality": "LAMPWAY_OPENROUTER_IMAGE_QUALITY"}
+
+
+def apply_saved(settings: Settings, saved: dict, env=None) -> Settings:
+    """The saved choices UNDER the environment: a field the environment sets is left as the environment has it. ``settings.sources`` records, per field, whether
+    the value in force is env, saved or default."""
+    env = os.environ if env is None else env
+    sources = {k: ("env" if k in ENV_VARS and ENV_VARS[k] in env else "default") for k in FIELDS}
+    for key, value in saved.items():
+        if sources.get(key) == "env":
+            continue
+        if key in ("image_purposes", "video_purposes"):
+            for purpose, cfg in value.items():
+                getattr(settings, key).setdefault(purpose, {}).update(cfg)
+        else:
+            setattr(settings, key, value)
+        sources[key] = "saved"
+    settings.sources = sources
+    return settings
+
+
 def apply(settings: Settings, values: dict) -> Settings:
     for key, value in values.items():
         if key in ("image_purposes", "video_purposes"):
@@ -211,11 +239,12 @@ def trial(settings: Settings, values: dict) -> Settings:
 
 def view(settings: Settings) -> dict:
     saved = load(settings.state_dir)
-    return {"values": {k: copy.deepcopy(getattr(settings, k)) for k in FIELDS}, "source": {k: ("saved" if k in saved else "env") for k in FIELDS},
-            "choices": choices()}
+    return {"values": {k: copy.deepcopy(getattr(settings, k)) for k in FIELDS},
+            "source": {k: settings.sources.get(k) or ("saved" if k in saved else "default") for k in FIELDS}, "choices": choices()}
 
 
-def effective() -> Settings:
-    """The environment's settings with the saved choices on top (what imagegen and other modules read per call)."""
-    s = Settings.from_env()
-    return apply(s, load(s.state_dir))
+def effective(env=None) -> Settings:
+    """The settings in force (what imagegen and other modules read per call): the environment, with the saved choices only where the environment is silent."""
+    env = os.environ if env is None else env
+    s = Settings.from_env(env)
+    return apply_saved(s, load(s.state_dir), env)
