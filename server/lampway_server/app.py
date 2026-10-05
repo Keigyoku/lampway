@@ -22,6 +22,9 @@ from .higgsfield_auth import HiggsfieldAuth
 from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
 from . import dictation, logredact, matgen, provider_prefs, videojobs
+from .prompts.service import PromptService
+from .prompts.library import LibraryError
+from .prompts.render import RenderError
 from .assetsearch import AssetIndex
 from .mcp import McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
@@ -132,7 +135,7 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None) -> Starlette:
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     provider_prefs.apply(settings, provider_prefs.load(settings.state_dir))        # the owner's saved provider choices win over the environment
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
@@ -275,9 +278,10 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     studio = studio_service if studio_service is not None else default_studio_service()
     hf_auth = higgsfield_auth or HiggsfieldAuth(settings.state_dir, redirect_port=settings.port)      # ONE per server: refresh tokens rotate
     video_system = video if video is not None else videojobs.build_default(settings, hf_auth, Path(os.environ.get("LAMPWAY_PROJECT_ROOT") or Path.home() / ".local/share/lampway/projects"))
+    prompt_service = prompts if prompts is not None else PromptService.from_env(settings.state_dir)
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
-                    video=video_system, approvals=studio.approvals_store)
+                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service)
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question"):          # the captain's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
@@ -285,7 +289,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -635,6 +639,89 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
                Route(HFA.CALLBACK_PATH, hf_callback, methods=["GET"]), Route("/app/higgsfield/status", hf_status, methods=["GET"]),
                Route("/app/higgsfield/signout", hf_signout, methods=["POST"])]
 
+    # ---- the prompt library: list / get / render / save (user scope) / rate / gates / stats
+    def _tpl(t: dict, full: bool = False) -> dict:
+        summary = {k: t[k] for k in ("id", "version", "title", "description", "purpose", "media", "scope")}
+        if not full:
+            return summary
+        out = {k: v for k, v in t.items() if k != "file"}
+        out["versions"] = [v["version"] for v in prompt_service.library.versions(t["id"])]
+        return out
+
+    async def prompts_list(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        media = request.query_params.get("media")
+        return JSONResponse({"templates": [_tpl(t) for t in prompt_service.library.list(media)], "errors": prompt_service.library.errors})
+
+    async def prompts_get(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        try:
+            t = prompt_service.library.get(request.path_params["template_id"], request.query_params.get("version"))
+        except LibraryError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=404)
+        return JSONResponse(_tpl(t, True))
+
+    async def prompts_render(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        body = await _json_body(request)
+        try:
+            return JSONResponse(prompt_service.render(str(body.get("id") or ""), body.get("variables"), body.get("model"), body.get("version")))
+        except LibraryError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=404)
+        except RenderError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=400)
+
+    async def prompts_save(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        body = await _json_body(request)
+        try:
+            path = await asyncio.to_thread(prompt_service.library.save, body.get("template"))
+        except LibraryError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=400)
+        return JSONResponse({"saved": path, "scope": "user"})
+
+    async def prompts_rate(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        body = await _json_body(request)
+        try:
+            prompt_service.runlog.rate(str(body.get("job_id") or ""), body.get("rating"), body.get("note") or "")
+        except ValueError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=400)
+        return JSONResponse({"ok": True})
+
+    async def prompts_gates(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        body = await _json_body(request)
+        if not isinstance(body.get("gates"), dict) or not body["gates"]:
+            return JSONResponse({"detail": "gates must be an object of measurements"}, status_code=400)
+        try:
+            prompt_service.runlog.gates(request.path_params["job_id"], body["gates"])
+        except ValueError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=404)
+        return JSONResponse({"ok": True})
+
+    async def prompts_runs(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        return JSONResponse({"runs": prompt_service.runlog.runs(request.query_params.get("template"))})
+
+    async def prompts_stats(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        return JSONResponse({"stats": prompt_service.runlog.stats(request.query_params.get("template"))})
+
+    routes += [Route("/app/prompts", prompts_list, methods=["GET"]), Route("/app/prompts", prompts_save, methods=["PUT"]),
+               Route("/app/prompts/render", prompts_render, methods=["POST"]), Route("/app/prompts/rate", prompts_rate, methods=["POST"]),
+               Route("/app/prompts/stats", prompts_stats, methods=["GET"]), Route("/app/prompts/runs", prompts_runs, methods=["GET"]),
+               Route("/app/prompts/runs/{job_id}/gates", prompts_gates, methods=["POST"]),
+               Route("/app/prompts/{template_id}", prompts_get, methods=["GET"])]
+
     # ---- provider setup from the Client (main / swarm / image), saved in the state dir
     async def provider_get(request: Request):
         if not _bearer_ok(request):
@@ -675,6 +762,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.provider = provider
     app.state.chatgpt = chatgpt
     app.state.video = video_system
+    app.state.prompts = prompt_service
     app.state.higgsfield_auth = hf_auth
     app.state.jobs = jobs
     return app

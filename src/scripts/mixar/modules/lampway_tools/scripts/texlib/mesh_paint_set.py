@@ -11,7 +11,7 @@
 # The workflow (2026-10-05, the captain's "texture plates" question):
 #   1. blender -b -P scripts/texlib/clay_view.py -- <mesh> <dir>/clay_<View>.png <View> 2048   (x4)
 #   2. scripts/studios/tripo/tripo_image.py <run_dir> <prompt> --ref clay_<View>.png [--ref <a painted view, for consistency>]
-#      --ref <V3 4K plate of that view>   (GPT Image 2.5, 4 variants, free quota; prompts: albedo_plates/prompt_meshpaint_v2*.txt)
+#      --ref <V3 4K plate of that view>   (GPT Image 2.5, 4 variants, free quota; prompts: the library templates mesh-paint-albedo-*)
 #   3. pick the best of four per view (silhouette IoU vs the clay, plus the eye); this tool
 #   4. RP_COLOR_FULL=1 RP_NO_FLOW=1 relief_project.py <mesh_uv_front-y.npz> <reliefs> <set_dir> <out> 4096; material_masks.py
 # Usage: mesh_paint_set.py <dir with clay_<View>.png> <out_set_dir> Front=<img> Back=<img> Left=<img> Right=<img>

@@ -116,7 +116,8 @@ LOCALS.append(Local(
     "the local-CLI setting is on) or `openrouter` (an OpenRouter image model; at most 4 images, each request costs money). refs in order: the clay render, a painted consistency view (optional), the design plate. "
     "Defaults to a dry run (tripo: settings read back, nothing clicked); `live: true` generates, and tripo additionally needs the "
     "owner's LAMPWAY_STUDIO_ARMED=1. Never pass live=true unless the user asked for exactly that.", "imagegen",
-    [A("prompt_file", required=True, path=True), A("refs", "array", "Reference images in order", path=True),
+    [A("prompt_file", path=True, desc="a raw prompt file (or use template)"), A("template", desc="a prompt-library template id: its rendered prompt is stored as <out_dir>/prompt.txt"),
+     A("variables", "object", "the template's variables"), A("refs", "array", "Reference images in order", path=True),
      A("out_dir", required=True, path=True), A("backend", desc="tripo (default), codex_cli, or openrouter (an OpenRouter image model; paid, counted against the session spend ceiling, live=true only when asked)"), A("count", "integer", "Default 4"),
      A("size", desc="openrouter only: WIDTHxHEIGHT for this call (e.g. 2048x1152), within the model's pixel budget"),
      A("aspect_ratio", desc="openrouter only: e.g. 3:2 for a non-square plate; the largest size the budget allows"),
@@ -219,9 +220,13 @@ def _run_imagegen(arguments: dict) -> tuple:
     from .. import imagegen as IG
     try:
         arguments = arguments if isinstance(arguments, dict) else {}
-        for key in ("prompt_file", "out_dir"):
-            if not arguments.get(key):
-                raise BadToolCall(f"studio_image_generate needs {key}")
+        if not arguments.get("out_dir"):
+            raise BadToolCall("studio_image_generate needs out_dir")
+        if arguments.get("template"):
+            arguments = dict(arguments)
+            arguments["prompt_file"], _rendered = IG.render_prompt_file(arguments["template"], arguments.get("variables") or {}, arguments["out_dir"])
+        elif not arguments.get("prompt_file"):
+            raise BadToolCall("studio_image_generate needs prompt_file or template")
         res = IG.generate(arguments.get("backend") or IG.backend_name(), arguments["prompt_file"], arguments.get("refs") or [],
                           arguments["out_dir"], int(arguments.get("count") or 4), bool(arguments.get("live")),
                           str(arguments.get("size") or ""), str(arguments.get("aspect_ratio") or ""), str(arguments.get("purpose") or "plates"))

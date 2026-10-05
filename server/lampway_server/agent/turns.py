@@ -22,7 +22,7 @@ from typing import Optional
 
 from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
-from . import server_tools, studio_tools, video_tools
+from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -78,10 +78,11 @@ class Command:
 
 class AgentHub:
     def __init__(self, provider, *, script_timeout_s: float = 600.0, system_prompt: str = SYSTEM_PROMPT,
-                 swarm_provider_factory=None, studio=None, video=None):
+                 swarm_provider_factory=None, studio=None, video=None, prompts=None):
         self.provider = provider
         self.studio = studio
         self.video = video
+        self.prompts = prompts
         self.script_timeout_s = script_timeout_s
         self.system_prompt = system_prompt
         self.sessions: dict[str, Session] = {}
@@ -375,6 +376,10 @@ class AgentHub:
                         steps=None) -> tuple[str, bool]:
         if server_tools.is_local(call.name):                       # the studio drivers: on this machine, never in Blender
             return await asyncio.to_thread(server_tools.run, call.name, call.arguments)
+        if call.name in prompt_tools.NAMES:
+            return await prompt_tools.call(self.prompts, call.name, call.arguments)
+        if call.name in image_tools.NAMES:
+            return await image_tools.call(self.prompts, call.name, call.arguments)
         if call.name in video_tools.NAMES:
             return await video_tools.call(self.video, call.name, call.arguments)
         if call.name in studio_tools.NAMES:

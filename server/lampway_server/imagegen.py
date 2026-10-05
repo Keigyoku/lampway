@@ -15,6 +15,7 @@ Also a command: ``python -m lampway_server.imagegen --backend tripo --prompt-fil
 """
 
 import argparse
+import json
 import base64
 import mimetypes
 import os
@@ -48,6 +49,17 @@ def _state_dir() -> Path:
 
 def _images(out: Path) -> list:
     return sorted(str(p) for p in out.glob("*") if p.suffix.lower() in _IMG and p.stem.isdigit()) if out.exists() else []
+
+
+def render_prompt_file(template: str, variables: dict, out_dir: str, model: str = None) -> tuple:
+    """Render a library template and STORE the rendered prompt as ``<out_dir>/prompt.txt`` (inside the project root). Returns (path relative as given, render)."""
+    from .prompts import render as R
+    from .prompts.library import Library
+    rendered = R.render(Library.from_env(), template, variables or {}, model)
+    d = Path(ST.jail(out_dir))
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "prompt.txt").write_text(rendered["prompt"], encoding="utf-8")
+    return str(Path(out_dir) / "prompt.txt"), rendered
 
 
 def generate(backend: str, prompt_file: str, refs, out_dir: str, count: int = 4, live: bool = False, size: str = "", aspect_ratio: str = "", purpose: str = "plates") -> dict:
@@ -143,12 +155,14 @@ def supported_parameters(client, key: str, model: str):
     return _SUPPORTED[model]
 
 
-def _purpose_body(client, key, settings, purpose, size, aspect_ratio):
+def _purpose_body(client, key, settings, purpose, size, aspect_ratio, override=None):
     """(model, extra body params) for a purpose, validated against the model's supported parameters: one it does not list is refused."""
     from .provider_prefs import PURPOSES
     if purpose not in PURPOSES:
         raise ValueError(f"unknown purpose {purpose!r}; the purposes are {list(PURPOSES)}")
-    cfg = settings.image_purposes.get(purpose) or {}
+    cfg = dict(settings.image_purposes.get(purpose) or {})
+    if override:                                       # an explicit model (a template's) and its own params replace the purpose's
+        cfg = {"model": override["model"], **{k: v for k, v in override.items() if k != "model" and v}}
     model = cfg.get("model")
     if not model:
         raise ValueError(f"the {purpose} purpose has no image model: choose one in the Providers dialog")
@@ -180,7 +194,8 @@ def _purpose_body(client, key, settings, purpose, size, aspect_ratio):
     return model, extra
 
 
-def openrouter_images(prompt: str, references: list, count: int, size: str = "", aspect_ratio: str = "", purpose: str = "") -> list:
+def openrouter_images(prompt: str, references: list, count: int, size: str = "", aspect_ratio: str = "", purpose: str = "", model: str = "",
+                      resolution: str = "", quality: str = "") -> list:
     """``count`` images from OpenRouter's images API (one request each), as ``[(bytes, media_type)]``; ``references`` are
     image bytes sent as data URLs. The key comes from the environment, every request is refused past the session spend
     ceiling, and the reported cost goes on the shared ledger."""
@@ -196,6 +211,7 @@ def openrouter_images(prompt: str, references: list, count: int, size: str = "",
             size = _checked_size(size)
         elif aspect_ratio:
             size = size_for_aspect(aspect_ratio)
+    explicit_model = model                              # a rendered template's own model; empty = the purpose's (or the global default's)
     model = settings.openrouter_image_model
     refs = [{"type": "image_url", "image_url": {"url": f"data:{_sniff_mime(data)};base64," + base64.b64encode(data).decode()}}
             for data in references]
@@ -203,7 +219,10 @@ def openrouter_images(prompt: str, references: list, count: int, size: str = "",
     ledger = spend_ledger(settings)
     out = []
     with httpx.Client(transport=openrouter_transport, timeout=300.0) as client:
-        if purpose:
+        if explicit_model:                              # validated against that model's supported parameters
+            model, extra = _purpose_body(client, key, settings, purpose or "plates", size, aspect_ratio,
+                                         override={"model": explicit_model, "resolution": resolution, "quality": quality})
+        elif purpose:
             model, extra = _purpose_body(client, key, settings, purpose, size, aspect_ratio)
         else:
             extra = {}
@@ -256,18 +275,18 @@ def openrouter_image_backend(model: str, payload: dict):
 
 
 def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: bool, size: str = "", aspect_ratio: str = "",
-                purpose: str = "plates") -> dict:
+                purpose: str = "plates", model: str = "", resolution: str = "", quality: str = "") -> dict:
     from . import provider_prefs
     settings = provider_prefs.effective()
-    model = (settings.image_purposes.get(purpose) or {}).get("model") or settings.openrouter_image_model
+    model_name = model or (settings.image_purposes.get(purpose) or {}).get("model") or settings.openrouter_image_model
     if not 1 <= count <= 4:
         raise ValueError("the openrouter backend makes at most 4 images per generation (one request each)")
     if not live:
         return {"backend": "openrouter", "files": [], "dry_run": True,
-                "output": f"dry run: would send {count} request(s) to {model} with {len(ref_paths)} reference image(s); nothing sent"}
+                "output": f"dry run: would send {count} request(s) to {model_name} with {len(ref_paths)} reference image(s); nothing sent"}
     from .agent.providers import spend_ledger
     prompt = Path(prompt_path).read_text(encoding="utf-8").strip()
-    images = openrouter_images(prompt, [Path(p).read_bytes() for p in ref_paths], count, size=size, aspect_ratio=aspect_ratio, purpose=purpose)
+    images = openrouter_images(prompt, [Path(p).read_bytes() for p in ref_paths], count, size=size, aspect_ratio=aspect_ratio, purpose=purpose, model=model, resolution=resolution, quality=quality)
     out.mkdir(parents=True, exist_ok=True)
     files = []
     for i, (data, media_type) in enumerate(images, 1):
@@ -276,26 +295,85 @@ def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: 
         files.append(str(target))
     ledger = spend_ledger(settings)
     return {"backend": "openrouter", "files": files, "dry_run": False,
-            "output": f"{len(files)} image(s) from {model}; session spend ${ledger.spent:.4f} of ${ledger.ceiling_usd:.2f}"}
+            "output": f"{len(files)} image(s) from {model_name}; session spend ${ledger.spent:.4f} of ${ledger.ceiling_usd:.2f}"}
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="imagegen", description="Painted variants of a clay render through a configurable image backend (AXI).")
     ap.add_argument("--backend", default=None)
-    ap.add_argument("--prompt-file", required=True)
-    ap.add_argument("--ref", action="append", default=[])
+    ap.add_argument("--prompt-file", default=None, help="a raw prompt file (or use --template)")
+    ap.add_argument("--template", default=None, help="a prompt-library template id; its rendered prompt is stored as <out>/prompt.txt")
+    ap.add_argument("--var", action="append", default=[], help="a template variable, k=v (repeatable)")
+    ap.add_argument("--model", default=None, help="the image model (a template's own default otherwise)")
+    ap.add_argument("--ref", action="append", default=[], help="a reference image; with --template a role=path pair, or paths in the template's order")
     ap.add_argument("--out", required=True)
     ap.add_argument("--count", type=int, default=4)
     ap.add_argument("--live", action="store_true", help="really generate (tripo also needs LAMPWAY_STUDIO_ARMED=1)")
+    ap.add_argument("--print-prompt", action="store_true", help="render the template, print the prompt and its ordered references; generate nothing")
     a = ap.parse_args(argv)
     try:
-        res = generate(a.backend or backend_name(), a.prompt_file, a.ref, a.out, a.count, a.live)
+        if a.print_prompt and a.template:
+            from .prompts import render as R
+            from .prompts.library import Library
+            variables = {}
+            for kv in a.var:
+                k, _, v = kv.partition("=")
+                variables[k] = _coerce(v)
+            r = R.render(Library.from_env(), a.template, variables, a.model)
+            print(json.dumps({"template": r["template"], "prompt": r["prompt"], "params": r["params"], "inputs": [i["role"] for i in r["inputs_required"]]}))
+            return 0
+        backend = a.backend or backend_name()
+        extra, rendered, prompt_file, refs = {}, None, a.prompt_file, list(a.ref)
+        if a.template:
+            from .prompts import render as R
+            from .prompts.library import Library
+            variables = {}
+            for kv in a.var:
+                k, sep, v = kv.partition("=")
+                if not sep:
+                    raise ValueError(f"--var needs k=v, not {kv!r}")
+                variables[k] = _coerce(v)
+            prompt_file, rendered = render_prompt_file(a.template, variables, a.out, a.model)
+            tpl = Library.from_env().get(a.template)
+            if tpl.get("inputs"):
+                named = {r.partition("=")[0]: r.partition("=")[2] for r in refs} if refs and all("=" in r for r in refs) else refs
+                refs = [item for _, item in R.order_references(tpl, named)]
+            params = R.validate_image_params(rendered["model"], rendered["params"]) if rendered.get("model") else rendered["params"]
+            extra = {k: params[k] for k in ("size", "aspect_ratio", "resolution", "quality") if params.get(k)}
+            extra["model"] = rendered.get("model") or ""
+        elif not prompt_file:
+            raise ValueError("give --prompt-file or --template")
+        if backend == "openrouter" and extra:
+            res = _openrouter(ST.jail(prompt_file), [ST.jail(r) for r in refs], Path(ST.jail(a.out)), int(a.count), a.live, extra.get("size", ""),
+                              extra.get("aspect_ratio", ""), "plates", extra.get("model", ""), extra.get("resolution", ""), extra.get("quality", ""))
+        else:
+            res = generate(backend, prompt_file, refs, a.out, a.count, a.live)
+        if rendered is not None or a.live:
+            try:
+                from .prompts.runlog import RunLog
+                import uuid
+                RunLog(_state_dir() / "prompt_runs.jsonl").record(f"cli-{uuid.uuid4().hex[:10]}", prompt=Path(ST.jail(prompt_file)).read_text(encoding="utf-8") if prompt_file else "",
+                                                                 model=(rendered or {}).get("model") or "", template=(rendered or {}).get("template"),
+                                                                 variables=(rendered or {}).get("variables"), output=(res["files"] or [None])[0], service="image_gen")
+            except Exception:  # noqa: BLE001 - the log never fails the run
+                pass
     except (ImageGenError, ValueError) as exc:
         print(f"error: {exc}")
         return 1
-    axi.kv({"backend": res["backend"], "dry_run": res["dry_run"], "images": len(res["files"])})
+    axi.kv({"backend": res["backend"], "dry_run": res["dry_run"], "images": len(res["files"]), **({"template": rendered["template"], "prompt_file": prompt_file} if rendered else {})})
     axi.table("files", [{"file": f} for f in res["files"]], ["file"])
     return 0
+
+
+def _coerce(v: str):
+    if v.lower() in ("true", "false"):
+        return v.lower() == "true"
+    for cast in (int, float):
+        try:
+            return cast(v)
+        except ValueError:
+            continue
+    return v
 
 
 if __name__ == "__main__":

@@ -39,7 +39,7 @@ def cfg(tmp_path, monkeypatch):
 
 def test_the_tools_are_registered_with_their_kinds():
     assert R.TOOLS["clay_view"].kind == "blender" and R.TOOLS["mesh_paint_set"].kind == "numpy"
-    assert (R.SCRIPTS / "texlib/prompts/prompt_meshpaint_v2.txt").exists() and (R.SCRIPTS / "texlib/prompts/prompt_meshpaint_v2_front.txt").exists()
+    assert not (R.SCRIPTS / "texlib/prompts/prompt_meshpaint_v2.txt").exists(), "the prompt lives in the library (mesh-paint-albedo-*), not in a text file"
 
 
 def _fbx(tmp_path):

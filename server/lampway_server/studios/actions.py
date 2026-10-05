@@ -107,10 +107,29 @@ def _read_mesh(parsed, clean):
 def _v_image(args, jail):
     if args.get("count") not in (None, 4, "4"):
         raise ActionError("never fewer than 4 images per generation")
+    template = None
+    if args.get("template"):
+        # the prompt comes from the library: rendered, stored as a file under the job's out_dir, and the file is what the driver reads
+        from pathlib import Path
+        from ..prompts import render as R
+        from ..prompts.library import Library
+        try:
+            rendered = R.render(Library.from_env(), args["template"], args.get("variables") or {}, args.get("model"))
+        except ValueError as exc:
+            raise ActionError(str(exc)) from None
+        out = Path(jail(args.get("out_dir") or "studio/prompts"))
+        out.mkdir(parents=True, exist_ok=True)
+        pf = out / "prompt.txt"
+        pf.write_text(rendered["prompt"], encoding="utf-8")
+        args = dict(args, prompt_file=str(pf))
+        template = rendered["template"]
     if not args.get("prompt_file"):
-        raise ActionError("an image generation needs prompt_file")
-    return {"prompt_file": jail(args["prompt_file"]), "refs": [jail(r) for r in args.get("refs") or []],
-            "aspect": str(args.get("aspect") or "1:1"), "model": str(args.get("model") or "GPT Image 2.5")}
+        raise ActionError("an image generation needs prompt_file or template")
+    out = {"prompt_file": jail(args["prompt_file"]), "refs": [jail(r) for r in args.get("refs") or []],
+           "aspect": str(args.get("aspect") or "1:1"), "model": str(args.get("model") or "GPT Image 2.5")}
+    if template:
+        out["template"] = template
+    return out
 
 
 def _image_argv(clean, out_dir):

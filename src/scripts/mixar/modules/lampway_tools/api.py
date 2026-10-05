@@ -454,19 +454,17 @@ def _mp_project_job(spec, setup, s, tag):
     return job
 
 
-def _mp_generate(spec, setup, s, view, prompt, refs, out_dir, live, count=4):
-    """Run the image backend (the server's imagegen module under the server python) for one view; returns the image files."""
-    prompt_file = Path(spec.work_dir) / "prompts" / f"{view}.txt"
-    prompt_file.parent.mkdir(parents=True, exist_ok=True)
-    prompt_file.write_text(prompt, encoding="utf-8")
+def _mp_generate(spec, setup, s, view, template, refs, out_dir, live, count=4, named=None):
+    """Run the image backend (the server's imagegen module under the server python) for one view with a prompt-library TEMPLATE; the server renders it,
+    stores the rendered prompt as <out_dir>/prompt.txt and enforces the reference order by role. Returns the image files."""
     if _mp_generate_cmd is not None:
-        return _mp_generate_cmd(view, str(prompt_file), refs, out_dir, live, count)
+        return _mp_generate_cmd(view, template, refs, out_dir, live, count)
     if not s.python_server or not s.server_dir:
         raise RUN.ToolUnavailable("the image backend runs in the Lampway server's python: set LAMPWAY_PYTHON_SERVER and LAMPWAY_SERVER_DIR (the repo's server/)")
     import os
     import subprocess
-    cmd = ["nice", "-n", str(s.nice), str(s.python_server), "-m", "lampway_server.imagegen", "--prompt-file", str(prompt_file),
-           "--out", out_dir, "--count", str(count)] + [x for r in refs for x in ("--ref", r)] + (["--live"] if live else []) \
+    cmd = ["nice", "-n", str(s.nice), str(s.python_server), "-m", "lampway_server.imagegen", "--template", template,
+           "--out", out_dir, "--count", str(count)] + [x for k, v in (named or {}).items() for x in ("--ref", f"{k}={v}")] + (["--live"] if live else []) \
         + (["--backend", str(s.image_backend)] if s.image_backend else [])
     # A clean Python environment for the server's own interpreter: the app's PYTHONHOME / PYTHONPATH would make a venv
     # python import Blender's stdlib and site-packages instead of its own (seen live: `No module named 'httpx'`).
@@ -518,18 +516,16 @@ def meshpaint(stage, **kw):
             raise ValueError(f"view {view!r}: one of {list(MP.VIEWS)}")
         picks = MP.load_picks(spec)
         cons = MP.consistency_view(view, [v for v in MP.ORDER if v in picks])
-        text = MP.prompt_for(view, cons)
-        pf = Path(spec.work_dir) / "prompts" / f"{view}.txt"
-        pf.parent.mkdir(parents=True, exist_ok=True)
-        pf.write_text(text, encoding="utf-8")
-        parts = {"view": view, "consistency": cons, "prompt_file": str(pf), "refs": MP.refs_for(spec, view, cons, picks),
-                 "out_dir": str(Path(spec.work_dir) / "runs" / view)}
+        template = MP.template_for(view, cons)
+        parts = {"view": view, "consistency": cons, "template": template, "refs": MP.refs_for(spec, view, cons, picks),
+                 "roles": list(MP.refs_named(spec, view, cons, picks)), "out_dir": str(Path(spec.work_dir) / "runs" / view)}
         if stage == "prompt":
             return parts
         count = int(kw.get("count", 4))
         if not 1 <= count <= 4:
             raise ValueError(f"count {count}: 1 to 4 images per view")
-        files = _mp_generate(spec, setup, s, view, text, parts["refs"], parts["out_dir"], bool(kw.get("live", False)), count)
+        files = _mp_generate(spec, setup, s, view, template, parts["refs"], parts["out_dir"], bool(kw.get("live", False)), count,
+                             named=MP.refs_named(spec, view, cons, picks))
         return {"view": view, "files": files, "out_dir": parts["out_dir"], "count": count}
     if stage == "pick":
         view = kw["view"]

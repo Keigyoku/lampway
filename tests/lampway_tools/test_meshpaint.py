@@ -18,8 +18,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src/scripts"))
 from mixar.modules.lampway_tools import meshpaint as MP  # noqa: E402
 from mixar.modules.lampway_tools import settings as S  # noqa: E402
 
-PROMPTS = Path(__file__).resolve().parents[2] / "src/scripts/mixar/modules/lampway_tools/scripts/texlib/prompts"
-
 
 def spec(tmp_path, **kw):
     base = dict(piece="chest", mesh=str(tmp_path / "m.fbx"), design_dir=str(tmp_path / "v3"), work_dir=str(tmp_path / "mp"))
@@ -36,20 +34,22 @@ def test_the_generation_order_chains_consistency_from_a_side_through_the_front()
     assert MP.consistency_view("Back", ["Left"]) == "Left"               # no front yet: any painted view will do
 
 
-def test_the_prompts_are_the_shelfs_two_texts_unchanged_when_a_consistency_view_exists():
-    v2 = (PROMPTS / "prompt_meshpaint_v2.txt").read_text()
-    front = (PROMPTS / "prompt_meshpaint_v2_front.txt").read_text()
-    assert MP.prompt_for("Back", "Front") == v2.strip()
-    assert MP.prompt_for("Front", "Left") == front.strip()
-    assert "SECOND image is the same armor already painted" in MP.prompt_for("Right", "Front")
+def test_the_prompt_is_a_library_template_chosen_by_view_and_whether_a_view_is_painted():
+    assert MP.template_for("Back", "Front") == "mesh-paint-albedo-side"
+    assert MP.template_for("Front", "Left") == "mesh-paint-albedo-front"
+    assert MP.template_for("Right", "Front") == "mesh-paint-albedo-side"
+    assert MP.template_for("Left", None) == "mesh-paint-albedo-side-first" and MP.template_for("Front", None) == "mesh-paint-albedo-front-first"
 
 
-def test_without_a_painted_view_the_second_image_sentence_is_dropped_and_the_numbering_closes_up():
-    p = MP.prompt_for("Left", None)
-    assert "SECOND image is the same armor already painted" not in p and "match its exact colours" not in p
-    assert "The SECOND image is the original colour design" in p                   # the design plate moves up from THIRD
-    assert "THIRD" not in p and "Paint the FIRST image" in p and "flat ALBEDO texture" in p
-    assert "THIRD" not in MP.prompt_for("Front", None)
+def test_no_prompt_wording_lives_in_the_client_any_more():
+    assert not hasattr(MP, "prompt_for") and not hasattr(MP, "PROMPTS")
+
+
+def test_the_references_carry_the_roles_the_template_orders_them_by(tmp_path):
+    s = spec(tmp_path)
+    named = MP.refs_named(s, "Back", "Front", picks={"Front": "/x/f.png"})
+    assert list(named) == ["clay_render", "painted_view", "design_plate"] and named["painted_view"] == "/x/f.png"
+    assert list(MP.refs_named(s, "Left", None, picks={})) == ["clay_render", "design_plate"]
 
 
 def test_references_are_the_clay_render_then_the_painted_view_then_the_design_plate(tmp_path):

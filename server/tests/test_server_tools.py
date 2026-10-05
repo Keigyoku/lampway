@@ -96,7 +96,7 @@ def test_a_studio_tool_in_a_turn_never_asks_blender_for_a_script(fake, provider,
 def test_the_image_generate_tool_is_listed_local_and_defaults_to_not_live(root):
     assert ST.is_local("studio_image_generate")
     spec = next(t for t in T.TOOLS if t.name == "studio_image_generate")
-    assert "prompt_file" in spec.parameters["required"] and "dry run" in spec.description.lower()
+    assert spec.parameters["required"] == ["out_dir"] and {"prompt_file", "template", "variables"} <= set(spec.parameters["properties"]) and "dry run" in spec.description.lower()
 
 
 def test_it_calls_the_backend_with_jailed_paths_and_reports_the_files(root, monkeypatch):

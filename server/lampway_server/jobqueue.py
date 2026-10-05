@@ -65,6 +65,9 @@ class Job:
     note: str = ""                    # what the job is waiting for (shown to the user while PENDING)
     awaiting: str = ""                # the approval id the job waits on
     decision: Optional[asyncio.Future] = None
+    rendered: Optional[dict] = None   # the render of the payload's template (None for a raw prompt)
+    rendered_prompt: str = ""         # the prompt text this job was run with: stored with EVERY image or video job
+    variant_of: str = ""
 
 
 _STATE = {"PENDING": "pending", "POLLING": "running", "DONE": "succeeded", "FAILED": "failed", "CANCELLED": "cancelled"}
@@ -72,7 +75,8 @@ _EXT = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}
 
 
 class JobQueue:
-    def __init__(self, backends: dict, hub, base_url: str, model_labels: Optional[dict] = None, video=None, approvals=None):
+    def __init__(self, backends: dict, hub, base_url: str, model_labels: Optional[dict] = None, video=None, approvals=None, prompts=None):
+        self.prompts = prompts            # prompts.service.PromptService: templates, rendering, the run log
         self.video = video                # videojobs.VideoSystem: video_gen / video_upscale and Higgsfield models
         self.approvals = approvals        # studios.approvals.Approvals: the captain's confirm gate (shared with the Studios)
         self.backends: dict[str, Callable] = dict(backends or {})
@@ -113,14 +117,22 @@ class JobQueue:
         if service not in self.backends and not (video_job and (service in ("video_gen", "video_upscale") and self.video.available(service) or service == "image_gen")):
             raise UnknownService(f"no backend for service {service!r}; the services are {sorted(self.backends) or 'none'}")
         payload = payload if isinstance(payload, dict) else {}
+        rendered = None
+        if self.prompts is not None and service in ("image_gen", "video_gen") and payload.get("template"):
+            try:
+                rendered = self.prompts.apply_to_payload(service, model, payload)
+            except ValueError as exc:                                   # RenderError and LibraryError are ValueErrors
+                raise BadJob(str(exc)) from None
         if service in ("image_gen", "video_gen") and not str(payload.get("prompt") or "").strip():
-            raise BadJob(f"{service} needs payload.prompt")
+            raise BadJob(f"{service} needs payload.prompt or payload.template")
         if service == "video_upscale" and not payload.get("video_s3_key"):
             raise BadJob("video_upscale needs payload.video_s3_key (stage the source clip first)")
         key = idempotency_key or str(uuid.uuid4())
         if key in self._by_key:
             return self.jobs[self._by_key[key]]
         job = Job(str(uuid.uuid4()), service, model or "default", payload, key, origin)
+        job.rendered, job.rendered_prompt = rendered, str(payload.get("prompt") or "")
+        job.variant_of = str((payload.get("template") or {}).get("variant_of") or "") if isinstance(payload.get("template"), dict) else ""
         self.jobs[job.job_id] = job
         self._by_key[key] = job.job_id
         self._prune()
@@ -181,6 +193,24 @@ class JobQueue:
             return asyncio.run_coroutine_threadsafe(self._await_approval(job, q), loop).result()
         return await asyncio.to_thread(self.video.run, job.service, job.model, job.payload, plan, ask)
 
+    @staticmethod
+    def _prompt_fields(job: Job) -> dict:
+        out = {"prompt": job.rendered_prompt}
+        if job.rendered:
+            out.update(template=job.rendered["template"], variables=job.rendered["variables"])
+        return out
+
+    def _log(self, job: Job, ok: bool) -> None:
+        if self.prompts is None or job.service not in ("image_gen", "video_gen", "video_upscale"):
+            return
+        r = job.result or {}
+        cost = r.get("actual_usd") if r.get("actual_usd") is not None else r.get("credits")
+        out = (r.get("saved") or [None])[0] or ((r.get("images") or [{}])[0].get("url") if r.get("images") else None)
+        try:
+            self.prompts.record_job(job, job.rendered, output=out, cost=cost, extra={"ok": ok, "error": job.error or None, "provider": r.get("provider")})
+        except Exception:  # noqa: BLE001 - the log must never fail a job
+            log.warning("could not record the run of job %s", job.job_id, exc_info=True)
+
     async def run(self, job: Job) -> None:
         job.status = "POLLING"
         await self.push(job)
@@ -202,7 +232,7 @@ class JobQueue:
                     name = f"{i}.{'mp4' if kind == 'VIDEO' else 'png'}"
                     job.files[name] = (data, media_type)
                     files.append({"type": kind, "url": f"{self.base_url}/api/v1/jobs/files/{job.token}/{name}"})
-                job.result = {"result_files": files, "saved": paths, **out.extra}
+                job.result = {"result_files": files, "saved": paths, **out.extra, **self._prompt_fields(job)}
                 if job.service == "image_gen":
                     job.result["images"] = [{"url": f["url"]} for f in files]
                 job.status = "DONE"
@@ -213,7 +243,7 @@ class JobQueue:
                 name = f"{i}.{_EXT.get(media_type, 'png')}"
                 job.files[name] = (data, media_type)
                 images.append({"url": f"{self.base_url}/api/v1/jobs/files/{job.token}/{name}"})
-            job.result = {"images": images}
+            job.result = {"images": images, **self._prompt_fields(job)}
             if out.image_name:
                 job.result["image_name"] = out.image_name
             job.status = "DONE"
@@ -225,6 +255,8 @@ class JobQueue:
             job.error = f"{type(exc).__name__}: {exc}"[:600]
         finally:
             job.payload = {}
+            if job.status in ("DONE", "FAILED"):
+                self._log(job, job.status == "DONE")
         await self.push(job)
 
     # ------------------------------------------------------------------- read

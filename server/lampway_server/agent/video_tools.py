@@ -26,8 +26,10 @@ def specs() -> list:
                      "prompt": {"type": "string"}, "model": {"type": "string"}, "purpose": {"type": "string", "description": "bulk | loop | motion"},
                      "duration": {"type": "integer"}, "resolution": {"type": "string"}, "aspect_ratio": {"type": "string"}, "generate_audio": {"type": "boolean"},
                      "image_mode": {"type": "string", "description": "first_frame | first_last_frame (one image = a loop) | reference"},
+                     "template": {"type": "string", "description": "a prompt-library template id (e.g. anim-walk-side-track): replaces `prompt`; its defaults fill duration/resolution/aspect"},
+                     "variables": {"type": "object", "description": "the template's variables"},
                      "images": {"type": "array", "items": {"type": "string"}}, "videos": {"type": "array", "items": {"type": "string"}},
-                     "dry_run": {"type": "boolean", "description": "default true"}}, "required": ["prompt"], "additionalProperties": False}),
+                     "dry_run": {"type": "boolean", "description": "default true"}}, "additionalProperties": False}),
     ]
 
 
@@ -55,6 +57,13 @@ async def call(system, name: str, arguments: dict) -> tuple:
         purpose = system.settings.video_purposes.get(arguments.get("purpose") or "bulk")
         if purpose is None:
             return f"unknown purpose {arguments.get('purpose')!r}; the purposes are {sorted(system.settings.video_purposes)}", True
+        rendered = None
+        if arguments.get("template"):
+            rendered = system.prompts.render(arguments["template"], arguments.get("variables"), arguments.get("model"))
+            purpose = {**purpose, **{k: v for k, v in rendered["params"].items() if k in ("model", "duration", "resolution", "aspect_ratio", "image_mode")}}
+            arguments = dict(arguments, prompt=rendered["prompt"])
+        elif not str(arguments.get("prompt") or "").strip():
+            return "give a prompt or a template", True
         model = arguments.get("model") or purpose["model"]
         params = {k: arguments.get(k) if arguments.get(k) is not None else purpose.get(k) for k in ("duration", "resolution", "aspect_ratio", "image_mode")}
         if arguments.get("generate_audio") is not None:
@@ -81,6 +90,8 @@ async def call(system, name: str, arguments: dict) -> tuple:
                                "message": "The job is waiting for the captain's confirmation of the credits in the Client (Studios panel). It cannot be confirmed from here."}), False
         plan = await asyncio.to_thread(system.plan, "video_gen", model, payload)
         info = plan["plan"]
+        if rendered:
+            info = dict(info, prompt=rendered["prompt"], template=rendered["template"], variables=rendered["variables"], warnings=rendered["warnings"])
         if arguments.get("dry_run", True) is not False:
             return json.dumps(info), not info.get("ok", False)
         if not info.get("ok"):

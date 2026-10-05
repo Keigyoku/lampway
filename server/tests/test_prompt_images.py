@@ -78,4 +78,12 @@ def test_the_image_gates_are_declared_per_template():
     gate_ids = {t["id"]: {g["id"] for g in t["gates"]} for t in LIB.list(media="image")}
     assert {"silhouette_iou"} <= gate_ids["mesh-paint-albedo-front"] and {"seam_step", "tone_seam"} <= gate_ids["seamless-tile"]
     assert {"region_count"} <= gate_ids["material-id-draft"] and "pieces_present" in gate_ids["character-reference-fullbody"]
-    assert len(LIB.list(media="image")) == 9
+    assert len(LIB.list(media="image")) == 11
+
+
+@pytest.mark.parametrize("template, fixture", [("mesh-paint-albedo-front-first", "mesh_paint_front.txt"), ("mesh-paint-albedo-side-first", "mesh_paint_side.txt")])
+def test_the_first_view_variant_equals_the_old_client_rewrite_of_the_shelf_text(template, fixture):
+    text = (FIX / fixture).read_text().strip()                                       # the transform the mesh-paint step always applied when nothing was painted yet
+    text = re.sub(r"The SECOND image is the same armor already painted.*?style\. ", "", text, flags=re.S).replace("The THIRD image", "The SECOND image")
+    assert norm(R.render(LIB, template, {})["prompt"]) == norm(text)
+    assert [i["role"] for i in R.render(LIB, template, {})["inputs_required"]] == ["clay_render", "design_plate"]

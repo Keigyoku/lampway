@@ -30,7 +30,6 @@ from PIL import Image
 
 VIEWS = ("Front", "Back", "Left", "Right")
 ORDER = ("Left", "Front", "Back", "Right")
-PROMPTS = Path(__file__).resolve().parent / "scripts" / "texlib" / "prompts"
 _IMG = (".png", ".jpg", ".jpeg", ".webp")
 
 
@@ -58,12 +57,10 @@ def consistency_view(view: str, painted) -> Optional[str]:
     return painted[0] if painted else None
 
 
-def prompt_for(view: str, consistency: Optional[str]) -> str:
-    text = (PROMPTS / ("prompt_meshpaint_v2_front.txt" if view == "Front" else "prompt_meshpaint_v2.txt")).read_text(encoding="utf-8").strip()
-    if consistency is None:                                        # nothing painted yet: no SECOND image; the design plate moves up
-        text = re.sub(r"The SECOND image is the same armor already painted.*?style\. ", "", text, flags=re.S)
-        text = text.replace("The THIRD image", "The SECOND image")
-    return text
+def template_for(view: str, consistency: Optional[str]) -> str:
+    """The prompt-library template for a view: the front has its own wording (it matches a SIDE), the rest match the front; with no painted view yet the
+    ``-first`` variant (the design plate is the SECOND image). The wording lives in the library, nowhere in the client."""
+    return f"mesh-paint-albedo-{'front' if view == 'Front' else 'side'}" + ("" if consistency is not None else "-first")
 
 
 def refs_for(spec: MeshPaintSpec, view: str, consistency: Optional[str], picks: dict) -> list:
@@ -138,6 +135,13 @@ def projection_spec(base, spec: MeshPaintSpec):
     return dataclasses.replace(base, plates_dir=str(Path(spec.work_dir) / "set"), res=4096, color_full=True, no_flow=True)
 
 
+def refs_named(spec: MeshPaintSpec, view: str, consistency: Optional[str], picks: dict) -> dict:
+    """The references by ROLE, in the order the template names them: the clay render, the painted view (when there is one), the design plate."""
+    paths = refs_for(spec, view, consistency, picks)
+    roles = ["clay_render", "painted_view", "design_plate"] if consistency is not None else ["clay_render", "design_plate"]
+    return dict(zip(roles, paths))
+
+
 def run_all(spec: MeshPaintSpec, clay: Callable, generate: Callable, plates: Callable, project: Callable) -> dict:
     """The whole workflow with its stages injected (the app's job passes the real ones). Auto-picks the best of each view's
     variants by silhouette IoU against the clay render."""
@@ -146,7 +150,7 @@ def run_all(spec: MeshPaintSpec, clay: Callable, generate: Callable, plates: Cal
     painted = []
     for view in ORDER:
         cons = consistency_view(view, painted)
-        files = generate(view, prompt_for(view, cons), refs_for(spec, view, cons, picks), str(Path(spec.work_dir) / "runs" / view))
+        files = generate(view, template_for(view, cons), refs_for(spec, view, cons, picks), str(Path(spec.work_dir) / "runs" / view))
         if not files:
             raise MeshPaintError(f"the image backend returned no images for {view}")
         clay_png = Path(spec.work_dir) / "clay" / f"clay_{view}.png"

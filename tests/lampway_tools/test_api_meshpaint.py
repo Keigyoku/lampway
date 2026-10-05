@@ -54,20 +54,20 @@ print("RESULT", json.dumps({"s": s, "c": c, "files": sorted(os.listdir(root + "/
                             "clay_Left.png.json", "clay_Right.png", "clay_Right.png.json"]
 
 
-def test_prompt_writes_the_views_prompt_file_and_returns_the_references_in_order(tmp_path):
+def test_prompt_returns_the_library_template_and_the_references_in_order(tmp_path):
     r = run(tmp_path, '''
 setup(); api.meshpaint("clay", res=128)
 p1 = api.meshpaint("prompt", view="Left")
 MP.record_pick(MP.MeshPaintSpec("demo", "m", "d", root + "/demo/meshpaint"), "Left", root + "/demo/meshpaint/runs/Left/2.png")
 p2 = api.meshpaint("prompt", view="Front")
-print("RESULT", json.dumps({"p1": p1, "p2": p2, "text": open(p1["prompt_file"]).read()[:60]}), flush=True)
+print("RESULT", json.dumps({"p1": p1, "p2": p2}), flush=True)
 ''')
     assert r.rc == 0, r.out[-2500:]
     res = r.results[0]
     p1, p2 = res["p1"], res["p2"]
     assert p1["ok"] and p1["consistency"] is None and len(p1["refs"]) == 2 and p1["refs"][0].endswith("clay_Left.png") and p1["refs"][1].endswith("v3/Left.png")
     assert p2["consistency"] == "Left" and len(p2["refs"]) == 3 and p2["refs"][1].endswith("runs/Left/2.png")
-    assert p1["out_dir"].endswith("runs/Left") and res["text"].startswith("The FIRST image")
+    assert p1["out_dir"].endswith("runs/Left") and p1["template"] == "mesh-paint-albedo-side-first" and p2["template"] == "mesh-paint-albedo-front" and "prompt_file" not in p1
 
 
 def test_pick_chooses_by_silhouette_iou_unless_a_file_is_named_then_plates_use_the_real_tool(tmp_path):
@@ -160,7 +160,7 @@ for n in ("mask_plate.png", "detail_height_u16.png", "v3_colour_atlas.png"):
     Image.fromarray(np.full((4, 4, 3), 99, np.uint8)).save(root + "/demo/out/p1_meshpaint/" + n)
 n = tm.node_tree.nodes.new("ShaderNodeTexImage"); n.image = bpy.data.images.load(root + "/demo/out/p1_meshpaint/mask_plate.png")
 order = []
-def fake_generate(view, prompt_file, refs, out_dir, live, count=4):
+def fake_generate(view, template, refs, out_dir, live, count=4):
     order.append((view, len(refs), live))
     clay = np.asarray(Image.open(refs[0]).convert("RGB")).astype(int)
     mask = np.abs(clay - clay[0, 0]).max(-1) > 8
@@ -217,8 +217,8 @@ print("RESULT", json.dumps({"state": jobs.get(started["job"]).state, "err": jobs
 def test_the_image_stage_makes_images_for_ONE_view_through_the_backend_with_the_clay_render_first_and_the_requested_count(tmp_path):
     r = run(tmp_path, '''
 seen = []
-def fake_generate(view, prompt_file, refs, out_dir, live, count=4):
-    seen.append({"view": view, "refs": [os.path.basename(x) for x in refs], "live": live, "count": count, "prompt": open(prompt_file).read()[:40]})
+def fake_generate(view, template, refs, out_dir, live, count=4):
+    seen.append({"view": view, "refs": [os.path.basename(x) for x in refs], "live": live, "count": count, "template": template})
     os.makedirs(out_dir, exist_ok=True)
     Image.fromarray(np.full((8, 8, 3), 50, np.uint8)).save(out_dir + "/1.png")
     return [out_dir + "/1.png"]
@@ -233,7 +233,7 @@ print("RESULT", json.dumps({"seen": seen, "dry": dry, "live": live, "bad": bad})
     res = r.results[0]
     assert [x["view"] for x in res["seen"]] == ["Front", "Front"] and res["seen"][0]["live"] is False and res["seen"][1]["live"] is True
     assert res["seen"][0]["count"] == 4 and res["seen"][1]["count"] == 1
-    assert res["seen"][1]["refs"][0] == "clay_Front.png" and res["seen"][1]["prompt"]
+    assert res["seen"][1]["refs"][0] == "clay_Front.png" and res["seen"][1]["template"] == "mesh-paint-albedo-front-first"
     assert res["live"]["ok"] is True and len(res["live"]["files"]) == 1 and res["live"]["view"] == "Front"
     assert res["bad"]["ok"] is False and "count" in res["bad"]["error"]
 
