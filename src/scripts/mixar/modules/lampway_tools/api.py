@@ -631,6 +631,7 @@ def export_piece(object, out_dir, textures=(), note=""):
 from .features import retopo as _F_retopo                  # noqa: E402
 from .features import image3d as _F_image3d                # noqa: E402
 from .features import rig as _F_rig                        # noqa: E402
+from .features import lineage as _F_lineage                # noqa: E402
 from .features import splat as _F_splat                    # noqa: E402
 from .features import texture as _F_texture                # noqa: E402
 from .features import video as _F_video                    # noqa: E402
@@ -729,6 +730,44 @@ def rig_armor(object, armature, bone="", body="", poses=None, max_stretch=None, 
 
 
 @tool
+def asset_lineage(action, object, source="", transform="", anchors=None, changed_region=None, tolerance_m=0.01, parent="", piece=""):
+    """Where a derivative came from. record: store the source's geometry/UV/material hashes, the transformation and exactly THREE identity anchors
+    ([{name, point: [x, y, z]}] in object space, landmarks that must not move) on the object and in <root>/<piece>/lineage.jsonl; verify: each anchor's
+    nearest-point distance to the derivative must stay within tolerance_m (default 1 cm); show: the lineage and its parent chain. A second record on a
+    derived object needs parent=<its lineage id>."""
+    return _F_lineage.run(action, object, str(_settings().project_root), source, transform, anchors, changed_region, tolerance_m, parent, piece)
+
+
+@tool
+def workflow_graph(action, name="", graph=None, inputs=None, from_node="", version="", template="", description=""):
+    """A typed DAG of Lampway tool calls as data. define (graph = {nodes: [{id, tool, args, after, spend, studio_action, credits}], outputs}; args may use
+    {{inputs}} and @node.key for an upstream output) | plan (order, cached?, credits_planned) | run | rerun (from_node: it and what follows re-execute) |
+    version / rollback (version) | template_save / template_use (template, description) | show. Outputs are cached by the hash of (tool, args, upstream outputs);
+    a spend node is planned and priced, never run (the captain confirms in the Studios panel)."""
+    from . import workflow_graph as WG
+    g = WG.Graphs(_settings().project_root)
+    if action == "define":
+        return g.define(name, graph or {}, inputs)
+    if action == "plan":
+        return g.plan(name)
+    if action == "run":
+        return g.run(name)
+    if action == "rerun":
+        return g.rerun(name, from_node)
+    if action == "version":
+        return g.version(name, version)
+    if action == "rollback":
+        return g.rollback(name, version)
+    if action == "template_save":
+        return g.template_save(name, template, description)
+    if action == "template_use":
+        return g.template_use(template, name, inputs)
+    if action == "show":
+        return g.show(name)
+    raise WG.GraphError("action is define|plan|run|rerun|version|rollback|template_save|template_use|show")
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
@@ -803,7 +842,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "qa_descriptors", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph")
 
 
 def call(name: str, payload: str = "{}") -> dict:

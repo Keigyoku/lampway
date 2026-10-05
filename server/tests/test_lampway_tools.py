@@ -127,3 +127,11 @@ def test_wave0_tools_expose_the_new_arguments_to_the_agent():
         args = {"object": "o", "armature": "a", "poses": []}
         got = args_of(T.script_for(name, {**args, **extra}))
         assert all(got.get(k) == v for k, v in extra.items()), (name, got)
+
+
+def test_the_lineage_tool_reaches_blender_with_its_anchors_as_objects():
+    t = {t.name: t for t in T.TOOLS}["lampway_asset_lineage"]
+    assert t.parameters["properties"]["anchors"]["items"] == {"type": "object"} and set(t.parameters["required"]) == {"action", "object"}
+    anchors = [{"name": "toe", "point": [1, 0, 0]}] * 3
+    got = args_of(T.script_for("lampway_asset_lineage", {"action": "record", "object": "boot", "anchors": anchors, "junk": 1}))
+    assert got == {"action": "record", "object": "boot", "anchors": anchors}

@@ -41,7 +41,7 @@ class Def:
         for p in self.params:
             prop = {"type": p.type, "description": p.desc}
             if p.type == "array":
-                prop["items"] = {"type": "object"} if p.name in ("poses", "waypoints") else {"type": "string"}
+                prop["items"] = {"type": "object"} if p.name in ("poses", "waypoints", "anchors") else {"type": "string"}
             props[p.name] = prop
             if p.required:
                 req.append(p.name)
@@ -233,6 +233,19 @@ DEFS = [
         [P("armature", required=True), P("object", required=True), P("poses", "array", "Pose objects", required=True),
          P("clearance_body", desc="A body rigged to the same armature: reports the clearance of the piece to it in every pose"),
          P("seam_radius_m", "number", "Vertex pairs of different shells closer than this at rest are a seam, default 0.02")], api="pose_test"),
+    Def("lampway_asset_lineage", "Lineage of a derivative so a repaired mesh cannot silently become an unrelated one. action record: store the source's geometry/UV/"
+        "material hashes, the transformation and exactly THREE identity anchors (landmarks that must not move: [{name, point: [x, y, z]}] in object space; pick them "
+        "with the captain, never invent them); verify: each anchor's nearest-point distance to the derivative must stay within tolerance_m (default 0.01); show: the "
+        "lineage and its parent chain. A second record on a derived object needs parent=<its lineage id>.",
+        [P("action", required=True, desc="record | verify | show"), P("object", required=True), P("source", desc="The approved source object (record; default: the object)"),
+         P("transform", desc="One line: what was done"), P("anchors", "array", "Exactly three {name, point} (record)"), P("tolerance_m", "number", "0.0001..0.05, default 0.01"),
+         P("parent", desc="The lineage id this derives from (chain)"), P("piece", desc="The piece folder name, default the object name")], api="asset_lineage"),
+    Def("lampway_workflow_graph", "A workflow as data: a typed DAG of Lampway tool calls with cached outputs. action define (graph {nodes: [{id, tool, args, after: [ids], "
+        "spend, studio_action, credits}], outputs}, inputs; an arg string @node.key is that upstream node's output, {{name}} an input) | plan (order, cached, credits_planned: "
+        "nothing runs) | run | rerun (from_node) | version / rollback (version) | template_save / template_use (template, description) | show. A spend node is only "
+        "planned and priced: the captain confirms spends in the Studios panel and what depends on it waits.",
+        [P("action", required=True), P("name", desc="The graph's name"), P("graph", "object", "The graph (define)"), P("inputs", "object", "Values for {{name}} placeholders"),
+         P("from_node", desc="rerun: the node to start from"), P("version", desc="version / rollback: the version name"), P("template"), P("description")], api="workflow_graph"),
     Def("lampway_detail_normals", "Micro depth for a textured_atlas material without the relief map: per-material tiling detail normals box-projected "
         "in object space (metals take their ambientCG NormalGL maps; cloth and leather a small bump from their colour), blended by the material's "
         "per-texel masks. Idempotent: its 'DN:' nodes are replaced on a re-run. strengths: {plate, gold, cloth, leather}.",
