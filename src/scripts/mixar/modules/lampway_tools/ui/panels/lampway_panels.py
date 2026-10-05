@@ -214,4 +214,38 @@ class LAMPWAY_PT_features(Panel):
             col.label(text=p.last_message[:80])
 
 
-classes = [LAMPWAY_PT_main, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
+class LAMPWAY_PT_prompts(Panel):
+    bl_idname = "LAMPWAY_PT_prompts"
+    bl_label = "Prompts"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Lampway"
+    bl_parent_id = "LAMPWAY_PT_main"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        p = context.scene.lampway_tools
+        col.operator("lampway.prompts_refresh", icon="FILE_REFRESH")
+        col.prop(p, "prompt_template")
+        col.operator("lampway.prompt_load", icon="IMPORT")
+        for row in p.prompt_vars:
+            col.prop(row, "value", text=row.name)
+        if len(p.prompt_vars):
+            col.prop(p, "prompt_model")
+            col.operator("lampway.prompt_preview", icon="VIEWZOOM")
+            col.operator("lampway.prompt_fork", icon="DUPLICATE")
+        if p.prompt_preview:
+            for line in textwrap.wrap(p.prompt_preview, 46)[:8]:
+                col.label(text=line)
+            col.operator("lampway.prompt_use", icon="PLAY")
+        col.separator()
+        col.prop(p, "prompt_job_id")
+        col.prop(p, "prompt_rating")
+        col.prop(p, "prompt_note")
+        col.operator("lampway.prompt_rate", icon="SOLO_ON")
+        if p.last_message:
+            col.label(text=p.last_message[:80])
+
+
+classes = [LAMPWAY_PT_main, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_prompts, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]

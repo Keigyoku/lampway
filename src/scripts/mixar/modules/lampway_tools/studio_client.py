@@ -86,3 +86,22 @@ class StudioClient:
 
     def save_provider_settings(self, values: dict) -> dict:
         return self._call("PUT", "/app/provider-settings", {"values": values})
+
+    # ---- the prompt library (the same server door)
+    def prompts(self, media=None) -> dict:
+        return self._call("GET", "/app/prompts" + (f"?media={media}" if media else ""))
+
+    def prompt(self, template_id: str, version=None) -> dict:
+        return self._call("GET", f"/app/prompts/{template_id}" + (f"?version={version}" if version else ""))
+
+    def render_prompt(self, template_id: str, variables: dict, model=None) -> dict:
+        body = {"id": template_id, "variables": variables}
+        if model:
+            body["model"] = model
+        return self._call("POST", "/app/prompts/render", body)
+
+    def save_prompt(self, template: dict) -> dict:
+        return self._call("PUT", "/app/prompts", {"template": template})
+
+    def rate_prompt(self, job_id: str, rating: int, note: str = "") -> dict:
+        return self._call("POST", "/app/prompts/rate", {"job_id": job_id, "rating": int(rating), "note": note})

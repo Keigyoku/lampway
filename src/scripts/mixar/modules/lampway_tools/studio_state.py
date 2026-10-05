@@ -4,6 +4,7 @@
 
 """What the Studios panel shows: the last /app/studio snapshot. One writer (the refresh operator and the poll timer), many readers."""
 
+PROMPTS = {"templates": [], "current": None, "rendered": None}      # the prompt library as the panel shows it
 PROVIDERS = {}          # the last GET /app/provider-settings: {values, source, choices}
 STATE = {"actions": [], "approvals": [], "jobs": [], "engine": {}, "error": ""}
 

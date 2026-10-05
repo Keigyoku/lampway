@@ -7,7 +7,7 @@ to ``mixar.modules.lampway_tools.api``; the configuration of record lives in ``s
 rulings directory, so a scene saved with the panel closed loses nothing."""
 
 import bpy
-from bpy.props import BoolProperty, EnumProperty, FloatProperty, IntProperty, PointerProperty, StringProperty
+from bpy.props import BoolProperty, CollectionProperty, EnumProperty, FloatProperty, IntProperty, PointerProperty, StringProperty
 from bpy.types import PropertyGroup
 
 from mixar.modules.lampway_tools import runner
@@ -17,6 +17,27 @@ def _studio_items(self, context):
     from mixar.modules.lampway_tools import studio_state
     rows = studio_state.STATE["actions"] or [{"id": "tripo.state", "label": "Read the Studio state (refresh first)"}]
     return [(a["id"], a["label"][:40], a["label"]) for a in rows]
+
+
+_ITEMS = []
+
+
+def _prompt_items(self, context):
+    from mixar.modules.lampway_tools import studio_state
+    rows = studio_state.PROMPTS["templates"] or [{"id": "", "title": "(refresh the templates)", "description": ""}]
+    _ITEMS[:] = [(t["id"], t["title"][:48], t.get("description", "")[:200]) for t in rows]      # Blender keeps pointers into this list: it must outlive the call
+    return _ITEMS
+
+
+class PromptVar(PropertyGroup):
+    """One row of the generated variable form: the value is held as text and typed on use (the server validates it)."""
+    name: StringProperty()
+    kind: StringProperty()
+    value: StringProperty()
+    vmin: FloatProperty()
+    vmax: FloatProperty()
+    choices: StringProperty(description="enum values, | separated")
+    help: StringProperty()
 
 
 def _tool_items(self, context):
@@ -60,6 +81,13 @@ class LampwayToolsProps(PropertyGroup):
     mp_albedo: BoolProperty(name="Albedo base colour", default=True, description="The projected albedo as the live material's base colour")
     # ---- other tools
     tool: EnumProperty(name="Tool", items=_tool_items)
+    prompt_template: EnumProperty(name="Template", items=_prompt_items, description="A prompt-library template (image or video)")
+    prompt_vars: CollectionProperty(type=PromptVar)
+    prompt_model: StringProperty(name="Model", description="Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default")
+    prompt_preview: StringProperty(name="Preview")
+    prompt_job_id: StringProperty(name="Job id", description="The job to rate")
+    prompt_rating: IntProperty(name="Rating", min=1, max=5, default=3)
+    prompt_note: StringProperty(name="Note")
     studio_action: EnumProperty(name="Studio action", items=_studio_items)
     studio_args: StringProperty(name="Arguments", default="{}", description="The action's arguments as JSON, paths inside the project root")
     feature: EnumProperty(name="Feature", items=[
@@ -72,7 +100,7 @@ class LampwayToolsProps(PropertyGroup):
     last_message: StringProperty(name="Last result", default="")
 
 
-classes = [LampwayToolsProps]
+classes = [PromptVar, LampwayToolsProps]
 
 
 def register():

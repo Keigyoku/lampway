@@ -45,6 +45,14 @@ def _get_default_image_model():
         return None
 
 
+
+def _with_template(payload, prompt):
+    """prompt_attach: add the prompt-library template + variables to the job while the prompt is still exactly what the template rendered."""
+    import bpy
+    from mixar.modules.lampway_tools import prompt_attach
+    return prompt_attach.attach_to(payload, prompt, bpy.context.scene)
+
+
 class MIXIE_OT_imagegen_generate(Operator):
     """Generate images using AI and add them to the moodboard"""
 
@@ -311,6 +319,7 @@ class MIXIE_OT_imagegen_generate(Operator):
                 payload["params"]["negative_prompt"] = negative_prompt
             if ref_b64:
                 payload["reference_images_b64"] = ref_b64
+            _with_template(payload, stored_prompt)      # prompt_attach: the library template rides along while the prompt is still its render
 
             job = enqueue_generation(
                 kind="image",
@@ -389,6 +398,7 @@ class MIXIE_OT_imagegen_generate(Operator):
             payload["params"]["negative_prompt"] = self.negative_prompt.strip()
         if ref_b64:
             payload["reference_images_b64"] = ref_b64
+        _with_template(payload, prompt)                 # prompt_attach, as in the interactive path
         if self.name.strip():
             # Agent-chosen name: the backend uses it for the S3 filenames,
             # skips Gemini's own name suggestion, and echoes it in the result.

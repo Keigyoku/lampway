@@ -12,6 +12,14 @@ from mixar.modules.common.i18n import n_, rpt_
 logger = get_logger(__name__)
 
 
+
+def _with_template(payload, prompt):
+    """prompt_attach: add the prompt-library template + variables to the job while the prompt is still exactly what the template rendered."""
+    import bpy
+    from mixar.modules.lampway_tools import prompt_attach
+    return prompt_attach.attach_to(payload, prompt, bpy.context.scene)
+
+
 class MIXIE_OT_video_gen_generate(Operator):
     """Generate a video from a prompt and selected moodboard references"""
 
@@ -112,7 +120,7 @@ class MIXIE_OT_video_gen_generate(Operator):
                 feature_key=FEATURE_VIDEO_GEN,
                 job_type=service_key,
                 model=model,
-                payload={"prompt": prompt, "params": params},
+                payload=_with_template({"prompt": prompt, "params": params}, prompt),
                 label=f"VideoGen: {prompt[:40]}",
                 display_label=prompt[:40],
                 origin_capability_key="video_gen",
