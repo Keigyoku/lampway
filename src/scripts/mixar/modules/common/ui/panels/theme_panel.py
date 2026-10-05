@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""Expose native Mixar colors beside Blender's existing theme editors."""
+"""Expose the native theme colors beside Blender's existing theme editors."""
 
 from bpy.types import Panel
+
+from mixar.config.brand import PRODUCT_NAME
 
 
 def color_group(identifier):
@@ -30,7 +32,7 @@ def draw_colors(layout, data, identifiers):
 
 
 class MIXAR_PT_theme_preferences(Panel):
-    bl_label = "Mixar"
+    bl_label = PRODUCT_NAME
     bl_idname = "MIXAR_PT_theme_preferences"
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -41,7 +43,7 @@ class MIXAR_PT_theme_preferences(Panel):
         layout = self.layout
         theme = context.preferences.themes[0]
         layout.label(text="Shared across Zen, Engine and Texturing workspaces.")
-        layout.operator("mixar.apply_forest_theme", text="Apply Mixar Forest", icon='BRUSH_DATA')
+        layout.operator("mixar.apply_forest_theme", text=f"Apply {PRODUCT_NAME} Forest", icon='BRUSH_DATA')
         header, body = layout.panel("mixar_theme_canvases", default_closed=False)
         header.label(text="Workspace Backgrounds")
         if body:

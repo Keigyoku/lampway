@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """
-Quick Prompt Operator for Mixie Chat
+Quick Prompt Operator for the agent chat
 
-Global keyboard shortcut operator for quickly sending messages to Mixie Chat.
+Global keyboard shortcut operator for quickly sending messages to the agent.
 Uses WebSocket for chat streaming.
 """
 
@@ -14,6 +14,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
 
+from mixar.config.brand import AGENT_NAME
 from mixar.config.config import get_server_url
 from mixar.config.logging_config import get_logger
 from mixar.modules.common.i18n import iface_, n_, rpt_
@@ -42,17 +43,17 @@ def _get_auth_token() -> str:
 
 
 class MIXIE_CHAT_OT_quick_prompt(Operator):
-    """Open a quick prompt window to send a message to Mixie Chat"""
+    """Open a quick prompt window to send a message to the agent"""
 
     bl_idname = "mixie_chat.quick_prompt"
-    bl_label = "Send to Mixie Chat"
-    bl_description = "Open a prompt to send a message to Mixie Chat (Enter to send)"
+    bl_label = f"Send to {AGENT_NAME}"
+    bl_description = f"Open a prompt to send a message to {AGENT_NAME} (Enter to send)"
     bl_options = {'REGISTER'}
 
     # Keep operator property for direct invocation, but UI uses window_manager property
     message: StringProperty(
         name="",
-        description="Message to send to Mixie Chat",
+        description=f"Message to send to {AGENT_NAME}",
         default="",
         maxlen=MAX_MESSAGE_LENGTH,
         options={'SKIP_SAVE'}
@@ -85,11 +86,11 @@ class MIXIE_CHAT_OT_quick_prompt(Operator):
         if not DEV_MODE and not connection_manager.is_connected:
             row = layout.row()
             row.alert = True
-            row.label(text="Not connected to Mixie Chat", icon='ERROR')
+            row.label(text=f"Not connected to {AGENT_NAME}", icon='ERROR')
         elif not DEV_MODE and not can_send(scene)[0]:
             row = layout.row()
             row.alert = True
-            row.label(text=can_send(scene)[1] or n_("Mixie Chat is busy"), icon='ERROR')
+            row.label(text=can_send(scene)[1] or f"{AGENT_NAME} is busy", icon='ERROR')
 
         # Mode selector row
         row = layout.row(align=True)
@@ -150,14 +151,14 @@ class MIXIE_CHAT_OT_quick_prompt(Operator):
         connection_manager = get_connection_manager()
 
         if not connection_manager.is_connected:
-            self.report({'ERROR'}, "Not connected to server. Please connect in Mixie Chat.")
+            self.report({'ERROR'}, f"Not connected to server. Please connect in {AGENT_NAME}.")
             return {'CANCELLED'}
 
         # Same predicate as the chat composer: idle / modifying / awaiting
         # input, or busy while the run is open (the prompt joins the run).
         allowed, reason = can_send(scene)
         if not allowed:
-            self.report({'ERROR'}, reason or n_("Mixie Chat is not ready to receive messages"))
+            self.report({'ERROR'}, reason or f"{AGENT_NAME} is not ready to receive messages")
             return {'CANCELLED'}
 
         # Mark the user as engaged so the "Hi I'm Mixie" greeting

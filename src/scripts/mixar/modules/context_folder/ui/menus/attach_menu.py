@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Attach chooser: native menu dismissal with two descriptive action cards."""
 from bpy.types import Menu
+from mixar.config.brand import AGENT_NAME
 from mixar.modules.common.i18n import iface_
 
 
@@ -21,7 +22,8 @@ class MIXIE_CHAT_MT_attach(Menu):
         row = layout.row()
         row.scale_y = 2.8
         row.operator("mixie_chat.add_context_folder", icon='FILE_FOLDER', translate=False,
-                     text=iface_("Project folder") + "\n" + iface_("Let Mixie read files in a folder"))
+                     text=iface_("Project folder") + "\n"
+                     + iface_("Let {agent} read files in a folder").format(agent=AGENT_NAME))
         row.mixar_cinema_row(kind='DESCRIPTION')
 
 

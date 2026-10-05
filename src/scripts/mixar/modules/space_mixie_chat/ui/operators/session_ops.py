@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """
-Session management operators for Mixie Chat.
+Session management operators for the agent chat.
 
 Provides operators for connection management using JSON-RPC WebSocket.
 """
@@ -11,6 +11,7 @@ Provides operators for connection management using JSON-RPC WebSocket.
 import bpy
 from bpy.types import Operator
 
+from mixar.config.brand import AGENT_NAME
 from mixar.config.logging_config import get_logger
 from mixar.modules.common.i18n import iface_, rpt_
 
@@ -62,7 +63,7 @@ class MIXIE_CHAT_OT_connect(Operator):
     """Connect to the WebSocket server"""
     bl_idname = "mixie_chat.connect"
     bl_label = "Connect"
-    bl_description = "Connect to the Mixie agent server"
+    bl_description = f"Connect to the {AGENT_NAME} server"
     bl_options = {'REGISTER'}
 
     @classmethod
@@ -111,7 +112,7 @@ class MIXIE_CHAT_OT_disconnect(Operator):
     """Disconnect from the WebSocket server"""
     bl_idname = "mixie_chat.disconnect"
     bl_label = "Disconnect"
-    bl_description = "Disconnect from the Mixie agent server"
+    bl_description = f"Disconnect from the {AGENT_NAME} server"
     bl_options = {'REGISTER'}
 
     @classmethod

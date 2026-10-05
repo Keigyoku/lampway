@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """
-Mixie Chat Login Panel
+Agent chat login panel
 
 Login panel for user authentication via browser SSO.
 """
@@ -12,9 +12,11 @@ Login panel for user authentication via browser SSO.
 import bpy
 from bpy.types import Panel
 
+from mixar.config.brand import PRODUCT_NAME
+
 
 class MIXIE_CHAT_PT_login(Panel):
-    """Login panel for Mixie Chat"""
+    """Login panel for the agent chat"""
     bl_label = "Login"
     bl_idname = "MIXIE_CHAT_PT_login"
     bl_space_type = 'TOPBAR'
@@ -59,7 +61,7 @@ class MIXIE_CHAT_PT_login(Panel):
                 error_col.label(text=line, translate=False)
             col.separator()
 
-        col.label(text="Sign in with your Mixar account", icon='USER')
+        col.label(text=f"Sign in with your {PRODUCT_NAME} account", icon='USER')
         col.separator()
 
         # SSO Login button

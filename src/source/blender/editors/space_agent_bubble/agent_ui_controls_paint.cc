@@ -5,6 +5,7 @@
 
 #include <algorithm>
 
+#include "BLI_lampway_brand.h"
 #include "BLI_string.h"
 #include "BLT_translation.hh"
 #include "UI_interface_c.hh"
@@ -413,8 +414,9 @@ void agent_ui_draw_chip_row(ARegion *region,
 
   /* Model, right of Auto: which hosted model the agent runs on. The label is
    * the Python half's WindowManager mirror — this only reads it. An empty
-   * mirror reads "Mixie" so the control is discoverable before a pick
-   * has been made. While a BYOK key overrides the hosted pick the chip is
+   * mirror reads the agent's name (LAMPWAY_AGENT_NAME) so the control is
+   * discoverable before a pick has been made; agent_ui_chip_fit.hh measures
+   * the same fallback. While a BYOK key overrides the hosted pick the chip is
    * inert, and says so by dimming its ink (the native button carries the
    * explanation as its disabled hint).
    *
@@ -433,7 +435,7 @@ void agent_ui_draw_chip_row(ARegion *region,
     fill_round(&layout->chip_model, radius, model_fill);
 
     const float cy = BLI_rctf_cent_y(&layout->chip_model);
-    const char *model_label = state->model_label[0] ? state->model_label : "Mixie";
+    const char *model_label = state->model_label[0] ? state->model_label : LAMPWAY_AGENT_NAME;
     if (layout->model_form == AgentModelChipForm::Icon) {
       const float ccx = BLI_rctf_cent_x(&layout->chip_model);
       const rctf glyph{ccx - icon_edge * 0.5f,

@@ -23,6 +23,7 @@ of a new session + mid-session update propagation).
 from bpy.props import IntProperty, StringProperty
 from bpy.types import Operator
 
+from mixar.config.brand import AGENT_NAME, PRODUCT_NAME
 from mixar.config.logging_config import get_logger
 from mixar.modules.common.i18n import n_
 
@@ -45,8 +46,8 @@ class MIXIE_CHAT_OT_add_rules(Operator):
     bl_idname = "mixie_chat.add_rules"
     bl_label = "Add Rules"
     bl_description = (
-        "Define rules for Mixie. Changes apply on your next message or "
-        "answer; global rules apply in every Mixar file. Your current "
+        f"Define rules for {AGENT_NAME}. Changes apply on your next message or "
+        f"answer; global rules apply in every {PRODUCT_NAME} file. Your current "
         "request takes priority over project and global rules"
     )
     bl_options = {'INTERNAL'}

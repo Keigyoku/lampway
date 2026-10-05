@@ -26,6 +26,15 @@
 
 #include <algorithm>
 
+/* LAMPWAY: the fallback label the model chip is measured for when no model
+ * is picked. The paint side draws LAMPWAY_AGENT_NAME from
+ * BLI_lampway_brand.h; this header is compiled alone by
+ * tests/chip_fit_harness.cc, so the define is mirrored here (guarded) and
+ * tests/lampway/test_lampway_brand.py pins the two values together. */
+#ifndef LAMPWAY_AGENT_NAME
+#  define LAMPWAY_AGENT_NAME "Lampway Agent"
+#endif
+
 namespace blender {
 
 enum AgentChipSlot {
@@ -134,7 +143,7 @@ inline void agent_chip_forms(const AgentChipRowInputs &in,
                                    2};
   if (in.model_available) {
     /* Full (chevron) -> Label -> Icon, at Upload's own floor. */
-    const char *label = in.model_label[0] ? in.model_label : "Mixie";
+    const char *label = in.model_label[0] ? in.model_label : LAMPWAY_AGENT_NAME;
     const float chevron = m.icon * 0.7f + m.icon_gap;
     r_chips[AGENT_CHIP_SLOT_MODEL] = {
         {as_drawn(label, m.icon) + chevron, as_drawn(label, m.icon), icon_only}, 3};

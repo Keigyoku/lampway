@@ -28,11 +28,11 @@ BEGIN
     BEGIN
       VALUE "FileVersion", BLEN_VER_RC_STR
       VALUE "ProductVersion", BLEN_VER_RC_STR
-      VALUE "CompanyName", "Mixar"
-      VALUE "FileDescription", "Mixar"
-      VALUE "LegalCopyright", "GPLv3 (Mixar)"
+      VALUE "CompanyName", "Lampway contributors"
+      VALUE "FileDescription", "Lampway"
+      VALUE "LegalCopyright", "GPLv3 (Lampway, a fork of the Mixar client)"
       VALUE "OriginalFilename", "mixar.exe"
-      VALUE "ProductName", "Mixar"
+      VALUE "ProductName", "Lampway"
     END
   END
   BLOCK "VarFileInfo"
