@@ -183,3 +183,46 @@ def import_artifact(artifact_id: str) -> dict:
             names.append(ob.name)
         bpy.data.collections.remove(coll)
     return {"artifact_id": artifact_id, "object_names": names}
+
+
+def stage_scene(artifact_id: str, collection_name: str, skip_objects: Iterable[str] = ()) -> dict:
+    """Stage everything the worker made, KEEPING its own collections (Lampway addition). ``stage_collection`` moves objects into one flat
+    collection; a worker that drew ``QA_<piece>`` wants that collection to land as it is. The staged collection holds the scene's
+    top-level collections as children and its loose objects directly; ``skip_objects`` (the seeded inputs) are left out."""
+    import bpy
+
+    if not is_artifact_id(artifact_id):
+        artifact_id = str(uuid.uuid4())
+    if not collection_name or "/" in collection_name or "\\" in collection_name:
+        raise ValueError("collection_name must be a plain datablock name")
+    root = staging_root()
+    skip = set(skip_objects)
+    scene_root = bpy.context.scene.collection
+    coll = bpy.data.collections.get(collection_name) or bpy.data.collections.new(collection_name)
+    objects, kept = [], []
+    for child in list(scene_root.children):
+        if child is coll:
+            continue
+        if all(o.name in skip for o in child.all_objects):          # nothing of the worker's in it (an inputs-only collection)
+            continue
+        coll.children.link(child)
+        kept.append(child.name)
+        objects.extend(o for o in child.all_objects if o.name not in skip)
+    for ob in list(scene_root.objects):
+        if ob.name in skip:
+            continue
+        if ob.name not in coll.objects:
+            coll.objects.link(ob)
+        objects.append(ob)
+    try:
+        bpy.ops.file.pack_all()
+    except Exception:
+        pass
+    path = os.path.join(root, f"{artifact_id}.blend")
+    bpy.data.libraries.write(path, {coll}, fake_user=True)
+    lo, hi, finite = _bbox(objects)
+    return {
+        "artifact_id": artifact_id, "collection_name": coll.name, "object_names": [o.name for o in objects],
+        "collections": kept, "missing_objects": [], "content_hash": _sha256(path), "size_bytes": os.path.getsize(path),
+        "object_count": len(objects), "bbox_min": lo, "bbox_max": hi, "finite": bool(finite and objects),
+    }

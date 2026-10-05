@@ -189,3 +189,33 @@ print("RESULT", json.dumps({{"res": res, "faces": len(ob.data.polygons), "loc": 
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
     assert o["res"]["object_names"] == ["Boots1_uv"] and o["faces"] == 6 and o["loc"] == [1.0, 2.0, 3.0] and o["in_scene"] is True
+
+
+def test_stage_scene_keeps_the_workers_own_collections_so_qa_markers_land_as_qa_piece(tmp_path):
+    cache, stage = dirs(tmp_path)
+    aid = str(uuid.uuid4())
+    r = run_script(f'''
+import bpy, json
+from mixar.modules.common.agent_execution import staging
+staging.reset_worker_scene()
+sc = bpy.context.scene
+col = bpy.data.collections.new("QA_boots"); sc.collection.children.link(col)
+col.objects.link(bpy.data.objects.new("boots_L000", bpy.data.meshes.new("a")))
+sc.collection.objects.link(bpy.data.objects.new("loose_cube", bpy.data.meshes.new("b")))
+sc.collection.objects.link(bpy.data.objects.new("Boots1_uv", bpy.data.meshes.new("c")))     # a seeded input: skipped
+m = staging.stage_scene({aid!r}, "boots", ["Boots1_uv"])
+print("RESULT", json.dumps(m))
+''', env={"MIXAR_SANDBOX_STAGING_DIR": stage, "MIXAR_AGENT_CACHE_DIR": cache, "LAMPWAY_HOME": str(tmp_path / "home")})
+    assert r.rc == 0, r.out[-2500:]
+    art = r.results[0]
+    assert sorted(art["object_names"]) == ["boots_L000", "loose_cube"] and art["collections"] == ["QA_boots"] and art["object_count"] == 2
+    out = parent(tmp_path, f'''
+art = {art!r}
+activate(); bind("t1", 1)
+res = commit(art, "t1", "op1", 100, 1)
+top = bpy.data.collections["Mixie Agent"]
+boots = top.children["boots"]
+print("RESULT", json.dumps({{"res": res, "children": [c.name for c in boots.children], "qa": sorted(o.name for o in boots.children["QA_boots"].objects),
+                             "direct": sorted(o.name for o in boots.objects)}}, default=str))
+''')
+    assert out["res"]["success"] and out["children"] == ["QA_boots"] and out["qa"] == ["boots_L000"] and out["direct"] == ["loose_cube"]

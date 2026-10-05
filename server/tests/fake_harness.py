@@ -70,7 +70,7 @@ class FakeWorker(threading.Thread):
             self.world.collections.clear()
             self.world.objects.clear()
             return {"success": True, "method": "read_homefile"}
-        if "staging.stage_collection" in script:
+        if "staging.stage_scene" in script:
             p = _literal(script)
             names = [o for o in self.world.objects if o not in set(p["skip"])]
             digest = hashlib.sha256((p["collection"] + ",".join(sorted(names))).encode()).hexdigest()

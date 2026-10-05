@@ -230,14 +230,13 @@ class Harness:
 # --- or object name can change the code.
 
 def stage_script(artifact_id: str, collection_name: str, skip: list) -> str:
-    """Run on the WORKER at the end of its task: stage every object it made (all but the seeded inputs) as a native artifact."""
+    """Run on the WORKER at the end of its task: stage everything it made (all but the seeded inputs), keeping its own collections, as a native artifact."""
     data = json.dumps({"artifact_id": artifact_id, "collection": collection_name, "skip": list(skip)})
     return (
         "import bpy, json\n"
         "from mixar.modules.common.agent_execution import staging\n"
         f"_p = json.loads({json.dumps(data)})\n"
-        "_names = [_o.name for _o in bpy.data.objects if _o.name not in set(_p['skip'])]\n"
-        "__RESULT__ = staging.stage_collection(_p['artifact_id'], _p['collection'], _names)\n")
+        "__RESULT__ = staging.stage_scene(_p['artifact_id'], _p['collection'], _p['skip'])\n")
 
 
 def export_script(artifact_id: str, object_names: list) -> str:
