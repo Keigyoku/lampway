@@ -73,8 +73,7 @@ def test_the_shortlist_multiples_against_heygen_768p_match_the_coordinators_tabl
 def test_parameters_are_validated_against_the_models_own_lists():
     ok = VG.validate(row("heygen/heygen-video-1"), {"resolution": "768p", "duration": 10, "aspect_ratio": "16:9"})
     assert ok == {"resolution": "768p", "duration": 10, "aspect_ratio": "16:9"}
-    for bad, msg in (({"resolution": "4K"}, "resolution"), ({"duration": 3}, "duration"), ({"aspect_ratio": "5:4"}, "aspect"),
-                     ({"generate_audio": True}, "audio")):
+    for bad, msg in (({"resolution": "4K"}, "resolution"), ({"duration": 3}, "duration"), ({"aspect_ratio": "5:4"}, "aspect")):
         with pytest.raises(VG.VideoError, match=msg):
             VG.validate(row("heygen/heygen-video-1"), bad)
     with pytest.raises(VG.VideoError, match="last_frame"):
@@ -211,3 +210,32 @@ def test_a_job_that_never_finishes_times_out_without_a_second_submit(wire):
     with pytest.raises(VG.VideoError, match="did not finish"):
         client.generate("heygen/heygen-video-1", "x", {"resolution": "480p", "duration": 5})
     assert len(seen["posts"]) == 1, "never re-submitted: a second submit is a second charge"
+
+
+# ---- generate_audio: false/None in the catalogue means "not a control", NOT "no audio" (live defect: HeyGen could not be requested either way)
+FIXED_AUDIO = [m["id"] for m in MODELS if m.get("generate_audio") is not True and not m.get("upscale_factor")]
+
+
+def test_the_models_whose_catalogue_has_no_audio_control_are_the_ones_the_coordinator_listed():
+    for expect in ("heygen/heygen-video-1", "minimax/hailuo-3-max", "minimax/hailuo-2.3", "runway/gen-4.5", "black-forest-labs/flux-video-edit", "runway/aleph-2"):
+        assert expect in FIXED_AUDIO
+
+
+@pytest.mark.parametrize("model_id", FIXED_AUDIO)
+def test_audio_is_never_sent_nor_refused_for_a_model_without_an_audio_control(model_id):
+    for wanted in (True, False, None):
+        clean = VG.validate(row(model_id), {"generate_audio": wanted})
+        assert "generate_audio" not in clean, f"{model_id}: the field must be omitted entirely"
+
+
+def test_the_plan_says_audio_is_always_on_for_such_a_model_and_the_request_omits_the_field(wire):
+    client, seen, _, _ = wire
+    plan = client.plan("heygen/heygen-video-1", "x", {"resolution": "480p", "duration": 5, "generate_audio": False})
+    assert plan["ok"] is True and plan["audio"] == "always on (not controllable)" and "generate_audio" not in plan["params"]
+    ctl = client.plan("bytedance/seedance-1-5-pro", "x", {"resolution": "480p", "duration": 4, "generate_audio": False})
+    assert ctl["audio"] == "off" and client.plan("bytedance/seedance-1-5-pro", "x", {"resolution": "480p", "duration": 4, "generate_audio": True})["audio"] == "on"
+    for flag in (True, False):
+        client.generate("heygen/heygen-video-1", "x", {"resolution": "480p", "duration": 5, "generate_audio": flag})
+    assert all("generate_audio" not in body for body in seen["posts"]), "the real API refuses an explicit generate_audio on HeyGen"
+    client.generate("bytedance/seedance-1-5-pro", "x", {"resolution": "480p", "duration": 4, "generate_audio": False})
+    assert seen["posts"][-1]["generate_audio"] is False, "a model WITH the control still gets it"

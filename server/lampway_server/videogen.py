@@ -72,7 +72,7 @@ def estimate(row: dict, p: dict) -> dict:
     res = p.get("resolution") or ""
     resk = res.lower()
     audio = p.get("generate_audio")
-    if audio is None:
+    if audio is None or not audio_controllable(row):
         audio = bool(row.get("generate_audio"))
 
     def done(usd, basis, **extra):
@@ -123,6 +123,17 @@ def estimate(row: dict, p: dict) -> dict:
 
 
 # -------------------------------------------------------------------------------------------------- validation
+def audio_controllable(row: dict) -> bool:
+    return row.get("generate_audio") is True
+
+
+def audio_state(row: dict, params: dict) -> str:
+    if not audio_controllable(row):
+        return "always on (not controllable)"
+    flag = params.get("generate_audio")
+    return "model default" if flag is None else ("on" if flag else "off")
+
+
 def takes_video_input(row: dict) -> bool:
     skus = row.get("pricing_skus") or {}
     return any("video_input" in k for k in skus) or any(t in row.get("id", "") for t in ("flux-video-edit", "flux-video-upscale", "aleph"))
@@ -147,10 +158,10 @@ def validate(row: dict, p: dict) -> dict:
     listed("resolution", "supported_resolutions", "resolution")
     listed("duration", "supported_durations", "duration")
     listed("aspect_ratio", "supported_aspect_ratios", "aspect ratio")
-    if p.get("generate_audio") is not None:
-        if p["generate_audio"] and row.get("generate_audio") is False:
-            raise VideoError(f"{mid} does not generate audio")
+    if p.get("generate_audio") is not None and audio_controllable(row):
         out["generate_audio"] = bool(p["generate_audio"])
+    # a model whose catalogue says generate_audio false/None has NO control: it renders whatever audio it renders and the API refuses an explicit
+    # flag (HeyGen: "always renders an audio track; generate_audio cannot be set to false"), so the field is omitted entirely, never refused
     if p.get("seed") is not None:
         out["seed"] = int(p["seed"])
     frames = p.get("frame_images") or []
@@ -257,6 +268,7 @@ class VideoClient:
         except VideoError as exc:
             return {"ok": False, "dry_run": True, "error": str(exc)}
         out = {"ok": True, "dry_run": True, "model": model_id, "params": {k: v for k, v in clean.items() if k not in ("frame_images", "reference_videos")},
+               "audio": audio_state(row, clean),
                "estimate_usd": None if est["usd"] is None else round(est["usd"], 4), "basis": est["basis"], **self._budget(est, False)}
         if not est["known"]:
             out["warning"] = "the price cannot be estimated from this model's pricing_skus: a live run is refused"
