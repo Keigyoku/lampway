@@ -17,9 +17,15 @@ def fail(message: str) -> None:
     STATE["error"] = message
 
 
+def questions() -> list:
+    """Pending questions for the captain (e.g. Higgsfield's unlim_choice): an answer, not a spend."""
+    return [a for a in STATE["approvals"] if a.get("state") == "pending" and (a.get("settings") or {}).get("unit") == "answer"]
+
+
 def pending() -> list:
-    return [a for a in STATE["approvals"] if a.get("state") == "pending"]
+    """Pending SPENDS: approvals that are not questions."""
+    return [a for a in STATE["approvals"] if a.get("state") == "pending" and (a.get("settings") or {}).get("unit") != "answer"]
 
 
 def busy() -> bool:
-    return bool(pending()) or any(j.get("state") == "running" for j in STATE["jobs"])
+    return bool(pending()) or bool(questions()) or any(j.get("state") == "running" for j in STATE["jobs"])

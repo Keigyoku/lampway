@@ -157,6 +157,15 @@ class LAMPWAY_PT_studios(Panel):
         layout.operator("lampway.providers_open", text="Providers: agent, swarm, images", icon="PREFERENCES")
         if st["error"]:
             layout.label(text=st["error"][:80], icon="ERROR")
+        row = layout.row(align=True)
+        row.operator("lampway.higgsfield_signin", icon="URL")
+        for q in studio_state.questions():
+            box = layout.box()
+            box.label(text=str(q["settings"].get("question") or q["label"])[:80], icon="QUESTION")
+            qrow = box.row(align=True)
+            for answer, text in ((True, "Yes"), (False, "No")):
+                op = qrow.operator("lampway.studio_answer", text=text)
+                op.approval_id, op.answer = q["id"], answer
         waiting = studio_state.pending()
         if waiting:
             box = layout.box()
@@ -164,10 +173,11 @@ class LAMPWAY_PT_studios(Panel):
             for ap in waiting:
                 col = box.column(align=True)
                 col.label(text=f"{ap['label']}")
-                col.label(text=f"{ap['price']} credits, read back from Studio")
+                unit = (ap.get("settings") or {}).get("unit") or "credits"
+                col.label(text=f"{ap['price']:g} {unit}, read back from {str(ap.get('studio') or 'Studio').capitalize()}")
                 row = col.row(align=True)
                 c = row.operator("lampway.studio_confirm", text="Confirm and spend", icon="CHECKMARK")
-                c.approval_id, c.price, c.label = ap["id"], int(ap["price"]), ap["label"]
+                c.approval_id, c.price, c.label = ap["id"], float(ap["price"]), ap["label"]
                 row.operator("lampway.studio_reject", text="Reject", icon="X").approval_id = ap["id"]
         p = context.scene.lampway_tools
         plan = layout.column(align=True)

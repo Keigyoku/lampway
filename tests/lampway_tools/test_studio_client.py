@@ -193,3 +193,56 @@ print("RESULT", json.dumps({"ok": sorted(op_ok), "saved": SAVED, "bad": bad, "ms
                              "image_purposes": {"plates": {"size": "2160x3840"}, "concept": {"resolution": "4K"}, "mask": {"model": "sourceful/riverflow-v2.5-pro"}}}, \
         "only the fields that differ from what the server has are sent (the unchanged plates model is not)"
     assert "WIDTHxHEIGHT" in o["bad"] and "WIDTHxHEIGHT" in o["msg"]
+
+
+def test_a_credit_price_is_sent_exactly_and_a_question_is_answered_only_by_a_click():
+    r = run(CONFIRM + '''
+class C:
+    def __init__(self): self.sent = []
+    def confirm(self, i, p, answer=None): self.sent.append((i, p, answer)); return {"id": "j"}
+    def home(self): return {"actions": [], "approvals": [], "jobs": []}
+c = C(); studio_ops.CLIENT_FACTORY = lambda: c
+a = sorted(bpy.ops.lampway.studio_confirm("EXEC_DEFAULT", approval_id="ap1", price=9.6))
+b = sorted(bpy.ops.lampway.studio_answer("EXEC_DEFAULT", approval_id="q1", answer=False))
+from mixar.modules.lampway_tools import bridge
+g = {}
+bridge.exec_code("import bpy\\ntry:\\n    bpy.ops.lampway.studio_answer('EXEC_DEFAULT', approval_id='q2', answer=True); out = 'ran'\\nexcept RuntimeError as e:\\n    out = 'REFUSED'", g)
+print("RESULT", json.dumps({"a": a, "b": b, "sent": c.sent, "scripted": g["out"]}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    o = r.results[0]
+    assert o["a"] == ["FINISHED"] and o["b"] == ["FINISHED"]
+    assert o["sent"] == [["ap1", 9.6, None], ["q1", 0, False]], "9.6 credits are not truncated to 9; an answer carries price 0"
+    assert o["scripted"] == "REFUSED", "a script cannot answer the captain's question either"
+
+
+def test_the_higgsfield_sign_in_button_opens_the_servers_page_and_the_panel_shows_a_question_card():
+    r = run(CONFIRM + '''
+from mixar.modules.lampway_tools import studio_state
+opened = []
+studio_ops.OPEN_URL = lambda url: opened.append(url) or True
+studio_ops.CLIENT_FACTORY = lambda: type("C", (), {"base": lambda s: "http://127.0.0.1:18790"})()
+res = sorted(bpy.ops.lampway.higgsfield_signin("EXEC_DEFAULT"))
+studio_state.STATE.update(approvals=[{"id": "q1", "state": "pending", "label": "Higgsfield asks: Use unlimited?", "price": 0,
+                                      "settings": {"unit": "answer", "question": "Use your unlimited allowance?", "options": [True, False]}}])
+cards = studio_state.questions()
+print("RESULT", json.dumps({"res": res, "opened": opened, "q": [c["id"] for c in cards], "pending_spends": [a["id"] for a in studio_state.pending()]}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    o = r.results[0]
+    assert o["res"] == ["FINISHED"] and o["opened"] == ["http://127.0.0.1:18790/app/higgsfield"]
+    assert o["q"] == ["q1"] and o["pending_spends"] == [], "a question is not a spend: it has its own Yes / No buttons"
+
+
+def test_the_providers_dialog_carries_the_video_purposes_and_the_cap():
+    r = run(PROVIDERS + '''
+VIEW["values"]["video_purposes"] = {"bulk": {"model": "heygen/heygen-video-1", "resolution": "768p", "duration": 10},
+    "loop": {"model": "bytedance/seedance-1-5-pro", "resolution": "720p", "duration": 5}, "motion": {"model": "bytedance/seedance-2.0-mini", "resolution": "480p", "duration": 5}}
+VIEW["values"]["video_max_job_usd"] = 2.0
+SAVED.clear()
+bpy.ops.lampway.providers_save("EXEC_DEFAULT", video_bulk_resolution="480p", video_bulk_duration="5", video_loop_model="bytedance/seedance-2.0-fast", video_max_job_usd=1.5)
+print("RESULT", json.dumps({"saved": SAVED}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    assert r.results[0]["saved"][0] == {"video_purposes": {"bulk": {"resolution": "480p", "duration": 5}, "loop": {"model": "bytedance/seedance-2.0-fast"}},
+                                        "video_max_job_usd": 1.5}

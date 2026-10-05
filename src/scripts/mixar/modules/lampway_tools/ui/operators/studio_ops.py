@@ -10,12 +10,13 @@ import os
 import re
 
 import bpy
-from bpy.props import IntProperty, StringProperty
+from bpy.props import BoolProperty, FloatProperty, StringProperty
 from bpy.types import Operator
 
 from mixar.modules.lampway_tools import human_gate, studio_client, studio_landing, studio_state
 
 CLIENT_FACTORY = lambda: studio_client.StudioClient()  # noqa: E731  (tests swap it)
+OPEN_URL = lambda url: __import__("webbrowser").open(url)  # noqa: E731  (tests swap it)
 _MESH_EXT = (".glb", ".gltf", ".fbx", ".obj")
 _POLL_S = 4.0
 
@@ -108,7 +109,7 @@ class LAMPWAY_OT_studio_confirm(_StudioOp):
     bl_label = "Confirm and spend"
 
     approval_id: StringProperty(options={"HIDDEN"})
-    price: IntProperty(name="Credits", min=0)
+    price: FloatProperty(name="Price", min=0.0, precision=2)
     label: StringProperty(name="Action", options={"HIDDEN"})
 
     def invoke(self, context, event):
@@ -120,13 +121,45 @@ class LAMPWAY_OT_studio_confirm(_StudioOp):
         if human_gate.script_running():
             return self._done(context, "A script cannot confirm a credit spend: click Confirm in the Studios panel yourself", ok=False)
         try:
-            job = CLIENT_FACTORY().confirm(self.approval_id, self.price)
+            job = CLIENT_FACTORY().confirm(self.approval_id, round(float(self.price), 2))      # a FloatProperty is single precision: 9.6 -> 9.60000038
         except studio_client.StudioError as exc:
             refresh_state()
             return self._done(context, str(exc), ok=False)
         refresh_state()
         ensure_poll()
         return self._done(context, f"confirmed: job {job.get('id')} is running on the server")
+
+
+class LAMPWAY_OT_studio_answer(_StudioOp):
+    """Answer a question Higgsfield (or a Studio) asks you. Only your own click can"""
+    bl_idname = "lampway.studio_answer"
+    bl_label = "Answer"
+
+    approval_id: StringProperty(options={"HIDDEN"})
+    answer: BoolProperty(name="Answer")
+
+    def execute(self, context):
+        if human_gate.script_running():
+            return self._done(context, "A script cannot answer for you: click the answer in the Studios panel yourself", ok=False)
+        try:
+            CLIENT_FACTORY().confirm(self.approval_id, 0, answer=bool(self.answer))
+        except studio_client.StudioError as exc:
+            refresh_state()
+            return self._done(context, str(exc), ok=False)
+        refresh_state()
+        ensure_poll()
+        return self._done(context, "answered: " + ("yes" if self.answer else "no"))
+
+
+class LAMPWAY_OT_higgsfield_signin(_StudioOp):
+    """Open the server's Higgsfield sign-in page in your browser (one consent; the tokens stay on this machine)"""
+    bl_idname = "lampway.higgsfield_signin"
+    bl_label = "Sign in to Higgsfield"
+
+    def execute(self, context):
+        url = CLIENT_FACTORY().base() + "/app/higgsfield"
+        OPEN_URL(url)
+        return self._done(context, f"opened {url}")
 
 
 class LAMPWAY_OT_studio_reject(_StudioOp):
@@ -180,7 +213,13 @@ _PROVIDER_FIELDS = {          # operator prop -> the server's setting
     "plates_model": ("image_purposes", "plates", "model"), "plates_size": ("image_purposes", "plates", "size"),
     "mask_model": ("image_purposes", "mask", "model"), "concept_model": ("image_purposes", "concept", "model"),
     "concept_resolution": ("image_purposes", "concept", "resolution"), "tile_model": ("image_purposes", "tile", "model"),
-    "tile_size": ("image_purposes", "tile", "size")}
+    "tile_size": ("image_purposes", "tile", "size"),
+    # one video model per purpose and the per-job cost cap
+    "video_bulk_model": ("video_purposes", "bulk", "model"), "video_bulk_resolution": ("video_purposes", "bulk", "resolution"),
+    "video_bulk_duration": ("video_purposes", "bulk", "duration"), "video_loop_model": ("video_purposes", "loop", "model"),
+    "video_loop_resolution": ("video_purposes", "loop", "resolution"), "video_motion_model": ("video_purposes", "motion", "model"),
+    "video_motion_resolution": ("video_purposes", "motion", "resolution"), "video_max_job_usd": "video_max_job_usd"}
+_INT_PROPS = {"video_bulk_duration"}
 _CHOICES = {"main_provider": "main_providers", "swarm_provider": "swarm_providers", "chatgpt_effort": "efforts",
             "image_backend": "image_backends", "image_quality": "image_qualities"}
 DEFAULT_WORD = "default"     # typed for a setting whose server value is the empty default
@@ -210,6 +249,14 @@ class _ProviderProps:
     concept_resolution: StringProperty(name="Concept resolution", description="1K, 2K or 4K for models that take resolution, or default")
     tile_model: StringProperty(name="Tile model", description="Seamless tiles, e.g. openai/gpt-image-2.5-flare")
     tile_size: StringProperty(name="Tile size", description="WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048")
+    video_bulk_model: StringProperty(name="Bulk video", description="Bulk clips, e.g. heygen/heygen-video-1")
+    video_bulk_resolution: StringProperty(name="Bulk resolution", description="e.g. 768p")
+    video_bulk_duration: StringProperty(name="Bulk seconds", description="Seconds, e.g. 10")
+    video_loop_model: StringProperty(name="Loop video", description="Loops (first = last frame), e.g. bytedance/seedance-1-5-pro")
+    video_loop_resolution: StringProperty(name="Loop resolution", description="e.g. 720p")
+    video_motion_model: StringProperty(name="Motion video", description="Motion transfer with a reference video, e.g. bytedance/seedance-2.0-mini")
+    video_motion_resolution: StringProperty(name="Motion resolution", description="e.g. 480p")
+    video_max_job_usd: FloatProperty(name="Video cap (USD)", description="One video job above this estimate is refused before it is sent (0 = unchanged)", min=0.0, max=100.0)
 
 
 def _server_values():
@@ -226,13 +273,18 @@ def _save_changes(op, context):
         changed = {}
         for prop, key in _PROVIDER_FIELDS.items():
             wanted = getattr(op, prop)
-            if wanted == "":
+            if wanted == "" or (prop == "video_max_job_usd" and not wanted):
                 continue                                           # not given: unchanged
             wanted = "" if wanted == DEFAULT_WORD else wanted
-            if isinstance(key, tuple):                             # image_purposes -> purpose -> setting
-                _, purpose, name = key
-                if wanted != (current.get("image_purposes", {}).get(purpose) or {}).get(name):
-                    changed.setdefault("image_purposes", {}).setdefault(purpose, {})[name] = wanted
+            if prop in _INT_PROPS:
+                try:
+                    wanted = int(wanted)
+                except ValueError:
+                    raise studio_client.StudioError(f"{prop} must be a whole number")
+            if isinstance(key, tuple):                             # <group> -> purpose -> setting
+                group, purpose, name = key
+                if wanted != (current.get(group, {}).get(purpose) or {}).get(name):
+                    changed.setdefault(group, {}).setdefault(purpose, {})[name] = wanted
             elif wanted != current.get(key):
                 changed[key] = wanted
         if not changed:
@@ -266,8 +318,8 @@ class LAMPWAY_OT_providers_open(_ProviderProps, _StudioOp):
             return self._done(context, str(exc), ok=False)
         for prop, key in _PROVIDER_FIELDS.items():
             if isinstance(key, tuple):
-                got = (values.get("image_purposes", {}).get(key[1]) or {}).get(key[2], "")
-                setattr(self, prop, got or (DEFAULT_WORD if key[2] == "resolution" else ""))
+                got = (values.get(key[0], {}).get(key[1]) or {}).get(key[2], "")
+                setattr(self, prop, str(got) if got != "" else (DEFAULT_WORD if key[2] == "resolution" and key[0] == "image_purposes" else ""))
             else:
                 setattr(self, prop, values.get(key) or DEFAULT_WORD if prop in _CHOICES else values.get(key, ""))
         return context.window_manager.invoke_props_dialog(self, width=520)
@@ -276,4 +328,4 @@ class LAMPWAY_OT_providers_open(_ProviderProps, _StudioOp):
         return _save_changes(self, context)
 
 
-classes = [LAMPWAY_OT_providers_open, LAMPWAY_OT_providers_save, LAMPWAY_OT_studio_refresh, LAMPWAY_OT_studio_plan, LAMPWAY_OT_studio_confirm, LAMPWAY_OT_studio_reject, LAMPWAY_OT_studio_import]
+classes = [LAMPWAY_OT_providers_open, LAMPWAY_OT_providers_save, LAMPWAY_OT_studio_answer, LAMPWAY_OT_higgsfield_signin, LAMPWAY_OT_studio_refresh, LAMPWAY_OT_studio_plan, LAMPWAY_OT_studio_confirm, LAMPWAY_OT_studio_reject, LAMPWAY_OT_studio_import]

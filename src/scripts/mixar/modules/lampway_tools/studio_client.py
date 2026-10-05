@@ -58,8 +58,15 @@ class StudioClient:
     def plan(self, action: str, args: dict) -> dict:
         return self._call("POST", "/app/studio/plan", {"action": action, "args": args or {}})
 
-    def confirm(self, approval_id: str, price: int) -> dict:
-        return self._call("POST", f"/app/studio/approvals/{approval_id}/confirm", {"price": int(price)})
+    def base(self) -> str:
+        return (self._base or _default_url()).rstrip("/")
+
+    def confirm(self, approval_id: str, price, answer=None) -> dict:
+        """The captain's confirm. ``price`` is the exact number shown (credits are fractional); ``answer`` only for a question."""
+        body = {"price": price}
+        if answer is not None:
+            body["answer"] = answer
+        return self._call("POST", f"/app/studio/approvals/{approval_id}/confirm", body)
 
     def reject(self, approval_id: str) -> dict:
         return self._call("POST", f"/app/studio/approvals/{approval_id}/reject", {})
