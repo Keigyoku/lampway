@@ -1,0 +1,37 @@
+# Exact values the gate may ignore. One per line; say why.
+owner@lampway.local    # the fork's placeholder single-user account (server/lampway_server/config.py), not a person
+@mixar.app             # upstream Mixar test fixtures and docs, not ours; remove if upstream files are ever scrubbed
+@example               # RFC 2606 style example addresses in tests
+@x.com                  # a fake or documentation value in tests (no person)
+@z.io                   # a fake or documentation value in tests (no person)
+@y.org                  # a fake or documentation value in tests (no person)
+@b.co                   # a fake or documentation value in tests (no person)
+@proxy.corp             # a fake or documentation value in tests (no person)
+@v.co                   # a fake or documentation value in tests (no person)
+@src.matrix             # a fake or documentation value in tests (no person)
+@latin.po               # a fake or documentation value in tests (no person)
+/home/bridge           # tmp_path-relative test paths in tests/lampway_tools/test_launcher.py
+/home/projects          # a fake or documentation value in tests (no person)
+/home/config            # a fake or documentation value in tests (no person)
+/home/other             # a fake or documentation value in tests (no person)
+/home/env.              # a fake or documentation value in tests (no person)
+/home/environ           # a fake or documentation value in tests (no person)
+Policy=SECRET           # server/tests/test_studios.py: a fake signed URL
+c2lnbmF0dXJl           # base64 of "signature": the fake JWT in server/tests/test_logredact.py
+# RFC1918 example addresses in tests and an upstream comment; verified 2026-10-05 not to be the owner's LAN or Tailscale addresses
+192.168.1.9             # a fake or documentation value in tests (no person)
+192.168.1.20            # a fake or documentation value in tests (no person)
+192.168.1.42            # a fake or documentation value in tests (no person)
+192.168.1.8             # a fake or documentation value in tests (no person)
+192.168.1.23            # a fake or documentation value in tests (no person)
+192.168.0.0             # a fake or documentation value in tests (no person)
+10.0.0.0                # a fake or documentation value in tests (no person)
+10.0.0.2                # a fake or documentation value in tests (no person)
+10.0.0.5                # a fake or documentation value in tests (no person)
+# fake signed-URL test parameters in upstream Mixar tests (X-Amz-Signature=abc), verified 2026-10-05
+X-Amz-Signature=abc     # a fake or documentation value in tests (no person)
+X-Amz-Expires=900       # a fake or documentation value in tests (no person)
+# upstream Mixar author of imported commit d8a5fffb (third-party GPL attribution; never rewrite another author's identity)
+raj@mixar.app           # a fake or documentation value in tests (no person)
+# fake signed-URL test value in upstream Mixar tests (tests/test_terrain_asset_prefetch.py), verified 2026-10-05
+X-Amz-Signature=secret  # a fake or documentation value in tests (no person)

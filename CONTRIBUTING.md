@@ -21,6 +21,12 @@ Do not post security vulnerabilities (follow [SECURITY.md](SECURITY.md)), creden
 - Keep environment variables in `.env` locally and never commit `.env`.
 - Write the failing test first, and keep user-visible text on the brand constants in `src/scripts/mixar/config/brand.py`; `tests/lampway` enforces the brand rules.
 
+## Before you push: the pre-publish gate
+
+`scripts/lampway/prepublish_gate.py` blocks personal emails, home paths, account ids, tokens, signed URLs and media metadata. The `pre-push` hook runs it on your new commits and CI runs it
+on every push (`.github/workflows/pii-gate.yml`). Turn the hooks on once per clone: `git config core.hooksPath .githooks` (the same setting `scripts/unix/init.sh` makes). Use your GitHub
+noreply address as the commit email. A known-fake test value goes in `scripts/lampway/pii_allow.txt` with a reason. Check the tree yourself with `python3 scripts/lampway/prepublish_gate.py --tree .`.
+
 ## Branch Naming
 
 Branch off the current integration branch; releases are tagged.

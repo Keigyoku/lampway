@@ -1,0 +1,14 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Install: (this repository: git config core.hooksPath .githooks)
+# Blocks a push whose new commits carry a personal email, a home path, an account id, a token, or media metadata.
+GATE="$(git rev-parse --show-toplevel)/scripts/lampway/prepublish_gate.py"
+zero=0000000000000000000000000000000000000000
+while read local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue                      # a deletion
+  if [ "$remote_sha" = "$zero" ]; then range="$local_sha --not --remotes"; else range="$remote_sha..$local_sha"; fi
+  python3 "$GATE" --git "$range" || { echo "pre-push: blocked by the pre-publish gate (see above). Fix, or amend the commits." >&2; exit 1; }
+done
+# media shipped in the tree (site folders, docs images)
+for d in site site_v2 docs; do [ -d "$d" ] && { python3 "$GATE" --media "$d" || exit 1; }; done
+exit 0

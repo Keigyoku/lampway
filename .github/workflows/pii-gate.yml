@@ -1,0 +1,26 @@
+# .github/workflows/pii-gate.yml  (SPDX-License-Identifier: GPL-3.0-or-later)
+name: pii-gate
+on:
+  pull_request:
+  push:
+    branches: ["lp/**", "main"]
+permissions:
+  contents: read
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Install media tools
+        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg python3-pil
+      - name: New commits and their diffs (emails, paths, ids, tokens)
+        run: |
+          base="${{ github.event.pull_request.base.sha || github.event.before }}"
+          [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ] && base=$(git merge-base HEAD origin/main)
+          python3 scripts/lampway/prepublish_gate.py --git "$base..HEAD"
+      - name: Media metadata in shipped folders
+        run: for d in site site_v2 docs; do [ -d "$d" ] && python3 scripts/lampway/prepublish_gate.py --media "$d"; done; true
+      - name: Secrets (gitleaks, whole history of this branch)
+        uses: gitleaks/gitleaks-action@v2
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
