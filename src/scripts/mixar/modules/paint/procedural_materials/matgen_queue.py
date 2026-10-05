@@ -31,6 +31,50 @@ class JobState(Enum):
     FAILED = "failed"
 
 
+def apply_to_objects(material, object_names, layer_name="", apply_to_existing=False):
+    """Apply a registered procedural material to the named objects. Onto the active Mixar Paint layer stack when the object has one
+    (the layer operator), otherwise as the object's surface material: a Group node of the generated node group into the Material
+    Output. Returns (applied names, missing names, route per object)."""
+    import bpy
+    from . import material_registry
+    group = material_registry.get_node_group(material.material_id)
+    if group is None:
+        raise MatgenUnavailable(f"the node group {material.node_group_name!r} could not be built from the script")
+    applied, missing, routes = [], [], {}
+    for name in object_names:
+        ob = bpy.data.objects.get(name)
+        if ob is None or ob.type != "MESH":
+            missing.append(name)
+            continue
+        route = "surface"
+        try:
+            from mixar.modules.paint.core.node.node_utils import get_active_mpaint_node
+            view = bpy.context.view_layer
+            view.objects.active = ob
+            if get_active_mpaint_node():
+                bpy.ops.layers.add_custom_procedural_layer(material_id=material.material_id, apply_to_existing=bool(apply_to_existing))
+                route = "layer"
+        except Exception:  # noqa: BLE001 - no paint stack on this object (or headless): the surface route below
+            route = "surface"
+        if route == "surface":
+            mat = bpy.data.materials.new(layer_name or material.name)
+            mat.use_nodes = True
+            t = mat.node_tree
+            for n in list(t.nodes):
+                t.nodes.remove(n)
+            out = t.nodes.new("ShaderNodeOutputMaterial")
+            node = t.nodes.new("ShaderNodeGroup")
+            node.node_tree = group
+            shader = next((o for o in node.outputs if o.type == "SHADER"), None)
+            if shader is not None:
+                t.links.new(shader, out.inputs["Surface"])
+            ob.data.materials.clear()
+            ob.data.materials.append(mat)
+        applied.append(name)
+        routes[name] = route
+    return applied, missing, routes
+
+
 class MatgenJob:
     def __init__(self, prompt: str, pipeline: str):
         self.id = f"matgen-{uuid.uuid4().hex[:8]}"
@@ -39,6 +83,9 @@ class MatgenJob:
         self.state = JobState.QUEUED
         self.material_id = ""
         self.error = ""
+        self.applied = []
+        self.apply_missing = []
+        self.apply_routes = {}
 
 
 _in_flight: dict = {}
@@ -90,15 +137,16 @@ def _window_manager():
 
 def enqueue_matgen_job(prompt: str = "", pipeline: str = "fast", apply_to_object_names=(), layer_name: str = "",
                        apply_to_existing: bool = False, **_ignored):
-    """Start a generation; returns the job (``id``, ``state``) or None for a prompt already in flight. The result lands
-    in the library ("Add to Layer" applies it); ``apply_to_object_names`` is accepted for the agent tool's signature but
-    the material is not auto-applied, which the tool's answer states."""
+    """Start a generation; returns the job (``id``, ``state``) or None for a prompt already in flight. The result lands in the library
+    ("Add to Layer" applies it); with ``apply_to_object_names`` it is also applied to those objects (``job.applied``,
+    ``job.apply_missing``, ``job.apply_routes``): onto their Mixar Paint layer stack when they have one, else as the surface material."""
     prompt = (prompt or "").strip()
     if not prompt:
         raise MatgenUnavailable("a material description is required")
     if prompt in _in_flight:
         return None
     job = MatgenJob(prompt, pipeline or "fast")
+    targets = [str(n) for n in (apply_to_object_names or [])]
     _in_flight[prompt] = job
 
     def work():
@@ -122,14 +170,19 @@ def enqueue_matgen_job(prompt: str = "", pipeline: str = "fast", apply_to_object
                     description=str(reply.get("description") or prompt))
                 matgen_persistence.save_material(material)
                 register_material(material)
-                item = wm.mixar_matgen_recent.add()
-                item.material_id = material.material_id
-                item.display_name = material.name
+                if hasattr(wm, "mixar_matgen_recent"):                   # the paint panel's list; absent in a headless run
+                    item = wm.mixar_matgen_recent.add()
+                    item.material_id = material.material_id
+                    item.display_name = material.name
                 job.material_id, job.state = material.material_id, JobState.DONE
-                wm.mixar_matgen_status = f"done:{material.name}"
+                if targets:
+                    job.applied, job.apply_missing, job.apply_routes = apply_to_objects(material, targets, layer_name, apply_to_existing)
+                if hasattr(wm, "mixar_matgen_status"):
+                    wm.mixar_matgen_status = f"done:{material.name}"
             except Exception as exc:  # noqa: BLE001 - shown in the panel, never raised into the timer
                 job.state, job.error = JobState.FAILED, str(exc)
-                wm.mixar_matgen_status = f"error:{exc}"
+                if hasattr(wm, "mixar_matgen_status"):
+                    wm.mixar_matgen_status = f"error:{exc}"
             return None
 
         _on_main_thread(land)
