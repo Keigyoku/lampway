@@ -199,3 +199,20 @@ MIXAR_ENV=Prod scripts/lampway/build_linux.sh         # own build/Prod, full com
 
 Second environment cost: `build/Prod` 3.5 GB; the tree with both
 environments is 14 GB plus 2.9 GB git metadata.
+
+## 6. Running a build: the display backend and the menu entry
+
+`scripts/unix/run.sh [Dev|Prod] [file.blend ...]` starts the build's `bin/mixar`; the one-command launcher
+`scripts/lampway/lampway` calls it after starting the server (both taken from Shiro836's mixar-linux, audited, made Lampway's).
+
+* `LAMPWAY_LINUX_BACKEND` (environment, then `.env`; the fork's old name `MIXAR_LINUX_BACKEND` still works as a fallback):
+  `auto` lets GHOST choose (Wayland when available); `x11` forces X11, which under a Wayland desktop means XWayland, where the
+  Agent Bubble's native window controls (header drag, minimise to the pill, borderless pill) are implemented. A bare Wayland
+  session shows no such controls and nothing else changes. `x11` sets `WAYLAND_DISPLAY` to an EMPTY string (unsetting it is not
+  enough: libwayland would default to `wayland-0`) and needs `DISPLAY`.
+* If the bubble misbehaves on X11, the first bisect step is `MIXAR_X11_HEAVY=0` (the heavy window mutations are ON by default and
+  upstream's own earlier attempt shipped them off after segfaults on NVIDIA + Xvfb + openbox).
+* `make desktop [Dev|Prod]` (`scripts/unix/install_desktop_entry.sh`) installs `lampway.desktop` and the `lampway` icon into
+  `$XDG_DATA_HOME` (default `~/.local/share`), Exec'ing the launcher; `--uninstall` removes exactly those files. Its menu refresh
+  runs `kbuildsycoca6` when KDE is installed, which writes KDE's own `~/.cache/ksycoca6_*` (the audit said the script writes only
+  under `~/.local/share`; running it showed this one KDE cache as well).

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+# SPDX-FileCopyrightText: 2026 Keigyoku (the Lampway backend switch)
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -26,39 +27,48 @@ if [[ ! -x "$BINARY" ]]; then
 	exit 1
 fi
 
-echo "Launching Mixar from build/$BUILD_ENV..."
+echo "Launching Lampway from build/$BUILD_ENV..."
 shift || true
 if [[ "$(uname -s)" == Darwin ]]; then
 	exec open -n -W "$BUILD_BIN/Mixar.app" --args "$@"
 fi
 
-# GHOST backend on Linux (env var > .env > auto). Only this one key is read
-# from .env: sourcing settings.sh would export every build setting into the
+# GHOST backend on Linux. Precedence: LAMPWAY_LINUX_BACKEND, then the fork's old name MIXAR_LINUX_BACKEND (a
+# fallback, kept so a `.env` written for it still works), in the environment first and then in .env, then auto.
+# Only these two keys are read from .env: sourcing settings.sh would export every build setting into the
 # running app's environment.
 #   auto -> Blender's own choice (Wayland when available, else X11)
 #   x11  -> force X11; under a Wayland session this runs on XWayland, where
 #           the Agent Bubble's native window controls are implemented
-if [[ -z "${MIXAR_LINUX_BACKEND:-}" && -f "$ROOT_DIR/.env" ]]; then
-	MIXAR_LINUX_BACKEND="$(sed -n 's/^[[:space:]]*MIXAR_LINUX_BACKEND=//p' "$ROOT_DIR/.env" \
-		| tail -n 1 | sed 's/[[:space:]]*#.*$//; s/^["'"'"']//; s/["'"'"'][[:space:]]*$//; s/[[:space:]]*$//')"
+read_env_key() {
+	[[ -f "$ROOT_DIR/.env" ]] || return 0
+	sed -n "s/^[[:space:]]*$1=//p" "$ROOT_DIR/.env" \
+		| tail -n 1 | sed 's/[[:space:]]*#.*$//; s/^["'"'"']//; s/["'"'"'][[:space:]]*$//; s/[[:space:]]*$//'
+}
+LAMPWAY_LINUX_BACKEND="${LAMPWAY_LINUX_BACKEND:-${MIXAR_LINUX_BACKEND:-}}"
+if [[ -z "$LAMPWAY_LINUX_BACKEND" ]]; then
+	LAMPWAY_LINUX_BACKEND="$(read_env_key LAMPWAY_LINUX_BACKEND)"
 fi
-case "${MIXAR_LINUX_BACKEND:-auto}" in
+if [[ -z "$LAMPWAY_LINUX_BACKEND" ]]; then
+	LAMPWAY_LINUX_BACKEND="$(read_env_key MIXAR_LINUX_BACKEND)"
+fi
+case "${LAMPWAY_LINUX_BACKEND:-auto}" in
 	x11|X11)
 		if [[ -z "${DISPLAY:-}" ]]; then
-			echo "Error: MIXAR_LINUX_BACKEND=x11 but DISPLAY is unset (no X server or XWayland)." >&2
+			echo "Error: LAMPWAY_LINUX_BACKEND=x11 but DISPLAY is unset (no X server or XWayland)." >&2
 			exit 1
 		fi
 		# GHOST always tries Wayland first and falls back to X11 only when the
 		# connection fails. UNSETTING WAYLAND_DISPLAY is not enough: libwayland
 		# then defaults to the "wayland-0" socket and connects anyway. Set but
 		# EMPTY, it names no socket, so the Wayland attempt fails cleanly.
-		echo "GHOST backend: X11 (MIXAR_LINUX_BACKEND=x11)"
+		echo "GHOST backend: X11 (LAMPWAY_LINUX_BACKEND=x11)"
 		exec env WAYLAND_DISPLAY= "$BINARY" "$@"
 		;;
 	auto|AUTO|"")
 		;;
 	*)
-		echo "Error: MIXAR_LINUX_BACKEND must be 'auto' or 'x11', got '$MIXAR_LINUX_BACKEND'." >&2
+		echo "Error: LAMPWAY_LINUX_BACKEND must be 'auto' or 'x11', got '$LAMPWAY_LINUX_BACKEND'." >&2
 		exit 1
 		;;
 esac

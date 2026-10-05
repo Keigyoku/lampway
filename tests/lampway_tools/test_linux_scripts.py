@@ -106,7 +106,7 @@ def test_the_entry_is_lampway_desktop_starting_the_lampway_launcher(tmp_path):
     r, data = _install(t, tmp_path, "Dev")
     assert r.returncode == 0, r.stdout + r.stderr
     entry = (data / "applications" / "lampway.desktop").read_text()
-    assert f'Exec="{t}/scripts/lampway/lampway" %f' in entry
+    assert f'Exec="{t}/scripts/lampway/lampway" --env Dev %f' in entry
     assert "Icon=lampway" in entry and "Name=Lampway" in entry
     assert (data / "icons/hicolor/scalable/apps/lampway.svg").exists()
     assert not (data / "applications" / "mixar.desktop").exists()      # never the Mixar names
@@ -124,12 +124,16 @@ def test_uninstall_removes_only_its_own_files(tmp_path):
     assert not (data / "icons/hicolor/scalable/apps/lampway.svg").exists()
 
 
-def test_the_installer_writes_nothing_outside_the_data_home(tmp_path):
+def test_the_installer_writes_nothing_outside_the_data_home_but_kdes_own_menu_cache(tmp_path):
+    """The script's own writes all land in XDG_DATA_HOME. The audit said that was ALL it wrote; running it showed
+    one more thing: the KDE menu refresh it triggers (kbuildsycoca6, when installed) writes KDE's own
+    ~/.cache/ksycoca6_* - KDE's cache, not a file of ours. Anything else under HOME is a defect."""
     t = _tree(tmp_path)
     home = tmp_path / "home"
     home.mkdir()
     _install(t, tmp_path, "Dev")
-    assert list(home.iterdir()) == []
+    extra = [p for p in home.rglob("*") if p.is_file() and not (p.parent.name == ".cache" and p.name.startswith("ksycoca"))]
+    assert extra == []
 
 
 def test_a_missing_launcher_is_refused(tmp_path):
