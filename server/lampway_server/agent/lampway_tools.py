@@ -309,6 +309,13 @@ DEFS = [
          P("size", "integer", "power of two, default 2048"), P("margin_px", "integer", "0..64"), P("cage_extrusion_m", desc="0..0.2 or auto"), P("max_ray_m", "number", "default half the extrusion"),
          P("samples", "integer", "1..512, default 16"), P("normal_green", desc="gl (default) | dx"), P("allow_overlap", "boolean", "bake despite overlapping UVs"),
          P("out_dir", desc="under the project root, default bake"), P("overwrite", "boolean", "replace existing maps"), P("attach", "boolean", "add the baked material, default true")], api="bake_maps"),
+    Def("lampway_pbr_pack", "Engine-ready PBR maps. pack: maps {base, normal, rough, metal, ao|null} -> BaseColor (sRGB), ORM (R occlusion, 1 when no AO, G roughness, B metallic: Unreal order, linear), "
+        "Normal_GL / Normal_DX (green flipped), Roughness, Metallic and merge.json; square power-of-two maps only; metal forced to 0 under metal_zero_masks (cloth/leather); a flat normal is flagged; a "
+        "set is never overwritten. audit: an object's material - base colour sRGB, roughness/metallic/normal Non-Color, a Normal Map node, every channel reported linked or not. swap_base_color: replace "
+        "only the base-colour image on a COPY of the material, keeping the other maps; refused unless uv_hash equals the mesh's (the colour map must share this mesh's UV layout).",
+        [P("action", required=True, desc="pack | audit | swap_base_color"), P("maps", "object", "{base, normal, rough, metal, ao} project paths (pack)"), P("convention", desc="dx | gl | both (default)"),
+         P("name", desc="output folder name (pack)"), P("metal_zero_masks", "array", "mask pngs of cloth/leather classes (pack)"), P("object", desc="mesh object (audit, swap_base_color)"),
+         P("new_base", desc="the new colour map (swap_base_color)"), P("uv_hash", desc="the colour map producer's UV hash (swap_base_color)")], api="pbr_pack"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "

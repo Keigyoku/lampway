@@ -928,6 +928,28 @@ def bake_maps(source, target, maps=None, size=2048, margin_px=None, cage_extrusi
 
 
 @tool
+def pbr_pack(action, maps=None, convention="both", name="", metal_zero_masks=None, object="", new_base="", uv_hash=None):
+    """One verb set for engine-ready PBR maps. pack: maps {base, normal, rough, metal, ao|null} (project paths) -> <root>/<name>/pbr_pack/ BaseColor (sRGB), ORM (R occlusion - 1 and a note when no AO -,
+    G roughness, B metallic: Unreal order, linear), Normal_GL and/or Normal_DX (green flipped), Roughness, Metallic and merge.json; maps must be square powers of two; metal is forced to 0 under
+    `metal_zero_masks` (cloth/leather masks); a flat normal is flagged; a set is never overwritten. audit: walks `object`'s Principled material - base colour must be sRGB, roughness/metallic/normal
+    Non-Color, a Normal Map node present, and every channel reported linked or not. swap_base_color: replace only the base-colour image on a COPY of the material (roughness, metallic, normal kept);
+    pass `uv_hash` (the producer's) and it is refused unless it equals the mesh's: the colour map must share this mesh's UV layout. For a patched mesh use pbr_merge."""
+    from .pipeline import pbr_pack as _PP
+    if action == "pack":
+        m = {k: (_p(v) if v else None) for k, v in (maps or {}).items()}
+        missing = [k for k in ("base", "normal", "rough", "metal") if not m.get(k)]
+        if missing:
+            raise ValueError(f"pack needs maps for: {missing} (ao is optional)")
+        return _PP.pack(m, convention, name or object or "pbr", str(_settings().project_root), [_p(x) for x in metal_zero_masks or []])
+    from .features import pbr_audit as _PA
+    if action == "audit":
+        return _PA.audit(object)
+    if action == "swap_base_color":
+        return _PA.swap_base_color(object, _p(new_base), uv_hash)
+    raise ValueError("action must be pack | audit | swap_base_color")
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
