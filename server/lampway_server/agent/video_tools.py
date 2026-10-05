@@ -18,12 +18,13 @@ def specs() -> list:
         ToolSpec("lampway_video_models", "List the video models (OpenRouter's, and Higgsfield's when signed in) with their durations, resolutions and the per-purpose "
                  "defaults (bulk, loop, motion). Prices are in lampway_video_gen's dry run.", {"type": "object", "properties": {}, "additionalProperties": False}),
         ToolSpec("lampway_video_gen", "Generate a video. Default is a DRY RUN: the validated parameters and the price. `purpose` picks the default model: bulk (HeyGen), "
-                 "loop (Seedance 1.5 Pro, first = last frame from one image) or motion (Seedance 2.0 Mini with a driving video). OpenRouter models: dry_run=false runs "
+                 "loop (Seedance 1.5 Pro, first = last frame from one image) motion (Seedance 2.0 Mini with a driving video), edit (FLUX Video Edit: a source video in `videos` and the instruction as the prompt) or upscale (FLUX Video Upscale: one source video, `upscale_factor` 1.5 to 3). OpenRouter models: dry_run=false runs "
                  "within the per-job cap and the session budget and saves an .mp4 in the project. Higgsfield models (model `higgsfield/<id>`; incl. hf_mult_motion_control "
                  "and kling_motion_control): the job is submitted and WAITS for the user's confirmation of the credits in the Client; you cannot confirm it. "
                  "`images` and `videos` are project-relative paths.",
                  {"type": "object", "properties": {
-                     "prompt": {"type": "string"}, "model": {"type": "string"}, "purpose": {"type": "string", "description": "bulk | loop | motion"},
+                     "prompt": {"type": "string"}, "model": {"type": "string"}, "purpose": {"type": "string", "description": "bulk | loop | motion | edit | upscale"},
+                     "upscale_factor": {"type": "number", "description": "upscale purpose: 1.5 to 3"}, "creativity": {"type": "integer", "description": "upscale purpose: 0 precise, 1 creative"},
                      "duration": {"type": "integer"}, "resolution": {"type": "string"}, "aspect_ratio": {"type": "string"}, "generate_audio": {"type": "boolean"},
                      "image_mode": {"type": "string", "description": "first_frame | first_last_frame (one image = a loop) | reference"},
                      "template": {"type": "string", "description": "a prompt-library template id (e.g. anim-walk-side-track): replaces `prompt`; its defaults fill duration/resolution/aspect"},
@@ -66,6 +67,9 @@ async def call(system, name: str, arguments: dict) -> tuple:
             return "give a prompt or a template", True
         model = arguments.get("model") or purpose["model"]
         params = {k: arguments.get(k) if arguments.get(k) is not None else purpose.get(k) for k in ("duration", "resolution", "aspect_ratio", "image_mode")}
+        for key in ("upscale_factor", "creativity"):
+            if arguments.get(key) is not None:
+                params[key] = arguments[key]
         if arguments.get("generate_audio") is not None:
             params["generate_audio"] = bool(arguments["generate_audio"])
         params = {k: v for k, v in params.items() if v is not None}

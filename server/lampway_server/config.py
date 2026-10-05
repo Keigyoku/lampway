@@ -28,6 +28,8 @@ DEFAULT_VIDEO_PURPOSES = {
     "bulk": {"model": "heygen/heygen-video-1", "resolution": "768p", "duration": 10, "aspect_ratio": "16:9", "image_mode": "first_frame"},
     "loop": {"model": "bytedance/seedance-1-5-pro", "resolution": "720p", "duration": 5, "aspect_ratio": "1:1", "image_mode": "first_last_frame"},
     "motion": {"model": "bytedance/seedance-2.0-mini", "resolution": "480p", "duration": 5, "aspect_ratio": "9:16", "image_mode": "reference"},
+    "edit": {"model": "black-forest-labs/flux-video-edit"},          # a source video + an instruction; the output keeps the source's length
+    "upscale": {"model": "black-forest-labs/flux-video-upscale"},    # one source video, upscale_factor 1.5..3
 }
 
 

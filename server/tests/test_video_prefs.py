@@ -16,7 +16,8 @@ def test_the_defaults_follow_the_coordinators_choice(settings):
     assert v["loop"]["model"] == "bytedance/seedance-1-5-pro" and v["loop"]["image_mode"] == "first_last_frame"
     assert v["motion"]["model"] == "bytedance/seedance-2.0-mini"
     assert PP.view(settings)["values"]["video_max_job_usd"] == 2.0
-    assert set(PP.view(settings)["choices"]["video_purposes"]) == {"bulk", "loop", "motion"}
+    assert v["edit"]["model"] == "black-forest-labs/flux-video-edit" and v["upscale"]["model"] == "black-forest-labs/flux-video-upscale"
+    assert set(PP.view(settings)["choices"]["video_purposes"]) == {"bulk", "loop", "motion", "edit", "upscale"}
 
 
 def test_a_video_purpose_is_saved_merged_and_validated(settings, monkeypatch):
