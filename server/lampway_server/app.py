@@ -8,6 +8,8 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse
 from starlette.routing import Route, WebSocketRoute
 
+from .agent.providers import make_provider
+from .agent.turns import AgentHub
 from .agent_settings import AgentSettingsStore
 from .auth import Auth
 from .config import Settings
@@ -124,9 +126,10 @@ def create_app(settings: Settings, provider=None) -> Starlette:
     store = AgentSettingsStore(settings.state_dir)
     routes += stub_routes(auth, store, settings)
     hub = ConnectionHub()
+    agent = AgentHub(provider if provider is not None else make_provider(settings))
 
     async def agent_ws(websocket):
-        await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub).run()
+        await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent).run()
 
     routes.append(WebSocketRoute("/api/agent/ws/{instance_id}", agent_ws))
     app = Starlette(routes=routes)

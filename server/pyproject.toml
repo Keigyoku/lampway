@@ -18,6 +18,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest>=8",
+    "pytest-timeout>=2",
     "websockets>=12",
 ]
 
@@ -30,3 +31,4 @@ include = ["lampway_server*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+timeout = 60

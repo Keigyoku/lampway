@@ -11,6 +11,11 @@ from .fake_client import FakeMixarClient
 
 
 @pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
+
+@pytest.fixture
 def settings(tmp_path):
     return Settings(
         host="127.0.0.1",

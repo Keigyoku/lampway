@@ -189,7 +189,7 @@ class FakeMixarClient:
     def command(self, ws, method, payload):
         """agent_rpc.client.command: params = {command_id, payload}."""
         command_id = str(uuid.uuid4())
-        self.request(ws, "agent." + method, {"command_id": command_id, "payload": payload})
+        self.last_request_id = self.request(ws, "agent." + method, {"command_id": command_id, "payload": payload})
         return command_id
 
     def chat_payload(self, message, session_id):
@@ -224,6 +224,8 @@ class FakeMixarClient:
         for _ in range(max_frames):
             frame = ws.receive_json()
             frames.append(frame)
+            if "error" in frame:
+                raise AssertionError(f"server answered an error during turn {command_id}: {frame!r}")
             if frame.get("method") == "blender.execute_script" and frame.get("id"):
                 ws.send_json({"jsonrpc": "2.0", "id": frame["id"], "result": on_script(frame["params"])})
             if frame.get("method") == "agent.turn.ended" and frame["params"].get("turn_id") == command_id:

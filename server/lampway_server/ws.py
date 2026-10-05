@@ -110,10 +110,11 @@ class AgentSocket:
         method = frame.get("method")
         request_id = frame.get("id")
         params = frame.get("params") if isinstance(frame.get("params"), dict) else {}
+        log.debug("<- %s id=%s", method, request_id)
         if request_id is None:
             return  # a notification; nothing to answer
         if isinstance(method, str) and method.startswith("agent.") and self.agent is not None:
-            self.spawn(self.agent.handle(self, method, request_id, params))
+            self.spawn(self._guarded(self.agent.handle(self, method, request_id, params), method, request_id))
             return
         handler = self._handlers.get(method)
         if handler is None:
@@ -127,6 +128,20 @@ class AgentSocket:
             return
         await self.reply(request_id, result)
 
+    async def _guarded(self, coro, method, request_id):
+        """A handler that raises still answers: an error reply instead of a
+        swallowed task exception and a client waiting forever."""
+        try:
+            await coro
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            log.exception("handler %s failed", method)
+            try:
+                await self._send_error(request_id, INTERNAL_ERROR, str(exc))
+            except Exception:  # noqa: BLE001
+                pass
+
     def spawn(self, coro) -> asyncio.Task:
         task = asyncio.create_task(coro)
         self._tasks.add(task)
@@ -137,9 +152,13 @@ class AgentSocket:
     async def send_frame(self, frame: dict):
         async with self._send_lock:
             await self.ws.send_text(json.dumps(frame))
+        log.debug("-> %s id=%s", frame.get("method"), frame.get("id"))
 
     async def reply(self, request_id, result):
         await self.send_frame({"jsonrpc": "2.0", "id": request_id, "result": result})
+
+    async def send_error(self, request_id, code: int, message: str, data: Any = None):
+        await self._send_error(request_id, code, message, data)
 
     async def _send_error(self, request_id, code: int, message: str, data: Any = None):
         error = {"code": code, "message": message}
