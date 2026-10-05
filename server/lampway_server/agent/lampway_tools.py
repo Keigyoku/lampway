@@ -41,7 +41,7 @@ class Def:
         for p in self.params:
             prop = {"type": p.type, "description": p.desc}
             if p.type == "array":
-                prop["items"] = {"type": "object"} if p.name == "poses" else {"type": "string"}
+                prop["items"] = {"type": "object"} if p.name in ("poses", "waypoints") else {"type": "string"}
             props[p.name] = prop
             if p.required:
                 req.append(p.name)
@@ -207,6 +207,12 @@ DEFS = [
         "object with colour, opacity and radius attributes and a geometry-nodes view. A splat has no faces and is never converted to "
         "a mesh; max_points subsamples deterministically. Generating a splat from an image or text needs a world model (not wired)."
         + _PATHS, [P("path", required=True), P("max_points", "integer", "Default 200000"), P("name")], api="splat_import"),
+    Def("lampway_render_video", "Video: render a turntable or a keyframed camera path (waypoints [{frame, location}]) of an object to an H.264 mp4 "
+        "under the project root, in a throw-away scene, with the light engines only (workbench | eevee; Cycles is refused). The file is "
+        "read back (frames, size, bytes). engine=model:<name> is the generative video slot: not wired." + _PATHS,
+        [P("object", required=True), P("out", desc="mp4 path under the project root", required=True), P("kind", desc="turntable (default) | camera_path"),
+         P("frames", "integer", "Turntable frames, default 48 (max 1200)"), P("width", "integer"), P("height", "integer"), P("fps", "integer"),
+         P("engine", desc="workbench (default) | eevee"), P("waypoints", "array", "camera_path waypoints")], api="render_video"),
     Def("lampway_pbr_merge", "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, "
         "Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are "
         "filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on "

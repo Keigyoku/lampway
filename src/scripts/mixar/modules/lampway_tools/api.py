@@ -570,6 +570,7 @@ from .features import retopo as _F_retopo                  # noqa: E402
 from .features import image3d as _F_image3d                # noqa: E402
 from .features import rig as _F_rig                        # noqa: E402
 from .features import splat as _F_splat                    # noqa: E402
+from .features import video as _F_video                    # noqa: E402
 from .features import segment as _F_segment                # noqa: E402
 from .features import uv as _F_uv                          # noqa: E402
 
@@ -638,10 +639,18 @@ def splat_import(path, max_points=200000, name="lw_splat"):
     return _F_splat.splat_import(_p(path), max_points, name)
 
 
+@tool
+def render_video(object, out, kind="turntable", frames=48, width=640, height=360, fps=24, engine="workbench", waypoints=None):
+    """Render a turntable or a keyframed camera path (``waypoints``: [{frame, location}]) of ``object`` to an H.264 mp4 under the project
+    root with the light engines (workbench | eevee; never Cycles), in a throw-away scene. engine=model:<name> is the generative video
+    slot: not wired."""
+    return _F_video.render_video(object, _p(out), kind, frames, width, height, fps, engine, waypoints)
+
+
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video")
 
 
 def call(name: str, payload: str = "{}") -> dict:
