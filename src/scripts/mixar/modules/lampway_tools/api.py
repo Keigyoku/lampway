@@ -569,6 +569,7 @@ def export_piece(object, out_dir, textures=(), note=""):
 from .features import retopo as _F_retopo                  # noqa: E402
 from .features import image3d as _F_image3d                # noqa: E402
 from .features import rig as _F_rig                        # noqa: E402
+from .features import splat as _F_splat                    # noqa: E402
 from .features import segment as _F_segment                # noqa: E402
 from .features import uv as _F_uv                          # noqa: E402
 
@@ -629,10 +630,18 @@ def image_to_3d(images, size=1.0, resolution=64, mode="hull", depth=None, profil
     return _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
 
 
+@tool
+def splat_import(path, max_points=200000, name="lw_splat"):
+    """Import a 3D Gaussian Splatting PLY (binary little endian: x y z f_dc_0..2 opacity scale_0..2) as ONE point object with colour,
+    opacity and radius attributes and a geometry-nodes view; a splat is never converted to a mesh. max_points subsamples
+    deterministically."""
+    return _F_splat.splat_import(_p(path), max_points, name)
+
+
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import")
 
 
 def call(name: str, payload: str = "{}") -> dict:

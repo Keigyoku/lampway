@@ -203,6 +203,10 @@ DEFS = [
          P("resolution", "integer", "Voxels along the height, 8-160, default 64"), P("mode", desc="hull (default) | extrude | relief"),
          P("depth", "number", "extrude/relief depth in metres"), P("profile", desc="extrude: round (default) | slab"), P("name"),
          P("engine", desc="algorithmic (default) | studio:tripo")], api="image_to_3d"),
+    Def("lampway_splat_import", "Import a 3D Gaussian Splatting PLY (binary little endian with x y z f_dc_0..2 opacity scale_0..2) as ONE point "
+        "object with colour, opacity and radius attributes and a geometry-nodes view. A splat has no faces and is never converted to "
+        "a mesh; max_points subsamples deterministically. Generating a splat from an image or text needs a world model (not wired)."
+        + _PATHS, [P("path", required=True), P("max_points", "integer", "Default 200000"), P("name")], api="splat_import"),
     Def("lampway_pbr_merge", "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, "
         "Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are "
         "filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on "
