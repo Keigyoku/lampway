@@ -255,3 +255,28 @@ print("RESULT", json.dumps({"cmd": seen.get("cmd"), "res": res}))
     cmd = r.results[0]["cmd"]
     assert cmd is not None and "--backend" in cmd and cmd[cmd.index("--backend") + 1] == "openrouter"
     assert "--live" in cmd and cmd[cmd.index("--count") + 1] == "1"
+
+
+def test_the_image_stage_does_not_hand_the_apps_python_environment_to_the_server_python(tmp_path):
+    """Blender exports PYTHONHOME (and a PYTHONPATH) for its own interpreter; a venv python that inherits them imports
+    Blender's stdlib and site-packages instead of its own (seen live: `No module named 'httpx'` from the venv that
+    serves the API). The server python gets a clean Python environment plus the server directory."""
+    r = run(tmp_path, '''
+from mixar.modules.lampway_tools import api as A
+A.settings_set(image_backend="openrouter", python_server="/usr/bin/python3", server_dir="/tmp/srv")
+import os, subprocess
+os.environ["PYTHONHOME"] = "/the/app/python"; os.environ["PYTHONPATH"] = "/the/app/scripts"
+seen = {}
+def fake_run(cmd, **kw):
+    seen["env"] = dict(kw.get("env") or {})
+    class P: returncode, stdout, stderr = 0, "", ""
+    return P()
+subprocess.run = fake_run
+setup(); api.meshpaint("clay", res=64)
+api.meshpaint("image", view="Front", live=True, count=1)
+print("RESULT", json.dumps({"PYTHONHOME": seen["env"].get("PYTHONHOME"), "PYTHONPATH": seen["env"].get("PYTHONPATH")}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    env = r.results[0]
+    assert env["PYTHONHOME"] is None
+    assert env["PYTHONPATH"] == "/tmp/srv"

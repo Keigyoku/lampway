@@ -398,7 +398,10 @@ def _mp_generate(spec, setup, s, view, prompt, refs, out_dir, live, count=4):
     cmd = ["nice", "-n", str(s.nice), str(s.python_server), "-m", "lampway_server.imagegen", "--prompt-file", str(prompt_file),
            "--out", out_dir, "--count", str(count)] + [x for r in refs for x in ("--ref", r)] + (["--live"] if live else []) \
         + (["--backend", str(s.image_backend)] if s.image_backend else [])
-    env = dict(os.environ, PYTHONPATH=f"{s.server_dir}{os.pathsep}{os.environ.get('PYTHONPATH', '')}", LAMPWAY_PROJECT_ROOT=str(s.project_root))
+    # A clean Python environment for the server's own interpreter: the app's PYTHONHOME / PYTHONPATH would make a venv
+    # python import Blender's stdlib and site-packages instead of its own (seen live: `No module named 'httpx'`).
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PYTHON")}
+    env.update(PYTHONPATH=str(s.server_dir), LAMPWAY_PROJECT_ROOT=str(s.project_root))
     p = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=7200)
     if p.returncode != 0:
         raise RuntimeError(f"the image backend refused or failed for {view}: {(p.stdout + p.stderr).strip()[-500:]}")
