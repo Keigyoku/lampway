@@ -21,7 +21,8 @@
 import argparse, hashlib, json, os, re, sqlite3, sys, time
 
 def db_path():
-    return os.environ.get('LAMPWAY_SEED_DB') or os.path.join(os.environ.get('LAMPWAY_PROJECT_ROOT') or os.path.expanduser('~/.local/share/lampway/projects'), 'studios', 'tripo', 'seeds.sqlite')
+    from lampway_server.seeds import default_path     # one catalogue: <project root>/seeds/seeds.sqlite, shared with the typed Catalog (seeds.py)
+    return str(default_path())
 
 
 SCHEMA = """CREATE TABLE IF NOT EXISTS seeds (
