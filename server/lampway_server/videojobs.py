@@ -330,7 +330,8 @@ class VideoSystem:
         self.client.max_job_usd = float(self.settings.video_max_job_usd)
         out = self.client.generate(model, payload.get("prompt") or "", plan["clean"], frame_images=plan["frames"] or None, reference_images=plan["refs"] or None,
                                    reference_videos=plan["videos"] or None, source=plan["source"], label="video")
-        return VideoOutput([(out["video"], out["media_type"])], {"provider": "openrouter", "estimate_usd": out["estimate_usd"], "actual_usd": out["actual_usd"],
+        return VideoOutput([(out["video"], out["media_type"])], {"provider": "openrouter", "job_id": out["job_id"], "generation_id": out["generation_id"],
+                                                              "inputs": out["inputs"], "estimate_usd": out["estimate_usd"], "actual_usd": out["actual_usd"],
                                                               "delta_usd": out["delta_usd"], "tokens": out["tokens"], "basis": out["basis"]})
 
     def _run_higgsfield(self, service, plan, ask):

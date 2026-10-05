@@ -113,7 +113,7 @@ def wire(tmp_path, monkeypatch):
             st = state["status"][min(seen["polls"] - 1, len(state["status"]) - 1)]
             if state["fail"]:
                 return httpx.Response(200, json={"id": "job1", "status": "failed", "error": state["fail"]})
-            body = {"id": "job1", "status": st, "polling_url": "/api/v1/videos/job1"}
+            body = {"id": "job1", "generation_id": "gen-1", "status": st, "polling_url": "/api/v1/videos/job1"}
             if st == "completed":
                 body.update(unsigned_urls=["https://openrouter.ai/api/v1/videos/job1/content?index=0"], usage={"cost": state["cost"], "is_byok": False})
             return httpx.Response(200, json=body)
@@ -158,7 +158,7 @@ def test_generate_submits_polls_downloads_and_records_the_actual_cost_beside_the
 
 def test_frames_and_references_are_sent_in_the_documented_shapes(wire):
     client, seen, _, _ = wire
-    png = b"\x89PNG\r\n\x1a\n" + b"x"
+    png = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x08\x00\x00\x00\x08\x08\x02\x00\x00\x00Km)\xdc\x00\x00\x00\x14IDATx\x9cc<\xc1\xc5\xc5\x80\r0a\x15\x1d\xb4\x12\x00\xb1\xee\x00\xec\x08-=\xbb\x00\x00\x00\x00IEND\xaeB`\x82'
     client.generate("bytedance/seedance-1-5-pro", "loop", {"resolution": "480p", "duration": 4, "generate_audio": False, "aspect_ratio": "16:9"},
                     frame_images=[("first_frame", png), ("last_frame", png)])
     b = seen["posts"][0]
@@ -239,3 +239,56 @@ def test_the_plan_says_audio_is_always_on_for_such_a_model_and_the_request_omits
     assert all("generate_audio" not in body for body in seen["posts"]), "the real API refuses an explicit generate_audio on HeyGen"
     client.generate("bytedance/seedance-1-5-pro", "x", {"resolution": "480p", "duration": 4, "generate_audio": False})
     assert seen["posts"][-1]["generate_audio"] is False, "a model WITH the control still gets it"
+
+
+# ---- images are fitted to the model before they are sent (live: a 9.5 MB 2160x3840 PNG was refused by the 5 MB inline limit)
+import hashlib
+import io
+
+from PIL import Image
+
+
+def big_png(w=2160, h=3840):
+    import os
+    img = Image.frombytes("RGB", (w, h), os.urandom(w * h * 3))        # incompressible: a real 4K plate is several MB
+    buf = io.BytesIO()
+    img.save(buf, "PNG")
+    return buf.getvalue()
+
+
+def test_fit_image_resizes_to_the_output_long_edge_keeps_the_aspect_and_reencodes_over_the_cap():
+    data = big_png()
+    assert len(data) > 5_000_000
+    fitted, info = VG.fit_image(data, max_edge=1366, max_bytes=3_500_000)
+    assert len(fitted) <= 3_500_000 and fitted[:3] == b"\xff\xd8\xff"
+    im = Image.open(io.BytesIO(fitted))
+    assert max(im.size) == 1366 and abs(im.size[0] / im.size[1] - 2160 / 3840) < 0.01
+    assert info["original"] == {"width": 2160, "height": 3840, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(), "format": "PNG"}
+    assert info["sent"]["width"] == im.size[0] and info["sent"]["bytes"] == len(fitted) and info["sent"]["sha256"] == hashlib.sha256(fitted).hexdigest()
+    assert info["changed"] is True
+
+
+def test_a_small_image_is_sent_untouched_and_never_upscaled():
+    small = big_png(300, 200)
+    out, info = VG.fit_image(small, max_edge=1366, max_bytes=3_500_000)
+    assert out == small and info["changed"] is False and info["sent"]["sha256"] == info["original"]["sha256"]
+    out2, info2 = VG.fit_image(small, max_edge=100, max_bytes=3_500_000)
+    assert max(Image.open(io.BytesIO(out2)).size) == 100 and info2["changed"] is True
+
+
+def test_the_request_carries_the_fitted_image_and_the_plan_records_what_was_sent(wire):
+    client, seen, _, _ = wire
+    data = big_png()
+    plan = client.plan("heygen/heygen-video-1", "x", {"resolution": "768p", "duration": 5, "aspect_ratio": "9:16"}, frame_images=[("first_frame", data)])
+    rec = plan["inputs"][0]
+    assert rec["role"] == "first_frame" and rec["original"]["bytes"] == len(data) and rec["sent"]["bytes"] <= 3_500_000 and max(rec["sent"]["width"], rec["sent"]["height"]) <= 1366
+    out = client.generate("heygen/heygen-video-1", "x", {"resolution": "768p", "duration": 5, "aspect_ratio": "9:16"}, frame_images=[("first_frame", data)])
+    url = seen["posts"][0]["frame_images"][0]["image_url"]["url"]
+    assert url.startswith("data:image/jpeg;base64,") and len(url) < 5_000_000
+    assert out["inputs"][0]["sent"]["sha256"] == rec["sent"]["sha256"] and out["inputs"][0]["original"]["sha256"] == hashlib.sha256(data).hexdigest()
+
+
+def test_the_result_carries_the_providers_job_and_generation_ids_and_the_billed_cost(wire):
+    client, seen, state, _ = wire
+    out = client.generate("heygen/heygen-video-1", "x", {"resolution": "480p", "duration": 5})
+    assert out["job_id"] == "job1" and out["generation_id"] == "gen-1" and out["actual_usd"] == pytest.approx(0.1)

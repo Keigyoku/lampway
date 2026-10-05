@@ -15,6 +15,8 @@ Seedance bills in video tokens: tokens ~ W x H x fps x seconds / 1024 at 24 fps;
 """
 
 import base64
+import hashlib
+import io
 import re
 import time
 from typing import Optional
@@ -25,6 +27,8 @@ ORIGIN = "https://openrouter.ai"
 API = ORIGIN + "/api/v1"
 FPS = 24
 MAX_REFERENCE_IMAGES = 9
+MAX_INLINE_IMAGE_BYTES = 3_500_000      # the API refuses ~5 MB inline; base64 adds a third, so the raw cap stays under it
+FALLBACK_EDGE = 2048
 
 
 class VideoError(ValueError):
@@ -205,6 +209,57 @@ def _video_mime(data: bytes) -> str:
     return "video/webm" if data[:4] == b"\x1aE\xdf\xa3" else "video/quicktime" if data[4:12] == b"ftypqt  " else "video/mp4"
 
 
+def _facts(data: bytes, width: int, height: int, fmt: str) -> dict:
+    return {"width": width, "height": height, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(), "format": fmt}
+
+
+def fit_image(data: bytes, max_edge: Optional[int], max_bytes: int = MAX_INLINE_IMAGE_BYTES) -> tuple:
+    """An image fitted to a model's limits: shrunk (never enlarged) so its LONG edge is at most ``max_edge`` (there is no gain in sending 3840 px to a
+    768p model), the aspect ratio kept, and re-encoded as JPEG q92 when it is over the byte cap (quality then edge are stepped down, bounded).
+    Returns ``(bytes, info)``: the original's and the sent file's dimensions, bytes and sha256, and whether anything changed."""
+    from PIL import Image
+    try:
+        img = Image.open(io.BytesIO(data))
+        img.load()
+    except Exception as exc:  # noqa: BLE001
+        raise VideoError(f"an image input could not be read ({type(exc).__name__}): send a PNG or JPEG") from None
+    fmt = img.format or "PNG"
+    original = _facts(data, img.width, img.height, fmt)
+    edge = max_edge or (FALLBACK_EDGE if len(data) > max_bytes else max(img.size))
+    scale = min(1.0, edge / max(img.size))
+    if scale >= 1.0 and len(data) <= max_bytes:
+        return data, {"original": original, "sent": dict(original), "changed": False}
+    work = img
+    if scale < 1.0:
+        work = img.resize((max(1, round(img.width * scale)), max(1, round(img.height * scale))), Image.LANCZOS)
+    rgb = work
+    if work.mode in ("RGBA", "LA", "P"):
+        rgba = work.convert("RGBA")
+        rgb = Image.new("RGB", rgba.size, (255, 255, 255))
+        rgb.paste(rgba, mask=rgba.split()[3])
+    elif work.mode != "RGB":
+        rgb = work.convert("RGB")
+    out = data
+    if scale < 1.0 and fmt in ("JPEG",) and len(data) <= max_bytes:
+        buf = io.BytesIO()
+        rgb.save(buf, "JPEG", quality=92)
+        out = buf.getvalue()
+    elif scale < 1.0 or len(data) > max_bytes:
+        out = None
+        for quality, shrink in ((92, 1.0), (85, 1.0), (78, 0.9), (70, 0.8), (60, 0.7), (50, 0.6)):
+            cand = rgb if shrink == 1.0 else rgb.resize((max(1, round(rgb.width * shrink)), max(1, round(rgb.height * shrink))), Image.LANCZOS)
+            buf = io.BytesIO()
+            cand.save(buf, "JPEG", quality=quality)
+            out, size = buf.getvalue(), cand.size
+            if len(out) <= max_bytes:
+                break
+        if len(out) > max_bytes:
+            raise VideoError(f"an image input is still {len(out) / 1e6:.1f} MB after fitting; the limit is {max_bytes / 1e6:.1f} MB")
+        work = cand
+    sent = Image.open(io.BytesIO(out))
+    return out, {"original": original, "sent": _facts(out, sent.width, sent.height, sent.format or "JPEG"), "changed": True}
+
+
 class VideoClient:
     def __init__(self, *, ledger, transport=None, key: Optional[str] = None, poll_s: float = 10.0, timeout_s: float = 1800.0,
                  max_job_usd: float = 2.0, base: str = API):
@@ -243,6 +298,21 @@ class VideoClient:
         return row
 
     # ------------------------------------------------------------------------ plan
+    def _fit_inputs(self, row, clean, frames, ref_images):
+        """Every image input fitted to the model: long edge <= the output resolution's, bytes <= the inline cap. Returns the fitted lists and the record."""
+        wh = pixels(row, clean.get("resolution") or "", clean.get("aspect_ratio") or "16:9") if clean.get("resolution") else None
+        edge = max(wh) if wh else None
+        record, fframes, frefs = [], [], []
+        for t, data in frames or []:
+            fitted, info = fit_image(data, edge)
+            fframes.append((t, fitted))
+            record.append({"role": t, **info})
+        for i, data in enumerate(ref_images or []):
+            fitted, info = fit_image(data, edge)
+            frefs.append(fitted)
+            record.append({"role": f"reference_{i + 1}", **info})
+        return fframes, frefs, record
+
     def _prepare(self, model_id, params, frames, ref_images, ref_videos, source: Optional[dict] = None):
         row = self.model(model_id)
         raw = dict(params or {})
@@ -268,7 +338,7 @@ class VideoClient:
         except VideoError as exc:
             return {"ok": False, "dry_run": True, "error": str(exc)}
         out = {"ok": True, "dry_run": True, "model": model_id, "params": {k: v for k, v in clean.items() if k not in ("frame_images", "reference_videos")},
-               "audio": audio_state(row, clean),
+               "audio": audio_state(row, clean), "inputs": self._fit_inputs(row, clean, frame_images, reference_images)[2],
                "estimate_usd": None if est["usd"] is None else round(est["usd"], 4), "basis": est["basis"], **self._budget(est, False)}
         if not est["known"]:
             out["warning"] = "the price cannot be estimated from this model's pricing_skus: a live run is refused"
@@ -278,6 +348,7 @@ class VideoClient:
     def generate(self, model_id, prompt, params=None, *, frame_images=None, reference_images=None, reference_videos=None, source=None,
                  label="video", accept_unknown_price=False) -> dict:
         row, clean, est = self._prepare(model_id, params, frame_images, reference_images, reference_videos, source)
+        frame_images, reference_images, inputs = self._fit_inputs(row, clean, frame_images, reference_images)
         if not str(prompt or "").strip() and not is_upscaler(row):
             raise VideoError("a video needs a prompt")
         if not est["known"] and not accept_unknown_price:
@@ -310,7 +381,7 @@ class VideoClient:
         actual = float(cost) if isinstance(cost, (int, float)) else None
         if actual is not None:
             self.ledger.add(actual, label)
-        return {"video": video, "media_type": mime, "job_id": job["id"], "model": model_id, "estimate_usd": est["usd"], "basis": est["basis"],
+        return {"video": video, "media_type": mime, "job_id": job["id"], "generation_id": final.get("generation_id") or job.get("generation_id"), "inputs": inputs, "model": model_id, "estimate_usd": est["usd"], "basis": est["basis"],
                 "actual_usd": actual, "delta_usd": None if actual is None or est["usd"] is None else round(actual - est["usd"], 6),
                 "tokens": est.get("tokens")}
 

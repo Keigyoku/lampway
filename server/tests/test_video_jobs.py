@@ -27,7 +27,7 @@ from .fake_higgsfield import FakeHiggsfield
 FIX = json.loads((Path(__file__).parent / "fixtures" / "video_models.json").read_text())
 MODELS = FIX.get("data", FIX)
 MP4 = b"\x00\x00\x00\x18ftypmp42" + b"video-bytes"
-PNG = b"\x89PNG\r\n\x1a\n" + b"x"
+PNG = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x08\x00\x00\x00\x08\x08\x02\x00\x00\x00Km)\xdc\x00\x00\x00\x14IDATx\x9cc<\xc1\xc5\xc5\x80\r0a\x15\x1d\xb4\x12\x00\xb1\xee\x00\xec\x08-=\xbb\x00\x00\x00\x00IEND\xaeB`\x82'
 
 
 class FakeOpenRouterVideo:

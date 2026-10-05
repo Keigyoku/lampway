@@ -87,6 +87,7 @@ async def call(system, name: str, arguments: dict) -> tuple:
             return json.dumps(info), True
         out = await asyncio.to_thread(system.run, "video_gen", model, payload, plan)
         paths = await asyncio.to_thread(system.save_to_project, f"agent-{int(time.time())}", out)
-        return json.dumps({"video_file": paths[0], **{k: v for k, v in out.extra.items() if k != "basis"}}), False
+        keep = ("provider", "job_id", "generation_id", "estimate_usd", "actual_usd", "delta_usd", "inputs", "tokens")
+        return json.dumps({"video_file": paths[0], **{k: v for k, v in out.extra.items() if k in keep}}), False
     except Exception as exc:  # noqa: BLE001 - reported to the model, never with a token
         return f"{type(exc).__name__}: {exc}", True
