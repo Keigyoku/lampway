@@ -12,6 +12,7 @@ import bpy
 from bpy.app.handlers import persistent
 from bpy.props import BoolProperty
 
+from mixar.config.brand import PRODUCT_NAME
 from mixar.modules.common.analytics import draft_events, rejection_events
 from mixar.modules.common.analytics.session_events import session_started_emitted
 from mixar.modules.common.analytics.capture import (
@@ -307,7 +308,7 @@ def register() -> None:
         return
     bpy.types.WindowManager.mixar_share_usage_data = BoolProperty(
         name="Share Usage Data",
-        description="Share content-free product usage events to help improve Mixar",
+        description=f"Share content-free product usage events with your {PRODUCT_NAME} server (off by default)",
         default=is_enabled(), options={"SKIP_SAVE"}, update=_on_consent_changed,
     )
     if _on_load not in bpy.app.handlers.load_post:

@@ -8,8 +8,12 @@ from mixar.config.config import add_config, get_config
 
 
 def is_enabled() -> bool:
-    """Usage analytics is enabled unless the user has explicitly opted out."""
-    return bool(get_config().get("share_usage_data", True))
+    """Usage analytics is OFF unless the user has explicitly opted in.
+
+    Lampway: telemetry defaults off, and when on it only reaches the
+    configured backend (``get_server_url``), never the upstream service.
+    """
+    return bool(get_config().get("share_usage_data", False))
 
 
 def set_enabled(enabled: bool) -> bool:

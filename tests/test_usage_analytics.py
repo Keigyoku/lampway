@@ -296,7 +296,7 @@ def test_privacy_panel_lives_in_preferences_system_section() -> None:
     assert "bl_region_type = 'WINDOW'" in source
     assert 'bl_context = "system"' in source
     assert "mixar_share_usage_data" in source
-    assert "https://www.mixar.app/legal/privacy-policy" in source
+    assert 'website_url("/legal/privacy-policy")' in source
 
 
 def test_modal_operator_start_counts_as_success() -> None:
