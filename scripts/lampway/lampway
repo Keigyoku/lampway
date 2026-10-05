@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Keigyoku
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# lampway: the one command. Starts our server on localhost, starts Lampway pointed at it with the tools and the live bridge
+# enabled, opens a given .blend, and stops the server it started when the app exits.
+#
+#   lampway [--env Dev|Prod] [--copy] [--provider mock|anthropic|openai|chatgpt_plan|codex_cli|claude_cli]
+#           [--port 8787] [--bridge-port 9876] [--no-server] [--system-keyring] [--plan] [file.blend]
+#   lampway --install-desktop | --uninstall-desktop      the app-menu entry (lampway.desktop); it runs this same command
+#
+# --copy opens a COPY of the .blend (under <home>/copies); your file is never opened for saving.
+# The app runs through scripts/unix/run.sh, which owns the Wayland/X11 switch (LAMPWAY_LINUX_BACKEND=auto|x11).
+# Profile: everything lives under $LAMPWAY_HOME (default ~/.local/share/lampway): an isolated config/data profile (your stock
+# Blender/Mixar profile is not touched), the server's state, projects/, the bridge directory, the file keyring.
+# Refusals go to stdout and exit 1; an unknown flag exits 2.
+set -uo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+HOME_DIR="${LAMPWAY_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/lampway}"
+
+BUILD_ENV=""; COPY=0; PROVIDER="${LAMPWAY_PROVIDER:-mock}"; PORT="${LAMPWAY_SERVER_PORT:-8787}"; BRIDGE_PORT="${LAMPWAY_BRIDGE_PORT:-9876}"
+NO_SERVER=0; SYSTEM_KEYRING=0; PLAN=0; ACTION=run; BLEND=""
+refuse() { echo "error: $1"; shift; if [ $# -gt 0 ]; then echo "help[$#]:"; for h in "$@"; do echo "  - $h"; done; fi; exit 1; }
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --env) BUILD_ENV="${2:?--env needs Dev or Prod}"; shift 2 ;;
+    --copy) COPY=1; shift ;;
+    --provider) PROVIDER="${2:?--provider needs a name}"; shift 2 ;;
+    --port) PORT="${2:?--port needs a number}"; shift 2 ;;
+    --bridge-port) BRIDGE_PORT="${2:?--bridge-port needs a number (0 = off)}"; shift 2 ;;
+    --no-server) NO_SERVER=1; shift ;;
+    --system-keyring) SYSTEM_KEYRING=1; shift ;;
+    --plan) PLAN=1; shift ;;
+    --install-desktop) ACTION=install; shift ;;
+    --uninstall-desktop) ACTION=uninstall; shift ;;
+    --*) echo "unknown flag: $1" >&2; exit 2 ;;
+    *) BLEND="$1"; shift ;;
+  esac
+done
+
+if [ -z "$BUILD_ENV" ]; then
+  if [ -x "$ROOT/build/Prod/bin/mixar" ]; then BUILD_ENV=Prod; else BUILD_ENV=Dev; fi
+fi
+BINARY="$ROOT/build/$BUILD_ENV/bin/mixar"
+SERVER_URL="http://127.0.0.1:$PORT"
+
+if [ "$ACTION" = uninstall ]; then exec "$ROOT/scripts/unix/install_desktop_entry.sh" --uninstall; fi
+if [ "$ACTION" = install ]; then
+  [ -x "$BINARY" ] || refuse "no build at $BINARY" "Run \`scripts/lampway/build_linux.sh\` first"
+  exec "$ROOT/scripts/unix/install_desktop_entry.sh" "$BUILD_ENV"
+fi
+
+if [ "$PLAN" = 1 ]; then
+  echo "bin: $0"; echo "description: Starts the Lampway server and the app on localhost; opens a .blend (a copy with --copy)"
+  echo "server_url: $SERVER_URL"; echo "build_env: $BUILD_ENV"; echo "binary: $BINARY"; echo "bridge_port: $BRIDGE_PORT"
+  echo "provider: $PROVIDER"; echo "home: $HOME_DIR"; echo "keyring: $([ $SYSTEM_KEYRING = 1 ] && echo system || echo file)"
+  echo "server: $([ $NO_SERVER = 1 ] && echo none || echo started-and-stopped-by-this-command)"; echo "blend: ${BLEND:-none}${BLEND:+ $([ $COPY = 1 ] && echo '(copy)' || echo '(opened directly)')}"
+  exit 0
+fi
+
+[ -x "$BINARY" ] || refuse "no build at $BINARY" "Run \`scripts/lampway/build_linux.sh\` first (MIXAR_ENV=$BUILD_ENV)"
+if [ -n "$BLEND" ] && [ ! -f "$BLEND" ]; then refuse "$BLEND not found"; fi
+
+mkdir -p "$HOME_DIR"/{config,data,bridge,projects,server-state,copies}
+chmod 700 "$HOME_DIR" 2>/dev/null || true
+if [ -n "$BLEND" ] && [ "$COPY" = 1 ]; then
+  name="$(basename "$BLEND" .blend)"; stamp="$(date +%Y%m%d-%H%M%S)"
+  cp -- "$BLEND" "$HOME_DIR/copies/$name-$stamp.blend" && BLEND="$HOME_DIR/copies/$name-$stamp.blend"
+fi
+
+port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
+SERVER_PID=""
+stop_server() { if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then kill "$SERVER_PID" 2>/dev/null; wait "$SERVER_PID" 2>/dev/null; fi; }
+trap stop_server EXIT INT TERM
+
+if [ "$NO_SERVER" = 0 ]; then
+  if port_open "$PORT"; then
+    if command -v curl >/dev/null 2>&1 && curl -s -m 3 "$SERVER_URL/api/v1/auth/me" 2>/dev/null | grep -q '"detail"'; then
+      echo "a Lampway server already answers on $SERVER_URL: using it"
+    else
+      refuse "port $PORT is in use by something that is not a Lampway server" "Pick another port: \`lampway --port <n>\`"
+    fi
+  else
+    if [ -n "${LAMPWAY_SERVER_CMD:-}" ]; then SERVER_CMD="$LAMPWAY_SERVER_CMD"
+    else
+      PY="${LAMPWAY_SERVER_PYTHON:-}"; [ -z "$PY" ] && [ -x "$ROOT/server/.venv/bin/python" ] && PY="$ROOT/server/.venv/bin/python"; PY="${PY:-python3}"
+      SERVER_CMD="$PY -m lampway_server"
+    fi
+    LAMPWAY_HOST=127.0.0.1 LAMPWAY_PORT="$PORT" LAMPWAY_PROVIDER="$PROVIDER" LAMPWAY_STATE_DIR="$HOME_DIR/server-state" \
+      LAMPWAY_PROJECT_ROOT="$HOME_DIR/projects" PYTHONPATH="$ROOT/server${PYTHONPATH:+:$PYTHONPATH}" \
+      $SERVER_CMD > "$HOME_DIR/server.log" 2>&1 &
+    SERVER_PID=$!
+    echo "$SERVER_PID" > "$HOME_DIR/server.pid"
+    if [ "${LAMPWAY_SKIP_SERVER_WAIT:-0}" != 1 ]; then
+      for _ in $(seq 1 100); do port_open "$PORT" && break; kill -0 "$SERVER_PID" 2>/dev/null || refuse "the server exited at start-up; see $HOME_DIR/server.log"; sleep 0.2; done
+      port_open "$PORT" || refuse "the server did not open port $PORT; see $HOME_DIR/server.log"
+    fi
+  fi
+fi
+
+export XDG_CONFIG_HOME="$HOME_DIR/config" XDG_DATA_HOME="$HOME_DIR/data"
+export LAMPWAY_HOME="$HOME_DIR" LAMPWAY_BACKEND_URL="$SERVER_URL" LAMPWAY_BRIDGE_PORT="$BRIDGE_PORT" LAMPWAY_BRIDGE_DIR="$HOME_DIR/bridge"
+export LAMPWAY_PROJECT_ROOT="$HOME_DIR/projects" LAMPWAY_SERVER_PID_FILE="$HOME_DIR/server.pid"
+if [ "$SYSTEM_KEYRING" = 0 ]; then
+  export PYTHON_KEYRING_BACKEND="mixar.modules.lampway_tools.keyring_file.FileKeyring" LAMPWAY_KEYRING_FILE="$HOME_DIR/keyring.json"
+fi
+# the app: through run.sh (it owns LAMPWAY_LINUX_BACKEND); not exec'd, so this shell can stop the server it started
+"$ROOT/scripts/unix/run.sh" "$BUILD_ENV" ${BLEND:+"$BLEND"}
+RC=$?
+exit $RC
