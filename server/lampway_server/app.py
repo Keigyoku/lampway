@@ -15,6 +15,7 @@ from .auth import Auth
 from .chatgpt_auth import ChatGPTAuth, LoginDeclined, LoginError
 from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
+from . import matgen
 from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub
 from starlette.responses import Response
@@ -305,7 +306,27 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         data, media_type = found
         return Response(data, media_type=media_type, headers={"Content-Length": str(len(data)), "Cache-Control": "private, max-age=3600"})
 
+    async def matgen_route(request: Request):
+        """A procedural material from a prompt, by the agent's own model (matgen.py)."""
+        if not _bearer_ok(request):
+            return unauthorized()
+        try:
+            body = await request.json()
+        except ValueError:
+            body = {}
+        prompt = str((body or {}).get("prompt") or "").strip() if isinstance(body, dict) else ""
+        if not prompt:
+            return JSONResponse({"detail": "prompt is required"}, status_code=422)
+        try:
+            material = await matgen.generate(agent.provider, prompt, str(body.get("pipeline") or "fast"))
+        except matgen.BadScript as exc:
+            return JSONResponse({"detail": f"no usable script: {exc}"}, status_code=502)
+        except Exception as exc:  # noqa: BLE001 - the provider failed; the reason goes to the person, never a token
+            return JSONResponse({"detail": f"material generation failed: {type(exc).__name__}"}, status_code=502)
+        return JSONResponse(material.as_dict())
+
     routes += [
+        Route("/api/v1/matgen", matgen_route, methods=["POST"]),
         Route("/api/v1/job-queue/jobs", job_submit, methods=["POST"]),
         Route("/api/v1/job-queue/jobs/{job_id}", job_get, methods=["GET"]),
         Route("/api/v1/job-queue/jobs/{job_id}", job_cancel, methods=["DELETE"]),

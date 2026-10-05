@@ -158,8 +158,12 @@ def test_missing_catalog_loads_nothing(tmp_path, monkeypatch):
     assert per.load_materials() == []
 
 
-def test_generation_is_honestly_unavailable():
+def test_generation_needs_a_description_and_goes_to_our_server(monkeypatch):
+    """Generation is real now (tests/lampway_tools/test_matgen_client.py has the flow); an empty prompt is refused before
+    anything is posted."""
     q = _load("matgen_queue")
+    posted = []
+    monkeypatch.setattr(q, "_run_in_thread", lambda fn: posted.append(fn))
     with pytest.raises(q.MatgenUnavailable) as exc:
-        q.enqueue_matgen_job(prompt="oak wood")
-    assert "no generation backend" in str(exc.value)
+        q.enqueue_matgen_job(prompt="   ")
+    assert "required" in str(exc.value) and posted == []
