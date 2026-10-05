@@ -72,3 +72,10 @@ class StudioClient:
 
     def download(self, job_id: str, name: str) -> bytes:
         return self._call("GET", f"/app/studio/jobs/{job_id}/files/{name}", raw=True, timeout=300)
+
+    # ---- provider setup (the same server door)
+    def provider_settings(self) -> dict:
+        return self._call("GET", "/app/provider-settings")
+
+    def save_provider_settings(self, values: dict) -> dict:
+        return self._call("PUT", "/app/provider-settings", {"values": values})

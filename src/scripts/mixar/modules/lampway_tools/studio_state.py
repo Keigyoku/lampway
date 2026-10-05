@@ -4,6 +4,7 @@
 
 """What the Studios panel shows: the last /app/studio snapshot. One writer (the refresh operator and the poll timer), many readers."""
 
+PROVIDERS = {}          # the last GET /app/provider-settings: {values, source, choices}
 STATE = {"actions": [], "approvals": [], "jobs": [], "engine": {}, "error": ""}
 
 

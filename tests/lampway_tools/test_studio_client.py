@@ -151,3 +151,41 @@ print("RESULT", json.dumps({"res": res, "pending": [a["id"] for a in studio_stat
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
     assert o["res"] == ["FINISHED"] and o["pending"] == ["ap1"] and o["actions"] == ["tripo.mesh"] and o["panel"] is True
+
+
+PROVIDERS = '''
+from mixar.modules.lampway_tools.ui.operators import studio_ops
+from mixar.modules.lampway_tools import studio_state
+VIEW = {"values": {"provider": "chatgpt_plan", "chatgpt_model": "gpt-6.1-sol", "chatgpt_effort": "medium", "swarm_provider": "claude_cli",
+        "claude_swarm_model": "claude-sonnet-5-5", "openrouter_swarm_model": "deepseek/deepseek-v4.1-flash", "image_backend": "openrouter",
+        "openrouter_image_model": "openai/gpt-image-2.5-sunburst", "openrouter_image_size": "2880x2880", "openrouter_image_quality": "high"},
+        "source": {}, "choices": {"main_providers": ["mock", "chatgpt_plan", "openrouter"], "swarm_providers": ["", "claude_cli", "openrouter"],
+        "efforts": ["", "low", "medium", "high"], "image_backends": ["tripo", "openrouter"], "image_qualities": ["", "high"]}}
+SAVED = []
+class FakeServer:
+    def provider_settings(self): return VIEW
+    def save_provider_settings(self, values):
+        SAVED.append(values)
+        if values.get("openrouter_image_size") == "4K": raise studio_ops.studio_client.StudioError("openrouter_image_size: size must be WIDTHxHEIGHT")
+        return VIEW
+studio_ops.CLIENT_FACTORY = lambda: FakeServer()
+'''
+
+
+def test_the_provider_dialog_loads_the_server_values_and_saves_only_what_changed():
+    r = run(PROVIDERS + '''
+bpy.ops.lampway.providers_open("INVOKE_DEFAULT") if False else None
+op_ok = bpy.ops.lampway.providers_save("EXEC_DEFAULT", main_provider="openrouter", chatgpt_effort="medium", swarm_provider="claude_cli",
+                                       image_backend="openrouter", image_model="openai/gpt-image-2.5-flare", image_size="2048x1152", image_quality="high")
+try:
+    bpy.ops.lampway.providers_save("EXEC_DEFAULT", image_size="4K"); bad = None
+except RuntimeError as e: bad = str(e)[:160]
+print("RESULT", json.dumps({"ok": sorted(op_ok), "saved": SAVED, "bad": bad, "msg": bpy.context.scene.lampway_tools.last_message,
+                            "choices": studio_state.PROVIDERS.get("choices", {}).get("image_backends")}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    o = r.results[0]
+    assert o["ok"] == ["FINISHED"]
+    assert o["saved"][0] == {"provider": "openrouter", "openrouter_image_model": "openai/gpt-image-2.5-flare", "openrouter_image_size": "2048x1152"}, \
+        "only the fields that differ from what the server has are sent"
+    assert "WIDTHxHEIGHT" in o["bad"] and "WIDTHxHEIGHT" in o["msg"]

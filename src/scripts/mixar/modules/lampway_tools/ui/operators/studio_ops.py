@@ -171,4 +171,89 @@ class LAMPWAY_OT_studio_import(_StudioOp):
         return self._done(context, f"imported {len(res['objects'])} object(s) into {res['collection']}")
 
 
-classes = [LAMPWAY_OT_studio_refresh, LAMPWAY_OT_studio_plan, LAMPWAY_OT_studio_confirm, LAMPWAY_OT_studio_reject, LAMPWAY_OT_studio_import]
+# ---- provider setup: main agent, swarm workers, image backend (saved on the server; the environment is only the default)
+_PROVIDER_FIELDS = {          # operator prop -> the server's setting
+    "main_provider": "provider", "chatgpt_model": "chatgpt_model", "chatgpt_effort": "chatgpt_effort", "swarm_provider": "swarm_provider",
+    "claude_swarm_model": "claude_swarm_model", "openrouter_swarm_model": "openrouter_swarm_model", "image_backend": "image_backend",
+    "image_model": "openrouter_image_model", "image_size": "openrouter_image_size", "image_quality": "openrouter_image_quality"}
+_CHOICES = {"main_provider": "main_providers", "swarm_provider": "swarm_providers", "chatgpt_effort": "efforts",
+            "image_backend": "image_backends", "image_quality": "image_qualities"}
+DEFAULT_WORD = "default"     # typed for a setting whose server value is the empty default
+
+
+def _suggest(prop):
+    def search(self, context, edit_text):
+        return [(c or DEFAULT_WORD) for c in studio_state.PROVIDERS.get("choices", {}).get(_CHOICES[prop], [])]
+    return search
+
+
+class _ProviderProps:
+    main_provider: StringProperty(name="Main agent", description="Provider for the main agent (the chat)", search=_suggest("main_provider"))
+    chatgpt_model: StringProperty(name="Model (ChatGPT plan)", description="Model when the main agent runs on your ChatGPT plan")
+    chatgpt_effort: StringProperty(name="Effort", description="Reasoning effort on your ChatGPT plan (default = the model's)", search=_suggest("chatgpt_effort"))
+    swarm_provider: StringProperty(name="Swarm workers", description="Provider for the swarm's workers (default = the main provider's own)", search=_suggest("swarm_provider"))
+    claude_swarm_model: StringProperty(name="Claude model", description="Model for workers on your own claude CLI")
+    openrouter_swarm_model: StringProperty(name="OpenRouter worker model", description="Model for workers on OpenRouter")
+    image_backend: StringProperty(name="Images", description="Image backend: tripo, codex_cli or openrouter", search=_suggest("image_backend"))
+    image_model: StringProperty(name="Image model", description="OpenRouter image model, e.g. openai/gpt-image-2.5-sunburst (precision) or -flare (speed)")
+    image_size: StringProperty(name="Image size", description="WIDTHxHEIGHT within the pixel budget (2880x2880 works), or default")
+    image_quality: StringProperty(name="Image quality", description="auto, low, medium, high, xhigh, max, or default", search=_suggest("image_quality"))
+
+
+def _server_values():
+    cur = CLIENT_FACTORY().provider_settings()
+    studio_state.PROVIDERS.clear()
+    studio_state.PROVIDERS.update(cur)
+    return cur["values"]
+
+
+def _save_changes(op, context):
+    """Send only what differs from the server's current values; the server refuses a bad choice with the reason and changes nothing."""
+    try:
+        current = _server_values()
+        changed = {}
+        for prop, key in _PROVIDER_FIELDS.items():
+            wanted = getattr(op, prop)
+            if wanted == "":
+                continue                                           # not given: unchanged
+            wanted = "" if wanted == DEFAULT_WORD else wanted
+            if wanted != current.get(key):
+                changed[key] = wanted
+        if not changed:
+            return op._done(context, "nothing changed")
+        view = CLIENT_FACTORY().save_provider_settings(changed)
+        studio_state.PROVIDERS.clear()
+        studio_state.PROVIDERS.update(view)
+    except studio_client.StudioError as exc:
+        return op._done(context, str(exc), ok=False)
+    return op._done(context, "saved: " + ", ".join(sorted(changed)))
+
+
+class LAMPWAY_OT_providers_save(_ProviderProps, _StudioOp):
+    """Save provider choices on the server (fields left empty are unchanged)"""
+    bl_idname = "lampway.providers_save"
+    bl_label = "Save provider settings"
+
+    def execute(self, context):
+        return _save_changes(self, context)
+
+
+class LAMPWAY_OT_providers_open(_ProviderProps, _StudioOp):
+    """Choose the main agent, the swarm workers and the image model; saved on the server"""
+    bl_idname = "lampway.providers_open"
+    bl_label = "Providers"
+
+    def invoke(self, context, event):
+        try:
+            values = _server_values()
+        except studio_client.StudioError as exc:
+            return self._done(context, str(exc), ok=False)
+        for prop, key in _PROVIDER_FIELDS.items():
+            setattr(self, prop, values.get(key) or DEFAULT_WORD if prop in _CHOICES else values.get(key, ""))
+        return context.window_manager.invoke_props_dialog(self, width=520)
+
+    def execute(self, context):
+        return _save_changes(self, context)
+
+
+classes = [LAMPWAY_OT_providers_open, LAMPWAY_OT_providers_save, LAMPWAY_OT_studio_refresh, LAMPWAY_OT_studio_plan, LAMPWAY_OT_studio_confirm, LAMPWAY_OT_studio_reject, LAMPWAY_OT_studio_import]
