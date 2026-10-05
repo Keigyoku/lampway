@@ -19,7 +19,7 @@ or a deliberate no.
 | Mio3 UV (mio3io) | free (licence not stated on the page) | UV straighten / gridify | Not copied: licence unconfirmed. |
 | img2mat_pro (stevewarner) | GPL-3.0-or-later | Image palette to materials with Pantone callouts | Compatible; not needed by any Mixar feature. Noted for the Titan colour work. |
 | Auto-Rig Pro alternatives page | n/a (article) | Rigify, CloudRig, BlenRig compared | Informational; `auto_rig` stays landmark-based on the UE skeleton. |
-| kimodo-cpp / Kimodo Blender Bridge | open source; model weights gated behind Hugging Face licences | Text-to-motion | Out of scope without a GPU-class model; per the owner's rule a GPU-class model goes through his studio subscriptions, and no studio he holds offers it. Not built. |
+| kimodo-cpp / Kimodo Blender Bridge | open source; model weights gated behind Hugging Face licences | Text-to-motion | Not built: it needs a GPU-class model (about 17 GB VRAM per the page), which the owner's rule routes to his studio subscriptions; I did not check whether Tripo, Meshy or Hi3D offer text-to-motion. |
 | Stefan's LLM wiki workflows | Notes (no code) | Checklists | Built as Client tools: `mesh_prep`, `asset_acceptance`, `rig_armor`; local texture repair is `repair_texture`. Not built: animation-cascadeur-motion, animation-facial-avatar, the coding-* and printing-* workflows, subscription-material-experiment (they are about other tools or about spending credits). |
 
 Network and files read of each audited code base: none was executed. The pages and sources were fetched read-only for the audit;
