@@ -4,10 +4,18 @@
 
 """The sandbox asset allow-list admits our local asset server by default."""
 
+import sys
+from types import ModuleType
+
 import pytest
 
-from mixar.config import brand
-from mixar.modules.space_mixie_chat.core import sandbox_modules
+# The sandbox module's import chain reaches the auth module, which imports the
+# platform keyring; the standalone environment does not install it.
+if "keyring" not in sys.modules:
+    sys.modules["keyring"] = ModuleType("keyring")
+
+from mixar.config import brand  # noqa: E402
+from mixar.modules.space_mixie_chat.core import sandbox_modules  # noqa: E402
 
 
 @pytest.fixture
