@@ -110,11 +110,12 @@ def test_get_node_group_none_for_unknown_id(reg):
     assert reg.get_node_group("unknown") is None
 
 
-def test_get_node_group_runs_the_script_and_returns_the_group(reg):
+def test_get_node_group_runs_the_script_and_returns_the_group(reg, monkeypatch):
     made = {}
     fake_bpy = reg.bpy
     groups = {}
-    fake_bpy.data = types.SimpleNamespace(node_groups=types.SimpleNamespace(get=groups.get))
+    # bpy is the shared mock other test files use: never leave this fake behind
+    monkeypatch.setattr(fake_bpy, "data", types.SimpleNamespace(node_groups=types.SimpleNamespace(get=groups.get)), raising=False)
 
     def build(node_group_name):
         groups[node_group_name] = object()
