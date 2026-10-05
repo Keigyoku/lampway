@@ -474,10 +474,10 @@ msgstr ""
 msgid "Nothing is selected"
 msgstr ""
 
-msgid "Open Mixie"
+msgid "Open Lampway Agent"
 msgstr ""
 
-msgid "Open Mixie, the agent chat, ready to type (Shift M)"
+msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -3080,7 +3080,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Mixie read files in a folder"
+msgid "Let Lampway Agent read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -19092,7 +19092,7 @@ msgstr "Thanh Công Cụ"
 msgid "Sidebar"
 msgstr "Thanh Bên"
 
-msgid "Mixie"
+msgid "Lampway Agent"
 msgstr ""
 
 msgid "UV Mesh Segmentation panel"
@@ -19599,8 +19599,8 @@ msgstr "Gửi tin nhắn thất bại"
 msgid "You're out of credits"
 msgstr "Bạn đã hết tín dụng"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Mixie."
-msgstr "Bạn đã dùng hết hạn mức tín dụng hằng tháng. Hãy nâng cấp gói để tiếp tục sáng tạo với Mixie."
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
+msgstr "Bạn đã dùng hết hạn mức tín dụng hằng tháng. Hãy nâng cấp gói để tiếp tục sáng tạo với Lampway Agent."
 
 msgid "Feedback comment is empty"
 msgstr "Nhận xét phản hồi đang trống"
@@ -20022,8 +20022,8 @@ msgstr "Giữ trường này mở; Esc để hủy."
 msgid "Login"
 msgstr "Đăng Nhập"
 
-msgid "Login panel for Mixie Chat"
-msgstr "Bảng đăng nhập cho Mixie Chat"
+msgid "Login panel for Lampway Chat"
+msgstr "Bảng đăng nhập cho Lampway Chat"
 
 msgid "Session expired"
 msgstr "Phiên đã hết hạn"
@@ -20129,14 +20129,14 @@ msgstr "Phiên đã hết hạn. {reason}"
 msgid "Browser login did not complete. Please try again."
 msgstr "Đăng nhập qua trình duyệt chưa hoàn tất. Hãy thử lại."
 
-msgid "Login to Mixie Chat via browser SSO"
-msgstr "Đăng nhập Mixie Chat qua SSO trên trình duyệt"
+msgid "Login to Lampway Chat via browser SSO"
+msgstr "Đăng nhập Lampway Chat qua SSO trên trình duyệt"
 
 msgid "Login failed"
 msgstr "Đăng nhập thất bại"
 
-msgid "Logout from Mixie Chat"
-msgstr "Đăng xuất khỏi Mixie Chat"
+msgid "Logout from Lampway Chat"
+msgstr "Đăng xuất khỏi Lampway Chat"
 
 msgid "Logged out successfully"
 msgstr "Đã đăng xuất thành công"
@@ -20144,8 +20144,8 @@ msgstr "Đã đăng xuất thành công"
 msgid "Open Dashboard"
 msgstr "Mở Bảng Điều Khiển"
 
-msgid "Open Mixie web dashboard in your browser"
-msgstr "Mở bảng điều khiển web Mixie trong trình duyệt"
+msgid "Open Lampway Agent web dashboard in your browser"
+msgstr "Mở bảng điều khiển web Lampway Agent trong trình duyệt"
 
 msgid "Dashboard opened"
 msgstr "Đã mở bảng điều khiển"
@@ -20822,20 +20822,20 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Mixie Chat"
-msgstr "Gửi tới Mixie Chat"
+msgid "Send to Lampway Chat"
+msgstr "Gửi tới Lampway Chat"
 
-msgid "Open a prompt to send a message to Mixie Chat (Enter to send)"
-msgstr "Mở ô nhập để gửi tin nhắn tới Mixie Chat (Enter để gửi)"
+msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
+msgstr "Mở ô nhập để gửi tin nhắn tới Lampway Chat (Enter để gửi)"
 
-msgid "Message to send to Mixie Chat"
-msgstr "Tin nhắn gửi tới Mixie Chat"
+msgid "Message to send to Lampway Chat"
+msgstr "Tin nhắn gửi tới Lampway Chat"
 
-msgid "Not connected to Mixie Chat"
-msgstr "Chưa kết nối tới Mixie Chat"
+msgid "Not connected to Lampway Chat"
+msgstr "Chưa kết nối tới Lampway Chat"
 
-msgid "Mixie Chat is busy"
-msgstr "Mixie Chat đang bận"
+msgid "Lampway Chat is busy"
+msgstr "Lampway Chat đang bận"
 
 msgid "Mode:"
 msgstr "Chế Độ:"
@@ -20858,11 +20858,11 @@ msgstr "Thông Điệp"
 msgid "Please enter a message"
 msgstr "Hãy nhập tin nhắn"
 
-msgid "Not connected to server. Please connect in Mixie Chat."
-msgstr "Chưa kết nối tới máy chủ. Hãy kết nối trong Mixie Chat."
+msgid "Not connected to server. Please connect in Lampway Chat."
+msgstr "Chưa kết nối tới máy chủ. Hãy kết nối trong Lampway Chat."
 
-msgid "Mixie Chat is not ready to receive messages"
-msgstr "Mixie Chat chưa sẵn sàng nhận tin nhắn"
+msgid "Lampway Chat is not ready to receive messages"
+msgstr "Lampway Chat chưa sẵn sàng nhận tin nhắn"
 
 msgid "Dev Mode: Message sent"
 msgstr "Chế Độ Dev: Đã gửi tin nhắn"
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Thêm Quy Tắc"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "Định nghĩa quy tắc cho Mixie. Thay đổi có hiệu lực từ tin nhắn hoặc câu trả lời tiếp theo; quy tắc toàn cục áp dụng trong mọi tập tin Lampway. Yêu cầu hiện tại được ưu tiên hơn quy tắc dự án và quy tắc toàn cục"
+msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Định nghĩa quy tắc cho Lampway Agent. Thay đổi có hiệu lực từ tin nhắn hoặc câu trả lời tiếp theo; quy tắc toàn cục áp dụng trong mọi tập tin Lampway. Yêu cầu hiện tại được ưu tiên hơn quy tắc dự án và quy tắc toàn cục"
 
 msgid "Rule operation failed"
 msgstr "Thao tác quy tắc thất bại"
@@ -21070,8 +21070,8 @@ msgstr "Không thể xác nhận lệnh Dừng. Hãy kết nối lại và thử
 msgid "Connect"
 msgstr "Kết Nối"
 
-msgid "Connect to the Mixie agent server"
-msgstr "Kết nối tới máy chủ tác nhân Mixie"
+msgid "Connect to the Lampway Agent agent server"
+msgstr "Kết nối tới máy chủ tác nhân Lampway Agent"
 
 msgid "Connecting to server..."
 msgstr "Đang kết nối tới máy chủ..."
@@ -21085,8 +21085,8 @@ msgstr "Chế Độ Dev: Đã kết nối với dữ liệu giả"
 msgid "Disconnect"
 msgstr "Ngắt mạch"
 
-msgid "Disconnect from the Mixie agent server"
-msgstr "Ngắt kết nối khỏi máy chủ tác nhân Mixie"
+msgid "Disconnect from the Lampway Agent agent server"
+msgstr "Ngắt kết nối khỏi máy chủ tác nhân Lampway Agent"
 
 msgid "Dev Mode: Disconnected"
 msgstr "Chế Độ Dev: Đã ngắt kết nối"
@@ -21478,8 +21478,8 @@ msgstr "Nhận xét đã gửi cục bộ, hiển thị chỉ đọc trong cuộ
 msgid "Message not sent"
 msgstr "Chưa gửi tin nhắn"
 
-msgid "Enter a render prompt. Mixie will use the current scene's depth as the guide."
-msgstr "Hãy nhập lời nhắc kết xuất. Mixie sẽ dùng chiều sâu của cảnh hiện tại làm hướng dẫn."
+msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
+msgstr "Hãy nhập lời nhắc kết xuất. Lampway Agent sẽ dùng chiều sâu của cảnh hiện tại làm hướng dẫn."
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr "Hãy nhập lời nhắc và chọn các đối tượng khung lưới trong cổng nhìn 3D trước khi bấm gửi."
@@ -21556,8 +21556,8 @@ msgstr "Chế Độ Tự Động"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "Tác nhân tự quyết định mọi lựa chọn còn mở thay vì hỏi bạn, và liệt kê các quyết định trong phần tóm tắt"
 
-msgid "Mixie Is Busy"
-msgstr "Mixie Đang Bận"
+msgid "Lampway Agent Is Busy"
+msgstr "Lampway Agent Đang Bận"
 
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "Đúng khi tác nhân đang xử lý yêu cầu (trạng thái BUSY)"
@@ -21631,8 +21631,8 @@ msgstr "Claude Haiku 4.0 - Nhanh và hiệu quả"
 msgid "Password"
 msgstr "Mật Khẩu"
 
-msgid "Password for Mixie Chat login"
-msgstr "Mật khẩu để đăng nhập Mixie Chat"
+msgid "Password for Lampway Chat login"
+msgstr "Mật khẩu để đăng nhập Lampway Chat"
 
 msgid "Is Logged In"
 msgstr "Đã Đăng Nhập"
@@ -24448,8 +24448,8 @@ msgstr "Đang Vồ Bắt"
 msgid "NEW"
 msgstr "MỚI"
 
-msgid "Ask Mixie anything..."
-msgstr "Hỏi Mixie bất cứ điều gì..."
+msgid "Ask Lampway Agent anything..."
+msgstr "Hỏi Lampway Agent bất cứ điều gì..."
 
 msgid "Write your prompt here..."
 msgstr "Viết lời nhắc của bạn tại đây..."
@@ -25246,8 +25246,8 @@ msgstr "Vị trí Y của con trỏ"
 msgid "Animate Moodboard Attachment"
 msgstr "Hoạt Họa Tệp Đính Kèm từ Bảng Cảm Hứng"
 
-msgid "Show a newly attached reference flying into Mixie Chat"
-msgstr "Hiển thị tham chiếu vừa đính kèm bay vào khung trò chuyện Mixie"
+msgid "Show a newly attached reference flying into Lampway Chat"
+msgstr "Hiển thị tham chiếu vừa đính kèm bay vào khung trò chuyện Lampway Agent"
 
 msgid "Delay"
 msgstr "Trì Hoãn"
@@ -25759,14 +25759,14 @@ msgstr "Đặt một nút có thể biên soạn tại nơi thả khuôn mẫu"
 msgid "Template to place"
 msgstr "Khuôn mẫu cần đặt"
 
-msgid "Select Mixie3D Preview"
-msgstr "Chọn Bản Xem Trước Mixie3D"
+msgid "Select Lampway Agent3D Preview"
+msgstr "Chọn Bản Xem Trước Lampway Agent3D"
 
 msgid "Select a segmented image from the preview history"
 msgstr "Chọn một hình ảnh đã phân đoạn từ lịch sử xem trước"
 
-msgid "Delete Mixie3D Preview"
-msgstr "Xóa Bản Xem Trước Mixie3D"
+msgid "Delete Lampway Agent3D Preview"
+msgstr "Xóa Bản Xem Trước Lampway Agent3D"
 
 msgid "Delete a segmented image from the preview history"
 msgstr "Xóa một hình ảnh đã phân đoạn khỏi lịch sử xem trước"
@@ -25945,8 +25945,8 @@ msgstr "Dự án này"
 msgid "All projects"
 msgstr "Mọi dự án"
 
-msgid "Add a rule above to guide Mixie."
-msgstr "Thêm một quy tắc ở trên để định hướng Mixie."
+msgid "Add a rule above to guide Lampway Agent."
+msgstr "Thêm một quy tắc ở trên để định hướng Lampway Agent."
 
 msgid "Applies to"
 msgstr "Áp dụng cho"
@@ -26767,14 +26767,14 @@ msgstr "Tính chất tầng lớp của Lampway"
 msgid "Reference image board like PureRef"
 msgstr "Bảng hình ảnh tham chiếu giống PureRef"
 
-msgid "Mixie Space"
-msgstr "Không Gian Mixie"
+msgid "Lampway Agent Space"
+msgstr "Không Gian Lampway Agent"
 
-msgid "Mixie editor for Lampway"
-msgstr "Trình biên soạn Mixie cho Lampway"
+msgid "Lampway Agent editor for Lampway"
+msgstr "Trình biên soạn Lampway Agent cho Lampway"
 
-msgid "Mixie editor mode"
-msgstr "Chế độ trình biên soạn Mixie"
+msgid "Lampway Agent editor mode"
+msgstr "Chế độ trình biên soạn Lampway Agent"
 
 msgid "Agent Bubble Space"
 msgstr "Không Gian Bong Bóng Tác Nhân"
@@ -27469,11 +27469,11 @@ msgstr "Điểm Nhấn Đảo"
 msgid "Agent island accent"
 msgstr "Điểm nhấn đảo tác nhân"
 
-msgid "Theme Mixie Chat"
-msgstr "Kiểu Mẫu Mixie Chat"
+msgid "Theme Lampway Chat"
+msgstr "Kiểu Mẫu Lampway Chat"
 
-msgid "Theme settings for Mixie Chat"
-msgstr "Sắp đặt kiểu mẫu cho Mixie Chat"
+msgid "Theme settings for Lampway Chat"
+msgstr "Sắp đặt kiểu mẫu cho Lampway Chat"
 
 msgid "User Bubble"
 msgstr "Bong Bóng Người Dùng"
@@ -27793,11 +27793,11 @@ msgstr "Độ Đục Nền"
 msgid "Opacity of the window background (lower = more frosted glass)"
 msgstr "Độ đục của nền cửa sổ (càng thấp = càng giống kính mờ)"
 
-msgid "Theme Mixie Space"
-msgstr "Kiểu Mẫu Không Gian Mixie"
+msgid "Theme Lampway Agent Space"
+msgstr "Kiểu Mẫu Không Gian Lampway Agent"
 
-msgid "Theme settings for Mixie/Moodboard space"
-msgstr "Sắp đặt kiểu mẫu cho không gian Mixie/Bảng Cảm Hứng"
+msgid "Theme settings for Lampway Agent/Moodboard space"
+msgstr "Sắp đặt kiểu mẫu cho không gian Lampway Agent/Bảng Cảm Hứng"
 
 msgid "Text Input Background"
 msgstr "Nền Ô Nhập Văn Bản"
@@ -27904,8 +27904,8 @@ msgstr "Độ rộng viền cho các trường nhập văn bản"
 msgid "Corner radius for rounded UI elements"
 msgstr "Bán kính góc bo cho các thành phần giao diện bo tròn"
 
-msgid "Mixie Chat"
-msgstr "Trò Chuyện Mixie"
+msgid "Lampway Chat"
+msgstr "Trò Chuyện Lampway Agent"
 
 msgid "Double-click injection requires event simulation"
 msgstr ""

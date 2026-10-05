@@ -31,14 +31,14 @@ using namespace blender;
 #endif
 #endif
 
-static const char* SERVICE_NAME = "MixarSafeStorage";
+static const char* SERVICE_NAME = "LampwaySafeStorage";
 static const char* ACCOUNT_NAME = "AccessToken";
 static const char* REFRESH_ACCOUNT_NAME = "RefreshToken";
 
 #ifdef _WIN32
 // Use "username@service" format to match Python keyring's compound TargetName format
-static const char* WIN_TARGET_NAME = "AccessToken@MixarSafeStorage";
-static const char* WIN_REFRESH_TARGET_NAME = "RefreshToken@MixarSafeStorage";
+static const char* WIN_TARGET_NAME = "AccessToken@LampwaySafeStorage";
+static const char* WIN_REFRESH_TARGET_NAME = "RefreshToken@LampwaySafeStorage";
 #endif
 
 #ifdef __linux__
@@ -135,7 +135,7 @@ bool store_token_to_keyring(const char* token) {
     gboolean result = secret_password_store_sync(
         &mixar_schema,
         SECRET_COLLECTION_DEFAULT,
-        "MixarSafeStorage Access Token",  // Label shown in secret manager
+        "LampwaySafeStorage Access Token",  // Label shown in secret manager
         token,
         NULL,  // GCancellable
         &error,
@@ -191,7 +191,7 @@ char* get_token_from_keyring() {
     CFDictionarySetValue(query, kSecAttrAccount, account);
     CFDictionarySetValue(query, kSecReturnData, kCFBooleanTrue);
     CFDictionarySetValue(query, kSecMatchLimit, kSecMatchLimitOne);
-    /* Suppress the SecurityAgent "Mixar wants to access your keychain"
+    /* Suppress the SecurityAgent "the app wants to access your keychain"
      * prompt. The previous build's keychain item is ACL-bound to a
      * different code signature / path (especially under App
      * Translocation on first DMG launch from Finder), so without this
@@ -403,7 +403,7 @@ bool store_refresh_token_to_keyring(const char* token) {
     gboolean result = secret_password_store_sync(
         &mixar_schema,
         SECRET_COLLECTION_DEFAULT,
-        "MixarSafeStorage Refresh Token",
+        "LampwaySafeStorage Refresh Token",
         token,
         NULL,
         &error,

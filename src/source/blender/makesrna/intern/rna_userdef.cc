@@ -4559,7 +4559,7 @@ static void rna_def_userdef_theme_space_mixie_chat(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "ThemeMixieChat", nullptr);
   RNA_def_struct_sdna(srna, "ThemeSpace");
-  RNA_def_struct_ui_text(srna, "Theme Mixie Chat", "Theme settings for Mixie Chat");
+  RNA_def_struct_ui_text(srna, "Theme Lampway Chat", "Theme settings for Lampway Chat");
 
   rna_def_userdef_theme_spaces_main(srna);
 
@@ -4975,7 +4975,7 @@ static void rna_def_userdef_theme_space_mixie(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "ThemeSpaceMixie", nullptr);
   RNA_def_struct_sdna(srna, "ThemeSpace");
-  RNA_def_struct_ui_text(srna, "Theme Mixie Space", "Theme settings for Mixie/Moodboard space");
+  RNA_def_struct_ui_text(srna, "Theme Lampway Agent Space", "Theme settings for Lampway/Moodboard space");
 
   rna_def_userdef_theme_spaces_main(srna);
 
@@ -5348,13 +5348,13 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_pointer_sdna(prop, nullptr, "space_mixie_chat");
   RNA_def_property_struct_type(prop, "ThemeMixieChat");
-  RNA_def_property_ui_text(prop, "Mixie Chat", "");
+  RNA_def_property_ui_text(prop, "Lampway Chat", "");
 
   prop = RNA_def_property(srna, "mixie", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_pointer_sdna(prop, nullptr, "space_mixie");
   RNA_def_property_struct_type(prop, "ThemeSpaceMixie");
-  RNA_def_property_ui_text(prop, "Mixie Space", "Theme settings for Mixie/Moodboard space");
+  RNA_def_property_ui_text(prop, "Lampway Agent Space", "Theme settings for Lampway/Moodboard space");
 
   prop = RNA_def_property(srna, "agent_bubble", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);

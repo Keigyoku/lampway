@@ -335,7 +335,7 @@ struct NodeLinkArg {
 static bool node_group_is_mixar_internal(const char *name)
 {
   return strncmp(name, "~yP", 3) == 0 || strncmp(name, "~TL", 3) == 0 ||
-         strncmp(name, "Mixar ", 6) == 0;
+         strncmp(name, "Lampway ", 6) == 0;
 }
 
 static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,

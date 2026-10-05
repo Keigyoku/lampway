@@ -54,8 +54,8 @@ class MixieChatRuleEntry(PropertyGroup):
     )
     is_global: BoolProperty(
         name="Global",
-        description="Global rules apply to every .mixar file "
-                    "(~/.mixar/global_rules.json); others to this file only",
+        description="Global rules apply to every file you open "
+                    "(global_rules.json in your Lampway data folder); others to this file only",
         default=False,
     )
 

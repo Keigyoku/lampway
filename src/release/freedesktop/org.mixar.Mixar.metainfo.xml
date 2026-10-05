@@ -10,21 +10,20 @@
     <id>com.mixar.mixar</id>
     <launchable type="desktop-id">mixar.desktop</launchable>
     <name>Lampway</name>
-    <summary>AI-assisted 3D content creation, a fork of the GPL Mixar client</summary>
+    <summary>AI-assisted 3D content creation on your own models</summary>
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>GPL-3.0-or-later</project_license>
     <description>
         <p>
-            Lampway is a fork of the GPL Mixar client, itself built on
-            Blender. It runs against your own Lampway server and supports
-            the entirety of the 3D pipeline: modeling, rigging, animation,
-            simulation, rendering, compositing, motion tracking and video
-            editing. Lampway is not affiliated with Mixar.
+            Lampway is an AI agent inside a 3D editor. It runs against your own Lampway server and your own model providers.
+        </p>
+        <p>
+            Lampway is an independent open-source project, started from the GPL-licensed Mixar client and built on Blender. Not affiliated with or endorsed by Mixar, Adeveda Enterprises Private Limited or the Blender Foundation.
         </p>
     </description>
-    <url type="homepage">https://lampway.app</url>
+    <url type="homepage">https://lampway.dev</url>
     <url type="bugtracker">https://github.com/Keigyoku/lampway/issues</url>
-    <url type="help">https://lampway.app/docs</url>
+    <url type="help">https://lampway.dev/docs/</url>
     <url type="vcs-browser">https://github.com/Keigyoku/lampway</url>
     <content_rating type="oars-1.1" />
 </component>

@@ -17,6 +17,7 @@ from __future__ import annotations
 import datetime
 import os
 import subprocess
+from mixar.config.paths import app_home
 
 CERT_BASENAME = "mixar_virtual_camera"
 CERT_DAYS = 3650
@@ -26,9 +27,9 @@ def _cache_dir() -> str:
     try:
         import bpy
 
-        base = bpy.utils.user_resource("CONFIG", path="mixar", create=True)
+        base = bpy.utils.user_resource("CONFIG", path="lampway", create=True)
     except Exception:
-        base = os.path.join(os.path.expanduser("~"), ".mixar")
+        base = str(app_home())
         os.makedirs(base, exist_ok=True)
     return base
 

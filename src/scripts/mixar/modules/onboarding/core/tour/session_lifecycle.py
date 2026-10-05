@@ -25,6 +25,7 @@ from mixar.config.logging_config import get_logger
 
 from . import actions, anchors, config
 from .runner import STATUS_ENDED
+from mixar.config.brand import env_get
 
 logger = get_logger(__name__)
 
@@ -62,7 +63,7 @@ def _subtitles_for(language: str, narration: str):
     always`` forces them so QA can screenshot the band, including English."""
     import os
     from . import srt, language as language_mod
-    forced = os.environ.get(config.ENV_SUBTITLES, "").lower() == "always"
+    forced = env_get(config.ENV_SUBTITLES, "").lower() == "always"
     if language_mod.narration_code(language) == narration and not forced:
         return None
     subs = srt.load(language)

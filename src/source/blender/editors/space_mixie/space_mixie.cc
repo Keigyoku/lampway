@@ -219,13 +219,13 @@ static void mixie_main_region_init(wmWindowManager *wm, ARegion *region)
 
   /* Setup keymap */
   wmKeyMap *keymap = WM_keymap_ensure(
-      wm->runtime->defaultconf, "Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+      wm->runtime->defaultconf, "Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
   mixie_operatortypes_keymap(wm->runtime->defaultconf);
   WM_event_add_keymap_handler_poll(
       &region->runtime->handlers, keymap, moodboard_canvas_handler_poll);
 
   /* Add drop boxes for drag-and-drop */
-  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
   WM_event_add_dropbox_handler(static_cast<ListBaseT<wmEventHandler> *>(&region->runtime->handlers),
                                static_cast<ListBaseT<wmDropBox> *>(lb));
 }
@@ -330,7 +330,7 @@ static void mixie_operatortypes()
 
 static void mixie_operatortypes_keymap(wmKeyConfig *keyconf)
 {
-  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
 
   /* Select and move images in moodboard */
   KeyMapItem_Params params{};
@@ -598,7 +598,7 @@ static void mixie_operatortypes_keymap(wmKeyConfig *keyconf)
 static void mixie_keymap(wmKeyConfig *keyconf)
 {
   /* Only declare the keymap - items are added after operators are registered */
-  WM_keymap_ensure(keyconf, "Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+  WM_keymap_ensure(keyconf, "Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
 }
 
 /** \} */
@@ -613,7 +613,7 @@ static void mixie_tools_region_init(wmWindowManager *wm, ARegion *region)
 
   ED_region_panels_init(wm, region);
 
-  keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+  keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 }
 
@@ -650,7 +650,7 @@ static void mixie_footer_region_init(wmWindowManager *wm, ARegion *region)
   wmKeyMap *keymap;
   ED_region_header_init(region);
 
-  keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+  keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler(&region->runtime->handlers, keymap);
 }
 
@@ -699,7 +699,7 @@ void ED_spacetype_mixie()
   ARegionType *art;
 
   st->spaceid = SPACE_MIXIE;
-  STRNCPY_UTF8(st->name, "Mixie");
+  STRNCPY_UTF8(st->name, "Lampway");
   st->iconid = ICON_NONE;
 
   st->create = mixie_create;

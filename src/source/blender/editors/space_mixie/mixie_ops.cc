@@ -89,7 +89,7 @@ static wmOperatorStatus sam3d_preview_select_invoke(bContext *C,
 void MIXIE_OT_sam3d_preview_select(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Select Mixie3D Preview";
+  ot->name = "Select Lampway 3D Preview";
   ot->idname = "MIXIE_OT_sam3d_preview_select";
   ot->description = "Select a segmented image from the preview history";
 
@@ -158,7 +158,7 @@ static wmOperatorStatus sam3d_preview_delete_invoke(bContext *C,
 void MIXIE_OT_sam3d_preview_delete(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Delete Mixie3D Preview";
+  ot->name = "Delete Lampway 3D Preview";
   ot->idname = "MIXIE_OT_sam3d_preview_delete";
   ot->description = "Delete a segmented image from the preview history";
 

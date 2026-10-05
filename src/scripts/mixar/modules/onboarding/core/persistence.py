@@ -24,6 +24,7 @@ import threading
 import bpy
 
 from mixar.config.logging_config import get_logger
+from mixar.config.paths import app_home
 
 logger = get_logger(__name__)
 
@@ -33,16 +34,16 @@ _FILENAME = "onboarding_seen.json"
 
 def _data_dir() -> str:
     """Pick the same per-user data dir other Mixar modules use:
-    ``bpy.utils.user_resource('DATAFILES', path='mixar')`` when
+    ``bpy.utils.user_resource('DATAFILES', path='lampway')`` when
     Blender is available, else fall back to ``~/.mixar``.
     """
     try:
-        path = bpy.utils.user_resource("DATAFILES", path="mixar")
+        path = bpy.utils.user_resource("DATAFILES", path="lampway")
         if path:
             return path
     except Exception:
         pass
-    return os.path.join(os.path.expanduser("~"), ".mixar")
+    return str(app_home())
 
 
 def _seen_path() -> str:

@@ -1130,7 +1130,7 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
                                   nullptr);
 
   CLOG_INFO(
-      &LOG, "Mixar file read in %.0fm%.2fs", duration_whole_minutes, duration_whole_seconds);
+      &LOG, "Lampway file read in %.0fm%.2fs", duration_whole_minutes, duration_whole_seconds);
   CLOG_INFO(&LOG,
             " * Loading libraries: %.0fm%.2fs",
             duration_libraries_minutes,
@@ -1192,9 +1192,9 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
   {
     BKE_reportf(bf_reports->reports,
                 RPT_WARNING,
-                "Proxies have been removed from Mixar (%d proxies were automatically converted "
+                "Proxies have been removed from Lampway (%d proxies were automatically converted "
                 "to library overrides, %d proxies could not be converted and were cleared). "
-                "Consider re-saving any library .mixar file with the newest Mixar version",
+                "Consider re-saving any library .Lampway file with the newest Lampway version",
                 bf_reports->count.proxies_to_lib_overrides_success,
                 bf_reports->count.proxies_to_lib_overrides_failures);
   }
@@ -2326,7 +2326,7 @@ static bool wm_file_write(bContext *C,
 
     if (!BLI_file_is_writable(filepath)) {
       BKE_reportf(
-          reports, RPT_ERROR, "Cannot save mixar file, path \"%s\" is not writable", filepath);
+          reports, RPT_ERROR, "Cannot save Lampway file, path \"%s\" is not writable", filepath);
       ok = false;
     }
     else if (S_ISDIR(st_mode)) {
@@ -2336,7 +2336,7 @@ static bool wm_file_write(bContext *C,
        * the file versioning logic (to create `*.blend1` files)
        * would rename the directory with a `1` suffix, see #134101. */
       BKE_reportf(
-          reports, RPT_ERROR, "Cannot save mixar file, path \"%s\" is a directory", filepath);
+          reports, RPT_ERROR, "Cannot save Lampway file, path \"%s\" is a directory", filepath);
       ok = false;
     }
 
@@ -3012,7 +3012,7 @@ static wmOperatorStatus wm_userpref_read_invoke(bContext *C,
                         IFACE_(display_name));
   }
   else {
-    title = IFACE_("Load Factory Mixar Preferences");
+    title = IFACE_("Load Factory Lampway Preferences");
   }
 
   return WM_operator_confirm_ex(
@@ -3616,7 +3616,7 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
 {
   ot->name = "Open";
   ot->idname = "WM_OT_open_mainfile";
-  ot->description = "Open a Mixar file";
+  ot->description = "Open a Lampway file";
   ot->get_description = wm_open_mainfile_get_description;
 
   ot->invoke = wm_open_mainfile_invoke;
@@ -4504,7 +4504,7 @@ static std::string wm_save_mainfile_get_description(bContext * /*C*/,
 {
   if (RNA_boolean_get(ptr, "incremental")) {
     return TIP_(
-        "Save the current Mixar file with a numerically incremented name that does not "
+        "Save the current Lampway file with a numerically incremented name that does not "
         "overwrite any existing files");
   }
   return "";
@@ -4512,9 +4512,9 @@ static std::string wm_save_mainfile_get_description(bContext * /*C*/,
 
 void WM_OT_save_mainfile(wmOperatorType *ot)
 {
-  ot->name = "Save Mixar File";
+  ot->name = "Save Lampway File";
   ot->idname = "WM_OT_save_mainfile";
-  ot->description = "Save the current Mixar file";
+  ot->description = "Save the current Lampway file";
 
   ot->invoke = wm_save_mainfile_invoke;
   ot->exec = wm_save_as_mainfile_exec;
@@ -4537,14 +4537,14 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
                   "Remap Relative",
                   "Remap relative paths when saving to a different directory");
 
-  prop = RNA_def_boolean(ot->srna, "exit", false, "Exit", "Exit Mixar after saving");
+  prop = RNA_def_boolean(ot->srna, "exit", false, "Exit", "Exit Lampway after saving");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,
                          "incremental",
                          false,
                          "Incremental",
-                         "Save the current Mixar file with a numerically incremented name that "
+                         "Save the current Lampway file with a numerically incremented name that "
                          "does not overwrite any existing files");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
@@ -4928,10 +4928,10 @@ static void file_overwrite_detailed_info_show(ui::Layout &parent_layout, Main *b
     char message_line1[256];
     char message_line2[256];
     SNPRINTF(message_line1,
-             RPT_("This file was saved by a newer version of Mixar (%s)."),
+             RPT_("This file was saved by a newer version of Lampway (%s)."),
              writer_ver_str);
     SNPRINTF(message_line2,
-             RPT_("Saving it with this Mixar (%s) may cause loss of data."),
+             RPT_("Saving it with this Lampway (%s) may cause loss of data."),
              current_ver_str);
     layout.label(message_line1, ICON_NONE);
     layout.label(message_line2, ICON_NONE);
@@ -4942,7 +4942,7 @@ static void file_overwrite_detailed_info_show(ui::Layout &parent_layout, Main *b
       layout.separator(1.4f);
     }
 
-    layout.label(RPT_("This file is managed by the Mixar asset system. It can only be"),
+    layout.label(RPT_("This file is managed by the Lampway asset system. It can only be"),
                  ICON_NONE);
     layout.label(RPT_("saved as a new, regular file."), ICON_NONE);
   }

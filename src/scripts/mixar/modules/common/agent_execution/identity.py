@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from typing import Mapping, Optional
 
 from .request import ExecutionRequest
+from mixar.config.brand import env_get
 
 WORKER_ROLE = "sandbox"
 _SUFFIX = "-sbx"
@@ -52,7 +53,7 @@ class WorkerIdentity:
     parent_instance_id: str
     parent_pid: int = 0
     role: str = WORKER_ROLE
-    # Parent-created artifact staging directory (MIXAR_SANDBOX_STAGING_DIR).
+    # Parent-created artifact staging directory (LAMPWAY_SANDBOX_STAGING_DIR).
     # Local to this machine; never reported upstream.
     staging_dir: str = ""
 
@@ -64,15 +65,15 @@ class WorkerIdentity:
 def worker_identity_from_env(env: Optional[Mapping[str, str]] = None) -> WorkerIdentity:
     """Identity from the launch environment written by ``sandbox_supervisor``."""
     env = os.environ if env is None else env
-    conn_id = env.get("MIXAR_SANDBOX_CONNECTION_ID", "") or ""
-    parent = env.get("MIXAR_SANDBOX_PARENT_INSTANCE_ID", "") or parent_instance_from(conn_id)
+    conn_id = env_get("LAMPWAY_SANDBOX_CONNECTION_ID", "", env) or ""
+    parent = env_get("LAMPWAY_SANDBOX_PARENT_INSTANCE_ID", "", env) or parent_instance_from(conn_id)
     try:
-        pid = int(env.get("MIXAR_SANDBOX_PARENT_PID", "0") or 0)
+        pid = int(env_get("LAMPWAY_SANDBOX_PARENT_PID", "0", env) or 0)
     except ValueError:
         pid = 0
     return WorkerIdentity(
         connection_id=conn_id, parent_instance_id=parent, parent_pid=pid,
-        staging_dir=env.get("MIXAR_SANDBOX_STAGING_DIR", "") or "",
+        staging_dir=env_get("LAMPWAY_SANDBOX_STAGING_DIR", "", env) or "",
     )
 
 

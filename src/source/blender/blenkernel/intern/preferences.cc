@@ -188,7 +188,7 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
 
   /* Add new "Default" library under '[doc_path]/Blender/Assets'. */
   BLI_path_join(
-      library->dirpath, sizeof(library->dirpath), documents_path, N_("Mixar"), N_("Assets"));
+      library->dirpath, sizeof(library->dirpath), documents_path, N_("Lampway"), N_("Assets"));
 }
 
 bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,

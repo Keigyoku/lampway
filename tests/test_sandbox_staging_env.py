@@ -43,9 +43,9 @@ def test_spawn_passes_staging_dir_created_by_parent(tmp_path, monkeypatch):
                         MagicMock(get_server_url=lambda: "http://b"))
     out = sup.spawn_sandbox("inst-sbx-0", parent_instance_id="inst")
     assert out["success"]
-    staging_dir = captured["env"]["MIXAR_SANDBOX_STAGING_DIR"]
+    staging_dir = captured["env"]["LAMPWAY_SANDBOX_STAGING_DIR"]
     assert staging_dir == paths.staging_dir("inst") and os.path.isdir(staging_dir)
-    assert captured["env"]["MIXAR_SANDBOX_PARENT_INSTANCE_ID"] == "inst"
+    assert captured["env"]["LAMPWAY_SANDBOX_PARENT_INSTANCE_ID"] == "inst"
 
 
 def test_identity_reads_staging_dir_and_staging_root_validates(tmp_path, monkeypatch):

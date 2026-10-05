@@ -474,10 +474,10 @@ msgstr ""
 msgid "Nothing is selected"
 msgstr ""
 
-msgid "Open Mixie"
+msgid "Open Lampway Agent"
 msgstr ""
 
-msgid "Open Mixie, the agent chat, ready to type (Shift M)"
+msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -3080,7 +3080,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Mixie read files in a folder"
+msgid "Let Lampway Agent read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -19092,7 +19092,7 @@ msgstr "Barre d’outils"
 msgid "Sidebar"
 msgstr "Barre latérale"
 
-msgid "Mixie"
+msgid "Lampway Agent"
 msgstr ""
 
 msgid "UV Mesh Segmentation panel"
@@ -19599,8 +19599,8 @@ msgstr "Échec de l’envoi du message"
 msgid "You're out of credits"
 msgstr "Vous n’avez plus de crédits"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Mixie."
-msgstr "Vous avez utilisé votre quota mensuel de crédits. Passez à une offre supérieure pour continuer à créer avec Mixie."
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
+msgstr "Vous avez utilisé votre quota mensuel de crédits. Passez à une offre supérieure pour continuer à créer avec Lampway Agent."
 
 msgid "Feedback comment is empty"
 msgstr "Le commentaire est vide"
@@ -20022,8 +20022,8 @@ msgstr "Gardez ce champ ouvert ; Esc annule."
 msgid "Login"
 msgstr "Connexion"
 
-msgid "Login panel for Mixie Chat"
-msgstr "Panneau de connexion de Mixie Chat"
+msgid "Login panel for Lampway Chat"
+msgstr "Panneau de connexion de Lampway Chat"
 
 msgid "Session expired"
 msgstr "Session expirée"
@@ -20129,14 +20129,14 @@ msgstr "Session expirée. {reason}"
 msgid "Browser login did not complete. Please try again."
 msgstr "La connexion via le navigateur n’a pas abouti. Veuillez réessayer."
 
-msgid "Login to Mixie Chat via browser SSO"
-msgstr "Se connecter à Mixie Chat via le SSO du navigateur"
+msgid "Login to Lampway Chat via browser SSO"
+msgstr "Se connecter à Lampway Chat via le SSO du navigateur"
 
 msgid "Login failed"
 msgstr "Échec de la connexion"
 
-msgid "Logout from Mixie Chat"
-msgstr "Se déconnecter de Mixie Chat"
+msgid "Logout from Lampway Chat"
+msgstr "Se déconnecter de Lampway Chat"
 
 msgid "Logged out successfully"
 msgstr "Déconnexion réussie"
@@ -20144,8 +20144,8 @@ msgstr "Déconnexion réussie"
 msgid "Open Dashboard"
 msgstr "Ouvrir le tableau de bord"
 
-msgid "Open Mixie web dashboard in your browser"
-msgstr "Ouvrir le tableau de bord web de Mixie dans votre navigateur"
+msgid "Open Lampway Agent web dashboard in your browser"
+msgstr "Ouvrir le tableau de bord web de Lampway Agent dans votre navigateur"
 
 msgid "Dashboard opened"
 msgstr "Tableau de bord ouvert"
@@ -20822,20 +20822,20 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Mixie Chat"
-msgstr "Envoyer à Mixie Chat"
+msgid "Send to Lampway Chat"
+msgstr "Envoyer à Lampway Chat"
 
-msgid "Open a prompt to send a message to Mixie Chat (Enter to send)"
-msgstr "Ouvrir une fenêtre de saisie pour envoyer un message à Mixie Chat (Enter pour envoyer)"
+msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
+msgstr "Ouvrir une fenêtre de saisie pour envoyer un message à Lampway Chat (Enter pour envoyer)"
 
-msgid "Message to send to Mixie Chat"
-msgstr "Message à envoyer à Mixie Chat"
+msgid "Message to send to Lampway Chat"
+msgstr "Message à envoyer à Lampway Chat"
 
-msgid "Not connected to Mixie Chat"
-msgstr "Non connecté à Mixie Chat"
+msgid "Not connected to Lampway Chat"
+msgstr "Non connecté à Lampway Chat"
 
-msgid "Mixie Chat is busy"
-msgstr "Mixie Chat est occupé"
+msgid "Lampway Chat is busy"
+msgstr "Lampway Chat est occupé"
 
 msgid "Mode:"
 msgstr "Mode :"
@@ -20858,11 +20858,11 @@ msgstr "Message"
 msgid "Please enter a message"
 msgstr "Veuillez saisir un message"
 
-msgid "Not connected to server. Please connect in Mixie Chat."
-msgstr "Non connecté au serveur. Veuillez vous connecter dans Mixie Chat."
+msgid "Not connected to server. Please connect in Lampway Chat."
+msgstr "Non connecté au serveur. Veuillez vous connecter dans Lampway Chat."
 
-msgid "Mixie Chat is not ready to receive messages"
-msgstr "Mixie Chat n’est pas prêt à recevoir des messages"
+msgid "Lampway Chat is not ready to receive messages"
+msgstr "Lampway Chat n’est pas prêt à recevoir des messages"
 
 msgid "Dev Mode: Message sent"
 msgstr "Mode dev : message envoyé"
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Ajouter des règles"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "Définir des règles pour Mixie. Les modifications s’appliquent à votre prochain message ou réponse ; les règles globales s’appliquent dans chaque fichier Lampway. Votre demande en cours est prioritaire sur les règles du projet et les règles globales"
+msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Définir des règles pour Lampway Agent. Les modifications s’appliquent à votre prochain message ou réponse ; les règles globales s’appliquent dans chaque fichier Lampway. Votre demande en cours est prioritaire sur les règles du projet et les règles globales"
 
 msgid "Rule operation failed"
 msgstr "Échec de l’opération sur la règle"
@@ -21070,8 +21070,8 @@ msgstr "L’arrêt n’a pas pu être confirmé. Reconnectez-vous et réessayez 
 msgid "Connect"
 msgstr "Connecter"
 
-msgid "Connect to the Mixie agent server"
-msgstr "Se connecter au serveur de l’agent Mixie"
+msgid "Connect to the Lampway Agent agent server"
+msgstr "Se connecter au serveur de l’agent Lampway Agent"
 
 msgid "Connecting to server..."
 msgstr "Connexion au serveur..."
@@ -21085,8 +21085,8 @@ msgstr "Mode dev : connecté avec des données factices"
 msgid "Disconnect"
 msgstr "Déconnecter"
 
-msgid "Disconnect from the Mixie agent server"
-msgstr "Se déconnecter du serveur de l’agent Mixie"
+msgid "Disconnect from the Lampway Agent agent server"
+msgstr "Se déconnecter du serveur de l’agent Lampway Agent"
 
 msgid "Dev Mode: Disconnected"
 msgstr "Mode dev : déconnecté"
@@ -21478,8 +21478,8 @@ msgstr "Commentaire envoyé localement, affiché en lecture seule dans la discus
 msgid "Message not sent"
 msgstr "Message non envoyé"
 
-msgid "Enter a render prompt. Mixie will use the current scene's depth as the guide."
-msgstr "Saisissez un prompt de rendu. Mixie utilisera la profondeur de la scène actuelle comme guide."
+msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
+msgstr "Saisissez un prompt de rendu. Lampway Agent utilisera la profondeur de la scène actuelle comme guide."
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr "Veuillez saisir votre prompt et sélectionner les objets maillage dans la vue 3D avant d’envoyer."
@@ -21556,8 +21556,8 @@ msgstr "Mode Auto"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "L’agent tranche lui-même chaque choix en suspens au lieu de vous le demander, et liste ses décisions dans le résumé"
 
-msgid "Mixie Is Busy"
-msgstr "Mixie est occupé"
+msgid "Lampway Agent Is Busy"
+msgstr "Lampway Agent est occupé"
 
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "Vrai lorsque l’agent traite une requête (état BUSY)"
@@ -21631,8 +21631,8 @@ msgstr "Claude Haiku 4.0 - Rapide et efficace"
 msgid "Password"
 msgstr "Mot de passe"
 
-msgid "Password for Mixie Chat login"
-msgstr "Mot de passe pour la connexion à Mixie Chat"
+msgid "Password for Lampway Chat login"
+msgstr "Mot de passe pour la connexion à Lampway Chat"
 
 msgid "Is Logged In"
 msgstr "Connecté"
@@ -24448,8 +24448,8 @@ msgstr "Chasse"
 msgid "NEW"
 msgstr "NOUVEAU"
 
-msgid "Ask Mixie anything..."
-msgstr "Demandez n’importe quoi à Mixie..."
+msgid "Ask Lampway Agent anything..."
+msgstr "Demandez n’importe quoi à Lampway Agent..."
 
 msgid "Write your prompt here..."
 msgstr "Écrivez votre prompt ici..."
@@ -25246,8 +25246,8 @@ msgstr "Position Y du curseur"
 msgid "Animate Moodboard Attachment"
 msgstr "Animer la pièce jointe du moodboard"
 
-msgid "Show a newly attached reference flying into Mixie Chat"
-msgstr "Montrer une référence nouvellement jointe s’envolant vers Mixie Chat"
+msgid "Show a newly attached reference flying into Lampway Chat"
+msgstr "Montrer une référence nouvellement jointe s’envolant vers Lampway Chat"
 
 msgid "Delay"
 msgstr "Délai"
@@ -25759,14 +25759,14 @@ msgstr "Placer un nœud modifiable là où le modèle est déposé"
 msgid "Template to place"
 msgstr "Modèle à placer"
 
-msgid "Select Mixie3D Preview"
-msgstr "Sélectionner l’aperçu Mixie3D"
+msgid "Select Lampway Agent3D Preview"
+msgstr "Sélectionner l’aperçu Lampway Agent3D"
 
 msgid "Select a segmented image from the preview history"
 msgstr "Sélectionner une image segmentée dans l’historique des aperçus"
 
-msgid "Delete Mixie3D Preview"
-msgstr "Supprimer l’aperçu Mixie3D"
+msgid "Delete Lampway Agent3D Preview"
+msgstr "Supprimer l’aperçu Lampway Agent3D"
 
 msgid "Delete a segmented image from the preview history"
 msgstr "Supprimer une image segmentée de l’historique des aperçus"
@@ -25945,8 +25945,8 @@ msgstr "Ce projet"
 msgid "All projects"
 msgstr "Tous les projets"
 
-msgid "Add a rule above to guide Mixie."
-msgstr "Ajoutez une règle ci-dessus pour guider Mixie."
+msgid "Add a rule above to guide Lampway Agent."
+msgstr "Ajoutez une règle ci-dessus pour guider Lampway Agent."
 
 msgid "Applies to"
 msgstr "S’applique à"
@@ -26767,14 +26767,14 @@ msgstr "Propriétés des calques Lampway"
 msgid "Reference image board like PureRef"
 msgstr "Planche d’images de référence comme PureRef"
 
-msgid "Mixie Space"
-msgstr "Espace Mixie"
+msgid "Lampway Agent Space"
+msgstr "Espace Lampway Agent"
 
-msgid "Mixie editor for Lampway"
-msgstr "Éditeur Mixie pour Lampway"
+msgid "Lampway Agent editor for Lampway"
+msgstr "Éditeur Lampway Agent pour Lampway"
 
-msgid "Mixie editor mode"
-msgstr "Mode de l’éditeur Mixie"
+msgid "Lampway Agent editor mode"
+msgstr "Mode de l’éditeur Lampway Agent"
 
 msgid "Agent Bubble Space"
 msgstr "Espace de la bulle de l’agent"
@@ -27469,11 +27469,11 @@ msgstr "Accent de l’îlot"
 msgid "Agent island accent"
 msgstr "Accent de l’îlot de l’agent"
 
-msgid "Theme Mixie Chat"
-msgstr "Thème Mixie Chat"
+msgid "Theme Lampway Chat"
+msgstr "Thème Lampway Chat"
 
-msgid "Theme settings for Mixie Chat"
-msgstr "Réglages du thème de Mixie Chat"
+msgid "Theme settings for Lampway Chat"
+msgstr "Réglages du thème de Lampway Chat"
 
 msgid "User Bubble"
 msgstr "Bulle de l’utilisateur"
@@ -27793,11 +27793,11 @@ msgstr "Opacité de l’arrière-plan"
 msgid "Opacity of the window background (lower = more frosted glass)"
 msgstr "Opacité de l’arrière-plan de la fenêtre (plus bas = effet verre dépoli plus marqué)"
 
-msgid "Theme Mixie Space"
-msgstr "Thème de l’espace Mixie"
+msgid "Theme Lampway Agent Space"
+msgstr "Thème de l’espace Lampway Agent"
 
-msgid "Theme settings for Mixie/Moodboard space"
-msgstr "Réglages du thème de l’espace Mixie/moodboard"
+msgid "Theme settings for Lampway Agent/Moodboard space"
+msgstr "Réglages du thème de l’espace Lampway Agent/moodboard"
 
 msgid "Text Input Background"
 msgstr "Arrière-plan des saisies de texte"
@@ -27904,7 +27904,7 @@ msgstr "Épaisseur de bordure des champs de saisie de texte"
 msgid "Corner radius for rounded UI elements"
 msgstr "Rayon des coins des éléments d’interface arrondis"
 
-msgid "Mixie Chat"
+msgid "Lampway Chat"
 msgstr ""
 
 msgid "Double-click injection requires event simulation"

@@ -216,7 +216,7 @@ struct GenItem {
 
 /** The auto-archive library's name — must match
  * `asset_search/constants.py:GENERATION_LIBRARY_NAME`. */
-#define GENERATIONS_LIBRARY_NAME "Mixar Generations"
+#define GENERATIONS_LIBRARY_NAME "Lampway Generations"
 
 /** Everything the pane needs, gathered once per draw before painting. */
 struct GenPaneData {

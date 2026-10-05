@@ -236,7 +236,7 @@ def test_video_generation_streams_selected_movies_and_imports_the_result():
     assert "stage_media(" in queue_job
     assert "reference_video_s3_keys" in queue_job
     assert "b64" not in queue_job[queue_job.index("class StreamingVideoJob"):]
-    assert "mixar/generated_videos" in media_import
+    assert "lampway/generated_videos" in media_import
     assert "place_new_moodboard_item" in media_import
 
 

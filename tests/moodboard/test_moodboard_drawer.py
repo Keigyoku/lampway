@@ -132,7 +132,7 @@ def test_drawer_region_hosts_mixie_and_view2d_behind_an_open_poll():
         _strip_comments(_read(VIEW3D / "view3d_moodboard_drawer.cc")),
         "void view3d_moodboard_drawer_region_init(",
     )
-    assert '"Mixie"' in body and "SPACE_MIXIE" in body
+    assert '"Lampway"' in body and "SPACE_MIXIE" in body
     assert '"View2D"' in body
     assert "view3d_moodboard_drawer_canvas_handler_poll" in body
     assert "WM_dropboxmap_find" in body
@@ -333,7 +333,7 @@ def test_reference_drop_handler_precedes_native_image_empty_import():
     """WM_event_add_dropbox_handler prepends, so Mixie must be added last."""
     source = _strip_comments(_read(VIEW3D / "space_view3d.cc"))
     body = _fn(source, "static void view3d_main_region_init(")
-    assert body.index('WM_dropboxmap_find("View3D"') < body.index('WM_dropboxmap_find("Mixie"')
+    assert body.index('WM_dropboxmap_find("View3D"') < body.index('WM_dropboxmap_find("Lampway"')
 
 
 def test_file_and_image_id_drop_payloads_cannot_contaminate_one_another():

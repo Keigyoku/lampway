@@ -61,12 +61,12 @@ def _data_dir() -> str:
         try:
             import bpy
 
-            path = bpy.utils.user_resource("DATAFILES", path="mixar")
+            path = bpy.utils.user_resource("DATAFILES", path="lampway")
         except Exception:  # noqa: BLE001 — headless/early import
             path = None
-        _resolved_data_dir = path or os.path.join(
-            os.path.expanduser("~"), ".mixar"
-        )
+        from mixar.config.paths import app_home
+
+        _resolved_data_dir = path or str(app_home())
     return _resolved_data_dir
 
 

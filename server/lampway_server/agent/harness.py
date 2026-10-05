@@ -26,8 +26,10 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Optional
 
+from ..brand import AGENT_COLLECTION
+
 PROTOCOL_VERSION = "v3"
-TARGET_COLLECTION = "Mixie Agent"
+TARGET_COLLECTION = AGENT_COLLECTION
 WORKER_SUFFIX = "-sbx-"
 SPAWN_TIMEOUT_S = 90.0
 CONNECT_TIMEOUT_S = 90.0

@@ -1,3 +1,4 @@
+from mixar.config.brand import env_get
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -32,10 +33,10 @@ SUPPORT_CODES = {
 # --- Mixar-specific configuration surface -----------------------------------
 # Environment variables win over mixar.json so MDM / login scripts can set
 # them fleet-wide without editing the install.
-ENV_CA_BUNDLE = "MIXAR_CA_BUNDLE"
-ENV_EXTRA_CA_CERTS = "MIXAR_EXTRA_CA_CERTS"
-ENV_PROXY_URL = "MIXAR_PROXY_URL"
-ENV_NO_PROXY = "MIXAR_NO_PROXY"
+ENV_CA_BUNDLE = "LAMPWAY_CA_BUNDLE"
+ENV_EXTRA_CA_CERTS = "LAMPWAY_EXTRA_CA_CERTS"
+ENV_PROXY_URL = "LAMPWAY_PROXY_URL"
+ENV_NO_PROXY = "LAMPWAY_NO_PROXY"
 
 CONFIG_SECTION = "network"
 CONFIG_CA_BUNDLE = "ca_bundle"
@@ -71,14 +72,14 @@ LOOPBACK_NO_PROXY = ("localhost", "127.0.0.1", "::1")
 # PEM and DER encodings are both accepted, whatever the extension says.
 CERT_FILE_EXTENSIONS = (".pem", ".crt", ".cer", ".der")
 # Per-user drop folder, relative to Blender's user CONFIG resource (the same
-# parent as the ``mixar.json`` overlay): ``<user config>/mixar/certs``.
-USER_CERTS_SUBDIR = "mixar"
+# parent as the ``mixar.json`` overlay): ``<user config>/lampway/certs``.
+USER_CERTS_SUBDIR = "lampway"
 USER_CERTS_DIRNAME = "certs"
 # Machine-wide drop folders an MDM profile or login script can populate
 # without touching any user account. Windows resolves ``%ProgramData%``.
-MACHINE_CERTS_DIRS_DARWIN = ("/Library/Application Support/Mixar/certs",)
-MACHINE_CERTS_DIRS_WINDOWS_SUBPATH = ("Mixar", "certs")
-MACHINE_CERTS_DIRS_LINUX = ("/etc/mixar/certs",)
+MACHINE_CERTS_DIRS_DARWIN = ("/Library/Application Support/Lampway/certs",)
+MACHINE_CERTS_DIRS_WINDOWS_SUBPATH = ("Lampway", "certs")
+MACHINE_CERTS_DIRS_LINUX = ("/etc/lampway/certs",)
 
 # --- Trust modes (reported in logs and diagnostics) ---------------------------
 TRUST_MODE_OS = "os-trust-store"

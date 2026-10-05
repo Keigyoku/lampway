@@ -474,10 +474,10 @@ msgstr ""
 msgid "Nothing is selected"
 msgstr ""
 
-msgid "Open Mixie"
+msgid "Open Lampway Agent"
 msgstr ""
 
-msgid "Open Mixie, the agent chat, ready to type (Shift M)"
+msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -1890,10 +1890,10 @@ msgid "Dialog State"
 msgstr "ダイアログの状態"
 
 msgid "Set Lampway Agent Mode"
-msgstr "Mixieモードを設定"
+msgstr "Lampway Agentモードを設定"
 
 msgid "Switch to a specific Lampway Agent mode"
-msgstr "特定のMixieモードに切り替えます"
+msgstr "特定のLampway Agentモードに切り替えます"
 
 msgid "Mode"
 msgstr "モード"
@@ -3080,7 +3080,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Mixie read files in a folder"
+msgid "Let Lampway Agent read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -7790,25 +7790,25 @@ msgid "Error message if job failed"
 msgstr "ジョブが失敗した場合のエラーメッセージ"
 
 msgid "Lampway Agent Moodboard Images"
-msgstr "Mixieムードボード画像"
+msgstr "Lampway Agentムードボード画像"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "ムードボードモードの参照画像のコレクション"
 
 msgid "Lampway Agent Moodboard Text Boxes"
-msgstr "Mixieムードボードテキストボックス"
+msgstr "Lampway Agentムードボードテキストボックス"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "ムードボードモードのテキストボックスのコレクション"
 
 msgid "Lampway Agent Moodboard Frames"
-msgstr "Mixieムードボードフレーム"
+msgstr "Lampway Agentムードボードフレーム"
 
 msgid "Canvas frames grouping board items"
 msgstr "ボードの項目をまとめるキャンバスフレーム"
 
 msgid "Lampway Agent Moodboard Groups (legacy)"
-msgstr "Mixieムードボードグループ（レガシー）"
+msgstr "Lampway Agentムードボードグループ（レガシー）"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "mixie_moodboard_frames に置き換えられました。移行のために保持されています"
@@ -19096,7 +19096,7 @@ msgstr "ツールバー"
 msgid "Sidebar"
 msgstr "サイドバー"
 
-msgid "Mixie"
+msgid "Lampway Agent"
 msgstr ""
 
 msgid "UV Mesh Segmentation panel"
@@ -19603,8 +19603,8 @@ msgstr "メッセージを送信できませんでした"
 msgid "You're out of credits"
 msgstr "クレジットが不足しています"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Mixie."
-msgstr "今月のクレジット上限に達しました。Mixie で制作を続けるには、プランをアップグレードしてください。"
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
+msgstr "今月のクレジット上限に達しました。Lampway Agent で制作を続けるには、プランをアップグレードしてください。"
 
 msgid "Feedback comment is empty"
 msgstr "フィードバックのコメントが空です"
@@ -20026,8 +20026,8 @@ msgstr "このフィールドを開いたままにしてください。Esc で�
 msgid "Login"
 msgstr "ログイン"
 
-msgid "Login panel for Mixie Chat"
-msgstr "Mixie Chat のログインパネル"
+msgid "Login panel for Lampway Chat"
+msgstr "Lampway Chat のログインパネル"
 
 msgid "Session expired"
 msgstr "セッションの有効期限が切れました"
@@ -20133,14 +20133,14 @@ msgstr "セッションの有効期限が切れました。{reason}"
 msgid "Browser login did not complete. Please try again."
 msgstr "ブラウザーでのログインが完了しませんでした。もう一度お試しください。"
 
-msgid "Login to Mixie Chat via browser SSO"
-msgstr "ブラウザー SSO で Mixie Chat にログインします"
+msgid "Login to Lampway Chat via browser SSO"
+msgstr "ブラウザー SSO で Lampway Chat にログインします"
 
 msgid "Login failed"
 msgstr "ログインに失敗しました"
 
-msgid "Logout from Mixie Chat"
-msgstr "Mixie Chat からログアウトします"
+msgid "Logout from Lampway Chat"
+msgstr "Lampway Chat からログアウトします"
 
 msgid "Logged out successfully"
 msgstr "ログアウトしました"
@@ -20148,8 +20148,8 @@ msgstr "ログアウトしました"
 msgid "Open Dashboard"
 msgstr "ダッシュボードを開く"
 
-msgid "Open Mixie web dashboard in your browser"
-msgstr "ブラウザーで Mixie の Web ダッシュボードを開きます"
+msgid "Open Lampway Agent web dashboard in your browser"
+msgstr "ブラウザーで Lampway Agent の Web ダッシュボードを開きます"
 
 msgid "Dashboard opened"
 msgstr "ダッシュボードを開きました"
@@ -20826,20 +20826,20 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Mixie Chat"
-msgstr "Mixie Chat に送信"
+msgid "Send to Lampway Chat"
+msgstr "Lampway Chat に送信"
 
-msgid "Open a prompt to send a message to Mixie Chat (Enter to send)"
-msgstr "Mixie Chat にメッセージを送信するプロンプトを開きます（Enter で送信）"
+msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
+msgstr "Lampway Chat にメッセージを送信するプロンプトを開きます（Enter で送信）"
 
-msgid "Message to send to Mixie Chat"
-msgstr "Mixie Chat に送信するメッセージ"
+msgid "Message to send to Lampway Chat"
+msgstr "Lampway Chat に送信するメッセージ"
 
-msgid "Not connected to Mixie Chat"
-msgstr "Mixie Chat に接続されていません"
+msgid "Not connected to Lampway Chat"
+msgstr "Lampway Chat に接続されていません"
 
-msgid "Mixie Chat is busy"
-msgstr "Mixie Chat は処理中です"
+msgid "Lampway Chat is busy"
+msgstr "Lampway Chat は処理中です"
 
 msgid "Mode:"
 msgstr "モード:"
@@ -20862,11 +20862,11 @@ msgstr "メッセージ"
 msgid "Please enter a message"
 msgstr "メッセージを入力してください"
 
-msgid "Not connected to server. Please connect in Mixie Chat."
-msgstr "サーバーに接続されていません。Mixie Chat で接続してください。"
+msgid "Not connected to server. Please connect in Lampway Chat."
+msgstr "サーバーに接続されていません。Lampway Chat で接続してください。"
 
-msgid "Mixie Chat is not ready to receive messages"
-msgstr "Mixie Chat はメッセージを受信する準備ができていません"
+msgid "Lampway Chat is not ready to receive messages"
+msgstr "Lampway Chat はメッセージを受信する準備ができていません"
 
 msgid "Dev Mode: Message sent"
 msgstr "開発モード: メッセージを送信しました"
@@ -20886,8 +20886,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "ルールを追加"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "Mixie のルールを定義します。変更は次のメッセージまたは回答から適用され、グローバルルールはすべての Lampway ファイルに適用されます。現在のリクエストはプロジェクトルールとグローバルルールより優先されます"
+msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Lampway Agent のルールを定義します。変更は次のメッセージまたは回答から適用され、グローバルルールはすべての Lampway ファイルに適用されます。現在のリクエストはプロジェクトルールとグローバルルールより優先されます"
 
 msgid "Rule operation failed"
 msgstr "ルールの操作に失敗しました"
@@ -21074,8 +21074,8 @@ msgstr "停止を確認できませんでした。再接続して、もう一度
 msgid "Connect"
 msgstr "接続"
 
-msgid "Connect to the Mixie agent server"
-msgstr "Mixie エージェントサーバーに接続します"
+msgid "Connect to the Lampway Agent agent server"
+msgstr "Lampway Agent エージェントサーバーに接続します"
 
 msgid "Connecting to server..."
 msgstr "サーバーに接続中..."
@@ -21089,8 +21089,8 @@ msgstr "開発モード: ダミーデータで接続しました"
 msgid "Disconnect"
 msgstr "リンク解除"
 
-msgid "Disconnect from the Mixie agent server"
-msgstr "Mixie エージェントサーバーから切断します"
+msgid "Disconnect from the Lampway Agent agent server"
+msgstr "Lampway Agent エージェントサーバーから切断します"
 
 msgid "Dev Mode: Disconnected"
 msgstr "開発モード: 切断しました"
@@ -21482,8 +21482,8 @@ msgstr "ローカルで送信したコメント。チャットに読み取り専
 msgid "Message not sent"
 msgstr "メッセージは送信されていません"
 
-msgid "Enter a render prompt. Mixie will use the current scene's depth as the guide."
-msgstr "レンダーのプロンプトを入力してください。Mixie は現在のシーンの深度をガイドとして使用します。"
+msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
+msgstr "レンダーのプロンプトを入力してください。Lampway Agent は現在のシーンの深度をガイドとして使用します。"
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr "送信する前に、プロンプトを入力し、3Dビューポートでメッシュオブジェクトを選択してください。"
@@ -21560,8 +21560,8 @@ msgstr "自動モード"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "エージェントがユーザーに確認せず、未決定の選択をすべて自ら判断し、その判断を概要に一覧表示します"
 
-msgid "Mixie Is Busy"
-msgstr "Mixie 処理中"
+msgid "Lampway Agent Is Busy"
+msgstr "Lampway Agent 処理中"
 
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "エージェントがリクエストを処理中（BUSY 状態）の場合は True"
@@ -21635,8 +21635,8 @@ msgstr "Claude Haiku 4.0 - 高速かつ効率的"
 msgid "Password"
 msgstr "パスワード"
 
-msgid "Password for Mixie Chat login"
-msgstr "Mixie Chat ログイン用のパスワード"
+msgid "Password for Lampway Chat login"
+msgstr "Lampway Chat ログイン用のパスワード"
 
 msgid "Is Logged In"
 msgstr "ログイン済み"
@@ -24452,8 +24452,8 @@ msgstr "キャッチ中"
 msgid "NEW"
 msgstr "新着"
 
-msgid "Ask Mixie anything..."
-msgstr "Mixieに何でも聞いてください..."
+msgid "Ask Lampway Agent anything..."
+msgstr "Lampway Agentに何でも聞いてください..."
 
 msgid "Write your prompt here..."
 msgstr "ここにプロンプトを入力..."
@@ -25250,8 +25250,8 @@ msgstr "カーソルのY位置"
 msgid "Animate Moodboard Attachment"
 msgstr "ムードボード添付をアニメーション"
 
-msgid "Show a newly attached reference flying into Mixie Chat"
-msgstr "新たに添付した参照がMixieチャットへ飛んでいく様子を表示します"
+msgid "Show a newly attached reference flying into Lampway Chat"
+msgstr "新たに添付した参照がLampway Agentチャットへ飛んでいく様子を表示します"
 
 msgid "Delay"
 msgstr "ディレイ"
@@ -25763,14 +25763,14 @@ msgstr "テンプレートをドロップした位置に編集可能なノード
 msgid "Template to place"
 msgstr "配置するテンプレート"
 
-msgid "Select Mixie3D Preview"
-msgstr "Mixie3Dプレビューを選択"
+msgid "Select Lampway Agent3D Preview"
+msgstr "Lampway Agent3Dプレビューを選択"
 
 msgid "Select a segmented image from the preview history"
 msgstr "プレビュー履歴からセグメント化した画像を選択します"
 
-msgid "Delete Mixie3D Preview"
-msgstr "Mixie3Dプレビューを削除"
+msgid "Delete Lampway Agent3D Preview"
+msgstr "Lampway Agent3Dプレビューを削除"
 
 msgid "Delete a segmented image from the preview history"
 msgstr "プレビュー履歴からセグメント化した画像を削除します"
@@ -25949,8 +25949,8 @@ msgstr "このプロジェクト"
 msgid "All projects"
 msgstr "すべてのプロジェクト"
 
-msgid "Add a rule above to guide Mixie."
-msgstr "上でルールを追加して、Mixieの動作を指示しましょう。"
+msgid "Add a rule above to guide Lampway Agent."
+msgstr "上でルールを追加して、Lampway Agentの動作を指示しましょう。"
 
 msgid "Applies to"
 msgstr "適用先"
@@ -26771,14 +26771,14 @@ msgstr "Mixarレイヤープロパティ"
 msgid "Reference image board like PureRef"
 msgstr "PureRefのような参照画像ボード"
 
-msgid "Mixie Space"
-msgstr "Mixieスペース"
+msgid "Lampway Agent Space"
+msgstr "Lampway Agentスペース"
 
-msgid "Mixie editor for Lampway"
-msgstr "Mixar用のMixieエディター"
+msgid "Lampway Agent editor for Lampway"
+msgstr "Mixar用のLampway Agentエディター"
 
-msgid "Mixie editor mode"
-msgstr "Mixieエディターモード"
+msgid "Lampway Agent editor mode"
+msgstr "Lampway Agentエディターモード"
 
 msgid "Agent Bubble Space"
 msgstr "エージェントバブルスペース"
@@ -27473,11 +27473,11 @@ msgstr "アイランドのアクセント"
 msgid "Agent island accent"
 msgstr "エージェントアイランドのアクセント"
 
-msgid "Theme Mixie Chat"
-msgstr "Mixieチャットのテーマ"
+msgid "Theme Lampway Chat"
+msgstr "Lampway Agentチャットのテーマ"
 
-msgid "Theme settings for Mixie Chat"
-msgstr "Mixieチャットのテーマ設定"
+msgid "Theme settings for Lampway Chat"
+msgstr "Lampway Agentチャットのテーマ設定"
 
 msgid "User Bubble"
 msgstr "ユーザーの吹き出し"
@@ -27797,11 +27797,11 @@ msgstr "背景の不透明度"
 msgid "Opacity of the window background (lower = more frosted glass)"
 msgstr "ウィンドウ背景の不透明度（低いほどすりガラス効果が強くなります）"
 
-msgid "Theme Mixie Space"
-msgstr "Mixieスペースのテーマ"
+msgid "Theme Lampway Agent Space"
+msgstr "Lampway Agentスペースのテーマ"
 
-msgid "Theme settings for Mixie/Moodboard space"
-msgstr "Mixie/ムードボードスペースのテーマ設定"
+msgid "Theme settings for Lampway Agent/Moodboard space"
+msgstr "Lampway Agent/ムードボードスペースのテーマ設定"
 
 msgid "Text Input Background"
 msgstr "テキスト入力欄の背景"
@@ -27908,8 +27908,8 @@ msgstr "テキスト入力欄の枠線の幅"
 msgid "Corner radius for rounded UI elements"
 msgstr "丸みのあるUI要素の角の半径"
 
-msgid "Mixie Chat"
-msgstr "Mixieチャット"
+msgid "Lampway Chat"
+msgstr "Lampway Agentチャット"
 
 msgid "Double-click injection requires event simulation"
 msgstr ""

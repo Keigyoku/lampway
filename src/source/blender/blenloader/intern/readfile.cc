@@ -577,7 +577,7 @@ void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message)
 
   BLO_reportf_wrap(fd->reports,
                    RPT_ERROR,
-                   "A critical error happened (the mixar file is likely corrupted): %s",
+                   "A critical error happened (the Lampway file is likely corrupted): %s",
                    message);
 }
 
@@ -1194,10 +1194,10 @@ static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
       }
       BKE_reportf(reports,
                   RPT_ERROR,
-                  "The file was saved by a newer version, open it with Mixar %s or later",
+                  "The file was saved by a newer version, open it with Lampway %s or later",
                   min_reader_ver_str);
       CLOG_WARN(&LOG,
-                "%s: File saved by a newer version of Mixar (%s), Mixar %s or later is "
+                "%s: File saved by a newer version of Lampway (%s), Lampway %s or later is "
                 "needed to open it.",
                 fd->relabase,
                 writer_ver_str,
@@ -1230,7 +1230,7 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
     const char *error_message = nullptr;
     if (read_file_dna(fd, &error_message) == false) {
       BKE_reportf(
-          reports, RPT_ERROR, "Failed to read mixar file '%s': %s", fd->relabase, error_message);
+          reports, RPT_ERROR, "Failed to read Lampway file '%s': %s", fd->relabase, error_message);
       blo_filedata_free(fd);
       fd = nullptr;
     }
@@ -1243,13 +1243,13 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
     BKE_reportf(
         reports,
         RPT_ERROR,
-        "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar",
+        "Cannot read Lampway file '%s', incomplete header, may be from a newer version of Lampway",
         fd->relabase);
     blo_filedata_free(fd);
     fd = nullptr;
   }
   else {
-    BKE_reportf(reports, RPT_ERROR, "Failed to read file '%s', not a mixar file", fd->relabase);
+    BKE_reportf(reports, RPT_ERROR, "Failed to read file '%s', not a Lampway file", fd->relabase);
     blo_filedata_free(fd);
     fd = nullptr;
   }
@@ -1349,7 +1349,7 @@ FileData *blo_filedata_from_memfile(MemFile *memfile,
                                     BlendFileReadReport *reports)
 {
   if (!memfile) {
-    BKE_report(reports->reports, RPT_WARNING, "Unable to open mixar <memory>");
+    BKE_report(reports->reports, RPT_WARNING, "Unable to open Lampway <memory>");
     return nullptr;
   }
 
@@ -2685,7 +2685,7 @@ static BHead *read_data_into_datamap(FileData *fd,
       const bool is_new = oldnewmap_insert(fd->datamap, bhead->old, data, 0);
       if (!is_new) {
         CLOG_ERROR(&LOG,
-                   "Mixarfile corruption: Invalid, or multiple `bhead` with same old address "
+                   "Lampway file corruption: Invalid, or multiple `bhead` with same old address "
                    "value (%p) for a given ID.",
                    bhead->old);
       }
@@ -4311,14 +4311,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     if (bfd->main->has_forward_compatibility_issues) {
       BKE_reportf(fd->reports->reports,
                   RPT_WARNING,
-                  "Mixarfile '%s' was created by a future version of Mixar and contains ID "
+                  "Lampway file '%s' was created by a future version of Lampway and contains ID "
                   "names longer than currently supported. These have been truncated.",
                   bfd->filepath);
     }
     else {
       BKE_reportf(fd->reports->reports,
                   RPT_ERROR,
-                  "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have "
+                  "Lampway file '%s' appears corrupted, it contains invalid ID names. These have "
                   "been truncated.",
                   bfd->filepath);
     }
@@ -4722,9 +4722,9 @@ static void read_libraries_report_invalid_id_names(FileData *fd,
   if (has_forward_compatibility_issues) {
     BKE_reportf(reports,
                 RPT_WARNING,
-                "Library '%s' was created by a future version of Mixar and contains ID names "
+                "Library '%s' was created by a future version of Lampway and contains ID names "
                 "longer than currently supported. This may cause missing linked data, consider "
-                "opening and re-saving that library with the current Mixar version.",
+                "opening and re-saving that library with the current Lampway version.",
                 filepath);
   }
   else {

@@ -18,10 +18,11 @@ import time
 from typing import Optional
 
 from ..constants import (
-    CLEANUP_MAX_AGE_DAYS, DEFAULT_DATA_SUBDIR, ENV_BASE_DIR, MAX_LIST_RESULTS,
+    CLEANUP_MAX_AGE_DAYS, ENV_BASE_DIR, MAX_LIST_RESULTS,
     MAX_SCRIPT_CHARS, MODULE_DIR_NAME, NO_SESSION, OPERATIONS_FILE, SCRIPTS_SUBDIR,
 )
 from .record import OperationRecord, build_manual_record
+from mixar.config.brand import env_get
 
 _lock = threading.Lock()
 _seq_cache: dict = {}
@@ -29,13 +30,13 @@ _last_cleanup_day: Optional[int] = None
 
 
 def _base_dir() -> str:
-    override = os.environ.get(ENV_BASE_DIR)
+    override = env_get(ENV_BASE_DIR)
     if override:
         return override
     try:
-        home = os.path.expanduser("~")
-        if home and os.path.isdir(home):
-            return os.path.join(home, DEFAULT_DATA_SUBDIR, MODULE_DIR_NAME)
+        from mixar.config.paths import app_home
+
+        return os.path.join(str(app_home()), MODULE_DIR_NAME)
     except Exception:
         pass
     return os.path.join(tempfile.gettempdir(), MODULE_DIR_NAME)

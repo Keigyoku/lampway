@@ -113,7 +113,7 @@ static void rna_def_image_api_mixar(StructRNA *srna)
   RNA_def_function_ui_description(
       func,
       "Decode a movie frame and upload it into the image's cached GPU texture in place, so "
-      "gpu.texture.from_image() keeps returning the same texture (Mixar)");
+      "gpu.texture.from_image() keeps returning the same texture (Lampway)");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_int(func, "frame", 1, 1, INT_MAX, "Frame", "Movie frame (1-based)", 1, INT_MAX);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);

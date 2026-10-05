@@ -24,6 +24,7 @@ import binascii
 import json
 import os
 import re
+from mixar.config.paths import app_home
 
 CAPTURE_DIR_NAME = "captures"
 CAPTURE_KEEP_PER_SESSION = 64
@@ -43,7 +44,7 @@ def _media_dir(session_id: str) -> str:
     """Same path rule as chat_history.media_dir (not imported: that module
     pulls in the package logger; this one must stay importable in tests)."""
     safe = re.sub(r"[^A-Za-z0-9_-]", "_", session_id or "no-session")[:80]
-    return os.path.join(os.path.expanduser("~"), ".mixar", "chat_media", safe)
+    return os.path.join(str(app_home()), "chat_media", safe)
 
 
 def captures_dir(session_id: str) -> str:

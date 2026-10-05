@@ -121,7 +121,7 @@ static bool rna_ui_capture_enabled(wmWindow *win, bContext *C, ReportList *repor
     const char *filepath, int x, int y, int width, int height)
 {
   if (!Mixar_ui_control_enabled()) {
-    BKE_report(reports, RPT_ERROR, "Mixar UI control is disabled");
+    BKE_report(reports, RPT_ERROR, "Lampway UI control is disabled");
     return false;
   }
   return rna_ui_capture(win, C, reports, filepath, x, y, width, height);

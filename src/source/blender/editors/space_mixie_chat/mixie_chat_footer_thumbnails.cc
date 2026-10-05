@@ -68,7 +68,7 @@ Image *footer_thumbnails_load_image(Main *bmain, const char *path, int source)
      * images after their temporary source file has disappeared. */
     Image *img = BKE_image_load_exists(bmain, path);
     if (!img) {
-      fprintf(stderr, "Mixie Chat: Failed to load image: %s\n", path);
+      fprintf(stderr, "Lampway Chat: Failed to load image: %s\n", path);
       return nullptr;
     }
     /* The load helper adds a user even for cache hits. Painting owns no ID

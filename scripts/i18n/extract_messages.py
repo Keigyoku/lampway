@@ -37,8 +37,8 @@ CPP_ROOTS = ("source", "intern")
 CPP_SUFFIXES = (".c", ".cc", ".cpp", ".h", ".hh", ".hpp", ".mm", ".m")
 SKIP_DIRS = {"__pycache__", "tests", "testing", "headless", ".pytest_cache", ".venv", "venv"}
 
-HEADER = """Mixar interface translations.
-This file is distributed under the same license as the Mixar package."""
+HEADER = """Lampway interface translations.
+This file is distributed under the same license as the Lampway package."""
 
 
 def _walk(root: Path, suffixes):
@@ -80,7 +80,7 @@ def collect(upstream: Path) -> MessageSet:
 
 def build_template(messages: MessageSet, po):
     header = po.PoEntry(msgid="", msgstr=(
-        "Project-Id-Version: Mixar\n"
+        "Project-Id-Version: Lampway\n"
         "Report-Msgid-Bugs-To: \n"
         "MIME-Version: 1.0\n"
         "Content-Type: text/plain; charset=UTF-8\n"

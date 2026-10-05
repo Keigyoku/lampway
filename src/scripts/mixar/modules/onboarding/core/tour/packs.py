@@ -29,6 +29,7 @@ from typing import List, Optional, Tuple
 from mixar.config.logging_config import get_logger
 
 from . import config
+from mixar.config.brand import env_get
 
 logger = get_logger(__name__)
 
@@ -52,7 +53,7 @@ class PackInfo:
 
 
 def cache_root(create: bool = False) -> str:
-    override = os.environ.get(config.ENV_PACK_DIR)
+    override = env_get(config.ENV_PACK_DIR)
     if override:
         return os.path.expanduser(override)
     try:
@@ -101,7 +102,7 @@ def is_verified(path: str, sha256: str) -> bool:
         with open(sidecar_path(path), "r", encoding="utf-8") as fh:
             return fh.read().strip().lower() == sha256.lower()
     except OSError:
-        if not os.environ.get(config.ENV_PACK_DIR):
+        if not env_get(config.ENV_PACK_DIR):
             return False
     return _sha256_file(path) == sha256.lower()
 

@@ -474,10 +474,10 @@ msgstr ""
 msgid "Nothing is selected"
 msgstr ""
 
-msgid "Open Mixie"
+msgid "Open Lampway Agent"
 msgstr ""
 
-msgid "Open Mixie, the agent chat, ready to type (Shift M)"
+msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -1890,10 +1890,10 @@ msgid "Dialog State"
 msgstr "Valintaikkunan tila"
 
 msgid "Set Lampway Agent Mode"
-msgstr "Aseta Mixie-tila"
+msgstr "Aseta Lampway Agent-tila"
 
 msgid "Switch to a specific Lampway Agent mode"
-msgstr "Vaihtaa tiettyyn Mixie-tilaan"
+msgstr "Vaihtaa tiettyyn Lampway Agent-tilaan"
 
 msgid "Mode"
 msgstr "Tila"
@@ -3080,7 +3080,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Mixie read files in a folder"
+msgid "Let Lampway Agent read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -7790,25 +7790,25 @@ msgid "Error message if job failed"
 msgstr "Virheviesti, jos työ epäonnistui"
 
 msgid "Lampway Agent Moodboard Images"
-msgstr "Mixien tunnelmataulun kuvat"
+msgstr "Lampway Agentn tunnelmataulun kuvat"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "Referenssikuvien kokoelma tunnelmataulutilassa"
 
 msgid "Lampway Agent Moodboard Text Boxes"
-msgstr "Mixien tunnelmataulun tekstilaatikot"
+msgstr "Lampway Agentn tunnelmataulun tekstilaatikot"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "Tekstilaatikoiden kokoelma tunnelmataulutilassa"
 
 msgid "Lampway Agent Moodboard Frames"
-msgstr "Mixien tunnelmataulun kehykset"
+msgstr "Lampway Agentn tunnelmataulun kehykset"
 
 msgid "Canvas frames grouping board items"
 msgstr "Kangaskehykset, jotka ryhmittelevät taulun kohteita"
 
 msgid "Lampway Agent Moodboard Groups (legacy)"
-msgstr "Mixien tunnelmataulun ryhmät (vanha)"
+msgstr "Lampway Agentn tunnelmataulun ryhmät (vanha)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "Korvattu tunnuksella mixie_moodboard_frames; säilytetään siirtoa varten"
@@ -19092,8 +19092,8 @@ msgstr "Työkalupalkki"
 msgid "Sidebar"
 msgstr "Sivupalkki"
 
-msgid "Mixie"
-msgstr "Mixie"
+msgid "Lampway Agent"
+msgstr "Lampway Agent"
 
 msgid "UV Mesh Segmentation panel"
 msgstr "UV-muodon segmentoinnin paneeli"
@@ -19525,7 +19525,7 @@ msgid "User ID"
 msgstr "Käyttäjätunnus"
 
 msgid "User ID for Lampway Agent Chat login"
-msgstr "Käyttäjätunnus Mixie-keskusteluun kirjautumista varten"
+msgstr "Käyttäjätunnus Lampway Agent-keskusteluun kirjautumista varten"
 
 msgid "Agent expects: {formats}"
 msgstr "Agentti odottaa: {formats}"
@@ -19599,8 +19599,8 @@ msgstr "Viestin lähetys epäonnistui"
 msgid "You're out of credits"
 msgstr "Krediittinne ovat loppu"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Mixie."
-msgstr "Kuukausittainen krediittikiintiö on käytetty. Päivitä tilaus, jotta luomista Mixien kanssa voi jatkaa."
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
+msgstr "Kuukausittainen krediittikiintiö on käytetty. Päivitä tilaus, jotta luomista Lampway Agentn kanssa voi jatkaa."
 
 msgid "Feedback comment is empty"
 msgstr "Palautekommentti on tyhjä"
@@ -20022,8 +20022,8 @@ msgstr "Pidä tämä kenttä auki; Esc peruu."
 msgid "Login"
 msgstr "Kirjaudu sisään"
 
-msgid "Login panel for Mixie Chat"
-msgstr "Mixie-keskustelun kirjautumispaneeli"
+msgid "Login panel for Lampway Chat"
+msgstr "Lampway Agent-keskustelun kirjautumispaneeli"
 
 msgid "Session expired"
 msgstr "Istunto vanhentui"
@@ -20129,14 +20129,14 @@ msgstr "Istunto vanhentui. {reason}"
 msgid "Browser login did not complete. Please try again."
 msgstr "Selainkirjautuminen ei valmistunut. Yritä uudelleen."
 
-msgid "Login to Mixie Chat via browser SSO"
-msgstr "Kirjaudu Mixie-keskusteluun selaimen SSO:lla"
+msgid "Login to Lampway Chat via browser SSO"
+msgstr "Kirjaudu Lampway Agent-keskusteluun selaimen SSO:lla"
 
 msgid "Login failed"
 msgstr "Kirjautuminen epäonnistui"
 
-msgid "Logout from Mixie Chat"
-msgstr "Kirjaudu ulos Mixie-keskustelusta"
+msgid "Logout from Lampway Chat"
+msgstr "Kirjaudu ulos Lampway Agent-keskustelusta"
 
 msgid "Logged out successfully"
 msgstr "Uloskirjautuminen onnistui"
@@ -20144,8 +20144,8 @@ msgstr "Uloskirjautuminen onnistui"
 msgid "Open Dashboard"
 msgstr "Avaa kojelauta"
 
-msgid "Open Mixie web dashboard in your browser"
-msgstr "Avaa Mixien verkko-kojelauta selaimessa"
+msgid "Open Lampway Agent web dashboard in your browser"
+msgstr "Avaa Lampway Agentn verkko-kojelauta selaimessa"
 
 msgid "Dashboard opened"
 msgstr "Kojelauta avattiin"
@@ -20822,20 +20822,20 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Mixie Chat"
-msgstr "Lähetä Mixie-keskusteluun"
+msgid "Send to Lampway Chat"
+msgstr "Lähetä Lampway Agent-keskusteluun"
 
-msgid "Open a prompt to send a message to Mixie Chat (Enter to send)"
-msgstr "Avaa kehote lähettääksesi viestin Mixie-keskusteluun (Enter lähettää)"
+msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
+msgstr "Avaa kehote lähettääksesi viestin Lampway Agent-keskusteluun (Enter lähettää)"
 
-msgid "Message to send to Mixie Chat"
-msgstr "Mixie-keskusteluun lähetettävä viesti"
+msgid "Message to send to Lampway Chat"
+msgstr "Lampway Agent-keskusteluun lähetettävä viesti"
 
-msgid "Not connected to Mixie Chat"
-msgstr "Ei yhteyttä Mixie-keskusteluun"
+msgid "Not connected to Lampway Chat"
+msgstr "Ei yhteyttä Lampway Agent-keskusteluun"
 
-msgid "Mixie Chat is busy"
-msgstr "Mixie-keskustelu on varattu"
+msgid "Lampway Chat is busy"
+msgstr "Lampway Agent-keskustelu on varattu"
 
 msgid "Mode:"
 msgstr "Tila:"
@@ -20858,11 +20858,11 @@ msgstr "Viesti"
 msgid "Please enter a message"
 msgstr "Kirjoita viesti"
 
-msgid "Not connected to server. Please connect in Mixie Chat."
-msgstr "Ei yhteyttä palvelimeen. Yhdistä Mixie-keskustelussa."
+msgid "Not connected to server. Please connect in Lampway Chat."
+msgstr "Ei yhteyttä palvelimeen. Yhdistä Lampway Agent-keskustelussa."
 
-msgid "Mixie Chat is not ready to receive messages"
-msgstr "Mixie-keskustelu ei ole valmis vastaanottamaan viestejä"
+msgid "Lampway Chat is not ready to receive messages"
+msgstr "Lampway Agent-keskustelu ei ole valmis vastaanottamaan viestejä"
 
 msgid "Dev Mode: Message sent"
 msgstr "Kehitystila: viesti lähetettiin"
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Lisää sääntöjä"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "Määritä Mixielle säännöt. Muutokset tulevat voimaan seuraavassa viestissä tai vastauksessa; globaalit säännöt koskevat jokaista Mixar-tiedostoa. Nykyinen pyyntö on etusijalla projektin ja globaaleihin sääntöihin nähden"
+msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Määritä Lampway Agentlle säännöt. Muutokset tulevat voimaan seuraavassa viestissä tai vastauksessa; globaalit säännöt koskevat jokaista Mixar-tiedostoa. Nykyinen pyyntö on etusijalla projektin ja globaaleihin sääntöihin nähden"
 
 msgid "Rule operation failed"
 msgstr "Sääntötoiminto epäonnistui"
@@ -21070,8 +21070,8 @@ msgstr "Pysäytystä ei voitu vahvistaa. Yhdistä uudelleen ja yritä pysäyttä
 msgid "Connect"
 msgstr "Yhdistä"
 
-msgid "Connect to the Mixie agent server"
-msgstr "Yhdistää Mixie-agentin palvelimeen"
+msgid "Connect to the Lampway Agent agent server"
+msgstr "Yhdistää Lampway Agent-agentin palvelimeen"
 
 msgid "Connecting to server..."
 msgstr "Yhdistetään palvelimeen..."
@@ -21085,8 +21085,8 @@ msgstr "Kehitystila: yhdistetty testitiedoilla"
 msgid "Disconnect"
 msgstr "Katkaise yhteys"
 
-msgid "Disconnect from the Mixie agent server"
-msgstr "Katkaisee yhteyden Mixie-agentin palvelimeen"
+msgid "Disconnect from the Lampway Agent agent server"
+msgstr "Katkaisee yhteyden Lampway Agent-agentin palvelimeen"
 
 msgid "Dev Mode: Disconnected"
 msgstr "Kehitystila: yhteys katkaistu"
@@ -21478,8 +21478,8 @@ msgstr "Paikallisesti lähetetty kommentti, näytetään keskustelussa vain luet
 msgid "Message not sent"
 msgstr "Viestiä ei lähetetty"
 
-msgid "Enter a render prompt. Mixie will use the current scene's depth as the guide."
-msgstr "Kirjoita renderöintikehote. Mixie käyttää nykyisen kohtauksen syvyyttä ohjeena."
+msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
+msgstr "Kirjoita renderöintikehote. Lampway Agent käyttää nykyisen kohtauksen syvyyttä ohjeena."
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr "Kirjoita kehote ja valitse muoto-objektit 3D-näkymässä ennen lähettämistä."
@@ -21556,8 +21556,8 @@ msgstr "Automaattitila"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "Agentti päättää jokaisen avoimen valinnan itse kysymättä ja luettelee päätöksensä yhteenvedossa"
 
-msgid "Mixie Is Busy"
-msgstr "Mixie on varattu"
+msgid "Lampway Agent Is Busy"
+msgstr "Lampway Agent on varattu"
 
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "Tosi, kun agentti käsittelee pyyntöä (tila BUSY)"
@@ -21631,8 +21631,8 @@ msgstr "Claude Haiku 4.0 – nopea ja tehokas"
 msgid "Password"
 msgstr "Salasana"
 
-msgid "Password for Mixie Chat login"
-msgstr "Salasana Mixie-keskusteluun kirjautumista varten"
+msgid "Password for Lampway Chat login"
+msgstr "Salasana Lampway Agent-keskusteluun kirjautumista varten"
 
 msgid "Is Logged In"
 msgstr "On kirjautunut"
@@ -24448,8 +24448,8 @@ msgstr "Kirii"
 msgid "NEW"
 msgstr "UUSI"
 
-msgid "Ask Mixie anything..."
-msgstr "Kysy Mixieltä mitä vain..."
+msgid "Ask Lampway Agent anything..."
+msgstr "Kysy Lampway Agentltä mitä vain..."
 
 msgid "Write your prompt here..."
 msgstr "Kirjoita kehotteesi tähän..."
@@ -25246,8 +25246,8 @@ msgstr "Kursorin Y-sijainti"
 msgid "Animate Moodboard Attachment"
 msgstr "Animoi tunnelmataulun liite"
 
-msgid "Show a newly attached reference flying into Mixie Chat"
-msgstr "Näytä juuri liitetty referenssi lentämässä Mixie-chatiin"
+msgid "Show a newly attached reference flying into Lampway Chat"
+msgstr "Näytä juuri liitetty referenssi lentämässä Lampway Agent-chatiin"
 
 msgid "Delay"
 msgstr "Viive"
@@ -25759,14 +25759,14 @@ msgstr "Sijoita muokattava noodi siihen, mihin mallipohja pudotetaan"
 msgid "Template to place"
 msgstr "Sijoitettava mallipohja"
 
-msgid "Select Mixie3D Preview"
-msgstr "Valitse Mixie3D-esikatselu"
+msgid "Select Lampway Agent3D Preview"
+msgstr "Valitse Lampway Agent3D-esikatselu"
 
 msgid "Select a segmented image from the preview history"
 msgstr "Valitse segmentoitu kuva esikatseluhistoriasta"
 
-msgid "Delete Mixie3D Preview"
-msgstr "Poista Mixie3D-esikatselu"
+msgid "Delete Lampway Agent3D Preview"
+msgstr "Poista Lampway Agent3D-esikatselu"
 
 msgid "Delete a segmented image from the preview history"
 msgstr "Poista segmentoitu kuva esikatseluhistoriasta"
@@ -25945,8 +25945,8 @@ msgstr "Tämä projekti"
 msgid "All projects"
 msgstr "Kaikki projektit"
 
-msgid "Add a rule above to guide Mixie."
-msgstr "Lisää sääntö ylle ohjataksesi Mixietä."
+msgid "Add a rule above to guide Lampway Agent."
+msgstr "Lisää sääntö ylle ohjataksesi Lampway Agenttä."
 
 msgid "Applies to"
 msgstr "Koskee"
@@ -26767,14 +26767,14 @@ msgstr "Mixarin tasojen ominaisuudet"
 msgid "Reference image board like PureRef"
 msgstr "Referenssikuvataulu, kuten PureRef"
 
-msgid "Mixie Space"
-msgstr "Mixie-tila"
+msgid "Lampway Agent Space"
+msgstr "Lampway Agent-tila"
 
-msgid "Mixie editor for Lampway"
-msgstr "Mixie-editori Mixarille"
+msgid "Lampway Agent editor for Lampway"
+msgstr "Lampway Agent-editori Mixarille"
 
-msgid "Mixie editor mode"
-msgstr "Mixie-editorin tila"
+msgid "Lampway Agent editor mode"
+msgstr "Lampway Agent-editorin tila"
 
 msgid "Agent Bubble Space"
 msgstr "Agenttikuplan tila"
@@ -27469,11 +27469,11 @@ msgstr "Saaren korostus"
 msgid "Agent island accent"
 msgstr "Agenttisaaren korostus"
 
-msgid "Theme Mixie Chat"
-msgstr "Teema: Mixie-chat"
+msgid "Theme Lampway Chat"
+msgstr "Teema: Lampway Agent-chat"
 
-msgid "Theme settings for Mixie Chat"
-msgstr "Mixie-chatin teema-asetukset"
+msgid "Theme settings for Lampway Chat"
+msgstr "Lampway Agent-chatin teema-asetukset"
 
 msgid "User Bubble"
 msgstr "Käyttäjän kupla"
@@ -27793,11 +27793,11 @@ msgstr "Taustan peittävyys"
 msgid "Opacity of the window background (lower = more frosted glass)"
 msgstr "Ikkunan taustan peittävyys (pienempi = huurteinen lasi)"
 
-msgid "Theme Mixie Space"
-msgstr "Teema: Mixie-tila"
+msgid "Theme Lampway Agent Space"
+msgstr "Teema: Lampway Agent-tila"
 
-msgid "Theme settings for Mixie/Moodboard space"
-msgstr "Mixie- ja tunnelmataulutilan teema-asetukset"
+msgid "Theme settings for Lampway Agent/Moodboard space"
+msgstr "Lampway Agent- ja tunnelmataulutilan teema-asetukset"
 
 msgid "Text Input Background"
 msgstr "Tekstinsyötön tausta"
@@ -27904,8 +27904,8 @@ msgstr "Reunan leveys tekstinsyöttökentille"
 msgid "Corner radius for rounded UI elements"
 msgstr "Kulman säde pyöristetyille käyttöliittymäelementeille"
 
-msgid "Mixie Chat"
-msgstr "Mixie-keskustelu"
+msgid "Lampway Chat"
+msgstr "Lampway Agent-keskustelu"
 
 msgid "Double-click injection requires event simulation"
 msgstr ""

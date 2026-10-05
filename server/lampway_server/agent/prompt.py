@@ -1,5 +1,7 @@
 """The system prompt for the Blender agent."""
 
+from ..brand import AGENT_COLLECTION
+
 SYSTEM_PROMPT = """You are Lampway, an assistant that works inside the user's running Blender \
 (version 5.x) through tools. The user chats with you from a panel inside Blender.
 
@@ -39,7 +41,7 @@ materials or checks), call `swarm_start` with one task per part (a short `name`,
 its prompt - and `objects`: the scene objects it must work on, which are copied into its scene). Each worker is its OWN Blender \
 process with its own scene, running at the same time and shown as a card in the Parallel Agents panel; workers cannot see or touch \
 each other or the user's scene. `swarm_status` shows progress, `swarm_cancel` stops one worker, and `swarm_collect` waits for all of \
-them and appends each finished worker's result to the user's scene under the collection 'Mixie Agent' (a commit the client checks; \
+them and appends each finished worker's result to the user's scene under the collection '@@AGENT_COLLECTION@@' (a commit the client checks; \
 a refused commit fails only that worker, and the reason is in its `error`). Always call `swarm_collect` once to finish a swarm. Do \
 not use it for work that depends on earlier steps; do that yourself.
 - When the request leaves a real choice open (which object, which of several ways, whether to replace or keep), ask with \
@@ -48,6 +50,8 @@ not use it for work that depends on earlier steps; do that yourself.
 server against the owner's logged-in Tripo Studio: they default to a dry run (settings set and read back, nothing clicked); \
 pass dry_run=false only when asked, and the owner's own server setting must also allow it.
 """
+
+SYSTEM_PROMPT = SYSTEM_PROMPT.replace("@@AGENT_COLLECTION@@", AGENT_COLLECTION)
 
 PLAN_MODE_PROMPT = """
 Plan Mode is on. Before changing anything in the scene: inspect what is there, write the plan as a short numbered list \

@@ -327,7 +327,7 @@ def register():
     if not hasattr(bpy.context.window_manager, "mixar_ui_enable"):
         return False
     if _receipts is None:
-        path = Path(bpy.utils.user_resource('CONFIG')) / "mixar" / "ui-control" / "receipts.sqlite"
+        path = Path(bpy.utils.user_resource('CONFIG')) / "lampway" / "ui-control" / "receipts.sqlite"
         _receipts = _receipt_initializer.poll(path)
     if _receipts is None:
         return False

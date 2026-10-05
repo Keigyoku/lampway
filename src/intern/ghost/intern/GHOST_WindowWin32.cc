@@ -132,7 +132,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 
   if (!setDrawingContextType(type)) {
     if (type == GHOST_kDrawingContextTypeOpenGL) {
-      const char *title = "Mixar - Unsupported Graphics Card Configuration";
+      const char *title = "Lampway - Unsupported Graphics Card Configuration";
       const char *text = "";
 #if defined(WIN32)
       if (strncmp(blender::BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0 &&
@@ -143,7 +143,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
             "Qualcomm devices require the \"OpenCL™, OpenGL®, and Vulkan® Compatibility Pack\" "
             "from the Microsoft Store.\n\n"
             "Devices using processors older than a Qualcomm Snapdragon 8cx Gen3 are incompatible, "
-            "but may be able to run an emulated x64 copy of Mixar, such as a 3.x LTS release.";
+            "but may be able to run an emulated x64 copy of Lampway, such as a 3.x LTS release.";
       }
       else
 #endif

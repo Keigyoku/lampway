@@ -11,7 +11,7 @@ from pathlib import Path
 
 from mixar.modules.common.i18n import n_
 
-from .constants import MANIFEST_DIR, MANIFEST_FILE, MANIFEST_VERSION
+from .constants import LEGACY_MANIFEST_DIR, MANIFEST_DIR, MANIFEST_FILE, MANIFEST_VERSION
 from .errors import AddonProjectError
 from .storage import read_json, write_json_atomic
 
@@ -20,7 +20,9 @@ _FOLDER_MODULE_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 def manifest_path(root: Path) -> Path:
-    return root / MANIFEST_DIR / MANIFEST_FILE
+    new = root / MANIFEST_DIR / MANIFEST_FILE
+    legacy = root / LEGACY_MANIFEST_DIR / MANIFEST_FILE
+    return legacy if (not new.exists() and legacy.exists()) else new
 
 
 def _looks_like_addon_source(source: str) -> bool:

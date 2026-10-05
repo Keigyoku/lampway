@@ -487,7 +487,7 @@ void mixie_chat_draw_messages(const bContext *C, ARegion *region) {
   }
 
   /* Build or reuse layout cache */
-  static const bool chat_prof = getenv("MIXAR_CHAT_PROFILE") != nullptr;
+  static const bool chat_prof = (getenv("LAMPWAY_CHAT_PROFILE") != nullptr || getenv("MIXAR_CHAT_PROFILE") != nullptr);
   const double prof_t0 = chat_prof ? BLI_time_now_seconds() : 0.0;
 
   float total_height;

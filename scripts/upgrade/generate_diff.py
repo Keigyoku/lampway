@@ -309,7 +309,7 @@ def main():
     # Print summary
     print("Summary:")
     print(f"  Upstream-modified files: {len(upstream_modified_files)} (will be patched with 3-way merge)")
-    print(f"  Custom Mixar files:      {len(custom_files)} (will be preserved as-is)")
+    print(f"  Custom Lampway files:      {len(custom_files)} (will be preserved as-is)")
     print(f"  Removed from upstream:   {len(removed_files)} (manual review needed)")
     print()
 
@@ -321,7 +321,7 @@ def main():
     diff_lines = []
 
     # Add header
-    diff_lines.append(f"# Mixar Upstream Modifications Patch")
+    diff_lines.append(f"# Lampway Upstream Modifications Patch")
     diff_lines.append(f"# Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     diff_lines.append(f"# Source: {src_dir}")
     diff_lines.append(f"# Upstream: {upstream_dir}")
@@ -330,7 +330,7 @@ def main():
     diff_lines.append(f"# This commit is used as the common ancestor for 3-way merge")
     diff_lines.append("#")
     diff_lines.append(f"# This patch contains ONLY modifications to upstream Blender files.")
-    diff_lines.append(f"# Custom Mixar files are listed separately in: {custom_files_output.name}")
+    diff_lines.append(f"# Custom Lampway files are listed separately in: {custom_files_output.name}")
     diff_lines.append("#")
     diff_lines.append(f"# Summary: {len(upstream_modified_files)} upstream files modified")
     diff_lines.append("")

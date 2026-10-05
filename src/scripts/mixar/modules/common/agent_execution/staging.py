@@ -7,7 +7,7 @@
 Called from a TRUSTED backend script template that runs inside the
 background worker's sandboxed executor (``mixar.*`` imports are allowed
 there). The staging directory comes from the launch environment the parent
-wrote (``MIXAR_SANDBOX_STAGING_DIR``); the returned manifest is path-free.
+wrote (``LAMPWAY_SANDBOX_STAGING_DIR``); the returned manifest is path-free.
 """
 
 from __future__ import annotations
@@ -19,14 +19,15 @@ import uuid
 from typing import Iterable
 
 from .artifacts import is_artifact_id
+from mixar.config.brand import env_get
 
-STAGING_ENV = "MIXAR_SANDBOX_STAGING_DIR"
+STAGING_ENV = "LAMPWAY_SANDBOX_STAGING_DIR"
 
 
 def staging_root() -> str:
-    root = os.environ.get(STAGING_ENV, "")
+    root = env_get(STAGING_ENV, "")
     if not root or not os.path.isdir(root):
-        raise RuntimeError("worker has no staging directory (MIXAR_SANDBOX_STAGING_DIR)")
+        raise RuntimeError("worker has no staging directory (LAMPWAY_SANDBOX_STAGING_DIR)")
     return root
 
 

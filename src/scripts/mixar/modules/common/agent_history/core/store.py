@@ -22,6 +22,8 @@ import uuid
 
 from ..constants import MAX_BLOB_BYTES, MAX_READ_CHARS, MAX_READ_RECORDS, MAX_RECORD_BYTES, SEGMENT_BYTES
 from . import idle_cache
+from mixar.config.paths import app_home
+from mixar.config.brand import env as lampway_env
 
 _LOCK = threading.RLock()
 _ID = re.compile(r'^[A-Za-z0-9_-]{1,128}$')
@@ -38,10 +40,10 @@ def valid_id(value):
 
 
 def root():
-    override = os.environ.get('MIXAR_AGENT_HISTORY_DIR')
+    override = lampway_env('AGENT_HISTORY_DIR')
     if override:
         return Path(override).expanduser()
-    return Path.home() / '.mixar' / 'agent_history'
+    return app_home() / 'agent_history'
 
 
 def canonical(value):

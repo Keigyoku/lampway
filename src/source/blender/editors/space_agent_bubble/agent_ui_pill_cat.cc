@@ -6,9 +6,8 @@
 /** \file
  * \ingroup spagentbubble
  *
- * Mixie, the resting-pill mascot. Pose comes from `mixie_cat_eval_pose`;
- * this file paints the shared black silhouette and luminous eyes at any UI
- * scale.
+ * The agent avatar on the resting pill and the Parallel Agents cards: a flame in a ring, drawn procedurally at any UI scale. The activity state machine
+ * (agent_ui_cat_activity.hh) still decides which state to show.
  */
 
 #include <algorithm>
@@ -16,6 +15,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_screen_types.h"
@@ -91,126 +91,134 @@ void polygon(const float (*points)[2],
   immUnbindProgram();
 }
 
-void ellipse(
-    float x, float y, float rx, float ry, float pixel, const float color[4], float smile = 0.0f)
+/** Lampway's agent avatar, "Spark" (docs/brand/logo_agent_spark.svg): a ring in the worker's colour around a small flame. Working alternates two flame
+ * frames every 1.6 s (the second one ghosted), offline shows the flame out with a grey wisp. All coordinates are in a unit square (-0.5..0.5, y up),
+ * mapped from the SVG's 64 px frame. */
+void disc(float cx, float cy, float radius, float pixel, const float color[4])
 {
-  constexpr int count = 40;
+  constexpr int count = 48;
   float points[count][2];
-  const auto bend = [smile](float px, float py) {
-    const float u = px / 0.086f;
-    return (1.0f - smile) * py + smile * (0.075f * (1.0f - u * u) + 0.22f * py);
-  };
   for (int i = 0; i < count; i++) {
     const float angle = float(i) * 6.283185307f / count;
-    points[i][0] = x + rx * std::cos(angle);
-    points[i][1] = y + ry * std::sin(angle);
-    /* Bend the whole eye (including its details) into an upward crescent.
-     * Applying the same map keeps pupils inside the iris during the morph. */
-    points[i][1] = bend(points[i][0], points[i][1]);
+    points[i][0] = cx + radius * std::cos(angle);
+    points[i][1] = cy + radius * std::sin(angle);
   }
-  const float center[2] = {x, bend(x, y)};
+  const float center[2] = {cx, cy};
   polygon(points, count, pixel, color, center);
 }
 
-/** Rounded triangular ears, with the same coverage fringe as the face. */
-void ear(float side, float height, float twitch, float pixel, const float color[4])
+void ring(float radius, float width, float pixel, const float color[4])
 {
-  const float corners[3][2] = {
-      {side * 0.305f, 0.055f},
-      {side * (0.285f + twitch), 0.375f * height},
-      {side * 0.060f, 0.210f},
+  constexpr int count = 48;
+  const float outer = radius + width * 0.5f, inner = radius - width * 0.5f;
+  for (int i = 0; i < count; i++) {
+    const float a0 = float(i) * 6.283185307f / count, a1 = float(i + 1) * 6.283185307f / count;
+    const float quad[4][2] = {{outer * std::cos(a0), outer * std::sin(a0)},
+                              {outer * std::cos(a1), outer * std::sin(a1)},
+                              {inner * std::cos(a1), inner * std::sin(a1)},
+                              {inner * std::cos(a0), inner * std::sin(a0)}};
+    const float mid[2] = {(quad[0][0] + quad[2][0]) * 0.5f, (quad[0][1] + quad[2][1]) * 0.5f};
+    polygon(quad, 4, pixel, color, mid);
+  }
+}
+
+/** The leaf-shaped flame: two cubic curves from the tip down to the base and back, `top` and `bottom` in the SVG's 64 px frame. */
+void flame(float top, float bottom, float lean, float pixel, const float color[4])
+{
+  constexpr int steps = 14;
+  constexpr int count = steps * 2;
+  const float height = bottom - top;
+  const float mid = top + height * 0.55f;
+  /* Left curve control points: tip -> (-8, +9) -> (-7, -2 from the base) -> base; the right curve mirrors it. */
+  const auto to_unit = [](float px, float py, float out[2]) {
+    out[0] = (px - 32.0f) / 64.0f;
+    out[1] = -(py - 32.0f) / 64.0f;
   };
-  constexpr int steps = 8;
-  constexpr int count = steps * 3;
   float points[count][2];
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < steps; j++) {
-      const float t = float(j) / (steps - 1);
-      for (int axis = 0; axis < 2; axis++) {
-        const float v = corners[i][axis];
-        const float a = v + (corners[(i + 2) % 3][axis] - v) * 0.10f;
-        const float b = v + (corners[(i + 1) % 3][axis] - v) * 0.10f;
-        const float value = (1 - t) * (1 - t) * a + 2 * (1 - t) * t * v + t * t * b;
-        points[i * steps + j][axis] = value;
-      }
+  for (int side = 0; side < 2; side++) {
+    const float k = side == 0 ? -1.0f : 1.0f;
+    const float c[4][2] = {{32.0f + lean, top},
+                           {32.0f + lean + k * 7.0f, top + height * 0.33f},
+                           {32.0f + k * 8.0f, mid + height * 0.05f},
+                           {32.0f, bottom}};
+    for (int i = 0; i < steps; i++) {
+      const float t = float(i) / (steps - 1);
+      const float u = 1.0f - t;
+      const float px = u * u * u * c[0][0] + 3 * u * u * t * c[1][0] + 3 * u * t * t * c[2][0] + t * t * t * c[3][0];
+      const float py = u * u * u * c[0][1] + 3 * u * u * t * c[1][1] + 3 * u * t * t * c[2][1] + t * t * t * c[3][1];
+      /* Left side runs tip -> base, right side base -> tip, so the outline is one closed loop. */
+      float *dst = points[side == 0 ? i : count - 1 - i];
+      to_unit(px, py, dst);
     }
   }
   polygon(points, count, pixel, color);
 }
 
-void draw_eyes(const MixieCatPose &pose, const MixieCatStyle &style, float pixel, float alpha)
+/** The offline state: a grey wisp where the flame was. */
+void wisp(float pixel, const float color[4])
 {
-  const float eye[4] = {style.eyes[0], style.eyes[1], style.eyes[2], alpha};
-  const float ink[4] = {0.002f, 0.006f, 0.004f, alpha * (1.0f - pose.smile)};
-  const float shine[4] = {0.94f, 0.98f, 0.95f, alpha};
-  for (float side : {-1.0f, 1.0f}) {
-    const float x = side * 0.128f + pose.look_x * 0.018f;
-    const float openness = pose.openness;
-    /* Eyelids compress the entire eye, including its pupil and catchlight.
-     * That keeps every detail inside the eye through a blink. */
-    GPU_matrix_push();
-    GPU_matrix_translate_2f(x, 0.012f + pose.look_y * 0.012f);
-    /* Gaze translates both eyes equally; side-dependent compression reads
-     * as a skewed eye at the pill and parallel-card sizes. */
-    const float lid = side < 0 ? pose.lid_l : pose.lid_r;
-    GPU_matrix_scale_2f(pose.eye_scale * pose.eye_width, openness * pose.eye_scale * lid);
-    ellipse(0.0f, 0.0f, 0.086f, 0.112f, pixel, eye, pose.smile);
-    const float rx = 0.037f * pose.pupil_scale * pose.pupil_width;
-    const float ry = 0.040f * pose.pupil_scale;
-    float px = 0.012f + pose.look_x * 0.042f;
-    float py = 0.044f + pose.look_y * 0.050f;
-    /* Fit the moving pupil inside the iris even at a diagonal glance. */
-    const float mx = std::max(0.005f, 0.086f - rx - pixel);
-    const float my = std::max(0.005f, 0.112f - ry - pixel);
-    const float distance = std::sqrt((px / mx) * (px / mx) + (py / my) * (py / my));
-    const float fit = 0.94f / std::max(0.94f, distance);
-    px *= fit;
-    py *= fit;
-    ellipse(px, py, rx, ry, pixel, ink, pose.smile);
-    const float catchlight[4] = {shine[0],
-                                 shine[1],
-                                 shine[2],
-                                 shine[3] * (1.0f - pose.smile) *
-                                     mixie_cat_smooth01((openness - 0.12f) / 0.28f)};
-    ellipse(px + 0.016f, py + 0.010f, 0.019f, 0.019f, pixel, catchlight, pose.smile);
-    GPU_matrix_pop();
+  constexpr int steps = 10;
+  const float width = 2.5f / 64.0f;
+  float left[steps][2], right[steps][2];
+  for (int i = 0; i < steps; i++) {
+    const float t = float(i) / (steps - 1);
+    const float y = 44.0f - 28.0f * t;
+    const float x = 32.0f + 3.5f * std::sin(t * 6.2831853f);
+    left[i][0] = (x - 32.0f) / 64.0f - width;
+    left[i][1] = -(y - 32.0f) / 64.0f;
+    right[i][0] = (x - 32.0f) / 64.0f + width;
+    right[i][1] = left[i][1];
   }
+  for (int i = 0; i + 1 < steps; i++) {
+    const float quad[4][2] = {{left[i][0], left[i][1]}, {right[i][0], right[i][1]}, {right[i + 1][0], right[i + 1][1]}, {left[i + 1][0], left[i + 1][1]}};
+    polygon(quad, 4, pixel, color);
+  }
+  disc(0.0f, -(46.0f - 32.0f) / 64.0f, 3.0f / 64.0f, pixel, color);
 }
 
 }  // namespace
 
-static void draw_cat_pose(const rctf &chip,
-                          const MixieCatPose &pose,
-                          const int variation,
-                          const float alpha)
+static void draw_spark(const rctf &chip, const MixieCatStyle &style, const bool working, const bool offline, const float alpha)
 {
   const float s = std::min(BLI_rctf_size_x(&chip), BLI_rctf_size_y(&chip)) - 2.0f;
   if (s < 6.0f || alpha <= 0.0f) {
     return;
   }
-  const MixieCatStyle &style = mixie_cat_style(variation);
-  const float ink[4] = {0.002f, 0.006f, 0.004f, std::clamp(alpha, 0.0f, 1.0f)};
+  const float a = std::clamp(alpha, 0.0f, 1.0f);
+  const float px = 0.7f / s;
+  const float smoke[4] = {0.086f, 0.098f, 0.133f, a};  /* #161922 */
+  const float ring_color[4] = {offline ? 0.941f : style.ring[0], offline ? 0.463f : style.ring[1], offline ? 0.420f : style.ring[2], a};
+  const float flame_color[4] = {0.929f, 0.725f, 0.267f, a};   /* #EDB944 */
+  const float ghost_color[4] = {0.965f, 0.804f, 0.420f, a * 0.5f}; /* #F6CD6B at half strength */
+  const float ash[4] = {0.663f, 0.651f, 0.616f, a};            /* #A9A69D */
+  const bool second_frame = working && (int(BLI_time_now_seconds() / 0.8) & 1);
 
   GPU_matrix_push();
-  GPU_matrix_translate_2f(BLI_rctf_cent_x(&chip),
-                          BLI_rctf_cent_y(&chip) + s * (pose.bounce - 0.025f));
-  GPU_matrix_rotate_2d(style.tilt + pose.tilt);
-  GPU_matrix_scale_2f(s * pose.breathe, s * pose.breathe);
-  ear(-1.0f, style.ear_left * pose.ear_height_l, pose.ear_l * 0.002f, 0.7f / s, ink);
-  ear(1.0f, style.ear_right * pose.ear_height_r, pose.ear_r * 0.002f, 0.7f / s, ink);
-  ellipse(0.0f, -0.025f, 0.326f * style.cheek_width, 0.263f, 0.7f / s, ink);
-  draw_eyes(pose, style, 0.7f / s, ink[3]);
+  GPU_matrix_translate_2f(BLI_rctf_cent_x(&chip), BLI_rctf_cent_y(&chip));
+  GPU_matrix_scale_2f(s, s);
+  disc(0.0f, 0.0f, 29.0f / 64.0f, px, smoke);
+  ring(29.0f / 64.0f, 3.0f / 64.0f, px, ring_color);
+  if (offline) {
+    wisp(px, ash);
+  }
+  else if (working) {
+    flame(second_frame ? 16.0f : 14.0f, second_frame ? 43.0f : 45.0f, 0.0f, px, flame_color);
+    flame(second_frame ? 14.0f : 18.0f, second_frame ? 45.0f : 42.0f, 2.0f, px, ghost_color);
+  }
+  else {
+    flame(16.0f, 43.0f, 0.0f, px, flame_color);
+  }
   GPU_matrix_pop();
 }
 
 void agent_ui_draw_cat(
-    const rctf &chip, const double now, const bool working, const int variation, const float alpha)
+    const rctf &chip, const double /*now*/, const bool working, const int variation, const float alpha)
 {
-  draw_cat_pose(chip, mixie_cat_eval_pose(now, working), variation, alpha);
+  draw_spark(chip, mixie_cat_style(variation), working, false, alpha);
 }
 
 void agent_ui_draw_pill_cat(const rctf *chip,
-                            const MixieCatPose &pose,
+                            const MixieCatPose & /*pose*/,
                             const MixieCatActivity activity)
 {
   g_last_cat_valid = false;
@@ -223,7 +231,7 @@ void agent_ui_draw_pill_cat(const rctf *chip,
                      int(std::ceil(chip->ymax))};
   g_last_cat_valid = true;
   g_last_activity = activity;
-  draw_cat_pose(*chip, pose, 0, 1.0f);
+  draw_spark(*chip, mixie_cat_style(1), mixie_cat_is_working(activity), activity == MixieCatActivity::Offline, 1.0f);
 }
 
 bool agent_ui_pill_cat_last_rect(rcti *r_rect)
@@ -280,7 +288,7 @@ void pill_cat_qa_targets(const wmWindow * /*win*/,
 
   MixarQATarget t;
   t.surface = "pill_cat";
-  t.text = "Mixie";
+  t.text = "Lampway";
   t.value = mixie_cat_activity_name(g_last_activity);
   t.rect_win = mapped;
   r_targets.push_back(std::move(t));

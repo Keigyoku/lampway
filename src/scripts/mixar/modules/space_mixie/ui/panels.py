@@ -25,7 +25,7 @@ class MIXIE_PT_mesh_segment(Panel):
     bl_idname = "MIXIE_PT_mesh_segment"
     bl_space_type = 'MIXIE'
     bl_region_type = 'UI'
-    bl_category = "Mixie"
+    bl_category = "Lampway"
 
     @classmethod
     def poll(cls, context):
@@ -138,7 +138,7 @@ class MIXIE_PT_lookdev(Panel):
     bl_idname = "MIXIE_PT_lookdev"
     bl_space_type = 'MIXIE'
     bl_region_type = 'UI'
-    bl_category = "Mixie"
+    bl_category = "Lampway"
 
     @classmethod
     def poll(cls, context):
@@ -225,7 +225,7 @@ class MIXIE_PT_lookdev360(Panel):
     bl_idname = "MIXIE_PT_lookdev360"
     bl_space_type = 'MIXIE'
     bl_region_type = 'UI'
-    bl_category = "Mixie"
+    bl_category = "Lampway"
 
     @classmethod
     def poll(cls, context):
@@ -342,7 +342,7 @@ class MIXIE_PT_imagegen(Panel):
     bl_idname = "MIXIE_PT_imagegen"
     bl_space_type = 'MIXIE'
     bl_region_type = 'UI'
-    bl_category = "Mixie"
+    bl_category = "Lampway"
 
     @classmethod
     def poll(cls, context):
@@ -444,7 +444,7 @@ class MIXIE_PT_image_to_3d(Panel):
     bl_idname = "MIXIE_PT_image_to_3d"
     bl_space_type = 'MIXIE'
     bl_region_type = 'UI'
-    bl_category = "Mixie"
+    bl_category = "Lampway"
 
     @classmethod
     def poll(cls, context):

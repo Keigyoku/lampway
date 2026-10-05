@@ -20,5 +20,8 @@
 /** Display name of the in-app agent (upstream: "Mixie"). */
 #define LAMPWAY_AGENT_NAME "Lampway Agent"
 
+/** OS keyring service for the login pair (Lampway's own; see brand.py KEYRING_SERVICE). */
+#define LAMPWAY_KEYRING_SERVICE "LampwaySafeStorage"
+
 /** PLACEHOLDER website every user-facing link is built from. */
-#define LAMPWAY_WEBSITE_URL "https://github.com/Keigyoku/lampway"
+#define LAMPWAY_WEBSITE_URL "https://lampway.dev"

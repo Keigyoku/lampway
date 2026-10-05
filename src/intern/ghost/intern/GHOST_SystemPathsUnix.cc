@@ -43,7 +43,7 @@ const char *GHOST_SystemPathsUnix::getSystemDir(int /*version*/, const char *ver
 {
   /* no prefix assumes a portable build which only uses bundled scripts */
   if (static_path) {
-    static string system_path = string(static_path) + "/mixar/" + versionstr;
+    static string system_path = string(static_path) + "/lampway/" + versionstr;
     return system_path.c_str();
   }
 
@@ -88,7 +88,7 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
       last_version = version;
 
       if (home) {
-        user_path = string(home) + "/.mixar/" + versionstr;
+        user_path = string(home) + "/.lampway/" + versionstr;
       }
       else {
         return nullptr;
@@ -102,12 +102,12 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
     last_version = version;
 
     if (home) {
-      user_path = string(home) + "/mixar/" + versionstr;
+      user_path = string(home) + "/lampway/" + versionstr;
     }
     else {
       home = home_dir_get();
       if (home) {
-        user_path = string(home) + "/.config/mixar/" + versionstr;
+        user_path = string(home) + "/.config/lampway/" + versionstr;
       }
       else {
         return nullptr;

@@ -36,7 +36,7 @@ def test_windows_install_directory_has_no_version():
         r'set\(CPACK_PACKAGE_INSTALL_DIRECTORY\s+"([^"]*)"\)', _windows_block(),
     )
     assert match, "CPACK_PACKAGE_INSTALL_DIRECTORY not found"
-    assert match.group(1) == "Mixar"
+    assert match.group(1) == "Lampway"
     assert "MAJOR_VERSION" not in match.group(1)
 
 
@@ -47,23 +47,16 @@ def test_windows_upgrade_code_is_version_independent():
     guid_call = block[block.index("string(UUID CPACK_WIX_UPGRADE_GUID"):]
     guid_call = guid_call[:guid_call.index(")")]
 
-    assert 'NAME "Mixar"' in guid_call
+    assert 'NAME "Lampway"' in guid_call
     assert "VERSION" not in guid_call
 
 
-def test_legacy_upgrade_codes_are_generated_and_referenced():
+def test_lampway_installs_never_remove_a_mixar_install():
+    """Lampway has no installs made under an older scheme, and a Mixar install is somebody else's product: no legacy upgrade rows are generated."""
     block = _cmake()
 
-    assert "MIXAR_LEGACY_UPGRADE_XML" in block
-    assert 'NAME "Mixar/Mixar ${_legacy_major}.${_legacy_minor}"' in block
-    assert "mixar_legacy_upgrades.wxs" in block
-    assert "MIXAR_LEGACY_UPGRADES_WXS" in block
-    # A WiX Fragment is dead code unless something references it.
-    assert 'MIXAR_LEGACY_UPGRADE_MARKER' in WIX_TEMPLATE.read_text(encoding="utf-8")
-
-
-def test_legacy_upgrades_remove_rather_than_only_detect():
-    assert 'OnlyDetect=\\"no\\"' in _cmake()
+    assert "LEGACY_UPGRADE" not in block and "OnlyDetect" not in block and "Mixar/Mixar" not in block
+    assert "LEGACY_UPGRADE_MARKER" not in WIX_TEMPLATE.read_text(encoding="utf-8")
 
 
 def test_macos_dmg_bundle_name_has_no_version():

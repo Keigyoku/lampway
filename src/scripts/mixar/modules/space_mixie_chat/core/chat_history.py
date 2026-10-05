@@ -50,6 +50,7 @@ from ..constants import (
     MAX_ARCHIVED_SESSIONS,
 )
 from .chat_serializer import restore_propgroup, snapshot_propgroup
+from mixar.config.paths import app_home
 
 logger = get_logger(__name__)
 
@@ -80,7 +81,7 @@ _cached_sessions = None
 
 def _mixar_home() -> str:
     """The per-user app-data dir, shared with onboarding/operation_history."""
-    return os.path.join(os.path.expanduser("~"), ".mixar")
+    return str(app_home())
 
 
 def history_dir() -> str:

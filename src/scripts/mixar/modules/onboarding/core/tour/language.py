@@ -18,11 +18,12 @@ from typing import Callable, Optional
 from mixar.config.logging_config import get_logger
 from mixar.modules.common.i18n.constants import LANGUAGES as UI_LANGUAGES
 from mixar.modules.common.i18n.core.catalog import resolve_catalog_code
+from mixar.config.brand import env_get
 
 logger = get_logger(__name__)
 
 CONFIG_KEY = "tour_language"
-ENV_LANGUAGE = "MIXAR_TOUR_LANG"
+ENV_LANGUAGE = "LAMPWAY_TOUR_LANG"
 DEFAULT_CODE = "en"
 
 
@@ -145,7 +146,7 @@ def stored() -> str:
 
 def current() -> str:
     """QA override, then the current interface selection."""
-    return resolve(os.environ.get(ENV_LANGUAGE), selection())
+    return resolve(env_get(ENV_LANGUAGE), selection())
 
 
 # Called after every persisted change with the new code; the pack fetcher

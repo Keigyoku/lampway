@@ -462,7 +462,7 @@ def test_the_viewport_drop_places_the_pick_and_answers():
     drop = _read(CHAT / "mixie_chat_asset_picker_drop.cc")
     assert "drag->type != WM_DRAG_NAME" in drop and "MIXIE_ASSET_PICK_DRAG_PREFIX" in drop
     assert "ED_operator_region_view3d_active" in drop
-    assert 'WM_dropboxmap_find("Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW)' in drop
+    assert 'WM_dropboxmap_find("Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW)' in drop
     assert '"MIXIE_CHAT_OT_place_asset_pick"' in drop
     assert 'RNA_int_set(&props, "mouse_x", event->xy[0] - region->winrct.xmin);' in drop
     # Registered at startup beside the reference-image drop, and built.

@@ -103,7 +103,7 @@ static wmOperatorStatus template_drop_invoke(bContext *C, wmOperator *op, const 
 
 void moodboard_template_dropboxes()
 {
-  ListBaseT<wmDropBox> *boxes = WM_dropboxmap_find("Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *boxes = WM_dropboxmap_find("Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
   WM_dropbox_add(boxes, "MIXIE_OT_moodboard_drop_template",
                   template_drop_poll, template_drop_copy, nullptr, nullptr);
 }

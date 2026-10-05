@@ -1,41 +1,27 @@
-<!-- SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited -->
+<!-- SPDX-FileCopyrightText: 2026 Lampway contributors -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 
 # Security Policy
 
 ## Reporting A Vulnerability
 
-Report security issues privately to:
+Report security issues privately, in this order of preference:
 
-- Rahul `<rahul@mixar.app>`
+1. GitHub private vulnerability reporting: <https://github.com/Keigyoku/lampway/security/advisories/new>
+2. By email to `security@lampway.dev` once the project announces that mailbox is live. **Placeholder: the owner has not named a contact yet; until this line is replaced, use the first route.**
 
-Do not open a public GitHub issue for vulnerabilities, secrets, credential leaks, exploit details, or private user data.
+Do not open a public issue for vulnerabilities, secrets, credential leaks, exploit details, or private user data.
 
-Include:
+Include a concise description, the affected version or commit, safe reproduction steps, and the impact.
 
-- A concise description of the issue
-- Affected version, commit, or release artifact
-- Reproduction steps, if safe to share privately
-- Impact and any known workaround
-
-Do not include real Mixar account passwords, API keys, production tokens, private scene data, or third-party secrets in reports.
+Do not include real account passwords, API keys, tokens, private scene data, or third-party secrets in reports.
 
 ## Scope
 
-In scope:
+In scope: the Lampway client and server code in this repository, its build and packaging scripts, and how it handles tokens, local credentials, user files and network requests.
 
-- Mixar Blender-side client code in this repository
-- Build, packaging, update, and source-distribution behavior for this client
-- Client-side handling of tokens, local credentials, user files, and network requests
-
-Out of scope for this public repository:
-
-- Mixar hosted backend service source code
-- Mixar production infrastructure
-- Third-party platform vulnerabilities unless they directly affect the Mixar client
+Out of scope: third-party services Lampway can be pointed at (their own vulnerabilities are theirs to fix) and the upstream projects it is built on, unless the flaw is in code this repository changed.
 
 ## Supported Versions
 
-The current public source release is the supported security review target.
-
-For release source mapping, see [SOURCE_CORRESPONDENCE.md](SOURCE_CORRESPONDENCE.md).
+The most recent tagged release, and `main`, are the supported security review targets.
