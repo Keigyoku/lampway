@@ -40,7 +40,7 @@ WRITE_WORDS = ("save", "export", "render", "bake", "write", "screenshot", "pack"
 PATH_KWARGS = ("filepath", "directory", "filename")
 
 # Methods the AST pass and the wrapped getattr route through guard_file_method.
-FILE_METHOD_NAMES = frozenset({"tofile", "dump", "save", "save_render", "write", "load", "as_module", "unpack"})
+FILE_METHOD_NAMES = frozenset({"tofile", "dump", "save", "save_render", "write", "load", "as_module", "unpack", "reload"})
 _WRITE_METHODS = frozenset({"tofile", "dump", "save", "save_render", "write", "unpack"})
 
 # numpy functions gated by identity (so numpy.lib.npyio.load is the same gate as numpy.load), with their direction.
@@ -232,11 +232,19 @@ def gated_function(value):
 
 
 # ------------------------------------------------------------------------------------------------ methods
-def guard_file_method(method):
-    """A bound ``tofile``/``dump``/``save``/``save_render``/``write``/``load``/``unpack``/``as_module`` of an ndarray or a
-    Blender datablock, with its path gated; anything else is returned untouched."""
-    name = getattr(method, "__name__", "")
-    owner = getattr(method, "__self__", None)
+def guard_file_attr(owner, name):
+    """``getattr(owner, name)``, gated when ``name`` is a file method of an ndarray or a Blender datablock. Blender's RNA
+    functions (``bpy.data.images.load``) are ``bpy_func`` objects that know neither their name nor their owner, so the
+    gate is told both by the rewritten attribute access."""
+    method = getattr(owner, name)
+    return guard_file_method(method, owner=owner, name=name) if name in FILE_METHOD_NAMES else method
+
+
+def guard_file_method(method, owner=None, name=None):
+    """A bound ``tofile``/``dump``/``save``/``save_render``/``write``/``load``/``unpack``/``reload``/``as_module`` of an
+    ndarray or a Blender datablock, with its path gated; anything else is returned untouched."""
+    name = name or getattr(method, "__name__", "")
+    owner = owner if owner is not None else getattr(method, "__self__", None)
     if name not in FILE_METHOD_NAMES or owner is None:
         return method
     kind = _owner_kind(owner)
@@ -256,6 +264,10 @@ def guard_file_method(method):
             raw = getattr(owner, "filepath_raw", "") or getattr(owner, "filepath", "")
             if raw:
                 check_write(raw)
+        elif name == "reload" and kind == "image":
+            raw = getattr(owner, "filepath_raw", "") or getattr(owner, "filepath", "")
+            if raw:
+                check_read(raw)
         return method(*args, **kwargs)
 
     gated.__name__ = name
@@ -278,7 +290,10 @@ def _owner_kind(owner):
         return "image"
     if isinstance(owner, bpy.types.Text):
         return "text"
-    if isinstance(owner, (bpy.types.ID, bpy.types.bpy_prop_collection, bpy.types.BlendDataLibraries)):
+    # bpy.data.images / .sounds / .libraries ... are BlendData* RNA structs, not bpy_prop_collection instances: the type
+    # NAME is the reliable test (the first version of this gate missed `bpy.data.images.load(path)`).
+    if isinstance(owner, bpy.types.ID) or type(owner).__name__.startswith("BlendData") \
+            or type(owner).__name__ == "bpy_prop_collection":
         return "blend_data"
     return None
 
@@ -287,8 +302,11 @@ class _GuardFileMethods(ast.NodeTransformer):
     def visit_Attribute(self, node):
         self.generic_visit(node)
         if node.attr in FILE_METHOD_NAMES and isinstance(node.ctx, ast.Load):
+            # <owner>.<name>  ->  _mixar_guard_file_attr(<owner>, "<name>"): the owner is evaluated once, and the gate
+            # knows it and the method's name even when the callable (an RNA function) does not.
             return ast.copy_location(ast.Call(
-                func=ast.Name(id="_mixar_guard_file_method", ctx=ast.Load()), args=[node], keywords=[]), node)
+                func=ast.Name(id="_mixar_guard_file_attr", ctx=ast.Load()),
+                args=[node.value, ast.Constant(value=node.attr)], keywords=[]), node)
         return node
 
 

@@ -47,7 +47,7 @@ from .executor_result import ExecutionResult  # noqa: F401 — re-exported
 from .sandbox_validator import validate_script_ast
 from .sandbox_transform import snapshot_collection_iterations
 from .sandbox_mesh import guard_from_mesh, guard_mesh_conversions
-from .sandbox_paths import guard_file_method, guard_file_methods
+from .sandbox_paths import guard_file_attr, guard_file_method, guard_file_methods
 from .executor_scene_state import SceneStateMixin
 
 
@@ -419,6 +419,7 @@ class ScriptExecutor(SceneStateMixin, HandlerCleanupMixin):
             # go through the file-system gate; see sandbox_paths.
             tree = guard_file_methods(tree)
             exec_namespace["_mixar_guard_file_method"] = guard_file_method
+            exec_namespace["_mixar_guard_file_attr"] = guard_file_attr
 
             # Execute the script in the sandboxed namespace
             compiled = compile(tree, "<agent_script>", "exec")  # noqa: S102

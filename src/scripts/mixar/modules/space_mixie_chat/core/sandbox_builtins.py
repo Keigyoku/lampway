@@ -95,7 +95,7 @@ def get_safe_builtins() -> dict:
             return guard_from_mesh(value)
         if name in FILE_METHOD_NAMES:
             # A computed name reaches the same gate the AST pass gives the literal one.
-            return guard_file_method(value)
+            return guard_file_method(value, owner=obj, name=name)
         return value
 
     def _safe_hasattr(obj, name):
