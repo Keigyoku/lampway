@@ -353,6 +353,14 @@ DEFS = [
         [P("stage", required=True, desc="measure | judge"), P("piece", desc="the piece's name"), P("bound", desc="the bound object"), P("original", desc="the pre-fit source shell"),
          P("poses", "array", "the poses"), P("roles", "object", "{part: role}"), P("limits", "object", "{status, metal: {rigid_max_mm, strain_max_pct, seam_gap_mm}}"), P("body", desc="the posed body for crossings"),
          P("armature", desc="default: the piece's Armature modifier"), P("validation", desc="judge: a validation dict or file")], api="fit_validate"),
+    Def("lampway_skeleton_export_check", "Check an armature in the scene or an FBX under the project root (exactly one) against a reference skeleton (target.names_from: a reference FBX). Reports leaf bones (`*_end`: "
+        "export with add_leaf_bones off), missing and extra bones, parents that differ, the root, the unit scale (height ratio to the reference: a 100x export reads 100), the up axis and rest_vs_frame (bones posed with no "
+        "animation: the bind pose was taken from a posed scene), with pass and reasons.",
+        [P("armature", desc="armature object name"), P("fbx", desc="an FBX path (alternative)"), P("target", "object", "{names_from: a reference FBX}"), P("expect_unit_scale", "number", "default 1"),
+         P("allow_extra_bones", "boolean", "default false")], api="skeleton_export_check"),
+    Def("lampway_engine_import_check", "Static check of an exported package (a folder with an FBX and Textures/) against the engine's import rules: FBX header version (Unreal 7400+; FBX 2020.2 = 7700), mesh names and "
+        "material slots, UCX_<Render>_NN collision meshes matching a render mesh, textures the materials name that are missing, textures nobody names, and an optional hand-run import receipt that is recorded, not judged.",
+        [P("package_dir", required=True), P("engine", desc="unreal (default)"), P("collision", "array", "expected collision mesh names"), P("receipt", "object", "{engine_version, import_settings, wired_channels, notes}")], api="engine_import_check"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "

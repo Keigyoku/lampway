@@ -1053,6 +1053,25 @@ def fit_validate(stage, piece="", bound="", original="", poses=None, roles=None,
 
 
 @tool
+def skeleton_export_check(armature="", fbx="", target=None, expect_unit_scale=1.0, allow_extra_bones=False):
+    """Check an armature (in the scene) or an FBX (under the project root; give exactly one) against a reference skeleton: target {names_from: a reference FBX, e.g. a mannequin animation}. Reports leaf bones (`*_end`
+    the reference does not have: export with add_leaf_bones off), missing and extra bones, parents that differ, the root, the unit scale (height ratio to the reference: a 100x export reads 100; expect_unit_scale
+    default 1), the up axis and rest_vs_frame (rest_pose_is_frame_zero is true when bones are posed with no animation: the bind pose was taken from a posed scene). `pass` and the reasons. A profile name
+    alone is refused: no profile table ships, pass a reference file."""
+    from .features import export_checks as _EC
+    return _EC.skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, str(_settings().project_root))
+
+
+@tool
+def engine_import_check(package_dir, engine="unreal", collision=None, receipt=None):
+    """Static check of an exported package (a folder with an FBX and Textures/) against the engine's import rules: the FBX header version (Unreal wants 7400+; FBX 2020.2 is 7700), mesh names and material
+    slots, `UCX_<Render>_NN` collision meshes that must match a render mesh (`collision` lists the names expected), the textures the materials name that are missing from Textures/, textures nobody names, and an
+    optional receipt from a hand-run import {engine_version, import_settings, wired_channels, notes} which is RECORDED, not judged. A package with no FBX is told to run export_piece first."""
+    from .features import export_checks as _EC
+    return _EC.engine_check(package_dir, engine, collision, receipt, str(_settings().project_root))
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
