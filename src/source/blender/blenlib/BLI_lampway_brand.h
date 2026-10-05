@@ -21,4 +21,4 @@
 #define LAMPWAY_AGENT_NAME "Lampway Agent"
 
 /** PLACEHOLDER website every user-facing link is built from. */
-#define LAMPWAY_WEBSITE_URL "https://github.com/Keigyoku/lampway"
+#define LAMPWAY_WEBSITE_URL "https://lampway.dev"

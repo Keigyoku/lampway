@@ -1,52 +1,27 @@
-<!-- SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited -->
+<!-- SPDX-FileCopyrightText: 2026 Lampway contributors -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 
 # Source Correspondence
 
-This document tracks the source-to-binary mapping for Mixar App public releases.
+This document tracks the source-to-binary mapping for Lampway releases.
 
-## First Public Release
+## Release rule
 
-Planned launch version: `1.8.4` or `2.0.0`, to be finalized before public launch.
+Release binaries are built from the exact public source tag, and the checksums published with them name that tag.
 
-Current source candidate:
+1. Finalise the version in `VERSION` and commit it.
+2. Tag the commit in <https://github.com/Keigyoku/lampway>.
+3. Build from the tag with `scripts/lampway/build_linux.sh` (or the platform's build script).
+4. Publish checksums beside the artifacts.
+5. Keep the tag, the binary version, the release notes and the downloads page in step.
 
-- Current repo version: `1.8.4`
-- Local tag: `v1.8.4`
-- Commit: `6059503017c04ce5f23088584a304d7bd01a3bed`
-- Subject: `chore: bump version to 1.8.4 [skip ci]`
-- Blender upstream submodule commit: `f52ba4dcdf5f669c1bc57f39a0e056be30d3ab60`
+No release exists yet. The first one is `v0.1.0`.
 
-If the launch version is bumped to `2.0.0`, the public tag, app version, release binaries, checksums, and download page must all use the same final version.
+## Source package contents
 
-## Release Rule
+A release includes the Lampway source for the tag, the build and packaging scripts used, the `upstream` submodule pointer with instructions for fetching Blender source, the licence files and SPDX metadata, and the scripts that regenerate generated build inputs.
 
-Public release binaries must be built from the exact public source tag.
-
-Before publishing binaries:
-
-1. Finalize the launch version.
-2. Commit the version bump, if any.
-3. Create the public source tag in `mixar-app`.
-4. Build macOS and Windows binaries from that tag.
-5. Publish checksums for release artifacts.
-6. Keep the source tag, binary version, release notes, and download page in sync.
-
-## Source Package Contents
-
-The public source release must include:
-
-- Mixar App source for the release tag
-- Build and package scripts used for the release
-- The `upstream` submodule pointer and instructions for fetching Blender source
-- License files and SPDX metadata
-- Scripts needed to regenerate generated build inputs from source
-
-Do not publish the full private Git history.
-
-## Private Material
-
-Build configuration, signing credentials, hosted service credentials, and private deployment infrastructure are not part of the public source repository and must not be published.
+Build configuration, signing credentials and private deployment details are not part of the public repository.
 
 ## Derived Works
 

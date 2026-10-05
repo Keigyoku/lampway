@@ -30,7 +30,7 @@ BEGIN
       VALUE "ProductVersion", BLEN_VER_RC_STR
       VALUE "CompanyName", "Lampway contributors"
       VALUE "FileDescription", "Lampway"
-      VALUE "LegalCopyright", "GPLv3 (Lampway, a fork of the Mixar client)"
+      VALUE "LegalCopyright", "GPLv3 (Lampway contributors)"
       VALUE "OriginalFilename", "mixar.exe"
       VALUE "ProductName", "Lampway"
     END

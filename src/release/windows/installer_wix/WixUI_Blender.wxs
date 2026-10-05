@@ -47,7 +47,7 @@ Patch dialog sequence:
             <Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath" Order="3">1</Publish>
             <Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="4"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
 
-            <Publish Dialog="MixarExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+            <Publish Dialog="LampwayExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
 
             <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">NOT Installed</Publish>
             <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
@@ -78,13 +78,13 @@ Patch dialog sequence:
 
     <!-- Customized exit dialog: the WixUIExtension built-in ExitDialog only
          supports one optional checkbox, so this copy carries two fixed
-         checkboxes — launch the app and join the Discord community. It must
+         checkboxes — launch the app. It must
          use its own Id: reusing "ExitDialog" collides with the extension's
          wixlib copy at link time (LGHT0091). Nothing may reference
          "ExitDialog", or the built-in dialog gets linked back in. -->
     <Fragment>
         <UI>
-            <Dialog Id="MixarExitDialog" Width="370" Height="270" Title="!(loc.ExitDialog_Title)">
+            <Dialog Id="LampwayExitDialog" Width="370" Height="270" Title="!(loc.ExitDialog_Title)">
                 <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="!(loc.WixUIFinish)" />
                 <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Disabled="yes" Text="!(loc.WixUICancel)" />
                 <Control Id="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" TabSkip="no" Text="!(loc.ExitDialogBitmap)" />
@@ -92,20 +92,17 @@ Patch dialog sequence:
                 <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
                 <Control Id="Description" Type="Text" X="135" Y="70" Width="220" Height="40" Transparent="yes" NoPrefix="yes" Text="!(loc.ExitDialogDescription)" />
                 <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes" Text="!(loc.ExitDialogTitle)" />
-                <Control Id="LaunchCheckBox" Type="CheckBox" X="135" Y="190" Width="220" Height="17" Hidden="yes" Property="LAUNCHAPP" CheckBoxValue="1" Text="Launch Mixar">
-                    <Condition Action="show">NOT Installed</Condition>
-                </Control>
-                <Control Id="DiscordCheckBox" Type="CheckBox" X="135" Y="209" Width="220" Height="17" Hidden="yes" Property="JOINDISCORD" CheckBoxValue="1" Text="Join the Mixar Discord community">
+                <Control Id="LaunchCheckBox" Type="CheckBox" X="135" Y="190" Width="220" Height="17" Hidden="yes" Property="LAUNCHAPP" CheckBoxValue="1" Text="Launch Lampway">
                     <Condition Action="show">NOT Installed</Condition>
                 </Control>
             </Dialog>
 
             <InstallUISequence>
-                <Show Dialog="MixarExitDialog" OnExit="success" Overridable="yes" />
+                <Show Dialog="LampwayExitDialog" OnExit="success" Overridable="yes" />
             </InstallUISequence>
 
             <AdminUISequence>
-                <Show Dialog="MixarExitDialog" OnExit="success" Overridable="yes" />
+                <Show Dialog="LampwayExitDialog" OnExit="success" Overridable="yes" />
             </AdminUISequence>
         </UI>
     </Fragment>

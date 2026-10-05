@@ -41,12 +41,12 @@ def _string_literals(path):
 def test_identity_constants():
     assert brand.PRODUCT_NAME == "Lampway"
     assert brand.AGENT_NAME == "Lampway Agent"
-    assert brand.WEBSITE_URL == brand.REPO_URL == "https://github.com/Keigyoku/lampway"
-    assert brand.website_url("/docs") == brand.docs_url() == brand.REPO_URL + "/blob/main/docs/lampway/README.md"
-    assert brand.website_url("docs#connect-ai-apps") == brand.REPO_URL + "/blob/main/docs/lampway/connect-ai-apps.md"
-    assert brand.website_url("/bug-report") == brand.REPO_URL + "/issues/new" and brand.website_url("/downloads") == brand.REPO_URL + "/releases"
-    assert brand.website_url("/legal/privacy-policy") == brand.docs_url("privacy")
-    assert brand.website_url() == brand.REPO_URL
+    assert brand.REPO_URL == "https://github.com/Keigyoku/lampway" and brand.WEBSITE_URL == "https://lampway.dev"
+    assert brand.website_url("/docs") == brand.docs_url() == "https://lampway.dev/docs/"
+    assert brand.website_url("docs#connect-ai-apps") == "https://lampway.dev/docs/#connect-ai-apps" == brand.docs_url("connect-ai-apps")
+    assert brand.website_url("/bug-report") == "https://lampway.dev/bug-report/" and brand.website_url("/downloads") == "https://lampway.dev/downloads/"
+    assert brand.website_url("/legal/privacy-policy") == brand.docs_url("privacy") == "https://lampway.dev/legal/privacy-policy/"
+    assert brand.website_url() == brand.WEBSITE_URL
 
 
 def test_cpp_brand_header_mirrors_python():
@@ -149,8 +149,7 @@ def test_web_links_go_through_the_website_constant():
     from mixar.modules.mcp_bridge import constants as mcp
     from mixar.modules.common.job_queue.ui.lists import queue_uilist
 
-    assert notifications.CREDITS_BANNER_REFERRAL_URL == brand.website_url("/app/referrals")
-    assert notifications.CREDITS_BANNER_CREATOR_URL == brand.website_url("/creator-program")
+    assert not hasattr(notifications, "CREDITS_BANNER_REFERRAL_URL") and not hasattr(notifications, "CREDITS_BANNER_CREATOR_URL")  # Mixar commerce, deleted
     assert updates.DOWNLOADS_PAGE_URL == brand.website_url("/downloads")
     assert mcp.SETUP_GUIDE_URL == brand.website_url("/docs#connect-ai-apps")
     assert queue_uilist._BUG_REPORT_URL == brand.website_url("/bug-report")
@@ -160,7 +159,7 @@ def test_help_and_app_menus_are_lampway():
     topbar = _read("src/scripts/startup/bl_ui/space_topbar.py")
     help_menu = topbar[topbar.index("class TOPBAR_MT_help"):topbar.index("class TOPBAR_MT_file_context_menu")]
     assert "youtube.com/@Mixar3D" not in help_menu
-    assert '"/creator-program"' in help_menu and '"/docs"' in help_menu and '"/bug-report"' in help_menu
+    assert '"/creator-program"' not in help_menu and '"/docs"' in help_menu and '"/bug-report"' in help_menu
     app_menu = topbar[topbar.index("class TOPBAR_MT_blender"):topbar.index("class TOPBAR_MT_blender", topbar.index("class TOPBAR_MT_blender") + 1)]
     assert 'bl_label = "Lampway"' in app_menu
     assert 'text="Mixar"' not in topbar

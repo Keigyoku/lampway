@@ -22,6 +22,10 @@ WORD = re.compile(r"(?<![\w-])(Mixar|MIXAR)(?![\w-])")
 DOMAIN = re.compile(r"mixar\.(app|ai|com|io)\b", re.I)
 
 #: (path suffix, literal) pairs that must stay: they mirror the native side's folder names.
+from mixar.config import brand  # noqa: E402
+
+APPROVED = (brand.ATTRIBUTION_SHORT, brand.ATTRIBUTION_LONG)
+
 ALLOW = {
     ("common/network/constants.py", "/Library/Application Support/Mixar/certs"),
     ("common/network/constants.py", "Mixar"),
@@ -66,6 +70,8 @@ def test_no_user_visible_python_string_says_mixar():
     for path in _client_files():
         rel = path.relative_to(CLIENT).as_posix()
         for line, value in _visible_strings(path):
+            if value in APPROVED:
+                continue  # the approved attribution wording, defined once in brand.py
             if (WORD.search(value) or DOMAIN.search(value)) and not any(rel.endswith(k) and value == v for k, v in ALLOW):
                 offenders.append(f"{rel}:{line}: {value[:90]!r}")
     assert offenders == [], f"{len(offenders)} user-visible strings still say Mixar (use brand.PRODUCT_NAME or 'Lampway'):\n" + "\n".join(offenders[:40])

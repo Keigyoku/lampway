@@ -1,52 +1,29 @@
-<!-- SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited -->
+<!-- SPDX-FileCopyrightText: 2026 Lampway contributors -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 
 # Contributing
 
-Mixar is publishing the Blender-side client source first. External pull requests are not open for general contribution yet.
+Lampway is free software under GPL-3.0-or-later. Contributions are welcome through pull requests on <https://github.com/Keigyoku/lampway>.
 
-For questions, build help, and general discussion, the fastest channel is the **Mixar Discord**: https://discord.gg/YVqvkQx8rX. Use GitHub issues for the specific reports listed under "Before Opening An Issue" below.
+**Inbound = outbound.** By submitting a contribution you license it under GPL-3.0-or-later, the licence of the project. There is no CLA. A `Signed-off-by:` line is welcome and not required.
 
-## Current Contribution Status
+## Before opening an issue
 
-- Public source: open
-- Public issues: limited to source-availability, build, license, and security-process questions
-- External pull requests: not accepted until Mixar publishes the CLA workflow
-- Contributor agreement: CLA required before Mixar accepts substantial external contributions
+Check whether the problem is in this repository, then use <https://github.com/Keigyoku/lampway/issues> with a reproduction and the Lampway version.
 
-Pull requests opened before the CLA process is published may be closed without review.
+Do not post security vulnerabilities (follow [SECURITY.md](SECURITY.md)), credentials, API keys, tokens, logs containing secrets, or private scene data.
 
-## Before Opening An Issue
+## Development rules
 
-Check whether the issue is about this public client repository.
-
-Use this repository for:
-
-- Client-side build problems
-- Source availability questions
-- License and notice questions
-- Blender-side client behavior that can be reproduced from public source
-
-Do not post:
-
-- Security vulnerabilities or suspected secrets; follow [SECURITY.md](SECURITY.md)
-- Mixar account credentials, API keys, tokens, logs containing secrets, or private scene data
-- Requests for Mixar backend source code
-
-## Development Rules
-
-Follow the same structure used by the repo:
-
-- Put durable Mixar source changes under `src/`
-- Put Python module code under `src/scripts/mixar/modules/`
-- Put C/C++ Blender customizations under `src/source/blender/`
-- Keep reusable logic in the relevant module or `common`
-- Use the build scripts instead of building directly from generated `source/`
-- Keep environment variables in `.env` locally and never commit `.env`
+- Durable source changes go under `src/` (Python modules in `src/scripts/mixar/modules/`, native code in `src/source/blender/`) and `server/`.
+- Keep reusable logic in the relevant module or `common`.
+- Use the build scripts (see [BUILD-LAMPWAY.md](BUILD-LAMPWAY.md)) instead of building generated trees directly.
+- Keep environment variables in `.env` locally and never commit `.env`.
+- Write the failing test first, and keep user-visible text on the brand constants in `src/scripts/mixar/config/brand.py`; `tests/lampway` enforces the brand rules.
 
 ## Branch Naming
 
-Branch off `develop`; `main` holds released code.
+Branch off the current integration branch; releases are tagged.
 
 | Prefix | Use for | Example |
 |---|---|---|

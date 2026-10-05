@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# The brand gates' exemptions. Each one says where, what, why, and which kind. See brandgate.py. The count is pinned in brand_allowlist.ratchet.
+
+[[allow]]
+path = "src/release/darwin/Mixar.app/Contents/Info.plist"
+text = "<string>Mixar</string>"
+reason = "CFBundleExecutable must equal the target's OUTPUT_NAME (src/source/creator/CMakeLists.txt:1800) and the bundle directory name; renaming them is decision D5 (app id and executable) and cannot be built or run on this Linux host."
+category = "blocked-on-decision"

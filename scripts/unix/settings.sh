@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Mixar Application Settings
+# Application settings
 # Source this file in scripts that need these settings
 #
 # Configuration priority:
@@ -45,9 +45,9 @@ export MIXAR_FRONTEND_URL="${MIXAR_FRONTEND_URL:-http://127.0.0.1:8787}"
 export MIXAR_VERSION_PATCH="${MIXAR_VERSION_PATCH:-0}"
 export MIXAR_APP_NAME="${MIXAR_APP_NAME:-Lampway}"
 export MIXAR_EXECUTABLE_NAME="${MIXAR_EXECUTABLE_NAME:-mixar}"
-export MIXAR_DESCRIPTION="${MIXAR_DESCRIPTION:-AI-assisted 3D content creation (a fork of the GPL Mixar client)}"
+export MIXAR_DESCRIPTION="${MIXAR_DESCRIPTION:-AI-assisted 3D content creation (an independent fork of a GPL client)}"
 export MIXAR_VENDOR="${MIXAR_VENDOR:-Lampway}"
-export MIXAR_WEBSITE="${MIXAR_WEBSITE:-https://lampway.app}"
+export MIXAR_WEBSITE="${MIXAR_WEBSITE:-https://lampway.dev}"
 
 # Bundle settings (constants)
 export MIXAR_BUNDLE_IDENTIFIER="${MIXAR_BUNDLE_IDENTIFIER:-com.mixar.mixar}"
