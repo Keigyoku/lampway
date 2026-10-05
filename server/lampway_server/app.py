@@ -1,13 +1,14 @@
 """The ASGI application: REST routes the client calls plus the agent WebSocket."""
 
 import json
+import os
 from html import escape
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse
 
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from starlette.routing import Route, WebSocketRoute
 
 from .agent.providers import make_provider, make_swarm_provider
@@ -97,6 +98,21 @@ def bearer_token(request: Request):
     return None
 
 
+async def _json_body(request) -> dict:
+    try:
+        body = await request.json()
+    except ValueError:
+        return {}
+    return body if isinstance(body, dict) else {}
+
+
+def default_studio_service():
+    """The Studio service over the project root and, when ``LAMPWAY_STUDIO_SHELF`` names it, the owner's shelf of AXI drivers."""
+    from .agent.server_tools import project_root
+    from .studios.service import StudioService
+    return StudioService(project_root(), shelf=os.environ.get("LAMPWAY_STUDIO_SHELF") or None)
+
+
 def unauthorized(message="Not authenticated"):
     return JSONResponse({"detail": message}, status_code=401)
 
@@ -113,7 +129,7 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None) -> Starlette:
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
     auth = Auth(
@@ -257,8 +273,9 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     routes += stub_routes(auth, store, settings, jobs)
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
+    studio = studio_service if studio_service is not None else default_studio_service()
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
-                     swarm_provider_factory=swarm_provider_factory)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -482,6 +499,72 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         agent.swarm.cancel_worker(worker)
         return JSONResponse(worker.public())
 
+    # ---- the online Studios: the Client plans, the CAPTAIN confirms (these routes are the only confirm there is)
+    def _studio_guard(request: Request):
+        return None if _bearer_ok(request) else unauthorized()
+
+    async def studio_home(request: Request):
+        if (r := _studio_guard(request)) is not None:
+            return r
+        from .studios.actions import ACTIONS
+        return JSONResponse({"actions": [{"id": a.id, "studio": a.studio, "label": a.label, "needs_approval": a.needs_approval,
+                                          "expected_price": a.expected_price} for a in ACTIONS.values()],
+                             "approvals": studio.approvals(), "jobs": studio.jobs(),
+                             "engine": {"shelf": studio.engine.shelf is not None}})
+
+    async def studio_plan(request: Request):
+        if (r := _studio_guard(request)) is not None:
+            return r
+        from .studios.actions import ActionError
+        body = await _json_body(request)
+        try:
+            return JSONResponse(await studio.plan(str(body.get("action") or ""), body.get("args") or {}, by="captain"))
+        except ActionError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=400)
+
+    async def studio_confirm(request: Request):
+        if (r := _studio_guard(request)) is not None:
+            return r
+        from .studios.approvals import ApprovalError
+        body = await _json_body(request)
+        try:
+            return JSONResponse(await studio.confirm(request.path_params["approval_id"], body.get("price"), by="captain"))
+        except ApprovalError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=404 if "no approval" in str(exc) else 409)
+
+    async def studio_reject(request: Request):
+        if (r := _studio_guard(request)) is not None:
+            return r
+        from .studios.approvals import ApprovalError
+        try:
+            return JSONResponse(studio.reject(request.path_params["approval_id"], by="captain"))
+        except ApprovalError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=404)
+
+    async def studio_job(request: Request):
+        if (r := _studio_guard(request)) is not None:
+            return r
+        job = studio.job(request.path_params["job_id"])
+        return JSONResponse(job) if job else JSONResponse({"detail": "no such job"}, status_code=404)
+
+    async def studio_job_file(request: Request):
+        if (r := _studio_guard(request)) is not None:
+            return r
+        path = studio.job_file(request.path_params["job_id"], request.path_params["name"])
+        return FileResponse(path) if path else JSONResponse({"detail": "no such file"}, status_code=404)
+
+    async def studio_ack_hung(request: Request):
+        if (r := _studio_guard(request)) is not None:
+            return r
+        studio.acknowledge_hung(request.path_params["job_id"], by="captain")
+        return JSONResponse({"ok": True})
+
+    routes += [Route("/app/studio", studio_home, methods=["GET"]), Route("/app/studio/plan", studio_plan, methods=["POST"]),
+               Route("/app/studio/approvals/{approval_id}/confirm", studio_confirm, methods=["POST"]),
+               Route("/app/studio/approvals/{approval_id}/reject", studio_reject, methods=["POST"]),
+               Route("/app/studio/jobs/{job_id}", studio_job, methods=["GET"]),
+               Route("/app/studio/jobs/{job_id}/files/{name}", studio_job_file, methods=["GET"]),
+               Route("/app/studio/jobs/{job_id}/acknowledge-hung", studio_ack_hung, methods=["POST"])]
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     app = Starlette(routes=routes)

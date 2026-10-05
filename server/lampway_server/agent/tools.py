@@ -7,6 +7,7 @@ import json
 from .providers.base import ToolSpec
 from . import lampway_tools as lt
 from . import server_tools as st
+from . import studio_tools as stu
 
 RUN_BLENDER_PYTHON = "run_blender_python"
 SCENE_SUMMARY = "scene_summary"
@@ -82,7 +83,7 @@ TOOLS.append(ToolSpec(
     },
 ))
 
-TOOLS = TOOLS + lt.SPECS + st.SPECS
+TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs()
 TOOL_NAMES = {t.name for t in TOOLS}
 
 

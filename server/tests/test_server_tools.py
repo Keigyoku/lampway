@@ -30,8 +30,8 @@ def test_image_generation_is_a_dry_run_unless_the_call_says_otherwise(root):
     assert "--dry-run" in cmd
     assert cmd[3] == str(root / "plates/g1") and cmd[4] == str(root / "plates/p.txt")
     assert cmd[cmd.index("--ref") + 1] == str(root / "plates/v3.png")
-    live = ST.command("studio_tripo_image", {"out_dir": "o", "prompt_file": "p", "dry_run": False})
-    assert "--dry-run" not in live
+    with pytest.raises(ST.BadToolCall, match="captain"):                  # a real run is the captain's confirm in the Client, never the agent's
+        ST.command("studio_tripo_image", {"out_dir": "o", "prompt_file": "p", "dry_run": False})
 
 
 def test_the_image_count_is_never_below_four(root):
@@ -138,12 +138,11 @@ def test_the_texture_tool_sets_and_verifies_without_go_by_default(monkeypatch, t
     assert cmd[1:3] == ["-m", "lampway_server.studios.tripo.tripo_texture"] and cmd[3] == "texture"
     assert "--res" in cmd and cmd[cmd.index("--res") + 1] == "8K" and "--remove-lighting" in cmd
     assert cmd[cmd.index("--expect-price") + 1] == "30" and "--go" not in cmd
-    live = ST.command("studio_tripo_texture", {"res": "8K", "expect_price": 30, "dry_run": False, "out_dir": "tex/run1"})
-    assert "--go" in live and live[live.index("--out") + 1] == str(tmp_path / "tex/run1")
-    with pytest.raises(ST.BadToolCall):
-        ST.command("studio_tripo_texture", {"res": "8K", "expect_price": 30, "dry_run": False})      # --go needs an out_dir
-    with pytest.raises(ST.BadToolCall):
-        ST.command("studio_tripo_texture", {"res": "8K", "expect_price": 30, "out_dir": "/etc/x", "dry_run": False})
+    for tool, args in (("studio_tripo_texture", {"res": "8K", "expect_price": 30, "dry_run": False, "out_dir": "tex/run1"}),
+                       ("studio_tripo_pbr", {"expect_price": 5, "dry_run": False, "out_dir": "tex/run2"}),
+                       ("studio_tripo_mesh", {"out_dir": "m", "front": "f", "left": "l", "right": "r", "back": "b", "dry_run": False})):
+        with pytest.raises(ST.BadToolCall, match="captain"):
+            ST.command(tool, args)
 
 
 def test_the_pbr_restore_refs_and_state_verbs_are_tools(monkeypatch, tmp_path):

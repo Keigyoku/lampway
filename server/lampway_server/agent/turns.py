@@ -22,7 +22,7 @@ from typing import Optional
 
 from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
-from . import server_tools
+from . import server_tools, studio_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -78,8 +78,9 @@ class Command:
 
 class AgentHub:
     def __init__(self, provider, *, script_timeout_s: float = 600.0, system_prompt: str = SYSTEM_PROMPT,
-                 swarm_provider_factory=None):
+                 swarm_provider_factory=None, studio=None):
         self.provider = provider
+        self.studio = studio
         self.script_timeout_s = script_timeout_s
         self.system_prompt = system_prompt
         self.sessions: dict[str, Session] = {}
@@ -373,6 +374,10 @@ class AgentHub:
                         steps=None) -> tuple[str, bool]:
         if server_tools.is_local(call.name):                       # the studio drivers: on this machine, never in Blender
             return await asyncio.to_thread(server_tools.run, call.name, call.arguments)
+        if call.name in studio_tools.NAMES:
+            if self.studio is None:
+                return "the Studio service is not available on this server", True
+            return await studio_tools.call(self.studio, call.name, call.arguments)
         if is_swarm_tool(call.name):
             return await self._run_swarm_tool(socket, session, turn, call, stream, bubble_id, steps)
         try:

@@ -61,7 +61,7 @@ def generate(backend: str, prompt_file: str, refs, out_dir: str, count: int = 4,
         return _openrouter(prompt_path, ref_paths, Path(out), int(count), live)
     if backend == "tripo":
         cmd = ST.command("studio_tripo_image", {"out_dir": out_dir, "prompt_file": prompt_file, "refs": list(refs),
-                                                "count": str(count), "dry_run": not live})
+                                                "count": str(count), "dry_run": not live}, allow_live=True)   # free quota only; the owner's armed env still applies
         rc, text = ST._exec(cmd, ST.environment(), 900.0)
         if rc != 0:
             raise ImageGenError(f"the Tripo driver refused or failed: {text.strip()[-600:]}")

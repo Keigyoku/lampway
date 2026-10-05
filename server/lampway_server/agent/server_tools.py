@@ -127,7 +127,7 @@ def is_local(name: str) -> bool:
     return name in BY_NAME
 
 
-def command(name: str, arguments: dict) -> list:
+def command(name: str, arguments: dict, *, allow_live: bool = False) -> list:
     d = BY_NAME.get(name)
     if d is None:
         raise BadToolCall(f"no server tool {name!r}")
@@ -135,6 +135,10 @@ def command(name: str, arguments: dict) -> list:
     missing = [a.name for a in d.args if a.required and arguments.get(a.name) in (None, "")]
     if missing:
         raise BadToolCall(f"{name} needs {', '.join(missing)}")
+    if name in ("studio_tripo_image", "studio_tripo_mesh", "studio_tripo_texture", "studio_tripo_pbr") and arguments.get("dry_run", True) is False \
+            and not allow_live:
+        raise BadToolCall(f"{name} cannot run for real from here: a generation that costs credits is the captain's to approve in the Client. "
+                          "Call studio_plan to read the price back and put it in front of the captain; it runs when he confirms")
     py = os.environ.get("LAMPWAY_PYTHON_BROWSER") or sys.executable
     if name == "studio_image_generate":
         raise BadToolCall("studio_image_generate runs in-process, not as a subprocess")
