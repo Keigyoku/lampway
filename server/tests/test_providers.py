@@ -166,3 +166,28 @@ def test_make_provider_builds_the_configured_provider(settings, monkeypatch):
     openai = make_provider(settings)
     assert isinstance(openai, OpenAICompatProvider) and openai.model == "qwen3"
     assert openai.base_url == "http://127.0.0.1:1234/v1"
+
+
+def test_an_openai_compatible_error_body_that_echoes_the_key_is_redacted(anyio_backend):
+    """Redaction covered OpenRouter only. Any OpenAI-compatible server (BYOK, a local runtime) can echo the Authorization
+    value in an error body; the configured key must never reach the message the model, the log or the person sees."""
+    import asyncio
+    import httpx
+    from lampway_server.agent.providers.openai_compat import OpenAICompatProvider
+    from lampway_server.agent.providers.base import Message, ModelRequest
+
+    key = "sk-test-" + "k" * 40
+
+    def handler(request):
+        return httpx.Response(401, json={"error": {"message": f"bad token {key} for Bearer {key}"}})
+
+    provider = OpenAICompatProvider("http://unit.test/v1", "m", api_key=key, transport=httpx.MockTransport(handler))
+
+    async def run():
+        with pytest.raises(RuntimeError) as exc:
+            async for _ in provider.stream(ModelRequest("s", [Message.user_text("hi")], [])):
+                pass
+        return str(exc.value)
+
+    message = asyncio.run(run())
+    assert key not in message and "401" in message and "[redacted]" in message

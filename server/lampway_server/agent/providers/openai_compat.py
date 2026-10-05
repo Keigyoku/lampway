@@ -86,7 +86,16 @@ class OpenAICompatProvider:
         """Called with every decoded SSE chunk."""
 
     def _http_error(self, status: int, detail: str) -> str:
-        return f"{self.base_url} answered HTTP {status}: {detail}"
+        return f"{self.base_url} answered HTTP {status}: {self._redact(detail)}"
+
+    def _redact(self, text: str) -> str:
+        """The configured key, and any bearer value, never reach a message (an OpenAI-compatible server can echo the
+        Authorization value in an error body)."""
+        import re
+        out = str(text)
+        if self._api_key:
+            out = out.replace(self._api_key, "[redacted]")
+        return re.sub(r"(?i)bearer\s+[A-Za-z0-9._\-]{8,}", "Bearer [redacted]", out)
 
     # ------------------------------------------------------------ translation
     @staticmethod
