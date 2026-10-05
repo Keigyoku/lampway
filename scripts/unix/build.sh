@@ -293,4 +293,8 @@ fi
 # Done
 echo "=== Build Complete ==="
 echo "Python packages installed from: $REQUIREMENTS_FILE"
-echo "Run Mixar using: $BUILD_ENV_DIR/bin/Mixar.app/Contents/MacOS/Mixar"
+if [[ "$PLATFORM" == "macOS" ]]; then
+    echo "Run Mixar using: $BUILD_ENV_DIR/bin/Mixar.app/Contents/MacOS/Mixar"
+else
+    echo "Run Mixar using: $BUILD_ENV_DIR/bin/mixar"
+fi

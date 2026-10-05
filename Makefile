@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-.PHONY: init build clean_build install run i18n_update i18n_check
+.PHONY: init build clean_build install run desktop i18n_update i18n_check
 
 init:
 	./scripts/unix/init.sh
@@ -35,6 +35,12 @@ i18n_check:
 #   make run Dev_uat_6 -> uses ./build/Dev_uat_6
 run:
 	@./scripts/unix/run.sh $(filter-out $@,$(MAKECMDGOALS))
+
+# Install a per-user app-menu launcher for a Linux build (default Prod).
+#   make desktop           -> launcher for ./build/Prod
+#   make desktop Dev       -> launcher for ./build/Dev
+desktop:
+	@./scripts/unix/install_desktop_entry.sh $(filter-out $@,$(MAKECMDGOALS))
 
 # Swallow extra goals (the build-folder name) so make doesn't error on them.
 %:
