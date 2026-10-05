@@ -8,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse
 from starlette.routing import Route, WebSocketRoute
 
-from .agent.providers import make_provider
+from .agent.providers import make_provider, make_swarm_provider
 from .agent.turns import AgentHub
 from .agent_settings import AgentSettingsStore
 from .auth import Auth
@@ -46,7 +46,7 @@ def unauthorized(message="Not authenticated"):
     return JSONResponse({"detail": message}, status_code=401)
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None) -> Starlette:
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
     auth = Auth(
         secret=settings.resolve_jwt_secret(),
@@ -181,12 +181,38 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     store = AgentSettingsStore(settings.state_dir)
     routes += stub_routes(auth, store, settings)
     hub = ConnectionHub()
-    agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt))
+    if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
+        swarm_provider_factory = lambda label: make_swarm_provider(settings, label)  # noqa: E731
+    agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
+                     swarm_provider_factory=swarm_provider_factory)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent).run()
 
     routes.append(WebSocketRoute("/api/agent/ws/{instance_id}", agent_ws))
+
+    async def swarm_status(request: Request):
+        token = bearer_token(request)
+        if not token or auth.verify_access(token) is None:
+            return unauthorized()
+        return JSONResponse({"swarms": {sid: {"parent_session": sw.parent_session, "collected": sw.collected,
+                                              "workers": [w.public() for w in sw.workers]}
+                                        for sid, sw in agent.swarm.swarms.items()}})
+
+    async def swarm_cancel(request: Request):
+        """The owner's stop button for one worker (the same effect as the orchestrator's swarm_cancel tool)."""
+        token = bearer_token(request)
+        if not token or auth.verify_access(token) is None:
+            return unauthorized()
+        swarm = agent.swarm.swarms.get(request.path_params["swarm_id"])
+        worker = next((w for w in swarm.workers if w.id == request.path_params["worker"]), None) if swarm else None
+        if worker is None:
+            return JSONResponse({"detail": "no such worker"}, status_code=404)
+        agent.swarm.cancel_worker(worker)
+        return JSONResponse(worker.public())
+
+    routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
+    routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     app = Starlette(routes=routes)
     app.state.hub = hub
     app.state.settings = settings

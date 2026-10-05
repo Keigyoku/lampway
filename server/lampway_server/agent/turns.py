@@ -23,6 +23,7 @@ from typing import Optional
 from .prompt import SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Text, ToolCall
 from . import server_tools
+from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import TOOLS, UnknownTool, format_tool_result, script_for
 
 log = logging.getLogger("lampway.agent")
@@ -63,12 +64,15 @@ class Command:
 
 
 class AgentHub:
-    def __init__(self, provider, *, script_timeout_s: float = 600.0, system_prompt: str = SYSTEM_PROMPT):
+    def __init__(self, provider, *, script_timeout_s: float = 600.0, system_prompt: str = SYSTEM_PROMPT,
+                 swarm_provider_factory=None):
         self.provider = provider
         self.script_timeout_s = script_timeout_s
         self.system_prompt = system_prompt
         self.sessions: dict[str, Session] = {}
         self.commands: dict[str, Command] = {}
+        # The swarm's workers think with their own (cheaper) provider; with none configured they share the main one.
+        self.swarm = SwarmManager(swarm_provider_factory or (lambda label: self.provider), self._blender_script)
 
     # ------------------------------------------------------------ dispatch
     async def handle(self, socket, method: str, request_id, params: dict):
@@ -145,6 +149,7 @@ class AgentHub:
         if session is not None and session.current is not None and session.current.task is not None:
             log.debug("cancelling turn %s", session.current.turn_id)
             cancelled = session.current.task.cancel()
+            self.swarm.cancel_session(session.session_id)
         log.debug("cancel for session %s -> %s", payload.get("session_id"), cancelled)
         return {"state": "complete", "result": {"ok": True, "cancelled": cancelled}}
 
@@ -255,7 +260,7 @@ class AgentHub:
 
     async def _agent_loop(self, socket, session, turn, stream, bubble_id, steps):
         for _round in range(64):
-            request = ModelRequest(self.system_prompt, list(session.messages), list(TOOLS))
+            request = ModelRequest(self.system_prompt, list(session.messages), list(TOOLS) + SWARM_SPECS)
             text_parts: list[str] = []
             calls: list[ToolCall] = []
             async for event in self.provider.stream(request):
@@ -277,7 +282,7 @@ class AgentHub:
                 steps.append({"id": call.id, "kind": "tool", "label": call.name, "target": "",
                               "detail": _detail(call), "status": "running"})
                 await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
-                content, is_error = await self._run_tool(socket, session, turn, call)
+                content, is_error = await self._run_tool(socket, session, turn, call, stream, bubble_id, steps)
                 steps[-1]["status"] = "failed" if is_error else "done"
                 await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
                 results.append({"type": "tool_result", "tool_call_id": call.id, "content": content,
@@ -285,19 +290,20 @@ class AgentHub:
             session.messages.append(Message("user", results))
         await stream.emit({"bubble_id": bubble_id, "content": {"set": "I stopped after too many tool calls."}})
 
-    async def _run_tool(self, socket, session, turn, call: ToolCall) -> tuple[str, bool]:
+    async def _run_tool(self, socket, session, turn, call: ToolCall, stream=None, bubble_id=None,
+                        steps=None) -> tuple[str, bool]:
         if server_tools.is_local(call.name):                       # the studio drivers: on this machine, never in Blender
             return await asyncio.to_thread(server_tools.run, call.name, call.arguments)
+        if is_swarm_tool(call.name):
+            return await self._run_swarm_tool(socket, session, turn, call, stream, bubble_id, steps)
         try:
             script = script_for(call.name, call.arguments)
         except UnknownTool as exc:
             return str(exc), True
         try:
-            result = await socket.request("blender.execute_script", {
-                "script": script, "tool_name": call.name, "session_id": session.session_id,
-                "agent_ctx": {"chat_session_id": session.session_id, "turn_id": turn.turn_id,
-                              "call_id": call.id},
-            }, timeout=self.script_timeout_s)
+            result = await self._blender_script(socket, session_id=session.session_id,
+                                                chat_session_id=session.session_id, turn_id=turn.turn_id,
+                                                call_id=call.id, tool_name=call.name, script=script)
         except asyncio.TimeoutError:
             return f"Blender did not answer within {self.script_timeout_s:.0f}s", True
         except asyncio.CancelledError:
@@ -305,6 +311,32 @@ class AgentHub:
         except Exception as exc:  # noqa: BLE001 - reported to the model
             return f"Blender could not run the script: {exc}", True
         return format_tool_result(result)
+
+    async def _blender_script(self, socket, *, session_id, chat_session_id, turn_id, call_id, tool_name, script):
+        """One blender.execute_script round trip. ``session_id`` routes it (a worker's lane scene, or the chat's own scene);
+        ``chat_session_id`` is the agent context the client checks is active."""
+        return await socket.request("blender.execute_script", {
+            "script": script, "tool_name": tool_name, "session_id": session_id,
+            "agent_ctx": {"chat_session_id": chat_session_id, "turn_id": turn_id, "call_id": call_id},
+        }, timeout=self.script_timeout_s)
+
+    async def _run_swarm_tool(self, socket, session, turn, call, stream, bubble_id, steps):
+        pending: list = []
+
+        def progress(text: str):
+            if stream is None or not steps:
+                return
+            steps[-1]["detail"] = text[:160]
+            pending.append(asyncio.ensure_future(
+                stream.emit_quietly({"bubble_id": bubble_id, "steps": {"items": list(steps)}})))
+
+        ctx = SwarmContext(socket=socket, session_id=session.session_id, turn_id=turn.turn_id, call_id=call.id,
+                           progress=progress)
+        try:
+            return await self.swarm.call(call.name, call.arguments, ctx)
+        finally:
+            if pending:
+                await asyncio.gather(*pending, return_exceptions=True)
 
 
 class TurnStream:
