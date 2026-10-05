@@ -31,6 +31,9 @@ DEFAULT_VIDEO_PURPOSES = {
 }
 
 
+from .spendpolicy import DEFAULT_SPEND_POLICY
+
+
 @dataclass
 class Settings:
     host: str = "127.0.0.1"
@@ -66,6 +69,7 @@ class Settings:
     openrouter_stt_model: str = "google/gemini-3.8-flash"      # dictation: an audio-input model
     openrouter_max_tokens: int = 4096                  # per request, always sent
     openrouter_budget_usd: float = 3.0                 # session spend ceiling: past it every OpenRouter call is refused
+    spend_policy: dict = field(default_factory=lambda: {k: dict(v) for k, v in DEFAULT_SPEND_POLICY.items()})      # per provider: click, above, job_cap, session_cap
     sources: dict = field(default_factory=dict, compare=False)      # field -> env | saved | default (provider_prefs.apply_saved fills it)
 
     @classmethod

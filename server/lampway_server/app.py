@@ -23,6 +23,7 @@ from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
 from . import dictation, logredact, matgen, provider_prefs, videojobs
 from .ledger import Ledger, LedgerError
+from .spendpolicy import SpendPolicy
 from .prompts.service import PromptService
 from .prompts.library import LibraryError
 from .prompts.render import RenderError
@@ -282,9 +283,9 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     prompt_service = prompts if prompts is not None else PromptService.from_env(settings.state_dir)
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
-                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services)
+                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy))
     video_system.jobs = jobs
-    for gate_action in ("higgsfield.job", "higgsfield.question", "service.job"):          # the captain's click reaches the waiting job through the Studios' confirm
+    for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the captain's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
     routes += stub_routes(auth, store, settings, jobs)
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model

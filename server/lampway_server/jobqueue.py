@@ -22,6 +22,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Optional
 
 from .services import WIRE_KEYS, ServiceRegistry
+from .spendpolicy import DEFAULT_SPEND_POLICY, SpendPolicy
 
 CAPABILITY_LABELS = {"image_gen": "Image generation"}
 IMAGE_PARAMETERS = {
@@ -85,7 +86,8 @@ _EXT = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}
 
 
 class JobQueue:
-    def __init__(self, backends: dict, hub, base_url: str, model_labels: Optional[dict] = None, video=None, approvals=None, prompts=None, registry=None):
+    def __init__(self, backends: dict, hub, base_url: str, model_labels: Optional[dict] = None, video=None, approvals=None, prompts=None, registry=None, policy=None):
+        self.policy = policy if policy is not None else SpendPolicy(lambda: DEFAULT_SPEND_POLICY)      # per-provider caps and clicks (the Providers dialog)
         self.registry = registry if registry is not None else ServiceRegistry()           # services.py: the Client's other job types
         self.prompts = prompts            # prompts.service.PromptService: templates, rendering, the run log
         self.video = video                # videojobs.VideoSystem: video_gen / video_upscale and Higgsfield models
@@ -224,17 +226,27 @@ class JobQueue:
 
     async def _run_video(self, job: Job):
         plan = await asyncio.to_thread(self.video.plan, job.service, job.model, job.payload)
-        if plan["provider"] == "higgsfield":
-            job.note = f"Waiting for your confirmation: {plan['credits']:g} credits on Higgsfield. Confirm it in the Studios panel."
-            a = self.approvals.propose(action="higgsfield.job", studio="higgsfield", label=plan["label"], args={"job_id": job.job_id},
-                                       price=plan["credits"], requested_by=job.origin,
-                                       settings={"unit": "credits", "model": plan["model"], "tool": plan["tool"], "service": job.service})
-            if not await self._await_approval(job, a):
-                job.status = "CANCELLED"
-                job.note = "Rejected."
-                await self.push(job)
-                return None
-            job.note = ""
+        provider = plan["provider"]
+        higgs = provider == "higgsfield"
+        price = plan["credits"] if higgs else (plan.get("plan") or {}).get("estimate_usd")
+        if higgs or plan.get("ok"):
+            self.policy.check(provider, price)                                            # the per-job and session caps (SpendRefused fails the job before anything is sent)
+            if self.policy.needs_click(provider, price):
+                if self.approvals is None:
+                    raise RuntimeError("this server has no approvals store: a click-gated spend cannot be confirmed")
+                unit = "credits" if higgs else "usd"
+                what = f"{price:g} {unit}" if price is not None else "an unknown price"
+                job.note = f"Waiting for your confirmation: {what} on {provider}. Confirm it in the Studios panel."
+                label = plan.get("label") or f"{provider} {job.model}: {what}"
+                a = self.approvals.propose(action=f"{provider}.job", studio=provider, label=label, args={"job_id": job.job_id},
+                                           price=price if price is not None else 0.0, requested_by=job.origin,
+                                           settings={"unit": unit, "model": plan.get("model"), "tool": plan.get("tool"), "service": job.service})
+                if not await self._await_approval(job, a):
+                    job.status = "CANCELLED"
+                    job.note = "Rejected."
+                    await self.push(job)
+                    return None
+                job.note = ""
         job.status = "POLLING"
         await self.push(job)
         loop = asyncio.get_running_loop()
@@ -245,7 +257,9 @@ class JobQueue:
                                        settings={"unit": "answer", "question": question.get("question"), "options": question.get("options")})
             job.note = "Higgsfield asks you a question: answer it in the Studios panel."
             return asyncio.run_coroutine_threadsafe(self._await_approval(job, q), loop).result()
-        return await asyncio.to_thread(self.video.run, job.service, job.model, job.payload, plan, ask)
+        out = await asyncio.to_thread(self.video.run, job.service, job.model, job.payload, plan, ask)
+        self.policy.record(provider, (out.extra.get("credits") if higgs else out.extra.get("actual_usd")) if hasattr(out, "extra") else price)
+        return out
 
     @staticmethod
     def _prompt_fields(job: Job) -> dict:
@@ -278,6 +292,15 @@ class JobQueue:
                 if out is None:
                     return
             else:
+                if job.service == "image_gen" and self.policy.needs_click("openrouter", None) and self.approvals is not None:     # the price is set by the model: unknown until it ran
+                    a = self.approvals.propose(action="openrouter.job", studio="openrouter", label=f"Image generation ({job.model}): price set by the model", args={"job_id": job.job_id},
+                                               price=0.0, requested_by=job.origin, settings={"unit": "usd", "service": job.service})
+                    job.note = "Waiting for your confirmation: an image generation on openrouter. Confirm it in the Studios panel."
+                    if not await self._await_approval(job, a):
+                        job.status, job.note = "CANCELLED", "Rejected."
+                        await self.push(job)
+                        return
+                    job.note, job.status = "", "POLLING"
                 out = await asyncio.to_thread(self.backends[job.service], job.model, job.payload)
             if job.status == "CANCELLED":
                 return

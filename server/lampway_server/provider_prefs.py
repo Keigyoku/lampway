@@ -127,13 +127,43 @@ def check_purposes(v):
     return out
 
 
+def check_spend_policy(v):
+    """A partial {provider: {click?, above?, job_cap?, session_cap?}} for openrouter / higgsfield / studios / hyper3d (amounts in the provider's unit: USD, else credits)."""
+    from .spendpolicy import CLICKS, PROVIDERS
+    if not isinstance(v, dict) or not v:
+        raise PrefsError(f"must be an object of providers {list(PROVIDERS)}")
+    out = {}
+    for provider, cfg in v.items():
+        if provider not in PROVIDERS:
+            raise PrefsError(f"unknown provider {provider!r}; the providers are {list(PROVIDERS)}")
+        if not isinstance(cfg, dict) or not cfg:
+            raise PrefsError(f"{provider} must be an object")
+        row = {}
+        for key, val in cfg.items():
+            if key == "click":
+                row[key] = _enum(CLICKS)(val)
+            elif key in ("above", "job_cap", "session_cap"):
+                if val is None and key != "above":
+                    row[key] = None
+                elif isinstance(val, bool) or not isinstance(val, (int, float)) or not 0 <= val <= 1_000_000:
+                    raise PrefsError(f"{provider}.{key}: must be an amount from 0 to 1000000")
+                else:
+                    row[key] = float(val)
+            else:
+                raise PrefsError(f"{provider}: {key!r} is not a setting (click, above, job_cap, session_cap)")
+        if row.get("click") == "above" and "above" not in row:
+            raise PrefsError(f"{provider}: click above needs `above`, the price over which the captain's click is needed")
+        out[provider] = row
+    return out
+
+
 FIELDS = {
     "provider": _enum(MAIN_PROVIDERS), "anthropic_model": _model, "openai_model": _model, "chatgpt_model": _model,
     "chatgpt_effort": _enum(EFFORTS), "chatgpt_swarm_model": _model, "chatgpt_swarm_effort": _enum(EFFORTS),
     "swarm_provider": _enum(SWARM_PROVIDERS), "claude_swarm_model": _model, "openrouter_model": _model, "openrouter_swarm_model": _model,
     "image_backend": _enum(IMAGE_BACKENDS), "openrouter_image_model": _model, "openrouter_image_size": check_size,
     "openrouter_image_quality": _enum(IMAGE_QUALITIES), "image_purposes": check_purposes,
-    "video_purposes": check_video_purposes, "video_max_job_usd": _usd_cap,
+    "video_purposes": check_video_purposes, "video_max_job_usd": _usd_cap, "spend_policy": check_spend_policy,
 }
 MAIN_FIELDS = {"provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model"}
 
@@ -186,7 +216,7 @@ def merge_values(base: dict, values: dict) -> dict:
     """``base`` updated with ``values``; the image purposes merge per purpose and per key (a partial update keeps the rest)."""
     out = copy.deepcopy(base)
     for key, value in values.items():
-        if key in ("image_purposes", "video_purposes"):
+        if key in ("image_purposes", "video_purposes", "spend_policy"):
             cur = out.setdefault(key, {})
             for purpose, cfg in value.items():
                 cur.setdefault(purpose, {}).update(cfg)
@@ -213,7 +243,7 @@ def apply_saved(settings: Settings, saved: dict, env=None) -> Settings:
     for key, value in saved.items():
         if sources.get(key) == "env":
             continue
-        if key in ("image_purposes", "video_purposes"):
+        if key in ("image_purposes", "video_purposes", "spend_policy"):
             for purpose, cfg in value.items():
                 getattr(settings, key).setdefault(purpose, {}).update(cfg)
         else:
@@ -225,7 +255,7 @@ def apply_saved(settings: Settings, saved: dict, env=None) -> Settings:
 
 def apply(settings: Settings, values: dict) -> Settings:
     for key, value in values.items():
-        if key in ("image_purposes", "video_purposes"):
+        if key in ("image_purposes", "video_purposes", "spend_policy"):
             for purpose, cfg in value.items():
                 getattr(settings, key).setdefault(purpose, {}).update(cfg)
         else:
@@ -234,7 +264,8 @@ def apply(settings: Settings, values: dict) -> Settings:
 
 
 def trial(settings: Settings, values: dict) -> Settings:
-    return apply(replace(settings, image_purposes=copy.deepcopy(settings.image_purposes), video_purposes=copy.deepcopy(settings.video_purposes)), values)
+    return apply(replace(settings, image_purposes=copy.deepcopy(settings.image_purposes), video_purposes=copy.deepcopy(settings.video_purposes),
+                         spend_policy=copy.deepcopy(settings.spend_policy)), values)
 
 
 def view(settings: Settings) -> dict:
