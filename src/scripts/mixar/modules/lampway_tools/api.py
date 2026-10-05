@@ -567,6 +567,7 @@ def export_piece(object, out_dir, textures=(), note=""):
 # ---- the Mixar-docs features (features/): proven algorithmic code, a studio slot behind the same interface
 
 from .features import retopo as _F_retopo                  # noqa: E402
+from .features import uv as _F_uv                          # noqa: E402
 
 
 @tool
@@ -576,10 +577,18 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
     return _F_retopo.retopo(object, target_faces, method, engine, symmetry)
 
 
+@tool
+def uv_unwrap(object, method="smart", angle_limit=66.0, margin=0.005, texel_density=None, texture_size=2048, engine="algorithmic"):
+    """A new mesh ``<object>_uv`` with a packed UV layout (smart project, angle-based or conformal with seams at sharp edges) and
+    a measured report: islands, coverage, overlap, texel-density spread. The original keeps its UVs. engine=studio:tripo is the
+    Smart UV slot: it answers with the action and price for approval."""
+    return _F_uv.uv_unwrap(object, method, angle_limit, margin, texel_density, texture_size, engine)
+
+
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap")
 
 
 def call(name: str, payload: str = "{}") -> dict:

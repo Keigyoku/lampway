@@ -167,6 +167,13 @@ DEFS = [
         "owner's approval and clicks nothing.", [P("object", desc="Mesh object name", required=True),
         P("target_faces", "integer", "Default 2000"), P("method", desc="quadriflow (default) | voxel"),
         P("engine", desc="algorithmic (default) | studio:tripo"), P("symmetry", "boolean")], api="retopo"),
+    Def("lampway_uv_unwrap", "UV unwrap: a NEW mesh `<object>_uv` with a packed layout (method smart | angle | conformal; seams at edges "
+        "sharper than angle_limit) and a measured report (islands, coverage, overlap by rasterising, texel-density spread, the "
+        "density achieved at texture_size). The original keeps its UVs; inspect the checker before texturing. engine=studio:tripo "
+        "is the Smart UV slot: it answers with the action and price for the owner's approval.", [P("object", required=True),
+        P("method", desc="smart (default) | angle | conformal"), P("angle_limit", "number", "Degrees, default 66"),
+        P("margin", "number", "Island margin in UV units, default 0.005"), P("texel_density", "number", "Texels per metre wanted"),
+        P("texture_size", "integer", "Default 2048"), P("engine", desc="algorithmic (default) | studio:tripo")], api="uv_unwrap"),
     Def("lampway_pbr_merge", "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, "
         "Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are "
         "filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on "
