@@ -282,6 +282,16 @@ DEFS = [
         [P("stage", required=True, desc="measure | lineup | judge | record"), P("piece", required=True), P("seeds", "array", "npz paths"),
          P("scores", "object", "{seed id: score_rms} from the proportion tools"), P("proposals", "object", "{seed: {verdict: usable|fix|reject, defects, rank}} (record)"),
          P("by", desc="agent (default) | model | captain"), P("turn", "number", "lineup: degrees about Z, default -90 (Tripo FBX)"), P("engine", desc="lineup: WORKBENCH only")], api="seed_audit"),
+    Def("lampway_parts_critique", "The auditor's critique of a transferred or segmented part set. stage flags: the rules first (weak-vote and far-transfer islands, parts with too few polygons or absent, a "
+        "_L/_R part crossing the sagittal plane, left/right area asymmetry); render: the owner map in four views, flagged islands magenta (Workbench, headless); judge: the packet to propose fixes from "
+        "(at most `limit` flags, biggest first); write_fixes: your proposals [{target_part, islands | bbox_fbx, only_from_parts, reason, evidence}] validated and written to <piece>/parts/fixes.json; check: "
+        "a dry run per fix ({triangles, from}) without writing an owner map. A fix between a metal part and a cloth/leather part is refused (that class is the captain's or the recipe's, never a render's). "
+        "Proposals only: apply_part_fixes writes the owner map once the captain approves.",
+        [P("stage", required=True, desc="flags | render | judge | write_fixes | check"), P("piece", required=True), P("recipe", required=True, desc="recipe.json (parts + classes)"),
+         P("transfer_dir", desc="the directory transfer_parts wrote"), P("piece_uv", desc="piece_uv.npz"), P("owner_poly", desc="owner_poly.npy (render)"), P("mesh", desc="fbx|glb (render)"),
+         P("proposals", "array", "fix proposals (write_fixes, check)"), P("fixes", desc="a recorded fixes.json (check)"), P("weak", "number", "default 0.6"), P("far_mm", "number", "default 30"),
+         P("min_faces", "integer", "default 50"), P("limit", "integer", "judge batch 1..20, default 12"), P("turn", "number", "render: degrees about Z, default -90"),
+         P("by", desc="agent (default) | model | captain")], api="parts_critique"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the captain has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "

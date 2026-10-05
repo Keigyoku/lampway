@@ -861,6 +861,23 @@ def fit_openings(stage, object, axis=None, plane_origin=None, limb="", pose=None
 
 
 @tool
+def parts_critique(stage, piece, recipe="", transfer_dir="", piece_uv="", owner_poly="", mesh="", proposals=None, fixes="", weak=0.6, far_mm=30.0, min_faces=50, limit=12, turn=-90.0, by="agent"):
+    """The auditor's critique of a transferred or segmented part set. flags: the rules first (weak-vote and far-transfer islands, parts with too few polygons or absent, a _L/_R part crossing the
+    sagittal plane, left/right area asymmetry); render: the owner map in four views with the flagged islands magenta (Workbench, headless); judge: the packet for you to propose from (at most
+    `limit` 1..20 flags, biggest first); write_fixes: your proposals [{target_part, islands | bbox_fbx, only_from_parts, reason, evidence}] validated and written to <piece>/parts/fixes.json (the exact
+    shape apply_part_fixes reads); check: a dry run of those fixes against owner_tri.npy ({triangles, from} per fix) without writing an owner map. A fix between a metal part and a cloth/leather part is
+    refused: that class comes from the captain or the recipe, never from a render. Nothing here writes an owner map."""
+    from .pipeline import parts_critique as _PC
+
+    def _render(mesh_path, owner_path, recipe_path, prefix, turn_deg):
+        res = RUN.run("render_owner", [_p(mesh_path), _p(owner_path), _p(recipe_path), prefix, "--turn", str(turn_deg)], _settings(), timeout=600)
+        return [f"{prefix}_{v}.png" for v in ("front", "back", "left", "right")] if res.rc == 0 else []
+
+    return _PC.run(str(_settings().project_root), stage, piece, _p(recipe) if recipe else "", _p(transfer_dir) if transfer_dir else "", _p(piece_uv) if piece_uv else "",
+                   _p(owner_poly) if owner_poly else "", _p(mesh) if mesh else "", proposals, _p(fixes) if fixes else "", weak, far_mm, min_faces, limit, turn, _render, by)
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
