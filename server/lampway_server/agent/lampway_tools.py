@@ -174,6 +174,13 @@ DEFS = [
         P("method", desc="smart (default) | angle | conformal"), P("angle_limit", "number", "Degrees, default 66"),
         P("margin", "number", "Island margin in UV units, default 0.005"), P("texel_density", "number", "Texels per metre wanted"),
         P("texture_size", "integer", "Default 2048"), P("engine", desc="algorithmic (default) | studio:tripo")], api="uv_unwrap"),
+    Def("lampway_segment_mesh", "Mesh Segment: split a mesh into part objects in the collection `<object>_parts` (largest first, UVs and "
+        "materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | "
+        "uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with. "
+        "The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price).",
+        [P("object", required=True), P("method", desc="shells (default) | sharp | uv_islands"), P("angle", "number", "Degrees, default 40"),
+         P("min_faces", "integer", "Merge regions under this many faces, default 1 (no merge)"),
+         P("engine", desc="algorithmic (default) | studio:tripo")], api="segment_mesh"),
     Def("lampway_pbr_merge", "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, "
         "Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are "
         "filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on "

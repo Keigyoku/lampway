@@ -567,6 +567,7 @@ def export_piece(object, out_dir, textures=(), note=""):
 # ---- the Mixar-docs features (features/): proven algorithmic code, a studio slot behind the same interface
 
 from .features import retopo as _F_retopo                  # noqa: E402
+from .features import segment as _F_segment                # noqa: E402
 from .features import uv as _F_uv                          # noqa: E402
 
 
@@ -585,10 +586,18 @@ def uv_unwrap(object, method="smart", angle_limit=66.0, margin=0.005, texel_dens
     return _F_uv.uv_unwrap(object, method, angle_limit, margin, texel_density, texture_size, engine)
 
 
+@tool
+def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algorithmic"):
+    """Split a mesh into part objects in the collection ``<object>_parts`` (largest first): connected ``shells``, regions bounded by
+    ``sharp`` edges (dihedral > angle), or ``uv_islands``; regions under min_faces merge into a neighbour. The original is hidden,
+    never deleted. engine=studio:tripo is the part-detection slot."""
+    return _F_segment.segment_mesh(object, method, angle, min_faces, engine)
+
+
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh")
 
 
 def call(name: str, payload: str = "{}") -> dict:
