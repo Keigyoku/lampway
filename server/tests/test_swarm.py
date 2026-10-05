@@ -22,7 +22,15 @@ PARENT = "parent-session-1"
 
 
 def cube(name):
-    return ToolCall(id=f"c_{name}", name="run_blender_python", arguments={"script": f"import bpy\n# {name}\n"})
+    # The note rides as a string statement: the lane guard splices the body through the AST, which drops comments.
+    return ToolCall(id=f"c_{name}", name="run_blender_python", arguments={"script": f"import bpy\n'note:{name}'\n"})
+
+
+def note_of(script):
+    """The worker note a scripted tool call carries (see ``cube``), wrapped or not."""
+    import re
+    m = re.search(r"note:(\w+)", script)
+    return m.group(1) if m else ""
 
 
 class FakeBlender:
@@ -57,8 +65,7 @@ class FakeBlender:
                 await asyncio.wait_for(self._gate.wait(), 5)
             if session_id == PARENT:
                 return {"success": True, "lanes": [], "merged": {}}
-            note = script.splitlines()[1].lstrip("# ")
-            return {"success": True, "created_objects": [f"{note}_obj"]}
+            return {"success": True, "created_objects": [f"{note_of(script)}_obj"]}
         finally:
             self.outstanding -= 1
 
@@ -131,7 +138,7 @@ async def test_each_workers_scripts_are_addressed_to_its_own_lane():
     for n, name in ((1, "alpha"), (2, "beta"), (3, "gamma")):
         lane = f"agentlane:{PARENT}:{n}"
         mine = [c for c in worker_calls if c[0] == lane]
-        assert len(mine) == 1 and mine[0][1] == lane and f"# {name}" in mine[0][3]
+        assert len(mine) == 1 and mine[0][1] == lane and note_of(mine[0][3]) == name
 
 
 async def test_workers_run_concurrently_not_one_after_another():
@@ -276,7 +283,7 @@ async def test_every_worker_keeps_a_record_of_its_calls_for_the_owner_but_the_mo
     alpha = swarm.workers[0]
     assert len(alpha.calls) == 1
     call = alpha.calls[0]
-    assert call["tool"] == "run_blender_python" and "# alpha" in call["script"] and call["success"] is True
+    assert call["tool"] == "run_blender_python" and note_of(call["script"]) == "alpha" and call["success"] is True
     assert call["created"] == ["alpha_obj"]
     assert "calls" not in json.loads(text)["workers"][0]
     assert alpha.detail()["calls"] == alpha.calls

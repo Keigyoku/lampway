@@ -13,6 +13,10 @@ So the server plays the orchestrator: ``swarm_start`` creates the lane scenes wi
 the workers as concurrent agent loops; ``swarm_cancel`` stops one; ``swarm_collect`` waits for the rest, then merges each kept
 lane into the parent scene (tagging every object with ``lw_worker``) and deletes the lanes, discarding a cancelled or failed
 worker's lane. Every worker's script results are recorded against it, which is what makes each result attributable.
+
+Lanes isolate scenes, not ``bpy.data``, so every worker script is wrapped by the lane guard (lane_guard.py): objects outside
+the worker's lane are fingerprinted before the body and checked after it in the same main-thread slot; what can be put back
+is, and a deletion or edit fails the worker, whose lane is then discarded.
 """
 
 import asyncio
@@ -22,6 +26,7 @@ from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Optional
 
 from . import lampway_tools as lt
+from . import lane_guard
 from .providers.base import Message, ModelRequest, Text, ToolCall, ToolSpec
 from .tools import RUN_BLENDER_PYTHON, SCENE_SUMMARY, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -89,6 +94,7 @@ class Worker:
     summary: str = ""
     error: str = ""
     calls: list = field(default_factory=list)       # what this worker did, for the owner (not sent to the model)
+    violations: list = field(default_factory=list)  # what the lane guard caught (lane_guard.py)
     task: Optional[asyncio.Task] = None
 
     def public(self) -> dict:
@@ -99,7 +105,7 @@ class Worker:
         return out
 
     def detail(self) -> dict:
-        return {**self.public(), "calls": self.calls}
+        return {**self.public(), "calls": self.calls, "violations": self.violations}
 
 
 @dataclass
@@ -126,7 +132,9 @@ def worker_system_prompt(worker: Worker) -> str:
             f"- Give every object you create a name that starts with `{worker.name}_` so it can be told apart from the others'.\n"
             "- Other workers' objects are visible to you in `bpy.data` under THEIR names. You must never delete, rename, move or "
             "otherwise modify an object you did not create yourself, and never look an object up by a name you did not just give it; "
-            "if a name you want is taken, pick another one that starts with your prefix.\n"
+            "if a name you want is taken, pick another one that starts with your prefix. The lane guard checks every script: a "
+            "change to an object outside your lane is put back and reported to you, and deleting or editing one stops you and "
+            "discards your lane.\n"
             "- Use `run_blender_python` (the data API `bpy.data` is the reliable way) and `scene_summary` to check your work. "
             "The sandbox has no os/sys/subprocess/file system.\n"
             "- Do only your task; do not wait for or coordinate with other workers. Keep it to a handful of tool calls.\n"
@@ -280,7 +288,8 @@ class SwarmManager:
                                       script=merge_script(plan))
         out = {"swarm_id": swarm.id, "workers": [w.public() for w in swarm.workers],
                "merge": {k: v for k, v in (merge or {}).items() if k in ("success", "merged", "discarded", "error")},
-               "lost_objects": {}, "warnings": []}
+               "lost_objects": {}, "warnings": [],
+               "violations": {w.id: w.violations for w in swarm.workers if w.violations}}
         if not (isinstance(merge, dict) and merge.get("success")):
             out["merge_failed"] = True
             return out
@@ -294,6 +303,9 @@ class SwarmManager:
                 out["warnings"].append(
                     f"{w.id} ({w.name}) made {', '.join(lost)} but it was gone from its lane at merge time: another worker's "
                     "script probably deleted or renamed it (lanes isolate scenes, not bpy.data). Rebuild it.")
+        for w in swarm.workers:
+            if w.status == "failed" and w.violations:
+                out["warnings"].append(f"{w.id} ({w.name}) was stopped by the lane guard ({w.error}); its lane was discarded.")
         return out
 
     def cancel_all(self, swarm: Swarm) -> None:
@@ -334,6 +346,9 @@ class SwarmManager:
                     content, is_error = await self._worker_tool(worker, ctx, call)
                     worker.tool_calls += 1
                     results.append({"type": "tool_result", "tool_call_id": call.id, "content": content, "is_error": is_error})
+                    if worker.status == "failed":                        # the lane guard: an unrestorable touch
+                        ctx.progress(f"{worker.id} ({worker.name}) failed: {worker.error}")
+                        return
                 messages.append(Message("user", results))
                 ctx.progress(f"{worker.id} ({worker.name}): {worker.tool_calls} tool calls, {len(worker.created)} objects")
             worker.summary = "stopped after too many tool calls"
@@ -353,20 +368,36 @@ class SwarmManager:
         except UnknownTool as exc:
             return str(exc), True
         result = await self.run_script(ctx.socket, session_id=worker.lane, chat_session_id=worker.lane, turn_id=ctx.turn_id,
-                                       call_id=call.id, tool_name=call.name, script=script)
+                                       call_id=call.id, tool_name=call.name,
+                                       script=lane_guard.guarded_script(worker.scene_name, script))
+        result, guard = lane_guard.unwrap(result)
         created = []
         if isinstance(result, dict):
             for name in result.get("created_objects") or []:
                 created.append(name)
                 if name not in worker.created:
                     worker.created.append(name)
+        guard_note = ""
+        if guard:
+            for old, new in (guard.get("renamed_own") or {}).items():
+                worker.created = [new if n == old else n for n in worker.created]
+                created = [new if n == old else n for n in created]
+            worker.violations.extend(guard.get("violations") or [])
+            guard_note = lane_guard.describe(guard)
+            if guard.get("unrestored"):
+                worker.status = "failed"
+                worker.error = (f"touched objects outside its lane that cannot be put back: "
+                                f"{', '.join(guard['unrestored'])}")
         if len(worker.calls) < _CALL_LOG_MAX:
             worker.calls.append({"tool": call.name, "script": script[:_CALL_LOG_CHARS],
                                  "success": bool(isinstance(result, dict) and result.get("success")),
                                  "error": str(result.get("error", ""))[:300] if isinstance(result, dict) else "",
                                  "created": created})
         text, is_error = format_tool_result(result)
-        return (text[:_RESULT_CLIP] + "...[clipped]" if len(text) > _RESULT_CLIP else text), is_error
+        text = text[:_RESULT_CLIP] + "...[clipped]" if len(text) > _RESULT_CLIP else text
+        if guard_note:
+            return f"{guard_note}\n{text}", True
+        return text, is_error
 
 
 class SwarmError(ValueError):
