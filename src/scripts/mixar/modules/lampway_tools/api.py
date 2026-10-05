@@ -567,6 +567,7 @@ def export_piece(object, out_dir, textures=(), note=""):
 # ---- the Mixar-docs features (features/): proven algorithmic code, a studio slot behind the same interface
 
 from .features import retopo as _F_retopo                  # noqa: E402
+from .features import rig as _F_rig                        # noqa: E402
 from .features import segment as _F_segment                # noqa: E402
 from .features import uv as _F_uv                          # noqa: E402
 
@@ -594,10 +595,32 @@ def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algor
     return _F_segment.segment_mesh(object, method, angle, min_faces, engine)
 
 
+@tool
+def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y"):
+    """A UE-named humanoid armature ``<object>_rig`` placed from landmarks measured on a T-pose mesh, the mesh parented with heat-map
+    weights (proximity fallback for the vertices heat cannot solve). ``_l``/``_r`` are the figure's own sides. engine=studio:tripo
+    is the Auto Rig slot (answers with action and price)."""
+    return _F_rig.auto_rig(object, kind, engine, weights, facing)
+
+
+@tool
+def bind_to_armature(object, armature, mode="rigid", bone="", source=""):
+    """Bind a piece to an armature: ``rigid`` = one bone at full weight (plates), ``transfer`` = weights copied from ``source`` (the
+    aligned body; deforming pieces), ``auto`` = heat-map weights."""
+    return _F_rig.bind_to_armature(object, armature, mode, bone, source)
+
+
+@tool
+def pose_test(armature, object, poses):
+    """Rotate bones ([{name, bone, rotate: [x, y, z] degrees}]) and measure the evaluated mesh: max/min edge stretch and the largest
+    vertex displacement per pose; every pose is reset afterwards."""
+    return _F_rig.pose_test(armature, object, poses)
+
+
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test")
 
 
 def call(name: str, payload: str = "{}") -> dict:

@@ -41,7 +41,7 @@ class Def:
         for p in self.params:
             prop = {"type": p.type, "description": p.desc}
             if p.type == "array":
-                prop["items"] = {"type": "string"}
+                prop["items"] = {"type": "object"} if p.name == "poses" else {"type": "string"}
             props[p.name] = prop
             if p.required:
                 req.append(p.name)
@@ -181,6 +181,19 @@ DEFS = [
         [P("object", required=True), P("method", desc="shells (default) | sharp | uv_islands"), P("angle", "number", "Degrees, default 40"),
          P("min_faces", "integer", "Merge regions under this many faces, default 1 (no merge)"),
          P("engine", desc="algorithmic (default) | studio:tripo")], api="segment_mesh"),
+    Def("lampway_auto_rig", "Auto Rig: a UE-named humanoid armature `<object>_rig` placed from landmarks measured on a T-pose mesh "
+        "(standing on Z, facing -Y by default; _l/_r are the FIGURE's own sides), the mesh parented with heat-map weights and a "
+        "proximity fallback for vertices heat cannot solve. Test it with lampway_pose_test: a rig is not a claim of deformation "
+        "quality. engine=studio:tripo is the Auto Rig slot (answers with action and price).", [P("object", required=True),
+        P("kind", desc="humanoid"), P("weights", desc="auto | proximity"), P("facing", desc="-Y (default) | +Y"),
+        P("engine", desc="algorithmic (default) | studio:tripo")], api="auto_rig"),
+    Def("lampway_bind_to_armature", "Bind a piece (armor) to an armature: mode rigid = ONE bone at full weight (plates; give `bone`), "
+        "transfer = weights copied from `source` (the aligned body; for deforming pieces), auto = heat-map weights.",
+        [P("object", required=True), P("armature", required=True), P("mode", desc="rigid (default) | transfer | auto"),
+         P("bone"), P("source", desc="The body whose weights are transferred (mode transfer)")], api="bind_to_armature"),
+    Def("lampway_pose_test", "Rotate bones and MEASURE the evaluated mesh: max/min edge stretch and the largest vertex displacement per pose "
+        "(a rigid plate on one bone must read stretch 1.0). `poses`: [{name, bone, rotate: [x, y, z] degrees}]; every pose is reset.",
+        [P("armature", required=True), P("object", required=True), P("poses", "array", "Pose objects", required=True)], api="pose_test"),
     Def("lampway_pbr_merge", "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, "
         "Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are "
         "filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on "
