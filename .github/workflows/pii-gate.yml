@@ -9,6 +9,10 @@ permissions:
 jobs:
   gate:
     runs-on: ubuntu-24.04
+    env:                                  # the owner-specific patterns are repository secrets, never files
+      PII_OWNER_EMAIL_RE: ${{ secrets.PII_OWNER_EMAIL_RE }}
+      PII_OWNER_USER_RE: ${{ secrets.PII_OWNER_USER_RE }}
+      PII_OWNER_PATH_RE: ${{ secrets.PII_OWNER_PATH_RE }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }

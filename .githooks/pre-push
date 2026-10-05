@@ -3,6 +3,10 @@
 # Install: (this repository: git config core.hooksPath .githooks)
 # Blocks a push whose new commits carry a personal email, a home path, an account id, a token, or media metadata.
 GATE="$(git rev-parse --show-toplevel)/scripts/lampway/prepublish_gate.py"
+# the owner-specific patterns live OUTSIDE the repository: a local file (mode 0600, never printed) of PII_OWNER_*_RE variables, in the shared git dir
+for d in "$(git rev-parse --git-common-dir)" "$(git rev-parse --git-dir)"; do
+  if [ -f "$d/pii_owner.env" ]; then set -a; . "$d/pii_owner.env"; set +a; break; fi
+done
 zero=0000000000000000000000000000000000000000
 while read local_ref local_sha remote_ref remote_sha; do
   [ "$local_sha" = "$zero" ] && continue                      # a deletion
