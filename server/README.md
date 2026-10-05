@@ -41,7 +41,8 @@ client's frames; no Blender, no network, no model).
 | `LAMPWAY_ACCESS_TTL_S` | `3600` | Access-token lifetime. Keep it well above 120 s: the client refreshes whenever `exp` is nearer than that. |
 | `LAMPWAY_STATE_DIR` | `$XDG_STATE_HOME/lampway-server` | Where the secret and the agent settings (`agent_settings.json`, 0600) live. |
 | `LAMPWAY_FAKE_CREDITS` | `100000` | Credits shown in the profile card and the usage meter. |
-| `LAMPWAY_PROVIDER` | `mock` | `mock` (no model: lists the scene and echoes it; a chat message starting `py:` runs the rest as a Blender script), `anthropic`, `openai`. |
+| `LAMPWAY_PROVIDER` | `mock` | `mock` (no model: lists the scene and echoes it; a chat message starting `py:` runs the rest as a Blender script), `anthropic`, `openai`, `chatgpt_plan` (your ChatGPT Plus/Pro plan, see below), `codex_cli` / `claude_cli` (local CLI adapters, off unless enabled, see below). |
+| `LAMPWAY_CHATGPT_MODEL` | `gpt-6.1-sol` | Model for `chatgpt_plan` (the account's own list is what `GET /v1/models` returns). |
 | `LAMPWAY_ANTHROPIC_MODEL` | `claude-sonnet-5-5` | Model for the Anthropic provider. `ANTHROPIC_API_KEY` comes from the environment (or an `ant auth login` profile). |
 | `OPENAI_BASE_URL` / `LAMPWAY_OPENAI_MODEL` / `OPENAI_API_KEY` | `http://127.0.0.1:11434/v1` / *(required)* / *(optional)* | OpenAI-compatible `chat/completions` endpoint (Ollama, LM Studio, llama.cpp, vLLM, OpenAI). |
 | `LAMPWAY_LOG_LEVEL` | `INFO` | Python logging level. Debug logs name methods and ids, never payloads or keys. |
@@ -111,3 +112,20 @@ Not implemented at all: the job queue (3D/image/video generation), asset
 search, prompt refine, turnaround detection, segmentation, handwriting,
 dictation, MCP, auth handoff, history blobs/images. The client either hides
 those features (empty catalogue) or logs a caught failure.
+
+
+## ChatGPT plan usage (`LAMPWAY_PROVIDER=chatgpt_plan`)
+
+Runs the agent on your own ChatGPT Plus or Pro plan through OpenAI's "Sign in with ChatGPT" plan-usage route (open-source and
+local apps), implemented from the documented flow (developers.openai.com/siwc/token-sharing-open-source): OAuth authorization code
++ PKCE with a loopback redirect, the Responses API (`store:false`, `stream:true`). One-time consent: open
+`http://127.0.0.1:8787/app/chatgpt`, choose **Continue with ChatGPT**, approve in the browser. Then `LAMPWAY_PROVIDER=chatgpt_plan`.
+
+* Tokens live only in `<state>/chatgpt_auth.json` (0600) on this machine; nothing is logged; sign out revokes them.
+* Requests come only from this local server, only from the agent loop answering your chat turns. There is no endpoint that lets any
+  other tool use your plan, and the server is single-user and binds 127.0.0.1 (the terms forbid general-purpose access, pooling,
+  hosted use for other people, and background use without express consent: Lampway has no background agent runs).
+* Limits (OpenAI's): GPT Image and the other hosted tools are not available on this route; the Plus five-hour limit is shared across
+  all apps; you set this app's weekly cap in ChatGPT Settings > Usage; nothing falls back to another billing path.
+* It does NOT use Codex's login or `~/.codex/auth.json` (those tokens belong to Codex's own client id).
+* `server/tests/test_chatgpt_live.py` runs the real checks once a consented token exists.

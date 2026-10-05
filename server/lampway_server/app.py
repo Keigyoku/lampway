@@ -1,7 +1,7 @@
 """The ASGI application: REST routes the client calls plus the agent WebSocket."""
 
 from html import escape
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs, urlencode, urlparse
 
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -12,6 +12,7 @@ from .agent.providers import make_provider
 from .agent.turns import AgentHub
 from .agent_settings import AgentSettingsStore
 from .auth import Auth
+from .chatgpt_auth import ChatGPTAuth, LoginDeclined, LoginError
 from .config import Settings
 from .rest import stub_routes
 from .ws import AgentSocket, ConnectionHub
@@ -45,7 +46,8 @@ def unauthorized(message="Not authenticated"):
     return JSONResponse({"detail": message}, status_code=401)
 
 
-def create_app(settings: Settings, provider=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None) -> Starlette:
+    chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
     auth = Auth(
         secret=settings.resolve_jwt_secret(),
         email=settings.user_email,
@@ -115,7 +117,60 @@ def create_app(settings: Settings, provider=None) -> Starlette:
             return unauthorized("Invalid refresh token")
         return JSONResponse(pair)
 
+    # ---- Sign in with ChatGPT (plan usage): the local pages. Loopback only; they start and finish the documented OAuth flow
+    def _chatgpt_page(body: str, status_code: int = 200) -> HTMLResponse:
+        st = chatgpt.status()
+        if st["signed_in"] and st["plan_usage_enabled"]:
+            head = (f'<p><b>Using ChatGPT plan</b> ({escape(st["email"] or "signed in")}). '
+                    f'<a href="{st["manage_usage_url"]}">Manage usage</a></p>'
+                    '<form method="post" action="/app/chatgpt/signout"><button>Sign out</button></form>')
+        elif st["signed_in"]:
+            head = ('<p>Signed in, but ChatGPT plan usage is not enabled for this sign-in. '
+                    '<a href="/app/chatgpt/start">Enable it</a> or use an API key.</p>')
+        else:
+            head = '<p><a href="/app/chatgpt/start"><button>Continue with ChatGPT</button></a></p>'
+        return HTMLResponse(f"""<!doctype html><html><head><meta charset="utf-8"><title>Lampway - ChatGPT plan</title>
+<style>body{{font-family:sans-serif;max-width:34em;margin:4em auto}}</style></head><body><h1>Lampway</h1>
+<h2>ChatGPT plan usage</h2>{body}{head}
+<p style="color:#555">Your ChatGPT Plus or Pro plan pays for this server's agent. Tokens stay in this machine's state directory;
+nothing is sent anywhere but OpenAI. Image generation is not available on this route.</p></body></html>""", status_code=status_code)
+
+    async def chatgpt_home(request: Request):
+        return _chatgpt_page("")
+
+    async def chatgpt_start(request: Request):
+        return RedirectResponse(chatgpt.start_login().url, status_code=302)
+
+    async def chatgpt_callback(request: Request):
+        import asyncio
+        query = {k: v for k, v in request.query_params.items()}
+        try:
+            await asyncio.to_thread(chatgpt.complete_login, query)
+        except LoginDeclined as exc:
+            return _chatgpt_page(f"<p>ChatGPT plan use was not authorized ({escape(str(exc))}). You can try again.</p>")
+        except LoginError as exc:
+            return _chatgpt_page(f"<p class='error'>Sign-in failed: {escape(str(exc))}</p>", status_code=400)
+        except Exception as exc:  # noqa: BLE001 - shown to the person at the keyboard, never with a token
+            return _chatgpt_page(f"<p class='error'>Sign-in could not finish: {escape(type(exc).__name__)}</p>", status_code=502)
+        return _chatgpt_page("<p>Signed in.</p>")
+
+    async def chatgpt_status(request: Request):
+        return JSONResponse(chatgpt.status())
+
+    async def chatgpt_signout(request: Request):
+        origin = request.headers.get("origin")
+        if origin and urlparse(origin).hostname not in ("127.0.0.1", "localhost"):
+            return JSONResponse({"detail": "cross-origin sign-out refused"}, status_code=403)
+        import asyncio
+        await asyncio.to_thread(chatgpt.sign_out)
+        return RedirectResponse("/app/chatgpt", status_code=303)
+
     routes = [
+        Route("/app/chatgpt", chatgpt_home, methods=["GET"]),
+        Route("/app/chatgpt/start", chatgpt_start, methods=["GET"]),
+        Route("/auth/callback", chatgpt_callback, methods=["GET"]),
+        Route("/app/chatgpt/status", chatgpt_status, methods=["GET"]),
+        Route("/app/chatgpt/signout", chatgpt_signout, methods=["POST"]),
         Route("/api/v1/auth/login", login, methods=["POST"]),
         Route("/api/v1/auth/me", me, methods=["GET"]),
         Route("/api/v1/auth/desktop/token", desktop_token, methods=["POST"]),
@@ -126,7 +181,7 @@ def create_app(settings: Settings, provider=None) -> Starlette:
     store = AgentSettingsStore(settings.state_dir)
     routes += stub_routes(auth, store, settings)
     hub = ConnectionHub()
-    agent = AgentHub(provider if provider is not None else make_provider(settings))
+    agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt))
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent).run()
@@ -138,4 +193,5 @@ def create_app(settings: Settings, provider=None) -> Starlette:
     app.state.auth = auth
     app.state.store = store
     app.state.provider = provider
+    app.state.chatgpt = chatgpt
     return app

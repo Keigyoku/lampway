@@ -26,6 +26,7 @@ class Settings:
     anthropic_model: str = "claude-sonnet-5-5"
     openai_base_url: str = "http://127.0.0.1:11434/v1"
     openai_model: str = ""
+    chatgpt_model: str = "gpt-6.1-sol"                 # the documented example model; the account's own list is at /app/chatgpt/status
 
     @classmethod
     def from_env(cls, env=None) -> "Settings":
@@ -45,6 +46,7 @@ class Settings:
             anthropic_model=env.get("LAMPWAY_ANTHROPIC_MODEL", "claude-sonnet-5-5"),
             openai_base_url=env.get("OPENAI_BASE_URL", "http://127.0.0.1:11434/v1"),
             openai_model=env.get("LAMPWAY_OPENAI_MODEL", ""),
+            chatgpt_model=env.get("LAMPWAY_CHATGPT_MODEL", "gpt-6.1-sol"),
         )
 
     def resolve_jwt_secret(self) -> str:

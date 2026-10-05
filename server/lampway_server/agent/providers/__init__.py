@@ -3,7 +3,7 @@
 import os
 
 
-def make_provider(settings):
+def make_provider(settings, chatgpt_auth=None):
     """The provider LAMPWAY_PROVIDER names. Keys are read from the environment
     here or by the SDK and never pass through logs or responses."""
     if settings.provider == "mock":
@@ -18,4 +18,10 @@ def make_provider(settings):
             raise ValueError("LAMPWAY_OPENAI_MODEL is required with LAMPWAY_PROVIDER=openai")
         return OpenAICompatProvider(settings.openai_base_url, settings.openai_model,
                                     os.environ.get("OPENAI_API_KEY", ""))
+    if settings.provider == "chatgpt_plan":
+        # ChatGPT plan usage (Sign in with ChatGPT): OAuth tokens from /app/chatgpt, never an API key, never Codex's tokens.
+        from ...chatgpt_auth import ChatGPTAuth
+        from .chatgpt_plan import ChatGPTPlanProvider
+        auth = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
+        return ChatGPTPlanProvider(auth, settings.chatgpt_model)
     raise ValueError(f"unknown LAMPWAY_PROVIDER {settings.provider!r}")
