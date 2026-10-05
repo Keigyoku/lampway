@@ -234,3 +234,24 @@ print("RESULT", json.dumps({"seen": seen, "dry": dry, "live": live, "bad": bad})
     assert res["seen"][1]["refs"][0] == "clay_Front.png" and res["seen"][1]["prompt"]
     assert res["live"]["ok"] is True and len(res["live"]["files"]) == 1 and res["live"]["view"] == "Front"
     assert res["bad"]["ok"] is False and "count" in res["bad"]["error"]
+
+
+def test_the_image_stage_passes_the_configured_backend_to_the_image_command(tmp_path):
+    r = run(tmp_path, '''
+from mixar.modules.lampway_tools import api as A, settings as S
+A.settings_set(image_backend="openrouter", python_server="/usr/bin/python3", server_dir="/tmp")
+seen = {}
+import subprocess
+def fake_run(cmd, **kw):
+    seen["cmd"] = list(cmd)
+    class P: returncode, stdout, stderr = 0, "", ""
+    return P()
+subprocess.run = fake_run
+setup(); api.meshpaint("clay", res=64)
+res = api.meshpaint("image", view="Front", live=True, count=1)
+print("RESULT", json.dumps({"cmd": seen.get("cmd"), "res": res}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    cmd = r.results[0]["cmd"]
+    assert cmd is not None and "--backend" in cmd and cmd[cmd.index("--backend") + 1] == "openrouter"
+    assert "--live" in cmd and cmd[cmd.index("--count") + 1] == "1"

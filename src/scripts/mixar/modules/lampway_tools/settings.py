@@ -28,7 +28,9 @@ class PathOutsideProject(ValueError):
     pass
 
 
-_FIELDS = ("project_root", "python_science", "python_browser", "blender", "nice", "tiles_dir", "ambientcg_dir", "hdri", "python_server", "server_dir")
+_FIELDS = ("project_root", "python_science", "python_browser", "blender", "nice", "tiles_dir", "ambientcg_dir", "hdri", "python_server", "server_dir",
+           "image_backend")
+_TEXT_FIELDS = ("image_backend",)          # plain strings; everything else but nice is a path
 
 
 @dataclass
@@ -42,7 +44,8 @@ class Settings:
     ambientcg_dir    the ambientCG material folders (Metal009, Metal048C) the metal normals and colours come from
     hdri             the studio .hdr the textured render is lit with
     python_server    a python that can run lampway_server (the mesh-paint image backend runs there, not in the app)
-    server_dir       the directory holding the lampway_server package (the repo's server/)"""
+    server_dir       the directory holding the lampway_server package (the repo's server/)
+    image_backend    the mesh-paint image backend: tripo | codex_cli | openrouter (unset = the backend's own default)"""
 
     project_root: Path = None
     python_science: Optional[Path] = None
@@ -54,6 +57,7 @@ class Settings:
     hdri: Optional[Path] = None
     python_server: Optional[Path] = None
     server_dir: Optional[Path] = None
+    image_backend: Optional[str] = None
 
 
 def _settings_file(home=None) -> Path:
@@ -73,7 +77,7 @@ def load(environ=None) -> Settings:
         raw = env.get(f"LAMPWAY_{name.upper()}") or data.get(name)
         if raw in (None, ""):
             continue
-        setattr(s, name, int(raw) if name == "nice" else Path(raw))
+        setattr(s, name, int(raw) if name == "nice" else str(raw) if name in _TEXT_FIELDS else Path(raw))
     return s
 
 

@@ -86,7 +86,7 @@ def settings_set(**kw):
     for k, v in kw.items():
         if k not in S._FIELDS:
             raise ValueError(f"unknown setting {k!r}; the settings are {', '.join(S._FIELDS)}")
-        setattr(s, k, int(v) if k == "nice" else Path(v))
+        setattr(s, k, int(v) if k == "nice" else str(v) if k in S._TEXT_FIELDS else Path(v))
     S.save(s)
     return {"saved": str(S._settings_file())}
 
@@ -396,7 +396,8 @@ def _mp_generate(spec, setup, s, view, prompt, refs, out_dir, live, count=4):
     import os
     import subprocess
     cmd = ["nice", "-n", str(s.nice), str(s.python_server), "-m", "lampway_server.imagegen", "--prompt-file", str(prompt_file),
-           "--out", out_dir, "--count", str(count)] + [x for r in refs for x in ("--ref", r)] + (["--live"] if live else [])
+           "--out", out_dir, "--count", str(count)] + [x for r in refs for x in ("--ref", r)] + (["--live"] if live else []) \
+        + (["--backend", str(s.image_backend)] if s.image_backend else [])
     env = dict(os.environ, PYTHONPATH=f"{s.server_dir}{os.pathsep}{os.environ.get('PYTHONPATH', '')}", LAMPWAY_PROJECT_ROOT=str(s.project_root))
     p = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=7200)
     if p.returncode != 0:

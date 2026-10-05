@@ -107,3 +107,17 @@ def test_jail_args_resolves_every_path_token_inside_the_root_and_refuses_one_out
     for bad in (["/etc/hosts"], ["--out=/tmp/x"], ["name=../p.npz:12"], ["~/x"], [".."]):
         with pytest.raises(S.PathOutsideProject):
             S.jail_args(bad, root)
+
+
+def test_the_image_backend_is_a_setting_so_the_app_does_not_depend_on_the_launchers_environment(tmp_path, monkeypatch):
+    """The mesh-paint image stage ran `lampway_server.imagegen` without --backend, so inside the app the backend was
+    whatever LAMPWAY_IMAGE_BACKEND the LAUNCHER happened to export (unset = the Tripo driver, which refuses count 1).
+    It is a setting now, like every other interpreter choice."""
+    assert "image_backend" in S._FIELDS
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / "settings.json").write_text(json.dumps({"image_backend": "openrouter"}))
+    assert S.load().image_backend == "openrouter"
+    monkeypatch.setenv("LAMPWAY_IMAGE_BACKEND", "codex_cli")
+    assert S.load().image_backend == "codex_cli"
+    assert S.load({"LAMPWAY_HOME": str(home)}).image_backend == "openrouter"
