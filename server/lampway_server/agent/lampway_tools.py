@@ -213,6 +213,23 @@ DEFS = [
         [P("object", required=True), P("out", desc="mp4 path under the project root", required=True), P("kind", desc="turntable (default) | camera_path"),
          P("frames", "integer", "Turntable frames, default 48 (max 1200)"), P("width", "integer"), P("height", "integer"), P("fps", "integer"),
          P("engine", desc="workbench (default) | eevee"), P("waypoints", "array", "camera_path waypoints")], api="render_video"),
+    Def("lampway_project_views", "Project cardinal-view images ({\"Front\": path, ...}, each framed to the subject) into the UV atlas of a mesh by "
+        "which way each texel faces (with an occlusion ray test) and apply it as the material `<object>_proj`; reports coverage and the share "
+        "of texels each view painted. The object needs UVs." + _PATHS, [P("object", required=True), P("views", "object", "View -> image path", required=True),
+        P("size", "integer", "Atlas size, default 1024"), P("out", desc="Atlas PNG path"), P("occlusion", "boolean", "Default true")], api="project_views"),
+    Def("lampway_texture_gen", "Texture Gen: a clay render of each view goes to the image model with the prompt, the painted views are projected into the "
+        "mesh's UV atlas and applied as a material. The object needs UVs; the image step costs money (about $0.07 an image on OpenRouter) and "
+        "runs on the server's image slot. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits): it answers with action and price "
+        "for the owner's approval and clicks nothing." + _PATHS, [P("object", required=True), P("prompt", required=True), P("out_dir", desc="Folder for the clay, painted views and atlas"),
+        P("views", "array", "Default Front, Back"), P("size", "integer"), P("engine", desc="algorithmic (default) | studio:tripo")], api="texture_gen"),
+    Def("lampway_ai_render", "AI Render: a clay render of an object from a view goes to the image model with the prompt; the result is saved and loaded as a "
+        "Blender image. Look development only: it changes nothing in the scene. Costs about $0.07 on OpenRouter." + _PATHS,
+        [P("object", required=True), P("prompt", required=True), P("view", desc="Front | Back | Left | Right"), P("out", desc="Result PNG path"), P("size", "integer")],
+        api="ai_render"),
+    Def("lampway_repair_texture", "Local texture repair: blend a patch image through a mask (both framed like a clay render of the view) into an existing "
+        "atlas, only where the surface faces that view; writes `out`, never overwrites the original." + _PATHS,
+        [P("object", required=True), P("texture", required=True), P("view", required=True), P("patch", required=True), P("mask", required=True),
+         P("out", required=True), P("feather", "number")], api="repair_texture"),
     Def("lampway_pbr_merge", "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, "
         "Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are "
         "filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on "

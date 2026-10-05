@@ -570,6 +570,7 @@ from .features import retopo as _F_retopo                  # noqa: E402
 from .features import image3d as _F_image3d                # noqa: E402
 from .features import rig as _F_rig                        # noqa: E402
 from .features import splat as _F_splat                    # noqa: E402
+from .features import texture as _F_texture                # noqa: E402
 from .features import video as _F_video                    # noqa: E402
 from .features import segment as _F_segment                # noqa: E402
 from .features import uv as _F_uv                          # noqa: E402
@@ -647,10 +648,46 @@ def render_video(object, out, kind="turntable", frames=48, width=640, height=360
     return _F_video.render_video(object, _p(out), kind, frames, width, height, fps, engine, waypoints)
 
 
+@tool
+def project_views(object, views, size=1024, out="", occlusion=True):
+    """Project cardinal-view images ({"Front": path, ...}, each framed to the subject) into the UV atlas by which way each texel faces
+    (optional occlusion ray test) and apply it as the material ``<object>_proj``. Reports coverage and per-view share."""
+    s_ = _settings()
+    return _F_texture.project_views(object, {v: _p(p, s_.project_root) for v, p in views.items()}, size,
+                                    _p(out or f"{object}_atlas.png", s_.project_root), occlusion)
+
+
+@tool
+def texture_gen(object, prompt, out_dir="", views=("Front", "Back"), size=1024, engine="algorithmic"):
+    """Texture Gen: clay render of each view -> the server's image model paints it -> projection into the atlas -> material applied.
+    The object needs UVs. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits: approval first)."""
+    if engine != "algorithmic":
+        return _F_texture.texture_gen(object, prompt, "", views, size, engine)
+    if not out_dir:
+        raise ValueError("texture_gen needs out_dir (a project folder for the clay renders, the painted views and the atlas)")
+    return _F_texture.texture_gen(object, prompt, _p(out_dir), list(views), size, engine)
+
+
+@tool
+def ai_render(object, prompt, view="Front", out="ai_render.png", size=768):
+    """AI Render: a clay render of ``object`` from ``view`` is handed to the image model with the prompt; the result image is saved and
+    loaded as a Blender image. It changes nothing in the scene (look development only)."""
+    return _F_texture.ai_render(object, prompt, view, _p(out), size)
+
+
+@tool
+def repair_texture(object, texture, view, patch, mask, out, feather=2):
+    """Local texture repair: blend ``patch`` through ``mask`` (both framed like a clay render of ``view``) into the existing atlas where
+    the surface faces that view; writes ``out``, never overwrites ``texture``."""
+    s_ = _settings()
+    return _F_texture.repair_texture(object, _p(texture, s_.project_root), view, _p(patch, s_.project_root), _p(mask, s_.project_root),
+                                     _p(out, s_.project_root), feather)
+
+
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture")
 
 
 def call(name: str, payload: str = "{}") -> dict:
