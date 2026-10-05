@@ -16,6 +16,7 @@ from .chatgpt_auth import ChatGPTAuth, LoginDeclined, LoginError
 from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
 from . import logredact, matgen
+from .mcp import McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub
 from starlette.responses import Response
@@ -327,7 +328,33 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
             return JSONResponse({"detail": f"material generation failed: {type(exc).__name__}"}, status_code=502)
         return JSONResponse(material.as_dict())
 
+    mcp = McpServer(hub, agent)
+
+    async def mcp_route(request: Request):
+        """One MCP JSON-RPC message from an external AI app (mcp.py)."""
+        if not _bearer_ok(request):
+            return unauthorized()
+        message, failure = mcp_parse(await request.body())
+        if failure is not None:
+            return JSONResponse(failure)
+        reply = await mcp.handle(message, request.headers.get("x-mixar-instance-id", ""), request.headers.get("x-mixar-session-id", ""))
+        return Response(status_code=202) if reply is None else JSONResponse(reply)
+
+    async def mcp_eligibility(request: Request):
+        """200 only when this desktop instance has a live agent socket; a 404 with another detail than "Not Found" is what the
+        client maps to "desktop not connected"."""
+        if not _bearer_ok(request):
+            return unauthorized()
+        instance = request.headers.get("x-mixar-instance-id", "")
+        if not instance:
+            return JSONResponse({"detail": "X-Mixar-Instance-Id is required"}, status_code=422)
+        if instance not in hub.sockets:
+            return JSONResponse({"detail": "desktop not connected"}, status_code=404)
+        return JSONResponse({"eligible": True, "instance_id": instance, "contract": "mixar_ui_v1", "valid_for_seconds": 30})
+
     routes += [
+        Route("/api/v1/mcp", mcp_route, methods=["POST"]),
+        Route("/api/v1/mcp-desktop/eligibility", mcp_eligibility, methods=["GET"]),
         Route("/api/v1/matgen", matgen_route, methods=["POST"]),
         Route("/api/v1/job-queue/jobs", job_submit, methods=["POST"]),
         Route("/api/v1/job-queue/jobs/{job_id}", job_get, methods=["GET"]),
