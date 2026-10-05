@@ -1,6 +1,8 @@
 """The ASGI application: REST routes the client calls plus the agent WebSocket."""
 
+import json
 from html import escape
+from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse
 
 from starlette.applications import Starlette
@@ -16,6 +18,7 @@ from .chatgpt_auth import ChatGPTAuth, LoginDeclined, LoginError
 from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
 from . import logredact, matgen
+from .assetsearch import AssetIndex
 from .mcp import McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub
@@ -329,6 +332,87 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         return JSONResponse(material.as_dict())
 
     mcp = McpServer(hub, agent)
+    assets = AssetIndex(settings.state_dir)
+
+    def _metadata(value):
+        """The form's ``metadata`` JSON list, or None when it is not a list of objects."""
+        try:
+            rows = json.loads(value or "[]")
+        except ValueError:
+            return None
+        return rows if isinstance(rows, list) and all(isinstance(r, dict) for r in rows) else None
+
+    async def assets_status_get(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        return JSONResponse(envelope({"has_embeddings": assets.count > 0, "stored_asset_count": assets.count}))
+
+    async def assets_status_post(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        rows = _metadata((await request.form()).get("metadata"))
+        if rows is None:
+            return JSONResponse({"detail": "metadata must be a JSON list of objects"}, status_code=422)
+        return JSONResponse(envelope(assets.status(rows)))
+
+    async def assets_prepare(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        rows = _metadata((await request.form()).get("metadata"))
+        if rows is None:
+            return JSONResponse({"detail": "metadata must be a JSON list of objects"}, status_code=422)
+        return JSONResponse(envelope(assets.prepare(rows)))
+
+    async def assets_train(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        form = await request.form()
+        mode, rows = form.get("mode"), _metadata(form.get("metadata"))
+        if mode not in ("full", "incremental") or rows is None:
+            return JSONResponse({"detail": "mode must be full or incremental and metadata a JSON list of objects"}, status_code=422)
+        try:
+            removed = [str(x) for x in json.loads(form.get("removed_assets") or "[]")]
+        except ValueError:
+            return JSONResponse({"detail": "removed_assets must be a JSON list"}, status_code=422)
+        images = {}
+        for upload in form.getlist("images"):
+            if hasattr(upload, "read"):
+                images[Path(upload.filename or "").stem] = await upload.read()
+        return JSONResponse(envelope(assets.train(mode, rows, removed, images, str(form.get("metadata_checksum") or ""))))
+
+    async def assets_search(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        form = await request.form()
+        image = form.get("image")
+        data = await image.read() if image is not None and hasattr(image, "read") else None
+        try:
+            top_k = int(form.get("top_k") or 10)
+        except ValueError:
+            top_k = 10
+        try:
+            return JSONResponse(envelope({"results": assets.search(str(form.get("prompt") or ""), data, top_k)}))
+        except LookupError:
+            return JSONResponse({"detail": "no trained model: train the asset library first"}, status_code=404)
+
+    async def assets_search_batch(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        try:
+            prompts = json.loads((await request.form()).get("prompts") or "[]")
+        except ValueError:
+            prompts = None
+        if not isinstance(prompts, list) or not all(isinstance(p, str) for p in prompts):
+            return JSONResponse({"detail": "prompts must be a JSON list of strings"}, status_code=422)
+        try:
+            return JSONResponse(envelope({"results": {p: assets.search(p, None, 5) for p in prompts}}))
+        except LookupError:
+            return JSONResponse({"detail": "no trained model: train the asset library first"}, status_code=404)
+
+    async def assets_delete(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        return JSONResponse(envelope({"deleted": assets.clear()}))
 
     async def mcp_route(request: Request):
         """One MCP JSON-RPC message from an external AI app (mcp.py)."""
@@ -353,6 +437,13 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         return JSONResponse({"eligible": True, "instance_id": instance, "contract": "mixar_ui_v1", "valid_for_seconds": 30})
 
     routes += [
+        Route("/api/v1/asset-search/status", assets_status_get, methods=["GET"]),
+        Route("/api/v1/asset-search/status", assets_status_post, methods=["POST"]),
+        Route("/api/v1/asset-search/train/prepare", assets_prepare, methods=["POST"]),
+        Route("/api/v1/asset-search/train", assets_train, methods=["POST"]),
+        Route("/api/v1/asset-search/search", assets_search, methods=["POST"]),
+        Route("/api/v1/asset-search/search-batch", assets_search_batch, methods=["POST"]),
+        Route("/api/v1/asset-search/embeddings", assets_delete, methods=["DELETE"]),
         Route("/api/v1/mcp", mcp_route, methods=["POST"]),
         Route("/api/v1/mcp-desktop/eligibility", mcp_eligibility, methods=["GET"]),
         Route("/api/v1/matgen", matgen_route, methods=["POST"]),
