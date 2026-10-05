@@ -2787,7 +2787,7 @@ static wmOperatorStatus wm_homefile_write_invoke(bContext *C,
     return WM_operator_confirm_ex(C,
                                   op,
                                   IFACE_("Overwrite Startup File"),
-                                  IFACE_("Mixar will start next time as it is now."),
+                                  IFACE_("Lampway will start next time as it is now."),
                                   IFACE_("Overwrite"),
                                   ui::AlertIcon::Question,
                                   false);
@@ -3643,7 +3643,7 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   static const EnumPropertyItem file_extension_items[] = {
-      {0, "MIXAR", 0, "Mixar Files", "Show only .mixar files"},
+      {0, "MIXAR", 0, "Lampway Files", "Show only .mixar files"},
       {1, "BLEND", 0, "Blend Files", "Show only .blend files"},
       {0, nullptr, 0, nullptr, nullptr},
   };
@@ -4422,7 +4422,7 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   static const EnumPropertyItem save_file_extension_items[] = {
-      {0, "MIXAR", 0, "Mixar Files", "Save as .mixar file"},
+      {0, "MIXAR", 0, "Lampway Files", "Save as .mixar file"},
       {1, "BLEND", 0, "Blend Files", "Save as .blend file"},
       {0, nullptr, 0, nullptr, nullptr},
   };

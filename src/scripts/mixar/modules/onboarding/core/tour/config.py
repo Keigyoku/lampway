@@ -13,6 +13,8 @@ piece of copy lives here; the beat table itself is ``beats.py``.
 
 import os
 
+from mixar.config.brand import DEFAULT_BACKEND_URL, TOUR_PACKS_PATH
+
 # ---------------------------------------------------------------------------
 # Assets — relative to ``onboarding/assets/``.
 # ---------------------------------------------------------------------------
@@ -36,9 +38,11 @@ VIDEO_FPS_FALLBACK = 24.0
 # Bumped with every re-cut of the English take or change to the beat table;
 # a pack built for another version is never played.
 TOUR_PACK_VERSION = 1
-# Public manifest on the releases CDN (no auth: the first-time splash
-# starts the download before login). Override for QA/staging.
-PACKS_MANIFEST_URL = "https://cdn.mixar.app/tour-packs/manifest.json"
+# Public manifest served by OUR backend (no auth: the first-time splash
+# starts the download before login). ``pack_fetch.manifest_url`` resolves
+# the live backend URL at call time; this is the static default. Override
+# for QA/staging with the environment variable.
+PACKS_MANIFEST_URL = DEFAULT_BACKEND_URL + TOUR_PACKS_PATH
 ENV_PACKS_MANIFEST_URL = "MIXAR_TOUR_PACKS_URL"
 # QA: a local folder laid out like the cache (``<code>/part-<k>.mp4``,
 # ``<code>/timing.json``, ``manifest.json``) that stands in for cache + CDN.

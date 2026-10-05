@@ -6,13 +6,15 @@
 import bpy
 from bpy.types import Operator
 
+from mixar.config.brand import PRODUCT_NAME
+
 from ...core.theme_backgrounds import apply_forest_backgrounds
 
 
 class MIXAR_OT_apply_forest_theme(Operator):
     bl_idname = "mixar.apply_forest_theme"
-    bl_label = "Apply Mixar Forest"
-    bl_description = "Apply Mixar's charcoal and forest-green theme with default text styling"
+    bl_label = f"Apply {PRODUCT_NAME} Forest"
+    bl_description = f"Apply {PRODUCT_NAME}'s charcoal and forest-green theme with default text styling"
 
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event)

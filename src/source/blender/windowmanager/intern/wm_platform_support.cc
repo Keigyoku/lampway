@@ -13,6 +13,7 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_fileops.h"
+#include "BLI_lampway_brand.h"
 #include "BLI_linklist.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
@@ -144,7 +145,7 @@ bool WM_platform_support_perform_checks()
 
     case GPU_SUPPORT_LEVEL_LIMITED: {
       size_t slen = 0;
-      STR_CONCAT(title, slen, "Mixar - ");
+      STR_CONCAT(title, slen, LAMPWAY_PRODUCT_NAME " - "); /* LAMPWAY */
       STR_CONCAT(
           title, slen, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Limited Platform Support"));
       slen = 0;
@@ -164,7 +165,7 @@ bool WM_platform_support_perform_checks()
           slen,
           CTX_IFACE_(
               BLT_I18NCONTEXT_ID_WINDOWMANAGER,
-              "Newer graphics drivers might be available with better Mixar compatibility."));
+              "Newer graphics drivers might be available with better Lampway compatibility."));
       STR_CONCAT(message, slen, "\n \n");
       STR_CONCAT(message, slen, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Graphics card:\n"));
       STR_CONCAT(message, slen, GPU_platform_gpu_name());
@@ -175,7 +176,7 @@ bool WM_platform_support_perform_checks()
 
     case GPU_SUPPORT_LEVEL_UNSUPPORTED: {
       size_t slen = 0;
-      STR_CONCAT(title, slen, "Mixar - ");
+      STR_CONCAT(title, slen, LAMPWAY_PRODUCT_NAME " - "); /* LAMPWAY */
       STR_CONCAT(
           title, slen, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Platform Unsupported"));
       slen = 0;
@@ -198,7 +199,7 @@ bool WM_platform_support_perform_checks()
             message,
             slen,
             CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER,
-                       "Upgrading to the latest macOS version may improve Mixar support"));
+                       "Upgrading to the latest macOS version may improve Lampway support"));
       }
 #else
       STR_CONCAT(message,
@@ -211,7 +212,7 @@ bool WM_platform_support_perform_checks()
           slen,
           CTX_IFACE_(
               BLT_I18NCONTEXT_ID_WINDOWMANAGER,
-              "Newer graphics drivers might be available with better Mixar compatibility."));
+              "Newer graphics drivers might be available with better Lampway compatibility."));
 
       STR_CONCAT(message, slen, "\n \n");
       STR_CONCAT(message, slen, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Graphics card:\n"));
@@ -222,7 +223,7 @@ bool WM_platform_support_perform_checks()
       if (!show_continue) {
         STR_CONCAT(message,
                    slen,
-                   CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Mixar will now close."));
+                   CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Lampway will now close."));
         dialog_options = GHOST_DialogError;
         result = false;
       }

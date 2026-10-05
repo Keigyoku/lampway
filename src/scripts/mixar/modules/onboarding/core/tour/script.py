@@ -11,6 +11,8 @@ Split out of ``beats.py`` (the model, anchors and validation) for size;
 numbers here. No ``bpy``.
 """
 
+from mixar.config.brand import AGENT_NAME
+
 from .beats import (
     Beat,
     Gate,
@@ -153,7 +155,7 @@ MIXAR_INTRO = Tour(
                      ("Shift+A", "Add an object", 23720),
                      ("Tab", "Edit mode", 24020),
                      ("Mod+Z", "Undo", 24320),
-                     ("Shift+M", "Open Mixie", 24620),
+                     ("Shift+M", f"Open {AGENT_NAME}", 24620),
                      ("Opt", "Push to talk (hold)", 24920),
                  ), at_pct=(80, 52), appear=18180),
              )),
@@ -161,12 +163,12 @@ MIXAR_INTRO = Tour(
         # The cursor glides to the pill and rests there: the click is the
         # user's (a fake click on a gated target would read as "done").
         Beat("find-island", 25890, 31680, "half", PLACE_BOTTOM_LEFT,
-             label="Part 2 · Mixie",
+             label=f"Part 2 · {AGENT_NAME}",
              actions=((25890, "island_open", {}),),
              overlays=(
                  _scribble("island-ring", A_PILL_ON_HOST, appear=26590),
                  _cursor("island-cursor", A_PILL_TOP_ON_HOST, appear=27190),
-                 _hint("island-hint", "Open Mixie", A_PILL_ON_HOST, appear=29190),
+                 _hint("island-hint", f"Open {AGENT_NAME}", A_PILL_ON_HOST, appear=29190),
              ),
              gate=Gate("island_expanded", "island-tabs", anchor=A_PILL,
                        auto_advance_wall_ms=8000,
@@ -177,7 +179,7 @@ MIXAR_INTRO = Tour(
         # in one breath flip under a moving cursor; the pane then settles on
         # 3D with its model picker ringed.
         Beat("island-tabs", 32060, 53410, "half", PLACE_BOTTOM_RIGHT,
-             label="Part 2 · Mixie",
+             label=f"Part 2 · {AGENT_NAME}",
              actions=(
                  (32060, "island_expand", {}),
                  (33720, "island_tab", {"tab": "AGENT"}),
@@ -200,7 +202,7 @@ MIXAR_INTRO = Tour(
              )),
         # "Everything you generate lands in the library." 53.56–55.73 s
         Beat("library-prompt", 53410, 56230, "half", PLACE_BOTTOM_RIGHT,
-             label="Part 2 · Mixie",
+             label=f"Part 2 · {AGENT_NAME}",
              overlays=(
                  _scribble("library-ring", A_TAB_LIBRARY, appear=53760),
                  _cursor("library-cursor", A_TAB_LIBRARY, appear=54160),
@@ -214,7 +216,7 @@ MIXAR_INTRO = Tour(
         # rail flips to the connected asset libraries, where "Add Library…"
         # lives, and back to the generations grid at the end of the line.
         Beat("library", 56520, 66680, "half", PLACE_BOTTOM_RIGHT,
-             label="Part 2 · Mixie",
+             label=f"Part 2 · {AGENT_NAME}",
              actions=(
                  (56520, "island_tab", {"tab": "GENERATIONS"}),
                  (56520, "library_source", {"source": "AI"}),

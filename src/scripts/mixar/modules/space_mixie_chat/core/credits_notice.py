@@ -3,11 +3,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """
-Credit-exhausted Mixie chat message.
+Credit-exhausted agent chat message.
 
 The toast surface is owned by ``common.notifications.credit_upgrade`` (same
 mechanism as the "update available" toast). This module adds the *second*
-surface the product wants: a message in the Mixie chat window carrying an
+surface the product wants: a message in the agent chat window carrying an
 "Upgrade" call-to-action.
 
 The CTA button reuses the toast's operator (``mixar.open_credit_upgrade``) via
@@ -23,6 +23,7 @@ import uuid
 
 import bpy
 
+from mixar.config.brand import AGENT_NAME
 from mixar.config.logging_config import get_logger
 from mixar.modules.common.i18n import iface_, n_, rpt_
 
@@ -37,10 +38,11 @@ CREDITS_BUBBLE_PREFIX = "credit-upgrade-"
 
 _CONTENT_MAXLEN = 4096
 _DEFAULT_TITLE = n_("You're out of credits")
+# The agent's display name is one constant; the sentence is translated whole.
 _DEFAULT_BODY = n_(
     "You've used your monthly credit allowance. "
-    "Upgrade your plan to keep creating with Mixie."
-)
+    "Upgrade your plan to keep creating with {agent}."
+).format(agent=AGENT_NAME)
 _CTA_LABEL = n_("Upgrade")
 
 
@@ -67,7 +69,7 @@ def add_credit_upgrade_chat_message(
     action_url: str = None,
     request_banner: bool = True,
 ) -> None:
-    """Add (or refresh) a Mixie chat bubble with an "Upgrade" CTA.
+    """Add (or refresh) an agent chat bubble with an "Upgrade" CTA.
 
     Best-effort and idempotent — safe to call from both the WS-push handler and
     the in-chat 402 fallback; prefix dedup collapses them to one bubble.

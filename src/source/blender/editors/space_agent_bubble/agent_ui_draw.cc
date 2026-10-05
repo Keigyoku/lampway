@@ -23,6 +23,7 @@
 
 #include "BLF_api.hh"
 
+#include "BLI_lampway_brand.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_time.h"
@@ -143,9 +144,13 @@ void agent_ui_draw_status_pill(ARegion *region, const float width,
     /* Preview line: newest user prompt, dim, ellipsised into the space left
      * of the chip. */
     char preview[160];
-    BLI_strncpy(preview,
-                state->last_prompt[0] ? state->last_prompt : IFACE_("Ask Mixie anything..."),
-                sizeof(preview));
+    if (state->last_prompt[0]) {
+      BLI_strncpy(preview, state->last_prompt, sizeof(preview));
+    }
+    else {
+      /* LAMPWAY: the agent's display name is one constant. */
+      BLI_snprintf(preview, sizeof(preview), IFACE_("Ask %s anything..."), LAMPWAY_AGENT_NAME);
+    }
     /* One line only — newlines read as garbage glyphs in BLF. */
     for (char *c = preview; *c; c++) {
       if (*c == '\n' || *c == '\r') {

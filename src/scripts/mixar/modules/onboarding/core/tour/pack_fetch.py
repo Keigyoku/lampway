@@ -25,6 +25,8 @@ import threading
 import urllib.request
 from typing import Dict, Optional
 
+from mixar.config.brand import TOUR_PACKS_PATH
+from mixar.config.config import get_server_url
 from mixar.config.logging_config import get_logger
 from mixar.modules.common.remote_assets.core import download as dl
 
@@ -38,7 +40,12 @@ _states: Dict[str, dict] = {}
 
 
 def manifest_url() -> str:
-    return os.environ.get(config.ENV_PACKS_MANIFEST_URL) or config.PACKS_MANIFEST_URL
+    """QA override, else the manifest on the configured backend (our server
+    serves the packs; nothing is fetched from the upstream CDN)."""
+    override = os.environ.get(config.ENV_PACKS_MANIFEST_URL)
+    if override:
+        return override
+    return get_server_url().rstrip("/") + TOUR_PACKS_PATH
 
 
 def state(code: str) -> dict:

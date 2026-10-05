@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
 #include "BLF_api.hh"
+#include "BLI_lampway_brand.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLT_translation.hh"
@@ -51,7 +52,10 @@ void rules_draw_rows(const RulesDrawFrame &f)
   if (entries.is_empty()) {
     float hint_col[4] = {
         HIST_COL_MUTED[0], HIST_COL_MUTED[1], HIST_COL_MUTED[2], HIST_COL_MUTED[3] * ease};
-    const char *empty_text = IFACE_("Add a rule above to guide Mixie.");
+    /* LAMPWAY: the agent's display name is one constant. */
+    char empty_text[128];
+    BLI_snprintf(
+        empty_text, sizeof(empty_text), IFACE_("Add a rule above to guide %s."), LAMPWAY_AGENT_NAME);
     const float w = hist_text_width(empty_text, font_id, meta_px);
     const float cx = (panel.xmin + panel.xmax) * 0.5f;
     hist_draw_label(empty_text,

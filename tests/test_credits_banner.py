@@ -169,8 +169,11 @@ def test_creator_program_link_matches_the_help_menu():
     from mixar.modules.common.notifications import constants as C
 
     help_menu = (ROOT / "src/scripts/startup/bl_ui/space_topbar.py").read_text()
-    assert C.CREDITS_BANNER_CREATOR_URL in help_menu
-    assert C.CREDITS_BANNER_REFERRAL_URL == "https://www.mixar.app/app/referrals"
+    # The Help menu builds the same link from the one website constant.
+    from mixar.config.brand import website_url
+    assert C.CREDITS_BANNER_CREATOR_URL == website_url("/creator-program")
+    assert 'website_url("/creator-program")' in help_menu
+    assert C.CREDITS_BANNER_REFERRAL_URL == website_url("/app/referrals")
 
 
 def test_native_operator_is_registered_and_built():

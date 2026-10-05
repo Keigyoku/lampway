@@ -13,6 +13,8 @@ from enum import Enum
 
 import bpy
 
+from mixar.config.brand import website_url
+
 
 class NotificationType(Enum):
     """Notification severity levels.
@@ -37,8 +39,8 @@ CREDITS_BANNER_BURST_COOLDOWN_S = 20.0
 CREDITS_BANNER_TOUR_POLL_S = 2.0
 # Destinations of the banner's secondary buttons (Upgrade uses the
 # manage-subscription handoff shared with the chat CTA).
-CREDITS_BANNER_REFERRAL_URL = "https://www.mixar.app/app/referrals"
-CREDITS_BANNER_CREATOR_URL = "https://www.mixar.app/creator-program"
+CREDITS_BANNER_REFERRAL_URL = website_url("/app/referrals")
+CREDITS_BANNER_CREATOR_URL = website_url("/creator-program")
 
 
 # Priority -> TTL mapping (ms). 0 = sticky (manual dismiss only).

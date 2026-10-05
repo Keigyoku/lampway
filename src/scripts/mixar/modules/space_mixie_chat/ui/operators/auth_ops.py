@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """
-Authentication operators for Mixie Chat.
+Authentication operators for the agent chat.
 
 Provides operators for user login and logout functionality.
 """
@@ -15,6 +15,7 @@ import bpy
 from bpy.app.handlers import persistent
 from bpy.types import Operator
 
+from mixar.config.brand import AGENT_NAME, PRODUCT_NAME
 from mixar.config.logging_config import get_logger
 from mixar.modules.common.i18n import n_, rpt_
 
@@ -474,10 +475,10 @@ def _release_stuck_login(attempt_id, thread):
 
 
 class MIXIE_CHAT_OT_login(Operator):
-    """Login to Mixie Chat via browser SSO"""
+    """Login to the agent via browser SSO"""
     bl_idname = "mixie_chat.login"
     bl_label = "Login"
-    bl_description = "Login to Mixie Chat via browser SSO"
+    bl_description = f"Login to {AGENT_NAME} via browser SSO"
 
     def execute(self, context):
         global _login_attempt_id
@@ -561,10 +562,10 @@ class MIXIE_CHAT_OT_login(Operator):
 
 
 class MIXIE_CHAT_OT_logout(Operator):
-    """Logout from Mixie Chat"""
+    """Logout from the agent"""
     bl_idname = "mixie_chat.logout"
     bl_label = "Logout"
-    bl_description = "Logout from Mixie Chat"
+    bl_description = f"Logout from {AGENT_NAME}"
 
     def execute(self, context):
         global _auth_check_started, _auto_connect_scheduled
@@ -617,10 +618,10 @@ class MIXIE_CHAT_OT_logout(Operator):
 
 
 class MIXIE_CHAT_OT_open_dashboard(Operator):
-    """Open Mixie web dashboard with seamless auth"""
+    """Open the web dashboard with seamless auth"""
     bl_idname = "mixie_chat.open_dashboard"
     bl_label = "Open Dashboard"
-    bl_description = "Open Mixie web dashboard in your browser"
+    bl_description = f"Open the {PRODUCT_NAME} web dashboard in your browser"
 
     def execute(self, context):
         result = open_dashboard_with_handoff()

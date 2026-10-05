@@ -35,20 +35,22 @@ if not defined MIXAR_VERSION (
 
 REM Core environment settings (env var > .env > default)
 if not defined MIXAR_ENV set "MIXAR_ENV=Prod"
-if not defined MIXAR_BACKEND_URL set "MIXAR_BACKEND_URL=https://api.mixar.app"
-if not defined MIXAR_FRONTEND_URL set "MIXAR_FRONTEND_URL=https://www.mixar.app"
+REM LAMPWAY: built against OUR server (API + SSO page); keep in step with
+REM src/scripts/mixar/config/brand.py (DEFAULT_BACKEND_URL, WEBSITE_URL).
+if not defined MIXAR_BACKEND_URL set "MIXAR_BACKEND_URL=http://127.0.0.1:8787"
+if not defined MIXAR_FRONTEND_URL set "MIXAR_FRONTEND_URL=http://127.0.0.1:8787"
 
-REM App info (constants)
+REM App info (constants). Executable and bundle ids stay as upstream named them.
 if not defined MIXAR_VERSION_PATCH set "MIXAR_VERSION_PATCH=0"
-if not defined MIXAR_APP_NAME set "MIXAR_APP_NAME=Mixar"
+if not defined MIXAR_APP_NAME set "MIXAR_APP_NAME=Lampway"
 if not defined MIXAR_EXECUTABLE_NAME set "MIXAR_EXECUTABLE_NAME=mixar"
-if not defined MIXAR_DESCRIPTION set "MIXAR_DESCRIPTION=AI Native 3D Content Creation Software"
-if not defined MIXAR_VENDOR set "MIXAR_VENDOR=Mixar"
-if not defined MIXAR_WEBSITE set "MIXAR_WEBSITE=https://mixar.app"
+if not defined MIXAR_DESCRIPTION set "MIXAR_DESCRIPTION=AI-assisted 3D content creation (a fork of the GPL Mixar client)"
+if not defined MIXAR_VENDOR set "MIXAR_VENDOR=Lampway"
+if not defined MIXAR_WEBSITE set "MIXAR_WEBSITE=https://lampway.app"
 
 REM Bundle settings (constants)
 if not defined MIXAR_BUNDLE_IDENTIFIER set "MIXAR_BUNDLE_IDENTIFIER=com.mixar.mixar"
-if not defined MIXAR_BUNDLE_COPYRIGHT set "MIXAR_BUNDLE_COPYRIGHT=© 2025 Mixar"
+if not defined MIXAR_BUNDLE_COPYRIGHT set "MIXAR_BUNDLE_COPYRIGHT=© 2026 Lampway contributors"
 
 REM NVIDIA GPU rendering (read by cmake\mixar_overrides.cmake)
 REM   MIXAR_CUDA=0          -> no CUDA/OptiX/cubins (much faster clean builds)

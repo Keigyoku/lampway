@@ -24,6 +24,8 @@ import time
 import bpy
 from bpy.types import Menu
 
+from mixar.config.brand import website_url
+
 
 # Updated on every WM_MT_splash.draw() call. We treat the splash as
 # "visible" if a draw has happened within SPLASH_VISIBLE_WINDOW_S; once
@@ -207,12 +209,14 @@ class WM_MT_splash(Menu):
         col2 = split.column()
         col2.label(text="Getting Started")
 
+        # LAMPWAY: links come from the fork's one website constant; the
+        # upstream community invite is not ours to hand out.
         col2.operator(
             "wm.url_open", text="About", icon='URL'
-        ).url = "https://www.mixar.app/about"
+        ).url = website_url("/about")
         col2.operator(
-            "wm.url_open", text="Join Discord", icon='URL'
-        ).url = "https://discord.com/invite/YVqvkQx8rX"
+            "wm.url_open", text="Website", icon='URL'
+        ).url = website_url()
 
         layout.separator()
 

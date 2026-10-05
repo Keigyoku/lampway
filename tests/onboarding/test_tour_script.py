@@ -20,6 +20,7 @@ ends 130.24 and the clip (logo card included) ends at 137.30.
 
 from __future__ import annotations
 
+from mixar.config.brand import AGENT_NAME
 from mixar.modules.onboarding.core.tour import beats as B
 from mixar.modules.onboarding.core.tour import config
 from mixar.modules.onboarding.core.tour import script as S
@@ -41,10 +42,10 @@ ACT_CAPTIONS = {
     "viewport": "Part 1 · The viewport",
     "viewport-try": "Part 1 · The viewport",
     "shortcuts": "Part 1 · The viewport",
-    "find-island": "Part 2 · Mixie",
-    "island-tabs": "Part 2 · Mixie",
-    "library-prompt": "Part 2 · Mixie",
-    "library": "Part 2 · Mixie",
+    "find-island": f"Part 2 · {AGENT_NAME}",
+    "island-tabs": f"Part 2 · {AGENT_NAME}",
+    "library-prompt": f"Part 2 · {AGENT_NAME}",
+    "library": f"Part 2 · {AGENT_NAME}",
     "scenes": "Part 3 · Scenes and Cinema",
     "cinema": "Part 3 · Scenes and Cinema",
     "moodboard-prompt": "Part 4 · The moodboard",
@@ -123,7 +124,7 @@ def test_gated_targets_are_never_fake_clicked():
         for ov in b.overlays:
             if ov.kind == B.OVERLAY_CURSOR:
                 assert ov.click_ms is None, (b.id, ov.id)
-    assert _overlay("find-island", "island-hint").text == "Open Mixie"
+    assert _overlay("find-island", "island-hint").text == f"Open {AGENT_NAME}"
     assert _overlay("moodboard-prompt", "grip-hint").text == (
         "Drag the Moodboard tab out · or press ~")
     assert _overlay("viewport-try", "viewport-hint").text == (
@@ -141,9 +142,9 @@ def test_shortcut_panel_lights_each_key_as_it_is_named():
     rest = [ms for keys, _l, ms in panel.rows if keys not in ("Click", "G", "R", "S")]
     assert rest and all(23420 <= ms <= 25410 for ms in rest)
     assert [ms for _k, _l, ms in panel.rows] == sorted(ms for _k, _l, ms in panel.rows)
-    # Mixar's own two: Shift+M opens Mixie; hold Option/Alt to talk.
+    # The fork's own two: Shift+M opens the agent; hold Option/Alt to talk.
     labels = {keys: label for keys, label, _ms in panel.rows}
-    assert labels["Shift+M"] == "Open Mixie"
+    assert labels["Shift+M"] == f"Open {AGENT_NAME}"
     assert labels["Opt"] == "Push to talk (hold)"
 
 

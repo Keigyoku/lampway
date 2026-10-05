@@ -135,6 +135,15 @@ if(WITH_HEADLESS)
   add_definitions(-DWITH_HEADLESS)
 endif()
 
+# LAMPWAY: option from cmake/mixar_overrides.cmake (default ON). Compiles out
+# the native keyring login gate in creator.cc; see creator_startup.cc too.
+if(LAMPWAY)
+  add_definitions(-DLAMPWAY)
+endif()
+if(NOT LAMPWAY_PRODUCT_NAME)
+  set(LAMPWAY_PRODUCT_NAME "Lampway")
+endif()
+
 if(WITH_SDL)
   add_definitions(-DWITH_SDL)
 endif()
@@ -1820,14 +1829,15 @@ elseif(APPLE)
     string(REPLACE "." ";" _mixar_ver "$ENV{MIXAR_VERSION}")
     list(GET _mixar_ver 0 _MIXAR_MAJOR)
     list(GET _mixar_ver 1 _MIXAR_MINOR)
+    # LAMPWAY: display name only; the bundle id stays so preferences persist.
     set_target_properties(mixar PROPERTIES
       MACOSX_BUNDLE_GUI_IDENTIFIER "com.mixar.mixar-${_MIXAR_MAJOR}-${_MIXAR_MINOR}"
-      MACOSX_BUNDLE_BUNDLE_NAME "Mixar ${_MIXAR_MAJOR}.${_MIXAR_MINOR}"
+      MACOSX_BUNDLE_BUNDLE_NAME "${LAMPWAY_PRODUCT_NAME} ${_MIXAR_MAJOR}.${_MIXAR_MINOR}"
     )
   else()
     set_target_properties(mixar PROPERTIES
       MACOSX_BUNDLE_GUI_IDENTIFIER "com.mixar.mixar"
-      MACOSX_BUNDLE_BUNDLE_NAME "Mixar"
+      MACOSX_BUNDLE_BUNDLE_NAME "${LAMPWAY_PRODUCT_NAME}"
     )
   endif()
 

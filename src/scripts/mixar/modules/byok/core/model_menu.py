@@ -30,6 +30,7 @@ share: `chip_label()` (what the WM `mixar_agent_model_label` mirror holds) and
 from dataclasses import dataclass
 from typing import Any, Dict, List, Sequence
 
+from mixar.config.brand import AGENT_NAME
 from mixar.modules.common.i18n import iface_, n_
 
 #: Shown when the catalog is empty — offline, pre-auth, or a backend that has
@@ -46,14 +47,16 @@ BYOK_NOTE_TEXT = n_("Your API key controls the model")
 BYOK_NOTE_PREFIX = "Your key: "
 
 #: What the island chip reads while a user key overrides the hosted pick
-#: (product decision: "Custom"; the no-pick chip stays "Mixie"). One constant
-#: so the wording can be swapped in one place — e.g. "My Key", "Own Key".
+#: (product decision: "Custom"; the no-pick chip stays the agent's name). One
+#: constant so the wording can be swapped in one place — e.g. "My Key", "Own Key".
 BYOK_CHIP_TEXT = n_("Custom")
 
 #: Separator between the model label and its thinking level on the chip.
 CHIP_SEPARATOR = " · "
 
-RESET_TEXT = "Mixie"
+#: The reset row and the no-pick chip read the agent's display name; the C++
+#: chip falls back to the same constant (LAMPWAY_AGENT_NAME).
+RESET_TEXT = AGENT_NAME
 
 #: The chat's route to the dialog also offered in the profile menu. Keep it
 #: enabled while BYOK is active so users can clear the key overriding their
@@ -102,7 +105,7 @@ def format_thinking_label(level: str) -> str:
 def chip_label(model_label: str, thinking_level: str = "", byok_active: bool = False) -> str:
     """The composed text the island chip draws.
 
-    Empty means "no pick" and C++ falls back to "Mixie". A user key overrides
+    Empty means "no pick" and C++ falls back to the agent's name. A user key overrides
     every hosted pick, so the chip says so instead of naming a model the agent
     is not running on; the level rides along only when one is saved (empty is
     the model's own default, which the chip does not spell out).

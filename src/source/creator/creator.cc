@@ -391,6 +391,11 @@ int main(int argc,
 #  endif /* USE_WIN32_UNICODE_ARGS */
 #endif   /* WIN32 */
 
+  // LAMPWAY: no native login gate. Upstream exits here unless the OS keyring
+  // already holds a token; Lampway starts regardless and leaves login to the
+  // Python browser SSO (modules/auth), which talks to OUR server. Building
+  // with -DLAMPWAY=OFF restores the upstream gate.
+#ifndef LAMPWAY
   /* Skip startup auth dialog in background/headless mode (no display).
    * NOTE: Must be after Win32 unicode argv creation above. */
   {
@@ -405,6 +410,7 @@ int main(int argc,
       return 0;
     }
   }
+#endif
 
 #if defined(WITH_OPENGL_BACKEND) && BLI_SUBPROCESS_SUPPORT
   if (STREQ(argv[0], "--compilation-subprocess")) {

@@ -36,20 +36,22 @@ fi
 
 # Core environment settings (env var > .env > default)
 export MIXAR_ENV="${MIXAR_ENV:-Prod}"
-export MIXAR_BACKEND_URL="${MIXAR_BACKEND_URL:-https://api.mixar.app}"
-export MIXAR_FRONTEND_URL="${MIXAR_FRONTEND_URL:-https://www.mixar.app}"
+# LAMPWAY: the client is built against OUR server (API + SSO page); keep in
+# step with src/scripts/mixar/config/brand.py (DEFAULT_BACKEND_URL, WEBSITE_URL).
+export MIXAR_BACKEND_URL="${MIXAR_BACKEND_URL:-http://127.0.0.1:8787}"
+export MIXAR_FRONTEND_URL="${MIXAR_FRONTEND_URL:-http://127.0.0.1:8787}"
 
-# App info (constants)
+# App info (constants). Executable and bundle ids stay as upstream named them.
 export MIXAR_VERSION_PATCH="${MIXAR_VERSION_PATCH:-0}"
-export MIXAR_APP_NAME="${MIXAR_APP_NAME:-Mixar}"
+export MIXAR_APP_NAME="${MIXAR_APP_NAME:-Lampway}"
 export MIXAR_EXECUTABLE_NAME="${MIXAR_EXECUTABLE_NAME:-mixar}"
-export MIXAR_DESCRIPTION="${MIXAR_DESCRIPTION:-AI Native 3D Content Creation Software}"
-export MIXAR_VENDOR="${MIXAR_VENDOR:-Mixar}"
-export MIXAR_WEBSITE="${MIXAR_WEBSITE:-https://mixar.app}"
+export MIXAR_DESCRIPTION="${MIXAR_DESCRIPTION:-AI-assisted 3D content creation (a fork of the GPL Mixar client)}"
+export MIXAR_VENDOR="${MIXAR_VENDOR:-Lampway}"
+export MIXAR_WEBSITE="${MIXAR_WEBSITE:-https://lampway.app}"
 
 # Bundle settings (constants)
 export MIXAR_BUNDLE_IDENTIFIER="${MIXAR_BUNDLE_IDENTIFIER:-com.mixar.mixar}"
-export MIXAR_BUNDLE_COPYRIGHT="${MIXAR_BUNDLE_COPYRIGHT:-© 2025 Mixar}"
+export MIXAR_BUNDLE_COPYRIGHT="${MIXAR_BUNDLE_COPYRIGHT:-© 2026 Lampway contributors}"
 
 # NVIDIA GPU rendering (read by cmake/mixar_overrides.cmake).
 #   MIXAR_CUDA=0          -> no CUDA/OptiX/cubins (much faster clean builds)

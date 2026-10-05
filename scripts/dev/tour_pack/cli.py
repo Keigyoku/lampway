@@ -34,7 +34,10 @@ import warp as warp_mod  # noqa: E402
 ROOT = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 FOUNDER_MP4 = os.path.join(ROOT, "src/scripts/mixar/modules/onboarding/assets/tour/founder.mp4")
 SUBTITLES_DIR = os.path.join(ROOT, "src/scripts/mixar/modules/onboarding/assets/tour/subtitles")
-CDN_BASE = "https://cdn.mixar.app/tour-packs"
+# LAMPWAY: packs are served by OUR backend (mixar.config.brand.TOUR_PACKS_PATH
+# is the manifest the client fetches under the backend URL). Override for a
+# CDN of your own.
+CDN_BASE = os.environ.get("LAMPWAY_TOUR_PACKS_BASE", "http://127.0.0.1:8787/tour-packs")
 
 # code → media file stem (the language module's ``english`` names, lower-case)
 LANGS = {"zh": "mandarin", "ko": "korean", "ja": "japanese", "ar": "arabic",

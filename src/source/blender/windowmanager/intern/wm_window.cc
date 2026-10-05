@@ -21,6 +21,8 @@
 
 #include "CLG_log.h"
 
+#include "BLI_lampway_brand.h"
+
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_enums.h"
@@ -792,7 +794,7 @@ static std::string wm_window_title_text(
     if (is_single && area && area->spacetype != SPACE_EMPTY) {
       return IFACE_(ED_area_name(area).c_str());
     }
-    return "Mixar";
+    return LAMPWAY_PRODUCT_NAME; /* LAMPWAY: product name. */
   }
 
   /* This path may contain invalid UTF8 byte sequences on UNIX systems,
@@ -875,7 +877,8 @@ static std::string wm_window_title_text(
     }
   }
 
-  win_title.append(fmt::format(" - Mixar {}", BKE_blender_version_string()));
+  /* LAMPWAY: product name. */
+  win_title.append(fmt::format(" - " LAMPWAY_PRODUCT_NAME " {}", BKE_blender_version_string()));
 
   return win_title;
 }

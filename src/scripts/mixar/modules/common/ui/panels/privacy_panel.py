@@ -10,6 +10,8 @@ needed, which keeps the upstream merge surface untouched.
 
 from bpy.types import Panel
 
+from mixar.config.brand import PRODUCT_NAME, website_url
+
 
 class MIXAR_PT_privacy_preferences(Panel):
     """Telemetry consent, placed where users conventionally look to opt out."""
@@ -34,13 +36,14 @@ class MIXAR_PT_privacy_preferences(Panel):
         col.prop(context.window_manager, "mixar_share_usage_data")
         sub = col.column()
         sub.active = False
-        sub.label(text="Shares which Mixar features you use, to help improve the product.")
+        sub.label(text=f"Shares which {PRODUCT_NAME} features you use, to help improve the product.")
         sub.label(text="Your prompts, files, and scene content are never included.")
+        sub.label(text="Off by default; events only ever go to your configured Lampway server.")
 
         col.separator()
         col.operator(
             "wm.url_open", text="Privacy Policy", icon='URL',
-        ).url = "https://www.mixar.app/legal/privacy-policy"
+        ).url = website_url("/legal/privacy-policy")
 
 
 classes = (

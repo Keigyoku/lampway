@@ -5,10 +5,11 @@
 
 string(TIMESTAMP CURRENT_YEAR "%Y")
 
-set(PROJECT_DESCRIPTION  "Mixar - Advanced 3D Content Creation Suite")
-set(PROJECT_COPYRIGHT    "Copyright (C) 2025-${CURRENT_YEAR} Mixar")
-set(PROJECT_CONTACT      "support@mixar.app")
-set(PROJECT_VENDOR       "Mixar")
+# LAMPWAY: packaging identity (installer metadata). PLACEHOLDER contact.
+set(PROJECT_DESCRIPTION  "Lampway - AI-assisted 3D content creation (a fork of the GPL Mixar client)")
+set(PROJECT_COPYRIGHT    "Copyright (C) 2026-${CURRENT_YEAR} Lampway contributors")
+set(PROJECT_CONTACT      "https://github.com/Keigyoku/lampway/issues")
+set(PROJECT_VENDOR       "Lampway")
 
 # Use Mixar app version from environment (set by settings.bat from mixar.json),
 # falling back to Blender version if not available.

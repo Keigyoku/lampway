@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """
-Mixie Chat Properties
+Agent chat properties
 
-Property definitions for the Mixie Chat space.
+Property definitions for the agent chat space.
 """
 
 import bpy
@@ -20,6 +20,7 @@ from bpy.props import (
 )
 from bpy.types import PropertyGroup
 
+from mixar.config.brand import AGENT_NAME
 from mixar.config.logging_config import get_logger
 from mixar.modules.common.i18n import n_, rpt_
 from ...core.ui_utils import bump_layout_epoch, redraw_chat_areas
@@ -590,8 +591,8 @@ def _has_mesh_selection(scene, context):
 
 _GENERATE_TYPE_HINTS = {
     'depth_to_image': (
-        n_("Enter a render prompt. Mixie will use the current scene's depth "
-           "as the guide."),
+        n_("Enter a render prompt. {agent} will use the current scene's depth "
+           "as the guide.").format(agent=AGENT_NAME),
         _has_prompt,
     ),
     'pbr_gen': (
@@ -847,7 +848,7 @@ def register():
     )
 
     bpy.types.Scene.mixie_chat_is_busy = BoolProperty(
-        name="Mixie Is Busy",
+        name=f"{AGENT_NAME} Is Busy",
         description="True when the agent is processing a request (BUSY state)",
         default=False,
         options={'SKIP_SAVE'},  # Never persist — always False on startup
@@ -959,7 +960,7 @@ def register():
     # Security: password and login state on WindowManager (session-only, never saved to .blend)
     bpy.types.WindowManager.mixie_chat_password = StringProperty(
         name="Password",
-        description="Password for Mixie Chat login",
+        description=f"Password for the {AGENT_NAME} login",
         default="",
         maxlen=256,
         subtype='PASSWORD',

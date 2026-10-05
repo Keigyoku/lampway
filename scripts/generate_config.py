@@ -14,9 +14,24 @@ Usage:
 """
 
 import argparse
+import importlib.util
 import json
 import os
 import sys
+
+_BRAND_PY = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "src", "scripts", "mixar", "config", "brand.py",
+)
+
+
+def _brand():
+    """The Lampway identity module, loaded by path: it is bpy-free, and the
+    ``mixar.config`` package it lives in is not importable outside Blender."""
+    spec = importlib.util.spec_from_file_location("lampway_brand", _BRAND_PY)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _read_version(version_file: str) -> str:
@@ -76,11 +91,14 @@ def generate_config(version_file: str) -> dict:
         )
         sys.exit(1)
 
+    # Lampway: both default to OUR server (it serves the API and the SSO
+    # login page). The build environment may still point elsewhere.
+    brand = _brand()
     config = {
         "environment": environment,
         "log_level": _env("MIXAR_LOG_LEVEL", "INFO"),
-        "backend_url": _env("MIXAR_BACKEND_URL", "https://api.mixar.app"),
-        "frontend_url": _env("MIXAR_FRONTEND_URL", "https://www.mixar.app"),
+        "backend_url": _env("MIXAR_BACKEND_URL", brand.DEFAULT_BACKEND_URL),
+        "frontend_url": _env("MIXAR_FRONTEND_URL", brand.DEFAULT_BACKEND_URL),
         "app_info": {
             "version": version,
         },

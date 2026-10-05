@@ -4,11 +4,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """
-Shift+M → open Mixie.
+Shift+M → open the agent.
 
 ``mixar.open_mixie`` opens the Agent island (restoring it from the resting
 pill), switches it to the Agent tab and puts the caret in the message box so
-the next keystrokes go to Mixie.
+the next keystrokes go to the agent (its display name is ``AGENT_NAME``).
 
 Shift+M replaces Blender's own binding. Plain Shift+M is bound in four
 default keymaps — Object Mode and Outliner (Link to Collection), Pose and
@@ -26,6 +26,7 @@ import time
 import bpy
 from bpy.types import Operator
 
+from mixar.config.brand import AGENT_NAME
 from mixar.config.logging_config import get_logger
 
 _logger = get_logger(__name__)
@@ -79,11 +80,11 @@ def _focus_composer_soon() -> None:
 
 
 class MIXAR_OT_open_mixie(Operator):
-    """Open Mixie, the agent chat, ready to type"""
+    """Open the agent chat, ready to type"""
 
     bl_idname = "mixar.open_mixie"
-    bl_label = "Open Mixie"
-    bl_description = "Open Mixie, the agent chat, ready to type (Shift M)"
+    bl_label = f"Open {AGENT_NAME}"
+    bl_description = f"Open {AGENT_NAME}, the agent chat, ready to type (Shift M)"
     bl_options = {'REGISTER'}
 
     @classmethod
