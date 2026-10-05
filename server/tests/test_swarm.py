@@ -265,3 +265,18 @@ async def test_a_worker_whose_model_says_nothing_at_all_is_failed_not_done():
     by_name = {w["name"]: w for w in json.loads(text)["workers"]}
     assert by_name["gamma"]["status"] == "failed" and "empty" in by_name["gamma"]["error"]
     assert by_name["alpha"]["status"] == "done"
+
+
+async def test_every_worker_keeps_a_record_of_its_calls_for_the_owner_but_the_model_is_not_sent_it():
+    blender = FakeBlender()
+    manager = SwarmManager(factory_for(worker_scripts()), blender)
+    info = await start(manager, blender)
+    text, _ = await manager.call("swarm_collect", {"swarm_id": info["swarm_id"]}, ctx(blender))
+    swarm = manager.swarms[info["swarm_id"]]
+    alpha = swarm.workers[0]
+    assert len(alpha.calls) == 1
+    call = alpha.calls[0]
+    assert call["tool"] == "run_blender_python" and "# alpha" in call["script"] and call["success"] is True
+    assert call["created"] == ["alpha_obj"]
+    assert "calls" not in json.loads(text)["workers"][0]
+    assert alpha.detail()["calls"] == alpha.calls

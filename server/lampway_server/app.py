@@ -196,7 +196,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         if not token or auth.verify_access(token) is None:
             return unauthorized()
         return JSONResponse({"swarms": {sid: {"parent_session": sw.parent_session, "collected": sw.collected,
-                                              "workers": [w.public() for w in sw.workers]}
+                                              "workers": [w.detail() for w in sw.workers]}
                                         for sid, sw in agent.swarm.swarms.items()}})
 
     async def swarm_cancel(request: Request):

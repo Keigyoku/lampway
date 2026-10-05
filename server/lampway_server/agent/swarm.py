@@ -32,6 +32,8 @@ MAX_WORKER_ROUNDS = 24
 LANE_SCRIPT = "swarm_lanes"
 MERGE_SCRIPT = "swarm_merge"
 _RESULT_CLIP = 6000
+_CALL_LOG_MAX = 40
+_CALL_LOG_CHARS = 600
 
 
 def _spec(name, description, properties, required):
@@ -86,6 +88,7 @@ class Worker:
     created: list = field(default_factory=list)
     summary: str = ""
     error: str = ""
+    calls: list = field(default_factory=list)       # what this worker did, for the owner (not sent to the model)
     task: Optional[asyncio.Task] = None
 
     def public(self) -> dict:
@@ -94,6 +97,9 @@ class Worker:
         if self.error:
             out["error"] = self.error
         return out
+
+    def detail(self) -> dict:
+        return {**self.public(), "calls": self.calls}
 
 
 @dataclass
@@ -331,10 +337,17 @@ class SwarmManager:
             return str(exc), True
         result = await self.run_script(ctx.socket, session_id=worker.lane, chat_session_id=worker.lane, turn_id=ctx.turn_id,
                                        call_id=call.id, tool_name=call.name, script=script)
+        created = []
         if isinstance(result, dict):
             for name in result.get("created_objects") or []:
+                created.append(name)
                 if name not in worker.created:
                     worker.created.append(name)
+        if len(worker.calls) < _CALL_LOG_MAX:
+            worker.calls.append({"tool": call.name, "script": script[:_CALL_LOG_CHARS],
+                                 "success": bool(isinstance(result, dict) and result.get("success")),
+                                 "error": str(result.get("error", ""))[:300] if isinstance(result, dict) else "",
+                                 "created": created})
         text, is_error = format_tool_result(result)
         return (text[:_RESULT_CLIP] + "...[clipped]" if len(text) > _RESULT_CLIP else text), is_error
 
