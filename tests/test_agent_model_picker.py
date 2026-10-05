@@ -239,11 +239,14 @@ def test_the_active_pick_is_marked_exactly_once():
 
 
 def test_a_reset_row_closes_a_populated_menu():
+    from mixar.config.brand import AGENT_NAME
+
     rows = model_menu.build_rows([_record("a")])
 
     reset = [row for row in rows if row.kind == "RESET"]
     assert len(reset) == 1 and reset[0].enabled is True
-    assert reset[0].label == "Mixie" and reset[0].active
+    # The reset row reads the agent's display name (one constant, brand.py).
+    assert reset[0].label == AGENT_NAME and reset[0].active
     picked = model_menu.build_rows([_record("a")], active_provider="anthropic", active_model="a")
     assert not next(row for row in picked if row.kind == "RESET").active
     byok_rows = model_menu.build_rows([_record("a")], byok_active=True)

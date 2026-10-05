@@ -609,6 +609,7 @@ class TOPBAR_MT_help(Menu):
         # on sys.path, and the Help menu is only drawn long after that.
         from mixar.config.brand import website_url
 
+        layout.operator("wm.url_open", text="Tutorials", icon='FILE_MOVIE').url = website_url("/tutorials")
         layout.operator("wm.url_open", text="Documentation", icon='HELP').url = website_url("/docs")
         layout.operator("wm.url_open", text="Report a Bug", icon='URL').url = website_url("/bug-report")
         layout.separator()

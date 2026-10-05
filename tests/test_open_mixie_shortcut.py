@@ -93,5 +93,7 @@ def test_help_menu_tutorials_replaces_about():
     menu = topbar[topbar.index("class TOPBAR_MT_help"):]
     menu = menu[:menu.index("\nclass ", 1)]
     assert 'text="Tutorials"' in menu
-    assert "https://www.youtube.com/@Mixar3D" in menu
-    assert "About Mixar" not in menu
+    # Lampway: the row links to the fork's own website, never upstream's channel.
+    assert 'website_url("/tutorials")' in menu
+    assert "youtube.com/@Mixar3D" not in menu
+    assert "About Mixar" not in menu and "About Lampway" not in menu
