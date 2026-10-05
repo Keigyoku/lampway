@@ -135,3 +135,12 @@ def test_the_lineage_tool_reaches_blender_with_its_anchors_as_objects():
     anchors = [{"name": "toe", "point": [1, 0, 0]}] * 3
     got = args_of(T.script_for("lampway_asset_lineage", {"action": "record", "object": "boot", "anchors": anchors, "junk": 1}))
     assert got == {"action": "record", "object": "boot", "anchors": anchors}
+
+
+def test_piece_ratios_is_a_batch_tool_with_the_kind_first_and_the_clearance_as_a_flag():
+    names = {t.name for t in T.TOOLS}
+    assert "lampway_piece_ratios" in names
+    s = T.script_for("lampway_piece_ratios", {"kind": "boots", "out": "s.json", "body": "b.npz", "pieces": ["a=a.npz:-90", "b=b.npz:-90"], "clear_mm": 20})
+    assert 'api.call("run_tool"' in s
+    got = args_of(s)
+    assert got["name"] == "piece_ratios" and got["args"][:5] == ["boots", "s.json", "b.npz", "a=a.npz:-90", "b=b.npz:-90"] and got["args"][5:] == ["--clear-mm", "20"], got

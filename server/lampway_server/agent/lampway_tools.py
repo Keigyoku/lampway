@@ -339,6 +339,13 @@ DEFS = [
     Def("lampway_proportion_ratios", "The PRIMARY proportion score of torso pieces against the MetaHuman body: scale-free landmark "
         "ratios (lower is closer; 0 = the body's proportions)." + _PATHS, [P("out", required=True), P("body", required=True),
         P("pieces", "array", "name=piece.npz:turn_deg entries", required=True)], batch="proportion_ratios"),
+    Def("lampway_piece_ratios", "Proportion scores of the NON-torso pieces (kind helmet | waist | boots | gauntlets) against the MetaHuman body: scale-free landmark ratios, "
+        "piece vs body + a uniform wear clearance, score = RMS log deviation (0 = the body's proportions). The torso (chest) is lampway_proportion_ratios. NEW and UNVALIDATED "
+        "(`validated: false` until an auditor's falsification is recorded): it ranks, it does not decide. Known biases: helmet depth includes a crest, the waist scores the design "
+        "flare, boots score knee height and relief, gauntlets cannot see collapsed or slotted plates. A gauntlet that is not cuff-up is refused. body.npz needs joints (mesh_to_npz body)."
+        + _PATHS, [P("kind", required=True, desc="helmet | waist | boots | gauntlets"), P("out", required=True), P("body", required=True),
+                   P("pieces", "array", "name=piece.npz:turn_deg entries (Tripo FBX: -90)", required=True), P("clear_mm", "number", "Wear clearance in mm, 0-40, default 15", flag="--clear-mm")],
+        batch="piece_ratios"),
     Def("lampway_place_piece", "Place a torso piece on the body the way the audits do (chest width + 40 mm, axilla aligned)." + _PATHS,
         [P("placed", required=True), P("body", required=True), P("piece", required=True), P("turn", "number", flag="--turn")],
         batch="place_piece"),
