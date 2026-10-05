@@ -37,9 +37,12 @@ ENV_BACKEND_URL = "LAMPWAY_BACKEND_URL"
 #: Tour language packs are served by the backend at this path.
 TOUR_PACKS_PATH = "/tour-packs/manifest.json"
 
-#: Hosts a sandboxed script may download assets from. The upstream CDNs stay;
-#: loopback is added so our local asset server works out of the box.
-DEFAULT_ASSET_HOSTS = ("amazonaws.com", "cloudflarestorage.com", "127.0.0.1", "localhost")
+#: Hosts a sandboxed script may download assets from: our own local asset
+#: server only. Upstream's CDN hosts (amazonaws.com, cloudflarestorage.com)
+#: admitted every bucket in the world as a GET target, which is a one-way
+#: channel out of the sandbox; Lampway serves its assets itself. Add hosts
+#: with MIXAR_ASSET_HOSTS when a setup needs one.
+DEFAULT_ASSET_HOSTS = ("127.0.0.1", "localhost")
 
 
 def website_url(path: str = "") -> str:

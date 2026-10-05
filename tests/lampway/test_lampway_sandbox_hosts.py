@@ -31,9 +31,11 @@ def no_env(monkeypatch):
     monkeypatch.delenv("MIXAR_ASSET_HOSTS", raising=False)
 
 
-def test_local_asset_server_is_allowed_by_default(no_env):
+def test_only_the_local_asset_server_is_allowed_by_default(no_env):
+    """Lampway serves its assets from its own server: no CDN is in the default list. (Upstream's amazonaws.com /
+    cloudflarestorage.com admitted every bucket in the world as a GET target, a one-way channel out of the sandbox.)"""
     hosts = set(sandbox_modules._allowed_asset_hosts())
-    assert {"127.0.0.1", "localhost", "amazonaws.com", "cloudflarestorage.com"} <= hosts
+    assert hosts == {"127.0.0.1", "localhost"}
     assert hosts == set(brand.DEFAULT_ASSET_HOSTS)
 
 
