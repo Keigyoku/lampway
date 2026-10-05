@@ -193,8 +193,7 @@ ucupaint-master/
 src/source/extern/
 node_modules/
 
-# procedural materials
-src/scripts/mixar/modules/paint/procedural_materials/
+# procedural materials (upstream's package is withheld; Lampway ships its own at this path)
 matgen-v3-scripts/
 showcase_v4-3/
 showcase_v6/
