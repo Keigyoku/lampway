@@ -10,7 +10,7 @@ SCENE_HISTORY_ID_PROP = "mixar_op_history_id"
 
 # Storage layout
 MODULE_DIR_NAME = "operation_history"
-ENV_BASE_DIR = "MIXAR_OPERATION_HISTORY_DIR"   # optional absolute base-dir override (tests/ops)
+ENV_BASE_DIR = "LAMPWAY_OPERATION_HISTORY_DIR"   # optional absolute base-dir override (tests/ops)
 OPERATIONS_FILE = "operations.jsonl"
 SCRIPTS_SUBDIR = "scripts"
 NO_SESSION = "_nosession"
@@ -54,7 +54,7 @@ HISTORY_TOOLS = {
     "get_operation",
     "operations_for_object",
 }
-HISTORY_SCRIPT_MARKER = "MIXAR_OPERATION_HISTORY_QUERY"
+HISTORY_SCRIPT_MARKER = "MIXAR_OPERATION_HISTORY_QUERY"  # a marker a script carries (not an environment variable); the wire name stays
 
 # Output caps (the backend caches tool results — keep results small)
 MAX_LIST_RESULTS = 50

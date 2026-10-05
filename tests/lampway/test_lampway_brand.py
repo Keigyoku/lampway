@@ -174,3 +174,12 @@ def test_desktop_identity_files_name_lampway():
     assert "Lampway File" in plist and "Mixar File" not in plist
     rc = _read("src/release/windows/icons/winmixar.rc")
     assert '"ProductName", "Lampway"' in rc and '"Mixar"' not in rc
+
+
+def test_the_version_a_user_sees_is_lampways_and_matches_the_version_file():
+    """The title, splash and --version come from MIXAR_VERSION (the product's own number; BLENDER_VERSION and the file-format versions are separate and untouched)."""
+    header = _read("src/source/blender/blenkernel/BKE_blender_version.h")
+    version = int(re.search(r"#define MIXAR_VERSION (\d+)", header).group(1))
+    patch = int(re.search(r"#define MIXAR_VERSION_PATCH (\d+)", header).group(1))
+    assert f"{version // 100}.{version % 100}.{patch}" == _read("VERSION").strip() == "0.1.0"
+    assert "#define MIXAR_FILE_VERSION 100" in header and "#define BLENDER_VERSION 502" in header

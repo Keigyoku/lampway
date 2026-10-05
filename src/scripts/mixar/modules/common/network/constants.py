@@ -1,3 +1,4 @@
+from mixar.config.brand import env_get
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -32,10 +33,10 @@ SUPPORT_CODES = {
 # --- Mixar-specific configuration surface -----------------------------------
 # Environment variables win over mixar.json so MDM / login scripts can set
 # them fleet-wide without editing the install.
-ENV_CA_BUNDLE = "MIXAR_CA_BUNDLE"
-ENV_EXTRA_CA_CERTS = "MIXAR_EXTRA_CA_CERTS"
-ENV_PROXY_URL = "MIXAR_PROXY_URL"
-ENV_NO_PROXY = "MIXAR_NO_PROXY"
+ENV_CA_BUNDLE = "LAMPWAY_CA_BUNDLE"
+ENV_EXTRA_CA_CERTS = "LAMPWAY_EXTRA_CA_CERTS"
+ENV_PROXY_URL = "LAMPWAY_PROXY_URL"
+ENV_NO_PROXY = "LAMPWAY_NO_PROXY"
 
 CONFIG_SECTION = "network"
 CONFIG_CA_BUNDLE = "ca_bundle"

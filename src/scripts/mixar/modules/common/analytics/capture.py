@@ -33,6 +33,7 @@ from .constants import (
     SHUTDOWN_TIMEOUT_SECONDS,
 )
 from .preferences import is_enabled
+from mixar.config.brand import env as lampway_env
 
 logger = get_logger(__name__)
 
@@ -87,7 +88,7 @@ def _common_properties(context=None) -> dict:
         "platform": platform.system().lower(),
         "app_session_id": _app_session_id,
         "telemetry_schema_version": 2,
-        "is_test": os.environ.get('MIXAR_QA') == '1',
+        "is_test": lampway_env('QA') == '1',
     }
     if context is not None:
         wm = getattr(context, "window_manager", None)

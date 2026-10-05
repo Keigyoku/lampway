@@ -85,7 +85,7 @@ def _still_working() -> str:
 def _resolve(project: str):
     matches = [path for path in _recent_paths() if _project_id(path) == project]
     if len(matches) != 1:
-        raise UIError("project_unavailable", "No recent project has that id; list them with mixar_projects")
+        raise UIError("project_unavailable", "No recent project has that id; list them with lampway_projects")
     return matches[0]
 
 

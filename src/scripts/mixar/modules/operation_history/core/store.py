@@ -22,6 +22,7 @@ from ..constants import (
     MAX_SCRIPT_CHARS, MODULE_DIR_NAME, NO_SESSION, OPERATIONS_FILE, SCRIPTS_SUBDIR,
 )
 from .record import OperationRecord, build_manual_record
+from mixar.config.brand import env_get
 
 _lock = threading.Lock()
 _seq_cache: dict = {}
@@ -29,7 +30,7 @@ _last_cleanup_day: Optional[int] = None
 
 
 def _base_dir() -> str:
-    override = os.environ.get(ENV_BASE_DIR)
+    override = env_get(ENV_BASE_DIR)
     if override:
         return override
     try:

@@ -29,6 +29,7 @@ from typing import Any
 
 from mixar.config.logging_config import get_logger
 from mixar.config.paths import app_home
+from mixar.config.brand import env as lampway_env
 
 logger = get_logger(__name__)
 
@@ -53,7 +54,7 @@ def session_of(scene: Any) -> str:
 
 
 def dossier_root() -> str:
-    override = os.environ.get("MIXAR_SCENES_DOSSIER_DIR")
+    override = lampway_env("SCENES_DOSSIER_DIR")
     if override is not None:
         return "" if override.strip() in ("", "0", "off") else override
     return os.path.join(str(app_home()), "scenes-dossier")

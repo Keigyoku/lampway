@@ -11,7 +11,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from mixar.modules.common.ui_control.core import schema
-from . import availability, presentation
+from . import aliases, availability, presentation
 from .connector import Connector, instances, signed_in, usable
 
 # Clients put server instructions in the model's system prompt, and Claude Code
@@ -25,8 +25,8 @@ characters, environments, materials, delivery).
 
 Each connection works in one scene tab; every tool and generation result
 follows it. Start separate work in a new tab with
-mixar_scene_new (never bpy.data.scenes.new); mixar_scenes and
-mixar_scene_switch move between tabs; mixar_projects and mixar_project_open
+lampway_scene_new (never bpy.data.scenes.new); lampway_scenes and
+lampway_scene_switch move between tabs; lampway_projects and lampway_project_open
 continue a saved project.
 
 1. Inspect: scene_overview, then scene_hierarchy or get_object_details.
@@ -51,7 +51,7 @@ Native UI tools (mixar_ui_*, if the user allows them) cover what no other
 tool does; never use OS-level computer use on Lampway.
 Only generation costs Lampway credits (its job price, as does
 create_layered_material); everything else is free. After an uncertain outcome, inspect and use
-mixar_call_status or mixar_ui_call_status with the same call UUID; never
+mixar_call_status or lampway_ui_call_status with the same call UUID; never
 blindly repeat an edit.
 """
 #: Domains of the tools this launcher serves locally (the backend never sees them).
@@ -102,7 +102,7 @@ def create_server(connector):
         backend, status["readiness"] = await availability.fetch_tools(connector)
         tools = schema.tools() + (with_ui_domain(backend) if backend is not None else [])
         status["listed"] = backend is not None
-        tools = presentation.tools_for_client(visible(tools), presentation.client_name(ctx))
+        tools = presentation.tools_for_client(aliases.expose(visible(tools)), presentation.client_name(ctx))
         return types.ListToolsResult(tools=[types.Tool.model_validate(t) for t in tools])
 
     async def call_tool(ctx, params):
@@ -116,6 +116,7 @@ def create_server(connector):
         try:
             call_id = str(uuid.UUID((ctx.meta or {}).get("mixar/request-id", call_id)))
             args = params.arguments or {}
+            params = params.model_copy(update={"name": aliases.internal_name(params.name)})  # lampway_* -> the connector's own name
             if params.name in schema.SCHEMAS:
                 schema.validate(params.name, args)
             if params.name == "mixar_tool_quote" and args.get("tool") in schema.SCHEMAS:
@@ -187,11 +188,11 @@ def create_server(connector):
             return failure(exc, call_id)
 
     async def list_resources(ctx, params):
-        return types.ListResourcesResult(resources=[types.Resource(uri="mixar://guide", name="Lampway guide",
+        return types.ListResourcesResult(resources=[types.Resource(uri="lampway://guide", name="Lampway guide",
                                                                    mime_type="text/markdown")])
 
     async def read_resource(ctx, params):
-        if str(params.uri) != "mixar://guide":
+        if str(params.uri) not in ("lampway://guide", "mixar://guide"):  # the old URI stays readable for one release
             raise ValueError("Unknown Lampway resource")
         return types.ReadResourceResult(contents=[types.TextResourceContents(
             uri=params.uri, mime_type="text/markdown", text=GUIDE)])
@@ -209,7 +210,7 @@ def create_server(connector):
             raise ValueError("Specify build-and-verify with a nonempty goal of at most 8000 characters")
         return types.GetPromptResult(messages=[types.PromptMessage(role="user",
             content=types.TextContent(type="text", text="Complete this task in Lampway: " + goal +
-                "\n\n" + GUIDE + "Inspect the scene with Lampway's tools (render_viewport, mixar_ui_observe) before and after editing. "
+                "\n\n" + GUIDE + "Inspect the scene with Lampway's tools (render_viewport, lampway_ui_observe) before and after editing. "
                 "Check tool costs and report credits and any unverified outcomes."))])
 
     return Server("Lampway", version="1", instructions=GUIDE,

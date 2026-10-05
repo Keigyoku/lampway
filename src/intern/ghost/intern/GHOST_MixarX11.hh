@@ -52,7 +52,7 @@ static constexpr bool MIXAR_X11_ALLOW_MOVE_MINIMISE = true;
 inline bool mixar_x11_chrome_enabled()
 {
   static const bool enabled = []() {
-    const char *env = getenv("MIXAR_X11_CHROME");
+    const char *env = getenv("LAMPWAY_X11_CHROME") ? getenv("LAMPWAY_X11_CHROME") : getenv("MIXAR_X11_CHROME");
     return (env == nullptr) || (env[0] != '0');
   }();
   return enabled;
@@ -69,7 +69,7 @@ inline bool mixar_x11_chrome_enabled()
 inline bool mixar_x11_heavy_enabled()
 {
   static const bool enabled = []() {
-    const char *env = getenv("MIXAR_X11_HEAVY");
+    const char *env = getenv("LAMPWAY_X11_HEAVY") ? getenv("LAMPWAY_X11_HEAVY") : getenv("MIXAR_X11_HEAVY");
     return (env == nullptr) || (env[0] != '0');
   }();
   return enabled;

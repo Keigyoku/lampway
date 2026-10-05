@@ -44,6 +44,7 @@ from ..constants import (
     SUPPORTED_PROXY_SCHEMES,
     UNSUPPORTED_PROXY_SCHEMES,
 )
+from mixar.config.brand import env_get
 
 logger = get_logger(__name__)
 
@@ -124,7 +125,7 @@ def resolve_proxy_url(
     environ: MutableMapping[str, str],
 ) -> tuple[str, str]:
     """Return ``(proxy_url, source)``; ``("", "none")`` means connect directly."""
-    explicit = (environ.get(ENV_PROXY_URL) or "").strip()
+    explicit = (env_get(ENV_PROXY_URL, None, environ) or "").strip()
     if explicit:
         return explicit, SOURCE_ENV_MIXAR
 
@@ -151,7 +152,7 @@ def resolve_proxy_url(
 def _merged_no_proxy(config_getter, environ) -> str:
     entries: list[str] = []
     sources = [
-        environ.get(ENV_NO_PROXY, ""),
+        env_get(ENV_NO_PROXY, "", environ),
         str(_config_section(config_getter).get(CONFIG_NO_PROXY) or ""),
         _first_env(environ, NO_PROXY_ENV_VARS),
         ",".join(LOOPBACK_NO_PROXY),

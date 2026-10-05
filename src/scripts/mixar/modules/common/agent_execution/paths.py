@@ -15,13 +15,14 @@ from __future__ import annotations
 import os
 import re
 import tempfile
+from mixar.config.brand import env as lampway_env
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,120}$")
 
 
 def cache_root() -> str:
     """Per-user Mixar data directory (created)."""
-    override = os.environ.get("MIXAR_AGENT_CACHE_DIR")
+    override = lampway_env("AGENT_CACHE_DIR")
     if override:
         os.makedirs(override, exist_ok=True)
         return override

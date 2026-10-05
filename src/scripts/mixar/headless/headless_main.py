@@ -30,6 +30,7 @@ import os
 import time
 
 from mixar.config.logging_config import get_logger
+from mixar.config.brand import env as lampway_env
 
 logger = get_logger("mixar.headless")
 
@@ -132,13 +133,13 @@ def pump_once(q, held, identity, executor, client, mte, pump, check_assignment):
 
 
 def _run() -> None:
-    token = os.environ.get("MIXAR_SANDBOX_ACCESS_TOKEN", "")
-    backend = os.environ.get("MIXAR_BACKEND_URL", "")
-    parent_pid = int(os.environ.get("MIXAR_SANDBOX_PARENT_PID", "0") or 0)
-    watchdog_s = float(os.environ.get("MIXAR_SANDBOX_PARENT_WATCHDOG_S", "60") or 60)
+    token = lampway_env("SANDBOX_ACCESS_TOKEN", "")
+    backend = lampway_env("BACKEND_URL", "")
+    parent_pid = int(lampway_env("SANDBOX_PARENT_PID", "0") or 0)
+    watchdog_s = float(lampway_env("SANDBOX_PARENT_WATCHDOG_S", "60") or 60)
     # Self-terminate after this many seconds with no build, so a finished
     # session's warm worker is reaped. 0 disables (stay until parent quits).
-    idle_ttl = float(os.environ.get("MIXAR_SANDBOX_IDLE_TTL_S", "0") or 0)
+    idle_ttl = float(lampway_env("SANDBOX_IDLE_TTL_S", "0") or 0)
 
     from mixar.modules.common.agent_execution import pump
     from mixar.modules.common.agent_execution.identity import (
@@ -165,7 +166,7 @@ def _run() -> None:
     client = jc.create_jsonrpc_client(
         host=backend,
         connection_id=identity.connection_id,
-        token_getter=lambda: os.environ.get("MIXAR_SANDBOX_ACCESS_TOKEN", token),
+        token_getter=lambda: lampway_env("SANDBOX_ACCESS_TOKEN", token),
         on_script_execute=on_script_execute,
         role=identity.role,
         parent_instance_id=identity.parent_instance_id,

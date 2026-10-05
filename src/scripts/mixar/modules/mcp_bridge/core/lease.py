@@ -39,8 +39,8 @@ _transport_generation = 0
 #: A connection's scene vanishes when another document is opened (File > New or
 #: Open, a reopened project); nothing picks the new one silently.
 DOCUMENT_CHANGED = ("Another Lampway document was opened, so this connection's scene is gone. Bind the scene "
-                    "now shown with mixar_ui_context(session=<its session_id>), or list tabs with mixar_scenes "
-                    "and pick one with mixar_scene_switch, then inspect before editing")
+                    "now shown with lampway_ui_context(session=<its session_id>), or list tabs with lampway_scenes "
+                    "and pick one with lampway_scene_switch, then inspect before editing")
 
 
 def _runtime():

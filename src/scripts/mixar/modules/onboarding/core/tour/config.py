@@ -27,7 +27,7 @@ DEMO_IMAGE_ASSET = "tour/demo_concept.png"
 # Shown over English when the selected voice is unavailable; UK shares en.
 SUBTITLES_DIR = "tour/subtitles"
 # QA: "always" shows subtitles even for English / localized playback.
-ENV_SUBTITLES = "MIXAR_TOUR_SUBTITLES"
+ENV_SUBTITLES = "LAMPWAY_TOUR_SUBTITLES"
 
 # Used only when the container's frame count / audio length can't be read.
 VIDEO_FPS_FALLBACK = 24.0
@@ -43,10 +43,10 @@ TOUR_PACK_VERSION = 1
 # the live backend URL at call time; this is the static default. Override
 # for QA/staging with the environment variable.
 PACKS_MANIFEST_URL = DEFAULT_BACKEND_URL + TOUR_PACKS_PATH
-ENV_PACKS_MANIFEST_URL = "MIXAR_TOUR_PACKS_URL"
+ENV_PACKS_MANIFEST_URL = "LAMPWAY_TOUR_PACKS_URL"
 # QA: a local folder laid out like the cache (``<code>/part-<k>.mp4``,
 # ``<code>/timing.json``, ``manifest.json``) that stands in for cache + CDN.
-ENV_PACK_DIR = "MIXAR_TOUR_PACK_DIR"
+ENV_PACK_DIR = "LAMPWAY_TOUR_PACK_DIR"
 PACK_CACHE_SUBDIR = "lampway/tour"
 PACK_PART_DEADLINE_S = 300.0       # per file; a 5 MB part on a slow line
 PACK_MANIFEST_TIMEOUT_S = 15.0
@@ -68,9 +68,9 @@ WM_PROP_TOUR_LANGUAGE = "mixar_tour_language"      # enum, first-time splash dro
 
 # Environment override so the QA harness can run the whole tour in a few
 # seconds: playback rate multiplier applied to the clock at start.
-ENV_CLOCK_RATE = "MIXAR_TOUR_CLOCK_RATE"
+ENV_CLOCK_RATE = "LAMPWAY_TOUR_CLOCK_RATE"
 # Set to "1" to force the silent wall clock (no aud) — deterministic CI.
-ENV_SILENT = "MIXAR_TOUR_SILENT"
+ENV_SILENT = "LAMPWAY_TOUR_SILENT"
 
 # ---------------------------------------------------------------------------
 # Timing.

@@ -57,7 +57,7 @@ def test_another_document_is_never_chosen_silently(desktop):
     with pytest.raises(RuntimeError) as closed:
         client.attach()
     message = str(closed.value)
-    assert "was closed" in message and "instance new" in message and "mixar_ui_context" in message
+    assert "was closed" in message and "instance new" in message and "lampway_ui_context" in message
     assert client.instance == "old"
 
 

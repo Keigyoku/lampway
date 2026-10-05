@@ -99,3 +99,30 @@ def website_url(path: str = "") -> str:
     if page is None:
         return WEBSITE_URL
     return WEBSITE_URL + page + ("#" + fragment if fragment else "")
+
+
+_warned = set()
+
+
+def env(name, default=None, environ=None):
+    """Runtime environment variable ``LAMPWAY_<name>``; the old ``MIXAR_<name>`` still works for one release and says so once on stderr.
+
+    A variable that is set but empty counts as set. Build-time knobs (MIXAR_ENV, MIXAR_CUDA ...) are not read here."""
+    import os
+    import sys
+    environ = os.environ if environ is None else environ
+    new, old = "LAMPWAY_" + name, "MIXAR_" + name
+    if new in environ:
+        return environ[new]
+    if old in environ:
+        if old not in _warned:
+            _warned.add(old)
+            print("%s is deprecated; use %s" % (old, new), file=sys.stderr)
+        return environ[old]
+    return default
+
+
+def env_get(name, default=None, environ=None):
+    """``env`` for a constant that holds the full ``LAMPWAY_X`` spelling (so one constant names the variable and the fallback to ``MIXAR_X`` is free)."""
+    assert name.startswith("LAMPWAY_"), name
+    return env(name[len("LAMPWAY_"):], default, environ)

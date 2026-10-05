@@ -45,7 +45,7 @@ for n in {objs!r}:
 {extra}
 m = staging.stage_collection({aid!r}, {name!r}, {objs!r})
 print("RESULT", json.dumps(m))
-''', env={"MIXAR_SANDBOX_STAGING_DIR": stage, "MIXAR_AGENT_CACHE_DIR": cache, "LAMPWAY_HOME": str(tmp_path / "home")})
+''', env={"LAMPWAY_SANDBOX_STAGING_DIR": stage, "LAMPWAY_AGENT_CACHE_DIR": cache, "LAMPWAY_HOME": str(tmp_path / "home")})
     assert r.rc == 0, r.out[-2500:]
     return r.results[0]
 
@@ -185,7 +185,7 @@ from mixar.modules.common.agent_execution import staging
 res = staging.import_artifact({aid!r})
 ob = bpy.data.objects["Boots1_uv"]
 print("RESULT", json.dumps({{"res": res, "faces": len(ob.data.polygons), "loc": list(ob.location), "in_scene": ob.name in bpy.context.scene.collection.all_objects}}))
-''', env={"MIXAR_SANDBOX_STAGING_DIR": stage, "MIXAR_AGENT_CACHE_DIR": cache, "LAMPWAY_HOME": str(tmp_path / "home")})
+''', env={"LAMPWAY_SANDBOX_STAGING_DIR": stage, "LAMPWAY_AGENT_CACHE_DIR": cache, "LAMPWAY_HOME": str(tmp_path / "home")})
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
     assert o["res"]["object_names"] == ["Boots1_uv"] and o["faces"] == 6 and o["loc"] == [1.0, 2.0, 3.0] and o["in_scene"] is True
@@ -205,7 +205,7 @@ sc.collection.objects.link(bpy.data.objects.new("loose_cube", bpy.data.meshes.ne
 sc.collection.objects.link(bpy.data.objects.new("Boots1_uv", bpy.data.meshes.new("c")))     # a seeded input: skipped
 m = staging.stage_scene({aid!r}, "boots", ["Boots1_uv"])
 print("RESULT", json.dumps(m))
-''', env={"MIXAR_SANDBOX_STAGING_DIR": stage, "MIXAR_AGENT_CACHE_DIR": cache, "LAMPWAY_HOME": str(tmp_path / "home")})
+''', env={"LAMPWAY_SANDBOX_STAGING_DIR": stage, "LAMPWAY_AGENT_CACHE_DIR": cache, "LAMPWAY_HOME": str(tmp_path / "home")})
     assert r.rc == 0, r.out[-2500:]
     art = r.results[0]
     assert sorted(art["object_names"]) == ["boots_L000", "loose_cube"] and art["collections"] == ["QA_boots"] and art["object_count"] == 2

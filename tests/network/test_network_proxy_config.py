@@ -31,7 +31,7 @@ def test_direct_when_nothing_configured():
 def test_mixar_env_var_wins_and_is_exported_to_every_client():
     env = {"MIXAR_PROXY_URL": "http://proxy.corp:3128", "HTTPS_PROXY": "http://old:1"}
     report = configure_proxy(_config(proxy_url="http://ignored:1"), env)
-    assert report.source == "env:MIXAR_PROXY_URL"
+    assert report.source == "env:LAMPWAY_PROXY_URL"
     for name in ("HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy"):
         assert env[name] == "http://proxy.corp:3128"
 
