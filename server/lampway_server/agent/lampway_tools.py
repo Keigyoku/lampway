@@ -371,6 +371,12 @@ DEFS = [
         "bone axis Z, secondary X, leaf bones off, units applied), Textures/, README.md and export.json, then reads the FBX back and compares every joint's position (0.1 mm) AND axes (0.5 degrees) with the body package.",
         [P("object", required=True), P("armature", required=True), P("out_dir", required=True), P("body", required=True, desc="the fit_body package dir"), P("textures", "array", "map paths (their merge.json names the mesh)"),
          P("validation", desc="validation.json"), P("bind_check", desc="bind_check.json"), P("note"), P("allow_unverified", "boolean", "default false")], api="fit_export"),
+    Def("lampway_fit_bind", "Bind a finished piece to the body's skeleton by the user's weight laws. plan: per part (a vertex group of the piece) a role from `roles` {part: metal | leather | cloth | embroidery} (the user's or the "
+        "recipe's, never a render's colour: a part without one is refused) and a mode - metal = rigid, ONE bone at full weight (blending it is refused: ask for a ruled cut), anything else = restrict (weighted by position from "
+        "the body's weights, restricted to the bones its geometry spans); bind_overrides {part: {mode, bones, reason}}; two rigid parts of one shell on different bones open the seam (seam_opens). weights: a copy <piece>_fit from "
+        "`body_object` (a scene body: an approximation, the native sidecar sampler is not built). return: the metal rest residual vs the ORIGINAL shell. apply: refused while a seam opens unless accept_seam_gap_mm. report.",
+        [P("stage", required=True, desc="plan | weights | return | apply | report"), P("piece"), P("armature"), P("roles", "object", "{part: role}"), P("bind_overrides", "object", "{part: {mode, bones, reason}}"),
+         P("out_dir", desc="default fit/bind"), P("body_object", desc="weights: the skinned body object"), P("accept_seam_gap_mm", "number", "apply: accept an opened seam")], api="fit_bind"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "

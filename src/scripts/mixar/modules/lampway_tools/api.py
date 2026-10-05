@@ -1101,6 +1101,29 @@ def fit_export(object, armature, out_dir, body, textures=None, validation="", bi
 
 
 @tool
+def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_dir="fit/bind", body_object="", accept_seam_gap_mm=None):
+    """Bind a finished piece to the body's skeleton by the user's weight laws. plan: per part (a vertex group of the piece) a role from `roles` {part: metal | leather | cloth | embroidery} - the user's or
+    the recipe's, never a render's colour: a part without one is refused - and a mode: metal = rigid, ONE bone at full weight (the bone with most of its vertices nearest, or the override), anything else =
+    restrict (weighted by position from the body's own weights, restricted to the bones its geometry spans); `bind_overrides` {part: {mode, bones, reason}} (metal as blend is refused: ask for a ruled cut;
+    an unknown bone names the nearest). Parts that share a seam and a bone form a rigid group; two rigid parts of one shell on different bones OPEN the seam (seam_opens). Writes bind_plan.json and seams.json.
+    weights: a copy <piece>_fit (the source is untouched) with the plan's weights; the body's weights come from `body_object` (a skinned body in the scene: an approximation, the native sidecar sampler is not built).
+    return: the metal parts' rest residual against the ORIGINAL shell. apply: refused while a seam opens unless accept_seam_gap_mm. report: the stages done and the files."""
+    from .features import fit_bind as _FB
+    root = str(_settings().project_root)
+    if stage == "plan":
+        return _FB.plan(piece, armature, roles, bind_overrides, out_dir, root)
+    if stage == "weights":
+        return _FB.weights(piece, armature, out_dir, body_object, root)
+    if stage == "return":
+        return _FB.return_report(piece, armature, out_dir, root)
+    if stage == "apply":
+        return _FB.apply(piece, armature, out_dir, accept_seam_gap_mm, root)
+    if stage == "report":
+        return _FB.report(out_dir, root)
+    raise ValueError("stage is plan | weights | return | apply | report")
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
