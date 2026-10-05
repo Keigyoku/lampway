@@ -66,7 +66,7 @@ if [ "$PLAN" = 1 ]; then
   echo "server_url: $SERVER_URL"; echo "build_env: $BUILD_ENV"; echo "binary: $BINARY"; echo "bridge_port: $BRIDGE_PORT"
   echo "provider: $PROVIDER"
   if [ "$PROVIDER" = openrouter ] || [ "$IMAGE_BACKEND" = openrouter ]; then
-    echo "main_model: ${LAMPWAY_OPENROUTER_MODEL:-anthropic/claude-sonnet-5.5}"; echo "swarm_model: ${LAMPWAY_OPENROUTER_SWARM_MODEL:-stealth/space-bunny-alpha}"
+    echo "main_model: ${LAMPWAY_OPENROUTER_MODEL:-anthropic/claude-sonnet-5.5}"; echo "swarm_model: ${LAMPWAY_OPENROUTER_SWARM_MODEL:-deepseek/deepseek-v4.1-flash}"
     echo "image_model: ${LAMPWAY_OPENROUTER_IMAGE_MODEL:-google/gemini-3.1-flash-image}"; echo "budget_usd: $BUDGET"
     echo "key_file: ${KEY_FILE:-none (OPENROUTER_API_KEY from the environment: $([ -n "${OPENROUTER_API_KEY:-}" ] && echo set || echo not set))}"
   fi

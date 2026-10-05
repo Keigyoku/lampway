@@ -28,7 +28,9 @@ class Settings:
     openai_model: str = ""
     chatgpt_model: str = "gpt-6.1-sol"                 # the documented example model; the account's own list is at /app/chatgpt/status
     openrouter_model: str = "anthropic/claude-sonnet-5.5"       # the main agent
-    openrouter_swarm_model: str = "stealth/space-bunny-alpha"   # swarm workers: free on OpenRouter when this was written; deepseek/deepseek-v4.1-flash is the fallback
+    # swarm workers. stealth/space-bunny-alpha is free but answered "502 Provider returned an empty response" to 6 of 6
+    # concurrent worker requests (2026-10-05, probe in reports/tools.md), which a swarm is; deepseek-v4.1-flash served 6 of 6.
+    openrouter_swarm_model: str = "deepseek/deepseek-v4.1-flash"
     openrouter_image_model: str = "google/gemini-3.1-flash-image"
     openrouter_max_tokens: int = 4096                  # per request, always sent
     openrouter_budget_usd: float = 3.0                 # session spend ceiling: past it every OpenRouter call is refused
@@ -53,7 +55,7 @@ class Settings:
             openai_model=env.get("LAMPWAY_OPENAI_MODEL", ""),
             chatgpt_model=env.get("LAMPWAY_CHATGPT_MODEL", "gpt-6.1-sol"),
             openrouter_model=env.get("LAMPWAY_OPENROUTER_MODEL", "anthropic/claude-sonnet-5.5"),
-            openrouter_swarm_model=env.get("LAMPWAY_OPENROUTER_SWARM_MODEL", "stealth/space-bunny-alpha"),
+            openrouter_swarm_model=env.get("LAMPWAY_OPENROUTER_SWARM_MODEL", "deepseek/deepseek-v4.1-flash"),
             openrouter_image_model=env.get("LAMPWAY_OPENROUTER_IMAGE_MODEL", "google/gemini-3.1-flash-image"),
             openrouter_max_tokens=int(env.get("LAMPWAY_OPENROUTER_MAX_TOKENS", "4096")),
             openrouter_budget_usd=float(env.get("LAMPWAY_OPENROUTER_BUDGET_USD", "3.0")),

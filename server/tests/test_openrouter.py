@@ -158,10 +158,10 @@ def test_make_provider_builds_the_main_and_the_swarm_models_from_settings(monkey
     monkeypatch.setenv("OPENROUTER_API_KEY", FAKE_KEY)
     settings = Settings.from_env({"LAMPWAY_PROVIDER": "openrouter", "LAMPWAY_STATE_DIR": str(tmp_path)})
     assert settings.openrouter_model == "anthropic/claude-sonnet-5.5"
-    assert settings.openrouter_swarm_model == "stealth/space-bunny-alpha"
+    assert settings.openrouter_swarm_model == "deepseek/deepseek-v4.1-flash"
     main = make_provider(settings)
     worker = make_swarm_provider(settings, label="worker-1")
-    assert (main.model, worker.model) == ("anthropic/claude-sonnet-5.5", "stealth/space-bunny-alpha")
+    assert (main.model, worker.model) == ("anthropic/claude-sonnet-5.5", "deepseek/deepseek-v4.1-flash")
     assert main.ledger is worker.ledger, "one session ceiling covers main and swarm"
     assert worker.label == "worker-1" and main.label == "main"
 

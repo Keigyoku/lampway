@@ -207,7 +207,7 @@ def test_the_plan_names_the_models_and_the_budget_but_never_a_key(tree, env, tmp
     keyfile.write_text(f"OPENROUTER_API_KEY={KEY}\n")
     r = lampway(tree, e, "--plan", "--env", "Prod", "--provider", "openrouter", "--openrouter-key-file", str(keyfile))
     assert r.returncode == 0, r.stdout
-    for needle in ("main_model: anthropic/claude-sonnet-5.5", "swarm_model: stealth/space-bunny-alpha", "budget_usd: 3", f"key_file: {keyfile}"):
+    for needle in ("main_model: anthropic/claude-sonnet-5.5", "swarm_model: deepseek/deepseek-v4.1-flash", "budget_usd: 3", f"key_file: {keyfile}"):
         assert needle in r.stdout, needle
     assert KEY not in r.stdout
 
