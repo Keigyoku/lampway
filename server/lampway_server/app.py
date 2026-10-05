@@ -256,7 +256,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model})
     routes += stub_routes(auth, store, settings, jobs)
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
-        swarm_provider_factory = lambda label: make_swarm_provider(settings, label)  # noqa: E731
+        swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
                      swarm_provider_factory=swarm_provider_factory)
 

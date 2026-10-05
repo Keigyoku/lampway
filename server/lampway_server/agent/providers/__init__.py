@@ -23,14 +23,14 @@ def make_provider(settings, chatgpt_auth=None):
         from ...chatgpt_auth import ChatGPTAuth
         from .chatgpt_plan import ChatGPTPlanProvider
         auth = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
-        return ChatGPTPlanProvider(auth, settings.chatgpt_model)
+        return ChatGPTPlanProvider(auth, settings.chatgpt_model, effort=settings.chatgpt_effort)
     if settings.provider in ("codex_cli", "claude_cli"):
         # The owner's own official CLIs, for personal use. Off unless enabled; the refusal carries the terms caveat.
         from .. import cli_adapters
         cli_adapters.require_enabled(settings.state_dir)
         if settings.provider == "codex_cli":
             return cli_adapters.CodexCLIProvider(model=os.environ.get("LAMPWAY_CODEX_MODEL", ""))
-        return cli_adapters.ClaudeCLIProvider(model=os.environ.get("LAMPWAY_CLAUDE_MODEL", ""))
+        return cli_adapters.ClaudeCLIProvider(model=os.environ.get("LAMPWAY_CLAUDE_MODEL", ""), workdir=settings.state_dir)
     if settings.provider == "openrouter":
         return _openrouter(settings, settings.openrouter_model, "main")
     raise ValueError(f"unknown LAMPWAY_PROVIDER {settings.provider!r}")
@@ -55,8 +55,26 @@ def _openrouter(settings, model, label):
                               max_tokens=settings.openrouter_max_tokens, label=label)
 
 
-def make_swarm_provider(settings, label: str):
-    """A provider for one swarm worker: the cheap swarm model, the shared ledger. The mock/scripted providers serve themselves."""
+def make_swarm_provider(settings, label: str, chatgpt_auth=None):
+    """A provider for one swarm worker: the cheap swarm model, the shared ledger. The mock/scripted providers serve themselves.
+    ``settings.swarm_provider`` puts the workers on a different provider from the main agent."""
+    kind = settings.swarm_provider or settings.provider
+    if kind == "claude_cli":
+        from .. import cli_adapters
+        cli_adapters.require_enabled(settings.state_dir)              # the owner's own login, personal use, terms note on refusal
+        return cli_adapters.ClaudeCLIProvider(model=settings.claude_swarm_model, workdir=settings.state_dir)
+    if kind == "openrouter" and settings.provider != "openrouter":
+        return _openrouter(settings, settings.openrouter_swarm_model, label)
+    if kind != settings.provider:
+        raise ValueError(f"LAMPWAY_SWARM_PROVIDER {kind!r} is not supported (claude_cli, openrouter, or the main provider)")
     if settings.provider == "openrouter":
         return _openrouter(settings, settings.openrouter_swarm_model, label)
+    if settings.provider == "chatgpt_plan":
+        # workers on the owner's own ChatGPT plan: the swarm model and effort, one shared sign-in (refreshes serialise in ChatGPTAuth)
+        from ...chatgpt_auth import ChatGPTAuth
+        from .chatgpt_plan import ChatGPTPlanProvider
+        # ONE ChatGPTAuth per server: refresh tokens rotate, so a second instance refreshing on its own would reuse a rotated
+        # token and the sign-in would be revoked (refresh_token_reused). The app passes its own instance.
+        auth = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
+        return ChatGPTPlanProvider(auth, settings.chatgpt_swarm_model, effort=settings.chatgpt_swarm_effort)
     return make_provider(settings)

@@ -154,14 +154,19 @@ class CodexCLIProvider:
 class ClaudeCLIProvider:
     name = "claude_cli"
 
-    def __init__(self, binary: str = "claude", model: str = "", timeout: float = 900.0):
+    def __init__(self, binary: str = "claude", model: str = "", timeout: float = 900.0, workdir=None):
         self.binary, self.model, self.timeout = binary, model, timeout
+        # an empty directory of its own: no CLAUDE.md / .claude of wherever the server runs is picked up
+        self.cwd = Path(workdir or Path(tempfile.gettempdir()) / "lampway") / "claude_cli_cwd"
 
     async def stream(self, request: ModelRequest) -> AsyncIterator[ProviderEvent]:
         # --tools "" : a plain model, not Claude Code's agent; no --bare (that would skip the subscription login).
-        cmd = [self.binary, "-p", "--output-format", "text", "--no-session-persistence", "--tools", ""] \
-            + (["--model", self.model] if self.model else [])
-        answer = await _run(cmd, build_prompt(request), self.timeout)
+        # --setting-sources "" + --strict-mcp-config: none of the owner's settings, hooks or MCP servers load into a worker
+        # (measured 2026-10-05: claude 2.1.288 answers headless on the owner's own login with these, model claude-sonnet-5-5).
+        cmd = [self.binary, "-p", "--output-format", "text", "--no-session-persistence", "--tools", "",
+               "--setting-sources", "", "--strict-mcp-config"] + (["--model", self.model] if self.model else [])
+        self.cwd.mkdir(parents=True, exist_ok=True)
+        answer = await _run(cmd, build_prompt(request), self.timeout, cwd=str(self.cwd))
         for event in parse_answer(answer, request.tools):
             yield event
 

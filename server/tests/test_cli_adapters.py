@@ -195,3 +195,25 @@ def test_imagegen_with_no_new_image_is_an_error_naming_the_log(tmp_path, monkeyp
     codex = fake_bin(tmp_path / "codex", "echo nothing")
     with pytest.raises(CLI.CLIError, match="no image"):
         CLI.codex_image(str(codex), "p", [], tmp_path / "out", name="1")
+
+
+def test_claude_is_isolated_from_the_owners_settings_hooks_mcp_and_folder_instructions(tmp_path):
+    # a worker must not load ~/.claude settings and hooks, MCP servers or a CLAUDE.md from wherever the server was started
+    log, where = tmp_path / "args.txt", tmp_path / "cwd.txt"
+    claude = fake_bin(tmp_path / "claude", f"printf '%s\\n' \"$@\" > {log}; pwd > {where}; cat > /dev/null; printf ok")
+    collect(CLI.ClaudeCLIProvider(binary=str(claude), workdir=tmp_path / "work"), req())
+    args = log.read_text().split("\n")
+    assert args[args.index("--setting-sources") + 1] == "" and "--strict-mcp-config" in args
+    assert where.read_text().strip() == str(tmp_path / "work" / "claude_cli_cwd")      # an empty directory of its own
+
+
+def test_the_swarm_can_run_on_the_claude_cli_with_its_own_model(tmp_path, monkeypatch):
+    from lampway_server.agent.providers import make_swarm_provider
+    env = {"LAMPWAY_STATE_DIR": str(tmp_path), "LAMPWAY_PROVIDER": "chatgpt_plan", "LAMPWAY_SWARM_PROVIDER": "claude_cli",
+           "LAMPWAY_CLAUDE_SWARM_MODEL": "claude-sonnet-5-5"}
+    monkeypatch.delenv("LAMPWAY_LOCAL_CLI", raising=False)
+    with pytest.raises(ValueError, match="off"):                       # still gated by the local-CLI switch and its terms note
+        make_swarm_provider(Settings.from_env(env), "worker-1")
+    monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
+    w = make_swarm_provider(Settings.from_env(env), "worker-1")
+    assert isinstance(w, CLI.ClaudeCLIProvider) and w.model == "claude-sonnet-5-5"
