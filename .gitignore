@@ -76,6 +76,7 @@ build/
 develop-eggs/
 dist/
 downloads/
+!/site/downloads/
 eggs/
 .eggs/
 ./upstream/lib/
