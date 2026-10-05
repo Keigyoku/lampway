@@ -210,3 +210,17 @@ def test_the_plan_names_the_models_and_the_budget_but_never_a_key(tree, env, tmp
     for needle in ("main_model: anthropic/claude-sonnet-5.5", "swarm_model: stealth/space-bunny-alpha", "budget_usd: 3", f"key_file: {keyfile}"):
         assert needle in r.stdout, needle
     assert KEY not in r.stdout
+
+
+def test_the_app_is_told_which_python_and_directory_run_the_servers_image_backend(tree, env, tmp_path):
+    e, _ = env
+    py = tmp_path / "serverpy"
+    py.write_text("")
+    (tree / "server").mkdir()
+    e = dict(e, LAMPWAY_SERVER_PYTHON=str(py))
+    blend = tmp_path / "scene.blend"
+    blend.write_bytes(b"x")
+    r = lampway(tree, e, "--env", "Prod", str(blend))
+    assert r.returncode == 0, r.stdout + r.stderr
+    app = (tmp_path / "app.txt").read_text()
+    assert f"LAMPWAY_PYTHON_SERVER={py}" in app and f"LAMPWAY_SERVER_DIR={tree}/server" in app

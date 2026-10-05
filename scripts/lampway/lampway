@@ -130,6 +130,9 @@ fi
 export XDG_CONFIG_HOME="$HOME_DIR/config" XDG_DATA_HOME="$HOME_DIR/data"
 export LAMPWAY_HOME="$HOME_DIR" LAMPWAY_BACKEND_URL="$SERVER_URL" LAMPWAY_BRIDGE_PORT="$BRIDGE_PORT" LAMPWAY_BRIDGE_DIR="$HOME_DIR/bridge"
 export LAMPWAY_PROJECT_ROOT="$HOME_DIR/projects" LAMPWAY_SERVER_PID_FILE="$HOME_DIR/server.pid"
+# the mesh-paint image backend (lampway_server.imagegen) runs in the server's python, launched by the app's tools
+[ -n "${LAMPWAY_SERVER_PYTHON:-}" ] && export LAMPWAY_PYTHON_SERVER="$LAMPWAY_SERVER_PYTHON"
+[ -d "$ROOT/server" ] && export LAMPWAY_SERVER_DIR="$ROOT/server"
 if [ "$SYSTEM_KEYRING" = 0 ]; then
   export PYTHON_KEYRING_BACKEND="mixar.modules.lampway_tools.keyring_file.FileKeyring" LAMPWAY_KEYRING_FILE="$HOME_DIR/keyring.json"
 fi
