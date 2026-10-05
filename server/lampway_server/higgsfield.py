@@ -28,6 +28,27 @@ class HiggsfieldError(RuntimeError):
     pass
 
 
+class HiggsfieldPreset(HiggsfieldError):
+    """get_cost answered a PRESET RECOMMENDATION instead of a price. It is an option for the captain, never accepted silently: ``preset`` is {id, name}."""
+
+    def __init__(self, preset: dict):
+        self.preset = preset
+        super().__init__(f"Higgsfield recommends the preset {preset['name']!r} (id {preset['id']}) instead of quoting a price; accept it by asking for that preset, "
+                         "or decline it by resubmitting as a literal request (params.literal = true)")
+
+
+def find_preset(data) -> Optional[dict]:
+    """The recommended preset {id, name} inside a response, if it holds one (a node under a key naming 'preset', with an id)."""
+    for node in _walk(data):
+        if isinstance(node, dict):
+            for key, v in node.items():
+                if "preset" in str(key).lower() and isinstance(v, dict):
+                    pid = v.get("preset_id") or v.get("id")
+                    if pid:
+                        return {"id": str(pid), "name": str(v.get("name") or v.get("title") or pid)}
+    return None
+
+
 def _walk(obj):
     """Every dict and list element inside ``obj`` (depth first)."""
     stack = [obj]
@@ -211,9 +232,20 @@ class Higgsfield:
         """One tool call. ``args`` is the flat request this class builds; the generation tools take it as their single ``params`` argument."""
         return self.mcp.call(tool, {"params": args} if tool in PARAMS_TOOLS else args)
 
-    def cost(self, tool: str, args: dict) -> float:
+    def cost(self, tool: str, args: dict, literal: bool = False) -> float:
+        """The get_cost price (``args`` gains declined_preset_id when a literal retry declined one). A preset recommendation is raised as HiggsfieldPreset; a ``literal`` request retries ONCE declining exactly that id."""
         out = self.call(tool, dict(args, get_cost=True))
         credits = find_credits(out)
+        preset = find_preset(out) if credits is None else None
+        if preset is not None:
+            if not literal:
+                raise HiggsfieldPreset(preset)
+            args["declined_preset_id"] = preset["id"]               # in place: the real submit must decline it too, or it would be recommended again
+            out = self.call(tool, dict(args, get_cost=True))
+            credits = find_credits(out)
+            again = find_preset(out) if credits is None else None
+            if again is not None:
+                raise HiggsfieldPreset(again)
         if credits is None:
             raise HiggsfieldError(f"{tool} get_cost returned no price: {str(out)[:200]}")
         return credits

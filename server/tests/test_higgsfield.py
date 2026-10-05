@@ -152,3 +152,29 @@ def test_the_wait_is_bounded(svc, hf):
     r = svc.submit("generate_video", {"model": "seedance1_5", "prompt": "x"})
     with pytest.raises(HF.HiggsfieldError, match="still running"):
         svc.wait(r["job_ids"])
+
+
+def test_a_preset_recommendation_is_an_option_never_accepted_and_a_literal_retry_declines_exactly_that_id(svc, hf):
+    """get_cost can answer a preset recommendation instead of a price. Never accept it silently: surface id + name; a literal request retries ONCE with
+    params.declined_preset_id. (Response shape: from the coordinator's description of the live answer, key names assumed - see the report.)"""
+    hf.preset_recommendation = {"id": "preset-in-the-dark", "name": "IN THE DARK"}
+    args = {"model": "seedance1_5", "prompt": "x", "duration": 8}
+    with pytest.raises(HF.HiggsfieldPreset) as e:
+        svc.cost("generate_video", args)
+    assert e.value.preset == {"id": "preset-in-the-dark", "name": "IN THE DARK"} and "IN THE DARK" in str(e.value) and "preset-in-the-dark" in str(e.value)
+    assert len([1 for t, a in hf.calls if t == "generate_video"]) == 1 and hf.jobs == {}, "no silent retry, nothing submitted"
+    assert svc.cost("generate_video", args, literal=True) == pytest.approx(9.6)
+    last = [a for t, a in hf.calls if t == "generate_video"][-1]
+    assert last["declined_preset_id"] == "preset-in-the-dark" and last["get_cost"] is True and "preset_id" not in last
+    assert len([1 for t, a in hf.calls if t == "generate_video"]) == 3, "one refused quote, then one literal quote after the first"
+    assert args["declined_preset_id"] == "preset-in-the-dark", "the plan's args carry the decline into the real submit"
+    assert svc.submit("generate_video", args)["job_ids"] and "declined_preset_id" in [a for t, a in hf.calls if t == "generate_video"][-1]
+    del args["declined_preset_id"]
+    hf.preset_recommendation = {"id": "other", "name": "OTHER"}
+    hf.calls.clear()
+    stubborn = hf.preset_recommendation
+    real = hf.tool_generate_video
+    hf.tool_generate_video = lambda a: {"preset_recommendation": {"preset_id": "again", "name": "AGAIN"}} if a.get("get_cost") else real(a)
+    with pytest.raises(HF.HiggsfieldPreset):
+        svc.cost("generate_video", args, literal=True)
+    assert len([1 for t, a in hf.calls if t == "generate_video"]) == 2, "a literal request retries exactly once"

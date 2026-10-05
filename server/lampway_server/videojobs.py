@@ -307,7 +307,7 @@ class VideoSystem:
                 args["medias"] = [{"value": i, "role": _pick_role(roles, "image") or "image_references"} for i in image_ids]
         else:
             tool, args = "generate_video", h.video_args(model_id, prompt, params, images=image_ids, videos=video_ids)
-        credits = h.cost(tool, args)
+        credits = h.cost(tool, args, literal=bool(params.get("literal") or payload.get("template")))
         return {"provider": "higgsfield", "gated": True, "service": service, "model": model_id, "tool": tool, "args": args, "credits": credits,
                 "label": f"Higgsfield {model_id}: {credits:g} credits"}
 

@@ -347,3 +347,20 @@ def test_the_agent_tool_plans_a_higgsfield_clip_and_cannot_spend_it(stack):
     assert p["dry_run"] is True and p["estimate_usd"] == pytest.approx(0.10) and orv.posts == []
     live, err3 = asyncio.run(VT.call(system, "lampway_video_gen", {"model": "heygen/heygen-video-1", "prompt": "x", "duration": 5, "resolution": "480p", "dry_run": False}))
     assert err3 is False and json.loads(live)["video_file"].endswith(".mp4") and len(orv.posts) == 1
+
+
+def test_a_preset_recommendation_fails_the_job_naming_the_preset_and_a_template_job_declines_it_and_still_waits_for_the_captain(stack):
+    fake, orv, hf, auth, *_ = stack
+    sign_in_higgsfield(auth, hf)
+    hf.preset_recommendation = {"id": "preset-in-the-dark", "name": "IN THE DARK"}
+    jid = submit(fake, "video_gen", "higgsfield/seedance1_5", {"prompt": "x", "params": {"duration": 8, "resolution": "720p"}})
+    snap = wait_for(fake, jid, states=("failed",))
+    assert "IN THE DARK" in snap["error"] and "preset-in-the-dark" in snap["error"] and hf_calls(hf) == [] and not fake.get("/app/studio").json()["approvals"]
+    jid = submit(fake, "video_gen", "higgsfield/seedance1_5", {"prompt": "x", "params": {"duration": 8, "resolution": "720p", "literal": True}})
+    time.sleep(0.3)
+    ap = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending")
+    assert ap["price"] == pytest.approx(9.6) and hf_calls(hf) == [], "declined, priced, and nothing is submitted before the captain's click"
+    assert fake.post(f"/app/studio/approvals/{ap['id']}/confirm", json={"price": 9.6}).status_code == 200
+    assert wait_for(fake, jid)["state"] == "succeeded"
+    sent = hf_calls(hf)[0][1]
+    assert sent["declined_preset_id"] == "preset-in-the-dark" and "literal" not in sent and "preset_id" not in sent

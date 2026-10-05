@@ -48,6 +48,7 @@ class FakeHiggsfield:
         self.media = {}
         self.balance = 623.86
         self.unauthorised_once = False
+        self.preset_recommendation = None   # {"id", "name"}: get_cost answers a recommendation instead of a price until declined_preset_id names it
         self.max_page = None                # a server that clamps ``limit`` (the live default page is 20)
         self.schema_errors = []             # (tool, [violations]) for every request the live schema would refuse
 
@@ -171,6 +172,10 @@ class FakeHiggsfield:
             raise httpx.ReadTimeout("simulated transport timeout")
         mid = a["model"]
         if a.get("get_cost"):
+            rec = self.preset_recommendation
+            if rec and a.get("declined_preset_id") != rec["id"] and a.get("preset_id") != rec["id"]:
+                return {"preset_recommendation": {"preset_id": rec["id"], "name": rec["name"], "reason": "a preset fits this prompt"},
+                        "message": f"Higgsfield recommends the preset {rec['name']}; pass declined_preset_id to decline it."}
             return {"get_cost": True, "credits": COSTS.get(mid, 5.0), "model": mid}
         if self.unlim_question and a.get("use_unlim") is None and mid == "seedance_2_0":
             return {"unlim_choice": {"question": "Use your unlimited allowance for this generation?", "options": [True, False]}}
