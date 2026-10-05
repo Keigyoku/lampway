@@ -63,9 +63,9 @@ def save_preferences() -> None:
         path = get_prefs_path()
         with open(path, 'w', encoding='utf-8') as fh:
             json.dump(data, fh, indent=4)
-        logger.debug("Mixar Paint preferences saved to %s", path)
+        logger.debug("Lampway Paint preferences saved to %s", path)
     except Exception as exc:
-        logger.warning("Failed to save Mixar Paint preferences: %s", exc)
+        logger.warning("Failed to save Lampway Paint preferences: %s", exc)
 
 
 def load_preferences() -> None:
@@ -86,14 +86,14 @@ def load_preferences() -> None:
 
     path = get_prefs_path()
     if not os.path.exists(path):
-        logger.debug("No Mixar Paint preferences file found at %s — using defaults", path)
+        logger.debug("No Lampway Paint preferences file found at %s — using defaults", path)
         return
 
     try:
         with open(path, 'r', encoding='utf-8') as fh:
             data = json.load(fh)
     except Exception as exc:
-        logger.warning("Failed to read Mixar Paint preferences from %s: %s", path, exc)
+        logger.warning("Failed to read Lampway Paint preferences from %s: %s", path, exc)
         return
 
     _loading = True
@@ -107,4 +107,4 @@ def load_preferences() -> None:
     finally:
         _loading = False
 
-    logger.debug("Mixar Paint preferences loaded from %s", path)
+    logger.debug("Lampway Paint preferences loaded from %s", path)

@@ -33,11 +33,11 @@ from .material_slot_ops import (
 
 
 class LAYERS_OT_RemoveMPaintNode(Operator):
-    """Remove Mixar Paint node from material"""
+    """Remove Lampway Paint node from material"""
 
     bl_idname = "wm.m_remove_mp_node"
-    bl_label = "Remove Mixar Paint Node"
-    bl_description = "Remove Mixar Paint node, but keep all baked channel image(s)"
+    bl_label = "Remove Lampway Paint Node"
+    bl_description = "Remove Lampway Paint node, but keep all baked channel image(s)"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod

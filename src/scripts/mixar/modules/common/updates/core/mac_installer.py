@@ -43,7 +43,7 @@ from .staging import result_path
 logger = get_logger(__name__)
 
 _SCRIPT_TEMPLATE = '''#!/bin/sh
-# Mixar update helper — generated, safe to delete when not running.
+# Lampway update helper — generated, safe to delete when not running.
 set -u
 
 LOG={log}
@@ -97,11 +97,11 @@ fail() {{
 
 log "update helper started for $VERSION"
 
-# ---- wait for Mixar to exit ------------------------------------------------
+# ---- wait for Lampway to exit ------------------------------------------------
 waited=0
 while kill -0 "$PID" 2>/dev/null; do
     if [ "$waited" -ge "$WAIT_SECONDS" ]; then
-        log "Mixar (pid $PID) still running after ${{WAIT_SECONDS}}s - aborting"
+        log "Lampway (pid $PID) still running after ${{WAIT_SECONDS}}s - aborting"
         record wait timeout
         exit 2
     fi
@@ -109,7 +109,7 @@ while kill -0 "$PID" 2>/dev/null; do
     waited=$((waited + 1))
 done
 sleep 1
-log "Mixar exited - applying $INSTALLER"
+log "Lampway exited - applying $INSTALLER"
 
 # ---- unpack the installer --------------------------------------------------
 case "$INSTALLER" in

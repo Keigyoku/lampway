@@ -28,11 +28,11 @@ logger = get_logger(__name__)
 
 
 class MIXAR_OT_onboarding_tour(Operator):
-    """Start the guided tour of Mixar"""
+    """Start the guided tour of Lampway"""
 
     bl_idname = config.OP_TOUR
     bl_label = "Start Tour"
-    bl_description = "Walk through the viewport, Mixie, the moodboard and Engine mode"
+    bl_description = "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
     bl_options = {"REGISTER", "INTERNAL"}
 
     rate: FloatProperty(name="Playback rate", default=1.0, min=0.25, max=8.0,

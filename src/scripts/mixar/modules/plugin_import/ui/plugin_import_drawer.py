@@ -30,7 +30,7 @@ def draw_plugin_import(layout, context) -> None:
 
     col = layout.column(align=True)
     col.label(
-        text="Bring add-ons and extensions from your existing Blender install into Mixar.",
+        text="Bring add-ons and extensions from your existing Blender install into Lampway.",
         icon="INFO",
     )
 
@@ -92,7 +92,7 @@ def draw_plugin_import(layout, context) -> None:
 
     box.operator(
         "mixie.import_blender_plugins",
-        text="Import into Mixar",
+        text="Import into Lampway",
         icon="IMPORT",
     )
 

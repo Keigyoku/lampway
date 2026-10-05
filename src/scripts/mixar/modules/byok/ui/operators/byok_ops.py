@@ -95,12 +95,12 @@ _dialog_open = False
 
 
 class MIXAR_BYOK_OT_open_dialog(Operator):
-    """Configure your own API provider and key for the Mixar agent"""
+    """Configure your own API provider and key for the Lampway agent"""
     bl_idname = "mixar_byok.open_dialog"
     bl_label = "AI Provider Settings"
     bl_description = (
-        "Use your own API key for the Mixar agent. "
-        "While active, Mixar credits are not charged for agent requests."
+        "Use your own API key for the Lampway agent. "
+        "While active, Lampway credits are not charged for agent requests."
     )
 
     def invoke(self, context, event):

@@ -43,6 +43,6 @@ def ensure_addon_project_ready(operator) -> bool:
         operator.report(
             {'INFO'},
             f"Add-ons will be created in '{result['name']}' — change the "
-            "folder under Mixar Preferences",
+            "folder under Lampway Preferences",
         )
     return True

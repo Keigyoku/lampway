@@ -49,7 +49,7 @@ bake_type_items = (
     (
         "OTHER_OBJECT_CHANNELS",
         "Other Objects Channels",
-        "Other object's Mixar Paint channels",
+        "Other object's Lampway Paint channels",
     ),
     ("SELECTED_VERTICES", "Selected Vertices/Edges/Faces", ""),
     ("FLOW", "Flow Map based on straight UVMap", ""),

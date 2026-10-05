@@ -19,10 +19,10 @@ from bpy.props import StringProperty
 # ============================================================================
 
 class MIXIE_OT_set_mode(Operator):
-    """Switch to a specific Mixie mode"""
+    """Switch to a specific Lampway Agent mode"""
     bl_idname = "mixie.set_mode"
-    bl_label = "Set Mixie Mode"
-    bl_description = "Switch to a specific Mixie mode"
+    bl_label = "Set Lampway Agent Mode"
+    bl_description = "Switch to a specific Lampway Agent mode"
     bl_options = {'REGISTER', 'UNDO'}
 
     mode: StringProperty(

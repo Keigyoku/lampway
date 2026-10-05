@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "Aktyvi eilutė slankiojo burbulo pokalbių istorijos sąraše"
 msgid "Share Usage Data"
 msgstr "Bendrinti naudojimo duomenis"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "Bendrinti produkto naudojimo įvykius be turinio, kad būtų galima tobulinti Mixar"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "Bendrinti produkto naudojimo įvykius be turinio, kad būtų galima tobulinti Lampway"
 
 msgid "No generation services"
 msgstr "Nėra generavimo paslaugų"
@@ -170,8 +170,8 @@ msgstr "Priedo modulio pavadinimas netinkamas"
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "Sukonfigūruotas priedo įėjimo taškas susietame projekte nerastas"
 
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "Susietame aplanke nėra tinkamų Mixar projekto metaduomenų"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "Susietame aplanke nėra tinkamų Lampway projekto metaduomenų"
 
 msgid "The project metadata version is not supported"
 msgstr "Projekto metaduomenų versija nepalaikoma"
@@ -194,7 +194,7 @@ msgstr "Įėjimo taškas turi būti vienas aukščiausio lygio modulio pavadinim
 msgid "Set an active add-on before changing its enabled state"
 msgstr "Prieš keisdami įjungimo būseną, nustatykite aktyvų priedą"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "Biblioteka"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "Atidaryti agento burbulo langą"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "Atidaro agento burbulą atskirame slankiajame lange"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "C++ operatorius mixar.agent_bubble_show_window neregistruotas — perstatykite Mixar (make build), kad būtų įtrauktas agent_bubble erdvės tipo operatorius."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "C++ operatorius mixar.agent_bubble_show_window neregistruotas — perstatykite Lampway (make build), kad būtų įtrauktas agent_bubble erdvės tipo operatorius."
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "Nepavyko atidaryti agento burbulo lango: {error}"
@@ -651,8 +651,8 @@ msgstr ""
 msgid "AI generations"
 msgstr "DI generavimai"
 
-msgid "Everything Mixar has generated for you"
-msgstr "Viskas, ką Mixar jums sugeneravo"
+msgid "Everything Lampway has generated for you"
+msgstr "Viskas, ką Lampway jums sugeneravo"
 
 msgid "My Libraries"
 msgstr ""
@@ -1421,17 +1421,17 @@ msgstr "Susisiekite su pagalba — šiuo metu nėra įjungtų teikėjų"
 msgid "Select a provider with available models"
 msgstr "Pasirinkite teikėją, kurio modeliai pasiekiami"
 
-msgid "Managed by Mixar"
-msgstr "Tvarko Mixar"
+msgid "Managed by Lampway"
+msgstr "Tvarko Lampway"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar atsisiunčia ir šiame kompiuteryje paleidžia atrinktą modelį"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway atsisiunčia ir šiame kompiuteryje paleidžia atrinktą modelį"
 
 msgid "Custom local server"
 msgstr "Pasirinktinis vietinis serveris"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "Nukreipkite Mixar į su OpenAI suderinamą serverį, kurį jau paleidžiate (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "Nukreipkite Lampway į su OpenAI suderinamą serverį, kurį jau paleidžiate (Ollama, LM Studio, llama.cpp, ...)"
 
 msgid "Invalid form data — please reach out to support."
 msgstr "Netinkami formos duomenys — susisiekite su pagalba."
@@ -1553,8 +1553,8 @@ msgstr "Modelis nepasirinktas"
 msgid "Reset Agent Model"
 msgstr "Atkurti agento modelį"
 
-msgid "Clear the saved model and let Mixar choose"
-msgstr "Išvalo įrašytą modelį ir leidžia Mixar pasirinkti"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "Išvalo įrašytą modelį ir leidžia Lampway pasirinkti"
 
 msgid "Could not change model"
 msgstr "Modelio pakeisti nepavyko"
@@ -1577,8 +1577,8 @@ msgstr "Aktyvus"
 msgid "Not configured"
 msgstr "Nesukonfigūruota"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "Paleiskite Mixar agentą savo teikėju — kol tai įjungta, Mixar kreditai neskaičiuojami."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "Paleiskite Lampway agentą savo teikėju — kol tai įjungta, Lampway kreditai neskaičiuojami."
 
 msgid "Current Configuration"
 msgstr "Dabartinė konfigūracija"
@@ -1604,8 +1604,8 @@ msgstr "Pašalinti API raktą…"
 msgid "Provider Setup"
 msgstr "Teikėjo sąranka"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "Saugoma šifruotai, naudojama tik Mixar agento užklausoms — išsaugojus rodoma tik užmaskuota peržiūra."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "Saugoma šifruotai, naudojama tik Lampway agento užklausoms — išsaugojus rodoma tik užmaskuota peržiūra."
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
 msgstr "Pasirinkite modelį, kuris palaiko įrankių / funkcijų iškvietimą — agentui to reikia."
@@ -1631,8 +1631,8 @@ msgstr "Terminale paleiskite  codex login , tada įkelkite arba įklijuokite vis
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "failo ~/.codex/auth.json turinį (įklijavimo mygtukas skaito iškarpinę)."
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "Naudoja jūsų ChatGPT prenumeratą — Mixar kreditai neskaičiuojami."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "Naudoja jūsų ChatGPT prenumeratą — Lampway kreditai neskaičiuojami."
 
 msgid "Couldn't apply your changes"
 msgstr "Nepavyko pritaikyti jūsų pakeitimų"
@@ -1640,23 +1640,23 @@ msgstr "Nepavyko pritaikyti jūsų pakeitimų"
 msgid "Remove your API key?"
 msgstr "Pašalinti API raktą?"
 
-msgid "The agent will use Mixar's default provider again."
-msgstr "Agentas vėl naudos numatytąjį Mixar teikėją."
+msgid "The agent will use Lampway's default provider again."
+msgstr "Agentas vėl naudos numatytąjį Lampway teikėją."
 
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "Už būsimas agento užklausas bus skaičiuojami Mixar kreditai."
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "Už būsimas agento užklausas bus skaičiuojami Lampway kreditai."
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "Mixar agentas dabar veikia jūsų teikėju — Mixar kreditai neskaičiuojami."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "Lampway agentas dabar veikia jūsų teikėju — Lampway kreditai neskaičiuojami."
 
 msgid "API key removed"
 msgstr "API raktas pašalintas"
 
-msgid "The agent is back on Mixar's default provider."
-msgstr "Agentas vėl naudoja numatytąjį Mixar teikėją."
+msgid "The agent is back on Lampway's default provider."
+msgstr "Agentas vėl naudoja numatytąjį Lampway teikėją."
 
-msgid "Mixar credits are charged for agent requests again."
-msgstr "Už agento užklausas vėl skaičiuojami Mixar kreditai."
+msgid "Lampway credits are charged for agent requests again."
+msgstr "Už agento užklausas vėl skaičiuojami Lampway kreditai."
 
 msgid "Try Again"
 msgstr "Bandyti dar kartą"
@@ -1691,8 +1691,8 @@ msgstr "Atsisiųsta — neveikia"
 msgid "Not downloaded"
 msgstr "Neatsisiųsta"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "Veikia tik šiame kompiuteryje — jūsų raginimai jo nepalieka, išskyrus Mixar agento orkestravimą."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "Veikia tik šiame kompiuteryje — jūsų raginimai jo nepalieka, išskyrus Lampway agento orkestravimą."
 
 msgid "Cancel Download"
 msgstr "Atšaukti atsisiuntimą"
@@ -1730,8 +1730,8 @@ msgstr "Nuskaityti vietines programas iš naujo"
 msgid "Rescan this computer for running local AI apps"
 msgstr "Iš naujo nuskaito šį kompiuterį, ieškodamas veikiančių vietinių DI programų"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "Naudokite savo API raktą Mixar agentui. Kol tai įjungta, už agento užklausas Mixar kreditai neskaičiuojami."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "Naudokite savo API raktą Lampway agentui. Kol tai įjungta, už agento užklausas Lampway kreditai neskaičiuojami."
 
 msgid "Validate with the provider and save your API key"
 msgstr "Patikrina pas teikėją ir išsaugo jūsų API raktą"
@@ -1844,8 +1844,8 @@ msgstr "LLM teikėjas"
 msgid "Model to use with the selected provider"
 msgstr "Modelis, naudojamas su pasirinktu teikėju"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "Jūsų API raktas saugomas šifruotas ir naudojamas tik Mixar agento užklausoms. Išsaugojus rodoma tik užmaskuota peržiūra."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "Jūsų API raktas saugomas šifruotas ir naudojamas tik Lampway agento užklausoms. Išsaugojus rodoma tik užmaskuota peržiūra."
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "Bet kuris modelio identifikatorius iš openrouter.ai/models (pvz., anthropic/claude-opus-4.8)"
@@ -1859,8 +1859,8 @@ msgstr "Failo ~/.codex/auth.json turinys (pirmiausia paleiskite `codex login`)"
 msgid "Local mode"
 msgstr "Vietinė veiksena"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "Tvarko Mixar arba jūsų vietinis serveris"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Tvarko Lampway arba jūsų vietinis serveris"
 
 msgid "Local model"
 msgstr "Vietinis modelis"
@@ -1889,11 +1889,11 @@ msgstr "Teisinga, kai serveris šiam naudotojui praneša byok_active"
 msgid "Dialog State"
 msgstr "Dialogo būsena"
 
-msgid "Set Mixie Mode"
-msgstr "Nustatyti Mixie veikseną"
+msgid "Set Lampway Agent Mode"
+msgstr "Nustatyti Lampway Agent veikseną"
 
-msgid "Switch to a specific Mixie mode"
-msgstr "Perjungia į konkrečią Mixie veikseną"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "Perjungia į konkrečią Lampway Agent veikseną"
 
 msgid "Mode"
 msgstr "Veiksena"
@@ -1928,8 +1928,8 @@ msgstr "Aukštas"
 msgid "Non-contiguous enum value 27"
 msgstr "Nenuosekli išvardijimo reikšmė 27"
 
-msgid "Mixie v3 run active"
-msgstr "Mixie v3 vykdymas aktyvus"
+msgid "Lampway Agent v3 run active"
+msgstr "Lampway Agent v3 vykdymas aktyvus"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "Serveris atmetė istorijos sinchronizavimo užklausą. Atnaujinkite programą ir serverį, tada prisijunkite iš naujo."
@@ -2420,10 +2420,10 @@ msgstr "Erdvės tipas, į kurį perjungti"
 msgid "No active area"
 msgstr "Nėra aktyvios srities"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "Vietinės galerijos veiksmas"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "Padidina kūrėjo bandinio skaitiklį; generavimo ar scenos nekeičia"
 
-msgid "Mixar UI Gallery"
-msgstr "Mixar sąsajos galerija"
+msgid "Lampway UI Gallery"
+msgstr "Lampway sąsajos galerija"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "Tikrina bendrus savuosius komponentus naudojant vietinius bandinio duomenis"
@@ -2468,8 +2468,8 @@ msgstr "Privatumas"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "Telemetrijos sutikimas, padėtas ten, kur naudotojai įprastai ieško, kaip atsisakyti."
 
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "Bendrina, kuriomis Mixar funkcijomis naudojatės, kad būtų galima tobulinti produktą."
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "Bendrina, kuriomis Lampway funkcijomis naudojatės, kad būtų galima tobulinti produktą."
 
 msgid "Your prompts, files, and scene content are never included."
 msgstr "Jūsų raginimai, failai ir scenos turinys niekada neįtraukiami."
@@ -2477,7 +2477,7 @@ msgstr "Jūsų raginimai, failai ir scenos turinys niekada neįtraukiami."
 msgid "Privacy Policy"
 msgstr "Privatumo politika"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "Savasis"
 msgid "Blender theme"
 msgstr "„Blender“ tema"
 
-msgid "Legacy Mixar"
-msgstr "Ankstesnis Mixar"
+msgid "Legacy Lampway"
+msgstr "Ankstesnis Lampway"
 
 msgid "Compatibility profile"
 msgstr "Suderinamumo profilis"
@@ -2624,11 +2624,11 @@ msgstr "Glausta"
 msgid "Denser chrome recipe"
 msgstr "Tankesnis apipavidalinimo receptas"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "Norėdami atnaujinti vietoje, perkelkite Mixar į aplanką „Applications“"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "Norėdami atnaujinti vietoje, perkelkite Lampway į aplanką „Applications“"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar neveikia iš programos paketo"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway neveikia iš programos paketo"
 
 msgid "No permission to update {path}"
 msgstr "Nėra leidimo atnaujinti {path}"
@@ -2660,8 +2660,8 @@ msgstr "Trūksta atsisiųsto diegiklio"
 msgid "Could not start the updater"
 msgstr "Nepavyko paleisti atnaujinimo programos"
 
-msgid "Mixar didn't close"
-msgstr "Mixar neužsidarė"
+msgid "Lampway didn't close"
+msgstr "Lampway neužsidarė"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "Atnaujinimai programoje šioje platformoje nepalaikomi"
@@ -2687,32 +2687,32 @@ msgstr "Atsisiųsta: {size}"
 msgid "Starting download…"
 msgstr "Pradedamas atsisiuntimas…"
 
-msgid "Downloading Mixar {version}"
-msgstr "Atsisiunčiama Mixar {version}"
+msgid "Downloading Lampway {version}"
+msgstr "Atsisiunčiama Lampway {version}"
 
-msgid "Mixar will restart to finish updating."
-msgstr "Mixar bus paleista iš naujo, kad baigtų atnaujinimą."
+msgid "Lampway will restart to finish updating."
+msgstr "Lampway bus paleista iš naujo, kad baigtų atnaujinimą."
 
-msgid "Mixar Update Ready"
-msgstr "Mixar atnaujinimas paruoštas"
+msgid "Lampway Update Ready"
+msgstr "Lampway atnaujinimas paruoštas"
 
 msgid "Version {version} is ready to install."
 msgstr "Versija {version} paruošta diegti."
 
-msgid "Mixar Update Required"
-msgstr "Reikalingas Mixar atnaujinimas"
+msgid "Lampway Update Required"
+msgstr "Reikalingas Lampway atnaujinimas"
 
-msgid "Mixar Update Available"
-msgstr "Yra Mixar atnaujinimas"
+msgid "Lampway Update Available"
+msgstr "Yra Lampway atnaujinimas"
 
 msgid "Version {version} is available."
 msgstr "Yra versija {version}."
 
-msgid "This update is required to continue using Mixar."
-msgstr "Šis atnaujinimas būtinas, kad galėtumėte toliau naudoti Mixar."
+msgid "This update is required to continue using Lampway."
+msgstr "Šis atnaujinimas būtinas, kad galėtumėte toliau naudoti Lampway."
 
-msgid "Mixar will restart to apply it."
-msgstr "Mixar bus paleista iš naujo, kad jį pritaikytų."
+msgid "Lampway will restart to apply it."
+msgstr "Lampway bus paleista iš naujo, kad jį pritaikytų."
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error} — atnaujinkite per naršyklę mygtuku „Atsisiųsti“."
@@ -2729,11 +2729,11 @@ msgstr "Spustelėkite „Paleisti iš naujo ir atnaujinti“, kad įdiegtumėte 
 msgid "Update paused"
 msgstr "Atnaujinimas pristabdytas"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar neužsidarė, todėl atnaujinimas neįdiegtas."
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway neužsidarė, todėl atnaujinimas neįdiegtas."
 
-msgid "Mixar is up to date"
-msgstr "Mixar yra naujausia"
+msgid "Lampway is up to date"
+msgstr "Lampway yra naujausia"
 
 msgid "You're running the latest version ({version})."
 msgstr "Naudojate naujausią versiją ({version})."
@@ -2747,11 +2747,11 @@ msgstr "Patikrinkite interneto ryšį ir bandykite dar kartą."
 msgid "Update didn't take effect"
 msgstr "Atnaujinimas neįsigaliojo"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Įdiegta Mixar {target}, bet pasileido versija {running}. Diekite iš naujo iš atsisiuntimų puslapio."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Įdiegta Lampway {target}, bet pasileido versija {running}. Diekite iš naujo iš atsisiuntimų puslapio."
 
-msgid "Updated to Mixar {version}"
-msgstr "Atnaujinta į Mixar {version}"
+msgid "Updated to Lampway {version}"
+msgstr "Atnaujinta į Lampway {version}"
 
 msgid "The update was installed successfully."
 msgstr "Atnaujinimas sėkmingai įdiegtas."
@@ -2765,8 +2765,8 @@ msgstr "{reason} Atnaujinimą galite atsisiųsti iš atsisiuntimų puslapio."
 msgid "Update was not installed"
 msgstr "Atnaujinimas neįdiegtas"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "Diegiklis bandė pasileisti, kai Mixar dar veikė."
+msgid "Lampway was still running when the installer tried to start."
+msgstr "Diegiklis bandė pasileisti, kai Lampway dar veikė."
 
 msgid "The downloaded installer failed its signature check."
 msgstr "Atsisiųstas diegiklis nepraėjo parašo tikrinimo."
@@ -2774,8 +2774,8 @@ msgstr "Atsisiųstas diegiklis nepraėjo parašo tikrinimo."
 msgid "The downloaded installer could not be opened."
 msgstr "Atsisiųsto diegiklio atidaryti nepavyko."
 
-msgid "Mixar could not be replaced on disk."
-msgstr "Mixar diske pakeisti nepavyko."
+msgid "Lampway could not be replaced on disk."
+msgstr "Lampway diske pakeisti nepavyko."
 
 msgid "The installation was cancelled."
 msgstr "Diegimas atšauktas."
@@ -2786,8 +2786,8 @@ msgstr "Windows Installer pranešė apie lemtingą klaidą."
 msgid "The installer did not finish."
 msgstr "Diegiklis nebaigė darbo."
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "Paleisti Mixar iš naujo ir įdiegti atsisiųstą atnaujinimą"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "Paleisti Lampway iš naujo ir įdiegti atsisiųstą atnaujinimą"
 
 msgid "Save Changes"
 msgstr "Išsaugoti pakeitimus"
@@ -2795,14 +2795,14 @@ msgstr "Išsaugoti pakeitimus"
 msgid "Save the current file before restarting"
 msgstr "Prieš paleidžiant iš naujo išsaugoti dabartinį failą"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "Atsisiunčiamas atnaujinimas — Mixar bus paleista iš naujo, kai bus paruošta"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "Atsisiunčiamas atnaujinimas — Lampway bus paleista iš naujo, kai bus paruošta"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar užsidarys ir atsinaujins į {version}."
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway užsidarys ir atsinaujins į {version}."
 
 msgid "It reopens automatically when the update is done."
 msgstr "Atnaujinimui pasibaigus ji atsidaro automatiškai."
@@ -2831,14 +2831,14 @@ msgstr "Stabdyti atnaujinimo atsisiuntimą"
 msgid "This update is required and cannot be cancelled"
 msgstr "Šis atnaujinimas būtinas ir jo negalima atšaukti"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "Atidaro Mixar atsisiuntimų puslapį numatytojoje naršyklėje"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "Atidaro Lampway atsisiuntimų puslapį numatytojoje naršyklėje"
 
 msgid "Check for Updates"
 msgstr "Tikrinti atnaujinimus"
 
-msgid "Check whether a newer version of Mixar is available"
-msgstr "Tikrina, ar yra naujesnė Mixar versija"
+msgid "Check whether a newer version of Lampway is available"
+msgstr "Tikrina, ar yra naujesnė Lampway versija"
 
 msgid "An update check is already in progress"
 msgstr "Atnaujinimų tikrinimas jau vyksta"
@@ -2849,8 +2849,8 @@ msgstr "Tikrinami atnaujinimai…"
 msgid "Update Available"
 msgstr "Yra atnaujinimas"
 
-msgid "Show details for the pending Mixar update"
-msgstr "Rodo laukiančio Mixar atnaujinimo informaciją"
+msgid "Show details for the pending Lampway update"
+msgstr "Rodo laukiančio Lampway atnaujinimo informaciją"
 
 msgid "View Changelog"
 msgstr "Rodyti pakeitimų žurnalą"
@@ -2969,14 +2969,14 @@ msgstr "Rodomas pavadinimas paskyros pasveikinimui"
 msgid "Newer File Version"
 msgstr "Naujesnė failo versija"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
-msgstr "Įspėja, kad failą išsaugojo naujesnė Mixar versija"
+msgid "Warn user that the file was saved by a newer Lampway version"
+msgstr "Įspėja, kad failą išsaugojo naujesnė Lampway versija"
 
 msgid "File Version"
 msgstr "Failo versija"
 
-msgid "This file was saved by Mixar version {version}."
-msgstr "Šį failą išsaugojo Mixar versija {version}."
+msgid "This file was saved by Lampway version {version}."
+msgstr "Šį failą išsaugojo Lampway versija {version}."
 
 msgid "Some data may be missing or incorrect."
 msgstr "Dalies duomenų gali trūkti arba jie gali būti neteisingi."
@@ -2990,8 +2990,8 @@ msgstr "Nėra tinklo objektų, kuriuos būtų galima eksportuoti"
 msgid "Start Connector Sidecar"
 msgstr "Paleisti jungties pagalbinį procesą"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "Pateikia Mixar telkiniui per vietinio grįžtamojo ryšio HTTP"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "Pateikia Lampway telkiniui per vietinio grįžtamojo ryšio HTTP"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
 msgstr "Jungties pagalbinis procesas adresu 127.0.0.1:{port}"
@@ -2999,8 +2999,8 @@ msgstr "Jungties pagalbinis procesas adresu 127.0.0.1:{port}"
 msgid "Export Scene to Unreal"
 msgstr "Eksportuoti sceną į Unreal"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "Eksportuoja dabartinę Mixar sceną kaip Unreal paruoštą USD, FBX arba GLB"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "Eksportuoja dabartinę Lampway sceną kaip Unreal paruoštą USD, FBX arba GLB"
 
 msgid "Exported {filename} ({count} meshes)"
 msgstr "Eksportuota {filename} (tinklų: {count})"
@@ -3020,8 +3020,8 @@ msgstr "Telkinys :7734 · Unreal MCP :8000/mcp · UnrealMCP TCP :55557"
 msgid "Hub Sidecar"
 msgstr "Telkinio pagalbinis procesas"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "Pateikia šį Mixar seansą mixar-connector per vietinio grįžtamojo ryšio HTTP"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "Pateikia šį Lampway seansą mixar-connector per vietinio grįžtamojo ryšio HTTP"
 
 msgid "Sidecar Port"
 msgstr "Pagalbinio proceso prievadas"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,8 +3119,8 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
-msgstr "Mixar plano kamera"
+msgid "Lampway Shot Camera"
+msgstr "Lampway plano kamera"
 
 msgid "Shot"
 msgstr "Planas"
@@ -3563,8 +3563,8 @@ msgstr "Planas neturi kameros"
 msgid "Capture at least one camera beat before locking"
 msgstr "Prieš užrakindami užfiksuokite bent vieną kameros momentą"
 
-msgid "Mixar Focus"
-msgstr "Mixar fokusas"
+msgid "Lampway Focus"
+msgstr "Lampway fokusas"
 
 msgid "Rendering…"
 msgstr "Vaizduojama…"
@@ -4241,8 +4241,8 @@ msgstr "Vaizdavimo eiga"
 msgid "Render Status"
 msgstr "Vaizdavimo būsena"
 
-msgid "Mixar Camera Export"
-msgstr "Mixar kameros eksportas"
+msgid "Lampway Camera Export"
+msgstr "Lampway kameros eksportas"
 
 msgid "Export this scene's camera animation to the Moodboard"
 msgstr "Eksportuoja šios scenos kameros animaciją į nuotaikų lentą"
@@ -4493,14 +4493,14 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
-msgstr "Mixar režisierius"
+msgid "Lampway Director"
+msgstr "Lampway režisierius"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "Reti kameros krypties planai šiai scenai"
 
-msgid "Mixar Output"
-msgstr "Mixar išvestis"
+msgid "Lampway Output"
+msgstr "Lampway išvestis"
 
 msgid "Output aspect ratio this camera frames for"
 msgstr "Išvesties kraštinių santykis, kuriam kadruoja ši kamera"
@@ -4964,19 +4964,19 @@ msgstr "Vietinio serverio modelis"
 msgid "Local model last error"
 msgstr "Paskutinė vietinio modelio klaida"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,26 +7789,26 @@ msgstr "Klaidos tekstas"
 msgid "Error message if job failed"
 msgstr "Klaidos pranešimas, jei užduotis nepavyko"
 
-msgid "Mixie Moodboard Images"
-msgstr "Mixie nuotaikų lentos paveikslai"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Lampway Agent nuotaikų lentos paveikslai"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "Pavyzdinių paveikslų rinkinys nuotaikų lentos veiksenoje"
 
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Mixie nuotaikų lentos teksto laukai"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Lampway Agent nuotaikų lentos teksto laukai"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "Teksto laukų rinkinys nuotaikų lentos veiksenoje"
 
-msgid "Mixie Moodboard Frames"
-msgstr "Mixie nuotaikų lentos rėmeliai"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Lampway Agent nuotaikų lentos rėmeliai"
 
 msgid "Canvas frames grouping board items"
 msgstr "Drobės rėmeliai, grupuojantys lentos elementus"
 
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Mixie nuotaikų lentos grupės (senasis)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Lampway Agent nuotaikų lentos grupės (senasis)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "Pakeista mixie_moodboard_frames; palikta perkėlimui"
@@ -8917,8 +8917,8 @@ msgstr "Sinchronizuota nuotaikų lentos paveikslų: {count}"
 msgid "Attach Selected Moodboard Image"
 msgstr "Prisegti pasirinktą nuotaikų lentos paveikslą"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
-msgstr "Kopijuoja pasirinktus paveikslus, vaizdo įrašus, teksto laukus ir išvedimo mazgus (su jų jungtimis ir rezultatais); įklijuokite su {shortcut} šioje arba kitoje Mixar programoje"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
+msgstr "Kopijuoja pasirinktus paveikslus, vaizdo įrašus, teksto laukus ir išvedimo mazgus (su jų jungtimis ir rezultatais); įklijuokite su {shortcut} šioje arba kitoje Lampway programoje"
 
 msgid "Nothing selected to copy"
 msgstr "Nėra ką kopijuoti"
@@ -9244,8 +9244,8 @@ msgstr "Nepavyko perskaityti iškarpinės: {error}"
 msgid "Paste"
 msgstr "Įklijuoti"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
-msgstr "Įklijuoja tai, kas nukopijuota nuotaikų lentoje — šioje arba kitoje Mixar programoje — arba paveikslą iš sistemos iškarpinės ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
+msgstr "Įklijuoja tai, kas nukopijuota nuotaikų lentoje — šioje arba kitoje Lampway programoje — arba paveikslą iš sistemos iškarpinės ({shortcut})"
 
 msgid "Pasted {count} item"
 msgstr "Įklijuota elementų: {count}"
@@ -10642,13 +10642,13 @@ msgstr "Nuotaikų lentos anotacijos"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
-msgstr "Sveiki atvykę į Mixar"
+msgid "Welcome to Lampway"
+msgstr "Sveiki atvykę į Lampway"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,20 +10669,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
-msgstr "Mixar operacijų istorijos ID"
+msgid "Lampway Operation History ID"
+msgstr "Lampway operacijų istorijos ID"
 
 msgid "Persistent per-scene id keying this scene's operation history."
 msgstr "Pastovus scenos id, susiejantis šios scenos operacijų istoriją."
@@ -13051,8 +13051,8 @@ msgstr "Eksportuojamo kanalo pavadinimas"
 msgid "File format for export"
 msgstr "Eksporto failo formatas"
 
-msgid "No active Mixar node found"
-msgstr "Aktyvus Mixar mazgas nerastas"
+msgid "No active Lampway node found"
+msgstr "Aktyvus Lampway mazgas nerastas"
 
 msgid "Exported '{name}' to {path}"
 msgstr "„{name}“ eksportuotas į {path}"
@@ -13201,8 +13201,8 @@ msgstr "Iškepa laikiną sluoksnio paveikslą; naudinga, kad Cycles mažiau trik
 msgid "Bake Temporary Image"
 msgstr "Kepti laikiną paveikslą"
 
-msgid "No active Mixar node found!"
-msgstr "Aktyvus Mixar mazgas nerastas!"
+msgid "No active Lampway node found!"
+msgstr "Aktyvus Lampway mazgas nerastas!"
 
 msgid "No active layer found!"
 msgstr "Aktyvus sluoksnis nerastas!"
@@ -13345,8 +13345,8 @@ msgstr "Kepti kanalą į viršūnių spalvą"
 msgid "Bake All Materials"
 msgstr "Kepti visas medžiagas"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "Kepa visas medžiagas su Mixar Paint mazgais, ne tik aktyvią"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "Kepa visas medžiagas su Lampway Paint mazgais, ne tik aktyvią"
 
 msgid "Target Vertex Color Name"
 msgstr "Tikslinės viršūnių spalvos pavadinimas"
@@ -13574,8 +13574,8 @@ msgstr "WebP"
 msgid "Copy Image Path To Clipboard"
 msgstr "Kopijuoti paveikslo kelią į iškarpinę"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint kopijuoja paveikslo failo kelią į sistemos iškarpinę"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint kopijuoja paveikslo failo kelią į sistemos iškarpinę"
 
 msgid "Copied: {text}"
 msgstr "Nukopijuota: {text}"
@@ -13583,8 +13583,8 @@ msgstr "Nukopijuota: {text}"
 msgid "Open Containing Image Folder"
 msgstr "Atidaryti paveikslo aplanką"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint atidaro aplanką, kuriame yra paveikslo failas, ir jį paryškina"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint atidaro aplanką, kuriame yra paveikslo failas, ir jį paryškina"
 
 msgid "File does not exist"
 msgstr "Failas neegzistuoja"
@@ -15054,8 +15054,8 @@ msgstr "Įjungia kaukę"
 msgid "Active Mask"
 msgstr "Aktyvi kaukė"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Aktyvi kaukė „Blender“ piešimo ir redagavimo veiksenoms arba „Mixar Paint“ kaukės peržiūros veiksena"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Aktyvi kaukė „Blender“ piešimo ir redagavimo veiksenoms arba „Lampway Paint“ kaukės peržiūros veiksena"
 
 msgid "Mask Source Input"
 msgstr "Kaukės šaltinio įvestis"
@@ -15156,14 +15156,14 @@ msgstr "Kepti visus kanalus"
 msgid "Delete Baked Images"
 msgstr "Ištrinti iškeptus vaizdus"
 
-msgid "New Mixar Paint Modifier"
-msgstr "Naujas „Mixar Paint“ keitiklis"
+msgid "New Lampway Paint Modifier"
+msgstr "Naujas „Lampway Paint“ keitiklis"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Perkelti „Mixar Paint“ keitiklį"
+msgid "Move Lampway Paint Modifier"
+msgstr "Perkelti „Lampway Paint“ keitiklį"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Pašalinti „Mixar Paint“ keitiklį"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Pašalinti „Lampway Paint“ keitiklį"
 
 msgid "Add Channel Modifier"
 msgstr "Pridėti kanalo keitiklį"
@@ -15297,8 +15297,8 @@ msgstr "Kanalas „{name}“ jau yra"
 msgid "Build Layered Material"
 msgstr "Sukurti sluoksniuotą medžiagą"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "Sukuria „Mixar Paint“ medžiagą iš sluoksniuotos medžiagos manifesto"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "Sukuria „Lampway Paint“ medžiagą iš sluoksniuotos medžiagos manifesto"
 
 msgid "Manifest JSON"
 msgstr "Manifesto JSON"
@@ -15921,8 +15921,8 @@ msgstr "Pervardija šį sluoksnį"
 msgid "New name for the layer"
 msgstr "Naujas sluoksnio pavadinimas"
 
-msgid "No active Mixar node"
-msgstr "Nėra aktyvaus „Mixar“ mazgo"
+msgid "No active Lampway node"
+msgstr "Nėra aktyvaus „Lampway“ mazgo"
 
 msgid "Name cannot be empty"
 msgstr "Pavadinimas negali būti tuščias"
@@ -16071,11 +16071,11 @@ msgstr "Grįžta į sluoksnio ypatybių rodymą"
 msgid "Add different types of masks to the active layer"
 msgstr "Prideda įvairių tipų kaukes prie aktyvaus sluoksnio"
 
-msgid "Remove Mixar Paint Node"
-msgstr "Pašalinti „Mixar Paint“ mazgą"
+msgid "Remove Lampway Paint Node"
+msgstr "Pašalinti „Lampway Paint“ mazgą"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Pašalina „Mixar Paint“ mazgą, bet palieka visus iškeptų kanalų vaizdus"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Pašalina „Lampway Paint“ mazgą, bet palieka visus iškeptų kanalų vaizdus"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "Ši {addon} mazgų sąranka dar neiškepta!"
@@ -16227,8 +16227,8 @@ msgstr "Pritaiko medžiagą aktyviam užpildymo sluoksniui, užuot kūręs nauj�
 msgid "Material '{name}' not found in registry"
 msgstr "Medžiaga „{name}“ registre nerasta"
 
-msgid "No active Mixar Paint node found"
-msgstr "Aktyvus „Mixar Paint“ mazgas nerastas"
+msgid "No active Lampway Paint node found"
+msgstr "Aktyvus „Lampway Paint“ mazgas nerastas"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "Medžiaga „{name}“ pritaikyta esamam sluoksniui"
@@ -16431,8 +16431,8 @@ msgstr "Nėra aktyvios sluoksniais pagrįstos medžiagos"
 msgid "To use texture baking:"
 msgstr "Tekstūroms kepti:"
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. Pasirinkite objektą su „Mixar“ medžiaga"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. Pasirinkite objektą su „Lampway“ medžiaga"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "  2. Arba sukurkite naują sluoksniais pagrįstą medžiagą"
@@ -16533,8 +16533,8 @@ msgstr "Piešimo posistemė neinicializuota"
 msgid "Paint UI not initialized"
 msgstr "Piešimo sąsaja neinicializuota"
 
-msgid "No Mixar material found"
-msgstr "„Mixar“ medžiaga nerasta"
+msgid "No Lampway material found"
+msgstr "„Lampway“ medžiaga nerasta"
 
 msgid "No layer based material"
 msgstr "Nėra sluoksniais pagrįstos medžiagos"
@@ -16551,8 +16551,8 @@ msgstr "Nepasirinktas sluoksnis"
 msgid "No active material"
 msgstr "Nėra aktyvios medžiagos"
 
-msgid "No Mixar node found"
-msgstr "„Mixar“ mazgas nerastas"
+msgid "No Lampway node found"
+msgstr "„Lampway“ mazgas nerastas"
 
 msgid "Backend layer not found"
 msgstr "Vidinis sluoksnis nerastas"
@@ -17227,17 +17227,17 @@ msgstr "Sluoksnis šiuo metu sufokusuotas arba pažymėtas"
 msgid "How this layer blends with layers below"
 msgstr "Kaip šis sluoksnis maišosi su žemiau esančiais sluoksniais"
 
-msgid "Mixar Layer Index"
-msgstr "„Mixar“ sluoksnio indeksas"
+msgid "Lampway Layer Index"
+msgstr "„Lampway“ sluoksnio indeksas"
 
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "Indeksas „Mixar“ rinkinyje mixar_mp.layers"
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "Indeksas „Lampway“ rinkinyje mixar_mp.layers"
 
-msgid "Mixar Group Node"
-msgstr "„Mixar“ grupės mazgas"
+msgid "Lampway Group Node"
+msgstr "„Lampway“ grupės mazgas"
 
-msgid "Name of the Mixar group node"
-msgstr "„Mixar“ grupės mazgo pavadinimas"
+msgid "Name of the Lampway group node"
+msgstr "„Lampway“ grupės mazgo pavadinimas"
 
 msgid "Updating Property"
 msgstr "Atnaujinama ypatybė"
@@ -18312,8 +18312,8 @@ msgstr "Kito objekto spalva"
 msgid "Other Objects Channels"
 msgstr "Kitų objektų kanalai"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "Kito objekto „Mixar Paint“ kanalai"
+msgid "Other object's Lampway Paint channels"
+msgstr "Kito objekto „Lampway Paint“ kanalai"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "Pažymėtos viršūnės, briaunos ir sienos"
@@ -18639,17 +18639,17 @@ msgstr ""
 msgid "Blender"
 msgstr "„Blender“"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
-msgstr "Nepavyko sukurti „Mixar“ priedų katalogo — patikrinkite savo naudotojo profilio aplanko teises."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
+msgstr "Nepavyko sukurti „Lampway“ priedų katalogo — patikrinkite savo naudotojo profilio aplanko teises."
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
-msgstr "Nepavyko sukurti „Mixar“ plėtinių katalogo — patikrinkite savo naudotojo profilio aplanko teises."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
+msgstr "Nepavyko sukurti „Lampway“ plėtinių katalogo — patikrinkite savo naudotojo profilio aplanko teises."
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "įjungti nepavyko (gali būti nesuderinama su „Blender“ 5.0)"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
-msgstr "Perkelia priedus ir plėtinius iš esamo „Blender“ diegimo į „Mixar“."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
+msgstr "Perkelia priedus ir plėtinius iš esamo „Blender“ diegimo į „Lampway“."
 
 msgid "Scan for Blender Plugins"
 msgstr "Nuskaityti „Blender“ papildinius"
@@ -18672,14 +18672,14 @@ msgstr "Įjungti po importo:"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "Visi išvardyti papildiniai nukopijuojami; pažymėtieji įjungiami."
 
-msgid "Import into Mixar"
-msgstr "Importuoti į „Mixar“"
+msgid "Import into Lampway"
+msgstr "Importuoti į „Lampway“"
 
 msgid "Imported"
 msgstr "Importuota"
 
-msgid "Already in Mixar"
-msgstr "Jau yra „Mixar“"
+msgid "Already in Lampway"
+msgstr "Jau yra „Lampway“"
 
 msgid "Copy failed"
 msgstr "Kopijuoti nepavyko"
@@ -18705,11 +18705,11 @@ msgstr "Pasirinkti papildinius"
 msgid "Tick or untick every plugin in the list"
 msgstr "Pažymi arba nužymi kiekvieną sąrašo papildinį"
 
-msgid "Import Plugins into Mixar"
-msgstr "Importuoti papildinius į „Mixar“"
+msgid "Import Plugins into Lampway"
+msgstr "Importuoti papildinius į „Lampway“"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
-msgstr "Nukopijuoja kiekvieną išvardytą papildinį į „Mixar“ ir įjungia pažymėtuosius"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
+msgstr "Nukopijuoja kiekvieną išvardytą papildinį į „Lampway“ ir įjungia pažymėtuosius"
 
 msgid "Nothing scanned — run Scan first"
 msgstr "Nieko nenuskaityta — pirmiausia paleiskite nuskaitymą"
@@ -18726,8 +18726,8 @@ msgstr "Importuota {imported}, jau buvo {already_present}, nepavyko {failed} · 
 msgid "Imported: {count}"
 msgstr "Importuota: {count}"
 
-msgid "Already in Mixar: {count}"
-msgstr "Jau yra „Mixar“: {count}"
+msgid "Already in Lampway: {count}"
+msgstr "Jau yra „Lampway“: {count}"
 
 msgid "Enabled: {count}"
 msgstr "Įjungta: {count}"
@@ -18744,8 +18744,8 @@ msgstr "Importuoti iš „Blender“"
 msgid "{count} found"
 msgstr "Rasta: {count}"
 
-msgid "Enable this plugin in Mixar after importing it"
-msgstr "Įjungti šį papildinį „Mixar“ po importo"
+msgid "Enable this plugin in Lampway after importing it"
+msgstr "Įjungti šį papildinį „Lampway“ po importo"
 
 msgid "Blender Version"
 msgstr "„Blender“ versija"
@@ -18798,14 +18798,14 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
-msgstr "„Mixar“ scenos grafas"
+msgid "Lampway Scene Graph"
+msgstr "„Lampway“ scenos grafas"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "Kiekvienos scenos agentui skaitomas scenos grafas (JSON). Tik vykdymo metu."
 
-msgid "Mixar Scene Graph Query Result"
-msgstr "„Mixar“ scenos grafo užklausos rezultatas"
+msgid "Lampway Scene Graph Query Result"
+msgstr "„Lampway“ scenos grafo užklausos rezultatas"
 
 msgid "JSON result of the last scene-graph query operator call."
 msgstr "Paskutinės scenos grafo užklausos operatoriaus iškvietos JSON rezultatas."
@@ -19524,8 +19524,8 @@ msgstr "Vaizdo įrašams reikia vaizdo įrašo veiksenos. Pašalinkite vaizdo į
 msgid "User ID"
 msgstr "Naudotojo ID"
 
-msgid "User ID for Mixie Chat login"
-msgstr "Naudotojo ID prisijungimui prie „Mixie“ pokalbio"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "Naudotojo ID prisijungimui prie „Lampway Agent“ pokalbio"
 
 msgid "Agent expects: {formats}"
 msgstr "Agentas tikisi: {formats}"
@@ -19983,11 +19983,11 @@ msgstr "Prieš pradėdami balso įvestį baikite rašyseną."
 msgid "Sign in to use voice input."
 msgstr "Prisijunkite, kad naudotumėte balso įvestį."
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "Paleiskite „Mixar“ iš Finder, kad leistumėte prieigą prie mikrofono."
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "Paleiskite „Lampway“ iš Finder, kad leistumėte prieigą prie mikrofono."
 
-msgid "Allow microphone access for Mixar in system privacy settings."
-msgstr "Sistemos privatumo nustatymuose leiskite „Mixar“ prieigą prie mikrofono."
+msgid "Allow microphone access for Lampway in system privacy settings."
+msgstr "Sistemos privatumo nustatymuose leiskite „Lampway“ prieigą prie mikrofono."
 
 msgid "Allow microphone"
 msgstr "Leisti mikrofoną"
@@ -20034,8 +20034,8 @@ msgstr "Prisijunkite dar kartą."
 msgid "Login Failed"
 msgstr "Prisijungti nepavyko"
 
-msgid "Sign in with your Mixar account"
-msgstr "Prisijunkite su „Mixar“ paskyra"
+msgid "Sign in with your Lampway account"
+msgstr "Prisijunkite su „Lampway“ paskyra"
 
 msgid "Waiting for browser..."
 msgstr "Laukiama naršyklės..."
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "Suvestinė"
 
-msgid "About Mixar"
-msgstr "Apie „Mixar“"
+msgid "About Lampway"
+msgstr "Apie „Lampway“"
 
 msgid "Documentation"
 msgstr "Dokumentacija"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "Eksportuota kopija be pokalbio (praleista žinučių: {count}, scenų: {scenes})."
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "„Mixar“ pokalbis: eksportuoti .blend be pokalbio istorijos"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "„Lampway“ pokalbis: eksportuoti .blend be pokalbio istorijos"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "Generavimas šiuo metu neprieinamas. Atnaujinkite katalogą ir bandykite dar kartą."
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Pridėti taisykles"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "Apibrėžkite taisykles Mixie. Pakeitimai taikomi kitai jūsų žinutei arba atsakymui; visuotinės taisyklės galioja kiekviename „Mixar“ faile. Dabartinė užklausa yra svarbesnė už projekto ir visuotines taisykles"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Apibrėžkite taisykles Mixie. Pakeitimai taikomi kitai jūsų žinutei arba atsakymui; visuotinės taisyklės galioja kiekviename „Lampway“ faile. Dabartinė užklausa yra svarbesnė už projekto ir visuotines taisykles"
 
 msgid "Rule operation failed"
 msgstr "Taisyklės veiksmas nepavyko"
@@ -22138,8 +22138,8 @@ msgstr "Paskutinio išimto kalbos atpažintuvo įvykio tekstas"
 msgid "Materials: {count}"
 msgstr "Medžiagų: {count}"
 
-msgid "No Mixar material active"
-msgstr "Nėra aktyvios „Mixar“ medžiagos"
+msgid "No Lampway material active"
+msgstr "Nėra aktyvios „Lampway“ medžiagos"
 
 msgid "{channel} Settings"
 msgstr "{channel} nustatymai"
@@ -22801,8 +22801,8 @@ msgstr "Mastelis Y"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "Keičia pasirinktų UV mastelį Y kryptimi (žingsniais)"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Anotavimo įrankio ypatybės „Mixar“ UV ypatybių erdvei."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Anotavimo įrankio ypatybės „Lampway“ UV ypatybių erdvei."
 
 msgid "Annotate Line"
 msgstr "Anotuoti liniją"
@@ -22828,14 +22828,14 @@ msgstr "Stiliaus pradžia"
 msgid "Toggle UV Sidebar"
 msgstr "Perjungti UV šoninę juostą"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "Perjungia „Mixar“ UV šoninę juostą paveikslų rengyklėje"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "Perjungia „Lampway“ UV šoninę juostą paveikslų rengyklėje"
 
 msgid "Open UV Sidebar"
 msgstr "Atidaryti UV šoninę juostą"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Atidaro „Mixar“ UV šoninę juostą, jei ji paslėpta"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Atidaro „Lampway“ UV šoninę juostą, jei ji paslėpta"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "Tuščia būsena, kai UV ypatybių nėra"
@@ -22858,8 +22858,8 @@ msgstr "Eksportuoti UV išdėstymą"
 msgid "Export UV layout using stored properties"
 msgstr "Eksportuoja UV išdėstymą pagal išsaugotas ypatybes"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "UV eksportavimo skydelis „Mixar“ UV ypatybių erdvei"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "UV eksportavimo skydelis „Lampway“ UV ypatybių erdvei"
 
 msgid "UV UI not initialized"
 msgstr "UV sąsaja neinicijuota"
@@ -22975,8 +22975,8 @@ msgstr "Įklijuoti UV"
 msgid "Functions"
 msgstr "Funkcijos"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "UV funkcijų skydelis „Mixar“ UV ypatybių erdvei – pagal įrankį (be antraštės mygtuko)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "UV funkcijų skydelis „Lampway“ UV ypatybių erdvei – pagal įrankį (be antraštės mygtuko)"
 
 msgid "Seam"
 msgstr "Siūlė"
@@ -23104,8 +23104,8 @@ msgstr "UV rengyklėje nėra paveikslo"
 msgid "Material '{name}' created and applied"
 msgstr "Medžiaga „{name}“ sukurta ir pritaikyta"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Paveikslo skydelis „Mixar“ UV ypatybių erdvei."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Paveikslo skydelis „Lampway“ UV ypatybių erdvei."
 
 msgid "Save As"
 msgstr "Išsaugoti kaip"
@@ -23137,8 +23137,8 @@ msgstr "Paveikslo dydis"
 msgid "Invert All Colors"
 msgstr "Invertuoti visas spalvas"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Medžiagos lizdo skydelis „Mixar“ UV ypatybių erdvei"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Medžiagos lizdo skydelis „Lampway“ UV ypatybių erdvei"
 
 msgid "No active object"
 msgstr "Nėra aktyvaus objekto"
@@ -23182,8 +23182,8 @@ msgstr "Sukuria pasirinktines sritis UV erdvėje pakavimui"
 msgid "{label} unavailable"
 msgstr "{label} neprieinama"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Išdėstymo skydelis „Mixar“ UV ypatybių erdvei."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Išdėstymo skydelis „Lampway“ UV ypatybių erdvei."
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "uv.pack_islands ypatybės neprieinamos"
@@ -23329,8 +23329,8 @@ msgstr "Projektuoti"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "Projektuoja UV pagal Projekcijos skydelyje nurodytą tipą ir ypatybes"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "„Mixar“ UV sąsajos būsena neinicijuota"
+msgid "Lampway UV UI state not initialized"
+msgstr "„Lampway“ UV sąsajos būsena neinicijuota"
 
 msgid "Unknown projection type: {type}"
 msgstr "Nežinomas projekcijos tipas: {type}"
@@ -23461,8 +23461,8 @@ msgstr "Pasirinkti susietus"
 msgid "Select linked UVs"
 msgstr "Pasirenka susietus UV"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Pasirinkimo skydelis „Mixar“ UV ypatybių erdvei – pagal įrankį (be antraštės mygtuko)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Pasirinkimo skydelis „Lampway“ UV ypatybių erdvei – pagal įrankį (be antraštės mygtuko)"
 
 msgid "Basic Selection"
 msgstr "Pagrindinis pasirinkimas"
@@ -23503,8 +23503,8 @@ msgstr "Pasirinkti padalytus"
 msgid "Select Overlap"
 msgstr "Pasirinkti persidengiančius"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Tekstelio tankumo skydelis „Mixar“ UV ypatybių erdvei"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Tekstelio tankumo skydelis „Lampway“ UV ypatybių erdvei"
 
 msgid "Activate Grab Tool"
 msgstr "Įjungti griebimo įrankį"
@@ -23548,8 +23548,8 @@ msgstr "Centruoja rodinį ties žymekliu"
 msgid "UV Sculpt Tools"
 msgstr "UV lipdymo įrankiai"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "UV lipdymo įrankių skydelis „Mixar“ UV ypatybių erdvei – pagal įrankį (be antraštės mygtuko)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "UV lipdymo įrankių skydelis „Lampway“ UV ypatybių erdvei – pagal įrankį (be antraštės mygtuko)"
 
 msgid "Grab"
 msgstr "Griebti"
@@ -23668,8 +23668,8 @@ msgstr "Pritaiko mastelį pasirinktiems UV"
 msgid "Snapping"
 msgstr "Kibimas"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Kibimo skydelis „Mixar“ UV ypatybių erdvei"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Kibimo skydelis „Lampway“ UV ypatybių erdvei"
 
 msgid "Snapping Options"
 msgstr "Kibimo parinktys"
@@ -23719,8 +23719,8 @@ msgstr "Iškloja metodu ir ypatybėmis, parodytais Išklotinės skydelyje"
 msgid "Unknown unwrap method: {method}"
 msgstr "Nežinomas išklotinės metodas: {method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Bendras išklotinės ir projekcijos skydelis „Mixar“ UV ypatybių erdvei."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Bendras išklotinės ir projekcijos skydelis „Lampway“ UV ypatybių erdvei."
 
 msgid "Live Unwrap"
 msgstr "Tiesioginė išklotinė"
@@ -23796,7 +23796,7 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
@@ -23804,7 +23804,7 @@ msgstr ""
 "\n"
 "Apvalkalas aplink `image.new`, kuris iš anksto nustato `tiled=True`\n"
 "operatoriaus ypatybių dialoge. Naudojamas kaip `new=` operatorius\n"
-"`template_ID` „Mixar“ UV skydeliuose, kad dialogas atsivertų jau\n"
+"`template_ID` „Lampway“ UV skydeliuose, kad dialogas atsivertų jau\n"
 "pažymėjus langelį Plytelės. Tikrąjį kūrimą ir ID priskyrimą atlieka\n"
 "`image.new`.\n"
 
@@ -23826,8 +23826,8 @@ msgstr "Užpildyti plytelę"
 msgid "Fill UDIM tile"
 msgstr "Užpildo UDIM plytelę"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "UV rinkinio skydelis „Mixar“ UV ypatybių erdvei."
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "UV rinkinio skydelis „Lampway“ UV ypatybių erdvei."
 
 msgid "UV Maps"
 msgstr "UV žemėlapiai"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "Įrankiai"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Įrankių skydelis „Mixar“ UV ypatybių erdvei — rodomas, kai\n"
+"Įrankių skydelis „Lampway“ UV ypatybių erdvei — rodomas, kai\n"
 "aktyvus įrankių juostos įrankis `builtin.uv_tool`."
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,14 +24070,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Perjungia „Mixar“ į Zen veikseną (minimalus peržiūros langas + agento burbulas + nuotaikų lenta)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "Perjungia „Lampway“ į Zen veikseną (minimalus peržiūros langas + agento burbulas + nuotaikų lenta)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Nepavyko sukurti Zen veiksenos darbo srities — nėra šablono"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "Perjungia „Mixar“ į Engine veikseną (visos „Blender“ stiliaus darbo sritys)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "Perjungia „Lampway“ į Engine veikseną (visos „Blender“ stiliaus darbo sritys)"
 
 msgid "Modeling workspace not found"
 msgstr "Modeliavimo darbo sritis nerasta"
@@ -24298,17 +24298,17 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
-msgstr "Failą išsaugojo naujesnė „Mixar“ versija (%d.%d), dalis duomenų gali būti prarasta"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
+msgstr "Failą išsaugojo naujesnė „Lampway“ versija (%d.%d), dalis duomenų gali būti prarasta"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "Failą išsaugojo naujesnė versija, atidarykite jį su „Mixar“ %s arba naujesne"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "Failą išsaugojo naujesnė versija, atidarykite jį su „Lampway“ %s arba naujesne"
 
 msgid "Failed to read mixar file '%s': %s"
 msgstr "Nepavyko perskaityti mixar failo „%s“: %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
-msgstr "Nepavyko perskaityti mixar failo „%s“: nepilna antraštė, failas gali būti iš naujesnės „Mixar“ versijos"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr "Nepavyko perskaityti mixar failo „%s“: nepilna antraštė, failas gali būti iš naujesnės „Lampway“ versijos"
 
 msgid "Failed to read file '%s', not a mixar file"
 msgstr "Nepavyko perskaityti failo „%s“: tai ne mixar failas"
@@ -24316,14 +24316,14 @@ msgstr "Nepavyko perskaityti failo „%s“: tai ne mixar failas"
 msgid "Unable to open mixar <memory>"
 msgstr "Nepavyko atidaryti mixar <memory>"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Mixar failą „%s“ sukūrė būsima „Mixar“ versija, ir jame yra ID pavadinimai, ilgesni, nei šiuo metu palaikoma. Jie sutrumpinti."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Lampway failą „%s“ sukūrė būsima „Lampway“ versija, ir jame yra ID pavadinimai, ilgesni, nei šiuo metu palaikoma. Jie sutrumpinti."
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Mixar failas „%s“ atrodo sugadintas: jame yra netinkami ID pavadinimai. Jie sutrumpinti."
+msgstr "Lampway failas „%s“ atrodo sugadintas: jame yra netinkami ID pavadinimai. Jie sutrumpinti."
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
-msgstr "Biblioteką „%s“ sukūrė būsima „Mixar“ versija, ir joje yra ID pavadinimai, ilgesni, nei šiuo metu palaikoma. Dėl to gali trūkti susietų duomenų; apsvarstykite galimybę atidaryti ir iš naujo išsaugoti tą biblioteką su dabartine „Mixar“ versija."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
+msgstr "Biblioteką „%s“ sukūrė būsima „Lampway“ versija, ir joje yra ID pavadinimai, ilgesni, nei šiuo metu palaikoma. Dėl to gali trūkti susietų duomenų; apsvarstykite galimybę atidaryti ir iš naujo išsaugoti tą biblioteką su dabartine „Lampway“ versija."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: duomenys nurodo pagrindinį .mixar failą: „%s“ iš %s"
@@ -24454,8 +24454,8 @@ msgstr "Klauskite „Mixie“ bet ko..."
 msgid "Write your prompt here..."
 msgstr "Rašykite raginimą čia..."
 
-msgid "Everything Mixar has generated"
-msgstr "Viskas, ką „Mixar“ sugeneravo"
+msgid "Everything Lampway has generated"
+msgstr "Viskas, ką „Lampway“ sugeneravo"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -25771,14 +25771,14 @@ msgstr "Ištrinti „Mixie3D“ peržiūrą"
 msgid "Delete a segmented image from the preview history"
 msgstr "Ištrina segmentuotą paveikslą iš peržiūros istorijos"
 
-msgid "Mixar agent bubble loading…"
-msgstr "„Mixar“ agento burbulas įkeliamas…"
+msgid "Lampway agent bubble loading…"
+msgstr "„Lampway“ agento burbulas įkeliamas…"
 
 msgid "Show Agent Bubble"
 msgstr "Rodyti agento burbulą"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
-msgstr "Atidaro slankųjį agento burbulo sluoksnį, leidžiantį naudotojui kalbėtis su DI agentu iš bet kurios „Mixar“ sąsajos vietos"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
+msgstr "Atidaro slankųjį agento burbulo sluoksnį, leidžiantį naudotojui kalbėtis su DI agentu iš bet kurios „Lampway“ sąsajos vietos"
 
 msgid "Chat is still loading. Please drop the asset again."
 msgstr ""
@@ -25822,8 +25822,8 @@ msgstr "Prideda numestą paveikslą kaip pokalbio prisegtą failą"
 msgid "Dropped image datablock"
 msgstr "Numesto paveikslo duomenų blokas"
 
-msgid "Tell me about the features in Mixar"
-msgstr "Papasakok apie „Mixar“ funkcijas"
+msgid "Tell me about the features in Lampway"
+msgstr "Papasakok apie „Lampway“ funkcijas"
 
 msgid "Generate a futuristic sci-fi character concept"
 msgstr "Sugeneruok futuristinio mokslinės fantastikos personažo koncepciją"
@@ -26755,14 +26755,14 @@ msgstr "Tekstūrų kepimo ir apdorojimo veiksmai"
 msgid "Texture set management for PBR workflows"
 msgstr "Tekstūrų rinkinių tvarkymas PBR darbo eigoms"
 
-msgid "Mixar UV Editor"
-msgstr "„Mixar“ UV rengyklė"
+msgid "Lampway UV Editor"
+msgstr "„Lampway“ UV rengyklė"
 
-msgid "Mixar UV editing mode"
-msgstr "„Mixar“ UV redagavimo veiksena"
+msgid "Lampway UV editing mode"
+msgstr "„Lampway“ UV redagavimo veiksena"
 
-msgid "Mixar Layers Properties"
-msgstr "„Mixar“ sluoksnių ypatybės"
+msgid "Lampway Layers Properties"
+msgstr "„Lampway“ sluoksnių ypatybės"
 
 msgid "Reference image board like PureRef"
 msgstr "Pavyzdinių paveikslų lenta, kaip „PureRef“"
@@ -26770,8 +26770,8 @@ msgstr "Pavyzdinių paveikslų lenta, kaip „PureRef“"
 msgid "Mixie Space"
 msgstr "„Mixie“ erdvė"
 
-msgid "Mixie editor for Mixar"
-msgstr "„Mixie“ rengyklė „Mixar“"
+msgid "Mixie editor for Lampway"
+msgstr "„Mixie“ rengyklė „Lampway“"
 
 msgid "Mixie editor mode"
 msgstr "„Mixie“ rengyklės veiksena"
@@ -26779,8 +26779,8 @@ msgstr "„Mixie“ rengyklės veiksena"
 msgid "Agent Bubble Space"
 msgstr "Agento burbulo erdvė"
 
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Slankiojo agento pokalbio sluoksnio rengyklė „Mixar“"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Slankiojo agento pokalbio sluoksnio rengyklė „Lampway“"
 
 msgid "Top Bar Space"
 msgstr "Viršutinės juostos erdvė"
@@ -26788,23 +26788,23 @@ msgstr "Viršutinės juostos erdvė"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "Viršutinė juosta su darbo sričių skirtukais ir rengyklių meniu"
 
-msgid "Mixar Layers Space"
-msgstr "„Mixar“ sluoksnių erdvė"
+msgid "Lampway Layers Space"
+msgstr "„Lampway“ sluoksnių erdvė"
 
-msgid "Mixar texture layer stack management"
-msgstr "„Mixar“ tekstūros sluoksnių dėklo tvarkymas"
+msgid "Lampway texture layer stack management"
+msgstr "„Lampway“ tekstūros sluoksnių dėklo tvarkymas"
 
-msgid "Mixar Properties Space"
-msgstr "„Mixar“ ypatybių erdvė"
+msgid "Lampway Properties Space"
+msgstr "„Lampway“ ypatybių erdvė"
 
-msgid "Mixar layer and texture properties"
-msgstr "„Mixar“ sluoksnio ir tekstūros ypatybės"
+msgid "Lampway layer and texture properties"
+msgstr "„Lampway“ sluoksnio ir tekstūros ypatybės"
 
-msgid "Mixar Assets Space"
-msgstr "„Mixar“ išteklių erdvė"
+msgid "Lampway Assets Space"
+msgstr "„Lampway“ išteklių erdvė"
 
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "„Mixar“ išmaniųjų medžiagų, teptukų ir tekstūrų biblioteka"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "„Lampway“ išmaniųjų medžiagų, teptukų ir tekstūrų biblioteka"
 
 msgid "Texture sets management"
 msgstr "Tekstūrų rinkinių tvarkymas"
@@ -26812,8 +26812,8 @@ msgstr "Tekstūrų rinkinių tvarkymas"
 msgid "Use Blender's theme"
 msgstr "Naudoti „Blender“ temą"
 
-msgid "Mixar Zen components"
-msgstr "„Mixar“ Zen komponentai"
+msgid "Lampway Zen components"
+msgstr "„Lampway“ Zen komponentai"
 
 msgid "Compatibility appearance"
 msgstr "Suderinamumo išvaizda"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "Visuotinės sritys"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "Lango visuotinės sritys (viršutinė juosta, būsenos juosta). „Mixar“ plėtinys — atvertas, kad supažindinimas galėtų kreiptis į viršutinę juostą perpiešimui."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "Lango visuotinės sritys (viršutinė juosta, būsenos juosta). „Lampway“ plėtinys — atvertas, kad supažindinimas galėtų kreiptis į viršutinę juostą perpiešimui."
 
 msgid "QA UI Dump"
 msgstr "QA sąsajos išrašas"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "JSON visų gyvų sąsajos valdiklių nuotrauka (žymos, operatoriai, ypatybės, lango erdvės stačiakampiai, būsena) „Mixar“ QA patikrai"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "JSON visų gyvų sąsajos valdiklių nuotrauka (žymos, operatoriai, ypatybės, lango erdvės stačiakampiai, būsena) „Lampway“ QA patikrai"
 
 msgid "Window Resizing"
 msgstr "Lango dydžio keitimas"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "QA lango kadro fiksavimui reikia --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,11 +27982,11 @@ msgstr "Mikrofonas sustojo arba fiksavimo buferis perpildytas"
 msgid "Microphone disconnected"
 msgstr "Mikrofonas atjungtas"
 
-msgid "Mixar File View"
-msgstr "„Mixar“ failų rodinys"
+msgid "Lampway File View"
+msgstr "„Lampway“ failų rodinys"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
-msgstr "Pakaitalai pašalinti iš „Mixar“ (automatiškai paversta bibliotekos perrašymais: %d, konvertuoti nepavyko ir išvalyta: %d). Apsvarstykite bet kurį bibliotekos .mixar failą iš naujo išsaugoti naujausia „Mixar“ versija"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
+msgstr "Pakaitalai pašalinti iš „Lampway“ (automatiškai paversta bibliotekos perrašymais: %d, konvertuoti nepavyko ir išvalyta: %d). Apsvarstykite bet kurį bibliotekos .mixar failą iš naujo išsaugoti naujausia „Lampway“ versija"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
 msgstr "Nepavyko išsaugoti mixar failo, kelias „%s“ nėra rašomas"
@@ -27994,11 +27994,11 @@ msgstr "Nepavyko išsaugoti mixar failo, kelias „%s“ nėra rašomas"
 msgid "Cannot save mixar file, path \"%s\" is a directory"
 msgstr "Nepavyko išsaugoti mixar failo, kelias „%s“ yra aplankas"
 
-msgid "Mixar will start next time as it is now."
-msgstr "Kitą kartą „Mixar“ pasileis toks, koks yra dabar."
+msgid "Lampway will start next time as it is now."
+msgstr "Kitą kartą „Lampway“ pasileis toks, koks yra dabar."
 
-msgid "Load Factory Mixar Preferences"
-msgstr "Įkelti gamyklines „Mixar“ nuostatas"
+msgid "Load Factory Lampway Preferences"
+msgstr "Įkelti gamyklines „Lampway“ nuostatas"
 
 msgid "Load user interface setup from the .mixar file"
 msgstr "Įkelia naudotojo sąsajos sąranką iš .mixar failo"
@@ -28006,14 +28006,14 @@ msgstr "Įkelia naudotojo sąsajos sąranką iš .mixar failo"
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr "Leisti .mixar failui automatiškai vykdyti scenarijus; numatytoji reikšmė sistemos nuostatose"
 
-msgid "Open a Mixar file"
-msgstr "Atidaryti „Mixar“ failą"
+msgid "Open a Lampway file"
+msgstr "Atidaryti „Lampway“ failą"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr "Įkelti naudotojo sąsajos sąranką .mixar faile"
 
-msgid "Mixar Files"
-msgstr "„Mixar“ failai"
+msgid "Lampway Files"
+msgstr "„Lampway“ failai"
 
 msgid "Show only .mixar files"
 msgstr "Rodyti tik .mixar failus"
@@ -28039,26 +28039,26 @@ msgstr "Išsaugoti kaip .mixar failą"
 msgid "Save as .blend file"
 msgstr "Išsaugoti kaip .blend failą"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "Išsaugo dabartinį „Mixar“ failą vardu su padidintu numeriu, neperrašant esamų failų"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "Išsaugo dabartinį „Lampway“ failą vardu su padidintu numeriu, neperrašant esamų failų"
 
-msgid "Save Mixar File"
-msgstr "Išsaugoti „Mixar“ failą"
+msgid "Save Lampway File"
+msgstr "Išsaugoti „Lampway“ failą"
 
-msgid "Save the current Mixar file"
-msgstr "Išsaugo dabartinį „Mixar“ failą"
+msgid "Save the current Lampway file"
+msgstr "Išsaugo dabartinį „Lampway“ failą"
 
-msgid "Exit Mixar after saving"
-msgstr "Išjungti „Mixar“ išsaugojus"
+msgid "Exit Lampway after saving"
+msgstr "Išjungti „Lampway“ išsaugojus"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
-msgstr "Šį failą išsaugojo naujesnė „Mixar“ versija (%s)."
+msgid "This file was saved by a newer version of Lampway (%s)."
+msgstr "Šį failą išsaugojo naujesnė „Lampway“ versija (%s)."
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
-msgstr "Išsaugojus jį šiuo „Mixar“ (%s) galima prarasti duomenis."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
+msgstr "Išsaugojus jį šiuo „Lampway“ (%s) galima prarasti duomenis."
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "Šį failą tvarko „Mixar“ išteklių sistema. Jį galima tik"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "Šį failą tvarko „Lampway“ išteklių sistema. Jį galima tik"
 
 msgid "Filter .mixar files"
 msgstr "Filtruoti .mixar failus"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
-msgstr "Gali būti naujesnių grafikos tvarkyklių, geriau suderinamų su „Mixar“."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
+msgstr "Gali būti naujesnių grafikos tvarkyklių, geriau suderinamų su „Lampway“."
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "Atnaujinus į naujausią macOS versiją, „Mixar“ palaikymas gali pagerėti"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "Atnaujinus į naujausią macOS versiją, „Lampway“ palaikymas gali pagerėti"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "„Mixar“ dabar užsidarys."
+msgid "Lampway will now close."
+msgstr "„Lampway“ dabar užsidarys."

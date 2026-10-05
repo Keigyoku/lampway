@@ -119,7 +119,7 @@ def test_refresh_mirrors_user_folders_but_not_the_generations_archive(tmp_path, 
     monkeypatch.setattr(library_media.bpy.path, "abspath", lambda p: p)
     monkeypatch.setattr(library_media, "_icon_id", lambda _path, _kind: 7)
     library_media._scan_cache.clear()
-    context = _context(tmp_path, [("Mine", mine), ("Mixar Generations", archive)])
+    context = _context(tmp_path, [("Mine", mine), ("Lampway Generations", archive)])
 
     assert library_media.refresh(context, force=True) is True
     rows = context.window_manager.mixar_generations_files
@@ -206,9 +206,9 @@ def test_the_generations_archive_cannot_be_removed(monkeypatch):
     calls = []
     monkeypatch.setattr(OPS.bpy.ops.preferences, "asset_library_remove",
                         lambda **kw: calls.append(kw))
-    op = _op_self(library_name="Mixar Generations")
+    op = _op_self(library_name="Lampway Generations")
     result = OPS.MIXAR_OT_generations_remove_library.execute(
-        op, _libs_context(["Mixar Generations"]))
+        op, _libs_context(["Lampway Generations"]))
     assert result == {'CANCELLED'} and calls == []
 
 

@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: id_ID\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "Baris aktif dalam daftar riwayat obrolan gelembung mengambang"
 msgid "Share Usage Data"
 msgstr "Bagikan Data Penggunaan"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "Membagikan peristiwa penggunaan produk tanpa konten untuk membantu meningkatkan Mixar"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "Membagikan peristiwa penggunaan produk tanpa konten untuk membantu meningkatkan Lampway"
 
 msgid "No generation services"
 msgstr "Tidak ada layanan generasi"
@@ -170,8 +170,8 @@ msgstr "Nama modul tambahan tidak valid"
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "Titik masuk tambahan yang dikonfigurasi tidak ditemukan di proyek yang ditautkan"
 
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "Folder yang ditautkan tidak memiliki metadata proyek Mixar yang valid"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "Folder yang ditautkan tidak memiliki metadata proyek Lampway yang valid"
 
 msgid "The project metadata version is not supported"
 msgstr "Versi metadata proyek tidak didukung"
@@ -194,7 +194,7 @@ msgstr "Titik masuk harus berupa satu nama modul tingkat atas"
 msgid "Set an active add-on before changing its enabled state"
 msgstr "Tetapkan tambahan aktif sebelum mengubah status aktifnya"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "Perpustakaan"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "Buka Jendela Gelembung Agen"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "Membuka Gelembung Agen di jendela mengambangnya sendiri"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "Operator C++ mixar.agent_bubble_show_window tidak terdaftar — bangun ulang Mixar (make build) untuk memuat operator spacetype agent_bubble."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "Operator C++ mixar.agent_bubble_show_window tidak terdaftar — bangun ulang Lampway (make build) untuk memuat operator spacetype agent_bubble."
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "Gagal membuka jendela Gelembung Agen: {error}"
@@ -651,8 +651,8 @@ msgstr ""
 msgid "AI generations"
 msgstr "Generasi AI"
 
-msgid "Everything Mixar has generated for you"
-msgstr "Semua yang telah dihasilkan Mixar untuk Anda"
+msgid "Everything Lampway has generated for you"
+msgstr "Semua yang telah dihasilkan Lampway untuk Anda"
 
 msgid "My Libraries"
 msgstr ""
@@ -1421,17 +1421,17 @@ msgstr "Hubungi dukungan — saat ini tidak ada penyedia yang diaktifkan"
 msgid "Select a provider with available models"
 msgstr "Pilih penyedia dengan model yang tersedia"
 
-msgid "Managed by Mixar"
-msgstr "Dikelola oleh Mixar"
+msgid "Managed by Lampway"
+msgstr "Dikelola oleh Lampway"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar mengunduh dan menjalankan model pilihan di komputer ini"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway mengunduh dan menjalankan model pilihan di komputer ini"
 
 msgid "Custom local server"
 msgstr "Server lokal kustom"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "Mengarahkan Mixar ke server kompatibel OpenAI yang sudah Anda jalankan (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "Mengarahkan Lampway ke server kompatibel OpenAI yang sudah Anda jalankan (Ollama, LM Studio, llama.cpp, ...)"
 
 msgid "Invalid form data — please reach out to support."
 msgstr "Data formulir tidak valid — silakan hubungi dukungan."
@@ -1553,8 +1553,8 @@ msgstr "Tidak ada model yang dipilih"
 msgid "Reset Agent Model"
 msgstr "Setel Ulang Model Agen"
 
-msgid "Clear the saved model and let Mixar choose"
-msgstr "Mengosongkan model tersimpan dan membiarkan Mixar memilih"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "Mengosongkan model tersimpan dan membiarkan Lampway memilih"
 
 msgid "Could not change model"
 msgstr "Tidak dapat mengganti model"
@@ -1577,8 +1577,8 @@ msgstr "Aktif"
 msgid "Not configured"
 msgstr "Belum dikonfigurasi"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "Jalankan agen Mixar di penyedia Anda sendiri — kredit Mixar tidak dikenakan selama aktif."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "Jalankan agen Lampway di penyedia Anda sendiri — kredit Lampway tidak dikenakan selama aktif."
 
 msgid "Current Configuration"
 msgstr "Konfigurasi Saat Ini"
@@ -1604,8 +1604,8 @@ msgstr "Hapus Kunci API…"
 msgid "Provider Setup"
 msgstr "Penyiapan Penyedia"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "Disimpan terenkripsi, hanya digunakan untuk permintaan agen Mixar — hanya pratinjau tersamar yang ditampilkan setelah disimpan."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "Disimpan terenkripsi, hanya digunakan untuk permintaan agen Lampway — hanya pratinjau tersamar yang ditampilkan setelah disimpan."
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
 msgstr "Pilih model yang mendukung pemanggilan tool / fungsi — agen memerlukannya."
@@ -1631,8 +1631,8 @@ msgstr "Jalankan  codex login  di terminal Anda, lalu muat atau tempel seluruh"
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "isi ~/.codex/auth.json (tombol tempel membaca papan klip Anda)."
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "Menggunakan langganan ChatGPT Anda — kredit Mixar tidak dikenakan."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "Menggunakan langganan ChatGPT Anda — kredit Lampway tidak dikenakan."
 
 msgid "Couldn't apply your changes"
 msgstr "Tidak dapat menerapkan perubahan Anda"
@@ -1640,23 +1640,23 @@ msgstr "Tidak dapat menerapkan perubahan Anda"
 msgid "Remove your API key?"
 msgstr "Hapus kunci API Anda?"
 
-msgid "The agent will use Mixar's default provider again."
-msgstr "Agen akan kembali menggunakan penyedia bawaan Mixar."
+msgid "The agent will use Lampway's default provider again."
+msgstr "Agen akan kembali menggunakan penyedia bawaan Lampway."
 
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "Kredit Mixar akan dikenakan untuk permintaan agen berikutnya."
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "Kredit Lampway akan dikenakan untuk permintaan agen berikutnya."
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "Agen Mixar kini berjalan di penyedia Anda — kredit Mixar tidak dikenakan."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "Agen Lampway kini berjalan di penyedia Anda — kredit Lampway tidak dikenakan."
 
 msgid "API key removed"
 msgstr "Kunci API dihapus"
 
-msgid "The agent is back on Mixar's default provider."
-msgstr "Agen kembali menggunakan penyedia bawaan Mixar."
+msgid "The agent is back on Lampway's default provider."
+msgstr "Agen kembali menggunakan penyedia bawaan Lampway."
 
-msgid "Mixar credits are charged for agent requests again."
-msgstr "Kredit Mixar kembali dikenakan untuk permintaan agen."
+msgid "Lampway credits are charged for agent requests again."
+msgstr "Kredit Lampway kembali dikenakan untuk permintaan agen."
 
 msgid "Try Again"
 msgstr "Coba Lagi"
@@ -1691,8 +1691,8 @@ msgstr "Terunduh — tidak berjalan"
 msgid "Not downloaded"
 msgstr "Belum diunduh"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "Berjalan sepenuhnya di komputer ini — prompt Anda tidak pernah keluar darinya kecuali melalui orkestrasi agen Mixar."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "Berjalan sepenuhnya di komputer ini — prompt Anda tidak pernah keluar darinya kecuali melalui orkestrasi agen Lampway."
 
 msgid "Cancel Download"
 msgstr "Batalkan Unduhan"
@@ -1730,8 +1730,8 @@ msgstr "Pindai Ulang Aplikasi Lokal"
 msgid "Rescan this computer for running local AI apps"
 msgstr "Memindai ulang komputer ini untuk mencari aplikasi AI lokal yang berjalan"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "Menggunakan kunci API Anda sendiri untuk agen Mixar. Selama aktif, kredit Mixar tidak dikenakan untuk permintaan agen."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "Menggunakan kunci API Anda sendiri untuk agen Lampway. Selama aktif, kredit Lampway tidak dikenakan untuk permintaan agen."
 
 msgid "Validate with the provider and save your API key"
 msgstr "Memvalidasi dengan penyedia dan menyimpan kunci API Anda"
@@ -1844,8 +1844,8 @@ msgstr "Penyedia LLM"
 msgid "Model to use with the selected provider"
 msgstr "Model yang digunakan dengan penyedia terpilih"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "Kunci API Anda disimpan terenkripsi dan hanya digunakan untuk permintaan agen Mixar. Setelah disimpan, hanya pratinjau tersamar yang ditampilkan."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "Kunci API Anda disimpan terenkripsi dan hanya digunakan untuk permintaan agen Lampway. Setelah disimpan, hanya pratinjau tersamar yang ditampilkan."
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "Slug model apa pun dari openrouter.ai/models (mis. anthropic/claude-opus-4.8)"
@@ -1859,8 +1859,8 @@ msgstr "Isi ~/.codex/auth.json (jalankan `codex login` terlebih dahulu)"
 msgid "Local mode"
 msgstr "Mode lokal"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "Dikelola oleh Mixar, atau server lokal Anda sendiri"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Dikelola oleh Lampway, atau server lokal Anda sendiri"
 
 msgid "Local model"
 msgstr "Model lokal"
@@ -1889,11 +1889,11 @@ msgstr "Bernilai benar saat server melaporkan byok_active untuk pengguna ini"
 msgid "Dialog State"
 msgstr "Status Dialog"
 
-msgid "Set Mixie Mode"
-msgstr "Atur Mode Mixie"
+msgid "Set Lampway Agent Mode"
+msgstr "Atur Mode Lampway Agent"
 
-msgid "Switch to a specific Mixie mode"
-msgstr "Beralih ke mode Mixie tertentu"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "Beralih ke mode Lampway Agent tertentu"
 
 msgid "Mode"
 msgstr "Mode"
@@ -1928,8 +1928,8 @@ msgstr "Tinggi"
 msgid "Non-contiguous enum value 27"
 msgstr "Nilai enum tidak bersambung 27"
 
-msgid "Mixie v3 run active"
-msgstr "Proses Mixie v3 aktif"
+msgid "Lampway Agent v3 run active"
+msgstr "Proses Lampway Agent v3 aktif"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "Server menolak permintaan sinkronisasi riwayat. Perbarui aplikasi dan backend, lalu sambungkan kembali."
@@ -2420,10 +2420,10 @@ msgstr "Tipe ruang tujuan peralihan"
 msgid "No active area"
 msgstr "Tidak ada area aktif"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "Aksi galeri lokal"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "Menambah penghitung fixture pengembang; tanpa generasi atau perubahan adegan"
 
-msgid "Mixar UI Gallery"
-msgstr "Galeri UI Mixar"
+msgid "Lampway UI Gallery"
+msgstr "Galeri UI Lampway"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "Memeriksa komponen native bersama menggunakan data fixture lokal"
@@ -2468,8 +2468,8 @@ msgstr "Privasi"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "Persetujuan telemetri, ditempatkan di tempat yang biasanya dicari pengguna untuk memilih keluar."
 
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "Membagikan fitur Mixar mana yang Anda gunakan, untuk membantu meningkatkan produk."
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "Membagikan fitur Lampway mana yang Anda gunakan, untuk membantu meningkatkan produk."
 
 msgid "Your prompts, files, and scene content are never included."
 msgstr "Prompt, berkas, dan konten adegan Anda tidak pernah disertakan."
@@ -2477,7 +2477,7 @@ msgstr "Prompt, berkas, dan konten adegan Anda tidak pernah disertakan."
 msgid "Privacy Policy"
 msgstr "Kebijakan Privasi"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "Native"
 msgid "Blender theme"
 msgstr "Tema Blender"
 
-msgid "Legacy Mixar"
-msgstr "Mixar Lama"
+msgid "Legacy Lampway"
+msgstr "Lampway Lama"
 
 msgid "Compatibility profile"
 msgstr "Profil kompatibilitas"
@@ -2624,11 +2624,11 @@ msgstr "Ringkas"
 msgid "Denser chrome recipe"
 msgstr "Resep chrome yang lebih padat"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "Pindahkan Mixar ke folder Applications Anda untuk memperbarui di tempat"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "Pindahkan Lampway ke folder Applications Anda untuk memperbarui di tempat"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar tidak berjalan dari bundel aplikasi"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway tidak berjalan dari bundel aplikasi"
 
 msgid "No permission to update {path}"
 msgstr "Tidak ada izin untuk memperbarui {path}"
@@ -2660,8 +2660,8 @@ msgstr "Penginstal yang diunduh tidak ditemukan"
 msgid "Could not start the updater"
 msgstr "Tidak dapat memulai pembaru"
 
-msgid "Mixar didn't close"
-msgstr "Mixar tidak tertutup"
+msgid "Lampway didn't close"
+msgstr "Lampway tidak tertutup"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "Pembaruan dalam aplikasi tidak didukung di platform ini"
@@ -2687,32 +2687,32 @@ msgstr "{size} terunduh"
 msgid "Starting download…"
 msgstr "Memulai unduhan…"
 
-msgid "Downloading Mixar {version}"
-msgstr "Mengunduh Mixar {version}"
+msgid "Downloading Lampway {version}"
+msgstr "Mengunduh Lampway {version}"
 
-msgid "Mixar will restart to finish updating."
-msgstr "Mixar akan dimulai ulang untuk menyelesaikan pembaruan."
+msgid "Lampway will restart to finish updating."
+msgstr "Lampway akan dimulai ulang untuk menyelesaikan pembaruan."
 
-msgid "Mixar Update Ready"
-msgstr "Pembaruan Mixar Siap"
+msgid "Lampway Update Ready"
+msgstr "Pembaruan Lampway Siap"
 
 msgid "Version {version} is ready to install."
 msgstr "Versi {version} siap dipasang."
 
-msgid "Mixar Update Required"
-msgstr "Pembaruan Mixar Diperlukan"
+msgid "Lampway Update Required"
+msgstr "Pembaruan Lampway Diperlukan"
 
-msgid "Mixar Update Available"
-msgstr "Pembaruan Mixar Tersedia"
+msgid "Lampway Update Available"
+msgstr "Pembaruan Lampway Tersedia"
 
 msgid "Version {version} is available."
 msgstr "Versi {version} tersedia."
 
-msgid "This update is required to continue using Mixar."
-msgstr "Pembaruan ini diperlukan untuk terus menggunakan Mixar."
+msgid "This update is required to continue using Lampway."
+msgstr "Pembaruan ini diperlukan untuk terus menggunakan Lampway."
 
-msgid "Mixar will restart to apply it."
-msgstr "Mixar akan dimulai ulang untuk menerapkannya."
+msgid "Lampway will restart to apply it."
+msgstr "Lampway akan dimulai ulang untuk menerapkannya."
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error} — gunakan Unduh untuk memperbarui melalui peramban Anda."
@@ -2729,11 +2729,11 @@ msgstr "Klik Mulai Ulang & Perbarui untuk memasang lagi."
 msgid "Update paused"
 msgstr "Pembaruan dijeda"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar tidak tertutup, sehingga pembaruan tidak dipasang."
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway tidak tertutup, sehingga pembaruan tidak dipasang."
 
-msgid "Mixar is up to date"
-msgstr "Mixar sudah mutakhir"
+msgid "Lampway is up to date"
+msgstr "Lampway sudah mutakhir"
 
 msgid "You're running the latest version ({version})."
 msgstr "Anda menjalankan versi terbaru ({version})."
@@ -2747,11 +2747,11 @@ msgstr "Periksa koneksi internet Anda dan coba lagi."
 msgid "Update didn't take effect"
 msgstr "Pembaruan tidak berlaku"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Mixar {target} telah dipasang tetapi versi {running} yang berjalan. Pasang ulang dari halaman unduhan."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Lampway {target} telah dipasang tetapi versi {running} yang berjalan. Pasang ulang dari halaman unduhan."
 
-msgid "Updated to Mixar {version}"
-msgstr "Diperbarui ke Mixar {version}"
+msgid "Updated to Lampway {version}"
+msgstr "Diperbarui ke Lampway {version}"
 
 msgid "The update was installed successfully."
 msgstr "Pembaruan berhasil dipasang."
@@ -2765,8 +2765,8 @@ msgstr "{reason} Anda dapat mengunduh pembaruan dari halaman unduhan."
 msgid "Update was not installed"
 msgstr "Pembaruan tidak dipasang"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "Mixar masih berjalan saat penginstal mencoba dimulai."
+msgid "Lampway was still running when the installer tried to start."
+msgstr "Lampway masih berjalan saat penginstal mencoba dimulai."
 
 msgid "The downloaded installer failed its signature check."
 msgstr "Penginstal yang diunduh gagal dalam pemeriksaan tanda tangan."
@@ -2774,8 +2774,8 @@ msgstr "Penginstal yang diunduh gagal dalam pemeriksaan tanda tangan."
 msgid "The downloaded installer could not be opened."
 msgstr "Penginstal yang diunduh tidak dapat dibuka."
 
-msgid "Mixar could not be replaced on disk."
-msgstr "Mixar tidak dapat diganti di disk."
+msgid "Lampway could not be replaced on disk."
+msgstr "Lampway tidak dapat diganti di disk."
 
 msgid "The installation was cancelled."
 msgstr "Instalasi dibatalkan."
@@ -2786,8 +2786,8 @@ msgstr "Windows Installer melaporkan galat fatal."
 msgid "The installer did not finish."
 msgstr "Penginstal tidak selesai."
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "Memulai ulang Mixar dan memasang pembaruan yang diunduh"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "Memulai ulang Lampway dan memasang pembaruan yang diunduh"
 
 msgid "Save Changes"
 msgstr "Simpan Perubahan"
@@ -2795,17 +2795,17 @@ msgstr "Simpan Perubahan"
 msgid "Save the current file before restarting"
 msgstr "Menyimpan berkas saat ini sebelum memulai ulang"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "Mengunduh pembaruan — Mixar akan dimulai ulang saat siap"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "Mengunduh pembaruan — Lampway akan dimulai ulang saat siap"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar akan ditutup dan diperbarui ke {version}."
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway akan ditutup dan diperbarui ke {version}."
 
 msgid "It reopens automatically when the update is done."
-msgstr "Mixar akan terbuka kembali secara otomatis setelah pembaruan selesai."
+msgstr "Lampway akan terbuka kembali secara otomatis setelah pembaruan selesai."
 
 msgid "Save changes to the current file"
 msgstr "Simpan perubahan ke berkas saat ini"
@@ -2831,14 +2831,14 @@ msgstr "Menghentikan pengunduhan pembaruan"
 msgid "This update is required and cannot be cancelled"
 msgstr "Pembaruan ini wajib dan tidak dapat dibatalkan"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "Membuka halaman unduhan Mixar di peramban bawaan"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "Membuka halaman unduhan Lampway di peramban bawaan"
 
 msgid "Check for Updates"
 msgstr "Periksa Pembaruan"
 
-msgid "Check whether a newer version of Mixar is available"
-msgstr "Memeriksa apakah versi Mixar yang lebih baru tersedia"
+msgid "Check whether a newer version of Lampway is available"
+msgstr "Memeriksa apakah versi Lampway yang lebih baru tersedia"
 
 msgid "An update check is already in progress"
 msgstr "Pemeriksaan pembaruan sedang berlangsung"
@@ -2849,8 +2849,8 @@ msgstr "Memeriksa pembaruan…"
 msgid "Update Available"
 msgstr "Pembaruan Tersedia"
 
-msgid "Show details for the pending Mixar update"
-msgstr "Menampilkan detail pembaruan Mixar yang tertunda"
+msgid "Show details for the pending Lampway update"
+msgstr "Menampilkan detail pembaruan Lampway yang tertunda"
 
 msgid "View Changelog"
 msgstr "Lihat Catatan Perubahan"
@@ -2969,14 +2969,14 @@ msgstr "Nama tampilan untuk sapaan akun"
 msgid "Newer File Version"
 msgstr "Versi Berkas Lebih Baru"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
-msgstr "Memperingatkan pengguna bahwa berkas disimpan oleh versi Mixar yang lebih baru"
+msgid "Warn user that the file was saved by a newer Lampway version"
+msgstr "Memperingatkan pengguna bahwa berkas disimpan oleh versi Lampway yang lebih baru"
 
 msgid "File Version"
 msgstr "Versi Berkas"
 
-msgid "This file was saved by Mixar version {version}."
-msgstr "Berkas ini disimpan oleh Mixar versi {version}."
+msgid "This file was saved by Lampway version {version}."
+msgstr "Berkas ini disimpan oleh Lampway versi {version}."
 
 msgid "Some data may be missing or incorrect."
 msgstr "Beberapa data mungkin hilang atau salah."
@@ -2990,8 +2990,8 @@ msgstr "Tidak ada objek jaring 3D yang tersedia untuk diekspor"
 msgid "Start Connector Sidecar"
 msgstr "Mulai Sidecar Konektor"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "Mengekspos Mixar ke hub melalui HTTP loopback"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "Mengekspos Lampway ke hub melalui HTTP loopback"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
 msgstr "Sidecar konektor di 127.0.0.1:{port}"
@@ -2999,8 +2999,8 @@ msgstr "Sidecar konektor di 127.0.0.1:{port}"
 msgid "Export Scene to Unreal"
 msgstr "Ekspor Adegan ke Unreal"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "Mengekspor adegan Mixar saat ini sebagai USD/FBX/GLB yang siap untuk Unreal"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "Mengekspor adegan Lampway saat ini sebagai USD/FBX/GLB yang siap untuk Unreal"
 
 msgid "Exported {filename} ({count} meshes)"
 msgstr "{filename} diekspor ({count} jaring 3D)"
@@ -3020,8 +3020,8 @@ msgstr ""
 msgid "Hub Sidecar"
 msgstr "Sidecar Hub"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "Mengekspos sesi Mixar ini ke mixar-connector melalui HTTP loopback"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "Mengekspos sesi Lampway ini ke mixar-connector melalui HTTP loopback"
 
 msgid "Sidecar Port"
 msgstr "Port Sidecar"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,8 +3119,8 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
-msgstr "Kamera Bidikan Mixar"
+msgid "Lampway Shot Camera"
+msgstr "Kamera Bidikan Lampway"
 
 msgid "Shot"
 msgstr "Bidikan"
@@ -3563,8 +3563,8 @@ msgstr "Bidikan tidak memiliki kamera"
 msgid "Capture at least one camera beat before locking"
 msgstr "Tangkap setidaknya satu momen kamera sebelum mengunci"
 
-msgid "Mixar Focus"
-msgstr "Fokus Mixar"
+msgid "Lampway Focus"
+msgstr "Fokus Lampway"
 
 msgid "Rendering…"
 msgstr "Merender…"
@@ -4241,8 +4241,8 @@ msgstr "Kemajuan Render"
 msgid "Render Status"
 msgstr "Status Render"
 
-msgid "Mixar Camera Export"
-msgstr "Ekspor Kamera Mixar"
+msgid "Lampway Camera Export"
+msgstr "Ekspor Kamera Lampway"
 
 msgid "Export this scene's camera animation to the Moodboard"
 msgstr "Mengekspor animasi kamera adegan ini ke Moodboard"
@@ -4493,14 +4493,14 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
-msgstr "Director Mixar"
+msgid "Lampway Director"
+msgstr "Director Lampway"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "Bidikan arahan kamera jarang untuk adegan ini"
 
-msgid "Mixar Output"
-msgstr "Keluaran Mixar"
+msgid "Lampway Output"
+msgstr "Keluaran Lampway"
 
 msgid "Output aspect ratio this camera frames for"
 msgstr "Rasio aspek keluaran yang dibingkai oleh kamera ini"
@@ -4964,19 +4964,19 @@ msgstr "Model server lokal"
 msgid "Local model last error"
 msgstr "Galat terakhir model lokal"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,26 +7789,26 @@ msgstr "Teks Galat"
 msgid "Error message if job failed"
 msgstr "Pesan galat jika tugas gagal"
 
-msgid "Mixie Moodboard Images"
-msgstr "Gambar Moodboard Mixie"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Gambar Moodboard Lampway Agent"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "Koleksi gambar referensi dalam mode Moodboard"
 
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Kotak Teks Moodboard Mixie"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Kotak Teks Moodboard Lampway Agent"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "Koleksi kotak teks dalam mode Moodboard"
 
-msgid "Mixie Moodboard Frames"
-msgstr "Bingkai Moodboard Mixie"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Bingkai Moodboard Lampway Agent"
 
 msgid "Canvas frames grouping board items"
 msgstr "Bingkai kanvas yang mengelompokkan item papan"
 
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Kelompok Moodboard Mixie (lama)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Kelompok Moodboard Lampway Agent (lama)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "Digantikan oleh mixie_moodboard_frames; dipertahankan untuk migrasi"
@@ -8917,7 +8917,7 @@ msgstr "{count} gambar moodboard disinkronkan"
 msgid "Attach Selected Moodboard Image"
 msgstr "Lampirkan Gambar Moodboard Terseleksi"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
 msgstr ""
 
 msgid "Nothing selected to copy"
@@ -9244,7 +9244,7 @@ msgstr "Gagal membaca papan klip: {error}"
 msgid "Paste"
 msgstr "Tempel"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
 msgstr ""
 
 msgid "Pasted {count} item"
@@ -10642,13 +10642,13 @@ msgstr "Anotasi Moodboard"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
-msgstr "Selamat Datang di Mixar"
+msgid "Welcome to Lampway"
+msgstr "Selamat Datang di Lampway"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,20 +10669,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
-msgstr "ID Riwayat Operasi Mixar"
+msgid "Lampway Operation History ID"
+msgstr "ID Riwayat Operasi Lampway"
 
 msgid "Persistent per-scene id keying this scene's operation history."
 msgstr "ID persisten per adegan yang menjadi kunci riwayat operasi adegan ini."
@@ -13051,8 +13051,8 @@ msgstr "Nama saluran yang akan diekspor"
 msgid "File format for export"
 msgstr "Format berkas untuk ekspor"
 
-msgid "No active Mixar node found"
-msgstr "Tidak ditemukan simpul Mixar yang aktif"
+msgid "No active Lampway node found"
+msgstr "Tidak ditemukan simpul Lampway yang aktif"
 
 msgid "Exported '{name}' to {path}"
 msgstr "'{name}' diekspor ke {path}"
@@ -13201,8 +13201,8 @@ msgstr "Memanggang gambar sementara dari lapis, dapat berguna untuk mencegah gli
 msgid "Bake Temporary Image"
 msgstr "Panggang Gambar Sementara"
 
-msgid "No active Mixar node found!"
-msgstr "Tidak ditemukan simpul Mixar yang aktif!"
+msgid "No active Lampway node found!"
+msgstr "Tidak ditemukan simpul Lampway yang aktif!"
 
 msgid "No active layer found!"
 msgstr "Tidak ditemukan lapis aktif!"
@@ -13345,8 +13345,8 @@ msgstr "Panggang Saluran ke Warna Titik Sudut"
 msgid "Bake All Materials"
 msgstr "Panggang Semua Bahan"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "Memanggang semua bahan yang memiliki simpul Mixar Paint, bukan hanya bahan aktif"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "Memanggang semua bahan yang memiliki simpul Lampway Paint, bukan hanya bahan aktif"
 
 msgid "Target Vertex Color Name"
 msgstr "Nama Warna Titik Sudut Sasaran"
@@ -13574,8 +13574,8 @@ msgstr ""
 msgid "Copy Image Path To Clipboard"
 msgstr "Salin Jalur Gambar ke Papan Klip"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint — Menyalin jalur berkas gambar ke papan klip sistem"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint — Menyalin jalur berkas gambar ke papan klip sistem"
 
 msgid "Copied: {text}"
 msgstr "Disalin: {text}"
@@ -13583,8 +13583,8 @@ msgstr "Disalin: {text}"
 msgid "Open Containing Image Folder"
 msgstr "Buka Folder Berisi Gambar"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint — Membuka folder yang berisi berkas gambar dan menyorotnya"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint — Membuka folder yang berisi berkas gambar dan menyorotnya"
 
 msgid "File does not exist"
 msgstr "Berkas tidak ada"
@@ -15054,8 +15054,8 @@ msgstr "Menghidupkan masker"
 msgid "Active Mask"
 msgstr "Masker Aktif"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Masker aktif untuk mode cat dan mode sunting Blender, atau mode pratinjau Masker Mixar Paint"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Masker aktif untuk mode cat dan mode sunting Blender, atau mode pratinjau Masker Lampway Paint"
 
 msgid "Mask Source Input"
 msgstr "Masukan Sumber Masker"
@@ -15156,14 +15156,14 @@ msgstr "Panggang Semua Saluran"
 msgid "Delete Baked Images"
 msgstr "Hapus Gambar Hasil Panggang"
 
-msgid "New Mixar Paint Modifier"
-msgstr "Pengubah Mixar Paint Baru"
+msgid "New Lampway Paint Modifier"
+msgstr "Pengubah Lampway Paint Baru"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Pindahkan Pengubah Mixar Paint"
+msgid "Move Lampway Paint Modifier"
+msgstr "Pindahkan Pengubah Lampway Paint"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Hapus Pengubah Mixar Paint"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Hapus Pengubah Lampway Paint"
 
 msgid "Add Channel Modifier"
 msgstr "Tambah Pengubah Saluran"
@@ -15297,8 +15297,8 @@ msgstr "Saluran '{name}' sudah ada"
 msgid "Build Layered Material"
 msgstr "Bangun Bahan Berlapis"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "Membangun bahan cat Mixar dari manifest bahan berlapis"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "Membangun bahan cat Lampway dari manifest bahan berlapis"
 
 msgid "Manifest JSON"
 msgstr "JSON Manifest"
@@ -15921,8 +15921,8 @@ msgstr "Mengganti nama lapis ini"
 msgid "New name for the layer"
 msgstr "Nama baru untuk lapis"
 
-msgid "No active Mixar node"
-msgstr "Tidak ada simpul Mixar yang aktif"
+msgid "No active Lampway node"
+msgstr "Tidak ada simpul Lampway yang aktif"
 
 msgid "Name cannot be empty"
 msgstr "Nama tidak boleh kosong"
@@ -16071,11 +16071,11 @@ msgstr "Kembali ke tampilan properti lapis"
 msgid "Add different types of masks to the active layer"
 msgstr "Menambahkan berbagai tipe masker ke lapis aktif"
 
-msgid "Remove Mixar Paint Node"
-msgstr "Hapus Simpul Mixar Paint"
+msgid "Remove Lampway Paint Node"
+msgstr "Hapus Simpul Lampway Paint"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Menghapus simpul Mixar Paint, tetapi mempertahankan semua gambar saluran yang telah dipanggang"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Menghapus simpul Lampway Paint, tetapi mempertahankan semua gambar saluran yang telah dipanggang"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "Susunan simpul {addon} ini belum dipanggang!"
@@ -16227,8 +16227,8 @@ msgstr "Menetapkan bahan ke lapis Isi aktif alih-alih membuat lapis baru"
 msgid "Material '{name}' not found in registry"
 msgstr "Bahan '{name}' tidak ditemukan di registri"
 
-msgid "No active Mixar Paint node found"
-msgstr "Tidak ditemukan simpul Mixar Paint yang aktif"
+msgid "No active Lampway Paint node found"
+msgstr "Tidak ditemukan simpul Lampway Paint yang aktif"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "Bahan '{name}' ditetapkan ke lapis yang ada"
@@ -16431,8 +16431,8 @@ msgstr "Tidak Ada Bahan Berbasis Lapis yang Aktif"
 msgid "To use texture baking:"
 msgstr "Untuk menggunakan pemanggangan tekstur:"
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. Seleksi objek dengan bahan Mixar"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. Seleksi objek dengan bahan Lampway"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "  2. Atau buat bahan berbasis lapis baru"
@@ -16533,8 +16533,8 @@ msgstr "Backend cat belum diinisialisasi"
 msgid "Paint UI not initialized"
 msgstr "UI cat belum diinisialisasi"
 
-msgid "No Mixar material found"
-msgstr "Bahan Mixar tidak ditemukan"
+msgid "No Lampway material found"
+msgstr "Bahan Lampway tidak ditemukan"
 
 msgid "No layer based material"
 msgstr "Tidak ada bahan berbasis lapis"
@@ -16551,8 +16551,8 @@ msgstr "Tidak ada lapis yang diseleksi"
 msgid "No active material"
 msgstr "Tidak ada bahan aktif"
 
-msgid "No Mixar node found"
-msgstr "Simpul Mixar tidak ditemukan"
+msgid "No Lampway node found"
+msgstr "Simpul Lampway tidak ditemukan"
 
 msgid "Backend layer not found"
 msgstr "Lapis backend tidak ditemukan"
@@ -17227,17 +17227,17 @@ msgstr "Lapis sedang difokuskan/diseleksi"
 msgid "How this layer blends with layers below"
 msgstr "Cara lapis ini bercampur dengan lapis di bawahnya"
 
-msgid "Mixar Layer Index"
-msgstr "Indeks Lapis Mixar"
+msgid "Lampway Layer Index"
+msgstr "Indeks Lapis Lampway"
 
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "Indeks dalam koleksi mixar_mp.layers Mixar"
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "Indeks dalam koleksi mixar_mp.layers Lampway"
 
-msgid "Mixar Group Node"
-msgstr "Simpul Kelompok Mixar"
+msgid "Lampway Group Node"
+msgstr "Simpul Kelompok Lampway"
 
-msgid "Name of the Mixar group node"
-msgstr "Nama simpul kelompok Mixar"
+msgid "Name of the Lampway group node"
+msgstr "Nama simpul kelompok Lampway"
 
 msgid "Updating Property"
 msgstr "Properti Sedang Diperbarui"
@@ -18312,8 +18312,8 @@ msgstr "Warna objek lain"
 msgid "Other Objects Channels"
 msgstr "Saluran Objek Lain"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "Saluran Mixar Paint objek lain"
+msgid "Other object's Lampway Paint channels"
+msgstr "Saluran Lampway Paint objek lain"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "Titik Sudut/Tepi/Bidang Terseleksi"
@@ -18639,17 +18639,17 @@ msgstr ""
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
 msgstr ""
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
 msgstr ""
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "gagal dihidupkan (mungkin tidak kompatibel dengan Blender 5.0)"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
-msgstr "Bawa add-on dan ekstensi dari instalasi Blender Anda yang sudah ada ke Mixar."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
+msgstr "Bawa add-on dan ekstensi dari instalasi Blender Anda yang sudah ada ke Lampway."
 
 msgid "Scan for Blender Plugins"
 msgstr "Pindai Plugin Blender"
@@ -18672,14 +18672,14 @@ msgstr "Hidupkan setelah impor:"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "Semua plugin yang terdaftar akan disalin; yang dicentang akan dihidupkan."
 
-msgid "Import into Mixar"
-msgstr "Impor ke Mixar"
+msgid "Import into Lampway"
+msgstr "Impor ke Lampway"
 
 msgid "Imported"
 msgstr "Diimpor"
 
-msgid "Already in Mixar"
-msgstr "Sudah ada di Mixar"
+msgid "Already in Lampway"
+msgstr "Sudah ada di Lampway"
 
 msgid "Copy failed"
 msgstr "Gagal menyalin"
@@ -18705,11 +18705,11 @@ msgstr "Pilih Plugin"
 msgid "Tick or untick every plugin in the list"
 msgstr "Mencentang atau menghapus centang semua plugin dalam daftar"
 
-msgid "Import Plugins into Mixar"
-msgstr "Impor Plugin ke Mixar"
+msgid "Import Plugins into Lampway"
+msgstr "Impor Plugin ke Lampway"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
-msgstr "Menyalin semua plugin yang terdaftar ke Mixar dan menghidupkan yang dicentang"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
+msgstr "Menyalin semua plugin yang terdaftar ke Lampway dan menghidupkan yang dicentang"
 
 msgid "Nothing scanned — run Scan first"
 msgstr "Belum ada yang dipindai — jalankan Pindai terlebih dahulu"
@@ -18726,8 +18726,8 @@ msgstr "Diimpor {imported}, sudah ada {already_present}, gagal {failed} · dihid
 msgid "Imported: {count}"
 msgstr "Diimpor: {count}"
 
-msgid "Already in Mixar: {count}"
-msgstr "Sudah ada di Mixar: {count}"
+msgid "Already in Lampway: {count}"
+msgstr "Sudah ada di Lampway: {count}"
 
 msgid "Enabled: {count}"
 msgstr "Dihidupkan: {count}"
@@ -18744,8 +18744,8 @@ msgstr "Impor dari Blender"
 msgid "{count} found"
 msgstr "{count} ditemukan"
 
-msgid "Enable this plugin in Mixar after importing it"
-msgstr "Menghidupkan plugin ini di Mixar setelah diimpor"
+msgid "Enable this plugin in Lampway after importing it"
+msgstr "Menghidupkan plugin ini di Lampway setelah diimpor"
 
 msgid "Blender Version"
 msgstr "Versi Blender"
@@ -18798,14 +18798,14 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
-msgstr "Graf Adegan Mixar"
+msgid "Lampway Scene Graph"
+msgstr "Graf Adegan Lampway"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "Graf adegan per adegan yang dapat dibaca agen (JSON). Hanya saat runtime."
 
-msgid "Mixar Scene Graph Query Result"
-msgstr "Hasil Kueri Graf Adegan Mixar"
+msgid "Lampway Scene Graph Query Result"
+msgstr "Hasil Kueri Graf Adegan Lampway"
 
 msgid "JSON result of the last scene-graph query operator call."
 msgstr "Hasil JSON dari pemanggilan operator kueri graf adegan terakhir."
@@ -19524,8 +19524,8 @@ msgstr "Video memerlukan mode Video. Hapus video untuk mengirim ke Agen."
 msgid "User ID"
 msgstr "ID Pengguna"
 
-msgid "User ID for Mixie Chat login"
-msgstr "ID pengguna untuk masuk ke Mixie Chat"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "ID pengguna untuk masuk ke Lampway Agent Chat"
 
 msgid "Agent expects: {formats}"
 msgstr "Agen mengharapkan: {formats}"
@@ -19983,11 +19983,11 @@ msgstr "Selesaikan tulisan tangan sebelum memulai masukan suara."
 msgid "Sign in to use voice input."
 msgstr "Masuk untuk menggunakan masukan suara."
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "Jalankan Mixar dari Finder untuk mengizinkan akses mikrofon."
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "Jalankan Lampway dari Finder untuk mengizinkan akses mikrofon."
 
-msgid "Allow microphone access for Mixar in system privacy settings."
-msgstr "Izinkan akses mikrofon untuk Mixar di pengaturan privasi sistem."
+msgid "Allow microphone access for Lampway in system privacy settings."
+msgstr "Izinkan akses mikrofon untuk Lampway di pengaturan privasi sistem."
 
 msgid "Allow microphone"
 msgstr "Izinkan mikrofon"
@@ -20034,8 +20034,8 @@ msgstr "Silakan masuk lagi."
 msgid "Login Failed"
 msgstr "Gagal Masuk"
 
-msgid "Sign in with your Mixar account"
-msgstr "Masuk dengan akun Mixar Anda"
+msgid "Sign in with your Lampway account"
+msgstr "Masuk dengan akun Lampway Anda"
 
 msgid "Waiting for browser..."
 msgstr "Menunggu browser..."
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "Dasbor"
 
-msgid "About Mixar"
-msgstr "Tentang Mixar"
+msgid "About Lampway"
+msgstr "Tentang Lampway"
 
 msgid "Documentation"
 msgstr "Berkastasi"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "Salinan tanpa obrolan diekspor ({count} pesan dihilangkan dari {scenes} adegan)."
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Obrolan Mixar: Ekspor .blend tanpa riwayat obrolan"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Obrolan Lampway: Ekspor .blend tanpa riwayat obrolan"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "Generasi saat ini tidak tersedia. Segarkan katalog dan coba lagi."
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Tambah Aturan"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "Menentukan aturan untuk Mixie. Perubahan berlaku pada pesan atau jawaban Anda berikutnya; aturan global berlaku di setiap berkas Mixar. Permintaan Anda saat ini lebih diutamakan daripada aturan proyek dan global"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Menentukan aturan untuk Mixie. Perubahan berlaku pada pesan atau jawaban Anda berikutnya; aturan global berlaku di setiap berkas Lampway. Permintaan Anda saat ini lebih diutamakan daripada aturan proyek dan global"
 
 msgid "Rule operation failed"
 msgstr "Operasi aturan gagal"
@@ -22138,8 +22138,8 @@ msgstr "Teks peristiwa pengenal ucapan yang terakhir diambil"
 msgid "Materials: {count}"
 msgstr "Bahan: {count}"
 
-msgid "No Mixar material active"
-msgstr "Tidak ada bahan Mixar yang aktif"
+msgid "No Lampway material active"
+msgstr "Tidak ada bahan Lampway yang aktif"
 
 msgid "{channel} Settings"
 msgstr "Pengaturan {channel}"
@@ -22801,8 +22801,8 @@ msgstr "Skala Y"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "Menskalakan UV terseleksi ke arah Y (bertahap)"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Properti alat anotasi untuk ruang Properti UV Mixar."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Properti alat anotasi untuk ruang Properti UV Lampway."
 
 msgid "Annotate Line"
 msgstr "Annotasi Garis"
@@ -22828,14 +22828,14 @@ msgstr "Gaya Awal"
 msgid "Toggle UV Sidebar"
 msgstr "Alihkan Bilah Sisi UV"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "Mengalihkan bilah sisi UV Mixar di Editor Gambar"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "Mengalihkan bilah sisi UV Lampway di Editor Gambar"
 
 msgid "Open UV Sidebar"
 msgstr "Buka Bilah Sisi UV"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Membuka bilah sisi UV Mixar jika tersembunyi"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Membuka bilah sisi UV Lampway jika tersembunyi"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "Tampilan kosong yang ditampilkan saat tidak ada properti UV yang tersedia"
@@ -22858,8 +22858,8 @@ msgstr "Ekspor Tata Letak UV"
 msgid "Export UV layout using stored properties"
 msgstr "Mengekspor tata letak UV menggunakan properti tersimpan"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "Panel Ekspor UV untuk ruang Properti UV Mixar"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "Panel Ekspor UV untuk ruang Properti UV Lampway"
 
 msgid "UV UI not initialized"
 msgstr "UI UV belum diinisialisasi"
@@ -22975,8 +22975,8 @@ msgstr "Tempel UV"
 msgid "Functions"
 msgstr "Fungsi"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Panel Fungsi UV untuk ruang Properti UV Mixar - Berbasis alat (tanpa tombol di kepala)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Panel Fungsi UV untuk ruang Properti UV Lampway - Berbasis alat (tanpa tombol di kepala)"
 
 msgid "Seam"
 msgstr "Jahitan"
@@ -23104,8 +23104,8 @@ msgstr "Tidak ada gambar di editor UV"
 msgid "Material '{name}' created and applied"
 msgstr "Bahan '{name}' telah dibuat dan ditetapkan"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Panel gambar untuk ruang Properti UV Mixar."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Panel gambar untuk ruang Properti UV Lampway."
 
 msgid "Save As"
 msgstr "Simpan Sebagai"
@@ -23137,8 +23137,8 @@ msgstr "Ukuran Gambar"
 msgid "Invert All Colors"
 msgstr "Balikkan Semua Warna"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Panel slot bahan untuk ruang Properti UV Mixar"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Panel slot bahan untuk ruang Properti UV Lampway"
 
 msgid "No active object"
 msgstr "Tidak ada objek aktif"
@@ -23182,8 +23182,8 @@ msgstr "Membuat wilayah kustom di ruang UV untuk pengemasan"
 msgid "{label} unavailable"
 msgstr "{label} tidak tersedia"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Panel tata letak untuk ruang Properti UV Mixar."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Panel tata letak untuk ruang Properti UV Lampway."
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "Properti uv.pack_islands tidak tersedia"
@@ -23329,8 +23329,8 @@ msgstr "Proyek"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "Memproyeksikan UV menggunakan tipe dan properti yang ditampilkan di panel Proyeksi"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Status UI UV Mixar belum diinisialisasi"
+msgid "Lampway UV UI state not initialized"
+msgstr "Status UI UV Lampway belum diinisialisasi"
 
 msgid "Unknown projection type: {type}"
 msgstr "Tipe proyeksi tidak dikenal: {type}"
@@ -23461,8 +23461,8 @@ msgstr "Seleksi yang Terhubung"
 msgid "Select linked UVs"
 msgstr "Menyeleksi UV yang tertaut"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Panel seleksi untuk ruang Properti UV Mixar - Berbasis alat (tanpa tombol di kepala)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Panel seleksi untuk ruang Properti UV Lampway - Berbasis alat (tanpa tombol di kepala)"
 
 msgid "Basic Selection"
 msgstr "Seleksi Dasar"
@@ -23503,8 +23503,8 @@ msgstr "Pilih Pisahan"
 msgid "Select Overlap"
 msgstr "Seleksi Tumpang Tindih"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Panel Kepadatan Texel untuk ruang Properti UV Mixar"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Panel Kepadatan Texel untuk ruang Properti UV Lampway"
 
 msgid "Activate Grab Tool"
 msgstr "Aktifkan Alat Tarik"
@@ -23548,8 +23548,8 @@ msgstr "Menengahkan pandangan ke kursor"
 msgid "UV Sculpt Tools"
 msgstr "Alat Pahat UV"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Panel Alat Pahat UV untuk ruang Properti UV Mixar - Berbasis alat (tanpa tombol di kepala)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Panel Alat Pahat UV untuk ruang Properti UV Lampway - Berbasis alat (tanpa tombol di kepala)"
 
 msgid "Grab"
 msgstr "Ambil"
@@ -23668,8 +23668,8 @@ msgstr "Menetapkan transformasi skala ke UV terseleksi"
 msgid "Snapping"
 msgstr "Gertakan"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Panel snapping untuk ruang Properti UV Mixar"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Panel snapping untuk ruang Properti UV Lampway"
 
 msgid "Snapping Options"
 msgstr "Opsi Snapping"
@@ -23719,8 +23719,8 @@ msgstr "Melakukan unwrap menggunakan metode dan properti yang ditampilkan di pan
 msgid "Unknown unwrap method: {method}"
 msgstr "Metode unwrap tidak dikenal: {method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Panel gabungan Unwrap + Proyeksi untuk ruang Properti UV Mixar."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Panel gabungan Unwrap + Proyeksi untuk ruang Properti UV Lampway."
 
 msgid "Live Unwrap"
 msgstr "Unwrap Langsung"
@@ -23796,7 +23796,7 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
@@ -23804,7 +23804,7 @@ msgstr ""
 "\n"
 "Pembungkus `image.new` yang mengatur `tiled=True` sebelumnya pada\n"
 "dialog properti operator. Digunakan sebagai operator `new=` untuk\n"
-"`template_ID` di panel UV Mixar agar dialog terbuka dengan\n"
+"`template_ID` di panel UV Lampway agar dialog terbuka dengan\n"
 "kotak centang Tiled sudah tercentang. `image.new` yang mendasarinya\n"
 "melakukan pembuatan dan penetapan ID yang sebenarnya.\n"
 
@@ -23826,8 +23826,8 @@ msgstr "Isi Petak"
 msgid "Fill UDIM tile"
 msgstr "Mengisi petak UDIM"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "Panel Set UV untuk ruang Properti UV Mixar."
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "Panel Set UV untuk ruang Properti UV Lampway."
 
 msgid "UV Maps"
 msgstr "Peta UV"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "Alat"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Panel alat untuk ruang Properti UV Mixar — ditampilkan saat alat\n"
+"Panel alat untuk ruang Properti UV Lampway — ditampilkan saat alat\n"
 "bilah alat `builtin.uv_tool` aktif."
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,14 +24070,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Mengalihkan Mixar ke Mode Zen (jendela tampilan minimal + Gelembung Agen + moodboard)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "Mengalihkan Lampway ke Mode Zen (jendela tampilan minimal + Gelembung Agen + moodboard)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Tidak dapat membuat ruang kerja Mode Zen — tidak ada templat yang tersedia"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "Mengalihkan Mixar ke Mode Engine (ruang kerja lengkap bergaya Blender)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "Mengalihkan Lampway ke Mode Engine (ruang kerja lengkap bergaya Blender)"
 
 msgid "Modeling workspace not found"
 msgstr "Ruang kerja Modeling tidak ditemukan"
@@ -24298,17 +24298,17 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
-msgstr "Berkas disimpan oleh versi Mixar yang lebih baru (%d.%d), sebagian data mungkin hilang"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
+msgstr "Berkas disimpan oleh versi Lampway yang lebih baru (%d.%d), sebagian data mungkin hilang"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "Berkas disimpan oleh versi yang lebih baru, buka dengan Mixar %s atau yang lebih baru"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "Berkas disimpan oleh versi yang lebih baru, buka dengan Lampway %s atau yang lebih baru"
 
 msgid "Failed to read mixar file '%s': %s"
 msgstr "Gagal membaca berkas mixar '%s': %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
-msgstr "Tidak dapat membaca berkas mixar '%s', header tidak lengkap, mungkin berasal dari versi Mixar yang lebih baru"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr "Tidak dapat membaca berkas mixar '%s', header tidak lengkap, mungkin berasal dari versi Lampway yang lebih baru"
 
 msgid "Failed to read file '%s', not a mixar file"
 msgstr "Gagal membaca berkas '%s', bukan berkas mixar"
@@ -24316,14 +24316,14 @@ msgstr "Gagal membaca berkas '%s', bukan berkas mixar"
 msgid "Unable to open mixar <memory>"
 msgstr "Tidak dapat membuka mixar <memory>"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Berkas Mixar '%s' dibuat oleh versi Mixar yang lebih baru dan berisi nama ID yang lebih panjang dari yang saat ini didukung. Nama tersebut telah dipotong."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Berkas Lampway '%s' dibuat oleh versi Lampway yang lebih baru dan berisi nama ID yang lebih panjang dari yang saat ini didukung. Nama tersebut telah dipotong."
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Berkas Mixar '%s' tampaknya rusak, berisi nama ID yang tidak valid. Nama tersebut telah dipotong."
+msgstr "Berkas Lampway '%s' tampaknya rusak, berisi nama ID yang tidak valid. Nama tersebut telah dipotong."
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
-msgstr "Perpustakaan '%s' dibuat oleh versi Mixar yang lebih baru dan berisi nama ID yang lebih panjang dari yang saat ini didukung. Hal ini dapat menyebabkan data tertaut hilang; sebaiknya buka dan simpan ulang perpustakaan tersebut dengan versi Mixar saat ini."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
+msgstr "Perpustakaan '%s' dibuat oleh versi Lampway yang lebih baru dan berisi nama ID yang lebih panjang dari yang saat ini didukung. Hal ini dapat menyebabkan data tertaut hilang; sebaiknya buka dan simpan ulang perpustakaan tersebut dengan versi Lampway saat ini."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: Data merujuk ke berkas .mixar utama: '%s' dari %s"
@@ -24454,8 +24454,8 @@ msgstr "Tanyakan apa saja kepada Mixie..."
 msgid "Write your prompt here..."
 msgstr "Tulis prompt Anda di sini..."
 
-msgid "Everything Mixar has generated"
-msgstr "Semua yang telah dihasilkan Mixar"
+msgid "Everything Lampway has generated"
+msgstr "Semua yang telah dihasilkan Lampway"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -25771,14 +25771,14 @@ msgstr "Hapus Pratinjau Mixie3D"
 msgid "Delete a segmented image from the preview history"
 msgstr "Menghapus gambar tersegmentasi dari riwayat pratinjau"
 
-msgid "Mixar agent bubble loading…"
-msgstr "Memuat gelembung agen Mixar…"
+msgid "Lampway agent bubble loading…"
+msgstr "Memuat gelembung agen Lampway…"
 
 msgid "Show Agent Bubble"
 msgstr "Tampilkan Gelembung Agen"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
-msgstr "Membuka hamparan gelembung agen mengambang yang memungkinkan pengguna mengobrol dengan agen AI dari mana saja di antarmuka Mixar"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
+msgstr "Membuka hamparan gelembung agen mengambang yang memungkinkan pengguna mengobrol dengan agen AI dari mana saja di antarmuka Lampway"
 
 msgid "Chat is still loading. Please drop the asset again."
 msgstr ""
@@ -25822,8 +25822,8 @@ msgstr "Menambahkan gambar yang diletakkan sebagai lampiran obrolan"
 msgid "Dropped image datablock"
 msgstr "Blok data gambar yang diletakkan"
 
-msgid "Tell me about the features in Mixar"
-msgstr "Ceritakan tentang fitur-fitur di Mixar"
+msgid "Tell me about the features in Lampway"
+msgstr "Ceritakan tentang fitur-fitur di Lampway"
 
 msgid "Generate a futuristic sci-fi character concept"
 msgstr "Hasilkan konsep karakter fiksi ilmiah futuristis"
@@ -26755,14 +26755,14 @@ msgstr "Operasi panggang dan pemrosesan tekstur"
 msgid "Texture set management for PBR workflows"
 msgstr "Pengelolaan set tekstur untuk alur kerja PBR"
 
-msgid "Mixar UV Editor"
-msgstr "Editor UV Mixar"
+msgid "Lampway UV Editor"
+msgstr "Editor UV Lampway"
 
-msgid "Mixar UV editing mode"
-msgstr "Mode pengeditan UV Mixar"
+msgid "Lampway UV editing mode"
+msgstr "Mode pengeditan UV Lampway"
 
-msgid "Mixar Layers Properties"
-msgstr "Properti Lapis Mixar"
+msgid "Lampway Layers Properties"
+msgstr "Properti Lapis Lampway"
 
 msgid "Reference image board like PureRef"
 msgstr "Papan gambar referensi seperti PureRef"
@@ -26770,8 +26770,8 @@ msgstr "Papan gambar referensi seperti PureRef"
 msgid "Mixie Space"
 msgstr "Ruang Mixie"
 
-msgid "Mixie editor for Mixar"
-msgstr "Editor Mixie untuk Mixar"
+msgid "Mixie editor for Lampway"
+msgstr "Editor Mixie untuk Lampway"
 
 msgid "Mixie editor mode"
 msgstr "Mode editor Mixie"
@@ -26779,8 +26779,8 @@ msgstr "Mode editor Mixie"
 msgid "Agent Bubble Space"
 msgstr "Ruang Gelembung Agen"
 
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Editor hamparan obrolan agen mengambang untuk Mixar"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Editor hamparan obrolan agen mengambang untuk Lampway"
 
 msgid "Top Bar Space"
 msgstr "Ruang Bilah Atas"
@@ -26788,23 +26788,23 @@ msgstr "Ruang Bilah Atas"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "Bilah atas yang berisi strip tab ruang kerja dan menu editor"
 
-msgid "Mixar Layers Space"
-msgstr "Ruang Lapis Mixar"
+msgid "Lampway Layers Space"
+msgstr "Ruang Lapis Lampway"
 
-msgid "Mixar texture layer stack management"
-msgstr "Pengelolaan tumpukan lapis tekstur Mixar"
+msgid "Lampway texture layer stack management"
+msgstr "Pengelolaan tumpukan lapis tekstur Lampway"
 
-msgid "Mixar Properties Space"
-msgstr "Ruang Properti Mixar"
+msgid "Lampway Properties Space"
+msgstr "Ruang Properti Lampway"
 
-msgid "Mixar layer and texture properties"
-msgstr "Properti lapis dan tekstur Mixar"
+msgid "Lampway layer and texture properties"
+msgstr "Properti lapis dan tekstur Lampway"
 
-msgid "Mixar Assets Space"
-msgstr "Ruang Aset Mixar"
+msgid "Lampway Assets Space"
+msgstr "Ruang Aset Lampway"
 
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "Perpustakaan bahan pintar, kuas, dan tekstur Mixar"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "Perpustakaan bahan pintar, kuas, dan tekstur Lampway"
 
 msgid "Texture sets management"
 msgstr "Pengelolaan set tekstur"
@@ -26812,8 +26812,8 @@ msgstr "Pengelolaan set tekstur"
 msgid "Use Blender's theme"
 msgstr "Menggunakan tema Blender"
 
-msgid "Mixar Zen components"
-msgstr "Komponen Zen Mixar"
+msgid "Lampway Zen components"
+msgstr "Komponen Zen Lampway"
 
 msgid "Compatibility appearance"
 msgstr "Tampilan kompatibilitas"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "Area Global"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "Area global jendela (bilah atas, bilah status). Ekstensi Mixar — diekspos agar orientasi dapat menjangkau bilah atas untuk penggambaran ulang."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "Area global jendela (bilah atas, bilah status). Ekstensi Lampway — diekspos agar orientasi dapat menjangkau bilah atas untuk penggambaran ulang."
 
 msgid "QA UI Dump"
 msgstr "Dump UI QA"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "Cuplikan JSON dari semua widget UI yang aktif (label, operator, properti, persegi ruang jendela, status) untuk QA harness Mixar"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "Cuplikan JSON dari semua widget UI yang aktif (label, operator, properti, persegi ruang jendela, status) untuk QA harness Lampway"
 
 msgid "Window Resizing"
 msgstr "Jendela Diubah Ukurannya"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "Penangkapan bingkai QA memerlukan --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,11 +27982,11 @@ msgstr "Mikrofon macet atau buffer penangkapan meluap"
 msgid "Microphone disconnected"
 msgstr "Mikrofon terputus"
 
-msgid "Mixar File View"
-msgstr "Tampilan Berkas Mixar"
+msgid "Lampway File View"
+msgstr "Tampilan Berkas Lampway"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
-msgstr "Proxy telah dihapus dari Mixar (%d proxy dikonversi otomatis menjadi override perpustakaan, %d proxy tidak dapat dikonversi dan telah dikosongkan). Sebaiknya simpan ulang setiap berkas .mixar perpustakaan dengan versi Mixar terbaru"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
+msgstr "Proxy telah dihapus dari Lampway (%d proxy dikonversi otomatis menjadi override perpustakaan, %d proxy tidak dapat dikonversi dan telah dikosongkan). Sebaiknya simpan ulang setiap berkas .mixar perpustakaan dengan versi Lampway terbaru"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
 msgstr "Tidak dapat menyimpan berkas mixar, jalur \"%s\" tidak dapat ditulisi"
@@ -27994,11 +27994,11 @@ msgstr "Tidak dapat menyimpan berkas mixar, jalur \"%s\" tidak dapat ditulisi"
 msgid "Cannot save mixar file, path \"%s\" is a directory"
 msgstr "Tidak dapat menyimpan berkas mixar, jalur \"%s\" adalah direktori"
 
-msgid "Mixar will start next time as it is now."
-msgstr "Mixar akan dimulai dalam keadaan seperti sekarang pada kesempatan berikutnya."
+msgid "Lampway will start next time as it is now."
+msgstr "Lampway akan dimulai dalam keadaan seperti sekarang pada kesempatan berikutnya."
 
-msgid "Load Factory Mixar Preferences"
-msgstr "Muat Preferensi Pabrik Mixar"
+msgid "Load Factory Lampway Preferences"
+msgstr "Muat Preferensi Pabrik Lampway"
 
 msgid "Load user interface setup from the .mixar file"
 msgstr "Memuat pengaturan antarmuka pengguna dari berkas .mixar"
@@ -28006,14 +28006,14 @@ msgstr "Memuat pengaturan antarmuka pengguna dari berkas .mixar"
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr "Mengizinkan berkas .mixar menjalankan skrip secara otomatis, bawaan tersedia dari preferensi sistem"
 
-msgid "Open a Mixar file"
-msgstr "Membuka berkas Mixar"
+msgid "Open a Lampway file"
+msgstr "Membuka berkas Lampway"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr "Memuat pengaturan antarmuka pengguna di berkas .mixar"
 
-msgid "Mixar Files"
-msgstr "Berkas Mixar"
+msgid "Lampway Files"
+msgstr "Berkas Lampway"
 
 msgid "Show only .mixar files"
 msgstr "Hanya menampilkan berkas .mixar"
@@ -28039,26 +28039,26 @@ msgstr "Menyimpan sebagai berkas .mixar"
 msgid "Save as .blend file"
 msgstr "Menyimpan sebagai berkas .blend"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "Menyimpan berkas Mixar saat ini dengan nama bernomor bertambah yang tidak menimpa berkas yang sudah ada"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "Menyimpan berkas Lampway saat ini dengan nama bernomor bertambah yang tidak menimpa berkas yang sudah ada"
 
-msgid "Save Mixar File"
-msgstr "Simpan Berkas Mixar"
+msgid "Save Lampway File"
+msgstr "Simpan Berkas Lampway"
 
-msgid "Save the current Mixar file"
-msgstr "Menyimpan berkas Mixar saat ini"
+msgid "Save the current Lampway file"
+msgstr "Menyimpan berkas Lampway saat ini"
 
-msgid "Exit Mixar after saving"
-msgstr "Keluar dari Mixar setelah menyimpan"
+msgid "Exit Lampway after saving"
+msgstr "Keluar dari Lampway setelah menyimpan"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
-msgstr "Berkas ini disimpan oleh versi Mixar yang lebih baru (%s)."
+msgid "This file was saved by a newer version of Lampway (%s)."
+msgstr "Berkas ini disimpan oleh versi Lampway yang lebih baru (%s)."
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
-msgstr "Menyimpannya dengan Mixar ini (%s) dapat menyebabkan hilangnya data."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
+msgstr "Menyimpannya dengan Lampway ini (%s) dapat menyebabkan hilangnya data."
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "Berkas ini dikelola oleh sistem aset Mixar. Berkas ini hanya dapat"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "Berkas ini dikelola oleh sistem aset Lampway. Berkas ini hanya dapat"
 
 msgid "Filter .mixar files"
 msgstr "Filter berkas .mixar"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
-msgstr "Driver grafis yang lebih baru mungkin tersedia dengan kompatibilitas Mixar yang lebih baik."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
+msgstr "Driver grafis yang lebih baru mungkin tersedia dengan kompatibilitas Lampway yang lebih baik."
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "Meningkatkan ke versi macOS terbaru dapat memperbaiki dukungan Mixar"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "Meningkatkan ke versi macOS terbaru dapat memperbaiki dukungan Lampway"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Mixar sekarang akan ditutup."
+msgid "Lampway will now close."
+msgstr "Lampway sekarang akan ditutup."

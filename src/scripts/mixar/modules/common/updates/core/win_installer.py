@@ -76,7 +76,7 @@ _PS_VERIFY = (
 )
 
 _SCRIPT_TEMPLATE = '''@echo off
-title Mixar Update
+title Lampway Update
 setlocal enableextensions
 set "LOG={log}"
 set "MSI={msi}"
@@ -85,9 +85,9 @@ set "RESULT={result}"
 set "PID={pid}"
 set "VERSION={version}"
 
-echo [%DATE% %TIME%] Mixar update helper started for %VERSION% >>"%LOG%" 2>&1
+echo [%DATE% %TIME%] Lampway update helper started for %VERSION% >>"%LOG%" 2>&1
 
-rem ---- wait for the running Mixar to exit -------------------------------
+rem ---- wait for the running Lampway to exit -------------------------------
 rem CSV output is matched on the quoted PID field, so a PID that also occurs
 rem inside the memory column cannot read as "still running".
 set /a WAITED=0
@@ -100,7 +100,7 @@ set /a WAITED+=1
 goto waitloop
 
 :timeout
-echo [%DATE% %TIME%] Mixar (pid %PID%) still running after {wait_s}s - aborting >>"%LOG%" 2>&1
+echo [%DATE% %TIME%] Lampway (pid %PID%) still running after {wait_s}s - aborting >>"%LOG%" 2>&1
 >"%RESULT%" echo version=%VERSION%
 >>"%RESULT%" echo stage=wait
 >>"%RESULT%" echo exit=timeout
@@ -109,7 +109,7 @@ exit /b 2
 :gone
 rem let Windows release the file handles the installer needs
 ping -n 3 127.0.0.1 >nul
-echo [%DATE% %TIME%] Mixar exited - installing %MSI% >>"%LOG%" 2>&1
+echo [%DATE% %TIME%] Lampway exited - installing %MSI% >>"%LOG%" 2>&1
 {signature_check}
 rem ---- install (raises the UAC prompt) ----------------------------------
 powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "{ps_install}" >>"%LOG%" 2>&1
@@ -128,13 +128,13 @@ echo [%DATE% %TIME%] Installer exit code: %INSTALL_EXIT% >>"%LOG%" 2>&1
 if "%INSTALL_EXIT%"=="0"    del /f /q "%MSI%" >nul 2>&1
 if "%INSTALL_EXIT%"=="3010" del /f /q "%MSI%" >nul 2>&1
 
-rem ---- bring Mixar back, whatever the installer decided ------------------
+rem ---- bring Lampway back, whatever the installer decided ------------------
 {relaunch}
-echo [%DATE% %TIME%] No Mixar executable found to relaunch >>"%LOG%" 2>&1
+echo [%DATE% %TIME%] No Lampway executable found to relaunch >>"%LOG%" 2>&1
 exit /b %INSTALL_EXIT%
 
 :relaunched
-echo [%DATE% %TIME%] Relaunched Mixar >>"%LOG%" 2>&1
+echo [%DATE% %TIME%] Relaunched Lampway >>"%LOG%" 2>&1
 exit /b %INSTALL_EXIT%
 '''
 

@@ -10,8 +10,8 @@ import uuid
 
 
 def discovery_directory():
-    override = os.environ.get("MIXAR_MCP_DISCOVERY_DIR")
-    return Path(override).expanduser() if override else Path.home() / ".mixar" / "mcp"
+    override = os.environ.get("LAMPWAY_MCP_DISCOVERY_DIR") or os.environ.get("MIXAR_MCP_DISCOVERY_DIR")      # the old variable works for one release
+    return Path(override).expanduser() if override else Path.home() / ".lampway" / "mcp"
 
 
 def publish(port, token, instance_id):

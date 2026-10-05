@@ -135,7 +135,7 @@ def test_texturing_headers_draw_the_space_switcher():
 def test_texturing_headers_keep_a_title_beside_the_switcher():
     for path, title in zip(HEADER_FILES, HEADER_TITLES, strict=True):
         src = _read(path)
-        assert title in src, f"{path.name} lost its Mixar title chrome"
+        assert title in src, f"{path.name} lost its Lampway title chrome"
         assert src.index("layout.template_header()") < src.index(title), (
             f"{path.name} draws its title before the Editor Type dropdown"
         )

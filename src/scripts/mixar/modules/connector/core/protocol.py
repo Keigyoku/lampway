@@ -34,7 +34,7 @@ def parse_export_body(raw: bytes | str) -> dict[str, Any]:
         "format": fmt,
         "destination": destination,
         "object_names": [str(name) for name in object_names],
-        "unreal_destination": str(payload.get("unreal_destination") or "/Game/Mixar/Imports"),
+        "unreal_destination": str(payload.get("unreal_destination") or "/Game/Lampway/Imports"),
         "actor_label": str(payload.get("actor_label") or "MixarScene"),
     }
 

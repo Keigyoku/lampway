@@ -239,7 +239,7 @@ class MIXAR_LAYERS_PT_main(Panel):
                     break
 
         if not mp:
-            main_col.label(text="No Mixar material found", icon='INFO')
+            main_col.label(text="No Lampway material found", icon='INFO')
             return
 
         # ========== NESTED LAYER LIST (Substance 3D Painter style with masks) ==========

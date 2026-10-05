@@ -33,7 +33,7 @@ def request(record, method, path, payload=None, headers=None, timeout=10):
                 reason = str(json.loads(raw)["error"])[:200]
             except (ValueError, KeyError, TypeError):
                 reason = ""
-            raise RuntimeError(reason or "Mixar connector unavailable (HTTP %d)" % response.status)
+            raise RuntimeError(reason or "Lampway connector unavailable (HTTP %d)" % response.status)
         return json.loads(raw) if raw else None
     finally:
         conn.close()
@@ -119,10 +119,10 @@ class Connector:
                     first = start and not self.started
                     self.started = self.started or start
                     if not ((first and start_app()) or start_in_progress()):
-                        raise RuntimeError("Mixar is not open, and no installed Mixar could be started" if start
-                                           else "Mixar is not open")
-                raise RuntimeError("Mixar is starting or unavailable" if not candidates else
-                                   "Several Mixar applications are open; select an instance through mixar_ui_context")
+                        raise RuntimeError("Lampway is not open, and no installed Lampway could be started" if start
+                                           else "Lampway is not open")
+                raise RuntimeError("Lampway is starting or unavailable" if not candidates else
+                                   "Several Lampway applications are open; select an instance through mixar_ui_context")
             self.record, health = candidates[0]
             # Once bound, losing the process must not select another open project.
             self.instance = self.record["instance_id"]
@@ -146,13 +146,13 @@ class Connector:
                 return "choose", text
             if "was closed" in text:
                 return "closed", text
-            if text.startswith("Mixar is not open"):
+            if text.startswith("Lampway is not open"):
                 return "absent", text
             return "starting", text
         if not signed_in(health):
             if health.get("signing_in"):
-                return "starting", "Mixar is restoring its sign-in"
-            return "signed_out", "Mixar is open but not signed in"
+                return "starting", "Lampway is restoring its sign-in"
+            return "signed_out", "Lampway is open but not signed in"
         return "ready", ""
 
     def _sessions(self, record):
@@ -176,7 +176,7 @@ class Connector:
     def _closed_message(self, live):
         apps = "; ".join("instance %s showing scene %r" % (record["instance_id"], health.get("scene_name", ""))
                          for record, health in live)
-        return ("The Mixar app this connection used was closed, and its scene is not open in the running app "
+        return ("The Lampway app this connection used was closed, and its scene is not open in the running app "
                 "(it may not have been saved). Open now: " + apps + ". To continue there, call "
                 "mixar_ui_context with that instance, then mixar_scenes to pick a scene tab or "
                 "mixar_scene_new; inspect the scene before editing.")
@@ -212,7 +212,7 @@ class Connector:
         # Only transport discovery retries. This request is deliberately attempted ONCE.
         response = request(record, "POST", "/ui" if local else "/mcp", message, headers, timeout=600 if not local else 35)
         if "result" not in response:
-            raise RuntimeError("Mixar rejected the tool call; recover using its call ID")
+            raise RuntimeError("Lampway rejected the tool call; recover using its call ID")
         if not response["result"].get("isError") and name in REPORTS_BINDING:
             payload = response["result"]["structuredContent"]
             result = payload["result"]

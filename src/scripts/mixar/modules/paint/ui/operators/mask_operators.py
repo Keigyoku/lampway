@@ -84,7 +84,7 @@ class MASKS_OT_RemoveMask(Operator):
         obj = get_active_object()
 
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp

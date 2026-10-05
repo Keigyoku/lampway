@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: ka\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,7 +28,7 @@ msgstr "აქტიური რიგი მცურავი ბუშტი
 msgid "Share Usage Data"
 msgstr "გამოყენების მონაცემების გაზიარება"
 
-msgid "Share content-free product usage events to help improve Mixar"
+msgid "Share content-free product usage events to help improve Lampway"
 msgstr "აზიარებს შიგთავსის გარეშე პროდუქტის გამოყენების მოვლენებს Mixar-ის გასაუმჯობესებლად"
 
 msgid "No generation services"
@@ -170,7 +170,7 @@ msgstr "დანამატის მოდულის სახელი უ
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "კონფიგურირებული დანამატის შესასვლელი წერტილი მიბმულ პროექტში ვერ მოიძებნა"
 
-msgid "The linked folder has no valid Mixar project metadata"
+msgid "The linked folder has no valid Lampway project metadata"
 msgstr "მიბმულ საქაღალდეს არ აქვს Mixar-ის პროექტის ვარგისი მეტამონაცემები"
 
 msgid "The project metadata version is not supported"
@@ -194,7 +194,7 @@ msgstr "შესასვლელი წერტილი ერთი ზე
 msgid "Set an active add-on before changing its enabled state"
 msgstr "ჩართულობის შეცვლამდე დააყენეთ აქტიური დანამატი"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "ბიბლიოთეკა"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "აგენტის ბუშტის ფანჯრის გახ
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "ხსნის აგენტის ბუშტს საკუთარ მცურავ ფანჯარაში"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "C++ ოპერატორი mixar.agent_bubble_show_window რეგისტრირებული არ არის — ხელახლა ააწყვეთ Mixar (make build), რომ agent_bubble-ის სივრცის ტიპის ოპერატორი აიტვირთოს."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "C++ ოპერატორი mixar.agent_bubble_show_window რეგისტრირებული არ არის — ხელახლა ააწყვეთ Lampway (make build), რომ agent_bubble-ის სივრცის ტიპის ოპერატორი აიტვირთოს."
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "აგენტის ბუშტის ფანჯრის გახსნა ვერ მოხერხდა: {error}"
@@ -651,7 +651,7 @@ msgstr ""
 msgid "AI generations"
 msgstr "AI წარმოქმნები"
 
-msgid "Everything Mixar has generated for you"
+msgid "Everything Lampway has generated for you"
 msgstr "ყველაფერი, რაც Mixar-მა თქვენთვის წარმოქმნა"
 
 msgid "My Libraries"
@@ -1421,16 +1421,16 @@ msgstr "დაუკავშირდით მხარდაჭერას �
 msgid "Select a provider with available models"
 msgstr "აირჩიეთ პროვაიდერი ხელმისაწვდომი მოდელებით"
 
-msgid "Managed by Mixar"
-msgstr "Mixar მართავს"
+msgid "Managed by Lampway"
+msgstr "Lampway მართავს"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar ჩამოტვირთავს და გაუშვებს შერჩეულ მოდელს ამ კომპიუტერზე"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway ჩამოტვირთავს და გაუშვებს შერჩეულ მოდელს ამ კომპიუტერზე"
 
 msgid "Custom local server"
 msgstr "მორგებული ლოკალური სერვერი"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
 msgstr "მიუთითეთ Mixar-ს OpenAI-სთან თავსებად სერვერზე, რომელსაც უკვე გაშვებული გაქვთ (Ollama, LM Studio, llama.cpp, ...)"
 
 msgid "Invalid form data — please reach out to support."
@@ -1553,7 +1553,7 @@ msgstr "მოდელი არ არის მონიშნული"
 msgid "Reset Agent Model"
 msgstr "აგენტის მოდელის პირველსახის დაბრუნება"
 
-msgid "Clear the saved model and let Mixar choose"
+msgid "Clear the saved model and let Lampway choose"
 msgstr "ასუფთავებს შენახულ მოდელს და Mixar-ს არჩევის საშუალებას აძლევს"
 
 msgid "Could not change model"
@@ -1577,7 +1577,7 @@ msgstr "აქტიური"
 msgid "Not configured"
 msgstr "არ არის კონფიგურირებული"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
 msgstr "გაუშვით Mixar-ის აგენტი საკუთარ პროვაიდერზე — სანამ ეს აქტიურია, Mixar-ის კრედიტები არ იხარჯება."
 
 msgid "Current Configuration"
@@ -1604,7 +1604,7 @@ msgstr "API გასაღების მოცილება…"
 msgid "Provider Setup"
 msgstr "პროვაიდერის მომზადება"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
 msgstr "ინახება დაშიფრულად და გამოიყენება მხოლოდ Mixar-ის აგენტის მოთხოვნებისთვის — შენახვის შემდეგ მხოლოდ შენიღბული გადახედვა ჩანს."
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
@@ -1631,7 +1631,7 @@ msgstr "ტერმინალში გაუშვით codex login, შე
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "~/.codex/auth.json-ის შიგთავსი (ჩასმის ღილაკი გაცვლის ბუფერს კითხულობს)."
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
 msgstr "იყენებს თქვენს ChatGPT-ის გამოწერას — Mixar-ის კრედიტები არ იხარჯება."
 
 msgid "Couldn't apply your changes"
@@ -1640,22 +1640,22 @@ msgstr "ცვლილებების გამოყენება ვე�
 msgid "Remove your API key?"
 msgstr "მოიცილოთ თქვენი API გასაღები?"
 
-msgid "The agent will use Mixar's default provider again."
+msgid "The agent will use Lampway's default provider again."
 msgstr "აგენტი კვლავ Mixar-ის ნაგულისხმებ პროვაიდერს გამოიყენებს."
 
-msgid "Mixar credits will be charged for future agent requests."
+msgid "Lampway credits will be charged for future agent requests."
 msgstr "მომავალი აგენტის მოთხოვნებისთვის Mixar-ის კრედიტები დაიხარჯება."
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
 msgstr "Mixar-ის აგენტი ახლა თქვენს პროვაიდერზე მუშაობს — Mixar-ის კრედიტები არ იხარჯება."
 
 msgid "API key removed"
 msgstr "API გასაღები მოცილებულია"
 
-msgid "The agent is back on Mixar's default provider."
+msgid "The agent is back on Lampway's default provider."
 msgstr "აგენტი კვლავ Mixar-ის ნაგულისხმებ პროვაიდერზეა."
 
-msgid "Mixar credits are charged for agent requests again."
+msgid "Lampway credits are charged for agent requests again."
 msgstr "აგენტის მოთხოვნებისთვის Mixar-ის კრედიტები კვლავ იხარჯება."
 
 msgid "Try Again"
@@ -1691,7 +1691,7 @@ msgstr "ჩამოტვირთულია — არ მუშაობს
 msgid "Not downloaded"
 msgstr "არ არის ჩამოტვირთული"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
 msgstr "მთლიანად ამ კომპიუტერზე მუშაობს — თქვენი პრომპტები მას არ ტოვებს, გარდა Mixar-ის აგენტის ორკესტრაციისა."
 
 msgid "Cancel Download"
@@ -1730,7 +1730,7 @@ msgstr "ლოკალური აპების ხელახალი ს
 msgid "Rescan this computer for running local AI apps"
 msgstr "ხელახლა ასკანირებს ამ კომპიუტერს გაშვებული ლოკალური AI აპების საპოვნელად"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
 msgstr "გამოიყენეთ საკუთარი API გასაღები Mixar-ის აგენტისთვის. სანამ ეს აქტიურია, აგენტის მოთხოვნებისთვის Mixar-ის კრედიტები არ იხარჯება."
 
 msgid "Validate with the provider and save your API key"
@@ -1844,7 +1844,7 @@ msgstr "LLM პროვაიდერი"
 msgid "Model to use with the selected provider"
 msgstr "მოდელი, რომელიც მონიშნულ პროვაიდერთან გამოიყენება"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
 msgstr "თქვენი API გასაღები ინახება დაშიფრულად და გამოიყენება მხოლოდ Mixar-ის აგენტის მოთხოვნებისთვის. შენახვის შემდეგ მხოლოდ შენიღბული გადახედვა ჩანს."
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
@@ -1859,8 +1859,8 @@ msgstr "~/.codex/auth.json-ის შიგთავსი (ჯერ გაუ�
 msgid "Local mode"
 msgstr "ლოკალური რეჟიმი"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "Mixar მართავს, ან თქვენი საკუთარი ლოკალური სერვერი"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Lampway მართავს, ან თქვენი საკუთარი ლოკალური სერვერი"
 
 msgid "Local model"
 msgstr "ლოკალური მოდელი"
@@ -1889,10 +1889,10 @@ msgstr "ჭეშმარიტია, როცა სერვერი ა�
 msgid "Dialog State"
 msgstr "დიალოგის მდგომარეობა"
 
-msgid "Set Mixie Mode"
+msgid "Set Lampway Agent Mode"
 msgstr "Mixie-ს რეჟიმის დაყენება"
 
-msgid "Switch to a specific Mixie mode"
+msgid "Switch to a specific Lampway Agent mode"
 msgstr "გადართვა Mixie-ს კონკრეტულ რეჟიმზე"
 
 msgid "Mode"
@@ -1928,8 +1928,8 @@ msgstr "მაღალი"
 msgid "Non-contiguous enum value 27"
 msgstr "არათანმიმდევრული ჩამონათვალის მნიშვნელობა 27"
 
-msgid "Mixie v3 run active"
-msgstr "Mixie v3 გაშვება აქტიურია"
+msgid "Lampway Agent v3 run active"
+msgstr "Lampway Agent v3 გაშვება აქტიურია"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "სერვერმა ისტორიის სინქრონიზაციის მოთხოვნა უარყო. განაახლეთ აპი და სერვერი, შემდეგ ხელახლა დაუკავშირდით."
@@ -2420,10 +2420,10 @@ msgstr "სივრცის ტიპი, რომელზეც გად�
 msgid "No active area"
 msgstr "აქტიური არე არ არის"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,7 +2438,7 @@ msgstr "ლოკალური გალერეის ქმედება"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "ზრდის დეველოპერის ფიქსტურის მთვლელს; წარმოქმნა და სცენა არ იცვლება"
 
-msgid "Mixar UI Gallery"
+msgid "Lampway UI Gallery"
 msgstr "Mixar-ის UI გალერეა"
 
 msgid "Inspect shared native components using local fixture data"
@@ -2468,7 +2468,7 @@ msgstr "კონფიდენციალურობა"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "ტელემეტრიის თანხმობა, იქ, სადაც მომხმარებლები ჩვეულებრივ უარს ეძებენ."
 
-msgid "Shares which Mixar features you use, to help improve the product."
+msgid "Shares which Lampway features you use, to help improve the product."
 msgstr "აზიარებს, Mixar-ის რომელ ფუნქციებს იყენებთ, პროდუქტის გასაუმჯობესებლად."
 
 msgid "Your prompts, files, and scene content are never included."
@@ -2477,7 +2477,7 @@ msgstr "თქვენი პრომპტები, ფაილები �
 msgid "Privacy Policy"
 msgstr "კონფიდენციალურობის პოლიტიკა"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "ნატიური"
 msgid "Blender theme"
 msgstr "Blender-ის თემა"
 
-msgid "Legacy Mixar"
-msgstr "ძველი Mixar"
+msgid "Legacy Lampway"
+msgstr "ძველი Lampway"
 
 msgid "Compatibility profile"
 msgstr "თავსებადობის პროფილი"
@@ -2624,11 +2624,11 @@ msgstr "კომპაქტური"
 msgid "Denser chrome recipe"
 msgstr "უფრო მკვრივი გაფორმების რეცეპტი"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "ადგილზე განახლებისთვის გადაიტანეთ Mixar აპლიკაციების საქაღალდეში"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "ადგილზე განახლებისთვის გადაიტანეთ Lampway აპლიკაციების საქაღალდეში"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar აპლიკაციის პაკეტიდან არ არის გაშვებული"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway აპლიკაციის პაკეტიდან არ არის გაშვებული"
 
 msgid "No permission to update {path}"
 msgstr "{path}-ის განახლების ნებართვა არ არის"
@@ -2660,8 +2660,8 @@ msgstr "ჩამოტვირთული დამყენებელი �
 msgid "Could not start the updater"
 msgstr "განმაახლებლის გაშვება ვერ მოხერხდა"
 
-msgid "Mixar didn't close"
-msgstr "Mixar არ დაიხურა"
+msgid "Lampway didn't close"
+msgstr "Lampway არ დაიხურა"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "აპში განახლებები ამ პლატფორმაზე მხარდაჭერილი არ არის"
@@ -2687,32 +2687,32 @@ msgstr "ჩამოტვირთულია {size}"
 msgid "Starting download…"
 msgstr "ჩამოტვირთვა იწყება…"
 
-msgid "Downloading Mixar {version}"
-msgstr "Mixar {version} ჩამოიტვირთება"
+msgid "Downloading Lampway {version}"
+msgstr "Lampway {version} ჩამოიტვირთება"
 
-msgid "Mixar will restart to finish updating."
-msgstr "განახლების დასასრულებლად Mixar გადაიტვირთება."
+msgid "Lampway will restart to finish updating."
+msgstr "განახლების დასასრულებლად Lampway გადაიტვირთება."
 
-msgid "Mixar Update Ready"
+msgid "Lampway Update Ready"
 msgstr "Mixar-ის განახლება მზადაა"
 
 msgid "Version {version} is ready to install."
 msgstr "ვერსია {version} დასაყენებლად მზადაა."
 
-msgid "Mixar Update Required"
+msgid "Lampway Update Required"
 msgstr "Mixar-ის განახლება აუცილებელია"
 
-msgid "Mixar Update Available"
+msgid "Lampway Update Available"
 msgstr "Mixar-ის განახლება ხელმისაწვდომია"
 
 msgid "Version {version} is available."
 msgstr "ვერსია {version} ხელმისაწვდომია."
 
-msgid "This update is required to continue using Mixar."
+msgid "This update is required to continue using Lampway."
 msgstr "ეს განახლება აუცილებელია Mixar-ის გამოყენების გასაგრძელებლად."
 
-msgid "Mixar will restart to apply it."
-msgstr "მის გამოსაყენებლად Mixar გადაიტვირთება."
+msgid "Lampway will restart to apply it."
+msgstr "მის გამოსაყენებლად Lampway გადაიტვირთება."
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error} — განახლებისთვის ბრაუზერით გამოიყენეთ ჩამოტვირთვა."
@@ -2729,11 +2729,11 @@ msgstr "ხელახლა დასაყენებლად დააწ�
 msgid "Update paused"
 msgstr "განახლება შეჩერებულია"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar არ დაიხურა, ამიტომ განახლება არ დაყენდა."
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway არ დაიხურა, ამიტომ განახლება არ დაყენდა."
 
-msgid "Mixar is up to date"
-msgstr "Mixar აქტუალურია"
+msgid "Lampway is up to date"
+msgstr "Lampway აქტუალურია"
 
 msgid "You're running the latest version ({version})."
 msgstr "გაშვებული გაქვთ უახლესი ვერსია ({version})."
@@ -2747,11 +2747,11 @@ msgstr "შეამოწმეთ ინტერნეტკავშირ�
 msgid "Update didn't take effect"
 msgstr "განახლება არ ამოქმედდა"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "დაყენდა Mixar {target}, მაგრამ გაეშვა ვერსია {running}. ხელახლა დააყენეთ ჩამოტვირთვების გვერდიდან."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "დაყენდა Lampway {target}, მაგრამ გაეშვა ვერსია {running}. ხელახლა დააყენეთ ჩამოტვირთვების გვერდიდან."
 
-msgid "Updated to Mixar {version}"
-msgstr "განახლდა Mixar {version}-მდე"
+msgid "Updated to Lampway {version}"
+msgstr "განახლდა Lampway {version}-მდე"
 
 msgid "The update was installed successfully."
 msgstr "განახლება წარმატებით დაყენდა."
@@ -2765,8 +2765,8 @@ msgstr "{reason} განახლების ჩამოტვირთვ�
 msgid "Update was not installed"
 msgstr "განახლება არ დაყენდა"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "Mixar კვლავ მუშაობდა, როცა დამყენებელი გაშვებას ცდილობდა."
+msgid "Lampway was still running when the installer tried to start."
+msgstr "Lampway კვლავ მუშაობდა, როცა დამყენებელი გაშვებას ცდილობდა."
 
 msgid "The downloaded installer failed its signature check."
 msgstr "ჩამოტვირთულმა დამყენებელმა ხელმოწერის შემოწმება ვერ გაიარა."
@@ -2774,7 +2774,7 @@ msgstr "ჩამოტვირთულმა დამყენებელ�
 msgid "The downloaded installer could not be opened."
 msgstr "ჩამოტვირთული დამყენებლის გახსნა ვერ მოხერხდა."
 
-msgid "Mixar could not be replaced on disk."
+msgid "Lampway could not be replaced on disk."
 msgstr "Mixar-ის დისკზე ჩანაცვლება ვერ მოხერხდა."
 
 msgid "The installation was cancelled."
@@ -2786,8 +2786,8 @@ msgstr "Windows Installer-მა საბედისწერო შეცდ�
 msgid "The installer did not finish."
 msgstr "დამყენებელმა არ დაასრულა."
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "გადატვირთეთ Mixar და დააყენეთ ჩამოტვირთული განახლება"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "გადატვირთეთ Lampway და დააყენეთ ჩამოტვირთული განახლება"
 
 msgid "Save Changes"
 msgstr "ცვლილებების შენახვა"
@@ -2795,14 +2795,14 @@ msgstr "ცვლილებების შენახვა"
 msgid "Save the current file before restarting"
 msgstr "ინახავს მიმდინარე ფაილს გადატვირთვამდე"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "განახლება ჩამოიტვირთება — Mixar გადაიტვირთება, როცა მზად იქნება"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "განახლება ჩამოიტვირთება — Lampway გადაიტვირთება, როცა მზად იქნება"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar დაიხურება და განახლდება {version}-მდე."
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway დაიხურება და განახლდება {version}-მდე."
 
 msgid "It reopens automatically when the update is done."
 msgstr "განახლების დასრულებისას თავისით იხსნება."
@@ -2831,13 +2831,13 @@ msgstr "განახლების ჩამოტვირთვის შ�
 msgid "This update is required and cannot be cancelled"
 msgstr "ეს განახლება აუცილებელია და გაუქმება შეუძლებელია"
 
-msgid "Open the Mixar downloads page in the default browser"
+msgid "Open the Lampway downloads page in the default browser"
 msgstr "ხსნის Mixar-ის ჩამოტვირთვების გვერდს ნაგულისხმებ ბრაუზერში"
 
 msgid "Check for Updates"
 msgstr "განახლებების შემოწმება"
 
-msgid "Check whether a newer version of Mixar is available"
+msgid "Check whether a newer version of Lampway is available"
 msgstr "ამოწმებს, ხელმისაწვდომია თუ არა Mixar-ის უფრო ახალი ვერსია"
 
 msgid "An update check is already in progress"
@@ -2849,7 +2849,7 @@ msgstr "განახლებები მოწმდება…"
 msgid "Update Available"
 msgstr "განახლება ხელმისაწვდომია"
 
-msgid "Show details for the pending Mixar update"
+msgid "Show details for the pending Lampway update"
 msgstr "აჩვენებს მომლოდინე Mixar-ის განახლების დეტალებს"
 
 msgid "View Changelog"
@@ -2969,13 +2969,13 @@ msgstr "საჩვენებელი სახელი ანგარი�
 msgid "Newer File Version"
 msgstr "ფაილის უფრო ახალი ვერსია"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
+msgid "Warn user that the file was saved by a newer Lampway version"
 msgstr "აფრთხილებს მომხმარებელს, რომ ფაილი Mixar-ის უფრო ახალმა ვერსიამ შეინახა"
 
 msgid "File Version"
 msgstr "ფაილის ვერსია"
 
-msgid "This file was saved by Mixar version {version}."
+msgid "This file was saved by Lampway version {version}."
 msgstr "ეს ფაილი Mixar-ის ვერსიამ {version} შეინახა."
 
 msgid "Some data may be missing or incorrect."
@@ -2990,7 +2990,7 @@ msgstr "ექსპორტისთვის ხელმისაწვდ�
 msgid "Start Connector Sidecar"
 msgstr "დამკავშირებლის გვერდითი პროცესის გაშვება"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
+msgid "Expose Lampway to the hub over loopback HTTP"
 msgstr "ხსნის Mixar-ს ჰაბისთვის loopback HTTP-ით"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
@@ -2999,7 +2999,7 @@ msgstr "დამკავშირებლის გვერდითი პ�
 msgid "Export Scene to Unreal"
 msgstr "სცენის ექსპორტი Unreal-ში"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
 msgstr "ახდენს მიმდინარე Mixar-ის სცენის ექსპორტს Unreal-ისთვის მზა USD/FBX/GLB-ად"
 
 msgid "Exported {filename} ({count} meshes)"
@@ -3020,7 +3020,7 @@ msgstr "ჰაბი :7734 · Unreal MCP :8000/mcp · UnrealMCP TCP :55557"
 msgid "Hub Sidecar"
 msgstr "ჰაბის გვერდითი პროცესი"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
 msgstr "ხსნის ამ Mixar-ის სესიას mixar-connector-ისთვის loopback HTTP-ით"
 
 msgid "Sidecar Port"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,7 +3119,7 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
+msgid "Lampway Shot Camera"
 msgstr "Mixar-ის შოტის კამერა"
 
 msgid "Shot"
@@ -3563,7 +3563,7 @@ msgstr "შოტს კამერა არ აქვს"
 msgid "Capture at least one camera beat before locking"
 msgstr "დაბლოკვამდე დააფიქსირეთ სულ ცოტა ერთი კამერის მომენტი"
 
-msgid "Mixar Focus"
+msgid "Lampway Focus"
 msgstr "Mixar-ის ფოკუსი"
 
 msgid "Rendering…"
@@ -4241,7 +4241,7 @@ msgstr "რენდერის პროგრესი"
 msgid "Render Status"
 msgstr "რენდერის სტატუსი"
 
-msgid "Mixar Camera Export"
+msgid "Lampway Camera Export"
 msgstr "Mixar-ის კამერის ექსპორტი"
 
 msgid "Export this scene's camera animation to the Moodboard"
@@ -4493,13 +4493,13 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
+msgid "Lampway Director"
 msgstr "Mixar-ის რეჟისორი"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "მეჩხერი კამერის მიმართულების შოტები ამ სცენისთვის"
 
-msgid "Mixar Output"
+msgid "Lampway Output"
 msgstr "Mixar-ის გამონატანი"
 
 msgid "Output aspect ratio this camera frames for"
@@ -4964,19 +4964,19 @@ msgstr "ლოკალური სერვერის მოდელი"
 msgid "Local model last error"
 msgstr "ლოკალური მოდელის ბოლო შეცდომა"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,25 +7789,25 @@ msgstr "შეცდომის ტექსტი"
 msgid "Error message if job failed"
 msgstr "შეცდომის შეტყობინება, თუ დავალება ჩავარდა"
 
-msgid "Mixie Moodboard Images"
+msgid "Lampway Agent Moodboard Images"
 msgstr "Mixie-ს მუდბორდის გამოსახულებები"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "რეფერენსი გამოსახულებების კოლექცია მუდბორდის რეჟიმში"
 
-msgid "Mixie Moodboard Text Boxes"
+msgid "Lampway Agent Moodboard Text Boxes"
 msgstr "Mixie-ს მუდბორდის ტექსტური გრაფები"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "ტექსტური გრაფების კოლექცია მუდბორდის რეჟიმში"
 
-msgid "Mixie Moodboard Frames"
+msgid "Lampway Agent Moodboard Frames"
 msgstr "Mixie-ს მუდბორდის ჩარჩოები"
 
 msgid "Canvas frames grouping board items"
 msgstr "ტილოს ჩარჩოები, რომლებიც დაფის საგნებს აჯგუფებს"
 
-msgid "Mixie Moodboard Groups (legacy)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
 msgstr "Mixie-ს მუდბორდის ჯგუფები (მოძველებული)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
@@ -8917,7 +8917,7 @@ msgstr "სინქრონიზებულია {count} მუდბორ
 msgid "Attach Selected Moodboard Image"
 msgstr "მონიშნული მუდბორდის გამოსახულების მიმაგრება"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
 msgstr "კოპირებს მონიშნულ გამოსახულებებს, ვიდეოებს, ტექსტურ გრაფებს და ინფერენსის კვანძებს (კავშირებითა და შედეგებით); ჩასვით {shortcut}-ით ამ ან სხვა Mixar-ის ასლში"
 
 msgid "Nothing selected to copy"
@@ -9244,7 +9244,7 @@ msgstr "გაცვლის ბუფერის წაკითხვა ვ
 msgid "Paste"
 msgstr "ჩასმა"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
 msgstr "ჩასვით მუდბორდზე დაკოპირებული — ამ ან სხვა Mixar-ის ასლში — ან სისტემის გაცვლის ბუფერის გამოსახულება ({shortcut})"
 
 msgid "Pasted {count} item"
@@ -10642,13 +10642,13 @@ msgstr "მუდბორდის ანოტაციები"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
+msgid "Welcome to Lampway"
 msgstr "კეთილი იყოს თქვენი მობრძანება Mixar-ში"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,19 +10669,19 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
+msgid "Lampway Operation History ID"
 msgstr "Mixar-ის ოპერაციების ისტორიის ID"
 
 msgid "Persistent per-scene id keying this scene's operation history."
@@ -13051,8 +13051,8 @@ msgstr "ექსპორტის არხის სახელი"
 msgid "File format for export"
 msgstr "ფაილის ფორმატი ექსპორტისთვის"
 
-msgid "No active Mixar node found"
-msgstr "აქტიური Mixar კვანძი ვერ მოიძებნა"
+msgid "No active Lampway node found"
+msgstr "აქტიური Lampway კვანძი ვერ მოიძებნა"
 
 msgid "Exported '{name}' to {path}"
 msgstr "„{name}“ ექსპორტირებულია აქ: {path}"
@@ -13201,8 +13201,8 @@ msgstr "შრის დროებითი გამოსახულებ�
 msgid "Bake Temporary Image"
 msgstr "დროებითი გამოსახულების ცხობა"
 
-msgid "No active Mixar node found!"
-msgstr "აქტიური Mixar კვანძი ვერ მოიძებნა!"
+msgid "No active Lampway node found!"
+msgstr "აქტიური Lampway კვანძი ვერ მოიძებნა!"
 
 msgid "No active layer found!"
 msgstr "აქტიური შრე ვერ მოიძებნა!"
@@ -13345,8 +13345,8 @@ msgstr "არხის ცხობა წვეროს ფერში"
 msgid "Bake All Materials"
 msgstr "ყველა მასალის ცხობა"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "ყველა მასალის ცხობა Mixar Paint კვანძებით, არა მხოლოდ აქტიურის"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "ყველა მასალის ცხობა Lampway Paint კვანძებით, არა მხოლოდ აქტიურის"
 
 msgid "Target Vertex Color Name"
 msgstr "სამიზნე წვეროს ფერის სახელი"
@@ -13574,8 +13574,8 @@ msgstr ""
 msgid "Copy Image Path To Clipboard"
 msgstr "გამოსახულების გზის კოპირება გაცვლის ბუფერში"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint გამოსახულების ფაილის გზას სისტემის გაცვლის ბუფერში კოპირებს"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint გამოსახულების ფაილის გზას სისტემის გაცვლის ბუფერში კოპირებს"
 
 msgid "Copied: {text}"
 msgstr "დაკოპირდა: {text}"
@@ -13583,8 +13583,8 @@ msgstr "დაკოპირდა: {text}"
 msgid "Open Containing Image Folder"
 msgstr "გამოსახულების შემცველი საქაღალდის გახსნა"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint ხსნის გამოსახულების ფაილის შემცველ საქაღალდეს და გამოყოფს მას"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint ხსნის გამოსახულების ფაილის შემცველ საქაღალდეს და გამოყოფს მას"
 
 msgid "File does not exist"
 msgstr "ფაილი არ არსებობს"
@@ -15054,8 +15054,8 @@ msgstr "ნიღბის ჩართვა"
 msgid "Active Mask"
 msgstr "აქტიური ნიღაბი"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "აქტიური ნიღაბი Blender-ის ხატვისა და რედაქტირების რეჟიმისთვის, ან Mixar Paint-ის ნიღბის გადახედვის რეჟიმისთვის"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "აქტიური ნიღაბი Blender-ის ხატვისა და რედაქტირების რეჟიმისთვის, ან Lampway Paint-ის ნიღბის გადახედვის რეჟიმისთვის"
 
 msgid "Mask Source Input"
 msgstr "ნიღბის წყაროს შენატანი"
@@ -15156,14 +15156,14 @@ msgstr "ყველა არხის ცხობა"
 msgid "Delete Baked Images"
 msgstr "გამოცხობილი გამოსახულებების წაშლა"
 
-msgid "New Mixar Paint Modifier"
-msgstr "ახალი Mixar Paint მოდიფიკატორი"
+msgid "New Lampway Paint Modifier"
+msgstr "ახალი Lampway Paint მოდიფიკატორი"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Mixar Paint მოდიფიკატორის გადატანა"
+msgid "Move Lampway Paint Modifier"
+msgstr "Lampway Paint მოდიფიკატორის გადატანა"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Mixar Paint მოდიფიკატორის მოცილება"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Lampway Paint მოდიფიკატორის მოცილება"
 
 msgid "Add Channel Modifier"
 msgstr "არხის მოდიფიკატორის მიმატება"
@@ -15297,8 +15297,8 @@ msgstr "არხი „{name}“ უკვე არსებობს"
 msgid "Build Layered Material"
 msgstr "შრეებიანი მასალის აწყობა"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "Mixar ხატვის მასალის აწყობა შრეებიანი მასალის მანიფესტიდან"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "Lampway ხატვის მასალის აწყობა შრეებიანი მასალის მანიფესტიდან"
 
 msgid "Manifest JSON"
 msgstr "მანიფესტის JSON"
@@ -15921,8 +15921,8 @@ msgstr "ამ შრის სახელის გადარქმევა
 msgid "New name for the layer"
 msgstr "შრის ახალი სახელი"
 
-msgid "No active Mixar node"
-msgstr "აქტიური Mixar კვანძი არ არის"
+msgid "No active Lampway node"
+msgstr "აქტიური Lampway კვანძი არ არის"
 
 msgid "Name cannot be empty"
 msgstr "სახელი ცარიელი ვერ იქნება"
@@ -16071,11 +16071,11 @@ msgstr "შრის თვისებების ხედზე დაბრ
 msgid "Add different types of masks to the active layer"
 msgstr "სხვადასხვა ტიპის ნიღბების მიმატება აქტიურ შრეზე"
 
-msgid "Remove Mixar Paint Node"
-msgstr "Mixar Paint კვანძის მოცილება"
+msgid "Remove Lampway Paint Node"
+msgstr "Lampway Paint კვანძის მოცილება"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Mixar Paint კვანძის მოცილება, მაგრამ ყველა გამოცხობილი არხის გამოსახულების შენარჩუნება"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Lampway Paint კვანძის მოცილება, მაგრამ ყველა გამოცხობილი არხის გამოსახულების შენარჩუნება"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "ეს {addon} კვანძების ანაწყობი ჯერ გამოცხობილი არ არის!"
@@ -16227,8 +16227,8 @@ msgstr "მასალის გამოყენება აქტიურ 
 msgid "Material '{name}' not found in registry"
 msgstr "მასალა „{name}“ რეესტრში ვერ მოიძებნა"
 
-msgid "No active Mixar Paint node found"
-msgstr "აქტიური Mixar Paint კვანძი ვერ მოიძებნა"
+msgid "No active Lampway Paint node found"
+msgstr "აქტიური Lampway Paint კვანძი ვერ მოიძებნა"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "მასალა „{name}“ გამოყენებულია არსებულ შრეზე"
@@ -16431,8 +16431,8 @@ msgstr "შრეებზე დაფუძნებული მასალ�
 msgid "To use texture baking:"
 msgstr "ტექსტურის ცხობის გამოსაყენებლად:"
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. მონიშნეთ ობიექტი Mixar მასალით"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. მონიშნეთ ობიექტი Lampway მასალით"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "  2. ან შექმენით ახალი შრეებზე დაფუძნებული მასალა"
@@ -16533,8 +16533,8 @@ msgstr "ხატვის ბექენდი ინიციალიზე�
 msgid "Paint UI not initialized"
 msgstr "ხატვის ინტერფეისი ინიციალიზებული არ არის"
 
-msgid "No Mixar material found"
-msgstr "Mixar მასალა ვერ მოიძებნა"
+msgid "No Lampway material found"
+msgstr "Lampway მასალა ვერ მოიძებნა"
 
 msgid "No layer based material"
 msgstr "შრეებზე დაფუძნებული მასალა არ არის"
@@ -16551,8 +16551,8 @@ msgstr "შრე მონიშნული არ არის"
 msgid "No active material"
 msgstr "აქტიური მასალა არ არის"
 
-msgid "No Mixar node found"
-msgstr "Mixar კვანძი ვერ მოიძებნა"
+msgid "No Lampway node found"
+msgstr "Lampway კვანძი ვერ მოიძებნა"
 
 msgid "Backend layer not found"
 msgstr "ხატვის ბექენდის შრე ვერ მოიძებნა"
@@ -17227,16 +17227,16 @@ msgstr "შრე ამჟამად ფოკუსშია/მონიშ
 msgid "How this layer blends with layers below"
 msgstr "როგორ ეზავება ეს შრე ქვედა შრეებს"
 
-msgid "Mixar Layer Index"
+msgid "Lampway Layer Index"
 msgstr "Mixar-ის შრის ინდექსი"
 
-msgid "Index in Mixar mixar_mp.layers collection"
+msgid "Index in Lampway mixar_mp.layers collection"
 msgstr "ინდექსი Mixar-ის mixar_mp.layers კოლექციაში"
 
-msgid "Mixar Group Node"
+msgid "Lampway Group Node"
 msgstr "Mixar-ის ჯგუფის კვანძი"
 
-msgid "Name of the Mixar group node"
+msgid "Name of the Lampway group node"
 msgstr "Mixar-ის ჯგუფის კვანძის სახელი"
 
 msgid "Updating Property"
@@ -18312,8 +18312,8 @@ msgstr "სხვა ობიექტის ფერი"
 msgid "Other Objects Channels"
 msgstr "სხვა ობიექტების არხები"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "სხვა ობიექტის Mixar Paint არხები"
+msgid "Other object's Lampway Paint channels"
+msgstr "სხვა ობიექტის Lampway Paint არხები"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "მონიშნული წვეროები/წიბოები/წახნაგები"
@@ -18639,16 +18639,16 @@ msgstr ""
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
 msgstr "Mixar-ის დანამატების დირექტორიის შექმნა ვერ მოხერხდა — შეამოწმეთ ნებართვები მომხმარებლის პროფილის საქაღალდეზე."
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
 msgstr "Mixar-ის გაფართოებების დირექტორიის შექმნა ვერ მოხერხდა — შეამოწმეთ ნებართვები მომხმარებლის პროფილის საქაღალდეზე."
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "ჩართვა ვერ მოხერხდა (შეიძლება Blender 5.0-თან შეუთავსებელი იყოს)"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
 msgstr "არსებული Blender-ის დაყენებიდან დანამატებისა და გაფართოებების Mixar-ში გადმოტანა."
 
 msgid "Scan for Blender Plugins"
@@ -18672,13 +18672,13 @@ msgstr "ჩართვა იმპორტის შემდეგ:"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "სიაში ყველა დანამატი კოპირდება; მონიშნულები ირთვება."
 
-msgid "Import into Mixar"
+msgid "Import into Lampway"
 msgstr "იმპორტი Mixar-ში"
 
 msgid "Imported"
 msgstr "იმპორტირებულია"
 
-msgid "Already in Mixar"
+msgid "Already in Lampway"
 msgstr "უკვე Mixar-შია"
 
 msgid "Copy failed"
@@ -18705,10 +18705,10 @@ msgstr "დანამატების მონიშვნა"
 msgid "Tick or untick every plugin in the list"
 msgstr "სიაში ყველა დანამატის მონიშვნა ან მონიშვნის მოხსნა"
 
-msgid "Import Plugins into Mixar"
+msgid "Import Plugins into Lampway"
 msgstr "დანამატების იმპორტი Mixar-ში"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
 msgstr "სიაში ყველა დანამატის კოპირება Mixar-ში და მონიშნულების ჩართვა"
 
 msgid "Nothing scanned — run Scan first"
@@ -18726,7 +18726,7 @@ msgstr "იმპორტირებულია {imported}, უკვე ა�
 msgid "Imported: {count}"
 msgstr "იმპორტირებულია: {count}"
 
-msgid "Already in Mixar: {count}"
+msgid "Already in Lampway: {count}"
 msgstr "უკვე Mixar-შია: {count}"
 
 msgid "Enabled: {count}"
@@ -18744,7 +18744,7 @@ msgstr "იმპორტი Blender-იდან"
 msgid "{count} found"
 msgstr "ნაპოვნია: {count}"
 
-msgid "Enable this plugin in Mixar after importing it"
+msgid "Enable this plugin in Lampway after importing it"
 msgstr "იმპორტის შემდეგ ამ დანამატის Mixar-ში ჩართვა"
 
 msgid "Blender Version"
@@ -18798,13 +18798,13 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
+msgid "Lampway Scene Graph"
 msgstr "Mixar-ის სცენის გრაფი"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "სცენის მიხედვით აგენტისთვის წასაკითხი სცენის გრაფი (JSON). მხოლოდ გაშვებისას."
 
-msgid "Mixar Scene Graph Query Result"
+msgid "Lampway Scene Graph Query Result"
 msgstr "Mixar-ის სცენის გრაფის მოთხოვნის შედეგი"
 
 msgid "JSON result of the last scene-graph query operator call."
@@ -19524,7 +19524,7 @@ msgstr "ვიდეოებს სჭირდება ვიდეო რე
 msgid "User ID"
 msgstr "მომხმარებლის ID"
 
-msgid "User ID for Mixie Chat login"
+msgid "User ID for Lampway Agent Chat login"
 msgstr "მომხმარებლის ID Mixie-ს ჩატში შესვლისთვის"
 
 msgid "Agent expects: {formats}"
@@ -19983,10 +19983,10 @@ msgstr "ხმოვანი შენატანის დაწყება�
 msgid "Sign in to use voice input."
 msgstr "ხმოვანი შენატანის გამოსაყენებლად შედით."
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "მიკროფონზე წვდომის დასაშვებად გაუშვით Mixar Finder-იდან."
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "მიკროფონზე წვდომის დასაშვებად გაუშვით Lampway Finder-იდან."
 
-msgid "Allow microphone access for Mixar in system privacy settings."
+msgid "Allow microphone access for Lampway in system privacy settings."
 msgstr "სისტემის კონფიდენციალობის ანაწყობებში დაუშვით Mixar-ისთვის მიკროფონზე წვდომა."
 
 msgid "Allow microphone"
@@ -20034,8 +20034,8 @@ msgstr "გთხოვთ, თავიდან შეხვიდეთ."
 msgid "Login Failed"
 msgstr "შესვლა ვერ მოხერხდა"
 
-msgid "Sign in with your Mixar account"
-msgstr "შედით თქვენი Mixar ანგარიშით"
+msgid "Sign in with your Lampway account"
+msgstr "შედით თქვენი Lampway ანგარიშით"
 
 msgid "Waiting for browser..."
 msgstr "ბრაუზერს ელოდება..."
@@ -20063,7 +20063,7 @@ msgstr ""
 msgid "Dashboard"
 msgstr "მართვის პანელი"
 
-msgid "About Mixar"
+msgid "About Lampway"
 msgstr "Mixar-ის შესახებ"
 
 msgid "Documentation"
@@ -20566,7 +20566,7 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "ექსპორტირდა ჩატისგან გაწმენდილი ასლი (გამოტოვებული შეტყობინებები: {count}, სცენებიდან: {scenes})."
 
-msgid "Mixar Chat: Export .blend without chat history"
+msgid "Lampway Chat: Export .blend without chat history"
 msgstr "Mixar-ის ჩატი: .blend-ის ექსპორტი ჩატის ისტორიის გარეშე"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "წესების მიმატება"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "განსაზღვრეთ წესები Mixie-სთვის. ცვლილებები გამოიყენება შემდეგ შეტყობინებაზე ან პასუხზე; გლობალური წესები მოქმედებს ყოველ Mixar ფაილში. თქვენი მიმდინარე მოთხოვნა პროექტის და გლობალურ წესებზე უპირატესია"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "განსაზღვრეთ წესები Mixie-სთვის. ცვლილებები გამოიყენება შემდეგ შეტყობინებაზე ან პასუხზე; გლობალური წესები მოქმედებს ყოველ Lampway ფაილში. თქვენი მიმდინარე მოთხოვნა პროექტის და გლობალურ წესებზე უპირატესია"
 
 msgid "Rule operation failed"
 msgstr "წესის ოპერაცია ვერ მოხერხდა"
@@ -22138,8 +22138,8 @@ msgstr "უკანასკნელი ამოღებული მეტ�
 msgid "Materials: {count}"
 msgstr "მასალები: {count}"
 
-msgid "No Mixar material active"
-msgstr "აქტიური Mixar მასალა არ არის"
+msgid "No Lampway material active"
+msgstr "აქტიური Lampway მასალა არ არის"
 
 msgid "{channel} Settings"
 msgstr "{channel} ანაწყობები"
@@ -22801,8 +22801,8 @@ msgstr "მასშტაბი Y"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "მონიშნული UV-ების მასშტაბირება Y მიმართულებით (ნამატით)"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "ანოტაციის ხელსაწყოს თვისებები Mixar UV თვისებების სივრცისთვის."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "ანოტაციის ხელსაწყოს თვისებები Lampway UV თვისებების სივრცისთვის."
 
 msgid "Annotate Line"
 msgstr "ხაზოვანი ანოტაცია"
@@ -22828,14 +22828,14 @@ msgstr "სტილი დასაწყისის"
 msgid "Toggle UV Sidebar"
 msgstr "UV გვერდითა ზოლის გადართვა"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "Mixar UV გვერდითა ზოლის გადართვა გამოსახულების რედაქტორში"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "Lampway UV გვერდითა ზოლის გადართვა გამოსახულების რედაქტორში"
 
 msgid "Open UV Sidebar"
 msgstr "UV გვერდითა ზოლის გახსნა"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Mixar UV გვერდითა ზოლის გახსნა, თუ დამალულია"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Lampway UV გვერდითა ზოლის გახსნა, თუ დამალულია"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "ცარიელი მდგომარეობა, როცა UV თვისებები ხელმისაწვდომი არ არის"
@@ -22858,8 +22858,8 @@ msgstr "UV განლაგების ექსპორტი"
 msgid "Export UV layout using stored properties"
 msgstr "UV განლაგების ექსპორტი შენახული თვისებებით"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "UV ექსპორტის პანელი Mixar UV თვისებების სივრცისთვის"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "UV ექსპორტის პანელი Lampway UV თვისებების სივრცისთვის"
 
 msgid "UV UI not initialized"
 msgstr "UV UI არ არის ინიციალიზებული"
@@ -22975,8 +22975,8 @@ msgstr "UV-ს ჩასმა"
 msgid "Functions"
 msgstr "ფუნქციები"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "UV ფუნქციების პანელი Mixar UV თვისებების სივრცისთვის - ხელსაწყოზე დაფუძნებული (კოლონტიტულის ღილაკის გარეშე)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "UV ფუნქციების პანელი Lampway UV თვისებების სივრცისთვის - ხელსაწყოზე დაფუძნებული (კოლონტიტულის ღილაკის გარეშე)"
 
 msgid "Seam"
 msgstr "ნაკერი"
@@ -23104,8 +23104,8 @@ msgstr "UV რედაქტორში გამოსახულება �
 msgid "Material '{name}' created and applied"
 msgstr "მასალა '{name}' შეიქმნა და გამოიყენა"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "გამოსახულების პანელი Mixar UV თვისებების სივრცისთვის."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "გამოსახულების პანელი Lampway UV თვისებების სივრცისთვის."
 
 msgid "Save As"
 msgstr "შენახვა, როგორც"
@@ -23137,8 +23137,8 @@ msgstr "გამოსახულების ზომა"
 msgid "Invert All Colors"
 msgstr "ყველა ფერის შებრუნება"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "მასალის სლოტის პანელი Mixar UV თვისებების სივრცისთვის"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "მასალის სლოტის პანელი Lampway UV თვისებების სივრცისთვის"
 
 msgid "No active object"
 msgstr "აქტიური ობიექტი არ არის"
@@ -23182,8 +23182,8 @@ msgstr "მორგებული არეების შექმნა UV 
 msgid "{label} unavailable"
 msgstr "{label} მიუწვდომელია"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "განლაგების პანელი Mixar UV თვისებების სივრცისთვის."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "განლაგების პანელი Lampway UV თვისებების სივრცისთვის."
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "uv.pack_islands თვისებები მიუწვდომელია"
@@ -23329,8 +23329,8 @@ msgstr "პროეცირება"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "UV-ების პროეცირება პროექციის პანელში ნაჩვენები ტიპითა და თვისებებით"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Mixar UV UI მდგომარეობა არ არის ინიციალიზებული"
+msgid "Lampway UV UI state not initialized"
+msgstr "Lampway UV UI მდგომარეობა არ არის ინიციალიზებული"
 
 msgid "Unknown projection type: {type}"
 msgstr "უცნობი პროექციის ტიპი: {type}"
@@ -23461,8 +23461,8 @@ msgstr "დაკავშირებულის მონიშვნა"
 msgid "Select linked UVs"
 msgstr "დაკავშირებული UV-ების მონიშვნა"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "მონიშვნის პანელი Mixar UV თვისებების სივრცისთვის - ხელსაწყოზე დაფუძნებული (კოლონტიტულის ღილაკის გარეშე)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "მონიშვნის პანელი Lampway UV თვისებების სივრცისთვის - ხელსაწყოზე დაფუძნებული (კოლონტიტულის ღილაკის გარეშე)"
 
 msgid "Basic Selection"
 msgstr "ძირითადი მონიშვნა"
@@ -23503,8 +23503,8 @@ msgstr "გახლეჩის არჩევა"
 msgid "Select Overlap"
 msgstr "პირგადადების მონიშვნა"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "ტექსელის სიხშირის პანელი Mixar UV თვისებების სივრცისთვის"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "ტექსელის სიხშირის პანელი Lampway UV თვისებების სივრცისთვის"
 
 msgid "Activate Grab Tool"
 msgstr "გადათრევის ხელსაწყოს გააქტიურება"
@@ -23548,8 +23548,8 @@ msgstr "ხედის ცენტრირება კურსორზე"
 msgid "UV Sculpt Tools"
 msgstr "UV ძერწვის ხელსაწყოები"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "UV ძერწვის ხელსაწყოების პანელი Mixar UV თვისებების სივრცისთვის - ხელსაწყოზე დაფუძნებული (კოლონტიტულის ღილაკის გარეშე)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "UV ძერწვის ხელსაწყოების პანელი Lampway UV თვისებების სივრცისთვის - ხელსაწყოზე დაფუძნებული (კოლონტიტულის ღილაკის გარეშე)"
 
 msgid "Grab"
 msgstr "ბღაუჭა"
@@ -23668,8 +23668,8 @@ msgstr "მასშტაბის გარდაქმნის გამო�
 msgid "Snapping"
 msgstr "მიკვრა"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "მიკვრის პანელი Mixar UV თვისებების სივრცისთვის"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "მიკვრის პანელი Lampway UV თვისებების სივრცისთვის"
 
 msgid "Snapping Options"
 msgstr "მიკვრის ვარიანტები"
@@ -23719,8 +23719,8 @@ msgstr "გადაძრობა გადაძრობის პანე�
 msgid "Unknown unwrap method: {method}"
 msgstr "უცნობი გადაძრობის მეთოდი: {method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "გაერთიანებული გადაძრობის + პროექციის პანელი Mixar UV თვისებების სივრცისთვის."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "გაერთიანებული გადაძრობის + პროექციის პანელი Lampway UV თვისებების სივრცისთვის."
 
 msgid "Live Unwrap"
 msgstr "გადაძრობა რეალურ დროში"
@@ -23796,7 +23796,7 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
@@ -23804,7 +23804,7 @@ msgstr ""
 "\n"
 "გარსი `image.new`-ის გარშემო, რომელიც `tiled=True` წინასწარ აყენებს\n"
 "ოპერატორის თვისების დიალოგზე. გამოიყენება `new=` ოპერატორად\n"
-"`template_ID`-ისთვის Mixar UV პანელებში, რომ დიალოგი გაიხსნას\n"
+"`template_ID`-ისთვის Lampway UV პანელებში, რომ დიალოგი გაიხსნას\n"
 "ფილებიანი მოსანიშნით უკვე მონიშნული. ძირითადი `image.new` ასრულებს\n"
 "ფაქტობრივ შექმნას და ID-ის მინიჭებას.\n"
 
@@ -23826,8 +23826,8 @@ msgstr "ფილის შევსება"
 msgid "Fill UDIM tile"
 msgstr "UDIM ფილის შევსება"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "UV ნაკრების პანელი Mixar UV თვისებების სივრცისთვის."
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "UV ნაკრების პანელი Lampway UV თვისებების სივრცისთვის."
 
 msgid "UV Maps"
 msgstr "UV რუკები"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "ხელსაწყოები"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"ხელსაწყოს პანელი Mixar UV თვისებების სივრცისთვის — ჩანს, როცა\n"
+"ხელსაწყოს პანელი Lampway UV თვისებების სივრცისთვის — ჩანს, როცა\n"
 "`builtin.uv_tool` ხელსაწყოთა ზოლის ხელსაწყო აქტიურია."
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,13 +24070,13 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
 msgstr "Mixar-ის Zen რეჟიმში გადართვა (მინიმალური სარკმელი + აგენტის ბუშტი + მუდბორდი)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Zen რეჟიმის სამუშაო სივრცის შექმნა ვერ მოხერხდა — შაბლონი ხელმისაწვდომი არ არის"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
 msgstr "Mixar-ის Engine რეჟიმში გადართვა (სრული Blender-ის სტილის სამუშაო სივრცეები)"
 
 msgid "Modeling workspace not found"
@@ -24298,16 +24298,16 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
 msgstr "ფაილი შენახულია Mixar-ის უფრო ახალი ვერსიით (%d.%d), ზოგი მონაცემი შეიძლება დაიკარგოს"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "ფაილი შენახულია უფრო ახალი ვერსიით, გახსენით Mixar %s ან უფრო ახლით"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "ფაილი შენახულია უფრო ახალი ვერსიით, გახსენით Lampway %s ან უფრო ახლით"
 
 msgid "Failed to read mixar file '%s': %s"
 msgstr "mixar ფაილის '%s' წაკითხვა ვერ მოხერხდა: %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
 msgstr "mixar ფაილის '%s' წაკითხვა შეუძლებელია, კოლონტიტული არასრულია, შეიძლება Mixar-ის უფრო ახალი ვერსიიდან იყოს"
 
 msgid "Failed to read file '%s', not a mixar file"
@@ -24316,13 +24316,13 @@ msgstr "ფაილის '%s' წაკითხვა ვერ მოხე�
 msgid "Unable to open mixar <memory>"
 msgstr "mixar <memory>-ის გახსნა შეუძლებელია"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Mixar ფაილი '%s' შექმნილია Mixar-ის მომავალი ვერსიით და შეიცავს ID სახელებს, რომლებიც ამჟამად მხარდაჭერილზე გრძელია. ისინი შეიკვეცა."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Lampway ფაილი '%s' შექმნილია Mixar-ის მომავალი ვერსიით და შეიცავს ID სახელებს, რომლებიც ამჟამად მხარდაჭერილზე გრძელია. ისინი შეიკვეცა."
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Mixar ფაილი '%s' დაზიანებული ჩანს, შეიცავს უვარგის ID სახელებს. ისინი შეიკვეცა."
+msgstr "Lampway ფაილი '%s' დაზიანებული ჩანს, შეიცავს უვარგის ID სახელებს. ისინი შეიკვეცა."
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
 msgstr "ბიბლიოთეკა '%s' შექმნილია Mixar-ის მომავალი ვერსიით და შეიცავს ID სახელებს, რომლებიც ამჟამად მხარდაჭერილზე გრძელია. ამან შეიძლება გამოიწვიოს დაკავშირებული მონაცემების დანაკლისი, განიხილეთ ამ ბიბლიოთეკის გახსნა და ხელახლა შენახვა Mixar-ის მიმდინარე ვერსიით."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
@@ -24454,7 +24454,7 @@ msgstr "ჰკითხეთ Mixie-ს რაც გნებავთ..."
 msgid "Write your prompt here..."
 msgstr "დაწერეთ პრომპტი აქ..."
 
-msgid "Everything Mixar has generated"
+msgid "Everything Lampway has generated"
 msgstr "ყველაფერი, რაც Mixar-მა წარმოქმნა"
 
 msgid "Your connected folders: images, videos and 3D assets"
@@ -25771,13 +25771,13 @@ msgstr "Mixie3D გადახედვის წაშლა"
 msgid "Delete a segmented image from the preview history"
 msgstr "სეგმენტირებული გამოსახულების წაშლა გადახედვის ისტორიიდან"
 
-msgid "Mixar agent bubble loading…"
+msgid "Lampway agent bubble loading…"
 msgstr "Mixar-ის აგენტის ბუშტი იტვირთება…"
 
 msgid "Show Agent Bubble"
 msgstr "აგენტის ბუშტის ჩვენება"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
 msgstr "მცურავი აგენტის ბუშტის გადაფარვის გახსნა, რომლითაც მომხმარებელი Mixar-ის ინტერფეისის ნებისმიერი ადგილიდან ესაუბრება AI აგენტს"
 
 msgid "Chat is still loading. Please drop the asset again."
@@ -25822,7 +25822,7 @@ msgstr "ჩაგდებული გამოსახულების დ�
 msgid "Dropped image datablock"
 msgstr "ჩაგდებული გამოსახულების მონაცემთა ბლოკი"
 
-msgid "Tell me about the features in Mixar"
+msgid "Tell me about the features in Lampway"
 msgstr "მომიყევი Mixar-ის შესაძლებლობებზე"
 
 msgid "Generate a futuristic sci-fi character concept"
@@ -26755,13 +26755,13 @@ msgstr "ტექსტურის ცხობისა და დამუშ
 msgid "Texture set management for PBR workflows"
 msgstr "ტექსტურების ნაკრების მართვა PBR სამუშაო პროცესებისთვის"
 
-msgid "Mixar UV Editor"
+msgid "Lampway UV Editor"
 msgstr "Mixar-ის UV რედაქტორი"
 
-msgid "Mixar UV editing mode"
+msgid "Lampway UV editing mode"
 msgstr "Mixar-ის UV რედაქტირების რეჟიმი"
 
-msgid "Mixar Layers Properties"
+msgid "Lampway Layers Properties"
 msgstr "Mixar-ის შრეების თვისებები"
 
 msgid "Reference image board like PureRef"
@@ -26770,7 +26770,7 @@ msgstr "რეფერენს გამოსახულებების �
 msgid "Mixie Space"
 msgstr "Mixie-ს სივრცე"
 
-msgid "Mixie editor for Mixar"
+msgid "Mixie editor for Lampway"
 msgstr "Mixie-ს რედაქტორი Mixar-ისთვის"
 
 msgid "Mixie editor mode"
@@ -26779,7 +26779,7 @@ msgstr "Mixie-ს რედაქტორის რეჟიმი"
 msgid "Agent Bubble Space"
 msgstr "აგენტის ბუშტის სივრცე"
 
-msgid "Floating agent chat overlay editor for Mixar"
+msgid "Floating agent chat overlay editor for Lampway"
 msgstr "მცურავი აგენტის ჩატის გადაფარვის რედაქტორი Mixar-ისთვის"
 
 msgid "Top Bar Space"
@@ -26788,22 +26788,22 @@ msgstr "ზედა ზოლის სივრცე"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "ზედა ზოლი სამუშაო სივრცის ჩანართების ზოლითა და რედაქტორის მენიუებით"
 
-msgid "Mixar Layers Space"
+msgid "Lampway Layers Space"
 msgstr "Mixar-ის შრეების სივრცე"
 
-msgid "Mixar texture layer stack management"
+msgid "Lampway texture layer stack management"
 msgstr "Mixar-ის ტექსტურის შრეების სტეკის მართვა"
 
-msgid "Mixar Properties Space"
+msgid "Lampway Properties Space"
 msgstr "Mixar-ის თვისებების სივრცე"
 
-msgid "Mixar layer and texture properties"
+msgid "Lampway layer and texture properties"
 msgstr "Mixar-ის შრისა და ტექსტურის თვისებები"
 
-msgid "Mixar Assets Space"
+msgid "Lampway Assets Space"
 msgstr "Mixar-ის აქტივების სივრცე"
 
-msgid "Mixar smart materials, brushes, and textures library"
+msgid "Lampway smart materials, brushes, and textures library"
 msgstr "Mixar-ის ჭკვიანური მასალების, ფუნჯებისა და ტექსტურების ბიბლიოთეკა"
 
 msgid "Texture sets management"
@@ -26812,7 +26812,7 @@ msgstr "ტექსტურების ნაკრებების მა�
 msgid "Use Blender's theme"
 msgstr "Blender-ის თემის გამოყენება"
 
-msgid "Mixar Zen components"
+msgid "Lampway Zen components"
 msgstr "Mixar-ის Zen კომპონენტები"
 
 msgid "Compatibility appearance"
@@ -27928,13 +27928,13 @@ msgstr ""
 msgid "Global Areas"
 msgstr "გლობალური არეები"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
 msgstr "ფანჯრის გლობალური არეები (ზედა ზოლი, სტატუსის ზოლი). Mixar-ის გაფართოება — გამჟღავნებულია, რათა გაცნობამ ზედა ზოლს გადახატვისთვის მიმართოს."
 
 msgid "QA UI Dump"
 msgstr "QA ინტერფეისის ამონაწერი"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
 msgstr "ყველა ცოცხალი ინტერფეისის ვიჯეტის JSON ანაბეჭდი (ჭდეები, ოპერატორები, თვისებები, ფანჯარა-სივრცის მართკუთხედები, მდგომარეობა) Mixar-ის QA აღკაზმულობისთვის"
 
 msgid "Window Resizing"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "QA კადრის გადაღებას სჭირდება --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,22 +27982,22 @@ msgstr "მიკროფონი გაჩერდა ან გადაღ
 msgid "Microphone disconnected"
 msgstr "მიკროფონი გაითიშა"
 
-msgid "Mixar File View"
+msgid "Lampway File View"
 msgstr "Mixar-ის ფაილის ხედი"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
 msgstr "პროქსები მოცილებულია Mixar-იდან (%d პროქსი ავტომატურად გარდაიქმნა ბიბლიოთეკის გადაფარვად, %d პროქსი ვერ გარდაიქმნა და მოიხსნა). განიხილეთ ბიბლიოთეკის ნებისმიერი .mixar ფაილის ხელახლა შენახვა Mixar-ის უახლესი ვერსიით"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
-msgstr "Mixar ფაილის შენახვა შეუძლებელია, გზა \"%s\" ჩაწერადი არ არის"
+msgstr "Lampway ფაილის შენახვა შეუძლებელია, გზა \"%s\" ჩაწერადი არ არის"
 
 msgid "Cannot save mixar file, path \"%s\" is a directory"
-msgstr "Mixar ფაილის შენახვა შეუძლებელია, გზა \"%s\" საქაღალდეა"
+msgstr "Lampway ფაილის შენახვა შეუძლებელია, გზა \"%s\" საქაღალდეა"
 
-msgid "Mixar will start next time as it is now."
-msgstr "Mixar შემდეგ ჯერზე ისე გაეშვება, როგორც ახლაა."
+msgid "Lampway will start next time as it is now."
+msgstr "Lampway შემდეგ ჯერზე ისე გაეშვება, როგორც ახლაა."
 
-msgid "Load Factory Mixar Preferences"
+msgid "Load Factory Lampway Preferences"
 msgstr "Mixar-ის ქარხნული სასურველი პარამეტრების ჩატვირთვა"
 
 msgid "Load user interface setup from the .mixar file"
@@ -28006,13 +28006,13 @@ msgstr "მომხმარებლის ინტერფეისის �
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr ".mixar ფაილს სკრიპტების ავტომატური შესრულების ნების დართვა; ნაგულისხმები ხელმისაწვდომია სისტემის სასურველი პარამეტრებიდან"
 
-msgid "Open a Mixar file"
-msgstr "Mixar ფაილის გახსნა"
+msgid "Open a Lampway file"
+msgstr "Lampway ფაილის გახსნა"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr "მომხმარებლის ინტერფეისის ანაწყობის ჩატვირთვა .mixar ფაილში"
 
-msgid "Mixar Files"
+msgid "Lampway Files"
 msgstr "Mixar-ის ფაილები"
 
 msgid "Show only .mixar files"
@@ -28039,25 +28039,25 @@ msgstr "შენახვა .mixar ფაილად"
 msgid "Save as .blend file"
 msgstr "შენახვა .blend ფაილად"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "მიმდინარე Mixar ფაილის შენახვა რიცხვით გაზრდილი სახელით, რომელიც არსებულ ფაილებს არ გადააწერს"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "მიმდინარე Lampway ფაილის შენახვა რიცხვით გაზრდილი სახელით, რომელიც არსებულ ფაილებს არ გადააწერს"
 
-msgid "Save Mixar File"
-msgstr "Mixar ფაილის შენახვა"
+msgid "Save Lampway File"
+msgstr "Lampway ფაილის შენახვა"
 
-msgid "Save the current Mixar file"
-msgstr "მიმდინარე Mixar ფაილის შენახვა"
+msgid "Save the current Lampway file"
+msgstr "მიმდინარე Lampway ფაილის შენახვა"
 
-msgid "Exit Mixar after saving"
+msgid "Exit Lampway after saving"
 msgstr "შენახვის შემდეგ Mixar-იდან გამოსვლა"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
+msgid "This file was saved by a newer version of Lampway (%s)."
 msgstr "ეს ფაილი შენახულია Mixar-ის უფრო ახალი ვერსიით (%s)."
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
 msgstr "ამ Mixar-ით (%s) შენახვამ შეიძლება მონაცემები დაკარგოს."
 
-msgid "This file is managed by the Mixar asset system. It can only be"
+msgid "This file is managed by the Lampway asset system. It can only be"
 msgstr "ამ ფაილს მართავს Mixar-ის აქტივების სისტემა. ის შეიძლება მხოლოდ"
 
 msgid "Filter .mixar files"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
 msgstr "შეიძლება ხელმისაწვდომი იყოს უფრო ახალი გრაფიკული დრაივერები, Mixar-თან უკეთესი თავსებადობით."
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
 msgstr "უახლეს macOS-ზე განახლებამ შეიძლება გააუმჯობესოს Mixar-ის მხარდაჭერა"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Mixar ახლა დაიხურება."
+msgid "Lampway will now close."
+msgstr "Lampway ახლა დაიხურება."

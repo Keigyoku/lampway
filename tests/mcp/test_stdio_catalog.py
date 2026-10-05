@@ -14,7 +14,7 @@ BACKEND_TOOLS = [
      "inputSchema": {"type": "object", "properties": {"code": {"type": "string"}},
                      "additionalProperties": False},
      "_meta": {"mixar/domain": "build", "anthropic/alwaysLoad": True}},
-    {"name": "mixar_tool_catalog", "description": "Index of Mixar tools.\nMixar credits: free.",
+    {"name": "mixar_tool_catalog", "description": "Index of Lampway tools.\nMixar credits: free.",
      "inputSchema": {"type": "object", "properties": {
          "query": {"type": "string"}, "domain": {"enum": ["account", "build"]}},
          "additionalProperties": False},

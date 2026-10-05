@@ -26,7 +26,7 @@
   $("btn-connect").addEventListener("click", async () => {
     if (!Net.hasToken()) {
       gateStatus.textContent =
-        "Missing pairing token — scan the QR code shown in Mixar again.";
+        "Missing pairing token — scan the QR code shown in Lampway again.";
       return;
     }
     const sensor = await Sensors.requestAccess();
@@ -66,7 +66,7 @@
        * phone sat on "Connecting…" for as long as anyone was willing to
        * wait. The gate is the only surface it can see. */
       gateStatus.textContent =
-        "Could not reach Mixar — check it is still showing the QR code, " +
+        "Could not reach Lampway — check it is still showing the QR code, " +
         "and that the phone is on the same network. Retrying…";
       return;
     }
@@ -267,6 +267,6 @@
 
   if (!Net.hasToken()) {
     gateStatus.textContent =
-      "No pairing token in this link — scan the QR code shown in Mixar.";
+      "No pairing token in this link — scan the QR code shown in Lampway.";
   }
 })();

@@ -291,7 +291,7 @@ def ensure_group_drives_bsdf(mat, group_node):
             mat.node_tree.links.new(output_socket, target)
             relinked.append(output_socket.name)
             logger.info(
-                "Relinked Mixar group output '%s' to BSDF '%s' (was disconnected)",
+                "Relinked Lampway group output '%s' to BSDF '%s' (was disconnected)",
                 output_socket.name, socket_name,
             )
         except Exception:

@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: ur\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "ﺭﺎﻄﻗ ﻝﺎﻌﻓ ﮟﯿﻣ ﺖﺳﺮﮩﻓ ﯽﮐ ﺦﯾﺭﺎ�
 msgid "Share Usage Data"
 msgstr "ﮟﯾﺮﮐ ﺮﺌﯿﺷ ﺎﭩﯾﮈ ﺎﮐ ﻝﺎﻤﻌﺘﺳﺍ"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "Mixar ﮟﯾﺮﮐ ﺮﺌﯿﺷ ﺕﺎﻌﻗﺍﻭ ﮯﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮯﮐ ﺕﺎﻋﻮﻨﺼﻣ ﮎﺎﭘ ﮯﺳ ﺩﺍﻮﻣ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﻨﺑ ﺮﺘﮩﺑ"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "Lampway ﮟﯾﺮﮐ ﺮﺌﯿﺷ ﺕﺎﻌﻗﺍﻭ ﮯﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮯﮐ ﺕﺎﻋﻮﻨﺼﻣ ﮎﺎﭘ ﮯﺳ ﺩﺍﻮﻣ ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﻨﺑ ﺮﺘﮩﺑ"
 
 msgid "No generation services"
 msgstr "ﮟﯿﮩﻧ ﺱﻭﺮﺳ ﻖﯿﻠﺨﺗ ﯽﺋﻮﮐ"
@@ -170,8 +170,8 @@ msgstr "ﮯﮨ ﻂﻠﻏ ﻡﺎﻧ ﺎﮐ ﻝﻮﯾﮈﺎﻣ ﻥﺁ ﮉﯾﺍ"
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ ﭧﮑﯿﺟﻭﺮﭘ ﮦﺪﺷ ﮏﻨﻟ ﭧﻨﺋﺍﻮﭘ ﯼﺮﭩﻧﺍ ﻥﺁ ﮉﯾﺍ ﺎﯿﮔ ﺎﯾﺩ ﺐﯿﺗﺮﺗ"
 
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﺎﭩﯿﻣ ﺖﺳﺭﺩ ﺎﮐ ﭧﮑﯿﺟﻭﺮﭘ Mixar ﮟﯿﻣ ﺭﮉﻟﻮﻓ ﮦﺪﺷ ﮏﻨﻟ"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "ﮟﯿﮩﻧ ﺎﭩﯾﮈ ﺎﭩﯿﻣ ﺖﺳﺭﺩ ﺎﮐ ﭧﮑﯿﺟﻭﺮﭘ Lampway ﮟﯿﻣ ﺭﮉﻟﻮﻓ ﮦﺪﺷ ﮏﻨﻟ"
 
 msgid "The project metadata version is not supported"
 msgstr "ﮟﯿﮩﻧ ﮧﺘﻓﺎﯾ ﺖﻧﻭﺎﻌﻣ ﻥﮊﺭﻭ ﺎﮐ ﺎﭩﯾﮈ ﺎﭩﯿﻣ ﭧﮑﯿﺟﻭﺮﭘ"
@@ -194,7 +194,7 @@ msgstr "ﮯﯿﮨﺎﭼ ﺎﻧﻮﮨ ﻡﺎﻧ ﺎﮐ ﻝﻮﯾﮈﺎﻣ ﮯﮐ 
 msgid "Set an active add-on before changing its enabled state"
 msgstr "ﮟﯾﺮﮐ ﭧﯿﺳ ﻥﺁ ﮉﯾﺍ ﻝﺎﻌﻓ ﮏﯾﺍ ﮯﻠﮩﭘ ﮯﺳ ﮯﻨﻟﺪﺑ ﺖﻟﺎﺣ ﻝﺎﻌﻓ"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "ﯼﺮﯾﺮﺒﺋﻻ﻿"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "ﮟﯿﻟﻮﮭﮐ ﯽﮐﮍﮭﮐ ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "ﮟﯿﻟﻮﮭﮐ ﮟﯿﻣ ﯽﮐﮍﮭﮐ ﯽﺗﺮﯿﺗ ﯽﻨﭘﺍ ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "C++ ﺮﭩﯾﺮﭘﺁ mixar.agent_bubble_show_window ﮟﯿﮩﻧ ﺮﭩﺴﺟﺭ — agent_bubble ﮯﯿﻟ ﮯﮐ ﺮﭩﯾﺮﭘﺁ ﭗﺋﺎﭨ ﺲﯿﭙﺳﺍ Mixar ﮟﯿﺋﺎﻨﺑ ﮦﺭﺎﺑﻭﺩ (make build)۔"
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "C++ ﺮﭩﯾﺮﭘﺁ mixar.agent_bubble_show_window ﮟﯿﮩﻧ ﺮﭩﺴﺟﺭ — agent_bubble ﮯﯿﻟ ﮯﮐ ﺮﭩﯾﺮﭘﺁ ﭗﺋﺎﭨ ﺲﯿﭙﺳﺍ Lampway ﮟﯿﺋﺎﻨﺑ ﮦﺭﺎﺑﻭﺩ (make build)۔"
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "{error} :ﯽﮑﺳ ﻞﮭﮐ ﮟﯿﮩﻧ ﯽﮐﮍﮭﮐ ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ"
@@ -651,8 +651,8 @@ msgstr ""
 msgid "AI generations"
 msgstr "AI ﺕﺎﻘﯿﻠﺨﺗ"
 
-msgid "Everything Mixar has generated for you"
-msgstr "ﺎﯿﮐ ﺍﺪﯿﭘ ﮯﯿﻟ ﮯﮐ ﭖﺁ ﮯﻧ Mixar ﻮﺟ ﺐﺳ ﮦﻭ"
+msgid "Everything Lampway has generated for you"
+msgstr "ﺎﯿﮐ ﺍﺪﯿﭘ ﮯﯿﻟ ﮯﮐ ﭖﺁ ﮯﻧ Lampway ﻮﺟ ﺐﺳ ﮦﻭ"
 
 msgid "My Libraries"
 msgstr ""
@@ -1421,17 +1421,17 @@ msgstr "ﮟﯿﮩﻧ ﻝﺎﻌﻓ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﯽﺋﻮﮐ �
 msgid "Select a provider with available models"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﻻ﻿ﺍﻭ ﺰﻟﮈﺎﻣ ﺏﺎﯿﺘﺳﺩ"
 
-msgid "Managed by Mixar"
-msgstr "Mixar ﻡﺎﻈﺘﻧﺍ ﺮﯾﺯ ﮯﮐ"
+msgid "Managed by Lampway"
+msgstr "Lampway ﻡﺎﻈﺘﻧﺍ ﺮﯾﺯ ﮯﮐ"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar ﮯﮨ ﺎﺗﻼ﻿ﭼ ﮯﮐ ﺮﮐ ﮈﻮﻟ ﻥﺅﺍﮈ ﻝﮈﺎﻣ ﺐﺨﺘﻨﻣ ﺮﭘ ﺮﭨﻮﯿﭙﻤﮐ ﺱﺍ"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway ﮯﮨ ﺎﺗﻼ﻿ﭼ ﮯﮐ ﺮﮐ ﮈﻮﻟ ﻥﺅﺍﮈ ﻝﮈﺎﻣ ﺐﺨﺘﻨﻣ ﺮﭘ ﺮﭨﻮﯿﭙﻤﮐ ﺱﺍ"
 
 msgid "Custom local server"
 msgstr "ﺭﻭﺮﺳ ﯽﻣﺎﻘﻣ ﺕﺭﻭﺮﺿ ﺐﺴﺣ"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "Mixar ﺱﺍ ﻮﮐ OpenAI ﮟﯿﮨ ﮯﺗﻼ﻿ﭼ ﮯﺳ ﮯﻠﮩﭘ ﭖﺁ ﻮﺟ ﮟﯾﺮﮐ ﻑﺮﻃ ﯽﮐ ﺭﻭﺮﺳ ﮓﻨﮨﺁ ﻢﮨ (Ollama، LM Studio، llama.cpp، ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "Lampway ﺱﺍ ﻮﮐ OpenAI ﮟﯿﮨ ﮯﺗﻼ﻿ﭼ ﮯﺳ ﮯﻠﮩﭘ ﭖﺁ ﻮﺟ ﮟﯾﺮﮐ ﻑﺮﻃ ﯽﮐ ﺭﻭﺮﺳ ﮓﻨﮨﺁ ﻢﮨ (Ollama، LM Studio، llama.cpp، ...)"
 
 msgid "Invalid form data — please reach out to support."
 msgstr "۔ﮟﯾﺮﮐ ﮧﻄﺑﺍﺭ ﮯﺳ ﺖﻧﻭﺎﻌﻣ ﻡﺮﮐ ﮦﺍﺮﺑ — ﮯﮨ ﻂﻠﻏ ﺎﭩﯾﮈ ﺎﮐ ﻡﺭﺎﻓ"
@@ -1553,8 +1553,8 @@ msgstr "ﮟﯿﮩﻧ ﺐﺨﺘﻨﻣ ﻝﮈﺎﻣ ﯽﺋﻮﮐ"
 msgid "Reset Agent Model"
 msgstr "ﮟﯾﺩ ﺐﯿﺗﺮﺗ ﮦﺭﺎﺑﻭﺩ ﻝﮈﺎﻣ ﭧﻨﺠﯾﺍ"
 
-msgid "Clear the saved model and let Mixar choose"
-msgstr "ﮟﯾﺩ ﮯﻨﻨﭼ ﻮﮐ Mixar ﺭﻭﺍ ﮟﯾﺮﮐ ﻑﺎﺻ ﻝﮈﺎﻣ ﻅﻮﻔﺤﻣ"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "ﮟﯾﺩ ﮯﻨﻨﭼ ﻮﮐ Lampway ﺭﻭﺍ ﮟﯾﺮﮐ ﻑﺎﺻ ﻝﮈﺎﻣ ﻅﻮﻔﺤﻣ"
 
 msgid "Could not change model"
 msgstr "ﺎﮑﺳ ﻝﺪﺑ ﮟﯿﮩﻧ ﻝﮈﺎﻣ"
@@ -1577,8 +1577,8 @@ msgstr "ﻝﺎﻌﻓ"
 msgid "Not configured"
 msgstr "ﮟﯿﮩﻧ ﺐﯿﺗﺮﺗ"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "Mixar ﺮﭘ ﮯﻧﻮﮨ ﻝﺎﻌﻓ — ﮟﯿﺋﻼ﻿ﭼ ﺮﭘ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﮯﻨﭘﺍ ﭧﻨﺠﯾﺍ Mixar ۔ﮟﯿﮨ ﮯﺘﭩﮐ ﮟﯿﮩﻧ ﺲﭨﮉﯾﺮﮐ"
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "Lampway ﺮﭘ ﮯﻧﻮﮨ ﻝﺎﻌﻓ — ﮟﯿﺋﻼ﻿ﭼ ﺮﭘ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﮯﻨﭘﺍ ﭧﻨﺠﯾﺍ Lampway ۔ﮟﯿﮨ ﮯﺘﭩﮐ ﮟﯿﮩﻧ ﺲﭨﮉﯾﺮﮐ"
 
 msgid "Current Configuration"
 msgstr "ﺐﯿﺗﺮﺗ ﮦﺩﻮﺟﻮﻣ"
@@ -1604,8 +1604,8 @@ msgstr "API ﮟﯿﺋﺎﭩﮨ ﺪﯿﻠﮐ…"
 msgid "Provider Setup"
 msgstr "ﭖﺍ ﭧﯿﺳ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "۔ﮯﮨ ﺎﺘﮭﮐﺩ ﻮﯾﻮﯾﺮﭘ ﺍﻮﮨ ﺎﭙﮭﭼ ﻑﺮﺻ ﺪﻌﺑ ﮯﮐ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ — ﮯﯿﻟ ﮯﮐ ﮞﻮﺘﺳﺍﻮﺧﺭﺩ ﭧﻨﺠﯾﺍ Mixar ﻑﺮﺻ ،ﻅﻮﻔﺤﻣ ﮧﯿﻔﺧ"
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "۔ﮯﮨ ﺎﺘﮭﮐﺩ ﻮﯾﻮﯾﺮﭘ ﺍﻮﮨ ﺎﭙﮭﭼ ﻑﺮﺻ ﺪﻌﺑ ﮯﮐ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ — ﮯﯿﻟ ﮯﮐ ﮞﻮﺘﺳﺍﻮﺧﺭﺩ ﭧﻨﺠﯾﺍ Lampway ﻑﺮﺻ ،ﻅﻮﻔﺤﻣ ﮧﯿﻔﺧ"
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
 msgstr "۔ﮯﮨ ﺕﺭﻭﺮﺿ ﯽﮐ ﺱﺍ ﻮﮐ ﭧﻨﺠﯾﺍ — ﮮﺮﮐ ﭦﺭﻮﭙﺳ ﮓﻨﻟﺎﮐ ﻦﺸﮑﻨﻓ / ﻝﻮﭨ ﻮﺟ ﮟﯿﻨﭼ ﻝﮈﺎﻣ ﺎﺴﯾﺍ"
@@ -1631,8 +1631,8 @@ msgstr "ﮟﯾﺮﮐ ﮞﺎﭙﺴﭼ ﺎﯾ ﮈﻮﻟ ﺩﺍﻮﻣ ﻞﻤﮑﻣ 
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "~/.codex/auth.json ۔(ﮯﮨ ﺎﺘﮬﮍﭘ ﮈﺭﻮﺑ ﭗﻠﮐ ﺎﮐ ﭖﺁ ﻦﭩﺑ ﮞﺎﭙﺴﭼ) ﺕﺎﺟﺭﺪﻨﻣ ﮯﮐ"
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "۔ﮯﺘﭩﮐ ﮟﯿﮩﻧ ﺲﭨﮉﯾﺮﮐ Mixar — ﮯﮨ ﺎﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﻦﺸﭘﺮﮑﺴﺒﺳ ChatGPT ﯽﮐ ﭖﺁ"
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "۔ﮯﺘﭩﮐ ﮟﯿﮩﻧ ﺲﭨﮉﯾﺮﮐ Lampway — ﮯﮨ ﺎﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﻦﺸﭘﺮﮑﺴﺒﺳ ChatGPT ﯽﮐ ﭖﺁ"
 
 msgid "Couldn't apply your changes"
 msgstr "ﮟﯿﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻮﮔﻻ﻿ ﮞﺎﯿﻠﯾﺪﺒﺗ ﯽﮐ ﭖﺁ"
@@ -1640,23 +1640,23 @@ msgstr "ﮟﯿﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻮﮔﻻ﻿ ﮞﺎﯿﻠﯾﺪﺒﺗ �
 msgid "Remove your API key?"
 msgstr "؟ﮟﯿﺋﺎﭩﮨ ﺪﯿﻠﮐ API ﯽﻨﭘﺍ"
 
-msgid "The agent will use Mixar's default provider again."
-msgstr "۔ﺎﮔ ﮮﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﮦﺪﺷ ﮯﻃ ﺎﮐ Mixar ﮦﺭﺎﺑﻭﺩ ﭧﻨﺠﯾﺍ"
+msgid "The agent will use Lampway's default provider again."
+msgstr "۔ﺎﮔ ﮮﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﮦﺪﺷ ﮯﻃ ﺎﮐ Lampway ﮦﺭﺎﺑﻭﺩ ﭧﻨﺠﯾﺍ"
 
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "۔ﮯﮔ ﮟﯿﭩﮐ ﺲﭨﮉﯾﺮﮐ Mixar ﺮﭘ ﮞﻮﺘﺳﺍﻮﺧﺭﺩ ﭧﻨﺠﯾﺍ ﮦﺪﻨﺋﺁ"
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "۔ﮯﮔ ﮟﯿﭩﮐ ﺲﭨﮉﯾﺮﮐ Lampway ﺮﭘ ﮞﻮﺘﺳﺍﻮﺧﺭﺩ ﭧﻨﺠﯾﺍ ﮦﺪﻨﺋﺁ"
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "Mixar ﮯﮨ ﺎﺘﻠﭼ ﺮﭘ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﮯﮐ ﭖﺁ ﺏﺍ ﭧﻨﺠﯾﺍ — Mixar ۔ﮯﺘﭩﮐ ﮟﯿﮩﻧ ﺲﭨﮉﯾﺮﮐ"
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "Lampway ﮯﮨ ﺎﺘﻠﭼ ﺮﭘ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﮯﮐ ﭖﺁ ﺏﺍ ﭧﻨﺠﯾﺍ — Lampway ۔ﮯﺘﭩﮐ ﮟﯿﮩﻧ ﺲﭨﮉﯾﺮﮐ"
 
 msgid "API key removed"
 msgstr "API ﯽﺌﮔ ﭧﮨ ﺪﯿﻠﮐ"
 
-msgid "The agent is back on Mixar's default provider."
-msgstr "۔ﮯﮨ ﺲﭘﺍﻭ ﺮﭘ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﮦﺪﺷ ﮯﻃ ﮯﮐ Mixar ﭧﻨﺠﯾﺍ"
+msgid "The agent is back on Lampway's default provider."
+msgstr "۔ﮯﮨ ﺲﭘﺍﻭ ﺮﭘ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﮦﺪﺷ ﮯﻃ ﮯﮐ Lampway ﭧﻨﺠﯾﺍ"
 
-msgid "Mixar credits are charged for agent requests again."
-msgstr "۔ﮟﯿﮨ ﮯﺘﭩﮐ ﮦﺭﺎﺑﻭﺩ ﺲﭨﮉﯾﺮﮐ Mixar ﺮﭘ ﮞﻮﺘﺳﺍﻮﺧﺭﺩ ﭧﻨﺠﯾﺍ"
+msgid "Lampway credits are charged for agent requests again."
+msgstr "۔ﮟﯿﮨ ﮯﺘﭩﮐ ﮦﺭﺎﺑﻭﺩ ﺲﭨﮉﯾﺮﮐ Lampway ﺮﭘ ﮞﻮﺘﺳﺍﻮﺧﺭﺩ ﭧﻨﺠﯾﺍ"
 
 msgid "Try Again"
 msgstr "ﺶﺷﻮﮐ ﮦﺭﺎﺑﻭﺩ"
@@ -1691,8 +1691,8 @@ msgstr "ﺎﮨﺭ ﻞﭼ ﮟﯿﮩﻧ — ﺎﯿﮔ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍ�
 msgid "Not downloaded"
 msgstr "ﺍﻮﮨ ﮟﯿﮩﻧ ﮈﻮﻟ ﻥﺅﺍﮈ"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "۔ﮯﺗﺎﺟ ﮟﯿﮩﻧ ﺮﮨﺎﺑ ﮯﺳ ﮞﺎﮩﯾ ﺍﻮﺳ ﮯﮐ ﻦﺸﯾﺮﭩﺴﯿﮐﺭﺁ ﭧﻨﺠﯾﺍ ﯽﮐ Mixar ﭧﭙﻣﺍﺮﭘ ﮯﮐ ﭖﺁ — ﮯﮨ ﺎﺘﻠﭼ ﺮﭘ ﺮﭨﻮﯿﭙﻤﮐ ﺱﺍ ﺡﺮﻃ ﯼﺭﻮﭘ"
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "۔ﮯﺗﺎﺟ ﮟﯿﮩﻧ ﺮﮨﺎﺑ ﮯﺳ ﮞﺎﮩﯾ ﺍﻮﺳ ﮯﮐ ﻦﺸﯾﺮﭩﺴﯿﮐﺭﺁ ﭧﻨﺠﯾﺍ ﯽﮐ Lampway ﭧﭙﻣﺍﺮﭘ ﮯﮐ ﭖﺁ — ﮯﮨ ﺎﺘﻠﭼ ﺮﭘ ﺮﭨﻮﯿﭙﻤﮐ ﺱﺍ ﺡﺮﻃ ﯼﺭﻮﭘ"
 
 msgid "Cancel Download"
 msgstr "ﮟﯾﺮﮐ ﺥﻮﺴﻨﻣ ﮈﻮﻟ ﻥﺅﺍﮈ"
@@ -1730,8 +1730,8 @@ msgstr "ﮟﯾﺮﮐ ﻦﯿﮑﺳﺍ ﮦﺭﺎﺑﻭﺩ ﺲﭙﯾﺍ ﯽﻣﺎ�
 msgid "Rescan this computer for running local AI apps"
 msgstr "ﮟﯾﺮﮐ ﻦﯿﮑﺳﺍ ﮦﺭﺎﺑﻭﺩ ﻮﮐ ﺮﭨﻮﯿﭙﻤﮐ ﺱﺍ ﮯﯿﻟ ﮯﮐ ﺲﭙﯾﺍ AI ﯽﻣﺎﻘﻣ ﯽﺘﻠﭼ"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "Mixar ﯽﻨﭘﺍ ﮯﯿﻟ ﮯﮐ ﭧﻨﺠﯾﺍ API ﮯﮐ ﮞﻮﺘﺳﺍﻮﺧﺭﺩ ﭧﻨﺠﯾﺍ ﺮﭘ ﮯﻧﻮﮨ ﻝﺎﻌﻓ ۔ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺪﯿﻠﮐ Mixar ۔ﮯﺘﭩﮐ ﮟﯿﮩﻧ ﺲﭨﮉﯾﺮﮐ"
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "Lampway ﯽﻨﭘﺍ ﮯﯿﻟ ﮯﮐ ﭧﻨﺠﯾﺍ API ﮯﮐ ﮞﻮﺘﺳﺍﻮﺧﺭﺩ ﭧﻨﺠﯾﺍ ﺮﭘ ﮯﻧﻮﮨ ﻝﺎﻌﻓ ۔ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺪﯿﻠﮐ Lampway ۔ﮯﺘﭩﮐ ﮟﯿﮩﻧ ﺲﭨﮉﯾﺮﮐ"
 
 msgid "Validate with the provider and save your API key"
 msgstr "ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ﺪﯿﻠﮐ API ﯽﻨﭘﺍ ﺭﻭﺍ ﮟﯾﺮﮐ ﻖﯾﺪﺼﺗ ﮯﺳ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ"
@@ -1844,8 +1844,8 @@ msgstr "LLM ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ"
 msgid "Model to use with the selected provider"
 msgstr "ﻝﮈﺎﻣ ﻻ﻿ﺍﻭ ﮯﻧﻮﮨ ﻝﺎﻤﻌﺘﺳﺍ ﮫﺗﺎﺳ ﮯﮐ ﮦﺪﻨﻨﮐ ﻢﮨﺍﺮﻓ ﺐﺨﺘﻨﻣ"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "۔ﮯﮨ ﺎﺘﮭﮐﺩ ﻮﯾﻮﯾﺮﭘ ﺍﻮﮨ ﺎﭙﮭﭼ ﻑﺮﺻ ﺪﻌﺑ ﮯﮐ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ ۔ﮯﮨ ﯽﺗﻮﮨ ﻝﺎﻤﻌﺘﺳﺍ ﮯﯿﻟ ﮯﮐ ﮞﻮﺘﺳﺍﻮﺧﺭﺩ ﭧﻨﺠﯾﺍ Mixar ﻑﺮﺻ ﺭﻭﺍ ﮯﮨ ﯽﺗﻮﮨ ﻅﻮﻔﺤﻣ ﮧﯿﻔﺧ ﺪﯿﻠﮐ API ﯽﮐ ﭖﺁ"
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "۔ﮯﮨ ﺎﺘﮭﮐﺩ ﻮﯾﻮﯾﺮﭘ ﺍﻮﮨ ﺎﭙﮭﭼ ﻑﺮﺻ ﺪﻌﺑ ﮯﮐ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ ۔ﮯﮨ ﯽﺗﻮﮨ ﻝﺎﻤﻌﺘﺳﺍ ﮯﯿﻟ ﮯﮐ ﮞﻮﺘﺳﺍﻮﺧﺭﺩ ﭧﻨﺠﯾﺍ Lampway ﻑﺮﺻ ﺭﻭﺍ ﮯﮨ ﯽﺗﻮﮨ ﻅﻮﻔﺤﻣ ﮧﯿﻔﺧ ﺪﯿﻠﮐ API ﯽﮐ ﭖﺁ"
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "openrouter.ai/models ﻼً﻿ﺜﻣ) ﮓﻠﺳ ﻝﮈﺎﻣ ﯽﮭﺑ ﯽﺋﻮﮐ ﮯﺳ anthropic/claude-opus-4.8)"
@@ -1859,8 +1859,8 @@ msgstr "~/.codex/auth.json ﮯﻠﮩﭘ) ﺕﺎﺟﺭﺪﻨﻣ ﮯﮐ `codex log
 msgid "Local mode"
 msgstr "ﮈﻮﻣ ﯽﻣﺎﻘﻣ"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "Mixar ﺭﻭﺮﺳ ﯽﻣﺎﻘﻣ ﺎﻨﭘﺍ ﺎﮐ ﭖﺁ ﺎﯾ ،ﻡﺎﻈﺘﻧﺍ ﺮﯾﺯ ﮯﮐ"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Lampway ﺭﻭﺮﺳ ﯽﻣﺎﻘﻣ ﺎﻨﭘﺍ ﺎﮐ ﭖﺁ ﺎﯾ ،ﻡﺎﻈﺘﻧﺍ ﺮﯾﺯ ﮯﮐ"
 
 msgid "Local model"
 msgstr "ﻝﮈﺎﻣ ﯽﻣﺎﻘﻣ"
@@ -1889,11 +1889,11 @@ msgstr "ﮮﺮﮐ ﭦﺭﻮﭘﺭ byok_active ﮯﯿﻟ ﮯﮐ ﻑﺭﺎﺻ ﺱ�
 msgid "Dialog State"
 msgstr "ﺖﻟﺎﺣ ﯽﮐ ﮒﻼ﻿ﯿﺋﺍﮈ"
 
-msgid "Set Mixie Mode"
-msgstr "Mixie ﮟﯾﺮﮐ ﭧﯿﺳ ﮈﻮﻣ"
+msgid "Set Lampway Agent Mode"
+msgstr "Lampway Agent ﮟﯾﺮﮐ ﭧﯿﺳ ﮈﻮﻣ"
 
-msgid "Switch to a specific Mixie mode"
-msgstr "ﮟﯾﺮﮐ ﭻﺋﻮﺳ ﺮﭘ ﮈﻮﻣ Mixie ﺹﻮﺼﺨﻣ ﮏﯾﺍ"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "ﮟﯾﺮﮐ ﭻﺋﻮﺳ ﺮﭘ ﮈﻮﻣ Lampway Agent ﺹﻮﺼﺨﻣ ﮏﯾﺍ"
 
 msgid "Mode"
 msgstr "ﮈﻮﻣ"
@@ -1928,8 +1928,8 @@ msgstr "ﯽﻠﻋﺍ"
 msgid "Non-contiguous enum value 27"
 msgstr "27 ﺭﺪﻗ ﻢﻨﯾﺍ ﻞﺼﺘﻣ ﺮﯿﻏ"
 
-msgid "Mixie v3 run active"
-msgstr "Mixie v3 ﻝﺎﻌﻓ ﺮﮑﭼ"
+msgid "Lampway Agent v3 run active"
+msgstr "Lampway Agent v3 ﻝﺎﻌﻓ ﺮﮑﭼ"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "۔ﮟﯾﮍﺟ ﮦﺭﺎﺑﻭﺩ ﺮﮭﭘ ،ﮟﯾﺮﮐ ﭧﯾﮉﭘﺍ ﮉﻨﯾﺍ ﮏﯿﺑ ﺭﻭﺍ ﭗﯾﺍ ۔ﯼﺩ ﺮﮐ ﺩﺭ ﺖﺳﺍﻮﺧﺭﺩ ﯽﮐ ﯽﮕﻨﮨﺁ ﻢﮨ ﯽﮐ ﺦﯾﺭﺎﺗ ﮯﻧ ﺭﻭﺮﺳ"
@@ -2420,10 +2420,10 @@ msgstr "ﮯﮨ ﺎﻧﺮﮐ ﭻﺋﻮﺳ ﺮﭘ ﻢﺴﻗ ﺲﯿﭙﺳﺍ ﺲﺟ
 msgid "No active area"
 msgstr "ﮟﯿﮩﻧ ﮧﻗﻼ﻿ﻋ ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "ﻞﻤﻋ ﯼﺮﻠﯿﮔ ﯽﻣﺎﻘﻣ"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "ﮟﯿﮩﻧ ﯽﻠﯾﺪﺒﺗ ﺮﻈﻨﻣ ﺎﯾ ﻖﯿﻠﺨﺗ ﯽﺋﻮﮐ ؛ﮟﯿﺋﺎﮬﮍﺑ ﺮﭩﻧﺅﺎﮐ ﺮﭽﺴﮑﻓ ﺮﭙﻠﯾﻭﮈ"
 
-msgid "Mixar UI Gallery"
-msgstr "Mixar UI ﯼﺮﻠﯿﮔ"
+msgid "Lampway UI Gallery"
+msgstr "Lampway UI ﯼﺮﻠﯿﮔ"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "ﮟﯿﻟ ﮦﺰﺋﺎﺟ ﺎﮐ ءﺍﺰﺟﺍ ﻮﭩﯿﻧ ﮧﮐﺮﺘﺸﻣ ﮯﺳ ﺎﭩﯾﮈ ﺮﭽﺴﮑﻓ ﯽﻣﺎﻘﻣ"
@@ -2468,8 +2468,8 @@ msgstr "ﯼﺭﺍﺩﺯﺍﺭ"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "۔ﮟﯿﮨ ﮯﺘﮭﮑﯾﺩ ﮯﯿﻟ ﮯﮐ ﮯﻧﻮﮨ ﺭﺍﺩﺮﺒﺘﺳﺩ ﺎًﻣﻮﻤﻋ ﻦﯿﻓﺭﺎﺻ ﮞﺎﮩﺟ ﯽﮭﮐﺭ ﮞﺎﮨﻭ ،ﯼﺪﻨﻣﺎﺿﺭ ﯼﺮﭩﯿﻣ ﯽﻠﯿﭨ"
 
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "۔ﮯﻨﺑ ﺮﺘﮩﺑ ﺕﺎﻋﻮﻨﺼﻣ ﮧﮐﺎﺗ ،ﮟﯿﮨ ﮯﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺕﺎﯿﺻﻮﺼﺧ ﯽﺳ ﻥﻮﮐ ﯽﮐ Mixar ﭖﺁ ﮧﮐ ﮯﮨ ﺎﺗﺎﺘﺑ"
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "۔ﮯﻨﺑ ﺮﺘﮩﺑ ﺕﺎﻋﻮﻨﺼﻣ ﮧﮐﺎﺗ ،ﮟﯿﮨ ﮯﺗﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﺕﺎﯿﺻﻮﺼﺧ ﯽﺳ ﻥﻮﮐ ﯽﮐ Lampway ﭖﺁ ﮧﮐ ﮯﮨ ﺎﺗﺎﺘﺑ"
 
 msgid "Your prompts, files, and scene content are never included."
 msgstr "۔ﮯﺗﻮﮨ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﯽﮭﺒﮐ ﺩﺍﻮﻣ ﺎﮐ ﺮﻈﻨﻣ ﺭﻭﺍ ،ﮟﯿﻠﺋﺎﻓ ،ﭧﭙﻣﺍﺮﭘ ﮯﮐ ﭖﺁ"
@@ -2477,7 +2477,7 @@ msgstr "۔ﮯﺗﻮﮨ ﮟﯿﮩﻧ ﻞﻣﺎﺷ ﯽﮭﺒﮐ ﺩﺍﻮﻣ ﺎ�
 msgid "Privacy Policy"
 msgstr "ﯽﺴﯿﻟﺎﭘ ﯽﮐ ﯼﺭﺍﺩﺯﺍﺭ"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "ﻮﭩﯿﻧ"
 msgid "Blender theme"
 msgstr "Blender ﻢﯿﮭﺗ"
 
-msgid "Legacy Mixar"
-msgstr "Mixar ﺎﻧﺍﺮﭘ"
+msgid "Legacy Lampway"
+msgstr "Lampway ﺎﻧﺍﺮﭘ"
 
 msgid "Compatibility profile"
 msgstr "ﻞﺋﺎﻓﻭﺮﭘ ﺖﻘﺑﺎﻄﻣ"
@@ -2624,11 +2624,11 @@ msgstr "ﭧﮑﯿﭙﻤﮐ"
 msgid "Denser chrome recipe"
 msgstr "ﺐﯿﮐﺮﺗ ﻡﻭﺮﮐ ﯽﻨﮭﮔ"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﮟﯿﻣ ﺭﮉﻟﻮﻓ Applications ﮯﻨﭘﺍ ﻮﮐ Mixar ﮯﯿﻟ ﮯﮐ ﭧﯾﮉﭘﺍ ﺮﭘ ﮧﮕﺟ"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﮟﯿﻣ ﺭﮉﻟﻮﻓ Applications ﮯﻨﭘﺍ ﻮﮐ Lampway ﮯﯿﻟ ﮯﮐ ﭧﯾﮉﭘﺍ ﺮﭘ ﮧﮕﺟ"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar ﺎﮨﺭ ﻞﭼ ﮟﯿﮩﻧ ﮯﺳ ﻝﮉﻨﺑ ﻦﺸﯿﮑﯿﻠﭙﯾﺍ"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway ﺎﮨﺭ ﻞﭼ ﮟﯿﮩﻧ ﮯﺳ ﻝﮉﻨﺑ ﻦﺸﯿﮑﯿﻠﭙﯾﺍ"
 
 msgid "No permission to update {path}"
 msgstr "{path} ﮟﯿﮩﻧ ﺕﺯﺎﺟﺍ ﯽﮐ ﮯﻧﺮﮐ ﭧﯾﮉﭘﺍ"
@@ -2660,8 +2660,8 @@ msgstr "ﮯﮨ ﺐﺋﺎﻏ ﺮﻟﺎﭩﺴﻧﺍ ﮦﺪﺷ ﮈﻮﻟ ﻥﺅﺍ�
 msgid "Could not start the updater"
 msgstr "ﺎﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻉﻭﺮﺷ ﺮﭩﯾﮉﭘﺍ"
 
-msgid "Mixar didn't close"
-msgstr "Mixar ﺍﻮﮨ ﮟﯿﮩﻧ ﺪﻨﺑ"
+msgid "Lampway didn't close"
+msgstr "Lampway ﺍﻮﮨ ﮟﯿﮩﻧ ﺪﻨﺑ"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "ﮟﯿﮩﻧ ﮧﺘﻓﺎﯾ ﺖﻧﻭﺎﻌﻣ ﭧﯾﮉﭘﺍ ﺭﺪﻧﺍ ﮯﮐ ﭗﯾﺍ ﺮﭘ ﻡﺭﺎﻓ ﭧﯿﻠﭘ ﺱﺍ"
@@ -2687,32 +2687,32 @@ msgstr "{size} ﺍﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ"
 msgid "Starting download…"
 msgstr "…ﮯﮨ ﺎﮨﺭ ﻮﮨ ﻉﻭﺮﺷ ﮈﻮﻟ ﻥﺅﺍﮈ"
 
-msgid "Downloading Mixar {version}"
-msgstr "Mixar {version} ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ"
+msgid "Downloading Lampway {version}"
+msgstr "Lampway {version} ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ"
 
-msgid "Mixar will restart to finish updating."
-msgstr "۔ﺎﮔﻮﮨ ﻉﻭﺮﺷ ﮦﺭﺎﺑﻭﺩ Mixar ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﻞﻤﮑﻣ ﭧﯾﮉﭘﺍ"
+msgid "Lampway will restart to finish updating."
+msgstr "۔ﺎﮔﻮﮨ ﻉﻭﺮﺷ ﮦﺭﺎﺑﻭﺩ Lampway ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﻞﻤﮑﻣ ﭧﯾﮉﭘﺍ"
 
-msgid "Mixar Update Ready"
-msgstr "Mixar ﺭﺎﯿﺗ ﭧﯾﮉﭘﺍ"
+msgid "Lampway Update Ready"
+msgstr "Lampway ﺭﺎﯿﺗ ﭧﯾﮉﭘﺍ"
 
 msgid "Version {version} is ready to install."
 msgstr "۔ﮯﮨ ﺭﺎﯿﺗ ﮯﯿﻟ ﮯﮐ ﻝﺎﭩﺴﻧﺍ {version} ﻥﮊﺭﻭ"
 
-msgid "Mixar Update Required"
-msgstr "Mixar ﯼﺭﻭﺮﺿ ﭧﯾﮉﭘﺍ"
+msgid "Lampway Update Required"
+msgstr "Lampway ﯼﺭﻭﺮﺿ ﭧﯾﮉﭘﺍ"
 
-msgid "Mixar Update Available"
-msgstr "Mixar ﺏﺎﯿﺘﺳﺩ ﭧﯾﮉﭘﺍ"
+msgid "Lampway Update Available"
+msgstr "Lampway ﺏﺎﯿﺘﺳﺩ ﭧﯾﮉﭘﺍ"
 
 msgid "Version {version} is available."
 msgstr "۔ﮯﮨ ﺏﺎﯿﺘﺳﺩ {version} ﻥﮊﺭﻭ"
 
-msgid "This update is required to continue using Mixar."
-msgstr "Mixar ۔ﮯﮨ ﯼﺭﻭﺮﺿ ﭧﯾﮉﭘﺍ ﮧﯾ ﮯﯿﻟ ﮯﮐ ﮯﻨﮭﮐﺭ ﯼﺭﺎﺟ ﻝﺎﻤﻌﺘﺳﺍ"
+msgid "This update is required to continue using Lampway."
+msgstr "Lampway ۔ﮯﮨ ﯼﺭﻭﺮﺿ ﭧﯾﮉﭘﺍ ﮧﯾ ﮯﯿﻟ ﮯﮐ ﮯﻨﮭﮐﺭ ﯼﺭﺎﺟ ﻝﺎﻤﻌﺘﺳﺍ"
 
-msgid "Mixar will restart to apply it."
-msgstr "۔ﺎﮔﻮﮨ ﻉﻭﺮﺷ ﮦﺭﺎﺑﻭﺩ Mixar ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﻮﮔﻻ﻿ ﮯﺳﺍ"
+msgid "Lampway will restart to apply it."
+msgstr "۔ﺎﮔﻮﮨ ﻉﻭﺮﺷ ﮦﺭﺎﺑﻭﺩ Lampway ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﻮﮔﻻ﻿ ﮯﺳﺍ"
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error} — ۔ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﮈﻮﻟ ﻥﺅﺍﮈ ﮯﯿﻟ ﮯﮐ ﭧﯾﮉﭘﺍ ﮯﺳ ﺭﺯﺅﺍﺮﺑ"
@@ -2729,11 +2729,11 @@ msgstr "۔ﮟﯾﺮﮐ ﮏﻠﮐ ﺮﭘ ﭧﯾﮉﭘﺍ ﺭﻭﺍ ﻉﻭﺮﺷ �
 msgid "Update paused"
 msgstr "ﺎﮐﺭ ﭧﯾﮉﭘﺍ"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar ۔ﺍﻮﮨ ﮟﯿﮩﻧ ﻝﺎﭩﺴﻧﺍ ﭧﯾﮉﭘﺍ ﮯﯿﻟ ﺱﺍ ،ﺍﻮﮨ ﮟﯿﮩﻧ ﺪﻨﺑ"
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway ۔ﺍﻮﮨ ﮟﯿﮩﻧ ﻝﺎﭩﺴﻧﺍ ﭧﯾﮉﭘﺍ ﮯﯿﻟ ﺱﺍ ،ﺍﻮﮨ ﮟﯿﮩﻧ ﺪﻨﺑ"
 
-msgid "Mixar is up to date"
-msgstr "Mixar ﮯﮨ ﮦﺯﺎﺗ"
+msgid "Lampway is up to date"
+msgstr "Lampway ﮯﮨ ﮦﺯﺎﺗ"
 
 msgid "You're running the latest version ({version})."
 msgstr "۔ﮟﯿﮨ ﮯﮨﺭ ﻼ﻿ﭼ ({version}) ﻥﮊﺭﻭ ﻦﯾﺮﺗ ﮦﺯﺎﺗ ﭖﺁ"
@@ -2747,11 +2747,11 @@ msgstr "۔ﮟﯾﺮﮐ ﺶﺷﻮﮐ ﮦﺭﺎﺑﻭﺩ ﺭﻭﺍ ﮟﯿﮭﮑﯾ
 msgid "Update didn't take effect"
 msgstr "ﺍﻮﮨ ﮟﯿﮩﻧ ﺮﺛﺍ ﭧﯾﮉﭘﺍ"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Mixar {target} ﻥﮊﺭﻭ ﺮﮕﻣ ﺍﻮﮨ ﻝﺎﭩﺴﻧﺍ {running} ۔ﮟﯾﺮﮐ ﻝﺎﭩﺴﻧﺍ ﮦﺭﺎﺑﻭﺩ ﮯﺳ ﮯﺤﻔﺻ ﺯﮈﻮﻟ ﻥﺅﺍﮈ ۔ﺍﻮﮨ ﻉﻭﺮﺷ"
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Lampway {target} ﻥﮊﺭﻭ ﺮﮕﻣ ﺍﻮﮨ ﻝﺎﭩﺴﻧﺍ {running} ۔ﮟﯾﺮﮐ ﻝﺎﭩﺴﻧﺍ ﮦﺭﺎﺑﻭﺩ ﮯﺳ ﮯﺤﻔﺻ ﺯﮈﻮﻟ ﻥﺅﺍﮈ ۔ﺍﻮﮨ ﻉﻭﺮﺷ"
 
-msgid "Updated to Mixar {version}"
-msgstr "Mixar {version} ﺎﯿﮔ ﻮﮨ ﭧﯾﮉﭘﺍ ﺮﭘ"
+msgid "Updated to Lampway {version}"
+msgstr "Lampway {version} ﺎﯿﮔ ﻮﮨ ﭧﯾﮉﭘﺍ ﺮﭘ"
 
 msgid "The update was installed successfully."
 msgstr "۔ﺎﯿﮔ ﻮﮨ ﻝﺎﭩﺴﻧﺍ ﮯﺳ ﯽﺑﺎﯿﻣﺎﮐ ﭧﯾﮉﭘﺍ"
@@ -2765,8 +2765,8 @@ msgstr "{reason} ۔ﮟﯿﮨ ﮯﺘﮑﺳ ﺮﮐ ﮈﻮﻟ ﻥﺅﺍﮈ ﭧﯾ�
 msgid "Update was not installed"
 msgstr "ﺍﻮﮨ ﮟﯿﮩﻧ ﻝﺎﭩﺴﻧﺍ ﭧﯾﮉﭘﺍ"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "۔ﺎﮭﺗ ﺎﮨﺭ ﻞﭼ ﯽﮭﺑ ﺏﺍ Mixar ﺮﭘ ﺶﺷﻮﮐ ﯽﮐ ﮯﻧﻮﮨ ﻉﻭﺮﺷ ﺮﻟﺎﭩﺴﻧﺍ"
+msgid "Lampway was still running when the installer tried to start."
+msgstr "۔ﺎﮭﺗ ﺎﮨﺭ ﻞﭼ ﯽﮭﺑ ﺏﺍ Lampway ﺮﭘ ﺶﺷﻮﮐ ﯽﮐ ﮯﻧﻮﮨ ﻉﻭﺮﺷ ﺮﻟﺎﭩﺴﻧﺍ"
 
 msgid "The downloaded installer failed its signature check."
 msgstr "۔ﺎﮨﺭ ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﭻﻧﺎﺟ ﯽﮐ ﻂﺨﺘﺳﺩ ﺮﻟﺎﭩﺴﻧﺍ ﮦﺪﺷ ﮈﻮﻟ ﻥﺅﺍﮈ"
@@ -2774,8 +2774,8 @@ msgstr "۔ﺎﮨﺭ ﻡﺎﮐﺎﻧ ﮟﯿﻣ ﭻﻧﺎﺟ ﯽﮐ ﻂﺨﺘﺳ�
 msgid "The downloaded installer could not be opened."
 msgstr "۔ﺎﮑﺳ ﻞﮭﮐ ﮟﯿﮩﻧ ﺮﻟﺎﭩﺴﻧﺍ ﮦﺪﺷ ﮈﻮﻟ ﻥﺅﺍﮈ"
 
-msgid "Mixar could not be replaced on disk."
-msgstr "Mixar ۔ﺎﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﺮﭘ ﮏﺳﮈ"
+msgid "Lampway could not be replaced on disk."
+msgstr "Lampway ۔ﺎﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻞﯾﺪﺒﺗ ﺮﭘ ﮏﺳﮈ"
 
 msgid "The installation was cancelled."
 msgstr "۔ﯽﺌﮔ ﻮﮨ ﺥﻮﺴﻨﻣ ﻦﺸﯿﻟﺎﭩﺴﻧﺍ"
@@ -2786,8 +2786,8 @@ msgstr "Windows Installer ۔ﯽﮐ ﭦﺭﻮﭘﺭ ﯽﺑﺍﺮﺧ ﮏﻠﮩﻣ 
 msgid "The installer did not finish."
 msgstr "۔ﺍﻮﮨ ﮟﯿﮩﻧ ﻢﺘﺧ ﺮﻟﺎﭩﺴﻧﺍ"
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "Mixar ﮟﯾﺮﮐ ﻝﺎﭩﺴﻧﺍ ﭧﯾﮉﭘﺍ ﮦﺪﺷ ﮈﻮﻟ ﻥﺅﺍﮈ ﺭﻭﺍ ﮟﯾﺮﮐ ﻉﻭﺮﺷ ﮦﺭﺎﺑﻭﺩ"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "Lampway ﮟﯾﺮﮐ ﻝﺎﭩﺴﻧﺍ ﭧﯾﮉﭘﺍ ﮦﺪﺷ ﮈﻮﻟ ﻥﺅﺍﮈ ﺭﻭﺍ ﮟﯾﺮﮐ ﻉﻭﺮﺷ ﮦﺭﺎﺑﻭﺩ"
 
 msgid "Save Changes"
 msgstr "ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ﮞﺎﯿﻠﯾﺪﺒﺗ"
@@ -2795,14 +2795,14 @@ msgstr "ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ﮞﺎﯿﻠﯾﺪﺒﺗ"
 msgid "Save the current file before restarting"
 msgstr "ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ﻞﺋﺎﻓ ﮦﺩﻮﺟﻮﻣ ﮯﻠﮩﭘ ﮯﺳ ﮯﻧﺮﮐ ﻉﻭﺮﺷ ﮦﺭﺎﺑﻭﺩ"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "ﺎﮔﻮﮨ ﻉﻭﺮﺷ ﮦﺭﺎﺑﻭﺩ Mixar ﺮﭘ ﮯﻧﻮﮨ ﺭﺎﯿﺗ — ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ ﭧﯾﮉﭘﺍ"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "ﺎﮔﻮﮨ ﻉﻭﺮﺷ ﮦﺭﺎﺑﻭﺩ Lampway ﺮﭘ ﮯﻧﻮﮨ ﺭﺎﯿﺗ — ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻥﺅﺍﮈ ﭧﯾﮉﭘﺍ"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar ﺮﮐ ﻮﮨ ﺪﻨﺑ {version} ۔ﺎﮔﻮﮨ ﭧﯾﮉﭘﺍ ﺮﭘ"
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway ﺮﮐ ﻮﮨ ﺪﻨﺑ {version} ۔ﺎﮔﻮﮨ ﭧﯾﮉﭘﺍ ﺮﭘ"
 
 msgid "It reopens automatically when the update is done."
 msgstr "۔ﮯﮨ ﺎﺘﻠﮭﮐ ﮦﺭﺎﺑﻭﺩ ﺩﻮﺨﺑ ﺩﻮﺧ ﮧﯾ ﺮﭘ ﮯﻧﻮﮨ ﻞﻤﮑﻣ ﭧﯾﮉﭘﺍ"
@@ -2831,14 +2831,14 @@ msgstr "ﮟﯿﮐﻭﺭ ﮈﻮﻟ ﻥﺅﺍﮈ ﺎﮐ ﭧﯾﮉﭘﺍ"
 msgid "This update is required and cannot be cancelled"
 msgstr "ﺎﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﺥﻮﺴﻨﻣ ﺭﻭﺍ ﮯﮨ ﯼﺭﻭﺮﺿ ﭧﯾﮉﭘﺍ ﮧﯾ"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "ﮟﯿﻟﻮﮭﮐ ﮧﺤﻔﺻ ﺯﮈﻮﻟ ﻥﺅﺍﮈ Mixar ﮟﯿﻣ ﺭﺯﺅﺍﺮﺑ ﮦﺪﺷ ﮯﻃ"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "ﮟﯿﻟﻮﮭﮐ ﮧﺤﻔﺻ ﺯﮈﻮﻟ ﻥﺅﺍﮈ Lampway ﮟﯿﻣ ﺭﺯﺅﺍﺮﺑ ﮦﺪﺷ ﮯﻃ"
 
 msgid "Check for Updates"
 msgstr "ﮟﯿﮭﮑﯾﺩ ﺲﭩﯾﮉﭘﺍ"
 
-msgid "Check whether a newer version of Mixar is available"
-msgstr "ﮟﯿﮩﻧ ﺎﯾ ﮯﮨ ﺏﺎﯿﺘﺳﺩ ﻥﮊﺭﻭ ﺎﯿﻧ ﺎﮐ Mixar ﮧﮐ ﮟﯿﮭﮑﯾﺩ"
+msgid "Check whether a newer version of Lampway is available"
+msgstr "ﮟﯿﮩﻧ ﺎﯾ ﮯﮨ ﺏﺎﯿﺘﺳﺩ ﻥﮊﺭﻭ ﺎﯿﻧ ﺎﮐ Lampway ﮧﮐ ﮟﯿﮭﮑﯾﺩ"
 
 msgid "An update check is already in progress"
 msgstr "ﮯﮨ ﯼﺭﺎﺟ ﮯﺳ ﮯﻠﮩﭘ ﭻﻧﺎﺟ ﭧﯾﮉﭘﺍ"
@@ -2849,8 +2849,8 @@ msgstr "…ﮟﯿﮨ ﮯﮨﺭ ﺎﺟ ﮯﮭﮑﯾﺩ ﺲﭩﯾﮉﭘﺍ"
 msgid "Update Available"
 msgstr "ﺏﺎﯿﺘﺳﺩ ﭧﯾﮉﭘﺍ"
 
-msgid "Show details for the pending Mixar update"
-msgstr "ﮟﯿﺋﺎﮭﮐﺩ ﻞﯿﺼﻔﺗ ﯽﮐ ﭧﯾﮉﭘﺍ Mixar ﺍﻮﺘﻟﺍ ﺮﯾﺯ"
+msgid "Show details for the pending Lampway update"
+msgstr "ﮟﯿﺋﺎﮭﮐﺩ ﻞﯿﺼﻔﺗ ﯽﮐ ﭧﯾﮉﭘﺍ Lampway ﺍﻮﺘﻟﺍ ﺮﯾﺯ"
 
 msgid "View Changelog"
 msgstr "ﮟﯿﮭﮑﯾﺩ ﮒﻻ﻿ ﺎﮐ ﮞﻮﯿﻠﯾﺪﺒﺗ"
@@ -2969,14 +2969,14 @@ msgstr "ﻡﺎﻧ ﻻ﻿ﺍﻭ ﮯﻧﺎﺟ ﺎﯾﺎﮭﮐﺩ ﮯﯿﻟ ﮯﮐ 
 msgid "Newer File Version"
 msgstr "ﻥﮊﺭﻭ ﺎﯿﻧ ﺎﮐ ﻞﺋﺎﻓ"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
-msgstr "ﯽﮐ ﻅﻮﻔﺤﻣ ﮯﻧ ﻥﮊﺭﻭ ﮯﺌﻧ ﮯﮐ Mixar ﻞﺋﺎﻓ ﮧﮐ ﮟﯾﺮﮐ ﺭﺍﺩﺮﺒﺧ ﻮﮐ ﻑﺭﺎﺻ"
+msgid "Warn user that the file was saved by a newer Lampway version"
+msgstr "ﯽﮐ ﻅﻮﻔﺤﻣ ﮯﻧ ﻥﮊﺭﻭ ﮯﺌﻧ ﮯﮐ Lampway ﻞﺋﺎﻓ ﮧﮐ ﮟﯾﺮﮐ ﺭﺍﺩﺮﺒﺧ ﻮﮐ ﻑﺭﺎﺻ"
 
 msgid "File Version"
 msgstr "ﻥﮊﺭﻭ ﻞﺋﺎﻓ"
 
-msgid "This file was saved by Mixar version {version}."
-msgstr "۔ﯽﮐ ﻅﻮﻔﺤﻣ ﮯﻧ {version} ﻥﮊﺭﻭ Mixar ﻞﺋﺎﻓ ﮧﯾ"
+msgid "This file was saved by Lampway version {version}."
+msgstr "۔ﯽﮐ ﻅﻮﻔﺤﻣ ﮯﻧ {version} ﻥﮊﺭﻭ Lampway ﻞﺋﺎﻓ ﮧﯾ"
 
 msgid "Some data may be missing or incorrect."
 msgstr "۔ﮯﮨ ﺎﺘﮑﺳ ﻮﮨ ﻂﻠﻏ ﺎﯾ ﺐﺋﺎﻏ ﺎﭩﯾﮈ ﮫﭽﮐ"
@@ -2990,8 +2990,8 @@ msgstr "ﮟﯿﮩﻧ ﺏﺎﯿﺘﺳﺩ ءﺎﯿﺷﺍ ﻝﺎﺟ ﯽﺋﻮﮐ �
 msgid "Start Connector Sidecar"
 msgstr "ﮟﯾﺮﮐ ﻉﻭﺮﺷ ﺭﺎﮐ ﮉﯿﺋﺎﺳ ﺮﭩﮑﯿﻨﮐ"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "ﮟﯿﺋﻻ﻿ ﮯﻨﻣﺎﺳ ﮯﮐ ﺐﮨ ﻮﮐ Mixar ﺮﭘ HTTP ﮏﯿﺑ ﭖﻮﻟ"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "ﮟﯿﺋﻻ﻿ ﮯﻨﻣﺎﺳ ﮯﮐ ﺐﮨ ﻮﮐ Lampway ﺮﭘ HTTP ﮏﯿﺑ ﭖﻮﻟ"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
 msgstr "ﺮﭘ {port}:127.0.0.1 ﺭﺎﮐ ﮉﯿﺋﺎﺳ ﺮﭩﮑﯿﻨﮐ"
@@ -2999,8 +2999,8 @@ msgstr "ﺮﭘ {port}:127.0.0.1 ﺭﺎﮐ ﮉﯿﺋﺎﺳ ﺮﭩﮑﯿﻨﮐ"
 msgid "Export Scene to Unreal"
 msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺮﺑ ﻮﮐ Unreal ﺮﻈﻨﻣ"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺮﺑ ﺮﭘ ﺭﻮﻃ ﮯﮐ USD/FBX/GLB ﺭﺎﯿﺗ ﮯﯿﻟ ﮯﮐ Unreal ﺮﻈﻨﻣ Mixar ﮦﺩﻮﺟﻮﻣ"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺮﺑ ﺮﭘ ﺭﻮﻃ ﮯﮐ USD/FBX/GLB ﺭﺎﯿﺗ ﮯﯿﻟ ﮯﮐ Unreal ﺮﻈﻨﻣ Lampway ﮦﺩﻮﺟﻮﻣ"
 
 msgid "Exported {filename} ({count} meshes)"
 msgstr "{filename} ﺍﻮﮨ ﺪﻣﺁﺮﺑ ({count} ﻝﺎﺟ)"
@@ -3020,8 +3020,8 @@ msgstr "Unreal MCP :8000/mcp · UnrealMCP TCP :55557 · 7734: ﺐﮨ"
 msgid "Hub Sidecar"
 msgstr "ﺭﺎﮐ ﮉﯿﺋﺎﺳ ﺐﮨ"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "ﮟﯿﺋﻻ﻿ ﮯﻨﻣﺎﺳ ﮯﮐ mixar-connector ﺮﭘ HTTP ﮏﯿﺑ ﭖﻮﻟ ﻮﮐ ﻦﺸﯿﺳ Mixar ﺱﺍ"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "ﮟﯿﺋﻻ﻿ ﮯﻨﻣﺎﺳ ﮯﮐ mixar-connector ﺮﭘ HTTP ﮏﯿﺑ ﭖﻮﻟ ﻮﮐ ﻦﺸﯿﺳ Lampway ﺱﺍ"
 
 msgid "Sidecar Port"
 msgstr "ﭦﺭﻮﭘ ﺭﺎﮐ ﮉﯿﺋﺎﺳ"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,8 +3119,8 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
-msgstr "Mixar ﮦﺮﻤﯿﮐ ﭦﺎﺷ"
+msgid "Lampway Shot Camera"
+msgstr "Lampway ﮦﺮﻤﯿﮐ ﭦﺎﺷ"
 
 msgid "Shot"
 msgstr "ﭦﺎﺷ"
@@ -3563,8 +3563,8 @@ msgstr "ﮟﯿﮩﻧ ﮦﺮﻤﯿﮐ ﯽﺋﻮﮐ ﺎﮐ ﭦﺎﺷ"
 msgid "Capture at least one camera beat before locking"
 msgstr "ﮟﯾﺮﮐ ﺮﭽﭙﯿﮐ ﮧﺤﻤﻟ ﮦﺮﻤﯿﮐ ﮏﯾﺍ ﻢﮐ ﺯﺍ ﻢﮐ ﮯﻠﮩﭘ ﮯﺳ ﮯﻧﺮﮐ ﮎﻻ﻿"
 
-msgid "Mixar Focus"
-msgstr "Mixar ﺲﮐﻮﻓ"
+msgid "Lampway Focus"
+msgstr "Lampway ﺲﮐﻮﻓ"
 
 msgid "Rendering…"
 msgstr "…ﮯﮨ ﺎﮨﺭ ﻮﮨ ﺭﮉﻨﯾﺭ"
@@ -4241,8 +4241,8 @@ msgstr "ﺖﻓﺭ ﺶﯿﭘ ﯽﮐ ﺭﮉﻨﯾﺭ"
 msgid "Render Status"
 msgstr "ﺖﯿﺜﯿﺣ ﯽﮐ ﺭﮉﻨﯾﺭ"
 
-msgid "Mixar Camera Export"
-msgstr "Mixar ﺪﻣﺁﺮﺑ ﮦﺮﻤﯿﮐ"
+msgid "Lampway Camera Export"
+msgstr "Lampway ﺪﻣﺁﺮﺑ ﮦﺮﻤﯿﮐ"
 
 msgid "Export this scene's camera animation to the Moodboard"
 msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺮﺑ ﺮﭘ ﮈﺭﻮﺑ ﮈﻮﻣ ﯼﺮﯾﺬﭘ ﺖﮐﺮﺣ ﮦﺮﻤﯿﮐ ﯽﮐ ﺮﻈﻨﻣ ﺱﺍ"
@@ -4493,14 +4493,14 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
-msgstr "Mixar ﺮﭩﮑﯾﺮﺋﺍﮈ"
+msgid "Lampway Director"
+msgstr "Lampway ﺮﭩﮑﯾﺮﺋﺍﮈ"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "ﭦﺎﺷ ﺖﯾﺍﺪﮨ ﮦﺮﻤﯿﮐ ﮯﮑﻠﮨ ﮯﯿﻟ ﮯﮐ ﺮﻈﻨﻣ ﺱﺍ"
 
-msgid "Mixar Output"
-msgstr "Mixar ﭧﭘ ﭦﺅﺁ"
+msgid "Lampway Output"
+msgstr "Lampway ﭧﭘ ﭦﺅﺁ"
 
 msgid "Output aspect ratio this camera frames for"
 msgstr "ﮯﮨ ﺎﺗﺮﮐ ﻢﯾﺮﻓ ﮦﺮﻤﯿﮐ ﮧﯾ ﮯﯿﻟ ﮯﮐ ﺲﺟ ﺐﺳﺎﻨﺗ ﻮﻠﮩﭘ ﭧﭘ ﭦﺅﺁ ﮦﻭ"
@@ -4964,19 +4964,19 @@ msgstr "ﻝﮈﺎﻣ ﺭﻭﺮﺳ ﯽﻣﺎﻘﻣ"
 msgid "Local model last error"
 msgstr "ﯽﺑﺍﺮﺧ ﯼﺮﺧﺁ ﻝﮈﺎﻣ ﯽﻣﺎﻘﻣ"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,26 +7789,26 @@ msgstr "ﻦﺘﻣ ﯽﺑﺍﺮﺧ"
 msgid "Error message if job failed"
 msgstr "ﻡﺎﻐﯿﭘ ﯽﺑﺍﺮﺧ ﻮﺗ ﻮﮨ ﻡﺎﮐﺎﻧ ﻡﺎﮐ ﺮﮔﺍ"
 
-msgid "Mixie Moodboard Images"
-msgstr "Mixie ﺮﯾﻭﺎﺼﺗ ﮈﺭﻮﺑ ﮈﻮﻣ"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Lampway Agent ﺮﯾﻭﺎﺼﺗ ﮈﺭﻮﺑ ﮈﻮﻣ"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﺮﯾﻭﺎﺼﺗ ﮧﻟﺍﻮﺣ ﮟﯿﻣ ﮈﻮﻣ ﮈﺭﻮﺑ ﮈﻮﻣ"
 
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Mixie ﺲﮐﺎﺑ ﭧﺴﮑﯿﭨ ﮈﺭﻮﺑ ﮈﻮﻣ"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Lampway Agent ﺲﮐﺎﺑ ﭧﺴﮑﯿﭨ ﮈﺭﻮﺑ ﮈﻮﻣ"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﺲﮐﺎﺑ ﭧﺴﮑﯿﭨ ﮟﯿﻣ ﮈﻮﻣ ﮈﺭﻮﺑ ﮈﻮﻣ"
 
-msgid "Mixie Moodboard Frames"
-msgstr "Mixie ﻢﯾﺮﻓ ﮈﺭﻮﺑ ﮈﻮﻣ"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Lampway Agent ﻢﯾﺮﻓ ﮈﺭﻮﺑ ﮈﻮﻣ"
 
 msgid "Canvas frames grouping board items"
 msgstr "ﻢﯾﺮﻓ ﺱﻮﻨﯿﮐ ﮯﻟﺍﻭ ﮯﻧﺮﮐ ﮦﻭﺮﮔ ﺰﻤﭩﺋﺁ ﮈﺭﻮﺑ"
 
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Mixie ﺎﻧﺍﺮﭘ) ﮦﻭﺮﮔ ﮈﺭﻮﺑ ﮈﻮﻣ)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Lampway Agent ﺎﻧﺍﺮﭘ) ﮦﻭﺮﮔ ﮈﺭﻮﺑ ﮈﻮﻣ)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "mixie_moodboard_frames ﺎﮭﮐﺭ ﮯﯿﻟ ﮯﮐ ﯽﻠﻘﺘﻨﻣ ؛ﯽﻟ ﮧﮕﺟ ﮯﻧ"
@@ -8917,8 +8917,8 @@ msgstr "{count} ﮟﯿﺋﻮﮨ ﮓﻨﮨﺁ ﻢﮨ ﺮﯾﻭﺎﺼﺗ ﮈﺭﻮ
 msgid "Attach Selected Moodboard Image"
 msgstr "ﮟﯾﺮﮐ ﮏﻠﺴﻨﻣ ﺮﯾﻮﺼﺗ ﮈﺭﻮﺑ ﮈﻮﻣ ﺐﺨﺘﻨﻣ"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
-msgstr "ﮟﯾﺮﮐ ﮞﺎﭙﺴﭼ ﮯﺳ {shortcut} ﮟﯿﻣ ﻝﺎﺜﻣ Mixar ﺭﻭﺍ ﯽﺴﮐ ﺎﯾ ﺱﺍ ؛ﮯﮨ ﺎﺗﺮﮐ ﯽﭘﺎﮐ (ﺖﯿﻤﺳ ﺞﺋﺎﺘﻧ ﺭﻭﺍ ﻂﺑﺭ ﮯﮐ ﻥﺍ) ﺱﮈﻮﻧ ﻁﺎﺒﻨﺘﺳﺍ ﺭﻭﺍ ﺲﮐﺎﺑ ﭧﺴﮑﯿﭨ ،ﺯﻮﯾﮉﯾﻭ ،ﺮﯾﻭﺎﺼﺗ ﺐﺨﺘﻨﻣ"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
+msgstr "ﮟﯾﺮﮐ ﮞﺎﭙﺴﭼ ﮯﺳ {shortcut} ﮟﯿﻣ ﻝﺎﺜﻣ Lampway ﺭﻭﺍ ﯽﺴﮐ ﺎﯾ ﺱﺍ ؛ﮯﮨ ﺎﺗﺮﮐ ﯽﭘﺎﮐ (ﺖﯿﻤﺳ ﺞﺋﺎﺘﻧ ﺭﻭﺍ ﻂﺑﺭ ﮯﮐ ﻥﺍ) ﺱﮈﻮﻧ ﻁﺎﺒﻨﺘﺳﺍ ﺭﻭﺍ ﺲﮐﺎﺑ ﭧﺴﮑﯿﭨ ،ﺯﻮﯾﮉﯾﻭ ،ﺮﯾﻭﺎﺼﺗ ﺐﺨﺘﻨﻣ"
 
 msgid "Nothing selected to copy"
 msgstr "ﮟﯿﮩﻧ ﺐﺨﺘﻨﻣ ﮫﭽﮐ ﮯﯿﻟ ﮯﮐ ﮯﻧﺮﮐ ﯽﭘﺎﮐ"
@@ -9244,8 +9244,8 @@ msgstr "{error} :ﺎﮑﺳ ﺎﺟ ﺎﮬﮍﭘ ﮟﯿﮩﻧ ﮈﺭﻮﺑ ﭗﻠ�
 msgid "Paste"
 msgstr "ﮟﯾﺮﮐ ﮞﺎﭙﺴﭼ"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
-msgstr "({shortcut}) ﮯﮨ ﺎﺗﺮﮐ ﮞﺎﭙﺴﭼ ﺮﯾﻮﺼﺗ ﯽﮐ ﮈﺭﻮﺑ ﭗﻠﮐ ﻢﭩﺴﺳ ﺎﯾ — ﮟﯿﻣ ﻝﺎﺜﻣ Mixar ﺭﻭﺍ ﯽﺴﮐ ﺎﯾ ﺱﺍ — ﺰﯿﭼ ﮦﺪﺷ ﯽﭘﺎﮐ ﺮﭘ ﮈﺭﻮﺑ ﮈﻮﻣ"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
+msgstr "({shortcut}) ﮯﮨ ﺎﺗﺮﮐ ﮞﺎﭙﺴﭼ ﺮﯾﻮﺼﺗ ﯽﮐ ﮈﺭﻮﺑ ﭗﻠﮐ ﻢﭩﺴﺳ ﺎﯾ — ﮟﯿﻣ ﻝﺎﺜﻣ Lampway ﺭﻭﺍ ﯽﺴﮐ ﺎﯾ ﺱﺍ — ﺰﯿﭼ ﮦﺪﺷ ﯽﭘﺎﮐ ﺮﭘ ﮈﺭﻮﺑ ﮈﻮﻣ"
 
 msgid "Pasted {count} item"
 msgstr "{count} ﺍﻮﮨ ﮞﺎﭙﺴﭼ ﻢﭩﺋﺁ"
@@ -10642,13 +10642,13 @@ msgstr "ﺕﺎﺤﯾﺮﺸﺗ ﮈﺭﻮﺑ ﮈﻮﻣ"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
-msgstr "Mixar ﺪﯾﺪﻣﺁ ﺵﻮﺧ ﮟﯿﻣ"
+msgid "Welcome to Lampway"
+msgstr "Lampway ﺪﯾﺪﻣﺁ ﺵﻮﺧ ﮟﯿﻣ"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,20 +10669,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
-msgstr "Mixar ﺦﯾﺭﺎﺗ ﻦﺸﯾﺮﭘﺁ ID"
+msgid "Lampway Operation History ID"
+msgstr "Lampway ﺦﯾﺭﺎﺗ ﻦﺸﯾﺮﭘﺁ ID"
 
 msgid "Persistent per-scene id keying this scene's operation history."
 msgstr "۔ﮯﮨ ﯽﺘﯾﺩ ﺪﯿﻠﮐ ﻮﮐ ﺦﯾﺭﺎﺗ ﻦﺸﯾﺮﭘﺁ ﯽﮐ ﺮﻈﻨﻣ ﺱﺍ ﻮﺟ id ﺮﻈﻨﻣ ﯽﻓ ﻞﻘﺘﺴﻣ"
@@ -13051,8 +13051,8 @@ msgstr "ﻡﺎﻧ ﺎﮐ ﻞﻨﯿﭼ ﮯﯿﻟ ﮯﮐ ﺪﻣﺁﺮﺑ"
 msgid "File format for export"
 msgstr "ﭧﯿﻣﺭﺎﻓ ﻞﺋﺎﻓ ﮯﯿﻟ ﮯﮐ ﺪﻣﺁﺮﺑ"
 
-msgid "No active Mixar node found"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮈﻮﻧ Mixar ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
+msgid "No active Lampway node found"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮈﻮﻧ Lampway ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
 
 msgid "Exported '{name}' to {path}"
 msgstr "'{name}' {path} ﺍﻮﮨ ﺪﻣﺁﺮﺑ ﺮﭘ"
@@ -13201,8 +13201,8 @@ msgstr "ﮯﮨ ﺎﺘﮑﺳ ﻮﮨ ﺪﯿﻔﻣ ﮟﯿﻣ ﮯﻨﮐﻭﺭ ﯽﺑ
 msgid "Bake Temporary Image"
 msgstr "ﮟﯿﺋﺎﮑﭘ ﺮﯾﻮﺼﺗ ﯽﺿﺭﺎﻋ"
 
-msgid "No active Mixar node found!"
-msgstr "!ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮈﻮﻧ Mixar ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
+msgid "No active Lampway node found!"
+msgstr "!ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮈﻮﻧ Lampway ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
 
 msgid "No active layer found!"
 msgstr "!ﯽﻠﻣ ﮟﯿﮩﻧ ﮧﮩﺗ ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
@@ -13345,8 +13345,8 @@ msgstr "ﮟﯿﺋﺎﮑﭘ ﺮﭘ ﺮﻠﮐ ﺲﮑﯿﭨﺭﻭ ﻞﻨﯿﭼ"
 msgid "Bake All Materials"
 msgstr "ﮟﯿﺋﺎﮑﭘ ﺩﺍﻮﻣ ﻡﺎﻤﺗ"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "ﮯﮨ ﺎﺗﺎﮑﭘ ﺩﺍﻮﻣ ﻡﺎﻤﺗ ﮯﻟﺍﻭ ﺱﮈﻮﻧ Mixar Paint ﮯﺋﺎﺠﺑ ﯽﮐ ﻝﺎﻌﻓ ﻑﺮﺻ"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "ﮯﮨ ﺎﺗﺎﮑﭘ ﺩﺍﻮﻣ ﻡﺎﻤﺗ ﮯﻟﺍﻭ ﺱﮈﻮﻧ Lampway Paint ﮯﺋﺎﺠﺑ ﯽﮐ ﻝﺎﻌﻓ ﻑﺮﺻ"
 
 msgid "Target Vertex Color Name"
 msgstr "ﻡﺎﻧ ﺮﻠﮐ ﺲﮑﯿﭨﺭﻭ ﻑﺪﮨ"
@@ -13574,8 +13574,8 @@ msgstr ""
 msgid "Copy Image Path To Clipboard"
 msgstr "ﮟﯾﺮﮐ ﯽﭘﺎﮐ ﺮﭘ ﮈﺭﻮﺑ ﭗﻠﮐ ﮧﺘﺳﺍﺭ ﺎﮐ ﺮﯾﻮﺼﺗ"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint ﮯﮨ ﺎﺗﺮﮐ ﯽﭘﺎﮐ ﺮﭘ ﮈﺭﻮﺑ ﭗﻠﮐ ﻢﭩﺴﺳ ﮧﺘﺳﺍﺭ ﺎﮐ ﻞﺋﺎﻓ ﺮﯾﻮﺼﺗ"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint ﮯﮨ ﺎﺗﺮﮐ ﯽﭘﺎﮐ ﺮﭘ ﮈﺭﻮﺑ ﭗﻠﮐ ﻢﭩﺴﺳ ﮧﺘﺳﺍﺭ ﺎﮐ ﻞﺋﺎﻓ ﺮﯾﻮﺼﺗ"
 
 msgid "Copied: {text}"
 msgstr "{text} :ﺍﻮﮨ ﯽﭘﺎﮐ"
@@ -13583,8 +13583,8 @@ msgstr "{text} :ﺍﻮﮨ ﯽﭘﺎﮐ"
 msgid "Open Containing Image Folder"
 msgstr "ﮟﯿﻟﻮﮭﮐ ﺭﮉﻟﻮﻓ ﻻ﻿ﺍﻭ ﺮﯾﻮﺼﺗ"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint ﮯﮨ ﺎﺗﺮﮐ ﮞﺎﯾﺎﻤﻧ ﮯﺳﺍ ﺭﻭﺍ ﮯﮨ ﺎﺘﻟﻮﮭﮐ ﺭﮉﻟﻮﻓ ﻻ﻿ﺍﻭ ﻞﺋﺎﻓ ﺮﯾﻮﺼﺗ"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint ﮯﮨ ﺎﺗﺮﮐ ﮞﺎﯾﺎﻤﻧ ﮯﺳﺍ ﺭﻭﺍ ﮯﮨ ﺎﺘﻟﻮﮭﮐ ﺭﮉﻟﻮﻓ ﻻ﻿ﺍﻭ ﻞﺋﺎﻓ ﺮﯾﻮﺼﺗ"
 
 msgid "File does not exist"
 msgstr "ﮯﮨ ﮟﯿﮩﻧ ﺩﻮﺟﻮﻣ ﻞﺋﺎﻓ"
@@ -15054,8 +15054,8 @@ msgstr "ﮯﮨ ﺎﺗﺮﮐ ﻝﺎﻌﻓ ﮏﺳﺎﻣ"
 msgid "Active Mask"
 msgstr "ﮏﺳﺎﻣ ﻝﺎﻌﻓ"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Blender ﺎﯾ ،ﮈﻮﻣ ﭦﮉﯾﺍ ﺭﻭﺍ ﮈﻮﻣ ﭧﻨﯿﭘ ﮯﮐ Mixar Paint ﮏﺳﺎﻣ ﻝﺎﻌﻓ ﮯﯿﻟ ﮯﮐ ﮈﻮﻣ ﻮﯾﻮﯾﺮﭘ ﮏﺳﺎﻣ ﮯﮐ"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Blender ﺎﯾ ،ﮈﻮﻣ ﭦﮉﯾﺍ ﺭﻭﺍ ﮈﻮﻣ ﭧﻨﯿﭘ ﮯﮐ Lampway Paint ﮏﺳﺎﻣ ﻝﺎﻌﻓ ﮯﯿﻟ ﮯﮐ ﮈﻮﻣ ﻮﯾﻮﯾﺮﭘ ﮏﺳﺎﻣ ﮯﮐ"
 
 msgid "Mask Source Input"
 msgstr "ﭧﭘ ﻥﺍ ﺬﺧﺎﻣ ﮏﺳﺎﻣ"
@@ -15156,14 +15156,14 @@ msgstr "ﮟﯿﺋﺎﮑﭘ ﺰﻠﻨﯿﭼ ﻡﺎﻤﺗ"
 msgid "Delete Baked Images"
 msgstr "ﮟﯾﺮﮐ ﻑﺬﺣ ﺮﯾﻭﺎﺼﺗ ﯽﺋﻮﮨ ﯽﮑﭘ"
 
-msgid "New Mixar Paint Modifier"
-msgstr "ﺮﺋﺎﻔﯾﮈﻮﻣ Mixar Paint ﺎﯿﻧ"
+msgid "New Lampway Paint Modifier"
+msgstr "ﺮﺋﺎﻔﯾﮈﻮﻣ Lampway Paint ﺎﯿﻧ"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Mixar Paint ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﺮﺋﺎﻔﯾﮈﻮﻣ"
+msgid "Move Lampway Paint Modifier"
+msgstr "Lampway Paint ﮟﯾﺮﮐ ﻞﻘﺘﻨﻣ ﺮﺋﺎﻔﯾﮈﻮﻣ"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Mixar Paint ﮟﯿﺋﺎﭩﮨ ﺮﺋﺎﻔﯾﮈﻮﻣ"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Lampway Paint ﮟﯿﺋﺎﭩﮨ ﺮﺋﺎﻔﯾﮈﻮﻣ"
 
 msgid "Add Channel Modifier"
 msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﺮﺋﺎﻔﯾﮈﻮﻣ ﻞﻨﯿﭼ"
@@ -15297,8 +15297,8 @@ msgstr "ﮯﮨ ﺩﻮﺟﻮﻣ ﮯﺳ ﮯﻠﮩﭘ '{name}' ﻞﻨﯿﭼ"
 msgid "Build Layered Material"
 msgstr "ﮟﯾﺮﮐ ﺮﯿﻤﻌﺗ ﺩﺍﻮﻣ ﺭﺍﺩ ﮧﮩﺗ"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "ﮯﮨ ﺎﺗﺮﮐ ﺮﯿﻤﻌﺗ ﺩﺍﻮﻣ ﭧﻨﯿﭘ Mixar ﮯﺳ ﭧﺴﯿﻔﯿﻨﯿﻣ ﺩﺍﻮﻣ ﺭﺍﺩ ﮧﮩﺗ"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "ﮯﮨ ﺎﺗﺮﮐ ﺮﯿﻤﻌﺗ ﺩﺍﻮﻣ ﭧﻨﯿﭘ Lampway ﮯﺳ ﭧﺴﯿﻔﯿﻨﯿﻣ ﺩﺍﻮﻣ ﺭﺍﺩ ﮧﮩﺗ"
 
 msgid "Manifest JSON"
 msgstr "JSON ﭧﺴﯿﻔﯿﻨﯿﻣ"
@@ -15921,8 +15921,8 @@ msgstr "ﮯﮨ ﺎﺘﻟﺪﺑ ﻡﺎﻧ ﺎﮐ ﮧﮩﺗ ﺱﺍ"
 msgid "New name for the layer"
 msgstr "ﻡﺎﻧ ﺎﯿﻧ ﺎﮐ ﮧﮩﺗ"
 
-msgid "No active Mixar node"
-msgstr "ﮟﯿﮩﻧ ﮈﻮﻧ Mixar ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
+msgid "No active Lampway node"
+msgstr "ﮟﯿﮩﻧ ﮈﻮﻧ Lampway ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
 
 msgid "Name cannot be empty"
 msgstr "ﺎﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﯽﻟﺎﺧ ﻡﺎﻧ"
@@ -16071,11 +16071,11 @@ msgstr "ﮯﮨ ﺎﺗﺎﺟ ﺲﭘﺍﻭ ﺮﭘ ﺮﻈﻨﻣ ﺰﯿﭨﺮﭘﺍ�
 msgid "Add different types of masks to the active layer"
 msgstr "ﮯﮨ ﺎﺗﺮﮐ ﻞﻣﺎﺷ ﮏﺳﺎﻣ ﮯﮐ ﻡﺎﺴﻗﺍ ﻒﻠﺘﺨﻣ ﮟﯿﻣ ﮧﮩﺗ ﻝﺎﻌﻓ"
 
-msgid "Remove Mixar Paint Node"
-msgstr "Mixar Paint ﮟﯿﺋﺎﭩﮨ ﮈﻮﻧ"
+msgid "Remove Lampway Paint Node"
+msgstr "Lampway Paint ﮟﯿﺋﺎﭩﮨ ﮈﻮﻧ"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Mixar Paint ﮯﮨ ﺎﺘﮭﮐﺭ ﺮﯾﻭﺎﺼﺗ ﻞﻨﯿﭼ ﮯﺋﻮﮨ ﮯﮑﭘ ﻡﺎﻤﺗ ﺮﮕﻣ ،ﮯﮨ ﺎﺗﺎﭩﮨ ﮈﻮﻧ"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Lampway Paint ﮯﮨ ﺎﺘﮭﮐﺭ ﺮﯾﻭﺎﺼﺗ ﻞﻨﯿﭼ ﮯﺋﻮﮨ ﮯﮑﭘ ﻡﺎﻤﺗ ﺮﮕﻣ ،ﮯﮨ ﺎﺗﺎﭩﮨ ﮈﻮﻧ"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "!ﮟﯿﮩﻧ ﺎﮑﭘ ﯽﮭﺑﺍ ﭖﺍ ﭧﯿﺳ ﮈﻮﻧ {addon} ﮧﯾ"
@@ -16227,8 +16227,8 @@ msgstr "ﮯﮨ ﺎﺗﺎﮕﻟ ﺮﭘ ﮧﮩﺗ ﻞﻓ ﻝﺎﻌﻓ ﺩﺍﻮﻣ
 msgid "Material '{name}' not found in registry"
 msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮟﯿﻣ ﯼﺮﭩﺴﺟﺭ '{name}' ﺩﺍﻮﻣ"
 
-msgid "No active Mixar Paint node found"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮈﻮﻧ Mixar Paint ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
+msgid "No active Lampway Paint node found"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮈﻮﻧ Lampway Paint ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "ﺎﯿﮔ ﮓﻟ ﺮﭘ ﮧﮩﺗ ﮦﺩﻮﺟﻮﻣ '{name}' ﺩﺍﻮﻣ"
@@ -16431,8 +16431,8 @@ msgstr "ﮟﯿﮩﻧ ﻝﺎﻌﻓ ﺩﺍﻮﻣ ﺭﺍﺩ ﮧﮩﺗ ﯽﺋﻮﮐ"
 msgid "To use texture baking:"
 msgstr ":ﮯﯿﻟ ﮯﮐ ﮯﻧﺎﮑﭘ ﺖﺧﺎﺳ"
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. Mixar ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﺰﯿﭼ ﯽﻟﺍﻭ ﺩﺍﻮﻣ"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. Lampway ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﺰﯿﭼ ﯽﻟﺍﻭ ﺩﺍﻮﻣ"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "ﮟﯿﺋﺎﻨﺑ ﺩﺍﻮﻣ ﺭﺍﺩ ﮧﮩﺗ ﺎﯿﻧ ﺎﯾ .2  "
@@ -16533,8 +16533,8 @@ msgstr "ﺍﻮﮨ ﮟﯿﮩﻧ ﻉﻭﺮﺷ ﮉﻨﯾﺍ ﮏﯿﺑ ﭧﻨﯿﭘ"
 msgid "Paint UI not initialized"
 msgstr "ﺍﻮﮨ ﮟﯿﮩﻧ ﻉﻭﺮﺷ UI ﭧﻨﯿﭘ"
 
-msgid "No Mixar material found"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﺩﺍﻮﻣ Mixar ﯽﺋﻮﮐ"
+msgid "No Lampway material found"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﺩﺍﻮﻣ Lampway ﯽﺋﻮﮐ"
 
 msgid "No layer based material"
 msgstr "ﮟﯿﮩﻧ ﺩﺍﻮﻣ ﯽﺋﻮﮐ ﯽﻨﺒﻣ ﺮﭘ ﮧﮩﺗ"
@@ -16551,8 +16551,8 @@ msgstr "ﮟﯿﮩﻧ ﺐﺨﺘﻨﻣ ﮧﮩﺗ ﯽﺋﻮﮐ"
 msgid "No active material"
 msgstr "ﮟﯿﮩﻧ ﺩﺍﻮﻣ ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
 
-msgid "No Mixar node found"
-msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮈﻮﻧ Mixar ﯽﺋﻮﮐ"
+msgid "No Lampway node found"
+msgstr "ﻼ﻿ﻣ ﮟﯿﮩﻧ ﮈﻮﻧ Lampway ﯽﺋﻮﮐ"
 
 msgid "Backend layer not found"
 msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ ﮧﮩﺗ ﯽﮐ ﮉﻨﯾﺍ ﮏﯿﺑ"
@@ -17227,17 +17227,17 @@ msgstr "ﮯﮨ ﺐﺨﺘﻨﻣ/ﺯﻮﮐﺮﻣ ﺖﻗﻭ ﺱﺍ ﮧﮩﺗ"
 msgid "How this layer blends with layers below"
 msgstr "ﮯﮨ ﯽﺘﻠﻣ ﮯﺴﯿﮐ ﮫﺗﺎﺳ ﮯﮐ ﮞﻮﮩﺗ ﯽﮐ ﮯﭽﯿﻧ ﮧﮩﺗ ﮧﯾ"
 
-msgid "Mixar Layer Index"
-msgstr "Mixar ﺲﮑﯾﮉﻧﺍ ﮧﮩﺗ"
+msgid "Lampway Layer Index"
+msgstr "Lampway ﺲﮑﯾﮉﻧﺍ ﮧﮩﺗ"
 
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "Mixar ﮯﮐ mixar_mp.layers ﺲﮑﯾﮉﻧﺍ ﮟﯿﻣ ﮯﻋﻮﻤﺠﻣ"
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "Lampway ﮯﮐ mixar_mp.layers ﺲﮑﯾﮉﻧﺍ ﮟﯿﻣ ﮯﻋﻮﻤﺠﻣ"
 
-msgid "Mixar Group Node"
-msgstr "Mixar ﮈﻮﻧ ﮦﻭﺮﮔ"
+msgid "Lampway Group Node"
+msgstr "Lampway ﮈﻮﻧ ﮦﻭﺮﮔ"
 
-msgid "Name of the Mixar group node"
-msgstr "Mixar ﻡﺎﻧ ﺎﮐ ﮈﻮﻧ ﮦﻭﺮﮔ"
+msgid "Name of the Lampway group node"
+msgstr "Lampway ﻡﺎﻧ ﺎﮐ ﮈﻮﻧ ﮦﻭﺮﮔ"
 
 msgid "Updating Property"
 msgstr "ﮯﮨ ﯽﮨﺭ ﻮﮨ ﭧﯾﮉﭘﺍ ﯽﭨﺮﭘﺍﺮﭘ"
@@ -18312,8 +18312,8 @@ msgstr "ﮓﻧﺭ ﺎﮐ ﺰﯿﭼ ﯼﺮﺳﻭﺩ"
 msgid "Other Objects Channels"
 msgstr "ﺰﻠﻨﯿﭼ ﮯﮐ ﮞﻭﺰﯿﭼ ﺮﮕﯾﺩ"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "ﺰﻠﻨﯿﭼ ﭧﻨﯿﭘ Mixar ﮯﮐ ﺰﯿﭼ ﯼﺮﺳﻭﺩ"
+msgid "Other object's Lampway Paint channels"
+msgstr "ﺰﻠﻨﯿﭼ ﭧﻨﯿﭘ Lampway ﮯﮐ ﺰﯿﭼ ﯼﺮﺳﻭﺩ"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "ﺥﺭ/ﮮﺭﺎﻨﮐ/ﺲﮑﯿﭨﺭﻭ ﺐﺨﺘﻨﻣ"
@@ -18639,17 +18639,17 @@ msgstr "Application Support"
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
-msgstr "Mixar ۔ﮟﯾﺮﮐ ﮏﯿﭼ ﮟﯿﺗﺯﺎﺟﺍ ﯽﮐ ﺭﮉﻟﻮﻓ ﻞﺋﺎﻓﻭﺮﭘ ﻑﺭﺎﺻ ﮯﻨﭘﺍ — ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﯼﺮﭩﮑﯾﺮﺋﺍﮈ ﻥﺁ ﮉﯾﺍ ﯽﮐ"
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
+msgstr "Lampway ۔ﮟﯾﺮﮐ ﮏﯿﭼ ﮟﯿﺗﺯﺎﺟﺍ ﯽﮐ ﺭﮉﻟﻮﻓ ﻞﺋﺎﻓﻭﺮﭘ ﻑﺭﺎﺻ ﮯﻨﭘﺍ — ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﯼﺮﭩﮑﯾﺮﺋﺍﮈ ﻥﺁ ﮉﯾﺍ ﯽﮐ"
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
-msgstr "Mixar ۔ﮟﯾﺮﮐ ﮏﯿﭼ ﮟﯿﺗﺯﺎﺟﺍ ﯽﮐ ﺭﮉﻟﻮﻓ ﻞﺋﺎﻓﻭﺮﭘ ﻑﺭﺎﺻ ﮯﻨﭘﺍ — ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﯼﺮﭩﮑﯾﺮﺋﺍﮈ ﻦﺸﻨﯿﭩﺴﮑﯾﺍ ﯽﮐ"
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
+msgstr "Lampway ۔ﮟﯾﺮﮐ ﮏﯿﭼ ﮟﯿﺗﺯﺎﺟﺍ ﯽﮐ ﺭﮉﻟﻮﻓ ﻞﺋﺎﻓﻭﺮﭘ ﻑﺭﺎﺻ ﮯﻨﭘﺍ — ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﯼﺮﭩﮑﯾﺮﺋﺍﮈ ﻦﺸﻨﯿﭩﺴﮑﯾﺍ ﯽﮐ"
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "(ﮯﮨ ﻦﮑﻤﻣ ﺖﻘﺑﺎﻄﻣ ﺮﯿﻏ ﮯﺳ Blender 5.0) ﻡﺎﮐﺎﻧ ﺎﻧﺮﮐ ﻝﺎﻌﻓ"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
-msgstr "۔ﮟﯿﺋﻻ﻿ ﮟﯿﻣ Mixar ﺰﻨﺸﻨﯿﭩﺴﮑﯾﺍ ﺭﻭﺍ ﺰﻧﺁ ﮉﯾﺍ ﮯﺳ ﻝﺎﭩﺴﻧﺍ Blender ﮦﺩﻮﺟﻮﻣ ﮯﻨﭘﺍ"
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
+msgstr "۔ﮟﯿﺋﻻ﻿ ﮟﯿﻣ Lampway ﺰﻨﺸﻨﯿﭩﺴﮑﯾﺍ ﺭﻭﺍ ﺰﻧﺁ ﮉﯾﺍ ﮯﺳ ﻝﺎﭩﺴﻧﺍ Blender ﮦﺩﻮﺟﻮﻣ ﮯﻨﭘﺍ"
 
 msgid "Scan for Blender Plugins"
 msgstr "Blender ﮟﯾﺮﮐ ﻦﯿﮑﺳﺍ ﮯﯿﻟ ﮯﮐ ﺰﻧﺍِ ﮓﻠﭘ"
@@ -18672,14 +18672,14 @@ msgstr ":ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﺪﻌﺑ ﮯﮐ ﺪﻣﺁﺭﺩ"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "۔ﮟﯿﮨ ﮯﺗﺎﺟ ﻮﮨ ﻝﺎﻌﻓ ﮮﺩﺯ ﻥﺎﺸﻧ ؛ﮟﯿﮨ ﮯﺗﺎﺟ ﻮﮨ ﯽﭘﺎﮐ ﻥﺍِ ﮓﻠﭘ ﻡﺎﻤﺗ ﮯﮐ ﺖﺳﺮﮩﻓ"
 
-msgid "Import into Mixar"
-msgstr "Mixar ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ ﮟﯿﻣ"
+msgid "Import into Lampway"
+msgstr "Lampway ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ ﮟﯿﻣ"
 
 msgid "Imported"
 msgstr "ﺎﯿﮔ ﻮﮨ ﺪﻣﺁﺭﺩ"
 
-msgid "Already in Mixar"
-msgstr "ﮟﯿﻣ Mixar ﮯﺳ ﮯﻠﮩﭘ"
+msgid "Already in Lampway"
+msgstr "ﮟﯿﻣ Lampway ﮯﺳ ﮯﻠﮩﭘ"
 
 msgid "Copy failed"
 msgstr "ﻡﺎﮐﺎﻧ ﯽﭘﺎﮐ"
@@ -18705,11 +18705,11 @@ msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﺰﻧﺍِ ﮓﻠﭘ"
 msgid "Tick or untick every plugin in the list"
 msgstr "ﮟﯿﺋﺎﭩﮨ ﺎﯾ ﮟﯿﺋﺎﮕﻟ ﻥﺎﺸﻧ ﺮﭘ ﻥﺍِ ﮓﻠﭘ ﺮﮨ ﮯﮐ ﺖﺳﺮﮩﻓ"
 
-msgid "Import Plugins into Mixar"
-msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ ﮟﯿﻣ Mixar ﺰﻧﺍِ ﮓﻠﭘ"
+msgid "Import Plugins into Lampway"
+msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ ﮟﯿﻣ Lampway ﺰﻧﺍِ ﮓﻠﭘ"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
-msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﮮﺩﺯ ﻥﺎﺸﻧ ﺭﻭﺍ ﮟﯾﺮﮐ ﯽﭘﺎﮐ ﮟﯿﻣ Mixar ﻥﺍِ ﮓﻠﭘ ﺮﮨ ﺎﮐ ﺖﺳﺮﮩﻓ"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
+msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﮮﺩﺯ ﻥﺎﺸﻧ ﺭﻭﺍ ﮟﯾﺮﮐ ﯽﭘﺎﮐ ﮟﯿﻣ Lampway ﻥﺍِ ﮓﻠﭘ ﺮﮨ ﺎﮐ ﺖﺳﺮﮩﻓ"
 
 msgid "Nothing scanned — run Scan first"
 msgstr "ﮟﯿﺋﻼ﻿ﭼ ﻦﯿﮑﺳﺍ ﮯﻠﮩﭘ — ﺍﻮﮨ ﮟﯿﮩﻧ ﻦﯿﮑﺳﺍ ﮫﭽﮐ"
@@ -18726,8 +18726,8 @@ msgstr "ﮯﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻝﺎﻌﻓ {enabled}، {enable_failed} �
 msgid "Imported: {count}"
 msgstr "{count} :ﺪﻣﺁﺭﺩ"
 
-msgid "Already in Mixar: {count}"
-msgstr "{count} :ﮟﯿﻣ Mixar ﮯﺳ ﮯﻠﮩﭘ"
+msgid "Already in Lampway: {count}"
+msgstr "{count} :ﮟﯿﻣ Lampway ﮯﺳ ﮯﻠﮩﭘ"
 
 msgid "Enabled: {count}"
 msgstr "{count} :ﻝﺎﻌﻓ"
@@ -18744,8 +18744,8 @@ msgstr "Blender ﺪﻣﺁﺭﺩ ﮯﺳ"
 msgid "{count} found"
 msgstr "{count} ﮯﻠﻣ"
 
-msgid "Enable this plugin in Mixar after importing it"
-msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﮟﯿﻣ Mixar ﻥﺍِ ﮓﻠﭘ ﮧﯾ ﺪﻌﺑ ﮯﮐ ﺪﻣﺁﺭﺩ"
+msgid "Enable this plugin in Lampway after importing it"
+msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﮟﯿﻣ Lampway ﻥﺍِ ﮓﻠﭘ ﮧﯾ ﺪﻌﺑ ﮯﮐ ﺪﻣﺁﺭﺩ"
 
 msgid "Blender Version"
 msgstr "ﻥﮊﺭﻭ ﺭﮉﻨﯿﻠﺑ"
@@ -18798,14 +18798,14 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
-msgstr "Mixar ﻑﺍﺮﮔ ﺮﻈﻨﻣ"
+msgid "Lampway Scene Graph"
+msgstr "Lampway ﻑﺍﺮﮔ ﺮﻈﻨﻣ"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "۔ﻢﺋﺎﭨ ﻥﺭ ﻑﺮﺻ ۔(JSON) ﻑﺍﺮﮔ ﺮﻈﻨﻣ ﻞﺑﺎﻗ ﮯﮐ ﮯﻨﮬﮍﭘ ﮯﮐ ﭧﻨﺠﯾﺍ ﺎﮐ ﺮﻈﻨﻣ ﺮﮨ"
 
-msgid "Mixar Scene Graph Query Result"
-msgstr "Mixar ﮧﺠﯿﺘﻧ ﺎﮐ ﻝﺍﻮﺳ ﻑﺍﺮﮔ ﺮﻈﻨﻣ"
+msgid "Lampway Scene Graph Query Result"
+msgstr "Lampway ﮧﺠﯿﺘﻧ ﺎﮐ ﻝﺍﻮﺳ ﻑﺍﺮﮔ ﺮﻈﻨﻣ"
 
 msgid "JSON result of the last scene-graph query operator call."
 msgstr "۔ﮧﺠﯿﺘﻧ JSON ﺎﮐ ﻝﺎﮐ ﺮﭩﯾﺮﭘﺁ ﻝﺍﻮﺳ ﻑﺍﺮﮔ ﺮﻈﻨﻣ ﯼﺮﺧﺁ"
@@ -19524,8 +19524,8 @@ msgstr "۔ﮟﯿﺋﺎﭩﮨ ﻮﯾﮉﯾﻭ ﮯﯿﻟ ﮯﮐ ﮯﻨﺠﯿﮭﺑ
 msgid "User ID"
 msgstr "ID ﻑﺭﺎﺻ"
 
-msgid "User ID for Mixie Chat login"
-msgstr "Mixie ﻑﺭﺎﺻ ﮯﯿﻟ ﮯﮐ ﻥﺍ ﻦﺋﺎﺳ ﭧﯿﭼ ID"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "Lampway Agent ﻑﺭﺎﺻ ﮯﯿﻟ ﮯﮐ ﻥﺍ ﻦﺋﺎﺳ ﭧﯿﭼ ID"
 
 msgid "Agent expects: {formats}"
 msgstr "{formats} :ﻊﻗﻮﺗ ﯽﮐ ﭧﻨﺠﯾﺍ"
@@ -19983,11 +19983,11 @@ msgstr "۔ﮟﯾﺮﮐ ﻢﺘﺧ ﯽﺋﺎﮭﮑﻟ ﮯﻠﮩﭘ ﮯﺳ ﮯﻧ�
 msgid "Sign in to use voice input."
 msgstr "۔ﮟﯾﺮﮐ ﻥﺍ ﻦﺋﺎﺳ ﮯﯿﻟ ﮯﮐ ﭧﭘ ﻥﺍ ﮯﮐ ﺯﺍﻭﺁ"
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "۔ﮟﯿﺋﻼ﻿ﭼ ﮯﺳ Finder ﻮﮐ Mixar ﮯﯿﻟ ﮯﮐ ﺕﺯﺎﺟﺍ ﯽﮐ ﻥﻮﻓﻭﺮﮑﯿﺋﺎﻣ"
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "۔ﮟﯿﺋﻼ﻿ﭼ ﮯﺳ Finder ﻮﮐ Lampway ﮯﯿﻟ ﮯﮐ ﺕﺯﺎﺟﺍ ﯽﮐ ﻥﻮﻓﻭﺮﮑﯿﺋﺎﻣ"
 
-msgid "Allow microphone access for Mixar in system privacy settings."
-msgstr "۔ﮟﯾﺩ ﺕﺯﺎﺟﺍ ﯽﮐ ﻥﻮﻓﻭﺮﮑﯿﺋﺎﻣ ﮯﯿﻟ ﮯﮐ Mixar ﮟﯿﻣ ﺕﺎﺒﯿﺗﺮﺗ ﯼﺭﺍﺩﺯﺍﺭ ﯽﮐ ﻢﭩﺴﺳ"
+msgid "Allow microphone access for Lampway in system privacy settings."
+msgstr "۔ﮟﯾﺩ ﺕﺯﺎﺟﺍ ﯽﮐ ﻥﻮﻓﻭﺮﮑﯿﺋﺎﻣ ﮯﯿﻟ ﮯﮐ Lampway ﮟﯿﻣ ﺕﺎﺒﯿﺗﺮﺗ ﯼﺭﺍﺩﺯﺍﺭ ﯽﮐ ﻢﭩﺴﺳ"
 
 msgid "Allow microphone"
 msgstr "ﮟﯾﺩ ﺕﺯﺎﺟﺍ ﯽﮐ ﻥﻮﻓﻭﺮﮑﯿﺋﺎﻣ"
@@ -20034,8 +20034,8 @@ msgstr "۔ﮟﯾﺮﮐ ﻥﺍ ﻦﺋﺎﺳ ﮦﺭﺎﺑﻭﺩ ﻡﺮﮐ ﮦﺍ�
 msgid "Login Failed"
 msgstr "ﻡﺎﮐﺎﻧ ﻥﺍ ﻦﺋﺎﺳ"
 
-msgid "Sign in with your Mixar account"
-msgstr "ﮟﯾﺮﮐ ﻥﺍ ﻦﺋﺎﺳ ﮯﺳ ﭧﻧﺅﺎﮐﺍ Mixar ﮯﻨﭘﺍ"
+msgid "Sign in with your Lampway account"
+msgstr "ﮟﯾﺮﮐ ﻥﺍ ﻦﺋﺎﺳ ﮯﺳ ﭧﻧﺅﺎﮐﺍ Lampway ﮯﻨﭘﺍ"
 
 msgid "Waiting for browser..."
 msgstr "...ﺭﺎﻈﺘﻧﺍ ﺎﮐ ﺭﺯﺅﺍﺮﺑ"
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "ﮈﺭﻮﺑ ﺶﯾﮈ"
 
-msgid "About Mixar"
-msgstr "Mixar ﮟﯿﻣ ﮮﺭﺎﺑ ﮯﮐ"
+msgid "About Lampway"
+msgstr "Lampway ﮟﯿﻣ ﮮﺭﺎﺑ ﮯﮐ"
 
 msgid "Documentation"
 msgstr "ﯼﺰﯾﻭﺎﺘﺳﺩ"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "۔(ﮯﺌﮔ ﮮﮌﻮﮭﭼ ﻡﺎﻐﯿﭘ {count} ﮯﺳ ﺮﻇﺎﻨﻣ {scenes}) ﯽﺋﻮﮨ ﺪﻣﺁﺮﺑ ﯽﭘﺎﮐ ﺮﯿﻐﺑ ﮯﮐ ﭧﯿﭼ"
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Mixar ﺮﯿﻐﺑ ﮯﮐ ﺦﯾﺭﺎﺗ ﯽﮐ ﭧﯿﭼ :ﭧﯿﭼ .blend ﺪﻣﺁﺮﺑ"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Lampway ﺮﯿﻐﺑ ﮯﮐ ﺦﯾﺭﺎﺗ ﯽﮐ ﭧﯿﭼ :ﭧﯿﭼ .blend ﺪﻣﺁﺮﺑ"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "۔ﮟﯾﺮﮐ ﺶﺷﻮﮐ ﮦﺭﺎﺑﻭﺩ ﺭﻭﺍ ﮟﯾﺮﮐ ﺶﯾﺮﻔﯾﺭ ﮒﻼ﻿ﭩﯿﮐ ۔ﮟﯿﮩﻧ ﺏﺎﯿﺘﺳﺩ ﺖﻗﻭ ﺱﺍ ﻖﯿﻠﺨﺗ"
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﺪﻋﺍﻮﻗ"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "Mixie ﺮﮨ ﺪﻋﺍﻮﻗ ﯽﻤﻟﺎﻋ ؛ﮟﯿﮨ ﯽﺘﮕﻟ ﺮﭘ ﺏﺍﻮﺟ ﺎﯾ ﻡﺎﻐﯿﭘ ﮯﻠﮔﺍ ﮯﮐ ﭖﺁ ﮞﺎﯿﻠﯾﺪﺒﺗ ۔ﮟﯾﺮﮐ ﻦﯿﻌﺘﻣ ﺪﻋﺍﻮﻗ ﮯﮐ Mixar ﮯﮨ ﻡﺪﻘﻣ ﺮﭘ ﺪﻋﺍﻮﻗ ﯽﻤﻟﺎﻋ ﺭﻭﺍ ﭧﮑﯿﺟﻭﺮﭘ ﺖﺳﺍﻮﺧﺭﺩ ﮦﺩﻮﺟﻮﻣ ﯽﮐ ﭖﺁ ۔ﮟﯿﮨ ﮯﺘﮕﻟ ﮟﯿﻣ ﻞﺋﺎﻓ"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Mixie ﺮﮨ ﺪﻋﺍﻮﻗ ﯽﻤﻟﺎﻋ ؛ﮟﯿﮨ ﯽﺘﮕﻟ ﺮﭘ ﺏﺍﻮﺟ ﺎﯾ ﻡﺎﻐﯿﭘ ﮯﻠﮔﺍ ﮯﮐ ﭖﺁ ﮞﺎﯿﻠﯾﺪﺒﺗ ۔ﮟﯾﺮﮐ ﻦﯿﻌﺘﻣ ﺪﻋﺍﻮﻗ ﮯﮐ Lampway ﮯﮨ ﻡﺪﻘﻣ ﺮﭘ ﺪﻋﺍﻮﻗ ﯽﻤﻟﺎﻋ ﺭﻭﺍ ﭧﮑﯿﺟﻭﺮﭘ ﺖﺳﺍﻮﺧﺭﺩ ﮦﺩﻮﺟﻮﻣ ﯽﮐ ﭖﺁ ۔ﮟﯿﮨ ﮯﺘﮕﻟ ﮟﯿﻣ ﻞﺋﺎﻓ"
 
 msgid "Rule operation failed"
 msgstr "ﻡﺎﮐﺎﻧ ﻞﻤﻋ ﮦﺪﻋﺎﻗ"
@@ -22138,8 +22138,8 @@ msgstr "ﻦﺘﻣ ﺎﮐ ﮯﻌﻗﺍﻭ ﮦﺪﻨﻨﮐ ﻥﺎﭽﮩﭘ ﺮﯾ�
 msgid "Materials: {count}"
 msgstr "{count} :ﺩﺍﻮﻣ"
 
-msgid "No Mixar material active"
-msgstr "ﮟﯿﮩﻧ ﻝﺎﻌﻓ ﺩﺍﻮﻣ Mixar ﯽﺋﻮﮐ"
+msgid "No Lampway material active"
+msgstr "ﮟﯿﮩﻧ ﻝﺎﻌﻓ ﺩﺍﻮﻣ Lampway ﯽﺋﻮﮐ"
 
 msgid "{channel} Settings"
 msgstr "{channel} ﺕﺎﺒﯿﺗﺮﺗ"
@@ -22801,8 +22801,8 @@ msgstr "Y ﮧﻧﺎﻤﯿﭘ"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "(ﯼﺮﺗﻮﮬﮍﺑ) ﮧﻧﺎﻤﯿﭘ ﮟﯿﻣ ﺖﻤﺳ Y ﺎﮐ UV ﺐﺨﺘﻨﻣ"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Mixar UV ۔ﺰﯿﭨﺮﭘﺍﺮﭘ ﻝﻮﭨ ﺢﯾﺮﺸﺗ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Lampway UV ۔ﺰﯿﭨﺮﭘﺍﺮﭘ ﻝﻮﭨ ﺢﯾﺮﺸﺗ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
 
 msgid "Annotate Line"
 msgstr "ﻦﺋﻻ﻿ ﺢﯾﺮﺸﺗ"
@@ -22828,14 +22828,14 @@ msgstr "ﻉﻭﺮﺷ ﺯﺍﺪﻧﺍ"
 msgid "Toggle UV Sidebar"
 msgstr "UV ﮟﯾﺮﮐ ﻞﮔﻮﭨ ﺭﺎﺑ ﮉﺋﺎﺳ"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "ﮟﯾﺮﮐ ﻞﮔﻮﭨ ﺭﺎﺑ ﮉﺋﺎﺳ Mixar UV ﮟﯿﻣ ﺮﭩﯾﮉﯾﺍ ﺮﯾﻮﺼﺗ"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "ﮟﯾﺮﮐ ﻞﮔﻮﭨ ﺭﺎﺑ ﮉﺋﺎﺳ Lampway UV ﮟﯿﻣ ﺮﭩﯾﮉﯾﺍ ﺮﯾﻮﺼﺗ"
 
 msgid "Open UV Sidebar"
 msgstr "UV ﮟﯿﻟﻮﮭﮐ ﺭﺎﺑ ﮉﺋﺎﺳ"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Mixar UV ﻮﮨ ﺎﭙﮭﭼ ﺮﮔﺍ ﮟﯿﻟﻮﮭﮐ ﺭﺎﺑ ﮉﺋﺎﺳ"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Lampway UV ﻮﮨ ﺎﭙﮭﭼ ﺮﮔﺍ ﮟﯿﻟﻮﮭﮐ ﺭﺎﺑ ﮉﺋﺎﺳ"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "ﮞﻮﮨ ﮧﻧ ﺏﺎﯿﺘﺳﺩ ﺰﯿﭨﺮﭘﺍﺮﭘ UV ﯽﺋﻮﮐ ﺐﺟ ﺖﻟﺎﺣ ﯽﻟﺎﺧ"
@@ -22858,8 +22858,8 @@ msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺮﺑ ﺐﯿﺗﺮﺗ  ﯼﻭﻮﯾ"
 msgid "Export UV layout using stored properties"
 msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺮﺑ ﭦﺅﺁ ﮯﻟ UV ﮯﺳ ﺰﯿﭨﺮﭘﺍﺮﭘ ﮦﺮﯿﺧﺫ"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "Mixar UV ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ UV ﻞﻨﯿﭘ ﺪﻣﺁﺮﺑ"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "Lampway UV ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ UV ﻞﻨﯿﭘ ﺪﻣﺁﺮﺑ"
 
 msgid "UV UI not initialized"
 msgstr "UV UI ﺍﻮﮨ ﮟﯿﮩﻧ ﻉﻭﺮﺷ"
@@ -22975,8 +22975,8 @@ msgstr "ﮟﯾﺮﮐ ﮞﺎﭙﺴﭼ s ﯼﻭﻮﯾ"
 msgid "Functions"
 msgstr "ﺰﻨﺸﮑﻨﻓ"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Mixar UV ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ UV ﮟﯿﮩﻧ ﻦﭩﺑ ﺭﮉﯿﮨ ﯽﺋﻮﮐ) ﯽﻨﺒﻣ ﺮﭘ ﻝﻮﭨ - ﻞﻨﯿﭘ ﺰﻨﺸﮑﻨﻓ)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Lampway UV ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ UV ﮟﯿﮩﻧ ﻦﭩﺑ ﺭﮉﯿﮨ ﯽﺋﻮﮐ) ﯽﻨﺒﻣ ﺮﭘ ﻝﻮﭨ - ﻞﻨﯿﭘ ﺰﻨﺸﮑﻨﻓ)"
 
 msgid "Seam"
 msgstr "ﻥﻮﯿﺳ"
@@ -23104,8 +23104,8 @@ msgstr "UV ﮟﯿﮩﻧ ﺮﯾﻮﺼﺗ ﯽﺋﻮﮐ ﮟﯿﻣ ﺮﭩﯾﮉﯾ�
 msgid "Material '{name}' created and applied"
 msgstr "ﺎﯿﮔ ﮓﻟ ﺭﻭﺍ ﺎﯿﮔ ﻦﺑ '{name}' ﺩﺍﻮﻣ"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Mixar UV ۔ﻞﻨﯿﭘ ﺮﯾﻮﺼﺗ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Lampway UV ۔ﻞﻨﯿﭘ ﺮﯾﻮﺼﺗ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
 
 msgid "Save As"
 msgstr "ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ﺭﻮﻄﺑ"
@@ -23137,8 +23137,8 @@ msgstr "ﺰﺋﺎﺳ ﺎﮐ ﺮﯾﻮﺼﺗ"
 msgid "Invert All Colors"
 msgstr "ﮟﯿﺋﺎﭩﻟﺍ ﮓﻧﺭ ﻡﺎﻤﺗ"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Mixar UV ﻞﻨﯿﭘ ﭦﻼ﻿ﺳ ﺩﺍﻮﻣ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Lampway UV ﻞﻨﯿﭘ ﭦﻼ﻿ﺳ ﺩﺍﻮﻣ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
 
 msgid "No active object"
 msgstr "ﮯﮨ ﮟﯿﮩﻧ ﮯﺷ ﻝﺎﻌﻓ ﯽﺋﻮﮐ"
@@ -23182,8 +23182,8 @@ msgstr "ﮟﯿﺋﺎﻨﺑ ﮯﻄﺧ ﺕﺭﻭﺮﺿ ﺐﺴﺣ ﮟﯿﻣ ﮧﮕ�
 msgid "{label} unavailable"
 msgstr "{label} ﮟﯿﮩﻧ ﺏﺎﯿﺘﺳﺩ"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Mixar UV ۔ﻞﻨﯿﭘ ﭦﺅﺁ ﮯﻟ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Lampway UV ۔ﻞﻨﯿﭘ ﭦﺅﺁ ﮯﻟ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "uv.pack_islands ﮟﯿﮩﻧ ﺏﺎﯿﺘﺳﺩ ﺰﯿﭨﺮﭘﺍﺮﭘ"
@@ -23329,8 +23329,8 @@ msgstr "ﭧﮑﯿﺟﻭﺮﭘ"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "ﮟﯾﺮﮐ ﭧﮑﯿﺟﻭﺮﭘ UV ﮯﺳ ﺰﯿﭨﺮﭘﺍﺮﭘ ﺭﻭﺍ ﻢﺴﻗ ﯽﺋﺎﮭﮐﺩ ﮟﯿﻣ ﻞﻨﯿﭘ ﻦﺸﮑﯿﺟﻭﺮﭘ"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Mixar UV UI ﯽﺋﻮﮨ ﮟﯿﮩﻧ ﻉﻭﺮﺷ ﺖﻟﺎﺣ"
+msgid "Lampway UV UI state not initialized"
+msgstr "Lampway UV UI ﯽﺋﻮﮨ ﮟﯿﮩﻧ ﻉﻭﺮﺷ ﺖﻟﺎﺣ"
 
 msgid "Unknown projection type: {type}"
 msgstr "{type} :ﻢﺴﻗ ﻦﺸﮑﯿﺟﻭﺮﭘ ﻡﻮﻠﻌﻣﺎﻧ"
@@ -23461,8 +23461,8 @@ msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﮉﮑﻨﻟ"
 msgid "Select linked UVs"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ UV ﮏﻠﺴﻨﻣ"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Mixar UV ﮟﯿﮩﻧ ﻦﭩﺑ ﺭﮉﯿﮨ ﯽﺋﻮﮐ) ﯽﻨﺒﻣ ﺮﭘ ﻝﻮﭨ - ﻞﻨﯿﭘ ﺏﺎﺨﺘﻧﺍ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Lampway UV ﮟﯿﮩﻧ ﻦﭩﺑ ﺭﮉﯿﮨ ﯽﺋﻮﮐ) ﯽﻨﺒﻣ ﺮﭘ ﻝﻮﭨ - ﻞﻨﯿﭘ ﺏﺎﺨﺘﻧﺍ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ)"
 
 msgid "Basic Selection"
 msgstr "ﺏﺎﺨﺘﻧﺍ ﯼﺩﺎﯿﻨﺑ"
@@ -23503,8 +23503,8 @@ msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﻢﯿﺴﻘﺗ"
 msgid "Select Overlap"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﭗﯿﻟﺭﻭﻭﺍ"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Mixar UV ﻞﻨﯿﭘ ﺖﻓﺎﺜﮐ ﻞﺴﮑﯿﭨ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Lampway UV ﻞﻨﯿﭘ ﺖﻓﺎﺜﮐ ﻞﺴﮑﯿﭨ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
 
 msgid "Activate Grab Tool"
 msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﻝﻮﭨ ﮍﮑﭘ"
@@ -23548,8 +23548,8 @@ msgstr "ﮟﯾﺮﮐ ﺰﮐﺮﻣ ﺮﭘ ﺮﺳﺮﮐ ﺮﻈﻨﻣ"
 msgid "UV Sculpt Tools"
 msgstr "UV ﺰﻟﻮﭨ ﭧﭙﻠﮑﺳﺍ"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Mixar UV ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ UV ﮟﯿﮩﻧ ﻦﭩﺑ ﺭﮉﯿﮨ ﯽﺋﻮﮐ) ﯽﻨﺒﻣ ﺮﭘ ﻝﻮﭨ - ﻞﻨﯿﭘ ﺰﻟﻮﭨ ﭧﭙﻠﮑﺳﺍ)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Lampway UV ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ UV ﮟﯿﮩﻧ ﻦﭩﺑ ﺭﮉﯿﮨ ﯽﺋﻮﮐ) ﯽﻨﺒﻣ ﺮﭘ ﻝﻮﭨ - ﻞﻨﯿﭘ ﺰﻟﻮﭨ ﭧﭙﻠﮑﺳﺍ)"
 
 msgid "Grab"
 msgstr "ﻭﮍﮑﭘ"
@@ -23668,8 +23668,8 @@ msgstr "ﮟﯿﺋﺎﮕﻟ ﯽﻠﯾﺪﺒﺗ ﮧﻧﺎﻤﯿﭘ ﺮﭘ UV ﺐ�
 msgid "Snapping"
 msgstr "ﮓﻨﭙﯿﻨﺳ"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Mixar UV ﻞﻨﯿﭘ ﮓﻨﭙﯿﻨﺳﺍ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Lampway UV ﻞﻨﯿﭘ ﮓﻨﭙﯿﻨﺳﺍ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
 
 msgid "Snapping Options"
 msgstr "ﺕﺍﺭﺎﯿﺘﺧﺍ ﮓﻨﭙﯿﻨﺳﺍ"
@@ -23719,8 +23719,8 @@ msgstr "ﮟﯿﻟﻮﮭﮐ ﮯﺳ ﺰﯿﭨﺮﭘﺍﺮﭘ ﺭﻭﺍ ﮯﻘﯾ�
 msgid "Unknown unwrap method: {method}"
 msgstr "{method} :ﮧﻘﯾﺮﻃ ﺎﮐ ﮯﻨﻟﻮﮭﮐ ﻡﻮﻠﻌﻣﺎﻧ"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Mixar UV ۔ﻞﻨﯿﭘ ﭧﮑﯿﺟﻭﺮﭘ + ﺎﻨﻟﻮﮭﮐ ﺍﻮﮨ ﻼ﻿ﻣ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Lampway UV ۔ﻞﻨﯿﭘ ﭧﮑﯿﺟﻭﺮﭘ + ﺎﻨﻟﻮﮭﮐ ﺍﻮﮨ ﻼ﻿ﻣ ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ"
 
 msgid "Live Unwrap"
 msgstr "ﭗﯾﺮﻧﺍ ﻮﯿﺋﻻ﻿"
@@ -23796,14 +23796,14 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
 "(ﻝﺎﻌﻓ ﺮﭘ ﺭﻮﻃ ﮦﺪﺷ ﮯﻃ ﮦﺪﺷ ﻞﺋﺎﭨ) ﮟﯿﺋﺎﻨﺑ ﺮﯾﻮﺼﺗ ﯽﺌﻧ\n"
 "\n"
 "`image.new` ﮯﮐ ﺮﭩﯾﺮﭘﺁ ﻮﺟ ﮧﻓﺎﻔﻟ ﺩﺮﮔ ﮯﮐ\n"
-"Mixar UV ۔ﮯﮨ ﺎﺘﮭﮐﺭ ﮯﺳ ﮯﻠﮩﭘ `tiled=True` ﺮﭘ ﮒﻼ﻿ﯿﺋﺍﮈ ﯽﭨﺮﭘﺍﺮﭘ\n"
+"Lampway UV ۔ﮯﮨ ﺎﺘﮭﮐﺭ ﮯﺳ ﮯﻠﮩﭘ `tiled=True` ﺮﭘ ﮒﻼ﻿ﯿﺋﺍﮈ ﯽﭨﺮﭘﺍﺮﭘ\n"
 "ﮒﻼ﻿ﯿﺋﺍﮈ ﮧﮐﺎﺗ ،ﺮﭘ ﺭﻮﻃ ﮯﮐ ﺮﭩﯾﺮﭘﺁ `=new` ﮯﮐ `template_ID` ﮟﯿﻣ ﺰﻠﻨﯿﭘ\n"
 "ID ﺭﻭﺍ ﻖﯿﻠﺨﺗ ﻞﺻﺍ ۔ﮯﻠﮭﮐ ﺩﺯ ﻥﺎﺸﻧ ﮯﺳ ﮯﻠﮩﭘ ﺲﮐﺎﺑ ﮏﯿﭼ ﮦﺪﺷ ﻞﺋﺎﭨ\n"
 "۔ﮯﮨ ﺎﺗﺮﮐ `image.new` ﯽﻧﻭﺭﺪﻧﺍ ﺾﯾﻮﻔﺗ\n"
@@ -23826,8 +23826,8 @@ msgstr "ﮟﯾﺮﮭﺑ ﻞﺋﺎﭨ"
 msgid "Fill UDIM tile"
 msgstr "UDIM ﮟﯾﺮﮭﺑ ﻞﺋﺎﭨ"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "Mixar UV ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ UV ۔ﻞﻨﯿﭘ ﭧﯿﺳ"
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "Lampway UV ﮯﯿﻟ ﮯﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ UV ۔ﻞﻨﯿﭘ ﭧﯿﺳ"
 
 msgid "UV Maps"
 msgstr "UV ﮯﺸﻘﻧ"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "ﺭﺍﺯﻭﺍ"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Mixar UV ﺐﺟ — ﻞﻨﯿﭘ ﻝﻮﭨ ﺎﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ\n"
+"Lampway UV ﺐﺟ — ﻞﻨﯿﭘ ﻝﻮﭨ ﺎﮐ ﮧﮕﺟ ﺰﯿﭨﺮﭘﺍﺮﭘ\n"
 "`builtin.uv_tool` ۔ﮯﮨ ﺎﺗﺎﺟ ﺎﯾﺎﮭﮐﺩ ﻮﮨ ﻝﺎﻌﻓ ﻝﻮﭨ ﺭﺎﺑ ﻝﻮﭨ"
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,14 +24070,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Mixar ﻮﮐ Zen ﮈﺭﻮﺑ ﮈﻮﻣ + ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ + ﭦﺭﻮﭘ ﻮﯾﻭ ﻢﮐ ﮯﺳ ﻢﮐ) ﮟﯿﺋﺎﺟ ﮯﻟ ﮟﯿﻣ ﮈﻮﻣ)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "Lampway ﻮﮐ Zen ﮈﺭﻮﺑ ﮈﻮﻣ + ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ + ﭦﺭﻮﭘ ﻮﯾﻭ ﻢﮐ ﮯﺳ ﻢﮐ) ﮟﯿﺋﺎﺟ ﮯﻟ ﮟﯿﻣ ﮈﻮﻣ)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Zen ﮟﯿﮩﻧ ﺏﺎﯿﺘﺳﺩ ﭧﯿﻠﭙﻤﯿﭨ ﯽﺋﻮﮐ — ﯽﮑﺳ ﻦﺑ ﮟﯿﮩﻧ ﮧﮕﺟ ﯽﮐ ﻡﺎﮐ ﮈﻮﻣ"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "Mixar ﻮﮐ Engine ﻞﻤﮑﻣ) ﮟﯿﺋﺎﺟ ﮯﻟ ﮟﯿﻣ ﮈﻮﻣ Blender ﮟﯿﮩﮕﺟ ﯽﮐ ﻡﺎﮐ ﺯﺮﻃ)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "Lampway ﻮﮐ Engine ﻞﻤﮑﻣ) ﮟﯿﺋﺎﺟ ﮯﻟ ﮟﯿﻣ ﮈﻮﻣ Blender ﮟﯿﮩﮕﺟ ﯽﮐ ﻡﺎﮐ ﺯﺮﻃ)"
 
 msgid "Modeling workspace not found"
 msgstr "ﯽﻠﻣ ﮟﯿﮩﻧ ﮧﮕﺟ ﯽﮐ ﻡﺎﮐ ﮓﻨﻟﮈﺎﻣ"
@@ -24298,17 +24298,17 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
-msgstr "ﮯﮨ ﺎﺘﮑﺳ ﻮﮨ ﻊﺋﺎﺿ ﺎﭩﯾﮈ ﮫﭽﮐ ،ﻞﺋﺎﻓ ﻅﻮﻔﺤﻣ ﮯﺳ (%d.%d) ﻥﮊﺭﻭ Mixar ﮯﺌﻧ"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
+msgstr "ﮯﮨ ﺎﺘﮑﺳ ﻮﮨ ﻊﺋﺎﺿ ﺎﭩﯾﮈ ﮫﭽﮐ ،ﻞﺋﺎﻓ ﻅﻮﻔﺤﻣ ﮯﺳ (%d.%d) ﻥﮊﺭﻭ Lampway ﮯﺌﻧ"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "ﮟﯿﻟﻮﮭﮐ ﮯﺳ ﮯﻟﺍﻭ ﺪﻌﺑ ﺎﯾ Mixar %s ﮯﺳﺍ ،ﯽﺋﻮﮨ ﻅﻮﻔﺤﻣ ﮯﺳ ﻥﮊﺭﻭ ﮯﺌﻧ ﻞﺋﺎﻓ"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "ﮟﯿﻟﻮﮭﮐ ﮯﺳ ﮯﻟﺍﻭ ﺪﻌﺑ ﺎﯾ Lampway %s ﮯﺳﺍ ،ﯽﺋﻮﮨ ﻅﻮﻔﺤﻣ ﮯﺳ ﻥﮊﺭﻭ ﮯﺌﻧ ﻞﺋﺎﻓ"
 
 msgid "Failed to read mixar file '%s': %s"
 msgstr "mixar ﻞﺋﺎﻓ '%s' ﯽﮑﺳ ﺎﺟ ﯽﮬﮍﭘ ﮟﯿﮩﻧ: %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
-msgstr "mixar ﻞﺋﺎﻓ '%s' ﮯﮨ ﻞﻤﮑﻣﺎﻧ ﺭﮉﯿﮨ ،ﯽﺘﮑﺳ ﺎﺟ ﯽﮬﮍﭘ ﮟﯿﮩﻧ، Mixar ﮯﮨ ﯽﺘﮑﺳ ﻮﮨ ﮯﺳ ﻥﮊﺭﻭ ﮯﺌﻧ ﮯﮐ"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr "mixar ﻞﺋﺎﻓ '%s' ﮯﮨ ﻞﻤﮑﻣﺎﻧ ﺭﮉﯿﮨ ،ﯽﺘﮑﺳ ﺎﺟ ﯽﮬﮍﭘ ﮟﯿﮩﻧ، Lampway ﮯﮨ ﯽﺘﮑﺳ ﻮﮨ ﮯﺳ ﻥﮊﺭﻭ ﮯﺌﻧ ﮯﮐ"
 
 msgid "Failed to read file '%s', not a mixar file"
 msgstr "ﮟﯿﮩﻧ ﻞﺋﺎﻓ mixar ،ﯽﮑﺳ ﺎﺟ ﯽﮬﮍﭘ ﮟﯿﮩﻧ '%s' ﻞﺋﺎﻓ"
@@ -24316,14 +24316,14 @@ msgstr "ﮟﯿﮩﻧ ﻞﺋﺎﻓ mixar ،ﯽﮑﺳ ﺎﺟ ﯽﮬﮍﭘ ﮟﯿ�
 msgid "Unable to open mixar <memory>"
 msgstr "mixar <memory> ﺎﮑﺳ ﻞﮭﮐ ﮟﯿﮩﻧ"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Mixarfile '%s' Mixar ﮟﯿﻣ ﺱﺍ ﺭﻭﺍ ﮯﮨ ﯽﻨﺑ ﮯﺳ ﻥﮊﺭﻭ ﮯﮐ ﻞﺒﻘﺘﺴﻣ ﮯﮐ ID ۔ﮯﮨ ﺎﯿﮔ ﺎﯾﺩ ﭦﺎﮐ ﮟﯿﮩﻧﺍ ۔ﮟﯿﮨ ﮯﺒﻤﻟ ﮯﺳ ﺪﺣ ﮦﺩﻮﺟﻮﻣ ﻡﺎﻧ"
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Mixarfile '%s' Lampway ﮟﯿﻣ ﺱﺍ ﺭﻭﺍ ﮯﮨ ﯽﻨﺑ ﮯﺳ ﻥﮊﺭﻭ ﮯﮐ ﻞﺒﻘﺘﺴﻣ ﮯﮐ ID ۔ﮯﮨ ﺎﯿﮔ ﺎﯾﺩ ﭦﺎﮐ ﮟﯿﮩﻧﺍ ۔ﮟﯿﮨ ﮯﺒﻤﻟ ﮯﺳ ﺪﺣ ﮦﺩﻮﺟﻮﻣ ﻡﺎﻧ"
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
 msgstr "Mixarfile '%s' ﻂﻠﻏ ﮟﯿﻣ ﺱﺍ ،ﮯﮨ ﯽﺘﮕﻟ ﺏﺍﺮﺧ ID ۔ﮯﮨ ﺎﯿﮔ ﺎﯾﺩ ﭦﺎﮐ ﮟﯿﮩﻧﺍ ۔ﮟﯿﮨ ﻡﺎﻧ"
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
-msgstr "۔ﮟﯾﺮﮐ ﺭﻮﻏ ﺮﭘ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ ﮦﺭﺎﺑﻭﺩ ﺮﮐ ﻝﻮﮭﮐ ﮯﺳ ﻥﮊﺭﻭ Mixar ﮦﺩﻮﺟﻮﻣ ﻮﮐ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﺱﺍ ،ﮯﮨ ﺎﺘﮑﺳ ﻮﮨ ﺐﺋﺎﻏ ﺎﭩﯾﮈ ﮏﻠﺴﻨﻣ ﮯﺳ ﺱﺍ ۔ﮟﯿﮨ ﮯﺒﻤﻟ ﮯﺳ ﺪﺣ ﮦﺩﻮﺟﻮﻣ ﻡﺎﻧ ID ﮟﯿﻣ ﺱﺍ ﺭﻭﺍ ﮯﮨ ﯽﻨﺑ ﮯﺳ ﻥﮊﺭﻭ ﮯﮐ ﻞﺒﻘﺘﺴﻣ ﮯﮐ %s' Mixar' ﯼﺮﯾﺮﺒﺋﻻ﻿"
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
+msgstr "۔ﮟﯾﺮﮐ ﺭﻮﻏ ﺮﭘ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ ﮦﺭﺎﺑﻭﺩ ﺮﮐ ﻝﻮﮭﮐ ﮯﺳ ﻥﮊﺭﻭ Lampway ﮦﺩﻮﺟﻮﻣ ﻮﮐ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﺱﺍ ،ﮯﮨ ﺎﺘﮑﺳ ﻮﮨ ﺐﺋﺎﻏ ﺎﭩﯾﮈ ﮏﻠﺴﻨﻣ ﮯﺳ ﺱﺍ ۔ﮟﯿﮨ ﮯﺒﻤﻟ ﮯﺳ ﺪﺣ ﮦﺩﻮﺟﻮﻣ ﻡﺎﻧ ID ﮟﯿﻣ ﺱﺍ ﺭﻭﺍ ﮯﮨ ﯽﻨﺑ ﮯﺳ ﻥﮊﺭﻭ ﮯﮐ ﻞﺒﻘﺘﺴﻣ ﮯﮐ %s' Lampway' ﯼﺮﯾﺮﺒﺋﻻ﻿"
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: ﯼﺰﮐﺮﻣ ﺎﭩﯾﮈ .mixar ﮯﮨ ﺎﺘﯾﺩ ﮧﻟﺍﻮﺣ ﺎﮐ ﻞﺋﺎﻓ: '%s' ﺯﺍ %s"
@@ -24454,8 +24454,8 @@ msgstr "Mixie ﮟﯿﮭﭼﻮﭘ ﯽﮭﺑ ﮫﭽﮐ ﮯﺳ..."
 msgid "Write your prompt here..."
 msgstr "...ﮟﯿﮭﮑﻟ ﮞﺎﮩﯾ ﭧﭙﻣﺍﺮﭘ ﺎﻨﭘﺍ"
 
-msgid "Everything Mixar has generated"
-msgstr "ﺎﯿﮐ ﺍﺪﯿﭘ ﮯﻧ Mixar ﮫﭽﮐ ﻮﺟ"
+msgid "Everything Lampway has generated"
+msgstr "ﺎﯿﮐ ﺍﺪﯿﭘ ﮯﻧ Lampway ﮫﭽﮐ ﻮﺟ"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -25771,14 +25771,14 @@ msgstr "Mixie3D ﮟﯾﺮﮐ ﻑﺬﺣ ﻮﯾﻮﯾﺮﭘ"
 msgid "Delete a segmented image from the preview history"
 msgstr "۔ﮯﮨ ﺎﺗﺮﮐ ﻑﺬﺣ ﺮﯾﻮﺼﺗ ﮦﺪﺷ ﻢﯿﺴﻘﺗ ﮯﺳ ﺦﯾﺭﺎﺗ ﯽﮐ ﻮﯾﻮﯾﺮﭘ"
 
-msgid "Mixar agent bubble loading…"
-msgstr "Mixar ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ…"
+msgid "Lampway agent bubble loading…"
+msgstr "Lampway ﮯﮨ ﺎﮨﺭ ﻮﮨ ﮈﻮﻟ ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ…"
 
 msgid "Show Agent Bubble"
 msgstr "ﮟﯿﺋﺎﮭﮐﺩ ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
-msgstr "۔ﮯﮑﺳ ﺮﮐ ﺕﺎﺑ ﮯﺳ ﭧﻨﺠﯾﺍ AI ﯽﮭﺑ ﮯﺳ ﮟﯿﮩﮐ ﮟﯿﻣ ﺲﯿﻓﺮﭩﻧﺍ Mixar ﻑﺭﺎﺻ ﮧﮐﺎﺗ ﮯﮨ ﺎﺘﻟﻮﮭﮐ ﮯﻟﺭﻭﻭﺍ ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ ﺎﺗﺮﯿﺗ"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
+msgstr "۔ﮯﮑﺳ ﺮﮐ ﺕﺎﺑ ﮯﺳ ﭧﻨﺠﯾﺍ AI ﯽﮭﺑ ﮯﺳ ﮟﯿﮩﮐ ﮟﯿﻣ ﺲﯿﻓﺮﭩﻧﺍ Lampway ﻑﺭﺎﺻ ﮧﮐﺎﺗ ﮯﮨ ﺎﺘﻟﻮﮭﮐ ﮯﻟﺭﻭﻭﺍ ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ ﺎﺗﺮﯿﺗ"
 
 msgid "Chat is still loading. Please drop the asset again."
 msgstr ""
@@ -25822,8 +25822,8 @@ msgstr "۔ﮯﮨ ﺎﺗﺮﮐ ﻞﻣﺎﺷ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﮧﮑﻠﺴ�
 msgid "Dropped image datablock"
 msgstr "ﮎﻼ﻿ﺑ ﺎﭩﯾﮈ ﺎﮐ ﺮﯾﻮﺼﺗ ﯽﺌﮔ ﯼﮌﻮﮭﭼ"
 
-msgid "Tell me about the features in Mixar"
-msgstr "ﮟﯿﺋﺎﺘﺑ ﺕﺎﯿﺻﻮﺼﺧ ﯽﮐ Mixar ﮯﮭﺠﻣ"
+msgid "Tell me about the features in Lampway"
+msgstr "ﮟﯿﺋﺎﺘﺑ ﺕﺎﯿﺻﻮﺼﺧ ﯽﮐ Lampway ﮯﮭﺠﻣ"
 
 msgid "Generate a futuristic sci-fi character concept"
 msgstr "ﮟﯾﺮﮐ ﺍﺪﯿﭘ ﺭﻮﺼﺗ ﺭﺍﺩﺮﮐ ﻦﺸﮑﻓ ﺲﻨﺋﺎﺳ ﺎﮐ ﻞﺒﻘﺘﺴﻣ"
@@ -26755,14 +26755,14 @@ msgstr "ﻦﺸﯾﺮﭘﺁ ﮯﮐ ﮓﻨﺴﯿﺳﻭﺮﭘ ﺭﻭﺍ ﮯﻧﺎ�
 msgid "Texture set management for PBR workflows"
 msgstr "PBR ﻡﺎﻈﺘﻧﺍ ﺎﮐ ﭧﯿﺳ ﮯﮐ ﺖﺧﺎﺳ ﮯﯿﻟ ﮯﮐ ﻮﻠﻓ ﮎﺭﻭ"
 
-msgid "Mixar UV Editor"
-msgstr "Mixar UV ﺮﭩﯾﮉﯾﺍ"
+msgid "Lampway UV Editor"
+msgstr "Lampway UV ﺮﭩﯾﮉﯾﺍ"
 
-msgid "Mixar UV editing mode"
-msgstr "Mixar UV ﮈﻮﻣ ﻢﯿﻣﺮﺗ"
+msgid "Lampway UV editing mode"
+msgstr "Lampway UV ﮈﻮﻣ ﻢﯿﻣﺮﺗ"
 
-msgid "Mixar Layers Properties"
-msgstr "Mixar ﺰﯿﭨﺮﭘﺍﺮﭘ ﯽﮐ ﮞﻮﮩﺗ"
+msgid "Lampway Layers Properties"
+msgstr "Lampway ﺰﯿﭨﺮﭘﺍﺮﭘ ﯽﮐ ﮞﻮﮩﺗ"
 
 msgid "Reference image board like PureRef"
 msgstr "PureRef ﮈﺭﻮﺑ ﺮﯾﻮﺼﺗ ﮧﻟﺍﻮﺣ ﺎﺴﯿﺟ"
@@ -26770,8 +26770,8 @@ msgstr "PureRef ﮈﺭﻮﺑ ﺮﯾﻮﺼﺗ ﮧﻟﺍﻮﺣ ﺎﺴﯿﺟ"
 msgid "Mixie Space"
 msgstr "Mixie ﺲﯿﭙﺳ"
 
-msgid "Mixie editor for Mixar"
-msgstr "Mixar ﮯﯿﻟ ﮯﮐ Mixie ﺮﭩﯾﮉﯾﺍ"
+msgid "Mixie editor for Lampway"
+msgstr "Lampway ﮯﯿﻟ ﮯﮐ Mixie ﺮﭩﯾﮉﯾﺍ"
 
 msgid "Mixie editor mode"
 msgstr "Mixie ﮈﻮﻣ ﺮﭩﯾﮉﯾﺍ"
@@ -26779,8 +26779,8 @@ msgstr "Mixie ﮈﻮﻣ ﺮﭩﯾﮉﯾﺍ"
 msgid "Agent Bubble Space"
 msgstr "ﺲﯿﭙﺳ ﻼ﻿ﺒﻠﺑ ﭧﻨﺠﯾﺍ"
 
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Mixar ﺮﭩﯾﮉﯾﺍ ﮯﻟﺭﻭﻭﺍ ﭧﯿﭼ ﭧﻨﺠﯾﺍ ﯽﺗﺮﯿﺗ ﮯﯿﻟ ﮯﮐ"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Lampway ﺮﭩﯾﮉﯾﺍ ﮯﻟﺭﻭﻭﺍ ﭧﯿﭼ ﭧﻨﺠﯾﺍ ﯽﺗﺮﯿﺗ ﮯﯿﻟ ﮯﮐ"
 
 msgid "Top Bar Space"
 msgstr "ﺲﯿﭙﺳ ﺭﺎﺑ ﯼﺮﭘﻭﺍ"
@@ -26788,23 +26788,23 @@ msgstr "ﺲﯿﭙﺳ ﺭﺎﺑ ﯼﺮﭘﻭﺍ"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "ﮟﯿﮨ ﻮﻨﯿﻣ ﺮﭩﯾﮉﯾﺍ ﺭﻭﺍ ﯽﭩﭘ ﺐﯿﭨ ﯽﮐ ﮧﮕﺟ ﯽﮐ ﻡﺎﮐ ﮟﯿﻣ ﺲﺟ ﺭﺎﺑ ﯼﺮﭘﻭﺍ"
 
-msgid "Mixar Layers Space"
-msgstr "Mixar ﺲﯿﭙﺳ ﺎﮐ ﮞﻮﮩﺗ"
+msgid "Lampway Layers Space"
+msgstr "Lampway ﺲﯿﭙﺳ ﺎﮐ ﮞﻮﮩﺗ"
 
-msgid "Mixar texture layer stack management"
-msgstr "Mixar ﻡﺎﻈﺘﻧﺍ ﺎﮐ ﺮﯿﮬﮈ ﮯﮐ ﮞﻮﮩﺗ ﯽﮐ ﺖﺧﺎﺳ"
+msgid "Lampway texture layer stack management"
+msgstr "Lampway ﻡﺎﻈﺘﻧﺍ ﺎﮐ ﺮﯿﮬﮈ ﮯﮐ ﮞﻮﮩﺗ ﯽﮐ ﺖﺧﺎﺳ"
 
-msgid "Mixar Properties Space"
-msgstr "Mixar ﺲﯿﭙﺳ ﺰﯿﭨﺮﭘﺍﺮﭘ"
+msgid "Lampway Properties Space"
+msgstr "Lampway ﺲﯿﭙﺳ ﺰﯿﭨﺮﭘﺍﺮﭘ"
 
-msgid "Mixar layer and texture properties"
-msgstr "Mixar ﺰﯿﭨﺮﭘﺍﺮﭘ ﯽﮐ ﺖﺧﺎﺳ ﺭﻭﺍ ﮧﮩﺗ"
+msgid "Lampway layer and texture properties"
+msgstr "Lampway ﺰﯿﭨﺮﭘﺍﺮﭘ ﯽﮐ ﺖﺧﺎﺳ ﺭﻭﺍ ﮧﮩﺗ"
 
-msgid "Mixar Assets Space"
-msgstr "Mixar ﺲﯿﭙﺳ ﺎﮐ ﮞﻮﺛﺎﺛﺍ"
+msgid "Lampway Assets Space"
+msgstr "Lampway ﺲﯿﭙﺳ ﺎﮐ ﮞﻮﺛﺎﺛﺍ"
 
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "Mixar ﯼﺮﯾﺮﺒﺋﻻ﻿ ﯽﮐ ﮞﻮﺘﺧﺎﺳ ﺭﻭﺍ ،ﺵﺮﺑ ،ﺩﺍﻮﻣ ﺭﺎﯿﺷﻮﮨ"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "Lampway ﯼﺮﯾﺮﺒﺋﻻ﻿ ﯽﮐ ﮞﻮﺘﺧﺎﺳ ﺭﻭﺍ ،ﺵﺮﺑ ،ﺩﺍﻮﻣ ﺭﺎﯿﺷﻮﮨ"
 
 msgid "Texture sets management"
 msgstr "ﻡﺎﻈﺘﻧﺍ ﺎﮐ ﮞﻮﭩﯿﺳ ﮯﮐ ﺖﺧﺎﺳ"
@@ -26812,8 +26812,8 @@ msgstr "ﻡﺎﻈﺘﻧﺍ ﺎﮐ ﮞﻮﭩﯿﺳ ﮯﮐ ﺖﺧﺎﺳ"
 msgid "Use Blender's theme"
 msgstr "Blender ﮟﯾﺮﮐ ﻝﺎﻤﻌﺘﺳﺍ ﻢﯿﮭﺗ ﺎﮐ"
 
-msgid "Mixar Zen components"
-msgstr "Mixar Zen ءﺍﺰﺟﺍ"
+msgid "Lampway Zen components"
+msgstr "Lampway Zen ءﺍﺰﺟﺍ"
 
 msgid "Compatibility appearance"
 msgstr "ﻞﮑﺷ ﯽﮐ ﺖﻘﻓﺍﻮﻣ"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "ﮯﻗﻼ﻿ﻋ ﯽﻤﻟﺎﻋ"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "۔ﮯﮑﺳ ﭻﻨﮩﭘ ﮏﺗ ﺭﺎﺑ ﭖﺎﭨ ﮯﯿﻟ ﮯﮐ ﺍﺭﮈ ﮦﺭﺎﺑﻭﺩ ﮓﻧﮈﺭﻮﺑ ﻥﺁ ﮧﮐﺎﺗ ﯽﺌﮔ ﯽﮐ ﺮﮨﺎﻇ — ﻊﯿﺳﻮﺗ Mixar ۔(ﺭﺎﺑ ﺲﭩﯿﭩﺳﺍ ،ﺭﺎﺑ ﭖﺎﭨ) ﮯﻗﻼ﻿ﻋ ﯽﻤﻟﺎﻋ ﮯﮐ ﻭﮉﻧﻭ"
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "۔ﮯﮑﺳ ﭻﻨﮩﭘ ﮏﺗ ﺭﺎﺑ ﭖﺎﭨ ﮯﯿﻟ ﮯﮐ ﺍﺭﮈ ﮦﺭﺎﺑﻭﺩ ﮓﻧﮈﺭﻮﺑ ﻥﺁ ﮧﮐﺎﺗ ﯽﺌﮔ ﯽﮐ ﺮﮨﺎﻇ — ﻊﯿﺳﻮﺗ Lampway ۔(ﺭﺎﺑ ﺲﭩﯿﭩﺳﺍ ،ﺭﺎﺑ ﭖﺎﭨ) ﮯﻗﻼ﻿ﻋ ﯽﻤﻟﺎﻋ ﮯﮐ ﻭﮉﻧﻭ"
 
 msgid "QA UI Dump"
 msgstr "QA UI ﭗﻣﮈ"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "Mixar QA ﮦﺪﻧﺯ ﻡﺎﻤﺗ ﮯﯿﻟ ﮯﮐ ﺲﻧﺭﺎﮨ UI ﺎﮐ ﺲﭩﺠﯾﻭ JSON ﺖﻟﺎﺣ ،ﻞﯿﻄﺘﺴﻣ ﺲﯿﭙﺳ ﻭﮉﻧﻭ ،ﺰﯿﭨﺮﭘﺍﺮﭘ ،ﺯﺮﭩﯾﺮﭘﺁ ،ﻞﺒﯿﻟ) ﭦﺎﺷ ﭗﯿﻨﺳ)"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "Lampway QA ﮦﺪﻧﺯ ﻡﺎﻤﺗ ﮯﯿﻟ ﮯﮐ ﺲﻧﺭﺎﮨ UI ﺎﮐ ﺲﭩﺠﯾﻭ JSON ﺖﻟﺎﺣ ،ﻞﯿﻄﺘﺴﻣ ﺲﯿﭙﺳ ﻭﮉﻧﻭ ،ﺰﯿﭨﺮﭘﺍﺮﭘ ،ﺯﺮﭩﯾﺮﭘﺁ ،ﻞﺒﯿﻟ) ﭦﺎﺷ ﭗﯿﻨﺳ)"
 
 msgid "Window Resizing"
 msgstr "ﮯﮨ ﺎﮨﺭ ﻝﺪﺑ ﺰﺋﺎﺳ ﺎﮐ ﻭﮉﻧﻭ"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "QA ﮯﯿﻟ ﮯﮐ ﺮﭽﭙﯿﮐ ﻢﯾﺮﻓ --enable-event-simulate ﮯﮨ ﺭﺎﮐﺭﺩ"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,11 +27982,11 @@ msgstr "ﺎﯿﮔ ﺮﮭﺑ ﺮﻔﺑ ﺮﭽﭙﯿﮐ ﺎﯾ ﺎﯿﮔ ﮎﺭ �
 msgid "Microphone disconnected"
 msgstr "ﺎﯿﮔ ﻮﮨ ﻊﻄﻘﻨﻣ ﻥﻮﻓﻭﺮﮑﯿﺋﺎﻣ"
 
-msgid "Mixar File View"
-msgstr "Mixar ﺮﻈﻨﻣ ﻞﺋﺎﻓ"
+msgid "Lampway File View"
+msgstr "Lampway ﺮﻈﻨﻣ ﻞﺋﺎﻓ"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
-msgstr "Mixar ﮟﯿﮨ ﯽﺌﮔ ﯼﺩ ﺎﭩﮨ ﮞﺎﯿﺴﮐﺍﺮﭘ ﮯﺳ (%d ﮟﯿﺌﮔ ﻝﺪﺑ ﮟﯿﻣ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﺩﻮﺨﺑ ﺩﻮﺧ ﮞﺎﯿﺴﮐﺍﺮﭘ، %d ﯼﺮﯾﺮﺒﺋﻻ﻿ ﯽﮭﺑ ﯽﺴﮐ ۔(ﮟﯿﺌﮔ ﯼﺩ ﺮﮐ ﻑﺎﺻ ﺭﻭﺍ ﮟﯿﮑﺳ ﻝﺪﺑ ﮟﯿﮩﻧ ﮞﺎﯿﺴﮐﺍﺮﭘ .mixar ﮯﺌﻧ ﻮﮐ ﻞﺋﺎﻓ Mixar ﮟﯾﺮﮐ ﺭﻮﻏ ﺮﭘ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ ﮦﺭﺎﺑﻭﺩ ﮫﺗﺎﺳ ﮯﮐ ﻥﮊﺭﻭ"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
+msgstr "Lampway ﮟﯿﮨ ﯽﺌﮔ ﯼﺩ ﺎﭩﮨ ﮞﺎﯿﺴﮐﺍﺮﭘ ﮯﺳ (%d ﮟﯿﺌﮔ ﻝﺪﺑ ﮟﯿﻣ ﮉﺋﺍﺭ ﺭﻭﻭﺍ ﯼﺮﯾﺮﺒﺋﻻ﻿ ﺩﻮﺨﺑ ﺩﻮﺧ ﮞﺎﯿﺴﮐﺍﺮﭘ، %d ﯼﺮﯾﺮﺒﺋﻻ﻿ ﯽﮭﺑ ﯽﺴﮐ ۔(ﮟﯿﺌﮔ ﯼﺩ ﺮﮐ ﻑﺎﺻ ﺭﻭﺍ ﮟﯿﮑﺳ ﻝﺪﺑ ﮟﯿﮩﻧ ﮞﺎﯿﺴﮐﺍﺮﭘ .mixar ﮯﺌﻧ ﻮﮐ ﻞﺋﺎﻓ Lampway ﮟﯾﺮﮐ ﺭﻮﻏ ﺮﭘ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ ﮦﺭﺎﺑﻭﺩ ﮫﺗﺎﺳ ﮯﮐ ﻥﮊﺭﻭ"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
 msgstr "mixar ﮧﺘﺳﺍﺭ ،ﯽﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ ﻞﺋﺎﻓ \"%s\" ﮟﯿﮩﻧ ﺮﯾﺮﺤﺗ ﻞِﺑﺎﻗ"
@@ -27994,11 +27994,11 @@ msgstr "mixar ﮧﺘﺳﺍﺭ ،ﯽﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ
 msgid "Cannot save mixar file, path \"%s\" is a directory"
 msgstr "mixar ﮧﺘﺳﺍﺭ ،ﯽﺘﮑﺳ ﻮﮨ ﮟﯿﮩﻧ ﻅﻮﻔﺤﻣ ﻞﺋﺎﻓ \"%s\" ﮯﮨ ﯼﺮﭩﮑﯾﺮﺋﺍﮈ ﮏﯾﺍ"
 
-msgid "Mixar will start next time as it is now."
-msgstr "Mixar ۔ﮯﮨ ﺏﺍ ﺎﺴﯿﺟ ﺎﮔ ﻮﮨ ﻉﻭﺮﺷ ﯽﮨ ﺎﺴﯾﻭ ﺭﺎﺑ ﯽﻠﮔﺍ"
+msgid "Lampway will start next time as it is now."
+msgstr "Lampway ۔ﮯﮨ ﺏﺍ ﺎﺴﯿﺟ ﺎﮔ ﻮﮨ ﻉﻭﺮﺷ ﯽﮨ ﺎﺴﯾﻭ ﺭﺎﺑ ﯽﻠﮔﺍ"
 
-msgid "Load Factory Mixar Preferences"
-msgstr "ﮟﯾﺮﮐ ﮈﻮﻟ ﺕﺎﺤﯿﺟﺮﺗ Mixar ﯼﺮﭩﮑﯿﻓ"
+msgid "Load Factory Lampway Preferences"
+msgstr "ﮟﯾﺮﮐ ﮈﻮﻟ ﺕﺎﺤﯿﺟﺮﺗ Lampway ﯼﺮﭩﮑﯿﻓ"
 
 msgid "Load user interface setup from the .mixar file"
 msgstr ".mixar ۔ﮯﮨ ﺎﺗﺮﮐ ﮈﻮﻟ ﭖﺍ ﭧﯿﺳ ﺲﯿﻓﺮﭩﻧﺍ ﻑﺭﺎﺻ ﮯﺳ ﻞﺋﺎﻓ"
@@ -28006,14 +28006,14 @@ msgstr ".mixar ۔ﮯﮨ ﺎﺗﺮﮐ ﮈﻮﻟ ﭖﺍ ﭧﯿﺳ ﺲﯿﻓﺮﭩ�
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr ".mixar ﮯﮨ ﺏﺎﯿﺘﺳﺩ ﮯﺳ ﺕﺎﺤﯿﺟﺮﺗ ﯽﮐ ﻡﺎﻈﻧ ﮦﺪﺷ ﮯﻃ ؛ﮯﮨ ﺎﺘﯾﺩ ﮯﻧﻼ﻿ﭼ ﺩﻮﺨﺑ ﺩﻮﺧ ﭧﭘﺮﮑﺳﺍ ﻮﮐ ﻞﺋﺎﻓ"
 
-msgid "Open a Mixar file"
-msgstr "Mixar ﮟﯿﻟﻮﮭﮐ ﻞﺋﺎﻓ"
+msgid "Open a Lampway file"
+msgstr "Lampway ﮟﯿﻟﻮﮭﮐ ﻞﺋﺎﻓ"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr ".mixar ۔ﮯﮨ ﺎﺗﺮﮐ ﮈﻮﻟ ﭖﺍ ﭧﯿﺳ ﺲﯿﻓﺮﭩﻧﺍ ﻑﺭﺎﺻ ﮟﯿﻣ ﻞﺋﺎﻓ"
 
-msgid "Mixar Files"
-msgstr "Mixar ﮟﯿﻠﺋﺎﻓ"
+msgid "Lampway Files"
+msgstr "Lampway ﮟﯿﻠﺋﺎﻓ"
 
 msgid "Show only .mixar files"
 msgstr "ﮟﯿﺋﺎﮭﮐﺩ ﮟﯿﻠﺋﺎﻓ mixar. ﻑﺮﺻ"
@@ -28039,26 +28039,26 @@ msgstr ".mixar ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻞﺋﺎﻓ
 msgid "Save as .blend file"
 msgstr ".blend ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ﺮﭘ ﺭﻮﻃ ﮯﮐ ﻞﺋﺎﻓ"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "۔ﺎﺗﺎﭩﻣ ﮟﯿﮩﻧ ﻮﮐ ﻞﺋﺎﻓ ﮦﺩﻮﺟﻮﻣ ﯽﺴﮐ ﻮﺟ ﮯﮨ ﺎﺗﺮﮐ ﻅﻮﻔﺤﻣ ﮯﺳ ﻡﺎﻧ ﯼﺩﺪﻋ ﮯﺋﻮﮨ ﮯﮬﮍﺑ ﮯﺴﯾﺍ ﻮﮐ ﻞﺋﺎﻓ Mixar ﮦﺩﻮﺟﻮﻣ"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "۔ﺎﺗﺎﭩﻣ ﮟﯿﮩﻧ ﻮﮐ ﻞﺋﺎﻓ ﮦﺩﻮﺟﻮﻣ ﯽﺴﮐ ﻮﺟ ﮯﮨ ﺎﺗﺮﮐ ﻅﻮﻔﺤﻣ ﮯﺳ ﻡﺎﻧ ﯼﺩﺪﻋ ﮯﺋﻮﮨ ﮯﮬﮍﺑ ﮯﺴﯾﺍ ﻮﮐ ﻞﺋﺎﻓ Lampway ﮦﺩﻮﺟﻮﻣ"
 
-msgid "Save Mixar File"
-msgstr "Mixar ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ﻞﺋﺎﻓ"
+msgid "Save Lampway File"
+msgstr "Lampway ﮟﯾﺮﮐ ﻅﻮﻔﺤﻣ ﻞﺋﺎﻓ"
 
-msgid "Save the current Mixar file"
-msgstr "۔ﮯﮨ ﺎﺗﺮﮐ ﻅﻮﻔﺤﻣ ﻞﺋﺎﻓ Mixar ﮦﺩﻮﺟﻮﻣ"
+msgid "Save the current Lampway file"
+msgstr "۔ﮯﮨ ﺎﺗﺮﮐ ﻅﻮﻔﺤﻣ ﻞﺋﺎﻓ Lampway ﮦﺩﻮﺟﻮﻣ"
 
-msgid "Exit Mixar after saving"
-msgstr "ﮟﯿﻠﮑﻧ ﮯﺳ Mixar ﺪﻌﺑ ﮯﮐ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ"
+msgid "Exit Lampway after saving"
+msgstr "ﮟﯿﻠﮑﻧ ﮯﺳ Lampway ﺪﻌﺑ ﮯﮐ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
-msgstr "۔ﯽﮐ ﻅﻮﻔﺤﻣ ﮯﻧ (%s) ﻥﮊﺭﻭ ﮯﺌﻧ ﮯﮐ Mixar ﻞﺋﺎﻓ ﮧﯾ"
+msgid "This file was saved by a newer version of Lampway (%s)."
+msgstr "۔ﯽﮐ ﻅﻮﻔﺤﻣ ﮯﻧ (%s) ﻥﮊﺭﻭ ﮯﺌﻧ ﮯﮐ Lampway ﻞﺋﺎﻓ ﮧﯾ"
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
-msgstr "۔ﮯﮨ ﺎﺘﮑﺳ ﻮﮨ ﻊﺋﺎﺿ ﺎﭩﯾﮈ ﮯﺳ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ ﮯﺳ (Mixar (%s ﺱﺍ ﮯﺳﺍ"
+msgid "Saving it with this Lampway (%s) may cause loss of data."
+msgstr "۔ﮯﮨ ﺎﺘﮑﺳ ﻮﮨ ﻊﺋﺎﺿ ﺎﭩﯾﮈ ﮯﺳ ﮯﻧﺮﮐ ﻅﻮﻔﺤﻣ ﮯﺳ (Lampway (%s ﺱﺍ ﮯﺳﺍ"
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "ﻑﺮﺻ ﮧﯾ ۔ﮯﮨ ﻡﺎﻈﺘﻧﺍ ﺮِﯾﺯ ﮯﮐ ﻡﺎﻈﻧ ﮧﺛﺎﺛﺍ Mixar ﻞﺋﺎﻓ ﮧﯾ"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "ﻑﺮﺻ ﮧﯾ ۔ﮯﮨ ﻡﺎﻈﺘﻧﺍ ﺮِﯾﺯ ﮯﮐ ﻡﺎﻈﻧ ﮧﺛﺎﺛﺍ Lampway ﻞﺋﺎﻓ ﮧﯾ"
 
 msgid "Filter .mixar files"
 msgstr ".mixar ﮟﯾﺮﮐ ﺮﭩﻠﻓ ﮟﯿﻠﺋﺎﻓ"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
-msgstr "۔ﮟﯿﮨ ﮯﺘﮭﮐﺭ ﺖﻘﺑﺎﻄﻣ ﺮﺘﮩﺑ ﮫﺗﺎﺳ ﮯﮐ Mixar ﻮﺟ ﮟﯿﮨ ﮯﺘﮑﺳ ﻮﮨ ﺏﺎﯿﺘﺳﺩ ﺭﻮﯿﺋﺍﺭﮈ ﺲﮑﻓﺍﺮﮔ ﮯﺌﻧ"
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
+msgstr "۔ﮟﯿﮨ ﮯﺘﮭﮐﺭ ﺖﻘﺑﺎﻄﻣ ﺮﺘﮩﺑ ﮫﺗﺎﺳ ﮯﮐ Lampway ﻮﺟ ﮟﯿﮨ ﮯﺘﮑﺳ ﻮﮨ ﺏﺎﯿﺘﺳﺩ ﺭﻮﯿﺋﺍﺭﮈ ﺲﮑﻓﺍﺮﮔ ﮯﺌﻧ"
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "ﮯﮨ ﯽﺘﮑﺳ ﻮﮨ ﺮﺘﮩﺑ ﺖﻧﻭﺎﻌﻣ ﯽﮐ Mixar ﮯﺳ ﮯﻧﺎﺟ ﺮﭘ ﻥﮊﺭﻭ macOS ﻦﯾﺮﺗ ﮦﺯﺎﺗ"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "ﮯﮨ ﯽﺘﮑﺳ ﻮﮨ ﺮﺘﮩﺑ ﺖﻧﻭﺎﻌﻣ ﯽﮐ Lampway ﮯﺳ ﮯﻧﺎﺟ ﺮﭘ ﻥﮊﺭﻭ macOS ﻦﯾﺮﺗ ﮦﺯﺎﺗ"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Mixar ۔ﺎﮔ ﻮﮨ ﺪﻨﺑ ﺏﺍ"
+msgid "Lampway will now close."
+msgstr "Lampway ۔ﺎﮔ ﻮﮨ ﺪﻨﺑ ﺏﺍ"

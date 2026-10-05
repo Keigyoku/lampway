@@ -9,10 +9,10 @@ Contains constants for node names, prefixes, suffixes, and tree structure.
 """
 
 # Node group naming
-MP_GROUP_SUFFIX = " Mixar"
-MP_GROUP_PREFIX = "Mixar "
+MP_GROUP_SUFFIX = " Lampway"
+MP_GROUP_PREFIX = "Lampway "
 
-FEATURE_NAME = "Mixar Paint"
+FEATURE_NAME = "Lampway Paint"
 GROUP_NODE_NAME = FEATURE_NAME + " Layers"
 
 # Layer and mask group prefixes

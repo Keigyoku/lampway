@@ -146,7 +146,7 @@ class LAYERS_OT_MoveSelectedToGroup(Operator):
 
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -335,7 +335,7 @@ class LAYERS_OT_AddLayersToGroup(Operator):
         """Add layers to the selected group."""
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -460,7 +460,7 @@ class LAYERS_OT_RemoveFromGroup(Operator):
         """Remove layer from its group."""
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp

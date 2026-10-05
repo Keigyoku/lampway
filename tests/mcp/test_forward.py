@@ -72,5 +72,5 @@ def test_timeout_never_retries_and_refreshes_authoritative_balance(dependencies,
 def test_unavailable_endpoint_has_actionable_message_and_no_retry(dependencies):
     dependencies.post.return_value = response(404)
     status, body = forward.forward(REQUEST, CONTEXT, {})
-    assert status == 404 and "does not have Mixar MCP" in body["error"]
+    assert status == 404 and "does not have Lampway MCP" in body["error"]
     dependencies.post.assert_called_once()

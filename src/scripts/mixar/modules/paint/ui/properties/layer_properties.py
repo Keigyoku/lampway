@@ -291,13 +291,13 @@ class MixarLayer(bpy.types.PropertyGroup):
 
     # Backend references (Mixar backend integration)
     mixar_layer_idx: IntProperty(
-        name="Mixar Layer Index",
+        name="Lampway Layer Index",
         default=-1,
-        description="Index in Mixar mixar_mp.layers collection",
+        description="Index in Lampway mixar_mp.layers collection",
     )
 
     mixar_group_node: StringProperty(
-        name="Mixar Group Node", default="", description="Name of the Mixar group node"
+        name="Lampway Group Node", default="", description="Name of the Lampway group node"
     )
 
     # Update prevention flag (Mixar Paint pattern)

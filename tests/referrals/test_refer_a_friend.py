@@ -43,11 +43,11 @@ def test_summary_all_sent_clears_details():
 def test_summary_partial_lists_what_was_not_sent():
     payload = {"results": [
         {"email": "a@x.com", "status": "sent"},
-        {"email": "b@x.com", "status": "skipped", "message": "Already invited, or already on Mixar"},
+        {"email": "b@x.com", "status": "skipped", "message": "Already invited, or already on Lampway"},
     ]}
     headline, lines, all_sent = invites.summarize(payload)
     assert headline == "Sent 1 of 2 invites" and not all_sent
-    assert lines == ["b@x.com: Already invited, or already on Mixar"]
+    assert lines == ["b@x.com: Already invited, or already on Lampway"]
     headline, _, _ = invites.summarize({"results": [payload["results"][1]]})
     assert headline == "No invites were sent"
 

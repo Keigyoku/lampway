@@ -16,7 +16,7 @@ from mixar.modules.common.i18n import rpt_
 class LAYERS_OT_BuildLayeredMaterial(bpy.types.Operator):
     bl_idname = "paint.build_layered_material"
     bl_label = "Build Layered Material"
-    bl_description = "Build a Mixar paint material from a layered-material manifest"
+    bl_description = "Build a Lampway paint material from a layered-material manifest"
     bl_options = {'REGISTER', 'UNDO'}
 
     manifest_json: StringProperty(name="Manifest JSON", default="")

@@ -37,7 +37,7 @@ def _row(col, label_text):
 
 
 class MIXAR_UV_PT_uv_tool(Panel):
-    """Tool panel for the Mixar UV Properties space — shown when the
+    """Tool panel for the Lampway UV Properties space — shown when the
     `builtin.uv_tool` toolbar tool is active."""
     bl_label = "Tools"
     bl_idname = "MIXAR_UV_PT_uv_tool"

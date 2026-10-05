@@ -253,14 +253,14 @@ class MIXIE_OT_moodboard_paste_image(Operator):
     bl_idname = "mixie.moodboard_paste_image"
     bl_label = "Paste"
     bl_description = (
-        f"Paste what was copied on a moodboard -- in this or another Mixar "
+        f"Paste what was copied on a moodboard -- in this or another Lampway "
         f"instance -- or an image from the system clipboard ({format_shortcut('V')})"
     )
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def description(cls, context, properties):
-        return tip_("Paste what was copied on a moodboard -- in this or another Mixar "
+        return tip_("Paste what was copied on a moodboard -- in this or another Lampway "
                     "instance -- or an image from the system clipboard ({shortcut})").format(
             shortcut=format_shortcut('V'))
 

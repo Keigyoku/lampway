@@ -106,7 +106,7 @@ def _check(step, ok, **detail):
 
 def main() -> None:
     with tempfile.TemporaryDirectory(prefix="mixar_verify_smoke_") as temp:
-        root = Path(temp) / "Mixar Addons"
+        root = Path(temp) / "Lampway Addons"
         root.mkdir()
         workspace.preferred_root_value = lambda: str(root)
         service = AddonProjectService(Path(temp) / "state")

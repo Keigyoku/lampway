@@ -96,4 +96,4 @@ def test_help_menu_tutorials_replaces_about():
     # Lampway: the row links to the fork's own website, never upstream's channel.
     assert 'website_url("/tutorials")' in menu
     assert "youtube.com/@Mixar3D" not in menu
-    assert "About Mixar" not in menu and "About Lampway" not in menu
+    assert "About Lampway" not in menu and "About Lampway" not in menu

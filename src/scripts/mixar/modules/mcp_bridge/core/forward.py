@@ -15,7 +15,7 @@ def forward(request, context, extra_headers):
 
     token = get_access_token()
     if not token:
-        return 401, {"error": "Sign in to Mixar before connecting an AI client"}
+        return 401, {"error": "Sign in to Lampway before connecting an AI client"}
     headers = {
         **context["headers"], **extra_headers,
         "Authorization": "Bearer " + token,
@@ -40,14 +40,14 @@ def forward(request, context, extra_headers):
         if 200 <= response.status_code < 300:
             return response.status_code, response.json()
         messages = {
-            401: "Your Mixar session expired; sign in again",
-            403: "This Mixar account cannot access the requested scene",
-            404: "This backend does not have Mixar MCP yet",
-            426: "Update Mixar before using MCP",
+            401: "Your Lampway session expired; sign in again",
+            403: "This Lampway account cannot access the requested scene",
+            404: "This backend does not have Lampway MCP yet",
+            426: "Update Lampway before using MCP",
             429: "Too many MCP requests; try again shortly",
         }
         return response.status_code, {"error": messages.get(
-            response.status_code, "Mixar MCP returned HTTP %d" % response.status_code)}
+            response.status_code, "Lampway MCP returned HTTP %d" % response.status_code)}
     except requests.exceptions.RequestException as exc:
         failure = classify_network_error(exc)
         log_network_failure(_logger, failure, context="mcp_relay")

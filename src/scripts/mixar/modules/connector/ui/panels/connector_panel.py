@@ -14,7 +14,7 @@ class MIXAR_PT_connector_panel(Panel):
     bl_idname = "MIXAR_PT_connector_panel"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Mixar"
+    bl_category = "Lampway"
 
     def draw(self, context):
         layout = self.layout

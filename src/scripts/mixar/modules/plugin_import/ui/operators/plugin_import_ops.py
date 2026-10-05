@@ -106,9 +106,9 @@ class MIXIE_OT_plugin_import_select(Operator):
 
 class MIXIE_OT_import_blender_plugins(Operator):
     bl_idname = "mixie.import_blender_plugins"
-    bl_label = "Import Plugins into Mixar"
+    bl_label = "Import Plugins into Lampway"
     bl_description = (
-        "Copy every listed plugin into Mixar and enable the ticked ones"
+        "Copy every listed plugin into Lampway and enable the ticked ones"
     )
     bl_options = {"REGISTER", "INTERNAL"}
 
@@ -180,7 +180,7 @@ def _notify_summary(summary, first_failure: str = "") -> None:
     """
     lines = [iface_("Imported: {count}").format(count=summary.imported)]
     if summary.already_present:
-        lines.append(iface_("Already in Mixar: {count}").format(count=summary.already_present))
+        lines.append(iface_("Already in Lampway: {count}").format(count=summary.already_present))
     lines.append(iface_("Enabled: {count}").format(count=summary.enabled))
     if summary.failed:
         lines.append(iface_("Failed to copy: {count}").format(count=summary.failed))

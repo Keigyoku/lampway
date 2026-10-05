@@ -28,7 +28,7 @@ ADDON_SOURCE = (
 )
 
 UMBRELLA_SOURCE = (
-    "bl_info = {'name': 'Mixar Addons'}\n"
+    "bl_info = {'name': 'Lampway Addons'}\n"
     "def register():\n    pass\n"
     "def unregister():\n    pass\n"
 )

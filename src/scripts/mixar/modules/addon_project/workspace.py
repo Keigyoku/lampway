@@ -113,7 +113,7 @@ def ensure_workspace_root(storage_dir: Path) -> Path:
         raise AddonProjectError(
             "workspace_root_collision",
             "A file blocks the add-on projects folder; move it, or change "
-            "the folder under Mixar Preferences",
+            "the folder under Lampway Preferences",
         )
     try:
         root.mkdir(parents=True, exist_ok=True)
@@ -122,7 +122,7 @@ def ensure_workspace_root(storage_dir: Path) -> Path:
         raise AddonProjectError(
             "workspace_root_unavailable",
             n_("Your add-on projects folder is unavailable; reconnect the "
-               "drive, or change the folder under Mixar Preferences"),
+               "drive, or change the folder under Lampway Preferences"),
         )
     return root
 

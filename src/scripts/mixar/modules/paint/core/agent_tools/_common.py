@@ -281,7 +281,7 @@ def _sync_layer_stack_ui(node, mp) -> None:
         from mixar.modules.paint.ui.utils.ui_refresh import simple_update_mixar_tree_ui
         simple_update_mixar_tree_ui(bpy.context, node, node.node_tree, mp)
     except Exception:
-        logger.debug("Could not sync Mixar layer UI", exc_info=True)
+        logger.debug("Could not sync Lampway layer UI", exc_info=True)
 
 
 def _clean_material_name(name: str, fallback: str) -> str:

@@ -11,11 +11,18 @@ import sys
 import time
 import uuid
 
+from mixar.modules.mcp_bridge.constants import LAUNCHER_NAME, LEGACY_LAUNCHER_NAME
+
 from .discovery import discovery_directory
 
 
 def directory():
     return discovery_directory().parent / "connector"
+
+
+def legacy_directory():
+    """Where a pre-Lampway install put its connector (~/.mixar/connector); never created by Lampway."""
+    return Path.home() / ".mixar" / "connector"
 
 
 def _atomic(path, data, mode=0o600):
@@ -42,13 +49,42 @@ def provision(python, script, executable, enabled=True):
                 "executable": str(executable), "enabled": bool(enabled)}
     _atomic(root / "installation.json", json.dumps(manifest))
     if os.name == "nt":
-        path = root / "mixar-mcp.cmd"
+        path = root / (LAUNCHER_NAME + ".cmd")
         command = subprocess.list2cmdline([str(python), str(script)]).replace('%', '%%')
         _atomic(path, "@echo off\n"+command+" %*\n")
     else:
-        path = root / "mixar-mcp"
+        path = root / LAUNCHER_NAME
         _atomic(path, "#!/bin/sh\nexec "+shlex.join([str(python), str(script)])+' "$@"\n', 0o700)
+    _legacy_shim(path)
     return path
+
+
+def _legacy_shim(launcher):
+    """For one release: an install that already had ~/.mixar/connector keeps a launcher at its old path that forwards to the new one, so an app configured with
+    the old command line still works. Never creates the old folder on a fresh install."""
+    old = legacy_directory()
+    if not old.is_dir():
+        return
+    if os.name == "nt":
+        _atomic(old / (LEGACY_LAUNCHER_NAME + ".cmd"), "@echo off\n"+subprocess.list2cmdline([str(launcher)])+" %*\n")
+    else:
+        _atomic(old / LEGACY_LAUNCHER_NAME, "#!/bin/sh\nexec "+shlex.join([str(launcher)])+' "$@"\n', 0o700)
+
+
+def migrate():
+    """Read the old ~/.mixar/connector/installation.json once and write it (and the new launcher) at the Lampway location. True when it did; the old file is left alone."""
+    new = directory() / "installation.json"
+    old = legacy_directory() / "installation.json"
+    if new.exists() or not old.is_file():
+        return False
+    try:
+        info = json.loads(old.read_text())
+        if info.get("version") != 1 or not all(isinstance(info.get(k), str) for k in ("python", "script", "executable")):
+            return False
+    except (OSError, ValueError):
+        return False
+    provision(info["python"], info["script"], info["executable"], enabled=bool(info.get("enabled", True)))
+    return True
 
 
 # A first launch (Gatekeeper, shader cache, sign-in restore) can take well over
@@ -77,6 +113,7 @@ def start_in_progress():
 
 def start_app():
     """At most one cold start across simultaneous MCP hosts; no repeated resurrection."""
+    migrate()
     root = directory()
     try:
         info = json.loads((root / "installation.json").read_text())

@@ -151,7 +151,7 @@ class LAYERS_OT_RenameLayerPopup(Operator):
         """
         node = get_active_mpaint_node()
         if not node:
-            self.report({'WARNING'}, "No active Mixar node")
+            self.report({'WARNING'}, "No active Lampway node")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -176,7 +176,7 @@ class LAYERS_OT_RenameLayerPopup(Operator):
         """
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar node")
+            self.report({'ERROR'}, "No active Lampway node")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp

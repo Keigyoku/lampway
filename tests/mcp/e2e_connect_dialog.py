@@ -99,13 +99,13 @@ def main():
     shown = toast("Claude Code")
     entry = subprocess.run(["claude", "mcp", "get", "mixar"], capture_output=True, text=True,
                            env={**__import__("os").environ, "CLAUDE_CONFIG_DIR": facts["claude"]}).stdout
-    check("add_to_claude_code", ("success", "Mixar added to Claude Code") in [tuple(t) for t in shown]
+    check("add_to_claude_code", ("success", "Lampway added to Claude Code") in [tuple(t) for t in shown]
           and copied["command"] in entry, {"toast": shown, "entry": entry[:300]})
     qa.snap(str(out / "added-claude-code.png"))
 
     qa.cmd("choose", widget={"prop": "app", "popup": True}, item="Codex")
     time.sleep(0.6)
-    for attempt, expected in ((1, "Mixar added to Codex"), (2, "Codex already has Mixar")):
+    for attempt, expected in ((1, "Lampway added to Codex"), (2, "Codex already has Lampway")):
         qa.eval(STORE + "s.clear_all()\nresult=True")
         qa.click(op="MIXAR_OT_mcp_add_to_app", popup=True)
         shown = toast("Codex")

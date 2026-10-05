@@ -94,7 +94,7 @@ def register():
             bpy.utils.register_class(cls)
     bpy.types.Scene.mixar_camera_export = PointerProperty(
         type=MixarCameraExportSettings,
-        name="Mixar Camera Export",
+        name="Lampway Camera Export",
         description="Export this scene's camera animation to the Moodboard",
     )
 

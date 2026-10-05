@@ -106,7 +106,7 @@ def _get_active_uv_tool(context):
                                            area=area):
                     tool = ToolSelectPanelHelper.tool_active_from_context(context)
             except (ReferenceError, TypeError):
-                _LOGGER.debug("Skipping stale Mixar UV image editor area",
+                _LOGGER.debug("Skipping stale Lampway UV image editor area",
                               exc_info=True)
                 continue
             if tool:
@@ -272,7 +272,7 @@ def _active_panel_update(self, context):
                                         region_type='CHANNELS')
                                 except Exception:
                                     _LOGGER.debug(
-                                        "Unable to show Mixar UV sidebar",
+                                        "Unable to show Lampway UV sidebar",
                                         exc_info=True)
                         break
                 break
@@ -340,7 +340,7 @@ def _ensure_mixar_uv_tools_visible():
                                     region_type='TOOLS')
                             except Exception:
                                 _LOGGER.debug(
-                                    "Unable to auto-expand Mixar UV tools",
+                                    "Unable to auto-expand Lampway UV tools",
                                     exc_info=True)
                     _TOOLS_AUTO_EXPANDED.append((window, area))
                     break
@@ -464,7 +464,7 @@ def unregister_handlers():
         if bpy.app.timers.is_registered(_check_tool_and_refresh):
             bpy.app.timers.unregister(_check_tool_and_refresh)
     except Exception:
-        _LOGGER.debug("Unable to unregister Mixar UV refresh timer",
+        _LOGGER.debug("Unable to unregister Lampway UV refresh timer",
                       exc_info=True)
     _refresh_timer_running = False
     _TOOLS_AUTO_EXPANDED.clear()

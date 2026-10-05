@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: sw\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "Safu inayotumika kwenye orodha ya historia ya soga ya kiputo kinachoelea
 msgid "Share Usage Data"
 msgstr "Shiriki data ya matumizi"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "Shiriki matukio ya matumizi ya bidhaa bila maudhui ili kusaidia kuboresha Mixar"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "Shiriki matukio ya matumizi ya bidhaa bila maudhui ili kusaidia kuboresha Lampway"
 
 msgid "No generation services"
 msgstr "Hakuna huduma za utengenezaji"
@@ -170,8 +170,8 @@ msgstr "Jina la moduli ya kiongezi si sahihi"
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "Kiingilio cha kiongezi kilichowekwa hakikupatikana katika mradi uliounganishwa"
 
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "Folda iliyounganishwa haina metadata halali ya mradi wa Mixar"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "Folda iliyounganishwa haina metadata halali ya mradi wa Lampway"
 
 msgid "The project metadata version is not supported"
 msgstr "Toleo la metadata ya mradi halitumiki"
@@ -194,7 +194,7 @@ msgstr "Kiingilio lazima kiwe jina moja la moduli ya kiwango cha juu"
 msgid "Set an active add-on before changing its enabled state"
 msgstr "Weka kiongezi kinachotumika kabla ya kubadilisha hali yake ya kuwezeshwa"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "Maktaba"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "Fungua dirisha la kiputo cha wakala"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "Fungua kiputo cha wakala katika dirisha lake linaloelea"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "Opereta wa C++ mixar.agent_bubble_show_window hajajasajiliwa — jenga upya Mixar (make build) ili kuchukua opereta wa spacetype ya agent_bubble."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "Opereta wa C++ mixar.agent_bubble_show_window hajajasajiliwa — jenga upya Lampway (make build) ili kuchukua opereta wa spacetype ya agent_bubble."
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "Imeshindwa kufungua dirisha la kiputo cha wakala: {error}"
@@ -651,8 +651,8 @@ msgstr ""
 msgid "AI generations"
 msgstr "Utengenezaji wa AI"
 
-msgid "Everything Mixar has generated for you"
-msgstr "Kila kitu Mixar imekutengenezea"
+msgid "Everything Lampway has generated for you"
+msgstr "Kila kitu Lampway imekutengenezea"
 
 msgid "My Libraries"
 msgstr ""
@@ -1421,17 +1421,17 @@ msgstr "Wasiliana na usaidizi — hakuna watoa huduma waliozeshwa kwa sasa"
 msgid "Select a provider with available models"
 msgstr "Chagua mtoa huduma mwenye modeli zinazopatikana"
 
-msgid "Managed by Mixar"
-msgstr "Inasimamiwa na Mixar"
+msgid "Managed by Lampway"
+msgstr "Inasimamiwa na Lampway"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar hupakua na kuendesha modeli iliyochaguliwa kwenye kompyuta hii"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway hupakua na kuendesha modeli iliyochaguliwa kwenye kompyuta hii"
 
 msgid "Custom local server"
 msgstr "Seva ya ndani maalum"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "Elekeza Mixar kwenye seva inayoendana na OpenAI unayoendesha tayari (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "Elekeza Lampway kwenye seva inayoendana na OpenAI unayoendesha tayari (Ollama, LM Studio, llama.cpp, ...)"
 
 msgid "Invalid form data — please reach out to support."
 msgstr "Data ya fomu si sahihi — tafadhali wasiliana na usaidizi."
@@ -1553,8 +1553,8 @@ msgstr "Hakuna modeli iliyochaguliwa"
 msgid "Reset Agent Model"
 msgstr "Weka upya modeli ya wakala"
 
-msgid "Clear the saved model and let Mixar choose"
-msgstr "Safisha modeli iliyohifadhiwa na umwache Mixar achague"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "Safisha modeli iliyohifadhiwa na umwache Lampway achague"
 
 msgid "Could not change model"
 msgstr "Haikuweza kubadilisha modeli"
@@ -1577,8 +1577,8 @@ msgstr "Inayotumika"
 msgid "Not configured"
 msgstr "Haijawekwa"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "Endesha wakala wa Mixar kwa mtoa huduma wako — krediti za Mixar hazitozwi ikiwa inatumika."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "Endesha wakala wa Lampway kwa mtoa huduma wako — krediti za Lampway hazitozwi ikiwa inatumika."
 
 msgid "Current Configuration"
 msgstr "Usanidi wa sasa"
@@ -1604,8 +1604,8 @@ msgstr "Ondoa ufunguo wa API…"
 msgid "Provider Setup"
 msgstr "Usanidi wa mtoa huduma"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "Huhifadhiwa ikiwa imesimbwa, hutumika kwa maombi ya wakala wa Mixar pekee — hakiki iliyofichwa pekee huonyeshwa baada ya kuhifadhi."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "Huhifadhiwa ikiwa imesimbwa, hutumika kwa maombi ya wakala wa Lampway pekee — hakiki iliyofichwa pekee huonyeshwa baada ya kuhifadhi."
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
 msgstr "Chagua modeli inayotumia wito wa zana / kazi — wakala anaihitaji."
@@ -1631,8 +1631,8 @@ msgstr "Endesha  codex login  kwenye terminali yako, kisha leta au bandika yote"
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "maudhui ya ~/.codex/auth.json (kitufe cha kubandika husoma ubao wako wa kunakili)."
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "Hutumia usajili wako wa ChatGPT — krediti za Mixar hazitozwi."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "Hutumia usajili wako wa ChatGPT — krediti za Lampway hazitozwi."
 
 msgid "Couldn't apply your changes"
 msgstr "Haikuweza kutumia mabadiliko yako"
@@ -1640,23 +1640,23 @@ msgstr "Haikuweza kutumia mabadiliko yako"
 msgid "Remove your API key?"
 msgstr "Ondoa ufunguo wako wa API?"
 
-msgid "The agent will use Mixar's default provider again."
-msgstr "Wakala atatumia tena mtoa huduma chaguomsingi wa Mixar."
+msgid "The agent will use Lampway's default provider again."
+msgstr "Wakala atatumia tena mtoa huduma chaguomsingi wa Lampway."
 
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "Krediti za Mixar zitatozwa kwa maombi yajayo ya wakala."
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "Krediti za Lampway zitatozwa kwa maombi yajayo ya wakala."
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "Wakala wa Mixar sasa anaendeshwa kwa mtoa huduma wako — krediti za Mixar hazitozwi."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "Wakala wa Lampway sasa anaendeshwa kwa mtoa huduma wako — krediti za Lampway hazitozwi."
 
 msgid "API key removed"
 msgstr "Ufunguo wa API umeondolewa"
 
-msgid "The agent is back on Mixar's default provider."
-msgstr "Wakala amerudi kwa mtoa huduma chaguomsingi wa Mixar."
+msgid "The agent is back on Lampway's default provider."
+msgstr "Wakala amerudi kwa mtoa huduma chaguomsingi wa Lampway."
 
-msgid "Mixar credits are charged for agent requests again."
-msgstr "Krediti za Mixar zinatozwa tena kwa maombi ya wakala."
+msgid "Lampway credits are charged for agent requests again."
+msgstr "Krediti za Lampway zinatozwa tena kwa maombi ya wakala."
 
 msgid "Try Again"
 msgstr "Jaribu tena"
@@ -1691,8 +1691,8 @@ msgstr "Imepakuliwa — haijaendeshwa"
 msgid "Not downloaded"
 msgstr "Haijapakuliwa"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "Huendeshwa yote kwenye kompyuta hii — maagizo yako hayatoki humo isipokuwa kupitia upangaji wa wakala wa Mixar."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "Huendeshwa yote kwenye kompyuta hii — maagizo yako hayatoki humo isipokuwa kupitia upangaji wa wakala wa Lampway."
 
 msgid "Cancel Download"
 msgstr "Ghairi upakuaji"
@@ -1730,8 +1730,8 @@ msgstr "Changanua tena programu za ndani"
 msgid "Rescan this computer for running local AI apps"
 msgstr "Changanua tena kompyuta hii kutafuta programu za AI za ndani zinazoendeshwa"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "Tumia ufunguo wako wa API kwa wakala wa Mixar. Ikiwa inatumika, krediti za Mixar hazitozwi kwa maombi ya wakala."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "Tumia ufunguo wako wa API kwa wakala wa Lampway. Ikiwa inatumika, krediti za Lampway hazitozwi kwa maombi ya wakala."
 
 msgid "Validate with the provider and save your API key"
 msgstr "Thibitisha na mtoa huduma na uhifadhi ufunguo wako wa API"
@@ -1844,8 +1844,8 @@ msgstr "Mtoa huduma wa LLM"
 msgid "Model to use with the selected provider"
 msgstr "Modeli ya kutumia na mtoa huduma aliyechaguliwa"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "Ufunguo wako wa API huhifadhiwa ukiwa umesimbwa na hutumika kwa maombi ya wakala wa Mixar pekee. Baada ya kuhifadhi, hakiki iliyofichwa pekee huonyeshwa."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "Ufunguo wako wa API huhifadhiwa ukiwa umesimbwa na hutumika kwa maombi ya wakala wa Lampway pekee. Baada ya kuhifadhi, hakiki iliyofichwa pekee huonyeshwa."
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "Slug yoyote ya modeli kutoka openrouter.ai/models (k.m. anthropic/claude-opus-4.8)"
@@ -1859,8 +1859,8 @@ msgstr "Maudhui ya ~/.codex/auth.json (endesha `codex login` kwanza)"
 msgid "Local mode"
 msgstr "Modi ya ndani"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "Inasimamiwa na Mixar, au seva yako ya ndani"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Inasimamiwa na Lampway, au seva yako ya ndani"
 
 msgid "Local model"
 msgstr "Modeli ya ndani"
@@ -1889,11 +1889,11 @@ msgstr "Kweli seva inaporipoti byok_active kwa mtumiaji huyu"
 msgid "Dialog State"
 msgstr "Hali ya kidirisha"
 
-msgid "Set Mixie Mode"
-msgstr "Weka modi ya Mixie"
+msgid "Set Lampway Agent Mode"
+msgstr "Weka modi ya Lampway Agent"
 
-msgid "Switch to a specific Mixie mode"
-msgstr "Badili kwenda modi maalum ya Mixie"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "Badili kwenda modi maalum ya Lampway Agent"
 
 msgid "Mode"
 msgstr "Modi"
@@ -1928,8 +1928,8 @@ msgstr "Juu"
 msgid "Non-contiguous enum value 27"
 msgstr "Thamani ya enum isiyo mfululizo 27"
 
-msgid "Mixie v3 run active"
-msgstr "Uendeshaji wa Mixie v3 unaendelea"
+msgid "Lampway Agent v3 run active"
+msgstr "Uendeshaji wa Lampway Agent v3 unaendelea"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "Seva imekataa ombi la usawazishaji wa historia. Sasisha programu na seva ya nyuma, kisha unganisha tena."
@@ -2420,10 +2420,10 @@ msgstr "Aina ya nafasi ya kubadilisha kwake"
 msgid "No active area"
 msgstr "Hakuna eneo linalotumika"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "Kitendo cha matunzio ya ndani"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "Ongeza kihesabu cha kifaa cha majaribio cha msanidi; hakuna mabadiliko ya utengenezaji wala mandhari"
 
-msgid "Mixar UI Gallery"
-msgstr "Matunzio ya kiolesura cha Mixar"
+msgid "Lampway UI Gallery"
+msgstr "Matunzio ya kiolesura cha Lampway"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "Kagua vijenzi asilia vinavyoshirikiwa kwa data ya kifaa cha majaribio ya ndani"
@@ -2468,8 +2468,8 @@ msgstr "Faragha"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "Idhini ya telemetri, iliyowekwa mahali watumiaji huangalia kujiondoa."
 
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "Hushiriki vipengele vya Mixar unavyotumia, ili kusaidia kuboresha bidhaa."
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "Hushiriki vipengele vya Lampway unavyotumia, ili kusaidia kuboresha bidhaa."
 
 msgid "Your prompts, files, and scene content are never included."
 msgstr "Maagizo yako, faili, na maudhui ya mandhari hayajumuishwi kamwe."
@@ -2477,7 +2477,7 @@ msgstr "Maagizo yako, faili, na maudhui ya mandhari hayajumuishwi kamwe."
 msgid "Privacy Policy"
 msgstr "Sera ya faragha"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "Asili"
 msgid "Blender theme"
 msgstr "Dhana ya Blender"
 
-msgid "Legacy Mixar"
-msgstr "Mixar ya zamani"
+msgid "Legacy Lampway"
+msgstr "Lampway ya zamani"
 
 msgid "Compatibility profile"
 msgstr "Wasifu wa utangamano"
@@ -2624,11 +2624,11 @@ msgstr "Finyu"
 msgid "Denser chrome recipe"
 msgstr "Mapishi mazito zaidi ya mwonekano"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "Hamisha Mixar kwenye folda yako ya Applications ili kusasisha papo hapo"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "Hamisha Lampway kwenye folda yako ya Applications ili kusasisha papo hapo"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar haiendeshwi kutoka fungu la programu"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway haiendeshwi kutoka fungu la programu"
 
 msgid "No permission to update {path}"
 msgstr "Hakuna ruhusa ya kusasisha {path}"
@@ -2660,8 +2660,8 @@ msgstr "Kisakinishi kilichopakuliwa hakipo"
 msgid "Could not start the updater"
 msgstr "Haikuweza kuanzisha kisasishaji"
 
-msgid "Mixar didn't close"
-msgstr "Mixar haikufunga"
+msgid "Lampway didn't close"
+msgstr "Lampway haikufunga"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "Masasisho ndani ya programu hayatumiki kwenye jukwaa hili"
@@ -2687,32 +2687,32 @@ msgstr "{size} imepakuliwa"
 msgid "Starting download…"
 msgstr "Inaanza upakuaji…"
 
-msgid "Downloading Mixar {version}"
-msgstr "Inapakua Mixar {version}"
+msgid "Downloading Lampway {version}"
+msgstr "Inapakua Lampway {version}"
 
-msgid "Mixar will restart to finish updating."
-msgstr "Mixar itawashwa upya ili kumaliza kusasisha."
+msgid "Lampway will restart to finish updating."
+msgstr "Lampway itawashwa upya ili kumaliza kusasisha."
 
-msgid "Mixar Update Ready"
-msgstr "Sasisho la Mixar liko tayari"
+msgid "Lampway Update Ready"
+msgstr "Sasisho la Lampway liko tayari"
 
 msgid "Version {version} is ready to install."
 msgstr "Toleo {version} liko tayari kusakinishwa."
 
-msgid "Mixar Update Required"
-msgstr "Sasisho la Mixar linahitajika"
+msgid "Lampway Update Required"
+msgstr "Sasisho la Lampway linahitajika"
 
-msgid "Mixar Update Available"
-msgstr "Sasisho la Mixar linapatikana"
+msgid "Lampway Update Available"
+msgstr "Sasisho la Lampway linapatikana"
 
 msgid "Version {version} is available."
 msgstr "Toleo {version} linapatikana."
 
-msgid "This update is required to continue using Mixar."
-msgstr "Sasisho hili linahitajika ili kuendelea kutumia Mixar."
+msgid "This update is required to continue using Lampway."
+msgstr "Sasisho hili linahitajika ili kuendelea kutumia Lampway."
 
-msgid "Mixar will restart to apply it."
-msgstr "Mixar itawashwa upya ili kulituma."
+msgid "Lampway will restart to apply it."
+msgstr "Lampway itawashwa upya ili kulituma."
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error} — tumia Pakua kusasisha kupitia kivinjari chako."
@@ -2729,11 +2729,11 @@ msgstr "Bofya Washa upya na usasishe ili kusakinisha tena."
 msgid "Update paused"
 msgstr "Sasisho limesitishwa"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar haikufunga, hivyo sasisho halikusakinishwa."
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway haikufunga, hivyo sasisho halikusakinishwa."
 
-msgid "Mixar is up to date"
-msgstr "Mixar imesasishwa"
+msgid "Lampway is up to date"
+msgstr "Lampway imesasishwa"
 
 msgid "You're running the latest version ({version})."
 msgstr "Unaendesha toleo jipya zaidi ({version})."
@@ -2747,11 +2747,11 @@ msgstr "Angalia muunganisho wako wa intaneti na ujaribu tena."
 msgid "Update didn't take effect"
 msgstr "Sasisho halikutekelezwa"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Mixar {target} ilisakinishwa lakini toleo {running} lilianza. Sakinisha tena kutoka ukurasa wa upakuaji."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Lampway {target} ilisakinishwa lakini toleo {running} lilianza. Sakinisha tena kutoka ukurasa wa upakuaji."
 
-msgid "Updated to Mixar {version}"
-msgstr "Imesasishwa hadi Mixar {version}"
+msgid "Updated to Lampway {version}"
+msgstr "Imesasishwa hadi Lampway {version}"
 
 msgid "The update was installed successfully."
 msgstr "Sasisho limesakinishwa kwa ufanisi."
@@ -2765,8 +2765,8 @@ msgstr "{reason} Unaweza kupakua sasisho kutoka ukurasa wa upakuaji."
 msgid "Update was not installed"
 msgstr "Sasisho halikusakinishwa"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "Mixar ilikuwa bado inaendeshwa kisakinishi kilipojaribu kuanza."
+msgid "Lampway was still running when the installer tried to start."
+msgstr "Lampway ilikuwa bado inaendeshwa kisakinishi kilipojaribu kuanza."
 
 msgid "The downloaded installer failed its signature check."
 msgstr "Kisakinishi kilichopakuliwa kimeshindwa ukaguzi wa saini."
@@ -2774,8 +2774,8 @@ msgstr "Kisakinishi kilichopakuliwa kimeshindwa ukaguzi wa saini."
 msgid "The downloaded installer could not be opened."
 msgstr "Kisakinishi kilichopakuliwa hakikuweza kufunguliwa."
 
-msgid "Mixar could not be replaced on disk."
-msgstr "Mixar haikuweza kubadilishwa kwenye diski."
+msgid "Lampway could not be replaced on disk."
+msgstr "Lampway haikuweza kubadilishwa kwenye diski."
 
 msgid "The installation was cancelled."
 msgstr "Usakinishaji umeghairiwa."
@@ -2786,8 +2786,8 @@ msgstr "Windows Installer imeripoti hitilafu mbaya."
 msgid "The installer did not finish."
 msgstr "Kisakinishi hakikukamilika."
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "Washa upya Mixar na usakinishe sasisho lililopakuliwa"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "Washa upya Lampway na usakinishe sasisho lililopakuliwa"
 
 msgid "Save Changes"
 msgstr "Hifadhi mabadiliko"
@@ -2795,14 +2795,14 @@ msgstr "Hifadhi mabadiliko"
 msgid "Save the current file before restarting"
 msgstr "Hifadhi faili ya sasa kabla ya kuwasha upya"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "Inapakua sasisho — Mixar itawashwa upya litakapokuwa tayari"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "Inapakua sasisho — Lampway itawashwa upya litakapokuwa tayari"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar itafunga na kusasisha hadi {version}."
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway itafunga na kusasisha hadi {version}."
 
 msgid "It reopens automatically when the update is done."
 msgstr "Hufunguka tena kiotomatiki sasisho likimalizika."
@@ -2831,14 +2831,14 @@ msgstr "Simamisha upakuaji wa sasisho"
 msgid "This update is required and cannot be cancelled"
 msgstr "Sasisho hili linahitajika na haliwezi kughairiwa"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "Fungua ukurasa wa upakuaji wa Mixar katika kivinjari chaguomsingi"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "Fungua ukurasa wa upakuaji wa Lampway katika kivinjari chaguomsingi"
 
 msgid "Check for Updates"
 msgstr "Angalia masasisho"
 
-msgid "Check whether a newer version of Mixar is available"
-msgstr "Angalia kama toleo jipya la Mixar linapatikana"
+msgid "Check whether a newer version of Lampway is available"
+msgstr "Angalia kama toleo jipya la Lampway linapatikana"
 
 msgid "An update check is already in progress"
 msgstr "Ukaguzi wa sasisho tayari unaendelea"
@@ -2849,8 +2849,8 @@ msgstr "Inaangalia masasisho…"
 msgid "Update Available"
 msgstr "Sasisho linapatikana"
 
-msgid "Show details for the pending Mixar update"
-msgstr "Onyesha maelezo ya sasisho la Mixar linalosubiri"
+msgid "Show details for the pending Lampway update"
+msgstr "Onyesha maelezo ya sasisho la Lampway linalosubiri"
 
 msgid "View Changelog"
 msgstr "Tazama kumbukumbu ya mabadiliko"
@@ -2969,14 +2969,14 @@ msgstr "Jina la kuonyesha la salamu ya akaunti"
 msgid "Newer File Version"
 msgstr "Toleo jipya zaidi la faili"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
-msgstr "Onya mtumiaji kuwa faili ilihifadhiwa na toleo jipya zaidi la Mixar"
+msgid "Warn user that the file was saved by a newer Lampway version"
+msgstr "Onya mtumiaji kuwa faili ilihifadhiwa na toleo jipya zaidi la Lampway"
 
 msgid "File Version"
 msgstr "Toleo la faili"
 
-msgid "This file was saved by Mixar version {version}."
-msgstr "Faili hii ilihifadhiwa na toleo la Mixar {version}."
+msgid "This file was saved by Lampway version {version}."
+msgstr "Faili hii ilihifadhiwa na toleo la Lampway {version}."
 
 msgid "Some data may be missing or incorrect."
 msgstr "Baadhi ya data inaweza kukosekana au kuwa si sahihi."
@@ -2990,8 +2990,8 @@ msgstr "Hakuna vitu vya matundu vya kuhamisha"
 msgid "Start Connector Sidecar"
 msgstr "Anzisha kisaidizi cha kiunganishi"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "Onyesha Mixar kwa kituo kupitia HTTP ya loopback"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "Onyesha Lampway kwa kituo kupitia HTTP ya loopback"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
 msgstr "Kisaidizi cha kiunganishi kwenye 127.0.0.1:{port}"
@@ -2999,8 +2999,8 @@ msgstr "Kisaidizi cha kiunganishi kwenye 127.0.0.1:{port}"
 msgid "Export Scene to Unreal"
 msgstr "Hamisha mandhari kwenda Unreal"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "Hamisha mandhari ya sasa ya Mixar kama USD/FBX/GLB tayari kwa Unreal"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "Hamisha mandhari ya sasa ya Lampway kama USD/FBX/GLB tayari kwa Unreal"
 
 msgid "Exported {filename} ({count} meshes)"
 msgstr "Imehamisha {filename} (matundu {count})"
@@ -3020,8 +3020,8 @@ msgstr "Kituo :7734 · Unreal MCP :8000/mcp · UnrealMCP TCP :55557"
 msgid "Hub Sidecar"
 msgstr "Kisaidizi cha kituo"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "Onyesha kipindi hiki cha Mixar kwa mixar-connector kupitia HTTP ya loopback"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "Onyesha kipindi hiki cha Lampway kwa mixar-connector kupitia HTTP ya loopback"
 
 msgid "Sidecar Port"
 msgstr "Bandari ya kisaidizi"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,8 +3119,8 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
-msgstr "Kamera ya shoti ya Mixar"
+msgid "Lampway Shot Camera"
+msgstr "Kamera ya shoti ya Lampway"
 
 msgid "Shot"
 msgstr "Shoti"
@@ -3563,8 +3563,8 @@ msgstr "Shoti haina kamera"
 msgid "Capture at least one camera beat before locking"
 msgstr "Nasa angalau tukio moja la kamera kabla ya kufunga"
 
-msgid "Mixar Focus"
-msgstr "Ulengaji wa Mixar"
+msgid "Lampway Focus"
+msgstr "Ulengaji wa Lampway"
 
 msgid "Rendering…"
 msgstr "Inatoa…"
@@ -4241,8 +4241,8 @@ msgstr "Maendeleo ya utoaji"
 msgid "Render Status"
 msgstr "Hali ya utoaji"
 
-msgid "Mixar Camera Export"
-msgstr "Uhamishaji wa kamera wa Mixar"
+msgid "Lampway Camera Export"
+msgstr "Uhamishaji wa kamera wa Lampway"
 
 msgid "Export this scene's camera animation to the Moodboard"
 msgstr "Hamisha uhuishaji wa kamera wa mandhari hii kwenye ubao wa hisia"
@@ -4493,14 +4493,14 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
-msgstr "Uongozaji wa Mixar"
+msgid "Lampway Director"
+msgstr "Uongozaji wa Lampway"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "Shoti chache za uongozaji wa kamera za mandhari hii"
 
-msgid "Mixar Output"
-msgstr "Pato la Mixar"
+msgid "Lampway Output"
+msgstr "Pato la Lampway"
 
 msgid "Output aspect ratio this camera frames for"
 msgstr "Uwiano wa kipengele wa pato ambao kamera hii huweka katika fremu"
@@ -4964,19 +4964,19 @@ msgstr "Modeli ya seva ya ndani"
 msgid "Local model last error"
 msgstr "Hitilafu ya mwisho ya modeli ya ndani"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,26 +7789,26 @@ msgstr "Maandishi ya hitilafu"
 msgid "Error message if job failed"
 msgstr "Ujumbe wa hitilafu kazi ikishindwa"
 
-msgid "Mixie Moodboard Images"
-msgstr "Taswira za ubao wa hisia za Mixie"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Taswira za ubao wa hisia za Lampway Agent"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "Mkusanyiko wa taswira za rejeleo katika modi ya ubao wa hisia"
 
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Masanduku ya maandishi ya ubao wa hisia ya Mixie"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Masanduku ya maandishi ya ubao wa hisia ya Lampway Agent"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "Mkusanyiko wa masanduku ya maandishi katika modi ya ubao wa hisia"
 
-msgid "Mixie Moodboard Frames"
-msgstr "Fremu za ubao wa hisia za Mixie"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Fremu za ubao wa hisia za Lampway Agent"
 
 msgid "Canvas frames grouping board items"
 msgstr "Fremu za turubai zinazokusanya vipengee vya ubao"
 
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Makundi ya ubao wa hisia ya Mixie (ya zamani)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Makundi ya ubao wa hisia ya Lampway Agent (ya zamani)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "Yamechukuliwa nafasi na mixie_moodboard_frames; yamehifadhiwa kwa uhamishaji"
@@ -8917,8 +8917,8 @@ msgstr "Picha {count} za ubao wa hisia zimesawazishwa"
 msgid "Attach Selected Moodboard Image"
 msgstr "Ambatisha Picha Iliyochaguliwa ya Ubao wa Hisia"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
-msgstr "Nakili picha, video, visanduku vya maandishi na nodi za utabiri zilizochaguliwa (pamoja na miunganiko na matokeo yake); bandika kwa {shortcut} katika tukio hili au lingine la Mixar"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
+msgstr "Nakili picha, video, visanduku vya maandishi na nodi za utabiri zilizochaguliwa (pamoja na miunganiko na matokeo yake); bandika kwa {shortcut} katika tukio hili au lingine la Lampway"
 
 msgid "Nothing selected to copy"
 msgstr "Hakuna kilichochaguliwa cha kunakili"
@@ -9244,8 +9244,8 @@ msgstr "Imeshindwa kusoma ubao wa kunakili: {error}"
 msgid "Paste"
 msgstr "Bandika"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
-msgstr "Bandika kilichonakiliwa kwenye ubao wa hisia -- katika tukio hili au lingine la Mixar -- au picha kutoka ubao wa kunakili wa mfumo ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
+msgstr "Bandika kilichonakiliwa kwenye ubao wa hisia -- katika tukio hili au lingine la Lampway -- au picha kutoka ubao wa kunakili wa mfumo ({shortcut})"
 
 msgid "Pasted {count} item"
 msgstr "Kipengee {count} kimebandikwa"
@@ -10642,13 +10642,13 @@ msgstr "Maelezo ya Ubao wa Hisia"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
-msgstr "Karibu Mixar"
+msgid "Welcome to Lampway"
+msgstr "Karibu Lampway"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,20 +10669,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
-msgstr "Kitambulisho cha Historia ya Uendeshaji ya Mixar"
+msgid "Lampway Operation History ID"
+msgstr "Kitambulisho cha Historia ya Uendeshaji ya Lampway"
 
 msgid "Persistent per-scene id keying this scene's operation history."
 msgstr "Ufunguo thabiti wa kitambulisho kwa kila mandhari unaofungua historia ya uendeshaji ya mandhari hii."
@@ -13051,8 +13051,8 @@ msgstr "Jina la chaneli ya kuhamisha"
 msgid "File format for export"
 msgstr "Umbizo la faili kwa uhamishaji"
 
-msgid "No active Mixar node found"
-msgstr "Hakuna nodi inayotumika ya Mixar iliyopatikana"
+msgid "No active Lampway node found"
+msgstr "Hakuna nodi inayotumika ya Lampway iliyopatikana"
 
 msgid "Exported '{name}' to {path}"
 msgstr "'{name}' imehimishwa hadi {path}"
@@ -13201,8 +13201,8 @@ msgstr "Oka picha ya muda ya tabaka, inaweza kusaidia kuzuia hitilafu na Cycles"
 msgid "Bake Temporary Image"
 msgstr "Oka Picha ya Muda"
 
-msgid "No active Mixar node found!"
-msgstr "Hakuna nodi inayotumika ya Mixar iliyopatikana!"
+msgid "No active Lampway node found!"
+msgstr "Hakuna nodi inayotumika ya Lampway iliyopatikana!"
 
 msgid "No active layer found!"
 msgstr "Hakuna tabaka linalotumika lililopatikana!"
@@ -13345,8 +13345,8 @@ msgstr "Oka Chaneli hadi Rangi ya Kipeo"
 msgid "Bake All Materials"
 msgstr "Oka Nyenzo Zote"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "Oka nyenzo zote zenye nodi za Mixar Paint badala ya ile inayotumika pekee"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "Oka nyenzo zote zenye nodi za Lampway Paint badala ya ile inayotumika pekee"
 
 msgid "Target Vertex Color Name"
 msgstr "Jina Lengo la Rangi ya Kipeo"
@@ -13574,8 +13574,8 @@ msgstr ""
 msgid "Copy Image Path To Clipboard"
 msgstr "Nakili Njia ya Picha hadi Ubao wa Kunakili"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint inanakili njia ya faili ya picha hadi ubao wa kunakili wa mfumo"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint inanakili njia ya faili ya picha hadi ubao wa kunakili wa mfumo"
 
 msgid "Copied: {text}"
 msgstr "Imenakiliwa: {text}"
@@ -13583,8 +13583,8 @@ msgstr "Imenakiliwa: {text}"
 msgid "Open Containing Image Folder"
 msgstr "Fungua Folda Iliyo na Picha"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint hufungua folda iliyo na faili ya picha na kuiangazia"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint hufungua folda iliyo na faili ya picha na kuiangazia"
 
 msgid "File does not exist"
 msgstr "Faili haipo"
@@ -15054,8 +15054,8 @@ msgstr "Wezesha kinyago"
 msgid "Active Mask"
 msgstr "Kinyago Kinachotumika"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Kinyago kinachotumika kwa modi ya kupaka na kuhariri ya Blender, au modi ya hakiki ya Kinyago ya Mixar Paint"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Kinyago kinachotumika kwa modi ya kupaka na kuhariri ya Blender, au modi ya hakiki ya Kinyago ya Lampway Paint"
 
 msgid "Mask Source Input"
 msgstr "Ingizo Chanzo cha Kinyago"
@@ -15156,14 +15156,14 @@ msgstr "Oka Chaneli Zote"
 msgid "Delete Baked Images"
 msgstr "Futa Picha Zilizookwa"
 
-msgid "New Mixar Paint Modifier"
-msgstr "Kirekebishaji Kipya cha Mixar Paint"
+msgid "New Lampway Paint Modifier"
+msgstr "Kirekebishaji Kipya cha Lampway Paint"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Sogeza Kirekebishaji cha Mixar Paint"
+msgid "Move Lampway Paint Modifier"
+msgstr "Sogeza Kirekebishaji cha Lampway Paint"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Ondoa Kirekebishaji cha Mixar Paint"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Ondoa Kirekebishaji cha Lampway Paint"
 
 msgid "Add Channel Modifier"
 msgstr "Ongeza Kirekebishaji cha Chaneli"
@@ -15297,8 +15297,8 @@ msgstr "Chaneli '{name}' tayari ipo"
 msgid "Build Layered Material"
 msgstr "Jenga Nyenzo ya Tabaka"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "Jenga nyenzo ya kupaka ya Mixar kutoka manifesti ya nyenzo ya tabaka"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "Jenga nyenzo ya kupaka ya Lampway kutoka manifesti ya nyenzo ya tabaka"
 
 msgid "Manifest JSON"
 msgstr "JSON ya Manifesti"
@@ -15921,8 +15921,8 @@ msgstr "Badilisha jina la tabaka hili"
 msgid "New name for the layer"
 msgstr "Jina jipya la tabaka"
 
-msgid "No active Mixar node"
-msgstr "Hakuna nodi inayotumika ya Mixar"
+msgid "No active Lampway node"
+msgstr "Hakuna nodi inayotumika ya Lampway"
 
 msgid "Name cannot be empty"
 msgstr "Jina haliwezi kuwa tupu"
@@ -16071,11 +16071,11 @@ msgstr "Rudi kwenye mwonekano wa sifa za tabaka"
 msgid "Add different types of masks to the active layer"
 msgstr "Ongeza aina tofauti za vinyago kwenye tabaka linalotumika"
 
-msgid "Remove Mixar Paint Node"
-msgstr "Ondoa Nodi ya Mixar Paint"
+msgid "Remove Lampway Paint Node"
+msgstr "Ondoa Nodi ya Lampway Paint"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Ondoa nodi ya Mixar Paint, lakini weka picha zote za chaneli zilizookwa"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Ondoa nodi ya Lampway Paint, lakini weka picha zote za chaneli zilizookwa"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "Usanidi wa nodi ya {addon} haujaokwa bado!"
@@ -16227,8 +16227,8 @@ msgstr "Tumia nyenzo kwenye tabaka la Kujaza linalotumika badala ya kuunda tabak
 msgid "Material '{name}' not found in registry"
 msgstr "Nyenzo '{name}' haipatikani katika sajili"
 
-msgid "No active Mixar Paint node found"
-msgstr "Hakuna nodi inayotumika ya Mixar Paint iliyopatikana"
+msgid "No active Lampway Paint node found"
+msgstr "Hakuna nodi inayotumika ya Lampway Paint iliyopatikana"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "Nyenzo '{name}' imetumika kwenye tabaka lililopo"
@@ -16431,8 +16431,8 @@ msgstr "Hakuna nyenzo ya tabaka inayotumika"
 msgid "To use texture baking:"
 msgstr "Kutumia kuoka miundo:"
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. Chagua kitu chenye nyenzo ya Mixar"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. Chagua kitu chenye nyenzo ya Lampway"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "  2. Au unda nyenzo mpya ya tabaka"
@@ -16533,8 +16533,8 @@ msgstr "Mfumo wa nyuma wa upakaji haujaanzishwa"
 msgid "Paint UI not initialized"
 msgstr "Kiolesura cha upakaji hakijaanzishwa"
 
-msgid "No Mixar material found"
-msgstr "Hakuna nyenzo ya Mixar iliyopatikana"
+msgid "No Lampway material found"
+msgstr "Hakuna nyenzo ya Lampway iliyopatikana"
 
 msgid "No layer based material"
 msgstr "Hakuna nyenzo ya tabaka"
@@ -16551,8 +16551,8 @@ msgstr "Hakuna tabaka lililochaguliwa"
 msgid "No active material"
 msgstr "Hakuna nyenzo inayotumika"
 
-msgid "No Mixar node found"
-msgstr "Hakuna nodi ya Mixar iliyopatikana"
+msgid "No Lampway node found"
+msgstr "Hakuna nodi ya Lampway iliyopatikana"
 
 msgid "Backend layer not found"
 msgstr "Tabaka la mfumo wa nyuma halijapatikana"
@@ -17227,17 +17227,17 @@ msgstr "Tabaka limeangaziwa au limechaguliwa sasa"
 msgid "How this layer blends with layers below"
 msgstr "Jinsi tabaka hili linavyochanganyika na tabaka za chini"
 
-msgid "Mixar Layer Index"
-msgstr "Fahirisi ya tabaka ya Mixar"
+msgid "Lampway Layer Index"
+msgstr "Fahirisi ya tabaka ya Lampway"
 
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "Fahirisi katika mkusanyiko wa mixar_mp.layers wa Mixar"
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "Fahirisi katika mkusanyiko wa mixar_mp.layers wa Lampway"
 
-msgid "Mixar Group Node"
-msgstr "Nodi ya kundi ya Mixar"
+msgid "Lampway Group Node"
+msgstr "Nodi ya kundi ya Lampway"
 
-msgid "Name of the Mixar group node"
-msgstr "Jina la nodi ya kundi ya Mixar"
+msgid "Name of the Lampway group node"
+msgstr "Jina la nodi ya kundi ya Lampway"
 
 msgid "Updating Property"
 msgstr "Inasasisha sifa"
@@ -18312,8 +18312,8 @@ msgstr "Rangi ya kitu kingine"
 msgid "Other Objects Channels"
 msgstr "Chaneli za vitu vingine"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "Chaneli za upakaji wa Mixar za kitu kingine"
+msgid "Other object's Lampway Paint channels"
+msgstr "Chaneli za upakaji wa Lampway za kitu kingine"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "Vipeo/kingo/nyuso vilivyochaguliwa"
@@ -18639,17 +18639,17 @@ msgstr "Usaidizi wa programu"
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
-msgstr "Haikuweza kuunda folda ya viongezi ya Mixar — angalia ruhusa za folda ya wasifu wa mtumiaji."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
+msgstr "Haikuweza kuunda folda ya viongezi ya Lampway — angalia ruhusa za folda ya wasifu wa mtumiaji."
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
-msgstr "Haikuweza kuunda folda ya viendelezi ya Mixar — angalia ruhusa za folda ya wasifu wa mtumiaji."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
+msgstr "Haikuweza kuunda folda ya viendelezi ya Lampway — angalia ruhusa za folda ya wasifu wa mtumiaji."
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "kuwezesha kumeshindwa (huenda hakioani na Blender 5.0)"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
-msgstr "Leta viongezi na viendelezi kutoka usakinishaji uliopo wa Blender kwenda Mixar."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
+msgstr "Leta viongezi na viendelezi kutoka usakinishaji uliopo wa Blender kwenda Lampway."
 
 msgid "Scan for Blender Plugins"
 msgstr "Changanua programu-jalizi za Blender"
@@ -18672,14 +18672,14 @@ msgstr "Wezesha baada ya kuingiza:"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "Programu-jalizi zote zilizoainishwa hunakiliwa; zilizowekwa alama huwezeshwa."
 
-msgid "Import into Mixar"
-msgstr "Ingiza katika Mixar"
+msgid "Import into Lampway"
+msgstr "Ingiza katika Lampway"
 
 msgid "Imported"
 msgstr "Imeingizwa"
 
-msgid "Already in Mixar"
-msgstr "Tayari iko katika Mixar"
+msgid "Already in Lampway"
+msgstr "Tayari iko katika Lampway"
 
 msgid "Copy failed"
 msgstr "Kunakili kumeshindwa"
@@ -18705,11 +18705,11 @@ msgstr "Chagua programu-jalizi"
 msgid "Tick or untick every plugin in the list"
 msgstr "Weka au ondoa alama kwa kila programu-jalizi katika orodha"
 
-msgid "Import Plugins into Mixar"
-msgstr "Ingiza programu-jalizi katika Mixar"
+msgid "Import Plugins into Lampway"
+msgstr "Ingiza programu-jalizi katika Lampway"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
-msgstr "Hunakili kila programu-jalizi iliyoainishwa katika Mixar na kuwezesha zilizowekwa alama"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
+msgstr "Hunakili kila programu-jalizi iliyoainishwa katika Lampway na kuwezesha zilizowekwa alama"
 
 msgid "Nothing scanned — run Scan first"
 msgstr "Hakuna kilichochanganuliwa — endesha Changanua kwanza"
@@ -18726,8 +18726,8 @@ msgstr "Zimeingizwa {imported}, tayari zipo {already_present}, zimeshindwa {fail
 msgid "Imported: {count}"
 msgstr "Zimeingizwa: {count}"
 
-msgid "Already in Mixar: {count}"
-msgstr "Tayari katika Mixar: {count}"
+msgid "Already in Lampway: {count}"
+msgstr "Tayari katika Lampway: {count}"
 
 msgid "Enabled: {count}"
 msgstr "Zimewezeshwa: {count}"
@@ -18744,8 +18744,8 @@ msgstr "Ingiza kutoka Blender"
 msgid "{count} found"
 msgstr "{count} zimepatikana"
 
-msgid "Enable this plugin in Mixar after importing it"
-msgstr "Wezesha programu-jalizi hii katika Mixar baada ya kuingiza"
+msgid "Enable this plugin in Lampway after importing it"
+msgstr "Wezesha programu-jalizi hii katika Lampway baada ya kuingiza"
 
 msgid "Blender Version"
 msgstr "Toleo la Blender"
@@ -18798,14 +18798,14 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
-msgstr "Grafu ya mandhari ya Mixar"
+msgid "Lampway Scene Graph"
+msgstr "Grafu ya mandhari ya Lampway"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "Grafu ya mandhari inayosomwa na wakala kwa kila mandhari (JSON). Wakati wa uendeshaji tu."
 
-msgid "Mixar Scene Graph Query Result"
-msgstr "Matokeo ya ulizo la grafu ya mandhari ya Mixar"
+msgid "Lampway Scene Graph Query Result"
+msgstr "Matokeo ya ulizo la grafu ya mandhari ya Lampway"
 
 msgid "JSON result of the last scene-graph query operator call."
 msgstr "Matokeo ya JSON ya mwito wa mwisho wa opereta wa ulizo la grafu ya mandhari."
@@ -19524,8 +19524,8 @@ msgstr "Video zinahitaji modi ya Video. Ondoa video ili kutuma kwa Wakala."
 msgid "User ID"
 msgstr "Kitambulisho cha mtumiaji"
 
-msgid "User ID for Mixie Chat login"
-msgstr "Kitambulisho cha mtumiaji kwa kuingia kwenye mazungumzo ya Mixie"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "Kitambulisho cha mtumiaji kwa kuingia kwenye mazungumzo ya Lampway Agent"
 
 msgid "Agent expects: {formats}"
 msgstr "Wakala anatarajia: {formats}"
@@ -19983,11 +19983,11 @@ msgstr "Maliza mwandiko kabla ya kuanzisha ingizo la sauti."
 msgid "Sign in to use voice input."
 msgstr "Ingia ili kutumia ingizo la sauti."
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "Zindua Mixar kutoka Finder ili kuruhusu ufikiaji wa mikrofoni."
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "Zindua Lampway kutoka Finder ili kuruhusu ufikiaji wa mikrofoni."
 
-msgid "Allow microphone access for Mixar in system privacy settings."
-msgstr "Ruhusu ufikiaji wa mikrofoni kwa Mixar katika mipangilio ya faragha ya mfumo."
+msgid "Allow microphone access for Lampway in system privacy settings."
+msgstr "Ruhusu ufikiaji wa mikrofoni kwa Lampway katika mipangilio ya faragha ya mfumo."
 
 msgid "Allow microphone"
 msgstr "Ruhusu mikrofoni"
@@ -20034,8 +20034,8 @@ msgstr "Tafadhali ingia tena."
 msgid "Login Failed"
 msgstr "Kuingia kumeshindwa"
 
-msgid "Sign in with your Mixar account"
-msgstr "Ingia kwa akaunti yako ya Mixar"
+msgid "Sign in with your Lampway account"
+msgstr "Ingia kwa akaunti yako ya Lampway"
 
 msgid "Waiting for browser..."
 msgstr "Inasubiri kivinjari..."
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "Dashibodi"
 
-msgid "About Mixar"
-msgstr "Kuhusu Mixar"
+msgid "About Lampway"
+msgstr "Kuhusu Lampway"
 
 msgid "Documentation"
 msgstr "Hati"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "Nakala isiyo na mazungumzo imehimishwa (ujumbe {count} vimeachwa kutoka mandhari {scenes})."
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Mazungumzo ya Mixar: Hamisha .blend bila historia ya mazungumzo"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Mazungumzo ya Lampway: Hamisha .blend bila historia ya mazungumzo"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "Utengenezaji haupatikani kwa sasa. Onyesha upya katalogi na ujaribu tena."
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Ongeza kanuni"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "Fafanua kanuni za Mixie. Mabadiliko hutumika kwenye ujumbe au jibu lijalo; kanuni za jumla hutumika katika kila faili ya Mixar. Ombi la sasa lina kipaumbele kuliko kanuni za mradi na za jumla"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Fafanua kanuni za Mixie. Mabadiliko hutumika kwenye ujumbe au jibu lijalo; kanuni za jumla hutumika katika kila faili ya Lampway. Ombi la sasa lina kipaumbele kuliko kanuni za mradi na za jumla"
 
 msgid "Rule operation failed"
 msgstr "Operesheni ya kanuni imeshindwa"
@@ -22138,8 +22138,8 @@ msgstr "Maandishi ya tukio la mwisho la kitambuzi cha usemi lililotolewa"
 msgid "Materials: {count}"
 msgstr "Nyenzo: {count}"
 
-msgid "No Mixar material active"
-msgstr "Hakuna nyenzo ya Mixar inayotumika"
+msgid "No Lampway material active"
+msgstr "Hakuna nyenzo ya Lampway inayotumika"
 
 msgid "{channel} Settings"
 msgstr "Mipangilio ya {channel}"
@@ -22801,8 +22801,8 @@ msgstr "Kipimo cha Y"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "Badilisha kiwango cha UV zilizochaguliwa katika mwelekeo wa Y (kidogo kidogo)"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Sifa za zana ya maelezo kwa nafasi ya Sifa za UV ya Mixar."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Sifa za zana ya maelezo kwa nafasi ya Sifa za UV ya Lampway."
 
 msgid "Annotate Line"
 msgstr "Mstari wa maelezo"
@@ -22828,14 +22828,14 @@ msgstr "Mwanzo wa mtindo"
 msgid "Toggle UV Sidebar"
 msgstr "Geuza upau wa pembeni wa UV"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "Hugeuza upau wa pembeni wa UV wa Mixar katika Kihariri cha Taswira"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "Hugeuza upau wa pembeni wa UV wa Lampway katika Kihariri cha Taswira"
 
 msgid "Open UV Sidebar"
 msgstr "Fungua upau wa pembeni wa UV"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Hufungua upau wa pembeni wa UV wa Mixar ikiwa umefichwa"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Hufungua upau wa pembeni wa UV wa Lampway ikiwa umefichwa"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "Hali tupu inayoonyeshwa hakuna sifa za UV zinazopatikana"
@@ -22858,8 +22858,8 @@ msgstr "Hamisha Mpangilio wa UV"
 msgid "Export UV layout using stored properties"
 msgstr "Hamisha mpangilio wa UV kwa kutumia sifa zilizohifadhiwa"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "Jopo la kuhamisha UV kwa nafasi ya Sifa za UV ya Mixar"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "Jopo la kuhamisha UV kwa nafasi ya Sifa za UV ya Lampway"
 
 msgid "UV UI not initialized"
 msgstr "Kiolesura cha UV hakijaanzishwa"
@@ -22975,8 +22975,8 @@ msgstr "Bandika UV"
 msgid "Functions"
 msgstr "Vitendakazi"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Jopo la vitendakazi vya UV kwa nafasi ya Sifa za UV ya Mixar - la zana (hakuna kitufe cha kichwa)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Jopo la vitendakazi vya UV kwa nafasi ya Sifa za UV ya Lampway - la zana (hakuna kitufe cha kichwa)"
 
 msgid "Seam"
 msgstr "Mshono"
@@ -23104,8 +23104,8 @@ msgstr "Hakuna taswira katika kihariri cha UV"
 msgid "Material '{name}' created and applied"
 msgstr "Nyenzo '{name}' imeundwa na kutumika"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Jopo la taswira kwa nafasi ya Sifa za UV ya Mixar."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Jopo la taswira kwa nafasi ya Sifa za UV ya Lampway."
 
 msgid "Save As"
 msgstr "Hifadhi Kama"
@@ -23137,8 +23137,8 @@ msgstr "Ukubwa wa Picha"
 msgid "Invert All Colors"
 msgstr "Pindua rangi zote"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Jopo la nafasi ya nyenzo kwa nafasi ya Sifa za UV ya Mixar"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Jopo la nafasi ya nyenzo kwa nafasi ya Sifa za UV ya Lampway"
 
 msgid "No active object"
 msgstr "Hakuna kitu amilifu"
@@ -23182,8 +23182,8 @@ msgstr "Unda maeneo maalum katika nafasi ya UV kwa kupanga"
 msgid "{label} unavailable"
 msgstr "{label} haipatikani"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Jopo la mpangilio kwa nafasi ya Sifa za UV ya Mixar."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Jopo la mpangilio kwa nafasi ya Sifa za UV ya Lampway."
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "Sifa za uv.pack_islands hazipatikani"
@@ -23329,8 +23329,8 @@ msgstr "Mradi"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "Tengeneza makadirio ya UV kwa aina na sifa zinazoonyeshwa katika jopo la Makadirio"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Hali ya kiolesura cha UV ya Mixar haijaanzishwa"
+msgid "Lampway UV UI state not initialized"
+msgstr "Hali ya kiolesura cha UV ya Lampway haijaanzishwa"
 
 msgid "Unknown projection type: {type}"
 msgstr "Aina ya makadirio haijulikani: {type}"
@@ -23461,8 +23461,8 @@ msgstr "Chagua Imeunganishwa"
 msgid "Select linked UVs"
 msgstr "Chagua UV zilizounganishwa"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Jopo la uteuzi kwa nafasi ya Sifa za UV ya Mixar - la zana (hakuna kitufe cha kichwa)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Jopo la uteuzi kwa nafasi ya Sifa za UV ya Lampway - la zana (hakuna kitufe cha kichwa)"
 
 msgid "Basic Selection"
 msgstr "Uteuzi wa msingi"
@@ -23503,8 +23503,8 @@ msgstr "Chagua Gawanya"
 msgid "Select Overlap"
 msgstr "Chagua Mwingiliano"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Jopo la msongamano wa tekseli kwa nafasi ya Sifa za UV ya Mixar"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Jopo la msongamano wa tekseli kwa nafasi ya Sifa za UV ya Lampway"
 
 msgid "Activate Grab Tool"
 msgstr "Washa zana ya kushika"
@@ -23548,8 +23548,8 @@ msgstr "Weka mwonekano katikati ya mshale"
 msgid "UV Sculpt Tools"
 msgstr "Zana za uchongaji wa UV"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Jopo la zana za uchongaji wa UV kwa nafasi ya Sifa za UV ya Mixar - la zana (hakuna kitufe cha kichwa)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Jopo la zana za uchongaji wa UV kwa nafasi ya Sifa za UV ya Lampway - la zana (hakuna kitufe cha kichwa)"
 
 msgid "Grab"
 msgstr "Shika"
@@ -23668,8 +23668,8 @@ msgstr "Tumia mageuzi ya kiwango kwenye UV zilizochaguliwa"
 msgid "Snapping"
 msgstr "Kupiga"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Jopo la kunata kwa nafasi ya Sifa za UV ya Mixar"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Jopo la kunata kwa nafasi ya Sifa za UV ya Lampway"
 
 msgid "Snapping Options"
 msgstr "Chaguzi za kunata"
@@ -23719,8 +23719,8 @@ msgstr "Kunjua kwa mbinu na sifa zinazoonyeshwa katika jopo la Kunjua"
 msgid "Unknown unwrap method: {method}"
 msgstr "Mbinu ya kunjua haijulikani: {method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Jopo la pamoja la Kunjua + Makadirio kwa nafasi ya Sifa za UV ya Mixar."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Jopo la pamoja la Kunjua + Makadirio kwa nafasi ya Sifa za UV ya Lampway."
 
 msgid "Live Unwrap"
 msgstr "Kunjua moja kwa moja"
@@ -23796,7 +23796,7 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
@@ -23804,7 +23804,7 @@ msgstr ""
 "\n"
 "Kifuniko cha `image.new` kinachoweka `tiled=True` mapema kwenye\n"
 "kirisha cha sifa za opereta. Hutumika kama opereta wa `new=` kwa\n"
-"`template_ID` katika majopo ya UV ya Mixar ili dirisha lifunguke na\n"
+"`template_ID` katika majopo ya UV ya Lampway ili dirisha lifunguke na\n"
 "kisanduku cha Yenye vigae tayari kimechaguliwa. `image.new` ya chini hufanya\n"
 "uundaji halisi na ukabidhi wa kitambulisho.\n"
 
@@ -23826,8 +23826,8 @@ msgstr "Jaza Kigae"
 msgid "Fill UDIM tile"
 msgstr "Jaza kigae cha UDIM"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "Jopo la seti ya UV kwa nafasi ya Sifa za UV ya Mixar."
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "Jopo la seti ya UV kwa nafasi ya Sifa za UV ya Lampway."
 
 msgid "UV Maps"
 msgstr "Ramani za UV"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "Zana"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Jopo la zana kwa nafasi ya Sifa za UV ya Mixar — huonyeshwa wakati zana ya upau\n"
+"Jopo la zana kwa nafasi ya Sifa za UV ya Lampway — huonyeshwa wakati zana ya upau\n"
 "`builtin.uv_tool` inapotumika."
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,14 +24070,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Badili Mixar kwenda Modi ya Zen (mtazamo wa kutazama mdogo + Kiputo cha wakala + ubao wa hisia)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "Badili Lampway kwenda Modi ya Zen (mtazamo wa kutazama mdogo + Kiputo cha wakala + ubao wa hisia)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Haikuweza kuunda nafasi ya kazi ya Modi ya Zen — hakuna kiolezo kinachopatikana"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "Badili Mixar kwenda Modi ya Engine (nafasi za kazi kamili za mtindo wa Blender)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "Badili Lampway kwenda Modi ya Engine (nafasi za kazi kamili za mtindo wa Blender)"
 
 msgid "Modeling workspace not found"
 msgstr "Nafasi ya kazi ya uundaji haijapatikana"
@@ -24298,17 +24298,17 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
-msgstr "Faili imehifadhiwa na toleo jipya la Mixar (%d.%d), baadhi ya data inaweza kupotea"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
+msgstr "Faili imehifadhiwa na toleo jipya la Lampway (%d.%d), baadhi ya data inaweza kupotea"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "Faili ilihifadhiwa na toleo jipya, ifungue kwa Mixar %s au baadaye"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "Faili ilihifadhiwa na toleo jipya, ifungue kwa Lampway %s au baadaye"
 
 msgid "Failed to read mixar file '%s': %s"
 msgstr "Imeshindwa kusoma faili ya mixar '%s': %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
-msgstr "Haiwezi kusoma faili ya mixar '%s', kichwa hakijakamilika, inaweza kuwa kutoka toleo jipya la Mixar"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr "Haiwezi kusoma faili ya mixar '%s', kichwa hakijakamilika, inaweza kuwa kutoka toleo jipya la Lampway"
 
 msgid "Failed to read file '%s', not a mixar file"
 msgstr "Imeshindwa kusoma faili '%s', si faili ya mixar"
@@ -24316,14 +24316,14 @@ msgstr "Imeshindwa kusoma faili '%s', si faili ya mixar"
 msgid "Unable to open mixar <memory>"
 msgstr "Haiwezi kufungua mixar <memory>"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Faili ya Mixar '%s' iliundwa na toleo la baadaye la Mixar na ina majina ya ID marefu kuliko yanayoungwa mkono sasa. Yamekatwa."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Faili ya Lampway '%s' iliundwa na toleo la baadaye la Lampway na ina majina ya ID marefu kuliko yanayoungwa mkono sasa. Yamekatwa."
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Faili ya Mixar '%s' inaonekana imeharibika, ina majina ya ID yasiyo sahihi. Yamekatwa."
+msgstr "Faili ya Lampway '%s' inaonekana imeharibika, ina majina ya ID yasiyo sahihi. Yamekatwa."
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
-msgstr "Maktaba '%s' iliundwa na toleo la baadaye la Mixar na ina majina ya ID marefu kuliko yanayoungwa mkono sasa. Hii inaweza kusababisha data iliyounganishwa kukosekana; fikiri kufungua na kuhifadhi tena maktaba hiyo kwa toleo la sasa la Mixar."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
+msgstr "Maktaba '%s' iliundwa na toleo la baadaye la Lampway na ina majina ya ID marefu kuliko yanayoungwa mkono sasa. Hii inaweza kusababisha data iliyounganishwa kukosekana; fikiri kufungua na kuhifadhi tena maktaba hiyo kwa toleo la sasa la Lampway."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: Data inarejelea faili kuu ya .mixar: '%s' kutoka %s"
@@ -24454,8 +24454,8 @@ msgstr "Muulize Mixie chochote..."
 msgid "Write your prompt here..."
 msgstr "Andika maagizo hapa..."
 
-msgid "Everything Mixar has generated"
-msgstr "Kila kitu Mixar ametengeneza"
+msgid "Everything Lampway has generated"
+msgstr "Kila kitu Lampway ametengeneza"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -25771,14 +25771,14 @@ msgstr "Futa hakiki ya Mixie3D"
 msgid "Delete a segmented image from the preview history"
 msgstr "Futa taswira iliyogawanywa kutoka historia ya hakiki"
 
-msgid "Mixar agent bubble loading…"
-msgstr "Kiputo cha wakala cha Mixar kinapakia…"
+msgid "Lampway agent bubble loading…"
+msgstr "Kiputo cha wakala cha Lampway kinapakia…"
 
 msgid "Show Agent Bubble"
 msgstr "Onyesha kiputo cha wakala"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
-msgstr "Hufungua uwekeleaji unaoelea wa kiputo cha wakala, unaomruhusu mtumiaji kuzungumza na wakala wa AI kutoka mahali popote katika kiolesura cha Mixar"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
+msgstr "Hufungua uwekeleaji unaoelea wa kiputo cha wakala, unaomruhusu mtumiaji kuzungumza na wakala wa AI kutoka mahali popote katika kiolesura cha Lampway"
 
 msgid "Chat is still loading. Please drop the asset again."
 msgstr ""
@@ -25822,8 +25822,8 @@ msgstr "Ongeza taswira iliyodondoshwa kama kiambatisho cha gumzo"
 msgid "Dropped image datablock"
 msgstr "Bloku ya data ya taswira iliyodondoshwa"
 
-msgid "Tell me about the features in Mixar"
-msgstr "Niambie kuhusu vipengele vya Mixar"
+msgid "Tell me about the features in Lampway"
+msgstr "Niambie kuhusu vipengele vya Lampway"
 
 msgid "Generate a futuristic sci-fi character concept"
 msgstr "Tengeneza dhana ya mhusika wa sci-fi wa siku zijazo"
@@ -26755,14 +26755,14 @@ msgstr "Operesheni za kuoka na kuchakata miundo"
 msgid "Texture set management for PBR workflows"
 msgstr "Udhibiti wa seti za miundo kwa mtiririko wa kazi wa PBR"
 
-msgid "Mixar UV Editor"
-msgstr "Kihariri cha UV cha Mixar"
+msgid "Lampway UV Editor"
+msgstr "Kihariri cha UV cha Lampway"
 
-msgid "Mixar UV editing mode"
-msgstr "Modi ya kuhariri UV ya Mixar"
+msgid "Lampway UV editing mode"
+msgstr "Modi ya kuhariri UV ya Lampway"
 
-msgid "Mixar Layers Properties"
-msgstr "Sifa za tabaka za Mixar"
+msgid "Lampway Layers Properties"
+msgstr "Sifa za tabaka za Lampway"
 
 msgid "Reference image board like PureRef"
 msgstr "Ubao wa taswira za rejeleo kama PureRef"
@@ -26770,8 +26770,8 @@ msgstr "Ubao wa taswira za rejeleo kama PureRef"
 msgid "Mixie Space"
 msgstr "Nafasi ya Mixie"
 
-msgid "Mixie editor for Mixar"
-msgstr "Kihariri cha Mixie kwa Mixar"
+msgid "Mixie editor for Lampway"
+msgstr "Kihariri cha Mixie kwa Lampway"
 
 msgid "Mixie editor mode"
 msgstr "Modi ya kihariri cha Mixie"
@@ -26779,8 +26779,8 @@ msgstr "Modi ya kihariri cha Mixie"
 msgid "Agent Bubble Space"
 msgstr "Nafasi ya kiputo cha wakala"
 
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Kihariri cha uwekeleaji unaoelea wa gumzo la wakala kwa Mixar"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Kihariri cha uwekeleaji unaoelea wa gumzo la wakala kwa Lampway"
 
 msgid "Top Bar Space"
 msgstr "Nafasi ya upau wa juu"
@@ -26788,23 +26788,23 @@ msgstr "Nafasi ya upau wa juu"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "Upau wa juu ulio na mstari wa vichupo vya nafasi ya kazi na menyu za kihariri"
 
-msgid "Mixar Layers Space"
-msgstr "Nafasi ya tabaka za Mixar"
+msgid "Lampway Layers Space"
+msgstr "Nafasi ya tabaka za Lampway"
 
-msgid "Mixar texture layer stack management"
-msgstr "Udhibiti wa rundo la tabaka za muundo wa Mixar"
+msgid "Lampway texture layer stack management"
+msgstr "Udhibiti wa rundo la tabaka za muundo wa Lampway"
 
-msgid "Mixar Properties Space"
-msgstr "Nafasi ya sifa za Mixar"
+msgid "Lampway Properties Space"
+msgstr "Nafasi ya sifa za Lampway"
 
-msgid "Mixar layer and texture properties"
-msgstr "Sifa za tabaka na muundo za Mixar"
+msgid "Lampway layer and texture properties"
+msgstr "Sifa za tabaka na muundo za Lampway"
 
-msgid "Mixar Assets Space"
-msgstr "Nafasi ya rasilimali za Mixar"
+msgid "Lampway Assets Space"
+msgstr "Nafasi ya rasilimali za Lampway"
 
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "Maktaba ya nyenzo mahiri, miswaki, na miundo ya Mixar"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "Maktaba ya nyenzo mahiri, miswaki, na miundo ya Lampway"
 
 msgid "Texture sets management"
 msgstr "Udhibiti wa seti za miundo"
@@ -26812,8 +26812,8 @@ msgstr "Udhibiti wa seti za miundo"
 msgid "Use Blender's theme"
 msgstr "Tumia dhana ya Blender"
 
-msgid "Mixar Zen components"
-msgstr "Vipengee vya Zen vya Mixar"
+msgid "Lampway Zen components"
+msgstr "Vipengee vya Zen vya Lampway"
 
 msgid "Compatibility appearance"
 msgstr "Mwonekano wa utangamano"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "Maeneo ya kimataifa"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "Maeneo ya kimataifa ya dirisha (upau wa juu, upau wa hali). Kiendelezi cha Mixar — kimewekwa wazi ili utangulizi uweze kushughulikia upau wa juu kwa uchoraji upya."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "Maeneo ya kimataifa ya dirisha (upau wa juu, upau wa hali). Kiendelezi cha Lampway — kimewekwa wazi ili utangulizi uweze kushughulikia upau wa juu kwa uchoraji upya."
 
 msgid "QA UI Dump"
 msgstr "Dondoo la UI ya QA"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "Picha ya JSON ya wijeti zote hai za UI (lebo, opereta, sifa, mistatili ya nafasi ya dirisha, hali) kwa vifaa vya QA vya Mixar"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "Picha ya JSON ya wijeti zote hai za UI (lebo, opereta, sifa, mistatili ya nafasi ya dirisha, hali) kwa vifaa vya QA vya Lampway"
 
 msgid "Window Resizing"
 msgstr "Kubadilisha ukubwa wa dirisha"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "Unasaji wa fremu ya dirisha ya QA unahitaji --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,11 +27982,11 @@ msgstr "Maikrofoni imesimama au bafa ya kunasa imefurika"
 msgid "Microphone disconnected"
 msgstr "Maikrofoni imetenganishwa"
 
-msgid "Mixar File View"
-msgstr "Mwonekano wa faili ya Mixar"
+msgid "Lampway File View"
+msgstr "Mwonekano wa faili ya Lampway"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
-msgstr "Proksi zimeondolewa kwenye Mixar (proksi %d zilibadilishwa kiotomatiki kuwa ubatilishaji wa maktaba, proksi %d hazikuweza kubadilishwa na zilisafishwa). Inafaa kuhifadhi upya faili yoyote ya .mixar ya maktaba kwa toleo jipya zaidi la Mixar"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
+msgstr "Proksi zimeondolewa kwenye Lampway (proksi %d zilibadilishwa kiotomatiki kuwa ubatilishaji wa maktaba, proksi %d hazikuweza kubadilishwa na zilisafishwa). Inafaa kuhifadhi upya faili yoyote ya .mixar ya maktaba kwa toleo jipya zaidi la Lampway"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
 msgstr "Haiwezi kuhifadhi faili ya mixar, njia \"%s\" haiandikiki"
@@ -27994,11 +27994,11 @@ msgstr "Haiwezi kuhifadhi faili ya mixar, njia \"%s\" haiandikiki"
 msgid "Cannot save mixar file, path \"%s\" is a directory"
 msgstr "Haiwezi kuhifadhi faili ya mixar, njia \"%s\" ni saraka"
 
-msgid "Mixar will start next time as it is now."
-msgstr "Mixar itaanza wakati ujao kama ilivyo sasa."
+msgid "Lampway will start next time as it is now."
+msgstr "Lampway itaanza wakati ujao kama ilivyo sasa."
 
-msgid "Load Factory Mixar Preferences"
-msgstr "Pakia mapendeleo ya kiwanda ya Mixar"
+msgid "Load Factory Lampway Preferences"
+msgstr "Pakia mapendeleo ya kiwanda ya Lampway"
 
 msgid "Load user interface setup from the .mixar file"
 msgstr "Pakia usanidi wa kiolesura cha mtumiaji kutoka faili ya .mixar"
@@ -28006,14 +28006,14 @@ msgstr "Pakia usanidi wa kiolesura cha mtumiaji kutoka faili ya .mixar"
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr "Ruhusu faili ya .mixar kutekeleza hati kiotomatiki; chaguomsingi linapatikana kutoka mapendeleo ya mfumo"
 
-msgid "Open a Mixar file"
-msgstr "Fungua faili ya Mixar"
+msgid "Open a Lampway file"
+msgstr "Fungua faili ya Lampway"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr "Pakia usanidi wa kiolesura cha mtumiaji katika faili ya .mixar"
 
-msgid "Mixar Files"
-msgstr "Faili za Mixar"
+msgid "Lampway Files"
+msgstr "Faili za Lampway"
 
 msgid "Show only .mixar files"
 msgstr "Onyesha faili za .mixar pekee"
@@ -28039,26 +28039,26 @@ msgstr "Hifadhi kama faili ya .mixar"
 msgid "Save as .blend file"
 msgstr "Hifadhi kama faili ya .blend"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "Hifadhi faili ya sasa ya Mixar kwa jina lililoongezwa nambari ambalo haliandiki juu ya faili zozote zilizopo"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "Hifadhi faili ya sasa ya Lampway kwa jina lililoongezwa nambari ambalo haliandiki juu ya faili zozote zilizopo"
 
-msgid "Save Mixar File"
-msgstr "Hifadhi faili ya Mixar"
+msgid "Save Lampway File"
+msgstr "Hifadhi faili ya Lampway"
 
-msgid "Save the current Mixar file"
-msgstr "Hifadhi faili ya sasa ya Mixar"
+msgid "Save the current Lampway file"
+msgstr "Hifadhi faili ya sasa ya Lampway"
 
-msgid "Exit Mixar after saving"
-msgstr "Toka Mixar baada ya kuhifadhi"
+msgid "Exit Lampway after saving"
+msgstr "Toka Lampway baada ya kuhifadhi"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
-msgstr "Faili hii ilihifadhiwa na toleo jipya zaidi la Mixar (%s)."
+msgid "This file was saved by a newer version of Lampway (%s)."
+msgstr "Faili hii ilihifadhiwa na toleo jipya zaidi la Lampway (%s)."
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
-msgstr "Kuihifadhi kwa Mixar hii (%s) kunaweza kusababisha upotevu wa data."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
+msgstr "Kuihifadhi kwa Lampway hii (%s) kunaweza kusababisha upotevu wa data."
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "Faili hii inadhibitiwa na mfumo wa rasilimali wa Mixar. Inaweza tu"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "Faili hii inadhibitiwa na mfumo wa rasilimali wa Lampway. Inaweza tu"
 
 msgid "Filter .mixar files"
 msgstr "Chuja faili za .mixar"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
-msgstr "Viendeshaji vipya vya michoro vinaweza kupatikana na utangamano bora wa Mixar."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
+msgstr "Viendeshaji vipya vya michoro vinaweza kupatikana na utangamano bora wa Lampway."
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "Kupandisha hadi toleo jipya zaidi la macOS kunaweza kuboresha usaidizi wa Mixar"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "Kupandisha hadi toleo jipya zaidi la macOS kunaweza kuboresha usaidizi wa Lampway"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Mixar itafunga sasa."
+msgid "Lampway will now close."
+msgstr "Lampway itafunga sasa."

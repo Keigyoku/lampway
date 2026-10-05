@@ -422,7 +422,7 @@ def _quit_watchdog():
     """
     if get_update_state().install_state is InstallState.INSTALLING:
         logger.error(
-            "Mixar is still running %.0fs after the update quit was "
+            "Lampway is still running %.0fs after the update quit was "
             "scheduled — aborting this install attempt", _QUIT_WATCHDOG_S,
         )
         _abort_pending_install()
@@ -445,7 +445,7 @@ def _abort_pending_install():
     if state.installer_path:
         state.set_ready(state.installer_path, state.signature_verified)
     else:
-        state.set_install_failed(n_("Mixar didn't close"))
+        state.set_install_failed(n_("Lampway didn't close"))
 
     from .toasts import push_install_aborted_toast
 

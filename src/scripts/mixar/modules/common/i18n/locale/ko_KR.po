@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: ko_KR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "플로팅 버블 채팅 기록 목록의 활성 행입니다"
 msgid "Share Usage Data"
 msgstr "사용 데이터 공유"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "콘텐츠가 포함되지 않은 제품 사용 이벤트를 공유하여 Mixar 개선에 도움을 줍니다"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "콘텐츠가 포함되지 않은 제품 사용 이벤트를 공유하여 Lampway 개선에 도움을 줍니다"
 
 msgid "No generation services"
 msgstr "생성 서비스 없음"
@@ -170,8 +170,8 @@ msgstr "애드온 모듈 이름이 잘못되었습니다"
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "연결된 프로젝트에서 설정된 애드온 진입점을 찾을 수 없습니다"
 
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "연결된 폴더에 유효한 Mixar 프로젝트 메타데이터가 없습니다"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "연결된 폴더에 유효한 Lampway 프로젝트 메타데이터가 없습니다"
 
 msgid "The project metadata version is not supported"
 msgstr "프로젝트 메타데이터 버전이 지원되지 않습니다"
@@ -194,7 +194,7 @@ msgstr "진입점은 하나의 최상위 모듈 이름이어야 합니다"
 msgid "Set an active add-on before changing its enabled state"
 msgstr "활성화 상태를 변경하기 전에 활성 애드온을 설정하세요"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "라이브러리"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,7 +540,7 @@ msgstr "에이전트 버블 창 열기"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "에이전트 버블을 별도의 플로팅 창에서 엽니다"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
 msgstr "C++ 오퍼레이터 mixar.agent_bubble_show_window가 등록되지 않았습니다 — agent_bubble 스페이스 타입 오퍼레이터를 적용하려면 Mixar를 다시 빌드(make build)하세요."
 
 msgid "Failed to open Agent Bubble window: {error}"
@@ -651,7 +651,7 @@ msgstr ""
 msgid "AI generations"
 msgstr "AI 생성물"
 
-msgid "Everything Mixar has generated for you"
+msgid "Everything Lampway has generated for you"
 msgstr "Mixar가 생성한 모든 항목입니다"
 
 msgid "My Libraries"
@@ -1421,16 +1421,16 @@ msgstr "지원팀에 문의하세요 — 현재 활성화된 제공업체가 없
 msgid "Select a provider with available models"
 msgstr "사용 가능한 모델이 있는 제공업체를 선택하세요"
 
-msgid "Managed by Mixar"
+msgid "Managed by Lampway"
 msgstr "Mixar에서 관리"
 
-msgid "Mixar downloads and runs a curated model on this computer"
+msgid "Lampway downloads and runs a curated model on this computer"
 msgstr "Mixar가 엄선된 모델을 이 컴퓨터에 다운로드하여 실행합니다"
 
 msgid "Custom local server"
 msgstr "커스텀 로컬 서버"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
 msgstr "이미 실행 중인 OpenAI 호환 서버(Ollama, LM Studio, llama.cpp 등)에 Mixar를 연결합니다"
 
 msgid "Invalid form data — please reach out to support."
@@ -1553,7 +1553,7 @@ msgstr "선택된 모델이 없습니다"
 msgid "Reset Agent Model"
 msgstr "에이전트 모델 초기화"
 
-msgid "Clear the saved model and let Mixar choose"
+msgid "Clear the saved model and let Lampway choose"
 msgstr "저장된 모델을 지우고 Mixar가 선택하도록 합니다"
 
 msgid "Could not change model"
@@ -1577,8 +1577,8 @@ msgstr "활성"
 msgid "Not configured"
 msgstr "구성되지 않음"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "내 제공업체로 Mixar 에이전트를 실행합니다 — 활성화된 동안에는 Mixar 크레딧이 차감되지 않습니다."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "내 제공업체로 Lampway 에이전트를 실행합니다 — 활성화된 동안에는 Lampway 크레딧이 차감되지 않습니다."
 
 msgid "Current Configuration"
 msgstr "현재 구성"
@@ -1604,8 +1604,8 @@ msgstr "API 키 제거…"
 msgid "Provider Setup"
 msgstr "제공업체 설정"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "암호화되어 저장되며 Mixar 에이전트 요청에만 사용됩니다 — 저장 후에는 마스킹된 미리보기만 표시됩니다."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "암호화되어 저장되며 Lampway 에이전트 요청에만 사용됩니다 — 저장 후에는 마스킹된 미리보기만 표시됩니다."
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
 msgstr "도구/함수 호출을 지원하는 모델을 선택하세요 — 에이전트에 필요합니다."
@@ -1631,8 +1631,8 @@ msgstr "터미널에서  codex login  명령을 실행한 다음 ~/.codex/auth.j
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "전체 내용을 로드하거나 붙여 넣으세요 (붙여 넣기 버튼은 클립보드를 읽습니다)."
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "ChatGPT 구독을 사용합니다 — Mixar 크레딧이 차감되지 않습니다."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "ChatGPT 구독을 사용합니다 — Lampway 크레딧이 차감되지 않습니다."
 
 msgid "Couldn't apply your changes"
 msgstr "변경 사항을 적용할 수 없습니다"
@@ -1640,23 +1640,23 @@ msgstr "변경 사항을 적용할 수 없습니다"
 msgid "Remove your API key?"
 msgstr "API 키를 제거하시겠습니까?"
 
-msgid "The agent will use Mixar's default provider again."
+msgid "The agent will use Lampway's default provider again."
 msgstr "에이전트가 다시 Mixar의 기본 제공업체를 사용합니다."
 
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "이후 에이전트 요청에는 Mixar 크레딧이 차감됩니다."
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "이후 에이전트 요청에는 Lampway 크레딧이 차감됩니다."
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "이제 Mixar 에이전트가 내 제공업체로 실행됩니다 — Mixar 크레딧이 차감되지 않습니다."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "이제 Lampway 에이전트가 내 제공업체로 실행됩니다 — Lampway 크레딧이 차감되지 않습니다."
 
 msgid "API key removed"
 msgstr "API 키가 제거되었습니다"
 
-msgid "The agent is back on Mixar's default provider."
+msgid "The agent is back on Lampway's default provider."
 msgstr "에이전트가 Mixar의 기본 제공업체로 돌아왔습니다."
 
-msgid "Mixar credits are charged for agent requests again."
-msgstr "에이전트 요청에 다시 Mixar 크레딧이 차감됩니다."
+msgid "Lampway credits are charged for agent requests again."
+msgstr "에이전트 요청에 다시 Lampway 크레딧이 차감됩니다."
 
 msgid "Try Again"
 msgstr "다시 시도"
@@ -1691,7 +1691,7 @@ msgstr "다운로드됨 — 실행 중이 아님"
 msgid "Not downloaded"
 msgstr "다운로드되지 않음"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
 msgstr "전적으로 이 컴퓨터에서 실행됩니다 — Mixar의 에이전트 오케스트레이션을 제외하면 프롬프트가 외부로 전송되지 않습니다."
 
 msgid "Cancel Download"
@@ -1730,8 +1730,8 @@ msgstr "로컬 앱 다시 스캔"
 msgid "Rescan this computer for running local AI apps"
 msgstr "이 컴퓨터에서 실행 중인 로컬 AI 앱을 다시 스캔합니다"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "Mixar 에이전트에 내 API 키를 사용합니다. 활성화된 동안에는 에이전트 요청에 Mixar 크레딧이 차감되지 않습니다."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "Lampway 에이전트에 내 API 키를 사용합니다. 활성화된 동안에는 에이전트 요청에 Lampway 크레딧이 차감되지 않습니다."
 
 msgid "Validate with the provider and save your API key"
 msgstr "제공업체에서 검증한 후 API 키를 저장합니다"
@@ -1844,8 +1844,8 @@ msgstr "LLM 제공업체입니다"
 msgid "Model to use with the selected provider"
 msgstr "선택한 제공업체에서 사용할 모델입니다"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "API 키는 암호화되어 저장되며 Mixar 에이전트 요청에만 사용됩니다. 저장 후에는 마스킹된 미리보기만 표시됩니다."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "API 키는 암호화되어 저장되며 Lampway 에이전트 요청에만 사용됩니다. 저장 후에는 마스킹된 미리보기만 표시됩니다."
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "openrouter.ai/models의 모든 모델 슬러그 (예: anthropic/claude-opus-4.8)"
@@ -1859,7 +1859,7 @@ msgstr "~/.codex/auth.json의 내용입니다 (먼저 `codex login`을 실행하
 msgid "Local mode"
 msgstr "로컬 모드"
 
-msgid "Managed by Mixar, or your own local server"
+msgid "Managed by Lampway, or your own local server"
 msgstr "Mixar에서 관리하거나 직접 운영하는 로컬 서버를 사용합니다"
 
 msgid "Local model"
@@ -1889,11 +1889,11 @@ msgstr "서버가 이 사용자에 대해 byok_active를 보고하면 참입니�
 msgid "Dialog State"
 msgstr "대화 상자 상태"
 
-msgid "Set Mixie Mode"
-msgstr "Mixie 모드 설정"
+msgid "Set Lampway Agent Mode"
+msgstr "Lampway Agent 모드 설정"
 
-msgid "Switch to a specific Mixie mode"
-msgstr "특정 Mixie 모드로 전환합니다"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "특정 Lampway Agent 모드로 전환합니다"
 
 msgid "Mode"
 msgstr "모드"
@@ -1928,8 +1928,8 @@ msgstr "높은"
 msgid "Non-contiguous enum value 27"
 msgstr "비연속 열거형 값 27"
 
-msgid "Mixie v3 run active"
-msgstr "Mixie v3 실행 활성"
+msgid "Lampway Agent v3 run active"
+msgstr "Lampway Agent v3 실행 활성"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "서버가 기록 동기화 요청을 거부했습니다. 앱과 백엔드를 업데이트한 후 다시 연결하세요."
@@ -2420,10 +2420,10 @@ msgstr "전환할 공간 유형입니다"
 msgid "No active area"
 msgstr "활성 영역이 없습니다"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "로컬 갤러리 작업"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "개발자 픽스처 카운터를 증가시킵니다. 생성이나 씬 변경은 없습니다"
 
-msgid "Mixar UI Gallery"
-msgstr "Mixar UI 갤러리"
+msgid "Lampway UI Gallery"
+msgstr "Lampway UI 갤러리"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "로컬 픽스처 데이터로 공유 네이티브 구성 요소를 검사합니다"
@@ -2468,8 +2468,8 @@ msgstr "개인정보 보호"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "사용자가 일반적으로 옵트아웃 설정을 찾는 위치에 배치된 원격 분석 동의입니다."
 
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "제품 개선을 위해 사용하는 Mixar 기능 정보를 공유합니다."
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "제품 개선을 위해 사용하는 Lampway 기능 정보를 공유합니다."
 
 msgid "Your prompts, files, and scene content are never included."
 msgstr "프롬프트, 파일, 씬 콘텐츠는 절대 포함되지 않습니다."
@@ -2477,7 +2477,7 @@ msgstr "프롬프트, 파일, 씬 콘텐츠는 절대 포함되지 않습니다.
 msgid "Privacy Policy"
 msgstr "개인정보 처리방침"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "네이티브"
 msgid "Blender theme"
 msgstr "Blender 테마입니다"
 
-msgid "Legacy Mixar"
-msgstr "레거시 Mixar"
+msgid "Legacy Lampway"
+msgstr "레거시 Lampway"
 
 msgid "Compatibility profile"
 msgstr "호환성 프로필입니다"
@@ -2624,10 +2624,10 @@ msgstr "간결"
 msgid "Denser chrome recipe"
 msgstr "더 촘촘한 크롬 레시피입니다"
 
-msgid "Move Mixar to your Applications folder to update in place"
+msgid "Move Lampway to your Applications folder to update in place"
 msgstr "제자리에서 업데이트하려면 Mixar를 응용 프로그램 폴더로 옮기세요"
 
-msgid "Mixar is not running from an application bundle"
+msgid "Lampway is not running from an application bundle"
 msgstr "Mixar가 애플리케이션 번들에서 실행되고 있지 않습니다"
 
 msgid "No permission to update {path}"
@@ -2660,7 +2660,7 @@ msgstr "다운로드한 설치 프로그램이 없습니다"
 msgid "Could not start the updater"
 msgstr "업데이터를 시작할 수 없습니다"
 
-msgid "Mixar didn't close"
+msgid "Lampway didn't close"
 msgstr "Mixar가 종료되지 않았습니다"
 
 msgid "In-app updates aren't supported on this platform"
@@ -2687,31 +2687,31 @@ msgstr "{size} 다운로드됨"
 msgid "Starting download…"
 msgstr "다운로드 시작 중…"
 
-msgid "Downloading Mixar {version}"
-msgstr "Mixar {version} 다운로드 중"
+msgid "Downloading Lampway {version}"
+msgstr "Lampway {version} 다운로드 중"
 
-msgid "Mixar will restart to finish updating."
+msgid "Lampway will restart to finish updating."
 msgstr "업데이트를 완료하기 위해 Mixar가 다시 시작됩니다."
 
-msgid "Mixar Update Ready"
-msgstr "Mixar 업데이트 준비 완료"
+msgid "Lampway Update Ready"
+msgstr "Lampway 업데이트 준비 완료"
 
 msgid "Version {version} is ready to install."
 msgstr "버전 {version}을(를) 설치할 준비가 되었습니다."
 
-msgid "Mixar Update Required"
-msgstr "Mixar 업데이트 필요"
+msgid "Lampway Update Required"
+msgstr "Lampway 업데이트 필요"
 
-msgid "Mixar Update Available"
-msgstr "Mixar 업데이트 사용 가능"
+msgid "Lampway Update Available"
+msgstr "Lampway 업데이트 사용 가능"
 
 msgid "Version {version} is available."
 msgstr "버전 {version}을(를) 사용할 수 있습니다."
 
-msgid "This update is required to continue using Mixar."
+msgid "This update is required to continue using Lampway."
 msgstr "Mixar를 계속 사용하려면 이 업데이트가 필요합니다."
 
-msgid "Mixar will restart to apply it."
+msgid "Lampway will restart to apply it."
 msgstr "업데이트를 적용하기 위해 Mixar가 다시 시작됩니다."
 
 msgid "{error} — use Download to update via your browser."
@@ -2729,10 +2729,10 @@ msgstr "다시 시작 및 업데이트를 클릭하여 다시 설치하세요."
 msgid "Update paused"
 msgstr "업데이트 일시 중지됨"
 
-msgid "Mixar didn't close, so the update was not installed."
+msgid "Lampway didn't close, so the update was not installed."
 msgstr "Mixar가 종료되지 않아 업데이트가 설치되지 않았습니다."
 
-msgid "Mixar is up to date"
+msgid "Lampway is up to date"
 msgstr "Mixar가 최신 상태입니다"
 
 msgid "You're running the latest version ({version})."
@@ -2747,11 +2747,11 @@ msgstr "인터넷 연결을 확인하고 다시 시도하세요."
 msgid "Update didn't take effect"
 msgstr "업데이트가 적용되지 않았습니다"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Mixar {target}이(가) 설치되었지만 버전 {running}이(가) 시작되었습니다. 다운로드 페이지에서 다시 설치하세요."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Lampway {target}이(가) 설치되었지만 버전 {running}이(가) 시작되었습니다. 다운로드 페이지에서 다시 설치하세요."
 
-msgid "Updated to Mixar {version}"
-msgstr "Mixar {version}(으)로 업데이트되었습니다"
+msgid "Updated to Lampway {version}"
+msgstr "Lampway {version}(으)로 업데이트되었습니다"
 
 msgid "The update was installed successfully."
 msgstr "업데이트가 성공적으로 설치되었습니다."
@@ -2765,7 +2765,7 @@ msgstr "{reason} 다운로드 페이지에서 업데이트를 다운로드할 �
 msgid "Update was not installed"
 msgstr "업데이트가 설치되지 않았습니다"
 
-msgid "Mixar was still running when the installer tried to start."
+msgid "Lampway was still running when the installer tried to start."
 msgstr "설치 프로그램이 시작하려 할 때 Mixar가 아직 실행 중이었습니다."
 
 msgid "The downloaded installer failed its signature check."
@@ -2774,7 +2774,7 @@ msgstr "다운로드한 설치 프로그램이 서명 검사를 통과하지 못
 msgid "The downloaded installer could not be opened."
 msgstr "다운로드한 설치 프로그램을 열 수 없습니다."
 
-msgid "Mixar could not be replaced on disk."
+msgid "Lampway could not be replaced on disk."
 msgstr "디스크에서 Mixar를 교체할 수 없습니다."
 
 msgid "The installation was cancelled."
@@ -2786,7 +2786,7 @@ msgstr "Windows Installer에서 치명적인 오류를 보고했습니다."
 msgid "The installer did not finish."
 msgstr "설치 프로그램이 완료되지 않았습니다."
 
-msgid "Restart Mixar and install the downloaded update"
+msgid "Restart Lampway and install the downloaded update"
 msgstr "Mixar를 다시 시작하고 다운로드한 업데이트를 설치합니다"
 
 msgid "Save Changes"
@@ -2795,13 +2795,13 @@ msgstr "변경 사항 저장"
 msgid "Save the current file before restarting"
 msgstr "다시 시작하기 전에 현재 파일을 저장합니다"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
+msgid "Downloading update — Lampway will restart when it's ready"
 msgstr "업데이트 다운로드 중 — 준비되면 Mixar가 다시 시작됩니다"
 
-msgid "Mixar will close and update to {version}."
+msgid "Lampway will close and update to {version}."
 msgstr "Mixar가 종료되고 {version}(으)로 업데이트됩니다."
 
 msgid "It reopens automatically when the update is done."
@@ -2831,13 +2831,13 @@ msgstr "업데이트 다운로드를 중지합니다"
 msgid "This update is required and cannot be cancelled"
 msgstr "필수 업데이트이므로 취소할 수 없습니다"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "기본 브라우저에서 Mixar 다운로드 페이지를 엽니다"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "기본 브라우저에서 Lampway 다운로드 페이지를 엽니다"
 
 msgid "Check for Updates"
 msgstr "업데이트 확인"
 
-msgid "Check whether a newer version of Mixar is available"
+msgid "Check whether a newer version of Lampway is available"
 msgstr "Mixar의 새 버전이 있는지 확인합니다"
 
 msgid "An update check is already in progress"
@@ -2849,8 +2849,8 @@ msgstr "업데이트 확인 중…"
 msgid "Update Available"
 msgstr "업데이트 사용 가능"
 
-msgid "Show details for the pending Mixar update"
-msgstr "대기 중인 Mixar 업데이트의 세부 정보를 표시합니다"
+msgid "Show details for the pending Lampway update"
+msgstr "대기 중인 Lampway 업데이트의 세부 정보를 표시합니다"
 
 msgid "View Changelog"
 msgstr "변경 로그 보기"
@@ -2969,14 +2969,14 @@ msgstr "계정 인사말에 사용할 표시 이름입니다"
 msgid "Newer File Version"
 msgstr "최신 파일 버전"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
-msgstr "파일이 더 새로운 Mixar 버전에서 저장되었음을 사용자에게 경고합니다"
+msgid "Warn user that the file was saved by a newer Lampway version"
+msgstr "파일이 더 새로운 Lampway 버전에서 저장되었음을 사용자에게 경고합니다"
 
 msgid "File Version"
 msgstr "파일 버전"
 
-msgid "This file was saved by Mixar version {version}."
-msgstr "이 파일은 Mixar 버전 {version}에서 저장되었습니다."
+msgid "This file was saved by Lampway version {version}."
+msgstr "이 파일은 Lampway 버전 {version}에서 저장되었습니다."
 
 msgid "Some data may be missing or incorrect."
 msgstr "일부 데이터가 누락되거나 올바르지 않을 수 있습니다."
@@ -2990,7 +2990,7 @@ msgstr "내보낼 메시 오브젝트가 없습니다"
 msgid "Start Connector Sidecar"
 msgstr "커넥터 사이드카 시작"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
+msgid "Expose Lampway to the hub over loopback HTTP"
 msgstr "루프백 HTTP를 통해 허브에 Mixar를 노출합니다"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
@@ -2999,8 +2999,8 @@ msgstr "127.0.0.1:{port}에서 커넥터 사이드카 실행 중"
 msgid "Export Scene to Unreal"
 msgstr "Unreal로 씬 내보내기"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "현재 Mixar 씬을 Unreal에서 바로 쓸 수 있는 USD/FBX/GLB로 내보냅니다"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "현재 Lampway 씬을 Unreal에서 바로 쓸 수 있는 USD/FBX/GLB로 내보냅니다"
 
 msgid "Exported {filename} ({count} meshes)"
 msgstr "{filename}을(를) 내보냈습니다 (메시 {count}개)"
@@ -3020,8 +3020,8 @@ msgstr "허브 :7734 · Unreal MCP :8000/mcp · UnrealMCP TCP :55557"
 msgid "Hub Sidecar"
 msgstr "허브 사이드카"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "루프백 HTTP를 통해 이 Mixar 세션을 mixar-connector에 노출합니다"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "루프백 HTTP를 통해 이 Lampway 세션을 mixar-connector에 노출합니다"
 
 msgid "Sidecar Port"
 msgstr "사이드카 포트"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,8 +3119,8 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
-msgstr "Mixar 샷 카메라"
+msgid "Lampway Shot Camera"
+msgstr "Lampway 샷 카메라"
 
 msgid "Shot"
 msgstr "샷"
@@ -3563,8 +3563,8 @@ msgstr "샷에 카메라가 없습니다"
 msgid "Capture at least one camera beat before locking"
 msgstr "잠그기 전에 카메라 비트를 하나 이상 캡처하세요"
 
-msgid "Mixar Focus"
-msgstr "Mixar 초점"
+msgid "Lampway Focus"
+msgstr "Lampway 초점"
 
 msgid "Rendering…"
 msgstr "렌더링 중…"
@@ -4241,8 +4241,8 @@ msgstr "렌더 진행 상황"
 msgid "Render Status"
 msgstr "렌더 상태"
 
-msgid "Mixar Camera Export"
-msgstr "Mixar 카메라 내보내기"
+msgid "Lampway Camera Export"
+msgstr "Lampway 카메라 내보내기"
 
 msgid "Export this scene's camera animation to the Moodboard"
 msgstr "이 씬의 카메라 애니메이션을 무드보드로 내보냅니다"
@@ -4493,14 +4493,14 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
-msgstr "Mixar 디렉터"
+msgid "Lampway Director"
+msgstr "Lampway 디렉터"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "이 씬의 희소 카메라 연출 샷입니다"
 
-msgid "Mixar Output"
-msgstr "Mixar 출력"
+msgid "Lampway Output"
+msgstr "Lampway 출력"
 
 msgid "Output aspect ratio this camera frames for"
 msgstr "이 카메라가 프레이밍하는 출력 종횡비입니다"
@@ -4964,19 +4964,19 @@ msgstr "로컬 서버 모델"
 msgid "Local model last error"
 msgstr "로컬 모델 마지막 오류"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,26 +7789,26 @@ msgstr "오류 텍스트"
 msgid "Error message if job failed"
 msgstr "작업이 실패한 경우의 오류 메시지입니다"
 
-msgid "Mixie Moodboard Images"
-msgstr "Mixie 무드보드 이미지"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Lampway Agent 무드보드 이미지"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "무드보드 모드의 참조 이미지 모음입니다"
 
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Mixie 무드보드 텍스트 박스"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Lampway Agent 무드보드 텍스트 박스"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "무드보드 모드의 텍스트 박스 모음입니다"
 
-msgid "Mixie Moodboard Frames"
-msgstr "Mixie 무드보드 프레임"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Lampway Agent 무드보드 프레임"
 
 msgid "Canvas frames grouping board items"
 msgstr "보드 항목을 그룹화하는 캔버스 프레임입니다"
 
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Mixie 무드보드 그룹 (레거시)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Lampway Agent 무드보드 그룹 (레거시)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "mixie_moodboard_frames로 대체되었습니다. 마이그레이션을 위해 유지됩니다"
@@ -8917,7 +8917,7 @@ msgstr "무드보드 이미지 {count}개를 동기화했습니다"
 msgid "Attach Selected Moodboard Image"
 msgstr "선택한 무드보드 이미지 첨부"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
 msgstr ""
 
 msgid "Nothing selected to copy"
@@ -9244,7 +9244,7 @@ msgstr "클립보드를 읽지 못했습니다: {error}"
 msgid "Paste"
 msgstr "붙여 넣기"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
 msgstr ""
 
 msgid "Pasted {count} item"
@@ -10642,13 +10642,13 @@ msgstr "무드보드 주석"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
+msgid "Welcome to Lampway"
 msgstr "Mixar에 오신 것을 환영합니다"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,20 +10669,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
-msgstr "Mixar 작업 기록 ID"
+msgid "Lampway Operation History ID"
+msgstr "Lampway 작업 기록 ID"
 
 msgid "Persistent per-scene id keying this scene's operation history."
 msgstr "이 씬의 작업 기록을 식별하는 씬별 영구 ID입니다."
@@ -13051,8 +13051,8 @@ msgstr "내보낼 채널의 이름"
 msgid "File format for export"
 msgstr "내보내기 파일 형식"
 
-msgid "No active Mixar node found"
-msgstr "활성 Mixar 노드를 찾을 수 없습니다"
+msgid "No active Lampway node found"
+msgstr "활성 Lampway 노드를 찾을 수 없습니다"
 
 msgid "Exported '{name}' to {path}"
 msgstr "'{name}'을(를) {path}(으)로 내보냈습니다"
@@ -13201,8 +13201,8 @@ msgstr "레이어의 임시 이미지를 베이크합니다. Cycles에서 발생
 msgid "Bake Temporary Image"
 msgstr "임시 이미지 베이크"
 
-msgid "No active Mixar node found!"
-msgstr "활성 Mixar 노드를 찾을 수 없습니다!"
+msgid "No active Lampway node found!"
+msgstr "활성 Lampway 노드를 찾을 수 없습니다!"
 
 msgid "No active layer found!"
 msgstr "활성 레이어를 찾을 수 없습니다!"
@@ -13345,8 +13345,8 @@ msgstr "채널을 버텍스 색상으로 베이크"
 msgid "Bake All Materials"
 msgstr "모든 머티리얼 베이크"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "활성 머티리얼만이 아니라 Mixar Paint 노드가 있는 모든 머티리얼을 베이크합니다"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "활성 머티리얼만이 아니라 Lampway Paint 노드가 있는 모든 머티리얼을 베이크합니다"
 
 msgid "Target Vertex Color Name"
 msgstr "대상 버텍스 색상 이름"
@@ -13574,8 +13574,8 @@ msgstr ""
 msgid "Copy Image Path To Clipboard"
 msgstr "이미지 경로를 클립보드에 복사"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint: 이미지 파일 경로를 시스템 클립보드에 복사합니다"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint: 이미지 파일 경로를 시스템 클립보드에 복사합니다"
 
 msgid "Copied: {text}"
 msgstr "복사됨: {text}"
@@ -13583,8 +13583,8 @@ msgstr "복사됨: {text}"
 msgid "Open Containing Image Folder"
 msgstr "이미지가 있는 폴더 열기"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint: 이미지 파일이 있는 폴더를 열고 파일을 강조 표시합니다"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint: 이미지 파일이 있는 폴더를 열고 파일을 강조 표시합니다"
 
 msgid "File does not exist"
 msgstr "파일이 없습니다"
@@ -15054,8 +15054,8 @@ msgstr "마스크를 사용합니다"
 msgid "Active Mask"
 msgstr "활성 마스크"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Blender의 페인트 모드 및 편집 모드, 또는 Mixar Paint의 마스크 미리보기 모드에 사용할 활성 마스크"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Blender의 페인트 모드 및 편집 모드, 또는 Lampway Paint의 마스크 미리보기 모드에 사용할 활성 마스크"
 
 msgid "Mask Source Input"
 msgstr "마스크 소스 입력"
@@ -15156,14 +15156,14 @@ msgstr "모든 채널 베이크"
 msgid "Delete Baked Images"
 msgstr "베이크된 이미지 삭제"
 
-msgid "New Mixar Paint Modifier"
-msgstr "새 Mixar Paint 모디파이어"
+msgid "New Lampway Paint Modifier"
+msgstr "새 Lampway Paint 모디파이어"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Mixar Paint 모디파이어 이동"
+msgid "Move Lampway Paint Modifier"
+msgstr "Lampway Paint 모디파이어 이동"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Mixar Paint 모디파이어 제거"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Lampway Paint 모디파이어 제거"
 
 msgid "Add Channel Modifier"
 msgstr "채널 모디파이어 추가"
@@ -15297,8 +15297,8 @@ msgstr "채널 '{name}'이(가) 이미 있습니다"
 msgid "Build Layered Material"
 msgstr "레이어드 머티리얼 빌드"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "레이어드 머티리얼 매니페스트로 Mixar 페인트 머티리얼을 빌드합니다"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "레이어드 머티리얼 매니페스트로 Lampway 페인트 머티리얼을 빌드합니다"
 
 msgid "Manifest JSON"
 msgstr "매니페스트 JSON"
@@ -15921,8 +15921,8 @@ msgstr "이 레이어의 이름을 변경합니다"
 msgid "New name for the layer"
 msgstr "레이어의 새 이름"
 
-msgid "No active Mixar node"
-msgstr "활성 Mixar 노드가 없습니다"
+msgid "No active Lampway node"
+msgstr "활성 Lampway 노드가 없습니다"
 
 msgid "Name cannot be empty"
 msgstr "이름은 비워 둘 수 없습니다"
@@ -16071,11 +16071,11 @@ msgstr "레이어 속성 뷰로 돌아갑니다"
 msgid "Add different types of masks to the active layer"
 msgstr "활성 레이어에 다양한 유형의 마스크를 추가합니다"
 
-msgid "Remove Mixar Paint Node"
-msgstr "Mixar Paint 노드 제거"
+msgid "Remove Lampway Paint Node"
+msgstr "Lampway Paint 노드 제거"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Mixar Paint 노드를 제거하되 베이크된 채널 이미지는 모두 유지합니다"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Lampway Paint 노드를 제거하되 베이크된 채널 이미지는 모두 유지합니다"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "이 {addon} 노드 설정은 아직 베이크되지 않았습니다!"
@@ -16227,8 +16227,8 @@ msgstr "새 레이어를 만드는 대신 활성 채우기 레이어에 머티�
 msgid "Material '{name}' not found in registry"
 msgstr "레지스트리에서 머티리얼 '{name}'을(를) 찾을 수 없습니다"
 
-msgid "No active Mixar Paint node found"
-msgstr "활성 Mixar Paint 노드를 찾을 수 없습니다"
+msgid "No active Lampway Paint node found"
+msgstr "활성 Lampway Paint 노드를 찾을 수 없습니다"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "기존 레이어에 머티리얼 '{name}'을(를) 적용했습니다"
@@ -16431,8 +16431,8 @@ msgstr "활성 레이어 기반 머티리얼 없음"
 msgid "To use texture baking:"
 msgstr "텍스처 베이킹을 사용하려면:"
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. Mixar 머티리얼이 있는 오브젝트를 선택하세요"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. Lampway 머티리얼이 있는 오브젝트를 선택하세요"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "  2. 또는 새 레이어 기반 머티리얼을 만드세요"
@@ -16533,8 +16533,8 @@ msgstr "페인트 백엔드가 초기화되지 않았습니다"
 msgid "Paint UI not initialized"
 msgstr "페인트 UI가 초기화되지 않았습니다"
 
-msgid "No Mixar material found"
-msgstr "Mixar 머티리얼을 찾을 수 없습니다"
+msgid "No Lampway material found"
+msgstr "Lampway 머티리얼을 찾을 수 없습니다"
 
 msgid "No layer based material"
 msgstr "레이어 기반 머티리얼이 없습니다"
@@ -16551,8 +16551,8 @@ msgstr "선택된 레이어가 없습니다"
 msgid "No active material"
 msgstr "활성 머티리얼이 없습니다"
 
-msgid "No Mixar node found"
-msgstr "Mixar 노드를 찾을 수 없습니다"
+msgid "No Lampway node found"
+msgstr "Lampway 노드를 찾을 수 없습니다"
 
 msgid "Backend layer not found"
 msgstr "백엔드 레이어를 찾을 수 없습니다"
@@ -17227,17 +17227,17 @@ msgstr "레이어가 현재 포커스/선택된 상태입니다"
 msgid "How this layer blends with layers below"
 msgstr "이 레이어가 아래 레이어와 혼합되는 방식"
 
-msgid "Mixar Layer Index"
-msgstr "Mixar 레이어 인덱스"
+msgid "Lampway Layer Index"
+msgstr "Lampway 레이어 인덱스"
 
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "Mixar mixar_mp.layers 컬렉션의 인덱스"
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "Lampway mixar_mp.layers 컬렉션의 인덱스"
 
-msgid "Mixar Group Node"
-msgstr "Mixar 그룹 노드"
+msgid "Lampway Group Node"
+msgstr "Lampway 그룹 노드"
 
-msgid "Name of the Mixar group node"
-msgstr "Mixar 그룹 노드 이름"
+msgid "Name of the Lampway group node"
+msgstr "Lampway 그룹 노드 이름"
 
 msgid "Updating Property"
 msgstr "속성 업데이트 중"
@@ -18312,8 +18312,8 @@ msgstr "다른 오브젝트의 색상"
 msgid "Other Objects Channels"
 msgstr "다른 오브젝트 채널"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "다른 오브젝트의 Mixar Paint 채널"
+msgid "Other object's Lampway Paint channels"
+msgstr "다른 오브젝트의 Lampway Paint 채널"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "선택한 버텍스/엣지/페이스"
@@ -18639,16 +18639,16 @@ msgstr ""
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
 msgstr ""
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
 msgstr ""
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "활성화 실패 (Blender 5.0과 호환되지 않을 수 있음)"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
 msgstr "기존 Blender 설치에서 애드온과 확장 기능을 Mixar로 가져옵니다."
 
 msgid "Scan for Blender Plugins"
@@ -18672,13 +18672,13 @@ msgstr "가져온 후 활성화:"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "나열된 플러그인은 모두 복사되며, 체크한 항목은 활성화됩니다."
 
-msgid "Import into Mixar"
+msgid "Import into Lampway"
 msgstr "Mixar로 가져오기"
 
 msgid "Imported"
 msgstr "가져옴"
 
-msgid "Already in Mixar"
+msgid "Already in Lampway"
 msgstr "이미 Mixar에 있음"
 
 msgid "Copy failed"
@@ -18705,10 +18705,10 @@ msgstr "플러그인 선택"
 msgid "Tick or untick every plugin in the list"
 msgstr "목록의 모든 플러그인을 체크하거나 체크 해제합니다"
 
-msgid "Import Plugins into Mixar"
+msgid "Import Plugins into Lampway"
 msgstr "플러그인을 Mixar로 가져오기"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
 msgstr "나열된 모든 플러그인을 Mixar로 복사하고 체크한 항목을 활성화합니다"
 
 msgid "Nothing scanned — run Scan first"
@@ -18726,7 +18726,7 @@ msgstr "가져옴 {imported}, 이미 있음 {already_present}, 실패 {failed} �
 msgid "Imported: {count}"
 msgstr "가져옴: {count}"
 
-msgid "Already in Mixar: {count}"
+msgid "Already in Lampway: {count}"
 msgstr "이미 Mixar에 있음: {count}"
 
 msgid "Enabled: {count}"
@@ -18744,7 +18744,7 @@ msgstr "Blender에서 가져오기"
 msgid "{count} found"
 msgstr "{count}개 찾음"
 
-msgid "Enable this plugin in Mixar after importing it"
+msgid "Enable this plugin in Lampway after importing it"
 msgstr "가져온 후 Mixar에서 이 플러그인을 활성화합니다"
 
 msgid "Blender Version"
@@ -18798,14 +18798,14 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
-msgstr "Mixar 씬 그래프"
+msgid "Lampway Scene Graph"
+msgstr "Lampway 씬 그래프"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "씬별로 에이전트가 읽을 수 있는 씬 그래프 (JSON). 런타임 전용."
 
-msgid "Mixar Scene Graph Query Result"
-msgstr "Mixar 씬 그래프 쿼리 결과"
+msgid "Lampway Scene Graph Query Result"
+msgstr "Lampway 씬 그래프 쿼리 결과"
 
 msgid "JSON result of the last scene-graph query operator call."
 msgstr "마지막 씬 그래프 쿼리 호출의 JSON 결과입니다."
@@ -19524,8 +19524,8 @@ msgstr "비디오는 비디오 모드가 필요합니다. 에이전트에게 보
 msgid "User ID"
 msgstr "사용자 ID"
 
-msgid "User ID for Mixie Chat login"
-msgstr "Mixie 채팅 로그인용 사용자 ID"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "Lampway Agent 채팅 로그인용 사용자 ID"
 
 msgid "Agent expects: {formats}"
 msgstr "에이전트가 요구하는 형식: {formats}"
@@ -19983,10 +19983,10 @@ msgstr "음성 입력을 시작하기 전에 필기를 마치세요."
 msgid "Sign in to use voice input."
 msgstr "음성 입력을 사용하려면 로그인하세요."
 
-msgid "Launch Mixar from Finder to allow microphone access."
+msgid "Launch Lampway from Finder to allow microphone access."
 msgstr "마이크 접근을 허용하려면 Finder에서 Mixar를 실행하세요."
 
-msgid "Allow microphone access for Mixar in system privacy settings."
+msgid "Allow microphone access for Lampway in system privacy settings."
 msgstr "시스템 개인정보 보호 설정에서 Mixar의 마이크 접근을 허용하세요."
 
 msgid "Allow microphone"
@@ -20034,8 +20034,8 @@ msgstr "다시 로그인하세요."
 msgid "Login Failed"
 msgstr "로그인 실패"
 
-msgid "Sign in with your Mixar account"
-msgstr "Mixar 계정으로 로그인하세요"
+msgid "Sign in with your Lampway account"
+msgstr "Lampway 계정으로 로그인하세요"
 
 msgid "Waiting for browser..."
 msgstr "브라우저 대기 중..."
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "대시보드"
 
-msgid "About Mixar"
-msgstr "Mixar 정보"
+msgid "About Lampway"
+msgstr "Lampway 정보"
 
 msgid "Documentation"
 msgstr "문서"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "채팅을 제거한 사본을 내보냈습니다 (씬 {scenes}개에서 메시지 {count}개 생략)."
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Mixar 채팅: 채팅 기록 없이 .blend 내보내기"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Lampway 채팅: 채팅 기록 없이 .blend 내보내기"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "현재 생성을 사용할 수 없습니다. 카탈로그를 새로고침한 후 다시 시도하세요."
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "규칙 추가"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "Mixie의 규칙을 정의합니다. 변경 사항은 다음 메시지나 답변부터 적용되며, 글로벌 규칙은 모든 Mixar 파일에 적용됩니다. 현재 요청이 프로젝트 규칙과 글로벌 규칙보다 우선합니다"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Mixie의 규칙을 정의합니다. 변경 사항은 다음 메시지나 답변부터 적용되며, 글로벌 규칙은 모든 Lampway 파일에 적용됩니다. 현재 요청이 프로젝트 규칙과 글로벌 규칙보다 우선합니다"
 
 msgid "Rule operation failed"
 msgstr "규칙 작업 실패"
@@ -22138,8 +22138,8 @@ msgstr "마지막으로 꺼낸 음성 인식기 이벤트의 텍스트"
 msgid "Materials: {count}"
 msgstr "머티리얼: {count}"
 
-msgid "No Mixar material active"
-msgstr "활성 Mixar 머티리얼 없음"
+msgid "No Lampway material active"
+msgstr "활성 Lampway 머티리얼 없음"
 
 msgid "{channel} Settings"
 msgstr "{channel} 설정"
@@ -22801,8 +22801,8 @@ msgstr "스케일 Y"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "선택한 UV를 Y 방향으로 스케일합니다 (증분)"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Mixar UV 속성 공간의 주석 도구 속성입니다."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Lampway UV 속성 공간의 주석 도구 속성입니다."
 
 msgid "Annotate Line"
 msgstr "주석 라인"
@@ -22828,14 +22828,14 @@ msgstr "스타일 시작"
 msgid "Toggle UV Sidebar"
 msgstr "UV 사이드바 토글"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "이미지 에디터에서 Mixar UV 사이드바를 토글합니다"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "이미지 에디터에서 Lampway UV 사이드바를 토글합니다"
 
 msgid "Open UV Sidebar"
 msgstr "UV 사이드바 열기"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "숨겨져 있으면 Mixar UV 사이드바를 엽니다"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "숨겨져 있으면 Lampway UV 사이드바를 엽니다"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "사용할 수 있는 UV 속성이 없을 때 표시되는 빈 상태"
@@ -22858,8 +22858,8 @@ msgstr "UV 레이아웃을 내보내기"
 msgid "Export UV layout using stored properties"
 msgstr "저장된 속성으로 UV 레이아웃을 내보냅니다"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "Mixar UV 속성 공간의 UV 내보내기 패널"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "Lampway UV 속성 공간의 UV 내보내기 패널"
 
 msgid "UV UI not initialized"
 msgstr "UV UI가 초기화되지 않음"
@@ -22975,8 +22975,8 @@ msgstr "UV 붙여넣기"
 msgid "Functions"
 msgstr "기능"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Mixar UV 속성 공간의 UV 기능 패널 - 도구 기반(헤더 버튼 없음)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Lampway UV 속성 공간의 UV 기능 패널 - 도구 기반(헤더 버튼 없음)"
 
 msgid "Seam"
 msgstr "심"
@@ -23104,8 +23104,8 @@ msgstr "UV 에디터에 이미지가 없습니다"
 msgid "Material '{name}' created and applied"
 msgstr "머티리얼 '{name}'을(를) 만들어 적용했습니다"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Mixar UV 속성 공간의 이미지 패널입니다."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Lampway UV 속성 공간의 이미지 패널입니다."
 
 msgid "Save As"
 msgstr "다른 이름으로 저장"
@@ -23137,8 +23137,8 @@ msgstr "이미지 크기"
 msgid "Invert All Colors"
 msgstr "모든 색상 반전"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Mixar UV 속성 공간의 머티리얼 슬롯 패널"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Lampway UV 속성 공간의 머티리얼 슬롯 패널"
 
 msgid "No active object"
 msgstr "활성 오브젝트가 없음"
@@ -23182,8 +23182,8 @@ msgstr "포장에 사용할 커스텀 영역을 UV 공간에 만듭니다"
 msgid "{label} unavailable"
 msgstr "{label}을(를) 사용할 수 없음"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Mixar UV 속성 공간의 레이아웃 패널입니다."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Lampway UV 속성 공간의 레이아웃 패널입니다."
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "uv.pack_islands 속성을 사용할 수 없음"
@@ -23329,8 +23329,8 @@ msgstr "투사"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "투영 패널에 표시된 유형과 속성으로 UV를 투영합니다"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Mixar UV UI 상태가 초기화되지 않았습니다"
+msgid "Lampway UV UI state not initialized"
+msgstr "Lampway UV UI 상태가 초기화되지 않았습니다"
 
 msgid "Unknown projection type: {type}"
 msgstr "알 수 없는 투영 유형: {type}"
@@ -23461,8 +23461,8 @@ msgstr "연결된 선택"
 msgid "Select linked UVs"
 msgstr "연결된 UV를 선택합니다"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Mixar UV 속성 공간의 선택 패널 - 도구 기반(헤더 버튼 없음)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Lampway UV 속성 공간의 선택 패널 - 도구 기반(헤더 버튼 없음)"
 
 msgid "Basic Selection"
 msgstr "기본 선택"
@@ -23503,8 +23503,8 @@ msgstr "분할 선택"
 msgid "Select Overlap"
 msgstr "겹침을 선택"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Mixar UV 속성 공간의 텍셀 밀도 패널"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Lampway UV 속성 공간의 텍셀 밀도 패널"
 
 msgid "Activate Grab Tool"
 msgstr "잡기 도구 활성화"
@@ -23548,8 +23548,8 @@ msgstr "뷰의 중심을 커서에 맞춥니다"
 msgid "UV Sculpt Tools"
 msgstr "UV 스컬프트 도구"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Mixar UV 속성 공간의 UV 스컬프트 도구 패널 - 도구 기반(헤더 버튼 없음)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Lampway UV 속성 공간의 UV 스컬프트 도구 패널 - 도구 기반(헤더 버튼 없음)"
 
 msgid "Grab"
 msgstr "Grab"
@@ -23668,8 +23668,8 @@ msgstr "선택한 UV에 스케일 변환을 적용합니다"
 msgid "Snapping"
 msgstr "스냅하기"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Mixar UV 속성 공간의 스냅 패널"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Lampway UV 속성 공간의 스냅 패널"
 
 msgid "Snapping Options"
 msgstr "스냅 옵션"
@@ -23719,8 +23719,8 @@ msgstr "펼치기 패널에 표시된 방법과 속성으로 UV를 펼칩니다"
 msgid "Unknown unwrap method: {method}"
 msgstr "알 수 없는 펼치기 방법: {method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Mixar UV 속성 공간의 펼치기 + 투영 통합 패널입니다."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Lampway UV 속성 공간의 펼치기 + 투영 통합 패널입니다."
 
 msgid "Live Unwrap"
 msgstr "실시간 펼치기"
@@ -23796,14 +23796,14 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
 "새 이미지를 만듭니다(기본적으로 타일 사용)\n"
 "\n"
 "오퍼레이터 속성 대화 상자에서 `tiled=True`를 미리 설정하는\n"
-"`image.new` 래퍼입니다. Mixar UV 패널에서 `template_ID`의\n"
+"`image.new` 래퍼입니다. Lampway UV 패널에서 `template_ID`의\n"
 "`new=` 오퍼레이터로 사용되므로 대화 상자가 열릴 때\n"
 "타일 체크박스가 이미 선택되어 있습니다. 실제 생성과 ID 할당은\n"
 "기본 `image.new`가 수행합니다.\n"
@@ -23826,8 +23826,8 @@ msgstr "타일을 채우기"
 msgid "Fill UDIM tile"
 msgstr "UDIM 타일을 채웁니다"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "Mixar UV 속성 공간의 UV 세트 패널입니다."
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "Lampway UV 속성 공간의 UV 세트 패널입니다."
 
 msgid "UV Maps"
 msgstr "UV 맵"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "도구"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Mixar UV 속성 공간의 도구 패널로,\n"
+"Lampway UV 속성 공간의 도구 패널로,\n"
 "`builtin.uv_tool` 툴바 도구가 활성화되어 있을 때 표시됩니다."
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,13 +24070,13 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
 msgstr "Mixar를 Zen 모드로 전환합니다(최소 뷰포트 + 에이전트 버블 + 무드보드)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Zen 모드 작업 공간을 만들 수 없습니다 — 사용 가능한 템플릿이 없습니다"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
 msgstr "Mixar를 Engine 모드로 전환합니다(Blender 스타일의 전체 작업 공간)"
 
 msgid "Modeling workspace not found"
@@ -24298,32 +24298,32 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
-msgstr "최신 Mixar 버전(%d.%d)에서 저장된 파일이므로 일부 데이터가 손실될 수 있습니다"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
+msgstr "최신 Lampway 버전(%d.%d)에서 저장된 파일이므로 일부 데이터가 손실될 수 있습니다"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "최신 버전에서 저장된 파일입니다. Mixar %s 이상에서 여세요"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "최신 버전에서 저장된 파일입니다. Lampway %s 이상에서 여세요"
 
 msgid "Failed to read mixar file '%s': %s"
-msgstr "Mixar 파일 '%s'을(를) 읽지 못했습니다: %s"
+msgstr "Lampway 파일 '%s'을(를) 읽지 못했습니다: %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
-msgstr "Mixar 파일 '%s'을(를) 읽을 수 없습니다. 헤더가 불완전하며 최신 버전의 Mixar에서 저장된 파일일 수 있습니다"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr "Lampway 파일 '%s'을(를) 읽을 수 없습니다. 헤더가 불완전하며 최신 버전의 Mixar에서 저장된 파일일 수 있습니다"
 
 msgid "Failed to read file '%s', not a mixar file"
-msgstr "파일 '%s'을(를) 읽지 못했습니다. Mixar 파일이 아닙니다"
+msgstr "파일 '%s'을(를) 읽지 못했습니다. Lampway 파일이 아닙니다"
 
 msgid "Unable to open mixar <memory>"
-msgstr "Mixar <memory>를 열 수 없습니다"
+msgstr "Lampway <memory>를 열 수 없습니다"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Mixar 파일 '%s'은(는) 이후 버전의 Mixar에서 생성되었으며 현재 지원되는 길이보다 긴 ID 이름을 포함하고 있습니다. 해당 이름은 잘렸습니다."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Lampway 파일 '%s'은(는) 이후 버전의 Mixar에서 생성되었으며 현재 지원되는 길이보다 긴 ID 이름을 포함하고 있습니다. 해당 이름은 잘렸습니다."
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Mixar 파일 '%s'이(가) 손상된 것 같습니다. 잘못된 ID 이름이 포함되어 있어 해당 이름을 잘랐습니다."
+msgstr "Lampway 파일 '%s'이(가) 손상된 것 같습니다. 잘못된 ID 이름이 포함되어 있어 해당 이름을 잘랐습니다."
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
-msgstr "라이브러리 '%s'은(는) 이후 버전의 Mixar에서 생성되었으며 현재 지원되는 길이보다 긴 ID 이름을 포함하고 있습니다. 연결된 데이터가 누락될 수 있으니 현재 Mixar 버전에서 해당 라이브러리를 열어 다시 저장해 보세요."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
+msgstr "라이브러리 '%s'은(는) 이후 버전의 Mixar에서 생성되었으며 현재 지원되는 길이보다 긴 ID 이름을 포함하고 있습니다. 연결된 데이터가 누락될 수 있으니 현재 Lampway 버전에서 해당 라이브러리를 열어 다시 저장해 보세요."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: 데이터가 메인 .mixar 파일을 참조합니다: '%s' (%s에서)"
@@ -24454,7 +24454,7 @@ msgstr "Mixie에게 무엇이든 물어보세요..."
 msgid "Write your prompt here..."
 msgstr "여기에 프롬프트를 입력하세요..."
 
-msgid "Everything Mixar has generated"
+msgid "Everything Lampway has generated"
 msgstr "Mixar가 생성한 모든 항목"
 
 msgid "Your connected folders: images, videos and 3D assets"
@@ -25771,14 +25771,14 @@ msgstr "Mixie3D 미리보기 삭제"
 msgid "Delete a segmented image from the preview history"
 msgstr "미리보기 기록에서 분할된 이미지를 삭제합니다"
 
-msgid "Mixar agent bubble loading…"
-msgstr "Mixar 에이전트 버블 불러오는 중…"
+msgid "Lampway agent bubble loading…"
+msgstr "Lampway 에이전트 버블 불러오는 중…"
 
 msgid "Show Agent Bubble"
 msgstr "에이전트 버블 표시"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
-msgstr "Mixar 인터페이스 어디서나 AI 에이전트와 채팅할 수 있는 플로팅 에이전트 버블 오버레이를 엽니다"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
+msgstr "Lampway 인터페이스 어디서나 AI 에이전트와 채팅할 수 있는 플로팅 에이전트 버블 오버레이를 엽니다"
 
 msgid "Chat is still loading. Please drop the asset again."
 msgstr ""
@@ -25822,7 +25822,7 @@ msgstr "놓은 이미지를 채팅 첨부 파일로 추가합니다"
 msgid "Dropped image datablock"
 msgstr "놓은 이미지 데이터 블록"
 
-msgid "Tell me about the features in Mixar"
+msgid "Tell me about the features in Lampway"
 msgstr "Mixar의 기능에 대해 알려 주세요"
 
 msgid "Generate a futuristic sci-fi character concept"
@@ -26755,14 +26755,14 @@ msgstr "텍스처 베이킹 및 처리 작업"
 msgid "Texture set management for PBR workflows"
 msgstr "PBR 워크플로용 텍스처 세트 관리"
 
-msgid "Mixar UV Editor"
-msgstr "Mixar UV 에디터"
+msgid "Lampway UV Editor"
+msgstr "Lampway UV 에디터"
 
-msgid "Mixar UV editing mode"
-msgstr "Mixar UV 편집 모드"
+msgid "Lampway UV editing mode"
+msgstr "Lampway UV 편집 모드"
 
-msgid "Mixar Layers Properties"
-msgstr "Mixar 레이어 속성"
+msgid "Lampway Layers Properties"
+msgstr "Lampway 레이어 속성"
 
 msgid "Reference image board like PureRef"
 msgstr "PureRef와 같은 참조 이미지 보드"
@@ -26770,7 +26770,7 @@ msgstr "PureRef와 같은 참조 이미지 보드"
 msgid "Mixie Space"
 msgstr "Mixie 공간"
 
-msgid "Mixie editor for Mixar"
+msgid "Mixie editor for Lampway"
 msgstr "Mixar용 Mixie 에디터"
 
 msgid "Mixie editor mode"
@@ -26779,7 +26779,7 @@ msgstr "Mixie 에디터 모드"
 msgid "Agent Bubble Space"
 msgstr "에이전트 버블 공간"
 
-msgid "Floating agent chat overlay editor for Mixar"
+msgid "Floating agent chat overlay editor for Lampway"
 msgstr "Mixar용 플로팅 에이전트 채팅 오버레이 에디터"
 
 msgid "Top Bar Space"
@@ -26788,23 +26788,23 @@ msgstr "상단 바 공간"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "작업 공간 탭 스트립과 에디터 메뉴가 있는 상단 바"
 
-msgid "Mixar Layers Space"
-msgstr "Mixar 레이어 공간"
+msgid "Lampway Layers Space"
+msgstr "Lampway 레이어 공간"
 
-msgid "Mixar texture layer stack management"
-msgstr "Mixar 텍스처 레이어 스택 관리"
+msgid "Lampway texture layer stack management"
+msgstr "Lampway 텍스처 레이어 스택 관리"
 
-msgid "Mixar Properties Space"
-msgstr "Mixar 속성 공간"
+msgid "Lampway Properties Space"
+msgstr "Lampway 속성 공간"
 
-msgid "Mixar layer and texture properties"
-msgstr "Mixar 레이어 및 텍스처 속성"
+msgid "Lampway layer and texture properties"
+msgstr "Lampway 레이어 및 텍스처 속성"
 
-msgid "Mixar Assets Space"
-msgstr "Mixar 에셋 공간"
+msgid "Lampway Assets Space"
+msgstr "Lampway 에셋 공간"
 
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "Mixar 스마트 머티리얼, 브러시, 텍스처 라이브러리"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "Lampway 스마트 머티리얼, 브러시, 텍스처 라이브러리"
 
 msgid "Texture sets management"
 msgstr "텍스처 세트 관리"
@@ -26812,8 +26812,8 @@ msgstr "텍스처 세트 관리"
 msgid "Use Blender's theme"
 msgstr "Blender의 테마를 사용합니다"
 
-msgid "Mixar Zen components"
-msgstr "Mixar Zen 구성 요소"
+msgid "Lampway Zen components"
+msgstr "Lampway Zen 구성 요소"
 
 msgid "Compatibility appearance"
 msgstr "호환성 외관"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "전역 영역"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "창 전역 영역(상단 바, 상태 표시줄)입니다. Mixar 확장 기능으로, 온보딩에서 다시 그리기를 위해 상단 바에 접근할 수 있도록 노출됩니다."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "창 전역 영역(상단 바, 상태 표시줄)입니다. Lampway 확장 기능으로, 온보딩에서 다시 그리기를 위해 상단 바에 접근할 수 있도록 노출됩니다."
 
 msgid "QA UI Dump"
 msgstr "QA UI 덤프"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "Mixar QA 하네스를 위한 모든 활성 UI 위젯(레이블, 오퍼레이터, 속성, 창 공간 사각형, 상태)의 JSON 스냅샷"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "Lampway QA 하네스를 위한 모든 활성 UI 위젯(레이블, 오퍼레이터, 속성, 창 공간 사각형, 상태)의 JSON 스냅샷"
 
 msgid "Window Resizing"
 msgstr "창 크기 조정 중"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "QA 프레임 캡처에는 --enable-event-simulate가 필요합니다"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,23 +27982,23 @@ msgstr "마이크가 멈췄거나 캡처 버퍼가 넘쳤습니다"
 msgid "Microphone disconnected"
 msgstr "마이크 연결이 끊어졌습니다"
 
-msgid "Mixar File View"
-msgstr "Mixar 파일 뷰"
+msgid "Lampway File View"
+msgstr "Lampway 파일 뷰"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
-msgstr "프록시가 Mixar에서 제거되었습니다(프록시 %d개가 라이브러리 오버라이드로 자동 변환되었고, 프록시 %d개는 변환할 수 없어 지워졌습니다). 모든 라이브러리 .mixar 파일을 최신 Mixar 버전으로 다시 저장해 보세요"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
+msgstr "프록시가 Mixar에서 제거되었습니다(프록시 %d개가 라이브러리 오버라이드로 자동 변환되었고, 프록시 %d개는 변환할 수 없어 지워졌습니다). 모든 라이브러리 .mixar 파일을 최신 Lampway 버전으로 다시 저장해 보세요"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
-msgstr "Mixar 파일을 저장할 수 없습니다. 경로 \"%s\"에 쓸 수 없습니다"
+msgstr "Lampway 파일을 저장할 수 없습니다. 경로 \"%s\"에 쓸 수 없습니다"
 
 msgid "Cannot save mixar file, path \"%s\" is a directory"
-msgstr "Mixar 파일을 저장할 수 없습니다. 경로 \"%s\"은(는) 디렉터리입니다"
+msgstr "Lampway 파일을 저장할 수 없습니다. 경로 \"%s\"은(는) 디렉터리입니다"
 
-msgid "Mixar will start next time as it is now."
+msgid "Lampway will start next time as it is now."
 msgstr "Mixar는 다음에 현재 상태 그대로 시작됩니다."
 
-msgid "Load Factory Mixar Preferences"
-msgstr "Mixar 초기 환경 설정 불러오기"
+msgid "Load Factory Lampway Preferences"
+msgstr "Lampway 초기 환경 설정 불러오기"
 
 msgid "Load user interface setup from the .mixar file"
 msgstr ".mixar 파일에서 사용자 인터페이스 설정을 불러옵니다"
@@ -28006,14 +28006,14 @@ msgstr ".mixar 파일에서 사용자 인터페이스 설정을 불러옵니다"
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr ".mixar 파일이 스크립트를 자동으로 실행하도록 허용합니다. 기본값은 시스템 환경 설정에서 지정할 수 있습니다"
 
-msgid "Open a Mixar file"
-msgstr "Mixar 파일을 엽니다"
+msgid "Open a Lampway file"
+msgstr "Lampway 파일을 엽니다"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr ".mixar 파일에 있는 사용자 인터페이스 설정을 불러옵니다"
 
-msgid "Mixar Files"
-msgstr "Mixar 파일"
+msgid "Lampway Files"
+msgstr "Lampway 파일"
 
 msgid "Show only .mixar files"
 msgstr ".mixar 파일만 표시합니다"
@@ -28039,26 +28039,26 @@ msgstr ".mixar 파일로 저장합니다"
 msgid "Save as .blend file"
 msgstr ".blend 파일로 저장합니다"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "기존 파일을 덮어쓰지 않도록 번호를 증가시킨 이름으로 현재 Mixar 파일을 저장합니다"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "기존 파일을 덮어쓰지 않도록 번호를 증가시킨 이름으로 현재 Lampway 파일을 저장합니다"
 
-msgid "Save Mixar File"
-msgstr "Mixar 파일 저장"
+msgid "Save Lampway File"
+msgstr "Lampway 파일 저장"
 
-msgid "Save the current Mixar file"
-msgstr "현재 Mixar 파일을 저장합니다"
+msgid "Save the current Lampway file"
+msgstr "현재 Lampway 파일을 저장합니다"
 
-msgid "Exit Mixar after saving"
+msgid "Exit Lampway after saving"
 msgstr "저장 후 Mixar를 종료합니다"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
-msgstr "이 파일은 최신 버전의 Mixar(%s)에서 저장되었습니다."
+msgid "This file was saved by a newer version of Lampway (%s)."
+msgstr "이 파일은 최신 버전의 Lampway(%s)에서 저장되었습니다."
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
-msgstr "이 Mixar(%s)로 저장하면 데이터가 손실될 수 있습니다."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
+msgstr "이 Lampway(%s)로 저장하면 데이터가 손실될 수 있습니다."
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "이 파일은 Mixar 에셋 시스템에서 관리됩니다. 이 파일은"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "이 파일은 Lampway 에셋 시스템에서 관리됩니다. 이 파일은"
 
 msgid "Filter .mixar files"
 msgstr ".mixar 파일 필터링"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
-msgstr "Mixar 호환성이 더 좋은 최신 그래픽 드라이버가 있을 수 있습니다."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
+msgstr "Lampway 호환성이 더 좋은 최신 그래픽 드라이버가 있을 수 있습니다."
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "최신 macOS 버전으로 업그레이드하면 Mixar 지원이 향상될 수 있습니다"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "최신 macOS 버전으로 업그레이드하면 Lampway 지원이 향상될 수 있습니다"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
+msgid "Lampway will now close."
 msgstr "Mixar가 이제 종료됩니다."

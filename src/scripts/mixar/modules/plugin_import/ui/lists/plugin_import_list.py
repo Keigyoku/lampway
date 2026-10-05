@@ -15,7 +15,7 @@ from ...constants import KIND_EXTENSION
 # Post-import status code → (icon, short text) shown at the row's right.
 _STATUS_DISPLAY = {
     "imported": ("CHECKMARK", n_("Imported")),
-    "exists": ("FILE_TICK", n_("Already in Mixar")),
+    "exists": ("FILE_TICK", n_("Already in Lampway")),
     "failed": ("ERROR", n_("Copy failed")),
     "enabled": ("CHECKMARK", n_("Enabled")),
     "enable_failed": ("ERROR", n_("Enable failed")),

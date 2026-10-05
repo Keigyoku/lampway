@@ -54,7 +54,7 @@ class MOpenImageToOverrideChannel(bpy.types.Operator, ImportHelper, OpenImage):
 
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         loaded_images = self.get_loaded_images()
@@ -232,7 +232,7 @@ class MOpenImageToOverrideChannel(bpy.types.Operator, ImportHelper, OpenImage):
             return
 
         # Linked brush - create/reuse a local brush with texture
-        local_brush_name = "Mixar Texture Paint"
+        local_brush_name = "Lampway Texture Paint"
         local_brush = bpy.data.brushes.get(local_brush_name)
 
         if not local_brush:
@@ -284,7 +284,7 @@ class MOpenImageToOverride1Channel(bpy.types.Operator, ImportHelper, OpenImage):
 
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         loaded_images = self.get_loaded_images()
@@ -403,7 +403,7 @@ class MSelectExistingImage(bpy.types.Operator):
         # Retrieve channel from stored path
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -508,7 +508,7 @@ class MClearChannelImage(bpy.types.Operator):
 
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -615,7 +615,7 @@ class MSelectExistingImageNormal(bpy.types.Operator):
         # Retrieve channel from stored path
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -720,7 +720,7 @@ class MClearNormalChannelImage(bpy.types.Operator):
 
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp

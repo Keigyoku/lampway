@@ -26,7 +26,7 @@ ASSET_EMBEDDINGS_DELETE_ENDPOINT = "api/v1/asset-search/embeddings"
 
 # Display name of the Mixar-owned asset library (shown in the Asset Browser and
 # used as the `library` identity in embedding metadata). Registered at startup.
-GENERATION_LIBRARY_NAME = "Mixar Generations"
+GENERATION_LIBRARY_NAME = "Lampway Generations"
 # Sub-path under user_resource('DATAFILES', ...) where the library .blends live.
 GENERATION_LIBRARY_SUBPATH = "mixar/generations"
 

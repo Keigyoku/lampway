@@ -120,7 +120,7 @@ class TestHTTP:
         status, head, body = _http_get(running_server.state.port, "/")
         assert status == 200
         assert b"Cache-Control: no-store" in head
-        assert b"Mixar Virtual Camera" in body
+        assert b"Lampway Virtual Camera" in body
 
     def test_asset_served_with_content_type(self, running_server):
         status, head, _ = _http_get(running_server.state.port, "/js/app.js")

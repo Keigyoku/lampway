@@ -36,7 +36,7 @@ class MIXAR_OT_bake(bpy.types.Operator):
 class MIXAR_PT_panel(bpy.types.Panel):
     bl_label = "Panel"
     bl_description = "Explicit"
-    bl_category = "Mixar"
+    bl_category = "Lampway"
     """Docstring ignored: bl_description wins."""
 '''
 
@@ -77,7 +77,7 @@ def test_python_extraction():
         (None, "Mode"), (None, "Alpha"), (None, "First"), (None, "Beta"),
         (None, "Hello"), (None, "Stop"), (None, "Start"), (None, "Failed"),
         (None, "{count} items"), (None, "Marked"), ("Mesh", "In mesh"),
-        (None, "Panel"), (None, "Explicit"), (None, "Mixar"),
+        (None, "Panel"), (None, "Explicit"), (None, "Lampway"),
     }
 
 

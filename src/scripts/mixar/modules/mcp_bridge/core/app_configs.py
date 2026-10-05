@@ -5,9 +5,9 @@ and one-click adding for Claude Code and Codex.
 
 No bpy here: adding runs on a worker thread. Claude Code is changed only
 through its own ``claude mcp`` command. Codex has no command for the tool
-timeout Mixar needs, so its ``[mcp_servers.mixar]`` table is written into
+timeout Mixar needs, so its ``[mcp_servers.lampway]`` table is written into
 config.toml directly: only that table, re-parsed before it replaces the file,
-with the previous file kept as config.toml.mixar-backup. Formats and paths
+with the previous file kept as config.toml.lampway-backup. Formats and paths
 checked against each app's documentation on 2026-10-03.
 """
 
@@ -19,6 +19,8 @@ import subprocess
 import sys
 
 from mixar.modules.common.i18n import n_
+from mixar.modules.mcp_bridge.constants import LEGACY_SERVER_NAME, SERVER_NAME
+
 from .setup import CODEX_TOOL_TIMEOUT_SECONDS, render
 
 #: Dialog order: key, label (a product name, never translated), how to use the snippet.
@@ -107,20 +109,34 @@ def add_to_claude_code(command, args, cli=None):
     cli = cli or find_cli("claude")
     if not cli:
         return "failed", n_("Claude Code's claude command was not found. Copy the command and run it in a terminal.")
-    add = [cli, "mcp", "add", "--scope", "user", "mixar", "--", command, *args]
+    add = [cli, "mcp", "add", "--scope", "user", SERVER_NAME, "--", command, *args]
     code, out = _run(add)
     if code == 0:
+        _retire_legacy_claude_entry(cli)
         return "added", ""
     if "already exists" not in out:
         return "failed", _first_line(out)
-    code, current = _run([cli, "mcp", "get", "mixar"])
+    code, current = _run([cli, "mcp", "get", SERVER_NAME])
     if code == 0 and command in current and all(arg in current for arg in args):
+        _retire_legacy_claude_entry(cli)
         return "already", ""
-    code, out = _run([cli, "mcp", "remove", "--scope", "user", "mixar"])
+    code, out = _run([cli, "mcp", "remove", "--scope", "user", SERVER_NAME])
     if code != 0:
         return "failed", _first_line(out)
     code, out = _run(add)
+    if code == 0:
+        _retire_legacy_claude_entry(cli)
     return ("updated", "") if code == 0 else ("failed", _first_line(out))
+
+
+def _retire_legacy_claude_entry(cli):
+    """An install from before the rename listed this connector as ``mixar``: remove that entry once the ``lampway`` one is in (its old launcher path still works as a shim)."""
+    try:
+        code, _out = _run([cli, "mcp", "get", LEGACY_SERVER_NAME])
+        if code == 0:
+            _run([cli, "mcp", "remove", "--scope", "user", LEGACY_SERVER_NAME])
+    except (OSError, subprocess.SubprocessError):
+        pass
 
 
 def _first_line(text):
@@ -130,12 +146,12 @@ def _first_line(text):
 
 # ---------------------------------------------------------------------- Codex
 
-_TABLE = re.compile(r'^\s*\[\s*mcp_servers\s*\.\s*(?:mixar|"mixar")\s*(?:\.[^\]]*)?\]\s*(?:#.*)?$')
+_TABLE = re.compile(r'^\s*\[\s*mcp_servers\s*\.\s*(?:lampway|"lampway"|mixar|"mixar")\s*(?:\.[^\]]*)?\]\s*(?:#.*)?$')     # ours, and the pre-rename one
 _ANY_TABLE = re.compile(r"^\s*\[")
 
 
 def _without_mixar_table(text):
-    """Drop [mcp_servers.mixar] and its sub-tables; everything else is kept verbatim."""
+    """Drop [mcp_servers.lampway] (and the pre-rename [mcp_servers.mixar]) with their sub-tables; everything else is kept verbatim."""
     kept, inside = [], False
     for line in text.splitlines(keepends=True):
         if _TABLE.match(line):
@@ -156,26 +172,28 @@ def add_to_codex(command, args, path=None):
         return "failed", n_("Codex's settings folder was not found; open Codex once, then try again.")
     text = path.read_text(encoding="utf-8") if path.exists() else ""
     try:
-        entry = tomllib.loads(text).get("mcp_servers", {}).get("mixar")
+        servers = tomllib.loads(text).get("mcp_servers", {})
+        entry, legacy = servers.get(SERVER_NAME), servers.get(LEGACY_SERVER_NAME)
     except tomllib.TOMLDecodeError:
         return "failed", n_("Codex's config.toml could not be read; copy the setup and add it by hand.")
-    if (isinstance(entry, dict) and entry.get("command") == command and list(entry.get("args", [])) == args
+    if (legacy is None and isinstance(entry, dict) and entry.get("command") == command and list(entry.get("args", [])) == args
             and entry.get("tool_timeout_sec", 0) >= CODEX_TOOL_TIMEOUT_SECONDS):
         return "already", ""
+    entry = entry if entry is not None else legacy
     stripped = _without_mixar_table(text) if entry is not None else text
     if entry is not None and stripped == text:
-        return "failed", n_("Codex defines mixar in a form Mixar cannot update; edit config.toml by hand.")
+        return "failed", n_("Codex defines mixar in a form Lampway cannot update; edit config.toml by hand.")
     block = render("CODEX", command, args)
     updated = stripped.rstrip("\n") + ("\n\n" if stripped.strip() else "") + block
-    backup = path.with_name(path.name + ".mixar-backup")
+    backup = path.with_name(path.name + ".lampway-backup")
     if path.exists():
         shutil.copy2(path, backup)
-    temporary = path.with_name("." + path.name + ".mixar-tmp")
+    temporary = path.with_name("." + path.name + ".lampway-tmp")
     try:
         temporary.write_text(updated, encoding="utf-8")
-        written = tomllib.loads(updated)["mcp_servers"]["mixar"]
+        written = tomllib.loads(updated)["mcp_servers"][SERVER_NAME]
         if written.get("command") != command:
-            raise ValueError("mixar entry did not round-trip")
+            raise ValueError("lampway entry did not round-trip")
         os.replace(temporary, path)
     except (OSError, ValueError, KeyError, tomllib.TOMLDecodeError):
         temporary.unlink(missing_ok=True)

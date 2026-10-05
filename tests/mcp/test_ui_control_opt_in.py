@@ -19,7 +19,7 @@ def test_interface_input_is_refused_until_the_user_allows_it(monkeypatch):
     monkeypatch.setattr(runtime, "ui_control_enabled", lambda: False)
     for name in sorted(schema.UI_INPUT):
         request = SimpleNamespace(name=name, args={}, session="", owner="o", deadline=0)
-        with pytest.raises(UIError, match="Let AI apps control Mixar's interface"):
+        with pytest.raises(UIError, match="Let AI apps control Lampway's interface"):
             next(service._run(request))
     assert "mixar_ui_context" not in schema.UI_INPUT and "mixar_scene_new" not in schema.UI_INPUT
 
@@ -65,13 +65,13 @@ def test_signin_restored_after_a_load_is_reported_as_temporary(monkeypatch):
     with pytest.raises(UIError, match="restoring your sign-in"):
         service._signed_in()
     monkeypatch.setattr(auth_ops, "_auth_check_started", False)
-    with pytest.raises(UIError, match="Sign in to Mixar"):
+    with pytest.raises(UIError, match="Sign in to Lampway"):
         service._signed_in()
 
 
 def test_the_dialog_has_the_opt_in_checkbox():
     dialog = (Path(__file__).parents[2] / "src/scripts/mixar/modules/mcp_bridge/ui/operators/connect.py").read_text()
-    assert '"mixar.set_mcp_ui_control"' in dialog and "Let AI apps control Mixar's interface" in dialog
+    assert '"mixar.set_mcp_ui_control"' in dialog and "Let AI apps control Lampway's interface" in dialog
 
 
 def test_a_vanished_scene_points_the_agent_to_rebinding(monkeypatch):

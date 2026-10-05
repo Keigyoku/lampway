@@ -29,14 +29,14 @@ class FakeConnector:
     def catalog(self):
         envelope = {"type": "object", "properties": {"result": {}, "usage": {"type": "object"}},
                     "required": ["result", "usage"]}
-        return [{"name": name, "description": "Mixar tool.", "inputSchema": {"type": "object"},
+        return [{"name": name, "description": "Lampway tool.", "inputSchema": {"type": "object"},
                  "outputSchema": envelope, "_meta": {"mixar/domain": "verify"}}
                 for name in ("render_viewport", "execute_bpy_script")]
 
     def call(self, name, arguments, call_id):
         payload = RENDER_RESULT if name == "render_viewport" else SCRIPT_RESULT
         content = [{"type": "text", "text": json.dumps(payload["result"])},
-                   {"type": "text", "text": "Mixar usage: " + json.dumps(payload["usage"])}]
+                   {"type": "text", "text": "Lampway usage: " + json.dumps(payload["usage"])}]
         if name == "render_viewport":
             content.append({"type": "image", "data": PNG, "mimeType": "image/png"})
         return {"content": content, "structuredContent": payload, "isError": False}

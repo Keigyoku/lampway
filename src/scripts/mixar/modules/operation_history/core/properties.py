@@ -17,7 +17,7 @@ from ..constants import SCENE_HISTORY_ID_PROP
 
 def register():
     setattr(bpy.types.Scene, SCENE_HISTORY_ID_PROP, StringProperty(
-        name="Mixar Operation History ID",
+        name="Lampway Operation History ID",
         description="Persistent per-scene id keying this scene's operation history.",
         default="",
     ))

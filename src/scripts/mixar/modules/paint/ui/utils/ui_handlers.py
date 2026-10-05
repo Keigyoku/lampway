@@ -62,7 +62,7 @@ def _ui_update_timer():
         return None
     except BaseException as e:
         # Catch all exceptions including SystemExit - don't break Blender
-        logger.error("Mixar UI update error: %s", e)
+        logger.error("Lampway UI update error: %s", e)
 
     return 0.1  # Check again in 0.1 seconds
 
@@ -140,7 +140,7 @@ def on_load_post(dummy):
         from ...utils.preferences_config import load_preferences
         load_preferences()
     except Exception as exc:
-        logger.warning("Failed to load Mixar Paint preferences on file load: %s", exc)
+        logger.warning("Failed to load Lampway Paint preferences on file load: %s", exc)
 
 
 @persistent
@@ -188,7 +188,7 @@ def register():
         from ...utils.preferences_config import load_preferences
         load_preferences()
     except Exception as exc:
-        logger.warning("Failed to load Mixar Paint preferences at startup: %s", exc)
+        logger.warning("Failed to load Lampway Paint preferences at startup: %s", exc)
 
 
 def unregister():

@@ -61,7 +61,7 @@ def _defer_restart_prompt_for_tour() -> None:
 
 
 class MIXAR_OT_restart_to_update(bpy.types.Operator):
-    """Restart Mixar and install the downloaded update"""
+    """Restart Lampway and install the downloaded update"""
 
     bl_idname = "mixar.restart_to_update"
     bl_label = "Restart & Update"
@@ -76,7 +76,7 @@ class MIXAR_OT_restart_to_update(bpy.types.Operator):
     def invoke(self, context, event):
         if tour_running():
             _defer_restart_prompt_for_tour()
-            self.report({"INFO"}, "Mixar will ask to update once the tour ends")
+            self.report({"INFO"}, "Lampway will ask to update once the tour ends")
             return {"CANCELLED"}
 
         routed = self._route(context)
@@ -109,7 +109,7 @@ class MIXAR_OT_restart_to_update(bpy.types.Operator):
             from ..core.toasts import refresh_update_toast
 
             refresh_update_toast()
-            self.report({"INFO"}, "Downloading update — Mixar will restart when it's ready")
+            self.report({"INFO"}, "Downloading update — Lampway will restart when it's ready")
             return {"FINISHED"}
 
         return None
@@ -126,7 +126,7 @@ class MIXAR_OT_restart_to_update(bpy.types.Operator):
         version = info.latest_version if info else ""
 
         layout = self.layout
-        layout.label(text=iface_("Mixar will close and update to {version}.").format(version=version),
+        layout.label(text=iface_("Lampway will close and update to {version}.").format(version=version),
                      icon="FILE_REFRESH", translate=False)
         layout.label(text="It reopens automatically when the update is done.")
 
@@ -213,7 +213,7 @@ class MIXAR_OT_cancel_update_download(bpy.types.Operator):
 
 
 class MIXAR_OT_open_downloads_page(bpy.types.Operator):
-    """Open the Mixar downloads page in the default browser"""
+    """Open the Lampway downloads page in the default browser"""
 
     bl_idname = "mixar.open_downloads_page"
     bl_label = "Download"
@@ -243,7 +243,7 @@ class MIXAR_OT_open_downloads_page(bpy.types.Operator):
 
 
 class MIXAR_OT_check_for_updates(bpy.types.Operator):
-    """Check whether a newer version of Mixar is available"""
+    """Check whether a newer version of Lampway is available"""
 
     bl_idname = "mixar.check_for_updates"
     bl_label = "Check for Updates"
@@ -275,7 +275,7 @@ class MIXAR_OT_check_for_updates(bpy.types.Operator):
 
 
 class MIXAR_OT_show_update_toast(bpy.types.Operator):
-    """Show details for the pending Mixar update"""
+    """Show details for the pending Lampway update"""
 
     bl_idname = "mixar.show_update_toast"
     bl_label = "Update Available"

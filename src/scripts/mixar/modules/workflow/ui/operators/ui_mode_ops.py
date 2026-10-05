@@ -172,7 +172,7 @@ def _kick_slider_animation() -> None:
 
 
 class MIXAR_OT_set_ui_mode_ai(Operator):
-    """Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"""
+    """Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"""
 
     bl_idname = "mixar.set_ui_mode_ai"
     bl_label = "Zen Mode"
@@ -219,7 +219,7 @@ class MIXAR_OT_set_ui_mode_ai(Operator):
 
 
 class MIXAR_OT_set_ui_mode_pro(Operator):
-    """Switch Mixar into Engine Mode (full Blender-style workspaces)"""
+    """Switch Lampway into Engine Mode (full Blender-style workspaces)"""
 
     bl_idname = "mixar.set_ui_mode_pro"
     bl_label = "Engine Mode"

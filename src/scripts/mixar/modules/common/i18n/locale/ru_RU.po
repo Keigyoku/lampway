@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: ru_RU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -28,8 +28,8 @@ msgstr "Активная строка в списке истории чата п
 msgid "Share Usage Data"
 msgstr "Отправлять данные об использовании"
 
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "Отправлять события использования продукта без пользовательского содержимого, чтобы помочь улучшить Mixar"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "Отправлять события использования продукта без пользовательского содержимого, чтобы помочь улучшить Lampway"
 
 msgid "No generation services"
 msgstr "Нет сервисов генерации"
@@ -170,8 +170,8 @@ msgstr "Недопустимое имя модуля аддона"
 msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "Заданная точка входа аддона не найдена в связанном проекте"
 
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "В связанной папке нет корректных метаданных проекта Mixar"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "В связанной папке нет корректных метаданных проекта Lampway"
 
 msgid "The project metadata version is not supported"
 msgstr "Версия метаданных проекта не поддерживается"
@@ -194,7 +194,7 @@ msgstr "Точка входа должна быть именем одного м
 msgid "Set an active add-on before changing its enabled state"
 msgstr "Задайте активный аддон, прежде чем включать или отключать его"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -441,7 +441,7 @@ msgstr "Библиотека"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -540,8 +540,8 @@ msgstr "Открыть окно пузыря агента"
 msgid "Open the Agent Bubble in its own floating window"
 msgstr "Открыть пузырь агента в отдельном плавающем окне"
 
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "Оператор C++ mixar.agent_bubble_show_window не зарегистрирован — пересоберите Mixar (make build), чтобы подключить оператор пространства agent_bubble."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "Оператор C++ mixar.agent_bubble_show_window не зарегистрирован — пересоберите Lampway (make build), чтобы подключить оператор пространства agent_bubble."
 
 msgid "Failed to open Agent Bubble window: {error}"
 msgstr "Не удалось открыть окно пузыря агента: {error}"
@@ -651,8 +651,8 @@ msgstr ""
 msgid "AI generations"
 msgstr "ИИ-генерации"
 
-msgid "Everything Mixar has generated for you"
-msgstr "Всё, что Mixar сгенерировал для вас"
+msgid "Everything Lampway has generated for you"
+msgstr "Всё, что Lampway сгенерировал для вас"
 
 msgid "My Libraries"
 msgstr ""
@@ -1421,17 +1421,17 @@ msgstr "Обратитесь в поддержку — сейчас нет вк�
 msgid "Select a provider with available models"
 msgstr "Выберите провайдера с доступными моделями"
 
-msgid "Managed by Mixar"
-msgstr "Под управлением Mixar"
+msgid "Managed by Lampway"
+msgstr "Под управлением Lampway"
 
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar скачивает и запускает отобранную модель на этом компьютере"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway скачивает и запускает отобранную модель на этом компьютере"
 
 msgid "Custom local server"
 msgstr "Собственный локальный сервер"
 
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "Направить Mixar на уже запущенный вами OpenAI-совместимый сервер (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "Направить Lampway на уже запущенный вами OpenAI-совместимый сервер (Ollama, LM Studio, llama.cpp, ...)"
 
 msgid "Invalid form data — please reach out to support."
 msgstr "Недопустимые данные формы — обратитесь в поддержку."
@@ -1553,8 +1553,8 @@ msgstr "Модель не выбрана"
 msgid "Reset Agent Model"
 msgstr "Сбросить модель агента"
 
-msgid "Clear the saved model and let Mixar choose"
-msgstr "Очистить сохранённую модель и предоставить выбор Mixar"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "Очистить сохранённую модель и предоставить выбор Lampway"
 
 msgid "Could not change model"
 msgstr "Не удалось сменить модель"
@@ -1577,8 +1577,8 @@ msgstr "Активный"
 msgid "Not configured"
 msgstr "Не настроено"
 
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "Запускайте агента Mixar через собственного провайдера — пока это включено, кредиты Mixar не списываются."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "Запускайте агента Lampway через собственного провайдера — пока это включено, кредиты Lampway не списываются."
 
 msgid "Current Configuration"
 msgstr "Текущая конфигурация"
@@ -1604,8 +1604,8 @@ msgstr "Удалить API-ключ…"
 msgid "Provider Setup"
 msgstr "Настройка провайдера"
 
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "Хранится в зашифрованном виде и используется только для запросов агента Mixar — после сохранения отображается лишь замаскированный фрагмент."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "Хранится в зашифрованном виде и используется только для запросов агента Lampway — после сохранения отображается лишь замаскированный фрагмент."
 
 msgid "Pick a model that supports tool / function calling — the agent needs it."
 msgstr "Выберите модель с поддержкой вызова инструментов / функций — это нужно агенту."
@@ -1631,8 +1631,8 @@ msgstr "Выполните  codex login  в терминале, затем за�
 msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "содержимое ~/.codex/auth.json (кнопка вставки читает буфер обмена)."
 
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "Используется ваша подписка ChatGPT — кредиты Mixar не списываются."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "Используется ваша подписка ChatGPT — кредиты Lampway не списываются."
 
 msgid "Couldn't apply your changes"
 msgstr "Не удалось применить изменения"
@@ -1640,23 +1640,23 @@ msgstr "Не удалось применить изменения"
 msgid "Remove your API key?"
 msgstr "Удалить ваш API-ключ?"
 
-msgid "The agent will use Mixar's default provider again."
-msgstr "Агент снова будет использовать провайдера Mixar по умолчанию."
+msgid "The agent will use Lampway's default provider again."
+msgstr "Агент снова будет использовать провайдера Lampway по умолчанию."
 
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "За последующие запросы агента будут списываться кредиты Mixar."
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "За последующие запросы агента будут списываться кредиты Lampway."
 
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "Теперь агент Mixar работает через вашего провайдера — кредиты Mixar не списываются."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "Теперь агент Lampway работает через вашего провайдера — кредиты Lampway не списываются."
 
 msgid "API key removed"
 msgstr "API-ключ удалён"
 
-msgid "The agent is back on Mixar's default provider."
-msgstr "Агент снова использует провайдера Mixar по умолчанию."
+msgid "The agent is back on Lampway's default provider."
+msgstr "Агент снова использует провайдера Lampway по умолчанию."
 
-msgid "Mixar credits are charged for agent requests again."
-msgstr "За запросы агента снова списываются кредиты Mixar."
+msgid "Lampway credits are charged for agent requests again."
+msgstr "За запросы агента снова списываются кредиты Lampway."
 
 msgid "Try Again"
 msgstr "Повторить"
@@ -1691,8 +1691,8 @@ msgstr "Скачана — не запущена"
 msgid "Not downloaded"
 msgstr "Не скачана"
 
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "Работает полностью на этом компьютере — ваши промпты покидают его только через оркестрацию агентов Mixar."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "Работает полностью на этом компьютере — ваши промпты покидают его только через оркестрацию агентов Lampway."
 
 msgid "Cancel Download"
 msgstr "Отменить загрузку"
@@ -1730,8 +1730,8 @@ msgstr "Повторный поиск локальных приложений"
 msgid "Rescan this computer for running local AI apps"
 msgstr "Повторно найти на этом компьютере запущенные локальные ИИ-приложения"
 
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "Использовать собственный API-ключ для агента Mixar. Пока это включено, кредиты Mixar за запросы агента не списываются."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "Использовать собственный API-ключ для агента Lampway. Пока это включено, кредиты Lampway за запросы агента не списываются."
 
 msgid "Validate with the provider and save your API key"
 msgstr "Проверить API-ключ у провайдера и сохранить его"
@@ -1844,8 +1844,8 @@ msgstr "Провайдер LLM"
 msgid "Model to use with the selected provider"
 msgstr "Модель для выбранного провайдера"
 
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "Ваш API-ключ хранится в зашифрованном виде и используется только для запросов агента Mixar. После сохранения отображается лишь замаскированный фрагмент."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "Ваш API-ключ хранится в зашифрованном виде и используется только для запросов агента Lampway. После сохранения отображается лишь замаскированный фрагмент."
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "Любой идентификатор модели с openrouter.ai/models (например, anthropic/claude-opus-4.8)"
@@ -1859,8 +1859,8 @@ msgstr "Содержимое ~/.codex/auth.json (сначала выполнит
 msgid "Local mode"
 msgstr "Локальный режим"
 
-msgid "Managed by Mixar, or your own local server"
-msgstr "Под управлением Mixar или ваш собственный локальный сервер"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Под управлением Lampway или ваш собственный локальный сервер"
 
 msgid "Local model"
 msgstr "Локальная модель"
@@ -1889,11 +1889,11 @@ msgstr "Истинно, когда сервер сообщает byok_active д�
 msgid "Dialog State"
 msgstr "Состояние диалога"
 
-msgid "Set Mixie Mode"
-msgstr "Задать режим Mixie"
+msgid "Set Lampway Agent Mode"
+msgstr "Задать режим Lampway Agent"
 
-msgid "Switch to a specific Mixie mode"
-msgstr "Переключиться на определённый режим Mixie"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "Переключиться на определённый режим Lampway Agent"
 
 msgid "Mode"
 msgstr "Режим"
@@ -1928,8 +1928,8 @@ msgstr "Высокое"
 msgid "Non-contiguous enum value 27"
 msgstr "Несмежное значение перечисления 27"
 
-msgid "Mixie v3 run active"
-msgstr "Запуск Mixie v3 активен"
+msgid "Lampway Agent v3 run active"
+msgstr "Запуск Lampway Agent v3 активен"
 
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
 msgstr "Сервер отклонил запрос синхронизации истории. Обновите приложение и бэкэнд, затем переподключитесь."
@@ -2420,10 +2420,10 @@ msgstr "Тип пространства, на который нужно пере
 msgid "No active area"
 msgstr "Нет активной области"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2438,8 +2438,8 @@ msgstr "Локальное действие галереи"
 msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "Увеличить счётчик тестовых данных разработчика; без генерации и изменений сцены"
 
-msgid "Mixar UI Gallery"
-msgstr "Галерея интерфейса Mixar"
+msgid "Lampway UI Gallery"
+msgstr "Галерея интерфейса Lampway"
 
 msgid "Inspect shared native components using local fixture data"
 msgstr "Просмотреть общие нативные компоненты на локальных тестовых данных"
@@ -2468,8 +2468,8 @@ msgstr "Конфиденциальность"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "Согласие на телеметрию, размещённое там, где пользователи обычно ищут возможность отказа."
 
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "Передаёт сведения о том, какими функциями Mixar вы пользуетесь, чтобы помочь улучшить продукт."
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "Передаёт сведения о том, какими функциями Lampway вы пользуетесь, чтобы помочь улучшить продукт."
 
 msgid "Your prompts, files, and scene content are never included."
 msgstr "Ваши промпты, файлы и содержимое сцен никогда не передаются."
@@ -2477,7 +2477,7 @@ msgstr "Ваши промпты, файлы и содержимое сцен н�
 msgid "Privacy Policy"
 msgstr "Политика конфиденциальности"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -2603,8 +2603,8 @@ msgstr "Нативный"
 msgid "Blender theme"
 msgstr "Тема Blender"
 
-msgid "Legacy Mixar"
-msgstr "Прежний Mixar"
+msgid "Legacy Lampway"
+msgstr "Прежний Lampway"
 
 msgid "Compatibility profile"
 msgstr "Профиль совместимости"
@@ -2624,11 +2624,11 @@ msgstr "Компактно"
 msgid "Denser chrome recipe"
 msgstr "Более плотное оформление"
 
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "Переместите Mixar в папку «Программы», чтобы обновлять его на месте"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "Переместите Lampway в папку «Программы», чтобы обновлять его на месте"
 
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar запущен не из пакета приложения"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway запущен не из пакета приложения"
 
 msgid "No permission to update {path}"
 msgstr "Нет прав на обновление {path}"
@@ -2660,8 +2660,8 @@ msgstr "Скачанный установщик отсутствует"
 msgid "Could not start the updater"
 msgstr "Не удалось запустить программу обновления"
 
-msgid "Mixar didn't close"
-msgstr "Mixar не закрылся"
+msgid "Lampway didn't close"
+msgstr "Lampway не закрылся"
 
 msgid "In-app updates aren't supported on this platform"
 msgstr "Обновления в приложении не поддерживаются на этой платформе"
@@ -2687,32 +2687,32 @@ msgstr "Скачано: {size}"
 msgid "Starting download…"
 msgstr "Начало скачивания…"
 
-msgid "Downloading Mixar {version}"
-msgstr "Скачивание Mixar {version}"
+msgid "Downloading Lampway {version}"
+msgstr "Скачивание Lampway {version}"
 
-msgid "Mixar will restart to finish updating."
-msgstr "Mixar перезапустится, чтобы завершить обновление."
+msgid "Lampway will restart to finish updating."
+msgstr "Lampway перезапустится, чтобы завершить обновление."
 
-msgid "Mixar Update Ready"
-msgstr "Обновление Mixar готово"
+msgid "Lampway Update Ready"
+msgstr "Обновление Lampway готово"
 
 msgid "Version {version} is ready to install."
 msgstr "Версия {version} готова к установке."
 
-msgid "Mixar Update Required"
-msgstr "Требуется обновление Mixar"
+msgid "Lampway Update Required"
+msgstr "Требуется обновление Lampway"
 
-msgid "Mixar Update Available"
-msgstr "Доступно обновление Mixar"
+msgid "Lampway Update Available"
+msgstr "Доступно обновление Lampway"
 
 msgid "Version {version} is available."
 msgstr "Доступна версия {version}."
 
-msgid "This update is required to continue using Mixar."
-msgstr "Это обновление необходимо для дальнейшего использования Mixar."
+msgid "This update is required to continue using Lampway."
+msgstr "Это обновление необходимо для дальнейшего использования Lampway."
 
-msgid "Mixar will restart to apply it."
-msgstr "Mixar перезапустится, чтобы применить его."
+msgid "Lampway will restart to apply it."
+msgstr "Lampway перезапустится, чтобы применить его."
 
 msgid "{error} — use Download to update via your browser."
 msgstr "{error} — нажмите «Скачать», чтобы обновиться через браузер."
@@ -2729,11 +2729,11 @@ msgstr "Нажмите «Перезапустить и обновить», чт�
 msgid "Update paused"
 msgstr "Обновление приостановлено"
 
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar не закрылся, поэтому обновление не установлено."
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway не закрылся, поэтому обновление не установлено."
 
-msgid "Mixar is up to date"
-msgstr "Установлена последняя версия Mixar"
+msgid "Lampway is up to date"
+msgstr "Установлена последняя версия Lampway"
 
 msgid "You're running the latest version ({version})."
 msgstr "У вас последняя версия ({version})."
@@ -2747,11 +2747,11 @@ msgstr "Проверьте подключение к интернету и по�
 msgid "Update didn't take effect"
 msgstr "Обновление не применилось"
 
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Установлен Mixar {target}, но запустилась версия {running}. Переустановите со страницы загрузок."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Установлен Lampway {target}, но запустилась версия {running}. Переустановите со страницы загрузок."
 
-msgid "Updated to Mixar {version}"
-msgstr "Mixar обновлён до версии {version}"
+msgid "Updated to Lampway {version}"
+msgstr "Lampway обновлён до версии {version}"
 
 msgid "The update was installed successfully."
 msgstr "Обновление успешно установлено."
@@ -2765,8 +2765,8 @@ msgstr "{reason} Вы можете скачать обновление со ст
 msgid "Update was not installed"
 msgstr "Обновление не установлено"
 
-msgid "Mixar was still running when the installer tried to start."
-msgstr "Mixar ещё работал, когда установщик попытался запуститься."
+msgid "Lampway was still running when the installer tried to start."
+msgstr "Lampway ещё работал, когда установщик попытался запуститься."
 
 msgid "The downloaded installer failed its signature check."
 msgstr "Скачанный установщик не прошёл проверку подписи."
@@ -2774,8 +2774,8 @@ msgstr "Скачанный установщик не прошёл проверк
 msgid "The downloaded installer could not be opened."
 msgstr "Не удалось открыть скачанный установщик."
 
-msgid "Mixar could not be replaced on disk."
-msgstr "Не удалось заменить Mixar на диске."
+msgid "Lampway could not be replaced on disk."
+msgstr "Не удалось заменить Lampway на диске."
 
 msgid "The installation was cancelled."
 msgstr "Установка отменена."
@@ -2786,8 +2786,8 @@ msgstr "Установщик Windows сообщил о критической о
 msgid "The installer did not finish."
 msgstr "Установщик не завершил работу."
 
-msgid "Restart Mixar and install the downloaded update"
-msgstr "Перезапустить Mixar и установить скачанное обновление"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "Перезапустить Lampway и установить скачанное обновление"
 
 msgid "Save Changes"
 msgstr "Сохранить изменения"
@@ -2795,14 +2795,14 @@ msgstr "Сохранить изменения"
 msgid "Save the current file before restarting"
 msgstr "Сохранить текущий файл перед перезапуском"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "Скачивание обновления — Mixar перезапустится, когда оно будет готово"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "Скачивание обновления — Lampway перезапустится, когда оно будет готово"
 
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar закроется и обновится до версии {version}."
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway закроется и обновится до версии {version}."
 
 msgid "It reopens automatically when the update is done."
 msgstr "После обновления он откроется автоматически."
@@ -2831,14 +2831,14 @@ msgstr "Остановить скачивание обновления"
 msgid "This update is required and cannot be cancelled"
 msgstr "Это обновление обязательно, его нельзя отменить"
 
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "Открыть страницу загрузок Mixar в браузере по умолчанию"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "Открыть страницу загрузок Lampway в браузере по умолчанию"
 
 msgid "Check for Updates"
 msgstr "Проверить обновления"
 
-msgid "Check whether a newer version of Mixar is available"
-msgstr "Проверить, доступна ли новая версия Mixar"
+msgid "Check whether a newer version of Lampway is available"
+msgstr "Проверить, доступна ли новая версия Lampway"
 
 msgid "An update check is already in progress"
 msgstr "Проверка обновлений уже выполняется"
@@ -2849,8 +2849,8 @@ msgstr "Проверка обновлений…"
 msgid "Update Available"
 msgstr "Доступно обновление"
 
-msgid "Show details for the pending Mixar update"
-msgstr "Показать сведения об ожидающем обновлении Mixar"
+msgid "Show details for the pending Lampway update"
+msgstr "Показать сведения об ожидающем обновлении Lampway"
 
 msgid "View Changelog"
 msgstr "Список изменений"
@@ -2969,14 +2969,14 @@ msgstr "Отображаемое имя для приветствия аккау
 msgid "Newer File Version"
 msgstr "Более новая версия файла"
 
-msgid "Warn user that the file was saved by a newer Mixar version"
-msgstr "Предупреждение о том, что файл сохранён более новой версией Mixar"
+msgid "Warn user that the file was saved by a newer Lampway version"
+msgstr "Предупреждение о том, что файл сохранён более новой версией Lampway"
 
 msgid "File Version"
 msgstr "Версия файла"
 
-msgid "This file was saved by Mixar version {version}."
-msgstr "Этот файл сохранён в Mixar версии {version}."
+msgid "This file was saved by Lampway version {version}."
+msgstr "Этот файл сохранён в Lampway версии {version}."
 
 msgid "Some data may be missing or incorrect."
 msgstr "Некоторые данные могут отсутствовать или быть некорректными."
@@ -2990,8 +2990,8 @@ msgstr "Нет меш-объектов для экспорта"
 msgid "Start Connector Sidecar"
 msgstr "Запустить сайдкар коннектора"
 
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "Открыть хабу доступ к Mixar через локальный HTTP (loopback)"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "Открыть хабу доступ к Lampway через локальный HTTP (loopback)"
 
 msgid "Connector sidecar on 127.0.0.1:{port}"
 msgstr "Сайдкар коннектора на 127.0.0.1:{port}"
@@ -2999,8 +2999,8 @@ msgstr "Сайдкар коннектора на 127.0.0.1:{port}"
 msgid "Export Scene to Unreal"
 msgstr "Экспортировать сцену в Unreal"
 
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "Экспортировать текущую сцену Mixar в USD/FBX/GLB, готовый для Unreal"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "Экспортировать текущую сцену Lampway в USD/FBX/GLB, готовый для Unreal"
 
 msgid "Exported {filename} ({count} meshes)"
 msgstr "Экспортирован {filename} (мешей: {count})"
@@ -3020,8 +3020,8 @@ msgstr "Хаб :7734 · Unreal MCP :8000/mcp · UnrealMCP TCP :55557"
 msgid "Hub Sidecar"
 msgstr "Сайдкар хаба"
 
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "Открыть mixar-connector доступ к этому сеансу Mixar через локальный HTTP (loopback)"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "Открыть mixar-connector доступ к этому сеансу Lampway через локальный HTTP (loopback)"
 
 msgid "Sidecar Port"
 msgstr "Порт сайдкара"
@@ -3065,7 +3065,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3119,8 +3119,8 @@ msgstr ""
 msgid "Folders the agent can read, view and import from while it works on this chat"
 msgstr ""
 
-msgid "Mixar Shot Camera"
-msgstr "Камера шота Mixar"
+msgid "Lampway Shot Camera"
+msgstr "Камера шота Lampway"
 
 msgid "Shot"
 msgstr "Шот"
@@ -3563,8 +3563,8 @@ msgstr "У шота нет камеры"
 msgid "Capture at least one camera beat before locking"
 msgstr "Перед блокировкой захватите хотя бы один бит камеры"
 
-msgid "Mixar Focus"
-msgstr "Фокус Mixar"
+msgid "Lampway Focus"
+msgstr "Фокус Lampway"
 
 msgid "Rendering…"
 msgstr "Рендеринг…"
@@ -4241,8 +4241,8 @@ msgstr "Прогресс рендеринга"
 msgid "Render Status"
 msgstr "Состояние рендеринга"
 
-msgid "Mixar Camera Export"
-msgstr "Экспорт камеры Mixar"
+msgid "Lampway Camera Export"
+msgstr "Экспорт камеры Lampway"
 
 msgid "Export this scene's camera animation to the Moodboard"
 msgstr "Экспортирует анимацию камеры этой сцены на мудборд"
@@ -4493,14 +4493,14 @@ msgstr ""
 msgid "Blender's Auto Keying (the Timeline's record button): key the camera after every move, and record a take while the timeline plays"
 msgstr ""
 
-msgid "Mixar Director"
-msgstr "Mixar Director"
+msgid "Lampway Director"
+msgstr "Lampway Director"
 
 msgid "Sparse camera-direction shots for this scene"
 msgstr "Разреженные шоты режиссуры камеры для этой сцены"
 
-msgid "Mixar Output"
-msgstr "Вывод Mixar"
+msgid "Lampway Output"
+msgstr "Вывод Lampway"
 
 msgid "Output aspect ratio this camera frames for"
 msgstr "Выходное соотношение сторон, под которое кадрирует эта камера"
@@ -4964,19 +4964,19 @@ msgstr "Модель локального сервера"
 msgid "Local model last error"
 msgstr "Последняя ошибка локальной модели"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -5012,7 +5012,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5024,7 +5024,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -5033,16 +5033,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -5057,13 +5057,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -5084,10 +5084,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -5096,19 +5096,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -5120,16 +5120,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -7789,26 +7789,26 @@ msgstr "Текст ошибки"
 msgid "Error message if job failed"
 msgstr "Сообщение об ошибке, если задача не выполнена"
 
-msgid "Mixie Moodboard Images"
-msgstr "Изображения мудборда Mixie"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Изображения мудборда Lampway Agent"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "Коллекция референсных изображений в режиме мудборда"
 
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Текстовые поля мудборда Mixie"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Текстовые поля мудборда Lampway Agent"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "Коллекция текстовых полей в режиме мудборда"
 
-msgid "Mixie Moodboard Frames"
-msgstr "Рамки мудборда Mixie"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Рамки мудборда Lampway Agent"
 
 msgid "Canvas frames grouping board items"
 msgstr "Рамки холста, группирующие элементы доски"
 
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Группы мудборда Mixie (устаревшее)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Группы мудборда Lampway Agent (устаревшее)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "Заменено на mixie_moodboard_frames; сохранено для миграции"
@@ -8917,7 +8917,7 @@ msgstr "Синхронизировано изображений мудборда
 msgid "Attach Selected Moodboard Image"
 msgstr "Прикрепить выбранное изображение мудборда"
 
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
 msgstr ""
 
 msgid "Nothing selected to copy"
@@ -9244,7 +9244,7 @@ msgstr "Не удалось прочитать буфер обмена: {error}"
 msgid "Paste"
 msgstr "Вставить"
 
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
 msgstr ""
 
 msgid "Pasted {count} item"
@@ -10642,13 +10642,13 @@ msgstr "Аннотации мудборда"
 msgid "Moodboard Started"
 msgstr ""
 
-msgid "Welcome to Mixar"
-msgstr "Добро пожаловать в Mixar"
+msgid "Welcome to Lampway"
+msgstr "Добро пожаловать в Lampway"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -10669,20 +10669,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
-msgid "Mixar Operation History ID"
-msgstr "ID истории операций Mixar"
+msgid "Lampway Operation History ID"
+msgstr "ID истории операций Lampway"
 
 msgid "Persistent per-scene id keying this scene's operation history."
 msgstr "Постоянный идентификатор сцены, по которому хранится её история операций."
@@ -13051,8 +13051,8 @@ msgstr "Имя экспортируемого канала"
 msgid "File format for export"
 msgstr "Формат файла для экспорта"
 
-msgid "No active Mixar node found"
-msgstr "Активная нода Mixar не найдена"
+msgid "No active Lampway node found"
+msgstr "Активная нода Lampway не найдена"
 
 msgid "Exported '{name}' to {path}"
 msgstr "«{name}» экспортировано в {path}"
@@ -13201,8 +13201,8 @@ msgstr "Запекает временное изображение слоя; п�
 msgid "Bake Temporary Image"
 msgstr "Запечь временное изображение"
 
-msgid "No active Mixar node found!"
-msgstr "Активная нода Mixar не найдена!"
+msgid "No active Lampway node found!"
+msgstr "Активная нода Lampway не найдена!"
 
 msgid "No active layer found!"
 msgstr "Активный слой не найден!"
@@ -13345,8 +13345,8 @@ msgstr "Запечь канал в цвет вершин"
 msgid "Bake All Materials"
 msgstr "Запекать все материалы"
 
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "Запекает все материалы с нодами Mixar Paint, а не только активный"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "Запекает все материалы с нодами Lampway Paint, а не только активный"
 
 msgid "Target Vertex Color Name"
 msgstr "Имя целевого цвета вершин"
@@ -13574,8 +13574,8 @@ msgstr ""
 msgid "Copy Image Path To Clipboard"
 msgstr "Копировать путь к изображению в буфер обмена"
 
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint: копирует путь к файлу изображения в системный буфер обмена"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint: копирует путь к файлу изображения в системный буфер обмена"
 
 msgid "Copied: {text}"
 msgstr "Скопировано: {text}"
@@ -13583,8 +13583,8 @@ msgstr "Скопировано: {text}"
 msgid "Open Containing Image Folder"
 msgstr "Открыть папку с изображением"
 
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint: открывает папку с файлом изображения и выделяет его"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint: открывает папку с файлом изображения и выделяет его"
 
 msgid "File does not exist"
 msgstr "Файл не существует"
@@ -15054,8 +15054,8 @@ msgstr "Включает маску"
 msgid "Active Mask"
 msgstr "Активная маска"
 
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Активная маска для режимов рисования и редактирования Blender или режима предпросмотра масок Mixar Paint"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Активная маска для режимов рисования и редактирования Blender или режима предпросмотра масок Lampway Paint"
 
 msgid "Mask Source Input"
 msgstr "Входной источник маски"
@@ -15156,14 +15156,14 @@ msgstr "Запечь все каналы"
 msgid "Delete Baked Images"
 msgstr "Удалить запечённые изображения"
 
-msgid "New Mixar Paint Modifier"
-msgstr "Новый модификатор Mixar Paint"
+msgid "New Lampway Paint Modifier"
+msgstr "Новый модификатор Lampway Paint"
 
-msgid "Move Mixar Paint Modifier"
-msgstr "Переместить модификатор Mixar Paint"
+msgid "Move Lampway Paint Modifier"
+msgstr "Переместить модификатор Lampway Paint"
 
-msgid "Remove Mixar Paint Modifier"
-msgstr "Удалить модификатор Mixar Paint"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Удалить модификатор Lampway Paint"
 
 msgid "Add Channel Modifier"
 msgstr "Добавить модификатор канала"
@@ -15297,8 +15297,8 @@ msgstr "Канал «{name}» уже существует"
 msgid "Build Layered Material"
 msgstr "Собрать многослойный материал"
 
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "Собирает материал Mixar Paint по манифесту многослойного материала"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "Собирает материал Lampway Paint по манифесту многослойного материала"
 
 msgid "Manifest JSON"
 msgstr "JSON манифеста"
@@ -15921,8 +15921,8 @@ msgstr "Переименовывает этот слой"
 msgid "New name for the layer"
 msgstr "Новое имя слоя"
 
-msgid "No active Mixar node"
-msgstr "Нет активной ноды Mixar"
+msgid "No active Lampway node"
+msgstr "Нет активной ноды Lampway"
 
 msgid "Name cannot be empty"
 msgstr "Имя не может быть пустым"
@@ -16071,11 +16071,11 @@ msgstr "Возвращает к свойствам слоя"
 msgid "Add different types of masks to the active layer"
 msgstr "Добавляет маски разных типов к активному слою"
 
-msgid "Remove Mixar Paint Node"
-msgstr "Удалить ноду Mixar Paint"
+msgid "Remove Lampway Paint Node"
+msgstr "Удалить ноду Lampway Paint"
 
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Удаляет ноду Mixar Paint, сохраняя все запечённые изображения каналов"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Удаляет ноду Lampway Paint, сохраняя все запечённые изображения каналов"
 
 msgid "This {addon} node setup isn't baked yet!"
 msgstr "Эта структура нод {addon} ещё не запечена!"
@@ -16227,8 +16227,8 @@ msgstr "Применяет материал к активному слою за�
 msgid "Material '{name}' not found in registry"
 msgstr "Материал «{name}» не найден в реестре"
 
-msgid "No active Mixar Paint node found"
-msgstr "Активная нода Mixar Paint не найдена"
+msgid "No active Lampway Paint node found"
+msgstr "Активная нода Lampway Paint не найдена"
 
 msgid "Applied material '{name}' to existing layer"
 msgstr "Материал «{name}» применён к существующему слою"
@@ -16431,8 +16431,8 @@ msgstr "Нет активного материала на основе слоё�
 msgid "To use texture baking:"
 msgstr "Чтобы запечь текстуры:"
 
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. Выделите объект с материалом Mixar"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. Выделите объект с материалом Lampway"
 
 msgid "  2. Or create a new layer-based material"
 msgstr "  2. Или создайте новый материал на основе слоёв"
@@ -16533,8 +16533,8 @@ msgstr "Бэкэнд рисования не инициализирован"
 msgid "Paint UI not initialized"
 msgstr "Интерфейс рисования не инициализирован"
 
-msgid "No Mixar material found"
-msgstr "Материал Mixar не найден"
+msgid "No Lampway material found"
+msgstr "Материал Lampway не найден"
 
 msgid "No layer based material"
 msgstr "Нет материала на основе слоёв"
@@ -16551,8 +16551,8 @@ msgstr "Слой не выбран"
 msgid "No active material"
 msgstr "Нет активного материала"
 
-msgid "No Mixar node found"
-msgstr "Нода Mixar не найдена"
+msgid "No Lampway node found"
+msgstr "Нода Lampway не найдена"
 
 msgid "Backend layer not found"
 msgstr "Слой бэкэнда не найден"
@@ -17227,17 +17227,17 @@ msgstr "Слой сейчас в фокусе/выделен"
 msgid "How this layer blends with layers below"
 msgstr "Как этот слой смешивается с нижележащими слоями"
 
-msgid "Mixar Layer Index"
-msgstr "Индекс слоя Mixar"
+msgid "Lampway Layer Index"
+msgstr "Индекс слоя Lampway"
 
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "Индекс в коллекции mixar_mp.layers Mixar"
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "Индекс в коллекции mixar_mp.layers Lampway"
 
-msgid "Mixar Group Node"
-msgstr "Групповая нода Mixar"
+msgid "Lampway Group Node"
+msgstr "Групповая нода Lampway"
 
-msgid "Name of the Mixar group node"
-msgstr "Имя групповой ноды Mixar"
+msgid "Name of the Lampway group node"
+msgstr "Имя групповой ноды Lampway"
 
 msgid "Updating Property"
 msgstr "Свойство обновляется"
@@ -18312,8 +18312,8 @@ msgstr "Цвет другого объекта"
 msgid "Other Objects Channels"
 msgstr "Каналы других объектов"
 
-msgid "Other object's Mixar Paint channels"
-msgstr "Каналы Mixar Paint другого объекта"
+msgid "Other object's Lampway Paint channels"
+msgstr "Каналы Lampway Paint другого объекта"
 
 msgid "Selected Vertices/Edges/Faces"
 msgstr "Выделенные вершины/рёбра/грани"
@@ -18639,17 +18639,17 @@ msgstr ""
 msgid "Blender"
 msgstr "Blender"
 
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
 msgstr ""
 
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
 msgstr ""
 
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "не удалось включить (возможно, несовместимо с Blender 5.0)"
 
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
-msgstr "Перенесите аддоны и расширения из установленного Blender в Mixar."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
+msgstr "Перенесите аддоны и расширения из установленного Blender в Lampway."
 
 msgid "Scan for Blender Plugins"
 msgstr "Найти плагины Blender"
@@ -18672,14 +18672,14 @@ msgstr "Включить после импорта:"
 msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "Копируются все плагины из списка; отмеченные будут включены."
 
-msgid "Import into Mixar"
-msgstr "Импортировать в Mixar"
+msgid "Import into Lampway"
+msgstr "Импортировать в Lampway"
 
 msgid "Imported"
 msgstr "Импортирован"
 
-msgid "Already in Mixar"
-msgstr "Уже есть в Mixar"
+msgid "Already in Lampway"
+msgstr "Уже есть в Lampway"
 
 msgid "Copy failed"
 msgstr "Ошибка копирования"
@@ -18705,11 +18705,11 @@ msgstr "Выбрать плагины"
 msgid "Tick or untick every plugin in the list"
 msgstr "Отмечает или снимает отметку со всех плагинов в списке"
 
-msgid "Import Plugins into Mixar"
-msgstr "Импортировать плагины в Mixar"
+msgid "Import Plugins into Lampway"
+msgstr "Импортировать плагины в Lampway"
 
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
-msgstr "Копирует все плагины из списка в Mixar и включает отмеченные"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
+msgstr "Копирует все плагины из списка в Lampway и включает отмеченные"
 
 msgid "Nothing scanned — run Scan first"
 msgstr "Поиск не выполнялся — сначала выполните поиск"
@@ -18726,8 +18726,8 @@ msgstr "Импортировано: {imported}, уже есть: {already_presen
 msgid "Imported: {count}"
 msgstr "Импортировано: {count}"
 
-msgid "Already in Mixar: {count}"
-msgstr "Уже есть в Mixar: {count}"
+msgid "Already in Lampway: {count}"
+msgstr "Уже есть в Lampway: {count}"
 
 msgid "Enabled: {count}"
 msgstr "Включено: {count}"
@@ -18744,8 +18744,8 @@ msgstr "Импорт из Blender"
 msgid "{count} found"
 msgstr "Найдено: {count}"
 
-msgid "Enable this plugin in Mixar after importing it"
-msgstr "Включает этот плагин в Mixar после импорта"
+msgid "Enable this plugin in Lampway after importing it"
+msgstr "Включает этот плагин в Lampway после импорта"
 
 msgid "Blender Version"
 msgstr "Версия Blender'а"
@@ -18798,14 +18798,14 @@ msgstr ""
 msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
-msgid "Mixar Scene Graph"
-msgstr "Граф сцены Mixar"
+msgid "Lampway Scene Graph"
+msgstr "Граф сцены Lampway"
 
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "Граф сцены (JSON), читаемый агентом, для каждой сцены. Только во время работы."
 
-msgid "Mixar Scene Graph Query Result"
-msgstr "Результат запроса к графу сцены Mixar"
+msgid "Lampway Scene Graph Query Result"
+msgstr "Результат запроса к графу сцены Lampway"
 
 msgid "JSON result of the last scene-graph query operator call."
 msgstr "JSON-результат последнего вызова оператора запроса к графу сцены."
@@ -19524,8 +19524,8 @@ msgstr "Для видео нужен режим «Видео». Удалите �
 msgid "User ID"
 msgstr "ID пользователя"
 
-msgid "User ID for Mixie Chat login"
-msgstr "ID пользователя для входа в чат Mixie"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "ID пользователя для входа в чат Lampway Agent"
 
 msgid "Agent expects: {formats}"
 msgstr "Агент ожидает: {formats}"
@@ -19983,11 +19983,11 @@ msgstr "Завершите рукописный ввод, прежде чем н
 msgid "Sign in to use voice input."
 msgstr "Войдите, чтобы использовать голосовой ввод."
 
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "Запустите Mixar из Finder, чтобы разрешить доступ к микрофону."
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "Запустите Lampway из Finder, чтобы разрешить доступ к микрофону."
 
-msgid "Allow microphone access for Mixar in system privacy settings."
-msgstr "Разрешите Mixar доступ к микрофону в системных настройках конфиденциальности."
+msgid "Allow microphone access for Lampway in system privacy settings."
+msgstr "Разрешите Lampway доступ к микрофону в системных настройках конфиденциальности."
 
 msgid "Allow microphone"
 msgstr "Разрешить микрофон"
@@ -20034,8 +20034,8 @@ msgstr "Войдите снова."
 msgid "Login Failed"
 msgstr "Ошибка входа"
 
-msgid "Sign in with your Mixar account"
-msgstr "Войдите с аккаунтом Mixar"
+msgid "Sign in with your Lampway account"
+msgstr "Войдите с аккаунтом Lampway"
 
 msgid "Waiting for browser..."
 msgstr "Ожидание браузера..."
@@ -20063,8 +20063,8 @@ msgstr ""
 msgid "Dashboard"
 msgstr "Панель управления"
 
-msgid "About Mixar"
-msgstr "О Mixar"
+msgid "About Lampway"
+msgstr "О Lampway"
 
 msgid "Documentation"
 msgstr "Документация"
@@ -20566,8 +20566,8 @@ msgstr ""
 msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} scene(s))."
 msgstr "Экспортирована копия без чата (пропущено сообщений: {count}, сцен: {scenes})."
 
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Чат Mixar: экспорт .blend без истории чата"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Чат Lampway: экспорт .blend без истории чата"
 
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
 msgstr "Генерация сейчас недоступна. Обновите каталог и повторите попытку."
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Добавить правила"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "Задаёт правила для Mixie. Изменения применяются со следующего сообщения или ответа; глобальные правила действуют в каждом файле Mixar. Текущий запрос имеет приоритет над правилами проекта и глобальными правилами"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Задаёт правила для Mixie. Изменения применяются со следующего сообщения или ответа; глобальные правила действуют в каждом файле Lampway. Текущий запрос имеет приоритет над правилами проекта и глобальными правилами"
 
 msgid "Rule operation failed"
 msgstr "Не удалось выполнить операцию с правилом"
@@ -22138,8 +22138,8 @@ msgstr "Текст последнего извлечённого события 
 msgid "Materials: {count}"
 msgstr "Материалы: {count}"
 
-msgid "No Mixar material active"
-msgstr "Нет активного материала Mixar"
+msgid "No Lampway material active"
+msgstr "Нет активного материала Lampway"
 
 msgid "{channel} Settings"
 msgstr "Настройки: {channel}"
@@ -22801,8 +22801,8 @@ msgstr "Масштаб по Y"
 msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "Масштабирует выделенные UV по оси Y (с шагом)"
 
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Свойства инструмента аннотаций для пространства UV-свойств Mixar."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Свойства инструмента аннотаций для пространства UV-свойств Lampway."
 
 msgid "Annotate Line"
 msgstr "Линия аннотации"
@@ -22828,14 +22828,14 @@ msgstr "Стиль - Начало"
 msgid "Toggle UV Sidebar"
 msgstr "Переключить боковую панель UV"
 
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "Показывает или скрывает боковую панель UV Mixar в редакторе изображений"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "Показывает или скрывает боковую панель UV Lampway в редакторе изображений"
 
 msgid "Open UV Sidebar"
 msgstr "Открыть боковую панель UV"
 
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Открывает боковую панель UV Mixar, если она скрыта"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Открывает боковую панель UV Lampway, если она скрыта"
 
 msgid "Empty state shown when no UV properties are available"
 msgstr "Пустое состояние, показываемое при отсутствии UV-свойств"
@@ -22858,8 +22858,8 @@ msgstr "Экспортировать UV-развёртку"
 msgid "Export UV layout using stored properties"
 msgstr "Экспортирует UV-раскладку с сохранёнными свойствами"
 
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "Панель экспорта UV для пространства UV-свойств Mixar"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "Панель экспорта UV для пространства UV-свойств Lampway"
 
 msgid "UV UI not initialized"
 msgstr "Интерфейс UV не инициализирован"
@@ -22975,8 +22975,8 @@ msgstr "Вставить UV-развёртки"
 msgid "Functions"
 msgstr "Функции"
 
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Панель UV-функций для пространства UV-свойств Mixar — на основе инструментов (без кнопки в заголовке)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Панель UV-функций для пространства UV-свойств Lampway — на основе инструментов (без кнопки в заголовке)"
 
 msgid "Seam"
 msgstr "Шов"
@@ -23104,8 +23104,8 @@ msgstr "В UV-редакторе нет изображения"
 msgid "Material '{name}' created and applied"
 msgstr "Материал «{name}» создан и применён"
 
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Панель изображения для пространства UV-свойств Mixar."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Панель изображения для пространства UV-свойств Lampway."
 
 msgid "Save As"
 msgstr "Сохранить как"
@@ -23137,8 +23137,8 @@ msgstr "Размер изображения"
 msgid "Invert All Colors"
 msgstr "Инвертировать все цвета"
 
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Панель слотов материалов для пространства UV-свойств Mixar"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Панель слотов материалов для пространства UV-свойств Lampway"
 
 msgid "No active object"
 msgstr "Нет активного объекта"
@@ -23182,8 +23182,8 @@ msgstr "Создать особые области в UV-пространств�
 msgid "{label} unavailable"
 msgstr "{label}: недоступно"
 
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Панель разметки для пространства UV-свойств Mixar."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Панель разметки для пространства UV-свойств Lampway."
 
 msgid "uv.pack_islands properties unavailable"
 msgstr "Свойства uv.pack_islands недоступны"
@@ -23329,8 +23329,8 @@ msgstr "Проецировать"
 msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "Спроецировать UV с типом и свойствами, указанными на панели «Проекция»"
 
-msgid "Mixar UV UI state not initialized"
-msgstr "Состояние UV-интерфейса Mixar не инициализировано"
+msgid "Lampway UV UI state not initialized"
+msgstr "Состояние UV-интерфейса Lampway не инициализировано"
 
 msgid "Unknown projection type: {type}"
 msgstr "Неизвестный тип проекции: {type}"
@@ -23461,8 +23461,8 @@ msgstr "Выделить связанные"
 msgid "Select linked UVs"
 msgstr "Выделить связанные UV"
 
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Панель выделения для пространства UV-свойств Mixar — на основе инструментов (без кнопки в заголовке)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Панель выделения для пространства UV-свойств Lampway — на основе инструментов (без кнопки в заголовке)"
 
 msgid "Basic Selection"
 msgstr "Основное выделение"
@@ -23503,8 +23503,8 @@ msgstr "Выбрать разделение"
 msgid "Select Overlap"
 msgstr "Выделить перекрытия"
 
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Панель плотности текселей для пространства UV-свойств Mixar"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Панель плотности текселей для пространства UV-свойств Lampway"
 
 msgid "Activate Grab Tool"
 msgstr "Активировать захват"
@@ -23548,8 +23548,8 @@ msgstr "Центрировать вид по курсору"
 msgid "UV Sculpt Tools"
 msgstr "Инструменты скульптинга UV"
 
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Панель инструментов скульптинга UV для пространства UV-свойств Mixar — на основе инструментов (без кнопки в заголовке)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Панель инструментов скульптинга UV для пространства UV-свойств Lampway — на основе инструментов (без кнопки в заголовке)"
 
 msgid "Grab"
 msgstr "Захватить"
@@ -23668,8 +23668,8 @@ msgstr "Применить трансформацию масштаба к выд
 msgid "Snapping"
 msgstr "Привязка"
 
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Панель привязки для пространства UV-свойств Mixar"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Панель привязки для пространства UV-свойств Lampway"
 
 msgid "Snapping Options"
 msgstr "Параметры привязки"
@@ -23719,8 +23719,8 @@ msgstr "Выполнить развёртку методом и свойства
 msgid "Unknown unwrap method: {method}"
 msgstr "Неизвестный метод развёртки: {method}"
 
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
-msgstr "Объединённая панель развёртки и проецирования для пространства UV-свойств Mixar."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
+msgstr "Объединённая панель развёртки и проецирования для пространства UV-свойств Lampway."
 
 msgid "Live Unwrap"
 msgstr "Развёртывать в реальном времени"
@@ -23796,7 +23796,7 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
@@ -23804,7 +23804,7 @@ msgstr ""
 "\n"
 "Обёртка над `image.new`, которая заранее устанавливает `tiled=True` в\n"
 "диалоге свойств оператора. Используется как оператор `new=` для\n"
-"`template_ID` в UV-панелях Mixar, чтобы диалог открывался с уже\n"
+"`template_ID` в UV-панелях Lampway, чтобы диалог открывался с уже\n"
 "отмеченным флажком Tiled. Само создание и назначение ID выполняет\n"
 "базовый оператор `image.new`.\n"
 
@@ -23826,8 +23826,8 @@ msgstr "Заполнить плитку"
 msgid "Fill UDIM tile"
 msgstr "Заполнить тайл UDIM"
 
-msgid "UV Set panel for the Mixar UV Properties space."
-msgstr "Панель UV-набора для пространства UV-свойств Mixar."
+msgid "UV Set panel for the Lampway UV Properties space."
+msgstr "Панель UV-набора для пространства UV-свойств Lampway."
 
 msgid "UV Maps"
 msgstr "UV-Карты"
@@ -23875,10 +23875,10 @@ msgid "Tools"
 msgstr "Инструменты"
 
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
-"Панель инструмента для пространства UV-свойств Mixar — отображается, когда\n"
+"Панель инструмента для пространства UV-свойств Lampway — отображается, когда\n"
 "активен инструмент `builtin.uv_tool` на панели инструментов."
 
 msgid "Round to Pixels"
@@ -24034,7 +24034,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 msgid "Workspaces"
@@ -24070,14 +24070,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Переключить Mixar в режим Zen (минималистичный вьюпорт + пузырь агента + мудборд)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "Переключить Lampway в режим Zen (минималистичный вьюпорт + пузырь агента + мудборд)"
 
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Не удалось создать рабочее пространство режима Zen — нет доступного шаблона"
 
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "Переключить Mixar в режим Engine (полноценные рабочие пространства в стиле Blender)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "Переключить Lampway в режим Engine (полноценные рабочие пространства в стиле Blender)"
 
 msgid "Modeling workspace not found"
 msgstr "Рабочее пространство «Моделирование» не найдено"
@@ -24298,32 +24298,32 @@ msgstr ""
 msgid "Creator Program"
 msgstr ""
 
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
-msgstr "Файл сохранён более новой версией Mixar (%d.%d), часть данных может быть утеряна"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
+msgstr "Файл сохранён более новой версией Lampway (%d.%d), часть данных может быть утеряна"
 
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "Файл сохранён более новой версией; откройте его в Mixar %s или новее"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "Файл сохранён более новой версией; откройте его в Lampway %s или новее"
 
 msgid "Failed to read mixar file '%s': %s"
-msgstr "Не удалось прочитать файл Mixar «%s»: %s"
+msgstr "Не удалось прочитать файл Lampway «%s»: %s"
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
-msgstr "Невозможно прочитать файл Mixar «%s»: неполный заголовок, возможно, файл создан более новой версией Mixar"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr "Невозможно прочитать файл Lampway «%s»: неполный заголовок, возможно, файл создан более новой версией Lampway"
 
 msgid "Failed to read file '%s', not a mixar file"
-msgstr "Не удалось прочитать файл «%s»: это не файл Mixar"
+msgstr "Не удалось прочитать файл «%s»: это не файл Lampway"
 
 msgid "Unable to open mixar <memory>"
-msgstr "Невозможно открыть Mixar <memory>"
+msgstr "Невозможно открыть Lampway <memory>"
 
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Файл Mixar «%s» создан будущей версией Mixar и содержит имена ID длиннее поддерживаемых сейчас. Они были усечены."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Файл Lampway «%s» создан будущей версией Lampway и содержит имена ID длиннее поддерживаемых сейчас. Они были усечены."
 
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Файл Mixar «%s», по-видимому, повреждён: он содержит недопустимые имена ID. Они были усечены."
+msgstr "Файл Lampway «%s», по-видимому, повреждён: он содержит недопустимые имена ID. Они были усечены."
 
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
-msgstr "Библиотека «%s» создана будущей версией Mixar и содержит имена ID длиннее поддерживаемых сейчас. Это может привести к потере связанных данных; рекомендуется открыть и пересохранить эту библиотеку в текущей версии Mixar."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
+msgstr "Библиотека «%s» создана будущей версией Lampway и содержит имена ID длиннее поддерживаемых сейчас. Это может привести к потере связанных данных; рекомендуется открыть и пересохранить эту библиотеку в текущей версии Lampway."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: данные ссылаются на основной файл .mixar: «%s» из %s"
@@ -24454,8 +24454,8 @@ msgstr "Спросите Mixie о чём угодно..."
 msgid "Write your prompt here..."
 msgstr "Напишите промпт здесь..."
 
-msgid "Everything Mixar has generated"
-msgstr "Всё, что сгенерировал Mixar"
+msgid "Everything Lampway has generated"
+msgstr "Всё, что сгенерировал Lampway"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -25771,14 +25771,14 @@ msgstr "Удалить предпросмотр Mixie3D"
 msgid "Delete a segmented image from the preview history"
 msgstr "Удаляет сегментированное изображение из истории предпросмотра"
 
-msgid "Mixar agent bubble loading…"
-msgstr "Загрузка пузыря агента Mixar…"
+msgid "Lampway agent bubble loading…"
+msgstr "Загрузка пузыря агента Lampway…"
 
 msgid "Show Agent Bubble"
 msgstr "Показать пузырь агента"
 
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
-msgstr "Открывает плавающий пузырь агента, в котором можно общаться с ИИ-агентом из любого места интерфейса Mixar"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
+msgstr "Открывает плавающий пузырь агента, в котором можно общаться с ИИ-агентом из любого места интерфейса Lampway"
 
 msgid "Chat is still loading. Please drop the asset again."
 msgstr ""
@@ -25822,8 +25822,8 @@ msgstr "Добавляет перетащенное изображение ка�
 msgid "Dropped image datablock"
 msgstr "Перетащенный блок данных изображения"
 
-msgid "Tell me about the features in Mixar"
-msgstr "Расскажи о возможностях Mixar"
+msgid "Tell me about the features in Lampway"
+msgstr "Расскажи о возможностях Lampway"
 
 msgid "Generate a futuristic sci-fi character concept"
 msgstr "Сгенерируй концепт футуристического научно-фантастического персонажа"
@@ -26755,14 +26755,14 @@ msgstr "Операции запекания и обработки текстур
 msgid "Texture set management for PBR workflows"
 msgstr "Управление наборами текстур для PBR-процессов"
 
-msgid "Mixar UV Editor"
-msgstr "UV-редактор Mixar"
+msgid "Lampway UV Editor"
+msgstr "UV-редактор Lampway"
 
-msgid "Mixar UV editing mode"
-msgstr "Режим UV-редактирования Mixar"
+msgid "Lampway UV editing mode"
+msgstr "Режим UV-редактирования Lampway"
 
-msgid "Mixar Layers Properties"
-msgstr "Свойства слоёв Mixar"
+msgid "Lampway Layers Properties"
+msgstr "Свойства слоёв Lampway"
 
 msgid "Reference image board like PureRef"
 msgstr "Доска референсных изображений в духе PureRef"
@@ -26770,8 +26770,8 @@ msgstr "Доска референсных изображений в духе Pur
 msgid "Mixie Space"
 msgstr "Пространство Mixie"
 
-msgid "Mixie editor for Mixar"
-msgstr "Редактор Mixie для Mixar"
+msgid "Mixie editor for Lampway"
+msgstr "Редактор Mixie для Lampway"
 
 msgid "Mixie editor mode"
 msgstr "Режим редактора Mixie"
@@ -26779,8 +26779,8 @@ msgstr "Режим редактора Mixie"
 msgid "Agent Bubble Space"
 msgstr "Пространство пузыря агента"
 
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Плавающий редактор чата с агентом для Mixar"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Плавающий редактор чата с агентом для Lampway"
 
 msgid "Top Bar Space"
 msgstr "Пространство верхней панели"
@@ -26788,23 +26788,23 @@ msgstr "Пространство верхней панели"
 msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "Верхняя панель с полосой вкладок рабочих пространств и меню редакторов"
 
-msgid "Mixar Layers Space"
-msgstr "Пространство слоёв Mixar"
+msgid "Lampway Layers Space"
+msgstr "Пространство слоёв Lampway"
 
-msgid "Mixar texture layer stack management"
-msgstr "Управление стеком слоёв текстуры Mixar"
+msgid "Lampway texture layer stack management"
+msgstr "Управление стеком слоёв текстуры Lampway"
 
-msgid "Mixar Properties Space"
-msgstr "Пространство свойств Mixar"
+msgid "Lampway Properties Space"
+msgstr "Пространство свойств Lampway"
 
-msgid "Mixar layer and texture properties"
-msgstr "Свойства слоёв и текстур Mixar"
+msgid "Lampway layer and texture properties"
+msgstr "Свойства слоёв и текстур Lampway"
 
-msgid "Mixar Assets Space"
-msgstr "Пространство ассетов Mixar"
+msgid "Lampway Assets Space"
+msgstr "Пространство ассетов Lampway"
 
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "Библиотека умных материалов, кистей и текстур Mixar"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "Библиотека умных материалов, кистей и текстур Lampway"
 
 msgid "Texture sets management"
 msgstr "Управление наборами текстур"
@@ -26812,8 +26812,8 @@ msgstr "Управление наборами текстур"
 msgid "Use Blender's theme"
 msgstr "Использовать тему Blender"
 
-msgid "Mixar Zen components"
-msgstr "Компоненты Mixar Zen"
+msgid "Lampway Zen components"
+msgstr "Компоненты Lampway Zen"
 
 msgid "Compatibility appearance"
 msgstr "Совместимый внешний вид"
@@ -27928,14 +27928,14 @@ msgstr ""
 msgid "Global Areas"
 msgstr "Глобальные области"
 
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "Глобальные области окна (верхняя панель, строка состояния). Расширение Mixar — открыто для того, чтобы ознакомительный тур мог запрашивать перерисовку верхней панели."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "Глобальные области окна (верхняя панель, строка состояния). Расширение Lampway — открыто для того, чтобы ознакомительный тур мог запрашивать перерисовку верхней панели."
 
 msgid "QA UI Dump"
 msgstr "Дамп интерфейса для QA"
 
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "JSON-снимок всех активных виджетов интерфейса (метки, операторы, свойства, прямоугольники в пространстве окна, состояние) для QA-системы Mixar"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "JSON-снимок всех активных виджетов интерфейса (метки, операторы, свойства, прямоугольники в пространстве окна, состояние) для QA-системы Lampway"
 
 msgid "Window Resizing"
 msgstr "Изменение размера окна"
@@ -27964,7 +27964,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "Для захвата кадра QA требуется --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 msgid "Microphone permission is required"
@@ -27982,23 +27982,23 @@ msgstr "Микрофон перестал отвечать или буфер з�
 msgid "Microphone disconnected"
 msgstr "Микрофон отключён"
 
-msgid "Mixar File View"
-msgstr "Просмотр файлов Mixar"
+msgid "Lampway File View"
+msgstr "Просмотр файлов Lampway"
 
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
-msgstr "Прокси были удалены из Mixar (%d прокси были автоматически преобразованы в переопределения библиотеки, %d прокси не удалось преобразовать, и они были очищены). Рекомендуется пересохранить все библиотечные файлы .mixar в новейшей версии Mixar"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
+msgstr "Прокси были удалены из Lampway (%d прокси были автоматически преобразованы в переопределения библиотеки, %d прокси не удалось преобразовать, и они были очищены). Рекомендуется пересохранить все библиотечные файлы .mixar в новейшей версии Lampway"
 
 msgid "Cannot save mixar file, path \"%s\" is not writable"
-msgstr "Невозможно сохранить файл Mixar, путь \"%s\" недоступен для записи"
+msgstr "Невозможно сохранить файл Lampway, путь \"%s\" недоступен для записи"
 
 msgid "Cannot save mixar file, path \"%s\" is a directory"
-msgstr "Невозможно сохранить файл Mixar, путь \"%s\" является папкой"
+msgstr "Невозможно сохранить файл Lampway, путь \"%s\" является папкой"
 
-msgid "Mixar will start next time as it is now."
-msgstr "В следующий раз Mixar запустится в текущем виде."
+msgid "Lampway will start next time as it is now."
+msgstr "В следующий раз Lampway запустится в текущем виде."
 
-msgid "Load Factory Mixar Preferences"
-msgstr "Загрузить базовые настройки Mixar"
+msgid "Load Factory Lampway Preferences"
+msgstr "Загрузить базовые настройки Lampway"
 
 msgid "Load user interface setup from the .mixar file"
 msgstr "Загружает настройки интерфейса из файла .mixar"
@@ -28006,14 +28006,14 @@ msgstr "Загружает настройки интерфейса из файл
 msgid "Allow .mixar file to execute scripts automatically, default available from system preferences"
 msgstr "Разрешает файлу .mixar автоматически исполнять скрипты. Значение по умолчанию задаётся в системных настройках"
 
-msgid "Open a Mixar file"
-msgstr "Открывает файл Mixar"
+msgid "Open a Lampway file"
+msgstr "Открывает файл Lampway"
 
 msgid "Load user interface setup in the .mixar file"
 msgstr "Загружает настройки интерфейса, сохранённые в файле .mixar"
 
-msgid "Mixar Files"
-msgstr "Файлы Mixar"
+msgid "Lampway Files"
+msgstr "Файлы Lampway"
 
 msgid "Show only .mixar files"
 msgstr "Показывать только файлы .mixar"
@@ -28039,26 +28039,26 @@ msgstr "Сохраняет как файл .mixar"
 msgid "Save as .blend file"
 msgstr "Сохраняет как файл .blend"
 
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "Сохраняет текущий файл Mixar с увеличенным числовым номером в имени, не перезаписывая существующие файлы"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "Сохраняет текущий файл Lampway с увеличенным числовым номером в имени, не перезаписывая существующие файлы"
 
-msgid "Save Mixar File"
-msgstr "Сохранить файл Mixar"
+msgid "Save Lampway File"
+msgstr "Сохранить файл Lampway"
 
-msgid "Save the current Mixar file"
-msgstr "Сохраняет текущий файл Mixar"
+msgid "Save the current Lampway file"
+msgstr "Сохраняет текущий файл Lampway"
 
-msgid "Exit Mixar after saving"
-msgstr "Закрыть Mixar после сохранения"
+msgid "Exit Lampway after saving"
+msgstr "Закрыть Lampway после сохранения"
 
-msgid "This file was saved by a newer version of Mixar (%s)."
-msgstr "Этот файл был сохранён более новой версией Mixar (%s)."
+msgid "This file was saved by a newer version of Lampway (%s)."
+msgstr "Этот файл был сохранён более новой версией Lampway (%s)."
 
-msgid "Saving it with this Mixar (%s) may cause loss of data."
-msgstr "Сохранение в этой версии Mixar (%s) может привести к потере данных."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
+msgstr "Сохранение в этой версии Lampway (%s) может привести к потере данных."
 
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "Этим файлом управляет система ассетов Mixar. Он может быть только"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "Этим файлом управляет система ассетов Lampway. Он может быть только"
 
 msgid "Filter .mixar files"
 msgstr "Фильтровать файлы .mixar"
@@ -28070,13 +28070,13 @@ msgid "No"
 msgstr ""
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
-msgstr "Возможно, доступны более новые графические драйверы с лучшей совместимостью с Mixar."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
+msgstr "Возможно, доступны более новые графические драйверы с лучшей совместимостью с Lampway."
 
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "Обновление до последней версии macOS может улучшить поддержку Mixar"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "Обновление до последней версии macOS может улучшить поддержку Lampway"
 
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Mixar сейчас закроется."
+msgid "Lampway will now close."
+msgstr "Lampway сейчас закроется."

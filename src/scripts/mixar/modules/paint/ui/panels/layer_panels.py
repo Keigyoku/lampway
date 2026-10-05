@@ -153,7 +153,7 @@ class LAYERS_PT_Layers(LAYERS_PT_Main, Panel):
                     break
 
         if not mp:
-            main_col.label(text="No Mixar material found", icon='INFO')
+            main_col.label(text="No Lampway material found", icon='INFO')
             return
 
         # ========== CHANNEL FILTER DROPDOWN (Substance 3D Painter style) ==========
@@ -284,7 +284,7 @@ class LAYERS_PT_Settings(LAYERS_PT_Main, Panel):
                 break
 
         if not node:
-            layout.label(text="No Mixar node found", icon="INFO")
+            layout.label(text="No Lampway node found", icon="INFO")
             return
 
         tree = node.node_tree
@@ -344,7 +344,7 @@ class LAYERS_PT_Bake(LAYERS_PT_Main, Panel):
         # Get active mpaint node
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            layout.label(text="No active Mixar node", icon='INFO')
+            layout.label(text="No active Lampway node", icon='INFO')
             return
 
         mp = node.node_tree.mp
@@ -460,7 +460,7 @@ class LAYERS_PT_Channels(LAYERS_PT_Main, Panel):
         # Get active mpaint node
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            layout.label(text="No active Mixar node", icon='INFO')
+            layout.label(text="No active Lampway node", icon='INFO')
             return
 
         # mp = node.node_tree.mp

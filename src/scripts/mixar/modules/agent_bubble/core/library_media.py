@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 #: Must match ``asset_search/constants.py:GENERATION_LIBRARY_NAME`` and the
 #: C++ ``GENERATIONS_LIBRARY_NAME``.
-GENERATIONS_LIBRARY_NAME = "Mixar Generations"
+GENERATIONS_LIBRARY_NAME = "Lampway Generations"
 
 #: Per-library bounds, so a library pointed at a home folder cannot stall
 #: the UI. Anything past them is simply not listed.

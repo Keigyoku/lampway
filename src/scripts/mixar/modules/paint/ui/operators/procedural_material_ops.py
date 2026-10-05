@@ -69,7 +69,7 @@ class LAYERS_OT_AddCustomProceduralLayer(Operator):
         # Get active mpaint node to verify setup
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar Paint node found")
+            self.report({'ERROR'}, "No active Lampway Paint node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -195,7 +195,7 @@ class LAYERS_OT_ApplyMaterialToLayer(Operator):
         # Get active mpaint node
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar Paint node found")
+            self.report({'ERROR'}, "No active Lampway Paint node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp
@@ -288,7 +288,7 @@ class LAYERS_OT_ClearLayerMaterial(Operator):
         # Get active mpaint node
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar Paint node found")
+            self.report({'ERROR'}, "No active Lampway Paint node found")
             return {'CANCELLED'}
 
         mp = node.node_tree.mp

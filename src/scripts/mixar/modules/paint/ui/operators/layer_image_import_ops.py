@@ -206,7 +206,7 @@ class LAYERS_OT_OpenImagesToLayer(Operator, ImportHelper, OpenImage):
 
         node = get_active_mpaint_node()
         if not node or not node.node_tree:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         group_tree = node.node_tree

@@ -265,7 +265,7 @@ def test_execute_grouped_turn_pushes_once(executor_module, monkeypatch):
     # so the turn is bracketed: undo reverts it, redo reapplies it.
     executor.end_agent_turn()
     assert _undo_pushes(bpy_mod) == 2
-    assert bpy_mod.ops.ed.undo_push.call_args_list[-1].kwargs["message"] == "Mixie Chat Turn"
+    assert bpy_mod.ops.ed.undo_push.call_args_list[-1].kwargs["message"] == "Lampway Agent Chat Turn"
     executor.begin_agent_turn()
     assert executor.execute("bpy.ops.mixar.probe()").success is True
     assert _undo_pushes(bpy_mod) == 3

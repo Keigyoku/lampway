@@ -72,7 +72,7 @@ def _row(col, label_text):
 
 
 class MIXAR_UV_PT_uv_set(Panel):
-    """UV Set panel for the Mixar UV Properties space."""
+    """UV Set panel for the Lampway UV Properties space."""
     bl_label = "UV Set"
     bl_idname = "MIXAR_UV_PT_uv_set"
     bl_space_type = 'IMAGE_EDITOR'

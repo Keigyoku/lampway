@@ -68,7 +68,7 @@ def _generate_with_cryptography(cert_path: str, key_path: str,
     try:
         key = ec.generate_private_key(ec.SECP256R1())
         name = x509.Name(
-            [x509.NameAttribute(NameOID.COMMON_NAME, "Mixar Virtual Camera")]
+            [x509.NameAttribute(NameOID.COMMON_NAME, "Lampway Virtual Camera")]
         )
         sans: list[x509.GeneralName] = [x509.DNSName("localhost")]
         for host in hosts:
@@ -115,7 +115,7 @@ def _generate_with_openssl(cert_path: str, key_path: str,
         "-pkeyopt", "ec_paramgen_curve:prime256v1",
         "-keyout", key_path, "-out", cert_path,
         "-days", str(CERT_DAYS), "-nodes",
-        "-subj", "/CN=Mixar Virtual Camera",
+        "-subj", "/CN=Lampway Virtual Camera",
         "-addext", f"subjectAltName={san}",
     ]
     try:
