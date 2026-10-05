@@ -23,6 +23,7 @@ import os
 import bpy
 
 from mixar.config.logging_config import get_logger
+from mixar.config.paths import app_home
 
 logger = get_logger(__name__)
 
@@ -35,7 +36,7 @@ def _config_path() -> str:
     try:
         base = bpy.utils.user_resource("CONFIG", path="mixar", create=True)
     except Exception:
-        base = os.path.join(os.path.expanduser("~"), ".mixar")
+        base = str(app_home())
         os.makedirs(base, exist_ok=True)
     return os.path.join(base, _FILENAME)
 

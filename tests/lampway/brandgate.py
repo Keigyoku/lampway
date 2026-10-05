@@ -14,7 +14,7 @@ import tomllib
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-CATEGORIES = ("native-lookup", "upstream-provenance", "blocked-on-decision", "protocol-token")
+CATEGORIES = ("native-lookup", "upstream-provenance", "blocked-on-decision", "protocol-token", "legacy-read")
 
 
 def load():

@@ -54,6 +54,7 @@ from .workspace import (
     workspace_addons,
 )
 from .workspace_service import WorkspaceServiceMixin
+from mixar.config.paths import app_home
 
 _LEASE_TTL_SECONDS = 24 * 60 * 60
 
@@ -473,7 +474,7 @@ def _default_storage_dir() -> Path:
             return Path(configured)
     except Exception:
         pass
-    return Path.home() / ".mixar" / "addon_projects"
+    return app_home() / "addon_projects"
 
 
 def get_addon_project_service() -> AddonProjectService:

@@ -26,7 +26,7 @@ def test_link_rejects_invalid_new_project_folder_before_writing_metadata(tmp_pat
     assert error.value.code == "invalid_project_folder_name"
     assert "mixar_add_on" in error.value.message
     assert str(tmp_path) not in error.value.message
-    assert not (project / ".mixar").exists()
+    assert not (project / ".lampway").exists()
 
 
 def test_link_allows_repository_name_when_it_contains_a_valid_addon_package(

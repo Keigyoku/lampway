@@ -36,6 +36,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from mixar.config.logging_config import get_logger
 from mixar.modules.common.utils.platform_utils import trigger_ui_redraw
+from mixar.config.paths import app_home
 
 logger = get_logger(__name__)
 
@@ -90,7 +91,7 @@ def _data_dir() -> str:
             return path
     except Exception:
         pass
-    return os.path.join(os.path.expanduser("~"), ".mixar")
+    return str(app_home())
 
 
 def _disk_path() -> str:

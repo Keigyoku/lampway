@@ -24,6 +24,7 @@ import threading
 import bpy
 
 from mixar.config.logging_config import get_logger
+from mixar.config.paths import app_home
 
 logger = get_logger(__name__)
 
@@ -42,7 +43,7 @@ def _data_dir() -> str:
             return path
     except Exception:
         pass
-    return os.path.join(os.path.expanduser("~"), ".mixar")
+    return str(app_home())
 
 
 def _seen_path() -> str:

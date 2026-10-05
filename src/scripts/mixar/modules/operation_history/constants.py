@@ -11,7 +11,6 @@ SCENE_HISTORY_ID_PROP = "mixar_op_history_id"
 # Storage layout
 MODULE_DIR_NAME = "operation_history"
 ENV_BASE_DIR = "MIXAR_OPERATION_HISTORY_DIR"   # optional absolute base-dir override (tests/ops)
-DEFAULT_DATA_SUBDIR = ".mixar"                  # under the user home dir
 OPERATIONS_FILE = "operations.jsonl"
 SCRIPTS_SUBDIR = "scripts"
 NO_SESSION = "_nosession"

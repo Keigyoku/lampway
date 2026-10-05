@@ -50,16 +50,12 @@ def test_shortcut_panel_stays_inside_its_bounds_and_rows_light_in_order():
     assert keys._caps("Opt") in (["Option"], ["Alt"])
 
 
-def test_help_menu_has_the_creator_program_entry_highlighted_by_the_tour():
+def test_help_menu_has_no_creator_program_entry():
     tree = ast.parse(TOPBAR.read_text())
     cls = next(n for n in ast.walk(tree)
                if isinstance(n, ast.ClassDef) and n.name == "TOPBAR_MT_help")
     src = ast.get_source_segment(TOPBAR.read_text(), cls)
-    assert 'website_url("/creator-program")' in src
-    assert 'text="Creator Program"' in src
-    assert "depress=highlighted" in src
-    assert f'"{actions_extra.HIGHLIGHT_KEY}"' in src
-    assert f'"{actions_extra.HIGHLIGHT_CREATOR}"' in src
+    assert "Creator Program" not in src and "creator-program" not in src
 
 
 def test_new_actions_are_registered():

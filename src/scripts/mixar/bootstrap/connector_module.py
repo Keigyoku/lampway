@@ -24,6 +24,12 @@ def register() -> None:
     global _timer_registered
     import bpy
 
+    try:
+        from mixar.config.paths import migrate_if_launched_by_lampway
+
+        migrate_if_launched_by_lampway()
+    except Exception as exc:  # noqa: BLE001 - a failed copy must never stop startup
+        logger.warning("Copy of earlier data skipped: %s", exc)
     if _timer_registered:
         return
     bpy.app.timers.register(_start, first_interval=2.0)

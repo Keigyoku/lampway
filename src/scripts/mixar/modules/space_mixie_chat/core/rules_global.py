@@ -24,6 +24,7 @@ import uuid
 from mixar.config.logging_config import get_logger
 
 from .rules import parse_rules, serialize_rules, rules_fit_store
+from mixar.config.paths import app_home
 
 logger = get_logger(__name__)
 
@@ -31,7 +32,7 @@ _FILENAME = "global_rules.json"
 
 
 def _store_path() -> str:
-    base = os.path.join(os.path.expanduser("~"), ".mixar")
+    base = str(app_home())
     return os.path.join(base, _FILENAME)
 
 

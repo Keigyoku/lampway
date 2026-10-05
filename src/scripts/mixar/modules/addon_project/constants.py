@@ -12,7 +12,8 @@ TESTS_CAPABILITY = "addon_project_tests_v1"
 # and tests every add-on it touched and reverts itself when either fails.
 VERIFY_CAPABILITY = "addon_project_verify_v1"
 MANIFEST_VERSION = 1
-MANIFEST_DIR = ".mixar"
+MANIFEST_DIR = ".lampway"
+LEGACY_MANIFEST_DIR = ".mixar"  # read-only fallback for a project that already has a manifest there
 MANIFEST_FILE = "addon-project.json"
 
 RPC_DESCRIBE = "addon_project.describe"
@@ -77,7 +78,7 @@ EDITABLE_SUFFIXES = frozenset({
     ".py", ".pyi", ".toml", ".json", ".md", ".txt", ".yaml", ".yml",
 })
 IGNORED_PARTS = frozenset({
-    ".git", ".hg", ".svn", ".mixar", "__pycache__", ".mypy_cache",
+    ".git", ".hg", ".svn", ".mixar", ".lampway", "__pycache__", ".mypy_cache",
     ".pytest_cache", ".ruff_cache", ".venv", "venv", "dist", "build",
 })
 MAX_FILE_BYTES = 1_000_000

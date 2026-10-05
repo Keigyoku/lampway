@@ -199,7 +199,7 @@ def test_first_send_sets_up_default_root_and_proceeds(
     root = fake_home / "Lampway Addons"
     assert root.is_dir()
     manifest = json.loads(
-        (root / ".mixar" / "addon-project.json").read_text(encoding="utf-8")
+        (root / ".lampway" / "addon-project.json").read_text(encoding="utf-8")
     )
     scene = link_operators.bpy.context.scene
     assert scene.mixie_addon_project_id == manifest["project_id"]

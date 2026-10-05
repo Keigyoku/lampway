@@ -213,7 +213,7 @@ def run_blender_reload(
         return {
             "success": False,
             "check": "blender_reload",
-            "message": "Set an entrypoint module in .mixar/addon-project.json first",
+            "message": "Set an entrypoint module in .lampway/addon-project.json first",
         }
     root = root.resolve(strict=True)
     top_level = entrypoint.split(".", 1)[0]

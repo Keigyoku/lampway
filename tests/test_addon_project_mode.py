@@ -80,7 +80,7 @@ def _wire(service, description, **extra):
 
 def test_link_creates_path_free_manifest_and_description(linked_project):
     _service, project, description = linked_project
-    manifest = json.loads((project / ".mixar" / "addon-project.json").read_text(encoding="utf-8"))
+    manifest = json.loads((project / ".lampway" / "addon-project.json").read_text(encoding="utf-8"))
     assert manifest["project_id"] == description["project_id"]
     assert manifest["entrypoint"] == "sample_addon"
     assert str(project) not in json.dumps(manifest)
@@ -453,7 +453,7 @@ def test_new_project_auto_discovers_entrypoint_after_first_commit(tmp_path):
     committed = service.commit_patch(description["project_id"], staged["proposal_id"])
     assert committed["entrypoint"] == "studio_addon"
     manifest = json.loads(
-        (project / ".mixar" / "addon-project.json").read_text(encoding="utf-8")
+        (project / ".lampway" / "addon-project.json").read_text(encoding="utf-8")
     )
     assert manifest["entrypoint"] == "studio_addon"
 

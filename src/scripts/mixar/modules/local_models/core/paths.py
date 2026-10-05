@@ -21,6 +21,7 @@ from typing import Optional
 from mixar.config.logging_config import get_logger
 
 from ..constants import DATAFILES_SUBDIR, MANIFEST_FILENAME
+from mixar.config.paths import app_home
 
 logger = get_logger(__name__)
 
@@ -42,7 +43,7 @@ def _default_base() -> str:
             return path
     except Exception:
         pass
-    return os.path.join(os.path.expanduser("~"), ".mixar", "local_models")
+    return os.path.join(str(app_home()), "local_models")
 
 
 def initialize() -> str:

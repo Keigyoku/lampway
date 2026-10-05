@@ -16,6 +16,7 @@ import uuid
 from datetime import datetime, timezone
 
 from ...common.utils.digests import sha256_file
+from mixar.config.paths import app_home
 
 _INDEX_FILENAME = "index.json"
 _RECORD_VERSION = 1
@@ -28,7 +29,7 @@ _RECORD_VERSION = 1
 def checkpoints_root() -> str:
     """Per-user app-data dir, next to chat_history — never Blender's session
     temp dir, which is purged on exit."""
-    return os.path.join(os.path.expanduser("~"), ".mixar", "checkpoints")
+    return os.path.join(str(app_home()), "checkpoints")
 
 
 def _safe_id(session_id: str) -> str:

@@ -15,6 +15,7 @@ import threading
 
 import bpy
 import bpy.utils.previews
+from mixar.config.paths import app_home
 
 # Global preview collection for material thumbnails
 _preview_collection = None
@@ -37,7 +38,7 @@ def _get_cache_dir() -> str:
     try:
         cache_dir = bpy.utils.user_resource('DATAFILES', path='mixar/thumbnail_cache')
     except Exception:
-        cache_dir = os.path.join(os.path.expanduser("~"), ".mixar", "thumbnail_cache")
+        cache_dir = os.path.join(str(app_home()), "thumbnail_cache")
     os.makedirs(cache_dir, exist_ok=True)
     return cache_dir
 

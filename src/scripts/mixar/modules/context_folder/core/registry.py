@@ -19,6 +19,7 @@ from pathlib import Path
 from mixar.modules.common.i18n import n_
 
 from .errors import ContextFolderError
+from mixar.config.paths import app_home
 
 _lock = threading.Lock()
 _registry = None
@@ -33,7 +34,7 @@ def _default_path() -> Path:
             return Path(configured) / "context_folders.json"
     except Exception:
         pass
-    return Path.home() / ".mixar" / "context_folders.json"
+    return app_home() / "context_folders.json"
 
 
 class FolderRegistry:
