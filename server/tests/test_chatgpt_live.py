@@ -47,7 +47,7 @@ def test_a_streamed_hello_completes(auth):
     p = ChatGPTPlanProvider(auth, os.environ.get("LAMPWAY_CHATGPT_MODEL", "gpt-6.1-sol"))
 
     async def run():
-        return "".join(e.text async for e in p.stream(ModelRequest("Answer exactly as asked.", [Message.user_text("Say exactly: Hello, world!")], [])) if isinstance(e, Text))
+        return "".join([e.text async for e in p.stream(ModelRequest("Answer exactly as asked.", [Message.user_text("Say exactly: Hello, world!")], [])) if isinstance(e, Text)])
 
     assert "Hello, world!" in asyncio.run(run())
 
