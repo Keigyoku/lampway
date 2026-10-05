@@ -474,10 +474,10 @@ msgstr ""
 msgid "Nothing is selected"
 msgstr ""
 
-msgid "Open Mixie"
+msgid "Open Lampway Agent"
 msgstr ""
 
-msgid "Open Mixie, the agent chat, ready to type (Shift M)"
+msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -1890,10 +1890,10 @@ msgid "Dialog State"
 msgstr "დიალოგის მდგომარეობა"
 
 msgid "Set Lampway Agent Mode"
-msgstr "Mixie-ს რეჟიმის დაყენება"
+msgstr "Lampway Agent-ს რეჟიმის დაყენება"
 
 msgid "Switch to a specific Lampway Agent mode"
-msgstr "გადართვა Mixie-ს კონკრეტულ რეჟიმზე"
+msgstr "გადართვა Lampway Agent-ს კონკრეტულ რეჟიმზე"
 
 msgid "Mode"
 msgstr "რეჟიმი"
@@ -3080,7 +3080,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Mixie read files in a folder"
+msgid "Let Lampway Agent read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -7790,25 +7790,25 @@ msgid "Error message if job failed"
 msgstr "შეცდომის შეტყობინება, თუ დავალება ჩავარდა"
 
 msgid "Lampway Agent Moodboard Images"
-msgstr "Mixie-ს მუდბორდის გამოსახულებები"
+msgstr "Lampway Agent-ს მუდბორდის გამოსახულებები"
 
 msgid "Collection of reference images in Moodboard mode"
 msgstr "რეფერენსი გამოსახულებების კოლექცია მუდბორდის რეჟიმში"
 
 msgid "Lampway Agent Moodboard Text Boxes"
-msgstr "Mixie-ს მუდბორდის ტექსტური გრაფები"
+msgstr "Lampway Agent-ს მუდბორდის ტექსტური გრაფები"
 
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "ტექსტური გრაფების კოლექცია მუდბორდის რეჟიმში"
 
 msgid "Lampway Agent Moodboard Frames"
-msgstr "Mixie-ს მუდბორდის ჩარჩოები"
+msgstr "Lampway Agent-ს მუდბორდის ჩარჩოები"
 
 msgid "Canvas frames grouping board items"
 msgstr "ტილოს ჩარჩოები, რომლებიც დაფის საგნებს აჯგუფებს"
 
 msgid "Lampway Agent Moodboard Groups (legacy)"
-msgstr "Mixie-ს მუდბორდის ჯგუფები (მოძველებული)"
+msgstr "Lampway Agent-ს მუდბორდის ჯგუფები (მოძველებული)"
 
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
 msgstr "ჩანაცვლებულია mixie_moodboard_frames-ით; შენარჩუნებულია გადმოსვლისთვის"
@@ -19092,7 +19092,7 @@ msgstr "ხელსაწყოთა ზოლი"
 msgid "Sidebar"
 msgstr "გვერდითა ზოლი"
 
-msgid "Mixie"
+msgid "Lampway Agent"
 msgstr ""
 
 msgid "UV Mesh Segmentation panel"
@@ -19525,7 +19525,7 @@ msgid "User ID"
 msgstr "მომხმარებლის ID"
 
 msgid "User ID for Lampway Agent Chat login"
-msgstr "მომხმარებლის ID Mixie-ს ჩატში შესვლისთვის"
+msgstr "მომხმარებლის ID Lampway Agent-ს ჩატში შესვლისთვის"
 
 msgid "Agent expects: {formats}"
 msgstr "აგენტი ელოდება: {formats}"
@@ -19599,8 +19599,8 @@ msgstr "შეტყობინების გაგზავნა ვერ 
 msgid "You're out of credits"
 msgstr "კრედიტები ამოგეწურათ"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Mixie."
-msgstr "თქვენ ამოწურეთ თვიური კრედიტების ლიმიტი. განაახლეთ გეგმა, რომ Mixie-სთან შექმნა გააგრძელოთ."
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
+msgstr "თქვენ ამოწურეთ თვიური კრედიტების ლიმიტი. განაახლეთ გეგმა, რომ Lampway Agent-სთან შექმნა გააგრძელოთ."
 
 msgid "Feedback comment is empty"
 msgstr "უკუკავშირის კომენტარი ცარიელია"
@@ -20022,8 +20022,8 @@ msgstr "ეს ველი ღია დატოვეთ; Esc აუქმე
 msgid "Login"
 msgstr "შესვლა"
 
-msgid "Login panel for Mixie Chat"
-msgstr "Mixie-ს ჩატში შესვლის პანელი"
+msgid "Login panel for Lampway Chat"
+msgstr "Lampway Agent-ს ჩატში შესვლის პანელი"
 
 msgid "Session expired"
 msgstr "სესია ამოიწურა"
@@ -20129,14 +20129,14 @@ msgstr "სესია ამოიწურა. {reason}"
 msgid "Browser login did not complete. Please try again."
 msgstr "ბრაუზერით შესვლა არ დასრულდა. გთხოვთ, სცადოთ თავიდან."
 
-msgid "Login to Mixie Chat via browser SSO"
-msgstr "Mixie-ს ჩატში შესვლა ბრაუზერის SSO-ით"
+msgid "Login to Lampway Chat via browser SSO"
+msgstr "Lampway Agent-ს ჩატში შესვლა ბრაუზერის SSO-ით"
 
 msgid "Login failed"
 msgstr "შესვლა ვერ მოხერხდა"
 
-msgid "Logout from Mixie Chat"
-msgstr "Mixie-ს ჩატიდან გასვლა"
+msgid "Logout from Lampway Chat"
+msgstr "Lampway Agent-ს ჩატიდან გასვლა"
 
 msgid "Logged out successfully"
 msgstr "გასვლა წარმატებით დასრულდა"
@@ -20144,8 +20144,8 @@ msgstr "გასვლა წარმატებით დასრულდ�
 msgid "Open Dashboard"
 msgstr "მართვის პანელის გახსნა"
 
-msgid "Open Mixie web dashboard in your browser"
-msgstr "Mixie-ს ვებ მართვის პანელის გახსნა ბრაუზერში"
+msgid "Open Lampway Agent web dashboard in your browser"
+msgstr "Lampway Agent-ს ვებ მართვის პანელის გახსნა ბრაუზერში"
 
 msgid "Dashboard opened"
 msgstr "მართვის პანელი გაიხსნა"
@@ -20822,20 +20822,20 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Mixie Chat"
-msgstr "Mixie-ს ჩატში გაგზავნა"
+msgid "Send to Lampway Chat"
+msgstr "Lampway Agent-ს ჩატში გაგზავნა"
 
-msgid "Open a prompt to send a message to Mixie Chat (Enter to send)"
-msgstr "პრომპტის გახსნა Mixie-ს ჩატში შეტყობინების გასაგზავნად (Enter გაგზავნისთვის)"
+msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
+msgstr "პრომპტის გახსნა Lampway Agent-ს ჩატში შეტყობინების გასაგზავნად (Enter გაგზავნისთვის)"
 
-msgid "Message to send to Mixie Chat"
-msgstr "Mixie-ს ჩატში გასაგზავნი შეტყობინება"
+msgid "Message to send to Lampway Chat"
+msgstr "Lampway Agent-ს ჩატში გასაგზავნი შეტყობინება"
 
-msgid "Not connected to Mixie Chat"
-msgstr "Mixie-ს ჩატთან დაკავშირებული არ არის"
+msgid "Not connected to Lampway Chat"
+msgstr "Lampway Agent-ს ჩატთან დაკავშირებული არ არის"
 
-msgid "Mixie Chat is busy"
-msgstr "Mixie-ს ჩატი დაკავებულია"
+msgid "Lampway Chat is busy"
+msgstr "Lampway Agent-ს ჩატი დაკავებულია"
 
 msgid "Mode:"
 msgstr "რეჟიმი:"
@@ -20858,11 +20858,11 @@ msgstr "შეტყობინება"
 msgid "Please enter a message"
 msgstr "გთხოვთ, შეიყვანოთ შეტყობინება"
 
-msgid "Not connected to server. Please connect in Mixie Chat."
-msgstr "სერვერთან დაკავშირებული არ არის. გთხოვთ, დაუკავშირდეთ Mixie-ს ჩატში."
+msgid "Not connected to server. Please connect in Lampway Chat."
+msgstr "სერვერთან დაკავშირებული არ არის. გთხოვთ, დაუკავშირდეთ Lampway Agent-ს ჩატში."
 
-msgid "Mixie Chat is not ready to receive messages"
-msgstr "Mixie-ს ჩატი მზად არ არის შეტყობინებების მისაღებად"
+msgid "Lampway Chat is not ready to receive messages"
+msgstr "Lampway Agent-ს ჩატი მზად არ არის შეტყობინებების მისაღებად"
 
 msgid "Dev Mode: Message sent"
 msgstr "დევ რეჟიმი: შეტყობინება გაიგზავნა"
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "წესების მიმატება"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "განსაზღვრეთ წესები Mixie-სთვის. ცვლილებები გამოიყენება შემდეგ შეტყობინებაზე ან პასუხზე; გლობალური წესები მოქმედებს ყოველ Lampway ფაილში. თქვენი მიმდინარე მოთხოვნა პროექტის და გლობალურ წესებზე უპირატესია"
+msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "განსაზღვრეთ წესები Lampway Agent-სთვის. ცვლილებები გამოიყენება შემდეგ შეტყობინებაზე ან პასუხზე; გლობალური წესები მოქმედებს ყოველ Lampway ფაილში. თქვენი მიმდინარე მოთხოვნა პროექტის და გლობალურ წესებზე უპირატესია"
 
 msgid "Rule operation failed"
 msgstr "წესის ოპერაცია ვერ მოხერხდა"
@@ -21070,8 +21070,8 @@ msgstr "გაჩერების დადასტურება ვერ 
 msgid "Connect"
 msgstr "დაკავშირება"
 
-msgid "Connect to the Mixie agent server"
-msgstr "Mixie-ს აგენტის სერვერთან დაკავშირება"
+msgid "Connect to the Lampway Agent agent server"
+msgstr "Lampway Agent-ს აგენტის სერვერთან დაკავშირება"
 
 msgid "Connecting to server..."
 msgstr "სერვერთან დაკავშირება..."
@@ -21085,8 +21085,8 @@ msgstr "დევ რეჟიმი: დაკავშირდა მოჩ�
 msgid "Disconnect"
 msgstr "კავშირის გაწყვეტა"
 
-msgid "Disconnect from the Mixie agent server"
-msgstr "Mixie-ს აგენტის სერვერიდან გათიშვა"
+msgid "Disconnect from the Lampway Agent agent server"
+msgstr "Lampway Agent-ს აგენტის სერვერიდან გათიშვა"
 
 msgid "Dev Mode: Disconnected"
 msgstr "დევ რეჟიმი: გათიშულია"
@@ -21478,8 +21478,8 @@ msgstr "ლოკალურად გაგზავნილი კომე�
 msgid "Message not sent"
 msgstr "შეტყობინება არ გაგზავნილა"
 
-msgid "Enter a render prompt. Mixie will use the current scene's depth as the guide."
-msgstr "შეიყვანეთ რენდერის პრომპტი. Mixie მეგზურად გამოიყენებს მიმდინარე სცენის სიღრმეს."
+msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
+msgstr "შეიყვანეთ რენდერის პრომპტი. Lampway Agent მეგზურად გამოიყენებს მიმდინარე სცენის სიღრმეს."
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr "გაგზავნამდე გთხოვთ, შეიყვანოთ პრომპტი და მონიშნოთ მეშის ობიექტები 3D სარკმელში."
@@ -21556,8 +21556,8 @@ msgstr "ავტომატური რეჟიმი"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "აგენტი ყოველ ღია არჩევანს თავად წყვეტს, თქვენი კითხვის ნაცვლად, და გადაწყვეტილებებს შეჯამებაში ჩამოთვლის"
 
-msgid "Mixie Is Busy"
-msgstr "Mixie დაკავებულია"
+msgid "Lampway Agent Is Busy"
+msgstr "Lampway Agent დაკავებულია"
 
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "ჭეშმარიტია, როცა აგენტი ამუშავებს მოთხოვნას (BUSY მდგომარეობა)"
@@ -21631,8 +21631,8 @@ msgstr "Claude Haiku 4.0 - სწრაფი და ეფექტური"
 msgid "Password"
 msgstr "პაროლი"
 
-msgid "Password for Mixie Chat login"
-msgstr "პაროლი Mixie-ს ჩატში შესვლისთვის"
+msgid "Password for Lampway Chat login"
+msgstr "პაროლი Lampway Agent-ს ჩატში შესვლისთვის"
 
 msgid "Is Logged In"
 msgstr "შესულია"
@@ -24448,8 +24448,8 @@ msgstr "ეწევა"
 msgid "NEW"
 msgstr "ახალი"
 
-msgid "Ask Mixie anything..."
-msgstr "ჰკითხეთ Mixie-ს რაც გნებავთ..."
+msgid "Ask Lampway Agent anything..."
+msgstr "ჰკითხეთ Lampway Agent-ს რაც გნებავთ..."
 
 msgid "Write your prompt here..."
 msgstr "დაწერეთ პრომპტი აქ..."
@@ -25246,8 +25246,8 @@ msgstr "კურსორის Y პოზიცია"
 msgid "Animate Moodboard Attachment"
 msgstr "მუდბორდის დანართის ანიმირება"
 
-msgid "Show a newly attached reference flying into Mixie Chat"
-msgstr "ახლად მიმაგრებული რეფერენსის ჩვენება Mixie-ს ჩატში შემოფრენით"
+msgid "Show a newly attached reference flying into Lampway Chat"
+msgstr "ახლად მიმაგრებული რეფერენსის ჩვენება Lampway Agent-ს ჩატში შემოფრენით"
 
 msgid "Delay"
 msgstr "დაყოვნება"
@@ -25759,14 +25759,14 @@ msgstr "რედაქტირებადი კვანძის დას�
 msgid "Template to place"
 msgstr "დასასმელი შაბლონი"
 
-msgid "Select Mixie3D Preview"
-msgstr "Mixie3D გადახედვის მონიშვნა"
+msgid "Select Lampway Agent3D Preview"
+msgstr "Lampway Agent3D გადახედვის მონიშვნა"
 
 msgid "Select a segmented image from the preview history"
 msgstr "სეგმენტირებული გამოსახულების მონიშვნა გადახედვის ისტორიიდან"
 
-msgid "Delete Mixie3D Preview"
-msgstr "Mixie3D გადახედვის წაშლა"
+msgid "Delete Lampway Agent3D Preview"
+msgstr "Lampway Agent3D გადახედვის წაშლა"
 
 msgid "Delete a segmented image from the preview history"
 msgstr "სეგმენტირებული გამოსახულების წაშლა გადახედვის ისტორიიდან"
@@ -25945,8 +25945,8 @@ msgstr "ეს პროექტი"
 msgid "All projects"
 msgstr "ყველა პროექტი"
 
-msgid "Add a rule above to guide Mixie."
-msgstr "ზემოთ დაამატეთ წესი Mixie-ს სამართავად."
+msgid "Add a rule above to guide Lampway Agent."
+msgstr "ზემოთ დაამატეთ წესი Lampway Agent-ს სამართავად."
 
 msgid "Applies to"
 msgstr "ვრცელდება"
@@ -26767,14 +26767,14 @@ msgstr "Mixar-ის შრეების თვისებები"
 msgid "Reference image board like PureRef"
 msgstr "რეფერენს გამოსახულებების დაფა, PureRef-ის მსგავსად"
 
-msgid "Mixie Space"
-msgstr "Mixie-ს სივრცე"
+msgid "Lampway Agent Space"
+msgstr "Lampway Agent-ს სივრცე"
 
-msgid "Mixie editor for Lampway"
-msgstr "Mixie-ს რედაქტორი Mixar-ისთვის"
+msgid "Lampway Agent editor for Lampway"
+msgstr "Lampway Agent-ს რედაქტორი Mixar-ისთვის"
 
-msgid "Mixie editor mode"
-msgstr "Mixie-ს რედაქტორის რეჟიმი"
+msgid "Lampway Agent editor mode"
+msgstr "Lampway Agent-ს რედაქტორის რეჟიმი"
 
 msgid "Agent Bubble Space"
 msgstr "აგენტის ბუშტის სივრცე"
@@ -27469,11 +27469,11 @@ msgstr "კუნძულის აქცენტი"
 msgid "Agent island accent"
 msgstr "აგენტის კუნძულის აქცენტი"
 
-msgid "Theme Mixie Chat"
-msgstr "თემა Mixie-ს ჩატი"
+msgid "Theme Lampway Chat"
+msgstr "თემა Lampway Agent-ს ჩატი"
 
-msgid "Theme settings for Mixie Chat"
-msgstr "თემის ანაწყობები Mixie-ს ჩატისთვის"
+msgid "Theme settings for Lampway Chat"
+msgstr "თემის ანაწყობები Lampway Agent-ს ჩატისთვის"
 
 msgid "User Bubble"
 msgstr "მომხმარებლის ბუშტი"
@@ -27793,11 +27793,11 @@ msgstr "ფონის გაუმჭვირვალობა"
 msgid "Opacity of the window background (lower = more frosted glass)"
 msgstr "ფანჯრის ფონის გაუმჭვირვალობა (დაბალი = უფრო მქრქალი მინა)"
 
-msgid "Theme Mixie Space"
-msgstr "თემა Mixie-ს სივრცე"
+msgid "Theme Lampway Agent Space"
+msgstr "თემა Lampway Agent-ს სივრცე"
 
-msgid "Theme settings for Mixie/Moodboard space"
-msgstr "თემის ანაწყობები Mixie-ს/მუდბორდის სივრცისთვის"
+msgid "Theme settings for Lampway Agent/Moodboard space"
+msgstr "თემის ანაწყობები Lampway Agent-ს/მუდბორდის სივრცისთვის"
 
 msgid "Text Input Background"
 msgstr "ტექსტის შენატანის ფონი"
@@ -27904,8 +27904,8 @@ msgstr "კონტურის სიგანე ტექსტის შე
 msgid "Corner radius for rounded UI elements"
 msgstr "კუთხის რადიუსი მომრგვალებული ინტერფეისის ელემენტებისთვის"
 
-msgid "Mixie Chat"
-msgstr "Mixie Chat"
+msgid "Lampway Chat"
+msgstr "Lampway Chat"
 
 msgid "Double-click injection requires event simulation"
 msgstr ""

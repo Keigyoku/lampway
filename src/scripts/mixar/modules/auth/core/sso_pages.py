@@ -110,7 +110,7 @@ SUCCESS_PAGE = """<!DOCTYPE html>
 </head>
 <body>
   <main class="card" aria-labelledby="success-title">
-    <p class="brand" aria-label="Lampway">mixar</p>
+    <p class="brand" aria-label="Lampway">lampway</p>
     <div class="check" aria-hidden="true">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="20 6 9 17 4 12" />

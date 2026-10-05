@@ -587,10 +587,10 @@ msgstr ""
 msgid "Nothing is selected"
 msgstr ""
 
-msgid "Open Mixie"
+msgid "Open Lampway Agent"
 msgstr ""
 
-msgid "Open Mixie, the agent chat, ready to type (Shift M)"
+msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 # derived
@@ -3945,7 +3945,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Mixie read files in a folder"
+msgid "Let Lampway Agent read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -24675,7 +24675,7 @@ msgstr "Traka alatki"
 msgid "Sidebar"
 msgstr "Bočna traka"
 
-msgid "Mixie"
+msgid "Lampway Agent"
 msgstr ""
 
 # derived
@@ -25345,8 +25345,8 @@ msgid "You're out of credits"
 msgstr "Potrošili ste kredite"
 
 # derived
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Mixie."
-msgstr "Iskoristili ste mesečnu kvotu kredita. Nadogradite plan da nastavite da stvarate uz Mixie."
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
+msgstr "Iskoristili ste mesečnu kvotu kredita. Nadogradite plan da nastavite da stvarate uz Lampway Agent."
 
 # derived
 msgid "Feedback comment is empty"
@@ -25888,8 +25888,8 @@ msgid "Login"
 msgstr "Prijava"
 
 # derived
-msgid "Login panel for Mixie Chat"
-msgstr "Panel prijave za ćaskanje Mixie"
+msgid "Login panel for Lampway Chat"
+msgstr "Panel prijave za ćaskanje Lampway Agent"
 
 # derived
 msgid "Session expired"
@@ -26021,16 +26021,16 @@ msgid "Browser login did not complete. Please try again."
 msgstr "Prijava pregledačem nije dovršena. Pokušajte ponovo."
 
 # derived
-msgid "Login to Mixie Chat via browser SSO"
-msgstr "Prijava u ćaskanje Mixie preko SSO pregledača"
+msgid "Login to Lampway Chat via browser SSO"
+msgstr "Prijava u ćaskanje Lampway Agent preko SSO pregledača"
 
 # derived
 msgid "Login failed"
 msgstr "Prijava nije uspela"
 
 # derived
-msgid "Logout from Mixie Chat"
-msgstr "Odjava iz ćaskanja Mixie"
+msgid "Logout from Lampway Chat"
+msgstr "Odjava iz ćaskanja Lampway Agent"
 
 # derived
 msgid "Logged out successfully"
@@ -26041,8 +26041,8 @@ msgid "Open Dashboard"
 msgstr "Otvori kontrolnu tablu"
 
 # derived
-msgid "Open Mixie web dashboard in your browser"
-msgstr "Otvara veb kontrolnu tablu Mixie u pregledaču"
+msgid "Open Lampway Agent web dashboard in your browser"
+msgstr "Otvara veb kontrolnu tablu Lampway Agent u pregledaču"
 
 # derived
 msgid "Dashboard opened"
@@ -26922,24 +26922,24 @@ msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
 # derived
-msgid "Send to Mixie Chat"
-msgstr "Pošalji u ćaskanje Mixie"
+msgid "Send to Lampway Chat"
+msgstr "Pošalji u ćaskanje Lampway Agent"
 
 # derived
-msgid "Open a prompt to send a message to Mixie Chat (Enter to send)"
-msgstr "Otvara prompt za slanje poruke u ćaskanje Mixie (Enter za slanje)"
+msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
+msgstr "Otvara prompt za slanje poruke u ćaskanje Lampway Agent (Enter za slanje)"
 
 # derived
-msgid "Message to send to Mixie Chat"
-msgstr "Poruka za slanje u ćaskanje Mixie"
+msgid "Message to send to Lampway Chat"
+msgstr "Poruka za slanje u ćaskanje Lampway Agent"
 
 # derived
-msgid "Not connected to Mixie Chat"
-msgstr "Nije povezano sa ćaskanjem Mixie"
+msgid "Not connected to Lampway Chat"
+msgstr "Nije povezano sa ćaskanjem Lampway Agent"
 
 # derived
-msgid "Mixie Chat is busy"
-msgstr "Ćaskanje Mixie je zauzeto"
+msgid "Lampway Chat is busy"
+msgstr "Ćaskanje Lampway Agent je zauzeto"
 
 # derived
 msgid "Mode:"
@@ -26970,12 +26970,12 @@ msgid "Please enter a message"
 msgstr "Unesite poruku"
 
 # derived
-msgid "Not connected to server. Please connect in Mixie Chat."
-msgstr "Nije povezano sa serverom. Povežite se u ćaskanju Mixie."
+msgid "Not connected to server. Please connect in Lampway Chat."
+msgstr "Nije povezano sa serverom. Povežite se u ćaskanju Lampway Agent."
 
 # derived
-msgid "Mixie Chat is not ready to receive messages"
-msgstr "Ćaskanje Mixie nije spremno da prima poruke"
+msgid "Lampway Chat is not ready to receive messages"
+msgstr "Ćaskanje Lampway Agent nije spremno da prima poruke"
 
 # derived
 msgid "Dev Mode: Message sent"
@@ -27000,8 +27000,8 @@ msgid "Add Rules"
 msgstr "Dodaj pravila"
 
 # derived
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "Definiše pravila za Mixie. Izmene važe od sledeće poruke ili odgovora; globalna pravila važe u svakoj datoteci Lampway. Tekući zahtev ima prednost nad pravilima projekta i globalnim pravilima"
+msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Definiše pravila za Lampway Agent. Izmene važe od sledeće poruke ili odgovora; globalna pravila važe u svakoj datoteci Lampway. Tekući zahtev ima prednost nad pravilima projekta i globalnim pravilima"
 
 # derived
 msgid "Rule operation failed"
@@ -27223,8 +27223,8 @@ msgid "Connect"
 msgstr "Povezano"
 
 # derived
-msgid "Connect to the Mixie agent server"
-msgstr "Poveži se sa serverom agenta Mixie"
+msgid "Connect to the Lampway Agent agent server"
+msgstr "Poveži se sa serverom agenta Lampway Agent"
 
 # derived
 msgid "Connecting to server..."
@@ -27243,8 +27243,8 @@ msgid "Disconnect"
 msgstr "Prekini vezu"
 
 # derived
-msgid "Disconnect from the Mixie agent server"
-msgstr "Prekida vezu sa serverom agenta Mixie"
+msgid "Disconnect from the Lampway Agent agent server"
+msgstr "Prekida vezu sa serverom agenta Lampway Agent"
 
 # derived
 msgid "Dev Mode: Disconnected"
@@ -27753,8 +27753,8 @@ msgid "Message not sent"
 msgstr "Poruka nije poslata"
 
 # derived
-msgid "Enter a render prompt. Mixie will use the current scene's depth as the guide."
-msgstr "Unesite prompt za rendering. Mixie će koristiti dubinu tekuće scene kao vodič."
+msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
+msgstr "Unesite prompt za rendering. Lampway Agent će koristiti dubinu tekuće scene kao vodič."
 
 # derived
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
@@ -27857,8 +27857,8 @@ msgid "The agent decides every open choice itself instead of asking you, and lis
 msgstr "Agent sam odlučuje svaki otvoreni izbor umesto da vas pita i navodi odluke u sažetku"
 
 # derived
-msgid "Mixie Is Busy"
-msgstr "Mixie je zauzet"
+msgid "Lampway Agent Is Busy"
+msgstr "Lampway Agent je zauzet"
 
 # derived
 msgid "True when the agent is processing a request (BUSY state)"
@@ -27954,8 +27954,8 @@ msgid "Password"
 msgstr "Lozinka"
 
 # derived
-msgid "Password for Mixie Chat login"
-msgstr "Lozinka za prijavu u ćaskanje Mixie"
+msgid "Password for Lampway Chat login"
+msgstr "Lozinka za prijavu u ćaskanje Lampway Agent"
 
 # derived
 msgid "Is Logged In"
@@ -31489,8 +31489,8 @@ msgid "NEW"
 msgstr "NOVO"
 
 # derived
-msgid "Ask Mixie anything..."
-msgstr "Pitajte Mixie bilo šta..."
+msgid "Ask Lampway Agent anything..."
+msgstr "Pitajte Lampway Agent bilo šta..."
 
 # derived
 msgid "Write your prompt here..."
@@ -32521,8 +32521,8 @@ msgid "Animate Moodboard Attachment"
 msgstr "Animiraj prilog mudborda"
 
 # derived
-msgid "Show a newly attached reference flying into Mixie Chat"
-msgstr "Prikazuje novopriloženu referencu kako uleće u ćaskanje Mixie"
+msgid "Show a newly attached reference flying into Lampway Chat"
+msgstr "Prikazuje novopriloženu referencu kako uleće u ćaskanje Lampway Agent"
 
 msgid "Delay"
 msgstr "Kašnjenje"
@@ -33168,16 +33168,16 @@ msgid "Template to place"
 msgstr "Šablon za postavljanje"
 
 # derived
-msgid "Select Mixie3D Preview"
-msgstr "Izaberi pregled Mixie3D"
+msgid "Select Lampway Agent3D Preview"
+msgstr "Izaberi pregled Lampway Agent3D"
 
 # derived
 msgid "Select a segmented image from the preview history"
 msgstr "Bira segmentiranu sliku iz istorije pregleda"
 
 # derived
-msgid "Delete Mixie3D Preview"
-msgstr "Obriši pregled Mixie3D"
+msgid "Delete Lampway Agent3D Preview"
+msgstr "Obriši pregled Lampway Agent3D"
 
 # derived
 msgid "Delete a segmented image from the preview history"
@@ -33410,8 +33410,8 @@ msgid "All projects"
 msgstr "Svi projekti"
 
 # derived
-msgid "Add a rule above to guide Mixie."
-msgstr "Dodajte pravilo iznad da biste vodili Mixie."
+msgid "Add a rule above to guide Lampway Agent."
+msgstr "Dodajte pravilo iznad da biste vodili Lampway Agent."
 
 # derived
 msgid "Applies to"
@@ -34433,16 +34433,16 @@ msgid "Reference image board like PureRef"
 msgstr "Tabla referencnih slika kao PureRef"
 
 # derived
-msgid "Mixie Space"
-msgstr "Prostor Mixie"
+msgid "Lampway Agent Space"
+msgstr "Prostor Lampway Agent"
 
 # derived
-msgid "Mixie editor for Lampway"
-msgstr "Uređivač Mixie za Lampway"
+msgid "Lampway Agent editor for Lampway"
+msgstr "Uređivač Lampway Agent za Lampway"
 
 # derived
-msgid "Mixie editor mode"
-msgstr "Režim uređivača Mixie"
+msgid "Lampway Agent editor mode"
+msgstr "Režim uređivača Lampway Agent"
 
 # derived
 msgid "Agent Bubble Space"
@@ -35338,12 +35338,12 @@ msgid "Agent island accent"
 msgstr "Akcent ostrva agenta"
 
 # derived
-msgid "Theme Mixie Chat"
-msgstr "Tema ćaskanja Mixie"
+msgid "Theme Lampway Chat"
+msgstr "Tema ćaskanja Lampway Agent"
 
 # derived
-msgid "Theme settings for Mixie Chat"
-msgstr "Podešavanja teme za ćaskanje Mixie"
+msgid "Theme settings for Lampway Chat"
+msgstr "Podešavanja teme za ćaskanje Lampway Agent"
 
 # derived
 msgid "User Bubble"
@@ -35770,12 +35770,12 @@ msgid "Opacity of the window background (lower = more frosted glass)"
 msgstr "Neprozirnost pozadine prozora (niže = više matiranog stakla)"
 
 # derived
-msgid "Theme Mixie Space"
-msgstr "Tema prostora Mixie"
+msgid "Theme Lampway Agent Space"
+msgstr "Tema prostora Lampway Agent"
 
 # derived
-msgid "Theme settings for Mixie/Moodboard space"
-msgstr "Podešavanja teme za prostor Mixie/mudbord"
+msgid "Theme settings for Lampway Agent/Moodboard space"
+msgstr "Podešavanja teme za prostor Lampway Agent/mudbord"
 
 # derived
 msgid "Text Input Background"
@@ -35918,8 +35918,8 @@ msgid "Corner radius for rounded UI elements"
 msgstr "Poluprečnik ugla zaobljenih elemenata interfejsa"
 
 # derived
-msgid "Mixie Chat"
-msgstr "Mixie čet"
+msgid "Lampway Chat"
+msgstr "Lampway Agent čet"
 
 msgid "Double-click injection requires event simulation"
 msgstr ""

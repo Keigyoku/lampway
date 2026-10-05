@@ -182,7 +182,7 @@ def add_to_codex(command, args, path=None):
     entry = entry if entry is not None else legacy
     stripped = _without_mixar_table(text) if entry is not None else text
     if entry is not None and stripped == text:
-        return "failed", n_("Codex defines mixar in a form Lampway cannot update; edit config.toml by hand.")
+        return "failed", n_("Codex defines an older entry in a form Lampway cannot update; edit config.toml by hand.")
     block = render("CODEX", command, args)
     updated = stripped.rstrip("\n") + ("\n\n" if stripped.strip() else "") + block
     backup = path.with_name(path.name + ".lampway-backup")

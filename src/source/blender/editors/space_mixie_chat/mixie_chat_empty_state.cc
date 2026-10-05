@@ -49,7 +49,7 @@ namespace blender {
  * where drawn/measured, and where a click inserts them into the composer.
  */
 static const char *g_empty_prompt_texts[CHAT_EMPTY_PROMPT_COUNT] = {
-    N_("Tell me about the features in Mixar"),
+    N_("Tell me about the features in Lampway"),
     N_("Generate a futuristic sci-fi character concept"),
     N_("Place and pack islands across 2 UDIMs"),
     N_("Generate a 3D model of the image selected in moodboard"),

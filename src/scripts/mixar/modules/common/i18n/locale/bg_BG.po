@@ -474,10 +474,10 @@ msgstr ""
 msgid "Nothing is selected"
 msgstr ""
 
-msgid "Open Mixie"
+msgid "Open Lampway Agent"
 msgstr ""
 
-msgid "Open Mixie, the agent chat, ready to type (Shift M)"
+msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -3080,7 +3080,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Mixie read files in a folder"
+msgid "Let Lampway Agent read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -19092,7 +19092,7 @@ msgstr "Лента с инструменти"
 msgid "Sidebar"
 msgstr "Странична лента"
 
-msgid "Mixie"
+msgid "Lampway Agent"
 msgstr ""
 
 msgid "UV Mesh Segmentation panel"
@@ -19599,8 +19599,8 @@ msgstr "Съобщението не можа да се изпрати"
 msgid "You're out of credits"
 msgstr "Кредитите ви свършиха"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Mixie."
-msgstr "Използвали сте месечния си лимит кредити. Надградете плана, за да продължите да създавате с Mixie."
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
+msgstr "Използвали сте месечния си лимит кредити. Надградете плана, за да продължите да създавате с Lampway Agent."
 
 msgid "Feedback comment is empty"
 msgstr "Коментарът с обратна връзка е празен"
@@ -20022,8 +20022,8 @@ msgstr "Дръжте това поле отворено; Esc отказва."
 msgid "Login"
 msgstr "Вход"
 
-msgid "Login panel for Mixie Chat"
-msgstr "Панел за вход в чата на Mixie"
+msgid "Login panel for Lampway Chat"
+msgstr "Панел за вход в чата на Lampway Agent"
 
 msgid "Session expired"
 msgstr "Сесията е изтекла"
@@ -20129,14 +20129,14 @@ msgstr "Сесията е изтекла. {reason}"
 msgid "Browser login did not complete. Please try again."
 msgstr "Входът през браузъра не завърши. Моля, опитайте отново."
 
-msgid "Login to Mixie Chat via browser SSO"
-msgstr "Вход в чата на Mixie чрез SSO в браузъра"
+msgid "Login to Lampway Chat via browser SSO"
+msgstr "Вход в чата на Lampway Agent чрез SSO в браузъра"
 
 msgid "Login failed"
 msgstr "Входът не успя"
 
-msgid "Logout from Mixie Chat"
-msgstr "Изход от чата на Mixie"
+msgid "Logout from Lampway Chat"
+msgstr "Изход от чата на Lampway Agent"
 
 msgid "Logged out successfully"
 msgstr "Изходът е успешен"
@@ -20144,8 +20144,8 @@ msgstr "Изходът е успешен"
 msgid "Open Dashboard"
 msgstr "Отвори таблото"
 
-msgid "Open Mixie web dashboard in your browser"
-msgstr "Отваря уеб таблото на Mixie в браузъра"
+msgid "Open Lampway Agent web dashboard in your browser"
+msgstr "Отваря уеб таблото на Lampway Agent в браузъра"
 
 msgid "Dashboard opened"
 msgstr "Таблото е отворено"
@@ -20822,20 +20822,20 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Mixie Chat"
-msgstr "Изпрати към чата на Mixie"
+msgid "Send to Lampway Chat"
+msgstr "Изпрати към чата на Lampway Agent"
 
-msgid "Open a prompt to send a message to Mixie Chat (Enter to send)"
-msgstr "Отваря промпт за изпращане на съобщение към чата на Mixie (Enter за изпращане)"
+msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
+msgstr "Отваря промпт за изпращане на съобщение към чата на Lampway Agent (Enter за изпращане)"
 
-msgid "Message to send to Mixie Chat"
-msgstr "Съобщение за изпращане към чата на Mixie"
+msgid "Message to send to Lampway Chat"
+msgstr "Съобщение за изпращане към чата на Lampway Agent"
 
-msgid "Not connected to Mixie Chat"
-msgstr "Няма връзка с чата на Mixie"
+msgid "Not connected to Lampway Chat"
+msgstr "Няма връзка с чата на Lampway Agent"
 
-msgid "Mixie Chat is busy"
-msgstr "Чатът на Mixie е зает"
+msgid "Lampway Chat is busy"
+msgstr "Чатът на Lampway Agent е зает"
 
 msgid "Mode:"
 msgstr "Режим:"
@@ -20858,11 +20858,11 @@ msgstr "Съобщение"
 msgid "Please enter a message"
 msgstr "Моля, въведете съобщение"
 
-msgid "Not connected to server. Please connect in Mixie Chat."
-msgstr "Няма връзка със сървъра. Моля, свържете се в чата на Mixie."
+msgid "Not connected to server. Please connect in Lampway Chat."
+msgstr "Няма връзка със сървъра. Моля, свържете се в чата на Lampway Agent."
 
-msgid "Mixie Chat is not ready to receive messages"
-msgstr "Чатът на Mixie не е готов да приема съобщения"
+msgid "Lampway Chat is not ready to receive messages"
+msgstr "Чатът на Lampway Agent не е готов да приема съобщения"
 
 msgid "Dev Mode: Message sent"
 msgstr "Режим за разработка: съобщението е изпратено"
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "Добави правила"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "Задава правила за Mixie. Промените важат от следващото съобщение или отговор; глобалните правила важат във всеки файл на Lampway. Текущата ви заявка има предимство пред правилата на проекта и глобалните"
+msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Задава правила за Lampway Agent. Промените важат от следващото съобщение или отговор; глобалните правила важат във всеки файл на Lampway. Текущата ви заявка има предимство пред правилата на проекта и глобалните"
 
 msgid "Rule operation failed"
 msgstr "Действието с правилото не успя"
@@ -21070,8 +21070,8 @@ msgstr "Спирането не можа да се потвърди. Свърж�
 msgid "Connect"
 msgstr "Свържи"
 
-msgid "Connect to the Mixie agent server"
-msgstr "Свързва се със сървъра на агента Mixie"
+msgid "Connect to the Lampway Agent agent server"
+msgstr "Свързва се със сървъра на агента Lampway Agent"
 
 msgid "Connecting to server..."
 msgstr "Свързване със сървъра..."
@@ -21085,8 +21085,8 @@ msgstr "Режим за разработка: свързано с примерн
 msgid "Disconnect"
 msgstr "Прекъсни"
 
-msgid "Disconnect from the Mixie agent server"
-msgstr "Прекъсва връзката със сървъра на агента Mixie"
+msgid "Disconnect from the Lampway Agent agent server"
+msgstr "Прекъсва връзката със сървъра на агента Lampway Agent"
 
 msgid "Dev Mode: Disconnected"
 msgstr "Режим за разработка: прекъснато"
@@ -21478,8 +21478,8 @@ msgstr "Локално изпратен коментар, показан сам�
 msgid "Message not sent"
 msgstr "Съобщението не е изпратено"
 
-msgid "Enter a render prompt. Mixie will use the current scene's depth as the guide."
-msgstr "Въведете промпт за рендер. Mixie ще използва дълбочината на текущата сцена като ориентир."
+msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
+msgstr "Въведете промпт за рендер. Lampway Agent ще използва дълбочината на текущата сцена като ориентир."
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr "Моля, въведете промпта и изберете меш обектите в 3D изгледа, преди да натиснете изпращане."
@@ -21556,8 +21556,8 @@ msgstr "Автоматичен режим"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "Агентът сам решава всеки отворен избор, вместо да ви пита, и изброява решенията в обобщението"
 
-msgid "Mixie Is Busy"
-msgstr "Mixie е зает"
+msgid "Lampway Agent Is Busy"
+msgstr "Lampway Agent е зает"
 
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "Вярно, когато агентът обработва заявка (състояние BUSY)"
@@ -21631,8 +21631,8 @@ msgstr "Claude Haiku 4.0 — бърз и ефективен"
 msgid "Password"
 msgstr "Парола"
 
-msgid "Password for Mixie Chat login"
-msgstr "Парола за вход в чата на Mixie"
+msgid "Password for Lampway Chat login"
+msgstr "Парола за вход в чата на Lampway Agent"
 
 msgid "Is Logged In"
 msgstr "Влязъл е"
@@ -24448,8 +24448,8 @@ msgstr "Лови"
 msgid "NEW"
 msgstr "НОВО"
 
-msgid "Ask Mixie anything..."
-msgstr "Попитайте Mixie нещо..."
+msgid "Ask Lampway Agent anything..."
+msgstr "Попитайте Lampway Agent нещо..."
 
 msgid "Write your prompt here..."
 msgstr "Напишете промпта си тук..."
@@ -25246,8 +25246,8 @@ msgstr "Позиция Y на курсора"
 msgid "Animate Moodboard Attachment"
 msgstr "Анимирай прикачения файл на мудборда"
 
-msgid "Show a newly attached reference flying into Mixie Chat"
-msgstr "Показва новоприкачена референция, която влита в чата на Mixie"
+msgid "Show a newly attached reference flying into Lampway Chat"
+msgstr "Показва новоприкачена референция, която влита в чата на Lampway Agent"
 
 msgid "Delay"
 msgstr "Забавяне"
@@ -25759,14 +25759,14 @@ msgstr "Поставя редактируем възел там, където е
 msgid "Template to place"
 msgstr "Шаблон за поставяне"
 
-msgid "Select Mixie3D Preview"
-msgstr "Избери преглед Mixie3D"
+msgid "Select Lampway Agent3D Preview"
+msgstr "Избери преглед Lampway Agent3D"
 
 msgid "Select a segmented image from the preview history"
 msgstr "Избира сегментирано изображение от историята на прегледите"
 
-msgid "Delete Mixie3D Preview"
-msgstr "Изтрий преглед Mixie3D"
+msgid "Delete Lampway Agent3D Preview"
+msgstr "Изтрий преглед Lampway Agent3D"
 
 msgid "Delete a segmented image from the preview history"
 msgstr "Изтрива сегментирано изображение от историята на прегледите"
@@ -25945,8 +25945,8 @@ msgstr "Този проект"
 msgid "All projects"
 msgstr "Всички проекти"
 
-msgid "Add a rule above to guide Mixie."
-msgstr "Добавете правило по-горе, за да насочвате Mixie."
+msgid "Add a rule above to guide Lampway Agent."
+msgstr "Добавете правило по-горе, за да насочвате Lampway Agent."
 
 msgid "Applies to"
 msgstr "Прилага се за"
@@ -26767,14 +26767,14 @@ msgstr "Свойства на слоевете на Lampway"
 msgid "Reference image board like PureRef"
 msgstr "Табло с референтни изображения като PureRef"
 
-msgid "Mixie Space"
-msgstr "Пространство Mixie"
+msgid "Lampway Agent Space"
+msgstr "Пространство Lampway Agent"
 
-msgid "Mixie editor for Lampway"
-msgstr "Редактор Mixie за Lampway"
+msgid "Lampway Agent editor for Lampway"
+msgstr "Редактор Lampway Agent за Lampway"
 
-msgid "Mixie editor mode"
-msgstr "Режим на редактора Mixie"
+msgid "Lampway Agent editor mode"
+msgstr "Режим на редактора Lampway Agent"
 
 msgid "Agent Bubble Space"
 msgstr "Пространство на балона на агента"
@@ -27469,11 +27469,11 @@ msgstr "Акцент на острова"
 msgid "Agent island accent"
 msgstr "Акцент на острова на агента"
 
-msgid "Theme Mixie Chat"
-msgstr "Тема на чата Mixie"
+msgid "Theme Lampway Chat"
+msgstr "Тема на чата Lampway Agent"
 
-msgid "Theme settings for Mixie Chat"
-msgstr "Настройки на темата за чата Mixie"
+msgid "Theme settings for Lampway Chat"
+msgstr "Настройки на темата за чата Lampway Agent"
 
 msgid "User Bubble"
 msgstr "Балон на потребителя"
@@ -27793,11 +27793,11 @@ msgstr "Непрозрачност на фона"
 msgid "Opacity of the window background (lower = more frosted glass)"
 msgstr "Непрозрачност на фона на прозореца (по-ниско = повече матирано стъкло)"
 
-msgid "Theme Mixie Space"
-msgstr "Тема на пространството Mixie"
+msgid "Theme Lampway Agent Space"
+msgstr "Тема на пространството Lampway Agent"
 
-msgid "Theme settings for Mixie/Moodboard space"
-msgstr "Настройки на темата за пространството Mixie/мудборд"
+msgid "Theme settings for Lampway Agent/Moodboard space"
+msgstr "Настройки на темата за пространството Lampway Agent/мудборд"
 
 msgid "Text Input Background"
 msgstr "Фон на текстовото поле"
@@ -27904,8 +27904,8 @@ msgstr "Ширина на границата на текстовите поле�
 msgid "Corner radius for rounded UI elements"
 msgstr "Радиус на ъглите за заоблени елементи на интерфейса"
 
-msgid "Mixie Chat"
-msgstr "Чат с Mixie"
+msgid "Lampway Chat"
+msgstr "Чат с Lampway Agent"
 
 msgid "Double-click injection requires event simulation"
 msgstr ""

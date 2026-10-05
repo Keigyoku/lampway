@@ -117,7 +117,7 @@ static const MixarThemeRec k_mixar_theme[] = {
 };
 
 static_assert(sizeof(k_mixar_theme) / sizeof(k_mixar_theme[0]) == int(MixarThemeSlot::Count),
-              "theme slot table must match MixarThemeSlot");
+              "theme slot table must match LampwayThemeSlot");
 
 static const unsigned char *mixar_theme_stored(MixarThemeSlot slot)
 {

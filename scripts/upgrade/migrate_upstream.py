@@ -83,7 +83,7 @@ class MigrationOrchestrator:
         """Print the script header."""
         print()
         print(f"{Colors.CYAN}{'═' * 70}{Colors.NC}")
-        print(f"{Colors.CYAN}║{Colors.BOLD}{'Mixar Upstream Migration Tool'.center(68)}{Colors.NC}{Colors.CYAN}║{Colors.NC}")
+        print(f"{Colors.CYAN}║{Colors.BOLD}{'Lampway Upstream Migration Tool'.center(68)}{Colors.NC}{Colors.CYAN}║{Colors.NC}")
         print(f"{Colors.CYAN}{'═' * 70}{Colors.NC}")
         print()
         print(f"{Colors.BOLD}Target:{Colors.NC} {self.target_ref}")

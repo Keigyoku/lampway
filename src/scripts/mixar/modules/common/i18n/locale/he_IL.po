@@ -474,10 +474,10 @@ msgstr ""
 msgid "Nothing is selected"
 msgstr ""
 
-msgid "Open Mixie"
+msgid "Open Lampway Agent"
 msgstr ""
 
-msgid "Open Mixie, the agent chat, ready to type (Shift M)"
+msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -3080,7 +3080,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Mixie read files in a folder"
+msgid "Let Lampway Agent read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -19092,7 +19092,7 @@ msgstr "םילכ לגרס"
 msgid "Sidebar"
 msgstr "דצ לגרס"
 
-msgid "Mixie"
+msgid "Lampway Agent"
 msgstr ""
 
 msgid "UV Mesh Segmentation panel"
@@ -19599,8 +19599,8 @@ msgstr "הלשכנ העדוהה תחילש"
 msgid "You're out of credits"
 msgstr "ולזא םיטידרקה"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Mixie."
-msgstr ".Mixie םע רוציל ךישמהל ידכ יונמה תא גרדשל שי .הלצונ תישדוחה םיטידרקה תסכמ"
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
+msgstr ".Lampway Agent םע רוציל ךישמהל ידכ יונמה תא גרדשל שי .הלצונ תישדוחה םיטידרקה תסכמ"
 
 msgid "Feedback comment is empty"
 msgstr "הקיר בושמה תרעה"
@@ -20022,8 +20022,8 @@ msgstr ".לטבמ Esc ;חותפ הז הדש ריאשהל שי"
 msgid "Login"
 msgstr "תורבחתה"
 
-msgid "Login panel for Mixie Chat"
-msgstr "Mixie טא'צל תורבחתה חול"
+msgid "Login panel for Lampway Chat"
+msgstr "Lampway Agent טא'צל תורבחתה חול"
 
 msgid "Session expired"
 msgstr "גפ הלעפהה ףקות"
@@ -20129,14 +20129,14 @@ msgstr "{reason} .גפ הלעפהה ףקות"
 msgid "Browser login did not complete. Please try again."
 msgstr ".בוש תוסנל אנ .המלשוה אל ןפדפדב תורבחתהה"
 
-msgid "Login to Mixie Chat via browser SSO"
-msgstr "ןפדפדב SSO ךרד Mixie טא'צל תורבחתה"
+msgid "Login to Lampway Chat via browser SSO"
+msgstr "ןפדפדב SSO ךרד Lampway Agent טא'צל תורבחתה"
 
 msgid "Login failed"
 msgstr "הלשכנ תורבחתהה"
 
-msgid "Logout from Mixie Chat"
-msgstr "Mixie טא'צמ תוקתנתה"
+msgid "Logout from Lampway Chat"
+msgstr "Lampway Agent טא'צמ תוקתנתה"
 
 msgid "Logged out successfully"
 msgstr "החילצה תוקתנתהה"
@@ -20144,8 +20144,8 @@ msgstr "החילצה תוקתנתהה"
 msgid "Open Dashboard"
 msgstr "הרקב חול תחיתפ"
 
-msgid "Open Mixie web dashboard in your browser"
-msgstr "ןפדפדב Mixie לש ןווקמה הרקבה חול תחיתפ"
+msgid "Open Lampway Agent web dashboard in your browser"
+msgstr "ןפדפדב Lampway Agent לש ןווקמה הרקבה חול תחיתפ"
 
 msgid "Dashboard opened"
 msgstr "חתפנ הרקבה חול"
@@ -20822,20 +20822,20 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Mixie Chat"
-msgstr "Mixie טא'צל החילש"
+msgid "Send to Lampway Chat"
+msgstr "Lampway Agent טא'צל החילש"
 
-msgid "Open a prompt to send a message to Mixie Chat (Enter to send)"
-msgstr "(החילשל Mixie (Enter טא'צל העדוה תחילשל היחנה תחיתפ"
+msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
+msgstr "(החילשל Lampway Agent (Enter טא'צל העדוה תחילשל היחנה תחיתפ"
 
-msgid "Message to send to Mixie Chat"
-msgstr "Mixie טא'צל החילשל העדוה"
+msgid "Message to send to Lampway Chat"
+msgstr "Lampway Agent טא'צל החילשל העדוה"
 
-msgid "Not connected to Mixie Chat"
-msgstr "Mixie טא'צל רוביח ןיא"
+msgid "Not connected to Lampway Chat"
+msgstr "Lampway Agent טא'צל רוביח ןיא"
 
-msgid "Mixie Chat is busy"
-msgstr "קוסע Mixie טא'צ"
+msgid "Lampway Chat is busy"
+msgstr "קוסע Lampway Agent טא'צ"
 
 msgid "Mode:"
 msgstr ":בצמ"
@@ -20858,11 +20858,11 @@ msgstr "העדוה"
 msgid "Please enter a message"
 msgstr "העדוה ןיזהל אנ"
 
-msgid "Not connected to server. Please connect in Mixie Chat."
-msgstr ".Mixie טא'צב רבחתהל אנ .תרשל רוביח ןיא"
+msgid "Not connected to server. Please connect in Lampway Chat."
+msgstr ".Lampway Agent טא'צב רבחתהל אנ .תרשל רוביח ןיא"
 
-msgid "Mixie Chat is not ready to receive messages"
-msgstr "תועדוה לבקל ןכומ וניא Mixie טא'צ"
+msgid "Lampway Chat is not ready to receive messages"
+msgstr "תועדוה לבקל ןכומ וניא Lampway Agent טא'צ"
 
 msgid "Dev Mode: Message sent"
 msgstr "החלשנ העדוהה :חותיפ בצמ"
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "םיללכ תפסוה"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "םיילבולגה םיללכהו טקיורפה יללכ לע תרבוג תיחכונה השקבה .Lampway ץבוק לכב םילח םיילבולג םיללכ ;האבה הבושתב וא העדוהב םילח םייונישה .Mixie-ל םיללכ תרדגה"
+msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "םיילבולגה םיללכהו טקיורפה יללכ לע תרבוג תיחכונה השקבה .Lampway ץבוק לכב םילח םיילבולג םיללכ ;האבה הבושתב וא העדוהב םילח םייונישה .Lampway Agent-ל םיללכ תרדגה"
 
 msgid "Rule operation failed"
 msgstr "הלשכנ ללכה תלועפ"
@@ -21070,8 +21070,8 @@ msgstr ".בוש הריצע תוסנלו שדחמ רבחתהל שי .הריצעה
 msgid "Connect"
 msgstr "רבחתה"
 
-msgid "Connect to the Mixie agent server"
-msgstr "Mixie לש ןכוסה תרשל תורבחתה"
+msgid "Connect to the Lampway Agent agent server"
+msgstr "Lampway Agent לש ןכוסה תרשל תורבחתה"
 
 msgid "Connecting to server..."
 msgstr "...תרשל רבחתמ"
@@ -21085,8 +21085,8 @@ msgstr "המד ינותנ םע רבוחמ :חותיפ בצמ"
 msgid "Disconnect"
 msgstr "קתנ"
 
-msgid "Disconnect from the Mixie agent server"
-msgstr "Mixie לש ןכוסה תרשמ תוקתנתה"
+msgid "Disconnect from the Lampway Agent agent server"
+msgstr "Lampway Agent לש ןכוסה תרשמ תוקתנתה"
 
 msgid "Dev Mode: Disconnected"
 msgstr "קתונמ :חותיפ בצמ"
@@ -21478,8 +21478,8 @@ msgstr "טא'צב דבלב האירקל תגצומ ,תימוקמ החלשנש ה
 msgid "Message not sent"
 msgstr "החלשנ אל העדוהה"
 
-msgid "Enter a render prompt. Mixie will use the current scene's depth as the guide."
-msgstr ".הנווכהכ תיחכונה הנצסה קמועב שמתשי Mixie .דוביע תייחנה ןיזהל שי"
+msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
+msgstr ".הנווכהכ תיחכונה הנצסה קמועב שמתשי Lampway Agent .דוביע תייחנה ןיזהל שי"
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr ".החילש לע הציחלה ינפל ידממ-תלתה הגוצתה ןולחב הרוצה יטקייבוא תא רוחבלו היחנהה תא ןיזהל אנ"
@@ -21556,8 +21556,8 @@ msgstr "יטמוטוא בצמ"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "םוכיסב תוטלחהה תא טרפמו ,לואשל םוקמב החותפ הריחב לכב ומצעב טילחמ ןכוסה"
 
-msgid "Mixie Is Busy"
-msgstr "Mixie קוסע"
+msgid "Lampway Agent Is Busy"
+msgstr "Lampway Agent קוסע"
 
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "(BUSY בצמ) השקב דבעמ ןכוסהשכ תמא"
@@ -21631,8 +21631,8 @@ msgstr "Claude Haiku 4.0 - ליעיו ריהמ"
 msgid "Password"
 msgstr "המסיס"
 
-msgid "Password for Mixie Chat login"
-msgstr "Mixie טא'צל תורבחתהל המסיס"
+msgid "Password for Lampway Chat login"
+msgstr "Lampway Agent טא'צל תורבחתהל המסיס"
 
 msgid "Is Logged In"
 msgstr "רבוחמ"
@@ -24448,8 +24448,8 @@ msgstr "טלוק"
 msgid "NEW"
 msgstr "שדח"
 
-msgid "Ask Mixie anything..."
-msgstr "...רבד לכ Mixie תא ולאש"
+msgid "Ask Lampway Agent anything..."
+msgstr "...רבד לכ Lampway Agent תא ולאש"
 
 msgid "Write your prompt here..."
 msgstr "...ןאכ היחנהה תא ובתכ"
@@ -25246,8 +25246,8 @@ msgstr "ןמסה לש Y םוקימ"
 msgid "Animate Moodboard Attachment"
 msgstr "הארשה חולב ףרוצמ ץבוק תשפנה"
 
-msgid "Show a newly attached reference flying into Mixie Chat"
-msgstr "Mixie לש טא'צה לא ףע ףרוצ התע הזש סנרפר גיצמ"
+msgid "Show a newly attached reference flying into Lampway Chat"
+msgstr "Lampway Agent לש טא'צה לא ףע ףרוצ התע הזש סנרפר גיצמ"
 
 msgid "Delay"
 msgstr "היהשה"
@@ -25759,14 +25759,14 @@ msgstr "תינבתה תטמשנ ובש םוקמב הכירעל ןתינ תמוצ
 msgid "Template to place"
 msgstr "הבצהל תינבת"
 
-msgid "Select Mixie3D Preview"
-msgstr "Mixie3D לש המידקמ הגוצת תריחב"
+msgid "Select Lampway Agent3D Preview"
+msgstr "Lampway Agent3D לש המידקמ הגוצת תריחב"
 
 msgid "Select a segmented image from the preview history"
 msgstr "המידקמה הגוצתה תיירוטסיהמ תחלופמ הנומת רחוב"
 
-msgid "Delete Mixie3D Preview"
-msgstr "Mixie3D לש המידקמ הגוצת תקיחמ"
+msgid "Delete Lampway Agent3D Preview"
+msgstr "Lampway Agent3D לש המידקמ הגוצת תקיחמ"
 
 msgid "Delete a segmented image from the preview history"
 msgstr "המידקמה הגוצתה תיירוטסיהמ תחלופמ הנומת קחומ"
@@ -25945,8 +25945,8 @@ msgstr "הזה טקיורפה"
 msgid "All projects"
 msgstr "םיטקיורפה לכ"
 
-msgid "Add a rule above to guide Mixie."
-msgstr ".Mixie תא תוחנהל ידכ ללכ הלעמל ופיסוה"
+msgid "Add a rule above to guide Lampway Agent."
+msgstr ".Lampway Agent תא תוחנהל ידכ ללכ הלעמל ופיסוה"
 
 msgid "Applies to"
 msgstr "לע לח"
@@ -26767,14 +26767,14 @@ msgstr "Lampway תובכש ינייפאמ"
 msgid "Reference image board like PureRef"
 msgstr "PureRef ומכ סנרפר תונומת חול"
 
-msgid "Mixie Space"
-msgstr "Mixie בחרמ"
+msgid "Lampway Agent Space"
+msgstr "Lampway Agent בחרמ"
 
-msgid "Mixie editor for Lampway"
-msgstr "Lampway רובע Mixie ךרוע"
+msgid "Lampway Agent editor for Lampway"
+msgstr "Lampway רובע Lampway Agent ךרוע"
 
-msgid "Mixie editor mode"
-msgstr "Mixie ךרוע בצמ"
+msgid "Lampway Agent editor mode"
+msgstr "Lampway Agent ךרוע בצמ"
 
 msgid "Agent Bubble Space"
 msgstr "ןכוסה תעוב בחרמ"
@@ -27469,11 +27469,11 @@ msgstr "יאה תשגדה"
 msgid "Agent island accent"
 msgstr "ןכוסה יא תשגדה"
 
-msgid "Theme Mixie Chat"
-msgstr "Mixie טא'צ אשונ תכרע"
+msgid "Theme Lampway Chat"
+msgstr "Lampway Agent טא'צ אשונ תכרע"
 
-msgid "Theme settings for Mixie Chat"
-msgstr "Mixie טא'צל אשונ תכרע תורדגה"
+msgid "Theme settings for Lampway Chat"
+msgstr "Lampway Agent טא'צל אשונ תכרע תורדגה"
 
 msgid "User Bubble"
 msgstr "שמתשמ תעוב"
@@ -27793,11 +27793,11 @@ msgstr "עקר תומיטא"
 msgid "Opacity of the window background (lower = more frosted glass)"
 msgstr "(רתוי תיבלח תיכוכז = רתוי ךומנ) ןולחה עקר תומיטא"
 
-msgid "Theme Mixie Space"
-msgstr "Mixie בחרמ אשונ תכרע"
+msgid "Theme Lampway Agent Space"
+msgstr "Lampway Agent בחרמ אשונ תכרע"
 
-msgid "Theme settings for Mixie/Moodboard space"
-msgstr "הארשהה חוללו Mixie בחרמל אשונ תכרע תורדגה"
+msgid "Theme settings for Lampway Agent/Moodboard space"
+msgstr "הארשהה חוללו Lampway Agent בחרמל אשונ תכרע תורדגה"
 
 msgid "Text Input Background"
 msgstr "טסקט טלק עקר"
@@ -27904,8 +27904,8 @@ msgstr "טסקט טלק תודשל לובג בחור"
 msgid "Corner radius for rounded UI elements"
 msgstr "םילגועמ קשממ יביכרל הניפ סוידר"
 
-msgid "Mixie Chat"
-msgstr "Mixie טא'צ"
+msgid "Lampway Chat"
+msgstr "Lampway Agent טא'צ"
 
 msgid "Double-click injection requires event simulation"
 msgstr ""

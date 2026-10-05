@@ -344,7 +344,7 @@ const EnumPropertyItem rna_enum_space_action_mode_items[] = {
 #define SI_ITEM_VIEW(identifier, name, icon) \
   {SI_MODE_VIEW, identifier, icon, name, "Inspect images or render results"}
 #define SI_ITEM_UV {SI_MODE_UV, "UV", ICON_UV, "UV Editor", "View and edit UVs"}
-#define SI_ITEM_MIXAR_UV {SI_MODE_MIXAR_UV, "MIXAR_UV", ICON_UV, "Mixar UV Editor", "Mixar UV editing mode"}
+#define SI_ITEM_MIXAR_UV {SI_MODE_MIXAR_UV, "MIXAR_UV", ICON_UV, "Lampway UV Editor", "Lampway UV editing mode"}
 #define SI_ITEM_PAINT {SI_MODE_PAINT, "PAINT", ICON_TPAINT_HLT, "Paint", "Paint images in 2D"}
 #define SI_ITEM_MASK {SI_MODE_MASK, "MASK", ICON_MOD_MASK, "Mask", "View and edit masks"}
 
@@ -650,7 +650,7 @@ const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics Properties"},
     {BCONTEXT_SHADERFX, "SHADERFX", ICON_SHADERFX, "Effects", "Visual Effects Properties"},
     {BCONTEXT_STRIP, "STRIP", ICON_SEQ_SEQUENCER, "Strip", "Strip Properties"},
-    {BCONTEXT_LAYERS, "LAYERS", ICON_OUTLINER, "Layers", "Mixar Layers Properties"},
+    {BCONTEXT_LAYERS, "LAYERS", ICON_OUTLINER, "Layers", "Lampway Layers Properties"},
     {BCONTEXT_STRIP_MODIFIER,
      "STRIP_MODIFIER",
      ICON_SEQ_STRIP_MODIFIER,
@@ -9623,13 +9623,13 @@ static void rna_def_space_mixie(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "SpaceMixie", "Space");
   RNA_def_struct_sdna(srna, "SpaceMixie");
-  RNA_def_struct_ui_text(srna, "Mixie Space", "Mixie editor for Mixar");
+  RNA_def_struct_ui_text(srna, "Lampway Agent Space", "Lampway agent editor");
 
   /* Mode */
   prop = RNA_def_property(srna, "mixie_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "mode");
   RNA_def_property_enum_items(prop, mixie_mode_items);
-  RNA_def_property_ui_text(prop, "Mode", "Mixie editor mode");
+  RNA_def_property_ui_text(prop, "Mode", "Lampway editor mode");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_MIXIE, "rna_SpaceMixie_mode_update");
 }
 
@@ -9642,7 +9642,7 @@ static void rna_def_space_agent_bubble(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna,
       "Agent Bubble Space",
-      "Floating agent chat overlay editor for Mixar");
+      "Floating agent chat overlay editor for Lampway");
 }
 
 /* Mixar: expose SpaceTopBar to Python so addons / Mixar's onboarding can
@@ -9673,7 +9673,7 @@ static void rna_def_space_mixar_layers(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "SpaceMixarLayers", "Space");
   RNA_def_struct_sdna(srna, "SpaceMixarLayers");
-  RNA_def_struct_ui_text(srna, "Mixar Layers Space", "Mixar texture layer stack management");
+  RNA_def_struct_ui_text(srna, "Lampway Layers Space", "Lampway texture layer stack management");
 }
 
 static void rna_def_space_mixar_properties(BlenderRNA *brna)
@@ -9682,7 +9682,7 @@ static void rna_def_space_mixar_properties(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "SpaceMixarProperties", "Space");
   RNA_def_struct_sdna(srna, "SpaceMixarProperties");
-  RNA_def_struct_ui_text(srna, "Mixar Properties Space", "Mixar layer and texture properties");
+  RNA_def_struct_ui_text(srna, "Lampway Properties Space", "Lampway layer and texture properties");
 }
 
 static void rna_def_space_mixar_assets(BlenderRNA *brna)
@@ -9692,7 +9692,7 @@ static void rna_def_space_mixar_assets(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "SpaceMixarAssets", "Space");
   RNA_def_struct_sdna(srna, "SpaceMixarAssets");
   RNA_def_struct_ui_text(
-      srna, "Mixar Assets Space", "Mixar smart materials, brushes, and textures library");
+      srna, "Lampway Assets Space", "Lampway smart materials, brushes, and textures library");
 }
 
 /* rna_def_space_mixar_uv_properties removed: merged into IMAGE_EDITOR sidebar */

@@ -15,7 +15,7 @@ from . import tool_snapshot
 
 CATALOG_TIMEOUT_SECONDS = 7
 
-RECONNECT = ("ask the user to reconnect the Lampway MCP server (Claude Code: /mcp, then reconnect mixar; "
+RECONNECT = ("ask the user to reconnect the Lampway MCP server (Claude Code: /mcp, then reconnect lampway; "
              "Codex: start a new session)")
 NEXT_STEPS = {
     "available": "",

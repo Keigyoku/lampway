@@ -2342,14 +2342,14 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
         NSMenu *appMenu;
 
         /* Create the application menu. */
-        appMenu = [[NSMenu alloc] initWithTitle:@"Mixar"];
+        appMenu = [[NSMenu alloc] initWithTitle:@"Lampway"];
 
-        [appMenu addItemWithTitle:@"About Mixar"
+        [appMenu addItemWithTitle:@"About Lampway"
                            action:@selector(orderFrontStandardAboutPanel:)
                     keyEquivalent:@""];
         [appMenu addItem:[NSMenuItem separatorItem]];
 
-        menuItem = [appMenu addItemWithTitle:@"Hide Mixar"
+        menuItem = [appMenu addItemWithTitle:@"Hide Lampway"
                                       action:@selector(hide:)
                                keyEquivalent:@"h"];
         menuItem.keyEquivalentModifierMask = NSEventModifierFlagCommand;
@@ -2364,7 +2364,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
                            action:@selector(unhideAllApplications:)
                     keyEquivalent:@""];
 
-        menuItem = [appMenu addItemWithTitle:@"Quit Mixar"
+        menuItem = [appMenu addItemWithTitle:@"Quit Lampway"
                                       action:@selector(terminate:)
                                keyEquivalent:@"q"];
         menuItem.keyEquivalentModifierMask = NSEventModifierFlagCommand;

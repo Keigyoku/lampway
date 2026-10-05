@@ -280,7 +280,7 @@ void pill_cat_qa_targets(const wmWindow * /*win*/,
 
   MixarQATarget t;
   t.surface = "pill_cat";
-  t.text = "Mixie";
+  t.text = "Lampway";
   t.value = mixie_cat_activity_name(g_last_activity);
   t.rect_win = mapped;
   r_targets.push_back(std::move(t));

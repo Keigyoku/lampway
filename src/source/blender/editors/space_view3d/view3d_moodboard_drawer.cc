@@ -335,7 +335,7 @@ void view3d_moodboard_drawer_region_init(wmWindowManager *wm, ARegion *region)
   view3d_moodboard_drawer_toggle_handlers_add(wm, region);
 
   wmKeyMap *mixie_keymap = WM_keymap_ensure(
-      wm->runtime->defaultconf, "Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+      wm->runtime->defaultconf, "Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_poll(&region->runtime->handlers,
                                    mixie_keymap,
                                    view3d_moodboard_drawer_canvas_handler_poll);
@@ -346,7 +346,7 @@ void view3d_moodboard_drawer_region_init(wmWindowManager *wm, ARegion *region)
                                    view2d_keymap,
                                    view3d_moodboard_drawer_canvas_handler_poll);
 
-  ListBaseT<wmDropBox> *dropboxes = WM_dropboxmap_find("Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *dropboxes = WM_dropboxmap_find("Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
   if (dropboxes != nullptr) {
     WM_event_add_dropbox_handler(
         static_cast<ListBaseT<wmEventHandler> *>(&region->runtime->handlers), dropboxes);

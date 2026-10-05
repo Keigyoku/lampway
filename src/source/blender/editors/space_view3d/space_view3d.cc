@@ -529,7 +529,7 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *region)
                                static_cast<ListBaseT<wmDropBox> *>(lb));
   /* Dropbox handlers prepend: register Mixie last so Zen reference media
    * reach the board before Blender's image-Empty/background handlers. */
-  lb = WM_dropboxmap_find("Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+  lb = WM_dropboxmap_find("Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
   WM_event_add_dropbox_handler(&region->runtime->handlers, lb);
 }
 

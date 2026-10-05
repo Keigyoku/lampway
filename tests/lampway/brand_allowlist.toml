@@ -27,3 +27,9 @@ path = "src/scripts/mixar/modules/addon_project/constants.py"
 text = 'LEGACY_MANIFEST_DIR = ".mixar"'
 reason = "read-only fallback in addon_project/manifest.py manifest_path(): a project that already has .mixar/addon-project.json keeps working; new manifests are written to .lampway."
 category = "legacy-read"
+
+[[allow]]
+path = "scripts/dev/lampway_placeholder_art.py"
+text = "src/release/darwin/Mixar.app/Contents/Resources"
+reason = "the macOS bundle directory is still named Mixar.app by src/source/creator/CMakeLists.txt (lines 515, 1803); renaming it is decision D5 and needs a macOS build."
+category = "blocked-on-decision"

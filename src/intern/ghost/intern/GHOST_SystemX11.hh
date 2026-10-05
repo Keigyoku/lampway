@@ -28,7 +28,7 @@
 #endif
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-#  define GHOST_X11_RES_NAME "Mixar"  /* res_name */
+#  define GHOST_X11_RES_NAME "Lampway"  /* res_name */
 #  define GHOST_X11_RES_CLASS "Lampway" /* res_class */
 #endif
 

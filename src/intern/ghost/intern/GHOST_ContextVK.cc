@@ -363,9 +363,9 @@ struct GHOST_InstanceVK {
   {
     VkApplicationInfo vk_application_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO,
                                              nullptr,
-                                             "Mixar",
+                                             "Lampway",
                                              VK_MAKE_VERSION(1, 0, 0),
-                                             "Mixar",
+                                             "Lampway",
                                              VK_MAKE_VERSION(1, 0, 0),
                                              vulkan_api_version};
     VkInstanceCreateInfo vk_instance_create_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,

@@ -474,10 +474,10 @@ msgstr ""
 msgid "Nothing is selected"
 msgstr ""
 
-msgid "Open Mixie"
+msgid "Open Lampway Agent"
 msgstr ""
 
-msgid "Open Mixie, the agent chat, ready to type (Shift M)"
+msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -3080,7 +3080,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Mixie read files in a folder"
+msgid "Let Lampway Agent read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -19092,7 +19092,7 @@ msgstr "툴바"
 msgid "Sidebar"
 msgstr "사이드바"
 
-msgid "Mixie"
+msgid "Lampway Agent"
 msgstr ""
 
 msgid "UV Mesh Segmentation panel"
@@ -19599,8 +19599,8 @@ msgstr "메시지를 보내지 못했습니다"
 msgid "You're out of credits"
 msgstr "크레딧이 모두 소진되었습니다"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Mixie."
-msgstr "월간 크레딧 한도를 모두 사용했습니다. Mixie로 계속 작업하려면 플랜을 업그레이드하세요."
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
+msgstr "월간 크레딧 한도를 모두 사용했습니다. Lampway Agent로 계속 작업하려면 플랜을 업그레이드하세요."
 
 msgid "Feedback comment is empty"
 msgstr "피드백 코멘트가 비어 있습니다"
@@ -20022,8 +20022,8 @@ msgstr "이 입력란을 연 상태로 유지하세요. Esc를 누르면 취소�
 msgid "Login"
 msgstr "로그인"
 
-msgid "Login panel for Mixie Chat"
-msgstr "Mixie 채팅 로그인 패널"
+msgid "Login panel for Lampway Chat"
+msgstr "Lampway Agent 채팅 로그인 패널"
 
 msgid "Session expired"
 msgstr "세션이 만료됨"
@@ -20129,14 +20129,14 @@ msgstr "세션이 만료되었습니다. {reason}"
 msgid "Browser login did not complete. Please try again."
 msgstr "브라우저 로그인이 완료되지 않았습니다. 다시 시도하세요."
 
-msgid "Login to Mixie Chat via browser SSO"
-msgstr "브라우저 SSO로 Mixie 채팅에 로그인합니다"
+msgid "Login to Lampway Chat via browser SSO"
+msgstr "브라우저 SSO로 Lampway Agent 채팅에 로그인합니다"
 
 msgid "Login failed"
 msgstr "로그인 실패"
 
-msgid "Logout from Mixie Chat"
-msgstr "Mixie 채팅에서 로그아웃합니다"
+msgid "Logout from Lampway Chat"
+msgstr "Lampway Agent 채팅에서 로그아웃합니다"
 
 msgid "Logged out successfully"
 msgstr "로그아웃되었습니다"
@@ -20144,8 +20144,8 @@ msgstr "로그아웃되었습니다"
 msgid "Open Dashboard"
 msgstr "대시보드 열기"
 
-msgid "Open Mixie web dashboard in your browser"
-msgstr "브라우저에서 Mixie 웹 대시보드를 엽니다"
+msgid "Open Lampway Agent web dashboard in your browser"
+msgstr "브라우저에서 Lampway Agent 웹 대시보드를 엽니다"
 
 msgid "Dashboard opened"
 msgstr "대시보드를 열었습니다"
@@ -20822,20 +20822,20 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Mixie Chat"
-msgstr "Mixie 채팅으로 보내기"
+msgid "Send to Lampway Chat"
+msgstr "Lampway Agent 채팅으로 보내기"
 
-msgid "Open a prompt to send a message to Mixie Chat (Enter to send)"
-msgstr "Mixie 채팅에 메시지를 보낼 프롬프트를 엽니다 (Enter로 보내기)"
+msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
+msgstr "Lampway Agent 채팅에 메시지를 보낼 프롬프트를 엽니다 (Enter로 보내기)"
 
-msgid "Message to send to Mixie Chat"
-msgstr "Mixie 채팅에 보낼 메시지"
+msgid "Message to send to Lampway Chat"
+msgstr "Lampway Agent 채팅에 보낼 메시지"
 
-msgid "Not connected to Mixie Chat"
-msgstr "Mixie 채팅에 연결되지 않음"
+msgid "Not connected to Lampway Chat"
+msgstr "Lampway Agent 채팅에 연결되지 않음"
 
-msgid "Mixie Chat is busy"
-msgstr "Mixie 채팅이 사용 중입니다"
+msgid "Lampway Chat is busy"
+msgstr "Lampway Agent 채팅이 사용 중입니다"
 
 msgid "Mode:"
 msgstr "모드:"
@@ -20858,11 +20858,11 @@ msgstr "메시지"
 msgid "Please enter a message"
 msgstr "메시지를 입력하세요"
 
-msgid "Not connected to server. Please connect in Mixie Chat."
-msgstr "서버에 연결되지 않았습니다. Mixie 채팅에서 연결하세요."
+msgid "Not connected to server. Please connect in Lampway Chat."
+msgstr "서버에 연결되지 않았습니다. Lampway Agent 채팅에서 연결하세요."
 
-msgid "Mixie Chat is not ready to receive messages"
-msgstr "Mixie 채팅이 메시지를 받을 준비가 되지 않았습니다"
+msgid "Lampway Chat is not ready to receive messages"
+msgstr "Lampway Agent 채팅이 메시지를 받을 준비가 되지 않았습니다"
 
 msgid "Dev Mode: Message sent"
 msgstr "개발 모드: 메시지를 보냈습니다"
@@ -20882,8 +20882,8 @@ msgstr ""
 msgid "Add Rules"
 msgstr "규칙 추가"
 
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "Mixie의 규칙을 정의합니다. 변경 사항은 다음 메시지나 답변부터 적용되며, 글로벌 규칙은 모든 Lampway 파일에 적용됩니다. 현재 요청이 프로젝트 규칙과 글로벌 규칙보다 우선합니다"
+msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Lampway Agent의 규칙을 정의합니다. 변경 사항은 다음 메시지나 답변부터 적용되며, 글로벌 규칙은 모든 Lampway 파일에 적용됩니다. 현재 요청이 프로젝트 규칙과 글로벌 규칙보다 우선합니다"
 
 msgid "Rule operation failed"
 msgstr "규칙 작업 실패"
@@ -21070,8 +21070,8 @@ msgstr "중지를 확인할 수 없습니다. 다시 연결한 후 중지를 다
 msgid "Connect"
 msgstr "연결"
 
-msgid "Connect to the Mixie agent server"
-msgstr "Mixie 에이전트 서버에 연결합니다"
+msgid "Connect to the Lampway Agent agent server"
+msgstr "Lampway Agent 에이전트 서버에 연결합니다"
 
 msgid "Connecting to server..."
 msgstr "서버에 연결 중..."
@@ -21085,8 +21085,8 @@ msgstr "개발 모드: 더미 데이터로 연결됨"
 msgid "Disconnect"
 msgstr "연결 해제"
 
-msgid "Disconnect from the Mixie agent server"
-msgstr "Mixie 에이전트 서버와의 연결을 끊습니다"
+msgid "Disconnect from the Lampway Agent agent server"
+msgstr "Lampway Agent 에이전트 서버와의 연결을 끊습니다"
 
 msgid "Dev Mode: Disconnected"
 msgstr "개발 모드: 연결 끊김"
@@ -21478,8 +21478,8 @@ msgstr "로컬에서 제출한 코멘트로, 채팅에 읽기 전용으로 표�
 msgid "Message not sent"
 msgstr "메시지를 보내지 못함"
 
-msgid "Enter a render prompt. Mixie will use the current scene's depth as the guide."
-msgstr "렌더 프롬프트를 입력하세요. Mixie가 현재 씬의 깊이를 가이드로 사용합니다."
+msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
+msgstr "렌더 프롬프트를 입력하세요. Lampway Agent가 현재 씬의 깊이를 가이드로 사용합니다."
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr "보내기 전에 프롬프트를 입력하고 3D 뷰포트에서 메시 오브젝트를 선택하세요."
@@ -21556,8 +21556,8 @@ msgstr "자동 모드"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "에이전트가 사용자에게 묻지 않고 모든 선택을 직접 결정하며, 결정 사항을 요약에 나열합니다"
 
-msgid "Mixie Is Busy"
-msgstr "Mixie 작업 중"
+msgid "Lampway Agent Is Busy"
+msgstr "Lampway Agent 작업 중"
 
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "에이전트가 요청을 처리 중일 때 True (BUSY 상태)"
@@ -21631,8 +21631,8 @@ msgstr "Claude Haiku 4.0 - 빠르고 효율적"
 msgid "Password"
 msgstr "비밀번호"
 
-msgid "Password for Mixie Chat login"
-msgstr "Mixie 채팅 로그인용 비밀번호"
+msgid "Password for Lampway Chat login"
+msgstr "Lampway Agent 채팅 로그인용 비밀번호"
 
 msgid "Is Logged In"
 msgstr "로그인됨"
@@ -24448,8 +24448,8 @@ msgstr "잡는 중"
 msgid "NEW"
 msgstr "신규"
 
-msgid "Ask Mixie anything..."
-msgstr "Mixie에게 무엇이든 물어보세요..."
+msgid "Ask Lampway Agent anything..."
+msgstr "Lampway Agent에게 무엇이든 물어보세요..."
 
 msgid "Write your prompt here..."
 msgstr "여기에 프롬프트를 입력하세요..."
@@ -25246,8 +25246,8 @@ msgstr "커서 Y 위치"
 msgid "Animate Moodboard Attachment"
 msgstr "무드보드 첨부 애니메이션"
 
-msgid "Show a newly attached reference flying into Mixie Chat"
-msgstr "새로 첨부한 참조가 Mixie 채팅으로 날아가는 모습을 표시합니다"
+msgid "Show a newly attached reference flying into Lampway Chat"
+msgstr "새로 첨부한 참조가 Lampway Agent 채팅으로 날아가는 모습을 표시합니다"
 
 msgid "Delay"
 msgstr "지연"
@@ -25759,14 +25759,14 @@ msgstr "템플릿을 놓은 위치에 편집 가능한 노드를 배치합니다
 msgid "Template to place"
 msgstr "배치할 템플릿"
 
-msgid "Select Mixie3D Preview"
-msgstr "Mixie3D 미리보기 선택"
+msgid "Select Lampway Agent3D Preview"
+msgstr "Lampway Agent3D 미리보기 선택"
 
 msgid "Select a segmented image from the preview history"
 msgstr "미리보기 기록에서 분할된 이미지를 선택합니다"
 
-msgid "Delete Mixie3D Preview"
-msgstr "Mixie3D 미리보기 삭제"
+msgid "Delete Lampway Agent3D Preview"
+msgstr "Lampway Agent3D 미리보기 삭제"
 
 msgid "Delete a segmented image from the preview history"
 msgstr "미리보기 기록에서 분할된 이미지를 삭제합니다"
@@ -25945,8 +25945,8 @@ msgstr "이 프로젝트"
 msgid "All projects"
 msgstr "모든 프로젝트"
 
-msgid "Add a rule above to guide Mixie."
-msgstr "위에 규칙을 추가하여 Mixie를 안내하세요."
+msgid "Add a rule above to guide Lampway Agent."
+msgstr "위에 규칙을 추가하여 Lampway Agent를 안내하세요."
 
 msgid "Applies to"
 msgstr "적용 대상"
@@ -26767,14 +26767,14 @@ msgstr "Lampway 레이어 속성"
 msgid "Reference image board like PureRef"
 msgstr "PureRef와 같은 참조 이미지 보드"
 
-msgid "Mixie Space"
-msgstr "Mixie 공간"
+msgid "Lampway Agent Space"
+msgstr "Lampway Agent 공간"
 
-msgid "Mixie editor for Lampway"
-msgstr "Mixar용 Mixie 에디터"
+msgid "Lampway Agent editor for Lampway"
+msgstr "Mixar용 Lampway Agent 에디터"
 
-msgid "Mixie editor mode"
-msgstr "Mixie 에디터 모드"
+msgid "Lampway Agent editor mode"
+msgstr "Lampway Agent 에디터 모드"
 
 msgid "Agent Bubble Space"
 msgstr "에이전트 버블 공간"
@@ -27469,11 +27469,11 @@ msgstr "아일랜드 강조색"
 msgid "Agent island accent"
 msgstr "에이전트 아일랜드 강조색"
 
-msgid "Theme Mixie Chat"
-msgstr "Mixie 채팅 테마"
+msgid "Theme Lampway Chat"
+msgstr "Lampway Agent 채팅 테마"
 
-msgid "Theme settings for Mixie Chat"
-msgstr "Mixie 채팅의 테마 설정"
+msgid "Theme settings for Lampway Chat"
+msgstr "Lampway Agent 채팅의 테마 설정"
 
 msgid "User Bubble"
 msgstr "사용자 버블"
@@ -27793,11 +27793,11 @@ msgstr "배경 불투명도"
 msgid "Opacity of the window background (lower = more frosted glass)"
 msgstr "창 배경의 불투명도(낮을수록 반투명 유리 효과가 강해짐)"
 
-msgid "Theme Mixie Space"
-msgstr "Mixie 공간 테마"
+msgid "Theme Lampway Agent Space"
+msgstr "Lampway Agent 공간 테마"
 
-msgid "Theme settings for Mixie/Moodboard space"
-msgstr "Mixie/무드보드 공간의 테마 설정"
+msgid "Theme settings for Lampway Agent/Moodboard space"
+msgstr "Lampway Agent/무드보드 공간의 테마 설정"
 
 msgid "Text Input Background"
 msgstr "텍스트 입력 배경"
@@ -27904,8 +27904,8 @@ msgstr "텍스트 입력 필드의 테두리 폭"
 msgid "Corner radius for rounded UI elements"
 msgstr "둥근 UI 요소의 모서리 반경"
 
-msgid "Mixie Chat"
-msgstr "Mixie 채팅"
+msgid "Lampway Chat"
+msgstr "Lampway Agent 채팅"
 
 msgid "Double-click injection requires event simulation"
 msgstr ""

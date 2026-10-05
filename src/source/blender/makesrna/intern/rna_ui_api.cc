@@ -1765,8 +1765,8 @@ void RNA_api_ui_layout(StructRNA *srna)
   /* Mixar account card — the profile dropdown's whole contents. */
   static const EnumPropertyItem mixar_theme_items[] = {
       {0, "NATIVE", 0, "Native", "Use Blender's theme"},
-      {1, "ZEN", 0, "Zen", "Mixar Zen components"},
-      {2, "LEGACY_MIXAR", 0, "Legacy Mixar", "Compatibility appearance"},
+      {1, "ZEN", 0, "Zen", "Lampway Zen components"},
+      {2, "LEGACY_MIXAR", 0, "Legacy Lampway", "Compatibility appearance"},
       {0, nullptr, 0, nullptr, nullptr},
   };
   static const EnumPropertyItem mixar_density_items[] = {
@@ -1816,7 +1816,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   };
   func = RNA_def_function(srna, "mixar_tooltip", "rna_uiLayoutMixarTooltip");
   RNA_def_function_ui_description(
-      func, "Replace the hover tooltip of every item already in this layout (Mixar)");
+      func, "Replace the hover tooltip of every item already in this layout (Lampway)");
   parm = RNA_def_string(func, "text", nullptr, 0, "Text", "Tooltip text");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
@@ -1828,8 +1828,8 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "mixar_profile_card", "rna_uiLayoutMixarProfileCard");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func,
-                                  "Draw the Mixar account card: greeting, plan, credit usage "
-                                  "meter and account actions (Mixar custom widget)");
+                                  "Draw the Lampway account card: greeting, plan, credit usage "
+                                  "meter and account actions (Lampway custom widget)");
 
   /* Mixar section layout */
   func = RNA_def_function(srna, "mixar_section", "rna_uiLayoutMixarSection");
@@ -1837,13 +1837,13 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_function_return(func, parm);
   RNA_def_function_ui_description(func,
                                   "Styled section box with accent border and refined background "
-                                  "(Mixar custom widget)");
+                                  "(Lampway custom widget)");
 
   /* Mixar styled dropdown (enum property) */
   func = RNA_def_function(srna, "mixar_dropdown", "rna_uiItemR_mixar_dropdown");
   RNA_def_function_ui_description(
       func,
-      "Styled enum dropdown with accent bar and refined appearance (Mixar custom widget)");
+      "Styled enum dropdown with accent bar and refined appearance (Lampway custom widget)");
   api_ui_item_rna_common(func);
   api_ui_item_common(func);
   parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
@@ -1853,7 +1853,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "mixar_toggle", "rna_uiItemR_mixar_toggle");
   RNA_def_function_ui_description(
       func,
-      "Pill-shaped toggle switch for boolean properties (Mixar custom widget)");
+      "Pill-shaped toggle switch for boolean properties (Lampway custom widget)");
   api_ui_item_rna_common(func);
   api_ui_item_common(func);
   parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
@@ -1863,7 +1863,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "mixar_operator", "rna_uiItemO_mixar_action");
   RNA_def_function_ui_description(
       func,
-      "Styled operator button with accent color background (Mixar custom widget)");
+      "Styled operator button with accent color background (Lampway custom widget)");
   api_ui_item_op_common(func);
   RNA_def_boolean(func, "depress", false, "", "Draw pressed in");
   parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
@@ -1877,7 +1877,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "mixar_input", "rna_uiItemR_mixar_input");
   RNA_def_function_ui_description(
       func,
-      "Styled text input with visible border and focus glow (Mixar custom widget)");
+      "Styled text input with visible border and focus glow (Lampway custom widget)");
   api_ui_item_rna_common(func);
   api_ui_item_common(func);
   parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
@@ -1899,8 +1899,8 @@ void RNA_api_ui_layout(StructRNA *srna)
   };
   func = RNA_def_function(srna, "mixar_card_label", "rna_uiLayoutMixarCardLabel");
   RNA_def_function_ui_description(func,
-                                  "Text element drawn with the Mixar account-card painters "
-                                  "(Mixar custom widget)");
+                                  "Text element drawn with the Lampway account-card painters "
+                                  "(Lampway custom widget)");
   parm = RNA_def_string(func, "text", nullptr, 0, "Text", "Text to draw");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_enum(func, "kind", mixar_card_label_kind_items, 2, "Kind", "Element kind");
@@ -1919,10 +1919,10 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "mixar_card_button", "rna_uiLayoutMixarCardButton");
   RNA_def_function_ui_description(
       func,
-      "Restyle the most recently added button as a Mixar account-card action button. "
+      "Restyle the most recently added button as a Lampway account-card action button. "
       "active_default also sets/clears the dialog default flag: a popup dialog with an "
       "active-default button draws no automatic OK/Cancel row and Return activates it "
-      "(Mixar custom widget)");
+      "(Lampway custom widget)");
   parm = RNA_def_enum(func, "kind", mixar_card_button_kind_items, 2, "Kind", "Button kind");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_boolean(func,
@@ -1957,7 +1957,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "mixar_topbar_element", "rna_uiLayoutMixarTopbarElement");
   RNA_def_function_ui_description(
       func,
-      "Restyle the most recently added button as Mixar topbar chrome (Mixar custom widget)");
+      "Restyle the most recently added button as Lampway topbar chrome (Lampway custom widget)");
   parm = RNA_def_enum(func, "kind", mixar_topbar_element_items, 1, "Kind", "Element kind");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_boolean(

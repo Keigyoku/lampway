@@ -116,7 +116,7 @@ static bool register_blender_prog_id(const char *prog_id,
         hkey_progid, "AppUserModelId", 0, REG_SZ, (BYTE *)prog_id, strlen(prog_id) + 1);
   }
   if (lresult != ERROR_SUCCESS) {
-    registry_error(root, "Unable to register Mixar App Id");
+    registry_error(root, "Unable to register Lampway App Id");
     return false;
   }
 
@@ -152,7 +152,7 @@ static bool register_blender_prog_id(const char *prog_id,
     RegCloseKey(hkey_progid);
   }
   if (lresult != ERROR_SUCCESS) {
-    registry_error(root, "Unable to register Mixar App Id");
+    registry_error(root, "Unable to register Lampway App Id");
     return false;
   }
 
@@ -173,7 +173,7 @@ static bool register_blender_prog_id(const char *prog_id,
     RegCloseKey(hkey_progid);
   }
   if (lresult != ERROR_SUCCESS) {
-    registry_error(root, "Unable to register Mixar App Id");
+    registry_error(root, "Unable to register Lampway App Id");
     return false;
   }
   return true;
@@ -214,7 +214,7 @@ bool BLI_windows_register_blend_extension(const bool all_users)
   }
 
   if (!register_blender_prog_id(prog_id, blender_path, friendly_name, all_users)) {
-    registry_error(root, "Unable to register Mixar file type");
+    registry_error(root, "Unable to register Lampway file type");
     return false;
   }
 
@@ -225,7 +225,7 @@ bool BLI_windows_register_blend_extension(const bool all_users)
     lresult = RegSetValueEx(hkey, nullptr, 0, REG_SZ, (BYTE *)prog_id, strlen(prog_id) + 1);
 
     if (lresult != ERROR_SUCCESS) {
-      registry_error(root, "Unable to register Mixar file type");
+      registry_error(root, "Unable to register Lampway file type");
       RegCloseKey(hkey);
       return false;
     }
@@ -242,7 +242,7 @@ bool BLI_windows_register_blend_extension(const bool all_users)
                              &dwd);
 
     if (lresult != ERROR_SUCCESS) {
-      registry_error(root, "Unable to register Mixar file type");
+      registry_error(root, "Unable to register Lampway file type");
       RegCloseKey(hkey);
       return false;
     }
@@ -251,7 +251,7 @@ bool BLI_windows_register_blend_extension(const bool all_users)
   }
 
   if (lresult != ERROR_SUCCESS) {
-    registry_error(root, "Unable to register Mixar file type");
+    registry_error(root, "Unable to register Lampway file type");
     return false;
   }
 
@@ -276,7 +276,7 @@ bool BLI_windows_register_blend_extension(const bool all_users)
   RegCloseKey(root);
   char message[256];
   SNPRINTF(message,
-           "Mixar file extension registered for %s.",
+           "Lampway file extension registered for %s.",
            all_users ? "all users" : "the current user");
   printf("%s\n", message);
 
@@ -333,7 +333,7 @@ bool BLI_windows_unregister_blend_extension(const bool all_users)
   RegCloseKey(root);
   char message[256];
   SNPRINTF(message,
-           "Mixar file extension unregistered for %s.",
+           "Lampway file extension unregistered for %s.",
            all_users ? "all users" : "the current user");
   printf("%s\n", message);
 
@@ -454,7 +454,7 @@ void BLI_windows_get_default_root_dir(char root[4])
     if (GetModuleFileName(nullptr, str, MAX_PATH + 1)) {
       printf(
           "Error! Could not get the Windows Directory - "
-          "Defaulting to Mixar installation Dir!\n");
+          "Defaulting to Lampway installation Dir!\n");
       root[0] = str[0];
       root[1] = ':';
       root[2] = '\\';
