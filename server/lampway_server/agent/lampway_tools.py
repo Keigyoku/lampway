@@ -41,7 +41,7 @@ class Def:
         for p in self.params:
             prop = {"type": p.type, "description": p.desc}
             if p.type == "array":
-                prop["items"] = {"type": "object"} if p.name in ("poses", "waypoints", "anchors", "landmarks") else {"type": "string"}
+                prop["items"] = {"type": "object"} if p.name in ("poses", "waypoints", "anchors", "landmarks", "axis", "plane_origin", "depths_mm") else {"type": "string"}
             props[p.name] = prop
             if p.required:
                 req.append(p.name)
@@ -289,6 +289,16 @@ DEFS = [
         [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets"), P("piece", required=True), P("body", required=True), P("turn", "number", "default 0"),
          P("clear_mm", "number", "wear clearance 0-40, default 15"), P("scale_anchor", desc="boots: width | height | foot"), P("sides", desc="both (default) | l | r"),
          P("out", desc="default placed.npz")], api="fit_place"),
+    Def("lampway_fit_openings", "The openings decision at fit: every cap a seed put across a limb, neck or waist opening gets keep | gasket | delete, logged append-only in <piece>/fit/decisions.jsonl. "
+        "stage detect: the capped sites along `axis` (pointing out of the piece); propose: proposals only (the captain rules); apply: answers {'OP000': 'gasket'}; check: manifold report; variants: "
+        "builds and renders three collar depths. A GASKET cuts the POSED limb's cross-section (`limb`, an object) plus clearance_mm (5..40, default 15) into the cap plane and forms a COLLAR: a tubular "
+        "flange into the piece whose free edge rolls outward into a lip (an exhaust/intake manifold port, not a raw hole). Its depth `flange_mm` (2..60) is the captain's number: without it apply answers "
+        "needs_decision. Needs `pose` (the fit_pose result), never the rest pose. Result `<object>_openings`; the source is untouched; a studio texture is discarded (texture_discard_ack).",
+        [P("stage", required=True, desc="detect | propose | apply | variants | check"), P("object", required=True), P("axis", "array", "The opening's axis [x, y, z], pointing out of the piece"),
+         P("plane_origin", "array", "A point on the cap plane (selects one site)"), P("limb", desc="The posed limb object whose section is cut"), P("pose", "object", "The fit_pose result"),
+         P("answers", "object", "{'OP000': 'keep'|'gasket'|'delete'}"), P("flange_mm", "number", "Collar depth, 2..60 (the captain's number)"), P("lip_mm", "number", "Rolled lip radius, default 4"),
+         P("clearance_mm", "number", "5..40, default 15"), P("piece"), P("captain_words", desc="Quoted into the decision row"), P("texture_discard_ack", "boolean"),
+         P("depths_mm", "array", "variants: the depths, default 10, 20, 35"), P("size", "integer", "variants: image size")], api="fit_openings"),
     Def("lampway_detail_normals", "Micro depth for a textured_atlas material without the relief map: per-material tiling detail normals box-projected "
         "in object space (metals take their ambientCG NormalGL maps; cloth and leather a small bump from their colour), blended by the material's "
         "per-texel masks. Idempotent: its 'DN:' nodes are replaced on a re-run. strengths: {plate, gold, cloth, leather}.",

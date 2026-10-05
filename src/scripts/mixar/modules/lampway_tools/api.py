@@ -849,6 +849,18 @@ def _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out):
 
 
 @tool
+def fit_openings(stage, object, axis=None, plane_origin=None, limb="", pose=None, answers=None, flange_mm=None, lip_mm=4.0, clearance_mm=15.0, piece="", captain_words="",
+                 texture_discard_ack=False, depths_mm=None, size=384):
+    """The openings decision at fit: every cap a seed put across a limb, neck or waist opening gets keep | gasket | delete, logged append-only in <piece>/fit/decisions.jsonl. detect: the capped
+    sites along `axis` (pointing out of the piece); propose: proposals only (the captain rules); apply: answers {"OP000": "gasket"}. A GASKET cuts the POSED limb's cross-section (`limb`, an
+    object) plus clearance_mm (5..40, default 15) into the cap plane and forms a COLLAR - a tubular flange into the piece whose free edge rolls outward into a lip (an exhaust/intake manifold
+    port, not a raw hole); its depth `flange_mm` (2..60) is the captain's number: without it apply answers needs_decision, and `variants` builds and renders three depths (depths_mm) to pick.
+    Needs `pose` (the fit_pose result): never the rest pose. Result `<object>_openings`; the source is untouched. Discards a studio texture (texture_discard_ack). keep changes no geometry."""
+    from .features import opening as _OP
+    return _OP.run(stage, object, str(_settings().project_root), axis, plane_origin, limb, pose, answers, flange_mm, lip_mm, clearance_mm, piece, captain_words, texture_discard_ack, depths_mm, size)
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
@@ -923,7 +935,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "qa_descriptors", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick", "uv_score", "uv_texel_density", "mesh_defect_scan", "silhouette_compare", "seed_audit", "fit_place")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick", "uv_score", "uv_texel_density", "mesh_defect_scan", "silhouette_compare", "seed_audit", "fit_place", "fit_openings")
 
 
 def call(name: str, payload: str = "{}") -> dict:
