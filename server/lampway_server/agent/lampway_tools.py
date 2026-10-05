@@ -96,11 +96,11 @@ DEFS = [
         "for this scene, running jobs, and the list of batch tools. Call this first when unsure what is configured.", api="status"),
     Def("lampway_qa_setup", "Point mesh QA at a mesh object. `recipe` is the parts json (parts and their motion classes); `owner` is "
         "a .npy of one part index per polygon (empty = the mesh's int face attribute 'part'); `offset` is the live frame minus the "
-        "mesh's own frame (the lift). `orig_poly` is a rebuild's source-face map (-1 = patch). Must be called once per scene." + _PATHS,
+        "mesh's own frame (the lift). `orig_poly` is a rebuild's source-face map (-1 = patch). Call it once per PIECE: several pieces can be set up in one scene, each with its own config, and later tools take `piece` (the last one set up is the default). `turn` is the rotation about Z that brings the object to a -y front (a Tripo FBX facing +x: -90)." + _PATHS,
         [P("object", desc="Name of the mesh object", required=True), P("recipe", desc="Parts recipe json", required=True),
          P("owner", desc="Owner map .npy"), P("piece", desc="Piece name (rulings live in <root>/<piece>/rulings)"),
          P("session", desc="Decision-log session name"), P("offset", "array", "Live frame minus mesh frame, [x, y, z] as strings"),
-         P("orig_poly", desc="Rebuild's orig_poly .npy"), P("turn", "number", "Turn about Z in degrees (the rebuild's)"),
+         P("orig_poly", desc="Rebuild's orig_poly .npy"), P("turn", "number", "Turn about Z in degrees that brings the object to the -y front (Tripo FBX: -90)"),
          P("rulings_dir", desc="Rulings directory"), P("min_perimeter", "number", "Open loops shorter than this (m) are ignored; default 0.15"),
          P("max_shell_tris", "integer", "A floating shell has at most this many triangles; default 400"),
          P("float_mm", "number", "A shell floats when its nearest neighbour is further than this (mm); default 3")], api="qa_setup"),
@@ -108,10 +108,19 @@ DEFS = [
         "Yellow = Hole (placement Surface). Existing layers are kept.", api="qa_tag_layers"),
     Def("lampway_qa_candidates", "Find open loops (holes) and floating shells on the piece and write them as typed candidates "
         "(descriptor: size, bordering parts and their motion classes, side of the body, which views see it, what lies behind). "
-        "Ruled deletions are applied first. `draw` also draws them into the scene.", [P("draw", "boolean", "Also draw them")],
+        "Ruled deletions are applied first. `draw` also draws them into the scene (collection QA_<piece>, markers <piece>_L000).",
+        [P("draw", "boolean", "Also draw them"), P("piece", desc="The piece (default: the last one set up)"),
+         P("collection", desc="Collection to draw into, default QA_<piece>"), P("prefix", desc="Marker name prefix, default <piece>_")],
         api="qa_candidates"),
-    Def("lampway_qa_draw", "Draw the candidates into the scene (collection QA_candidates): yellow tubes along open loops, rings "
-        "around floating shells, each labelled with its id, so the captain can review them and answer with the tag layers.", api="qa_draw"),
+    Def("lampway_qa_draw", "Draw the candidates into the scene (collection QA_<piece>): tubes along open loops, rings around floating "
+        "shells, each labelled with its id (and verdict, once proposed), so the captain can review them and answer with the tag layers. "
+        "A re-run replaces only this piece's collection.", [P("piece"), P("collection"), P("prefix")], api="qa_draw"),
+    Def("lampway_qa_propose", "PROPOSE a verdict per candidate: {id: {verdict: delete|hole|mislabel|keep, note?, target?}}. Writes "
+        "<piece>_proposals.json and recolours the markers (delete red, hole yellow, mislabel green, keep grey; label `<id> <VERDICT>`). "
+        "A proposal is NOT a ruling and never changes the mesh: only the captain's tags or typed answers become rulings.",
+        [P("proposals", "object", "{candidate id: {verdict, note, target}}", required=True), P("piece"), P("by", desc="Who proposes, default agent")],
+        api="qa_propose"),
+    Def("lampway_qa_proposals", "Read the proposals so far for a piece, with counts per verdict.", [P("piece")], api="qa_proposals"),
     Def("lampway_qa_read_tags", "Read the captain's Red/Green/Yellow annotation strokes: faces and Smart UV islands per stroke, the "
         "candidate loops a Hole stroke circles or runs along (or an orphan the generator missed), and the floating shell a Delete "
         "stroke sits on. With apply (default) writes the decision log and the rulings (deletions, relabels, texel overrides). A Green "
@@ -119,9 +128,10 @@ DEFS = [
         "relabels_needing_a_target - never guess it. `close_round` answers every candidate nobody named 'keep'.",
         [P("apply", "boolean", "Write decisions and rulings (default true); false = a dry run"),
          P("close_round", "boolean", "Everything not named is intentional"),
-         P("mislabel_to", "object", "Target part per green stroke index, e.g. {\"0\": \"cuirass_back_plate\"}")], api="qa_read_tags"),
+         P("mislabel_to", "object", "Target part per green stroke index, e.g. {\"0\": \"cuirass_back_plate\"}"), P("piece")],
+        api="qa_read_tags"),
     Def("lampway_qa_rulings", "Summarise the rulings so far: deleted faces, relabels, texel overrides, decision rows, and the latest "
-        "answer per candidate.", api="qa_rulings"),
+        "answer per candidate.", [P("piece")], api="qa_rulings"),
     Def("lampway_rebuild_setup", "Save what a rebuild needs besides the rulings: the SOURCE mesh and its owner map (rebuilds always "
         "start from the source), the relief views and plates, the live material to copy, where outputs go, the objects to hide."
         + _PATHS, [P("source_mesh", required=True), P("source_owner", required=True), P("relief_dir", required=True),

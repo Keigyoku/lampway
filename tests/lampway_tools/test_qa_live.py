@@ -64,14 +64,14 @@ def test_draw_replaces_its_own_collection_each_time(tmp_path):
 L.compute_candidates(cfg)
 a = L.draw_candidates(cfg)
 b = L.draw_candidates(cfg)
-col = bpy.data.collections["QA_candidates"]
+col = bpy.data.collections["QA_demo"]
 labels = sorted(o.name for o in col.objects if o.name.endswith("_label"))
-z = [round(o.location.z, 2) for o in col.objects if o.name == "L000_label"]
+z = [round(o.location.z, 2) for o in col.objects if o.name == "demo_L000_label"]
 print("RESULT", json.dumps({"a": a, "b": b, "n": len(col.objects), "labels": labels, "label_z_lifted": z[0] > 0.45}))
 ''')
     assert run_.rc == 0, run_.out[-2500:]
     res = run_.results[0]
-    assert res["a"]["drawn"] == res["b"]["drawn"] == 2 and res["n"] == 4 and res["labels"] == ["L000_label", "S000_label"]
+    assert res["a"]["drawn"] == res["b"]["drawn"] == 2 and res["n"] == 4 and res["labels"] == ["demo_L000_label", "demo_S000_label"]
     assert res["label_z_lifted"] is True                        # drawn at the live position: mesh frame + offset
 
 

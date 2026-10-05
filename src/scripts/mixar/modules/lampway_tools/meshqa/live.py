@@ -8,8 +8,15 @@ Ported from the shelf's qa_marks_live.py (draw) and qa_read_marks.py (read), rew
 object is the rebuilt, textured mesh standing on the floor; candidates are kept in the mesh's OWN frame (what the
 rebuild's patch_holes.py expects with its turn) and the live frame is that plus ``offset`` (his LIFT).
 
-One config per scene, saved as JSON on the scene (``scene['lampway_qa']``), so the operators, the panel and the agent
-tools all work on the same piece.
+One config PER PIECE, saved as JSON on the scene (``scene['lampway_qa_pieces']``, keyed by piece name), so several pieces
+can be reviewed in one scene and in separate swarm lanes. The most recently set-up piece is the active one: a tool called
+without a ``piece`` works on it. Each piece draws into its own collection (``QA_<piece>``) with its own marker names
+(``<piece>_L000``), so one piece's markers are never touched by another's.
+
+Frames. Candidates are measured in the ANALYSIS frame: -y front, +x the body's left. ``turn`` is the rotation about Z that
+brings the live object there (a Tripo FBX faces +x: turn -90), applied after the ``offset`` is removed; ``analysis_matrix``
+is that map and ``live_matrix`` its inverse, which draw and read_tags use to put markers where the object really is. An
+object that is already in the analysis frame (a loaded rebuild) has turn 0; the rebuild's own turn lives in its setup.
 """
 
 import json
@@ -26,10 +33,16 @@ from mathutils import Matrix, Vector
 from . import candidates as C
 from . import decisions as D
 from . import marks as M
+from . import proposals as P
 from .rulings import Rulings
 
 _MAX_SEGMENTS = 20000                      # bounded: at most this many segments drawn per loop
-SCENE_KEY = "lampway_qa"
+SCENE_KEY = "lampway_qa"                    # the old single-config key, still read
+PIECES_KEY = "lampway_qa_pieces"
+ACTIVE_KEY = "lampway_qa_active"
+VERDICTS = ("delete", "hole", "mislabel", "keep")
+VERDICT_COLOURS = {"delete": (0.9, 0.05, 0.05), "hole": (1.0, 0.85, 0.0), "mislabel": (0.1, 0.75, 0.15), "keep": (0.5, 0.5, 0.5),
+                   None: (0.2, 0.55, 1.0)}                       # None = nobody has proposed anything for it yet
 
 
 @dataclass
@@ -42,7 +55,7 @@ class QAConfig:
     session: str = "session"
     offset: tuple = (0.0, 0.0, 0.0)        # live frame = mesh frame + offset
     orig_poly: str = ""                    # .npy: source polygon id per live polygon (-1 = a patch); "" = identity
-    turn: float = 0.0                      # the turn the rebuild applies (patch_holes --turn)
+    turn: float = 0.0                      # about Z, degrees: brings the live object to the -y front (a Tripo FBX: -90)
     min_perimeter: float = 0.15
     max_shell_tris: int = 400
     float_mm: float = 3.0
@@ -57,17 +70,47 @@ class QAConfig:
         return Path(self.rulings_dir) / "decisions.jsonl"
 
 
+def _pieces(scene) -> dict:
+    raw = scene.get(PIECES_KEY)
+    out = json.loads(raw) if raw else {}
+    legacy = scene.get(SCENE_KEY)
+    if legacy:                                                      # a scene saved before configs were per piece
+        data = json.loads(legacy)
+        out.setdefault(data.get("piece", "piece"), data)
+    return out
+
+
 def save_config(scene, cfg: QAConfig) -> None:
-    scene[SCENE_KEY] = json.dumps(asdict(cfg))
+    pieces = _pieces(scene)
+    pieces[cfg.piece] = asdict(cfg)
+    scene[PIECES_KEY] = json.dumps(pieces)
+    scene[ACTIVE_KEY] = cfg.piece
 
 
-def load_config(scene) -> QAConfig:
-    raw = scene.get(SCENE_KEY)
-    if not raw:
+def piece_names(scene) -> list:
+    return sorted(_pieces(scene))
+
+
+def load_config(scene, piece=None) -> QAConfig:
+    """The config of ``piece``, or of the active piece (the last one set up) when none is named."""
+    pieces = _pieces(scene)
+    if not pieces:
         raise LookupError("no Mesh QA configuration on this scene: set the piece up first (lampway.qa_setup)")
-    data = json.loads(raw)
+    name = piece or scene.get(ACTIVE_KEY) or (next(iter(pieces)) if len(pieces) == 1 else None)
+    if name not in pieces:
+        raise LookupError(f"no Mesh QA piece {name!r} on this scene; the pieces are: {sorted(pieces)}")
+    data = dict(pieces[name])
     data["offset"] = tuple(data.get("offset", (0, 0, 0)))
     return QAConfig(**data)
+
+
+def analysis_matrix(cfg: QAConfig) -> Matrix:
+    """Live frame -> analysis frame: remove the offset, then turn about Z."""
+    return Matrix.Rotation(math.radians(cfg.turn), 4, "Z") @ Matrix.Translation(-Vector(cfg.offset))
+
+
+def live_matrix(cfg: QAConfig) -> Matrix:
+    return analysis_matrix(cfg).inverted()
 
 
 def _object(cfg):
@@ -103,13 +146,13 @@ def compute_candidates(cfg: QAConfig) -> dict:
     delete_polys = []
     if not cfg.orig_poly and dele_path.exists():             # a source mesh: earlier ruled deletions apply first
         delete_polys = json.load(open(dele_path)).get("polys", [])
-    matrix = Matrix.Translation(-Vector(cfg.offset)) @ ob.matrix_world
+    matrix = analysis_matrix(cfg) @ ob.matrix_world
     prep = C.prepare(me, matrix, owner, delete_polys=delete_polys)
     cands = C.analyse(prep, rec, C.Params(cfg.min_perimeter, cfg.max_shell_tris, cfg.float_mm))
     prep.bm.free()
     out = {"mesh": f"<live object {cfg.object}>", "owner": cfg.owner or "<attribute part>", "recipe": cfg.recipe,
            "turn": cfg.turn, "deleted_before": str(dele_path) if delete_polys else None,
-           "frame": "-y front, +x the body left, in the mesh's own frame (live frame minus offset)",
+           "frame": "-y front, +x the body left: the live frame minus offset, then turned about Z by `turn`",
            "offset": list(cfg.offset), "candidates": cands}
     cfg.candidates_path.parent.mkdir(parents=True, exist_ok=True)
     cfg.candidates_path.write_text(json.dumps(out, indent=1), encoding="utf-8")
@@ -124,27 +167,54 @@ def _load_candidates(cfg) -> dict:
     return json.loads(cfg.candidates_path.read_text(encoding="utf-8"))
 
 
-def draw_candidates(cfg: QAConfig, collection="QA_candidates", prefix="") -> dict:
-    """Draw the candidates into one collection: an open loop a yellow tube along its edges, a loose shell a yellow
-    ring around it, each with its id as a small label beside it. A second run replaces the collection; nothing outside
-    it is touched (hide it to see the piece clean)."""
+def _collection_name(cfg, collection):
+    return collection or f"QA_{cfg.piece}"
+
+
+def _prefix(cfg, prefix):
+    return f"{cfg.piece}_" if prefix is None else prefix
+
+
+def _verdict_material(verdict):
+    name = f"QA_mark_{verdict or 'new'}"
+    mat = bpy.data.materials.get(name) or bpy.data.materials.new(name)
+    mat.use_nodes = True
+    r, g, b_ = VERDICT_COLOURS[verdict]
+    node = mat.node_tree.nodes["Principled BSDF"]
+    node.inputs["Base Color"].default_value = (r, g, b_, 1)
+    node.inputs["Emission Color"].default_value = (r, g, b_, 1)
+    node.inputs["Emission Strength"].default_value = 3.0
+    mat.diffuse_color = (r, g, b_, 1)
+    return mat
+
+
+def _label(cid, verdict):
+    return f"{cid} {verdict.upper()}" if verdict else cid
+
+
+def draw_candidates(cfg: QAConfig, collection=None, prefix=None) -> dict:
+    """Draw the candidates into the piece's own collection (``QA_<piece>``, marker names ``<piece>_<id>``): an open loop a tube
+    along its edges, a loose shell a ring around it, each with a label beside it. Colour and label follow the piece's proposals
+    (delete red, hole yellow, mislabel green, keep grey, nothing proposed blue; ``<id> <VERDICT>``). A second run replaces THIS
+    collection only; another piece's markers are never touched. Positions are the analysis-frame candidates carried back to
+    the live frame (turn undone, offset added)."""
     cand = _load_candidates(cfg)
-    off = Vector(cfg.offset)
-    old = bpy.data.collections.get(collection)
+    name = _collection_name(cfg, collection)
+    prefix = _prefix(cfg, prefix)
+    live = live_matrix(cfg)
+    rot = live.to_3x3()
+    proposals = P.load(cfg.rulings_dir, cfg.piece).get("proposals", {})
+    old = bpy.data.collections.get(name)
     if old:
         for o in list(old.objects):
             bpy.data.objects.remove(o)
         bpy.data.collections.remove(old)
-    col = bpy.data.collections.new(collection)
+    col = bpy.data.collections.new(name)
     bpy.context.scene.collection.children.link(col)
-    mat = bpy.data.materials.get("QA_mark") or bpy.data.materials.new("QA_mark")
-    mat.use_nodes = True
-    b = mat.node_tree.nodes["Principled BSDF"]
-    b.inputs["Base Color"].default_value = (1, 0.85, 0, 1)
-    b.inputs["Emission Color"].default_value = (1, 0.85, 0, 1)
-    b.inputs["Emission Strength"].default_value = 3.0
     made = 0
     for c in cand["candidates"]:
+        verdict = (proposals.get(c["id"]) or {}).get("verdict")
+        mat = _verdict_material(verdict)
         cu = bpy.data.curves.new(prefix + c["id"], "CURVE")
         cu.dimensions = "3D"
         cu.bevel_depth = 0.0015
@@ -153,12 +223,12 @@ def draw_candidates(cfg: QAConfig, collection="QA_candidates", prefix="") -> dic
             for p0, p1 in c["segments_m"][:_MAX_SEGMENTS]:
                 sp = cu.splines.new("POLY")
                 sp.points.add(1)
-                sp.points[0].co = (*(Vector(p0) + off), 1)
-                sp.points[1].co = (*(Vector(p1) + off), 1)
+                sp.points[0].co = (*(live @ Vector(p0)), 1)
+                sp.points[1].co = (*(live @ Vector(p1)), 1)
         else:
             r = max(c["extent_m"]) / 2 + 0.006
-            n = Vector(c["facing"])
-            ctr = Vector(c["centroid_m"]) + off
+            n = rot @ Vector(c["facing"])
+            ctr = live @ Vector(c["centroid_m"])
             q = n.to_track_quat("Z", "Y")
             sp = cu.splines.new("POLY")
             sp.points.add(31)
@@ -170,24 +240,46 @@ def draw_candidates(cfg: QAConfig, collection="QA_candidates", prefix="") -> dic
         o.data.materials.append(mat)
         col.objects.link(o)
         tc = bpy.data.curves.new(prefix + c["id"] + "_label", "FONT")
-        tc.body = c["id"]
+        tc.body = _label(c["id"], verdict)
         tc.size = 0.014
         tc.align_x = "CENTER"
         t = bpy.data.objects.new(prefix + c["id"] + "_label", tc)
         t.data.materials.append(mat)
         col.objects.link(t)
-        n = Vector(c["facing"])
-        t.location = Vector(c["centroid_m"]) + off + n * 0.02
+        n = rot @ Vector(c["facing"])
+        t.location = live @ Vector(c["centroid_m"]) + n * 0.02
         t.rotation_euler = n.to_track_quat("Z", "Y").to_euler()
         made += 1
-    return {"drawn": made, "collection": col.name}
+    return {"drawn": made, "collection": col.name, "prefix": prefix}
 
 
-def _shift(c, off):
+def recolour(cfg: QAConfig, collection=None, prefix=None) -> dict:
+    """Recolour and relabel the piece's existing markers from its proposals (no redraw; the geometry stays)."""
+    cand = _load_candidates(cfg)
+    prefix = _prefix(cfg, prefix)
+    proposals = P.load(cfg.rulings_dir, cfg.piece).get("proposals", {})
+    changed = 0
+    for c in cand["candidates"]:
+        verdict = (proposals.get(c["id"]) or {}).get("verdict")
+        mat = _verdict_material(verdict)
+        for suffix, is_label in (("", False), ("_label", True)):
+            o = bpy.data.objects.get(prefix + c["id"] + suffix)
+            if o is None:
+                continue
+            o.data.materials.clear()
+            o.data.materials.append(mat)
+            if is_label:
+                o.data.body = _label(c["id"], verdict)
+        changed += 1
+    return {"recoloured": changed, "proposals": P.counts({"proposals": proposals})}
+
+
+def _shift(c, live):
+    """A candidate carried from the analysis frame to the live frame by the 4x4 ``live`` matrix."""
     c = dict(c)
-    c["centroid_m"] = [x + o for x, o in zip(c["centroid_m"], off)]
+    c["centroid_m"] = list(live @ Vector(c["centroid_m"]))
     if "segments_m" in c:
-        c["segments_m"] = [[[x + o for x, o in zip(p, off)] for p in seg] for seg in c["segments_m"]]
+        c["segments_m"] = [[list(live @ Vector(p)) for p in seg] for seg in c["segments_m"]]
     return c
 
 
@@ -205,8 +297,8 @@ def read_tags(cfg: QAConfig, apply=True, close_round=False, mislabel_to=None) ->
     tags = M.read_tags()
     for tag, skip in cfg.skip_strokes.items():
         tags[tag] = tags[tag][skip:]
-    off = cfg.offset
-    shifted = [_shift(c, off) for c in cand["candidates"]]
+    live = live_matrix(cfg)
+    shifted = [_shift(c, live) for c in cand["candidates"]]
     tagged = M.interpret(tags, ob, candidates=shifted)
     for row in tagged["delete"]:
         row["orig_faces"] = [int(orig[f]) for f in row["faces"] if orig[f] >= 0]

@@ -65,7 +65,7 @@ c = bpy.ops.lampway.qa_candidates()
 cmsg = p.last_message
 d = bpy.ops.lampway.qa_draw()
 print("RESULT", json.dumps({"ops": [sorted(x) for x in (a, b, c, d)], "msg": cmsg, "draw_msg": p.last_message, "cands": os.path.exists(root + "/demo/rulings/demo_candidates.json"),
-                             "layers": [l.info for l in bpy.context.scene.annotation.layers], "col": "QA_candidates" in bpy.data.collections}))
+                             "layers": [l.info for l in bpy.context.scene.annotation.layers], "col": any(c.name.startswith("QA_") for c in bpy.data.collections)}))
 ''')
     assert r.rc == 0, r.out[-2500:]
     res = r.results[0]
@@ -116,3 +116,23 @@ print("RESULT", json.dumps({"r1": sorted(res), "msg1": msg1, "r2": sorted(res2),
     assert out["r2"] == ["CANCELLED"], "the studio slot refuses without a click, so the operator reports a refusal"
     assert out["r3"] == ["CANCELLED"] and "JSON" in out["msg3"]
     assert out["panel"] is True
+
+
+def test_the_review_panel_lists_proposals_and_the_refresh_operator_recolours_markers(tmp_path):
+    r = run(tmp_path, '''
+from mixar.modules.lampway_tools import api
+os.makedirs(root + "/demo", exist_ok=True)
+api.qa_setup(object="piece", recipe="demo/recipe.json", owner="demo/owner.npy", piece="demo", offset=[0, 0, 0.5])
+api.qa_candidates(draw=True)
+api.qa_propose(proposals={"L000": {"verdict": "delete", "note": "stray ring"}})
+bpy.data.materials["QA_mark_delete"].node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0, 0, 1, 1)   # someone repaints it
+res = bpy.ops.lampway.qa_refresh()
+rows = api.qa_proposals()
+col = [round(x, 2) for x in bpy.data.materials["QA_mark_delete"].node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value[:3]]
+print("RESULT", json.dumps({"res": sorted(res), "rows": rows, "col": col,
+      "panel": any(c.__name__ == "LAMPWAY_PT_qa_review" for c in bpy.types.Panel.__subclasses__())}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    out = r.results[0]
+    assert out["res"] == ["FINISHED"] and out["panel"] is True
+    assert out["rows"]["counts"]["delete"] == 1 and out["col"][0] > 0.8, "the refresh restores the verdict colour"

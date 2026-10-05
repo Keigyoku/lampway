@@ -9,7 +9,7 @@ import textwrap
 import bpy
 from bpy.types import Panel
 
-from mixar.modules.lampway_tools import jobs
+from mixar.modules.lampway_tools import api, jobs
 
 
 class LAMPWAY_PT_main(Panel):
@@ -119,6 +119,27 @@ class LAMPWAY_PT_tools(Panel):
         col.operator("lampway.run_tool", icon="PLAY")
 
 
+class LAMPWAY_PT_qa_review(Panel):
+    bl_idname = "LAMPWAY_PT_qa_review"
+    bl_label = "Review proposals"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Lampway"
+    bl_parent_id = "LAMPWAY_PT_main"
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        res = api.qa_proposals()
+        if not res.get("ok"):
+            col.label(text="Set a piece up first (Mesh QA)")
+            return
+        col.label(text=f"{res['piece']}: " + ", ".join(f"{v} {n}" for v, n in res["counts"].items()))
+        for cid, p in list(res["proposals"].items())[:12]:
+            col.label(text=f"{cid}  {p['verdict'].upper()}  {p.get('note', '')}"[:80])
+        col.label(text="Proposals are not rulings: tag it to decide.")
+        col.operator("lampway.qa_refresh", icon="COLOR")
+
+
 class LAMPWAY_PT_features(Panel):
     bl_idname = "LAMPWAY_PT_features"
     bl_label = "Features"
@@ -137,4 +158,4 @@ class LAMPWAY_PT_features(Panel):
             col.label(text=p.last_message[:80])
 
 
-classes = [LAMPWAY_PT_main, LAMPWAY_PT_features, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
+classes = [LAMPWAY_PT_main, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]

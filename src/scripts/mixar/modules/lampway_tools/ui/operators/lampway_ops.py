@@ -101,6 +101,20 @@ class LAMPWAY_OT_qa_draw(_ApiOp):
         return self._finish(context, api.qa_draw())
 
 
+class LAMPWAY_OT_qa_refresh(_ApiOp):
+    """Recolour and relabel the active piece's markers from its proposals (red delete, yellow hole, green mislabel, grey keep)"""
+    bl_idname = "lampway.qa_refresh"
+    bl_label = "Refresh markers"
+
+    def execute(self, context):
+        from mixar.modules.lampway_tools.meshqa import live as L
+        try:
+            res = L.recolour(L.load_config(context.scene))
+        except (LookupError, FileNotFoundError) as exc:
+            return self._finish(context, {"ok": False, "error": str(exc)})
+        return self._finish(context, {"ok": True, **res})
+
+
 class LAMPWAY_OT_qa_read_tags(_ApiOp):
     """Read the Red/Green/Yellow annotation strokes into decisions and rulings"""
     bl_idname = "lampway.qa_read_tags"
@@ -241,6 +255,6 @@ class LAMPWAY_OT_settings_open(Operator):
         return {"FINISHED"} if res["ok"] else {"CANCELLED"}
 
 
-classes = [LAMPWAY_OT_qa_setup, LAMPWAY_OT_qa_tag_layers, LAMPWAY_OT_qa_candidates, LAMPWAY_OT_qa_draw, LAMPWAY_OT_qa_read_tags,
+classes = [LAMPWAY_OT_qa_setup, LAMPWAY_OT_qa_tag_layers, LAMPWAY_OT_qa_candidates, LAMPWAY_OT_qa_draw, LAMPWAY_OT_qa_refresh, LAMPWAY_OT_qa_read_tags,
            LAMPWAY_OT_rebuild_setup, LAMPWAY_OT_rebuild, LAMPWAY_OT_meshpaint_run, LAMPWAY_OT_meshpaint_albedo,
            LAMPWAY_OT_run_tool, LAMPWAY_OT_feature_run, LAMPWAY_OT_settings_open]

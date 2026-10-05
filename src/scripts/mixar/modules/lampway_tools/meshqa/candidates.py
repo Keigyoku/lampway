@@ -14,8 +14,8 @@ command-line script (scripts/meshqa/mesh_qa.py). Two kinds:
                 ``float_mm`` (it floats).
 
 Each candidate carries a typed descriptor: geometry, the bordering parts and their motion classes, which side of the
-body, which standard views see it, and what a ray through it hits behind. Frame: -y front, +x the body's left (apply
-the mesh's own turn in the matrix passed to ``prepare``).
+body, which standard views see it, and what a ray through it hits behind. Frame: -y front, +x the body's left (the matrix
+passed to ``prepare`` brings the live object there: offset removed, then its turn about Z).
 
 Measured 2026-10-04 on chest seed 9c052d49: 321 boundary loops; 152 are 8-edge loops (rivet bases, open by design,
 hidden on the plate) - the perimeter floor drops them; 62 loops are >= 0.15 m.
@@ -55,6 +55,7 @@ def prepare(me, matrix, owner, delete_polys=()) -> Prepared:
     bm = bmesh.new()
     bm.from_mesh(me)
     bm.transform(matrix)
+    bm.normal_update()                                   # a turn changes the face normals the descriptors read
     bm.faces.ensure_lookup_table()
     lay = bm.faces.layers.int.new("orig")
     for f in bm.faces:

@@ -32,6 +32,7 @@ from . import settings as S
 from .meshqa import decisions as D
 from .meshqa import live as L
 from .meshqa import marks as M
+from .meshqa import proposals as QP
 from .meshqa.rulings import Rulings
 
 _rebuild_run = RB.run                    # replaced by tests: the real thing is minutes of batch work
@@ -101,7 +102,8 @@ def _qa_summary() -> dict:
     except LookupError:
         return {"configured": False}
     return {"configured": True, "object": cfg.object, "piece": cfg.piece, "session": cfg.session,
-            "rulings_dir": cfg.rulings_dir, "candidates": cfg.candidates_path.exists()}
+            "rulings_dir": cfg.rulings_dir, "candidates": cfg.candidates_path.exists(),
+            "pieces": L.piece_names(bpy.context.scene)}
 
 
 @tool
@@ -140,29 +142,53 @@ def qa_tag_layers():
 
 
 @tool
-def qa_candidates(draw=False):
-    cfg = L.load_config(bpy.context.scene)
+def qa_candidates(draw=False, piece="", collection="", prefix=None):
+    """Candidates for ``piece`` (default: the active piece); with ``draw`` they are drawn into ``collection`` (default
+    ``QA_<piece>``) with marker names starting ``prefix`` (default ``<piece>_``)."""
+    cfg = L.load_config(bpy.context.scene, piece or None)
     out = L.compute_candidates(cfg)
     if draw:
-        out["drawn"] = L.draw_candidates(cfg)["drawn"]
+        out["drawn"] = L.draw_candidates(cfg, collection or None, prefix)["drawn"]
     return out
 
 
 @tool
-def qa_draw():
-    return L.draw_candidates(L.load_config(bpy.context.scene))
+def qa_draw(piece="", collection="", prefix=None):
+    return L.draw_candidates(L.load_config(bpy.context.scene, piece or None), collection or None, prefix)
 
 
 @tool
-def qa_read_tags(apply=True, close_round=False, mislabel_to=None):
-    cfg = L.load_config(bpy.context.scene)
+def qa_propose(proposals, piece="", by="agent", collection="", prefix=None):
+    """Write the proposed verdict per candidate ({id: {verdict: delete|hole|mislabel|keep, note?, target?}}) to
+    ``<piece>_proposals.json`` and recolour the piece's markers (delete red, hole yellow, mislabel green, keep grey; the label
+    reads ``<id> <VERDICT>``). A proposal is NOT a ruling: only the captain's tags or typed answers become rulings."""
+    cfg = L.load_config(bpy.context.scene, piece or None)
+    cand = json.loads(cfg.candidates_path.read_text(encoding="utf-8")) if cfg.candidates_path.exists() else None
+    if cand is None:
+        raise FileNotFoundError(f"{cfg.candidates_path} does not exist: compute the candidates first")
+    data = QP.merge(cfg.rulings_dir, cfg.piece, cfg.session, proposals, [c["id"] for c in cand["candidates"]], by=by)
+    out = L.recolour(cfg, collection or None, prefix)
+    return {"piece": cfg.piece, "path": str(QP.path_for(cfg.rulings_dir, cfg.piece)), "counts": QP.counts(data), **out}
+
+
+@tool
+def qa_proposals(piece=""):
+    """The proposals so far for the piece, with their counts (for the review panel and for agents)."""
+    cfg = L.load_config(bpy.context.scene, piece or None)
+    data = QP.load(cfg.rulings_dir, cfg.piece)
+    return {"piece": cfg.piece, "counts": QP.counts(data), "proposals": data.get("proposals", {})}
+
+
+@tool
+def qa_read_tags(apply=True, close_round=False, mislabel_to=None, piece=""):
+    cfg = L.load_config(bpy.context.scene, piece or None)
     targets = {int(k): v for k, v in (mislabel_to or {}).items()}
     return L.read_tags(cfg, apply=apply, close_round=close_round, mislabel_to=targets)
 
 
 @tool
-def qa_rulings():
-    cfg = L.load_config(bpy.context.scene)
+def qa_rulings(piece=""):
+    cfg = L.load_config(bpy.context.scene, piece or None)
     r = Rulings(cfg.rulings_dir, cfg.piece)
 
     def load(kind, default):
@@ -189,10 +215,10 @@ def _rebuild_path(cfg) -> Path:
 
 @tool
 def rebuild_setup(source_mesh, source_owner, relief_dir, plates_dir, template_material, out_root="", relabel_rules=(),
-                  turn=-90.0, lift=0.0, previous=()):
+                  turn=-90.0, lift=0.0, previous=(), piece=""):
     """What a rebuild needs besides the rulings: the SOURCE mesh and its owner map (rebuilds always start from the
     source), the relief views and plates, the live material to copy, where the outputs go, the objects to hide."""
-    cfg = L.load_config(bpy.context.scene)
+    cfg = L.load_config(bpy.context.scene, piece or None)
     s = _settings()
     data = {"source_mesh": _p(source_mesh), "source_owner": _p(source_owner), "relief_dir": _p(relief_dir),
             "plates_dir": _p(plates_dir), "relabel_rules": list(relabel_rules), "turn": float(turn),
@@ -224,13 +250,13 @@ def _spec(cfg, setup, tag, res, color_full, ornament, mesh_gold) -> RB.RebuildSp
 
 @tool
 def rebuild(tag, res=2048, color_full=False, ornament="", mesh_gold=False, read_tags=True, close_round=False,
-            mislabel_to=None, resume=False):
+            mislabel_to=None, resume=False, piece=""):
     """Read his tags, write the rulings, rebuild, and load the result beside the previous version.
 
     The rebuild runs as a background job (minutes); this returns its id at once. When it finishes the app's timer loads
     the new mesh textured next to the old one, hides the old, and points mesh QA at the new object so the loop continues.
     ``api.job_status(<id>)`` reports it."""
-    cfg = L.load_config(bpy.context.scene)
+    cfg = L.load_config(bpy.context.scene, piece or None)
     path = _rebuild_path(cfg)
     if not path.exists():
         raise LookupError(f"no rebuild setup at {path}: call api.rebuild_setup(...) once for this piece")
@@ -262,12 +288,12 @@ def rebuild(tag, res=2048, color_full=False, ornament="", mesh_gold=False, read_
                                       lift=setup["lift"], turn=setup["turn"])
         job.loaded = res_["name"]
         patched = Path(rep["patched"])
-        cfg2 = L.load_config(bpy.context.scene)
+        cfg2 = L.load_config(bpy.context.scene, piece)
         cfg2.object = res_["name"]
         cfg2.offset = (0.0, 0.0, float(setup["lift"]))
         cfg2.owner = str(patched / f"{piece}_{tag}_owner_poly.npy")
         cfg2.orig_poly = str(patched / f"{piece}_{tag}_orig_poly.npy")
-        cfg2.turn = float(setup["turn"])
+        cfg2.turn = 0.0                       # the loaded object has the rebuild's turn baked in: already the analysis frame
         L.save_config(bpy.context.scene, cfg2)
 
     job = jobs.start("rebuild", work, on_done=land)
@@ -708,7 +734,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 
 # ---- the door the agent's scripts use
 
-TOOL_FUNCS = ("meshpaint", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
+TOOL_FUNCS = ("meshpaint", "qa_propose", "qa_proposals", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
               "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture")
 
 
