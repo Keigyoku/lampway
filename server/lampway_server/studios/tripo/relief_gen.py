@@ -23,7 +23,7 @@
 # difference 0, the export is the PNG's grey). --adjust C,B,S sets the page's Contrast, Brightness and Sharpen/Smooth
 # sliders (each -1..1) and also saves the site's export with them applied, for comparison with local processing.
 # A server error (5xx) is retried with back-off; a refusal (403) is not.
-# Usage: <venv>/bin/python relief_gen.py [--adjust C,B,S] <out_dir> <image> [<image> ...]   (venv: /path/to/boxes)
+# Usage: <venv>/bin/python relief_gen.py [--adjust C,B,S] <out_dir> <image> [<image> ...]   (venv: the browser python, LAMPWAY_PYTHON_BROWSER)
 # Writes <out_dir>/<image stem>.relief.png and <image stem>.relief.json (input sha256, output sha256, source URL), and
 # with --adjust <stem>.relief.site_C_B_S.png; never overwrites.
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
@@ -32,11 +32,11 @@ from lampway_server.studios import axi as _ax
 from lampway_server.studios import guard
 _A = _sys.argv[1:]
 _bad = [] if __name__ != '__main__' else [x for x in _A if x.startswith('--') and x.split('=')[0] not in ['--adjust']]
-if _bad: print(f'error: unknown flag(s) {_bad}'); _ax.helps(['/path/to/boxes tools/studios/tripo/relief_gen.py [--adjust C,B,S] <out_dir> <image> [...]']); _sys.stdout.flush(); raise SystemExit(2)
+if _bad: print(f'error: unknown flag(s) {_bad}'); _ax.helps(['<browser python> -m lampway_server.studios.tripo.relief_gen [--adjust C,B,S] <out_dir> <image> [...]']); _sys.stdout.flush(); raise SystemExit(2)
 if __name__ == '__main__' and len(_A) < 2:
     if not _A: _ax.home(__file__, "Tripo's free 3D Relief Generator, unattended in the persistent tool browser: one 8-bit depth PNG per image")
     else: print(f'error: {len(_A)} argument(s); at least 2 needed')
-    _ax.helps(['/path/to/boxes tools/studios/tripo/relief_gen.py [--adjust C,B,S] <out_dir> <image> [...]']); _sys.stdout.flush(); raise SystemExit(0 if not _A else 1)
+    _ax.helps(['<browser python> -m lampway_server.studios.tripo.relief_gen [--adjust C,B,S] <out_dir> <image> [...]']); _sys.stdout.flush(); raise SystemExit(0 if not _A else 1)
 # --- end AXI prelude ---
 import hashlib, json, os, subprocess, sys, time, datetime, urllib.request
 

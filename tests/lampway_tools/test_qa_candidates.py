@@ -113,7 +113,7 @@ print("RESULT", json.dumps({"msg": out}))
     assert "labels for" in run.results[0]["msg"]
 
 
-SHELF = Path("/path/to/shelf/scratch/scratch-tmp")
+SHELF = Path(os.environ.get("LAMPWAY_SHELF") or "/nonexistent")   # the owner's recorded runs; unset = skipped
 RUN = SHELF / "meshqa" / "chest_9c052d49_r2" / "candidates.json"
 
 

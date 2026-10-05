@@ -18,7 +18,7 @@ from blender_run import lampway_bin  # noqa: E402
 from mixar.modules.lampway_tools import runner as R  # noqa: E402
 from mixar.modules.lampway_tools import settings as S  # noqa: E402
 
-SCI = Path(os.environ.get("LAMPWAY_PYTHON_SCIENCE") or "/path/to/boxes")
+SCI = Path(os.environ.get("LAMPWAY_PYTHON_SCIENCE") or "/nonexistent")
 
 
 @pytest.fixture

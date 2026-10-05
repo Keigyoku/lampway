@@ -219,7 +219,7 @@ def main():
             ax.kv({'history_versions': len(vers), 'downloaded': len(ok), 'failed': len(bad), 'log': log})
             ax.table('seeds', [{'id': g['id'][:8], 'faces': g.get('faces_shown'), 'file': os.path.basename(g['file'])} for g in ok], ['id', 'faces', 'file'])
             if bad: ax.table('failed', [{'id': g.get('id', '-')[:8], 'error': ax.trunc(g['error'], 90)} for g in bad], ['id', 'error'])
-            ax.helps([f'/path/to/boxes -b -P tools/proportion/mesh_to_npz.py -- <seed>.npz piece <seed file>',
+            ax.helps([f'<blender> -b -P <lampway_tools>/scripts/proportion/mesh_to_npz.py -- <seed>.npz piece <seed file>',
                       'python3 tools/proportion/proportion_ratios.py <scores.json> <body.npz> <name>=<seed>.npz:-90 ...', f'python3 -m lampway_server.studios.tripo.seed_db.py ingest-harvest {log} <piece>'])
         elif a.cmd == 'collect':
             os.makedirs(a.out, exist_ok=True); seen = []; pg.on('response', lambda resp: seen.append(resp.url) if MESH.search(resp.url) else None)

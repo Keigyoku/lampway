@@ -7,6 +7,7 @@ patch (deletions, refills, holes, relabels) -> patch UVs -> npz -> per-face texe
 -> material masks. The plan is pure and tested as data; the maps step on synthetic arrays; the whole chain on his
 real chest when the shelf is present."""
 
+import os
 import json
 import math
 import sys
@@ -156,8 +157,8 @@ def test_run_with_resume_skips_steps_whose_outputs_exist(tmp_path):
     assert rep["skipped"] == ["patch_holes"]
 
 
-SHELF = Path("/path/to/shelf/scratch/scratch-tmp")
-SCI = Path("/path/to/boxes")
+SHELF = Path(os.environ.get("LAMPWAY_SHELF") or "/nonexistent")   # the owner's recorded runs; unset = skipped
+SCI = Path(os.environ.get("LAMPWAY_PYTHON_SCIENCE") or "/nonexistent")
 
 
 @pytest.mark.skipif(not ((SHELF / "meshqa" / "patched" / "chest_p17_patch.json").exists() and SCI.exists()),

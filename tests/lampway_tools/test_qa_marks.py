@@ -10,6 +10,7 @@ A stroke's faces are the faces nearest its points; the islands are the Smart UV 
 (UV-connected corners); a Hole stroke names the open-loop candidates it circles or runs along. Synthetic cases run
 in the REAL binary; the recorded-run check replays his own marks against the shelf's live scene."""
 
+import os
 import json
 import sys
 from pathlib import Path
@@ -171,7 +172,7 @@ print("RESULT", json.dumps({l.info: [round(c, 3) for c in l.color] for l in ann.
     assert run.results == [{"Delete": [0.78, 0.074, 0.106], "Mislabel": [0.0, 0.78, 0.004], "Hole": [0.78, 0.738, 0.041]}]
 
 
-SHELF = Path("/path/to/shelf/scratch/scratch-tmp/tex_r7/v8")
+SHELF = Path(os.environ.get("LAMPWAY_SHELF") or "/nonexistent") / "tex_r7/v8"   # the owner's recorded runs; unset = skipped
 MARKS = SHELF / "captain_marks" / "marks_2026-10-04_tagged.json"
 FACES = SHELF / "captain_marks" / "tagged_faces.json"
 SCENE = SHELF / "textured_scene.blend"

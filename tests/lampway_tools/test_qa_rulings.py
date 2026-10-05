@@ -9,6 +9,7 @@ sha256 over canonical JSON (segments dropped), the question and its options, the
 files are what the rebuild reads: <piece>_deletions.json, <piece>_relabels_orig.json, <piece>_texel_overrides_orig.json,
 <piece>_candidates_merged.json (source face ids, stable across rebuilds)."""
 
+import os
 import hashlib
 import json
 import sys
@@ -20,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src/scripts"))
 from mixar.modules.lampway_tools.meshqa import decisions as D  # noqa: E402
 from mixar.modules.lampway_tools.meshqa import rulings as R  # noqa: E402
 
-SHELF = Path("/path/to/shelf/scratch/scratch-tmp/meshqa")
+SHELF = Path(os.environ.get("LAMPWAY_SHELF") or "/nonexistent") / "meshqa"   # the owner's recorded runs; unset = skipped
 
 
 def loop(cid, **kw):

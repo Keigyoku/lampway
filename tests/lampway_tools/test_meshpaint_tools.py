@@ -23,8 +23,8 @@ from blender_run import lampway_bin, run_script  # noqa: E402
 from mixar.modules.lampway_tools import runner as R  # noqa: E402
 from mixar.modules.lampway_tools import settings as S  # noqa: E402
 
-SCI = Path(os.environ.get("LAMPWAY_PYTHON_SCIENCE") or "/path/to/boxes")
-SHELF = Path("/path/to/shelf/scratch/scratch-tmp")
+SCI = Path(os.environ.get("LAMPWAY_PYTHON_SCIENCE") or "/nonexistent")
+SHELF = Path(os.environ.get("LAMPWAY_SHELF") or "/nonexistent")   # the owner's recorded runs; unset = skipped
 
 
 @pytest.fixture
