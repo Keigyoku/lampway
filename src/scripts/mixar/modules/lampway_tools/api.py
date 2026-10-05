@@ -1124,6 +1124,30 @@ def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_
 
 
 @tool
+def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None, by="agent"):
+    """The glove's plate labels as a TYPED decision. stage labels: `labels` {plate: bone} for EVERY plate of the piece (its vertex groups; an unlabelled plate is named, never guessed), `roles` {plate: role},
+    the glove's own side's bones only (a left-hand bone on the right glove is refused by name), finger caps and the bracer metal = one rigid bone each, a cloth plate (the upper arm) never rigid. Writes
+    <piece>/fit/glove_labels.json, one decision row per plate to <piece>/fit/decisions.jsonl (decider `by`: agent proposals are recorded as such) and returns the bind_fragment to pass to fit_bind as
+    bind_overrides. pose, bind and report need the hand-pose engine of the user's project and answer needs_decision with the open questions."""
+    from .pipeline import fit_glove as _FG
+    if stage == "labels":
+        from .features import common as _C
+        plates = [g.name for g in _C.need_object(piece).vertex_groups]
+        return _FG.labels(str(_settings().project_root), piece, side, plates, labels or {}, roles or {}, overrides, by)
+    if stage in ("pose", "bind", "report"):
+        return _FG.not_built(stage)
+    raise ValueError("stage is labels | pose | bind | report")
+
+
+@tool
+def fit_state(stage="describe", **kw):
+    """The descriptor / question / answer fit loop. Not built: answers needs_decision (is the Laya / fit-model route still the direction now that fit_validate measures the fit?). The question, the reason and a
+    proposal are in the result."""
+    from .pipeline import fit_glove as _FG
+    return _FG.fit_state(stage)
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are

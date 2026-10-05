@@ -377,6 +377,12 @@ DEFS = [
         "`body_object` (a scene body: an approximation, the native sidecar sampler is not built). return: the metal rest residual vs the ORIGINAL shell. apply: refused while a seam opens unless accept_seam_gap_mm. report.",
         [P("stage", required=True, desc="plan | weights | return | apply | report"), P("piece"), P("armature"), P("roles", "object", "{part: role}"), P("bind_overrides", "object", "{part: {mode, bones, reason}}"),
          P("out_dir", desc="default fit/bind"), P("body_object", desc="weights: the skinned body object"), P("accept_seam_gap_mm", "number", "apply: accept an opened seam")], api="fit_bind"),
+    Def("lampway_fit_glove", "The glove's plate labels as a typed decision. stage labels: `labels` {plate: bone} for EVERY plate (the piece's vertex groups; an unlabelled plate is named, never guessed), `roles` {plate: role}, "
+        "the glove's own side's bones only, finger caps and the bracer metal = one rigid bone each, a cloth plate (the upper arm) never rigid. Writes <piece>/fit/glove_labels.json and one decision row per plate "
+        "(decider by) and returns the bind_fragment for fit_bind. pose | bind | report need the hand-pose engine of the user's project: needs_decision.",
+        [P("stage", required=True, desc="labels | pose | bind | report"), P("piece"), P("side", desc="r (default) | l"), P("labels", "object", "{plate: bone}"), P("roles", "object", "{plate: role}"),
+         P("overrides", "object", "{plate: {mode}}"), P("by", desc="agent (default) | captain")], api="fit_glove"),
+    Def("lampway_fit_state", "The descriptor / question / answer fit loop: NOT BUILT. Answers needs_decision: is the Laya / fit-model route still the direction now that fit_validate measures the fit?", [], api="fit_state"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "
