@@ -28,7 +28,7 @@ def _data_dir() -> str:
     try:
         import bpy
 
-        path = bpy.utils.user_resource("DATAFILES", path="mixar")
+        path = bpy.utils.user_resource("DATAFILES", path="lampway")
         # Under the pytest bpy mock `user_resource` returns a truthy MagicMock,
         # and real Blender prints-and-swallows a creation failure, returning "".
         if isinstance(path, str) and path:

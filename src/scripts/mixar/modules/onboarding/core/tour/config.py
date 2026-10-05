@@ -47,7 +47,7 @@ ENV_PACKS_MANIFEST_URL = "MIXAR_TOUR_PACKS_URL"
 # QA: a local folder laid out like the cache (``<code>/part-<k>.mp4``,
 # ``<code>/timing.json``, ``manifest.json``) that stands in for cache + CDN.
 ENV_PACK_DIR = "MIXAR_TOUR_PACK_DIR"
-PACK_CACHE_SUBDIR = "mixar/tour"
+PACK_CACHE_SUBDIR = "lampway/tour"
 PACK_PART_DEADLINE_S = 300.0       # per file; a 5 MB part on a slow line
 PACK_MANIFEST_TIMEOUT_S = 15.0
 # How long the tour waits, on a loading card, for a chosen language's timing

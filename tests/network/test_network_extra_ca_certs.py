@@ -328,10 +328,10 @@ def test_diagnostics_expose_extra_cert_count(isolated_trust, tmp_path, monkeypat
 
 
 def test_machine_certs_dirs_per_platform():
-    assert trust_mod.machine_certs_dirs("darwin") == ("/Library/Application Support/Mixar/certs",)
-    assert trust_mod.machine_certs_dirs("linux") == ("/etc/mixar/certs",)
+    assert trust_mod.machine_certs_dirs("darwin") == ("/Library/Application Support/Lampway/certs",)
+    assert trust_mod.machine_certs_dirs("linux") == ("/etc/lampway/certs",)
     assert trust_mod.machine_certs_dirs("win32", {"ProgramData": r"C:\ProgramData"}) == (
-        os.path.join(r"C:\ProgramData", "Mixar", "certs"),
+        os.path.join(r"C:\ProgramData", "Lampway", "certs"),
     )
     assert trust_mod.machine_certs_dirs("win32", {}) == ()
 
@@ -340,7 +340,7 @@ def test_user_certs_dir_sits_next_to_the_config_overlay(monkeypatch):
     import bpy
 
     monkeypatch.setattr(bpy.utils, "user_resource", lambda kind, path="", create=False: f"/cfg/{path}")
-    assert trust_mod.user_certs_dir() == os.path.join("/cfg/mixar", "certs")
+    assert trust_mod.user_certs_dir() == os.path.join("/cfg/lampway", "certs")
 
 
 def test_user_certs_dir_is_empty_outside_blender(monkeypatch):
@@ -354,10 +354,10 @@ def test_tls_hint_points_at_the_drop_folder(monkeypatch):
     from mixar.modules.common.network import classify_network_error
     from mixar.modules.common.network.core import errors as errors_mod
 
-    monkeypatch.setattr(errors_mod, "_certs_dir_label", lambda: "/cfg/mixar/certs")
+    monkeypatch.setattr(errors_mod, "_certs_dir_label", lambda: "/cfg/lampway/certs")
     failure = classify_network_error(
         ssl.SSLCertVerificationError("certificate verify failed"), url="https://api.mixar.app/x", environ={}
     )
-    assert "/cfg/mixar/certs" in failure.hint
+    assert "/cfg/lampway/certs" in failure.hint
     assert "MIXAR_EXTRA_CA_CERTS" in failure.hint
     assert "MIXAR_CA_BUNDLE" in failure.hint

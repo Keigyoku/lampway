@@ -36,7 +36,7 @@ def get_preview_collection():
 def _get_cache_dir() -> str:
     """Return the local thumbnail cache directory."""
     try:
-        cache_dir = bpy.utils.user_resource('DATAFILES', path='mixar/thumbnail_cache')
+        cache_dir = bpy.utils.user_resource('DATAFILES', path='lampway/thumbnail_cache')
     except Exception:
         cache_dir = os.path.join(str(app_home()), "thumbnail_cache")
     os.makedirs(cache_dir, exist_ok=True)

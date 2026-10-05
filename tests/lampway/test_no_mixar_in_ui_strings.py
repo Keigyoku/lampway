@@ -27,8 +27,6 @@ from mixar.config import brand  # noqa: E402
 APPROVED = (brand.ATTRIBUTION_SHORT, brand.ATTRIBUTION_LONG)
 
 ALLOW = {
-    ("common/network/constants.py", "/Library/Application Support/Mixar/certs"),
-    ("common/network/constants.py", "Mixar"),
     ("common/updates/constants.py", "Mixar"),
     ("common/updates/core/app_paths.py", "Mixar"),
 }

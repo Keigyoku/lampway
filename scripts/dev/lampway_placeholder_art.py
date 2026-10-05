@@ -29,8 +29,11 @@ from __future__ import annotations
 import argparse
 import pathlib
 import importlib.util
+import shutil
 import struct
+import subprocess
 import sys
+import tempfile
 import textwrap
 
 from PIL import Image, ImageDraw, ImageFont
@@ -178,7 +181,37 @@ def version() -> str:
         return "dev"
 
 
+BRAND_DIR = ROOT / "docs/brand"
+
+
+def rasterize(svg_path, width, height=None, text_edit=None):
+    """Rasterize a brand SVG with ImageMagick (``magick``), transparent where the SVG is; ``text_edit`` maps strings to replace in the SVG first."""
+    magick = shutil.which("magick") or shutil.which("convert")
+    if magick is None:
+        raise SystemExit("ImageMagick (magick) is required to rasterize docs/brand/*.svg")
+    svg = pathlib.Path(svg_path).read_text(encoding="utf-8")
+    for old, new in (text_edit or {}).items():
+        svg = svg.replace(old, new)
+    with tempfile.TemporaryDirectory() as tmp:
+        src, dst = pathlib.Path(tmp) / "in.svg", pathlib.Path(tmp) / "out.png"
+        src.write_text(svg, encoding="utf-8")
+        # -density scales the vector before rasterizing so the output is crisp at the requested size
+        subprocess.run([magick, "-background", "none", "-density", str(int(96 * max(width, height or width) / 256 + 96)), str(src),
+                        "-resize", f"{width}x{height or width}!", str(dst)], check=True, capture_output=True)
+        return Image.open(dst).convert("RGBA").copy()
+
+
 def render_splash(width=1672, height=941):
+    """The splash concept of docs/brand, with the version line filled from VERSION."""
+    return rasterize(BRAND_DIR / "splash_concept.svg", width, height, {"v0.1.0": f"v{version()}"})
+
+
+def render_icon(size):
+    """The app-icon tile (Night rounded square, the lantern mark)."""
+    return rasterize(BRAND_DIR / "logo_appicon.svg", size)
+
+
+def render_splash_placeholder(width=1672, height=941):
     image = Image.new("RGBA", (width, height), (*PAPER, 255))
     glyph = render_glyph(int(height * 0.62), margin=0.04)
     image.alpha_composite(glyph, (int(width * 0.08), int(height * 0.14)))
@@ -195,7 +228,7 @@ def render_splash(width=1672, height=941):
 
 def render_mascot(width=632, height=725):
     image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    glyph = render_glyph(width, margin=0.02)
+    glyph = rasterize(BRAND_DIR / "logo_lantern.svg", width)
     image.alpha_composite(glyph, (0, (height - width) // 2))
     return image
 
@@ -204,7 +237,7 @@ def icon_dat(size, origin, canvas):
     """Blender's icon ``.dat``: 6 little-endian ints (w, h, x, y, canvas w,
     canvas h) then raw RGBA. The origin/canvas values are what the shipped
     files carried; the build only reads w, h and the pixels."""
-    pixels = render_glyph(size).tobytes()
+    pixels = render_icon(size).tobytes()
     return struct.pack("<6i", size, size, origin[0], origin[1], canvas[0], canvas[1]) + pixels
 
 
@@ -224,7 +257,7 @@ def write(path: pathlib.Path, data):
 def generate(out: pathlib.Path):
     datafiles = out / "src/release/datafiles"
     icons_svg = datafiles / "icons_svg"
-    write(icons_svg / "mixar_icon.svg", glyph_svg(1600))
+    write(icons_svg / "mixar_icon.svg", (BRAND_DIR / "logo_appicon.svg").read_text(encoding="utf-8"))
     for badge in BADGES:
         write(icons_svg / f"{badge}.svg", glyph_svg(1600, badge=badge))
     write(datafiles / "mixar_icons.svg", sheet_svg())
@@ -232,12 +265,12 @@ def generate(out: pathlib.Path):
     write(datafiles / "blender_icons32/icon32_mixar_icon.dat", icon_dat(32, (514, 640), (1204, 1280)))
 
     freedesktop = out / "src/release/freedesktop/icons"
-    write(freedesktop / "scalable/apps/mixar.svg", glyph_svg(128))
+    write(freedesktop / "scalable/apps/mixar.svg", (BRAND_DIR / "logo_appicon.svg").read_text(encoding="utf-8"))
     write(freedesktop / "symbolic/apps/mixar-symbolic.svg", glyph_svg(16, mono=(0, 0, 0)))
 
     buffer_png = datafiles / "mixar_logo.png"
     buffer_png.parent.mkdir(parents=True, exist_ok=True)
-    render_glyph(256, margin=0.05).save(buffer_png, format="PNG")
+    render_icon(256).save(buffer_png, format="PNG")
     print(f"wrote {buffer_png}")
     splash = datafiles / "splash.png"
     render_splash().save(splash, format="PNG")
@@ -251,16 +284,14 @@ def generate(out: pathlib.Path):
     sizes = [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
     windows = out / "src/release/windows/icons"
     windows.mkdir(parents=True, exist_ok=True)
-    render_glyph(256, margin=0.04).save(windows / "winmixar.ico", format="ICO", sizes=sizes)
-    render_glyph(256, badge="credits_slide", margin=0.04).save(
-        windows / "winmixarfile.ico", format="ICO", sizes=sizes)
+    render_icon(256).save(windows / "winmixar.ico", format="ICO", sizes=sizes)
+    render_icon(256).save(windows / "winmixarfile.ico", format="ICO", sizes=sizes)
     print(f"wrote {windows / 'winmixar.ico'}\nwrote {windows / 'winmixarfile.ico'}")
 
     darwin = out / "src/release/darwin/Mixar.app/Contents/Resources"
     darwin.mkdir(parents=True, exist_ok=True)
-    render_glyph(1024, margin=0.08).save(darwin / "mixar_icon.icns", format="ICNS")
-    render_glyph(1024, badge="credits_slide", margin=0.08).save(
-        darwin / "Mixar_Legacy_Document_Icon.icns", format="ICNS")
+    render_icon(1024).save(darwin / "mixar_icon.icns", format="ICNS")
+    render_icon(1024).save(darwin / "Mixar_Legacy_Document_Icon.icns", format="ICNS")
     print(f"wrote {darwin / 'mixar_icon.icns'}\nwrote {darwin / 'Mixar_Legacy_Document_Icon.icns'}")
 
 

@@ -28,7 +28,7 @@ ASSET_EMBEDDINGS_DELETE_ENDPOINT = "api/v1/asset-search/embeddings"
 # used as the `library` identity in embedding metadata). Registered at startup.
 GENERATION_LIBRARY_NAME = "Lampway Generations"
 # Sub-path under user_resource('DATAFILES', ...) where the library .blends live.
-GENERATION_LIBRARY_SUBPATH = "mixar/generations"
+GENERATION_LIBRARY_SUBPATH = "lampway/generations"
 
 # Job types whose completed 3D result is auto-archived into the library.
 # ONLY pure image->3D model generations — no retopology / rapid / uv / part /

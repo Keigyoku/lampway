@@ -269,7 +269,7 @@ DOWNLOAD_DEADLINE_BYTES_PER_S = 200 * 1024
 # ---------------------------------------------------------------------------
 
 # Subpath under bpy.utils.user_resource("DATAFILES") (see core/paths.py).
-DATAFILES_SUBDIR = "mixar/local_models"
+DATAFILES_SUBDIR = "lampway/local_models"
 
 MANIFEST_FILENAME = "manifest.json"
 

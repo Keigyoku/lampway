@@ -71,14 +71,14 @@ LOOPBACK_NO_PROXY = ("localhost", "127.0.0.1", "::1")
 # PEM and DER encodings are both accepted, whatever the extension says.
 CERT_FILE_EXTENSIONS = (".pem", ".crt", ".cer", ".der")
 # Per-user drop folder, relative to Blender's user CONFIG resource (the same
-# parent as the ``mixar.json`` overlay): ``<user config>/mixar/certs``.
-USER_CERTS_SUBDIR = "mixar"
+# parent as the ``mixar.json`` overlay): ``<user config>/lampway/certs``.
+USER_CERTS_SUBDIR = "lampway"
 USER_CERTS_DIRNAME = "certs"
 # Machine-wide drop folders an MDM profile or login script can populate
 # without touching any user account. Windows resolves ``%ProgramData%``.
-MACHINE_CERTS_DIRS_DARWIN = ("/Library/Application Support/Mixar/certs",)
-MACHINE_CERTS_DIRS_WINDOWS_SUBPATH = ("Mixar", "certs")
-MACHINE_CERTS_DIRS_LINUX = ("/etc/mixar/certs",)
+MACHINE_CERTS_DIRS_DARWIN = ("/Library/Application Support/Lampway/certs",)
+MACHINE_CERTS_DIRS_WINDOWS_SUBPATH = ("Lampway", "certs")
+MACHINE_CERTS_DIRS_LINUX = ("/etc/lampway/certs",)
 
 # --- Trust modes (reported in logs and diagnostics) ---------------------------
 TRUST_MODE_OS = "os-trust-store"

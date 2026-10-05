@@ -85,83 +85,28 @@ def pose_samples() -> dict[str, dict[str, float]]:
     return rows
 
 
-def test_painter_calls_the_shipped_sampler():
-    assert '#include "agent_ui_pill_cat_pose.hh"' in CAT_CC
-    assert "mixie_cat_eval_pose(now, working)" in CAT_CC
-    assert "Pose eval_pose" not in CAT_CC
+def test_painter_draws_the_lampway_spark_not_the_upstream_mascot():
+    """The pill and the Parallel Agents cards draw a flame in a ring (docs/brand/logo_agent_spark.svg); the upstream black cat is gone from the painter."""
+    assert "static void draw_spark(" in CAT_CC and "flame(" in CAT_CC and "ring(" in CAT_CC
+    assert "0.929f, 0.725f, 0.267f" in CAT_CC          # Flame #EDB944
+    for cat_part in ("draw_eyes", "void ear(", "catchlight", "pose.look_x", "mixie_cat_eval_pose"):
+        assert cat_part not in CAT_CC, cat_part
 
 
-def test_elongated_pill_draws_the_cat_not_the_mixar_mark():
-    elongated = _elongated()
-    assert "agent_ui_draw_pill_cat(&chip, cat_pose, state->cat_activity)" in elongated
-    assert "state->cat_catch" in elongated
-    assert "ICON_MIXAR_ICON" not in elongated
+def test_the_working_state_alternates_two_flame_frames_and_offline_shows_the_flame_out():
+    body = CAT_CC[CAT_CC.index("static void draw_spark("):]
+    assert "BLI_time_now_seconds() / 0.8" in body          # 1.6 s per full cycle
+    assert "second_frame" in body and "wisp(" in body and "offline" in body
 
 
-def test_compact_pill_clears_stale_cat_target():
-    body = _pill_draw()
-    assert body.index("agent_ui_draw_pill_cat") < body.index("agent_ui_pill_cat_clear();")
-
-
-def test_blink_is_close_hold_open_not_a_triangle_dip():
-    samples = pose_samples()
-    hold_a = samples["idle_hold_a"]["openness"]
-    hold_b = samples["idle_hold_b"]["openness"]
-    idle_open = samples["idle_open"]["openness"]
-    assert hold_a < 0.15
-    assert hold_b < 0.15
-    assert abs(hold_a - hold_b) < 0.02
-    assert idle_open > 0.9
-    assert idle_open - hold_a > 0.7
-
-
-def test_idle_gaze_leaves_centre_and_returns():
-    samples = pose_samples()
-    assert abs(samples["idle_home"]["look_x"]) < 0.02
-    assert abs(samples["idle_home"]["look_y"]) < 0.02
-    assert abs(samples["idle_glance"]["look_x"]) > 0.12
-    assert abs(samples["idle_open"]["look_x"]) < 0.02
-
-
-def test_working_rolls_the_eyes_instead_of_squinting():
-    samples = pose_samples()
-    idle = samples["idle_open"]
-    work = samples["working_open"]
-    assert abs(work["openness"] - idle["openness"]) < 0.05
-    assert work["openness"] > 0.9
-    assert abs(work["bounce"]) < 0.012
-    assert abs(idle["bounce"]) < 0.012
-    up = samples["working_roll_up"]
-    left = samples["working_roll_left"]
-    rest = samples["working_roll_rest"]
-    assert up["look_y"] > 0.35
-    assert abs(up["look_x"]) < 0.20
-    assert left["look_x"] < -0.45
-    assert abs(left["look_y"]) < 0.20
-    assert abs(rest["look_x"]) < 0.08
-    assert abs(rest["look_y"]) < 0.16
-    hold = samples["working_hold"]["openness"]
-    assert hold < 0.15
-    assert work["openness"] - hold > 0.7
-
-
-def test_cat_paint_stays_inside_the_chip():
-    import re
-
-    start = CAT_CC.index("void agent_ui_draw_pill_cat")
-    body = CAT_CC[start : CAT_CC.index("\n}\n", start)]
-    outward = re.findall(
-        r"^\s*\w+\.(?:xmin|ymin)\s*-=|^\s*\w+\.(?:xmax|ymax)\s*\+=",
-        body,
-        re.MULTILINE,
-    )
-    assert outward == [], outward
-
-
-def test_gaze_does_not_squeeze_one_eye_in_the_painter():
-    eyes = CAT_CC[CAT_CC.index("void draw_eyes"):CAT_CC.index("static void draw_cat_pose")]
-    assert "side * pose.look_x" not in eyes
-
+def test_worker_colours_are_the_brand_pack_in_order():
+    style = (ROOT / "src/source/blender/editors/space_agent_bubble/agent_ui_cat_style.hh").read_text()
+    for name in ("Flame", "Dusk", "Mint", "Coral", "Sky", "Orchid"):
+        assert f'"{name}"' in style
+    for old in ("Emerald", "Amber", "Lagoon", "Lilac", "Lime"):
+        assert old not in style
+    for hexcode in ("#EDB944", "#9EA0F7", "#5BC48F", "#F0766B", "#6FC3E8", "#D58FE0"):
+        assert hexcode in style
 
 def test_qa_target_reads_the_painted_chip():
     assert 't.surface = "pill_cat"' in CAT_CC

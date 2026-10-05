@@ -34,7 +34,7 @@ _SYNCING = False           # suppress write-back while the UI list rebuilds
 
 def _config_path() -> str:
     try:
-        base = bpy.utils.user_resource("CONFIG", path="mixar", create=True)
+        base = bpy.utils.user_resource("CONFIG", path="lampway", create=True)
     except Exception:
         base = str(app_home())
         os.makedirs(base, exist_ok=True)

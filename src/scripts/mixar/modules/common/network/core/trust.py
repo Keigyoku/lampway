@@ -38,9 +38,9 @@ of the root set (additive, never replacing):
 * ``MIXAR_EXTRA_CA_CERTS`` — ``os.pathsep``-separated files or folders;
 * ``network.extra_ca_certs`` in ``mixar.json`` — a string or a list;
 * every ``.pem`` / ``.crt`` / ``.cer`` / ``.der`` file in the per-user drop
-  folder ``<user config>/mixar/certs`` and the machine-wide folder
-  (``/Library/Application Support/Mixar/certs``, ``%ProgramData%\\Mixar\\certs``
-  or ``/etc/mixar/certs``).
+  folder ``<user config>/lampway/certs`` and the machine-wide folder
+  (``/Library/Application Support/Lampway/certs``, ``%ProgramData%\\Lampway\\certs``
+  or ``/etc/lampway/certs``).
 
 PEM and DER encodings are both accepted. The certificates are attached by
 patching ``ssl.SSLContext`` construction so every context created afterwards
@@ -291,7 +291,7 @@ def _truststore_version() -> str:
 
 
 def user_certs_dir() -> str:
-    """``<user config>/mixar/certs``: the per-user drop folder. Empty outside Blender."""
+    """``<user config>/lampway/certs``: the per-user drop folder. Empty outside Blender."""
     try:
         import bpy
 

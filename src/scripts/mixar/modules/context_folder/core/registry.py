@@ -29,7 +29,7 @@ def _default_path() -> Path:
     try:
         import bpy
 
-        configured = bpy.utils.user_resource("CONFIG", path="mixar", create=True)
+        configured = bpy.utils.user_resource("CONFIG", path="lampway", create=True)
         if configured:
             return Path(configured) / "context_folders.json"
     except Exception:

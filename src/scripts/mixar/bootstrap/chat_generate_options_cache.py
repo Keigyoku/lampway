@@ -86,7 +86,7 @@ def _data_dir() -> str:
     try:
         import bpy
 
-        path = bpy.utils.user_resource("DATAFILES", path="mixar")
+        path = bpy.utils.user_resource("DATAFILES", path="lampway")
         if path:
             return path
     except Exception:

@@ -469,7 +469,7 @@ _service = None
 def _default_storage_dir() -> Path:
     try:
         import bpy
-        configured = bpy.utils.user_resource("CONFIG", path="mixar/addon_projects", create=True)
+        configured = bpy.utils.user_resource("CONFIG", path="lampway/addon_projects", create=True)
         if configured:
             return Path(configured)
     except Exception:

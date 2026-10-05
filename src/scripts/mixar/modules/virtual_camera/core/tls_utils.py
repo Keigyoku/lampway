@@ -27,7 +27,7 @@ def _cache_dir() -> str:
     try:
         import bpy
 
-        base = bpy.utils.user_resource("CONFIG", path="mixar", create=True)
+        base = bpy.utils.user_resource("CONFIG", path="lampway", create=True)
     except Exception:
         base = str(app_home())
         os.makedirs(base, exist_ok=True)

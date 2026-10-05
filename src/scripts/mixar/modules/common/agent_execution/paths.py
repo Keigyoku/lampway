@@ -28,13 +28,13 @@ def cache_root() -> str:
     try:
         import bpy
 
-        path = bpy.utils.user_resource("DATAFILES", path="mixar", create=True)
+        path = bpy.utils.user_resource("DATAFILES", path="lampway", create=True)
         if isinstance(path, str) and path:
             os.makedirs(path, exist_ok=True)
             return path
     except Exception:
         pass
-    path = os.path.join(tempfile.gettempdir(), "mixar")
+    path = os.path.join(tempfile.gettempdir(), "lampway")
     os.makedirs(path, exist_ok=True)
     return path
 

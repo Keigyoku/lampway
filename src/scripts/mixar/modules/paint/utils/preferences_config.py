@@ -25,7 +25,7 @@ _loading = False
 
 def get_prefs_path() -> str:
     """Return the path to the Mixar Paint preferences JSON file."""
-    config_dir = user_resource('CONFIG', path='mixar_paint', create=True)
+    config_dir = user_resource('CONFIG', path='lampway_paint', create=True)
     os.makedirs(config_dir, exist_ok=True)
     return os.path.join(config_dir, 'preferences.json')
 

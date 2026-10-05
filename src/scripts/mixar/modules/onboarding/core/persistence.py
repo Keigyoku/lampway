@@ -34,11 +34,11 @@ _FILENAME = "onboarding_seen.json"
 
 def _data_dir() -> str:
     """Pick the same per-user data dir other Mixar modules use:
-    ``bpy.utils.user_resource('DATAFILES', path='mixar')`` when
+    ``bpy.utils.user_resource('DATAFILES', path='lampway')`` when
     Blender is available, else fall back to ``~/.mixar``.
     """
     try:
-        path = bpy.utils.user_resource("DATAFILES", path="mixar")
+        path = bpy.utils.user_resource("DATAFILES", path="lampway")
         if path:
             return path
     except Exception:
