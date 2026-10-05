@@ -8,22 +8,32 @@ import sys
 
 
 # Platforms whose GHOST layer implements the ``Mixar_Window*`` helpers that the
-# native window-state operators are built on. Those helpers exist in exactly
-# two places — ``GHOST_SystemCocoa.mm`` and ``GHOST_SystemWin32.cc`` — and
-# there is no X11 implementation, so on Linux the bodies of
-# ``mixar_bubble_{minimise,restore,toggle_expand}_exec`` (space_agent_bubble.cc,
-# all three guarded by ``#if defined(__APPLE__) || defined(_WIN32)``) compile
+# native window-state operators are built on: ``GHOST_SystemCocoa.mm``,
+# ``GHOST_SystemWin32.cc`` and, for Linux, ``GHOST_MixarX11*.cc``. Elsewhere
+# the bodies of ``mixar_bubble_{minimise,restore,toggle_expand}_exec``
+# (space_agent_bubble.cc, guarded by the same three-platform ``#if``) compile
 # down to a bare ``return OPERATOR_CANCELLED``.
 #
-# Every call site sits inside that guard, so Linux never references the missing
-# symbols and the build links cleanly — there is no compile-time signal. The
-# operators simply do nothing, silently, which reads to the user as frozen UI
-# rather than as a feature that isn't there yet.
+# Linux needs a RUN-TIME check on top: one binary carries both GHOST backends
+# and picks Wayland when it can. The X11 helpers resolve through a
+# ``dynamic_cast`` to the X11 classes, so under Wayland every one is a silent
+# no-op - the buttons would draw, dispatch and do nothing, which reads as
+# frozen UI rather than as a feature that isn't there yet.
 #
 # This is an ALLOWLIST, deliberately not ``!= "win32"``. A platform earns these
 # controls by having someone write its window helpers; anything else stays
 # opted out and inherits no dead buttons.
-BUBBLE_WINDOW_CONTROLS_SUPPORTED = sys.platform in {"darwin", "win32"}
+def _linux_ghost_is_x11():
+    try:
+        from _bpy import _ghost_backend
+        return _ghost_backend() == "X11"
+    except Exception:
+        return False
+
+
+BUBBLE_WINDOW_CONTROLS_SUPPORTED = sys.platform in {"darwin", "win32"} or (
+    sys.platform.startswith("linux") and _linux_ghost_is_x11()
+)
 
 # The island tabs that show the CHAT (transcript + composer), and the
 # ``scene.mixie_chat_mode`` each one puts the chat into. ``wm.mixar_bubble_tab``

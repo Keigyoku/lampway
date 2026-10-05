@@ -1,0 +1,449 @@
+/* SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup GHOST
+ *
+ * X11 Mixar_Window* chrome, docks and stacking. Size, visibility and opacity
+ * live in GHOST_MixarX11_size.cc, parent tracking in GHOST_MixarX11_parent.cc,
+ * drag/place/snap in GHOST_MixarX11_move.cc.
+ * GHOST_SystemX11.cc is left byte-identical to upstream.
+ *
+ * Wayland sessions no-op via dynamic_cast. There is no X11 equivalent for
+ * hide-on-deactivate, Spaces binding, blur-behind, or a portable corner
+ * radius (XShape is not linked). Those entry points are explicit no-ops.
+ */
+
+#ifdef WITH_GHOST_X11
+
+#  include <X11/Xatom.h>
+#  include <X11/Xlib.h>
+#  include <X11/Xutil.h>
+
+#  include <algorithm>
+#  include <strings.h>
+#  include <vector>
+
+#  include "GHOST_MixarX11.hh"
+
+#  define MWM_HINTS_DECORATIONS (1L << 1)
+struct MixarMwmHints {
+  unsigned long flags;
+  unsigned long functions;
+  unsigned long decorations;
+  long input_mode;
+  unsigned long status;
+};
+
+struct MixarX11Dock {
+  void *handle;
+  Window xwin;
+};
+
+static std::vector<MixarX11Dock> s_x11_docks;
+static int s_x11_dock_suppress_depth = 0;
+static std::vector<Window> s_x11_suppressed_docks;
+
+static void mixar_x11_set_state(Display *display,
+                                Window window,
+                                const char *state_name,
+                                bool enable)
+{
+  Atom wm_state = XInternAtom(display, "_NET_WM_STATE", False);
+  Atom state = XInternAtom(display, state_name, False);
+  if (wm_state == None || state == None) {
+    return;
+  }
+  XEvent event = {};
+  event.type = ClientMessage;
+  event.xclient.window = window;
+  event.xclient.message_type = wm_state;
+  event.xclient.format = 32;
+  event.xclient.data.l[0] = enable ? 1 : 0;
+  event.xclient.data.l[1] = long(state);
+  event.xclient.data.l[2] = 0;
+  event.xclient.data.l[3] = 1;
+  XSendEvent(display,
+             DefaultRootWindow(display),
+             False,
+             SubstructureRedirectMask | SubstructureNotifyMask,
+             &event);
+  XFlush(display);
+}
+
+void mixar_x11_dock_register(void *window_handle, Window window)
+{
+  for (MixarX11Dock &dock : s_x11_docks) {
+    if (dock.handle == window_handle) {
+      dock.xwin = window;
+      return;
+    }
+  }
+  s_x11_docks.push_back({window_handle, window});
+}
+
+void mixar_x11_dock_forget(const void *window_handle)
+{
+  if (window_handle == nullptr) {
+    return;
+  }
+  for (size_t i = 0; i < s_x11_docks.size();) {
+    if (s_x11_docks[i].handle == window_handle) {
+      s_x11_docks.erase(s_x11_docks.begin() + i);
+    }
+    else {
+      i++;
+    }
+  }
+}
+
+bool mixar_x11_dock_suppress_if_needed(void *window_handle)
+{
+  if (s_x11_dock_suppress_depth <= 0) {
+    return false;
+  }
+  Display *display;
+  Window window;
+  if (!mixar_x11_resolve(window_handle, &display, &window)) {
+    return false;
+  }
+  bool marked = false;
+  for (const MixarX11Dock &dock : s_x11_docks) {
+    if (dock.handle == window_handle || dock.xwin == window) {
+      marked = true;
+      break;
+    }
+  }
+  if (!marked) {
+    return false;
+  }
+  if (mixar_x11_is_viewable(display, window)) {
+    s_x11_suppressed_docks.push_back(window);
+    XUnmapWindow(display, window);
+    XFlush(display);
+  }
+  return true;
+}
+
+/* Current _MOTIF_WM_HINTS decorations field, or -1 when the property is
+ * absent or unreadable. Used to keep Mixar_WindowSetChromeless idempotent:
+ * it is called on every bubble/pill show, and the re-manage cycle below
+ * must not run more than once per actual change. */
+static long mixar_x11_current_decorations(Display *display, Window window, Atom motif)
+{
+  Atom actual_type = None;
+  int actual_format = 0;
+  unsigned long nitems = 0, bytes_after = 0;
+  unsigned char *data = nullptr;
+  if (XGetWindowProperty(display,
+                         window,
+                         motif,
+                         0,
+                         sizeof(MixarMwmHints) / sizeof(long),
+                         False,
+                         AnyPropertyType,
+                         &actual_type,
+                         &actual_format,
+                         &nitems,
+                         &bytes_after,
+                         &data) != Success)
+  {
+    return -1;
+  }
+  long decorations = -1;
+  if (data != nullptr) {
+    if (actual_format == 32 && nitems >= 3) {
+      const long *fields = reinterpret_cast<const long *>(data);
+      /* Only meaningful when the decorations bit is actually set. */
+      if (fields[0] & MWM_HINTS_DECORATIONS) {
+        decorations = fields[2];
+      }
+    }
+    XFree(data);
+  }
+  return decorations;
+}
+
+extern "C" void Mixar_WindowSetChromeless(void *window_handle, bool chromeless)
+{
+  Display *display;
+  Window window;
+  if (!mixar_x11_resolve_chrome(window_handle, &display, &window)) {
+    return;
+  }
+
+  Atom motif = XInternAtom(display, "_MOTIF_WM_HINTS", False);
+  if (motif == None) {
+    return;
+  }
+
+  const long want = chromeless ? 0 : 1;
+  if (mixar_x11_current_decorations(display, window, motif) == want) {
+    /* Already in the requested state — skip the write AND the re-manage,
+     * so repeat calls do not flicker the window. */
+    mixar_x11_set_state(display, window, "_NET_WM_STATE_SKIP_TASKBAR", chromeless);
+    mixar_x11_set_state(display, window, "_NET_WM_STATE_SKIP_PAGER", chromeless);
+    XFlush(display);
+    return;
+  }
+
+  MixarMwmHints hints = {};
+  hints.flags = MWM_HINTS_DECORATIONS;
+  hints.decorations = (unsigned long)want;
+  XChangeProperty(display,
+                  window,
+                  motif,
+                  motif,
+                  32,
+                  PropModeReplace,
+                  reinterpret_cast<unsigned char *>(&hints),
+                  sizeof(MixarMwmHints) / sizeof(long));
+
+  /* openbox (and most reparenting WMs) read _MOTIF_WM_HINTS when they take
+   * a window under management and do not re-read it on a property change,
+   * so a mapped window keeps the frame it was given. Withdrawing and
+   * remapping forces a re-manage, which is the only portable way to drop
+   * the title bar after map. The pill needs exactly this: it is created and
+   * mapped by WM_window_open, and only then asks to be borderless.
+   *
+   * Unmap/map is the same pair minimise/restore already uses, and is not one
+   * of the paths that segfaulted this stack. Raise afterwards because a
+   * re-managed window returns at the bottom of the stack. */
+  if (mixar_x11_is_viewable(display, window)) {
+    XUnmapWindow(display, window);
+    XFlush(display);
+    XMapWindow(display, window);
+    XRaiseWindow(display, window);
+  }
+
+  mixar_x11_set_state(display, window, "_NET_WM_STATE_SKIP_TASKBAR", chromeless);
+  mixar_x11_set_state(display, window, "_NET_WM_STATE_SKIP_PAGER", chromeless);
+  XFlush(display);
+}
+
+extern "C" void Mixar_WindowSetBorderless(void *window_handle)
+{
+  Mixar_WindowSetChromeless(window_handle, true);
+}
+
+/* "Floating" means above MIXAR, not above every application: Win32 uses
+ * HWND_TOP (explicitly not HWND_TOPMOST) plus the owner window, and Cocoa uses
+ * child windows with no window level. The X11 equivalent is WM_TRANSIENT_FOR,
+ * which the parenting helpers set and which keeps the window directly above
+ * its parent. _NET_WM_STATE_ABOVE would float it over every other app, so this
+ * only handles modal suppression, and clears ABOVE in case an older build set
+ * it on a reused window. */
+extern "C" void Mixar_WindowSetFloatingLevel(void *window_handle)
+{
+  if (mixar_x11_dock_suppress_if_needed(window_handle)) {
+    return;
+  }
+  Display *display;
+  Window window;
+  if (!mixar_x11_resolve(window_handle, &display, &window)) {
+    return;
+  }
+  mixar_x11_set_state(display, window, "_NET_WM_STATE_ABOVE", false);
+}
+
+extern "C" void Mixar_WindowMarkAsFloatingDock(void *window_handle)
+{
+  Display *display;
+  Window window;
+  if (!mixar_x11_resolve(window_handle, &display, &window)) {
+    return;
+  }
+  Atom type = XInternAtom(display, "_NET_WM_WINDOW_TYPE", False);
+  Atom utility = XInternAtom(display, "_NET_WM_WINDOW_TYPE_UTILITY", False);
+  if (type != None && utility != None) {
+    XChangeProperty(display,
+                    window,
+                    type,
+                    XA_ATOM,
+                    32,
+                    PropModeReplace,
+                    reinterpret_cast<unsigned char *>(&utility),
+                    1);
+    XFlush(display);
+  }
+  mixar_x11_dock_register(window_handle, window);
+  mixar_x11_dock_suppress_if_needed(window_handle);
+}
+
+/* True when the running window manager announces itself as openbox
+ * (EWMH _NET_SUPPORTING_WM_CHECK -> _NET_WM_NAME). */
+static bool mixar_x11_wm_is_openbox(Display *display)
+{
+  static int cached = -1;
+  if (cached >= 0) {
+    return cached == 1;
+  }
+  cached = 0;
+  Atom check = XInternAtom(display, "_NET_SUPPORTING_WM_CHECK", False);
+  Atom name = XInternAtom(display, "_NET_WM_NAME", False);
+  Atom utf8 = XInternAtom(display, "UTF8_STRING", False);
+  Atom actual_type;
+  int actual_format;
+  unsigned long nitems, bytes_after;
+  unsigned char *data = nullptr;
+  if (XGetWindowProperty(display, DefaultRootWindow(display), check, 0, 1, False, XA_WINDOW,
+                         &actual_type, &actual_format, &nitems, &bytes_after, &data) == Success &&
+      data != nullptr)
+  {
+    const Window wm_window = (nitems >= 1) ? *reinterpret_cast<Window *>(data) : None;
+    XFree(data);
+    data = nullptr;
+    if (wm_window != None &&
+        XGetWindowProperty(display, wm_window, name, 0, 64, False, utf8, &actual_type,
+                           &actual_format, &nitems, &bytes_after, &data) == Success &&
+        data != nullptr)
+    {
+      cached = (strncasecmp(reinterpret_cast<const char *>(data), "openbox", 7) == 0) ? 1 : 0;
+      XFree(data);
+    }
+  }
+  return cached == 1;
+}
+
+/* EWMH window type for the pill. On openbox, DOCK is what removes the frame:
+ * it ignores _MOTIF_WM_HINTS but honours the type per window. Every other
+ * window manager tested (KWin) honours the MOTIF hint, and there DOCK is wrong:
+ * docks stack above all normal windows, like panels, so the pill floated over
+ * every application. They get UTILITY instead, which stays with its
+ * transient-for parent. Applied ONLY to the pill (see the call site): openbox
+ * clears OB_CLIENT_FUNC_MOVE for dock windows, and the island must stay
+ * draggable via _NET_WM_MOVERESIZE. The re-manage is needed for the same reason
+ * as in Mixar_WindowSetChromeless, and is likewise skipped when the type
+ * already matches so repeat shows do not flicker. */
+extern "C" void Mixar_WindowSetDockWindowType(void *window_handle, bool dock)
+{
+  Display *display;
+  Window window;
+  if (!mixar_x11_resolve_chrome(window_handle, &display, &window)) {
+    return;
+  }
+  Atom type = XInternAtom(display, "_NET_WM_WINDOW_TYPE", False);
+  const char *type_name = !dock ? "_NET_WM_WINDOW_TYPE_NORMAL" :
+                          mixar_x11_wm_is_openbox(display) ? "_NET_WM_WINDOW_TYPE_DOCK" :
+                                                             "_NET_WM_WINDOW_TYPE_UTILITY";
+  Atom want = XInternAtom(display, type_name, False);
+  if (type == None || want == None) {
+    return;
+  }
+
+  Atom actual_type = None;
+  int actual_format = 0;
+  unsigned long nitems = 0, bytes_after = 0;
+  unsigned char *data = nullptr;
+  bool already = false;
+  if (XGetWindowProperty(display,
+                         window,
+                         type,
+                         0,
+                         1,
+                         False,
+                         XA_ATOM,
+                         &actual_type,
+                         &actual_format,
+                         &nitems,
+                         &bytes_after,
+                         &data) == Success)
+  {
+    if (data != nullptr) {
+      if (actual_format == 32 && nitems >= 1) {
+        already = (*reinterpret_cast<const Atom *>(data) == want);
+      }
+      XFree(data);
+    }
+  }
+  if (already) {
+    return;
+  }
+
+  XChangeProperty(display,
+                  window,
+                  type,
+                  XA_ATOM,
+                  32,
+                  PropModeReplace,
+                  reinterpret_cast<unsigned char *>(&want),
+                  1);
+  if (mixar_x11_is_viewable(display, window)) {
+    XUnmapWindow(display, window);
+    XFlush(display);
+    XMapWindow(display, window);
+    XRaiseWindow(display, window);
+  }
+  XFlush(display);
+}
+
+extern "C" void Mixar_FloatingDocksSuppressForModal()
+{
+  s_x11_dock_suppress_depth++;
+  if (s_x11_dock_suppress_depth > 1) {
+    return;
+  }
+  s_x11_suppressed_docks.clear();
+  GHOST_SystemX11 *system = mixar_x11_system();
+  Display *display = (system != nullptr) ? system->getXDisplay() : nullptr;
+  if (display == nullptr) {
+    return;
+  }
+  for (auto it = s_x11_docks.begin(); it != s_x11_docks.end();) {
+    if (mixar_x11_window(it->handle) == nullptr) {
+      it = s_x11_docks.erase(it);
+      continue;
+    }
+    if (mixar_x11_is_viewable(display, it->xwin)) {
+      s_x11_suppressed_docks.push_back(it->xwin);
+      XUnmapWindow(display, it->xwin);
+    }
+    ++it;
+  }
+  XFlush(display);
+}
+
+extern "C" void Mixar_FloatingDocksRestoreAfterModal()
+{
+  if (s_x11_dock_suppress_depth <= 0) {
+    return;
+  }
+  s_x11_dock_suppress_depth--;
+  if (s_x11_dock_suppress_depth > 0) {
+    return;
+  }
+  GHOST_SystemX11 *system = mixar_x11_system();
+  Display *display = (system != nullptr) ? system->getXDisplay() : nullptr;
+  if (display == nullptr) {
+    s_x11_suppressed_docks.clear();
+    return;
+  }
+  for (Window window : s_x11_suppressed_docks) {
+    XMapWindow(display, window);
+    XRaiseWindow(display, window);
+  }
+  XFlush(display);
+  s_x11_suppressed_docks.clear();
+}
+
+/* ICCCM/EWMH have no per-window "hide with application" flag. */
+extern "C" void Mixar_WindowSetHidesOnDeactivate(void * /*window_handle*/, bool /*hides*/) {}
+
+/* macOS Spaces only. */
+extern "C" void Mixar_WindowBindToParentSpace(void * /*window_handle*/) {}
+
+/* Mixar_WindowSetCornerRadius lives in GHOST_MixarX11_shape.cc. */
+
+/* Compositor blur has no portable X11 request. */
+extern "C" void Mixar_WindowSetBlurBehind(void * /*window_handle*/, bool /*enable*/) {}
+
+/* X11 GL windows are opaque; no per-pixel alpha path. */
+extern "C" bool Mixar_WindowHasAlphaChannel(void * /*window_handle*/)
+{
+  return false;
+}
+
+extern "C" void Mixar_WindowSetPerPixelAlpha(void * /*window_handle*/, bool /*enable*/) {}
+
+#endif /* WITH_GHOST_X11 */

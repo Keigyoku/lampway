@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Mixar overlay of upstream intern/ghost/CMakeLists.txt (pin v5.2.0). Mixar
-# additions are the Cocoa / Win32 glass helpers and the GHOST_ContextMTL.mm
+# additions are the Cocoa / Win32 glass helpers, the X11 Mixar_Window*
+# backend (GHOST_MixarX11*.cc) and the GHOST_ContextMTL.mm
 # overlay (present blit keeps framebuffer alpha). Re-diff against upstream
 # after every pin bump.
 
@@ -195,7 +196,17 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       intern/GHOST_SystemX11.cc
       intern/GHOST_WindowX11.cc
 
+      # Mixar: X11 backend for the agent bubble's Mixar_Window* helpers. Kept
+      # in its own files so GHOST_SystemX11.cc stays byte-identical to upstream.
+      intern/GHOST_MixarX11.cc
+      intern/GHOST_MixarX11_parent.cc
+      intern/GHOST_MixarX11_move.cc
+      intern/GHOST_MixarX11_errors.cc
+      intern/GHOST_MixarX11_shape.cc
+      intern/GHOST_MixarX11_size.cc
+
       intern/GHOST_IconX11.hh
+      intern/GHOST_MixarX11.hh
       intern/GHOST_SystemX11.hh
       intern/GHOST_WindowX11.hh
     )
@@ -251,6 +262,14 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       list(APPEND LIB
         ${X11_Xinput_LIB}
       )
+    endif()
+
+    # Mixar: the X Shape extension (libXext) rounds the agent bubble's corners
+    # (GHOST_MixarX11_shape.cc); without it they stay square.
+    if(X11_Xext_LIB AND X11_Xshape_INCLUDE_PATH)
+      add_definitions(-DWITH_MIXAR_X11_SHAPE)
+      list(APPEND INC_SYS ${X11_Xshape_INCLUDE_PATH})
+      list(APPEND LIB ${X11_Xext_LIB})
     endif()
 
     add_definitions(-DWITH_GHOST_X11)

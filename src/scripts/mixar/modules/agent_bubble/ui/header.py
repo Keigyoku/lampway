@@ -295,8 +295,8 @@ class AGENT_BUBBLE_HT_header(Header):
             # "Restore." as a partial fragment that looks like a UI
             # bug. Suppressing the tooltip entirely is cleaner.
             #
-            # Where the native window helpers are missing (Linux) the
-            # restore operator is a stub that returns CANCELLED, so the
+            # Where the native window helpers are missing (Linux under
+            # Wayland) the restore operator cannot act, so the
             # pill is drawn as a plain label instead of a button: the
             # status still reads, but nothing invites a click that
             # cannot do anything. Reaching the pill at all is already
@@ -331,12 +331,12 @@ class AGENT_BUBBLE_HT_header(Header):
         #   * Expand/collapse toggle button
         #   * Centred drag handle ▬▬▬▬
         #
-        # On macOS: coloured traffic-light circles (custom pill icons).
-        # On Windows: minimise + expand icon buttons only.
+        # On macOS and Linux/X11: coloured traffic-light circles (custom pill
+        # icons). On Windows: minimise + expand icon buttons only.
         #
-        # Elsewhere (Linux): no window-state buttons at all. The operators
-        # behind them are compiled-out stubs that return CANCELLED without
-        # a message, so drawing them offers a control that silently does
+        # Elsewhere (e.g. Linux under Wayland): no window-state buttons at
+        # all. The native helpers behind them cannot act there, so drawing
+        # them offers a control that silently does
         # nothing — see BUBBLE_WINDOW_CONTROLS_SUPPORTED. The whole row is
         # skipped rather than left empty: an empty aligned row still takes
         # header space and would shift the drag handle off centre.

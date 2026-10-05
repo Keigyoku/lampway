@@ -2,24 +2,26 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The Agent Bubble must not offer window controls it cannot honour.
+"""The Agent Bubble must only offer window controls it can honour.
 
 Minimise, restore and expand are native operators whose bodies are compiled
-only for macOS and Windows — the ``Mixar_Window*`` GHOST helpers they call
-exist in ``GHOST_SystemCocoa.mm`` and ``GHOST_SystemWin32.cc`` and nowhere
-else. On Linux the three ``exec`` functions in ``space_agent_bubble.cc`` are
-``return OPERATOR_CANCELLED``; every call site sits inside the same ``#if``,
-and the APIs the cross-platform Cinema gate consumes get Linux definitions,
-so the build compiles and links cleanly with no warning.
+only where a GHOST ``Mixar_Window*`` backend exists: macOS
+(``GHOST_SystemCocoa.mm``), Windows (``GHOST_SystemWin32.cc``) and Linux/X11
+(``GHOST_MixarX11*.cc``). Everywhere else the three ``exec`` functions in
+``space_agent_bubble.cc`` are ``return OPERATOR_CANCELLED``; every call site
+sits inside the same ``#if``, and the APIs the cross-platform Cinema gate
+consumes keep a definition on every platform, so the build links cleanly.
 
-The buttons were still drawn, enabled, and dispatching. Clicking one produced
-no window change, no error, no toast and no log line, which reads as frozen
-UI. Worse, the surrounding Python ran its side effects anyway: ESC recorded
-the user-dismissal that mutes the autoshow, and Ctrl/Cmd+Shift+B reported
-FINISHED and logged a "maximized" event for a window that never moved.
+Linux also needs a run-time check: one binary carries both GHOST backends,
+and under Wayland the X11 helpers are ``dynamic_cast`` no-ops. A drawn button
+that dispatches into a no-op reads as frozen UI, and the surrounding Python
+used to run its side effects anyway (ESC recorded the user-dismissal that
+mutes the autoshow; Ctrl/Cmd+Shift+B reported FINISHED and logged a
+"maximized" event for a window that never moved).
 
 What is pinned here is the honesty of the surface, not the platform list:
-where the native side is a stub, nothing is offered and nothing is recorded.
+where the native side does nothing, nothing is offered and nothing is
+recorded.
 """
 
 import sys
@@ -264,14 +266,26 @@ def test_every_window_state_operator_polls_the_platform():
 
 def test_the_platform_gate_is_an_allowlist():
     """`!= "win32"` is what put Linux in the macOS branch to begin with. A
-    platform opts IN by having its window helpers written."""
+    platform opts IN by having its window helpers written; Linux opts in only
+    when GHOST actually picked the X11 backend at run time."""
     src = (
         SCRIPTS / "mixar" / "modules" / "agent_bubble" / "constants.py"
     ).read_text(encoding="utf-8")
     assert 'sys.platform in {"darwin", "win32"}' in src
+    assert "from _bpy import _ghost_backend" in src
+    # No real _bpy here, so no backend reports X11.
     assert CONST.BUBBLE_WINDOW_CONTROLS_SUPPORTED == (
         sys.platform in {"darwin", "win32"}
     )
+
+
+def test_linux_gate_follows_the_ghost_backend(monkeypatch):
+    """Wayland must not inherit the X11-only controls."""
+    fake_bpy = SimpleNamespace(_ghost_backend=lambda: "WAYLAND")
+    monkeypatch.setitem(sys.modules, "_bpy", fake_bpy)
+    assert CONST._linux_ghost_is_x11() is False
+    fake_bpy._ghost_backend = lambda: "X11"
+    assert CONST._linux_ghost_is_x11() is True
 
 
 # ---------------------------------------------------------------------------
@@ -319,9 +333,9 @@ def _linux_preprocessor_pass(source):
     """Split `space_agent_bubble.cc` into what a Linux build keeps and what
     the platform guards drop.
 
-    Every conditional in the file is stated as one of
-    ``#if defined(__APPLE__) || defined(_WIN32)``, ``#ifdef __APPLE__`` or
-    ``#ifdef _WIN32`` — all false on Linux — so the plain
+    Every conditional in the file is an ``#ifdef`` of one platform macro or
+    an ``#if`` that ORs ``defined(...)`` platform macros, so it is true on
+    Linux exactly when it names ``__linux__``, and the plain
     ``#if``/``#else``/``#endif`` nesting is an exact answer here. Any other
     conditional form aborts rather than silently guessing.
     """
@@ -332,18 +346,25 @@ def _linux_preprocessor_pass(source):
     for line in source.splitlines():
         directive = _directive(line)
         if directive.startswith(("if ", "ifdef ", "ifndef ")):
-            assert directive.startswith(
-                (
-                    "if defined(__APPLE__) || defined(_WIN32)",
-                    "ifdef __APPLE__",
-                    "ifdef _WIN32",
-                )
-            ), f"unexpected platform conditional: {directive!r}"
-            stack.append((active, False))
-            active = False
+            condition = directive.split("/*")[0].strip()
+            if condition.startswith("ifdef "):
+                macros = [condition[len("ifdef "):].strip()]
+            else:
+                assert condition.startswith("if "), (
+                    f"unexpected platform conditional: {directive!r}")
+                terms = [t.strip() for t in condition[len("if "):].split("||")]
+                assert all(t.startswith("defined(") and t.endswith(")")
+                           for t in terms), (
+                    f"unexpected platform conditional: {directive!r}")
+                macros = [t[len("defined("):-1] for t in terms]
+            assert set(macros) <= {"__APPLE__", "_WIN32", "__linux__"}, (
+                f"unexpected platform conditional: {directive!r}")
+            taken = "__linux__" in macros
+            stack.append((active, taken))
+            active = active and taken
         elif directive.startswith("else"):
-            parent, _taken = stack[-1]
-            active = parent
+            parent, taken = stack[-1]
+            active = parent and not taken
             stack[-1] = (parent, True)
         elif directive.startswith("endif"):
             active, _taken = stack.pop()
