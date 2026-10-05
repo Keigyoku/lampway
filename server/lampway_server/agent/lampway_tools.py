@@ -194,6 +194,15 @@ DEFS = [
     Def("lampway_pose_test", "Rotate bones and MEASURE the evaluated mesh: max/min edge stretch and the largest vertex displacement per pose "
         "(a rigid plate on one bone must read stretch 1.0). `poses`: [{name, bone, rotate: [x, y, z] degrees}]; every pose is reset.",
         [P("armature", required=True), P("object", required=True), P("poses", "array", "Pose objects", required=True)], api="pose_test"),
+    Def("lampway_image_to_3d", "Image to 3D / multi-view WITHOUT a model: mode hull = the visual hull of two or more cardinal views "
+        "(images = {\"Front\": path, \"Left\": path, ...}; Front u=+X, Left u=-Y; silhouettes from alpha or the corner colour), "
+        "extrude = a rounded or slab extrusion of Front (+Back) for paired pieces (depth in metres), relief = a luminance relief of one "
+        "image. The mesh is judged by re-projection IoU, volume and boundary edges. engine=studio:tripo is the Smart Mesh slot "
+        "(100 credits): it answers with action and price for the owner's approval and clicks nothing." + _PATHS,
+        [P("images", "object", "View name -> image path (project-relative)", required=True), P("size", "number", "Height in metres, default 1"),
+         P("resolution", "integer", "Voxels along the height, 8-160, default 64"), P("mode", desc="hull (default) | extrude | relief"),
+         P("depth", "number", "extrude/relief depth in metres"), P("profile", desc="extrude: round (default) | slab"), P("name"),
+         P("engine", desc="algorithmic (default) | studio:tripo")], api="image_to_3d"),
     Def("lampway_pbr_merge", "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, "
         "Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are "
         "filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on "

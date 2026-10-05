@@ -567,6 +567,7 @@ def export_piece(object, out_dir, textures=(), note=""):
 # ---- the Mixar-docs features (features/): proven algorithmic code, a studio slot behind the same interface
 
 from .features import retopo as _F_retopo                  # noqa: E402
+from .features import image3d as _F_image3d                # noqa: E402
 from .features import rig as _F_rig                        # noqa: E402
 from .features import segment as _F_segment                # noqa: E402
 from .features import uv as _F_uv                          # noqa: E402
@@ -617,10 +618,21 @@ def pose_test(armature, object, poses):
     return _F_rig.pose_test(armature, object, poses)
 
 
+@tool
+def image_to_3d(images, size=1.0, resolution=64, mode="hull", depth=None, profile="round", name="", engine="algorithmic"):
+    """Mesh from images, no model: ``hull`` = visual hull of two or more cardinal views ({"Front": path, "Left": path, ...}, Front u=+X,
+    Left u=-Y), ``extrude`` = rounded/slab extrusion of Front (+Back) for paired pieces, ``relief`` = luminance relief of one image.
+    Reported by re-projection IoU, volume and boundary edges. engine=studio:tripo is the Smart Mesh slot (100 credits: approval first)."""
+    if engine == "algorithmic":
+        s_ = _settings()
+        images = {v: _p(p, s_.project_root) for v, p in images.items()}
+    return _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
+
+
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d")
 
 
 def call(name: str, payload: str = "{}") -> dict:
