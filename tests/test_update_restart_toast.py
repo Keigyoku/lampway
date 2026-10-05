@@ -85,7 +85,7 @@ def test_staged_update_offers_restart_not_a_browser_download():
     toasts.push_update_available_toast(_info())
 
     assert _labels() == ["Restart & Update"]
-    assert _toast().title == "Mixar Update Ready"
+    assert _toast().title == "Lampway Update Ready"
     assert "restart" in _toast().body.lower()
 
 
@@ -149,7 +149,7 @@ def test_progress_toast_replaces_the_buttons_with_cancel():
     toasts.push_update_available_toast(_info())
 
     item = _toast()
-    assert item.title == "Downloading Mixar 3.4.0"
+    assert item.title == "Downloading Lampway 3.4.0"
     assert "12%" in item.body
     assert "400 MB" in item.body
     assert _labels() == ["Cancel"]
@@ -177,7 +177,7 @@ def test_refresh_rerenders_a_visible_toast():
     state.set_ready("/tmp/Mixar-3.4.0.msi", True)
     toasts.refresh_update_toast()
 
-    assert _toast().title == "Mixar Update Ready"
+    assert _toast().title == "Lampway Update Ready"
 
 
 # ---------------------------------------------------------------------------
@@ -216,7 +216,7 @@ def test_successful_install_confirms_the_new_version(monkeypatch):
 
     toasts.report_previous_update_result()
 
-    assert _toast().title == "Updated to Mixar 3.4.0"
+    assert _toast().title == "Updated to Lampway 3.4.0"
 
 
 def test_install_that_reported_success_but_did_not_take_effect_is_flagged(monkeypatch):
@@ -471,7 +471,7 @@ def test_requested_download_shows_live_progress():
     toasts.push_update_available_toast(_info())
 
     item = _toast()
-    assert "Downloading Mixar 3.4.0" == item.title
+    assert "Downloading Lampway 3.4.0" == item.title
     assert "25%" in item.body
     assert "400 MB" in item.body
     assert _labels() == ["Cancel"]
@@ -571,7 +571,7 @@ def test_ready_reopens_a_dismissed_toast_once(monkeypatch):
 
     install_flow._announce_ready(state)
 
-    assert _toast().title == "Mixar Update Ready"
+    assert _toast().title == "Lampway Update Ready"
     assert box["value"] == "3.4.0=ready"
 
     # Second pass (a later check, or a re-verified staged installer) must

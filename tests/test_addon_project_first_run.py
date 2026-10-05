@@ -39,7 +39,7 @@ def test_send_paths_proceed_after_ensuring_project():
     assert "def ensure_addon_project_ready(" in link_source
     assert "link_workspace_root()" in link_source
     assert "choose_root" not in link_source
-    assert "under Mixar Preferences" in link_source
+    assert "under Lampway Preferences" in link_source
     assert "bpy.ops.mixie_chat.send_message(message_override=message_text)" in quick_source
     for source in (chat_source,):
         assert "if not ensure_addon_project_ready(self):" in source

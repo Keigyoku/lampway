@@ -16,7 +16,7 @@ import time
 
 root = Path(__file__).resolve().parents[2]
 harness = Path(os.environ['QA_HARNESS'])
-bundle = Path(os.environ.get('BUILD', root / 'build/Dev/bin/Mixar.app'))
+bundle = Path(os.environ.get('BUILD', root / 'build/Dev/bin/Lampway.app'))
 port = int(os.environ.get('QA_PORT', '4783'))
 record = os.environ.get('QA_RECORD', '0') == '1'
 with socket.socket() as probe:

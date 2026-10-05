@@ -141,7 +141,7 @@ def initialize_layer_paint_project(
 
             node = get_active_mpaint_node()
             if not node:
-                errors.append({"object": obj.name, "error": "Mixar Paint node was not created"})
+                errors.append({"object": obj.name, "error": "Lampway Paint node was not created"})
                 continue
 
             initialized.append({
@@ -301,7 +301,7 @@ def add_procedural_material_layer(
             if not node:
                 return {
                     "success": False,
-                    "error": "No active Mixar Paint node",
+                    "error": "No active Lampway Paint node",
                     "missing": missing,
                     "applied": [],
                 }
@@ -400,7 +400,7 @@ def add_procedural_material_layer(
                 node = get_active_mpaint_node()
 
             if not node:
-                errors.append({"object": obj.name, "error": "No active Mixar Paint node"})
+                errors.append({"object": obj.name, "error": "No active Lampway Paint node"})
                 continue
 
             if not apply_to_existing:

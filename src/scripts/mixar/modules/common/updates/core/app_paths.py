@@ -81,14 +81,14 @@ def _macos_location() -> InstallLocation:
     if _TRANSLOCATION_MARKER in binary:
         return InstallLocation(
             "", False,
-            n_("Move Mixar to your Applications folder to update in place"),
+            n_("Move Lampway to your Applications folder to update in place"),
         )
 
     bundle = _macos_bundle(binary)
     if not bundle:
         return InstallLocation(
             "", False,
-            n_("Mixar is not running from an application bundle"),
+            n_("Lampway is not running from an application bundle"),
         )
 
     parent = os.path.dirname(bundle)

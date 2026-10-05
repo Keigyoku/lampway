@@ -93,8 +93,8 @@ class MNewNormalmapModifier(bpy.types.Operator):
 
 class MMoveNormalMapModifier(bpy.types.Operator):
     bl_idname = "wm.m_move_normalmap_modifier"
-    bl_label = "Move Mixar Paint Modifier"
-    bl_description = "Move Mixar Paint Modifier"
+    bl_label = "Move Lampway Paint Modifier"
+    bl_description = "Move Lampway Paint Modifier"
     bl_options = {"REGISTER", "UNDO"}
 
     direction: EnumProperty(
@@ -183,8 +183,8 @@ class MMoveNormalMapModifier(bpy.types.Operator):
 
 class MRemoveNormalMapModifier(bpy.types.Operator):
     bl_idname = "wm.m_remove_normalmap_modifier"
-    bl_label = "Remove Mixar Paint Modifier"
-    bl_description = "Remove Mixar Paint Modifier"
+    bl_label = "Remove Lampway Paint Modifier"
+    bl_description = "Remove Lampway Paint Modifier"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod

@@ -48,7 +48,7 @@ def test_two_usable_apps_still_need_a_choice(desktop):
     desktop[:] = [app("a"), app("b")]
     client = connector.Connector()
     assert client.readiness()[0] == "choose"
-    with pytest.raises(RuntimeError, match="Several Mixar applications"):
+    with pytest.raises(RuntimeError, match="Several Lampway applications"):
         client.attach()
 
 
@@ -198,7 +198,7 @@ def test_status_is_reported_while_the_interface_controller_starts(monkeypatch):
     fake = Fake(["ready"])
 
     def starting(name, arguments, call_id):
-        payload = {"result": {"error_type": "not_ready", "error": "Mixar UI controller is starting"}, "usage": {}}
+        payload = {"result": {"error_type": "not_ready", "error": "Lampway UI controller is starting"}, "usage": {}}
         return {"content": [{"type": "text", "text": ""}], "structuredContent": payload, "isError": True}
     fake.call = starting
 
@@ -238,7 +238,7 @@ def test_scene_tool_status(state, listed, connected, expected):
 
 def test_a_desktop_the_server_cannot_see_is_not_an_old_backend():
     unseen = SimpleNamespace(status_code=404, json=lambda: {
-        "detail": "The selected Mixar desktop is unavailable for this account."})
+        "detail": "The selected Lampway desktop is unavailable for this account."})
     missing_route = SimpleNamespace(status_code=404, json=lambda: {"detail": "Not Found"})
     assert eligibility._not_found_reason(unseen) == "desktop_not_connected"
     assert eligibility._not_found_reason(missing_route) == "backend_update_required"

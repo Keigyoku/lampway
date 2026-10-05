@@ -75,7 +75,7 @@ def test_normal_toast_is_dismissible_and_offers_only_the_action():
     push_update_available_toast(_info())
     item = _pushed_item()
     assert item.dismissible is True
-    assert item.title == "Mixar Update Available"
+    assert item.title == "Lampway Update Available"
     assert "available" in item.body
     assert [a.label for a in item.actions] == ["Download"]
 
@@ -84,7 +84,7 @@ def test_forced_toast_is_not_dismissible():
     push_update_available_toast(_info(force_update=True))
     item = _pushed_item()
     assert item.dismissible is False
-    assert item.title == "Mixar Update Required"
+    assert item.title == "Lampway Update Required"
     assert item.priority == "critical"
     assert [a.label for a in item.actions] == ["Download"]
     assert "required" in item.body

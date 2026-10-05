@@ -52,7 +52,7 @@ def get_normal_map_type_items(self, context):
 
 
 class LAYERS_OT_AddFillLayer(Operator):
-    """Add a new fill layer - Complete Mixar Paint implementation"""
+    """Add a new fill layer - Complete Lampway Paint implementation"""
 
     bl_idname = "layers.add_fill_layer"
     bl_label = "Add Fill Layer"
@@ -338,7 +338,7 @@ class LAYERS_OT_AddFillLayer(Operator):
 
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         group_tree = node.node_tree

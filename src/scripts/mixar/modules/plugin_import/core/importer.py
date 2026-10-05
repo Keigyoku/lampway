@@ -102,7 +102,7 @@ def mixar_addons_dir() -> Path:
     """Mixar's user add-ons dir (``.../Mixar/5.0/scripts/addons``)."""
     return _require_dir(
         bpy.utils.user_resource("SCRIPTS", path="addons", create=True),
-        n_("Could not create Mixar's add-ons directory — check permissions on your "
+        n_("Could not create Lampway's add-ons directory — check permissions on your "
            "user profile folder."),
     )
 
@@ -139,7 +139,7 @@ def target_extension_repo() -> tuple[str, Path]:
         # No usable repo registered — synthesise the default path.
         path = _require_dir(
             bpy.utils.user_resource("EXTENSIONS", path=DEFAULT_USER_REPO, create=True),
-            n_("Could not create Mixar's extensions directory — check permissions on "
+            n_("Could not create Lampway's extensions directory — check permissions on "
                "your user profile folder."),
         )
         return DEFAULT_USER_REPO, path

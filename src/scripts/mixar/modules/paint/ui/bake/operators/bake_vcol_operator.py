@@ -43,7 +43,7 @@ class MBakeChannelToVcol(bpy.types.Operator, BaseBakeOperator):
 
     all_materials: BoolProperty(
         name="Bake All Materials",
-        description="Bake all materials with Mixar Paint nodes rather than just the active one",
+        description="Bake all materials with Lampway Paint nodes rather than just the active one",
         default=False,
     )
 

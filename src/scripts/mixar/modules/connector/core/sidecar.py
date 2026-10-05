@@ -41,9 +41,9 @@ def _run_on_main(fn):
 
     run_on_main_thread(_job)
     if not event.wait(timeout=90):
-        raise TimeoutError("Mixar main thread timed out")
+        raise TimeoutError("Lampway main thread timed out")
     if not box.get("ok"):
-        raise RuntimeError(box.get("error") or "Mixar operator failed")
+        raise RuntimeError(box.get("error") or "Lampway operator failed")
     return box.get("value")
 
 
@@ -138,7 +138,7 @@ def _prompt(payload: dict[str, Any]) -> dict[str, Any]:
                 return {"queued": True, "via": "mixie_chat.send_message"}
         except Exception as exc:
             return {"queued": False, "error": str(exc), "prompt": message}
-        return {"queued": False, "prompt": message, "note": "paste into Mixie chat"}
+        return {"queued": False, "prompt": message, "note": "paste into Lampway Agent chat"}
 
     return _run_on_main(_queue)
 
@@ -236,7 +236,7 @@ def start_sidecar(port: int = DEFAULT_SIDECAR_PORT) -> int:
     _server = ThreadingHTTPServer(("127.0.0.1", port), _Handler)
     _thread = threading.Thread(target=_server.serve_forever, name="mixar-connector-sidecar", daemon=True)
     _thread.start()
-    logger.info("Mixar connector sidecar listening on http://127.0.0.1:%s", port)
+    logger.info("Lampway connector sidecar listening on http://127.0.0.1:%s", port)
     return port
 
 
@@ -248,7 +248,7 @@ def stop_sidecar() -> None:
     _server.server_close()
     _server = None
     _thread = None
-    logger.info("Mixar connector sidecar stopped")
+    logger.info("Lampway connector sidecar stopped")
 
 
 def sidecar_port() -> int:

@@ -62,7 +62,7 @@ RPC_METHODS = frozenset({
 # panel). The default is expanded at use time; the Preference is the ONE
 # source of the root, read by workspace.configured_workspace_root.
 WORKSPACE_ROOT_PREFERENCE = "addon_projects_dir"
-DEFAULT_WORKSPACE_DIR = "~/Mixar Addons"
+DEFAULT_WORKSPACE_DIR = "~/Lampway Addons"
 
 # One source of truth for the workspace layout convention: describe ships it
 # proactively (the "layout" field) and the workspace_root_layout stage error

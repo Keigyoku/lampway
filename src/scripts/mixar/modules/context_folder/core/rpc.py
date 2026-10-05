@@ -47,7 +47,7 @@ def dispatch(method: str, params: dict) -> dict:
         if method == RPC_VIEW_IMAGE:
             return reader.preview_image(_root_for(params), params.get("path"),
                                         params.get("max_dim") or 1024)
-        raise ContextFolderError("unknown_method", "This Mixar build does not support that folder operation")
+        raise ContextFolderError("unknown_method", "This Lampway build does not support that folder operation")
     except Exception as exc:  # noqa: BLE001 — every failure becomes a path-free reply
         return public_error(exc)
 

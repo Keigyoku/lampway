@@ -182,6 +182,6 @@ class TestUnresolvableDestinationFailsLoudly:
 
     def test_a_real_path_still_passes_through(self, monkeypatch):
         bpy = MagicMock()
-        bpy.utils.user_resource.return_value = r"C:\Users\raj\AppData\Roaming\Mixar"
+        bpy.utils.user_resource.return_value = r"C:\Users\raj\AppData\Roaming\Lampway"
         monkeypatch.setattr(imp, "bpy", bpy)
-        assert str(imp.mixar_addons_dir()).endswith("Mixar")
+        assert str(imp.mixar_addons_dir()).endswith("Lampway")

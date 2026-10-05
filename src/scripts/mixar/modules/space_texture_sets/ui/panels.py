@@ -71,7 +71,7 @@ def _draw_channel_settings_tab(context, layout):
 
     node = get_active_mpaint_node()
     if not node or not node.node_tree:
-        layout.label(text="No Mixar material active", icon='INFO')
+        layout.label(text="No Lampway material active", icon='INFO')
         return
 
     mp = node.node_tree.mp

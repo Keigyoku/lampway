@@ -24,7 +24,7 @@ def main():
     parser.add_argument("--baseline", action="store_true")
     parser.add_argument("--out", default="/tmp/mixar-bmesh-stress")
     parser.add_argument("--port", type=int, default=4789)
-    parser.add_argument("--binary", default=str(repo / "build/Dev/bin/Mixar.app/Contents/MacOS/Mixar"))
+    parser.add_argument("--binary", default=str(repo / "build/Dev/bin/Lampway.app/Contents/MacOS/Lampway"))
     parser.add_argument("--harness", default=str(repo.parent / "mixar-qa-harness"))
     args = parser.parse_args()
     source = Path(__file__).with_name("bmesh_stress_probe.py")

@@ -15,6 +15,8 @@ import shlex
 import subprocess
 import sys
 
+from mixar.modules.mcp_bridge.constants import LAUNCHER_NAME, SERVER_NAME
+
 #: Codex cuts a tool call off after its default timeout; a scene call may run 570 s.
 CODEX_TOOL_TIMEOUT_SECONDS = 610
 #: OpenCode stops listing a server's tools after 5 s by default; the launcher
@@ -30,8 +32,9 @@ def _wrap(bootstrap):
 
 def stable_launch():
     """The launcher command at its fixed per-user path; writes nothing."""
-    from .installation import directory
-    return _wrap(directory() / ("mixar-mcp.cmd" if sys.platform == "win32" else "mixar-mcp"))
+    from .installation import directory, migrate
+    migrate()
+    return _wrap(directory() / (LAUNCHER_NAME + ".cmd" if sys.platform == "win32" else LAUNCHER_NAME))
 
 
 def launch(resource_directory, executable, enabled):
@@ -55,24 +58,24 @@ def command_line(args):
 def render(client, command, args):
     """One app's setup text for the given launch command."""
     if client == "CLAUDE_CODE":
-        return command_line(["claude", "mcp", "add", "--scope", "user", "mixar", "--", command, *args])
+        return command_line(["claude", "mcp", "add", "--scope", "user", SERVER_NAME, "--", command, *args])
     if client == "CODEX":
-        return "[mcp_servers.mixar]\ncommand = %s\nargs = %s\ntool_timeout_sec = %d\n" % (
-            json.dumps(command), json.dumps(args), CODEX_TOOL_TIMEOUT_SECONDS)
+        return "[mcp_servers.%s]\ncommand = %s\nargs = %s\ntool_timeout_sec = %d\n" % (
+            SERVER_NAME, json.dumps(command), json.dumps(args), CODEX_TOOL_TIMEOUT_SECONDS)
     if client == "CURSOR":
         server = {"type": "stdio", "command": command, "args": args}
-        return json.dumps({"mcpServers": {"mixar": server}}, indent=2)
+        return json.dumps({"mcpServers": {SERVER_NAME: server}}, indent=2)
     if client == "VSCODE":
         server = {"type": "stdio", "command": command, "args": args}
-        return json.dumps({"servers": {"mixar": server}}, indent=2)
+        return json.dumps({"servers": {SERVER_NAME: server}}, indent=2)
     if client == "OPENCODE":
         server = {"type": "local", "command": [command, *args], "enabled": True,
                   "timeout": OPENCODE_TOOLS_TIMEOUT_MS}
-        return json.dumps({"$schema": "https://opencode.ai/config.json", "mcp": {"mixar": server}}, indent=2)
+        return json.dumps({"$schema": "https://opencode.ai/config.json", "mcp": {SERVER_NAME: server}}, indent=2)
     if client == "COMMAND":
         return command_line([command, *args])
     # JSON, CLAUDE_DESKTOP: the common mcpServers shape most apps accept.
-    return json.dumps({"mcpServers": {"mixar": {"command": command, "args": args}}}, indent=2)
+    return json.dumps({"mcpServers": {SERVER_NAME: {"command": command, "args": args}}}, indent=2)
 
 
 def connection_config(client, resource_directory, executable=None, *, enabled=True):

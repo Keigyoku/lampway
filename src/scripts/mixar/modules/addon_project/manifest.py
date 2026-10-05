@@ -115,7 +115,7 @@ def infer_entrypoint(root: Path, *, allow_root_package=True) -> str:
 def load_manifest(root: Path) -> dict:
     payload = read_json(manifest_path(root), None)
     if not isinstance(payload, dict):
-        raise AddonProjectError("manifest_missing", n_("The linked folder has no valid Mixar project metadata"))
+        raise AddonProjectError("manifest_missing", n_("The linked folder has no valid Lampway project metadata"))
     if payload.get("schema_version") != MANIFEST_VERSION:
         raise AddonProjectError("manifest_version", n_("The project metadata version is not supported"))
     project_id = payload.get("project_id")

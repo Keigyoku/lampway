@@ -93,7 +93,7 @@ class RelayHandler(BaseHTTPRequestHandler):
             return False
         supplied = self.headers.get("Authorization", "")
         if not hmac.compare_digest(supplied, "Bearer " + self.server.token):
-            self.reply(401, {"error": "Local connector credential rejected; reconnect to Mixar"})
+            self.reply(401, {"error": "Local connector credential rejected; reconnect to Lampway"})
             return False
         return True
 
@@ -147,12 +147,12 @@ class RelayHandler(BaseHTTPRequestHandler):
                 self.reply(200, response)
                 return
             if not context.get("signed_in"):
-                self.reply(503, {"error": "Sign in to Mixar before using its tools"})
+                self.reply(503, {"error": "Sign in to Lampway before using its tools"})
                 return
             if not context.get("connected") and request.get("method") not in DISCOVERY_METHODS:
                 # Listing tools needs only the account; anything that reaches the
                 # scene needs the desktop's live agent connection.
-                self.reply(503, {"error": "Mixar is connecting to its server; try again in a moment"})
+                self.reply(503, {"error": "Lampway is connecting to its server; try again in a moment"})
                 return
             if self.headers.get("X-Mixar-Session-Id"):
                 context["session_id"] = str(uuid.UUID(self.headers["X-Mixar-Session-Id"]))

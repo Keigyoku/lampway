@@ -12,7 +12,7 @@ from mixar.modules.common.i18n import iface_
 
 
 class MIXAR_OT_forward_compat_warning(bpy.types.Operator):
-    """Warn user that the file was saved by a newer Mixar version"""
+    """Warn user that the file was saved by a newer Lampway version"""
 
     bl_idname = "mixar.forward_compat_warning"
     bl_label = "Newer File Version"
@@ -29,7 +29,7 @@ class MIXAR_OT_forward_compat_warning(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         layout.label(
-            text=iface_("This file was saved by Mixar version {version}.").format(
+            text=iface_("This file was saved by Lampway version {version}.").format(
                 version=self.file_version),
             icon='ERROR',
             translate=False,

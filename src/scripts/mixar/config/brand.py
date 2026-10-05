@@ -23,9 +23,14 @@ PRODUCT_NAME = "Lampway"
 #: Display name of the in-app agent (upstream: "Mixie"). The owner may rename it.
 AGENT_NAME = "Lampway Agent"
 
-#: PLACEHOLDER website for every link shown to users (docs, bug report,
-#: downloads, privacy policy, referrals ...). One constant; change it here.
-WEBSITE_URL = "https://lampway.app"
+#: Where Lampway lives: the public GitHub repository. Every link shown to users
+#: (docs, bug report, downloads, privacy policy ...) is built from it; none points
+#: at upstream's website. One constant; change it here.
+REPO_URL = "https://github.com/Keigyoku/lampway"
+WEBSITE_URL = REPO_URL
+
+#: Our documentation: the markdown pages in the repository's docs/lampway folder.
+DOCS_URL = REPO_URL + "/blob/main/docs/lampway"
 
 #: Our backend when no build-time or runtime configuration says otherwise.
 DEFAULT_BACKEND_URL = "http://127.0.0.1:8787"
@@ -45,9 +50,31 @@ TOUR_PACKS_PATH = "/tour-packs/manifest.json"
 DEFAULT_ASSET_HOSTS = ("127.0.0.1", "localhost")
 
 
+def docs_url(page: str = "") -> str:
+    """The documentation page ``page`` (docs/lampway/<page>.md); the docs index when empty."""
+    page = (page or "").strip().strip("/")
+    return DOCS_URL + "/" + (page if page else "README") + ".md"
+
+
+#: Upstream's website paths -> where the same thing lives for Lampway.
+_PAGES = {"/docs": "README", "/tutorials": "README", "/legal/privacy-policy": "privacy"}
+_REPO_PATHS = {"/bug-report": "/issues/new", "/downloads": "/releases", "/about": "", "/creator-program": "", "/app/referrals": ""}
+
+
 def website_url(path: str = "") -> str:
-    """``WEBSITE_URL`` joined with ``path`` (leading slash optional)."""
+    """The Lampway page for an upstream-style path: docs pages are our markdown docs (``/docs#connect-ai-apps`` is docs/lampway/connect-ai-apps.md), the rest is
+    the repository (issues, releases)."""
     path = (path or "").strip()
     if not path:
         return WEBSITE_URL
-    return WEBSITE_URL + "/" + path.lstrip("/")
+    base, _, fragment = path.partition("#")
+    base = "/" + base.lstrip("/")
+    if base == "/docs" and fragment:
+        return docs_url(fragment)
+    if base in _PAGES:
+        return docs_url(_PAGES[base])
+    if base in _REPO_PATHS:
+        return WEBSITE_URL + _REPO_PATHS[base]
+    if base.startswith("/docs/"):
+        return docs_url(base[len("/docs/"):])
+    return WEBSITE_URL

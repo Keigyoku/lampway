@@ -10,7 +10,7 @@ from bpy.types import PropertyGroup
 class MIXAR_ConnectorSettings(PropertyGroup):
     enabled: BoolProperty(
         name="Hub Sidecar",
-        description="Expose this Mixar session to mixar-connector over loopback HTTP",
+        description="Expose this Lampway session to mixar-connector over loopback HTTP",
         default=True,
     )
     sidecar_port: IntProperty(

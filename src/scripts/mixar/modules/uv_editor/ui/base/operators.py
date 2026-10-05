@@ -14,7 +14,7 @@ from bpy.types import Operator
 
 
 class MIXAR_OT_toggle_uv_sidebar(Operator):
-    """Toggle the Mixar UV sidebar in the Image Editor"""
+    """Toggle the Lampway UV sidebar in the Image Editor"""
     bl_idname = "mixar.toggle_uv_sidebar"
     bl_label = "Toggle UV Sidebar"
     bl_options = {'REGISTER'}
@@ -35,7 +35,7 @@ class MIXAR_OT_toggle_uv_sidebar(Operator):
 
 
 class MIXAR_OT_open_uv_sidebar(Operator):
-    """Open the Mixar UV sidebar if hidden"""
+    """Open the Lampway UV sidebar if hidden"""
     bl_idname = "mixar.open_uv_sidebar"
     bl_label = "Open UV Sidebar"
     bl_options = {'REGISTER'}

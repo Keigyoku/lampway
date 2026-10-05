@@ -247,7 +247,7 @@ def _draw_header(col, wm, state):
 
     card_label(
         col,
-        n_("Run the Mixar agent on your own provider — Mixar credits are "
+        n_("Run the Lampway agent on your own provider — Lampway credits are "
            "not charged while active."),
         'MUTED',
     )
@@ -326,7 +326,7 @@ def _draw_cloud_fields(body, wm):
     body.separator(factor=0.5)
     card_label(
         body,
-        n_("Stored encrypted, used only for Mixar agent requests — only a "
+        n_("Stored encrypted, used only for Lampway agent requests — only a "
            "masked preview is shown after saving."),
         'MUTED',
     )
@@ -376,7 +376,7 @@ def _draw_codex_fields(body, wm):
     for line in (
         n_("Run  codex login  in your terminal, then load or paste the full"),
         n_("contents of ~/.codex/auth.json (the paste button reads your clipboard)."),
-        n_("Uses your ChatGPT subscription — Mixar credits are not charged."),
+        n_("Uses your ChatGPT subscription — Lampway credits are not charged."),
     ):
         card_label(body, line, 'MUTED')
 
@@ -397,8 +397,8 @@ def _draw_remove_warning(col):
     bcol = box.column()
     card_label(bcol, n_("Remove your API key?"), 'DANGER')
     bcol.separator(factor=0.25)
-    card_label(bcol, n_("The agent will use Mixar's default provider again."), 'MUTED')
-    card_label(bcol, n_("Mixar credits will be charged for future agent requests."), 'MUTED')
+    card_label(bcol, n_("The agent will use Lampway's default provider again."), 'MUTED')
+    card_label(bcol, n_("Lampway credits will be charged for future agent requests."), 'MUTED')
 
 
 def _draw_saved_body(col, wm):
@@ -408,7 +408,7 @@ def _draw_saved_body(col, wm):
     bcol.separator(factor=0.25)
     card_label(
         bcol,
-        n_("The Mixar agent now runs on your provider — Mixar credits are "
+        n_("The Lampway agent now runs on your provider — Lampway credits are "
            "not charged."),
         'MUTED',
     )
@@ -421,8 +421,8 @@ def _draw_removed_body(col):
     bcol = box.column()
     section_title(bcol, n_("API key removed"))
     bcol.separator(factor=0.25)
-    card_label(bcol, n_("The agent is back on Mixar's default provider."), 'MUTED')
-    card_label(bcol, n_("Mixar credits are charged for agent requests again."), 'MUTED')
+    card_label(bcol, n_("The agent is back on Lampway's default provider."), 'MUTED')
+    card_label(bcol, n_("Lampway credits are charged for agent requests again."), 'MUTED')
 
 
 # ---------------------------------------------------------------------------

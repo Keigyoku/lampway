@@ -43,7 +43,7 @@ def _section(layout, title, icon='NONE'):
 
 
 class MIXAR_UV_PT_image(Panel):
-    """Image panel for the Mixar UV Properties space."""
+    """Image panel for the Lampway UV Properties space."""
     bl_label = "Image"
     bl_idname = "MIXAR_UV_PT_image"
     bl_space_type = 'IMAGE_EDITOR'

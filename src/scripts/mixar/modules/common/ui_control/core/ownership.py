@@ -47,7 +47,7 @@ def available():
     from mixar.modules.space_mixie_chat.core.scene_identity import adopt_scene
     adopt_scene(scene)  # A scene a script just made starts OFFLINE until adopted.
     if session.get_state(scene) == SessionState.OFFLINE:
-        raise UIError("scene_offline", "Mixar is not connected to its server; wait for it to reconnect")
+        raise UIError("scene_offline", "Lampway is not connected to its server; wait for it to reconnect")
     if session.run_open(scene) or session.get_state(scene) != SessionState.IDLE:
         raise UIError("scene_busy", "Wait for the active scene operation to finish")
 
@@ -56,7 +56,7 @@ def prepare(owner):
     available()
     active()  # Clear Python ownership after native takeover/expiry.
     if _owner is not None and _owner != owner:
-        raise UIError("ui_busy", "Another connection owns Mixar input")
+        raise UIError("ui_busy", "Another connection owns Lampway input")
     wm = bpy.context.window_manager
     if _owner is None and not _unsettled and any(getattr(w, "modal_operators", ()) for w in wm.windows):
         raise UIError("ui_busy", "Finish the current modal operation before starting UI control")
@@ -78,7 +78,7 @@ def begin(owner):
     prepare(owner)
     wm = bpy.context.window_manager
     if not wm.mixar_ui_begin(owner=owner):
-        raise UIError("ui_busy", "Mixar input is unavailable")
+        raise UIError("ui_busy", "Lampway input is unavailable")
     if _owner is None and not _unsettled:
         _modal_baseline = {w.as_pointer(): w.mixar_ui_modal_count() for w in wm.windows}
     _unsettled = False

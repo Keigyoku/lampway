@@ -152,7 +152,7 @@ def inspect_paint_layer_stack(object_name: str = "") -> dict:
     obj = _resolve_single_paint_object(object_name)
     node = _find_mpaint_node(obj)
     if node is None:
-        return {"success": False, "error": "No Mixar Paint node found on object", "object_name": obj.name}
+        return {"success": False, "error": "No Lampway Paint node found on object", "object_name": obj.name}
     mp = node.node_tree.mp
     layers = [_layer_summary(mp, layer, index) for index, layer in enumerate(mp.layers)]
     return {
@@ -177,7 +177,7 @@ def set_paint_layer_parameters(object_name: str = "", layer_index: int = -1, upd
     _activate_object(obj)
     node = _find_mpaint_node(obj)
     if node is None:
-        return {"success": False, "error": "No Mixar Paint node found on object", "object_name": obj.name}
+        return {"success": False, "error": "No Lampway Paint node found on object", "object_name": obj.name}
 
     mp = node.node_tree.mp
     index = layer_index if layer_index >= 0 else mp.active_layer_index

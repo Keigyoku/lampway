@@ -1,12 +1,12 @@
-# Mixar interface translations.
-# This file is distributed under the same license as the Mixar package.
+# Lampway interface translations.
+# This file is distributed under the same license as the Lampway package.
 #
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-3.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: Mixar\n"
-"Language-Team: Mixar (machine-translated, native review welcome)\n"
+"Project-Id-Version: Lampway\n"
+"Language-Team: Lampway (machine-translated, native review welcome)\n"
 "Language: sr_RS@latin\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -34,8 +34,8 @@ msgid "Share Usage Data"
 msgstr "Deli podatke o korišćenju"
 
 # derived
-msgid "Share content-free product usage events to help improve Mixar"
-msgstr "Deli događaje korišćenja proizvoda bez sadržaja da bi se Mixar poboljšao"
+msgid "Share content-free product usage events to help improve Lampway"
+msgstr "Deli događaje korišćenja proizvoda bez sadržaja da bi se Lampway poboljšao"
 
 # derived
 msgid "No generation services"
@@ -213,8 +213,8 @@ msgid "The configured add-on entrypoint was not found in the linked project"
 msgstr "Podešena ulazna tačka dodatka nije pronađena u povezanom projektu"
 
 # derived
-msgid "The linked folder has no valid Mixar project metadata"
-msgstr "Povezana fascikla nema ispravne metapodatke Mixar projekta"
+msgid "The linked folder has no valid Lampway project metadata"
+msgstr "Povezana fascikla nema ispravne metapodatke Lampway projekta"
 
 # derived
 msgid "The project metadata version is not supported"
@@ -244,7 +244,7 @@ msgstr "Ulazna tačka mora biti jedno ime modula najvišeg nivoa"
 msgid "Set an active add-on before changing its enabled state"
 msgstr "Postavite aktivni dodatak pre nego što promenite njegovo omogućeno stanje"
 
-msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Mixar Preferences"
+msgid "Your add-on projects folder is unavailable; reconnect the drive, or change the folder under Lampway Preferences"
 msgstr ""
 
 msgid "Unknown"
@@ -552,7 +552,7 @@ msgstr "Zbirka"
 msgid "No library chosen"
 msgstr ""
 
-msgid "Mixar Generations is managed automatically"
+msgid "Lampway Generations is managed automatically"
 msgstr ""
 
 msgid "Preferences are not available"
@@ -674,8 +674,8 @@ msgid "Open the Agent Bubble in its own floating window"
 msgstr "Otvara mehurić agenta u sopstvenom plutajućem prozoru"
 
 # derived
-msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Mixar (make build) to pick up the agent_bubble spacetype operator."
-msgstr "C++ operator mixar.agent_bubble_show_window nije registrovan — ponovo izgradite Mixar (make build) da biste dobili operator tipa prostora agent_bubble."
+msgid "C++ operator mixar.agent_bubble_show_window is not registered — rebuild Lampway (make build) to pick up the agent_bubble spacetype operator."
+msgstr "C++ operator mixar.agent_bubble_show_window nije registrovan — ponovo izgradite Lampway (make build) da biste dobili operator tipa prostora agent_bubble."
 
 # derived
 msgid "Failed to open Agent Bubble window: {error}"
@@ -812,8 +812,8 @@ msgid "AI generations"
 msgstr "AI generisanja"
 
 # derived
-msgid "Everything Mixar has generated for you"
-msgstr "Sve što je Mixar generisao za vas"
+msgid "Everything Lampway has generated for you"
+msgstr "Sve što je Lampway generisao za vas"
 
 msgid "My Libraries"
 msgstr ""
@@ -1824,20 +1824,20 @@ msgid "Select a provider with available models"
 msgstr "Izaberite dobavljača sa dostupnim modelima"
 
 # derived
-msgid "Managed by Mixar"
-msgstr "Upravlja Mixar"
+msgid "Managed by Lampway"
+msgstr "Upravlja Lampway"
 
 # derived
-msgid "Mixar downloads and runs a curated model on this computer"
-msgstr "Mixar preuzima i pokreće odabrani model na ovom računaru"
+msgid "Lampway downloads and runs a curated model on this computer"
+msgstr "Lampway preuzima i pokreće odabrani model na ovom računaru"
 
 # derived
 msgid "Custom local server"
 msgstr "Prilagođeni lokalni server"
 
 # derived
-msgid "Point Mixar at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
-msgstr "Usmerite Mixar na OpenAI-kompatibilan server koji već pokrećete (Ollama, LM Studio, llama.cpp, ...)"
+msgid "Point Lampway at an OpenAI-compatible server you already run (Ollama, LM Studio, llama.cpp, ...)"
+msgstr "Usmerite Lampway na OpenAI-kompatibilan server koji već pokrećete (Ollama, LM Studio, llama.cpp, ...)"
 
 # derived
 msgid "Invalid form data — please reach out to support."
@@ -1996,8 +1996,8 @@ msgid "Reset Agent Model"
 msgstr "Resetuj model agenta"
 
 # derived
-msgid "Clear the saved model and let Mixar choose"
-msgstr "Briše sačuvani model i dozvoljava da Mixar izabere"
+msgid "Clear the saved model and let Lampway choose"
+msgstr "Briše sačuvani model i dozvoljava da Lampway izabere"
 
 # derived
 msgid "Could not change model"
@@ -2027,8 +2027,8 @@ msgid "Not configured"
 msgstr "Nije podešeno"
 
 # derived
-msgid "Run the Mixar agent on your own provider — Mixar credits are not charged while active."
-msgstr "Pokrećite Mixar agenta preko sopstvenog dobavljača — Mixar krediti se ne naplaćuju dok je aktivno."
+msgid "Run the Lampway agent on your own provider — Lampway credits are not charged while active."
+msgstr "Pokrećite Lampway agenta preko sopstvenog dobavljača — Lampway krediti se ne naplaćuju dok je aktivno."
 
 # derived
 msgid "Current Configuration"
@@ -2063,8 +2063,8 @@ msgid "Provider Setup"
 msgstr "Podešavanje dobavljača"
 
 # derived
-msgid "Stored encrypted, used only for Mixar agent requests — only a masked preview is shown after saving."
-msgstr "Čuva se šifrovano, koristi se samo za zahteve Mixar agenta — posle čuvanja prikazuje se samo maskirani pregled."
+msgid "Stored encrypted, used only for Lampway agent requests — only a masked preview is shown after saving."
+msgstr "Čuva se šifrovano, koristi se samo za zahteve Lampway agenta — posle čuvanja prikazuje se samo maskirani pregled."
 
 # derived
 msgid "Pick a model that supports tool / function calling — the agent needs it."
@@ -2099,8 +2099,8 @@ msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
 msgstr "sadržaj ~/.codex/auth.json (dugme za lepljenje čita ostavu)."
 
 # derived
-msgid "Uses your ChatGPT subscription — Mixar credits are not charged."
-msgstr "Koristi vašu ChatGPT pretplatu — Mixar krediti se ne naplaćuju."
+msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
+msgstr "Koristi vašu ChatGPT pretplatu — Lampway krediti se ne naplaćuju."
 
 # derived
 msgid "Couldn't apply your changes"
@@ -2111,28 +2111,28 @@ msgid "Remove your API key?"
 msgstr "Ukloniti vaš API ključ?"
 
 # derived
-msgid "The agent will use Mixar's default provider again."
+msgid "The agent will use Lampway's default provider again."
 msgstr "Agent će ponovo koristiti Mixar-ov podrazumevani dobavljač."
 
 # derived
-msgid "Mixar credits will be charged for future agent requests."
-msgstr "Mixar krediti će se naplaćivati za buduće zahteve agenta."
+msgid "Lampway credits will be charged for future agent requests."
+msgstr "Lampway krediti će se naplaćivati za buduće zahteve agenta."
 
 # derived
-msgid "The Mixar agent now runs on your provider — Mixar credits are not charged."
-msgstr "Mixar agent sada radi preko vašeg dobavljača — Mixar krediti se ne naplaćuju."
+msgid "The Lampway agent now runs on your provider — Lampway credits are not charged."
+msgstr "Lampway agent sada radi preko vašeg dobavljača — Lampway krediti se ne naplaćuju."
 
 # derived
 msgid "API key removed"
 msgstr "API ključ je uklonjen"
 
 # derived
-msgid "The agent is back on Mixar's default provider."
+msgid "The agent is back on Lampway's default provider."
 msgstr "Agent je ponovo na Mixar-ovom podrazumevanom dobavljaču."
 
 # derived
-msgid "Mixar credits are charged for agent requests again."
-msgstr "Mixar krediti se ponovo naplaćuju za zahteve agenta."
+msgid "Lampway credits are charged for agent requests again."
+msgstr "Lampway krediti se ponovo naplaćuju za zahteve agenta."
 
 # derived
 msgid "Try Again"
@@ -2179,8 +2179,8 @@ msgid "Not downloaded"
 msgstr "Nije preuzet"
 
 # derived
-msgid "Runs entirely on this computer — your prompts never leave it except through Mixar's agent orchestration."
-msgstr "Radi u potpunosti na ovom računaru — vaši promptovi ga ne napuštaju osim kroz orkestraciju Mixar agenta."
+msgid "Runs entirely on this computer — your prompts never leave it except through Lampway's agent orchestration."
+msgstr "Radi u potpunosti na ovom računaru — vaši promptovi ga ne napuštaju osim kroz orkestraciju Lampway agenta."
 
 # derived
 msgid "Cancel Download"
@@ -2230,8 +2230,8 @@ msgid "Rescan this computer for running local AI apps"
 msgstr "Ponovo skenira ovaj računar u potrazi za pokrenutim lokalnim AI aplikacijama"
 
 # derived
-msgid "Use your own API key for the Mixar agent. While active, Mixar credits are not charged for agent requests."
-msgstr "Koristite sopstveni API ključ za Mixar agenta. Dok je aktivno, Mixar krediti se ne naplaćuju za zahteve agenta."
+msgid "Use your own API key for the Lampway agent. While active, Lampway credits are not charged for agent requests."
+msgstr "Koristite sopstveni API ključ za Lampway agenta. Dok je aktivno, Lampway krediti se ne naplaćuju za zahteve agenta."
 
 # derived
 msgid "Validate with the provider and save your API key"
@@ -2381,8 +2381,8 @@ msgid "Model to use with the selected provider"
 msgstr "Model koji se koristi sa izabranim dobavljačem"
 
 # derived
-msgid "Your API key is stored encrypted and used only for Mixar agent requests. After saving, only a masked preview is shown."
-msgstr "Vaš API ključ se čuva šifrovan i koristi se samo za zahteve Mixar agenta. Posle čuvanja prikazuje se samo maskirani pregled."
+msgid "Your API key is stored encrypted and used only for Lampway agent requests. After saving, only a masked preview is shown."
+msgstr "Vaš API ključ se čuva šifrovan i koristi se samo za zahteve Lampway agenta. Posle čuvanja prikazuje se samo maskirani pregled."
 
 # derived
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
@@ -2400,8 +2400,8 @@ msgid "Local mode"
 msgstr "Lokalni režim"
 
 # derived
-msgid "Managed by Mixar, or your own local server"
-msgstr "Upravlja Mixar, ili vaš sopstveni lokalni server"
+msgid "Managed by Lampway, or your own local server"
+msgstr "Upravlja Lampway, ili vaš sopstveni lokalni server"
 
 # derived
 msgid "Local model"
@@ -2440,12 +2440,12 @@ msgid "Dialog State"
 msgstr "Stanje dijaloga"
 
 # derived
-msgid "Set Mixie Mode"
-msgstr "Postavi režim Mixie"
+msgid "Set Lampway Agent Mode"
+msgstr "Postavi režim Lampway Agent"
 
 # derived
-msgid "Switch to a specific Mixie mode"
-msgstr "Prelazi na određeni režim Mixie"
+msgid "Switch to a specific Lampway Agent mode"
+msgstr "Prelazi na određeni režim Lampway Agent"
 
 msgid "Mode"
 msgstr "Režim rada"
@@ -2488,8 +2488,8 @@ msgid "Non-contiguous enum value 27"
 msgstr "Nesusedna vrednost enumeracije 27"
 
 # derived
-msgid "Mixie v3 run active"
-msgstr "Mixie v3 pokretanje je aktivno"
+msgid "Lampway Agent v3 run active"
+msgstr "Lampway Agent v3 pokretanje je aktivno"
 
 # derived
 msgid "The server rejected the history sync request. Update the app and backend, then reconnect."
@@ -3109,10 +3109,10 @@ msgstr "Vrsta prostora na koju se prelazi"
 msgid "No active area"
 msgstr "Nema aktivne oblasti"
 
-msgid "Apply Mixar Forest"
+msgid "Apply Lampway Forest"
 msgstr ""
 
-msgid "Apply Mixar's charcoal and forest-green theme with default text styling"
+msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -3130,8 +3130,8 @@ msgid "Increment the developer fixture counter; no generation or scene changes"
 msgstr "Povećava brojač razvojnog primerka; bez generisanja i bez izmena scene"
 
 # derived
-msgid "Mixar UI Gallery"
-msgstr "Mixar UI galerija"
+msgid "Lampway UI Gallery"
+msgstr "Lampway UI galerija"
 
 # derived
 msgid "Inspect shared native components using local fixture data"
@@ -3164,8 +3164,8 @@ msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "Saglasnost za telemetriju, postavljena tamo gde korisnici obično traže odjavu."
 
 # derived
-msgid "Shares which Mixar features you use, to help improve the product."
-msgstr "Deli koje Mixar mogućnosti koristite, da bi se proizvod poboljšao."
+msgid "Shares which Lampway features you use, to help improve the product."
+msgstr "Deli koje Lampway mogućnosti koristite, da bi se proizvod poboljšao."
 
 # derived
 msgid "Your prompts, files, and scene content are never included."
@@ -3175,7 +3175,7 @@ msgstr "Vaši promptovi, datoteke i sadržaj scene se nikad ne uključuju."
 msgid "Privacy Policy"
 msgstr "Politika privatnosti"
 
-msgid "Mixar"
+msgid "Lampway"
 msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
@@ -3327,8 +3327,8 @@ msgid "Blender theme"
 msgstr "Blender tema"
 
 # derived
-msgid "Legacy Mixar"
-msgstr "Stari Mixar"
+msgid "Legacy Lampway"
+msgstr "Stari Lampway"
 
 # derived
 msgid "Compatibility profile"
@@ -3353,12 +3353,12 @@ msgid "Denser chrome recipe"
 msgstr "Gušći recept hroma"
 
 # derived
-msgid "Move Mixar to your Applications folder to update in place"
-msgstr "Premestite Mixar u fasciklu Applications da ažurirate na mestu"
+msgid "Move Lampway to your Applications folder to update in place"
+msgstr "Premestite Lampway u fasciklu Applications da ažurirate na mestu"
 
 # derived
-msgid "Mixar is not running from an application bundle"
-msgstr "Mixar ne radi iz paketa aplikacije"
+msgid "Lampway is not running from an application bundle"
+msgstr "Lampway ne radi iz paketa aplikacije"
 
 # derived
 msgid "No permission to update {path}"
@@ -3401,8 +3401,8 @@ msgid "Could not start the updater"
 msgstr "Nije moguće pokrenuti program za ažuriranje"
 
 # derived
-msgid "Mixar didn't close"
-msgstr "Mixar se nije zatvorio"
+msgid "Lampway didn't close"
+msgstr "Lampway se nije zatvorio"
 
 # derived
 msgid "In-app updates aren't supported on this platform"
@@ -3437,40 +3437,40 @@ msgid "Starting download…"
 msgstr "Pokretanje preuzimanja…"
 
 # derived
-msgid "Downloading Mixar {version}"
-msgstr "Preuzimanje Mixar {version}"
+msgid "Downloading Lampway {version}"
+msgstr "Preuzimanje Lampway {version}"
 
 # derived
-msgid "Mixar will restart to finish updating."
-msgstr "Mixar će se ponovo pokrenuti da završi ažuriranje."
+msgid "Lampway will restart to finish updating."
+msgstr "Lampway će se ponovo pokrenuti da završi ažuriranje."
 
 # derived
-msgid "Mixar Update Ready"
-msgstr "Mixar ažuriranje je spremno"
+msgid "Lampway Update Ready"
+msgstr "Lampway ažuriranje je spremno"
 
 # derived
 msgid "Version {version} is ready to install."
 msgstr "Verzija {version} je spremna za instalaciju."
 
 # derived
-msgid "Mixar Update Required"
-msgstr "Potrebno je Mixar ažuriranje"
+msgid "Lampway Update Required"
+msgstr "Potrebno je Lampway ažuriranje"
 
 # derived
-msgid "Mixar Update Available"
-msgstr "Dostupno je Mixar ažuriranje"
+msgid "Lampway Update Available"
+msgstr "Dostupno je Lampway ažuriranje"
 
 # derived
 msgid "Version {version} is available."
 msgstr "Verzija {version} je dostupna."
 
 # derived
-msgid "This update is required to continue using Mixar."
-msgstr "Ovo ažuriranje je potrebno da nastavite da koristite Mixar."
+msgid "This update is required to continue using Lampway."
+msgstr "Ovo ažuriranje je potrebno da nastavite da koristite Lampway."
 
 # derived
-msgid "Mixar will restart to apply it."
-msgstr "Mixar će se ponovo pokrenuti da ga primeni."
+msgid "Lampway will restart to apply it."
+msgstr "Lampway će se ponovo pokrenuti da ga primeni."
 
 # derived
 msgid "{error} — use Download to update via your browser."
@@ -3493,12 +3493,12 @@ msgid "Update paused"
 msgstr "Ažuriranje je pauzirano"
 
 # derived
-msgid "Mixar didn't close, so the update was not installed."
-msgstr "Mixar se nije zatvorio, pa ažuriranje nije instalirano."
+msgid "Lampway didn't close, so the update was not installed."
+msgstr "Lampway se nije zatvorio, pa ažuriranje nije instalirano."
 
 # derived
-msgid "Mixar is up to date"
-msgstr "Mixar je ažuran"
+msgid "Lampway is up to date"
+msgstr "Lampway je ažuran"
 
 # derived
 msgid "You're running the latest version ({version})."
@@ -3517,12 +3517,12 @@ msgid "Update didn't take effect"
 msgstr "Ažuriranje nije stupilo na snagu"
 
 # derived
-msgid "Mixar {target} was installed but version {running} started. Reinstall from the downloads page."
-msgstr "Instaliran je Mixar {target}, ali je pokrenuta verzija {running}. Ponovo instalirajte sa stranice za preuzimanje."
+msgid "Lampway {target} was installed but version {running} started. Reinstall from the downloads page."
+msgstr "Instaliran je Lampway {target}, ali je pokrenuta verzija {running}. Ponovo instalirajte sa stranice za preuzimanje."
 
 # derived
-msgid "Updated to Mixar {version}"
-msgstr "Ažurirano na Mixar {version}"
+msgid "Updated to Lampway {version}"
+msgstr "Ažurirano na Lampway {version}"
 
 # derived
 msgid "The update was installed successfully."
@@ -3541,8 +3541,8 @@ msgid "Update was not installed"
 msgstr "Ažuriranje nije instalirano"
 
 # derived
-msgid "Mixar was still running when the installer tried to start."
-msgstr "Mixar je još radio kada je instalator pokušao da se pokrene."
+msgid "Lampway was still running when the installer tried to start."
+msgstr "Lampway je još radio kada je instalator pokušao da se pokrene."
 
 # derived
 msgid "The downloaded installer failed its signature check."
@@ -3553,8 +3553,8 @@ msgid "The downloaded installer could not be opened."
 msgstr "Preuzeti instalator nije mogao da se otvori."
 
 # derived
-msgid "Mixar could not be replaced on disk."
-msgstr "Mixar nije mogao da se zameni na disku."
+msgid "Lampway could not be replaced on disk."
+msgstr "Lampway nije mogao da se zameni na disku."
 
 # derived
 msgid "The installation was cancelled."
@@ -3569,8 +3569,8 @@ msgid "The installer did not finish."
 msgstr "Instalator nije završio."
 
 # derived
-msgid "Restart Mixar and install the downloaded update"
-msgstr "Ponovo pokreće Mixar i instalira preuzeto ažuriranje"
+msgid "Restart Lampway and install the downloaded update"
+msgstr "Ponovo pokreće Lampway i instalira preuzeto ažuriranje"
 
 # derived
 msgid "Save Changes"
@@ -3580,16 +3580,16 @@ msgstr "Sačuvaj izmene"
 msgid "Save the current file before restarting"
 msgstr "Čuva tekuću datoteku pre ponovnog pokretanja"
 
-msgid "Mixar will ask to update once the tour ends"
+msgid "Lampway will ask to update once the tour ends"
 msgstr ""
 
 # derived
-msgid "Downloading update — Mixar will restart when it's ready"
-msgstr "Preuzimanje ažuriranja — Mixar će se ponovo pokrenuti kada bude spreman"
+msgid "Downloading update — Lampway will restart when it's ready"
+msgstr "Preuzimanje ažuriranja — Lampway će se ponovo pokrenuti kada bude spreman"
 
 # derived
-msgid "Mixar will close and update to {version}."
-msgstr "Mixar će se zatvoriti i ažurirati na {version}."
+msgid "Lampway will close and update to {version}."
+msgstr "Lampway će se zatvoriti i ažurirati na {version}."
 
 # derived
 msgid "It reopens automatically when the update is done."
@@ -3628,15 +3628,15 @@ msgid "This update is required and cannot be cancelled"
 msgstr "Ovo ažuriranje je obavezno i ne može se otkazati"
 
 # derived
-msgid "Open the Mixar downloads page in the default browser"
-msgstr "Otvara Mixar stranicu za preuzimanje u podrazumevanom pregledaču"
+msgid "Open the Lampway downloads page in the default browser"
+msgstr "Otvara Lampway stranicu za preuzimanje u podrazumevanom pregledaču"
 
 # derived
 msgid "Check for Updates"
 msgstr "Proveri ažuriranja"
 
 # derived
-msgid "Check whether a newer version of Mixar is available"
+msgid "Check whether a newer version of Lampway is available"
 msgstr "Proverava da li je dostupna novija verzija Mixar-a"
 
 # derived
@@ -3652,8 +3652,8 @@ msgid "Update Available"
 msgstr "Ažuriranje je dostupno"
 
 # derived
-msgid "Show details for the pending Mixar update"
-msgstr "Prikazuje detalje Mixar ažuriranja na čekanju"
+msgid "Show details for the pending Lampway update"
+msgstr "Prikazuje detalje Lampway ažuriranja na čekanju"
 
 # derived
 msgid "View Changelog"
@@ -3810,7 +3810,7 @@ msgid "Newer File Version"
 msgstr "Novija verzija datoteke"
 
 # derived
-msgid "Warn user that the file was saved by a newer Mixar version"
+msgid "Warn user that the file was saved by a newer Lampway version"
 msgstr "Upozorava korisnika da je datoteku sačuvala novija verzija Mixar-a"
 
 # derived
@@ -3818,8 +3818,8 @@ msgid "File Version"
 msgstr "Verzija datoteke"
 
 # derived
-msgid "This file was saved by Mixar version {version}."
-msgstr "Ovu datoteku je sačuvao Mixar verzije {version}."
+msgid "This file was saved by Lampway version {version}."
+msgstr "Ovu datoteku je sačuvao Lampway verzije {version}."
 
 # derived
 msgid "Some data may be missing or incorrect."
@@ -3838,8 +3838,8 @@ msgid "Start Connector Sidecar"
 msgstr "Pokreni pomoćni proces konektora"
 
 # derived
-msgid "Expose Mixar to the hub over loopback HTTP"
-msgstr "Izlaže Mixar čvorištu preko HTTP-a na povratnoj petlji"
+msgid "Expose Lampway to the hub over loopback HTTP"
+msgstr "Izlaže Lampway čvorištu preko HTTP-a na povratnoj petlji"
 
 # derived
 msgid "Connector sidecar on 127.0.0.1:{port}"
@@ -3850,8 +3850,8 @@ msgid "Export Scene to Unreal"
 msgstr "Izvezi scenu u Unreal"
 
 # derived
-msgid "Export the current Mixar scene as Unreal-ready USD/FBX/GLB"
-msgstr "Izvozi tekuću Mixar scenu kao USD/FBX/GLB spreman za Unreal"
+msgid "Export the current Lampway scene as Unreal-ready USD/FBX/GLB"
+msgstr "Izvozi tekuću Lampway scenu kao USD/FBX/GLB spreman za Unreal"
 
 # derived
 msgid "Exported {filename} ({count} meshes)"
@@ -3878,8 +3878,8 @@ msgid "Hub Sidecar"
 msgstr "Pomoćni proces čvorišta"
 
 # derived
-msgid "Expose this Mixar session to mixar-connector over loopback HTTP"
-msgstr "Izlaže ovu Mixar sesiju ka mixar-connector preko HTTP-a na povratnoj petlji"
+msgid "Expose this Lampway session to mixar-connector over loopback HTTP"
+msgstr "Izlaže ovu Lampway sesiju ka mixar-connector preko HTTP-a na povratnoj petlji"
 
 # derived
 msgid "Sidecar Port"
@@ -3930,7 +3930,7 @@ msgstr ""
 msgid "At most {count} folders can be attached to a chat"
 msgstr ""
 
-msgid "Could not save the folder attachment. Check access to your Mixar settings and try again."
+msgid "Could not save the folder attachment. Check access to your Lampway settings and try again."
 msgstr ""
 
 msgid "Attach context"
@@ -3985,8 +3985,8 @@ msgid "Folders the agent can read, view and import from while it works on this c
 msgstr ""
 
 # derived
-msgid "Mixar Shot Camera"
-msgstr "Mixar kamera snimka"
+msgid "Lampway Shot Camera"
+msgstr "Lampway kamera snimka"
 
 # derived
 msgid "Shot"
@@ -4555,8 +4555,8 @@ msgid "Capture at least one camera beat before locking"
 msgstr "Snimite bar jedan trenutak kamere pre zaključavanja"
 
 # derived
-msgid "Mixar Focus"
-msgstr "Mixar fokus"
+msgid "Lampway Focus"
+msgstr "Lampway fokus"
 
 # derived
 msgid "Rendering…"
@@ -5419,8 +5419,8 @@ msgid "Render Status"
 msgstr "Status renderinga"
 
 # derived
-msgid "Mixar Camera Export"
-msgstr "Mixar izvoz kamere"
+msgid "Lampway Camera Export"
+msgstr "Lampway izvoz kamere"
 
 # derived
 msgid "Export this scene's camera animation to the Moodboard"
@@ -5742,16 +5742,16 @@ msgid "Blender's Auto Keying (the Timeline's record button): key the camera afte
 msgstr ""
 
 # derived
-msgid "Mixar Director"
-msgstr "Mixar režija"
+msgid "Lampway Director"
+msgstr "Lampway režija"
 
 # derived
 msgid "Sparse camera-direction shots for this scene"
 msgstr "Retki snimci smera kamere za ovu scenu"
 
 # derived
-msgid "Mixar Output"
-msgstr "Mixar izlaz"
+msgid "Lampway Output"
+msgstr "Lampway izlaz"
 
 # derived
 msgid "Output aspect ratio this camera frames for"
@@ -6349,19 +6349,19 @@ msgstr "Model lokalnog servera"
 msgid "Local model last error"
 msgstr "Poslednja greška lokalnog modela"
 
-msgid "Mixar added to {app}"
+msgid "Lampway added to {app}"
 msgstr ""
 
-msgid "Restart {app}'s MCP connection to start using Mixar."
+msgid "Restart {app}'s MCP connection to start using Lampway."
 msgstr ""
 
-msgid "{app} already has Mixar"
+msgid "{app} already has Lampway"
 msgstr ""
 
-msgid "Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing."
+msgid "Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing."
 msgstr ""
 
-msgid "Could not add Mixar to {app}"
+msgid "Could not add Lampway to {app}"
 msgstr ""
 
 msgid "Run once in a terminal, or click Add to Claude Code."
@@ -6397,7 +6397,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Mixar cannot update; edit config.toml by hand."
+msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -6409,7 +6409,7 @@ msgstr ""
 msgid "This app is set up by pasting its configuration."
 msgstr ""
 
-msgid "Sign in to Mixar before connecting AI apps"
+msgid "Sign in to Lampway before connecting AI apps"
 msgstr ""
 
 msgid "MCP is enabled for this session; saving the preference failed"
@@ -6418,16 +6418,16 @@ msgstr ""
 msgid "Connect AI Apps (MCP)"
 msgstr ""
 
-msgid "Connect Claude, Codex, Cursor or another MCP app to your Mixar scenes"
+msgid "Connect Claude, Codex, Cursor or another MCP app to your Lampway scenes"
 msgstr ""
 
 msgid "App"
 msgstr ""
 
-msgid "Let your AI assistant use Mixar scenes and controls."
+msgid "Let your AI assistant use Lampway scenes and controls."
 msgstr ""
 
-msgid "Sign in to Mixar to connect AI apps."
+msgid "Sign in to Lampway to connect AI apps."
 msgstr ""
 
 msgid "Sign In"
@@ -6442,13 +6442,13 @@ msgstr ""
 msgid "Scene and UI tools are free; only AI generation uses credits."
 msgstr ""
 
-msgid "Your AI app can start Mixar when needed."
+msgid "Your AI app can start Lampway when needed."
 msgstr ""
 
 msgid "Enable MCP"
 msgstr ""
 
-msgid "Let AI apps control Mixar's interface"
+msgid "Let AI apps control Lampway's interface"
 msgstr ""
 
 msgid "Add to {app}"
@@ -6469,10 +6469,10 @@ msgstr ""
 msgid "Setup Guide"
 msgstr ""
 
-msgid "Allow local AI clients to use your Mixar account and scenes"
+msgid "Allow local AI clients to use your Lampway account and scenes"
 msgstr ""
 
-msgid "MCP preference applies until Mixar closes; saving failed"
+msgid "MCP preference applies until Lampway closes; saving failed"
 msgstr ""
 
 msgid "MCP is waiting for the desktop connection"
@@ -6481,19 +6481,19 @@ msgstr ""
 msgid "MCP disabled"
 msgstr ""
 
-msgid "Let AI Apps Control Mixar's Interface"
+msgid "Let AI Apps Control Lampway's Interface"
 msgstr ""
 
-msgid "Let connected AI apps see Mixar's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
+msgid "Let connected AI apps see Lampway's interface and click, type and drag in it. Your own mouse or keyboard always takes control back. Scene tools work either way"
 msgstr ""
 
-msgid "This applies until Mixar closes; saving the preference failed"
+msgid "This applies until Lampway closes; saving the preference failed"
 msgstr ""
 
-msgid "AI apps can now control Mixar's interface"
+msgid "AI apps can now control Lampway's interface"
 msgstr ""
 
-msgid "AI apps can no longer control Mixar's interface"
+msgid "AI apps can no longer control Lampway's interface"
 msgstr ""
 
 msgid "Copy MCP Setup"
@@ -6505,16 +6505,16 @@ msgstr ""
 msgid "MCP setup copied. Paste it into your AI app; Setup Guide shows where"
 msgstr ""
 
-msgid "Add Mixar to App"
+msgid "Add Lampway to App"
 msgstr ""
 
-msgid "Enable MCP and add Mixar to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
+msgid "Enable MCP and add Lampway to this app's MCP servers: Claude Code through its claude mcp command, Codex in its config.toml (the previous file is kept as a backup)"
 msgstr ""
 
-msgid "Already adding Mixar to this app"
+msgid "Already adding Lampway to this app"
 msgstr ""
 
-msgid "Adding Mixar to {app}…"
+msgid "Adding Lampway to {app}…"
 msgstr ""
 
 msgid "Open MCP Config File"
@@ -9981,32 +9981,32 @@ msgid "Error message if job failed"
 msgstr "Poruka greške ako zadatak nije uspeo"
 
 # derived
-msgid "Mixie Moodboard Images"
-msgstr "Slike Mixie mudborda"
+msgid "Lampway Agent Moodboard Images"
+msgstr "Slike Lampway Agent mudborda"
 
 # derived
 msgid "Collection of reference images in Moodboard mode"
 msgstr "Zbirka referentnih slika u režimu mudborda"
 
 # derived
-msgid "Mixie Moodboard Text Boxes"
-msgstr "Blokovi teksta Mixie mudborda"
+msgid "Lampway Agent Moodboard Text Boxes"
+msgstr "Blokovi teksta Lampway Agent mudborda"
 
 # derived
 msgid "Collection of text boxes in Moodboard mode"
 msgstr "Zbirka blokova teksta u režimu mudborda"
 
 # derived
-msgid "Mixie Moodboard Frames"
-msgstr "Okviri Mixie mudborda"
+msgid "Lampway Agent Moodboard Frames"
+msgstr "Okviri Lampway Agent mudborda"
 
 # derived
 msgid "Canvas frames grouping board items"
 msgstr "Okviri platna koji grupišu stavke table"
 
 # derived
-msgid "Mixie Moodboard Groups (legacy)"
-msgstr "Grupe Mixie mudborda (zastarelo)"
+msgid "Lampway Agent Moodboard Groups (legacy)"
+msgstr "Grupe Lampway Agent mudborda (zastarelo)"
 
 # derived
 msgid "Superseded by mixie_moodboard_frames; retained for migration"
@@ -11457,8 +11457,8 @@ msgid "Attach Selected Moodboard Image"
 msgstr "Priloži izabranu sliku mudborda"
 
 # derived
-msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Mixar instance"
-msgstr "Kopira izabrane slike, video-zapise, blokove teksta i čvorove zaključivanja (sa njihovim vezama i rezultatima); nalepite pomoću {shortcut} u ovoj ili drugoj instanci Mixar"
+msgid "Copy the selected images, videos, text boxes and inference nodes (with their connections and results); paste with {shortcut} in this or another Lampway instance"
+msgstr "Kopira izabrane slike, video-zapise, blokove teksta i čvorove zaključivanja (sa njihovim vezama i rezultatima); nalepite pomoću {shortcut} u ovoj ili drugoj instanci Lampway"
 
 # derived
 msgid "Nothing selected to copy"
@@ -11887,8 +11887,8 @@ msgid "Paste"
 msgstr "Nalepi"
 
 # derived
-msgid "Paste what was copied on a moodboard -- in this or another Mixar instance -- or an image from the system clipboard ({shortcut})"
-msgstr "Nalepi ono što je kopirano na mudbordu -- u ovoj ili drugoj instanci Mixar -- ili sliku iz sistemske ostave ({shortcut})"
+msgid "Paste what was copied on a moodboard -- in this or another Lampway instance -- or an image from the system clipboard ({shortcut})"
+msgstr "Nalepi ono što je kopirano na mudbordu -- u ovoj ili drugoj instanci Lampway -- ili sliku iz sistemske ostave ({shortcut})"
 
 # derived
 msgid "Pasted {count} item"
@@ -13744,13 +13744,13 @@ msgid "Moodboard Started"
 msgstr ""
 
 # derived
-msgid "Welcome to Mixar"
-msgstr "Dobro došli u Mixar"
+msgid "Welcome to Lampway"
+msgstr "Dobro došli u Lampway"
 
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Mixie, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
 msgstr ""
 
 msgid "Playback rate"
@@ -13771,20 +13771,20 @@ msgstr ""
 msgid "Language for the interface and guided tour"
 msgstr ""
 
-msgid "Mixar Tour State"
+msgid "Lampway Tour State"
 msgstr ""
 
 msgid "JSON snapshot of the interactive tour's runner state"
 msgstr ""
 
-msgid "Mixar Tour QA Targets"
+msgid "Lampway Tour QA Targets"
 msgstr ""
 
 msgid "JSON list of the tour's clickable control rects"
 msgstr ""
 
 # derived
-msgid "Mixar Operation History ID"
+msgid "Lampway Operation History ID"
 msgstr "ID istorijata operacija Mixar-a"
 
 # derived
@@ -16827,8 +16827,8 @@ msgid "File format for export"
 msgstr "Format datoteke za izvoz"
 
 # derived
-msgid "No active Mixar node found"
-msgstr "Nije pronađen aktivni Mixar čvor"
+msgid "No active Lampway node found"
+msgstr "Nije pronađen aktivni Lampway čvor"
 
 # derived
 msgid "Exported '{name}' to {path}"
@@ -17027,8 +17027,8 @@ msgid "Bake Temporary Image"
 msgstr "Ispeci privremenu sliku"
 
 # derived
-msgid "No active Mixar node found!"
-msgstr "Nije pronađen aktivni Mixar čvor!"
+msgid "No active Lampway node found!"
+msgstr "Nije pronađen aktivni Lampway čvor!"
 
 # derived
 msgid "No active layer found!"
@@ -17219,8 +17219,8 @@ msgid "Bake All Materials"
 msgstr "Ispeci sve materijale"
 
 # derived
-msgid "Bake all materials with Mixar Paint nodes rather than just the active one"
-msgstr "Ispeci sve materijale sa čvorovima Mixar Paint, a ne samo aktivni"
+msgid "Bake all materials with Lampway Paint nodes rather than just the active one"
+msgstr "Ispeci sve materijale sa čvorovima Lampway Paint, a ne samo aktivni"
 
 # derived
 msgid "Target Vertex Color Name"
@@ -17503,8 +17503,8 @@ msgid "Copy Image Path To Clipboard"
 msgstr "Kopiraj putanju slike u ostavu"
 
 # derived
-msgid "Mixar Paint Copy the image file path to the system clipboard"
-msgstr "Mixar Paint kopira putanju datoteke slike u sistemsku ostavu"
+msgid "Lampway Paint Copy the image file path to the system clipboard"
+msgstr "Lampway Paint kopira putanju datoteke slike u sistemsku ostavu"
 
 # derived
 msgid "Copied: {text}"
@@ -17515,8 +17515,8 @@ msgid "Open Containing Image Folder"
 msgstr "Otvori fasciklu koja sadrži sliku"
 
 # derived
-msgid "Mixar Paint Open the folder containing the image file and highlight it"
-msgstr "Mixar Paint otvara fasciklu koja sadrži datoteku slike i ističe je"
+msgid "Lampway Paint Open the folder containing the image file and highlight it"
+msgstr "Lampway Paint otvara fasciklu koja sadrži datoteku slike i ističe je"
 
 # derived
 msgid "File does not exist"
@@ -19428,8 +19428,8 @@ msgid "Active Mask"
 msgstr "Aktivna maska"
 
 # derived
-msgid "Active mask for Blender's paint mode and edit mode, or Mixar Paint's Mask preview mode"
-msgstr "Aktivna maska za režim bojenja i uređivanja Blender-a ili režim pregleda maske Mixar Paint"
+msgid "Active mask for Blender's paint mode and edit mode, or Lampway Paint's Mask preview mode"
+msgstr "Aktivna maska za režim bojenja i uređivanja Blender-a ili režim pregleda maske Lampway Paint"
 
 # derived
 msgid "Mask Source Input"
@@ -19560,16 +19560,16 @@ msgid "Delete Baked Images"
 msgstr "Obriši ispečene slike"
 
 # derived
-msgid "New Mixar Paint Modifier"
-msgstr "Novi modifikator Mixar Paint"
+msgid "New Lampway Paint Modifier"
+msgstr "Novi modifikator Lampway Paint"
 
 # derived
-msgid "Move Mixar Paint Modifier"
-msgstr "Pomeri modifikator Mixar Paint"
+msgid "Move Lampway Paint Modifier"
+msgstr "Pomeri modifikator Lampway Paint"
 
 # derived
-msgid "Remove Mixar Paint Modifier"
-msgstr "Ukloni modifikator Mixar Paint"
+msgid "Remove Lampway Paint Modifier"
+msgstr "Ukloni modifikator Lampway Paint"
 
 # derived
 msgid "Add Channel Modifier"
@@ -19744,8 +19744,8 @@ msgid "Build Layered Material"
 msgstr "Napravi slojeviti materijal"
 
 # derived
-msgid "Build a Mixar paint material from a layered-material manifest"
-msgstr "Napravi materijal Mixar Paint iz manifesta slojevitog materijala"
+msgid "Build a Lampway paint material from a layered-material manifest"
+msgstr "Napravi materijal Lampway Paint iz manifesta slojevitog materijala"
 
 # derived
 msgid "Manifest JSON"
@@ -20564,8 +20564,8 @@ msgid "New name for the layer"
 msgstr "Novo ime sloja"
 
 # derived
-msgid "No active Mixar node"
-msgstr "Nema aktivnog čvora Mixar"
+msgid "No active Lampway node"
+msgstr "Nema aktivnog čvora Lampway"
 
 # derived
 msgid "Name cannot be empty"
@@ -20763,12 +20763,12 @@ msgid "Add different types of masks to the active layer"
 msgstr "Dodaje različite vrste maski aktivnom sloju"
 
 # derived
-msgid "Remove Mixar Paint Node"
-msgstr "Ukloni čvor Mixar Paint"
+msgid "Remove Lampway Paint Node"
+msgstr "Ukloni čvor Lampway Paint"
 
 # derived
-msgid "Remove Mixar Paint node, but keep all baked channel image(s)"
-msgstr "Uklanja čvor Mixar Paint, ali zadržava sve ispečene slike kanala"
+msgid "Remove Lampway Paint node, but keep all baked channel image(s)"
+msgstr "Uklanja čvor Lampway Paint, ali zadržava sve ispečene slike kanala"
 
 # derived
 msgid "This {addon} node setup isn't baked yet!"
@@ -20970,8 +20970,8 @@ msgid "Material '{name}' not found in registry"
 msgstr "Materijal „{name}“ nije pronađen u registru"
 
 # derived
-msgid "No active Mixar Paint node found"
-msgstr "Nije pronađen aktivni čvor Mixar Paint"
+msgid "No active Lampway Paint node found"
+msgstr "Nije pronađen aktivni čvor Lampway Paint"
 
 # derived
 msgid "Applied material '{name}' to existing layer"
@@ -21236,8 +21236,8 @@ msgid "To use texture baking:"
 msgstr "Da biste koristili pečenje tekstura:"
 
 # derived
-msgid "  1. Select an object with a Mixar material"
-msgstr "  1. Izaberite objekat sa materijalom Mixar"
+msgid "  1. Select an object with a Lampway material"
+msgstr "  1. Izaberite objekat sa materijalom Lampway"
 
 # derived
 msgid "  2. Or create a new layer-based material"
@@ -21372,8 +21372,8 @@ msgid "Paint UI not initialized"
 msgstr "Sučelje slikanja nije pokrenuto"
 
 # derived
-msgid "No Mixar material found"
-msgstr "Nije pronađen materijal Mixar"
+msgid "No Lampway material found"
+msgstr "Nije pronađen materijal Lampway"
 
 # derived
 msgid "No layer based material"
@@ -21396,8 +21396,8 @@ msgid "No active material"
 msgstr "Nema aktivnog materijala"
 
 # derived
-msgid "No Mixar node found"
-msgstr "Nije pronađen čvor Mixar"
+msgid "No Lampway node found"
+msgstr "Nije pronađen čvor Lampway"
 
 # derived
 msgid "Backend layer not found"
@@ -22263,20 +22263,20 @@ msgid "How this layer blends with layers below"
 msgstr "Kako se ovaj sloj meša sa slojevima ispod"
 
 # derived
-msgid "Mixar Layer Index"
-msgstr "Indeks sloja Mixar"
+msgid "Lampway Layer Index"
+msgstr "Indeks sloja Lampway"
 
 # derived
-msgid "Index in Mixar mixar_mp.layers collection"
-msgstr "Indeks u zbirci Mixar mixar_mp.layers"
+msgid "Index in Lampway mixar_mp.layers collection"
+msgstr "Indeks u zbirci Lampway mixar_mp.layers"
 
 # derived
-msgid "Mixar Group Node"
-msgstr "Grupni čvor Mixar"
+msgid "Lampway Group Node"
+msgstr "Grupni čvor Lampway"
 
 # derived
-msgid "Name of the Mixar group node"
-msgstr "Ime grupnog čvora Mixar"
+msgid "Name of the Lampway group node"
+msgstr "Ime grupnog čvora Lampway"
 
 # derived
 msgid "Updating Property"
@@ -23666,8 +23666,8 @@ msgid "Other Objects Channels"
 msgstr "Kanali drugih objekata"
 
 # derived
-msgid "Other object's Mixar Paint channels"
-msgstr "Kanali Mixar Paint drugog objekta"
+msgid "Other object's Lampway Paint channels"
+msgstr "Kanali Lampway Paint drugog objekta"
 
 # derived
 msgid "Selected Vertices/Edges/Faces"
@@ -24087,20 +24087,20 @@ msgid "Blender"
 msgstr ""
 
 # derived
-msgid "Could not create Mixar's add-ons directory — check permissions on your user profile folder."
-msgstr "Nije moguće napraviti fasciklu dodataka Mixar — proverite dozvole fascikle korisničkog profila."
+msgid "Could not create Lampway's add-ons directory — check permissions on your user profile folder."
+msgstr "Nije moguće napraviti fasciklu dodataka Lampway — proverite dozvole fascikle korisničkog profila."
 
 # derived
-msgid "Could not create Mixar's extensions directory — check permissions on your user profile folder."
-msgstr "Nije moguće napraviti fasciklu proširenja Mixar — proverite dozvole fascikle korisničkog profila."
+msgid "Could not create Lampway's extensions directory — check permissions on your user profile folder."
+msgstr "Nije moguće napraviti fasciklu proširenja Lampway — proverite dozvole fascikle korisničkog profila."
 
 # derived
 msgid "enable failed (may be incompatible with Blender 5.0)"
 msgstr "omogućavanje nije uspelo (možda nije saglasno sa Blender 5.0)"
 
 # derived
-msgid "Bring add-ons and extensions from your existing Blender install into Mixar."
-msgstr "Prenosi dodatke i proširenja iz postojeće instalacije Blender-a u Mixar."
+msgid "Bring add-ons and extensions from your existing Blender install into Lampway."
+msgstr "Prenosi dodatke i proširenja iz postojeće instalacije Blender-a u Lampway."
 
 # derived
 msgid "Scan for Blender Plugins"
@@ -24131,15 +24131,15 @@ msgid "All listed plugins are copied in; ticked ones are enabled."
 msgstr "Svi navedeni dodaci se kopiraju; označeni se omogućavaju."
 
 # derived
-msgid "Import into Mixar"
-msgstr "Uvezi u Mixar"
+msgid "Import into Lampway"
+msgstr "Uvezi u Lampway"
 
 # derived
 msgid "Imported"
 msgstr "Uvezeno"
 
 # derived
-msgid "Already in Mixar"
+msgid "Already in Lampway"
 msgstr "Već u Mixar-u"
 
 # derived
@@ -24175,12 +24175,12 @@ msgid "Tick or untick every plugin in the list"
 msgstr "Označava ili skida oznaku sa svakog dodatka na spisku"
 
 # derived
-msgid "Import Plugins into Mixar"
-msgstr "Uvezi dodatke u Mixar"
+msgid "Import Plugins into Lampway"
+msgstr "Uvezi dodatke u Lampway"
 
 # derived
-msgid "Copy every listed plugin into Mixar and enable the ticked ones"
-msgstr "Kopira svaki navedeni dodatak u Mixar i omogućava označene"
+msgid "Copy every listed plugin into Lampway and enable the ticked ones"
+msgstr "Kopira svaki navedeni dodatak u Lampway i omogućava označene"
 
 # derived
 msgid "Nothing scanned — run Scan first"
@@ -24203,7 +24203,7 @@ msgid "Imported: {count}"
 msgstr "Uvezeno: {count}"
 
 # derived
-msgid "Already in Mixar: {count}"
+msgid "Already in Lampway: {count}"
 msgstr "Već u Mixar-u: {count}"
 
 # derived
@@ -24227,7 +24227,7 @@ msgid "{count} found"
 msgstr "Pronađeno: {count}"
 
 # derived
-msgid "Enable this plugin in Mixar after importing it"
+msgid "Enable this plugin in Lampway after importing it"
 msgstr "Omogućava ovaj dodatak u Mixar-u posle uvoza"
 
 # derived
@@ -24286,16 +24286,16 @@ msgid "Up to 5 email addresses, separated by commas"
 msgstr ""
 
 # derived
-msgid "Mixar Scene Graph"
-msgstr "Graf scene Mixar"
+msgid "Lampway Scene Graph"
+msgstr "Graf scene Lampway"
 
 # derived
 msgid "Per-scene agent-readable scene graph (JSON). Runtime-only."
 msgstr "Graf scene po sceni, čitljiv agentu (JSON). Samo u toku rada."
 
 # derived
-msgid "Mixar Scene Graph Query Result"
-msgstr "Rezultat upita grafa scene Mixar"
+msgid "Lampway Scene Graph Query Result"
+msgstr "Rezultat upita grafa scene Lampway"
 
 # derived
 msgid "JSON result of the last scene-graph query operator call."
@@ -25245,8 +25245,8 @@ msgid "User ID"
 msgstr "ID korisnika"
 
 # derived
-msgid "User ID for Mixie Chat login"
-msgstr "ID korisnika za prijavu u ćaskanje Mixie"
+msgid "User ID for Lampway Agent Chat login"
+msgstr "ID korisnika za prijavu u ćaskanje Lampway Agent"
 
 # derived
 msgid "Agent expects: {formats}"
@@ -25836,11 +25836,11 @@ msgid "Sign in to use voice input."
 msgstr "Prijavite se da biste koristili glasovni unos."
 
 # derived
-msgid "Launch Mixar from Finder to allow microphone access."
-msgstr "Pokrenite Mixar iz Finder-a da biste dozvolili pristup mikrofonu."
+msgid "Launch Lampway from Finder to allow microphone access."
+msgstr "Pokrenite Lampway iz Finder-a da biste dozvolili pristup mikrofonu."
 
 # derived
-msgid "Allow microphone access for Mixar in system privacy settings."
+msgid "Allow microphone access for Lampway in system privacy settings."
 msgstr "Dozvolite Mixar-u pristup mikrofonu u sistemskim podešavanjima privatnosti."
 
 # derived
@@ -25904,8 +25904,8 @@ msgid "Login Failed"
 msgstr "Prijava nije uspela"
 
 # derived
-msgid "Sign in with your Mixar account"
-msgstr "Prijavite se nalogom Mixar"
+msgid "Sign in with your Lampway account"
+msgstr "Prijavite se nalogom Lampway"
 
 # derived
 msgid "Waiting for browser..."
@@ -25938,8 +25938,8 @@ msgid "Dashboard"
 msgstr "Kontrolna tabla"
 
 # derived
-msgid "About Mixar"
-msgstr "O programu Mixar"
+msgid "About Lampway"
+msgstr "O programu Lampway"
 
 # derived
 msgid "Documentation"
@@ -26589,8 +26589,8 @@ msgid "Exported chat-stripped copy ({count} message(s) omitted from {scenes} sce
 msgstr "Izvezena je kopija bez ćaskanja (izostavljeno poruka: {count}, iz scena: {scenes})."
 
 # derived
-msgid "Mixar Chat: Export .blend without chat history"
-msgstr "Ćaskanje Mixar: izvezi .blend bez istorijata ćaskanja"
+msgid "Lampway Chat: Export .blend without chat history"
+msgstr "Ćaskanje Lampway: izvezi .blend bez istorijata ćaskanja"
 
 # derived
 msgid "Generation is currently unavailable. Refresh the catalog and try again."
@@ -27000,8 +27000,8 @@ msgid "Add Rules"
 msgstr "Dodaj pravila"
 
 # derived
-msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Mixar file. Your current request takes priority over project and global rules"
-msgstr "Definiše pravila za Mixie. Izmene važe od sledeće poruke ili odgovora; globalna pravila važe u svakoj datoteci Mixar. Tekući zahtev ima prednost nad pravilima projekta i globalnim pravilima"
+msgid "Define rules for Mixie. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
+msgstr "Definiše pravila za Mixie. Izmene važe od sledeće poruke ili odgovora; globalna pravila važe u svakoj datoteci Lampway. Tekući zahtev ima prednost nad pravilima projekta i globalnim pravilima"
 
 # derived
 msgid "Rule operation failed"
@@ -28604,8 +28604,8 @@ msgid "Materials: {count}"
 msgstr "Materijali: {count}"
 
 # derived
-msgid "No Mixar material active"
-msgstr "Nema aktivnog materijala Mixar"
+msgid "No Lampway material active"
+msgstr "Nema aktivnog materijala Lampway"
 
 # derived
 msgid "{channel} Settings"
@@ -29461,8 +29461,8 @@ msgid "Scale selected UVs in Y direction (incremental)"
 msgstr "Menja razmeru izabranih UV u smeru Y (po koraku)"
 
 # derived
-msgid "Annotate tool properties for the Mixar UV Properties space."
-msgstr "Osobine alatke za anotaciju za prostor osobina UV Mixar."
+msgid "Annotate tool properties for the Lampway UV Properties space."
+msgstr "Osobine alatke za anotaciju za prostor osobina UV Lampway."
 
 # derived
 msgid "Annotate Line"
@@ -29496,16 +29496,16 @@ msgid "Toggle UV Sidebar"
 msgstr "Prebaci UV bočnu traku"
 
 # derived
-msgid "Toggle the Mixar UV sidebar in the Image Editor"
-msgstr "Prebacuje UV bočnu traku Mixar u uređivaču slike"
+msgid "Toggle the Lampway UV sidebar in the Image Editor"
+msgstr "Prebacuje UV bočnu traku Lampway u uređivaču slike"
 
 # derived
 msgid "Open UV Sidebar"
 msgstr "Otvori UV bočnu traku"
 
 # derived
-msgid "Open the Mixar UV sidebar if hidden"
-msgstr "Otvara UV bočnu traku Mixar ako je skrivena"
+msgid "Open the Lampway UV sidebar if hidden"
+msgstr "Otvara UV bočnu traku Lampway ako je skrivena"
 
 # derived
 msgid "Empty state shown when no UV properties are available"
@@ -29535,8 +29535,8 @@ msgid "Export UV layout using stored properties"
 msgstr "Izvozi UV raspored pomoću sačuvanih osobina"
 
 # derived
-msgid "UV Export panel for Mixar UV Properties space"
-msgstr "Panel UV izvoza za prostor osobina UV Mixar"
+msgid "UV Export panel for Lampway UV Properties space"
+msgstr "Panel UV izvoza za prostor osobina UV Lampway"
 
 # derived
 msgid "UV UI not initialized"
@@ -29684,8 +29684,8 @@ msgid "Functions"
 msgstr "Funkcije"
 
 # derived
-msgid "UV Functions panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Panel UV funkcija za prostor osobina UV Mixar — zasnovan na alatki (bez dugmeta u zaglavlju)"
+msgid "UV Functions panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Panel UV funkcija za prostor osobina UV Lampway — zasnovan na alatki (bez dugmeta u zaglavlju)"
 
 # derived
 msgid "Seam"
@@ -29848,8 +29848,8 @@ msgid "Material '{name}' created and applied"
 msgstr "Materijal „{name}“ je napravljen i primenjen"
 
 # derived
-msgid "Image panel for the Mixar UV Properties space."
-msgstr "Panel slike za prostor osobina UV Mixar."
+msgid "Image panel for the Lampway UV Properties space."
+msgstr "Panel slike za prostor osobina UV Lampway."
 
 msgid "Save As"
 msgstr "Sačuvaj kao"
@@ -29887,8 +29887,8 @@ msgid "Invert All Colors"
 msgstr "Obrni sve boje"
 
 # derived
-msgid "Material slot panel for Mixar UV Properties space"
-msgstr "Panel slota materijala za prostor osobina UV Mixar"
+msgid "Material slot panel for Lampway UV Properties space"
+msgstr "Panel slota materijala za prostor osobina UV Lampway"
 
 msgid "No active object"
 msgstr "Nema aktivnog objekta"
@@ -29943,8 +29943,8 @@ msgid "{label} unavailable"
 msgstr "{label} nije dostupno"
 
 # derived
-msgid "Layout panel for the Mixar UV Properties space."
-msgstr "Panel rasporeda za prostor osobina UV Mixar."
+msgid "Layout panel for the Lampway UV Properties space."
+msgstr "Panel rasporeda za prostor osobina UV Lampway."
 
 # derived
 msgid "uv.pack_islands properties unavailable"
@@ -30130,8 +30130,8 @@ msgid "Project UVs using the type and properties shown in the Projection panel"
 msgstr "Projektuje UV vrstom i osobinama prikazanim u panelu projekcije"
 
 # derived
-msgid "Mixar UV UI state not initialized"
-msgstr "Stanje UV sučelja Mixar nije pokrenuto"
+msgid "Lampway UV UI state not initialized"
+msgstr "Stanje UV sučelja Lampway nije pokrenuto"
 
 # derived
 msgid "Unknown projection type: {type}"
@@ -30296,8 +30296,8 @@ msgid "Select linked UVs"
 msgstr "Izaberi povezane UV"
 
 # derived
-msgid "Selection panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Panel izbora za prostor osobina UV Mixar — zasnovan na alatki (bez dugmeta u zaglavlju)"
+msgid "Selection panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Panel izbora za prostor osobina UV Lampway — zasnovan na alatki (bez dugmeta u zaglavlju)"
 
 # derived
 msgid "Basic Selection"
@@ -30348,8 +30348,8 @@ msgid "Select Overlap"
 msgstr "Izaberi preklop"
 
 # derived
-msgid "Texel Density panel for Mixar UV Properties space"
-msgstr "Panel gustine teksela za prostor osobina UV Mixar"
+msgid "Texel Density panel for Lampway UV Properties space"
+msgstr "Panel gustine teksela za prostor osobina UV Lampway"
 
 # derived
 msgid "Activate Grab Tool"
@@ -30407,8 +30407,8 @@ msgid "UV Sculpt Tools"
 msgstr "Alatke UV vajanja"
 
 # derived
-msgid "UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"
-msgstr "Panel alatki UV vajanja za prostor osobina UV Mixar — zasnovan na alatki (bez dugmeta u zaglavlju)"
+msgid "UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"
+msgstr "Panel alatki UV vajanja za prostor osobina UV Lampway — zasnovan na alatki (bez dugmeta u zaglavlju)"
 
 # derived
 msgid "Grab"
@@ -30557,8 +30557,8 @@ msgid "Snapping"
 msgstr "Prikačinjanje"
 
 # derived
-msgid "Snapping panel for Mixar UV Properties space"
-msgstr "Panel prikačinja za prostor osobina UV Mixar"
+msgid "Snapping panel for Lampway UV Properties space"
+msgstr "Panel prikačinja za prostor osobina UV Lampway"
 
 # derived
 msgid "Snapping Options"
@@ -30619,7 +30619,7 @@ msgid "Unknown unwrap method: {method}"
 msgstr "Nepoznat metod rastvaranja: {method}"
 
 # derived
-msgid "Combined Unwrap + Project panel for the Mixar UV Properties space."
+msgid "Combined Unwrap + Project panel for the Lampway UV Properties space."
 msgstr "Kombinovani panel Rastvaranje + Projekcija za prostor osobina UV-a u Mixar-u."
 
 msgid "Live Unwrap"
@@ -30714,7 +30714,7 @@ msgid ""
 "\n"
 "Wrapper around `image.new` that pre-sets `tiled=True` on the\n"
 "operator's property dialog. Used as the `new=` operator for\n"
-"`template_ID` in Mixar UV panels so the dialog opens with the\n"
+"`template_ID` in Lampway UV panels so the dialog opens with the\n"
 "Tiled checkbox already checked. The underlying `image.new` does\n"
 "the actual creation and ID assignment.\n"
 msgstr ""
@@ -30751,7 +30751,7 @@ msgid "Fill UDIM tile"
 msgstr "Ispuni UDIM pločicu"
 
 # derived
-msgid "UV Set panel for the Mixar UV Properties space."
+msgid "UV Set panel for the Lampway UV Properties space."
 msgstr "Panel UV skupa za prostor osobina UV-a u Mixar-u."
 
 msgid "UV Maps"
@@ -30811,7 +30811,7 @@ msgstr "Alatke"
 
 # derived
 msgid ""
-"Tool panel for the Mixar UV Properties space — shown when the\n"
+"Tool panel for the Lampway UV Properties space — shown when the\n"
 "`builtin.uv_tool` toolbar tool is active."
 msgstr ""
 "Panel alatki za prostor osobina UV-a u Mixar-u — prikazuje se kada je\n"
@@ -31011,7 +31011,7 @@ msgstr ""
 msgid "Menu"
 msgstr ""
 
-msgid "Mixar, File, Edit, Render, Window and Help menus"
+msgid "Lampway, File, Edit, Render, Window and Help menus"
 msgstr ""
 
 # derived
@@ -31053,16 +31053,16 @@ msgid "Particles"
 msgstr ""
 
 # derived
-msgid "Switch Mixar into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Prebacuje Mixar u režim Zen (minimalan prikaz + mehurić agenta + mudbord)"
+msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
+msgstr "Prebacuje Lampway u režim Zen (minimalan prikaz + mehurić agenta + mudbord)"
 
 # derived
 msgid "Could not create Zen Mode workspace — no template available"
 msgstr "Nije moguće napraviti radni prostor režima Zen — šablon nije dostupan"
 
 # derived
-msgid "Switch Mixar into Engine Mode (full Blender-style workspaces)"
-msgstr "Prebacuje Mixar u režim Engine (puni radni prostori u stilu Blender-a)"
+msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
+msgstr "Prebacuje Lampway u režim Engine (puni radni prostori u stilu Blender-a)"
 
 # derived
 msgid "Modeling workspace not found"
@@ -31294,19 +31294,19 @@ msgid "Creator Program"
 msgstr ""
 
 # derived
-msgid "File saved by newer Mixar version (%d.%d), some data may be lost"
+msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
 msgstr "Datoteku je sačuvala novija verzija Mixar-a (%d.%d), neki podaci mogu biti izgubljeni"
 
 # derived
-msgid "The file was saved by a newer version, open it with Mixar %s or later"
-msgstr "Datoteku je sačuvala novija verzija, otvorite je pomoću Mixar %s ili novije"
+msgid "The file was saved by a newer version, open it with Lampway %s or later"
+msgstr "Datoteku je sačuvala novija verzija, otvorite je pomoću Lampway %s ili novije"
 
 # derived
 msgid "Failed to read mixar file '%s': %s"
 msgstr "Čitanje mixar datoteke '%s' nije uspelo: %s"
 
 # derived
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Mixar"
+msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
 msgstr "Nije moguće pročitati mixar datoteku '%s', nepotpuno zaglavlje, možda je iz novije verzije Mixar-a"
 
 # derived
@@ -31318,15 +31318,15 @@ msgid "Unable to open mixar <memory>"
 msgstr "Nije moguće otvoriti mixar <memory>"
 
 # derived
-msgid "Mixarfile '%s' was created by a future version of Mixar and contains ID names longer than currently supported. These have been truncated."
-msgstr "Mixar datoteka '%s' je napravljena budućom verzijom Mixar-a i sadrži ID imena duža od trenutno podržanih. Ona su skraćena."
+msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr "Lampway datoteka '%s' je napravljena budućom verzijom Mixar-a i sadrži ID imena duža od trenutno podržanih. Ona su skraćena."
 
 # derived
 msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Mixar datoteka '%s' izgleda oštećeno, sadrži neispravna ID imena. Ona su skraćena."
+msgstr "Lampway datoteka '%s' izgleda oštećeno, sadrži neispravna ID imena. Ona su skraćena."
 
 # derived
-msgid "Library '%s' was created by a future version of Mixar and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Mixar version."
+msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
 msgstr "Zbirka '%s' je napravljena budućom verzijom Mixar-a i sadrži ID imena duža od trenutno podržanih. To može dovesti do nedostajućih povezanih podataka; razmislite o otvaranju i ponovnom čuvanju te zbirke trenutnom verzijom Mixar-a."
 
 # derived
@@ -31497,8 +31497,8 @@ msgid "Write your prompt here..."
 msgstr "Napišite prompt ovde..."
 
 # derived
-msgid "Everything Mixar has generated"
-msgstr "Sve što je Mixar generisao"
+msgid "Everything Lampway has generated"
+msgstr "Sve što je Lampway generisao"
 
 msgid "Your connected folders: images, videos and 3D assets"
 msgstr ""
@@ -33184,16 +33184,16 @@ msgid "Delete a segmented image from the preview history"
 msgstr "Briše segmentiranu sliku iz istorije pregleda"
 
 # derived
-msgid "Mixar agent bubble loading…"
-msgstr "Učitavanje mehurića agenta Mixar…"
+msgid "Lampway agent bubble loading…"
+msgstr "Učitavanje mehurića agenta Lampway…"
 
 # derived
 msgid "Show Agent Bubble"
 msgstr "Prikaži mehurić agenta"
 
 # derived
-msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Mixar interface"
-msgstr "Otvara plutajući preklop mehurića agenta koji omogućava ćaskanje sa AI agentom iz bilo kog dela interfejsa Mixar"
+msgid "Open the floating agent bubble overlay that lets the user chat with the AI agent from anywhere in the Lampway interface"
+msgstr "Otvara plutajući preklop mehurića agenta koji omogućava ćaskanje sa AI agentom iz bilo kog dela interfejsa Lampway"
 
 msgid "Chat is still loading. Please drop the asset again."
 msgstr ""
@@ -33249,7 +33249,7 @@ msgid "Dropped image datablock"
 msgstr "Blok podataka otpuštene slike"
 
 # derived
-msgid "Tell me about the features in Mixar"
+msgid "Tell me about the features in Lampway"
 msgstr "Recite mi o mogućnostima Mixar-a"
 
 # derived
@@ -34417,16 +34417,16 @@ msgid "Texture set management for PBR workflows"
 msgstr "Upravljanje skupovima tekstura za PBR tokove rada"
 
 # derived
-msgid "Mixar UV Editor"
-msgstr "UV uređivač Mixar"
+msgid "Lampway UV Editor"
+msgstr "UV uređivač Lampway"
 
 # derived
-msgid "Mixar UV editing mode"
-msgstr "Režim UV uređivanja Mixar"
+msgid "Lampway UV editing mode"
+msgstr "Režim UV uređivanja Lampway"
 
 # derived
-msgid "Mixar Layers Properties"
-msgstr "Osobine slojeva Mixar"
+msgid "Lampway Layers Properties"
+msgstr "Osobine slojeva Lampway"
 
 # derived
 msgid "Reference image board like PureRef"
@@ -34437,8 +34437,8 @@ msgid "Mixie Space"
 msgstr "Prostor Mixie"
 
 # derived
-msgid "Mixie editor for Mixar"
-msgstr "Uređivač Mixie za Mixar"
+msgid "Mixie editor for Lampway"
+msgstr "Uređivač Mixie za Lampway"
 
 # derived
 msgid "Mixie editor mode"
@@ -34449,8 +34449,8 @@ msgid "Agent Bubble Space"
 msgstr "Prostor mehurića agenta"
 
 # derived
-msgid "Floating agent chat overlay editor for Mixar"
-msgstr "Uređivač plutajućeg preklopa ćaskanja sa agentom za Mixar"
+msgid "Floating agent chat overlay editor for Lampway"
+msgstr "Uređivač plutajućeg preklopa ćaskanja sa agentom za Lampway"
 
 # derived
 msgid "Top Bar Space"
@@ -34461,28 +34461,28 @@ msgid "Top bar containing the workspace tab strip and the editor menus"
 msgstr "Gornja traka sa trakom kartica radnih prostora i menijima uređivača"
 
 # derived
-msgid "Mixar Layers Space"
-msgstr "Prostor slojeva Mixar"
+msgid "Lampway Layers Space"
+msgstr "Prostor slojeva Lampway"
 
 # derived
-msgid "Mixar texture layer stack management"
-msgstr "Upravljanje stekom slojeva teksture Mixar"
+msgid "Lampway texture layer stack management"
+msgstr "Upravljanje stekom slojeva teksture Lampway"
 
 # derived
-msgid "Mixar Properties Space"
-msgstr "Prostor osobina Mixar"
+msgid "Lampway Properties Space"
+msgstr "Prostor osobina Lampway"
 
 # derived
-msgid "Mixar layer and texture properties"
-msgstr "Osobine sloja i teksture Mixar"
+msgid "Lampway layer and texture properties"
+msgstr "Osobine sloja i teksture Lampway"
 
 # derived
-msgid "Mixar Assets Space"
-msgstr "Prostor resursa Mixar"
+msgid "Lampway Assets Space"
+msgstr "Prostor resursa Lampway"
 
 # derived
-msgid "Mixar smart materials, brushes, and textures library"
-msgstr "Zbirka pametnih materijala, četkica i tekstura Mixar"
+msgid "Lampway smart materials, brushes, and textures library"
+msgstr "Zbirka pametnih materijala, četkica i tekstura Lampway"
 
 # derived
 msgid "Texture sets management"
@@ -34493,8 +34493,8 @@ msgid "Use Blender's theme"
 msgstr "Koristi temu Blender-a"
 
 # derived
-msgid "Mixar Zen components"
-msgstr "Komponente Mixar Zen"
+msgid "Lampway Zen components"
+msgstr "Komponente Lampway Zen"
 
 # derived
 msgid "Compatibility appearance"
@@ -35947,16 +35947,16 @@ msgid "Global Areas"
 msgstr "Globalne oblasti"
 
 # derived
-msgid "Window-global areas (topbar, statusbar). Mixar extension — exposed so onboarding can address the topbar for redraw."
-msgstr "Oblasti globalne za prozor (gornja traka, statusna traka). Proširenje Mixar — izloženo da uvođenje može da adresira gornju traku za ponovno crtanje."
+msgid "Window-global areas (topbar, statusbar). Lampway extension — exposed so onboarding can address the topbar for redraw."
+msgstr "Oblasti globalne za prozor (gornja traka, statusna traka). Proširenje Lampway — izloženo da uvođenje može da adresira gornju traku za ponovno crtanje."
 
 # derived
 msgid "QA UI Dump"
 msgstr "QA ispis interfejsa"
 
 # derived
-msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Mixar QA harness"
-msgstr "JSON snimak svih živih vidžeta interfejsa (nazivi, operatori, osobine, pravougaonici prostora prozora, stanje) za QA ispitivač Mixar"
+msgid "JSON snapshot of all live UI widgets (labels, operators, properties, window-space rects, state) for the Lampway QA harness"
+msgstr "JSON snimak svih živih vidžeta interfejsa (nazivi, operatori, osobine, pravougaonici prostora prozora, stanje) za QA ispitivač Lampway"
 
 # derived
 msgid "Window Resizing"
@@ -35988,7 +35988,7 @@ msgstr ""
 msgid "QA frame capture requires --enable-event-simulate"
 msgstr "Snimanje QA kadra zahteva --enable-event-simulate"
 
-msgid "Mixar UI control is disabled"
+msgid "Lampway UI control is disabled"
 msgstr ""
 
 # derived
@@ -36012,11 +36012,11 @@ msgid "Microphone disconnected"
 msgstr "Mikrofon je isključen"
 
 # derived
-msgid "Mixar File View"
-msgstr "Pregled Mixar datoteka"
+msgid "Lampway File View"
+msgstr "Pregled Lampway datoteka"
 
 # derived
-msgid "Proxies have been removed from Mixar (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Mixar version"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
 msgstr "Proksiji su uklonjeni iz Mixar-a (%d proksija je automatski pretvoreno u premošćenja zbirke, %d proksija nije moglo da se pretvori i očišćeno je). Razmislite o ponovnom čuvanju svake .mixar datoteke zbirke najnovijom verzijom Mixar-a"
 
 # derived
@@ -36028,12 +36028,12 @@ msgid "Cannot save mixar file, path \"%s\" is a directory"
 msgstr "Nije moguće sačuvati mixar datoteku, putanja \"%s\" je fascikla"
 
 # derived
-msgid "Mixar will start next time as it is now."
-msgstr "Mixar će se sledeći put pokrenuti kao što je sada."
+msgid "Lampway will start next time as it is now."
+msgstr "Lampway će se sledeći put pokrenuti kao što je sada."
 
 # derived
-msgid "Load Factory Mixar Preferences"
-msgstr "Učitaj fabrička podešavanja Mixar"
+msgid "Load Factory Lampway Preferences"
+msgstr "Učitaj fabrička podešavanja Lampway"
 
 # derived
 msgid "Load user interface setup from the .mixar file"
@@ -36044,16 +36044,16 @@ msgid "Allow .mixar file to execute scripts automatically, default available fro
 msgstr "Dozvoli da .mixar datoteka automatski izvršava skripte; podrazumevano je dostupno u sistemskim podešavanjima"
 
 # derived
-msgid "Open a Mixar file"
-msgstr "Otvori Mixar datoteku"
+msgid "Open a Lampway file"
+msgstr "Otvori Lampway datoteku"
 
 # derived
 msgid "Load user interface setup in the .mixar file"
 msgstr "Učitaj postavku korisničkog interfejsa u .mixar datoteci"
 
 # derived
-msgid "Mixar Files"
-msgstr "Mixar datoteke"
+msgid "Lampway Files"
+msgstr "Lampway datoteke"
 
 # derived
 msgid "Show only .mixar files"
@@ -36088,32 +36088,32 @@ msgid "Save as .blend file"
 msgstr "Sačuvaj kao .blend datoteku"
 
 # derived
-msgid "Save the current Mixar file with a numerically incremented name that does not overwrite any existing files"
-msgstr "Čuva tekuću Mixar datoteku pod brojčano uvećanim imenom koje ne prepisuje postojeće datoteke"
+msgid "Save the current Lampway file with a numerically incremented name that does not overwrite any existing files"
+msgstr "Čuva tekuću Lampway datoteku pod brojčano uvećanim imenom koje ne prepisuje postojeće datoteke"
 
 # derived
-msgid "Save Mixar File"
-msgstr "Sačuvaj Mixar datoteku"
+msgid "Save Lampway File"
+msgstr "Sačuvaj Lampway datoteku"
 
 # derived
-msgid "Save the current Mixar file"
-msgstr "Čuva tekuću Mixar datoteku"
+msgid "Save the current Lampway file"
+msgstr "Čuva tekuću Lampway datoteku"
 
 # derived
-msgid "Exit Mixar after saving"
+msgid "Exit Lampway after saving"
 msgstr "Izađi iz Mixar-a posle čuvanja"
 
 # derived
-msgid "This file was saved by a newer version of Mixar (%s)."
+msgid "This file was saved by a newer version of Lampway (%s)."
 msgstr "Ovu datoteku je sačuvala novija verzija Mixar-a (%s)."
 
 # derived
-msgid "Saving it with this Mixar (%s) may cause loss of data."
+msgid "Saving it with this Lampway (%s) may cause loss of data."
 msgstr "Čuvanje ovim Mixar-om (%s) može dovesti do gubitka podataka."
 
 # derived
-msgid "This file is managed by the Mixar asset system. It can only be"
-msgstr "Ovom datotekom upravlja sistem resursa Mixar. Može samo da bude"
+msgid "This file is managed by the Lampway asset system. It can only be"
+msgstr "Ovom datotekom upravlja sistem resursa Lampway. Može samo da bude"
 
 # derived
 msgid "Filter .mixar files"
@@ -36128,15 +36128,15 @@ msgstr ""
 
 # derived
 msgctxt "WindowManager"
-msgid "Newer graphics drivers might be available with better Mixar compatibility."
+msgid "Newer graphics drivers might be available with better Lampway compatibility."
 msgstr "Možda su dostupni noviji grafički drajveri sa boljom kompatibilnošću Mixar-a."
 
 # derived
 msgctxt "WindowManager"
-msgid "Upgrading to the latest macOS version may improve Mixar support"
-msgstr "Nadogradnja na najnoviju verziju macOS može poboljšati podršku za Mixar"
+msgid "Upgrading to the latest macOS version may improve Lampway support"
+msgstr "Nadogradnja na najnoviju verziju macOS može poboljšati podršku za Lampway"
 
 # derived
 msgctxt "WindowManager"
-msgid "Mixar will now close."
-msgstr "Mixar će se sada zatvoriti."
+msgid "Lampway will now close."
+msgstr "Lampway će se sada zatvoriti."

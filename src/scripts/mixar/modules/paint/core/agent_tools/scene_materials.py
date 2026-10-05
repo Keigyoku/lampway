@@ -125,7 +125,7 @@ def _scene_material_prompt(spec: dict) -> str:
     if context_parts:
         prompt = prompt + "\n" + "\n".join(context_parts)
     prompt += (
-        "\nGenerate a Blender procedural material for the Mixar Paint layer system. "
+        "\nGenerate a Blender procedural material for the Lampway Paint layer system. "
         "Use object-appropriate procedural scale, physically plausible Base Color, "
         "Metallic, Roughness, Normal/Height, Alpha and any necessary secondary channels. "
         "Do not use external image textures."

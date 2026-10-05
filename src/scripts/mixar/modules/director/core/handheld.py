@@ -16,7 +16,7 @@ centered additive wiggle around the curve, exactly the drift wanted here.
 
 from __future__ import annotations
 
-HANDHELD_MODIFIER_NAME = "Mixar Handheld"
+HANDHELD_MODIFIER_NAME = "Lampway Handheld"
 
 _LOCATION_AMPLITUDE = 0.04  # metres of drift at full intensity
 _ROTATION_AMPLITUDE = 0.02  # radians (~1.1°) of tremor at full intensity

@@ -28,7 +28,7 @@ def register() -> None:
         return
     bpy.app.timers.register(_start, first_interval=2.0)
     _timer_registered = True
-    logger.debug("Scheduled Mixar connector sidecar")
+    logger.debug("Scheduled Lampway connector sidecar")
 
 
 def unregister() -> None:

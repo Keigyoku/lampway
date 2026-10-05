@@ -33,7 +33,7 @@ class MatGenRecentItem(PropertyGroup):
 
 
 class MATGEN_OT_GenerateMaterial(Operator):
-    """Generate a procedural material from a text prompt via the Mixar backend."""
+    """Generate a procedural material from a text prompt via the Lampway backend."""
     bl_idname = "matgen.generate_material"
     bl_label = "Generate"
     bl_description = "Generate a procedural material with AI"

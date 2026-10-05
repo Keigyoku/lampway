@@ -41,15 +41,15 @@ def _announce(app, status, detail):
     name = app_configs.label(app)
     from mixar.modules.common.notifications.store import get_notification_store
     if status in ("added", "updated"):
-        title = rpt_("Mixar added to {app}").format(app=name)
-        body = rpt_("Restart {app}'s MCP connection to start using Mixar.").format(app=name)
+        title = rpt_("Lampway added to {app}").format(app=name)
+        body = rpt_("Restart {app}'s MCP connection to start using Lampway.").format(app=name)
         kind = "success"
     elif status == "already":
-        title = rpt_("{app} already has Mixar").format(app=name)
-        body = rpt_("Nothing changed. Restart {app}'s MCP connection if Mixar's tools are missing.").format(app=name)
+        title = rpt_("{app} already has Lampway").format(app=name)
+        body = rpt_("Nothing changed. Restart {app}'s MCP connection if Lampway's tools are missing.").format(app=name)
         kind = "info"
     else:
-        title = rpt_("Could not add Mixar to {app}").format(app=name)
+        title = rpt_("Could not add Lampway to {app}").format(app=name)
         body = rpt_(detail) if detail else ""
         kind = "error"
     get_notification_store().push(kind, title, body)

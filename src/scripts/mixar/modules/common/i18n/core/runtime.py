@@ -59,7 +59,7 @@ def reload(force: bool = False) -> str | None:
     try:
         code, messages = load_locale(locale, LOCALE_DIR)
     except Exception:
-        logger.error("Mixar translations: failed to load catalog for %s", locale, exc_info=True)
+        logger.error("Lampway translations: failed to load catalog for %s", locale, exc_info=True)
         code, messages = None, {}
     _unregister_dict()
     _state["locale"] = locale
@@ -69,7 +69,7 @@ def reload(force: bool = False) -> str | None:
         # locale first) hits this dict whatever alias resolved the catalog.
         translations.register(TRANSLATIONS_OWNER, {locale: messages, code: messages})
         _state["registered"] = True
-        logger.info("Mixar translations: %s (%d messages) for locale %s",
+        logger.info("Lampway translations: %s (%d messages) for locale %s",
                     code, len(messages), locale)
     return code
 
@@ -102,7 +102,7 @@ def _sync_ui_locale() -> None:
             if module is not None:
                 getattr(module, function)()
         except Exception:
-            logger.debug("Mixar translations: %s refresh failed", module_name, exc_info=True)
+            logger.debug("Lampway translations: %s refresh failed", module_name, exc_info=True)
 
 
 def _redraw_all() -> None:
@@ -151,7 +151,7 @@ def _subscribe() -> None:
                 options={"PERSISTENT"},
             )
     except Exception:
-        logger.debug("Mixar translations: msgbus subscription failed", exc_info=True)
+        logger.debug("Lampway translations: msgbus subscription failed", exc_info=True)
 
 
 def _on_load_post(*_args) -> None:

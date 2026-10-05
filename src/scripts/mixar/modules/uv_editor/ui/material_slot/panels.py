@@ -46,7 +46,7 @@ def get_active_object_from_3d_view(context):
 
 
 class MIXAR_UV_PT_material_slot(Panel):
-    """Material slot panel for Mixar UV Properties space"""
+    """Material slot panel for Lampway UV Properties space"""
     bl_label = "Material Slot"
     bl_idname = "MIXAR_UV_PT_material_slot"
     bl_space_type = 'IMAGE_EDITOR'

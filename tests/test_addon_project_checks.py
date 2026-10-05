@@ -216,7 +216,7 @@ def test_dispatch_runs_tests_and_sets_the_entrypoint(tmp_path, monkeypatch, set_
     from mixar.modules.addon_project.constants import PROTOCOL_VERSION, RPC_RUN_TESTS, RPC_SET_ENTRYPOINT
     from mixar.modules.addon_project.service import AddonProjectService
 
-    root = set_addon_projects_root(tmp_path / "Mixar Addons")
+    root = set_addon_projects_root(tmp_path / "Lampway Addons")
     for name in ("alpha_tool", "beta_tool"):
         pkg = root / name
         (pkg / "tests").mkdir(parents=True)

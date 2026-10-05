@@ -30,7 +30,7 @@ class MIXAR_OT_ui_gallery_action(bpy.types.Operator):
 
 class MIXAR_OT_ui_gallery(bpy.types.Operator):
     bl_idname = "mixar.ui_gallery"
-    bl_label = "Mixar UI Gallery"
+    bl_label = "Lampway UI Gallery"
     bl_description = "Inspect shared native components using local fixture data"
 
     @classmethod

@@ -14,7 +14,7 @@ def register():
         from mixar.modules.common.i18n.core import runtime
         runtime.register()
     except Exception:
-        logger.error("Mixar translations failed to register", exc_info=True)
+        logger.error("Lampway translations failed to register", exc_info=True)
 
 
 def unregister():
@@ -22,4 +22,4 @@ def unregister():
         from mixar.modules.common.i18n.core import runtime
         runtime.unregister()
     except Exception:
-        logger.debug("Mixar translations failed to unregister", exc_info=True)
+        logger.debug("Lampway translations failed to unregister", exc_info=True)

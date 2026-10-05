@@ -118,7 +118,7 @@ def test_disconnected_scene_never_forwards(relay):
     status, body = launcher.local_request(record(server), "POST", "/mcp", listing)
     assert status == 503 and b"Sign in" in body and len(calls) == 1
     from mixar.modules.mcp_bridge.core import connector  # The agent sees the reason, not "HTTP 503".
-    with pytest.raises(RuntimeError, match="^Sign in to Mixar"):
+    with pytest.raises(RuntimeError, match="^Sign in to Lampway"):
         connector.request(record(server), "POST", "/mcp", json.loads(call))
 
 
@@ -174,12 +174,12 @@ def test_stdio_unknown_outcome_does_not_retry(relay, monkeypatch):
 def test_setup_json_and_toml_escape_install_paths(monkeypatch):
     from mixar.modules.mcp_bridge.core.setup import connection_config
     monkeypatch.setattr(sys, "platform", "win32")
-    config = json.loads(connection_config("JSON", 'C:\\Program Files\\Mixar'))
-    assert "Mixar" in config["mcpServers"]["mixar"]["command"]
+    config = json.loads(connection_config("JSON", 'C:\\Program Files\\Lampway'))
+    assert "Lampway" in config["mcpServers"]["lampway"]["command"]
     assert "token" not in json.dumps(config).lower()
     import tomllib
-    parsed = tomllib.loads(connection_config("CODEX", 'C:\\Program Files\\Mixar'))
-    assert parsed["mcp_servers"]["mixar"]["tool_timeout_sec"] == 610
+    parsed = tomllib.loads(connection_config("CODEX", 'C:\\Program Files\\Lampway'))
+    assert parsed["mcp_servers"]["lampway"]["tool_timeout_sec"] == 610
 
 
 def test_the_dialog_copies_one_standard_config_and_links_the_guide(monkeypatch):
@@ -187,8 +187,8 @@ def test_the_dialog_copies_one_standard_config_and_links_the_guide(monkeypatch):
     from mixar.modules.mcp_bridge.constants import SETUP_GUIDE_URL
     from mixar.modules.mcp_bridge.core.setup import connection_config
     monkeypatch.setattr(sys, "platform", "darwin")
-    root = "/Applications/Mixar App.app/Contents/Resources/5.2"
-    server = json.loads(connection_config("JSON", root))["mcpServers"]["mixar"]
+    root = "/Applications/Lampway App.app/Contents/Resources/5.2"
+    server = json.loads(connection_config("JSON", root))["mcpServers"]["lampway"]
     assert server["command"].startswith(root) and set(server) == {"command", "args"}
     from mixar.config.brand import website_url
     assert SETUP_GUIDE_URL == website_url("/docs#connect-ai-apps")

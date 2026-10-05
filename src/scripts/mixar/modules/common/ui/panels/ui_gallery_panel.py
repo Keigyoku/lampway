@@ -164,7 +164,7 @@ def draw_gallery(layout, context):
 
 
 class MIXAR_PT_ui_gallery(bpy.types.Panel):
-    bl_label = "Mixar UI Gallery"
+    bl_label = "Lampway UI Gallery"
     bl_idname = "MIXAR_PT_ui_gallery"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"

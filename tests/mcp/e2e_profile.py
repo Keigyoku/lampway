@@ -84,12 +84,12 @@ def signed_out_setup(qa, output, fixture):
     saved.unlink(missing_ok=True)
     qa.eval("result = list(bpy.ops.mixar.connect_ai('INVOKE_DEFAULT'))")
     time.sleep(0.8)
-    assert qa.find(text="Sign in to Mixar to connect AI apps.", popup=True)["total"] == 1
+    assert qa.find(text="Sign in to Lampway to connect AI apps.", popup=True)["total"] == 1
     assert qa.find(op="MIXIE_CHAT_OT_login", popup=True)["total"] == 1
     toggles = qa.find(op="MIXAR_OT_set_mcp_enabled", popup=True)["widgets"]
     assert [w["text"] for w in toggles] == ["Disable"], toggles  # Turning off needs no account.
     assert qa.find(op="MIXAR_OT_copy_mcp_setup", popup=True)["total"] == 0
-    snap(qa, output / "setup-signed-out.png", {"text": "Sign in to Mixar to connect AI apps.", "popup": True})
+    snap(qa, output / "setup-signed-out.png", {"text": "Sign in to Lampway to connect AI apps.", "popup": True})
     qa.click(op="MIXAR_OT_set_mcp_enabled", popup=True)
     qa.wait(f"not {mcp_on}", timeout=10)
     signed_out_disable = True
@@ -98,7 +98,7 @@ def signed_out_setup(qa, output, fixture):
     refused = {name: qa.eval(f"try:\n result = list(bpy.ops.mixar.{name}())\n"
                              "except RuntimeError as exc:\n result = str(exc)")
                for name in ("set_mcp_enabled", "copy_mcp_setup")}
-    assert all("Sign in to Mixar before connecting AI apps" in str(r) for r in refused.values()), refused
+    assert all("Sign in to Lampway before connecting AI apps" in str(r) for r in refused.values()), refused
     qa.eval("result = list(bpy.ops.mixie_chat.login())")
     qa.wait(f"{WM}.mixie_chat_is_logged_in", timeout=90)
     assert qa.eval("result = list(bpy.ops.mixar.copy_mcp_setup(client='JSON'))") == ["FINISHED"]

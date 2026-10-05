@@ -20,7 +20,7 @@ _contexts = {}
 def main_window():
     windows = [w for w in bpy.context.window_manager.windows if not w.screen.is_temporary]
     if not windows:
-        raise UIError("not_ready", "Mixar has no document window")
+        raise UIError("not_ready", "Lampway has no document window")
     return max(windows, key=lambda w: w.width * w.height)
 
 

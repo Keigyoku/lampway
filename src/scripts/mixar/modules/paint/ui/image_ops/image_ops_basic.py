@@ -25,7 +25,7 @@ from .image_ops_operators_helper import pack_image
 class MCopyImagePathToClipboard(bpy.types.Operator):
     bl_idname = "wm.copy_image_path_to_clipboard"
     bl_label = "Copy Image Path To Clipboard"
-    bl_description = "Mixar Paint Copy the image file path to the system clipboard"
+    bl_description = "Lampway Paint Copy the image file path to the system clipboard"
 
     clipboard_text: bpy.props.StringProperty()
 
@@ -46,7 +46,7 @@ class MCopyImagePathToClipboard(bpy.types.Operator):
 class MOpenContainingImageFolder(bpy.types.Operator):
     bl_idname = "wm.open_containing_image_folder"
     bl_label = "Open Containing Image Folder"
-    bl_description = "Mixar Paint Open the folder containing the image file and highlight it"
+    bl_description = "Lampway Paint Open the folder containing the image file and highlight it"
 
     file_path: bpy.props.StringProperty()
 

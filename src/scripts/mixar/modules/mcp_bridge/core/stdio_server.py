@@ -18,8 +18,8 @@ from .connector import Connector, instances, signed_in, usable
 # keeps only their first 2,048 characters: core rules first, the full playbook
 # is the backend's free mixar_guide tool.
 GUIDE = """\
-Mixar is an AI-native 3D editor built on Blender 5.2. These tools act on the
-user's open, signed-in Mixar desktop. Call mixar_guide first, then
+Lampway is an AI-native 3D editor built on Blender 5.2. These tools act on the
+user's open, signed-in Lampway desktop. Call mixar_guide first, then
 mixar_guide(topic) before planning that kind of work (build, generate,
 characters, environments, materials, delivery).
 
@@ -48,8 +48,8 @@ continue a saved project.
 Ask the user when an open choice matters (method, style, scale, detail, a
 large credit spend); settle small details yourself.
 Native UI tools (mixar_ui_*, if the user allows them) cover what no other
-tool does; never use OS-level computer use on Mixar.
-Only generation costs Mixar credits (its job price, as does
+tool does; never use OS-level computer use on Lampway.
+Only generation costs Lampway credits (its job price, as does
 create_layered_material); everything else is free. After an uncertain outcome, inspect and use
 mixar_call_status or mixar_ui_call_status with the same call UUID; never
 blindly repeat an edit.
@@ -130,7 +130,7 @@ def create_server(connector):
                 if args.get("instance"):
                     available = await asyncio.to_thread(instances)
                     if args["instance"] not in {r["instance_id"] for r, _ in available}:
-                        raise ValueError("Selected Mixar instance is unavailable")
+                        raise ValueError("Selected Lampway instance is unavailable")
                     await asyncio.to_thread(connector.cancel)
                     with connector.lock:
                         connector.instance, connector.record = args["instance"], None
@@ -149,7 +149,7 @@ def create_server(connector):
                 if args.get("session"):
                     _, health = await asyncio.to_thread(connector.attach)
                     if args["session"] != health.get("session_id"):
-                        raise ValueError("Select the current Mixar scene session returned by context")
+                        raise ValueError("Select the current Lampway scene session returned by context")
                     connector.bound_session = args["session"]
                     args = {k: v for k, v in args.items() if k != "session"}
             if params.name == "mixar_tool_catalog" and args.get("domain") in LOCAL_DOMAINS:
@@ -187,12 +187,12 @@ def create_server(connector):
             return failure(exc, call_id)
 
     async def list_resources(ctx, params):
-        return types.ListResourcesResult(resources=[types.Resource(uri="mixar://guide", name="Mixar guide",
+        return types.ListResourcesResult(resources=[types.Resource(uri="mixar://guide", name="Lampway guide",
                                                                    mime_type="text/markdown")])
 
     async def read_resource(ctx, params):
         if str(params.uri) != "mixar://guide":
-            raise ValueError("Unknown Mixar resource")
+            raise ValueError("Unknown Lampway resource")
         return types.ReadResourceResult(contents=[types.TextResourceContents(
             uri=params.uri, mime_type="text/markdown", text=GUIDE)])
 
@@ -208,11 +208,11 @@ def create_server(connector):
                 or not goal.strip() or len(goal) > 8000):
             raise ValueError("Specify build-and-verify with a nonempty goal of at most 8000 characters")
         return types.GetPromptResult(messages=[types.PromptMessage(role="user",
-            content=types.TextContent(type="text", text="Complete this task in Mixar: " + goal +
-                "\n\n" + GUIDE + "Inspect the scene with Mixar's tools (render_viewport, mixar_ui_observe) before and after editing. "
+            content=types.TextContent(type="text", text="Complete this task in Lampway: " + goal +
+                "\n\n" + GUIDE + "Inspect the scene with Lampway's tools (render_viewport, mixar_ui_observe) before and after editing. "
                 "Check tool costs and report credits and any unverified outcomes."))])
 
-    return Server("Mixar", version="1", instructions=GUIDE,
+    return Server("Lampway", version="1", instructions=GUIDE,
                   on_list_tools=list_tools, on_call_tool=call_tool,
                   on_list_resources=list_resources, on_read_resource=read_resource,
                   on_list_prompts=list_prompts, on_get_prompt=get_prompt)

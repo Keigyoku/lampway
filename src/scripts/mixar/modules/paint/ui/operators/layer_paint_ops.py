@@ -74,7 +74,7 @@ from .layer_paint_ops_helpers import (
 
 
 class LAYERS_OT_AddPaintLayer(Operator):
-    """Add a new paint layer - Complete Mixar Paint implementation"""
+    """Add a new paint layer - Complete Lampway Paint implementation"""
 
     bl_idname = "layers.add_paint_layer"
     bl_label = "Add Paint Layer"
@@ -277,7 +277,7 @@ class LAYERS_OT_AddPaintLayer(Operator):
 
         node = get_active_mpaint_node()
         if not node:
-            self.report({'ERROR'}, "No active Mixar node found")
+            self.report({'ERROR'}, "No active Lampway node found")
             return {'CANCELLED'}
 
         group_tree = node.node_tree

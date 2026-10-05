@@ -17,13 +17,13 @@ from ..constants import SCENE_GRAPH_PROP, SCENE_GRAPH_RESULT_PROP
 
 def register():
     setattr(bpy.types.Scene, SCENE_GRAPH_PROP, StringProperty(
-        name="Mixar Scene Graph",
+        name="Lampway Scene Graph",
         description="Per-scene agent-readable scene graph (JSON). Runtime-only.",
         default="",
         options={'SKIP_SAVE'},
     ))
     setattr(bpy.types.Scene, SCENE_GRAPH_RESULT_PROP, StringProperty(
-        name="Mixar Scene Graph Query Result",
+        name="Lampway Scene Graph Query Result",
         description="JSON result of the last scene-graph query operator call.",
         default="",
         options={'SKIP_SAVE'},

@@ -40,14 +40,14 @@ def _has_moodboard_selection(scene):
 
 
 class MIXIE_OT_moodboard_copy_image(Operator):
-    """Copy the selected moodboard items so they can be pasted, here or in another Mixar window"""
+    """Copy the selected moodboard items so they can be pasted, here or in another Lampway window"""
 
     bl_idname = "mixie.moodboard_copy_image"
     bl_label = "Copy"
     bl_description = (
         f"Copy the selected images, videos, text boxes and inference nodes "
         f"(with their connections and results); paste with "
-        f"{format_shortcut('V')} in this or another Mixar instance"
+        f"{format_shortcut('V')} in this or another Lampway instance"
     )
     bl_options = {'REGISTER'}
 
@@ -56,7 +56,7 @@ class MIXIE_OT_moodboard_copy_image(Operator):
         return tip_(
             "Copy the selected images, videos, text boxes and inference nodes "
             "(with their connections and results); paste with "
-            "{shortcut} in this or another Mixar instance"
+            "{shortcut} in this or another Lampway instance"
         ).format(shortcut=format_shortcut('V'))
 
     @classmethod

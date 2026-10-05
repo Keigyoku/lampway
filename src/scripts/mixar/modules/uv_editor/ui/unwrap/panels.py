@@ -36,7 +36,7 @@ def _row(col, label_text):
 
 
 class MIXAR_UV_PT_unwrap(Panel):
-    """Combined Unwrap + Project panel for the Mixar UV Properties space."""
+    """Combined Unwrap + Project panel for the Lampway UV Properties space."""
     bl_label = "Unwrap"
     bl_idname = "MIXAR_UV_PT_unwrap"
     bl_space_type = 'IMAGE_EDITOR'

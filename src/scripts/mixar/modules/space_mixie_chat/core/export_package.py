@@ -30,8 +30,8 @@ from .export_verify import file_clip_names, verify_export
 
 FORMATS = ("glb", "gltf", "fbx", "usdz", "usd")
 DESTINATIONS = ("mixar_exports", "downloads", "documents", "desktop", "project")
-GENERATOR = "Mixar export_package"
-_LEGACY_GENERATORS = (GENERATOR, "Mixar uv_bake.export_package")
+GENERATOR = "Lampway export_package"
+_LEGACY_GENERATORS = (GENERATOR, "Lampway uv_bake.export_package")
 
 
 def _safe(name, fallback="asset"):
@@ -54,7 +54,7 @@ def destination(where, subfolder=None):
     elif where == "documents":
         base = os.path.join(home, "Documents")
     else:
-        base = os.path.join(home, "Documents", "Mixar Exports")
+        base = os.path.join(home, "Documents", "Lampway Exports")
     path = os.path.join(base, _safe(subfolder)) if subfolder else base
     os.makedirs(path, exist_ok=True)
     return path

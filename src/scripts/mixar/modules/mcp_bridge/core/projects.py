@@ -74,9 +74,9 @@ def _still_working() -> str:
     session = scene_tabs._session()
     for scene in bpy.data.scenes:
         if is_lane_scene(scene):
-            return "a Mixar agent task is still running"
+            return "a Lampway agent task is still running"
         if session.get_state(scene) not in (SessionState.IDLE, SessionState.OFFLINE) or session.run_open(scene):
-            return "the Mixar agent is working in scene tab %r" % scene.name
+            return "the Lampway agent is working in scene tab %r" % scene.name
     if active_job_count():
         return "generation jobs are still running and would import into a scene that closes"
     return ""
@@ -104,7 +104,7 @@ def preflight(args: dict):
                       "discard them, then call again with unsaved='save' or unsaved='discard'")
     if bpy.data.is_dirty and unsaved == "save" and not bpy.data.filepath:
         raise UIError("unsaved_untitled", "The open file has never been saved, so it cannot be saved here. Ask "
-                      "the user to save it in Mixar, or call again with unsaved='discard' if they agree to lose it")
+                      "the user to save it in Lampway, or call again with unsaved='discard' if they agree to lose it")
     return path
 
 
@@ -114,10 +114,10 @@ def open_project(path, unsaved: str = "refuse") -> dict:
     if opened:
         if bpy.data.is_dirty and unsaved == "save":
             if "FINISHED" not in bpy.ops.wm.save_mainfile():
-                raise UIError("save_failed", "Mixar could not save the open file; nothing was opened")
+                raise UIError("save_failed", "Lampway could not save the open file; nothing was opened")
         # No context override: the window it would name is freed by the load.
         if "FINISHED" not in bpy.ops.wm.open_mainfile(filepath=str(path)):
-            raise UIError("open_failed", "Mixar could not open that project")
+            raise UIError("open_failed", "Lampway could not open that project")
     from mixar.modules.space_mixie_chat.core.scene_identity import adopt_scene
     scene = scene_tabs._shown()
     adopt_scene(scene)  # A loaded document is ready once connected, not OFFLINE.

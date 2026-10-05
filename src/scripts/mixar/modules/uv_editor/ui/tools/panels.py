@@ -58,7 +58,7 @@ def draw_collapsible_header(layout, ui_state, prop_name, label, icon='NONE'):
 
 
 class MIXAR_UV_PT_tools(Panel):
-    """UV Sculpt Tools panel for Mixar UV Properties space - Tool-based (no header button)"""
+    """UV Sculpt Tools panel for Lampway UV Properties space - Tool-based (no header button)"""
     bl_label = "UV Sculpt Tools"
     bl_idname = "MIXAR_UV_PT_tools"
     bl_space_type = 'IMAGE_EDITOR'

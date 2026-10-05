@@ -40,7 +40,7 @@ def remove_saved_identity(_unused=None):
 def register():
     bpy.types.Scene.mixie_chat_user_id = StringProperty(
         name="User ID",
-        description="User ID for Mixie Chat login",
+        description="User ID for Lampway Agent Chat login",
         maxlen=256,
         options={'SKIP_SAVE'},
         get_transform=get_email,

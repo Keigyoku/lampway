@@ -120,7 +120,7 @@ def draw_local_fields(body, wm) -> None:
     byok_dialog_ui.card_label(
         body,
         n_("Runs entirely on this computer — your prompts never leave it "
-           "except through Mixar's agent orchestration."),
+           "except through Lampway's agent orchestration."),
         'MUTED',
     )
 

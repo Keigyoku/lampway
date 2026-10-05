@@ -163,9 +163,9 @@ _SIGNATURES = (
 _MESSAGES = {
     FAILURE_TLS_VERIFY: (
         n_("Certificate verification failed. Your network may be inspecting HTTPS traffic."),
-        "A TLS-inspecting proxy or firewall is presenting a certificate Mixar does not "
+        "A TLS-inspecting proxy or firewall is presenting a certificate Lampway does not "
         "trust. Copy the organization's root CA file (.crt, .cer or .pem) into "
-        "{certs_dir} and restart Mixar, or install it in the OS certificate store. "
+        "{certs_dir} and restart Lampway, or install it in the OS certificate store. "
         "MIXAR_EXTRA_CA_CERTS (or network.extra_ca_certs in mixar.json) adds "
         "certificates from another location; MIXAR_CA_BUNDLE (or network.ca_bundle) "
         "replaces the trusted roots with one PEM bundle. Alternatively exempt {host} "
@@ -287,9 +287,9 @@ def _certs_dir_label() -> str:
     try:
         from .trust import user_certs_dir
 
-        return user_certs_dir() or "the Mixar certs folder"
+        return user_certs_dir() or "the Lampway certs folder"
     except Exception:
-        return "the Mixar certs folder"
+        return "the Lampway certs folder"
 
 
 def classify_network_error(

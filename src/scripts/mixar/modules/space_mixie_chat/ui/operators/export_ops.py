@@ -156,7 +156,7 @@ def _menu_func_export(self, context):
     """
     self.layout.operator(
         MIXIE_CHAT_OT_export_without_chat.bl_idname,
-        text="Mixar Chat: Export .blend without chat history",
+        text="Lampway Chat: Export .blend without chat history",
         icon='EXPORT',
     )
 

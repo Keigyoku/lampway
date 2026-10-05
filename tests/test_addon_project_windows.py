@@ -168,7 +168,7 @@ def test_the_whole_create_an_addon_flow_works_on_this_platform(
     monkeypatch.setattr(bpy.utils, "user_resource", lambda *a, **k: str(addons_dir))
     monkeypatch.setitem(sys.modules, "addon_utils", _AddonUtils())
 
-    root = set_addon_projects_root(tmp_path / "Mixar Addons")
+    root = set_addon_projects_root(tmp_path / "Lampway Addons")
     service = AddonProjectService(tmp_path / "client_state")
     linked = service.link_workspace_root()
     project_id = linked["project_id"]

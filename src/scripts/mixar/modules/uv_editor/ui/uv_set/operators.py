@@ -22,7 +22,7 @@ class MIXAR_OT_image_new(Operator):
 
     Wrapper around `image.new` that pre-sets `tiled=True` on the
     operator's property dialog. Used as the `new=` operator for
-    `template_ID` in Mixar UV panels so the dialog opens with the
+    `template_ID` in Lampway UV panels so the dialog opens with the
     Tiled checkbox already checked. The underlying `image.new` does
     the actual creation and ID assignment.
     """

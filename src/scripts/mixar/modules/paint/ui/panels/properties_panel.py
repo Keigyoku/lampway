@@ -88,7 +88,7 @@ class MIXAR_PROPERTIES_PT_main(Panel):
                 break
 
         if not node:
-            layout.label(text="No Mixar node found", icon='INFO')
+            layout.label(text="No Lampway node found", icon='INFO')
             return
 
         tree = node.node_tree

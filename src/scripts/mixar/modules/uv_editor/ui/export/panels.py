@@ -33,7 +33,7 @@ def _row(col, label_text):
 
 
 class MIXAR_UV_PT_export(Panel):
-    """UV Export panel for Mixar UV Properties space"""
+    """UV Export panel for Lampway UV Properties space"""
     bl_label = "Export"
     bl_idname = "MIXAR_UV_PT_export"
     bl_space_type = 'IMAGE_EDITOR'

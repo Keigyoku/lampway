@@ -28,7 +28,7 @@ def draw_collapsible_header(layout, ui_state, prop_name, label, icon='NONE'):
 
 
 class MIXAR_UV_PT_snapping(Panel):
-    """Snapping panel for Mixar UV Properties space"""
+    """Snapping panel for Lampway UV Properties space"""
     bl_label = "Snapping"
     bl_idname = "MIXAR_UV_PT_snapping"
     bl_space_type = 'IMAGE_EDITOR'

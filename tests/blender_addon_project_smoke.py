@@ -16,7 +16,7 @@ from mixar.modules.addon_project.service import AddonProjectService
 
 
 BASE_INIT = """\
-bl_info = {"name": "Mixar Project Smoke", "blender": (5, 0, 0), "category": "Test"}
+bl_info = {"name": "Lampway Project Smoke", "blender": (5, 0, 0), "category": "Test"}
 from . import operators
 
 def register():
@@ -60,7 +60,7 @@ PANELS = """\
 import bpy
 
 class MIXAR_SMOKE_PT_status(bpy.types.Panel):
-    bl_label = "Mixar Project Smoke"
+    bl_label = "Lampway Project Smoke"
     bl_idname = "MIXAR_SMOKE_PT_status"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'

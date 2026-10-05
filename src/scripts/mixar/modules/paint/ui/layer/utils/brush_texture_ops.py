@@ -35,7 +35,7 @@ def get_or_create_local_brush(source_brush):
     Returns:
         A local, writable brush, or None on failure.
     """
-    local_name = "Mixar Generated Brush"
+    local_name = "Lampway Generated Brush"
     local_brush = bpy.data.brushes.get(local_name)
     if local_brush and not local_brush.library:
         return local_brush

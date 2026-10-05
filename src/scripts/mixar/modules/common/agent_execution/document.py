@@ -231,7 +231,7 @@ def register() -> None:
         if not hasattr(bpy.types.WindowManager, WM_RUN_ACTIVE_PROP):
             setattr(
                 bpy.types.WindowManager, WM_RUN_ACTIVE_PROP,
-                BoolProperty(name="Mixie v3 run active", default=False,
+                BoolProperty(name="Lampway Agent v3 run active", default=False,
                              options={"SKIP_SAVE"}),
             )
     except Exception:

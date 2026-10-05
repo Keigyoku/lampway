@@ -238,7 +238,7 @@ def _sample_depth_range(scene, camera, frame_start: int, frame_end: int):
 
 def _depth_compositor(scene, view_layer, depth_min: float, depth_max: float) -> str:
     tree = bpy.data.node_groups.new(
-        f"Mixar Director Depth {uuid.uuid4().hex[:8]}",
+        f"Lampway Director Depth {uuid.uuid4().hex[:8]}",
         "CompositorNodeTree",
     )
     tree.interface.new_socket(

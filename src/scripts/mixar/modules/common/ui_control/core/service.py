@@ -50,7 +50,7 @@ def submit(owner, name, args, call_id, session=""):
     schema.validate(name, args)
     owner, call_id = str(uuid.UUID(owner)), str(uuid.UUID(call_id))
     if not _registered or _receipts is None:
-        raise UIError("not_ready", "Mixar UI controller is starting")
+        raise UIError("not_ready", "Lampway UI controller is starting")
     if name == "mixar_ui_call_status":
         return envelope(_receipts.status(str(uuid.UUID(args["call_id"]))), call_id)
     if name in MUTATING:
@@ -102,15 +102,15 @@ def envelope(result, call_id, *, failed=False, blocks=()):
 def _signed_in():
     from mixar.modules.mcp_bridge.core import runtime
     if not runtime.enabled():
-        raise UIError("mcp_disabled", "Mixar MCP is disabled")
+        raise UIError("mcp_disabled", "Lampway MCP is disabled")
     wm = bpy.context.window_manager
     if (not getattr(wm, "mixie_chat_is_logged_in", False)
             or getattr(wm, "mixie_chat_session_expired", False)):
         from mixar.modules.space_mixie_chat.ui.operators import auth_ops
         if getattr(auth_ops, "_auth_check_started", False):
             # Every file load re-checks the stored sign-in in the background.
-            raise UIError("not_ready", "Mixar is restoring your sign-in after opening a file; try again in a few seconds")
-        raise UIError("signin_required", "Sign in to Mixar before controlling its UI")
+            raise UIError("not_ready", "Lampway is restoring your sign-in after opening a file; try again in a few seconds")
+        raise UIError("signin_required", "Sign in to Lampway before controlling its UI")
 
 
 def _is_signed_in():
@@ -131,11 +131,11 @@ def _eligible():
     _signed_in()
     state = eligibility.status()
     if not state["eligible"]:
-        messages = {"backend_update_required": "This backend needs the Mixar UI-control update",
-                    "desktop_not_connected": "Mixar is not connected to its server yet; wait for it to reconnect",
-                    "client_update_required": "Update Mixar to use UI control",
-                    "account_unavailable": "This Mixar account cannot use UI control"}
-        raise UIError(state["reason"], messages.get(state["reason"], "Wait for Mixar sign-in and UI eligibility renewal"))
+        messages = {"backend_update_required": "This backend needs the Lampway UI-control update",
+                    "desktop_not_connected": "Lampway is not connected to its server yet; wait for it to reconnect",
+                    "client_update_required": "Update Lampway to use UI control",
+                    "account_unavailable": "This Lampway account cannot use UI control"}
+        raise UIError(state["reason"], messages.get(state["reason"], "Wait for Lampway sign-in and UI eligibility renewal"))
 
 
 def _scene_tool(req):
@@ -166,8 +166,8 @@ def _scene_tool(req):
     return result
 
 
-UI_CONTROL_OFF = ("Interface control is off, so Mixar's interface cannot be inspected or clicked. To use it, ask "
-                  "the user to turn on 'Let AI apps control Mixar's interface' in the profile menu > Connect AI Apps (MCP). "
+UI_CONTROL_OFF = ("Interface control is off, so Lampway's interface cannot be inspected or clicked. To use it, ask "
+                  "the user to turn on 'Let AI apps control Lampway's interface' in the profile menu > Connect AI Apps (MCP). "
                   "Scene work uses the scene tools; mixar_ui_context reports whether they are available")
 
 
