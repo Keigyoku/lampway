@@ -21,6 +21,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Callable, Optional
 
+from . import jobreceipts as JR
 from .services import WIRE_KEYS, ServiceRegistry
 from .spendpolicy import DEFAULT_SPEND_POLICY, SpendPolicy
 
@@ -79,6 +80,8 @@ class Job:
     rendered: Optional[dict] = None   # the render of the payload's template (None for a raw prompt)
     rendered_prompt: str = ""         # the prompt text this job was run with: stored with EVERY image or video job
     variant_of: str = ""
+    receipt: Optional[dict] = None    # the write-ahead receipt (jobreceipts.py): on disk before the provider is called
+    recovered: bool = False           # built from a receipt after a restart, not run in this process
 
 
 _STATE = {"PENDING": "pending", "POLLING": "running", "DONE": "succeeded", "FAILED": "failed", "CANCELLED": "cancelled"}
@@ -86,7 +89,8 @@ _EXT = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}
 
 
 class JobQueue:
-    def __init__(self, backends: dict, hub, base_url: str, model_labels: Optional[dict] = None, video=None, approvals=None, prompts=None, registry=None, policy=None):
+    def __init__(self, backends: dict, hub, base_url: str, model_labels: Optional[dict] = None, video=None, approvals=None, prompts=None, registry=None, policy=None,
+                 receipts=None):
         self.policy = policy if policy is not None else SpendPolicy(lambda: DEFAULT_SPEND_POLICY)      # per-provider caps and clicks (the Providers dialog)
         self.registry = registry if registry is not None else ServiceRegistry()           # services.py: the Client's other job types
         self.prompts = prompts            # prompts.service.PromptService: templates, rendering, the run log
@@ -98,6 +102,7 @@ class JobQueue:
         self.model_labels = model_labels or {}
         self.jobs: dict[str, Job] = {}
         self._by_key: dict[str, str] = {}
+        self.receipts = receipts          # jobreceipts.JobReceipts or None: with it, no paid call is sent without a receipt on disk first
 
     # ----------------------------------------------------------------- catalog
     def catalog(self) -> dict:
@@ -145,7 +150,19 @@ class JobQueue:
         key = idempotency_key or str(uuid.uuid4())
         if key in self._by_key:
             return self.jobs[self._by_key[key]]
-        job = Job(str(uuid.uuid4()), service, model or "default", payload, key, origin)
+        job_id, receipt = str(uuid.uuid4()), None
+        if self.receipts is not None:
+            try:
+                JR.check_rendered({"prompt": payload.get("prompt"), "params": payload.get("params")})
+                receipt, created = self.receipts.create(self._provider_of(service, model), model or "default", payload, key, origin, job_id=job_id)
+            except JR.ReceiptError as exc:
+                raise BadJob(str(exc)) from None
+            if not created:                                               # a restart (or a second submitter) met the same key: never a second job
+                job = self._adopt(receipt)
+                self._by_key[key] = job.job_id
+                return job
+        job = Job(job_id, service, model or "default", payload, key, origin)
+        job.receipt = receipt
         job.rendered, job.rendered_prompt = rendered, str(payload.get("prompt") or "")
         job.variant_of = str((payload.get("template") or {}).get("variant_of") or "") if isinstance(payload.get("template"), dict) else ""
         self.jobs[job.job_id] = job
@@ -153,6 +170,118 @@ class JobQueue:
         self._prune()
         job.task = asyncio.get_running_loop().create_task(self.run(job))
         return job
+
+    # ------------------------------------------------------------------ receipts
+    def _provider_of(self, service: str, model: str) -> str:
+        from .videojobs import PREFIX
+        if str(model or "").startswith(PREFIX):
+            return "higgsfield"
+        if self.video is not None and self.video.handles(service, model) and service != "image_gen":
+            return "openrouter"
+        if service in self.backends:
+            return "openrouter"
+        return service
+
+    _RECEIPT_STATUS = {"planned": "PENDING", "submission_pending": "POLLING", "submitted": "POLLING", "running": "POLLING", "submission_unknown": "PENDING", "completed": "POLLING",
+                       "downloaded": "DONE", "result_saved": "DONE", "provider_error": "FAILED", "cancelled": "CANCELLED", "abandoned": "CANCELLED"}
+
+    def _adopt(self, r: dict) -> Job:
+        """A Job built from a receipt: what the Client's queue shows after a restart. Nothing runs; ``recover`` resumes what can be resumed by provider job id."""
+        existing = self.jobs.get(r.get("job_id") or "")
+        if existing is not None:
+            existing.receipt = r
+            return existing
+        job = Job(r.get("job_id") or str(uuid.uuid4()), "image_gen", r["model"], {}, r["key"], r.get("origin") or "user")
+        job.status = self._RECEIPT_STATUS[r["state"]]
+        job.recovered, job.receipt = True, r
+        job.created = r.get("created_at") or job.created
+        if r["state"] == "submission_unknown":
+            job.note = "Maybe sent: check the provider's own history, then Acknowledge (it did not run) or Link (paste its job id). It is never resubmitted by itself."
+        elif job.status == "FAILED":
+            job.error = r.get("error_text") or "the provider reported an error"
+        elif job.status == "DONE":
+            job.result = {"recovered": True, "outputs": [o["path"] for o in r.get("outputs", [])], "saved": [o["path"] for o in r.get("outputs", [])]}
+        self.jobs[job.job_id] = job
+        self._by_key[r["key"]] = job.job_id
+        return job
+
+    async def recover(self, adapters: Optional[dict] = None) -> dict:
+        """At server start: pending receipts become submission_unknown, submitted/running ones resume through the provider's adapter by id, and every receipt comes back as a job."""
+        if self.receipts is None:
+            return {}
+        ad = adapters if adapters is not None else (self.video.receipt_adapters() if self.video is not None and hasattr(self.video, "receipt_adapters") else {})
+        out = await asyncio.to_thread(self.receipts.reconcile, ad)
+        for r in self.receipts.list():
+            if r.get("job_id") and r["job_id"] not in self.jobs:
+                self._adopt(r)
+            elif r.get("job_id") in self.jobs and self.jobs[r["job_id"]].recovered:
+                job = self.jobs[r["job_id"]]
+                self.jobs.pop(job.job_id)
+                self._adopt(r)
+        return out
+
+    async def _guarded(self, job: Job, fn, *args):
+        """A provider call behind its receipt: pending BEFORE the call, submitted after; a failure that cannot have reached the provider is a plain error, any other is unknown."""
+        r = job.receipt
+        if r is None or self.receipts is None:
+            return await asyncio.to_thread(fn, *args)
+        self.receipts.mark_pending(r)
+        try:
+            out = await asyncio.to_thread(fn, *args)
+        except (JR.NotSent, ValueError) as exc:
+            self.receipts.mark_error(r, f"not sent: {exc}", "not_sent")
+            raise
+        except Exception as exc:  # noqa: BLE001
+            self.receipts.mark_unknown(r, type(exc).__name__, str(exc))
+            raise
+        self.receipts.mark_submitted(r, job.job_id)
+        return out
+
+    def _hooks(self, job: Job):
+        r = job.receipt
+        if r is None or self.receipts is None:
+            return None
+        store = self.receipts
+
+        class Hooks:
+            @staticmethod
+            def sending():
+                if store._load(store._dir(r["provider"], r["key"]))["state"] == "planned":
+                    store.mark_pending(r)
+
+            @staticmethod
+            def submitted(provider_job_id, urls=None):
+                store.mark_submitted(r, provider_job_id, urls)
+        return Hooks
+
+    def _receipt_failed(self, job: Job, exc: BaseException) -> None:
+        r = job.receipt
+        if r is None or self.receipts is None:
+            return
+        try:
+            state = self.receipts._load(self.receipts._dir(r["provider"], r["key"]))["state"]
+            if state == "planned":
+                self.receipts.cancel(r, f"nothing was sent: {exc}"[:300])
+            elif state == "submission_pending":
+                self.receipts.mark_unknown(r, type(exc).__name__, str(exc))
+            elif state in ("submitted", "running"):
+                job.error = (job.error + " (the provider job may still be running: it resumes by id after a restart and is not resubmitted)")[:600]
+        except Exception:  # noqa: BLE001 - the bookkeeping must never mask the job's own error
+            log.warning("could not settle the receipt of job %s", job.job_id, exc_info=True)
+
+    def _receipt_done(self, job: Job, paths=(), summary=None) -> None:
+        r = job.receipt
+        if r is None or self.receipts is None:
+            return
+        try:
+            state = self.receipts._load(self.receipts._dir(r["provider"], r["key"]))["state"]
+            if state not in ("submitted", "running"):
+                return
+            self.receipts.save_result(r, {"job_id": job.job_id, "model": job.model, **(summary or {})})
+            self.receipts.attach_outputs(r, paths)
+            self.receipts.mark_downloaded(r)
+        except Exception:  # noqa: BLE001
+            log.warning("could not settle the receipt of job %s", job.job_id, exc_info=True)
 
     def _prune(self) -> None:
         terminal = [j for j in self.jobs.values() if j.status in ("DONE", "FAILED", "CANCELLED")]
@@ -201,7 +330,7 @@ class JobQueue:
             job.note = ""
             job.status = "POLLING"
             await self.push(job)
-        return await asyncio.to_thread(svc.backend, job.model, job.payload)
+        return await self._guarded(job, svc.backend, job.model, job.payload)
 
     def service_report(self) -> dict:
         """What this server backs of the Client's job types (read-only; no credentials)."""
@@ -257,7 +386,7 @@ class JobQueue:
                                        settings={"unit": "answer", "question": question.get("question"), "options": question.get("options")})
             job.note = "Higgsfield asks you a question: answer it in the Studios panel."
             return asyncio.run_coroutine_threadsafe(self._await_approval(job, q), loop).result()
-        out = await asyncio.to_thread(self.video.run, job.service, job.model, job.payload, plan, ask)
+        out = await asyncio.to_thread(self.video.run, job.service, job.model, job.payload, plan, ask, self._hooks(job))
         self.policy.record(provider, (out.extra.get("credits") if higgs else out.extra.get("actual_usd")) if hasattr(out, "extra") else price)
         return out
 
@@ -301,9 +430,11 @@ class JobQueue:
                         await self.push(job)
                         return
                     job.note, job.status = "", "POLLING"
-                out = await asyncio.to_thread(self.backends[job.service], job.model, job.payload)
+                out = await self._guarded(job, self.backends[job.service], job.model, job.payload)
             if job.status == "CANCELLED":
                 return
+            if job.receipt is not None and not hasattr(out, "files") and not isinstance(out, FilesOutput):
+                self._receipt_done(job, (), {"images": len(getattr(out, "images", []) or [])})
             if isinstance(out, FilesOutput):
                 files = []
                 for i, (data, media_type, name) in enumerate(out.files, 1):
@@ -311,6 +442,7 @@ class JobQueue:
                     job.files[name] = (data, media_type)
                     files.append({"type": out.kind, "url": f"{self.base_url}/api/v1/jobs/files/{job.token}/{name}"})
                 job.result = {"result_files": files, **out.extra}
+                self._receipt_done(job, (), {"files": len(files)})
                 job.status = "DONE"
                 await self.push(job)
                 return
@@ -324,6 +456,7 @@ class JobQueue:
                     job.files[name] = (data, media_type)
                     files.append({"type": kind, "url": f"{self.base_url}/api/v1/jobs/files/{job.token}/{name}"})
                 job.result = {"result_files": files, "saved": paths, **out.extra, **self._prompt_fields(job)}
+                self._receipt_done(job, paths, {"saved": [str(p) for p in paths], "extra": {k: v for k, v in out.extra.items() if isinstance(v, (str, int, float, bool))}})
                 if job.service == "image_gen":
                     job.result["images"] = [{"url": f["url"]} for f in files]
                 job.status = "DONE"
@@ -344,6 +477,7 @@ class JobQueue:
         except Exception as exc:  # noqa: BLE001 - the job carries the reason to the client
             job.status = "FAILED"
             job.error = f"{type(exc).__name__}: {exc}"[:600]
+            self._receipt_failed(job, exc)
         finally:
             job.payload = {}
             if job.status in ("DONE", "FAILED"):
@@ -352,7 +486,12 @@ class JobQueue:
 
     # ------------------------------------------------------------------- read
     def get(self, job_id: str) -> Optional[Job]:
-        return self.jobs.get(job_id)
+        job = self.jobs.get(job_id)
+        if job is None and self.receipts is not None:
+            r = self.receipts.find_job(job_id)
+            if r is not None:
+                job = self._adopt(r)
+        return job
 
     def cancel(self, job_id: str) -> Optional[Job]:
         job = self.jobs.get(job_id)
@@ -375,6 +514,8 @@ class JobQueue:
                 "service": job.service, "model": job.model, "queue_position": 0, "attempts": 1, "created": job.created}
         if job.result is not None:
             snap["result"] = job.result
+        if job.receipt is not None:
+            snap["receipt_state"] = job.receipt["state"]
         if job.note:
             snap["user_message"] = job.note
         if job.error:

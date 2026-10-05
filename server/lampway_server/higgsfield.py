@@ -284,6 +284,22 @@ class Higgsfield:
                                       "they are NOT resubmitted: poll them again or check Higgsfield")
             time.sleep(self.poll_s)
 
+    def poll(self, job_ids: list) -> dict:
+        """One non-blocking read of jobs already submitted: {job_id: {status, url, error}} for those that are terminal (a restart resumes by id with this)."""
+        out = self.mcp.call("jobs_wait", {"jobs": [{"index": i, "job_id": j} for i, j in enumerate(job_ids)], "timeout_seconds": 1})
+        final = {}
+        for row in (n for n in _walk(out) if isinstance(n, dict) and n.get("job_id")):
+            status = str(row.get("status") or "").lower()
+            if status in TERMINAL_OK:
+                final[row["job_id"]] = {"status": "completed", "url": _url_of(row)}
+            elif status in TERMINAL_BAD:
+                final[row["job_id"]] = {"status": "failed", "url": None, "error": str(row.get("error") or row.get("message") or "")[:300]}
+        return final
+
+    def stream_fetch(self, url: str):
+        data, mime = self.download(url)
+        return iter([data]), mime, len(data)
+
     def download(self, url: str) -> tuple:
         with httpx.Client(transport=self._http_transport, timeout=300.0, follow_redirects=True) as client:
             resp = client.get(url)

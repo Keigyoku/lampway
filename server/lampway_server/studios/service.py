@@ -58,7 +58,7 @@ class Engine:
 
 class StudioService:
     def __init__(self, root, execute: Callable = default_execute, *, shelf=None, python: str = None, now=time.time,
-                 approval_ttl: float = 600.0):
+                 approval_ttl: float = 600.0, receipts=None):
         self.root = Path(root)
         self.execute = execute
         self.engine = Engine(shelf, python or os.environ.get("LAMPWAY_PYTHON_BROWSER") or sys.executable)
@@ -68,6 +68,17 @@ class StudioService:
         self._tasks: dict[str, asyncio.Task] = {}
         self._gates: dict = {}                          # approval action -> (on_confirm(approval, answer), on_reject(approval))
         self._hung: dict[str, str] = {}                 # action id -> the hung job's id, until the user acknowledges it
+        self.receipts = receipts                        # jobreceipts.JobReceipts: a spend click is a write-ahead receipt, and "hung" survives a restart
+        self.restore_hung()
+
+    def restore_hung(self) -> None:
+        """After a restart: a click whose outcome is unknown (killed mid-run, or hung) blocks another click of the same action until the user acknowledges it."""
+        if self.receipts is None:
+            return
+        self.receipts.reconcile({})                    # pending -> submission_unknown
+        for r in self.receipts.list("submission_unknown"):
+            if str(r["provider"]).startswith("studio"):
+                self._hung[r["model"]] = r["job_id"]
 
     # ------------------------------------------------------------------ paths
     def jail(self, path: str) -> str:
@@ -174,12 +185,17 @@ class StudioService:
         job = {"id": Path(out_dir).name, "action": action.id, "studio": action.studio, "label": action.label, "state": "running",
                "started": self._now(), "finished": None, "kv": {}, "tables": {}, "error": "", "files": [], "approval": approval,
                "requested_by": requested_by, "_dir": out_dir, "_argv": argv}
+        if self.receipts is not None and action.needs_approval:
+            job["_receipt"], _ = self.receipts.create(f"studio:{action.studio}", action.id, clean, job["id"], requested_by, job_id=job["id"])
         self._jobs[job["id"]] = job
         self._tasks[job["id"]] = asyncio.get_running_loop().create_task(self._run(job, armed))
         return job
 
     async def _run(self, job: dict, armed: bool) -> None:
         Path(job["_dir"]).mkdir(parents=True, exist_ok=True)
+        rcpt = job.get("_receipt")
+        if rcpt is not None:
+            self.receipts.mark_pending(rcpt)               # on disk BEFORE the driver clicks anything
         try:
             rc, text = await asyncio.to_thread(self.execute, job["_argv"], self._env(armed), RUN_TIMEOUT_S)
         except subprocess.TimeoutExpired:
@@ -198,6 +214,19 @@ class StudioService:
         d = Path(job["_dir"])
         job["files"] = sorted(({"name": p.name, "size": p.stat().st_size} for p in d.iterdir() if p.is_file() and not p.name.startswith(".")),
                               key=lambda f: f["name"]) if d.is_dir() else []
+        if rcpt is not None:
+            try:
+                if job["state"] == "done":
+                    self.receipts.mark_submitted(rcpt, job["id"])
+                    self.receipts.save_result(rcpt, {"state": "done", "files": [f["name"] for f in job["files"]]})
+                    self.receipts.attach_outputs(rcpt, [d / f["name"] for f in job["files"]])
+                    self.receipts.mark_downloaded(rcpt)
+                elif job["state"] == "hung":
+                    self.receipts.mark_unknown(rcpt, "hung", job["error"])
+                else:
+                    self.receipts.mark_error(rcpt, job["error"], "driver_error")
+            except Exception:  # noqa: BLE001 - the bookkeeping must never mask the job's own state
+                pass
 
     async def wait(self, job_id: str) -> dict:
         task = self._tasks.get(job_id)
@@ -211,6 +240,10 @@ class StudioService:
         for action, jid in list(self._hung.items()):
             if jid == job_id:
                 del self._hung[action]
+        if self.receipts is not None:
+            r = self.receipts.find_job(job_id)
+            if r is not None and r["state"] == "submission_unknown":
+                self.receipts.acknowledge(r, "user")
 
     @staticmethod
     def _public(job: dict) -> dict:

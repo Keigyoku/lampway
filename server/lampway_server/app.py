@@ -1,7 +1,9 @@
 """The ASGI application: REST routes the client calls plus the agent WebSocket."""
 
-import json
 import asyncio
+import contextlib
+import json
+import logging
 import os
 from html import escape
 from pathlib import Path
@@ -23,6 +25,7 @@ from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
 from . import dictation, logredact, matgen, provider_prefs, videojobs
 from .ledger import Ledger, LedgerError
+from .ledger import default_path as Ledger_default_path
 from .spendpolicy import SpendPolicy
 from .prompts.service import PromptService
 from .prompts.library import LibraryError
@@ -114,11 +117,11 @@ async def _json_body(request) -> dict:
     return body if isinstance(body, dict) else {}
 
 
-def default_studio_service():
+def default_studio_service(receipts=None):
     """The Studio service over the project root and, when ``LAMPWAY_STUDIO_SHELF`` names it, the owner's shelf of AXI drivers."""
     from .agent.server_tools import project_root
     from .studios.service import StudioService
-    return StudioService(project_root(), shelf=os.environ.get("LAMPWAY_STUDIO_SHELF") or None)
+    return StudioService(project_root(), shelf=os.environ.get("LAMPWAY_STUDIO_SHELF") or None, receipts=receipts)
 
 
 def unauthorized(message="Not authenticated"):
@@ -137,7 +140,7 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None) -> Starlette:
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     provider_prefs.apply_saved(settings, provider_prefs.load(settings.state_dir))   # the saved provider choices apply where the environment is silent (an env var is the session's override)
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
@@ -277,13 +280,16 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     ]
     store = AgentSettingsStore(settings.state_dir)
     hub = ConnectionHub()
-    studio = studio_service if studio_service is not None else default_studio_service()
+    from . import jobreceipts as JR
+    from .agent.server_tools import project_root as _project_root
     hf_auth = higgsfield_auth or HiggsfieldAuth(settings.state_dir, redirect_port=settings.port)      # ONE per server: refresh tokens rotate
     video_system = video if video is not None else videojobs.build_default(settings, hf_auth, Path(os.environ.get("LAMPWAY_PROJECT_ROOT") or Path.home() / ".local/share/lampway/projects"))
+    receipts = job_receipts if job_receipts is not None else JR.JobReceipts(_project_root(), ledger=Ledger(Ledger_default_path()), fetchers=video_system.receipt_fetchers())
+    studio = studio_service if studio_service is not None else default_studio_service(receipts)
     prompt_service = prompts if prompts is not None else PromptService.from_env(settings.state_dir)
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
-                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy))
+                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts)
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
@@ -791,7 +797,28 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"])]
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
-    app = Starlette(routes=routes)
+    @contextlib.asynccontextmanager
+    async def lifespan(_app):
+        """Receipts first: a restart finds every in-flight paid job in its receipt, resumes by provider id, and marks what it cannot know as submission_unknown (never resubmitted)."""
+        try:
+            await jobs.recover()
+        except Exception:  # noqa: BLE001 - a recovery problem must not stop the server; the receipts stay on disk
+            logging.getLogger("lampway.jobs").warning("job recovery failed", exc_info=True)
+
+        async def tick():
+            while True:
+                await asyncio.sleep(60)
+                try:
+                    await jobs.recover()
+                except Exception:  # noqa: BLE001
+                    pass
+        task = asyncio.get_running_loop().create_task(tick())
+        try:
+            yield
+        finally:
+            task.cancel()
+
+    app = Starlette(routes=routes, lifespan=lifespan)
     app.add_middleware(HostGuard, bind_host=settings.host)
     app.state.hub = hub
     app.state.agent = agent

@@ -312,24 +312,29 @@ class VideoSystem:
                 "label": f"Higgsfield {model_id}: {credits:g} credits"}
 
     # --------------------------------------------------------------------------------------------------- run
-    def run(self, service: str, model: str, payload: dict, plan: dict, ask: Optional[Callable] = None):
+    def run(self, service: str, model: str, payload: dict, plan: dict, ask: Optional[Callable] = None, hooks=None):
+        """``hooks`` (jobqueue._hooks): ``sending()`` is called immediately before the first byte goes to the provider and ``submitted(id, urls)`` as soon as the provider
+        answers with its job id, so the write-ahead receipt is on disk before and right after the paid call."""
         if plan["provider"] == "higgsfield":
-            return self._run_higgsfield(service, plan, ask)
-        return self._run_openrouter(service, model, payload, plan)
+            return self._run_higgsfield(service, plan, ask, hooks)
+        return self._run_openrouter(service, model, payload, plan, hooks)
 
-    def _run_openrouter(self, service, model, payload, plan) -> VideoOutput:
+    def _run_openrouter(self, service, model, payload, plan, hooks=None) -> VideoOutput:
         if not plan.get("ok"):
             raise VG.VideoError((plan.get("plan") or {}).get("error") or "the request is not valid")
         self.client.max_job_usd = float(self.settings.video_max_job_usd)
         out = self.client.generate(model, payload.get("prompt") or "", plan["clean"], frame_images=plan["frames"] or None, reference_images=plan["refs"] or None,
-                                   reference_videos=plan["videos"] or None, source=plan["source"], label="video")
+                                   reference_videos=plan["videos"] or None, source=plan["source"], label="video",
+                                   on_sending=hooks.sending if hooks else None, on_submitted=hooks.submitted if hooks else None)
         return VideoOutput([(out["video"], out["media_type"])], {"provider": "openrouter", "job_id": out["job_id"], "generation_id": out["generation_id"],
                                                               "inputs": out["inputs"], "estimate_usd": out["estimate_usd"], "actual_usd": out["actual_usd"],
                                                               "delta_usd": out["delta_usd"], "tokens": out["tokens"], "basis": out["basis"]})
 
-    def _run_higgsfield(self, service, plan, ask):
+    def _run_higgsfield(self, service, plan, ask, hooks=None):
         h = self.higgs
         args = dict(plan["args"])
+        if hooks:
+            hooks.sending()
         sub = h.submit(plan["tool"], args)
         if sub["question"] is not None:                       # unlim_choice: the USER's answer, never ours
             if ask is None:
@@ -338,6 +343,8 @@ class VideoSystem:
             sub = h.submit(plan["tool"], args)
         if not sub["job_ids"]:
             raise HiggsfieldError(f"Higgsfield accepted the request but returned no job id: {str(sub['raw'])[:200]}")
+        if hooks:
+            hooks.submitted(sub["job_ids"][0])
         done = h.wait(sub["job_ids"])
         bad = [d for d in done if d["status"] != "completed" or not d["url"]]
         if bad:
@@ -347,6 +354,23 @@ class VideoSystem:
         if service == "image_gen":
             return VideoOutput([(data, mime or "image/png") for data, mime in files], extra)
         return VideoOutput([(data, mime or "video/mp4") for data, mime in files[:1]], extra)
+
+    def receipt_adapters(self) -> dict:
+        """Provider adapters for ``JobReceipts.reconcile``: status and result of a job already submitted, by its provider id (nothing here ever submits)."""
+        out = {}
+        if self.client is not None:
+            out["openrouter"] = _OpenRouterAdapter(self.client)
+        if self.higgs is not None:
+            out["higgsfield"] = _HiggsAdapter(self.higgs)
+        return out
+
+    def receipt_fetchers(self) -> dict:
+        out = {}
+        if self.client is not None:
+            out["openrouter"] = self.client.stream_fetch
+        if self.higgs is not None:
+            out["higgsfield"] = self.higgs.stream_fetch
+        return out
 
     def save_to_project(self, job_id: str, out: VideoOutput) -> list:
         """The finished clip(s) as files in the project: <root>/video/<job>.mp4."""
@@ -367,3 +391,34 @@ def build_default(settings, auth: HiggsfieldAuth, root) -> "VideoSystem":
     from .higgsfield_mcp import HiggsfieldMCP
     client = VG.VideoClient(ledger=spend_ledger(settings), max_job_usd=float(settings.video_max_job_usd))
     return VideoSystem(settings, client, Higgsfield(HiggsfieldMCP(auth)), auth, root=root)
+
+
+class _OpenRouterAdapter:
+    def __init__(self, client):
+        self.client, self._last = client, {}
+
+    def status(self, r: dict) -> str:
+        data = self.client.poll_once(r["status_url"] or f"/api/v1/videos/{r['provider_job_id']}")
+        self._last[r["key"]] = data
+        st = data.get("status")
+        return "completed" if st == "completed" else "failed" if st in ("failed", "cancelled", "expired") else "running" if st in ("pending", "in_progress") else "unknown"
+
+    def result(self, r: dict) -> dict:
+        data = self._last.get(r["key"]) or self.client.poll_once(r["status_url"])
+        return {"generation_id": data.get("generation_id"), "usage": data.get("usage"), "unsigned_urls": data.get("unsigned_urls") or [], "status": data.get("status")}
+
+
+class _HiggsAdapter:
+    def __init__(self, higgs):
+        self.higgs, self._last = higgs, {}
+
+    def status(self, r: dict) -> str:
+        row = self.higgs.poll([r["provider_job_id"]]).get(r["provider_job_id"])
+        if row is None:
+            return "running"
+        self._last[r["key"]] = row
+        return row["status"]
+
+    def result(self, r: dict) -> dict:
+        row = self._last.get(r["key"]) or self.higgs.poll([r["provider_job_id"]]).get(r["provider_job_id"]) or {}
+        return {"video": {"url": row.get("url")}} if row.get("url") else {"error": "no result url"}

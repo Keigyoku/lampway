@@ -184,9 +184,13 @@ DEFS = [
     Def("lampway_retopo", "Retopology: a NEW all-quad mesh `<object>_retopo` near target_faces (QuadriFlow; voxel remesh as the fallback) "
         "with a measured report (faces, quads, non-manifold and open-boundary edges, surface deviation). The original is untouched; "
         "keep it until the replacement passes your checks. engine=studio:tripo answers with the studio action and its price for the "
-        "owner's approval and clicks nothing.", [P("object", desc="Mesh object name", required=True),
-        P("target_faces", "integer", "Default 2000"), P("method", desc="quadriflow (default) | voxel"),
-        P("engine", desc="algorithmic (default) | studio:tripo"), P("symmetry", "boolean")], api="retopo"),
+        "owner's approval and clicks nothing. method=autoremesher runs the Qt-free lampway-quadremesh configured by the settings key autoremesher_bin "
+        "(never an argument), niced with a timeout; the result has no UV layer.", [P("object", desc="Mesh object name", required=True),
+        P("target_faces", "integer", "Default 2000"), P("method", desc="quadriflow (default) | voxel | autoremesher"),
+        P("engine", desc="algorithmic (default) | studio:tripo"), P("symmetry", "boolean"),
+        P("adaptivity", "number", "autoremesher: 0..1"), P("anisotropy", "number", "autoremesher: 0..1"), P("sharp_edge", "number", "autoremesher: 30..180 degrees"),
+        P("smooth_normal", "number", "autoremesher: 0..180 degrees"), P("edge_scaling", "number", "autoremesher: 1..4"), P("timeout", "integer", "autoremesher: 10..3600 s"),
+        P("fallback", "boolean", "autoremesher: use the voxel remesh when the engine fails"), P("hard_surface", "boolean", "autoremesher: hard-surface model type")], api="retopo"),
     Def("lampway_uv_unwrap", "UV unwrap: a NEW mesh `<object>_uv` with a packed layout (method smart | angle | conformal; seams at edges "
         "sharper than angle_limit) and a measured report (islands, coverage, overlap by rasterising, texel-density spread, the "
         "density achieved at texture_size). The original keeps its UVs; inspect the checker before texturing. engine=studio:tripo "

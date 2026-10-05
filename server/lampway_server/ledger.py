@@ -118,6 +118,12 @@ class Ledger:
         self._append(row)
         return row
 
+    def record_job(self, row: dict) -> dict:
+        """One row per terminal job receipt (kind ``job``): ids, hashes, state and the price with its source; never a URL or a secret (jobreceipts.export_safe is applied first)."""
+        out = {"kind": "job", "t": time.time(), **{k: row.get(k) for k in ("job_key", "provider", "model", "state", "price", "output_hashes", "origin")}}
+        self._append(out)
+        return out
+
     def list(self, piece: Optional[str] = None, stage: Optional[str] = None, include_superseded: bool = False) -> list:
         rows = [r for r in self.rows("experiment") if piece in (None, r["piece"]) and stage in (None, r["stage"])]
         if include_superseded:

@@ -346,7 +346,7 @@ class VideoClient:
 
     # -------------------------------------------------------------------- generate
     def generate(self, model_id, prompt, params=None, *, frame_images=None, reference_images=None, reference_videos=None, source=None,
-                 label="video", accept_unknown_price=False) -> dict:
+                 label="video", accept_unknown_price=False, on_sending=None, on_submitted=None) -> dict:
         row, clean, est = self._prepare(model_id, params, frame_images, reference_images, reference_videos, source)
         frame_images, reference_images, inputs = self._fit_inputs(row, clean, frame_images, reference_images)
         if not str(prompt or "").strip() and not is_upscaler(row):
@@ -374,7 +374,11 @@ class VideoClient:
         elif refs:
             body["input_references"] = refs
         with self._http() as client:
+            if on_sending:
+                on_sending()                                         # the write-ahead receipt goes pending HERE: after every refusal above, before the first byte is sent
             job = self._submit(client, body)
+            if on_submitted:
+                on_submitted(job["id"], {"status": job.get("polling_url")})
             final = self._wait(client, job)
             video, mime = self._download(client, final)
         cost = (final.get("usage") or {}).get("cost")
@@ -393,6 +397,33 @@ class VideoClient:
         if not job.get("id") or not job.get("polling_url"):
             raise VideoError("OpenRouter accepted the request but returned no job id")
         return job
+
+    def poll_once(self, polling_url: str) -> dict:
+        """One status read of a job already submitted (a restart resumes by id with this; it never submits)."""
+        with self._http() as client:
+            resp = client.get(self._url(polling_url), headers=self._headers())
+        if resp.status_code >= 400:
+            raise VideoError(self._redact(f"polling answered HTTP {resp.status_code}: {resp.text[:200]}"))
+        return resp.json()
+
+    def stream_fetch(self, url: str):
+        """(chunks, content type, length) of a result URL with this provider's authorization: the fetcher a receipt download uses."""
+        client = self._http()
+        stream = client.stream("GET", self._url(url), headers=self._headers(), follow_redirects=True)
+        resp = stream.__enter__()
+        if resp.status_code >= 400:
+            stream.__exit__(None, None, None)
+            client.close()
+            raise VideoError(self._redact(f"downloading the video answered HTTP {resp.status_code}"))
+        length = int(resp.headers["content-length"]) if resp.headers.get("content-length", "").isdigit() else None
+
+        def chunks():
+            try:
+                yield from resp.iter_bytes(1 << 20)
+            finally:
+                stream.__exit__(None, None, None)
+                client.close()
+        return chunks(), resp.headers.get("content-type", "video/mp4"), length
 
     def _url(self, url: str) -> str:
         return ORIGIN + url if url.startswith("/") else url

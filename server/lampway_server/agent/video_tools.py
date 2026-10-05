@@ -10,13 +10,17 @@ from pathlib import Path
 from ..videojobs import PREFIX
 from .providers.base import ToolSpec
 
-NAMES = {"lampway_video_gen", "lampway_video_models", "lampway_video_gate"}
+NAMES = {"lampway_video_gen", "lampway_video_models", "lampway_video_gate", "lampway_job_receipt"}
 
 
 def specs() -> list:
     return [
         ToolSpec("lampway_video_models", "List the video models (OpenRouter's, and Higgsfield's when signed in) with their durations, resolutions and the per-purpose "
                  "defaults (bulk, loop, motion). Prices are in lampway_video_gen's dry run.", {"type": "object", "properties": {}, "additionalProperties": False}),
+        ToolSpec("lampway_job_receipt", "READ-ONLY view of the write-ahead job receipts: every paid provider job is written to disk before it is sent. action list (optional `state`: planned | submission_pending | "
+                 "submitted | submission_unknown | running | completed | downloaded | provider_error | result_saved | cancelled | abandoned) or show (`id`: the receipt key or the job id). Signed URLs and secrets "
+                 "are removed. A submission_unknown job is never resubmitted: only the user acknowledges or links it.",
+                 {"type": "object", "properties": {"action": {"type": "string", "description": "list | show"}, "state": {"type": "string"}, "id": {"type": "string"}}, "required": [], "additionalProperties": False}),
         ToolSpec("lampway_video_gate", "Deterministic gates on a video file in the project (no model, no spend, ffmpeg only). kind loop: closure_diff and wrap_jump (closed when <= 6 and <= 2.0); fix=pingpong writes a SECOND "
                  "file <name>_loop.mp4 (forward then reversed: closed by construction) and never touches the source. kind clip: the character-clip gates (24 fps all distinct, 720x1280, 5.0 s, figure >= 1000 px not touching "
                  "the border, locked camera, >= 4 strides: unverified without foot_contacts). kind duplicates: held frames and the true motion rate. kind upscale: video vs `source` at `factor` (size, duration, fps, SSIM, a "
@@ -57,6 +61,16 @@ async def call(system, name: str, arguments: dict) -> tuple:
     try:
         if system is None:
             return "video generation is not available on this server", True
+        if name == "lampway_job_receipt":
+            from .. import jobreceipts as JR
+            store = getattr(getattr(system, "jobs", None), "receipts", None)
+            if store is None:
+                return "job receipts are not enabled on this server", True
+            if (arguments.get("action") or "list") == "show":
+                r = store.get(str(arguments.get("id") or "")) or store.find_job(str(arguments.get("id") or ""))
+                return (json.dumps(JR.export_safe(r)), False) if r else (f"no receipt {arguments.get('id')!r}", True)
+            rows = [JR.export_safe({k: r[k] for k in ("key", "job_id", "provider", "model", "state", "created_at", "price", "provider_job_id", "error_class", "outputs")}) for r in store.list(arguments.get("state") or None)]
+            return json.dumps({"receipts": rows, "count": len(rows)}), False
         if name == "lampway_video_gate":
             from .. import videogate as VGT
             root = system.root

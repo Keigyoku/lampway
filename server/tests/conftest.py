@@ -1,5 +1,7 @@
 """Shared fixtures: an in-process server and the fake Mixar client that drives it."""
 
+import os
+
 import pytest
 from starlette.testclient import TestClient
 
@@ -8,6 +10,13 @@ from lampway_server.config import Settings
 from lampway_server.agent.providers.mock import ScriptedProvider
 
 from .fake_client import FakeMixarClient
+
+
+@pytest.fixture(autouse=True)
+def _project_root_in_tmp(tmp_path, monkeypatch):
+    """Job receipts, the ledger and the studios write under the project root: never the real home during a test."""
+    if not os.environ.get("LAMPWAY_PROJECT_ROOT"):
+        monkeypatch.setenv("LAMPWAY_PROJECT_ROOT", str(tmp_path / "project"))
 
 
 @pytest.fixture
