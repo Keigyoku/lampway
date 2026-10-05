@@ -4,18 +4,26 @@
 
 """The sandbox asset allow-list admits our local asset server by default."""
 
-import sys
-from types import ModuleType
+import importlib.util
+import pathlib
 
 import pytest
 
-# The sandbox module's import chain reaches the auth module, which imports the
-# platform keyring; the standalone environment does not install it.
-if "keyring" not in sys.modules:
-    sys.modules["keyring"] = ModuleType("keyring")
+from mixar.config import brand
 
-from mixar.config import brand  # noqa: E402
-from mixar.modules.space_mixie_chat.core import sandbox_modules  # noqa: E402
+# ``sandbox_modules.py`` itself imports only ``builtins`` and ``types``, but
+# reaching it through its package runs ``space_mixie_chat.core.__init__``,
+# which pulls in the connection manager, auth and the platform keyring. This
+# directory collects early, and importing all of that here changed the
+# outcome of later test files in a box with a real keyring. Load the file
+# directly instead; the allow-list code has no package dependencies.
+_SANDBOX_MODULES = (
+    pathlib.Path(__file__).resolve().parents[2]
+    / "src/scripts/mixar/modules/space_mixie_chat/core/sandbox_modules.py"
+)
+_spec = importlib.util.spec_from_file_location("lampway_sandbox_modules", _SANDBOX_MODULES)
+sandbox_modules = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(sandbox_modules)
 
 
 @pytest.fixture

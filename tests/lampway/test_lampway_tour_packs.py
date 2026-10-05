@@ -7,7 +7,12 @@
 import sys
 from unittest.mock import MagicMock
 
-if "requests" not in sys.modules:
+# The pack fetcher's import chain needs ``requests``; stub it ONLY when it is
+# genuinely absent. This directory collects early, so a blanket "not yet in
+# sys.modules" stub would shadow the real package for every later test.
+try:
+    import requests  # noqa: F401
+except ImportError:
     sys.modules["requests"] = MagicMock(name="requests")
 
 from mixar.config import brand  # noqa: E402
