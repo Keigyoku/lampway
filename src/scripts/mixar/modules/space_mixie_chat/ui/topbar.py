@@ -172,6 +172,18 @@ def _login_button_size(context, sound):
         lane[0], engine=lane[1], sound=sound, selectors=lane[2])
 
 
+def draw_login_entry(account, label):
+    """The logged-out account button, drawn with something that EXISTS: the login popover when its panel is registered, else the login
+    operator when that is, else a plain label. During boot the login panel registers after the first top-bar draws; an operator or
+    panel that is not there yet makes Blender report every redraw (it printed this file's path ten times)."""
+    if bpy.types.Panel.bl_rna_get_subclass_py("MIXIE_CHAT_PT_login") is not None:
+        account.popover(panel="MIXIE_CHAT_PT_login", text=label, icon='USER')
+    elif "login" in dir(bpy.ops.mixie_chat):
+        account.operator("mixie_chat.login", text=label, icon='USER')
+    else:
+        account.label(text=label, icon='USER')
+
+
 def _draw_topbar_profile_right(self, context):
     """Append the profile dropdown / login button to the right side of the top bar.
 
@@ -235,10 +247,7 @@ def _draw_topbar_profile_right(self, context):
         # Not logged in → login popover (preferred) with operator fallback
         # for the brief window where the login panel class hasn't
         # finished registering yet.
-        if hasattr(bpy.types, 'MIXIE_CHAT_PT_login'):
-            account.popover(panel="MIXIE_CHAT_PT_login", text=label, icon='USER')
-        else:
-            account.operator("mixie_chat.login", text=label, icon='USER')
+        draw_login_entry(account, label)
 
 
 def register():
