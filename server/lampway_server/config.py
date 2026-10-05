@@ -22,6 +22,15 @@ DEFAULT_IMAGE_PURPOSES = {
 }
 
 
+# One video model per PURPOSE: bulk clips, loops (first = last frame) and motion transfer (a reference video). The OpenRouter video catalogue
+# is the source of the model ids; ``duration`` is seconds, ``image_mode`` first_frame | first_last_frame | reference.
+DEFAULT_VIDEO_PURPOSES = {
+    "bulk": {"model": "heygen/heygen-video-1", "resolution": "768p", "duration": 10, "aspect_ratio": "16:9", "image_mode": "first_frame"},
+    "loop": {"model": "bytedance/seedance-1-5-pro", "resolution": "720p", "duration": 5, "aspect_ratio": "1:1", "image_mode": "first_last_frame"},
+    "motion": {"model": "bytedance/seedance-2.0-mini", "resolution": "480p", "duration": 5, "aspect_ratio": "9:16", "image_mode": "reference"},
+}
+
+
 @dataclass
 class Settings:
     host: str = "127.0.0.1"
@@ -52,6 +61,8 @@ class Settings:
     openrouter_image_size: str = ""                    # e.g. 2880x2880 (GPT Image 2.5's pixel budget refuses 3840x3840); '' = provider default
     openrouter_image_quality: str = ""                 # auto/low/medium/high/xhigh/max; '' = provider default
     image_purposes: dict = field(default_factory=lambda: {k: dict(v) for k, v in DEFAULT_IMAGE_PURPOSES.items()})
+    video_purposes: dict = field(default_factory=lambda: {k: dict(v) for k, v in DEFAULT_VIDEO_PURPOSES.items()})
+    video_max_job_usd: float = 2.0                     # one video job above this estimate is refused before it is sent
     openrouter_stt_model: str = "google/gemini-3.8-flash"      # dictation: an audio-input model
     openrouter_max_tokens: int = 4096                  # per request, always sent
     openrouter_budget_usd: float = 3.0                 # session spend ceiling: past it every OpenRouter call is refused
