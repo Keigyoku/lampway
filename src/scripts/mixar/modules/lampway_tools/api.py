@@ -1140,6 +1140,17 @@ def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None
 
 
 @tool
+def anim_reference_render(character, views=None, size="720x1280", background="#808080", camera=None, out_dir="anim/reference"):
+    """The character at rest from a KNOWN orthographic camera on a plain grey background, front and side: the start images for the clip step. character: an object (its children are included) or a collection;
+    views [front, side]; size WIDTHxHEIGHT (720x1280, 9:16); camera {ortho_scale, center, height_m} (default: fit-to-height with a 6 % margin each side, measured from the mesh; a perspective camera is refused). Writes
+    <out_dir>/ref_<view>.png, ref_<view>_mask.png (the silhouette) and cameras.json (the recorded camera per view: orthographic scale, px_per_m, centre, axes) in a throw-away Workbench scene with anti-aliasing
+    off: the grey is exact and two renders are byte-identical. The character faces -Y (Blender's front view); the side view shows it facing left. Refused: a posed character ('run pose_test reset'), no skinned model,
+    a figure whose feet or head leave the frame. Free, no model."""
+    from .features import anim_render as _AR
+    return _AR.reference_render(character, views, size, background, camera, out_dir, str(_settings().project_root))
+
+
+@tool
 def fit_state(stage="describe", **kw):
     """The descriptor / question / answer fit loop. Not built: answers needs_decision (is the Laya / fit-model route still the direction now that fit_validate measures the fit?). The question, the reason and a
     proposal are in the result."""
