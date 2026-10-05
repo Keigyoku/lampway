@@ -1,0 +1,68 @@
+{
+  "id": "character-reference-fullbody",
+  "version": "1.0.0",
+  "purpose": "character-reference",
+  "media": "image",
+  "title": "Full-body character reference",
+  "description": "One image of the character wearing all five armour pieces, from the body and the piece images.",
+  "body": {
+    "subject": "The FIRST image is the character's body: a male MetaHuman seen from the front in an A-pose. Images TWO to SIX are the armour pieces he wears, each seen from the front: TWO the cuirass with its lion-head pauldrons, red cloak and lion belt; THREE the crested helmet; FOUR the armoured skirt; FIVE the pair of gauntlets; SIX the pair of greave-boots.",
+    "action": "Make ONE image: this exact man, same body proportions, same A-pose, same front camera, standing full length from the helmet crest to the soles, wearing ALL FIVE armour pieces exactly as designed - every lion head, rivet, gold trim, red cloth, embroidery band and plate shape as in the piece images, nothing added, nothing left out, nothing redesigned. Each piece sits on the body where it belongs: helmet on the head, cuirass on the torso, skirt at the waist, gauntlets on the forearms and hands, boots on the shins and feet.",
+    "camera": "",
+    "style": "Photoreal game-character render, even neutral studio light, plain mid-grey background, the whole figure centred with a small margin.",
+    "constraints": "No text, no extra props, no weapon."
+  },
+  "variables": {},
+  "negatives": [],
+  "inputs": {
+    "character_body": {
+      "required": true,
+      "order": 1,
+      "description": "the body, front, A-pose"
+    },
+    "piece_images": {
+      "required": true,
+      "multiple": true,
+      "order": 2,
+      "description": "the five armour pieces in this order: cuirass, helmet, skirt, gauntlets, boots"
+    }
+  },
+  "defaults": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "size": "2160x3840",
+    "quality": "high",
+    "background": "opaque",
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "pieces_present",
+      "description": "checklist: all five pieces present (rated by the captain)"
+    },
+    {
+      "id": "captain_rating",
+      "description": "the captain's 1-5 rating"
+    }
+  ],
+  "provenance": {
+    "source": "~/.local/share/lampway/projects/videospike/prompt_ref.txt, ported verbatim",
+    "note": "GPT 2.5 Sunburst, portrait 2160x3840"
+  }
+}

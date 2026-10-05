@@ -1,0 +1,69 @@
+{
+  "id": "seamless-tile",
+  "version": "1.0.0",
+  "purpose": "tile",
+  "media": "image",
+  "title": "Seamless tileable texture",
+  "description": "A flat albedo tile whose edges wrap (the materials workflow).",
+  "body": {
+    "subject": "A seamless tileable texture, flat orthographic, edge to edge with no border and no vignette: {{material}} with {{motif}}.",
+    "action": "The left edge must continue exactly into the right edge and the top edge into the bottom edge.",
+    "camera": "",
+    "style": "Flat albedo, no lighting, no shadows.",
+    "constraints": "No text."
+  },
+  "variables": {
+    "material": {
+      "type": "string",
+      "default": "crimson red wool cloth",
+      "description": "the base material"
+    },
+    "motif": {
+      "type": "string",
+      "default": "a gold Greek-key (meander) embroidery band running horizontally across the middle",
+      "description": "the motif"
+    }
+  },
+  "negatives": [],
+  "inputs": {},
+  "defaults": {
+    "model": "openai/gpt-image-2.5-flare",
+    "size": "2048x2048",
+    "background": "opaque",
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "seam_step",
+      "description": "wrap seam divided by the interior step",
+      "threshold": 1.0
+    },
+    {
+      "id": "tone_seam",
+      "description": "mean tone difference across the wrap edges",
+      "threshold": 6.0,
+      "unit": "levels"
+    }
+  ],
+  "provenance": {
+    "source": "scratch/subs/bakeoff/tiles.py PROMPT, ported verbatim",
+    "note": "GPT 2.5 Flare: $0.024, seamless both ways, correct motif"
+  }
+}

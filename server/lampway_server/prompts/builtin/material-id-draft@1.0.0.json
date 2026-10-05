@@ -1,0 +1,69 @@
+{
+  "id": "material-id-draft",
+  "version": "1.0.0",
+  "purpose": "material-id",
+  "media": "image",
+  "title": "Material-ID draft",
+  "description": "Flat colour per material class with no line art or shading, for a material mask draft.",
+  "body": {
+    "subject": "The FIRST image is a grey clay render of a 3D model.",
+    "action": "Colour every surface of the FIRST image with ONE flat, unshaded colour per material class: {{classes}}. Keep every shape exactly where it is, same outline and scale.",
+    "camera": "Keep the camera and outline of the FIRST image.",
+    "style": "Flat colour regions with hard edges, no lines, no outlines, no gradients, no lighting, no shadows, no texture.",
+    "constraints": "Each material class a single distinct flat colour; plain flat white background; no text."
+  },
+  "variables": {
+    "classes": {
+      "type": "string",
+      "default": "plate metal red, gold trim yellow, cloth green, leather blue, undersuit black",
+      "description": "the material classes and the flat colour each gets"
+    }
+  },
+  "negatives": [],
+  "inputs": {
+    "clay_render": {
+      "required": true,
+      "order": 1,
+      "description": "the grey clay render"
+    }
+  },
+  "defaults": {
+    "model": "google/gemini-3.1-flash-image",
+    "resolution": "2K",
+    "aspect_ratio": "1:1",
+    "background": "opaque",
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "silhouette_iou",
+      "description": "silhouette IoU against the clay",
+      "threshold": 0.95
+    },
+    {
+      "id": "region_count",
+      "description": "number of colour regions against the parts recipe",
+      "threshold": 0
+    }
+  ],
+  "provenance": {
+    "source": "new (bake-off: Gemini 3.1 Flash gives flat colour regions, IoU 0.991, 16 s, $0.10)"
+  }
+}

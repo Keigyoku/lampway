@@ -1,0 +1,1 @@
+A seamless tileable texture, flat orthographic, edge to edge with no border and no vignette: crimson red wool cloth with a gold Greek-key (meander) embroidery band running horizontally across the middle. The left edge must continue exactly into the right edge and the top edge into the bottom edge. Flat albedo, no lighting, no shadows. No text.

@@ -1,0 +1,86 @@
+{
+  "id": "plate-4k-crisper",
+  "version": "1.0.0",
+  "purpose": "plate",
+  "media": "image",
+  "title": "4K turnaround plate, crisper",
+  "description": "Re-render a reference plate sharper and with finer detail, identical in every design element (the Tripo 4K plate prompts).",
+  "body": {
+    "subject": "Recreate this exact image as a sharp, high-resolution 4K product turnaround plate.",
+    "action": "Keep everything identical to the reference: the same {{view}} orthographic view, the same scale, position and silhouette, the same armour design - {{design_inventory}}, and the same colours ({{palette}}). Do not add, remove, move, mirror or restyle anything; only render it crisper and with finer surface detail.",
+    "camera": "",
+    "style": "",
+    "constraints": "Centred on a plain pure black background, no text, no shadow on the ground."
+  },
+  "variables": {
+    "view": {
+      "type": "enum",
+      "default": "front",
+      "enum": [
+        "front",
+        "back",
+        "left side",
+        "right side"
+      ],
+      "description": "which turnaround view"
+    },
+    "design_inventory": {
+      "type": "string",
+      "default": "every lion head, the gold filigree lines, rivets, roundels, belt studs, tasset plates, the red cloth folds and embroidered meander hems",
+      "description": "the design elements that must survive"
+    },
+    "palette": {
+      "type": "string",
+      "default": "dark bronze plates, orange antique gold, deep red cloth, black inner lining",
+      "description": "the colours"
+    }
+  },
+  "negatives": [],
+  "inputs": {
+    "reference_image": {
+      "required": true,
+      "order": 1,
+      "description": "the plate to re-render"
+    }
+  },
+  "defaults": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "size": "2160x3840",
+    "quality": "high",
+    "background": "opaque",
+    "n": 4
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "silhouette_iou",
+      "description": "silhouette IoU against the clay render / the V3 alpha (texlib/fidelity.py)",
+      "threshold": 0.95
+    },
+    {
+      "id": "structure",
+      "description": "structure similarity",
+      "threshold": 0.8
+    }
+  ],
+  "provenance": {
+    "source": "tripo_img/prompt_chest_<View>_4k.txt (the shelf), ported verbatim",
+    "note": "measured fit: GPT Image 2.5"
+  }
+}

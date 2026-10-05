@@ -1,0 +1,115 @@
+{
+  "id": "articulation-study",
+  "version": "1.0.0",
+  "purpose": "articulation",
+  "media": "video",
+  "title": "Articulation study of one armour part",
+  "description": "The captain's gauntlet hand study: a fixed close camera, the part named with its anatomy, references described by side, a beats schedule, plates sliding at real joints.",
+  "body": {
+    "subject": "ONE anatomical {{side}} {{part}} exactly as in [start_image], {{design_lock}}.",
+    "action": "The part articulates through the schedule below: rigid plates slide and rotate at real joints without changing shape.",
+    "camera": "Fixed close camera, no movement, no zoom, no cuts.",
+    "style": "Flat even studio light, plain neutral backdrop.",
+    "constraints": "The end pose equals the start pose; exactly one {{part}}, no extra fingers or plates, same design throughout."
+  },
+  "variables": {
+    "design_lock": {
+      "type": "string",
+      "default": "every plate, rivet and gold trim unchanged",
+      "description": "what must not change"
+    },
+    "side": {
+      "type": "enum",
+      "default": "RIGHT",
+      "enum": [
+        "LEFT",
+        "RIGHT"
+      ],
+      "description": "anatomical side"
+    },
+    "part": {
+      "type": "string",
+      "default": "gauntlet",
+      "description": "the part, named anatomically"
+    }
+  },
+  "negatives": [
+    "no cuts",
+    "no zoom",
+    "no camera movement",
+    "no extra parts"
+  ],
+  "inputs": {
+    "start_image": {
+      "required": true,
+      "order": 1,
+      "description": "the part in the start pose"
+    }
+  },
+  "defaults": {
+    "model": "heygen/heygen-video-1",
+    "resolution": "768p",
+    "aspect_ratio": "16:9",
+    "duration": 10,
+    "image_mode": "first_frame"
+  },
+  "model_adapters": {
+    "bytedance/seedance*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "end_image": "the end image",
+        "video_reference": "the reference video"
+      },
+      "note": "names references in prose; roles are start_image / end_image / video references"
+    },
+    "higgsfield/*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "video_reference": "the reference video"
+      },
+      "note": "Higgsfield media roles: start_image, end_image, image_references, video_references"
+    },
+    "heygen/*": {
+      "note": "audio is always on and not controllable; only a first frame is taken"
+    },
+    "kwaivgi/*": {
+      "ref_names": {
+        "start_image": "the first frame"
+      }
+    }
+  },
+  "gates": [
+    {
+      "id": "loop_closure_deg",
+      "description": "end pose equals start pose",
+      "threshold": 1.0,
+      "unit": "deg"
+    }
+  ],
+  "provenance": {
+    "source": "the captain's own tested prompt (Higgsfield job c3ceb749)"
+  },
+  "beats": [
+    {
+      "t0": 0,
+      "t1": 2,
+      "action": "open hand, fingers extended"
+    },
+    {
+      "t0": 2,
+      "t1": 5,
+      "action": "close into a fist"
+    },
+    {
+      "t0": 5,
+      "t1": 8,
+      "action": "open again"
+    },
+    {
+      "t0": 8,
+      "t1": 10,
+      "action": "return to the starting pose"
+    }
+  ],
+  "root_motion": "none"
+}

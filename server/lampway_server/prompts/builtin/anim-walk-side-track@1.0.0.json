@@ -1,0 +1,120 @@
+{
+  "id": "anim-walk-side-track",
+  "version": "1.0.0",
+  "purpose": "anim-walk",
+  "media": "video",
+  "title": "Walk cycle: side tracking shot (motion capture)",
+  "description": "The primary motion-capture walk: a side truck at the walker's own pace, constant distance, long lens, with a grid floor so root travel can be recovered from background parallax.",
+  "body": {
+    "subject": "This armoured warrior, exactly as in [start_image]: {{design_lock}}.",
+    "action": "He walks forward in a straight line at a steady natural pace of {{cadence_spm}} steps per minute, {{gait_notes}}, arms swinging opposite the legs.",
+    "camera": "Side-on tracking shot: the camera trucks {{direction}} alongside him at exactly his walking speed, keeping him centred in profile at a constant distance, long telephoto lens, flat near-orthographic perspective, eye level at hip height.",
+    "style": "Even flat studio light; flat light-grey studio floor marked with a regular square grid of thin dark lines; plain light-grey backdrop.",
+    "constraints": "Full body always in frame with margin, feet visible on the floor, exactly two arms and two legs, near and far leg distinct, same armour design throughout."
+  },
+  "variables": {
+    "design_lock": {
+      "type": "string",
+      "default": "dark bronze plate armour, gold lion-head pauldrons, crimson cloth skirt with a gold meander hem, black undersuit",
+      "description": "what must stay unchanged: the design in words"
+    },
+    "cadence_spm": {
+      "type": "integer",
+      "default": 110,
+      "min": 60,
+      "max": 160,
+      "description": "steps per minute"
+    },
+    "gait_notes": {
+      "type": "string",
+      "default": "heel strike to toe-off with the weight shifting smoothly",
+      "description": "how he walks"
+    },
+    "direction": {
+      "type": "enum",
+      "default": "right",
+      "enum": [
+        "left",
+        "right"
+      ],
+      "description": "the way he walks and the camera trucks"
+    }
+  },
+  "negatives": [
+    "no cuts",
+    "no zoom",
+    "no camera rotation",
+    "no turning",
+    "no second person"
+  ],
+  "inputs": {
+    "start_image": {
+      "required": true,
+      "order": 1,
+      "description": "the full-body side view in the start pose"
+    }
+  },
+  "defaults": {
+    "model": "heygen/heygen-video-1",
+    "resolution": "768p",
+    "aspect_ratio": "16:9",
+    "duration": 10,
+    "image_mode": "first_frame"
+  },
+  "model_adapters": {
+    "bytedance/seedance*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "end_image": "the end image",
+        "video_reference": "the reference video"
+      },
+      "note": "names references in prose; roles are start_image / end_image / video references"
+    },
+    "higgsfield/*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "video_reference": "the reference video"
+      },
+      "note": "Higgsfield media roles: start_image, end_image, image_references, video_references"
+    },
+    "heygen/*": {
+      "note": "audio is always on and not controllable; only a first frame is taken"
+    },
+    "kwaivgi/*": {
+      "ref_names": {
+        "start_image": "the first frame"
+      }
+    }
+  },
+  "gates": [
+    {
+      "id": "tracking",
+      "description": "anim_check: fraction of frames with the body tracked",
+      "threshold": 0.9,
+      "unit": "fraction"
+    },
+    {
+      "id": "root_speed_error",
+      "description": "root speed recovered from the floor grid vs stride x cadence",
+      "threshold": 0.05,
+      "unit": "fraction"
+    },
+    {
+      "id": "foot_slide_cm",
+      "description": "foot slide while planted (proposed)",
+      "threshold": 1.0,
+      "unit": "cm"
+    },
+    {
+      "id": "silhouette",
+      "description": "silhouette IoU against the character",
+      "threshold": 0.85
+    }
+  ],
+  "provenance": {
+    "source": "specs/prompts/PROMPT_LIBRARY.md section 3; wavespeed Seedance 2.0 template, clipdance camera guide, eachlabs Kling motion control guide",
+    "url": "https://wavespeed.ai/blog/posts/blog-seedance-2-0-prompt-template/",
+    "note": "the grid floor: with a centred subject root travel is only recoverable from background parallax; a plain backdrop makes root speed unmeasurable"
+  },
+  "root_motion": "tracked"
+}

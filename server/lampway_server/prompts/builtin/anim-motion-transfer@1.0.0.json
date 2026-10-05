@@ -1,0 +1,89 @@
+{
+  "id": "anim-motion-transfer",
+  "version": "1.0.0",
+  "purpose": "anim-motion-transfer",
+  "media": "video",
+  "title": "Motion transfer from a driving video",
+  "description": "Kling Motion Control / Genjutsu / Seedance reference video: the video carries the motion, the prompt holds 3-5 context points.",
+  "body": {
+    "subject": "This character, exactly as in [start_image]: {{design_lock}}.",
+    "action": "He performs the motion shown in [video_reference].",
+    "camera": "Match the framing of [video_reference], full body in frame on both sides.",
+    "style": "Plain grid studio floor, even light.",
+    "constraints": "Keep the character's scale and facing matched to the performer; full body in frame."
+  },
+  "variables": {
+    "design_lock": {
+      "type": "string",
+      "default": "dark bronze plate armour, gold lion-head pauldrons, crimson cloth skirt with a gold meander hem, black undersuit",
+      "description": "what must stay unchanged: the design in words"
+    }
+  },
+  "negatives": [
+    "no cuts",
+    "no second person",
+    "no costume change"
+  ],
+  "inputs": {
+    "start_image": {
+      "required": true,
+      "order": 1,
+      "description": "the character image; its scale and facing match the performer"
+    },
+    "video_reference": {
+      "required": true,
+      "order": 2,
+      "description": "the driving video"
+    }
+  },
+  "defaults": {
+    "model": "bytedance/seedance-2.0-mini",
+    "resolution": "480p",
+    "aspect_ratio": "9:16",
+    "duration": 5,
+    "image_mode": "reference"
+  },
+  "model_adapters": {
+    "bytedance/seedance*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "end_image": "the end image",
+        "video_reference": "the reference video"
+      },
+      "note": "names references in prose; roles are start_image / end_image / video references"
+    },
+    "higgsfield/*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "video_reference": "the reference video"
+      },
+      "note": "Higgsfield media roles: start_image, end_image, image_references, video_references"
+    },
+    "heygen/*": {
+      "note": "audio is always on and not controllable; only a first frame is taken"
+    },
+    "kwaivgi/*": {
+      "ref_names": {
+        "start_image": "the first frame"
+      }
+    }
+  },
+  "gates": [
+    {
+      "id": "tracking",
+      "description": "tracked frames",
+      "threshold": 0.9
+    },
+    {
+      "id": "silhouette",
+      "description": "silhouette IoU",
+      "threshold": 0.85
+    }
+  ],
+  "provenance": {
+    "source": "eachlabs Kling motion control guide",
+    "url": "https://www.eachlabs.ai/blog/kling-motion-control-complete-guide",
+    "note": "precondition: the character scale and facing match the performer, run a 5 s test before the full length"
+  },
+  "root_motion": "tracked"
+}

@@ -1,0 +1,77 @@
+{
+  "id": "concept-variant",
+  "version": "1.0.0",
+  "purpose": "concept",
+  "media": "image",
+  "title": "Concept variant",
+  "description": "A new design variation for a moodboard. It REDESIGNS the piece: never for projection.",
+  "body": {
+    "subject": "{{subject}}",
+    "action": "Show a fresh variation: {{change}}.",
+    "camera": "{{camera}}",
+    "style": "{{style}}",
+    "constraints": "No text, no watermark."
+  },
+  "variables": {
+    "subject": {
+      "type": "string",
+      "default": "An ornate armoured warrior in the Greek heroic style",
+      "description": "what to design"
+    },
+    "change": {
+      "type": "string",
+      "default": "a different crest, pauldron shape and cloth colour while keeping the heroic bronze-and-gold look",
+      "description": "what differs"
+    },
+    "camera": {
+      "type": "string",
+      "default": "Full-length front view, eye level, neutral studio framing",
+      "description": "framing"
+    },
+    "style": {
+      "type": "string",
+      "default": "Concept-art render, even soft light, plain mid-grey background",
+      "description": "look"
+    }
+  },
+  "negatives": [],
+  "inputs": {
+    "reference_image": {
+      "required": false,
+      "order": 1,
+      "description": "an optional reference to riff on"
+    }
+  },
+  "defaults": {
+    "model": "black-forest-labs/flux-3-image",
+    "resolution": "2K",
+    "aspect_ratio": "3:4",
+    "n": 4
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "captain_rating",
+      "description": "the captain's 1-5 rating"
+    }
+  ],
+  "provenance": {
+    "source": "new (bake-off: FLUX 3 for concepts; it redesigns the piece so it is NOT for projection)"
+  }
+}

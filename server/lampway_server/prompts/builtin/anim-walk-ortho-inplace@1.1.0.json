@@ -1,0 +1,107 @@
+{
+  "id": "anim-walk-ortho-inplace",
+  "version": "1.1.0",
+  "purpose": "anim-walk",
+  "media": "video",
+  "title": "Walk cycle: fixed orthographic, in place (treadmill)",
+  "description": "The captain's tested treadmill prompt: no root motion, for cycles only. Baseline for the side-track A/B.",
+  "body": {
+    "subject": "Fixed orthographic {{view}} view of this armoured warrior, exactly as in [start_image]: {{design_lock}}.",
+    "action": "He walks in place, as on a treadmill, at a steady natural pace of {{cadence_spm}} steps per minute, arms swinging opposite the legs.",
+    "camera": "Locked-off camera: no camera movement, no zoom, no cuts, no perspective change.",
+    "style": "Flat even studio light, plain light-grey backdrop.",
+    "constraints": "Feet always in frame and touching the floor line. Exactly two arms and two legs, same armour design throughout."
+  },
+  "variables": {
+    "design_lock": {
+      "type": "string",
+      "default": "dark bronze plate armour, gold lion-head pauldrons, crimson cloth skirt with a gold meander hem, black undersuit",
+      "description": "what must stay unchanged: the design in words"
+    },
+    "view": {
+      "type": "enum",
+      "default": "side",
+      "enum": [
+        "side",
+        "front",
+        "back"
+      ],
+      "description": "which orthographic view"
+    },
+    "cadence_spm": {
+      "type": "integer",
+      "default": 110,
+      "min": 60,
+      "max": 160,
+      "description": "steps per minute"
+    }
+  },
+  "negatives": [
+    "no camera movement",
+    "no zoom",
+    "no cuts",
+    "no perspective change"
+  ],
+  "inputs": {
+    "start_image": {
+      "required": true,
+      "order": 1,
+      "description": "the orthographic view in the start pose"
+    }
+  },
+  "defaults": {
+    "model": "heygen/heygen-video-1",
+    "resolution": "768p",
+    "aspect_ratio": "16:9",
+    "duration": 10,
+    "image_mode": "first_frame"
+  },
+  "model_adapters": {
+    "bytedance/seedance*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "end_image": "the end image",
+        "video_reference": "the reference video"
+      },
+      "note": "names references in prose; roles are start_image / end_image / video references"
+    },
+    "higgsfield/*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "video_reference": "the reference video"
+      },
+      "note": "Higgsfield media roles: start_image, end_image, image_references, video_references"
+    },
+    "heygen/*": {
+      "note": "audio is always on and not controllable; only a first frame is taken"
+    },
+    "kwaivgi/*": {
+      "ref_names": {
+        "start_image": "the first frame"
+      }
+    }
+  },
+  "gates": [
+    {
+      "id": "tracking",
+      "description": "fraction of frames tracked",
+      "threshold": 0.9
+    },
+    {
+      "id": "foot_slide_cm",
+      "description": "foot slide (proposed)",
+      "threshold": 1.0,
+      "unit": "cm"
+    },
+    {
+      "id": "silhouette",
+      "description": "silhouette IoU",
+      "threshold": 0.85
+    }
+  ],
+  "provenance": {
+    "source": "the captain's own tested prompt (Higgsfield jobs f9b22644, f8fd296a)",
+    "note": "root_motion none: cycles only"
+  },
+  "root_motion": "none"
+}

@@ -1,0 +1,110 @@
+{
+  "id": "anim-walk-front-dollyback",
+  "version": "1.0.0",
+  "purpose": "anim-walk",
+  "media": "video",
+  "title": "Walk cycle: front view, camera dollies back",
+  "description": "Front-view companion to the side track: the camera dollies back at his walking speed while he walks toward it, constant framing, grid floor receding.",
+  "body": {
+    "subject": "This armoured warrior, exactly as in [start_image]: {{design_lock}}.",
+    "action": "He walks straight toward the camera at a steady natural pace of {{cadence_spm}} steps per minute, {{gait_notes}}, arms swinging opposite the legs.",
+    "camera": "Front-on dolly back: the camera dollies backward at exactly his walking speed, keeping him centred with constant framing and constant scale, medium-long lens, eye level at hip height.",
+    "style": "Even flat studio light; flat light-grey studio floor marked with a regular square grid of thin dark lines; plain light-grey backdrop. The grid recedes behind the camera as it moves.",
+    "constraints": "Full body always in frame with margin, feet visible on the floor, exactly two arms and two legs, same armour design throughout."
+  },
+  "variables": {
+    "design_lock": {
+      "type": "string",
+      "default": "dark bronze plate armour, gold lion-head pauldrons, crimson cloth skirt with a gold meander hem, black undersuit",
+      "description": "what must stay unchanged: the design in words"
+    },
+    "cadence_spm": {
+      "type": "integer",
+      "default": 110,
+      "min": 60,
+      "max": 160,
+      "description": "steps per minute"
+    },
+    "gait_notes": {
+      "type": "string",
+      "default": "heel strike to toe-off with the weight shifting smoothly",
+      "description": "how he walks"
+    }
+  },
+  "negatives": [
+    "no cuts",
+    "no zoom",
+    "no camera rotation",
+    "no turning",
+    "no second person"
+  ],
+  "inputs": {
+    "start_image": {
+      "required": true,
+      "order": 1,
+      "description": "the full-body front view in the start pose"
+    }
+  },
+  "defaults": {
+    "model": "heygen/heygen-video-1",
+    "resolution": "768p",
+    "aspect_ratio": "16:9",
+    "duration": 10,
+    "image_mode": "first_frame"
+  },
+  "model_adapters": {
+    "bytedance/seedance*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "end_image": "the end image",
+        "video_reference": "the reference video"
+      },
+      "note": "names references in prose; roles are start_image / end_image / video references"
+    },
+    "higgsfield/*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "video_reference": "the reference video"
+      },
+      "note": "Higgsfield media roles: start_image, end_image, image_references, video_references"
+    },
+    "heygen/*": {
+      "note": "audio is always on and not controllable; only a first frame is taken"
+    },
+    "kwaivgi/*": {
+      "ref_names": {
+        "start_image": "the first frame"
+      }
+    }
+  },
+  "gates": [
+    {
+      "id": "tracking",
+      "description": "anim_check: fraction of frames with the body tracked",
+      "threshold": 0.9,
+      "unit": "fraction"
+    },
+    {
+      "id": "root_speed_error",
+      "description": "root speed recovered from the floor grid vs stride x cadence",
+      "threshold": 0.05,
+      "unit": "fraction"
+    },
+    {
+      "id": "foot_slide_cm",
+      "description": "foot slide while planted (proposed)",
+      "threshold": 1.0,
+      "unit": "cm"
+    },
+    {
+      "id": "silhouette",
+      "description": "silhouette IoU against the character",
+      "threshold": 0.85
+    }
+  ],
+  "provenance": {
+    "source": "specs/prompts/PROMPT_LIBRARY.md section 3; wavespeed Seedance 2.0 template, clipdance camera guide, eachlabs Kling motion control guide",
+    "url": "https://wavespeed.ai/blog/posts/blog-seedance-2-0-prompt-template/"
+  },
+  "root_motion": "tracked"
+}

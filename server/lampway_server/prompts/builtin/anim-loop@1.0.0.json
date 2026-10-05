@@ -1,0 +1,100 @@
+{
+  "id": "anim-loop",
+  "version": "1.0.0",
+  "purpose": "anim-loop",
+  "media": "video",
+  "title": "Clean cycle: first frame equals last frame",
+  "description": "For models with first and last frame: the start and end image are the same pose image, the action ends in exactly the starting pose.",
+  "body": {
+    "subject": "This armoured warrior, exactly as in [start_image]: {{design_lock}}.",
+    "action": "{{cycle_action}}, ending in exactly the starting pose.",
+    "camera": "Locked-off orthographic {{view}} view, no camera movement, no zoom, no cuts.",
+    "style": "Flat even studio light, plain light-grey backdrop.",
+    "constraints": "Full body in frame, feet on the floor line, exactly two arms and two legs, the final frame identical to [end_image]."
+  },
+  "variables": {
+    "design_lock": {
+      "type": "string",
+      "default": "dark bronze plate armour, gold lion-head pauldrons, crimson cloth skirt with a gold meander hem, black undersuit",
+      "description": "what must stay unchanged: the design in words"
+    },
+    "cycle_action": {
+      "type": "string",
+      "default": "He walks in place through one full gait cycle",
+      "description": "the loop's action"
+    },
+    "view": {
+      "type": "enum",
+      "default": "side",
+      "enum": [
+        "side",
+        "front",
+        "back"
+      ],
+      "description": "orthographic view"
+    }
+  },
+  "negatives": [
+    "no cuts",
+    "no zoom",
+    "no camera movement",
+    "no second person"
+  ],
+  "inputs": {
+    "start_image": {
+      "required": true,
+      "order": 1,
+      "description": "the pose image"
+    },
+    "end_image": {
+      "required": true,
+      "order": 2,
+      "description": "the SAME pose image"
+    }
+  },
+  "defaults": {
+    "model": "bytedance/seedance-1-5-pro",
+    "resolution": "720p",
+    "aspect_ratio": "1:1",
+    "duration": 5,
+    "image_mode": "first_last_frame"
+  },
+  "model_adapters": {
+    "bytedance/seedance*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "end_image": "the end image",
+        "video_reference": "the reference video"
+      },
+      "note": "names references in prose; roles are start_image / end_image / video references"
+    },
+    "higgsfield/*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "video_reference": "the reference video"
+      },
+      "note": "Higgsfield media roles: start_image, end_image, image_references, video_references"
+    },
+    "heygen/*": {
+      "note": "audio is always on and not controllable; only a first frame is taken"
+    },
+    "kwaivgi/*": {
+      "ref_names": {
+        "start_image": "the first frame"
+      }
+    }
+  },
+  "gates": [
+    {
+      "id": "loop_closure_deg",
+      "description": "largest per-joint difference between the first and last frame",
+      "threshold": 1.0,
+      "unit": "deg"
+    }
+  ],
+  "provenance": {
+    "source": "specs/prompts/PROMPT_LIBRARY.md section 3; wavespeed Seedance 2.0 template, clipdance camera guide, eachlabs Kling motion control guide",
+    "url": "https://wavespeed.ai/blog/posts/blog-seedance-2-0-prompt-template/"
+  },
+  "root_motion": "none"
+}
