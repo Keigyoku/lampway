@@ -8,7 +8,7 @@ from typing import AsyncIterator, Optional
 
 import httpx
 
-from .base import Message, ModelRequest, ProviderEvent, Text, ToolCall, ToolSpec
+from .base import Message, ModelRequest, ProviderEvent, Stop, Text, ToolCall, ToolSpec
 
 
 class OpenAICompatProvider:
@@ -36,6 +36,7 @@ class OpenAICompatProvider:
             headers["Authorization"] = f"Bearer {self._api_key}"
         self._before_request()
         calls: dict[int, dict] = {}
+        finish = ""
         async with self.client.stream("POST", f"{self.base_url}/chat/completions", json=body,
                                       headers=headers) as response:
             if response.status_code >= 400:
@@ -53,6 +54,7 @@ class OpenAICompatProvider:
                     continue
                 self._on_chunk(chunk)
                 for choice in chunk.get("choices") or []:
+                    finish = choice.get("finish_reason") or finish
                     delta = choice.get("delta") or {}
                     if delta.get("content"):
                         yield Text(delta["content"])
@@ -71,6 +73,8 @@ class OpenAICompatProvider:
             if not isinstance(arguments, dict):
                 arguments = {"__invalid_json__": slot["arguments"]}
             yield ToolCall(id=slot["id"] or f"call_{index}", name=slot["name"], arguments=arguments)
+        if finish and finish not in ("stop", "tool_calls"):     # only the abnormal ones: length, content_filter, ...
+            yield Stop(finish)
 
     # ------------------------------------------------------------ seams for gateways that add to the protocol
     def _extra_body(self) -> dict:

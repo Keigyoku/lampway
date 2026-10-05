@@ -21,12 +21,21 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
-from .providers.base import Message, ModelRequest, Text, ToolCall
+from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
 from . import server_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
 
 log = logging.getLogger("lampway.agent")
+
+MAX_ROUNDS = 64
+MODEL_RESULT_CLIP = 20_000          # characters of one tool result the model is shown
+HISTORY_BUDGET = 200_000            # characters of tool results kept in the context; the oldest are replaced by a note
+_STOP_HINTS = {
+    "length": "the model hit its output or context limit",
+    "max_tokens": "the model hit its output limit",
+    "content_filter": "the provider's content filter stopped it",
+}
 
 METHOD_NOT_FOUND = -32601
 INVALID_PARAMS = -32602
@@ -298,23 +307,31 @@ class AgentHub:
 
     async def _agent_loop(self, socket, session, turn, stream, bubble_id, steps):
         system = self.system_prompt + (PLAN_MODE_PROMPT if turn.plan_mode else "")
-        for _round in range(64):
-            request = ModelRequest(system, list(session.messages), list(TOOLS) + SWARM_SPECS)
+        for _round in range(MAX_ROUNDS):
+            request = ModelRequest(system, trim_history(session.messages), list(TOOLS) + SWARM_SPECS)
             text_parts: list[str] = []
             calls: list[ToolCall] = []
+            stop = ""
             async for event in self.provider.stream(request):
                 if isinstance(event, Text):
                     text_parts.append(event.text)
                     await stream.emit({"bubble_id": bubble_id, "ephemeral": {"append": event.text}})
                 elif isinstance(event, ToolCall):
                     calls.append(event)
+                elif isinstance(event, Stop):
+                    stop = event.reason
             text = "".join(text_parts)
             assistant = Message("assistant", ([{"type": "text", "text": text}] if text else []) + [
                 {"type": "tool_call", "id": c.id, "name": c.name, "arguments": c.arguments} for c in calls])
             session.messages.append(assistant)
             if not calls:
-                if text:
-                    await stream.emit({"bubble_id": bubble_id, "content": {"set": text}})
+                if not text.strip():
+                    n = len(steps)
+                    log.warning("turn %s ended on an empty reply after %d tool calls (stop reason %r)", turn.turn_id, n, stop)
+                    text = empty_reply_note(stop, n)
+                elif stop in ("length", "max_tokens"):
+                    text += "\n\n(The reply was cut off at the model's output limit.)"
+                await stream.emit({"bubble_id": bubble_id, "content": {"set": text}})
                 return
             question = next((c for c in calls if c.name == ASK_USER), None)
             if question is not None:
@@ -328,10 +345,12 @@ class AgentHub:
                 content, is_error = await self._run_tool(socket, session, turn, call, stream, bubble_id, steps)
                 steps[-1]["status"] = "failed" if is_error else "done"
                 await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
-                results.append({"type": "tool_result", "tool_call_id": call.id, "content": content,
+                results.append({"type": "tool_result", "tool_call_id": call.id, "content": clip_result(content),
                                 "is_error": is_error})
             session.messages.append(Message("user", results))
-        await stream.emit({"bubble_id": bubble_id, "content": {"set": "I stopped after too many tool calls."}})
+        log.warning("turn %s hit the %d-round tool cap", turn.turn_id, MAX_ROUNDS)
+        await stream.emit({"bubble_id": bubble_id, "content": {"set": (
+            f"I stopped after {MAX_ROUNDS} rounds of tool calls without finishing. Tell me to continue, or give me a narrower task.")}})
 
     async def _ask(self, session, turn, stream, bubble_id, text, call: ToolCall):
         """End the turn on the model's question: a bubble the client renders as a choice (or a text prompt), whose answer
@@ -428,6 +447,41 @@ class TurnStream:
 
 class InvalidParams(ValueError):
     pass
+
+
+def clip_result(text: str, limit: int = MODEL_RESULT_CLIP) -> str:
+    """A tool result as the model sees it: bounded. The live silent turn was 0.5-1.6 MB candidate files read eight times."""
+    if len(text) <= limit:
+        return text
+    return (text[:limit] + f"\n...[clipped: the first {limit} of {len(text)} characters. Ask for less: a summary, specific ids, "
+            "a smaller slice - never the whole file.]")
+
+
+def trim_history(messages: list, budget: int = HISTORY_BUDGET) -> list:
+    """The messages the model is sent: when the tool results in the history outgrow ``budget`` characters, the OLDEST results are
+    replaced by a one-line note (the conversation and the recent results stay). The session's own list is never changed."""
+    total = sum(len(str(p.get("content", ""))) for m in messages for p in m.content if p.get("type") == "tool_result")
+    if total <= budget:
+        return list(messages)
+    out = []
+    for m in messages:
+        parts = []
+        for p in m.content:
+            if p.get("type") == "tool_result" and total > budget:
+                size = len(str(p.get("content", "")))
+                total -= size
+                p = {**p, "content": f"[an older tool result of {size} characters was left out to keep the context small]"}
+            parts.append(p)
+        out.append(Message(m.role, parts))
+    return out
+
+
+def empty_reply_note(stop: str, tool_calls: int) -> str:
+    why = _STOP_HINTS.get(stop or "", "")
+    tail = f" ({why}; stop reason: {stop})" if why else (f" (stop reason: {stop})" if stop else " (the provider reported no abnormal stop)")
+    n = f" after {tool_calls} tool call{'s' if tool_calls != 1 else ''}" if tool_calls else ""
+    return (f"The model returned an empty reply{n}{tail}. Nothing more was done. "
+            "This usually means a limit was reached: ask again with less to read, or in smaller steps.")
 
 
 def _command_parts(params: dict):
