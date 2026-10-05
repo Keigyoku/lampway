@@ -181,6 +181,17 @@ DEFS = [
         [P("object", required=True), P("method", desc="shells (default) | sharp | uv_islands"), P("angle", "number", "Degrees, default 40"),
          P("min_faces", "integer", "Merge regions under this many faces, default 1 (no merge)"),
          P("engine", desc="algorithmic (default) | studio:tripo")], api="segment_mesh"),
+    Def("lampway_mesh_prep", "Workflow, geometry preparation: a branch `<object>_prep` of a generated mesh with its source hash "
+        "recorded, loose and doubled vertices removed and inverted normals fixed; returns before/after reports. The source is untouched.",
+        [P("object", required=True), P("merge_distance", "number", "Weld distance, default 1e-5")], api="mesh_prep"),
+    Def("lampway_asset_acceptance", "Workflow, engine acceptance: identity / orientation / geometry / materials gates for a candidate "
+        "asset (optionally against a `reference` object), each with reasons, and an overall `accepted`. Lists what it did not check.",
+        [P("object", required=True), P("reference", desc="An approved object to compare bounds against"),
+         P("tolerance", "number", "Fraction of the reference diagonal, default 0.1")], api="asset_acceptance"),
+    Def("lampway_rig_armor", "Workflow, fit existing armor: fit a copy `<object>_fit` to an armature (bone = one bone at full weight for "
+        "rigid plates; body = weights transferred from the aligned body; else heat map), then measure edge stretch over a pose set. "
+        "The original is never bound.", [P("object", required=True), P("armature", required=True), P("bone"), P("body"),
+        P("max_stretch", "number", "Accept limit; default 1.001 rigid, 1.35 deforming")], api="rig_armor"),
     Def("lampway_auto_rig", "Auto Rig: a UE-named humanoid armature `<object>_rig` placed from landmarks measured on a T-pose mesh "
         "(standing on Z, facing -Y by default; _l/_r are the FIGURE's own sides), the mesh parented with heat-map weights and a "
         "proximity fallback for vertices heat cannot solve. Test it with lampway_pose_test: a rig is not a claim of deformation "
