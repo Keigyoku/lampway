@@ -105,7 +105,7 @@ def test_rejecting_a_spend_cancels_the_job_without_calling_the_backend(stack):
 
 def test_registration_refuses_a_key_the_client_never_sends_and_a_spend_without_a_price():
     reg = ServiceRegistry()
-    with pytest.raises(ValueError, match="not a Mixar client job type") as e:
+    with pytest.raises(ValueError, match="not a Lampway client job type") as e:
         reg.register("my_service", Backend(), ROW)
     assert "retopology" in str(e.value) and len(WIRE_KEYS) == 21
     with pytest.raises(ValueError, match="confirm_price"):
