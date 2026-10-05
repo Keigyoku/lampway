@@ -21,7 +21,7 @@ jobs:
       - name: New commits and their diffs (emails, paths, ids, tokens)
         run: |
           base="${{ github.event.pull_request.base.sha || github.event.before }}"
-          [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ] && base=$(git merge-base HEAD origin/main)
+          if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then base=$(git merge-base HEAD origin/main); fi   # a force-push leaves the old tip unknown
           python3 scripts/lampway/prepublish_gate.py --git "$base..HEAD"
       - name: Media metadata in shipped folders
         run: for d in docs; do [ -d "$d" ] && python3 scripts/lampway/prepublish_gate.py --media "$d"; done; true
