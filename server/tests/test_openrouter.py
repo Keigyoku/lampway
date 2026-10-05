@@ -172,3 +172,22 @@ def test_budget_settings_have_small_defaults_and_come_from_the_environment(tmp_p
     custom = Settings.from_env({"LAMPWAY_STATE_DIR": str(tmp_path), "LAMPWAY_OPENROUTER_MAX_TOKENS": "999",
                                 "LAMPWAY_OPENROUTER_BUDGET_USD": "0.5"})
     assert (custom.openrouter_max_tokens, custom.openrouter_budget_usd) == (999, 0.5)
+
+
+def test_ledgers_on_one_log_file_see_each_others_spend_so_a_subprocess_cannot_dodge_the_ceiling(tmp_path):
+    from lampway_server.agent.providers.openrouter import SpendCeilingReached, SpendLedger
+    log = tmp_path / "spend.jsonl"
+    server, child = SpendLedger(1.0, log_path=log), SpendLedger(1.0, log_path=log)
+    server.add(0.7, "main")
+    child.add(0.4, "image")
+    assert server.spent == pytest.approx(1.1) and child.spent == pytest.approx(1.1)
+    with pytest.raises(SpendCeilingReached):
+        child.check()
+    assert server.by_label == {"main": pytest.approx(0.7), "image": pytest.approx(0.4)}
+
+
+def test_the_spend_log_path_can_be_named_by_the_environment_for_child_processes(tmp_path, monkeypatch):
+    from lampway_server.agent.providers import spend_ledger
+    monkeypatch.setenv("LAMPWAY_SPEND_LOG", str(tmp_path / "shared.jsonl"))
+    ledger = spend_ledger(Settings.from_env({"LAMPWAY_STATE_DIR": str(tmp_path / "state")}))
+    assert ledger.log_path == tmp_path / "shared.jsonl"

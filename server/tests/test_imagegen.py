@@ -120,3 +120,87 @@ def test_the_command_line_prints_a_toon_summary_and_exits_nonzero_on_failure(roo
     monkeypatch.setattr(ST, "_exec", lambda cmd, env, timeout: (1, "error: no\n"))
     assert IG.main(["--backend", "tripo", "--prompt-file", "p.txt", "--out", "runs/F", "--live"]) == 1
     assert "error:" in capsys.readouterr().out
+
+
+# ------------------------------------------------------------------ the OpenRouter backend (image models with reference images)
+import base64
+
+import httpx
+
+PNG = b"\x89PNG\r\n\x1a\n" + b"fake-image-bytes"
+KEY = "sk-or-v1-" + "ef56" * 16
+
+
+@pytest.fixture
+def orouter(root, monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", KEY)
+    monkeypatch.setenv("LAMPWAY_OPENROUTER_BUDGET_USD", "1.0")
+    (root / "design.png").write_bytes(b"design-bytes")
+    seen = []
+
+    def handler(request):
+        seen.append({"url": str(request.url), "auth": request.headers.get("authorization"), "body": json.loads(request.content)})
+        return httpx.Response(200, json={"created": 1, "data": [{"b64_json": base64.b64encode(PNG).decode(), "media_type": "image/png"}],
+                                         "usage": {"cost": 0.04}})
+
+    monkeypatch.setattr(IG, "openrouter_transport", httpx.MockTransport(handler))
+    return seen
+
+
+def test_openrouter_is_a_backend_choice(monkeypatch):
+    monkeypatch.setenv("LAMPWAY_IMAGE_BACKEND", "openrouter")
+    assert IG.backend_name() == "openrouter" and "openrouter" in IG.BACKENDS
+
+
+def test_openrouter_dry_run_sends_nothing_and_says_what_it_would_do(root, orouter):
+    r = IG.generate("openrouter", "p.txt", ["clay.png", "design.png"], "runs/Front", count=1)
+    assert r["dry_run"] is True and r["files"] == [] and orouter == []
+    assert "google/gemini-3.1-flash-image" in r["output"] and "2 reference" in r["output"]
+
+
+def test_openrouter_live_sends_the_prompt_and_the_references_in_order_and_writes_the_image(root, orouter):
+    r = IG.generate("openrouter", "p.txt", ["clay.png", "design.png"], "runs/Front", count=1, live=True)
+    sent = orouter[0]
+    assert sent["url"] == "https://openrouter.ai/api/v1/images" and sent["auth"] == f"Bearer {KEY}"
+    body = sent["body"]
+    assert body["model"] == "google/gemini-3.1-flash-image" and body["prompt"] == "paint it flat"
+    urls = [ref["image_url"]["url"] for ref in body["input_references"]]
+    assert urls == ["data:image/png;base64," + base64.b64encode(b"x").decode(),
+                    "data:image/png;base64," + base64.b64encode(b"design-bytes").decode()]
+    assert r["dry_run"] is False and len(r["files"]) == 1
+    assert Path(r["files"][0]).name == "1.png" and Path(r["files"][0]).read_bytes() == PNG
+
+
+def test_openrouter_cost_goes_on_the_shared_session_ledger(root, orouter):
+    from lampway_server.agent.providers import spend_ledger
+    from lampway_server.config import Settings
+    IG.generate("openrouter", "p.txt", ["clay.png"], "runs/Front", count=2, live=True)
+    ledger = spend_ledger(Settings.from_env())
+    assert ledger.spent == pytest.approx(0.08) and ledger.by_label == {"image": pytest.approx(0.08)}
+    assert len(orouter) == 2
+
+
+def test_openrouter_refuses_past_the_ceiling_before_sending(root, orouter):
+    from lampway_server.agent.providers import spend_ledger
+    from lampway_server.agent.providers.openrouter import SpendCeilingReached
+    from lampway_server.config import Settings
+    spend_ledger(Settings.from_env()).add(5.0, "earlier")
+    with pytest.raises(SpendCeilingReached):
+        IG.generate("openrouter", "p.txt", ["clay.png"], "runs/Front", count=1, live=True)
+    assert orouter == []
+
+
+def test_openrouter_never_asks_for_more_than_four_images_and_keeps_paths_in_the_project(root, orouter):
+    with pytest.raises(ValueError, match="at most 4"):
+        IG.generate("openrouter", "p.txt", [], "runs/x", count=5, live=True)
+    with pytest.raises(ST.BadToolCall, match="outside the project root"):
+        IG.generate("openrouter", "p.txt", ["/etc/hostname"], "runs/x", count=1, live=True)
+
+
+def test_openrouter_http_errors_are_redacted(root, monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", KEY)
+    monkeypatch.setattr(IG, "openrouter_transport", httpx.MockTransport(
+        lambda request: httpx.Response(402, json={"error": {"message": f"credits exhausted for {KEY}"}})))
+    with pytest.raises(IG.ImageGenError) as raised:
+        IG.generate("openrouter", "p.txt", ["clay.png"], "runs/Front", count=1, live=True)
+    assert KEY not in str(raised.value) and "402" in str(raised.value)

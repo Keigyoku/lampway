@@ -101,30 +101,60 @@ def _factory_with(flt, previous):
 
 
 class SpendLedger:
-    """What this server session has spent on OpenRouter, in USD as OpenRouter reports it; thread-safe."""
+    """What this session has spent on OpenRouter, in USD as OpenRouter reports it; thread-safe. With a ``log_path`` the log file IS
+    the ledger (one JSON line per paid call), so a child process pointed at the same file (LAMPWAY_SPEND_LOG) counts toward the same
+    ceiling; a session lasts until the file is rotated (the launcher starts a fresh one)."""
 
     def __init__(self, ceiling_usd: float, log_path=None):
         self.ceiling_usd = float(ceiling_usd)
         self.log_path = Path(log_path) if log_path else None
-        self.spent = 0.0
-        self.by_label: dict = {}
+        self._spent = 0.0
+        self._by_label: dict = {}
         self._lock = threading.Lock()
 
-    def check(self) -> None:
+    def _totals(self):
+        if self.log_path is None:
+            return self._spent, dict(self._by_label)
+        spent, by_label = 0.0, {}
+        try:
+            lines = self.log_path.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            return 0.0, {}
+        for line in lines:
+            try:
+                row = json.loads(line)
+                spent += float(row["cost_usd"])
+                by_label[row["label"]] = by_label.get(row["label"], 0.0) + float(row["cost_usd"])
+            except (ValueError, KeyError, TypeError):
+                continue
+        return spent, by_label
+
+    @property
+    def spent(self) -> float:
         with self._lock:
-            if self.spent >= self.ceiling_usd:
-                raise SpendCeilingReached(
-                    f"OpenRouter session spend ceiling reached (${self.spent:.2f} of ${self.ceiling_usd:.2f}); "
-                    "nothing was sent. Raise LAMPWAY_OPENROUTER_BUDGET_USD to continue.")
+            return self._totals()[0]
+
+    @property
+    def by_label(self) -> dict:
+        with self._lock:
+            return self._totals()[1]
+
+    def check(self) -> None:
+        spent = self.spent
+        if spent >= self.ceiling_usd:
+            raise SpendCeilingReached(
+                f"OpenRouter session spend ceiling reached (${spent:.2f} of ${self.ceiling_usd:.2f}); "
+                "nothing was sent. Raise LAMPWAY_OPENROUTER_BUDGET_USD to continue.")
 
     def add(self, cost: float, label: str) -> None:
         with self._lock:
-            self.spent += float(cost)
-            self.by_label[label] = self.by_label.get(label, 0.0) + float(cost)
-            if self.log_path is not None:                       # one line per paid call: when, who, how much
-                self.log_path.parent.mkdir(parents=True, exist_ok=True)
-                with self.log_path.open("a", encoding="utf-8") as fh:
-                    fh.write(json.dumps({"t": time.time(), "label": label, "cost_usd": float(cost)}) + "\n")
+            if self.log_path is None:
+                self._spent += float(cost)
+                self._by_label[label] = self._by_label.get(label, 0.0) + float(cost)
+                return
+            self.log_path.parent.mkdir(parents=True, exist_ok=True)
+            with self.log_path.open("a", encoding="utf-8") as fh:        # one line per paid call: when, who, how much
+                fh.write(json.dumps({"t": time.time(), "label": label, "cost_usd": float(cost)}) + "\n")
 
     def __repr__(self) -> str:
         return f"SpendLedger(spent={self.spent:.4f}, ceiling={self.ceiling_usd:.2f})"

@@ -90,11 +90,11 @@ LOCALS = [
 LOCALS.append(Local(
     "studio_image_generate", "Painted variants of a clay render (the mesh-paint step): through the configured image backend, "
     "`tripo` (Tripo Studio driver: GPT Image 2.5, 4 images, 4K, free quota) or `codex_cli` (the owner's own Codex login, only if "
-    "the local-CLI setting is on). refs in order: the clay render, a painted consistency view (optional), the design plate. "
+    "the local-CLI setting is on) or `openrouter` (an OpenRouter image model; at most 4 images, each request costs money). refs in order: the clay render, a painted consistency view (optional), the design plate. "
     "Defaults to a dry run (tripo: settings read back, nothing clicked); `live: true` generates, and tripo additionally needs the "
     "owner's LAMPWAY_STUDIO_ARMED=1. Never pass live=true unless the user asked for exactly that.", "imagegen",
     [A("prompt_file", required=True, path=True), A("refs", "array", "Reference images in order", path=True),
-     A("out_dir", required=True, path=True), A("backend", desc="tripo (default) or codex_cli"), A("count", "integer", "Default 4"),
+     A("out_dir", required=True, path=True), A("backend", desc="tripo (default), codex_cli, or openrouter (an OpenRouter image model; paid, counted against the session spend ceiling, live=true only when asked)"), A("count", "integer", "Default 4"),
      A("live", "boolean", "Default false")], 3600))
 BY_NAME = {d.name: d for d in LOCALS}
 SPECS = [d.spec() for d in LOCALS]

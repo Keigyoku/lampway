@@ -44,7 +44,8 @@ def spend_ledger(settings):
     from .openrouter import SpendLedger
     key = (str(settings.state_dir), float(settings.openrouter_budget_usd))
     if key not in _LEDGERS:
-        _LEDGERS[key] = SpendLedger(settings.openrouter_budget_usd, log_path=settings.state_dir / "openrouter_spend.jsonl")
+        log = os.environ.get("LAMPWAY_SPEND_LOG") or settings.state_dir / "openrouter_spend.jsonl"
+        _LEDGERS[key] = SpendLedger(settings.openrouter_budget_usd, log_path=log)
     return _LEDGERS[key]
 
 
