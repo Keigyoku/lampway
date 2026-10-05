@@ -50,6 +50,7 @@ TOOLS = dict([
     _t("patch_holes", "blender", "partseg/patch_holes.py", "apply mesh QA rulings: delete ruled faces, patch ruled holes, relabel"),
     _t("uv_patches", "blender", "partseg/uv_patches.py", "UV islands for patch faces, packed with the originals locked"),
     _t("delete_caps", "blender", "partseg/delete_caps.py", "delete a cap that closes an opening by ray-casting its footprint"),
+    _t("bake_maps", "blender", "bake/bake_maps.py", "headless Cycles bake of high-poly donors onto a UV-mapped target: normal, colour-only albedo, AO"),
     _t("render_owner", "blender", "partseg/render_owner.py", "render a mesh coloured by part owner, four views plus legend"),
     _t("mesh_to_npz", "blender", "proportion/mesh_to_npz.py", "export a mesh or the MetaHuman body to npz"),
     _t("proportion_fit", "blender", "proportion/proportion_fit.py", "clearance-fit overlays (fragile as a ranking)"),
