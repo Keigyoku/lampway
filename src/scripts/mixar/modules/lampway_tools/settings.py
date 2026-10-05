@@ -104,6 +104,28 @@ def resolve_in_root(path, root) -> Path:
     return full
 
 
+_PATH_TOKEN = __import__("re").compile(r"(?:(?<=^)|(?<=[=:,]))((?:\.\.?/|~/|/|\.\.$|~$)[^:,=]*|[^:,=/]+/[^:,=]*)")
+
+
+def jail_args(args, root) -> list:
+    """A batch tool's arguments with every path-like token resolved inside ``root``: positional paths, the value of a
+    ``--flag=path``, and the path in a ``name=path:turn`` form. A token is path-like when it contains a slash or is
+    ``..``/``~``; a bare file name is left alone (the tool runs with ``root`` as its working directory, so it lands
+    there). A token that resolves outside the root raises PathOutsideProject."""
+    out = []
+    for raw in args:
+        text = str(raw)
+        if text == "-" or (text.startswith("--") and "=" not in text):
+            out.append(text)
+            continue
+
+        def _sub(m):
+            return str(resolve_in_root(Path(m.group(1)).expanduser(), root))
+
+        out.append(_PATH_TOKEN.sub(_sub, text))
+    return out
+
+
 def blender_binary(s: Settings) -> Optional[Path]:
     if s.blender:
         return s.blender

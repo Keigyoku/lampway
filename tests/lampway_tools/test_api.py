@@ -183,3 +183,26 @@ print("RESULT", json.dumps({"ok": ok["ok"], "unknown": unknown, "bad_json": bad_
     assert res["ok"] is True and res["bad_json"] is False and res["private"] is False
     assert res["unknown"]["ok"] is False and "no tool function" in res["unknown"]["error"]
     assert "no tool" in res["tool"]
+
+
+def test_run_tool_runs_in_the_project_root_with_every_path_token_jailed(tmp_path):
+    """A bare file name is resolved by the tool against its working directory, so that directory is the project root;
+    a path inside a `--flag=` or a `name=path:turn` token is jailed like a positional one."""
+    r = run(tmp_path, '''
+from mixar.modules.lampway_tools import runner as RUN
+seen = {}
+class _R:
+    rc, stdout, log, timed_out = 0, "", None, False
+def fake_run(name, args, s, **kw):
+    seen.update(name=name, args=list(args), cwd=kw.get("cwd"))
+    return _R()
+RUN.run = fake_run
+out = api.run_tool("render_owner", ["demo/mesh.fbx", "--out=demo/x.npy", "name=demo/p.npz:12", "bare.png"])
+print("RESULT", json.dumps({"out": out, "seen": seen}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    res = r.results[0]
+    root = str(tmp_path)
+    assert res["out"]["ok"] is True
+    assert res["seen"]["cwd"] == root
+    assert res["seen"]["args"] == [f"{root}/demo/mesh.fbx", f"--out={root}/demo/x.npy", f"name={root}/demo/p.npz:12", "bare.png"]

@@ -299,11 +299,9 @@ def run_tool(name, args=(), timeout=3600):
     s = _settings()
     if name not in RUN.TOOLS:
         raise RUN.ToolUnavailable(f"no tool {name!r}; the tools are: {', '.join(sorted(RUN.TOOLS))}")
-    jailed = []
-    for a in args:
-        a = str(a)
-        jailed.append(str(S.resolve_in_root(a, s.project_root)) if ("/" in a and not a.startswith("--")) or a.startswith(("..", "~")) else a)
-    res = RUN.run(name, jailed, s, timeout=float(timeout), log_dir=s.project_root / "logs")
+    jailed = S.jail_args(args, s.project_root)
+    # The tool's working directory is the root, so a bare file name it writes lands inside it too.
+    res = RUN.run(name, jailed, s, timeout=float(timeout), log_dir=s.project_root / "logs", cwd=str(s.project_root))
     return {"rc": res.rc, "output": res.stdout, "log": res.log, "timed_out": res.timed_out, "ok_run": res.rc == 0}
 
 

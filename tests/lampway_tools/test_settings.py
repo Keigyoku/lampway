@@ -94,3 +94,16 @@ def test_interpreter_report_says_which_exist(tmp_path):
     assert rep["python_science"] == {"path": str(py), "exists": True}
     assert rep["python_browser"] == {"path": str(tmp_path / "missing"), "exists": False}
     assert rep["blender"]["exists"] is True or rep["blender"]["path"] is None
+
+
+# ---- the argument jail of run_tool (every path-like token of a batch tool's arguments)
+
+def test_jail_args_resolves_every_path_token_inside_the_root_and_refuses_one_outside(tmp_path):
+    root = tmp_path / "proj"
+    root.mkdir()
+    out = S.jail_args(["demo/mesh.fbx", "--out=demo/x.npy", "name=demo/p.npz:12", "bare.png", "--flag", "7"], root)
+    assert out == [str(root / "demo/mesh.fbx"), f"--out={root / 'demo/x.npy'}", f"name={root / 'demo/p.npz'}:12", "bare.png",
+                   "--flag", "7"]
+    for bad in (["/etc/hosts"], ["--out=/tmp/x"], ["name=../p.npz:12"], ["~/x"], [".."]):
+        with pytest.raises(S.PathOutsideProject):
+            S.jail_args(bad, root)
