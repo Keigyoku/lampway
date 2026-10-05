@@ -17,6 +17,8 @@
 # Inputs (environment; a .env that contradicts them is refused, see below):
 #   MIXAR_ENV            Dev (default) | Prod | UAT   -> build/<MIXAR_ENV>/
 #   MIXAR_CUDA           0 (default: no CUDA/OptiX/cubins) | 1
+#   MIXAR_BACKEND_URL    baked backend; default https://lampway.invalid (never
+#   MIXAR_FRONTEND_URL   resolves, RFC 2606) so a build cannot reach mixar.app
 #   BUILD_CORES          parallel jobs (default: nproc, via settings.sh)
 #   LAMPWAY_MIN_FREE_GB  refuse to start a big step below this (default 100)
 #   LAMPWAY_LOG_DIR      where build logs go (default build/logs)
@@ -29,6 +31,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MIXAR_ENV="${MIXAR_ENV:-Dev}"
 MIXAR_CUDA="${MIXAR_CUDA:-0}"
+MIXAR_BACKEND_URL="${MIXAR_BACKEND_URL:-https://lampway.invalid}"
+MIXAR_FRONTEND_URL="${MIXAR_FRONTEND_URL:-https://lampway.invalid}"
 LAMPWAY_MIN_FREE_GB="${LAMPWAY_MIN_FREE_GB:-100}"
 LAMPWAY_LOG_DIR="${LAMPWAY_LOG_DIR:-$ROOT_DIR/build/logs}"
 LIB_SUBMODULE="lib/linux_x64"
@@ -45,7 +49,7 @@ say() { echo "[lampway] $*"; }
 check_dotenv() {
     local env_file="$ROOT_DIR/.env" key want have
     [[ -f "$env_file" ]] || return 0
-    for key in MIXAR_ENV MIXAR_CUDA; do
+    for key in MIXAR_ENV MIXAR_CUDA MIXAR_BACKEND_URL MIXAR_FRONTEND_URL; do
         want="${!key}"
         have="$(sed -n -E "s/^[[:space:]]*(export[[:space:]]+)?$key=//p" "$env_file" \
             | tail -n1 | sed -E 's/[[:space:]]*#.*$//; s/^["'"'"']//; s/["'"'"']$//')"
@@ -189,6 +193,8 @@ print_plan() {
 root=$ROOT_DIR
 mixar_env=$MIXAR_ENV
 mixar_cuda=$MIXAR_CUDA
+mixar_backend_url=$MIXAR_BACKEND_URL
+mixar_frontend_url=$MIXAR_FRONTEND_URL
 upstream_pin=$(upstream_pin)
 upstream_head=$(upstream_head)
 lib_submodule=$LIB_SUBMODULE
@@ -206,13 +212,14 @@ build() {
     mkdir -p "$LAMPWAY_LOG_DIR"
     stamp="$(date +%Y%m%dT%H%M%S)"
     log="$LAMPWAY_LOG_DIR/build-$MIXAR_ENV-$stamp.log"
-    export MIXAR_ENV MIXAR_CUDA
+    export MIXAR_ENV MIXAR_CUDA MIXAR_BACKEND_URL MIXAR_FRONTEND_URL
     # Ninja when available: cmake honours CMAKE_GENERATOR for a fresh build dir
     # and ignores it for an existing one, so this never fights a prior configure.
     if command -v ninja >/dev/null 2>&1; then
         export CMAKE_GENERATOR="${CMAKE_GENERATOR:-Ninja}"
     fi
-    say "build: MIXAR_ENV=$MIXAR_ENV MIXAR_CUDA=$MIXAR_CUDA BUILD_CORES=${BUILD_CORES:-$(nproc)} log=$log"
+    say "build: MIXAR_ENV=$MIXAR_ENV MIXAR_CUDA=$MIXAR_CUDA BUILD_CORES=${BUILD_CORES:-$(nproc)}"
+    say "build: MIXAR_BACKEND_URL=$MIXAR_BACKEND_URL MIXAR_FRONTEND_URL=$MIXAR_FRONTEND_URL log=$log"
     start="$(date +%s)"
     "$ROOT_DIR/scripts/unix/build.sh" 2>&1 | tee "$log"
     end="$(date +%s)"

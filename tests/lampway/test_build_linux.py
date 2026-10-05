@@ -104,6 +104,33 @@ def test_plan_defaults_to_dev_cpu_only(fake_root: Path) -> None:
     assert plan["binary"] == str(fake_root / "build/Dev/bin/mixar")
 
 
+def test_plan_points_the_backend_at_an_unresolvable_host_by_default(
+    fake_root: Path,
+) -> None:
+    # The stock tree bakes https://api.mixar.app into every build. Lampway
+    # builds must never contact a Mixar service, so the default is a host
+    # under the reserved .invalid TLD (RFC 2606), which no resolver answers.
+    result = _run_plan(fake_root)
+    assert result.returncode == 0, result.stderr
+    plan = _kv(result.stdout)
+    assert plan["mixar_backend_url"] == "https://lampway.invalid"
+    assert plan["mixar_frontend_url"] == "https://lampway.invalid"
+
+
+def test_plan_honours_explicit_service_urls(fake_root: Path) -> None:
+    result = _run_plan(
+        fake_root,
+        {
+            "MIXAR_BACKEND_URL": "https://api.example.test",
+            "MIXAR_FRONTEND_URL": "https://www.example.test",
+        },
+    )
+    assert result.returncode == 0, result.stderr
+    plan = _kv(result.stdout)
+    assert plan["mixar_backend_url"] == "https://api.example.test"
+    assert plan["mixar_frontend_url"] == "https://www.example.test"
+
+
 def test_plan_honours_an_explicit_environment(fake_root: Path) -> None:
     result = _run_plan(fake_root, {"MIXAR_ENV": "Prod", "MIXAR_CUDA": "1"})
     assert result.returncode == 0, result.stderr
