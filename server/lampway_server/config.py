@@ -27,6 +27,11 @@ class Settings:
     openai_base_url: str = "http://127.0.0.1:11434/v1"
     openai_model: str = ""
     chatgpt_model: str = "gpt-6.1-sol"                 # the documented example model; the account's own list is at /app/chatgpt/status
+    openrouter_model: str = "anthropic/claude-sonnet-5.5"       # the main agent
+    openrouter_swarm_model: str = "stealth/space-bunny-alpha"   # swarm workers: free on OpenRouter when this was written; deepseek/deepseek-v4.1-flash is the fallback
+    openrouter_image_model: str = "google/gemini-3.1-flash-image"
+    openrouter_max_tokens: int = 4096                  # per request, always sent
+    openrouter_budget_usd: float = 3.0                 # session spend ceiling: past it every OpenRouter call is refused
 
     @classmethod
     def from_env(cls, env=None) -> "Settings":
@@ -47,6 +52,11 @@ class Settings:
             openai_base_url=env.get("OPENAI_BASE_URL", "http://127.0.0.1:11434/v1"),
             openai_model=env.get("LAMPWAY_OPENAI_MODEL", ""),
             chatgpt_model=env.get("LAMPWAY_CHATGPT_MODEL", "gpt-6.1-sol"),
+            openrouter_model=env.get("LAMPWAY_OPENROUTER_MODEL", "anthropic/claude-sonnet-5.5"),
+            openrouter_swarm_model=env.get("LAMPWAY_OPENROUTER_SWARM_MODEL", "stealth/space-bunny-alpha"),
+            openrouter_image_model=env.get("LAMPWAY_OPENROUTER_IMAGE_MODEL", "google/gemini-3.1-flash-image"),
+            openrouter_max_tokens=int(env.get("LAMPWAY_OPENROUTER_MAX_TOKENS", "4096")),
+            openrouter_budget_usd=float(env.get("LAMPWAY_OPENROUTER_BUDGET_USD", "3.0")),
         )
 
     def resolve_jwt_secret(self) -> str:

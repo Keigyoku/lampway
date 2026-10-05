@@ -31,4 +31,31 @@ def make_provider(settings, chatgpt_auth=None):
         if settings.provider == "codex_cli":
             return cli_adapters.CodexCLIProvider(model=os.environ.get("LAMPWAY_CODEX_MODEL", ""))
         return cli_adapters.ClaudeCLIProvider(model=os.environ.get("LAMPWAY_CLAUDE_MODEL", ""))
+    if settings.provider == "openrouter":
+        return _openrouter(settings, settings.openrouter_model, "main")
     raise ValueError(f"unknown LAMPWAY_PROVIDER {settings.provider!r}")
+
+
+_LEDGERS: dict = {}
+
+
+def spend_ledger(settings):
+    """The one session ledger every OpenRouter caller of this server shares (main agent, swarm workers, image backend)."""
+    from .openrouter import SpendLedger
+    key = (str(settings.state_dir), float(settings.openrouter_budget_usd))
+    if key not in _LEDGERS:
+        _LEDGERS[key] = SpendLedger(settings.openrouter_budget_usd, log_path=settings.state_dir / "openrouter_spend.jsonl")
+    return _LEDGERS[key]
+
+
+def _openrouter(settings, model, label):
+    from .openrouter import OpenRouterProvider, resolve_api_key
+    return OpenRouterProvider(model=model, api_key=resolve_api_key(), ledger=spend_ledger(settings),
+                              max_tokens=settings.openrouter_max_tokens, label=label)
+
+
+def make_swarm_provider(settings, label: str):
+    """A provider for one swarm worker: the cheap swarm model, the shared ledger. The mock/scripted providers serve themselves."""
+    if settings.provider == "openrouter":
+        return _openrouter(settings, settings.openrouter_swarm_model, label)
+    return make_provider(settings)

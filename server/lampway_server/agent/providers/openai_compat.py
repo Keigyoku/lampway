@@ -30,15 +30,17 @@ class OpenAICompatProvider:
         }
         if request.tools:
             body["tools"] = [self._tool(t) for t in request.tools]
-        headers = {"Content-Type": "application/json", "Accept": "text/event-stream"}
+        body.update(self._extra_body())
+        headers = {"Content-Type": "application/json", "Accept": "text/event-stream", **self._extra_headers()}
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
+        self._before_request()
         calls: dict[int, dict] = {}
         async with self.client.stream("POST", f"{self.base_url}/chat/completions", json=body,
                                       headers=headers) as response:
             if response.status_code >= 400:
                 detail = (await response.aread()).decode("utf-8", "replace")[:500]
-                raise RuntimeError(f"{self.base_url} answered HTTP {response.status_code}: {detail}")
+                raise RuntimeError(self._http_error(response.status_code, detail))
             async for line in response.aiter_lines():
                 if not line.startswith("data:"):
                     continue
@@ -49,6 +51,7 @@ class OpenAICompatProvider:
                     chunk = json.loads(data)
                 except ValueError:
                     continue
+                self._on_chunk(chunk)
                 for choice in chunk.get("choices") or []:
                     delta = choice.get("delta") or {}
                     if delta.get("content"):
@@ -68,6 +71,22 @@ class OpenAICompatProvider:
             if not isinstance(arguments, dict):
                 arguments = {"__invalid_json__": slot["arguments"]}
             yield ToolCall(id=slot["id"] or f"call_{index}", name=slot["name"], arguments=arguments)
+
+    # ------------------------------------------------------------ seams for gateways that add to the protocol
+    def _extra_body(self) -> dict:
+        return {}
+
+    def _extra_headers(self) -> dict:
+        return {}
+
+    def _before_request(self) -> None:
+        """Called once per model call, before anything is sent; raising refuses the call."""
+
+    def _on_chunk(self, chunk: dict) -> None:
+        """Called with every decoded SSE chunk."""
+
+    def _http_error(self, status: int, detail: str) -> str:
+        return f"{self.base_url} answered HTTP {status}: {detail}"
 
     # ------------------------------------------------------------ translation
     @staticmethod
