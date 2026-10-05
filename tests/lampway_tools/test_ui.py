@@ -88,3 +88,31 @@ print("RESULT", json.dumps({"res": res, "msg": p.last_message}))
     assert r.rc == 0, r.out[-2500:]
     assert r.results[0]["res"][0] == "RuntimeError" and "outside the project root" in r.results[0]["res"][1]
     assert "outside the project root" in r.results[0]["msg"]
+
+
+def test_the_features_panel_runs_a_feature_on_the_active_object_and_reports_one_line(tmp_path):
+    r = run(tmp_path, '''
+p = bpy.context.scene.lampway_tools
+def go():
+    try:
+        return bpy.ops.lampway.feature_run()
+    except RuntimeError:                      # an operator that reports ERROR raises in a script: that is its refusal
+        return {"CANCELLED"}
+p.feature = "segment_mesh"
+p.feature_args = '{"method": "shells"}'
+res = go()
+msg1 = p.last_message
+p.feature = "retopo"
+p.feature_args = '{"engine": "studio:tripo"}'
+res2 = go()
+p.feature_args = "not json"
+res3 = go()
+print("RESULT", json.dumps({"r1": sorted(res), "msg1": msg1, "r2": sorted(res2), "msg2": p.last_message if False else "", "r3": sorted(res3),
+                            "msg3": p.last_message, "panel": any(c.__name__ == "LAMPWAY_PT_features" for c in bpy.types.Panel.__subclasses__())}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    out = r.results[0]
+    assert out["r1"] == ["FINISHED"] and "parts" in out["msg1"], out
+    assert out["r2"] == ["CANCELLED"], "the studio slot refuses without a click, so the operator reports a refusal"
+    assert out["r3"] == ["CANCELLED"] and "JSON" in out["msg3"]
+    assert out["panel"] is True

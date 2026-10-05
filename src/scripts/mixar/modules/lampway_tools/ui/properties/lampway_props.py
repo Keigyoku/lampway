@@ -54,6 +54,12 @@ class LampwayToolsProps(PropertyGroup):
     mp_albedo: BoolProperty(name="Albedo base colour", default=True, description="The projected albedo as the live material's base colour")
     # ---- other tools
     tool: EnumProperty(name="Tool", items=_tool_items)
+    feature: EnumProperty(name="Feature", items=[
+        ("retopo", "Retopology", "A new all-quad mesh near a target face count"), ("uv_unwrap", "UV unwrap", "A packed UV layout on a new mesh"),
+        ("segment_mesh", "Mesh segment", "Split into part objects"), ("auto_rig", "Auto rig", "A UE-named humanoid armature"),
+        ("mesh_prep", "Mesh prep", "Branch, hash and repair defects"), ("asset_acceptance", "Asset acceptance", "Identity, orientation, geometry, materials gates"),
+        ("image_to_3d", "Image to 3D", "A mesh from views"), ("render_video", "Render video", "A turntable or fly-through")])
+    feature_args: StringProperty(name="Options", description='The feature\'s other arguments as JSON, e.g. {"target_faces": 3000}; engine "studio:tripo" asks for approval and clicks nothing')
     tool_args: StringProperty(name="Arguments", description="The tool's arguments, space separated (paths relative to the project root)")
     last_message: StringProperty(name="Last result", default="")
 

@@ -195,6 +195,27 @@ class LAMPWAY_OT_meshpaint_albedo(_ApiOp):
         return self._finish(context, api.meshpaint("albedo", material=name, on=p.mp_albedo))
 
 
+class LAMPWAY_OT_feature_run(_ApiOp):
+    """Run the chosen feature on the active object; options are JSON"""
+    bl_idname = "lampway.feature_run"
+    bl_label = "Run feature"
+
+    def execute(self, context):
+        import json
+        p = context.scene.lampway_tools
+        try:
+            kw = json.loads(p.feature_args or "{}")
+        except ValueError:
+            return self._finish(context, {"ok": False, "error": "Options must be JSON, e.g. {\"target_faces\": 3000}"})
+        if not isinstance(kw, dict):
+            return self._finish(context, {"ok": False, "error": "Options must be a JSON object"})
+        ob = context.active_object
+        if ob is None:
+            return self._finish(context, {"ok": False, "error": "select an object first"})
+        kw.setdefault("object", ob.name)
+        return self._finish(context, api.call(p.feature, json.dumps(kw)))
+
+
 class LAMPWAY_OT_settings_open(Operator):
     """Project root, interpreters and texture libraries"""
     bl_idname = "lampway.settings_open"
@@ -222,4 +243,4 @@ class LAMPWAY_OT_settings_open(Operator):
 
 classes = [LAMPWAY_OT_qa_setup, LAMPWAY_OT_qa_tag_layers, LAMPWAY_OT_qa_candidates, LAMPWAY_OT_qa_draw, LAMPWAY_OT_qa_read_tags,
            LAMPWAY_OT_rebuild_setup, LAMPWAY_OT_rebuild, LAMPWAY_OT_meshpaint_run, LAMPWAY_OT_meshpaint_albedo,
-           LAMPWAY_OT_run_tool, LAMPWAY_OT_settings_open]
+           LAMPWAY_OT_run_tool, LAMPWAY_OT_feature_run, LAMPWAY_OT_settings_open]

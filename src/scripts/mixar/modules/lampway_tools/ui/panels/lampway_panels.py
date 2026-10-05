@@ -119,4 +119,22 @@ class LAMPWAY_PT_tools(Panel):
         col.operator("lampway.run_tool", icon="PLAY")
 
 
-classes = [LAMPWAY_PT_main, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
+class LAMPWAY_PT_features(Panel):
+    bl_idname = "LAMPWAY_PT_features"
+    bl_label = "Features"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Lampway"
+    bl_parent_id = "LAMPWAY_PT_main"
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        p = context.scene.lampway_tools
+        col.prop(p, "feature")
+        col.prop(p, "feature_args")
+        col.operator("lampway.feature_run", icon="PLAY")
+        if p.last_message:
+            col.label(text=p.last_message[:80])
+
+
+classes = [LAMPWAY_PT_main, LAMPWAY_PT_features, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
