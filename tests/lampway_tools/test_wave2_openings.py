@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """fit_openings / opening_gasket (specs/shelf/fit_openings.md + specs/wiki/opening_gasket.md): every cap a seed put across a limb, neck or waist opening gets a typed decision
-keep | gasket | delete. A gasket cuts the POSED limb's cross-section plus the wear clearance into the cap plane, removes the inside and forms a collar - the captain's "manifold it" read as an
+keep | gasket | delete. A gasket cuts the POSED limb's cross-section plus the wear clearance into the cap plane, removes the inside and forms a collar - the user's "manifold it" read as an
 engine exhaust / intake MANIFOLD PORT: a formed tubular collar whose free edge is a ROLLED lip, not a raw cut hole. The collar depth (the "flange length") is his number and unruled: building it
 without one answers needs_decision, and `variants` renders three depths for him to pick. REAL binary."""
 

@@ -20,7 +20,7 @@ from . import rig as _rig
 
 # The wiki's eight poses (rigging-existing-armor:20), as bone rotations in the bone's OWN axes on the algorithmic rig (measured on it: an arm bone's local X
 # raises it, its local Z swings it forward/back; a thigh's local X swings it forward/back; a spine bone's local Y twists). The ANGLES are approximations, not
-# the wiki's numbers (it gives none): a pose is a stress test, and the captain's own poses go in through ``poses``. Bones the armature lacks are skipped.
+# the wiki's numbers (it gives none): a pose is a stress test, and the user's own poses go in through ``poses``. Bones the armature lacks are skipped.
 WIKI8 = [
     ("idle", []),
     ("shoulders_raised", [("upperarm_l", [80, 0, 0]), ("upperarm_r", [80, 0, 0])]),
@@ -31,7 +31,7 @@ WIKI8 = [
     ("walk", [("thigh_l", [-25, 0, 0]), ("thigh_r", [25, 0, 0]), ("calf_l", [20, 0, 0]), ("upperarm_l", [0, 0, 25]), ("upperarm_r", [0, 0, 25])]),
     ("weapon_grip", [("upperarm_r", [0, 0, 40]), ("lowerarm_r", [0, 0, 80]), ("hand_r", [0, 30, 0])]),
 ]
-SEAM_LIMIT_M = 0.01             # [UNVERIFIED default] the captain measured a 7.3 cm cuirass seam tear as a failure; 1 cm is the line this tool draws until he names one
+SEAM_LIMIT_M = 0.01             # [UNVERIFIED default] the user measured a 7.3 cm cuirass seam tear as a failure; 1 cm is the line this tool draws until he names one
 
 
 def mesh_hash(ob) -> str:

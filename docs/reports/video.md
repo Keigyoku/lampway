@@ -1,6 +1,6 @@
 # Video generation and Higgsfield in Lampway (branch lp/video, from lp/studios b691b0b1)
 
-Worktree `<workspace>/wt-video`; its own build copy at **`wt-video/build/Prod`** (python synced at the head). Nothing of the captain's session
+Worktree `<workspace>/wt-video`; its own build copy at **`wt-video/build/Prod`** (python synced at the head). Nothing of the user's session
 (wt-harden, 8787, 19881, ~/.local/share/lampway) was touched. Tests at the head: **server 414 passed, 3 skipped; client tools (real binary) 327 passed, 11 skipped**.
 
 ## 1. Video on OpenRouter (`server/lampway_server/videogen.py`, `videojobs.py`)
@@ -41,9 +41,9 @@ NOT checked (no Seedance job was run; the record of estimate vs actual is on eve
 - **Motion transfer** as `video_gen` modes: Genjutsu `hf_mult_motion_control` (character image + driving video to the model's reference roles) and Kling 3.0 `motion_control`
   (`{image_id, motion_video_id, resolution, scene_control}`), selectable in the client's Video Gen dropdown.
 - **Spend gate** (the SAME one as the Studios): a Higgsfield job runs `get_cost` first, then **waits PENDING** ("N credits on Higgsfield. Confirm it in the Studios panel") on an approval in the shared
-  store; only the captain's click (price must equal the one shown; one-shot; expires) starts it, a reject cancels it, and nothing but `get_cost` is called before. The credits go into the job record
+  store; only the user's click (price must equal the one shown; one-shot; expires) starts it, a reject cancels it, and nothing but `get_cost` is called before. The credits go into the job record
   (`result.credits`). The agent tool can only submit-and-wait (`needs_approval`), never confirm; `lampway.studio_confirm` / `studio_answer` refuse while any script runs (agent, worker, bridge).
-  **`unlim_choice`** comes back as a SECOND approval ("Higgsfield asks: ...") needing the captain's Yes/No (an answer without `answer` is refused); `use_unlim` is never sent unless he answers.
+  **`unlim_choice`** comes back as a SECOND approval ("Higgsfield asks: ...") needing the user's Yes/No (an answer without `answer` is refused); `use_unlim` is never sent unless he answers.
   **A submit timeout fails the job** with "NOT resubmitted" (one attempt only); jobs we already have ids for are polled again, never resubmitted.
 - **Client UI** (Studios panel): Sign in to Higgsfield button (opens `/app/higgsfield`), question cards with Yes / No, credit prices shown as credits (fractional prices are sent exactly, rounded to 2 dp).
 
@@ -53,7 +53,7 @@ unknown-price refusal and the ledger record. **The tool RESPONSE shapes (credits
 they are read leniently, and `media_upload` adapts to the tool's own inputSchema (files[] or filename).**
 
 ### Not done / what you run
-- **Live diff after the captain signs in** (read-only; calls only tools/list, balance, models_explore): `LAMPWAY_STATE_DIR=<the server's state dir> python -m lampway_server.higgsfield_diff`
+- **Live diff after the user signs in** (read-only; calls only tools/list, balance, models_explore): `LAMPWAY_STATE_DIR=<the server's state dir> python -m lampway_server.higgsfield_diff`
   (run with the server venv, from `wt-video/server`). It prints the tools present/missing, each tool's inputSchema vs the arguments we send, the balance and how many models parsed. I could not run it: no sign-in was available to me.
 - No Higgsfield generation was run by me. The first Seedance clip: sign in (`/app/higgsfield`), submit from the Video Gen surface (or the agent tool), read the credits on the card in the Studios panel, confirm, answer unlim if asked.
 - Higgsfield image_gen results go through the same gate; `gpt_image_2_5` is in the catalogue once signed in.

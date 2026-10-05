@@ -10,7 +10,7 @@ dependencies in the contracts. Each wave ends with a pushed lp/* branch, a repor
 |---|---|---|
 | asset_acceptance identity gate is hard-coded to pass | features/workflows.py:93 | wiki |
 | rig_armor rigid-mode stretch check cannot fail; pose set has 4 poses vs the wiki's 8 | features/rig*.py | wiki |
-| bind_to_armature transfer takes weights from a GLB copy and ignores roles and seams; rig_armor accepts stretch < 1.35, which passes the captain's measured 7.3 cm cuirass seam tear | features/rig.py, workflows | shelf |
+| bind_to_armature transfer takes weights from a GLB copy and ignores roles and seams; rig_armor accepts stretch < 1.35, which passes the user's measured 7.3 cm cuirass seam tear | features/rig.py, workflows | shelf |
 | auto_rig parents and mutates the source mesh (rig_armor copies it) | features/rig.py:143 | mixar_docs, wiki |
 | mesh_prep never flags a flipped open shell; its hash ignores UVs | features/mesh_prep* | wiki |
 | tripo_regen is bundled server-side with no action row, so the Studios panel cannot reach free rerolls | studios/service.py:27, actions.py | shelf, wiki |
@@ -26,7 +26,7 @@ dependencies in the contracts. Each wave ends with a pushed lp/* branch, a repor
 | experiment_ledger | wiki/experiment_ledger + prompt run log | ONE ledger: runs, gates, ratings, costs |
 | workflow_graph | wiki/workflow_graph | composites run as typed step graphs over the tools |
 
-## Wave 2: armour pipeline to the engine set (the captain's piece runbook, in order)
+## Wave 2: armour pipeline to the engine set (the user's piece runbook, in order)
 | tool | merge |
 |---|---|
 | plate_pick / plate_prep | shelf/plate_pick, wiki/plate_prep |
@@ -44,14 +44,14 @@ dependencies in the contracts. Each wave ends with a pushed lp/* branch, a repor
 | studio_texture_flow | shelf/studio_texture_flow |
 | bake_maps | mixar_docs/bake_maps, resources/bake_maps, wiki/bake_maps (headless niced Cycles subprocess, never in his live Blender) |
 | pbr_pack | wiki/pbr_pack, mixar_docs/pbr_gen |
-| armor_piece_pipeline (composite) | wiki/armor_piece_pipeline, keeping the CAPTAIN's order |
+| armor_piece_pipeline (composite) | wiki/armor_piece_pipeline, keeping the USER's order |
 
 ## Wave 3: fit, bind and export to UE
 | tool | merge |
 |---|---|
 | fit_body | shelf/fit_body |
 | garment_clearance | wiki/garment_clearance |
-| weight_transfer | resources/weight_transfer (needs libigl + robust-laplacian, which waits on the captain) |
+| weight_transfer | resources/weight_transfer (needs libigl + robust-laplacian, which waits on the user) |
 | weight_audit, weight_cleanup | wiki |
 | fit_bind | shelf/fit_bind, wiki/rig_armor |
 | fit_validate | shelf/fit_validate |
@@ -75,14 +75,14 @@ dependencies in the contracts. Each wave ends with a pushed lp/* branch, a repor
 retopo (+ AutoRemesher method), uv_unwrap extensions, uv_rectify (Mio3), uv_layout, segment_mesh (island_labels), image_to_3d +
 segment_image, texture_gen, scene_cleanup (9 checks), batch_export (the Client's export_package), procedural_library (~40 metals
 first), layered_material, material_bake_export, camera_shot, asset_search, mcp_connect, Meshy and Hi3D drivers
-(studio_meshy_driver, studio_hi3d_driver; needs the captain's logins).
+(studio_meshy_driver, studio_hi3d_driver; needs the user's logins).
 
-## Wave 6: waits on the captain's scope word (do not start)
+## Wave 6: waits on the user's scope word (do not start)
 character_pipeline, modular_character, cloth_garment_sim, secondary_chain_rig, face_rig_validate, cinematic_shot_plan,
 playblast_capture, level_blockout, traversal_check, splat_*, print_*, lod_chain, glb_optimize, vehicle_wheel_rig, profile_revolve,
 material_experiment, motion_experiment, motion_generate (text-to-motion; needs a provider), and the remaining P3 rows.
 
-## Decisions owed by the captain (block the rows named)
+## Decisions owed by the user (block the rows named)
 1. Fit: gasket flange length; what "manifold it" means; the boots scale anchor; whether the fitted example is still an input
    (09-29 law vs 09-30 native-body ruling); Laya / fit model for fit_state; the material role per part. (Wave 2-3 fit rows)
 2. Body tracking: MHA is Windows-only. Choose a Windows box for MHA, a paid tracking service, or a local SAM 3D Body exception

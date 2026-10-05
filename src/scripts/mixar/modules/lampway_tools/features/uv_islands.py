@@ -17,7 +17,7 @@ Pure numpy over bmesh; works on a scene object (a throw-away copy of its data) a
 import bmesh
 import numpy as np
 
-GATES = {"max_overlap": 0.005, "max_flipped": 0.02, "max_off_density_2x": 0.05}      # [UNVERIFIED] defaults: the captain has not seen them on real pieces
+GATES = {"max_overlap": 0.005, "max_flipped": 0.02, "max_off_density_2x": 0.05}      # [UNVERIFIED] defaults: the user has not seen them on real pieces
 
 
 class UVError(ValueError):

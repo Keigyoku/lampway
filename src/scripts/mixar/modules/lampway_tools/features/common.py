@@ -40,7 +40,7 @@ def studio_slot(feature: str, engine: str) -> dict:
                            "(The meshy and hi3d driver folders on the owner's shelf are empty; only Tripo's exist.)")
     studio_action = STUDIO_ACTION_IDS.get((feature, studio))
     how = ("Ask the owner to approve this exact action and price: call studio_plan with action "
-           f"{studio_action!r}; the driver reads the price back (nothing is clicked) and the CAPTAIN confirms it in the Client's Studios panel. "
+           f"{studio_action!r}; the driver reads the price back (nothing is clicked) and the USER confirms it in the Client's Studios panel. "
            "The result lands in the scene from there." if studio_action else
            f"There is no Tripo Studio driver for {feature} on the owner's shelf yet (it has mesh, Smart UV, texture, image), so nothing can run; "
            "use engine='algorithmic'.")

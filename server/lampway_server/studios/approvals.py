@@ -4,7 +4,7 @@
 
 """Approvals: the one way a Studio action that spends credits runs.
 
-An approval is created by a PLAN (a read back that spent nothing) and carries the price Studio showed. Only the CAPTAIN can confirm
+An approval is created by a PLAN (a read back that spent nothing) and carries the price Studio showed. Only the USER can confirm
 it, from the Client, by acknowledging that price; it is single-use and expires. An agent or a swarm worker never confirms: the
 service takes ``by`` from the route that called it (the Client's REST route says ``captain``; no agent tool has a confirm path).
 """
@@ -63,7 +63,7 @@ class Approvals:
 
     def confirm(self, approval_id: str, price, by: str, answer=None) -> Approval:
         if by != "captain":
-            raise ApprovalError("only the captain can confirm a spend, from the Client; an agent or a worker never can")
+            raise ApprovalError("only the user can confirm a spend, from the Client; an agent or a worker never can")
         a = self.get(approval_id)
         if a.state == "used":
             raise ApprovalError(f"approval {a.id} is already used")
@@ -72,7 +72,7 @@ class Approvals:
         if self._now() >= a.expires:
             raise ApprovalError(f"approval {a.id} expired: ask for the plan again so the price is read back fresh")
         if a.settings.get("unit") == "answer" and answer is None:
-            raise ApprovalError("an answer is required: this is a question for the captain, not a spend")
+            raise ApprovalError("an answer is required: this is a question for the user, not a spend")
         try:
             wrong = abs(float(price) - a.price) > 1e-6
         except (TypeError, ValueError):
@@ -84,7 +84,7 @@ class Approvals:
 
     def reject(self, approval_id: str, by: str) -> Approval:
         if by != "captain":
-            raise ApprovalError("only the captain can reject an approval")
+            raise ApprovalError("only the user can reject an approval")
         a = self.get(approval_id)
         if a.state == "pending":
             a.state = "rejected"

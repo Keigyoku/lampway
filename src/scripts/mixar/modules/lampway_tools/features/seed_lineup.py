@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """seed_audit stage lineup: every seed of a piece rendered the same way, front and side, 420 px, Workbench (a LIGHT render: never Cycles, he works live while it runs), so the auditor and
-the captain compare seeds on one contact sheet. The mesh is built from the seed's npz in a throw-away object and removed afterwards (the scene is left as found)."""
+the user compare seeds on one contact sheet. The mesh is built from the seed's npz in a throw-away object and removed afterwards (the scene is left as found)."""
 
 import math
 from pathlib import Path

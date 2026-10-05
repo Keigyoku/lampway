@@ -4,7 +4,7 @@
 
 """fit_openings / opening_gasket: every cap a seed put across a limb, neck or waist opening gets a typed decision, keep | gasket | delete, logged append-only
 (``<piece>/fit/decisions.jsonl``, question ``opening_decision``). A GASKET cuts the posed limb's cross-section plus the wear clearance into the cap plane, deletes the inside and forms a
-COLLAR: a tubular flange running into the piece whose free edge ROLLS outward into a lip - the captain's "manifold it" read as an engine exhaust / intake MANIFOLD PORT (a formed
+COLLAR: a tubular flange running into the piece whose free edge ROLLS outward into a lip - the user's "manifold it" read as an engine exhaust / intake MANIFOLD PORT (a formed
 collar with a rolled edge, not a raw cut hole). The collar depth (the flange length) is his number and unruled, so applying a gasket without one answers ``needs_decision``, and ``variants``
 builds and renders three depths for him to pick. Metal is cut, never blended (no weights, no blend). Runs on the POSED body only: no pose, no gasket. The source object is never edited;
 the result is ``<object>_openings``. A geometry step: it discards a studio texture on the changed faces (``texture_discard_ack``)."""
@@ -359,7 +359,7 @@ def run(stage, object, root, axis=None, plane_origin=None, limb="", pose=None, a
     if stage == "detect":
         return {"object": ob.name, "candidates": ops}
     if stage == "propose":
-        return {"object": ob.name, "proposals": [{"id": o["id"], "proposal": "ambiguous", "rule": "visibility and body penetration are not measured here (mesh_defect_scan and fit_pose supply them): the captain rules each opening"} for o in ops]}
+        return {"object": ob.name, "proposals": [{"id": o["id"], "proposal": "ambiguous", "rule": "visibility and body penetration are not measured here (mesh_defect_scan and fit_pose supply them): the user rules each opening"} for o in ops]}
     if stage == "check":
         bm = _bm(ob)
         out = manifold_stats(bm)
@@ -391,7 +391,7 @@ def run(stage, object, root, axis=None, plane_origin=None, limb="", pose=None, a
                 bpy.data.objects.remove(vo)
                 bpy.data.meshes.remove(me)
             out.append({"collar_depth_mm": mm, "image": str(img), "manifold": st["non_manifold_edges"] == 0 and st["bad_winding_edges"] == 0, **rep})
-        return {"object": ob.name, "variants": out, "note": "nothing is applied: the collar depth is the captain's number"}
+        return {"object": ob.name, "variants": out, "note": "nothing is applied: the collar depth is the user's number"}
     # apply / rule
     for k, v in answers.items():
         if v not in VERDICTS:

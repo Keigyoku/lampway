@@ -1,4 +1,4 @@
-"""LIVE check of ChatGPT plan usage: runs only once the captain has consented (one click in his browser at
+"""LIVE check of ChatGPT plan usage: runs only once the user has consented (one click in his browser at
 http://127.0.0.1:8787/app/chatgpt) and a token with chatgpt.tokens.use.direct exists in the server's state directory
 ($LAMPWAY_STATE_DIR, else ~/.local/state/lampway-server). It makes two real requests on HIS plan (usage counts toward his
 ChatGPT limits): the model list, and a streamed "Say exactly: Hello, world!". A third, with one tool, settles the open
@@ -29,7 +29,7 @@ def _consented() -> bool:
     return bool(st["signed_in"] and st["plan_usage_enabled"])
 
 
-pytestmark = pytest.mark.skipif(not _consented(), reason="no consented ChatGPT token yet: the captain's one-time click at /app/chatgpt")
+pytestmark = pytest.mark.skipif(not _consented(), reason="no consented ChatGPT token yet: the user's one-time click at /app/chatgpt")
 
 
 @pytest.fixture

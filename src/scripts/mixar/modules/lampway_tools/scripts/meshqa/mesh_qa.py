@@ -34,7 +34,7 @@ from mixar.modules.lampway_tools.meshqa import candidates as C
 ap = argparse.ArgumentParser(prog='mesh_qa.py'); [ap.add_argument(k) for k in ('mesh', 'owner', 'recipe', 'out')]
 ap.add_argument('--turn', type=float, default=0.0); ap.add_argument('--min-perimeter', type=float, default=0.15)
 ap.add_argument('--max-shell-tris', type=int, default=400); ap.add_argument('--float-mm', type=float, default=3.0)
-ap.add_argument('--delete-polys', default=None); ap.add_argument('--no-render', action='store_true', help='descriptors only - no EEVEE renders (light, for when the captain works live)')
+ap.add_argument('--delete-polys', default=None); ap.add_argument('--no-render', action='store_true', help='descriptors only - no EEVEE renders (light, for when the user works live)')
 a = ap.parse_args(_A); os.makedirs(os.path.join(a.out, 'img'), exist_ok=True)
 rec = json.load(open(a.recipe)); names = list(rec['parts']); own = np.load(a.owner)
 bpy.ops.wm.read_factory_settings(use_empty=True); bpy.ops.import_scene.fbx(filepath=a.mesh)

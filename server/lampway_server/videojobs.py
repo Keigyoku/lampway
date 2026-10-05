@@ -6,8 +6,8 @@ The client (Mixar's, so it is the spec): ``video_gen`` / ``video_upscale`` servi
 
 Two providers, routed by the model slug: OpenRouter's videos API (``videogen``; on the spend ledger with a per-job cap) and Higgsfield
 (``higgsfield/<model>``; the owner's own subscription through Lampway's own MCP client). A Higgsfield job is a CREDIT spend: its
-price is read back first (get_cost), then the job WAITS for the captain's confirm in the Client (the same gate as the Studios); the
-agent and swarm workers can only plan. A server-asked ``unlim_choice`` is a question for the captain, never auto-answered; a transport
+price is read back first (get_cost), then the job WAITS for the user's confirm in the Client (the same gate as the Studios); the
+agent and swarm workers can only plan. A server-asked ``unlim_choice`` is a question for the user, never auto-answered; a transport
 timeout is never resubmitted.
 """
 
@@ -248,7 +248,7 @@ class VideoSystem:
         return images, videos
 
     def plan(self, service: str, model: str, payload: dict) -> dict:
-        """What the job would do and cost; for Higgsfield also the uploads and the get_cost price (``gated``: the captain confirms)."""
+        """What the job would do and cost; for Higgsfield also the uploads and the get_cost price (``gated``: the user confirms)."""
         payload = payload if isinstance(payload, dict) else {}
         params = dict(payload.get("params") or {})
         if str(model).startswith(PREFIX):
@@ -331,7 +331,7 @@ class VideoSystem:
         h = self.higgs
         args = dict(plan["args"])
         sub = h.submit(plan["tool"], args)
-        if sub["question"] is not None:                       # unlim_choice: the CAPTAIN's answer, never ours
+        if sub["question"] is not None:                       # unlim_choice: the USER's answer, never ours
             if ask is None:
                 raise HiggsfieldError("Higgsfield asks whether to use the unlimited allowance and nobody can answer here")
             args["use_unlim"] = bool(ask(sub["question"]))

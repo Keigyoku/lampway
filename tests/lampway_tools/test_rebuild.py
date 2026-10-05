@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The rebuild loop (the shelf's meshqa/rebuild_textured.sh, in Python): source mesh + the captain's rulings ->
+"""The rebuild loop (the shelf's meshqa/rebuild_textured.sh, in Python): source mesh + the user's rulings ->
 patch (deletions, refills, holes, relabels) -> patch UVs -> npz -> per-face texel overrides -> colour projection
 -> material masks. The plan is pure and tested as data; the maps step on synthetic arrays; the whole chain on his
 real chest when the shelf is present."""

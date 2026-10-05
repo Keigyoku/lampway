@@ -6,7 +6,7 @@
 # Ported from the owner's tool shelf (tools/texlib/material_masks.py, sha256 292283d3c370) on 2026-10-05. The header below, with the
 # measured rules behind the code, is the original's; paths and interpreters now come from Lampway's configuration.
 # SPIKE (2026-10-04): material masks for a parts set's shared UV atlas, from the V3 colour projected by relief_project.py
-# (v3_colour_atlas.png + texel_face.npy) and each part's motion class (the captain's rulings: rigid-metal parts are metal;
+# (v3_colour_atlas.png + texel_face.npy) and each part's motion class (the user's rulings: rigid-metal parts are metal;
 # cloth-sim and skinned-flex parts are cloth). V3 has lighting painted in, so colour only CLASSIFIES, never becomes albedo.
 #   metal part : gold (warm hue, light)  |  leather (red, saturated: the belt band, straps)  |  dark plate (the rest)
 #   cloth part : gold embroidery (warm hue, light)  |  black linen (dark)  |  red cloth (the rest)
@@ -68,14 +68,14 @@ GOLD_MIN_SAT, GOLD_MIN_VAL = 0.50, 0.25      # measured on V3 Chest1 Front: gold
 # stair-stepped every gold edge at atlas resolution; the two still sum to 1).
 # MM_GOLD_FROM_MESH="raised_mm:reach_px" (needs mesh_height_m.npy from relief_project.py RP_MESH_HEIGHT): on plate parts gold is the
 # MESH's own raised detail (>= raised_mm above its smoothed self) within reach_px of the projected V3 gold - V3's painted ornament
-# lands 1-2 cm off the modelled one (the abdomen emblem's gold sat beside it, the captain's mark 2026-10-04); colour-gold that is
+# lands 1-2 cm off the modelled one (the abdomen emblem's gold sat beside it, the user's mark 2026-10-04); colour-gold that is
 # not on raised detail goes back to plate. The geometry decides the shape, V3 only which ornaments are gold.
 # MM_ORNAMENT_GOLD="max_tris:reach_px:min_share" (needs mesh_npz): a SEPARATE mesh shell of at most max_tris on a plate part (the
 # abdomen emblem is one: 134 faces, 8 islands) turns gold WHOLE when the projected colour-gold, dilated by reach_px, covers at least
 # min_share of its texels; colour-gold left on the surrounding plate within reach of such a shell is the misregistered painted copy
 # and goes back to plate. Measured 2026-10-04: per-texel mesh height (MM_GOLD_FROM_MESH) on this low-poly plate golded whole flat
 # faces beside the emblem and left the emblem dark - rejected for this piece.
-# MM_FORCE_CLASS=<json {"<class>": [triangle ids]}> - the captain's per-face material rulings (e.g. embroidery specks on the cowl ->
+# MM_FORCE_CLASS=<json {"<class>": [triangle ids]}> - the user's per-face material rulings (e.g. embroidery specks on the cowl ->
 # red), applied after every rule; ids are THIS mesh's triangles (convert from source face ids per rebuild).
 _E = os.environ.get
 GOLD_MIN_SAT, GOLD_MIN_VAL, BLUR = float(_E('MM_GOLD_MIN_SAT', GOLD_MIN_SAT)), float(_E('MM_GOLD_MIN_VAL', GOLD_MIN_VAL)), float(_E('MM_BLUR', BLUR))
@@ -97,10 +97,10 @@ EMB_CLOSE = int(_E('MM_EMB_CLOSE', 0)); LINEN_LAST = _E('MM_LINEN_FORCE', '0') =
 LINEN_FORCE = _E('MM_LINEN_FORCE', '0') in ('1', '2'); HEIGHT_GOLD_MM = float(_E('MM_HEIGHT_GOLD_MM', 'nan')); HEIGHT_GOLD_SAT = float(_E('MM_HEIGHT_GOLD_SAT', 0.55))
 # leather and black linen are DECLARED per part (inferring them from colour share picked the back plate and the studs, where
 # the cape's red bleeds in): elsewhere red on metal is plate and dark on cloth is shadowed red cloth
-LEATHER_PARTS = ('belt_studded',)                                   # the red belt band (assumption, for the captain to confirm)
+LEATHER_PARTS = ('belt_studded',)                                   # the red belt band (assumption, for the user to confirm)
 LINEN_PARTS = ('undersuit_sleeve_L', 'undersuit_sleeve_R')
 GOLD_PARTS = ('breastplate_lion_boss', 'belt_lion_boss', 'roundel_front_R', 'roundel_front_L', 'roundel_back_R', 'roundel_back_L',
-              'pendant_front_R', 'pendant_front_L', 'pendant_side_R', 'pendant_side_L', 'cape_collar_studs', 'cape_flank_studs_R', 'cape_flank_studs_L')   # solid gold in V3; V3's shadows made them patchy          # the captain's ruling: "keep sleeves (ruffles, black linen arms)"
+              'pendant_front_R', 'pendant_front_L', 'pendant_side_R', 'pendant_side_L', 'cape_collar_studs', 'cape_flank_studs_R', 'cape_flank_studs_L')   # solid gold in V3; V3's shadows made them patchy          # the user's ruling: "keep sleeves (ruffles, black linen arms)"
 OPTIONAL_GOLD_PARTS = ('pendant_back_R', 'pendant_back_L')        # gold like the other pendants, used when the recipe has them
 RED_MIN_SAT = 0.45
 DARK_MAX_VAL = 0.16

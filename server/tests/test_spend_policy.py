@@ -1,6 +1,6 @@
-"""Spend policy per provider (the captain, 2026-10-05: "both caps and clicks set by prefs"): for OpenRouter, Higgsfield, the Studios and Hyper3D a session cap, a
+"""Spend policy per provider (the user, 2026-10-05: "both caps and clicks set by prefs"): for OpenRouter, Higgsfield, the Studios and Hyper3D a session cap, a
 per-job cap and require-click (off / above X / always). Higgsfield, the Studios and Hyper3D default to always; OpenRouter to off. The agent and swarm can never click:
-only the captain's confirm in the Client opens a gate, whatever the policy says."""
+only the user's confirm in the Client opens a gate, whatever the policy says."""
 
 import time
 
@@ -84,17 +84,17 @@ def test_higgsfield_follows_its_policy_off_runs_without_a_click_and_always_waits
     body = {"prompt": "x", "params": {"duration": 8, "resolution": "720p"}}
     jid = submit(fake, "video_gen", "higgsfield/seedance1_5", body)
     snap = wait_for(fake, jid, states=("pending",))
-    assert hf_calls(hf) == [], "always (the default): waits for the captain"
+    assert hf_calls(hf) == [], "always (the default): waits for the user"
     ap = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending")
     assert app.state.jobs.approvals.get(ap["id"]).state == "pending"
     import pytest as _p
     from lampway_server.studios.approvals import ApprovalError
-    with _p.raises(ApprovalError, match="only the captain"):
+    with _p.raises(ApprovalError, match="only the user"):
         app.state.jobs.approvals.confirm(ap["id"], ap["price"], by="agent")
     fake.post(f"/app/studio/approvals/{ap['id']}/reject")
     _policy(s, higgsfield={"click": "off"})
     jid = submit(fake, "video_gen", "higgsfield/seedance1_5", body)
-    assert wait_for(fake, jid)["state"] == "succeeded" and len(hf_calls(hf)) == 1, "off: the captain chose no click for Higgsfield"
+    assert wait_for(fake, jid)["state"] == "succeeded" and len(hf_calls(hf)) == 1, "off: the user chose no click for Higgsfield"
     _policy(s, higgsfield={"click": "always", "job_cap": 5})
     snap = wait_for(fake, submit(fake, "video_gen", "higgsfield/seedance1_5", body))
     assert snap["state"] == "failed" and "per-job cap" in snap["error"] and len(hf_calls(hf)) == 1

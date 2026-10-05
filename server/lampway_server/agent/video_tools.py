@@ -1,6 +1,6 @@
 """The agent's video tools: PLAN or generate, never confirm a credit spend. ``lampway_video_gen`` on an OpenRouter model is a dry run that prices the
 job (set ``dry_run`` false to run it; it is held to the per-job cap and the session ledger); on a Higgsfield model it submits the job, which then WAITS
-for the captain's confirmation in the Client - the agent only ever sees ``needs_approval`` with the price read back."""
+for the user's confirmation in the Client - the agent only ever sees ``needs_approval`` with the price read back."""
 
 import asyncio
 import json
@@ -20,7 +20,7 @@ def specs() -> list:
         ToolSpec("lampway_video_gen", "Generate a video. Default is a DRY RUN: the validated parameters and the price. `purpose` picks the default model: bulk (HeyGen), "
                  "loop (Seedance 1.5 Pro, first = last frame from one image) or motion (Seedance 2.0 Mini with a driving video). OpenRouter models: dry_run=false runs "
                  "within the per-job cap and the session budget and saves an .mp4 in the project. Higgsfield models (model `higgsfield/<id>`; incl. hf_mult_motion_control "
-                 "and kling_motion_control): the job is submitted and WAITS for the captain's confirmation of the credits in the Client; you cannot confirm it. "
+                 "and kling_motion_control): the job is submitted and WAITS for the user's confirmation of the credits in the Client; you cannot confirm it. "
                  "`images` and `videos` are project-relative paths.",
                  {"type": "object", "properties": {
                      "prompt": {"type": "string"}, "model": {"type": "string"}, "purpose": {"type": "string", "description": "bulk | loop | motion"},
@@ -79,7 +79,7 @@ async def call(system, name: str, arguments: dict) -> tuple:
             payload["reference_video_s3_keys"] = vids
         if model.startswith(PREFIX):
             job = system.jobs.submit("video_gen", model, payload, None, "agent")
-            for _ in range(600):                                   # the plan (uploads + get_cost) takes a moment; then the job waits for the captain
+            for _ in range(600):                                   # the plan (uploads + get_cost) takes a moment; then the job waits for the user
                 if job.awaiting or job.status in ("FAILED", "CANCELLED", "DONE"):
                     break
                 await asyncio.sleep(0.05)
@@ -87,7 +87,7 @@ async def call(system, name: str, arguments: dict) -> tuple:
                 return f"the plan failed: {job.error}", True
             ap = next((a for a in system.jobs.approvals.all() if a.args.get("job_id") == job.job_id and a.state == "pending"), None)
             return json.dumps({"state": "needs_approval", "job_id": job.job_id, "credits": ap.price if ap else None, "model": model,
-                               "message": "The job is waiting for the captain's confirmation of the credits in the Client (Studios panel). It cannot be confirmed from here."}), False
+                               "message": "The job is waiting for the user's confirmation of the credits in the Client (Studios panel). It cannot be confirmed from here."}), False
         plan = await asyncio.to_thread(system.plan, "video_gen", model, payload)
         info = plan["plan"]
         if rendered:

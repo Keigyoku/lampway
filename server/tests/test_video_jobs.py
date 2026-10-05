@@ -1,6 +1,6 @@
 """Video in the Client: the video_gen / video_upscale services on the job queue, from OpenRouter's videos API and from Higgsfield, with staged
 uploads (POST /api/v1/uploads/<kind> -> an s3_key), results as result_files VIDEO, and the credit spend on Higgsfield behind the SAME confirm
-gate as the Studios (only the captain confirms; nothing is submitted before). Fakes: an OpenRouter videos API (catalogue fixture) and the
+gate as the Studios (only the user confirms; nothing is submitted before). Fakes: an OpenRouter videos API (catalogue fixture) and the
 Higgsfield fake built from the SPEC."""
 
 import json
@@ -238,7 +238,7 @@ def test_the_captains_confirm_runs_it_downloads_the_clip_and_records_the_credits
     assert snap["state"] == "succeeded", snap
     assert snap["result"]["result_files"][0]["type"] == "VIDEO" and snap["result"]["credits"] == pytest.approx(9.6) and snap["result"]["provider"] == "higgsfield"
     assert len(hf_calls(hf)) == 1 and hf_calls(hf)[0][1]["model"] == "seedance1_5"
-    assert "use_unlim" not in hf_calls(hf)[0][1], "the use_unlim choice is the captain's, never ours"
+    assert "use_unlim" not in hf_calls(hf)[0][1], "the use_unlim choice is the user's, never ours"
 
 
 def test_rejecting_cancels_the_job_without_a_submit(stack):
@@ -359,7 +359,7 @@ def test_a_preset_recommendation_fails_the_job_naming_the_preset_and_a_template_
     jid = submit(fake, "video_gen", "higgsfield/seedance1_5", {"prompt": "x", "params": {"duration": 8, "resolution": "720p", "literal": True}})
     time.sleep(0.3)
     ap = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending")
-    assert ap["price"] == pytest.approx(9.6) and hf_calls(hf) == [], "declined, priced, and nothing is submitted before the captain's click"
+    assert ap["price"] == pytest.approx(9.6) and hf_calls(hf) == [], "declined, priced, and nothing is submitted before the user's click"
     assert fake.post(f"/app/studio/approvals/{ap['id']}/confirm", json={"price": 9.6}).status_code == 200
     assert wait_for(fake, jid)["state"] == "succeeded"
     sent = hf_calls(hf)[0][1]

@@ -158,7 +158,7 @@ token; enveloped empty catalogue; `/app/desktop-login` 200 with a form; wrong pa
    `generation-catalog` (capabilities → services → models → params) so the client shows the tabs; push
    `job.update`/answer `job.sync`/`job.get`; serve result files from a local asset host and add it to
    `MIXAR_ASSET_HOSTS`.
-4. Subscription-based providers: DROPPED the `~/.codex/auth.json` idea (2026-10-05, by the captain's ruling after the terms audit):
+4. Subscription-based providers: DROPPED the `~/.codex/auth.json` idea (2026-10-05, by the user's ruling after the terms audit):
    Codex's tokens belong to Codex's own client id and the Sign in with ChatGPT terms require OpenAI's supported flow. The `chatgpt_plan`
    provider (lp/tools) implements that flow from the documented protocol; Claude subscriptions are not usable by third-party apps
    (Anthropic's terms) and stay API-key only. Use the stored BYOK provider/model/key to pick the provider per account.

@@ -8,7 +8,7 @@
 # moving a single original island: the original UVs are pinned, the patches Smart-UV-projected, then every island packed with
 # pinned islands LOCKED, so patches land in the atlas's free space. patch_holes.py leaves patches with their nearest rim
 # vertex's UVs - a smear across every patch in the texture pass (seen 2026-10-04).
-# FIRST, the island puzzle (the captain, 2026-10-04: "make islands whole that are missing their owed pieces"): a patch whose rim
+# FIRST, the island puzzle (the user, 2026-10-04: "make islands whole that are missing their owed pieces"): a patch whose rim
 # is shared among the islands around its rim: each patch face joins the island of its nearest rim face, each island's own 3D->UV
 # map (an affine fit on its faces within 8 cm) is extended over its share, and the rim residual is relaxed inward with the rim
 # pinned, so every island gets its owed piece and the texture runs across the repair. Measured: a single-island-only rule filled

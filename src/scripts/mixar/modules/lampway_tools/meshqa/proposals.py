@@ -6,7 +6,7 @@
 
 ``<rulings_dir>/<piece>_proposals.json`` is a list of {id, kind, verdict, reason, by, at, target?}; ``by`` is ``rule:<name>`` for a rule
 (rules.py) or the proposer's name (``agent``). A verdict is delete | hole | mislabel | keep. It only recolours the markers and fills the
-review panel. Nothing here writes a ruling or a decision row: those come from the captain's own tags (``read_tags``) or typed answers,
+review panel. Nothing here writes a ruling or a decision row: those come from the user's own tags (``read_tags``) or typed answers,
 never from a proposal. A rule never overwrites a row somebody else wrote.
 """
 

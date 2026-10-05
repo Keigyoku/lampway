@@ -6,7 +6,7 @@
 # Ported from the owner's tool shelf (tools/texlib/relief_project.py, sha256 0b6fa16d4501) on 2026-10-05. The header below, with the
 # measured rules behind the code, is the original's; paths and interpreters now come from Lampway's configuration.
 # SPIKE (2026-10-04): project view reliefs (scripts/studios/tripo/relief_gen.py: one 8-bit depth PNG per V3 turnaround view, in the view's own
-# frame) onto a UV-mapped mesh and write a DETAIL height map in the mesh's UV atlas (the captain: "I want to see what
+# frame) onto a UV-mapped mesh and write a DETAIL height map in the mesh's UV atlas (the user: "I want to see what
 # this buys us for quality").
 #   1. rasterize the mesh in UV space: every texel gets its 3D point and the face's normal (face id kept)
 #   2. per view, an orthographic camera (front = -Y, back = +Y, left = +X, right = -X, up = +Z); the mesh's silhouette is
@@ -58,7 +58,7 @@ POWER = 4          # view weight |n . view|^POWER
 FLOW_SMOOTH = 8.0  # px
 FLOW_MAX = 16.0    # px
 FINE_W = 0.6       # weight of the tile fine band against the whole-view band
-# 2026-10-04 (the captain: "are you projecting the upscaled plates?"): the 4K plates were shrunk to the 1024 relief frame before
+# 2026-10-04 (the user: "are you projecting the upscaled plates?"): the 4K plates were shrunk to the 1024 relief frame before
 # sampling. RP_COLOR_FULL=1 samples the colour from the plate at its own resolution at the flow-warped frame position (alignment
 # stays in the 1024 frame, scaled by plate/F). RP_MESH_HEIGHT=<iters> also writes mesh_height_m.npy: each texel's signed offset
 # from a Taubin-smoothed copy of the MESH (the mesh's own raised detail, aligned by construction) for gold-on-relief masks.

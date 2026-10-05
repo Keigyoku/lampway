@@ -23,7 +23,7 @@ def specs() -> list:
                  obj({"id": {"type": "string"}, "variables": {"type": "object"}, "model": {"type": "string"}, "version": {"type": "string"}}, ["id"])),
         ToolSpec("lampway_prompt_save", "Save a template to the USER scope (validated; an existing id@version is never overwritten: bump the version). Fork a built-in by getting it, "
                  "editing and saving it with a higher version.", obj({"template": {"type": "object"}}, ["template"])),
-        ToolSpec("lampway_prompt_rate", "Record the captain's rating (1 to 5, with a note) for a finished generation job, so wording is tuned on measured results and his judgement.",
+        ToolSpec("lampway_prompt_rate", "Record the user's rating (1 to 5, with a note) for a finished generation job, so wording is tuned on measured results and his judgement.",
                  obj({"job_id": {"type": "string"}, "rating": {"type": "integer"}, "note": {"type": "string"}}, ["job_id", "rating"])),
         ToolSpec("lampway_prompt_stats", "Per template version: runs, rated, mean rating, mean cost and the gate pass rates; use it to compare two versions (A/B).",
                  obj({"template": {"type": "string"}})),

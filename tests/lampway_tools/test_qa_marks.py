@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The captain's annotation tags, read into faces, islands and loops.
+"""The user's annotation tags, read into faces, islands and loops.
 
 He tags with three annotation layers drawn with placement Surface (points on the mesh):
   Red = Delete, Green = Mislabel, Yellow = Hole.
@@ -181,7 +181,7 @@ SCENE = SHELF / "textured_scene.blend"
 @pytest.mark.skipif(not (MARKS.exists() and SCENE.exists()), reason="the shelf's live scene and marks are not on this machine")
 def test_his_own_marks_give_the_face_counts_he_recorded(tmp_path):
     import shutil
-    scene = tmp_path / "scene_copy.blend"                       # never the captain's file: a copy
+    scene = tmp_path / "scene_copy.blend"                       # never the user's file: a copy
     shutil.copy(SCENE, scene)
     run = run_script(f'''
 import bpy, json

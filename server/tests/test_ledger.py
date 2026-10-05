@@ -55,7 +55,7 @@ def _proc_append(path, i):
 
 def test_an_agent_can_never_choose_a_spend_result_but_the_captain_and_a_rule_can(tmp_path):
     lg = Ledger(tmp_path / "r.jsonl")
-    with pytest.raises(LedgerError, match="only the captain chooses a result"):
+    with pytest.raises(LedgerError, match="only the user chooses a result"):
         lg.record(run(stage="texture", decision="chosen", by="agent"))
     lg.record(run(stage="texture", decision="rejected", by="agent", reason="blurry"))
     lg.record(run(stage="texture", decision="chosen", by="captain"))
@@ -118,7 +118,7 @@ def test_routes_expose_the_ledger_under_the_project_root_and_need_a_token(settin
         r = fake.post("/app/ledger", json=run(cost={"generation_credits": 20, "price_source": "button"}))
         assert r.status_code == 200, r.text
         bad = fake.post("/app/ledger", json=run(stage="texture", decision="chosen", by="agent"))
-        assert bad.status_code == 422 and "captain" in bad.text
+        assert bad.status_code == 422 and "user" in bad.text
         assert fake.get("/app/ledger", params={"piece": "Boots1"}).json()["rows"][0]["id"] == r.json()["id"]
         assert fake.get("/app/ledger/receipt", params={"piece": "Boots1"}).json()["generation_credits"] == 20
         two = fake.post("/app/ledger", json=run(settings={"unwrap": "other"})).json()["id"]
@@ -135,7 +135,7 @@ async def test_the_agent_tools_record_as_the_agent_and_cannot_choose_a_spend_res
     svc = PromptService(Library(builtin_dir=Library().dirs["builtin"], user_dir=tmp_path / "u"), RunLog(tmp_path / "runs.jsonl"))
     assert LGT.NAMES <= {t.name for t in T.TOOLS}
     out, err = await LGT.call(svc, "lampway_ledger_record", {"run": run(by="captain", stage="texture", decision="chosen")})
-    assert err is True and "captain" in out, "an agent claiming by=captain is overridden: it still records as the agent"
+    assert err is True and "user" in out, "an agent claiming by=captain is overridden: it still records as the agent"
     out, err = await LGT.call(svc, "lampway_ledger_record", {"run": run(decision="rejected", reason="blurry", cost={"generation_credits": 30, "price_source": "button"})})
     assert err is False and json.loads(out)["by"] == "agent"
     rec = json.loads((await LGT.call(svc, "lampway_ledger_receipt", {"piece": "Boots1"}))[0])

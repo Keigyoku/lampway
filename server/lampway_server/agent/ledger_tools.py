@@ -1,4 +1,4 @@
-"""The agent's experiment-ledger tools. The agent records as ``agent`` always (it can never claim to be the captain), so it can reject a spend result but never
+"""The agent's experiment-ledger tools. The agent records as ``agent`` always (it can never claim to be the user), so it can reject a spend result but never
 choose one."""
 
 import asyncio
@@ -16,13 +16,13 @@ def specs() -> list:
     return [
         ToolSpec("lampway_ledger_record", "Append one run to the experiment ledger (never edited: correct with `supersedes`). piece, stage (image|mesh|uv|texture|pbr|video|motion|"
                  "rig|fit|export|decision|other), studio, settings read back, seed or 'not_exposed', hashes, cost {subscription, generation_credits + price_source, "
-                 "developer_api_usd, work_s}, verdict, reason. You record as the agent: you may reject a spend result, only the captain chooses one.",
+                 "developer_api_usd, work_s}, verdict, reason. You record as the agent: you may reject a spend result, only the user chooses one.",
                  obj({"run": {"type": "object"}}, ["run"])),
         ToolSpec("lampway_ledger_list", "The ledger's experiment rows for a piece and/or stage (superseded rows hidden).", obj({"piece": {"type": "string"}, "stage": {"type": "string"}})),
         ToolSpec("lampway_ledger_compare", "Two or more runs side by side: the settings that differ, the seeds, whether the outputs changed, cost and verdicts.",
                  obj({"ids": {"type": "array", "items": {"type": "string"}}}, ["ids"])),
         ToolSpec("lampway_job_services", "Read-only: which of the Client's generation job types (image_gen, retopology, tripo_rig, video_gen ...) this server backs, with "
-                 "whether each spends (a spend service waits for the captain's confirm in the Studios panel), its backend, models and queue length, and which job types are "
+                 "whether each spends (a spend service waits for the user's confirm in the Studios panel), its backend, models and queue length, and which job types are "
                  "unbacked. Plan only what is listed.", obj({})),
         ToolSpec("lampway_ledger_receipt", "What a piece cost: generation credits, developer-API dollars, work seconds and the subscription notes, summed separately.",
                  obj({"piece": {"type": "string"}}, ["piece"])),

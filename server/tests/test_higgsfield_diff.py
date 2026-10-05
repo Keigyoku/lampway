@@ -25,7 +25,7 @@ def test_the_diff_reads_only_and_reports_tools_and_shapes(mcp):
     report = HD.diff(client)
     assert {"generate_video", "media_upload", "jobs_wait"} <= set(report["tools_present"]) and report["tools_missing"] == []
     assert {t for t, _ in hf.calls} <= {"balance", "models_explore"}, "read-only: no generation tool was called"
-    assert report["balance"] == {"plan": "plus", "credits": 623.86}
+    assert report["balance"] == {"plan": "plus", "credits": 100.0}
     assert report["video_models"] > 20 and "seedance1_5" in report["video_model_ids"] and report["unparsed_models"] == [], "every page of the catalogue"
     assert report["mismatches"] == 0, report["args"]
     assert all(v["takes_params_wrapper"] for k, v in report["args"].items() if k in ("generate_video", "generate_image"))
@@ -55,6 +55,6 @@ def test_dump_records_the_live_tool_definitions_and_raw_responses(mcp, tmp_path)
     import json
     tools = json.loads((out / "tools_list.json").read_text())
     assert {t["name"] for t in tools} == set(HD.EXPECTED_TOOLS)
-    assert json.loads((out / "balance.json").read_text())["credits"] == 623.86
+    assert json.loads((out / "balance.json").read_text())["credits"] == 100.0
     assert json.loads((out / "models_video.json").read_text())["items"] and json.loads((out / "models_image.json").read_text())["items"]
     assert {t for t, _ in hf.calls} <= {"balance", "models_explore"}

@@ -7,9 +7,9 @@
 # login in the persistent tool browser (CDP), which the app never does. The header below, with its invariants (credits,
 # settings read back before every generation, actions on saved copies only), is the original's. Nothing here runs unless the
 # studio guard is armed (studios/guard.py); tests run against recorded fixtures only.
-# SPIKE (2026-10-04): free seed sifting on Tripo Studio. Edit Mesh (on ORIGINALS only; the captain: it survives an Edit Mesh save
+# SPIKE (2026-10-04): free seed sifting on Tripo Studio. Edit Mesh (on ORIGINALS only; the user: it survives an Edit Mesh save
 # but is lost once any other tool is committed, hence other tools run on clones) regenerates the region inside its box; with the
-# default full box that is a whole-piece regen = a new seed, free on the captain's plan. The result shows as Previous Version /
+# default full box that is a whole-piece regen = a new seed, free on the user's plan. The result shows as Previous Version /
 # Current Version with Continue Editing / Apply; closing asks Discard / Save.
 #   retry   <out_dir> "<MM-DD HH:MM>" <faces>  select the original by its card stamp and face count, open Edit Mesh, Retry
 #           Selection with the default box, wait for Apply, download the Current Version mesh the viewer loaded, record faces
@@ -93,7 +93,7 @@ def main():
     rg = sp.add_parser('region'); rg.add_argument('out'); rg.add_argument('faces', type=int)
     rg.add_argument('--bbox-blender', required=True, help='x0,y0,z0,x1,y1,z1 in the Blender-import frame (X front, Y wearer-left, Z up), as audits report')
     rg.add_argument('--pad', type=float, default=0.0, help='metres added on every side')
-    rg.add_argument('--approved-exact-region', action='store_true', help='required: the captain approved substituting the exact bbox into the UI Retry request')
+    rg.add_argument('--approved-exact-region', action='store_true', help='required: the user approved substituting the exact bbox into the UI Retry request')
     h = sp.add_parser('harvest'); h.add_argument('out'); h.add_argument('stamp'); h.add_argument('faces', type=int)
     c = sp.add_parser('collect'); c.add_argument('out')            # a retry already running in the open modal: wait, then download
     sp.add_parser('apply'); d = sp.add_parser('discard'); d.add_argument('--expect-faces', type=int)
@@ -132,7 +132,7 @@ def main():
             # EXACT region retry: the UI's own Retry Selection is pressed; its local_edit request (measured format: {"bbox":[[min],[max]],
             # "face_limit","project_id","source_operator_id"}) carries the box in the mesh's glTF frame (Y up), default = mesh bounds + 0.01.
             # Blender-import (X front, Y wearer-left, Z up) -> box: [[x0, z0, -y1], [x1, z1, -y0]] (all six faces matched to 0.1 mm).
-            if not a.approved_exact_region: ax.refuse('exact-region substitution needs the captain\'s approval flag', [f'{PY} {ME} region <out> <faces> --bbox-blender ... --approved-exact-region'])
+            if not a.approved_exact_region: ax.refuse('exact-region substitution needs the user\'s approval flag', [f'{PY} {ME} region <out> <faces> --bbox-blender ... --approved-exact-region'])
             x0, y0, z0, x1, y1, z1 = [float(v) for v in a.bbox_blender.split(',')]; q = a.pad
             box = [[x0 - q, z0 - q, -y1 - q], [x1 + q, z1 + q, -y0 + q]]
             os.makedirs(a.out, exist_ok=True)

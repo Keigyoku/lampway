@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """The live material toggle that uses the projected albedo as base colour (the shelf's v3_colour_atlas.png from the mesh-paint
-projection is a usable albedo; the captain built the toggle in his live material textured_chest_p17_albedo, nodes labelled
+projection is a usable albedo; the user built the toggle in his live material textured_chest_p17_albedo, nodes labelled
 'AB:'). A copy of the textured material gets an image node on the UV map and a Mix between the original base colour and the
 albedo, driven by one Value node; the original material is untouched. REAL binary."""
 

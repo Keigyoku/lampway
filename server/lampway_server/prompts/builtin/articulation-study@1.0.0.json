@@ -4,7 +4,7 @@
   "purpose": "articulation",
   "media": "video",
   "title": "Articulation study of one armour part",
-  "description": "The captain's gauntlet hand study: a fixed close camera, the part named with its anatomy, references described by side, a beats schedule, plates sliding at real joints.",
+  "description": "The user's gauntlet hand study: a fixed close camera, the part named with its anatomy, references described by side, a beats schedule, plates sliding at real joints.",
   "body": {
     "subject": "ONE anatomical {{side}} {{part}} exactly as in [start_image], {{design_lock}}.",
     "action": "The part articulates through the schedule below: rigid plates slide and rotate at real joints without changing shape.",
@@ -87,7 +87,7 @@
     }
   ],
   "provenance": {
-    "source": "the captain's own tested prompt (Higgsfield job c3ceb749)"
+    "source": "the user's own tested prompt (Higgsfield job c3ceb749)"
   },
   "beats": [
     {

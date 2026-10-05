@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Mesh QA in the live scene: candidates computed on an object, drawn where the captain reviews them, his tags read back.
+"""Mesh QA in the live scene: candidates computed on an object, drawn where the user reviews them, his tags read back.
 
 Ported from the shelf's qa_marks_live.py (draw) and qa_read_marks.py (read), reworked onto the tag layers. The live
 object is the rebuilt, textured mesh standing on the floor; candidates are kept in the mesh's OWN frame (what the

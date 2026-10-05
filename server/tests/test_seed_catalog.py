@@ -1,5 +1,5 @@
 """seed_catalog (specs/shelf/seed_catalog.md + specs/wiki/seed_catalog.md): the typed catalogue of every seed (generation variants, banked rerolls) with scores and verdicts.
-The shelf's REAL recorded variants / harvest / scores are the fixtures where they exist on this machine; a signed URL is never stored; only the captain picks."""
+The shelf's REAL recorded variants / harvest / scores are the fixtures where they exist on this machine; a signed URL is never stored; only the user picks."""
 
 import json
 import os
@@ -11,8 +11,8 @@ import pytest
 
 from lampway_server.seeds import Catalog, SeedError
 
-SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/path/to/shelf")
-SCR = SHELF / "scratch/scratch-tmp"
+SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/nonexistent-shelf")
+SCR = Path(os.environ.get("LAMPWAY_SHELF_SCRATCH") or SHELF / "scratch")
 REAL = (SCR / "tripo_mesh/Boots1_g1/variants.json").exists()
 real = pytest.mark.skipif(not REAL, reason="the shelf's Boots1 seeds are not on this machine")
 
@@ -76,7 +76,7 @@ def test_scores_match_by_directory_and_stem_so_a_recurring_variant_name_hits_one
 
 def test_only_the_captain_picks_and_an_ambiguous_prefix_writes_nothing(cat, tmp_path):
     cat.ingest_variants(variants(tmp_path), "Boots1")
-    with pytest.raises(SeedError, match="only the captain picks a seed"):
+    with pytest.raises(SeedError, match="only the user picks a seed"):
         cat.verdict(A[:8], "pick", by="agent")
     with pytest.raises(SeedError, match="2 seeds match"):
         cat.verdict("", "reject")
@@ -125,7 +125,7 @@ async def test_the_agent_tool_ingests_inside_the_project_root_and_cannot_pick(tm
     out, err = await SDT.call("lampway_seed_catalog", {"verb": "ingest_variants", "file": "variants.json", "piece": "Boots1"})
     assert err is False and json.loads(out)["ingested"] == 2
     out, err = await SDT.call("lampway_seed_catalog", {"verb": "verdict", "id": A[:8], "verdict": "pick", "by": "captain"})
-    assert err is True and "only the captain picks" in out, "claiming by=captain does nothing: the tool always records as the agent"
+    assert err is True and "only the user picks" in out, "claiming by=captain does nothing: the tool always records as the agent"
     out, err = await SDT.call("lampway_seed_catalog", {"verb": "list", "piece": "Boots1"})
     assert [r["id"] for r in json.loads(out)["table"]] == [A[:8], B[:8]] or len(json.loads(out)["table"]) == 2
     out, err = await SDT.call("lampway_seed_catalog", {"verb": "ingest_variants", "file": "../../etc/passwd", "piece": "x"})

@@ -14,7 +14,7 @@ def specs() -> list:
     return [ToolSpec("lampway_seed_catalog", "The catalogue of every Tripo seed (generation variants, banked rerolls) with stage, model, settings, proportion score and verdict. verb: list "
                      "(piece, by score|created) | show (id) | ingest_variants (file = variants.json from tripo.fetch, piece) | ingest_harvest (file = harvest.json from tripo.regen.harvest, piece) "
                      "| ingest_scores (file = scores.json from the proportion tools; matched by directory/stem) | verdict (id prefix, verdict pick|reroll|reject|usable|fix, note). "
-                     "No signed URL is ever stored. You may propose usable/fix/reroll/reject; only the captain picks a seed.",
+                     "No signed URL is ever stored. You may propose usable/fix/reroll/reject; only the user picks a seed.",
                      {"type": "object", "additionalProperties": False, "required": ["verb"], "properties": {
                          "verb": {"type": "string"}, "piece": {"type": "string"}, "file": {"type": "string"}, "id": {"type": "string"}, "verdict": {"type": "string"},
                          "note": {"type": "string"}, "by": {"type": "string"}, "settings": {"type": "object"}, "model_version": {"type": "string"}}})]

@@ -2,7 +2,7 @@
 view of the same file). Pure python, no server imports, so the Client's tools can write rows with the same code (tests pin the two copies together).
 
 A row is never edited: a correction is a new row with ``supersedes``. Cost is four separate quantities (subscription text, generation credits, developer-API
-dollars, work seconds) and a credit price needs the source it was read back from. An agent can never ``choose`` a spend result: only the captain (or a rule) does.
+dollars, work seconds) and a credit price needs the source it was read back from. An agent can never ``choose`` a spend result: only the user (or a rule) does.
 Appends take an exclusive file lock, so threads and worker processes lose no row."""
 
 import json
@@ -100,7 +100,7 @@ class Ledger:
         if by not in ("captain", "agent", "rule"):
             raise LedgerError("by is captain, agent or rule")
         if decision == "chosen" and by == "agent" and stage in SPEND_STAGES and studio != "local":
-            raise LedgerError("only the captain chooses a result of a spend stage (an agent may reject, never choose)")
+            raise LedgerError("only the user chooses a result of a spend stage (an agent may reject, never choose)")
         verdict = run.get("verdict") or {}
         if not isinstance(verdict, dict) or set(verdict) - set(VERDICT_KEYS):
             raise LedgerError(f"verdict keys are {', '.join(VERDICT_KEYS)}")

@@ -47,7 +47,7 @@ client = SC.StudioClient(f"http://127.0.0.1:{srv.server_port}", lambda: "tok123"
 
 
 def run(body, **kw):
-    return run_script(PRE + body, env={"LAMPWAY_HOME": "/path/to/boxes"}, **kw)
+    return run_script(PRE + body, env={"LAMPWAY_HOME": tempfile.mkdtemp(prefix="lw_home_")}, **kw)
 
 
 def test_the_client_speaks_the_studio_routes_with_the_users_bearer():
@@ -124,7 +124,7 @@ def test_a_jobs_glb_lands_in_the_studio_collection_with_the_job_prefix():
     r = run('''
 import tempfile, os
 bpy.ops.mesh.primitive_cube_add(); cube = bpy.context.active_object; cube.name = "src_cube"
-path = os.path.join(tempfile.mkdtemp(dir="/path/to/boxes"), "a.glb")
+path = os.path.join(tempfile.mkdtemp(), "a.glb")
 bpy.ops.export_scene.gltf(filepath=path, use_selection=True)
 bpy.data.objects.remove(cube)
 from mixar.modules.lampway_tools import studio_landing as SL
@@ -213,7 +213,7 @@ print("RESULT", json.dumps({"a": a, "b": b, "sent": c.sent, "scripted": g["out"]
     o = r.results[0]
     assert o["a"] == ["FINISHED"] and o["b"] == ["FINISHED"]
     assert o["sent"] == [["ap1", 9.6, None], ["q1", 0, False]], "9.6 credits are not truncated to 9; an answer carries price 0"
-    assert o["scripted"] == "REFUSED", "a script cannot answer the captain's question either"
+    assert o["scripted"] == "REFUSED", "a script cannot answer the user's question either"
 
 
 def test_the_higgsfield_sign_in_button_opens_the_servers_page_and_the_panel_shows_a_question_card():

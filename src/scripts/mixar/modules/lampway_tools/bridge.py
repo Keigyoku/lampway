@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The live bridge, ported from the shelf's live/bridge.py (the one the main session drives the captain's
+"""The live bridge, ported from the shelf's live/bridge.py (the one the main session drives the user's
 Blender through).
 
 Two doors, both polled from the app's own timer so every command runs on the main thread, in a window context:

@@ -6,7 +6,7 @@
 # Ported from the owner's tool shelf (tools/proportion/proportion_ratios.py, sha256 d9e4890b6728) on 2026-10-05. The header below, with the
 # measured rules behind the code, is the original's; paths and interpreters now come from Lampway's configuration.
 # SPIKE (2026-10-04): PRIMARY proportion measure for a torso piece (chest) against the MetaHuman body - the method the proportion
-# auditor built and validated (scratch/scratch-tmp/proportion/audit/: prof2.py, bodyprof.py, indep.py; report.md), folded
+# auditor built and validated (<shelf scratch>/proportion/audit/: prof2.py, bodyprof.py, indep.py; report.md), folded
 # into one tool so every seed is scored the same way. No clearance fit: scale-free landmark ratios.
 #   Per height slice (piece normalised to z 0..1; body in metres) the first hit of 36 horizontal rays from the slice's front/back
 #   centre gives width W (left+right) and depth D (front+back). Landmarks: axilla = where W first exceeds a threshold above the
@@ -121,7 +121,7 @@ def main(out, body_npz, *pieces, cw=(0.04, 0.12), nw=(1.60, 1.64), nwu=(0.90, 0.
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         ax.home(__file__, 'Primary proportion score of a torso piece against the MetaHuman body: scale-free landmark ratios (0 = the body)')
-        ax.kv({'method': 'chest D/W, neck/chest W, axilla-to-collar/chest W, arm span/chest W; RMS log deviation', 'validated': 'auditor 2026-10-04 (scratch/scratch-tmp/proportion/audit/report.md)',
+        ax.kv({'method': 'chest D/W, neck/chest W, axilla-to-collar/chest W, arm span/chest W; RMS log deviation', 'validated': 'auditor 2026-10-04 (<shelf scratch>/proportion/audit/report.md)',
                'known_flaw': f'depth is compared with the bare body, so a too-shallow piece scores well; tight_front flags chest depth < {TIGHT_FRONT_MM:.0f} mm over body+40 mm'})
         ax.helps([f'python3 {ME} <out.json> <body.npz> <name>=<piece.npz>:<turn_deg> ...', 'blender -b -P scripts/proportion/mesh_to_npz.py -- <out.npz> piece|body <mesh>']); sys.exit(0)
     ap = argparse.ArgumentParser(description='Primary proportion score vs the MetaHuman body (AXI: no args shows the method).')

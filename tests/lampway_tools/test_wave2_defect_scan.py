@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """mesh_defect_scan (specs/wiki/mesh_defect_scan.md): a read-only clay inspection that lists typed defect candidates (open loops, floating shells, self-intersections, thin features,
-flipped shells, degenerate faces, isolated triangles) for the captain's typed decisions. It never edits. Each kind has a falsifier: the same mesh with the defect removed reports none. REAL binary."""
+flipped shells, degenerate faces, isolated triangles) for the user's typed decisions. It never edits. Each kind has a falsifier: the same mesh with the defect removed reports none. REAL binary."""
 
 import json
 import os
@@ -13,8 +13,9 @@ import pytest
 
 from features_support import run
 
-SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/path/to/shelf")
-BOOT = SHELF / "scratch/scratch-tmp/tripo_uv/Boots1/attempt_2.fbx"
+SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/nonexistent-shelf")
+SCR = Path(os.environ.get("LAMPWAY_SHELF_SCRATCH") or SHELF / "scratch")
+BOOT = SCR / "tripo_uv/Boots1/attempt_2.fbx"
 
 HELP = '''
 def tube(name, flip=False, closed=False, loc=(0, 0, 0)):

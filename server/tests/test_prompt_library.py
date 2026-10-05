@@ -1,6 +1,6 @@
 """The prompt library (spec: specs/prompts/PROMPT_LIBRARY.md): a JSON template schema (five-part spine, typed variables, <= 5 negatives, timed beats,
 input roles, per-model adapters, gates, provenance), built-ins shipped as data files, user and project templates that override by id and are validated
-on load, render() with the rendered text, the run log with gates and the captain's 1-5 rating, versions with A/B."""
+on load, render() with the rendered text, the run log with gates and the user's 1-5 rating, versions with A/B."""
 
 import json
 from pathlib import Path

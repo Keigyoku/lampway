@@ -2,7 +2,7 @@
 and its verdicts. One SQLite file under the project root, the same ``seeds`` table the shelf's seed_db.py keeps (the bundled studios/tripo/seed_db.py CLI shares it) plus four
 columns: stage, model_version, settings_json, seed (a seed is stage + model + settings, never a style token; ``not_exposed`` when the Studio shows none).
 
-NEVER a signed URL: a per-file signature is a credential, so it is stripped (and said). Only the captain picks a seed; an agent's ``usable`` is a proposal. Every verdict
+NEVER a signed URL: a per-file signature is a credential, so it is stripped (and said). Only the user picks a seed; an agent's ``usable`` is a proposal. Every verdict
 is also a row of decisions.jsonl (the typed log that trains a decision model later); a correction is a new row, the latest wins."""
 
 import hashlib
@@ -191,13 +191,13 @@ class Catalog:
         if by not in ("captain", "agent", "rule"):
             raise SeedError("by is captain, agent or rule")
         if verdict == "pick" and by != "captain":
-            raise SeedError("only the captain picks a seed")
+            raise SeedError("only the user picks a seed")
         with self._locked():
             c = self._con()
             row = self._one(c, prefix)
             text = (note or "")[:300]
             if by != "captain":
-                text = ("proposal by " + by + (": " + text if text else "") + " (not a ruling until the captain confirms)")
+                text = ("proposal by " + by + (": " + text if text else "") + " (not a ruling until the user confirms)")
             c.execute("UPDATE seeds SET verdict=?, verdict_note=?, audit_path=? WHERE id=?", (verdict, text, audit or None, row["id"]))
             c.commit()
             c.close()

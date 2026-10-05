@@ -62,7 +62,7 @@ class StudioClient:
         return (self._base or _default_url()).rstrip("/")
 
     def confirm(self, approval_id: str, price, answer=None) -> dict:
-        """The captain's confirm. ``price`` is the exact number shown (credits are fractional); ``answer`` only for a question."""
+        """The user's confirm. ``price`` is the exact number shown (credits are fractional); ``answer`` only for a question."""
         body = {"price": price}
         if answer is not None:
             body["answer"] = answer

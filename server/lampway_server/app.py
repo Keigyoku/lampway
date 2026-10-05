@@ -285,7 +285,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
                     video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy))
     video_system.jobs = jobs
-    for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the captain's click reaches the waiting job through the Studios' confirm
+    for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
     routes += stub_routes(auth, store, settings, jobs)
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
@@ -515,7 +515,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         agent.swarm.cancel_worker(worker)
         return JSONResponse(worker.public())
 
-    # ---- the online Studios: the Client plans, the CAPTAIN confirms (these routes are the only confirm there is)
+    # ---- the online Studios: the Client plans, the USER confirms (these routes are the only confirm there is)
     def _studio_guard(request: Request):
         return None if _bearer_ok(request) else unauthorized()
 

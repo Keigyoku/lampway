@@ -1,4 +1,4 @@
-"""The online Studios inside the Client: plan (read back, spend nothing) -> the CAPTAIN's confirm in the Client -> a server job that
+"""The online Studios inside the Client: plan (read back, spend nothing) -> the USER's confirm in the Client -> a server job that
 runs the shelf's AXI driver -> results for the Client to import. Nothing here touches a browser or a credit: the driver is a fake
 executor returning text shaped like the real drivers' AXI/TOON output (shapes read from the shelf sources, 2026-10-05; the live
 run against the real Studio is the owner's). Laws (memory tripo-studio-invariants, tripo-hung-job-quirk): read back every setting,
@@ -197,7 +197,7 @@ async def test_only_the_captain_can_confirm_never_the_agent_or_a_worker(tmp_path
     s, ex, _ = svc(tmp_path, {"tripo_mesh": MESH_PLAN})
     plan = await s.plan("tripo.mesh", MESH_ARGS, by="agent")
     for who in ("agent", "worker-2", "swarm", ""):
-        with pytest.raises(ApprovalError, match="captain"):
+        with pytest.raises(ApprovalError, match="user"):
             await s.confirm(plan["approval"]["id"], price=100, by=who)
     assert [c["armed"] for c in ex.calls] == [False]
 
@@ -300,9 +300,9 @@ REGEN = ("tripo.regen.retry", "tripo.regen.sift", "tripo.regen.harvest", "tripo.
 
 def test_the_regen_driver_has_an_action_row_for_every_verb_and_none_of_them_spends():
     assert set(REGEN) <= set(ACTIONS)
-    assert not any(ACTIONS[a].needs_approval for a in REGEN), "a whole-piece regen is free on the captain's plan"
+    assert not any(ACTIONS[a].needs_approval for a in REGEN), "a whole-piece regen is free on the user's plan"
     assert all(ACTIONS[a].driver == "tripo_regen" and ACTIONS[a].studio == "tripo" for a in REGEN)
-    assert "tripo.regen.region" not in ACTIONS, "an exact-region retry needs the captain's approval flag: not offered as an action"
+    assert "tripo.regen.region" not in ACTIONS, "an exact-region retry needs the user's approval flag: not offered as an action"
 
 
 async def test_regen_actions_run_the_bundled_driver_with_the_verb_and_validated_arguments(tmp_path):

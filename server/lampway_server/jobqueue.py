@@ -91,7 +91,7 @@ class JobQueue:
         self.registry = registry if registry is not None else ServiceRegistry()           # services.py: the Client's other job types
         self.prompts = prompts            # prompts.service.PromptService: templates, rendering, the run log
         self.video = video                # videojobs.VideoSystem: video_gen / video_upscale and Higgsfield models
-        self.approvals = approvals        # studios.approvals.Approvals: the captain's confirm gate (shared with the Studios)
+        self.approvals = approvals        # studios.approvals.Approvals: the user's confirm gate (shared with the Studios)
         self.backends: dict[str, Callable] = dict(backends or {})
         self.hub = hub
         self.base_url = base_url.rstrip("/")
@@ -162,7 +162,7 @@ class JobQueue:
 
     # ------------------------------------------------------------------ the confirm gate
     async def _await_approval(self, job: Job, approval) -> object:
-        """The job waits (PENDING, with a note) for the captain's click on ``approval``; returns his answer (True/False or the
+        """The job waits (PENDING, with a note) for the user's click on ``approval``; returns his answer (True/False or the
         answer to a question), or raises on expiry."""
         loop = asyncio.get_running_loop()
         job.awaiting, job.decision = approval.id, loop.create_future()
@@ -176,7 +176,7 @@ class JobQueue:
             job.awaiting, job.decision = "", None
 
     def resolve_approval(self, approval_id: str, confirmed: bool, answer=None) -> bool:
-        """Called by the Studio service when the captain confirms or rejects an approval a job waits on."""
+        """Called by the Studio service when the user confirms or rejects an approval a job waits on."""
         for job in self.jobs.values():
             if job.awaiting == approval_id and job.decision is not None and not job.decision.done():
                 job.decision.get_loop().call_soon_threadsafe(job.decision.set_result, (answer if answer is not None else confirmed) if confirmed else False)
@@ -184,13 +184,13 @@ class JobQueue:
         return False
 
     async def _run_registered(self, job: Job):
-        """A registered service: a spend service waits for the captain's click on a price first (the backend is not called before it)."""
+        """A registered service: a spend service waits for the user's click on a price first (the backend is not called before it)."""
         svc = self.registry.get(job.service)
         if svc.spend:
             if self.approvals is None:
                 raise RuntimeError("this server has no approvals store: a spend service cannot be confirmed")
             price = await asyncio.to_thread(svc.confirm_price, job.payload)
-            job.note = f"Needs the captain's confirm of {price:g} in the Studios panel before {job.service} runs."
+            job.note = f"Needs the user's confirm of {price:g} in the Studios panel before {job.service} runs."
             a = self.approvals.propose(action="service.job", studio=job.service, label=f"{svc.row.get('label') or job.service}: {price:g}",
                                        args={"job_id": job.job_id}, price=price, requested_by=job.origin, settings={"unit": "credits", "service": job.service})
             if not await self._await_approval(job, a):

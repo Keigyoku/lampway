@@ -8,6 +8,7 @@ view correspondence. Pure numpy + PIL (Blender has both, scipy it has not). The 
 
 import json
 import os
+import tempfile
 import sys
 from pathlib import Path
 
@@ -18,8 +19,8 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src/scripts"))
 from mixar.modules.lampway_tools.pipeline import imgops, plates  # noqa: E402
 
-SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/path/to/shelf")
-SCRATCH = SHELF / "scratch/scratch-tmp"
+SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/nonexistent-shelf")
+SCRATCH = Path(os.environ.get("LAMPWAY_SHELF_SCRATCH") or SHELF / "scratch")
 V3 = Path.home() / "Pictures/TitanAssets/greek-armor-turnarounds-transparent-v3"
 REAL = (SCRATCH / "tripo_img/chest_front_4k_g1/4.jpg").exists() and (V3 / "Chest1/Front.png").exists()
 real = pytest.mark.skipif(not REAL, reason="the shelf's chest plates are not on this machine")
@@ -119,7 +120,7 @@ def test_run_ranks_cuts_the_best_checks_and_writes_the_manifest_once(tmp_path):
     assert man["plates"]["Front"]["source"] == "4.png" and len(man["plates"]["Front"]["sha256"]) == 64 and "luminance" in man["method"]
     assert set(r["checks"]) == {"margins_frac", "aspect", "view_correspondence"} and r["checks"]["view_correspondence"] > 0.9
     pick = plates.run(tmp_path, piece="P", view="Back", v3_plate=v3, variants=vs, out_dir=tmp_path / "out", pick=3, min_px=64)
-    assert pick["picked"] == "3.png" and pick["best"] == "4.png", "a captain's override wins over the best score"
+    assert pick["picked"] == "3.png" and pick["best"] == "4.png", "a the user's override wins over the best score"
 
 
 # ------------------------------------------------------------------------------------------ the shelf's real chest plates
@@ -132,7 +133,7 @@ def test_the_real_chest_front_ranks_variant_4_first_and_its_cut_reproduces_the_r
     ours = {r["file"]: r["score"] for r in rows}
     for r in recorded["variants"]:
         assert ours[r["file"]] == pytest.approx(r["score"], abs=0.01), (r["file"], ours[r["file"]], r["score"])
-    out = Path(os.environ.get("TMPDIR", "/path/to/boxes")) / "chest_front_cut_test.png"
+    out = Path(tempfile.gettempdir()) / "chest_front_cut_test.png"
     out.unlink(missing_ok=True)
     cover3 = plates.cut(d / "4.jpg", out, bg_threshold=0.06, opening_iters=3)["alpha_cover"]
     out.unlink()

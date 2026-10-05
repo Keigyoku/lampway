@@ -4,7 +4,7 @@
 #
 # Ported from the owner's tool shelf (tools/partseg/patch_holes.py, sha256 32b43f60701b) on 2026-10-05. The header below, with the
 # measured rules behind the code, is the original's; paths and interpreters now come from Lampway's configuration.
-# SPIKE (2026-10-04): apply the captain's mesh QA rulings to a mesh - delete the faces he ruled deleted, and patch every open
+# SPIKE (2026-10-04): apply the user's mesh QA rulings to a mesh - delete the faces he ruled deleted, and patch every open
 # loop he ruled a hole - writing a NEW mesh plus maps, so the parts/texture pipeline re-runs on it.
 # Holes come from meshqa decisions (scripts/meshqa/qa_read_marks.py rows, answer 'hole') matched to the mesh's boundary edges by
 # the candidate's segments (edge midpoints within --match-mm). Fill: bmesh beauty triangle fill, then the patch's interior
@@ -13,7 +13,7 @@
 # borders; its owner is the part bordering most of the loop (--owner-override HOLE=part for a ruled exception); its UVs are
 # the nearest rim vertex's (a placeholder - the texture pass re-projects).
 # Measured 2026-10-04 on chest seed 9c052d49: the back plate's holes are in Tripo's generation itself (the original and the
-# Smart UV clone carry the same 312 loops); the captain ruled 11 holes (8 named, 3 by "whatever else in that region").
+# Smart UV clone carry the same 312 loops); the user ruled 11 holes (8 named, 3 by "whatever else in that region").
 # blender -b -P patch_holes.py -- <mesh.fbx> <owner_poly.npy> <recipe.json> <candidates.json> <decisions.jsonl> <out_prefix>
 #        [--deletions deletions.json] [--session S] [--turn -90] [--edge-cm 1.5] [--relax 150] [--match-mm 2]
 #   candidates were measured with --turn; their coordinates are turned back into the mesh's own frame here.
@@ -24,7 +24,7 @@ import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 if __name__ == '__main__' and len(_A) < 6:
-    if not _A: _ax.home(__file__, "Apply the captain's mesh QA rulings: delete ruled faces, patch ruled holes with curved fills")
+    if not _A: _ax.home(__file__, "Apply the user's mesh QA rulings: delete ruled faces, patch ruled holes with curved fills")
     else: print(f'error: {len(_A)} argument(s); at least 6 needed')
     _ax.helps(['blender -b -P scripts/partseg/patch_holes.py -- <mesh.fbx> <owner_poly.npy> <recipe.json> <candidates.json> <decisions.jsonl> <out_prefix>']); _sys.stdout.flush(); raise SystemExit(0 if not _A else 1)
 # --- end AXI prelude ---

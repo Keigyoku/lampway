@@ -6,7 +6,7 @@
 
 Rules first, the model second. ``flags`` is deterministic (weak-vote and far-transfer islands from the transfer's own ``islands.json``, parts left with too few polygons, a left/right
 part that crosses the sagittal plane, left/right area asymmetry); only the unresolved flags go to a model, which proposes fixes with reasons; ``write_fixes`` validates them (unknown
-part, empty selector, and the CLASS GUARD: a fix may not move triangles between a metal part and a cloth/leather part, because the material class comes from the captain or the
+part, empty selector, and the CLASS GUARD: a fix may not move triangles between a metal part and a cloth/leather part, because the material class comes from the user or the
 recipe, never from a render); ``check`` is a dry run that reproduces ``apply_part_fixes``'s own ``{triangles, from}`` counts without writing an owner map. Pure numpy.
 """
 
@@ -134,7 +134,7 @@ def validate(proposals, recipe, transfer_dir=None, piece_uv=None):
                 a, b = family(classes.get(src)), family(classes.get(f["target_part"]))
                 if src != f["target_part"] and {a, b} == {"metal", "soft"}:
                     raise CritiqueError(f"fix {entry['fix']} moves {entry['from'][src]} triangles of {src} ({classes[src]}) to {f['target_part']} ({classes[f['target_part']]}): "
-                                        "material class comes from the captain or the recipe, never from a render: ask")
+                                        "material class comes from the user or the recipe, never from a render: ask")
     return fixes
 
 
@@ -144,7 +144,7 @@ def packet(root, piece, flagged, renders, parts, limit=LIMIT_DEFAULT):
     islands = sorted(flagged["islands"], key=lambda r: -(r.get("area_m2") or 0))[:limit]
     return {"piece": piece, "islands": islands, "parts": flagged["parts"], "all_parts": parts, "renders": renders, "limit": limit,
             "ask": "propose fixes as [{target_part, islands | bbox_fbx, only_from_parts?, reason, evidence}]; never change a part between metal and cloth/leather",
-            "note": "proposals only: the captain rules, and only apply_part_fixes writes an owner map"}
+            "note": "proposals only: the user rules, and only apply_part_fixes writes an owner map"}
 
 
 def run(root, stage, piece, recipe="", transfer_dir="", piece_uv="", owner_poly="", mesh="", proposals=None, fixes="", weak=WEAK, far_mm=FAR_MM,

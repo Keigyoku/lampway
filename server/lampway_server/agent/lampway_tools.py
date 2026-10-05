@@ -104,7 +104,7 @@ DEFS = [
          P("rulings_dir", desc="Rulings directory"), P("min_perimeter", "number", "Open loops shorter than this (m) are ignored; default 0.15"),
          P("max_shell_tris", "integer", "A floating shell has at most this many triangles; default 400"),
          P("float_mm", "number", "A shell floats when its nearest neighbour is further than this (mm); default 3")], api="qa_setup"),
-    Def("lampway_qa_tag_layers", "Add the three annotation tag layers the captain draws on: Red = Delete, Green = Mislabel, "
+    Def("lampway_qa_tag_layers", "Add the three annotation tag layers the user draws on: Red = Delete, Green = Mislabel, "
         "Yellow = Hole (placement Surface). Existing layers are kept.", api="qa_tag_layers"),
     Def("lampway_qa_candidates", "Find open loops (holes) and floating shells on the piece and write them as typed candidates "
         "(descriptor: size, bordering parts and their motion classes, side of the body, which views see it, what lies behind). "
@@ -113,13 +113,13 @@ DEFS = [
          P("collection", desc="Collection to draw into, default QA_<piece>"), P("prefix", desc="Marker name prefix, default <piece>_")],
         api="qa_candidates"),
     Def("lampway_qa_draw", "Draw the candidates into the scene (collection QA_<piece>): tubes along open loops, rings around floating "
-        "shells, each labelled with its id (and verdict, once proposed), so the captain can review them and answer with the tag layers. "
+        "shells, each labelled with its id (and verdict, once proposed), so the user can review them and answer with the tag layers. "
         "A re-run replaces only this piece's collection.", [P("piece"), P("collection"), P("prefix")], api="qa_draw"),
     Def("lampway_qa_propose", "PROPOSE verdicts for a piece's candidates and recolour the markers (delete red, hole yellow, mislabel green, "
         "keep grey and hidden; label `<id> <VERDICT>`). RULES FIRST: called with no `proposals`, the proven rules decide every candidate "
         "their descriptors make clear (each reason names its rule) and the rest comes back as `ambiguous` - judge only those, in small "
         "batches, from lampway_qa_descriptors, then call this again with `proposals` {id: {verdict, reason}} (rules=false). A re-run of "
-        "the rules never replaces your row. A proposal is NOT a ruling and never changes the mesh: only the captain's tags or typed "
+        "the rules never replaces your row. A proposal is NOT a ruling and never changes the mesh: only the user's tags or typed "
         "answers become rulings.",
         [P("proposals", "object", "{candidate id: {verdict: delete|hole|mislabel|keep, reason, target}}; omit to run the rules"),
          P("piece"), P("by", desc="Who proposes, default agent"), P("rules", "boolean", "Run the rules too (default: only when no proposals)")],
@@ -130,7 +130,7 @@ DEFS = [
         [P("piece"), P("ids", "array", "Candidate ids"), P("ambiguous_only", "boolean"), P("limit", "integer"), P("offset", "integer")],
         api="qa_descriptors"),
     Def("lampway_qa_proposals", "Read the proposals so far for a piece, with counts per verdict.", [P("piece")], api="qa_proposals"),
-    Def("lampway_qa_read_tags", "Read the captain's Red/Green/Yellow annotation strokes: faces and Smart UV islands per stroke, the "
+    Def("lampway_qa_read_tags", "Read the user's Red/Green/Yellow annotation strokes: faces and Smart UV islands per stroke, the "
         "candidate loops a Hole stroke circles or runs along (or an orphan the generator missed), and the floating shell a Delete "
         "stroke sits on. With apply (default) writes the decision log and the rulings (deletions, relabels, texel overrides). A Green "
         "stroke needs a target part in `mislabel_to` ({stroke index: part}); without one it is returned in "
@@ -148,7 +148,7 @@ DEFS = [
                    P("out_root"), P("relabel_rules", "array", "FROM:TO:WITH relabel rules for patch_holes"),
                    P("turn", "number"), P("lift", "number"), P("previous", "array", "Object names to hide when the new one loads")],
         api="rebuild_setup"),
-    Def("lampway_rebuild", "Read the captain's tags, write the rulings, rebuild the piece (patch holes, patch UVs, project colour, "
+    Def("lampway_rebuild", "Read the user's tags, write the rulings, rebuild the piece (patch holes, patch UVs, project colour, "
         "material masks) and load the result beside the previous version. It runs as a BACKGROUND job (minutes) and returns its id "
         "at once; poll lampway_job_status. When it finishes the new mesh loads textured next to the old one, the old is hidden, and "
         "mesh QA points at the new object so the loop continues. A tag is never overwritten.",
@@ -235,7 +235,7 @@ DEFS = [
          P("seam_radius_m", "number", "Vertex pairs of different shells closer than this at rest are a seam, default 0.02")], api="pose_test"),
     Def("lampway_asset_lineage", "Lineage of a derivative so a repaired mesh cannot silently become an unrelated one. action record: store the source's geometry/UV/"
         "material hashes, the transformation and exactly THREE identity anchors (landmarks that must not move: [{name, point: [x, y, z]}] in object space; pick them "
-        "with the captain, never invent them); verify: each anchor's nearest-point distance to the derivative must stay within tolerance_m (default 0.01); show: the "
+        "with the user, never invent them); verify: each anchor's nearest-point distance to the derivative must stay within tolerance_m (default 0.01); show: the "
         "lineage and its parent chain. A second record on a derived object needs parent=<its lineage id>.",
         [P("action", required=True, desc="record | verify | show"), P("object", required=True), P("source", desc="The approved source object (record; default: the object)"),
          P("transform", desc="One line: what was done"), P("anchors", "array", "Exactly three {name, point} (record)"), P("tolerance_m", "number", "0.0001..0.05, default 0.01"),
@@ -243,20 +243,20 @@ DEFS = [
     Def("lampway_workflow_graph", "A workflow as data: a typed DAG of Lampway tool calls with cached outputs. action define (graph {nodes: [{id, tool, args, after: [ids], "
         "spend, studio_action, credits}], outputs}, inputs; an arg string @node.key is that upstream node's output, {{name}} an input) | plan (order, cached, credits_planned: "
         "nothing runs) | run | rerun (from_node) | version / rollback (version) | template_save / template_use (template, description) | show. A spend node is only "
-        "planned and priced: the captain confirms spends in the Studios panel and what depends on it waits.",
+        "planned and priced: the user confirms spends in the Studios panel and what depends on it waits.",
         [P("action", required=True), P("name", desc="The graph's name"), P("graph", "object", "The graph (define)"), P("inputs", "object", "Values for {{name}} placeholders"),
          P("from_node", desc="rerun: the node to start from"), P("version", desc="version / rollback: the version name"), P("template"), P("description")], api="workflow_graph"),
     Def("lampway_plate_pick", "Plates stage: stage prompt (the plate-4k-crisper template + variables for a view; render it and generate 4 images per view), score (rank the 4 "
         "regenerations in variants_dir against the approved V3 plate v3_dir/<View>.png by silhouette IoU x structure x (1 - colour error)), cut (the pick's deterministic alpha), "
-        "run (score + cut + margins/aspect/view-correspondence checks -> <piece>/plates_4k_alpha/<View>.png + alpha.json), status. `pick` 1-4 is the captain's override. Paired "
+        "run (score + cut + margins/aspect/view-correspondence checks -> <piece>/plates_4k_alpha/<View>.png + alpha.json), status. `pick` 1-4 is the user's override. Paired "
         "pieces: Front and Back only. Free and local; never overwrites.",
         [P("stage", required=True, desc="prompt | score | cut | run | status"), P("piece", required=True), P("view", desc="Front | Back | Left | Right"), P("paired", "boolean", "Front and Back only"),
          P("v3_dir", desc="Folder with <View>.png (RGBA) of the approved plates"), P("variants_dir", desc="Folder with 1.jpg..4.jpg for the view"), P("design_words", desc="prompt: the design inventory"),
-         P("palette", desc="prompt: the colours"), P("pick", "integer", "1-4: the captain's choice"), P("bg_threshold", "number", "0.01..0.2, default 0.06"),
+         P("palette", desc="prompt: the colours"), P("pick", "integer", "1-4: the user's choice"), P("bg_threshold", "number", "0.01..0.2, default 0.06"),
          P("opening_iters", "integer", "default 3"), P("min_px", "integer", "Refuse variants smaller than this, default 1024")], api="plate_pick"),
     Def("lampway_uv_score", "Score UV layouts on measurements, not by eye (the shelf's uv_score): utilization (rasterised at res 256..4096), overlap, UV islands, stretch p90/p10, the fraction "
         "of area off by 2x, flipped (mirrored) faces, seam length and a composite score; each row has gates {pass, failed}. objects: mesh objects in the scene; files: .fbx/.glb Smart UV "
-        "attempts inside the project root (measured in a headless Blender, the live scene untouched). `best` is advice: the captain picks (tripo.uv.pick, then save).",
+        "attempts inside the project root (measured in a headless Blender, the live scene untouched). `best` is advice: the user picks (tripo.uv.pick, then save).",
         [P("objects", "array", "Mesh object names"), P("files", "array", "Project-relative .fbx/.glb paths"), P("res", "integer", "256..4096, default 1024"),
          P("out", desc="Report path under the project root, default uv_score.json"), P("gates", "object", "{max_overlap, max_flipped, max_off_density_2x}")], api="uv_score"),
     Def("lampway_uv_texel_density", "Set and equalise texel density per UV island on a NEW object `<object>_td` (the source keeps its UVs), repack, and report the density achieved "
@@ -265,7 +265,7 @@ DEFS = [
         [P("object", required=True), P("texture_size", "integer", "Power of two, default 2048"), P("target", desc="px/metre | 'N px/cm' | auto (default)"),
          P("weights", "object", "{material | vertex group | island:N: factor}"), P("mode", desc="island (default) | all"), P("repack", "boolean", "default true"),
          P("margin", "number", "UV units 0..0.05, default 0.005"), P("name", desc="Default <object>_td"), P("discard_texture", "boolean", "Allow a textured object")], api="uv_texel_density"),
-    Def("lampway_mesh_defect_scan", "A read-only clay inspection: typed defect candidates for the captain's decisions, NEVER an edit. kinds (default all): open_loop, floating_shell (a small shell "
+    Def("lampway_mesh_defect_scan", "A read-only clay inspection: typed defect candidates for the user's decisions, NEVER an edit. kinds (default all): open_loop, floating_shell (a small shell "
         ">3 mm from the body), intersection (faces crossing faces, by BVH), thin (thinner than thin_threshold_m inward; default 0.002, unverified), flipped_shell (closed or open), degenerate, "
         "isolated_tri. Each candidate: id, kind, descriptor {faces, area_m2, centroid, bbox, normal, rim_length_m}, rule_verdict (keep|delete|hole|ambiguous), rule, severity. More than "
         "max_candidates: the first N plus truncated and total.", [P("object", required=True), P("piece"), P("kinds", "array", "Subset of the kinds"),
@@ -285,8 +285,8 @@ DEFS = [
     Def("lampway_parts_critique", "The auditor's critique of a transferred or segmented part set. stage flags: the rules first (weak-vote and far-transfer islands, parts with too few polygons or absent, a "
         "_L/_R part crossing the sagittal plane, left/right area asymmetry); render: the owner map in four views, flagged islands magenta (Workbench, headless); judge: the packet to propose fixes from "
         "(at most `limit` flags, biggest first); write_fixes: your proposals [{target_part, islands | bbox_fbx, only_from_parts, reason, evidence}] validated and written to <piece>/parts/fixes.json; check: "
-        "a dry run per fix ({triangles, from}) without writing an owner map. A fix between a metal part and a cloth/leather part is refused (that class is the captain's or the recipe's, never a render's). "
-        "Proposals only: apply_part_fixes writes the owner map once the captain approves.",
+        "a dry run per fix ({triangles, from}) without writing an owner map. A fix between a metal part and a cloth/leather part is refused (that class is the user's or the recipe's, never a render's). "
+        "Proposals only: apply_part_fixes writes the owner map once the user approves.",
         [P("stage", required=True, desc="flags | render | judge | write_fixes | check"), P("piece", required=True), P("recipe", required=True, desc="recipe.json (parts + classes)"),
          P("transfer_dir", desc="the directory transfer_parts wrote"), P("piece_uv", desc="piece_uv.npz"), P("owner_poly", desc="owner_poly.npy (render)"), P("mesh", desc="fbx|glb (render)"),
          P("proposals", "array", "fix proposals (write_fixes, check)"), P("fixes", desc="a recorded fixes.json (check)"), P("weak", "number", "default 0.6"), P("far_mm", "number", "default 30"),
@@ -294,27 +294,27 @@ DEFS = [
          P("by", desc="agent (default) | model | captain")], api="parts_critique"),
     Def("lampway_palette_fit", "Fit the per-class Hue/Saturation/Value of the studio colours to the mesh-paint albedo, nudge it live, then write the params pbr_merge reads. stage fit: per class the median "
         "HSV of the studio base under the class mask vs the albedo under the same mask -> hue_shift, sat_mul, val_mul, measured in LINEAR light, plus a residual and a named reason for each skipped class; "
-        "apply_live: a copy of `material` with a Hue/Saturation/Value node per class mixed by its mask (labelled PAL:, idempotent) for the captain to nudge; read_live: read his sliders back (his nudge is law, "
+        "apply_live: a copy of `material` with a Hue/Saturation/Value node per class mixed by its mask (labelled PAL:, idempotent) for the user to nudge; read_live: read his sliders back (his nudge is law, "
         "the fit is advice); write_params: <piece>/pbr/live_material_params.json from source fit | live (refused while a cloth/leather class is not in metal_zero_on).",
         [P("stage", required=True, desc="fit | apply_live | read_live | write_params"), P("piece", required=True), P("studio_base", desc="BaseColor map (png)"), P("albedo", desc="v3_colour_atlas.png"),
          P("masks", desc="directory with mask_<class>.png"), P("classes", "array", "default gold, plate, red, linen, leather, embroidery"), P("material", desc="scene material (apply_live, read_live, live write_params)"),
          P("name", desc="the copy's name"), P("source", desc="write_params: fit (default) | live"), P("metal_zero_on", "array", "classes with metallic forced to 0"),
          P("statistic", desc="median (default) | mean"), P("space", desc="linear (default) | srgb"), P("min_texels", "integer", "default 1000")], api="palette_fit"),
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
-        "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the captain has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
+        "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "
         "to -Y front, +Z up. Writes placed.npz + .json (scale, translation, anchor_shift, turn) and returns the report. Run before mesh-paint and texture: a geometry step discards a texture.",
         [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets"), P("piece", required=True), P("body", required=True), P("turn", "number", "default 0"),
          P("clear_mm", "number", "wear clearance 0-40, default 15"), P("scale_anchor", desc="boots: width | height | foot"), P("sides", desc="both (default) | l | r"),
          P("out", desc="default placed.npz")], api="fit_place"),
     Def("lampway_fit_openings", "The openings decision at fit: every cap a seed put across a limb, neck or waist opening gets keep | gasket | delete, logged append-only in <piece>/fit/decisions.jsonl. "
-        "stage detect: the capped sites along `axis` (pointing out of the piece); propose: proposals only (the captain rules); apply: answers {'OP000': 'gasket'}; check: manifold report; variants: "
+        "stage detect: the capped sites along `axis` (pointing out of the piece); propose: proposals only (the user rules); apply: answers {'OP000': 'gasket'}; check: manifold report; variants: "
         "builds and renders three collar depths. A GASKET cuts the POSED limb's cross-section (`limb`, an object) plus clearance_mm (5..40, default 15) into the cap plane and forms a COLLAR: a tubular "
-        "flange into the piece whose free edge rolls outward into a lip (an exhaust/intake manifold port, not a raw hole). Its depth `flange_mm` (2..60) is the captain's number: without it apply answers "
+        "flange into the piece whose free edge rolls outward into a lip (an exhaust/intake manifold port, not a raw hole). Its depth `flange_mm` (2..60) is the user's number: without it apply answers "
         "needs_decision. Needs `pose` (the fit_pose result), never the rest pose. Result `<object>_openings`; the source is untouched; a studio texture is discarded (texture_discard_ack).",
         [P("stage", required=True, desc="detect | propose | apply | variants | check"), P("object", required=True), P("axis", "array", "The opening's axis [x, y, z], pointing out of the piece"),
          P("plane_origin", "array", "A point on the cap plane (selects one site)"), P("limb", desc="The posed limb object whose section is cut"), P("pose", "object", "The fit_pose result"),
-         P("answers", "object", "{'OP000': 'keep'|'gasket'|'delete'}"), P("flange_mm", "number", "Collar depth, 2..60 (the captain's number)"), P("lip_mm", "number", "Rolled lip radius, default 4"),
+         P("answers", "object", "{'OP000': 'keep'|'gasket'|'delete'}"), P("flange_mm", "number", "Collar depth, 2..60 (the user's number)"), P("lip_mm", "number", "Rolled lip radius, default 4"),
          P("clearance_mm", "number", "5..40, default 15"), P("piece"), P("captain_words", desc="Quoted into the decision row"), P("texture_discard_ack", "boolean"),
          P("depths_mm", "array", "variants: the depths, default 10, 20, 35"), P("size", "integer", "variants: image size")], api="fit_openings"),
     Def("lampway_detail_normals", "Micro depth for a textured_atlas material without the relief map: per-material tiling detail normals box-projected "

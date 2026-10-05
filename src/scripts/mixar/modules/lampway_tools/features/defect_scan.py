@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """mesh_defect_scan: a read-only clay inspection. Typed defect candidates (open loops, floating shells, self-intersections, thin features, flipped shells, degenerate faces, isolated
-triangles), each with a descriptor (faces, area, centroid, bbox, normal, rim length) and a rule verdict (keep | delete | hole | ambiguous), for the captain's typed decisions; the agent
+triangles), each with a descriptor (faces, area, centroid, bbox, normal, rim length) and a rule verdict (keep | delete | hole | ambiguous), for the user's typed decisions; the agent
 or a model only PROPOSES. It never edits the mesh. Everything is bmesh + BVH, so cost is bounded (intersection and thin use the BVH, never an all-pairs loop)."""
 
 import math
@@ -19,7 +19,7 @@ from . import workflows as W
 KINDS = ("open_loop", "floating_shell", "intersection", "thin", "flipped_shell", "degenerate", "isolated_tri")
 FLOAT_MM = 3.0
 MAX_SHELL_TRIS = 400
-MIN_RIM_M = 0.0          # report every open loop; the captain's rules decide which are intended
+MIN_RIM_M = 0.0          # report every open loop; the user's rules decide which are intended
 
 
 def _descriptor(faces, extra=None) -> dict:
@@ -114,7 +114,7 @@ def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100
         for loop, faces in _open_loops(bm):
             rim = sum(e.calc_length() for e in loop)
             if rim >= MIN_RIM_M:
-                add("open_loop", faces, "ambiguous", "a boundary loop: a hole or an intended opening is the captain's call (opening_gasket decides what to do with it)",
+                add("open_loop", faces, "ambiguous", "a boundary loop: a hole or an intended opening is the user's call (opening_gasket decides what to do with it)",
                     "medium", {"rim_length_m": round(rim, 5), "edges": len(loop)})
     if "floating_shell" in kinds and len(shells) > 1:
         big = max(shells, key=len)

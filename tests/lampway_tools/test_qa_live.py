@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Mesh QA in the live scene: compute candidates on an object, draw them, read the captain's tags back into
+"""Mesh QA in the live scene: compute candidates on an object, draw them, read the user's tags back into
 decisions and rulings. The scene is a sphere with a hole and a floating cube, lifted 0.5 m like his live chest
 (candidates are stored in the mesh's own frame; the live frame is that plus ``offset``). REAL binary."""
 

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The Studios panel's operators. Planning, reading and importing are ordinary buttons. CONFIRMING a credit spend is the captain's
+"""The Studios panel's operators. Planning, reading and importing are ordinary buttons. CONFIRMING a credit spend is the user's
 click only: ``lampway.studio_confirm`` refuses while any script is running (human_gate.py) - the agent's scripts, a swarm worker's and
 the bridge's - and it carries the price the card showed, which the server compares with what Studio read back."""
 
@@ -37,7 +37,7 @@ def refresh_state() -> None:
 
 
 def _poll():
-    """While something is pending or running, keep the card fresh (the captain should see a job finish without pressing Refresh)."""
+    """While something is pending or running, keep the card fresh (the user should see a job finish without pressing Refresh)."""
     try:
         if studio_state.busy():
             refresh_state()

@@ -7,7 +7,7 @@
 # login in the persistent tool browser (CDP), which the app never does. The header below, with its invariants (credits,
 # settings read back before every generation, actions on saved copies only), is the original's. Nothing here runs unless the
 # studio guard is armed (studios/guard.py); tests run against recorded fixtures only.
-# SPIKE (2026-10-04): download the variants of one Tripo Studio generation from the captain's asset list, in the persistent
+# SPIKE (2026-10-04): download the variants of one Tripo Studio generation from the user's asset list, in the persistent
 # tool browser (relief-browser, CDP 9333). The asset cards carry their creation stamp ("10-04 15:34"); every card with the
 # given stamp is clicked, the signed output_mesh URL the viewer then loads is captured, and the file is fetched with the
 # page's own request context (a stripped, unsigned URL answers 403). Quad Smart Meshes load as output_mesh_<id>.fbx; Triangle

@@ -89,7 +89,7 @@ def test_unknown_part_and_empty_selector_are_refused_with_the_reasons(parts):
 
 
 def test_the_class_guard_refuses_metal_to_cloth_and_back_but_allows_metal_to_metal(parts):
-    with pytest.raises(PC.CritiqueError, match="material class comes from the captain or the recipe, never from a render: ask"):
+    with pytest.raises(PC.CritiqueError, match="material class comes from the user or the recipe, never from a render: ask"):
         PC.validate([{"target_part": "cloth_skirt", "islands": [0]}], parts["rec"], parts["td"], parts["npz"])      # island 0 is plate_L triangles
     with pytest.raises(PC.CritiqueError, match="never from a render"):
         PC.validate([{"target_part": "plate_L", "islands": [4]}], parts["rec"], parts["td"], parts["npz"])           # island 4 is cloth

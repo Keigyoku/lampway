@@ -2,7 +2,7 @@
 token-sharing-open-source): OAuth authorization code + PKCE (S256) with a loopback redirect, first registration as
 dynamic_agent_client, the issued client_id kept, the ID token validated against OpenAI's JWKS, the granted scope checked for
 chatgpt.tokens.use.direct, tokens stored locally (0600), rotating refresh serialized. A fake OpenAI stands in; nothing here
-reaches openai.com, and the one human step - the consent click - is the captain's."""
+reaches openai.com, and the one human step - the consent click - is the user's."""
 
 import asyncio
 import base64

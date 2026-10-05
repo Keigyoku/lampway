@@ -147,7 +147,7 @@ class LAMPWAY_OT_prompt_use(_PromptOp):
 
 
 class LAMPWAY_OT_prompt_rate(_PromptOp):
-    """Rate a finished generation 1 to 5 (the captain's judgement tunes the wording)"""
+    """Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"""
     bl_idname = "lampway.prompt_rate"
     bl_label = "Rate"
 

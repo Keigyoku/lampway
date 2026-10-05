@@ -1,4 +1,4 @@
-"""Local CLI adapters, for the captain's PERSONAL use: a provider and an image backend that call the official `codex` and
+"""Local CLI adapters, for the user's PERSONAL use: a provider and an image backend that call the official `codex` and
 `claude` binaries he is already logged into on this machine. No token is read, copied or stored: we only start the binaries.
 OFF by default (a local setting turns it on). The terms caveat travels with the setting."""
 
@@ -138,7 +138,7 @@ def test_claude_runs_print_mode_with_no_tools_and_no_session_and_prompt_on_stdin
     assert events == [Text("Hi from claude")]
     args = log.read_text().split()
     assert args[0] == "-p" and "--no-session-persistence" in args and args[args.index("--output-format") + 1] == "text"
-    assert "--tools" in args and "--bare" not in args                  # --bare would skip the login the captain uses
+    assert "--tools" in args and "--bare" not in args                  # --bare would skip the login the user uses
     assert "hello" in (tmp_path / "stdin.txt").read_text()
 
 

@@ -139,7 +139,7 @@ print("RESULT", json.dumps([[c["id"], c["kind"], c.get("perimeter_m"), c.get("tr
     assert run.rc == 0, run.out[-2500:]
     got = run.results[0]
     want = recorded["candidates"]
-    # the deletions file has grown since the recorded run (the captain later ruled more floating shells deletable),
+    # the deletions file has grown since the recorded run (the user later ruled more floating shells deletable),
     # so the shells that vanished must be exactly ones whose every face is now in that file
     deleted = set(json.load(open(recorded["deleted_before"]))["polys"])
 

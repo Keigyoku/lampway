@@ -87,7 +87,7 @@ print("RESULT", json.dumps({"bad": bad, "rest": rest, "no_body": no_body}))
 
 
 def test_a_seam_that_tears_fails_even_though_every_edge_stays_under_the_1_35_stretch_limit(tmp_path):
-    """The captain measured a 7.3 cm cuirass seam tear: two plates weighted to different bones. Edge stretch is per mesh edge and never sees a gap between shells."""
+    """The user measured a 7.3 cm cuirass seam tear: two plates weighted to different bones. Edge stretch is per mesh edge and never sees a gap between shells."""
     r = run(tmp_path, RIG + '''
 cuirass = boxes("cuirass", [((0.105, -0.2, 1.15), (0.2, 0.1, 0.4)), ((-0.105, -0.2, 1.15), (0.2, 0.1, 0.4))])          # two plates, a 5 mm seam gap
 donor = boxes("donor", [((0.155, -0.2, 1.15), (0.29, 0.14, 0.44)), ((-0.155, -0.2, 1.15), (0.29, 0.14, 0.44))])        # the weights: left on the arm, right on the spine

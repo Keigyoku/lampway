@@ -72,7 +72,7 @@ def _v_mesh(args, jail):
         if args.get(key) not in (None, 4, "4"):
             raise ActionError("a Smart Mesh always makes four variants: never fewer")
     if args.get("polycount") not in (None, "", "max"):
-        raise ActionError("the polycount is always the topology's maximum value (the captain's rule); a lower one is refused")
+        raise ActionError("the polycount is always the topology's maximum value (the user's rule); a lower one is refused")
     paired = bool(args.get("paired"))
     want = ("front", "back") if paired else ("front", "left", "right", "back")
     if any(not args.get(v) for v in want):
@@ -167,7 +167,7 @@ REFS_SETS = ("generation", "painted", "custom")
 def _v_refs(args, jail):
     """The Texture tool's four reference slots: the generation plates (most detail), our painted plates (our palette) or custom ones. A paired piece carries front and back only."""
     if args.get("set") not in REFS_SETS:
-        raise ActionError("set is generation, painted or custom: which plates the Texture tool is given (the captain chooses per piece)")
+        raise ActionError("set is generation, painted or custom: which plates the Texture tool is given (the user chooses per piece)")
     paired = bool(args.get("paired"))
     want = ("front", "back") if paired else ("front", "left", "right", "back")
     if any(not args.get(v) for v in want):

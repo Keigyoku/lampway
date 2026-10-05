@@ -8,7 +8,7 @@
    "sha256": "104c3437e3b98ed186167e0157631fedd4f06695bfc047c6e28775c917c8bae2"
   }
  ],
- "quota_before": "Free 24/1000",
+ "quota_before": "Free 10/100",
  "settings_read_back": {
   "model": "GPT Image 2.5",
   "aspects": {

@@ -95,7 +95,7 @@ Notes:
 - Reproduction against the recorded runs: mesh QA candidates 84 of 84 loops, 16 of 19 shells; tag faces within +-1 of his recorded marks; the whole rebuild loop reproduced his recorded chest_p17 (identical holes, owner map, patch_faces 4739) in 62 s at RES 2048.
 - Studio drivers: dry-run by default, `LAMPWAY_STUDIO_ARMED=1` from the SERVER environment only; **no generation ran, no credit spent**. Found and fixed a shelf defect while porting `verify.py`: `'purple' in cls` matched unselected buttons, so Quad read as selected (`_selected()`).
 - Paint module `paint/procedural_materials`: **a real small implementation, not a stub shim** (`material_registry.py`, `matgen_persistence.py`, `matgen_queue.py`); material scripts run under the sandbox AST guard. `matgen_queue.enqueue_matgen_job` raises `MatgenUnavailable` because the generating service is the withheld part; `.gitignore` no longer hides the path.
-- Live bridge: add-on `bootstrap/lampway_bridge.py`, MCP-compatible loopback socket (`{"type":"execute","code":...}` + NUL) plus an inbox/outbox/frames directory door. Port from `LAMPWAY_BRIDGE_PORT`, else `BLENDER_MCP_PORT`, else 9876; 0 = off; headless runs bind only when a port is set explicitly. My runs used 19876/19877/19878; the captain's 9876 was never touched.
+- Live bridge: add-on `bootstrap/lampway_bridge.py`, MCP-compatible loopback socket (`{"type":"execute","code":...}` + NUL) plus an inbox/outbox/frames directory door. Port from `LAMPWAY_BRIDGE_PORT`, else `BLENDER_MCP_PORT`, else 9876; 0 = off; headless runs bind only when a port is set explicitly. My runs used 19876/19877/19878; the user's 9876 was never touched.
 
 ## Shiro836 fork commits (item A)
 
@@ -104,7 +104,7 @@ Notes:
 - **Build:** a fresh Prod build with the X11 backend completed (6/6 final links).
 - **Backend check:** under Xvfb + openbox, `_bpy._ghost_backend()` returns `"X11"` and `BUBBLE_WINDOW_CONTROLS_SUPPORTED` is True.
 - **Minimise / restore / pill: proven.** `bpy.ops.mixar.bubble_toggle_minimise()` returns FINISHED and swaps the island (about 703x239) for the resting pill (316x45). A REAL xdotool click on the 93x26 status pill minimises (island unmaps, 316x45 pill becomes the only viewable window); a real click on the resting pill restores the island plus the 93x26 pill. Screenshots in `reports/tools-shots/x11_*.png` show both states rendering with Lampway branding.
-- **Drag: NOT proven.** `Mixar_WindowBeginDrag` sends `_NET_WM_MOVERESIZE` and returns FINISHED when driven on the minimised pill (`bpy.ops.mixar.bubble_window_begin_drag()` under a temp_override with button 1 held), but under Xvfb + openbox with XTEST pointer events the window did not move (positions changed by 1 px per attempt only, the WM frame jitter). As a control I sent the same EWMH client message from an independent python-xlib client to a plain test window; openbox did not move that either. So this WM/XTEST combination does not honour `_NET_WM_MOVERESIZE`, and the environment cannot judge Lampway's drag either way. KWin was not available. This needs one real-session check by the captain (drag the minimised pill).
+- **Drag: NOT proven.** `Mixar_WindowBeginDrag` sends `_NET_WM_MOVERESIZE` and returns FINISHED when driven on the minimised pill (`bpy.ops.mixar.bubble_window_begin_drag()` under a temp_override with button 1 held), but under Xvfb + openbox with XTEST pointer events the window did not move (positions changed by 1 px per attempt only, the WM frame jitter). As a control I sent the same EWMH client message from an independent python-xlib client to a plain test window; openbox did not move that either. So this WM/XTEST combination does not honour `_NET_WM_MOVERESIZE`, and the environment cannot judge Lampway's drag either way. KWin was not available. This needs one real-session check by the user (drag the minimised pill).
 - **Build WITHOUT X11: was RED, now fixed and proven.** Reconfigured `build/Prod` with `-DWITH_GHOST_X11=OFF` and rebuilt incrementally: the link FAILED with 34 undefined references (`Mixar_WindowMakeKey`, `Mixar_WindowOrderFront`, `Mixar_FloatingDocks*`, ... from `space_agent_bubble.cc` and `wm_files.cc`), exactly the risk the audit flagged. Fix 454897f0: `GHOST_MixarNoX11.cc` (inert stubs, compiled only in the non-X11 branch of `intern/ghost/CMakeLists.txt`) plus `tests/test_ghost_no_x11_stub_parity.py` pinning the stub's symbol set equal to the X11 backend's. After it: the no-X11 Prod build linked, a headless run printed `BACKEND NONE False` (controls unsupported, no crash), and no `GHOST_SystemX11` symbol is in the binary. `build/Prod` was then restored to `WITH_GHOST_X11=ON` and rebuilt (rc 0). Not done: a Wayland-session run (the audit's recommendation); the no-X11 binary was only run headless.
 - Concern recorded for the X11 path: heavy window mutations default ON; `MIXAR_X11_HEAVY=0` is the first bisect step if a compositor misbehaves. Bubble naming/swap semantics were only observed under openbox. The desktop installer writes only under `~/.local/share` plus `kbuildsycoca6`'s own `~/.cache/ksycoca6_*` (the audit's "writes only under ~/.local/share" was incomplete; pinned by a test and documented).
 
@@ -114,7 +114,7 @@ Notes:
 - `chatgpt_auth.py`: dynamic client registration, PKCE S256, loopback `http://127.0.0.1:<port>/auth/callback`, ID-token JWKS validation, scope check for `chatgpt.tokens.use.direct`, serialized refresh, sign-out revoke. Tokens in `<state>/chatgpt_auth.json` at mode 0600, never logged. Routes `/app/chatgpt`, `/app/chatgpt/start`, `/auth/callback`, `/app/chatgpt/status`, `/app/chatgpt/signout`.
 - `providers/chatgpt_plan.py`: POSTs `/v1/responses` with `store:false`, `stream:true`, namespace `lampway` tools, none of the rejected fields; success only after `response.completed`; typed `ChatGPTPlanError` with the documented recoveries. Model default `gpt-6.1-sol` (`chatgpt_model` in config).
 - Per the terms: tokens stay local, requests only from the user's local runtime, no general-purpose proxy, express consent for background use. The GPT Image route is NOT available on this auth path (documented), which is why image generation uses the CLI adapter or Tripo instead.
-- **Not done: the consent click.** That is the captain's. The live test `server/tests/test_chatgpt_live.py` skips (3 skipped) until a consented token exists, and runs once one does. A scripted probe of the real authorize URL got a Cloudflare 403 (it needs a browser), so the consent page itself was not rendered.
+- **Not done: the consent click.** That is the user's. The live test `server/tests/test_chatgpt_live.py` skips (3 skipped) until a consented token exists, and runs once one does. A scripted probe of the real authorize URL got a Cloudflare 403 (it needs a browser), so the consent page itself was not rendered.
 
 ## Local CLI adapters (item B2)
 
@@ -122,7 +122,7 @@ Notes:
 
 > "Anthropic does not permit third-party developers to offer Claude.ai login into their own applications, or to route requests through Free, Pro, or Max plan credentials on behalf of their users."
 
-and for OpenAI: tokens stay on the user's own machine, requests come only from the user's local runtime, no proxying for others. These adapters run the user's OWN installed CLI as the user; they are a convenience for the captain's own machine, not something to ship enabled or to offer to other users.
+and for OpenAI: tokens stay on the user's own machine, requests come only from the user's local runtime, no proxying for others. These adapters run the user's OWN installed CLI as the user; they are a convenience for the user's own machine, not something to ship enabled or to offer to other users.
 
 Verified live once each (tiny prompts): codex text 13.6 s `pong`; codex tool call OK; `claude -p` 8.6 s `pong`.
 
@@ -134,7 +134,7 @@ Verified live once each (tiny prompts): codex text 13.6 s `pong`; codex tool cal
 - Albedo toggle: `albedo.py` builds `AB:` nodes on a `_albedo` copy; `lampway.meshpaint_albedo` flips it; tested.
 - **Live image generation was NOT run and nothing was spent.** The projection and albedo stages are tested on recorded/synthetic plates through the real binary; the generate step is covered by dry-run fixtures (`server/tests/fixtures/*.json`).
 
-## Launch command for the captain
+## Launch command for the user
 
 From the worktree, with a build present (`MIXAR_ENV=Prod BUILD_CORES=4 nice scripts/lampway/build_linux.sh`, already built here):
 
@@ -151,7 +151,7 @@ Defaults: server on 127.0.0.1:8787, bridge on 9876 (pass `--bridge-port 0` to tu
 
 - Drag of the minimised pill: not verified (see Shiro836 section); needs a real session.
 - No Wayland-session run of the Prod binary; the no-X11 build was only run headless.
-- ChatGPT consent not performed (the captain's click); the live test skips until then. Cloudflare blocks scripted authorize probes.
+- ChatGPT consent not performed (the user's click); the live test skips until then. Cloudflare blocks scripted authorize probes.
 - (Superseded by the OpenRouter scope below: an OpenRouter key was found and the live runs now use real models. The first pass used the scripted mock; no ANTHROPIC/OPENAI key exists on this machine.)
 - Tripo studio drivers are untested against a real browser (their dry-run state/verify logic is tested on recorded fixtures). One OpenRouter image generation WAS run (see Live agent runs, c); no Tripo generation and no Codex image generation.
 - (Superseded: a real model, Claude Sonnet 5.5, now drives real `lampway_qa_setup` and `lampway_qa_candidates` calls end to end; see Live agent runs, a.)

@@ -1,5 +1,5 @@
 """The run log and its use: every image or video job stores the rendered prompt; a template + variables on a job payload is rendered into the prompt; the
-captain's 1-5 rating, gate measurements, per-version stats and A/B (variant_of) are recorded; the REST routes and the agent tools expose it all."""
+the user's 1-5 rating, gate measurements, per-version stats and A/B (variant_of) are recorded; the REST routes and the agent tools expose it all."""
 
 import json
 import time

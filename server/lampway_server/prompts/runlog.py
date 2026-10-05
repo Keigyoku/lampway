@@ -1,5 +1,5 @@
 """The run log: every image or video job records its template id@version, the filled variables, the rendered prompt, model, cost, output file, the
-gate measurements and the captain's 1-5 rating. ``stats`` aggregates by template version; ``variant_of`` lets two versions run side by side. JSON lines,
+gate measurements and the user's 1-5 rating. ``stats`` aggregates by template version; ``variant_of`` lets two versions run side by side. JSON lines,
 append-only; a rating or a gate measurement is a later line for the same job."""
 
 import time

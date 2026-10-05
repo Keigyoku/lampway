@@ -1,4 +1,4 @@
-"""Settings precedence, one rule (the captain, 2026-10-05): an explicit call argument > the environment for a session > the saved Providers-dialog choices > the
+"""Settings precedence, one rule (the user, 2026-10-05): an explicit call argument > the environment for a session > the saved Providers-dialog choices > the
 defaults. It was the other way round: LAMPWAY_OPENROUTER_IMAGE_SIZE=3840x2160 produced 2880x2880 because a saved/default purpose size silently won. The
 effective value is logged with where it came from, and the imagegen CLI takes --size / --aspect / --purpose."""
 

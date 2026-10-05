@@ -7,7 +7,7 @@
 Ported from the owner's shelf (tools/texlib/fidelity.py, SPIKE 2026-10-04) with scipy's operations replaced by imgops: per variant the silhouette (luminance above the
 background threshold on the generated black) is fitted to V3's alpha by bounding box, the variant resampled into V3's frame, then silhouette IoU, structure = correlation of
 the DoG(1..4 px) luminance inside V3's alpha, colour = mean |dRGB| inside it; score = iou x structure x (1 - colour). UNVALIDATED as a ranking (the shelf says so): it
-ranks, the captain picks. The cut is luminance > threshold, opening, fill holes, 1 px feather."""
+ranks, the user picks. The cut is luminance > threshold, opening, fill holes, 1 px feather."""
 
 import hashlib
 import json
@@ -109,11 +109,11 @@ def _sha(path) -> str:
 
 def run(root, piece: str, view: str, v3_plate, variants, out_dir, pick=None, paired: bool = False, bg_threshold: float = BG_T,
         opening_iters: int = OPENING, min_px: int = 1024) -> dict:
-    """score -> pick (the best, or the captain's ``pick`` 1-4) -> cut -> check; writes <out_dir>/<View>.png and merges the view into alpha.json."""
+    """score -> pick (the best, or the user's ``pick`` 1-4) -> cut -> check; writes <out_dir>/<View>.png and merges the view into alpha.json."""
     check_view(view, paired)
     variants = [Path(v) for v in variants]
     if len(variants) < 4:
-        raise PlateError("never fewer than 4 per generation (the captain's rule): re-run the plate generation")
+        raise PlateError("never fewer than 4 per generation (the user's rule): re-run the plate generation")
     if not Path(v3_plate).exists():
         raise PlateError(f"V3 plate not found: put it at {v3_plate}")
     small = [v.name for v in variants if min(Image.open(v).size) < min_px]
@@ -176,7 +176,7 @@ def tool(stage, root, piece="", view="Front", paired=False, v3_dir="", variants_
     vs = [p for p in sorted((root / variants_dir).glob("*")) if p.suffix.lower() in (".jpg", ".jpeg", ".png") and p.stem.isdigit()]
     if stage == "score":
         if len(vs) < 4:
-            raise PlateError("never fewer than 4 per generation (the captain's rule): re-run the plate generation")
+            raise PlateError("never fewer than 4 per generation (the user's rule): re-run the plate generation")
         if not v3.exists():
             raise PlateError(f"V3 plate not found: put it at {v3}")
         rows = score(v3, vs, bg_threshold)

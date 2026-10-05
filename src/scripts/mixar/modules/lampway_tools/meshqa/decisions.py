@@ -70,7 +70,7 @@ _HOW = {"circled": "yellow annotation (Hole layer) circling it", "along": "yello
 def rows_from_tags(tagged, candidates, session, source, close_round=False, decider="captain") -> list:
     """Decision rows for one reading of the tag layers (``marks.interpret`` output; Delete strokes carry
     ``orig_faces`` once mapped to source faces). ``close_round`` also answers every candidate nobody named: keep
-    (the captain's "everything else looks pretty good / intentional")."""
+    (the user's "everything else looks pretty good / intentional")."""
     by_id = {c["id"]: c for c in candidates}
     rows, named = [], set()
 

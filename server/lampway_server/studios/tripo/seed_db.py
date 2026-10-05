@@ -7,8 +7,8 @@
 # login in the persistent tool browser (CDP), which the app never does. The header below, with its invariants (credits,
 # settings read back before every generation, actions on saved copies only), is the original's. Nothing here runs unless the
 # studio guard is armed (studios/guard.py); tests run against recorded fixtures only.
-# SPIKE (2026-10-04): one local catalog of every Tripo seed (the captain: "Should the tool be making like a DB of meshes and URLs?").
-# SQLite at <shelf>/scratch/scratch-tmp/tripo_mesh/seeds.sqlite. One row per mesh VERSION (a generation variant, or an Edit
+# SPIKE (2026-10-04): one local catalog of every Tripo seed (the user: "Should the tool be making like a DB of meshes and URLs?").
+# SQLite at <shelf scratch>/tripo_mesh/seeds.sqlite. One row per mesh VERSION (a generation variant, or an Edit
 # Mesh retry banked in History), keyed by its Tripo id. Stores the stable unsigned URL and the local file + sha256 - NEVER a
 # signed URL (per-file CloudFront signatures expire and act as credentials; a fresh one comes from the History preview).
 # Proportion scores (proportion_ratios.py output) and audit verdicts attach by id or by local file.

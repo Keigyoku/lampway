@@ -29,7 +29,7 @@ class HiggsfieldError(RuntimeError):
 
 
 class HiggsfieldPreset(HiggsfieldError):
-    """get_cost answered a PRESET RECOMMENDATION instead of a price. It is an option for the captain, never accepted silently: ``preset`` is {id, name}."""
+    """get_cost answered a PRESET RECOMMENDATION instead of a price. It is an option for the user, never accepted silently: ``preset`` is {id, name}."""
 
     def __init__(self, preset: dict):
         self.preset = preset
@@ -251,7 +251,7 @@ class Higgsfield:
         return credits
 
     def submit(self, tool: str, args: dict) -> dict:
-        """One submit. ``question`` carries a server-asked ``unlim_choice`` (for the captain: never answered here); a transport timeout
+        """One submit. ``question`` carries a server-asked ``unlim_choice`` (for the user: never answered here); a transport timeout
         raises and is NOT retried."""
         out = self.call(tool, args)
         question = next((n["unlim_choice"] for n in _walk(out) if isinstance(n, dict) and "unlim_choice" in n), None)

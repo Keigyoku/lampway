@@ -30,7 +30,7 @@ def test_image_generation_is_a_dry_run_unless_the_call_says_otherwise(root):
     assert "--dry-run" in cmd
     assert cmd[3] == str(root / "plates/g1") and cmd[4] == str(root / "plates/p.txt")
     assert cmd[cmd.index("--ref") + 1] == str(root / "plates/v3.png")
-    with pytest.raises(ST.BadToolCall, match="captain"):                  # a real run is the captain's confirm in the Client, never the agent's
+    with pytest.raises(ST.BadToolCall, match="user"):                  # a real run is the user's confirm in the Client, never the agent's
         ST.command("studio_tripo_image", {"out_dir": "o", "prompt_file": "p", "dry_run": False})
 
 
@@ -141,7 +141,7 @@ def test_the_texture_tool_sets_and_verifies_without_go_by_default(monkeypatch, t
     for tool, args in (("studio_tripo_texture", {"res": "8K", "expect_price": 30, "dry_run": False, "out_dir": "tex/run1"}),
                        ("studio_tripo_pbr", {"expect_price": 5, "dry_run": False, "out_dir": "tex/run2"}),
                        ("studio_tripo_mesh", {"out_dir": "m", "front": "f", "left": "l", "right": "r", "back": "b", "dry_run": False})):
-        with pytest.raises(ST.BadToolCall, match="captain"):
+        with pytest.raises(ST.BadToolCall, match="user"):
             ST.command(tool, args)
 
 

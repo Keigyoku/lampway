@@ -75,7 +75,7 @@ art commit instead of the config commit — same content, different SHAs; nothin
   `DEFAULT_ASSET_HOSTS`; `MIXAR_ASSET_HOSTS` still overrides.
 - Non-link literals: `modules/common/usage/core/account.py:11` and
   `src/source/blender/editors/include/UI_mixar_types.hh:50` (doc examples → example.com);
-  `src/build_files/cmake/packaging.cmake:8-12` (installer metadata, PLACEHOLDER `https://github.com/Keigyoku/lampway/issues`).
+  `src/build_files/cmake/packaging.cmake:8-12` (installer metadata, PLACEHOLDER `a support address on that domain`).
 - Headless sandbox children already receive `MIXAR_BACKEND_URL=get_server_url()` from the parent
   (`bootstrap/sandbox_supervisor.py:151`), so the override propagates without a change there.
 
@@ -238,7 +238,7 @@ baseline's `7 failed, 11 errors` exactly.
 
 ## Open questions for the owner
 
-1. `WEBSITE_URL = "https://lampway.app"` and `https://github.com/Keigyoku/lampway/issues` are placeholders (one constant +
+1. `WEBSITE_URL = "https://lampway.app"` and `a support address on that domain` are placeholders (one constant +
    one cmake literal). Confirm the real domain, or that links should be hidden until there is one.
 2. `AGENT_NAME = "Lampway Agent"` — rename at will (one constant; the C++ mirror and the chip-fit
    header mirror are pinned by a test and must be changed together).

@@ -18,7 +18,7 @@ name the rule that produced it. Each candidate is DECIDED by a rule or left AMBI
                   the rest are ambiguous (Tripo smart meshes are genuinely many open shells; the Boots
                   original has 8,203 boundary edges, mostly plate rims)
 
-Measured 2026-10-05 on the captain's pieces (the rule script this replaces): Waist1 12 delete / 4 hole / 85 keep; Helmet1 11 / 0 / 111;
+Measured 2026-10-05 on the user's pieces (the rule script this replaces): Waist1 12 delete / 4 hole / 85 keep; Helmet1 11 / 0 / 111;
 Boots1 0 / 0 / 76.
 """
 

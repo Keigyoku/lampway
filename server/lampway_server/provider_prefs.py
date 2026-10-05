@@ -152,7 +152,7 @@ def check_spend_policy(v):
             else:
                 raise PrefsError(f"{provider}: {key!r} is not a setting (click, above, job_cap, session_cap)")
         if row.get("click") == "above" and "above" not in row:
-            raise PrefsError(f"{provider}: click above needs `above`, the price over which the captain's click is needed")
+            raise PrefsError(f"{provider}: click above needs `above`, the price over which the user's click is needed")
         out[provider] = row
     return out
 

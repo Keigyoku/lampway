@@ -4,7 +4,7 @@
 #
 # Ported from the owner's tool shelf (tools/proportion/pose_clearance.py, sha256 90dd53931112) on 2026-10-05. The header below, with the
 # measured rules behind the code, is the original's; paths and interpreters now come from Lampway's configuration.
-# SPIKE (2026-10-04): the MetaHuman's CLOSEST POSE to a placed piece, then clearance (the captain: "always put the MetaHuman in the
+# SPIKE (2026-10-04): the MetaHuman's CLOSEST POSE to a placed piece, then clearance (the user: "always put the MetaHuman in the
 # closest pose to solve those issues before fit/skinng/weighting ... back:hip arching too"). The body is deformed through its own
 # skeleton (glTF armature, A-pose rest), never moved by hand.
 #   arms:  both upper arms rotated together, mirrored: lowered from the A-pose (about the body's front-back axis; env PC_LOWS) and

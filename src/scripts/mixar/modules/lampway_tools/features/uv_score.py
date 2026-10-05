@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """uv_score: score UV layouts on measurements (uv_islands.py), so candidates are compared by numbers: Smart UV attempts (files, measured in a headless Blender so the live scene
-is never touched), Lampway's own unwraps and any object in the scene. ``best`` is advice: the captain picks."""
+is never touched), Lampway's own unwraps and any object in the scene. ``best`` is advice: the user picks."""
 
 import json
 import re
@@ -31,7 +31,7 @@ def run(objects, files, res, out, root, gates=None):
     ok = [r for r in rows if "score" in r]
     best = max(ok, key=lambda r: r["score"])["name"] if ok else None
     body = {"method": "uv_islands.py (the shelf's uv_score.py)", "res": int(res), "rows": rows, "best": best,
-            "reasons": ["highest utilization x (1 - overlap) x (1 - off_density_2x) - 0.5 x flipped; advice, the captain picks"] if best else []}
+            "reasons": ["highest utilization x (1 - overlap) x (1 - off_density_2x) - 0.5 x flipped; advice, the user picks"] if best else []}
     if out:
         p = Path(root) / out
         p.parent.mkdir(parents=True, exist_ok=True)

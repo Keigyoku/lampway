@@ -1,3 +1,4 @@
+import tempfile
 # SPDX-FileCopyrightText: 2026 Keigyoku
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -31,7 +32,7 @@ d["content"] = "Found 3 loops."; d["text"] = "Found 3 loops."
 
 
 def run(body):
-    return run_script(PRE + body, env={"LAMPWAY_HOME": "/path/to/boxes"})
+    return run_script(PRE + body, env={"LAMPWAY_HOME": tempfile.mkdtemp(prefix="lw_home_")})
 
 
 def test_the_raw_content_is_empty_but_chat_transcript_returns_every_message_text():

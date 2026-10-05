@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The human gate: a spend is confirmed by the captain's own click, never by a script.
+"""The human gate: a spend is confirmed by the user's own click, never by a script.
 
 Anything that runs Python on the user's behalf - the agent's ``blender.execute_script`` (the GUI executor and a headless worker's) and the
 live bridge - runs inside ``scripting()``. The Studio confirm operator refuses while one is on the stack, so no agent script, no swarm

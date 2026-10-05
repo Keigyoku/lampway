@@ -1,4 +1,4 @@
-"""The Studio service through the Client's REST routes and the agent's tools. The Client (the captain) can plan, confirm and reject;
+"""The Studio service through the Client's REST routes and the agent's tools. The Client (the user) can plan, confirm and reject;
 the agent can only plan and read - there is no tool, and no route an agent has a token for, that confirms a spend."""
 
 import json
@@ -93,7 +93,7 @@ def test_the_agent_can_plan_and_read_but_has_no_way_to_confirm(settings, studio)
     main = ScriptedProvider([
         [ToolCall(id="c1", name="studio_plan", arguments={"action": "tripo.mesh", "args": ARGS})],
         [ToolCall(id="c2", name="studio_plan", arguments={"action": "tripo.mesh", "args": {**ARGS, "polycount": "9000"}})],
-        [Text("The mesh is waiting for the captain.")]])
+        [Text("The mesh is waiting for the user.")]])
     app = create_app(settings, provider=main, studio_service=svc)
     with TestClient(app, base_url="http://127.0.0.1:8787") as http:
         fake = FakeMixarClient(http, password=settings.user_password)

@@ -17,8 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src/scripts"))
 from mixar.modules.lampway_tools.pipeline import fit_place as FP  # noqa: E402
 from mixar.modules.lampway_tools.pipeline import sections as SEC  # noqa: E402
 
-SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/path/to/shelf")
-SCR = SHELF / "scratch/scratch-tmp"
+SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/nonexistent-shelf")
+SCR = Path(os.environ.get("LAMPWAY_SHELF_SCRATCH") or SHELF / "scratch")
 BODY = SCR / "proportion/audit/body.npz"
 ST = SCR / "proportion/piece_selftest"
 REAL = BODY.exists() and (ST / "helmet.npz").exists()

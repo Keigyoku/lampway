@@ -14,8 +14,9 @@ import pytest
 
 from features_support import run
 
-SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/path/to/shelf")
-UVD = SHELF / "scratch/scratch-tmp/tripo_uv"
+SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/nonexistent-shelf")
+SCR = Path(os.environ.get("LAMPWAY_SHELF_SCRATCH") or SHELF / "scratch")
+UVD = SCR / "tripo_uv"
 REAL = (UVD / "Boots1/attempt_2.fbx").exists()
 real = pytest.mark.skipif(not REAL, reason="the shelf's Boots1 Smart UV attempts are not on this machine")
 

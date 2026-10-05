@@ -2,7 +2,7 @@
 
 Branch `lp/studios` in `<workspace>/wt-studios`, from `lp/features` plus `lp/subs` (f4691a49, db670330) merged. Own build copy at
 `wt-studios/build/Prod` (a copy of the Prod build, python synced with `scripts/lampway/sync_python.sh --bin-dir build/Prod/bin`). Nothing of the
-captain's session (wt-harden, 8787, 19881, ~/.local/share/lampway) was touched. My live harness: Xvfb in the lampway-build box, server+bridge on
+the user's session (wt-harden, 8787, 19881, ~/.local/share/lampway) was touched. My live harness: Xvfb in the lampway-build box, server+bridge on
 18790/19880, `LAMPWAY_HOME=scratch/studios-live/home`, OpenRouter on its own spend log (total under $0.10 of the $15 cap).
 
 Tests at the head: **server 351 passed, 3 skipped; client tools (real Prod binary) 324 passed, 11 skipped** (the skips pre-date this pass).
@@ -50,7 +50,7 @@ Landed tree (read through the bridge): `Mixie Agent / boots / QA_markers [boots_
 three workers each created a collection by the SAME name in their own process, and all three survived. Positions were 1 m above each input piece (inputs were seeded).
 Model: deepseek/deepseek-v4.1-flash for main and workers (OpenRouter).
 
-Not run live: workers on `claude_cli` (the captain's setup); the swarm is built on `make_swarm_provider`, concurrency is bounded by MAX_WORKERS=6 per swarm,
+Not run live: workers on `claude_cli` (the user's setup); the swarm is built on `make_swarm_provider`, concurrency is bounded by MAX_WORKERS=6 per swarm,
 and a model round times out. A separate swarm in the same turn is not globally bounded.
 
 ## 2. Dogfood defects A1-A8
@@ -70,15 +70,15 @@ A7 for the providers: only `openai_compat` (so OpenRouter) emits `Stop`; chatgpt
 
 ## 3. The online Studios inside the Client
 
-**Engine = the owner's shelf drivers, run as they are** (`LAMPWAY_STUDIO_SHELF=<shelf>/tools`; the bundled ports of the older drivers otherwise; `tripo_uv` and `--views` need the shelf). Meshy and Hi3D: the driver folders are empty. Read-only check of the tool browser (`/json/list`, no page evaluated): **tabs exist for both** (`www.meshy.ai/workspace?sidebar=image`, `www.hi3d.ai/workspace?panel=text-to-image`; a workspace URL suggests a signed-in session, which I did not verify by reading the pages). Nothing the captain must log into on that evidence; what is missing is the DRIVERS (someone has to drive those tabs once to author them). The service resolves `studios/<studio>/<driver>.py`, so they drop in.
+**Engine = the owner's shelf drivers, run as they are** (`LAMPWAY_STUDIO_SHELF=<shelf>/tools`; the bundled ports of the older drivers otherwise; `tripo_uv` and `--views` need the shelf). Meshy and Hi3D: the driver folders are empty. Read-only check of the tool browser (`/json/list`, no page evaluated): **tabs exist for both** (`www.meshy.ai/workspace?sidebar=image`, `www.hi3d.ai/workspace?panel=text-to-image`; a workspace URL suggests a signed-in session, which I did not verify by reading the pages). Nothing the user must log into on that evidence; what is missing is the DRIVERS (someone has to drive those tabs once to author them). The service resolves `studios/<studio>/<driver>.py`, so they drop in.
 
 Flow (server `studios/`: `toon.py` reader, `actions.py` catalog + laws, `approvals.py`, `service.py`; routes `/app/studio/...`; agent tools `studio_plan` / `studio_job` / `studio_actions`):
 1. **plan** (Client button or agent tool): the driver runs its read-back / dry run, env NOT armed, nothing clicked; the price read back must equal the expected one (mesh 100, texture 30, pbr 5, unwrap 20, image free) or the plan is refused with the driver's own words; a spend becomes an **approval** carrying the price. Free steps (state, clone, retry, pick, save, fetch...) run at once as server jobs.
-2. **confirm**: only the captain, from the Client: `POST /app/studio/approvals/<id>/confirm {price}`; the price must equal the one shown; one-shot; expires (600 s); `by != "captain"` refused. The confirmed run is the only thing that sets `LAMPWAY_STUDIO_ARMED=1`, for that process. **No agent tool confirms** (asserted), and the old `dry_run:false` of `studio_tripo_*` is closed for the agent (`imagegen`'s free-quota tripo path keeps an internal `allow_live`).
+2. **confirm**: only the user, from the Client: `POST /app/studio/approvals/<id>/confirm {price}`; the price must equal the one shown; one-shot; expires (600 s); `by != "captain"` refused. The confirmed run is the only thing that sets `LAMPWAY_STUDIO_ARMED=1`, for that process. **No agent tool confirms** (asserted), and the old `dry_run:false` of `studio_tripo_*` is closed for the agent (`imagegen`'s free-quota tripo path keeps an internal `allow_live`).
 3. **the human gate** (`lampway_tools/human_gate.py`): `lampway.studio_confirm` refuses while ANY script runs: the GUI agent executor, a headless worker (same executor) and the bridge's `exec_code`. Mutation-checked on both doors. Residual: the MCP bridge's own exec path is not gated (owner tooling), and a person can still run `bpy.ops.lampway.studio_confirm` by hand.
 4. **job -> scene**: the job runs the driver in the server (fresh out dir; drivers never overwrite a record), the panel's Import button downloads a file by name and `studio_landing.import_file` puts it in the `Studio` collection with the job prefix.
 
-Laws enforced before any driver runs: read back every setting; 4 variants at maximum polycount (a lower polycount/count is refused); a saved COPY only (unwrap is planned from `state`, refused when the History has dated cards); texturing last (the driver's guard surfaces as the plan's refusal); paired = front+back only via `--views`; a hung job is never re-clicked until the captain acknowledges it; nothing can change privacy (no action exists for it); paths jailed to the project root. The quirks the drivers already handle (newest-first thumbnails, scroll-into-view, transition clicks, one-shot mesh URLs) stay in the drivers.
+Laws enforced before any driver runs: read back every setting; 4 variants at maximum polycount (a lower polycount/count is refused); a saved COPY only (unwrap is planned from `state`, refused when the History has dated cards); texturing last (the driver's guard surfaces as the plan's refusal); paired = front+back only via `--views`; a hung job is never re-clicked until the user acknowledges it; nothing can change privacy (no action exists for it); paths jailed to the project root. The quirks the drivers already handle (newest-first thumbnails, scroll-into-view, transition clicks, one-shot mesh URLs) stay in the drivers.
 
 **What the Client shows** (Lampway tab > Studios panel): the engine, a `Providers` button, **Waiting for YOUR confirmation** boxes (action, "N credits, read back from Studio", Confirm and spend / Reject), a plan form, recent jobs with state and Import buttons. A poll timer runs only while something is pending or running.
 

@@ -41,7 +41,7 @@ def _s(v, delim=','):
 
 def home(path, description):
     p = os.path.realpath(path)
-    for h in (os.path.realpath(HOME), HOME):                               # /home is a symlink to /var/home here (measured)
+    for h in (os.path.realpath(HOME), HOME):                               # /home is a symlink on some Linux systems
         if p.startswith(h + os.sep): p = '~' + p[len(h):]; break
     print(f'bin: {p}'); print(f'description: {description}')
 

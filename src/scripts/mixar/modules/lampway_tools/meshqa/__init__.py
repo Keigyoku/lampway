@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Mesh QA: mesh defects as typed decisions (candidates, the captain's tags, rulings, a decision log).
+"""Mesh QA: mesh defects as typed decisions (candidates, the user's tags, rulings, a decision log).
 
   candidates  - open loops and floating shells with typed descriptors (the shelf's meshqa/mesh_qa.py)
   marks       - the three annotation tag layers (Red = Delete, Green = Mislabel, Yellow = Hole) read into faces,

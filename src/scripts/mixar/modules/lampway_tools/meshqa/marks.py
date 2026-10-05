@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The captain's annotation tags, read into faces, islands and loops.
+"""The user's annotation tags, read into faces, islands and loops.
 
 He tags the mesh with three annotation layers, drawn with the Annotate tool's placement set to Surface (the points
 lie on the mesh), so a stroke is read without the view:
@@ -31,7 +31,7 @@ import bpy
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
-# the captain's layer colours (read from his marks_*.json exports)
+# the user's layer colours (read from his marks_*.json exports)
 TAG_LAYERS = {"delete": ("Delete", (0.78, 0.074, 0.106)),
               "mislabel": ("Mislabel", (0.0, 0.78, 0.004)),
               "hole": ("Hole", (0.78, 0.738, 0.041))}
@@ -99,7 +99,7 @@ def read_tags(ann=None) -> dict:
 
 
 def create_tag_layers(ann=None):
-    """The scene's annotation data with the three tag layers, in the captain's colours (existing layers are kept)."""
+    """The scene's annotation data with the three tag layers, in the user's colours (existing layers are kept)."""
     if ann is None:
         ann = getattr(bpy.context.scene, "annotation", None) or bpy.data.annotations.new("Annotations")
         bpy.context.scene.annotation = ann

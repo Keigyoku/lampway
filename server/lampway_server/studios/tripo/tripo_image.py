@@ -7,8 +7,8 @@
 # login in the persistent tool browser (CDP), which the app never does. The header below, with its invariants (credits,
 # settings read back before every generation, actions on saved copies only), is the original's. Nothing here runs unless the
 # studio guard is armed (studios/guard.py); tests run against recorded fixtures only.
-# SPIKE (2026-10-04): Tripo Studio image generation on the captain's subscription (free image quota, 1000/month), driven in
-# the persistent tool browser (relief-browser, CDP 9333; the captain logged in there). His hard rules (memory
+# SPIKE (2026-10-04): Tripo Studio image generation on the user's subscription (free image quota, 1000/month), driven in
+# the persistent tool browser (relief-browser, CDP 9333; the user logged in there). His hard rules (memory
 # tripo-studio-invariants): a reload resets settings, so EVERY setting is set and then READ BACK from the page right
 # before Generate, and the run refuses on any mismatch; every generation takes maximum value - 4 images, 4K on - and
 # refuses if the displayed price is not 0 (free quota).

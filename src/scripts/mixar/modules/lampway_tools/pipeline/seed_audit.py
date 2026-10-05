@@ -2,11 +2,11 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""seed_audit, the deterministic half: measure every seed of a piece, then rank them by the captain's law - PROPORTIONS first, defects second, V3 fidelity third.
+"""seed_audit, the deterministic half: measure every seed of a piece, then rank them by the user's law - PROPORTIONS first, defects second, V3 fidelity third.
 
 The measures are the auditors' scratch scripts promoted (seed_audit/<piece>/fold.py and meas.py): the count of interior edges whose two faces fold back by more than 120 / 90 degrees
 (dot of unit normals < -0.5 / < 0), the boundary and non-manifold edge counts, the connected components, and the CLOSED BOWL detector (a floor across a limb's opening: the first surface a
-ray meets going down from the rim, over the opening's footprint). The model judge reads the numbers and the lineup renders; only the captain's ``record`` writes a verdict. Pure numpy."""
+ray meets going down from the rim, over the opening's footprint). The model judge reads the numbers and the lineup renders; only the user's ``record`` writes a verdict. Pure numpy."""
 
 import json
 import time
@@ -173,7 +173,7 @@ def run(root, stage, piece, seeds=None, scores=None, proposals=None, by="agent",
         if len(meas["per_seed"]) > 6:
             raise AuditError("one auditor ranks at most six; split by reroll group")
         return {"piece": piece, "packet": {"meas": str(meas_path), "ranking": meas["ranking"], "per_seed": meas["per_seed"], "lineup": sorted(str(p) for p in out.glob("lineup_*.png"))},
-                "how": "read the numbers and the lineup renders against the V3 plate; propose {seed: {verdict: usable|fix|reject, defects: [...], rank}}; the judge proposes, the captain records"}
+                "how": "read the numbers and the lineup renders against the V3 plate; propose {seed: {verdict: usable|fix|reject, defects: [...], rank}}; the judge proposes, the user records"}
     if not isinstance(proposals, dict):
         raise AuditError("record needs proposals: {seed: {verdict, defects, rank}}")
     audit = {"piece": piece, "ranking": meas["ranking"], "recommend": meas["recommend"], "per_variant": proposals, "scorer_check": meas["scorer_notes"], "by": by, "confidence": meas["confidence"]}
@@ -189,4 +189,4 @@ def run(root, stage, piece, seeds=None, scores=None, proposals=None, by="agent",
                                      "decider": "captain", "descriptor": {"piece": piece, "seed": sid, "measures": meas["per_seed"].get(sid, {})}}) + "\n")
                 written.append(sid)
     return {"piece": piece, "audit": str(out / "audit.json"), "verdict_rows_written": written, "verdict_written": bool(written),
-            "note": "" if written else "proposals only: a model's or agent's verdict is not a ruling; the captain records it"}
+            "note": "" if written else "proposals only: a model's or agent's verdict is not a ruling; the user records it"}

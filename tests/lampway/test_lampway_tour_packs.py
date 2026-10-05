@@ -21,8 +21,8 @@ from mixar.modules.onboarding.core.tour import config, pack_fetch  # noqa: E402
 
 def test_manifest_defaults_to_the_configured_backend(monkeypatch):
     monkeypatch.delenv(config.ENV_PACKS_MANIFEST_URL, raising=False)
-    monkeypatch.setattr(pack_fetch, "get_server_url", lambda: "http://192.168.1.9:8787/")
-    assert pack_fetch.manifest_url() == "http://192.168.1.9:8787/tour-packs/manifest.json"
+    monkeypatch.setattr(pack_fetch, "get_server_url", lambda: "http://203.0.113.9:8787/")
+    assert pack_fetch.manifest_url() == "http://203.0.113.9:8787/tour-packs/manifest.json"
 
 
 def test_static_default_is_our_server():

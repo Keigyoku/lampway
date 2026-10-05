@@ -4,7 +4,7 @@
   "purpose": "anim-walk",
   "media": "video",
   "title": "Walk cycle: fixed orthographic, in place (treadmill)",
-  "description": "The captain's tested treadmill prompt: no root motion, for cycles only. Baseline for the side-track A/B.",
+  "description": "The user's tested treadmill prompt: no root motion, for cycles only. Baseline for the side-track A/B.",
   "body": {
     "subject": "Fixed orthographic {{view}} view of this armoured warrior, exactly as in [start_image]: {{design_lock}}.",
     "action": "He walks in place, as on a treadmill, at a steady natural pace of {{cadence_spm}} steps per minute, arms swinging opposite the legs.",
@@ -100,7 +100,7 @@
     }
   ],
   "provenance": {
-    "source": "the captain's own tested prompt (Higgsfield jobs f9b22644, f8fd296a)",
+    "source": "the user's own tested prompt (Higgsfield jobs f9b22644, f8fd296a)",
     "note": "root_motion none: cycles only"
   },
   "root_motion": "none"

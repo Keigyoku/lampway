@@ -9,12 +9,12 @@
 # additionally needs the studio guard armed (studios/guard.py), and the check functions live in verify.py, tested against the
 # owner's recorded dry run. The Blender that extracts the maps comes from LAMPWAY_BLENDER (the app's own binary when the app
 # runs the tool).
-# SPIKE (2026-10-05): Tripo Studio Texture + PBR on the SELECTED model (captain's login, tool browser CDP 9333). Promoted from the
-# chest1 test scripts (scratch/scratch-tmp/tripo_texture/). Rules (memory tripo-studio-invariants):
+# SPIKE (2026-10-05): Tripo Studio Texture + PBR on the SELECTED model (the user's login, tool browser CDP 9333). Promoted from the
+# chest1 test scripts (<shelf scratch>/tripo_texture/). Rules (memory tripo-studio-invariants):
 #   - TEXTURING COMES LAST: refuses unless the selected model's History holds a Smart UV step (texture fills the Smart UV islands;
 #     anything done after a texture discards it). Act on a saved COPY (the clone), never the original.
 #   - every setting is set and READ BACK before Generate; refuses on any mismatch (measured: a first script read aria-checked
-#     'true' as off and switched Remove Lighting OFF before a 30-credit run - the captain cancelled it, credits refunded).
+#     'true' as off and switched Remove Lighting OFF before a 30-credit run - the user cancelled it, credits refunded).
 #   - price read from the button and refused unless it equals --expect-price.
 # Verbs:
 #   state                                         settings, price, history stamps (no clicks beyond opening panels)

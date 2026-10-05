@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """seed_audit (specs/shelf/seed_audit.md + specs/wiki/seed_audit_brief.md): deterministic measures and the ranking law (proportions first, defects second, fidelity third); a model only
-judges, the captain records. The shelf auditors' RECORDED Boots1 audit is the oracle."""
+judges, the user records. The shelf auditors' RECORDED Boots1 audit is the oracle."""
 
 import json
 import os
@@ -16,8 +16,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src/scripts"))
 from mixar.modules.lampway_tools.pipeline import seed_audit as SA  # noqa: E402
 
-SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/path/to/shelf")
-SCR = SHELF / "scratch/scratch-tmp"
+SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/nonexistent-shelf")
+SCR = Path(os.environ.get("LAMPWAY_SHELF_SCRATCH") or SHELF / "scratch")
 B = SCR / "tripo_mesh/Boots1_g1"
 REAL = (B / "variant1.npz").exists()
 real = pytest.mark.skipif(not REAL, reason="the shelf's Boots1 seeds are not on this machine")

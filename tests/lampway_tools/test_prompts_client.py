@@ -1,9 +1,10 @@
+import tempfile
 # SPDX-FileCopyrightText: 2026 Keigyoku
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """The prompt library in the Client: a template picker with a variable form generated from the schema, a rendered preview, "edit as my own" (fork to user scope
-with the next version), the captain's 1-5 rating, and the Video Gen / Image Gen surfaces carrying template + variables on the job. REAL binary; the server is a
+with the next version), the user's 1-5 rating, and the Video Gen / Image Gen surfaces carrying template + variables on the job. REAL binary; the server is a
 stand-in thread that records what the Client sends."""
 
 import json
@@ -63,7 +64,7 @@ P = bpy.context.scene.lampway_tools
 
 
 def run(body, **kw):
-    return run_script(PRE + body, env={"LAMPWAY_HOME": "/path/to/boxes"}, **kw)
+    return run_script(PRE + body, env={"LAMPWAY_HOME": tempfile.mkdtemp(prefix="lw_home_")}, **kw)
 
 
 def test_the_picker_lists_templates_and_loading_one_builds_the_form_from_the_schema():

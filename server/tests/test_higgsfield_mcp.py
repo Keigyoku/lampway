@@ -33,7 +33,7 @@ def mcp(signed_in, hf):
 
 def test_initialize_opens_a_session_and_calls_carry_its_id(mcp, hf):
     out = mcp.call("balance", {})
-    assert out == {"subscription_plan_type": "plus", "credits": 623.86}
+    assert out == {"subscription_plan_type": "plus", "credits": 100.0}
     assert hf.calls == [("balance", {})]
 
 
@@ -48,7 +48,7 @@ def test_a_401_refreshes_the_token_once_and_retries(mcp, hf, signed_in):
     mcp.call("balance", {})
     hf.unauthorised_once = True
     before = len(hf.token_requests)
-    assert mcp.call("balance", {})["credits"] == 623.86
+    assert mcp.call("balance", {})["credits"] == 100.0
     assert len(hf.token_requests) == before + 1 and hf.token_requests[-1]["grant_type"] == "refresh_token"
 
 

@@ -19,7 +19,7 @@ def fail(message: str) -> None:
 
 
 def questions() -> list:
-    """Pending questions for the captain (e.g. Higgsfield's unlim_choice): an answer, not a spend."""
+    """Pending questions for the user (e.g. Higgsfield's unlim_choice): an answer, not a spend."""
     return [a for a in STATE["approvals"] if a.get("state") == "pending" and (a.get("settings") or {}).get("unit") == "answer"]
 
 

@@ -46,8 +46,8 @@ def test_default_backend_is_the_local_lampway_server(paths):
 
 def test_frontend_falls_back_to_the_backend(paths):
     bundled, _ = paths
-    _write(bundled, {"backend_url": "http://192.168.1.9:8787"})
-    assert cfg.get_frontend_url() == "http://192.168.1.9:8787"
+    _write(bundled, {"backend_url": "http://203.0.113.9:8787"})
+    assert cfg.get_frontend_url() == "http://203.0.113.9:8787"
 
 
 def test_bundled_urls_win_without_an_override(paths):
@@ -62,9 +62,9 @@ def test_env_override_beats_the_bundled_urls(paths, monkeypatch):
     bundled, _ = paths
     _write(bundled, {"backend_url": "https://api.example.test",
                      "frontend_url": "https://www.example.test"})
-    monkeypatch.setenv("LAMPWAY_BACKEND_URL", "http://10.0.0.5:9000/")
-    assert cfg.get_server_url() == "http://10.0.0.5:9000"
-    assert cfg.get_frontend_url() == "http://10.0.0.5:9000"
+    monkeypatch.setenv("LAMPWAY_BACKEND_URL", "http://198.51.100.5:9000/")
+    assert cfg.get_server_url() == "http://198.51.100.5:9000"
+    assert cfg.get_frontend_url() == "http://198.51.100.5:9000"
 
 
 def test_blank_override_is_ignored(paths, monkeypatch):

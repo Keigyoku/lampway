@@ -12,7 +12,7 @@ import re
 
 
 def image_count_refusal(count):
-    return None if str(count) == "4" else "the captain: never fewer than 4 per generation"
+    return None if str(count) == "4" else "the user: never fewer than 4 per generation"
 
 
 def image_problems(st, *, model, aspect, count, no_4k, prompt, n_refs, n_ref_thumbs):
@@ -36,7 +36,7 @@ def mesh_problems(rec, *, polycount, topology, expect_price, smart_mesh_on):
     if sorted(rec["slot_map"]) != ["Back", "Front", "Left", "Right"]: bad.append("Multi-View slots not mapped")
     if rec["thumbnails_seen"] < 4: bad.append(f"{rec['thumbnails_seen']} of 4 view thumbnails present")
     if polycount != rec["polycount_max_shown"]:
-        bad.append(f"polycount {polycount} is not the maximum {rec['polycount_max_shown']} for {topology} (the captain: maximum value per generation)")
+        bad.append(f"polycount {polycount} is not the maximum {rec['polycount_max_shown']} for {topology} (the user: maximum value per generation)")
     if rec["polycount_read_back"].replace(",", "") != polycount or (rec["polycount_slider"] or "/").split("/")[0] != polycount:
         bad.append(f"polycount reads {rec['polycount_read_back']} / slider {rec['polycount_slider']}")
     if not [t for t in topo if topology in t["t"] and _selected(t)]:
@@ -59,7 +59,7 @@ def _selected(button):
 
 
 def region_refusal(approved):
-    return None if approved else "exact-region substitution needs the captain's approval flag"
+    return None if approved else "exact-region substitution needs the user's approval flag"
 
 
 # ---- the Texture + PBR driver (tripo_texture.py), tested against the owner's recorded texture dry run

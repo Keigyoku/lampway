@@ -6,7 +6,7 @@
 # login in the persistent tool browser (CDP), which the app never does. The header below, with its invariants (credits,
 # settings read back before every generation, actions on saved copies only), is the original's. Nothing here runs unless the
 # studio guard is armed (studios/guard.py); tests run against recorded fixtures only.
-"""Shared live state of the captain's Tripo Studio page in the persistent tool browser (relief-browser, CDP 9333), for the AXI
+"""Shared live state of the user's Tripo Studio page in the persistent tool browser (relief-browser, CDP 9333), for the AXI
 no-args home views of the Tripo drivers. Read-only: it never clicks."""
 import re
 

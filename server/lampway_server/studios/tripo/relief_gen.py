@@ -8,7 +8,7 @@
 # settings read back before every generation, actions on saved copies only), is the original's. Nothing here runs unless the
 # studio guard is armed (studios/guard.py); tests run against recorded fixtures only.
 # SPIKE (2026-10-04): run Tripo's free 3D Relief Generator (https://www.tripo3d.ai/3d-relief-generator) without a person
-# (the captain: "Can you make tooling to run the relief generator headlessly?").
+# (the user: "Can you make tooling to run the relief generator headlessly?").
 # What the site does, measured 2026-10-04: the image is POSTed to /api/relief/upload; Tripo's server estimates depth and
 # returns ONE 8-bit 1024x1024 grey PNG (served from S3); every later control - contrast, brightness, sharpen/smooth,
 # model resolution, relief depth, board thickness, smoothness, background cutout, depth compression - is applied in the
@@ -17,7 +17,7 @@
 # shares the input's frame.
 # The site's upload API refuses headless browsers (Cloudflare 403) and a launched browser re-solves the challenge each
 # time, so the tool drives ONE long-lived Chromium (systemd user unit `relief-browser`, CDP on 127.0.0.1:9333, persistent
-# profile, window offscreen on the captain's display) and only reloads the page between images (the captain: "stop
+# profile, window offscreen on the user's display) and only reloads the page between images (the user: "stop
 # closing the browser each time"). Patchright (the Playwright fork Crawl4AI's undetected mode uses) attaches to it.
 # The site's own "Export height map" equals the raw PNG pixel for pixel at default settings (measured 2026-10-04: max
 # difference 0, the export is the PNG's grey). --adjust C,B,S sets the page's Contrast, Brightness and Sharpen/Smooth

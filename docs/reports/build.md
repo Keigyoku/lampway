@@ -138,7 +138,7 @@ Why a Prod build: upstream's gate is `#ifdef MIXAR_ENV_DEV -> return true`, so a
   `--version` rc=0; `import mixar` rc=0 (same four `procedural_materials` startup errors).
 - **Start without a keyring token, Prod-style** (`start-prod-nokeyring-xvfb.log`, `.app.log`): run with
   `DBUS_SESSION_BUS_ADDRESS=unix:path=/nonexistent/...` so no SecretService is reachable (libsecret and Python
-  `keyring` cannot return a token by construction — I did not touch the captain's real keyring), windowed under Xvfb
+  `keyring` cannot return a token by construction — I did not touch the user's real keyring), windowed under Xvfb
   with llvmpipe, quit by a 20 s `bpy.app.timers` callback: **rc=0 after 21 s, "Blender quit", no crash file**. The app
   log has no `desktop-login` URL, no `zenity`, no `xdg-open` — i.e. the browser SSO gate did not run. `xdg-open` and
   `zenity` were both present in the box, so their absence from the log is meaningful.

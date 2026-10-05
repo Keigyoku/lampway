@@ -54,11 +54,11 @@
   "gates": [
     {
       "id": "pieces_present",
-      "description": "checklist: all five pieces present (rated by the captain)"
+      "description": "checklist: all five pieces present (rated by the user)"
     },
     {
       "id": "captain_rating",
-      "description": "the captain's 1-5 rating"
+      "description": "the user's 1-5 rating"
     }
   ],
   "provenance": {

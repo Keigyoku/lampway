@@ -7,7 +7,7 @@
 Enclosure, not registration (memory armour-registration-bias): surface registration is biased toward the thick side (the fitted warrior sat 3-5 cm forward), so the piece is centred on its body
 segment's own slice centres and scaled to a landmark width; never a per-region push (pose-not-push): ONE similarity (scale + translation, plus the rotation a gauntlet's axis needs, reported).
 The body-side measures are the proportion scorer's (piece_ratios.py): helmet = the widest level above neck_02 (+2C), waist = the band at spine_01 + 3 cm, boots = shaft width / knee height /
-foot length by ``scale_anchor`` (REQUIRED: the captain has not ruled which), gauntlets = the bracer's major axis at 35 % vs the forearm's middle. The chest keeps the audits' placement
+foot length by ``scale_anchor`` (REQUIRED: the user has not ruled which), gauntlets = the bracer's major axis at 35 % vs the forearm's middle. The chest keeps the audits' placement
 (scripts/proportion/place_piece.py, byte for byte). Frame: Z up, -Y front, +X the wearer's left. Pure numpy."""
 
 import importlib.util
@@ -190,7 +190,7 @@ def place(kind, body_npz, piece_npz, turn=0.0, clear_mm=15.0, scale_anchor=None,
     bV, bT, J = _body(body_npz)
     V, T = _piece(piece_npz, float(turn))
     if kind == "boots" and scale_anchor not in ANCHORS:
-        raise PlaceError("boots have no ruled scale anchor: pick width (shaft), height (knee) or foot (foot length); the captain has not ruled which")
+        raise PlaceError("boots have no ruled scale anchor: pick width (shaft), height (knee) or foot (foot length); the user has not ruled which")
     if kind == "helmet":
         s, ap, ab, rep = _helmet(bV, bT, J, V, T, C)
     elif kind == "waist":

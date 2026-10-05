@@ -36,7 +36,7 @@ def test_the_catalogue_is_normalised_from_models_explore(svc):
     assert seed["durations"] == [4, 8, 12] and seed["resolutions"] == ["480p", "720p", "1080p"] and seed["roles"] == ["start_image", "end_image"]
     assert seed["supports_audio"] is True and next(r for r in rows if r["id"] == "seedance_2_0")["supports_unlim"] is True
     assert "gpt_image_2_5" in [r["id"] for r in svc.models("image")]
-    assert svc.balance() == {"plan": "plus", "credits": 623.86}
+    assert svc.balance() == {"plan": "plus", "credits": 100.0}
 
 
 def test_the_catalogue_follows_the_paging_cursor_to_the_end(svc, hf):

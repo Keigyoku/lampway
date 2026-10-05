@@ -1,6 +1,6 @@
 """Spend policy per provider, set from the Providers dialog (provider_prefs ``spend_policy``): ``click`` (off | above | always), ``above`` (the price over which a click
 is needed), ``job_cap`` and ``session_cap`` (in the provider's own unit: dollars for OpenRouter, credits for Higgsfield / the Studios / Hyper3D). The policy decides WHETHER
-a job waits for the captain; it never lets anyone but the captain click: the approvals store refuses any confirm that is not his. An unknown price is never waved
+a job waits for the user; it never lets anyone but the user click: the approvals store refuses any confirm that is not his. An unknown price is never waved
 through (it needs a click unless the policy is off)."""
 
 from typing import Callable, Optional

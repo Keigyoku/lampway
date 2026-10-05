@@ -8,7 +8,7 @@
 # SPIKE (2026-10-05): assemble a projection plate set from mesh-paint results: for each view, the picked painted image gets the
 # alpha of ITS clay render (exact by construction - the painted outline matched the clay at 0.92-0.99 IoU), saved as <view>.png
 # for texlib/relief_project.py, which then runs with RP_COLOR_FULL=1 RP_NO_FLOW=1 (no relief warp: the plates are aligned already).
-# The workflow (2026-10-05, the captain's "texture plates" question):
+# The workflow (2026-10-05, the user's "texture plates" question):
 #   1. blender -b -P scripts/texlib/clay_view.py -- <mesh> <dir>/clay_<View>.png <View> 2048   (x4)
 #   2. scripts/studios/tripo/tripo_image.py <run_dir> <prompt> --ref clay_<View>.png [--ref <a painted view, for consistency>]
 #      --ref <V3 4K plate of that view>   (GPT Image 2.5, 4 variants, free quota; prompts: the library templates mesh-paint-albedo-*)

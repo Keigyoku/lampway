@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """Boot printed bare 'file:line' lines from the toolbar draws (zen_scene_controls.py:165 ten times, :206 five times, and the top bar's
-login fallback in the captain's session): a header draw that adds an operator which is not registered yet makes Blender report the
+login fallback in the user's session): a header draw that adds an operator which is not registered yet makes Blender report the
 Python location on every redraw. The draws now add an operator only when it exists. REAL binary."""
 
 import json

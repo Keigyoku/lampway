@@ -6,7 +6,7 @@
 
 The ported tools are batch programs from the owner's shelf (scripts/). They are kept as command-line tools (AXI:
 content first, refusals on stdout, unknown flags exit 2) and run as subprocesses, so a crash in a mesh tool never
-takes the app down and the captain can run the same file by hand.
+takes the app down and the user can run the same file by hand.
 
     kind 'blender'  blender -b --python-exit-code 1 -P <tool> -- <args>   (this app's own binary unless one is configured)
     kind 'numpy'    <python> <tool> <args>   numpy / Pillow only: the configured science python, else the app's bundled one

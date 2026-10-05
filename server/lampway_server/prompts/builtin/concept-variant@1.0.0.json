@@ -68,7 +68,7 @@
   "gates": [
     {
       "id": "captain_rating",
-      "description": "the captain's 1-5 rating"
+      "description": "the user's 1-5 rating"
     }
   ],
   "provenance": {

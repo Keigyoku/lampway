@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Mesh QA candidates for a typed decision (the captain reviews now, a decision model later).
+"""Mesh QA candidates for a typed decision (the user reviews now, a decision model later).
 
 Ported from the shelf's tools/meshqa/mesh_qa.py (SPIKE 2026-10-04), analysis half; the review renders stay in the
 command-line script (scripts/meshqa/mesh_qa.py). Two kinds:

@@ -7,13 +7,13 @@
 # login in the persistent tool browser (CDP), which the app never does. The header below, with its invariants (credits,
 # settings read back before every generation, actions on saved copies only), is the original's. Nothing here runs unless the
 # studio guard is armed (studios/guard.py); tests run against recorded fixtures only.
-# SPIKE (2026-10-04): Tripo Studio Smart Mesh from four cardinal views, on the captain's subscription, in the persistent
+# SPIKE (2026-10-04): Tripo Studio Smart Mesh from four cardinal views, on the user's subscription, in the persistent
 # tool browser (relief-browser, CDP 9333). His hard rules (memory tripo-studio-invariants): a reload resets settings, so the
 # page is reloaded and EVERY setting set and READ BACK right before Generate, refusing on any mismatch; maximum value per
 # generation - Smart Mesh, the topology's MAXIMUM polycount read from the slider (Quad 25000; the page defaults to 5000 at the
 # same price), refused if a lower count is asked, 4 generations (never fewer);
-# the price shown must equal --expect-price (default 100) or the run refuses. Privacy is the captain's setting: recorded,
-# never changed. Multi-View takes exactly the four cardinal views (the captain).
+# the price shown must equal --expect-price (default 100) or the run refuses. Privacy is the user's setting: recorded,
+# never changed. Multi-View takes exactly the four cardinal views (the user).
 # Usage: <relief venv python> tripo_mesh.py <out_dir> --front F --left L --right R --back B [--polycount max]
 #        [--topology Quad|Triangle] [--expect-price 100] [--dry-run]
 # Writes run.json (settings read back, inputs sha256, credits before/after, mesh URLs seen) and any meshes the viewer loads.

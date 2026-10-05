@@ -5,7 +5,7 @@
 # Ported from the owner's tool shelf (tools/proportion/mesh_to_npz.py, sha256 e297609ebb0d) on 2026-10-05. The header below, with the
 # measured rules behind the code, is the original's; paths and interpreters now come from Lampway's configuration.
 # SPIKE (2026-10-04): export a mesh (fbx/glb, meshopt glb included) or the MetaHuman body (with its joints) to npz for the numpy
-# proportion tools. Copied from the proportion auditor's export.py (scratch/scratch-tmp/proportion/audit/).
+# proportion tools. Copied from the proportion auditor's export.py (<shelf scratch>/proportion/audit/).
 # blender -b -P mesh_to_npz.py -- <out.npz> <piece|piece_uv|body> <file>   (piece_uv adds P/UV per triangle, aligned to T)
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
 import sys as _sys, os as _os

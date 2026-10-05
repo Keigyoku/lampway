@@ -18,8 +18,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src/scripts"))
 from mixar.modules.lampway_tools import runner as R  # noqa: E402
 from mixar.modules.lampway_tools import settings as S  # noqa: E402
 
-SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/path/to/shelf")
-SCR = SHELF / "scratch/scratch-tmp"
+SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/nonexistent-shelf")
+SCR = Path(os.environ.get("LAMPWAY_SHELF_SCRATCH") or SHELF / "scratch")
 BODY = SCR / "proportion/audit/body.npz"
 REAL = BODY.exists() and (SCR / "proportion/piece_selftest/boots.npz").exists() and (SCR / "tripo_mesh/Boots1_g1/variant1.npz").exists()
 real = pytest.mark.skipif(not REAL, reason="the shelf's proportion fixtures are not on this machine")

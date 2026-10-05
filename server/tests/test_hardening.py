@@ -26,8 +26,8 @@ def test_loopback_hosts_and_the_bind_host_pass(http, settings):
 
 
 def test_the_bind_host_is_allowed_when_it_is_not_loopback(tmp_path, settings):
-    settings.host = "192.168.1.20"
-    with TestClient(create_app(settings), base_url="http://192.168.1.20:8787") as client:
+    settings.host = "203.0.113.20"
+    with TestClient(create_app(settings), base_url="http://203.0.113.20:8787") as client:
         assert client.get("/api/v1/auth/me").status_code == 401
         assert client.get("/api/v1/auth/me", headers={"host": "evil.example"}).status_code == 421
 

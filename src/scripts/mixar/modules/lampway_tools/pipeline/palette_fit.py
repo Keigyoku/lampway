@@ -19,7 +19,7 @@ from PIL import Image
 
 MIN_TEXELS = 1000            # a mask smaller than this is skipped with a reason, never silently
 MAX_SAMPLE = 2_000_000       # texels per class used for the residual (a stride sample; the medians use every texel)
-METAL_CLASSES = ("gold", "plate")        # the captain's law: no metal on cloth or leather, so every other class must be listed in metal_zero_on
+METAL_CLASSES = ("gold", "plate")        # the user's law: no metal on cloth or leather, so every other class must be listed in metal_zero_on
 DEFAULT_CLASSES = ("gold", "plate", "red", "linen", "leather", "embroidery")
 
 

@@ -6,7 +6,7 @@
 
 Ported from the shelf's texlib/detail_normals.py (SPIKE 2026-10-04), which was an exec-in-the-live-scene script; now a
 function. Per-material tiling DETAIL NORMALS, box-projected in object space at each material's own box scale (no UV seams,
-crisp at any distance - the 2048 relief bump was "a pixelation effect on everything", the captain, 2026-10-04): the metals
+crisp at any distance - the 2048 relief bump was "a pixelation effect on everything", the user, 2026-10-04): the metals
 take their ambientCG NormalGL maps through Normal Map nodes; cloth and leather (colour tiles only) take a small bump from
 their colour's brightness; the per-texel masks blend them. Idempotent: nodes it made are labelled 'DN:' and replaced on a
 re-run; the relief bump stays in the chain (strength 0 = off). Strengths: plate 0.6, gold 0.45, cloth 0.25, leather 0.3.

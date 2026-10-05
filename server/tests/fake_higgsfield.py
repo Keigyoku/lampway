@@ -46,7 +46,7 @@ class FakeHiggsfield:
         self.job_status = ["queued", "in_progress", "completed"]
         self.jobs = {}
         self.media = {}
-        self.balance = 623.86
+        self.balance = 100.0
         self.unauthorised_once = False
         self.preset_recommendation = None   # {"id", "name"}: get_cost answers a recommendation instead of a price until declined_preset_id names it
         self.max_page = None                # a server that clamps ``limit`` (the live default page is 20)

@@ -1,5 +1,5 @@
 """The generation job-service registry (specs/mixar_docs/job_services.md): the Client has 21 job types, this server backs the ones that register. A catalog row,
-a files result, a spend gate that only the captain's click opens, a refusal for a key the Client does not send, and a read-only tool that lists what is
+a files result, a spend gate that only the user's click opens, a refusal for a key the Client does not send, and a read-only tool that lists what is
 backed and what is not."""
 
 import time

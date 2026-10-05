@@ -170,7 +170,7 @@ def qa_propose(proposals=None, piece="", by="agent", rules=None, collection="", 
     the label reads ``<id> <VERDICT>``). RULES FIRST: with no ``proposals`` the rules (meshqa/rules.py) decide every candidate their
     descriptors make clear and each reason names its rule; the rest is returned as ``ambiguous`` for YOUR judgement, which you give as
     ``proposals`` ({id: {verdict: delete|hole|mislabel|keep, reason?, target?}}, ``rules`` false). A re-run of the rules never replaces a
-    row somebody else wrote. A proposal is NOT a ruling: only the captain's tags or typed answers become rulings."""
+    row somebody else wrote. A proposal is NOT a ruling: only the user's tags or typed answers become rulings."""
     cfg = L.load_config(bpy.context.scene, piece or None)
     cands = _qa_candidates_by_id(cfg)
     run_rules = (proposals is None) if rules is None else bool(rules)
@@ -743,7 +743,7 @@ def workflow_graph(action, name="", graph=None, inputs=None, from_node="", versi
     """A typed DAG of Lampway tool calls as data. define (graph = {nodes: [{id, tool, args, after, spend, studio_action, credits}], outputs}; args may use
     {{inputs}} and @node.key for an upstream output) | plan (order, cached?, credits_planned) | run | rerun (from_node: it and what follows re-execute) |
     version / rollback (version) | template_save / template_use (template, description) | show. Outputs are cached by the hash of (tool, args, upstream outputs);
-    a spend node is planned and priced, never run (the captain confirms in the Studios panel)."""
+    a spend node is planned and priced, never run (the user confirms in the Studios panel)."""
     from . import workflow_graph as WG
     g = WG.Graphs(_settings().project_root)
     if action == "define":
@@ -772,7 +772,7 @@ def plate_pick(stage, piece="", view="Front", paired=False, v3_dir="", variants_
     """Plates stage of the piece pipeline. prompt: the library template (plate-4k-crisper) and its variables for one view (render it, generate 4 images per view); score: rank
     the 4 regenerations (variants_dir/1..4) against the approved V3 plate (v3_dir/<View>.png, RGBA): silhouette IoU x DoG structure x (1 - colour error); cut: the pick's alpha
     (luminance threshold, opening, fill holes, 1 px feather); run: score + cut + checks (margins, aspect, view correspondence) -> <piece>/plates_4k_alpha/<View>.png + alpha.json;
-    status. A captain's `pick` (1-4) overrides the best score. Paired pieces: Front and Back only. Free, local, never overwrites."""
+    status. A the user's `pick` (1-4) overrides the best score. Paired pieces: Front and Back only. Free, local, never overwrites."""
     from .pipeline import plates as PL
     return PL.tool(stage, str(_settings().project_root), piece, view, paired, _p(v3_dir), _p(variants_dir), design_words, palette, pick, bg_threshold, opening_iters, min_px)
 
@@ -781,7 +781,7 @@ def plate_pick(stage, piece="", view="Front", paired=False, v3_dir="", variants_
 def uv_score(objects=None, files=None, res=1024, out="uv_score.json", gates=None):
     """Score UV layouts on measurements, not by eye: utilization (rasterised at res, 256..4096), overlap, UV-connected islands, stretch p90/p10, the fraction of area off by 2x, flipped
     (mirrored) faces, seam length and a composite score (the shelf's uv_score). objects: mesh objects in the scene; files: .fbx/.glb attempts inside the project root, measured in a
-    headless Blender (the live scene is untouched). Each row carries gates {pass, failed} (overlap <= 0.005, flipped <= 0.02, off-density <= 0.05, overridable). `best` is advice: the captain picks."""
+    headless Blender (the live scene is untouched). Each row carries gates {pass, failed} (overlap <= 0.005, flipped <= 0.02, off-density <= 0.05, overridable). `best` is advice: the user picks."""
     from .features import uv_score as _UVS
     return _UVS.run(objects, files, res, out, str(_settings().project_root), gates)
 
@@ -797,7 +797,7 @@ def uv_texel_density(object, texture_size=2048, target="auto", weights=None, mod
 
 @tool
 def mesh_defect_scan(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100):
-    """A read-only clay inspection: typed defect candidates for the captain's decisions, never an edit. kinds (default all): open_loop (boundary loops), floating_shell (a small shell
+    """A read-only clay inspection: typed defect candidates for the user's decisions, never an edit. kinds (default all): open_loop (boundary loops), floating_shell (a small shell
     >3 mm from the body), intersection (faces crossing faces, by BVH), thin (thinner than thin_threshold_m inward, default 2 mm, an unverified default), flipped_shell (a shell pointing
     into itself, closed or open), degenerate (zero-area faces), isolated_tri. Each candidate: id, kind, descriptor {faces, area_m2, centroid, bbox, normal, rim_length_m}, rule_verdict
     (keep | delete | hole | ambiguous), rule, severity. More than max_candidates (1..500): the first N plus truncated and total."""
@@ -831,7 +831,7 @@ def seed_audit(stage, piece, seeds=None, scores=None, proposals=None, by="agent"
 @tool
 def fit_place(kind, piece, body, turn=0.0, clear_mm=15.0, scale_anchor="", sides="both", out="placed.npz"):
     """Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): helmet = the widest head level above neck_02, waist = the band at
-    spine_01 + 3 cm, boots = shaft width | knee height | foot length (scale_anchor is REQUIRED: the captain has not ruled which), gauntlets = the bracer at 35 % vs the forearm's middle (an axis
+    spine_01 + 3 cm, boots = shaft width | knee height | foot length (scale_anchor is REQUIRED: the user has not ruled which), gauntlets = the bracer at 35 % vs the forearm's middle (an axis
     more than 25 degrees off is refused), chest = the audits' placement unchanged. piece/body are npz files (mesh_to_npz, body with joints); turn brings the piece to -Y front, +Z up. Writes
     placed.npz and placed.npz.json (scale, translation, anchor_shift, turn, norm_lo/hi) and returns the report."""
     return _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out)
@@ -852,9 +852,9 @@ def _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out):
 def fit_openings(stage, object, axis=None, plane_origin=None, limb="", pose=None, answers=None, flange_mm=None, lip_mm=4.0, clearance_mm=15.0, piece="", captain_words="",
                  texture_discard_ack=False, depths_mm=None, size=384):
     """The openings decision at fit: every cap a seed put across a limb, neck or waist opening gets keep | gasket | delete, logged append-only in <piece>/fit/decisions.jsonl. detect: the capped
-    sites along `axis` (pointing out of the piece); propose: proposals only (the captain rules); apply: answers {"OP000": "gasket"}. A GASKET cuts the POSED limb's cross-section (`limb`, an
+    sites along `axis` (pointing out of the piece); propose: proposals only (the user rules); apply: answers {"OP000": "gasket"}. A GASKET cuts the POSED limb's cross-section (`limb`, an
     object) plus clearance_mm (5..40, default 15) into the cap plane and forms a COLLAR - a tubular flange into the piece whose free edge rolls outward into a lip (an exhaust/intake manifold
-    port, not a raw hole); its depth `flange_mm` (2..60) is the captain's number: without it apply answers needs_decision, and `variants` builds and renders three depths (depths_mm) to pick.
+    port, not a raw hole); its depth `flange_mm` (2..60) is the user's number: without it apply answers needs_decision, and `variants` builds and renders three depths (depths_mm) to pick.
     Needs `pose` (the fit_pose result): never the rest pose. Result `<object>_openings`; the source is untouched. Discards a studio texture (texture_discard_ack). keep changes no geometry."""
     from .features import opening as _OP
     return _OP.run(stage, object, str(_settings().project_root), axis, plane_origin, limb, pose, answers, flange_mm, lip_mm, clearance_mm, piece, captain_words, texture_discard_ack, depths_mm, size)
@@ -866,7 +866,7 @@ def parts_critique(stage, piece, recipe="", transfer_dir="", piece_uv="", owner_
     sagittal plane, left/right area asymmetry); render: the owner map in four views with the flagged islands magenta (Workbench, headless); judge: the packet for you to propose from (at most
     `limit` 1..20 flags, biggest first); write_fixes: your proposals [{target_part, islands | bbox_fbx, only_from_parts, reason, evidence}] validated and written to <piece>/parts/fixes.json (the exact
     shape apply_part_fixes reads); check: a dry run of those fixes against owner_tri.npy ({triangles, from} per fix) without writing an owner map. A fix between a metal part and a cloth/leather part is
-    refused: that class comes from the captain or the recipe, never from a render. Nothing here writes an owner map."""
+    refused: that class comes from the user or the recipe, never from a render. Nothing here writes an owner map."""
     from .pipeline import parts_critique as _PC
 
     def _render(mesh_path, owner_path, recipe_path, prefix, turn_deg):

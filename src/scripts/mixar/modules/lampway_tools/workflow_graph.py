@@ -5,7 +5,7 @@
 """workflow_graph: a typed DAG of Lampway tool calls, so a workflow is data. Nodes name a tool and its arguments; ``after`` orders them; an argument string
 ``@node.key`` is that upstream node's output, ``{{name}}`` an input. Every node's output is cached by the hash of (tool, resolved args, the hashes of the outputs
 it consumed), so an identical run executes nothing, a changed argument re-executes only what depends on it, and ``rerun`` re-executes a node and what follows it.
-A node with ``spend: true`` (it must name its ``studio_action``) is PLANNED and priced, never run: the captain confirms spends in the Studios panel, and what
+A node with ``spend: true`` (it must name its ``studio_action``) is PLANNED and priced, never run: the user confirms spends in the Studios panel, and what
 depends on it waits. Storage: ``<root>/graphs/<name>/{graph.json, versions/, cache/}`` and ``<root>/graphs/_templates/``. Pure python; the executor is
 ``api.call`` unless one is injected."""
 
@@ -15,7 +15,7 @@ import re
 from pathlib import Path
 from typing import Callable, Optional
 
-PLANNED = "planned only: the captain confirms spends in the Studios panel"
+PLANNED = "planned only: the user confirms spends in the Studios panel"
 _REF = re.compile(r"^@([A-Za-z0-9_\-]+)\.([A-Za-z0-9_\-]+)$")
 _VAR = re.compile(r"\{\{(\w+)\}\}")
 _NAME = re.compile(r"^[A-Za-z0-9_\-]{1,64}$")
@@ -86,7 +86,7 @@ class Graphs:
             if n.get("tool") not in tools:
                 raise GraphError(f"node {n['id']!r} names an unknown tool {n.get('tool')!r}; the tools are: {', '.join(sorted(tools))}")
             if n.get("spend") and not n.get("studio_action"):
-                raise GraphError(f"node {n['id']!r} spends: it must declare its studio_action (the Studios action the captain confirms)")
+                raise GraphError(f"node {n['id']!r} spends: it must declare its studio_action (the Studios action the user confirms)")
             for a in n.get("after") or []:
                 if a not in ids:
                     raise GraphError(f"node {n['id']!r} comes after an unknown node {a!r}")

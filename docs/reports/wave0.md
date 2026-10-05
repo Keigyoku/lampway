@@ -11,11 +11,11 @@ Each fix was observed RED on the shipped code first; mutants (seam check off, fl
 | 7.3 cm cuirass seam tear passes 1.35 | pose_test measures seam gap growth between shells (pairs of different shells within 2 cm at rest); rig_armor fails above 1 cm | test_a_seam_that_tears... (worst_stretch < 1.35 while gap > 5 cm) |
 | auto_rig mutates the source | copy=True default (<name>_rigged); copy=False opt-in; legacy tests made explicit | test_auto_rig_leaves_its_source_alone |
 | mesh_prep misses flipped open shells; hash ignores UVs | per-shell outward ray votes (flagged shells turned over); hash {geometry, uv, material} | two tests |
-| tripo_regen has no action row | six free actions tripo.regen.retry/sift/harvest/collect/apply/discard (region stays off: it needs the captain's approval flag) | server tests; the validation test caught n=0 silently becoming 5 |
+| tripo_regen has no action row | six free actions tripo.regen.retry/sift/harvest/collect/apply/discard (region stays off: it needs the user's approval flag) | server tests; the validation test caught n=0 silently becoming 5 |
 | detail_normals has no caller | api tool, Features-panel entry, server Def lampway_detail_normals | test + server test |
 
 ## Honest limits
-- Pose angles in WIKI8 are approximations in the algorithmic rig's bone axes (the wiki gives no numbers); the clearance/seam thresholds (0 m, 1 cm) are unverified defaults the captain owns.
+- Pose angles in WIKI8 are approximations in the algorithmic rig's bone axes (the wiki gives no numbers); the clearance/seam thresholds (0 m, 1 cm) are unverified defaults the user owns.
 - Flipped-shell detection reads a shell with no opposite wall (a half-cylinder) as outward.
 - Seam-aware weight transfer (bind_to_armature ignoring roles and seams) is NOT fixed here: Wave 3 fit_bind owns it. Wave 0 only makes the acceptance gate catch the tear.
 - The Studio regen actions are tested against the fake executor; nothing was run against the live Studio.

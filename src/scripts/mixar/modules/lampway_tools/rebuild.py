@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The rebuild loop: a QA'd piece rebuilt from its source mesh and the captain's rulings.
+"""The rebuild loop: a QA'd piece rebuilt from its source mesh and the user's rulings.
 
 Ported from the shelf's meshqa/rebuild_textured.sh (SPIKE 2026-10-04); the recipe he runs now is
 ``RES=4096 COLOR_FULL=1 ORNAMENT=600:24:0.25 rebuild_textured.sh <tag>``. Steps, in order:

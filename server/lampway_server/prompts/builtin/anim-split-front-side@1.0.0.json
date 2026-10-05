@@ -4,7 +4,7 @@
   "purpose": "anim-split",
   "media": "video",
   "title": "Synchronised dual view: front and side",
-  "description": "The captain's split-screen prompt: two fixed orthographic cameras, the same motion, frame-level sync.",
+  "description": "The user's split-screen prompt: two fixed orthographic cameras, the same motion, frame-level sync.",
   "body": {
     "subject": "Split-screen video with two fixed orthographic cameras showing the same armoured warrior, exactly as in [start_image], at the same moment: left panel the exact front view, right panel the exact side view. {{design_lock}}.",
     "action": "He walks in place at a steady natural pace of {{cadence_spm}} steps per minute, both panels the identical motion, perfectly synchronized.",
@@ -84,7 +84,7 @@
     }
   ],
   "provenance": {
-    "source": "the captain's own tested prompt (Higgsfield 14ca1599, 08aad70d)"
+    "source": "the user's own tested prompt (Higgsfield 14ca1599, 08aad70d)"
   },
   "root_motion": "none"
 }

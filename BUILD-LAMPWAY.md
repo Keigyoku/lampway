@@ -20,7 +20,7 @@ Everything below was measured on 2026-10-04/05 on the machine described in
 
 Blender 5.2 refuses GCC older than 14 and Ubuntu 24.04 ships 13.3 by default,
 so the versioned pair is required. Inside the box (a distrobox named
-`lampway-build` here; any Ubuntu 24.04 works):
+a distrobox here; any Ubuntu 24.04 works):
 
 ```bash
 sudo apt-get install -y --no-install-recommends \
@@ -81,7 +81,7 @@ podman exec --user 1000:1000 -w "$PWD" lampway-build ./scripts/lampway/build_lin
 
 ## 3. Reference run (2026-10-04, this machine)
 
-Host: Linux 7.2 (Fedora, `/var/home` on NVMe, shared with other work); box:
+Host: Linux 7.2 (a Linux workstation with other builds running); box:
 Ubuntu 24.04, 16 cores, 30 GB RAM of which 8-11 GB were free during the run
 because other builds shared the host — the script's wrapper picked
 `BUILD_CORES=5` (free GB / 2). Expect a clean compile to be roughly

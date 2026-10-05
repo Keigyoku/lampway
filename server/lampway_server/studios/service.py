@@ -2,11 +2,11 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The Studio service: plan -> the captain's confirm -> a server job -> files for the Client.
+"""The Studio service: plan -> the user's confirm -> a server job -> files for the Client.
 
 The shelf's AXI drivers are the engine (``LAMPWAY_STUDIO_SHELF`` = the shelf's ``tools`` directory: they are run as they are, never
 rewritten); without it the bundled ports of the older drivers run. Everything that spends credits goes through ``plan`` (a driver read
-back that clicks nothing, env NOT armed) and an approval only the captain can confirm; the confirmed run is the one place the arming
+back that clicks nothing, env NOT armed) and an approval only the user can confirm; the confirmed run is the one place the arming
 variable is set, for that one process. Free actions (state, clone, retry, pick, save...) run as jobs at once.
 """
 
@@ -67,7 +67,7 @@ class StudioService:
         self._jobs: dict[str, dict] = {}
         self._tasks: dict[str, asyncio.Task] = {}
         self._gates: dict = {}                          # approval action -> (on_confirm(approval, answer), on_reject(approval))
-        self._hung: dict[str, str] = {}                 # action id -> the hung job's id, until the captain acknowledges it
+        self._hung: dict[str, str] = {}                 # action id -> the hung job's id, until the user acknowledges it
 
     # ------------------------------------------------------------------ paths
     def jail(self, path: str) -> str:
@@ -102,7 +102,7 @@ class StudioService:
             return {"state": "running", "job": self._public(job)}
         if action_id in self._hung:
             return self._refused(action, f"the earlier {action_id} job ({self._hung[action_id]}) is HUNG: reload Studio once, check the credits "
-                                         "for the refund and never re-click; the captain acknowledges it before another is planned")
+                                         "for the refund and never re-click; the user acknowledges it before another is planned")
         argv = self.engine.resolve(action.plan_driver or action.driver, action.studio) + action.plan_args(clean, self._dir("plan") if action.needs_out_dir else "")
         out_dir = next((a for a in argv if "/plan-" in a), None)
         if out_dir:
@@ -131,7 +131,7 @@ class StudioService:
         a = self._approvals.propose(action=action.id, studio=action.studio, label=action.label, args=clean, price=plan.price,
                                     settings=plan.settings, requested_by=by)
         return {"state": "needs_approval", "approval": a.public(self._now()),
-                "message": (f"{action.label} costs {plan.price} credits. Nothing was clicked. The captain confirms or rejects it in the "
+                "message": (f"{action.label} costs {plan.price} credits. Nothing was clicked. The user confirms or rejects it in the "
                             "Client (Studios panel); it cannot be confirmed from here.")}
 
     @staticmethod
@@ -144,7 +144,7 @@ class StudioService:
         return self._approvals
 
     def register_gate(self, action: str, on_confirm, on_reject) -> None:
-        """Another spender (a Higgsfield job on the job queue) puts its approvals in the same store; the captain's confirm / reject
+        """Another spender (a Higgsfield job on the job queue) puts its approvals in the same store; the user's confirm / reject
         reaches it through these callbacks instead of starting a Studio driver job."""
         self._gates[action] = (on_confirm, on_reject)
 
@@ -207,7 +207,7 @@ class StudioService:
 
     def acknowledge_hung(self, job_id: str, by: str) -> None:
         if by != "captain":
-            raise ApprovalError("only the captain acknowledges a hung job")
+            raise ApprovalError("only the user acknowledges a hung job")
         for action, jid in list(self._hung.items()):
             if jid == job_id:
                 del self._hung[action]

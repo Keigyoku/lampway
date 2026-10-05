@@ -1,5 +1,5 @@
 # Lampway server: the exact versions the live runs and the server test suite were verified with (Python 3.12.3,
-# the lampway-build box, 2026-10-05). pyproject.toml keeps the ranges; this is the pinned set:
+# a clean Ubuntu 24.04 build box, 2026-10-05). pyproject.toml keeps the ranges; this is the pinned set:
 #   pip install -r server/requirements-lock.txt && pip install -e server/   (test extras included)
 # Regenerate from a venv that passes `pytest server/tests`: pip freeze --exclude-editable.
 annotated-types==0.8.0

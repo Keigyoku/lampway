@@ -2,7 +2,7 @@
 once (``register``); the catalog, the submit path and the ``lampway_job_services`` tool all read the same registry, so a service that is not registered is
 neither advertised nor runnable (the Client's own kill switch for a tab).
 
-``spend=True`` services never start until the captain confirms the price in the Studios panel (the same approvals store the Studios use); registering one
+``spend=True`` services never start until the user confirms the price in the Studios panel (the same approvals store the Studios use); registering one
 without ``confirm_price`` is refused, so there is no spend service without a price to show him."""
 
 from dataclasses import dataclass
@@ -32,7 +32,7 @@ class ServiceRegistry:
         if key not in WIRE_KEYS:
             raise ValueError(f"service {key!r} is not a Lampway client job type; the client sends: {', '.join(WIRE_KEYS)}")
         if spend and confirm_price is None:
-            raise ValueError(f"service {key!r} spends: register it with confirm_price(payload) -> the price the captain confirms")
+            raise ValueError(f"service {key!r} spends: register it with confirm_price(payload) -> the price the user confirms")
         if not isinstance(catalog_row, dict) or not catalog_row.get("models"):
             raise ValueError(f"service {key!r} needs a catalog row with at least one model")
         self._items[key] = Service(key, backend, catalog_row, bool(spend), confirm_price, backend_name)

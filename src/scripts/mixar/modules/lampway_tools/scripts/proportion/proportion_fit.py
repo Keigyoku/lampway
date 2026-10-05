@@ -4,11 +4,11 @@
 #
 # Ported from the owner's tool shelf (tools/proportion/proportion_fit.py, sha256 7a6b01fcf345) on 2026-10-05. The header below, with the
 # measured rules behind the code, is the original's; paths and interpreters now come from Lampway's configuration.
-# AUDITED 2026-10-04 - FRAGILE, do not rank on it alone: an independent landmark audit (scratch/scratch-tmp/proportion/audit/
+# AUDITED 2026-10-04 - FRAGILE, do not rank on it alone: an independent landmark audit (<shelf scratch>/proportion/audit/
 # report.md) measured that single switches (A-pose arm rays, neck rays, the 20 mm target, the cape's back sector, free vertical
 # placement, first-hit inner lining) each move a score by up to 10 mm against a 3.7 mm spread, and flip the winner. Use scale-free
 # landmark ratios at axilla-aligned placement (audit/indep.py) as the primary proportion measure; keep this for overlays.
-# SPIKE (2026-10-04): PROPORTIONS against the project's MetaHuman body. The captain: "Best proportions trump bad meshes because a
+# SPIKE (2026-10-04): PROPORTIONS against the project's MetaHuman body. The user: "Best proportions trump bad meshes because a
 # mesh can be repaired, proportions are in the seed generation". A Tripo piece comes normalised (about 1 m), so its true scale is
 # unknown; proportion is judged by how well ONE uniform scale plus a translation makes it enclose the body evenly.
 #

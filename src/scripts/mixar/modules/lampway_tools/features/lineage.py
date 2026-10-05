@@ -5,7 +5,7 @@
 """asset_lineage: where a derivative came from, so a repaired mesh cannot silently become an unrelated one. ``record`` stores three hashes (geometry, UV,
 material), the transformation and THREE identity anchors (landmarks that must not move) on the object (``lw_lineage``) and appends the same line to
 ``<root>/<piece>/lineage.jsonl``; ``verify`` measures each anchor's nearest-point distance to the derivative; ``show`` returns the chain. The tool proposes
-no anchors: which landmarks matter is the captain's call."""
+no anchors: which landmarks matter is the user's call."""
 
 import json
 import time
