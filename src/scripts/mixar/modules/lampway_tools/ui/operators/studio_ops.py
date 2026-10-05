@@ -219,10 +219,26 @@ _PROVIDER_FIELDS = {          # operator prop -> the server's setting
     "video_bulk_duration": ("video_purposes", "bulk", "duration"), "video_loop_model": ("video_purposes", "loop", "model"),
     "video_loop_resolution": ("video_purposes", "loop", "resolution"), "video_motion_model": ("video_purposes", "motion", "model"),
     "video_motion_resolution": ("video_purposes", "motion", "resolution"), "video_max_job_usd": "video_max_job_usd"}
+for _p in ("openrouter", "higgsfield", "studios", "hyper3d"):          # spend policy per provider: click off|above|always, the price above which a click is needed, the caps
+    for _f in ("click", "above", "job_cap", "session_cap"):
+        _PROVIDER_FIELDS[f"{_p}_{_f}"] = ("spend_policy", _p, _f)
 _INT_PROPS = {"video_bulk_duration"}
+_SPEND_AMOUNTS = {"above", "job_cap", "session_cap"}
 _CHOICES = {"main_provider": "main_providers", "swarm_provider": "swarm_providers", "chatgpt_effort": "efforts",
             "image_backend": "image_backends", "image_quality": "image_qualities"}
 DEFAULT_WORD = "default"     # typed for a setting whose server value is the empty default
+
+
+def _spend_props():
+    """The Providers dialog's spend-policy fields as one StringProperty each (empty = unchanged; a cap 'none' removes it)."""
+    out = {}
+    for p in ("openrouter", "higgsfield", "studios", "hyper3d"):
+        unit = "USD" if p == "openrouter" else "credits"
+        out[f"{p}_click"] = StringProperty(name=f"{p.title()} click", description="Does a job wait for your click? off | above | always (the agent and swarm can never click)")
+        out[f"{p}_above"] = StringProperty(name=f"{p.title()} click above", description=f"With 'above': the price ({unit}) over which your click is needed")
+        out[f"{p}_job_cap"] = StringProperty(name=f"{p.title()} job cap", description=f"One job above this price ({unit}) is refused before it is sent; 'none' removes the cap")
+        out[f"{p}_session_cap"] = StringProperty(name=f"{p.title()} session cap", description=f"Total {unit} this session; 'none' removes the cap")
+    return out
 
 
 def _suggest(prop):
@@ -259,6 +275,9 @@ class _ProviderProps:
     video_max_job_usd: FloatProperty(name="Video cap (USD)", description="One video job above this estimate is refused before it is sent (0 = unchanged)", min=0.0, max=100.0)
 
 
+_ProviderProps.__annotations__.update(_spend_props())
+
+
 def _server_values():
     cur = CLIENT_FACTORY().provider_settings()
     studio_state.PROVIDERS.clear()
@@ -276,6 +295,14 @@ def _save_changes(op, context):
             if wanted == "" or (prop == "video_max_job_usd" and not wanted):
                 continue                                           # not given: unchanged
             wanted = "" if wanted == DEFAULT_WORD else wanted
+            if isinstance(key, tuple) and key[0] == "spend_policy" and key[2] in _SPEND_AMOUNTS:
+                if wanted in ("none", "None") and key[2] != "above":
+                    wanted = None
+                else:
+                    try:
+                        wanted = float(wanted)
+                    except ValueError:
+                        raise studio_client.StudioError(f"{prop} must be an amount (or 'none' to remove a cap)")
             if prop in _INT_PROPS:
                 try:
                     wanted = int(wanted)
