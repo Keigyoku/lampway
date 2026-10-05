@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# The brand gates' exemptions. Each one says where, what, why, and which kind. See brandgate.py. The count is pinned in brand_allowlist.ratchet.
+
+[[allow]]
+path = "src/release/darwin/Mixar.app/Contents/Info.plist"
+text = "<string>Mixar</string>"
+reason = "CFBundleExecutable must equal the target's OUTPUT_NAME (src/source/creator/CMakeLists.txt:1800) and the bundle directory name; renaming them is decision D5 (app id and executable) and cannot be built or run on this Linux host."
+category = "blocked-on-decision"
+
+[[allow]]
+path = "src/scripts/mixar/config/paths.py"
+text = 'return Path.home() / ".mixar"'
+reason = "legacy_home() is the READ side of migrate_from_mixar(): it names the stock install's folder so it can be copied from, and nothing is ever written there."
+category = "legacy-read"
+
+[[allow]]
+path = "src/scripts/mixar/modules/mcp_bridge/core/installation.py"
+text = 'Path.home() / ".mixar" / "connector"'
+reason = "the pre-Lampway connector folder, read once by migrate/_legacy_shim (installation.py:75) and never created by Lampway."
+category = "legacy-read"
+
+[[allow]]
+path = "src/scripts/mixar/modules/addon_project/constants.py"
+text = 'LEGACY_MANIFEST_DIR = ".mixar"'
+reason = "read-only fallback in addon_project/manifest.py manifest_path(): a project that already has .mixar/addon-project.json keeps working; new manifests are written to .lampway."
+category = "legacy-read"
+
+[[allow]]
+path = "scripts/dev/lampway_placeholder_art.py"
+text = "src/release/darwin/Mixar.app/Contents/Resources"
+reason = "the macOS bundle directory is still named Mixar.app by src/source/creator/CMakeLists.txt (lines 515, 1803); renaming it is decision D5 and needs a macOS build."
+category = "blocked-on-decision"

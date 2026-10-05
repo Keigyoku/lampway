@@ -147,22 +147,22 @@ def spawn_sandbox(connection_id: str, idle_ttl_s: float | None = None,
         parent_iid = parent_instance_id or _parent_instance_from(connection_id)
         env = dict(os.environ)
         env.update({
-            "MIXAR_SANDBOX_ACCESS_TOKEN": get_access_token() or "",
-            "MIXAR_BACKEND_URL": get_server_url(),
-            "MIXAR_SANDBOX_CONNECTION_ID": connection_id,
-            "MIXAR_SANDBOX_PARENT_INSTANCE_ID": parent_iid,
-            "MIXAR_SANDBOX_PARENT_PID": str(os.getpid()),
+            "LAMPWAY_SANDBOX_ACCESS_TOKEN": get_access_token() or "",
+            "LAMPWAY_BACKEND_URL": get_server_url(),
+            "LAMPWAY_SANDBOX_CONNECTION_ID": connection_id,
+            "LAMPWAY_SANDBOX_PARENT_INSTANCE_ID": parent_iid,
+            "LAMPWAY_SANDBOX_PARENT_PID": str(os.getpid()),
         })
         # The PARENT owns the artifact staging area; the worker only writes
         # into the directory it was handed (never sent upstream).
         try:
             from mixar.modules.common.agent_execution.paths import staging_dir
-            env["MIXAR_SANDBOX_STAGING_DIR"] = staging_dir(parent_iid)
+            env["LAMPWAY_SANDBOX_STAGING_DIR"] = staging_dir(parent_iid)
         except Exception as e:
             logger.error("no staging dir for worker %s: %s", connection_id, e)
             return {"success": False, "error": f"staging dir: {e}", "pid": None}
         if idle_ttl_s:
-            env["MIXAR_SANDBOX_IDLE_TTL_S"] = str(idle_ttl_s)
+            env["LAMPWAY_SANDBOX_IDLE_TTL_S"] = str(idle_ttl_s)
         argv = [
             bpy.app.binary_path, "--background", "-noaudio",
             "--python", _headless_main_path(),

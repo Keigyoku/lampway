@@ -437,7 +437,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
     STRNCPY(filepath_abs_normalized, filepath_abs);
     BLI_path_normalize(filepath_abs_normalized);
     if (BLI_path_cmp(filepath_abs_normalized, blendfile_path) == 0) {
-      PyErr_SetString(PyExc_ValueError, "Cannot load from the current mixar file.");
+      PyErr_SetString(PyExc_ValueError, "Cannot load from the current Lampway file.");
       return nullptr;
     }
   }

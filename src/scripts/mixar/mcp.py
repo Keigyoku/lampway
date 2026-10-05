@@ -124,8 +124,8 @@ def configuration(client, python=None):
     command = python or sys.executable
     script = str(Path(__file__).resolve())
     if client == "claude":
-        return json.dumps({"mcpServers": {"mixar": {"command": command, "args": [script]}}}, indent=2)
-    return "[mcp_servers.mixar]\ncommand = %s\nargs = [%s]\ntool_timeout_sec = 610\n" % (
+        return json.dumps({"mcpServers": {"lampway": {"command": command, "args": [script]}}}, indent=2)
+    return "[mcp_servers.lampway]\ncommand = %s\nargs = [%s]\ntool_timeout_sec = 610\n" % (
         json.dumps(command), json.dumps(script))
 
 

@@ -16,6 +16,7 @@ import tempfile
 from typing import Any, Dict, Optional, Tuple
 
 from mixar.config.logging_config import get_logger
+from mixar.config.paths import app_home
 
 logger = get_logger(__name__)
 
@@ -27,14 +28,14 @@ def _data_dir() -> str:
     try:
         import bpy
 
-        path = bpy.utils.user_resource("DATAFILES", path="mixar")
+        path = bpy.utils.user_resource("DATAFILES", path="lampway")
         # Under the pytest bpy mock `user_resource` returns a truthy MagicMock,
         # and real Blender prints-and-swallows a creation failure, returning "".
         if isinstance(path, str) and path:
             return path
     except Exception:
         pass
-    return os.path.join(os.path.expanduser("~"), ".mixar")
+    return str(app_home())
 
 
 def _disk_path() -> str:

@@ -1,32 +1,20 @@
-<!-- SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited -->
+<!-- SPDX-FileCopyrightText: 2026 Lampway contributors -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 
 # Support
 
-## Community
+## Questions and bugs
 
-Join the Mixar Discord for real-time discussion, troubleshooting help, and announcements:
+Use the issue tracker: <https://github.com/Keigyoku/lampway/issues>.
 
-- **Discord:** https://discord.gg/YVqvkQx8rX
+- Build problems from this source tree
+- Reproducible client or server bugs that do not need private data
+- Licence, notice and trademark questions
 
-The Discord is the fastest way to reach maintainers and other Mixar users. Most build problems, "is this expected?" questions, and general help requests are best handled there before opening a GitHub issue.
+Documentation lives at <https://lampway.dev/docs/>. The in-app "Report a Bug" button opens <https://lampway.dev/bug-report/>.
 
-## Public Repository Support
+Do not use public issues for security reports; follow [SECURITY.md](SECURITY.md).
 
-Use GitHub issues in this repository for:
+## Downloads
 
-- Public source availability questions
-- Client build problems from the published source tree
-- License, notice, and trademark documentation questions
-- Reproducible client-side bugs that do not require private data
-
-Do not use public issues for security reports. Follow [SECURITY.md](SECURITY.md).
-
-## Product Support
-
-For product downloads and user-facing product information, use:
-
-- Downloads: <https://www.mixar.app/downloads>
-- Website: <https://www.mixar.app/>
-
-Some Mixar App features require Mixar hosted services. This repository does not include the hosted backend implementation.
+Lampway ships as source for now. Build instructions are in [BUILD-LAMPWAY.md](BUILD-LAMPWAY.md); the downloads page, <https://lampway.dev/downloads/>, says the same.

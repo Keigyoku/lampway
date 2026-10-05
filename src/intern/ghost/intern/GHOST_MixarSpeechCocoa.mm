@@ -283,7 +283,7 @@ struct TccAttribution {
 
 TccAttribution tcc_attribution()
 {
-  TccAttribution out = {[NSBundle mainBundle], @"Mixar", true};
+  TccAttribution out = {[NSBundle mainBundle], @"Lampway", true};
   typedef pid_t (*ResponsibleFn)(pid_t);
   static const ResponsibleFn responsible_fn = (ResponsibleFn)dlsym(
       RTLD_DEFAULT, "responsibility_get_pid_responsible_for_pid");
@@ -324,13 +324,13 @@ bool tcc_request_allowed(NSString *usage_key, const char *permission)
   NSString *why;
   if (who.self) {
     why = [NSString stringWithFormat:@"this build's Info.plist has no %@, and macOS would "
-                                     @"end Mixar for requesting %s access",
+                                     @"end Lampway for requesting %s access",
                                      usage_key,
                                      permission];
   }
   else {
-    why = [NSString stringWithFormat:@"Mixar was launched from %@, so macOS asks %@ for the "
-                                     @"%s permission text and it has none. Launch Mixar.app "
+    why = [NSString stringWithFormat:@"Lampway was launched from %@, so macOS asks %@ for the "
+                                     @"%s permission text and it has none. Launch Lampway.app "
                                      @"from Finder (or with `open`) to use Voice",
                                      who.app_name,
                                      who.app_name,

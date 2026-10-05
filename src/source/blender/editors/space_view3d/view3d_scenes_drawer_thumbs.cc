@@ -110,7 +110,7 @@ static bool snapshots_enabled_env()
 {
   static int state = -1;
   if (state < 0) {
-    const char *value = std::getenv("MIXAR_SCENES_DRAWER_THUMBS");
+    const char *value = std::getenv("LAMPWAY_SCENES_DRAWER_THUMBS") ? std::getenv("LAMPWAY_SCENES_DRAWER_THUMBS") : std::getenv("MIXAR_SCENES_DRAWER_THUMBS");
     const bool off = value != nullptr &&
                      (STREQ(value, "0") || STREQ(value, "off") || STREQ(value, "false"));
     state = off ? 0 : 1;

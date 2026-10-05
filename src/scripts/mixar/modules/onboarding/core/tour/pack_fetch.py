@@ -31,6 +31,7 @@ from mixar.config.logging_config import get_logger
 from mixar.modules.common.remote_assets.core import download as dl
 
 from . import config, language, packs
+from mixar.config.brand import env_get
 
 logger = get_logger(__name__)
 
@@ -42,7 +43,7 @@ _states: Dict[str, dict] = {}
 def manifest_url() -> str:
     """QA override, else the manifest on the configured backend (our server
     serves the packs; nothing is fetched from the upstream CDN)."""
-    override = os.environ.get(config.ENV_PACKS_MANIFEST_URL)
+    override = env_get(config.ENV_PACKS_MANIFEST_URL)
     if override:
         return override
     return get_server_url().rstrip("/") + TOUR_PACKS_PATH

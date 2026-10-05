@@ -29,6 +29,7 @@ from ..constants import (
     VIDEO_ATTACHMENT_REJECTED,
     VIDEO_FILE_FORMATS,
 )
+from mixar.config.paths import app_home
 
 logger = get_logger(__name__)
 
@@ -50,7 +51,7 @@ def get_mixar_screenshots_dir() -> str:
         Absolute path to the screenshots directory.
     """
     import bpy
-    base = bpy.app.tempdir or os.path.join(os.path.expanduser('~'), '.mixar', 'cache')
+    base = bpy.app.tempdir or os.path.join(str(app_home()), 'cache')
     screenshots_dir = os.path.join(base, 'mixar_screenshots')
     os.makedirs(screenshots_dir, exist_ok=True)
     return screenshots_dir

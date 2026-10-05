@@ -189,7 +189,7 @@ void capture_host(wmWindowManager *wm, wmWindow *win)
         backdrop.blurred = nullptr;
       }
       if (backdrop.blurred == nullptr) {
-        backdrop.blurred = GPU_texture_create_2d("Mixar host frost",
+        backdrop.blurred = GPU_texture_create_2d("Lampway host frost",
                                                  width,
                                                  height,
                                                  1,

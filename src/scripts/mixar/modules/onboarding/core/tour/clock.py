@@ -34,6 +34,7 @@ from typing import Optional
 from mixar.config.logging_config import get_logger
 
 from . import config
+from mixar.config.brand import env_get
 
 logger = get_logger(__name__)
 
@@ -325,14 +326,14 @@ class AudClock(BaseClock):
 
 
 def _env_flag(name: str) -> Optional[bool]:
-    raw = os.environ.get(name)
+    raw = env_get(name)
     if raw is None or not raw.strip():
         return None
     return raw.strip().lower() in _TRUTHY
 
 
 def _env_rate(name: str) -> Optional[float]:
-    raw = os.environ.get(name)
+    raw = env_get(name)
     if raw is None or not raw.strip():
         return None
     try:

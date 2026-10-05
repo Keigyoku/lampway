@@ -64,9 +64,8 @@ def get_library_path() -> str:
         )
     except Exception:
         import os
-        path = os.path.join(
-            os.path.expanduser("~"), ".mixar", "generations"
-        )
+        from mixar.config.paths import app_home
+        path = os.path.join(str(app_home()), "generations")
         os.makedirs(path, exist_ok=True)
         return path
 

@@ -1337,7 +1337,7 @@ static void handle_mixar_version_warning(Main *main, BlendFileReadReport *report
   if (main->has_mixar_forward_compatibility_issues) {
     BKE_reportf(reports->reports,
                 RPT_WARNING,
-                "File saved by newer Mixar version (%d.%d), some data may be lost",
+                "File saved by newer Lampway version (%d.%d), some data may be lost",
                 main->mixar_versionfile,
                 main->mixar_subversionfile);
   }

@@ -24,7 +24,7 @@ MODALS = ("result = sorted({op.bl_idname for w in bpy.context.window_manager.win
 
 
 def mixie_turn(qa):
-    """Start a Mixie Agent turn on the shown tab, as the chat does."""
+    """Start a Lampway Agent turn on the shown tab, as the chat does."""
     qa.eval("from mixar.modules.space_mixie_chat.core.session import get_session_manager\n"
             "from mixar.modules.space_mixie_chat.constants import SessionState\n"
             "scene = bpy.context.window.scene\n"

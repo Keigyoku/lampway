@@ -34,7 +34,7 @@ CONFIG_SRC = REPO_ROOT / "src" / "scripts" / "mixar" / "config" / "config.py"
 def paths(tmp_path, monkeypatch):
     """Isolated bundled + user config roots, mirrored onto the bpy stubs."""
     install_root = tmp_path / "install"
-    user_root = tmp_path / "user" / "mixar"
+    user_root = tmp_path / "user" / "lampway"
     (install_root / "config").mkdir(parents=True)
     user_root.mkdir(parents=True)
 
@@ -47,7 +47,7 @@ def paths(tmp_path, monkeypatch):
     monkeypatch.setattr(cfg, "_user_overrides", {})
 
     bundled = install_root / "config" / "mixar.json"
-    overlay = user_root / "mixar.json"
+    overlay = user_root / "lampway.json"
     return bundled, overlay
 
 
@@ -99,7 +99,7 @@ class TestWritesGoToTheUserOverlay:
         bundled, overlay = paths
         _write(bundled, BUNDLED)
         cfg.add_config("ui_mode", cfg.UI_MODE_PRO)
-        assert sorted(p.name for p in overlay.parent.iterdir()) == ["mixar.json"]
+        assert sorted(p.name for p in overlay.parent.iterdir()) == ["lampway.json"]
 
 
 class TestReadsMergeOverlayOverBundled:

@@ -421,7 +421,7 @@ void MIXIE_OT_moodboard_attachment_flight(wmOperatorType *ot)
 {
   ot->name = "Animate Moodboard Attachment";
   ot->idname = "MIXIE_OT_moodboard_attachment_flight";
-  ot->description = "Show a newly attached reference flying into Mixie Chat";
+  ot->description = "Show a newly attached reference flying into Lampway Chat";
   ot->exec = start_flight;
   ot->flag = OPTYPE_INTERNAL;
   RNA_def_property_flag(RNA_def_string(ot->srna, "image_name", nullptr, 0, "Image", ""),

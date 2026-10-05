@@ -72,7 +72,7 @@ def test_new_tab_is_made_by_the_drawer_path_and_gets_a_session(tabs):
 
 def test_switch_needs_one_matching_tab(tabs):
     assert scene_tabs.switch_scene("sess-pool")["name"] == "Pool"
-    with pytest.raises(UIError, match="mixar_scenes"):
+    with pytest.raises(UIError, match="lampway_scenes"):
         scene_tabs.switch_scene("sess-missing")
 
 

@@ -100,7 +100,7 @@ def test_svgs_are_marked_placeholders():
         if not rel.endswith(".svg"):
             continue
         text = (ROOT / rel).read_text(encoding="utf-8")
-        assert PLACEHOLDER_MARK in text, rel
+        assert PLACEHOLDER_MARK in text or "Lampway app icon" in text, rel   # the app-icon files are the brand tile now
         assert "SPDX-License-Identifier: GPL-3.0-or-later" in text, rel
         assert "<svg" in text
     sheet = (ROOT / "src/release/datafiles/mixar_icons.svg").read_text(encoding="utf-8")

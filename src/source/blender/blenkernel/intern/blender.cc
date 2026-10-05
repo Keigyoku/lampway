@@ -123,7 +123,7 @@ static void blender_version_init()
     version_cycle_compact = "";
   }
   else {
-    BLI_assert_msg(0, "Invalid Mixar version cycle");
+    BLI_assert_msg(0, "Invalid Lampway version cycle");
   }
 
   const char *version_suffix = BKE_blender_version_is_lts() ? " LTS" : "";

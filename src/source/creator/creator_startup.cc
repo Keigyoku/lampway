@@ -477,7 +477,7 @@ static bool exchange_desktop_code(const char* code, const char* code_verifier) {
         return false;
     }
 
-    HINTERNET hSession = WinHttpOpen(L"MixarDesktop/1.0",
+    HINTERNET hSession = WinHttpOpen(L"LampwayDesktop/1.0",
                                      WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
                                      WINHTTP_NO_PROXY_NAME,
                                      WINHTTP_NO_PROXY_BYPASS, 0);
@@ -979,7 +979,7 @@ bool show_startup_dialog(void) {
     HWND hDlg = CreateWindowEx(
         WS_EX_DLGMODALFRAME,
         className,
-        "Mixar Login",
+        "Lampway Login",
         WS_POPUP | WS_CAPTION | WS_SYSMENU,
         x, y, dialogWidth, dialogHeight,
         NULL, NULL, GetModuleHandle(NULL), &loginData

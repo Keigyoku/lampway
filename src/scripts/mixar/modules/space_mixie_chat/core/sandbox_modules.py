@@ -24,6 +24,7 @@ Blocked capabilities:
 
 import builtins
 import types
+from mixar.config.brand import env as lampway_env
 
 try:
     from . import sandbox_paths
@@ -307,7 +308,7 @@ def _allowed_asset_hosts():
     local asset server works). Env-overridable with MIXAR_ASSET_HOSTS."""
     import os
     from mixar.config.brand import DEFAULT_ASSET_HOSTS
-    raw = os.environ.get("MIXAR_ASSET_HOSTS", ",".join(DEFAULT_ASSET_HOSTS))
+    raw = lampway_env("ASSET_HOSTS", ",".join(DEFAULT_ASSET_HOSTS))
     return tuple(h.strip().lower() for h in raw.split(",") if h.strip())
 
 

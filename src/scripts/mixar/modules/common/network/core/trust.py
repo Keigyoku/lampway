@@ -38,9 +38,9 @@ of the root set (additive, never replacing):
 * ``MIXAR_EXTRA_CA_CERTS`` — ``os.pathsep``-separated files or folders;
 * ``network.extra_ca_certs`` in ``mixar.json`` — a string or a list;
 * every ``.pem`` / ``.crt`` / ``.cer`` / ``.der`` file in the per-user drop
-  folder ``<user config>/mixar/certs`` and the machine-wide folder
-  (``/Library/Application Support/Mixar/certs``, ``%ProgramData%\\Mixar\\certs``
-  or ``/etc/mixar/certs``).
+  folder ``<user config>/lampway/certs`` and the machine-wide folder
+  (``/Library/Application Support/Lampway/certs``, ``%ProgramData%\\Lampway\\certs``
+  or ``/etc/lampway/certs``).
 
 PEM and DER encodings are both accepted. The certificates are attached by
 patching ``ssl.SSLContext`` construction so every context created afterwards
@@ -84,6 +84,7 @@ from ..constants import (
     USER_CERTS_DIRNAME,
     USER_CERTS_SUBDIR,
 )
+from mixar.config.brand import env_get
 
 logger = get_logger(__name__)
 
@@ -194,7 +195,7 @@ def resolve_ca_bundle_override(
     environ: MutableMapping[str, str],
 ) -> tuple[str, str]:
     """Return ``(path, source)`` of an explicit bundle, or ``("", "")``."""
-    explicit = (environ.get(ENV_CA_BUNDLE) or "").strip()
+    explicit = (env_get(ENV_CA_BUNDLE, None, environ) or "").strip()
     if explicit:
         return explicit, SOURCE_ENV_MIXAR
     configured = _config_bundle(config_getter)
@@ -291,7 +292,7 @@ def _truststore_version() -> str:
 
 
 def user_certs_dir() -> str:
-    """``<user config>/mixar/certs``: the per-user drop folder. Empty outside Blender."""
+    """``<user config>/lampway/certs``: the per-user drop folder. Empty outside Blender."""
     try:
         import bpy
 
@@ -366,7 +367,7 @@ def collect_extra_ca_certs(
     sources (environment, config) are always consulted.
     """
     explicit: list[tuple[str, str]] = []
-    for raw in (environ.get(ENV_EXTRA_CA_CERTS) or "").split(os.pathsep):
+    for raw in (env_get(ENV_EXTRA_CA_CERTS, None, environ) or "").split(os.pathsep):
         if raw.strip():
             explicit.append((raw.strip(), SOURCE_ENV_EXTRA))
     for raw in _config_extra_certs(config_getter):

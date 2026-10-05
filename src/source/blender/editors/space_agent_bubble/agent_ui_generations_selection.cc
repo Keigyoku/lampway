@@ -170,7 +170,7 @@ void agent_ui_generations_detail_multi(ui::Block *block,
   float cy = title_top - frame.font_title - frame.block_gap - frame.font_desc * 0.5f;
   const std::pair<int, const char *> rows[] = {
       {counts.images, "image"}, {counts.videos, "video"}, {counts.assets, "3D asset"},
-      {counts.other, "item already in Mixar"}};
+      {counts.other, "item already in Lampway"}};
   for (const auto &[n, noun] : rows) {
     if (n == 0) {
       continue;

@@ -54,6 +54,7 @@ from .workspace import (
     workspace_addons,
 )
 from .workspace_service import WorkspaceServiceMixin
+from mixar.config.paths import app_home
 
 _LEASE_TTL_SECONDS = 24 * 60 * 60
 
@@ -468,12 +469,12 @@ _service = None
 def _default_storage_dir() -> Path:
     try:
         import bpy
-        configured = bpy.utils.user_resource("CONFIG", path="mixar/addon_projects", create=True)
+        configured = bpy.utils.user_resource("CONFIG", path="lampway/addon_projects", create=True)
         if configured:
             return Path(configured)
     except Exception:
         pass
-    return Path.home() / ".mixar" / "addon_projects"
+    return app_home() / "addon_projects"
 
 
 def get_addon_project_service() -> AddonProjectService:

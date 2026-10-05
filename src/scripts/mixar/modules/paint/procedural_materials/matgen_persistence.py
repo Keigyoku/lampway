@@ -16,7 +16,7 @@ from .material_registry import ProceduralMaterial
 
 def _get_matgen_paths():
     """(directory of material scripts, catalog json path)."""
-    base = bpy.utils.user_resource("DATAFILES", path="mixar", create=True)
+    base = bpy.utils.user_resource("DATAFILES", path="lampway", create=True)
     return os.path.join(base, "matgen"), os.path.join(base, "matgen_catalog.json")
 
 

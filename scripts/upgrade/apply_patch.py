@@ -556,7 +556,7 @@ class PatchApplier:
         try:
             print()
             print(f"{Colors.CYAN}{'='*70}{Colors.NC}")
-            print(f"{Colors.CYAN}{Colors.BOLD}{'Mixar Patch Applicator (3-way merge)'.center(70)}{Colors.NC}")
+            print(f"{Colors.CYAN}{Colors.BOLD}{'Lampway Patch Applicator (3-way merge)'.center(70)}{Colors.NC}")
             print(f"{Colors.CYAN}{'='*70}{Colors.NC}")
             print()
 

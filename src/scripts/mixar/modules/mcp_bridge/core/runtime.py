@@ -30,7 +30,7 @@ def enabled():
 
 
 def ui_control_enabled():
-    """Opt-in: AI apps may observe and drive Mixar's interface (mixar_ui_observe/act/wait)."""
+    """Opt-in: AI apps may observe and drive Mixar's interface (lampway_ui_observe/act/wait)."""
     return enabled() and get_config().get("mcp_ui_control") is True
 
 

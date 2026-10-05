@@ -44,8 +44,8 @@ UI_MODE_PRO = "pro"
 _UI_MODES = (UI_MODE_AI, UI_MODE_PRO)
 
 # Sub-folder of Blender's per-user CONFIG resource that holds the overlay.
-USER_CONFIG_SUBDIR = 'mixar'
-USER_CONFIG_FILENAME = 'mixar.json'
+USER_CONFIG_SUBDIR = 'lampway'
+USER_CONFIG_FILENAME = 'lampway.json'
 
 # Exclusive-create attempts before a temp-file name collision is an error.
 # Bounded on purpose (see ``_create_temp_file``).

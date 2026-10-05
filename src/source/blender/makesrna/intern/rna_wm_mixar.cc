@@ -287,7 +287,7 @@ void RNA_def_wm_mixar(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Global Areas",
-                           "Window-global areas (topbar, statusbar). Mixar extension — "
+                           "Window-global areas (topbar, statusbar). Lampway extension — "
                            "exposed so onboarding can address the topbar for redraw.");
 
   {
@@ -430,7 +430,7 @@ void RNA_def_wm_mixar(BlenderRNA *brna)
         prop,
         "QA UI Dump",
         "JSON snapshot of all live UI widgets (labels, operators, properties, "
-        "window-space rects, state) for the Mixar QA harness");
+        "window-space rects, state) for the Lampway QA harness");
 
     /* Timers and modal handlers also run from inside the OS resize callback
      * (see wm_window.cc). A viewport render there crashes macOS. */

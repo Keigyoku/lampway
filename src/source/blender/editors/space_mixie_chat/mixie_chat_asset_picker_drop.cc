@@ -117,7 +117,7 @@ void mixie_chat_asset_pick_dropboxes()
   /* The map every View3D main region carries (space_view3d.cc), shared with
    * the moodboard's own View3D drops; found-or-created, so registration
    * order between the spacetypes does not matter. */
-  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Mixie", SPACE_MIXIE, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Lampway", SPACE_MIXIE, RGN_TYPE_WINDOW);
   WM_dropbox_add(lb,
                  "MIXIE_CHAT_OT_drop_asset_pick",
                  asset_pick_drop_poll,

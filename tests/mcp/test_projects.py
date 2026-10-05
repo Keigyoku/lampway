@@ -99,7 +99,7 @@ def test_work_in_progress_and_unknown_ids_refuse_before_anything_loads(mixar):
     mixar.busy = "generation jobs are still running and would import into a scene that closes"
     with pytest.raises(UIError, match="generation jobs"):
         projects.preflight({"project": project_id(mixar, "Castle Lake")})
-    with pytest.raises(UIError, match="mixar_projects"):
+    with pytest.raises(UIError, match="lampway_projects"):
         projects.preflight({"project": "0" * 16})
     assert mixar.opened == []
 

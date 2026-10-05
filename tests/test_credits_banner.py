@@ -165,15 +165,13 @@ def test_a_completed_slide_opens_wherever_the_pointer_is_released():
     assert "choose(C, *state, TARGET_CREATOR);" in release[:release.index("state->returning = true;")]
 
 
-def test_creator_program_link_matches_the_help_menu():
+def test_mixar_commerce_links_are_gone():
+    """The Creator Program and referral pages are another company's; Lampway has neither row nor destination."""
     from mixar.modules.common.notifications import constants as C
 
     help_menu = (ROOT / "src/scripts/startup/bl_ui/space_topbar.py").read_text()
-    # The Help menu builds the same link from the one website constant.
-    from mixar.config.brand import website_url
-    assert C.CREDITS_BANNER_CREATOR_URL == website_url("/creator-program")
-    assert 'website_url("/creator-program")' in help_menu
-    assert C.CREDITS_BANNER_REFERRAL_URL == website_url("/app/referrals")
+    assert "creator-program" not in help_menu and "Creator Program" not in help_menu
+    assert not hasattr(C, "CREDITS_BANNER_CREATOR_URL") and not hasattr(C, "CREDITS_BANNER_REFERRAL_URL")
 
 
 def test_native_operator_is_registered_and_built():

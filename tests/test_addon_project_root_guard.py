@@ -76,7 +76,7 @@ def env(tmp_path, monkeypatch, set_addon_projects_root):
 
 
 def _manifest_file(root):
-    return root / ".mixar" / "addon-project.json"
+    return root / ".lampway" / "addon-project.json"
 
 
 def test_umbrella_root_init_never_becomes_the_entrypoint(env):
@@ -315,7 +315,7 @@ def test_never_stamped_standalone_root_folder_is_never_healed(tmp_path, env):
     assert is_link(_symlink)
     assert env.stub.disable_calls == []
     manifest = json.loads(
-        (project / ".mixar" / "addon-project.json").read_text(encoding="utf-8")
+        (project / ".lampway" / "addon-project.json").read_text(encoding="utf-8")
     )
     assert manifest.get("workspace", False) is False
 

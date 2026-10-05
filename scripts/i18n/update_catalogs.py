@@ -31,7 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from i18n_common import SPARSE_CATALOGS, load_runtime_package  # noqa: E402
 
-TEAM = "Mixar (machine-translated, native review welcome)"
+TEAM = "Lampway (machine-translated, native review welcome)"
 # REUSE metadata in every catalog's header comment (``reuse lint`` runs on PRs).
 # REUSE-IgnoreStart
 SPDX = ["SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited",
@@ -41,15 +41,15 @@ SPDX = ["SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited",
 
 def language_header(po, code: str, name: str):
     return po.PoEntry(msgid="", msgstr=(
-        "Project-Id-Version: Mixar\n"
+        "Project-Id-Version: Lampway\n"
         f"Language-Team: {TEAM}\n"
         f"Language: {code}\n"
         "MIME-Version: 1.0\n"
         "Content-Type: text/plain; charset=UTF-8\n"
         "Content-Transfer-Encoding: 8bit\n"
         f"X-Mixar-Language-Name: {name}\n"
-    ), comments=["Mixar interface translations.",
-                 "This file is distributed under the same license as the Mixar package.",
+    ), comments=["Lampway interface translations.",
+                 "This file is distributed under the same license as the Lampway package.",
                  "", *SPDX])
 
 

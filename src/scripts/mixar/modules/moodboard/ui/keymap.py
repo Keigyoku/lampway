@@ -125,11 +125,11 @@ def register():
 
     if kc:
         # Get existing MIXIE space keymap (created by C++ code as "Mixie")
-        km = kc.keymaps.find(name='Mixie', space_type='MIXIE')
+        km = kc.keymaps.find(name='Lampway', space_type='MIXIE')
 
         # If not found in addon config, try to create it
         if not km:
-            km = kc.keymaps.new(name='Mixie', space_type='MIXIE')
+            km = kc.keymaps.new(name='Lampway', space_type='MIXIE')
 
         _bind_moodboard_pointer(km)
 

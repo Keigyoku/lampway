@@ -221,14 +221,14 @@ void BKE_appdir_folder_caches(char *path, const size_t path_maxncpy)
   BLI_path_join(path,
                 path_maxncpy,
                 caches_root_path->c_str(),
-                "Mixar",
-                "Mixar",
+                "Lampway",
+                "Lampway",
                 "Cache",
                 SEP_STR);
 #elif defined(__APPLE__)
-  BLI_path_join(path, path_maxncpy, caches_root_path->c_str(), "Mixar", SEP_STR);
+  BLI_path_join(path, path_maxncpy, caches_root_path->c_str(), "Lampway", SEP_STR);
 #else /* __linux__ */
-  BLI_path_join(path, path_maxncpy, caches_root_path->c_str(), "mixar", SEP_STR);
+  BLI_path_join(path, path_maxncpy, caches_root_path->c_str(), "lampway", SEP_STR);
 #endif
 }
 

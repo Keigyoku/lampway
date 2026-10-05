@@ -118,11 +118,11 @@ def pack_still_image(source_path: str, *, display_name: str = ""):
 
 def _generated_video_directory() -> str:
     path = bpy.utils.user_resource(
-        'DATAFILES', path="mixar/generated_videos", create=True,
+        'DATAFILES', path="lampway/generated_videos", create=True,
     )
     if not path:
         path = os.path.join(
-            bpy.utils.user_resource('CONFIG'), "mixar", "generated_videos",
+            bpy.utils.user_resource('CONFIG'), "lampway", "generated_videos",
         )
         os.makedirs(path, exist_ok=True)
     return path

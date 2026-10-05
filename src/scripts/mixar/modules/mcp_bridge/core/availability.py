@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
 # SPDX-License-Identifier: GPL-2.0-or-later
-"""Which backend tools an MCP session lists, and the status mixar_ui_context reports.
+"""Which backend tools an MCP session lists, and the status lampway_ui_context reports.
 
 An AI app asks for tools once, when it connects. Every tool is listed up front:
 the live backend list when Mixar is ready, otherwise the copy the app saved
 while signed in (tool_snapshot). Nothing waits for Mixar. A call made before
 Mixar is ready returns why (sign in, connecting, not open) and the agent tries
-again; mixar_ui_context reports the same as ``scene_tools`` + ``next_step``.
+again; lampway_ui_context reports the same as ``scene_tools`` + ``next_step``.
 """
 
 import asyncio
@@ -15,7 +15,7 @@ from . import tool_snapshot
 
 CATALOG_TIMEOUT_SECONDS = 7
 
-RECONNECT = ("ask the user to reconnect the Lampway MCP server (Claude Code: /mcp, then reconnect mixar; "
+RECONNECT = ("ask the user to reconnect the Lampway MCP server (Claude Code: /mcp, then reconnect lampway; "
              "Codex: start a new session)")
 NEXT_STEPS = {
     "available": "",
@@ -24,8 +24,8 @@ NEXT_STEPS = {
     "starting": "Lampway is starting; wait a moment and try again.",
     "absent": "Lampway is not open; ask the user to open Lampway and sign in, then try again.",
     "connecting": "Lampway is signed in but still connecting to its server; wait a moment and try again.",
-    "choose": "Several Lampway apps are open; call mixar_ui_context with one of their instance ids.",
-    "closed": "The Lampway app this connection used was closed; call mixar_ui_context to choose a running one.",
+    "choose": "Several Lampway apps are open; call lampway_ui_context with one of their instance ids.",
+    "closed": "The Lampway app this connection used was closed; call lampway_ui_context to choose a running one.",
 }
 
 

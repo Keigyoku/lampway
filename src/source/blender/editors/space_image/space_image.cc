@@ -1483,7 +1483,7 @@ void ED_spacetype_image()
   image_buttons_register(art);
 
   /* regions: Mixar UV properties (dedicated sidebar) */
-  art = MEM_new_zeroed<ARegionType>("spacetype image mixar uv region");
+  art = MEM_new_zeroed<ARegionType>("spacetype image lampway uv region");
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;

@@ -311,7 +311,7 @@ TEMP_IMAGE_DIR_PREFIX = "mixar_img_"
 def filename_from_url(url: str) -> str:
     """Extract the file name from a (presigned) URL's path.
 
-    ``https://s3/.../red-dragon_a1b2_01.png?X-Amz-...`` -> ``red-dragon_a1b2_01.png``.
+    ``https://example.com/.../red-dragon_a1b2_01.png?X-Amz-...`` -> ``red-dragon_a1b2_01.png``.
     Sanitized for the local filesystem; returns "" when the URL has no usable
     path component (caller falls back to an anonymous temp name).
     """

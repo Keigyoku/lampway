@@ -222,7 +222,7 @@ void agent_ui_generations_draw(const bContext *C,
     set_enum(rail_rect[i],
              "window_manager.mixar_generations_source",
              rail[i].value,
-             (i == 0) ? TIP_("Everything Mixar has generated") :
+             (i == 0) ? TIP_("Everything Lampway has generated") :
                         TIP_("Your connected folders: images, videos and 3D assets"));
   }
   agent_ui_generations_libraries(C, block, frame, data);

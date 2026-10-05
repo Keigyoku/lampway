@@ -65,7 +65,7 @@ def test_custom_bundle_from_mixar_env_replaces_os_store(fake_truststore, not_lin
     env = {"MIXAR_CA_BUNDLE": str(bundle)}
     report = install_trust_store(lambda: {"network": {"ca_bundle": "/ignored.pem"}}, env, force=True)
     assert report.mode == TRUST_MODE_BUNDLE
-    assert report.source == "env:MIXAR_CA_BUNDLE"
+    assert report.source == "env:LAMPWAY_CA_BUNDLE"
     assert fake_truststore == []  # explicit bundle => plain OpenSSL verification
     for name in CA_BUNDLE_ENV_VARS:
         assert env[name] == str(bundle)

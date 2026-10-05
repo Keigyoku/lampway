@@ -45,9 +45,9 @@ def kr(tmp_path, monkeypatch):
 
 
 def test_set_get_round_trip_and_survives_a_new_instance(kr, tmp_path):
-    kr.set_password("MixarSafeStorage", "AccessToken", "tok-a")
-    assert kr.get_password("MixarSafeStorage", "AccessToken") == "tok-a"
-    assert keyring_file.FileKeyring().get_password("MixarSafeStorage", "AccessToken") == "tok-a"
+    kr.set_password("LampwaySafeStorage", "AccessToken", "tok-a")
+    assert kr.get_password("LampwaySafeStorage", "AccessToken") == "tok-a"
+    assert keyring_file.FileKeyring().get_password("LampwaySafeStorage", "AccessToken") == "tok-a"
 
 
 def test_missing_entry_is_none(kr):
@@ -96,5 +96,5 @@ def test_it_is_a_usable_keyring_backend_by_dotted_name(tmp_path, monkeypatch, re
     monkeypatch.setenv("PYTHON_KEYRING_BACKEND", "mixar.modules.lampway_tools.keyring_file.FileKeyring")
     import keyring
     keyring.core.init_backend()
-    keyring.set_password("MixarSafeStorage", "RefreshToken", "r1")
-    assert keyring.get_password("MixarSafeStorage", "RefreshToken") == "r1"
+    keyring.set_password("LampwaySafeStorage", "RefreshToken", "r1")
+    assert keyring.get_password("LampwaySafeStorage", "RefreshToken") == "r1"

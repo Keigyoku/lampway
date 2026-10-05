@@ -15,26 +15,27 @@ from __future__ import annotations
 import os
 import re
 import tempfile
+from mixar.config.brand import env as lampway_env
 
 _SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,120}$")
 
 
 def cache_root() -> str:
     """Per-user Mixar data directory (created)."""
-    override = os.environ.get("MIXAR_AGENT_CACHE_DIR")
+    override = lampway_env("AGENT_CACHE_DIR")
     if override:
         os.makedirs(override, exist_ok=True)
         return override
     try:
         import bpy
 
-        path = bpy.utils.user_resource("DATAFILES", path="mixar", create=True)
+        path = bpy.utils.user_resource("DATAFILES", path="lampway", create=True)
         if isinstance(path, str) and path:
             os.makedirs(path, exist_ok=True)
             return path
     except Exception:
         pass
-    path = os.path.join(tempfile.gettempdir(), "mixar")
+    path = os.path.join(tempfile.gettempdir(), "lampway")
     os.makedirs(path, exist_ok=True)
     return path
 

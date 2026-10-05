@@ -2889,7 +2889,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
   switch (val) {
     case EVT_FILESELECT_FULL_OPEN: {
       ScrArea *area = ED_screen_temp_space_open(
-          C, IFACE_("Mixar File View"), SPACE_FILE, U.filebrowser_display_type, true);
+          C, IFACE_("Lampway File View"), SPACE_FILE, U.filebrowser_display_type, true);
       if (!area) {
         BKE_report(&wm->runtime->reports, RPT_ERROR, "Failed to open file browser!");
         return WM_HANDLER_BREAK;

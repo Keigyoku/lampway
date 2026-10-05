@@ -75,7 +75,7 @@ def _gate():
 def _target(session: str):
     matches = [scene for scene in _ops().real_scenes() if getattr(scene, "mixie_session_id", "") == session]
     if len(matches) != 1:
-        raise UIError("scene_unavailable", "No single scene tab has that session; list them with mixar_scenes")
+        raise UIError("scene_unavailable", "No single scene tab has that session; list them with lampway_scenes")
     return matches[0]
 
 

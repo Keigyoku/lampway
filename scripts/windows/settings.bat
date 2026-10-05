@@ -3,7 +3,7 @@ REM
 REM SPDX-License-Identifier: GPL-2.0-or-later
 
 @echo off
-REM Mixar Application Settings for Windows
+REM Application settings for Windows
 REM Source this file in batch scripts that need these settings
 REM
 REM Configuration priority:
@@ -44,9 +44,9 @@ REM App info (constants). Executable and bundle ids stay as upstream named them.
 if not defined MIXAR_VERSION_PATCH set "MIXAR_VERSION_PATCH=0"
 if not defined MIXAR_APP_NAME set "MIXAR_APP_NAME=Lampway"
 if not defined MIXAR_EXECUTABLE_NAME set "MIXAR_EXECUTABLE_NAME=mixar"
-if not defined MIXAR_DESCRIPTION set "MIXAR_DESCRIPTION=AI-assisted 3D content creation (a fork of the GPL Mixar client)"
+if not defined MIXAR_DESCRIPTION set "MIXAR_DESCRIPTION=AI-assisted 3D content creation (an independent fork of a GPL client)"
 if not defined MIXAR_VENDOR set "MIXAR_VENDOR=Lampway"
-if not defined MIXAR_WEBSITE set "MIXAR_WEBSITE=https://lampway.app"
+if not defined MIXAR_WEBSITE set "MIXAR_WEBSITE=https://lampway.dev"
 
 REM Bundle settings (constants)
 if not defined MIXAR_BUNDLE_IDENTIFIER set "MIXAR_BUNDLE_IDENTIFIER=com.mixar.mixar"

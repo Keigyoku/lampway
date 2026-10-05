@@ -122,7 +122,7 @@ class Connector:
                         raise RuntimeError("Lampway is not open, and no installed Lampway could be started" if start
                                            else "Lampway is not open")
                 raise RuntimeError("Lampway is starting or unavailable" if not candidates else
-                                   "Several Lampway applications are open; select an instance through mixar_ui_context")
+                                   "Several Lampway applications are open; select an instance through lampway_ui_context")
             self.record, health = candidates[0]
             # Once bound, losing the process must not select another open project.
             self.instance = self.record["instance_id"]
@@ -178,8 +178,8 @@ class Connector:
                          for record, health in live)
         return ("The Lampway app this connection used was closed, and its scene is not open in the running app "
                 "(it may not have been saved). Open now: " + apps + ". To continue there, call "
-                "mixar_ui_context with that instance, then mixar_scenes to pick a scene tab or "
-                "mixar_scene_new; inspect the scene before editing.")
+                "lampway_ui_context with that instance, then lampway_scenes to pick a scene tab or "
+                "lampway_scene_new; inspect the scene before editing.")
 
     def call(self, name, arguments, call_id):
         record, health = self.attach(start=True)

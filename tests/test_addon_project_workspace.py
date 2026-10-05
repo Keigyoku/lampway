@@ -66,7 +66,7 @@ def test_first_send_links_an_existing_preference_root_silently(
     assert link_operators.ensure_addon_project_ready(recorder) is True
     assert recorder.reports == []
     manifest = json.loads(
-        (root / ".mixar" / "addon-project.json").read_text(encoding="utf-8")
+        (root / ".lampway" / "addon-project.json").read_text(encoding="utf-8")
     )
     assert manifest["entrypoint"] == ""
     assert link_operators.bpy.context.scene.mixie_addon_project_id == (
@@ -132,7 +132,7 @@ def test_selection_moves_entrypoint_without_relinking(service, workspace):
     assert after["project_id"] == description["project_id"]
     assert after["entrypoint"] == "ws_second_addon"
     manifest = json.loads(
-        (workspace / ".mixar" / "addon-project.json").read_text(encoding="utf-8")
+        (workspace / ".lampway" / "addon-project.json").read_text(encoding="utf-8")
     )
     assert manifest["entrypoint"] == "ws_second_addon"
 

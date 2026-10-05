@@ -482,7 +482,7 @@ def register():
     milliseconds per frame so Blender's event loop stays responsive throughout.
     """
     global _ui_modules_path, _ui_queue_index, _ui_loading_complete, _UI_BATCH_BUDGET_MS
-    logger.debug("Registering Mixar modular system")
+    logger.debug("Registering Lampway modular system")
 
     try:
         import bpy
@@ -563,16 +563,16 @@ def register():
         except Exception as e:
             logger.warning("Failed to start API infrastructure: %s", e)
 
-        logger.debug("Mixar registration started (UI loading deferred)")
+        logger.debug("Lampway registration started (UI loading deferred)")
 
     except Exception as e:
-        logger.error("Failed to register Mixar system: %s", e, exc_info=True)
+        logger.error("Failed to register Lampway system: %s", e, exc_info=True)
 
 
 def unregister():
     """Unregister all Mixar modules"""
     global _ui_loading_complete, _ui_queue_index
-    logger.debug("Unregistering Mixar modular system")
+    logger.debug("Unregistering Lampway modular system")
 
     try:
         # 0a. Cancel deferred UI loading timer if still running
@@ -665,10 +665,10 @@ def unregister():
         _loaded_bootstrap_modules.clear()
         _loaded_ui_modules.clear()
 
-        logger.debug("Mixar modular system unregistration completed")
+        logger.debug("Lampway modular system unregistration completed")
 
     except Exception as e:
-        logger.error("Error during Mixar system unregistration: %s", e)
+        logger.error("Error during Lampway system unregistration: %s", e)
 
 
 # Export classes for Blender registration system
