@@ -6,8 +6,14 @@
 # lampway: the one command. Starts our server on localhost, starts Lampway pointed at it with the tools and the live bridge
 # enabled, opens a given .blend, and stops the server it started when the app exits.
 #
-#   lampway [--env Dev|Prod] [--copy] [--provider mock|anthropic|openai|chatgpt_plan|codex_cli|claude_cli]
+#   lampway [--env Dev|Prod] [--copy] [--provider mock|anthropic|openai|openrouter|chatgpt_plan|codex_cli|claude_cli]
+#           [--openrouter-key-file F] [--budget USD] [--image-backend tripo|codex_cli|openrouter]
 #           [--port 8787] [--bridge-port 9876] [--no-server] [--system-keyring] [--plan] [file.blend]
+#
+# OpenRouter: the key is never an argument and never printed. Give it as OPENROUTER_API_KEY in the environment, or point
+# --openrouter-key-file at a file holding OPENROUTER_API_KEY=... (a dotenv file). --budget is the session spend ceiling in USD
+# (default 3): every request carries a token cap, and past the ceiling every OpenRouter call is refused. Each launch starts a
+# fresh spend log (the old one is kept as openrouter_spend.jsonl.prev).
 #   lampway --install-desktop | --uninstall-desktop      the app-menu entry (lampway.desktop); it runs this same command
 #
 # --copy opens a COPY of the .blend (under <home>/copies); your file is never opened for saving.
@@ -21,6 +27,7 @@ HOME_DIR="${LAMPWAY_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/lampway}"
 
 BUILD_ENV=""; COPY=0; PROVIDER="${LAMPWAY_PROVIDER:-mock}"; PORT="${LAMPWAY_SERVER_PORT:-8787}"; BRIDGE_PORT="${LAMPWAY_BRIDGE_PORT:-9876}"
 NO_SERVER=0; SYSTEM_KEYRING=0; PLAN=0; ACTION=run; BLEND=""
+KEY_FILE="${LAMPWAY_OPENROUTER_KEY_FILE:-}"; BUDGET="${LAMPWAY_OPENROUTER_BUDGET_USD:-3}"; IMAGE_BACKEND="${LAMPWAY_IMAGE_BACKEND:-}"
 refuse() { echo "error: $1"; shift; if [ $# -gt 0 ]; then echo "help[$#]:"; for h in "$@"; do echo "  - $h"; done; fi; exit 1; }
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -29,6 +36,9 @@ while [ $# -gt 0 ]; do
     --provider) PROVIDER="${2:?--provider needs a name}"; shift 2 ;;
     --port) PORT="${2:?--port needs a number}"; shift 2 ;;
     --bridge-port) BRIDGE_PORT="${2:?--bridge-port needs a number (0 = off)}"; shift 2 ;;
+    --openrouter-key-file) KEY_FILE="${2:?--openrouter-key-file needs a path}"; shift 2 ;;
+    --budget) BUDGET="${2:?--budget needs a number of USD}"; shift 2 ;;
+    --image-backend) IMAGE_BACKEND="${2:?--image-backend needs tripo, codex_cli or openrouter}"; shift 2 ;;
     --no-server) NO_SERVER=1; shift ;;
     --system-keyring) SYSTEM_KEYRING=1; shift ;;
     --plan) PLAN=1; shift ;;
@@ -54,7 +64,13 @@ fi
 if [ "$PLAN" = 1 ]; then
   echo "bin: $0"; echo "description: Starts the Lampway server and the app on localhost; opens a .blend (a copy with --copy)"
   echo "server_url: $SERVER_URL"; echo "build_env: $BUILD_ENV"; echo "binary: $BINARY"; echo "bridge_port: $BRIDGE_PORT"
-  echo "provider: $PROVIDER"; echo "home: $HOME_DIR"; echo "keyring: $([ $SYSTEM_KEYRING = 1 ] && echo system || echo file)"
+  echo "provider: $PROVIDER"
+  if [ "$PROVIDER" = openrouter ] || [ "$IMAGE_BACKEND" = openrouter ]; then
+    echo "main_model: ${LAMPWAY_OPENROUTER_MODEL:-anthropic/claude-sonnet-5.5}"; echo "swarm_model: ${LAMPWAY_OPENROUTER_SWARM_MODEL:-stealth/space-bunny-alpha}"
+    echo "image_model: ${LAMPWAY_OPENROUTER_IMAGE_MODEL:-google/gemini-3.1-flash-image}"; echo "budget_usd: $BUDGET"
+    echo "key_file: ${KEY_FILE:-none (OPENROUTER_API_KEY from the environment: $([ -n "${OPENROUTER_API_KEY:-}" ] && echo set || echo not set))}"
+  fi
+  echo "home: $HOME_DIR"; echo "keyring: $([ $SYSTEM_KEYRING = 1 ] && echo system || echo file)"
   echo "server: $([ $NO_SERVER = 1 ] && echo none || echo started-and-stopped-by-this-command)"; echo "blend: ${BLEND:-none}${BLEND:+ $([ $COPY = 1 ] && echo '(copy)' || echo '(opened directly)')}"
   exit 0
 fi
@@ -62,6 +78,11 @@ fi
 [ -x "$BINARY" ] || refuse "no build at $BINARY" "Run \`scripts/lampway/build_linux.sh\` first (MIXAR_ENV=$BUILD_ENV)"
 if [ -n "$BLEND" ] && [ ! -f "$BLEND" ]; then refuse "$BLEND not found"; fi
 
+if [ "$PROVIDER" = openrouter ] || [ "$IMAGE_BACKEND" = openrouter ]; then
+  if [ -z "${OPENROUTER_API_KEY:-}" ] && { [ -z "$KEY_FILE" ] || [ ! -r "$KEY_FILE" ]; }; then
+    refuse "no OpenRouter key" "Set OPENROUTER_API_KEY in the environment, or pass --openrouter-key-file <a file holding OPENROUTER_API_KEY=...>"
+  fi
+fi
 mkdir -p "$HOME_DIR"/{config,data,bridge,projects,server-state,copies}
 chmod 700 "$HOME_DIR" 2>/dev/null || true
 if [ -n "$BLEND" ] && [ "$COPY" = 1 ]; then
@@ -69,6 +90,13 @@ if [ -n "$BLEND" ] && [ "$COPY" = 1 ]; then
   cp -- "$BLEND" "$HOME_DIR/copies/$name-$stamp.blend" && BLEND="$HOME_DIR/copies/$name-$stamp.blend"
 fi
 
+SPEND_LOG="$HOME_DIR/server-state/openrouter_spend.jsonl"
+if [ "$PROVIDER" = openrouter ] || [ "$IMAGE_BACKEND" = openrouter ]; then
+  [ -f "$SPEND_LOG" ] && mv -f "$SPEND_LOG" "$SPEND_LOG.prev"          # a session starts with an empty ledger
+  export LAMPWAY_OPENROUTER_BUDGET_USD="$BUDGET" LAMPWAY_SPEND_LOG="$SPEND_LOG"
+  [ -n "$KEY_FILE" ] && export LAMPWAY_OPENROUTER_KEY_FILE="$KEY_FILE"
+fi
+[ -n "$IMAGE_BACKEND" ] && export LAMPWAY_IMAGE_BACKEND="$IMAGE_BACKEND"
 port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 SERVER_PID=""
 stop_server() { if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then kill "$SERVER_PID" 2>/dev/null; wait "$SERVER_PID" 2>/dev/null; fi; }

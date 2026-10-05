@@ -53,7 +53,7 @@ def tree(tmp_path):
 @pytest.fixture
 def env(tmp_path):
     port = _free_port()
-    stub = exe(tmp_path / "stub_server.sh", f'echo $$ > {tmp_path}/server.pid; echo "provider=$LAMPWAY_PROVIDER port=$LAMPWAY_PORT state=$LAMPWAY_STATE_DIR" > {tmp_path}/server.txt; exec sleep 600')
+    stub = exe(tmp_path / "stub_server.sh", f'echo $$ > {tmp_path}/server.pid; echo "provider=$LAMPWAY_PROVIDER port=$LAMPWAY_PORT state=$LAMPWAY_STATE_DIR" > {tmp_path}/server.txt; env | sort > {tmp_path}/server_env.txt; exec sleep 600')
     e = {k: v for k, v in os.environ.items() if not k.startswith(("LAMPWAY_", "MIXAR_", "DISPLAY", "WAYLAND"))}
     e.update({"LAMPWAY_HOME": str(tmp_path / "home"), "LAMPWAY_SERVER_CMD": str(stub), "LAMPWAY_SERVER_PORT": str(port),
               "LAMPWAY_SKIP_SERVER_WAIT": "1", "HOME": str(tmp_path / "userhome")})
@@ -165,3 +165,48 @@ def test_a_port_already_serving_something_else_is_refused(tree, env, tmp_path):
         assert r.returncode == 1 and "in use" in r.stdout and not (tmp_path / "app.txt").exists()
     finally:
         s.close()
+
+
+KEY = "sk-or-v1-" + "9a8b" * 16
+
+
+def test_openrouter_takes_the_key_by_file_reference_sets_the_budget_and_starts_a_fresh_spend_log(tree, env, tmp_path):
+    e, port = env
+    keyfile = tmp_path / "keys.env"
+    keyfile.write_text(f"OPENROUTER_API_KEY={KEY}\n")
+    log = tmp_path / "home/server-state/openrouter_spend.jsonl"
+    log.parent.mkdir(parents=True)
+    log.write_text('{"t": 1, "label": "old", "cost_usd": 9}\n')
+    blend = tmp_path / "scene.blend"
+    blend.write_bytes(b"x")
+    r = lampway(tree, e, "--env", "Prod", "--provider", "openrouter", "--openrouter-key-file", str(keyfile), "--budget", "2.5",
+                "--image-backend", "openrouter", str(blend))
+    assert r.returncode == 0, r.stdout + r.stderr
+    server_env = (tmp_path / "server_env.txt").read_text()
+    app = (tmp_path / "app.txt").read_text()
+    for text in (server_env, app):
+        assert f"LAMPWAY_OPENROUTER_KEY_FILE={keyfile}" in text and f"LAMPWAY_SPEND_LOG={log}" in text
+        assert "LAMPWAY_OPENROUTER_BUDGET_USD=2.5" in text
+    assert "LAMPWAY_PROVIDER=openrouter" in server_env and "LAMPWAY_IMAGE_BACKEND=openrouter" in app
+    assert not log.exists() or log.read_text() == "", "a new session starts with an empty spend log"
+    assert (log.parent / "openrouter_spend.jsonl.prev").read_text().startswith('{"t": 1')
+    for text in (r.stdout, r.stderr, server_env, app):
+        assert KEY not in text, "the key value must never appear in anything the launcher prints or exports"
+
+
+def test_openrouter_without_any_key_reference_is_refused_without_starting_anything(tree, env, tmp_path):
+    e, _ = env
+    r = lampway(tree, e, "--env", "Prod", "--provider", "openrouter")
+    assert r.returncode == 1 and "error:" in r.stdout and "OPENROUTER_API_KEY" in r.stdout
+    assert not (tmp_path / "server.pid").exists() and not (tmp_path / "app.txt").exists()
+
+
+def test_the_plan_names_the_models_and_the_budget_but_never_a_key(tree, env, tmp_path):
+    e, _ = env
+    keyfile = tmp_path / "keys.env"
+    keyfile.write_text(f"OPENROUTER_API_KEY={KEY}\n")
+    r = lampway(tree, e, "--plan", "--env", "Prod", "--provider", "openrouter", "--openrouter-key-file", str(keyfile))
+    assert r.returncode == 0, r.stdout
+    for needle in ("main_model: anthropic/claude-sonnet-5.5", "swarm_model: stealth/space-bunny-alpha", "budget_usd: 3", f"key_file: {keyfile}"):
+        assert needle in r.stdout, needle
+    assert KEY not in r.stdout
