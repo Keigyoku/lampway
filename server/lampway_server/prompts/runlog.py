@@ -2,24 +2,14 @@
 gate measurements and the captain's 1-5 rating. ``stats`` aggregates by template version; ``variant_of`` lets two versions run side by side. JSON lines,
 append-only; a rating or a gate measurement is a later line for the same job."""
 
-import json
-import threading
 import time
-from pathlib import Path
 from typing import Optional
 
-_LOCK = threading.Lock()
+from ..ledger import Ledger
 
 
-class RunLog:
-    def __init__(self, path):
-        self.path = Path(path)
-
-    def _append(self, row: dict) -> None:
-        with _LOCK:
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-            with self.path.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
+class RunLog(Ledger):
+    """The prompt run log: lines of the ONE experiment ledger (ledger.py) with kinds run / rating / gates; the experiment rows in the same file are not its concern."""
 
     def record(self, job_id: str, *, prompt: str, model: str = "", template: Optional[str] = None, variables: Optional[dict] = None, cost: Optional[float] = None,
                output: Optional[str] = None, service: str = "", variant_of: Optional[str] = None, extra: Optional[dict] = None) -> None:
@@ -36,25 +26,16 @@ class RunLog:
         self._require(job_id)
         self._append({"kind": "rating", "t": time.time(), "job_id": job_id, "rating": rating, "note": str(note)[:500]})
 
-    def _rows(self) -> list:
-        if not self.path.exists():
-            return []
-        out = []
-        for line in self.path.read_text(encoding="utf-8").splitlines():
-            try:
-                out.append(json.loads(line))
-            except ValueError:
-                continue
-        return out
-
     def _require(self, job_id: str) -> None:
-        if not any(r["kind"] == "run" and r["job_id"] == job_id for r in self._rows()):
+        if not any(r["kind"] == "run" and r["job_id"] == job_id for r in self.rows()):
             raise ValueError(f"no recorded run {job_id!r}")
 
     def runs(self, template: Optional[str] = None) -> list:
         """One merged row per job: the run plus its latest rating and gates."""
         merged: dict = {}
-        for r in self._rows():
+        for r in self.rows():
+            if r["kind"] not in ("run", "rating", "gates"):
+                continue                                   # an experiment row of the same ledger
             if r["kind"] == "run":
                 merged[r["job_id"]] = dict(r, rating=None, note="", gates={})
             elif r["job_id"] in merged:

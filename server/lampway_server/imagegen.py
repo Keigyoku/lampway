@@ -351,8 +351,9 @@ def main(argv=None) -> int:
         if rendered is not None or a.live:
             try:
                 from .prompts.runlog import RunLog
+                from .ledger import default_path
                 import uuid
-                RunLog(_state_dir() / "prompt_runs.jsonl").record(f"cli-{uuid.uuid4().hex[:10]}", prompt=Path(ST.jail(prompt_file)).read_text(encoding="utf-8") if prompt_file else "",
+                RunLog(default_path()).record(f"cli-{uuid.uuid4().hex[:10]}", prompt=Path(ST.jail(prompt_file)).read_text(encoding="utf-8") if prompt_file else "",
                                                                  model=(rendered or {}).get("model") or "", template=(rendered or {}).get("template"),
                                                                  variables=(rendered or {}).get("variables"), output=(res["files"] or [None])[0], service="image_gen")
             except Exception:  # noqa: BLE001 - the log never fails the run

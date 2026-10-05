@@ -21,6 +21,8 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Callable, Optional
 
+from .services import WIRE_KEYS, ServiceRegistry
+
 CAPABILITY_LABELS = {"image_gen": "Image generation"}
 IMAGE_PARAMETERS = {
     "number_of_images": {"type": "integer", "label": "Images", "description": "How many images to generate (one request each)",
@@ -36,6 +38,14 @@ class UnknownService(ValueError):
 
 class BadJob(ValueError):
     pass
+
+
+@dataclass
+class FilesOutput:
+    """A files-based result (a mesh, a clip, ...): the Client reads ``result.result_files[{type, url}]`` (type GLB | OBJ | FBX | VIDEO | IMAGE)."""
+    files: list                       # [(bytes, media_type, name)]
+    kind: str = "GLB"
+    extra: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -75,7 +85,8 @@ _EXT = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}
 
 
 class JobQueue:
-    def __init__(self, backends: dict, hub, base_url: str, model_labels: Optional[dict] = None, video=None, approvals=None, prompts=None):
+    def __init__(self, backends: dict, hub, base_url: str, model_labels: Optional[dict] = None, video=None, approvals=None, prompts=None, registry=None):
+        self.registry = registry if registry is not None else ServiceRegistry()           # services.py: the Client's other job types
         self.prompts = prompts            # prompts.service.PromptService: templates, rendering, the run log
         self.video = video                # videojobs.VideoSystem: video_gen / video_upscale and Higgsfield models
         self.approvals = approvals        # studios.approvals.Approvals: the captain's confirm gate (shared with the Studios)
@@ -104,6 +115,7 @@ class JobQueue:
                                          "services": [{"key": "image_gen", "surface": "moodboard", "sort_order": 1, "models": []}]})
                 capabilities[0]["services"][0]["models"].extend(extra_images)
             capabilities.extend(self.video.capabilities())
+        capabilities.extend(c for c in self.registry.capabilities() if c["key"] not in {x["key"] for x in capabilities})
         return {"capabilities": capabilities, "styles": {}, "credit_costs": {}}
 
     def chat_options(self) -> list:
@@ -114,8 +126,9 @@ class JobQueue:
     # ------------------------------------------------------------------ submit
     def submit(self, service: str, model: str, payload: dict, idempotency_key: Optional[str] = None, origin: str = "user") -> Job:
         video_job = self.video is not None and self.video.handles(service, model)
-        if service not in self.backends and not (video_job and (service in ("video_gen", "video_upscale") and self.video.available(service) or service == "image_gen")):
-            raise UnknownService(f"no backend for service {service!r}; the services are {sorted(self.backends) or 'none'}")
+        if service not in self.backends and self.registry.get(service) is None and not (video_job and (service in ("video_gen", "video_upscale") and self.video.available(service) or service == "image_gen")):
+            raise UnknownService(f"no backend for service {service!r}; the services are {sorted(set(self.backends) | set(self.registry.keys())) or 'none'}: "
+                                 "register a backend (see lampway_job_services) or pick a service from the catalog")
         payload = payload if isinstance(payload, dict) else {}
         rendered = None
         if self.prompts is not None and service in ("image_gen", "video_gen") and payload.get("template"):
@@ -168,6 +181,47 @@ class JobQueue:
                 return True
         return False
 
+    async def _run_registered(self, job: Job):
+        """A registered service: a spend service waits for the captain's click on a price first (the backend is not called before it)."""
+        svc = self.registry.get(job.service)
+        if svc.spend:
+            if self.approvals is None:
+                raise RuntimeError("this server has no approvals store: a spend service cannot be confirmed")
+            price = await asyncio.to_thread(svc.confirm_price, job.payload)
+            job.note = f"Needs the captain's confirm of {price:g} in the Studios panel before {job.service} runs."
+            a = self.approvals.propose(action="service.job", studio=job.service, label=f"{svc.row.get('label') or job.service}: {price:g}",
+                                       args={"job_id": job.job_id}, price=price, requested_by=job.origin, settings={"unit": "credits", "service": job.service})
+            if not await self._await_approval(job, a):
+                job.status = "CANCELLED"
+                job.note = "Rejected."
+                await self.push(job)
+                return None
+            job.note = ""
+            job.status = "POLLING"
+            await self.push(job)
+        return await asyncio.to_thread(svc.backend, job.model, job.payload)
+
+    def service_report(self) -> dict:
+        """What this server backs of the Client's job types (read-only; no credentials)."""
+        backed = {}
+        for key in self.registry.keys():
+            s = self.registry.get(key)
+            backed[key] = {"key": key, "available": True, "spend": s.spend, "backend": s.backend_name or getattr(s.backend, "__name__", type(s.backend).__name__),
+                           "models": [m.get("slug") for m in s.row["models"]]}
+        for key in self.backends:
+            backed.setdefault(key, {"key": key, "available": True, "spend": False, "backend": "builtin", "models": ["default"]})
+        if self.video is not None:
+            for cap in self.video.capabilities():
+                for s in cap["services"]:
+                    backed.setdefault(s["key"], {"key": s["key"], "available": True, "spend": False, "backend": "video", "models": [m["slug"] for m in s["models"]]})
+        active = {}
+        for j in self.jobs.values():
+            if j.status in ("PENDING", "POLLING"):
+                active[j.service] = active.get(j.service, 0) + 1
+        for key, row in backed.items():
+            row["queue_length"] = active.get(key, 0)
+        return {"services": [backed[k] for k in sorted(backed)], "unbacked": [k for k in WIRE_KEYS if k not in backed]}
+
     async def _run_video(self, job: Job):
         plan = await asyncio.to_thread(self.video.plan, job.service, job.model, job.payload)
         if plan["provider"] == "higgsfield":
@@ -219,9 +273,23 @@ class JobQueue:
                 out = await self._run_video(job)
                 if out is None:
                     return
+            elif job.service not in self.backends and self.registry.get(job.service) is not None:
+                out = await self._run_registered(job)
+                if out is None:
+                    return
             else:
                 out = await asyncio.to_thread(self.backends[job.service], job.model, job.payload)
             if job.status == "CANCELLED":
+                return
+            if isinstance(out, FilesOutput):
+                files = []
+                for i, (data, media_type, name) in enumerate(out.files, 1):
+                    name = name or f"{i}.bin"
+                    job.files[name] = (data, media_type)
+                    files.append({"type": out.kind, "url": f"{self.base_url}/api/v1/jobs/files/{job.token}/{name}"})
+                job.result = {"result_files": files, **out.extra}
+                job.status = "DONE"
+                await self.push(job)
                 return
             if hasattr(out, "files"):                              # a video (or a Higgsfield image): result_files, saved into the project
                 job.note = ""

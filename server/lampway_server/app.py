@@ -22,6 +22,7 @@ from .higgsfield_auth import HiggsfieldAuth
 from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
 from . import dictation, logredact, matgen, provider_prefs, videojobs
+from .ledger import Ledger, LedgerError
 from .prompts.service import PromptService
 from .prompts.library import LibraryError
 from .prompts.render import RenderError
@@ -135,7 +136,7 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None) -> Starlette:
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     provider_prefs.apply(settings, provider_prefs.load(settings.state_dir))        # the owner's saved provider choices win over the environment
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
@@ -281,15 +282,15 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     prompt_service = prompts if prompts is not None else PromptService.from_env(settings.state_dir)
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
-                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service)
+                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services)
     video_system.jobs = jobs
-    for gate_action in ("higgsfield.job", "higgsfield.question"):          # the captain's click reaches the waiting job through the Studios' confirm
+    for gate_action in ("higgsfield.job", "higgsfield.question", "service.job"):          # the captain's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
     routes += stub_routes(auth, store, settings, jobs)
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -711,12 +712,47 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             return unauthorized()
         return JSONResponse({"runs": prompt_service.runlog.runs(request.query_params.get("template"))})
 
+    # ---- the experiment ledger (ledger.py): one record of every run, the prompt run log lives in the same file
+    ledger = Ledger(prompt_service.runlog.path)
+
+    async def ledger_list(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        q = request.query_params
+        return JSONResponse({"rows": ledger.list(q.get("piece"), q.get("stage"), q.get("include_superseded") == "1")})
+
+    async def ledger_record(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        try:
+            body = await request.json()
+            return JSONResponse(await asyncio.to_thread(ledger.record, body))
+        except LedgerError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=422)
+        except ValueError:
+            return JSONResponse({"detail": "a JSON object is required"}, status_code=400)
+
+    async def ledger_compare(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        try:
+            return JSONResponse(ledger.compare([i for i in (request.query_params.get("ids") or "").split(",") if i]))
+        except LedgerError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=404)
+
+    async def ledger_receipt(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        return JSONResponse(ledger.receipt(request.query_params.get("piece") or ""))
+
     async def prompts_stats(request: Request):
         if not _bearer_ok(request):
             return unauthorized()
         return JSONResponse({"stats": prompt_service.runlog.stats(request.query_params.get("template"))})
 
-    routes += [Route("/app/prompts", prompts_list, methods=["GET"]), Route("/app/prompts", prompts_save, methods=["PUT"]),
+    routes += [Route("/app/ledger", ledger_list, methods=["GET"]), Route("/app/ledger", ledger_record, methods=["POST"]),
+               Route("/app/ledger/compare", ledger_compare, methods=["GET"]), Route("/app/ledger/receipt", ledger_receipt, methods=["GET"]),
+               Route("/app/prompts", prompts_list, methods=["GET"]), Route("/app/prompts", prompts_save, methods=["PUT"]),
                Route("/app/prompts/render", prompts_render, methods=["POST"]), Route("/app/prompts/rate", prompts_rate, methods=["POST"]),
                Route("/app/prompts/stats", prompts_stats, methods=["GET"]), Route("/app/prompts/runs", prompts_runs, methods=["GET"]),
                Route("/app/prompts/runs/{job_id}/gates", prompts_gates, methods=["POST"]),
@@ -762,6 +798,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.provider = provider
     app.state.chatgpt = chatgpt
     app.state.video = video_system
+    app.state.jobs = jobs
     app.state.prompts = prompt_service
     app.state.higgsfield_auth = hf_auth
     app.state.jobs = jobs

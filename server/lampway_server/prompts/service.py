@@ -6,6 +6,7 @@ from typing import Optional
 
 from . import render as R
 from .library import Library, LibraryError
+from ..ledger import default_path as ledger_default_path
 from .runlog import RunLog
 
 MERGE_VIDEO = ("duration", "resolution", "aspect_ratio", "image_mode", "generate_audio")
@@ -18,7 +19,7 @@ class PromptService:
 
     @classmethod
     def from_env(cls, state_dir) -> "PromptService":
-        return cls(Library.from_env(), RunLog(Path(state_dir) / "prompt_runs.jsonl"))
+        return cls(Library.from_env(), RunLog(ledger_default_path()))
 
     def render(self, template_id, variables=None, model=None, version=None) -> dict:
         return R.render(self.library, template_id, variables, model, version)
