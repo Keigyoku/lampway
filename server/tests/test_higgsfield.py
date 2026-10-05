@@ -34,17 +34,50 @@ def test_the_catalogue_is_normalised_from_models_explore(svc):
     rows = svc.models("video")
     seed = next(r for r in rows if r["id"] == "seedance1_5")
     assert seed["durations"] == [4, 8, 12] and seed["resolutions"] == ["480p", "720p", "1080p"] and seed["roles"] == ["start_image", "end_image"]
-    assert next(r for r in rows if r["id"] == "seedance_2_0")["supports_unlim"] is True
-    assert [r["id"] for r in svc.models("image")] == ["gpt_image_2_5"]
+    assert seed["supports_audio"] is True and next(r for r in rows if r["id"] == "seedance_2_0")["supports_unlim"] is True
+    assert "gpt_image_2_5" in [r["id"] for r in svc.models("image")]
     assert svc.balance() == {"plan": "plus", "credits": 623.86}
+
+
+def test_the_catalogue_follows_the_paging_cursor_to_the_end(svc, hf):
+    """models_explore pages (20 by default, has_more + next_page_token + after): the first page alone held 20 of the 53 video models."""
+    hf.max_page = 20
+    rows = svc.models("video")
+    assert len(rows) == 53 and len({r["id"] for r in rows}) == 53 and "hf_mult_motion_control" in [r["id"] for r in rows] and "kling3_0_motion_control" in [r["id"] for r in rows]
+    explores = [a for t, a in hf.calls if t == "models_explore"]
+    assert [a.get("after") for a in explores] == [None, "20", "40"] and not hf.schema_errors and all(a.get("limit") for a in explores)
+
+
+def test_the_live_catalogue_shapes_are_read(svc):
+    """parameters is a LIST of {name, options, min, max}; a duration is a list, a range or a parameter's span; wan2_6 names its resolution `quality`."""
+    by = {r["id"]: r for r in svc.models("video")}
+    assert by["seedance_2_5"]["durations"] == list(range(4, 31)) and by["cinematic_studio_3_0"]["durations"] == list(range(4, 16))
+    assert by["cinematic_studio_video"]["durations"] == [5, 10] and by["minimax_hailuo"]["durations"] == [6, 10]
+    assert by["wan2_6"]["resolutions"] == ["720p", "1080p"] and by["wan2_6"]["resolution_key"] == "quality"
+    assert by["seedance_2_5"]["resolution_key"] == "resolution" and by["video_background_remover"]["resolutions"] == []
+    assert by["kling3_0_motion_control"]["roles"] == ["image_references", "video_references"]
+
+
+def test_the_generation_tools_take_one_params_argument(svc, hf):
+    """The live schemas: generate_video / generate_image take ONE argument ``params`` holding model, prompt, duration, ..., get_cost, use_unlim. The
+    fake refuses (isError) any request the recorded schema would, so a flat call raises here exactly as it did live."""
+    svc.cost("generate_video", {"model": "seedance1_5", "prompt": "x", "duration": 8, "resolution": "720p", "generate_audio": False})
+    svc.cost("generate_image", {"model": "gpt_image_2_5", "prompt": "x", "aspect_ratio": "1:1", "count": 1})
+    sub = svc.submit("generate_video", {"model": "seedance1_5", "prompt": "x", "duration": 8})
+    assert sub["job_ids"] and hf.schema_errors == []
+    with pytest.raises(HM.ToolError, match="missing required 'params'"):
+        svc.mcp.call("generate_video", {"model": "seedance1_5", "prompt": "x"})
+    assert [t for t, _ in hf.schema_errors] == ["generate_video"]
 
 
 def test_uploads_put_the_bytes_then_confirm_and_return_a_media_id(svc, hf):
     mid = svc.upload(PNG, "image", "ref.png", "image/png")
-    assert mid.startswith("media-") and hf.puts[0][1] == PNG and hf.puts[0][0].endswith(mid)
+    assert hf.puts[0][1] == PNG and hf.puts[0][0].endswith(mid)
     tools = [c[0] for c in hf.calls]
     assert tools.index("media_upload") < tools.index("media_confirm")
-    assert hf.calls[tools.index("media_confirm")][1]["type"] == "image"
+    assert hf.calls[tools.index("media_upload")][1] == {"files": [{"filename": "ref.png", "content_type": "image/png"}]}, "media_upload has no `type`: the extension decides"
+    assert hf.calls[tools.index("media_confirm")][1] == {"type": "image", "media_ids": [mid]} and hf.media[mid]["confirmed_as"] == "image"
+    assert hf.schema_errors == []
 
 
 def test_cost_runs_get_cost_and_submits_nothing(svc, hf):
@@ -67,8 +100,7 @@ def test_motion_transfer_maps_the_character_image_and_the_driving_video_to_the_m
     img, vid = svc.upload(PNG, "image", "c.png", "image/png"), svc.upload(MP4, "video", "d.mp4", "video/mp4")
     args = svc.video_args("hf_mult_motion_control", "dance", {"duration": 5, "resolution": "720p"}, images=[img], videos=[vid])
     assert {"value": img, "role": "image_references"} in args["medias"] and {"value": vid, "role": "video_references"} in args["medias"]
-    kling = svc.motion_args(img, vid, {"resolution": "1080p", "scene_control": "video"})
-    assert kling == {"image_id": img, "motion_video_id": vid, "resolution": "1080p", "scene_control": "video"}
+    assert args["resolution"] == "720p" and args["model"] == "hf_mult_motion_control"
 
 
 def test_submit_returns_job_ids_and_wait_polls_to_the_result_urls(svc, hf):

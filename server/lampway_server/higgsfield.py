@@ -19,6 +19,9 @@ TERMINAL_OK = {"completed", "succeeded", "done", "success", "finished"}
 TERMINAL_BAD = {"failed", "error", "canceled", "cancelled", "nsfw", "rejected", "expired"}
 _URL_KEYS = ("result_url", "url", "video_url", "image_url", "output_url", "download_url")
 MAX_UPLOAD_BYTES = 250 * 1024 * 1024
+PARAMS_TOOLS = ("generate_video", "generate_image", "motion_control")      # the live schema: ONE argument, ``params`` (an object) holding everything
+PAGE = 100                                                                  # models_explore's page size cap (the default is 20)
+MAX_PAGES = 20
 
 
 class HiggsfieldError(RuntimeError):
@@ -72,26 +75,36 @@ def _url_of(row) -> Optional[str]:
     return None
 
 
+def _param_list(raw: dict) -> dict:
+    """The model's ``parameters`` (the live shape: a list of {name, type, options, min, max, default}) by name."""
+    rows = raw.get("parameters")
+    if isinstance(rows, dict):                                       # the SPEC-era shape, kept readable
+        return {k: dict(v, name=k) for k, v in rows.items() if isinstance(v, dict)}
+    return {p["name"]: p for p in rows or [] if isinstance(p, dict) and p.get("name")}
+
+
 def normalise_model(raw: dict, kind: str) -> dict:
     roles = []
     for m in raw.get("medias") or []:
         for r in (m.get("roles") if isinstance(m, dict) else []) or []:
             if r not in roles:
                 roles.append(r)
-    params = raw.get("parameters") if isinstance(raw.get("parameters"), dict) else {}
+    params = _param_list(raw)
 
-    def listed(*names):
-        for n in names:
-            v = raw.get(n)
-            if isinstance(v, list) and v:
-                return v
-            spec = params.get(n.rstrip("s")) or params.get(n)
-            if isinstance(spec, dict) and isinstance(spec.get("options") or spec.get("enum"), list):
-                return spec.get("options") or spec.get("enum")
-        return []
-    return {"id": raw["id"], "name": raw.get("name") or raw["id"], "kind": kind, "durations": listed("durations", "duration_options"),
-            "resolutions": listed("resolutions", "resolution_options"), "aspect_ratios": listed("aspect_ratios"), "roles": roles,
-            "supports_unlim": bool(raw.get("supports_unlim")), "supports_audio": bool(raw.get("supports_audio") or raw.get("generate_audio")), "raw": raw}
+    def options(name):
+        v = (params.get(name) or {}).get("options")
+        return list(v) if isinstance(v, list) else []
+
+    durations = list(raw.get("durations") or []) or options("duration")
+    if not durations:
+        spec = params.get("duration") or {}
+        span = raw.get("duration_range") or ({"min": spec.get("min"), "max": spec.get("max")} if spec.get("max") is not None else None)
+        if span and span.get("min") is not None and span.get("max") is not None and 0 < span["max"] - span["min"] <= 40:
+            durations = list(range(int(span["min"]), int(span["max"]) + 1))
+    resolution_key = "resolution" if options("resolution") else ("quality" if any(str(o).endswith("p") for o in options("quality")) else "resolution")
+    return {"id": raw["id"], "name": raw.get("name") or raw["id"], "kind": kind, "durations": durations,
+            "resolutions": options(resolution_key), "resolution_key": resolution_key, "aspect_ratios": list(raw.get("aspect_ratios") or []), "roles": roles,
+            "supports_unlim": bool(raw.get("supports_unlim")), "supports_audio": "generate_audio" in params, "raw": raw}
 
 
 def _pick_role(roles: list, *needles, avoid=()):
@@ -111,8 +124,13 @@ class Higgsfield:
     # ----------------------------------------------------------------------- catalogue
     def models(self, kind: str = "video") -> list:
         if kind not in self._models:
-            data = self.mcp.call("models_explore", {"action": "list", "type": kind})
-            rows = data.get("models") or data.get("items") or []
+            rows, after = [], None
+            for _ in range(MAX_PAGES):                              # the catalogue is paged (20 by default): follow the cursor to the end
+                data = self.mcp.call("models_explore", dict({"action": "list", "type": kind, "limit": PAGE}, **({"after": after} if after else {})))
+                rows += data.get("items") or data.get("models") or []
+                after = data.get("next_page_token")
+                if not (data.get("has_more") and after):
+                    break
             self._models[kind] = [normalise_model(m, kind) for m in rows if isinstance(m, dict) and m.get("id")]
         return self._models[kind]
 
@@ -124,23 +142,14 @@ class Higgsfield:
 
     def balance(self) -> dict:
         d = self.mcp.call("balance", {})
-        return {"plan": d.get("plan"), "credits": find_credits(d)}
+        return {"plan": d.get("subscription_plan_type") or d.get("plan"), "credits": find_credits(d)}
 
     # ------------------------------------------------------------------------- uploads
-    def _tool_schema(self, name: str) -> dict:
-        t = next((t for t in self.mcp.tools() if t.get("name") == name), None)
-        return ((t or {}).get("inputSchema") or {}).get("properties") or {}
-
     def upload(self, data: bytes, kind: str, filename: str, content_type: str) -> str:
         """media_upload -> PUT the bytes to the presigned URL -> media_confirm; returns the media id (medias take ids, never URLs)."""
         if len(data) > MAX_UPLOAD_BYTES:
             raise HiggsfieldError(f"{filename} is {len(data) / 1e6:.0f} MB; uploads are capped at {MAX_UPLOAD_BYTES // 1_000_000} MB")
-        props = self._tool_schema("media_upload")
-        args = {"type": kind}
-        if props and "files" not in props and "filename" in props:
-            args.update(filename=filename, content_type=content_type)
-        else:
-            args["files"] = [{"filename": filename, "content_type": content_type, "size": len(data)}]
+        args = {"files": [{"filename": filename, "content_type": content_type}]}      # no ``type``: the media type is inferred from the extension
         res = self.mcp.call("media_upload", args)
         row = next((n for n in _walk(res) if isinstance(n, dict) and n.get("upload_url")), None)
         if row is None:
@@ -167,7 +176,7 @@ class Higgsfield:
         args = {"model": model_id, "prompt": prompt}
         for key in ("duration", "resolution", "aspect_ratio", "generate_audio", "count", "seed"):
             if params.get(key) is not None:
-                args[key] = params[key]
+                args[row["resolution_key"] if key == "resolution" else key] = params[key]
         medias = []
         mode = params.get("image_mode") or ("reference" if videos else "first_frame")
         images = list(images)
@@ -197,14 +206,13 @@ class Higgsfield:
             args["use_unlim"] = params["use_unlim"]
         return args
 
-    @staticmethod
-    def motion_args(image_id: str, video_id: str, params: dict) -> dict:
-        return {"image_id": image_id, "motion_video_id": video_id, "resolution": params.get("resolution") or "720p",
-                "scene_control": params.get("scene_control") or "video"}
-
     # ----------------------------------------------------------------- cost and submit
+    def call(self, tool: str, args: dict) -> dict:
+        """One tool call. ``args`` is the flat request this class builds; the generation tools take it as their single ``params`` argument."""
+        return self.mcp.call(tool, {"params": args} if tool in PARAMS_TOOLS else args)
+
     def cost(self, tool: str, args: dict) -> float:
-        out = self.mcp.call(tool, dict(args, get_cost=True))
+        out = self.call(tool, dict(args, get_cost=True))
         credits = find_credits(out)
         if credits is None:
             raise HiggsfieldError(f"{tool} get_cost returned no price: {str(out)[:200]}")
@@ -213,7 +221,7 @@ class Higgsfield:
     def submit(self, tool: str, args: dict) -> dict:
         """One submit. ``question`` carries a server-asked ``unlim_choice`` (for the captain: never answered here); a transport timeout
         raises and is NOT retried."""
-        out = self.mcp.call(tool, args)
+        out = self.call(tool, args)
         question = next((n["unlim_choice"] for n in _walk(out) if isinstance(n, dict) and "unlim_choice" in n), None)
         return {"job_ids": [] if question else find_jobs(out), "question": question, "raw": out}
 

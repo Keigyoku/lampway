@@ -131,7 +131,7 @@ def test_higgsfield_models_join_the_catalogue_once_signed_in(stack):
     sign_in_higgsfield(auth, hf)
     caps = {c["key"]: c for c in fake.get("/api/v1/generation-catalog").json()["data"]["capabilities"]}
     vids = {m["slug"]: m for m in caps["video_gen"]["services"][0]["models"]}
-    assert {"higgsfield/seedance1_5", "higgsfield/seedance_2_0", "higgsfield/hf_mult_motion_control", "higgsfield/kling_motion_control"} <= set(vids)
+    assert {"higgsfield/seedance1_5", "higgsfield/seedance_2_0", "higgsfield/hf_mult_motion_control", "higgsfield/kling3_0_motion_control"} <= set(vids)
     assert vids["higgsfield/seedance1_5"]["parameters"]["duration"]["enum"] == [4, 8, 12] and "Higgsfield" in vids["higgsfield/seedance1_5"]["label"]
     imgs = {m["slug"] for m in caps["image_gen"]["services"][0]["models"]}
     assert "higgsfield/gpt_image_2_5" in imgs
@@ -292,7 +292,7 @@ def test_genjutsu_and_kling_motion_transfer_take_a_character_image_and_a_driving
     sign_in_higgsfield(auth, hf)
     img = upload(fake, "image", PNG, "c.png", "image/png")
     vid = upload(fake, "video", MP4, "d.mp4", "video/mp4")
-    for slug, tool in (("higgsfield/hf_mult_motion_control", "generate_video"), ("higgsfield/kling_motion_control", "motion_control")):
+    for slug in ("higgsfield/hf_mult_motion_control", "higgsfield/kling3_0_motion_control"):
         jid = submit(fake, "video_gen", slug, {"prompt": "dance", "params": {"duration": 5, "resolution": "720p"},
                                                 "reference_image_s3_keys": [img["s3_key"]], "reference_video_s3_keys": [vid["s3_key"]]})
         time.sleep(0.25)
@@ -300,9 +300,9 @@ def test_genjutsu_and_kling_motion_transfer_take_a_character_image_and_a_driving
         assert fake.post(f"/app/studio/approvals/{ap['id']}/confirm", json={"price": ap["price"]}).status_code == 200
         assert wait_for(fake, jid)["state"] == "succeeded"
         call = hf_calls(hf)[-1]
-        assert call[0] == tool
-    assert any(m["role"] == "video_references" for m in hf_calls(hf)[0][1]["medias"])
-    assert hf_calls(hf)[1][1]["image_id"] and hf_calls(hf)[1][1]["motion_video_id"]
+        assert call[0] == "generate_video" and call[1]["model"] == slug.split("/")[1]
+        assert {m["role"] for m in call[1]["medias"]} == {"image_references", "video_references"}
+    assert hf.schema_errors == [], "every request is valid against the recorded live schemas"
 
 
 def test_a_higgsfield_image_job_is_gated_too(stack):

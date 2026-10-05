@@ -22,13 +22,12 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from . import videogen as VG
-from .higgsfield import Higgsfield, HiggsfieldError
+from .higgsfield import Higgsfield, HiggsfieldError, _pick_role
 from .higgsfield_auth import HiggsfieldAuth
 
 log = logging.getLogger("lampway.video")
 
 PREFIX = "higgsfield/"
-KLING_MOTION = "kling_motion_control"
 VIDEO_SERVICES = ("video_gen", "video_upscale")
 MAX_IMAGE_BYTES = 30 * 1024 * 1024
 MAX_VIDEO_BYTES = 250 * 1024 * 1024
@@ -204,9 +203,6 @@ class VideoSystem:
             for row in self._higgs_models("video"):
                 out.append({"slug": PREFIX + row["id"], "label": f"{row['name']} (Higgsfield)", "is_default": False, "max_reference_images": 9,
                             "parameters": self._params_higgs(row)})
-            out.append({"slug": PREFIX + KLING_MOTION, "label": "Kling 3.0 Motion Control (Higgsfield)", "is_default": False, "max_reference_images": 1,
-                        "parameters": {"resolution": self._enum(["720p", "1080p"], "720p", "Resolution", 2),
-                                       "scene_control": self._enum(["video", "image"], "video", "Scene follows", 3)}})
         if out and not any(m["is_default"] for m in out):
             out[0]["is_default"] = True
         return out
@@ -303,15 +299,12 @@ class VideoSystem:
         video_ids = [upload(d, "video", i) for i, d in enumerate(videos)]
         if service == "image_gen":
             tool, args = "generate_image", {"model": model_id, "prompt": prompt, "count": int(params.get("number_of_images") or 1)}
+            roles = h.model(model_id, "image")["roles"]
             for k in ("aspect_ratio", "resolution"):
                 if params.get(k):
                     args[k] = params[k]
             if image_ids:
-                args["medias"] = [{"value": i, "role": "image_references"} for i in image_ids]
-        elif model_id == KLING_MOTION:
-            if not (image_ids and video_ids):
-                raise ValueError("Kling motion control needs a character image and a driving video")
-            tool, args = "motion_control", h.motion_args(image_ids[0], video_ids[0], params)
+                args["medias"] = [{"value": i, "role": _pick_role(roles, "image") or "image_references"} for i in image_ids]
         else:
             tool, args = "generate_video", h.video_args(model_id, prompt, params, images=image_ids, videos=video_ids)
         credits = h.cost(tool, args)

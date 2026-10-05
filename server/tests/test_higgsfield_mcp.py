@@ -33,13 +33,13 @@ def mcp(signed_in, hf):
 
 def test_initialize_opens_a_session_and_calls_carry_its_id(mcp, hf):
     out = mcp.call("balance", {})
-    assert out == {"plan": "plus", "credits": 623.86}
+    assert out == {"subscription_plan_type": "plus", "credits": 623.86}
     assert hf.calls == [("balance", {})]
 
 
 def test_tools_list_is_cached(mcp, hf):
     names = [t["name"] for t in mcp.tools()]
-    assert {"generate_video", "media_upload", "media_confirm", "jobs_wait", "motion_control", "models_explore"} <= set(names)
+    assert {"generate_video", "media_upload", "media_confirm", "jobs_wait", "models_explore"} <= set(names)
     mcp.tools()
     assert mcp.has_tool("generate_video") and not mcp.has_tool("nope")
 
@@ -65,7 +65,7 @@ def test_an_sse_response_is_read(signed_in, hf):
             return httpx.Response(200, content=body.encode(), headers={"content-type": "text/event-stream"})
         return resp
     client = HM.HiggsfieldMCP(signed_in, transport=httpx.MockTransport(sse))
-    assert client.call("balance", {})["plan"] == "plus"
+    assert client.call("balance", {})["subscription_plan_type"] == "plus"
 
 
 def test_not_signed_in_says_where_to_sign_in(tmp_path, hf):
