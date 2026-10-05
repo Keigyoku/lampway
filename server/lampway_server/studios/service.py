@@ -66,6 +66,7 @@ class StudioService:
         self._approvals = Approvals(now, approval_ttl)
         self._jobs: dict[str, dict] = {}
         self._tasks: dict[str, asyncio.Task] = {}
+        self._gates: dict = {}                          # approval action -> (on_confirm(approval, answer), on_reject(approval))
         self._hung: dict[str, str] = {}                 # action id -> the hung job's id, until the captain acknowledges it
 
     # ------------------------------------------------------------------ paths
@@ -135,15 +136,30 @@ class StudioService:
         return {"state": "refused", "action": action.id, "reason": reason}
 
     # --------------------------------------------------------------- approvals
-    async def confirm(self, approval_id: str, price, by: str) -> dict:
-        a = self._approvals.confirm(approval_id, price, by)
+    @property
+    def approvals_store(self):
+        return self._approvals
+
+    def register_gate(self, action: str, on_confirm, on_reject) -> None:
+        """Another spender (a Higgsfield job on the job queue) puts its approvals in the same store; the captain's confirm / reject
+        reaches it through these callbacks instead of starting a Studio driver job."""
+        self._gates[action] = (on_confirm, on_reject)
+
+    async def confirm(self, approval_id: str, price, by: str, answer=None) -> dict:
+        a = self._approvals.confirm(approval_id, price, by, answer)
+        if a.action in self._gates:
+            self._gates[a.action][0](a, answer)
+            return {"id": a.id, "state": "confirmed", "action": a.action}
         action = ACTIONS[a.action]
         job = self._start(action, a.args, requested_by=a.requested_by, approval=a.id, armed=True)
         a.job_id = job["id"]
         return self._public(job)
 
     def reject(self, approval_id: str, by: str) -> dict:
-        return self._approvals.reject(approval_id, by).public(self._now())
+        a = self._approvals.reject(approval_id, by)
+        if a.action in self._gates:
+            self._gates[a.action][1](a)
+        return a.public(self._now())
 
     def approvals(self) -> list:
         return [a.public(self._now()) for a in self._approvals.all()]

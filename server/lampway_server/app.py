@@ -1,6 +1,7 @@
 """The ASGI application: REST routes the client calls plus the agent WebSocket."""
 
 import json
+import asyncio
 import os
 from html import escape
 from pathlib import Path
@@ -16,9 +17,11 @@ from .agent.turns import AgentHub
 from .agent_settings import AgentSettingsStore
 from .auth import Auth
 from .chatgpt_auth import ChatGPTAuth, LoginDeclined, LoginError
+from . import higgsfield_auth as HFA
+from .higgsfield_auth import HiggsfieldAuth
 from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
-from . import dictation, logredact, matgen, provider_prefs
+from . import dictation, logredact, matgen, provider_prefs, videojobs
 from .assetsearch import AssetIndex
 from .mcp import McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
@@ -129,7 +132,7 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None) -> Starlette:
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     provider_prefs.apply(settings, provider_prefs.load(settings.state_dir))        # the owner's saved provider choices win over the environment
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
@@ -269,14 +272,20 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     ]
     store = AgentSettingsStore(settings.state_dir)
     hub = ConnectionHub()
+    studio = studio_service if studio_service is not None else default_studio_service()
+    hf_auth = higgsfield_auth or HiggsfieldAuth(settings.state_dir, redirect_port=settings.port)      # ONE per server: refresh tokens rotate
+    video_system = video if video is not None else videojobs.build_default(settings, hf_auth, Path(os.environ.get("LAMPWAY_PROJECT_ROOT") or Path.home() / ".local/share/lampway/projects"))
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
-                    f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model})
+                    f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
+                    video=video_system, approvals=studio.approvals_store)
+    video_system.jobs = jobs
+    for gate_action in ("higgsfield.job", "higgsfield.question"):          # the captain's click reaches the waiting job through the Studios' confirm
+        studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
     routes += stub_routes(auth, store, settings, jobs)
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
-    studio = studio_service if studio_service is not None else default_studio_service()
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -529,7 +538,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         from .studios.approvals import ApprovalError
         body = await _json_body(request)
         try:
-            return JSONResponse(await studio.confirm(request.path_params["approval_id"], body.get("price"), by="captain"))
+            return JSONResponse(await studio.confirm(request.path_params["approval_id"], body.get("price"), by="captain", answer=body.get("answer")))
         except ApprovalError as exc:
             return JSONResponse({"detail": str(exc)}, status_code=404 if "no approval" in str(exc) else 409)
 
@@ -566,6 +575,66 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
                Route("/app/studio/jobs/{job_id}", studio_job, methods=["GET"]),
                Route("/app/studio/jobs/{job_id}/files/{name}", studio_job_file, methods=["GET"]),
                Route("/app/studio/jobs/{job_id}/acknowledge-hung", studio_ack_hung, methods=["POST"])]
+    # ---- staged media for video jobs: POST /api/v1/uploads/<image|video> -> data{s3_key, duration_seconds}
+    async def upload_media(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        kind = request.path_params["kind"]
+        try:
+            data = await asyncio.to_thread(video_system.uploads.put, kind, await request.body(), request.headers.get("x-file-name", ""))
+        except ValueError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=400)
+        return JSONResponse(envelope(data))
+    routes.append(Route("/api/v1/uploads/{kind}", upload_media, methods=["POST"]))
+
+    # ---- sign in to Higgsfield (its MCP): the local pages, loopback only, the same shape as /app/chatgpt
+    def _hf_page(body: str, status_code: int = 200) -> HTMLResponse:
+        st = hf_auth.status()
+        head = ('<p><b>Signed in to Higgsfield.</b> <form method="post" action="/app/higgsfield/signout"><button>Sign out</button></form>'
+                if st["signed_in"] else '<form method="post" action="/app/higgsfield/start"><button>Continue with Higgsfield</button></form>')
+        return HTMLResponse(f"""<!doctype html><html><head><meta charset="utf-8"><title>Lampway - Higgsfield</title>
+<style>body{{font:16px system-ui;max-width:40em;margin:3em auto;padding:0 1em}} .error{{color:#a00}}</style></head><body>
+<h2>Higgsfield</h2>{body}{head}
+<p style="color:#555">Your Higgsfield subscription pays for generations started from Lampway. Every credit spend waits for your confirmation
+in the Client. Tokens stay in this machine's state directory.</p></body></html>""", status_code=status_code)
+
+    async def hf_home(request: Request):
+        return _hf_page("")
+
+    async def hf_start(request: Request):
+        if not loopback_origin(request):
+            return JSONResponse({"detail": "cross-origin sign-in refused"}, status_code=403)
+        try:
+            attempt = await asyncio.to_thread(hf_auth.start_login)
+        except (HFA.LoginError, HFA.TemporaryAuthError) as exc:
+            return _hf_page(f"<p class='error'>Could not start the sign-in: {escape(str(exc))}</p>", status_code=502)
+        return RedirectResponse(attempt.url, status_code=302)
+
+    async def hf_callback(request: Request):
+        query = {k: v for k, v in request.query_params.items()}
+        try:
+            await asyncio.to_thread(hf_auth.complete_login, query)
+        except HFA.LoginDeclined as exc:
+            return _hf_page(f"<p>Higgsfield access was not authorized ({escape(str(exc))}). You can try again.</p>")
+        except HFA.LoginError as exc:
+            return _hf_page(f"<p class='error'>Sign-in failed: {escape(str(exc))}</p>", status_code=400)
+        except Exception as exc:  # noqa: BLE001 - shown to the person at the keyboard, never with a token
+            return _hf_page(f"<p class='error'>Sign-in could not finish: {escape(type(exc).__name__)}</p>", status_code=502)
+        return _hf_page("<p>Signed in.</p>")
+
+    async def hf_status(request: Request):
+        return JSONResponse(hf_auth.status())
+
+    async def hf_signout(request: Request):
+        if not loopback_origin(request):
+            return JSONResponse({"detail": "cross-origin sign-out refused"}, status_code=403)
+        await asyncio.to_thread(hf_auth.sign_out)
+        return RedirectResponse("/app/higgsfield", status_code=303)
+
+    routes += [Route("/app/higgsfield", hf_home, methods=["GET"]), Route("/app/higgsfield/start", hf_start, methods=["POST"]),
+               Route(HFA.CALLBACK_PATH, hf_callback, methods=["GET"]), Route("/app/higgsfield/status", hf_status, methods=["GET"]),
+               Route("/app/higgsfield/signout", hf_signout, methods=["POST"])]
+
     # ---- provider setup from the Client (main / swarm / image), saved in the state dir
     async def provider_get(request: Request):
         if not _bearer_ok(request):
@@ -605,5 +674,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     app.state.store = store
     app.state.provider = provider
     app.state.chatgpt = chatgpt
+    app.state.video = video_system
+    app.state.higgsfield_auth = hf_auth
     app.state.jobs = jobs
     return app

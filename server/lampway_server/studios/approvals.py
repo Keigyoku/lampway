@@ -27,7 +27,7 @@ class Approval:
     studio: str
     label: str
     args: dict
-    price: int
+    price: float
     settings: dict
     requested_by: str
     created: float
@@ -35,6 +35,7 @@ class Approval:
     state: str = "pending"            # pending | used | rejected
     confirmed_by: str = ""
     job_id: str = ""
+    answer: object = None
 
     def public(self, now: float) -> dict:
         state = "expired" if self.state == "pending" and now >= self.expires else self.state
@@ -50,7 +51,7 @@ class Approvals:
 
     def propose(self, *, action, studio, label, args, price, settings, requested_by) -> Approval:
         t = self._now()
-        a = Approval(uuid.uuid4().hex[:12], action, studio, label, args, int(price), settings, requested_by, t, t + self._ttl)
+        a = Approval(uuid.uuid4().hex[:12], action, studio, label, args, float(price), settings, requested_by, t, t + self._ttl)
         self._items[a.id] = a
         return a
 
@@ -60,7 +61,7 @@ class Approvals:
             raise ApprovalError(f"no approval {approval_id!r}")
         return a
 
-    def confirm(self, approval_id: str, price, by: str) -> Approval:
+    def confirm(self, approval_id: str, price, by: str, answer=None) -> Approval:
         if by != "captain":
             raise ApprovalError("only the captain can confirm a spend, from the Client; an agent or a worker never can")
         a = self.get(approval_id)
@@ -70,9 +71,15 @@ class Approvals:
             raise ApprovalError(f"approval {a.id} was rejected")
         if self._now() >= a.expires:
             raise ApprovalError(f"approval {a.id} expired: ask for the plan again so the price is read back fresh")
-        if price != a.price:
+        if a.settings.get("unit") == "answer" and answer is None:
+            raise ApprovalError("an answer is required: this is a question for the captain, not a spend")
+        try:
+            wrong = abs(float(price) - a.price) > 1e-6
+        except (TypeError, ValueError):
+            wrong = True
+        if wrong:
             raise ApprovalError(f"the price shown was {a.price}, not {price}: nothing was confirmed")
-        a.state, a.confirmed_by = "used", by
+        a.state, a.confirmed_by, a.answer = "used", by, answer
         return a
 
     def reject(self, approval_id: str, by: str) -> Approval:

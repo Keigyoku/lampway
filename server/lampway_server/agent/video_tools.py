@@ -1,0 +1,92 @@
+"""The agent's video tools: PLAN or generate, never confirm a credit spend. ``lampway_video_gen`` on an OpenRouter model is a dry run that prices the
+job (set ``dry_run`` false to run it; it is held to the per-job cap and the session ledger); on a Higgsfield model it submits the job, which then WAITS
+for the captain's confirmation in the Client - the agent only ever sees ``needs_approval`` with the price read back."""
+
+import asyncio
+import json
+import time
+from pathlib import Path
+
+from ..videojobs import PREFIX
+from .providers.base import ToolSpec
+
+NAMES = {"lampway_video_gen", "lampway_video_models"}
+
+
+def specs() -> list:
+    return [
+        ToolSpec("lampway_video_models", "List the video models (OpenRouter's, and Higgsfield's when signed in) with their durations, resolutions and the per-purpose "
+                 "defaults (bulk, loop, motion). Prices are in lampway_video_gen's dry run.", {"type": "object", "properties": {}, "additionalProperties": False}),
+        ToolSpec("lampway_video_gen", "Generate a video. Default is a DRY RUN: the validated parameters and the price. `purpose` picks the default model: bulk (HeyGen), "
+                 "loop (Seedance 1.5 Pro, first = last frame from one image) or motion (Seedance 2.0 Mini with a driving video). OpenRouter models: dry_run=false runs "
+                 "within the per-job cap and the session budget and saves an .mp4 in the project. Higgsfield models (model `higgsfield/<id>`; incl. hf_mult_motion_control "
+                 "and kling_motion_control): the job is submitted and WAITS for the captain's confirmation of the credits in the Client; you cannot confirm it. "
+                 "`images` and `videos` are project-relative paths.",
+                 {"type": "object", "properties": {
+                     "prompt": {"type": "string"}, "model": {"type": "string"}, "purpose": {"type": "string", "description": "bulk | loop | motion"},
+                     "duration": {"type": "integer"}, "resolution": {"type": "string"}, "aspect_ratio": {"type": "string"}, "generate_audio": {"type": "boolean"},
+                     "image_mode": {"type": "string", "description": "first_frame | first_last_frame (one image = a loop) | reference"},
+                     "images": {"type": "array", "items": {"type": "string"}}, "videos": {"type": "array", "items": {"type": "string"}},
+                     "dry_run": {"type": "boolean", "description": "default true"}}, "required": ["prompt"], "additionalProperties": False}),
+    ]
+
+
+def _jail(root: Path, rel: str) -> Path:
+    import os
+    full = Path(rel) if Path(rel).is_absolute() else root / rel
+    real_root, real = Path(os.path.realpath(root)), Path(os.path.realpath(full))
+    if real != real_root and real_root not in real.parents:
+        raise ValueError(f"{rel} is outside the project root")
+    if not real.is_file():
+        raise ValueError(f"{rel} is not a file")
+    return real
+
+
+async def call(system, name: str, arguments: dict) -> tuple:
+    arguments = arguments if isinstance(arguments, dict) else {}
+    try:
+        if system is None:
+            return "video generation is not available on this server", True
+        if name == "lampway_video_models":
+            rows = await asyncio.to_thread(system.video_models)
+            return json.dumps({"purposes": system.settings.video_purposes, "per_job_cap_usd": system.settings.video_max_job_usd,
+                               "models": [{"slug": m["slug"], "label": m["label"], "parameters": {k: v.get("enum") or v.get("type") for k, v in m["parameters"].items()}}
+                                          for m in rows]}), False
+        purpose = system.settings.video_purposes.get(arguments.get("purpose") or "bulk")
+        if purpose is None:
+            return f"unknown purpose {arguments.get('purpose')!r}; the purposes are {sorted(system.settings.video_purposes)}", True
+        model = arguments.get("model") or purpose["model"]
+        params = {k: arguments.get(k) if arguments.get(k) is not None else purpose.get(k) for k in ("duration", "resolution", "aspect_ratio", "image_mode")}
+        if arguments.get("generate_audio") is not None:
+            params["generate_audio"] = bool(arguments["generate_audio"])
+        params = {k: v for k, v in params.items() if v is not None}
+        payload = {"prompt": arguments.get("prompt") or "", "params": params}
+        root = system.root
+        imgs = [system.uploads.put("image", _jail(root, p).read_bytes(), Path(p).name)["s3_key"] for p in arguments.get("images") or []]
+        vids = [system.uploads.put("video", _jail(root, p).read_bytes(), Path(p).name)["s3_key"] for p in arguments.get("videos") or []]
+        if imgs:
+            payload["reference_image_s3_keys"] = imgs
+        if vids:
+            payload["reference_video_s3_keys"] = vids
+        if model.startswith(PREFIX):
+            job = system.jobs.submit("video_gen", model, payload, None, "agent")
+            for _ in range(600):                                   # the plan (uploads + get_cost) takes a moment; then the job waits for the captain
+                if job.awaiting or job.status in ("FAILED", "CANCELLED", "DONE"):
+                    break
+                await asyncio.sleep(0.05)
+            if job.status == "FAILED":
+                return f"the plan failed: {job.error}", True
+            ap = next((a for a in system.jobs.approvals.all() if a.args.get("job_id") == job.job_id and a.state == "pending"), None)
+            return json.dumps({"state": "needs_approval", "job_id": job.job_id, "credits": ap.price if ap else None, "model": model,
+                               "message": "The job is waiting for the captain's confirmation of the credits in the Client (Studios panel). It cannot be confirmed from here."}), False
+        plan = await asyncio.to_thread(system.plan, "video_gen", model, payload)
+        info = plan["plan"]
+        if arguments.get("dry_run", True) is not False:
+            return json.dumps(info), not info.get("ok", False)
+        if not info.get("ok"):
+            return json.dumps(info), True
+        out = await asyncio.to_thread(system.run, "video_gen", model, payload, plan)
+        paths = await asyncio.to_thread(system.save_to_project, f"agent-{int(time.time())}", out)
+        return json.dumps({"video_file": paths[0], **{k: v for k, v in out.extra.items() if k != "basis"}}), False
+    except Exception as exc:  # noqa: BLE001 - reported to the model, never with a token
+        return f"{type(exc).__name__}: {exc}", True
