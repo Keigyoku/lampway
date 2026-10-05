@@ -276,3 +276,19 @@ async def test_the_uv_driver_needs_the_shelf_because_it_is_not_bundled(tmp_path)
     with pytest.raises(ActionError, match="LAMPWAY_STUDIO_SHELF"):
         await s.plan("tripo.uv.unwrap", {}, by="agent")
     assert ex.calls == []
+
+
+async def test_another_studios_driver_resolves_under_its_own_shelf_folder(tmp_path, monkeypatch):
+    from lampway_server.studios import actions as A
+    s, ex, _ = svc(tmp_path, {"meshy_state": "credits: 80\n"})
+    (tmp_path / "shelf" / "studios" / "meshy").mkdir(parents=True)
+    (tmp_path / "shelf" / "studios" / "meshy" / "meshy_state.py").write_text("# driver")
+    monkeypatch.setitem(A.ACTIONS, "meshy.state", A.Action("meshy.state", "meshy", "Read Meshy", "meshy_state", validate=A._v_none,
+                                                          run_args=lambda c, o: ["state"]))
+    out = await s.plan("meshy.state", {}, by="agent")
+    assert out["state"] == "running"
+    job = await s.wait(out["job"]["id"])
+    assert job["state"] == "done" and str(tmp_path / "shelf" / "studios" / "meshy" / "meshy_state.py") in ex.calls[0]["argv"]
+    monkeypatch.setitem(A.ACTIONS, "hi3d.state", A.Action("hi3d.state", "hi3d", "Read Hi3D", "hi3d_state", validate=A._v_none, run_args=lambda c, o: ["state"]))
+    with pytest.raises(ActionError, match="LAMPWAY_STUDIO_SHELF"):
+        await s.plan("hi3d.state", {}, by="agent")

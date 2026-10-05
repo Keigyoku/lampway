@@ -40,17 +40,17 @@ class Engine:
     def __init__(self, shelf: Optional[Path], python: str):
         self.shelf, self.python = (Path(shelf) if shelf else None), python
 
-    def shelf_script(self, driver: str) -> Optional[Path]:
+    def shelf_script(self, driver: str, studio: str = "tripo") -> Optional[Path]:
         if self.shelf is None:
             return None
-        p = self.shelf / "studios" / "tripo" / f"{driver}.py"
+        p = self.shelf / "studios" / studio / f"{driver}.py"
         return p if p.is_file() else None
 
-    def resolve(self, driver: str) -> list:
-        script = self.shelf_script(driver)
+    def resolve(self, driver: str, studio: str = "tripo") -> list:
+        script = self.shelf_script(driver, studio)
         if script is not None:
             return [self.python, str(script)]
-        if driver in BUNDLED:
+        if studio == "tripo" and driver in BUNDLED:
             return [self.python, "-m", f"lampway_server.studios.tripo.{driver}"]
         raise ActionError(f"the driver {driver} is not bundled: set LAMPWAY_STUDIO_SHELF to the shelf's tools directory "
                           "(the engine is the owner's own AXI drivers)")
@@ -94,7 +94,7 @@ class StudioService:
         if action is None:
             raise ActionError(f"no studio action {action_id!r}; the actions are: {sorted(ACTIONS)}")
         clean = action.validate(args if isinstance(args, dict) else {}, self.jail)
-        if clean.get("paired") and self.engine.shelf_script(action.driver) is None:
+        if clean.get("paired") and self.engine.shelf_script(action.driver, action.studio) is None:
             raise ActionError("paired pieces (front + back views only) need the shelf's tripo_mesh (--views): set LAMPWAY_STUDIO_SHELF")
         if not action.needs_approval:
             job = self._start(action, clean, requested_by=by, approval=None)
@@ -102,7 +102,7 @@ class StudioService:
         if action_id in self._hung:
             return self._refused(action, f"the earlier {action_id} job ({self._hung[action_id]}) is HUNG: reload Studio once, check the credits "
                                          "for the refund and never re-click; the captain acknowledges it before another is planned")
-        argv = self.engine.resolve(action.plan_driver or action.driver) + action.plan_args(clean, self._dir("plan") if action.needs_out_dir else "")
+        argv = self.engine.resolve(action.plan_driver or action.driver, action.studio) + action.plan_args(clean, self._dir("plan") if action.needs_out_dir else "")
         out_dir = next((a for a in argv if "/plan-" in a), None)
         if out_dir:
             Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
@@ -151,7 +151,7 @@ class StudioService:
     # -------------------------------------------------------------------- jobs
     def _start(self, action, clean, *, requested_by: str, approval, armed: bool = True) -> dict:
         out_dir = self._dir("job")
-        argv = self.engine.resolve(action.driver) + action.run_args(clean, out_dir)
+        argv = self.engine.resolve(action.driver, action.studio) + action.run_args(clean, out_dir)
         job = {"id": Path(out_dir).name, "action": action.id, "studio": action.studio, "label": action.label, "state": "running",
                "started": self._now(), "finished": None, "kv": {}, "tables": {}, "error": "", "files": [], "approval": approval,
                "requested_by": requested_by, "_dir": out_dir, "_argv": argv}
