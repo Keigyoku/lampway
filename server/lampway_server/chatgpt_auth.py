@@ -181,7 +181,8 @@ class ChatGPTAuth:
         if query.get("error"):
             if query["error"] == "access_denied":
                 raise LoginDeclined("ChatGPT plan use was not authorized (access_denied); no code was exchanged")
-            raise LoginError(f"the sign-in returned an error: {query['error']}")
+            shown = "".join(ch for ch in str(query["error"])[:40] if ch.isalnum() or ch in "_-. ")
+            raise LoginError(f"the sign-in returned an error: {shown}")
         code = query.get("code")
         if not code:
             raise LoginError("the callback carried no authorization code")

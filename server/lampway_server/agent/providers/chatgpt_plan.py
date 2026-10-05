@@ -65,6 +65,8 @@ class ChatGPTPlanProvider:
             rid = response.headers.get("x-request-id", "")
             if response.status_code >= 400:
                 text = (await response.aread()).decode("utf-8", "replace")[:600]
+                from ...logredact import redact_text
+                text = redact_text(text)               # a provider error body never carries a token into a message or log
                 raise ChatGPTPlanError(f"ChatGPT plan request refused: HTTP {response.status_code}: {text}",
                                        status=response.status_code, code=self._code_of(text), request_id=rid)
             event_type = ""

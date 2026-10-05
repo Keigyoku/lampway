@@ -15,7 +15,7 @@ from .auth import Auth
 from .chatgpt_auth import ChatGPTAuth, LoginDeclined, LoginError
 from .config import Settings
 from .jobqueue import BadJob, JobQueue, UnknownService
-from . import matgen
+from . import logredact, matgen
 from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub
 from starlette.responses import Response
@@ -110,6 +110,7 @@ def default_job_backends(settings: Settings) -> dict:
 
 
 def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None) -> Starlette:
+    logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
     auth = Auth(
         secret=settings.resolve_jwt_secret(),
