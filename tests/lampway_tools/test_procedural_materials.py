@@ -167,3 +167,34 @@ def test_generation_needs_a_description_and_goes_to_our_server(monkeypatch):
     with pytest.raises(q.MatgenUnavailable) as exc:
         q.enqueue_matgen_job(prompt="   ")
     assert "required" in str(exc.value) and posted == []
+
+
+def _real_package_paths():
+    """The stubs `_load` plants for `mixar` / `mixar.modules` have no __path__; give them the real one so the registry's
+    sandbox imports (space_mixie_chat.core.sandbox_*) resolve."""
+    sys.modules["mixar"].__path__ = [str(PKG.parents[2])]            # src/scripts/mixar
+    sys.modules["mixar.modules"].__path__ = [str(PKG.parents[1])]    # src/scripts/mixar/modules
+
+
+def test_a_material_script_may_import_bpy_math_and_mathutils_and_nothing_else(reg, monkeypatch):
+    """Every generated script starts with `import bpy`; the registry's sandbox namespace had no __import__, so the
+    statement failed with "__import__ not found" (seen live on the first generated material). The injected modules are
+    importable by name; anything else is refused."""
+    _real_package_paths()
+    groups = {}
+
+    class Groups:
+        def get(self, name):
+            return groups.get(name)
+
+        def new(self, name, kind):
+            groups[name] = ("group", kind)
+            return groups[name]
+
+    monkeypatch.setattr(reg.bpy, "data", types.SimpleNamespace(node_groups=Groups()), raising=False)
+    reg.register_material(_mat(reg, script="import bpy\nimport math\ng = bpy.data.node_groups.new('Oak', 'ShaderNodeTree')\n"))
+    assert reg.get_node_group("oak") == ("group", "ShaderNodeTree")
+    reg.register_material(_mat(reg, material_id="bad", name="Bad", script="import os\nos.getcwd()\n"))
+    with pytest.raises(Exception) as exc:
+        reg.get_node_group("bad")
+    assert "os" in str(exc.value)

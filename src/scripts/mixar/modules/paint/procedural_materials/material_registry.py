@@ -124,8 +124,17 @@ def _run_script(script: str, material: ProceduralMaterial) -> None:
     error = validate_script_ast(script)
     if error:
         raise RuntimeError(f"Material '{material.material_id}' script blocked: {error}")
-    namespace = {"__builtins__": get_safe_builtins(), "__name__": "__material__",
-                 "bpy": bpy, "mathutils": mathutils, "math": math}
+    allowed = {"bpy": bpy, "mathutils": mathutils, "math": math}
+
+    def _restricted_import(name, *args, **kwargs):
+        # `import bpy` at the top of every generated script: the injected modules by name, nothing else.
+        if name in allowed:
+            return allowed[name]
+        raise ImportError(f"Material scripts may import only bpy, mathutils and math, not {name!r}")
+
+    builtins_ = get_safe_builtins()
+    builtins_["__import__"] = _restricted_import
+    namespace = {"__builtins__": builtins_, "__name__": "__material__", **allowed}
     exec(compile(script, f"<material:{material.material_id}>", "exec"), namespace)  # noqa: S102
 
 
