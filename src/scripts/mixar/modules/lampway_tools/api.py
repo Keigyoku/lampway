@@ -1151,6 +1151,19 @@ def anim_reference_render(character, views=None, size="720x1280", background="#8
 
 
 @tool
+def animation_retarget(source, target, action=None, mapping="auto", method="matrix", root_motion="keep", scale="auto", frame_range=None, fps=None, check_objects=None, sample_frames=8, name=None,
+                       dry_run=False, keep_source=False):
+    """Bake an animation from one skeleton onto another (a NEW Action on the target; nothing is overwritten) and measure it. source: an armature in the scene or a project-relative .fbx/.bvh/.glb (imported in a
+    hidden collection and removed after); target: the armature; action: a name, 'all', or the source's active one; mapping: 'auto' (bone names read to canonical labels and sides, exact names first), a preset
+    name from anim/presets/ or [{source, target, mode: rotation|transform|none}]. method 'matrix' compensates the rest poses (the target bone turns by the source bone's world rotation, whatever either rest is);
+    'constraints' is Copy Rotation + NLA bake and does NOT compensate (a warning says so). root_motion keep | in_place, scale 'auto' (pelvis height ratio) or 0.01..100, fps resamples. Refused: no action,
+    a humanoid set not covered (the missing labels are listed; dry_run shows the mapping first), a file outside the project root. Returns the mapping, the unmapped bones, and metrics: world-direction error of
+    what was baked, foot slide, and the edge stretch of check_objects. Writes anim/<action>.retarget.json and the reviewed mapping as a preset."""
+    from .features import animation as _AN
+    return _AN.retarget(source, target, action, mapping, method, root_motion, scale, frame_range, fps, check_objects, sample_frames, name, dry_run, str(_settings().project_root), keep_source)
+
+
+@tool
 def fit_state(stage="describe", **kw):
     """The descriptor / question / answer fit loop. Not built: answers needs_decision (is the Laya / fit-model route still the direction now that fit_validate measures the fit?). The question, the reason and a
     proposal are in the result."""
