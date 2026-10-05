@@ -157,6 +157,14 @@ def render_glyph(size, badge=None, mono=None, margin=0.0):
     return image.resize((size, size), Image.LANCZOS)
 
 
+def version() -> str:
+    """The product version from the repo's VERSION file (one line)."""
+    try:
+        return (ROOT / "VERSION").read_text(encoding="utf-8").strip() or "dev"
+    except OSError:
+        return "dev"
+
+
 def render_splash(width=1672, height=941):
     image = Image.new("RGBA", (width, height), (*PAPER, 255))
     glyph = render_glyph(int(height * 0.62), margin=0.04)
@@ -166,7 +174,7 @@ def render_splash(width=1672, height=941):
     small = ImageFont.truetype(str(FONT), int(height * 0.035))
     x = int(width * 0.46)
     draw.text((x, int(height * 0.30)), PRODUCT_NAME, font=title, fill=TEXT)
-    draw.text((x, int(height * 0.56)), "Placeholder splash", font=small, fill=(*GLOW, 255))
+    draw.text((x, int(height * 0.56)), f"Open-source 3D workspace  ·  {version()}", font=small, fill=(*GLOW, 255))
     draw.text((x, int(height * 0.62)), "A fork of the GPL Mixar client. Not affiliated with Mixar.",
               font=small, fill=(150, 150, 150, 255))
     return image
