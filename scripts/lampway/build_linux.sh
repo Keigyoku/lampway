@@ -17,8 +17,8 @@
 # Inputs (environment; a .env that contradicts them is refused, see below):
 #   MIXAR_ENV            Dev (default) | Prod | UAT   -> build/<MIXAR_ENV>/
 #   MIXAR_CUDA           0 (default: no CUDA/OptiX/cubins) | 1
-#   MIXAR_BACKEND_URL    baked backend; default https://lampway.invalid (never
-#   MIXAR_FRONTEND_URL   resolves, RFC 2606) so a build cannot reach mixar.app
+#   MIXAR_BACKEND_URL    baked backend / SSO page; unset = the tree's default
+#   MIXAR_FRONTEND_URL   (settings.sh + src/scripts/mixar/config/brand.py)
 #   CC / CXX             compilers; default gcc-14/g++-14 when present (Blender
 #                        5.2 refuses GCC < 14; Ubuntu 24.04's default is 13)
 #   BUILD_CORES          parallel jobs (default: nproc, via settings.sh)
@@ -33,8 +33,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MIXAR_ENV="${MIXAR_ENV:-Dev}"
 MIXAR_CUDA="${MIXAR_CUDA:-0}"
-MIXAR_BACKEND_URL="${MIXAR_BACKEND_URL:-https://lampway.invalid}"
-MIXAR_FRONTEND_URL="${MIXAR_FRONTEND_URL:-https://lampway.invalid}"
+# Unset stays unset: settings.sh and brand.py own the default, so this script
+# never bakes a host the tree did not choose. Set them to point elsewhere.
+MIXAR_BACKEND_URL="${MIXAR_BACKEND_URL:-}"
+MIXAR_FRONTEND_URL="${MIXAR_FRONTEND_URL:-}"
 LAMPWAY_MIN_FREE_GB="${LAMPWAY_MIN_FREE_GB:-100}"
 LAMPWAY_LOG_DIR="${LAMPWAY_LOG_DIR:-$ROOT_DIR/build/logs}"
 LIB_SUBMODULE="lib/linux_x64"
@@ -73,6 +75,7 @@ check_dotenv() {
     [[ -f "$env_file" ]] || return 0
     for key in MIXAR_ENV MIXAR_CUDA MIXAR_BACKEND_URL MIXAR_FRONTEND_URL; do
         want="${!key}"
+        [[ -n "$want" ]] || continue   # not requested: whatever .env says stands
         have="$(sed -n -E "s/^[[:space:]]*(export[[:space:]]+)?$key=//p" "$env_file" \
             | tail -n1 | sed -E 's/[[:space:]]*#.*$//; s/^["'"'"']//; s/["'"'"']$//')"
         if [[ -n "$have" && "$have" != "$want" ]]; then
@@ -150,6 +153,18 @@ repo_head_at() {
 }
 upstream_pin() { git -C "$ROOT_DIR" rev-parse "HEAD:upstream"; }
 upstream_head() { repo_head_at "$ROOT_DIR/upstream"; }
+
+# blender.git keeps startup.blend and every bundled asset in Git LFS. A
+# checkout without `git lfs pull` leaves ~130-byte pointers, datatoc embeds
+# the pointer as the factory startup file, and the first window segfaults.
+# Same sentinel and floor as upstream's CMakeLists.txt.
+STARTUP_BLEND="$ROOT_DIR/upstream/release/datafiles/startup.blend"
+upstream_lfs_state() {
+    if [[ ! -f "$STARTUP_BLEND" ]]; then echo absent
+    elif (( $(stat -c %s "$STARTUP_BLEND") < 1024 )); then echo pointer
+    else echo materialised
+    fi
+}
 lib_pin() { git -C "$ROOT_DIR/upstream" rev-parse "HEAD:$LIB_SUBMODULE" 2>/dev/null || true; }
 lib_head() { repo_head_at "$ROOT_DIR/upstream/$LIB_SUBMODULE"; }
 
@@ -192,6 +207,13 @@ sync_upstream() {
         have="$(upstream_head)"
         [[ "$have" == "$want" ]] || { _rc=5 die "upstream is at ${have:-?} after sync, pin is $want"; }
     fi
+    # Stage 2, as make_update.py's blender_lfs_update: fetch the LFS payloads
+    # of upstream itself. A no-op once every object is present.
+    git lfs install --skip-repo >/dev/null
+    say "git lfs pull in upstream (state before: $(upstream_lfs_state))"
+    git -C "$ROOT_DIR/upstream" lfs pull
+    [[ "$(upstream_lfs_state)" == materialised ]] \
+        || { _rc=5 die "upstream LFS payload not materialised: $STARTUP_BLEND is $(upstream_lfs_state)"; }
 }
 
 sync_libs() {
@@ -227,12 +249,13 @@ print_plan() {
 root=$ROOT_DIR
 mixar_env=$MIXAR_ENV
 mixar_cuda=$MIXAR_CUDA
-mixar_backend_url=$MIXAR_BACKEND_URL
-mixar_frontend_url=$MIXAR_FRONTEND_URL
+mixar_backend_url=${MIXAR_BACKEND_URL:-(tree default)}
+mixar_frontend_url=${MIXAR_FRONTEND_URL:-(tree default)}
 cc=$CC
 cxx=$CXX
 upstream_pin=$(upstream_pin)
 upstream_head=$(upstream_head)
+upstream_lfs=$(upstream_lfs_state)
 lib_submodule=$LIB_SUBMODULE
 lib_pin=$(lib_pin)
 lib_head=$(lib_head)
@@ -248,7 +271,11 @@ build() {
     mkdir -p "$LAMPWAY_LOG_DIR"
     stamp="$(date +%Y%m%dT%H%M%S)"
     log="$LAMPWAY_LOG_DIR/build-$MIXAR_ENV-$stamp.log"
-    export MIXAR_ENV MIXAR_CUDA MIXAR_BACKEND_URL MIXAR_FRONTEND_URL CC CXX
+    export MIXAR_ENV MIXAR_CUDA CC CXX
+    # An empty URL would be taken literally by settings.sh; export only what
+    # the caller actually set.
+    [[ -n "$MIXAR_BACKEND_URL" ]] && export MIXAR_BACKEND_URL
+    [[ -n "$MIXAR_FRONTEND_URL" ]] && export MIXAR_FRONTEND_URL
     # CMake caches the compiler on the first configure and refuses to switch;
     # a cache left by a configure with another compiler (e.g. the GCC 13 that
     # fails Blender's version gate) must go. Object files are untouched.
@@ -268,7 +295,7 @@ build() {
         export CMAKE_GENERATOR="${CMAKE_GENERATOR:-Ninja}"
     fi
     say "build: MIXAR_ENV=$MIXAR_ENV MIXAR_CUDA=$MIXAR_CUDA BUILD_CORES=${BUILD_CORES:-$(nproc)} CC=$CC CXX=$CXX"
-    say "build: MIXAR_BACKEND_URL=$MIXAR_BACKEND_URL MIXAR_FRONTEND_URL=$MIXAR_FRONTEND_URL log=$log"
+    say "build: MIXAR_BACKEND_URL=${MIXAR_BACKEND_URL:-(tree default)} MIXAR_FRONTEND_URL=${MIXAR_FRONTEND_URL:-(tree default)} log=$log"
     start="$(date +%s)"
     "$ROOT_DIR/scripts/unix/build.sh" 2>&1 | tee "$log"
     end="$(date +%s)"

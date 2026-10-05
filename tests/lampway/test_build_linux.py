@@ -95,6 +95,33 @@ def test_plan_reports_an_unpopulated_submodule_dir_as_absent(fake_root: Path) ->
     assert plan["upstream_head"] != superproject_head
 
 
+def test_plan_reports_an_lfs_pointer_startup_blend(fake_root: Path) -> None:
+    # blender.git keeps release/datafiles/startup.blend (and every bundled
+    # asset) in Git LFS. A checkout made without `git lfs pull` leaves a
+    # ~130-byte pointer that datatoc embeds as the factory startup file; the
+    # app then crashes on first window. Upstream's CMake uses the same
+    # 1024-byte floor; the plan must say which state the tree is in.
+    datafiles = fake_root / "upstream/release/datafiles"
+    datafiles.mkdir(parents=True)
+    (datafiles / "startup.blend").write_text(
+        "version https://git-lfs.github.com/spec/v1\n"
+        "oid sha256:0000000000000000000000000000000000000000000000000000000000000000\n"
+        "size 1234567\n"
+    )
+    result = _run_plan(fake_root)
+    assert result.returncode == 0, result.stderr
+    assert _kv(result.stdout)["upstream_lfs"] == "pointer"
+
+
+def test_plan_reports_a_materialised_startup_blend(fake_root: Path) -> None:
+    datafiles = fake_root / "upstream/release/datafiles"
+    datafiles.mkdir(parents=True)
+    (datafiles / "startup.blend").write_bytes(b"BLENDER" + b"\0" * 4096)
+    result = _run_plan(fake_root)
+    assert result.returncode == 0, result.stderr
+    assert _kv(result.stdout)["upstream_lfs"] == "materialised"
+
+
 def test_plan_defaults_to_dev_cpu_only(fake_root: Path) -> None:
     result = _run_plan(fake_root)
     assert result.returncode == 0, result.stderr
@@ -104,17 +131,16 @@ def test_plan_defaults_to_dev_cpu_only(fake_root: Path) -> None:
     assert plan["binary"] == str(fake_root / "build/Dev/bin/mixar")
 
 
-def test_plan_points_the_backend_at_an_unresolvable_host_by_default(
-    fake_root: Path,
-) -> None:
-    # The stock tree bakes https://api.mixar.app into every build. Lampway
-    # builds must never contact a Mixar service, so the default is a host
-    # under the reserved .invalid TLD (RFC 2606), which no resolver answers.
+def test_plan_leaves_service_urls_to_the_tree_by_default(fake_root: Path) -> None:
+    # Since lp/fork-patches the tree's own default is our server on loopback
+    # (src/scripts/mixar/config/brand.py, mirrored by settings.sh), so the
+    # script must not bake a different host behind the caller's back. Unset
+    # means "whatever settings.sh/brand.py resolve", and the plan says so.
     result = _run_plan(fake_root)
     assert result.returncode == 0, result.stderr
     plan = _kv(result.stdout)
-    assert plan["mixar_backend_url"] == "https://lampway.invalid"
-    assert plan["mixar_frontend_url"] == "https://lampway.invalid"
+    assert plan["mixar_backend_url"] == "(tree default)"
+    assert plan["mixar_frontend_url"] == "(tree default)"
 
 
 def test_plan_honours_explicit_service_urls(fake_root: Path) -> None:
