@@ -829,6 +829,26 @@ def seed_audit(stage, piece, seeds=None, scores=None, proposals=None, by="agent"
 
 
 @tool
+def fit_place(kind, piece, body, turn=0.0, clear_mm=15.0, scale_anchor="", sides="both", out="placed.npz"):
+    """Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): helmet = the widest head level above neck_02, waist = the band at
+    spine_01 + 3 cm, boots = shaft width | knee height | foot length (scale_anchor is REQUIRED: the captain has not ruled which), gauntlets = the bracer at 35 % vs the forearm's middle (an axis
+    more than 25 degrees off is refused), chest = the audits' placement unchanged. piece/body are npz files (mesh_to_npz, body with joints); turn brings the piece to -Y front, +Z up. Writes
+    placed.npz and placed.npz.json (scale, translation, anchor_shift, turn, norm_lo/hi) and returns the report."""
+    return _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out)
+
+
+def _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out):
+    from .pipeline import fit_place as _FP
+    V, T, meta, rep = _FP.place(kind, _p(body), _p(piece), turn, clear_mm, scale_anchor or None, sides)
+    import numpy as _np
+    o = Path(_p(out or "placed.npz"))
+    o.parent.mkdir(parents=True, exist_ok=True)
+    _np.savez(o, V=V, T=T)
+    Path(str(o) + ".json").write_text(json.dumps(meta, indent=1))
+    return {"kind": kind, "scale": meta["scale"], "placed": str(o), "meta": meta, "report": rep}
+
+
+@tool
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
@@ -903,7 +923,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 # ---- the door the agent's scripts use
 
 TOOL_FUNCS = ("meshpaint", "chat_transcript", "qa_propose", "qa_proposals", "qa_descriptors", "mesh_prep", "asset_acceptance", "rig_armor", "status", "settings_get", "settings_set", "qa_setup", "qa_tag_layers", "qa_candidates", "qa_draw", "qa_read_tags",
-              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick", "uv_score", "uv_texel_density", "mesh_defect_scan", "silhouette_compare", "seed_audit")
+              "qa_rulings", "rebuild_setup", "rebuild", "job_status", "run_tool", "export_piece", "retopo", "uv_unwrap", "segment_mesh", "auto_rig", "bind_to_armature", "pose_test", "image_to_3d", "splat_import", "render_video", "project_views", "texture_gen", "ai_render", "repair_texture", "detail_normals", "asset_lineage", "workflow_graph", "plate_pick", "uv_score", "uv_texel_density", "mesh_defect_scan", "silhouette_compare", "seed_audit", "fit_place")
 
 
 def call(name: str, payload: str = "{}") -> dict:

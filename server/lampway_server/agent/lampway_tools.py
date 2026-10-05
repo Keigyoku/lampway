@@ -282,6 +282,13 @@ DEFS = [
         [P("stage", required=True, desc="measure | lineup | judge | record"), P("piece", required=True), P("seeds", "array", "npz paths"),
          P("scores", "object", "{seed id: score_rms} from the proportion tools"), P("proposals", "object", "{seed: {verdict: usable|fix|reject, defects, rank}} (record)"),
          P("by", desc="agent (default) | model | captain"), P("turn", "number", "lineup: degrees about Z, default -90 (Tripo FBX)"), P("engine", desc="lineup: WORKBENCH only")], api="seed_audit"),
+    Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
+        "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the captain has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
+        "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "
+        "to -Y front, +Z up. Writes placed.npz + .json (scale, translation, anchor_shift, turn) and returns the report. Run before mesh-paint and texture: a geometry step discards a texture.",
+        [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets"), P("piece", required=True), P("body", required=True), P("turn", "number", "default 0"),
+         P("clear_mm", "number", "wear clearance 0-40, default 15"), P("scale_anchor", desc="boots: width | height | foot"), P("sides", desc="both (default) | l | r"),
+         P("out", desc="default placed.npz")], api="fit_place"),
     Def("lampway_detail_normals", "Micro depth for a textured_atlas material without the relief map: per-material tiling detail normals box-projected "
         "in object space (metals take their ambientCG NormalGL maps; cloth and leather a small bump from their colour), blended by the material's "
         "per-texel masks. Idempotent: its 'DN:' nodes are replaced on a re-run. strengths: {plate, gold, cloth, leather}.",
