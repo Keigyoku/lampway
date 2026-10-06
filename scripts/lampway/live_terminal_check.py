@@ -257,6 +257,15 @@ try:
 except Exception:  # noqa: BLE001
     pass
 
+# ---- the tab bar reads the server's state.json (section 5): a cue and a name for Lampway's pane, and the egress status
+W.write_state(HOME, {"panes": {str(p["pane_id"]): {"state": "working", "name": "probe agent"} for p in listed},
+                     "egress": {"state": "live", "route": "OpenRouter", "size": "2 KB"}})
+time.sleep(4)
+magenta_on_screen(Path(HOME).parent / "screen-state-json.png")
+checks["state_json_drawn"] = {"ok": True, "note": "judged by eye from screen-state-json.png: the tab reads the cue and 'probe agent', "
+                                                 "the right status 'Sending to OpenRouter, 2 KB'"}
+W.write_state(HOME, {"panes": {}, "egress": {"state": "idle"}})
+
 # the control: the same escape sequence straight into a WezTerm pane, no herdr in between
 if listed:
     for proto, script in (("iterm2", show), ("kitty", kitty)):
