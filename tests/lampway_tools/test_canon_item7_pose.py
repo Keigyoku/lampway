@@ -144,3 +144,19 @@ def test_the_tool_solves_c07_on_scene_objects_with_the_bvh_caster(goldens):
     assert d["ok"], d["error"]
     assert d["entries"] == [{"bone": "upperarm_l", "axis": [0.0, 1.0, 0.0], "deg": 30.0}], d
     assert d["posed"]["arm_l"]["over"] == 0 and d["a_pose"]["arm_l"]["over"] >= 1 and d["file"], d
+
+
+def test_a_mirrored_dof_drives_the_other_side_by_the_sagittal_reflection(goldens):
+    """contract `mirror: true`: one DOF sweeps both arms; the right entry is the left one reflected across x = 0 - R(a, deg) becomes
+    R(Ma, -deg) with M = diag(-1, 1, 1) - so a sleeve authored 30 deg lower on BOTH arms is found in one 9-point sweep."""
+    ref, samples, (V, T), dof, regions = _c07(goldens)
+    M = np.diag([-1.0, 1.0, 1.0])
+    ref = dict(ref, upperarm_r={"parent": None, "rot": (0.0, 0.0, 0.0, 1.0), "pos": tuple(M @ np.array(ref["upperarm_l"]["pos"]))},
+               lowerarm_r={"parent": "upperarm_r", "rot": (0.0, 0.0, 0.0, 1.0), "pos": tuple(M @ np.array(ref["lowerarm_l"]["pos"]))})
+    samples = samples + [(tuple(M @ np.array(p)), "upperarm_r") for p, _b in samples]
+    piece = (np.vstack([V, V @ M]), np.vstack([T, T + len(V)]))
+    regions = dict(regions, arm_r={"bones": ["upperarm_r"], "threshold_m": 0.01})
+    out = PS.solve(ref, FRAME, samples, piece, [dict(dof, mirror=True)], regions=regions)
+    assert out["entries"] == [{"bone": "upperarm_l", "axis": [0.0, 1.0, 0.0], "deg": 30.0}, {"bone": "upperarm_r", "axis": [0.0, 1.0, 0.0], "deg": -30.0}]
+    assert out["posed"]["arm_l"]["over"] == 0 and out["posed"]["arm_r"]["over"] == 0 and out["a_pose"]["arm_r"]["over"] >= 1
+    assert len(out["sweeps"]) == 9

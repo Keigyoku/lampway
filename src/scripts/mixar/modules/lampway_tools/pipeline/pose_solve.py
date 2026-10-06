@@ -14,6 +14,7 @@
 * Search (B.4): a grid over the first-order DOFs, then each chain link in turn holding the earlier best (coordinate descent).
   Selection: fewest samples over the threshold (summed over regions), then the smallest worst depth, then the smallest pose
   (``selection_key``; INV-08.2 prefers the natural pose).
+* ``mirror`` (contract): one DOF turns both sides - the other side's entry is the reflection across x = 0, R(Ma, -deg).
 * The ray caster is a seam: ``numpy_hits`` (Moller-Trumbore, the goldens) or a BVH (the Blender tool), same signature.
 The receipt is ``pose.json`` (``lampway.fit-pose/1``): entries [{bone, axis (resolved, component space), deg}] replayable by
 ``pose_cs``, the A-pose and posed region numbers, ``pose_cost_deg``, the posed joints and every sweep row."""
@@ -70,9 +71,27 @@ def _ends(ref):
     return out
 
 
+SAGITTAL = np.diag([-1.0, 1.0, 1.0])          # the body frame's left/right reflection (x = 0, canon 01)
+
+
+def _other_side(bone):
+    for a, b in (("_l", "_r"), ("_r", "_l")):
+        if bone.endswith(a):
+            return bone[: -len(a)] + b
+    raise PoseError(f"{bone}: mirror needs a sided bone name (_l / _r)")
+
+
 def _entries(dofs, degs, joints, frame):
-    return [{"bone": d["bone"], "axis": [round(float(x), 12) for x in G.resolve_axis(d["axis"], joints, frame)], "deg": float(g)}
-            for d, g in zip(dofs, degs) if g != 0]
+    """Pose entries; a DOF with ``mirror`` also turns the other side's bone: R(a, deg) reflected across x = 0 is R(Ma, -deg)."""
+    out = []
+    for d, g in zip(dofs, degs):
+        if g == 0:
+            continue
+        a = np.asarray(G.resolve_axis(d["axis"], joints, frame), float)
+        out.append({"bone": d["bone"], "axis": [round(float(x), 12) for x in a], "deg": float(g)})
+        if d.get("mirror"):
+            out.append({"bone": _other_side(d["bone"]), "axis": [round(float(x), 12) + 0.0 for x in SAGITTAL @ a], "deg": -float(g)})
+    return out
 
 
 def selection_key(metrics, cost):
@@ -91,8 +110,8 @@ def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_h
         lo, hi = d["range"]
         if hi - lo > MAX_RANGE_DEG:
             raise PoseError(f"{d['bone']}: a range of {hi - lo:g} deg is wider than {MAX_RANGE_DEG:g}: not 'closest' - split the piece or ask")
-        if d["bone"] not in ref:
-            raise PoseError(f"the DOF names bone {d['bone']!r}, which the skeleton does not have")
+        if d["bone"] not in ref or (d.get("mirror") and _other_side(d["bone"]) not in ref):
+            raise PoseError(f"the DOF names bone {d['bone']!r} (or its mirror), which the skeleton does not have")
     rest_joints = {b: t["pos"] for b, t in ref.items()}
     first = dofs[0]
     if "expect" not in first:
