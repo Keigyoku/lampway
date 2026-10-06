@@ -102,7 +102,7 @@ def segment(image, out_dir, method="alpha_components", min_pixels=6000, expected
             continue
         parts.append({"pixels": int(len(ys)), "bbox": [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1], "id": i})
     if len(parts) > MAX_COMPONENTS:
-        raise SegmentError(f"too many components: {len(parts)} found, the limit is {MAX_COMPONENTS}: raise min_pixels")
+        raise SegmentError(f"too many components: raise min_pixels ({len(parts)} found, the limit is {MAX_COMPONENTS})")
     parts.sort(key=lambda p: (p["bbox"][0], p["bbox"][1]))                         # reading order: left to right, then top to bottom
     note = []
     names = [None] * len(parts)
