@@ -191,6 +191,13 @@ class Cockpit:
         if submit:
             L.run(self.root, ["pane", "send-keys", rec["pane_id"], "enter"])
 
+    def interrupt(self, sid: str) -> None:
+        """One Ctrl+C into a live session (the cockpit's interrupt: a user request or the user's click)."""
+        rec = self._get(sid)
+        if rec["state"] != "live":
+            raise CockpitError("the session is not running")
+        L.run(self.root, ["pane", "send-keys", rec["pane_id"], "ctrl-c"])
+
     def close_session(self, sid: str, confirmed=False) -> dict:
         if not confirmed:
             raise CockpitError("closing a session is an explicit user action: confirm it (its agent process ends; its history stays)")

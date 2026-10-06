@@ -30,6 +30,7 @@ def test_a_root_whose_socket_path_is_too_long_gets_a_short_socket_dir_inside_the
         deep = deep / "a_very_long_directory_name"
     env = L.env_for(deep)
     assert len(env["HERDR_SOCKET_PATH"]) < 100 and "lampway-herdr-" in env["HERDR_SOCKET_PATH"]
+    assert not Path(env["HERDR_SOCKET_PATH"]).parent.exists()                                  # computing the path creates nothing in the runtime dir
 
 
 def test_every_spawn_carries_the_lampway_socket_and_none_reaches_the_fleet(monkeypatch, lroot):

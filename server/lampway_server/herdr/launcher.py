@@ -26,9 +26,7 @@ def _runtime_dir(root: Path) -> Path:
     h = hashlib.sha256(str(Path(root).resolve()).encode()).hexdigest()[:8]
     base = Path(f"/run/user/{os.getuid()}")
     base = base if base.is_dir() else Path("/tmp")
-    d = base / f"lampway-herdr-{h}"
-    d.mkdir(mode=0o700, exist_ok=True)
-    return d
+    return base / f"lampway-herdr-{h}"
 
 
 def socket_paths(root) -> tuple:
@@ -117,6 +115,7 @@ def start_server(root, method="auto") -> dict:
         return {"already_running": True, "method": server_info(root).get("method")}
     env = env_for(root)
     _check(root, env)
+    Path(env["HERDR_SOCKET_PATH"]).parent.mkdir(mode=0o700, parents=True, exist_ok=True)       # a short runtime socket dir (a long root) is made only when a server really starts
     exe = bin_path()
     use_systemd = method == "systemd" or (method == "auto" and _systemd_ok())
     unit = "lampway-herdr-" + hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:8]

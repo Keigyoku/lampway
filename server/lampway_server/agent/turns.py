@@ -85,6 +85,11 @@ class AgentHub:
         self.prompts = prompts
         self.jobs = jobs
         self.cockpit = cockpit
+        self.ops = None
+        if cockpit is not None:
+            from ..ops.registry import AgentOps
+            import os as _os
+            self.ops = AgentOps(cockpit, cockpit.root / "ops", cwd=_os.environ.get("LAMPWAY_PROJECT_ROOT") or ".")
         self.script_timeout_s = script_timeout_s
         self.system_prompt = system_prompt
         self.sessions: dict[str, Session] = {}
@@ -389,7 +394,8 @@ class AgentHub:
         if call.name in workbench_tools.NAMES:
             if self.cockpit is None:
                 return "the cockpit is not available on this server", True
-            return await workbench_tools.call(self.cockpit, call.name, call.arguments)
+            last_user = next((m.text() for m in reversed(session.messages) if m.role == "user" and m.text()), "")
+            return await workbench_tools.call(self.cockpit, call.name, call.arguments, self.ops, call.id, last_user, turn.turn_id)
         if call.name in engine_tools.NAMES:
             return await engine_tools.call(call.name, call.arguments)
         if call.name in image_tools.NAMES:
