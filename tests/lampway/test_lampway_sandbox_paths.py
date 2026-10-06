@@ -36,7 +36,16 @@ def roots(tmp_path, monkeypatch):
     monkeypatch.setenv("LAMPWAY_HOME", str(home))
     monkeypatch.delenv("LAMPWAY_PROJECT_ROOT", raising=False)
     monkeypatch.delenv("LAMPWAY_SANDBOX_READ_ROOTS", raising=False)
-    return {"temp": temp, "project": home / "projects", "outside": tmp_path / "outside"}
+    # the sandbox's temp root is its own per-session folder inside the temp dir, never the shared temp dir (audit F19)
+    return {"temp": Path(sandbox_paths.session_tmp()), "shared_temp": temp, "project": home / "projects", "outside": tmp_path / "outside"}
+
+
+def test_the_shared_temp_dir_outside_the_session_folder_is_refused(roots):
+    with pytest.raises(PermissionError):
+        sandbox_paths.check_write(roots["shared_temp"] / "f.txt")
+    with pytest.raises(PermissionError):
+        sandbox_paths.check_read(roots["shared_temp"] / "f.txt")
+    assert roots["temp"].parent == roots["shared_temp"] and oct(roots["temp"].stat().st_mode & 0o777) == "0o700"
 
 
 def test_a_write_outside_every_root_is_refused_and_one_inside_the_temp_dir_is_not(roots):
