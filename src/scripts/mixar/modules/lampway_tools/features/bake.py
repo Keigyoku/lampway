@@ -22,6 +22,7 @@ MAPS = ("normal", "albedo", "ao")
 OVERLAP_MAX = 0.001
 ALIGN_FRACTION = 0.02          # bbox centre distance as a fraction of the donors' diagonal
 SCALE_TOL = 1e-3
+RAY_PER_CAGE = 2.0             # canon 14 B.3: the ray must reach the HP's greatest depth below the LP (max_ray >= cage + depth); 0.5x missed a sunk HP (golden C10)
 
 
 def _bbox(obs):
@@ -62,7 +63,7 @@ def plan(high, low, maps, size, margin_px, cage_extrusion_m, max_ray_m, samples,
     ext = float(np.linalg.norm(lhi - llo)) * ALIGN_FRACTION if cage_extrusion_m in (None, "auto") else float(cage_extrusion_m)
     if not 0 <= ext <= 0.2 and cage_extrusion_m not in (None, "auto"):
         raise C.FeatureError("cage_extrusion_m is 0..0.2 or 'auto'")
-    ray = 0.5 * ext if max_ray_m is None else float(max_ray_m)
+    ray = RAY_PER_CAGE * ext if max_ray_m is None else float(max_ray_m)
     margin = max(2, int(size) // 128) if margin_px is None else int(margin_px)
     if not 0 <= margin <= 64:
         raise C.FeatureError("margin_px is 0..64")

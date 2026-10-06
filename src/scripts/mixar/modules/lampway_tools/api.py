@@ -1168,37 +1168,45 @@ def weight_cleanup(object, armature, ops, mirror_from=None):
 
 
 @tool
-def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic"):
+def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", weld_m=1e-5):
     """Copy skin weights from a rigged body onto a piece. Each piece vertex is matched to the closest point on the body's (deformed) surface and takes the barycentric weights when the distance <=
     max_distance (default 0.05 m, at most 0.5) and its normal is within max_normal_angle (default 30 degrees; a flipped normal also counts when flip_normals); every vertex with no trustworthy match is
     inpainted so armpits, crotch and chest-to-arm gaps blend without painting. engine algorithmic: a harmonic fill over the mesh graph (Blender's python); engine robust: the SIGGRAPH Asia 2023 method
     (robust Laplacian, biharmonic constrained solve) in the science python (needs LAMPWAY_PYTHON_SCIENCE with numpy scipy libigl robust_laplacian). limit_groups caps the influences (default 4, 0 = no cap).
     The source must carry vertex groups and exactly one Armature modifier; the piece must have no topology modifiers. Result: a NEW object <object>_wt (or `name`) with the body's groups and Armature; the
-    original is untouched. Returns matched_fraction, inpainted_vertices, groups_written, the influence histogram and unweighted_vertices."""
+    original is untouched. Returns matched_fraction, inpainted_vertices, groups_written, the influence histogram and unweighted_vertices.
+    weld_m (default 1e-5 m, canon 07 B.1): the piece's vertices are welded by position before matching and inpainting, so a seam-split smart
+    mesh is one surface and both copies of a seam vertex carry the same row; 0 for an authored rig (a weld can invent identity there)."""
     from .features import weights as _W
-    return _W.transfer(object, source, max_distance, max_normal_angle, flip_normals, inpaint_mode, limit_groups, deform_only, name, engine)
+    return _W.transfer(object, source, max_distance, max_normal_angle, flip_normals, inpaint_mode, limit_groups, deform_only, name, engine, weld_m=weld_m)
 
 
 @tool
-def garment_clearance(piece, body, armature, pose_set="rest", clearance_target_m=0.015, classes=None):
+def garment_clearance(piece, body, armature, pose_set="rest", clearance_target_m=0.015, classes=None, body_open_band_m=None):
     """How far a piece sits from the body in rest and named poses: the signed distance of every piece vertex to the body posed by `armature` (positive outside, negative inside). pose_set is 'rest', 'wiki8'
     (the eight stress poses) or a list [{name, bone, rotate: [x, y, z degrees]} | {name, bones: [{bone, rotate}]}]; the poses are reset afterwards. Per pose: min_clearance_m, penetrating_vertices, max_depth_m,
     worst_region [x, y, z] and the body triangles that block most; `pass` when every vertex clears its target (clearance_target_m, default 0.015, or the target of the piece's vertex group named in
     `classes` {group: metres}: rigid and cloth parts differ). Also pass_pose_count and closest_pose. Refused: a body with no Armature modifier (the body needs an armature) and a piece more than 0.5 m
-    from the body (run place_piece first)."""
+    from the body (run place_piece first). Canon 15: the sign is the angle-weighted pseudonormal's (never one face normal); an OPEN body (a headless
+    body mesh) is refused unless body_open_band_m declares the band round its opening whose vertices stay unsigned (unsigned_near_opening)."""
     from .features import clearance as _CL
-    return _CL.run(piece, body, armature, pose_set, clearance_target_m, classes)
+    return _CL.run(piece, body, armature, pose_set, clearance_target_m, classes, body_open_band_m)
 
 
 @tool
 def fit_validate(stage, piece="", bound="", original="", poses=None, roles=None, limits=None, body="", armature="", validation=None):
-    """Measure a bound piece through poses against its ORIGINAL shell, and judge it. stage measure (engine blender): `bound` the piece with an Armature modifier, `original` the pre-fit source shell (REQUIRED
-    - measuring against a baked rest hides the distortion; same vertex count), `poses` [{name, bone, rotate: [x, y, z degrees], expect: {bone, axis, min_deg}} | {name, bones: [...]}], `roles` {part: metal |
-    leather | cloth | embroidery} (from the user or the recipe, never a render's colour; a part is the vertex group of that name, or the whole piece when there is one role). Per pose and part: rigid residual
-    with the scale FIXED (a breathing pose fails), edge strain, the seam gap, crossings of `body`; rest_fidelity (the source similarity: scale, rms, max mm); a crossing control when `body` is given (the piece
-    is pushed 1 cm into the skin: a counter that cannot see it makes the run UNPROVEN). A pose whose expect fails is REFUSED and not measured. Verdicts: PASS | FAIL | UNVERIFIED (no limits for the role: cloth,
-    leather, embroidery have none) | REFUSED | UNPROVEN; limits default to PROPOSED metal limits (1 mm rigid, 1 % strain, 1 mm seam: unverified placeholders) and the status rides along; ok only when nothing is
-    unverified. stage judge: re-judge a validation (dict or file) under new `limits`."""
+    """Measure a bound piece through poses against its ORIGINAL shell, and judge it (canon: specs/canon/05-fit-validation.md). stage measure (engine
+    blender): `bound` the piece with an Armature modifier, `original` the pre-fit source shell (REQUIRED - measuring against a baked rest hides the
+    distortion; same vertex count), `poses` - names from the vendored Titan set (rest, wrist_r_plus30, elbow_r_70, curl_r_full, ...) or
+    [{name, bones: [{bone, axis: up | forward | lateral | {line: [a, b]} | {perp: [a, b], to} | [x, y, z], deg}], expect: {joint, along | closer_to,
+    min_cm}} | {name, curl: {side, fraction}} | {name, bone, rotate: [x, y, z degrees]} (the Euler stress set)], `roles` {part: metal | leather | cloth |
+    embroidery} (a part is the vertex group of that name, or the whole piece when there is one role). A pose's expect is measured on the posed JOINTS
+    first: a wrong sign is REFUSED and nothing is measured; an expect on the commanded angle ({bone, axis, min_deg}) cannot fail and is refused. Per
+    pose and part: rigid residual with the scale FIXED, edge strain (fraction, p95 and max), the source seam ledger's pairs (open over 2 mm, max cm),
+    SURFACE crossings both ways and inside vertices of `body`; rest_fidelity of the whole piece and of every metal part; the crossing control (the
+    piece pushed into the skin where it is nearest, capped at half its extent: no crossing seen = UNPROVEN). Limits default to Titan's armour limits
+    adopted by the user (metal rigid < 0.5 mm, strain p95 < 1 %, no body crossing); leather, cloth and embroidery have none (UNVERIFIED), and a metric
+    not measured is UNVERIFIED. stage judge: re-judge a validation (dict or file) under new `limits`."""
     from .features import validate_pose as _VP
     from .pipeline import validate as _V
     if stage == "measure":
@@ -1207,11 +1215,14 @@ def fit_validate(stage, piece="", bound="", original="", poses=None, roles=None,
         v = json.loads(Path(_p(validation)).read_text()) if isinstance(validation, str) else dict(validation or {})
         if not v.get("poses"):
             raise ValueError("judge needs a validation with poses (the output of measure)")
-        lim = limits or _V.PROPOSED
+        lim = limits or _V.DEFAULT_LIMITS
         judges = []
         for row in v["poses"]:
+            if row.get("verdict") == "REFUSED":
+                judges.append({"verdict": "REFUSED", "limits_status": lim.get("status", "proposed")})
+                continue
             for part in row.get("pieces", {}).values():
-                part["judge"] = _V.judge(part["role"], {"rigid_residual_mm": part["rigid_residual_mm"], "strain_max_pct": part["strain_max"], "seam_gap_mm_max": part["seam_gap_mm_max"], "crossings_body": part.get("crossings_body")}, lim)
+                part["judge"] = _V.judge(part["role"], {"rigid_max_mm": part["rigid_max_mm"], "strain_p95": part["strain_p95"], "crossings": part.get("surface_crossings")}, lim)
                 judges.append(part["judge"])
         v["limits"] = lim
         v["summary"] = _V.summarize(judges, (v.get("crossing_control") or {}).get("ok") is not False)
@@ -1274,6 +1285,9 @@ def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_
     restrict (weighted by position from the body's own weights, restricted to the bones its geometry spans); `bind_overrides` {part: {mode, bones, reason}} (metal as blend is refused: ask for a ruled cut;
     an unknown bone names the nearest). Parts that share a seam and a bone form a rigid group; two rigid parts of one shell on different bones OPEN the seam (seam_opens). Writes bind_plan.json and seams.json.
     weights: a copy <piece>_fit (the source is untouched) with the plan's weights; the body's weights come from `body_object` (a skinned body in the scene: an approximation, the native sidecar sampler is not built).
+    A restrict part (canon 07) is welded by position, matched only on the body's own region for its bones (a closer surface of another region cannot
+    capture it), within 30 degrees of normal (or flipped); a weight on a disallowed bone moves to its nearest allowed ancestor, else to the part's
+    `fallback` (bind_overrides {part: {fallback}}), else the bone is refused by name; a vertex left with no weight is refused, never written empty.
     return: the metal parts' rest residual against the ORIGINAL shell. apply: refused while a seam opens unless accept_seam_gap_mm. report: the stages done and the files."""
     from .features import fit_bind as _FB
     root = str(_settings().project_root)

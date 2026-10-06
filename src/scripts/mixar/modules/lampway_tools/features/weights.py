@@ -6,7 +6,7 @@
 
 * audit: a read-only report (unweighted, sums, influence cap, per-bone, rigid check, side check, competing-bone hotspots); plan recommends rigid or deforming from the bones the geometry spans.
 * cleanup: a mutating counterpart on a COPY named ``<name>_wclean`` (normalize, limit, remove_influence, smooth, rigid); removing one bone from more than 40 % of the vertices is not a cleanup and is refused.
-* transfer: closest-surface matching (distance and normal-angle gates) and, for every vertex with no trustworthy match, weight inpainting. engine "algorithmic" is a harmonic fill over the mesh graph (Blender's own
+* transfer: vertices WELDED by position first (canon 07 B.1, ``weld_m`` 1e-5 m; 0 for an authored rig), closest-surface matching (distance and normal-angle gates) and, for every vertex with no trustworthy match, weight inpainting. engine "algorithmic" is a harmonic fill over the mesh graph (Blender's own
   python); engine "robust" is the paper's method (Abdrashitov et al., SIGGRAPH Asia 2023: robust Laplacian, Q = -L + L M^-1 L, constrained solve) in the science python (libigl, robust_laplacian, scipy)."""
 
 import json
@@ -17,6 +17,7 @@ import bpy
 import numpy as np
 
 from . import common as C
+from .. import canon_geom as G
 
 EPS = 1e-6
 MASS_ZEROING = 0.4
@@ -86,6 +87,21 @@ def audit(object, armature, intended=None, max_influences=4, side=None):
             "side_check": {"side": want, "groups_on_wrong_side": wrong}, "hotspots": hotspots, "pass": bool(ok), "max_influences": int(max_influences)}
 
 
+def bone_segments(arm):
+    """{bone: (head, end)} in world space for every bone of ``arm``: head -> the head of its continuation child (canon 01
+    C.1, canon_geom.chain_ends with the UE limb continuations), never the bone's tail - Blender's glTF import lays a UE
+    bone's tail 90 deg off its limb."""
+    mw = arm.matrix_world
+    lone = {b.name for b in arm.data.bones if b.parent is None and not b.children}      # a one-bone rig: no joint to run to
+    heads = {b.name: tuple((mw @ b.head_local)[:]) for b in arm.data.bones if b.name not in lone}
+    parents = {b.name: (b.parent.name if b.parent else None) for b in arm.data.bones if b.name not in lone}
+    out = G.bone_segments(heads, parents, main_child=G.CONTINUATION) if heads else {}
+    for b in arm.data.bones:
+        if b.name in lone:
+            out[b.name] = (np.array((mw @ b.head_local)[:]), np.array((mw @ b.tail_local)[:]))
+    return out
+
+
 def _seg_dist(P, a, b):
     ab = b - a
     t = np.clip(((P - a) @ ab) / max(float(ab @ ab), 1e-12), 0, 1)
@@ -100,7 +116,8 @@ def plan(object, armature):
     if not bones:
         raise C.FeatureError(f"{arm.name} has no deforming bones")
     P = np.array([(ob.matrix_world @ v.co)[:] for v in ob.data.vertices])
-    D = np.stack([_seg_dist(P, np.array((arm.matrix_world @ b.head_local)[:]), np.array((arm.matrix_world @ b.tail_local)[:])) for b in bones], axis=1)
+    seg = bone_segments(arm)
+    D = np.stack([_seg_dist(P, *seg[b.name]) for b in bones], axis=1)
     near = D.argmin(axis=1)
     hist = {bones[i].name: int((near == i).sum()) for i in range(len(bones)) if (near == i).any()}
     total = len(P)
@@ -257,7 +274,7 @@ def _source_arrays(src, bones):
     return tree, np.array([v[:] for v in V]), np.array(tris), names, W
 
 
-def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", root=None):
+def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", root=None, weld_m=G.WELD_M):
     import math
     ob = C.need_object(object)
     src = C.need_object(source)
@@ -290,7 +307,17 @@ def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_norm
     Wt = np.zeros((n, len(gnames)))
     cos_lim = math.cos(math.radians(float(max_normal_angle)))
     from mathutils import Vector
+    keys = G.weld_keys(Vt, float(weld_m)) if weld_m else np.arange(n)          # canon 07 B.1: one match per welded vertex
+    first = {}
+    for i, k in enumerate(keys):
+        first.setdefault(int(k), i)
+    Nw = np.zeros_like(Nt)
+    np.add.at(Nw, keys, Nt)                                                    # the welded vertex's normal: its copies' sum
     for i in range(n):
+        if first[int(keys[i])] != i:
+            continue
+        nrm = Nw[keys[i]]
+        Nt[i] = nrm / max(float(np.linalg.norm(nrm)), 1e-12)
         loc, nor, fi, dist = tree.find_nearest(Vector(Vt[i]))
         if loc is None or dist > float(max_distance):
             continue
@@ -306,12 +333,14 @@ def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_norm
             bary = np.array([1 - u - w, u, w])
             Wt[i] = bary @ Ws[Ts[fi]]
             matched[i] = True
+    rep = np.array([first[int(k)] for k in keys])
+    Wt, matched = Wt[rep], matched[rep]                                         # every copy takes its welded vertex's row
     inpainted = int((~matched).sum())
     if inpainted and matched.any():
         if engine == "robust":
             Wt = _robust_fill(ob, Vt, matched, Wt, inpaint_mode)
         else:
-            Wt = _harmonic_fill(me, matched, Wt)
+            Wt = _harmonic_fill(me, matched, Wt, weld_m)
     if limit_groups:
         Wt = _limit(Wt, int(limit_groups))
     else:
@@ -332,27 +361,17 @@ def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_norm
             "max_influences": int(limit_groups), "influence_histogram": hist, "unweighted_vertices": unweighted}
 
 
-def _harmonic_fill(me, matched, W, iters=3000, tol=1e-7):
-    """Unmatched vertices take the average of their mesh neighbours until the field settles (a harmonic fill; matched vertices stay fixed)."""
-    n = len(matched)
-    nb = [[] for _ in range(n)]
-    for e in me.edges:
-        a, b = e.vertices
-        nb[a].append(b); nb[b].append(a)
-    out = W.copy()
-    free = np.flatnonzero(~matched)
-    idx = [np.array(nb[i], dtype=int) for i in free]
-    for _ in range(iters):
-        delta = 0.0
-        new = out.copy()
-        for k, i in enumerate(free):
-            if len(idx[k]):
-                new[i] = out[idx[k]].mean(axis=0)
-        delta = float(np.abs(new - out).max())
-        out = new
-        if delta < tol:
-            break
-    return out
+def _harmonic_fill(me, matched, W, weld_m=G.WELD_M):
+    """Unmatched vertices take the harmonic fill of their mesh neighbours, matched vertices fixed - over POSITION-WELDED
+    vertices (canon 07 B.1, canon_geom.inpaint_harmonic): a smart mesh split at its UV seams is one surface, its duplicates
+    carry bit-identical rows and an island with no match of its own is reached through them (golden C04). ``weld_m`` 0
+    fills over vertex indices (an authored rig: a weld can invent identity across independent topology, canon 01 D.2)."""
+    co = np.empty(len(me.vertices) * 3)
+    me.vertices.foreach_get("co", co)
+    keys = G.weld_keys(co.reshape(-1, 3), weld_m) if weld_m else None
+    edges = np.empty(len(me.edges) * 2, dtype=np.int64)
+    me.edges.foreach_get("vertices", edges)
+    return G.inpaint_harmonic(len(matched), edges.reshape(-1, 2), matched, W, keys=keys)
 
 
 def _robust_fill(ob, Vt, matched, W, mode):

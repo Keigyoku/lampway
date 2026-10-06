@@ -20,6 +20,10 @@ import numpy as np
 from . import common as C
 
 
+FRAME_TOL_DEG = 0.01                    # canon 05 B.7 / Titan bind_mismatch: 0.01 deg per bone frame
+BONE_AXES = ("Z", "X")                  # canon 01 C.3 / F: the export convention (primary Z, secondary X) the read-back imports with
+
+
 def _within(root, p):
     p = Path(p) if Path(p).is_absolute() else Path(root) / p
     if not str(p.resolve()).startswith(str(Path(root).resolve())):
@@ -31,7 +35,8 @@ def _import_table(path):
     """Import an FBX, read its first armature as a bone table, and remove everything the import added."""
     before_o, before_a, before_ac = set(bpy.data.objects), set(bpy.data.armatures), set(bpy.data.actions)
     try:
-        bpy.ops.import_scene.fbx(filepath=str(path), automatic_bone_orientation=False, ignore_leaf_bones=False)
+        bpy.ops.import_scene.fbx(filepath=str(path), automatic_bone_orientation=False, ignore_leaf_bones=False,
+                                 primary_bone_axis=BONE_AXES[0], secondary_bone_axis=BONE_AXES[1])
     except Exception as exc:  # noqa: BLE001
         raise C.FeatureError(f"{path.name} could not be read as an FBX: {exc}") from exc
     new = [o for o in bpy.data.objects if o not in before_o]
@@ -54,12 +59,26 @@ def _table(arm_ob):
     ws = [arm_ob.matrix_world @ b.head_local for b in bones.values()] + [arm_ob.matrix_world @ b.tail_local for b in bones.values()]
     zs = [v.z for v in ws]
     ext = [max(v[i] for v in ws) - min(v[i] for v in ws) for i in range(3)]
-    rows = {n: {"parent": b.parent.name if b.parent else None, "length": float(b.length)} for n, b in bones.items()}
+    mw = arm_ob.matrix_world.to_3x3().normalized()
+    rows = {n: {"parent": b.parent.name if b.parent else None, "length": float(b.length),
+                "axes": [list((mw @ b.matrix_local.to_3x3()).col[k].normalized()[:]) for k in range(3)]} for n, b in bones.items()}
     posed = [pb.name for pb in arm_ob.pose.bones if (np.abs(np.array(pb.rotation_euler[:]) if pb.rotation_mode != "QUATERNION" else np.array(pb.rotation_quaternion[:]) - np.array([1, 0, 0, 0])).max() > 1e-6
                                                         or np.abs(np.array(pb.location[:])).max() > 1e-6 or np.abs(np.array(pb.scale[:]) - 1).max() > 1e-6)]
     has_action = bool(arm_ob.animation_data and arm_ob.animation_data.action)
     return {"bones": rows, "height": float(max(zs) - min(zs)) if zs else 0.0, "up": "XYZ"[int(np.argmax(ext))], "posed": posed, "animated": has_action,
             "unit_scale_length": float(bpy.context.scene.unit_settings.scale_length)}
+
+
+def _frames(t, ref):
+    """Per bone both skeletons have: the largest angle between corresponding frame axes (degrees), the worst bone and the bones over
+    FRAME_TOL_DEG - the export gate reads FRAMES, never positions alone (canon 01 C.3, canon 21)."""
+    rows = []
+    for n in sorted(set(t["bones"]) & set(ref["bones"])):
+        a, b = np.array(t["bones"][n]["axes"]), np.array(ref["bones"][n]["axes"])
+        rows.append((n, float(max(np.degrees(np.arccos(np.clip(a[k] @ b[k], -1, 1))) for k in range(3)))))
+    worst = max(rows, key=lambda r: r[1]) if rows else (None, None)
+    return {"bones_compared": len(rows), "worst_deg": None if worst[1] is None else round(worst[1], 4), "worst_bone": worst[0],
+            "over_tolerance": [{"bone": n, "deg": round(d, 4)} for n, d in rows if d > FRAME_TOL_DEG], "tolerance_deg": FRAME_TOL_DEG}
 
 
 def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, root):
@@ -85,6 +104,7 @@ def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, 
     leaf = sorted(n for n in names if n.endswith("_end") and (ref is None or n not in ref["bones"]))
     reasons = []
     missing, extra, mism, root_info, scale = [], [], [], {"name": None, "expected": None}, 1.0
+    frames = {"bones_compared": 0, "worst_deg": None, "worst_bone": None, "over_tolerance": [], "tolerance_deg": FRAME_TOL_DEG}
     if ref is not None:
         rnames = set(ref["bones"])
         missing = sorted(rnames - names)
@@ -94,6 +114,7 @@ def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, 
         rroots = [n for n, b in ref["bones"].items() if b["parent"] is None]
         root_info = {"name": roots[0] if roots else None, "expected": rroots[0] if rroots else None}
         scale = t["height"] / ref["height"] if ref["height"] else 1.0
+        frames = _frames(t, ref)
     if leaf:
         reasons.append(f"{len(leaf)} leaf bone(s) the target does not have (export with add_leaf_bones off): {leaf[:6]}")
     if missing:
@@ -102,6 +123,9 @@ def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, 
         reasons.append(f"extra bones: {extra[:10]}")
     if mism:
         reasons.append(f"{len(mism)} bone(s) with a different parent than the target")
+    if frames["over_tolerance"]:
+        reasons.append(f"{len(frames['over_tolerance'])} bone frame(s) differ from the target (worst {frames['worst_bone']} {frames['worst_deg']:.2f} deg): "
+                       "positions can match while frames are turned, and a leader pose then moves the gear (canon 01 C.3)")
     if root_info["name"] != root_info["expected"]:
         reasons.append(f"the root is {root_info['name']!r}, the target's is {root_info['expected']!r}")
     if abs(scale - float(expect_unit_scale)) > 0.05 * float(expect_unit_scale):
@@ -110,6 +134,7 @@ def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, 
     if posed:
         reasons.append(f"bones {posed[:6]} are posed with no animation: the rest pose is a posed frame (clear the pose before the export)")
     return {"ok": True, "leaf_bones": leaf, "missing_bones": missing, "extra_bones": extra, "hierarchy_mismatch": mism, "root": root_info, "unit_scale": round(scale, 4), "axes": {"up": t["up"], "forward": None},
+            "frames": frames,
             "rest_vs_frame": {"rest_pose_is_frame_zero": bool(posed), "posed_bones": posed}, "pass": not reasons, "reasons": reasons}
 
 

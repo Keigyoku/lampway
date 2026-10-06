@@ -338,25 +338,29 @@ DEFS = [
     Def("lampway_weight_cleanup", "Fix weights on a COPY named <object>_wclean. ops in order: {op: normalize}, {op: limit, max_influences}, {op: remove_influence, bone, region: {bbox} | {vertex_group}} (refused over "
         "40 % of the vertices: that is a rebind; never leaves a vertex unweighted), {op: smooth, iterations, factor, region}, {op: rigid, bone, region}. Returns the ops applied and the audit of the result.",
         [P("object", required=True), P("armature", required=True), P("ops", "array", "the ops", required=True), P("mirror_from", desc="not built")], api="weight_cleanup"),
-    Def("lampway_weight_transfer", "Copy skin weights from a rigged body onto a piece by closest-surface matching (distance <= max_distance, default 0.05 m, and normal within max_normal_angle, default 30), then "
+    Def("lampway_weight_transfer", "Copy skin weights from a rigged body onto a piece (canon: specs/canon/07-skin-weights.md): the piece's vertices are WELDED by position first (weld_m, default 1e-5 m; 0 for an authored rig) so seam duplicates share one row, then closest-surface matching (distance <= max_distance, default 0.05 m, and normal within max_normal_angle, default 30), then "
         "inpaint every unmatched vertex so armpits and gaps blend. engine algorithmic: a harmonic fill; robust: the SIGGRAPH Asia 2023 biharmonic method in the science python. Source needs vertex groups and "
         "exactly one Armature modifier. Result: a NEW object <object>_wt with the body's groups (capped at limit_groups, default 4). The original is untouched.",
         [P("object", required=True), P("source", required=True, desc="the rigged body"), P("max_distance", "number", "0..0.5, default 0.05"), P("max_normal_angle", "number", "degrees, default 30"),
          P("flip_normals", "boolean", "default true"), P("inpaint_mode", desc="point (default) | surface (robust)"), P("limit_groups", "integer", "default 4, 0 = no cap"),
-         P("deform_only", "boolean", "default true"), P("name", desc="the new object's name"), P("engine", desc="algorithmic (default) | robust")], api="weight_transfer"),
+         P("deform_only", "boolean", "default true"), P("name", desc="the new object's name"), P("engine", desc="algorithmic (default) | robust"),
+         P("weld_m", "number", "position weld before matching and inpainting, default 1e-5 m; 0 = no weld (an authored rig)")], api="weight_transfer"),
     Def("lampway_garment_clearance", "How far a piece sits from the body in rest and named poses: the signed distance (positive outside, negative inside) of every piece vertex to the body posed by its armature. "
         "pose_set rest | wiki8 | a list [{name, bone, rotate: [x, y, z degrees]} | {name, bones: [...]}]; poses are reset afterwards. Per pose: min_clearance_m, penetrating_vertices, max_depth_m, worst_region, the "
         "blocking body triangles and pass (every vertex clears its target: clearance_target_m, default 0.015, or the target of the piece's vertex group named in `classes`). Also pass_pose_count and closest_pose. "
-        "Refused: an unskinned body, a piece more than 0.5 m away (run place_piece first).",
+        "Refused: an unskinned body, a piece more than 0.5 m away (run place_piece first), an open body without body_open_band_m (canon: specs/canon/15-clearance-penetration.md).",
         [P("piece", required=True), P("body", required=True), P("armature", required=True), P("pose_set", desc="rest (default) | wiki8 | a list of poses"),
-         P("clearance_target_m", "number", "0..0.1, default 0.015"), P("classes", "object", "{vertex group: target metres}")], api="garment_clearance"),
-    Def("lampway_fit_validate", "Measure a bound piece through poses against its ORIGINAL shell and judge it. measure: `bound` (an Armature-modified piece), `original` (the pre-fit source shell, REQUIRED: a baked rest "
-        "hides the distortion; same vertex count), `poses` [{name, bone, rotate: [x, y, z], expect: {bone, axis, min_deg}} | {name, bones}], `roles` {part: metal | leather | cloth | embroidery} (the user's or the recipe's, "
-        "never a render's colour). Per pose and part: rigid residual with the scale FIXED, edge strain, seam gap, crossings of `body`; rest_fidelity (scale, rms, max mm vs the original); a crossing control when `body` is "
-        "given. A pose whose expect fails is REFUSED, not measured. Verdicts PASS | FAIL | UNVERIFIED (no limits for the role) | REFUSED | UNPROVEN; default limits are PROPOSED metal limits (placeholders) and the "
-        "status rides along. judge: re-judge a validation under new limits.",
+         P("clearance_target_m", "number", "0..0.1, default 0.015"), P("classes", "object", "{vertex group: target metres}"),
+         P("body_open_band_m", "number", "an OPEN body (boundary edges) is refused without it: vertices within this band of the opening stay unsigned (canon 15)")], api="garment_clearance"),
+    Def("lampway_fit_validate", "Measure a bound piece through poses against its ORIGINAL shell and judge it (canon: specs/canon/05-fit-validation.md). measure: `bound` (an Armature-modified piece), `original` "
+        "(the pre-fit source shell, REQUIRED: a baked rest hides the distortion; same vertex count), `poses` (named poses such as rest, wrist_r_plus30, elbow_r_70, curl_r_full, or [{name, bones: [{bone, axis: up | "
+        "forward | lateral | {line: [a, b]} | {perp: [a, b], to}, deg}], expect: {joint, along | closer_to, min_cm}} | {name, curl: {side, fraction}} | {name, bone, rotate} (Euler stress set)]), `roles` {part: metal | "
+        "leather | cloth | embroidery} (the user's or the recipe's, never a render's colour). The expect is measured on the posed JOINTS first: a wrong sign is REFUSED; an expect on the commanded angle is refused. "
+        "Per pose and part: rigid residual with the scale FIXED, edge strain p95/max (fraction), the source seam ledger (open over 2 mm), SURFACE crossings both ways and inside vertices of `body`; rest fidelity per "
+        "metal part; a capped crossing control (no crossing seen = UNPROVEN). Verdicts PASS | FAIL | UNVERIFIED (no limits for the role, or a metric not measured) | REFUSED | UNPROVEN; default limits are Titan's, "
+        "adopted (metal rigid < 0.5 mm, strain p95 < 1 %, no body crossing). judge: re-judge a validation under new limits.",
         [P("stage", required=True, desc="measure | judge"), P("piece", desc="the piece's name"), P("bound", desc="the bound object"), P("original", desc="the pre-fit source shell"),
-         P("poses", "array", "the poses"), P("roles", "object", "{part: role}"), P("limits", "object", "{status, metal: {rigid_max_mm, strain_max_pct, seam_gap_mm}}"), P("body", desc="the posed body for crossings"),
+         P("poses", "array", "the poses"), P("roles", "object", "{part: role}"), P("limits", "object", "{status, body: {crossings}, metal: {rigid_max_mm, strain_p95}}"), P("body", desc="the posed body for crossings"),
          P("armature", desc="default: the piece's Armature modifier"), P("validation", desc="judge: a validation dict or file")], api="fit_validate"),
     Def("lampway_skeleton_export_check", "Check an armature in the scene or an FBX under the project root (exactly one) against a reference skeleton (target.names_from: a reference FBX). Reports leaf bones (`*_end`: "
         "export with add_leaf_bones off), missing and extra bones, parents that differ, the root, the unit scale (height ratio to the reference: a 100x export reads 100), the up axis and rest_vs_frame (bones posed with no "
@@ -378,9 +382,10 @@ DEFS = [
          P("validation", desc="validation.json"), P("bind_check", desc="bind_check.json"), P("note"), P("allow_unverified", "boolean", "default false")], api="fit_export"),
     Def("lampway_fit_bind", "Bind a finished piece to the body's skeleton by the user's weight laws. plan: per part (a vertex group of the piece) a role from `roles` {part: metal | leather | cloth | embroidery} (the user's or the "
         "recipe's, never a render's colour: a part without one is refused) and a mode - metal = rigid, ONE bone at full weight (blending it is refused: ask for a ruled cut), anything else = restrict (weighted by position from "
-        "the body's weights, restricted to the bones its geometry spans); bind_overrides {part: {mode, bones, reason}}; two rigid parts of one shell on different bones open the seam (seam_opens). weights: a copy <piece>_fit from "
-        "`body_object` (a scene body: an approximation, the native sidecar sampler is not built). return: the metal rest residual vs the ORIGINAL shell. apply: refused while a seam opens unless accept_seam_gap_mm. report.",
-        [P("stage", required=True, desc="plan | weights | return | apply | report"), P("piece"), P("armature"), P("roles", "object", "{part: role}"), P("bind_overrides", "object", "{part: {mode, bones, reason}}"),
+        "the body's weights, restricted to the bones its geometry spans); bind_overrides {part: {mode, bones, reason, fallback}}; two rigid parts of one shell on different bones open the seam (seam_opens). weights "
+        "(canon: specs/canon/07-skin-weights.md): a copy <piece>_fit from `body_object` (a scene body: an approximation, the native sidecar sampler is not built); a restrict part is welded by position, matched only "
+        "on the body's OWN region for its bones, a weight on another bone moves to its nearest allowed ancestor else the part's fallback (else refused by name), and a vertex left with no weight is refused. return: the metal rest residual vs the ORIGINAL shell. apply: refused while a seam opens unless accept_seam_gap_mm. report.",
+        [P("stage", required=True, desc="plan | weights | return | apply | report"), P("piece"), P("armature"), P("roles", "object", "{part: role}"), P("bind_overrides", "object", "{part: {mode, bones, reason, fallback}}"),
          P("out_dir", desc="default fit/bind"), P("body_object", desc="weights: the skinned body object"), P("accept_seam_gap_mm", "number", "apply: accept an opened seam")], api="fit_bind"),
     Def("lampway_fit_glove", "The glove's plate labels as a typed decision. stage labels: `labels` {plate: bone} for EVERY plate (the piece's vertex groups; an unlabelled plate is named, never guessed), `roles` {plate: role}, "
         "the glove's own side's bones only, finger caps and the bracer metal = one rigid bone each, a cloth plate (the upper arm) never rigid. Writes <piece>/fit/glove_labels.json and one decision row per plate "

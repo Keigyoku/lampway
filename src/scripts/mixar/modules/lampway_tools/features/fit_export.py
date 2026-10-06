@@ -79,7 +79,9 @@ def run(object, armature, out_dir, body, textures, validation, bind_check, note,
         raise C.FeatureError(f"validation has {counts.get('FAIL', 0)} FAIL" + (f" and {counts['UNPROVEN']} UNPROVEN" if counts.get("UNPROVEN") else "") + ": fix or rule before export")
     roles = sorted({p["role"] for row in val.get("poses", []) for p in row.get("pieces", {}).values() if p.get("judge", {}).get("verdict") == "UNVERIFIED"})
     if roles and not allow_unverified:
-        raise C.FeatureError(f"roles without declared limits: {roles}; pass allow_unverified=true to export with the report saying so")
+        missing = sorted({m for row in val.get("poses", []) for p in row.get("pieces", {}).values() for m in p.get("judge", {}).get("missing", [])})
+        raise C.FeatureError(f"roles without declared limits: {roles} (or with a metric not measured: {missing}; a metal part's body crossings need `body` in "
+                             "the validation); pass allow_unverified=true to export with the report saying so")
     bc = _json(root, bind_check, "bind_check")
     if not bc.get("ok"):
         bones = [r.get("bone") for r in bc.get("over_tolerance", [])]
