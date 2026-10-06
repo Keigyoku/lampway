@@ -113,4 +113,5 @@ print("RESULT", json.dumps({"res": res, "door": list(api.TOOL_FUNCS)}))
     assert res["ok"] and len(res["stages"]) == 13
     for s in res["stages"]:
         assert s["missing_tools"] == [t for t in s["tools"] if t not in door], s          # availability is the live door, not a hand list
-    assert next(s for s in res["stages"] if s["n"] == 4)["missing_tools"] == ["mirror_pair", "mesh_join_boolean"]
+    assert next(s for s in res["stages"] if s["n"] == 4)["missing_tools"] == []      # integration: lp/orphans brought mirror_pair and mesh_join_boolean (wave6 alone lacked them)
+    assert {"mirror_pair", "mesh_join_boolean"} <= door
