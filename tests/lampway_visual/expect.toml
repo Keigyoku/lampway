@@ -58,6 +58,10 @@ theme = "dark"
 theme = "dark"
 [observe_labels.surfaces]
 
+[onboarding_steps]
+theme = "dark"
+[onboarding_steps.surfaces]
+
 [agent_pill]
 theme = "dark"
 [agent_pill.surfaces]

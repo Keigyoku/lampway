@@ -9,13 +9,19 @@ Quick Setup always did and writes the routes and caps to Lampway's server.
 Every route row is one line: the shield (its policy is the hover text), the name with its host, the switch. The switch alone says on or off.
 Nothing here reaches the network in a draw: the walk is read once, when the dialog opens."""
 
+import textwrap
+
 import bpy
 from bpy.props import BoolProperty, CollectionProperty, EnumProperty, FloatProperty, StringProperty
 from bpy.types import Operator, PropertyGroup
 
 from mixar.modules.lampway_tools import onboarding as ob
 
-WALK = {"walk": None}
+WALK = {"walk": None, "anchor": None}
+WRAP = 60              # characters per body line: the body column holds about 78 at any UI scale (it scales with the text)
+STEP_TEXT = {2: "The agent thinks with the provider you pick here; nothing is sent until you use it",
+             3: "Every route is off until you switch it on",
+             4: "OpenRouter, in dollars: a click above the first amount, never past the caps"}
 SHIELD = {"ok": 'LAMPWAY_SHIELD', "conditional": 'LAMPWAY_SHIELD_HALF', "retains": 'LAMPWAY_SHIELD_OPEN', "unknown": 'LAMPWAY_SHIELD_UNKNOWN'}
 PROVIDERS = (("chatgpt_plan", "ChatGPT plan", "Your ChatGPT subscription, signed in from Providers"),
              ("codex_cli", "Codex CLI", "The Codex command line on this machine, on your ChatGPT plan"),
@@ -51,6 +57,29 @@ def draw_rail(layout, walk):
     for i, name in enumerate(ob.STEPS, start=1):
         icon = 'LAMPWAY_NODE_LIT' if i < walk.step else 'LAMPWAY_NODE_HALF' if i == walk.step else 'LAMPWAY_NODE'
         col.label(text=name, icon=icon)
+    col.separator()
+    if walk.step > 2:    # Back lives under the steps, never on the bottom row where the step before had Continue (audit F23)
+        col.operator("lampway.onboarding_back", text="Back")
+    else:
+        col.label(text="")
+
+
+def wrapped(layout, text, icon='NONE'):
+    """A sentence as whole lines: a label never cuts it to an ellipsis (audit F23)."""
+    for i, line in enumerate(textwrap.wrap(text, WRAP)):
+        layout.label(text=line, icon=icon if i == 0 else 'NONE')
+
+
+def _lines(text) -> int:
+    return len(textwrap.wrap(text, WRAP))
+
+
+def body_rows(walk) -> int:
+    """The tallest step's rows: every step is padded to it, so the dialog keeps one size and Continue one place (audit F23)."""
+    if not walk.online:
+        return 1 + _lines(ob.OFFLINE) + _lines("Continue saves your language and keys only")
+    refusal = max((_lines(why) for why in [walk.refusal()] if why), default=0)
+    return max(_lines(STEP_TEXT[2]) + 1 + max(refusal, 1), _lines(STEP_TEXT[3]) + len(walk.routes), _lines(STEP_TEXT[4]) + 3)
 
 
 def draw_routes(layout, walk, rows):
@@ -68,24 +97,42 @@ def draw_step(layout, walk, rows):
     split = layout.split(factor=0.34)
     draw_rail(split.column(), walk)
     body = split.column()
+    drawn = _draw_body(body, walk, rows)
+    for _ in range(body_rows(walk) - drawn):
+        body.label(text="")
+
+
+def _draw_body(body, walk, rows) -> int:
+    """Draw the step's body; return how many rows it took."""
     if walk.step >= 2 and not walk.online:
-        body.label(text=ob.OFFLINE, icon='ERROR')
-        body.label(text="Continue saves your language and keys only")
-        return
+        wrapped(body, ob.OFFLINE, icon='ERROR')
+        wrapped(body, "Continue saves your language and keys only")
+        return _lines(ob.OFFLINE) + _lines("Continue saves your language and keys only")
     wm = getattr(bpy.context, "window_manager", None)
     if walk.step == 2:
-        body.label(text="The agent thinks with the provider you pick here; nothing is sent until you use it")
+        wrapped(body, STEP_TEXT[2])
         body.prop(wm, "lampway_onboarding_provider", text="")
-        if why := walk.refusal():
-            body.label(text=why, icon='ERROR')
-    elif walk.step == 3:
-        body.label(text="Every route is off until you switch it on")
+        why = walk.refusal()
+        if why:
+            wrapped(body, why, icon='ERROR')
+        return _lines(STEP_TEXT[2]) + 1 + (_lines(why) if why else 0)
+    if walk.step == 3:
+        wrapped(body, STEP_TEXT[3])
         draw_routes(body, walk, rows)
-    elif walk.step == 4:
-        body.label(text="OpenRouter, in dollars: a click above the first amount, never past the caps")
+        return _lines(STEP_TEXT[3]) + len(rows)
+    if walk.step == 4:
+        wrapped(body, STEP_TEXT[4])
         body.prop(wm, "lampway_onboarding_above", text="Click above")
         body.prop(wm, "lampway_onboarding_job_cap", text="Per job")
         body.prop(wm, "lampway_onboarding_session_cap", text="Per session")
+        return _lines(STEP_TEXT[4]) + 3
+    return 0
+
+
+def _redraw_all(context):
+    """The step before's dialog must not stay painted behind this one (audit F23)."""
+    for area in [*context.window.screen.areas, *context.window.global_areas]:
+        area.tag_redraw()
 
 
 def _route_switched(self, context):
@@ -134,6 +181,12 @@ class LAMPWAY_OT_onboarding(Operator):
 
     def invoke(self, context, event):
         walk = WALK["walk"] or _begin(context)
+        # every step opens where the first did: one size, one place, so Continue never moves (audit F23)
+        if WALK["anchor"] is None:
+            WALK["anchor"] = (event.mouse_x, event.mouse_y)
+        elif (event.mouse_x, event.mouse_y) != WALK["anchor"]:
+            context.window.cursor_warp(*WALK["anchor"])
+        _redraw_all(context)
         text = walk.continue_label() if walk.step == len(ob.STEPS) and walk.online else "Continue"
         return context.window_manager.invoke_props_dialog(self, width=640, title=ob.STEPS[walk.step - 1], confirm_text=text)
 
@@ -141,8 +194,6 @@ class LAMPWAY_OT_onboarding(Operator):
         walk = WALK["walk"]
         if walk is not None:
             draw_step(self.layout, walk, context.window_manager.lampway_onboarding_routes)
-            if walk.step > 2:
-                self.layout.operator("lampway.onboarding_back", text="Back")
 
     def execute(self, context):
         walk = WALK["walk"]
@@ -159,7 +210,7 @@ class LAMPWAY_OT_onboarding(Operator):
             self.report({'ERROR'}, f"Lampway's server did not take the setup: {exc}")
             return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
         bpy.ops.wm.save_userpref()
-        WALK["walk"] = None
+        WALK.update(walk=None, anchor=None)
         self.report({'INFO'}, "Saved: " + ", ".join(saved))
         return {'FINISHED'}
 
@@ -216,4 +267,4 @@ def unregister():
             delattr(bpy.types.WindowManager, name)
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-    WALK["walk"] = None
+    WALK.update(walk=None, anchor=None)
