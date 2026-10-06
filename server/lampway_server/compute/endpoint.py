@@ -4,7 +4,6 @@ live leg of each is `needs_key` (the captain is choosing the GPU provider himsel
 from __future__ import annotations
 
 import base64
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -38,13 +37,16 @@ SHAPES = {
 }
 
 
+CONNECTIONS = {"runpod": "compute:runpod", "modal": "compute:modal", "fal": "fal"}
+
+
 class EndpointBackend:
     egress_via = "transport"
 
     def __init__(self, shape: str, endpoints: dict, transport=None, env=None):
         """endpoints: {recipe_id: {"base_url", "rate_usd_per_s", "exec_timeout_s", "idle_timeout_s", "max_workers", "kind": "web"|"function", "image_digest"?, "setup_seconds_max"?}}"""
         self.shape, self.name, self.egress_route = SHAPES[shape], SHAPES[shape].name, SHAPES[shape].route
-        self.endpoints, self.env = endpoints, env if env is not None else os.environ
+        self.endpoints, self.env = endpoints, env                 # None: the key comes from Connections (an explicit env is for tests)
         self._http = httpx.Client(transport=transport, timeout=60.0)
         self._inputs: dict = {}
         self.constraints = {"no_payload_logging": True}
@@ -60,6 +62,13 @@ class EndpointBackend:
 
     # --------------------------------------------------------------------------------------------- plumbing
     def _headers(self) -> dict:
+        if self.env is None:
+            from .. import connections as C
+            try:
+                return C.credential(CONNECTIONS[self.name]).headers()
+            except C.Refused as exc:
+                raise BK.Rejected(f"needs_key: no {self.name} key ({exc}): set {' + '.join(self.shape.key_env)} in the environment or connect "
+                                  f"it in Connections; the live leg is skipped until the captain provides one") from None
         vals = [self.env.get(k) for k in self.shape.key_env]
         if not all(vals):
             raise BK.Rejected(f"needs_key: no {self.name} key (set {' + '.join(self.shape.key_env)} in the environment): the live leg is skipped until the captain provides one")

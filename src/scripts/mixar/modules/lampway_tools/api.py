@@ -16,6 +16,7 @@ as a job (``jobs.py``) and its scene-touching tail runs from the app's timer.
 """
 
 import functools
+import inspect
 import json
 import os
 from pathlib import Path
@@ -29,6 +30,8 @@ from . import live_load
 from . import meshpaint as MP
 from . import rebuild as RB
 from . import runner as RUN
+from .canon_door import LEGACY, NONE, Need, validate_declaration  # noqa: F401  (the door: NONE / Need for tool authors)
+from .canon_door import refusal as _door_refusal, unmet as _door_unmet
 from . import settings as S
 from .meshqa import decisions as D
 from .meshqa import live as L
@@ -50,22 +53,46 @@ _HELP = {
 
 
 _REGISTRY = []
+TOOL_DOORS = {}             # name -> (consumes, produces): derived from the same decorator as TOOL_FUNCS (the normalization door)
 
 
-def tool(fn):
-    """Return {'ok': True, ...} from the function's dict, or {'ok': False, 'error', 'help'} for a refusal. The function joins TOOL_FUNCS, the door the agent's scripts call by name."""
-    _REGISTRY.append(fn.__name__)
+def tool(fn=None, *, consumes=None, produces=None):
+    """Register a tool behind its door. ``consumes`` is REQUIRED: {arg: Need(...)} (the argument must name a canonical asset that
+    satisfies the Need - a raw, unstamped or changed one is refused with "normalize first"), NONE("why") for a tool that reads no
+    asset, or LEGACY("issue") during migration (the ratchet in canon_legacy_count.txt may only fall). The wrapped call returns
+    {'ok': True, ...} from the function's dict, or {'ok': False, 'error', 'help'} for a refusal; the function joins TOOL_FUNCS, the
+    door the agent's scripts call by name."""
+    if fn is not None:
+        raise TypeError("@tool needs consumes=: declare what this tool reads (Need(...)), or NONE('why') if it reads no asset")
+    validate_declaration(consumes)
 
-    @functools.wraps(fn)
-    def wrapper(*a, **kw):
-        try:
-            out = fn(*a, **kw)
-            return {"ok": True, **out} if isinstance(out, dict) else {"ok": True, "result": out}
-        except Exception as exc:
-            help_ = next((h for t, h in _HELP.items() if isinstance(exc, t)), ["See the error"])
-            return {"ok": False, "error": f"{type(exc).__name__}: {exc}" if not isinstance(exc, (LookupError, S.PathOutsideProject,
-                    FileNotFoundError, ValueError, RUN.ToolUnavailable)) else str(exc).strip("'\""), "help": help_}
-    return wrapper
+    def deco(fn):
+        _REGISTRY.append(fn.__name__)
+        TOOL_DOORS[fn.__name__] = (consumes, produces or {})
+        sig = inspect.signature(fn)
+
+        @functools.wraps(fn)
+        def wrapper(*a, **kw):
+            if isinstance(consumes, dict):
+                try:
+                    bound = sig.bind_partial(*a, **kw).arguments
+                except TypeError:
+                    bound = {}
+                for arg, need in consumes.items():
+                    value = bound.get(arg)
+                    if value not in (None, ""):
+                        reasons = _door_unmet(arg, value, need)
+                        if reasons:
+                            return _door_refusal(arg, value, reasons, need)
+            try:
+                out = fn(*a, **kw)
+                return {"ok": True, **out} if isinstance(out, dict) else {"ok": True, "result": out}
+            except Exception as exc:
+                help_ = next((h for t, h in _HELP.items() if isinstance(exc, t)), ["See the error"])
+                return {"ok": False, "error": f"{type(exc).__name__}: {exc}" if not isinstance(exc, (LookupError, S.PathOutsideProject,
+                        FileNotFoundError, ValueError, RUN.ToolUnavailable)) else str(exc).strip("'\""), "help": help_}
+        return wrapper
+    return deco
 
 
 def _settings() -> S.Settings:
@@ -81,14 +108,14 @@ def _p(path, root=None) -> str:
 
 # ---- settings and status
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def settings_get():
     s = _settings()
     return {"settings": {k: (str(getattr(s, k)) if getattr(s, k) is not None else None) for k in S._FIELDS},
             "interpreters": S.interpreter_report(s)}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def settings_set(**kw):
     s = _settings()
     for k, v in kw.items():
@@ -113,7 +140,7 @@ def _qa_summary() -> dict:
             "pieces": L.piece_names(bpy.context.scene)}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def status():
     s = _settings()
     return {"version": TOOLS_VERSION, "project_root": str(s.project_root), "interpreters": S.interpreter_report(s),
@@ -122,7 +149,7 @@ def status():
 
 # ---- mesh QA
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def qa_setup(object, recipe, owner="", piece="", session="", offset=(0, 0, 0), orig_poly="", turn=0.0, rulings_dir="",
              min_perimeter=0.15, max_shell_tris=400, float_mm=3.0):
     """Point mesh QA at a mesh object. ``recipe`` = the parts json, ``owner`` = a .npy of one part index per polygon (or
@@ -142,13 +169,13 @@ def qa_setup(object, recipe, owner="", piece="", session="", offset=(0, 0, 0), o
     return {"piece": piece, "object": object, "rulings_dir": rd, "session": cfg.session}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def qa_tag_layers():
     ann = M.create_tag_layers()
     return {"layers": [l.info for l in ann.layers]}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def qa_candidates(draw=False, piece="", collection="", prefix=None):
     """Candidates for ``piece`` (default: the active piece); with ``draw`` they are drawn into ``collection`` (default
     ``QA_<piece>``) with marker names starting ``prefix`` (default ``<piece>_``)."""
@@ -159,7 +186,7 @@ def qa_candidates(draw=False, piece="", collection="", prefix=None):
     return out
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def qa_draw(piece="", collection="", prefix=None):
     return L.draw_candidates(L.load_config(bpy.context.scene, piece or None), collection or None, prefix)
 
@@ -170,7 +197,7 @@ def _qa_candidates_by_id(cfg) -> dict:
     return {c["id"]: c for c in json.loads(cfg.candidates_path.read_text(encoding="utf-8"))["candidates"]}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def qa_propose(proposals=None, piece="", by="agent", rules=None, collection="", prefix=None):
     """Propose a verdict per candidate and recolour the piece's markers (delete red, hole yellow, mislabel green, keep grey and hidden;
     the label reads ``<id> <VERDICT>``). RULES FIRST: with no ``proposals`` the rules (meshqa/rules.py) decide every candidate their
@@ -197,7 +224,7 @@ def qa_propose(proposals=None, piece="", by="agent", rules=None, collection="", 
     return {"piece": cfg.piece, "path": str(path), "counts": QP.counts(rows), **out}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def qa_proposals(piece=""):
     """The proposals so far for the piece (rows {id, kind, verdict, reason, by}), with counts per verdict."""
     cfg = L.load_config(bpy.context.scene, piece or None)
@@ -205,7 +232,7 @@ def qa_proposals(piece=""):
     return {"piece": cfg.piece, "counts": QP.counts(rows), "proposals": QP.as_map(rows)}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def qa_descriptors(piece="", ids=None, ambiguous_only=False, limit=10, offset=0):
     """COMPACT descriptors (never segments_m) of the piece's candidates, in small batches: ``ids`` picks some, ``ambiguous_only`` the ones
     nobody has proposed a verdict for yet. ``limit`` is capped at 20; page with ``offset``. This is what a model reads to judge what the
@@ -225,14 +252,14 @@ def qa_descriptors(piece="", ids=None, ambiguous_only=False, limit=10, offset=0)
             "descriptors": [QR.compact(cands[i]) for i in batch]}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def qa_read_tags(apply=True, close_round=False, mislabel_to=None, piece=""):
     cfg = L.load_config(bpy.context.scene, piece or None)
     targets = {int(k): v for k, v in (mislabel_to or {}).items()}
     return L.read_tags(cfg, apply=apply, close_round=close_round, mislabel_to=targets)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def qa_rulings(piece=""):
     cfg = L.load_config(bpy.context.scene, piece or None)
     r = Rulings(cfg.rulings_dir, cfg.piece)
@@ -259,7 +286,7 @@ def _rebuild_path(cfg) -> Path:
     return Path(cfg.rulings_dir) / f"{cfg.piece}_rebuild.json"
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def rebuild_setup(source_mesh, source_owner, relief_dir, plates_dir, template_material, out_root="", relabel_rules=(),
                   turn=-90.0, lift=0.0, previous=(), piece=""):
     """What a rebuild needs besides the rulings: the SOURCE mesh and its owner map (rebuilds always start from the
@@ -294,7 +321,7 @@ def _spec(cfg, setup, tag, res, color_full, ornament, mesh_gold) -> RB.RebuildSp
         color_full=bool(color_full), ornament=ornament, mesh_gold=bool(mesh_gold))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def rebuild(tag, res=2048, color_full=False, ornament="", mesh_gold=False, read_tags=True, close_round=False,
             mislabel_to=None, resume=False, piece=""):
     """Read his tags, write the rulings, rebuild, and load the result beside the previous version.
@@ -347,7 +374,7 @@ def rebuild(tag, res=2048, color_full=False, ornament="", mesh_gold=False, read_
     return {"job": job.id, "tag": tag, "reading": reading, "next": f"api.job_status('{job.id}')"}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def job_status(job=None):
     rows = jobs.status()
     if job is None:
@@ -365,7 +392,7 @@ def job_status(job=None):
 
 # ---- the other ported tools
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def run_tool(name, args=(), timeout=3600):
     """Run any ported tool (``api.tools()``) as a batch job: every argument that names a path stays inside the project root."""
     s = _settings()
@@ -485,7 +512,7 @@ def _mp_generate(spec, setup, s, view, template, refs, out_dir, live, count=4, n
     return sorted(str(f) for f in Path(out_dir).glob("*") if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp") and f.stem.isdigit())
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def meshpaint(stage, **kw):
     """Mesh-paint texturing. Stages: setup, clay, prompt, pick, plates, project, run (all of it, background), albedo, status."""
     s = _settings()
@@ -580,7 +607,7 @@ _MAP_NOTES = (("BaseColor", "base colour, sRGB"), ("ORM", "R = occlusion, G = ro
               ("Roughness", "linear"), ("Metallic", "linear"))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def export_piece(object, out_dir, textures=(), note=""):
     """Export ``object`` as FBX into ``out_dir`` with its texture maps copied under Textures/ and a README that names
     every file, what each map is, and its sha256. Nothing in the scene is changed: the selection is restored."""
@@ -658,7 +685,7 @@ from .features import material_bake_export as _F_mbe        # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic", symmetry=False, adaptivity=1.0, anisotropy=1.0, sharp_edge=90.0, smooth_normal=0.0, edge_scaling=1.0,
            timeout=900, fallback=False, hard_surface=False):
     """A new all-quad mesh ``<object>_retopo`` near ``target_faces`` (QuadriFlow, voxel fallback, or AutoRemesher) with a measured report; the original is untouched. method=autoremesher runs the Qt-free
@@ -670,7 +697,7 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
                             str(s.autoremesher_bin or ""), str(s.project_root), s.nice)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def uv_unwrap(object, method="smart", angle_limit=66.0, margin=None, texel_density=None, texture_size=2048, engine="algorithmic", margin_px=None, seam_rule=None, checker=False):
     """A new mesh ``<object>_uv`` with a packed UV layout (smart project, angle-based or conformal with seams at sharp edges) and
     a measured report: islands, coverage, overlap, texel-density spread. The original keeps its UVs. engine=studio:tripo is the
@@ -683,7 +710,7 @@ def uv_unwrap(object, method="smart", angle_limit=66.0, margin=None, texel_densi
     return _F_uv.uv_unwrap(object, method, angle_limit, margin, texel_density, texture_size, engine, margin_px, seam_rule, checker)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algorithmic", labels=None):
     """Split a mesh into part objects in the collection ``<object>_parts`` (largest first): connected ``shells``, regions bounded by
     ``sharp`` edges (dihedral > angle), or ``uv_islands``; regions under min_faces merge into a neighbour. The original is hidden,
@@ -695,7 +722,7 @@ def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algor
     return _F_segment.segment_mesh(object, method, angle, min_faces, engine)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y", copy=True, naming="ue", parts=None, chain_bones=10):
     """A fitted armature with skin weights (heat map, proximity fallback). kind humanoid (UE names), or the body plans quadruped | hexapod | octopod |
     avian | serpentine | aquatic | auto (features/rig_plans.py); naming ue | mixamo | metahuman; parts rigs several meshes as ONE character."""
@@ -707,14 +734,14 @@ def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", faci
     return _F_rig.auto_rig(object, kind, engine, weights, facing, copy)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def bind_to_armature(object, armature, mode="rigid", bone="", source=""):
     """Bind a piece to an armature: ``rigid`` = one bone at full weight (plates), ``transfer`` = weights copied from ``source`` (the
     aligned body; deforming pieces), ``auto`` = heat-map weights."""
     return _F_rig.bind_to_armature(object, armature, mode, bone, source)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def pose_test(armature, object, poses, clearance_body="", seam_radius_m=0.02):
     """Rotate bones ([{name, bone, rotate: [x, y, z] degrees}] or {name, bones: [{bone, rotate}]}) and measure the evaluated mesh: max/min edge
     stretch, the largest vertex displacement, the seam gap growth between shells, and with ``clearance_body`` the clearance to that posed body;
@@ -722,7 +749,7 @@ def pose_test(armature, object, poses, clearance_body="", seam_radius_m=0.02):
     return _F_rig.pose_test(armature, object, poses, clearance_body, seam_radius_m)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def chat_transcript(last=0, include_steps=True):
     """The chat transcript for an external driver. ``scene.mixie_chat_messages[i].content`` is empty for a user message (its text
     is in ``.text``) and for an agent bubble while its turn runs (live narration is in ``.ephemeral`` and ``.thinking_text``,
@@ -743,14 +770,14 @@ def chat_transcript(last=0, include_steps=True):
     return {"count": len(msgs), "messages": rows}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def mesh_prep(object, merge_distance=1e-5):
     """Workflow: a branch ``<object>_prep`` of a generated mesh with its source hash recorded, loose and doubled vertices removed and
     inverted normals fixed; a before/after report. The source is untouched."""
     return _F_wf.mesh_prep(object, merge_distance)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def asset_acceptance(object, reference="", tolerance=0.1, source_hash=""):
     """Workflow: identity, orientation, geometry and materials gates for a candidate asset (against an optional reference), each with
     reasons, and an overall accepted flag. Identity fails unless the object records the source it came from and that matches the
@@ -758,14 +785,14 @@ def asset_acceptance(object, reference="", tolerance=0.1, source_hash=""):
     return _F_wf.asset_acceptance(object, reference, tolerance, source_hash)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def rig_armor(object, armature, bone="", body="", poses=None, max_stretch=None, clearance_body="", min_clearance_m=0.0, seam_limit_m=0.01):
     """Workflow: fit a copy ``<object>_fit`` of a piece to an armature (bone=one bone at full weight for rigid plates, body=weights
     transferred from the aligned body, else heat map), then measure edge stretch over a pose set. The original is never bound."""
     return _F_wf.rig_armor(object, armature, bone, body, poses, max_stretch, clearance_body, min_clearance_m, seam_limit_m)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def asset_lineage(action, object, source="", transform="", anchors=None, changed_region=None, tolerance_m=0.01, parent="", piece=""):
     """Where a derivative came from. record: store the source's geometry/UV/material hashes, the transformation and exactly THREE identity anchors
     ([{name, point: [x, y, z]}] in object space, landmarks that must not move) on the object and in <root>/<piece>/lineage.jsonl; verify: each anchor's
@@ -774,7 +801,7 @@ def asset_lineage(action, object, source="", transform="", anchors=None, changed
     return _F_lineage.run(action, object, str(_settings().project_root), source, transform, anchors, changed_region, tolerance_m, parent, piece)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def workflow_graph(action, name="", graph=None, inputs=None, from_node="", version="", template="", description=""):
     """A typed DAG of Lampway tool calls as data. define (graph = {nodes: [{id, tool, args, after, spend, studio_action, credits}], outputs}; args may use
     {{inputs}} and @node.key for an upstream output) | plan (order, cached?, credits_planned) | run | rerun (from_node: it and what follows re-execute) |
@@ -806,17 +833,19 @@ def workflow_graph(action, name="", graph=None, inputs=None, from_node="", versi
     raise WG.GraphError("action is define|plan|run|rerun|confirm|version|rollback|template_save|template_use|show")
 
 
-@tool
-def plate_pick(stage, piece="", view="Front", paired=False, v3_dir="", variants_dir="", design_words="", palette="", pick=None, bg_threshold=0.06, opening_iters=3, min_px=1024):
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
+def plate_pick(stage, piece="", view="Front", paired=False, v3_dir="", variants_dir="", design_words="", palette="", pick=None, bg_threshold=0.06, opening_iters=3, min_px=1024,
+               template=""):
     """Plates stage of the piece pipeline. prompt: the library template (plate-4k-crisper) and its variables for one view (render it, generate 4 images per view); score: rank
     the 4 regenerations (variants_dir/1..4) against the approved V3 plate (v3_dir/<View>.png, RGBA): silhouette IoU x DoG structure x (1 - colour error); cut: the pick's alpha
     (luminance threshold, opening, fill holes, 1 px feather); run: score + cut + checks (margins, aspect, view correspondence) -> <piece>/plates_4k_alpha/<View>.png + alpha.json;
     status. A the user's `pick` (1-4) overrides the best score. Paired pieces: Front and Back only. Free, local, never overwrites."""
     from .pipeline import plates as PL
-    return PL.tool(stage, str(_settings().project_root), piece, view, paired, _p(v3_dir), _p(variants_dir), design_words, palette, pick, bg_threshold, opening_iters, min_px)
+    return PL.tool(stage, str(_settings().project_root), piece, view, paired, _p(v3_dir), _p(variants_dir), design_words, palette, pick, bg_threshold, opening_iters, min_px,
+                   template)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def uv_score(objects=None, files=None, res=1024, out="uv_score.json", gates=None):
     """Score UV layouts on measurements, not by eye: utilization (rasterised at res, 256..4096), overlap, UV-connected islands, stretch p90/p10, the fraction of area off by 2x, flipped
     (mirrored) faces, seam length and a composite score (the shelf's uv_score). objects: mesh objects in the scene; files: .fbx/.glb attempts inside the project root, measured in a
@@ -825,7 +854,7 @@ def uv_score(objects=None, files=None, res=1024, out="uv_score.json", gates=None
     return _UVS.run(objects, files, res, out, str(_settings().project_root), gates)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def uv_rectify(object, op="auto", islands=None, edges=None, evenness=0.0, geometry_ratio=0.5, keep_length=True, name="", discard_texture=False):
     """Straighten, rectify and gridify UV islands of strap-like geometry (straps, belts, bracers, skirt strips) on a NEW object ``<object>_rect``; the 3D mesh and the source's UVs are never changed. op auto: an
     island of quads forming a regular grid is gridified (quad-ring propagation; the spacing is the mean 3D edge length per column and row, `evenness` 0..1 blends it toward uniform, `geometry_ratio` 0..1 blends the
@@ -836,7 +865,7 @@ def uv_rectify(object, op="auto", islands=None, edges=None, evenness=0.0, geomet
     return _F_uvr.run(object, op, islands, edges, evenness, geometry_ratio, keep_length, name, discard_texture, str(_settings().project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def uv_layout(object, ops=None, world_axis="z", per_face=False, mirror_axis="x", match_tolerance=0.003, padding=0.01, repack=False, name="", discard_texture=False):
     """Island layout operations the packer does not do, on a NEW object ``<object>_lay`` (the source keeps its UVs). ops (default [orient]): orient (each island to its minimal axis-aligned box), align_world (rotate so
     world_axis x|y|z|auto maps to UV +V, from the UV->3D Jacobian), stack_mirrored (islands whose geometry mirrors across mirror_axis, symmetric Chamfer <= match_tolerance metres: NOT a face-count rule, share one UV
@@ -846,7 +875,7 @@ def uv_layout(object, ops=None, world_axis="z", per_face=False, mirror_axis="x",
     return _F_uvl.run(object, ops, world_axis, per_face, mirror_axis, match_tolerance, padding, repack, name, discard_texture, str(_settings().project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def model_compare(action="stats", set=None, views=None, size=512, blind=False, pick=None, require_pick=False):
     """Put 2..4 models (GLB files under the project root, or scene objects) side by side with the numbers that decide. stats: read from the FILES without Blender: triangles, vertices, textures with their sizes and
     roles, which PBR channels were actually baked (a flat fallback is the finding), n-gon encoding, compression, generator. build: every model is normalised into the same 2-unit box in a scratch scene (yaw, scale the
@@ -857,7 +886,7 @@ def model_compare(action="stats", set=None, views=None, size=512, blind=False, p
     return _F_mc.run(action, set, views, size, blind, pick, require_pick, str(_settings().project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def scene_cleanup(objects=None, steps=None, merge_distance="auto", ngon_policy="report", convention=None, plan_only=True, copy=True):
     """Report first, then clean. plan_only (the default) reads the scene and changes nothing: per object the non-uniform scale, loose vertices, doubled vertices at the merge distance, non-manifold edges (wire,
     boundary, multi-face), flipped faces (found on closed shells with doubles welded, so a double cannot hide a flip), n-gons, material slots (unused, duplicates) and UV layers, plus the scene's orphan data blocks.
@@ -868,7 +897,7 @@ def scene_cleanup(objects=None, steps=None, merge_distance="auto", ngon_policy="
     return _F_sc.scene_cleanup(objects, steps, merge_distance, ngon_policy, convention, plan_only, copy)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def batch_export(objects=None, collection=None, convention=None, format="glb", preset="unreal", apply=None, out_dir="export", per="object", textures=None, plan_only=True, verify=True, undo=None):
     """Audit meshes against YOUR convention, fix it as one pass, and export each object to its own file. plan_only (the default) lists, per object, the violations (name, scale, origin, default material names,
     unused slots) and its new name, and changes and writes nothing. convention is required: {prefix, set, pattern ('{prefix}{set}_{piece}_{nn}'), origin base|center|keep, unit_scale, forward, up}: the tool will
@@ -881,7 +910,7 @@ def batch_export(objects=None, collection=None, convention=None, format="glb", p
                               resolve=lambda p: _p(p, s.project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def camera_shot(action="list", shot=None, camera=None, lens_mm=None, aspect=None, frame=1, preset=None, target=None, passes=None, out_dir="guides", handheld=False, size=512):
     """Cinema-mode shots from the agent. A shot is a camera tagged with its name; its keys are ordinary location, rotation and lens keyframes (editable in the scene). new: a camera framed on `target` (or the selected
     mesh) at lens_mm 18..135 and an aspect (16:9, 2.39:1, 9:16, 1:1, 4:3), key at `frame`. frame / key: re-frame or key the current pose. preset: the Client Director's moves from the camera's live pose, keys 12 frames
@@ -892,7 +921,7 @@ def camera_shot(action="list", shot=None, camera=None, lens_mm=None, aspect=None
     return _F_cs.camera_shot(str(s.project_root), action, shot, camera, lens_mm, aspect, frame, preset, target, passes, out_dir, handheld, size, resolve=lambda p: _p(p, s.project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def segment_image(image, method="alpha_components", min_pixels=6000, expected_parts=None, out_dir="segments", engine="algorithmic"):
     """One image to per-part masks, no model: connected components (8-connected) on the alpha channel of a transparent plate (alpha_components) or on the foreground of an opaque sheet (color_regions: pixels
     that differ from the border's commonest colour). Writes mask_NN.png (8-bit, same size as the image, white = the part) and overlay.png (numbered tints) under out_dir inside the project root; masks are in
@@ -905,7 +934,7 @@ def segment_image(image, method="alpha_components", min_pixels=6000, expected_pa
     return _SI.segment(_p(image), _p(out_dir), method, int(min_pixels), expected_parts)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def procedural_library(action="list", category=None, query=None, material_id=None, object=None, layer_name=None, params=None, size=64, bake_stats=False, compare_to=None, upgrade=False):
     """The procedural material library: 12 armour materials (bronze, gold, brass, steel, iron, two leathers, two cloths) built from parametric node-group templates and a preset table, registered in the Client's
     own material registry. Every material is one node group with a single Shader output and bounded inputs (Tint, Roughness Scale, Wear, Scale, Bump Strength, Seed, Mask: a mask input lets curvature drive edge
@@ -916,18 +945,18 @@ def procedural_library(action="list", category=None, query=None, material_id=Non
     return _F_pl.procedural_library(str(_settings().project_root), action, category, query, material_id, object, layer_name, params, size, bake_stats, _p(compare_to) if compare_to else None, upgrade)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def layered_material(action="inspect", object=None, material=None, layer=None, manifest=None, layer_index=-1, params=None):
     """The Client's layer-paint stack (an editable material built from layers and masks) from the agent. init puts a paint project on the mesh's material; inspect returns the stack ({index, name, type, enabled,
     blend, opacity, channels, mask}); add_layer {type: fill | paint | image | group, name, blend: MIX|ADD|MULTIPLY|SUBTRACT|SCREEN|OVERLAY, opacity 0..1, color [r,g,b] for fill, size for paint/image, mask: {type:
     edge_detect | color_id | vcol | image}, projection: uv | triplanar | planar | spherical | cylindrical | decal} (uv needs a UV map: otherwise use triplanar or unwrap first); add_procedural puts a library
     material (see procedural_library) on as a layer; set_params {opacity, enabled, name, blend_type, projection_type, translation, rotation, scale ...} edits layer_index (-1 = the active layer); apply_manifest
     builds a whole stack from a manifest (index 0 must be a PBR layer). Refused: not a mesh, no paint project yet (the refusal names init), unknown blend / type / mask / projection (each lists the choices).
-    Mask invert is not built. One undo step per Blender operator the Client's package uses."""
+    mask_invert (params {invert: true, the default | false}) inverts layer_index's first mask (add_layer takes mask.invert too). One undo step per Blender operator the Client's package uses."""
     return _F_lm.layered_material(action, object, material, layer, manifest, layer_index, params)
 
 
-@tool
+@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the orphans merge): the Asset Vault tool awaits its owner's Need/NONE"))
 def asset_place(asset_id=None, mode="auto", target=None, options=None, version=None, asset=None):
     """Put an Asset Vault asset into the open scene in the way its kind needs (specs/asset_library/asset_place.md), as one undo step, stamping lw_asset_id / lw_asset_version / lw_asset_sha256
     on what it places. mode auto picks by kind (mesh: import or append, material: assign_material, hdri: set_world, ...); target {where: cursor | origin | object:<name> | slot:<object>:<index>
@@ -951,7 +980,7 @@ def asset_place(asset_id=None, mode="auto", target=None, options=None, version=N
     return out
 
 
-@tool
+@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the orphans merge): the Asset Vault tool awaits its owner's Need/NONE"))
 def asset_catalog_export(dest_library, assets=None, asset_ids=None, register=False, library_name="Lampway Vault"):
     """Publish Asset Vault assets (their library records: materials and node groups from their .blend, meshes, rigs, actions) as a Blender asset library under dest_library (inside the project
     root): a headless worker writes lampway_library.blend with every datablock marked as an asset (never your live file), and blender_assets.cats.txt from the taxonomy (<facet>/<label>,
@@ -966,7 +995,7 @@ def asset_catalog_export(dest_library, assets=None, asset_ids=None, register=Fal
     return _F_ac.asset_catalog_export(list(assets), Path(_p(dest_library)), bool(register), str(library_name))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def material_bake_export(object, material=None, channels=None, size=1024, format="png", pack="none", normal_green="gl", out_dir="bake_export", samples=8, allow_dirty=False):
     """Bake the layer-stack material of `object` to the images a destination needs, in a niced HEADLESS Cycles worker (never your live scene). channels: base_color, roughness, metallic, normal, ao, emission
     (default base_color, roughness, metallic, normal); size a power of two 1024..8192; format png | exr | tiff | jpeg (jpeg with normal is refused: lossy normals); normal_green gl (OpenGL, Unity/Blender/Godot) |
@@ -977,7 +1006,7 @@ def material_bake_export(object, material=None, channels=None, size=1024, format
     return _F_mbe.material_bake_export(str(s.project_root), object, material, channels, size, format, pack, normal_green, out_dir, samples, allow_dirty, resolve=lambda p: _p(p, s.project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def clip_classify(armature, action=None, samples=25, fps=None, landmarks=None, figure_height_m=None, thresholds="default", apply="none", labels_for_naming=None):
     """What kind of motion is each action on this armature, what should it be called, does it loop: all measured from six landmark bones (hip, head, hand.l, hand.r, foot.l, foot.r; the bone names default from the UE,
     MetaHuman and mannequin skeletons or are passed in `landmarks`), every length a fraction of the figure's height H (given, else the deform mesh's rest height, else head-bone to foot-bone; the source is reported).
@@ -988,9 +1017,9 @@ def clip_classify(armature, action=None, samples=25, fps=None, landmarks=None, f
     return _F_cc.classify_actions(armature, action, fps, samples, landmarks, figure_height_m, thresholds, apply, labels_for_naming, by="agent")
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def view_verify(action="verify", image="", category="sheet", view="front", approved_front="", mask="", asymmetric_ok=False, judge="none", known_images=None, attempts=None, max_attempts=3,
-                original_prompt=""):
+                original_prompt="", models=None):
     """Is this generated image really the view that was asked for? admit: reject an empty, tiny, fragmented (largest piece under 0.60 of the figure) or duplicate (perceptual hash within 6 of a known_images
     plate) reference BEFORE any model is paid, with the reason. verify: measured checks on the silhouette (alpha, `mask`, or a flat background): shoulder-width ratio and mirror IoU about the figure's own
     axis, feet baseline, arm angle (A-pose is 30 to 60), framing margins, background flatness; verdict pass | soft_fail | hard_fail | uncertain with the signed estimated rotation, and every threshold (they
@@ -1001,10 +1030,10 @@ def view_verify(action="verify", image="", category="sheet", view="front", appro
     from .pipeline import view_verify_io as _VVI
     s = _settings()
     return _VVI.run(action, str(s.project_root), image, category, view, approved_front, mask, bool(asymmetric_ok), judge, known_images, attempts, max_attempts, original_prompt,
-                    resolve=lambda p: _p(p, s.project_root))
+                    resolve=lambda p: _p(p, s.project_root), models=models)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def uv_texel_density(object, texture_size=2048, target="auto", weights=None, mode="island", repack=True, margin=0.005, name="", discard_texture=False):
     """Set and equalise texel density per UV island on a NEW object `<object>_td` (the source keeps its UVs), then repack and report the density actually achieved. target: px/metre,
     'N px/cm' or 'auto' (the current mean: only the spread changes); weights: {material | vertex group | island:N: factor 0.1..4}; mode island | all; texture_size a power of two.
@@ -1013,7 +1042,7 @@ def uv_texel_density(object, texture_size=2048, target="auto", weights=None, mod
     return _UVT.run(object, texture_size, target, weights, mode, repack, margin, name, discard_texture, str(_settings().project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def mesh_defect_scan(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100):
     """A read-only clay inspection: typed defect candidates for the user's decisions, never an edit. kinds (default all): open_loop (boundary loops), floating_shell (a small shell
     >3 mm from the body), intersection (faces crossing faces, by BVH), thin (thinner than thin_threshold_m inward, default 2 mm, an unverified default), flipped_shell (a shell pointing
@@ -1023,7 +1052,7 @@ def mesh_defect_scan(object, piece="", kinds=None, thin_threshold_m=0.002, max_c
     return _DS.run(object, piece, kinds, thin_threshold_m, max_candidates)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def silhouette_compare(a, b, piece="", views=None, size=512, min_iou=0.9, landmarks=None, interior=False):
     """Did the piece drift? Render the approved source `a` and the candidate `b` (a mesh, or a plate image with an alpha or a flat background) from the SAME orthographic cameras
     (Front/Back/Left/Right, framed on `a`) and report per view the silhouette IoU, area ratio, centroid shift and, with landmarks [{name, point}] in world space, the drift to b's
@@ -1034,7 +1063,7 @@ def silhouette_compare(a, b, piece="", views=None, size=512, min_iou=0.9, landma
     return _SIL.run(a, b, str(_settings().project_root), piece, views, size, min_iou, landmarks, interior)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def seed_audit(stage, piece, seeds=None, scores=None, proposals=None, by="agent", turn=-90.0, engine="WORKBENCH"):
     """Rank a piece's seeds (the 4 generation variants, then the pick plus its rerolls). measure: per seed the dihedral fold counts (>120 and >90 degrees), boundary / non-manifold edges,
     components and closed bowls across the opening, ranked PROPORTIONS first (scores {seed: score_rms}; within 5 % is a tie), DEFECTS second, V3 fidelity third; lineup: front + side Workbench
@@ -1048,7 +1077,7 @@ def seed_audit(stage, piece, seeds=None, scores=None, proposals=None, by="agent"
     return _SA.run(root, stage, piece, seeds, scores, proposals, by)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_place(kind, piece, body, turn=0.0, clear_mm=15.0, scale_anchor="", sides="both", out="placed.npz"):
     """Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): helmet = the widest head level above neck_02, waist = the band at
     spine_01 + 3 cm, boots = shaft width | knee height | foot length (scale_anchor is REQUIRED: the user has not ruled which), gauntlets = the bracer at 35 % vs the forearm's middle (an axis
@@ -1068,7 +1097,7 @@ def _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out):
     return {"kind": kind, "scale": meta["scale"], "placed": str(o), "meta": meta, "report": rep}
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_openings(stage, object, axis=None, plane_origin=None, limb="", pose=None, answers=None, flange_mm=None, lip_mm=4.0, clearance_mm=15.0, piece="", captain_words="",
                  texture_discard_ack=False, depths_mm=None, size=384):
     """The openings decision at fit: every cap a seed put across a limb, neck or waist opening gets keep | gasket | delete, logged append-only in <piece>/fit/decisions.jsonl. detect: the capped
@@ -1080,7 +1109,7 @@ def fit_openings(stage, object, axis=None, plane_origin=None, limb="", pose=None
     return _OP.run(stage, object, str(_settings().project_root), axis, plane_origin, limb, pose, answers, flange_mm, lip_mm, clearance_mm, piece, captain_words, texture_discard_ack, depths_mm, size)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def parts_critique(stage, piece, recipe="", transfer_dir="", piece_uv="", owner_poly="", mesh="", proposals=None, fixes="", weak=0.6, far_mm=30.0, min_faces=50, limit=12, turn=-90.0, by="agent"):
     """The auditor's critique of a transferred or segmented part set. flags: the rules first (weak-vote and far-transfer islands, parts with too few polygons or absent, a _L/_R part crossing the
     sagittal plane, left/right area asymmetry); render: the owner map in four views with the flagged islands magenta (Workbench, headless); judge: the packet for you to propose from (at most
@@ -1097,7 +1126,7 @@ def parts_critique(stage, piece, recipe="", transfer_dir="", piece_uv="", owner_
                    _p(owner_poly) if owner_poly else "", _p(mesh) if mesh else "", proposals, _p(fixes) if fixes else "", weak, far_mm, min_faces, limit, turn, _render, by)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def palette_fit(stage, piece, studio_base="", albedo="", masks="", classes=None, material="", name="", source="fit", metal_zero_on=None, statistic="median", space="srgb", min_texels=1000):
     """Fit the per-class Hue/Saturation/Value of the studio colours to the mesh-paint albedo, nudge it live, and hand pbr_merge its params. fit: per class the median HSV of the studio base under
     the class mask vs the albedo under the same mask (hue_shift, sat_mul, val_mul), measured in sRGB by default (the recorded chest fit is the sRGB median: reproduced to 0.02 on gold and plate, worst class 0.19; space=linear for a linear-light consumer), plus `residual` (mean |dRGB|
@@ -1134,7 +1163,7 @@ def palette_fit(stage, piece, studio_base="", albedo="", masks="", classes=None,
     raise ValueError("stage must be fit | apply_live | read_live | write_params")
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def bake_maps(source, target, maps=None, size=2048, margin_px=None, cage_extrusion_m="auto", max_ray_m=None, samples=16, normal_green="gl", allow_overlap=False, out_dir="bake", overwrite=False,
               attach=True):
     """Bake a high-poly donor (`source`: a name or a list) into a UV-mapped low-poly `target`: maps from normal (tangent), albedo (Cycles COLOR pass only: no lighting, by construction) and ao;
@@ -1147,7 +1176,7 @@ def bake_maps(source, target, maps=None, size=2048, margin_px=None, cage_extrusi
     return _BK.run(source, target, maps, size, margin_px, cage_extrusion_m, max_ray_m, samples, normal_green, allow_overlap, out_dir, overwrite, attach, str(_settings().project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def pbr_pack(action, maps=None, convention="both", name="", metal_zero_masks=None, object="", new_base="", uv_hash=None):
     """One verb set for engine-ready PBR maps. pack: maps {base, normal, rough, metal, ao|null} (project paths) -> <root>/<name>/pbr_pack/ BaseColor (sRGB), ORM (R occlusion - 1 and a note when no AO -,
     G roughness, B metallic: Unreal order, linear), Normal_GL and/or Normal_DX (green flipped), Roughness, Metallic and merge.json; maps must be square powers of two; metal is forced to 0 under
@@ -1169,7 +1198,7 @@ def pbr_pack(action, maps=None, convention="both", name="", metal_zero_masks=Non
     raise ValueError("action must be pack | audit | swap_base_color")
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def armor_piece_pipeline(piece, mode="plan", from_step=1, to_step=15, paired=None, topology="Quad", v3_dir="", record_step=None, artefacts=None, mesh_hash=None, note=""):
     """Run one armour piece from V3 plates to an engine-ready export as 15 ordered, gated steps (the user's runbook mapped to Lampway's tools and the Tripo Studio actions). plan: every step with
     its tool, arguments, state (done | ready | waiting | needs_approval) and planned credits (mesh 100, Smart UV 20, texture 30, PBR 5 = 155 for a whole piece); start: the same, refused when
@@ -1189,7 +1218,7 @@ def armor_piece_pipeline(piece, mode="plan", from_step=1, to_step=15, paired=Non
     raise ValueError("mode is plan | start | record")
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_pose(kind, **kw):
     """The closest pose of the body to a piece. chest: routed to pose_clearance (arms lowered and swung, then the spine and neck pitch chain). helmet, waist, boots, gauntlets: answers needs_decision -
     the bones, axes and ranges to sweep are the user's to rule; the contract's proposals come with it, marked unverified."""
@@ -1197,7 +1226,7 @@ def fit_pose(kind, **kw):
     return _PO.fit_pose(kind)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def weight_audit(action, object, armature, intended=None, max_influences=4, side=None):
     """Read-only audit of a skinned mesh's weights, or a plan for how to bind it. audit: unweighted vertices, vertices over the influence cap, sums that are not 1, per-bone counts and mean weight, a rigid
     check (`intended` {rigid_bone}: vertices with any other influence), a side check (a *_l group on a right-side mesh; `side` left|right, else inferred from the mesh's x), and the competing-bone hotspots
@@ -1211,7 +1240,7 @@ def weight_audit(action, object, armature, intended=None, max_influences=4, side
     raise ValueError("action is audit | plan")
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def weight_cleanup(object, armature, ops, mirror_from=None):
     """Fix weights on a COPY named <object>_wclean (the original stays). ops, in order: {op: normalize}, {op: limit, max_influences: 4}, {op: remove_influence, bone, region: {bbox: [[x0,y0,z0],[x1,y1,z1]]} |
     {vertex_group}} (refused when it would take one bone off more than 40 % of the vertices: that is a rebind, not a cleanup; never leaves a vertex with no weight), {op: smooth, iterations, factor, region},
@@ -1220,38 +1249,60 @@ def weight_cleanup(object, armature, ops, mirror_from=None):
     return _W.cleanup(object, armature, ops, mirror_from)
 
 
-@tool
-def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic"):
+@tool(consumes={"input": Need(kind=("mesh",), accept_raw=True)})
+def normalize_mesh(input, turn_deg=None, plate="", recipe="", generator="", want_scale="any", scale_evidence=None, weld="auto", weld_distance_m=None):
+    """A raw mesh (an object, or a file under the project root imported raw) into a CANONICAL mesh (lampway.canonical-asset/1:
+    metres, +Z up, front -Y, transform applied, the scale STATE recorded, a generated mesh welded by position, lw_source_face, pivot at
+    the bounding box's bottom centre), stamped lw_canon, with a receipt under canon/receipts/. The facing is DECLARED: turn_deg
+    (the piece's turn about Z; -90 for a +X-facing import) or a recipe's turn_deg; it is never guessed (refused: "frame undecided").
+    generator: tripo_studio | tripo_api | meshy | hi3d | hyper3d | hunyuan | trellis | lampway_tool | captain_authored | unknown ...
+    (Tripo / Hi3D files are generator_normalised; a generated mesh is welded at weld_distance_m, default 1e-5, refused above 5 %
+    merged; weld=never for an authored mesh). want_scale=real needs scale_evidence {method, value, reference}. A skinned mesh is
+    refused (normalize_rigged). Normalizing a canonical object again changes nothing (unchanged)."""
+    from .features import normalize as _N
+    return _N.run(input, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root=str(_settings().project_root))
+
+
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
+def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", weld_m=1e-5):
     """Copy skin weights from a rigged body onto a piece. Each piece vertex is matched to the closest point on the body's (deformed) surface and takes the barycentric weights when the distance <=
     max_distance (default 0.05 m, at most 0.5) and its normal is within max_normal_angle (default 30 degrees; a flipped normal also counts when flip_normals); every vertex with no trustworthy match is
     inpainted so armpits, crotch and chest-to-arm gaps blend without painting. engine algorithmic: a harmonic fill over the mesh graph (Blender's python); engine robust: the SIGGRAPH Asia 2023 method
     (robust Laplacian, biharmonic constrained solve) in the science python (needs LAMPWAY_PYTHON_SCIENCE with numpy scipy libigl robust_laplacian). limit_groups caps the influences (default 4, 0 = no cap).
     The source must carry vertex groups and exactly one Armature modifier; the piece must have no topology modifiers. Result: a NEW object <object>_wt (or `name`) with the body's groups and Armature; the
-    original is untouched. Returns matched_fraction, inpainted_vertices, groups_written, the influence histogram and unweighted_vertices."""
+    original is untouched. Returns matched_fraction, inpainted_vertices, groups_written, the influence histogram and unweighted_vertices.
+    weld_m (default 1e-5 m, canon 07 B.1): the piece's vertices are welded by position before matching and inpainting, so a seam-split smart
+    mesh is one surface and both copies of a seam vertex carry the same row; 0 for an authored rig (a weld can invent identity there)."""
     from .features import weights as _W
-    return _W.transfer(object, source, max_distance, max_normal_angle, flip_normals, inpaint_mode, limit_groups, deform_only, name, engine)
+    return _W.transfer(object, source, max_distance, max_normal_angle, flip_normals, inpaint_mode, limit_groups, deform_only, name, engine, weld_m=weld_m)
 
 
-@tool
-def garment_clearance(piece, body, armature, pose_set="rest", clearance_target_m=0.015, classes=None):
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
+def garment_clearance(piece, body, armature, pose_set="rest", clearance_target_m=0.015, classes=None, body_open_band_m=None):
     """How far a piece sits from the body in rest and named poses: the signed distance of every piece vertex to the body posed by `armature` (positive outside, negative inside). pose_set is 'rest', 'wiki8'
     (the eight stress poses) or a list [{name, bone, rotate: [x, y, z degrees]} | {name, bones: [{bone, rotate}]}]; the poses are reset afterwards. Per pose: min_clearance_m, penetrating_vertices, max_depth_m,
     worst_region [x, y, z] and the body triangles that block most; `pass` when every vertex clears its target (clearance_target_m, default 0.015, or the target of the piece's vertex group named in
     `classes` {group: metres}: rigid and cloth parts differ). Also pass_pose_count and closest_pose. Refused: a body with no Armature modifier (the body needs an armature) and a piece more than 0.5 m
-    from the body (run place_piece first)."""
+    from the body (run place_piece first). Canon 15: the sign is the angle-weighted pseudonormal's (never one face normal); an OPEN body (a headless
+    body mesh) is refused unless body_open_band_m declares the band round its opening whose vertices stay unsigned (unsigned_near_opening)."""
     from .features import clearance as _CL
-    return _CL.run(piece, body, armature, pose_set, clearance_target_m, classes)
+    return _CL.run(piece, body, armature, pose_set, clearance_target_m, classes, body_open_band_m)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_validate(stage, piece="", bound="", original="", poses=None, roles=None, limits=None, body="", armature="", validation=None):
-    """Measure a bound piece through poses against its ORIGINAL shell, and judge it. stage measure (engine blender): `bound` the piece with an Armature modifier, `original` the pre-fit source shell (REQUIRED
-    - measuring against a baked rest hides the distortion; same vertex count), `poses` [{name, bone, rotate: [x, y, z degrees], expect: {bone, axis, min_deg}} | {name, bones: [...]}], `roles` {part: metal |
-    leather | cloth | embroidery} (from the user or the recipe, never a render's colour; a part is the vertex group of that name, or the whole piece when there is one role). Per pose and part: rigid residual
-    with the scale FIXED (a breathing pose fails), edge strain, the seam gap, crossings of `body`; rest_fidelity (the source similarity: scale, rms, max mm); a crossing control when `body` is given (the piece
-    is pushed 1 cm into the skin: a counter that cannot see it makes the run UNPROVEN). A pose whose expect fails is REFUSED and not measured. Verdicts: PASS | FAIL | UNVERIFIED (no limits for the role: cloth,
-    leather, embroidery have none) | REFUSED | UNPROVEN; limits default to PROPOSED metal limits (1 mm rigid, 1 % strain, 1 mm seam: unverified placeholders) and the status rides along; ok only when nothing is
-    unverified. stage judge: re-judge a validation (dict or file) under new `limits`."""
+    """Measure a bound piece through poses against its ORIGINAL shell, and judge it (canon: specs/canon/05-fit-validation.md). stage measure (engine
+    blender): `bound` the piece with an Armature modifier, `original` the pre-fit source shell (REQUIRED - measuring against a baked rest hides the
+    distortion; same vertex count), `poses` - names from the vendored Titan set (rest, wrist_r_plus30, elbow_r_70, curl_r_full, ...) or
+    [{name, bones: [{bone, axis: up | forward | lateral | {line: [a, b]} | {perp: [a, b], to} | [x, y, z], deg}], expect: {joint, along | closer_to,
+    min_cm}} | {name, curl: {side, fraction}} | {name, bone, rotate: [x, y, z degrees]} (the Euler stress set)], `roles` {part: metal | leather | cloth |
+    embroidery} (a part is the vertex group of that name, or the whole piece when there is one role). A pose's expect is measured on the posed JOINTS
+    first: a wrong sign is REFUSED and nothing is measured; an expect on the commanded angle ({bone, axis, min_deg}) cannot fail and is refused. Per
+    pose and part: rigid residual with the scale FIXED, edge strain (fraction, p95 and max), the source seam ledger's pairs (open over 2 mm, max cm),
+    SURFACE crossings both ways and inside vertices of `body`; rest_fidelity of the whole piece and of every metal part; the crossing control (the
+    piece pushed into the skin where it is nearest, capped at half its extent: no crossing seen = UNPROVEN). Limits default to Titan's armour limits
+    adopted by the user (metal rigid < 0.5 mm, strain p95 < 1 %, no body crossing); leather, cloth and embroidery have none (UNVERIFIED), and a metric
+    not measured is UNVERIFIED. stage judge: re-judge a validation (dict or file) under new `limits`."""
     from .features import validate_pose as _VP
     from .pipeline import validate as _V
     if stage == "measure":
@@ -1260,11 +1311,14 @@ def fit_validate(stage, piece="", bound="", original="", poses=None, roles=None,
         v = json.loads(Path(_p(validation)).read_text()) if isinstance(validation, str) else dict(validation or {})
         if not v.get("poses"):
             raise ValueError("judge needs a validation with poses (the output of measure)")
-        lim = limits or _V.PROPOSED
+        lim = limits or _V.DEFAULT_LIMITS
         judges = []
         for row in v["poses"]:
+            if row.get("verdict") == "REFUSED":
+                judges.append({"verdict": "REFUSED", "limits_status": lim.get("status", "proposed")})
+                continue
             for part in row.get("pieces", {}).values():
-                part["judge"] = _V.judge(part["role"], {"rigid_residual_mm": part["rigid_residual_mm"], "strain_max_pct": part["strain_max"], "seam_gap_mm_max": part["seam_gap_mm_max"], "crossings_body": part.get("crossings_body")}, lim)
+                part["judge"] = _V.judge(part["role"], {"rigid_max_mm": part["rigid_max_mm"], "strain_p95": part["strain_p95"], "crossings": part.get("surface_crossings")}, lim)
                 judges.append(part["judge"])
         v["limits"] = lim
         v["summary"] = _V.summarize(judges, (v.get("crossing_control") or {}).get("ok") is not False)
@@ -1272,7 +1326,7 @@ def fit_validate(stage, piece="", bound="", original="", poses=None, roles=None,
     raise ValueError("stage is measure | judge")
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def skeleton_export_check(armature="", fbx="", target=None, expect_unit_scale=1.0, allow_extra_bones=False):
     """Check an armature (in the scene) or an FBX (under the project root; give exactly one) against a reference skeleton: target {names_from: a reference FBX, e.g. a mannequin animation}. Reports leaf bones (`*_end`
     the reference does not have: export with add_leaf_bones off), missing and extra bones, parents that differ, the root, the unit scale (height ratio to the reference: a 100x export reads 100; expect_unit_scale
@@ -1282,7 +1336,7 @@ def skeleton_export_check(armature="", fbx="", target=None, expect_unit_scale=1.
     return _EC.skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, str(_settings().project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def engine_import_check(package_dir, engine="unreal", collision=None, receipt=None):
     """Static check of an exported package (a folder with an FBX and Textures/) against the engine's import rules: the FBX header version (Unreal wants 7400+; FBX 2020.2 is 7700), mesh names and material
     slots, `UCX_<Render>_NN` collision meshes that must match a render mesh (`collision` lists the names expected), the textures the materials name that are missing from Textures/, textures nobody names, and an
@@ -1291,7 +1345,7 @@ def engine_import_check(package_dir, engine="unreal", collision=None, receipt=No
     return _EC.engine_check(package_dir, engine, collision, receipt, str(_settings().project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_body(verb, armature="", mesh="", glb="", native_asset="", uproject="", sidecar="", out="fit/body"):
     """The body for fitting as one hashed package. build: writes <out>/<sha8>/ with joints.json (parents before children; head, tail and rest axes in metres), body.npz when `mesh` is given, body.glb, the
     NATIVE weights sidecar.json when `sidecar` names a file the user's UE editor leg wrote, and receipt.json with the sha256 of every file. verify (out = the package dir): recompute every hash, refused
@@ -1309,7 +1363,7 @@ def fit_body(verb, armature="", mesh="", glb="", native_asset="", uproject="", s
     raise ValueError("verb is build | verify | weights | show")
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_export(object, armature, out_dir, body, textures=None, validation="", bind_check="", note="", allow_unverified=False, _bone_axis="Z"):
     """The rigged export of a fitted piece, behind gates, with a read-back. Refuses (each names its fix): a missing validation or one with FAIL/UNPROVEN, roles with no declared limits (unless
     allow_unverified=true, and then the README says 'limits: proposed; roles without limits: ...'), a bind_check that is not ok, textures whose merge.json mesh_sha256 is not this mesh (a geometry step
@@ -1320,13 +1374,16 @@ def fit_export(object, armature, out_dir, body, textures=None, validation="", bi
     return _FE.run(object, armature, out_dir, _p(body), textures, validation, bind_check, note, allow_unverified, str(_settings().project_root), _bone_axis)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_dir="fit/bind", body_object="", accept_seam_gap_mm=None):
     """Bind a finished piece to the body's skeleton by the user's weight laws. plan: per part (a vertex group of the piece) a role from `roles` {part: metal | leather | cloth | embroidery} - the user's or
     the recipe's, never a render's colour: a part without one is refused - and a mode: metal = rigid, ONE bone at full weight (the bone with most of its vertices nearest, or the override), anything else =
     restrict (weighted by position from the body's own weights, restricted to the bones its geometry spans); `bind_overrides` {part: {mode, bones, reason}} (metal as blend is refused: ask for a ruled cut;
     an unknown bone names the nearest). Parts that share a seam and a bone form a rigid group; two rigid parts of one shell on different bones OPEN the seam (seam_opens). Writes bind_plan.json and seams.json.
     weights: a copy <piece>_fit (the source is untouched) with the plan's weights; the body's weights come from `body_object` (a skinned body in the scene: an approximation, the native sidecar sampler is not built).
+    A restrict part (canon 07) is welded by position, matched only on the body's own region for its bones (a closer surface of another region cannot
+    capture it), within 30 degrees of normal (or flipped); a weight on a disallowed bone moves to its nearest allowed ancestor, else to the part's
+    `fallback` (bind_overrides {part: {fallback}}), else the bone is refused by name; a vertex left with no weight is refused, never written empty.
     return: the metal parts' rest residual against the ORIGINAL shell. apply: refused while a seam opens unless accept_seam_gap_mm. report: the stages done and the files."""
     from .features import fit_bind as _FB
     root = str(_settings().project_root)
@@ -1343,7 +1400,7 @@ def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_
     raise ValueError("stage is plan | weights | return | apply | report")
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None, by="agent"):
     """The glove's plate labels as a TYPED decision. stage labels: `labels` {plate: bone} for EVERY plate of the piece (its vertex groups; an unlabelled plate is named, never guessed), `roles` {plate: role},
     the glove's own side's bones only (a left-hand bone on the right glove is refused by name), finger caps and the bracer metal = one rigid bone each, a cloth plate (the upper arm) never rigid. Writes
@@ -1359,7 +1416,7 @@ def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None
     raise ValueError("stage is labels | pose | bind | report")
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def anim_reference_render(character, views=None, size="720x1280", background="#808080", camera=None, out_dir="anim/reference"):
     """The character at rest from a KNOWN orthographic camera on a plain grey background, front and side: the start images for the clip step. character: an object (its children are included) or a collection;
     views [front, side]; size WIDTHxHEIGHT (720x1280, 9:16); camera {ortho_scale, center, height_m} (default: fit-to-height with a 6 % margin each side, measured from the mesh; a perspective camera is refused). Writes
@@ -1370,7 +1427,7 @@ def anim_reference_render(character, views=None, size="720x1280", background="#8
     return _AR.reference_render(character, views, size, background, camera, out_dir, str(_settings().project_root))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def animation_retarget(source, target, action=None, mapping="auto", method="matrix", root_motion="keep", scale="auto", frame_range=None, fps=None, check_objects=None, sample_frames=8, name=None,
                        dry_run=False, keep_source=False):
     """Bake an animation from one skeleton onto another (a NEW Action on the target; nothing is overwritten) and measure it. source: an armature in the scene or a project-relative .fbx/.bvh/.glb (imported in a
@@ -1394,7 +1451,8 @@ def _gray_loader():
         import numpy as _np
 
         def load(path):
-            img = bpy.data.images.load(path)
+            from . import canon_io as _cio
+            img = _cio.load_image(path)
             try:
                 w, h = img.size
                 px = _np.array(img.pixels[:], dtype=_np.float32).reshape(h, w, 4)[::-1]
@@ -1404,7 +1462,7 @@ def _gray_loader():
         return load
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def anim_multiview_fit(front="", side="", calibration=None, cameras="", fps=24.0, single_view=False, grid_frames=None, stage="fit", out="anim/multiview/fit.json",
                        frames=None, onnx="", armature="", mesh="", masks=None, bones=None, step_deg=8.0, rounds=5, key=False):
     """Motion from ONE split-screen clip (front + side), orthographic: triangulate per-panel 2D joints (JSON {keypoints: [[[u, v] x 15 joints] per frame], conf?}, joint order = pipeline.anim_mv.JOINTS) into 3D, the side
@@ -1440,7 +1498,7 @@ def anim_multiview_fit(front="", side="", calibration=None, cameras="", fps=24.0
     return _IO.multiview_fit(_p(front), _p(side), calibration, _p(cameras) or None, float(fps), bool(single_view), grid, _p(out))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def anim_check(poses, masks=None, rendered=None, cameras="", twist=None, claims=None, out="anim/check.json"):
     """Judge a tracked motion (the anim_multiview_fit file) against BOTH views' silhouette masks (dirs of PNG: {front, side}; a single view cannot settle which leg is in front: refused) and the ground. Gates with
     their numbers: G-OUT-front >= 0.80 and G-OUT-side >= 0.85 outline IoU, G-LEGS >= 85 % of lifted frames' lifted foot travelling forward, G-FOOT-SLIDE <= 1 cm, G-FOOT-PLANT <= 1 cm, G-TWIST <= 5 deg (when
@@ -1453,7 +1511,7 @@ def anim_check(poses, masks=None, rendered=None, cameras="", twist=None, claims=
                      twist, claims, load, _p(out))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def anim_loop_export(take, cycle="auto", fps=30.0, skeleton="metahuman_base_skel", check="", strides_note="", reference_bones=None, loop_tolerance_deg=None, out="anim/loop"):
     """Turn a checked multi-stride take into one seamless loop: the period found by autocorrelation and refined by least squares across strides (cycle 'auto' or 'strides:N'), strides averaged by PHASE into
     loop.json, and the export gates with their numbers: G-LOOP (<= 1 deg between strides, root offset one period), G-LOOP-WRAP, G-SPEED (planted-foot speed within 5 % of the root's), G-STRIDES (>= 4, or >= 2 with
@@ -1463,7 +1521,7 @@ def anim_loop_export(take, cycle="auto", fps=30.0, skeleton="metahuman_base_skel
     return _IO.loop_export(_p(take), float(fps), cycle, skeleton, loop_tolerance_deg, _p(check) or None, strides_note, reference_bones, _p(out))
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def anim_clip(reference_image, view="front", motion="walk", driver_video="", route="higgsfield", model="", duration=5, resolution="720p", aspect_ratio="9:16", generate_audio=False, has_camera_record=True):
     """Plan ONE character clip (the locked-camera prompt 'locked camera, no cuts, no zoom, the whole body and feet in frame, <motion> in place', Seedance 2.0, 720p 9:16 5 s) as a DRY RUN: the lampway_video_gen
     arguments, the list price (22.5 Higgsfield credits; $0.76, or $0.46 with the front clip as video reference, on OpenRouter: derived, not measured) and nothing spent. The side clip takes the front clip as
@@ -1473,7 +1531,7 @@ def anim_clip(reference_image, view="front", motion="walk", driver_video="", rou
     return _AP.clip_plan(reference_image, view, motion, driver_video or None, route, model or None, duration, resolution, aspect_ratio, generate_audio, has_camera_record)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def anim_track(provider=None, shipping=True, clip="", mask_dir="", camera="", skeleton="metahuman_base_skel", stage="plan", frames_with_pose=None, total_frames=0):
     """Body tracking, video to the MetaHuman skeleton: the provider is the USER's decision, so stage plan answers needs_decision with the question and the model slots (GEM-X, hosted SAM 3D Body, Uthana: all
     needs_approval) and names anim_multiview_fit as the primary tracker that needs no provider. Refused: gvhmr with shipping=true (licence: research and non-profit only, needs SMPL-X; shipping=false tags the
@@ -1486,7 +1544,7 @@ def anim_track(provider=None, shipping=True, clip="", mask_dir="", camera="", sk
     return _AP.track_plan(provider, shipping, clip, mask_dir, camera, skeleton)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def anim_from_video(character, motion="walk", views=None, stock_first=True, provider_track=None, route="higgsfield", out_package="", stock_inventory=None, anim_dir=""):
     """The animation-from-video pipeline as ONE dry-run plan: anim_reference_render (free) -> anim_clip (the only paid step: one spend card, '2 clips, 45 credits' at list price) -> anim_track (the provider
     decision stays open: needs_decision) -> anim_check -> anim_loop_export, with the decisions.jsonl path the run would write. stock_first refuses when a stock animation (stock_inventory names) already has the
@@ -1499,7 +1557,7 @@ def anim_from_video(character, motion="walk", views=None, stock_first=True, prov
     return _AP.plan_steps(p)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_state(stage="describe", **kw):
     """The descriptor / question / answer fit loop. Not built: answers needs_decision (is the Laya / fit-model route still the direction now that fit_validate measures the fit?). The question, the reason and a
     proposal are in the result."""
@@ -1507,7 +1565,7 @@ def fit_state(stage="describe", **kw):
     return _FG.fit_state(stage)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def detail_normals(material, strengths=None, ambientcg_dir=""):
     """Micro depth for a textured_atlas material: per-material tiling detail normals, box-projected in object space (metals take their ambientCG
     NormalGL maps, cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are
@@ -1516,7 +1574,7 @@ def detail_normals(material, strengths=None, ambientcg_dir=""):
     return DN.apply(material, strengths, ambientcg_dir or getattr(_settings(), "ambientcg_dir", None) or None)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def image_to_3d(images=None, size=1.0, resolution=64, mode="hull", depth=None, profile="round", name="", engine="algorithmic", detect_views="", views=None,
                 paired=False, plate_check=True):
     """Mesh from images, no model: ``hull`` = visual hull of two or more cardinal views ({"Front": path, "Left": path, ...}, Front u=+X,
@@ -1549,7 +1607,7 @@ def image_to_3d(images=None, size=1.0, resolution=64, mode="hull", depth=None, p
     return res
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def splat_import(path, max_points=200000, name="lw_splat"):
     """Import a 3D Gaussian Splatting PLY (binary little endian: x y z f_dc_0..2 opacity scale_0..2) as ONE point object with colour,
     opacity and radius attributes and a geometry-nodes view; a splat is never converted to a mesh. max_points subsamples
@@ -1557,7 +1615,7 @@ def splat_import(path, max_points=200000, name="lw_splat"):
     return _F_splat.splat_import(_p(path), max_points, name)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def render_video(object, out, kind="turntable", frames=48, width=640, height=360, fps=24, engine="workbench", waypoints=None):
     """Render a turntable or a keyframed camera path (``waypoints``: [{frame, location}]) of ``object`` to an H.264 mp4 under the project
     root with the light engines (workbench | eevee; never Cycles), in a throw-away scene. engine=model:<name> is the generative video
@@ -1565,7 +1623,7 @@ def render_video(object, out, kind="turntable", frames=48, width=640, height=360
     return _F_video.render_video(object, _p(out), kind, frames, width, height, fps, engine, waypoints)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def project_views(object, views, size=1024, out="", occlusion=True):
     """Project cardinal-view images ({"Front": path, ...}, each framed to the subject) into the UV atlas by which way each texel faces
     (optional occlusion ray test) and apply it as the material ``<object>_proj``. Reports coverage and per-view share."""
@@ -1574,7 +1632,7 @@ def project_views(object, views, size=1024, out="", occlusion=True):
                                     _p(out or f"{object}_atlas.png", s_.project_root), occlusion)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def texture_gen(object, prompt, out_dir="", views=("Front", "Back"), size=1024, engine="algorithmic", reference_image="", count=1, keep_original=True, record=True,
                 piece="", delight=False, min_coverage=0.6):
     """Texture Gen: clay render of each view -> the server's image model paints it (count variants, best silhouette IoU kept; a material
@@ -1588,14 +1646,14 @@ def texture_gen(object, prompt, out_dir="", views=("Front", "Back"), size=1024, 
                                   keep_original=keep_original, record=record, piece=piece, delight=delight, min_coverage=min_coverage)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def ai_render(object, prompt, view="Front", out="ai_render.png", size=768):
     """AI Render: a clay render of ``object`` from ``view`` is handed to the image model with the prompt; the result image is saved and
     loaded as a Blender image. It changes nothing in the scene (look development only)."""
     return _F_texture.ai_render(object, prompt, view, _p(out), size)
 
 
-@tool
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def repair_texture(object, texture, view, patch, mask, out, feather=2):
     """Local texture repair: blend ``patch`` through ``mask`` (both framed like a clay render of ``view``) into the existing atlas where
     the surface faces that view; writes ``out``, never overwrites ``texture``."""
@@ -1608,13 +1666,45 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 
 from . import api_wave6 as _W6                              # noqa: E402
 
+# one door per wave 6 tool, each a LEGACY of its own (the ratchet counts every tool still owing its Need/NONE)
+_W6_DOORS = {
+    "modular_character": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "character_pipeline": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "playblast_capture": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "lod_chain": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "motion_experiment": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "secondary_chain_rig": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "cloth_garment_sim": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "face_rig_validate": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "glb_optimize": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "traversal_check": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "level_blockout": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "part_budget_plan": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "platform_budget_check": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "print_check": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "print_prep": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "profile_revolve": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "splat_world": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "splat_collision_proxy": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "vehicle_wheel_rig": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "editor_connection_receipt": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "terrain": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "addon_read": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "addon_stage_patch": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "addon_commit": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "addon_rollback": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "material_palette": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "scene_from_image": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "motion_generate": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+}
 for _w6_name in _W6.TOOLS:
-    globals()[_w6_name] = tool(getattr(_W6, _w6_name))
+    globals()[_w6_name] = tool(consumes=_W6_DOORS[_w6_name])(getattr(_W6, _w6_name))
 
 
 # ---- the orphan tools (STATUS.md ORPHANS): their own module, registered through tool() above
 
 from .orphans_api import *  # noqa: E402,F401,F403
+from .rig_api import *  # noqa: E402,F401,F403
 
 
 # ---- the UE Renderer (specs/ue_parity): ue/ owns the behaviour, these are its doors
@@ -1624,7 +1714,7 @@ def _ue_profile(profile):
     return _UEP.load(_p(profile) if profile else _UEP.DEFAULT_PROFILE)
 
 
-@tool
+@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
 def ue_material(material, mode="report", merge_json=None, master=None, on_loss="report", profile=None):
     """Translate a Principled material to UE's legacy Default Lit, deterministically: the UE material-instance parameters
     (BaseColor/Metallic/Roughness/Specular/Emissive, blend mode Opaque|Masked(0.3333)|Translucent, Two Sided = not backface
@@ -1649,7 +1739,7 @@ def ue_material(material, mode="report", merge_json=None, master=None, on_loss="
     return _UEM.translate(_UEG.read_spec(mat), prof, mode, merge, files, master, on_loss)
 
 
-@tool
+@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
 def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=None, cube=None, cube_meta=None):
     """The one-click UE Look mode, governed by one UE profile (lampway.ue-profile/1; default: the shipped engine-defaults
     profile) and its tonemapper cube, generated on the UE side and named by the profile's tonemap_cube / tonemap_cube_meta (or
@@ -1691,7 +1781,7 @@ def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=
     return _UEL.apply(scene, prof, scope, bool(parity), cube, cube_meta)
 
 
-@tool
+@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
 def ue_export(type, object="", armature=None, action=None, out_dir="", textures=None, body=None, frame_rate=None, hero=None, format="fbx",
               validation="", bind_check="", bake_receipt="", profile=None, allow_unverified=False, _bone_axis="Z"):
     """Export to UE by the ONE path its type allows: skinned_piece (FBX: armature + mesh, primary bone axis Z / secondary X, no
@@ -1713,7 +1803,7 @@ def ue_export(type, object="", armature=None, action=None, out_dir="", textures=
                     format, validation, bind_check, bake_receipt, _p(profile) if profile else None, str(s_.project_root), _bone_axis, allow_unverified)
 
 
-@tool
+@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
 def ue_parity(scene, profile=None, size=768, views=None, out_dir="", ue_captures=None, ue_linear_scale=None):
     """The parity harness, Lampway half: build a standard scene (chart | furnace | normals | lights) from its one JSON
     description in a throw-away scene, render each view (front | three_quarter | grazing) headless in EEVEE under ue_look

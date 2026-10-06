@@ -4,59 +4,61 @@
 
 """fit_validate, the pure half: the measurements and the judgement, with no scene.
 
-* rigid_fit: the best rotation + translation (and, only when asked, ONE uniform scale: Umeyama) taking one point set onto another, with the residual. A metal part is judged with the scale FIXED, so a pose
+* rigid_fit: canon 02's similarity fit (canon_geom): the best PROPER rotation + translation (and, only when asked, ONE uniform scale: Umeyama) taking one point set onto another, with the residual (rms, max, p95). A metal part is judged with the scale FIXED, so a pose
   that "breathes" a part by 1 % fails; the source similarity (rest fidelity) is the only place a scale is fitted, and it is reported.
-* edge_strain: the percent change of edge lengths.
-* judge: a verdict per part under the limits of its role: PASS | FAIL | UNVERIFIED (no limits declared for the role) ; never a bare PASS: the limits' status (proposed | adopted) rides along.
+* edge_strain: the relative change of edge lengths (a fraction; a zero-length rest edge is refused).
+* judge: a verdict per part under the limits of its role plus the body's: PASS | FAIL | UNVERIFIED (no limits for the role, or a metric not measured); never a bare PASS: the limits' status (proposed | adopted) rides along.
 * summarize: the counts, and ``ok`` only when nothing is UNVERIFIED/UNPROVEN; a failed crossing control makes the whole run UNPROVEN.
 * bind_mismatch: the piece's own reference pose against the native bind, bone by bone (tolerances 0.01 cm, 0.01 deg, scale 1e-4: the contract's).
-The default limits are PROPOSED (the user has adopted none); cloth, leather and embroidery have none at all."""
+The default limits are canon 05's (Titan's armour-limits, adopted by the captain 2026-10-06); cloth, leather and embroidery have none at all."""
 
 import numpy as np
 
-PROPOSED = {"status": "proposed", "metal": {"rigid_max_mm": 1.0, "strain_max_pct": 1.0, "seam_gap_mm": 1.0}}      # [UNVERIFIED] placeholders: the user's measured numbers replace them
+from ..canon_geom import similarity_fit
+
+# Canon 05's limits: Titan recipes/armour-limits.json (titan.armour-limits/1), ADOPTED by the captain on 2026-10-06 ("go with
+# Titans fit limit"): metal rigid residual < 0.5 mm, metal edge strain p95 < 1 % (a fraction), no surface crossing of the body.
+# Leather, cloth and embroidery have NO limits (they judge UNVERIFIED), and no seam limit exists: those are still owed.
+DEFAULT_LIMITS = {"schema": "titan.armour-limits/1", "status": "adopted", "body": {"crossings": 0}, "metal": {"rigid_max_mm": 0.5, "strain_p95": 0.01},
+                  "source": "specs/canon/05-fit-validation.md H.1; adopted 2026-10-06",
+                  "needs_decision": ["leather, cloth and embroidery limits (canon 05 H.2): those roles judge UNVERIFIED until declared",
+                                     "a seam acceptance limit (canon 05 H.3): the ledger counts pairs open over 2 mm, nothing is judged on it"]}
+PROPOSED = DEFAULT_LIMITS                                  # the old name, kept for importers (the limits are now adopted)
 BIND_TOL = {"pos_cm": 0.01, "rot_deg": 0.01, "scale": 1e-4}
 
 
 def rigid_fit(P, Q, with_scale=True):
-    P, Q = np.asarray(P, float), np.asarray(Q, float)
-    mp, mq = P.mean(0), Q.mean(0)
-    A, B = P - mp, Q - mq
-    U, S, Vt = np.linalg.svd(B.T @ A)
-    d = np.sign(np.linalg.det(U @ Vt))
-    D = np.diag([1, 1, d])
-    R = U @ D @ Vt
-    s = float((S * np.array([1, 1, d])).sum() / (A ** 2).sum()) if with_scale else 1.0
-    t = mq - s * (R @ mp)
-    fit = s * (P @ R.T) + t
-    err = np.linalg.norm(fit - Q, axis=1)
-    return {"R": R, "t": t, "scale": s, "rms_m": float(np.sqrt((err ** 2).mean())), "max_m": float(err.max())}
+    """Canon 02's similarity fit (canon_geom.similarity_fit) in this module's receipt keys: refuses fewer than 3 pairs, collinear
+    points and non-finite input; ``p95_m`` beside ``rms_m`` and ``max_m`` so one bad vertex is never averaged away."""
+    f = similarity_fit(P, Q, with_scale=with_scale)
+    return {"R": f["R"], "t": f["t"], "scale": f["s"], "rms_m": f["rms"], "max_m": f["max"], "p95_m": f["p95"]}
 
 
 def edge_strain(P0, P1, edges):
-    e = np.asarray(edges)
+    """{p95, max}: |l_posed / l_rest - 1| per edge as a FRACTION (canon 05 B.3); a zero-length rest edge is refused."""
+    e = np.asarray(edges, int).reshape(-1, 2)
+    if not len(e):
+        return {"p95": 0.0, "max": 0.0}
     l0 = np.linalg.norm(P0[e[:, 0]] - P0[e[:, 1]], axis=1)
-    l1 = np.linalg.norm(P1[e[:, 0]] - P1[e[:, 1]], axis=1)
-    keep = l0 > 1e-12
-    pct = np.abs(l1[keep] / l0[keep] - 1.0) * 100.0
-    return {"p95_pct": float(np.percentile(pct, 95)), "max_pct": float(pct.max())}
+    if (l0 <= 1e-12).any():
+        k = int(np.flatnonzero(l0 <= 1e-12)[0])
+        raise ValueError(f"edge {int(e[k, 0])}-{int(e[k, 1])} has no rest length (weld or remove the degenerate edge first)")
+    f = np.abs(np.linalg.norm(P1[e[:, 0]] - P1[e[:, 1]], axis=1) / l0 - 1.0)
+    return {"p95": float(np.percentile(f, 95)), "max": float(f.max())}
 
 
 def judge(role, metrics, limits=None):
-    lim = limits or PROPOSED
-    out = {"limits_status": lim.get("status", "proposed"), "over": [], "missing": []}
-    role_lim = lim.get(role)
-    if not role_lim:
-        out.update(verdict="UNVERIFIED", missing=[f"limits for {role}"])
-        return out
-    pairs = (("rigid_max_mm", "rigid_residual_mm"), ("strain_max_pct", "strain_max_pct"), ("seam_gap_mm", "seam_gap_mm_max"))
-    for key, metric in pairs:
-        if key in role_lim and metrics.get(metric) is not None and metrics[metric] > role_lim[key]:
-            out["over"].append(key)
-    if metrics.get("crossings_body"):
-        out["over"].append("crossings_body")
-    out["verdict"] = "FAIL" if out["over"] else "PASS"
-    return out
+    """{verdict PASS|FAIL|UNVERIFIED, limits_status, over, missing}: ``metrics`` against the role's limits plus the body's
+    (Titan armour_validate.judge): a role without limits, or a limit whose metric was not measured, is UNVERIFIED - never PASS."""
+    lim = limits or DEFAULT_LIMITS
+    status = lim.get("status", "proposed")
+    if role not in lim:
+        return {"verdict": "UNVERIFIED", "limits_status": status, "over": [], "missing": [f"limits for {role}"]}
+    want = dict(lim.get("body", {}))
+    want.update(lim[role])
+    over = sorted(k for k, v in want.items() if metrics.get(k) is not None and metrics[k] > v)
+    missing = sorted(k for k in want if metrics.get(k) is None)
+    return {"verdict": "FAIL" if over else ("UNVERIFIED" if missing else "PASS"), "limits_status": status, "over": over, "missing": missing}
 
 
 def summarize(judges, crossing_control_ok=True):
@@ -95,20 +97,3 @@ def bind_mismatch(leader, own, tol=None):
         if row["pos_cm"] > t["pos_cm"] or row["rot_deg"] > t["rot_deg"] or row["scale"] > t["scale"]:
             over.append(row)
     return {"ok": not over, "bones": len(leader), "over_tolerance": over, "tolerance": t}
-
-
-def check_expect(expect, measured):
-    """A pose's declared direction ("wrist_r goes UP by at least 20 degrees") against what the pose measured: {bone: {<axis>_deg: value}}."""
-    got = measured.get(expect["bone"], {}).get(f"{expect['axis']}_deg")
-    if got is None:
-        return {"ok": False, "why": f"{expect['bone']} has no measured {expect['axis']}_deg"}
-    ok = got >= float(expect["min_deg"])
-    return {"ok": ok, "why": "" if ok else f"expect failed: {expect['bone']} {expect['axis']} is {got:.1f} degrees, wanted at least {expect['min_deg']} (a wrong-sign pose is refused, not measured)"}
-
-
-def control_shift(points, normals, depth_m, nearest_idx):
-    """The crossing control: push the piece vertices ``nearest_idx`` into the skin (against the body's outward normal there) so a crossing counter that is blind shows itself."""
-    out = np.array(points, float).copy()
-    for i in np.atleast_1d(nearest_idx):
-        out[i] = out[i] - np.asarray(normals[i], float) * depth_m
-    return out

@@ -19,6 +19,7 @@
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+import lw_canon
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 _bad = [] if __name__ != '__main__' else [x for x in _A if x.startswith('--') and x.split('=')[0] not in []]
 if _bad: print(f'error: unknown flag(s) {_bad}'); _ax.helps(['blender -b -P scripts/proportion/pose_clearance.py -- <out_dir> <body.glb> <placed.npz>   (env PC_LOWS / PC_SWINGS)']); _sys.stdout.flush(); raise SystemExit(2)
@@ -32,7 +33,7 @@ from mathutils import Vector, Matrix
 from mathutils.bvhtree import BVHTree
 a = sys.argv[sys.argv.index('--') + 1:]; OUT, BODY, PLACED = a[0], a[1], a[2]; os.makedirs(OUT, exist_ok=True)
 bpy.ops.wm.read_factory_settings(use_empty=True)
-bpy.ops.import_scene.gltf(filepath=BODY)
+lw_canon.io.import_raw(BODY)
 arm = next(o for o in bpy.data.objects if o.type == 'ARMATURE'); body = max((o for o in bpy.data.objects if o.type == 'MESH'), key=lambda o: len(o.data.vertices))
 d = np.load(PLACED); tree = BVHTree.FromPolygons([tuple(map(float, v)) for v in d['V']], [tuple(map(int, t)) for t in d['T']])
 dg = bpy.context.evaluated_depsgraph_get()

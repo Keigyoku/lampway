@@ -1,0 +1,9 @@
+{
+  "units": "cm",
+  "forward": "+X",
+  "right": "+Y",
+  "up": "+Z",
+  "handedness": "left",
+  "position_decimals_cm": 6,
+  "reference": "unrigged"
+}

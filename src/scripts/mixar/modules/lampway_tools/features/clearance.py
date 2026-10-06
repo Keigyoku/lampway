@@ -4,7 +4,7 @@
 
 """garment_clearance: how far a piece sits from the posed body (signed distance through the body's BVH), in rest and in named poses, so fit is a number before any weight is trusted.
 
-Positive is outside the body, negative inside. Per pose: the smallest clearance, the penetrating vertices, the deepest penetration, where it is, and the body surfaces that block (clusters of the
+Positive is outside the body, negative inside; the sign is canon 15's (rig._signed: the angle-weighted pseudonormal of the nearest feature, never one face normal). Per pose: the smallest clearance, the penetrating vertices, the deepest penetration, where it is, and the body surfaces that block (clusters of the
 penetrating vertices' nearest body triangles). A pose passes when every vertex clears its target (the default, or the target of the vertex group the vertex belongs to: rigid and cloth parts differ).
 The body is posed by its own armature and every pose is reset afterwards."""
 
@@ -13,11 +13,11 @@ import math
 import bpy
 import numpy as np
 from mathutils import Vector
-from mathutils.bvhtree import BVHTree
 
 from . import common as C
 from . import rig as _rig
 from . import workflows as _wf
+from .. import canon_geom as G
 
 TARGET_DEFAULT = 0.015           # the opening clearance of the user's runbook
 MAX_PLACE_DISTANCE = 0.5
@@ -34,19 +34,17 @@ def _poses(pose_set):
     return [dict(p) for p in pose_set]
 
 
-def _body_arrays(body):
-    ev = body.evaluated_get(bpy.context.evaluated_depsgraph_get())
-    me = ev.to_mesh()
-    m = ev.matrix_world
-    V = [m @ v.co for v in me.vertices]
-    me.calc_loop_triangles()
-    T = [tuple(t.vertices) for t in me.loop_triangles]
-    tree = BVHTree.FromPolygons(V, T)
-    ev.to_mesh_clear()
-    return tree
+def _opening(bd, band):
+    """{boundary_edges, band_m, near (callable: points -> bool mask within ``band`` of an open boundary)}: canon 15 INV-15.2 -
+    a sign near an opening is not a measurement (the winding number is fractional there)."""
+    V, T = _rig._body_mesh(bd)
+    e = np.sort(np.concatenate([T[:, [0, 1]], T[:, [1, 2]], T[:, [2, 0]]]), axis=1)
+    u, c = np.unique(e, axis=0, return_counts=True)
+    rim = np.unique(u[c == 1])
+    return {"boundary_edges": int((c == 1).sum()), "band_m": band, "rim": rim}
 
 
-def run(piece, body, armature, pose_set=None, clearance_target_m=TARGET_DEFAULT, classes=None):
+def run(piece, body, armature, pose_set=None, clearance_target_m=TARGET_DEFAULT, classes=None, body_open_band_m=None):
     ob = C.need_object(piece)
     bd = C.need_object(body)
     arm = C.need_object(armature, "ARMATURE")
@@ -59,6 +57,12 @@ def run(piece, body, armature, pose_set=None, clearance_target_m=TARGET_DEFAULT,
     Bc = np.array([(bd.matrix_world @ Vector(c))[:] for c in bd.bound_box]).mean(axis=0)
     if float(np.linalg.norm(P0.mean(axis=0) - Bc)) > MAX_PLACE_DISTANCE:
         raise C.FeatureError(f"the piece is {np.linalg.norm(P0.mean(axis=0) - Bc):.2f} m from the body: run place_piece first (fit_place)")
+    opening = _opening(bd, body_open_band_m)
+    if opening["boundary_edges"] and body_open_band_m is None:
+        raise C.FeatureError(f"the body is open ({opening['boundary_edges']} boundary edges, e.g. a headless body mesh): signs near the opening are not measurements "
+                             "(canon 15). Use the closed full body, or declare body_open_band_m (metres) to leave the vertices within that band of the opening unsigned")
+    if body_open_band_m is not None and not 0 <= float(body_open_band_m) <= 0.5:
+        raise C.FeatureError("body_open_band_m is 0..0.5")
     targets = np.full(len(P0), float(clearance_target_m))
     if classes:
         names = {g.index: g.name for g in ob.vertex_groups}
@@ -79,15 +83,14 @@ def run(piece, body, armature, pose_set=None, clearance_target_m=TARGET_DEFAULT,
             pb.rotation_euler = [math.radians(float(a)) for a in b.get("rotate", [0, 0, 0])]
         bpy.context.view_layer.update()
         try:
-            tree = _body_arrays(bd)
             P = _rig._evaluated(ob)
-            signed = np.empty(len(P))
-            nearest = np.empty(len(P), dtype=int)
-            for i, p in enumerate(P):
-                v = Vector(p)
-                loc, nrm, fi, dist = tree.find_nearest(v)
-                signed[i] = dist if (v - loc).dot(nrm) >= 0 else -dist
-                nearest[i] = fi
+            signed, nearest = _rig._signed(P, bd)
+            unsigned = np.zeros(len(P), bool)
+            if opening["boundary_edges"]:
+                Vb, _Tb = _rig._body_mesh(bd)
+                rim = Vb[opening["rim"]]
+                unsigned = np.array([float(np.min(np.linalg.norm(rim - p, axis=1))) <= float(body_open_band_m) for p in P])
+                signed = np.where(unsigned, np.abs(signed), signed)
         finally:
             for pb, before in moved:
                 pb.rotation_euler = before
@@ -101,7 +104,8 @@ def run(piece, body, armature, pose_set=None, clearance_target_m=TARGET_DEFAULT,
                 blocking.append({"body_triangle": int(ids[k]), "penetrating_vertices": int(counts[k])})
         rows.append({"name": pose.get("name") or "pose", "min_clearance_m": round(float(signed.min()), 6), "penetrating_vertices": int(pen.sum()),
                      "max_depth_m": round(float(max(0.0, -signed.min())), 6), "worst_region": [round(float(x), 5) for x in P[worst]], "blocking_surfaces": blocking,
-                     "pass": bool((signed >= targets).all())})
+                     "pass": bool((signed >= targets).all()), "unsigned_near_opening": int(unsigned.sum())})
     passed = [r for r in rows if r["pass"]]
     closest = max(rows, key=lambda r: r["min_clearance_m"])["name"]
-    return {"ok": True, "poses": rows, "pass_pose_count": len(passed), "closest_pose": closest, "clearance_target_m": float(clearance_target_m)}
+    return {"ok": True, "poses": rows, "pass_pose_count": len(passed), "closest_pose": closest, "clearance_target_m": float(clearance_target_m),
+            "body_open": {"boundary_edges": opening["boundary_edges"], "band_m": body_open_band_m}}

@@ -15,6 +15,7 @@ import bpy
 from ..meshqa import decisions as D
 from ..pipeline import motion_library as ML
 from . import common as C
+from .. import canon_io
 
 CLIP_EXT = (".fbx", ".glb", ".gltf", ".bvh")
 ARMATURE = "motion_src"
@@ -39,13 +40,11 @@ def index(root, lib):
 def _import(path):
     before = set(bpy.data.objects.keys())
     ext = os.path.splitext(path)[1].lower()
-    # LEGACY(normalize): a raw clip enters the scene with its own frame and bone names; route through canon_io once it lands
+    # a raw clip enters the scene with its own frame and bone names, through canon_io (stamped raw)
     if ext == ".fbx":
-        bpy.ops.import_scene.fbx(filepath=path, use_anim=True)
-    elif ext in (".glb", ".gltf"):
-        bpy.ops.import_scene.gltf(filepath=path)
+        canon_io.import_raw(path, use_anim=True)
     else:
-        bpy.ops.import_anim.bvh(filepath=path)
+        canon_io.import_raw(path)
     return [bpy.data.objects[n] for n in bpy.data.objects.keys() if n not in before]
 
 

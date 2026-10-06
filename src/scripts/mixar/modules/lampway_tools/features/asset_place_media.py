@@ -10,6 +10,7 @@ import re
 
 import bpy
 
+from .. import canon_io
 from .asset_place import (PlaceError, collection, drop_point, entry, file_of, load_blend, place_rig_objects, scene, stamp, target_object, where)
 
 _BONE = re.compile(r'pose\.bones\["((?:[^"\\]|\\.)*)"\]')
@@ -18,7 +19,7 @@ _BONE = re.compile(r'pose\.bones\["((?:[^"\\]|\\.)*)"\]')
 def reference_image(asset, opts, target) -> list:
     sc = scene()
     path, sha, _ = file_of(asset, ("main",))
-    img = bpy.data.images.load(path, check_existing=True)
+    img = canon_io.load_image(path, check_existing=True)
     stamp(img, asset, sha)
     ob = bpy.data.objects.new(str(asset.get("name")), None)
     ob.empty_display_type = "IMAGE"

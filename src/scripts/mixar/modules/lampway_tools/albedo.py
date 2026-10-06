@@ -15,6 +15,8 @@ import os
 
 import bpy
 
+from . import canon_io
+
 PREFIX = "AB:"
 
 
@@ -57,7 +59,7 @@ def apply(material: str, albedo_path: str, name: str = "", on: bool = True) -> d
 
     uv = node("ShaderNodeTexCoord", "uv")
     tex = node("ShaderNodeTexImage", "albedo")
-    tex.image = bpy.data.images.load(albedo_path, check_existing=False)
+    tex.image = canon_io.load_image(albedo_path, role="basecolor", check_existing=False)
     tex.image.colorspace_settings.name = "sRGB"
     nt.links.new(uv.outputs["UV"], tex.inputs["Vector"])
     use = node("ShaderNodeValue", "use albedo")

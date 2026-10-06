@@ -45,6 +45,19 @@ def backend_name() -> str:
     return name
 
 
+IMAGE_CONNECTIONS = {"openrouter": "openrouter", "tripo": "studio:tripo", "codex_cli": "codex_cli"}
+
+
+def _register_uses() -> None:
+    """Connections' "where it is used" for the image backends: the connection follows the backend chosen now."""
+    from .connections import register_use
+    register_use("studio_image_generate", lambda: IMAGE_CONNECTIONS.get(backend_name()), "the agent's image generation (studio_image_generate)")
+    register_use("image_gen", "openrouter", "the Client's image generation job (image_gen)")
+
+
+_register_uses()
+
+
 def _state_dir() -> Path:
     from .config import state_dir
     return state_dir()
@@ -230,7 +243,11 @@ def openrouter_images(prompt: str, references: list, count: int, size: str = "",
     key = resolve_api_key()
     ledger = spend_ledger(settings)
     out = []
-    with httpx.Client(transport=openrouter_transport, timeout=300.0) as client:
+    from . import egress as EG
+    from .choices import registry as CREG
+    cls = CREG.PURPOSES.get(f"image.{purpose or 'plates'}", CREG.PURPOSES["image.plates"]).content_class
+    with EG.context(content_class=cls, kind="image", observe_private=True), \
+            httpx.Client(transport=openrouter_transport, timeout=300.0) as client:          # HC24: declared, observed (CH1 first release)
         if explicit_model:                              # validated against that model's supported parameters
             model, extra = _purpose_body(client, key, settings, purpose or "plates", size, aspect_ratio,
                                          override={"model": explicit_model, "resolution": resolution, "quality": quality})
@@ -242,6 +259,9 @@ def openrouter_images(prompt: str, references: list, count: int, size: str = "",
                 extra["size"] = size or settings.openrouter_image_size
             if settings.openrouter_image_quality:
                 extra["quality"] = settings.openrouter_image_quality
+        from .choices import shadow as _SH
+        from . import choices as _CH
+        _SH.record(f"image.{purpose or 'plates'}", f"openrouter:{model}", _CH.Job(needs={"runs_on": ["openrouter"]}))      # the shadow row: resolved vs ran
         for i in range(1, int(count) + 1):
             ledger.check()
             body = {"model": model, "prompt": prompt, **extra}
@@ -281,9 +301,13 @@ def openrouter_image_backend(model: str, payload: dict):
     params = payload.get("params") if isinstance(payload.get("params"), dict) else {}
     count = int(params.get("number_of_images") or 1)
     refs = [base64.b64decode(r) for r in (payload.get("reference_images_b64") or [])[:MAX_REFERENCE_IMAGES] if isinstance(r, str)]
+    purpose = str(params.get("purpose") or "plates")
+    from . import provider_prefs
+    own = (provider_prefs.effective().image_purposes.get(purpose) or {}).get("model")
+    explicit = "" if model in ("", "default", None, own) else str(model)          # the job queue passes the model Choices resolved (HC6)
     return ImageOutput(images=openrouter_images(prompt, refs, count, size=str(params.get("size") or ""),
                                                 aspect_ratio=str(params.get("aspect_ratio") or ""),
-                                                purpose=str(params.get("purpose") or "plates")), image_name=str(payload.get("image_name") or ""))
+                                                purpose=purpose, model=explicit), image_name=str(payload.get("image_name") or ""))
 
 
 def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: bool, size: str = "", aspect_ratio: str = "",

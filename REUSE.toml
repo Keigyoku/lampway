@@ -187,9 +187,36 @@ path = [
   "server/lampway_server/decisions_goldens.json",
   "server/lampway_server/library/migrations/*.sql",
   "server/lampway_server/library/rules/*.json",
+  ".claude/settings.json",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Keigyoku"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# The algorithm canon's normalization schema and its self-test cases (vendored verbatim from the canon spec tree), and the
+# LEGACY ratchet count (specs/canon/normalization DOOR.md section 5).
+[[annotations]]
+path = [
+  "src/scripts/mixar/modules/lampway_tools/canon/*.json",
+  "src/scripts/mixar/modules/lampway_tools/canon_legacy_count.txt",
+  "tests/lampway_tools/canon_goldens/normalization/*.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# The canonical rig/animation converter's data files (ported from the TITAN project, same author): forms, reference profiles, recipe inputs.
+[[annotations]]
+path = [
+  "src/scripts/mixar/modules/lampway_tools/rig_convert/recipes/*.json",
+  "src/scripts/mixar/modules/lampway_tools/ue_recipes/*.json",
+  "src/scripts/mixar/modules/lampway_tools/rig_tools/families/*.json",
+  "src/scripts/mixar/modules/lampway_tools/rig_tools/recipes/*.json",
+  "tests/lampway_tools/canon_goldens/rig/*.json",
+  "tests/lampway_tools/canon_goldens/rig/C02_inverse_lbs/*.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 
 # The agent rail (rail/, docs/rail.md). CLAUDE.md files are exactly the one line `@AGENTS.md` (rail/rail.py check, RAIL-006), so

@@ -270,6 +270,7 @@ class AssetLibrary:
         kind = spec.get("kind")
         if kind not in S.KINDS:
             raise LibraryError(f"unknown kind {kind!r}; kinds: {sorted(S.KINDS)}")
+        self._check_canonical(spec, kind)
         if not spec.get("name"):
             raise LibraryError("an asset needs a name")
         src = spec.get("source") or {}
@@ -287,6 +288,27 @@ class AssetLibrary:
             except BaseException:
                 self._db.execute("ROLLBACK")
                 raise
+
+    @staticmethod
+    def _check_canonical(spec, kind):
+        """A version of a canonical kind is canonical - with a document that validates - or raw; a claim without a valid document is refused."""
+        doc = spec.get("canonical")
+        if spec.get("canon_state") == "canonical" and not doc:
+            raise LibraryError("a canonical version carries its lampway.canonical-asset/1 document (spec['canonical']): normalize it first")
+        if doc is None:
+            return
+        if kind not in S.CANONICAL_KINDS:
+            raise LibraryError(f"kind {kind} has no canonical form here (canonical kinds: {', '.join(S.CANONICAL_KINDS)})")
+        try:
+            from . import canon as CN
+            errs = CN.validate(doc)
+        except Exception as e:  # noqa: BLE001 - an unvalidated claim is never stored as canonical
+            raise LibraryError(f"the canonical document cannot be validated here: {e}") from None
+        if errs:
+            raise LibraryError(f"not a valid canonical document: {errs[:3]}")
+        nf = spec.get("normalized_from")
+        if nf is not None and not (isinstance(nf, dict) and isinstance(nf.get("version"), int) and nf["version"] >= 1):
+            raise LibraryError("normalized_from is {version: <the raw version's number>}")
 
     def _put_tx(self, spec, kind, src, files, ck) -> dict:
         db, now = self._db, self._now()
@@ -329,6 +351,11 @@ class AssetLibrary:
         attrs = _clean_urls(dict(spec.get("attrs") or {}))
         stats = dict(spec.get("stats") or {})
         table = S.KINDS[kind]["stats_table"]
+        doc = spec.get("canonical")
+        if doc and table == "mesh_stats":                       # a canonical version's dimensions come from its document, never the raw file's header
+            body = doc["body"].get("mesh", doc["body"]) if doc["kind"] == "rigged_mesh" else doc["body"]
+            lo, hi = body["bbox_min_m"], body["bbox_max_m"]
+            stats.update(bbox_min_json=lo, bbox_max_json=hi, dim_x=hi[0] - lo[0], dim_y=hi[1] - lo[1], dim_z=hi[2] - lo[2])
         if table:
             cols = set(S.stats_columns(table, db)) - {"version_id"}
             row_vals = {k: v for k, v in stats.items() if k in cols}
@@ -336,7 +363,18 @@ class AssetLibrary:
             db.execute(f"INSERT INTO {table}(version_id{''.join(',' + k for k in row_vals)}) VALUES(?{',?' * len(row_vals)})", (vid, *[json.dumps(v) if isinstance(v, (dict, list)) else v for v in row_vals.values()]))
         elif stats:
             attrs.update(stats)
-        db.execute("INSERT INTO version(id,asset_id,n,content_key,created_at,note,attrs_json) VALUES(?,?,?,?,?,?,?)", (vid, aid, n, ck, now, spec.get("note"), json.dumps(attrs, sort_keys=True)))
+        doc = spec.get("canonical")
+        state = ("canonical" if doc else "raw") if kind in S.CANONICAL_KINDS else None
+        db.execute("INSERT INTO version(id,asset_id,n,content_key,created_at,note,attrs_json,canon_state) VALUES(?,?,?,?,?,?,?,?)",
+                   (vid, aid, n, ck, now, spec.get("note"), json.dumps(attrs, sort_keys=True), state))
+        if doc:
+            db.execute("INSERT INTO canonical(version_id,schema_version,kind,frame,scale_state,scale_decision,canonical_sha256,raw_sha256,receipt_sha256,doc_json) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                       (vid, doc["schema_version"], doc["kind"], doc["conventions"]["frame"], doc["scale"]["state"], doc["scale"]["decision"], doc["canonical_sha256"],
+                        doc["raw"]["sha256"], doc["receipt_sha256"], json.dumps(doc, sort_keys=True)))
+            nf = spec.get("normalized_from")
+            if nf:
+                db.execute("INSERT INTO relation(src,dst,type,role,src_version,dst_version,attrs_json,by,created_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                           (aid, aid, "normalized_from", f"v{n}", n, int(nf["version"]), None, nf.get("by", "rule"), now))
         for f in files:
             db.execute("INSERT INTO version_file(version_id,role,ord,sha256) VALUES(?,?,?,?)", (vid, f["role"], f["ord"], f["sha256"]))
         db.execute("UPDATE asset SET current_version=?,updated_at=? WHERE id=?", (n, now, aid))

@@ -37,6 +37,11 @@ def studio_slot(feature: str, engine: str) -> dict:
     studio = engine.split(":", 1)[1] if ":" in engine else ""
     if engine != "algorithmic" and not engine.startswith("studio:"):
         raise FeatureError(f"unknown engine {engine!r}; use 'algorithmic' or 'studio:tripo' (also studio:meshy, studio:hi3d)")
+    if "." in studio:                                  # a Choices option: the server's Studio action id itself (studio:meshy.remesh)
+        how = ("Ask the owner to approve this exact action: call studio_plan with action "
+               f"{studio!r}; the driver reads the price back (nothing is clicked) and the USER confirms it in the Client's Studios panel.")
+        return {"ok": False, "needs_approval": True, "studio": studio.split(".", 1)[0], "studio_action": studio, "action": studio, "price": None,
+                "how": how, "error": f"{studio} spends credits: nothing was clicked; it needs the owner's approval of the price first"}
     action, price = STUDIO_ACTIONS.get((feature, studio), (None, None))
     if action is None:
         known = sorted({s for (f, s) in STUDIO_ACTIONS if f == feature})
@@ -81,8 +86,9 @@ def activate(ob) -> None:
 
 
 def mesh_report(ob, ref=None) -> dict:
-    """Faces, tris/quads, non-manifold and open-boundary edges, shells, and the surface deviation from ``ref`` (the distance
-    from every vertex of ``ob`` to ``ref``'s surface: mean, max, and relative to ref's bounding diagonal)."""
+    """Faces, tris/quads, non-manifold and open-boundary edges, shells, and the surface deviation from ``ref``, TWO-SIDED (canon 12):
+    every vertex of ``ob`` to ``ref``'s surface (to_source_max) and every vertex of ``ref`` to ``ob``'s (from_source_max: a part the
+    result dropped shows only here); max_deviation is the worse of the two, relative to ref's bounding diagonal."""
     me = ob.data
     bm = bmesh.new()
     bm.from_mesh(me)
@@ -117,7 +123,16 @@ def mesh_report(ob, ref=None) -> dict:
             hit = tree.find_nearest(to_ref @ v.co)
             d.append(hit[3] if hit[0] is not None else 0.0)
         d = np.asarray(d, dtype=np.float64)
+        own = BVHTree.FromObject(ob, dg)                                          # and back: every source vertex to the result (canon 12: two-sided)
+        from_ref = ob.matrix_world.inverted() @ ref.matrix_world
+        e = []
+        for v in ref.data.vertices:
+            hit = own.find_nearest(from_ref @ v.co)
+            e.append(hit[3] if hit[0] is not None else 0.0)
+        e = np.asarray(e or [0.0], dtype=np.float64)
         diag = max(1e-9, float(np.linalg.norm(np.asarray(ref.dimensions))))
-        rep.update(mean_deviation=round(float(d.mean()), 6), max_deviation=round(float(d.max()), 6),
-                   relative_max_deviation=round(float(d.max()) / diag, 6))
+        worst = max(float(d.max()), float(e.max()))
+        rep.update(mean_deviation=round(float(d.mean()), 6), max_deviation=round(worst, 6), relative_max_deviation=round(worst / diag, 6),
+                   to_source_max=round(float(d.max()), 6), from_source_max=round(float(e.max()), 6),
+                   p95_deviation=round(float(np.percentile(np.r_[d, e], 95)), 6))
     return rep

@@ -1,0 +1,199 @@
+{
+ "profiles": [
+  {
+   "alignment": [
+    {
+     "bone": "upperarm_l",
+     "direction": [
+      1,
+      0,
+      0
+     ],
+     "toward": "lowerarm_l"
+    },
+    {
+     "bone": "lowerarm_l",
+     "direction": [
+      1,
+      0,
+      0
+     ],
+     "toward": "hand_l"
+    },
+    {
+     "bone": "foot_l",
+     "direction": [
+      0,
+      1,
+      -0.5
+     ],
+     "toward": "ball_l"
+    },
+    {
+     "bone": "upperarm_r",
+     "direction": [
+      -1,
+      0,
+      0
+     ],
+     "toward": "lowerarm_r"
+    },
+    {
+     "bone": "lowerarm_r",
+     "direction": [
+      -1,
+      0,
+      0
+     ],
+     "toward": "hand_r"
+    },
+    {
+     "bone": "foot_r",
+     "direction": [
+      0,
+      1,
+      -0.5
+     ],
+     "toward": "ball_r"
+    }
+   ],
+   "basis": [
+    0,
+    0,
+    -0.7071067811865476,
+    0.7071067811865476
+   ],
+   "bones": 68,
+   "centimeters_per_unit": 1,
+   "name": "mobility",
+   "skeleton": "/Game/Mobility/Character/Mesh/UE4_Mannequin_Skeleton"
+  },
+  {
+   "alignment": [
+    {
+     "bone": "upperarm_l",
+     "direction": [
+      1,
+      0,
+      0
+     ],
+     "toward": "lowerarm_l"
+    },
+    {
+     "bone": "lowerarm_l",
+     "direction": [
+      1,
+      0,
+      0
+     ],
+     "toward": "hand_l"
+    },
+    {
+     "bone": "foot_l",
+     "direction": [
+      0,
+      1,
+      -0.5
+     ],
+     "toward": "ball_l"
+    },
+    {
+     "bone": "upperarm_r",
+     "direction": [
+      -1,
+      0,
+      0
+     ],
+     "toward": "lowerarm_r"
+    },
+    {
+     "bone": "lowerarm_r",
+     "direction": [
+      -1,
+      0,
+      0
+     ],
+     "toward": "hand_r"
+    },
+    {
+     "bone": "foot_r",
+     "direction": [
+      0,
+      1,
+      -0.5
+     ],
+     "toward": "ball_r"
+    }
+   ],
+   "basis": [
+    0,
+    0,
+    -0.7071067811865476,
+    0.7071067811865476
+   ],
+   "bones": 161,
+   "centimeters_per_unit": 1,
+   "name": "manny",
+   "skeleton": "/Game/UE_45_Characters/Mannequins/Meshes/SK_Mannequin"
+  }
+ ],
+ "schema": 1,
+ "sequences": [
+  {
+   "asset": "/Game/MobilityFBXProbe1/FBX_MOB1_Stand_Relaxed_Idle_IPC",
+   "name": "MOB1_Stand_Relaxed_Idle_IPC",
+   "profile": "mobility",
+   "sha256": "23f0ba055be6814eaa3efc38e006293b71a0ff26f424e6197dd282b2979193fc",
+   "source": "<asset-root>/data/Source_MOB/FBX/IPC/MOB1_Stand_Relaxed_Idle_IPC.fbx"
+  },
+  {
+   "asset": "/Game/MobilityFBXProbe1/FBX_MOB1_Walk_F_Loop_IPC",
+   "name": "MOB1_Walk_F_Loop_IPC",
+   "profile": "mobility",
+   "sha256": "6fb6b73284d86346413c780d38d62eb445d2e3367697d046cb1151fd685ff4e0",
+   "source": "<asset-root>/data/Source_MOB/FBX/IPC/MOB1_Walk_F_Loop_IPC.fbx"
+  },
+  {
+   "asset": "/Game/MobilityFBXProbe1/FBX_MOB1_Jog_F_Loop_IPC",
+   "name": "MOB1_Jog_F_Loop_IPC",
+   "profile": "mobility",
+   "sha256": "19b0babf6d9971627041c8cacfb734866da3182b6a7f2bb67e847471478496c8",
+   "source": "<asset-root>/data/Source_MOB/FBX/IPC/MOB1_Jog_F_Loop_IPC.fbx"
+  },
+  {
+   "asset": "/Game/MobilityFBXProbe1/FBX_MOB1_Run_F_Loop_IPC",
+   "name": "MOB1_Run_F_Loop_IPC",
+   "profile": "mobility",
+   "sha256": "ee5293751b2c3c4f958676cd579e83daac5149c2d58c517dbd6b6dc0f5f3b296",
+   "source": "<asset-root>/data/Source_MOB/FBX/IPC/MOB1_Run_F_Loop_IPC.fbx"
+  },
+  {
+   "asset": "/Game/MobilityFBXProbe1/FBX_MOB1_Stand_Relaxed_To_Walk_F_IPC",
+   "name": "MOB1_Stand_Relaxed_To_Walk_F_IPC",
+   "profile": "mobility",
+   "sha256": "8b9f1630fb193488663610147dfa39ed24e87cd483d4de3d906573aaf0c4e06a",
+   "source": "<asset-root>/data/Source_MOB/FBX/IPC/MOB1_Stand_Relaxed_To_Walk_F_IPC.fbx"
+  },
+  {
+   "asset": "/Game/MobilityFBXProbe1/FBX_MOB1_Walk_F_To_Stand_Relaxed_LU_IPC",
+   "name": "MOB1_Walk_F_To_Stand_Relaxed_LU_IPC",
+   "profile": "mobility",
+   "sha256": "8699226264c01d7986750eae44ccff831618b0ff3b8243fa78f2b6f2d5d2e990",
+   "source": "<asset-root>/data/Source_MOB/FBX/IPC/MOB1_Walk_F_To_Stand_Relaxed_LU_IPC.fbx"
+  },
+  {
+   "asset": "/Game/MobilityFBXProbe1/FBX_MOB1_Stand_Rlx_Turn_In_Place_L_Loop_IPC",
+   "name": "MOB1_Stand_Rlx_Turn_In_Place_L_Loop_IPC",
+   "profile": "mobility",
+   "sha256": "341b9ba57f3b8f2135f204659e92e91c5da16c2212173ff03316c5a423fdf391",
+   "source": "<asset-root>/data/Source_MOB/FBX/IPC/MOB1_Stand_Rlx_Turn_In_Place_L_Loop_IPC.fbx"
+  },
+  {
+   "asset": "/Game/MobilityFBXProbe1/FBX_MOB1_Jog_F_Jump_RU_Land_IPC",
+   "name": "MOB1_Jog_F_Jump_RU_Land_IPC",
+   "profile": "mobility",
+   "sha256": "d700ef5b837c1464550b21a8e06fbef1c846b560200fae286f6654c3503bb25c",
+   "source": "<asset-root>/data/Source_MOB/FBX/IPC/Split_Jumps/MOB1_Jog_F_Jump_RU_Land_IPC.fbx"
+  }
+ ]
+}

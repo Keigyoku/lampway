@@ -5,7 +5,7 @@
 """silhouette_compare: render two meshes (or a mesh and a plate) from the SAME cameras and report silhouette IoU, area ratio, centroid shift and contact-landmark drift per view,
 gating "reject drift that changes identity or side" (specs/wiki/silhouette_compare.md). The camera is fixed by the approved source ``a`` (orthographic, Workbench, transparent
 film, subject-height framing like render.py), so a candidate that moved or scaled shows it; a mirrored candidate fails the view that sees the mirror, not the one that does not.
-A plate image is compared after fitting both masks by bounding box (the shelf's fidelity.py convention), because a plate carries no camera."""
+A plate image is compared after putting both masks at one subject height with their aspect kept (canon 10: never cropped and stretched), because a plate carries no camera."""
 
 from pathlib import Path
 
@@ -15,6 +15,7 @@ from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
 from . import common as C
+from .. import canon_geom as G
 from . import render as R
 
 VIEWS = ("Front", "Back", "Left", "Right")
@@ -74,13 +75,10 @@ def _image_mask(path, size):
     return np.asarray(Image.fromarray((m * 255).astype(np.uint8)).resize((size, size))) > 127
 
 
-def _fit(mask, size):
-    ys, xs = np.nonzero(mask)
-    if not len(ys):
-        return mask
-    from PIL import Image
-    crop = Image.fromarray((mask[ys.min():ys.max() + 1, xs.min():xs.max() + 1] * 255).astype(np.uint8)).resize((size, size))
-    return np.asarray(crop) > 127
+def _fit_pair(ma, mb, size):
+    """Both masks on one canvas at one subject height, aspect kept (canon 10, canon_geom.fit_masks_true_aspect): a plate carries no
+    camera, but cropping each mask to its own box and stretching it square makes a 2:1 and a 1:1 silhouette read IoU 1.0 (golden C11)."""
+    return G.fit_masks_true_aspect(ma, mb, size)
 
 
 def _iou(a, b):
@@ -132,7 +130,7 @@ def run(a, b, root, piece="", views=None, size=512, min_iou=0.9, landmarks=None,
             ma = _render_mask(oa, oa, v, size, tmp)
         if image:
             mb = _image_mask(b, size)
-            ma, mb = _fit(ma, size), _fit(mb, size)
+            ma, mb = _fit_pair(ma, mb, size)
         elif not want_interior:
             mb = _render_mask(ob, oa, v, size, tmp)
         row = {"view": v, "iou": round(_iou(ma, mb), 4), "area_ratio": round(float(mb.sum() / max(ma.sum(), 1)), 4),

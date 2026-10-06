@@ -71,6 +71,9 @@ def run_script(source: str, *, scene: Path | None = None, args=(), env=None, tim
         e = dict(os.environ)
         e.update({"XDG_CONFIG_HOME": str(Path(tmp) / "xdg"), "LAMPWAY_BACKEND_URL": "http://127.0.0.1:9",
                   "LAMPWAY_BRIDGE_PORT": "0",
+                  # a profile per run: the default (~/.local/share/lampway) is shared by every lane's concurrent runs, and one run's
+                  # settings_set(project_root=...) landed in another's (measured: "outside the project root .../tmp-vault-ops/...")
+                  "LAMPWAY_HOME": str(Path(tmp) / "lampway_home"),
                   "TMPDIR": str(run_tmp),                                    # everything the binary's tempfile makes is removed with this run (the shared /tmp is a quota'd tmpfs)
                   "LAMPWAY_LEGACY_HOME": str(Path(tmp) / "no-legacy-home")})   # never migrate the person's real ~/.mixar into a test home
         e["HOME"] = str(Path(tmp) / "os-home")                                  # the binary never sees the person's real home either

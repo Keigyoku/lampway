@@ -63,15 +63,13 @@ class FalClient:
 
     # ----------------------------------------------------------------------------------------------------- plumbing
     def _auth(self) -> dict:
-        k = self._key
-        if not k and os.environ.get("FAL_KEY_FILE"):
+        k = _clean_key(self._key or "")
+        if not k:                                       # Connections: FAL_KEY / FALAI_KEY, else an owner-only FAL_KEY_FILE (C8), else a saved key
+            from . import connections as C
             try:
-                k = Path(os.environ["FAL_KEY_FILE"]).read_text()
-            except OSError:
-                k = ""
-        k = _clean_key(k or os.environ.get("FAL_KEY") or os.environ.get("FALAI_KEY") or "")
-        if not k:
-            raise FalError("no fal key: set FAL_KEY in the environment or a key file (FAL_KEY_FILE)")
+                k = C.secret_of(C.credential("fal"))
+            except C.Refused as exc:
+                raise FalError(f"no fal key: set FAL_KEY in the environment or a key file (FAL_KEY_FILE, owner-only), or connect fal in Connections ({exc})") from None
         return {"authorization": f"Key {k}"}
 
     def _call(self, method: str, url: str, **kw) -> dict:

@@ -15,9 +15,12 @@ from asset_place_support import go, one  # noqa: E402
 def test_every_importer_the_tool_names_exists_in_this_build(tmp_path):
     d = one(go(tmp_path, '''
 from mixar.modules.lampway_tools.features import asset_place as AP
+from mixar.modules.lampway_tools import canon_io
 ok = {}
-for ext, op in AP.IMPORTER_OPS.items():
-    mod, name = op.split(".")
+for ext in AP.IMPORT_EXTS:                                  # each placed container is read by canon_io, the one importer
+    if ext not in canon_io.IMPORTERS:
+        ok[ext] = "canon_io has no importer for it"; continue
+    mod, name = canon_io.IMPORTERS[ext]
     try:
         getattr(getattr(bpy.ops, mod), name).get_rna_type(); ok[ext] = True
     except Exception as e:

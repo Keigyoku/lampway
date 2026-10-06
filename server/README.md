@@ -36,7 +36,8 @@ The full list lives in `lampway_server/config.py`; the ones you will touch:
 | Variable | Default | Meaning |
 |---|---|---|
 | `LAMPWAY_HOST` / `LAMPWAY_PORT` | `127.0.0.1` / `8787` | bind address; a Host guard answers 421 to any other Host |
-| `LAMPWAY_STATE_DIR` | `$XDG_STATE_HOME/lampway-server` | secrets, saved provider prefs, egress prefs and log, spend log (files 0600) |
+| `LAMPWAY_STATE_DIR` | `$XDG_STATE_HOME/lampway-server` | the JWT secret, saved provider prefs, egress prefs and log, spend log, the Connections record (no key) (files 0600) |
+| `LAMPWAY_SECRETS_DIR` | `$XDG_STATE_HOME/lampway-secrets` | Connections' file store (0600 files, 0700 directory), used only when no OS keyring works; outside the Lampway home, which the agent's script sandbox reaches |
 | `LAMPWAY_PROJECT_ROOT` | `~/.local/share/lampway/projects` | the root every tool path is jailed to; receipts, ledger, video and uploads live under it |
 | `LAMPWAY_USER_EMAIL` / `LAMPWAY_USER_NAME` / `LAMPWAY_USER_PASSWORD` | `owner@lampway.local` / `Owner` / empty | the one account; empty password means the browser sign-in page approves without asking and the form login is refused |
 | `LAMPWAY_JWT_SECRET` | generated once, kept at `<state>/jwt_secret` (0600) | HS256 secret for access tokens |
@@ -47,6 +48,30 @@ The full list lives in `lampway_server/config.py`; the ones you will touch:
 | `LAMPWAY_LOG_LEVEL` | `INFO` | debug logs name methods and ids, never payloads or keys |
 
 Every outbound route is **off** until it is switched on in the Privacy panel ([privacy](../docs/privacy.md)), so a real provider is refused until you do.
+
+## Connections (`lampway_server/connections/`)
+
+The one place that knows every credential: `GET /app/connections` lists every service of `specs/connections/CATALOGUE.md`
+with its state (`connected`, `signed_out`, `expired`, `missing`, `error`, `not_checked`), where its credential comes from and
+whether its route is on. Every route needs the bearer and no route returns a secret. A key is pasted once
+(`PUT /app/connections/{id}/secret`) into the OS keyring (service `lampway`), else into `LAMPWAY_SECRETS_DIR`; or it is
+read where it already is (an environment variable, which wins over a saved key, or an owner-only key file). A Test runs
+only the service's free check and only with its route on; the server re-checks every 30 minutes the connections whose route
+is on and that were used in the last day. Consumers call `connections.require(id)`; a child process gets
+`connections.env_for([...])` (the server's environment with every key removed, plus that one connection). The agent reads
+status only, through `lampway_connections`. Hyper3D's MCP signs in from Connections (`mcp:hyper3d`); its tokens live in
+the store.
+
+## Choices (`lampway_server/choices/`)
+
+What Lampway uses for each purpose (56 of them: the main agent, plates, retopology, dictation, ...), what that falls back to, and why a
+job ran the way it did. `GET /app/choices` lists them; a choice is set per purpose (`PUT /app/choices/{purpose}`: a preferred option,
+fallbacks, params) globally or for one project. Precedence: the `LAMPWAY_*` environment for the session, then the project, then your
+choice, then the Providers dialog's saved values, then the shipped default. Every option is checked, in order, for: it exists, it can do
+the job, private content may go there, its connection works, its route is on, its cost fits, and its local engine is ready; the first
+failure is shown with its fix. A job receipt carries the `choice` (option, reason, why). The agent reads and proposes through
+`lampway_choices`; only your click changes a choice. Private content to an option whose terms are unread is recorded
+(`would_refuse_private`), not yet refused (decision CH1, first release).
 
 ## What is served
 

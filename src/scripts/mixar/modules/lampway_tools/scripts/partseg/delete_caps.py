@@ -15,6 +15,7 @@
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+import lw_canon
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 if __name__ == '__main__' and len(_A) < 2:
     if not _A: _ax.home(__file__, 'Delete a cap that closes an opening (neck bowl, waist fan, arm dome) by ray-casting through its footprint; UVs kept; writes a new file')
@@ -30,7 +31,7 @@ ap.add_argument('--beyond', type=float, required=True); ap.add_argument('--step'
 a = ap.parse_args(_A)
 if os.path.exists(a.out): _ax.refuse(f'{a.out} exists; never overwritten', ['delete_caps.py <in> <new_out.fbx> ...'])
 bpy.ops.wm.read_factory_settings(use_empty=True)
-(bpy.ops.import_scene.fbx if a.src.lower().endswith('.fbx') else bpy.ops.import_scene.gltf)(filepath=a.src)
+lw_canon.io.import_raw(a.src)
 obs = [o for o in bpy.data.objects if o.type == 'MESH']
 if len(obs) != 1: _ax.refuse(f'{len(obs)} mesh objects; expected one', [])
 o = obs[0]; me = o.data; M = o.matrix_world

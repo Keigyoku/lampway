@@ -14,6 +14,8 @@ import math
 import os
 
 import bpy
+
+from .. import canon_io
 import numpy as np
 from mathutils import Matrix, Vector
 
@@ -91,11 +93,11 @@ def _import(path, root):
     before, actions = set(bpy.data.objects), set(bpy.data.actions)
     ext = os.path.splitext(full)[1].lower()
     if ext == ".fbx":
-        bpy.ops.import_scene.fbx(filepath=full, ignore_leaf_bones=False)
+        canon_io.import_raw(full, ignore_leaf_bones=False)
     elif ext == ".bvh":
-        bpy.ops.import_anim.bvh(filepath=full)
+        canon_io.import_raw(full)
     elif ext in (".glb", ".gltf"):
-        bpy.ops.import_scene.gltf(filepath=full, guess_original_bind_pose=False)
+        canon_io.import_raw(full, guess_original_bind_pose=False)
     else:
         raise C.FeatureError("sources are .fbx, .bvh, .glb/.gltf or an armature in the scene")
     new = [o for o in bpy.data.objects if o not in before]

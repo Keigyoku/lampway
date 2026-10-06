@@ -22,6 +22,7 @@ import numpy as np
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
+from .. import canon_io
 from . import common as C
 
 PRESETS = {"mountains": {"height_m": 40.0, "scale": 0.02, "detail": 8.0, "warp": 0.5}, "hills": {"height_m": 10.0, "scale": 0.03, "detail": 4.0, "warp": 0.2},
@@ -275,7 +276,7 @@ def from_image(name, heightmap, size_m=100.0, resolution=256, height_m=10.0):
     _check_res(resolution, size_m)
     if not os.path.isfile(heightmap):
         raise C.FeatureError(f"{heightmap} is not a file")
-    img = bpy.data.images.load(heightmap, check_existing=False)   # LEGACY(normalize): a heightmap read as luminance only; route through canon_io once it lands
+    img = canon_io.load_image(heightmap, check_existing=False)   # the one image load: a heightmap read as luminance only (no role: values as stored)
     try:
         w, h = img.size
         px = np.array(img.pixels[:], dtype=np.float64).reshape(h, w, -1)[..., :3]

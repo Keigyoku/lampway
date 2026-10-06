@@ -2,7 +2,6 @@
 state dir (``provider_prefs.json``, 0600). The environment stays the default; a saved choice wins. Credentials are never part of this:
 keys stay in the environment, a key file or the sign-in stores."""
 
-import json
 import os
 import re
 import copy
@@ -168,7 +167,7 @@ FIELDS = {
 MAIN_FIELDS = {"provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model"}
 
 
-def choices() -> dict:
+def options() -> dict:
     return {"main_providers": list(MAIN_PROVIDERS), "swarm_providers": list(SWARM_PROVIDERS), "efforts": list(EFFORTS),
             "image_backends": list(IMAGE_BACKENDS), "image_qualities": list(IMAGE_QUALITIES), "max_image_pixels": MAX_IMAGE_PIXELS,
             "image_purposes": list(PURPOSES), "image_resolutions": list(RESOLUTIONS), "video_purposes": list(VIDEO_PURPOSES),
@@ -180,22 +179,19 @@ def _path(state_dir) -> Path:
 
 
 def load(state_dir) -> dict:
-    p = _path(state_dir)
-    if not p.exists():
-        return {}
+    from .connections import files as CF
     try:
-        data = json.loads(p.read_text(encoding="utf-8"))
-    except ValueError:
+        data = CF.read_json(_path(state_dir))
+    except CF.Unreadable as exc:                     # set aside, never emptied (finding F5); the defaults apply until it is saved again
+        import logging
+        logging.getLogger("lampway.settings").warning("%s", exc)
         return {}
-    return {k: v for k, v in data.items() if k in FIELDS} if isinstance(data, dict) else {}
+    return {k: v for k, v in data.items() if k in FIELDS}
 
 
 def save(state_dir, values: dict) -> None:
-    p = _path(state_dir)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    fd = os.open(p, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w") as fh:
-        json.dump(values, fh, indent=1)
+    from .connections import files as CF
+    CF.atomic_write_json(_path(state_dir), values)            # a crash mid-write keeps the old file (finding F5)
 
 
 def validate(values: dict) -> dict:
@@ -235,7 +231,7 @@ ENV_VARS = {"provider": "LAMPWAY_PROVIDER", "anthropic_model": "LAMPWAY_ANTHROPI
             "openrouter_image_quality": "LAMPWAY_OPENROUTER_IMAGE_QUALITY"}
 
 
-def apply_saved(settings: Settings, saved: dict, env=None) -> Settings:
+def apply_saved(settings: Settings, saved: dict, env=None, choices: bool = True) -> Settings:
     """The saved choices UNDER the environment: a field the environment sets is left as the environment has it. ``settings.sources`` records, per field, whether
     the value in force is env, saved or default."""
     env = os.environ if env is None else env
@@ -250,6 +246,9 @@ def apply_saved(settings: Settings, saved: dict, env=None) -> Settings:
             setattr(settings, key, value)
         sources[key] = "saved"
     settings.sources = sources
+    if choices:                                         # the user's Choices over the dialog's values, under the environment (specs/choices)
+        from .choices.bridge import apply_choices
+        apply_choices(settings, env)
     return settings
 
 
@@ -271,7 +270,7 @@ def trial(settings: Settings, values: dict) -> Settings:
 def view(settings: Settings) -> dict:
     saved = load(settings.state_dir)
     return {"values": {k: copy.deepcopy(getattr(settings, k)) for k in FIELDS},
-            "source": {k: settings.sources.get(k) or ("saved" if k in saved else "default") for k in FIELDS}, "choices": choices()}
+            "source": {k: settings.sources.get(k) or ("saved" if k in saved else "default") for k in FIELDS}, "choices": options()}
 
 
 def effective(env=None) -> Settings:

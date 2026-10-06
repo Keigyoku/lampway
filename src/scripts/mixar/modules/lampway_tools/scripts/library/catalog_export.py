@@ -14,19 +14,16 @@ if __name__ == '__main__' and len(_A) < 2:
     else: print(f'error: {len(_A)} argument(s); 2 needed')
     _ax.helps(['blender -b -P scripts/library/catalog_export.py -- <job.json> <result.json>']); _sys.stdout.flush(); raise SystemExit(0 if not _A else 1)
 import json, bpy
+import lw_canon                                              # canon_io, the one importer: each import is stamped lw_raw
 JOB, OUT = _A[:2]
 job = json.load(open(JOB))
 bpy.ops.wm.read_factory_settings(use_empty=True)
-IMPORT = {'.glb': ('import_scene', 'gltf'), '.gltf': ('import_scene', 'gltf'), '.fbx': ('wm', 'fbx_import'), '.obj': ('wm', 'obj_import'),
-          '.usd': ('wm', 'usd_import'), '.usdc': ('wm', 'usd_import'), '.usda': ('wm', 'usd_import'), '.usdz': ('wm', 'usd_import')}
 
 
 def read(it):
     if it['import']:
         before = set(bpy.data.objects)
-        mod, op = IMPORT[_os.path.splitext(it['path'])[1].lower()]
-        # LEGACY(normalize): importer defaults, no lampway_normalize_mesh pass (specs/canon/normalization); switch when canon_io lands
-        getattr(getattr(bpy.ops, mod), op)(filepath=it['path'])
+        lw_canon.io.import_raw(it['path'])
         new = [o for o in bpy.data.objects if o not in before]
         roots = [o for o in new if o.parent is None]
         if len(roots) != 1:
@@ -34,7 +31,7 @@ def read(it):
         roots[0].name = it['name']
         return roots[0]
     slot = it['slot']
-    with bpy.data.libraries.load(it['path']) as (src, dst):
+    with lw_canon.io.load_library(it['path']) as (src, dst):
         names = list(getattr(src, slot))
         if it['name'] not in names and slot == 'materials' and it['name'] in src.node_groups:
             slot, names = 'node_groups', list(src.node_groups)

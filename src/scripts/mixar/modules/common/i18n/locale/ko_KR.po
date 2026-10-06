@@ -5165,6 +5165,12 @@ msgstr ""
 msgid "UE Look is on"
 msgstr ""
 
+msgid "R"
+msgstr "렌더함"
+
+msgid "centre"
+msgstr ""
+
 msgid "Studios"
 msgstr ""
 
@@ -12500,9 +12506,6 @@ msgstr "수학"
 
 msgid "Alpha"
 msgstr "알파"
-
-msgid "R"
-msgstr "렌더함"
 
 msgid "G"
 msgstr ""

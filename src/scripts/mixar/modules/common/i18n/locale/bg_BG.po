@@ -5165,6 +5165,12 @@ msgstr ""
 msgid "UE Look is on"
 msgstr ""
 
+msgid "R"
+msgstr ""
+
+msgid "centre"
+msgstr ""
+
 msgid "Studios"
 msgstr ""
 
@@ -12500,9 +12506,6 @@ msgstr "Математика"
 
 msgid "Alpha"
 msgstr "Запълненост"
-
-msgid "R"
-msgstr ""
 
 msgid "G"
 msgstr ""

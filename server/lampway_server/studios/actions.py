@@ -126,10 +126,19 @@ def _v_image(args, jail):
     if not args.get("prompt_file"):
         raise ActionError("an image generation needs prompt_file or template")
     out = {"prompt_file": jail(args["prompt_file"]), "refs": [jail(r) for r in args.get("refs") or []],
-           "aspect": str(args.get("aspect") or "1:1"), "model": str(args.get("model") or "GPT Image 2.5")}
+           "aspect": str(args.get("aspect") or "1:1"), "model": str(args.get("model") or tripo_image_model())}
     if template:
         out["template"] = template
     return out
+
+
+def tripo_image_model() -> str:
+    """Tripo Studio's image model: the Plates purpose's ``tripo_model`` param (Choices), else today's "GPT Image 2.5" (HC8)."""
+    from .. import choices as CH
+    try:
+        return str(CH.resolve_params("image.plates").get("tripo_model") or "GPT Image 2.5")
+    except Exception:  # noqa: BLE001
+        return "GPT Image 2.5"
 
 
 def _image_argv(clean, out_dir):
@@ -412,6 +421,7 @@ ACTIONS = {a.id: a for a in [
 
 
 # ----------------------------------------------------------------------------------------------- REST studios (Meshy, Hyper3D, Hi3D, Tripo REST)
+MODEL_ARG = {"meshy": "ai_model", "hyper3d": "tier", "hi3d": "model", "tripo": "model_version"}     # the model inside an action (HC13)
 def _rest_actions():
     """One Action per REST shape. The price is read by the driver's plan (the docs' list price, dated, plus the balance); the confirmed run is the driver's armed --run."""
     import json as _json
@@ -422,18 +432,26 @@ def _rest_actions():
             aid = f"{studio_name}.{name}"
             path_keys = ("image", "model", "image_style")
 
-            def validate(args, jail, _shape=shape):
+            def validate(args, jail, _shape=shape, _studio=studio_name, _aid=aid):
                 a = dict(args or {})
                 for k in path_keys:
                     if a.get(k):
                         a[k] = jail(a[k])
                 if a.get("images"):
                     a["images"] = [jail(i) for i in a["images"]]
+                key = MODEL_ARG.get(_studio)
+                if key and not a.get(key):                        # HC13: the purpose's param (meshy.ai_model ...), else the shape's default
+                    from .. import choices as CH
+                    chosen = CH.option_param(f"studio:{_aid}", f"{_studio}.{key}")
+                    if chosen:
+                        a[key] = chosen
                 try:
                     ceiling = a.get("accept_up_to_credits")
-                    _shape.validate({k: v for k, v in a.items() if k != "accept_up_to_credits"})
+                    clean = _shape.validate({k: v for k, v in a.items() if k != "accept_up_to_credits"})
                 except SH.ParamError as exc:
                     raise ActionError(str(exc)) from None
+                if key and key in clean and not a.get(key):
+                    a[key] = clean[key]
                 if ceiling is not None:
                     a["accept_up_to_credits"] = _int(ceiling, "accept_up_to_credits")
                 return a
@@ -458,3 +476,63 @@ def _rest_actions():
 
 for _a in _rest_actions():
     ACTIONS[_a.id] = _a
+
+
+# ----------------------------------------------------------------------------------------------- Hyper3D's MCP (Lampway's own sign-in)
+def _mcp_actions():
+    """Hyper3D's seven MCP tools (specs/studios/hyper3d.md, measured 2026-10-05) next to its REST shapes, behind the same gate: the two that
+    consume credits are planned (no tool called, an unpublished price needs accept_up_to_credits) and wait for the user's click; the
+    reads run at once. rodin_import_images takes ChatGPT's own file parameters and is refused with what to use instead."""
+    import json as _json
+    labels = {"create_uploads": "Hyper3D (MCP): upload reference images", "import_images": "Hyper3D (MCP): import images (ChatGPT only)",
+              "generate": "Hyper3D (MCP): Rodin generate, on your Hyper3D sign-in", "generate_bang": "Hyper3D (MCP): Bang a Rodin generation into parts",
+              "get_status": "Hyper3D (MCP): a generation's status", "wait": "Hyper3D (MCP): wait up to 45 s for a generation",
+              "get_result": "Hyper3D (MCP): download a generation's files"}
+    out = []
+    for tool, label in labels.items():
+        paid = tool in ("generate", "generate_bang")
+
+        def validate(args, jail, _tool=tool):
+            from .mcp_driver import _validate
+            a = dict(args or {})
+            if a.get("images"):
+                a["images"] = [jail(i) for i in a["images"]]
+            ceiling = a.pop("accept_up_to_credits", None)
+            try:
+                a = _validate(_tool, a)
+            except ValueError as exc:
+                raise ActionError(str(exc)) from None
+            if ceiling is not None:
+                a["accept_up_to_credits"] = _int(ceiling, "accept_up_to_credits")
+            return a
+
+        def read_plan(parsed, clean):
+            kv = parsed.kv
+            problems = [] if kv.get("dry_run") == "verified" else ["the dry run did not report 'verified'"]
+            return Plan(kv.get("price_effective_credits"), {"unit": "credits", "price_source": kv.get("price_source"), "balance_credits": kv.get("balance_credits"),
+                                                            "ceiling_credits": kv.get("price_ceiling_credits")}, problems)
+        out.append(Action(f"hyper3d.mcp.{tool}", "hyper3d", label, "mcp.hyper3d", needs_approval=paid, needs_out_dir=True, validate=validate,
+                          plan_args=lambda c, o, _t=tool: [f"hyper3d.{_t}", "--plan", "--args", _json.dumps(c)],
+                          run_args=lambda c, o, _t=tool: [f"hyper3d.{_t}", "--run", "--out", o, "--args", _json.dumps(c)], read_plan=read_plan))
+    return out
+
+
+for _a in _mcp_actions():
+    ACTIONS[_a.id] = _a
+
+
+def _register_uses() -> None:
+    """Connections' "where it is used" for every Studio action that needs a credential: REST shapes by their studio, the MCP by its sign-in,
+    the browser drivers by the tool browser's session."""
+    from ..connections import register_use
+    rest = {"meshy": "studio:meshy", "hyper3d": "studio:hyper3d", "hi3d": "studio:hi3d", "tripo": "studio:tripo_api"}
+    for aid, a in ACTIONS.items():
+        if a.driver.startswith("rest."):
+            register_use(aid, rest[a.studio], a.label)
+        elif a.driver.startswith("mcp."):
+            register_use(aid, "mcp:hyper3d", a.label)
+        elif a.studio == "tripo":
+            register_use(aid, "studio:tripo", a.label)
+
+
+_register_uses()

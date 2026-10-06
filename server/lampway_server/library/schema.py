@@ -27,7 +27,10 @@ KINDS = {
 for _k in KINDS.values():
     _k["required_provenance"] = []
 
-RELATION_TYPES = ["derived_from", "variant_of", "part_of", "textured_by", "fits_body", "rigged_to", "generated_from", "drives", "uses", "frame_of", "supersedes"]
+RELATION_TYPES = ["derived_from", "variant_of", "part_of", "textured_by", "fits_body", "rigged_to", "generated_from", "drives", "uses", "frame_of", "supersedes",
+                  "normalized_from"]
+# Kinds whose versions are canonical (a validated lampway.canonical-asset/1 document) or raw (migration 0004; specs/canon/normalization)
+CANONICAL_KINDS = ("mesh", "rig", "animation", "map", "texture_set", "material")
 FACETS = ["piece_type", "material_role", "era_style", "faction", "motion_type", "camera_template", "view", "pipeline_stage", "studio",
           # named by asset_ingest section 6.7 rules but missing from the contract's facet list: added so those rules can be written
           "topology", "authority", "lod", "license", "state"]

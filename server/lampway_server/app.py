@@ -167,7 +167,7 @@ def _local_job_services(settings: Settings):
 
 
 def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None,
-               handwriting_reader=None) -> Starlette:
+               handwriting_reader=None, connections_transport=None) -> Starlette:
     from . import egress as _EG
     if egress is not None:
         _EG.set_active(egress)                                                      # an explicit manager (tests, embedding) wins
@@ -292,7 +292,12 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         return _chatgpt_page("<p>Signed in.</p>")
 
     async def chatgpt_status(request: Request):
-        return JSONResponse(chatgpt.status())
+        """Finding F8: the bearer, and whether the sign-in works - never the email or the client id (the row in Connections shows those, masked)."""
+        token = bearer_token(request)
+        if not token or auth.verify_access(token) is None:
+            return unauthorized()
+        st = chatgpt.status()
+        return JSONResponse({"signed_in": bool(st["signed_in"]), "plan_usage_enabled": bool(st["plan_usage_enabled"])})
 
     async def chatgpt_signout(request: Request):
         if not loopback_origin(request):
@@ -328,20 +333,41 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     from .library import hooks as _vault_hooks
     from .library.render import Renderer as _VaultRenderer
     renderer = _VaultRenderer(library, blender=os.environ.get("LAMPWAY_BIN") or None) if library is not None else None     # previews: never the live window
+    def image_chooser(service, model, payload, origin):
+        """The image job's purpose (the Client's ``params.purpose``, else AI Render, which follows Plates), on what its backend runs
+        (OpenRouter), the Client's model a job override (HC6, HC10)."""
+        from . import choices as CHO
+        from .choices import registry as CREG
+        purpose = str(((payload or {}).get("params") or {}).get("purpose") or "")
+        pid = f"image.{purpose}" if f"image.{purpose}" in CREG.PURPOSES else "image.ai_render"
+        override = None if model in ("", "default", None) else (model if ":" in model else f"openrouter:{model}")
+        return CHO.resolve(pid, CHO.Job(needs={"runs_on": ["openrouter"]}, override=override, origin="user" if origin == "user" else "agent"))
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
                     video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services if job_services is not None else _local_job_services(settings),
-                    policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts, provenance=_vault_hooks.job_hook(library, vault.spool))
+                    policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts, provenance=_vault_hooks.job_hook(library, vault.spool),
+                    chooser=image_chooser if job_backends is None and "image_gen" in default_job_backends(settings) else None)
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
-    routes += stub_routes(auth, store, settings, jobs)
+    choice_hook = []                                          # filled below, once the agent exists: a saved choice rebuilds what it decides
+    routes += stub_routes(auth, store, settings, jobs, on_choice=lambda pid: [f(pid) for f in choice_hook])
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
     from .herdr.host import Cockpit
     cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
     assets = AssetIndex(settings.state_dir)                  # the legacy /asset-search endpoints the Client's Train/Search UI calls
-    agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
+    def _main_provider():
+        """5.6: built from agent.main's resolution (the user's fallback runs when the preferred option cannot); with nothing that can
+        serve, from the settings as before, so the provider's own refusal names the fix at the first call."""
+        from . import choices as CHO
+        try:
+            return make_provider(settings, chatgpt_auth=chatgpt, resolution=CHO.resolve("agent.main", CHO.Job()))
+        except CHO.NoChoice:
+            return make_provider(settings, chatgpt_auth=chatgpt)
+        except (ValueError, RuntimeError):
+            return make_provider(settings, chatgpt_auth=chatgpt)
+    agent = AgentHub(provider if provider is not None else _main_provider(),
                      swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault)
 
     async def agent_ws(websocket):
@@ -396,6 +422,18 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         data, media_type = found
         return Response(data, media_type=media_type, headers={"Content-Length": str(len(data)), "Cache-Control": "private, max-age=3600"})
 
+    def _material_provider():
+        """HC3: agent.material_script's choice; ``follow:agent.main`` (the shipped default) is the running agent's own provider."""
+        from . import choices as CHO
+        from .choices.bridge import settings_for_option
+        try:
+            r = CHO.resolve("agent.material_script", CHO.Job(content_class="public"))
+        except CHO.NoChoice:
+            return agent.provider
+        if r.followed == "agent.main" or r.option.startswith("follow:"):
+            return agent.provider
+        return make_provider(settings_for_option(settings, r.option, r.params), chatgpt_auth=chatgpt)
+
     async def matgen_route(request: Request):
         """A procedural material from a prompt, by the agent's own model (matgen.py)."""
         if not _bearer_ok(request):
@@ -408,7 +446,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         if not prompt:
             return JSONResponse({"detail": "prompt is required"}, status_code=422)
         try:
-            material = await matgen.generate(agent.provider, prompt, str(body.get("pipeline") or "fast"))
+            material = await matgen.generate(_material_provider(), prompt, str(body.get("pipeline") or "fast"))
         except matgen.BadScript as exc:
             return JSONResponse({"detail": f"no usable script: {exc}"}, status_code=502)
         except Exception as exc:  # noqa: BLE001 - the provider failed; the reason goes to the person, never a token
@@ -972,7 +1010,9 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         return _hf_page("<p>Signed in.</p>")
 
     async def hf_status(request: Request):
-        return JSONResponse(hf_auth.status())
+        if not _bearer_ok(request):                                                      # finding F8
+            return unauthorized()
+        return JSONResponse({"signed_in": bool(hf_auth.status()["signed_in"])})
 
     async def hf_signout(request: Request):
         if not loopback_origin(request):
@@ -1124,7 +1164,10 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
                 make_swarm_provider(trial, "worker-1", chatgpt_auth=chatgpt)
         except (provider_prefs.PrefsError, ValueError, RuntimeError, OSError) as exc:
             return JSONResponse({"detail": str(exc)}, status_code=400)
-        provider_prefs.save(settings.state_dir, provider_prefs.merge_values(provider_prefs.load(settings.state_dir), saved_values))
+        from .choices.bridge import save_dialog_choices
+        rest = save_dialog_choices(settings, saved_values)          # step 9: what Choices models is the user's choice now; the rest stays here
+        if rest:
+            provider_prefs.save(settings.state_dir, provider_prefs.merge_values(provider_prefs.load(settings.state_dir), rest))
         provider_prefs.apply(settings, values)
         settings.sources.update({k: "saved" for k in values})
         if new_main is not None:
@@ -1211,6 +1254,72 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
 
     routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"]),
                Route("/app/spend", spend_view, methods=["GET"]), Route("/app/generate/estimate", generate_estimate, methods=["POST"])]
+    # ---- Connections (connections/): every credential, its source and its status; the user's writes; the read-only view the agent gets
+    from . import connections as CONN
+    from .higgsfield_mcp import HiggsfieldMCP
+    from . import mcp_oauth as MOA
+    from .mcp_client import McpClient
+    conn_hub = CONN.Hub(settings.state_dir, oauth={"chatgpt_plan": chatgpt, "higgsfield": hf_auth},
+                        endpoint=lambda: settings.openai_base_url, mcp_clients={"higgsfield": lambda: HiggsfieldMCP(hf_auth)},
+                        byok_present=lambda: bool((store.byok() or {}).get("api_key")), transport=connections_transport)
+    import httpx as _httpx
+    h3d_auth = MOA.for_store(MOA.HYPER3D, conn_hub.store, conn_hub.secrets_dir, redirect_port=settings.port,      # ONE per server: its session lives in the store
+                             http=_httpx.Client(transport=connections_transport, timeout=30.0))
+    conn_hub.oauth["mcp:hyper3d"] = h3d_auth
+    conn_hub.mcp_clients["mcp:hyper3d"] = lambda: McpClient(h3d_auth, url=MOA.HYPER3D.mcp_url, label="Hyper3D", transport=connections_transport)
+    CONN.set_active(conn_hub)
+    store.migrate_into_connections()                         # finding F3: an older plain BYOK key moves into Connections, verified first
+
+    async def h3d_callback(request: Request):
+        """The loopback end of the Hyper3D sign-in Connections starts (POST /app/connections/mcp:hyper3d/signin)."""
+        query = {k: v for k, v in request.query_params.items()}
+        try:
+            await asyncio.to_thread(h3d_auth.complete_login, query)
+        except MOA.LoginDeclined as exc:
+            return HTMLResponse(f"<p>Hyper3D access was not authorized ({escape(str(exc))}). You can try again from Connections.</p>")
+        except MOA.LoginError as exc:
+            return HTMLResponse(f"<p class='error'>Sign-in failed: {escape(str(exc))}</p>", status_code=400)
+        except Exception as exc:  # noqa: BLE001 - shown to the person at the keyboard, never with a token
+            return HTMLResponse(f"<p class='error'>Sign-in could not finish: {escape(type(exc).__name__)}</p>", status_code=502)
+        return HTMLResponse("<p>Signed in to Hyper3D. You can close this tab and go back to Connections.</p>")
+    routes.append(Route(MOA.HYPER3D.callback_path, h3d_callback, methods=["GET"]))
+    from .connections.routes import connection_routes
+    routes += connection_routes(lambda: conn_hub, _bearer_ok)
+    # ---- Choices (choices/): what serves each purpose, its fallbacks and why; the user's writes; the agent reads and proposes
+    from . import choices as CHO
+    from .choices.routes import choices_routes
+    CHO.set_active(CHO.FileStore(settings.state_dir), settings.state_dir)
+    try:
+        CHO.propose_dead_preferences(store._data.get("preferences") or {})      # HC22: proposed once, never applied silently
+    except Exception:  # noqa: BLE001 - a migration note must never stop the server
+        logging.getLogger("lampway.choices").warning("the per-role preferences could not be proposed", exc_info=True)
+    try:
+        from .choices.bridge import import_embed_defaults
+        import_embed_defaults(settings.state_dir / "library")                  # HC20: the unwired embedding defaults become Choices, once
+    except Exception:  # noqa: BLE001
+        logging.getLogger("lampway.choices").warning("the embedding defaults could not be imported", exc_info=True)
+    def choice_changed(pid):
+        """A saved choice takes effect at once where the settings decide (the Providers dialog's PUT did the same): the agent's
+        provider is rebuilt BEFORE it replaces the old one, so a refusal leaves everything as it was."""
+        from .choices.bridge import apply_choices
+        if pid not in ("agent.main", "agent.worker") and not pid.startswith(("image.", "video.")):
+            return
+        trial = provider_prefs.trial(settings, {})
+        trial.sources = dict(settings.sources)
+        apply_choices(trial)
+        if pid == "agent.main":
+            try:
+                new_main = make_provider(trial, chatgpt_auth=chatgpt)
+            except (ValueError, RuntimeError, OSError) as exc:
+                logging.getLogger("lampway.choices").warning("the main agent's choice could not be built: %s", exc)
+                return
+            agent.provider = new_main
+        for k in ("provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model", "swarm_provider",
+                  "claude_swarm_model", "chatgpt_swarm_model", "openrouter_swarm_model", "image_backend", "image_purposes", "video_purposes"):
+            setattr(settings, k, getattr(trial, k))
+        settings.sources.update({k: v for k, v in trial.sources.items() if v == "choices"})
+    choice_hook.append(choice_changed)
+    routes += choices_routes(_bearer_ok, choice_changed)
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager
@@ -1230,11 +1339,15 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
 
         async def tick():
             while True:
-                await asyncio.sleep(60)
+                await asyncio.sleep(60)                            # never a remote check at start: the first poll is a minute in
                 try:
                     await jobs.recover()
                 except Exception:  # noqa: BLE001
                     pass
+                try:
+                    await asyncio.to_thread(conn_hub.poll)          # C2: reads only, routes on, used in the last day, every 30 min
+                except Exception:  # noqa: BLE001
+                    logging.getLogger("lampway.connections").warning("the connections poll failed", exc_info=True)
         task = asyncio.get_running_loop().create_task(tick())
         try:
             yield
@@ -1258,6 +1371,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.jobs = jobs
     app.state.prompts = prompt_service
     app.state.higgsfield_auth = hf_auth
+    app.state.connections = conn_hub
     app.state.vault = vault
     app.state.jobs = jobs
     app.state.library = library

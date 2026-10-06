@@ -50,6 +50,19 @@ def humanoid(name="body"):
 
 def call(fn, **kw):
     return api.call(fn, json.dumps(kw))
+
+def canon(*names, welded=False, scale="real"):
+    """Stamp test fixtures canonical through canon's own normalizer (the door refuses a raw object): metres, +Z up, front -Y, the transform
+    applied, the origin kept (pivot source_origin, so world positions do not move), real scale on a declared length (or scale=any), and
+    a weld by position when the tool's door asks for welded input. Call it after the fixture is built and before the tool: any later edit
+    to the mesh changes its hash and the door refuses it again."""
+    from mixar.modules.lampway_tools.features import normalize as _NZ
+    for n in names:
+        _NZ.normalize_object(bpy.data.objects[n], turn_deg=0.0, generator="trellis" if welded else "lampway_tool",
+                             want_scale="real" if scale == "real" else "any",
+                             scale_evidence={"method": "captain_length", "value": 1.0} if scale == "real" else None,
+                             pivot="source_origin", pivot_offset=(0.0, 0.0, 0.0))
+    return names
 '''
 
 

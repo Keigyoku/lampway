@@ -99,3 +99,54 @@ def _homes_stay_inside_the_basetemp(_isolated_homes, tmp_path_factory):
     for var in ISOLATED_VARS:
         real = _os.path.realpath(_os.environ.get(var, ""))
         assert _os.path.commonpath([real, base]) == base, f"{var}={_os.environ.get(var)!r} points outside the test basetemp {base}"
+
+
+# ---------------------------------------------------------------------------------------------------- environment
+# Tests that need the reference test environment (scripts/lampway/test_env.sh: upstream/ at its pin, the MCP 2.x SDK, jsonschema).
+# Outside test_all (a contributor's partial checkout) they SKIP with the reason and the count is printed as one ENV-SKIPPED line;
+# inside test_all (LAMPWAY_TEST_ALL=1, the environment already verified) nothing is skipped: a missing piece there is a failure.
+import importlib as _importlib  # noqa: E402
+from pathlib import Path as _Path  # noqa: E402
+
+_ROOT = _Path(__file__).resolve().parent
+_ENV_SKIPPED = []
+_UPSTREAM_NEEDED = ("tests/lampway/test_lampway_theme.py", "tests/test_open_mixie_shortcut.py")
+_UPSTREAM_FILES = ("upstream/release/datafiles/userdef/userdef_default_theme.c", "upstream/scripts/presets/keyconfig/keymap_data/blender_default.py")
+
+
+def _mcp_sdk_ok() -> bool:
+    try:
+        return hasattr(_importlib.import_module("mcp"), "Client") and _importlib.import_module("jsonschema") is not None
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _in_test_all() -> bool:
+    return _os.environ.get("LAMPWAY_TEST_ALL") == "1"
+
+
+def pytest_ignore_collect(collection_path, config):
+    rel = _Path(str(collection_path)).resolve()
+    try:
+        rel = rel.relative_to(_ROOT).as_posix()
+    except ValueError:
+        return None
+    if rel.startswith("tests/mcp/") and rel.endswith(".py") and _Path(rel).name.startswith("test_") and not _in_test_all() and not _mcp_sdk_ok():
+        _ENV_SKIPPED.append(f"{rel} (needs the MCP 2.x SDK and jsonschema: scripts/lampway/test_env.sh)")
+        return True
+    return None
+
+
+def pytest_collection_modifyitems(config, items):
+    if _in_test_all() or all((_ROOT / f).is_file() for f in _UPSTREAM_FILES):
+        return
+    mark = _pytest.mark.skip(reason="needs upstream/ checked out at its pin: run scripts/lampway/test_env.sh")
+    for item in items:
+        if item.nodeid.split("::")[0] in _UPSTREAM_NEEDED:
+            item.add_marker(mark)
+            _ENV_SKIPPED.append(item.nodeid + " (needs upstream/)")
+
+
+def pytest_terminal_summary(terminalreporter):
+    if _ENV_SKIPPED:
+        terminalreporter.write_line(f"ENV-SKIPPED {len(_ENV_SKIPPED)}: tests that need the reference test environment (scripts/lampway/test_env.sh)")

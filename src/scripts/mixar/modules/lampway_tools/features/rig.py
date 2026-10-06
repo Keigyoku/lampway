@@ -17,6 +17,7 @@ import numpy as np
 from mathutils import Vector
 
 from . import common as C
+from ..canon_geom import PseudoNormals
 
 KINDS = ("humanoid",)
 SPINE = ("spine_01", "spine_02", "spine_03")
@@ -258,15 +259,39 @@ def _body_tree(body):
     return tree
 
 
+def _body_mesh(body):
+    """(V (n, 3), T (k, 3)): the evaluated (posed) body in world space, triangulated."""
+    ev = body.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    me = ev.to_mesh()
+    m = np.array(ev.matrix_world)
+    co = np.empty(len(me.vertices) * 3, dtype=np.float64)
+    me.vertices.foreach_get("co", co)
+    V = (m[:3, :3] @ co.reshape(-1, 3).T).T + m[:3, 3]
+    me.calc_loop_triangles()
+    T = np.empty(len(me.loop_triangles) * 3, dtype=np.int64)
+    me.loop_triangles.foreach_get("vertices", T)
+    ev.to_mesh_clear()
+    return V, T.reshape(-1, 3)
+
+
+def _signed(points, body):
+    """(signed distance (n,), nearest body triangle (n,)) of the points to the posed body: positive outside, negative inside.
+    The distance comes from a BVH; the sign from the angle-weighted pseudonormal of the nearest FEATURE (canon 15,
+    canon_geom.PseudoNormals) - never one face normal when the nearest point is an edge or a vertex."""
+    from mathutils.bvhtree import BVHTree
+    V, T = _body_mesh(body)
+    tree = BVHTree.FromPolygons([tuple(v) for v in V], [tuple(t) for t in T])
+    P = np.asarray(points, float).reshape(-1, 3)
+    dist, loc, tri = np.empty(len(P)), np.empty((len(P), 3)), np.empty(len(P), dtype=np.int64)
+    for i, p in enumerate(P):
+        q, _nrm, fi, d = tree.find_nearest(Vector(p))
+        loc[i], tri[i], dist[i] = q[:], fi, d
+    return dist * PseudoNormals(V, T).signs(P, loc, tri), tri
+
+
 def _clearance(points, body) -> dict:
-    """Signed distance of the piece's vertices to the (posed) body: positive outside it, negative inside."""
-    tree = _body_tree(body)
-    signed = []
-    for p in points:
-        v = Vector(p)
-        loc, nrm, _i, dist = tree.find_nearest(v)
-        signed.append(dist if (v - loc).dot(nrm) >= 0 else -dist)
-    signed = np.array(signed)
+    """Signed distance of the piece's vertices to the (posed) body: positive outside it, negative inside (sign by canon 15)."""
+    signed, _tri = _signed(points, body)
     return {"min_m": round(float(signed.min()), 6) if len(signed) else 0.0, "penetrating_vertices": int((signed < -1e-6).sum())}
 
 

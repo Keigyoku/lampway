@@ -99,6 +99,14 @@ class ComputeRunner:
         if not 1 <= ms <= 86400 or not 0.0001 <= mu <= 100:
             raise Refused("max_seconds is 1..86400 and max_usd is 0.0001..100")
         b = job.get("backend")
+        if not b:                                         # G1: the compute.blender_offload choice; nothing is pre-chosen (CH6)
+            from .. import choices as CH
+            try:
+                r = CH.resolve("compute.blender_offload", CH.Job(content_class=ins[0]["content_class"] if ins else None))
+                b = r.option.split(":", 1)[1] if r.option.startswith("compute:") else None
+            except CH.NoChoice as exc:
+                if exc.skipped:
+                    raise Refused(str(exc)) from None
         if not b:
             raise Refused(f"pick a provider for this job: the enabled backends are {self.prefs.data['backends'] or 'none (enable one in Providers)'}")
         if b not in self.backends or b not in self.prefs.data["backends"]:

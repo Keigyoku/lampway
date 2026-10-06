@@ -16,6 +16,8 @@ import os
 
 import bpy
 
+from . import canon_io
+
 DEFAULT_STRENGTHS = {"plate": 0.6, "gold": 0.45, "cloth": 0.25, "leather": 0.3}
 _METALS = (("plate", "Metal009", "Metal009_2K-PNG_NormalGL.png"), ("gold", "Metal048C", "Metal048C_2K-PNG_NormalGL.png"))
 
@@ -63,7 +65,7 @@ def apply(material, strengths=None, acg_dir=None) -> dict:
         mp.inputs["Scale"].default_value = (scale, scale, scale)
         L.new(tc.outputs["Object"], mp.inputs["Vector"])
         t = node("ShaderNodeTexImage", label)
-        t.image = bpy.data.images.load(path, check_existing=True)
+        t.image = canon_io.load_image(path, role="normal", check_existing=True)
         t.image.colorspace_settings.name = "Non-Color"
         t.projection = "BOX"
         t.projection_blend = 0.5

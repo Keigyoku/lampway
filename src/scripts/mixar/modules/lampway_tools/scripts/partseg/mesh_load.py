@@ -5,8 +5,11 @@
 """The ported part-set tools ran inside an open .blend on the shelf; the runner starts Blender empty, so each opens its mesh first: a .blend as it is
 (face order and attributes untouched), a .glb/.gltf or .fbx imported into an empty scene."""
 import os
+import sys
 
 import bpy
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 
 def load(path):
@@ -16,10 +19,8 @@ def load(path):
     if ext == ".blend":
         bpy.ops.wm.open_mainfile(filepath=path)
         return
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-    if ext in (".glb", ".gltf"):
-        bpy.ops.import_scene.gltf(filepath=path)  # LEGACY(normalize): a raw part-set source; route through canon_io.import_canonical when it lands
-    elif ext == ".fbx":
-        bpy.ops.import_scene.fbx(filepath=path)  # LEGACY(normalize): a raw part-set source; route through canon_io.import_canonical when it lands
-    else:
+    if ext not in (".glb", ".gltf", ".fbx"):
         raise SystemExit(f"error: {path}: a .blend, .glb, .gltf or .fbx")
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    import lw_canon                                          # canon_io, the one importer: the import is stamped lw_raw
+    lw_canon.io.import_raw(path)

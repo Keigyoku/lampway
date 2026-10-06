@@ -20,6 +20,8 @@ from pathlib import Path
 
 import bpy
 
+from .. import canon_io
+
 from . import common as C
 from .procedural_emit import INPUTS, LIBRARY_VERSION, _lin, emit, manifest, manifest_hash, script_sha  # noqa: F401  (re-exported: the tool's surface)
 from .procedural_presets import CATEGORIES, PRESETS, TEMPLATES  # noqa: F401  (TEMPLATES is read by the tests and the Vault seeder)
@@ -174,7 +176,7 @@ def _render_probe(pid: str, params: dict, size: int, out_png=None, tmp_dir=None)
             exr = scratch / f"probe_{name.replace(' ', '_')}.exr"
             sc.render.filepath = str(exr)
             bpy.ops.render.render(write_still=True, scene=sc.name)
-            img = bpy.data.images.load(str(exr))
+            img = canon_io.load_image(str(exr))
             w, h = img.size
             res[name] = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)[:, :, :3]
             bpy.data.images.remove(img)

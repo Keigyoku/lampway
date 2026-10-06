@@ -32,7 +32,8 @@ def test_the_spine_renders_in_order_with_defaults_and_the_params_come_from_the_t
     p = out["prompt"]
     assert p.index("This warrior") < p.index("He walks at 120") < p.index("Side-on tracking") < p.index("Even flat light") < p.index("Full body in frame")
     assert "same armour design" in p, "a default fills an unset variable"
-    assert out["params"] == {"model": "heygen/heygen-video-1", "resolution": "768p", "aspect_ratio": "16:9", "duration": 10}
+    assert out["params"] == {"resolution": "768p", "aspect_ratio": "16:9", "duration": 10}       # CH5: the template's model is a hint, not a param
+    assert out["template_model"] == "heygen/heygen-video-1" and out["model"] is None
     assert out["template"] == "demo-walk@1.0.0" and out["variables"]["cadence_spm"] == 120 and out["variables"]["direction"] == "right"
     assert out["inputs_required"] == [{"role": "start_image", "required": True, "description": "full-body side view in the start pose"}]
 

@@ -1,0 +1,15 @@
+{
+  "authorization": "Crew Lead calibration steer 2026-09-07: unchanged-source control maximum plus stated margin, same band for candidate; rest remains0.1deg",
+  "blender": "5.2.1 LTS",
+  "control_export_sha256": "5be799b47eb0ce1a5fcb4ce63a77131dbad6a00a80c3b99c76610d4efc9a0454",
+  "control_max_posed_degrees": 0.17331606291462864,
+  "control_receipt": "docs/design/assets/cc5-gear-pipeline/canonical-shading/control-comparison.json (outer repo)",
+  "control_receipt_sha256": "0ffc0cf22ed8cc75fd231207031f8b754909c5516a39b31dbb34da979066dfb8",
+  "control_source_sha256": "49755d932d870962f513fbd7e770ff4d10e7f226040fbbb728d702b654eb958b",
+  "margin_degrees": 0.07668393708537136,
+  "posed_degrees": 0.25,
+  "poses_sha256": "2fedf399285f9e50eaae461278c034c978ad9de22bb94fe4cb7f4421641be612",
+  "rest_degrees": 0.1,
+  "schema": "titan.normal-comparison/1",
+  "scope": "Calibrated FBX/Blender evaluated corner normals. Recalibrate for another adapter/version; this is not canonical payload error."
+}

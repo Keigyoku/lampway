@@ -52,11 +52,14 @@ scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server
 - The installed app never carries the repository's agent contracts (AGENTS.md, CLAUDE.md, SKILL.md, `.agents`, `.claude`): the
   scripts install excludes them and removes ones an older install kept, and `sync_python.sh` excludes and deletes them too
   (`tests/lampway_tools/test_install_has_no_agent_contracts.py` walks the installed tree).
-- The launcher hands the server two more things: `LAMPWAY_MODELS_DIR` (the bundled local models, when the build bundled them) and
-  `LAMPWAY_BLENDER` (the binary the server's headless jobs run; defaults to the app's own).
+- The launcher hands the server three more things: `LAMPWAY_MODELS_DIR` (the bundled local models, when the build bundled them),
+  `LAMPWAY_BLENDER` (the binary the server's headless jobs run; defaults to the app's own) and `LAMPWAY_SECRETS_DIR` (below).
 - The launcher's start banner prints the models directory and, when UE Look is on, the UE look state (`ue_look:` and its OCIO config).
 - Long jobs run as a transient unit or a detached exec polled in the foreground, never a shell `&`. Kill recorded exact PIDs only;
   never a pattern kill. Never launch a window on the captain's desktop unless he asked; offscreen in the box is the default.
+- No secret lives in `$LAMPWAY_HOME` (the agent's script sandbox reaches it): the launcher keeps the client's login keyring at
+  `$XDG_STATE_HOME/lampway/keyring.json` (an older `$LAMPWAY_HOME/keyring.json` is moved there once, verified) and points the server
+  at Connections' file store, `LAMPWAY_SECRETS_DIR` (default `$XDG_STATE_HOME/lampway-secrets`). A test never uses the real ones.
 
 ## 3. Test suites
 
@@ -79,6 +82,11 @@ into the run's own temp dir (removed after the run), resolves `@RUN_TMP@` in env
 afterwards passes its own `tmp_path` in (for example `LW_KEEP_ROOT`). In-process tests use `tmp_path`; `tempfile.mkdtemp`/`mkstemp`
 need `dir=` (`tests/lampway/test_tmp_hygiene.py` holds that). Both suites keep only a failed test's tmp_path
 (`tmp_path_retention_policy = failed`).
+
+The reference test environment is `scripts/lampway/test_env.sh` (upstream/ at its pin without LFS, `tests/requirements-test.txt`
+and the server's declared dependency ranges into `LAMPWAY_TEST_PYTHON`); `scripts/lampway/test_all.sh` verifies it first and refuses
+("run test_env.sh") when anything is missing, and refuses a binary whose `BUILT_FROM` native sources differ from HEAD. Outside test_all,
+tests that need that environment SKIP with the reason and the conftest prints one `ENV-SKIPPED n` line.
 
 No test reads the person's real home: the root `conftest.py` points `HOME`, the `XDG_*` dirs, `LAMPWAY_HOME`, `LAMPWAY_LEGACY_HOME`
 and `LAMPWAY_TEST_ROOT` inside the basetemp for the whole session (the server's conftest does the same for `HOME` and `XDG_*`);
@@ -142,7 +150,15 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | the 500-line limit is a guideline; the rail in the hook | captain: "Those recs are fine" (recommendations 2 and 5) | upstream's 500-line rule read as a gate that nine Lampway modules already broke; the rail ran only in CI | §4b states the limit as a guideline with its one pinned family; §6 names the hook's quick rail check | captain ruling, 2026-10-06 |
 | 2026-10-06 | suite hygiene | the integrator's batches: a full client run left ~25 GB and the coordinator's /tmp filled twice | test homes were never removed, scripts inside the binary wrote to the shared /tmp, and the first-run migration copied the person's real ~/.mixar (109.7 MB) into every test home | run_script owns the binary's TMPDIR and the legacy home; tmp_path_retention_policy = failed in pytest.ini; the temp-files paragraph in section 3 | none |
 | 2026-10-06 | test isolation | the coordinator's stop: 436 private files committed under `@RUN_TMP@/home/…/app/` | a test passed LAMPWAY_HOME="@RUN_TMP@/home" before the harness expanded it; the relative home landed in the repository and the first-run migration copied the person's real ~/.mixar into it | the conftest isolation fixture, the loud refusals in paths.py and run_script, the isolation paragraph in section 3 | none |
+| 2026-10-06 | secrets out of the Lampway home | Connections decision C7 (captain, "Those recs are fine"); lane connections, migration step 2 | the client's file keyring and the server's secrets sat inside the agent sandbox's roots | the launcher moves the keyring to the state dir once and exports LAMPWAY_SECRETS_DIR; section 2 names both places | captain ruling, 2026-10-06 |
 | 2026-10-06 | the canon check among the suites | coordinator: "GO for rail row 1" | the canon's self-tests ran only on the shelf | `docs/canon/check_canon.py` in the suites table (CI: canon.yml) | captain ruling, 2026-10-06 |
 | 2026-10-06 | merge of lp/orphans into lp/wave5 | the integrator's merge: lp/vault-ops added LAMPWAY_MODELS_DIR to the launcher, lp/orphans added LAMPWAY_BLENDER on the same line | two lanes edited the launcher's server-start line; the merged line carries both | the launcher bullet in section 2 names both variables | none |
 | 2026-10-06 | merge of lp/uelook into lp/wave5 | the integrator's merge: lp/vault-ops added a models line and lp/uelook a ue_look line to the launcher's start banner | two lanes appended to the same banner block; the merged banner prints both | the banner bullet in section 2 | none |
+| 2026-10-06 | secrets out of the Lampway home | Connections decision C7 (captain, "Those recs are fine"); lane connections, migration step 2 | the client's file keyring and the server's secrets sat inside the agent sandbox's roots | the launcher moves the keyring to the state dir once and exports LAMPWAY_SECRETS_DIR; section 2 names both places | captain ruling, 2026-10-06 |
+| 2026-10-06 | merge of lp/connections into lp/wave5 | the integrator's merge: lp/connections added LAMPWAY_SECRETS_DIR, lp/orphans LAMPWAY_BLENDER, on the launcher's server-start line | two lanes edited the same line; the merged line carries both | the launcher bullet in section 2 names LAMPWAY_SECRETS_DIR | none |
+| 2026-10-06 | one test environment | the coordinator's gate: 704eba5 gave a different verdict in a fresh worktree (no upstream/ checkout, no MCP SDK) | the suite's outcome depended on which checkout and venv ran it | test_env.sh, test_all's environment check, the conftest's explicit environment skips, the paragraph in section 3 | none |
+| 2026-10-06 | merge of lp/wave5 into lp/connections | lane connections' merge: lp/orphans added LAMPWAY_BLENDER and lp/connections LAMPWAY_SECRETS_DIR on the launcher's server-start line | two lanes edited the same line; the merged line carries both | the launcher bullet in section 2 names all three variables | none |
+| 2026-10-06 | merge of lp/connections (bbf4d3c) into lp/wave5 | the integrator's merge: lp/connections' own merge of lp/wave5 put the "secrets out of the Lampway home" row before the canon row; lp/wave5's merge of lp/connections (b10) put it after the uelook row | the two parents ordered one row differently, and the rail keeps every parent's rows in order, so that row appears at both places (the same row, recorded twice, not two events); the launcher bullet now names its three variables in one sentence | the launcher bullet in section 2 (lp/connections' wording) | none |
+| 2026-10-06 | merge of lp/wave5 into lp/orphans | the orphans lane's merge: lp/wave5 brought LAMPWAY_MODELS_DIR to the launcher's server-start line, where lp/orphans had added LAMPWAY_BLENDER | two lanes edited the same line; the merged line carries both | the launcher bullet in section 2 names both variables | none |
 | 2026-10-06 | agent contracts out of the install | coordinator: "EXCLUDE agent contract files (AGENTS.md, CLAUDE.md, skills under src/) from the installed app" | the scripts install copied `lampway_tools/AGENTS.md` and `CLAUDE.md` into the app, and the Python sync kept them | the install excludes and removes them, the sync excludes and deletes them; the bullet in section 2 | none |
+| 2026-10-06 | merge of lp/wave5 into lp/facelift | the facelift lane's merge: lp/wave5 named LAMPWAY_SECRETS_DIR in the launcher bullet where lp/facelift had added the install bullet above it | two lanes edited neighbouring lines of section 2; the merged section carries the install bullet and the three-variable launcher bullet | section 2 | none |

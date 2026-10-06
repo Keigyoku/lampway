@@ -26,6 +26,8 @@ from .approvals import Approvals, ApprovalError
 PKG_ROOT = str(Path(__file__).resolve().parents[2])
 BUNDLED = {"tripo_mesh", "tripo_image", "tripo_texture", "tripo_fetch", "tripo_regen", "seed_db", "relief_gen"}
 PLAN_TIMEOUT_S = 600.0
+DRIVER_CONNECTIONS = {"rest.meshy": ("studio:meshy",), "rest.hyper3d": ("studio:hyper3d",), "rest.hi3d": ("studio:hi3d",), "rest.tripo": ("studio:tripo_api",),
+                      "mcp.hyper3d": ("studio:hyper3d",)}           # the MCP driver signs in from the store; the REST key only reads the balance
 RUN_TIMEOUT_S = 2400.0
 
 
@@ -37,7 +39,7 @@ def default_execute(argv, env, timeout):
 def _gated_execute(execute, studio, argv, env, timeout):
     """Every driver run leaves through the studio's egress route (egress_consent): off until the user opts in, lit and logged while it runs."""
     from .. import egress as EG
-    with EG.guard(f"studio:{studio}", kind="request"):
+    with EG.guard(f"studio:{studio}", kind="request", content_class="private", observe_private=True):      # the captain's designs: HC24, observed (CH1)
         return execute(argv, env, timeout)
 
 
@@ -57,6 +59,8 @@ class Engine:
         script = self.shelf_script(driver, studio)
         if script is not None:
             return [self.python, str(script)]
+        if driver.startswith("mcp."):                                                         # a studio's MCP on Lampway's own sign-in (studios/mcp_driver.py)
+            return [self.python, "-m", "lampway_server.studios.mcp_driver"]
         if driver.startswith("rest."):                                                        # the REST studios: one bundled driver, the studio is part of the action id
             return [self.python, "-m", "lampway_server.studios.rest.driver"]
         if studio == "tripo" and driver in BUNDLED:
@@ -101,8 +105,13 @@ class StudioService:
         d = self.root / "studio" / f"{kind}-{uuid.uuid4().hex[:8]}"
         return str(d)
 
-    def _env(self, armed: bool) -> dict:
-        env = dict(os.environ)
+    def _env(self, armed: bool, action=None) -> dict:
+        """The driver's environment (finding F4): ours scrubbed of every key, plus exactly the connection this studio's driver reads,
+        under the name it reads (connections.env_for), and where the Connections store is (the MCP driver signs in from it)."""
+        from .. import connections as C
+        hub = C.active()
+        env = hub.env_for(DRIVER_CONNECTIONS.get(getattr(action, "driver", ""), ()))
+        env["LAMPWAY_STATE_DIR"], env["LAMPWAY_SECRETS_DIR"] = str(hub.state_dir), str(hub.secrets_dir)
         env["PYTHONPATH"] = PKG_ROOT + os.pathsep + env.get("PYTHONPATH", "")
         env.pop("LAMPWAY_STUDIO_ARMED", None)           # a plan is never armed, whatever the server's own environment says
         if armed:
@@ -128,7 +137,7 @@ class StudioService:
         if out_dir:
             Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
         try:
-            rc, text = await asyncio.to_thread(_gated_execute, self.execute, action.studio, argv, self._env(False), PLAN_TIMEOUT_S)
+            rc, text = await asyncio.to_thread(_gated_execute, self.execute, action.studio, argv, self._env(False, action), PLAN_TIMEOUT_S)
         except subprocess.TimeoutExpired:
             return self._refused(action, f"the read back timed out after {PLAN_TIMEOUT_S:.0f} s")
         except PermissionError as exc:                                                    # egress_consent: the route is off
@@ -216,7 +225,7 @@ class StudioService:
         if rcpt is not None:
             self.receipts.mark_pending(rcpt)               # on disk BEFORE the driver clicks anything
         try:
-            rc, text = await asyncio.to_thread(_gated_execute, self.execute, job["studio"], job["_argv"], self._env(armed), RUN_TIMEOUT_S)
+            rc, text = await asyncio.to_thread(_gated_execute, self.execute, job["studio"], job["_argv"], self._env(armed, ACTIONS.get(job["action"])), RUN_TIMEOUT_S)
         except subprocess.TimeoutExpired:
             rc, text = 1, f"error: the driver did not finish within {RUN_TIMEOUT_S:.0f} s: HUNG (never re-click)"
         except Exception as exc:  # noqa: BLE001

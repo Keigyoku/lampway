@@ -150,7 +150,7 @@ STAGES = ("prompt", "score", "cut", "run", "status")
 
 
 def tool(stage, root, piece="", view="Front", paired=False, v3_dir="", variants_dir="", design_words="", palette="", pick=None, bg_threshold=BG_T,
-         opening_iters=OPENING, min_px=1024) -> dict:
+         opening_iters=OPENING, min_px=1024, template="") -> dict:
     """The api tool behind lampway_plate_pick: prompt | score | cut | run (score + cut + check) | status. Paths are relative to the project root (the caller has jailed them)."""
     if stage not in STAGES:
         raise PlateError(f"stage is one of {', '.join(STAGES)}")
@@ -167,7 +167,7 @@ def tool(stage, root, piece="", view="Front", paired=False, v3_dir="", variants_
     if stage == "prompt":
         names = {"Front": "front", "Back": "back", "Left": "left side", "Right": "right side"}
         variables = {"view": names[view], **({"design_inventory": design_words} if design_words else {}), **({"palette": palette} if palette else {})}
-        return {"piece": piece, "view": view, "template": "plate-4k-crisper", "variables": variables, "reference": str(v3) if v3 else None,
+        return {"piece": piece, "view": view, "template": template or "plate-4k-crisper", "variables": variables, "reference": str(v3) if v3 else None,
                 "how": "render this template (lampway_prompt_render) and pass it with the V3 plate as the reference to the image generator; 4 images per view, never fewer"}
     if v3 is None:
         raise PlateError("v3_dir is needed: the project folder holding <View>.png (RGBA) for the piece")

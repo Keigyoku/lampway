@@ -122,6 +122,7 @@ for i, vx in enumerate(me.vertices):
     ca.data[i].color = (g, g, g, 1.0)
 me.color_attributes.active_color = ca
 ob.rotation_euler = (0, 0, math.radians(90)); bpy.context.view_layer.update()
+canon("recon", scale="any")                 # the turned reconstruction, stamped as it arrives (its turn is what the search finds)
 res = call("recon_measure", object="recon", plates=plates, size=128)
 nofile = call("recon_measure", object="recon", plates={"front": "plates/none.png"})
 print("RESULT", json.dumps({"res": res, "nofile": nofile}))

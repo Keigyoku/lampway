@@ -67,7 +67,9 @@ def render(lib: Library, template_id: str, variables: Optional[dict] = None, mod
     if negatives:
         parts.append("Avoid: " + "; ".join(negatives) + ".")
     text = " ".join(p if p.endswith((".", "!", "?", ":")) else p + "." for p in parts)
-    model = model or (t.get("defaults") or {}).get("model")
+    template_model = (t.get("defaults") or {}).get("model")
+    pinned = bool(t.get("pin") is True and str(t.get("pin_reason") or "").strip())
+    model = model or (template_model if pinned else None)        # CH5: the purpose's choice wins; a template's model is a hint unless pinned
     adapter = _adapter(t, model)
     warnings = []
     for phrase in adapter.get("drop_phrases") or []:
@@ -83,13 +85,13 @@ def render(lib: Library, template_id: str, variables: Optional[dict] = None, mod
     if adapter.get("max_words") and words > adapter["max_words"]:
         warnings.append(f"{model} reads at most {adapter['max_words']} words; this prompt has {words}: shorten the variables or choose another model")
     inputs = [{"role": r, "required": bool(s.get("required")), "description": s["description"]} for r, s in (t.get("inputs") or {}).items()]
-    params = {k: v for k, v in (t.get("defaults") or {}).items()}
+    params = {k: v for k, v in (t.get("defaults") or {}).items() if k != "model"}
     if model:
         params["model"] = model
     if t["media"] == "image" and model:
         params = adapt_image_params(model, params)
     return {"prompt": text, "negatives": negatives, "inputs_required": inputs, "params": params, "warnings": warnings, "template": f"{t['id']}@{t['version']}",
-            "variables": values, "model": model, "words": words}
+            "variables": values, "model": model, "words": words, "template_model": template_model, "pinned": pinned}
 
 
 # ------------------------------------------------------------------------------------------------ ordered references
