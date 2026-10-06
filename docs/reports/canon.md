@@ -654,6 +654,30 @@ armor_piece run (step 13) without `texture_discard_ack`. Receipt `{piece, stage,
   included" check; G03.1 and G03.4 (both chain-level goldens; G03.1 needs the place -> bind -> return -> validate chain on C03
   through real tools, and both are also item 14's goldens) - they are not run here, not passed.
 
+### Merge and generated files at this pass's boundary
+`origin/lp/wave5` at 06138974 merged (abc06826; never a rebase). One conflict, in the generated
+`.agents/skills/LAMPWAY-RAIL.generated.json`: resolved by `rail/rail.py sync` (the result equals my side, wave5 had not changed the
+skill). `docs/tools.md` regenerated after the merge (898180a2: lampway_fit and lampway_normalize_rigged were missing);
+`tool_specs.py --check` current; the rail PASS; `docs/canon/check_canon.py` PASS (C 35, R 32, schema 3/7, determinism).
+
+### Gates at this push (898180a2)
+`scripts/lampway/test_all.sh` with the reference environment (`--verify-env`: ready, shelf fixtures present): **GREEN, gated**
+(binary `BUILT_FROM e6668a6`). Server 1627 passed, 10 skipped, 0 failed; client 9050 passed, 110 failed + 15 errors = the 125
+of the baseline, 73 skipped, 0 env-skipped; new failures none; flaky none; shelf snapshot before and after the client suite, no
+writes (and a shelf skip would have been a failure); 49.5 minutes under heavy disk pressure (another lane's test_all ran beside it).
+
+### Disclosures for this pass (2)
+- **The graph could not be used.** `index_repository` on this worktree failed: the worker log says "CBM index worker could not start:
+  a pre-coordination or unverified CBM generation is active". No indexed project is this tree (`lampway-tools-wt` is a sibling
+  worktree; `search_code` there found no `fit_openings`, which exists here). I located edit sites with Read on known paths and
+  `git show` of my own commits, and used `sed -n` with a pattern on three files (fit_body.py, the report, test_all.py) to print a
+  function or section - a search by another name, said here plainly. To recover the shelf and interpreter paths of the previous
+  run I scanned my own session transcript with a python regex.
+- A duplicate server suite I started (beside the door tests) sat in disk wait (`wait_log_commit`) for 12 minutes; I killed it by its
+  verified PID, since test_all runs the same suite. No result was taken from it.
+- The stale-bytecode trap (item 13 above): one run failed on restored code; the cause was found and cleared before any result
+  was recorded.
+
 ## Status at the end of this pass (lp/canon)
 | plan item | state | what is not built |
 |---|---|---|
