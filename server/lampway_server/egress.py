@@ -75,6 +75,8 @@ LAUNCHES: dict = {
     "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets"),
     "herdr/launcher.py:_systemd_ok": ("local", "systemctl --user is-system-running: a local query"),
     "library/ingest.py:extract_video": ("local", "ffprobe on a local file"),
+    "library/previews.py:video_thumb": ("local", "nice ffmpeg: one thumbnail frame of a library video file"),
+    "library/video.py:_run": ("local", "nice ffmpeg/ffprobe on library video files (probe, frame count, loudness, derived strips and panels); every caller in video.py passes an ffmpeg or ffprobe argv"),
     "mcp_inventory/probe.py:_stdio": ("local", "starts the user's own configured stdio MCP server and speaks initialize/tools-list over stdin; what that program does is the user's own configuration"),
     "studios/service.py:default_execute": ("wrapped", "the studio driver process; injected as StudioService.execute and called only through _gated_execute, which holds guard(studio:<name>)"),
     "studios/tripo/relief_gen.py:ensure_browser": ("driver", "the relief site's headed browser, started from inside the Tripo driver process, which only runs gated"),

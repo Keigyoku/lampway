@@ -46,7 +46,7 @@ def _assign(mat, target, opts) -> dict:
         ob.data.materials.append(None)
     current = ob.material_slots[index].material
     if is_mixar_paint(current) and not opts.get("replace"):
-        raise PlaceError(f"object already has a Mixar Paint material: pass replace:true (slot {index} holds {current.name!r})")
+        raise PlaceError(f"object already has a layer-paint material: pass replace:true (slot {index} holds {current.name!r})")
     ob.material_slots[index].material = mat
     return {"object": ob.name, "slot": index}
 

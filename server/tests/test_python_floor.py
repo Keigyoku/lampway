@@ -35,7 +35,7 @@ def test_no_module_calls_a_stdlib_api_newer_than_the_floor():
                     v = NEWER.get((node.module, a.name))
                     if v and tuple(map(int, v.split("."))) > FLOOR:
                         bad.append(f"{p.relative_to(ROOT)}:{node.lineno}: from {node.module} import {a.name} needs Python {v}")
-            if isinstance(node, (ast.TypeAlias,)) or (isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and getattr(node, "type_params", None)):
+            if (hasattr(ast, "TypeAlias") and isinstance(node, ast.TypeAlias)) or (isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and getattr(node, "type_params", None)):
                 bad.append(f"{p.relative_to(ROOT)}:{node.lineno}: PEP 695 syntax needs Python 3.12")
     assert not bad, "\n".join(bad)
 
