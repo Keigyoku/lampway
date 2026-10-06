@@ -325,3 +325,35 @@ Every Wave 6 tool works in SCHEMA.md's frame: metres, right-handed, +Z up, the b
 and secondary_chain's bone direction head -> next joint already did). The importer calls I added are marked `# LEGACY(normalize): <reason>` until
 `canon_io` lands on origin/lp/wave5: glb_optimize's re-import, splat_world's SPZ/PLY import, motion_generate's clip import, lod_chain's texture load
 and terrain's heightmap load.
+
+## Test totals at the head (0ed36a8f, merged with origin/lp/wave5 00d907d4: already up to date)
+- Server suite (`venv-tools`): **1105 passed, 6 skipped**, exit 0 (baseline at 00d907d4: 1069 passed, 6 skipped).
+- Client suite (all `testpaths`, `LAMPWAY_BIN` = the lane's binary): **123 failed, 8013 passed, 75 skipped, 20 errors** (baseline at 00d907d4: 123 failed,
+  7904 passed, 75 skipped, 20 errors). The failing set is the baseline's, test for test (onboarding subtitles, glass registers, mcp ui receipts,
+  scene tabs, brand words, the prepublish gate test, ...): nothing of this branch is in it.
+- Wave 6 tests: 30 client files `tests/lampway_tools/test_wave6_*.py` and 7 server files `server/tests/test_wave6_*.py`; 170 tools in the agent
+  registry, 124 of them Blender tools offered over MCP (rendered with lp/docs's generator, below).
+
+## Merge notes for the integrator
+- `docs/tools.md` is not regenerated on this branch: `docs/gen_tools.py` lives on `lp/docs`, not on `lp/wave5`. Rendered out of tree with that
+  generator against this branch: 170 tools, 124 offered + 2 server MCP tools = 126 over MCP. Regenerate after both are merged.
+- `server/lampway_server/agent/tool_defs.py` now holds `Def` and `P` (re-exported by `lampway_tools.py`); a lane that adds Defs to `lampway_tools.py`
+  is unaffected. `P` gained an optional `items` field (an array's item schema).
+- `agent/wave6_tools.py` is generated: edit the docstrings in `api_wave6.py` and the table in `scripts/lampway/gen_wave6_defs.py`, then run it.
+- `api.py` gained one block before the door (the api_wave6 registration loop); `turns.py` one dispatch line and `tools.py` one import/spec/name entry
+  for `agent/plan_tools.py`; `egress.py` one route (`world_labs`); `ledger.py` one public method (`record_event`); `features/common.need_object` one
+  refusal (splats). `server/tests/test_lampway_tools.py` exempts the planners by `plan_tools.NAMES`.
+- New server-run tools are not offered over MCP (they read the server's catalogues or ledger): cinematic_shot_plan, material_experiment,
+  prototype_gates, texture_route_select, splat_world.
+- Importer calls added here carry `# LEGACY(normalize)` for the canon lane's `canon_io` routing.
+
+## Not done, owed, or [UNVERIFIED] (one list)
+- No live leg of anything that spends or needs a key: Tripo texture rows, video shots, World Labs (fake transport only; endpoints [UNVERIFIED]).
+- No UE leg: the MetaHuman conform (character_pipeline) and Unreal receipts (editor_connection_receipt) answer needs_decision.
+- Thresholds and defaults I chose (each marked [UNVERIFIED] in its module): outfit cover/poke ranges, the motion pose tolerance, face-rig
+  thresholds, biome densities, traversal and vehicle limits, the palette selection constants.
+- material_palette is not a port of Img2Mat_Pro (its source is not here); the parity test and the V3 Helmet1 fixture test were not run.
+- The 3D-Print Toolbox cross-check, the six real shelf clips (motion_generate), a real head with ARKit keys (face_rig_validate), a real scan
+  (splat proxy): the acceptance evidence on real assets is not gathered.
+- addon_project: the server-log redaction the contract asks for was not built (the server logs no tool arguments today; unpinned).
+- The four WAITING rows outside Wave 6 (fit_glove, fit_state, anim_track, model_serving_recipes) were not touched.
