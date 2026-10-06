@@ -1542,28 +1542,45 @@ def ue_material(material, mode="report", merge_json=None, master=None, on_loss="
 
 
 @tool
-def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=None):
+def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=None, cube=None, cube_meta=None):
     """The one-click UE Look mode, governed by one UE profile (lampway.ue-profile/1; default: the shipped engine-defaults
-    profile). action apply: exposure = log2(k) + Bias - EV100, curves and white balance off, EEVEE fast GI and screen tracing as
-    the profile's GI and reflection methods say (all off with parity=true, and dither 0), anisotropic filtering from
-    r.MaxAnisotropy, soft falloff off on point/spot lights, every material in scope swapped to its '<name> [UE]' UE Default Lit
-    preview; returns the receipt path, the lights' UE values (lux / cd by k, cones, radii), the material translations and the
-    per-class trust (measured | unmeasured | needs_decision | ...). revert: restores every recorded value exactly (receipt, or
-    the scene's active one). status: active, profile hash, view, classes. generate: the UE view's cube and OCIO config (answers
-    needs_decision while the generator's home is undecided). Refused: Standard ACES, a non-sRGB working space, auto exposure or
-    engine defaults with parity, area or temperature lights in scope, a scene already in a UE look. scope: scene | selected."""
+    profile) and its tonemapper cube, generated on the UE side and named by the profile's tonemap_cube / tonemap_cube_meta (or
+    cube / cube_meta here; validated against the sidecar: sha256, grid, domain, engine version, tonemapper settings). action
+    enable: validate the cube, write the UE view's OCIO config and the launcher's state (the next launch starts with the view;
+    restart if this session lacks it). disable: clear the launcher's state. apply: the view, exposure = log2(k) + Bias - EV100,
+    curves and white balance off, EEVEE fast GI and screen tracing as the profile's GI and reflection methods say (all off with
+    parity=true, and dither 0), anisotropic filtering from r.MaxAnisotropy, soft falloff off on point/spot lights, every material
+    in scope swapped to its '<name> [UE]' UE Default Lit preview; returns the receipt path (with the cube's sha256 and engine
+    version), the lights' UE values and the per-class trust. revert: restores every recorded value exactly. status: active,
+    profile hash, view, classes. generate: the view's OCIO config only. Refused: a missing or mismatched cube (fix: generate the
+    cube on the UE side, then point UE Look at it), a session without the view, Standard ACES, a non-sRGB working space, auto
+    exposure or engine defaults with parity, area or temperature lights in scope, a scene already in a UE look."""
+    from .ue import launch as _UEL2
     from .ue import look as _UEL
     from .ue import ocio_view as _UEV
     scene = bpy.context.scene
+    prof = _p(profile) if profile else None
+    # the cube and its sidecar come from the UE side, usually outside the project root: they are only read and hashed, and
+    # nothing of their content is returned, so they are the one exception to the project-root rule
+    cube, cube_meta = (str(Path(cube).expanduser().resolve()) if cube else None), (str(Path(cube_meta).expanduser().resolve()) if cube_meta else None)
     if action == "status":
         return _UEL.status(scene)
     if action == "revert":
         return _UEL.revert(scene, _p(receipt) if receipt and not Path(receipt).is_absolute() else receipt)
-    if action == "generate":
-        return _UEV.generate(_ue_profile(profile), bpy.utils.system_resource("DATAFILES", path="colormanagement"))
+    if action == "disable":
+        return {"disabled": _UEL2.disable(), "message": "UE Look is off for the next launch (OCIO is left as it was)"}
+    if action in ("generate", "enable"):
+        _, pr = _UEL.load_profile(prof, cube, cube_meta)
+        g = _UEV.generate(pr, bpy.utils.system_resource("DATAFILES", path="colormanagement"))
+        if action == "generate":
+            return g
+        state = _UEL2.enable(g["config_path"], g["cube_path"], g["cube_sha256"], g["view_name"])
+        restart = not _UEV.view_present(g["view_name"])
+        return dict(g, state_path=state, restart=restart,
+                    message="UE Look is on: restart Lampway (the launcher starts it with the UE view)" if restart else "UE Look is on")
     if action != "apply":
-        raise ValueError("action is apply, status, revert or generate")
-    return _UEL.apply(scene, _p(profile) if profile else None, scope, bool(parity))
+        raise ValueError("action is apply, status, revert, enable, disable or generate")
+    return _UEL.apply(scene, prof, scope, bool(parity), cube, cube_meta)
 
 
 @tool

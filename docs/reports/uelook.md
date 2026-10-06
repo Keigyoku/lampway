@@ -13,13 +13,77 @@ boundary (always "Already up to date": wave5 did not move during this lane). Nat
 
 | # | item | status | commit |
 |---|---|---|---|
-| 1 | `ue_look`, the colour part (the tonemapper cube from public sources) | **needs_decision**: the golden is not reachable from public sources alone (below). The consumer side (the OCIO view from a profile-supplied cube, both traps refused) is built and tested | `c3e58b22` (consumer) |
+| 1 | `ue_look`, the colour part | **done as ruled**: public sources could not reach the golden (needs_decision, below); the captain chose option 1, the cube generated on the UE side and read as DATA. Lampway's side is wired: profile fields, validator, OCIO config, launcher, pickers, receipts | `c3e58b22`, ruling: see the head of the branch |
 | 2 | `ue_material`: the UE Default Lit group and the deterministic map | done | `ef910a20` |
-| 3 | the one-click UE Look mode, the default profile, the toggle and picker | done (the view transform waits on item 1) | `c3e58b22` |
+| 3 | the one-click UE Look mode, the default profile, the toggle and pickers | done | `c3e58b22` + the ruling commit |
 | 4 | `ue_export`: one canonical path per type, receipts | done | `26439d13` |
 | 5 | `ue_parity`, the Blender half; the UE half `needs_box` | done (the armour scene is not built: it needs the body package path) | `41af42eb` |
 
-## Item 1: why it is needs_decision (the numbers)
+## Item 1 after the captain's ruling (2026-10-06): the cube is data from the UE side
+
+The ruling: "Go with option 1 for the UE colour table ... wire up the Lampway side". The generator lives outside Lampway (the
+Titan / UE-licensed side); nothing of Epic's maths enters this repository. Built, RED first:
+
+- **Profile:** two named fields, `tonemap_cube` (path) and `tonemap_cube_meta` (path to a `lampway.ue-cube-meta/1` sidecar:
+  engine, tonemapper settings, generator, cube {file, sha256, size, domain, order}, shaper). The old `tonemap.lut` block is gone.
+- **Validator** (`ue/cube.py`): valid / missing / mismatch. It checks:
+  - both files are present;
+  - the sidecar's schema;
+  - the cube's sha256 against the sidecar's;
+  - the grid: `LUT_3D_SIZE`, the sidecar's size and `r.LUT.Size` agree, with exactly size³ finite rows;
+  - the domain against the sidecar's;
+  - the engine version against the profile's;
+  - the tonemapper settings against the profile's. This last check goes beyond the brief's list: it catches a cube built
+    for another film curve.
+
+  Anything but valid refuses with "generate the cube on the UE side, then point UE Look at it". Only the path and the hash
+  are kept: the cube is never copied, into the repo, the Vault, a receipt or the generated OCIO directory.
+- **OCIO:**
+  - The view config points at the cube where it lies and at the app's colour-management directory by absolute search path.
+  - The view is keyed by the cube's sha256 and the shaper: another cube gives another view; the same cube under another
+    profile gives the same view.
+  - Both traps are refused: the silent AgX fallback (the view must exist in this session), and a cube changed mid-session.
+    Edited alone, it no longer matches its sidecar. Re-described by a new sidecar, it has a new view name the session lacks.
+- **Launcher:**
+  - `scripts/lampway/lampway` reads `<home>/ue_look/launch.state` as key=value lines, never sourced.
+  - It exports `OCIO` only when that file exists, the config exists and the cube's sha256 still matches. Otherwise it
+    leaves `OCIO` as it was and says why. `--plan` prints `ue_look: on | off | invalid`.
+  - `ue_look enable` writes the file, only for a valid cube; `disable` removes it.
+- **Apply and receipts:**
+  - Apply requires a valid cube.
+  - The UE Look receipt, every `ue_parity` report view and every `ue_export` `export.json` (`ue_look_cube`) record the
+    cube's path, sha256, engine version and generator.
+- **UI:**
+  - File pickers for the cube and the sidecar in the UE Look panel.
+  - A status glyph from stock theme icons: CHECKMARK valid, QUESTION missing, ERROR mismatch. The facelift's
+    `ICON_LAMPWAY_*` set is not on any branch I build from.
+  - The glyph is worked out when a path changes, never in draw().
+  - The toggle runs enable then apply; without the view in the session it says "restart Lampway". Off runs revert then
+    disable.
+- **Docs:** `docs/ue-look.md` (linked from the docs index `docs/lampway/README.md`).
+
+**Tests:**
+- SYNTHETIC cubes only, written by the tests (`tests/lampway_tools/uelook_support.py`): an identity cube and a known
+  curve (the sRGB encoding of the decoded value), under an invented 16-stop shaper, not UE's.
+- No UE-derived cube is committed.
+- Through the view: greys match the synthetic cube's own trilinear sampling within 0.002.
+- Mutants killed:
+  - the export record removed;
+  - the launcher's sha check removed;
+  - the view key without the cube;
+  - the validator's sha and engine checks removed;
+  - the parity record removed;
+  - draw() validating;
+  - apply not requiring the cube.
+
+**Live check (local, uncommitted, scratch only):** the audit's UE-derived cube
+(`scratch/ue_parity/ue58_filmic_srgb_32.cube`, sha256 `27cf4021...c272`) with a sidecar I wrote in scratch. The shaper was
+taken from the audit's working OCIO config. The run went through the product path: validator, generate, a session started
+with `OCIO=` that config, apply (view `UE 5.8 Filmic acc6dd4d`), then a grey rendered at exposure 0:
+**grey 0.18 -> 0.460929, grey 1.0 -> 0.866911**. Golden: 0.4609 / 0.8669; the audit's probe: 0.460929 / 0.866911, identical.
+The launcher itself was not in this run: the session got `OCIO` directly. Its export is tested with the fake binary.
+
+## Item 1 before the ruling: why it was needs_decision (the numbers)
 
 The brief: build the curve from the Academy's open ACES reference and Epic's PUBLIC documentation of the Filmic parameters,
 never copy Epic's shader text, and stop with needs_decision if public sources alone cannot reach the golden (grey 0.18 ->
@@ -145,7 +209,8 @@ Suites before the push (scratch TMPDIR and basetemp, deleted after each run):
 - **`bake_maps` does not yet write `triangles_sha256`**: `ue_export` accepts any bake receipt that carries it and
   `ue.export.triangles_sha256(object)` is the function a bake must call; wiring it into `bake_maps` is that tool's owner's.
 - **The armour parity scene** is refused ("not built in this pass"): its Lampway half needs the fit_body package path.
-- **The launcher does not export `OCIO`** for a UE view yet: there is no cube to view until item 1 is decided.
+- **Cube and sidecar paths are the one exception to the project-root rule** in `api.ue_look`: they come from the UE side,
+  are only read and hashed, and nothing of their content is returned. A profile path still lies under the project root.
 - **Canonical input** (the coordinator's rule of today): `ue_export` refuses an unapplied transform, a negative scale and a
   non-metre scene itself (it does not rely on `fit_export`, which per the correction does not refuse unapplied transforms);
   colour spaces and the normal convention come only from pbr_pack's declared `merge.json`. When the canon lane's door lands,
@@ -162,6 +227,7 @@ Suites before the push (scratch TMPDIR and basetemp, deleted after each run):
 
 ## Merge notes
 
+- `scripts/lampway/lampway` gains the UE Look block (before the app starts) and one `--plan` line.
 - `api.py` gains four `@tool` doors at its end (before "the door the agent's scripts use") and one helper `_ue_profile`;
   `server/lampway_server/agent/lampway_tools.py` gains four Defs at the end of `DEFS`. Conflicts there, if any, are append-only.
 - `features/fit_export.py`: `gates()` extracted; any lane editing `fit_export.run`'s gate block should edit `gates()`.

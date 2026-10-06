@@ -12,9 +12,9 @@ What apply changes: the view's exposure (log2 k + Bias - EV100, COL-08), curves 
 the cube, COL-12/13), EEVEE fast GI and screen tracing as the profile's GI and reflection methods say (all off for parity,
 LGT-09/10), anisotropic filtering from r.MaxAnisotropy (TEX-03), dither 0 for parity (COL-07), soft falloff off on point and
 spot lights (LGT-04), and every material slot in scope swapped to its '<name> [UE]' preview (the UE Default Lit group,
-culling = not Two Sided). The light values UE needs (k-scaled lux and candela, cones, radii) go into the receipt. The view
-transform itself needs the profile's cube: without one (the shipped profile, pending the generator decision) the view is left
-alone and the COL class says needs_decision."""
+culling = not Two Sided), and the view transform to the UE view. The light values UE needs (k-scaled lux and candela, cones,
+radii) and the cube's path, sha256 and engine version go into the receipt. The view needs the profile's cube, generated on the
+UE side and validated against its sidecar (``cube``); without a valid cube apply is refused with the fix (docs/ue-look.md)."""
 
 import json
 from pathlib import Path
@@ -22,6 +22,7 @@ from pathlib import Path
 import bpy
 
 from .. import settings as S
+from . import cube as CB
 from . import lights as LM
 from . import material_group as MG
 from . import material_map as MM
@@ -67,8 +68,8 @@ def undo(rows):
         setattr(_resolve(row["ref"]), row["attr"], row["value"])
 
 
-def _classes(profile, view_state):
-    return {"COL": "needs_decision" if view_state == "needs_decision" else "unmeasured", "SHD": "unmeasured", "NRM": "unmeasured",
+def _classes(profile):
+    return {"COL": "unmeasured", "SHD": "unmeasured", "NRM": "unmeasured",
             "LGT": "unmeasured", "TEX": "not_previewed" if profile["preview"]["texture_compression"] == "source" else "unmeasured",
             "GEO": "gate", "PST": "not_attempted", "ANM": "not_attempted", "CFG": "unmeasured", "CMP": "not_attempted"}
 
@@ -93,7 +94,7 @@ def _light_dict(ld):
 
 
 def check(scene, profile, scope="scene", parity=False):
-    """Every refusal of apply, without changing anything. Returns the objects in scope and their light map."""
+    """Every refusal of apply, without changing anything. Returns the objects in scope, their light map and the cube's check."""
     active = scene.get(STATE_KEY)
     if active:
         raise LookError(f"the scene is already in a UE look: revert receipt {active} first")
@@ -105,6 +106,10 @@ def check(scene, profile, scope="scene", parity=False):
         raise LookError("auto exposure adapts per frame: set the volume to Manual for a parity render")
     if parity and profile["source"] == "engine-defaults":
         raise LookError("engine defaults are not the Titan project: run the UE editor leg's profile dump")
+    try:
+        cube = CB.require(profile)
+    except CB.CubeError as exc:
+        raise LookError(str(exc)) from None
     obs = _objects(scene, scope)
     k = profile["light_units"]["k"]
     lights = []
@@ -114,7 +119,7 @@ def check(scene, profile, scope="scene", parity=False):
                 lights.append({"name": o.name, "data": o.data.name, "from": _light_dict(o.data), "to": LM.ue_light(_light_dict(o.data), k)})
             except LM.LightMapError as exc:
                 raise LookError(f"{o.name}: {exc}") from None
-    return obs, lights
+    return obs, lights, cube
 
 
 def _change(scene, profile, view, obs, lights, parity, rec):
@@ -123,9 +128,8 @@ def _change(scene, profile, view, obs, lights, parity, rec):
     ch.rows = rec["changes"]
     sn = scene.name
     cv = profile["project"]["cvars"]
-    if view["state"] == "ready":
-        ch.set("scenes", sn, "view_settings", "view_transform", view["view_name"])
-        ch.set("scenes", sn, "view_settings", "look", "None")
+    ch.set("scenes", sn, "view_settings", "view_transform", view["view_name"])
+    ch.set("scenes", sn, "view_settings", "look", "None")
     ch.set("scenes", sn, "view_settings", "exposure", PR.exposure_stops(profile))
     ch.set("scenes", sn, "view_settings", "use_curve_mapping", False)
     ch.set("scenes", sn, "view_settings", "use_white_balance", False)
@@ -180,12 +184,22 @@ def _restore(r):
         bpy.data.node_groups.remove(g)
 
 
-def apply(scene, profile_path=None, scope="scene", parity=False) -> dict:
+def load_profile(profile_path=None, cube=None, meta=None):
+    """The profile, with the panel's cube and sidecar pickers (when given) in place of its own paths."""
     path = Path(profile_path) if profile_path else PR.DEFAULT_PROFILE
     profile = PR.load(path)
-    obs, lights = check(scene, profile, scope, parity)
+    if cube:
+        profile["tonemap_cube"] = str(Path(cube).resolve())
+    if meta:
+        profile["tonemap_cube_meta"] = str(Path(meta).resolve())
+    return path, PR.validate(profile)
+
+
+def apply(scene, profile_path=None, scope="scene", parity=False, cube=None, meta=None) -> dict:
+    path, profile = load_profile(profile_path, cube, meta)
+    obs, lights, cube_check = check(scene, profile, scope, parity)
     sha = PR.sha256(profile)
-    view = OV.view_for(profile)
+    view = OV.view_for(profile, cube_check)
     rec = {"changes": [], "swaps": [], "created": {"materials": [], "node_group": None}, "materials": []}
     try:
         _change(scene, profile, view, obs, lights, parity, rec)
@@ -202,11 +216,11 @@ def apply(scene, profile_path=None, scope="scene", parity=False) -> dict:
     receipt = {"schema": RECEIPT_SCHEMA, "scene": sn, "profile_path": str(path), "profile_sha256": sha, "profile_source": profile["source"],
                "parity": bool(parity), "scope": scope, "exposure_stops": exposure, "view": view, "changes": rec["changes"], "swaps": rec["swaps"],
                "created": rec["created"],
-               "lights": lights, "materials": materials, "classes": _classes(profile, view["state"])}
+               "lights": lights, "materials": materials, "classes": _classes(profile), "cube": CB.receipt(cube_check)}
     rp.write_text(json.dumps(receipt, indent=1, default=str), encoding="utf-8")
     scene[STATE_KEY] = str(rp)
     return {"receipt_path": str(rp), "profile_sha256": sha, "view_name": view.get("view_name"), "view": view, "exposure_stops": exposure,
-            "lights": lights, "materials": materials, "classes": receipt["classes"], "parity": bool(parity)}
+            "lights": lights, "materials": materials, "classes": receipt["classes"], "parity": bool(parity), "cube": receipt["cube"]}
 
 
 def status(scene) -> dict:
@@ -216,7 +230,7 @@ def status(scene) -> dict:
     r = json.loads(Path(rp).read_text(encoding="utf-8"))
     name = r["view"].get("view_name")
     return {"active": True, "receipt_path": rp, "profile_sha256": r["profile_sha256"], "view_name": name,
-            "view_present": OV.view_present(name) if name else None, "classes": r["classes"], "parity": r["parity"]}
+            "view_present": OV.view_present(name) if name else None, "classes": r["classes"], "parity": r["parity"], "cube": r.get("cube")}
 
 
 def revert(scene, receipt_path=None) -> dict:

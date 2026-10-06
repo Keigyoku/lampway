@@ -9,7 +9,9 @@
   material_group  the LW_UE_DefaultLit_v1 node group and the '<material> [UE]' preview (bpy, EEVEE)
   lights        Blender light -> UE light by the profile's k (pure)
   look          the UE Look mode: apply / status / revert with an exact receipt (bpy)
-  ocio_view     the UE view's consumer side: a profile-named cube behind UE's log2 shaper, and the two traps refused
+  cube          the UE-side tonemapper cube, read as data: valid / missing / mismatch against its sidecar (pure)
+  launch        the launcher's UE Look state file (enable / disable)
+  ocio_view     the UE view: the sidecar's log2 shaper then the cube, read where it lies; the two traps refused
   export        ue_export: one canonical export path per asset type, with receipts (bpy)
   fbx_bytes     a minimal binary FBX reader: the timestamp-free content hash and the read-back facts (pure)
   parity_metrics  ue_parity's per-class comparison maths, tolerances, capture checks, the camera map (pure)

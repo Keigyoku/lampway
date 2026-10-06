@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+import uelook_support as U  # noqa: E402
 from features_support import run  # noqa: E402
 
 DUMP = r'''
@@ -82,8 +83,7 @@ def four_materials():
     c = sphere("C", loc=(2, 0, 0)); c.data.materials.append(bpy.data.materials["Steel"])              # shared
     c.material_slots[0].link = "OBJECT"; c.material_slots[0].material = mat("Cloth", Roughness=1.0)    # object-linked slot
 def live_profile(**edits):
-    from mixar.modules.lampway_tools.ue import profile as PR
-    p = json.loads(open(PR.DEFAULT_PROFILE).read()); p["source"] = "live-dump"
+    p = json.loads(open(PROFILE).read()); p["source"] = "live-dump"
     for path, v in edits.items():
         node = p; keys = path.split("__")
         for k in keys[:-1]: node = node[k]
@@ -92,8 +92,18 @@ def live_profile(**edits):
 '''
 
 
+def session(tmp_path):
+    """A profile naming a SYNTHETIC cube (engine defaults otherwise) and the OCIO config of its view, made in a first run: the
+    session that applies must have been started with it (Blender reads OCIO once)."""
+    prof = U.profile_with_cube(tmp_path, "look_profile.json", source="engine-defaults")
+    r = run(tmp_path, f'print("RESULT", json.dumps(call("ue_look", action="generate", profile={str(prof)!r})))', timeout=600)
+    assert r.rc == 0 and r.results[0]["ok"], r.out[-3000:]
+    return prof, {"OCIO": r.results[0]["config_path"]}
+
+
 def go(tmp_path, body):
-    r = run(tmp_path, DUMP + SCENE + body, timeout=600)
+    prof, env = session(tmp_path)
+    r = run(tmp_path, DUMP + SCENE + f"PROFILE = {str(prof)!r}\n" + body, env=env, timeout=600)
     assert r.rc == 0, r.out[-3000:]
     return r.results[0]
 
@@ -102,7 +112,7 @@ def test_look04_apply_then_revert_is_byte_identical(tmp_path):
     d = go(tmp_path, '''
 three_lights(); four_materials()
 before = dump()
-a = call("ue_look", action="apply")
+a = call("ue_look", action="apply", profile=PROFILE)
 during = dump()
 st = call("ue_look", action="status")
 r = call("ue_look", action="revert", receipt=a["receipt_path"])
@@ -123,7 +133,7 @@ print("RESULT", json.dumps({"a": a, "st": st, "r": r, "same": before == after, "
 def test_apply_sets_exposure_eevee_flags_lights_and_classes_from_the_profile(tmp_path):
     d = go(tmp_path, '''
 three_lights(); four_materials()
-a = call("ue_look", action="apply")
+a = call("ue_look", action="apply", profile=PROFILE)
 S = bpy.context.scene
 got = {"exposure": S.view_settings.exposure, "fast_gi": S.eevee.use_fast_gi, "rt": S.eevee.use_raytracing, "rt_method": S.eevee.ray_tracing_method,
        "aniso": S.render.anisotropic_filter, "soft": [bpy.data.lights[n].use_soft_falloff for n in ("Fill", "Rim")],
@@ -141,7 +151,8 @@ print("RESULT", json.dumps({"a": a, "got": got, "p": p}))
     assert g["slot_c"] == "Cloth [UE]" and g["slot_a"] == "Steel [UE]"
     lights = {l["name"]: l for l in a["lights"]}
     assert lights["Key"]["to"]["intensity"] == 2049.0 and lights["Rim"]["to"]["outer_cone_deg"] == 22.5
-    assert a["classes"]["COL"] == "needs_decision" and a["classes"]["SHD"] == "unmeasured" and a["view"]["state"] == "needs_decision"
+    assert a["classes"]["COL"] == "unmeasured" and a["classes"]["SHD"] == "unmeasured" and a["view"]["state"] == "ready"
+    assert a["cube"]["sha256"] and a["cube"]["engine_version"] == "5.8.2" and a["cube"]["path"].endswith("test.cube")
     leather = next(m for m in a["materials"] if m["name"] == "Leather")
     assert [x["input"] for x in leather["dropped"]] == ["Sheen Weight"]
     assert d["p"]["ok"] and d["got"]["parity"] == {"fast_gi": False, "rt": False, "dither": 0.0}
@@ -151,17 +162,17 @@ def test_refusals_change_nothing_and_name_their_fix(tmp_path):
     d = go(tmp_path, '''
 three_lights(); four_materials()
 before = dump()
-out = {"parity_defaults": call("ue_look", action="apply", parity=True),
+out = {"parity_defaults": call("ue_look", action="apply", profile=PROFILE, parity=True),
        "auto": call("ue_look", action="apply", profile=live_profile(exposure__method="auto"), parity=True),
        "aces": call("ue_look", action="apply", profile=live_profile(tonemap__method="StandardACES")),
        "space": call("ue_look", action="apply", profile=live_profile(project__working_color_space="ACEScg"))}
 lamp("Panel", "AREA", energy=50.0)
-out["area"] = call("ue_look", action="apply")
+out["area"] = call("ue_look", action="apply", profile=PROFILE)
 bpy.data.objects.remove(bpy.data.objects["Panel"]); bpy.data.lights.remove(bpy.data.lights["Panel"])
 out["unchanged"] = dump() == before
-a = call("ue_look", action="apply")
+a = call("ue_look", action="apply", profile=PROFILE)
 out["twice"] = call("ue_look", action="apply", profile=live_profile(light_units__k=1))
-out["generate"] = call("ue_look", action="generate")
+out["generate"] = call("ue_look", action="generate")                            # the shipped profile names no cube
 print("RESULT", json.dumps(out))
 ''')
     assert "engine defaults are not the Titan project: run the UE editor leg's profile dump" in d["parity_defaults"]["error"]
@@ -171,7 +182,7 @@ print("RESULT", json.dumps(out))
     assert "area lights are not mapped (LGT-03): convert to spot/point or exclude" in d["area"]["error"]
     assert d["unchanged"] is True
     assert "revert receipt" in d["twice"]["error"] and "first" in d["twice"]["error"]
-    assert d["generate"]["ok"] is False and d["generate"]["state"] == "needs_decision"
+    assert d["generate"]["ok"] is False and "generate the cube on the UE side, then point UE Look at it" in d["generate"]["error"]
 
 
 def test_shd03_backfaces_follow_two_sided_after_apply(tmp_path):
@@ -191,7 +202,7 @@ m.use_backface_culling = False
 out = {"base": alpha()}                                                # the original, two-sided, seen from behind
 for culling in (True, False):
     m.use_backface_culling = culling
-    a = call("ue_look", action="apply")
+    a = call("ue_look", action="apply", profile=PROFILE)
     out[str(culling)] = {"alpha": alpha(), "two_sided": a["materials"][0]["two_sided"], "slot": pl.material_slots[0].material.name}
     call("ue_look", action="revert", receipt=a["receipt_path"])
 print("RESULT", json.dumps(out))
@@ -212,9 +223,23 @@ def flaky(m, tr):
     if len(calls) == 3: raise RuntimeError("disk full")
     return real(m, tr)
 MG.build_preview = flaky
-a = call("ue_look", action="apply")
+a = call("ue_look", action="apply", profile=PROFILE)
 MG.build_preview = real
 print("RESULT", json.dumps({"a": a, "same": dump() == before, "calls": calls, "active": call("ue_look", action="status")["active"]}))
 ''')
     assert not d["a"]["ok"] and "disk full" in d["a"]["error"] and len(d["calls"]) == 3
     assert d["same"] and d["active"] is False
+
+
+def test_without_a_valid_cube_apply_is_refused_with_the_fix_and_changes_nothing(tmp_path):
+    d = go(tmp_path, '''
+three_lights(); four_materials()
+before = dump()
+shipped = call("ue_look", action="apply")                                          # the shipped profile names no cube
+p = json.loads(open(PROFILE).read()); open(p["tonemap_cube"], "a").write("\\n")
+changed = call("ue_look", action="apply", profile=PROFILE)                         # the cube no longer matches its sidecar
+print("RESULT", json.dumps({"shipped": shipped, "changed": changed, "same": dump() == before}))
+''')
+    for k in ("shipped", "changed"):
+        assert not d[k]["ok"] and "generate the cube on the UE side, then point UE Look at it" in d[k]["error"], d[k]
+    assert "missing" in d["shipped"]["error"] and "mismatch" in d["changed"]["error"] and d["same"]

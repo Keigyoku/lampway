@@ -12,15 +12,15 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+import uelook_support as U  # noqa: E402
 from features_support import run  # noqa: E402
 
+PARITY_EDITS = {"project__cvars__r.ReflectionMethod": 0, "post__bloom": 0.0, "post__vignette": 0.0, "post__ssao": 0.0, "exposure__bias": 0.0,
+                "exposure__apply_physical_camera": False}
+
 PROFILE = r'''
-from mixar.modules.lampway_tools.ue import profile as PR
 def parity_profile(**edits):
-    p = json.loads(open(PR.DEFAULT_PROFILE).read()); p["source"] = "live-dump"
-    p["project"]["cvars"]["r.ReflectionMethod"] = 0
-    p["post"].update(bloom=0.0, vignette=0.0, ssao=0.0)
-    p["exposure"].update(bias=0.0, apply_physical_camera=False)
+    p = json.loads(open(CUBE_PROFILE).read())
     for path, v in edits.items():
         node = p; keys = path.split("__")
         for k in keys[:-1]: node = node[k]
@@ -30,7 +30,12 @@ def parity_profile(**edits):
 
 
 def go(tmp_path, body):
-    r = run(tmp_path, PROFILE + body, timeout=900)
+    """A live-dump parity profile naming a SYNTHETIC cube; its view's config is generated in a first run and the body runs in a
+    session started with it."""
+    prof = U.profile_with_cube(tmp_path, "parity_base.json", edits=PARITY_EDITS)
+    g = run(tmp_path, f'print("RESULT", json.dumps(call("ue_look", action="generate", profile={str(prof)!r})))', timeout=600)
+    assert g.rc == 0 and g.results[0]["ok"], g.out[-3000:]
+    r = run(tmp_path, f"CUBE_PROFILE = {str(prof)!r}\n" + PROFILE + body, env={"OCIO": g.results[0]["config_path"]}, timeout=900)
     assert r.rc == 0, r.out[-3000:]
     return r.results[0]
 
@@ -52,6 +57,8 @@ print("RESULT", json.dumps({"r": r, "rep": rep, "exr_magic": list(exr) if exr el
     assert d["exr_magic"] == [0x76, 0x2F, 0x31, 0x01] and d["md"]
     assert rep["views"]["front"]["ue"]["state"] == "needs_box" and set(rep["views"]["front"]["classes"].values()) == {"needs_box"}
     assert d["scenes"] and d["objs"]                                                    # the throw-away scene is gone
+    cube = rep["views"]["front"]["cube"]
+    assert len(cube["sha256"]) == 64 and cube["engine_version"] == "5.8.2" and cube["path"].endswith("test.cube")
 
 
 def test_har02_the_scene_json_regions_are_where_blender_projects_the_patches(tmp_path):

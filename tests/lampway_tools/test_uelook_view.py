@@ -2,55 +2,19 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The UE view's consumer side (specs/ue_parity/contracts/ue_look.md §6, T-LOOK-02, T-LOOK-03) in the REAL binary. The cube is
-DATA named by the profile (tonemap.lut: cube, cube_sha256, shaper); these tests use a SYNTHETIC cube (the sRGB encoding of the
-shaper-decoded value), so they prove the plumbing: the view applies the profile's log2 shaper then its cube, a view is named
-by the profile hash, a cube file is never rewritten, and both traps the audit found are refused loudly: a broken config
-(Blender silently falls back to its built-in config, AgX) and a cube rewritten on disk mid-session (Blender keeps the old one)."""
+"""The UE view (specs/ue_parity/contracts/ue_look.md §6, T-LOOK-02, T-LOOK-03) in the REAL binary, from a cube that is DATA (the
+captain's ruling: the generator lives on the UE side). The tests use a SYNTHETIC cube and sidecar (uelook_support): the view
+applies the sidecar's log2 shaper then the cube; the config points at the cube where it lies (no copy); the view is named by the
+profile and the cube's hash; both traps the audit found are refused: a broken config (Blender silently falls back to AgX) and a
+cube changed on disk mid-session (Blender keeps the cube it loaded). enable / disable write the launcher's state."""
 
-import hashlib
 import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+import uelook_support as U  # noqa: E402
 from features_support import run  # noqa: E402
-
-SHAPER = {"base": 2.0, "lin_side_slope": 1.0, "lin_side_offset": 0.0039, "log_side_slope": 1 / 14.0, "log_side_offset": 0.6}
-
-
-def _lin(enc):
-    """The shaper's inverse: the linear value a cube coordinate stands for."""
-    return 2.0 ** ((enc - SHAPER["log_side_offset"]) / SHAPER["log_side_slope"]) - SHAPER["lin_side_offset"]
-
-
-def _srgb(x):
-    x = max(0.0, min(1.0, x))
-    return 12.92 * x if x <= 0.0031308 else 1.055 * x ** (1 / 2.4) - 0.055
-
-
-def write_cube(path, size=32):
-    rows = [f"LUT_3D_SIZE {size}", "DOMAIN_MIN 0 0 0", "DOMAIN_MAX 1 1 1"]
-    g = [_srgb(_lin(i / (size - 1))) for i in range(size)]
-    for b in range(size):
-        for gg in range(size):
-            for r in range(size):
-                rows.append(f"{g[r]:.7f} {g[gg]:.7f} {g[b]:.7f}")
-    path.write_text("\n".join(rows) + "\n")
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def profile(tmp_path, name, cube, sha, **edits):
-    src = Path(__file__).resolve().parents[2] / "src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json"
-    p = json.loads(src.read_text())
-    p["source"] = "live-dump"
-    p["tonemap"]["lut"] = {"cube": str(cube), "cube_sha256": sha, "size": 32, "shaper": SHAPER}
-    for k, v in edits.items():
-        p["light_units"][k] = v
-    q = tmp_path / name
-    q.write_text(json.dumps(p))
-    return q
-
 
 GREY = r'''
 S = bpy.context.scene
@@ -71,58 +35,98 @@ def grey(v):
 def go(tmp_path, body, env=None):
     r = run(tmp_path, body, env=env or {}, timeout=600)
     assert r.rc == 0, r.out[-3000:]
-    return r.results[0], r.out
+    return r.results[0]
 
 
-def test_look03_a_view_per_profile_hash_and_a_cube_is_never_rewritten(tmp_path):
-    cube = tmp_path / "ue.cube"
-    sha = write_cube(cube)
-    p1, p2 = profile(tmp_path, "p1.json", cube, sha), profile(tmp_path, "p2.json", cube, sha, k=1)
-    bad = profile(tmp_path, "bad.json", cube, "0" * 64)
-    d, _ = go(tmp_path, f'''
+def generate(tmp_path, profile):
+    return go(tmp_path, f'''
+print("RESULT", json.dumps(call("ue_look", action="generate", profile={str(profile)!r})))
+''')
+
+
+def test_look03_a_view_per_cube_hash_pointing_at_the_cube_where_it_lies(tmp_path):
+    p1, p2 = U.profile_with_cube(tmp_path, "p1.json"), U.profile_with_cube(tmp_path, "p2.json", curve="identity")
+    p3 = U.profile_with_cube(tmp_path, "p3.json", edits={"light_units__k": 1})
+    bad = U.profile_with_cube(tmp_path, "bad.json")
+    Path(json.loads(bad.read_text())["tonemap_cube"]).write_text("LUT_3D_SIZE 32\n")
+    d = go(tmp_path, f'''
 a = call("ue_look", action="generate", profile={str(p1)!r})
-b = call("ue_look", action="generate", profile={str(p2)!r})
-c1 = open(a["cube_path"], "rb").read()
 again = call("ue_look", action="generate", profile={str(p1)!r})
+b = call("ue_look", action="generate", profile={str(p2)!r})
+c = call("ue_look", action="generate", profile={str(p3)!r})
 bad = call("ue_look", action="generate", profile={str(bad)!r})
-print("RESULT", json.dumps({{"a": a, "b": b, "again": again, "same_bytes": c1 == open(a["cube_path"], "rb").read(), "bad": bad}}))
+files = sorted(str(p.relative_to(os.path.dirname(a["config_path"]))) for p in __import__("pathlib").Path(os.path.dirname(a["config_path"])).rglob("*") if p.is_file())
+print("RESULT", json.dumps({{"a": a, "again": again, "b": b, "c": c, "bad": bad, "files": files, "cfg": open(a["config_path"]).read()}}))
 ''')
-    a, b = d["a"], d["b"]
-    assert a["ok"] and b["ok"] and a["view_name"] != b["view_name"] and a["view_name"].startswith("UE 5.8 Filmic ")
-    assert Path(a["config_path"]).parent != Path(b["config_path"]).parent
-    assert d["again"]["ok"] and d["again"]["config_path"] == a["config_path"] and d["same_bytes"]
-    assert d["again"]["config_sha256"] == a["config_sha256"]                         # T-COL-03 for the consumer: same profile, same bytes
-    assert not d["bad"]["ok"] and "cube_sha256" in d["bad"]["error"]
+    a = d["a"]
+    assert a["ok"] and a["view_name"].startswith("UE 5.8 Filmic ") and a["cube_sha256"] == json.loads(Path(json.loads(p1.read_text())["tonemap_cube_meta"]).read_text())["cube"]["sha256"]
+    assert d["b"]["view_name"] != a["view_name"]                                                   # another cube: another view
+    assert d["c"]["view_name"] == a["view_name"]                                                   # the same cube under another k: the same view
+    assert d["again"]["config_path"] == a["config_path"] and d["again"]["config_sha256"] == a["config_sha256"]
+    assert not any(f.endswith(".cube") for f in d["files"]), d["files"]                            # the cube is never copied
+    assert json.loads(p1.read_text())["tonemap_cube"] in d["cfg"]                                   # it is read where it lies
+    assert not d["bad"]["ok"] and "generate the cube on the UE side, then point UE Look at it" in d["bad"]["error"]
 
 
-def test_view_renders_through_the_shaper_then_the_cube_and_traps_are_refused(tmp_path):
-    cube = tmp_path / "ue.cube"
-    sha = write_cube(cube)
-    p1 = profile(tmp_path, "p1.json", cube, sha)
-    gen, _ = go(tmp_path, f'''
-print("RESULT", json.dumps(call("ue_look", action="generate", profile={str(p1)!r})))
-''')
-    cfg, view = gen["config_path"], gen["view_name"]
-    # a session started with the config: apply sets the view, and greys come out as the synthetic cube says (sRGB of linear)
-    d, _ = go(tmp_path, GREY + f'''
+def test_the_view_renders_through_the_shaper_then_the_cube_and_both_traps_are_refused(tmp_path):
+    p1, pid = U.profile_with_cube(tmp_path, "p1.json"), U.profile_with_cube(tmp_path, "pid.json", curve="identity")
+    gen, gid = generate(tmp_path, p1), generate(tmp_path, pid)
+    d = go(tmp_path, GREY + f'''
 a = call("ue_look", action="apply", profile={str(p1)!r})
 st = call("ue_look", action="status")
-print("RESULT", json.dumps({{"a": a, "st": st, "view": S.view_settings.view_transform, "g18": grey(0.18), "g05": grey(0.05)}}))
-''', env={"OCIO": cfg})
-    assert d["a"]["ok"] and d["view"] == view and d["st"]["view_present"] is True and d["a"]["classes"]["COL"] == "unmeasured", d
-    ev = 2 ** d["a"]["exposure_stops"]
-    assert abs(d["g18"] - _srgb(0.18 * ev)) <= 0.004, (d["g18"], _srgb(0.18 * ev))
-    assert abs(d["g05"] - _srgb(0.05 * ev)) <= 0.004, (d["g05"], _srgb(0.05 * ev))
-    # trap 1: a broken config makes Blender fall back to its built-in one: apply refuses instead of rendering AgX
-    broken = Path(cfg).with_name("broken.ocio")
-    broken.write_text(Path(cfg).read_text().replace("ocio_profile_version:", "ocio_profile_version: [", 1))
-    d, out = go(tmp_path, f'''
+S.view_settings.exposure = 0.0
+print("RESULT", json.dumps({{"a": a, "st": st, "view": S.view_settings.view_transform, "g18": grey(0.18), "g05": grey(0.05), "g1": grey(1.0)}}))
+''', env={"OCIO": gen["config_path"]})
+    assert d["a"]["ok"] and d["view"] == gen["view_name"] and d["st"]["view_present"] is True and d["a"]["classes"]["COL"] == "unmeasured", d
+    assert d["a"]["cube"]["sha256"] == gen["cube_sha256"] and d["a"]["cube"]["engine_version"] == "5.8.2"
+    for k, v in (("g18", 0.18), ("g05", 0.05), ("g1", 1.0)):
+        assert abs(d[k] - U.through_cube(v)) <= 0.002, (k, d[k], U.through_cube(v))
+    assert abs(d["g18"] - U.srgb(0.18)) <= 0.004                                                 # and the known curve itself at mid grey
+    d = go(tmp_path, GREY + f'''
+a = call("ue_look", action="apply", profile={str(pid)!r})
+S.view_settings.exposure = 0.0
+print("RESULT", json.dumps({{"a": a, "g18": grey(0.18)}}))
+''', env={"OCIO": gid["config_path"]})
+    assert d["a"]["ok"] and abs(d["g18"] - U.through_cube(0.18, "identity")) <= 0.002, (d["g18"], U.enc(0.18))         # the identity cube shows the shaper itself
+    # trap 1: a broken config makes Blender fall back to its built-in one (AgX): apply refuses instead of rendering AgX
+    broken = Path(gen["config_path"]).with_name("broken.ocio")
+    broken.write_text(Path(gen["config_path"]).read_text().replace("ocio_profile_version:", "ocio_profile_version: [", 1))
+    d = go(tmp_path, f'''
 print("RESULT", json.dumps({{"a": call("ue_look", action="apply", profile={str(p1)!r}), "view": bpy.context.scene.view_settings.view_transform}}))
 ''', env={"OCIO": str(broken)})
-    assert not d["a"]["ok"] and "the UE view is missing: Blender fell back to its built-in config" in d["a"]["error"], d
-    # trap 2: the cube rewritten on disk after the session loaded it: Blender keeps the old processor, so apply refuses
-    d, _ = go(tmp_path, f'''
-open({gen["cube_path"]!r}, "a").write("\\n")
-print("RESULT", json.dumps({{"a": call("ue_look", action="apply", profile={str(p1)!r})}}))
-''', env={"OCIO": cfg})
-    assert not d["a"]["ok"] and "the cube changed on disk" in d["a"]["error"], d
+    assert not d["a"]["ok"] and "the UE view is missing: Blender fell back to its built-in config" in d["a"]["error"] and d["view"] == "AgX", d
+    # trap 2: the cube changed after the session loaded it. Edited alone it no longer matches its sidecar; re-described by a
+    # new sidecar it is a new cube with a new view name this session does not have. Both refused.
+    cube, meta = json.loads(p1.read_text())["tonemap_cube"], json.loads(p1.read_text())["tonemap_cube_meta"]
+    d = go(tmp_path, f'''
+open({cube!r}, "a").write("\\n")
+alone = call("ue_look", action="apply", profile={str(p1)!r})
+import sys; sys.path.insert(0, {str(Path(__file__).parent)!r}); import uelook_support as U
+U.write_meta({meta!r}, {cube!r})
+redescribed = call("ue_look", action="apply", profile={str(p1)!r})
+print("RESULT", json.dumps({{"alone": alone, "redescribed": redescribed}}))
+''', env={"OCIO": gen["config_path"]})
+    assert not d["alone"]["ok"] and "sha256" in d["alone"]["error"] and "generate the cube on the UE side" in d["alone"]["error"], d
+    assert not d["redescribed"]["ok"] and "the UE view is missing" in d["redescribed"]["error"], d
+
+
+def test_enable_writes_the_launchers_state_only_for_a_valid_cube_and_disable_removes_it(tmp_path):
+    p1 = U.profile_with_cube(tmp_path, "p1.json")
+    bad = U.profile_with_cube(tmp_path, "bad.json")
+    Path(json.loads(bad.read_text())["tonemap_cube"]).unlink()
+    d = go(tmp_path, f'''
+from mixar.modules.lampway_tools.ue import launch as L
+off = call("ue_look", action="disable")
+bad = call("ue_look", action="enable", profile={str(bad)!r})
+after_bad = os.path.exists(L.state_path())
+on = call("ue_look", action="enable", profile={str(p1)!r})
+state = open(L.state_path()).read()
+off2 = call("ue_look", action="disable")
+print("RESULT", json.dumps({{"bad": bad, "after_bad": after_bad, "on": on, "state": state, "gone": not os.path.exists(L.state_path()), "off2": off2}}))
+''')
+    assert not d["bad"]["ok"] and "generate the cube on the UE side" in d["bad"]["error"] and d["after_bad"] is False
+    on = d["on"]
+    assert on["ok"] and on["restart"] is True and "restart Lampway" in on["message"]
+    lines = dict(l.split("=", 1) for l in d["state"].splitlines() if "=" in l)
+    assert lines["config"] == on["config_path"] and lines["cube"] == json.loads(p1.read_text())["tonemap_cube"] and lines["cube_sha256"] == on["cube_sha256"]
+    assert d["gone"] and d["off2"]["ok"]

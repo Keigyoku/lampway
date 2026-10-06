@@ -177,3 +177,23 @@ res({"neg": neg, "moved": moved, "first": first, "again": again, "cm": cm, "name
     assert d["first"]["ok"] and "exists" in d["again"]["error"]
     assert "metres" in d["cm"]["error"]
     assert d["names"] == ["Moved", "Neg", "Prop"]                                         # no temporary copy left behind
+
+
+def test_the_export_receipt_records_the_ue_look_cubes_sha256_and_engine_version_never_the_cube(tmp_path):
+    import json as _json
+    sys.path.insert(0, str(Path(__file__).parent))
+    import uelook_support as U
+    prof = U.profile_with_cube(tmp_path, "export_profile.json")
+    want = _json.loads(Path(_json.loads(prof.read_text())["tonemap_cube_meta"]).read_text())["cube"]["sha256"]
+    d = run(f'''
+cube("Prop")
+import shutil; shutil.copy({str(prof)!r}, os.path.join(root, "export_profile.json"))          # a profile path lies under the project root
+a = api.ue_export(type="static_prop", object="Prop", out_dir="export/prop/c1", profile="export_profile.json")
+b = api.ue_export(type="static_prop", object="Prop", out_dir="export/prop/c2")
+ej = lambda r: json.load(open(os.path.join(r["out_dir"], "export.json")))
+files = [f for r in (a, b) for f in os.listdir(r["out_dir"])]
+res({{"a": ej(a)["ue_look_cube"], "b": ej(b)["ue_look_cube"], "files": files}})
+''')
+    assert d["a"]["state"] == "valid" and d["a"]["sha256"] == want and d["a"]["engine_version"] == "5.8.2", d["a"]
+    assert d["b"]["state"] == "missing" and d["b"]["sha256"] is None
+    assert not any(f.endswith(".cube") for f in d["files"])

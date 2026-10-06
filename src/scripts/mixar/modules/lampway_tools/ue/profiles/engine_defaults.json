@@ -16,9 +16,10 @@
   "method": "Filmic",
   "film": {"slope": 0.88, "toe": 0.55, "shoulder": 0.26, "black_clip": 0.0, "white_clip": 0.04},
   "blue_correction": 0.6, "expand_gamut": 1.0, "tone_curve_amount": 1.0, "white_temp": 6500, "white_tint": 0,
-  "grading": "neutral",
-  "lut": null
+  "grading": "neutral"
  },
+ "tonemap_cube": null,
+ "tonemap_cube_meta": null,
  "exposure": {"method": "manual", "bias": 1.0, "apply_physical_camera": true, "fstop": 4.0, "shutter": 60, "iso": 100},
  "post": {"bloom": 0.675, "vignette": 0.4, "local_exposure": {"highlight": 1.0, "shadow": 1.0, "detail": 1.0}, "ssao": 0.5},
  "light_units": {"k": 683},
@@ -34,6 +35,6 @@
   "preview.texture_compression": "OPEN CHOICE (captain): source = Lampway samples the uncompressed maps (TEX-02 is reported, not previewed); bc_decoded is the alternative (cost).",
   "export.precision": "OPEN CHOICE (captain): standard = UE's import defaults (8-bit tangents and weights, 16-bit UVs); hero = high-precision tangents, full-precision UVs, 16-bit weights for every export.",
   "exposure": "UE's engine default is histogram AUTO exposure (COL-09), which Lampway cannot emulate; the profile pins MANUAL exposure at the physical-camera defaults (f/4, 1/60 s, ISO 100, bias 1.0) so a judgement is reproducible.",
-  "tonemap.lut": "null: the 32^3 cube is generated from the tonemapper maths; where that generator lives is a captain decision (REPORT.md decision 6, docs/reports/uelook.md item 1). A live profile names the cube and its shaper as data."
+  "tonemap_cube": "null until set: the path of the 32^3 tonemapper cube, generated on the UE side (the captain's ruling, 2026-10-06: the generator lives outside Lampway; nothing of the tonemapper maths is in this repository). tonemap_cube_meta is the path of its JSON sidecar (lampway.ue-cube-meta/1: engine version, tonemapper settings, generator version, sha256, grid, domain, shaper). Lampway keeps only these paths and the hash, never a copy of the cube (docs/ue-look.md)."
  }
 }

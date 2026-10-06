@@ -92,7 +92,7 @@ def run(scene, profile_path, size, views, out_dir, ue_captures, ue_linear_scale,
         finally:
             PS.discard(sc)
         PM.check_capture(exr, linear=True)
-        row = {"lampway": {"exr": str(exr), "sha256": _sha(exr)}, "look_receipt": ap["receipt_path"]}
+        row = {"lampway": {"exr": str(exr), "sha256": _sha(exr)}, "look_receipt": ap["receipt_path"], "cube": ap["cube"]}
         cap = None
         if caps is not None:
             cap = next(iter(sorted(caps.glob(f"ue_{view}.*"))), None)

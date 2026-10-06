@@ -25,6 +25,7 @@ import bpy
 
 from ..features import common as C
 from ..features import fit_export as FE
+from . import cube as CB
 from . import fbx_bytes as FX
 from . import material_group as MG
 from . import material_map as MM
@@ -282,7 +283,7 @@ def run(type_, object_, armature, action, out_dir, textures, body, frame_rate, h
     import io_scene_fbx
     rec = {"schema": SCHEMA, "type": type_, "blender": {"version": bpy.app.version_string, "fbx_io": ".".join(map(str, io_scene_fbx.bl_info["version"]))},
            "settings": _json_settings(settings), "axes": AXES, "hero": hero, "readback": rb, "textures": tex_rows, "material": mat,
-           "profile_sha256": PR.sha256(profile), "losses": losses + ([{"kind": "material", **{k: v for k, v in mat.items() if k in ("dropped", "clamped")}}] if mat and mat.get("dropped") else []),
+           "profile_sha256": PR.sha256(profile), "ue_look_cube": CB.receipt(CB.validate(profile)), "losses": losses + ([{"kind": "material", **{k: v for k, v in mat.items() if k in ("dropped", "clamped")}}] if mat and mat.get("dropped") else []),
            "gates": {"validation_counts": gate["counts"], "unverified_roles": gate["roles"], "mesh_sha256": gate["mesh_sha256"]} if gate else None}
     if fbx:
         rec.update(file_sha256=_sha(fbx), content_sha256=FX.content_sha256(fbx.read_bytes()), triangles_sha256=tri)

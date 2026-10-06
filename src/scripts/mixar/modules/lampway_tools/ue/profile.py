@@ -69,12 +69,10 @@ def validate(p: dict) -> dict:
     for k in ("blue_correction", "expand_gamut", "tone_curve_amount", "white_temp", "white_tint"):
         _num(tm, k, "tonemap")
     _need(tm, "grading", "tonemap")
-    lut = _need(tm, "lut", "tonemap")
-    if lut is not None:
-        for k in ("cube", "cube_sha256", "size", "shaper"):
-            _need(lut, k, "tonemap.lut")
-        for k in ("base", "lin_side_slope", "lin_side_offset", "log_side_slope", "log_side_offset"):
-            _num(lut["shaper"], k, "tonemap.lut.shaper")
+    for k in ("tonemap_cube", "tonemap_cube_meta"):
+        v = _need(p, k, "")
+        if v is not None and (not isinstance(v, str) or not v):
+            raise ProfileError(f"{k} is a path or null")
     ex = _need(p, "exposure", "")
     _one_of(ex, "method", "exposure", ("manual", "auto"), "exposure.method is manual or auto")
     _num(ex, "bias", "exposure")

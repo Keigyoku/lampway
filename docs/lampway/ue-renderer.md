@@ -25,19 +25,22 @@ and reason in the file's `notes`:
 | `preview.texture_compression` | `source` | Lampway samples source textures; `bc_decoded` is the alternative |
 | `export.precision` | `standard` | UE's import defaults; `hero` asks for 16-bit tangents, full UVs and 16-bit weights |
 
+Two more fields name the tonemapper cube: `tonemap_cube` and `tonemap_cube_meta` (its sidecar). The cube is generated on the
+UE side and read as data; Lampway holds none of the tonemapper's maths ([UE Look](../ue-look.md)).
+
 ## The parts
 
 - **UE Default Lit material** (`ue_material`): a deterministic Principled -> Default Lit map (BaseColor clamped, Specular from
   IOR and level clamped at UE's 0.08 F0, Emissive x k, Masked at 0.3333, Two Sided = not backface culling), a loss report and
   `translation_sha256`; the `LW_UE_DefaultLit_v1` node group adds Lambert to one single-scatter GGX lobe with UE's F0 and its
   F90 = saturate(50 F0.g), and reads DirectX normals with Z rebuilt. Preview builds `<material> [UE]` beside the original.
-- **UE Look mode** (`ue_look`): apply / status / revert. Apply writes a receipt of every value it changed; revert restores
-  them byte for byte; a failure part-way rolls back. The view transform needs the profile's tonemapper cube (`tonemap.lut`):
-  where its generator lives is an open decision, so without a cube the view is left alone and COL says `needs_decision`.
-- **UE view** (`ue_look generate`): the profile's log2 shaper and cube added to a copy of the app's OCIO config under
-  `<lampway data>/ue_look/<hash8>/ocio/`, named by the profile hash. Lampway must be started with `OCIO=<that config>`; a
-  config that failed to load (Blender falls back to AgX silently) and a cube changed on disk (Blender keeps the old one) are
-  both refused.
+- **UE Look mode** (`ue_look`): enable / apply / status / revert / disable. Apply writes a receipt of every value it changed
+  (and the cube's sha256 and engine version); revert restores them byte for byte; a failure part-way rolls back. Apply needs a
+  valid cube (`ue/cube.py`), else it refuses with the fix.
+- **UE view** (`ue_look generate` / `enable`): the sidecar's log2 shaper and the cube, read where it lies, added to the app's
+  OCIO config under `<lampway data>/ue_look/<key8>/ocio/` (key: the cube's sha256 and shaper). The launcher starts Lampway
+  with `OCIO=<that config>` while UE Look is enabled and the cube validates; a config that failed to load (Blender falls back
+  to AgX silently) and a cube changed on disk (Blender keeps the old one) are both refused.
 - **UE export** (`ue_export`): one canonical FBX path per type (`skinned_piece`, `static_prop`, `animation`, `texture_set`),
   canonical input only (metres, transforms applied), one fixed triangulation shared with the bake, `content_sha256` with the
   FBX timestamp zeroed, and `ue_import.json`, the only import settings the editor leg may use.
