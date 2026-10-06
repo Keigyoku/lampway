@@ -400,3 +400,31 @@ Both, as the coordinator asked. The pill was a second always-on-top window creat
   while a sketch is armed) was not driven with the pill off; the composer shows the same draft, but only a live run
   proves the flow.
 - Native rebuild: yes.
+
+## Contract 06: the Studios panel (the Providers half moved to Choices)
+
+`specs/choices/facelift_06_amendment.md` (the captain's CH8): Choices absorbs the Providers dialog, so 06 keeps the
+Studios panel only; the Providers dialog is untouched until the Choices window replaces it.
+- A waiting spend is a card: what, the price read back and from which Studio, a **"Spend 13.5 credits"** button (the
+  number on the button, on its own row so a narrow sidebar never clips it: measured clipped in a popover before) and
+  "Not now". It is the panel's one glow.
+- A job Lampway cannot account for (`submission_unknown`) shows "maybe sent" with the user's two ways out, **"It did
+  not run"** and **"Link its job id"** (a dialog asks for the provider's job id), visible and not glowing, against the
+  integrator's routes (`GET /app/receipts`, `POST .../acknowledge`, `POST .../link`, sent with `"by": "user"`). This is
+  also the coordinator's contract 13 addition (the spend surfaces' submission_unknown UI); contract 13's own card will
+  reuse it.
+- The plan form has typed rows (name, kind: text / number / file / yes-no, value) instead of a JSON field, and is
+  closed by default; `plan_args()` turns them into the action's arguments (a file is project-relative).
+- Tests: `tests/lampway/test_lampway_studios_face.py` (4, RED observed: the panel read `studio_args`) and the real-build
+  `tests/lampway_visual/test_studios_face.py` (the real panel's draw code, as a popover: the sidebar's tab cannot be
+  chosen from Python).
+- Not done: the accounts lines (name and route; their state belongs to Connections now, the Connections amendment);
+  the per-action schema the contract imagined does not exist server-side (the actions list is id and label only), so
+  the rows are typed by the user, not generated; `test_providers_entry_opens_choices` waits for the Choices window.
+
+### The visual harness after the integration merge
+The integration's root `conftest.py` now points HOME and the XDG homes into the basetemp for every test. Rootless
+podman reads its container store from the person's home, so every windowed state failed with "no container
+lampway-build". The harness gives the display runner (only) the person's home back; the build inside still gets the
+run's own HOME and XDG homes from the `env` in front of it. The Asset Vault drag state now always registers its
+stand-ins (vault-ui's real operators are in the build since the merge) and drags its own tile by name.

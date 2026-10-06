@@ -49,15 +49,17 @@ def _stand_ins(bpy):
         def draw(self, context):
             self.layout.operator("mixar.asset_library_select", text="Brass lamp").asset_id = "a-42"
 
+    # The stand-ins replace vault-ui's operators when the build has them: the test reads what the drop asked for,
+    # and no server answers here.
     for cls in (MIXAR_OT_asset_library_select, MIXAR_OT_asset_library_place, LAMPWAY_PT_vault_drag_probe):
-        if getattr(bpy.types, cls.__name__, None) is None:
-            bpy.utils.register_class(cls)
+        bpy.utils.register_class(cls)
 
 
 def _gesture(bpy):
     win = bpy.context.window_manager.windows[0]
     dump = json.loads(bpy.context.window_manager.mixar_qa_ui_dump)
-    tile = next((w["rect"] for w in dump["widgets"] if w.get("op") == "MIXAR_OT_asset_library_select"), None)
+    tile = next((w["rect"] for w in dump["widgets"]
+                 if w.get("op") == "MIXAR_OT_asset_library_select" and w.get("text") == "Brass lamp"), None)
     view = next(a for a in win.screen.areas if a.type == 'VIEW_3D')
     region = next(r for r in view.regions if r.type == 'WINDOW')
     if tile is None:

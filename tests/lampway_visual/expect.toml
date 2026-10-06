@@ -58,3 +58,7 @@ theme = "dark"
 theme = "dark"
 [chat_face.surfaces]
 primary_choice = "accent"
+
+[studios_face]
+theme = "dark"
+[studios_face.surfaces]

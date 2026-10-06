@@ -7,7 +7,7 @@
 import textwrap
 
 import bpy
-from bpy.types import Panel
+from bpy.types import Panel, UIList
 
 from mixar.modules.lampway_tools import api, clip_state, egress_state, jobs, mcp_state, studio_state, workbench_state
 
@@ -140,6 +140,16 @@ class LAMPWAY_PT_qa_review(Panel):
         col.operator("lampway.qa_refresh", icon="COLOR")
 
 
+class LAMPWAY_UL_studio_plan_args(UIList):
+    """One typed plan argument per row: name, kind, value."""
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        row = layout.row(align=True)
+        row.prop(item, "key", text="", emboss=False)
+        row.prop(item, "kind", text="")
+        row.prop(item, {"TEXT": "text", "NUMBER": "number", "FILE": "path", "FLAG": "flag"}[item.kind], text="")
+
+
 class LAMPWAY_PT_studios(Panel):
     bl_idname = "LAMPWAY_PT_studios"
     bl_label = "Studios (online)"
@@ -166,25 +176,38 @@ class LAMPWAY_PT_studios(Panel):
             for answer, text in ((True, "Yes"), (False, "No")):
                 op = qrow.operator("lampway.studio_answer", text=text)
                 op.approval_id, op.answer = q["id"], answer
-        waiting = studio_state.pending()
-        if waiting:
+        # A waiting spend is a card with its price on the button (facelift 06; contract 13's words): the one glow here.
+        for n, ap in enumerate(studio_state.pending()):
             box = layout.box()
-            box.label(text="Waiting for YOUR confirmation", icon="TIME")
-            for ap in waiting:
-                col = box.column(align=True)
-                col.label(text=f"{ap['label']}")
-                unit = (ap.get("settings") or {}).get("unit") or "credits"
-                col.label(text=f"{ap['price']:g} {unit}, read back from {str(ap.get('studio') or 'Studio').capitalize()}")
-                row = col.row(align=True)
-                c = row.operator("lampway.studio_confirm", text="Confirm and spend", icon="CHECKMARK")
-                c.approval_id, c.price, c.label = ap["id"], float(ap["price"]), ap["label"]
-                row.operator("lampway.studio_reject", text="Reject", icon="X").approval_id = ap["id"]
+            col = box.column(align=True)
+            unit = (ap.get("settings") or {}).get("unit") or "credits"
+            col.label(text=f"{ap['label']}", icon='TIME')
+            col.label(text=f"{ap['price']:g} {unit}, read back from {str(ap.get('studio') or 'Studio').capitalize()}")
+            # The price is on the button and the button has the row to itself: a narrow sidebar never clips the number.
+            c = col.operator("lampway.studio_confirm", text=f"Spend {ap['price']:g} {unit}", icon="CHECKMARK", depress=n == 0)
+            c.approval_id, c.price, c.label = ap["id"], float(ap["price"]), ap["label"]
+            col.operator("lampway.studio_reject", text="Not now", icon="X").approval_id = ap["id"]
+        # A job Lampway cannot account for: the user's two ways out, visible, never glowing, nothing that sends it again.
+        for r in studio_state.maybe_sent():
+            box = layout.box()
+            box.label(text=f"{r.get('label') or r.get('key')}: maybe sent", icon='QUESTION')
+            row = box.row(align=True)
+            row.operator("lampway.receipt_acknowledge", text="It did not run").key = r["key"]
+            row.operator("lampway.receipt_link", text="Link its job id").key = r["key"]
         p = context.scene.lampway_tools
-        plan = layout.column(align=True)
-        plan.prop(p, "studio_action", text="")
-        plan.prop(p, "studio_args", text="")
-        op = plan.operator("lampway.studio_plan", text="Plan (clicks nothing)", icon="VIEWZOOM")
-        op.action, op.args_json = p.studio_action, p.studio_args
+        header, body = layout.panel("lampway_studio_plan", default_closed=True)
+        header.label(text="Plan an action (clicks nothing)")
+        if body is not None:
+            body.prop(p, "studio_action", text="")
+            row = body.row()
+            row.template_list("LAMPWAY_UL_studio_plan_args", "", p, "studio_plan_args", p, "studio_plan_args_index", rows=3)
+            side = row.column(align=True)
+            side.operator("lampway.studio_plan_arg_add", text="", icon='ADD')
+            side.operator("lampway.studio_plan_arg_remove", text="", icon='REMOVE')
+            from mixar.modules.lampway_tools.ui.operators.studio_ops import plan_args
+            import json
+            op = body.operator("lampway.studio_plan", text="Plan", icon="VIEWZOOM")
+            op.action, op.args_json = p.studio_action, json.dumps(plan_args(p.studio_plan_args))
         for job in list(reversed(st["jobs"]))[:5]:
             row = layout.box().column(align=True)
             row.label(text=f"{job['label']}: {job['state']}", icon="CHECKMARK" if job["state"] == "done" else "TIME" if job["state"] == "running" else "ERROR")
@@ -367,4 +390,4 @@ class LAMPWAY_PT_mcp(Panel):
             layout.label(text=p["message"][:80], icon="ERROR")
 
 
-classes = [LAMPWAY_PT_privacy, LAMPWAY_PT_cockpit, LAMPWAY_PT_main, LAMPWAY_PT_clips, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_prompts, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
+classes = [LAMPWAY_UL_studio_plan_args, LAMPWAY_PT_privacy, LAMPWAY_PT_cockpit, LAMPWAY_PT_main, LAMPWAY_PT_clips, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_prompts, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]

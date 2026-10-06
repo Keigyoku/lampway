@@ -30,10 +30,37 @@ def _redraw():
 
 def refresh_state() -> None:
     try:
-        studio_state.update(CLIENT_FACTORY().home())
+        client = CLIENT_FACTORY()
+        studio_state.update(client.home())
+        try:
+            studio_state.STATE["receipts"] = client.receipts()
+        except (studio_client.StudioError, KeyError, AttributeError):
+            studio_state.STATE["receipts"] = []        # a server without the receipt routes: nothing to resolve
     except studio_client.StudioError as exc:
         studio_state.fail(str(exc))
     _redraw()
+
+
+def plan_args(rows) -> dict:
+    """The plan form's typed rows (facelift contract 06: no JSON) as the action's arguments. A row without a key is
+    skipped; a whole number stays an int; a path is project-relative (Blender's '//' prefix dropped)."""
+    out = {}
+    for row in rows:
+        key = (getattr(row, "key", "") or "").strip()
+        if not key:
+            continue
+        kind = getattr(row, "kind", "TEXT")
+        if kind == 'NUMBER':
+            value = float(row.number)
+            out[key] = int(value) if value.is_integer() else value
+        elif kind == 'FILE':
+            path = row.path or ""
+            out[key] = path[2:] if path.startswith("//") else path
+        elif kind == 'FLAG':
+            out[key] = bool(row.flag)
+        else:
+            out[key] = row.text
+    return out
 
 
 def _poll():
@@ -101,6 +128,71 @@ class LAMPWAY_OT_studio_plan(_StudioOp):
             ap = out["approval"]
             return self._done(context, f"{ap['label']} reads back {ap['price']} credits: confirm it in the Studios panel")
         return self._done(context, f"{self.action} started")
+
+
+class LAMPWAY_OT_studio_plan_arg_add(Operator):
+    """Add an argument row to the plan form"""
+    bl_idname = "lampway.studio_plan_arg_add"
+    bl_label = "Add argument"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        p = context.scene.lampway_tools
+        p.studio_plan_args.add()
+        p.studio_plan_args_index = len(p.studio_plan_args) - 1
+        return {"FINISHED"}
+
+
+class LAMPWAY_OT_studio_plan_arg_remove(Operator):
+    """Remove the selected argument row"""
+    bl_idname = "lampway.studio_plan_arg_remove"
+    bl_label = "Remove argument"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        p = context.scene.lampway_tools
+        if 0 <= p.studio_plan_args_index < len(p.studio_plan_args):
+            p.studio_plan_args.remove(p.studio_plan_args_index)
+            p.studio_plan_args_index = max(0, p.studio_plan_args_index - 1)
+        return {"FINISHED"}
+
+
+class LAMPWAY_OT_receipt_acknowledge(_StudioOp):
+    """Say this job did not run: Lampway stops waiting for it and nothing is sent again (only you can do this)"""
+    bl_idname = "lampway.receipt_acknowledge"
+    bl_label = "It did not run"
+
+    key: StringProperty(options={'SKIP_SAVE'})
+
+    def execute(self, context):
+        try:
+            CLIENT_FACTORY().acknowledge_receipt(self.key)
+        except studio_client.StudioError as exc:
+            return self._done(context, str(exc), ok=False)
+        refresh_state()
+        return self._done(context, "Marked as not run: nothing was sent again")
+
+
+class LAMPWAY_OT_receipt_link(_StudioOp):
+    """It did run: give the job id from the provider's own history, and Lampway follows that job (nothing is sent again)"""
+    bl_idname = "lampway.receipt_link"
+    bl_label = "Link its job id"
+
+    key: StringProperty(options={'SKIP_SAVE'})
+    provider_job_id: StringProperty(name="Job id", description="The job's id in the provider's own history", options={'SKIP_SAVE'})
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, title="Link the provider's job id", confirm_text="Link")
+
+    def execute(self, context):
+        if not self.provider_job_id.strip():
+            return self._done(context, "Give the job id from the provider's own history", ok=False)
+        try:
+            CLIENT_FACTORY().link_receipt(self.key, self.provider_job_id.strip())
+        except studio_client.StudioError as exc:
+            return self._done(context, str(exc), ok=False)
+        refresh_state()
+        return self._done(context, "Linked: Lampway follows that job now")
 
 
 class LAMPWAY_OT_studio_confirm(_StudioOp):
@@ -355,4 +447,5 @@ class LAMPWAY_OT_providers_open(_ProviderProps, _StudioOp):
         return _save_changes(self, context)
 
 
-classes = [LAMPWAY_OT_providers_open, LAMPWAY_OT_providers_save, LAMPWAY_OT_studio_answer, LAMPWAY_OT_higgsfield_signin, LAMPWAY_OT_studio_refresh, LAMPWAY_OT_studio_plan, LAMPWAY_OT_studio_confirm, LAMPWAY_OT_studio_reject, LAMPWAY_OT_studio_import]
+classes = [LAMPWAY_OT_providers_open, LAMPWAY_OT_providers_save, LAMPWAY_OT_studio_answer, LAMPWAY_OT_higgsfield_signin, LAMPWAY_OT_studio_refresh, LAMPWAY_OT_studio_plan, LAMPWAY_OT_studio_confirm, LAMPWAY_OT_studio_reject, LAMPWAY_OT_studio_import,
+           LAMPWAY_OT_studio_plan_arg_add, LAMPWAY_OT_studio_plan_arg_remove, LAMPWAY_OT_receipt_acknowledge, LAMPWAY_OT_receipt_link]
