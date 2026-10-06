@@ -714,6 +714,10 @@ class AssetLibrary:
             v = db.execute("SELECT * FROM version WHERE asset_id=? AND n=?", (aid, version or a["current_version"])).fetchone()
             out["version"] = v["n"]
             out["attrs"] = json.loads(v["attrs_json"])
+            out["canon_state"] = v["canon_state"]                    # canon N4: raw | canonical (None for a kind with no canonical form)
+            c = db.execute("SELECT doc_json FROM canonical WHERE version_id=?", (v["id"],)).fetchone()
+            if c:
+                out["canonical"] = json.loads(c[0])
             out["files"] = [{"role": f["role"], "ord": f["ord"], "sha256": f["sha256"], "bytes": f["bytes"],
                              "locations": [dict(l) for l in db.execute("SELECT path,storage,missing FROM location WHERE sha256=? ORDER BY path", (f["sha256"],))]}
                             for f in db.execute("SELECT f.role,f.ord,f.sha256,b.bytes FROM version_file f JOIN blob b ON b.sha256=f.sha256 WHERE f.version_id=? ORDER BY f.role,f.ord", (v["id"],))]

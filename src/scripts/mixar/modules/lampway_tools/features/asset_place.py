@@ -9,6 +9,7 @@ map records it groups); this module never opens the user's file for write.
 A placement that fails removes whatever datablocks it created: nothing is left half-placed. The shading kinds live in ``asset_place_shading``, the media and animation kinds in
 ``asset_place_media``; this module owns the record, the transaction, the drop point and the meshes."""
 
+import json
 import os
 
 import bpy
@@ -265,6 +266,34 @@ def place_rig_objects(asset, opts, target) -> tuple:
     return _import(asset, path, sha, opts, {"where": "origin"} if target_object(target) else target), path, sha
 
 
+# ---- what landed (canon N3/N4: the Vault placement landing)
+
+def canon_report(asset: dict, placed: list) -> list:
+    """[{object, state: canonical | raw, unmet | help}] for each placed mesh object. A canonical version imported from a file that cannot
+    carry its stamp (a GLB) takes the document of the library record (``asset['canonical']``, ``from: record``); a canonical object's
+    document is checked against the datablock where it landed (a placement off the origin is no longer in the canonical frame, and says
+    so); a raw one names its normalizer."""
+    from .. import canon_asset as CA
+    out = []
+    for p in placed:
+        ob = bpy.data.objects.get(p.get("object") or "")
+        if ob is None or ob.type != "MESH":
+            continue
+        row = {"object": ob.name}
+        if "lw_canon" not in ob.keys() and asset.get("canonical"):
+            ob["lw_canon"] = json.dumps(asset["canonical"], sort_keys=True)
+            if "lw_raw" in ob.keys():
+                del ob["lw_raw"]
+            row["from"] = "record"
+        if "lw_canon" in ob.keys():
+            doc = json.loads(ob["lw_canon"])
+            row.update(state="canonical", unmet=CA.validate(doc) + CA.check(doc, canon_io.facts(ob)))
+        else:
+            row.update(state="raw", help=f"lampway_normalize_mesh input={ob.name}")
+        out.append(row)
+    return out
+
+
 # ---- the verb
 
 def _auto(kind: str, asset: dict, target) -> str:
@@ -302,6 +331,8 @@ def asset_place(asset: dict, mode: str = "auto", target: dict = None, options: d
     if opts.get("undo_step", True):
         bpy.ops.ed.undo_push(message=f"Place {asset.get('name')}")
     out = {"placed": placed, "mode_used": used, "undo": bool(opts.get("undo_step", True)), "relations_recorded": []}
+    if kind == "mesh":
+        out["canon"] = canon_report(asset, placed)
     if asset.get("attribution"):
         out["attribution"] = asset["attribution"]
     return out
