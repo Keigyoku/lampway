@@ -14,11 +14,12 @@ import os
 import bpy
 
 from . import common as C
+from .. import canon_io
 
 MODES = ("auto", "append", "link", "import", "assign_material", "assign_maps", "add_node_group", "set_world", "add_clip", "apply_animation", "attach_rig", "reference_image")
 MAX_TRIS = 5_000_000
-IMPORTER_OPS = {".glb": "import_scene.gltf", ".gltf": "import_scene.gltf", ".fbx": "wm.fbx_import", ".obj": "wm.obj_import",
-                ".usd": "wm.usd_import", ".usda": "wm.usd_import", ".usdc": "wm.usd_import", ".usdz": "wm.usd_import"}
+# the containers a placement imports, each through canon_io.import_raw (the only importer: specs/canon/normalization DOOR.md 1)
+IMPORT_EXTS = (".glb", ".gltf", ".fbx", ".obj", ".usd", ".usda", ".usdc", ".usdz")
 # the datablock collections a placement can create; a failure removes what is new in them (objects first, so their data is free to go)
 TRACKED = ("objects", "meshes", "materials", "images", "collections", "cameras", "lights", "armatures", "actions", "node_groups", "worlds", "movieclips", "curves", "textures",
            "libraries")
@@ -168,16 +169,11 @@ def place_objects(sc, members: list, asset: dict, sha: str, opts: dict, target, 
 def _import(asset, path, sha, opts, target) -> list:
     sc = scene()
     ext = os.path.splitext(path)[1].lower()
-    op = IMPORTER_OPS.get(ext)
-    if op is None:
-        raise PlaceError(f"no importer for {ext!r}: the importers are {sorted(IMPORTER_OPS)}")
-    mod, name = op.split(".")
+    if ext not in IMPORT_EXTS:
+        raise PlaceError(f"no importer for {ext!r}: the importers are {sorted(IMPORT_EXTS)}")
     before = _snapshot()
     try:
-        # LEGACY(normalize): importer defaults, no lampway_normalize_mesh pass; the canon lane rewires this landing (specs/canon/normalization, N3)
-        res = getattr(getattr(bpy.ops, mod), name)(filepath=path)
-        if "FINISHED" not in res:
-            raise RuntimeError(f"the importer returned {sorted(res)}")
+        canon_io.import_raw(path)
         objs = new_since(before)["objects"]
         if not objs:
             raise RuntimeError("the file held no objects")
@@ -198,7 +194,7 @@ def _pick(names: list, wanted: str, what: str, path: str) -> str:
 
 def load_blend(path: str, slot: str, wanted: str, what: str, link=False):
     """One datablock of ``bpy.data.<slot>`` from a .blend: the one named like the asset, else the file's only one."""
-    with bpy.data.libraries.load(path, link=link) as (src, dst):
+    with canon_io.load_library(path, link=link) as (src, dst):
         name = _pick(list(getattr(src, slot)), wanted, what, path)
         setattr(dst, slot, [name])
     got = [i for i in getattr(dst, slot) if i is not None]
@@ -210,7 +206,7 @@ def load_blend(path: str, slot: str, wanted: str, what: str, link=False):
 def _blend_objects(asset, path, sha, opts, target, link: bool) -> list:
     sc = scene()
     wanted = str(asset.get("name"))
-    with bpy.data.libraries.load(path, link=link) as (src, dst):
+    with canon_io.load_library(path, link=link) as (src, dst):
         if wanted in src.collections and wanted not in src.objects:
             slot, name = "collections", wanted
         else:

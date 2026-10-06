@@ -78,6 +78,8 @@ def rollback(ob) -> dict:
     ob.scale = tuple(prev["scale"])
     restore()
     bpy.context.view_layer.update()
+    if prev.get("lw_canon"):                                          # the stamp of the canonical input it was
+        ob["lw_canon"] = prev["lw_canon"]
     del ob[PROP]
     return {"object": ob.name, "rolled_back": True, "dimensions_before": before, "dimensions_after": [round(v, 6) for v in ob.dimensions], "scale": list(ob.scale)}
 
@@ -118,6 +120,8 @@ def scale_to_measure(object, target=None, reference_object="", apply=True, unit_
     factor = (length / us) / current
     before = [round(v, 6) for v in ob.dimensions]
     prev = {"scale": [round(v, 9) for v in ob.scale], "factor": factor, "applied": bool(apply), "children": children}
+    if "lw_canon" in ob.keys():
+        prev["lw_canon"] = ob["lw_canon"]
     restore = _keep_world(ob.children) if children == "skip" else (lambda: None)
     ob.scale = (ob.scale[0] * factor, ob.scale[1] * factor, ob.scale[2] * factor)
     bpy.context.view_layer.update()
@@ -126,6 +130,9 @@ def scale_to_measure(object, target=None, reference_object="", apply=True, unit_
         total = list(ob.scale)
         _bake(ob, total)
         prev["total"] = total
+        if prev.get("lw_canon"):                                      # the route to real scale (SCHEMA 3.1): re-stamped with its evidence
+            from .restamp import restamp
+            restamp(ob, prev["lw_canon"], {"method": "scale_to_measure", "value": round(length, 9), "reference": length_src})
     bpy.context.view_layer.update()
     ob[PROP] = json.dumps(prev)
     return {"object": ob.name, "axis": axis, "length_m": length, "length_source": length_src, "dimensions_before": before,

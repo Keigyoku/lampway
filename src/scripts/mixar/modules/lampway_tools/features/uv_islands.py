@@ -5,7 +5,8 @@
 """The one definition of what a UV layout measures: utilization, overlap, islands, stretch spread, off-density fraction, mirrored faces, seam length, composite score.
 
 Ported from the owner's shelf (tools/texlib/uv_score.py, SPIKE 2026-10-04) so the Smart UV attempts of the pipeline and Lampway's own unwraps are judged alike:
-  utilization  fraction of the 0..1 square covered, rasterised at ``res`` (the number Tripo's panel shows, measured independently)
+  utilization  fraction of the 0..1 square covered, rasterised at ``res`` (the number Tripo's panel shows, measured independently) with canon 13's
+               half-open edge rule (canon_geom.coverage): a texel centre on an edge two triangles share is counted once
   overlap      fraction of covered texels hit by 2+ triangles
   islands      UV-connected components (corners welded by vertex index + UV position)
   stretch      per-face sqrt(UV area / 3D area) normalised by the median; p90/p10 of its area-weighted distribution; ``off_density_2x`` = fraction of 3D area off by more than 2x
@@ -16,6 +17,8 @@ Pure numpy over bmesh; works on a scene object (a throw-away copy of its data) a
 
 import bmesh
 import numpy as np
+
+from ..canon_geom import coverage, uv_island_ids
 
 GATES = {"max_overlap": 0.005, "max_flipped": 0.02, "max_off_density_2x": 0.05}      # [UNVERIFIED] defaults: the user has not seen them on real pieces
 
@@ -32,22 +35,14 @@ def _bm(ob):
 
 
 def island_ids(bm, uvl):
-    """Per face of ``bm`` (index order): a stable island id, corners welded by (vertex index, UV rounded to 6 places)."""
-    parent = {}
-
-    def find(x):
-        while parent.setdefault(x, x) != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-    key = lambda l: (l.vert.index, round(l[uvl].uv[0], 6), round(l[uvl].uv[1], 6))      # noqa: E731
+    """Per face of ``bm`` (index order): a stable island id - canon 13's one definition (canon_geom.uv_island_ids): corners
+    joined by (vertex index, UV rounded to 6 places)."""
+    F, FUV, UV = [], [], []
     for fc in bm.faces:
-        ks = [key(l) for l in fc.loops]
-        for k in ks[1:]:
-            parent[find(k)] = find(ks[0])
-    roots = [find(key(fc.loops[0])) for fc in bm.faces]
-    index = {r: i for i, r in enumerate(dict.fromkeys(roots))}
-    return np.array([index[r] for r in roots], dtype=np.int64)
+        F.append([l.vert.index for l in fc.loops])
+        FUV.append(list(range(len(UV), len(UV) + len(fc.loops))))
+        UV.extend(l[uvl].uv[:] for l in fc.loops)
+    return uv_island_ids(F, FUV, np.array(UV).reshape(-1, 2))
 
 
 def _seam_length(bm, uvl) -> float:
@@ -64,22 +59,8 @@ def _seam_length(bm, uvl) -> float:
 
 
 def _raster(TU, res):
-    cnt = np.zeros((res, res), np.uint16)
-    P = TU * res
-    for t in P:
-        x0, y0 = np.floor(t.min(0)).astype(int).clip(0, res - 1)
-        x1, y1 = np.ceil(t.max(0)).astype(int).clip(0, res - 1)
-        if x1 < x0 or y1 < y0:
-            continue
-        gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
-        d = (t[1, 1] - t[2, 1]) * (t[0, 0] - t[2, 0]) + (t[2, 0] - t[1, 0]) * (t[0, 1] - t[2, 1])
-        if abs(d) < 1e-12:
-            continue
-        l0 = ((t[1, 1] - t[2, 1]) * (gx - t[2, 0]) + (t[2, 0] - t[1, 0]) * (gy - t[2, 1])) / d
-        l1 = ((t[2, 1] - t[0, 1]) * (gx - t[2, 0]) + (t[0, 0] - t[2, 0]) * (gy - t[2, 1])) / d
-        m = (l0 >= 0) & (l1 >= 0) & (1 - l0 - l1 >= 0)
-        cnt[y0:y1 + 1, x0:x1 + 1] += m.astype(np.uint16)
-    return cnt
+    """Texel coverage counts under canon 13's half-open (top-left) rule: canon_geom.coverage, the one raster."""
+    return coverage(TU, res)
 
 
 def measure_object(ob, res: int = 1024) -> dict:

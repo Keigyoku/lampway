@@ -22,6 +22,7 @@
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+import lw_canon
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 if __name__ == '__main__' and len(_A) < 6:
     if not _A: _ax.home(__file__, "Apply the user's mesh QA rulings: delete ruled faces, patch ruled holes with curved fills")
@@ -44,7 +45,7 @@ for ln in open(a.decisions):                                                 # o
     r = json.loads(ln)
     if r['descriptor'].get('kind') == 'open_loop' and (not a.session or r.get('session') == a.session): latest[r['descriptor']['id']] = r.get('answer')
 holes = sorted(k for k, v in latest.items() if v == 'hole'); ovr = dict(x.split('=') for x in a.owner_override)
-bpy.ops.wm.read_factory_settings(use_empty=True); bpy.ops.import_scene.fbx(filepath=a.mesh)
+bpy.ops.wm.read_factory_settings(use_empty=True); lw_canon.io.import_raw(a.mesh)
 ob = next(o for o in bpy.data.objects if o.type == 'MESH'); me = ob.data
 if len(own) != len(me.polygons): _ax.refuse(f'owner has {len(own)} labels for {len(me.polygons)} polygons', [])
 me.attributes.new('orig', 'INT', 'FACE').data.foreach_set('value', np.arange(len(me.polygons)))
@@ -217,7 +218,7 @@ bpy.ops.object.select_all(action='DESELECT'); ob.select_set(True); bpy.context.v
 bpy.ops.export_scene.fbx(filepath=a.out + '.fbx', use_selection=True, mesh_smooth_type='FACE', add_leaf_bones=False, bake_anim=False)
 np.save(a.out + '_owner_poly.npy', own_new.astype(np.int32)); np.save(a.out + '_orig_poly.npy', orig.astype(np.int32))
 bpy.ops.wm.save_as_mainfile(filepath=a.out + '.blend', copy=True)
-before = set(bpy.data.objects.keys()); bpy.ops.import_scene.fbx(filepath=a.out + '.fbx')         # the round trip, proved
+before = set(bpy.data.objects.keys()); lw_canon.io.import_raw(a.out + '.fbx')         # the round trip, proved
 back = [bpy.data.objects[n] for n in bpy.data.objects.keys() if n not in before and bpy.data.objects[n].type == 'MESH']
 if not back or len(back[0].data.polygons) != len(own_new): _ax.refuse(f'FBX round trip changed the face count: wrote {len(own_new)}, read {len(back[0].data.polygons) if back else 0}', [])
 json.dump({'mesh': a.mesh, 'deletions': a.deletions, 'relabelled': relabelled, 'dropped_before_export': dropped, 'refills': refill_rep, 'fbx_round_trip_faces': len(own_new), 'holes': rep, 'faces_out': int(len(orig)), 'patch_faces': int((orig < 0).sum())}, open(a.out + '_patch.json', 'w'), indent=1)

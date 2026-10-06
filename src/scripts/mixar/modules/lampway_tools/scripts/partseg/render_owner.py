@@ -11,6 +11,7 @@
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+import lw_canon
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 if __name__ == '__main__' and len(_A) < 4:
     if not _A: _ax.home(__file__, 'Render a mesh coloured by its part owner map, four views plus legend; flagged islands in magenta')
@@ -22,7 +23,7 @@ ap = argparse.ArgumentParser(prog='render_owner.py'); [ap.add_argument(k) for k 
 ap.add_argument('--turn', type=float, default=0.0); ap.add_argument('--flag-poly', default=None)
 a = ap.parse_args(_A)
 bpy.ops.wm.read_factory_settings(use_empty=True)
-(bpy.ops.import_scene.fbx if a.mesh.lower().endswith('.fbx') else bpy.ops.import_scene.gltf)(filepath=a.mesh)
+lw_canon.io.import_raw(a.mesh)
 o = next(x for x in bpy.data.objects if x.type == 'MESH'); me = o.data
 own = np.load(a.owner); names = list(json.load(open(a.recipe))['parts'])
 if len(own) != len(me.polygons): _ax.refuse(f'owner has {len(own)} labels for {len(me.polygons)} polygons', [])

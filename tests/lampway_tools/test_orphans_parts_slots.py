@@ -19,6 +19,7 @@ tex = mat.node_tree.nodes.new("ShaderNodeTexImage"); tex.image = img
 mat.node_tree.links.new(tex.outputs["Color"], mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"])
 ob.data.materials.append(mat)
 json.dump({"parts": {"cuirass": {"class": "metal"}, "pauldron_l": {"class": "leather"}, "pauldron_r": {"class": "leather"}}}, open(os.path.join(root, "recipe.json"), "w"))
+canon("chest")                                       # the door: the tool reads a canonical mesh
 def slots(name):
     o = bpy.data.objects[name]
     return {"names": [m.name for m in o.data.materials], "idx": [p.material_index for p in o.data.polygons],
@@ -54,7 +55,7 @@ print("RESULT", json.dumps({"r": r, "copy": slots(r["object"])}))
 
 def test_refusals(tmp_path):
     res = _go(tmp_path, '''
-one = boxes("one", [((3, 0, 1), (0.3, 0.3, 0.3))])
+one = boxes("one", [((3, 0, 1), (0.3, 0.3, 0.3))]); canon("one")
 print("RESULT", json.dumps({"noparts": call("parts_material_slots", object="one", recipe="recipe.json"),
                             "by": call("parts_material_slots", object="chest", recipe="recipe.json", by="colour")}))
 ''')

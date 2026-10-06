@@ -7,6 +7,7 @@
 # blender -b -P uv_score.py -- <out.json> <res> <mesh> [<mesh> ...]
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+import lw_canon
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 if __name__ == '__main__' and len(_A) < 3:
     if not _A: _ax.home(__file__, 'Score UV unwraps on measurements: utilization, overlap, islands, stretch, mirrored faces, seams')
@@ -18,7 +19,7 @@ OUT, RES, FILES = _A[0], int(_A[1]), _A[2:]
 rows = []
 for f in FILES:
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    (bpy.ops.import_scene.fbx if f.lower().endswith('.fbx') else bpy.ops.import_scene.gltf)(filepath=f)
+    lw_canon.io.import_raw(f)
     obs = [o for o in bpy.data.objects if o.type == 'MESH']
     if not obs:
         rows.append({'name': os.path.basename(f), 'error': 'no mesh in file'}); continue

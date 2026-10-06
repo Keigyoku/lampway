@@ -12,6 +12,7 @@
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+import lw_canon
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 if __name__ == '__main__' and len(_A) < 4:
     if not _A: _ax.home(__file__, 'Orthographic clay render of a mesh from a cardinal view (mesh-paint input), camera recorded')
@@ -23,7 +24,7 @@ from mathutils import Matrix
 ap = argparse.ArgumentParser(prog='clay_view.py'); [ap.add_argument(k) for k in ('mesh', 'out', 'view')]; ap.add_argument('res', type=int); ap.add_argument('--turn', type=float, default=-90.0)
 a = ap.parse_args(_A)
 bpy.ops.wm.read_factory_settings(use_empty=True); sc = bpy.context.scene
-(bpy.ops.import_scene.fbx if a.mesh.lower().endswith('.fbx') else bpy.ops.import_scene.gltf)(filepath=a.mesh); ob = next(o for o in bpy.data.objects if o.type == 'MESH')
+lw_canon.io.import_raw(a.mesh); ob = next(o for o in bpy.data.objects if o.type == 'MESH')
 bpy.ops.object.select_all(action='DESELECT'); ob.select_set(True); bpy.context.view_layer.objects.active = ob; bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 ob.data.transform(Matrix.Rotation(math.radians(a.turn), 4, 'Z'))
 co = np.array([v.co[:] for v in ob.data.vertices]); lo, hi = co.min(0), co.max(0); c = (lo + hi) / 2; ext = float(max(hi - lo)) * 1.08

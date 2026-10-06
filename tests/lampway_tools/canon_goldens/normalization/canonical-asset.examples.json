@@ -1,0 +1,75 @@
+{
+  "about": "Self-test instances for canonical-asset.schema.json. Every 'valid' entry must validate; every 'invalid' entry must fail for the stated reason. Values are synthetic (no captain asset, no real hash).",
+  "valid": [
+    {
+      "name": "tripo chest seed at generator scale, frame declared from the recipe",
+      "doc": {
+        "schema": "lampway.canonical-asset", "schema_version": 1, "kind": "mesh", "asset_id": "chest-seed-a",
+        "raw": {"sha256": "1111111111111111111111111111111111111111111111111111111111111111", "container": "glb", "bytes": 1000,
+                "path_hint": "studio/job/variant1.glb", "generator": {"source": "tripo_studio", "action": "smart_mesh", "job_id": "job-a"}},
+        "conventions": {"frame": "lampway.body/1", "up": "+Z", "front": "-Y", "wearer_left": "+X", "handedness": "right", "units": "m",
+                        "source_frame": {"name": "gltf_tripo", "up": "+Y", "front": "+X"},
+                        "axis_map": [[0, 1, 0], [-1, 0, 0], [0, 0, 1]], "axis_map_det": 1, "turn_deg": -90, "winding_reversed": false,
+                        "frame_decision": {"kind": "declared", "evidence": {"method": "recipe_turn", "value": -90, "reference": "recipe.json"}}},
+        "transform": {"applied": true, "object_matrix": [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]},
+        "scale": {"state": "generator_normalised", "decision": "none", "factor_applied": 1, "generator_norm": {"longest_side_m": 0.98, "source": "canon 01 B"}},
+        "pivot": {"rule": "bbox_bottom_centre", "offset_m": [0, 0, 0]},
+        "normalized_by": {"tool": "lampway_normalize_mesh", "tool_version": "1.0.0", "blender_version": "5.2.1"},
+        "canonical_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "receipt_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "body": {
+          "bbox_min_m": [-0.4, -0.2, 0.0], "bbox_max_m": [0.4, 0.2, 0.58],
+          "topology": {"verts": 12000, "faces": 25000, "tris": 0, "quads": 25000, "ngons": 0, "welded": true,
+                       "weld": {"rule": "position", "distance_m": 1e-05, "vertices_merged": 3100}, "split_by_uv_seam_in_raw": true,
+                       "manifold": false, "non_manifold_edges": 4, "boundary_loops": 321, "shells": 30, "winding_consistent": true, "degenerate_faces": 0},
+          "uv_sets": [{"name": "UVMap", "origin": "bottom_left", "v_up": true, "range": "unit", "islands": 706, "island_rule": "vertex_index_and_uv",
+                       "overlap": 0.0, "flipped_fraction": 0.0, "layout_sha256": "4444444444444444444444444444444444444444444444444444444444444444"}],
+          "material_slots": [{"slot": 0, "name": "Material"}],
+          "geometry_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+        }
+      }
+    },
+    {
+      "name": "the same chest after fit_place: real scale derived from the body",
+      "patch": {"scale": {"state": "real", "decision": "derived_from_body", "factor_applied": 0.712,
+                          "evidence": {"method": "fit_place_enclosure", "value": 0.712, "reference": "fit/body/<sha8>", "receipt_sha256": "6666666666666666666666666666666666666666666666666666666666666666"}},
+                "pivot": {"rule": "body_frame_placed"}}
+    },
+    {
+      "name": "a baked DirectX normal map",
+      "doc": {
+        "schema": "lampway.canonical-asset", "schema_version": 1, "kind": "texture", "asset_id": "chest-normal-dx",
+        "raw": {"sha256": "7777777777777777777777777777777777777777777777777777777777777777", "container": "png", "bytes": 4000, "generator": {"source": "lampway_tool", "action": "bake_maps"}},
+        "conventions": {"frame": "lampway.body/1", "up": "+Z", "front": "-Y", "wearer_left": "+X", "handedness": "right", "units": "m",
+                        "source_frame": {"name": "lampway_body", "up": "+Z", "front": "-Y"}, "axis_map": [[1, 0, 0], [0, 1, 0], [0, 0, 1]], "axis_map_det": 1,
+                        "turn_deg": 0, "winding_reversed": false, "frame_decision": {"kind": "already_canonical", "evidence": {"method": "identity"}}},
+        "transform": {"applied": true, "object_matrix": [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]},
+        "scale": {"state": "unknown", "decision": "none", "factor_applied": 1},
+        "normalized_by": {"tool": "lampway_normalize_texture", "tool_version": "1.0.0"},
+        "canonical_sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+        "receipt_sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+        "body": {"role": "normal", "colour_space": "Non-Color", "normal": {"convention": "dx", "space": "tangent", "tangent_basis": "mikktspace", "convention_evidence": "baked_by_lampway"},
+                 "width": 2048, "height": 2048, "power_of_two": true, "bit_depth": 16, "channels": 3, "alpha": "none",
+                 "uv": {"mesh": {"asset_id": "chest-seed-a", "canonical_sha256": "2222222222222222222222222222222222222222222222222222222222222222"},
+                        "uv_set": "UVMap", "layout_sha256": "4444444444444444444444444444444444444444444444444444444444444444"},
+                 "image_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+      }
+    }
+  ],
+  "invalid": [
+    {"name": "real scale with no evidence (a guessed scale)", "base": 0,
+     "patch": {"scale": {"state": "real", "decision": "measured", "factor_applied": 1.0}}, "why": "Scale.state real requires evidence"},
+    {"name": "transform said applied but the matrix is not identity", "base": 0,
+     "patch": {"transform": {"applied": true, "object_matrix": [[0.01, 0, 0, 0], [0, 0.01, 0, 0], [0, 0, 0.01, 0], [0, 0, 0, 1]]}}, "why": "applied => Identity4"},
+    {"name": "a reflecting axis map that does not reverse winding", "base": 0,
+     "patch": {"conventions": {"axis_map": [[-1, 0, 0], [0, 1, 0], [0, 0, 1]], "axis_map_det": -1, "winding_reversed": false}}, "why": "det -1 => winding_reversed true"},
+    {"name": "a normal map tagged sRGB", "base": 2,
+     "patch": {"body": {"colour_space": "sRGB"}}, "why": "role normal => Non-Color"},
+    {"name": "a normal map with no convention", "base": 2,
+     "patch": {"body": {"normal": null}}, "why": "role normal requires normal{convention}"},
+    {"name": "front is not -Y", "base": 0,
+     "patch": {"conventions": {"front": "+X"}}, "why": "Conventions.front const -Y"},
+    {"name": "welded without a distance", "base": 0,
+     "patch": {"body": {"topology": {"weld": {"distance_m": null, "vertices_merged": null}}}}, "why": "welded => weld.distance_m and vertices_merged"}
+  ]
+}

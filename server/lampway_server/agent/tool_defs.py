@@ -25,6 +25,7 @@ class Def:
     params: list = field(default_factory=list)
     api: Optional[str] = None              # an api.<fn> tool function, or
     batch: Optional[str] = None            # a ported batch tool run through api.run_tool
+    wip: bool = False                      # WIP tooling (a DRAFT canon page): the description and the receipt say so
 
     def spec(self) -> ToolSpec:
         props, req = {}, []

@@ -1,0 +1,7 @@
+{
+  "schema": "titan.mesh-shading/1",
+  "normal_decimals": 9,
+  "unit_length_tolerance": 0.000001,
+  "domain": "face corners in face/vertex order",
+  "scope": "surface normals at the declared mesh positions; morph normal deltas are not represented"
+}

@@ -7,6 +7,7 @@
 # blender -b -P bake_maps.py -- <pair.blend> <args.json> <result.json>
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+import lw_canon
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 if __name__ == '__main__' and len(_A) < 3:
     if not _A: _ax.home(__file__, 'Bake normal, albedo (colour only) and AO from high-poly donors onto a UV-mapped low-poly target in headless Cycles')
@@ -16,7 +17,7 @@ import json, os, bpy, numpy as np
 BLEND, ARGS, OUT = _A[:3]
 a = json.load(open(ARGS))
 bpy.ops.wm.read_factory_settings(use_empty=True)
-with bpy.data.libraries.load(BLEND) as (src, dst):
+with lw_canon.io.load_library(BLEND) as (src, dst):
     dst.objects = list(src.objects)
 for o in dst.objects:
     bpy.context.scene.collection.objects.link(o)

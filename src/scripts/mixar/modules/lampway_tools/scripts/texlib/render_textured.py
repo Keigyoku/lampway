@@ -12,6 +12,7 @@
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+import lw_canon
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 _bad = [] if __name__ != '__main__' else [x for x in _A if x.startswith('--') and x.split('=')[0] not in []]
 if _bad: print(f'error: unknown flag(s) {_bad}'); _ax.helps(['blender -b <blend> -P scripts/texlib/render_textured.py -- <projection_dir> <out_dir> [object]']); _sys.stdout.flush(); raise SystemExit(2)
@@ -50,7 +51,7 @@ mat = bpy.data.materials.new('textured_atlas'); mat.use_nodes = True; nt = mat.n
 out = N.new('ShaderNodeOutputMaterial'); bs = N.new('ShaderNodeBsdfPrincipled'); L.new(bs.outputs['BSDF'], out.inputs['Surface'])
 uv = N.new('ShaderNodeTexCoord')
 def img(path, noncolor=False, box=None):
-    t = N.new('ShaderNodeTexImage'); t.image = bpy.data.images.load(path, check_existing=True)
+    t = N.new('ShaderNodeTexImage'); t.image = lw_canon.io.load_image(path, check_existing=True)
     if noncolor: t.image.colorspace_settings.name = 'Non-Color'
     if box:
         mp = N.new('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (box, box, box)
@@ -97,7 +98,7 @@ bump = N.new('ShaderNodeBump'); bump.inputs['Distance'].default_value = 1.0; L.n
 ob.data.materials.clear(); ob.data.materials.append(mat)
 for p in ob.data.polygons: p.material_index = 0
 w = bpy.data.worlds.new('tx_world'); sc.world = w; w.use_nodes = True; bg = w.node_tree.nodes['Background']
-env = w.node_tree.nodes.new('ShaderNodeTexEnvironment'); env.image = bpy.data.images.load(HDRI); w.node_tree.links.new(env.outputs['Color'], bg.inputs['Color']); bg.inputs['Strength'].default_value = float(OV.get('hdri_strength', 0.8))
+env = w.node_tree.nodes.new('ShaderNodeTexEnvironment'); env.image = lw_canon.io.load_image(HDRI, role='hdri'); w.node_tree.links.new(env.outputs['Color'], bg.inputs['Color']); bg.inputs['Strength'].default_value = float(OV.get('hdri_strength', 0.8))
 sc.render.film_transparent = True   # the studio HDRI lights and reflects; the backdrop is composited dark
 for name, rot, e in (('key', (55, 0, -35), 2.5), ('rim', (100, 0, 180), 1.5)):
     Ld = bpy.data.lights.new(name, 'SUN'); Ld.energy = e; Ld.angle = math.radians(3); lo = bpy.data.objects.new(name, Ld); sc.collection.objects.link(lo); lo.rotation_euler = [math.radians(v) for v in rot]

@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 
 from . import sections as S
+from .. import canon_geom as G
 
 KINDS = ("chest", "helmet", "waist", "boots", "gauntlets")
 ANCHORS = ("width", "height", "foot")
@@ -47,6 +48,67 @@ def _xy(p, c):
     return np.array([c[0], c[1]])
 
 
+def _local(V, origin, axis, side):
+    """V in (side, front, along) coordinates of a frame at ``origin`` with ``axis`` along and ``side`` across."""
+    front = np.cross(axis, side)
+    P = np.asarray(V, float) - origin
+    return np.stack([P @ side, P @ front, P @ axis], 1)
+
+
+def _ring(V, T, origin, axis, side, t, start=None):
+    """(centre (2,), resolved (x, y), width, depth) of the INNER wall of the section at ``t`` along ``axis`` (canon 09 B.4): the first
+    harmonic of the first-hit radii of rays from ``start`` (default: the section's own mean), re-cast from the new centre; a ray
+    through an opening is left out of the fit; the spans are the +-side and +-front first hits from the centre (NaN through an
+    opening); None when too few rays meet a wall."""
+    segs = G.slice_segments(_local(V, origin, axis, side), T, t)
+    if len(segs) < 3:
+        return None
+    c0 = segs.reshape(-1, 2).mean(0) if start is None else np.asarray(start, float)
+    try:
+        c, _n = G.harmonic_centre(segs, c0)                             # the first harmonic of the inner wall's radii (canon 09 B.4)
+    except ValueError:
+        return None
+    hits = [G.first_hit(segs, c, d) for d in (np.array([1.0, 0]), np.array([-1.0, 0]), np.array([0, 1.0]), np.array([0, -1.0]))]
+    return c, (True, True), hits[0] + hits[1], hits[2] + hits[3]
+
+
+def _inner_centre(V, T, z, section_points):
+    """The (x, y) centre of the inner wall of the piece's horizontal section at ``z`` (rays from the section's own mean); an axis the
+    wall leaves open keeps the extents' midpoint."""
+    fallback = S.centre(section_points)
+    r = _ring(V, T, np.zeros(3), S.Z, S.X, z)
+    if r is None:
+        return fallback
+    return np.array([r[0][k] if r[1][k] else fallback[k] for k in range(2)])
+
+
+def _enclose(bV, bT, V, T, origin, axis, side, t_body, ts_piece):
+    """The inner-wall enclosure over ``ts_piece``: {body_centre, body_width, piece_centre (median per axis over the levels whose
+    wall closes on that axis), piece_width, slices, resolved}; the piece's rays start from the body's centre so they meet its
+    INNER wall first (a piece still in its own frame starts from its own sections)."""
+    b = _ring(bV, bT, origin, axis, side, t_body)
+    if b is None or not all(b[1]):
+        raise PlaceError("the body has no closed section at the anchor level: check the body package and the joints")
+    rows = []
+    for t in ts_piece:                                     # per level and axis: from the body's centre, else (an opening on that ray,
+        r1, r2 = _ring(V, T, origin, axis, side, t, b[0]), _ring(V, T, origin, axis, side, t)   # or a piece still in its own frame) its own
+        cands = [r for r in (r1, r2) if r is not None]
+        if cands:
+            pick = [next((r for r in cands if r[1][k]), cands[0]) for k in range(2)]
+            rows.append((np.array([pick[0][0][0], pick[1][0][1]]), (pick[0][1][0], pick[1][1][1]), pick[0][2], pick[1][3]))
+    if not rows:
+        raise PlaceError("no section of the piece encloses the body's centre: place it over the body (turn, sides) first")
+    pc = np.zeros(2)
+    for k in range(2):
+        vals = [r[0][k] for r in rows if r[1][k]]
+        if not vals:
+            raise PlaceError(f"the piece's inner wall is open along {'xy'[k]} at every band level: it cannot be centred by enclosure")
+        pc[k] = float(np.median(vals))
+    widths = [r[2] for r in rows if r[1][0]]
+    return {"body_centre": b[0], "body_width": b[2], "body_depth": b[3], "piece_centre": pc, "piece_width": float(np.median(widths)),
+            "slices": len(rows), "resolved": [sum(1 for r in rows if r[1][k]) for k in range(2)]}
+
+
 def _similarity(V, s, anchor_piece, anchor_body):
     return (V - anchor_piece) * s + anchor_body
 
@@ -61,28 +123,24 @@ def _helmet(bV, bT, J, V, T, C):
     w, d, pp = S.profile(V, T, np.zeros(3), S.Z, S.X, z)
     j = int(np.nanargmax(w))
     s = (bw[k] + 2 * C) / w[j]
-    cb, cp = S.centre(bp[k]), S.centre(pp[j])
+    cb, cp = _inner_centre(bV, bT, hz[k], bp[k]), _inner_centre(V, T, z[j], pp[j])  # canon 09 B.4: both centred the same way, the piece by its INNER wall
     return s, np.array([cp[0], cp[1], z[j]]), np.array([cb[0], cb[1], hz[k]]), {"anchor": "head width at its widest level above neck_02, + 2C (the crest is not measured)",
                                                                               "body_width_mm": round(1000 * (bw[k] + 2 * C), 1), "piece_width_mm": round(1000 * w[j], 1)}
 
 
 def _waist(bV, bT, J, V, T, C):
-    zw, zk = J["spine_01"][2] + 0.03, J["calf_l"][2]
+    zw = J["spine_01"][2] + 0.03
     torso = np.abs(bV[:, 0]) < 0.27
     bt = bT[torso[bT].all(1)]
-    Ww, Dw, bp = S.section(bV, bt, np.zeros(3), S.Z, S.X, zw)
     lo, hi = V[:, 2].min(), V[:, 2].max()
     L = hi - lo
-    z = np.linspace(hi - 0.03 * L, lo + 0.01 * L, 80)
-    w, d, pp = S.profile(V, T, np.zeros(3), S.Z, S.X, z)
-    band = z >= hi - 0.06 * L
-    Wband = float(np.nanmedian(w[band]))
-    cps = np.array([S.centre(p) for p, b in zip(pp, band) if b and p is not None])
-    cp = np.median(cps, axis=0)
-    cb = S.centre(bp)
-    zmid = float(np.median(z[band]))
-    return (Ww + 2 * C) / Wband, np.array([cp[0], cp[1], zmid]), np.array([cb[0], cb[1], zw]), {
-        "anchor": "waist band width at spine_01 + 3 cm, + 2C; the band's mid level on that height", "body_width_mm": round(1000 * (Ww + 2 * C), 1), "piece_width_mm": round(1000 * Wband, 1)}
+    band = np.linspace(hi - 0.06 * L, hi - 0.005 * L, 7)
+    e = _enclose(bV, bt, V, T, np.zeros(3), S.Z, S.X, zw, band)
+    zmid = float(np.median(band))
+    return (e["body_width"] + 2 * C) / e["piece_width"], np.array([e["piece_centre"][0], e["piece_centre"][1], zmid]), np.array([e["body_centre"][0], e["body_centre"][1], zw]), {
+        "anchor": "waist band's INNER wall width (top 6 %) vs the body's width at spine_01 + 3 cm, + 2C; centred by inner-wall enclosure (canon 09)",
+        "body_width_mm": round(1000 * (e["body_width"] + 2 * C), 1), "piece_width_mm": round(1000 * e["piece_width"], 1),
+        "inner_wall_shift_m": [round(float(x), 6) for x in (e["body_centre"] - e["piece_centre"])], "slices": e["slices"]}
 
 
 def _boots(bV, bT, J, V, T, C, anchor, sides):
@@ -108,7 +166,7 @@ def _boots(bV, bT, J, V, T, C, anchor, sides):
         ft = sub[sub[:, 2] < lo + 0.04 * h]
         pfl = ft[:, 1].max() - ft[:, 1].min()
         scale = {"width": (bw + 2 * C) / pw, "height": (k_[2] + C) / h, "foot": (fl + 2 * C) / pfl}
-        rows.append({"side": sfx, "scales": scale, "bp": S.centre(bp), "pp": S.centre(pp), "sole_body": float(foot[:, 2].min()), "sole_piece": float(lo),
+        rows.append({"side": sfx, "scales": scale, "bp": S.centre(bp), "pp": _inner_centre(V, pt, lo + 0.6 * h, pp), "sole_body": float(foot[:, 2].min()), "sole_piece": float(lo),
                      "foot_y_body": float((foot[:, 1].max() + foot[:, 1].min()) / 2), "foot_y_piece": float((ft[:, 1].max() + ft[:, 1].min()) / 2)})
     s = float(np.mean([r["scales"][anchor] for r in rows]))
     anchor_p = np.array([np.mean([r["pp"][0] * np.sign(1 if r["side"] == "l" else -1) for r in rows]) * (1 if sides != "r" else -1), np.mean([r["foot_y_piece"] for r in rows]),
@@ -119,8 +177,18 @@ def _boots(bV, bT, J, V, T, C, anchor, sides):
                                    "per_side": {r["side"]: {a: round(float(v), 4) for a, v in r["scales"].items()} for r in rows}}
 
 
+def _turn(a, b):
+    """The proper rotation taking unit ``a`` onto unit ``b`` by the shortest arc."""
+    v, c = np.cross(a, b), float(a @ b)
+    if np.linalg.norm(v) < 1e-12:
+        return np.eye(3)
+    K = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+    return np.eye(3) + K + K @ K / (1 + c)
+
+
 def _gauntlets(bV, bT, J, V, T, C, sides):
     rows = []
+    V = V.copy()
     for sgn, sfx in ((1, "l"), (-1, "r")):
         if sides not in ("both", sfx):
             continue
@@ -161,11 +229,24 @@ def _gauntlets(bV, bT, J, V, T, C, sides):
         ang = float(np.degrees(np.arccos(np.clip(abs(a @ ax_), -1, 1))))
         if ang > 25:
             raise PlaceError(f"the {sfx} gauntlet's axis is {ang:.0f} degrees off the forearm's: the turn or orientation is wrong")
+        Rk = _turn(a, ax_ if a @ ax_ >= 0 else -ax_)                          # canon 09 B.2: the residual angle corrected rigidly, never left
+        idx = np.unique(pt)
+        V[idx] = (V[idx] - c0) @ Rk.T + c0
+        a = Rk @ a
+        sub = V[idx]
+        w = (sub - c0) @ a
+        sd = np.cross(a, S.Z)
+        sd /= max(np.linalg.norm(sd), 1e-9)
+        _, _, pp = S.section(V, pt, c0, a, sd, t35)
+        qq = (pp - pp.mean(0))
+        _, _, vv = np.linalg.svd(qq, full_matrices=False)
+        ee = np.percentile(qq @ vv.T, 99, 0) - np.percentile(qq @ vv.T, 1, 0)
+        pmaj = float(max(ee))
         rows.append({"scale": fmaj / pmaj, "angle": ang, "pt": c0 + (t35 - 0.0) * a, "bt": el + 0.5 * fa * ax_, "sfx": sfx, "bp": p.mean(0), "pp": pp.mean(0), "axis_b": ax_, "axis_p": a, "c0": c0, "t35": t35})
     s = float(np.mean([r["scale"] for r in rows]))
     ap_, ab_ = np.mean([r["pt"] for r in rows], axis=0), np.mean([r["bt"] for r in rows], axis=0)
     return s, ap_, ab_, {"anchor": "bracer major axis at 35 % of the piece vs the forearm's middle, + 2C", "axis_error_deg": {r["sfx"]: round(r["angle"], 2) for r in rows},
-                         "scales": {r["sfx"]: round(float(r["scale"]), 4) for r in rows}}
+                         "scales": {r["sfx"]: round(float(r["scale"]), 4) for r in rows}, "axis_corrected": True, "_V": V}
 
 
 def place(kind, body_npz, piece_npz, turn=0.0, clear_mm=15.0, scale_anchor=None, sides="both"):
@@ -199,6 +280,7 @@ def place(kind, body_npz, piece_npz, turn=0.0, clear_mm=15.0, scale_anchor=None,
         s, ap, ab, rep = _boots(bV, bT, J, V, T, C, scale_anchor, sides)
     else:
         s, ap, ab, rep = _gauntlets(bV, bT, J, V, T, C, sides)
+    V = rep.pop("_V", V)                                                         # a gauntlet's rigid axis correction, already applied
     Vp = _similarity(V, s, ap, ab)
     t = ab - s * ap
     meta = {"kind": kind, "scale": float(s), "translation": [float(x) for x in t], "anchor_shift": [float(x) for x in (ab - ap)], "tz": float(t[2]), "y_shift": float(t[1]), "x_shift": float(t[0]), "turn_deg": float(turn),

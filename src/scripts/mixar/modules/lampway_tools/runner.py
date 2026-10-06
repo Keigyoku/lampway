@@ -25,6 +25,10 @@ from pathlib import Path
 from typing import Optional
 
 from . import settings as S
+from .canon_door import LEGACY, NONE, Need, validate_declaration
+
+# the part-set tools read a mesh FILE: the runner's door is declarative until run_tool checks path sidecars (DOOR.md 2.1)
+MESH_ANY = {"mesh": Need(kind=("mesh", "part"), scale=("real", "generator_normalised", "unknown"))}
 
 SCRIPTS = Path(__file__).resolve().parent / "scripts"
 
@@ -39,48 +43,52 @@ class Tool:
     kind: str          # blender | numpy | science
     script: str        # relative to scripts/
     summary: str
+    consumes: object   # REQUIRED (the normalization door): {arg: Need}, NONE("why") or, during migration, LEGACY("issue")
+
+    def __post_init__(self):
+        validate_declaration(self.consumes)
 
 
-def _t(name, kind, script, summary):
-    return name, Tool(name, kind, script, summary)
+def _t(name, kind, script, summary, consumes):
+    return name, Tool(name, kind, script, summary, consumes)
 
 
 TOOLS = dict([
-    _t("mesh_qa", "blender", "meshqa/mesh_qa.py", "mesh QA candidates (open loops, floating shells) with review renders"),
-    _t("patch_holes", "blender", "partseg/patch_holes.py", "apply mesh QA rulings: delete ruled faces, patch ruled holes, relabel"),
-    _t("uv_patches", "blender", "partseg/uv_patches.py", "UV islands for patch faces, packed with the originals locked"),
-    _t("delete_caps", "blender", "partseg/delete_caps.py", "delete a cap that closes an opening by ray-casting its footprint"),
-    _t("bake_maps", "blender", "bake/bake_maps.py", "headless Cycles bake of high-poly donors onto a UV-mapped target: normal, colour-only albedo, AO"),
-    _t("material_bake", "blender", "bake/material_bake.py", "headless Cycles bake of a material's channels (base colour, roughness, metallic, normal, AO, emission) with an ORM pack"),
-    _t("asset_catalog_export", "blender", "library/catalog_export.py", "write Asset Vault assets into a Blender asset library .blend, marked with their catalogues"),
-    _t("rtmw_detect", "science", "anim/rtmw_detect.py", "RTMW whole-body 2D keypoints per frame (rtmlib + onnxruntime, weights from disk)"),
-    _t("robust_weight_transfer", "science", "rig/robust_weight_transfer.py", "biharmonic inpainting of unmatched vertices' skin weights (robust skin-weight transfer)"),
-    _t("render_owner", "blender", "partseg/render_owner.py", "render a mesh coloured by part owner, four views plus legend"),
-    _t("mesh_to_npz", "blender", "proportion/mesh_to_npz.py", "export a mesh or the MetaHuman body to npz"),
-    _t("proportion_fit", "blender", "proportion/proportion_fit.py", "clearance-fit overlays (fragile as a ranking)"),
-    _t("mesh_compare", "blender", "proportion/mesh_compare.py", "compare candidate meshes with a reference, matcap renders"),
-    _t("pose_clearance", "blender", "proportion/pose_clearance.py", "the MetaHuman's closest pose and residual blocking surfaces"),
-    _t("render_textured", "blender", "texlib/render_textured.py", "textured look of a parts set on its shared atlas"),
-    _t("clay_view", "blender", "texlib/clay_view.py", "orthographic clay render of a mesh from a cardinal view (the mesh-paint input)"),
-    _t("mesh_paint_set", "numpy", "texlib/mesh_paint_set.py", "projection plate set from mesh-paint results: picked painted views with their clay-render alpha"),
-    _t("split_relief", "science", "partseg/split_relief.py", "split a raised relief out of its part as a material-only part"),
-    _t("transfer_parts", "science", "partseg/transfer_parts.py", "carry an approved part set onto a new seed"),
-    _t("apply_part_fixes", "numpy", "partseg/apply_part_fixes.py", "apply an auditor's part fixes to an owner map"),
-    _t("relief_project", "science", "texlib/relief_project.py", "project view reliefs and plate colour into the UV atlas"),
-    _t("material_masks", "science", "texlib/material_masks.py", "material masks from the projected colour and each part's class"),
-    _t("pbr_merge", "science", "texlib/pbr_merge.py", "engine-ready PBR set: studio maps kept, patches filled, palette and metal fixes baked in"),
-    _t("proportion_ratios", "numpy", "proportion/proportion_ratios.py", "scale-free landmark ratios against the body (the primary proportion score)"),
-    _t("uv_score", "blender", "texlib/uv_score.py", "score UV layouts of files on measurements (utilization, overlap, islands, stretch, flipped, seams)"),
-    _t("piece_ratios", "numpy", "proportion/piece_ratios.py", "proportion scores of helmet / waist / boots / gauntlets against the body (NEW, unvalidated)"),
-    _t("place_piece", "numpy", "proportion/place_piece.py", "place a torso piece on the body the way the audits do"),
-    _t("export_parts", "blender", "partseg/export_parts.py", "export a finished part set as Parts Library candidates: one GLB + part.json per part, versions never overwritten"),
-    _t("verify_set", "numpy", "partseg/verify_set.py", "independent check of an exported part set: every part GLB corner by corner against the source, every face once"),
-    _t("render_final", "blender", "partseg/render_final.py", "render a finished part set: the assembly, the unassigned faces, each part isolated and in context"),
-    _t("judge_pack", "blender", "partseg/judge_pack.py", "the review pack for a parts regroup: two segmentations reconciled into candidates and decisions, with renders"),
-    _t("gen_parts_table", "numpy", "libwiki/gen_parts_table.py", "write a part set's table and held notes into the mesh wiki's entity spec from the exported files"),
-    _t("index_delta", "numpy", "texlib/index_delta.py", "a texture library's next INDEX as a delta against a baseline listing (added, changed, removed; never overwritten)"),
-    _t("libwiki", "numpy", "libwiki/libwiki.py", "publish a library inventory as an LLM wiki: build, lint, drift (deterministic; pages generated, never hand-edited)"),
-    _t("pauldron_symmetry", "numpy", "proportion/pauldron_symmetry.py", "left versus mirrored-right shoulder height maps"),
+    _t("mesh_qa", "blender", "meshqa/mesh_qa.py", "mesh QA candidates (open loops, floating shells) with review renders", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("patch_holes", "blender", "partseg/patch_holes.py", "apply mesh QA rulings: delete ruled faces, patch ruled holes, relabel", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("uv_patches", "blender", "partseg/uv_patches.py", "UV islands for patch faces, packed with the originals locked", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("delete_caps", "blender", "partseg/delete_caps.py", "delete a cap that closes an opening by ray-casting its footprint", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("bake_maps", "blender", "bake/bake_maps.py", "headless Cycles bake of high-poly donors onto a UV-mapped target: normal, colour-only albedo, AO", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("material_bake", "blender", "bake/material_bake.py", "headless Cycles bake of a material's channels (base colour, roughness, metallic, normal, AO, emission) with an ORM pack", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("robust_weight_transfer", "science", "rig/robust_weight_transfer.py", "biharmonic inpainting of unmatched vertices' skin weights (robust skin-weight transfer)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("render_owner", "blender", "partseg/render_owner.py", "render a mesh coloured by part owner, four views plus legend", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("mesh_to_npz", "blender", "proportion/mesh_to_npz.py", "export a mesh or the MetaHuman body to npz", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("proportion_fit", "blender", "proportion/proportion_fit.py", "clearance-fit overlays (fragile as a ranking)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("mesh_compare", "blender", "proportion/mesh_compare.py", "compare candidate meshes with a reference, matcap renders", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("pose_clearance", "blender", "proportion/pose_clearance.py", "the MetaHuman's closest pose and residual blocking surfaces", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("render_textured", "blender", "texlib/render_textured.py", "textured look of a parts set on its shared atlas", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("clay_view", "blender", "texlib/clay_view.py", "orthographic clay render of a mesh from a cardinal view (the mesh-paint input)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("mesh_paint_set", "numpy", "texlib/mesh_paint_set.py", "projection plate set from mesh-paint results: picked painted views with their clay-render alpha", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("split_relief", "science", "partseg/split_relief.py", "split a raised relief out of its part as a material-only part", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("transfer_parts", "science", "partseg/transfer_parts.py", "carry an approved part set onto a new seed", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("apply_part_fixes", "numpy", "partseg/apply_part_fixes.py", "apply an auditor's part fixes to an owner map", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("relief_project", "science", "texlib/relief_project.py", "project view reliefs and plate colour into the UV atlas", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("material_masks", "science", "texlib/material_masks.py", "material masks from the projected colour and each part's class", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("pbr_merge", "science", "texlib/pbr_merge.py", "engine-ready PBR set: studio maps kept, patches filled, palette and metal fixes baked in", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("proportion_ratios", "numpy", "proportion/proportion_ratios.py", "scale-free landmark ratios against the body (the primary proportion score)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("uv_score", "blender", "texlib/uv_score.py", "score UV layouts of files on measurements (utilization, overlap, islands, stretch, flipped, seams)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("piece_ratios", "numpy", "proportion/piece_ratios.py", "proportion scores of helmet / waist / boots / gauntlets against the body (NEW, unvalidated)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("place_piece", "numpy", "proportion/place_piece.py", "place a torso piece on the body the way the audits do", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("pauldron_symmetry", "numpy", "proportion/pauldron_symmetry.py", "left versus mirrored-right shoulder height maps", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("rtmw_detect", "science", "anim/rtmw_detect.py", "RTMW whole-body 2D keypoints per frame (rtmlib + onnxruntime, weights from disk)", LEGACY("pre-door lane merged: video frames are texture input; awaits the texture normalizer")),
+    _t("export_parts", "blender", "partseg/export_parts.py", "export a finished part set as Parts Library candidates: one GLB + part.json per part, versions never overwritten", MESH_ANY),
+    _t("verify_set", "numpy", "partseg/verify_set.py", "independent check of an exported part set: every part GLB corner by corner against the source, every face once", MESH_ANY),
+    _t("render_final", "blender", "partseg/render_final.py", "render a finished part set: the assembly, the unassigned faces, each part isolated and in context", MESH_ANY),
+    _t("judge_pack", "blender", "partseg/judge_pack.py", "the review pack for a parts regroup: two segmentations reconciled into candidates and decisions, with renders", MESH_ANY),
+    _t("gen_parts_table", "numpy", "libwiki/gen_parts_table.py", "write a part set's table and held notes into the mesh wiki's entity spec from the exported files", NONE("reads the exported SET and part.json files: no geometry")),
+    _t("index_delta", "numpy", "texlib/index_delta.py", "a texture library's next INDEX as a delta against a baseline listing (added, changed, removed; never overwritten)", NONE("compares two library listings: no asset")),
+    _t("libwiki", "numpy", "libwiki/libwiki.py", "publish a library inventory as an LLM wiki: build, lint, drift (deterministic; pages generated, never hand-edited)", NONE("reads a library listing (paths, sizes, sha256): no asset")),
+    _t("asset_catalog_export", "blender", "library/catalog_export.py", "write Asset Vault assets into a Blender asset library .blend, marked with their catalogues", LEGACY("pre-door lane merged (lp/wave5 at the orphans merge): the Asset Vault tool awaits its owner's Need/NONE")),
 ])
 
 _NOISE = re.compile(r"\[INFO\]|\[WARNING\]|\[agent_bubble\]|empty keymap|^register_class\(|^Info: Registering|^Warning: '.*' does not contain"

@@ -34,20 +34,21 @@ def test_rigid_fit_recovers_a_rotation_and_a_uniform_scale_and_reports_the_resid
     assert bent["max_m"] > 0.003 and bent["rms_m"] > 0.001
 
 
-def test_edge_strain_is_percent_change_and_a_breathing_scale_fails_the_rigid_test_because_scale_is_never_fitted_per_pose():
+def test_edge_strain_is_a_fraction_and_a_breathing_scale_fails_the_strain_limit():
+    # canon 05 (2026-10-06): strain is |l/l0 - 1| as a fraction, judged at its p95 against the adopted 1 %
     P = _cube()
     edges = np.array([[0, 1], [0, 2], [0, 4], [1, 3], [2, 3], [4, 5], [4, 6], [5, 7], [6, 7], [1, 5], [2, 6], [3, 7]])
-    s = V.edge_strain(P, 1.01 * P, edges)
-    assert s["max_pct"] == pytest.approx(1.0, abs=1e-6)
-    j = V.judge("metal", {"rigid_residual_mm": 0.0, "strain_max_pct": s["max_pct"] + 0.5, "seam_gap_mm_max": 0.0}, {"status": "proposed", "metal": {"rigid_max_mm": 1.0, "strain_max_pct": 1.0}})
-    assert j["verdict"] == "FAIL" and "strain_max_pct" in j["over"]
+    s = V.edge_strain(P, 1.015 * P, edges)
+    assert s["max"] == pytest.approx(0.015, abs=1e-9)
+    j = V.judge("metal", {"rigid_max_mm": 0.0, "strain_p95": s["p95"], "crossings": 0})
+    assert j["verdict"] == "FAIL" and "strain_p95" in j["over"]
 
 
 def test_the_verdict_words_and_the_never_a_bare_pass_rule():
-    lim = {"status": "proposed", "metal": {"rigid_max_mm": 1.0, "strain_max_pct": 1.0, "seam_gap_mm": 1.0}}
-    ok = V.judge("metal", {"rigid_residual_mm": 0.2, "strain_max_pct": 0.1, "seam_gap_mm_max": 0.0}, lim)
+    lim = {"status": "proposed", "metal": {"rigid_max_mm": 1.0, "strain_p95": 0.01}}
+    ok = V.judge("metal", {"rigid_max_mm": 0.2, "strain_p95": 0.001}, lim)
     assert ok["verdict"] == "PASS" and ok["limits_status"] == "proposed"
-    un = V.judge("cloth", {"rigid_residual_mm": 5.0, "strain_max_pct": 40, "seam_gap_mm_max": 0.0}, lim)
+    un = V.judge("cloth", {"rigid_max_mm": 5.0, "strain_p95": 0.4}, lim)
     assert un["verdict"] == "UNVERIFIED" and un["missing"] == ["limits for cloth"]
     s = V.summarize([ok, un], crossing_control_ok=True)
     assert s["ok"] is False and s["counts"]["UNVERIFIED"] == 1 and "PASS under proposed limits" not in s["note"]
@@ -66,17 +67,8 @@ def test_bind_mismatch_is_zero_for_the_identity_and_names_the_bone_that_differs(
     assert [r["bone"] for r in bad["over_tolerance"]] == ["spine_01"] and bad["over_tolerance"][0]["rot_deg"] == pytest.approx(90, abs=0.01) and bad["over_tolerance"][0]["pos_cm"] == pytest.approx(0.5)
 
 
-def test_a_wrong_sign_pose_is_refused_and_the_expect_check_names_why():
-    exp = {"bone": "wrist_r", "axis": "up", "min_deg": 20}
-    assert V.check_expect(exp, {"wrist_r": {"up_deg": 30}})["ok"] is True
-    assert V.check_expect(exp, {"wrist_r": {"up_deg": -30}})["ok"] is False
-
-
-def test_the_crossing_control_pushes_the_piece_into_the_skin_and_must_see_it():
-    body_c = np.array([[0.0, 0, 0]])
-    piece = np.array([[0.02, 0, 0], [0.5, 0, 0]])
-    shifted = V.control_shift(piece, np.array([[1.0, 0, 0], [1.0, 0, 0]]), depth_m=0.01, nearest_idx=np.array([0]))
-    assert shifted[0][0] == pytest.approx(0.02 - 0.01) and shifted[1][0] == pytest.approx(0.5)      # only the nearest vertex is pushed (-normal), into the skin
+# The expectation and the crossing control moved to canon_geom (check_expect on posed joints, the capped control_shift):
+# test_canon_geom_grammar.py, test_canon_validation.py and test_canon_item2_tools.py pin them.
 
 
 def _measure_script(extra):
@@ -98,8 +90,9 @@ blend = cube("blend"); weights(blend, arm, lambda c: {"spine_03": 0.5 + 0.5 * (c
 for v in blend.data.vertices: pass
 bmesh_obj = blend
 poses = [{"name": "rest"}, {"name": "arm_up", "bone": "upperarm_l", "rotate": [60, 0, 0]}]
-a = api.fit_validate("measure", piece="p", bound="rigid", original="orig", poses=poses, roles={"p": "metal"})
-b = api.fit_validate("measure", piece="p", bound="blend", original="orig", poses=poses, roles={"p": "metal"})
+far = cube("far", s=0.2, loc=(3, 0, 0)); weights(far, arm, lambda c: {"spine_03": 1.0})          # a body the piece never touches: crossings 0
+a = api.fit_validate("measure", piece="p", bound="rigid", original="orig", poses=poses, roles={"p": "metal"}, body="far")
+b = api.fit_validate("measure", piece="p", bound="blend", original="orig", poses=poses, roles={"p": "metal"}, body="far")
 res({"a": a, "b": b})
 '''), timeout=300)
     assert r.rc == 0, r.out[-1500:]
@@ -130,7 +123,7 @@ a = api.fit_validate("measure", piece="p", bound="piece", original="orig", poses
 res({"v": a["poses"][0]["pieces"]["p"]["judge"], "sum": a["summary"], "limits": a["limits"]["status"]})
 '''), timeout=300)
     d = r.results[-1]
-    assert d["v"]["verdict"] == "UNVERIFIED" and d["limits"] == "proposed" and d["sum"]["ok"] is False
+    assert d["v"]["verdict"] == "UNVERIFIED" and d["limits"] == "adopted" and d["sum"]["ok"] is False
 
 
 def test_a_pose_whose_expect_fails_is_refused_and_nothing_is_measured():

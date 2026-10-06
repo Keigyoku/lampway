@@ -16,6 +16,8 @@ import shutil
 from pathlib import Path
 
 import bpy
+
+from .. import canon_io
 import numpy as np
 
 from . import common as C
@@ -35,7 +37,7 @@ def _json(root, p, what):
 
 def _readback(fbx, joints):
     before_o, before_a = set(bpy.data.objects), set(bpy.data.armatures)
-    bpy.ops.import_scene.fbx(filepath=str(fbx), automatic_bone_orientation=False, primary_bone_axis="Z", secondary_bone_axis="X", ignore_leaf_bones=False)
+    canon_io.import_raw(str(fbx), automatic_bone_orientation=False, primary_bone_axis="Z", secondary_bone_axis="X", ignore_leaf_bones=False)
     new = [o for o in bpy.data.objects if o not in before_o]
     arms = [o for o in new if o.type == "ARMATURE"]
     try:
@@ -75,7 +77,9 @@ def gates(ob, body, textures, validation, bind_check, allow_unverified, root):
         raise C.FeatureError(f"validation has {counts.get('FAIL', 0)} FAIL" + (f" and {counts['UNPROVEN']} UNPROVEN" if counts.get("UNPROVEN") else "") + ": fix or rule before export")
     roles = sorted({p["role"] for row in val.get("poses", []) for p in row.get("pieces", {}).values() if p.get("judge", {}).get("verdict") == "UNVERIFIED"})
     if roles and not allow_unverified:
-        raise C.FeatureError(f"roles without declared limits: {roles}; pass allow_unverified=true to export with the report saying so")
+        missing = sorted({m for row in val.get("poses", []) for p in row.get("pieces", {}).values() for m in p.get("judge", {}).get("missing", [])})
+        raise C.FeatureError(f"roles without declared limits: {roles} (or with a metric not measured: {missing}; a metal part's body crossings need `body` in "
+                             "the validation); pass allow_unverified=true to export with the report saying so")
     bc = _json(root, bind_check, "bind_check")
     if not bc.get("ok"):
         bones = [r.get("bone") for r in bc.get("over_tolerance", [])]

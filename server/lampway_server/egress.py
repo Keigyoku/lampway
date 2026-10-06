@@ -84,6 +84,8 @@ LAUNCHES: dict = {
     "job_backends.py:BlenderRun.make_test_glb": ("local", "a niced headless Lampway process that writes a test GLB"),
     "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets"),
     "herdr/launcher.py:_systemd_ok": ("local", "systemctl --user is-system-running: a local query"),
+    "job_backends.py:BlenderRun.__call__": ("local", "nice headless Lampway (-b, bridge port 0) running one local mesh job on the uploaded file; no network"),
+    "job_backends.py:BlenderRun.make_test_glb": ("local", "nice headless Lampway writing a UV-sphere GLB for the real-run test; no network"),
     "library/ingest.py:extract_video": ("local", "ffprobe on a local file"),
     "library/previews.py:video_thumb": ("local", "nice ffmpeg: one thumbnail frame of a library video file"),
     "library/video.py:_run": ("local", "nice ffmpeg/ffprobe on library video files (probe, frame count, loudness, derived strips and panels); every caller in video.py passes an ffmpeg or ffprobe argv"),
