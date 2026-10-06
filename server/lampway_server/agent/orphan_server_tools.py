@@ -36,6 +36,22 @@ def specs() -> list:
                        "to_studio": {"type": "string"}, "action": {"type": "string"}, "args": {"type": "object"}, "parent_id": {"type": "string"},
                        "file": {"type": "string"}, "studio": {"type": "string"}, "piece": {"type": "string"}, "root": {"type": "boolean"}, "id": {"type": "string"}},
                       ["verb"])),
+        ToolSpec("lampway_vision_judge", "Judge frames or one native video with a vision model through OpenRouter, answered as a STRICT JSON verdict: PASS | FAIL | "
+                 "INCONCLUSIVE with timestamped findings, per-criterion verdicts and limitations. purpose judge (generic) | locomotion | air | combat | moment "
+                 "selects the criteria prompt; reference adds a second stream labelled reference. Anything but the strict JSON is INCONCLUSIVE (status failed), "
+                 "never PASS; INCONCLUSIVE is never upgraded (the verdict is the worse of the model's and every criterion's). Private content (the default) "
+                 "goes only to a model on OpenRouter's live ZDR list with data_collection=deny, never a ':free' model; none eligible = nothing sent. dry_run "
+                 "(default true) returns the plan: the prompt, media, estimated bytes; dry_run=false sends, charged to the session spend ceiling, and writes a "
+                 "receipt under <root>/vision/receipts (the same media and purpose are answered from it with no call). A judge's claims are advisory: they "
+                 "count only where a measured gate agrees. Refused: a folder mixing frames and video, over 64 frames, over the 19,000,000-byte request cap.",
+                 _obj({"media": {"type": "string", "description": "a frames folder or one image or video under the project root"},
+                       "purpose": {"type": "string", "description": "judge | locomotion | air | combat | moment"},
+                       "reference": {"type": "string", "description": "an optional reference stream of the same modality"},
+                       "prompt": {"type": "string", "description": "extra context appended to the purpose prompt"},
+                       "content_class": {"type": "string", "description": "private (default) | public"},
+                       "model": {"type": "string", "description": "pin one eligible model (else the first eligible by preference)"},
+                       "bounds": {"type": "array", "items": {"type": "number"}, "description": "the source seconds this media covers (recorded)"},
+                       "dry_run": {"type": "boolean"}}, ["media", "purpose"])),
     ]
 
 
@@ -81,5 +97,33 @@ async def call(hub, name: str, arguments: dict) -> tuple:
                 return json.dumps({"chain": XP.lineage(cp.cat, str(a.get("id") or ""))}), False
             return "verb is plan | record | lineage", True
         except (XP.CrossPassError, SVT.BadToolCall, ValueError) as exc:
+            return str(exc), True
+    if name == "lampway_vision_judge":
+        from .. import vision_judge as VJ
+        from . import server_tools as SVT
+        root = SVT.project_root()
+        try:
+            media = SVT.jail(str(a.get("media") or ""))
+            ref = SVT.jail(str(a["reference"])) if a.get("reference") else None
+            cc = str(a.get("content_class") or "private")
+            if cc not in ("private", "public"):
+                return "content_class is private | public", True
+            if a.get("dry_run", True) is not False:
+                p = VJ.VisionJudge("", receipts=None).plan(media, str(a.get("purpose") or ""), str(a.get("prompt") or ""), ref)
+                return json.dumps({"dry_run": True, "purpose": p["purpose"], "modality": p["modality"], "media": len(p["media"]), "reference": len(p["reference"]),
+                                   "estimated_request_bytes": p["estimated_request_bytes"], "prompt": p["text"], "content_class": cc,
+                                   "help": ["dry_run=false sends it (charged to the session spend ceiling)"]}), False
+            from .. import provider_prefs
+            from .providers import spend_ledger
+            from .providers.openrouter import KeyMissing, resolve_api_key
+            try:
+                key = resolve_api_key()
+            except KeyMissing as exc:
+                return str(exc), True
+            j = VJ.VisionJudge(key, receipts=root / "vision" / "receipts", ledger=spend_ledger(provider_prefs.effective()))
+            r = await asyncio.to_thread(j.judge, media, str(a.get("purpose") or ""), str(a.get("prompt") or ""), ref, cc, a.get("model") or None, a.get("bounds"))
+            keep = ("status", "verdict", "model_verdict", "downgraded_by", "findings", "limitations", "schema_errors", "model", "cost_usd", "receipt", "noop", "refused")
+            return json.dumps({k: r[k] for k in keep if k in r}, default=str), r.get("status") == "refused"
+        except (SVT.BadToolCall, ValueError, OSError) as exc:
             return str(exc), True
     return f"unknown orphan server tool {name!r}", True
