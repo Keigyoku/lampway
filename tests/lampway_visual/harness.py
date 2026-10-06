@@ -20,6 +20,7 @@ Every run gets its own HOME and XDG dirs under the output directory, so it never
 import datetime
 import json
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -40,6 +41,7 @@ TOKEN_TOLERANCE = 2       # per channel, out of 255
 DIFF_THRESHOLD = 6        # a pixel differs when a channel moves more than this, out of 255
 DIFF_TOLERANCE = 0.01     # a region fails when more than this fraction of its pixels differ
 PATCH = 5                 # each surface is the median of a PATCH x PATCH square
+_SYNCED = []
 
 
 def lampway_bin():
@@ -70,6 +72,10 @@ def expectations(state):
 def run_state(state, out_dir, *, plant=None, timeout=300):
     """Run one state in the build; return its report with every surface sampled."""
     require_display()
+    if not _SYNCED:  # Python-only changes reach the installed build the way the real-binary tests reach it
+        subprocess.run([str(ROOT / "scripts/lampway/sync_python.sh"), "--bin-dir", str(lampway_bin().parent)], check=True,
+                       capture_output=True)
+        _SYNCED.append(True)
     out = Path(out_dir)
     home = out / "home"
     home.mkdir(parents=True, exist_ok=True)
@@ -85,10 +91,17 @@ def run_state(state, out_dir, *, plant=None, timeout=300):
     report_path = out / "report.json"
     if done.returncode != 0 or not report_path.exists():
         raise RuntimeError(f"state {state} did not finish (rc={done.returncode}): {(done.stdout + done.stderr)[-2000:]}")
+    missing = sorted(set(re.findall(r"no icon for icon ID: (\d+)", done.stdout + done.stderr)))
+    if missing:  # an icon the build names but never registered draws as nothing: a broken capture, not a state
+        raise RuntimeError(f"state {state} drew icons the build has not registered: {', '.join(missing)}")
     report = json.loads(report_path.read_text(encoding="utf-8"))
     pixels = _load(out / report["capture"])
     for surface in report["surfaces"].values():
-        surface["rgb"] = "#%02x%02x%02x" % _median(pixels, *surface["at"])
+        if surface.get("box"):  # a thin anti-aliased stroke: keep every pixel of the box, the check takes the nearest
+            surface["pixels"] = ["#%02x%02x%02x" % p for p in _box_pixels(pixels, *surface["at"], surface["box"])]
+            surface["rgb"] = surface["pixels"][len(surface["pixels"]) // 2]
+        else:
+            surface["rgb"] = "#%02x%02x%02x" % _median(pixels, *surface["at"])
     report["expect"] = expectations(state)
     report_path.write_text(json.dumps(report, indent=1), encoding="utf-8")
     return report
@@ -101,8 +114,11 @@ def token_failures(report):
     out = []
     for name, token in expect["surfaces"].items():
         want = tokens[token][expect.get("theme", "dark")].lower()
-        got = report["surfaces"][name]["rgb"]
-        if max(abs(int(got[i:i + 2], 16) - int(want[i:i + 2], 16)) for i in (1, 3, 5)) > TOKEN_TOLERANCE:
+        surface = report["surfaces"][name]
+        candidates = surface.get("pixels") or [surface["rgb"]]
+        dist = lambda c: max(abs(int(c[i:i + 2], 16) - int(want[i:i + 2], 16)) for i in (1, 3, 5))  # noqa: E731
+        got = min(candidates, key=dist)
+        if dist(got) > TOKEN_TOLERANCE:
             out.append(f"{name}: sampled {got}, want {token} {want}")
     return out
 
@@ -120,6 +136,12 @@ def _median(image, x, y):
     values = [image.getpixel((min(max(x + dx, 0), image.width - 1), min(max(row + dy, 0), image.height - 1)))
               for dx in range(-half, half + 1) for dy in range(-half, half + 1)]
     return tuple(sorted(v[c] for v in values)[len(values) // 2] for c in range(3))
+
+
+def _box_pixels(image, x, y, r):
+    row = image.height - 1 - y
+    return [image.getpixel((min(max(x + dx, 0), image.width - 1), min(max(row + dy, 0), image.height - 1)))
+            for dy in range(-r, r + 1) for dx in range(-r, r + 1)]
 
 
 def _box(image, rect):

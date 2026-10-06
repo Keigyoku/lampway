@@ -109,6 +109,15 @@ def test_every_lampway_icon_the_code_uses_exists():
     assert sorted(used - enums()) == []
 
 
+def test_lampway_icons_are_in_the_svg_range():
+    """``init_internal_icons`` registers SVG icons only below ``DEF_ICON_BLANK(LAST_SVG_ITEM)``; an icon defined after it
+    has an enum value and no icon, and draws nothing ("no icon for icon ID")."""
+    text = UI_ICONS.read_text(encoding="utf-8")
+    boundary = text.index("DEF_ICON_BLANK(LAST_SVG_ITEM)")
+    found = [m.start() for m in re.finditer(r"^DEF_ICON\(LAMPWAY_", text, re.M)]
+    assert found and max(found) < boundary, "Lampway icons sit after LAST_SVG_ITEM and are never loaded"
+
+
 def test_generated_files_are_committed(tmp_path):
     done = subprocess.run([sys.executable, str(ART / "lampway_icons.py"), "--out", str(tmp_path)], capture_output=True,
                           text=True)

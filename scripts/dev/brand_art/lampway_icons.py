@@ -94,14 +94,12 @@ def ui_icons_hh(text: str) -> str:
     text = text.replace("/* Credit-exhaustion actions (keep existing icon identifiers stable). */\n", "")
     text = text.replace("DEF_ICON_COLOR(GENERATE)", "DEF_ICON(GENERATE)")  # redrawn mono: tinted by the theme
     block = "\n".join([BEGIN_HH, *(f"DEF_ICON(LAMPWAY_{native_name(s).upper()})" for s in NATIVE), END_HH]) + "\n\n"
-    if BEGIN_HH in text:
-        text = re.sub(re.escape(BEGIN_HH) + r".*?" + re.escape(END_HH) + r"\n\n", lambda _m: block, text, flags=re.S)
-    else:
-        anchor = "/* Undefine all types. */"
-        if text.count(anchor) != 1:
-            raise SystemExit(f"{UI_ICONS}: expected one '{anchor}'")
-        text = text.replace(anchor, block + anchor)
-    return text
+    text = re.sub(re.escape(BEGIN_HH) + r".*?" + re.escape(END_HH) + r"\n\n", "", text, flags=re.S)
+    # init_internal_icons() registers SVG icons only below DEF_ICON_BLANK(LAST_SVG_ITEM): the block goes just above it
+    anchor = "/* The items above are initiated sequentially"
+    if text.count(anchor) != 1:
+        raise SystemExit(f"{UI_ICONS}: expected one '{anchor}'")
+    return text.replace(anchor, block + anchor)
 
 
 def cmake_list(text: str) -> str:

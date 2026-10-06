@@ -33,7 +33,8 @@ def window():
 
 
 def redraw():
-    for area in window().screen.areas:
+    win = window()
+    for area in [*win.screen.areas, *win.global_areas]:  # the top and status bars are global areas
         area.tag_redraw()
 
 
@@ -59,8 +60,10 @@ def finish():
     points = state["surfaces"](bpy, dump)
     report = {"state": os.path.splitext(os.path.basename(state_path))[0], "capture": capture,
               "window": [win.width, win.height], "plant": plant,
-              "surfaces": {name: {"at": [int(x), int(y)]} for name, (x, y) in points.items()},
-              "regions": state["regions"](bpy)}
+              "surfaces": {name: {"at": [int(p[0]), int(p[1])], **({"box": int(p[2])} if len(p) > 2 else {})}
+                           for name, p in points.items()},
+              "regions": state["regions"](bpy),
+              "facts": state["facts"](bpy, dump) if "facts" in state else {}}
     with open(os.path.join(out_dir, "report.json"), "w", encoding="utf-8") as fh:
         json.dump(report, fh, indent=1)
 
@@ -88,7 +91,7 @@ def tick():
     if run["phase"] == "settle":
         redraw()
         run["settle"] += 1
-        if run["settle"] < SETTLE_TICKS:
+        if run["settle"] < state.get("SETTLE_TICKS", SETTLE_TICKS):
             return 0.25
         try:
             finish()
