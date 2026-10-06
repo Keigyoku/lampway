@@ -40,7 +40,7 @@ include = ["lampway_server*"]
 
 [tool.setuptools.package-data]
 # data files the code reads from its own package directory (the built-in prompt templates, the library migrations, the decisions goldens)
-"*" = ["*.json", "*.sql", "*.md"]
+"*" = ["*.json", "*.sql", "*.md", "*.html", "*.css", "*.js"]   # the cockpit page: web/workbench
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

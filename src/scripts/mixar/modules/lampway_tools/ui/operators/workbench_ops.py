@@ -13,6 +13,7 @@ from bpy.types import Operator
 from mixar.modules.lampway_tools import human_gate, studio_client, workbench_client, workbench_state
 
 CLIENT_FACTORY = lambda: workbench_client.WorkbenchClient()  # noqa: E731  (tests swap it)
+OPEN_URL = lambda url: __import__("webbrowser").open(url)  # noqa: E731  (tests swap it)
 TEXT_PREFIX = "LW_session_"
 _POLL_S = 2.0
 _MIRRORS = set()
@@ -246,5 +247,19 @@ class LAMPWAY_OT_wb_popout(_WbOp):
         return self._done(context, f"cockpit window for {s['name']}")
 
 
-classes = [LAMPWAY_OT_wb_refresh, LAMPWAY_OT_wb_start_server, LAMPWAY_OT_wb_reconcile, LAMPWAY_OT_wb_new, LAMPWAY_OT_wb_read_to_text, LAMPWAY_OT_wb_send, LAMPWAY_OT_wb_close,
+class LAMPWAY_OT_wb_page_open(_WbOp):
+    """Open the cockpit window: every session with its state, the selected one's terminal, the reconcile banner and the report
+    cards, in your browser from Lampway's own server (facelift contract 10)"""
+    bl_idname = "lampway.wb_page_open"
+    bl_label = "Cockpit window"
+
+    def execute(self, context):
+        from mixar.config.config import get_server_url
+        from mixar.modules.auth.core.auth import get_access_token
+        url = workbench_state.page_url(get_server_url(), get_access_token() or "")
+        OPEN_URL(url)
+        return self._done(context, "the cockpit window is open in your browser")
+
+
+classes = [LAMPWAY_OT_wb_page_open, LAMPWAY_OT_wb_refresh, LAMPWAY_OT_wb_start_server, LAMPWAY_OT_wb_reconcile, LAMPWAY_OT_wb_new, LAMPWAY_OT_wb_read_to_text, LAMPWAY_OT_wb_send, LAMPWAY_OT_wb_close,
            LAMPWAY_OT_wb_stop_server, LAMPWAY_OT_wb_popout]

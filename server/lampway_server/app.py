@@ -761,10 +761,38 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except _HL.HerdrError as exc:
             return _wb_err(exc)
 
+    wb_last_reconcile: dict = {}
+
     async def wb_reconcile(request: Request):
         if (r := _wb(request)) is not None:
             return r
-        return JSONResponse(await asyncio.to_thread(cockpit.reconcile))
+        out = await asyncio.to_thread(cockpit.reconcile)
+        wb_last_reconcile.clear()
+        wb_last_reconcile.update(out)
+        return JSONResponse(out)
+
+    # ---- the cockpit window (facelift contract 10): a static page from this origin only; its data behind the bearer
+    _WB_PAGE = Path(__file__).resolve().parent / "web" / "workbench"
+    _WB_STATIC = {"cockpit.js": "text/javascript", "cockpit.css": "text/css", "tokens.css": "text/css"}
+    _WB_CSP = ("default-src 'self'; connect-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+               "frame-src http://127.0.0.1:* http://localhost:*; base-uri 'none'; form-action 'none'")
+
+    async def wb_page(request: Request):
+        return HTMLResponse((_WB_PAGE / "index.html").read_text(encoding="utf-8"), headers={"Content-Security-Policy": _WB_CSP, "Cache-Control": "no-store"})
+
+    async def wb_static(request: Request):
+        name = request.path_params["name"]
+        if name not in _WB_STATIC:
+            return JSONResponse({"detail": "not found"}, status_code=404)
+        return Response((_WB_PAGE / name).read_bytes(), media_type=_WB_STATIC[name], headers={"Cache-Control": "no-store"})
+
+    async def wb_view(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        from . import workbench_view as _WV
+        status = await asyncio.to_thread(_HL.server_status, cockpit.root)
+        home = {"server": {"running": bool(status.get("running"))}, "sessions": cockpit.list_sessions()}
+        return JSONResponse(_WV.view(home, dict(wb_last_reconcile) or None))
 
     async def wb_create(request: Request):
         if (r := _wb(request)) is not None:
@@ -823,7 +851,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
             return _wb_err(exc)
 
     routes += [Route("/app/mcp/inventory", mcp_inventory_get, methods=["GET"]), Route("/app/mcp/check", mcp_check_post, methods=["POST"]), Route("/app/egress", egress_state, methods=["GET"]), Route("/app/egress/route", egress_route, methods=["POST"]), Route("/app/egress/override", egress_override, methods=["POST", "DELETE"]),
-               Route("/app/egress/log", egress_log, methods=["GET"]), Route("/app/egress/export", egress_export, methods=["GET"]), Route("/app/video/ingest", video_ingest, methods=["POST"]), Route("/app/workbench", wb_home, methods=["GET"]), Route("/app/workbench/server/start", wb_server_start, methods=["POST"]),
+               Route("/app/egress/log", egress_log, methods=["GET"]), Route("/app/egress/export", egress_export, methods=["GET"]), Route("/app/video/ingest", video_ingest, methods=["POST"]), Route("/app/workbench", wb_home, methods=["GET"]), Route("/app/workbench/page", wb_page, methods=["GET"]),
+               Route("/app/workbench/static/{name}", wb_static, methods=["GET"]), Route("/app/workbench/view", wb_view, methods=["GET"]), Route("/app/workbench/server/start", wb_server_start, methods=["POST"]),
                Route("/app/workbench/server/stop", wb_server_stop, methods=["POST"]), Route("/app/workbench/reconcile", wb_reconcile, methods=["POST"]),
                Route("/app/workbench/sessions", wb_create, methods=["POST"]), Route("/app/workbench/sessions/{sid}/screen", wb_screen, methods=["GET"]),
                Route("/app/workbench/sessions/{sid}/input", wb_input, methods=["POST"]), Route("/app/workbench/sessions/{sid}/close", wb_close, methods=["POST"]),
