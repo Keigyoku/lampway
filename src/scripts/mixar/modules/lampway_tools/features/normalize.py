@@ -189,6 +189,7 @@ def normalize_object(ob, *, turn_deg=None, generator="unknown", raw=None, path_h
     if backup.users == 0:
         bpy.data.meshes.remove(backup)
         ob.data.name = name
+    bpy.context.view_layer.update()                                # the next reader of ob.dimensions / matrix_world sees the applied transform
     return doc, rbytes
 
 
@@ -205,7 +206,7 @@ def _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_
     A = _rz(turn)
     A4 = np.eye(4)
     A4[:3, :3] = A
-    me.transform(Matrix((A4 @ W).tolist()))
+    me.transform(Matrix((A4 @ W).tolist()), shape_keys=True)        # every shape key rides with the basis
     if mirror:
         me.flip_normals()
     ob.matrix_world = Matrix.Identity(4)
@@ -230,7 +231,7 @@ def _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_
         off = np.array([-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2]])
     else:
         off = np.asarray(pivot_offset if pivot_offset is not None else (0.0, 0.0, 0.0), float)
-    me.transform(Matrix.Translation(off.tolist()))
+    me.transform(Matrix.Translation(off.tolist()), shape_keys=True)
     me.update()
     V = V + off
     steps.append({"op": "pivot", "rule": pivot, "offset_m": _r9(off)})
