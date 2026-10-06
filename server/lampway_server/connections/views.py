@@ -58,7 +58,9 @@ class Views:
         if src is None:
             signin = next((s for s in sources if s.mode == "signin"), None)
             if signin is not None and signin.extra.get("set_up"):
-                return {"state": "signed_out", "next_step": f"{label} is signed out: sign in again in Connections", "check_kind": "local"}
+                named = getattr(self.oauth.get(spec.id), "connection_state", lambda: {})() or {}
+                return {"state": "signed_out", "next_step": named.get("next_step") or f"{label} is signed out: sign in again in Connections",
+                        "check_kind": "local"}
             return {"state": "missing", "next_step": f"{label} is not connected: connect it in Connections", "check_kind": "none"}
         if src.error:
             return {"state": "error", "next_step": src.error, "check_kind": "local"}
