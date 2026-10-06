@@ -73,17 +73,8 @@ GLYPH = (
     ("ellipse", (50, 84, 24, 7), INK, 255),             # base
 )
 
-# Small markers that make the four credit badges tell apart (same square).
-BADGES = {
-    "credits_upgrade": (("polygon", ((82, 92), (70, 78), (94, 78)), GLOW, 255),
-                        ("rect", (79, 78, 85, 96), GLOW, 255)),
-    "credits_slide": (("rect", (62, 86, 96, 90), GLOW, 255),
-                      ("ellipse", (84, 88, 5, 5), GLOW, 255)),
-    "credits_refer": (("ellipse", (74, 86, 6, 6), GLOW, 255),
-                      ("ellipse", (90, 86, 6, 6), GLOW, 255)),
-    "credits_creator": (("polygon", ((82, 74), (86, 84), (96, 84), (88, 90), (91, 100),
-                                     (82, 94), (73, 100), (76, 90), (68, 84), (78, 84)), GLOW, 255),),
-}
+# Mixar's four credit badges were retired by facelift 14 (contract 14: the coin and gauge glyphs replace them).
+BADGES = {}
 
 
 # ---------------------------------------------------------------------------
