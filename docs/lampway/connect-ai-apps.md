@@ -21,6 +21,10 @@ The server is named `lampway` and the launcher lives at `~/.lampway/connector/la
   keeps working. Adding Lampway to Claude Code or Codex replaces an old `mixar` entry with the `lampway` one.
 - `MIXAR_MCP_DISCOVERY_DIR` still works for one release; `LAMPWAY_MCP_DISCOVERY_DIR` wins when both are set.
 
+## What the assistant can call
+
+The server offers 98 tools over MCP (the scene tools, the Lampway tools that run in Blender, and two server-side tools that report the local spend ledger and the status of an earlier call). Studio and generation tools that spend credits are **not** offered: an assistant can plan, and you confirm in the Client. The full list is generated in [tools](../tools.md). The **Connections (MCP servers)** panel in the Lampway tab shows which MCP servers each of your agent apps has and checks one on your click.
+
 ## Safety
 
 Only a loopback credential is written to disk (private to your user). The assistant acts on your open, signed-in scene; your own mouse or keyboard always takes control back, and
