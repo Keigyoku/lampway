@@ -1,0 +1,26 @@
+{
+ "detect": {
+  "axis": [
+   0,
+   0,
+   1
+  ],
+  "capped_sites": 1,
+  "plane_z": 1.6
+ },
+ "gasket_clearance_15mm": {
+  "bad_winding_edges": 0,
+  "boundary_loops_after": 2,
+  "collar_depth": "= flange_mm (no default: the captain's number)",
+  "non_manifold_edges": 0,
+  "rim_radius_m": 0.07,
+  "rim_tol_m": 0.0015
+ },
+ "keep": {
+  "mesh_sha_unchanged": true
+ },
+ "too_small": {
+  "expected": "REFUSE: the body's section plus clearance does not fit inside this opening",
+  "neck_radius_m": 0.08
+ }
+}

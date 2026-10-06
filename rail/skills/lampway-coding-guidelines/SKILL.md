@@ -62,6 +62,7 @@ scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server
 | client tools on the real binary | `LAMPWAY_BIN=build/<env>/bin/mixar python -m pytest -q tests/lampway_tools` | a built binary; without one they SKIP, which is not a pass |
 | rail | `python3 rail/rail.py selftest && python3 rail/rail.py check` and `python -m pytest -q tests/rail` | git with the history back to the rail's baseline |
 | pre-publish | `python3 scripts/lampway/prepublish_gate.py --self-test` then `--tree .` | Pillow (and ffprobe for `--media`) |
+| algorithm canon | `python3 docs/canon/check_canon.py --self-test && python3 docs/canon/check_canon.py` | numpy, jsonschema |
 
 `bpy` is a MagicMock outside Blender, so operator logic is pinned through source-level or `ast` tests, and behaviour that needs
 Blender runs through `tests/lampway_tools/blender_run.py` against the real binary.
@@ -121,3 +122,4 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the root guide was upstream's and named its closed backend; Lampway's laws lived only in module docstrings and the build order | one canonical operating guide carrying the laws, the build, the suites, the test-first contract and the merge-only lanes, verified against the tree | captain ruling, 2026-10-05 |
 | 2026-10-06 | the 500-line limit is a guideline; the rail in the hook | captain: "Those recs are fine" (recommendations 2 and 5) | upstream's 500-line rule read as a gate that nine Lampway modules already broke; the rail ran only in CI | §4b states the limit as a guideline with its one pinned family; §6 names the hook's quick rail check | captain ruling, 2026-10-06 |
+| 2026-10-06 | the canon check among the suites | coordinator: "GO for rail row 1" | the canon's self-tests ran only on the shelf | `docs/canon/check_canon.py` in the suites table (CI: canon.yml) | captain ruling, 2026-10-06 |

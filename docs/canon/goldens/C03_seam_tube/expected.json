@@ -1,0 +1,13 @@
+{
+ "per_part_bones": {
+  "recorded_real_case": "cuirass opened 7.3 cm in a twist (memory seams-need-positional-weights, 2026-09-29)",
+  "seam_gap_max_m": 0.082084834,
+  "tol": 1e-09
+ },
+ "positional_weights": {
+  "rule": "both copies of a seam vertex get bit-identical weight vectors",
+  "seam_gap_max_m": 0.0,
+  "tol": 0.0
+ },
+ "seam_ledger_pairs": 32
+}

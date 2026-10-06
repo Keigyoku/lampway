@@ -1,0 +1,24 @@
+{
+ "arm_radius_m": 0.05,
+ "dof": {
+  "axis_world": [
+   0,
+   1,
+   0
+  ],
+  "bone": "upperarm_l",
+  "name": "lower",
+  "range": [
+   0,
+   40
+  ],
+  "sign": "+deg lowers the arm (measured by the sign check)",
+  "step": 5
+ },
+ "shoulder": [
+  0.2,
+  0.0,
+  1.4
+ ],
+ "upperarm_length_m": 0.3
+}
