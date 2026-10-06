@@ -6987,16 +6987,24 @@ msgstr ""
 msgid "Link"
 msgstr ""
 
-msgid "Confirm and spend"
-msgstr ""
-
-msgid "Spend the credits: confirm this Studio action at the price shown. Only your own click can do this"
+msgid ""
+"Spend: the one card for every spend that waits for your click (facelift contract 13). The price is on the button and\n"
+"is the price the server read back; only your own click on it spends, and Enter does nothing here"
 msgstr ""
 
 msgid "Price"
 msgstr ""
 
-msgid "Spend credits?"
+msgid "The state a refused confirm ended in (spend_face.classify)"
+msgstr ""
+
+msgid "Why, and what you can do"
+msgstr ""
+
+msgid "This quote expired: ask for the plan again"
+msgstr ""
+
+msgid "Close the card: nothing is spent, and the spend still waits in the Studios panel"
 msgstr ""
 
 msgid "Answer"
