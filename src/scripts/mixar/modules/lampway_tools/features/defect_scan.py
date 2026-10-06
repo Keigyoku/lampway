@@ -19,6 +19,7 @@ from . import workflows as W
 KINDS = ("open_loop", "floating_shell", "intersection", "thin", "flipped_shell", "degenerate", "isolated_tri")
 FLOAT_MM = 3.0
 MAX_SHELL_TRIS = 400
+RAY_EPS_FRAC = 1e-4      # the ray origin offset, as a fraction of the bounding-box diagonal (scale-free: a model 100x larger gets a 100x larger epsilon)
 MIN_RIM_M = 0.0          # report every open loop; the user's rules decide which are intended
 
 
@@ -105,6 +106,7 @@ def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100
     bm.faces.ensure_lookup_table()
     bm.edges.ensure_lookup_table()
     found = []
+    rays = None
 
     def add(kind, faces, verdict, rule, severity, extra=None):
         found.append({"kind": kind, "descriptor": _descriptor(faces, extra), "rule_verdict": verdict, "rule": rule, "severity": severity})
@@ -158,11 +160,21 @@ def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100
                 add("intersection", [bm.faces[i] for i in sorted(ids)], "ambiguous", "faces that cross other faces", "high", {"shells": list(pair)})
         if "thin" in kinds:
             thin = []
+            pts = np.array([v.co[:] for v in bm.verts])
+            diag = float(np.linalg.norm(pts.max(axis=0) - pts.min(axis=0)))
+            eps = RAY_EPS_FRAC * diag
+            cast = hits = 0
             for f in bm.faces:
                 c, n = f.calc_center_median(), f.normal
-                hit = tree.ray_cast(c - n * 1e-5, -n)
+                hit = tree.ray_cast(c - n * eps, -n)
+                cast += 1
+                if hit[0] is not None:
+                    hits += 1
                 if hit[0] is not None and hit[3] < float(thin_threshold_m):
                     thin.append(f)
+            rays = {"faces_cast": cast, "hit": hits, "miss": cast - hits, "hit_fraction": round(hits / max(cast, 1), 4), "epsilon_m": eps, "epsilon_frac_of_diagonal": RAY_EPS_FRAC,
+                    "bbox_diagonal_m": round(diag, 6),
+                    "note": ("an open mesh: many inward rays escape, so the thin candidates are a lower bound" if hits < 0.9 * max(cast, 1) else "inward rays hit the far wall: the thin scan has coverage")}
             for comp in _components(thin):
                 add("thin", comp, "ambiguous", f"thinner than {thin_threshold_m} m inward", "medium")
     bm.free()
@@ -172,7 +184,10 @@ def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100
     for c in found:
         counts[c["kind"]] = counts.get(c["kind"], 0) + 1
     out = found[:int(max_candidates)]
-    return {"piece": piece or ob.name, "candidates": out, "counts": counts, "truncated": len(found) > len(out), "total": len(found)}
+    res = {"piece": piece or ob.name, "candidates": out, "counts": counts, "truncated": len(found) > len(out), "total": len(found)}
+    if rays is not None:
+        res["rays"] = rays
+    return res
 
 
 def _plain(ob):
