@@ -28,6 +28,11 @@ PROTOCOL_VERSION = "2025-06-18"
 PARSE_ERROR, METHOD_NOT_FOUND, INVALID_PARAMS = -32700, -32601, -32602
 
 
+def _instructions() -> str:
+    from .agent_files import generate as GEN
+    return GEN.mcp_instructions()
+
+
 def offered_tools() -> list:
     return [t for t in TOOLS if t.name in (RUN_BLENDER_PYTHON, SCENE_SUMMARY) or t.name in lt.BY_NAME] + list(SERVER_TOOLS)
 
@@ -58,7 +63,7 @@ class McpServer:
             return {"jsonrpc": "2.0", "id": request_id, "result": {
                 "protocolVersion": PROTOCOL_VERSION, "capabilities": {"tools": {"listChanged": False}},
                 "serverInfo": {"name": "lampway", "version": "0.1.0"},
-                "instructions": "Lampway's tools for the open Blender scene. Studio tools (credits) are not offered here."}}
+                "instructions": _instructions()}}
         if method == "ping":
             return {"jsonrpc": "2.0", "id": request_id, "result": {}}
         if method == "tools/list":
