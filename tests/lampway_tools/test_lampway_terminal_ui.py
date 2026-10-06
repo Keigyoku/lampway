@@ -104,3 +104,41 @@ def test_a_clicked_image_link_is_drained_into_blender(tmp_path):
     assert sorted(d["first"]["skipped"]) == sorted([str(tmp_path / "scene.blend"), str(tmp_path / "gone.png"), "not json"]), d
     assert d["second"] == {"loaded": [], "skipped": [], "shown_in": None}, "drained once"
     assert not d["queue_left"] and png in d["images"]
+
+
+FOCUS = '''
+class Open(FakeClient):
+    def terminal(self):
+        self.calls.append("terminal")
+        return {"installed": True, "window": "re-adopted", "panes": ["4"], "version": "20230712-072601-f4abf8fd", "update": True,
+                "pin": {"version": "20240203-110809-5046fc22", "bytes": 49505472}}
+    def terminal_focus(self, pane): self.calls.append(["focus", pane]); return {"focused": pane}
+fake = Open()
+WO.CLIENT_FACTORY = lambda: fake
+WO.refresh_state()
+log = []
+panel = PANELS.LAMPWAY_PT_cockpit
+panel.layout = Rec(log)
+panel.draw(panel, bpy.context)
+res = {"focus": call(bpy.ops.lampway.terminal_focus)}
+with human_gate.scripting():
+    res["script_focus"] = call(bpy.ops.lampway.terminal_focus)
+kc = bpy.context.window_manager.keyconfigs.addon
+keys = [[km.name, k.idname, k.type, k.ctrl, k.alt, k.shift] for km in (kc.keymaps if kc else []) for k in km.keymap_items
+        if k.idname == "lampway.terminal_open"]
+print("RESULT", json.dumps({"res": res, "calls": fake.calls, "log": log, "keys": keys, "background": bpy.app.background}))
+'''
+
+
+def test_focus_update_and_the_shortcut(tmp_path):
+    """Section 6.6: Focus activates Lampway's pane (a user click, never a script), Update appears when the pin moved past the
+    installed version, and Ctrl Alt T opens the terminal from anywhere in the window."""
+    r = run(tmp_path, PRE + FOCUS)
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[0]
+    ops = [x for x in d["log"] if x.startswith("op:")]
+    assert "op:lampway.terminal_focus|Focus" in ops, ops
+    assert "op:lampway.terminal_get|Update to 20240203-110809-5046fc22" in ops, ops
+    assert d["res"]["focus"] == ["FINISHED"] and ["focus", "4"] in d["calls"]
+    assert d["res"]["script_focus"][0] == "REFUSED"
+    assert ["Window", "lampway.terminal_open", "T", True, True, False] in d["keys"], d["keys"]

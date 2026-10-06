@@ -177,6 +177,48 @@ def binary(home) -> Optional[Path]:
     return found[0] if found else None
 
 
+def installed_version(home) -> Optional[str]:
+    cur = _home(home) / "addons" / "wezterm" / "current"
+    return cur.read_text(encoding="utf-8").strip() if cur.exists() else None
+
+
+# ------------------------------------------------------------------------------------------------------ the tab bar's state
+# DESIGN.md 13's cue for each cockpit Spark (server/lampway_server/workbench_view.py): waiting on the user reads as blocked
+CUE_OF_SPARK = {"working": "working", "waiting": "blocked", "unread": "unread", "idle": "idle", "ended": "done"}
+
+
+def state_doc(inst: dict, sessions: list, indicator: dict, routes: list) -> dict:
+    """What the config's tab titles and status read (section 5): each Lampway pane that shows an agent, by its cue and name,
+    and whether data leaves the machine."""
+    from ..workbench_view import _spark
+    by_id = {s["id"]: s for s in sessions or []}
+    panes = {}
+    for pane_id, rec in sorted((inst or {}).get("panes", {}).items()):
+        s = by_id.get((rec or {}).get("herdr_agent_id"))
+        if s is not None:
+            panes[str(pane_id)] = {"state": CUE_OF_SPARK.get(_spark(s), "idle"), "name": s.get("name") or s["id"]}
+    labels = {r["id"]: r.get("label") or r["id"] for r in routes or []}
+    if (indicator or {}).get("over_the_wire"):
+        egress = {"state": "live", "route": ", ".join(labels.get(a, a) for a in indicator.get("active") or []), "size": ""}
+    else:
+        n = sum(1 for r in routes or [] if r.get("enabled"))
+        egress = {"state": "open", "open": f"{n} route{'' if n == 1 else 's'} open"} if n else {"state": "idle"}
+    return {"panes": panes, "egress": egress}
+
+
+def write_state(home, doc: dict) -> bool:
+    """Write ``state.json`` whole (a reader never sees half a file); False, and nothing written, when it already says this."""
+    p = _home(home) / "wezterm" / "state.json"
+    text = json.dumps(doc, sort_keys=True)
+    if p.exists() and p.read_text(encoding="utf-8") == text:
+        return False
+    p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_suffix(".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(p)
+    return True
+
+
 # ------------------------------------------------------------------------------------------------------ the window
 def socket_path(home) -> Path:
     return _home(home) / "wezterm" / "gui.sock"
