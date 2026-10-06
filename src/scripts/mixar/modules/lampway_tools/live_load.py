@@ -2,7 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Load a rebuild into the live scene beside the previous one.
+"""Load a rebuild into the live scene beside the previous one; the rebuild lands CANONICAL (lampway_normalize_mesh: its turn declared,
+transform applied, the lift recorded as the pivot offset, the scene origin kept).
 
 Ported from the shelf's meshqa/load_live.py (SPIKE 2026-10-04): import the patched UV mesh, put it in the live frame
 (turned about Z to the -Y front, lifted ``lift`` metres to stand on the floor), copy the textured material from the
@@ -45,9 +46,8 @@ def load_rebuild(fbx, masks_dir, name, template_mat, hide=(), lift=0.0, turn=-90
         o.select_set(False)
     ob.select_set(True)
     bpy.context.view_layer.objects.active = ob
-    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-    ob.data.transform(Matrix.Translation((0, 0, lift)) @ Matrix.Rotation(math.radians(turn), 4, "Z"))
-    ob.data.update()
+    from .features import normalize as N
+    N.normalize_object(ob, turn_deg=turn, generator="lampway_tool", path_hint=os.path.basename(fbx), pivot="source_origin", pivot_offset=(0.0, 0.0, lift))
     m = template.copy()
     m.name = "textured_" + name
     for node in m.node_tree.nodes:

@@ -137,3 +137,82 @@ selects torso/neck/arm regions by absolute heights; re-expressing them from join
 (166/207 -> 90/103) to re-pin); openings fixes (item 11); joints from views (item 12); the orchestrator (13); soft-part conform (14,
 waits on the captain's decision 03-H2); bake 16-bit / hit mask / auto cage (the rest of item 9); retopo per-part and
 `use_preserve_sharp` (the rest of item 10).
+
+## Normalization door (priority insert, before canon item 2 by the coordinator's order; built after items 1-5 were already in)
+
+Specs: `specs/canon/normalization/` (REPORT, AUDIT, SCHEMA, DOOR, IMPLEMENTATION_PLAN, contracts). The captain's rulings D1-D10
+(2026-10-06): accepted as recommended except D4 (pair scale), which stays `needs_decision`.
+
+### N0: `canon_asset` - `lampway.canonical-asset/1` (DONE)
+`lampway_tools/canon_asset.py` + `canon/canonical-asset.schema.json` (verbatim from the spec) + `canon/minischema.py` (a vendored
+draft-2020-12 subset validator: Blender's python has no jsonschema; an unknown keyword raises). `validate` (contract section 8's
+refusals, the schema, then the code invariants: axis-map determinant, skeleton bone order / unit `along` / proper frames, texel
+density only at real scale), `check(doc, facts)`, `satisfies(doc, Need)`, `digest`, `SETTINGS` (D1-D10 named; D4 and the D6 margin
+NUMBER owed - the ruling names a refusal margin but no value, so it is `None` and plate registration refuses until it is set).
+RED: collection ImportError. GREEN: 11 tests, incl. the schema's own 3 valid / 7 invalid cases and **200 random mutations accepted or
+rejected identically by the vendored validator and jsonschema 4.26** (jsonschema fetched into a scratch dir for the test run only:
+`LAMPWAY_TEST_PYDEPS`; without it that one test is skipped and says why). Mutant: dropping if/then from the vendored validator fails 2.
+
+### N1: `canon_io`, the only importer (DONE)
+`lampway_tools/canon_io.py`: `import_raw` (stamps every new datablock `lw_raw` = raw sha256, container, importer, settings),
+`load_image(role)` (colour space from the role), `load_library`, `facts`, `geometry_sha256`, `read_npz`/`write_npz` (the `canon`
+header). The batch scripts load it by path (`scripts/lw_canon.py`, as they load `axi_out`). Every importer mention in lampway_tools
+now goes through it: **53 mentions in 31 files** before (the AST scan counts attribute mentions, so `(a if b else c)(...)`,
+`getattr(bpy.ops, ...)` and operator-name strings are caught - my first scan saw only 35 calls and missed the studio landing's
+dynamic `getattr` and five scripts' conditional-expression calls). `server/.../compute/assets/offload.py` runs on a rented box under
+the PyPI bpy and declares `CANON_FOREIGN_BLENDER` (a non-empty reason) instead.
+RED: the scan listed 53. GREEN: 0 outside canon_io; `test_canon_io.py` 5 tests (RED: ImportError).
+
+### N2: the door (DONE)
+`api.tool(consumes=..., produces=...)`: `consumes` required (`{arg: Need}`, `NONE("why")`, `LEGACY("issue")`), a bare `@tool` is a
+TypeError, `TOOL_DOORS` derived with `TOOL_FUNCS`; a Need door refuses raw / unstamped / changed assets with "normalize first" and
+names the normalizer. `runner.Tool.consumes` required. CI (`test_canon_doors.py`): one importer; every tool declares; doors =
+functions; runner declares; the LEGACY ratchet equals the code and its git history never rose; the door's three refusals and its
+opening (mutant: dropping the facts check fails it); the red-team pass over every door that names a kind - **vacuous today**: no
+consuming tool has a real `Need` yet (migration groups 2-6 are later work); only `normalize_mesh` declares a Need, with `accept_raw`.
+RED: measured on the pre-N2 HEAD (no `NONE`, no `TOOL_DOORS`, 84 bare tools). `test_wave5_tool_door` read `@tool\ndef` and would
+have matched NOTHING after the change (passing vacuously): its pattern now reads the new form and asserts it finds at least 80.
+
+**Marked LEGACY (the ratchet starts at 110 = 84 api tools + 26 runner tools; it may only fall):**
+- api: settings_get, settings_set, status, qa_setup, qa_tag_layers, qa_candidates, qa_draw, qa_propose, qa_proposals, qa_descriptors, qa_read_tags, qa_rulings, rebuild_setup, rebuild, job_status, run_tool, meshpaint, export_piece, retopo, uv_unwrap, segment_mesh, auto_rig, bind_to_armature, pose_test, chat_transcript, mesh_prep, asset_acceptance, rig_armor, asset_lineage, workflow_graph, plate_pick, uv_score, uv_rectify, uv_layout, model_compare, scene_cleanup, batch_export, camera_shot, segment_image, procedural_library, layered_material, material_bake_export, clip_classify, view_verify, uv_texel_density, mesh_defect_scan, silhouette_compare, seed_audit, fit_place, fit_openings, parts_critique, palette_fit, bake_maps, pbr_pack, armor_piece_pipeline, fit_pose, weight_audit, weight_cleanup, weight_transfer, garment_clearance, fit_validate, skeleton_export_check, engine_import_check, fit_body, fit_export, fit_bind, fit_glove, anim_reference_render, animation_retarget, anim_multiview_fit, anim_check, anim_loop_export, anim_clip, anim_track, anim_from_video, fit_state, detail_normals, image_to_3d, splat_import, render_video, project_views, texture_gen, ai_render, repair_texture
+- runner: mesh_qa, patch_holes, uv_patches, delete_caps, bake_maps, material_bake, robust_weight_transfer, render_owner, mesh_to_npz, proportion_fit, mesh_compare, pose_clearance, render_textured, clay_view, mesh_paint_set, split_relief, transfer_parts, apply_part_fixes, relief_project, material_masks, pbr_merge, proportion_ratios, uv_score, piece_ratios, place_piece, pauldron_symmetry
+
+### N3: `lampway_normalize_mesh` and the landings (DONE for the studio and rebuild landings; Vault placement not in this tree)
+`features/normalize.py` + `api.normalize_mesh` + its server Def. Frame DECLARED (caller or recipe `turn_deg`; plate registration refuses
+until the D6 margin is numbered; `lampway_tool` output is source-convention); transform applied (winding reversed under a mirror);
+scene in metres or refused; scale state (Tripo / Hi3D `generator_normalised` with the measured longest side; `real` only with
+evidence; else `unknown`); a generated mesh welded at 1e-5 m, refused above 5 % merged, never `captain_authored` / shape keys /
+`weld=never`; `lw_source_face`; pivot at the bbox bottom centre (D10) or `source_origin` with an offset; stamped `lw_canon`, `lw_raw`
+removed; the receipt under `canon/receipts/<sha12>.json`. Works on a mesh COPY: a refusal leaves the object as it was (tested: the flat
+box stays raw). Idempotent; byte-identical documents for the same raw bytes and decisions.
+Landings: `studio_landing.import_file(path, prefix, turn_deg=None, generator=...)` normalizes when the turn is declared, else lands the
+objects raw with `normalize` saying why; `live_load.load_rebuild` (the rebuild landing) lands canonical (its turn declared, lift as
+the pivot offset). The Vault placement (`asset_place`) is in the vault lanes, not on `lp/wave5`: not rewired here.
+RED: on the pre-N3 HEAD, 11 of 11 failed (`api` has no `normalize_mesh`; the landing took no `turn_deg`). Same order breach as items
+4/6/8: the implementation was staged and applied before that RED run.
+**Finding for D5:** the 5 % weld guard refuses a flat-shaded low-poly export outright (a box exported flat splits every corner three
+ways: 16 of 24 vertices are duplicates). Smooth-shaded and dense generated meshes pass. If hard-surface low-poly pieces must be
+normalized, D5's guard needs an exception the captain rules; the test pins today's refusal.
+
+### Typed judge slot (DONE as a slot; no judge model runs)
+`lampway_tools/canon_judge.py`: fields = facing (an axis), side (L | R | centre), texture role (the schema's enum), bone map (a
+reference name or none), piece kind (the schema's enum); computable facts are not fields (`NotAJudgment`); an answer outside the enum
+is a `SchemaError`; every judgment records model id, version and latency; a deterministic cross-check decides (disagreement refuses,
+both recorded); without one, the `confidence_threshold` setting decides - unset (`needs_decision`), so it refuses; OFF by default;
+`golden()` measures accuracy, repeatability and latency against refusal, and since refusal is never wrong a judge that is ever wrong
+does not beat it. **Measured accuracy per field: none - no judge model is installed.** The Vault's bundled CLIP is an image tower
+only (no text tower for zero-shot) and its weights are a user's fetch away (`library/localmodels.py`); the Choices purpose
+`normalize.judge` is named but the hub has not landed. The slot is not wired into `normalize_mesh` (nothing to call yet).
+
+### N4: Vault migration 0004 (DONE except `asset_place`)
+`library/migrations/0004_canonical.sql`: table `canonical`, `version.canon_state` (raw | canonical), relation type `normalized_from`
+(the relation table rebuilt for its CHECK; `v_relations` recreated); existing versions of the canonical kinds marked raw.
+`store.put`: a `canonical` document is validated (the server loads `canon_asset.py` from the tools tree beside it,
+`library/canon.py`; no second copy) and recorded, a canonical version's mesh dimensions come from its document, `normalized_from`
+links it to its raw version; a claimed canonical state without a document is refused. Ingest: a file with its `.canon.json` beside it
+is stored canonical with the document's dimensions; `.canon.json` files are never assets of their own.
+**Deviation from the contract, stated:** the contract says `put` REQUIRES a document or an explicit `subtype: raw`; I store a version
+with no document as raw (`canon_state = 'raw'`) instead of refusing it. Every version is still canonical or raw, never unlabelled, and
+the vault lanes' many `put` callers (and their tests) keep working; a refusal would have broken them across three lanes. The
+coordinator may want the strict form once the callers declare.
+RED: 5 of 5 failed (no migration, no columns), then the ingest test (the twin stored raw).

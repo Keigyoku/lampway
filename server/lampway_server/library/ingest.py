@@ -17,6 +17,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
+from .schema import CANONICAL_KINDS
 from .store import AssetLibrary, LibraryError
 
 DEFAULT_IGNORE = ["**/__pycache__/**", "*.pyc", "*.py", "*.pyd", "*.so", "*.dll", "*.blend1", "*.tmp"]
@@ -29,6 +30,8 @@ VIDEO_EXT = {".mp4", ".mov", ".webm", ".m4v"}
 # ---- classify (magic bytes first; an unknown file is reported, never guessed) -----------------------------------------------------
 def classify(head: bytes, name: str) -> Optional[dict]:
     ext = os.path.splitext(name)[1].lower()
+    if name.lower().endswith(".canon.json"):                                   # a canonical document travels with its asset, never on its own
+        return {"kind": "skip", "container": "json"}
     if head.startswith(b"glTF"):
         return {"kind": "mesh", "subtype": "model", "container": "glb"}
     if head.startswith(b"\x89PNG\r\n\x1a\n"):
@@ -291,7 +294,11 @@ class Ingest:
         except Exception as e:  # noqa: BLE001 - a failed extractor never loses the asset row
             ex = {"stats": {}, "attrs": {"extract": f"failed: {type(e).__name__}: {str(e)[:120]}"}}
         terms = rule_terms(f"{Path(rec['root']).name}/{rec['rel']}", kind, self._rules) + stats_terms(kind, ex["stats"])
-        return {"kind": kind, "subtype": rec.get("subtype"), "name": p.stem, "source": {"kind": "folder", "root": rec["root"], "key": rec["rel"], "label": label},
+        extra = {}
+        side = Path(rec["path"] + ".canon.json")                                 # the normalizer's document: the version is canonical, its
+        if kind in CANONICAL_KINDS and side.exists():                          # stats come from the document (never the raw file's header)
+            extra["canonical"] = json.loads(side.read_text(encoding="utf-8"))
+        return {**extra, "kind": kind, "subtype": rec.get("subtype"), "name": p.stem, "source": {"kind": "folder", "root": rec["root"], "key": rec["rel"], "label": label},
                 "files": [{"role": "main", "path": rec["path"], "storage": "external"}], "stats": ex["stats"], "attrs": {**ex["attrs"], "container": rec["container"]},
                 "terms": terms, "batch": batch}
 
