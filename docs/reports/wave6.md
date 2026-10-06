@@ -331,7 +331,7 @@ and terrain's heightmap load.
 - Client suite (all `testpaths`, `LAMPWAY_BIN` = the lane's binary): **123 failed, 8013 passed, 75 skipped, 20 errors** (baseline at 00d907d4: 123 failed,
   7904 passed, 75 skipped, 20 errors). The failing set is the baseline's, test for test (onboarding subtitles, glass registers, mcp ui receipts,
   scene tabs, brand words, the prepublish gate test, ...): nothing of this branch is in it.
-- Wave 6 tests: 30 client files `tests/lampway_tools/test_wave6_*.py` and 7 server files `server/tests/test_wave6_*.py`; 170 tools in the agent
+- Wave 6 tests: 23 client files `tests/lampway_tools/test_wave6_*.py` and 6 server files `server/tests/test_wave6_*.py`; 170 tools in the agent
   registry, 124 of them Blender tools offered over MCP (rendered with lp/docs's generator, below).
 
 ## Merge notes for the integrator
