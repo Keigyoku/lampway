@@ -90,7 +90,8 @@ _EXT = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}
 
 class JobQueue:
     def __init__(self, backends: dict, hub, base_url: str, model_labels: Optional[dict] = None, video=None, approvals=None, prompts=None, registry=None, policy=None,
-                 receipts=None):
+                 receipts=None, provenance=None):
+        self.provenance = provenance      # library.hooks.job_hook: called with (job, ok, provider) as a job ends, before its payload is cleared; it can never fail a job
         self.policy = policy if policy is not None else SpendPolicy(lambda: DEFAULT_SPEND_POLICY)      # per-provider caps and clicks (the Providers dialog)
         self.registry = registry if registry is not None else ServiceRegistry()           # services.py: the Client's other job types
         self.prompts = prompts            # prompts.service.PromptService: templates, rendering, the run log
@@ -479,6 +480,11 @@ class JobQueue:
             job.error = f"{type(exc).__name__}: {exc}"[:600]
             self._receipt_failed(job, exc)
         finally:
+            if self.provenance is not None and job.status in ("DONE", "FAILED"):
+                try:
+                    self.provenance(job, job.status == "DONE", self._provider_of(job.service, job.model))
+                except Exception:  # noqa: BLE001 - provenance must never fail a generation
+                    log.warning("provenance hook failed for job %s", job.job_id, exc_info=True)
             job.payload = {}
             if job.status in ("DONE", "FAILED"):
                 self._log(job, job.status == "DONE")

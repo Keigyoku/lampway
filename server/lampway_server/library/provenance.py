@@ -56,7 +56,7 @@ def record(lib: AssetLibrary, payload: dict) -> dict:
     if g.get("cost_basis") == "estimated" and g.get("cost_usd") is None and g.get("cost_credits") is None:
         raise LibraryError("estimated cost needs a number or basis 'none'")
     for o in outputs:
-        if ok and not Path(o["path"]).is_file():
+        if ok and "bytes" not in o and not Path(o["path"]).is_file():
             raise LibraryError(f"output not found: {o['path']}; record only after the file exists")
     seed = g.get("seed")
     prompt = g.get("prompt_text")
@@ -108,8 +108,9 @@ def record(lib: AssetLibrary, payload: dict) -> dict:
         if unresolved:
             attrs["parent_ref"] = {u["role"]: u["ref"] for u in unresolved}
         terms = [{"facet": f, "label": l, "by": "rule"} for f, l in (o.get("terms") or {}).items()]
-        spec = {"kind": o["kind"], "name": o.get("name") or Path(o["path"]).stem, "source": {"kind": "generation", "key": f"{g.get('job_id') or hashlib.sha1(o['path'].encode()).hexdigest()[:12]}:{o.get('role', 'main')}:{i}"},
-                "files": [{"role": o.get("role", "main"), "path": o["path"], "storage": "cas"}], "attrs": attrs, "terms": terms, "relations": [{**r, "by": "rule"} for r in rels], "generation": gen}
+        ident = o.get("path") or o.get("name") or str(i)
+        spec = {"kind": o["kind"], "name": o.get("name") or Path(o["path"]).stem, "source": {"kind": "generation", "key": f"{g.get('job_id') or hashlib.sha1(ident.encode()).hexdigest()[:12]}:{o.get('role', 'main')}:{i}"},
+                "files": [{"role": o.get("role", "main"), "storage": "cas", **({"bytes": o["bytes"]} if "bytes" in o else {"path": o["path"]})}], "attrs": attrs, "terms": terms, "relations": [{**r, "by": "rule"} for r in rels], "generation": gen}
         put = lib.put(spec)
         res["assets"].append({"id": put["id"], "version": put["version"], "created": put["created"], "deduped": put["deduped"]})
         if put["deduped"]:                                   # the same bytes were made before: this job's origin is still a fact worth keeping
@@ -161,11 +162,29 @@ def capture(lib: Optional[AssetLibrary], spool, payload: dict) -> dict:
         try:
             p = Path(spool)
             p.parent.mkdir(parents=True, exist_ok=True)
+            safe = _spoolable(payload, p.parent / "spool_blobs")
             with open(p, "a", encoding="utf-8") as fh:
-                fh.write(json.dumps({"t": time.time(), "error": _clean(f"{type(e).__name__}: {e}"), "payload": _clean(payload)}, sort_keys=True) + "\n")
-        except OSError:
+                fh.write(json.dumps({"t": time.time(), "error": _clean(f"{type(e).__name__}: {e}"), "payload": _clean(safe)}, sort_keys=True) + "\n")
+        except Exception:  # noqa: BLE001
             return {"ok": False, "spooled": False, "error": str(e)}
         return {"ok": False, "spooled": True, "error": str(e)}
+
+
+def _spoolable(payload: dict, blob_dir: Path) -> dict:
+    """In-memory output bytes are the ONLY copy of a generation: they go to ``spool_blobs/<sha256>`` and the row points at that file, so a closed library loses nothing."""
+    out = json.loads(json.dumps({k: v for k, v in payload.items() if k != "outputs"}, default=str))
+    outs = []
+    for o in payload.get("outputs") or []:
+        o = dict(o)
+        if "bytes" in o:
+            data = o.pop("bytes")
+            blob_dir.mkdir(parents=True, exist_ok=True)
+            f = blob_dir / hashlib.sha256(data).hexdigest()
+            f.write_bytes(data)
+            o.update(path=str(f), spool_blob=True)
+        outs.append(o)
+    out["outputs"] = outs
+    return out
 
 
 def replay_spool(lib: AssetLibrary, spool) -> dict:
@@ -179,6 +198,9 @@ def replay_spool(lib: AssetLibrary, spool) -> dict:
         row = json.loads(line)
         try:
             record(lib, row["payload"])
+            for o in row["payload"].get("outputs") or []:
+                if o.get("spool_blob"):
+                    Path(o["path"]).unlink(missing_ok=True)          # the bytes are in the library's own storage now
             done += 1
         except Exception:  # noqa: BLE001
             keep.append(line)
