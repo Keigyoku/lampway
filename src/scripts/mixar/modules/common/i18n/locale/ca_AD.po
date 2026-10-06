@@ -5165,6 +5165,12 @@ msgstr ""
 msgid "UE Look is on"
 msgstr ""
 
+msgid "Studios"
+msgstr ""
+
+msgid "Video and images"
+msgstr ""
+
 msgid "Front"
 msgstr "Davant"
 
@@ -5229,6 +5235,120 @@ msgid "Send may leave"
 msgstr ""
 
 msgid "Generate estimates"
+msgstr ""
+
+msgid "On this machine"
+msgstr ""
+
+msgid "Use what is already on this machine (a login, a variable, a file)"
+msgstr ""
+
+msgid "Paste a key"
+msgstr ""
+
+msgid "Paste a key: it is kept in your keyring, or in a file only you can read"
+msgstr ""
+
+msgid "Point to a file or variable"
+msgstr ""
+
+msgid "Point at a file or an environment variable that holds it"
+msgstr ""
+
+msgid "Sign in"
+msgstr ""
+
+msgid "Sign in in your browser"
+msgstr ""
+
+msgid "Save and test"
+msgstr ""
+
+msgid "Save the pasted key and test it. The field empties itself; the key is never shown again"
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "Check that it works now"
+msgstr ""
+
+msgid "Use this"
+msgstr ""
+
+msgid "Use this way in for the connection"
+msgstr ""
+
+msgid "Sign in in your browser; the row waits, lit, until the browser comes back"
+msgstr ""
+
+msgid "Sign out"
+msgstr ""
+
+msgid "Sign out: the login is removed from Lampway"
+msgstr ""
+
+msgid "Forget this key"
+msgstr ""
+
+msgid "Forget the key Lampway keeps for this connection"
+msgstr ""
+
+msgid "Move into keyring"
+msgstr ""
+
+msgid "Move the key from a file into your keyring"
+msgstr ""
+
+msgid "Show this connection"
+msgstr ""
+
+msgid "How Lampway gets it"
+msgstr ""
+
+msgid "Choose how Lampway gets it"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Read the connections again"
+msgstr ""
+
+msgid "Connections"
+msgstr ""
+
+msgid "Connections: which of your accounts work now, and which may send data"
+msgstr ""
+
+msgid "Open on this row"
+msgstr ""
+
+msgid "Choose a connection on the left"
+msgstr ""
+
+msgid "File"
+msgstr "Document"
+
+msgid "Variable"
+msgstr ""
+
+msgid "Use it"
+msgstr ""
+
+msgid "Use what is on this machine"
+msgstr ""
+
+msgid "Open in Privacy"
+msgstr ""
+
+msgid "Used by, other sources, history"
+msgstr ""
+
+msgid "Lampway's server is not running: start it, then Refresh"
+msgstr ""
+
+msgid "The NAME of an environment variable (never its value)"
 msgstr ""
 
 msgid "LOADING"
@@ -6065,9 +6185,6 @@ msgstr "Nombre"
 
 msgid "A number"
 msgstr ""
-
-msgid "File"
-msgstr "Document"
 
 msgid "A file inside the project root"
 msgstr ""
