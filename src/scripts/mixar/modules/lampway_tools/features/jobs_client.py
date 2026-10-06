@@ -52,11 +52,18 @@ def _download(url, timeout=120) -> bytes:
         return resp.read()
 
 
-def generate_image(prompt, reference_png, count=1, timeout=300, poll=1.0):
-    """``count`` images (PNG/JPEG bytes) from the image slot, conditioned on ``reference_png`` (bytes) when given."""
+def record_ledger(row: dict) -> dict:
+    """One experiment row into the server's ledger (POST /app/ledger: the server checks and appends it); returns the stored row."""
+    return _request("POST", "/app/ledger", row)
+
+
+def generate_image(prompt, reference_png, count=1, timeout=300, poll=1.0, extra_references=None):
+    """``count`` images (PNG/JPEG bytes) from the image slot, conditioned on ``reference_png`` (bytes) when given; ``extra_references`` (bytes, in order)
+    follow it, e.g. a material reference as the second image."""
     payload = {"prompt": prompt, "params": {"number_of_images": int(count)}}
-    if reference_png:
-        payload["reference_images_b64"] = [base64.b64encode(reference_png).decode("ascii")]
+    refs = [r for r in [reference_png, *(extra_references or [])] if r]
+    if refs:
+        payload["reference_images_b64"] = [base64.b64encode(r).decode("ascii") for r in refs]
     sub = _request("POST", "/api/v1/job-queue/jobs", {"service": "image_gen", "model": "default", "payload": payload,
                                                       "idempotency_key": str(uuid.uuid4())})
     data = sub.get("data") or {}

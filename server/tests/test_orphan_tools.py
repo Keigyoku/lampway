@@ -54,3 +54,9 @@ def test_segment_mesh_takes_island_labels():
     call = next(n for n in ast.walk(ast.parse(s)) if isinstance(n, ast.Call) and getattr(n.func, "attr", "") == "call")
     import json
     assert json.loads(ast.literal_eval(call.args[1]))["labels"] == {"mode": "map", "island_labels": {"0": "skirt"}}
+
+
+def test_texture_gen_takes_a_material_reference_variants_and_a_ledger_row():
+    props = LT.BY_NAME["lampway_texture_gen"].spec().parameters["properties"]
+    for k in ("reference_image", "count", "keep_original", "record", "piece", "delight", "min_coverage"):
+        assert k in props, k

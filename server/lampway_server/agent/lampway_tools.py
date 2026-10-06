@@ -481,10 +481,18 @@ DEFS = [
         "of texels each view painted. The object needs UVs." + _PATHS, [P("object", required=True), P("views", "object", "View -> image path", required=True),
         P("size", "integer", "Atlas size, default 1024"), P("out", desc="Atlas PNG path"), P("occlusion", "boolean", "Default true")], api="project_views"),
     Def("lampway_texture_gen", "Texture Gen: a clay render of each view goes to the image model with the prompt, the painted views are projected into the "
-        "mesh's UV atlas and applied as a material. The object needs UVs; the image step costs money (about $0.07 an image on OpenRouter) and "
-        "runs on the server's image slot. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits): it answers with action and price "
-        "for the owner's approval and clicks nothing." + _PATHS, [P("object", required=True), P("prompt", required=True), P("out_dir", desc="Folder for the clay, painted views and atlas"),
-        P("views", "array", "Default Front, Back"), P("size", "integer"), P("engine", desc="algorithmic (default) | studio:tripo")], api="texture_gen"),
+        "mesh's UV atlas and applied as a material on a COPY <object>_tex (keep_original, default; the source keeps its materials). The object needs UVs; the "
+        "image step costs money (about $0.07 an image on OpenRouter) and runs on the server's image slot. The views' coverage is measured on the clay renders "
+        "FIRST: under min_coverage (0.6) the run is refused before anything is paid (add Back/Left/Right views). reference_image (a material reference) rides as "
+        "the SECOND image; count 1..4 variants per view, the best silhouette IoU against the clay kept (picks lists every IoU); delight divides out baked "
+        "low-frequency lighting before projection. Every run appends a ledger row (stage texture, hashes of the clay renders, reference, picked images and "
+        "atlas; the image jobs carry their own price rows) unless record=false. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits): it answers "
+        "with action and price for the owner's approval and clicks nothing." + _PATHS, [P("object", required=True), P("prompt", required=True), P("out_dir", desc="Folder for the clay, painted views and atlas"),
+        P("views", "array", "Default Front, Back"), P("size", "integer"), P("engine", desc="algorithmic (default) | studio:tripo"),
+        P("reference_image", desc="a material reference image, passed second"), P("count", "integer", "variants per view 1..4, default 1"),
+        P("keep_original", "boolean", "texture a copy <object>_tex, default true"), P("record", "boolean", "append a ledger row, default true"),
+        P("piece", desc="the ledger piece, default the object name"), P("delight", "boolean", "flatten baked lighting, default false"),
+        P("min_coverage", "number", "refuse under this surface coverage, default 0.6")], api="texture_gen"),
     Def("lampway_ai_render", "AI Render: a clay render of an object from a view goes to the image model with the prompt; the result is saved and loaded as a "
         "Blender image. Look development only: it changes nothing in the scene. Costs about $0.07 on OpenRouter." + _PATHS,
         [P("object", required=True), P("prompt", required=True), P("view", desc="Front | Back | Left | Right"), P("out", desc="Result PNG path"), P("size", "integer")],

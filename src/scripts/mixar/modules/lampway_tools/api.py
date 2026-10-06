@@ -1487,14 +1487,17 @@ def project_views(object, views, size=1024, out="", occlusion=True):
 
 
 @tool
-def texture_gen(object, prompt, out_dir="", views=("Front", "Back"), size=1024, engine="algorithmic"):
-    """Texture Gen: clay render of each view -> the server's image model paints it -> projection into the atlas -> material applied.
-    The object needs UVs. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits: approval first)."""
+def texture_gen(object, prompt, out_dir="", views=("Front", "Back"), size=1024, engine="algorithmic", reference_image="", count=1, keep_original=True, record=True,
+                piece="", delight=False, min_coverage=0.6):
+    """Texture Gen: clay render of each view -> the server's image model paints it (count variants, best silhouette IoU kept; a material
+    reference_image rides second) -> projection into the atlas of a copy <object>_tex (keep_original) -> a ledger row. Under min_coverage the run
+    is refused before anything is paid. The object needs UVs. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits: approval first)."""
     if engine != "algorithmic":
         return _F_texture.texture_gen(object, prompt, "", views, size, engine)
     if not out_dir:
         raise ValueError("texture_gen needs out_dir (a project folder for the clay renders, the painted views and the atlas)")
-    return _F_texture.texture_gen(object, prompt, _p(out_dir), list(views), size, engine)
+    return _F_texture.texture_gen(object, prompt, _p(out_dir), list(views), size, engine, reference_image=_p(reference_image), count=count,
+                                  keep_original=keep_original, record=record, piece=piece, delight=delight, min_coverage=min_coverage)
 
 
 @tool
