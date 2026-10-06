@@ -33,6 +33,7 @@ from .prompts.render import RenderError
 from .assetsearch import AssetIndex
 from .library import rest as library_rest
 from .library.vault import Vault
+from .cards import routes as cards_routes
 from .mcp import McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub, bearer_from
@@ -498,6 +499,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         Route("/api/v1/asset-search/search-batch", assets_search_batch, methods=["POST"]),
         Route("/api/v1/asset-search/embeddings", assets_delete, methods=["DELETE"]),
         *library_rest.routes(vault, _bearer_ok),
+        *cards_routes.routes(_bearer_ok, api_port=settings.port),
         Route("/api/v1/mcp", mcp_route, methods=["POST"]),
         Route("/api/v1/mcp-desktop/eligibility", mcp_eligibility, methods=["GET"]),
         Route("/api/v1/matgen", matgen_route, methods=["POST"]),
