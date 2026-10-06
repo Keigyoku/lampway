@@ -107,6 +107,7 @@ struct MediaFace {
   char cap_job[128], cap_job_level[8], cap_session[128];
   char route[96], content[128];
   char button[96], button_kind[16], policy[256], refusal[256];
+  char last_run[192]; /* The results row's line: the last run billed against its estimate (contract 08). */
   float cap_job_fill, cap_session_fill;
 };
 
