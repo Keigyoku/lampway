@@ -140,7 +140,7 @@ def test_when_only_the_agent_process_dies_the_record_is_ended_and_nothing_is_res
     out = Cockpit(lroot).reconcile()
     assert out["ended"] == [rec["id"]] and out["adopted"] == [] and out["new_panes"] == 0 and len(fake_panes(lroot)) == panes_before
     ended = [s for s in Cockpit(lroot).list_sessions() if s["id"] == rec["id"]][0]
-    assert ended["state"] == "ended" and ended["ended_at"] and "no longer running" in ended["end_reason"]
+    assert ended["state"] == "ended" and ended["ended_at"] and ("no longer running" in ended["end_reason"] or "gone from the server" in ended["end_reason"])      # herdr closes a dead command's pane on its own clock: either is the same fact
     assert Cockpit(lroot).reconcile()["ended"] == [rec["id"]] and not any(alive(p) for p in pids)         # idempotent, and never respawned
 
 
