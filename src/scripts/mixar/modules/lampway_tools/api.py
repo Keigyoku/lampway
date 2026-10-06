@@ -1453,12 +1453,13 @@ def fit_export(object, armature, out_dir, body, textures=None, validation="", bi
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_dir="fit/bind", body_object="", accept_seam_gap_mm=None):
+def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_dir="fit/bind", body_object="", accept_seam_gap_mm=None, body=""):
     """Bind a finished piece to the body's skeleton by the user's weight laws. plan: per part (a vertex group of the piece) a role from `roles` {part: metal | leather | cloth | embroidery} - the user's or
     the recipe's, never a render's colour: a part without one is refused - and a mode: metal = rigid, ONE bone at full weight (the bone with most of its vertices nearest, or the override), anything else =
     restrict (weighted by position from the body's own weights, restricted to the bones its geometry spans); `bind_overrides` {part: {mode, bones, reason}} (metal as blend is refused: ask for a ruled cut;
     an unknown bone names the nearest). Parts that share a seam and a bone form a rigid group; two rigid parts of one shell on different bones OPEN the seam (seam_opens). Writes bind_plan.json and seams.json.
-    weights: a copy <piece>_fit (the source is untouched) with the plan's weights; the body's weights come from `body_object` (a skinned body in the scene: an approximation, the native sidecar sampler is not built).
+    weights: a copy <piece>_fit (the source is untouched) with the plan's weights; the body's weights come from `body`, the fit_body package's NATIVE sidecar (the engine's weights, every influence, skinned to the
+    armature's current pose: canon 03 F.6) - `body_object`, a skinned scene body, is accepted as an approximation and labelled so. A cloth/leather vertex within 5 mm of a rigid part takes its bone (canon 07 B.5; at a seam, the bone alone).
     A restrict part (canon 07) is welded by position, matched only on the body's own region for its bones (a closer surface of another region cannot
     capture it), within 30 degrees of normal (or flipped); a weight on a disallowed bone moves to its nearest allowed ancestor, else to the part's
     `fallback` (bind_overrides {part: {fallback}}), else the bone is refused by name; a vertex left with no weight is refused, never written empty.
@@ -1468,7 +1469,7 @@ def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_
     if stage == "plan":
         return _FB.plan(piece, armature, roles, bind_overrides, out_dir, root)
     if stage == "weights":
-        return _FB.weights(piece, armature, out_dir, body_object, root)
+        return _FB.weights(piece, armature, out_dir, body_object, root, body=body)
     if stage == "return":
         return _FB.return_report(piece, armature, out_dir, root)
     if stage == "apply":

@@ -173,11 +173,12 @@ def measure(piece, bound, original, poses, roles, limits=None, body=None, armatu
     O = np.array([(orig.matrix_world @ v.co)[:] for v in orig.data.vertices])
     _V, piece_T = _rig._body_mesh(ob)
     piece_E = _edges_of(piece_T)
-    parts = {p: _part_vertices(ob, p, roles) for p in roles}
+    labels = ob if any(p in {g.name for g in ob.vertex_groups} for p in roles) else orig     # a bound copy carries bone groups only: the parts are the source's
+    parts = {p: _part_vertices(labels, p, roles) for p in roles}
     whole = V.rigid_fit(O, rest, with_scale=True)
     fidelity = {"scale": round(whole["scale"], 6), "rms_mm": round(whole["rms_m"] * 1000, 4), "max_mm": round(whole["max_m"] * 1000, 4),
                 "per_part": {p: G.similarity_receipt(G.similarity_fit(O[idx], rest[idx])) for p, idx in parts.items() if roles[p] == "metal"}}
-    ledger = _ledger(ob, O, roles)
+    ledger = _ledger(labels, O, roles)
     lim = limits or V.DEFAULT_LIMITS
     body_ob = C.need_object(body) if body else None
     joints0 = _joints(arm)
