@@ -23,7 +23,7 @@ name = "UV score"
 status = "built"
 source = "docs/reports/features.md"
 note = "Retopology and UV unwrap with measured reports"
-tools = ["lampway_retopo", "lampway_uv_unwrap"]
+tools = ["lampway_retopo", "lampway_uv_unwrap", "lampway_uv_score", "lampway_uv_patches"]
 
 [[step]]
 id = "mesh_qa"
@@ -31,7 +31,7 @@ name = "Mesh QA"
 status = "live"
 source = "docs/reports/tools.md"
 note = "Reproduced the recorded runs (84 of 84 loops) and ran in the app on the textured chest"
-tools = ["lampway_mesh_prep", "lampway_asset_acceptance", "lampway_delete_caps"]
+tools = ["lampway_mesh_prep", "lampway_asset_acceptance", "lampway_delete_caps", "lampway_mesh_qa_batch", "lampway_patch_holes"]
 
 [[step]]
 id = "parts"
@@ -48,7 +48,8 @@ name = "Mesh-paint texture"
 status = "partial"
 source = "docs/reports/tools.md"
 note = "Projection and albedo tested on recorded plates; the live image generation step has not run"
-tools = ["lampway_detail_normals", "lampway_pbr_merge"]
+tools = ["lampway_detail_normals", "lampway_pbr_merge", "lampway_clay_view", "lampway_mesh_paint_set", "lampway_relief_project",
+         "lampway_material_masks", "lampway_bake_maps", "lampway_material_bake_export"]
 
 [[step]]
 id = "fit"
@@ -65,7 +66,7 @@ status = "partial"
 source = "docs/reports/features.md"
 note = "Auto rig and the export bundle are built; the bind to UE is Wave 3"
 when = "Wave 3"
-tools = ["lampway_auto_rig", "lampway_export_piece", "lampway_render_video"]
+tools = ["lampway_auto_rig", "lampway_export_piece", "lampway_render_video", "lampway_robust_weight_transfer"]
 
 # A tool's own word when it differs from its step's (the source is the report that measured the tool).
 [tools.lampway_image_to_3d]
@@ -120,7 +121,28 @@ source = "docs/reports/orphans.md"
 status = "built"
 source = "docs/reports/orphans.md"
 
+[tools.lampway_uv_score]
+status = "built"
+source = "docs/reports/wave2.md"
+
+[tools.lampway_bake_maps]
+status = "built"
+source = "docs/reports/wave2.md"
+
+[tools.lampway_material_bake_export]
+status = "built"
+source = "docs/reports/vault-ops.md"
+
+[tools.lampway_relief_project]
+status = "built"
+source = "docs/reports/tools.md"
+
+[tools.lampway_robust_weight_transfer]
+status = "built"
+source = "docs/reports/wave3.md"
+
 # Tools the agent has that are not a step of one piece's runbook, each with why (test_every_tool_has_a_place).
 [off_the_way]
 lampway_libwiki = "Publishes a whole library's inventory as a wiki: a library chore, not a step of one piece"
 lampway_index_delta = "A texture library's next index as a delta: a library chore, not a step of one piece"
+lampway_vault_catalog_export = "Writes Asset Vault assets into an asset library .blend: a library chore, not a step of one piece"

@@ -170,6 +170,166 @@
    ]
   },
   {
+   "name": "lampway_bake_maps",
+   "description": "Bake a high-poly donor (`source`: a name or a list) into a UV-mapped low-poly `target`: normal (tangent), albedo (Cycles COLOR pass only: no lighting, by construction) and ao, in a niced HEADLESS Cycles worker, never the live scene. size a power of two 32..8192 (default 2048), margin_px default size/128 (>= 2), cage_extrusion_m 0..0.2 or auto, max_ray_m, samples 1..512. Refused before running, each with its fix: no UV (unwrap first), overlapping UVs, unapplied non-uniform scale, source == target, a pair not aligned (bbox centres > 2 % of the diagonal), an unsupported map (curvature, cavity, dust, bevel, position are not Cycles bake types), an existing map without overwrite. Returns the PNG paths, the black-texel fraction per map with a cage-too-small hint, the colour spaces, and (attach) a <target>_baked material wired with the maps.",
+   "batch": null,
+   "api": "bake_maps",
+   "params": [
+    {
+     "name": "source",
+     "type": "string",
+     "desc": "donor object name, or a list",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "target",
+     "type": "string",
+     "desc": "the UV-mapped low-poly object",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "maps",
+     "type": "array",
+     "desc": "normal | albedo | ao (default normal, albedo)",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "size",
+     "type": "integer",
+     "desc": "power of two, default 2048",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "margin_px",
+     "type": "integer",
+     "desc": "0..64",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "cage_extrusion_m",
+     "type": "string",
+     "desc": "0..0.2 or auto",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "max_ray_m",
+     "type": "number",
+     "desc": "default half the extrusion",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "samples",
+     "type": "integer",
+     "desc": "1..512, default 16",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "normal_green",
+     "type": "string",
+     "desc": "gl (default) | dx",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "allow_overlap",
+     "type": "boolean",
+     "desc": "bake despite overlapping UVs",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "under the project root, default bake",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "overwrite",
+     "type": "boolean",
+     "desc": "replace existing maps",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "attach",
+     "type": "boolean",
+     "desc": "add the baked material, default true",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_clay_view",
+   "description": "Orthographic clay render of a mesh from a cardinal view (mesh-paint input), camera recorded. Paths are relative to the project root.",
+   "batch": "clay_view",
+   "api": null,
+   "params": [
+    {
+     "name": "mesh",
+     "type": "string",
+     "desc": "The mesh (fbx)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "The PNG written",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "view",
+     "type": "string",
+     "desc": "Front | Back | Left | Right",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "res",
+     "type": "integer",
+     "desc": "Image size in pixels",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "turn",
+     "type": "number",
+     "desc": "Turn about Z in degrees, default -90",
+     "required": false,
+     "flag": "--turn",
+     "repeat": false
+    }
+   ]
+  },
+  {
    "name": "lampway_delete_caps",
    "description": "Delete a cap that closes an opening that must stay open (neck bowl, waist fan, arm dome) by ray-casting through a rectangular footprint; UVs kept; writes a NEW file. Paths are relative to the project root; a path outside it is refused.",
    "batch": "delete_caps",
@@ -674,6 +834,142 @@
    ]
   },
   {
+   "name": "lampway_material_bake_export",
+   "description": "Bake the layer-stack material of `object` to the images a destination needs, in a niced HEADLESS Cycles worker (never your live scene). channels: base_color, roughness, metallic, normal, ao, emission (default base_color, roughness, metallic, normal); size a power of two 1024..8192; format png | exr | tiff | jpeg (jpeg with normal is refused: lossy normals); normal_green gl (OpenGL, Unity/Blender/Godot) | dx (DirectX, Unreal); pack=orm also writes <object>_orm (R occlusion, G roughness, B metallic; R is 1.0 with a warning when no ao was baked; roughness and metallic must be baked too). Base colour and emission are sRGB, everything else Non-Color. Writes the images and a README with every file's sha256 and the conventions under out_dir (inside the project root). The layer stack is untouched. Refused: no paint-stack material (build one with layered_material), no UV map, an unsaved project (allow_dirty=true to override), a bad size or channel, a path outside the root.",
+   "batch": null,
+   "api": "material_bake_export",
+   "params": [
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "material",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "channels",
+     "type": "array",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "size",
+     "type": "integer",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "format",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "pack",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "normal_green",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "samples",
+     "type": "integer",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "allow_dirty",
+     "type": "boolean",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_material_masks",
+   "description": "Material masks (gold, plate, red, linen, embroidery, leather) for a parts set's shared UV atlas from the projected V3 colour. Paths are relative to the project root.",
+   "batch": "material_masks",
+   "api": null,
+   "params": [
+    {
+     "name": "projection_out_dir",
+     "type": "string",
+     "desc": "The projection's output directory",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "owner",
+     "type": "string",
+     "desc": "The owner map (npy)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "recipe",
+     "type": "string",
+     "desc": "The parts recipe (json)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "mesh_npz",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
    "name": "lampway_mesh_compare",
    "description": "Compare candidate meshes with a reference: faces, open boundary loops, shells, matcap renders. Paths are relative to the project root; a path outside it is refused.",
    "batch": "mesh_compare",
@@ -706,6 +1002,38 @@
    ]
   },
   {
+   "name": "lampway_mesh_paint_set",
+   "description": "Projection plate set from mesh-paint results: picked painted views with their clay-render alpha. Paths are relative to the project root.",
+   "batch": "mesh_paint_set",
+   "api": null,
+   "params": [
+    {
+     "name": "clay_dir",
+     "type": "string",
+     "desc": "The directory with clay_<View>.png",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "The set's output directory",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "picks",
+     "type": "array",
+     "desc": "View=image pairs, e.g. Front=a.png Back=b.png",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
    "name": "lampway_mesh_prep",
    "description": "Workflow, geometry preparation: a branch `<object>_prep` of a generated mesh with its source hash recorded, loose and doubled vertices removed and inverted normals fixed; returns before/after reports. The source is untouched.",
    "batch": null,
@@ -725,6 +1053,94 @@
      "desc": "Weld distance, default 1e-5",
      "required": false,
      "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_mesh_qa_batch",
+   "description": "Mesh QA candidates (open loops, floating shells) with typed descriptors and review renders, as a batch run on files. Paths are relative to the project root.",
+   "batch": "mesh_qa",
+   "api": null,
+   "params": [
+    {
+     "name": "mesh",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "owner",
+     "type": "string",
+     "desc": "owner_poly.npy",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "recipe",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "Output directory",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "turn",
+     "type": "number",
+     "desc": "Turn about Z, default 0",
+     "required": false,
+     "flag": "--turn",
+     "repeat": false
+    },
+    {
+     "name": "min_perimeter",
+     "type": "number",
+     "desc": "Smallest loop perimeter, default 0.15",
+     "required": false,
+     "flag": "--min-perimeter",
+     "repeat": false
+    },
+    {
+     "name": "max_shell_tris",
+     "type": "integer",
+     "desc": "Largest floating shell, default 400",
+     "required": false,
+     "flag": "--max-shell-tris",
+     "repeat": false
+    },
+    {
+     "name": "float_mm",
+     "type": "number",
+     "desc": "Floating distance, default 3",
+     "required": false,
+     "flag": "--float-mm",
+     "repeat": false
+    },
+    {
+     "name": "delete_polys",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": "--delete-polys",
+     "repeat": false
+    },
+    {
+     "name": "no_render",
+     "type": "boolean",
+     "desc": "Descriptors only, no EEVEE renders",
+     "required": false,
+     "flag": "--no-render",
      "repeat": false
     }
    ]
@@ -758,6 +1174,142 @@
      "required": true,
      "flag": null,
      "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_patch_holes",
+   "description": "Apply the user's mesh QA rulings: delete ruled faces, patch ruled holes with curved fills; writes a new mesh and owner map. Paths are relative to the project root.",
+   "batch": "patch_holes",
+   "api": null,
+   "params": [
+    {
+     "name": "mesh",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "owner",
+     "type": "string",
+     "desc": "owner_poly.npy",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "recipe",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "cands",
+     "type": "string",
+     "desc": "The QA candidates.json",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "decisions",
+     "type": "string",
+     "desc": "The rulings (decisions.jsonl)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "Output prefix",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "deletions",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": "--deletions",
+     "repeat": false
+    },
+    {
+     "name": "session",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": "--session",
+     "repeat": false
+    },
+    {
+     "name": "turn",
+     "type": "number",
+     "desc": "Turn about Z, default -90",
+     "required": false,
+     "flag": "--turn",
+     "repeat": false
+    },
+    {
+     "name": "edge_cm",
+     "type": "number",
+     "desc": "Patch edge length, default 1.5",
+     "required": false,
+     "flag": "--edge-cm",
+     "repeat": false
+    },
+    {
+     "name": "relax",
+     "type": "integer",
+     "desc": "Relax iterations, default 150",
+     "required": false,
+     "flag": "--relax",
+     "repeat": false
+    },
+    {
+     "name": "match_mm",
+     "type": "number",
+     "desc": "Match distance, default 2",
+     "required": false,
+     "flag": "--match-mm",
+     "repeat": false
+    },
+    {
+     "name": "owner_override",
+     "type": "array",
+     "desc": "part overrides",
+     "required": false,
+     "flag": "--owner-override",
+     "repeat": true
+    },
+    {
+     "name": "bridge_cm",
+     "type": "number",
+     "desc": "Bridge length, default 6",
+     "required": false,
+     "flag": "--bridge-cm",
+     "repeat": false
+    },
+    {
+     "name": "relabel_orig",
+     "type": "string",
+     "desc": "json {\"relabels\": [{\"faces_orig\": [...], \"to\": part, \"why\": ...}]}: ruled labels by source face id",
+     "required": false,
+     "flag": "--relabel-orig",
+     "repeat": false
+    },
+    {
+     "name": "relabel",
+     "type": "array",
+     "desc": "FROM:TO:WITH: faces labelled FROM on small shells that also carry WITH faces become TO",
+     "required": false,
+     "flag": "--relabel",
+     "repeat": true
     }
    ]
   },
@@ -1052,6 +1604,86 @@
      "type": "array",
      "desc": "name=piece.npz:turn_deg entries",
      "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_relief_project",
+   "description": "Project the view reliefs (relief_gen.py depth PNGs) onto a UV atlas as a detail height map. Paths are relative to the project root.",
+   "batch": "relief_project",
+   "api": null,
+   "params": [
+    {
+     "name": "mesh_npz",
+     "type": "string",
+     "desc": "The piece's UV mesh (npz)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "views_dir",
+     "type": "string",
+     "desc": "The relief views",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "v3_dir",
+     "type": "string",
+     "desc": "The V3 design plates",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "res",
+     "type": "integer",
+     "desc": "Atlas size",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "strength_m",
+     "type": "number",
+     "desc": "Relief height in metres",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "preblur_px",
+     "type": "number",
+     "desc": "Blur before projecting",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "fine_dir",
+     "type": "string",
+     "desc": "A second, finer relief set",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "fine_w",
+     "type": "number",
+     "desc": "The fine set's weight",
+     "required": false,
      "flag": null,
      "repeat": false
     }
@@ -1354,6 +1986,38 @@
    ]
   },
   {
+   "name": "lampway_robust_weight_transfer",
+   "description": "Fill the weights of unmatched vertices by a biharmonic solve over the robust Laplacian (robust skin-weight transfer, inpainting half). Paths are relative to the project root.",
+   "batch": "robust_weight_transfer",
+   "api": null,
+   "params": [
+    {
+     "name": "in_npz",
+     "type": "string",
+     "desc": "V, F, matched, W",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_npz",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "mode",
+     "type": "string",
+     "desc": "point | surface, default point",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
    "name": "lampway_segment_mesh",
    "description": "Mesh Segment: split a mesh into part objects in the collection `<object>_parts` (largest first, UVs and materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with. The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price). labels instead NAMES the UV islands as vertex groups <object>_<label> (nothing is split), with the Client's own island enumeration (Mesh Segment's island_labels): mode map takes island_labels {\"<island>\": label}; mode recipe gives each island the recipe part owning the majority of its faces in owner (a .npy per polygon, default the int face attribute 'part'), an island under min_share (0.6) unlabelled and named; labels outside the recipe's part names are refused, and more than max_unlabeled (0.3) of the faces unlabelled refuses to apply. Needs a UV map.",
    "batch": null,
@@ -1562,6 +2226,110 @@
    ]
   },
   {
+   "name": "lampway_uv_patches",
+   "description": "UV islands for patch faces, packed into the atlas free space with the original islands locked. Paths are relative to the project root.",
+   "batch": "uv_patches",
+   "api": null,
+   "params": [
+    {
+     "name": "mesh",
+     "type": "string",
+     "desc": "The patched mesh (fbx)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "orig",
+     "type": "string",
+     "desc": "orig_poly.npy: source face per polygon, -1 = patch",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "The fbx written",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "margin",
+     "type": "number",
+     "desc": "Island margin, default 0.002",
+     "required": false,
+     "flag": "--margin",
+     "repeat": false
+    },
+    {
+     "name": "angle",
+     "type": "number",
+     "desc": "Smart UV angle, default 66",
+     "required": false,
+     "flag": "--angle",
+     "repeat": false
+    },
+    {
+     "name": "max_flip",
+     "type": "number",
+     "desc": "Largest flipped share, default 0.01",
+     "required": false,
+     "flag": "--max-flip",
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_uv_score",
+   "description": "Score UV layouts on measurements, not by eye (the shelf's uv_score): utilization (rasterised at res 256..4096), overlap, UV islands, stretch p90/p10, the fraction of area off by 2x, flipped (mirrored) faces, seam length and a composite score; each row has gates {pass, failed}. objects: mesh objects in the scene; files: .fbx/.glb Smart UV attempts inside the project root (measured in a headless Blender, the live scene untouched). `best` is advice: the user picks (tripo.uv.pick, then save).",
+   "batch": null,
+   "api": "uv_score",
+   "params": [
+    {
+     "name": "objects",
+     "type": "array",
+     "desc": "Mesh object names",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "files",
+     "type": "array",
+     "desc": "Project-relative .fbx/.glb paths",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "res",
+     "type": "integer",
+     "desc": "256..4096, default 1024",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "Report path under the project root, default uv_score.json",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "gates",
+     "type": "object",
+     "desc": "{max_overlap, max_flipped, max_off_density_2x}",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
    "name": "lampway_uv_unwrap",
    "description": "UV unwrap: a NEW mesh `<object>_uv` with a packed layout (method smart | angle | conformal; seams at edges sharper than angle_limit) and a measured report (islands, coverage, overlap by rasterising, texel-density spread, the density achieved at texture_size). The original keeps its UVs; inspect the checker before texturing. engine=studio:tripo is the Smart UV slot: it answers with the action and price for the owner's approval.",
    "batch": null,
@@ -1619,6 +2387,46 @@
      "name": "engine",
      "type": "string",
      "desc": "algorithmic (default) | studio:tripo; or one of the purpose's options (local:smart, local:angle, local:conformal, studio:tripo.uv.unwrap, studio:meshy.uv_unwrap); omit it to use the user's choice in Choices",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_vault_catalog_export",
+   "description": "Publish Asset Vault assets as a Blender asset library under dest_library (inside the project root): a headless worker writes lampway_library.blend with every datablock (materials and node groups from their .blend, meshes, rigs, actions) marked as an asset in its catalogue (never your live file), and blender_assets.cats.txt from the taxonomy (<facet>/<label>; catalogue ids are UUID5 of the path, stable across exports). register=true adds the folder to Blender's asset libraries as library_name, so the Asset Browser and the island's library tab see it. Refused: a lampway_library.blend Lampway did not write, a kind that does not publish, a moved file. Paths are relative to the project root; a path outside it is refused.",
+   "batch": null,
+   "api": "asset_catalog_export",
+   "params": [
+    {
+     "name": "asset_ids",
+     "type": "array",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "dest_library",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "register",
+     "type": "boolean",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "library_name",
+     "type": "string",
+     "desc": "",
      "required": false,
      "flag": null,
      "repeat": false
