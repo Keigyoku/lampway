@@ -268,3 +268,19 @@ def test_the_jobs_folder_cap_refuses_a_new_job_and_never_prunes(tmp_path):
 def test_illegal_transitions_are_refused_and_the_key_is_stable():
     assert JR.key_for("fal", "m", {"a": 1, "b": 2}, "user") == JR.key_for("fal", "m", {"b": 2, "a": 1}, "user")
     assert JR.key_for("fal", "m", {}, "user", "client-key") == JR.key_for("higgsfield", "z", {"x": 1}, "agent", "client-key")
+
+
+@pytest.mark.parametrize("secret", ["sk-" "or-v1-abcdef0123456789", "ghp_" + "a1" * 18, "AKIA" + "ABCDEFGHIJKLMNOP", "AIza" + "x" * 30, "https://user:" "pw" "@api.invalid/x"])
+def test_a_secret_prefixed_value_or_userinfo_url_is_refused_in_the_provider_model_and_ledger_fields(tmp_path, secret):
+    s = JR.JobReceipts(tmp_path)
+    for provider, model in ((secret, "m"), ("fal", secret)):
+        with pytest.raises(JR.ReceiptError, match="looks like a secret"):
+            s.create(provider, model, {"p": 1}, "kk", "user")
+    led = Ledger(tmp_path / "ledger" / "runs.jsonl")
+    from lampway_server.ledger import LedgerError
+    with pytest.raises(LedgerError, match="looks like a secret"):
+        led.record({"piece": "P", "stage": "image", "studio": "openrouter", "settings": {"note": secret}})
+    with pytest.raises(LedgerError, match="looks like a secret"):
+        led.record({"piece": "P", "stage": "image", "studio": "openrouter", "reason": f"called with {secret} today"})
+    assert led.rows() == []
+    led.record({"piece": "P", "stage": "image", "studio": "openrouter", "reason": "a normal row, sk-less"})

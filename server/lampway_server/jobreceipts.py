@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import re
+import threading
 import time
 import urllib.parse
 from pathlib import Path
@@ -176,6 +177,10 @@ class JobReceipts:
                job_id: str = "") -> tuple:
         """(receipt, created). The receipt file is opened with ``"x"``: a key that already has one returns it and is NEVER a second job."""
         check_rendered(payload)
+        from .ledger import find_secret
+        for name, val in (("provider", provider), ("model", model), ("origin", origin)):
+            if find_secret(val):
+                raise ReceiptError(f"the {name} field looks like a secret: receipts hold ids, hashes and prices, never a credential or a URL with userinfo")
         key = key_for(provider, model, payload, origin, idempotency_key)
         d = self._dir(provider, key)
         if self.cap and self.disk_bytes() > self.cap:
@@ -184,14 +189,18 @@ class JobReceipts:
         r = {"schema": SCHEMA, "key": key, "job_id": job_id, "provider": provider, "model": model, "state": "planned", "created_at": _now(), "updated_at": _now(), "origin": origin,
              "price": price or {}, "approval_id": approval_id, "payload_sha256": payload_sha256(payload), "provider_job_id": None, "status_url": None, "response_url": None,
              "cancel_url": None, "error_class": None, "error_text": "", "outputs": [], "history": [{"state": "planned", "at": _now(), "note": ""}]}
-        try:
-            fd = os.open(d / "receipt.json", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        except FileExistsError:
-            return self._load(d), False
+        tmp = d / f".create.{os.getpid()}.{threading.get_ident()}.tmp"
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(fd, "w") as fh:
             fh.write(json.dumps(r, indent=1, sort_keys=True))
             fh.flush()
             os.fsync(fh.fileno())
+        try:
+            os.link(tmp, d / "receipt.json")                          # exclusive AND complete: a loser never reads a half-written receipt
+        except FileExistsError:
+            return self._load(d), False
+        finally:
+            os.unlink(tmp)
         return r, True
 
     def get(self, key: str, provider: Optional[str] = None) -> Optional[dict]:

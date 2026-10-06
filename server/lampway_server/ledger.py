@@ -6,6 +6,7 @@ dollars, work seconds) and a credit price needs the source it was read back from
 Appends take an exclusive file lock, so threads and worker processes lose no row."""
 
 import json
+import re
 import threading
 import time
 import uuid
@@ -32,6 +33,33 @@ def default_path() -> Path:
 
 class LedgerError(ValueError):
     pass
+
+
+_SECRET = re.compile(r"(?<![A-Za-z0-9])(sk-[A-Za-z0-9_-]{8,}|ghp_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{12,}|AIza[0-9A-Za-z_-]{20,})|[A-Za-z][A-Za-z0-9+.-]*://[^/\s:@]+:[^/\s@]+@")
+
+
+def find_secret(value):
+    """The first string in ``value`` (any depth) that looks like a credential (sk-, ghp_, AKIA, AIza prefixes) or a URL with userinfo; None when clean."""
+    if isinstance(value, str):
+        m = _SECRET.search(value)
+        return m.group(0)[:6] + "..." if m else None
+    if isinstance(value, dict):
+        for k, v in value.items():
+            hit = find_secret(k) or find_secret(v)
+            if hit:
+                return hit
+    if isinstance(value, (list, tuple)):
+        for v in value:
+            hit = find_secret(v)
+            if hit:
+                return hit
+    return None
+
+
+def reject_secret(value, where: str) -> None:
+    hit = find_secret(value)
+    if hit:
+        raise LedgerError(f"{where} looks like a secret ({hit}): a ledger row holds ids, hashes and prices, never a credential or a URL with userinfo")
 
 
 def _num(v) -> bool:
@@ -107,6 +135,7 @@ class Ledger:
         return {"piece": piece, "stage": stage, "studio": studio, "seed": seed, "cost": cost, "decision": decision, "by": by, "verdict": verdict}
 
     def record(self, run: dict) -> dict:
+        reject_secret(run, "a ledger row")
         clean = self._check(run)
         sup = run.get("supersedes")
         if sup and not any(r.get("kind") == "experiment" and r.get("id") == sup for r in self.rows()):
@@ -121,6 +150,7 @@ class Ledger:
     def record_job(self, row: dict) -> dict:
         """One row per terminal job receipt (kind ``job``): ids, hashes, state and the price with its source; never a URL or a secret (jobreceipts.export_safe is applied first)."""
         out = {"kind": "job", "t": time.time(), **{k: row.get(k) for k in ("job_key", "provider", "model", "state", "price", "output_hashes", "origin")}}
+        reject_secret(out, "a job ledger row")
         self._append(out)
         return out
 
