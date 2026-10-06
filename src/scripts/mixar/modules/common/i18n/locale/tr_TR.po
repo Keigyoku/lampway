@@ -926,6 +926,270 @@ msgstr ""
 "Gezinmeyi ve görüş alanı dışındaki tüm girdileri geçirir; görüş alanı\n"
 "tuvali üzerindeki tıklamaları ve düzenleme kısayollarını yakalar.\n"
 
+msgid "Canvas"
+msgstr "Tuval"
+
+msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
+msgstr ""
+
+msgid "Open"
+msgstr "Aç"
+
+msgid "Fit"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "attach the pan/zoom handling to what is already open"
+msgstr ""
+
+msgid "the lineage layout as JSON, for clicks"
+msgstr ""
+
+msgid "Asset Vault Hotkey"
+msgstr ""
+
+msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
+msgstr ""
+
+msgid "Search the Asset Vault"
+msgstr ""
+
+msgid "Select an asset first"
+msgstr ""
+
+msgid "Search"
+msgstr "Aramak"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "Filtre"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "Geçiş"
+
+msgid "Range"
+msgstr "Erim"
+
+msgid "Page"
+msgstr "Sayfa"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "Sonraki"
+
+msgid "Previous"
+msgstr "Öncesi"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "Oran"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "Görünüm"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "Karşılaştırmak"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "Kopya"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Align clips"
+msgstr ""
+
+msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
+msgstr ""
+
+msgid "Frame 0 with frame 0"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "By timestamp"
+msgstr ""
+
+msgid "Motion"
+msgstr ""
+
+msgid "Where each clip first moves"
+msgstr ""
+
+msgid "Press Compare on a second clip first"
+msgstr ""
+
+msgid "Refresh boards"
+msgstr ""
+
+msgid "Read the Vault's boards"
+msgstr ""
+
+msgid "Open board"
+msgstr ""
+
+msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Choose how to line the two clips up"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Open on the canvas"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Close canvas"
+msgstr ""
+
+msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "Izgara"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "önizleme çalışanı bu varlığın sunumunu oluşturmadan önce sonlandı"
 
@@ -1030,9 +1294,6 @@ msgstr "Referans Görsel (isteğe bağlı)"
 
 msgid "Searching…"
 msgstr "Aranıyor…"
-
-msgid "Search"
-msgstr "Aramak"
 
 msgid "{count} result(s)"
 msgstr "{count} sonuç"
@@ -1940,6 +2201,54 @@ msgstr "Sunucu bu kullanıcı için byok_active bildirdiğinde doğrudur"
 msgid "Dialog State"
 msgstr "İletişim Kutusu Durumu"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "Lampway Agent Kipini Ayarla"
 
@@ -2354,9 +2663,6 @@ msgstr "Oluşturulma (unix saniyesi)"
 msgid "Frozen Elapsed"
 msgstr "Dondurulmuş Geçen Süre"
 
-msgid "Filter"
-msgstr "Filtre"
-
 msgid "{message} ({code})"
 msgstr ""
 
@@ -2386,9 +2692,6 @@ msgstr "Ağa ulaşılamıyor."
 
 msgid "Network error: {short}"
 msgstr "Ağ hatası: {short}"
-
-msgid "Open"
-msgstr "Aç"
 
 msgid "Toast Click"
 msgstr "Bildirim Tıklaması"
@@ -2587,9 +2890,6 @@ msgstr "Altbilgi"
 
 msgid "Confirm"
 msgstr "Onaylamak"
-
-msgid "Grid"
-msgstr "Izgara"
 
 msgid "Disabled action"
 msgstr "Devre dışı eylem"
@@ -3638,9 +3938,6 @@ msgstr "Kamera"
 msgid "Using {name}"
 msgstr "{name} kullanılıyor"
 
-msgid "Range"
-msgstr "Erim"
-
 msgid "Videos"
 msgstr "Videolar"
 
@@ -3926,17 +4223,11 @@ msgstr "Izgarayı Aç/Kapat"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Görüş alanının ızgara çizgilerini (zemin ızgarası ve X/Y eksenleri) gösterir veya gizler"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "Geçiş"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -4868,6 +5159,12 @@ msgstr "Kapat"
 msgid "Dismiss the error and return to idle"
 msgstr "Hatayı kapatır ve boşta durumuna döner"
 
+msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
+msgstr ""
+
+msgid "UE Look is on"
+msgstr ""
+
 msgid "Front"
 msgstr "Ön"
 
@@ -4880,10 +5177,31 @@ msgstr "Pürüzlülük"
 msgid "Metallic"
 msgstr "Metalik"
 
+msgid "Scale"
+msgstr "Ölçekle"
+
+msgid "Detail"
+msgstr "Detay"
+
+msgid "NodeGroupOutput"
+msgstr ""
+
+msgid "GeometryNodeCollectionInfo"
+msgstr ""
+
+msgid "lampway_uv_check"
+msgstr ""
+
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
+msgstr ""
+
+msgid "KiB"
+msgstr ""
+
+msgid "MiB"
 msgstr ""
 
 msgid "ChatGPT plan"
@@ -5004,6 +5322,15 @@ msgid "Egress"
 msgstr ""
 
 msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Approve patch"
+msgstr ""
+
+msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
+msgstr ""
+
+msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -5186,9 +5513,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "Oran"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5235,9 +5559,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5339,9 +5660,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5405,6 +5723,12 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
+msgid "UE Look"
+msgstr ""
+
+msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
+msgstr ""
+
 msgid "Refresh sessions"
 msgstr ""
 
@@ -5437,9 +5761,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "Ad"
 
 msgid "Read to Text"
 msgstr ""
@@ -5559,6 +5880,15 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Engine defaults: not the project"
+msgstr ""
+
+msgid "UE Look: on"
+msgstr ""
+
+msgid "UE Look: off"
 msgstr ""
 
 msgid "Show account details"
@@ -5793,6 +6123,24 @@ msgid "0 = the deform mesh's rest height, else head bone to foot bone"
 msgstr ""
 
 msgid "Last result"
+msgstr ""
+
+msgid "UE profile"
+msgstr ""
+
+msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
+msgstr ""
+
+msgid "Tonemapper cube"
+msgstr ""
+
+msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
+msgstr ""
+
+msgid "Cube sidecar"
+msgstr ""
+
+msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
@@ -6046,9 +6394,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "Kopya"
 
 msgid "Open Config File"
 msgstr ""
@@ -8320,9 +8665,6 @@ msgstr "Moodboard tuvalindeki X konumu"
 msgid "Y position on the moodboard canvas"
 msgstr "Moodboard tuvalindeki Y konumu"
 
-msgid "Scale"
-msgstr "Ölçekle"
-
 msgid "Scale factor for the image"
 msgstr "Görselin ölçek çarpanı"
 
@@ -8433,9 +8775,6 @@ msgstr "Bileşen Adı"
 
 msgid "Named character component represented by this image"
 msgstr "Bu görselin temsil ettiği adlandırılmış karakter bileşeni"
-
-msgid "View"
-msgstr "Görünüm"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Bu görselin gösterdiği kamera açısı. Yalnızca görsel bir çoklu görünüm setine aitken anlamlıdır — sekmenin girdi görseliyle birlikte o açı olarak gönderilir"
@@ -17316,30 +17655,6 @@ msgstr "Kanalları Yeniden Pişir"
 msgid "Bake channels first to enable export"
 msgstr "Dışa aktarmayı etkinleştirmek için önce kanalları pişirin"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "Varlık Kütüphanesi Paneli - Boya arka ucundaki prosedürel malzemeleri gösterir"
-
-msgid "{count} categories available"
-msgstr "{count} kategori mevcut"
-
-msgid "Open Material Library"
-msgstr "Malzeme Kütüphanesini Aç"
-
-msgid "No materials loaded"
-msgstr "Yüklü malzeme yok"
-
-msgid "Material registry unavailable"
-msgstr "Malzeme kaydı kullanılamıyor"
-
-msgid "Smart Materials"
-msgstr "Akıllı Malzemeler"
-
-msgid "Coming soon"
-msgstr "Çok yakında"
-
-msgid "Brushes"
-msgstr "Fırçalar"
-
 msgid "Baked Maps"
 msgstr "Pişirilmiş Haritalar"
 
@@ -19296,9 +19611,6 @@ msgstr "Dünya uzay normal haritalama, Blender render pişirme ile uyumlu"
 msgid "Replace"
 msgstr "Değiştir"
 
-msgid "Compare"
-msgstr "Karşılaştırmak"
-
 msgid "Use layer's source texture/color"
 msgstr "Katmanın kaynak dokusunu/rengini kullanır"
 
@@ -20615,9 +20927,6 @@ msgstr ""
 "**Görsel arama kullanılamıyor** ({reason}).\n"
 "\n"
 "Birazdan yeniden deneyin veya bunun yerine metinle arama yapın."
-
-msgid "Showing name matches only ({reason})."
-msgstr "Yalnızca ad eşleşmeleri gösteriliyor ({reason})."
 
 msgid "“{query}” + your image"
 msgstr "“{query}” + görseliniz"
@@ -22405,6 +22714,9 @@ msgstr "Eklenti Projesi"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "Bağlı, çok dosyalı bir Blender eklentisi oluşturur ve bakımını yapar"
 
+msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
+msgstr ""
+
 msgid "Add-on Project ID"
 msgstr "Eklenti Projesi Kimliği"
 
@@ -22722,9 +23034,6 @@ msgstr "Satır etiketi, ör. 'Oku'"
 
 msgid "Row target, e.g. a filename"
 msgstr "Satır hedefi, ör. bir dosya adı"
-
-msgid "Detail"
-msgstr "Detay"
 
 msgid "Second-level detail body (command output / snippet)"
 msgstr "İkinci düzey ayrıntı gövdesi (komut çıktısı / parça)"
@@ -25405,9 +25714,6 @@ msgstr "Sar"
 msgid "Scroll library content"
 msgstr "Kütüphane içeriğini kaydırır"
 
-msgid "Page"
-msgstr "Sayfa"
-
 msgid "Move by the viewport height"
 msgstr "Görüş alanı yüksekliği kadar kaydırır"
 
@@ -25488,12 +25794,6 @@ msgstr "Bu işi iptal eder"
 
 msgid "Select this job"
 msgstr "Bu işi seçer"
-
-msgid "Previous"
-msgstr "Öncesi"
-
-msgid "Next"
-msgstr "Sonraki"
 
 msgid "Browse queue jobs"
 msgstr "Kuyruktaki işlere göz atar"
@@ -27631,9 +27931,6 @@ msgstr "Dokulama Özellikleri"
 msgid "Layer and texture properties"
 msgstr "Katman ve doku özellikleri"
 
-msgid "Asset Vault"
-msgstr ""
-
 msgid "Smart materials, brushes, and textures library"
 msgstr "Akıllı malzemeler, fırçalar ve dokular kütüphanesi"
 
@@ -27933,9 +28230,6 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
-
-msgid "Canvas"
-msgstr "Tuval"
 
 msgid "Shared canvas and page background"
 msgstr "Ortak tuval ve sayfa arka planı"

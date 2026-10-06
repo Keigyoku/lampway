@@ -926,6 +926,270 @@ msgstr ""
 "Päästää läpi navigoinnin ja kaiken näkymän ulkopuolisen syötteen; kuluttaa\n"
 "napsautukset ja muokkauksen pikanäppäimet näkymän piirtoalueella.\n"
 
+msgid "Canvas"
+msgstr "Kangas"
+
+msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
+msgstr ""
+
+msgid "Open"
+msgstr "Avaa"
+
+msgid "Fit"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "attach the pan/zoom handling to what is already open"
+msgstr ""
+
+msgid "the lineage layout as JSON, for clicks"
+msgstr ""
+
+msgid "Asset Vault Hotkey"
+msgstr ""
+
+msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
+msgstr ""
+
+msgid "Search the Asset Vault"
+msgstr ""
+
+msgid "Select an asset first"
+msgstr ""
+
+msgid "Search"
+msgstr "Etsi"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "Suodatin"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "Kytkin"
+
+msgid "Range"
+msgstr "Alue"
+
+msgid "Page"
+msgstr "Sivu"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "Seuraava"
+
+msgid "Previous"
+msgstr "Edellinen"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "Tahti"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "Näkymä"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "Vertaile"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "Kopioi"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "Nimi"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Align clips"
+msgstr ""
+
+msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
+msgstr ""
+
+msgid "Frame 0 with frame 0"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "By timestamp"
+msgstr ""
+
+msgid "Motion"
+msgstr ""
+
+msgid "Where each clip first moves"
+msgstr ""
+
+msgid "Press Compare on a second clip first"
+msgstr ""
+
+msgid "Refresh boards"
+msgstr ""
+
+msgid "Read the Vault's boards"
+msgstr ""
+
+msgid "Open board"
+msgstr ""
+
+msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Choose how to line the two clips up"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Open on the canvas"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Close canvas"
+msgstr ""
+
+msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "Ruudukko"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "esikatselun työprosessi päättyi ennen tämän resurssin renderöintiä"
 
@@ -1030,9 +1294,6 @@ msgstr "Referenssikuva (valinnainen)"
 
 msgid "Searching…"
 msgstr "Etsitään…"
-
-msgid "Search"
-msgstr "Etsi"
 
 msgid "{count} result(s)"
 msgstr "Tuloksia: {count}"
@@ -1940,6 +2201,54 @@ msgstr "Tosi, kun palvelin ilmoittaa byok_active tälle käyttäjälle"
 msgid "Dialog State"
 msgstr "Valintaikkunan tila"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "Aseta Lampway Agent-tila"
 
@@ -2354,9 +2663,6 @@ msgstr "Luotu (Unix-sekunteina)"
 msgid "Frozen Elapsed"
 msgstr "Pysäytetty kulunut aika"
 
-msgid "Filter"
-msgstr "Suodatin"
-
 msgid "{message} ({code})"
 msgstr ""
 
@@ -2386,9 +2692,6 @@ msgstr "Verkkoon ei saada yhteyttä."
 
 msgid "Network error: {short}"
 msgstr "Verkkovirhe: {short}"
-
-msgid "Open"
-msgstr "Avaa"
 
 msgid "Toast Click"
 msgstr "Ilmoituksen napsautus"
@@ -2587,9 +2890,6 @@ msgstr "Alatunniste"
 
 msgid "Confirm"
 msgstr "Vahvista"
-
-msgid "Grid"
-msgstr "Ruudukko"
 
 msgid "Disabled action"
 msgstr "Poistettu käytöstä oleva toiminto"
@@ -3638,9 +3938,6 @@ msgstr "Kamera"
 msgid "Using {name}"
 msgstr "Käytössä {name}"
 
-msgid "Range"
-msgstr "Alue"
-
 msgid "Videos"
 msgstr "Videot"
 
@@ -3926,17 +4223,11 @@ msgstr "Vaihda ruudukko"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Näyttää tai piilottaa näkymän ruudukkoviivat (lattiaruudukko ja X/Y-akselit)"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "Kytkin"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -4868,6 +5159,12 @@ msgstr "Hylkää"
 msgid "Dismiss the error and return to idle"
 msgstr "Hylkää virheen ja palaa jouten-tilaan"
 
+msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
+msgstr ""
+
+msgid "UE Look is on"
+msgstr ""
+
 msgid "Front"
 msgstr "Edestä"
 
@@ -4880,10 +5177,31 @@ msgstr "Karheus"
 msgid "Metallic"
 msgstr "Metallinen"
 
+msgid "Scale"
+msgstr "Skaala"
+
+msgid "Detail"
+msgstr "Yksityiskohta"
+
+msgid "NodeGroupOutput"
+msgstr ""
+
+msgid "GeometryNodeCollectionInfo"
+msgstr ""
+
+msgid "lampway_uv_check"
+msgstr ""
+
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
+msgstr ""
+
+msgid "KiB"
+msgstr ""
+
+msgid "MiB"
 msgstr ""
 
 msgid "ChatGPT plan"
@@ -5004,6 +5322,15 @@ msgid "Egress"
 msgstr ""
 
 msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Approve patch"
+msgstr ""
+
+msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
+msgstr ""
+
+msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -5186,9 +5513,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "Tahti"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5235,9 +5559,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5339,9 +5660,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5405,6 +5723,12 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
+msgid "UE Look"
+msgstr ""
+
+msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
+msgstr ""
+
 msgid "Refresh sessions"
 msgstr ""
 
@@ -5437,9 +5761,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "Nimi"
 
 msgid "Read to Text"
 msgstr ""
@@ -5559,6 +5880,15 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Engine defaults: not the project"
+msgstr ""
+
+msgid "UE Look: on"
+msgstr ""
+
+msgid "UE Look: off"
 msgstr ""
 
 msgid "Show account details"
@@ -5793,6 +6123,24 @@ msgid "0 = the deform mesh's rest height, else head bone to foot bone"
 msgstr ""
 
 msgid "Last result"
+msgstr ""
+
+msgid "UE profile"
+msgstr ""
+
+msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
+msgstr ""
+
+msgid "Tonemapper cube"
+msgstr ""
+
+msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
+msgstr ""
+
+msgid "Cube sidecar"
+msgstr ""
+
+msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
@@ -6046,9 +6394,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "Kopioi"
 
 msgid "Open Config File"
 msgstr ""
@@ -8320,9 +8665,6 @@ msgstr "X-sijainti tunnelmataulun kankaalla"
 msgid "Y position on the moodboard canvas"
 msgstr "Y-sijainti tunnelmataulun kankaalla"
 
-msgid "Scale"
-msgstr "Skaala"
-
 msgid "Scale factor for the image"
 msgstr "Kuvan skaalauskerroin"
 
@@ -8433,9 +8775,6 @@ msgstr "Komponentin nimi"
 
 msgid "Named character component represented by this image"
 msgstr "Tämän kuvan esittämä nimetty hahmokomponentti"
-
-msgid "View"
-msgstr "Näkymä"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Kamerakulma, jonka tämä kuva näyttää. Merkityksellinen vain, kun kuva kuuluu moninäkymäjoukkoon — se lähetetään välilehden syötekuvan kanssa tuona kulmana"
@@ -17316,30 +17655,6 @@ msgstr "Paista kanavat uudelleen"
 msgid "Bake channels first to enable export"
 msgstr "Paista kanavat ensin, jotta vienti on käytettävissä"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "Resurssikirjastopaneeli – näyttää proseduraaliset materiaalit maalauksen taustajärjestelmästä"
-
-msgid "{count} categories available"
-msgstr "{count} luokkaa käytettävissä"
-
-msgid "Open Material Library"
-msgstr "Avaa materiaalikirjasto"
-
-msgid "No materials loaded"
-msgstr "Materiaaleja ei ole ladattu"
-
-msgid "Material registry unavailable"
-msgstr "Materiaalirekisteri ei ole käytettävissä"
-
-msgid "Smart Materials"
-msgstr "Älymateriaalit"
-
-msgid "Coming soon"
-msgstr "Tulossa pian"
-
-msgid "Brushes"
-msgstr "Siveltimet"
-
 msgid "Baked Maps"
 msgstr "Paistetut kartat"
 
@@ -19296,9 +19611,6 @@ msgstr "Maailma-avaruuden normaalikartoitus, yhteensopiva Blenderin renderöinti
 msgid "Replace"
 msgstr "Korvaa"
 
-msgid "Compare"
-msgstr "Vertaile"
-
 msgid "Use layer's source texture/color"
 msgstr "Käytä tason lähdetekstuuria tai -väriä"
 
@@ -20615,9 +20927,6 @@ msgstr ""
 "**Kuvahaku ei ole käytettävissä** ({reason}).\n"
 "\n"
 "Yritä hetken kuluttua uudelleen tai kirjoita tekstihaku."
-
-msgid "Showing name matches only ({reason})."
-msgstr "Näytetään vain nimiosumat ({reason})."
 
 msgid "“{query}” + your image"
 msgstr "“{query}” ja kuvasi"
@@ -22405,6 +22714,9 @@ msgstr "Lisäosaprojekti"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "Rakenna ja ylläpidä linkitettyä monen tiedoston Blender-lisäosaa"
 
+msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
+msgstr ""
+
 msgid "Add-on Project ID"
 msgstr "Lisäosaprojektin tunnus"
 
@@ -22722,9 +23034,6 @@ msgstr "Rivin otsikko, esim. 'Lue'"
 
 msgid "Row target, e.g. a filename"
 msgstr "Rivin kohde, esim. tiedostonimi"
-
-msgid "Detail"
-msgstr "Yksityiskohta"
 
 msgid "Second-level detail body (command output / snippet)"
 msgstr "Toisen tason yksityiskohtateksti (komennon tuloste tai katkelma)"
@@ -25405,9 +25714,6 @@ msgstr "Vieritä"
 msgid "Scroll library content"
 msgstr "Vieritä kirjaston sisältöä"
 
-msgid "Page"
-msgstr "Sivu"
-
 msgid "Move by the viewport height"
 msgstr "Siirry näkymän korkeuden verran"
 
@@ -25488,12 +25794,6 @@ msgstr "Peruuta tämä työ"
 
 msgid "Select this job"
 msgstr "Valitse tämä työ"
-
-msgid "Previous"
-msgstr "Edellinen"
-
-msgid "Next"
-msgstr "Seuraava"
 
 msgid "Browse queue jobs"
 msgstr "Selaa jonon töitä"
@@ -27631,9 +27931,6 @@ msgstr "Teksturoinnin ominaisuudet"
 msgid "Layer and texture properties"
 msgstr "Tason ja tekstuurin ominaisuudet"
 
-msgid "Asset Vault"
-msgstr ""
-
 msgid "Smart materials, brushes, and textures library"
 msgstr "Älymateriaalien, siveltimien ja tekstuurien kirjasto"
 
@@ -27933,9 +28230,6 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
-
-msgid "Canvas"
-msgstr "Kangas"
 
 msgid "Shared canvas and page background"
 msgstr "Jaettu kankaan ja sivun tausta"
