@@ -103,3 +103,44 @@ def test_b3_rays_start_on_the_bone_axis_so_a_cap_across_the_limb_is_not_a_pose_p
     T = np.array([(0, 1 + k, 1 + (k + 1) % 24) for k in range(24)])
     out = PS.solve(ref, FRAME, samples, (V, T), [dict(dof, range=[0, 0])], regions=regions)
     assert out["a_pose"]["arm_l"]["over"] == 0, out["a_pose"]
+
+
+TOOL = r'''
+import math
+from mathutils import Vector, Matrix
+rig = json.load(open(GOLD + "/C07_pose_solve/rig.json"))
+sh = Vector(rig["shoulder"]); a = math.radians(-40.0); d = Vector((math.cos(a), 0, math.sin(a)))
+arm = bpy.data.armatures.new("rig"); ob = bpy.data.objects.new("rig", arm); bpy.context.scene.collection.objects.link(ob)
+bpy.context.view_layer.objects.active = ob; ob.select_set(True)
+bpy.ops.object.mode_set(mode="EDIT")
+up = arm.edit_bones.new("upperarm_l"); up.head = sh; up.tail = sh + 0.3 * d
+lo = arm.edit_bones.new("lowerarm_l"); lo.head = sh + 0.3 * d; lo.tail = sh + 0.55 * d; lo.parent = up
+bpy.ops.object.mode_set(mode="OBJECT")
+u = d.cross(Vector((0, 1, 0))).normalized(); w = d.cross(u)                       # the golden's arm: 12 stations x 16 around, radius 5 cm
+verts = [sh + s_ * d + 0.05 * (math.cos(t) * u + math.sin(t) * w) for s_ in [0.06 + k * 0.21 / 11 for k in range(12)]
+         for t in [2 * math.pi * j / 16 for j in range(16)]]
+faces = [(k * 16 + j, k * 16 + (j + 1) % 16, (k + 1) * 16 + (j + 1) % 16, (k + 1) * 16 + j) for k in range(11) for j in range(16)]
+me = bpy.data.meshes.new("body"); me.from_pydata([tuple(v) for v in verts], [], faces); me.update()
+body = bpy.data.objects.new("body", me); bpy.context.scene.collection.objects.link(body)
+g = body.vertex_groups.new(name="upperarm_l"); g.add(list(range(len(body.data.vertices))), 1.0, "REPLACE")
+body.parent = ob; m = body.modifiers.new("Armature", "ARMATURE"); m.object = ob
+sleeve = load_obj(GOLD + "/C07_pose_solve/sleeve.obj", "sleeve")
+dof = {"bone": "upperarm_l", "axis": rig["dof"]["axis_world"], "range": rig["dof"]["range"], "step": rig["dof"]["step"],
+       "expect": {"joint": "lowerarm_l", "along": "-up", "min_cm": 2.0}}
+r = api.fit_pose(kind="chest", piece="sleeve", body="body", armature="rig", dofs=[dof], regions={"arm_l": {"bones": ["upperarm_l"], "threshold_m": 0.01}},
+                 out="fit/pose.json")
+res({"ok": r.get("ok"), "error": r.get("error"), "entries": r.get("entries"), "a_pose": r.get("a_pose"), "posed": r.get("posed"),
+     "file": os.path.exists(os.path.join(root, "fit/pose.json")), "samples": r.get("samples")})
+'''
+
+
+def test_the_tool_solves_c07_on_scene_objects_with_the_bvh_caster(goldens):
+    from canon_support import LOAD_OBJ
+    from test_wave3_weights import PRE
+    from blender_run import run_script
+    r = run_script(PRE + LOAD_OBJ + f"GOLD = {str(goldens)!r}\n" + TOOL, timeout=300)
+    assert r.rc == 0, r.out[-2000:]
+    d = r.results[-1]
+    assert d["ok"], d["error"]
+    assert d["entries"] == [{"bone": "upperarm_l", "axis": [0.0, 1.0, 0.0], "deg": 30.0}], d
+    assert d["posed"]["arm_l"]["over"] == 0 and d["a_pose"]["arm_l"]["over"] >= 1 and d["file"], d

@@ -1220,10 +1220,16 @@ def armor_piece_pipeline(piece, mode="plan", from_step=1, to_step=15, paired=Non
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_pose(kind, **kw):
-    """The closest pose of the body to a piece. chest: routed to pose_clearance (arms lowered and swung, then the spine and neck pitch chain). helmet, waist, boots, gauntlets: answers needs_decision -
-    the bones, axes and ranges to sweep are the user's to rule; the contract's proposals come with it, marked unverified."""
+def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, regions=None, out=""):
+    """The closest pose of the body to a piece (canon 08). With dofs [{bone, axis (joint grammar: up | forward | lateral | {line} | {perp} |
+    a vector), range [lo, hi] (<= 90 deg wide), step, expect (the first DOF's sign check: {joint, along, min_cm})}] and the scene's piece,
+    skinned body and armature: a deterministic sweep (the grid over dofs, then each chain link in turn), rays from each skin sample's bone
+    axis to the piece, regions {name: {bones, threshold_m}}; answers the pose in the replayable grammar, the A-pose and posed numbers, and
+    writes pose.json to out. Without dofs: chest is routed to pose_clearance; helmet, waist, boots, gauntlets answer needs_decision (the
+    bones, axes and ranges are the user's to rule; the contract's proposals come with it, marked unverified)."""
     from . import posing as _PO
+    if dofs:
+        return _PO.solve_scene(kind, piece, body, armature, dofs, chain, regions, out, root=str(_settings().project_root))
     return _PO.fit_pose(kind)
 
 

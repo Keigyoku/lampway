@@ -306,8 +306,13 @@ DEFS = [
         [P("piece", required=True, desc="Helmet1 | Chest1 | Waist1 | Gauntlets1 | Boots1"), P("mode", desc="plan (default) | start | record"), P("from_step", "integer", "1..15"), P("to_step", "integer", "1..15"),
          P("paired", "boolean", "front and back views only (default true for Gauntlets1, Boots1)"), P("topology", desc="Quad | Triangle"), P("v3_dir", desc="the V3 plates folder"),
          P("record_step", "integer", "record: which step"), P("artefacts", "array", "record: files produced"), P("mesh_hash", desc="record: the mesh+UV hash at that step"), P("note")], api="armor_piece_pipeline"),
-    Def("lampway_fit_pose", "The closest pose of the body to a piece. chest: routed to pose_clearance. helmet | waist | boots | gauntlets: needs_decision - the bones, axes and ranges to sweep are the user's to rule; "
-        "the contract's proposals are included, marked unverified.", [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets")], api="fit_pose"),
+    Def("lampway_fit_pose", "The closest pose of the body to a piece (canon 08). With dofs (bone, axis in the joint grammar, range <= 90 deg, step; the first with an expect for the "
+        "sign check) and the scene's piece, skinned body and armature: a deterministic sweep, rays from each skin sample's bone axis to the piece, regions by bone; answers the pose in "
+        "the replayable grammar with the A-pose and posed numbers and writes pose.json. Without dofs: chest is routed to pose_clearance; helmet | waist | boots | gauntlets: "
+        "needs_decision - the bones, axes and ranges to sweep are the user's to rule; the contract's proposals are included, marked unverified.",
+        [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets"), P("piece", desc="the placed piece"), P("body", desc="the skinned body"),
+         P("armature", desc="the body's armature"), P("dofs", "array", "[{bone, axis, range, step, expect}]"), P("chain", "array", "[{bone, axis, range, step}] after the grid"),
+         P("regions", "object", "{name: {bones, threshold_m}}"), P("out", desc="pose.json path under the project root")], api="fit_pose"),
     Def("lampway_weight_audit", "Read-only audit of a skinned mesh's weights, or a plan for how to bind it. audit: unweighted vertices, vertices over the influence cap, sums not 1, per-bone counts and mean weight, a "
         "rigid check (intended {rigid_bone}: vertices with any other influence), a side check (a *_l group on a right-side mesh), and competing-bone hotspots (two bones each >= 20 %). plan: rigid (>= 90 % of the "
         "vertices nearest one bone) or deforming (it spans bones that rotate against each other), with the bone(s) and the reason. An unbound object is told to bind first. Nothing is changed.",
