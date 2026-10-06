@@ -92,6 +92,16 @@ source file in its `provenance`. Nothing is copied from the upstream arena-viewe
 `forge/tests/test_clip_features.py` from the img2threejs skill vendored in the Mr. Mak Workspace clone (Apache-2.0; the licence text is `LICENSES/Apache-2.0.txt`). Each file carries its upstream notice and a
 statement that it was modified. The default thresholds come from one subject on one rig (11 clips) and are reported as such.
 
+### TITAN (the canonical rig and animation converter)
+
+`src/scripts/mixar/modules/lampway_tools/rig_convert/` (`animation_canon.py`, `canon.py`, `skin_bind.py`, `axi_common.py`,
+`editor_runner.py`, the Blender recipes and the reference profiles under `recipes/`), `src/scripts/mixar/modules/lampway_tools/ue_recipes/`
+and the suites `tests/lampway_tools/test_rig_convert_*.py` are ported from the TITAN project, same author, on the owner's word; GPL-3.0-or-later
+in Lampway. Each ported file names its source path and sha256. The wire schema ids (`titan.animation/1`, `titan.animation-profile/1`,
+`titan.canonical-mesh/1`, `titan.native-bind-skin/1` and the rest) are a stable contract shared with TITAN and are kept unchanged. The
+`anim-profile-*.json` files are measured bone tables (names, parents, bind and reference transforms) of two UE skeletons: data the
+converter needs, not engine content. Skin and morph (`skin_bind.py`) ship as WIP tooling.
+
 ## Third-party models (Asset Vault)
 
 The Asset Vault can run two open-weights models locally, on the CPU, through ONNX Runtime. No weights are committed to this repository: the user fetches them with one click (public files; nothing

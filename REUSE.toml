@@ -207,3 +207,13 @@ path = [
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# The canonical rig/animation converter's data files (ported from the TITAN project, same author): forms, reference profiles, recipe inputs.
+[[annotations]]
+path = [
+  "src/scripts/mixar/modules/lampway_tools/rig_convert/recipes/*.json",
+  "src/scripts/mixar/modules/lampway_tools/ue_recipes/*.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
