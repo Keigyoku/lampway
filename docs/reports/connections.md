@@ -72,16 +72,27 @@ and an older plain key moves at start, verified before it leaves the JSON; the l
    from the purpose's params (HC13, HC8, HC16); a compute job with no backend runs `compute.blender_offload`'s choice (G1, CH6); a choice
    set in Choices takes effect where the settings decide (`provider_prefs.effective()`, the server's settings, the agent rebuilt on save).
 
-**Not done (in the migration's order):** 5.4's `studio_image_generate` backend/purpose as job overrides; 5.6 `make_provider` taking the
-resolution directly (it reads the settings Choices now decide, so what runs already follows the choice); 5.8 the Blender-side `engine`
-Defs (client); 5.10 the embedding service (HC20); 5.12 `view_verify` (client; HC17, HC18); the quality records and their import; step 9.
-**Step 8 is a decision, not built**: making `GET/PUT /api/v1/agent/model-preference` answer from Choices means the client's model picker
-would change the main agent (Mixar's documented rule, never implemented here) and the route's round-trip contract changes
-(`test_model_preference_round_trip` expects an empty list on a fresh server). Recommendation: do it, with the PUT writing `agent.main`
-as the user's click, since the picker is a user surface; until then the saved roles are proposals.
+7. **After the coordinator's ruling** (2026-10-06): step 8 - `GET/PUT /api/v1/agent/model-preference` answer from Choices; the PUT is the
+   user's click and writes `agent.main` (a worker role writes `agent.worker`) and rebuilds the agent; a declared agent origin is refused
+   (CH3). **Contract change**: a fresh server still answers no items, but a PUT now lands in `choices.json` (`set_by: user`), not in
+   `agent_settings.json`; `test_model_preference_round_trip` was updated to say so and `test_an_agent_cannot_change_the_model_preference`
+   added. Then 5.4 (`studio_image_generate`'s backend from the purpose's choice, an agent's backend a job override under CH3), 5.6
+   (`make_provider(..., resolution=)`; the server builds the main agent from `agent.main`'s resolution, so the user's fallback runs),
+   5.10 (the Vault's embedding service gets an OpenRouter client only when an `embed.*` choice names one and Connections holds the key, D6
+   local-first; `embed_defaults.json` imported once and renamed `.migrated`), 5.8 (the client-side engine Defs take every option of their
+   purpose, none named means the user's choice, a local option becomes the Def's method, a Studio action id answers for approval), 5.12
+   (the ladder names the models Choices resolves; the judge refusal points to `agent.vision_judge`), the quality records (append-only,
+   the bake-off import, shown per option, never reordering), and step 9 (the Providers dialog's PUT writes what Choices models into
+   `choices.json`; `provider_prefs.json` keeps spend, caps and the global image size and quality; `options()` replaces `choices()`; the
+   route's wire key stays `"choices"` because the client reads it).
+
+**Not done:** the vision judge itself does not run - a bearer-holding client module is refused inside Blender's sandbox (the F1/F2
+hotfix), so `judge=vision` still refuses, now naming `agent.vision_judge`; running it needs a server-side judge tool. Nothing else in the
+migration's list is open.
 
 ## Spec values I followed but question
 
+- **Accepted by the coordinator, 2026-10-06** (both preserve today's behaviour on first start):
 - **Connection constraint**: CHOICES.md passes only `connected`. A `not_checked` connection (an environment key nobody pressed Test on) also
   passes here, or every launch with `OPENROUTER_API_KEY` would lose its image options at once. Recorded in `e1eee63`.
 - **Unread catalogue**: the spec skips catalogue options until the catalogue is read; here an unread catalogue does not skip a shipped
@@ -136,6 +147,7 @@ as the user's click, since the picker is a user surface; until then the saved ro
   `agent/providers/__init__.py`, `provider_prefs.py` (`apply_saved(..., choices=True)`), `imagegen.py`, `jobqueue.py`, `egress.py` (the
   observe flag), `studios/service.py`, `studios/actions.py`, `prompts/render.py`, `scripts/lampway/lampway`, the client's
   `keyring_file.py` and `sandbox_paths.py`.
-- `server/pyproject.toml` declares `keyring` and `secretstorage` (C6); `requirements-lock.txt` is not regenerated (it records a build-box
-  venv). `docs/tools.md` was regenerated with the server venv (`gen_tools.py` needs starlette, which the system python lacks: the rail's
+- `server/pyproject.toml` declares `keyring` and `secretstorage` (C6). The lock file now carries `keyring`, `secretstorage` and their
+  dependencies (resolved by uv in a Python 3.11.15 venv built from the lock; the 3.11-only backports carry markers; the lock also
+  installs and imports on 3.12.13). `docs/tools.md` was regenerated with the server venv (`gen_tools.py` needs starlette, which the system python lacks: the rail's
   RAIL-018 check could not see that the file was stale).
