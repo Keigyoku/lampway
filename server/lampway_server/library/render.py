@@ -48,12 +48,12 @@ def recipe_hash(product: str, size: Optional[int] = None, frames: Optional[int] 
     return hashlib.sha256(json.dumps(key, sort_keys=True).encode()).hexdigest()[:16]
 
 
-def blender_command(blender, job_path, scratch) -> tuple:
+def blender_command(blender, job_path, scratch, script=None) -> tuple:
     """argv and environment of one headless render job: niced, batch mode, factory settings, a private user config, the bridge disabled."""
     scratch = Path(scratch)
     env = {k: v for k, v in os.environ.items() if k not in ("BLENDER_MCP_PORT",)}
     env.update(BLENDER_USER_CONFIG=str(scratch / "config"), BLENDER_USER_SCRIPTS=str(scratch / "scripts"), LAMPWAY_BRIDGE_PORT="0", LAMPWAY_BACKEND_URL="http://127.0.0.1:9")
-    argv = ["nice", "-n", str(NICE), str(blender), "-b", "--factory-startup", "--python-exit-code", "1", "--python", str(WORKER), "--", str(job_path)]
+    argv = ["nice", "-n", str(NICE), str(blender), "-b", "--factory-startup", "--python-exit-code", "1", "--python", str(script or WORKER), "--", str(job_path)]
     return argv, env
 
 
@@ -269,7 +269,7 @@ class Renderer:
     def _engine(self, job, a, path) -> tuple:
         """(engine, decimate_to) for this job."""
         prod, want = job["product"], job["engine"]
-        if prod == "ball":
+        if prod == "ball" or (a["kind"] == "material" and prod == "thumb"):          # a material's thumbnail IS its ball
             return ("eevee" if want == "auto" else want), None
         if a["kind"] != "mesh" or prod in ("uv_overlay", "contact_sheet"):
             return "software", None
@@ -342,7 +342,8 @@ class Renderer:
         work = Path(tempfile.mkdtemp(prefix="render-", dir=self.lib.root))
         out = work / "out"
         out.mkdir()
-        spec = {"product": job["product"], "input": str(path), "kind": a["kind"], "frames": job["frames"], "size": job["size"], "engine": engine,
+        role = next((f["role"] for f in a["files"] if any(l["path"] == str(path) for l in f["locations"])), "main")
+        spec = {"product": job["product"], "input": str(path), "input_role": role, "kind": a["kind"], "frames": job["frames"], "size": job["size"], "engine": engine,
                 "decimate_to": decimate, "recipe": RECIPE, "out_dir": str(out)}
         (work / "job.json").write_text(json.dumps(spec, sort_keys=True))
         argv, env = blender_command(self.blender, work / "job.json", work / "scratch")
