@@ -23,6 +23,7 @@ def fresh(tmp_path):
     return K.build(tmp_path / "lib", n=400, exact_dupes=20, near_dupes=20)
 
 
+@pytest.mark.timeout(600)
 def test_corpus_is_deterministic_for_a_seed(tmp_path):
     a, ma = K.build(tmp_path / "a", n=120, exact_dupes=5, near_dupes=5)
     b, mb = K.build(tmp_path / "b", n=120, exact_dupes=5, near_dupes=5)
@@ -32,6 +33,7 @@ def test_corpus_is_deterministic_for_a_seed(tmp_path):
     assert [tuple(r) for r in rows(c)] != [tuple(r) for r in rows(a)]
 
 
+@pytest.mark.timeout(900)                                                      # the module corpus is built in this test's setup: minutes on a loaded box
 def test_the_kind_mix_and_the_planted_truth(built):
     lib, meta = built
     kinds = dict(lib._reader().execute("select kind,count(*) from asset group by kind").fetchall())
@@ -42,7 +44,7 @@ def test_the_kind_mix_and_the_planted_truth(built):
 PERFORMANCE = ("latency", "throughput", "memory")                            # load-dependent: their verdicts belong to the baseline run, not to a shared box's CI
 
 
-@pytest.mark.timeout(600)
+@pytest.mark.timeout(900)
 def test_every_correctness_gate_passes_on_the_corpus_and_a_receipt_records_all(built):
     lib, meta = built
     rep = G.run(lib, meta, G.MACHINE_GATES, queries=40)
@@ -57,12 +59,14 @@ def test_every_correctness_gate_passes_on_the_corpus_and_a_receipt_records_all(b
     assert {g["gate"] for g in receipt["gates"]} == set(G.MACHINE_GATES) and json.loads(open(receipt["files"][0]["locations"][0]["path"]).read())["corpus"]["sha256"] == rep["corpus"]["sha256"]
 
 
+@pytest.mark.timeout(900)
 def test_idle_is_not_run_without_a_render_batch_and_never_reads_as_a_pass(built):
     lib, meta = built
     rep = G.run(lib, meta, ["idle"])
     assert rep["gates"][0]["verdict"] == "not-run" and rep["gates"][0]["passed"] is False
 
 
+@pytest.mark.timeout(600)
 def test_the_gate_runner_fails_when_a_threshold_is_missed(tmp_path, monkeypatch):
     lib, meta = fresh(tmp_path)
     real = Q.query
@@ -124,6 +128,7 @@ def test_every_gate_has_a_mutant_that_turns_it_red(tmp_path, monkeypatch):
         lib.close()
 
 
+@pytest.mark.timeout(600)
 def test_gates_refuse_to_write_to_the_live_db(tmp_path):
     live = AssetLibrary(tmp_path / "live")
     live.put({"kind": "prompt", "name": "p", "source": {"kind": "t", "key": "p"}, "files": [{"role": "main", "bytes": b"p", "storage": "cas"}]})
