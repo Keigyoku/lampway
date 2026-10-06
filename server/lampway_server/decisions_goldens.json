@@ -1,0 +1,58 @@
+[
+ {
+  "question": "A flagged animation frame shows the left foot passing through the floor by 3 cm while the clip is a walk. Keep the clip or send it back?",
+  "options": [
+   "keep",
+   "send_back"
+  ],
+  "expected": "send_back"
+ },
+ {
+  "question": "A flagged frame shows a one-pixel flicker on the sword edge for a single frame of 240; the captain's gate is 'no visible pops'. Keep or send back?",
+  "options": [
+   "keep",
+   "send_back"
+  ],
+  "expected": "keep"
+ },
+ {
+  "question": "Frame 118 shows both knees swapped between left and right for 6 consecutive frames. Keep or send back?",
+  "options": [
+   "keep",
+   "send_back"
+  ],
+  "expected": "send_back"
+ },
+ {
+  "question": "A caption for an armour piece reads 'a cat sitting on a sofa'. Accept or reject?",
+  "options": [
+   "accept",
+   "reject"
+  ],
+  "expected": "reject"
+ },
+ {
+  "question": "A caption for a greave reads 'bronze greave with raised shin ridge, front view'. Accept or reject?",
+  "options": [
+   "accept",
+   "reject"
+  ],
+  "expected": "accept"
+ },
+ {
+  "question": "Two held frames in a 24 fps clip resampled from 60 fps. Does the clip need resampling to its true rate?",
+  "options": [
+   "yes",
+   "no"
+  ],
+  "expected": "yes"
+ },
+ {
+  "question": "A thumbnail is fully black. Was the render successful?",
+  "options": [
+   "yes",
+   "no"
+  ],
+  "expected": "no"
+ }
+]
