@@ -161,4 +161,14 @@ ORPHAN_DEFS = [
         [P("stage", required=True, desc="make | stitch"), P("v3_dir", required=True, desc="the folder with <View>.png plates (704 px)"), P("tile_dir", required=True),
          P("out_dir", desc="stitch: the output folder"), P("views", "array", "default Front, Back, Left, Right"), P("fine", "integer", "stitch: the fine frame, default 3072")],
         api="relief_tiles"),
+    Def("lampway_image_upscale", "Raise a plate or texture to 2048..4096 px (the long edge) WITHOUT changing its content; the original is never replaced and every output "
+        "carries <file>.upscale.json. method lanczos (default): exact, free, the baseline. method model: the image slot as an edit with the source as the "
+        "reference, at most 2880 x 2880 (GPT Image 2.5's 8.3 MP budget), a dry run unless live=true (the source goes to openrouter.ai); the result must pass the "
+        "FAITHFULNESS gate or is kept as *_model_rejected: downscaled back, SSIM >= 0.95 on every RGB channel (a recolour fails), strong-edge IoU >= 0.90, and more "
+        "fine detail than the Lanczos baseline (else it adds nothing) [thresholds UNVERIFIED]. method tripo: the Studio's free 4K image tool (studio_plan "
+        "tripo.image with the returned plan_args; its price must read back 0): a plan, nothing clicked. Refused: a source under 512 px, a target outside "
+        "2048..4096, a model target over 2880, an existing output." + _PATHS,
+        [P("image", required=True), P("target", "integer", "2048..4096, default 4096"), P("method", desc="lanczos (default) | model | tripo"),
+         P("live", "boolean", "model: really send (default a dry run)"), P("prompt", desc="model: overrides the 'reproduce exactly' prompt"),
+         P("suffix", desc="added to the output name")], api="image_upscale"),
 ]

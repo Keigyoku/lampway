@@ -187,3 +187,14 @@ def relief_tiles(stage, v3_dir="", tile_dir="", out_dir="", views=None, fine=307
     if stage == "stitch":
         return _RT.stitch(_p(v3_dir, s_.project_root), _p(tile_dir, s_.project_root), _p(out_dir, s_.project_root), fine)
     raise ValueError("stage is make | stitch")
+
+
+@_export
+@tool
+def image_upscale(image, target=4096, method="lanczos", live=False, prompt="", suffix=""):
+    """Raise a plate to 2048..4096 px without changing it: lanczos (exact baseline), model (gated for faithfulness, a dry run until live) or tripo (a plan)."""
+    from .pipeline import upscale as _UP
+    try:
+        return _UP.upscale(_p(image), target, method, live, prompt, _generate_image, suffix)
+    except _UP.UpscaleRefused as exc:
+        raise ValueError(str(exc)) from None
