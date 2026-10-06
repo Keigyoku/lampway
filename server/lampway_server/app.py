@@ -593,6 +593,19 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     def _wb_err(exc, code=409):
         return JSONResponse({"detail": str(exc)}, status_code=code)
 
+    async def video_ingest(request: Request):
+        """The user's confirm of the ingest card (the agent's tool only proposes). One clip, with provenance."""
+        if (r := _wb(request)) is not None:
+            return r
+        from . import videoingest as VIN
+        body = await _json_body(request)
+        try:
+            return JSONResponse(await asyncio.to_thread(VIN.ingest, _project_root(), body.get("url"), "user", bool(body.get("confirmed")), bool(body.get("audio")), int(body.get("max_height") or 720),
+                                                        int(body.get("max_seconds") or 600), int(body.get("max_bytes") or VIN.DEFAULT_BYTES), body.get("name"), body.get("range"), None,
+                                                        Ledger(Ledger_default_path())))
+        except (VIN.IngestError, ValueError) as exc:
+            return _wb_err(exc, 422)
+
     async def wb_home(request: Request):
         if (r := _wb(request)) is not None:
             return r
@@ -678,7 +691,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except CockpitError as exc:
             return _wb_err(exc)
 
-    routes += [Route("/app/workbench", wb_home, methods=["GET"]), Route("/app/workbench/server/start", wb_server_start, methods=["POST"]),
+    routes += [Route("/app/video/ingest", video_ingest, methods=["POST"]), Route("/app/workbench", wb_home, methods=["GET"]), Route("/app/workbench/server/start", wb_server_start, methods=["POST"]),
                Route("/app/workbench/server/stop", wb_server_stop, methods=["POST"]), Route("/app/workbench/reconcile", wb_reconcile, methods=["POST"]),
                Route("/app/workbench/sessions", wb_create, methods=["POST"]), Route("/app/workbench/sessions/{sid}/screen", wb_screen, methods=["GET"]),
                Route("/app/workbench/sessions/{sid}/input", wb_input, methods=["POST"]), Route("/app/workbench/sessions/{sid}/close", wb_close, methods=["POST"]),

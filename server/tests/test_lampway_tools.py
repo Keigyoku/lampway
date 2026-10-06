@@ -99,7 +99,7 @@ def test_every_tool_script_passes_the_clients_sandbox_dunder_rules():
     blocked = {"__subclasses__", "__bases__", "__mro__", "__globals__", "__code__", "__builtins__", "__loader__", "__spec__",
                "__class__", "__dict__", "__closure__", "__self__", "__func__", "__getattribute__", "__reduce__"}
     for t in T.TOOLS:
-        if t.name in ("run_blender_python", "ask_user") or t.name.startswith("studio_") or t.name in ("lampway_video_gen", "lampway_video_models", "lampway_video_gate", "lampway_job_receipt", "lampway_image_gen") or t.name.startswith("lampway_prompt_") or t.name.startswith("lampway_ledger_") or t.name == "lampway_job_services" or t.name == "lampway_seed_catalog" or t.name in EXTRA_SERVER_TOOLS:   # no script: the studio tools run on the server, ask_user is answered by the user
+        if t.name in ("run_blender_python", "ask_user") or t.name.startswith("studio_") or t.name in ("lampway_video_gen", "lampway_video_models", "lampway_video_gate", "lampway_job_receipt", "lampway_video_ingest_url", "lampway_image_gen") or t.name.startswith("lampway_prompt_") or t.name.startswith("lampway_ledger_") or t.name == "lampway_job_services" or t.name == "lampway_seed_catalog" or t.name in EXTRA_SERVER_TOOLS:   # no script: the studio tools run on the server, ask_user is answered by the user
             continue
         sample = {}
         for k, v in t.parameters.get("properties", {}).items():
