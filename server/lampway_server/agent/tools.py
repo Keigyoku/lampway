@@ -20,6 +20,7 @@ from . import cards_tools as crd
 from . import files_tools as flt
 from . import workbench_tools as wbt
 from . import connections_tools as cnt
+from . import choices_tools as cht
 
 RUN_BLENDER_PYTHON = "run_blender_python"
 SCENE_SUMMARY = "scene_summary"
@@ -95,7 +96,7 @@ TOOLS.append(ToolSpec(
     },
 ))
 
-TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + crd.specs() + flt.specs() + cnt.specs()
+TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + crd.specs() + flt.specs() + cnt.specs() + cht.specs()
 TOOL_NAMES = {t.name for t in TOOLS}
 
 
@@ -113,7 +114,7 @@ def script_for(name: str, arguments: dict) -> str:
         return SCENE_SUMMARY_SCRIPT
     if name == ASK_USER:
         raise UnknownTool("ask_user is answered by the user, not by Blender")
-    if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES or name in wbt.NAMES or name in cpt.NAMES or name in lib_.NAMES or name in crd.NAMES or name in flt.NAMES or name in cnt.NAMES:
+    if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES or name in wbt.NAMES or name in cpt.NAMES or name in lib_.NAMES or name in crd.NAMES or name in flt.NAMES or name in cnt.NAMES or name in cht.NAMES:
         raise UnknownTool(f"{name} runs on the server, not in Blender")
     if st.is_local(name):
         raise UnknownTool(f"{name} runs on the server, not in Blender")

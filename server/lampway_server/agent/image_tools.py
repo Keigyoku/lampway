@@ -61,8 +61,12 @@ async def call(svc, name: str, arguments: dict) -> tuple:
             prompt = str(a.get("prompt") or "").strip()
             if not prompt:
                 return "give a template or a prompt", True
-            from .. import provider_prefs
-            model = a.get("model") or provider_prefs.effective().image_purposes["plates"]["model"]
+            from .. import choices as CH
+            override = None if not a.get("model") else (a["model"] if ":" in a["model"] else f"openrouter:{a['model']}")
+            try:                                              # the agent's model is a job override under the Plates policy (CH3)
+                model = CH.resolve("image.plates", CH.Job(needs={"runs_on": ["openrouter"]}, override=override, origin="agent")).model
+            except CH.NoChoice as exc:
+                return str(exc), True
             params = {}
             refs = [("reference_image", r) for r in (a.get("references") if isinstance(a.get("references"), list) else [])]
         for key in ("size", "resolution", "aspect_ratio"):
