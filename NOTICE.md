@@ -102,6 +102,13 @@ in Lampway. Each ported file names its source path and sha256. The wire schema i
 `anim-profile-*.json` files are measured bone tables (names, parents, bind and reference transforms) of two UE skeletons: data the
 converter needs, not engine content. Skin and morph (`skin_bind.py`) ship as WIP tooling.
 
+### MB UE5 Rig Creator Pro (bone-name tables)
+
+`src/scripts/mixar/modules/lampway_tools/rig_tools/families/*.json`: bone-name tables derived from MB UE5 Rig Creator Pro 3.1.0
+(MagicBoneTools), GPL-3.0-or-later (`MagicBoneTop_Panel.py` `rigs_liss_my_op`, slot names from `CreateRig.py`). Data only; no MB code is
+ported. The rigify table is verified against a Rigify rig generated headless (tests/lampway_tools/test_rig_tools.py); the mixamo table
+against MB's own table and the canon golden R01 only.
+
 ## Third-party models (Asset Vault)
 
 The Asset Vault can run two open-weights models locally, on the CPU, through ONNX Runtime. No weights are committed to this repository: the user fetches them with one click (public files; nothing

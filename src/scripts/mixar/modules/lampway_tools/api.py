@@ -1622,6 +1622,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 # ---- the orphan tools (STATUS.md ORPHANS): their own module, registered through tool() above
 
 from .orphans_api import *  # noqa: E402,F401,F403
+from .rig_api import *  # noqa: E402,F401,F403
 
 # ---- the door the agent's scripts use
 

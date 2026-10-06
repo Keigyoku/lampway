@@ -35,6 +35,7 @@ class Def:
     params: list = field(default_factory=list)
     api: Optional[str] = None              # an api.<fn> tool function, or
     batch: Optional[str] = None            # a ported batch tool run through api.run_tool
+    wip: bool = False                      # WIP tooling (a DRAFT canon page): the description and the receipt say so
 
     def spec(self) -> ToolSpec:
         props, req = {}, []
@@ -625,6 +626,8 @@ DEFS = [
 
 from .orphan_tools import ORPHAN_DEFS  # noqa: E402  (the orphan tools, STATUS.md ORPHANS: their own file)
 DEFS += ORPHAN_DEFS
+from .rig_defs import RIG_DEFS  # noqa: E402  (the rig tools, specs/canon/rig_tools: their own file)
+DEFS += RIG_DEFS
 
 BY_NAME = {d.name: d for d in DEFS}
 SPECS = [d.spec() for d in DEFS]

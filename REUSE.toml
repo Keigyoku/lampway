@@ -213,6 +213,8 @@ SPDX-License-Identifier = "GPL-3.0-or-later"
 path = [
   "src/scripts/mixar/modules/lampway_tools/rig_convert/recipes/*.json",
   "src/scripts/mixar/modules/lampway_tools/ue_recipes/*.json",
+  "src/scripts/mixar/modules/lampway_tools/rig_tools/families/*.json",
+  "tests/lampway_tools/canon_goldens/rig/*.json",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Lampway contributors"
