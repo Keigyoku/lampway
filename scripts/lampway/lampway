@@ -24,6 +24,11 @@
 set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 HOME_DIR="${LAMPWAY_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/lampway}"
+# Secrets live OUTSIDE the Lampway home, which the agent's script sandbox can reach (Connections, decision C7): the client's login pair
+# and the server's Connections store. An older $HOME_DIR/keyring.json is moved there once, verified before the original goes.
+STATE_BASE="${XDG_STATE_HOME:-$HOME/.local/state}"
+KEYRING_FILE="${LAMPWAY_KEYRING_FILE:-$STATE_BASE/lampway/keyring.json}"
+SECRETS_DIR="${LAMPWAY_SECRETS_DIR:-$STATE_BASE/lampway-secrets}"
 
 BUILD_ENV=""; COPY=0; PROVIDER="${LAMPWAY_PROVIDER:-mock}"; PORT="${LAMPWAY_SERVER_PORT:-8787}"; BRIDGE_PORT="${LAMPWAY_BRIDGE_PORT:-9876}"
 NO_SERVER=0; SYSTEM_KEYRING=0; PLAN=0; ACTION=run; BLEND=""
@@ -71,6 +76,7 @@ if [ "$PLAN" = 1 ]; then
     echo "key_file: ${KEY_FILE:-none (OPENROUTER_API_KEY from the environment: $([ -n "${OPENROUTER_API_KEY:-}" ] && echo set || echo not set))}"
   fi
   echo "home: $HOME_DIR"; echo "keyring: $([ $SYSTEM_KEYRING = 1 ] && echo system || echo file)"
+  echo "keyring_file: $KEYRING_FILE"; echo "secrets_dir: $SECRETS_DIR"
   echo "server: $([ $NO_SERVER = 1 ] && echo none || echo started-and-stopped-by-this-command)"; echo "blend: ${BLEND:-none}${BLEND:+ $([ $COPY = 1 ] && echo '(copy)' || echo '(opened directly)')}"
   exit 0
 fi
@@ -115,7 +121,7 @@ if [ "$NO_SERVER" = 0 ]; then
       PY="${LAMPWAY_SERVER_PYTHON:-}"; [ -z "$PY" ] && [ -x "$ROOT/server/.venv/bin/python" ] && PY="$ROOT/server/.venv/bin/python"; PY="${PY:-python3}"
       SERVER_CMD="$PY -m lampway_server"
     fi
-    LAMPWAY_HOST=127.0.0.1 LAMPWAY_PORT="$PORT" LAMPWAY_PROVIDER="$PROVIDER" LAMPWAY_STATE_DIR="$HOME_DIR/server-state" \
+    LAMPWAY_HOST=127.0.0.1 LAMPWAY_PORT="$PORT" LAMPWAY_PROVIDER="$PROVIDER" LAMPWAY_STATE_DIR="$HOME_DIR/server-state" LAMPWAY_SECRETS_DIR="$SECRETS_DIR" \
       LAMPWAY_PROJECT_ROOT="$HOME_DIR/projects" PYTHONPATH="$ROOT/server${PYTHONPATH:+:$PYTHONPATH}" \
       $SERVER_CMD > "$HOME_DIR/server.log" 2>&1 &
     SERVER_PID=$!
@@ -133,8 +139,25 @@ export LAMPWAY_PROJECT_ROOT="$HOME_DIR/projects" LAMPWAY_SERVER_PID_FILE="$HOME_
 # the mesh-paint image backend (lampway_server.imagegen) runs in the server's python, launched by the app's tools
 [ -n "${LAMPWAY_SERVER_PYTHON:-}" ] && export LAMPWAY_PYTHON_SERVER="$LAMPWAY_SERVER_PYTHON"
 [ -d "$ROOT/server" ] && export LAMPWAY_SERVER_DIR="$ROOT/server"
+move_keyring_once() {
+  local old="$HOME_DIR/keyring.json" new="$KEYRING_FILE" dir tmp
+  [ -f "$old" ] || return 0
+  [ -e "$new" ] && return 0                                       # never overwrite: the new place already holds a pair
+  dir="$(dirname "$new")"; [ -d "$dir" ] || mkdir -p -m 700 "$dir" || return 0
+  tmp="$new.moving.$$"
+  if cp -- "$old" "$tmp" && chmod 600 "$tmp" && sync "$tmp" 2>/dev/null; cmp -s "$old" "$tmp" && mv -f -- "$tmp" "$new"; then
+    rm -f -- "$old"
+    mkdir -p "$HOME_DIR/server-state/connections"
+    printf '{"action": "moved", "by": "system", "id": "lampway_server", "ok": true, "reason": "keyring.json moved out of the agent sandbox to %s", "t": %s}\n' \
+      "$new" "$(date +%s)" >> "$HOME_DIR/server-state/connections/log.jsonl"
+    echo "note: the login keyring moved out of the agent's reach: $new"
+  else
+    rm -f -- "$tmp"; echo "note: the login keyring could not be moved to $new; it stays at $old"
+  fi
+}
 if [ "$SYSTEM_KEYRING" = 0 ]; then
-  export PYTHON_KEYRING_BACKEND="mixar.modules.lampway_tools.keyring_file.FileKeyring" LAMPWAY_KEYRING_FILE="$HOME_DIR/keyring.json"
+  move_keyring_once
+  export PYTHON_KEYRING_BACKEND="mixar.modules.lampway_tools.keyring_file.FileKeyring" LAMPWAY_KEYRING_FILE="$KEYRING_FILE"
 fi
 # the app: through run.sh (it owns LAMPWAY_LINUX_BACKEND); not exec'd, so this shell can stop the server it started
 "$ROOT/scripts/unix/run.sh" "$BUILD_ENV" ${BLEND:+"$BLEND"}
