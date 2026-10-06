@@ -178,7 +178,7 @@ have matched NOTHING after the change (passing vacuously): its pattern now reads
 - api: settings_get, settings_set, status, qa_setup, qa_tag_layers, qa_candidates, qa_draw, qa_propose, qa_proposals, qa_descriptors, qa_read_tags, qa_rulings, rebuild_setup, rebuild, job_status, run_tool, meshpaint, export_piece, retopo, uv_unwrap, segment_mesh, auto_rig, bind_to_armature, pose_test, chat_transcript, mesh_prep, asset_acceptance, rig_armor, asset_lineage, workflow_graph, plate_pick, uv_score, uv_rectify, uv_layout, model_compare, scene_cleanup, batch_export, camera_shot, segment_image, procedural_library, layered_material, material_bake_export, clip_classify, view_verify, uv_texel_density, mesh_defect_scan, silhouette_compare, seed_audit, fit_place, fit_openings, parts_critique, palette_fit, bake_maps, pbr_pack, armor_piece_pipeline, fit_pose, weight_audit, weight_cleanup, weight_transfer, garment_clearance, fit_validate, skeleton_export_check, engine_import_check, fit_body, fit_export, fit_bind, fit_glove, anim_reference_render, animation_retarget, anim_multiview_fit, anim_check, anim_loop_export, anim_clip, anim_track, anim_from_video, fit_state, detail_normals, image_to_3d, splat_import, render_video, project_views, texture_gen, ai_render, repair_texture
 - runner: mesh_qa, patch_holes, uv_patches, delete_caps, bake_maps, material_bake, robust_weight_transfer, render_owner, mesh_to_npz, proportion_fit, mesh_compare, pose_clearance, render_textured, clay_view, mesh_paint_set, split_relief, transfer_parts, apply_part_fixes, relief_project, material_masks, pbr_merge, proportion_ratios, uv_score, piece_ratios, place_piece, pauldron_symmetry
 
-### N3: `lampway_normalize_mesh` and the landings (DONE for the studio and rebuild landings; Vault placement not in this tree)
+### N3: `lampway_normalize_mesh` and the landings (DONE: studio, rebuild and - after the wave5 merge - Vault placement)
 `features/normalize.py` + `api.normalize_mesh` + its server Def. Frame DECLARED (caller or recipe `turn_deg`; plate registration refuses
 until the D6 margin is numbered; `lampway_tool` output is source-convention); transform applied (winding reversed under a mirror);
 scene in metres or refused; scale state (Tripo / Hi3D `generator_normalised` with the measured longest side; `real` only with
@@ -205,7 +205,7 @@ does not beat it. **Measured accuracy per field: none - no judge model is instal
 only (no text tower for zero-shot) and its weights are a user's fetch away (`library/localmodels.py`); the Choices purpose
 `normalize.judge` is named but the hub has not landed. The slot is not wired into `normalize_mesh` (nothing to call yet).
 
-### N4: Vault migration 0004 (DONE except `asset_place`)
+### N4: Vault migration 0004 (DONE)
 `library/migrations/0004_canonical.sql`: table `canonical`, `version.canon_state` (raw | canonical), relation type `normalized_from`
 (the relation table rebuilt for its CHECK; `v_relations` recreated); existing versions of the canonical kinds marked raw.
 `store.put`: a `canonical` document is validated (the server loads `canon_asset.py` from the tools tree beside it,
@@ -285,3 +285,46 @@ whether centring should use it is the captain's call. Not built: rendering the v
 `api.joints_from_views` (+ server Def `lampway_joints_from_views`) behind `Need(kind=("mesh",))` (real scale): calibrates (`known=`),
 runs, centres on the canonical mesh, writes `out`. Blender test: a raw mesh refused at the door, then normalized and centred
 (0.35 cm moved, as predicted), the detector refused naming 11-H1, a calibrated rig run.
+
+### N3/N4 completed after the wave5 merge: the Vault placement landing
+`asset_place` arrived with the wave5 merge. Now: `AssetLibrary.get` returns the version's `canon_state` and, for a canonical version, its
+`canonical` document; a mesh placement answers `canon: [{object, state, unmet | help}]` - **canonical** (an appended `.blend`
+datablock keeps its stamp; a GLB's canonical version takes the record's document, `from: record`), with the document CHECKED against
+the datablock where it landed (placed off the origin it is no longer in the canonical frame: `unmet` names the object matrix, and the
+door refuses it), or **raw** (`help: lampway_normalize_mesh input=<object>`). RED: no `canon` key; `get` had no `canon_state`.
+Not done: DOOR.md's `raw: true` (place the raw version of an asset whose current version is canonical) - placement places the version
+it is given; the strict `put` stays as recorded under N4.
+
+## Merge notes: origin/lp/wave5 into lp/canon (09dec65)
+- Conflicts: `runner.py` and `api.py` (the vault lanes' `asset_catalog_export` runner row and the `asset_place` /
+  `asset_catalog_export` api tools, all written before the door): declared `LEGACY`; `REUSE.toml` (both annotations kept);
+  `tests/lampway_tools/blender_run.py` (wave5's home isolation kept, my per-run `LAMPWAY_HOME` added beside it).
+- The ratchet rose 110 -> 113 IN the merge commit with its record (`rebaseline 113 merged=0ad57ab9... reason=...`) - ruling A's
+  first real use; the ratchet test accepts it.
+- The one-importer scan then listed 21 importer mentions the merge brought (asset_place, its media / shading halves, the catalogue
+  worker, the server's preview render worker). Routed through canon_io in 6e21852: `canon_io.import_raw(flavour="native")` (FBX
+  through `wm.fbx_import`, the vault lanes' choice, kept) returning the operator's result set; `load_library`; `load_image`. The
+  preview render worker declares `CANON_FOREIGN_BLENDER` (its scene is rendered and discarded). `load_image` no longer re-stamps a
+  canonical image as raw when `check_existing` returns it (found while routing; tested, mutant fails). Vault tests changed:
+  `test_asset_place.py` (a placed import now carries `lw_raw`; asserted, not ignored), `test_asset_place_media.py` (reads the
+  importer table from canon_io).
+
+## Item 11: openings (DONE for F.2 and F.5; site axes from the posed body NOT built)
+`features/opening.py`: the gasket cuts the body section that CONTAINS the opening's axis point (the innermost loop around it; none
+-> refused "no section of the limb contains the opening's axis point"), never the largest loop; a texture is detected from the
+material's image nodes as well as the studio flag, and the refusal names the images. RED (3 of 3, measured before the change): the
+torso's loop was taken at an arm plane ("does not fit ... reroll"), the off-axis body gave the same wrong refusal, a material texture
+passed without the ack. Not built: the site axis from the posed body's bone (canon 06 F.1) - it needs the pose solve (item 7).
+
+## Remaining kinds of the normalizer (skeleton, rigged mesh, clip): BLOCKED on lane orphans
+`lampway_normalize_rigged`'s engine is canon R1 `rig_inspect` + R3 `rig_normalize` and `normalize_clip`'s is R4 plus Titan
+`animation_canon` - the rig tools lane orphans builds (O36; my brief: do not build rig tools). `origin/lp/orphans` (f5713e18) has
+neither yet. Building the skeleton document's `along` / `frame` here would duplicate that lane's work.
+
+## Test totals at 6e21852 (pushed)
+`scripts/lampway/test_all.sh` (wave5's one command, LAMPWAY_BIN = my lane binary): server 1230 passed, 10 skipped; client 8265 passed,
+126 failed, 20 errors, 75 skipped; all 138 known-red seen; **8 new failures, all environmental**: six theme tests and the Shift+M
+keymap test read `upstream/` (the Blender source tree is not checked out in this worktree: "upstream/ is not checked out",
+FileNotFoundError on `upstream/.../userdef_default_theme.c` and `.../blender_default.py`), and two live theme tests run my lane binary,
+built 2026-10-05 19:52, before the facelift's Lampway Night theme ("VERIFY FAIL 938 attributes, 705 problems"; presets list Blender's).
+None touches a file this lane changed.
