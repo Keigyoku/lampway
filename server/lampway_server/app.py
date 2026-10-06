@@ -853,7 +853,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
             return JSONResponse({"detail": "the Lampway terminal is not installed: Get it first (about 49 MB from github.com)"}, status_code=409)
         body = await _json_body(request)
         try:
-            boot = [_HL.bin_path(), "session", "attach", "lampway"]
+            boot = [_HL.bin_path()]          # plain herdr: attaches to the server its HERDR_* env names (Lampway's)
         except _HL.HerdrError:
             boot = None
         try:

@@ -50,6 +50,10 @@ theme = "dark"
 theme = "dark"
 [zen_shortcuts.surfaces]
 
+[terminal_image]
+theme = "dark"
+[terminal_image.surfaces]
+
 [agent_pill]
 theme = "dark"
 [agent_pill.surfaces]

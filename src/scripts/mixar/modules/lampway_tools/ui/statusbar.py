@@ -70,7 +70,72 @@ def refresh():
     sync_animation()
     _sync_route_line()
     _open_awaited_card()
+    _show_terminal_images()
     _redraw_statusbar()
+
+
+IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".exr", ".webp", ".tga", ".tif", ".tiff", ".bmp")
+
+
+def _show_terminal_images() -> dict:
+    """Contract 16's image fallback: inline images do not cross herdr, so an image path clicked in the Lampway terminal is
+    appended to ``<Lampway home>/wezterm/show_in_blender.jsonl``. Drain it once (renamed first, so a click landing meanwhile
+    waits for the next refresh), load each existing image file and show the last in an Image Editor: the main window's
+    existing one, else a new window. Anything else is skipped and named."""
+    import json
+    import os
+    from mixar.modules.lampway_tools import settings
+    out = {"loaded": [], "skipped": [], "shown_in": None}
+    q = settings.lampway_home() / "wezterm" / "show_in_blender.jsonl"
+    if not q.exists():
+        return out
+    taken = q.with_suffix(".draining")
+    try:
+        os.replace(q, taken)
+        lines = taken.read_text(encoding="utf-8").splitlines()
+    finally:
+        taken.unlink(missing_ok=True)
+    for line in filter(None, (x.strip() for x in lines)):
+        try:
+            path = str(json.loads(line)["path"])
+        except (ValueError, KeyError, TypeError):
+            out["skipped"].append(line[:200])
+            continue
+        if not path.lower().endswith(IMAGE_SUFFIXES) or not os.path.isfile(path):
+            out["skipped"].append(path)
+            continue
+        if path in out["loaded"]:
+            continue
+        bpy.data.images.load(path, check_existing=True)
+        out["loaded"].append(path)
+    if out["loaded"] and not bpy.app.background:
+        out["shown_in"] = _image_editor_show(bpy.data.images.load(out["loaded"][-1], check_existing=True))
+    return out
+
+
+def _image_editor_show(image):
+    """Show ``image`` in the main window's Image Editor; with none there, in a new window (the user's areas are never retyped)."""
+    wm = bpy.context.window_manager
+    main = next((w for w in wm.windows if w.parent is None), None)
+    if main is None:
+        return None
+    for window in [main, *[w for w in wm.windows if w is not main]]:
+        for area in window.screen.areas:
+            if area.type == 'IMAGE_EDITOR':
+                area.spaces.active.image = image
+                area.tag_redraw()
+                return "existing"
+    before = set(wm.windows[:])
+    area = max(main.screen.areas, key=lambda a: a.width * a.height)
+    with bpy.context.temp_override(window=main, area=area):
+        bpy.ops.wm.window_new()
+    new = next((w for w in wm.windows if w not in before), None)
+    if new is None:
+        return None
+    target = max(new.screen.areas, key=lambda a: a.width * a.height)
+    target.type = 'IMAGE_EDITOR'
+    target.spaces.active.image = image
+    return "new window"
 
 
 def _open_awaited_card():

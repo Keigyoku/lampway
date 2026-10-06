@@ -210,6 +210,42 @@ def test_the_routes_need_the_user(settings, provider, tmp_path, monkeypatch):
     E.set_active(None)
 
 
+def test_open_attaches_the_window_to_lampways_herdr_by_its_socket(settings, provider, tmp_path, monkeypatch):
+    """The window's first tab is plain `herdr`, which attaches to the server its HERDR_* environment names (Lampway's, under the
+    Lampway root). `herdr session attach <name>` would address a NAMED session in herdr's own state instead, never Lampway's."""
+    from starlette.testclient import TestClient
+
+    from lampway_server.app import create_app
+    from lampway_server.herdr import launcher as HL
+
+    from .fake_client import FakeMixarClient
+    home = tmp_path / "home"
+    monkeypatch.setenv("LAMPWAY_HOME", str(home))
+    herdr = tmp_path / "bin" / "herdr"
+    herdr.parent.mkdir()
+    herdr.write_text("#!/bin/sh\nexit 1\n")              # every herdr call answers "not running"
+    herdr.chmod(0o755)
+    monkeypatch.setenv("LAMPWAY_HERDR_BIN", str(herdr))
+    vdir = home / "addons" / "wezterm" / "v1"
+    vdir.mkdir(parents=True)
+    (vdir / "wezterm.AppImage").write_bytes(b"x")
+    (home / "addons" / "wezterm" / "current").write_text("v1")
+    seen = {}
+
+    def launch(home_, exe, herdr_root=None, position=None, detached=True, bootstrap=None):
+        seen.update(exe=exe, herdr_root=herdr_root, bootstrap=bootstrap)
+        return {"gui_pid": 1}
+    monkeypatch.setattr(W, "launch", launch)
+    app = create_app(settings, provider=provider, egress=E.Egress(tmp_path / "eg"))
+    with TestClient(app, base_url="http://127.0.0.1:8787") as http:
+        fake = FakeMixarClient(http, password=settings.user_password)
+        fake.login()
+        assert http.post("/app/terminal/open", headers=fake.rest_headers()).status_code == 200
+    E.set_active(None)
+    assert seen["bootstrap"] == [str(herdr)], seen
+    assert seen["herdr_root"] is not None and HL.bin_path() == str(herdr)
+
+
 def test_every_redirect_hop_is_logged_under_its_own_host(home, egress):
     """GitHub answers a release download with a redirect to its asset host: each hop goes through the gate and the log names it."""
     egress.set_route("github", True)
@@ -234,3 +270,18 @@ def test_the_terminal_gets_plex_mono_as_truetype(home):
     for f in ttfs:
         assert f.read_bytes()[:4] == b"\x00\x01\x00\x00", f.name     # an sfnt with TrueType outlines
     assert (fonts / "OFL-IBM-Plex-Mono.txt").exists()
+
+
+def test_an_image_path_in_a_pane_is_a_link_that_shows_it_in_blender():
+    """Inline images do not cross herdr (measured live 2026-10-06, iTerm2 and kitty protocols: 0 pixels through herdr, 26 289
+    without it), so contract 16's fallback is the rule: an image path in a pane's output is a link, and a click appends it to a
+    queue under $LAMPWAY_HOME that Blender drains into its Image Editor. Nothing else is opened and nothing leaves the machine."""
+    lua = (Path(W.__file__).parent / "lampway.wezterm.lua").read_text(encoding="utf-8")
+    assert "config.hyperlink_rules = wezterm.default_hyperlink_rules()" in lua
+    assert "format = 'lampway-image:$1'" in lua and "png|jpe?g|exr|webp|tga|tiff?|bmp" in lua
+    assert "wezterm.on('open-uri'" in lua and "home .. '/wezterm/show_in_blender.jsonl'" in lua
+    assert "mods = 'CTRL', mouse_reporting = reporting" in lua and "action = wezterm.action.OpenLinkAtMouseCursor" in lua, \
+        ("herdr reports the mouse, so the link is Ctrl+click in both modes (measured live 2026-10-06 under herdr: a plain click "
+         "did not open it; Ctrl+click did, and did not without this binding)")
+    handler = lua[lua.index("wezterm.on('open-uri'"):]
+    assert "^lampway%-image:" in handler and "return false" in handler, "only Lampway's links are taken; every other link opens as before"
