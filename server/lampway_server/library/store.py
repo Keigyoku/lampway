@@ -69,6 +69,7 @@ class AssetLibrary:
         self._allowed = [Path(os.path.realpath(r)) for r in (allowed_roots or [])] or None
         self._lock = threading.RLock()
         self._after_blobs: Callable[[], None] = lambda: None
+        self._memo: dict = {}
         self._lockfile = open(self.root / "writer.lock", "a+")
         try:
             fcntl.flock(self._lockfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -151,13 +152,18 @@ class AssetLibrary:
 
     def _hash_file(self, path: Path):
         st = path.stat()
-        row = self._db.execute("SELECT sha256 FROM location WHERE path=? AND mtime=? AND size=? AND storage='external' LIMIT 1", (str(path), st.st_mtime, st.st_size)).fetchone()
+        memo = (str(path), st.st_mtime_ns, st.st_size)
+        if memo in self._memo:
+            return self._memo[memo], st
+        with self._lock:
+            row = self._db.execute("SELECT sha256 FROM location WHERE path=? AND mtime=? AND size=? AND storage='external' LIMIT 1", (str(path), st.st_mtime, st.st_size)).fetchone()
         if row:
             return row[0], st
         h = hashlib.sha256()
         with open(path, "rb") as fh:
             while chunk := fh.read(CHUNK):
                 h.update(chunk)
+        self._memo[memo] = h.hexdigest()               # a scan then an import reads the bytes once
         return h.hexdigest(), st
 
     def _cas_path(self, sha: str) -> Path:
@@ -468,6 +474,29 @@ class AssetLibrary:
             self._journal({"session": session, "descriptor": descriptor, "question": question, "options": options, "answer": answer, "decider": decider, "how": how, "words": words, "asset_id": asset_id, "ts": ts})
         return {"id": cur.lastrowid, "existing": False}
 
+    # -- helpers the ingest layer needs --------------------------------------------------------------------------
+    def known_sha(self, sha: str) -> bool:
+        with closing(self._reader()) as db:
+            return db.execute("SELECT 1 FROM blob WHERE sha256=?", (sha,)).fetchone() is not None
+
+    def mark_missing(self, path) -> int:
+        with self._lock:
+            n = self._db.execute("UPDATE location SET missing=1 WHERE path=?", (str(path),)).rowcount
+            if n:
+                self._event("missing", None, {"path": str(path)})
+            return n
+
+    def upsert_source(self, kind: str, root: str, label=None, watch: Optional[bool] = None) -> int:
+        with self._lock:
+            self._db.execute("INSERT OR IGNORE INTO source(kind,root,label,config_json) VALUES(?,?,?,?)", (kind, root, label, json.dumps({"watch": bool(watch)})))
+            if watch is not None:
+                self._db.execute("UPDATE source SET config_json=?,enabled=1 WHERE kind=? AND root=?", (json.dumps({"watch": bool(watch)}), kind, root))
+            return self._db.execute("SELECT id FROM source WHERE kind=? AND root=?", (kind, root)).fetchone()[0]
+
+    def sources(self) -> list:
+        with closing(self._reader()) as db:
+            return [{**dict(r), "config": json.loads(r["config_json"] or "{}")} for r in db.execute("SELECT id,kind,root,label,config_json,enabled FROM source ORDER BY id")]
+
     # -- read interface ------------------------------------------------------------------------------------------
     def get(self, aid: str, version: Optional[int] = None) -> dict:
         with closing(self._reader()) as db:
@@ -549,3 +578,4 @@ class AssetLibrary:
             self._db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             self._db.execute("VACUUM")
             return {"ok": True}
+

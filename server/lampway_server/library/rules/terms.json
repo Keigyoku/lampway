@@ -1,0 +1,124 @@
+[
+ {
+  "on": "path",
+  "re": "(?i)greave",
+  "term": "piece_type:greaves"
+ },
+ {
+  "on": "path",
+  "re": "(?i)gaunt|bracer|glove",
+  "term": "piece_type:gauntlets"
+ },
+ {
+  "on": "path",
+  "re": "(?i)helm|crest|plume",
+  "term": "piece_type:helmet"
+ },
+ {
+  "on": "path",
+  "re": "(?i)waist|tasset|belt",
+  "term": "piece_type:waist"
+ },
+ {
+  "on": "path",
+  "re": "(?i)chest|cuirass|pauldron",
+  "term": "piece_type:chest"
+ },
+ {
+  "on": "name",
+  "re": "(?i)^boots?(?![a-z])",
+  "term": "piece_type:boots"
+ },
+ {
+  "on": "name",
+  "re": "^B-",
+  "kinds": [
+   "video"
+  ],
+  "term": "piece_type:boots"
+ },
+ {
+  "on": "name",
+  "re": "^C-",
+  "kinds": [
+   "video"
+  ],
+  "term": "piece_type:chest"
+ },
+ {
+  "on": "name",
+  "re": "^G-",
+  "kinds": [
+   "video"
+  ],
+  "term": "piece_type:gauntlets"
+ },
+ {
+  "on": "name",
+  "re": "^H-",
+  "kinds": [
+   "video"
+  ],
+  "term": "piece_type:helmet"
+ },
+ {
+  "on": "name",
+  "re": "^W-",
+  "kinds": [
+   "video"
+  ],
+  "term": "piece_type:waist"
+ },
+ {
+  "on": "name",
+  "re": "^[BCGHW]-(.+)\\.\\w+$",
+  "kinds": [
+   "video"
+  ],
+  "term": "motion_type:\\1"
+ },
+ {
+  "on": "path",
+  "re": "TripoAssets",
+  "term": "studio:tripo"
+ },
+ {
+  "on": "path",
+  "re": "Hi3DAssets",
+  "term": "studio:hi3d"
+ },
+ {
+  "on": "path",
+  "re": "MeshyAssets",
+  "term": "studio:meshy"
+ },
+ {
+  "on": "path",
+  "re": "(?i)segmented",
+  "term": "pipeline_stage:segmented"
+ },
+ {
+  "on": "path",
+  "re": "(?i)lowpolysmartmesh",
+  "term": "topology:smart_low"
+ },
+ {
+  "on": "path",
+  "re": "(?i)lowpolysmartmesh",
+  "term": "pipeline_stage:retopo"
+ },
+ {
+  "on": "name",
+  "re": "(?i)(?:^|[^a-z])(front|back|left|right|top|bottom)(?:[^a-z]|$)",
+  "kinds": [
+   "image"
+  ],
+  "term": "view:\\1"
+ },
+ {
+  "on": "path",
+  "re": "greek-armor-turnarounds-transparent-v3",
+  "term": "authority:appearance",
+  "comment": "the captain's ruling: the V3 turnarounds are the appearance authority"
+ }
+]
