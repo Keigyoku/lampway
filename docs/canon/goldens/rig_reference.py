@@ -242,3 +242,37 @@ def copied_not_fitted(ratios, tol=0.001):
 def rms(a):
     a = np.asarray(a, float)
     return float(np.sqrt((a ** 2).mean()))
+
+
+# ----------------------------------------------------------------------------- R08 FBX bone axes (canon 21 / 17)
+_AX = {"X": (1, 0, 0), "-X": (-1, 0, 0), "Y": (0, 1, 0), "-Y": (0, -1, 0), "Z": (0, 0, 1), "-Z": (0, 0, -1)}
+# the engine frame canon 17 defines, in the bone's local axes: 'ue_axes' bones carry it verbatim; a 'blender' bone's engine frame is
+# frame_from(..., "x") = frame_from(..., "y") @ T: engine X = the bone's Y (along), engine Y = -the bone's X, engine Z = the bone's Z
+ENGINE = {"blender": np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]]), "ue_axes": np.eye(3)}
+
+
+def fbx_node_map(primary, secondary):
+    """M: the FBX node's local axes in the bone's local frame for an exporter axis pair (Blender's FBX writer: the node's `primary`
+    axis is the bone's +Y, its `secondary` axis the bone's +X, the third completes a right-handed frame). A written node frame is
+    R_bone @ M; a raw read-back (primary Y, secondary X, no automatic orientation) reads exactly that."""
+    p, s = np.array(_AX[primary], float), np.array(_AX[secondary], float)
+    if abs(p @ s) > 0.5:
+        raise ValueError(f"primary {primary} and secondary {secondary} must be perpendicular")
+    A = np.column_stack([p, s, np.cross(p, s)])                    # node-local
+    B = np.column_stack([[0, 1, 0], [1, 0, 0], np.cross([0, 1, 0], [1, 0, 0])])   # bone-local: +Y, +X, their cross
+    return B @ A.T
+
+
+def frame_angle_deg(A, B):
+    """The rotation angle between two frames, degrees."""
+    c = (np.trace(np.asarray(A, float).T @ np.asarray(B, float)) - 1.0) / 2.0
+    return float(np.degrees(np.arccos(np.clip(c, -1.0, 1.0))))
+
+
+def recipe_for(convention):
+    """(primary, secondary): the one exporter pair whose node frames ARE the convention's engine frames (M == ENGINE[convention])."""
+    hits = [(p, s) for p in _AX for s in _AX if abs(np.array(_AX[p]) @ np.array(_AX[s])) < 0.5
+            and np.allclose(fbx_node_map(p, s), ENGINE[convention], atol=1e-12)]
+    if len(hits) != 1:
+        raise ValueError(f"{len(hits)} pairs carry {convention}")
+    return hits[0]

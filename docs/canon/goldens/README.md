@@ -9,7 +9,7 @@ measured on one of his pieces, that number is cited in the canon page as a regre
 ```
 python3 gen_goldens.py [out_dir]       # writes C01..C14 (OBJ + JSON), deterministic: two runs are byte-identical
 python3 selftest.py [dir]              # reproduces every expected value with reference.py and shows each falsifier failing
-python3 gen_rig_goldens.py [out_dir]   # writes R01..R07 (case.json each), deterministic; R07 reads C02
+python3 gen_rig_goldens.py [out_dir]   # writes R01..R08 (case.json each), deterministic; R07 reads C02
 python3 rig_selftest.py [dir]          # the same for the rig canon (16-22) with rig_reference.py
 ```
 numpy only. Frame: metres, body frame (Z up, faces -Y, wearer's left +X) unless a case says otherwise. Expected values are analytic
@@ -38,6 +38,7 @@ from the construction; where a value is a property of a known-WRONG method (a fa
 | R05_root_motion | 19 | root on the ground, never tilted, exact recomposition, yaw none/heading | copying the pelvis rotation tilts the root (5.96 deg) |
 | R06_template_fit | 20 | joints written from the example (residual 0), length ratios, missing-joint refusal | joints copied from the template body: `copied_not_fitted` |
 | R07_rest_change | 19, 04 | a baked rest returned by the exact inverse (0.0) | return through the new bind = blend of inverses (12.5 mm, 46 vertices) |
+| R08_export_axes | 21, 17 | the FBX bone-axis pair that carries each convention: `blender` X / -Y, `ue_axes` Y / X (0 deg); Z / X 120 / 90 deg off | the transposed map (the right pair 180 deg off) |
 
 The R cases are synthetic (made-up proportions); R01 carries public bone-NAME conventions only. No vendor skeleton geometry.
 

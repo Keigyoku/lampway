@@ -1,0 +1,75 @@
+{
+ "expected": {
+  "angle_deg": {
+   "blender": {
+    "X/-Y": 0.0,
+    "Y/X": 90.0,
+    "Z/X": 120.0
+   },
+   "ue_axes": {
+    "X/-Y": 90.0,
+    "Y/X": 0.0,
+    "Z/X": 90.0
+   }
+  },
+  "recipe": {
+   "blender": [
+    "X",
+    "-Y"
+   ],
+   "ue_axes": [
+    "Y",
+    "X"
+   ]
+  },
+  "titan_cm_native": "Z/X carries neither canon-17 convention: it is the pair a rig imported FROM an engine with primary Z / secondary X needs to go back (a round trip), which is how Titan measured it"
+ },
+ "falsifier": {
+  "inverse_map_angle_deg_blender_X/-Y": 180.0,
+  "why": "reading the pair as the bone's axis in the node frame (M transposed) would make the right pair 180 deg off"
+ },
+ "input": {
+  "engine_frames": {
+   "blender": [
+    [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "ue_axes": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ]
+  },
+  "pairs": [
+   "Z/X",
+   "X/-Y",
+   "Y/X"
+  ],
+  "rule": "an exporter pair writes node frames R_bone @ M(primary, secondary) (the node's primary axis = the bone's +Y, its secondary = the bone's +X); it carries a convention when M equals the convention's engine frame"
+ }
+}

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Self-test of the rig goldens R01-R07: recompute every expected value from the case inputs with rig_reference.py, and show
+"""Self-test of the rig goldens R01-R08: recompute every expected value from the case inputs with rig_reference.py, and show
 each falsifier failing. Exit 1 on any failure.
 
     python3 rig_selftest.py [dir]"""
@@ -159,8 +159,21 @@ def r07():
           and int((err > 0.001).sum()) == f["vertices_over_1mm"], f"{err.max() * 1000:.2f} mm over {int((err > 0.001).sum())} vertices")
 
 
+def r08():
+    c = case("R08_export_axes")
+    e, f = c["expected"], c["falsifier"]
+    for conv in ("blender", "ue_axes"):
+        check("R08", f"the {conv} recipe carries its engine frames", tuple(e["recipe"][conv]) == R.recipe_for(conv)
+              and np.allclose(R.fbx_node_map(*e["recipe"][conv]), c["input"]["engine_frames"][conv], atol=1e-12))
+        for pair, a in e["angle_deg"][conv].items():
+            check("R08", f"{pair} on {conv}", abs(R.frame_angle_deg(R.fbx_node_map(*pair.split("/")), R.ENGINE[conv]) - a) < 1e-9, f"{a:.1f} deg")
+    check("R08", "Z/X: 120 deg off blender, 90 off ue_axes (lane orphans' measured read-back)",
+          e["angle_deg"]["blender"]["Z/X"] == 120.0 and e["angle_deg"]["ue_axes"]["Z/X"] == 90.0)
+    check("R08", "falsifier: the transposed map puts the right pair 180 deg off", abs(f["inverse_map_angle_deg_blender_X/-Y"] - 180.0) < 1e-9)
+
+
 if __name__ == "__main__":
-    for fn in (r01, r02, r03, r04, r05, r06, r07):
+    for fn in (r01, r02, r03, r04, r05, r06, r07, r08):
         try:
             fn()
         except Exception as ex:  # a crash is a failure, named
