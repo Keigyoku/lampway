@@ -118,3 +118,16 @@ res({"plan": {k: plan.get(k) for k in ("ok", "error", "dry_run", "unit")}, "stam
     s = d["scale"]
     assert s["state"] == "real" and s["decision"] == "measured" and s["evidence"]["method"] == "reference_height_ratio", s
     assert 0.9 < d["head_z"][0] / 1.0 < 2.0, d["head_z"]               # metres now, not 100x
+
+
+def test_rig_inspect_reads_a_ue_named_rig_as_the_ue_family_with_its_roster_complete():
+    """canon 16: UE bone names ARE the canonical slot names. rig_inspect knew only the mixamo and rigify tables, so a UE-named rig came
+    back family None with every required slot missing; the shipped `ue` table maps each slot to itself."""
+    r = run_script(PRE + RIG + '''
+build("ue_rig")
+i = api.rig_inspect(armature="ue_rig")
+res({"family": i["family"]["name"], "missing": i["slots"]["missing_required"], "mapped": len(i["slots"]["mapped"])})
+''', timeout=300)
+    assert r.rc == 0, r.out[-2000:]
+    d = r.results[-1]
+    assert d["family"] == "ue" and d["missing"] == [] and d["mapped"] >= 17, d
