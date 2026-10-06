@@ -49,3 +49,19 @@ def test_not_signed_in_is_refused_before_any_request(monkeypatch):
     monkeypatch.setattr(J, "_access_token", lambda: "")
     with pytest.raises(J.ImageSlotError, match="not signed in"):
         J._request("GET", "/x")
+
+
+def test_extra_references_follow_the_first_in_order_and_a_ledger_row_posts_to_the_ledger(monkeypatch):
+    sent = []
+
+    def request(method, path, body=None, timeout=120):
+        sent.append((method, path, body))
+        if path == "/app/ledger":
+            return {"id": "row1", **body}
+        return {"data": {"job_id": "j1", "status": "DONE", "result": {"images": ["http://127.0.0.1:1/f/1.png"]}}}
+    monkeypatch.setattr(J, "_request", request)
+    monkeypatch.setattr(J, "_download", lambda url, timeout=120: b"IMG")
+    J.generate_image("brass", b"CLAY", 1, poll=0.0, extra_references=[b"BRASS"])
+    refs = [base64.b64decode(r) for r in sent[0][2]["payload"]["reference_images_b64"]]
+    assert refs == [b"CLAY", b"BRASS"]
+    assert J.record_ledger({"piece": "P", "stage": "texture"})["id"] == "row1" and sent[-1][:2] == ("POST", "/app/ledger")

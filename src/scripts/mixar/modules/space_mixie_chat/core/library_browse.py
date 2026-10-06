@@ -340,10 +340,11 @@ def execute_library_mode(operator, context):
     scene = context.scene
     query = (getattr(scene, "mixie_chat_input", "") or "").strip()
     image_pack = _pending_query_image(context)
-    if query or image_pack:
-        _start_semantic_search(context, query, image_pack=image_pack)
+    if image_pack:
+        _start_semantic_search(context, query, image_pack=image_pack)          # an image probe still goes to the trained index
     else:
-        build_library_grid(context, "", force=False)
+        from . import library_vault_chat
+        library_vault_chat.start(context, query)                               # browse or search the Asset Vault: no .blend is opened
     try:
         scene.mixie_chat_input = ""  # clear the composer
         # Deselect moodboard-origin attachments BEFORE clearing, or the
@@ -487,10 +488,8 @@ def _poll_semantic_search():
             )
             _redraw()
             return None
-        build_library_grid(
-            context, query, force=False,
-            header_note=rpt_("Showing name matches only ({reason}).").format(reason=note),
-        )
+        from . import library_vault_chat
+        library_vault_chat.start(context, query)                               # the text part of the search, from the Asset Vault
         return None
 
     _apply_semantic_results(
@@ -552,20 +551,23 @@ def _apply_semantic_results(
     _redraw()
 
 
-def schedule_show_all() -> None:
-    """Show the full grid on the next tick — used when the user switches INTO
-    LIBRARY mode (the enum update callback can't safely scan .blends itself)."""
-    def _show():
-        ctx = bpy.context
-        if getattr(getattr(ctx, "scene", None), "mixie_chat_mode", "") == 'LIBRARY':
-            try:
-                build_library_grid(ctx, "", force=True)
-            except Exception:
-                logger.exception("[LibraryMode] show-all failed")
-        return None
+def _show_all():
+    """The first page of the Asset Vault, on the tick after the user switches INTO LIBRARY mode (an enum update callback must not start work itself)."""
+    ctx = bpy.context
+    if getattr(getattr(ctx, "scene", None), "mixie_chat_mode", "") == 'LIBRARY':
+        try:
+            from . import library_vault_chat
+            library_vault_chat.start(ctx, "")
+        except Exception:
+            logger.exception("[LibraryMode] show-all failed")
+    return None
 
+
+def schedule_show_all() -> None:
+    """Show the Vault's first page on the next tick — used when the user switches INTO LIBRARY mode."""
     try:
-        bpy.app.timers.register(_show, first_interval=0.1)
+        if not bpy.app.timers.is_registered(_show_all):
+            bpy.app.timers.register(_show_all, first_interval=0.1)
     except Exception:
         pass
 

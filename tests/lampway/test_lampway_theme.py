@@ -90,6 +90,7 @@ NATIVE = {
     "interface_mixar_theme.cc": ROOT / "src/source/blender/editors/interface/interface_mixar_theme.cc",
     "UI_mixar_tokens.hh": ROOT / "src/source/blender/editors/include/UI_mixar_tokens.hh",
     "rna_userdef.cc": ROOT / "src/source/blender/makesrna/intern/rna_userdef.cc",
+    "interface_mixar_liquid_glass_tokens.cc": ROOT / "src/source/blender/editors/interface/interface_mixar_liquid_glass_tokens.cc",
 }
 UPSTREAM_USERDEF = ROOT / "upstream/release/datafiles/userdef/userdef_default_theme.c"
 

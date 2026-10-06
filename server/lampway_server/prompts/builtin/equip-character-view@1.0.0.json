@@ -1,0 +1,87 @@
+{
+  "id": "equip-character-view",
+  "version": "1.0.0",
+  "purpose": "character-reference",
+  "media": "image",
+  "title": "A game character wearing the equipment, one view",
+  "description": "One full-body view of a supplied game character wearing the authoritative equipment, keeping that character's body, pose and camera. States the truthful synthetic-character context; only for synthetic renders.",
+  "body": {
+    "subject": "{{references_are}}. The first image is the target character in this view: preserve identity, build, proportions, limb lengths, pose and camera. The second image is the authoritative equipped costume; any later image is supporting detail",
+    "action": "Fit {{items}} to the character, replacing the base clothing with the fully covering costume; keep the equipment design across bodies, changing only its fit. Keep shoulder, elbow and wrist positions and the feet spacing; close fingers only for grips. Equipment stays on the same body side as the camera rotates; occluded parts stay hidden",
+    "camera": "{{view}}. One full-body character, one view, square frame, with consistent matching margins for the tallest and widest parts",
+    "style": "The source image's background and camera, even diffuse lighting, worn matte materials, minimal shine",
+    "constraints": "No second figure, spare pieces, labels, text, watermark or scene dressing"
+  },
+  "variables": {
+    "references_are": {
+      "type": "enum",
+      "default": "All references depict fictional adult video-game characters and equipment: synthetic engine renders, not photographs of real people",
+      "enum": [
+        "All references depict fictional adult video-game characters and equipment: synthetic engine renders, not photographs of real people"
+      ],
+      "description": "the truthful provenance statement; this template is not for real-person references"
+    },
+    "items": {
+      "type": "string",
+      "default": "the complete equipment inventory",
+      "description": "every item with its side, e.g. shield on the LEFT forearm, spear in the RIGHT hand"
+    },
+    "view": {
+      "type": "string",
+      "default": "The same view as the target character image",
+      "description": "the camera direction and where each item shows in it"
+    }
+  },
+  "negatives": [
+    "no change of pose or build",
+    "no second figure",
+    "no equipment moved to face the camera"
+  ],
+  "inputs": {
+    "reference_image": {
+      "required": true,
+      "order": 1,
+      "description": "the target character in this view: a synthetic game-character render, never for photographs of real people"
+    },
+    "image_references": {
+      "required": true,
+      "multiple": true,
+      "order": 2,
+      "description": "the authoritative equipped costume first, then supporting detail; name any superseded design so it is ignored"
+    }
+  },
+  "defaults": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "size": "2048x2048",
+    "quality": "high",
+    "background": "opaque",
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "view_verify",
+      "description": "count one body per image and check every item's side; identity, pose and fit stay unverified until measured"
+    }
+  ],
+  "provenance": {
+    "source": "astra-1 crew shelf: the TITAN ImageGen workflow (titan-imagegen SKILL.md, 2026-09-26), its templates and encountered failures",
+    "note": "generalised from one armour set to any equipment: the wearer-axis camera table, one physical piece per plate, the 3x2 turnaround order at one physical scale, isolation of a held object, and the synthetic-character provenance that cleared an image-service refusal"
+  }
+}

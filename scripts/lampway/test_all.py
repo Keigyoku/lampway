@@ -66,6 +66,13 @@ def main(argv=None) -> int:
     suites = {"server": ([py, "-m", "pytest", "tests", "-p", "no:cacheprovider", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-server")], ROOT / "server", "server/"),
               "client": ([py, "-m", "pytest", "-p", "no:cacheprovider", "--continue-on-collection-errors", "-q", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-client")], ROOT, "")}
     run = {k: v for k, v in suites.items() if not a.only or k == a.only}
+    import fcntl
+    lock = open(tmp / "lw-test-all.lock", "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)      # two runs on one TMPDIR share basetemps and corrupt each other (measured)
+    except OSError:
+        print("another test_all run holds " + str(tmp / "lw-test-all.lock") + ": wait for it, or use another TMPDIR", file=sys.stderr)
+        return 3
     procs = {}
     t0 = time.time()
     for name, (cmd, cwd, _) in run.items():
@@ -84,7 +91,8 @@ def main(argv=None) -> int:
             mine = [t[len(prefix):] for t in j["new"] if t.startswith(prefix) and (prefix or not t.startswith("server/"))]
             if not mine:
                 continue
-            rerun = subprocess.run([c for c in cmd if not c.startswith("--basetemp") and c != str(tmp / f"lw-test-{name}")] + ["--basetemp", str(tmp / f"lw-test-{name}-rerun"), *mine],
+            base_cmd = [c for c in cmd if not c.startswith("--basetemp") and c != str(tmp / f"lw-test-{name}") and c != "tests"]     # only the failing ids, not the whole suite again
+            rerun = subprocess.run(base_cmd + ["--basetemp", str(tmp / f"lw-test-{name}-rerun"), *mine],
                                    cwd=cwd, capture_output=True, text=True)
             (out / f"{name}-rerun.log").write_text(rerun.stdout + rerun.stderr)
             still, _ = parse(rerun.stdout, prefix)

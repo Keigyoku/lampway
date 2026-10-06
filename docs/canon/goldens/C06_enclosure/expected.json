@@ -1,0 +1,17 @@
+{
+ "all_vertex_extents_midpoint": {
+  "translation_error_y_m": 0.0125,
+  "why": "outer extents include the thick front: a placement by them leaves the inner wall (tf-tb)/2 toward the thin (+y, back) side"
+ },
+ "centroid": {
+  "why": "not a placement rule: a centroid follows mass, not enclosure"
+ },
+ "inner_wall_enclosure": {
+  "tol_m": 0.001,
+  "translation_m": [
+   -0.012,
+   -0.04,
+   -0.0
+  ]
+ }
+}

@@ -17,6 +17,7 @@ as a job (``jobs.py``) and its scene-touching tail runs from the app's timer.
 
 import functools
 import json
+import os
 from pathlib import Path
 
 import bpy
@@ -683,18 +684,26 @@ def uv_unwrap(object, method="smart", angle_limit=66.0, margin=None, texel_densi
 
 
 @tool
-def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algorithmic"):
+def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algorithmic", labels=None):
     """Split a mesh into part objects in the collection ``<object>_parts`` (largest first): connected ``shells``, regions bounded by
     ``sharp`` edges (dihedral > angle), or ``uv_islands``; regions under min_faces merge into a neighbour. The original is hidden,
-    never deleted. engine=studio:tripo is the part-detection slot."""
+    never deleted. engine=studio:tripo is the part-detection slot. ``labels`` ({mode: map | recipe, island_labels, recipe, owner}) labels the
+    UV islands as vertex groups <object>_<label> instead (the Client's island enumeration; nothing is split)."""
+    if labels:
+        from .features import island_labels as _IL
+        return _IL.label(object, labels, _p(labels.get("recipe", "")), _p(labels.get("owner", "")))
     return _F_segment.segment_mesh(object, method, angle, min_faces, engine)
 
 
 @tool
-def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y", copy=True):
-    """A UE-named humanoid armature ``<object>_rig`` placed from landmarks measured on a T-pose mesh, the mesh parented with heat-map
-    weights (proximity fallback for the vertices heat cannot solve). ``_l``/``_r`` are the figure's own sides. engine=studio:tripo
-    is the Auto Rig slot (answers with action and price). The source mesh is never touched: ``<object>_rigged`` is the rigged copy (copy=false rigs in place)."""
+def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y", copy=True, naming="ue", parts=None, chain_bones=10):
+    """A fitted armature with skin weights (heat map, proximity fallback). kind humanoid (UE names), or the body plans quadruped | hexapod | octopod |
+    avian | serpentine | aquatic | auto (features/rig_plans.py); naming ue | mixamo | metahuman; parts rigs several meshes as ONE character."""
+    if engine == "algorithmic" and (kind != "humanoid" or naming != "ue" or parts):
+        from .features import rig_plans as _RP
+        return _RP.auto_rig(object, kind, naming, parts, weights, facing, copy, chain_bones)
+    # the humanoid: a UE-named armature <object>_rig from landmarks on a T-pose mesh; _l/_r are the figure's own sides; the source is never touched
+    # (<object>_rigged is the rigged copy; copy=false rigs in place); engine=studio:tripo is the Auto Rig slot (action and price only)
     return _F_rig.auto_rig(object, kind, engine, weights, facing, copy)
 
 
@@ -769,6 +778,7 @@ def asset_lineage(action, object, source="", transform="", anchors=None, changed
 def workflow_graph(action, name="", graph=None, inputs=None, from_node="", version="", template="", description=""):
     """A typed DAG of Lampway tool calls as data. define (graph = {nodes: [{id, tool, args, after, spend, studio_action, credits}], outputs}; args may use
     {{inputs}} and @node.key for an upstream output) | plan (order, cached?, credits_planned) | run | rerun (from_node: it and what follows re-execute) |
+    confirm (from_node: ONE spend node runs, on the user's word; its output is kept for those inputs) |
     version / rollback (version) | template_save / template_use (template, description) | show. Outputs are cached by the hash of (tool, args, upstream outputs);
     a spend node is planned and priced, never run (the user confirms in the Studios panel)."""
     from . import workflow_graph as WG
@@ -781,6 +791,8 @@ def workflow_graph(action, name="", graph=None, inputs=None, from_node="", versi
         return g.run(name)
     if action == "rerun":
         return g.rerun(name, from_node)
+    if action == "confirm":
+        return g.confirm(name, from_node)
     if action == "version":
         return g.version(name, version)
     if action == "rollback":
@@ -791,7 +803,7 @@ def workflow_graph(action, name="", graph=None, inputs=None, from_node="", versi
         return g.template_use(template, name, inputs)
     if action == "show":
         return g.show(name)
-    raise WG.GraphError("action is define|plan|run|rerun|version|rollback|template_save|template_use|show")
+    raise WG.GraphError("action is define|plan|run|rerun|confirm|version|rollback|template_save|template_use|show")
 
 
 @tool
@@ -1395,7 +1407,8 @@ def _gray_loader():
 
 
 @tool
-def anim_multiview_fit(front, side, calibration=None, cameras="", fps=24.0, single_view=False, grid_frames=None, stage="fit", out="anim/multiview/fit.json"):
+def anim_multiview_fit(front="", side="", calibration=None, cameras="", fps=24.0, single_view=False, grid_frames=None, stage="fit", out="anim/multiview/fit.json",
+                       frames=None, onnx="", armature="", mesh="", masks=None, bones=None, step_deg=8.0, rounds=5, key=False):
     """Motion from ONE split-screen clip (front + side), orthographic: triangulate per-panel 2D joints (JSON {keypoints: [[[u, v] x 15 joints] per frame], conf?}, joint order = pipeline.anim_mv.JOINTS) into 3D, the side
     view's near/far leg and arm labels put right from the FRONT view (heights, then continuity), pelvis-relative (a drifting camera is not travel), one floor row for both panels. calibration {px_per_m} or `cameras`
     (the cameras.json of anim_reference_render: the render cameras are the video cameras). Refused: panels out of sync ('re-generate'), a missing scale. Held (duplicate) frames are listed with the true motion rate.
@@ -1403,9 +1416,25 @@ def anim_multiview_fit(front, side, calibration=None, cameras="", fps=24.0, sing
     detector) is not wired: it answers needs_approval; supply the keypoints. Free, no model."""
     from .pipeline import anim_io as _IO
     if stage == "detect":
-        return {"ok": False, "state": "needs_approval", "reason": "the RTMW whole-body 2D detector (rtmlib, ONNX) is a model download and a runner this build does not carry: supply per-panel keypoints (stage fit)"}
+        # the RTMW detector: frames {front: [pngs] | dir, side: ...} -> <out dir>/front.json, side.json (the fit's input); weights from disk, never downloaded
+        from .pipeline import rtmw as _RT
+        if not isinstance(frames, dict) or set(frames) != {"front", "side"}:
+            raise ValueError("stage detect needs frames {front: [png...] or a folder, side: ...} (the split panels) and onnx (the RTMW weights on disk)")
+        try:
+            backend = _RT.rtmw_backend(_p(onnx), run_tool=lambda n, a: RUN.run(n, a, timeout=3600))
+        except _RT.DetectorUnavailable as exc:
+            raise ValueError(str(exc)) from None
+        res = {}
+        for v, f in frames.items():
+            fp = _p(f) if isinstance(f, str) else None
+            paths = sorted(os.path.join(fp, x) for x in os.listdir(fp) if x.lower().endswith(".png")) if fp else [_p(x) for x in f]
+            res[v] = _RT.detect(paths, os.path.join(os.path.dirname(_p(out)), f"{v}.json"), backend)
+        return {"stage": "detect", "panels": res, "next": "stage fit with front/side = the two JSON files"}
+    if stage == "refine":
+        from .features import anim_abs as _ABS
+        return _ABS.refine(armature, mesh, {k: _p(v) for k, v in (masks or {}).items()}, _p(cameras), _p(out), bones, step_deg, rounds, key)
     if stage != "fit":
-        raise ValueError("stage is fit | detect")
+        raise ValueError("stage is fit | detect | refine")
     grid = None
     if grid_frames:
         load = _gray_loader()
@@ -1490,14 +1519,36 @@ def detail_normals(material, strengths=None, ambientcg_dir=""):
 
 
 @tool
-def image_to_3d(images, size=1.0, resolution=64, mode="hull", depth=None, profile="round", name="", engine="algorithmic"):
+def image_to_3d(images=None, size=1.0, resolution=64, mode="hull", depth=None, profile="round", name="", engine="algorithmic", detect_views="", views=None,
+                paired=False, plate_check=True):
     """Mesh from images, no model: ``hull`` = visual hull of two or more cardinal views ({"Front": path, "Left": path, ...}, Front u=+X,
     Left u=-Y), ``extrude`` = rounded/slab extrusion of Front (+Back) for paired pieces, ``relief`` = luminance relief of one image.
-    Reported by re-projection IoU, volume and boundary edges. engine=studio:tripo is the Smart Mesh slot (100 credits: approval first)."""
-    if engine == "algorithmic":
-        s_ = _settings()
+    Reported by re-projection IoU, volume and boundary edges. detect_views = a turnaround sheet cut into panels named by ``views`` (left to right);
+    paired = front and back only. engine=studio:tripo | studio:meshy | studio:hi3d answers with the action, its plan_args and price, after a plate check."""
+    from .features import image3d_views as _IV
+    s_ = _settings()
+    detected = None
+    if detect_views:
+        sheet = _p(detect_views, s_.project_root)
+        detected = _IV.detect_views(sheet, os.path.join(os.path.dirname(sheet), "views_" + os.path.splitext(os.path.basename(sheet))[0]), list(views or []))
+        images = detected["views"]
+    elif images:
         images = {v: _p(p, s_.project_root) for v, p in images.items()}
-    return _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
+        if len(images) == 1 and _IV.looks_like_sheet(next(iter(images.values()))):
+            raise ValueError("this looks like a turnaround sheet (more than 2:1): pass detect_views=<sheet> with views (the panel order) so the panels are not fused into one mesh")
+    else:
+        raise ValueError("give images {View: path} or detect_views (a turnaround sheet) with views")
+    if paired and set(images) - {"Front", "Back"}:
+        raise ValueError(f"a paired piece (gauntlets, boots) takes front and back only: drop {sorted(set(images) - {'Front', 'Back'})}")
+    if engine != "algorithmic":
+        if not plate_check:
+            return _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
+        return _IV.studio_plan(images, engine, paired)
+    res = _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
+    res["views_used"] = sorted(images)
+    if detected:
+        res["detected"] = {k: v for k, v in detected.items() if k != "views"}
+    return res
 
 
 @tool
@@ -1526,14 +1577,17 @@ def project_views(object, views, size=1024, out="", occlusion=True):
 
 
 @tool
-def texture_gen(object, prompt, out_dir="", views=("Front", "Back"), size=1024, engine="algorithmic"):
-    """Texture Gen: clay render of each view -> the server's image model paints it -> projection into the atlas -> material applied.
-    The object needs UVs. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits: approval first)."""
+def texture_gen(object, prompt, out_dir="", views=("Front", "Back"), size=1024, engine="algorithmic", reference_image="", count=1, keep_original=True, record=True,
+                piece="", delight=False, min_coverage=0.6):
+    """Texture Gen: clay render of each view -> the server's image model paints it (count variants, best silhouette IoU kept; a material
+    reference_image rides second) -> projection into the atlas of a copy <object>_tex (keep_original) -> a ledger row. Under min_coverage the run
+    is refused before anything is paid. The object needs UVs. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits: approval first)."""
     if engine != "algorithmic":
         return _F_texture.texture_gen(object, prompt, "", views, size, engine)
     if not out_dir:
         raise ValueError("texture_gen needs out_dir (a project folder for the clay renders, the painted views and the atlas)")
-    return _F_texture.texture_gen(object, prompt, _p(out_dir), list(views), size, engine)
+    return _F_texture.texture_gen(object, prompt, _p(out_dir), list(views), size, engine, reference_image=_p(reference_image), count=count,
+                                  keep_original=keep_original, record=record, piece=piece, delight=delight, min_coverage=min_coverage)
 
 
 @tool
@@ -1550,6 +1604,134 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
     s_ = _settings()
     return _F_texture.repair_texture(object, _p(texture, s_.project_root), view, _p(patch, s_.project_root), _p(mask, s_.project_root),
                                      _p(out, s_.project_root), feather)
+
+
+# ---- Wave 6 tools (api_wave6.py): plain functions wrapped here, so they pass the same door with the same envelope
+
+from . import api_wave6 as _W6                              # noqa: E402
+
+for _w6_name in _W6.TOOLS:
+    globals()[_w6_name] = tool(getattr(_W6, _w6_name))
+
+
+# ---- the orphan tools (STATUS.md ORPHANS): their own module, registered through tool() above
+
+from .orphans_api import *  # noqa: E402,F401,F403
+
+
+# ---- the UE Renderer (specs/ue_parity): ue/ owns the behaviour, these are its doors
+
+def _ue_profile(profile):
+    from .ue import profile as _UEP
+    return _UEP.load(_p(profile) if profile else _UEP.DEFAULT_PROFILE)
+
+
+@tool
+def ue_material(material, mode="report", merge_json=None, master=None, on_loss="report", profile=None):
+    """Translate a Principled material to UE's legacy Default Lit, deterministically: the UE material-instance parameters
+    (BaseColor/Metallic/Roughness/Specular/Emissive, blend mode Opaque|Masked(0.3333)|Translucent, Two Sided = not backface
+    culling, texture sRGB flags and compression), what is dropped or clamped, and translation_sha256. mode report changes nothing;
+    preview builds '<material> [UE]' with the LW_UE_DefaultLit_v1 node group (Lambert added to single-scatter GGX, UE's F0 and its
+    F90 = saturate(50 F0.g), the DirectX normal with Z rebuilt) beside the untouched original; export reads the pbr_pack
+    merge_json for the texture colour spaces and the ORM channel order. on_loss refuse refuses any loss. profile: a
+    lampway.ue-profile/1 file (default: the shipped engine-defaults profile). Free, no model."""
+    from .ue import material_group as _UEG
+    from .ue import material_map as _UEM
+    prof = _ue_profile(profile)
+    if mode == "preview":
+        return _UEG.preview(material, prof)
+    mat = bpy.data.materials.get(material)
+    if mat is None:
+        raise LookupError(f"no material named {material!r}; the materials are: {sorted(m.name for m in bpy.data.materials)}")
+    merge, files = None, None
+    if merge_json:
+        mj = Path(_p(merge_json))
+        merge = json.loads(mj.read_text(encoding="utf-8"))
+        files = sorted(q.name for q in mj.parent.glob("*.png"))
+    return _UEM.translate(_UEG.read_spec(mat), prof, mode, merge, files, master, on_loss)
+
+
+@tool
+def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=None, cube=None, cube_meta=None):
+    """The one-click UE Look mode, governed by one UE profile (lampway.ue-profile/1; default: the shipped engine-defaults
+    profile) and its tonemapper cube, generated on the UE side and named by the profile's tonemap_cube / tonemap_cube_meta (or
+    cube / cube_meta here; validated against the sidecar: sha256, grid, domain, engine version, tonemapper settings). action
+    enable: validate the cube, write the UE view's OCIO config and the launcher's state (the next launch starts with the view;
+    restart if this session lacks it). disable: clear the launcher's state. apply: the view, exposure = log2(k) + Bias - EV100,
+    curves and white balance off, EEVEE fast GI and screen tracing as the profile's GI and reflection methods say (all off with
+    parity=true, and dither 0), anisotropic filtering from r.MaxAnisotropy, soft falloff off on point/spot lights, every material
+    in scope swapped to its '<name> [UE]' UE Default Lit preview; returns the receipt path (with the cube's sha256 and engine
+    version), the lights' UE values and the per-class trust. revert: restores every recorded value exactly. status: active,
+    profile hash, view, classes. generate: the view's OCIO config only. Refused: a missing or mismatched cube (fix: generate the
+    cube on the UE side, then point UE Look at it), a session without the view, Standard ACES, a non-sRGB working space, auto
+    exposure or engine defaults with parity, area or temperature lights in scope, a scene already in a UE look."""
+    from .ue import launch as _UEL2
+    from .ue import look as _UEL
+    from .ue import ocio_view as _UEV
+    scene = bpy.context.scene
+    prof = _p(profile) if profile else None
+    # the cube and its sidecar come from the UE side, usually outside the project root: they are only read and hashed, and
+    # nothing of their content is returned, so they are the one exception to the project-root rule
+    cube, cube_meta = (str(Path(cube).expanduser().resolve()) if cube else None), (str(Path(cube_meta).expanduser().resolve()) if cube_meta else None)
+    if action == "status":
+        return _UEL.status(scene)
+    if action == "revert":
+        return _UEL.revert(scene, _p(receipt) if receipt and not Path(receipt).is_absolute() else receipt)
+    if action == "disable":
+        return {"disabled": _UEL2.disable(), "message": "UE Look is off for the next launch (OCIO is left as it was)"}
+    if action in ("generate", "enable"):
+        _, pr = _UEL.load_profile(prof, cube, cube_meta)
+        g = _UEV.generate(pr, bpy.utils.system_resource("DATAFILES", path="colormanagement"))
+        if action == "generate":
+            return g
+        state = _UEL2.enable(g["config_path"], g["cube_path"], g["cube_sha256"], g["view_name"])
+        restart = not _UEV.view_present(g["view_name"])
+        return dict(g, state_path=state, restart=restart,
+                    message="UE Look is on: restart Lampway (the launcher starts it with the UE view)" if restart else "UE Look is on")
+    if action != "apply":
+        raise ValueError("action is apply, status, revert, enable, disable or generate")
+    return _UEL.apply(scene, prof, scope, bool(parity), cube, cube_meta)
+
+
+@tool
+def ue_export(type, object="", armature=None, action=None, out_dir="", textures=None, body=None, frame_rate=None, hero=None, format="fbx",
+              validation="", bind_check="", bake_receipt="", profile=None, allow_unverified=False, _bone_axis="Z"):
+    """Export to UE by the ONE path its type allows: skinned_piece (FBX: armature + mesh, primary bone axis Z / secondary X, no
+    leaf bones, units applied, tangents, triangles; fit_export's gates: body package, validation, bind_check, native bones, and
+    the joint read-back), static_prop (the same without the armature), animation (FBX: the armature, every frame keyed at the
+    scene rate, no simplification; frame_rate must equal the scene's) or texture_set (pbr_pack's BaseColor / ORM / Normal_DX with
+    their DECLARED colour spaces). Canonical input only: a transform not applied, a negative scale or a scene not in metres is
+    refused. Meshes are triangulated once (fixed method) on a temporary copy; bake_receipt's triangles_sha256 must match. Writes
+    out_dir/<name>.fbx, Textures/, README.md, export.json (settings, content_sha256 with the timestamp zeroed, triangles_sha256,
+    read-back, material translation, losses) and ue_import.json (the only import settings the UE editor leg may use). hero
+    (default: the profile's export.precision) keeps UVs outside [0,1] and asks for high-precision tangents, UVs and weights. glTF
+    for a skinned asset is refused. An existing out_dir is refused. Free, no model."""
+    from .ue import export as _UEX
+    s_ = _settings()
+    if not out_dir:
+        raise ValueError("out_dir is required: export/<asset>/<tag> under the project root")
+    _p(out_dir, s_.project_root)                                          # refused outside the project root
+    return _UEX.run(type, object, armature, action, out_dir, _p(textures) if textures else None, _p(body) if body else None, frame_rate, hero,
+                    format, validation, bind_check, bake_receipt, _p(profile) if profile else None, str(s_.project_root), _bone_axis, allow_unverified)
+
+
+@tool
+def ue_parity(scene, profile=None, size=768, views=None, out_dir="", ue_captures=None, ue_linear_scale=None):
+    """The parity harness, Lampway half: build a standard scene (chart | furnace | normals | lights) from its one JSON
+    description in a throw-away scene, render each view (front | three_quarter | grazing) headless in EEVEE under ue_look
+    parity=true to float EXR, and write out_dir/scene.json, lampway_<view>.exr, report.json and report.md (Blender and UE versions,
+    profile, scene and file hashes, per-class verdicts). The UE half is needs_box until the captain's box time: given ue_captures
+    (ue_<view>.exr from the UE editor leg) it compares per class against the tolerances (COL display <= 3 codes / linear < 1 %,
+    SHD < 3 %, NRM sign agreement 100 % and mean dE2000 <= 2, LGT < 2 %, GEO IoU >= 0.995; PST and TEX reported). Refused: a
+    profile with engine defaults, auto exposure, GI, reflections, SSAO, bloom, vignette or local exposure on; a mislabelled or
+    .hdr capture; an armour scene without an ue_export receipt; an existing out_dir. Free, no model."""
+    from .ue import parity as _UEP
+    s_ = _settings()
+    if not out_dir:
+        raise ValueError("out_dir is required: parity/<scene>/<tag> under the project root")
+    _p(out_dir, s_.project_root)
+    return _UEP.run(scene, _p(profile) if profile else None, int(size), list(views or ["front"]), out_dir, ue_captures, ue_linear_scale,
+                    str(s_.project_root))
 
 
 # ---- the door the agent's scripts use

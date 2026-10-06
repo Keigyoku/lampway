@@ -42,7 +42,7 @@ class MIXAR_PT_theme_preferences(Panel):
     def draw(self, context):
         layout = self.layout
         theme = context.preferences.themes[0]
-        layout.label(text="Shared across Zen, Engine and Texturing workspaces.")
+        layout.label(text="Shared across the Lamplight, Workshop and Texturing workspaces.")
         layout.operator("lampway.apply_night_theme", icon='BRUSH_DATA')
         header, body = layout.panel("mixar_theme_canvases", default_closed=False)
         header.label(text="Workspace Backgrounds")
@@ -50,9 +50,9 @@ class MIXAR_PT_theme_preferences(Panel):
             body.use_property_split = True
             body.use_property_decorate = False
             body.prop(theme.view_3d.space.gradients, "background_type", text="Viewport Style")
-            body.prop(theme.view_3d.space.gradients, "high_gradient", text="Viewport (Zen & Engine)")
+            body.prop(theme.view_3d.space.gradients, "high_gradient", text="Viewport (Lamplight & Workshop)")
             body.prop(theme.view_3d.space.gradients, "gradient", text="Viewport Gradient")
-            body.prop(theme.mixie.space, "back", text="Moodboard (Zen & Panel)")
+            body.prop(theme.mixie.space, "back", text="Moodboard (Lamplight & Panel)")
             body.operator("mixar.apply_forest_backgrounds", icon='LOOP_BACK')
             body.label(text="Defaults: Viewport #0F0F0F · Moodboard #1E1E1E")
         groups = {}

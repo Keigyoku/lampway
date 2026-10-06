@@ -1,0 +1,20 @@
+Create a photorealistic modular character-and-equipment cutout sheet using the attached references.
+
+Image A is the exact MetaHuman reference.
+Image B is the approved armor fit-check or concept adaptation sheet.
+
+Place one full-body unarmored MetaHuman on the left in the same simple underclothing shown in Image A. Preserve exact body proportions and identity.
+
+Arrange the approved armor components separately on the right as isolated cutout objects. Preserve their exact design and real fit relative to the body. Keep shoulders, bracers, gauntlets, greaves, footwear, cape, shield, and weapon separate. Preserve wearable thickness and believable construction.
+
+Presentation requirements:
+- clean square sheet
+- pure white background
+- no shadows
+- no scenery
+- no text except optional tiny simple labels
+- no overlap
+- no resizing for layout
+- all pieces fully visible and uncropped
+
+This should look like a premium game-production equipment breakdown sheet with a properly scaled base body and correctly proportioned detached armor pieces.

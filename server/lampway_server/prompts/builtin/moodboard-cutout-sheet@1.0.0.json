@@ -1,0 +1,59 @@
+{
+  "id": "moodboard-cutout-sheet",
+  "version": "1.0.0",
+  "purpose": "character-part",
+  "media": "image",
+  "title": "Modular character-and-equipment cutout sheet",
+  "description": "Moodboard P7: the unarmored MetaHuman on the left and the approved armor components as separate cutouts on the right, at real fit.",
+  "body": {
+    "subject": "Create a photorealistic modular character-and-equipment cutout sheet using the attached references. Image A is the exact MetaHuman reference. Image B is the approved armor fit-check or concept adaptation sheet.",
+    "action": "Place one full-body unarmored MetaHuman on the left in the same simple underclothing shown in Image A. Preserve exact body proportions and identity. Arrange the approved armor components separately on the right as isolated cutout objects. Preserve their exact design and real fit relative to the body. Keep shoulders, bracers, gauntlets, greaves, footwear, cape, shield, and weapon separate. Preserve wearable thickness and believable construction.",
+    "camera": "No resizing for layout; all pieces fully visible and uncropped; no overlap.",
+    "style": "Presentation requirements: clean square sheet; pure white background; no shadows; no scenery.",
+    "constraints": "No text except optional tiny simple labels. This should look like a premium game-production equipment breakdown sheet with a properly scaled base body and correctly proportioned detached armor pieces."
+  },
+  "variables": {},
+  "negatives": [],
+  "inputs": {
+    "character_body": {
+      "required": true,
+      "order": 1,
+      "description": "Image A: the exact MetaHuman reference (the anatomy sheet)"
+    },
+    "design_plate": {
+      "required": true,
+      "order": 2,
+      "description": "Image B: the approved armor fit-check or concept adaptation sheet"
+    }
+  },
+  "defaults": {
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "view_verify",
+      "description": "inspect every result: names and hashes cannot prove a view, a side or a scale"
+    }
+  ],
+  "provenance": {
+    "source": "the captain's moodboard prompts (specs/prompts/moodboard/Prompt1-8.txt), 2026-10-06",
+    "note": "spruced up into the five-part spine; nothing lost: every original clause is mapped in prompts/moodboard_parity.json and checked by tests/test_moodboard_parity.py"
+  }
+}

@@ -52,28 +52,58 @@ msgstr "无风格"
 msgid "No styles available"
 msgstr "无可用风格"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "文档"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "欢迎画面"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "不含“最近文件”的自定义欢迎画面菜单。"
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "选择模式"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "以 Zen 模式开始"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine 模式（Blender 风格）"
+msgid "Start"
+msgstr "起始"
 
-msgid "Getting Started"
-msgstr "入门"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "关于"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "发送"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "失败"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "出错，或因依赖项失败而跳过"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "开始时间"
 
@@ -824,6 +863,24 @@ msgstr "正在关闭"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "用户点击关闭此卡片时设置。面板会播放与已完成卡片相同的滑出动画，卡片离开后再移除该行——点击不能让卡片在光标下直接消失"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "结束时间"
@@ -842,6 +899,12 @@ msgstr "智能体卡片代次"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "每当新的分派替换面板内容时递增。该值变化时，C++ 面板会重置滚动位置并重播滑入动画——它无法从自身的卡片列表推断出“新轮次”，因为该列表仅在绘制时重新同步，面板因轮询而隐藏时仍保留上一轮次的卡片"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "活动智能体卡片"
@@ -862,6 +925,39 @@ msgstr ""
 "\n"
 "放行导航及所有非视图输入；拦截\n"
 "视图画布上的点击和编辑快捷键。\n"
+
+msgid "Canvas"
+msgstr "画布"
+
+msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
+msgstr ""
+
+msgid "Open"
+msgstr "打开"
+
+msgid "Fit"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "attach the pan/zoom handling to what is already open"
+msgstr ""
+
+msgid "the lineage layout as JSON, for clicks"
+msgstr ""
+
+msgid "Asset Vault Hotkey"
+msgstr ""
+
+msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
+msgstr ""
+
+msgid "Search the Asset Vault"
+msgstr ""
+
+msgid "Select an asset first"
+msgstr ""
 
 msgid "Search"
 msgstr "搜索"
@@ -995,10 +1091,55 @@ msgstr ""
 msgid "The Asset Vault window is already open"
 msgstr ""
 
+msgid "Align clips"
+msgstr ""
+
+msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
+msgstr ""
+
+msgid "Frame 0 with frame 0"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "By timestamp"
+msgstr ""
+
+msgid "Motion"
+msgstr ""
+
+msgid "Where each clip first moves"
+msgstr ""
+
+msgid "Press Compare on a second clip first"
+msgstr ""
+
+msgid "Refresh boards"
+msgstr ""
+
+msgid "Read the Vault's boards"
+msgstr ""
+
+msgid "Open board"
+msgstr ""
+
+msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
 msgid "Searching"
 msgstr ""
 
+msgid "Choose how to line the two clips up"
+msgstr ""
+
 msgid "Show the lineage"
+msgstr ""
+
+msgid "Open on the canvas"
 msgstr ""
 
 msgid "Select an asset"
@@ -1008,6 +1149,12 @@ msgid "Reading the asset"
 msgstr ""
 
 msgid "Copy id"
+msgstr ""
+
+msgid "Close canvas"
+msgstr ""
+
+msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
 msgstr ""
 
 msgid "Asset Vault"
@@ -1871,9 +2018,6 @@ msgstr "下载"
 msgid "Stop"
 msgstr "停止"
 
-msgid "Start"
-msgstr "起始"
-
 msgid "Delete Download"
 msgstr "删除下载内容"
 
@@ -2549,9 +2693,6 @@ msgstr "网络不可达。"
 msgid "Network error: {short}"
 msgstr "网络错误：{short}"
 
-msgid "Open"
-msgstr "打开"
-
 msgid "Toast Click"
 msgstr "通知单击"
 
@@ -2639,7 +2780,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2828,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "隐私政策"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2837,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2852,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "顶栏外观（UI.svg 方案）"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
-msgstr "引擎"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "电影模式"
@@ -2797,6 +2938,9 @@ msgstr "本地单击次数"
 
 msgid "Profile"
 msgstr "轮廓"
+
+msgid "Zen"
+msgstr ""
 
 msgid "Shared Zen components"
 msgstr "共享 Zen 组件"
@@ -5015,6 +5159,12 @@ msgstr "关闭"
 msgid "Dismiss the error and return to idle"
 msgstr "关闭错误并返回空闲状态"
 
+msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
+msgstr ""
+
+msgid "UE Look is on"
+msgstr ""
+
 msgid "Front"
 msgstr "前"
 
@@ -5027,10 +5177,160 @@ msgstr "糙度"
 msgid "Metallic"
 msgstr "金属度"
 
+msgid "Scale"
+msgstr "缩放"
+
+msgid "Detail"
+msgstr "细节"
+
+msgid "NodeGroupOutput"
+msgstr ""
+
+msgid "GeometryNodeCollectionInfo"
+msgstr ""
+
+msgid "lampway_uv_check"
+msgstr ""
+
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
+msgstr ""
+
+msgid "KiB"
+msgstr ""
+
+msgid "MiB"
+msgstr ""
+
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "开启"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "等待您操作"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Approve patch"
+msgstr ""
+
+msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
+msgstr ""
+
+msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -5243,9 +5543,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5268,9 +5565,6 @@ msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5429,6 +5723,12 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
+msgid "UE Look"
+msgstr ""
+
+msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
+msgstr ""
+
 msgid "Refresh sessions"
 msgstr ""
 
@@ -5451,9 +5751,6 @@ msgid "New session"
 msgstr ""
 
 msgid "Open a new agent session in the cockpit (your own CLI login)"
-msgstr ""
-
-msgid "Claude Code"
 msgstr ""
 
 msgid "Codex"
@@ -5583,6 +5880,21 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Engine defaults: not the project"
+msgstr ""
+
+msgid "UE Look: on"
+msgstr ""
+
+msgid "UE Look: off"
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -5811,6 +6123,24 @@ msgid "0 = the deform mesh's rest height, else head bone to foot bone"
 msgstr ""
 
 msgid "Last result"
+msgstr ""
+
+msgid "UE profile"
+msgstr ""
+
+msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
+msgstr ""
+
+msgid "Tonemapper cube"
+msgstr ""
+
+msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
+msgstr ""
+
+msgid "Cube sidecar"
+msgstr ""
+
+msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
@@ -6860,9 +7190,6 @@ msgstr "参考 {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "此模板需要可用的生成模型。请检查网络连接。"
 
-msgid "On"
-msgstr "开启"
-
 msgid "Off"
 msgstr "关闭"
 
@@ -7271,6 +7598,9 @@ msgstr "请选择一个角色的所有部件——将作为单一骨架进行绑
 msgid "Settings"
 msgstr "设置"
 
+msgid "About"
+msgstr "关于"
+
 msgid "Auto-detects the skeleton type"
 msgstr "自动检测骨架类型"
 
@@ -7463,14 +7793,14 @@ msgstr "同时发送完整角色以提供设计上下文；默认禁用，因为
 msgid "Moodboard Drawer"
 msgstr "情绪板抽屉"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Zen 模式情绪板抽屉的拉出程度，0 为关闭，1 为打开"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "情绪板抽屉目标"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Zen 模式情绪板抽屉最终停留的状态，0 为关闭，1 为打开"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "情绪板抽屉宽度"
@@ -8334,9 +8664,6 @@ msgstr "在情绪板画布上的 X 位置"
 
 msgid "Y position on the moodboard canvas"
 msgstr "在情绪板画布上的 Y 位置"
-
-msgid "Scale"
-msgstr "缩放"
 
 msgid "Scale factor for the image"
 msgstr "图像的缩放系数"
@@ -11626,7 +11953,7 @@ msgstr "欢迎使用 Lampway"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -20601,9 +20928,6 @@ msgstr ""
 "\n"
 "请稍后重试，或改用文字搜索。"
 
-msgid "Showing name matches only ({reason})."
-msgstr "仅显示名称匹配结果（{reason}）。"
-
 msgid "“{query}” + your image"
 msgstr "“{query}”+ 您的图像"
 
@@ -20971,9 +21295,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "控制台"
-
-msgid "Documentation"
-msgstr "文档"
 
 msgid "Report a Bug"
 msgstr "报告问题"
@@ -22393,6 +22714,9 @@ msgstr "插件项目"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "构建并维护一个已关联的多文件 Blender 插件"
 
+msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
+msgstr ""
+
 msgid "Add-on Project ID"
 msgstr "插件项目 ID"
 
@@ -22711,9 +23035,6 @@ msgstr "行标签，例如“读取”"
 msgid "Row target, e.g. a filename"
 msgstr "行目标，例如文件名"
 
-msgid "Detail"
-msgstr "细节"
-
 msgid "Second-level detail body (command output / snippet)"
 msgstr "二级详情正文（命令输出/片段）"
 
@@ -22908,9 +23229,6 @@ msgstr "项目规则可见"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "项目规则叠加层是否打开"
-
-msgid "Waiting for you"
-msgstr "等待您操作"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +25225,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine 模式"
-
-msgid "Zen Mode"
-msgstr "Zen 模式"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +25234,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "将 Lampway 切换到 Zen 模式（极简视图 + 智能体气泡 + 情绪板）"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "无法创建 Zen 模式工作区——没有可用的模板"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "将 Lampway 切换到 Engine 模式（完整的 Blender 风格工作区）"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "未找到建模工作区"
@@ -25006,7 +25318,7 @@ msgstr "场景与视图层"
 msgid "View Layer"
 msgstr "视图层"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25369,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25488,9 @@ msgstr "库“%s”由更新版本的 Lampway 创建，包含的 ID 名称超出
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB：数据引用了主 .mixar 文件：“%s”（来自 %s）"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "欢迎，%s！"
@@ -26083,6 +26398,24 @@ msgstr "游标 X 位置"
 msgid "Cursor Y position"
 msgstr "游标 Y 位置"
 
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
+
 msgid "Animate Moodboard Attachment"
 msgstr "情绪板附件动画"
 
@@ -26829,6 +27162,24 @@ msgstr "纹理集空间"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "使用侧栏面板管理纹理集"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "回到第一个"
@@ -27580,9 +27931,6 @@ msgstr "纹理属性"
 msgid "Layer and texture properties"
 msgstr "层和纹理属性"
 
-msgid "Texturing Assets"
-msgstr "纹理资产"
-
 msgid "Smart materials, brushes, and textures library"
 msgstr "智能材质、笔刷和纹理库"
 
@@ -27805,8 +28153,8 @@ msgstr "带渐变标签的深色圆角胶囊"
 msgid "Viewport Pill"
 msgstr "视图胶囊"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Zen 视图着色胶囊；非当前模式时变暗"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "个人资料胶囊"
@@ -27882,9 +28230,6 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
-
-msgid "Canvas"
-msgstr "画布"
 
 msgid "Shared canvas and page background"
 msgstr "共用画布和页面背景"
@@ -28048,26 +28393,26 @@ msgstr "队列计数标签块"
 msgid "Slider Track"
 msgstr "滑块滑轨"
 
-msgid "Zen/Engine slider track"
-msgstr "Zen/Engine 滑块滑轨"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "滑块滑钮"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Zen/Engine 滑块滑钮"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "滑块滑钮悬停"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine 滑钮悬停"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "滑块标签"
 
-msgid "Zen/Engine slider label"
-msgstr "Zen/Engine 滑块标签"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "电影胶囊填充"

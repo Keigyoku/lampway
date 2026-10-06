@@ -1,0 +1,239 @@
+{
+ "expected": {
+  "family": "mixamo",
+  "fractions": {
+   "pelvis": 0.0,
+   "spine_01": 0.111751358,
+   "spine_02": 0.306300466,
+   "spine_03": 0.500434356,
+   "spine_04": 0.72228045,
+   "spine_05": 1.0
+  },
+  "hits": {
+   "mixamo": 14,
+   "rigify": 0
+  },
+  "map": {
+   "calf_l": "mixamorig:LeftLeg",
+   "clavicle_l": "mixamorig:LeftShoulder",
+   "foot_l": "mixamorig:LeftFoot",
+   "hand_l": "mixamorig:LeftHand",
+   "head": "mixamorig:Head",
+   "index_01_l": "mixamorig:LeftHandIndex1",
+   "lowerarm_l": "mixamorig:LeftForeArm",
+   "neck_01": "mixamorig:Neck",
+   "pelvis": "mixamorig:Hips",
+   "spine_01": "mixamorig:Spine",
+   "spine_02": "mixamorig:Spine1",
+   "spine_05": "mixamorig:Spine2",
+   "thigh_l": "mixamorig:LeftUpLeg",
+   "upperarm_l": "mixamorig:LeftArm"
+  },
+  "missing_required": [],
+  "synthesized": {
+   "spine_03": [
+    0.0,
+    -0.003625289,
+    1.139733222
+   ],
+   "spine_04": [
+    0.0,
+    -0.002015378,
+    1.233108065
+   ]
+  },
+  "tie": "refused"
+ },
+ "falsifier": {
+  "midpoint_error_m": 0.065276478,
+  "midpoint_spine_03": [
+   0.0,
+   -0.0025,
+   1.205
+  ],
+  "substring_map": {
+   "hand_l": "mixamorig:LeftHandIndex1",
+   "upperarm_l": "mixamorig:LeftArm"
+  },
+  "substring_wrong_slots": [
+   "hand_l"
+  ]
+ },
+ "input": {
+  "names": [
+   "mixamorig:Hips",
+   "mixamorig:Spine",
+   "mixamorig:Spine1",
+   "mixamorig:Spine2",
+   "mixamorig:Neck",
+   "mixamorig:Head",
+   "mixamorig:HeadTop_End",
+   "mixamorig:LeftShoulder",
+   "mixamorig:LeftArm",
+   "mixamorig:LeftForeArm",
+   "mixamorig:LeftHandIndex1",
+   "mixamorig:LeftHandIndex2",
+   "mixamorig:LeftHand",
+   "mixamorig:LeftHandThumb1",
+   "mixamorig:LeftUpLeg",
+   "mixamorig:LeftLeg",
+   "mixamorig:LeftFoot",
+   "mixamorig:LeftToeBase"
+  ],
+  "ref_torso": [
+   [
+    "pelvis",
+    [
+     0,
+     0,
+     0.96
+    ]
+   ],
+   [
+    "spine_01",
+    [
+     0,
+     0.005,
+     1.0
+    ]
+   ],
+   [
+    "spine_02",
+    [
+     0,
+     0.01,
+     1.07
+    ]
+   ],
+   [
+    "spine_03",
+    [
+     0,
+     0.012,
+     1.14
+    ]
+   ],
+   [
+    "spine_04",
+    [
+     0,
+     0.01,
+     1.22
+    ]
+   ],
+   [
+    "spine_05",
+    [
+     0,
+     0.004,
+     1.32
+    ]
+   ]
+  ],
+  "required": [
+   "pelvis",
+   "spine_01",
+   "head",
+   "clavicle_l",
+   "upperarm_l",
+   "lowerarm_l",
+   "hand_l",
+   "thigh_l",
+   "calf_l",
+   "foot_l"
+  ],
+  "src_torso": [
+   [
+    "pelvis",
+    [
+     0,
+     -0.02,
+     0.93
+    ]
+   ],
+   [
+    "spine_01",
+    [
+     0,
+     -0.015,
+     0.99
+    ]
+   ],
+   [
+    "spine_02",
+    [
+     0,
+     -0.005,
+     1.06
+    ]
+   ],
+   [
+    "spine_05",
+    [
+     0,
+     0.0,
+     1.35
+    ]
+   ]
+  ],
+  "substring_words": {
+   "hand_l": [
+    "left",
+    "hand"
+   ],
+   "upperarm_l": [
+    "left",
+    "arm"
+   ]
+  },
+  "tables": {
+   "mixamo": {
+    "calf_l": "mixamorig:LeftLeg",
+    "clavicle_l": "mixamorig:LeftShoulder",
+    "foot_l": "mixamorig:LeftFoot",
+    "hand_l": "mixamorig:LeftHand",
+    "head": "mixamorig:Head",
+    "index_01_l": "mixamorig:LeftHandIndex1",
+    "lowerarm_l": "mixamorig:LeftForeArm",
+    "neck_01": "mixamorig:Neck",
+    "pelvis": "mixamorig:Hips",
+    "spine_01": "mixamorig:Spine",
+    "spine_02": "mixamorig:Spine1",
+    "spine_05": "mixamorig:Spine2",
+    "thigh_l": "mixamorig:LeftUpLeg",
+    "upperarm_l": "mixamorig:LeftArm"
+   },
+   "rigify": {
+    "calf_l": "DEF-shin.L",
+    "clavicle_l": "DEF-shoulder.L",
+    "foot_l": "DEF-foot.L",
+    "hand_l": "DEF-hand.L",
+    "head": "DEF-spine.006",
+    "index_01_l": "DEF-f_index.01.L",
+    "lowerarm_l": "DEF-forearm.L",
+    "neck_01": "DEF-spine.004",
+    "neck_02": "DEF-spine.005",
+    "pelvis": "DEF-spine",
+    "spine_01": "DEF-spine.001",
+    "spine_02": "DEF-spine.002",
+    "spine_05": "DEF-spine.003",
+    "thigh_l": "DEF-thigh.L",
+    "upperarm_l": "DEF-upper_arm.L"
+   }
+  },
+  "tie_names": [
+   "mixamorig:Hips",
+   "mixamorig:Spine",
+   "mixamorig:Spine1",
+   "mixamorig:Spine2",
+   "mixamorig:Neck",
+   "mixamorig:Head",
+   "DEF-spine",
+   "DEF-spine.001",
+   "DEF-spine.002",
+   "DEF-spine.003",
+   "DEF-spine.004",
+   "DEF-spine.006"
+  ]
+ }
+}

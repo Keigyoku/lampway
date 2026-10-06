@@ -30,7 +30,12 @@ def specs() -> list:
 
 
 def job_services(jobs) -> str:
-    return json.dumps(jobs.service_report() if jobs is not None else {"services": [], "unbacked": []})
+    if jobs is None:
+        return json.dumps({"services": [], "unbacked": []})
+    from ..job_backends import UNBACKED_REASONS
+    rep = jobs.service_report()
+    rep["unbacked_reasons"] = {k: UNBACKED_REASONS[k] for k in rep["unbacked"] if k in UNBACKED_REASONS}
+    return json.dumps(rep)
 
 
 async def call(svc, name: str, arguments: dict) -> tuple:

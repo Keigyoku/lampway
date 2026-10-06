@@ -15,6 +15,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_time.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
 
@@ -128,10 +129,14 @@ void view3d_agent_panel_cards_sync(const bContext *C, AgentPanelRuntime *runtime
     if (PropertyRNA *status_prop = RNA_struct_find_property(&card_ptr, "status")) {
       const int status = RNA_property_enum_get(&card_ptr, status_prop);
       card.status = (status >= int(AgentCardStatus::Pending) &&
-                     status <= int(AgentCardStatus::Failed)) ?
+                     status <= int(AgentCardStatus::Paused)) ?
                         AgentCardStatus(status) :
                         AgentCardStatus::Pending;
     }
+    agent_panel_read_string(&card_ptr, RNA_struct_find_property(&card_ptr, "needs"), card.needs, sizeof(card.needs));
+    agent_panel_read_string(&card_ptr, RNA_struct_find_property(&card_ptr, "reason"), card.reason, sizeof(card.reason));
+    agent_panel_read_string(
+        &card_ptr, RNA_struct_find_property(&card_ptr, "waiting_on"), card.waiting_on, sizeof(card.waiting_on));
     if (PropertyRNA *prop = RNA_struct_find_property(&card_ptr, "started_at")) {
       card.started_at = RNA_property_float_get(&card_ptr, prop);
     }
@@ -139,7 +144,7 @@ void view3d_agent_panel_cards_sync(const bContext *C, AgentPanelRuntime *runtime
       card.ended_at = RNA_property_float_get(&card_ptr, prop);
     }
 
-    if (card.status == AgentCardStatus::Running) {
+    if (ELEM(card.status, AgentCardStatus::Running, AgentCardStatus::Blocked, AgentCardStatus::Paused)) {
       card.seen_running_at = seen_running.lookup_default(std::string(card.task_id), now);
     }
     if (PropertyRNA *prop = RNA_struct_find_property(&card_ptr, "dismissing")) {
@@ -172,19 +177,16 @@ void view3d_agent_panel_cards_sync(const bContext *C, AgentPanelRuntime *runtime
       card.row.settle(float(runtime->cards.size()));
     }
 
-    if (card.status == AgentCardStatus::Running) {
-      const double elapsed = std::max(0.0, now - card.seen_running_at);
-      const double pace = 22.0 + double(card.cat_ordinal % 6) * 4.0;
-      card.progress = float(0.08 + 0.82 * (1.0 - std::exp(-elapsed / pace)));
-    }
-    else if (card.status == AgentCardStatus::Done) {
-      card.progress = 1.0f;
-    }
-
     runtime->cards.append(card);
     RNA_property_collection_next(&iter);
   }
   RNA_property_collection_end(&iter);
+
+  runtime->overflow_label[0] = '\0';
+  agent_panel_read_string(&wm_ptr,
+                          RNA_struct_find_property(&wm_ptr, "mixar_agent_cards_overflow"),
+                          runtime->overflow_label,
+                          sizeof(runtime->overflow_label));
 
   /* A NEW fan-out replays the slide-in and starts unscrolled; a card added
    * to (or a status flip inside) the fan-out already on screen must not

@@ -1,0 +1,10 @@
+{
+ "deterministic_repeat": "same input, same seed: byte-identical OBJ",
+ "faces_within_frac": 0.35,
+ "max_deviation_rel_diag_max": 0.05,
+ "non_manifold_edges": 0,
+ "quad_fraction_min": 0.9,
+ "source_untouched": true,
+ "surface": "sphere r=0.5 at origin: deviation of a vertex = | |p| - 0.5 |",
+ "target_faces": 600
+}

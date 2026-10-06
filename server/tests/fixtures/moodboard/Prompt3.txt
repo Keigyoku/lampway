@@ -1,0 +1,22 @@
+Create a clean orthographic armored fit-check sheet using the attached references.
+
+Image A is the exact MetaHuman body reference.
+Image B is the approved armor-on-body design reference.
+
+Show the MetaHuman wearing the approved armor in four full-body orthographic views: FRONT, LEFT, BACK, and RIGHT. Preserve the exact same body proportions from Image A. The armor must fit this body correctly and consistently in every view.
+
+The armor should match the approved design from Image B exactly in materials, details, motifs, silhouette, thickness, and construction. Keep the character’s identity and body shape consistent. Do not make the body more heroic, broader, taller, or more muscular.
+
+Presentation requirements:
+- square or portrait sheet
+- clean neutral background, flat and uniform
+- no cinematic environment
+- no shadows
+- soft even studio lighting
+- full body visible and uncropped
+- consistent scale across all four views
+- orthographic projection
+- small simple labels only: FRONT, LEFT, BACK, RIGHT
+- no decorative poster text
+
+The purpose of this image is technical review: to verify that the armor design actually fits the MetaHuman in front, side, and back views before generating isolated assets.

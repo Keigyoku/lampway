@@ -239,7 +239,7 @@ static void draw_button(const State &state, const Layout &layout, const Target t
   const float icon_size = size * 1.4f;
   const float gap = size * 0.35f;
   text_centered(font, label, center + (icon_size + gap) * 0.5f, cy, ink);
-  draw_icon(target == TARGET_UPGRADE ? ICON_CREDITS_UPGRADE : ICON_CREDITS_REFER,
+  draw_icon(target == TARGET_UPGRADE ? ICON_LAMPWAY_COIN : ICON_LAMPWAY_ROUTE,
             center - (width + gap) * 0.5f, cy, icon_size, alpha);
 }
 
@@ -275,7 +275,7 @@ static void draw_slider(const State &state, const Layout &layout, const float al
                         alpha * (0.65f + hover * 0.35f) * pulse * (1.0f - state.slide)};
   text_centered(font, hint, text_x + icon_space * 0.5f, cy, ink);
   if (resting) {
-    draw_icon(ICON_CREDITS_CREATOR, text_x - (width + icon_space - icon_size) * 0.5f,
+    draw_icon(ICON_LAMPWAY_SPARK, text_x - (width + icon_space - icon_size) * 0.5f,
               cy, icon_size, alpha * (1.0f - state.slide));
   }
   float knob_top[4], knob_bottom[4];
@@ -284,7 +284,7 @@ static void draw_slider(const State &state, const Layout &layout, const float al
   round_box(thumb, layout.button_h * 0.42f, knob_top, knob_bottom);
   const float nudge = mixar_motion_reduced() || state.dragging ? 0.0f :
                           hover * layout.button_h * 0.035f * std::sin(float(now) * 4.0f);
-  draw_icon(ICON_CREDITS_SLIDE, BLI_rctf_cent_x(&thumb) + nudge, cy,
+  draw_icon(ICON_LAMPWAY_METER_10, BLI_rctf_cent_x(&thumb) + nudge, cy,
             layout.button_h * 0.48f, alpha);
   if (state.focus == TARGET_CREATOR || state.slide > 0.01f) {
     BLF_size(font, label_size(layout));

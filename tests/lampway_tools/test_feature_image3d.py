@@ -80,7 +80,7 @@ def test_studio_slot_refusals_and_bad_input(tmp_path):
     r = run(tmp_path, MAKE + '''
 os.makedirs(root + "/views", exist_ok=True)
 disc(root + "/views/Front.png")
-print("RESULT", json.dumps({"studio": call("image_to_3d", images={"Front": "views/Front.png"}, engine="studio:tripo"),
+print("RESULT", json.dumps({"studio": call("image_to_3d", images={"Front": "views/Front.png"}, engine="studio:tripo", plate_check=False),
     "one_view_hull": call("image_to_3d", images={"Front": "views/Front.png"}, mode="hull"),
     "missing": call("image_to_3d", images={"Front": "views/nope.png", "Left": "views/nope.png"}, mode="hull"),
     "outside": call("image_to_3d", images={"Front": "/etc/hostname"}, mode="relief"),

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The Scenes drawer in Engine workspaces.
 
-The drawer used to poll for the "Zen Mode" workspace, so Engine had no panel,
+The drawer used to poll for the "Lamplight" workspace, so Engine had no panel,
 no toggle, and Ctrl+` fell through to Blender. It now lives on the window's
 main 3D View (the largest View3D) in every workspace:
 
@@ -165,7 +165,7 @@ def test_region_poll_is_the_host_rule_in_every_workspace():
     first_layout = _function(DRAWER, "static bool drawer_area_hosts_in_wm(")
     assert "drawer_area_is_main_view3d(screen, area)" in first_layout
     for name, text in (("view3d_scenes_drawer.cc", DRAWER), ("view3d_scenes_drawer.hh", DRAWER_HH)):
-        assert "Zen Mode" not in text, name
+        assert "Lamplight" not in text, name
         assert "workspace_is_zen" not in text, name
     for path in VIEW3D.glob("view3d_scenes_drawer*"):
         assert "view3d_scenes_drawer_zen_active" not in path.read_text(), path.name
@@ -291,5 +291,5 @@ def test_override_is_none_without_a_host(monkeypatch):
 
 def test_override_falls_back_to_zen_on_a_build_without_the_rna(monkeypatch):
     zen_view = _area("VIEW_3D")
-    _windows(monkeypatch, _window("Layout", _area("VIEW_3D")), _window("Zen Mode", zen_view))
+    _windows(monkeypatch, _window("Layout", _area("VIEW_3D")), _window("Lamplight", zen_view))
     assert SNAPSHOT.drawer_view3d_override()["area"] is zen_view

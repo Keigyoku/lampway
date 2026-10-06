@@ -66,6 +66,8 @@ class MixarAgentCard(PropertyGroup):
             ('RUNNING', "Running", "Executing now"),
             ('DONE', "Done", "Finished successfully"),
             ('FAILED', "Failed", "Errored, or skipped because a dependency failed"),
+            ('BLOCKED', "Needs you", "Working, and waiting for your answer, approval, spend or sign-in"),
+            ('PAUSED', "Paused", "Waiting on something named, not on you"),
         ],
         default='PENDING',
     )
@@ -83,6 +85,21 @@ class MixarAgentCard(PropertyGroup):
         ),
         default=False,
     )
+    needs: StringProperty(
+        name="Needs",
+        description="What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing",
+        default="",
+    )
+    reason: StringProperty(
+        name="Reason",
+        description="One line: why it failed, or why it is blocked",
+        default="",
+    )
+    waiting_on: StringProperty(
+        name="Waiting On",
+        description="What a paused agent waits on",
+        default="",
+    )
     ended_at: FloatProperty(
         name="Ended At",
         description="Monotonic clock reading when this agent settled; 0 while unsettled",
@@ -95,6 +112,7 @@ _PROP_NAMES = (
     "mixar_agent_cards",
     "mixar_agent_cards_active",
     "mixar_agent_cards_generation",
+    "mixar_agent_cards_overflow",
 )
 
 classes = (MixarAgentCard,)
@@ -122,6 +140,12 @@ def register() -> None:
         ),
         default=0,
         min=0,
+        options={'SKIP_SAVE'},
+    )
+    wm.mixar_agent_cards_overflow = StringProperty(
+        name="Hidden Agent Cards",
+        description="The overflow chevron's label: how many cards are past the visible ones, by state",
+        default="",
         options={'SKIP_SAVE'},
     )
     wm.mixar_agent_cards_active = IntProperty(

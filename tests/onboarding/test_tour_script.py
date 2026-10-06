@@ -51,8 +51,8 @@ ACT_CAPTIONS = {
     "moodboard-prompt": "Part 4 · The moodboard",
     "moodboard-canvas": "Part 4 · The moodboard",
     "moodboard-nodes": "Part 4 · The moodboard",
-    "engine-prompt": "Part 5 · Zen and Engine",
-    "engine-mode": "Part 5 · Zen and Engine",
+    "engine-prompt": "Part 5 · Lamplight and Workshop",
+    "engine-mode": "Part 5 · Lamplight and Workshop",
     "creator-program": "Creator Program",
     "outro": "You're all set",
 }

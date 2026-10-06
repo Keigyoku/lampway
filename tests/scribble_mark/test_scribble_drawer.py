@@ -11,7 +11,7 @@ import pytest
 from mixar.modules.scribble_mark.core import drawer_guard, freeze_session
 
 
-def setup(monkeypatch, *, amount=1.0, target=1, workspace="Zen Mode"):
+def setup(monkeypatch, *, amount=1.0, target=1, workspace="Lamplight"):
     wm = NS(mixar_moodboard_drawer_amount=amount, mixar_moodboard_drawer_target=target,
             mixar_moodboard_drawer_width=480.0)
     window = NS(workspace=NS(name=workspace))

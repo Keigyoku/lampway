@@ -68,3 +68,34 @@ def test_the_view_routes_lineage_views_and_diff(lib):
     assert 0 < diff["mean_abs"] and diff["ssim"] <= 1.0 and Path(diff["diff"]).is_file()
     bad = fake.post("/api/v1/library/diff", json={"a": front, "b": mesh})
     assert bad.status_code == 422 and "two pictures" in bad.json()["detail"]
+
+
+def test_a_page_can_carry_each_assets_main_file_path(lib):
+    fake, root, items = lib
+    page = fake.post("/api/v1/library/query", json={"limit": 50, "include": ["thumb", "tags", "path"]}).json()["data"]
+    paths = {i["name"]: i["path"] for i in page["items"]}
+    assert paths["bronze_greaves"] == str(root / "bronze_greaves.glb") and paths["greaves_front"] == str(root / "greaves_front.png")
+    plain = fake.post("/api/v1/library/query", json={"limit": 50}).json()["data"]
+    assert "path" not in plain["items"][0]
+
+
+def test_clip_alignment_and_board_moves_over_rest(lib, app):
+    fake, root, items = lib
+    vault = app.state.vault
+    a, b = items["greaves_front"]["id"], items["greaves_back"]["id"]
+    refused = fake.post("/api/v1/library/clip_align", json={"a": a, "b": b, "mode": "start"})
+    assert refused.status_code == 422 and "no proxy frames yet: queued (asset_video)" in refused.json()["detail"]
+    for aid, n in ((a, 5), (b, 3)):
+        d = vault.root / "derived" / vault.lib.version_of(aid) / "proxy"
+        d.mkdir(parents=True)
+        for i in range(n):
+            Image.new("RGB", (8, 8), (i * 30, 0, 0)).save(d / f"{i:05d}.jpg")
+    out = fake.post("/api/v1/library/clip_align", json={"a": a, "b": b, "mode": "start"}).json()["data"]
+    assert len(out["a"]) == len(out["b"]) == 3 and out["mode"] == "start"
+    board = fake.post("/api/v1/library/collect", json={"action": "create", "name": "wall", "kind": "board"}).json()["data"]["collection"]["id"]
+    fake.post("/api/v1/library/collect", json={"action": "add", "collection": board, "asset_ids": [a]})
+    moved = fake.post(f"/api/v1/library/boards/{board}/items/{a}", json={"x": 300, "y": 80})
+    assert moved.status_code == 200 and moved.json()["data"]["x"] == 300.0
+    got = fake.post("/api/v1/library/collect", json={"action": "get", "collection": board}).json()["data"]["items"]
+    assert (got[0]["x"], got[0]["y"]) == (300.0, 80.0)
+    assert got[0]["thumb"] == str(root / "greaves_front.png"), "a board tile carries its picture for the canvas"

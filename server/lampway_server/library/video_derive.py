@@ -112,6 +112,7 @@ def _panels(lib, clip, a, path, layout=None) -> dict:
                         "-c:a", "copy", "-pix_fmt", "yuv420p", str(out)], 1800)
             if p.returncode != 0 or not out.exists():
                 raise LibraryError(f"cannot crop {path}: {p.stderr.decode(errors='replace').strip()[-300:]}")
+            # LEGACY(normalize): a cropped panel clip enters without canon_io (not yet on lp/wave5); its bytes are hashed, no frame rate beyond ffprobe's is claimed
             res = lib.put({"kind": "video", "subtype": "split", "name": f"{a['name']} {role.split(':')[1]}", "source": {"kind": "derived", "key": f"{clip}:{role}"},
                            "files": [{"role": "main", "path": str(out), "storage": "cas"}], "attrs": {"rect": r, "of": clip},
                            "relations": [{"type": "part_of", "to": clip, "role": role}, {"type": "derived_from", "to": clip, "role": "panel"}]})
@@ -148,6 +149,7 @@ def attach(lib: AssetLibrary, clip: str, path, role: str, attrs=None) -> str:
     spec = {"kind": kind, "subtype": subtype, "name": p.stem, "source": {"kind": "attached", "key": f"{clip}:{role}:{p}"},
             "files": [{"role": "main", "path": str(p), "storage": "external"}], "attrs": dict(attrs or {})}
     rrole = {"start_frame": "start_frame", "end_frame": "end_frame", "reference": "reference"}.get(role, role if rel == "derived_from" else "")
+    # LEGACY(normalize): another tool's clip, animation or image is recorded without canon_io (not yet on lp/wave5): referenced and hashed, nothing about it claimed
     if direction == "from":
         spec["relations"] = [{"type": rel, "to": clip, "role": rrole}]
         return lib.put(spec)["id"]

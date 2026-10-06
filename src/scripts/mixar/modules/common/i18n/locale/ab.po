@@ -52,28 +52,58 @@ msgstr "Астильқәа ыҟаӡам"
 msgid "No styles available"
 msgstr "Астильқәа ыҟаӡам"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Адокументациа"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "Алагаратә екран"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "Ахатә лагаратә мениу, Ааҵәатәи ашәҟәқәа рыда."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "Шәиҿкаашьа алх"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Zen Аиҿкаашьала алагара"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine Аиҿкаашьа (Blender ахаҭа)"
-
-msgid "Getting Started"
+msgid "Start"
 msgstr "Алагара"
 
-msgid "About"
-msgstr "Апрограмма азы"
+msgid "New scene"
+msgstr ""
 
-msgid "Website"
+msgid "Recover last session"
+msgstr ""
+
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "Ашьҭра"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "Иалымшеит"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "Агха ыҟан, мамзаргьы аизызаашьа алымшеит ҳәа инархын"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "Алагара аамҭа"
 
@@ -824,6 +863,24 @@ msgstr "Ақәгара иаҿу"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "Ахархәаҩ ари акарточка ақәыӷәӷәазар ишьақәгылоит. Апанель ихиеит акарточка ашықәсра еиԥш иааҳәоит, ацәаҳәагьы аҭыҵраан иқәыргоит — ақәыӷәӷәара акарточка ахырхага аҵаҟа анеиламкьар ауам"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "Алгара аамҭа"
@@ -842,6 +899,12 @@ msgstr "Агент акарточкақәа ргенерациа"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "Апанель аҵакы ҿыц аиларԥшрала иԥсахуацыԥхьаӡа иацлоит. C++ апанель аҵәахра еиҭашьақәыргылоит, анеилалара еиҭа иааҳәоит — «аган ҿыц» ахатә карточкақәа рсиа аҟынтәи иеилыркаар ауам, уи асахьараан мацара еиҭасинхронхоит, апанель иҵәаху аамҭа аԥхьатәи аган акарточкақәа аманы"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "Активтә агент акарточкақәа"
@@ -862,6 +925,39 @@ msgstr ""
 "\n"
 "Анавигациеи 3Д Аԥшра иалымшо аҭалареи ирыларҵоит; 3Д Аԥшра\n"
 "ахолст аҿы ақәыӷәӷәарақәеи аиҭакра ацаԥхақәеи ирызкылоит.\n"
+
+msgid "Canvas"
+msgstr "Ахолст"
+
+msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
+msgstr ""
+
+msgid "Open"
+msgstr "Аартра"
+
+msgid "Fit"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "attach the pan/zoom handling to what is already open"
+msgstr ""
+
+msgid "the lineage layout as JSON, for clicks"
+msgstr ""
+
+msgid "Asset Vault Hotkey"
+msgstr ""
+
+msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
+msgstr ""
+
+msgid "Search the Asset Vault"
+msgstr ""
+
+msgid "Select an asset first"
+msgstr ""
 
 msgid "Search"
 msgstr "Аԥшаара"
@@ -995,10 +1091,55 @@ msgstr ""
 msgid "The Asset Vault window is already open"
 msgstr ""
 
+msgid "Align clips"
+msgstr ""
+
+msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
+msgstr ""
+
+msgid "Frame 0 with frame 0"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "By timestamp"
+msgstr ""
+
+msgid "Motion"
+msgstr ""
+
+msgid "Where each clip first moves"
+msgstr ""
+
+msgid "Press Compare on a second clip first"
+msgstr ""
+
+msgid "Refresh boards"
+msgstr ""
+
+msgid "Read the Vault's boards"
+msgstr ""
+
+msgid "Open board"
+msgstr ""
+
+msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
 msgid "Searching"
 msgstr ""
 
+msgid "Choose how to line the two clips up"
+msgstr ""
+
 msgid "Show the lineage"
+msgstr ""
+
+msgid "Open on the canvas"
 msgstr ""
 
 msgid "Select an asset"
@@ -1008,6 +1149,12 @@ msgid "Reading the asset"
 msgstr ""
 
 msgid "Copy id"
+msgstr ""
+
+msgid "Close canvas"
+msgstr ""
+
+msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
 msgstr ""
 
 msgid "Asset Vault"
@@ -1871,9 +2018,6 @@ msgstr "Аҭыгара"
 msgid "Stop"
 msgstr "Аанкылара"
 
-msgid "Start"
-msgstr "Алагара"
-
 msgid "Delete Download"
 msgstr "Аҭыгара аныхра"
 
@@ -2549,9 +2693,6 @@ msgstr "Асеть ахь анеира ыҟаӡам."
 msgid "Network error: {short}"
 msgstr "Асеть агха: {short}"
 
-msgid "Open"
-msgstr "Аартра"
-
 msgid "Toast Click"
 msgstr "Атоаст ақәыӷәӷәара"
 
@@ -2639,7 +2780,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2828,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "Ахатәра аполитика"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2837,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,10 +2852,10 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "Аҩаӡатәи ахром (UI.svg арецепт)"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
+msgid "Workshop"
 msgstr ""
 
 msgid "Cinema Mode"
@@ -2797,6 +2938,9 @@ msgstr "Ҷыдала ақәыӷәӷәарақәа"
 
 msgid "Profile"
 msgstr "Апрофиль"
+
+msgid "Zen"
+msgstr ""
 
 msgid "Shared Zen components"
 msgstr "Еицырзеиԥшу Zen акомпонентқәа"
@@ -5015,6 +5159,12 @@ msgstr "Ақәгара"
 msgid "Dismiss the error and return to idle"
 msgstr "Агха ақәгара, аанкылара ахь ахынҳәра"
 
+msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
+msgstr ""
+
+msgid "UE Look is on"
+msgstr ""
+
 msgid "Front"
 msgstr "Аԥхьа"
 
@@ -5027,10 +5177,160 @@ msgstr "Аџьаџьара"
 msgid "Metallic"
 msgstr "Аметаллтә"
 
+msgid "Scale"
+msgstr "Ашәага"
+
+msgid "Detail"
+msgstr "Адетал"
+
+msgid "NodeGroupOutput"
+msgstr ""
+
+msgid "GeometryNodeCollectionInfo"
+msgstr ""
+
+msgid "lampway_uv_check"
+msgstr ""
+
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
+msgstr ""
+
+msgid "KiB"
+msgstr ""
+
+msgid "MiB"
+msgstr ""
+
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "Аҿактә"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "Шәара шәзыԥшоит"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Approve patch"
+msgstr ""
+
+msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
+msgstr ""
+
+msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -5243,9 +5543,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5268,9 +5565,6 @@ msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5429,6 +5723,12 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
+msgid "UE Look"
+msgstr ""
+
+msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
+msgstr ""
+
 msgid "Refresh sessions"
 msgstr ""
 
@@ -5451,9 +5751,6 @@ msgid "New session"
 msgstr ""
 
 msgid "Open a new agent session in the cockpit (your own CLI login)"
-msgstr ""
-
-msgid "Claude Code"
 msgstr ""
 
 msgid "Codex"
@@ -5583,6 +5880,21 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Engine defaults: not the project"
+msgstr ""
+
+msgid "UE Look: on"
+msgstr ""
+
+msgid "UE Look: off"
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -5811,6 +6123,24 @@ msgid "0 = the deform mesh's rest height, else head bone to foot bone"
 msgstr ""
 
 msgid "Last result"
+msgstr ""
+
+msgid "UE profile"
+msgstr ""
+
+msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
+msgstr ""
+
+msgid "Tonemapper cube"
+msgstr ""
+
+msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
+msgstr ""
+
+msgid "Cube sidecar"
+msgstr ""
+
+msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
@@ -6860,9 +7190,6 @@ msgstr "Ахьырԥш {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Ари ашаблон ыҟоу аԥҵамҭа амодель иаҭахуп. Шәимадара шәгәаҭа."
 
-msgid "On"
-msgstr "Аҿактә"
-
 msgid "Off"
 msgstr "Аҿыктә"
 
@@ -7271,6 +7598,9 @@ msgstr "Акы аперсонаж ахәҭақәа зегьы ралхра — �
 msgid "Settings"
 msgstr "Аиҿкаарақәа"
 
+msgid "About"
+msgstr "Апрограмма азы"
+
 msgid "Auto-detects the skeleton type"
 msgstr "Абаӷьқәа рбаҩ ахкы хәыҷы иԥшоит"
 
@@ -7463,14 +7793,14 @@ msgstr "Адизайн аконтекст азы аперсонаж зегьыг
 msgid "Moodboard Drawer"
 msgstr "Амудборд аҵәахра"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Zen Аиҿкаашьа амудборд аҵәахра шеиҭаху, 0 аркуп, 1 иаартуп"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "Амудборд аҵәахра ахықәкы"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Zen Аиҿкаашьа амудборд аҵәахра зеи аганак аҿы иаанхо, 0 аркуп, 1 иаартуп"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "Амудборд аҵәахра аҭбаара"
@@ -8334,9 +8664,6 @@ msgstr "Амудборд ахолст аҿы X аҭыԥ"
 
 msgid "Y position on the moodboard canvas"
 msgstr "Амудборд ахолст аҿы Y аҭыԥ"
-
-msgid "Scale"
-msgstr "Ашәага"
 
 msgid "Scale factor for the image"
 msgstr "Асахьанҵа азы ашәага афактор"
@@ -11626,7 +11953,7 @@ msgstr "Lampway Ахь Шәааит"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -20601,9 +20928,6 @@ msgstr ""
 "\n"
 "Аамҭа кьаҿк ашьҭахь еиҭа шәыԥышәа, мамзаргьы атекстла аԥшаара шәыҩ."
 
-msgid "Showing name matches only ({reason})."
-msgstr "Ахьӡ еиқәыршәара мацара иарбоит ({reason})."
-
 msgid "“{query}” + your image"
 msgstr "“{query}” + шәсахьанҵа"
 
@@ -20971,9 +21295,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "Адашборд"
-
-msgid "Documentation"
-msgstr "Адокументациа"
 
 msgid "Report a Bug"
 msgstr "Агха аҳәара"
@@ -22393,6 +22714,9 @@ msgstr "Аплагин апроект"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "Еимадоу рацәа-шәҟәа Blender адополнение аргылара, ахьчара"
 
+msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
+msgstr ""
+
 msgid "Add-on Project ID"
 msgstr "Адополнение апроект ID"
 
@@ -22711,9 +23035,6 @@ msgstr "Ацәаҳәа адырга, иаҳҳәап 'Read'"
 msgid "Row target, e.g. a filename"
 msgstr "Ацәаҳәа ахықәкы, иаҳҳәап ашәҟәы ахьӡ"
 
-msgid "Detail"
-msgstr "Адетал"
-
 msgid "Second-level detail body (command output / snippet)"
 msgstr "Аҩбатәи аҩаӡара адетал (акоманда алҵшәа / ахәҭа)"
 
@@ -22908,9 +23229,6 @@ msgstr "Апроект аԥҟарақәа иубоит"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "Апроект аԥҟарақәа реилагара иаартума"
-
-msgid "Waiting for you"
-msgstr "Шәара шәзыԥшоит"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +25225,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine Аиҿкаашьа"
-
-msgid "Zen Mode"
-msgstr "Zen Аиҿкаашьа"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +25234,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Lampway Zen Аиҿкаашьа ахь аиагалара (минималтә 3Д Аԥшра + Агент Аԥенџьыр + амудборд)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Zen Аиҿкаашьа аусура аҭыԥ аԥҵара алымшаӡеит — ашаблон ыҟам"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Lampway Engine Аиҿкаашьа ахь аиагалара (Blender еиԥш аусура аҭыԥқәа)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "Амоделирование аусура аҭыԥ ԥыхьам"
@@ -25006,7 +25318,7 @@ msgstr "Асцена нас Аԥшра Аслои"
 msgid "View Layer"
 msgstr "Аԥшра Аслои"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25369,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25488,9 @@ msgstr "Ашәҟәыԥхьарҭа '%s' Lampway аҧхьаҟатәи аверс�
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: Адырра хадоу .mixar ашәҟәы ахь азхьарԥш ауеит: '%s', %s аҟынтәи"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "Бзиала шәаабеит, %s !"
@@ -26083,6 +26398,24 @@ msgstr "Ахырхага X аҭыԥ"
 msgid "Cursor Y position"
 msgstr "Ахырхага Y аҭыԥ"
 
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
+
 msgid "Animate Moodboard Attachment"
 msgstr "Амудборд Ацҵамҭа Анимациа"
 
@@ -26829,6 +27162,24 @@ msgstr "Атекстурақәа Реизга Аҭыԥ"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "Атекстурақәа реизгақәа рнапхгаразы аган панельқәа шәырхә"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "Аԥхьатәи ахь ахынҳәра"
@@ -27580,9 +27931,6 @@ msgstr "Атекстураҭәра Аҟазшьақәа"
 msgid "Layer and texture properties"
 msgstr "Аслои нас атекстура аҟазшьақәа"
 
-msgid "Texturing Assets"
-msgstr "Атекстураҭәра Аресурсқәа"
-
 msgid "Smart materials, brushes, and textures library"
 msgstr "Иҟәышу аматериалқәа, аҟәырҧақәа, нас атекстурақәа ршәҟәыԥхьарҭа"
 
@@ -27805,8 +28153,8 @@ msgstr "Аградиент аҵаҩра змоу иргьежьу аиқәа а�
 msgid "Viewport Pill"
 msgstr "3Д Аԥшра Апилюла"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Zen 3Д аԥшра ашәага апилюла; ицо аиҿкаашьамзар имыргьыуп"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "Апрофиль Апилюла"
@@ -27882,9 +28230,6 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
-
-msgid "Canvas"
-msgstr "Ахолст"
 
 msgid "Shared canvas and page background"
 msgstr "Еицырзеиԥшу ахолст нас адаҟьа афон"
@@ -28048,26 +28393,26 @@ msgstr "Ацәаҳәа ахыԥхьаӡара ачип"
 msgid "Slider Track"
 msgstr "Аслаидер Амҩа"
 
-msgid "Zen/Engine slider track"
-msgstr "Zen/Engine аслаидер амҩа"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "Аслаидер Аползунок"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Zen/Engine аслаидер аползунок"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "Аслаидер Аползунок Ахәаԥшра"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine аползунок ахәаԥшра"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "Аслаидер Аҵаҩра"
 
-msgid "Zen/Engine slider label"
-msgstr "Zen/Engine аслаидер аҵаҩра"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "Акино Апилюла Аҭәтәара"

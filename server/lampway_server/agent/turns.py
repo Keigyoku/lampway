@@ -15,6 +15,7 @@ The client's contract (turn_events.py, queue_processor.py, slot_processor.py):
 
 import asyncio
 import copy
+import json
 import logging
 import uuid
 from dataclasses import dataclass, field
@@ -22,7 +23,8 @@ from typing import Optional
 
 from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
-from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, connections_tools, choices_tools
+from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, orphan_server_tools, marks_context, questions as Q, connections_tools, choices_tools
+from . import plan_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -144,7 +146,8 @@ class AgentHub:
         message = payload.get("message")
         if not session_id or not isinstance(message, str):
             raise InvalidParams("payload.session_id and payload.message are required")
-        return self._admit(socket, command_id, session_id, message, plan_mode=bool(payload.get("plan_required")))
+        return self._admit(socket, command_id, session_id, message, plan_mode=bool(payload.get("plan_required")),
+                           marks_text=marks_context.describe(payload.get("mark_context")))
 
     async def _input(self, socket, params):
         command_id, payload = _command_parts(params)
@@ -158,16 +161,25 @@ class AgentHub:
         interrupt_id = str(payload.get("interrupt_id") or "")
         if pending is not None and (not interrupt_id or interrupt_id == pending["interrupt_id"]):
             # The answer to an ask_user question: it is the tool's result, and the model goes on from there.
-            answer = text.strip() or ", ".join(str(a) for a in (answers or [])) or "(no answer)"
+            action = payload.get("action")
+            reply = None
+            if pending.get("batch") and action == Q.CANCEL:
+                answer, reply = "The user cancelled these questions; do not go on with what they were for.", "Cancelled: the questions were not answered."
+            elif pending.get("batch"):
+                answer, refused = Q.batch_answer(pending["batch"], answers)
+                if refused:
+                    return {"state": "complete", "result": {"ok": False, "message": refused}}
+            else:
+                answer = Q.single_answer(text, answers, action)
             session.messages.append(Message("user", [{"type": "tool_result", "tool_call_id": pending["call_id"],
                                                       "content": answer, "is_error": False}]))
             session.pending_question = None
-            return self._admit(socket, command_id, session_id, None, plan_mode=pending.get("plan_mode", False))
+            return self._admit(socket, command_id, session_id, None, plan_mode=pending.get("plan_mode", False), reply=reply)
         if answers:
             text = f"{text}\n{answers}" if text else str(answers)
         return self._admit(socket, command_id, session_id, text)
 
-    def _admit(self, socket, command_id, session_id, user_text, plan_mode=False):
+    def _admit(self, socket, command_id, session_id, user_text, plan_mode=False, marks_text="", reply=None):
         session = self._session(session_id)
         command = self.commands[command_id] = Command(command_id, session_id)
         turn = Turn(session_id, command_id, str(uuid.uuid4()), plan_mode=plan_mode)
@@ -176,7 +188,7 @@ class AgentHub:
         session.last_turn_id = command_id
         previous = session.current
         session.current = turn
-        turn.task = socket.spawn(self._run_turn(socket, session, turn, command, user_text, previous))
+        turn.task = socket.spawn(self._run_turn(socket, session, turn, command, user_text, previous, marks_text, reply))
         return {"state": "pending"}
 
     async def _cancel(self, socket, params):
@@ -260,7 +272,7 @@ class AgentHub:
 
     # ------------------------------------------------------------ the turn
     async def _run_turn(self, socket, session: Session, turn: Turn, command: Command, user_text: str,
-                        previous: Optional[Turn]):
+                        previous: Optional[Turn], marks_text: str = "", reply: Optional[str] = None):
         if previous is not None and previous.task is not None and not previous.task.done():
             previous.task.cancel()
             try:
@@ -283,8 +295,18 @@ class AgentHub:
             await stream.emit({"bubble_id": bubble_id,
                                "loader": {"visible": True, "texts": ["Thinking..."], "rotate_ms": 2000}})
             if user_text is not None:                      # None: resuming after an ask_user answer
-                session.messages.append(Message.user_text(user_text))
+                message = Message.user_text(user_text)
+                if marks_text:                             # the Scribble marks ride WITH the words, so a follow-up turn still has them in history
+                    message.content.append({"type": "text", "text": "\n\n" + marks_text})
+                session.messages.append(message)
+            if reply is not None:                          # answered here (a cancelled batch): the model is not called again
+                await stream.emit({"bubble_id": bubble_id, "content": {"set": reply}})
+                return
+            if user_text is not None and user_text.strip().lower() == Q.CONTINUE_MESSAGE and self.swarm.failed_tasks(session.session_id):
+                await self._retry_failed(socket, session, turn, stream, bubble_id, steps)
             await self._agent_loop(socket, session, turn, stream, bubble_id, steps)
+            if not turn.asked and self.swarm.failed_tasks(session.session_id, collected_in=turn.turn_id):
+                await stream.emit({"bubble_id": bubble_id, "actions": [{"label": Q.RETRY_LABEL, "value": Q.RETRY_ACTION, "style": "primary"}]})
         except asyncio.CancelledError:
             status = "cancelled"
             raise
@@ -345,7 +367,7 @@ class AgentHub:
                     text += "\n\n(The reply was cut off at the model's output limit.)"
                 await stream.emit({"bubble_id": bubble_id, "content": {"set": text}})
                 return
-            question = next((c for c in calls if c.name == ASK_USER), None)
+            question = next((c for c in calls if c.name == ASK_USER and Q.batch_error(c.arguments if isinstance(c.arguments, dict) else {}) is None), None)
             if question is not None:
                 await self._ask(session, turn, stream, bubble_id, text, question)
                 return
@@ -368,6 +390,9 @@ class AgentHub:
         """End the turn on the model's question: a bubble the client renders as a choice (or a text prompt), whose answer
         comes back as agent.input with the interrupt id and resumes the model with the answer as the tool's result."""
         args = call.arguments if isinstance(call.arguments, dict) else {}
+        if args.get("questions"):
+            await self._ask_batch(session, turn, stream, bubble_id, text, call, Q.clean_batch(args["questions"]))
+            return
         question = str(args.get("question") or "").strip() or "Which do you want?"
         options = [str(o).strip() for o in (args.get("options") or []) if str(o).strip()][:6]
         interrupt_id = f"q_{uuid.uuid4().hex[:12]}"
@@ -381,8 +406,45 @@ class AgentHub:
             event["actions"] = [{"label": o, "value": o, "style": "primary" if i == 0 else "default"} for i, o in enumerate(options)]
         await stream.emit(event)
 
+    async def _ask_batch(self, session, turn, stream, bubble_id, text, call: ToolCall, batch: list):
+        """ONE input_required event for the whole batch (its ``questions`` slot): the client's wizard draws the first card from content +
+        actions and the rest locally, then answers once with the complete map (batched_choice.py)."""
+        interrupt_id = f"q_{uuid.uuid4().hex[:12]}"
+        session.pending_question = {"interrupt_id": interrupt_id, "call_id": call.id, "question": batch[0]["question"], "batch": batch,
+                                    "plan_mode": turn.plan_mode}
+        turn.asked = True
+        first = batch[0]
+        body = f"{text.strip()}\n\n{first['question']}" if text.strip() else first["question"]
+        actions = [{"label": o, "value": o, "style": "default"} for o in first["options"]]
+        actions.append({"label": "Cancel", "value": Q.CANCEL, "style": "danger"})
+        await stream.emit({"bubble_id": bubble_id, "content": {"set": body}, "interrupt_id": interrupt_id, "input_type": "choice",
+                           "questions": batch, "actions": actions})
+
+    async def _retry_failed(self, socket, session, turn, stream, bubble_id, steps):
+        """Retry failed tasks: a new swarm of exactly the failed tasks, collected, written into the conversation as the tool calls they are,
+        so the model then reports on them. Nothing that finished runs again."""
+        tasks = self.swarm.failed_tasks(session.session_id)
+        self.swarm.mark_retried(session.session_id)
+        start = ToolCall(id=f"retry_{uuid.uuid4().hex[:8]}", name="swarm_start", arguments={"tasks": tasks})
+        for call in (start, None):
+            if call is None:
+                started = json.loads(content) if not is_error else {}
+                if not started.get("swarm_id"):
+                    return
+                call = ToolCall(id=f"retry_{uuid.uuid4().hex[:8]}", name="swarm_collect", arguments={"swarm_id": started["swarm_id"]})
+            session.messages.append(Message("assistant", [{"type": "tool_call", "id": call.id, "name": call.name, "arguments": call.arguments}]))
+            steps.append({"id": call.id, "kind": "tool", "label": call.name, "target": "", "detail": "retry failed tasks", "status": "running"})
+            await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
+            content, is_error = await self._run_swarm_tool(socket, session, turn, call, stream, bubble_id, steps)
+            steps[-1]["status"] = "failed" if is_error else "done"
+            await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
+            session.messages.append(Message("user", [{"type": "tool_result", "tool_call_id": call.id, "content": clip_result(content),
+                                                      "is_error": is_error}]))
+
     async def _run_tool(self, socket, session, turn, call: ToolCall, stream=None, bubble_id=None,
                         steps=None) -> tuple[str, bool]:
+        if call.name == ASK_USER:                                  # only a refused ask_user reaches here: the valid one ends the turn
+            return Q.batch_error(call.arguments if isinstance(call.arguments, dict) else {}) or "ask_user could not be shown", True
         if server_tools.is_local(call.name):                       # the studio drivers: on this machine, never in Blender
             return await asyncio.to_thread(server_tools.run, call.name, call.arguments)
         if call.name in prompt_tools.NAMES:
@@ -398,6 +460,8 @@ class AgentHub:
                 return "the cockpit is not available on this server", True
             last_user = next((m.text() for m in reversed(session.messages) if m.role == "user" and m.text()), "")
             return await workbench_tools.call(self.cockpit, call.name, call.arguments, self.ops, call.id, last_user, turn.turn_id)
+        if call.name in orphan_server_tools.NAMES:
+            return await orphan_server_tools.call(self, call.name, call.arguments)
         if call.name in files_tools.NAMES:
             return await files_tools.call(server_tools.project_root(), call.name, call.arguments)
         if call.name in cards_tools.NAMES:
@@ -410,6 +474,8 @@ class AgentHub:
             return await choices_tools.call(call.name, call.arguments, origin="agent:main")
         if call.name in compute_tools.NAMES:
             return await compute_tools.call(None, server_tools.project_root(), call.name, call.arguments)
+        if call.name in plan_tools.NAMES:
+            return await plan_tools.call(self, server_tools.project_root(), call.name, call.arguments)
         if call.name in engine_tools.NAMES:
             return await engine_tools.call(call.name, call.arguments)
         if call.name in image_tools.NAMES:

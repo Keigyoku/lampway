@@ -1,0 +1,43 @@
+Create a photorealistic modular armor breakdown sheet using the attached references.
+
+Image A is the MetaHuman anatomical reference.
+Image B is the approved orthographic armored fit-check sheet.
+
+Break the approved armor set into separate modular components while preserving exact design, scale, and proportions. Show the armor pieces as isolated wearable objects, not flat icons and not redesigns.
+
+Include only the components actually present in the armor set:
+- helmet
+- chest armor
+- left shoulder guard
+- right shoulder guard
+- left forearm armor / bracer
+- right forearm armor / bracer
+- left gauntlet
+- right gauntlet
+- waist assembly / fauld / skirt components if present
+- left greave
+- right greave
+- left boot or sandal
+- right boot or sandal
+- cape or cloak
+- shield if present
+- spear or main weapon if present
+
+Keep all pieces at believable real scale relative to the MetaHuman. Do not enlarge pieces for layout. Preserve volume, wearable openings, and thickness. No mannequins or body parts inside the detached armor.
+
+Layout:
+- optional small full-body armored figure for reference
+- isolated equipment components arranged clearly with spacing
+- clean studio presentation
+
+Presentation requirements:
+- pure white or neutral light background
+- no shadows
+- no environmental scenery
+- no dramatic lighting
+- no decorative poster styling
+- photorealistic materials
+- all items fully visible and uncropped
+- no overlapping objects
+
+This sheet is for production planning and asset review, not for dramatic presentation.
