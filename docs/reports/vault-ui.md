@@ -12,11 +12,11 @@ file by file.
 
 | contract | state | commits |
 |---|---|---|
-| asset_place | done (P0 and P1 kinds, catalogue export and link); drag-and-drop not built (C++ dropbox) | ac30942c, 86d3df87 (NLA strip) |
+| asset_place | done (P0 and P1 kinds, catalogue export and link); drag-and-drop not built (C++ dropbox) | ac30942c, b4e1f6a8 (NLA strip), 2f2288f7 (brand word) |
 | asset_mcp + wiring | done | ac1a3ff8 |
-| asset_ui_editor | done for surfaces A, B and E's export verb; C (island tab) and D (chat LIBRARY mode) not built | 57b6d2e8, 0e697eee (cards panel in it) |
-| asset_ui_views | partial: views drawn from server products; no gpu canvas pan/zoom, no clip-to-clip alignment | 8bfab173, 86d3df87 |
-| mrmak 09 report cards | done except the light theme (P2) and the Workbench-window embed | e067ef50, 0e697eee |
+| asset_ui_editor | done for surfaces A, B and E's export verb; C (island tab) and D (chat LIBRARY mode) not built | 335f04e2, 068b6be9 (cards panel in it) |
+| asset_ui_views | partial: views drawn from server products; no gpu canvas pan/zoom, no clip-to-clip alignment | 74825a29, b4e1f6a8 |
+| mrmak 09 report cards | done except the light theme (P2) and the Workbench-window embed | 5d53f750, 068b6be9, 2f2288f7 (content port without a raw socket) |
 
 ### asset_place
 - `features/asset_place.py` (record, transaction, drop point, meshes), `asset_place_shading.py` (material onto a slot, PBR/texture sets by role, node groups, HDRI world),
@@ -93,7 +93,16 @@ file by file.
 - Open questions kept as the contract's defaults: cards under the project root; one card per piece.
 
 ## Test totals against wave5.md (server 900 passed, 5 skipped; client 753 passed, 46 skipped)
-SEE THE FINAL SECTION (filled in at the last run).
+Run on 29319e6b (the same tree as 2f2288f7 but for the two-line test literal below):
+- server (`server/`, venv-tools): **1106 passed, 6 skipped, 0 failed** (lp/wave5's own library commits added about 180 tests before this lane; this lane adds the
+  library_mcp / vault_tools / e2e / rest / views / cards / cards_routes files). An earlier full run caught `cards/content.py` importing `socket` (the egress door test);
+  fixed in 2f2288f7.
+- client (`tests/lampway_tools`, real binary `blender-lanes/vault-ui`): **781 passed, 46 skipped, 0 failed**.
+- standalone: `tests/asset_library` 29 passed, `tests/test_texturing_space_menu.py` passed.
+- `tests/lampway` (brand and gate checks): 4 failures, the SAME 4 on the integration base 00d907d4 (checked in a detached worktree): material_bake_export's and
+  mcp_inventory's "Mixar" strings, the allow-list's `/home/x` entry, eight provider hosts in fal.py and studios/rest. This lane's own "Mixar Paint" strings were renamed.
+- Pre-publish gate over origin/lp/wave5..HEAD: the first pass found a home-directory path in a test literal in the editor commit; the lane's unpushed commits after the integration
+  merge were replayed with the literal changed to `/projects/...` (the only difference, checked by `git diff`); the gate then reported 0 findings.
 
 ## Merge notes
 - `app.py`: separate hunks (imports, the Vault next to `AssetIndex`, two route spreads, `vault.close()` in the lifespan, `app.state.vault`). Lane vault-ops's provenance hook
