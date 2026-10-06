@@ -329,9 +329,11 @@ def test_the_higgsfield_page_start_callback_and_status(stack, settings):
     cb = hf.authorize(start.headers["location"])
     done = fake.http.get("/auth/higgsfield/callback", params=cb)
     assert done.status_code == 200 and "Signed in" in done.text
-    assert fake.http.get("/app/higgsfield/status").json()["signed_in"] is True
+    assert fake.http.get("/app/higgsfield/status").status_code == 401                 # F8: the bearer, and no identity
+    fake.login()
+    assert fake.http.get("/app/higgsfield/status", headers=fake.rest_headers()).json() == {"signed_in": True}
     assert fake.http.post("/app/higgsfield/signout", follow_redirects=False).status_code == 303
-    assert fake.http.get("/app/higgsfield/status").json()["signed_in"] is False
+    assert fake.http.get("/app/higgsfield/status", headers=fake.rest_headers()).json()["signed_in"] is False
 
 
 def test_the_agent_tool_plans_a_higgsfield_clip_and_cannot_spend_it(stack):

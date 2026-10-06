@@ -265,7 +265,12 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         return _chatgpt_page("<p>Signed in.</p>")
 
     async def chatgpt_status(request: Request):
-        return JSONResponse(chatgpt.status())
+        """Finding F8: the bearer, and whether the sign-in works - never the email or the client id (the row in Connections shows those, masked)."""
+        token = bearer_token(request)
+        if not token or auth.verify_access(token) is None:
+            return unauthorized()
+        st = chatgpt.status()
+        return JSONResponse({"signed_in": bool(st["signed_in"]), "plan_usage_enabled": bool(st["plan_usage_enabled"])})
 
     async def chatgpt_signout(request: Request):
         if not loopback_origin(request):
@@ -823,7 +828,9 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         return _hf_page("<p>Signed in.</p>")
 
     async def hf_status(request: Request):
-        return JSONResponse(hf_auth.status())
+        if not _bearer_ok(request):                                                      # finding F8
+            return unauthorized()
+        return JSONResponse({"signed_in": bool(hf_auth.status()["signed_in"])})
 
     async def hf_signout(request: Request):
         if not loopback_origin(request):
