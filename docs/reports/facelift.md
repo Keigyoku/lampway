@@ -617,6 +617,39 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   Used by, other sources, history and Rotate (only Move into keyring is there); the Studios accounts lines and the
   Privacy rows reading Connections; the splash's fifth cue; captures against `mockups/16-connections.html`.
 
+## Coordinator addition: the Choices window (P0, `specs/choices/choices_face.md`; CH8 and CH1 as ruled)
+
+- **Against the contract, not yet the server**: like Connections, the Choices routes are on `origin/lp/connections`
+  (`choices/routes.py`, `views.py`), not in `origin/lp/wave5`; `choices_client.py` speaks them and every test uses a
+  fake client.
+- **CH8, Choices absorbs Providers**: `lampway.providers_open` (the Studios panel's button, now "Choices: agent, images,
+  video, spending", and the splash's row, now "Choices and privacy") opens Choices on Agents. The old dialog is kept as
+  `lampway.providers_dialog` for two uses only: Choices' "Change spending" (the spend rows' existing write path), and a
+  server that has no Choices yet (an HTTP 404), where the window says so and offers it, so nothing is lost before the
+  server lands. Spending is the list's last row: each provider's click rule, caps and session spend from `/app/spend`.
+- **Words and cues** (`choices_face.py`): a diamond per purpose (preferred filled, fallback half, override dotted,
+  blocked crossed, not chosen dashed) and the hand for a waiting proposal, the one glow; the reason word ("fallback:
+  studio:tripo is off", "this project", "not chosen yet", "nothing can run: ..."); each option's six facts (where it
+  runs, its connection's glyph from the Connections family, cost on hover with the date it was measured, retention:
+  lamp local, shield zero retention, eye "kept by the provider: terms unread", quality); a skipped option's reason and
+  its one fix (Open in Privacy, Connect <label>). The `choice` family is in `tokens.json` (`check_cues.py` passes;
+  its "waits for you" now counts as waiting for C3), the five diamonds and the eye are preview-only glyphs.
+- **CH1, the eye**: an option acknowledged for private content carries the eye; clicking it takes the acknowledgement
+  back (`POST /app/choices/acknowledge` with `private: false`); a kept option not yet acknowledged offers "Allow private
+  content to <option>".
+- **The window** (`ui/choices.py`): pop-out and Preferences > Interface > Choices; the chain reorders with up / down
+  (a PUT of the new preferred and fallbacks); proposals are accepted for this project or all projects, or declined;
+  "Use yours again" clears a project override. Every write refuses while a script runs; nothing here switches a route
+  or touches a connection.
+- Tests: `tests/lampway/test_lampway_choices_face.py` (8; RED observed: the module missing, the window file missing),
+  `tests/lampway_tools/test_lampway_choices_live.py` (3, real binary: draw pure, the not-running and no-Choices rows,
+  the script gate (its falsifier run: dropping the gate fails it), reorder, accept, the Providers button),
+  `tests/lampway_visual/test_choices_window.py` (a fallback purpose with a waiting proposal and the eye).
+- **Not done**: test 7 (`needs_choice` on an agent card: the cards are native); test 9 (`mockups/parity.py`
+  extended to 17-choices); params as typed fields and the scope switch (the window shows scopes and clears an
+  override, it does not edit params); the expanders (override policy, recent jobs, quality records, closed
+  proposals); "Add an option"; the Connections window's "Used by" linking here.
+
 ## Which build is in `build/Prod`
 
 The coordinator's rule from here on: `build/Prod` is built from a clean tree at a pushed sha, and that sha is written to

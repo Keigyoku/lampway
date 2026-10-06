@@ -251,7 +251,7 @@ def _draw_setup(row) -> None:
     row.label(text=f"agent: {provider}" if provider else "agent: open Providers to choose", icon='LAMPWAY_SPARK')
     row.operator("lampway.status_wire", text=S.wire_chip()[0], icon='LAMPWAY_WIRE', emboss=False)
     row.operator("lampway.status_spend", text=S.spend_line()[0], icon='LAMPWAY_COIN', emboss=False)
-    row.operator("lampway.providers_open", text="Providers and privacy", icon='LAMPWAY_SHIELD')
+    row.operator("lampway.providers_open", text="Choices and privacy", icon='LAMPWAY_SHIELD')
 
 
 def register():

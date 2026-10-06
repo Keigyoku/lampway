@@ -118,3 +118,7 @@ theme = "dark"
 [connections_waiting]
 theme = "dark"
 [connections_waiting.surfaces]
+
+[choices_window]
+theme = "dark"
+[choices_window.surfaces]

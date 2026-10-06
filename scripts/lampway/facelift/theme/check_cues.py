@@ -26,8 +26,9 @@ MACHADO = {
     "protan": [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]],
 }
 REST = {"agent": "idle", "spend": "under a cap", "egress": "idle, nothing can leave", "route": "off", "build": "Planned",
-        "connection": "connected"}   # specs/connections/connections_face.md 5.3
-WAITS = ("blocked", "waiting")
+        "connection": "connected",   # specs/connections/connections_face.md 5.3
+        "choice": "served by the preferred option"}   # specs/choices/choices_face.md 5.3
+WAITS = ("blocked", "waiting", "waits for you")
 
 
 def lin(c):

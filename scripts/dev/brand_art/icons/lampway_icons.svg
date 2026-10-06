@@ -96,5 +96,10 @@
 <symbol id="ring-open" viewBox="0 0 16 16"><path d="M9.54 3.77A4.5 4.5 0 1 1 6.46 3.77"/></symbol>
 <symbol id="ring-dashed" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5" stroke-dasharray="2.2 1.9"/></symbol>
 <symbol id="tri-small" viewBox="0 0 16 16"><path d="M12.4 9.4 15.2 14.4H9.6z" fill="currentColor"/></symbol>
+<symbol id="diamond" viewBox="0 0 16 16"><path d="M8 2.6 13.4 8 8 13.4 2.6 8z" fill="currentColor"/></symbol>
+<symbol id="diamond-half" viewBox="0 0 16 16"><path d="M8 2.6 13.4 8 8 13.4 2.6 8z"/><path d="M2.6 8h10.8L8 13.4z" fill="currentColor"/></symbol>
+<symbol id="diamond-dot" viewBox="0 0 16 16"><path d="M8 2.6 13.4 8 8 13.4 2.6 8z"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/></symbol>
+<symbol id="diamond-cross" viewBox="0 0 16 16"><path d="M8 2.6 13.4 8 8 13.4 2.6 8z"/><path d="M6.4 6.4l3.2 3.2M9.6 6.4l-3.2 3.2"/></symbol>
+<symbol id="diamond-dashed" viewBox="0 0 16 16"><path d="M8 2.6 13.4 8 8 13.4 2.6 8z" stroke-dasharray="2.2 1.9"/></symbol>
 <symbol id="generate" viewBox="0 0 16 16"><path d="M10.4 2.6H3.4a1.6 1.6 0 0 0-1.6 1.6v7a1.6 1.6 0 0 0 1.6 1.6h4.2"/><path d="M1.8 10.4 5 7.4l2.6 2.4"/><circle cx="9" cy="5.6" r="1"/><path d="M12.4 8.8v5.6M9.6 11.6h5.6"/></symbol>
 </svg>

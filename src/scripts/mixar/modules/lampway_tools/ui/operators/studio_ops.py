@@ -512,9 +512,11 @@ class LAMPWAY_OT_providers_save(_ProviderProps, _StudioOp):
         return _save_changes(self, context)
 
 
-class LAMPWAY_OT_providers_open(_ProviderProps, _StudioOp):
-    """Choose the main agent, the swarm workers and the image model; saved on the server"""
-    bl_idname = "lampway.providers_open"
+class LAMPWAY_OT_providers_dialog(_ProviderProps, _StudioOp):
+    """The Providers dialog: the main agent, the swarm workers, images, video and spending, saved on the server. Choices replaces
+    it (specs/choices/facelift_06_amendment.md: lampway.providers_open opens Choices); it stays for a server that has no
+    Choices yet and for the Change spending button in Choices"""
+    bl_idname = "lampway.providers_dialog"
     bl_label = "Providers"
 
     def invoke(self, context, event):
@@ -534,5 +536,5 @@ class LAMPWAY_OT_providers_open(_ProviderProps, _StudioOp):
         return _save_changes(self, context)
 
 
-classes = [LAMPWAY_OT_spend_not_now, LAMPWAY_OT_providers_open, LAMPWAY_OT_providers_save, LAMPWAY_OT_studio_answer, LAMPWAY_OT_higgsfield_signin, LAMPWAY_OT_studio_refresh, LAMPWAY_OT_studio_plan, LAMPWAY_OT_studio_confirm, LAMPWAY_OT_studio_reject, LAMPWAY_OT_studio_import,
+classes = [LAMPWAY_OT_spend_not_now, LAMPWAY_OT_providers_dialog, LAMPWAY_OT_providers_save, LAMPWAY_OT_studio_answer, LAMPWAY_OT_higgsfield_signin, LAMPWAY_OT_studio_refresh, LAMPWAY_OT_studio_plan, LAMPWAY_OT_studio_confirm, LAMPWAY_OT_studio_reject, LAMPWAY_OT_studio_import,
            LAMPWAY_OT_studio_plan_arg_add, LAMPWAY_OT_studio_plan_arg_remove, LAMPWAY_OT_receipt_acknowledge, LAMPWAY_OT_receipt_link]
