@@ -50,7 +50,19 @@ CONSUMES = {
     "image_matte": {"src": need(("texture",), roles=("reference",))},     # 8-bit sRGB plates; pixel-only, no scale
     "prompt_image": {"references": need(("texture",), roles=("reference",))},   # images only; the template carries the rest
     "recon_measure": {"object": need(GEOMETRY), "plates": need(("texture",), roles=("reference",))},   # scale-free: both sides are normalised
+    "texture_library_stage": NONE("stages files byte for byte from a manifest that declares each one's role and colour space; it reads no asset"),
     "scribble_read": NONE("reads the Client's own mark records and frozen frames; no asset"),
+}
+
+# the ported shelf scripts this lane added to runner.TOOLS (DOOR.md 2.1: runner.Tool gains consumes)
+RUNNER = {
+    "export_parts": {"mesh": need(GEOMETRY)},          # the source's own faces are exported untouched; its scale state is recorded, not changed
+    "verify_set": {"source": need(GEOMETRY)},
+    "render_final": {"mesh": need(GEOMETRY)},
+    "judge_pack": {"mesh": need(GEOMETRY, welded=None)},
+    "gen_parts_table": NONE("reads the exported SET and part.json files, no geometry"),
+    "libwiki": NONE("reads a library listing (paths, sizes, sha256), no asset"),
+    "index_delta": NONE("compares two library listings, no asset"),
 }
 
 # tools that existed before this lane and gained a mode here: the need of the mode added (the canon lane marks the tool itself LEGACY)

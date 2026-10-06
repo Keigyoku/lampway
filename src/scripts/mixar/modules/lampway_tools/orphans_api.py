@@ -346,3 +346,23 @@ def recon_measure(object, plates, size=256):
     length ratios from the top view, and the albedo's left/right luminance ratio. Read-only."""
     from .features import recon_measure as _RCM
     return _RCM.run(object, plates, str(_settings().project_root), size)
+
+
+@_export
+@tool
+def texture_library_stage(manifest, staging_root, library_listing=""):
+    """Stage an additive, versioned delta for a texture library from a manifest (JSON under the project root): immutable files with sha256, lineage inside
+    the library, unknowns null, colour spaces declared, no inferred PBR, nothing under an approved folder; a catalog and the INDEX of the delta. Nothing is
+    uploaded: the staging root is local."""
+    import json
+    from .pipeline import texlib_stage as _TS
+    root = str(_settings().project_root)
+    m = json.load(open(_p(manifest, root)))
+    for f in m.get("files") or []:
+        if isinstance(f, dict) and f.get("src"):
+            f["src"] = _p(f["src"], root)
+    listing = json.load(open(_p(library_listing, root))) if library_listing else None
+    try:
+        return _TS.stage(m, _p(staging_root, root), listing)
+    except _TS.StageRefused as exc:
+        raise ValueError(str(exc)) from None

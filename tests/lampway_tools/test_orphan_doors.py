@@ -44,6 +44,14 @@ def test_every_orphan_tool_declares_what_it_consumes_in_its_own_parameters():
                 assert n["convention"] in (None, "blender", "ue_axes") and n["welded"] in (None, True), (name, arg)
 
 
+def test_every_ported_runner_tool_of_this_lane_declares_too():
+    import re
+    runner = set(re.findall(r'_t\("([a-z_]+)"', (LT / "runner.py").read_text()))
+    assert set(D.RUNNER) <= runner
+    for name in ("export_parts", "verify_set", "render_final", "judge_pack", "gen_parts_table", "libwiki"):
+        assert name in D.RUNNER, name
+
+
 def test_tools_with_absolute_thresholds_accept_only_real_scale():
     for name, arg in (("mesh_local_edit", "object"), ("mesh_join_boolean", "objects"), ("uv_check", "object"), ("edit_locality_check", "before"),
                       ("multi_piece_material", "pieces")):

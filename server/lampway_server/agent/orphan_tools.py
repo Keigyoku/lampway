@@ -241,6 +241,61 @@ ORPHAN_DEFS = [
         [P("object", required=True, desc="the reconstructed mesh"), P("plates", "object", "{view: PNG with alpha under the project root}", required=True),
          P("size", "integer", "raster size in px (default 256)")],
         api="recon_measure"),
+    Def("lampway_export_parts", "Parts Library publishing: export a finished part set as candidates, one GLB plus part.json per part under "
+        "<out_dir>/Parts Library/Candidates/<item>/<source stem>/<part>/v####/ and SET.<set_version>.json. part.json records the source mesh and its sha256, the "
+        "face ids into it, the recipe lineage and stages, motion class, bind, scale stage, the held notes for that part and the GLB sha256. Geometry is the "
+        "source's own faces (positions, UVs untouched). Versions never overwrite: an unchanged part keeps its version, any change (faces, class, bind, notes, "
+        "lineage, corners or UVs) writes the next v####; an existing SET version is refused. Recipe: {smartmesh, parts: {name: {class, bind, from?}}, "
+        "held: [{note, parts}], stages?, repair?, scale_stage?}; owner.npy is one part index per face (-1 none)." + _PATHS,
+        [P("mesh", required=True, desc="the .blend (or .glb/.fbx) holding the source mesh"), P("object", required=True), P("owner", required=True, desc="owner.npy"),
+         P("recipe", required=True), P("out_dir", required=True), P("item", required=True), P("source_sha256", required=True), P("set_version", required=True, desc="v####")],
+        batch="export_parts"),
+    Def("lampway_verify_set", "Independent check of an exported part set, no Blender: every part GLB named by SET.<v>.json is re-read with a minimal glTF reader "
+        "and must equal the faces of the source GLB its face_ids name corner by corner (positions, UVs, winding); triangle counts, sha256 and node names "
+        "must match part.json; every source face is covered exactly once; evidence paths carry the set version and resolve. Writes "
+        "<set dir>/evidence/VERIFY.<v>.json (never overwritten); exit 1 on any failure." + _PATHS,
+        [P("source", required=True, desc="the source (or repaired) GLB"), P("set_dir", required=True), P("set_version", required=True),
+         P("original", desc="the original GLB, to compare the repaired mesh's first faces with")], batch="verify_set"),
+    Def("lampway_render_final", "Render a finished part set for review (Workbench, orthographic, deterministic, the wearer's axes): the assembly with every part "
+        "its own colour, the unassigned faces in magenta, and per part an isolated front/back/left/right sheet and a context sheet." + _PATHS,
+        [P("mesh", required=True), P("object", required=True), P("owner", required=True), P("recipe", required=True), P("out_dir", required=True)],
+        batch="render_final"),
+    Def("lampway_judge_pack", "The review pack for a parts regroup: two face labellings of one mesh (vote_a, vote_b: integer face attributes, e.g. two "
+        "segmenters) reconciled into candidates and decisions: agreed (face IoU >= 0.8), split (A cut by B into >= 2 pieces of >= 10 %), merge (B spanning "
+        ">= 2 A parts), standalone. Writes pack.json, masks/, candidate sheets (isolated and in context) and one sheet per decision (option A over "
+        "option B). The decisions are the user's." + _PATHS,
+        [P("mesh", required=True), P("object", required=True), P("out_dir", required=True), P("vote_a", desc="default vote_p3sam"), P("vote_b", desc="default vote_geosam2")],
+        batch="judge_pack"),
+    Def("lampway_gen_parts_table", "Write a part set's table (part, version, faces, motion class, bind, held-note titles) and its held notes into a library-wiki "
+        "entity spec FROM the exported files (SET.<v>.json and each part.json), never by hand; the table names the SET file and its sha256." + _PATHS,
+        [P("spec", required=True, desc="the wiki's entities spec JSON"), P("slug", required=True), P("set_dir", required=True), P("set_version", required=True)],
+        batch="gen_parts_table"),
+    Def("lampway_libwiki", "Publish a library inventory as an LLM wiki, deterministically. command build: spec.json + an `rclone lsjson -R --hash` inventory + "
+        "authored pages (SCHEMA.md, concepts/, comparisons/, queries/) -> out: raw pointer pages pinning every file's sha256, one generated page per spec "
+        "entity, index.md and an append-only log.md (pages added, removed, changed); refuses a bad spec by name, never replaces a directory that is not "
+        "its wiki, keeps the previous wiki on failure. lint: frontmatter, links, tags, totals, pointer hashes, log format. drift: what changed in a new "
+        "inventory. Generated pages are never hand-edited: change the spec or the authored page and rebuild." + _PATHS,
+        [P("command", required=True, desc="build | lint | drift"),
+         P("paths", "array", "build: spec, inventory, authored dir, out; lint: out; drift: out, new inventory", required=True),
+         P("date", flag="--date", desc="build: YYYY-MM-DD"), P("log", flag="--log", desc="build: one-line log message"),
+         P("action", flag="--action", desc="build: the log action (default update)"), P("scanned", flag="--scanned", desc="build: the inventory's scan date")],
+        batch="libwiki"),
+    Def("lampway_texture_library_stage", "Stage an additive delta for a texture library, locally (nothing is uploaded). manifest (JSON): {library, library_version "
+        "v####, previous_index, approved_folders, catalog {file, previous, status}, files: [{src, dst (the library path, named _v####), role (basecolor | "
+        "emission | reference | normal | roughness | metallic | ao | orm | height | displacement | mask | material_id), color_space, provider, method, "
+        "model_version, seed, cost, parents [{file, sha256}], status, derived_by (data maps)}]}. Refused by name: a file without its version, a dst that "
+        "exists or leaves the library, anything under an approved folder, a parent that does not resolve inside the library (this delta or "
+        "library_listing, an rclone lsjson --hash listing) or whose sha256 differs, a missing model_version/seed/cost key (unknown is null), a guessed "
+        "seed or cost, a colour image without its colour space, a data map not Non-Color or without the tool that made it (no inferred PBR), a staging "
+        "root this tool did not make. Writes each file with a .manifest.json (sha256, bytes, dimensions), the catalog and INDEX.<version>.json." + _PATHS,
+        [P("manifest", required=True), P("staging_root", required=True), P("library_listing", desc="the current library listing (rclone lsjson -R --hash)")],
+        api="texture_library_stage"),
+    Def("lampway_index_delta", "A texture library's next INDEX as a delta: every file in the current listing the baseline listing lacked or holds with another "
+        "sha256, and every removed path, with sha256 and size; the wiki layer excluded. The out file name carries the version (INDEX.v####.json) and is "
+        "never overwritten." + _PATHS,
+        [P("baseline", required=True, desc="the listing taken right after the previous INDEX was uploaded"), P("current", required=True),
+         P("out", required=True, desc="INDEX.v####.json"), P("previous_index", required=True), P("note", required=True)],
+        batch="index_delta"),
     Def("lampway_scribble_read", "The Scribble marks in this scene, re-read from the Client's own mark records (they persist in the .blend, so a mark from three turns "
         "ago is still readable after the message that carried it is gone). Returns mode (point: marks say WHERE to work; sketch: the drawing is WHAT to build), "
         "marks [{id, kind (circle|arrow|point|strike|stroke), object (the object it resolved to, or null for empty space), region (frame bbox u0,v0,u1,v1, "

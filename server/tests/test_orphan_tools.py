@@ -10,7 +10,7 @@ from lampway_server.agent import tools as T
 from lampway_server.mcp import offered_tools
 
 API = Path(__file__).resolve().parents[2] / "src/scripts/mixar/modules/lampway_tools/orphans_api.py"
-EXPECTED = ("lampway_side_label_check", "lampway_mirror_pair", "lampway_scale_to_measure", "lampway_uv_check", "lampway_render_condition_passes", "lampway_image_material_id", "lampway_parts_material_slots", "lampway_zone_sheet", "lampway_mesh_region_extract", "lampway_mesh_local_edit", "lampway_edit_locality_check", "lampway_mesh_join_boolean", "lampway_multi_piece_material", "lampway_seamless_tile", "lampway_relief_tiles", "lampway_image_upscale", "lampway_reference_pack", "lampway_workflow_reference_to_asset", "lampway_scribble_read", "lampway_image_matte", "lampway_prompt_image", "lampway_recon_measure")
+EXPECTED = ("lampway_side_label_check", "lampway_mirror_pair", "lampway_scale_to_measure", "lampway_uv_check", "lampway_render_condition_passes", "lampway_image_material_id", "lampway_parts_material_slots", "lampway_zone_sheet", "lampway_mesh_region_extract", "lampway_mesh_local_edit", "lampway_edit_locality_check", "lampway_mesh_join_boolean", "lampway_multi_piece_material", "lampway_seamless_tile", "lampway_relief_tiles", "lampway_image_upscale", "lampway_reference_pack", "lampway_workflow_reference_to_asset", "lampway_scribble_read", "lampway_image_matte", "lampway_prompt_image", "lampway_recon_measure", "lampway_export_parts", "lampway_verify_set", "lampway_render_final", "lampway_judge_pack", "lampway_gen_parts_table", "lampway_libwiki", "lampway_texture_library_stage", "lampway_index_delta")
 
 
 def _client_functions() -> dict:
@@ -34,7 +34,12 @@ def test_every_orphan_tool_is_registered_offered_and_described():
 
 def test_every_orphan_def_names_a_client_function_with_its_parameters():
     fns = _client_functions()
+    import re
+    runner = set(re.findall(r'_t\("([a-z_]+)", "(?:blender|numpy|science)"', (API.parent / "runner.py").read_text()))
     for d in OT.ORPHAN_DEFS:
+        if d.batch:                                       # a ported shelf script: it must be a runner tool, run through api.run_tool
+            assert d.api is None and d.batch in runner, f"{d.name}: batch {d.batch!r} is not in runner.TOOLS"
+            continue
         assert d.api in fns, f"{d.name}: no @tool {d.api} in orphans_api.py"
         params = {p.name for p in d.params}
         missing = params - fns[d.api]
