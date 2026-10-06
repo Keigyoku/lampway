@@ -70,7 +70,7 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | [`lampway-coding-guidelines`](rail/skills/lampway-coding-guidelines/SKILL.md) | before any change in this repository |
 | [`lampway-tool-authoring`](rail/skills/lampway-tool-authoring/SKILL.md) | adding or changing an agent tool, a provider route, a paid job |
 | [`lampway-agent-tools`](rail/skills/lampway-agent-tools/SKILL.md) | before driving the app or running a step a tool may already do |
-| [`lampway-canon`](rail/skills/lampway-canon/SKILL.md) | before any fit, pose, weight, placement, proportion, retopology, UV, bake or clearance work |
+| [`lampway-canon`](rail/skills/lampway-canon/SKILL.md) | before any fit, pose, weight, placement, proportion, retopology, UV, bake, clearance, rig or normalization work (`docs/canon/`) |
 | [`lampway-release`](rail/skills/lampway-release/SKILL.md) | before any push, publish, tag or main advance |
 | [`lampway-rail`](rail/skills/lampway-rail/SKILL.md) | changing any AGENTS.md, CLAUDE.md, skill or trigger, or repairing a rail finding |
 
@@ -85,7 +85,7 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `scripts/lampway/` | Lampway's build, launch, Python-sync and pre-publish scripts |
 | `scripts/unix/`, `scripts/windows/`, `cmake/` | upstream's build machinery, with Lampway's options (`LAMPWAY`, `MIXAR_CUDA`) |
 | `tests/` | the standalone client suites, the brand and fork gates, the binary-driven tool tests, the rail's tests |
-| `docs/` | measured reports, the roadmap and the user documentation |
+| `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
 
 ## Facts carried from the upstream guide (verified against this tree)
@@ -130,6 +130,7 @@ a law, this file. Each child states its invariants, its test commands and its ow
 | [`src/source/AGENTS.md`](src/source/AGENTS.md) | Lampway's patches to the native (C/C++) overlay | the `LAMPWAY` guard, upstream compatibility, the native build owner |
 | [`scripts/lampway/AGENTS.md`](scripts/lampway/AGENTS.md) | the build, launcher, Python sync and pre-publish gate scripts | AXI refusals, the box, the gate's outside-the-tree owner patterns |
 | [`docs/AGENTS.md`](docs/AGENTS.md) | the reports, the roadmap and the user docs | measured claims only, generated pages never hand-edited, public paths only |
+| [`docs/canon/AGENTS.md`](docs/canon/AGENTS.md) | the algorithm canon: pages 01-22, rig tools, the canonical asset schema, goldens | the repo copy is the source of truth; goldens generated and byte-checked; falsifiers kept; `check_canon.py` |
 | [`tests/AGENTS.md`](tests/AGENTS.md) | every client-side suite and gate | RED first, plants for every gate, a skip is not a pass |
 | [`rail/AGENTS.md`](rail/AGENTS.md) | the rail: canonical skills, catalog, check, self-test | the anneal rule, the finding codes, the baseline policy |
 
@@ -152,3 +153,4 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption: this file replaces the upstream guide | captain: "make the DOE x DOX AGENTS rail for Lampway, examples of it are in Vellum and Titan" | the root guide was upstream's, named its closed backend and a private doc map, and no file carried Lampway's laws | the laws with their gates, the DOX chain, the skill and child indexes (both checked against the tree), the verified facts kept from the upstream guide | captain ruling, 2026-10-05 |
 | 2026-10-06 | the 500-line rule settled; the rail in the hook | captain: "Those recs are fine" | the file limit was recorded as an open decision; the rail's place in the push was CI only | the limit is a guideline (the coding skill §4b); the laws' rail line names the pre-push quick check | captain ruling, 2026-10-06 |
+| 2026-10-06 | the canon indexed | coordinator: "GO for rail row 1" | the canon lived off-tree, outside every index | docs/canon in the repository map, the Child DOX Index and the canon skill's row | captain ruling, 2026-10-06 |

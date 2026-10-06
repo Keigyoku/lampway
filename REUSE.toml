@@ -203,3 +203,11 @@ path = ["CLAUDE.md", "**/CLAUDE.md", "rail/catalog.json", ".agents/skills/LAMPWA
 precedence = "closest"
 SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# The algorithm canon (docs/canon/): Lampway's own specification, goldens and self-tests. The goldens are generated OBJ and JSON
+# (docs/canon/goldens/gen_goldens.py, gen_rig_goldens.py) with no comment syntax; pages without an inline header are covered here.
+[[annotations]]
+path = "docs/canon/**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"

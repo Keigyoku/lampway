@@ -12,7 +12,8 @@ verification-mode: judgment
 Three kinds of document live here: **reports** (`docs/reports/`, one per wave or lane: what was built, how it was measured,
 what was not run), the **roadmap**, and the **user documentation** (getting started, providers, privacy, spend, the tool
 reference). The root `README.md` and `CONTRIBUTING.md` are the docs lane's too; link them, never copy them. `docs/rail.md`
-explains this rail and belongs to `rail/`'s owner.
+explains this rail and belongs to `rail/`'s owner. `docs/canon/` is the algorithm canon, with its own contract
+([`canon/AGENTS.md`](canon/AGENTS.md)).
 
 ## Invariants
 
@@ -48,3 +49,4 @@ writes its own report; the integration lane lands them. What the product promise
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the documentation rules (measured claims, generated pages, public paths, media metadata) were spread across the gate, the README and the reports | six invariants with their gates and the owner | captain ruling, 2026-10-05 |
+| 2026-10-06 | the canon beside the docs | coordinator: "GO for rail row 1" | a reader of docs/ could not tell the canon from the user docs | docs/canon named, with its own contract | captain ruling, 2026-10-06 |

@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The algorithm canon (docs/canon/AGENTS.md), beside the rail: its three self-tests (each golden reproduced by the canonical
+# method, each falsifier shown failing; the canonical asset schema against its examples) and the generators re-run and
+# byte-compared with the committed goldens, so the canon cannot rot. The check's own self-test runs first.
+name: canon
+on:
+  pull_request:
+  push:
+    branches: ["lp/**", "main"]
+permissions:
+  contents: read
+jobs:
+  canon:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Dependencies (numpy for the goldens, jsonschema for the asset schema)
+        run: python3 -m pip install --quiet numpy jsonschema
+      - name: Self-test (a hand-edited golden must be refused)
+        run: python3 docs/canon/check_canon.py --self-test
+      - name: Canon check (self-tests and byte-identical goldens)
+        run: python3 docs/canon/check_canon.py
