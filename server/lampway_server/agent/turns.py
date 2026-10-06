@@ -22,7 +22,7 @@ from typing import Optional
 
 from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
-from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, asset_tools, files_tools, orphan_server_tools
+from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, asset_tools, files_tools, orphan_server_tools, marks_context
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -143,7 +143,8 @@ class AgentHub:
         message = payload.get("message")
         if not session_id or not isinstance(message, str):
             raise InvalidParams("payload.session_id and payload.message are required")
-        return self._admit(socket, command_id, session_id, message, plan_mode=bool(payload.get("plan_required")))
+        return self._admit(socket, command_id, session_id, message, plan_mode=bool(payload.get("plan_required")),
+                           marks_text=marks_context.describe(payload.get("mark_context")))
 
     async def _input(self, socket, params):
         command_id, payload = _command_parts(params)
@@ -166,7 +167,7 @@ class AgentHub:
             text = f"{text}\n{answers}" if text else str(answers)
         return self._admit(socket, command_id, session_id, text)
 
-    def _admit(self, socket, command_id, session_id, user_text, plan_mode=False):
+    def _admit(self, socket, command_id, session_id, user_text, plan_mode=False, marks_text=""):
         session = self._session(session_id)
         command = self.commands[command_id] = Command(command_id, session_id)
         turn = Turn(session_id, command_id, str(uuid.uuid4()), plan_mode=plan_mode)
@@ -175,7 +176,7 @@ class AgentHub:
         session.last_turn_id = command_id
         previous = session.current
         session.current = turn
-        turn.task = socket.spawn(self._run_turn(socket, session, turn, command, user_text, previous))
+        turn.task = socket.spawn(self._run_turn(socket, session, turn, command, user_text, previous, marks_text))
         return {"state": "pending"}
 
     async def _cancel(self, socket, params):
@@ -259,7 +260,7 @@ class AgentHub:
 
     # ------------------------------------------------------------ the turn
     async def _run_turn(self, socket, session: Session, turn: Turn, command: Command, user_text: str,
-                        previous: Optional[Turn]):
+                        previous: Optional[Turn], marks_text: str = ""):
         if previous is not None and previous.task is not None and not previous.task.done():
             previous.task.cancel()
             try:
@@ -282,7 +283,10 @@ class AgentHub:
             await stream.emit({"bubble_id": bubble_id,
                                "loader": {"visible": True, "texts": ["Thinking..."], "rotate_ms": 2000}})
             if user_text is not None:                      # None: resuming after an ask_user answer
-                session.messages.append(Message.user_text(user_text))
+                message = Message.user_text(user_text)
+                if marks_text:                             # the Scribble marks ride WITH the words, so a follow-up turn still has them in history
+                    message.content.append({"type": "text", "text": "\n\n" + marks_text})
+                session.messages.append(message)
             await self._agent_loop(socket, session, turn, stream, bubble_id, steps)
         except asyncio.CancelledError:
             status = "cancelled"

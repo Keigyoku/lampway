@@ -195,4 +195,12 @@ ORPHAN_DEFS = [
          P("existing_object", desc="route existing: the mesh"), P("steps", "array", "the steps in order"), P("gates", "object", "{spend: stop}"),
          P("target", desc="unreal (default) | unity | godot"), P("run", "boolean", "run the local steps (default: plan only)"), P("resume", "boolean", "skip the steps done")],
         api="workflow_reference_to_asset"),
+    Def("lampway_scribble_read", "The Scribble marks in this scene, re-read from the Client's own mark records (they persist in the .blend, so a mark from three turns "
+        "ago is still readable after the message that carried it is gone). Returns mode (point: marks say WHERE to work; sketch: the drawing is WHAT to build), "
+        "marks [{id, kind (circle|arrow|point|strike|stroke), object (the object it resolved to, or null for empty space), region (frame bbox u0,v0,u1,v1, "
+        "bottom-up 0..1), ndc (the anchor in -1..1, y up), state (DRAFT: new since the last turn | SENT)}] and summary (the Client's prose: object names, "
+        "coverage, world points). include_image writes the frozen annotated frame to <root>/scribble/<name>.png and returns image_path; refused when this file "
+        "holds no frozen frame for the marks. Read-only; no marks is an empty answer, not an error.",
+        [P("include_image", "boolean", "write the frozen annotated frame (default false)"), P("include_sent", "boolean", "include marks already sent (default true)")],
+        api="scribble_read"),
 ]

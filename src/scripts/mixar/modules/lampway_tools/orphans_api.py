@@ -236,3 +236,12 @@ def workflow_reference_to_asset(piece, reference="", route="existing", existing_
     def _call(fn, args):
         return _API.call(fn, json.dumps(args))
     return _RA.run(str(s_.project_root), piece, _p(reference, s_.project_root) if reference else "", route, existing_object, steps, gates, target, run, resume, _call)
+
+
+@_export
+@tool
+def scribble_read(include_image=False, include_sent=True):
+    """The Scribble marks in this scene: per mark its kind, the object it resolved to, its frame region and NDC anchor; the mode (point or sketch); the
+    Client's own prose summary. include_image writes the frozen annotated frame under <root>/scribble/. Read-only."""
+    from .features import scribble_read as _SR
+    return _SR.read(str(_settings().project_root), bool(include_image), bool(include_sent))
