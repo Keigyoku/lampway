@@ -5081,6 +5081,9 @@ msgstr "A hiba elvetése, és visszatérés üresjáratba"
 msgid "Front"
 msgstr "Elölnézet"
 
+msgid "Run"
+msgstr ""
+
 msgid "RGB"
 msgstr "RGB"
 
@@ -5735,7 +5738,22 @@ msgstr ""
 msgid "Lampway tools"
 msgstr ""
 
-msgid "Mesh QA"
+msgid "more"
+msgstr ""
+
+msgid "Last result"
+msgstr ""
+
+msgid "The whole last result (the main panel shows one line)."
+msgstr ""
+
+msgid "The way"
+msgstr ""
+
+msgid "The Way (facelift contract 07): the captain's piece runbook, one step per panel, a node for this piece."
+msgstr ""
+
+msgid "Find and draw candidates"
 msgstr ""
 
 msgid "Tags: Red = Delete, Green = Mislabel, Yellow = Hole"
@@ -5747,10 +5765,10 @@ msgstr ""
 msgid "Mesh-paint texturing"
 msgstr ""
 
-msgid "Parts and proportion tools"
+msgid "Review proposals"
 msgstr ""
 
-msgid "Review proposals"
+msgid "Reading the proposals..."
 msgstr ""
 
 msgid "Set a piece up first (Mesh QA)"
@@ -5775,9 +5793,6 @@ msgid "Not now"
 msgstr ""
 
 msgid "Plan an action (clicks nothing)"
-msgstr ""
-
-msgid "Features"
 msgstr ""
 
 msgid "Prompts"
@@ -6075,9 +6090,6 @@ msgid "Figure height (m)"
 msgstr ""
 
 msgid "0 = the deform mesh's rest height, else head bone to foot bone"
-msgstr ""
-
-msgid "Last result"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
