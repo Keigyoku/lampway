@@ -808,3 +808,6 @@ after each native push.
 
 - `build/Prod` built from `cf1fc1f755218c2a32a433d15ba3c392c29c8693` (pushed, clean tree; `build/Prod/BUILT_FROM`), 2026-10-06.
   It contains contracts 01-08 as pushed and the `origin/lp/wave5` merge `5e5cf3e` (which brought no native change).
+- `build/Prod` built from `7f67890d6de3df3acee1552293cf8308a4ed800e` (pushed, clean tree; `build/Prod/BUILT_FROM`),
+  2026-10-06: every contract of this lane as pushed and the `origin/lp/wave5` merge `d2b142e` (lp/connections). The
+  visual suite on that build: 31 passed. Commits after it are documentation only.
