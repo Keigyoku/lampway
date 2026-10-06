@@ -13,6 +13,8 @@ import re
 from pathlib import Path
 
 import bpy
+
+from .. import canon_io
 import numpy as np
 
 from . import common as C
@@ -107,7 +109,7 @@ def run(source, target, maps, size, margin_px, cage_extrusion_m, max_ray_m, samp
         nt = mat.node_tree
         bsdf = nt.nodes["Principled BSDF"]
         for m, p in data["files"].items():
-            node = nt.nodes.new("ShaderNodeTexImage"); node.image = bpy.data.images.load(p); node.image.colorspace_settings.name = data["colorspace"][m]
+            node = nt.nodes.new("ShaderNodeTexImage"); node.image = canon_io.load_image(p); node.image.colorspace_settings.name = data["colorspace"][m]
             if m == "albedo":
                 nt.links.new(node.outputs["Color"], bsdf.inputs["Base Color"])
             elif m == "normal":

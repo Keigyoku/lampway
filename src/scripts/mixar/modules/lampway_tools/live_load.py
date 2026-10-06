@@ -14,6 +14,8 @@ import math
 import os
 
 import bpy
+
+from . import canon_io
 from mathutils import Matrix
 
 _IMAGE_MARKERS = ("mask_", "detail_height")
@@ -33,7 +35,7 @@ def load_rebuild(fbx, masks_dir, name, template_mat, hide=(), lift=0.0, turn=-90
     if missing:
         raise FileNotFoundError(f"{', '.join(missing)} not found in {masks_dir}")
     before = set(bpy.data.objects.keys())
-    bpy.ops.import_scene.fbx(filepath=fbx)
+    canon_io.import_raw(fbx)
     new = [bpy.data.objects[n] for n in bpy.data.objects.keys() if n not in before and bpy.data.objects[n].type == "MESH"]
     if not new:
         raise ValueError(f"{fbx} holds no mesh")
@@ -51,7 +53,7 @@ def load_rebuild(fbx, masks_dir, name, template_mat, hide=(), lift=0.0, turn=-90
     for node in m.node_tree.nodes:
         if _is_rebuild_image(node):
             fn = os.path.basename(bpy.path.abspath(node.image.filepath))
-            im = bpy.data.images.load(os.path.join(masks_dir, fn), check_existing=False)
+            im = canon_io.load_image(os.path.join(masks_dir, fn), role="mask", check_existing=False)
             im.colorspace_settings.name = "Non-Color"
             node.image = im
     ob.data.materials.clear()

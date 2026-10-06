@@ -16,6 +16,8 @@ import shutil
 from pathlib import Path
 
 import bpy
+
+from .. import canon_io
 import numpy as np
 
 from . import common as C
@@ -35,7 +37,7 @@ def _json(root, p, what):
 
 def _readback(fbx, joints):
     before_o, before_a = set(bpy.data.objects), set(bpy.data.armatures)
-    bpy.ops.import_scene.fbx(filepath=str(fbx), automatic_bone_orientation=False, primary_bone_axis="Z", secondary_bone_axis="X", ignore_leaf_bones=False)
+    canon_io.import_raw(str(fbx), automatic_bone_orientation=False, primary_bone_axis="Z", secondary_bone_axis="X", ignore_leaf_bones=False)
     new = [o for o in bpy.data.objects if o not in before_o]
     arms = [o for o in new if o.type == "ARMATURE"]
     try:

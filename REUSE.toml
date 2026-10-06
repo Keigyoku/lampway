@@ -195,3 +195,15 @@ path = [
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Keigyoku"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# The algorithm canon's normalization schema and its self-test cases (vendored verbatim from the canon spec tree), and the
+# LEGACY ratchet count (specs/canon/normalization DOOR.md section 5).
+[[annotations]]
+path = [
+  "src/scripts/mixar/modules/lampway_tools/canon/*.json",
+  "src/scripts/mixar/modules/lampway_tools/canon_legacy_count.txt",
+  "tests/lampway_tools/canon_goldens/normalization/*.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"

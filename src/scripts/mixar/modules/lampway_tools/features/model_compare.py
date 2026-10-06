@@ -19,6 +19,8 @@ from pathlib import Path
 
 import bmesh
 import bpy
+
+from .. import canon_io
 import numpy as np
 
 from .. import settings as S
@@ -73,7 +75,7 @@ def _scratch():
 def _import_merged(path, rotation_deg):
     """Import a glTF, return (vertices Nx3 world with yaw applied, triangles, name). The imported objects are removed; only geometry survives."""
     before = set(bpy.data.objects)
-    bpy.ops.import_scene.gltf(filepath=path)
+    canon_io.import_raw(path)
     new = [o for o in bpy.data.objects if o not in before]
     meshes = [o for o in new if o.type == "MESH"]
     if not meshes:

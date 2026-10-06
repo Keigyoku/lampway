@@ -18,6 +18,8 @@ import math
 import os
 
 import bpy
+
+from .. import canon_io
 import numpy as np
 
 from . import common as C
@@ -165,7 +167,7 @@ def _dilate(img, filled, rounds):
 
 
 def _apply_material(ob, atlas_path, name):
-    img = bpy.data.images.load(atlas_path, check_existing=False)
+    img = canon_io.load_image(atlas_path, role="basecolor", check_existing=False)
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
     t = mat.node_tree
@@ -253,7 +255,7 @@ def ai_render(object, prompt, view="Front", out="", size=768):
         images = generate_image(f"{prompt}. Keep the composition and the silhouette of the reference image.", fh.read(), 1)
     with open(out, "wb") as fh:
         fh.write(images[0])
-    img = bpy.data.images.load(out, check_existing=False)
+    img = canon_io.load_image(out, check_existing=False)
     return {"image": out, "blender_image": img.name, "reference": clay, "view": view,
             "note": "AI Render gives an image for look development; it does not change the scene's materials, lights or camera"}
 

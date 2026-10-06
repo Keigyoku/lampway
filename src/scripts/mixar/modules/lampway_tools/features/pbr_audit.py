@@ -11,6 +11,8 @@ mesh's)."""
 
 import bpy
 
+from .. import canon_io
+
 from . import common as C
 
 CHANNELS = ("Base Color", "Roughness", "Metallic", "Normal")
@@ -78,7 +80,7 @@ def swap_base_color(object_name, new_base, uv_hash=None):
     mat = slot.material.copy()
     mat.name = slot.material.name + "_swap"
     node = next(n for n in mat.node_tree.nodes if n.type == "TEX_IMAGE" and n.outputs["Color"].links and n.outputs["Color"].links[0].to_socket.name == "Base Color")
-    img = bpy.data.images.load(new_base, check_existing=False)
+    img = canon_io.load_image(new_base, role="basecolor", check_existing=False)
     img.colorspace_settings.name = "sRGB"
     node.image = img
     slot.material = mat

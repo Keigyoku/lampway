@@ -12,6 +12,8 @@ import os
 
 import bpy
 
+from . import canon_io
+
 PREFIX = "PAL:"
 
 
@@ -69,7 +71,7 @@ def apply(material, masks_dir, palette, order, name=""):
         hsv.inputs["Value"].default_value = float(row["val_mul"])
         tex = nt.nodes.new("ShaderNodeTexImage")
         tex.label = f"{PREFIX} {c} mask"
-        tex.image = bpy.data.images.load(os.path.join(masks_dir, f"mask_{c}.png"), check_existing=False)
+        tex.image = canon_io.load_image(os.path.join(masks_dir, f"mask_{c}.png"), role="mask", check_existing=False)
         tex.image.colorspace_settings.name = "Non-Color"
         nt.links.new(uv.outputs["UV"], tex.inputs["Vector"])
         mix = nt.nodes.new("ShaderNodeMix")

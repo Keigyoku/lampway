@@ -15,6 +15,8 @@ import struct
 from pathlib import Path
 
 import bpy
+
+from .. import canon_io
 import numpy as np
 
 from . import common as C
@@ -35,8 +37,8 @@ def _import_table(path):
     """Import an FBX, read its first armature as a bone table, and remove everything the import added."""
     before_o, before_a, before_ac = set(bpy.data.objects), set(bpy.data.armatures), set(bpy.data.actions)
     try:
-        bpy.ops.import_scene.fbx(filepath=str(path), automatic_bone_orientation=False, ignore_leaf_bones=False,
-                                 primary_bone_axis=BONE_AXES[0], secondary_bone_axis=BONE_AXES[1])
+        canon_io.import_raw(str(path), automatic_bone_orientation=False, ignore_leaf_bones=False,
+                            primary_bone_axis=BONE_AXES[0], secondary_bone_axis=BONE_AXES[1])
     except Exception as exc:  # noqa: BLE001
         raise C.FeatureError(f"{path.name} could not be read as an FBX: {exc}") from exc
     new = [o for o in bpy.data.objects if o not in before_o]
@@ -157,7 +159,7 @@ def engine_check(package_dir, engine, collision, receipt, root):
     fbx = fbxs[0]
     version = fbx_version(fbx)
     before_o, before_m, before_i = set(bpy.data.objects), set(bpy.data.materials), set(bpy.data.images)
-    bpy.ops.import_scene.fbx(filepath=str(fbx))
+    canon_io.import_raw(str(fbx))
     new = [o for o in bpy.data.objects if o not in before_o]
     try:
         meshes = sorted(re.sub(r"\.\d{3}$", "", o.name) for o in new if o.type == "MESH")        # an import into a scene that holds the same names suffixes them

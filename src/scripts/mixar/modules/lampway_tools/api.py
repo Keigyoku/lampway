@@ -1355,7 +1355,8 @@ def _gray_loader():
         import numpy as _np
 
         def load(path):
-            img = bpy.data.images.load(path)
+            from . import canon_io as _cio
+            img = _cio.load_image(path)
             try:
                 w, h = img.size
                 px = _np.array(img.pixels[:], dtype=_np.float32).reshape(h, w, 4)[::-1]
