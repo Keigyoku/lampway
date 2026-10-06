@@ -10,6 +10,10 @@ import math
 import sys
 from pathlib import Path
 
+# canon N1 (tests/lampway_tools/test_canon_doors.py): this worker's imports never land in a Lampway scene - a factory-startup process
+# imports into an empty scene, renders preview frames and exits; its scene is never saved or handed on.
+CANON_FOREIGN_BLENDER = "a throw-away headless preview render: the imported scene is rendered to PNG and discarded, never saved or placed"
+
 import bpy
 from mathutils import Matrix, Vector
 

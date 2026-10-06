@@ -15,9 +15,10 @@ from asset_place_support import go, one  # noqa: E402
 def test_every_importer_the_tool_names_exists_in_this_build(tmp_path):
     d = one(go(tmp_path, '''
 from mixar.modules.lampway_tools.features import asset_place as AP
+from mixar.modules.lampway_tools import canon_io
 ok = {}
-for ext, op in AP.IMPORTER_OPS.items():
-    mod, name = op.split(".")
+for ext in AP.IMPORT_EXTS:                                  # the placement imports through canon_io (flavour native)
+    mod, name = canon_io.importers("native")[ext]
     try:
         getattr(getattr(bpy.ops, mod), name).get_rna_type(); ok[ext] = True
     except Exception as e:

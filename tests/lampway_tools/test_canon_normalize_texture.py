@@ -50,6 +50,8 @@ probe = api.tool(consumes={"image": api.Need(kind=("texture",), roles=("normal",
 png("raw_one.png", 8, 8)
 from mixar.modules.lampway_tools import canon_io
 canon_io.load_image(str(root / "raw_one.png"))
+again_img = canon_io.load_image(str(root / "Metal009_2K-PNG_NormalGL.png"), check_existing=True)       # a placement re-reading a canonical image
+out["reload"] = {"same": again_img.name, "raw": "lw_raw" in again_img.keys(), "canon": "lw_canon" in again_img.keys()}
 out["door_raw"] = probe(image="raw_one.png")
 out["door_ok"] = probe(image="Metal009_2K-PNG_NormalGL.png")
 out["door_role"] = probe(image="Metal009_2K-PNG_Roughness.png")
@@ -82,6 +84,7 @@ def test_normalize_texture_binds_role_colour_space_and_convention_and_opens_the_
     assert d["normal_declared"]["ok"], d["normal_declared"]
     assert d["normal_declared_doc"]["body"]["normal"]["convention_evidence"] == "declared" and d["normal_declared_doc"]["body"]["tiling"] == {"real_world_m": [2.0, 2.0]}
     assert d["role_bad"]["ok"] is False and "shiny" in d["role_bad"]["error"]
+    assert d["reload"] == {"same": "Metal009_2K-PNG_NormalGL.png", "raw": False, "canon": True}, d["reload"]
     assert d["door_ok"] == {"ok": True, "ran": "Metal009_2K-PNG_NormalGL.png"}, d["door_ok"]
     assert d["door_raw"]["ok"] is False and d["door_raw"]["error"].startswith("normalize first") and d["door_raw"]["help"][0] == "lampway_normalize_texture input=raw_one.png"
     assert d["door_role"]["ok"] is False and "texture role 'roughness'" in d["door_role"]["error"]

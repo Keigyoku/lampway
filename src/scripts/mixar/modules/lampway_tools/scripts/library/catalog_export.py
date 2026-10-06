@@ -7,7 +7,7 @@
 # live scene: the runner starts it niced in a fresh -b process.
 # blender -b -P catalog_export.py -- <job.json> <result.json>
 import sys as _sys, os as _os
-_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax; import lw_canon as _lc
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 if __name__ == '__main__' and len(_A) < 2:
     if not _A: _ax.home(__file__, "Write Asset Vault assets into a Blender asset library .blend, marked with their catalogues")
@@ -17,23 +17,18 @@ import json, bpy
 JOB, OUT = _A[:2]
 job = json.load(open(JOB))
 bpy.ops.wm.read_factory_settings(use_empty=True)
-IMPORT = {'.glb': ('import_scene', 'gltf'), '.gltf': ('import_scene', 'gltf'), '.fbx': ('wm', 'fbx_import'), '.obj': ('wm', 'obj_import'),
-          '.usd': ('wm', 'usd_import'), '.usdc': ('wm', 'usd_import'), '.usda': ('wm', 'usd_import'), '.usdz': ('wm', 'usd_import')}
 
 
 def read(it):
     if it['import']:
-        before = set(bpy.data.objects)
-        mod, op = IMPORT[_os.path.splitext(it['path'])[1].lower()]
-        getattr(getattr(bpy.ops, mod), op)(filepath=it['path'])
-        new = [o for o in bpy.data.objects if o not in before]
+        new = [bpy.data.objects[n] for n in _lc.io.import_raw(it['path'], flavour='native')['objects']]   # canon_io: the one importer
         roots = [o for o in new if o.parent is None]
         if len(roots) != 1:
             raise SystemExit(f"{it['name']}: the import gave {len(roots)} root objects; one is publishable")
         roots[0].name = it['name']
         return roots[0]
     slot = it['slot']
-    with bpy.data.libraries.load(it['path']) as (src, dst):
+    with _lc.io.load_library(it['path']) as (src, dst):
         names = list(getattr(src, slot))
         if it['name'] not in names and slot == 'materials' and it['name'] in src.node_groups:
             slot, names = 'node_groups', list(src.node_groups)

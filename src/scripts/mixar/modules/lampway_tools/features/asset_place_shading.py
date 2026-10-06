@@ -8,6 +8,7 @@ material's tree, an HDRI as the world's environment."""
 
 import bpy
 
+from .. import canon_io
 from .asset_place import PlaceError, entry, file_of, load_blend, stamp, where
 
 SRGB_ROLES = ("basecolor", "emission")
@@ -84,7 +85,7 @@ def _is_dx(m) -> bool:
 
 def _image(m, nt, x, y):
     path, sha, _ = file_of(m, ("main",))
-    img = bpy.data.images.load(path, check_existing=True)
+    img = canon_io.load_image(path, check_existing=True)
     img.colorspace_settings.name = "sRGB" if _role(m) in SRGB_ROLES else "Non-Color"
     stamp(img, m, sha)
     node = nt.nodes.new("ShaderNodeTexImage")
@@ -185,7 +186,7 @@ def set_world(asset, opts, target) -> list:
     from .asset_place import scene
     sc = scene()
     path, sha, _ = file_of(asset, ("main",))
-    img = bpy.data.images.load(path, check_existing=True)
+    img = canon_io.load_image(path, check_existing=True)
     stamp(img, asset, sha)
     world = sc.world or bpy.data.worlds.new("World")
     sc.world = world
