@@ -22,7 +22,7 @@ ROLES = {"basecolor", "normal", "roughness", "metallic", "ao", "orm", "height", 
 def _tools(path):
     out = {}
     for n in ast.parse(path.read_text()).body:
-        if isinstance(n, ast.FunctionDef) and any(getattr(d, "id", "") == "tool" for d in n.decorator_list):
+        if isinstance(n, ast.FunctionDef) and any(getattr(d.func if isinstance(d, ast.Call) else d, "id", "") == "tool" for d in n.decorator_list):   # @tool or @tool(consumes=...)
             out[n.name] = {a.arg for a in n.args.args + n.args.kwonlyargs}
     return out
 
