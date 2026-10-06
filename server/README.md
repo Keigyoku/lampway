@@ -39,7 +39,8 @@ client's frames; no Blender, no network, no model).
 | `LAMPWAY_USER_PASSWORD` | *(empty)* | Password for `POST /api/v1/auth/login` and the browser sign-in page. Empty means the browser page approves without asking (loopback-only convenience) and the form login is refused. |
 | `LAMPWAY_JWT_SECRET` | generated | HS256 secret for access tokens. When unset, one is generated once and kept at `<state>/jwt_secret` (0600) so tokens survive restarts. |
 | `LAMPWAY_ACCESS_TTL_S` | `3600` | Access-token lifetime. Keep it well above 120 s: the client refreshes whenever `exp` is nearer than that. |
-| `LAMPWAY_STATE_DIR` | `$XDG_STATE_HOME/lampway-server` | Where the secret and the agent settings (`agent_settings.json`, 0600) live. |
+| `LAMPWAY_STATE_DIR` | `$XDG_STATE_HOME/lampway-server` | Where the JWT secret, the agent settings (`agent_settings.json`, 0600, no key since Connections) and the Connections record (`connections.json`, no secret) live. |
+| `LAMPWAY_SECRETS_DIR` | `$XDG_STATE_HOME/lampway-secrets` | Connections' file store (0600 files in a 0700 directory), used only when no OS keyring works. Outside the Lampway home on purpose: the agent's script sandbox reaches that home. |
 | `LAMPWAY_FAKE_CREDITS` | `100000` | Credits shown in the profile card and the usage meter. |
 | `LAMPWAY_PROVIDER` | `mock` | `mock` (no model: lists the scene and echoes it; a chat message starting `py:` runs the rest as a Blender script), `anthropic`, `openai`, `chatgpt_plan` (your ChatGPT Plus/Pro plan, see below), `codex_cli` / `claude_cli` (local CLI adapters, off unless enabled, see below). |
 | `LAMPWAY_CHATGPT_MODEL` | `gpt-6.1-sol` | Model for `chatgpt_plan` (the account's own list is what `GET /v1/models` returns). |
@@ -49,6 +50,19 @@ client's frames; no Blender, no network, no model).
 
 Refresh tokens live in memory: a server restart invalidates them and the client
 re-runs its login (the access token itself stays valid until `exp`).
+
+## Connections (`lampway_server/connections/`)
+
+The one place that knows every credential: `GET /app/connections` lists every service of `specs/connections/CATALOGUE.md`
+with its state (`connected`, `signed_out`, `expired`, `missing`, `error`, `not_checked`), where its credential comes from and
+whether its route is on. Every route needs the bearer and no route returns a secret. A key is pasted once
+(`PUT /app/connections/{id}/secret`) into the OS keyring (service `lampway`), else into `LAMPWAY_SECRETS_DIR`; or it is
+read where it already is (an environment variable, which wins over a saved key, or an owner-only key file). A Test runs
+only the service's free check and only with its route on; the server re-checks every 30 minutes the connections whose route
+is on and that were used in the last day. Consumers call `connections.require(id)`; a child process gets
+`connections.env_for([...])` (the server's environment with every key removed, plus that one connection). The agent reads
+status only, through `lampway_connections`. Hyper3D's MCP signs in from Connections (`mcp:hyper3d`); its tokens live in
+the store.
 
 ## Point the client at it
 
