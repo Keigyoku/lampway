@@ -171,4 +171,17 @@ ORPHAN_DEFS = [
         [P("image", required=True), P("target", "integer", "2048..4096, default 4096"), P("method", desc="lanczos (default) | model | tripo"),
          P("live", "boolean", "model: really send (default a dry run)"), P("prompt", desc="model: overrides the 'reproduce exactly' prompt"),
          P("suffix", desc="added to the output name")], api="image_upscale"),
+    Def("lampway_reference_pack", "The four-stage reference method as a GATED sequence, written under <root>/<asset>/reference/. stage sheet: ONE technical sheet on white, "
+        "neutral light, the whole asset in frame, pose T (default) or A, with the anatomical LEFT and RIGHT named (left_description, right_description: refused "
+        "without them; camera-left is not anatomical left); sheet_views lists the views the sheet already shows. stage audit (image): view_verify's admit and verify "
+        "plus the silhouette IoU against approved_reference (>= 0.85, UNVERIFIED); a passing sheet unlocks the rest, a failure STOPS ('identity failed: fix the "
+        "reference or prompt, not the batch size'). stage extract (components): one part per prompt from the passing sheet. stage views (views): ONLY the missing "
+        "views (a view already in the sheet is refused). stage run: where the sequence stands. Every stage is a dry run (prompt files, nothing sent) unless "
+        "live=true; a live stage sends to the image slot (purpose plates | concept, count 1..4), writes a run record (seed not_exposed, selected = the user's) "
+        "and one ledger row per call. Each candidate is audited; the user selects." + _PATHS,
+        [P("stage", required=True, desc="sheet | audit | extract | views | run"), P("asset", required=True), P("approved_reference", required=True, desc="the approved source image"),
+         P("components", "array", "sheet / extract: the parts"), P("pose", desc="T (default) | A"), P("views", "array", "views: the missing views"),
+         P("left_description", desc="sheet: what is on the anatomical left"), P("right_description", desc="sheet: what is on the anatomical right"),
+         P("model_purpose", desc="plates (default) | concept"), P("count", "integer", "1..4, default 4"), P("live", "boolean", "really send (default a dry run)"),
+         P("image", desc="audit: the candidate"), P("sheet_views", "array", "sheet: the views the sheet shows, default Front")], api="reference_pack"),
 ]

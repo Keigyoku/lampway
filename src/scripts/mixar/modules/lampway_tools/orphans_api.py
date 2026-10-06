@@ -198,3 +198,26 @@ def image_upscale(image, target=4096, method="lanczos", live=False, prompt="", s
         return _UP.upscale(_p(image), target, method, live, prompt, _generate_image, suffix)
     except _UP.UpscaleRefused as exc:
         raise ValueError(str(exc)) from None
+
+
+def _record_ledger(row):
+    """A ledger row through the server; a failure is returned in the result, never raised over images already made."""
+    from .features import jobs_client
+    try:
+        return jobs_client.record_ledger(row)
+    except Exception as exc:  # noqa: BLE001
+        return {"recorded": False, "error": str(exc)}
+
+
+@_export
+@tool
+def reference_pack(stage, asset, approved_reference, components=None, pose="T", views=None, left_description="", right_description="", model_purpose="plates",
+                   count=4, live=False, image="", sheet_views=None):
+    """The four-stage reference method, gated: sheet (left and right named) -> audit against the approved source -> extract parts -> only the missing views."""
+    from .pipeline import reference_pack as _RP
+    s_ = _settings()
+    try:
+        return _RP.run_stage(stage, str(s_.project_root), asset, _p(approved_reference, s_.project_root), components, pose, views, left_description, right_description,
+                             model_purpose, count, live, _p(image, s_.project_root), sheet_views, _generate_image, _record_ledger)
+    except _RP.ReferenceRefused as exc:
+        raise ValueError(str(exc)) from None
