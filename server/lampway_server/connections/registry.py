@@ -128,7 +128,7 @@ SPECS = {s.id: s for s in (
     Spec("mcp_clients", "Your agents' MCP servers", "Your tools", "reference", "mcp_probe", note="see the MCP inventory; Lampway never uses their credentials"),
     # -------------------------------------------------------------------------------------------------------------------- System
     Spec("lampway_server", "Lampway server account", "System", "local_account", None, check=Check("local")),
-    Spec("byok_legacy", "Mixar BYOK store", "System", "reference", None, note="stored by the BYOK form; no provider reads it"),
+    Spec("byok_legacy", "BYOK store (legacy)", "System", "reference", None, note="stored by the BYOK form; no provider reads it"),
     Spec("download:wezterm", "WezTerm download", "System", "none", None, note="needs no credential: only its route matters"),
     Spec("download:local_models", "Local model downloads", "System", "none", None, note="needs no credential; runs in the client, outside the egress hook"),
 )}
