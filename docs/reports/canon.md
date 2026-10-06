@@ -328,3 +328,30 @@ keymap test read `upstream/` (the Blender source tree is not checked out in this
 FileNotFoundError on `upstream/.../userdef_default_theme.c` and `.../blender_default.py`), and two live theme tests run my lane binary,
 built 2026-10-05 19:52, before the facelift's Lampway Night theme ("VERIFY FAIL 938 attributes, 705 problems"; presets list Blender's).
 None touches a file this lane changed.
+
+## Item 9: bake (DONE for the auto cage / ray, 16-bit normals and one-bake DX; hit mask, bake groups, bake.json NOT built)
+- `features/bake.py` `measure()`: every high-poly vertex's signed distance to the nearest low-poly point along its normal (HP vertices,
+  not LP ones: golden C10's LP is four corners and cannot see the cap). `auto` (the default): cage = the HP's greatest height above x
+  `AUTO_PAD`, ray = (height + greatest depth below) x `AUTO_PAD`. An explicit cage under the MEDIAN distance is refused (canon 14 B.3).
+  The receipt carries `measured`. **needs_decision: `AUTO_PAD = 1.05`** - the canon states the two inequalities and no margin.
+  C10: height 0.05 / depth 0 -> cage 0.0525, ray 0.0525; sunk 1 cm: 0.04 / 0.01 -> cage 0.042, ray 0.0525, median 0.01.
+  RED: no `measured` (the old auto was 2 % of the diagonal). The G14.3 tool test now passes an explicit cage (its 2x rule still holds there).
+- `scripts/bake/bake_maps.py`: the normal is baked ONCE in GL into a float buffer and written as a 16-bit RGB PNG by hand (Blender's
+  save applies colour management; Pillow cannot write 48-bit RGB); `normal_green=dx` flips that bake's green, never a second bake with
+  `NEG_Y`; the result carries `normal: {convention, bit_depth: 16, baked: gl, green_flipped}`. `normal_green` other than gl | dx is
+  refused - before, anything but `"gl"` silently baked DX (my own G14.3 test passed `"+Y"` and got DX).
+  G14.1 on golden C10: the 7 analytic samples within 0.02; DX = GL with green flipped (< 1e-4). RED: bit depth 8.
+  Mutants: no flip fails; **8-bit levels in a 16-bit container SURVIVED the first test** (it read the header only) - the test now
+  also requires more than 256 distinct levels (the mutant has 69).
+- Not built: the per-texel hit mask, bake groups, `bake.json`, hash dirs. **Open defect found, not fixed:** `attach` wires the
+  normal image straight into a Normal Map node, so a DX bake attached in Blender shades inverted (AUDIT rank 10, contract
+  `normalize_texture` test 2) - the attach should flip green in nodes for dx.
+
+## Item 10: retopo (DONE except per-part remesh)
+Besides the explicit fallback above: QuadriFlow keeps sharp edges by default (`preserve_sharp=True`, receipt field; measured on a
+1 m box of 2028 triangles at target 600: two-sided max deviation 3.98 mm without, 1.41 mm with; on a smooth sphere it costs
+4.17 -> 4.57 mm and lands 606 faces instead of 730 - recorded, not a reason against the canon's hard-surface rule); every method
+refuses a target above 3x the source (INV-12.5; it was autoremesher-only). RED: the box's deviation did not halve, the voxel/QuadriFlow
+3x targets were accepted. The fallback test's fixture grew to a 100-face grid with a third face on one edge so it stays under 3x.
+Not built: per-part remesh with the part map carried (INV-12.3) - Lampway stores no part map on the object (the owner map lives in
+the shelf scripts' npy files), so it needs that carrier first.
