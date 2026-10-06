@@ -150,3 +150,31 @@ def pytest_collection_modifyitems(config, items):
 def pytest_terminal_summary(terminalreporter):
     if _ENV_SKIPPED:
         terminalreporter.write_line(f"ENV-SKIPPED {len(_ENV_SKIPPED)}: tests that need the reference test environment (scripts/lampway/test_env.sh)")
+
+
+# ---------------------------------------------------------------------------------------------------- the shelf
+# Inside test_all the shelf is part of the verified environment (scripts/lampway/test_all.py SHELF_FILES): a test that reads
+# LAMPWAY_SHELF_DIR / LAMPWAY_SHELF_SCRATCH and skips on the shelf is a FAILURE there, never a silent skip.
+_SHELF_SRC = {}
+
+
+def _reads_shelf(item) -> bool:
+    path = str(getattr(item, "path", "") or item.fspath)
+    if path not in _SHELF_SRC:
+        try:
+            src = _Path(path).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            src = ""
+        _SHELF_SRC[path] = "LAMPWAY_SHELF_DIR" in src or "LAMPWAY_SHELF_SCRATCH" in src
+    return _SHELF_SRC[path]
+
+
+@_pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    if rep.skipped and _in_test_all() and _reads_shelf(item):
+        reason = rep.longrepr[2] if isinstance(rep.longrepr, tuple) else str(rep.longrepr)
+        if "shelf" in reason.lower():
+            rep.outcome = "failed"
+            rep.longrepr = f"inside test_all the shelf is part of the environment (LAMPWAY_SHELF_DIR): this test would have skipped - {reason}"
