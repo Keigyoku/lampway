@@ -9,6 +9,10 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | commit | what needs the rebuild |
 |---|---|
 | (contract 01, native) | `userdef_default_theme.c` (the default theme is Lampway Night), `interface_mixar_theme.cc` (slot fallbacks), `UI_mixar_tokens.hh` (zen palette, included widely), `rna_userdef.cc` (RNA reset defaults). Also installs the two theme presets (`sync_python.sh` does not copy `src/scripts/presets/`). |
+| `5f37ee91`, `ba835be1` (14) | `UI_icons.hh` (included widely), the 42 `icons_svg/lampway_*.svg` and the datafiles CMake list. |
+| `0afc2d19` (03) | `interface_widgets.cc`, `agent_ui_draw.cc`, `interface_mixar_profile_card.cc`, the theme defaults and glass tokens. |
+| `c92396d5` (05) | `agent_ui_pill_cat.*`, `view3d_agent_panel*`. |
+| `ce3c9897` (02) | `wm_splash_screen.cc` and the `splash.png` datafile. |
 
 ## Gate totals at the contract 01 push (`30b6c2fd`, merged with `origin/lp/wave5` `00d907d4`)
 
@@ -171,3 +175,103 @@ captures the window with the fork's `Window.mixar_qa_capture_frame`, locates sur
 - Native rebuild: yes (UI_icons.hh is included widely: 1 123 steps).
 - The build script's disk floor (100 GB free) refused the build: the shared disk had 79 GB free. I ran it with
   `LAMPWAY_MIN_FREE_GB=40` (an incremental build needs well under 1 GB); every later build in this report did the same.
+- **Correction (`ba835be1`).** The 42 icons above never drew in the windowed app: the generated block sat after
+  `DEF_ICON_BLANK(LAST_SVG_ITEM)`, and `init_internal_icons()` registers SVG icons only below that boundary, so each had
+  an enum value and no icon ("no icon for icon ID: 1045" in every windowed log). The live test checked the enum only,
+  which is why it passed. The generator now puts the block above the boundary; a unit test pins the placement (RED
+  observed), and the visual harness fails any state that draws an unregistered icon (RED observed on the old build,
+  1045 and 1046 = `LAMPWAY_WIRE`, `LAMPWAY_COIN`). Native rebuild: yes.
+- **Correction (`edf0d549`).** Retiring the credit badges broke two tests I had not run
+  (`tests/lampway/test_lampway_placeholder_art.py`), and `scripts/dev/lampway_placeholder_art.py` still wrote the four
+  badges, so regenerating the placeholder art would have brought them back. The generator's badge table is empty,
+  REUSE.toml and the test drop them, and a new test regenerates the art into a scratch tree and finds no `credits_*`
+  file (RED observed: four).
+
+## Contract 03: window chrome (`0afc2d19`)
+
+- **Status bar** (`lampway_tools/ui/statusbar.py`, `statusbar_state.py`, `status_client.py`): a decision waiting for you
+  first (lamplit, opens the first pending approval's confirm), the spend line with the ten-step gauge glyph, the wire chip
+  (`local` / `N routes open` / `Sending to <route>`). draw() reads a cache; one timer fills it from `GET /app/egress`,
+  `/app/spend`, `/app/studio` (0.5 s while a route is on, 5 s otherwise). A stopped server reads "spend unknown: server
+  not running" and "egress unknown", never a stale number. Only the sending wire moves (two frames, 0.4 s), never under
+  reduced motion.
+- The bar is a **global area** (`Window.global_areas`), not in `screen.areas`: my first redraw walked the screen and so
+  never repainted the bar. Found because the visual state could not find the area; RED observed with a unit test.
+- **Server**: `GET /app/spend` (read-only): per provider its unit (USD for OpenRouter, credits otherwise), what this
+  server session spent, and the caps and click rule. **There is no day ledger** server-side, so the answer says
+  `scope: session` and the tooltip says so; DESIGN's "today" is not measurable yet. A day ledger is server work outside
+  this lane.
+- **Native**: the active tab is an accent underline on the canvas (`wcol_tab`, `interface_widgets.cc`); F6: the credit
+  ring around the avatar is gone (`agent_ui_draw.cc`); the account card hides the identity behind a toggle ("Local
+  account", `WindowManager.lampway_show_identity`); the glass tokens (cards, island, panel, pill) and the cinema pill
+  come from the Night palette through the theme generator. Measured DNA re-dumped; the build is the fixed point
+  (`--as-default` 938/938).
+- Tests: `tests/lampway/test_statusbar.py` (7), `test_lampway_chrome.py`, `server/tests/test_spend_view.py` (2),
+  `tests/agent_panel/test_agent_panel_glass.py` (two tests re-pointed from Mixar's glass values to the facelift rule).
+  Visual (real build, Xvfb in the box): `status_local`, `status_open`, `status_sending` read "$0.31 of $5.00", "local" /
+  "2 routes open" / "Sending to OpenRouter", "1 waiting for you"; the bar's back samples `canvas` exactly.
+- Not done: the account card's action buttons (sign out, Providers) are labels in the mockup's place but not wired to
+  new operators; the style block (12 pt Mixar vs Night's 11 pt) is still not compiled (open from contract 01).
+- Native rebuild: yes.
+
+## Contract 05: parallel agents (`c92396d5`)
+
+- The Spark has seven states, each its own ring in theme colours, none animated (`agent_ui_pill_cat.cc`,
+  `agent_ui_draw_spark`): queued, working (static amber arc on `line_hi`), unread (dot at one o'clock), blocked (accent,
+  needs you), paused (dashed `muted_dim`, what it waits on underneath), done (`go` with the check), failed (`stop`, a
+  red left edge, its reason or "failed: no reason given"). F9: the worker colour is a dot. The state word and an m:ss
+  clock sit at the right.
+- The chevron names what it hides ("4 more: 2 working, 1 done, 1 waiting"): `cards.overflow_label`, written by the
+  Python mirror to `WindowManager.mixar_agent_cards_overflow`, read by the C++ draw and the QA dump.
+- Mirror: BLOCKED and PAUSED come from the server's `needs` / `waiting_on`; `reason` passes through.
+- Tests: `tests/lampway/test_lampway_agent_states.py`; visual `agent_cards_a` (blocked `#edb944`, working arc
+  `#edb945`, failed `#f0766b`, the chevron text) and `agent_cards_b` (paused dash, done ring `#5bc48f`, queued ring),
+  all within 2/255 of their tokens on the real build. The done card dwells 1.2 s then slides out, so that state
+  captures after 0.75 s.
+- Seen in the capture, not fixed: a paused card's clock reads `0:00` (the clock has no start for a paused card).
+- Not done: the blocked and failed cards' action buttons ("Answer", "Retry") are words, not wired operators.
+- Native rebuild: yes.
+
+## Contract 02: splash and onboarding (`ce3c9897`)
+
+- **Art**: `splash_v2.svg` rendered with the vendored Fraunces and IBM Plex (`scripts/dev/brand_art/fonts/`, OFL-1.1,
+  annotated in REUSE.toml, licence in `LICENSES/OFL-1.1.txt`). librsvg drew tofu with woff2, so the renderer strips the
+  SVG's text and draws each line with Pillow from the repo's font file; a face the repo lacks is refused. Each line's
+  ink width matches its face's measure within 3 percent (the test measures the shipped PNG).
+- **Version once**: the C++ label over the art is removed (`wm_splash_screen.cc`).
+- **Menu** (`splash_menu.py`): four recent files, Start (New scene, Recover last session, Open in Zen / Engine), four
+  glance cues read from the status bar's cache, one Help menu. No network in draw (tested with `urlopen` raising).
+- **Onboarding** (`lampway_tools/onboarding.py`, no bpy; `lampway_tools/ui/onboarding.py`): Quick Setup is step 1 and
+  its Continue opens steps 2-4 as dialogs on a rail of node icons. Routes start as the server has them (all off on a
+  fresh install) and change only by the user's click, which is recorded. The last button names the outcome ("Continue
+  with N route(s) on"), saves the preferences (`wm.save_userpref`, as before) and writes routes and caps to the server.
+  Offline the steps say "Lampway's server is not running: Start it" and only the preferences are saved.
+  Live: the dialog opens in the real build (Xvfb), offline, rail and message as designed. The online path is proved by
+  the server test, not driven live.
+- **Disagreements recorded, the brief followed**:
+  - Step 2's refusal ("ChatGPT plan needs the chatgpt.com route: switch it on in step 3, or pick a local provider";
+    the step stays) means a fresh install whose provider is a plan cannot reach step 3 without first picking another
+    provider. The contract orders it so; a reader may want the refusal moved to the last step.
+  - Caps: the contract asks for job, day and session caps; the server has no day ledger, so the walk sets job ($1),
+    session ($5, D1's "per day" amount) and the click above $0.25, for OpenRouter (the only dollar provider).
+  - The provider list is mine (contract 06's choice list is not built yet).
+- Tests: `test_lampway_splash.py` (5), `test_lampway_onboarding.py` (8), `server/tests/test_onboarding_walk.py` (a
+  fresh state dir, defaults plus one click: exactly that route on; falsifier "one route on by default" killed).
+- Not done: test 6 (region diff of the splash against `shots/01-splash.png` and `shots/02-onboarding.png`): those are
+  the mockups' HTML renders, and a Blender capture will not match them within the harness's 1 percent; it needs an
+  approved golden of the app instead (a person's act).
+- Native rebuild: yes (`wm_splash_screen.cc`, `splash.png`).
+
+## Gate totals at the second push (contracts 03, 05, 02 and the 14 fixes; integration had not moved: `origin/lp/wave5` is still `00d907d4`)
+
+- Server suite (`venv-tools`): 0 failed, 6 skipped, rc 0.
+- Client, real binary (`tests/lampway_tools`, my Prod build with every commit above): 760 passed, 46 skipped, 0 failed.
+- Client, host (the same command as the first push): 148 failing ids against the baseline's 132. The 17 new ids were
+  read one by one: 5 were mine (two pill tests and three glass tests pinning Mixar's values that facelift 03 and 05
+  changed: re-pointed to the tokens in `61bc6288`, a white rim mutant still killed); 11 are `tests/mcp/*` failing on
+  `ModuleNotFoundError: jsonschema` (not installed on the host; files I did not touch); 1 is the gitignored `mixar.pot`
+  being stale in this worktree (regenerated: `extract_messages.py --check` rc 0; nothing to commit). One baseline
+  failure now passes.
+- Visual harness (Xvfb in the build box): 11 passed (night startup, three status bar states, two card states, the
+  harness's own falsifiers).
+- Gates: theme 0, cues 0, WezTerm 0, icons (spec copy) 0; the pre-push PII gate runs on push.
