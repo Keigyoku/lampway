@@ -139,3 +139,35 @@ captures the window with the fork's `Window.mixar_qa_capture_frame`, locates sur
 - Not built: section 14's busyness and parity scripts measure the mockups' HTML DOM (text runs, borders, glow from
   computed styles); an app-side count from the QA dump and the capture needs a mapping the contract does not give.
   Recorded, not invented.
+
+## Contract 14: iconography
+
+- **One sheet, one generator.** `scripts/dev/brand_art/icons/lampway_icons.svg` is the draft sheet from the spec (65 glyphs)
+  plus what the native set and the cue table need and the draft lacked: the agent spark, the seven agent states
+  (DESIGN.md 13: plain ring, static amber arc, dot at one o'clock, thick ring, dashed ring, check under a smaller flame,
+  the wisp), the gauge in ten steps with its near (triangle) and over (cross) marks, the two frames of the sending wire,
+  and Generate redrawn as an image frame with a plus. Those glyphs are mine, drawn to the sheet's construction; the
+  contract's open question (a designer pass on optical weight at 16 px) still stands for all of them.
+- `scripts/dev/brand_art/lampway_icons.py` writes the 42 native icons (`icons_svg/lampway_*.svg`, white strokes so the
+  theme tints them), the generated blocks of `UI_icons.hh` and `editors/datafiles/CMakeLists.txt`, `generate.svg`
+  (now a mono `DEF_ICON`), the Python previews (`mixar/modules/common/lampway_icons/<night|paper>/`, 32 px with the cue
+  colour of each theme baked in, the agent states also at 16 px) and the acceptance sheets
+  `docs/reports/facelift/icons_night.png` and `icons_paper.png` (every native icon at 16, 20, 32 px). Rasterised with
+  ImageMagick's librsvg from the same SVG the build compiles (no resvg on this host).
+- **Retired**: `sparkle.svg` and the four Mixar credit badges (`credits_*.svg`), their enums and CMake lines. The
+  credits banner's three icon calls now use `LAMPWAY_COIN`, `LAMPWAY_ROUTE`, `LAMPWAY_SPARK`, `LAMPWAY_METER_10`; the
+  banner itself is Mixar commerce (REBRAND D10) and is left for contract 13's decision.
+- `mixar.modules.common.lampway_icons.icon_id(name)` gives a Python surface the coloured cue glyph for the current theme
+  (Night on a dark canvas, Paper on a light one).
+- Tests: `tests/lampway/test_lampway_icons.py` (8): I1 on the code (every `icon='LAMPWAY_*'` and `ICON_LAMPWAY_*` used
+  exists), I2, I3, I4 (enum = SVG = CMake), I5 (retired gone, Generate not a wand), I6 (each preview's alpha mask is the
+  native SVG at 32 px within 2 percent), the previews loader, generated = committed. Mutants: a deleted CMake line, a
+  retired enum referenced, an unknown icon used, a preview from another glyph: 4 of 4 killed. The I1-on-code test
+  passes vacuously until a surface uses a Lampway icon (contract 03 is the first). Real binary
+  (`tests/lampway_tools/test_lampway_icons_live.py`): the build knows all 42 `LAMPWAY_*` icons and no retired one, and a
+  preview loads (headless, an icon id needs a window, so the test reads the loaded image's size).
+- The previews module was written before its test; I removed it, watched the test fail, and put it back. That is a
+  test-after with an observed RED, not a test-first.
+- Native rebuild: yes (UI_icons.hh is included widely: 1 123 steps).
+- The build script's disk floor (100 GB free) refused the build: the shared disk had 79 GB free. I ran it with
+  `LAMPWAY_MIN_FREE_GB=40` (an incremental build needs well under 1 GB); every later build in this report did the same.
