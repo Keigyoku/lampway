@@ -62,6 +62,17 @@ is on and that were used in the last day. Consumers call `connections.require(id
 status only, through `lampway_connections`. Hyper3D's MCP signs in from Connections (`mcp:hyper3d`); its tokens live in
 the store.
 
+## Choices (`lampway_server/choices/`)
+
+What Lampway uses for each purpose (56 of them: the main agent, plates, retopology, dictation, ...), what that falls back to, and why a
+job ran the way it did. `GET /app/choices` lists them; a choice is set per purpose (`PUT /app/choices/{purpose}`: a preferred option,
+fallbacks, params) globally or for one project. Precedence: the `LAMPWAY_*` environment for the session, then the project, then your
+choice, then the Providers dialog's saved values, then the shipped default. Every option is checked, in order, for: it exists, it can do
+the job, private content may go there, its connection works, its route is on, its cost fits, and its local engine is ready; the first
+failure is shown with its fix. A job receipt carries the `choice` (option, reason, why). The agent reads and proposes through
+`lampway_choices`; only your click changes a choice. Private content to an option whose terms are unread is recorded
+(`would_refuse_private`), not yet refused (decision CH1, first release).
+
 ## What is served
 
 | Area | Endpoints |
