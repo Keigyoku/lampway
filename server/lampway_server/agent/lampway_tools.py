@@ -201,10 +201,15 @@ DEFS = [
     Def("lampway_segment_mesh", "Mesh Segment: split a mesh into part objects in the collection `<object>_parts` (largest first, UVs and "
         "materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | "
         "uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with. "
-        "The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price).",
+        "The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price). labels instead NAMES the "
+        "UV islands as vertex groups <object>_<label> (nothing is split), with the Client's own island enumeration (Mesh Segment's island_labels): mode map "
+        "takes island_labels {\"<island>\": label}; mode recipe gives each island the recipe part owning the majority of its faces in owner (a .npy per polygon, "
+        "default the int face attribute 'part'), an island under min_share (0.6) unlabelled and named; labels outside the recipe's part names are refused, "
+        "and more than max_unlabeled (0.3) of the faces unlabelled refuses to apply. Needs a UV map.",
         [P("object", required=True), P("method", desc="shells (default) | sharp | uv_islands"), P("angle", "number", "Degrees, default 40"),
          P("min_faces", "integer", "Merge regions under this many faces, default 1 (no merge)"),
-         P("engine", desc="algorithmic (default) | studio:tripo")], api="segment_mesh"),
+         P("engine", desc="algorithmic (default) | studio:tripo"),
+         P("labels", "object", "{mode: map | recipe, island_labels: {island: label}, recipe: parts json, owner: .npy, min_share, max_unlabeled}")], api="segment_mesh"),
     Def("lampway_mesh_prep", "Workflow, geometry preparation: a branch `<object>_prep` of a generated mesh with its source hash "
         "recorded, loose and doubled vertices removed and inverted normals fixed; returns before/after reports. The source is untouched.",
         [P("object", required=True), P("merge_distance", "number", "Weld distance, default 1e-5")], api="mesh_prep"),

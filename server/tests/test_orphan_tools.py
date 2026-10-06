@@ -45,3 +45,12 @@ def test_an_orphan_tool_script_is_one_api_call():
     s = T.script_for("lampway_side_label_check", {"object": "gauntlet_l", "declared_side": "left", "body_midline_x": 0.0})
     ast.parse(s)
     assert 'api.call("side_label_check"' in s
+
+
+def test_segment_mesh_takes_island_labels():
+    props = LT.BY_NAME["lampway_segment_mesh"].spec().parameters["properties"]
+    assert props["labels"]["type"] == "object" and "island_labels" in props["labels"]["description"]
+    s = T.script_for("lampway_segment_mesh", {"object": "chest", "labels": {"mode": "map", "island_labels": {"0": "skirt"}}})
+    call = next(n for n in ast.walk(ast.parse(s)) if isinstance(n, ast.Call) and getattr(n.func, "attr", "") == "call")
+    import json
+    assert json.loads(ast.literal_eval(call.args[1]))["labels"] == {"mode": "map", "island_labels": {"0": "skirt"}}

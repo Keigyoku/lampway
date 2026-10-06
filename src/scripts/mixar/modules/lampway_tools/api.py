@@ -681,10 +681,14 @@ def uv_unwrap(object, method="smart", angle_limit=66.0, margin=None, texel_densi
 
 
 @tool
-def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algorithmic"):
+def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algorithmic", labels=None):
     """Split a mesh into part objects in the collection ``<object>_parts`` (largest first): connected ``shells``, regions bounded by
     ``sharp`` edges (dihedral > angle), or ``uv_islands``; regions under min_faces merge into a neighbour. The original is hidden,
-    never deleted. engine=studio:tripo is the part-detection slot."""
+    never deleted. engine=studio:tripo is the part-detection slot. ``labels`` ({mode: map | recipe, island_labels, recipe, owner}) labels the
+    UV islands as vertex groups <object>_<label> instead (the Client's island enumeration; nothing is split)."""
+    if labels:
+        from .features import island_labels as _IL
+        return _IL.label(object, labels, _p(labels.get("recipe", "")), _p(labels.get("owner", "")))
     return _F_segment.segment_mesh(object, method, angle, min_faces, engine)
 
 
