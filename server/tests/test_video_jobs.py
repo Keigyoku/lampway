@@ -53,6 +53,7 @@ class FakeOpenRouterVideo:
 def stack(settings, tmp_path, monkeypatch):
     monkeypatch.setenv("LAMPWAY_STATE_DIR", str(settings.state_dir))
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-" + "ab12" * 16)
+    settings.spend_policy["openrouter"] = {"click": "off"}          # these tests exercise caps and pricing, not the click (the default is the D1 click above $0.25: test_spend_policy)
     orv, hf = FakeOpenRouterVideo(), FakeHiggsfield()
     ledger = SpendLedger(5.0, tmp_path / "spend.jsonl")
     client = VG.VideoClient(transport=httpx.MockTransport(orv.handle), ledger=ledger, poll_s=0.0, max_job_usd=2.0)
