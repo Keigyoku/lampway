@@ -7,7 +7,7 @@ import json
 
 from .providers.base import ToolSpec
 
-NAMES = {"lampway_cinematic_shot_plan", "lampway_material_experiment"}
+NAMES = {"lampway_cinematic_shot_plan", "lampway_material_experiment", "lampway_prototype_gates"}
 
 
 def _obj(props, req=()):
@@ -41,6 +41,14 @@ def specs() -> list:
                        "rows": {"type": "array", "items": {"type": "string"}}, "row": {"type": "string"}, "acceptance": {"type": "object"}, "texture": {"type": "string"},
                        "identity_pass": {"type": "boolean"}, "fit_pass": {"type": "boolean"}, "read_back_price": {"type": "integer"}, "seed": {"type": "integer"},
                        "note": {"type": "string"}}, ["action", "piece", "engine"])),
+        ToolSpec("lampway_prototype_gates", "May I spend on an asset yet? Answered from recorded gates, not from your say-so ('playable core before asset polish'). action "
+                 "define {project, passes: [{name: Core|Look|Feedback|Export in that order, generation_allowance, gate (what must work), owner: captain|agent}]}. "
+                 "action record_gate {project, gate_result: {pass, result: pass|fail, evidence}}: you record as the agent; on a captain-owned pass your pass is only "
+                 "'proposed' (with evidence; without it, refused) and passes nothing. action may_spend {project, spend: {kind: asset|material|vfx, credits, pass}}: refused "
+                 "until every earlier pass has passed ('Core has not passed: <gate>'), when the pass allows no generation, or when its allowance is used; an allowed "
+                 "answer uses one generation. It never spends: the user still clicks. action status {project}. Every event is an experiment-ledger row (kind gate).",
+                 _obj({"action": {"type": "string", "description": "define | record_gate | may_spend | status"}, "project": {"type": "string"},
+                       "passes": {"type": "array", "items": {"type": "object"}}, "gate_result": {"type": "object"}, "spend": {"type": "object"}}, ["action", "project"])),
     ]
 
 
@@ -80,6 +88,20 @@ async def call(hub, root, name: str, arguments: dict) -> tuple:
                 out = await asyncio.to_thread(ME.compare, r, a.get("piece"), a.get("engine"))
             else:
                 return "action is plan | run | record | compare", True
+            return json.dumps(out), False
+        if name == "lampway_prototype_gates":
+            from .. import prototype_gates as PG
+            act, r = a.get("action"), str(root)
+            if act == "define":
+                out = PG.define(r, a.get("project"), a.get("passes"))
+            elif act == "record_gate":
+                out = PG.record_gate(r, a.get("project"), dict(a.get("gate_result") or {}, by="agent"))       # the agent records as the agent, always
+            elif act == "may_spend":
+                out = PG.may_spend(r, a.get("project"), a.get("spend"))
+            elif act == "status":
+                out = PG.status(r, a.get("project"))
+            else:
+                return "action is define | record_gate | may_spend | status", True
             return json.dumps(out), False
     except ValueError as exc:
         return str(exc), True

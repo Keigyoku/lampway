@@ -34,7 +34,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 | 16 | wiki/print_check | P3 | Blender | |
 | 17 | wiki/print_prep | P3 | Blender | |
 | 18 | wiki/profile_revolve | P3 | Blender | |
-| 19 | wiki/prototype_gates | P3 | server | |
+| 19 | wiki/prototype_gates | P3 | server | done |
 | 20 | mixar_docs/scene_from_image | P3 | Blender | |
 | 21 | mixar_docs/terrain | P3 | Blender | |
 | 22 | mixar_docs/addon_project | P3 | Blender + server | |
@@ -155,3 +155,13 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
   face at y = -0.15 fell on the region boundary) was fixed in the test, not the tool. Mutants killed: competing-influence removal, chain direction,
   connection, collider radius; the audit precondition SURVIVED the first suite and got its own test.
 - [UNVERIFIED] engine naming for physics chains (the contract's open question).
+
+### 19. prototype_gates (P3): done
+- Where: `server/lampway_server/prototype_gates.py`, agent tool `lampway_prototype_gates` (`agent/plan_tools.py`), and a public `Ledger.record_event`
+  (a row of another kind, secrets refused; experiment/job/run kinds keep their own recorders).
+- Passes Core, Look, Feedback, Export in order with allowances and gate texts; may_spend refused until every earlier pass passed ("Core has not
+  passed: <gate>"), when the pass allows no generation, or when the allowance is used; an allowed answer uses one generation. An agent's pass on a
+  captain-owned gate is `proposed` (with evidence; refused without) and passes nothing; the agent tool forces `by: agent` whatever the call says.
+- Tests: `server/tests/test_wave6_prototype_gates.py` (6). RED observed: ImportError. Mutants killed: the earlier-pass law, the allowance, the
+  proposed state, the forced agent identity.
+- Gap: the captain's own door for a captain-owned gate (a Client button or REST route) is not built; the module accepts `by: captain` for it.
