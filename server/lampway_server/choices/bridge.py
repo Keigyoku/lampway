@@ -238,3 +238,22 @@ def import_embed_defaults(library_root) -> int:
             store._append_log({"t": time.time(), "purpose": pid, "action": "import_refused", "reason": str(exc)[:200], "by": "migration"})
     src.rename(src.with_name("embed_defaults.json.migrated"))
     return done
+
+
+MODELED = {"provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model", "swarm_provider", "claude_swarm_model",
+           "chatgpt_swarm_model", "chatgpt_swarm_effort", "openrouter_swarm_model", "image_backend", "image_purposes", "video_purposes"}
+
+
+def save_dialog_choices(s: Settings, values: dict) -> dict:
+    """Step 9: the Providers dialog's values that Choices models are written to choices.json as the user's click (the purposes they
+    decide, from the settings those values give); returns the values that have no Choices home (they stay in provider_prefs.json)."""
+    from .. import choices as CH
+    modeled = {k: v for k, v in values.items() if k in MODELED}
+    if modeled:
+        trial = PP.trial(s, modeled)
+        every = chains(trial)
+        for pid in sorted(_touched(modeled)):
+            if pid in every:
+                entry = {k: every[pid][k] for k in ("preferred", "fallbacks", "params")}
+                CH.active_store().set(pid, "global", None, entry, by="user")
+    return {k: v for k, v in values.items() if k not in MODELED}

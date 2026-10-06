@@ -1042,7 +1042,10 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
                 make_swarm_provider(trial, "worker-1", chatgpt_auth=chatgpt)
         except (provider_prefs.PrefsError, ValueError, RuntimeError, OSError) as exc:
             return JSONResponse({"detail": str(exc)}, status_code=400)
-        provider_prefs.save(settings.state_dir, provider_prefs.merge_values(provider_prefs.load(settings.state_dir), saved_values))
+        from .choices.bridge import save_dialog_choices
+        rest = save_dialog_choices(settings, saved_values)          # step 9: what Choices models is the user's choice now; the rest stays here
+        if rest:
+            provider_prefs.save(settings.state_dir, provider_prefs.merge_values(provider_prefs.load(settings.state_dir), rest))
         provider_prefs.apply(settings, values)
         settings.sources.update({k: "saved" for k in values})
         if new_main is not None:
