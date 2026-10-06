@@ -60,7 +60,7 @@ Server routes (all need your bearer token): `GET /app/egress` (routes, indicator
 
 ## 6. Private assets
 
-Content can carry a class: `public`, `synthetic` or `private`. Anything unclassified is not treated as private by the transport, so callers that handle your own designs (the compute wrapper, the embedding service, the decision judge) classify what they send:
+Content can carry a class: `public`, `synthetic` or `private`. Anything unclassified is not treated as private by the transport, so callers that handle your own designs (the compute wrapper and the embedding service; the closed-choice decision judge in `decisions_model.py` follows the same routing law but nothing calls it in production yet) classify what they send:
 
 - A **private** request passes only a route whose class is `ok`, or `conditional` with every required constraint declared on the call (OpenRouter: `zdr: true` and `data_collection: deny`; Boat: `snapshots: false` and `noEnv: true`). Everything else is refused with the reason and what the route requires.
 - A **per-asset override** (`POST /app/egress/override`) lets one asset through one route. It is scoped to that asset and that route, is logged as its own row when set and when cleared, and applies only when every asset id on the call has one.
