@@ -9,7 +9,7 @@ are called by the server directly, never through Blender.
 
 import json
 
-from .tool_defs import Def, P  # noqa: F401  (the records live in tool_defs.py; re-exported here)
+from .tool_defs import Def, P, needs  # noqa: F401  (the records live in tool_defs.py; re-exported here)
 
 
 class BadArguments(ValueError):
@@ -112,7 +112,7 @@ def build_script(d: Def, arguments: dict) -> str:
     arguments = arguments if isinstance(arguments, dict) else {}
     missing = [p.name for p in d.params if p.required and arguments.get(p.name) in (None, "")]
     if missing:
-        raise BadArguments(f"{d.name} needs {', '.join(missing)}")
+        raise BadArguments(needs(d.name, missing, d.spec().parameters))
     known = {p.name for p in d.params}
     given = {k: v for k, v in arguments.items() if k in known}
     if d.name in ENGINE_PURPOSES:

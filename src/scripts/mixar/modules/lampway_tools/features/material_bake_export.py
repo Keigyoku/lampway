@@ -51,7 +51,7 @@ def material_bake_export(root, object, material=None, channels=None, size=1024, 
     from mixar.modules.paint.core import agent_tools as AT
     st = AT.inspect_paint_layer_stack(ob.name) if ob.type == "MESH" else {"success": False}
     if not st.get("success"):
-        raise C.FeatureError(f"no layer-paint material on {ob.name}: build one (lampway_layered_material) or use lampway_pbr_gen")
+        raise C.FeatureError(f"no layer-paint material on {ob.name}: build one first (lampway_layered_material action=init, or action=apply_manifest)")
     if not ob.data.uv_layers:
         raise C.FeatureError(f"{ob.name} has no UV map: unwrap first (lampway_uv_unwrap): a bake writes into UV space")
     if (not bpy.data.filepath or bpy.data.is_dirty) and not allow_dirty:

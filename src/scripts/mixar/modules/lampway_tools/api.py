@@ -89,6 +89,8 @@ def tool(fn=None, *, consumes=None, produces=None):
                 return {"ok": True, **out} if isinstance(out, dict) else {"ok": True, "result": out}
             except Exception as exc:
                 help_ = next((h for t, h in _HELP.items() if isinstance(exc, t)), ["See the error"])
+                if isinstance(exc, ValueError) and not isinstance(exc, (LookupError, FileNotFoundError)):
+                    help_ = help_ + [f"The call: {fn.__name__}{sig}"]          # audit F13: the shape the next call needs, not just "fix it"
                 return {"ok": False, "error": f"{type(exc).__name__}: {exc}" if not isinstance(exc, (LookupError, S.PathOutsideProject,
                         FileNotFoundError, ValueError, RUN.ToolUnavailable)) else str(exc).strip("'\""), "help": help_}
         return wrapper

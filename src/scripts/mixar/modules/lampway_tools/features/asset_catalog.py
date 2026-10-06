@@ -81,7 +81,7 @@ def asset_catalog_export(assets: list, dest: Path, register=False, library_name=
     from .. import runner as RUN
     from .. import settings as S
     if not assets:
-        raise PlaceError("no assets to publish: pass the records (lampway_asset_get) of materials, node groups, meshes, rigs or actions")
+        raise PlaceError("no assets to publish: pass the records (lampway_vault_get) of materials, node groups, meshes, rigs or actions")
     items = [_item(a) for a in assets]
     dest.mkdir(parents=True, exist_ok=True)
     blend = dest / BLEND

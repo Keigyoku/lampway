@@ -229,3 +229,16 @@ print("RESULT", json.dumps({"fail": fail, "late": late}))
     assert fail["ok"] is False and fail["rc"] == 1 and fail["error"] == "ValueError: the piece has no chest landmarks", fail
     assert fail["help"] and "Traceback" in fail["output"]
     assert late["ok"] is False and late["timed_out"] is True and "timed out" in late["error"] and late["help"]
+
+
+def test_an_argument_refusal_names_the_call_it_wants(tmp_path):
+    """Audit F13: about 30 in-Blender refusals said only "Fix the argument named in the error". The help now carries the tool's
+    call shape (its arguments and their defaults), so the next call can be right."""
+    r = run(tmp_path, '''
+out = api.call("model_compare", json.dumps({"action": "stats", "set": "a.glb"}))
+print("RESULT", json.dumps(out))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    out = r.results[0]
+    assert out["ok"] is False
+    assert any("model_compare(action='stats', set=None" in h for h in out["help"]), out["help"]

@@ -1,10 +1,18 @@
 """The Def and P records every Lampway agent tool definition is written in (lampway_tools.DEFS and wave6_tools.DEFS). A module of its own so
 wave6_tools can import them without importing lampway_tools, which appends wave6_tools.DEFS: no import cycle, whichever is imported first."""
 
+import json
 from dataclasses import dataclass, field
 from typing import Optional
 
 from .providers.base import ToolSpec
+
+
+def needs(name: str, missing, schema: dict) -> str:
+    """The required-argument refusal (audit F13): what is missing, then a call template - every required argument with what it is."""
+    props, req = schema.get("properties") or {}, schema.get("required") or []
+    template = {k: "<" + ((props.get(k) or {}).get("description") or (props.get(k) or {}).get("type") or "value")[:60] + ">" for k in req}
+    return f"{name} needs {', '.join(missing)}. Call it as: {name} {json.dumps(template)}"
 
 
 @dataclass
