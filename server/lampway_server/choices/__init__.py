@@ -129,3 +129,12 @@ def propose_dead_preferences(preferences: dict) -> list:
         except Refused:
             continue
     return made
+
+
+def passing(pid: str, job: Optional[Job] = None, world_=None, doc=None) -> list:
+    """Every option of the chain in force that passes all seven constraints, in the user's order (for a caller that tries them in turn)."""
+    from .resolver import _check, _in_force
+    job = job or Job()
+    w, d = world_ or world(), doc or document(job.project)
+    purpose = REG.get(pid)
+    return [o for o in _in_force(pid, d)[1] if _check(purpose, o, job, w, d) is None]

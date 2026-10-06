@@ -71,3 +71,20 @@ def test_dictation_runs_the_choice(live, monkeypatch, tmp_path):
     CH.active_store().set("agent.dictation", "global", None, {"preferred": "openrouter:google/gemini-3.9-flash"}, by="user")
     t = D.default_transcriber(Settings(state_dir=tmp_path / "srv"))
     assert t.model == "google/gemini-3.9-flash"
+
+
+def test_the_decisions_judge_follows_the_users_chain_and_one_private_rule(live):
+    """5.2 (HC2, HC21): the candidates are agent.decide's chain in force (the user's order), and the ZDR filter is the resolver's privacy
+    constraint - the one copy of the rule."""
+    import httpx
+    from lampway_server import decisions_model as D
+    models = {"data": [{"id": i} for i in ("inception/mercury-decide:free", "cloudflare/clef", "liquid/d1", "upstage/solar-decide")]}
+    zdr = {"data": [{"model_id": "cloudflare/clef"}, {"model_id": "liquid/d1"}, {"model_id": "inception/mercury-decide:free"}]}
+
+    def handler(req):
+        return httpx.Response(200, json=models if req.url.path.endswith("/models") else zdr)
+    CH.active_store().set("agent.decide", "global", None, {"preferred": "openrouter:liquid/d1", "fallbacks": ["openrouter:cloudflare/clef",
+                                                                                                           "openrouter:inception/mercury-decide:free"]}, by="user")
+    d = D.Decider(KEY, transport=httpx.MockTransport(handler))
+    assert d.eligible("private") == ["liquid/d1", "cloudflare/clef"]
+    assert d.eligible("public") == ["liquid/d1", "cloudflare/clef", "inception/mercury-decide:free"]
