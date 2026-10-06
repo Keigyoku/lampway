@@ -45,3 +45,7 @@ idle_ring = "line_hi"
 [vault_drag]
 theme = "dark"
 [vault_drag.surfaces]
+
+[zen_shortcuts]
+theme = "dark"
+[zen_shortcuts.surfaces]
