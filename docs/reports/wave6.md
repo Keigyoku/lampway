@@ -35,7 +35,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 | 17 | wiki/print_prep | P3 | Blender || done |
 | 18 | wiki/profile_revolve | P3 | Blender || done |
 | 19 | wiki/prototype_gates | P3 | server | done |
-| 20 | mixar_docs/scene_from_image | P3 | Blender | |
+| 20 | mixar_docs/scene_from_image | P3 | Blender || done |
 | 21 | mixar_docs/terrain | P3 | Blender || done |
 | 22 | mixar_docs/addon_project | P3 | Blender + server || done |
 | 23 | wiki/editor_connection_receipt | P3 | Blender || done |
@@ -44,7 +44,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 | 26 | wiki/splat_collision_proxy | P3 | Blender || done |
 | 27 | wiki/texture_route_select | P3 | server | done |
 | 28 | resources/material_palette | P3 | Blender || done |
-| 29 | resources/motion_generate | P3 | Blender | |
+| 29 | resources/motion_generate | P3 | Blender || done |
 
 traversal_check moved ahead of level_blockout (the blockout calls it).
 
@@ -179,7 +179,7 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
 ### Shared changes in this batch
 - `agent/tool_defs.py`: `Def` and `P` moved out of `lampway_tools.py` (re-exported there), because importing `wave6_tools` first hit a circular import
   (`cannot import name 'DEFS' from partially initialized module`, found by the docstring pin test).
-- `agent/wave6_tools.py` is now GENERATED from `api_wave6.py`'s docstrings (the lane's `gen_defs` script, kept in scratch) and pinned by
+- `agent/wave6_tools.py` is now GENERATED from `api_wave6.py`'s docstrings (`scripts/lampway/gen_wave6_defs.py`) and pinned by
   `test_wave6_door.py::test_every_def_description_is_its_functions_docstring_word_for_word` (mutated RED: one word changed in a docstring).
 - `features/common.need_object`: a Gaussian splat (a point object with `splat_opacity` and no faces) is refused by every mesh tool that asks for a mesh
   ("a splat has no faces: mesh tools refuse it"), per splat_world section 4. `splat_collision_proxy` looks the splat up itself.
@@ -303,3 +303,25 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
   printed output (file-level where a file failed per parameter).
 - The coordinator's disk rule (2026-10-06): each run's basetemp is removed when the run ends; the suites also leak lw_* and tmp* directories into
   TMPDIR, now contained in the per-run root.
+
+### 20. scene_from_image (P3): done
+- `features/scene_from_image.py`, api `scene_from_image`: masks given or found by segment_image (colour or alpha), each part extruded from its own
+  silhouette by image_to_3d, placed under an ASSUMED straight-on camera (image width = scene_width_m, lower = nearer over scene_depth_m, standing on
+  z = 0) [UNVERIFIED accuracy], in `<name>_scene`, left to right. studio:tripo: N x 100 credits, one plan, nothing created; model engines refused.
+- Tests `test_wave6_scene_from_image.py` (3). RED: "no tool function". The height mutant SURVIVED a strict-order assertion (equal heights differed
+  by voxel noise: 0.9618 vs 0.9617) and was killed once each height was pinned to its pixel height. Mutants killed: x placement, height, max
+  objects, the plan total. Masks land in scenes/<name>/masks (segment_image never overwrites a different record).
+
+### 29. motion_generate (P3): done
+- `pipeline/motion_library.py` (pure: ranker, refusal, model slots, decision rows in the meshqa shape) and `features/motion_generate.py` (index a
+  folder, import the pick as `motion_src`, frames/fps read back, a row in motion/decisions.jsonl). Model engines answer needs_provider and open no
+  socket (patched to raise in the test).
+- Tests `test_wave6_motion_generate.py` (6; the import test builds its own FBX clips in the binary). RED: ImportError. Mutants killed: the
+  no-match refusal, the abbreviations (fwd), the decision row, the frames read-back. Not run: the six real shelf clips (the contract's fixture 5):
+  they are not on this lane's paths; the rank test uses their names.
+
+### Canonical input (the coordinator's rule, 2026-10-06)
+Every Wave 6 tool works in SCHEMA.md's frame: metres, right-handed, +Z up, the body faces -Y, the wearer's left +X (modular_character's side check
+and secondary_chain's bone direction head -> next joint already did). The importer calls I added are marked `# LEGACY(normalize): <reason>` until
+`canon_io` lands on origin/lp/wave5: glb_optimize's re-import, splat_world's SPZ/PLY import, motion_generate's clip import, lod_chain's texture load
+and terrain's heightmap load.

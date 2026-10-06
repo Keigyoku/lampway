@@ -121,7 +121,7 @@ def _decimate(src, name, ratio, keep: set):
 
 
 def _texture(path, scale, out_dir, n, root):
-    img = bpy.data.images.load(path, check_existing=False)
+    img = bpy.data.images.load(path, check_existing=False)   # LEGACY(normalize): a texture copied downsized, colour space untouched; route through canon_io once it lands
     try:
         w, h = img.size
         img.scale(max(1, int(round(w * scale))), max(1, int(round(h * scale))))

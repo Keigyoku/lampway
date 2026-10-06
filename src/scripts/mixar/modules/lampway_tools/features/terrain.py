@@ -275,7 +275,7 @@ def from_image(name, heightmap, size_m=100.0, resolution=256, height_m=10.0):
     _check_res(resolution, size_m)
     if not os.path.isfile(heightmap):
         raise C.FeatureError(f"{heightmap} is not a file")
-    img = bpy.data.images.load(heightmap, check_existing=False)
+    img = bpy.data.images.load(heightmap, check_existing=False)   # LEGACY(normalize): a heightmap read as luminance only; route through canon_io once it lands
     try:
         w, h = img.size
         px = np.array(img.pixels[:], dtype=np.float64).reshape(h, w, -1)[..., :3]

@@ -28,7 +28,7 @@ def _import(path):
     before = {k: set(x.name for x in getattr(bpy.data, k)) for k in KINDS}
     sc = bpy.data.scenes.new("lw_glbopt")
     with bpy.context.temp_override(scene=sc, view_layer=sc.view_layers[0]):
-        bpy.ops.import_scene.gltf(filepath=path)
+        bpy.ops.import_scene.gltf(filepath=path)   # LEGACY(normalize): a round-trip check of the tool's own output, compared raw to raw; route through canon_io once it lands
     new = {k: [x for x in getattr(bpy.data, k) if x.name not in before[k]] for k in KINDS}
     return sc, new
 

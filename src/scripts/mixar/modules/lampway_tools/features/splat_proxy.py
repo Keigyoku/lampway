@@ -36,12 +36,12 @@ def splat_world_import(root, path, max_points=200000, name="lw_world", resolve=N
             data = spz_to_ply(fh.read())
         with open(ply, "wb") as fh:
             fh.write(data)
-        out = _splat.splat_import(ply, max_points, name)
+        out = _splat.splat_import(ply, max_points, name)   # LEGACY(normalize): a raw splat enters the scene; route through canon_io once it lands
         out["converted_from"] = os.path.relpath(full, root)
         out["ply"] = os.path.relpath(ply, root)
         return out
     if ext == ".ply":
-        return _splat.splat_import(full, max_points, name)
+        return _splat.splat_import(full, max_points, name)   # LEGACY(normalize): as above
     raise C.FeatureError(f"{path}: a splat is .spz or 3DGS .ply")
 
 

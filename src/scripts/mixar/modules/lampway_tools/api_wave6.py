@@ -11,7 +11,7 @@ from . import settings as S
 TOOLS = ("modular_character", "character_pipeline", "playblast_capture", "lod_chain", "motion_experiment", "secondary_chain_rig", "cloth_garment_sim",
          "face_rig_validate", "glb_optimize", "traversal_check", "level_blockout", "part_budget_plan", "platform_budget_check", "print_check", "print_prep",
          "profile_revolve", "splat_world", "splat_collision_proxy", "vehicle_wheel_rig", "editor_connection_receipt", "terrain", "addon_read",
-         "addon_stage_patch", "addon_commit", "addon_rollback", "material_palette")
+         "addon_stage_patch", "addon_commit", "addon_rollback", "material_palette", "scene_from_image", "motion_generate")
 
 
 def _root() -> str:
@@ -320,3 +320,34 @@ def material_palette(image, n=9, locked=None, method="notable", alpha_min=0.05, 
     if make_materials:
         out["materials"] = PAL.make_materials(out, stem)
     return out
+
+
+def scene_from_image(image, masks=None, max_objects=8, name="lw_scene", engine="pipeline", scene_width_m=10.0, scene_depth_m=10.0):
+    """One reference image to separate, editable objects placed as the image arranges them. engine pipeline: the image's parts (masks given, or found
+    by segment_image by colour or alpha), each extruded from its own silhouette (image_to_3d), placed under an ASSUMED straight-on camera (the image is
+    scene_width_m wide over a scene_depth_m deep ground plane; lower in the image is nearer; each part stands on the ground at its pixel height: an
+    approximation), into the collection <name>_scene, left to right as in the image. engine studio:tripo: a plan only, the number of objects x the
+    action's price with the total, one confirm for the whole scene; nothing is created. Refused: max_objects outside 1..16, more parts than
+    max_objects, a model engine (reconstruction is never local), a scene name in use."""
+    from .features import scene_from_image as SFI
+    return SFI.scene_from_image(_root(), image, masks, max_objects, name, engine, scene_width_m, scene_depth_m, resolve=_p)
+
+
+def motion_generate(prompt="", engine="library", action="generate", library="anims", duration=3.0, skeleton="soma30", fps=30, seed=None, num_samples=1):
+    """A motion clip for a short prompt. engine library (the default): a deterministic ranker over the clips indexed in <library>/index.json (the
+    prompt's words against each clip's name and the captain's tags; ties go to the duration nearest `duration`); the picked clip is imported as the
+    armature motion_src with its action named after the clip (replacing this tool's previous one), its frames and fps read back, and one decision
+    row is appended to motion/decisions.jsonl. action index scans the library folder (fbx, glb, gltf, bvh) into index.json, keeping existing tags.
+    engine model:kimodo | model:unimate: needs_provider (no text-to-motion host is configured; nothing is run or sent, and there is no silent
+    fallback to the library). Refused: an empty or over-long prompt, duration outside 0.5..10, no clip matching (the library's words are listed),
+    no index, a folder outside the root. Feed the clip to animation_retarget."""
+    from .pipeline import motion_library as ML
+    if engine != "library":
+        return ML.model_slot(engine)
+    from .features import motion_generate as MG
+    lib = _p(library)
+    if action == "index":
+        return MG.index(_root(), lib)
+    if action != "generate":
+        raise ValueError("action is generate | index")
+    return MG.generate(_root(), prompt, lib, duration)
