@@ -650,6 +650,7 @@ from .features import scene_cleanup as _F_sc                # noqa: E402
 from .features import batch_export as _F_bx                 # noqa: E402
 from .features import camera_shot as _F_cs                  # noqa: E402
 from .features import procedural_library as _F_pl          # noqa: E402
+from .features import layered_material as _F_lm            # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
 
@@ -893,6 +894,17 @@ def procedural_library(action="list", category=None, query=None, material_id=Non
     hue, metallic and roughness means, and near-duplicate pairs). bake renders one material at size px with params to a PNG and its sha256 (compare_to another PNG for the mean difference). add_to_layer puts
     the material on `object` as a procedural layer of its paint stack (initialise one first if the refusal says so)."""
     return _F_pl.procedural_library(str(_settings().project_root), action, category, query, material_id, object, layer_name, params, size, bake_stats, _p(compare_to) if compare_to else None, upgrade)
+
+
+@tool
+def layered_material(action="inspect", object=None, material=None, layer=None, manifest=None, layer_index=-1, params=None):
+    """The Client's layer-paint stack (an editable material built from layers and masks) from the agent. init puts a paint project on the mesh's material; inspect returns the stack ({index, name, type, enabled,
+    blend, opacity, channels, mask}); add_layer {type: fill | paint | image | group, name, blend: MIX|ADD|MULTIPLY|SUBTRACT|SCREEN|OVERLAY, opacity 0..1, color [r,g,b] for fill, size for paint/image, mask: {type:
+    edge_detect | color_id | vcol | image}, projection: uv | triplanar | planar | spherical | cylindrical | decal} (uv needs a UV map: otherwise use triplanar or unwrap first); add_procedural puts a library
+    material (see procedural_library) on as a layer; set_params {opacity, enabled, name, blend_type, projection_type, translation, rotation, scale ...} edits layer_index (-1 = the active layer); apply_manifest
+    builds a whole stack from a manifest (index 0 must be a PBR layer). Refused: not a mesh, no paint project yet (the refusal names init), unknown blend / type / mask / projection (each lists the choices).
+    Mask invert is not built. One undo step per Blender operator the Client's package uses."""
+    return _F_lm.layered_material(action, object, material, layer, manifest, layer_index, params)
 
 
 @tool
