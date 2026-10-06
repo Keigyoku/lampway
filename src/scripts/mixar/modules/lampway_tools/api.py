@@ -644,6 +644,7 @@ from .features import segment as _F_segment                # noqa: E402
 from .features import uv as _F_uv                          # noqa: E402
 from .features import uv_rectify as _F_uvr                # noqa: E402
 from .features import uv_layout as _F_uvl                  # noqa: E402
+from .features import model_compare as _F_mc                # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
 
@@ -817,6 +818,17 @@ def uv_layout(object, ops=None, world_axis="z", per_face=False, mirror_axis="x",
     Returns oriented/aligned/flipped_fixed counts, the stacked pairs with their Chamfer distance, and a report (accidental overlap excluding stacked, the deliberate stacked overlap, flipped fraction, coverage).
     per_face is not built. Refused: unknown op, no UV layer, a textured object (discard_texture=true overrides), an off-plane mesh for stacking."""
     return _F_uvl.run(object, ops, world_axis, per_face, mirror_axis, match_tolerance, padding, repack, name, discard_texture, str(_settings().project_root))
+
+
+@tool
+def model_compare(action="stats", set=None, views=None, size=512, blind=False, pick=None, require_pick=False):
+    """Put 2..4 models (GLB files under the project root, or scene objects) side by side with the numbers that decide. stats: read from the FILES without Blender: triangles, vertices, textures with their sizes and
+    roles, which PBR channels were actually baked (a flat fallback is the finding), n-gon encoding, compression, generator. build: every model is normalised into the same 2-unit box in a scratch scene (yaw, scale the
+    longest axis to 2, measure again, THEN centre), saved as compare.json under <root>/<piece>/compare/<id>/; blind=true replaces the names with aliases A..D assigned by file hash and seals the real labels until the
+    user picks. numbers: per pair and view the silhouette IoU, area ratio, centroid shift AND the interior difference with ten height bands and the enclosed holes. reveal shows the labels (after the pick when
+    require_pick). pick is the USER's: an agent is refused. close removes the scratch scene. Refused: fewer than 2 or more than 4 models, a file outside the root, not a glTF binary, a meshopt-only file for the 3D
+    view. The live windowed viewer with synchronised cameras is not built (it needs the pop-out probe)."""
+    return _F_mc.run(action, set, views, size, blind, pick, require_pick, str(_settings().project_root))
 
 
 @tool
