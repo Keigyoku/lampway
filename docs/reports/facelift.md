@@ -18,6 +18,7 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | `6881d79` (04 and the pill) | `mixie_chat_*` painters, the `Fraunces.woff2` datafile, `agent_ui_state.cc`, `agent_ui_controls_paint.cc`, `agent_ui_draw.cc`, `agent_bubble_references.cc`, `space_agent_bubble.cc`. |
 | (08) | `agent_ui_tabmedia.cc`, the new `agent_ui_tabmedia_estimate.cc` (CMake list), `agent_ui_tabmedia_intern.hh`, the `PlexMono.woff2` datafile, and `MixarVariant::Accent` in `UI_mixar_types.hh` (included widely: an 830-step rebuild), `interface/mixar/components.cc`, `interface/mixar/style.cc`. |
 | (12) | `userdef_default_theme.c` (Timeline `simulated_frames` leaves the wire colour) and the two theme presets. |
+| (install rule) | `src/source/creator/CMakeLists.txt`: a re-configure and `ninja install` (no compile). |
 
 ## Gate totals at the contract 01 push (`30b6c2fd`, merged with `origin/lp/wave5` `00d907d4`)
 
@@ -587,6 +588,80 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   label row, not a large figure (a Python layout cannot size a font). The server's approval carries no uploads or
   read-at time, so the card says "uploads: not reported by the server" and "Read back from <studio>" without a time.
   The day cap is the server's session cap (Lampway keeps no day total), and the card says so.
+
+## Coordinator addition: the Connections window (P0, `specs/connections/connections_face.md`)
+
+- **Against the contract, not yet the server**: the hub's routes live on `origin/lp/connections` (`connections/routes.py`),
+  which `origin/lp/wave5` has not merged; the client speaks those routes (`connections_client.py`, read from that
+  branch's code) and every test uses a fake client. Nothing was run against a live hub.
+- **Words and cues** (`connections_face.py`, no bpy): one glyph per state, readable in greyscale (connected, connected
+  with a warning, not checked, signed out, expired, not connected, error, and the hand for a sign-in waiting on the
+  browser, the only lit row); "route off" is the route column and a word on hover, never a colour on the glyph; the
+  one action that clears the state (Test, Sign in with <label>, Paste a key); the list in the contract's group order
+  with source and check age on hover; Sign out only for a login Lampway holds, Forget only for a key or pointer it holds.
+  It reads only an allow-list of view fields, so a planted secret in any other field never reaches a word. The cue
+  family is in `tokens.json` (`check_cues.py`: rest state "connected"; the warning row is coloured by its accent
+  triangle, which is the distinguishing mark) and the eight glyphs are preview-only icons rendered by
+  `lampway_icons.py` from the sheet (new symbols `ring-open`, `ring-dashed`, `tri-small`; no native rebuild), plus a
+  `plug` preview.
+- **The window** (`ui/connections.py`): a pop-out and Preferences > Interface > Connections, one drawing; the status
+  bar has a plug beside the wire chip that opens it (server up or down). The pasted key is a WindowManager
+  `PASSWORD`, `SKIP_SAVE`, `HIDDEN` field, emptied after the request whatever it returned; refusals are drawn under the
+  field; every write refuses while a script runs; the window links to Privacy and has no route switch.
+- Tests: `tests/lampway/test_lampway_connections_face.py` (10; RED observed: the module missing, then the route word,
+  the foot rule), `tests/lampway_tools/test_lampway_connections_live.py` (5, real binary; mutation-checked: without
+  the `finally` the secret-cleared test fails, without the gate the script test fails),
+  `tests/lampway/test_statusbar.py::test_the_plug_beside_the_wire_chip_opens_connections` (RED observed), and
+  `tests/lampway_visual/test_connections_window.py` (a missing row with the paste field, which the QA dump reports as
+  secret; a sign-in waiting).
+- **Not done**: test 9 (an agent card's `needs_connection` button: the cards are native, contract 05); the expander's
+  Used by, other sources, history and Rotate (only Move into keyring is there); the Studios accounts lines and the
+  Privacy rows reading Connections; the splash's fifth cue; captures against `mockups/16-connections.html`.
+
+## Coordinator addition: the Choices window (P0, `specs/choices/choices_face.md`; CH8 and CH1 as ruled)
+
+- **Against the contract, not yet the server**: like Connections, the Choices routes are on `origin/lp/connections`
+  (`choices/routes.py`, `views.py`), not in `origin/lp/wave5`; `choices_client.py` speaks them and every test uses a
+  fake client.
+- **CH8, Choices absorbs Providers**: `lampway.providers_open` (the Studios panel's button, now "Choices: agent, images,
+  video, spending", and the splash's row, now "Choices and privacy") opens Choices on Agents. The old dialog is kept as
+  `lampway.providers_dialog` for two uses only: Choices' "Change spending" (the spend rows' existing write path), and a
+  server that has no Choices yet (an HTTP 404), where the window says so and offers it, so nothing is lost before the
+  server lands. Spending is the list's last row: each provider's click rule, caps and session spend from `/app/spend`.
+- **Words and cues** (`choices_face.py`): a diamond per purpose (preferred filled, fallback half, override dotted,
+  blocked crossed, not chosen dashed) and the hand for a waiting proposal, the one glow; the reason word ("fallback:
+  studio:tripo is off", "this project", "not chosen yet", "nothing can run: ..."); each option's six facts (where it
+  runs, its connection's glyph from the Connections family, cost on hover with the date it was measured, retention:
+  lamp local, shield zero retention, eye "kept by the provider: terms unread", quality); a skipped option's reason and
+  its one fix (Open in Privacy, Connect <label>). The `choice` family is in `tokens.json` (`check_cues.py` passes;
+  its "waits for you" now counts as waiting for C3), the five diamonds and the eye are preview-only glyphs.
+- **CH1, the eye**: an option acknowledged for private content carries the eye; clicking it takes the acknowledgement
+  back (`POST /app/choices/acknowledge` with `private: false`); a kept option not yet acknowledged offers "Allow private
+  content to <option>".
+- **The window** (`ui/choices.py`): pop-out and Preferences > Interface > Choices; the chain reorders with up / down
+  (a PUT of the new preferred and fallbacks); proposals are accepted for this project or all projects, or declined;
+  "Use yours again" clears a project override. Every write refuses while a script runs; nothing here switches a route
+  or touches a connection.
+- Tests: `tests/lampway/test_lampway_choices_face.py` (8; RED observed: the module missing, the window file missing),
+  `tests/lampway_tools/test_lampway_choices_live.py` (3, real binary: draw pure, the not-running and no-Choices rows,
+  the script gate (its falsifier run: dropping the gate fails it), reorder, accept, the Providers button),
+  `tests/lampway_visual/test_choices_window.py` (a fallback purpose with a waiting proposal and the eye).
+- **Not done**: test 7 (`needs_choice` on an agent card: the cards are native); test 9 (`mockups/parity.py`
+  extended to 17-choices); params as typed fields and the scope switch (the window shows scopes and clears an
+  override, it does not edit params); the expanders (override policy, recent jobs, quality records, closed
+  proposals); "Add an option"; the Connections window's "Used by" linking here.
+
+## Coordinator addition: the install carries no agent contract
+
+- The installed app had `scripts/mixar/modules/lampway_tools/AGENTS.md` and `CLAUDE.md` (the rail's contract files).
+  `src/source/creator/CMakeLists.txt` now excludes `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, `.agents` and `.claude` from the
+  scripts install, and an `install(CODE)` step removes any an older install still has (an install over an install keeps
+  what was there). `scripts/lampway/sync_python.sh` excludes the same names and deletes them from the target, with the
+  install's own `_build_env.py` and caches protected.
+- Tests: `tests/lampway_tools/test_install_has_no_agent_contracts.py` walks the installed tree of the build under test
+  (RED observed: the two files), and `tests/lampway_tools/test_sync_python.py::test_sync_does_not_ship_agent_contracts_and_takes_old_ones_out`
+  (written after the sync change; its falsifier run: without `--delete-excluded` it fails).
+- Native: the CMake change needs a re-configure and an install (no compile).
 
 ## Which build is in `build/Prod`
 

@@ -44,3 +44,16 @@ def test_sync_refuses_a_bin_dir_that_is_not_an_install(tmp_path):
 def test_sync_unknown_flag_exits_2(tmp_path):
     run = subprocess.run([str(SCRIPT), "--nope"], capture_output=True, text=True)
     assert run.returncode == 2
+
+
+def test_sync_does_not_ship_agent_contracts_and_takes_old_ones_out(tmp_path):
+    """The coordinator's build rule: AGENTS.md / CLAUDE.md never reach an install, and a sync removes ones an older
+    install still has, while the install's own generated files stay."""
+    bindir = _install(tmp_path)
+    mixar = bindir / "5.2" / "scripts" / "mixar"
+    stale = mixar / "modules" / "lampway_tools"
+    stale.mkdir(parents=True)
+    (stale / "AGENTS.md").write_text("old")
+    subprocess.run([str(SCRIPT), "--bin-dir", str(bindir)], check=True, capture_output=True)
+    assert not list(mixar.rglob("AGENTS.md")) and not list(mixar.rglob("CLAUDE.md"))
+    assert (mixar / "config" / "_build_env.py").exists()

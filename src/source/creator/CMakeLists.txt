@@ -580,7 +580,23 @@ if(WITH_PYTHON)
     PATTERN "mixar/modules/testing" EXCLUDE
     REGEX "/scripts/mixar/.+/tests$" EXCLUDE
     PATTERN "${MIXAR_TOUR_PLACEHOLDER_EXCLUDE}" EXCLUDE
+
+    # Lampway: the repository's agent contracts (AGENTS.md, CLAUDE.md, the rail's skills) instruct agents working on
+    # the source; they never ship in the app (tests/lampway_tools/test_install_has_no_agent_contracts.py).
+    PATTERN "AGENTS.md" EXCLUDE
+    PATTERN "CLAUDE.md" EXCLUDE
+    PATTERN "SKILL.md" EXCLUDE
+    PATTERN ".agents" EXCLUDE
+    PATTERN ".claude" EXCLUDE
   )
+  # An install over an older one keeps what was installed before; take the agent contracts back out of it.
+  install(CODE "
+    file(GLOB_RECURSE _lampway_agent_files \"\${CMAKE_INSTALL_PREFIX}/${TARGETDIR_VER}/scripts/*AGENTS.md\"
+         \"\${CMAKE_INSTALL_PREFIX}/${TARGETDIR_VER}/scripts/*CLAUDE.md\" \"\${CMAKE_INSTALL_PREFIX}/${TARGETDIR_VER}/scripts/*SKILL.md\")
+    if(_lampway_agent_files)
+      file(REMOVE \${_lampway_agent_files})
+    endif()
+  ")
 
   if(WITH_PYTHON_MODULE)
     install(

@@ -231,7 +231,7 @@ class LAMPWAY_PT_studios(Panel):
         top = layout.row(align=True)
         top.operator("lampway.studio_refresh", icon="FILE_REFRESH")
         top.label(text="shelf engine" if st["engine"].get("shelf") else "bundled drivers")
-        layout.operator("lampway.providers_open", text="Providers: agent, swarm, images", icon="PREFERENCES")
+        layout.operator("lampway.providers_open", text="Choices: agent, images, video, spending", icon="PREFERENCES")
         if st["error"]:
             layout.label(text=st["error"][:80], icon="ERROR")
         row = layout.row(align=True)

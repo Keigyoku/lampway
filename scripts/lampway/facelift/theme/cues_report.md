@@ -33,6 +33,30 @@ Each attention state against its family's resting state. Delta E is CIE76 in L*a
 | route | off vs waiting for your confirm | light | 63 | 63 | 64 | 22 | yes | ok |
 | route | off vs on | dark | 63 | 28 | 37 | 16 | yes | ok |
 | route | off vs on | light | 67 | 26 | 45 | 20 | yes | ok |
+| connection | connected vs connected, warning | dark | 68 | 50 | 43 | 6 | yes | ok |
+| connection | connected vs connected, warning | light | 61 | 35 | 26 | 3 | yes | ok |
+| connection | connected vs not checked | dark | 87 | 59 | 68 | 3 | yes | ok |
+| connection | connected vs not checked | light | 106 | 77 | 82 | 9 | yes | ok |
+| connection | connected vs signed out | dark | 44 | 9 | 20 | 4 | yes | ok |
+| connection | connected vs signed out | light | 40 | 13 | 21 | 7 | yes | ok |
+| connection | connected vs expired | dark | 68 | 50 | 43 | 6 | yes | ok |
+| connection | connected vs expired | light | 61 | 35 | 26 | 3 | yes | ok |
+| connection | connected vs missing | dark | 49 | 21 | 30 | 21 | yes | ok |
+| connection | connected vs missing | light | 41 | 16 | 20 | 11 | yes | ok |
+| connection | connected vs error | dark | 90 | 19 | 17 | 8 | yes | ok |
+| connection | connected vs error | light | 89 | 25 | 13 | 3 | yes | ok |
+| connection | connected vs sign-in waiting for your browser | dark | 68 | 50 | 43 | 6 | yes | ok |
+| connection | connected vs sign-in waiting for your browser | light | 72 | 61 | 52 | 33 | yes | ok |
+| choice | served by the preferred option vs served by a fallback | dark | 68 | 50 | 43 | 6 | yes | ok |
+| choice | served by the preferred option vs served by a fallback | light | 61 | 35 | 26 | 3 | yes | ok |
+| choice | served by the preferred option vs served by an override | dark | 87 | 59 | 68 | 3 | yes | ok |
+| choice | served by the preferred option vs served by an override | light | 106 | 77 | 82 | 9 | yes | ok |
+| choice | served by the preferred option vs nothing can run | dark | 90 | 19 | 17 | 8 | yes | ok |
+| choice | served by the preferred option vs nothing can run | light | 89 | 25 | 13 | 3 | yes | ok |
+| choice | served by the preferred option vs not chosen yet | dark | 49 | 21 | 30 | 21 | yes | ok |
+| choice | served by the preferred option vs not chosen yet | light | 41 | 16 | 20 | 11 | yes | ok |
+| choice | served by the preferred option vs an agent proposal waits for you | dark | 68 | 50 | 43 | 6 | yes | ok |
+| choice | served by the preferred option vs an agent proposal waits for you | light | 72 | 61 | 52 | 33 | yes | ok |
 | build | Planned vs Live | dark | 44 | 9 | 20 | 4 | yes | ok |
 | build | Planned vs Live | light | 40 | 13 | 21 | 7 | yes | ok |
 | build | Planned vs Built | dark | 53 | 50 | 49 | 1 | yes | ok |
