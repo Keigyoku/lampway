@@ -140,7 +140,7 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None, connections_transport=None) -> Starlette:
     from . import egress as _EG
     if egress is not None:
         _EG.set_active(egress)                                                      # an explicit manager (tests, embedding) wins
@@ -983,6 +983,15 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         return JSONResponse(provider_prefs.view(settings))
 
     routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"])]
+    # ---- Connections (connections/): every credential, its source and its status; the user's writes; the read-only view the agent gets
+    from . import connections as CONN
+    from .higgsfield_mcp import HiggsfieldMCP
+    conn_hub = CONN.Hub(settings.state_dir, oauth={"chatgpt_plan": chatgpt, "higgsfield": hf_auth},
+                        endpoint=lambda: settings.openai_base_url, mcp_clients={"higgsfield": lambda: HiggsfieldMCP(hf_auth)},
+                        byok_present=lambda: bool((store.byok() or {}).get("api_key")), transport=connections_transport)
+    CONN.set_active(conn_hub)
+    from .connections.routes import connection_routes
+    routes += connection_routes(lambda: conn_hub, _bearer_ok)
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager
@@ -999,11 +1008,15 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
 
         async def tick():
             while True:
-                await asyncio.sleep(60)
+                await asyncio.sleep(60)                            # never a remote check at start: the first poll is a minute in
                 try:
                     await jobs.recover()
                 except Exception:  # noqa: BLE001
                     pass
+                try:
+                    await asyncio.to_thread(conn_hub.poll)          # C2: reads only, routes on, used in the last day, every 30 min
+                except Exception:  # noqa: BLE001
+                    logging.getLogger("lampway.connections").warning("the connections poll failed", exc_info=True)
         task = asyncio.get_running_loop().create_task(tick())
         try:
             yield
@@ -1023,5 +1036,6 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.jobs = jobs
     app.state.prompts = prompt_service
     app.state.higgsfield_auth = hf_auth
+    app.state.connections = conn_hub
     app.state.jobs = jobs
     return app

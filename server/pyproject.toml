@@ -17,6 +17,8 @@ dependencies = [
     "PyJWT[crypto]>=2.8",
     "python-multipart>=0.0.9",     # the asset-search and handwriting endpoints take multipart/form-data
     "pillow>=10",                  # the asset-search image features (colour histograms of the previews)
+    "keyring>=25",                 # Connections keeps the keys Lampway holds in the OS keyring (decision C6)
+    "secretstorage>=3.3; sys_platform == 'linux'",   # keyring's Secret Service backend on Linux (decision C6)
 ]
 
 [project.optional-dependencies]
