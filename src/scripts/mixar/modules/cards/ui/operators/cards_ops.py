@@ -8,6 +8,15 @@ from bpy.props import BoolProperty, EnumProperty, IntProperty, StringProperty
 from bpy.types import Operator
 
 
+def ui_theme(context) -> str:
+    """light when Blender's own UI is light (the Paper theme), else dark: the report opens in the same light as the app."""
+    try:
+        r, g, b = context.preferences.themes[0].user_interface.wcol_regular.inner[:3]
+    except (AttributeError, IndexError):
+        return "dark"
+    return "light" if 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5 else "dark"
+
+
 def _st():
     from mixar.modules.cards.core import state
     state.ensure_running()
@@ -89,7 +98,8 @@ class LAMPWAY_OT_cards_open(Operator):
                 webbrowser.open(value["url"])
             else:
                 st.CACHE.update(message=str(value))
-        st.PUMP.later(lambda: st.request("GET", f"/app/cards/{cid}/open?step={step}"), done)
+        theme = ui_theme(context)
+        st.PUMP.later(lambda: st.request("GET", f"/app/cards/{cid}/open?step={step}&theme={theme}"), done)
         return {"FINISHED"}
 
 

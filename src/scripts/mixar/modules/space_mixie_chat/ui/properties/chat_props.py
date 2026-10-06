@@ -729,9 +729,7 @@ def _on_chat_mode_changed(self, context):
     """When the user switches INTO Library mode, show the full asset grid so the
     browse experience is immediate (no need to press Enter first).
 
-    Currently unreachable: LIBRARY is not offered by the mode enum (see
-    ``register()``). Kept, like the rest of ``core/library_browse.py``, so
-    re-listing the item is the only change needed to bring the mode back.
+    The first page comes from the Asset Vault (``core/library_vault_chat.py``).
     """
     if getattr(self, "mixie_chat_mode", "") == 'LIBRARY':
         try:
@@ -798,20 +796,14 @@ def register():
         items=[
             ('AGENT', "Agent", "AI agent for general tasks and assistance", 'AGENT', 0),
             ('GENERATE', "Generate", "Generate creative content (images, 3D models, textures)", 'GENERATE', 1),
-            # Values 2 and 4 belong to retired modes and can still be persisted
-            # in old .blend files. Never reuse either: doing so would silently
-            # turn those files into another mode on load. 2 was the legacy ASK
-            # mode. 4 was LIBRARY, which is no longer offered — the item is
-            # unlisted here so it cannot be drawn in any mode dropdown (the
-            # chat footer, the bubble footer and the bubble menu all enumerate
-            # this property) nor entered by any other route. Library was
-            # authored against 2 before Add-on Project landed and was moved to
-            # 4 for exactly this reason.
-            #
-            # `core/library_browse.py` is left intact and fully dormant — every
-            # one of its entry points is gated on this mode — so restoring the
-            # feature is just re-listing the item below.
+            # Value 2 belongs to the retired ASK mode and can still be persisted
+            # in old .blend files: never reuse it, or those files would silently
+            # open in another mode (the load sanitizer resets it to AGENT).
             ('ADDON_PROJECT', "Add-on Project", "Build and maintain a linked multi-file Blender add-on", 'FILE_SCRIPT', 3),
+            # Library browses and searches the Asset Vault (core/library_vault_chat.py). Back on its own value 4
+            # (the captain, 2026-10-06: "yeah bring LIBRARY mode back"), so a file saved in Library mode before
+            # it was retired opens in Library mode again.
+            ('LIBRARY', "Library", "Browse and search your Asset Vault; click an asset to put it in the scene", 'ASSET_MANAGER', 4),
         ],
         default='AGENT',
         update=_on_chat_mode_changed,

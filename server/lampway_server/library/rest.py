@@ -89,6 +89,10 @@ def routes(vault, bearer_ok) -> list:
     async def collect(request):
         b = await body(request)
         res = await run(CU.collect, vault.lib, str(b.get("action") or ""), b.get("collection"), b.get("name"), b.get("kind") or "board", b.get("asset_ids") or (), b.get("query"))
+        if b.get("action") == "get" and res.get("items"):
+            thumbs = await run(vault.thumbs, [i["id"] for i in res["items"]])
+            for i in res["items"]:
+                i.setdefault("thumb", thumbs.get(i["id"]))
         return JSONResponse(envelope(res))
 
     async def embed(request):
@@ -126,6 +130,28 @@ def routes(vault, bearer_ok) -> list:
         b = await body(request)
         return JSONResponse(envelope(await run(_diff, str(b.get("a") or ""), str(b.get("b") or ""))))
 
+    PROXY_FPS = 8.0                              # asset_video's proxy rate (asset_video.md section 5: "the 8 fps 256-px JPEG proxy")
+
+    def _align(a, b, mode):
+        frames = []
+        for aid in (a, b):
+            proxy = VW.view_products(vault.lib, aid)["proxy"]
+            if not proxy:
+                raise LibraryError(f"{aid}: no proxy frames yet: queued (asset_video)")
+            frames.append(proxy)
+        try:
+            return VW.clip_align(frames[0], frames[1], mode, PROXY_FPS, PROXY_FPS)
+        except ValueError as exc:
+            raise LibraryError(str(exc)) from None
+
+    async def align(request):
+        b = await body(request)
+        return JSONResponse(envelope(await run(_align, str(b.get("a") or ""), str(b.get("b") or ""), str(b.get("mode") or "start"))))
+
+    async def board_move(request):
+        b = await body(request)
+        return JSONResponse(envelope(await run(vault.board_move, request.path_params["board"], request.path_params["asset_id"], float(b.get("x") or 0), float(b.get("y") or 0))))
+
     p = "/api/v1/library"
     return [Route(f"{p}/status", guarded(status), methods=["GET"]), Route(f"{p}/query", guarded(query), methods=["POST"]),
             Route(f"{p}/assets/{{asset_id}}", guarded(asset), methods=["GET"]), Route(f"{p}/assets/{{asset_id}}/versions/{{n:int}}", guarded(version), methods=["GET"]),
@@ -135,4 +161,5 @@ def routes(vault, bearer_ok) -> list:
             Route(f"{p}/similar", guarded(similar), methods=["POST"]), Route(f"{p}/collect", guarded(collect), methods=["POST"]),
             Route(f"{p}/embed", guarded(embed), methods=["POST"]), Route(f"{p}/relate", guarded(relate), methods=["POST"]),
             Route(f"{p}/assets/{{asset_id}}/lineage", guarded(lineage), methods=["GET"]), Route(f"{p}/assets/{{asset_id}}/views", guarded(views), methods=["GET"]),
-            Route(f"{p}/diff", guarded(diff), methods=["POST"])]
+            Route(f"{p}/diff", guarded(diff), methods=["POST"]), Route(f"{p}/clip_align", guarded(align), methods=["POST"]),
+            Route(f"{p}/boards/{{board}}/items/{{asset_id}}", guarded(board_move), methods=["POST"])]

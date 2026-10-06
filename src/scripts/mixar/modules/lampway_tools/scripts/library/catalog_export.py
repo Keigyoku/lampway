@@ -25,6 +25,7 @@ def read(it):
     if it['import']:
         before = set(bpy.data.objects)
         mod, op = IMPORT[_os.path.splitext(it['path'])[1].lower()]
+        # LEGACY(normalize): importer defaults, no lampway_normalize_mesh pass (specs/canon/normalization); switch when canon_io lands
         getattr(getattr(bpy.ops, mod), op)(filepath=it['path'])
         new = [o for o in bpy.data.objects if o not in before]
         roots = [o for o in new if o.parent is None]

@@ -29,7 +29,7 @@ def fake(method, path, body=None, timeout=60):
     calls.append([method, path, body])
     if path.startswith("/app/cards?") or path == "/app/cards":
         return {"data": CARDS}
-    if path.endswith("/open?step=0"):
+    if "/open?step=0" in path:
         return {"data": {"url": "http://127.0.0.1:41234/view/g/2026-10-03_boots1/round-4.html", "step": "Round 4"}}
     return {"data": {"id": "boots1", "status": "active", "pinned": False}}
 LC._request = fake
@@ -76,3 +76,4 @@ print("RESULT", json.dumps({"empty": [e[1] for e in log0 if e[0] == "label"], "b
     assert d["ops"].count("lampway.cards_open") == 2 and "lampway.cards_pin" in d["ops"]
     assert ["POST", "/app/cards/boots1", {"pinned": False}] in d["after"]
     assert d["opened"] == ["http://127.0.0.1:41234/view/g/2026-10-03_boots1/round-4.html"]
+    assert ["GET", "/app/cards/boots1/open?step=0&theme=dark", None] in d["after"], "Blender's dark UI asks for the dark report"

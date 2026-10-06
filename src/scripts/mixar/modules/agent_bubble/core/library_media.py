@@ -221,19 +221,28 @@ def refresh(context=None, *, force: bool = False) -> bool:
         for file_path, kind, mtime in cached[1]:
             if file_path not in listed:
                 listed.add(file_path)
-                wanted.append((name, file_path, kind, int(mtime)))
+                wanted.append((name, file_path, kind, int(mtime), os.path.basename(file_path)))
     for stale in set(_scan_cache) - live_paths:
         del _scan_cache[stale]
+    try:                                       # the Asset Vault's pictures and clips (library_vault.py): one more library on the same rows
+        from . import library_vault
 
-    current = [(f.library, f.path, f.kind, f.mtime) for f in files]
+        for row in library_vault.rows():
+            if row[1] not in listed:
+                listed.add(row[1])
+                wanted.append(row)
+    except Exception:  # noqa: BLE001 — the folders still list
+        logger.debug("[Generations] vault rows unavailable", exc_info=True)
+
+    current = [(f.library, f.path, f.kind, f.mtime, f.name) for f in files]
     if current == wanted:
         return False
     files.clear()
-    for lib_name, file_path, kind, mtime in wanted:
+    for lib_name, file_path, kind, mtime, label in wanted:
         item = files.add()
         item.library = lib_name
         item.path = file_path
-        item.name = os.path.basename(file_path)
+        item.name = label
         item.kind = kind
         item.mtime = mtime
         item.icon_id = _icon_id(file_path, kind)
