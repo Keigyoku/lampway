@@ -307,3 +307,32 @@ def test_ratchet_in_the_working_tree_a_rise_needs_a_merge_in_progress_and_its_re
     git("merge", "-q", "--no-ff", "--no-commit", "orphans")
     assert violations(r, "count.txt", worktree_text="140\n")                                   # merging, but no record
     assert violations(r, "count.txt", worktree_text=f"140\nrebaseline 140 merged={tip} reason=lane orphans\n") == []
+
+
+def test_the_door_checks_each_element_of_a_list_and_names_the_index_of_the_first_bad_one():
+    """coordinator ruling C: a tool taking a LIST of objects passes its door only when every element does; the refusal names the
+    index of the first element that fails, and its help normalizes that element."""
+    d = _in_blender("""
+import bmesh, copy
+from mixar.modules.lampway_tools import canon_asset as CA, canon_io
+probe = api.tool(consumes={"objects": api.Need(kind=("mesh",), scale=CA.ANY_SCALE)})(lambda objects: {"ran": list(objects)})
+ex = json.load(open(EXAMPLES))["valid"][0]["doc"]
+def cube(name, canon):
+    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1.0); me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    ob = bpy.data.objects.new(name, me); bpy.context.scene.collection.objects.link(ob)
+    if canon:
+        doc = copy.deepcopy(ex); f = canon_io.facts(ob)
+        doc["body"]["bbox_min_m"], doc["body"]["bbox_max_m"], doc["body"]["geometry_sha256"] = f["bbox_min_m"], f["bbox_max_m"], f["geometry_sha256"]
+        ob["lw_canon"] = json.dumps(doc)
+    return ob
+cube("g1", True); cube("g2", True); r = cube("rawp", False); r["lw_raw"] = json.dumps({"sha256": "0" * 64}); cube("plainp", False)
+out = {"good": probe(objects=["g1", "g2"]), "tuple": probe(objects=("g1", "rawp")), "bad": probe(objects=["g1", "g2", "rawp", "plainp"]),
+       "empty": probe(objects=[]), "one": probe(objects="plainp")}
+print("RESULT", json.dumps(out))
+""".replace("EXAMPLES", repr(str(Path(__file__).parent / "canon_goldens/normalization/canonical-asset.examples.json"))))
+    assert d["good"] == {"ok": True, "ran": ["g1", "g2"]} and d["empty"] == {"ok": True, "ran": []}
+    for k, i in (("tuple", 1), ("bad", 2)):
+        e = d[k]
+        assert e["ok"] is False and e["error"].startswith(f"normalize first: objects[{i}] 'rawp'") and "RAW" in e["error"], e
+        assert "plainp" not in e["error"] and e["help"][0] == "lampway_normalize_mesh input=rawp", e
+    assert d["one"]["ok"] is False and d["one"]["error"].startswith("normalize first: objects 'plainp'")

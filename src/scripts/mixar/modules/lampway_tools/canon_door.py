@@ -90,10 +90,23 @@ def _doc_of_path(path):
     return None, "unstamped"
 
 
+def first_bad(arg, value, need):
+    """(label, element, reasons) of the first element of a LIST argument that fails its Need (label ``arg[i]``), or None."""
+    for i, elem in enumerate(value):
+        reasons = unmet(f"{arg}[{i}]", elem, need)
+        if reasons:
+            return f"{arg}[{i}]", elem, reasons
+    return None
+
+
 def unmet(arg, value, need):
-    """[str] for one argument: empty when the door opens; else each reason, the first naming raw / unstamped / changed."""
+    """[str] for one argument: empty when the door opens; else each reason, the first naming raw / unstamped / changed. A list or
+    tuple passes only when every element does (the reasons are the first failing element's, named ``arg[i]``)."""
     if need.accept_raw:
         return []
+    if isinstance(value, (list, tuple)):
+        bad = first_bad(arg, value, need)
+        return bad[2] if bad else []
     if isinstance(value, str) and (os.sep in value or value.endswith((".npz", ".glb", ".fbx", ".obj", ".blend", ".png", ".exr"))):
         doc, why = _doc_of_path(value)
         db = None
@@ -112,6 +125,8 @@ def unmet(arg, value, need):
 
 
 def refusal(arg, value, reasons, need):
+    if isinstance(value, (list, tuple)):
+        arg, value, reasons = first_bad(arg, value, need) or (arg, value, reasons)
     kind = need.kind[0] if need.kind else "mesh"
     helps = [f"lampway_normalize_{'rigged' if kind == 'rigged_mesh' else kind} input={value}"]
     if any("scale" in r for r in reasons):
