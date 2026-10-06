@@ -19,7 +19,9 @@ AI_WORKSPACE_NAME = "AI Mode"
 # into their startup file; the C++ workspace-tab filter in
 # ``interface_template_id.cc`` hides both names so the rename is
 # visually transparent.
-BASIC_WORKSPACE_NAME = "Zen Mode"
+BASIC_WORKSPACE_NAME = "Lamplight"
+# The name Mixar gave it; a file saved with it is renamed on load (workflow/core/workspace_rename.py).
+LEGACY_BASIC_WORKSPACE_NAMES = ("Zen Mode",)
 
 # Workspace to land on when the user flips into Engine mode. "Layout" is
 # Blender's stock default first tab, so Engine mode opens where a Blender

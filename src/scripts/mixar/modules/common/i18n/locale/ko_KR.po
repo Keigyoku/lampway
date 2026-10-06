@@ -52,28 +52,58 @@ msgstr "스타일 없음"
 msgid "No styles available"
 msgstr "사용 가능한 스타일이 없습니다"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "문서"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "스플래시"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "최근 파일이 없는 커스텀 스플래시 메뉴입니다."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "모드 선택"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Zen 모드로 시작"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine 모드 (Blender 스타일)"
+msgid "Start"
+msgstr "시작"
 
-msgid "Getting Started"
-msgstr "시작하기"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "정보"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "보내기"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "실패"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "오류가 발생했거나 종속 작업이 실패하여 건너뛰었습니다"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "시작 시각"
 
@@ -824,6 +863,24 @@ msgstr "닫는 중"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "사용자가 이 카드를 클릭해 닫으면 설정됩니다. 패널은 완료된 카드와 같은 슬라이드 아웃을 재생하고, 카드가 빠져나간 후 행을 제거합니다 — 클릭으로 카드가 커서 아래에서 바로 사라지면 안 됩니다"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "종료 시각"
@@ -842,6 +899,12 @@ msgstr "에이전트 카드 세대"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "새 팬아웃이 패널 내용을 대체할 때마다 증가합니다. 이 값이 바뀌면 C++ 패널은 스크롤 위치를 초기화하고 슬라이드 인을 다시 재생합니다 — 자체 카드 목록은 그리기 시에만 다시 동기화되어 패널이 poll로 숨겨진 동안 이전 턴의 카드를 유지하므로, 이것만으로는 '새 턴'을 추론할 수 없습니다"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "활성 에이전트 카드"
@@ -862,186 +925,6 @@ msgstr ""
 "\n"
 "탐색과 뷰포트 외부의 모든 입력은 통과시키고, 뷰포트 캔버스 위의\n"
 "클릭과 편집 단축키는 차단합니다.\n"
-
-msgid "Search"
-msgstr "검색"
-
-msgid "Search the Vault now"
-msgstr ""
-
-msgid "Filter"
-msgstr "필터"
-
-msgid "Filter by this value (click again to remove the filter)"
-msgstr ""
-
-msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
-msgstr ""
-
-msgid "Set"
-msgstr ""
-
-msgid "Toggle"
-msgstr "토글"
-
-msgid "Range"
-msgstr "범위"
-
-msgid "Page"
-msgstr "페이지"
-
-msgid "Show the next or the previous page"
-msgstr ""
-
-msgid "Next"
-msgstr "다음"
-
-msgid "Previous"
-msgstr "이전"
-
-msgid "Place in scene"
-msgstr ""
-
-msgid "Put this asset into the scene the way its kind needs (one undo step)"
-msgstr ""
-
-msgid "Rate"
-msgstr "비율"
-
-msgid "Rate this asset (your stars always win over an agent's)"
-msgstr ""
-
-msgid "View"
-msgstr "뷰"
-
-msgid "Show this view of the selected asset"
-msgstr ""
-
-msgid "Play"
-msgstr ""
-
-msgid "Play or pause the turntable or the clip"
-msgstr ""
-
-msgid "To timeline"
-msgstr ""
-
-msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
-msgstr ""
-
-msgid "Lineage"
-msgstr ""
-
-msgid "Draw where this asset came from and what came of it"
-msgstr ""
-
-msgid "Compare"
-msgstr "비교"
-
-msgid "Add this asset to the comparison (the last two are compared)"
-msgstr ""
-
-msgid "Find like this"
-msgstr ""
-
-msgid "Find assets like this one (runs on this machine)"
-msgstr ""
-
-msgid "Show in folder"
-msgstr ""
-
-msgid "Open the folder that holds this file (the file itself is never changed)"
-msgstr ""
-
-msgid "the folder is gone: re-run the Vault's verify"
-msgstr ""
-
-msgid "Copy"
-msgstr "복사"
-
-msgid "Copy to the clipboard"
-msgstr ""
-
-msgid "Save search"
-msgstr ""
-
-msgid "Keep this search in the Vault under a name"
-msgstr ""
-
-msgid "Name"
-msgstr "이름"
-
-msgid "Initial import"
-msgstr ""
-
-msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
-msgstr ""
-
-msgid "Import"
-msgstr ""
-
-msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
-msgstr ""
-
-msgid "there is no preview to import: choose a folder with Initial import first"
-msgstr ""
-
-msgid "Asset Vault Window"
-msgstr ""
-
-msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
-msgstr ""
-
-msgid "The Asset Vault window is already open"
-msgstr ""
-
-msgid "Searching"
-msgstr ""
-
-msgid "Show the lineage"
-msgstr ""
-
-msgid "Select an asset"
-msgstr ""
-
-msgid "Reading the asset"
-msgstr ""
-
-msgid "Copy id"
-msgstr ""
-
-msgid "Asset Vault"
-msgstr ""
-
-msgid "offline"
-msgstr ""
-
-msgid "Search the Vault: names, tags and terms (Enter searches at once)"
-msgstr ""
-
-msgid "Every kind"
-msgstr ""
-
-msgid "Sort"
-msgstr ""
-
-msgid "Grid"
-msgstr "격자"
-
-msgid "Tiles with big previews"
-msgstr ""
-
-msgid "List"
-msgstr ""
-
-msgid "One row per asset"
-msgstr ""
-
-msgid "Tile size"
-msgstr ""
-
-msgid "Thumbnail size in pixels"
-msgstr ""
 
 msgid "preview worker exited before rendering this asset"
 msgstr "이 에셋을 렌더링하기 전에 미리보기 워커가 종료되었습니다"
@@ -1147,6 +1030,9 @@ msgstr "참조 이미지 (선택 사항)"
 
 msgid "Searching…"
 msgstr "검색 중…"
+
+msgid "Search"
+msgstr "검색"
 
 msgid "{count} result(s)"
 msgstr "결과 {count}개"
@@ -1871,9 +1757,6 @@ msgstr "다운로드"
 msgid "Stop"
 msgstr "중지"
 
-msgid "Start"
-msgstr "시작"
-
 msgid "Delete Download"
 msgstr "다운로드 삭제"
 
@@ -2056,54 +1939,6 @@ msgstr "서버가 이 사용자에 대해 byok_active를 보고하면 참입니�
 
 msgid "Dialog State"
 msgstr "대화 상자 상태"
-
-msgid "Refresh cards"
-msgstr ""
-
-msgid "Read the project cards from the server"
-msgstr ""
-
-msgid "Pin card"
-msgstr ""
-
-msgid "Pin the card so it never archives itself"
-msgstr ""
-
-msgid "Card status"
-msgstr ""
-
-msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
-msgstr ""
-
-msgid "Archived"
-msgstr ""
-
-msgid "Rebuild page"
-msgstr ""
-
-msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
-msgstr ""
-
-msgid "Design rounds"
-msgstr ""
-
-msgid "Motion tests"
-msgstr ""
-
-msgid "Receipt"
-msgstr ""
-
-msgid "Open card"
-msgstr ""
-
-msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
-msgstr ""
-
-msgid "Project cards"
-msgstr ""
-
-msgid "No cards yet: build one with lampway_cards"
-msgstr ""
 
 msgid "Set Lampway Agent Mode"
 msgstr "Lampway Agent 모드 설정"
@@ -2519,6 +2354,9 @@ msgstr "생성 시각 (유닉스 초)"
 msgid "Frozen Elapsed"
 msgstr "고정된 경과 시간"
 
+msgid "Filter"
+msgstr "필터"
+
 msgid "{message} ({code})"
 msgstr ""
 
@@ -2639,7 +2477,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2525,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "개인정보 처리방침"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "상단 바 크롬 (UI.svg 레시피)"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
-msgstr "앤진"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "시네마 모드"
@@ -2749,6 +2587,9 @@ msgstr "푸더"
 
 msgid "Confirm"
 msgstr "확인"
+
+msgid "Grid"
+msgstr "격자"
 
 msgid "Disabled action"
 msgstr "비활성화된 작업"
@@ -2797,6 +2638,9 @@ msgstr "로컬 클릭 수"
 
 msgid "Profile"
 msgstr "단면"
+
+msgid "Zen"
+msgstr ""
 
 msgid "Shared Zen components"
 msgstr "공유 Zen 구성 요소입니다"
@@ -3794,6 +3638,9 @@ msgstr "카메라"
 msgid "Using {name}"
 msgstr "{name} 사용 중"
 
+msgid "Range"
+msgstr "범위"
+
 msgid "Videos"
 msgstr "동영상"
 
@@ -4079,11 +3926,17 @@ msgstr "격자 토글"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "뷰포트의 격자선(바닥 격자와 X/Y 축)을 표시하거나 숨깁니다"
 
+msgid "Set"
+msgstr ""
+
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
+
+msgid "Toggle"
+msgstr "토글"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5033,6 +4886,126 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "켜기"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "사용자 입력 대기 중"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
 msgid "Refresh privacy"
 msgstr ""
 
@@ -5213,6 +5186,9 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
+msgid "Rate"
+msgstr "비율"
+
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5243,9 +5219,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5264,13 +5237,13 @@ msgstr ""
 msgid "Turn this Studio action down; nothing is spent"
 msgstr ""
 
+msgid "Import"
+msgstr ""
+
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5366,6 +5339,9 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
+msgid "Tile size"
+msgstr ""
+
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5453,9 +5429,6 @@ msgstr ""
 msgid "Open a new agent session in the cockpit (your own CLI login)"
 msgstr ""
 
-msgid "Claude Code"
-msgstr ""
-
 msgid "Codex"
 msgstr ""
 
@@ -5464,6 +5437,9 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
+
+msgid "Name"
+msgstr "이름"
 
 msgid "Read to Text"
 msgstr ""
@@ -5583,6 +5559,12 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -6064,6 +6046,9 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
+
+msgid "Copy"
+msgstr "복사"
 
 msgid "Open Config File"
 msgstr ""
@@ -6860,9 +6845,6 @@ msgstr "참조 {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "이 템플릿에는 사용 가능한 생성 모델이 필요합니다. 연결을 확인하세요."
 
-msgid "On"
-msgstr "켜기"
-
 msgid "Off"
 msgstr "끄기"
 
@@ -7271,6 +7253,9 @@ msgstr "한 캐릭터의 모든 파트를 선택하세요 — 하나의 스켈�
 msgid "Settings"
 msgstr "설정"
 
+msgid "About"
+msgstr "정보"
+
 msgid "Auto-detects the skeleton type"
 msgstr "스켈레톤 유형을 자동으로 감지합니다"
 
@@ -7463,14 +7448,14 @@ msgstr "디자인 컨텍스트를 위해 전체 캐릭터도 함께 보냅니다
 msgid "Moodboard Drawer"
 msgstr "무드보드 서랍"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Zen 모드 무드보드 서랍이 열린 정도입니다. 0은 닫힘, 1은 열림입니다"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "무드보드 서랍 목표"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Zen 모드 무드보드 서랍이 최종적으로 머무는 상태입니다. 0은 닫힘, 1은 열림입니다"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "무드보드 서랍 폭"
@@ -8448,6 +8433,9 @@ msgstr "구성 요소 이름"
 
 msgid "Named character component represented by this image"
 msgstr "이 이미지가 나타내는 이름 있는 캐릭터 구성 요소입니다"
+
+msgid "View"
+msgstr "뷰"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "이 이미지가 보여주는 카메라 각도입니다. 이미지가 멀티 뷰 세트에 속한 경우에만 의미가 있으며, 탭의 입력 이미지와 함께 해당 각도로 전송됩니다"
@@ -11626,7 +11614,7 @@ msgstr "Mixar에 오신 것을 환영합니다"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -17328,6 +17316,30 @@ msgstr "채널 다시 베이크"
 msgid "Bake channels first to enable export"
 msgstr "내보내려면 먼저 채널을 베이크하세요"
 
+msgid "Assets Library Panel - Shows procedural materials from paint backend"
+msgstr "에셋 라이브러리 패널 - 페인트 백엔드의 프로시저럴 머티리얼을 표시합니다"
+
+msgid "{count} categories available"
+msgstr "카테고리 {count}개 사용 가능"
+
+msgid "Open Material Library"
+msgstr "머티리얼 라이브러리 열기"
+
+msgid "No materials loaded"
+msgstr "불러온 머티리얼이 없습니다"
+
+msgid "Material registry unavailable"
+msgstr "머티리얼 레지스트리를 사용할 수 없습니다"
+
+msgid "Smart Materials"
+msgstr "스마트 머티리얼"
+
+msgid "Coming soon"
+msgstr "곧 제공 예정"
+
+msgid "Brushes"
+msgstr "브러시"
+
 msgid "Baked Maps"
 msgstr "베이크된 맵"
 
@@ -19284,6 +19296,9 @@ msgstr "월드 공간 노멀 매핑, Blender 렌더 배이킹과 호환"
 msgid "Replace"
 msgstr "바꾸기"
 
+msgid "Compare"
+msgstr "비교"
+
 msgid "Use layer's source texture/color"
 msgstr "레이어의 소스 텍스처/색상을 사용합니다"
 
@@ -20971,9 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "대시보드"
-
-msgid "Documentation"
-msgstr "문서"
 
 msgid "Report a Bug"
 msgstr "버그 신고"
@@ -22908,9 +22920,6 @@ msgstr "프로젝트 규칙 표시"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "프로젝트 규칙 오버레이가 열려 있는지 여부"
-
-msgid "Waiting for you"
-msgstr "사용자 입력 대기 중"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine 모드"
-
-msgid "Zen Mode"
-msgstr "Zen 모드"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Mixar를 Zen 모드로 전환합니다(최소 뷰포트 + 에이전트 버블 + 무드보드)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Zen 모드 작업 공간을 만들 수 없습니다 — 사용 가능한 템플릿이 없습니다"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Mixar를 Engine 모드로 전환합니다(Blender 스타일의 전체 작업 공간)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "모델링 작업 공간을 찾을 수 없습니다"
@@ -25006,7 +25009,7 @@ msgstr "씬 및 뷰 레이어"
 msgid "View Layer"
 msgstr "뷰 레이어"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25179,9 @@ msgstr "라이브러리 '%s'은(는) 이후 버전의 Mixar에서 생성되었�
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: 데이터가 메인 .mixar 파일을 참조합니다: '%s' (%s에서)"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "%s 님, 환영합니다!"
@@ -25399,6 +25405,9 @@ msgstr "스크롤"
 msgid "Scroll library content"
 msgstr "라이브러리 콘텐츠를 스크롤합니다"
 
+msgid "Page"
+msgstr "페이지"
+
 msgid "Move by the viewport height"
 msgstr "뷰포트 높이만큼 이동합니다"
 
@@ -25479,6 +25488,12 @@ msgstr "이 작업을 취소합니다"
 
 msgid "Select this job"
 msgstr "이 작업을 선택합니다"
+
+msgid "Previous"
+msgstr "이전"
+
+msgid "Next"
+msgstr "다음"
 
 msgid "Browse queue jobs"
 msgstr "대기열 작업을 탐색합니다"
@@ -26082,6 +26097,24 @@ msgstr "커서 X 위치"
 
 msgid "Cursor Y position"
 msgstr "커서 Y 위치"
+
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
 
 msgid "Animate Moodboard Attachment"
 msgstr "무드보드 첨부 애니메이션"
@@ -26829,6 +26862,24 @@ msgstr "텍스처 세트 공간"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "사이드바 패널을 사용하여 텍스처 세트를 관리하세요"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "처음으로 돌아가기"
@@ -27580,8 +27631,8 @@ msgstr "텍스처링 속성"
 msgid "Layer and texture properties"
 msgstr "레이어 및 텍스처 속성"
 
-msgid "Texturing Assets"
-msgstr "텍스처링 에셋"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "스마트 머티리얼, 브러시, 텍스처 라이브러리"
@@ -27805,8 +27856,8 @@ msgstr "그라데이션 레이블이 있는 둥근 어두운 필"
 msgid "Viewport Pill"
 msgstr "뷰포트 필"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Zen 뷰포트 셰이딩 필입니다. 현재 모드가 아니면 흐리게 표시됩니다"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "프로필 필"
@@ -28048,26 +28099,26 @@ msgstr "대기열 개수 칩"
 msgid "Slider Track"
 msgstr "슬라이더 트랙"
 
-msgid "Zen/Engine slider track"
-msgstr "Zen/Engine 슬라이더 트랙"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "슬라이더 썸"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Zen/Engine 슬라이더 썸"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "슬라이더 썸 호버"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine 썸 호버"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "슬라이더 레이블"
 
-msgid "Zen/Engine slider label"
-msgstr "Zen/Engine 슬라이더 레이블"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "시네마 필 채우기"

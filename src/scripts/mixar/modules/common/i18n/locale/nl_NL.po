@@ -52,28 +52,58 @@ msgstr "Geen stijlen"
 msgid "No styles available"
 msgstr "Geen stijlen beschikbaar"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Documentatie"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "Opstartscherm"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "Aangepast opstartmenu zonder recente bestanden."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "Kies uw modus"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Starten in Zen-modus"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine-modus (Blender-stijl)"
+msgid "Start"
+msgstr "Start"
 
-msgid "Getting Started"
-msgstr "Aan de slag"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "Over"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "Verzenden"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "Mislukt"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "Fout opgetreden, of overgeslagen omdat een afhankelijkheid is mislukt"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "Gestart om"
 
@@ -824,6 +863,24 @@ msgstr "Wordt gesloten"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "Ingesteld wanneer de gebruiker deze kaart wegklikt. Het paneel speelt dezelfde uitschuifanimatie af als bij een voltooide kaart, en de rij wordt verwijderd zodra de kaart weg is — klikken mag een kaart niet onder de cursor laten verdwijnen"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "Beëindigd om"
@@ -842,6 +899,12 @@ msgstr "Generatie agentkaarten"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "Wordt verhoogd telkens wanneer een NIEUWE fan-out de inhoud van het paneel vervangt. Het C++-paneel zet dan zijn scrollpositie terug en speelt de inschuifanimatie opnieuw af — het kan 'nieuwe beurt' niet afleiden uit zijn eigen kaartenlijst, die alleen bij het tekenen opnieuw synchroniseert en dus nog de kaarten van de vorige beurt bevat terwijl het paneel door de poll verborgen is"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "Actieve agentkaarten"
@@ -862,186 +925,6 @@ msgstr ""
 "\n"
 "Navigatie en alle invoer buiten de viewport worden doorgelaten; klikken\n"
 "en bewerkingssneltoetsen boven het viewportcanvas worden onderschept.\n"
-
-msgid "Search"
-msgstr "Zoeken"
-
-msgid "Search the Vault now"
-msgstr ""
-
-msgid "Filter"
-msgstr "Filter"
-
-msgid "Filter by this value (click again to remove the filter)"
-msgstr ""
-
-msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
-msgstr ""
-
-msgid "Set"
-msgstr ""
-
-msgid "Toggle"
-msgstr "Aan/Uit"
-
-msgid "Range"
-msgstr "Bereik"
-
-msgid "Page"
-msgstr "Pagina"
-
-msgid "Show the next or the previous page"
-msgstr ""
-
-msgid "Next"
-msgstr "Volgende"
-
-msgid "Previous"
-msgstr "Vorige"
-
-msgid "Place in scene"
-msgstr ""
-
-msgid "Put this asset into the scene the way its kind needs (one undo step)"
-msgstr ""
-
-msgid "Rate"
-msgstr "Snelheid"
-
-msgid "Rate this asset (your stars always win over an agent's)"
-msgstr ""
-
-msgid "View"
-msgstr "Weergave"
-
-msgid "Show this view of the selected asset"
-msgstr ""
-
-msgid "Play"
-msgstr ""
-
-msgid "Play or pause the turntable or the clip"
-msgstr ""
-
-msgid "To timeline"
-msgstr ""
-
-msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
-msgstr ""
-
-msgid "Lineage"
-msgstr ""
-
-msgid "Draw where this asset came from and what came of it"
-msgstr ""
-
-msgid "Compare"
-msgstr "Vergelijken"
-
-msgid "Add this asset to the comparison (the last two are compared)"
-msgstr ""
-
-msgid "Find like this"
-msgstr ""
-
-msgid "Find assets like this one (runs on this machine)"
-msgstr ""
-
-msgid "Show in folder"
-msgstr ""
-
-msgid "Open the folder that holds this file (the file itself is never changed)"
-msgstr ""
-
-msgid "the folder is gone: re-run the Vault's verify"
-msgstr ""
-
-msgid "Copy"
-msgstr "Kopieer"
-
-msgid "Copy to the clipboard"
-msgstr ""
-
-msgid "Save search"
-msgstr ""
-
-msgid "Keep this search in the Vault under a name"
-msgstr ""
-
-msgid "Name"
-msgstr "Naam"
-
-msgid "Initial import"
-msgstr ""
-
-msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
-msgstr ""
-
-msgid "Import"
-msgstr ""
-
-msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
-msgstr ""
-
-msgid "there is no preview to import: choose a folder with Initial import first"
-msgstr ""
-
-msgid "Asset Vault Window"
-msgstr ""
-
-msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
-msgstr ""
-
-msgid "The Asset Vault window is already open"
-msgstr ""
-
-msgid "Searching"
-msgstr ""
-
-msgid "Show the lineage"
-msgstr ""
-
-msgid "Select an asset"
-msgstr ""
-
-msgid "Reading the asset"
-msgstr ""
-
-msgid "Copy id"
-msgstr ""
-
-msgid "Asset Vault"
-msgstr ""
-
-msgid "offline"
-msgstr ""
-
-msgid "Search the Vault: names, tags and terms (Enter searches at once)"
-msgstr ""
-
-msgid "Every kind"
-msgstr ""
-
-msgid "Sort"
-msgstr ""
-
-msgid "Grid"
-msgstr "Rooster"
-
-msgid "Tiles with big previews"
-msgstr ""
-
-msgid "List"
-msgstr ""
-
-msgid "One row per asset"
-msgstr ""
-
-msgid "Tile size"
-msgstr ""
-
-msgid "Thumbnail size in pixels"
-msgstr ""
 
 msgid "preview worker exited before rendering this asset"
 msgstr "voorbeeldproces is gestopt voordat deze asset werd gerenderd"
@@ -1147,6 +1030,9 @@ msgstr "Referentieafbeelding (optioneel)"
 
 msgid "Searching…"
 msgstr "Zoeken…"
+
+msgid "Search"
+msgstr "Zoeken"
 
 msgid "{count} result(s)"
 msgstr "{count} resultaat/resultaten"
@@ -1871,9 +1757,6 @@ msgstr "Downloaden"
 msgid "Stop"
 msgstr "Stoppen"
 
-msgid "Start"
-msgstr "Start"
-
 msgid "Delete Download"
 msgstr "Download verwijderen"
 
@@ -2056,54 +1939,6 @@ msgstr "Waar als de server byok_active meldt voor deze gebruiker"
 
 msgid "Dialog State"
 msgstr "Dialoogstatus"
-
-msgid "Refresh cards"
-msgstr ""
-
-msgid "Read the project cards from the server"
-msgstr ""
-
-msgid "Pin card"
-msgstr ""
-
-msgid "Pin the card so it never archives itself"
-msgstr ""
-
-msgid "Card status"
-msgstr ""
-
-msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
-msgstr ""
-
-msgid "Archived"
-msgstr ""
-
-msgid "Rebuild page"
-msgstr ""
-
-msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
-msgstr ""
-
-msgid "Design rounds"
-msgstr ""
-
-msgid "Motion tests"
-msgstr ""
-
-msgid "Receipt"
-msgstr ""
-
-msgid "Open card"
-msgstr ""
-
-msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
-msgstr ""
-
-msgid "Project cards"
-msgstr ""
-
-msgid "No cards yet: build one with lampway_cards"
-msgstr ""
 
 msgid "Set Lampway Agent Mode"
 msgstr "Lampway Agent-modus instellen"
@@ -2519,6 +2354,9 @@ msgstr "Aangemaakt (Unix-seconden)"
 msgid "Frozen Elapsed"
 msgstr "Bevroren verstreken tijd"
 
+msgid "Filter"
+msgstr "Filter"
+
 msgid "{message} ({code})"
 msgstr ""
 
@@ -2639,7 +2477,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2525,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "Privacybeleid"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "Bovenbalkchrome (UI.svg-recept)"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
-msgstr "Engine"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "Cinemamodus"
@@ -2749,6 +2587,9 @@ msgstr "Voettekst"
 
 msgid "Confirm"
 msgstr "Bevestigen"
+
+msgid "Grid"
+msgstr "Rooster"
 
 msgid "Disabled action"
 msgstr "Uitgeschakelde actie"
@@ -2797,6 +2638,9 @@ msgstr "Lokale klikken"
 
 msgid "Profile"
 msgstr "Profiel"
+
+msgid "Zen"
+msgstr ""
 
 msgid "Shared Zen components"
 msgstr "Gedeelde Zen-componenten"
@@ -3794,6 +3638,9 @@ msgstr "Camera"
 msgid "Using {name}"
 msgstr "{name} wordt gebruikt"
 
+msgid "Range"
+msgstr "Bereik"
+
 msgid "Videos"
 msgstr "Video's"
 
@@ -4079,11 +3926,17 @@ msgstr "Raster aan/uit"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Toont of verbergt de rasterlijnen van de viewport (vloerraster en X/Y-assen)"
 
+msgid "Set"
+msgstr ""
+
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
+
+msgid "Toggle"
+msgstr "Aan/Uit"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5033,6 +4886,126 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "Aan"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "Wacht op u"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
 msgid "Refresh privacy"
 msgstr ""
 
@@ -5213,6 +5186,9 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
+msgid "Rate"
+msgstr "Snelheid"
+
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5243,9 +5219,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5264,13 +5237,13 @@ msgstr ""
 msgid "Turn this Studio action down; nothing is spent"
 msgstr ""
 
+msgid "Import"
+msgstr ""
+
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5366,6 +5339,9 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
+msgid "Tile size"
+msgstr ""
+
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5453,9 +5429,6 @@ msgstr ""
 msgid "Open a new agent session in the cockpit (your own CLI login)"
 msgstr ""
 
-msgid "Claude Code"
-msgstr ""
-
 msgid "Codex"
 msgstr ""
 
@@ -5464,6 +5437,9 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
+
+msgid "Name"
+msgstr "Naam"
 
 msgid "Read to Text"
 msgstr ""
@@ -5583,6 +5559,12 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -6064,6 +6046,9 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
+
+msgid "Copy"
+msgstr "Kopieer"
 
 msgid "Open Config File"
 msgstr ""
@@ -6860,9 +6845,6 @@ msgstr "Referentie {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Dit sjabloon vereist een beschikbaar generatiemodel. Controleer uw verbinding."
 
-msgid "On"
-msgstr "Aan"
-
 msgid "Off"
 msgstr "Uit"
 
@@ -7271,6 +7253,9 @@ msgstr "Selecteer alle onderdelen van één personage — gerigd als één skele
 msgid "Settings"
 msgstr "Instellingen"
 
+msgid "About"
+msgstr "Over"
+
 msgid "Auto-detects the skeleton type"
 msgstr "Detecteert het skelettype automatisch"
 
@@ -7463,14 +7448,14 @@ msgstr "Stuurt ook het volledige personage mee als ontwerpcontext; standaard uit
 msgid "Moodboard Drawer"
 msgstr "Moodboardlade"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Hoe ver de moodboardlade van de Zen-modus is uitgetrokken, 0 dicht en 1 open"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "Doel moodboardlade"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Stand waarin de moodboardlade van de Zen-modus tot rust komt, 0 dicht en 1 open"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "Breedte moodboardlade"
@@ -8448,6 +8433,9 @@ msgstr "Componentnaam"
 
 msgid "Named character component represented by this image"
 msgstr "Benoemde personagecomponent die door deze afbeelding wordt weergegeven"
+
+msgid "View"
+msgstr "Weergave"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Camerahoek die deze afbeelding toont. Alleen van belang zolang de afbeelding tot een set met meerdere aanzichten behoort — ze wordt als die hoek meegestuurd met de invoerafbeelding van het tabblad"
@@ -11626,7 +11614,7 @@ msgstr "Welkom bij Lampway"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -17328,6 +17316,30 @@ msgstr "Kanalen opnieuw bakken"
 msgid "Bake channels first to enable export"
 msgstr "Bak eerst de kanalen om exporteren mogelijk te maken"
 
+msgid "Assets Library Panel - Shows procedural materials from paint backend"
+msgstr "Paneel assetbibliotheek - toont procedurele materialen uit de verfbackend"
+
+msgid "{count} categories available"
+msgstr "{count} categorieën beschikbaar"
+
+msgid "Open Material Library"
+msgstr "Materiaalbibliotheek openen"
+
+msgid "No materials loaded"
+msgstr "Geen materialen geladen"
+
+msgid "Material registry unavailable"
+msgstr "Materiaalregister niet beschikbaar"
+
+msgid "Smart Materials"
+msgstr "Slimme materialen"
+
+msgid "Coming soon"
+msgstr "Binnenkort beschikbaar"
+
+msgid "Brushes"
+msgstr "Kwasten"
+
 msgid "Baked Maps"
 msgstr "Gebakken maps"
 
@@ -19284,6 +19296,9 @@ msgstr "Normal mapping in wereldruimte, compatibel met bakken via Blender-render
 msgid "Replace"
 msgstr "Vervangen"
 
+msgid "Compare"
+msgstr "Vergelijken"
+
 msgid "Use layer's source texture/color"
 msgstr "Gebruikt de brontextuur/-kleur van de laag"
 
@@ -20971,9 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "Dashboard"
-
-msgid "Documentation"
-msgstr "Documentatie"
 
 msgid "Report a Bug"
 msgstr "Een Bug Melden"
@@ -22908,9 +22920,6 @@ msgstr "Projectregels zichtbaar"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "Of de overlay met projectregels open is"
-
-msgid "Waiting for you"
-msgstr "Wacht op u"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine-modus"
-
-msgid "Zen Mode"
-msgstr "Zen-modus"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Schakelt Lampway over naar de Zen-modus (minimale viewport + Agentbubbel + moodboard)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Kan de werkruimte voor de Zen-modus niet maken — geen sjabloon beschikbaar"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Schakelt Lampway over naar de Engine-modus (volledige werkruimten in Blender-stijl)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "Werkruimte Modeling niet gevonden"
@@ -25006,7 +25009,7 @@ msgstr "Scène en weergavelaag"
 msgid "View Layer"
 msgstr "Weergavelaag"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25179,9 @@ msgstr "Bibliotheek '%s' is gemaakt met een toekomstige versie van Lampway en be
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: gegevens verwijzen naar het hoofdbestand .mixar: '%s' uit %s"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "Welkom, %s!"
@@ -25399,6 +25405,9 @@ msgstr "Scroll"
 msgid "Scroll library content"
 msgstr "Scrolt door de inhoud van de bibliotheek"
 
+msgid "Page"
+msgstr "Pagina"
+
 msgid "Move by the viewport height"
 msgstr "Verplaatst met de hoogte van de viewport"
 
@@ -25479,6 +25488,12 @@ msgstr "Annuleert deze taak"
 
 msgid "Select this job"
 msgstr "Selecteert deze taak"
+
+msgid "Previous"
+msgstr "Vorige"
+
+msgid "Next"
+msgstr "Volgende"
 
 msgid "Browse queue jobs"
 msgstr "Bladert door taken in de wachtrij"
@@ -26082,6 +26097,24 @@ msgstr "X-positie van de cursor"
 
 msgid "Cursor Y position"
 msgstr "Y-positie van de cursor"
+
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
 
 msgid "Animate Moodboard Attachment"
 msgstr "Moodboardbijlage animeren"
@@ -26829,6 +26862,24 @@ msgstr "Ruimte Texturesets"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "Gebruik de zijbalkpanelen om texturesets te beheren"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "Terug naar eerste"
@@ -27580,8 +27631,8 @@ msgstr "Textureringseigenschappen"
 msgid "Layer and texture properties"
 msgstr "Laag- en textuureigenschappen"
 
-msgid "Texturing Assets"
-msgstr "Textureringsassets"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Bibliotheek met slimme materialen, kwasten en texturen"
@@ -27805,8 +27856,8 @@ msgstr "Afgeronde donkere pil met een verlooplabel"
 msgid "Viewport Pill"
 msgstr "Viewportpil"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Zen-pil voor viewportshading; gedimd als dit niet de actieve modus is"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "Profielpil"
@@ -28048,26 +28099,26 @@ msgstr "Chip met aantal in wachtrij"
 msgid "Slider Track"
 msgstr "Schuifspoor"
 
-msgid "Zen/Engine slider track"
-msgstr "Spoor van de Zen/Engine-schuif"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "Schuifknop"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Knop van de Zen/Engine-schuif"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "Schuifknop hover"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Hover van de Zen/Engine-knop"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "Schuiflabel"
 
-msgid "Zen/Engine slider label"
-msgstr "Label van de Zen/Engine-schuif"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "Vulling cinemapil"

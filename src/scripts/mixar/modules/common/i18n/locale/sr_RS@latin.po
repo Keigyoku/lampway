@@ -65,34 +65,59 @@ msgstr "Nema stilova"
 msgid "No styles available"
 msgstr "Nema dostupnih stilova"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+# derived
+msgid "Documentation"
+msgstr "Dokumentacija"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "Uvodni prozor"
 
-# derived
-msgid "Custom splash menu without Recent Files."
-msgstr "Prilagođeni početni meni bez nedavnih datoteka."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-# derived
-msgid "Choose Your Mode"
-msgstr "Izaberite režim rada"
+msgid "Recent Files"
+msgstr ""
 
-# derived
-msgid "Start with Zen Mode"
-msgstr "Počnite režimom Zen"
+msgid "No recent files"
+msgstr ""
 
-# derived
-msgid "Engine Mode (Blender-style)"
-msgstr "Režim Engine (u stilu Blender-a)"
+msgid "Start"
+msgstr "Početak"
 
-# derived
-msgid "Getting Started"
-msgstr "Prvi koraci"
+msgid "New scene"
+msgstr ""
 
-# derived
-msgid "About"
-msgstr "O programu"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 # derived
@@ -359,9 +384,6 @@ msgid "Send"
 msgstr "Pošalji"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -1022,6 +1044,18 @@ msgstr "Neuspelo"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "Greška, ili preskočeno jer je zavisnost otkazala"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 # derived
 msgid "Started At"
 msgstr "Počelo u"
@@ -1037,6 +1071,24 @@ msgstr "Odbacivanje"
 # derived
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "Postavlja se kada korisnik klikom ukloni ovu karticu. Panel pušta isto izvlačenje kao za završenu karticu, a red se uklanja kada izađe — klik ne sme da učini da kartica nestane ispod kursora"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 # derived
 msgid "Ended At"
@@ -1062,6 +1114,12 @@ msgstr "Generacija kartica agenta"
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "Povećava se svaki put kada novo grananje zameni sadržaj panela. C++ panel resetuje poziciju pomeranja i ponovo pušta uvlačenje kada se ovo promeni — ne može da zaključi „novi potez“ iz sopstvenog spiska kartica, koji se ponovo usklađuje samo pri iscrtavanju i zato i dalje drži kartice prethodnog poteza dok je panel skriven u anketi"
 
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
+
 # derived
 msgid "Active Agent Cards"
 msgstr "Aktivne kartice agenta"
@@ -1085,186 +1143,6 @@ msgstr ""
 "\n"
 "Propušta navigaciju i sav unos van prikaza; upija\n"
 "klikove i prečice za uređivanje nad platnom prikaza.\n"
-
-msgid "Search"
-msgstr "Pretraga"
-
-msgid "Search the Vault now"
-msgstr ""
-
-msgid "Filter"
-msgstr "Filter"
-
-msgid "Filter by this value (click again to remove the filter)"
-msgstr ""
-
-msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
-msgstr ""
-
-msgid "Set"
-msgstr ""
-
-msgid "Toggle"
-msgstr "Prebaci"
-
-msgid "Range"
-msgstr "Opseg"
-
-msgid "Page"
-msgstr "Strana"
-
-msgid "Show the next or the previous page"
-msgstr ""
-
-msgid "Next"
-msgstr "Sledeča reč"
-
-msgid "Previous"
-msgstr "Prethodni"
-
-msgid "Place in scene"
-msgstr ""
-
-msgid "Put this asset into the scene the way its kind needs (one undo step)"
-msgstr ""
-
-msgid "Rate"
-msgstr "Stopa"
-
-msgid "Rate this asset (your stars always win over an agent's)"
-msgstr ""
-
-msgid "View"
-msgstr "Pogled"
-
-msgid "Show this view of the selected asset"
-msgstr ""
-
-msgid "Play"
-msgstr ""
-
-msgid "Play or pause the turntable or the clip"
-msgstr ""
-
-msgid "To timeline"
-msgstr ""
-
-msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
-msgstr ""
-
-msgid "Lineage"
-msgstr ""
-
-msgid "Draw where this asset came from and what came of it"
-msgstr ""
-
-msgid "Compare"
-msgstr "Uporedi"
-
-msgid "Add this asset to the comparison (the last two are compared)"
-msgstr ""
-
-msgid "Find like this"
-msgstr ""
-
-msgid "Find assets like this one (runs on this machine)"
-msgstr ""
-
-msgid "Show in folder"
-msgstr ""
-
-msgid "Open the folder that holds this file (the file itself is never changed)"
-msgstr ""
-
-msgid "the folder is gone: re-run the Vault's verify"
-msgstr ""
-
-msgid "Copy"
-msgstr "Kopiraj"
-
-msgid "Copy to the clipboard"
-msgstr ""
-
-msgid "Save search"
-msgstr ""
-
-msgid "Keep this search in the Vault under a name"
-msgstr ""
-
-msgid "Name"
-msgstr "Ime"
-
-msgid "Initial import"
-msgstr ""
-
-msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
-msgstr ""
-
-msgid "Import"
-msgstr ""
-
-msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
-msgstr ""
-
-msgid "there is no preview to import: choose a folder with Initial import first"
-msgstr ""
-
-msgid "Asset Vault Window"
-msgstr ""
-
-msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
-msgstr ""
-
-msgid "The Asset Vault window is already open"
-msgstr ""
-
-msgid "Searching"
-msgstr ""
-
-msgid "Show the lineage"
-msgstr ""
-
-msgid "Select an asset"
-msgstr ""
-
-msgid "Reading the asset"
-msgstr ""
-
-msgid "Copy id"
-msgstr ""
-
-msgid "Asset Vault"
-msgstr ""
-
-msgid "offline"
-msgstr ""
-
-msgid "Search the Vault: names, tags and terms (Enter searches at once)"
-msgstr ""
-
-msgid "Every kind"
-msgstr ""
-
-msgid "Sort"
-msgstr ""
-
-msgid "Grid"
-msgstr "Mreža"
-
-msgid "Tiles with big previews"
-msgstr ""
-
-msgid "List"
-msgstr ""
-
-msgid "One row per asset"
-msgstr ""
-
-msgid "Tile size"
-msgstr ""
-
-msgid "Thumbnail size in pixels"
-msgstr ""
 
 # derived
 msgid "preview worker exited before rendering this asset"
@@ -1404,6 +1282,9 @@ msgstr "Referentna slika (opciono)"
 # derived
 msgid "Searching…"
 msgstr "Pretraga…"
+
+msgid "Search"
+msgstr "Pretraga"
 
 # derived
 msgid "{count} result(s)"
@@ -2360,9 +2241,6 @@ msgstr "Preuzmi"
 msgid "Stop"
 msgstr "Zaustavi"
 
-msgid "Start"
-msgstr "Početak"
-
 # derived
 msgid "Delete Download"
 msgstr "Obriši preuzimanje"
@@ -2604,54 +2482,6 @@ msgstr "Tačno kada server prijavi byok_active za ovog korisnika"
 # derived
 msgid "Dialog State"
 msgstr "Stanje dijaloga"
-
-msgid "Refresh cards"
-msgstr ""
-
-msgid "Read the project cards from the server"
-msgstr ""
-
-msgid "Pin card"
-msgstr ""
-
-msgid "Pin the card so it never archives itself"
-msgstr ""
-
-msgid "Card status"
-msgstr ""
-
-msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
-msgstr ""
-
-msgid "Archived"
-msgstr ""
-
-msgid "Rebuild page"
-msgstr ""
-
-msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
-msgstr ""
-
-msgid "Design rounds"
-msgstr ""
-
-msgid "Motion tests"
-msgstr ""
-
-msgid "Receipt"
-msgstr ""
-
-msgid "Open card"
-msgstr ""
-
-msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
-msgstr ""
-
-msgid "Project cards"
-msgstr ""
-
-msgid "No cards yet: build one with lampway_cards"
-msgstr ""
 
 # derived
 msgid "Set Lampway Agent Mode"
@@ -3184,6 +3014,9 @@ msgstr "Napravljeno (unix sekunde)"
 msgid "Frozen Elapsed"
 msgstr "Zaustavljeno proteklo vreme"
 
+msgid "Filter"
+msgstr "Filter"
+
 msgid "{message} ({code})"
 msgstr ""
 
@@ -3326,7 +3159,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 # derived
@@ -3382,7 +3215,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "Politika privatnosti"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -3391,13 +3224,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -3407,11 +3240,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "Hrom gornje trake (recept UI.svg)"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
-msgstr "Pogon"
+msgid "Workshop"
+msgstr ""
 
 # derived
 msgid "Cinema Mode"
@@ -3454,6 +3287,9 @@ msgstr "Podnožje"
 # derived
 msgid "Confirm"
 msgstr "Potvrdi"
+
+msgid "Grid"
+msgstr "Mreža"
 
 # derived
 msgid "Disabled action"
@@ -3514,6 +3350,9 @@ msgstr "Lokalni klikovi"
 
 msgid "Profile"
 msgstr "Profil"
+
+msgid "Zen"
+msgstr ""
 
 # derived
 msgid "Shared Zen components"
@@ -4788,6 +4627,9 @@ msgstr "Kamera"
 msgid "Using {name}"
 msgstr "Koristi se {name}"
 
+msgid "Range"
+msgstr "Opseg"
+
 # derived
 msgid "Videos"
 msgstr "Video-snimci"
@@ -5162,11 +5004,17 @@ msgstr "Prebaci mrežu"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Prikazuje ili skriva linije mreže prikaza (mreža poda i ose X/Y)"
 
+msgid "Set"
+msgstr ""
+
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
+
+msgid "Toggle"
+msgstr "Prebaci"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -6367,6 +6215,128 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+# derived
+msgid "On"
+msgstr "Uključeno"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+# derived
+msgid "Waiting for you"
+msgstr "Čeka vas"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
 msgid "Refresh privacy"
 msgstr ""
 
@@ -6547,6 +6517,9 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
+msgid "Rate"
+msgstr "Stopa"
+
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -6577,9 +6550,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -6598,13 +6568,13 @@ msgstr ""
 msgid "Turn this Studio action down; nothing is spent"
 msgstr ""
 
+msgid "Import"
+msgstr ""
+
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -6700,6 +6670,9 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
+msgid "Tile size"
+msgstr ""
+
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -6787,9 +6760,6 @@ msgstr ""
 msgid "Open a new agent session in the cockpit (your own CLI login)"
 msgstr ""
 
-msgid "Claude Code"
-msgstr ""
-
 msgid "Codex"
 msgstr ""
 
@@ -6798,6 +6768,9 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
+
+msgid "Name"
+msgstr "Ime"
 
 msgid "Read to Text"
 msgstr ""
@@ -6918,6 +6891,12 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -7451,6 +7430,9 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
+
+msgid "Copy"
+msgstr "Kopiraj"
 
 msgid "Open Config File"
 msgstr ""
@@ -8476,10 +8458,6 @@ msgstr "Referenca {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Ovom šablonu treba dostupan model generisanja. Proverite vezu."
 
-# derived
-msgid "On"
-msgstr "Uključeno"
-
 msgid "Off"
 msgstr "Isključeno"
 
@@ -9021,6 +8999,10 @@ msgid "Settings"
 msgstr "Podešavanja"
 
 # derived
+msgid "About"
+msgstr "O programu"
+
+# derived
 msgid "Auto-detects the skeleton type"
 msgstr "Sam otkriva vrstu skeleta"
 
@@ -9273,17 +9255,15 @@ msgstr "Takođe šalje celog lika kao kontekst dizajna; podrazumevano isključen
 msgid "Moodboard Drawer"
 msgstr "Fioka mudborda"
 
-# derived
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Koliko je izvučena fioka mudborda režima Zen, 0 zatvoreno i 1 otvoreno"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 # derived
 msgid "Moodboard Drawer Target"
 msgstr "Cilj fioke mudborda"
 
-# derived
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Strana na koju se fioka mudborda režima Zen smešta, 0 zatvoreno i 1 otvoreno"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 # derived
 msgid "Moodboard Drawer Width"
@@ -10541,6 +10521,9 @@ msgstr "Ime komponente"
 # derived
 msgid "Named character component represented by this image"
 msgstr "Imenovana komponenta lika koju predstavlja ova slika"
+
+msgid "View"
+msgstr "Pogled"
 
 # derived
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
@@ -14728,7 +14711,7 @@ msgstr "Dobro došli u Lampway"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -22113,6 +22096,37 @@ msgid "Bake channels first to enable export"
 msgstr "Prvo ispecite kanale da biste omogućili izvoz"
 
 # derived
+msgid "Assets Library Panel - Shows procedural materials from paint backend"
+msgstr "Panel zbirke resursa — prikazuje proceduralne materijale iz pozadinskog sistema slikanja"
+
+# derived
+msgid "{count} categories available"
+msgstr "Dostupnih kategorija: {count}"
+
+# derived
+msgid "Open Material Library"
+msgstr "Otvori zbirku materijala"
+
+# derived
+msgid "No materials loaded"
+msgstr "Nijedan materijal nije učitan"
+
+# derived
+msgid "Material registry unavailable"
+msgstr "Registar materijala nije dostupan"
+
+# derived
+msgid "Smart Materials"
+msgstr "Pametni materijali"
+
+# derived
+msgid "Coming soon"
+msgstr "Uskoro"
+
+msgid "Brushes"
+msgstr "Četkice"
+
+# derived
 msgid "Baked Maps"
 msgstr "Ispečene mape"
 
@@ -24639,6 +24653,9 @@ msgstr "Mapiranje normala u prostoru sveta, saglasno sa pečenjem renderinga Ble
 msgid "Replace"
 msgstr "Zameni"
 
+msgid "Compare"
+msgstr "Uporedi"
+
 # derived
 msgid "Use layer's source texture/color"
 msgstr "Koristi izvornu teksturu ili boju sloja"
@@ -26830,10 +26847,6 @@ msgstr ""
 # derived
 msgid "Dashboard"
 msgstr "Kontrolna tabla"
-
-# derived
-msgid "Documentation"
-msgstr "Dokumentacija"
 
 msgid "Report a Bug"
 msgstr "Prijava greške"
@@ -29323,10 +29336,6 @@ msgstr "Pravila projekta su vidljiva"
 # derived
 msgid "Whether the project-rules overlay is open"
 msgstr "Da li je preklapanje pravila projekta otvoreno"
-
-# derived
-msgid "Waiting for you"
-msgstr "Čeka vas"
 
 msgid "Session"
 msgstr ""
@@ -31852,14 +31861,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-# derived
-msgid "Engine Mode"
-msgstr "Režim Engine"
-
-# derived
-msgid "Zen Mode"
-msgstr "Režim Zen"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -31869,17 +31870,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-# derived
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Prebacuje Lampway u režim Zen (minimalan prikaz + mehurić agenta + mudbord)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-# derived
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Nije moguće napraviti radni prostor režima Zen — šablon nije dostupan"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-# derived
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Prebacuje Lampway u režim Engine (puni radni prostori u stilu Blender-a)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 # derived
 msgid "Modeling workspace not found"
@@ -31963,7 +31961,7 @@ msgstr "Scena i sloj prikaza"
 msgid "View Layer"
 msgstr "Sloj prikaza"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -32014,13 +32012,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -32140,6 +32138,9 @@ msgstr "Zbirka '%s' je napravljena budućom verzijom Mixar-a i sadrži ID imena 
 # derived
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: podaci upućuju na glavnu .mixar datoteku: '%s' iz %s"
+
+msgid "Local account"
+msgstr ""
 
 # derived
 msgid "Welcome, %s !"
@@ -32421,6 +32422,9 @@ msgstr "Klizaj"
 msgid "Scroll library content"
 msgstr "Pomeraj sadržaj zbirke"
 
+msgid "Page"
+msgstr "Strana"
+
 # derived
 msgid "Move by the viewport height"
 msgstr "Pomeri za visinu prikaza"
@@ -32520,6 +32524,12 @@ msgstr "Odustani od ovog zadatka"
 # derived
 msgid "Select this job"
 msgstr "Izaberi ovaj zadatak"
+
+msgid "Previous"
+msgstr "Prethodni"
+
+msgid "Next"
+msgstr "Sledeča reč"
 
 # derived
 msgid "Browse queue jobs"
@@ -33313,6 +33323,24 @@ msgstr "X položaj kursora"
 # derived
 msgid "Cursor Y position"
 msgstr "Y položaj kursora"
+
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
 
 # derived
 msgid "Animate Moodboard Attachment"
@@ -34263,6 +34291,24 @@ msgstr "Prostor skupova tekstura"
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "Koristite panele bočne trake za upravljanje skupovima tekstura"
 
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
+
 # derived
 msgid "Back to first"
 msgstr "Nazad na prvi"
@@ -35191,9 +35237,8 @@ msgstr "Osobine teksturisanja"
 msgid "Layer and texture properties"
 msgstr "Osobine sloja i teksture"
 
-# derived
-msgid "Texturing Assets"
-msgstr "Resursi teksturisanja"
+msgid "Asset Vault"
+msgstr ""
 
 # derived
 msgid "Smart materials, brushes, and textures library"
@@ -35484,9 +35529,8 @@ msgstr "Zaobljena tamna pilula sa stepenovanim nazivom"
 msgid "Viewport Pill"
 msgstr "Pilula prikaza"
 
-# derived
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Pilula senčenja prikaza u režimu Zen; prigušena kada to nije živi režim"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 # derived
 msgid "Profile Pill"
@@ -35782,33 +35826,29 @@ msgstr "Čip broja reda"
 msgid "Slider Track"
 msgstr "Staza klizača"
 
-# derived
-msgid "Zen/Engine slider track"
-msgstr "Staza klizača Zen/Engine"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 # derived
 msgid "Slider Thumb"
 msgstr "Klizač"
 
-# derived
-msgid "Zen/Engine slider thumb"
-msgstr "Klizač Zen/Engine"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 # derived
 msgid "Slider Thumb Hover"
 msgstr "Lebdenje klizača"
 
-# derived
-msgid "Zen/Engine thumb hover"
-msgstr "Lebdenje klizača Zen/Engine"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 # derived
 msgid "Slider Label"
 msgstr "Naziv klizača"
 
-# derived
-msgid "Zen/Engine slider label"
-msgstr "Naziv klizača Zen/Engine"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 # derived
 msgid "Cinema Pill Fill"

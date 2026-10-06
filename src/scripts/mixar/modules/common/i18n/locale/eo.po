@@ -52,28 +52,58 @@ msgstr "Neniuj stiloj"
 msgid "No styles available"
 msgstr "Neniuj stiloj disponeblas"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Dokumentaro"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "Salutekrano"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "Propra salutekrana menuo sen lastaj dosieroj."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "Elektu vian modon"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Komenci per Zen-modo"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine-modo (Blender-stila)"
+msgid "Start"
+msgstr "Startigi"
 
-msgid "Getting Started"
-msgstr "Unuaj paŝoj"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "Pri"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "Sendi"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "Malsukcesis"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "Eraris, aŭ preterlasita ĉar dependaĵo malsukcesis"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "Komencita je"
 
@@ -824,6 +863,24 @@ msgstr "Forĵetante"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "Agordita, kiam la uzanto forklakas ĉi tiun karton. La panelo ludas la saman elgliton, kiun ricevas finita karto, kaj la vico foriĝas post eliro — alklako ne devas malaperigi karton sub la kursoro"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "Finita je"
@@ -842,6 +899,12 @@ msgstr "Generacio de agentaj kartoj"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "Pligrandiĝas ĉiufoje, kiam NOVA disbranĉiĝo anstataŭas la enhavon de la panelo. La C++-panelo restarigas sian ruluman pozicion kaj reludas la engliton, kiam ĉi tio ŝanĝiĝas — ĝi ne povas dedukti «novan vicon» el sia propra kartlisto, kiu resinkroniĝas nur je desegno kaj tial ankoraŭ tenas la kartojn de la antaŭa vico dum la panelo estas kaŝita inter sondoj"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "Aktivaj agentaj kartoj"
@@ -862,186 +925,6 @@ msgstr ""
 "\n"
 "Trapasigas navigadon kaj ĉian ne-vidujan enigon; konsumas\n"
 "alklakojn kaj redaktajn fulmoklavojn super la kanvaso de la vidujo.\n"
-
-msgid "Search"
-msgstr "Serĉi"
-
-msgid "Search the Vault now"
-msgstr ""
-
-msgid "Filter"
-msgstr "Filtrilo"
-
-msgid "Filter by this value (click again to remove the filter)"
-msgstr ""
-
-msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
-msgstr ""
-
-msgid "Set"
-msgstr ""
-
-msgid "Toggle"
-msgstr "Baskulo"
-
-msgid "Range"
-msgstr "Intervalo"
-
-msgid "Page"
-msgstr "Paĝo"
-
-msgid "Show the next or the previous page"
-msgstr ""
-
-msgid "Next"
-msgstr "Sekva"
-
-msgid "Previous"
-msgstr "Antaŭa"
-
-msgid "Place in scene"
-msgstr ""
-
-msgid "Put this asset into the scene the way its kind needs (one undo step)"
-msgstr ""
-
-msgid "Rate"
-msgstr "Rapido"
-
-msgid "Rate this asset (your stars always win over an agent's)"
-msgstr ""
-
-msgid "View"
-msgstr "Rigardi"
-
-msgid "Show this view of the selected asset"
-msgstr ""
-
-msgid "Play"
-msgstr ""
-
-msgid "Play or pause the turntable or the clip"
-msgstr ""
-
-msgid "To timeline"
-msgstr ""
-
-msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
-msgstr ""
-
-msgid "Lineage"
-msgstr ""
-
-msgid "Draw where this asset came from and what came of it"
-msgstr ""
-
-msgid "Compare"
-msgstr "Kompari"
-
-msgid "Add this asset to the comparison (the last two are compared)"
-msgstr ""
-
-msgid "Find like this"
-msgstr ""
-
-msgid "Find assets like this one (runs on this machine)"
-msgstr ""
-
-msgid "Show in folder"
-msgstr ""
-
-msgid "Open the folder that holds this file (the file itself is never changed)"
-msgstr ""
-
-msgid "the folder is gone: re-run the Vault's verify"
-msgstr ""
-
-msgid "Copy"
-msgstr "Kopii"
-
-msgid "Copy to the clipboard"
-msgstr ""
-
-msgid "Save search"
-msgstr ""
-
-msgid "Keep this search in the Vault under a name"
-msgstr ""
-
-msgid "Name"
-msgstr "Nomo"
-
-msgid "Initial import"
-msgstr ""
-
-msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
-msgstr ""
-
-msgid "Import"
-msgstr ""
-
-msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
-msgstr ""
-
-msgid "there is no preview to import: choose a folder with Initial import first"
-msgstr ""
-
-msgid "Asset Vault Window"
-msgstr ""
-
-msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
-msgstr ""
-
-msgid "The Asset Vault window is already open"
-msgstr ""
-
-msgid "Searching"
-msgstr ""
-
-msgid "Show the lineage"
-msgstr ""
-
-msgid "Select an asset"
-msgstr ""
-
-msgid "Reading the asset"
-msgstr ""
-
-msgid "Copy id"
-msgstr ""
-
-msgid "Asset Vault"
-msgstr ""
-
-msgid "offline"
-msgstr ""
-
-msgid "Search the Vault: names, tags and terms (Enter searches at once)"
-msgstr ""
-
-msgid "Every kind"
-msgstr ""
-
-msgid "Sort"
-msgstr ""
-
-msgid "Grid"
-msgstr "Krado"
-
-msgid "Tiles with big previews"
-msgstr ""
-
-msgid "List"
-msgstr ""
-
-msgid "One row per asset"
-msgstr ""
-
-msgid "Tile size"
-msgstr ""
-
-msgid "Thumbnail size in pixels"
-msgstr ""
 
 msgid "preview worker exited before rendering this asset"
 msgstr "antaŭvida laboristo eliris antaŭ ol redoni ĉi tiun rimedon"
@@ -1147,6 +1030,9 @@ msgstr "Referenca bildo (nedeviga)"
 
 msgid "Searching…"
 msgstr "Serĉante…"
+
+msgid "Search"
+msgstr "Serĉi"
 
 msgid "{count} result(s)"
 msgstr "Rezultoj: {count}"
@@ -1871,9 +1757,6 @@ msgstr "Elŝuti"
 msgid "Stop"
 msgstr "Halti"
 
-msgid "Start"
-msgstr "Startigi"
-
 msgid "Delete Download"
 msgstr "Forigi elŝuton"
 
@@ -2056,54 +1939,6 @@ msgstr "Vera, kiam la servilo raportas byok_active por ĉi tiu uzanto"
 
 msgid "Dialog State"
 msgstr "Stato de dialogo"
-
-msgid "Refresh cards"
-msgstr ""
-
-msgid "Read the project cards from the server"
-msgstr ""
-
-msgid "Pin card"
-msgstr ""
-
-msgid "Pin the card so it never archives itself"
-msgstr ""
-
-msgid "Card status"
-msgstr ""
-
-msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
-msgstr ""
-
-msgid "Archived"
-msgstr ""
-
-msgid "Rebuild page"
-msgstr ""
-
-msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
-msgstr ""
-
-msgid "Design rounds"
-msgstr ""
-
-msgid "Motion tests"
-msgstr ""
-
-msgid "Receipt"
-msgstr ""
-
-msgid "Open card"
-msgstr ""
-
-msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
-msgstr ""
-
-msgid "Project cards"
-msgstr ""
-
-msgid "No cards yet: build one with lampway_cards"
-msgstr ""
 
 msgid "Set Lampway Agent Mode"
 msgstr "Agordi modon de Lampway Agent"
@@ -2519,6 +2354,9 @@ msgstr "Kreita (uniksaj sekundoj)"
 msgid "Frozen Elapsed"
 msgstr "Fiksita pasinta tempo"
 
+msgid "Filter"
+msgstr "Filtrilo"
+
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2639,7 +2477,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2525,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "Privateca politiko"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "Kromornamo de supra breto (recepto UI.svg)"
 
-msgid "Zen"
-msgstr "Zen"
+msgid "Lamplight"
+msgstr ""
 
-msgid "Engine"
-msgstr "Engine"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "Kina modo"
@@ -2749,6 +2587,9 @@ msgstr "Piedo"
 
 msgid "Confirm"
 msgstr "Konfirmi"
+
+msgid "Grid"
+msgstr "Krado"
 
 msgid "Disabled action"
 msgstr "Malebligita ago"
@@ -2797,6 +2638,9 @@ msgstr "Lokaj alklakoj"
 
 msgid "Profile"
 msgstr "Profilo"
+
+msgid "Zen"
+msgstr "Zen"
 
 msgid "Shared Zen components"
 msgstr "Kunhavataj komponantoj de Zen"
@@ -3794,6 +3638,9 @@ msgstr "Kamerao"
 msgid "Using {name}"
 msgstr "Uzante {name}"
 
+msgid "Range"
+msgstr "Intervalo"
+
 msgid "Videos"
 msgstr "Videoj"
 
@@ -4079,11 +3926,17 @@ msgstr "Baskuligi kradon"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Montras aŭ kaŝas la kradliniojn de la vidujo (planka krado kaj aksoj X/Y)"
 
+msgid "Set"
+msgstr ""
+
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
+
+msgid "Toggle"
+msgstr "Baskulo"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5033,6 +4886,126 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "En"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "Atendas vin"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
 msgid "Refresh privacy"
 msgstr ""
 
@@ -5213,6 +5186,9 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
+msgid "Rate"
+msgstr "Rapido"
+
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5243,9 +5219,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5264,13 +5237,13 @@ msgstr ""
 msgid "Turn this Studio action down; nothing is spent"
 msgstr ""
 
+msgid "Import"
+msgstr ""
+
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5366,6 +5339,9 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
+msgid "Tile size"
+msgstr ""
+
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5453,9 +5429,6 @@ msgstr ""
 msgid "Open a new agent session in the cockpit (your own CLI login)"
 msgstr ""
 
-msgid "Claude Code"
-msgstr ""
-
 msgid "Codex"
 msgstr ""
 
@@ -5464,6 +5437,9 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
+
+msgid "Name"
+msgstr "Nomo"
 
 msgid "Read to Text"
 msgstr ""
@@ -5583,6 +5559,12 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -6064,6 +6046,9 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
+
+msgid "Copy"
+msgstr "Kopii"
 
 msgid "Open Config File"
 msgstr ""
@@ -6860,9 +6845,6 @@ msgstr "Referenco {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Ĉi tiu ŝablono bezonas disponeblan generadan modelon. Kontrolu vian konekton."
 
-msgid "On"
-msgstr "En"
-
 msgid "Off"
 msgstr "El"
 
@@ -7271,6 +7253,9 @@ msgstr "Elektu ĉiujn partojn de unu rolulo — skeletigitaj kiel unu skeleto"
 msgid "Settings"
 msgstr "Agordoj"
 
+msgid "About"
+msgstr "Pri"
+
 msgid "Auto-detects the skeleton type"
 msgstr "Aŭtomate detektas la specon de skeleto"
 
@@ -7463,14 +7448,14 @@ msgstr "Ankaŭ sendi la plenan rolulon por dezajna kunteksto; malebligita defaŭ
 msgid "Moodboard Drawer"
 msgstr "Tirkesto de inspirtabulo"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Kiom la tirkesto de inspirtabulo de Zen-modo estas eltirita, 0 fermita kaj 1 malfermita"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "Celo de tirkesto de inspirtabulo"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Flanko, sur kiu la tirkesto de inspirtabulo de Zen-modo ekripozas, 0 fermita kaj 1 malfermita"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "Larĝo de tirkesto de inspirtabulo"
@@ -8448,6 +8433,9 @@ msgstr "Nomo de komponanto"
 
 msgid "Named character component represented by this image"
 msgstr "Nomita rolula komponanto reprezentata de ĉi tiu bildo"
+
+msgid "View"
+msgstr "Rigardi"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Kameraa angulo, kiun ĉi tiu bildo montras. Signifa nur dum la bildo apartenas al multvida aro — ĝi estas sendata kune kun la eniga bildo de la langeto kiel tiu angulo"
@@ -11626,7 +11614,7 @@ msgstr "Bonvenon al Lampway"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -17328,6 +17316,30 @@ msgstr "Rebaki kanalojn"
 msgid "Bake channels first to enable export"
 msgstr "Unue baku kanalojn por ebligi elporton"
 
+msgid "Assets Library Panel - Shows procedural materials from paint backend"
+msgstr "Panelo de rimeda biblioteko — montras procedurajn materialojn el la pentra interna servo"
+
+msgid "{count} categories available"
+msgstr "{count} kategorioj disponeblas"
+
+msgid "Open Material Library"
+msgstr "Malfermi materialan bibliotekon"
+
+msgid "No materials loaded"
+msgstr "Neniuj materialoj ŝargitaj"
+
+msgid "Material registry unavailable"
+msgstr "Materiala registro ne disponeblas"
+
+msgid "Smart Materials"
+msgstr "Inteligentaj materialoj"
+
+msgid "Coming soon"
+msgstr "Baldaŭ"
+
+msgid "Brushes"
+msgstr "Penikoj"
+
 msgid "Baked Maps"
 msgstr "Bakitaj mapoj"
 
@@ -19284,6 +19296,9 @@ msgstr "Normala mapado en monda spaco, kongrua kun bildiga bakado de Blender"
 msgid "Replace"
 msgstr "Anstataŭigi"
 
+msgid "Compare"
+msgstr "Kompari"
+
 msgid "Use layer's source texture/color"
 msgstr "Uzi la fontan teksturon/koloron de la tavolo"
 
@@ -20971,9 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "Stirpanelo"
-
-msgid "Documentation"
-msgstr "Dokumentaro"
 
 msgid "Report a Bug"
 msgstr "Raporti cimon"
@@ -22908,9 +22920,6 @@ msgstr "Projektaj reguloj videblaj"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "Ĉu la surmetaĵo de projektaj reguloj estas malfermita"
-
-msgid "Waiting for you"
-msgstr "Atendas vin"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine-modo"
-
-msgid "Zen Mode"
-msgstr "Zen-modo"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Ŝaltas Lampway al Zen-modo (minimuma vidujo + Agenta veziko + inspirtabulo)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Ne eblis krei laborspacon de Zen-modo — neniu ŝablono disponeblas"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Ŝaltas Lampway al Engine-modo (plenaj laborspacoj laŭ Blender)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "Modela laborspaco ne trovita"
@@ -25006,7 +25009,7 @@ msgstr "Sceno kaj vida tavolo"
 msgid "View Layer"
 msgstr "Vida tavolo"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25179,9 @@ msgstr "Biblioteko '%s' estis kreita de estonta versio de Lampway kaj enhavas ID
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: Datumoj referencas la ĉefan .mixar-dosieron: '%s' el %s"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "Bonvenon, %s !"
@@ -25399,6 +25405,9 @@ msgstr "Rulumi"
 msgid "Scroll library content"
 msgstr "Rulumas la enhavon de la biblioteko"
 
+msgid "Page"
+msgstr "Paĝo"
+
 msgid "Move by the viewport height"
 msgstr "Movi je la alto de la vidujo"
 
@@ -25479,6 +25488,12 @@ msgstr "Nuligi ĉi tiun taskon"
 
 msgid "Select this job"
 msgstr "Elekti ĉi tiun taskon"
+
+msgid "Previous"
+msgstr "Antaŭa"
+
+msgid "Next"
+msgstr "Sekva"
 
 msgid "Browse queue jobs"
 msgstr "Foliumi taskojn de la vico"
@@ -26082,6 +26097,24 @@ msgstr "X-pozicio de la kursoro"
 
 msgid "Cursor Y position"
 msgstr "Y-pozicio de la kursoro"
+
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
 
 msgid "Animate Moodboard Attachment"
 msgstr "Animacii kunsendaĵon de la inspirtabulo"
@@ -26829,6 +26862,24 @@ msgstr "Spaco de teksturaroj"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "Uzu la flankbretajn panelojn por mastrumi teksturarojn"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "Reen al la unua"
@@ -27580,8 +27631,8 @@ msgstr "Teksturaj ecoj"
 msgid "Layer and texture properties"
 msgstr "Ecoj de tavolo kaj teksturo"
 
-msgid "Texturing Assets"
-msgstr "Teksturaj rimedoj"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Biblioteko de inteligentaj materialoj, penikoj kaj teksturoj"
@@ -27805,8 +27856,8 @@ msgstr "Rondigita malhela pilolo kun gradigita etikedo"
 msgid "Viewport Pill"
 msgstr "Viduja pilolo"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Ombruma pilolo de la Zen-vidujo; malfortigita kiam ĝi ne estas la viva modo"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "Profila pilolo"
@@ -28048,26 +28099,26 @@ msgstr "Insigno de vica nombro"
 msgid "Slider Track"
 msgstr "Ŝovila trako"
 
-msgid "Zen/Engine slider track"
-msgstr "Ŝovila trako de Zen/Engine"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "Ŝovila tenilo"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Tenilo de Zen/Engine"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "Ŝvebo de ŝovila tenilo"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Ŝvebo de tenilo de Zen/Engine"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "Ŝovila etikedo"
 
-msgid "Zen/Engine slider label"
-msgstr "Ŝovila etikedo de Zen/Engine"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "Plenigo de kina pilolo"

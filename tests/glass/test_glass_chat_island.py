@@ -287,7 +287,7 @@ class TestZenChromeUsesTheFamily:
 
     def test_zen_headers_share_the_toolbar_background(self) -> None:
         chrome = (IFACE / "interface_mixar_zen_chrome.cc").read_text(encoding="utf-8")
-        assert 'STREQ(workspace->id.name + 2, "Zen Mode")' in chrome
+        assert 'STREQ(workspace->id.name + 2, "Lamplight")' in chrome
         assert chrome.count("MIXAR_THEME_LOAD(background, ToolbarBackground)") == 2
         assert "GPU_clear_color(background[0], background[1], background[2], 1.0f)" in chrome
         assert "mixar_glass_draw(" not in chrome

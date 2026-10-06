@@ -16,7 +16,7 @@ from mixar.modules.workflow.core.zen_object_controls import (
 def context(kind="MESH", selected=True, editable=True):
     obj = NS(type=kind, name="Cube", is_editable=editable,
              select_get=Mock(return_value=selected), modifiers=NS(active=None))
-    return NS(workspace=NS(name="Zen Mode"), object=obj,
+    return NS(workspace=NS(name="Lamplight"), object=obj,
               mode="OBJECT", view_layer=object())
 
 
@@ -41,7 +41,7 @@ def test_engine_and_edit_mode_keep_their_native_controls():
     ctx = context()
     ctx.workspace.name = "Layout"
     assert selected_object(ctx) is None
-    ctx.workspace.name = "Zen Mode"
+    ctx.workspace.name = "Lamplight"
     ctx.mode = "EDIT_MESH"
     assert selected_object(ctx) is None
     ctx.mode = "OBJECT"

@@ -52,28 +52,58 @@ msgstr "ശൈലികളില്ല"
 msgid "No styles available"
 msgstr "ശൈലികൾ ലഭ്യമല്ല"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "ഡോക്യുമെന്റേഷൻ"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "സ്പ്ലാഷ്"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "സമീപകാല ഫയലുകളില്ലാത്ത ഇഷ്ടാനുസൃത സ്പ്ലാഷ് മെനു."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "നിങ്ങളുടെ മോഡ് തിരഞ്ഞെടുക്കുക"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Zen മോഡിൽ ആരംഭിക്കുക"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine മോഡ് (Blender ശൈലി)"
+msgid "Start"
+msgstr "ആരംഭിക്കുക"
 
-msgid "Getting Started"
-msgstr "തുടക്കം"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "കുറിച്ച്"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "അയയ്ക്കുക"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "പരാജയപ്പെട്ടു"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "പിശക്, അല്ലെങ്കിൽ ഒരു ആശ്രിതത്വം പരാജയപ്പെട്ടതിനാൽ ഒഴിവാക്കി"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "ആരംഭിച്ച സമയം"
 
@@ -824,6 +863,24 @@ msgstr "ഒഴിവാക്കുന്നു"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "ഉപയോക്താവ് ഈ കാർഡ് മാറ്റി ക്ലിക്ക് ചെയ്യുമ്പോൾ സജ്ജമാകും. പൂർത്തിയായ കാർഡിന് ലഭിക്കുന്ന അതേ സ്ലൈഡ്-ഔട്ട് പാനൽ കളിക്കുന്നു, പുറത്തുപോയ ശേഷം വരി നീങ്ങും — ക്ലിക്ക് ചെയ്താൽ കഴ്‌സറിന് കീഴിൽ കാർഡ് അപ്രത്യക്ഷമാകരുത്"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "അവസാനിച്ച സമയം"
@@ -842,6 +899,12 @@ msgstr "ഏജന്റ് കാർഡ് ജനറേഷൻ"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "പുതിയ ഒരു ഫാൻ-ഔട്ട് പാനലിന്റെ ഉള്ളടക്കം മാറ്റിസ്ഥാപിക്കുമ്പോഴെല്ലാം ഉയരുന്നു. ഇത് മാറുമ്പോൾ C++ പാനൽ സ്ക്രോൾ സ്ഥാനം പുനഃക്രമീകരിച്ച് സ്ലൈഡ്-ഇൻ വീണ്ടും കളിക്കുന്നു — സ്വന്തം കാർഡ് പട്ടികയിൽ നിന്ന് 'പുതിയ ടേൺ' ഊഹിക്കാനാകില്ല; അത് ഡ്രോയിൽ മാത്രം വീണ്ടും സമന്വയിക്കുന്നു, പാനൽ പോൾ-മറഞ്ഞിരിക്കുമ്പോൾ മുൻ ടേണിന്റെ കാർഡുകൾ തുടരും"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "സജീവ ഏജന്റ് കാർഡുകൾ"
@@ -862,186 +925,6 @@ msgstr ""
 "\n"
 "നാവിഗേഷനും വ്യൂപോർട്ടല്ലാത്ത എല്ലാ ഇൻപുട്ടും കടന്നുപോകും; വ്യൂപോർട്ട്\n"
 "ക്യാൻവാസിന് മുകളിലെ ക്ലിക്കുകളും തിരുത്തൽ ഹോട്ട്കീകളും ഉപയോഗിക്കും.\n"
-
-msgid "Search"
-msgstr "തിരയുക"
-
-msgid "Search the Vault now"
-msgstr ""
-
-msgid "Filter"
-msgstr "ഫിൽറ്റർ"
-
-msgid "Filter by this value (click again to remove the filter)"
-msgstr ""
-
-msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
-msgstr ""
-
-msgid "Set"
-msgstr ""
-
-msgid "Toggle"
-msgstr "ടോഗിൾ"
-
-msgid "Range"
-msgstr "പരിധി"
-
-msgid "Page"
-msgstr "പേജ്"
-
-msgid "Show the next or the previous page"
-msgstr ""
-
-msgid "Next"
-msgstr "അടുത്തത്"
-
-msgid "Previous"
-msgstr "മുമ്പത്തേത്"
-
-msgid "Place in scene"
-msgstr ""
-
-msgid "Put this asset into the scene the way its kind needs (one undo step)"
-msgstr ""
-
-msgid "Rate"
-msgstr "നിരക്ക്"
-
-msgid "Rate this asset (your stars always win over an agent's)"
-msgstr ""
-
-msgid "View"
-msgstr "കാഴ്ച"
-
-msgid "Show this view of the selected asset"
-msgstr ""
-
-msgid "Play"
-msgstr ""
-
-msgid "Play or pause the turntable or the clip"
-msgstr ""
-
-msgid "To timeline"
-msgstr ""
-
-msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
-msgstr ""
-
-msgid "Lineage"
-msgstr ""
-
-msgid "Draw where this asset came from and what came of it"
-msgstr ""
-
-msgid "Compare"
-msgstr "താരതമ്യം ചെയ്യുക"
-
-msgid "Add this asset to the comparison (the last two are compared)"
-msgstr ""
-
-msgid "Find like this"
-msgstr ""
-
-msgid "Find assets like this one (runs on this machine)"
-msgstr ""
-
-msgid "Show in folder"
-msgstr ""
-
-msgid "Open the folder that holds this file (the file itself is never changed)"
-msgstr ""
-
-msgid "the folder is gone: re-run the Vault's verify"
-msgstr ""
-
-msgid "Copy"
-msgstr "പകർത്തുക"
-
-msgid "Copy to the clipboard"
-msgstr ""
-
-msgid "Save search"
-msgstr ""
-
-msgid "Keep this search in the Vault under a name"
-msgstr ""
-
-msgid "Name"
-msgstr "പേര്"
-
-msgid "Initial import"
-msgstr ""
-
-msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
-msgstr ""
-
-msgid "Import"
-msgstr ""
-
-msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
-msgstr ""
-
-msgid "there is no preview to import: choose a folder with Initial import first"
-msgstr ""
-
-msgid "Asset Vault Window"
-msgstr ""
-
-msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
-msgstr ""
-
-msgid "The Asset Vault window is already open"
-msgstr ""
-
-msgid "Searching"
-msgstr ""
-
-msgid "Show the lineage"
-msgstr ""
-
-msgid "Select an asset"
-msgstr ""
-
-msgid "Reading the asset"
-msgstr ""
-
-msgid "Copy id"
-msgstr ""
-
-msgid "Asset Vault"
-msgstr ""
-
-msgid "offline"
-msgstr ""
-
-msgid "Search the Vault: names, tags and terms (Enter searches at once)"
-msgstr ""
-
-msgid "Every kind"
-msgstr ""
-
-msgid "Sort"
-msgstr ""
-
-msgid "Grid"
-msgstr "ഗ്രിഡ്"
-
-msgid "Tiles with big previews"
-msgstr ""
-
-msgid "List"
-msgstr ""
-
-msgid "One row per asset"
-msgstr ""
-
-msgid "Tile size"
-msgstr ""
-
-msgid "Thumbnail size in pixels"
-msgstr ""
 
 msgid "preview worker exited before rendering this asset"
 msgstr "ഈ അസറ്റ് റെൻഡർ ചെയ്യുന്നതിന് മുമ്പ് പ്രിവ്യൂ വർക്കർ പുറത്തുകടന്നു"
@@ -1147,6 +1030,9 @@ msgstr "റഫറൻസ് ചിത്രം (ഐച്ഛികം)"
 
 msgid "Searching…"
 msgstr "തിരയുന്നു…"
+
+msgid "Search"
+msgstr "തിരയുക"
 
 msgid "{count} result(s)"
 msgstr "{count} ഫലങ്ങൾ"
@@ -1871,9 +1757,6 @@ msgstr "ഡൗൺലോഡ് ചെയ്യുക"
 msgid "Stop"
 msgstr "നിർത്തുക"
 
-msgid "Start"
-msgstr "ആരംഭിക്കുക"
-
 msgid "Delete Download"
 msgstr "ഡൗൺലോഡ് ഇല്ലാതാക്കുക"
 
@@ -2056,54 +1939,6 @@ msgstr "ഈ ഉപയോക്താവിന് സെർവർ byok_active റ
 
 msgid "Dialog State"
 msgstr "ഡയലോഗ് നില"
-
-msgid "Refresh cards"
-msgstr ""
-
-msgid "Read the project cards from the server"
-msgstr ""
-
-msgid "Pin card"
-msgstr ""
-
-msgid "Pin the card so it never archives itself"
-msgstr ""
-
-msgid "Card status"
-msgstr ""
-
-msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
-msgstr ""
-
-msgid "Archived"
-msgstr ""
-
-msgid "Rebuild page"
-msgstr ""
-
-msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
-msgstr ""
-
-msgid "Design rounds"
-msgstr ""
-
-msgid "Motion tests"
-msgstr ""
-
-msgid "Receipt"
-msgstr ""
-
-msgid "Open card"
-msgstr ""
-
-msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
-msgstr ""
-
-msgid "Project cards"
-msgstr ""
-
-msgid "No cards yet: build one with lampway_cards"
-msgstr ""
 
 msgid "Set Lampway Agent Mode"
 msgstr "Lampway Agent മോഡ് സജ്ജമാക്കുക"
@@ -2519,6 +2354,9 @@ msgstr "സൃഷ്ടിച്ചത് (unix സെക്കൻഡ്)"
 msgid "Frozen Elapsed"
 msgstr "മരവിപ്പിച്ച കഴിഞ്ഞ സമയം"
 
+msgid "Filter"
+msgstr "ഫിൽറ്റർ"
+
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2639,7 +2477,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2525,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "സ്വകാര്യതാ നയം"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "ടോപ്പ്ബാർ ക്രോം (UI.svg റെസിപ്പി)"
 
-msgid "Zen"
-msgstr "Zen"
+msgid "Lamplight"
+msgstr ""
 
-msgid "Engine"
-msgstr "Engine"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "സിനിമ മോഡ്"
@@ -2749,6 +2587,9 @@ msgstr "അടിക്കുറിപ്പ്"
 
 msgid "Confirm"
 msgstr "സ്ഥിരീകരിക്കുക"
+
+msgid "Grid"
+msgstr "ഗ്രിഡ്"
 
 msgid "Disabled action"
 msgstr "പ്രവർത്തനരഹിത പ്രവർത്തനം"
@@ -2797,6 +2638,9 @@ msgstr "ലോക്കൽ ക്ലിക്കുകൾ"
 
 msgid "Profile"
 msgstr "പ്രൊഫൈൽ"
+
+msgid "Zen"
+msgstr "Zen"
 
 msgid "Shared Zen components"
 msgstr "പങ്കിട്ട Zen ഘടകങ്ങൾ"
@@ -3794,6 +3638,9 @@ msgstr "ക്യാമറ"
 msgid "Using {name}"
 msgstr "{name} ഉപയോഗിക്കുന്നു"
 
+msgid "Range"
+msgstr "പരിധി"
+
 msgid "Videos"
 msgstr "വീഡിയോകൾ"
 
@@ -4079,11 +3926,17 @@ msgstr "ഗ്രിഡ് ടോഗിൾ ചെയ്യുക"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "വ്യൂപോർട്ടിന്റെ ഗ്രിഡ് വരകൾ കാണിക്കുകയോ മറയ്ക്കുകയോ ചെയ്യുക (ഫ്ലോർ ഗ്രിഡും X/Y അക്ഷങ്ങളും)"
 
+msgid "Set"
+msgstr ""
+
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
+
+msgid "Toggle"
+msgstr "ടോഗിൾ"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5033,6 +4886,126 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "ഓൺ"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "നിങ്ങൾക്കായി കാത്തിരിക്കുന്നു"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
 msgid "Refresh privacy"
 msgstr ""
 
@@ -5213,6 +5186,9 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
+msgid "Rate"
+msgstr "നിരക്ക്"
+
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5243,9 +5219,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5264,13 +5237,13 @@ msgstr ""
 msgid "Turn this Studio action down; nothing is spent"
 msgstr ""
 
+msgid "Import"
+msgstr ""
+
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5366,6 +5339,9 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
+msgid "Tile size"
+msgstr ""
+
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5453,9 +5429,6 @@ msgstr ""
 msgid "Open a new agent session in the cockpit (your own CLI login)"
 msgstr ""
 
-msgid "Claude Code"
-msgstr ""
-
 msgid "Codex"
 msgstr ""
 
@@ -5464,6 +5437,9 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
+
+msgid "Name"
+msgstr "പേര്"
 
 msgid "Read to Text"
 msgstr ""
@@ -5583,6 +5559,12 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -6064,6 +6046,9 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
+
+msgid "Copy"
+msgstr "പകർത്തുക"
 
 msgid "Open Config File"
 msgstr ""
@@ -6860,9 +6845,6 @@ msgstr "റഫറൻസ് {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "ഈ ടെംപ്ലേറ്റിന് ലഭ്യമായ ഒരു ജനറേഷൻ മോഡൽ വേണം. നിങ്ങളുടെ കണക്ഷൻ പരിശോധിക്കുക."
 
-msgid "On"
-msgstr "ഓൺ"
-
 msgid "Off"
 msgstr "ഓഫ്"
 
@@ -7271,6 +7253,9 @@ msgstr "ഒരു കഥാപാത്രത്തിന്റെ എല്ല�
 msgid "Settings"
 msgstr "ക്രമീകരണങ്ങൾ"
 
+msgid "About"
+msgstr "കുറിച്ച്"
+
 msgid "Auto-detects the skeleton type"
 msgstr "അസ്ഥികൂട തരം സ്വയം കണ്ടെത്തുന്നു"
 
@@ -7463,14 +7448,14 @@ msgstr "ഡിസൈൻ സന്ദർഭത്തിന് പൂർണ കഥ
 msgid "Moodboard Drawer"
 msgstr "മൂഡ്ബോർഡ് ഡ്രോയർ"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Zen മോഡ് മൂഡ്ബോർഡ് ഡ്രോയർ എത്രമാത്രം പുറത്തെടുത്തിരിക്കുന്നു, 0 അടഞ്ഞത് 1 തുറന്നത്"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "മൂഡ്ബോർഡ് ഡ്രോയർ ലക്ഷ്യം"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Zen മോഡ് മൂഡ്ബോർഡ് ഡ്രോയർ സ്ഥിരമാകുന്ന വശം, 0 അടഞ്ഞത് 1 തുറന്നത്"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "മൂഡ്ബോർഡ് ഡ്രോയർ വീതി"
@@ -8448,6 +8433,9 @@ msgstr "ഘടക പേര്"
 
 msgid "Named character component represented by this image"
 msgstr "ഈ ചിത്രം പ്രതിനിധീകരിക്കുന്ന പേരുള്ള കഥാപാത്ര ഘടകം"
+
+msgid "View"
+msgstr "കാഴ്ച"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "ഈ ചിത്രം കാണിക്കുന്ന ക്യാമറ ആംഗിൾ. ചിത്രം ഒരു മൾട്ടി-വ്യൂ സെറ്റിൽ ഉൾപ്പെടുമ്പോൾ മാത്രം അർത്ഥമുണ്ട് — ടാബിന്റെ ഇൻപുട്ട് ചിത്രത്തോടൊപ്പം ആ ആംഗിളായി അയയ്ക്കും"
@@ -11626,7 +11614,7 @@ msgstr "Mixar-ിലേക്ക് സ്വാഗതം"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -17328,6 +17316,30 @@ msgstr "ചാനലുകൾ വീണ്ടും ബേക്ക് ചെയ
 msgid "Bake channels first to enable export"
 msgstr "എക്സ്പോർട്ട് പ്രാപ്തമാക്കാൻ ആദ്യം ചാനലുകൾ ബേക്ക് ചെയ്യുക"
 
+msgid "Assets Library Panel - Shows procedural materials from paint backend"
+msgstr "അസറ്റ് ലൈബ്രറി പാനൽ - പെയിന്റ് ബാക്കെൻഡിൽ നിന്നുള്ള പ്രൊസീജറൽ മെറ്റീരിയലുകൾ കാണിക്കുന്നു"
+
+msgid "{count} categories available"
+msgstr "{count} വിഭാഗങ്ങൾ ലഭ്യമാണ്"
+
+msgid "Open Material Library"
+msgstr "മെറ്റീരിയൽ ലൈബ്രറി തുറക്കുക"
+
+msgid "No materials loaded"
+msgstr "മെറ്റീരിയലുകൾ ലോഡ് ചെയ്തിട്ടില്ല"
+
+msgid "Material registry unavailable"
+msgstr "മെറ്റീരിയൽ രജിസ്ട്രി ലഭ്യമല്ല"
+
+msgid "Smart Materials"
+msgstr "സ്മാർട്ട് മെറ്റീരിയലുകൾ"
+
+msgid "Coming soon"
+msgstr "ഉടൻ വരുന്നു"
+
+msgid "Brushes"
+msgstr "ബ്രഷുകൾ"
+
 msgid "Baked Maps"
 msgstr "ബേക്ക് ചെയ്ത മാപ്പുകൾ"
 
@@ -19284,6 +19296,9 @@ msgstr "Blender റെൻഡർ ബേക്കിങ്ങുമായി പ�
 msgid "Replace"
 msgstr "മാറ്റിസ്ഥാപിക്കുക"
 
+msgid "Compare"
+msgstr "താരതമ്യം ചെയ്യുക"
+
 msgid "Use layer's source texture/color"
 msgstr "ലെയറിന്റെ ഉറവിട ടെക്സ്ചർ/കളർ ഉപയോഗിക്കുക"
 
@@ -20971,9 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "ഡാഷ്ബോർഡ്"
-
-msgid "Documentation"
-msgstr "ഡോക്യുമെന്റേഷൻ"
 
 msgid "Report a Bug"
 msgstr "ബഗ് റിപ്പോർട്ട് ചെയ്യുക"
@@ -22908,9 +22920,6 @@ msgstr "പ്രോജക്റ്റ് നിയമങ്ങൾ ദൃശ്�
 
 msgid "Whether the project-rules overlay is open"
 msgstr "പ്രോജക്റ്റ് നിയമ ഓവർലേ തുറന്നിട്ടുണ്ടോ"
-
-msgid "Waiting for you"
-msgstr "നിങ്ങൾക്കായി കാത്തിരിക്കുന്നു"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine മോഡ്"
-
-msgid "Zen Mode"
-msgstr "Zen മോഡ്"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Mixar-നെ Zen മോഡിലേക്ക് മാറ്റുക (ചുരുങ്ങിയ വ്യൂപോർട്ട് + ഏജന്റ് ബബിൾ + മൂഡ്ബോർഡ്)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Zen മോഡ് വർക്ക്സ്പേസ് സൃഷ്ടിക്കാനായില്ല — ടെംപ്ലേറ്റ് ലഭ്യമല്ല"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Mixar-നെ Engine മോഡിലേക്ക് മാറ്റുക (പൂർണ Blender-ശൈലി വർക്ക്സ്പേസുകൾ)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "മോഡലിങ് വർക്ക്സ്പേസ് കണ്ടെത്തിയില്ല"
@@ -25006,7 +25009,7 @@ msgstr "സീനും വ്യൂ ലെയറും"
 msgid "View Layer"
 msgstr "വ്യൂ ലെയർ"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25179,9 @@ msgstr "ലൈബ്രറി '%s' ഭാവി Lampway പതിപ്പിൽ
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: ഡാറ്റ പ്രധാന .mixar ഫയലിനെ സൂചിപ്പിക്കുന്നു: '%s', %s-ൽ നിന്ന്"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "സ്വാഗതം, %s !"
@@ -25399,6 +25405,9 @@ msgstr "സ്ക്രോൾ"
 msgid "Scroll library content"
 msgstr "ലൈബ്രറി ഉള്ളടക്കം സ്ക്രോൾ ചെയ്യുക"
 
+msgid "Page"
+msgstr "പേജ്"
+
 msgid "Move by the viewport height"
 msgstr "വ്യൂപോർട്ട് ഉയരത്തിനനുസരിച്ച് നീക്കുക"
 
@@ -25479,6 +25488,12 @@ msgstr "ഈ ജോലി റദ്ദാക്കുക"
 
 msgid "Select this job"
 msgstr "ഈ ജോലി തിരഞ്ഞെടുക്കുക"
+
+msgid "Previous"
+msgstr "മുമ്പത്തേത്"
+
+msgid "Next"
+msgstr "അടുത്തത്"
 
 msgid "Browse queue jobs"
 msgstr "ക്യൂ ജോലികൾ ബ്രൗസ് ചെയ്യുക"
@@ -26082,6 +26097,24 @@ msgstr "കഴ്സർ X സ്ഥാനം"
 
 msgid "Cursor Y position"
 msgstr "കഴ്സർ Y സ്ഥാനം"
+
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
 
 msgid "Animate Moodboard Attachment"
 msgstr "മൂഡ്ബോർഡ് അറ്റാച്ച്മെന്റ് ആനിമേറ്റ് ചെയ്യുക"
@@ -26829,6 +26862,24 @@ msgstr "ടെക്സ്ചർ സെറ്റ് സ്പേസ്"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "ടെക്സ്ചർ സെറ്റുകൾ കൈകാര്യം ചെയ്യാൻ സൈഡ്ബാർ പാനലുകൾ ഉപയോഗിക്കുക"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "ആദ്യത്തേതിലേക്ക് മടങ്ങുക"
@@ -27580,8 +27631,8 @@ msgstr "ടെക്സ്ചറിങ് പ്രോപ്പർട്ടി�
 msgid "Layer and texture properties"
 msgstr "ലെയർ, ടെക്സ്ചർ പ്രോപ്പർട്ടികൾ"
 
-msgid "Texturing Assets"
-msgstr "ടെക്സ്ചറിങ് അസറ്റുകൾ"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "സ്മാർട്ട് മെറ്റീരിയലുകൾ, ബ്രഷുകൾ, ടെക്സ്ചർ ലൈബ്രറി"
@@ -27805,8 +27856,8 @@ msgstr "ഗ്രേഡഡ് ലേബലുള്ള വൃത്താകൃ�
 msgid "Viewport Pill"
 msgstr "വ്യൂപോർട്ട് പിൽ"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Zen വ്യൂപോർട്ട് ഷേഡിങ് പിൽ; ലൈവ് മോഡ് അല്ലാത്തപ്പോൾ മങ്ങുന്നു"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "പ്രൊഫൈൽ പിൽ"
@@ -28048,26 +28099,26 @@ msgstr "ക്യൂ എണ്ണം ചിപ്പ്"
 msgid "Slider Track"
 msgstr "സ്ലൈഡർ ട്രാക്ക്"
 
-msgid "Zen/Engine slider track"
-msgstr "Zen/Engine സ്ലൈഡർ ട്രാക്ക്"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "സ്ലൈഡർ തമ്പ്"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Zen/Engine സ്ലൈഡർ തമ്പ്"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "സ്ലൈഡർ തമ്പ് ഹോവർ"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine തമ്പ് ഹോവർ"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "സ്ലൈഡർ ലേബൽ"
 
-msgid "Zen/Engine slider label"
-msgstr "Zen/Engine സ്ലൈഡർ ലേബൽ"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "സിനിമ പിൽ ഫിൽ"

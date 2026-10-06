@@ -34,7 +34,7 @@ def draw_director_entry(self, context):
     if region is None or region.alignment != 'RIGHT':
         return
     # Zen owns this entry in its scene toolbar; Engine retains the global pill.
-    if getattr(context.workspace, "name", "") == "Zen Mode":
+    if getattr(context.workspace, "name", "") == "Lamplight":
         return
 
     state = getattr(context.scene, "mixar_director", None)

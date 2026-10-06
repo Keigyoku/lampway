@@ -302,8 +302,6 @@ def _draw_topbar_open_agent(self, context):
     layout = self.layout
 
     layout.separator()
-    # SPARKLE is a Mixar color SVG icon (UI_icons.hh MIXIE CHAT block);
-    # fall back to the old bulb on builds that predate it.
     # No "Open Mixie" button in either mode: the chat's own floating pill is
     # the way in, and a second door to the same room only crowded the topbar.
     # The update BADGE below stays — it is the only persistent signal that an

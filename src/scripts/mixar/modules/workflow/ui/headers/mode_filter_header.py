@@ -80,13 +80,13 @@ def _draw_mode_slider(layout, context) -> None:
     row = layout.row(align=True)
     left = row.row(align=True)
     left.ui_units_x = _SLIDER_HALF_UNITS
-    left.operator("mixar.set_ui_mode_ai", text="Zen")
+    left.operator("mixar.set_ui_mode_ai", text="Lamplight")
     if styled:
         left.mixar_topbar_element(kind='MODE_SLIDER_LEFT', active=is_zen)
 
     right = row.row(align=True)
     right.ui_units_x = _SLIDER_HALF_UNITS
-    right.operator("mixar.set_ui_mode_pro", text="Engine")
+    right.operator("mixar.set_ui_mode_pro", text="Workshop")
     if styled:
         right.mixar_topbar_element(kind='MODE_SLIDER_RIGHT', active=not is_zen)
 

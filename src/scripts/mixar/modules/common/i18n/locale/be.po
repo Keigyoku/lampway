@@ -52,28 +52,58 @@ msgstr "Няма стыляў"
 msgid "No styles available"
 msgstr "Няма даступных стыляў"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Дакументацыя"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "Застаўка"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "Уласнае меню застаўкі без нядаўніх файлаў."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "Выберыце рэжым"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Пачаць з рэжыму Zen"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Рэжым Engine (у стылі Blender)"
+msgid "Start"
+msgstr "Пачаць"
 
-msgid "Getting Started"
-msgstr "Пачатак працы"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "Пра праграму"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "Адправіць"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "Збой"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "Памылка або прапушчана, бо залежнасць не выканана"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "Пачатак"
 
@@ -824,6 +863,24 @@ msgstr "Хаванне"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "Устанаўліваецца, калі карыстальнік хавае гэтую картку націскам. Панэль прайгравае той самы выезд, што і ў завершанай карткі, і радок прыбіраецца, калі яна сышла — націск не павінен хаваць картку пад курсорам"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "Канец"
@@ -842,6 +899,12 @@ msgstr "Пакаленне картак агентаў"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "Павялічваецца кожны раз, калі НОВАЕ разгалінаванне замяняе змесціва панэлі. Панэль на C++ скідае пазіцыю пракруткі і зноў прайгравае ўезд, калі гэта змяняецца — яна не можа вывесці «новы ход» са свайго спіса картак, які перасінхронізуецца толькі пры маляванні і таму яшчэ трымае карткі папярэдняга ходу, пакуль панэль схавана апытаннем"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "Актыўныя карткі агентаў"
@@ -862,186 +925,6 @@ msgstr ""
 "\n"
 "Прапускае навігацыю і ўвесь увод па-за акном прагляду; перахоплівае\n"
 "націскі і гарачыя клавішы рэдагавання над полем акна прагляду.\n"
-
-msgid "Search"
-msgstr "Шукаць"
-
-msgid "Search the Vault now"
-msgstr ""
-
-msgid "Filter"
-msgstr "Фільтр"
-
-msgid "Filter by this value (click again to remove the filter)"
-msgstr ""
-
-msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
-msgstr ""
-
-msgid "Set"
-msgstr ""
-
-msgid "Toggle"
-msgstr "Пераключальнік"
-
-msgid "Range"
-msgstr "Дыяпазон"
-
-msgid "Page"
-msgstr "Старонка"
-
-msgid "Show the next or the previous page"
-msgstr ""
-
-msgid "Next"
-msgstr "Наступная"
-
-msgid "Previous"
-msgstr "Папярэдняя"
-
-msgid "Place in scene"
-msgstr ""
-
-msgid "Put this asset into the scene the way its kind needs (one undo step)"
-msgstr ""
-
-msgid "Rate"
-msgstr "Частата"
-
-msgid "Rate this asset (your stars always win over an agent's)"
-msgstr ""
-
-msgid "View"
-msgstr "Выгляд"
-
-msgid "Show this view of the selected asset"
-msgstr ""
-
-msgid "Play"
-msgstr ""
-
-msgid "Play or pause the turntable or the clip"
-msgstr ""
-
-msgid "To timeline"
-msgstr ""
-
-msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
-msgstr ""
-
-msgid "Lineage"
-msgstr ""
-
-msgid "Draw where this asset came from and what came of it"
-msgstr ""
-
-msgid "Compare"
-msgstr "Параўнанне"
-
-msgid "Add this asset to the comparison (the last two are compared)"
-msgstr ""
-
-msgid "Find like this"
-msgstr ""
-
-msgid "Find assets like this one (runs on this machine)"
-msgstr ""
-
-msgid "Show in folder"
-msgstr ""
-
-msgid "Open the folder that holds this file (the file itself is never changed)"
-msgstr ""
-
-msgid "the folder is gone: re-run the Vault's verify"
-msgstr ""
-
-msgid "Copy"
-msgstr "Капіяваць"
-
-msgid "Copy to the clipboard"
-msgstr ""
-
-msgid "Save search"
-msgstr ""
-
-msgid "Keep this search in the Vault under a name"
-msgstr ""
-
-msgid "Name"
-msgstr "Назва"
-
-msgid "Initial import"
-msgstr ""
-
-msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
-msgstr ""
-
-msgid "Import"
-msgstr ""
-
-msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
-msgstr ""
-
-msgid "there is no preview to import: choose a folder with Initial import first"
-msgstr ""
-
-msgid "Asset Vault Window"
-msgstr ""
-
-msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
-msgstr ""
-
-msgid "The Asset Vault window is already open"
-msgstr ""
-
-msgid "Searching"
-msgstr ""
-
-msgid "Show the lineage"
-msgstr ""
-
-msgid "Select an asset"
-msgstr ""
-
-msgid "Reading the asset"
-msgstr ""
-
-msgid "Copy id"
-msgstr ""
-
-msgid "Asset Vault"
-msgstr ""
-
-msgid "offline"
-msgstr ""
-
-msgid "Search the Vault: names, tags and terms (Enter searches at once)"
-msgstr ""
-
-msgid "Every kind"
-msgstr ""
-
-msgid "Sort"
-msgstr ""
-
-msgid "Grid"
-msgstr "Рашотка"
-
-msgid "Tiles with big previews"
-msgstr ""
-
-msgid "List"
-msgstr ""
-
-msgid "One row per asset"
-msgstr ""
-
-msgid "Tile size"
-msgstr ""
-
-msgid "Thumbnail size in pixels"
-msgstr ""
 
 msgid "preview worker exited before rendering this asset"
 msgstr "працэс перадпрагляду завяршыўся да рэндэру гэтага рэсурсу"
@@ -1147,6 +1030,9 @@ msgstr "Выява-рэферэнс (неабавязкова)"
 
 msgid "Searching…"
 msgstr "Пошук…"
+
+msgid "Search"
+msgstr "Шукаць"
 
 msgid "{count} result(s)"
 msgstr "Вынікаў: {count}"
@@ -1871,9 +1757,6 @@ msgstr "Спампаваць"
 msgid "Stop"
 msgstr "Спыніць"
 
-msgid "Start"
-msgstr "Пачаць"
-
 msgid "Delete Download"
 msgstr "Выдаліць спампоўку"
 
@@ -2056,54 +1939,6 @@ msgstr "Так, калі сервер паведамляе byok_active для г
 
 msgid "Dialog State"
 msgstr "Стан дыялогу"
-
-msgid "Refresh cards"
-msgstr ""
-
-msgid "Read the project cards from the server"
-msgstr ""
-
-msgid "Pin card"
-msgstr ""
-
-msgid "Pin the card so it never archives itself"
-msgstr ""
-
-msgid "Card status"
-msgstr ""
-
-msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
-msgstr ""
-
-msgid "Archived"
-msgstr ""
-
-msgid "Rebuild page"
-msgstr ""
-
-msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
-msgstr ""
-
-msgid "Design rounds"
-msgstr ""
-
-msgid "Motion tests"
-msgstr ""
-
-msgid "Receipt"
-msgstr ""
-
-msgid "Open card"
-msgstr ""
-
-msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
-msgstr ""
-
-msgid "Project cards"
-msgstr ""
-
-msgid "No cards yet: build one with lampway_cards"
-msgstr ""
 
 msgid "Set Lampway Agent Mode"
 msgstr "Задаць рэжым Lampway Agent"
@@ -2519,6 +2354,9 @@ msgstr "Створана (секунды Unix)"
 msgid "Frozen Elapsed"
 msgstr "Зафіксаваны мінулы час"
 
+msgid "Filter"
+msgstr "Фільтр"
+
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2639,7 +2477,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2525,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "Палітыка прыватнасці"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "Аздабленне верхняй панэлі (рэцэпт UI.svg)"
 
-msgid "Zen"
-msgstr "Zen"
+msgid "Lamplight"
+msgstr ""
 
-msgid "Engine"
-msgstr "Engine"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "Рэжым кіно"
@@ -2749,6 +2587,9 @@ msgstr "Ніз"
 
 msgid "Confirm"
 msgstr "Пацвердзіць"
+
+msgid "Grid"
+msgstr "Рашотка"
 
 msgid "Disabled action"
 msgstr "Выключанае дзеянне"
@@ -2797,6 +2638,9 @@ msgstr "Лакальныя націскі"
 
 msgid "Profile"
 msgstr "Профіль"
+
+msgid "Zen"
+msgstr "Zen"
 
 msgid "Shared Zen components"
 msgstr "Агульныя кампаненты Zen"
@@ -3794,6 +3638,9 @@ msgstr "Камера"
 msgid "Using {name}"
 msgstr "Выкарыстоўваецца {name}"
 
+msgid "Range"
+msgstr "Дыяпазон"
+
 msgid "Videos"
 msgstr "Відэа"
 
@@ -4079,11 +3926,17 @@ msgstr "Пераключыць рашотку"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Паказвае або хавае лініі рашоткі акна прагляду (рашотка падлогі і восі X/Y)"
 
+msgid "Set"
+msgstr ""
+
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
+
+msgid "Toggle"
+msgstr "Пераключальнік"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5033,6 +4886,126 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "Уключана"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "Чакае вас"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
 msgid "Refresh privacy"
 msgstr ""
 
@@ -5213,6 +5186,9 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
+msgid "Rate"
+msgstr "Частата"
+
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5243,9 +5219,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5264,13 +5237,13 @@ msgstr ""
 msgid "Turn this Studio action down; nothing is spent"
 msgstr ""
 
+msgid "Import"
+msgstr ""
+
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5366,6 +5339,9 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
+msgid "Tile size"
+msgstr ""
+
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5453,9 +5429,6 @@ msgstr ""
 msgid "Open a new agent session in the cockpit (your own CLI login)"
 msgstr ""
 
-msgid "Claude Code"
-msgstr ""
-
 msgid "Codex"
 msgstr ""
 
@@ -5464,6 +5437,9 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
+
+msgid "Name"
+msgstr "Назва"
 
 msgid "Read to Text"
 msgstr ""
@@ -5583,6 +5559,12 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -6064,6 +6046,9 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
+
+msgid "Copy"
+msgstr "Капіяваць"
 
 msgid "Open Config File"
 msgstr ""
@@ -6860,9 +6845,6 @@ msgstr "Рэферэнс {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Гэтаму шаблону патрэбна даступная мадэль генерацыі. Праверце злучэнне."
 
-msgid "On"
-msgstr "Уключана"
-
 msgid "Off"
 msgstr "Выключана"
 
@@ -7271,6 +7253,9 @@ msgstr "Выберыце ўсе часткі аднаго персанажа —
 msgid "Settings"
 msgstr "Налады"
 
+msgid "About"
+msgstr "Пра праграму"
+
 msgid "Auto-detects the skeleton type"
 msgstr "Аўтаматычна вызначае тып шкілета"
 
@@ -7463,14 +7448,14 @@ msgstr "Таксама адпраўляе ўсяго персанажа як к�
 msgid "Moodboard Drawer"
 msgstr "Шуфлядка мудборда"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Наколькі выцягнута шуфлядка мудборда ў рэжыме Zen: 0 зачынена, 1 адкрыта"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "Мэта шуфлядкі мудборда"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Бок, на якім спыняецца шуфлядка мудборда ў рэжыме Zen: 0 зачынена, 1 адкрыта"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "Шырыня шуфлядкі мудборда"
@@ -8448,6 +8433,9 @@ msgstr "Назва кампанента"
 
 msgid "Named character component represented by this image"
 msgstr "Імяваны кампанент персанажа, які прадстаўляе гэтая выява"
+
+msgid "View"
+msgstr "Выгляд"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Ракурс камеры, які паказвае гэтая выява. Мае сэнс, толькі пакуль выява належыць набору некалькіх выглядаў — яна адпраўляецца разам з уваходнай выявай укладкі як гэты ракурс"
@@ -11626,7 +11614,7 @@ msgstr "Вітаем у Lampway"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -17328,6 +17316,30 @@ msgstr "Перазапячы каналы"
 msgid "Bake channels first to enable export"
 msgstr "Спачатку запячыце каналы, каб уключыць экспарт"
 
+msgid "Assets Library Panel - Shows procedural materials from paint backend"
+msgstr "Панэль бібліятэкі рэсурсаў — паказвае працэдурныя матэрыялы з рухавіка малявання"
+
+msgid "{count} categories available"
+msgstr "Даступна катэгорый: {count}"
+
+msgid "Open Material Library"
+msgstr "Адкрыць бібліятэку матэрыялаў"
+
+msgid "No materials loaded"
+msgstr "Матэрыялы не загружаны"
+
+msgid "Material registry unavailable"
+msgstr "Рэестр матэрыялаў недаступны"
+
+msgid "Smart Materials"
+msgstr "Разумныя матэрыялы"
+
+msgid "Coming soon"
+msgstr "Хутка з'явіцца"
+
+msgid "Brushes"
+msgstr "Пэндзлі"
+
 msgid "Baked Maps"
 msgstr "Запечаныя карты"
 
@@ -19284,6 +19296,9 @@ msgstr "Адлюстраванне нармалей у сусветнай пра
 msgid "Replace"
 msgstr "Замена"
 
+msgid "Compare"
+msgstr "Параўнанне"
+
 msgid "Use layer's source texture/color"
 msgstr "Выкарыстоўваць зыходную тэкстуру або колер слоя"
 
@@ -20971,9 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "Панэль кіравання"
-
-msgid "Documentation"
-msgstr "Дакументацыя"
 
 msgid "Report a Bug"
 msgstr "Паведаміць пра памылку"
@@ -22908,9 +22920,6 @@ msgstr "Правілы праекта бачныя"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "Ці адкрыта накладка правілаў праекта"
-
-msgid "Waiting for you"
-msgstr "Чакае вас"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Рэжым Engine"
-
-msgid "Zen Mode"
-msgstr "Рэжым Zen"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Пераключае Lampway у рэжым Zen (мінімальнае акно прагляду + бурбалка агента + мудборд)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Не ўдалося стварыць працоўную прастору рэжыму Zen — няма даступнага шаблона"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Пераключае Lampway у рэжым Engine (поўныя працоўныя прасторы ў стылі Blender)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "Працоўная прастора мадэлявання не знойдзена"
@@ -25006,7 +25009,7 @@ msgstr "Сцэна і слой прагляду"
 msgid "View Layer"
 msgstr "Слой прагляду"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25179,9 @@ msgstr "Бібліятэка '%s' створана будучай версіяй
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: даныя спасылаюцца на галоўны файл .mixar: '%s' з %s"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "Вітаем, %s !"
@@ -25399,6 +25405,9 @@ msgstr "Пракрутка"
 msgid "Scroll library content"
 msgstr "Пракручвае змесціва бібліятэкі"
 
+msgid "Page"
+msgstr "Старонка"
+
 msgid "Move by the viewport height"
 msgstr "Рух на вышыню акна прагляду"
 
@@ -25479,6 +25488,12 @@ msgstr "Скасаваць гэту задачу"
 
 msgid "Select this job"
 msgstr "Выбраць гэту задачу"
+
+msgid "Previous"
+msgstr "Папярэдняя"
+
+msgid "Next"
+msgstr "Наступная"
 
 msgid "Browse queue jobs"
 msgstr "Агляд задач чаргі"
@@ -26082,6 +26097,24 @@ msgstr "Становішча курсора X"
 
 msgid "Cursor Y position"
 msgstr "Становішча курсора Y"
+
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
 
 msgid "Animate Moodboard Attachment"
 msgstr "Анімаваць далучэнне мудборда"
@@ -26829,6 +26862,24 @@ msgstr "Прастора набораў тэкстур"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "Выкарыстоўвайце бакавыя панэлі для кіравання наборамі тэкстур"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "Назад да першага"
@@ -27580,8 +27631,8 @@ msgstr "Уласцівасці тэкстуравання"
 msgid "Layer and texture properties"
 msgstr "Уласцівасці слоя і тэкстуры"
 
-msgid "Texturing Assets"
-msgstr "Рэсурсы тэкстуравання"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Бібліятэка разумных матэрыялаў, пэндзляў і тэкстур"
@@ -27805,8 +27856,8 @@ msgstr "Круглая цёмная пілюля з градыентным по�
 msgid "Viewport Pill"
 msgstr "Пілюля акна прагляду"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Пілюля зацянення акна прагляду Zen; прыглушана, калі гэта не бягучы рэжым"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "Пілюля профілю"
@@ -28048,26 +28099,26 @@ msgstr "Чып лічыльніка чаргі"
 msgid "Slider Track"
 msgstr "Дарожка паўзунка"
 
-msgid "Zen/Engine slider track"
-msgstr "Дарожка паўзунка Zen/Engine"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "Бегунок паўзунка"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Бегунок паўзунка Zen/Engine"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "Навядзенне на бегунок паўзунка"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Навядзенне на бегунок Zen/Engine"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "Подпіс паўзунка"
 
-msgid "Zen/Engine slider label"
-msgstr "Подпіс паўзунка Zen/Engine"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "Заліўка пілюлі кіно"

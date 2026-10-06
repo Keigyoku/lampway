@@ -52,28 +52,58 @@ msgstr "Không có kiểu"
 msgid "No styles available"
 msgstr "Không có kiểu khả dụng"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Tài Liệu"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "Quảng Cáo"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "Trình đơn màn hình chào tùy chỉnh không có mục Tập Tin Gần Đây."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "Chọn Chế Độ của Bạn"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Bắt Đầu với Chế Độ Zen"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Chế Độ Engine (Kiểu Blender)"
+msgid "Start"
+msgstr "Khởi/Đầu"
 
-msgid "Getting Started"
-msgstr "Khởi Đầu"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "Giới Thiệu"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "Gửi"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "Thất Bại"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "Gặp lỗi, hoặc bị bỏ qua do một phụ thuộc thất bại"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "Bắt Đầu Lúc"
 
@@ -824,6 +863,24 @@ msgstr "Đang Đóng"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "Được đặt khi người dùng bấm để đóng thẻ này. Bảng phát cùng hiệu ứng trượt ra như một thẻ đã hoàn tất, và hàng được xóa sau khi thẻ đã rời đi — việc bấm không được làm thẻ biến mất ngay dưới con trỏ"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "Kết Thúc Lúc"
@@ -842,6 +899,12 @@ msgstr "Thế Hệ Thẻ Tác Nhân"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "Tăng lên mỗi khi một đợt phân nhánh MỚI thay thế nội dung của bảng. Bảng C++ đặt lại vị trí cuộn và phát lại hiệu ứng trượt vào khi giá trị này thay đổi — nó không thể suy ra 'lượt mới' từ danh sách thẻ của chính nó, vốn chỉ đồng bộ lại khi vẽ nên vẫn giữ các thẻ của lượt trước trong khi bảng bị ẩn bởi poll"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "Thẻ Tác Nhân Đang Hoạt Động"
@@ -862,186 +925,6 @@ msgstr ""
 "\n"
 "Cho phép điều hướng và mọi đầu vào ngoài cổng nhìn; chặn các\n"
 "lần bấm và phím tắt chỉnh sửa trên khung vẽ cổng nhìn.\n"
-
-msgid "Search"
-msgstr "Tìm Kiếm"
-
-msgid "Search the Vault now"
-msgstr ""
-
-msgid "Filter"
-msgstr "Thanh Lọc"
-
-msgid "Filter by this value (click again to remove the filter)"
-msgstr ""
-
-msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
-msgstr ""
-
-msgid "Set"
-msgstr ""
-
-msgid "Toggle"
-msgstr "Đảo Lật/Bật/Tắt"
-
-msgid "Range"
-msgstr "Phạm Vi"
-
-msgid "Page"
-msgstr "Trang"
-
-msgid "Show the next or the previous page"
-msgstr ""
-
-msgid "Next"
-msgstr "Tiếp Theo"
-
-msgid "Previous"
-msgstr "Trước"
-
-msgid "Place in scene"
-msgstr ""
-
-msgid "Put this asset into the scene the way its kind needs (one undo step)"
-msgstr ""
-
-msgid "Rate"
-msgstr "Tần Số"
-
-msgid "Rate this asset (your stars always win over an agent's)"
-msgstr ""
-
-msgid "View"
-msgstr "Góc Nhìn"
-
-msgid "Show this view of the selected asset"
-msgstr ""
-
-msgid "Play"
-msgstr ""
-
-msgid "Play or pause the turntable or the clip"
-msgstr ""
-
-msgid "To timeline"
-msgstr ""
-
-msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
-msgstr ""
-
-msgid "Lineage"
-msgstr ""
-
-msgid "Draw where this asset came from and what came of it"
-msgstr ""
-
-msgid "Compare"
-msgstr "So Sánh"
-
-msgid "Add this asset to the comparison (the last two are compared)"
-msgstr ""
-
-msgid "Find like this"
-msgstr ""
-
-msgid "Find assets like this one (runs on this machine)"
-msgstr ""
-
-msgid "Show in folder"
-msgstr ""
-
-msgid "Open the folder that holds this file (the file itself is never changed)"
-msgstr ""
-
-msgid "the folder is gone: re-run the Vault's verify"
-msgstr ""
-
-msgid "Copy"
-msgstr "Sao Chép"
-
-msgid "Copy to the clipboard"
-msgstr ""
-
-msgid "Save search"
-msgstr ""
-
-msgid "Keep this search in the Vault under a name"
-msgstr ""
-
-msgid "Name"
-msgstr "Tên"
-
-msgid "Initial import"
-msgstr ""
-
-msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
-msgstr ""
-
-msgid "Import"
-msgstr ""
-
-msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
-msgstr ""
-
-msgid "there is no preview to import: choose a folder with Initial import first"
-msgstr ""
-
-msgid "Asset Vault Window"
-msgstr ""
-
-msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
-msgstr ""
-
-msgid "The Asset Vault window is already open"
-msgstr ""
-
-msgid "Searching"
-msgstr ""
-
-msgid "Show the lineage"
-msgstr ""
-
-msgid "Select an asset"
-msgstr ""
-
-msgid "Reading the asset"
-msgstr ""
-
-msgid "Copy id"
-msgstr ""
-
-msgid "Asset Vault"
-msgstr ""
-
-msgid "offline"
-msgstr ""
-
-msgid "Search the Vault: names, tags and terms (Enter searches at once)"
-msgstr ""
-
-msgid "Every kind"
-msgstr ""
-
-msgid "Sort"
-msgstr ""
-
-msgid "Grid"
-msgstr "Khung Lưới Đồ Thị"
-
-msgid "Tiles with big previews"
-msgstr ""
-
-msgid "List"
-msgstr ""
-
-msgid "One row per asset"
-msgstr ""
-
-msgid "Tile size"
-msgstr ""
-
-msgid "Thumbnail size in pixels"
-msgstr ""
 
 msgid "preview worker exited before rendering this asset"
 msgstr "tiến trình xem trước đã thoát trước khi kết xuất tài sản này"
@@ -1147,6 +1030,9 @@ msgstr "Hình Ảnh Tham Chiếu (tùy chọn)"
 
 msgid "Searching…"
 msgstr "Đang tìm kiếm…"
+
+msgid "Search"
+msgstr "Tìm Kiếm"
 
 msgid "{count} result(s)"
 msgstr "{count} kết quả"
@@ -1871,9 +1757,6 @@ msgstr "Tải Xuống"
 msgid "Stop"
 msgstr "Dừng"
 
-msgid "Start"
-msgstr "Khởi/Đầu"
-
 msgid "Delete Download"
 msgstr "Xóa Bản Tải Xuống"
 
@@ -2056,54 +1939,6 @@ msgstr "Đúng khi máy chủ báo byok_active cho người dùng này"
 
 msgid "Dialog State"
 msgstr "Trạng Thái Hộp Thoại"
-
-msgid "Refresh cards"
-msgstr ""
-
-msgid "Read the project cards from the server"
-msgstr ""
-
-msgid "Pin card"
-msgstr ""
-
-msgid "Pin the card so it never archives itself"
-msgstr ""
-
-msgid "Card status"
-msgstr ""
-
-msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
-msgstr ""
-
-msgid "Archived"
-msgstr ""
-
-msgid "Rebuild page"
-msgstr ""
-
-msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
-msgstr ""
-
-msgid "Design rounds"
-msgstr ""
-
-msgid "Motion tests"
-msgstr ""
-
-msgid "Receipt"
-msgstr ""
-
-msgid "Open card"
-msgstr ""
-
-msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
-msgstr ""
-
-msgid "Project cards"
-msgstr ""
-
-msgid "No cards yet: build one with lampway_cards"
-msgstr ""
 
 msgid "Set Lampway Agent Mode"
 msgstr "Đặt Chế Độ Lampway Agent"
@@ -2519,6 +2354,9 @@ msgstr "Tạo Lúc (giây unix)"
 msgid "Frozen Elapsed"
 msgstr "Thời Gian Đã Trôi Qua Cố Định"
 
+msgid "Filter"
+msgstr "Thanh Lọc"
+
 msgid "{message} ({code})"
 msgstr ""
 
@@ -2639,7 +2477,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2525,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "Chính Sách Quyền Riêng Tư"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "Khung thanh trên cùng (công thức UI.svg)"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
-msgstr "Động Cơ"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "Chế Độ Điện Ảnh"
@@ -2749,6 +2587,9 @@ msgstr "Chân Trang"
 
 msgid "Confirm"
 msgstr "Chấp Thuận"
+
+msgid "Grid"
+msgstr "Khung Lưới Đồ Thị"
 
 msgid "Disabled action"
 msgstr "Hành động bị tắt"
@@ -2797,6 +2638,9 @@ msgstr "Số lần bấm cục bộ"
 
 msgid "Profile"
 msgstr "Mặt Cắt"
+
+msgid "Zen"
+msgstr ""
 
 msgid "Shared Zen components"
 msgstr "Các thành phần Zen dùng chung"
@@ -3794,6 +3638,9 @@ msgstr "Máy Quay Phim"
 msgid "Using {name}"
 msgstr "Đang dùng {name}"
 
+msgid "Range"
+msgstr "Phạm Vi"
+
 msgid "Videos"
 msgstr "Video"
 
@@ -4079,11 +3926,17 @@ msgstr "Bật/Tắt Lưới"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Hiện hoặc ẩn các đường lưới của cổng nhìn (lưới sàn và trục X/Y)"
 
+msgid "Set"
+msgstr ""
+
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
+
+msgid "Toggle"
+msgstr "Đảo Lật/Bật/Tắt"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5033,6 +4886,126 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "Bật"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "Đang chờ bạn"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
 msgid "Refresh privacy"
 msgstr ""
 
@@ -5213,6 +5186,9 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
+msgid "Rate"
+msgstr "Tần Số"
+
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5243,9 +5219,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5264,13 +5237,13 @@ msgstr ""
 msgid "Turn this Studio action down; nothing is spent"
 msgstr ""
 
+msgid "Import"
+msgstr ""
+
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5366,6 +5339,9 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
+msgid "Tile size"
+msgstr ""
+
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5453,9 +5429,6 @@ msgstr ""
 msgid "Open a new agent session in the cockpit (your own CLI login)"
 msgstr ""
 
-msgid "Claude Code"
-msgstr ""
-
 msgid "Codex"
 msgstr ""
 
@@ -5464,6 +5437,9 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
+
+msgid "Name"
+msgstr "Tên"
 
 msgid "Read to Text"
 msgstr ""
@@ -5583,6 +5559,12 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -6064,6 +6046,9 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
+
+msgid "Copy"
+msgstr "Sao Chép"
 
 msgid "Open Config File"
 msgstr ""
@@ -6860,9 +6845,6 @@ msgstr "Tham Chiếu {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Khuôn mẫu này cần một mô hình sinh tạo khả dụng. Hãy kiểm tra kết nối của bạn."
 
-msgid "On"
-msgstr "Bật"
-
 msgid "Off"
 msgstr "Tắt"
 
@@ -7271,6 +7253,9 @@ msgstr "Hãy chọn mọi bộ phận của một nhân vật — sẽ được 
 msgid "Settings"
 msgstr "Sắp Đặt"
 
+msgid "About"
+msgstr "Giới Thiệu"
+
 msgid "Auto-detects the skeleton type"
 msgstr "Tự động phát hiện loại bộ xương"
 
@@ -7463,14 +7448,14 @@ msgstr "Đồng thời gửi toàn bộ nhân vật làm ngữ cảnh thiết k�
 msgid "Moodboard Drawer"
 msgstr "Ngăn Kéo Bảng Cảm Hứng"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Mức kéo ra của ngăn kéo bảng cảm hứng trong Chế Độ Zen, 0 là đóng và 1 là mở"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "Mục Tiêu Ngăn Kéo Bảng Cảm Hứng"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Trạng thái mà ngăn kéo bảng cảm hứng trong Chế Độ Zen dừng lại, 0 là đóng và 1 là mở"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "Chiều Rộng Ngăn Kéo Bảng Cảm Hứng"
@@ -8448,6 +8433,9 @@ msgstr "Tên Thành Phần"
 
 msgid "Named character component represented by this image"
 msgstr "Thành phần nhân vật có tên được thể hiện bởi hình ảnh này"
+
+msgid "View"
+msgstr "Góc Nhìn"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Góc máy quay phim mà hình ảnh này thể hiện. Chỉ có ý nghĩa khi hình ảnh thuộc một bộ đa góc nhìn — nó được gửi kèm hình ảnh đầu vào của thẻ dưới dạng góc đó"
@@ -11626,7 +11614,7 @@ msgstr "Chào mừng đến với Lampway"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -17328,6 +17316,30 @@ msgstr "Nướng Lại Kênh"
 msgid "Bake channels first to enable export"
 msgstr "Hãy nướng kênh trước để bật xuất khẩu"
 
+msgid "Assets Library Panel - Shows procedural materials from paint backend"
+msgstr "Bảng Thư Viện Tài Sản - Hiển thị nguyên vật liệu thủ tục từ nền phụ trợ sơn"
+
+msgid "{count} categories available"
+msgstr "Có {count} phân loại"
+
+msgid "Open Material Library"
+msgstr "Mở Thư Viện Nguyên Vật Liệu"
+
+msgid "No materials loaded"
+msgstr "Chưa nạp nguyên vật liệu nào"
+
+msgid "Material registry unavailable"
+msgstr "Sổ đăng ký nguyên vật liệu không khả dụng"
+
+msgid "Smart Materials"
+msgstr "Nguyên Vật Liệu Thông Minh"
+
+msgid "Coming soon"
+msgstr "Sắp ra mắt"
+
+msgid "Brushes"
+msgstr "Đầu Bút"
+
 msgid "Baked Maps"
 msgstr "Ánh Xạ Đã Nướng"
 
@@ -19284,6 +19296,9 @@ msgstr "Ánh xạ pháp tuyến không gian thế giới, thích hợp với qu�
 msgid "Replace"
 msgstr "Thay Thế"
 
+msgid "Compare"
+msgstr "So Sánh"
+
 msgid "Use layer's source texture/color"
 msgstr "Dùng chất liệu/màu nguồn của tầng lớp"
 
@@ -20971,9 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "Bảng Điều Khiển"
-
-msgid "Documentation"
-msgstr "Tài Liệu"
 
 msgid "Report a Bug"
 msgstr "Báo Cáo Lỗi"
@@ -22908,9 +22920,6 @@ msgstr "Hiển Thị Quy Tắc Dự Án"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "Lớp vẽ lồng quy tắc dự án có đang mở hay không"
-
-msgid "Waiting for you"
-msgstr "Đang chờ bạn"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Chế Độ Engine"
-
-msgid "Zen Mode"
-msgstr "Chế Độ Zen"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Chuyển Lampway sang Chế Độ Zen (cổng nhìn tối giản + Bong Bóng Tác Nhân + bảng cảm hứng)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Không thể tạo không gian làm việc Chế Độ Zen — không có khuôn mẫu nào khả dụng"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Chuyển Lampway sang Chế Độ Engine (đầy đủ các không gian làm việc kiểu Blender)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "Không tìm thấy không gian làm việc Mô Hình Hóa"
@@ -25006,7 +25009,7 @@ msgstr "Cảnh và Tầng Góc Nhìn"
 msgid "View Layer"
 msgstr "Tầng Góc Nhìn"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25179,9 @@ msgstr "Thư viện '%s' được tạo bởi một phiên bản Lampway tương
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: Dữ liệu tham chiếu đến tập tin .mixar chính: '%s' từ %s"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "Chào mừng, %s!"
@@ -25399,6 +25405,9 @@ msgstr "Cuộn"
 msgid "Scroll library content"
 msgstr "Cuộn nội dung thư viện"
 
+msgid "Page"
+msgstr "Trang"
+
 msgid "Move by the viewport height"
 msgstr "Di chuyển một khoảng bằng chiều cao vùng hiển thị"
 
@@ -25479,6 +25488,12 @@ msgstr "Hủy tác vụ này"
 
 msgid "Select this job"
 msgstr "Chọn tác vụ này"
+
+msgid "Previous"
+msgstr "Trước"
+
+msgid "Next"
+msgstr "Tiếp Theo"
 
 msgid "Browse queue jobs"
 msgstr "Duyệt các tác vụ trong hàng đợi"
@@ -26082,6 +26097,24 @@ msgstr "Vị trí X của con trỏ"
 
 msgid "Cursor Y position"
 msgstr "Vị trí Y của con trỏ"
+
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
 
 msgid "Animate Moodboard Attachment"
 msgstr "Hoạt Họa Tệp Đính Kèm từ Bảng Cảm Hứng"
@@ -26829,6 +26862,24 @@ msgstr "Không Gian Bộ Chất Liệu"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "Dùng các bảng ở thanh bên để quản lý bộ chất liệu"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "Về đầu tiên"
@@ -27580,8 +27631,8 @@ msgstr "Tính Chất Tạo Chất Liệu"
 msgid "Layer and texture properties"
 msgstr "Tính chất tầng lớp và chất liệu"
 
-msgid "Texturing Assets"
-msgstr "Tài Sản Tạo Chất Liệu"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Thư viện nguyên vật liệu thông minh, đầu bút và chất liệu"
@@ -27805,8 +27856,8 @@ msgstr "Viên tối bo tròn với nhãn chuyển sắc"
 msgid "Viewport Pill"
 msgstr "Viên Cổng Nhìn"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Viên tô bóng cổng nhìn Zen; bị làm mờ khi không phải chế độ đang dùng"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "Viên Hồ Sơ"
@@ -28048,26 +28099,26 @@ msgstr "Thẻ nhỏ số lượng hàng đợi"
 msgid "Slider Track"
 msgstr "Rãnh Thanh Trượt"
 
-msgid "Zen/Engine slider track"
-msgstr "Rãnh thanh trượt Zen/Engine"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "Núm Thanh Trượt"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Núm thanh trượt Zen/Engine"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "Núm Thanh Trượt Khi Di Chuột"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Núm Zen/Engine khi di chuột"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "Nhãn Thanh Trượt"
 
-msgid "Zen/Engine slider label"
-msgstr "Nhãn thanh trượt Zen/Engine"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "Màu Tô Viên Điện Ảnh"

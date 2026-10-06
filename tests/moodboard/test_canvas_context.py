@@ -24,10 +24,10 @@ def test_clear_is_offered_for_every_board_collection():
     "space,workspace,region,amount,expected",
     [
         ("MIXIE", "Layout", "WINDOW", 0, True),
-        ("VIEW_3D", "Zen Mode", "TOOL_PROPS", 1, True),
-        ("VIEW_3D", "Zen Mode", "TEMP", 1, True),
-        ("VIEW_3D", "Zen Mode", "TOOL_PROPS", 0.5, False),
-        ("VIEW_3D", "Zen Mode", "WINDOW", 1, False),
+        ("VIEW_3D", "Lamplight", "TOOL_PROPS", 1, True),
+        ("VIEW_3D", "Lamplight", "TEMP", 1, True),
+        ("VIEW_3D", "Lamplight", "TOOL_PROPS", 0.5, False),
+        ("VIEW_3D", "Lamplight", "WINDOW", 1, False),
         ("VIEW_3D", "Layout", "TOOL_PROPS", 1, False),
     ],
 )
@@ -62,7 +62,7 @@ def test_updates_redraw_only_the_drawer_not_the_3d_scene(monkeypatch, amount, ex
     drawer = NS(type="TOOL_PROPS", tag_redraw=Mock())
     view = NS(type="VIEW_3D", regions=[viewport, drawer], tag_redraw=Mock())
     editor = NS(type="MIXIE", tag_redraw=Mock())
-    window = NS(workspace=NS(name="Zen Mode"), screen=NS(areas=[view, editor]))
+    window = NS(workspace=NS(name="Lamplight"), screen=NS(areas=[view, editor]))
     monkeypatch.setattr(canvas_context, "bpy", NS(context=NS(window_manager=NS(
         windows=[window], mixar_moodboard_drawer_amount=amount,
     ))))

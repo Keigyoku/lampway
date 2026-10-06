@@ -50,13 +50,13 @@ namespace blender::ui {
 
 static bool mixar_workspace_name_floats_viewport_chrome(const char *name)
 {
-  return STREQ(name, "Zen Mode");
+  return STREQ(name, "Lamplight");
 }
 
 bool mixar_workspace_is_zen(const bContext *C)
 {
   const WorkSpace *workspace = C ? CTX_wm_workspace(C) : nullptr;
-  return workspace != nullptr && STREQ(workspace->id.name + 2, "Zen Mode");
+  return workspace != nullptr && STREQ(workspace->id.name + 2, "Lamplight");
 }
 
 bool mixar_workspace_floats_viewport_chrome(const bContext *C)

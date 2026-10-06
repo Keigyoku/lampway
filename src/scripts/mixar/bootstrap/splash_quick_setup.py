@@ -86,8 +86,9 @@ class WM_MT_splash_quick_setup(Menu):
 
         if can_import:
             sub.operator("wm.save_userpref", text="Save New Preferences", icon='NONE')
-        else:
-            sub.operator("wm.save_userpref", text="Continue")
+        else:  # step 1 of 4 (facelift contract 02): the walk saves the preferences at its end, as Continue did
+            sub.operator_context = 'INVOKE_DEFAULT'
+            sub.operator("lampway.onboarding", text="Continue")
 
         layout.separator(factor=2.0)
 

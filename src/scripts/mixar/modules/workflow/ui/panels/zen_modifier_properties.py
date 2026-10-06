@@ -115,16 +115,16 @@ def draw_modifier_properties(layout, modifier):
         return
     if kind == 'NODES':
         layout.template_ID(modifier, 'node_group')
-        layout.label(text="Edit node inputs in Engine Mode.", icon='INFO')
+        layout.label(text="Edit node inputs in the Workshop.", icon='INFO')
         return
     fields = QUICK_FIELDS.get(kind)
     if fields:
         _fields(layout, modifier, fields)
         if kind in {'MESH_DEFORM', 'SURFACE_DEFORM', 'LAPLACIANDEFORM', 'MULTIRES',
                     'DATA_TRANSFER', 'UV_PROJECT', 'FLUID', 'DYNAMIC_PAINT'}:
-            layout.label(text="Complete setup in Engine Mode.", icon='INFO')
+            layout.label(text="Complete setup in the Workshop.", icon='INFO')
     else:
-        layout.label(text="Edit settings in Engine Mode.", icon='INFO')
+        layout.label(text="Edit settings in the Workshop.", icon='INFO')
 
 
 classes = ()

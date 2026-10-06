@@ -62,7 +62,7 @@ RULES = {
         "mixar_fg_3": "muted", "mixar_fg_4": "muted_dim", "mixar_pane_wash": "surface", "mixar_brand": "accent",
         "mixar_brand_text": "on_accent", "mixar_queue": "line", "mixar_queue_count": "muted_dim",
         "mixar_slider_track": "well", "mixar_slider_thumb": "accent", "mixar_slider_thumb_hover": "accent_hi",
-        "mixar_slider_label": "text", "mixar_cinema_pill_border": "line", "mixar_cinema_pill_on_a": "accent_bed",
+        "mixar_slider_label": "text", "mixar_cinema_pill_border": "line@00", "mixar_cinema_pill_on_a": "accent_bed",  # Cinema: no pill border (contract 03)
         "mixar_cinema_pill_on_b": "accent_bed_hi", "mixar_cinema_pill_border_on": "accent",
         "mixar_cinema_pill_label": "muted_dim", "mixar_cinema_pill_label_on": "text_hi",
         "mixar_viewport_fill": "well", "mixar_viewport_border": "line", "mixar_viewport_label": "muted",
@@ -106,7 +106,7 @@ RULES = {
     "user_interface/wcol_scroll": widget("surface@00", "raised_hi", outline="line@00", item="line_hi", roundness="1"),
     "user_interface/wcol_progress": widget("well", "raised_hi", item="accent", roundness="1"),
     "user_interface/wcol_list_item": widget("surface@00", "accent_bed", outline="line@00", text_sel="text_hi", roundness="0.3"),
-    "user_interface/wcol_tab": widget("canvas", "raised", outline="line@00", text="muted", text_sel="text_hi", roundness="0.4"),
+    "user_interface/wcol_tab": widget("canvas", "canvas", outline="line@00", item="accent", text="muted", text_sel="text_hi", roundness="0.4"),  # text with an amber underline (contract 03)
     "user_interface/wcol_state": {
         "error": "stop_bed", "warning": "accent_bed_hi", "info": "agent_bed", "success": "go_bed",
         "inner_anim": "@upstream", "inner_anim_sel": "@upstream", "inner_key": "@upstream", "inner_key_sel": "@upstream",
@@ -254,7 +254,7 @@ KEPT = {
 LIGHT_OVERRIDES = {   # where the light theme needs a different rule, not just a different token value
     "view_3d": {"grid": "on_accent@14", "grid_major": "on_accent@26", "wire": "muted"},
     "user_interface/wcol_option": {"item": "on_accent"},
-    "user_interface/wcol_tab": {"inner": "canvas", "inner_sel": "surface"},
+    "user_interface/wcol_tab": {"inner": "canvas", "inner_sel": "canvas"},
 }
 
 # ----------------------------------------------------------------------------------------------- machinery
@@ -556,6 +556,8 @@ NATIVE = {
                                              "interface_mixar_theme.cc"),
     "UI_mixar_tokens.hh": os.path.join(ROOT, "src", "source", "blender", "editors", "include", "UI_mixar_tokens.hh"),
     "rna_userdef.cc": os.path.join(ROOT, "src", "source", "blender", "makesrna", "intern", "rna_userdef.cc"),
+    "interface_mixar_liquid_glass_tokens.cc": os.path.join(ROOT, "src", "source", "blender", "editors", "interface",
+                                                           "interface_mixar_liquid_glass_tokens.cc"),
 }
 DEFAULT_NAME = "Lampway Night"
 # The zen palette is the slot table read by name (mixar_zen() in interface_mixar_theme.cc): field -> slot.
@@ -571,6 +573,16 @@ MX = {"MX_BG": ("tui", "mixar_bg"), "MX_BG_SUNKEN": ("tui", "mixar_sunken"), "MX
       "MX_TOGGLE_ON": ("space_mixie", "mixar_toggle_active"), "MX_WARNING": ("tui", "mixar_warning"),
       "MX_DANGER": ("tui", "mixar_danger"), "MX_INK": ("tui", "mixar_ink"), "MX_FG_1": ("tui", "mixar_fg_1"),
       "MX_FG_2": ("tui", "mixar_fg_2"), "MX_FG_3": ("tui", "mixar_fg_3"), "MX_FG_4": ("tui", "mixar_fg_4")}
+# The liquid-glass material table (contract 03 section 5): the four panes the island and the cards are made of take their tint
+# from `surface` and their rim from `line_hi` at each row's own alpha; the moodboard's reveal tab is an amber bed, not green;
+# no row has a moving specular ("only egress moves", DESIGN.md 13). Tokens are the dark variant: the table is compiled.
+GLASS = {
+    "MIXAR_GLASS_CARD": {"tint_top": "surface", "tint_bottom": "surface", "rim": "line_hi"},
+    "MIXAR_GLASS_ISLAND": {"tint_top": "surface", "tint_bottom": "surface", "rim": "line_hi"},
+    "MIXAR_GLASS_PANEL": {"tint_top": "surface", "tint_bottom": "surface", "rim": "line_hi"},
+    "MIXAR_GLASS_PILL": {"tint_top": "surface", "tint_bottom": "surface", "rim": "line_hi"},
+    "MIXAR_GLASS_MOODBOARD_TAB": {"tint_top": "accent_bed_hi", "tint_bottom": "accent_bed", "glaze": "accent_bed", "rim": "accent"},
+}
 # The chat space's DNA carries copies of the moodboard's colours that no RNA reaches (ThemeMixieChat has no moodboard
 # properties); they follow the moodboard's own, so the compiled default holds no stale Forest copy.
 MIRROR = {("space_mixie_chat", "moodboard_"): "space_mixie"}
@@ -756,6 +768,32 @@ def rna_defaults_cc(fields, dna_map, text):
     return text
 
 
+def glass_cc(text):
+    """interface_mixar_liquid_glass_tokens.cc: retint the rows GLASS names, keep each colour's alpha, and zero every specular."""
+    import re
+    start = text.index("const MixarGlassTokens g_glass_tokens[] = {")
+    end = text.index("\n};", start)
+    table = text[start:end]
+
+    def row(m):
+        name, body = m[1], m[2]
+        for field, token in GLASS.get(name, {}).items():
+            hx = TOKENS["colour"][token]["dark"]
+            rgb = ", ".join(f"{int(hx[i:i + 2], 16) / 255:.3f}f" for i in (1, 3, 5))
+            body, n = re.subn(rf"(/\*\s*{field}\s*\*/\s*\{{)[^,]*, [^,]*, [^,]*,", lambda mm: f"{mm[1]}{rgb},", body, count=1)
+            if n != 1:
+                raise Unmapped(f"glass {name}.{field}: expected one colour")
+        body, n = re.subn(r"(/\*\s*specular_alpha\s*\*/\s*)[-\d.]+f", r"\g<1>0.00f", body)
+        if n != 1:
+            raise Unmapped(f"glass {name}: expected one specular_alpha")
+        return m[0][:m.start(2) - m.start(0)] + body + m[0][m.end(2) - m.start(0):]
+
+    table, n = re.subn(r"/\* (MIXAR_GLASS_\w+).*?\*/\s*\{(.*?)\n    \},", row, table, flags=re.S)
+    if n < len(GLASS):
+        raise Unmapped(f"glass table: found {n} rows")
+    return text[:start] + table + text[end:]
+
+
 def emit_native(values, out):
     """Write the four compiled tables; into the source tree when out is None, else as files in out."""
     fields = compiled_theme(values)
@@ -763,7 +801,8 @@ def emit_native(values, out):
     dest = (lambda name: NATIVE[name]) if out is None else (lambda name: os.path.join(out, name))
     userdef_c(fields, dest("userdef_default_theme.c"))
     for name, fn in (("interface_mixar_theme.cc", slot_table_cc), ("UI_mixar_tokens.hh", tokens_hh),
-                     ("rna_userdef.cc", lambda f, t: rna_defaults_cc(f, dna_map, t))):
+                     ("rna_userdef.cc", lambda f, t: rna_defaults_cc(f, dna_map, t)),
+                     ("interface_mixar_liquid_glass_tokens.cc", lambda _f, t: glass_cc(t))):
         text = open(NATIVE[name], encoding="utf-8").read()
         with open(dest(name), "w", encoding="utf-8") as fh:
             fh.write(fn(fields, text))

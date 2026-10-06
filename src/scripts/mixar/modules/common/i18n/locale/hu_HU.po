@@ -52,28 +52,58 @@ msgstr "Nincsenek stílusok"
 msgid "No styles available"
 msgstr "Nem érhetők el stílusok"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Dokumentáció"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "Nyitóképernyő"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "Egyéni nyitóképernyő-menü a Legutóbbi fájlok nélkül."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "Válasszon módot"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Indítás Zen módban"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine mód (Blender-stílus)"
+msgid "Start"
+msgstr "Kezdés"
 
-msgid "Getting Started"
-msgstr "Első lépések"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "Névjegy"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "Küldés"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "Sikertelen"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "Hiba történt, vagy kimaradt, mert egy függősége sikertelen volt"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "Kezdés ideje"
 
@@ -824,6 +863,24 @@ msgstr "Elvetés folyamatban"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "Akkor van beállítva, ha a felhasználó elkattintja a kártyát. A panel ugyanazt a kicsúszó animációt játssza le, mint egy befejezett kártyánál, és a sor csak a távozása után törlődik – kattintásra egy kártya nem tűnhet el a kurzor alatt"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "Befejezés ideje"
@@ -842,6 +899,12 @@ msgstr "Ügynökkártyák generációja"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "Minden alkalommal növekszik, amikor egy ÚJ szétosztás lecseréli a panel tartalmát. A C++ panel ekkor alaphelyzetbe állítja a görgetési pozícióját és újra lejátssza a becsúszó animációt – a saját kártyalistájából nem tudja kikövetkeztetni az „új kört”, mert az csak rajzoláskor szinkronizálódik újra, így amíg a panel a lekérdezés miatt rejtett, még az előző kör kártyáit tartalmazza"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "Aktív ügynökkártyák"
@@ -862,186 +925,6 @@ msgstr ""
 "\n"
 "A navigációt és minden nem a nézetablakra irányuló bevitelt átengedi; a\n"
 "nézetablak vásznán elnyeli a kattintásokat és a szerkesztési gyorsbillentyűket.\n"
-
-msgid "Search"
-msgstr "Keresés"
-
-msgid "Search the Vault now"
-msgstr ""
-
-msgid "Filter"
-msgstr "Szűrő"
-
-msgid "Filter by this value (click again to remove the filter)"
-msgstr ""
-
-msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
-msgstr ""
-
-msgid "Set"
-msgstr ""
-
-msgid "Toggle"
-msgstr "Kapcsoló"
-
-msgid "Range"
-msgstr "Tartomány"
-
-msgid "Page"
-msgstr "Oldal"
-
-msgid "Show the next or the previous page"
-msgstr ""
-
-msgid "Next"
-msgstr "Következő"
-
-msgid "Previous"
-msgstr "Előző"
-
-msgid "Place in scene"
-msgstr ""
-
-msgid "Put this asset into the scene the way its kind needs (one undo step)"
-msgstr ""
-
-msgid "Rate"
-msgstr "Ráta"
-
-msgid "Rate this asset (your stars always win over an agent's)"
-msgstr ""
-
-msgid "View"
-msgstr "Nézet"
-
-msgid "Show this view of the selected asset"
-msgstr ""
-
-msgid "Play"
-msgstr ""
-
-msgid "Play or pause the turntable or the clip"
-msgstr ""
-
-msgid "To timeline"
-msgstr ""
-
-msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
-msgstr ""
-
-msgid "Lineage"
-msgstr ""
-
-msgid "Draw where this asset came from and what came of it"
-msgstr ""
-
-msgid "Compare"
-msgstr "Összehasonlítás"
-
-msgid "Add this asset to the comparison (the last two are compared)"
-msgstr ""
-
-msgid "Find like this"
-msgstr ""
-
-msgid "Find assets like this one (runs on this machine)"
-msgstr ""
-
-msgid "Show in folder"
-msgstr ""
-
-msgid "Open the folder that holds this file (the file itself is never changed)"
-msgstr ""
-
-msgid "the folder is gone: re-run the Vault's verify"
-msgstr ""
-
-msgid "Copy"
-msgstr "Másolás"
-
-msgid "Copy to the clipboard"
-msgstr ""
-
-msgid "Save search"
-msgstr ""
-
-msgid "Keep this search in the Vault under a name"
-msgstr ""
-
-msgid "Name"
-msgstr "Név"
-
-msgid "Initial import"
-msgstr ""
-
-msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
-msgstr ""
-
-msgid "Import"
-msgstr ""
-
-msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
-msgstr ""
-
-msgid "there is no preview to import: choose a folder with Initial import first"
-msgstr ""
-
-msgid "Asset Vault Window"
-msgstr ""
-
-msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
-msgstr ""
-
-msgid "The Asset Vault window is already open"
-msgstr ""
-
-msgid "Searching"
-msgstr ""
-
-msgid "Show the lineage"
-msgstr ""
-
-msgid "Select an asset"
-msgstr ""
-
-msgid "Reading the asset"
-msgstr ""
-
-msgid "Copy id"
-msgstr ""
-
-msgid "Asset Vault"
-msgstr ""
-
-msgid "offline"
-msgstr ""
-
-msgid "Search the Vault: names, tags and terms (Enter searches at once)"
-msgstr ""
-
-msgid "Every kind"
-msgstr ""
-
-msgid "Sort"
-msgstr ""
-
-msgid "Grid"
-msgstr "Rács"
-
-msgid "Tiles with big previews"
-msgstr ""
-
-msgid "List"
-msgstr ""
-
-msgid "One row per asset"
-msgstr ""
-
-msgid "Tile size"
-msgstr ""
-
-msgid "Thumbnail size in pixels"
-msgstr ""
 
 msgid "preview worker exited before rendering this asset"
 msgstr "az előnézet-feldolgozó kilépett, mielőtt renderelte volna ezt az assetet"
@@ -1147,6 +1030,9 @@ msgstr "Referenciakép (nem kötelező)"
 
 msgid "Searching…"
 msgstr "Keresés…"
+
+msgid "Search"
+msgstr "Keresés"
 
 msgid "{count} result(s)"
 msgstr "{count} találat"
@@ -1871,9 +1757,6 @@ msgstr "Letöltés"
 msgid "Stop"
 msgstr "Leállítás"
 
-msgid "Start"
-msgstr "Kezdés"
-
 msgid "Delete Download"
 msgstr "Letöltés törlése"
 
@@ -2056,54 +1939,6 @@ msgstr "Igaz, ha a kiszolgáló byok_active értéket jelez ennél a felhasznál
 
 msgid "Dialog State"
 msgstr "Párbeszéd állapota"
-
-msgid "Refresh cards"
-msgstr ""
-
-msgid "Read the project cards from the server"
-msgstr ""
-
-msgid "Pin card"
-msgstr ""
-
-msgid "Pin the card so it never archives itself"
-msgstr ""
-
-msgid "Card status"
-msgstr ""
-
-msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
-msgstr ""
-
-msgid "Archived"
-msgstr ""
-
-msgid "Rebuild page"
-msgstr ""
-
-msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
-msgstr ""
-
-msgid "Design rounds"
-msgstr ""
-
-msgid "Motion tests"
-msgstr ""
-
-msgid "Receipt"
-msgstr ""
-
-msgid "Open card"
-msgstr ""
-
-msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
-msgstr ""
-
-msgid "Project cards"
-msgstr ""
-
-msgid "No cards yet: build one with lampway_cards"
-msgstr ""
 
 msgid "Set Lampway Agent Mode"
 msgstr "Lampway Agent mód beállítása"
@@ -2519,6 +2354,9 @@ msgstr "Létrehozva (unix másodperc)"
 msgid "Frozen Elapsed"
 msgstr "Rögzített eltelt idő"
 
+msgid "Filter"
+msgstr "Szűrő"
+
 msgid "{message} ({code})"
 msgstr ""
 
@@ -2639,7 +2477,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2525,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "Adatvédelmi nyilatkozat"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "Felső sáv megjelenése (UI.svg recept)"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
-msgstr "Motor"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "Mozi mód"
@@ -2749,6 +2587,9 @@ msgstr "Lábléc"
 
 msgid "Confirm"
 msgstr "Megerősítés"
+
+msgid "Grid"
+msgstr "Rács"
 
 msgid "Disabled action"
 msgstr "Letiltott művelet"
@@ -2797,6 +2638,9 @@ msgstr "Helyi kattintások"
 
 msgid "Profile"
 msgstr "Profil"
+
+msgid "Zen"
+msgstr ""
 
 msgid "Shared Zen components"
 msgstr "Közös Zen-összetevők"
@@ -3794,6 +3638,9 @@ msgstr "Kamera"
 msgid "Using {name}"
 msgstr "Használatban: {name}"
 
+msgid "Range"
+msgstr "Tartomány"
+
 msgid "Videos"
 msgstr "Videók"
 
@@ -4079,11 +3926,17 @@ msgstr "Rács ki-be"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "A nézetablak rácsvonalainak megjelenítése vagy elrejtése (padlórács és X/Y tengelyek)"
 
+msgid "Set"
+msgstr ""
+
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
+
+msgid "Toggle"
+msgstr "Kapcsoló"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5033,6 +4886,126 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "Be"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "Önre vár"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
 msgid "Refresh privacy"
 msgstr ""
 
@@ -5213,6 +5186,9 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
+msgid "Rate"
+msgstr "Ráta"
+
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5243,9 +5219,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5264,13 +5237,13 @@ msgstr ""
 msgid "Turn this Studio action down; nothing is spent"
 msgstr ""
 
+msgid "Import"
+msgstr ""
+
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5366,6 +5339,9 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
+msgid "Tile size"
+msgstr ""
+
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5453,9 +5429,6 @@ msgstr ""
 msgid "Open a new agent session in the cockpit (your own CLI login)"
 msgstr ""
 
-msgid "Claude Code"
-msgstr ""
-
 msgid "Codex"
 msgstr ""
 
@@ -5464,6 +5437,9 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
+
+msgid "Name"
+msgstr "Név"
 
 msgid "Read to Text"
 msgstr ""
@@ -5583,6 +5559,12 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -6064,6 +6046,9 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
+
+msgid "Copy"
+msgstr "Másolás"
 
 msgid "Open Config File"
 msgstr ""
@@ -6860,9 +6845,6 @@ msgstr "Referencia {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Ehhez a sablonhoz elérhető generálási modell kell. Ellenőrizze a kapcsolatot."
 
-msgid "On"
-msgstr "Be"
-
 msgid "Off"
 msgstr "Kikapcsol"
 
@@ -7271,6 +7253,9 @@ msgstr "Egy karakter minden részének kijelölése — egyetlen csontvázként 
 msgid "Settings"
 msgstr "Beállítások"
 
+msgid "About"
+msgstr "Névjegy"
+
 msgid "Auto-detects the skeleton type"
 msgstr "Automatikusan felismeri a csontváz típusát"
 
@@ -7463,14 +7448,14 @@ msgstr "A teljes karakter elküldése is a tervezési kontextushoz; alapból ki 
 msgid "Moodboard Drawer"
 msgstr "Moodboard-fiók"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Milyen messzire van kihúzva a Zen mód moodboard-fiókja, 0 csukva és 1 nyitva"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "Moodboard-fiók célja"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "A Zen mód moodboard-fiókjának oldala, 0 csukva és 1 nyitva"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "Moodboard-fiók szélessége"
@@ -8448,6 +8433,9 @@ msgstr "Komponens neve"
 
 msgid "Named character component represented by this image"
 msgstr "Az ezen a képen ábrázolt, megnevezett karakterkomponens"
+
+msgid "View"
+msgstr "Nézet"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "A kép által mutatott kameraszög. Csak akkor értelmes, ha a kép egy többnézetű készlethez tartozik — a lap bemeneti képe mellé kerül, mint az a szög"
@@ -11626,7 +11614,7 @@ msgstr "Üdvözöljük a Mixarban"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -17328,6 +17316,30 @@ msgstr "Csatornák újrasütése"
 msgid "Bake channels first to enable export"
 msgstr "Az exportáláshoz először süsse ki a csatornákat"
 
+msgid "Assets Library Panel - Shows procedural materials from paint backend"
+msgstr "Asset-könyvtár panel – a festési háttérrendszer procedurális anyagait jeleníti meg"
+
+msgid "{count} categories available"
+msgstr "{count} kategória érhető el"
+
+msgid "Open Material Library"
+msgstr "Anyagkönyvtár megnyitása"
+
+msgid "No materials loaded"
+msgstr "Nincs betöltött anyag"
+
+msgid "Material registry unavailable"
+msgstr "Az anyagnyilvántartás nem érhető el"
+
+msgid "Smart Materials"
+msgstr "Intelligens anyagok"
+
+msgid "Coming soon"
+msgstr "Hamarosan"
+
+msgid "Brushes"
+msgstr "Ecsetek"
+
 msgid "Baked Maps"
 msgstr "Sütött térképek"
 
@@ -19284,6 +19296,9 @@ msgstr "Világtérbeli normálletérképezés, a Blender rendersütésével komp
 msgid "Replace"
 msgstr "Lecserél"
 
+msgid "Compare"
+msgstr "Összehasonlítás"
+
 msgid "Use layer's source texture/color"
 msgstr "A réteg forrástextúrájának vagy színének használata"
 
@@ -20971,9 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "Irányítópult"
-
-msgid "Documentation"
-msgstr "Dokumentáció"
 
 msgid "Report a Bug"
 msgstr "Hiba bejelentése"
@@ -22908,9 +22920,6 @@ msgstr "Projektszabályok láthatók"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "Nyitva van-e a projektszabályok fedőpanelje"
-
-msgid "Waiting for you"
-msgstr "Önre vár"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine mód"
-
-msgid "Zen Mode"
-msgstr "Zen mód"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "A Lampway átváltása Zen módba (minimális nézetablak + Ügynökbuborék + moodboard)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "A Zen mód munkaterülete nem hozható létre — nincs elérhető sablon"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "A Lampway átváltása Engine módba (teljes, Blender-stílusú munkaterületek)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "A modellezési munkaterület nem található"
@@ -25006,7 +25009,7 @@ msgstr "Jelenet és nézetréteg"
 msgid "View Layer"
 msgstr "Nézetréteg"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25179,9 @@ msgstr "A(z) '%s' könyvtárat a Lampway jövőbeli verziója hozta létre, és 
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: Az adat a fő .mixar fájlra hivatkozik: '%s', forrás: %s"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "Üdvözöljük, %s !"
@@ -25399,6 +25405,9 @@ msgstr "Görgetés"
 msgid "Scroll library content"
 msgstr "A könyvtár tartalmának görgetése"
 
+msgid "Page"
+msgstr "Oldal"
+
 msgid "Move by the viewport height"
 msgstr "Mozgatás a nézetablak magasságával"
 
@@ -25479,6 +25488,12 @@ msgstr "Feladat megszakítása"
 
 msgid "Select this job"
 msgstr "Feladat kijelölése"
+
+msgid "Previous"
+msgstr "Előző"
+
+msgid "Next"
+msgstr "Következő"
 
 msgid "Browse queue jobs"
 msgstr "Várólista feladatainak böngészése"
@@ -26082,6 +26097,24 @@ msgstr "Kurzor X-pozíciója"
 
 msgid "Cursor Y position"
 msgstr "Kurzor Y-pozíciója"
+
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
 
 msgid "Animate Moodboard Attachment"
 msgstr "Moodboard-melléklet animálása"
@@ -26829,6 +26862,24 @@ msgstr "Textúrakészletek tere"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "Az oldalsáv paneljeivel kezelheti a textúrakészleteket"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "Vissza az elsőhöz"
@@ -27580,8 +27631,8 @@ msgstr "Textúrázási tulajdonságok"
 msgid "Layer and texture properties"
 msgstr "Réteg- és textúratulajdonságok"
 
-msgid "Texturing Assets"
-msgstr "Textúrázási assetek"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Intelligens anyagok, ecsetek és textúrák könyvtára"
@@ -27805,8 +27856,8 @@ msgstr "Kerekített sötét tabletta átmenetes felirattal"
 msgid "Viewport Pill"
 msgstr "Nézetablak-tabletta"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Zen nézetablak-árnyalási tabletta; halvány, ha nem ez az élő mód"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "Profiltabletta"
@@ -28048,26 +28099,26 @@ msgstr "Várólista-szám jelvénye"
 msgid "Slider Track"
 msgstr "Csúszkasáv"
 
-msgid "Zen/Engine slider track"
-msgstr "Zen/Engine csúszkasáv"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "Csúszkahúzó"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Zen/Engine csúszkahúzó"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "Csúszkahúzó lebegtetés"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine húzó lebegtetése"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "Csúszkafelirat"
 
-msgid "Zen/Engine slider label"
-msgstr "Zen/Engine csúszkafelirat"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "Mozi mód tabletta kitöltése"

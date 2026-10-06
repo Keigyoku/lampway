@@ -52,28 +52,58 @@ msgstr "Niciun stil"
 msgid "No styles available"
 msgstr "Niciun stil disponibil"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Documentație"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "Ecran de pornire"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "Meniu personalizat de pornire, fără Fișiere recente."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "Alegeți modul"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Începeți cu Mod Zen"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Mod Engine (stil Blender)"
+msgid "Start"
+msgstr "Început"
 
-msgid "Getting Started"
-msgstr "Primii pași"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "Despre"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "Trimitere"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "Eșuat"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "Eroare, sau omis pentru că o dependență a eșuat"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "Început la"
 
@@ -824,6 +863,24 @@ msgstr "Se închide"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "Setat când utilizatorul închide acest card. Panoul redă aceeași glisare de ieșire ca la un card terminat, iar rândul este eliminat după ce a ieșit — un clic nu trebuie să facă un card să dispară sub cursor"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "Încheiat la"
@@ -842,6 +899,12 @@ msgstr "Generație carduri agent"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "Crește de fiecare dată când un evantai NOU înlocuiește conținutul panoului. Panoul C++ resetează derularea și reia glisarea de intrare când aceasta se schimbă — nu poate deduce „tură nouă” din propria listă de carduri, care se resincronizează doar la desenare și deci încă ține cardurile turei anterioare cât panoul este ascuns la sondare"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "Carduri agent active"
@@ -862,186 +925,6 @@ msgstr ""
 "\n"
 "Lasă să treacă navigarea și orice intrare din afara ferestrei; consumă\n"
 "clicurile și tastele de editare peste suprafața ferestrei.\n"
-
-msgid "Search"
-msgstr "Căutare"
-
-msgid "Search the Vault now"
-msgstr ""
-
-msgid "Filter"
-msgstr "Filtru"
-
-msgid "Filter by this value (click again to remove the filter)"
-msgstr ""
-
-msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
-msgstr ""
-
-msgid "Set"
-msgstr ""
-
-msgid "Toggle"
-msgstr "Comutator"
-
-msgid "Range"
-msgstr "Interval"
-
-msgid "Page"
-msgstr "Pagină"
-
-msgid "Show the next or the previous page"
-msgstr ""
-
-msgid "Next"
-msgstr "Următor"
-
-msgid "Previous"
-msgstr "Anterior"
-
-msgid "Place in scene"
-msgstr ""
-
-msgid "Put this asset into the scene the way its kind needs (one undo step)"
-msgstr ""
-
-msgid "Rate"
-msgstr "Rată"
-
-msgid "Rate this asset (your stars always win over an agent's)"
-msgstr ""
-
-msgid "View"
-msgstr "Vedere"
-
-msgid "Show this view of the selected asset"
-msgstr ""
-
-msgid "Play"
-msgstr ""
-
-msgid "Play or pause the turntable or the clip"
-msgstr ""
-
-msgid "To timeline"
-msgstr ""
-
-msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
-msgstr ""
-
-msgid "Lineage"
-msgstr ""
-
-msgid "Draw where this asset came from and what came of it"
-msgstr ""
-
-msgid "Compare"
-msgstr "Comparare"
-
-msgid "Add this asset to the comparison (the last two are compared)"
-msgstr ""
-
-msgid "Find like this"
-msgstr ""
-
-msgid "Find assets like this one (runs on this machine)"
-msgstr ""
-
-msgid "Show in folder"
-msgstr ""
-
-msgid "Open the folder that holds this file (the file itself is never changed)"
-msgstr ""
-
-msgid "the folder is gone: re-run the Vault's verify"
-msgstr ""
-
-msgid "Copy"
-msgstr "Copiere"
-
-msgid "Copy to the clipboard"
-msgstr ""
-
-msgid "Save search"
-msgstr ""
-
-msgid "Keep this search in the Vault under a name"
-msgstr ""
-
-msgid "Name"
-msgstr "Nume"
-
-msgid "Initial import"
-msgstr ""
-
-msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
-msgstr ""
-
-msgid "Import"
-msgstr ""
-
-msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
-msgstr ""
-
-msgid "there is no preview to import: choose a folder with Initial import first"
-msgstr ""
-
-msgid "Asset Vault Window"
-msgstr ""
-
-msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
-msgstr ""
-
-msgid "The Asset Vault window is already open"
-msgstr ""
-
-msgid "Searching"
-msgstr ""
-
-msgid "Show the lineage"
-msgstr ""
-
-msgid "Select an asset"
-msgstr ""
-
-msgid "Reading the asset"
-msgstr ""
-
-msgid "Copy id"
-msgstr ""
-
-msgid "Asset Vault"
-msgstr ""
-
-msgid "offline"
-msgstr ""
-
-msgid "Search the Vault: names, tags and terms (Enter searches at once)"
-msgstr ""
-
-msgid "Every kind"
-msgstr ""
-
-msgid "Sort"
-msgstr ""
-
-msgid "Grid"
-msgstr "Grilă"
-
-msgid "Tiles with big previews"
-msgstr ""
-
-msgid "List"
-msgstr ""
-
-msgid "One row per asset"
-msgstr ""
-
-msgid "Tile size"
-msgstr ""
-
-msgid "Thumbnail size in pixels"
-msgstr ""
 
 msgid "preview worker exited before rendering this asset"
 msgstr "procesul de previzualizare s-a oprit înainte de a randa această resursă"
@@ -1147,6 +1030,9 @@ msgstr "Imagine de referință (opțional)"
 
 msgid "Searching…"
 msgstr "Se caută…"
+
+msgid "Search"
+msgstr "Căutare"
 
 msgid "{count} result(s)"
 msgstr "Rezultate: {count}"
@@ -1871,9 +1757,6 @@ msgstr "Descărcare"
 msgid "Stop"
 msgstr "Oprire"
 
-msgid "Start"
-msgstr "Început"
-
 msgid "Delete Download"
 msgstr "Ștergere descărcare"
 
@@ -2056,54 +1939,6 @@ msgstr "Adevărat când serverul raportează byok_active pentru acest utilizator
 
 msgid "Dialog State"
 msgstr "Stare dialog"
-
-msgid "Refresh cards"
-msgstr ""
-
-msgid "Read the project cards from the server"
-msgstr ""
-
-msgid "Pin card"
-msgstr ""
-
-msgid "Pin the card so it never archives itself"
-msgstr ""
-
-msgid "Card status"
-msgstr ""
-
-msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
-msgstr ""
-
-msgid "Archived"
-msgstr ""
-
-msgid "Rebuild page"
-msgstr ""
-
-msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
-msgstr ""
-
-msgid "Design rounds"
-msgstr ""
-
-msgid "Motion tests"
-msgstr ""
-
-msgid "Receipt"
-msgstr ""
-
-msgid "Open card"
-msgstr ""
-
-msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
-msgstr ""
-
-msgid "Project cards"
-msgstr ""
-
-msgid "No cards yet: build one with lampway_cards"
-msgstr ""
 
 msgid "Set Lampway Agent Mode"
 msgstr "Setare mod Lampway Agent"
@@ -2519,6 +2354,9 @@ msgstr "Creat (secunde unix)"
 msgid "Frozen Elapsed"
 msgstr "Timp scurs înghețat"
 
+msgid "Filter"
+msgstr "Filtru"
+
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2639,7 +2477,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2525,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "Politică de confidențialitate"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "Decor bară de sus (rețetă UI.svg)"
 
-msgid "Zen"
-msgstr "Zen"
+msgid "Lamplight"
+msgstr ""
 
-msgid "Engine"
-msgstr "Engine"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "Mod cinema"
@@ -2749,6 +2587,9 @@ msgstr "Subsol"
 
 msgid "Confirm"
 msgstr "Confirmare"
+
+msgid "Grid"
+msgstr "Grilă"
 
 msgid "Disabled action"
 msgstr "Acțiune dezactivată"
@@ -2797,6 +2638,9 @@ msgstr "Clicuri locale"
 
 msgid "Profile"
 msgstr "Profil"
+
+msgid "Zen"
+msgstr "Zen"
 
 msgid "Shared Zen components"
 msgstr "Componente Zen partajate"
@@ -3794,6 +3638,9 @@ msgstr "Cameră"
 msgid "Using {name}"
 msgstr "Se folosește {name}"
 
+msgid "Range"
+msgstr "Interval"
+
 msgid "Videos"
 msgstr "Videoclipuri"
 
@@ -4079,11 +3926,17 @@ msgstr "Comutare grilă"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Afișează sau ascunde liniile grilei din Fereastra de Vizualizare (grila podelei și axele X/Y)"
 
+msgid "Set"
+msgstr ""
+
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
+
+msgid "Toggle"
+msgstr "Comutator"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5033,6 +4886,126 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "Activat"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "Vă așteaptă"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
 msgid "Refresh privacy"
 msgstr ""
 
@@ -5213,6 +5186,9 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
+msgid "Rate"
+msgstr "Rată"
+
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5243,9 +5219,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5264,13 +5237,13 @@ msgstr ""
 msgid "Turn this Studio action down; nothing is spent"
 msgstr ""
 
+msgid "Import"
+msgstr ""
+
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5366,6 +5339,9 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
+msgid "Tile size"
+msgstr ""
+
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5453,9 +5429,6 @@ msgstr ""
 msgid "Open a new agent session in the cockpit (your own CLI login)"
 msgstr ""
 
-msgid "Claude Code"
-msgstr ""
-
 msgid "Codex"
 msgstr ""
 
@@ -5464,6 +5437,9 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
+
+msgid "Name"
+msgstr "Nume"
 
 msgid "Read to Text"
 msgstr ""
@@ -5583,6 +5559,12 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -6064,6 +6046,9 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
+
+msgid "Copy"
+msgstr "Copiere"
 
 msgid "Open Config File"
 msgstr ""
@@ -6860,9 +6845,6 @@ msgstr "Referința {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Acest șablon are nevoie de un model de generare disponibil. Verificați conexiunea."
 
-msgid "On"
-msgstr "Activat"
-
 msgid "Off"
 msgstr "Oprit"
 
@@ -7271,6 +7253,9 @@ msgstr "Selectați toate părțile unui personaj — rigate ca un singur schelet
 msgid "Settings"
 msgstr "Setări"
 
+msgid "About"
+msgstr "Despre"
+
 msgid "Auto-detects the skeleton type"
 msgstr "Detectează automat tipul de schelet"
 
@@ -7463,14 +7448,14 @@ msgstr "Trimite și personajul complet pentru context de design; dezactivat impl
 msgid "Moodboard Drawer"
 msgstr "Sertar Moodboard"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Cât este tras sertarul Moodboard din Mod Zen, 0 închis și 1 deschis"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "Țintă sertar Moodboard"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Partea pe care se așază sertarul Moodboard din Mod Zen, 0 închis și 1 deschis"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "Lățime sertar Moodboard"
@@ -8448,6 +8433,9 @@ msgstr "Nume componentă"
 
 msgid "Named character component represented by this image"
 msgstr "Componenta de personaj numită, reprezentată de această imagine"
+
+msgid "View"
+msgstr "Vedere"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Unghiul de cameră pe care îl arată această imagine. Are sens doar cât imaginea aparține unui set multi-vedere — este trimis alături de imaginea de intrare a filei, ca acel unghi"
@@ -11626,7 +11614,7 @@ msgstr "Bun venit în Lampway"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -17328,6 +17316,30 @@ msgstr "Recoacere canale"
 msgid "Bake channels first to enable export"
 msgstr "Coaceți mai întâi canalele pentru a activa exportul"
 
+msgid "Assets Library Panel - Shows procedural materials from paint backend"
+msgstr "Panou bibliotecă de resurse — afișează materiale procedurale din backend-ul de pictare"
+
+msgid "{count} categories available"
+msgstr "Categorii disponibile: {count}"
+
+msgid "Open Material Library"
+msgstr "Deschidere bibliotecă de materiale"
+
+msgid "No materials loaded"
+msgstr "Niciun material încărcat"
+
+msgid "Material registry unavailable"
+msgstr "Registrul de materiale este indisponibil"
+
+msgid "Smart Materials"
+msgstr "Materiale inteligente"
+
+msgid "Coming soon"
+msgstr "În curând"
+
+msgid "Brushes"
+msgstr "Perii"
+
 msgid "Baked Maps"
 msgstr "Hărți coapte"
 
@@ -19284,6 +19296,9 @@ msgstr "Mapare normale în spațiul lume, compatibilă cu coacerea randării Ble
 msgid "Replace"
 msgstr "Înlocuire"
 
+msgid "Compare"
+msgstr "Comparare"
+
 msgid "Use layer's source texture/color"
 msgstr "Folosire textură/culoare sursă a stratului"
 
@@ -20971,9 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "Tablou de bord"
-
-msgid "Documentation"
-msgstr "Documentație"
 
 msgid "Report a Bug"
 msgstr "Raportare eroare"
@@ -22908,9 +22920,6 @@ msgstr "Reguli de proiect vizibile"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "Dacă suprapunerea regulilor de proiect este deschisă"
-
-msgid "Waiting for you"
-msgstr "Vă așteaptă"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Mod Engine"
-
-msgid "Zen Mode"
-msgstr "Mod Zen"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Comută Lampway în Mod Zen (Fereastra de Vizualizare minimală + Bula agentului + Moodboard)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Nu s-a putut crea spațiul de lucru Mod Zen — niciun șablon disponibil"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Comută Lampway în Mod Engine (spații de lucru complete, în stil Blender)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "Spațiul de lucru Modelare nu a fost găsit"
@@ -25006,7 +25009,7 @@ msgstr "Scenă și strat de vizualizare"
 msgid "View Layer"
 msgstr "Strat de vizualizare"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25179,9 @@ msgstr "Biblioteca '%s' a fost creată de o versiune viitoare de Lampway și con
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: Datele se referă la fișierul .mixar principal: '%s' din %s"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "Bun venit, %s !"
@@ -25399,6 +25405,9 @@ msgstr "Derulare"
 msgid "Scroll library content"
 msgstr "Derulează conținutul bibliotecii"
 
+msgid "Page"
+msgstr "Pagină"
+
 msgid "Move by the viewport height"
 msgstr "Deplasare cu înălțimea Ferestrei de Vizualizare"
 
@@ -25479,6 +25488,12 @@ msgstr "Anulează această sarcină"
 
 msgid "Select this job"
 msgstr "Selectează această sarcină"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Next"
+msgstr "Următor"
 
 msgid "Browse queue jobs"
 msgstr "Răsfoire sarcini din coadă"
@@ -26082,6 +26097,24 @@ msgstr "Poziție X cursor"
 
 msgid "Cursor Y position"
 msgstr "Poziție Y cursor"
+
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
 
 msgid "Animate Moodboard Attachment"
 msgstr "Animare atașament Moodboard"
@@ -26829,6 +26862,24 @@ msgstr "Spațiu seturi de texturi"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "Folosiți panourile barei laterale pentru a gestiona seturile de texturi"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "Înapoi la primul"
@@ -27580,8 +27631,8 @@ msgstr "Proprietăți texturare"
 msgid "Layer and texture properties"
 msgstr "Proprietăți strat și textură"
 
-msgid "Texturing Assets"
-msgstr "Resurse texturare"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Bibliotecă de materiale inteligente, pensule și texturi"
@@ -27805,8 +27856,8 @@ msgstr "Pastilă închisă rotunjită, cu etichetă în degrade"
 msgid "Viewport Pill"
 msgstr "Pastilă Fereastra de Vizualizare"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Pastilă de umbrire a Ferestrei de Vizualizare în Zen; estompată când nu este modul activ"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "Pastilă profil"
@@ -28048,26 +28099,26 @@ msgstr "Cip număr coadă"
 msgid "Slider Track"
 msgstr "Pistă glisor"
 
-msgid "Zen/Engine slider track"
-msgstr "Pistă glisor Zen/Engine"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "Mâner glisor"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Mâner glisor Zen/Engine"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "Planare mâner glisor"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Planare mâner Zen/Engine"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "Etichetă glisor"
 
-msgid "Zen/Engine slider label"
-msgstr "Etichetă glisor Zen/Engine"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "Umplere pastilă cinema"

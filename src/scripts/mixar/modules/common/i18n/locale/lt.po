@@ -52,28 +52,58 @@ msgstr "Nėra stilių"
 msgid "No styles available"
 msgstr "Nėra pasiekiamų stilių"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Dokumentacija"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "Pradžios langas"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "Pasirinktinis pradžios meniu be naujausių failų."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "Pasirinkite veikseną"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Pradėti nuo Zen veiksenos"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine veiksena („Blender“ stilius)"
+msgid "Start"
+msgstr "Pradėti"
 
-msgid "Getting Started"
-msgstr "Pradžia"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "Apie"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "Siųsti"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "Nepavyko"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "Įvyko klaida arba praleista, nes nepavyko priklausomybė"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "Pradėta"
 
@@ -824,6 +863,24 @@ msgstr "Atmetama"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "Nustatoma, kai naudotojas spustelėdamas pašalina šią kortelę. Skydelis paleidžia tą patį išslinkimą kaip ir baigtai kortelei, o eilutė pašalinama jai išėjus — spustelėjimas neturi priversti kortelės išnykti po žymekliu"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "Pasibaigė"
@@ -842,6 +899,12 @@ msgstr "Agentų kortelių karta"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "Padidinama kiekvieną kartą, kai NAUJAS išskleidimas pakeičia skydelio turinį. Kai tai pasikeičia, C++ skydelis atstato slinkties padėtį ir iš naujo paleidžia įslinkimą — iš savo kortelių sąrašo jis negali nustatyti „naujo ėjimo“, nes sąrašas sinchronizuojamas tik piešiant ir todėl, kol skydelis paslėptas apklausos metu, tebelaiko ankstesnio ėjimo korteles"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "Aktyvios agentų kortelės"
@@ -862,186 +925,6 @@ msgstr ""
 "\n"
 "Praleidžia navigaciją ir visą ne peržiūros lango įvestį; sugeria\n"
 "spustelėjimus ir redagavimo sparčiuosius klavišus virš peržiūros lango drobės.\n"
-
-msgid "Search"
-msgstr "Paieška"
-
-msgid "Search the Vault now"
-msgstr ""
-
-msgid "Filter"
-msgstr "Filtras"
-
-msgid "Filter by this value (click again to remove the filter)"
-msgstr ""
-
-msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
-msgstr ""
-
-msgid "Set"
-msgstr ""
-
-msgid "Toggle"
-msgstr "Perjungiklis"
-
-msgid "Range"
-msgstr "Diapazonas"
-
-msgid "Page"
-msgstr "Puslapis"
-
-msgid "Show the next or the previous page"
-msgstr ""
-
-msgid "Next"
-msgstr "Kitas"
-
-msgid "Previous"
-msgstr "Ankstesnis"
-
-msgid "Place in scene"
-msgstr ""
-
-msgid "Put this asset into the scene the way its kind needs (one undo step)"
-msgstr ""
-
-msgid "Rate"
-msgstr "Dažnis"
-
-msgid "Rate this asset (your stars always win over an agent's)"
-msgstr ""
-
-msgid "View"
-msgstr "Rodymas"
-
-msgid "Show this view of the selected asset"
-msgstr ""
-
-msgid "Play"
-msgstr ""
-
-msgid "Play or pause the turntable or the clip"
-msgstr ""
-
-msgid "To timeline"
-msgstr ""
-
-msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
-msgstr ""
-
-msgid "Lineage"
-msgstr ""
-
-msgid "Draw where this asset came from and what came of it"
-msgstr ""
-
-msgid "Compare"
-msgstr "Lyginti"
-
-msgid "Add this asset to the comparison (the last two are compared)"
-msgstr ""
-
-msgid "Find like this"
-msgstr ""
-
-msgid "Find assets like this one (runs on this machine)"
-msgstr ""
-
-msgid "Show in folder"
-msgstr ""
-
-msgid "Open the folder that holds this file (the file itself is never changed)"
-msgstr ""
-
-msgid "the folder is gone: re-run the Vault's verify"
-msgstr ""
-
-msgid "Copy"
-msgstr "Kopijuoti"
-
-msgid "Copy to the clipboard"
-msgstr ""
-
-msgid "Save search"
-msgstr ""
-
-msgid "Keep this search in the Vault under a name"
-msgstr ""
-
-msgid "Name"
-msgstr "Vardas/Pavadinimas"
-
-msgid "Initial import"
-msgstr ""
-
-msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
-msgstr ""
-
-msgid "Import"
-msgstr ""
-
-msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
-msgstr ""
-
-msgid "there is no preview to import: choose a folder with Initial import first"
-msgstr ""
-
-msgid "Asset Vault Window"
-msgstr ""
-
-msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
-msgstr ""
-
-msgid "The Asset Vault window is already open"
-msgstr ""
-
-msgid "Searching"
-msgstr ""
-
-msgid "Show the lineage"
-msgstr ""
-
-msgid "Select an asset"
-msgstr ""
-
-msgid "Reading the asset"
-msgstr ""
-
-msgid "Copy id"
-msgstr ""
-
-msgid "Asset Vault"
-msgstr ""
-
-msgid "offline"
-msgstr ""
-
-msgid "Search the Vault: names, tags and terms (Enter searches at once)"
-msgstr ""
-
-msgid "Every kind"
-msgstr ""
-
-msgid "Sort"
-msgstr ""
-
-msgid "Grid"
-msgstr "Tinklelis"
-
-msgid "Tiles with big previews"
-msgstr ""
-
-msgid "List"
-msgstr ""
-
-msgid "One row per asset"
-msgstr ""
-
-msgid "Tile size"
-msgstr ""
-
-msgid "Thumbnail size in pixels"
-msgstr ""
 
 msgid "preview worker exited before rendering this asset"
 msgstr "peržiūros darbuotojas baigė darbą prieš pavaizduodamas šį išteklių"
@@ -1147,6 +1030,9 @@ msgstr "Pavyzdinis paveikslas (neprivaloma)"
 
 msgid "Searching…"
 msgstr "Ieškoma…"
+
+msgid "Search"
+msgstr "Paieška"
 
 msgid "{count} result(s)"
 msgstr "Rezultatų: {count}"
@@ -1871,9 +1757,6 @@ msgstr "Atsisiųsti"
 msgid "Stop"
 msgstr "Stabdyti"
 
-msgid "Start"
-msgstr "Pradėti"
-
 msgid "Delete Download"
 msgstr "Ištrinti atsisiuntimą"
 
@@ -2056,54 +1939,6 @@ msgstr "Teisinga, kai serveris šiam naudotojui praneša byok_active"
 
 msgid "Dialog State"
 msgstr "Dialogo būsena"
-
-msgid "Refresh cards"
-msgstr ""
-
-msgid "Read the project cards from the server"
-msgstr ""
-
-msgid "Pin card"
-msgstr ""
-
-msgid "Pin the card so it never archives itself"
-msgstr ""
-
-msgid "Card status"
-msgstr ""
-
-msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
-msgstr ""
-
-msgid "Archived"
-msgstr ""
-
-msgid "Rebuild page"
-msgstr ""
-
-msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
-msgstr ""
-
-msgid "Design rounds"
-msgstr ""
-
-msgid "Motion tests"
-msgstr ""
-
-msgid "Receipt"
-msgstr ""
-
-msgid "Open card"
-msgstr ""
-
-msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
-msgstr ""
-
-msgid "Project cards"
-msgstr ""
-
-msgid "No cards yet: build one with lampway_cards"
-msgstr ""
 
 msgid "Set Lampway Agent Mode"
 msgstr "Nustatyti Lampway Agent veikseną"
@@ -2519,6 +2354,9 @@ msgstr "Sukurta (Unix sekundės)"
 msgid "Frozen Elapsed"
 msgstr "Užfiksuotas praėjęs laikas"
 
+msgid "Filter"
+msgstr "Filtras"
+
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2639,7 +2477,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2525,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "Privatumo politika"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "Viršutinės juostos apipavidalinimas (UI.svg receptas)"
 
-msgid "Zen"
-msgstr "Zen"
+msgid "Lamplight"
+msgstr ""
 
-msgid "Engine"
-msgstr "Engine"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "Kino veiksena"
@@ -2749,6 +2587,9 @@ msgstr "Poraštė"
 
 msgid "Confirm"
 msgstr "Patvirtinti"
+
+msgid "Grid"
+msgstr "Tinklelis"
 
 msgid "Disabled action"
 msgstr "Išjungtas veiksmas"
@@ -2797,6 +2638,9 @@ msgstr "Vietiniai spustelėjimai"
 
 msgid "Profile"
 msgstr "Profilis"
+
+msgid "Zen"
+msgstr "Zen"
 
 msgid "Shared Zen components"
 msgstr "Bendri Zen komponentai"
@@ -3794,6 +3638,9 @@ msgstr "Kamera/Fotoaparatas"
 msgid "Using {name}"
 msgstr "Naudojama {name}"
 
+msgid "Range"
+msgstr "Diapazonas"
+
 msgid "Videos"
 msgstr "Vaizdo įrašai"
 
@@ -4079,11 +3926,17 @@ msgstr "Perjungti tinklelį"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Rodo arba slepia peržiūros lango tinklelio linijas (grindų tinklelį ir X bei Y ašis)"
 
+msgid "Set"
+msgstr ""
+
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
+
+msgid "Toggle"
+msgstr "Perjungiklis"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5033,6 +4886,126 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "Įjungta/Įgalinta (-s)"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "Laukia jūsų"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
 msgid "Refresh privacy"
 msgstr ""
 
@@ -5213,6 +5186,9 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
+msgid "Rate"
+msgstr "Dažnis"
+
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5243,9 +5219,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5264,13 +5237,13 @@ msgstr ""
 msgid "Turn this Studio action down; nothing is spent"
 msgstr ""
 
+msgid "Import"
+msgstr ""
+
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5366,6 +5339,9 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
+msgid "Tile size"
+msgstr ""
+
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5453,9 +5429,6 @@ msgstr ""
 msgid "Open a new agent session in the cockpit (your own CLI login)"
 msgstr ""
 
-msgid "Claude Code"
-msgstr ""
-
 msgid "Codex"
 msgstr ""
 
@@ -5464,6 +5437,9 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
+
+msgid "Name"
+msgstr "Vardas/Pavadinimas"
 
 msgid "Read to Text"
 msgstr ""
@@ -5583,6 +5559,12 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -6064,6 +6046,9 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
+
+msgid "Copy"
+msgstr "Kopijuoti"
 
 msgid "Open Config File"
 msgstr ""
@@ -6860,9 +6845,6 @@ msgstr "Pavyzdys {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Šiam šablonui reikia pasiekiamo generavimo modelio. Patikrinkite ryšį."
 
-msgid "On"
-msgstr "Įjungta/Įgalinta (-s)"
-
 msgid "Off"
 msgstr "Išjungta/Neįgalinta (-s)"
 
@@ -7271,6 +7253,9 @@ msgstr "Pasirinkite visas vieno veikėjo dalis — suriginama kaip vienas skelet
 msgid "Settings"
 msgstr "Nustatymai"
 
+msgid "About"
+msgstr "Apie"
+
 msgid "Auto-detects the skeleton type"
 msgstr "Automatiškai aptinka skeleto tipą"
 
@@ -7463,14 +7448,14 @@ msgstr "Taip pat siųsti visą veikėją dizaino kontekstui; pagal numatymą iš
 msgid "Moodboard Drawer"
 msgstr "Nuotaikų lentos stalčius"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Kaip toli ištrauktas Zen veiksenos nuotaikų lentos stalčius: 0 uždarytas, 1 atidarytas"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "Nuotaikų lentos stalčiaus tikslas"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Pusė, kurioje nusistoja Zen veiksenos nuotaikų lentos stalčius: 0 uždarytas, 1 atidarytas"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "Nuotaikų lentos stalčiaus plotis"
@@ -8448,6 +8433,9 @@ msgstr "Komponento pavadinimas"
 
 msgid "Named character component represented by this image"
 msgstr "Įvardytas veikėjo komponentas, kurį vaizduoja šis paveikslas"
+
+msgid "View"
+msgstr "Rodymas"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Kameros kampas, kurį rodo šis paveikslas. Prasmingas tik kol paveikslas priklauso kelių vaizdų rinkiniui — jis siunčiamas kartu su skirtuko įvesties paveikslu kaip tas kampas"
@@ -11626,7 +11614,7 @@ msgstr "Sveiki atvykę į Lampway"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -17328,6 +17316,30 @@ msgstr "Iš naujo iškepti kanalus"
 msgid "Bake channels first to enable export"
 msgstr "Pirmiausia iškepkite kanalus, kad būtų galima eksportuoti"
 
+msgid "Assets Library Panel - Shows procedural materials from paint backend"
+msgstr "Išteklių bibliotekos skydas – rodo procedūrines medžiagas iš piešimo posistemės"
+
+msgid "{count} categories available"
+msgstr "Prieinamų kategorijų: {count}"
+
+msgid "Open Material Library"
+msgstr "Atidaryti medžiagų biblioteką"
+
+msgid "No materials loaded"
+msgstr "Medžiagų neįkelta"
+
+msgid "Material registry unavailable"
+msgstr "Medžiagų registras neprieinamas"
+
+msgid "Smart Materials"
+msgstr "Išmaniosios medžiagos"
+
+msgid "Coming soon"
+msgstr "Netrukus"
+
+msgid "Brushes"
+msgstr "Teptukai"
+
 msgid "Baked Maps"
 msgstr "Iškepti žemėlapiai"
 
@@ -19284,6 +19296,9 @@ msgstr "Pasaulio erdvės normalių atvaizdavimas, suderinamas su „Blender“ v
 msgid "Replace"
 msgstr "Pakeisti"
 
+msgid "Compare"
+msgstr "Lyginti"
+
 msgid "Use layer's source texture/color"
 msgstr "Naudoti sluoksnio šaltinio tekstūrą arba spalvą"
 
@@ -20971,9 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "Suvestinė"
-
-msgid "Documentation"
-msgstr "Dokumentacija"
 
 msgid "Report a Bug"
 msgstr "Pranešti apie klaidą"
@@ -22908,9 +22920,6 @@ msgstr "Projekto taisyklės matomos"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "Ar projekto taisyklių perdanga atidaryta"
-
-msgid "Waiting for you"
-msgstr "Laukia jūsų"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine veiksena"
-
-msgid "Zen Mode"
-msgstr "Zen veiksena"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Perjungia „Lampway“ į Zen veikseną (minimalus peržiūros langas + agento burbulas + nuotaikų lenta)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Nepavyko sukurti Zen veiksenos darbo srities — nėra šablono"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Perjungia „Lampway“ į Engine veikseną (visos „Blender“ stiliaus darbo sritys)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "Modeliavimo darbo sritis nerasta"
@@ -25006,7 +25009,7 @@ msgstr "Scena ir rodymo sluoksnis"
 msgid "View Layer"
 msgstr "Rodymo sluoksnis"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25179,9 @@ msgstr "Biblioteką „%s“ sukūrė būsima „Lampway“ versija, ir joje yra
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: duomenys nurodo pagrindinį .mixar failą: „%s“ iš %s"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "Sveiki, %s !"
@@ -25399,6 +25405,9 @@ msgstr "Slinkti"
 msgid "Scroll library content"
 msgstr "Slenka bibliotekos turinį"
 
+msgid "Page"
+msgstr "Puslapis"
+
 msgid "Move by the viewport height"
 msgstr "Perkelia peržiūros lango aukščiu"
 
@@ -25479,6 +25488,12 @@ msgstr "Atšaukia šią užduotį"
 
 msgid "Select this job"
 msgstr "Pasirenka šią užduotį"
+
+msgid "Previous"
+msgstr "Ankstesnis"
+
+msgid "Next"
+msgstr "Kitas"
 
 msgid "Browse queue jobs"
 msgstr "Naršo eilės užduotis"
@@ -26082,6 +26097,24 @@ msgstr "Žymeklio X padėtis"
 
 msgid "Cursor Y position"
 msgstr "Žymeklio Y padėtis"
+
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
 
 msgid "Animate Moodboard Attachment"
 msgstr "Animuoti nuotaikų lentos prisegtą failą"
@@ -26829,6 +26862,24 @@ msgstr "Tekstūrų rinkinių erdvė"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "Tekstūrų rinkiniams tvarkyti naudokite šoninės juostos skydelius"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "Atgal į pirmą"
@@ -27580,8 +27631,8 @@ msgstr "Tekstūravimo ypatybės"
 msgid "Layer and texture properties"
 msgstr "Sluoksnio ir tekstūros ypatybės"
 
-msgid "Texturing Assets"
-msgstr "Tekstūravimo ištekliai"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Išmaniųjų medžiagų, teptukų ir tekstūrų biblioteka"
@@ -27805,8 +27856,8 @@ msgstr "Apvali tamsi piliulė su gradientine žyma"
 msgid "Viewport Pill"
 msgstr "Peržiūros lango piliulė"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Zen peržiūros lango šešėliavimo piliulė; pritemdyta, kai tai ne veikianti veiksena"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "Profilio piliulė"
@@ -28048,26 +28099,26 @@ msgstr "Eilės skaičiaus lustas"
 msgid "Slider Track"
 msgstr "Slankiklio takelis"
 
-msgid "Zen/Engine slider track"
-msgstr "Zen/Engine slankiklio takelis"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "Slankiklio nykštys"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Zen/Engine slankiklio nykštys"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "Slankiklio nykščio užvedimas"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine nykščio užvedimas"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "Slankiklio žyma"
 
-msgid "Zen/Engine slider label"
-msgstr "Zen/Engine slankiklio žyma"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "Kino piliulės užpildas"

@@ -349,15 +349,9 @@ void agent_ui_draw_island(ARegion *region,
 
   /* --- Card --- */
   {
-    /* Preserve the credit indication in the pill's quiet white rim. Lower the
-     * spent alpha rather than putting an opaque dark ring over native frost. */
-    const float border_spent[4] = {border[0], border[1], border[2], border[3] * 0.25f};
-    draw_card_border_meter(&layout->card,
-                           AGENT_CARD_RADIUS * u,
-                           glass.rim_width,
-                           border,
-                           border_spent,
-                           state->credits_remaining);
+    /* Lampway F6: the rim is whole. One 0..1 ring cannot say which provider's
+     * credits it measures; the status bar carries spend (contract 03). */
+    draw_card_border_meter(&layout->card, AGENT_CARD_RADIUS * u, glass.rim_width, border, border, -1.0f);
   }
   /* Expanding changes the shape, not the material. The credit meter already
    * draws PILL's rim, so keep only its sheen here to avoid a doubled edge. */

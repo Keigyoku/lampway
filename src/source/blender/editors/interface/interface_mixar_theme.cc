@@ -62,7 +62,7 @@ static const MixarThemeRec k_mixar_theme[] = {
     {false, offsetof(ThemeUI, mixar_slider_thumb_hover), {246, 205, 107, 255}},
     {false, offsetof(ThemeUI, mixar_slider_label), {236, 232, 223, 255}},
     {false, offsetof(ThemeUI, mixar_cinema_pill_fill), {17, 19, 26, 255}},
-    {false, offsetof(ThemeUI, mixar_cinema_pill_border), {43, 48, 61, 255}},
+    {false, offsetof(ThemeUI, mixar_cinema_pill_border), {43, 48, 61, 0}},
     {false, offsetof(ThemeUI, mixar_cinema_pill_on_a), {58, 47, 23, 255}},
     {false, offsetof(ThemeUI, mixar_cinema_pill_on_b), {90, 71, 32, 255}},
     {false, offsetof(ThemeUI, mixar_cinema_pill_border_on), {237, 185, 68, 255}},
