@@ -227,6 +227,8 @@ const char *mixar_variant_name(const MixarVariant variant)
       return "GHOST";
     case MixarVariant::Danger:
       return "DANGER";
+    case MixarVariant::Accent:
+      return "ACCENT";
     default:
       return "PRIMARY";
   }

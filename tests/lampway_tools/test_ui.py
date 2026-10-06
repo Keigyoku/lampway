@@ -115,7 +115,8 @@ print("RESULT", json.dumps({"r1": sorted(res), "msg1": msg1, "r2": sorted(res2),
     assert out["r1"] == ["FINISHED"] and "parts" in out["msg1"], out
     assert out["r2"] == ["CANCELLED"], "the studio slot refuses without a click, so the operator reports a refusal"
     assert out["r3"] == ["CANCELLED"] and "JSON" in out["msg3"]
-    assert out["panel"] is True
+    # Facelift contract 07: the free-text Features panel is gone (each feature is a typed form of the Way); the operator stays for scripts.
+    assert out["panel"] is False
 
 
 def test_the_review_panel_lists_proposals_and_the_refresh_operator_recolours_markers(tmp_path):

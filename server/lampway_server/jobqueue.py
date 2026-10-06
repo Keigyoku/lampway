@@ -186,6 +186,41 @@ class JobQueue:
             return "openrouter"
         return service
 
+    def estimate(self, service: str, model: str, params: Optional[dict] = None, references: int = 0) -> dict:
+        """What a generation would cost and whether it waits for the user, before anything is sent (facelift contract 08). Computed from what the
+        server holds (the listing it read, the measured per-image figure, the policy): no upload and no provider call. A Higgsfield price is read back
+        by its own get_cost only when the job is submitted, so here it is unknown."""
+        from .videojobs import PREFIX
+        provider = self._provider_of(service, model)
+        params = dict(params or {})
+        price, basis = None, ""
+        if str(model or "").startswith(PREFIX):
+            basis = "Higgsfield's credit price is read back when the job is submitted, before any spend"
+        elif service == "image_gen":
+            n = max(1, int(params.get("number_of_images") or 1))
+            price = {"kind": "estimate", "amount": round(IMAGE_USD_ESTIMATE * n, 4), "unit": "USD",
+                     "source": f"about ${IMAGE_USD_ESTIMATE:.2f} per image (measured), not read back", "basis": f"{n} x ${IMAGE_USD_ESTIMATE:.2f} per image"}
+            basis = price["basis"]
+        elif self.video is not None and self.video.handles(service, model):
+            est = self.video.listing_estimate(model, params, references)
+            basis = est["basis"]
+            if est["known"]:
+                read = time.strftime("%Y-%m-%d", time.localtime(est["read_at"])) if est.get("read_at") else "this session"
+                price = {"kind": "estimate", "amount": round(est["usd"], 4), "unit": "USD", "source": f"OpenRouter model listing, read {read}", "basis": basis}
+        else:
+            basis = f"no price is known for {service}"
+        amount = price["amount"] if price else None
+        cfg = self.policy._cfg(provider)
+        refused = None
+        try:
+            self.policy.check(provider, amount)
+        except Exception as exc:  # noqa: BLE001 - SpendRefused: said in the tab, never sent
+            refused = str(exc)
+        return {"service": service, "model": model, "provider": provider, "route": provider, "price": price, "basis": basis,
+                "policy": {"click": cfg.get("click", "always"), "above": cfg.get("above"), "job_cap": cfg.get("job_cap"), "session_cap": cfg.get("session_cap"),
+                           "spent": round(float(self.policy.spent.get(provider, 0.0)), 6)},
+                "needs_click": self.policy.needs_click(provider, amount), "refused": refused}
+
     _RECEIPT_STATUS = {"planned": "PENDING", "submission_pending": "POLLING", "submitted": "POLLING", "running": "POLLING", "submission_unknown": "PENDING", "completed": "POLLING",
                        "downloaded": "DONE", "result_saved": "DONE", "provider_error": "FAILED", "cancelled": "CANCELLED", "abandoned": "CANCELLED"}
 

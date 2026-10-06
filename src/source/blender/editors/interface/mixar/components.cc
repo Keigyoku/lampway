@@ -80,8 +80,13 @@ bool mixar_component_draw(Button &button, uiWidgetColors &colors, const rcti &bo
       case MixarVariant::Danger:
         background = mixar_zen().danger;
         break;
+      case MixarVariant::Accent:
+        background = mixar_zen().focus; /* The accent (Flame). */
+        break;
     }
-    foreground = disabled ? mixar_zen().secondary : mixar_zen().strong;
+    foreground = disabled ? mixar_zen().secondary :
+                 style.variant == MixarVariant::Accent ? mixar_zen().canvas : /* on_accent */
+                                                         mixar_zen().strong;
   }
   if (style.component == MixarComponent::Segment ||
       (style.component == MixarComponent::Toggle && style.unit == 0.0f))
