@@ -576,5 +576,8 @@ DEFS = [
         [P("object", "string", required=True), P("material", "string"), P("channels", "array"), P("size", "integer"), P("format", "string"), P("pack", "string"), P("normal_green", "string"), P("out_dir", "string"), P("samples", "integer"), P("allow_dirty", "boolean")], api="material_bake_export"),
 ]
 
+from .orphan_tools import ORPHAN_DEFS  # noqa: E402  (the orphan tools, STATUS.md ORPHANS: their own file)
+DEFS += ORPHAN_DEFS
+
 BY_NAME = {d.name: d for d in DEFS}
 SPECS = [d.spec() for d in DEFS]

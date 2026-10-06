@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""The orphan tools' api functions (STATUS.md ORPHANS). They register through ``api.tool`` like every other tool, and ``api`` star-imports this module
+just before it freezes TOOL_FUNCS, so ``api.call(name, ...)`` reaches them. Kept apart so api.py does not grow past reading."""
+
+from .api import _p, _settings, tool  # noqa: F401  (api is mid-import here: these names are already bound)
+
+__all__ = []
+
+
+def _export(fn):
+    __all__.append(fn.__name__)
+    return fn
+
+
+@_export
+@tool
+def side_label_check(object, declared_side=None, facing="-Y", armature="", body_midline_x=None, pair="", asym_threshold=0.02):
+    """Is a piece labelled left/right on the FIGURE's left/right (not the camera's), and is it not a mirrored copy of its pair? Read-only."""
+    from .features import handedness as _H
+    return _H.side_label_check(object, declared_side, facing, armature, body_midline_x, pair, asym_threshold)
+
+
+@_export
+@tool
+def mirror_pair(object, design_symmetric=None, plane="x", origin="bounds_centre", rename=None, mirror_uv=False, weights="swap", force=False, body_midline_x=None,
+                armature="", asym_threshold=0.02, piece="", by="agent", captain_words=""):
+    """The opposite piece by a mirror across a stated plane, on a COPY, only after the typed decision design_symmetric; a decision row in <root>/<piece>/decisions.jsonl."""
+    from .features import handedness as _H
+    return _H.mirror_pair(object, str(_settings().project_root), design_symmetric, plane, origin, rename, mirror_uv, weights, force, body_midline_x, armature,
+                          asym_threshold, piece, by, captain_words)
+
+
+@_export
+@tool
+def scale_to_measure(object, target=None, reference_object="", apply=True, unit_scale=1.0, children="include", rollback=False):
+    """Put an object's dimension at a measured real size (target {axis, length_m} or a reference object's), applied safely; rollback restores lw_prev_scale."""
+    from .features import scale_measure as _SM
+    return _SM.scale_to_measure(object, target, reference_object, apply, unit_scale, children, rollback)

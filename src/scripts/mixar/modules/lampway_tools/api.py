@@ -1509,6 +1509,10 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
                                      _p(out, s_.project_root), feather)
 
 
+# ---- the orphan tools (STATUS.md ORPHANS): their own module, registered through tool() above
+
+from .orphans_api import *  # noqa: E402,F401,F403
+
 # ---- the door the agent's scripts use
 
 # Every @tool function, in definition order: derived, not listed by hand (a hand-kept list let 26 tools of Waves 2-4 be functions and Defs the agent could not run).
