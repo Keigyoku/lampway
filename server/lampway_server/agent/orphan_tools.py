@@ -36,4 +36,19 @@ ORPHAN_DEFS = [
         [P("object", required=True), P("target", "object", "{axis: x|y|z|max, length_m}"), P("reference_object", desc="match this object's dimension on target.axis"),
          P("apply", "boolean", "default true"), P("unit_scale", "number", "metres per scene unit, default 1.0"), P("children", desc="include (default) | skip"),
          P("rollback", "boolean", "restore the transform recorded in lw_prev_scale")], api="scale_to_measure"),
+    Def("lampway_uv_check", "UV checks per island on the object's ACTIVE UV layer (island ids are uv_score's). measure: faces, UV and 3D area, texel density in px/m at "
+        "texture_size, UV bbox and the UDIM tiles each island touches, the tiles used and the islands CROSSING a tile border, density mean and CV. select_by_density: "
+        "selects the faces of the islands off target_density_px_m (default the mean) by more than tolerance (0.15). overlaps: rasterised per tile at res (512): the "
+        "overlapping fraction and the overlapping island pairs split into stacked (the two share their UV outline: deliberate) and accidental. space_usage: coverage "
+        "of tile 1001 and every used tile, and the empty cells of a 16 x 16 grid. orientation: flipped islands (winding against the majority) and mirrored pairs "
+        "(3D geometry mirrored across mirror_axis within match_tolerance metres: the stack candidates). Edits, DRY RUNS unless dry_run=false, one undo step: udim_move "
+        "(islands to tile_to by whole tiles; tile_from filters; 1001..1099 [UNVERIFIED limit]) and stack (each mirrored twin takes its partner's UVs vertex by vertex; "
+        "named islands pairs that are not mirror twins are refused by name). Refused: no UV layer (unwrap first), Edit Mode, over 1M triangles, an edit on a "
+        "textured object (texturing comes last: discard_texture=true overrides).",
+        [P("object", required=True), P("action", desc="measure (default) | select_by_density | overlaps | space_usage | orientation | udim_move | stack"),
+         P("target_density_px_m", "number", "select_by_density: px per metre (default the mean)"), P("texture_size", "integer", "default 2048"),
+         P("tolerance", "number", "fraction, default 0.15"), P("tile_from", "integer", "udim_move: only islands in this tile"), P("tile_to", "integer", "udim_move: 1001..1099"),
+         P("islands", "array", "island ids (udim_move), or id pairs a, b, c, d (stack)"), P("dry_run", "boolean", "edits: default true"), P("mirror_axis", desc="x (default) | y | z"),
+         P("match_tolerance", "number", "metres, 0.0005..0.05, default 0.003"), P("res", "integer", "raster size 64..4096, default 512"),
+         P("discard_texture", "boolean", "allow an edit on a textured object")], api="uv_check"),
 ]
