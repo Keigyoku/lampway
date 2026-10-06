@@ -216,3 +216,23 @@ environments is 14 GB plus 2.9 GB git metadata.
   `$XDG_DATA_HOME` (default `~/.local/share`), Exec'ing the launcher; `--uninstall` removes exactly those files. Its menu refresh
   runs `kbuildsycoca6` when KDE is installed, which writes KDE's own `~/.cache/ksycoca6_*` (the audit said the script writes only
   under `~/.local/share`; running it showed this one KDE cache as well).
+
+## 7. Claude Code cloud sessions
+
+`.claude/hooks/session-start.sh` installs gcc-14, the `-dev` set above and the Xvfb runtime libraries in every cloud
+session; it does not build. Each session starts on a fresh container, so the build is started on demand. Measured on
+2026-10-06 in a session container with 4 cores, 15 GB RAM and about 30 GB of writable disk:
+
+```bash
+LAMPWAY_MIN_FREE_GB=10 scripts/lampway/build_linux.sh   # the default 100 GB floor exceeds the session's disk
+```
+
+| step | wall time | disk free after |
+|---|---|---|
+| `--sync-only` (upstream, `lib/linux_x64`, both LFS pulls) | ~25 min | 24 GB |
+| clean Dev compile, `MIXAR_CUDA=0`, 4 jobs | ~2 h | |
+| re-run (install + embedded-Python packages) | 2 min 6 s | 17 GB |
+
+A single foreground or background command is capped at 2 h, so a clean compile can be cut off during install; re-running
+the script resumes there. Windowed start works under a plain `Xvfb` with `LIBGL_ALWAYS_SOFTWARE=1`. Capture it with
+ImageMagick's `import -window root` on that display; `bpy.ops.screen.screenshot` returns an all-black image on llvmpipe.
