@@ -152,3 +152,13 @@ def test_each_agent_turn_gets_its_who_line():
     CR.stamp_who(msgs, "14:32", "chatgpt.com")
     assert [m.lampway_who for m in msgs] == ["", "14:32\x1fchatgpt.com", "", "", "09:00\x1fchatgpt.com"]
     assert CR.stamp_who([SimpleNamespace(sender="AGENT", lampway_who="")], "10:01", "")[0].lampway_who == "10:01\x1fthis machine"
+
+
+def test_the_step_log_collapses_to_what_happened_and_where():
+    """Contract 04's calm pass: the collapsed step log says how many steps are done, any that failed, and where they ran (the
+    agent's tools are scripts in this Blender: local). Steps carry no timing, so no duration is claimed."""
+    from mixar.modules.space_mixie_chat.core import steps_format as SF
+    assert SF.format_steps_summary(["READ", "COMMAND", "TOOL"], statuses=["DONE", "DONE", "DONE"]) == "3 steps done, local"
+    assert SF.format_steps_summary(["READ", "COMMAND"], statuses=["DONE", "FAILED"]) == "1 step done, 1 failed, local"
+    assert SF.format_steps_summary(["READ", "COMMAND", "TOOL"], statuses=["DONE", "RUNNING", "PENDING"]) == "1 of 3 steps done, local"
+    assert SF.format_steps_summary(["READ"]) == "1 tool called", "a caller without statuses keeps the old words"
