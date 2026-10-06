@@ -183,8 +183,11 @@ def draw_privacy(layout, context):
             elif way["action"] == "override":
                 row = box.row()
                 row.alert = True    # stop-coloured text, never a fill (contract 12, section 5)
-                op = row.operator("lampway.egress_override", text=way["label"], emboss=False)
+                row.emboss = 'NONE'  # emboss=False alone is NONE_OR_STATUS, which paints the alert as a red bed
+                op = row.operator("lampway.egress_override", text=way["label"])
                 op.asset_id, op.route = way["asset_id"], way["route"]
+            elif way.get("op"):
+                box.operator(way["op"], text=way["label"]).group = way.get("group") or ""
             else:
                 box.label(text=way["label"])
 

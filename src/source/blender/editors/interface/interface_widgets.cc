@@ -3618,10 +3618,11 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
       theme::get_color_3ubv(TH_REDALERT, wt->wcol.inner);
     }
     else {
-      uchar red[4];
-      theme::get_color_3ubv(TH_REDALERT, red);
-      color_mul_hsl_v3(red, 1.0f, 1.5f, 1.5f);
-      color_blend_v3_v3(wt->wcol.text, red, 0.5f);
+      /* Lampway (facelift contract 12): an alert without a bed is said in the stop colour itself, so "Allow this
+       * asset once (logged)" reads as stop-coloured words, never a filled button (TH_REDALERT is the stop BED). */
+      for (int i = 0; i < 3; i++) {
+        wt->wcol.text[i] = uchar(mixar_tokens::mixar_zen().danger[i] * 255.0f);
+      }
     }
   }
 

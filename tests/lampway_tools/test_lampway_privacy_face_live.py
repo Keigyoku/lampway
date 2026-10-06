@@ -111,6 +111,7 @@ print("RESULT", json.dumps({"log": log, "res": res, "res_script": res_script, "c
     assert "a private asset on a route that may keep it" in texts
     for way in ("Use OpenRouter, zero retention", "Run it here instead", "Allow this asset once (logged)"):
         assert way in texts, texts
+    assert ("op", "lampway.choices_open", "Run it here instead", False) in [tuple(e) for e in d["log"]], d["log"]
     assert d["res"] == ["FINISHED"] and d["res_script"][0] == "REFUSED"
     assert d["calls"].count(["override", "a1", "fal"]) == 1
 
