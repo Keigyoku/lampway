@@ -128,11 +128,23 @@ def unmet(arg, value, need):
     return out
 
 
+def _skinned(name):
+    try:
+        import bpy
+    except ImportError:
+        return False
+    ob = bpy.data.objects.get(name) if isinstance(name, str) else None
+    return bool(ob is not None and ob.type == "MESH" and any(m.type == "ARMATURE" for m in ob.modifiers))
+
+
 def refusal(arg, value, reasons, need):
     if isinstance(value, (list, tuple)):
         arg, value, reasons = first_bad(arg, value, need) or (arg, value, reasons)
     kind = need.kind[0] if need.kind else "mesh"
-    helps = [f"lampway_normalize_{'rigged' if kind == 'rigged_mesh' else kind} input={value}"]
+    if kind == "mesh" and _skinned(value):
+        kind = "rigged_mesh"                                       # lampway_normalize_mesh refuses a skinned mesh: name the right normalizer
+    helps = [f"lampway_normalize_{'rigged' if kind == 'rigged_mesh' else kind} input={value}"
+             + (" (not built yet: canon R1/R3, lane orphans)" if kind == "rigged_mesh" else "")]
     if any("scale" in r for r in reasons):
         helps.append("real scale comes from lampway_fit_place (armour) or lampway_scale_to_measure")
     return {"ok": False, "error": f"normalize first: {arg} {value!r} is not canonical: " + "; ".join(reasons), "help": helps}
