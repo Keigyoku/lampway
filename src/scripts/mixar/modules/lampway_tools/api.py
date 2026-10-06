@@ -1509,6 +1509,14 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
                                      _p(out, s_.project_root), feather)
 
 
+# ---- Wave 6 tools (api_wave6.py): plain functions wrapped here, so they pass the same door with the same envelope
+
+from . import api_wave6 as _W6                              # noqa: E402
+
+for _w6_name in _W6.TOOLS:
+    globals()[_w6_name] = tool(getattr(_W6, _w6_name))
+
+
 # ---- the door the agent's scripts use
 
 # Every @tool function, in definition order: derived, not listed by hand (a hand-kept list let 26 tools of Waves 2-4 be functions and Defs the agent could not run).

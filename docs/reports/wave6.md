@@ -1,0 +1,65 @@
+# Wave 6 (the captain's "let's walk the talk"): the WAITING contracts of Wave 6 and the remaining P3 rows, on branch lp/wave6
+
+Base: `lp/wave5` at 00d907d4. Build path: the lane's own native binary `blender-lanes/wave6/Prod/bin/mixar` (`LAMPWAY_BIN`) for the client tests;
+the server suite with `venv-tools`. Exploration: the code graph refused to index this worktree ("a pre-coordination or unverified CBM generation is
+active", three attempts, full and fast); the `lampway-harden` snapshot in the graph was used for orientation and `git grep` / reading for the current tree.
+
+## Scope: what STATUS classes WAITING for Wave 6 or "remaining P3 rows"
+
+29 contracts. Four more WAITING rows are NOT Wave 6 (each waits on another captain decision) and are left alone: `fit_glove`, `fit_state`
+(decision 1), `anim_track` (decision 2), `model_serving_recipes` (cloud D4).
+
+Rules applied to every contract: a UE editor leg is stubbed `needs_decision` (the Blender-to-UE render parity exploration comes first); a paid or keyed
+service gets a fake transport and a `needs_key` / `needs_approval` stub for the live leg; network goes through `egress_consent`.
+
+## Ordered list (kept updated; state per row)
+
+| # | contract | pri | side | state |
+|---|---|---|---|---|
+| 1 | wiki/modular_character | P1 | Blender | done |
+| 2 | wiki/character_pipeline | P1 | Blender (plan) | |
+| 3 | wiki/playblast_capture | P2 | Blender | |
+| 4 | wiki/cinematic_shot_plan | P2 | server | |
+| 5 | wiki/lod_chain | P2 | Blender | |
+| 6 | wiki/material_experiment | P2 | server | |
+| 7 | wiki/motion_experiment | P2 | Blender | |
+| 8 | wiki/secondary_chain_rig | P2 | Blender | |
+| 9 | wiki/cloth_garment_sim | P3 | Blender | |
+| 10 | wiki/face_rig_validate | P3 | Blender | |
+| 11 | wiki/glb_optimize | P3 | Blender | |
+| 12 | wiki/traversal_check | P3 | Blender | |
+| 13 | wiki/level_blockout | P3 | Blender | |
+| 14 | wiki/part_budget_plan | P3 | Blender | |
+| 15 | wiki/platform_budget_check | P3 | Blender | |
+| 16 | wiki/print_check | P3 | Blender | |
+| 17 | wiki/print_prep | P3 | Blender | |
+| 18 | wiki/profile_revolve | P3 | Blender | |
+| 19 | wiki/prototype_gates | P3 | server | |
+| 20 | mixar_docs/scene_from_image | P3 | Blender | |
+| 21 | mixar_docs/terrain | P3 | Blender | |
+| 22 | mixar_docs/addon_project | P3 | Blender + server | |
+| 23 | wiki/editor_connection_receipt | P3 | Blender | |
+| 24 | wiki/vehicle_wheel_rig | P3 | Blender | |
+| 25 | mixar_docs/splat_world (generate half) | P3 | server | |
+| 26 | wiki/splat_collision_proxy | P3 | Blender | |
+| 27 | wiki/texture_route_select | P3 | server | |
+| 28 | resources/material_palette | P3 | Blender | |
+| 29 | resources/motion_generate | P3 | Blender | |
+
+traversal_check moved ahead of level_blockout (the blockout calls it).
+
+## Contracts
+
+### 1. modular_character (P1): done
+- Where: `features/modular_character.py`, api `modular_character` (via `api_wave6.py`), Def `lampway_modular_character` (`agent/wave6_tools.py`).
+- Actions: manifest (the template's eleven fields), validate (one armature, rest pose unchanged, equal scales, measured vs declared side, weight_audit on
+  deforming parts), outfit_matrix (rays from body faces along normals; the region = what any outfit covers; poke-through within 2 cm on a garment's outer
+  side), hidden_body (a copy; refused with no matrix, a failing one, or a stale one), export_parts (one FBX per part with the armature).
+- Tests: `tests/lampway_tools/test_wave6_modular_character.py` (9, real binary). RED observed: "no tool function 'modular_character'". The contract's
+  three tests plus its falsifier (the gap covered gives zero). Mutants killed: poke-through sign, the stale-matrix stamp, the union region, the side
+  check, the side axis.
+- Shared seams added: `api_wave6.py` (plain functions wrapped by api.py's `@tool` loop, so they pass the one door), `agent/wave6_tools.py` (appended to
+  DEFS), `P.items` (an array's item schema; `parts` is a list of objects). Pinned by `tests/lampway_tools/test_wave6_door.py` and
+  `server/tests/test_wave6_tools.py` (both mutated RED: the registration loop removed, the items branch disabled).
+- [UNVERIFIED] the cover range (0.3 m) and poke-through range (2 cm) are mine; the contract gives none. Open (the contract's): whether Titan needs
+  swappable outfits at all.
