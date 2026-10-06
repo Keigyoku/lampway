@@ -605,3 +605,12 @@ continuity number (not achievable by the canonical falloff, recorded under item 
 2026-10-05 binary (theme, icons, Vault editor), and the two i18n tests, which read the LOCAL generated template (`mixar.pot` is
 gitignored) - regenerated with the repository's own steps (`scripts/i18n/*`), both pass, nothing tracked changed.
 `check_canon.py` PASS; the rail PASS; the shelf-gated tests (118) pass with the shelf mounted.
+
+### Disclosures for this pass
+- I amended two commits before they were pushed: the 704eba5 merge (its count and record were wrong: 143 written before I found
+  wave6's 28 call-registered tools; amended to the true 164) and the dependency commit (the rail's anneal rule required the skill's
+  anneal row in that same commit). Nothing pushed was rewritten.
+- One probe of the new `test_all` was started with a shell `&` (not the harness's background run): its output was lost and its run
+  held the TMPDIR lock until its `timeout` ended it; the real run waited for that PID to exit. No result came from it.
+- `scale_to_measure`: my LEGACY reason ("it scales armatures") was a misreading, corrected at the fd0f1085 merge (above).
+- Investigation used Read, the graph was not consulted in this pass, and file searches used grep on files I already had open.
