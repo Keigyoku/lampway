@@ -520,6 +520,41 @@ class AssetLibrary:
         with closing(self._reader()) as db:
             return [{**dict(r), "config": json.loads(r["config_json"] or "{}")} for r in db.execute("SELECT id,kind,root,label,config_json,enabled FROM source ORDER BY id")]
 
+    # -- embeddings ----------------------------------------------------------------------------------------------
+    def put_embedding(self, version_id: str, space: str, vec, model=None, sub_key: str = "", model_version=None) -> dict:
+        from . import vectors
+        blob = vectors.pack(vec)
+        dim = len(blob) // 4
+        with self._lock:
+            have = self._db.execute("SELECT dim FROM embedding WHERE space=? LIMIT 1", (space,)).fetchone()
+            if have and have[0] != dim:
+                raise LibraryError(f"space {space!r} expects {have[0]} dimensions, got {dim}: not stored; use a new space (a model or dimension change is a new space)")
+            self._db.execute("INSERT OR REPLACE INTO embedding(version_id,space,sub_key,dim,dtype,vec,model,model_version,created_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                             (version_id, space, sub_key, dim, "f32", blob, model, model_version, self._now()))
+        return {"space": space, "dim": dim}
+
+    def embedding_spaces(self) -> dict:
+        with closing(self._reader()) as db:
+            return {r[0]: r[1] for r in db.execute("SELECT space,count(*) FROM embedding GROUP BY space ORDER BY space")}
+
+    def load_space(self, space: str):
+        """(asset ids, float32 matrix) of the CURRENT version of every active asset that has a vector in ``space`` (sub_key '')."""
+        import numpy as np
+        from . import vectors
+        with closing(self._reader()) as db:
+            rows = db.execute("SELECT a.id,e.vec FROM embedding e JOIN version v ON v.id=e.version_id JOIN asset a ON a.id=v.asset_id AND a.current_version=v.n "
+                              "WHERE e.space=? AND e.sub_key='' AND a.status='active' ORDER BY a.id", (space,)).fetchall()
+        if not rows:
+            return [], np.zeros((0, 0), "float32")
+        return [r[0] for r in rows], np.stack([vectors.unpack(r[1]) for r in rows])
+
+    def version_of(self, asset_id: str, n: Optional[int] = None) -> str:
+        with closing(self._reader()) as db:
+            row = db.execute("SELECT v.id FROM version v JOIN asset a ON a.id=v.asset_id WHERE a.id=? AND v.n=coalesce(?,a.current_version)", (asset_id, n)).fetchone()
+        if not row:
+            raise LibraryError(f"no asset {asset_id}")
+        return row[0]
+
     # -- read interface ------------------------------------------------------------------------------------------
     def get(self, aid: str, version: Optional[int] = None) -> dict:
         with closing(self._reader()) as db:
