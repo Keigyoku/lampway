@@ -479,3 +479,22 @@ bone's head) SURVIVED C07** (the sleeve is symmetric about the arm); a new case 
 INV-08.5) is crossed by no ray from the axis (0 over) and by 96 rays from the head.
 Not built: G08.4 (the recorded chest regression needs the shelf's chest inputs, not in the repository); the hands (B.5, curl
 fractions); the residual blockers' box in the piece's own frame (B.6, needs the placement meta); the optional limb initialiser (B.7).
+
+## Item 5 remainder: joint-relative constants (DONE except the sole band's thickness; the source-part check NOT built)
+`pipeline/fit_place.py`: the three absolute filters of canon 09 F.3 are now regions of the body's joints - each vertex belongs to its
+NEAREST bone segment (joint -> the next joint of its chain; a last joint is a point), computed over the MAIN skeleton only (canon
+16's UE names): the waist's torso is every vertex not nearest an arm bone (was `|x| < 0.27`), a boot's leg is that side's thigh /
+calf / foot / ball and its sole band starts at that leg's own lowest point (was `x > 0.02` and `z < 0.04`: the body had to stand at
+z = 0), the gauntlet's forearm is that side's lower arm and hand (was `|x| > 0.25`).
+RED: golden C06 at twice the girth placed with scale NaN (the 0.27 m filter cut the torso's own sides); now the scale the 1x widths
+predict (the 15 mm clearance does not scale - my first expectation of scale 1 was wrong and the code was right) and the inner-wall
+shift doubled.
+**Two first attempts were wrong and the shelf caught both:** regions "by pelvis/spine bones" left the hips to the thighs (waist
+NaN), and a foot region by bone tied the heel between calf and foot (the pinned foot anchor 0.624 read 0.589); before that,
+nearest-segment over ALL 342 MetaHuman joints let twist / corrective / toe bones claim the limbs (2799 of 49789 leg vertices).
+Each filter is now stated as what the absolute one MEANT (drop the arms; that leg's sole), and a unit case pins the helper bones.
+**The shelf pins (`test_wave2_fit_place.py`, 14 tests) only run with `LAMPWAY_SHELF_DIR` set** - the private shelf; in the suite
+and in CI they SKIP. I ran them by hand against the mounted shelf: all 14 pass on the committed code and after this change;
+they are the only regression evidence for the MetaHuman-sized cases.
+**needs_decision:** `SOLE_BAND_M = 0.04` - the band's thickness is still absolute (a ratio of the ankle height would need the native
+body's joints to calibrate). Not built: the source-part check (B.7, the detached-glove guard).
