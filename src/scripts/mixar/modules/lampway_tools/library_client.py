@@ -57,3 +57,27 @@ def get_asset(asset_id: str, version=None, include=("members",)) -> dict:
 
 def record_event(verb: str, asset_id: str, **payload) -> dict:
     return _data(_request("POST", "/api/v1/library/events", {"verb": verb, "asset_id": asset_id, **payload}))
+
+
+def query(payload: dict) -> dict:
+    return _data(_request("POST", "/api/v1/library/query", payload))
+
+
+def similar(asset_ids, axes=None, k=12) -> dict:
+    return _data(_request("POST", "/api/v1/library/similar", {"asset_ids": list(asset_ids), "axes": axes, "k": k}))
+
+
+def rate(asset_id: str, **kw) -> dict:
+    return _data(_request("POST", f"/api/v1/library/assets/{urllib.parse.quote(str(asset_id), safe='')}/rate", kw))
+
+
+def collect(**kw) -> dict:
+    return _data(_request("POST", "/api/v1/library/collect", kw))
+
+
+def scan(paths) -> dict:
+    return _data(_request("POST", "/api/v1/library/ingest/scan", {"paths": list(paths)}))
+
+
+def import_scan(scan_id: str) -> dict:
+    return _data(_request("POST", "/api/v1/library/ingest/import", {"scan_id": scan_id}))
