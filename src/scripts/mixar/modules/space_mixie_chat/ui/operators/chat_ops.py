@@ -106,6 +106,12 @@ class MIXIE_CHAT_OT_send_message(Operator):
         return allowed
 
     def execute(self, context):
+        # Facelift contract 04: with the agent's provider route off in Privacy, refuse here, before the server is asked.
+        from mixar.modules.lampway_tools import chat_route
+        refused = chat_route.refusal(context)
+        if refused:
+            self.report({'ERROR'}, refused)
+            return {'CANCELLED'}
         from ...core.attachment_validation import pending_video_attachments
         if model_change_pending(context.scene) or pending_video_attachments(context.scene):
             self.report({'WARNING'}, can_send(context.scene)[1])

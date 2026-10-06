@@ -59,8 +59,14 @@ size_t mixie_chat_build_todo_text(const TodoItemSlotData *items,
      * like BLI_snprintf), so `offset` can never pass `buf_maxncpy` and the
      * remaining-space math below can't underflow into a huge size_t —
      * which previously overflowed the stack on long todo plans. */
-    offset += BLI_snprintf_rlen(
-        buf + offset, buf_maxncpy - offset, (i > 0) ? "\n%s %s" : "%s %s", icon, todo.text);
+    /* A step's price rides its row (facelift contract 04): "<status> <step>   <price chip words>". */
+    offset += BLI_snprintf_rlen(buf + offset,
+                                buf_maxncpy - offset,
+                                (i > 0) ? "\n%s %s%s%s" : "%s %s%s%s",
+                                icon,
+                                todo.text,
+                                todo.price[0] ? "   " : "",
+                                todo.price);
     if (offset >= buf_maxncpy - 1) {
       break; /* Buffer full: truncate, never overflow. */
     }

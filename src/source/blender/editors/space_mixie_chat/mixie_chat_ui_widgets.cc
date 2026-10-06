@@ -12,6 +12,8 @@
 
 #include "BLI_rect.h"
 
+#include "DNA_userdef_types.h"
+
 #include "mixie_chat_ui_types.hh"
 #include "mixie_chat_intern.hh"
 /* Mixar 5.2 port: namespace wrap. */
@@ -55,7 +57,8 @@ float chat_ui_draw_bubble(const ChatBubbleStyle *style,
   bubble_rect.ymax = y + bubble_height;
 
   if (glass) {
-    chat_ui_draw_glass_pane(&bubble_rect, style->corner_radius, style->bg_color[3]);
+    /* The user's own message (facelift contract 04): a `raised` card, 1 px `line` border, tight by the composer. */
+    chat_ui_draw_user_card(&bubble_rect, style->corner_radius, style->bg_color, UI_SCALE_FAC);
   }
   else {
     chat_ui_draw_rounded_rect(&bubble_rect, style->corner_radius, style->bg_color);

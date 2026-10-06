@@ -233,9 +233,9 @@ void chat_ui_draw_ephemeral_bubble(const ChatBubbleStyle *style,
   bubble_rect.ymin = y;
   bubble_rect.ymax = y + bubble_height;
 
-  const float live_accent[4] = CHAT_ACCENT_LIVE;
-  chat_ui_draw_accent_bar(x, bubble_rect.ymin, bubble_height, live_accent,
-                          UI_SCALE_FAC);
+  float agent_rule[4];
+  chat_ui_get_agent_color(agent_rule); /* the agent wrote it (facelift contract 04) */
+  chat_ui_draw_block_rule(x, bubble_rect.ymin, bubble_height, agent_rule, UI_SCALE_FAC);
 
   /* Get font metrics */
   const int font_id = BLF_default();
@@ -325,8 +325,9 @@ void chat_ui_draw_live_thinking(const ChatBubbleStyle *style,
 {
   (void)bubble_width;
   /* LIVE rail: narration is streaming — the one accent marks it. */
-  const float live_accent[4] = CHAT_ACCENT_LIVE;
-  chat_ui_draw_accent_bar(x, y, bubble_height, live_accent, UI_SCALE_FAC);
+  float agent_rule[4];
+  chat_ui_get_agent_color(agent_rule); /* the agent wrote it (facelift contract 04) */
+  chat_ui_draw_block_rule(x, y, bubble_height, agent_rule, UI_SCALE_FAC);
 
   const int font_id = BLF_default();
   BLF_size(font_id, style->font_size);
@@ -396,8 +397,9 @@ void chat_ui_draw_thinking_dropdown(const ChatBubbleStyle *style,
   rect.ymin = y;
   rect.ymax = y + bubble_height;
   /* Flat: hairline top divider instead of a filled card. */
-  const float think_accent[4] = CHAT_ACCENT_THINKING;
-  chat_ui_draw_accent_bar(x, rect.ymin, bubble_height, think_accent, UI_SCALE_FAC);
+  float agent_rule[4];
+  chat_ui_get_agent_color(agent_rule); /* the agent wrote it (facelift contract 04) */
+  chat_ui_draw_block_rule(x, rect.ymin, bubble_height, agent_rule, UI_SCALE_FAC);
 
   const int font_id = BLF_default();
   BLF_size(font_id, style->font_size);

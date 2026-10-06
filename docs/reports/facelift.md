@@ -340,3 +340,63 @@ ctrl+alt+Space switches the screen to its full-screen copy. **Cause**: ctrl+Spac
 returns CANCELLED in Lamplight, because Lamplight is a one-area screen and upstream refuses to maximise a single area
 (`screen_maximize_area_exec`, Blender #144740). The keymap is fine and no shortcut is overridden. No code change; the
 event-simulated test `test_zen_shortcuts.py` pins N and ctrl+alt+Space.
+
+## Contract 04: the chat face (partial) and the captain's pill change
+
+The chat lives in the floating island (`space_agent_bubble`; the docked chat editor is deprecated), whose transcript is
+drawn by `space_mixie_chat`. Measured in the real build under Xvfb (the island is its own window; the states capture it).
+
+Done:
+- **Theme spacing** (test 1): bubble spacing and label height read the theme (Mixar forced 8 and 13 over it).
+- **User card**: `raised` fill, 1 px `line` border, the corner nearest the composer tight (4 px), in place of the
+  glass bed (`chat_ui_draw_user_card`).
+- **Rules**: plan (todo), steps, images, thinking and live blocks carry a 3 px rule in the theme's `agent` (dusk), the
+  agent's prose too. The running step's glyph is the theme accent; **Mixar's green live accent is gone from the chat
+  blocks**, but it is still in `CHAT_ACCENT_LIVE` for the history overlay, the rules editor and the ink overlay
+  (not the chat face; recorded, not changed).
+- **A question waiting** (choices): lamplight behind the set, a `line_hi` rule beside it, the primary choice an accent
+  fill with `on_accent` text (also on hover), danger choices in the theme's `stop`. Visual test
+  `tests/lampway_visual/test_chat_face.py`: the primary choice samples `#edb944` (accent). That test was written after
+  the code: its RED was not observed.
+- **Price chips** (test 2): `lampway_tools/price_chips.py` words each kind (`≈ $0.07 est., openrouter.ai`,
+  `13.5 credits, read back from Tripo 14:32`, `$0.05 billed`, `local, no cost`); the slot processor writes them into
+  each plan step (`price_text`) and the native row prints them after the step. **Words only**: the dashed / solid /
+  filled chip shapes are not drawn in plan rows (they are on the empty state's estimate chips).
+- **Route line** (test 3): `lampway_tools/route_line.py` + `chat_route.py`; the status timer writes host, sentence and
+  `send_ok` into the WindowManager, the island draws the host beside Send, Send's tooltip is the sentence, and with
+  the provider's route off Send is disabled and `mixie_chat.send_message` refuses before the server is asked. An
+  unknown provider or a silent server never reads as "this machine". Found by the visual probe: the Send button kept a
+  pointer to a per-draw buffer as its tooltip (garbage in the QA dump); it now points at storage that outlives the
+  draw.
+- **Empty state** (test 4): the brand line ("Ask Lampway Agent anything. Plans, questions and spends wait for you.")
+  in Fraunces 28 (vendored into `release/datafiles/fonts/`, OFL-1.1); the two GENERATE prompts carry a dashed estimate
+  chip from the generation catalogue's credit cost, or "spends credits: priced first" when it has none. Test written
+  after the code; the chip call was mutated out and the test failed.
+
+Not done (contract 04): the who line (Spark 20 px, name, plan chip, mono time); the calm pass's collapses (an answered
+question as one line, the step log as "3 steps done, 1.5 s, local"); the lamp glyph for local steps; test 6 (region
+diff against `shots/04-chat.png`, a mockup render; needs an approved golden of the app).
+
+### The floating agent pill (the captain: "toggleable, off by default or just combined into the chat window")
+
+Both, as the coordinator asked. The pill was a second always-on-top window created with the chat, sitting above it
+(`agent_bubble_show_window_exec`), and the chat's minimised form.
+- Preference "Floating agent pill" (Preferences > Interface > Agent), a persisted config key, **off by default,
+  existing users included**. Off: no pill window is created; minimise (Escape, the yellow light, Ctrl+Shift+B) closes
+  the chat; the workspace switch and the tour no longer bring a pill back; the native minimise refuses. Turning it on
+  reopens the open chat with its pill at once.
+- What the pill showed now lives in the chat's own header band (painted natively: the Spark in its contract 05 state,
+  the activity word or state name, "N agents running", "N jobs") and, while the chat is closed, in a top-bar agent chip
+  that opens it (state glyph, the pill's status words with the queue clock, agents running, "N unread").
+  `docs/reports/facelift/pill_parity.md` lists every datum and where it went.
+- Existing users: a one-time note replaces the header cues until the chat first closes ("No floating pill: its state is
+  here (Preferences > Interface > Agent)").
+- Tests: `tests/lampway/test_lampway_agent_pill.py` (6: off by default, on shows it, the switch and the tour with the
+  pill off, close and reopen, the parity of header and chip, told once) and the real-build
+  `tests/lampway_visual/test_agent_pill.py`: a new profile has the chat and no pill; Ctrl+Shift+B closes it and the top
+  bar's chip appears; Ctrl+Shift+B opens it; the preference gives the open chat its pill; minimising then rests in the
+  pill. RED: the probe on the build before the gate showed the pill window (94 x 26) at startup.
+- Reading the coordinator's words: "the chat window" is the island. The pill's sketch draft (typing over the viewport
+  while a sketch is armed) was not driven with the pill off; the composer shows the same draft, but only a live run
+  proves the flow.
+- Native rebuild: yes.

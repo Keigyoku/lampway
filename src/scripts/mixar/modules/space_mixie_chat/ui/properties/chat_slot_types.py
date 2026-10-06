@@ -37,6 +37,13 @@ class MixieChatTodoItem(PropertyGroup):
         default="",
         maxlen=512
     )
+    price_text: StringProperty(
+        name="Price",
+        description="The step's price chip: an estimate, a quote, billed, or local",
+        default="",
+        # Must match TodoItemSlotData::price (char[128]) in mixie_chat_ui_types.hh.
+        maxlen=128
+    )
     status: EnumProperty(
         name="Status",
         description="Current status of the todo item",

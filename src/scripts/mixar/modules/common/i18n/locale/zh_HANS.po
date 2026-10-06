@@ -4886,6 +4886,30 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "Hide this note (the pill stays off; the preference brings it back)"
+msgstr ""
+
+msgid "Floating agent pill"
+msgstr ""
+
+msgid "When the chat is minimised, leave a small floating pill with the agent's state. Off: minimising closes the chat, and the agent chip in the top bar carries the state and opens it again"
+msgstr ""
+
+msgid "Pill note pending"
+msgstr ""
+
+msgid "Route"
+msgstr ""
+
+msgid "Where the next message goes"
+msgstr ""
+
+msgid "Send may leave"
+msgstr ""
+
+msgid "Generate estimates"
+msgstr ""
+
 msgid "ChatGPT plan"
 msgstr ""
 
@@ -22579,6 +22603,9 @@ msgstr "此待办项的唯一标识符"
 msgid "Todo item text"
 msgstr "待办项文本"
 
+msgid "The step's price chip: an estimate, a quote, billed, or local"
+msgstr ""
+
 msgid "Current status of the todo item"
 msgstr "待办项的当前状态"
 
@@ -25306,6 +25333,15 @@ msgstr "新"
 msgid "Ask %s anything..."
 msgstr ""
 
+msgid "agents running"
+msgstr ""
+
+msgid "jobs"
+msgstr ""
+
+msgid "No floating pill: its state is here (Preferences > Interface > Agent)"
+msgstr ""
+
 msgid "Write your prompt here..."
 msgstr "在此输入提示词..."
 
@@ -26707,8 +26743,11 @@ msgstr "将孤岛放置并打包到 2 个 UDIM 中"
 msgid "Generate a 3D model of the image selected in moodboard"
 msgstr "根据情绪板中选中的图像生成 3D 模型"
 
-msgid "Hey friend! How can I help today?"
-msgstr "嗨，朋友！今天我能帮您做些什么？"
+msgid "spends credits: priced first"
+msgstr ""
+
+msgid "Ask %s anything. Plans, questions and spends wait for you."
+msgstr ""
 
 msgid "Add a comment (optional)"
 msgstr "添加评论（可选）"

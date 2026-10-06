@@ -4886,6 +4886,30 @@ msgstr ""
 msgid "Waist1"
 msgstr ""
 
+msgid "Hide this note (the pill stays off; the preference brings it back)"
+msgstr ""
+
+msgid "Floating agent pill"
+msgstr ""
+
+msgid "When the chat is minimised, leave a small floating pill with the agent's state. Off: minimising closes the chat, and the agent chip in the top bar carries the state and opens it again"
+msgstr ""
+
+msgid "Pill note pending"
+msgstr ""
+
+msgid "Route"
+msgstr ""
+
+msgid "Where the next message goes"
+msgstr ""
+
+msgid "Send may leave"
+msgstr ""
+
+msgid "Generate estimates"
+msgstr ""
+
 msgid "ChatGPT plan"
 msgstr ""
 
@@ -22579,6 +22603,9 @@ msgstr "A teendő egyedi azonosítója"
 msgid "Todo item text"
 msgstr "A teendő szövege"
 
+msgid "The step's price chip: an estimate, a quote, billed, or local"
+msgstr ""
+
 msgid "Current status of the todo item"
 msgstr "A teendő aktuális állapota"
 
@@ -25306,6 +25333,15 @@ msgstr "ÚJ"
 msgid "Ask %s anything..."
 msgstr ""
 
+msgid "agents running"
+msgstr ""
+
+msgid "jobs"
+msgstr ""
+
+msgid "No floating pill: its state is here (Preferences > Interface > Agent)"
+msgstr ""
+
 msgid "Write your prompt here..."
 msgstr "Írja ide a promptját..."
 
@@ -26707,8 +26743,11 @@ msgstr "Helyezze el és csomagolja a szigeteket 2 UDIM-en"
 msgid "Generate a 3D model of the image selected in moodboard"
 msgstr "Generáljon 3D-modellt a moodboardon kijelölt képből"
 
-msgid "Hey friend! How can I help today?"
-msgstr "Üdvözlöm! Miben segíthetek Önnek ma?"
+msgid "spends credits: priced first"
+msgstr ""
+
+msgid "Ask %s anything. Plans, questions and spends wait for you."
+msgstr ""
 
 msgid "Add a comment (optional)"
 msgstr "Megjegyzés hozzáadása (nem kötelező)"

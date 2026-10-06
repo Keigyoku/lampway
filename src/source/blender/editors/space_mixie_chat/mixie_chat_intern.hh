@@ -172,6 +172,16 @@ void chat_ui_draw_accent_bar(float x,
                              const float color[4],
                              float scale);
 
+/* Facelift contract 04 (DESIGN.md 4 and 13). Every colour is the theme's. */
+/** The `agent` (dusk) token: what the agent wrote. */
+void chat_ui_get_agent_color(float out_color[4]);
+/** A 3 px left rule beside a block: `agent` for what the agent wrote, `line_hi` for a question awaiting the user. */
+void chat_ui_draw_block_rule(float x, float y_bottom, float height, const float color[4], float scale);
+/** The user's own message: a `raised` card with a 1 px `line` border, the corner nearest the composer tight. */
+void chat_ui_draw_user_card(const rctf *rect, float radius, const float fill[4], float scale);
+/** Lamplight (DESIGN.md 4): a soft `accent` pool behind a block that waits for the user. */
+void chat_ui_draw_lamplight(const rctf *rect, float radius, float scale);
+
 /* Text drawing and measurement */
 void chat_ui_calc_text_bounds(const char *text,
                               float max_width,

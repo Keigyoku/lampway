@@ -76,10 +76,8 @@ class TestTheChatMessagePillIsAPane:
         derived style can carry the flag into them."""
         bubble = self._bubble()
         assert "if (glass) {" in bubble
-        assert (
-            "chat_ui_draw_glass_pane(&bubble_rect, style->corner_radius, style->bg_color[3]);"
-            in bubble
-        )
+        # Facelift contract 04: the user's card is a `raised` card with a 1 px `line` border (DESIGN v2), not glass.
+        assert "chat_ui_draw_user_card(&bubble_rect, style->corner_radius, style->bg_color, UI_SCALE_FAC);" in bubble
         assert "chat_ui_draw_rounded_rect(&bubble_rect, style->corner_radius, style->bg_color);" in bubble
         assert "bool glass = false);" in _code(CHAT_INTERN), "the parameter is not defaulted flat"
         assert "is_glass" not in bubble
@@ -97,7 +95,7 @@ class TestTheChatMessagePillIsAPane:
         passes it; the ephemeral call is the agent's, so it stays flat."""
         content = _code(CHAT_CONTENT)
         assert content.count("if (glass_bed) {") == 2
-        assert content.count("chat_ui_draw_glass_pane(&bubble_rect,") == 2
+        assert content.count("chat_ui_draw_user_card(&bubble_rect,") == 2   # facelift 04: the user's card
         calls = re.findall(r"chat_ui_draw_bubble\(&layout\.style,[^;]*;", content)
         assert len(calls) == 4, "the four plain-text beds are not all present"
         for call in calls:
@@ -105,14 +103,12 @@ class TestTheChatMessagePillIsAPane:
         assert "chat_ui_draw_ephemeral_bubble(&layout.style," in content
 
     def test_the_content_panes_hand_over_only_the_alpha(self) -> None:
-        """`bg_color[3]` is the one thing a site says — how opaque its pane is.
-        The RGB comes from the CHAT row and is never read here."""
-        calls = re.findall(r"chat_ui_draw_glass_pane\(([^;]*)\);", _code(CHAT_CONTENT))
+        """Facelift contract 04 replaced the glass bed with the user's card: both beds hand over the style's own
+        colour (the theme's chat_user_bubble, `raised`) and nothing else."""
+        calls = re.findall(r"chat_ui_draw_user_card\(([^;]*)\);", _code(CHAT_CONTENT))
         assert len(calls) == 2
         for call in calls:
-            assert call.strip().endswith("layout.style.bg_color[3]"), (
-                f"a call site picks a colour: {call!r}"
-            )
+            assert "layout.style.bg_color" in call and "bg_color[3]" not in call, call
 
     def test_the_block_containers_stay_flat(self) -> None:
         """The todo and action beds derive from the same style but hand over a
@@ -129,8 +125,9 @@ class TestTheChatMessagePillIsAPane:
         """A blanket conversion of the shared fill would have destroyed the
         danger red, its hover, and the teal hover wash."""
         render = _code(CHAT_RENDER)
-        assert "float danger_color[4] = {0.8f, 0.2f, 0.2f, 0.3f};" in render
-        assert "float danger_hover[4] = {0.9f, 0.3f, 0.3f, 0.5f};" in render
+        # Facelift contract 04: the danger tint is the theme's `stop`, at the same two alphas.
+        assert render.count("ui::mixar_theme_color_f(ui::MixarThemeSlot::Danger, action_style.bg_color);") == 2
+        assert "action_style.bg_color[3] = 0.3f;" in render and "action_style.bg_color[3] = 0.5f;" in render
         assert "memcpy(action_style.bg_color, layout.style.hover_color," in render
         assert "chat_ui_get_prompt_button_color(slot_todo_style.bg_color);" in render
 

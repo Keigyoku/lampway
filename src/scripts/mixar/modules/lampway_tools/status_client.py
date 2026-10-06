@@ -16,3 +16,6 @@ class StatusClient(StudioClient):
 
     def studio(self) -> dict:
         return self._call("GET", "/app/studio", timeout=2)
+
+    def provider_settings(self) -> dict:
+        return self._call("GET", "/app/provider-settings", timeout=2)

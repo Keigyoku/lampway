@@ -2963,6 +2963,20 @@ static void agent_bubble_header_region_draw_overlay(const bContext *C, ARegion *
  * invokes it directly.
  * \{ */
 
+/** The "Floating agent pill" preference (Python: agent_bubble/core/pill_pref.py through
+ * `WindowManager.lampway_floating_agent_pill`). Off by default, and off until Python has registered it: the chat's
+ * header and the top bar's agent chip carry what the pill showed (facelift contracts 04 and 05). */
+static bool agent_bubble_pill_enabled(const bContext *C)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  if (wm == nullptr) {
+    return false;
+  }
+  PointerRNA wm_ptr = RNA_id_pointer_create(&wm->id);
+  PropertyRNA *prop = RNA_struct_find_property(&wm_ptr, "lampway_floating_agent_pill");
+  return prop && RNA_property_type(prop) == PROP_BOOLEAN && RNA_property_boolean_get(&wm_ptr, prop);
+}
+
 static wmOperatorStatus agent_bubble_show_window_exec(bContext *C, wmOperator *op)
 {
   const bool start_minimised = RNA_boolean_get(op->ptr, "start_minimised");
@@ -3192,7 +3206,7 @@ static wmOperatorStatus agent_bubble_show_window_exec(bContext *C, wmOperator *o
      *      tracks the bubble's position automatically when the user
      *      drags the bubble around the screen, and closes when the
      *      bubble closes. */
-    if (!Mixar_WindowHasChildWindow(win->runtime->ghostwin)) {
+    if (agent_bubble_pill_enabled(C) && !Mixar_WindowHasChildWindow(win->runtime->ghostwin)) {
       rcti pill_rect;
       pill_rect.xmin = 0;
       pill_rect.ymin = 0;
@@ -3967,6 +3981,10 @@ static wmOperatorStatus mixar_bubble_minimise_exec(bContext *C, wmOperator * /*o
 {
 #if defined(__APPLE__) || defined(_WIN32) || defined(__linux__)
   if (g_bubble_ghostwin == nullptr || g_bubble_minimised) {
+    return OPERATOR_CANCELLED;
+  }
+  if (!agent_bubble_pill_enabled(C) || g_pill_ghostwin == nullptr) {
+    /* No pill to minimise into (the preference is off): the Python close paths close the chat instead. */
     return OPERATOR_CANCELLED;
   }
   if (g_bubble_pad_active) {

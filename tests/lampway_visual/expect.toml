@@ -49,3 +49,12 @@ theme = "dark"
 [zen_shortcuts]
 theme = "dark"
 [zen_shortcuts.surfaces]
+
+[agent_pill]
+theme = "dark"
+[agent_pill.surfaces]
+
+[chat_face]
+theme = "dark"
+[chat_face.surfaces]
+primary_choice = "accent"

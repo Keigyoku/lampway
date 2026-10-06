@@ -78,8 +78,8 @@ void mixie_chat_render_message_content(const MessageLayoutData &layout,
         bubble_rect.ymin = layout.y_pos;
         bubble_rect.ymax = layout.y_pos + layout.bubble_height;
         if (glass_bed) {
-          chat_ui_draw_glass_pane(&bubble_rect, layout.style.corner_radius,
-                                  layout.style.bg_color[3]);
+          chat_ui_draw_user_card(&bubble_rect, layout.style.corner_radius,
+                                 layout.style.bg_color, UI_SCALE_FAC);
         }
         else {
           chat_ui_draw_rounded_rect(&bubble_rect, layout.style.corner_radius,
@@ -88,9 +88,10 @@ void mixie_chat_render_message_content(const MessageLayoutData &layout,
 
         /* Neutral structural rail for the agent's prose blocks — quiet ground;
          * the single live accent belongs to the streaming blocks only. */
-        const float plan_accent[4] = CHAT_ACCENT_PLAN;
-        chat_ui_draw_accent_bar(layout.bubble_x, layout.y_pos,
-                                layout.bubble_height, plan_accent, UI_SCALE_FAC);
+        float agent_rule[4];
+        chat_ui_get_agent_color(agent_rule); /* the agent wrote it (facelift contract 04) */
+        chat_ui_draw_block_rule(layout.bubble_x, layout.y_pos,
+                                layout.bubble_height, agent_rule, UI_SCALE_FAC);
 
         /* Draw markdown content (code blocks register their copy chips
          * against this message index). */
@@ -206,8 +207,8 @@ void mixie_chat_render_message_content(const MessageLayoutData &layout,
       bubble_rect.ymin = layout.y_pos;
       bubble_rect.ymax = layout.y_pos + layout.bubble_height;
       if (glass_bed) {
-        chat_ui_draw_glass_pane(&bubble_rect, layout.style.corner_radius,
-                                layout.style.bg_color[3]);
+        chat_ui_draw_user_card(&bubble_rect, layout.style.corner_radius,
+                               layout.style.bg_color, UI_SCALE_FAC);
       }
       else {
         chat_ui_draw_rounded_rect(&bubble_rect, layout.style.corner_radius, layout.style.bg_color);
@@ -217,9 +218,10 @@ void mixie_chat_render_message_content(const MessageLayoutData &layout,
        * path agent markdown actually takes — text mirrors content, so text_len
        * is non-zero) — same neutral structural rail as every settled block. */
       if (!layout.is_user) {
-        const float plan_accent[4] = CHAT_ACCENT_PLAN;
-        chat_ui_draw_accent_bar(layout.bubble_x, layout.y_pos,
-                                layout.bubble_height, plan_accent, UI_SCALE_FAC);
+        float agent_rule[4];
+        chat_ui_get_agent_color(agent_rule); /* the agent wrote it (facelift contract 04) */
+        chat_ui_draw_block_rule(layout.bubble_x, layout.y_pos,
+                                layout.bubble_height, agent_rule, UI_SCALE_FAC);
       }
 
       /* Draw markdown content (code blocks register their copy chips
