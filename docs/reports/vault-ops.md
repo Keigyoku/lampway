@@ -15,7 +15,7 @@ row below says otherwise; mutants were run on the guarding lines (a scripted swa
 | addition 2: provenance wired | done | b7ec8d44, merge f3483acf | the production JobQueue's provenance hook records into the ONE shared Vault (`app.state.vault`, built before the JobQueue); locked by another process: spooled to `vault.spool`, replayed when a server next opens the library; a torn spool line is kept, never fatal |
 | asset_seed_captain (remainder) | done for the folder sets; the Higgsfield-history importer not built | a63bc1fa | a clickable initial import: the card only stats each root; scan and import are the user's clicks; referenced only; one batch (rollback = soft delete); ledger rows become generation rows by output hash; clips analysed; every scanned file re-hashed (`untouched_sources`) |
 | asset_seed_procedural | done for 55 materials + Vault seeding; the Asset Browser `.blend` export and catalogue round trip not built | 90095459, this commit | 55 presets from 12 named templates (data in `procedural_presets.py`, emitter in `procedural_emit.py`); stat bakes now EEVEE emission readouts (were Cycles); `procedural_seed.export/seed/render_sheet`; every material's thumbnail is its EEVEE ball |
-| asset_seed_cc0 | done against fakes (no live download, by instruction) | 0880e1bc | ambientCG (v2 full_json shape from the saved probe) and Poly Haven; plan = metadata only; fetch = the user's click; size + CRC (ambientCG) and md5 (Poly Haven) checks; resume by Range; skip what exists; licence row CC0-1.0 with flags and deed URL; texture_set + part_of map assets (GL/DX convention); new egress routes `cc0:ambientcg`, `cc0:polyhaven` |
+| asset_seed_cc0 | done against fakes (no live download, by instruction) | 0880e1bc, 5789be09 | ambientCG (v2 full_json shape from the saved probe) and Poly Haven; plan = metadata only; fetch = the user's click; size + CRC (ambientCG) and md5 (Poly Haven) checks; resume by Range; skip what exists; licence row CC0-1.0 with flags and deed URL; texture_set + part_of map assets; each map its own colour space (colour sRGB, every data map Non-Color) and each normal its declared GL/DX convention (the normalization audit's flag, fixed with a RED test); the raw zip's sha256; the sites' dimensions kept raw with no unit; new egress routes `cc0:ambientcg`, `cc0:polyhaven` |
 | asset_gates | done; `idle` needs a live batch; `throughput` fails on this box | 14d0e1d5 | deterministic corpus, eleven machine gates, receipt asset + gate_result rows, a mutant per gate, `run_on_copy` (VACUUM INTO) for the user's library; baseline in `docs/reports/asset-gates-baseline.md` |
 | fix requested by lane vault-ui (similar's look axis) | done | c806497b | a candidate is scored on the look spaces it has; RED: the new test returned [] |
 
@@ -42,8 +42,13 @@ row below says otherwise; mutants were run on the guarding lines (a scripted swa
 ## Tests against the wave5 baseline (900 passed / 5 skipped server; 753 / 46 client)
 - Server, full suite at 0880e1bc (before gates and the merge): **1166 passed, 8 skipped, 0 failed** (18 min). Earlier at 5cf2fb62: 1135 passed, 8 skipped.
 - Client (`tests/lampway_tools`, real binary from this lane's own copy) at 90095459: **756 passed, 46 skipped, 0 failed** (the +3 are this lane's).
-- After that: the gates, the similar fix, the vault-ui merge and the embroidery fix were run scoped (gates 7, similar 9, wiring + hooks + vault-ui's library
-  tests 39, procedural real-binary 9, all green); the final full runs are in the closing section below.
+- Server, full suite at fd2d74a8 (after the vault-ui merge): 1208 passed, 8 skipped, **3 errors**: the gates' module corpus timed out the 60 s default in
+  setup at load 25; fixed (76442bbe) and the gates + cc0 files re-run green (21 passed). The closing full run is below.
+- Client, full run at fd2d74a8 including `tests/lampway`: 905 passed, 46 skipped, **4 failed**. One was this lane's (the site-link allow-list did not name
+  the CC0 hosts: fixed in this branch with a reason per host). The other failures (brand words in `material_bake_export.py:54` and
+  `mcp_inventory/api.py:154`, a reasonless `/home/x` in the PII allow-list, hosts in `fal.py` and `studios/rest/shapes.py`) are byte-identical at this
+  lane's base 61dff5c8 and untouched here; the same four test files pass on the integrator's newer local lp/wave5 (80ca6de3), so they were fixed upstream.
+  The wave5 baseline counted `tests/lampway_tools` only.
 - Live tests that skip without their inputs: `test_library_render_live.py` (needs `LAMPWAY_BIN`), `test_library_localmodels_live.py` (needs
   `LAMPWAY_MODELS_DIR` with the weights and onnxruntime), the procedural live seed (needs `LAMPWAY_BIN`).
 
@@ -57,6 +62,7 @@ row below says otherwise; mutants were run on the guarding lines (a scripted swa
 - The CLIP text tower was added (the brief's sanity check, text ranking renders, needs it; the image tower alone cannot do it).
 - steel_blued is exempt from the steel chroma < 0.10 band (an undeclared exemption: it is blue by definition).
 - The contract's `edge_rub` template is the Mask-driven wear every template has; the 12 named templates are listed in `procedural_presets.TEMPLATES`.
+- New ingest calls (seed_sets, video panels and attachments, CC0 maps) carry `# LEGACY(normalize): <reason>` until `canon_io` lands on lp/wave5.
 - The gates' performance verdicts are not asserted in the suite (a shared box's load decides them); correctness gates are.
 - The corpus generator (`library/corpus.py`) was written before its determinism test, which then passed on first run; the cc0 `testzip` mutant is
   equivalent (`zipfile.read` checks every CRC itself).
@@ -88,3 +94,10 @@ row below says otherwise; mutants were run on the guarding lines (a scripted swa
   `LAMPWAY_MODELS_DIR` when the directory exists.
 - `procedural_library.LIBRARY_VERSION` is 2 (55 materials): an existing `procedural/library.json` at version 1 is replaced on the next seed.
 - lp/vault-ui's `asset_mcp` can wrap `Renderer.handle`, `video.handle`, `embed_models.Registry.handle`, `seed_sets.SeedSets.handle` and `gates.run_on_copy`.
+
+## Closing run
+- Server, full suite at d4e5a1a5 (everything above, merged with lp/vault-ui): **1211 passed, 8 skipped, 0 failed** (26 min at load 15-25).
+- Client: the last full run is the one above (905 passed, 46 skipped; the four failures named there, one of them this lane's and fixed since). The
+  commits after it touched server code and tests/lampway/test_site_links.py only; that file passes here now except the pre-existing `fal.py` and
+  `studios/rest/shapes.py` hosts, which this lane did not touch.
+- Each run's basetemp was deleted after reading it (the disk rule).
