@@ -62,6 +62,13 @@ class MIXIE_OT_moodboard_prompt_generate(Operator):
         )
 
         attempt = generation_attempt(context, self.owner_type)
+        from mixar.modules.lampway_tools import generate_face
+        refused = generate_face.refusal(context, self.owner_type)   # route off or over a cap (facelift contract 08): nothing is sent
+        if refused:
+            generation_dispatch(context, attempt, 'refused')
+            self.report({'ERROR'}, refused)
+            _pane_message(refused, "LEVEL_ERROR")
+            return {'CANCELLED'}
         operator_id, props = resolve_prompt_generate(
             context.scene, self.owner_type
         )

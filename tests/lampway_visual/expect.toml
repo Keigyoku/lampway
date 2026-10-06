@@ -66,3 +66,23 @@ theme = "dark"
 [the_way]
 theme = "dark"
 [the_way.surfaces]
+
+[gen_generate]
+theme = "dark"
+[gen_generate.surfaces]
+generate_bed = "accent_bed_hi"   # the lamplit bed (spec 08 user story; tokens.json: primary button bed)
+
+[gen_spend]
+theme = "dark"
+[gen_spend.surfaces]
+generate_bed = "accent"           # Spend: the accent fill (spec 08 section 5)
+
+[gen_refused]
+theme = "dark"
+[gen_refused.surfaces]
+
+[privacy_face]
+theme = "dark"
+[privacy_face.surfaces]
+confirm_button = "accent_bed"   # the confirm row is the only lit thing (contract 12 calm pass)
+on_switch = "raised"            # an open route is a plain switch, not lit

@@ -1100,6 +1100,18 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
 
     routes += [Route("/app/receipts", receipts_list, methods=["GET"]), Route("/app/receipts/{key}/acknowledge", receipt_acknowledge, methods=["POST"]),
                Route("/app/receipts/{key}/link", receipt_link, methods=["POST"])]
+    async def generate_estimate(request: Request):
+        """The island's Image / Video tab before Generate (facelift contract 08): the estimate, the policy and the caps. Sends nothing."""
+        if not _bearer_ok(request):
+            return unauthorized()
+        body = await _json_body(request)
+        params = body.get("params") if isinstance(body.get("params"), dict) else {}
+        try:
+            refs = max(0, int(body.get("references") or 0))
+        except (TypeError, ValueError):
+            return JSONResponse({"detail": "references is a count"}, status_code=422)
+        return JSONResponse(await asyncio.to_thread(jobs.estimate, str(body.get("service") or ""), str(body.get("model") or ""), params, refs))
+
     async def spend_view(request: Request):
         """What the status bar's spend gauge reads (facelift contract 03): each provider in its own unit, what this server session spent, and the
         caps and click rule the Providers dialog set. Read-only. There is no day ledger, so the scope says session."""
@@ -1115,7 +1127,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         return JSONResponse({"scope": "session", "providers": rows})
 
     routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"]),
-               Route("/app/spend", spend_view, methods=["GET"])]
+               Route("/app/spend", spend_view, methods=["GET"]), Route("/app/generate/estimate", generate_estimate, methods=["POST"])]
     # ---- Connections (connections/): every credential, its source and its status; the user's writes; the read-only view the agent gets
     from . import connections as CONN
     from .higgsfield_mcp import HiggsfieldMCP

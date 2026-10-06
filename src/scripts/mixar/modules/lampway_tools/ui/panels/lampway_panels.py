@@ -9,7 +9,7 @@ import textwrap
 import bpy
 from bpy.types import Panel, UIList
 
-from mixar.modules.lampway_tools import api, clip_state, egress_state, jobs, mcp_state, studio_state, the_way, workbench_state
+from mixar.modules.lampway_tools import api, clip_state, jobs, mcp_state, studio_state, the_way, workbench_state
 from mixar.modules.lampway_tools.ui.operators import tool_ops
 
 QA_CACHE = {"result": None}
@@ -299,7 +299,9 @@ class LAMPWAY_PT_prompts(Panel):
         col = self.layout.column(align=True)
         p = context.scene.lampway_tools
         col.operator("lampway.prompts_refresh", icon="FILE_REFRESH")
-        col.prop(p, "prompt_template")
+        # The library is a list (facelift contract 08): name, version and mean price per row; runs and rating on hover.
+        col.row(align=True).prop(p, "prompt_library_filter", expand=True)
+        col.template_list("LAMPWAY_UL_prompt_library", "", p, "prompt_library", p, "prompt_library_index", rows=6)
         col.operator("lampway.prompt_load", icon="IMPORT")
         for row in p.prompt_vars:
             col.prop(row, "value", text=row.name)
@@ -308,8 +310,7 @@ class LAMPWAY_PT_prompts(Panel):
             col.operator("lampway.prompt_preview", icon="VIEWZOOM")
             col.operator("lampway.prompt_fork", icon="DUPLICATE")
         if p.prompt_preview:
-            for line in textwrap.wrap(p.prompt_preview, 46)[:8]:
-                col.label(text=line)
+            col.popover("LAMPWAY_PT_prompt_preview", text=textwrap.shorten(p.prompt_preview, 40, placeholder="..."))
             col.operator("lampway.prompt_use", icon="PLAY")
         col.separator()
         col.prop(p, "prompt_job_id")
@@ -318,6 +319,20 @@ class LAMPWAY_PT_prompts(Panel):
         col.operator("lampway.prompt_rate", icon="SOLO_ON")
         if p.last_message:
             col.label(text=p.last_message[:80])
+
+
+class LAMPWAY_PT_prompt_preview(Panel):
+    """The rendered prompt, whole (it was eight cut labels)."""
+    bl_idname = "LAMPWAY_PT_prompt_preview"
+    bl_label = "Rendered prompt"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "HEADER"
+    bl_ui_units_x = 22
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        for line in textwrap.wrap(context.scene.lampway_tools.prompt_preview, 60):
+            col.label(text=line)
 
 
 class LAMPWAY_PT_cockpit(Panel):
@@ -379,34 +394,6 @@ class LAMPWAY_PT_clips(Panel):
             col.operator("lampway.clip_apply_names", icon="CHECKMARK")
 
 
-class LAMPWAY_PT_privacy(Panel):
-    """Privacy: every outbound route, off until you switch it on, with its retention and training policy; the DATA LEAVING badge; the last log rows. draw() reads the cache only."""
-    bl_idname = "LAMPWAY_PT_privacy"
-    bl_label = "Privacy (what leaves this machine)"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Lampway"
-
-    def draw(self, context):
-        layout = self.layout
-        st = egress_state.STATE
-        lit = st["indicator"].get("over_the_wire")
-        layout.label(text=egress_state.badge(), icon="ERROR" if lit else "CHECKMARK")
-        layout.operator("lampway.egress_refresh", icon="FILE_REFRESH")
-        if st["error"]:
-            layout.label(text=st["error"][:80])
-        for r in st["routes"]:
-            box = layout.box()
-            row = box.row(align=True)
-            row.label(text=egress_state.route_line(r), icon="CHECKBOX_HLT" if r["enabled"] else "CHECKBOX_DEHLT")
-            op = row.operator("lampway.egress_route", text="Switch off" if r["enabled"] else "Switch on")
-            op.route, op.enabled = r["id"], not r["enabled"]
-            box.label(text=egress_state.policy_line(r))
-        for row in st["log"][-20:]:
-            layout.label(text=f"{row.get('event')} {row.get('route')} {row.get('provider', '')} {row.get('kind', '')} {row.get('bytes', 0)} B")
-        layout.operator("lampway.egress_export", icon="EXPORT")
-
-
 class LAMPWAY_PT_mcp(Panel):
     """Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."""
     bl_idname = "LAMPWAY_PT_mcp"
@@ -440,6 +427,6 @@ class LAMPWAY_PT_mcp(Panel):
 
 
 
-classes = [LAMPWAY_UL_studio_plan_args, LAMPWAY_PT_last_message, LAMPWAY_PT_privacy, LAMPWAY_PT_cockpit, LAMPWAY_PT_main,
+classes = [LAMPWAY_UL_studio_plan_args, LAMPWAY_PT_last_message, LAMPWAY_PT_prompt_preview, LAMPWAY_PT_cockpit, LAMPWAY_PT_main,
            LAMPWAY_PT_way, *WAY_STEPS, LAMPWAY_PT_qa, LAMPWAY_PT_qa_review, LAMPWAY_PT_meshpaint, LAMPWAY_PT_rebuild,
            LAMPWAY_PT_clips, LAMPWAY_PT_studios, LAMPWAY_PT_prompts]

@@ -123,6 +123,7 @@ class VideoSystem:
         self.uploads = UploadStore(self.root / "uploads", probe)
         self.jobs = None                          # set by create_app: the JobQueue this system serves
         self._or_models = None
+        self._or_read_at = 0.0                    # when the OpenRouter catalogue (and so its listed prices) was read
         self._or_failed_until = 0.0
         self._hf_cache: dict = {}
 
@@ -142,6 +143,7 @@ class VideoSystem:
         if self._or_models is None and time.time() >= self._or_failed_until:
             try:
                 self._or_models = self.client.models()
+                self._or_read_at = time.time()
             except Exception as exc:  # noqa: BLE001 - no key, no network: the capability stays hidden, retried in a minute
                 log.info("the OpenRouter video catalogue is unavailable: %s", type(exc).__name__)
                 self._or_failed_until = time.time() + 60
@@ -266,6 +268,20 @@ class VideoSystem:
         images = [self.uploads.get(k) for k in payload.get("reference_image_s3_keys") or []]
         videos = [self.uploads.get(k) for k in ([payload["video_s3_key"]] if payload.get("video_s3_key") else payload.get("reference_video_s3_keys") or [])]
         return images, videos
+
+    def listing_estimate(self, model: str, params: dict, references: int = 0) -> dict:
+        """The price of an OpenRouter video job from the model listing the server already read (facelift contract 08): no upload, no request.
+        ``usd`` None with the reason when the model, its parameters or its price family are not known."""
+        row = next((m for m in self._openrouter_models() if m.get("id") == model), None)
+        if row is None:
+            return {"usd": None, "basis": f"{model} is not in the OpenRouter video listing this server read", "known": False, "read_at": self._or_read_at}
+        raw = dict(params or {})
+        raw.pop("image_mode", None)
+        try:
+            clean = VG.validate(row, dict(raw, frame_images=[], reference_videos=[]))
+        except VG.VideoError as exc:
+            return {"usd": None, "basis": str(exc), "known": False, "read_at": self._or_read_at}
+        return dict(VG.estimate(row, dict(clean, frames=0, references=int(references or 0))), read_at=self._or_read_at)
 
     def plan(self, service: str, model: str, payload: dict) -> dict:
         """What the job would do and cost; for Higgsfield also the uploads and the get_cost price (``gated``: the user confirms)."""

@@ -13,6 +13,11 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | `0afc2d19` (03) | `interface_widgets.cc`, `agent_ui_draw.cc`, `interface_mixar_profile_card.cc`, the theme defaults and glass tokens. |
 | `c92396d5` (05) | `agent_ui_pill_cat.*`, `view3d_agent_panel*`. |
 | `ce3c9897` (02) | `wm_splash_screen.cc` and the `splash.png` datafile. |
+| `d6b543fc` (Asset Vault) | `rna_space.cc`, `space_mixar_assets.cc`, the new `space_mixar_assets/mixar_assets_dnd.cc` and its CMake libs. |
+| `c272b7c0` (Lamplight and Workshop) | the C++ that compares the workspace name (`STREQ(..., "Lamplight")`). |
+| `6881d79` (04 and the pill) | `mixie_chat_*` painters, the `Fraunces.woff2` datafile, `agent_ui_state.cc`, `agent_ui_controls_paint.cc`, `agent_ui_draw.cc`, `agent_bubble_references.cc`, `space_agent_bubble.cc`. |
+| (08) | `agent_ui_tabmedia.cc`, the new `agent_ui_tabmedia_estimate.cc` (CMake list), `agent_ui_tabmedia_intern.hh`, the `PlexMono.woff2` datafile, and `MixarVariant::Accent` in `UI_mixar_types.hh` (included widely: an 830-step rebuild), `interface/mixar/components.cc`, `interface/mixar/style.cc`. |
+| (12) | `userdef_default_theme.c` (Timeline `simulated_frames` leaves the wire colour) and the two theme presets. |
 
 ## Gate totals at the contract 01 push (`30b6c2fd`, merged with `origin/lp/wave5` `00d907d4`)
 
@@ -461,3 +466,107 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
 - Not done: the Mesh QA body's redesign (result box with run line, tag counts on one row, "Review 17 by hand" and "Ask
   the agent"); the drawn rail (phase 2, C++); test 6 (a sidebar capture: the sidebar's tab cannot be chosen from
   Python, and child panels do not draw in a popover); the workflow picker (open question 1).
+
+## Contract 08: the generation face (partial)
+
+- **Server** (`POST /app/generate/estimate`, `JobQueue.estimate`, `VideoSystem.listing_estimate`): before anything is
+  sent, the price of a request marked as the kind of number it is, the policy the Providers dialog set, whether it needs
+  a click and whether a cap refuses it. It sends nothing: an OpenRouter video is priced from the model listing the
+  server already read (`pricing_skus`, the same `videogen.estimate` a real run uses; the source says the date the
+  listing was read); an image is the measured per-image figure the click decision already used
+  (`IMAGE_USD_ESTIMATE`, about $0.07); a Higgsfield price is unknown until its own `get_cost` at submit (no upload is
+  made for an estimate). An unknown price needs a click unless the policy is off. Tests:
+  `server/tests/test_generate_estimate.py` (6; RED observed: every route 404).
+- **The face** (`lampway_tools/generate_face.py`, no bpy, no price arithmetic): the dashed estimate chip
+  ("≈ $0.067 est."; a quote reads "$0.40, read back" with neither mark; none reads "price unknown" in the stop colour),
+  the job against its cap ("≈ $0.07 of cap $1.00 per job", amber from 80 percent, red over), the session line, the
+  route host, the content ("prompt only, no asset" / "prompt and 2 reference images"), the button
+  ("Generate, ≈ $0.07" / "Spend $0.40" / "Spend, price unknown" / disabled "Generate") and the policy sentence as its
+  hover. A route that is off asks the server nothing and refuses with the egress gate's own sentence ("openrouter is
+  off: switch it on in Privacy to let data leave").
+- **The pump** (`ui/generate_pump.py`): the island's half and its request (service, model, the catalogue params via
+  `collect_params`, the reference images counted the way the pane previews them); 300 ms debounce, the request off the
+  main thread, the answer through a timer into `wm.lampway_gen_*`. **Generate refuses** in
+  `mixie.moodboard_prompt_generate` (the island button and Enter) before it dispatches, only for the tab the face was
+  computed for (a 3D or Splat Generate is never judged by it).
+- **Native** (`agent_ui_tabmedia.cc`, new `agent_ui_tabmedia_estimate.cc`): a "Before you send" column on the right of
+  the Image / Video pane when it is at least 560 px wide (the chips and prompt box take the rest), numbers in IBM Plex
+  Mono (vendored as `datafiles/fonts/PlexMono.woff2`, OFL), Generate at its foot. Generate is the lamplit bed
+  (`accent_bed_hi`); a Spend is the accent fill: a new `MixarVariant::Accent` (accent fill, on-accent text; QA dump
+  name `ACCENT`). Narrower panes keep Generate in the box with the same label.
+- **The prompt library**: a `UIList` (`LAMPWAY_UL_prompt_library`) over `scene.lampway_tools.prompt_library`,
+  mirrored by Refresh from `/app/prompts` and `/app/prompts/stats`; filter All / Image / Video with counts; rows are
+  name, version and mean billed price ("no runs yet" before the first run); runs and rating are the price's hover
+  (the calm pass). Choosing a row chooses the template. The eight cut preview labels are a popover with the whole text.
+- Tests: `tests/lampway/test_lampway_generate_face.py` (10; RED observed: the module missing, then the panel test
+  failing on the old panel; a mutation treating an unknown price as no click fails `test_unknown_price_needs_a_click`)
+  and `tests/lampway_visual/test_generate_face.py` (three policy states in the real build: no click, click, refused).
+- **Disagreements with the brief, recorded**: the brief's "18 built-ins (7 video, 11 image)" is the WEBSITE.md
+  snapshot; the server ships 27 (19 image, 8 video) and the test checks every one it ships. The brief's image source
+  "model listing <date>" is not what the number is: OpenRouter lists image models by token, and the figure is the
+  spike's measured per-image cost, so the source says that. The WindowManager carries more than the five named props
+  (`_estimate`, `_cap_job`, `_cap_session`, `_route`, `_content`): also the kind, the fills, the button, its kind, the
+  policy, the refusal and the owner tab.
+- **Not done**: the A/B action (the run log has `variant_of`, no surface submits a variant yet); the results row's
+  "billed against the estimate" line; Spend opens the server's approval (the Studios card) rather than contract 13's
+  card (13 is later in the order); the pump's own request gathering is not exercised by a test (the visual states fix
+  the request: offline there is no catalogue to give the tab a model); acceptance evidence 11 (a real OpenRouter image)
+  is a spend this lane does not make.
+- Also re-pointed `tests/lampway_tools/test_ui.py::test_the_features_panel_runs_a_feature_on_the_active_object_and_reports_one_line`:
+  it asserted the free-text Features panel exists, which contract 07 removed on purpose; it now asserts it is gone (the
+  `lampway.feature_run` operator it drives is kept for scripts and still passes its three cases).
+- Gates before the push: `scripts/lampway/test_all.sh` on the uncommitted 08 tree with my build: server 1233 passed,
+  10 skipped, rc 0; client 8177 passed, 89 skipped, 119 failed + 20 errors, all 138 in `tests/known_red.tsv` and one
+  new (the Features-panel assertion above, fixed and re-run: passes). Visual suite (`tests/lampway_visual`) 20 passed.
+  Theme 0, cues 0, WezTerm 0, tool specs current.
+
+- After merging `origin/lp/wave5` (`5e5cf3e`): the agent gained seven tools (the orphans lane's O33). `tool_specs.json`
+  regenerated (30 tools); five join Parts critique with their own word, Built, sourced to `docs/reports/orphans.md`
+  (judge_pack, render_final, export_parts, verify_set, gen_parts_table); libwiki and index_delta are library chores,
+  listed in `status.toml`'s `[off_the_way]` with the reason. New gate `test_every_tool_has_a_place` (RED observed: the
+  seven were simply absent from the sidebar and nothing said so).
+
+## Contract 12: the privacy face
+
+- **One vocabulary** (`lampway_tools/privacy_face.py`, no bpy): `chip(route, routes)` is the lamp and "this machine",
+  or the wire and the route's host; an id no table names says "unknown route" in stop, never blank. `route_rows`: the
+  name, a shield for the privacy class (shield, half, open, unknown), the switch (off, waiting for your confirm, on);
+  host, last use, retention and training on hover. `last_refusal`: the newest refused row as a card; a private asset
+  gets "Use OpenRouter, zero retention", "Run it here instead" and "Allow this asset once (logged)". `log_rows`: time,
+  event (glyph + word), route, what; host, class and retention on hover. It reads only the keys it names, so a row
+  carrying content renders none of it.
+- **The window** (`ui/privacy.py`): one drawing in three places: the viewport sidebar, a pop-out the status bar's wire
+  chip now opens ("What leaves this machine"), and Preferences > Interface > Privacy (open question 1, as
+  recommended). "Sending now: <host>" with the wire's dot while data leaves (decision F3: the magenta wire and the word,
+  not a red DATA LEAVING), the latest refusal, the routes, the confirm row, the log, Export.
+- **Two clicks to open a route**: the switch opens the confirm row ("Let data leave for openrouter.ai?"); only its
+  "Let it leave" posts. Both refuse while a script runs ("A script cannot open a route: switch it on in Privacy
+  yourself"), as does the override (`POST /app/egress/override`, new `EgressClient.override`). The confirm row is the
+  only lit thing in the window: an open route is a plain switch (the visual test samples both).
+- **The wire is reserved**: the theme mapped Timeline/Dope Sheet `simulated_frames` to the wire; it is now the agent
+  violet (`agent@66`), and a gate scans the theme map and the icon renderer (only the travelling dot's two glyphs are
+  painted in it). Native: the regenerated `userdef_default_theme.c` and the presets; `base/theme_dna_0.1.0.json`
+  re-measured from the rebuilt binary.
+- **New route `github`** (server `egress.py`: github.com, objects / release-assets.githubusercontent.com), off by
+  default, class ok (a plain GET of a public release asset), for contract 16's WezTerm download.
+- Tests: `tests/lampway/test_lampway_privacy_face.py` (6; RED observed: the module missing, the `github` route
+  missing, and the wire test catching `simulated_frames`), `tests/lampway_tools/test_lampway_privacy_face_live.py`
+  (4, real binary; the gate's falsifier run: with the gate dropped, `test_route_switch_refuses_a_script` fails),
+  `tests/lampway_visual/test_privacy_face.py` (the pop-out with a route sending, a refusal and a confirm row).
+  `tests/lampway_tools/test_wave4b_egress_ui.py` re-pointed to the new surface (the panel moved to `ui/privacy.py`;
+  "OpenRouter: OFF" and the policy line became the row and its hover; DATA LEAVING became "Sending now"; switching on
+  is two clicks).
+- **Deviations, said plainly**: "Allow this asset once (logged)" is an `alert` button, which Blender draws as a red
+  tinted bed, not stop-coloured text on nothing (a Python layout cannot colour text otherwise). "Run it here instead" is
+  a line of text, not an action: there is no generic local re-run of a refused job to call. The other surfaces'
+  host words (04's route line, 08's route chip) say the same host but do not yet call `privacy_face.chip`.
+
+## Which build is in `build/Prod`
+
+The coordinator's rule from here on: `build/Prod` is built from a clean tree at a pushed sha, and that sha is written to
+`build/Prod/BUILT_FROM`. (The 10-06 02:31 build the integrator copied held the then-uncommitted 6881d79 native
+changes; the coordinator traced that from the reflog.) The current build's sha is recorded at the end of this file
+after each native push.
+
+- `build/Prod` built from `cf1fc1f755218c2a32a433d15ba3c392c29c8693` (pushed, clean tree; `build/Prod/BUILT_FROM`), 2026-10-06.
+  It contains contracts 01-08 as pushed and the `origin/lp/wave5` merge `5e5cf3e` (which brought no native change).

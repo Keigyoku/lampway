@@ -6560,6 +6560,15 @@ msgstr ""
 msgid "Generate estimates"
 msgstr ""
 
+msgid "LOADING"
+msgstr ""
+
+msgid "none"
+msgstr ""
+
+msgid "Tab of the face"
+msgstr ""
+
 msgid "ChatGPT plan"
 msgstr ""
 
@@ -6654,6 +6663,65 @@ msgstr ""
 msgid "Main agent"
 msgstr ""
 
+msgid "Switch route"
+msgstr ""
+
+msgid ""
+"Switch a route. Every route is off until you switch it on, and on takes two clicks of yours: this one opens the\n"
+"confirm row, its button lets data leave"
+msgstr ""
+
+msgid "The confirm row's own button"
+msgstr ""
+
+msgid "Not now"
+msgstr ""
+
+msgid "Close the confirm row: the route stays off"
+msgstr ""
+
+msgid "Allow this asset once"
+msgstr ""
+
+msgid "Let this one asset through this route once. Logged as an override; your click only"
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
+msgid "What this row says in full"
+msgstr ""
+
+msgid "No details"
+msgstr ""
+
+msgid "What leaves this machine"
+msgstr ""
+
+msgid "What leaves this machine: the routes, what is sending, the last refusal and the log"
+msgstr ""
+
+msgid "Nothing is leaving this machine"
+msgstr ""
+
+msgid "Off"
+msgstr "Isključeno"
+
+msgid "Let it leave"
+msgstr ""
+
+msgid "What left, and what was refused"
+msgstr ""
+
+msgid "Privacy (what leaves this machine)"
+msgstr ""
+
+msgid "Privacy in the viewport's Lampway sidebar."
+msgstr ""
+
+msgid "The pop-out the status bar's wire chip opens."
+msgstr ""
+
 msgid "spend unknown: server not running"
 msgstr ""
 
@@ -6695,12 +6763,6 @@ msgid "Refresh privacy"
 msgstr ""
 
 msgid "Read the Privacy state from the server and keep it fresh while data may leave"
-msgstr ""
-
-msgid "Switch route"
-msgstr ""
-
-msgid "Opt a route in or out. Every route is OFF until you switch it on. Your click only"
 msgstr ""
 
 msgid "Export egress log"
@@ -7243,13 +7305,16 @@ msgstr ""
 msgid "Providers: agent, swarm, images"
 msgstr ""
 
-msgid "Not now"
-msgstr ""
-
 msgid "Plan an action (clicks nothing)"
 msgstr ""
 
 msgid "Prompts"
+msgstr ""
+
+msgid "Rendered prompt"
+msgstr ""
+
+msgid "The rendered prompt, whole (it was eight cut labels)."
 msgstr ""
 
 msgid "Cockpit (agent sessions)"
@@ -7271,22 +7336,19 @@ msgstr ""
 msgid "The clip table: one row per action (primary class, speed, loop, an inferred marker, the proposed name). draw() reads the cache only."
 msgstr ""
 
-msgid "Privacy (what leaves this machine)"
-msgstr ""
-
-msgid "Privacy: every outbound route, off until you switch it on, with its retention and training policy; the DATA LEAVING badge; the last log rows. draw() reads the cache only."
-msgstr ""
-
-msgid "Switch off"
-msgstr ""
-
-msgid "Switch on"
-msgstr ""
-
 msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Runs and rating"
+msgstr ""
+
+msgid "Runs and rating of this template version"
+msgstr ""
+
+msgid "No runs yet"
 msgstr ""
 
 msgid "Engine defaults: not the project"
@@ -7305,6 +7367,12 @@ msgid "Show the signed-in name and address on the account card; off, it reads Lo
 msgstr ""
 
 msgid "enum values, | separated"
+msgstr ""
+
+msgid "Mean billed price of this version, or 'no runs yet'"
+msgstr ""
+
+msgid "Runs and rating of this version"
 msgstr ""
 
 msgid "Argument"
@@ -7464,6 +7532,9 @@ msgid "Tool"
 msgstr "Alatka"
 
 msgid "A prompt-library template (image or video)"
+msgstr ""
+
+msgid "Show"
 msgstr ""
 
 msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
@@ -8901,9 +8972,6 @@ msgstr "Referenca {number}"
 # derived
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Ovom šablonu treba dostupan model generisanja. Proverite vezu."
-
-msgid "Off"
-msgstr "Isključeno"
 
 # derived
 msgid "Choose one of the options supported by this model."
@@ -33014,6 +33082,12 @@ msgstr "Generiši video"
 # derived
 msgid "Generate images"
 msgstr "Generiši slike"
+
+msgid "Before you send"
+msgstr ""
+
+msgid "leaves:"
+msgstr ""
 
 msgid "LOD"
 msgstr ""

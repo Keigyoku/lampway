@@ -6,7 +6,6 @@
 script runs (an agent's, a worker's or the bridge's), so no script can opt the user in."""
 
 import bpy
-from bpy.props import BoolProperty, StringProperty
 from bpy.types import Operator
 
 from mixar.modules.lampway_tools import egress_client, egress_state, human_gate, studio_client
@@ -66,24 +65,6 @@ class LAMPWAY_OT_egress_refresh(_Op):
         return self._done(context, egress_state.STATE["error"] or egress_state.badge(), ok=not egress_state.STATE["error"])
 
 
-class LAMPWAY_OT_egress_route(_Op):
-    """Opt a route in or out. Every route is OFF until you switch it on. Your click only"""
-    bl_idname = "lampway.egress_route"
-    bl_label = "Switch route"
-    route: StringProperty()
-    enabled: BoolProperty()
-
-    def execute(self, context):
-        if (r := self._gate(context)) is not None:
-            return r
-        try:
-            CLIENT_FACTORY().set_route(self.route, self.enabled)
-        except studio_client.StudioError as exc:
-            return self._done(context, str(exc), ok=False)
-        refresh_state()
-        return self._done(context, f"{self.route} is now {'ON: data may leave through it' if self.enabled else 'OFF'}")
-
-
 class LAMPWAY_OT_egress_export(_Op):
     """Put the egress log (what left, to whom, when) into a Text datablock you can save"""
     bl_idname = "lampway.egress_export"
@@ -102,4 +83,4 @@ class LAMPWAY_OT_egress_export(_Op):
         return self._done(context, f"egress log: {len(body.splitlines())} rows in the Text 'LW_egress_log'")
 
 
-classes = [LAMPWAY_OT_egress_refresh, LAMPWAY_OT_egress_route, LAMPWAY_OT_egress_export]
+classes = [LAMPWAY_OT_egress_refresh, LAMPWAY_OT_egress_export]   # switching a route: ui/privacy.py

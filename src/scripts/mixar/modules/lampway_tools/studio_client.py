@@ -101,6 +101,14 @@ class StudioClient:
     def prompts(self, media=None) -> dict:
         return self._call("GET", "/app/prompts" + (f"?media={media}" if media else ""))
 
+    def prompt_stats(self) -> list:
+        return self._call("GET", "/app/prompts/stats").get("stats", [])
+
+    def generate_estimate(self, service: str, model: str, params: dict, references: int = 0) -> dict:
+        """The tab's estimate, policy and caps before Generate (facelift contract 08). The server sends nothing for it."""
+        return self._call("POST", "/app/generate/estimate", {"service": service, "model": model, "params": params or {}, "references": int(references or 0)},
+                          timeout=5)
+
     def prompt(self, template_id: str, version=None) -> dict:
         return self._call("GET", f"/app/prompts/{template_id}" + (f"?version={version}" if version else ""))
 

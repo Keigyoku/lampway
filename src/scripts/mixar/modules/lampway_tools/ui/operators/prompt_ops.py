@@ -54,10 +54,18 @@ class LAMPWAY_OT_prompts_refresh(_PromptOp):
     bl_label = "Refresh templates"
 
     def execute(self, context):
+        from mixar.modules.lampway_tools import prompt_library
         try:
             studio_state.PROMPTS["templates"] = _client().prompts().get("templates", [])
+            stats = _client().prompt_stats()
         except studio_client.StudioError as exc:
             return self._done(context, str(exc), ok=False)
+        lib = context.scene.lampway_tools.prompt_library
+        lib.clear()
+        for r in prompt_library.rows(studio_state.PROMPTS["templates"], stats):
+            item = lib.add()
+            item.template_id, item.title, item.version, item.media, item.price, item.hover = (
+                r["id"], r["title"], r["version"], r["media"], r["price"], r["hover"])
         return self._done(context, f"{len(studio_state.PROMPTS['templates'])} templates")
 
 

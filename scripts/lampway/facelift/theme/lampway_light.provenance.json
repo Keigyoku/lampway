@@ -182,7 +182,7 @@
  "dopesheet_editor[0].keyframe_border": "kept:#000000ff",
  "dopesheet_editor[0].keyframe_border_selected": "kept:#000000ff",
  "dopesheet_editor[0].keyframe_scale_factor": "metric",
- "dopesheet_editor[0].simulated_frames": "token:wire@66",
+ "dopesheet_editor[0].simulated_frames": "token:agent@66",
  "dopesheet_editor[0].summary": "token:agent_bed@66",
  "file_browser/space[0].back": "token:surface",
  "file_browser/space[0].header": "token:canvas",

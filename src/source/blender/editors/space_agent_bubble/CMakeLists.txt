@@ -60,6 +60,7 @@ set(SRC
   agent_ui_tabsplat_state.cc
   agent_ui_tabmedia.cc
   agent_ui_tabmedia_util.cc
+  agent_ui_tabmedia_estimate.cc
   agent_ui_state.cc
   agent_ui_tab3d.cc
   agent_ui_tab3d_params.cc
