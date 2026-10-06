@@ -14,6 +14,7 @@ PLATE = '''
 bpy.ops.mesh.primitive_grid_add(x_subdivisions=20, y_subdivisions=20, size=1.0)
 ob = bpy.context.active_object; ob.name = "plate"
 g = ob.vertex_groups.new(name="body"); g.add(list(range(len(ob.data.vertices))), 1.0, "REPLACE")
+canon("plate", welded=True)                       # the door: a local edit reads a welded canonical mesh at real scale
 def lineage():
     return call("asset_lineage", action="record", object="plate", transform="seed", anchors=[
         {"name": "a", "point": [-0.5, -0.5, 0.0]}, {"name": "b", "point": [0.5, -0.5, 0.0]}, {"name": "c", "point": [0.0, 0.5, 0.0]}])
@@ -34,11 +35,17 @@ r = call("mesh_local_edit", object="plate", region={"bbox": BOX}, op="move", del
 src, new = bpy.data.objects["plate"], bpy.data.objects[r["object"]] if r.get("ok") else None
 far = [i for i, v in enumerate(src.data.vertices) if max(abs(v.co.x), abs(v.co.y)) > 0.1 + 0.05 + 1e-6]
 moved_far = max(abs(new.data.vertices[i].co.z - src.data.vertices[i].co.z) for i in far) if new else None
-print("RESULT", json.dumps({"r": r, "moved_far": moved_far, "src_z": max(v.co.z for v in src.data.vertices)}))
+from mixar.modules.lampway_tools import canon_asset as CA, canon_io
+stamp = json.loads(new["lw_canon"]) if new is not None and "lw_canon" in new.keys() else None
+print("RESULT", json.dumps({"r": r, "moved_far": moved_far, "src_z": max(v.co.z for v in src.data.vertices),
+                            "out_check": CA.check(stamp, canon_io.facts(new)) if stamp else ["no stamp"],
+                            "out_welded": stamp["body"]["topology"]["welded"] if stamp else None}))
 ''')
     r = res["r"]
     assert r["ok"] is True and r["object"] == "plate_edit" and r["topology_changed"] is False and abs(r["moved_max_m"] - 0.05) < 1e-6, r
     assert res["moved_far"] == 0.0 and res["src_z"] == 0.0, "nothing outside the falloff moved; the source is untouched"
+    # the edited copy is canonical again (inherits the source's decisions), so edit_locality_check and the next tool can read it
+    assert res["out_check"] == [] and res["out_welded"] is True, res
     loc = r["locality"]
     assert loc["pass"] is True and loc["outside"]["moved_vertices"] == 0 and loc["uv_changed"] is False and loc["material_changed"] is False, loc
 
@@ -77,6 +84,7 @@ src = bpy.data.objects["plate"]
 a = src.copy(); a.data = src.data.copy(); a.name = "after"; bpy.context.scene.collection.objects.link(a)
 for i in (0, 1, 2):
     a.data.vertices[i].co.z += 0.01                       # three corner-row vertices, far outside the box
+canon("after", welded=True)
 inside = call("edit_locality_check", before="plate", after="after", region=BOX)
 whole = call("edit_locality_check", before="plate", after="after", region=[-1, -1, -1, 1, 1, 1])
 print("RESULT", json.dumps({"inside": inside, "whole": whole}))
@@ -95,6 +103,7 @@ h = src.copy(); h.data = src.data.copy(); h.name = "holed"; bpy.context.scene.co
 bm = bmesh.new(); bm.from_mesh(h.data); bm.faces.ensure_lookup_table()
 bmesh.ops.delete(bm, geom=[f for f in bm.faces if abs(f.calc_center_median().x) < 0.03 and abs(f.calc_center_median().y) < 0.03], context="FACES_ONLY")
 bm.to_mesh(h.data); bm.free()
+canon("uvd", "holed", welded=True)
 out = {"uv": call("edit_locality_check", before="plate", after="uvd", region=BOX),
        "hole": call("edit_locality_check", before="holed", after="plate", region=BOX),
        "noreg": call("edit_locality_check", before="plate", after="uvd")}

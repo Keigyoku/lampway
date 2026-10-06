@@ -13,9 +13,10 @@ import bpy
 import numpy as np
 
 from . import common as C
+from .. import canon_geom as G
 
 METHODS = ("smart", "angle", "conformal")
-GRID = 512
+GRID = 1024                    # canon 13 B.2: the one raster resolution (the number Tripo's panel shows within ~1 point)
 SIZES = (256, 512, 1024, 2048, 4096, 8192)
 HIDE = {"+X": (1, 0, 0), "-X": (-1, 0, 0), "+Y": (0, 1, 0), "-Y": (0, -1, 0), "+Z": (0, 0, 1), "-Z": (0, 0, -1), "top": (0, 0, 1), "bottom": (0, 0, -1), "front": (0, -1, 0), "back": (0, 1, 0),
         "left": (-1, 0, 0), "right": (1, 0, 0)}                                  # the viewer's side: Blender's front view looks along +Y from -Y
@@ -71,46 +72,8 @@ def uv_report(ob, texture_size=2048) -> dict:
     density = np.sqrt(area2[ok] / area3[ok])                            # uv units per metre
     mean_density = float(density.mean()) if ok.any() else 0.0
     cv = float(density.std() / mean_density) if mean_density > 0 else 0.0
-    # islands: union-find over faces sharing an edge whose two loops carry the same UV on both ends
-    parent = list(range(len(me.polygons)))
-
-    def find(a):
-        while parent[a] != a:
-            parent[a] = parent[parent[a]]
-            a = parent[a]
-        return a
-    edge_loops = {}
-    for poly in me.polygons:
-        for li in range(poly.loop_start, poly.loop_start + poly.loop_total):
-            nxt = poly.loop_start + (li - poly.loop_start + 1) % poly.loop_total
-            a, b = int(loop_vert[li]), int(loop_vert[nxt])
-            key = (min(a, b), max(a, b))
-            edge_loops.setdefault(key, []).append((poly.index, li, nxt, a))
-    for key, items in edge_loops.items():
-        if len(items) != 2:
-            continue
-        (pa, la, na, va), (pb, lb, nb, vb) = items
-        ua = {va: tuple(np.round(uvs[la], 5)), key[0] ^ key[1] ^ va: tuple(np.round(uvs[na], 5))}
-        ub = {vb: tuple(np.round(uvs[lb], 5)), key[0] ^ key[1] ^ vb: tuple(np.round(uvs[nb], 5))}
-        if ua == ub:
-            parent[find(pa)] = find(pb)
-    islands = len({find(i) for i in range(len(parent))})
-    # coverage and overlap by rasterising every UV triangle into a GRIDxGRID counter
-    grid = np.zeros((GRID, GRID), dtype=np.int32)
-    for t in q:
-        xs, ys = t[:, 0] * GRID, t[:, 1] * GRID
-        x0, x1 = int(max(0, math.floor(xs.min()))), int(min(GRID - 1, math.ceil(xs.max())))
-        y0, y1 = int(max(0, math.floor(ys.min()))), int(min(GRID - 1, math.ceil(ys.max())))
-        if x1 < x0 or y1 < y0:
-            continue
-        gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
-        d = (ys[1] - ys[2]) * (xs[0] - xs[2]) + (xs[2] - xs[1]) * (ys[0] - ys[2])
-        if abs(d) < 1e-12:
-            continue
-        w0 = ((ys[1] - ys[2]) * (gx - xs[2]) + (xs[2] - xs[1]) * (gy - ys[2])) / d
-        w1 = ((ys[2] - ys[0]) * (gx - xs[2]) + (xs[0] - xs[2]) * (gy - ys[2])) / d
-        inside = (w0 >= 0) & (w1 >= 0) & (w0 + w1 <= 1)
-        grid[y0:y1 + 1, x0:x1 + 1] += inside
+    islands = int(_island_ids(me, uvs, loop_vert).max() + 1) if len(me.polygons) else 0
+    grid = G.coverage(q, GRID)                                          # canon 13: the half-open raster, the one rule
     covered = int((grid >= 1).sum())
     overlapped = int((grid >= 2).sum())
     return {"islands": islands, "coverage": round(covered / float(GRID * GRID), 4),
@@ -211,29 +174,11 @@ def worst_stretch(ob) -> dict:
 
 
 def _island_ids(me, uvs, loop_vert):
-    parent = list(range(len(me.polygons)))
-
-    def find(a):
-        while parent[a] != a:
-            parent[a] = parent[parent[a]]
-            a = parent[a]
-        return a
-    edge_loops = {}
-    for poly in me.polygons:
-        for li in range(poly.loop_start, poly.loop_start + poly.loop_total):
-            nxt = poly.loop_start + (li - poly.loop_start + 1) % poly.loop_total
-            a, b = int(loop_vert[li]), int(loop_vert[nxt])
-            edge_loops.setdefault((min(a, b), max(a, b)), []).append((poly.index, li, nxt, a))
-    for key, items in edge_loops.items():
-        if len(items) != 2:
-            continue
-        (pa, la, na, va), (pb, lb, nb, vb) = items
-        ua = {va: tuple(np.round(uvs[la], 5)), key[0] ^ key[1] ^ va: tuple(np.round(uvs[na], 5))}
-        ub = {vb: tuple(np.round(uvs[lb], 5)), key[0] ^ key[1] ^ vb: tuple(np.round(uvs[nb], 5))}
-        if ua == ub:
-            parent[find(pa)] = find(pb)
-    roots = {}
-    return np.array([roots.setdefault(find(i), len(roots)) for i in range(len(parent))])
+    """Per polygon its island: canon 13's one definition (canon_geom.uv_island_ids) - faces joined by a corner with the same (vertex,
+    UV rounded to 6 places), as lampway_uv_score measures."""
+    F = [[int(loop_vert[li]) for li in range(p.loop_start, p.loop_start + p.loop_total)] for p in me.polygons]
+    FUV = [list(range(p.loop_start, p.loop_start + p.loop_total)) for p in me.polygons]
+    return G.uv_island_ids(F, FUV, uvs)
 
 
 def _checker(new):

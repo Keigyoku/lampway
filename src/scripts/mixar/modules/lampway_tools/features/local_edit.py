@@ -132,6 +132,9 @@ def mesh_local_edit(object, region, root, engine="deform", op="move", delta=None
     new = C.duplicate(ob, "_edit")
     new.data.vertices.foreach_set("co", out.ravel())
     new.data.update()
+    if "lw_canon" in ob.keys():                                          # a derivative of a canonical mesh is canonical again (produces=Inherit)
+        from .restamp import restamp
+        restamp(new, ob["lw_canon"])
     moved = float(np.linalg.norm(out - co, axis=1).max())
     glo, ghi = _region_box(co, w)
     loc = edit_locality_check(ob.name, new.name, [*glo, *ghi], margin_m=0.0)

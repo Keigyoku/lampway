@@ -15,10 +15,14 @@ def gauntlet(name, cx, thumb_out=False):
     Two default gauntlets at +x and -x are exact mirrors of each other about x = 0."""
     inward = -1.0 if cx > 0 else 1.0
     s = -1.0 if thumb_out else 1.0
-    return boxes(name, [((cx, 0.0, 1.0), (0.10, 0.10, 0.30)), ((cx + s * inward * 0.08, 0.06, 0.95), (0.06, 0.04, 0.08))])
+    ob = boxes(name, [((cx, 0.0, 1.0), (0.10, 0.10, 0.30)), ((cx + s * inward * 0.08, 0.06, 0.95), (0.06, 0.04, 0.08))])
+    canon(name)                                 # the door: a mesh tool reads canonical input
+    return ob
 
 def helmet(name):
-    return boxes(name, [((0.0, 0.0, 1.7), (0.24, 0.26, 0.28))])
+    ob = boxes(name, [((0.0, 0.0, 1.7), (0.24, 0.26, 0.28))])
+    canon(name)
+    return ob
 '''
 
 
@@ -116,6 +120,7 @@ noside = call("side_label_check", object="gauntlet_l", body_midline_x=0.0)
 print("RESULT", json.dumps({"nomid": nomid, "rot": rot, "bad": bad, "noside": noside}))
 ''')
     assert res["nomid"]["ok"] is False and "body_midline_x or an armature" in res["nomid"]["error"], res["nomid"]
-    assert res["rot"]["ok"] is False and "apply transform first" in res["rot"]["error"], res["rot"]
+    # an unapplied rotation now stops at the door (the object no longer matches its canonical stamp) before the tool's own check
+    assert res["rot"]["ok"] is False and "normalize first" in res["rot"]["error"], res["rot"]
     assert res["bad"]["ok"] is False and "left" in res["bad"]["error"], res["bad"]
     assert res["noside"]["ok"] is True and res["noside"]["declared_side"] == "left", res["noside"]   # gauntlet_l names it

@@ -47,7 +47,10 @@ def run_script(source: str, *, scene: Path | None = None, args=(), env=None, tim
         script.write_text(source, encoding="utf-8")
         e = dict(os.environ)
         e.update({"XDG_CONFIG_HOME": str(Path(tmp) / "xdg"), "LAMPWAY_BACKEND_URL": "http://127.0.0.1:9",
-                  "LAMPWAY_BRIDGE_PORT": "0"})
+                  "LAMPWAY_BRIDGE_PORT": "0",
+                  # a profile per run: the default (~/.local/share/lampway) is shared by every lane's concurrent runs, and one run's
+                  # settings_set(project_root=...) landed in another's (measured: "outside the project root .../tmp-vault-ops/...")
+                  "LAMPWAY_HOME": str(Path(tmp) / "lampway_home")})
         e.update(env or {})
         cmd = ["nice", "-n", "15", str(lampway_bin()), "-b"]
         if scene:

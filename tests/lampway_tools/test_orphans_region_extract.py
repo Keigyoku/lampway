@@ -26,6 +26,7 @@ def plate(name):
     g = ob.vertex_groups.new(name="left"); g.add(sorted({v for i in left for v in me.polygons[i].vertices}), 1.0, "REPLACE")
     return ob, left
 ob, left = plate("plate")
+canon("plate", welded=True, scale="any")              # the door: regions follow adjacency, so the mesh is welded by position
 def loops(name):
     bm = bmesh.new(); bm.from_mesh(bpy.data.objects[name].data)
     edges = [e for e in bm.edges if len(e.link_faces) == 1]; seen, n = set(), 0

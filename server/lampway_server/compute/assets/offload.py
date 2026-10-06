@@ -13,6 +13,9 @@ import sys
 import bpy
 
 MODELS = (".glb", ".gltf", ".blend", ".obj")
+# The normalization door's one-importer rule (canon_io) holds inside Lampway's own Blender. This script runs on a rented box under the
+# PyPI bpy, where canon_io is not shipped; what it imports never lands in a Lampway scene (it returns images and numbers only).
+CANON_FOREIGN_BLENDER = "runs on a rented box under the PyPI bpy; returns images and numbers, never datablocks"
 
 
 def _args():

@@ -13,6 +13,7 @@
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+import lw_canon
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 _bad = [] if __name__ != '__main__' else [x for x in _A if x.startswith('--') and x.split('=')[0] not in []]
 if _bad: print(f'error: unknown flag(s) {_bad}'); _ax.helps(['blender -b -P scripts/proportion/mesh_compare.py -- <out_dir> <reference> <candidate> [...]   (MC_VIEWS=oblique for raking shoulder views)']); _sys.stdout.flush(); raise SystemExit(2)
@@ -27,8 +28,7 @@ a = sys.argv[sys.argv.index('--') + 1:]; OUT = a[0]; files = a[1:]; os.makedirs(
 bpy.ops.wm.read_factory_settings(use_empty=True)
 def load(f):
     before = set(bpy.data.objects)
-    if f.lower().endswith('.fbx'): bpy.ops.import_scene.fbx(filepath=f)
-    else: bpy.ops.import_scene.gltf(filepath=f)
+    lw_canon.io.import_raw(f)
     obs = [o for o in bpy.data.objects if o not in before and o.type == 'MESH']
     bpy.ops.object.select_all(action='DESELECT')
     for o in obs: o.select_set(True)

@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lampway.canonical-asset/1",
+  "title": "Lampway canonical asset, version 1",
+  "description": "The typed canonical form every Lampway tool consumes. One document per asset version, written only by a lampway_normalize_<kind> tool, stored as <file>.canon.json beside the canonical file and stamped on the Blender datablock as the custom property lw_canon. Spec: specs/canon/normalization/SCHEMA.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "kind", "asset_id", "raw", "conventions", "transform", "scale", "normalized_by", "canonical_sha256", "receipt_sha256", "body"],
+  "properties": {
+    "schema": {"const": "lampway.canonical-asset"},
+    "schema_version": {"const": 1},
+    "kind": {"enum": ["mesh", "rigged_mesh", "skeleton", "animation_clip", "texture", "material", "part", "set"]},
+    "asset_id": {"type": "string", "minLength": 1},
+    "raw": {"$ref": "#/$defs/RawSource"},
+    "conventions": {"$ref": "#/$defs/Conventions"},
+    "transform": {"$ref": "#/$defs/Transform"},
+    "scale": {"$ref": "#/$defs/Scale"},
+    "pivot": {"$ref": "#/$defs/Pivot"},
+    "normalized_by": {"$ref": "#/$defs/ToolRef"},
+    "canonical_sha256": {"$ref": "#/$defs/Sha256"},
+    "receipt_sha256": {"$ref": "#/$defs/Sha256"},
+    "body": {"type": "object"}
+  },
+  "allOf": [
+    {"if": {"properties": {"kind": {"const": "mesh"}}}, "then": {"properties": {"body": {"$ref": "#/$defs/MeshBody"}}}},
+    {"if": {"properties": {"kind": {"const": "rigged_mesh"}}}, "then": {"properties": {"body": {"$ref": "#/$defs/RiggedMeshBody"}}}},
+    {"if": {"properties": {"kind": {"const": "skeleton"}}}, "then": {"properties": {"body": {"$ref": "#/$defs/SkeletonBody"}}}},
+    {"if": {"properties": {"kind": {"const": "animation_clip"}}}, "then": {"properties": {"body": {"$ref": "#/$defs/AnimationClipBody"}}}},
+    {"if": {"properties": {"kind": {"const": "texture"}}}, "then": {"properties": {"body": {"$ref": "#/$defs/TextureBody"}}}},
+    {"if": {"properties": {"kind": {"const": "material"}}}, "then": {"properties": {"body": {"$ref": "#/$defs/MaterialBody"}}}},
+    {"if": {"properties": {"kind": {"const": "part"}}}, "then": {"properties": {"body": {"$ref": "#/$defs/PartBody"}}}},
+    {"if": {"properties": {"kind": {"const": "set"}}}, "then": {"properties": {"body": {"$ref": "#/$defs/SetBody"}}}},
+    {"if": {"properties": {"kind": {"enum": ["mesh", "rigged_mesh", "part"]}}}, "then": {"required": ["pivot"]}}
+  ],
+  "$defs": {
+    "Sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "Vec3": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+    "Mat3": {"type": "array", "items": {"$ref": "#/$defs/Vec3"}, "minItems": 3, "maxItems": 3},
+    "Row4": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4},
+    "Mat4": {"type": "array", "items": {"$ref": "#/$defs/Row4"}, "minItems": 4, "maxItems": 4},
+    "Identity4": {"const": [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]},
+    "AxisToken": {"enum": ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]},
+    "AssetRef": {
+      "type": "object", "additionalProperties": false, "required": ["asset_id", "canonical_sha256"],
+      "properties": {"asset_id": {"type": "string", "minLength": 1}, "canonical_sha256": {"$ref": "#/$defs/Sha256"}}
+    },
+    "ToolRef": {
+      "type": "object", "additionalProperties": false, "required": ["tool", "tool_version"],
+      "properties": {"tool": {"type": "string", "pattern": "^lampway_normalize_[a-z_]+$"}, "tool_version": {"type": "string", "minLength": 1},
+                     "blender_version": {"type": "string"}}
+    },
+    "RawSource": {
+      "type": "object", "additionalProperties": false, "required": ["sha256", "container", "bytes", "generator"],
+      "properties": {
+        "sha256": {"$ref": "#/$defs/Sha256"},
+        "container": {"enum": ["glb", "gltf", "fbx", "obj", "usd", "blend", "ply", "bvh", "npz", "json", "png", "jpeg", "webp", "tiff", "exr", "hdr", "mp4", "mov", "webm", "none"]},
+        "bytes": {"type": "integer", "minimum": 0},
+        "path_hint": {"type": "string", "description": "project-relative path or file name; never an absolute home path"},
+        "vault_asset_id": {"type": "string"},
+        "vault_version": {"type": "integer", "minimum": 1},
+        "generator": {
+          "type": "object", "additionalProperties": false, "required": ["source"],
+          "properties": {
+            "source": {"enum": ["tripo_studio", "tripo_api", "meshy", "hi3d", "hyper3d", "higgsfield", "fal", "metatailor", "hunyuan", "trellis", "lampway_tool", "captain_authored", "cc0_ambientcg", "cc0_polyhaven", "ue_native", "blender_import", "unknown"]},
+            "action": {"type": "string"}, "job_id": {"type": "string"}, "model_version": {"type": "string"}, "derived_from": {"$ref": "#/$defs/AssetRef"}
+          }
+        }
+      }
+    },
+    "FrameDecision": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "evidence"],
+      "properties": {
+        "kind": {"enum": ["already_canonical", "declared", "measured", "source_convention"]},
+        "evidence": {
+          "type": "object", "additionalProperties": false, "required": ["method"],
+          "properties": {
+            "method": {"enum": ["identity", "recipe_turn", "caller_turn", "plate_silhouette_registration", "skeleton_features", "source_spec", "vendor_table"]},
+            "value": {"type": "number"}, "second_best": {"type": "number"}, "margin": {"type": "number"},
+            "reference": {"type": "string"}, "receipt_sha256": {"$ref": "#/$defs/Sha256"}
+          }
+        }
+      }
+    },
+    "Conventions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["frame", "up", "front", "wearer_left", "handedness", "units", "source_frame", "axis_map", "axis_map_det", "turn_deg", "winding_reversed", "frame_decision"],
+      "properties": {
+        "frame": {"const": "lampway.body/1"},
+        "up": {"const": "+Z"}, "front": {"const": "-Y"}, "wearer_left": {"const": "+X"}, "handedness": {"const": "right"}, "units": {"const": "m"},
+        "source_frame": {
+          "type": "object", "additionalProperties": false, "required": ["name", "up", "front"],
+          "properties": {
+            "name": {"enum": ["lampway_body", "blender_import", "gltf_spec", "gltf_tripo", "fbx_default", "ue_component", "bvh", "colmap_ply", "unknown_declared"]},
+            "up": {"$ref": "#/$defs/AxisToken"}, "front": {"$ref": "#/$defs/AxisToken"}, "units_per_m": {"type": "number", "exclusiveMinimum": 0}
+          }
+        },
+        "axis_map": {"$ref": "#/$defs/Mat3", "description": "row-major 3x3 taking source-frame coordinates (after the importer) to canonical coordinates"},
+        "axis_map_det": {"enum": [1, -1]},
+        "turn_deg": {"type": "number", "minimum": -180, "maximum": 360},
+        "winding_reversed": {"type": "boolean"},
+        "frame_decision": {"$ref": "#/$defs/FrameDecision"}
+      },
+      "allOf": [{"if": {"properties": {"axis_map_det": {"const": -1}}}, "then": {"properties": {"winding_reversed": {"const": true}}}}]
+    },
+    "Transform": {
+      "type": "object", "additionalProperties": false, "required": ["applied", "object_matrix"],
+      "properties": {
+        "applied": {"type": "boolean"},
+        "object_matrix": {"$ref": "#/$defs/Mat4"},
+        "not_applied_reason": {"enum": ["skinned_rig_preserved", "placed_instance", "linked_library"]}
+      },
+      "allOf": [
+        {"if": {"properties": {"applied": {"const": true}}}, "then": {"properties": {"object_matrix": {"$ref": "#/$defs/Identity4"}}}},
+        {"if": {"properties": {"applied": {"const": false}}}, "then": {"required": ["not_applied_reason"]}}
+      ]
+    },
+    "Scale": {
+      "type": "object", "additionalProperties": false, "required": ["state", "decision", "factor_applied"],
+      "properties": {
+        "state": {"enum": ["real", "generator_normalised", "unknown"]},
+        "decision": {"enum": ["measured", "declared", "derived_from_body", "source_real_world", "none"]},
+        "factor_applied": {"type": "number", "exclusiveMinimum": 0},
+        "uniform": {"const": true},
+        "evidence": {
+          "type": "object", "additionalProperties": false, "required": ["method"],
+          "properties": {
+            "method": {"enum": ["scale_to_measure", "fit_place_enclosure", "reference_height_ratio", "unit_metadata", "studio_auto_size", "bbox_condition", "captain_length", "api_dimensions_m"]},
+            "value": {"type": "number"}, "reference": {"type": "string"}, "ratio": {"type": "number"}, "receipt_sha256": {"$ref": "#/$defs/Sha256"}
+          }
+        },
+        "generator_norm": {
+          "type": "object", "additionalProperties": false, "required": ["longest_side_m"],
+          "properties": {"longest_side_m": {"type": "number", "exclusiveMinimum": 0}, "source": {"type": "string"}}
+        }
+      },
+      "allOf": [
+        {"if": {"properties": {"state": {"const": "real"}}},
+         "then": {"required": ["evidence"], "properties": {"decision": {"enum": ["measured", "declared", "derived_from_body", "source_real_world"]}}}},
+        {"if": {"properties": {"state": {"const": "generator_normalised"}}}, "then": {"required": ["generator_norm"], "properties": {"decision": {"const": "none"}}}},
+        {"if": {"properties": {"state": {"const": "unknown"}}}, "then": {"properties": {"decision": {"const": "none"}, "factor_applied": {"const": 1}}}}
+      ]
+    },
+    "Pivot": {
+      "type": "object", "additionalProperties": false, "required": ["rule"],
+      "properties": {"rule": {"enum": ["bbox_bottom_centre", "body_frame_placed", "source_origin", "skeleton_root"]}, "offset_m": {"$ref": "#/$defs/Vec3"}}
+    },
+    "Topology": {
+      "type": "object", "additionalProperties": false,
+      "required": ["verts", "faces", "tris", "quads", "ngons", "welded", "weld", "split_by_uv_seam_in_raw", "manifold", "non_manifold_edges", "boundary_loops", "shells", "winding_consistent", "degenerate_faces"],
+      "properties": {
+        "verts": {"type": "integer", "minimum": 0}, "faces": {"type": "integer", "minimum": 0}, "tris": {"type": "integer", "minimum": 0},
+        "quads": {"type": "integer", "minimum": 0}, "ngons": {"type": "integer", "minimum": 0},
+        "welded": {"type": "boolean"},
+        "weld": {
+          "type": "object", "additionalProperties": false, "required": ["rule"],
+          "properties": {"rule": {"enum": ["none", "position"]}, "distance_m": {"type": "number", "minimum": 0}, "vertices_merged": {"type": "integer", "minimum": 0},
+                         "refused_reason": {"enum": ["authored_rig", "shape_keys", "captain_rule"]}}
+        },
+        "split_by_uv_seam_in_raw": {"type": "boolean"},
+        "manifold": {"type": "boolean"}, "non_manifold_edges": {"type": "integer", "minimum": 0}, "boundary_loops": {"type": "integer", "minimum": 0},
+        "shells": {"type": "integer", "minimum": 0}, "winding_consistent": {"type": "boolean"}, "degenerate_faces": {"type": "integer", "minimum": 0},
+        "triangulation_sha256": {"$ref": "#/$defs/Sha256"}
+      },
+      "allOf": [
+        {"if": {"properties": {"welded": {"const": true}}}, "then": {"properties": {"weld": {"required": ["rule", "distance_m", "vertices_merged"], "properties": {"rule": {"const": "position"}}}}}},
+        {"if": {"properties": {"manifold": {"const": true}}}, "then": {"properties": {"non_manifold_edges": {"const": 0}}}}
+      ]
+    },
+    "UVSet": {
+      "type": "object", "additionalProperties": false, "required": ["name", "origin", "v_up", "range", "islands", "overlap", "flipped_fraction", "layout_sha256"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1}, "origin": {"const": "bottom_left"}, "v_up": {"const": true},
+        "range": {"enum": ["unit", "udim"]}, "islands": {"type": "integer", "minimum": 0},
+        "island_rule": {"const": "vertex_index_and_uv"},
+        "overlap": {"type": "number", "minimum": 0, "maximum": 1}, "flipped_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+        "layout_sha256": {"$ref": "#/$defs/Sha256"},
+        "texel_density": {
+          "type": "object", "additionalProperties": false, "required": ["texture_size", "median_px_per_m", "measured_in"],
+          "properties": {"texture_size": {"type": "integer", "minimum": 1}, "median_px_per_m": {"type": "number", "minimum": 0}, "measured_in": {"const": "canonical_world_m"}}
+        }
+      }
+    },
+    "MeshBody": {
+      "type": "object", "additionalProperties": false, "required": ["bbox_min_m", "bbox_max_m", "topology", "uv_sets", "material_slots", "geometry_sha256"],
+      "properties": {
+        "bbox_min_m": {"$ref": "#/$defs/Vec3"}, "bbox_max_m": {"$ref": "#/$defs/Vec3"},
+        "topology": {"$ref": "#/$defs/Topology"},
+        "uv_sets": {"type": "array", "items": {"$ref": "#/$defs/UVSet"}},
+        "material_slots": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["slot"],
+                           "properties": {"slot": {"type": "integer", "minimum": 0}, "material": {"$ref": "#/$defs/AssetRef"}, "name": {"type": "string"}}}},
+        "normals": {"type": "object", "additionalProperties": false, "properties": {"custom_split": {"type": "boolean"}, "shading": {"enum": ["flat", "smooth", "mixed"]}}},
+        "part_map": {"type": "object", "additionalProperties": false, "required": ["attribute", "recipe_sha256"],
+                     "properties": {"attribute": {"const": "part"}, "recipe_sha256": {"$ref": "#/$defs/Sha256"}, "source_face_attribute": {"const": "lw_source_face"}}},
+        "geometry_sha256": {"$ref": "#/$defs/Sha256", "description": "sha256 over canonical vertex positions (float32 LE) and face loops; the stamp's binding to the data"}
+      }
+    },
+    "Bone": {
+      "type": "object", "additionalProperties": false, "required": ["name", "canonical_name", "parent", "head_m", "along", "along_source", "frame", "length_m", "deform"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1}, "canonical_name": {"type": ["string", "null"]}, "parent": {"type": ["string", "null"]},
+        "head_m": {"$ref": "#/$defs/Vec3"}, "along": {"$ref": "#/$defs/Vec3"},
+        "along_source": {"enum": ["child_head", "named_continuation", "leaf_parent_line", "reference_transport"]},
+        "frame": {"$ref": "#/$defs/Mat3", "description": "proper rotation (det +1), columns = local X, Y, Z in canonical coordinates"},
+        "length_m": {"type": "number", "minimum": 0}, "deform": {"type": "boolean"}
+      }
+    },
+    "SkeletonBody": {
+      "type": "object", "additionalProperties": false, "required": ["reference_skeleton", "convention", "rest_pose", "naming", "roster", "root", "bones", "non_uniform_bone_scale"],
+      "properties": {
+        "reference_skeleton": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"],
+                               "properties": {"id": {"enum": ["metahuman_fullbody", "ue5_manny", "mixamo", "custom"]}, "sha256": {"$ref": "#/$defs/Sha256"}, "bones": {"type": "integer", "minimum": 1}}},
+        "convention": {"enum": ["blender", "ue_axes"], "description": "mixed is refused at the door (canon 17 INV-17.1)"},
+        "rest_pose": {"type": "object", "additionalProperties": false, "required": ["name", "sha256"],
+                      "properties": {"name": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/Sha256"}, "equals_reference": {"type": "boolean"}}},
+        "naming": {"type": "object", "additionalProperties": false, "required": ["family", "map_sha256", "unmapped"],
+                   "properties": {"family": {"enum": ["ue", "metahuman", "mixamo", "rigify", "bip", "tripo", "custom"]}, "map_sha256": {"$ref": "#/$defs/Sha256"},
+                                  "unmapped": {"type": "array", "items": {"type": "string"}}}},
+        "roster": {"type": "object", "additionalProperties": false, "required": ["complete", "missing"],
+                   "properties": {"complete": {"type": "boolean"}, "missing": {"type": "array", "items": {"type": "string"}}}},
+        "root": {"type": "object", "additionalProperties": false, "required": ["name", "at_origin"], "properties": {"name": {"type": "string"}, "at_origin": {"type": "boolean"}}},
+        "bones": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/Bone"}},
+        "non_uniform_bone_scale": {"const": false}
+      },
+      "allOf": [{"if": {"properties": {"roster": {"properties": {"complete": {"const": true}}}}}, "then": {"properties": {"roster": {"properties": {"missing": {"maxItems": 0}}}}}}]
+    },
+    "RiggedMeshBody": {
+      "type": "object", "additionalProperties": false, "required": ["mesh", "skeleton", "skin", "bind"],
+      "properties": {
+        "mesh": {"$ref": "#/$defs/MeshBody"},
+        "skeleton": {"$ref": "#/$defs/AssetRef"},
+        "skin": {"type": "object", "additionalProperties": false, "required": ["max_influences", "sums_normalized", "unweighted_vertices", "groups_not_bones"],
+                 "properties": {"max_influences": {"type": "integer", "minimum": 1}, "sums_normalized": {"type": "boolean"}, "unweighted_vertices": {"type": "integer", "minimum": 0},
+                                "groups_not_bones": {"type": "array", "items": {"type": "string"}}, "weights_source": {"enum": ["native_sidecar", "transfer", "authored", "rigid_plan"]}}},
+        "bind": {"type": "object", "additionalProperties": false, "required": ["pose_name", "equals_reference"],
+                 "properties": {"pose_name": {"type": "string", "minLength": 1}, "equals_reference": {"type": "boolean"}, "bind_mismatch_receipt_sha256": {"$ref": "#/$defs/Sha256"}}}
+      }
+    },
+    "AnimationClipBody": {
+      "type": "object", "additionalProperties": false, "required": ["skeleton", "fps", "frames", "duration_s", "time_rule", "rotation", "translation_units", "scale_channels", "root_motion", "source_rest_sha256", "naming_map_sha256"],
+      "properties": {
+        "skeleton": {"$ref": "#/$defs/AssetRef"},
+        "fps": {"type": "object", "additionalProperties": false, "required": ["num", "den"], "properties": {"num": {"type": "integer", "minimum": 1}, "den": {"type": "integer", "minimum": 1}}},
+        "frames": {"type": "integer", "minimum": 1}, "duration_s": {"type": "number", "minimum": 0, "maximum": 3600},
+        "time_rule": {"enum": ["rational_fps_plus_terminal", "source_keys"]},
+        "rotation": {"type": "object", "additionalProperties": false, "required": ["encoding", "relative_to"],
+                     "properties": {"encoding": {"const": "quaternion_xyzw_hamilton"}, "relative_to": {"enum": ["rest", "canonical_reference"]}, "sign_rule": {"const": "last_nonzero_positive"}}},
+        "translation_units": {"const": "m"},
+        "scale_channels": {"enum": ["none", "uniform_only"]},
+        "root_motion": {"type": "object", "additionalProperties": false, "required": ["mode", "root_bone"],
+                        "properties": {"mode": {"enum": ["keep", "in_place"]}, "root_bone": {"type": "string"}, "travel_front": {"const": "-Y"}}},
+        "source_rest_sha256": {"$ref": "#/$defs/Sha256"},
+        "naming_map_sha256": {"$ref": "#/$defs/Sha256"}
+      }
+    },
+    "TextureBody": {
+      "type": "object", "additionalProperties": false, "required": ["role", "colour_space", "width", "height", "power_of_two", "bit_depth", "channels", "alpha", "image_sha256"],
+      "properties": {
+        "role": {"enum": ["basecolor", "normal", "roughness", "metallic", "ao", "orm", "height", "displacement", "emission", "opacity", "mask", "material_id", "curvature", "hdri", "reference"]},
+        "colour_space": {"enum": ["sRGB", "Non-Color", "Linear Rec.709"]},
+        "normal": {"type": "object", "additionalProperties": false, "required": ["convention", "space", "convention_evidence"],
+                   "properties": {"convention": {"enum": ["gl", "dx"]}, "space": {"enum": ["tangent", "object"]}, "tangent_basis": {"const": "mikktspace"},
+                                  "convention_evidence": {"enum": ["source_naming", "declared", "baked_by_lampway", "measured_sign_test"]},
+                                  "baked_on_triangulation_sha256": {"$ref": "#/$defs/Sha256"}}},
+        "packing": {"type": "object", "additionalProperties": false, "required": ["r", "g", "b"],
+                    "properties": {"r": {"const": "ao"}, "g": {"const": "roughness"}, "b": {"const": "metallic"}}},
+        "width": {"type": "integer", "minimum": 1}, "height": {"type": "integer", "minimum": 1}, "power_of_two": {"type": "boolean"},
+        "bit_depth": {"enum": [8, 16, 32]}, "channels": {"enum": [1, 2, 3, 4]},
+        "alpha": {"enum": ["none", "straight", "premultiplied"]},
+        "uv": {"type": "object", "additionalProperties": false, "required": ["mesh", "uv_set", "layout_sha256"],
+               "properties": {"mesh": {"$ref": "#/$defs/AssetRef"}, "uv_set": {"type": "string"}, "layout_sha256": {"$ref": "#/$defs/Sha256"}}},
+        "tiling": {"type": "object", "additionalProperties": false, "required": ["real_world_m"],
+                   "properties": {"real_world_m": {"type": "array", "items": {"type": "number", "exclusiveMinimum": 0}, "minItems": 2, "maxItems": 2}, "seamless": {"type": "boolean"}}},
+        "image_sha256": {"$ref": "#/$defs/Sha256"}
+      },
+      "allOf": [
+        {"if": {"properties": {"role": {"enum": ["basecolor", "emission", "reference"]}}}, "then": {"properties": {"colour_space": {"const": "sRGB"}}}},
+        {"if": {"properties": {"role": {"enum": ["normal", "roughness", "metallic", "ao", "orm", "height", "displacement", "opacity", "mask", "material_id", "curvature"]}}},
+         "then": {"properties": {"colour_space": {"const": "Non-Color"}}}},
+        {"if": {"properties": {"role": {"const": "hdri"}}}, "then": {"properties": {"colour_space": {"const": "Linear Rec.709"}}}},
+        {"if": {"properties": {"role": {"const": "normal"}}}, "then": {"required": ["normal"]}},
+        {"if": {"properties": {"role": {"const": "orm"}}}, "then": {"required": ["packing"]}}
+      ]
+    },
+    "ChannelBinding": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"texture": {"$ref": "#/$defs/AssetRef"}, "value": {"type": ["number", "array"]}, "channel": {"enum": ["rgb", "r", "g", "b", "a"]}}
+    },
+    "MaterialBody": {
+      "type": "object", "additionalProperties": false, "required": ["model", "material_class", "channels"],
+      "properties": {
+        "model": {"const": "principled_bsdf/metal_roughness"},
+        "material_class": {"enum": ["metal", "leather", "cloth", "embroidery", "skin", "other"]},
+        "channels": {"type": "object", "additionalProperties": false,
+                     "properties": {"base_color": {"$ref": "#/$defs/ChannelBinding"}, "roughness": {"$ref": "#/$defs/ChannelBinding"}, "metallic": {"$ref": "#/$defs/ChannelBinding"},
+                                    "normal": {"$ref": "#/$defs/ChannelBinding"}, "ao": {"$ref": "#/$defs/ChannelBinding"}, "emission": {"$ref": "#/$defs/ChannelBinding"},
+                                    "height": {"$ref": "#/$defs/ChannelBinding"}, "opacity": {"$ref": "#/$defs/ChannelBinding"}}},
+        "procedural": {"type": "object", "additionalProperties": false, "required": ["node_group", "script_sha256", "projection", "library_version"],
+                       "properties": {"node_group": {"type": "string"}, "script_sha256": {"$ref": "#/$defs/Sha256"}, "projection": {"enum": ["uv", "object_box", "triplanar"]},
+                                      "object_space_scale_m": {"type": "number", "exclusiveMinimum": 0}, "library_version": {"type": "string"}}},
+        "metal_zero_classes": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "PartBody": {
+      "type": "object", "additionalProperties": false, "required": ["parent", "part_id", "material_class", "source_faces", "side"],
+      "properties": {
+        "parent": {"$ref": "#/$defs/AssetRef"},
+        "part_id": {"type": "string", "minLength": 1},
+        "material_class": {"enum": ["metal", "leather", "cloth", "embroidery", "skin", "other"]},
+        "source_faces": {"type": "object", "additionalProperties": false, "required": ["id_space", "count", "ids_sha256"],
+                         "properties": {"id_space": {"const": "lw_source_face"}, "count": {"type": "integer", "minimum": 1}, "ids_sha256": {"$ref": "#/$defs/Sha256"}}},
+        "side": {"enum": ["left", "right", "center", "paired"]},
+        "bind": {"type": "object", "additionalProperties": false, "required": ["mode", "bones"],
+                 "properties": {"mode": {"enum": ["rigid", "restrict"]}, "bones": {"type": "array", "minItems": 1, "items": {"type": "string"}}}},
+        "motion_class": {"enum": ["rigid_metal", "skinned_flex", "cloth_sim", "fixed"]}
+      },
+      "allOf": [{"if": {"properties": {"material_class": {"const": "metal"}}, "required": ["bind"]},
+                 "then": {"properties": {"bind": {"properties": {"mode": {"const": "rigid"}, "bones": {"maxItems": 1}}}}}}]
+    },
+    "SetBody": {
+      "type": "object", "additionalProperties": false, "required": ["members", "shared_frame", "scale_group"],
+      "properties": {
+        "members": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["asset", "role"],
+                    "properties": {"asset": {"$ref": "#/$defs/AssetRef"}, "role": {"type": "string"}, "side": {"enum": ["left", "right", "center", "paired"]}}}},
+        "body": {"type": "object", "additionalProperties": false, "required": ["fit_body_package_sha256"], "properties": {"fit_body_package_sha256": {"$ref": "#/$defs/Sha256"}}},
+        "shared_frame": {"const": true},
+        "scale_group": {"enum": ["per_piece", "pair_shared", "set_shared"]},
+        "pairs": {"type": "array", "items": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2}}
+      }
+    }
+  }
+}

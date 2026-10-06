@@ -20,6 +20,7 @@ own = np.array([0] * 6 + [1] * 6 + [2] * 6, dtype=np.int64)            # six fac
 a = ob.data.attributes.new("part", "INT", "FACE"); a.data.foreach_set("value", own)
 json.dump({"parts": {"cuirass": {"class": "metal"}, "pauldron_l": {"class": "leather"}, "pauldron_r": {"class": "leather"}}}, open(os.path.join(root, "recipe.json"), "w"))
 PAL = {"metal": "#c0c0c0", "leather": "#5a1e0a"}
+canon("chest")                                       # the door: the tool reads a canonical mesh
 '''
 
 
@@ -55,7 +56,7 @@ print("RESULT", json.dumps(call("image_material_id", piece="P", object="chest", 
 
 def test_parts_need_a_segmented_piece(tmp_path):
     res = _go(tmp_path, '''
-one = boxes("one", [((3, 0, 1), (0.3, 0.3, 0.3))])
+one = boxes("one", [((3, 0, 1), (0.3, 0.3, 0.3))]); canon("one")
 print("RESULT", json.dumps(call("image_material_id", piece="P", object="one", palette=PAL, recipe="recipe.json")))
 ''')
     assert res["ok"] is False and "segmented piece" in res["error"], res

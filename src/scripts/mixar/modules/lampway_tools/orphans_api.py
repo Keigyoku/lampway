@@ -6,6 +6,16 @@
 just before it freezes TOOL_FUNCS, so ``api.call(name, ...)`` reaches them. Kept apart so api.py does not grow past reading."""
 
 from .api import _p, _settings, tool  # noqa: F401  (api is mid-import here: these names are already bound)
+from .canon_door import LEGACY, NONE, Need
+
+# The door (specs/canon/normalization DOOR.md 2): every tool declares what it consumes; a mesh argument must be canonical. ALL = the three
+# scale states (scale-free tools); REAL = absolute thresholds (metres, millimetres, px per metre). An optional texture or skeleton argument of a
+# mesh tool is not declared yet: no texture or skeleton normalizer exists (it joins the declaration when one lands).
+ALL = ("real", "generator_normalised", "unknown")
+REAL = ("real",)
+GEO = ("mesh", "part", "rigged_mesh")
+_TEX = "pre-door lane merged: texture input awaits the texture normalizer"
+_LIST = "pre-door lane merged: a list of objects awaits the list form of the door"
 
 __all__ = []
 
@@ -22,7 +32,7 @@ def _export(fn):
 
 
 @_export
-@tool
+@tool(consumes={"object": Need(kind=GEO, scale=ALL)})
 def side_label_check(object, declared_side=None, facing="-Y", armature="", body_midline_x=None, pair="", asym_threshold=0.02):
     """Is a piece labelled left/right on the FIGURE's left/right (not the camera's), and is it not a mirrored copy of its pair? Read-only."""
     from .features import handedness as _H
@@ -30,7 +40,7 @@ def side_label_check(object, declared_side=None, facing="-Y", armature="", body_
 
 
 @_export
-@tool
+@tool(consumes={"object": Need(kind=GEO, scale=ALL)})
 def mirror_pair(object, design_symmetric=None, plane="x", origin="bounds_centre", rename=None, mirror_uv=False, weights="swap", force=False, body_midline_x=None,
                 armature="", asym_threshold=0.02, piece="", by="agent", captain_words=""):
     """The opposite piece by a mirror across a stated plane, on a COPY, only after the typed decision design_symmetric; a decision row in <root>/<piece>/decisions.jsonl."""
@@ -40,7 +50,7 @@ def mirror_pair(object, design_symmetric=None, plane="x", origin="bounds_centre"
 
 
 @_export
-@tool
+@tool(consumes={"object": Need(kind=GEO, scale=ALL)})
 def scale_to_measure(object, target=None, reference_object="", apply=True, unit_scale=1.0, children="include", rollback=False):
     """Put an object's dimension at a measured real size (target {axis, length_m} or a reference object's), applied safely; rollback restores lw_prev_scale."""
     from .features import scale_measure as _SM
@@ -48,7 +58,7 @@ def scale_to_measure(object, target=None, reference_object="", apply=True, unit_
 
 
 @_export
-@tool
+@tool(consumes={"object": Need(kind=("mesh", "part"), scale=REAL)})
 def uv_check(object, action="measure", target_density_px_m=None, texture_size=2048, tolerance=0.15, tile_from=None, tile_to=None, islands=None, dry_run=True,
              mirror_axis="x", match_tolerance=0.003, res=512, discard_texture=False):
     """UV measurements per island (density, overlaps stacked vs accidental, space usage, orientation, UDIM tiles) and two dry-run-by-default edits (udim_move, stack)."""
@@ -57,7 +67,7 @@ def uv_check(object, action="measure", target_density_px_m=None, texture_size=20
 
 
 @_export
-@tool
+@tool(consumes=LEGACY(_LIST))
 def render_condition_passes(objects, camera="auto", passes=None, size=1024, out_dir="condition", engine="workbench"):
     """The conditioning images from ONE camera: flat id colour per object (with its palette), depth (nearer brighter), edges and clay; light engines only."""
     from .features import condition_passes as _CP
@@ -66,7 +76,7 @@ def render_condition_passes(objects, camera="auto", passes=None, size=1024, out_
 
 
 @_export
-@tool
+@tool(consumes={"object": Need(kind=("mesh", "part"), scale=ALL)})
 def image_material_id(piece, object="", view="Front", palette=None, source="parts", recipe="", owner="", part_materials=None, design_plate="", live=False, size=768,
                       out_dir="material_id"):
     """A flat material-ID map: source parts renders each part in its material's palette colour from the clay camera (exact, free); source model is a gated DRAFT."""
@@ -77,7 +87,7 @@ def image_material_id(piece, object="", view="Front", palette=None, source="part
 
 
 @_export
-@tool
+@tool(consumes={"object": Need(kind=("mesh", "part"), scale=ALL)})
 def parts_material_slots(object, recipe, owner="", by="part", name=""):
     """On a copy <object>_slots: the piece's one material becomes one slot per part (or per material class), each a copy sharing the images, faces by part."""
     from .features import parts_slots as _PS
@@ -86,7 +96,7 @@ def parts_material_slots(object, recipe, owner="", by="part", name=""):
 
 
 @_export
-@tool
+@tool(consumes={"object": Need(kind=("mesh", "part"), scale=ALL)})
 def zone_sheet(object, by="material_slot", views=None, size=768, out="zones/sheet.png", recipe=""):
     """One image where every material slot, part, segment or vertex group is a flat colour with a number, and its legend; answer with a zone number."""
     from .features import zones as _Z
@@ -95,7 +105,7 @@ def zone_sheet(object, by="material_slot", views=None, size=768, out="zones/shee
 
 
 @_export
-@tool
+@tool(consumes={"object": Need(kind=("mesh", "part"), scale=ALL, welded=True)})
 def mesh_region_extract(object, region, cap="fill_holes", keep_in_source=True, name="", recipe=""):
     """A chosen region (bbox, a lasso in a view, vertex group, material slot or zone number) as its own object from copies, capped or filled; the source is unchanged."""
     from .features import region_extract as _RX
@@ -103,7 +113,7 @@ def mesh_region_extract(object, region, cap="fill_holes", keep_in_source=True, n
 
 
 @_export
-@tool
+@tool(consumes={"object": Need(kind=("mesh", "part"), scale=REAL, welded=True)})
 def mesh_local_edit(object, region, engine="deform", op="move", delta=None, falloff_m=0.01, instruction="", side="", anchors=None):
     """One bounded edit of a derivative with a lineage, on a copy <object>_edit (deform with falloff; studio:tripo = the exact-box Edit Mesh plan), then its locality."""
     from .features import local_edit as _LE
@@ -111,7 +121,7 @@ def mesh_local_edit(object, region, engine="deform", op="move", delta=None, fall
 
 
 @_export
-@tool
+@tool(consumes={"before": Need(kind=("mesh", "part"), scale=REAL), "after": Need(kind=("mesh", "part"), scale=REAL)})
 def edit_locality_check(before, after, region=None, margin_m=0.005, tolerance_m=0.0005):
     """What a region edit changed OUTSIDE its region: moved vertices, faces, open edges, UVs, materials, dimensions, weights; read-only."""
     from .features import local_edit as _LE
@@ -119,7 +129,7 @@ def edit_locality_check(before, after, region=None, margin_m=0.005, tolerance_m=
 
 
 @_export
-@tool
+@tool(consumes=LEGACY(_LIST))
 def mesh_join_boolean(op, objects, voxel_m="coarse_first", clearance_mm=None, connector=None, name=""):
     """Fuse (join + voxel remesh), union, difference with clearance, or plug/socket connectors with a measured gap; on copies, originals kept."""
     from .features import join_boolean as _JB
@@ -127,7 +137,7 @@ def mesh_join_boolean(op, objects, voxel_m="coarse_first", clearance_mm=None, co
 
 
 @_export
-@tool
+@tool(consumes=LEGACY(_LIST))
 def multi_piece_material(action, pieces=None, atlas_res=4096, individual_res=None, density_floor_ratio=0.7, proxy="", atlas="", out_dir="mpm", res=None, keep_proxy=False,
                          name=""):
     """One material across pieces: merge copies into a proxy with a shared atlas, texture it once, transfer the atlas back to each piece's original UVs."""
@@ -138,7 +148,7 @@ def multi_piece_material(action, pieces=None, atlas_res=4096, individual_res=Non
 
 
 @_export
-@tool
+@tool(consumes=LEGACY(_TEX))
 def seamless_tile(src="", out="", mode="grain", size=1024, flatten=False, cell_px=None, prompt="", live=False):
     """A seamless tile BUILT by rules (motif crop, quilt, cross-fade, or an exact motif cell) from a sheet, never repainted by a model, and gated; prompt makes the
     sheet through the image slot (purpose tile) first, a dry run unless live."""
@@ -175,7 +185,7 @@ def seamless_tile(src="", out="", mode="grain", size=1024, flatten=False, cell_p
 
 
 @_export
-@tool
+@tool(consumes=LEGACY(_TEX))
 def relief_tiles(stage, v3_dir="", tile_dir="", out_dir="", views=None, fine=3072):
     """Multi-scale relief: make = tile each plate view so the relief generator sees ornament at full scale; stitch = the tile reliefs' fine band per view."""
     from .pipeline import relief_tiles as _RT
@@ -190,7 +200,7 @@ def relief_tiles(stage, v3_dir="", tile_dir="", out_dir="", views=None, fine=307
 
 
 @_export
-@tool
+@tool(consumes=LEGACY(_TEX))
 def image_upscale(image, target=4096, method="lanczos", live=False, prompt="", suffix=""):
     """Raise a plate to 2048..4096 px without changing it: lanczos (exact baseline), model (gated for faithfulness, a dry run until live) or tripo (a plan)."""
     from .pipeline import upscale as _UP
@@ -210,7 +220,7 @@ def _record_ledger(row):
 
 
 @_export
-@tool
+@tool(consumes=LEGACY(_TEX))
 def reference_pack(stage, asset, approved_reference, components=None, pose="T", views=None, left_description="", right_description="", model_purpose="plates",
                    count=4, live=False, image="", sheet_views=None):
     """The four-stage reference method, gated: sheet (left and right named) -> audit against the approved source -> extract parts -> only the missing views."""
@@ -224,7 +234,7 @@ def reference_pack(stage, asset, approved_reference, components=None, pose="T", 
 
 
 @_export
-@tool
+@tool(consumes={"existing_object": Need(kind=("mesh", "part"), scale=ALL)})
 def workflow_reference_to_asset(piece, reference="", route="existing", existing_object="", steps=None, gates=None, target="unreal", run=False, resume=False,
                                 pieces=None, body_refs=None, example_sheet=""):
     """One piece through the existing tools in order (prep, retopo, uv, ... export), stopping at every gate; a spend step stays blocked for the user's click;
@@ -255,7 +265,7 @@ def workflow_reference_to_asset(piece, reference="", route="existing", existing_
 
 
 @_export
-@tool
+@tool(consumes=NONE("reads the Client's own mark records and frozen frames: no asset"))
 def scribble_read(include_image=False, include_sent=True):
     """The Scribble marks in this scene: per mark its kind, the object it resolved to, its frame region and NDC anchor; the mode (point or sketch); the
     Client's own prose summary. include_image writes the frozen annotated frame under <root>/scribble/. Read-only."""
@@ -264,7 +274,7 @@ def scribble_read(include_image=False, include_sent=True):
 
 
 @_export
-@tool
+@tool(consumes=LEGACY(_TEX))
 def image_matte(action, src, out, background="magenta", key="border", opaque=None, clear=None, despill=True, split=None, recipe="", canvas_size=None,
                 verify_out=""):
     """Deterministic chroma matting of generated plates: remove (key to transparent RGBA, the key read from each image's border ring; sheet split
@@ -291,7 +301,7 @@ def _render_prompt(template, variables=None, model=""):
 
 
 @_export
-@tool
+@tool(consumes=LEGACY(_TEX))
 def prompt_image(template, variables=None, references=None, out_dir="prompt_images", count=1, live=False, model="", piece=""):
     """One image from a built-in or user prompt template: the server renders it, the references are sent in the template's own input order (references
     {role: path or [paths]}, e.g. character_body = Image A, design_plate = Image B). Dry run unless live (one generation = one spend: only on the user's word;
@@ -339,7 +349,7 @@ def prompt_image(template, variables=None, references=None, out_dir="prompt_imag
 
 
 @_export
-@tool
+@tool(consumes={"object": Need(kind=GEO, scale=ALL)})
 def recon_measure(object, plates, size=256):
     """A reconstruction measured against its approved plates: the best of the 24 axis orientations by mean silhouette IoU (front, left, top), the IoU of
     every given view (front, right, back, left, top, bottom: the wearer's axes), the cavity and shell ratios through the crown, the crest-fin width and
@@ -349,7 +359,7 @@ def recon_measure(object, plates, size=256):
 
 
 @_export
-@tool
+@tool(consumes=NONE("stages files byte for byte from a manifest that declares each one's role and colour space: it reads no asset"))
 def texture_library_stage(manifest, staging_root, library_listing=""):
     """Stage an additive, versioned delta for a texture library from a manifest (JSON under the project root): immutable files with sha256, lineage inside
     the library, unknowns null, colour spaces declared, no inferred PBR, nothing under an approved folder; a catalog and the INDEX of the delta. Nothing is

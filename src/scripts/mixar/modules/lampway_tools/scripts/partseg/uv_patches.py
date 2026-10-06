@@ -18,6 +18,7 @@
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+import lw_canon
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 if __name__ == '__main__' and len(_A) < 3:
     if not _A: _ax.home(__file__, 'UV islands for patch faces, packed into the atlas free space with the original islands locked')
@@ -28,7 +29,7 @@ import argparse, bpy, bmesh, math, numpy as np
 ap = argparse.ArgumentParser(prog='uv_patches.py'); [ap.add_argument(k) for k in ('mesh', 'orig', 'out')]
 ap.add_argument('--margin', type=float, default=0.002); ap.add_argument('--angle', type=float, default=66.0); ap.add_argument('--max-flip', type=float, default=0.01)
 a = ap.parse_args(_A); orig = np.load(a.orig)
-bpy.ops.wm.read_factory_settings(use_empty=True); bpy.ops.import_scene.fbx(filepath=a.mesh)
+bpy.ops.wm.read_factory_settings(use_empty=True); lw_canon.io.import_raw(a.mesh)
 ob = next(o for o in bpy.data.objects if o.type == 'MESH'); me = ob.data
 if len(orig) != len(me.polygons): _ax.refuse(f'orig_poly has {len(orig)} rows for {len(me.polygons)} polygons', [])
 bpy.ops.object.select_all(action='DESELECT'); ob.select_set(True); bpy.context.view_layer.objects.active = ob

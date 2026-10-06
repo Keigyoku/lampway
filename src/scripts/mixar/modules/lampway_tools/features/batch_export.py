@@ -15,6 +15,8 @@ from pathlib import Path
 
 import bmesh
 import bpy
+
+from .. import canon_io
 import numpy as np
 from mathutils import Vector
 
@@ -202,11 +204,11 @@ def _export_one(ob, path, fmt, fwd, up, unit):
 def _import(path, fmt, fwd, up, unit):
     before = set(bpy.data.objects)
     if fmt == "fbx":
-        bpy.ops.import_scene.fbx(filepath=str(path), axis_forward=fwd, axis_up=up, global_scale=1.0 / unit)
+        canon_io.import_raw(str(path), axis_forward=fwd, axis_up=up, global_scale=1.0 / unit)
     elif fmt in ("glb", "gltf"):
-        bpy.ops.import_scene.gltf(filepath=str(path))
+        canon_io.import_raw(str(path))
     else:
-        bpy.ops.wm.obj_import(filepath=str(path), forward_axis=_AXIS[fwd], up_axis=_AXIS[up], global_scale=1.0 / unit)
+        canon_io.import_raw(str(path), forward_axis=_AXIS[fwd], up_axis=_AXIS[up], global_scale=1.0 / unit)
     return [o for o in bpy.data.objects if o not in before]
 
 

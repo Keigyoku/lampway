@@ -20,6 +20,8 @@ from pathlib import Path
 
 import bpy
 
+from .. import canon_io
+
 from . import common as C
 
 LIBRARY_VERSION = "1"
@@ -399,7 +401,7 @@ def _render_probe(pid: str, params: dict, size: int, out_png=None, tmp_dir=None)
             exr = scratch / f"probe_{name.replace(' ', '_')}.exr"
             sc.render.filepath = str(exr)
             bpy.ops.render.render(write_still=True, scene=sc.name)
-            img = bpy.data.images.load(str(exr))
+            img = canon_io.load_image(str(exr))
             w, h = img.size
             res[name] = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)[:, :, :3]
             bpy.data.images.remove(img)

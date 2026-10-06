@@ -11,6 +11,8 @@ import json
 import os
 
 import bpy
+
+from .. import canon_io
 import numpy as np
 from mathutils import Vector
 
@@ -90,7 +92,7 @@ def _render(sc, cam_obj, cam_rec, out, bg8):
     sc.world = world
     r.filepath = out
     bpy.ops.render.render(write_still=True, scene=sc.name)
-    img = bpy.data.images.load(out)
+    img = canon_io.load_image(out)
     try:
         px = np.array(img.pixels[:], dtype=np.float32).reshape(cam_rec["size"][1], cam_rec["size"][0], 4)
     finally:
