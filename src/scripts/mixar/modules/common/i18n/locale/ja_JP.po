@@ -5123,6 +5123,15 @@ msgstr ""
 msgid "Generate estimates"
 msgstr ""
 
+msgid "LOADING"
+msgstr ""
+
+msgid "none"
+msgstr ""
+
+msgid "Tab of the face"
+msgstr ""
+
 msgid "ChatGPT plan"
 msgstr ""
 
@@ -5798,6 +5807,12 @@ msgstr ""
 msgid "Prompts"
 msgstr ""
 
+msgid "Rendered prompt"
+msgstr ""
+
+msgid "The rendered prompt, whole (it was eight cut labels)."
+msgstr ""
+
 msgid "Cockpit (agent sessions)"
 msgstr ""
 
@@ -5834,6 +5849,15 @@ msgstr ""
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
 msgstr ""
 
+msgid "Runs and rating"
+msgstr ""
+
+msgid "Runs and rating of this template version"
+msgstr ""
+
+msgid "No runs yet"
+msgstr ""
+
 msgid "Show account details"
 msgstr ""
 
@@ -5841,6 +5865,12 @@ msgid "Show the signed-in name and address on the account card; off, it reads Lo
 msgstr ""
 
 msgid "enum values, | separated"
+msgstr ""
+
+msgid "Mean billed price of this version, or 'no runs yet'"
+msgstr ""
+
+msgid "Runs and rating of this version"
 msgstr ""
 
 msgid "Argument"
@@ -6000,6 +6030,9 @@ msgid "Tool"
 msgstr "ツール"
 
 msgid "A prompt-library template (image or video)"
+msgstr ""
+
+msgid "Show"
 msgstr ""
 
 msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
@@ -25825,6 +25858,12 @@ msgstr "動画を生成します"
 
 msgid "Generate images"
 msgstr "画像を生成します"
+
+msgid "Before you send"
+msgstr ""
+
+msgid "leaves:"
+msgstr ""
 
 msgid "LOD"
 msgstr ""
