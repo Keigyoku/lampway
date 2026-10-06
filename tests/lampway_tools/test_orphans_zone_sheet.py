@@ -30,6 +30,7 @@ def _go(tmp_path, body):
 
 def test_each_zone_gets_a_distinct_colour_and_number(tmp_path):
     res = _go(tmp_path, '''
+canon("piece")
 print("RESULT", json.dumps(call("zone_sheet", object="piece", by="material_slot", views=["Front"], size=256, out="zones/piece.png")))
 ''')
     assert res["ok"] is True, res
@@ -44,6 +45,8 @@ print("RESULT", json.dumps(call("zone_sheet", object="piece", by="material_slot"
 
 def test_legend_counts_match_slots_and_parts(tmp_path):
     res = _go(tmp_path, '''
+canon("piece")
+canon("piece")
 out = {"slots": call("zone_sheet", object="piece", by="material_slot", views=["Front", "Back"], size=256, out="z/a.png"),
        "parts": call("zone_sheet", object="piece", by="part", views=["Front"], size=256, out="z/b.png")}
 print("RESULT", json.dumps(out))
@@ -57,6 +60,8 @@ print("RESULT", json.dumps(out))
 def test_refusals(tmp_path):
     res = _go(tmp_path, '''
 one = boxes("one", [((3, 0, 1), (0.3, 0.3, 0.3))])
+canon("piece")
+canon("piece", "one")
 print("RESULT", json.dumps({"seg": call("zone_sheet", object="piece", by="segment"), "one": call("zone_sheet", object="one", by="material_slot"),
                             "big": call("zone_sheet", object="piece", size=4096)}))
 ''')

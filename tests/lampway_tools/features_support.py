@@ -50,6 +50,20 @@ def humanoid(name="body"):
 
 def call(fn, **kw):
     return api.call(fn, json.dumps(kw))
+
+def canon(*names, real=True, welded=True):
+    """Normalize test fixtures through the canonical door's normalizer (features.normalize, pivot kept at the scene origin, so world
+    positions do not move): real scale with a declared length (the fixture's authored size), welded by position as a generated mesh
+    is. A tool behind a Need refuses a raw fixture with "normalize first"."""
+    from mixar.modules.lampway_tools.features import normalize as _N
+    for n in names:
+        ob = bpy.data.objects.get(n) if isinstance(n, str) else None
+        if ob is None or ob.type != "MESH" or any(m.type == "ARMATURE" for m in ob.modifiers):
+            continue                                       # missing, not a mesh, or skinned: left as it is (the door answers for it)
+        _N.normalize_object(ob, turn_deg=0, generator="tripo_api" if welded else "lampway_tool", pivot="source_origin",
+                            want_scale="real" if real else "any",
+                            scale_evidence={"method": "captain_length", "value": 1.0, "reference": "a test fixture at its authored size"} if real else None)
+    return bpy.data.objects.get(names[0]) if names and isinstance(names[0], str) else None
 '''
 
 

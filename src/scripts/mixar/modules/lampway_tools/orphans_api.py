@@ -5,7 +5,11 @@
 """The orphan tools' api functions (STATUS.md ORPHANS). They register through ``api.tool`` like every other tool, and ``api`` star-imports this module
 just before it freezes TOOL_FUNCS, so ``api.call(name, ...)`` reaches them. Kept apart so api.py does not grow past reading."""
 
-from .api import LEGACY, NONE, _p, _settings, tool  # noqa: F401  (api is mid-import here: these names are already bound)
+from .api import LEGACY, NONE, Need, _p, _settings, tool  # noqa: F401  (api is mid-import here: these names are already bound)
+from .canon_asset import ANY_SCALE as _ANY
+
+_GEOM = ("mesh", "part", "rigged_mesh")             # the kinds a geometry tool reads (orphan_doors.GEOMETRY)
+_MESH_PART = ("mesh", "part")
 
 __all__ = []
 
@@ -40,7 +44,7 @@ def mirror_pair(object, design_symmetric=None, plane="x", origin="bounds_centre"
 
 
 @_export
-@tool(consumes=LEGACY("canon migration: its Need is stated in orphan_doors.CONSUMES; converted in the commit after the wave5 merge"))
+@tool(consumes=LEGACY("it scales armatures too (a skeleton: lampway_normalize_rigged is not built), so a mesh Need would refuse the rigs it exists to scale"))
 def scale_to_measure(object, target=None, reference_object="", apply=True, unit_scale=1.0, children="include", rollback=False):
     """Put an object's dimension at a measured real size (target {axis, length_m} or a reference object's), applied safely; rollback restores lw_prev_scale."""
     from .features import scale_measure as _SM
@@ -48,7 +52,7 @@ def scale_to_measure(object, target=None, reference_object="", apply=True, unit_
 
 
 @_export
-@tool(consumes=LEGACY("canon migration: its Need is stated in orphan_doors.CONSUMES; converted in the commit after the wave5 merge"))
+@tool(consumes={"object": Need(kind=_MESH_PART, scale=("real",))})
 def uv_check(object, action="measure", target_density_px_m=None, texture_size=2048, tolerance=0.15, tile_from=None, tile_to=None, islands=None, dry_run=True,
              mirror_axis="x", match_tolerance=0.003, res=512, discard_texture=False):
     """UV measurements per island (density, overlaps stacked vs accidental, space usage, orientation, UDIM tiles) and two dry-run-by-default edits (udim_move, stack)."""
@@ -57,7 +61,7 @@ def uv_check(object, action="measure", target_density_px_m=None, texture_size=20
 
 
 @_export
-@tool(consumes=LEGACY("canon migration: its Need is stated in orphan_doors.CONSUMES; converted in the commit after the wave5 merge"))
+@tool(consumes={"objects": Need(kind=_GEOM, scale=_ANY)})
 def render_condition_passes(objects, camera="auto", passes=None, size=1024, out_dir="condition", engine="workbench"):
     """The conditioning images from ONE camera: flat id colour per object (with its palette), depth (nearer brighter), edges and clay; light engines only."""
     from .features import condition_passes as _CP
@@ -77,7 +81,7 @@ def image_material_id(piece, object="", view="Front", palette=None, source="part
 
 
 @_export
-@tool(consumes=LEGACY("canon migration: its Need is stated in orphan_doors.CONSUMES; converted in the commit after the wave5 merge"))
+@tool(consumes={"object": Need(kind=_MESH_PART, scale=_ANY)})
 def parts_material_slots(object, recipe, owner="", by="part", name=""):
     """On a copy <object>_slots: the piece's one material becomes one slot per part (or per material class), each a copy sharing the images, faces by part."""
     from .features import parts_slots as _PS
@@ -86,7 +90,7 @@ def parts_material_slots(object, recipe, owner="", by="part", name=""):
 
 
 @_export
-@tool(consumes=LEGACY("canon migration: its Need is stated in orphan_doors.CONSUMES; converted in the commit after the wave5 merge"))
+@tool(consumes={"object": Need(kind=_MESH_PART, scale=_ANY)})
 def zone_sheet(object, by="material_slot", views=None, size=768, out="zones/sheet.png", recipe=""):
     """One image where every material slot, part, segment or vertex group is a flat colour with a number, and its legend; answer with a zone number."""
     from .features import zones as _Z
@@ -95,7 +99,7 @@ def zone_sheet(object, by="material_slot", views=None, size=768, out="zones/shee
 
 
 @_export
-@tool(consumes=LEGACY("canon migration: its Need is stated in orphan_doors.CONSUMES; converted in the commit after the wave5 merge"))
+@tool(consumes={"object": Need(kind=_MESH_PART, scale=_ANY, welded=True)})
 def mesh_region_extract(object, region, cap="fill_holes", keep_in_source=True, name="", recipe=""):
     """A chosen region (bbox, a lasso in a view, vertex group, material slot or zone number) as its own object from copies, capped or filled; the source is unchanged."""
     from .features import region_extract as _RX
@@ -103,7 +107,7 @@ def mesh_region_extract(object, region, cap="fill_holes", keep_in_source=True, n
 
 
 @_export
-@tool(consumes=LEGACY("canon migration: its Need is stated in orphan_doors.CONSUMES; converted in the commit after the wave5 merge"))
+@tool(consumes={"object": Need(kind=_MESH_PART, scale=("real",), welded=True)})
 def mesh_local_edit(object, region, engine="deform", op="move", delta=None, falloff_m=0.01, instruction="", side="", anchors=None):
     """One bounded edit of a derivative with a lineage, on a copy <object>_edit (deform with falloff; studio:tripo = the exact-box Edit Mesh plan), then its locality."""
     from .features import local_edit as _LE
@@ -111,7 +115,7 @@ def mesh_local_edit(object, region, engine="deform", op="move", delta=None, fall
 
 
 @_export
-@tool(consumes=LEGACY("canon migration: its Need is stated in orphan_doors.CONSUMES; converted in the commit after the wave5 merge"))
+@tool(consumes=LEGACY("its after is another tool's output, and outputs are not re-stamped yet (produces=Inherit is not built): a Need would refuse every real use"))
 def edit_locality_check(before, after, region=None, margin_m=0.005, tolerance_m=0.0005):
     """What a region edit changed OUTSIDE its region: moved vertices, faces, open edges, UVs, materials, dimensions, weights; read-only."""
     from .features import local_edit as _LE
@@ -119,7 +123,7 @@ def edit_locality_check(before, after, region=None, margin_m=0.005, tolerance_m=
 
 
 @_export
-@tool(consumes=LEGACY("canon migration: its Need is stated in orphan_doors.CONSUMES; converted in the commit after the wave5 merge"))
+@tool(consumes={"objects": Need(kind=_MESH_PART, scale=("real",), welded=True)})
 def mesh_join_boolean(op, objects, voxel_m="coarse_first", clearance_mm=None, connector=None, name=""):
     """Fuse (join + voxel remesh), union, difference with clearance, or plug/socket connectors with a measured gap; on copies, originals kept."""
     from .features import join_boolean as _JB
@@ -127,7 +131,7 @@ def mesh_join_boolean(op, objects, voxel_m="coarse_first", clearance_mm=None, co
 
 
 @_export
-@tool(consumes=LEGACY("canon migration: its Need is stated in orphan_doors.CONSUMES; converted in the commit after the wave5 merge"))
+@tool(consumes={"pieces": Need(kind=_MESH_PART, scale=("real",))})
 def multi_piece_material(action, pieces=None, atlas_res=4096, individual_res=None, density_floor_ratio=0.7, proxy="", atlas="", out_dir="mpm", res=None, keep_proxy=False,
                          name=""):
     """One material across pieces: merge copies into a proxy with a shared atlas, texture it once, transfer the atlas back to each piece's original UVs."""

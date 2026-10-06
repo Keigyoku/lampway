@@ -60,7 +60,9 @@ def test_roblox_rigid_over_4k_tris_fails_and_a_small_watertight_mesh_passes(tmp_
     d = one(go(tmp_path, '''
 sphere("big", 0.3, subdiv=5)
 sphere("small", 0.3, subdiv=2)
+canon("big")
 big = call("platform_budget_check", object="big", platform="roblox_rigid")
+canon("small")
 small = call("platform_budget_check", object="small", platform="roblox_rigid")
 print("RESULT", json.dumps({"big": big, "small": small}))
 '''))
@@ -74,9 +76,13 @@ def test_custom_table_works_stale_limits_are_flagged_and_unknown_platforms_list_
     d = one(go(tmp_path, '''
 ob = sphere("ball", 0.3, subdiv=2)
 bm = bmesh.new(); bm.from_mesh(ob.data); bm.faces.ensure_lookup_table(); bmesh.ops.delete(bm, geom=[bm.faces[0]], context="FACES"); bm.to_mesh(ob.data); bm.free()   # one hole
+canon("ball")
 custom = call("platform_budget_check", object="ball", platform="custom", limits={"max_tris": 1000, "max_texture_px": 1024, "watertight": True, "max_weights": 4, "retrieved": "2026-09-30"})
+canon("ball")
 stale = call("platform_budget_check", object="ball", platform="custom", limits={"max_tris": 1000, "retrieved": "2025-01-01"})
+canon("ball")
 nolimits = call("platform_budget_check", object="ball", platform="custom")
+canon("ball")
 unknown = call("platform_budget_check", object="ball", platform="steam_workshop")
 print("RESULT", json.dumps({"custom": custom, "stale": stale, "nolimits": nolimits, "unknown": unknown}))
 '''))

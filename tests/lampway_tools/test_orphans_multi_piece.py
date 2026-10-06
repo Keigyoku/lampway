@@ -45,6 +45,7 @@ def _go(tmp_path, body):
 
 def test_transfer_returns_the_proxy_colour_to_each_original_uv(tmp_path):
     res = _go(tmp_path, '''
+canon(*["helm", "boot", "glove"])
 m = call("multi_piece_material", action="merge", pieces=["helm", "boot", "glove"], atlas_res=256)
 paint_proxy(m["proxy"], os.path.join(root, "atlas.png"))
 t = call("multi_piece_material", action="transfer", proxy=m["proxy"], atlas="atlas.png", out_dir="mpm")
@@ -73,6 +74,7 @@ print("RESULT", json.dumps({"m": m, "t": t, "layout": layout, "src_mats": {n: [x
 
 def test_proxy_edit_blocks_transfer(tmp_path):
     res = _go(tmp_path, '''
+canon(*["helm", "boot"])
 m = call("multi_piece_material", action="merge", pieces=["helm", "boot"], atlas_res=128)
 paint_proxy(m["proxy"], os.path.join(root, "atlas.png"), 128)
 bpy.data.objects[m["proxy"]].data.vertices[0].co.z += 0.1
@@ -83,6 +85,7 @@ print("RESULT", json.dumps(call("multi_piece_material", action="transfer", proxy
 
 def test_density_ratio_reported_per_piece(tmp_path):
     res = _go(tmp_path, '''
+canon(*["helm", "boot", "glove"])
 m = call("multi_piece_material", action="merge", pieces=["helm", "boot", "glove"], atlas_res=256, individual_res=256)
 print("RESULT", json.dumps(m))
 ''')
@@ -96,6 +99,7 @@ print("RESULT", json.dumps(m))
 def test_overlapping_pieces_refused(tmp_path):
     res = _go(tmp_path, '''
 cube("over", 0.2)
+canon(*["helm", "over"])
 print("RESULT", json.dumps(call("multi_piece_material", action="merge", pieces=["helm", "over"])))
 ''')
     assert res["ok"] is False and "pieces overlap; move them apart for the proxy only" in res["error"], res

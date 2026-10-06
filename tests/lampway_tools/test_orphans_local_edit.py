@@ -30,6 +30,7 @@ def _go(tmp_path, body):
 def test_deform_moves_only_region_and_keeps_uv_and_counts(tmp_path):
     res = _go(tmp_path, '''
 lineage()
+canon("plate")
 r = call("mesh_local_edit", object="plate", region={"bbox": BOX}, op="move", delta=[0, 0, 0.05], falloff_m=0.05)
 src, new = bpy.data.objects["plate"], bpy.data.objects[r["object"]] if r.get("ok") else None
 far = [i for i, v in enumerate(src.data.vertices) if max(abs(v.co.x), abs(v.co.y)) > 0.1 + 0.05 + 1e-6]
@@ -45,8 +46,10 @@ print("RESULT", json.dumps({"r": r, "moved_far": moved_far, "src_z": max(v.co.z 
 
 def test_region_over_60_percent_refused_and_an_edit_without_lineage_refused(tmp_path):
     res = _go(tmp_path, '''
+canon("plate")
 nolin = call("mesh_local_edit", object="plate", region={"bbox": BOX}, op="move", delta=[0, 0, 0.05])
 lineage()
+canon("plate")
 big = call("mesh_local_edit", object="plate", region={"bbox": [-0.45, -0.45, -1, 0.45, 0.45, 1]}, op="move", delta=[0, 0, 0.05])
 print("RESULT", json.dumps({"nolin": nolin, "big": big}))
 ''')
@@ -57,6 +60,9 @@ print("RESULT", json.dumps({"nolin": nolin, "big": big}))
 def test_studio_engine_returns_needs_approval_and_clicks_nothing(tmp_path):
     res = _go(tmp_path, '''
 lineage()
+canon("plate")
+canon("plate")
+canon("plate")
 out = {"tripo": call("mesh_local_edit", object="plate", region={"bbox": BOX}, engine="studio:tripo", side="left", anchors=["a", "b", "c"], instruction="fix the dent"),
        "noside": call("mesh_local_edit", object="plate", region={"bbox": BOX}, engine="studio:tripo"),
        "rodin": call("mesh_local_edit", object="plate", region={"bbox": BOX}, engine="studio:rodin", side="left", anchors=["a", "b", "c"]),

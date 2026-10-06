@@ -34,6 +34,7 @@ def _go(tmp_path, body):
 
 def test_each_part_becomes_a_slot_sharing_the_images_on_a_copy(tmp_path):
     res = _go(tmp_path, '''
+canon("chest")
 r = call("parts_material_slots", object="chest", recipe="recipe.json")
 print("RESULT", json.dumps({"r": r, "copy": slots(r["object"]) if r.get("ok") else None, "src": slots("chest")}))
 ''')
@@ -46,6 +47,7 @@ print("RESULT", json.dumps({"r": r, "copy": slots(r["object"]) if r.get("ok") el
 
 def test_slots_by_material_class_merge_parts_of_one_class(tmp_path):
     res = _go(tmp_path, '''
+canon("chest")
 r = call("parts_material_slots", object="chest", recipe="recipe.json", by="class")
 print("RESULT", json.dumps({"r": r, "copy": slots(r["object"])}))
 ''')
@@ -55,6 +57,8 @@ print("RESULT", json.dumps({"r": r, "copy": slots(r["object"])}))
 def test_refusals(tmp_path):
     res = _go(tmp_path, '''
 one = boxes("one", [((3, 0, 1), (0.3, 0.3, 0.3))])
+canon("one")
+canon("chest")
 print("RESULT", json.dumps({"noparts": call("parts_material_slots", object="one", recipe="recipe.json"),
                             "by": call("parts_material_slots", object="chest", recipe="recipe.json", by="colour")}))
 ''')

@@ -7,7 +7,8 @@
 description; the server's Def (agent/wave6_tools.py) carries the same text."""
 
 from . import settings as S
-from .canon_door import LEGACY, NONE
+from .canon_asset import ANY_SCALE
+from .canon_door import LEGACY, NONE, Need
 
 TOOLS = ("modular_character", "character_pipeline", "playblast_capture", "lod_chain", "motion_experiment", "secondary_chain_rig", "cloth_garment_sim",
          "face_rig_validate", "glb_optimize", "traversal_check", "level_blockout", "part_budget_plan", "platform_budget_check", "print_check", "print_prep",
@@ -19,18 +20,18 @@ CONSUMES = {
     'modular_character': LEGACY("needs a canonical skeleton: lampway_normalize_rigged is not built (canon R1/R3, lane orphans O36)"),
     'character_pipeline': LEGACY("an orchestrator over parts given as dicts: each stage tool passes its own door"),
     'playblast_capture': LEGACY("renders the open scene's animation, not named assets: the door checks named arguments only"),
-    'lod_chain': LEGACY("canon migration: a mesh object - converted to a Need in the commits after the wave5 merge"),
+    'lod_chain': {"object": Need(kind=("mesh", "part"), scale=ANY_SCALE)},
     'motion_experiment': LEGACY("needs a canonical skeleton: lampway_normalize_rigged is not built (canon R1/R3, lane orphans O36)"),
     'secondary_chain_rig': LEGACY("needs a canonical skeleton: lampway_normalize_rigged is not built (canon R1/R3, lane orphans O36)"),
     'cloth_garment_sim': LEGACY("the body is a posed rigged mesh: lampway_normalize_rigged is not built"),
-    'face_rig_validate': LEGACY("canon migration: a mesh object - converted to a Need in the commits after the wave5 merge"),
+    'face_rig_validate': {"object": Need(kind=("mesh", "part"), scale=ANY_SCALE)},
     'glb_optimize': LEGACY("image or GLB FILE paths: the door resolves datablocks and canon sidecars, not project-relative paths"),
     'traversal_check': LEGACY("a collection name: the door resolves objects, not collections"),
     'level_blockout': NONE("builds primitives from a layout; its scale anchor is one of the primitives it makes"),
     'part_budget_plan': LEGACY("parts are objects inside dicts: the door checks names and lists of names"),
-    'platform_budget_check': LEGACY("canon migration: a mesh object - converted to a Need in the commits after the wave5 merge"),
-    'print_check': LEGACY("canon migration: a mesh object - converted to a Need in the commits after the wave5 merge"),
-    'print_prep': LEGACY("canon migration: a mesh object - converted to a Need in the commits after the wave5 merge"),
+    'platform_budget_check': {"object": Need(kind=("mesh", "part"), scale=ANY_SCALE)},
+    'print_check': {"object": Need(kind=("mesh", "part"), scale=("real",))},
+    'print_prep': {"object": Need(kind=("mesh", "part"), scale=("real",))},
     'profile_revolve': NONE("makes geometry from a numeric profile; reads no asset"),
     'splat_world': LEGACY("a Gaussian splat file: lampway.canonical-asset/1 has no splat kind"),
     'splat_collision_proxy': LEGACY("a Gaussian splat object: lampway.canonical-asset/1 has no splat kind"),
