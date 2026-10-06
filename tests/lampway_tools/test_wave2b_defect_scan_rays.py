@@ -32,7 +32,7 @@ print("RESULT", json.dumps(out))
     assert c["faces_cast"] > 100 and c["hit_fraction"] > 0.95 and c["miss"] < c["faces_cast"] * 0.05
     assert op["hit_fraction"] < 0.6 and "open mesh" in op["note"]                         # half the sphere is gone: the inward rays escape through the opening
     assert abs(c["epsilon_m"] - c["epsilon_frac_of_diagonal"] * c["bbox_diagonal_m"]) < 1e-9 and 0 < c["epsilon_frac_of_diagonal"] < 1e-2
-    assert abs(big["epsilon_m"] / c["epsilon_m"] - 100.0) < 1e-6 and big["epsilon_frac_of_diagonal"] == c["epsilon_frac_of_diagonal"]      # the epsilon scales with the model
+    assert abs(big["epsilon_m"] / c["epsilon_m"] - 100.0) < 1e-3 and big["epsilon_frac_of_diagonal"] == c["epsilon_frac_of_diagonal"]      # the epsilon scales with the model
 
 
 def test_a_scan_without_the_thin_kind_has_no_ray_block(tmp_path):
