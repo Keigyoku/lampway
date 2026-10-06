@@ -77,3 +77,20 @@ def parts_material_slots(object, recipe, owner="", by="part", name=""):
     from .features import parts_slots as _PS
     s_ = _settings()
     return _PS.run(object, _p(recipe, s_.project_root), _p(owner, s_.project_root), by, name)
+
+
+@_export
+@tool
+def zone_sheet(object, by="material_slot", views=None, size=768, out="zones/sheet.png", recipe=""):
+    """One image where every material slot, part, segment or vertex group is a flat colour with a number, and its legend; answer with a zone number."""
+    from .features import zones as _Z
+    s_ = _settings()
+    return _Z.zone_sheet(object, by, views, size, _p(out, s_.project_root), _p(recipe, s_.project_root))
+
+
+@_export
+@tool
+def mesh_region_extract(object, region, cap="fill_holes", keep_in_source=True, name="", recipe=""):
+    """A chosen region (bbox, a lasso in a view, vertex group, material slot or zone number) as its own object from copies, capped or filled; the source is unchanged."""
+    from .features import region_extract as _RX
+    return _RX.run(object, region, cap, keep_in_source, name, _p(recipe))

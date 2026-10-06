@@ -81,4 +81,22 @@ ORPHAN_DEFS = [
         "outside the recipe, no material." + _PATHS,
         [P("object", required=True), P("recipe", required=True, desc="the parts json"), P("owner", desc="owner .npy (default the face attribute 'part')"),
          P("by", desc="part (default) | class"), P("name", desc="the copy's name, default <object>_slots")], api="parts_material_slots"),
+    Def("lampway_zone_sheet", "Show the user which zone is which, as ONE image: every zone of an object (by material_slot, part = the int face attribute 'part' "
+        "(names from recipe), segment = the int face attribute 'segment', or vertex_group = faces whose vertices all belong) in a flat colour with its NUMBER "
+        "written on it, from the clay camera's views side by side (Workbench, anti-aliasing off, pixels snapped to the zone colours), plus <out>_legend.json "
+        "{number, name, faces, rgb}. Ask the user for a zone number; mesh_region_extract and mesh_local_edit take {zone, by}. Refused: fewer than two zones, "
+        "by segment with no segment attribute (run segment_mesh first), size outside 256..2048." + _PATHS,
+        [P("object", required=True), P("by", desc="material_slot (default) | part | segment | vertex_group"), P("views", "array", "default Front, Back, Left, Right"),
+         P("size", "integer", "256..2048, default 768"), P("out", desc="sheet PNG under the project root, default zones/sheet.png"),
+         P("recipe", desc="by part: the parts json for the names")], api="zone_sheet"),
+    Def("lampway_mesh_region_extract", "Separate a chosen region of a mesh into its own object, from COPIES (the source is never changed): region {bbox: [x0, y0, z0, x1, "
+        "y1, z1]} (face centres, world) | {polygon_2d: [[h, v], ...], view} (an X-ray lasso in a cardinal view: Front h=x, Back h=-x, Left h=-y, Right h=y, v=z) "
+        "| {vertex_group} | {material_slot: index or name} | {zone, by} (a zone_sheet number). cap fill_holes (default; one face per open loop) | fan (filled "
+        "then poked into triangles) | flat (refused on a non-planar loop: use fan) | none. keep_in_source=false also makes <object>_remainder, the rest with "
+        "the hole left open for a later join. Returns extracted, remainder, faces, open_loops_before_cap, capped; each new object records the source's "
+        "geometry hash and the region (identity anchors are the user's: asset_lineage). Refused: an empty region, a region over 90 % of the faces (that is "
+        "the whole mesh), an unknown region kind or cap.",
+        [P("object", required=True), P("region", "object", "{bbox} | {polygon_2d, view} | {vertex_group} | {material_slot} | {zone, by}", required=True),
+         P("cap", desc="fill_holes (default) | fan | flat | none"), P("keep_in_source", "boolean", "default true: false also writes the remainder"),
+         P("name", desc="the extracted object's name, default <object>_region"), P("recipe", desc="zone by part: the parts json")], api="mesh_region_extract"),
 ]
