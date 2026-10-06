@@ -4,8 +4,18 @@ import os
 
 
 def make_provider(settings, chatgpt_auth=None):
-    """The provider LAMPWAY_PROVIDER names. Keys are read from the environment
-    here or by the SDK and never pass through logs or responses."""
+    """The provider LAMPWAY_PROVIDER names (Choices' agent.main decides the settings, choices/bridge.py). Keys come from Connections."""
+    try:
+        from ...choices import shadow as SH
+        from ...choices.bridge import chains
+        from ... import choices as CH
+        SH.record("agent.main", chains(settings)["agent.main"]["preferred"], CH.Job())       # the shadow row: resolved vs ran
+    except Exception:  # noqa: BLE001
+        pass
+    return _make_provider(settings, chatgpt_auth)
+
+
+def _make_provider(settings, chatgpt_auth=None):
     if settings.provider == "mock":
         from .mock import MockProvider
         return MockProvider()

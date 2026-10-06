@@ -259,6 +259,9 @@ def openrouter_images(prompt: str, references: list, count: int, size: str = "",
                 extra["size"] = size or settings.openrouter_image_size
             if settings.openrouter_image_quality:
                 extra["quality"] = settings.openrouter_image_quality
+        from .choices import shadow as _SH
+        from . import choices as _CH
+        _SH.record(f"image.{purpose or 'plates'}", f"openrouter:{model}", _CH.Job(needs={"runs_on": ["openrouter"]}))      # the shadow row: resolved vs ran
         for i in range(1, int(count) + 1):
             ledger.check()
             body = {"model": model, "prompt": prompt, **extra}
