@@ -294,9 +294,13 @@ def openrouter_image_backend(model: str, payload: dict):
     params = payload.get("params") if isinstance(payload.get("params"), dict) else {}
     count = int(params.get("number_of_images") or 1)
     refs = [base64.b64decode(r) for r in (payload.get("reference_images_b64") or [])[:MAX_REFERENCE_IMAGES] if isinstance(r, str)]
+    purpose = str(params.get("purpose") or "plates")
+    from . import provider_prefs
+    own = (provider_prefs.effective().image_purposes.get(purpose) or {}).get("model")
+    explicit = "" if model in ("", "default", None, own) else str(model)          # the job queue passes the model Choices resolved (HC6)
     return ImageOutput(images=openrouter_images(prompt, refs, count, size=str(params.get("size") or ""),
                                                 aspect_ratio=str(params.get("aspect_ratio") or ""),
-                                                purpose=str(params.get("purpose") or "plates")), image_name=str(payload.get("image_name") or ""))
+                                                purpose=purpose, model=explicit), image_name=str(payload.get("image_name") or ""))
 
 
 def _openrouter(prompt_path: str, ref_paths: list, out: Path, count: int, live: bool, size: str = "", aspect_ratio: str = "",

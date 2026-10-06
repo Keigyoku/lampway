@@ -243,7 +243,7 @@ def resolve(pid: str, job: Job, world, doc: dict, _depth: int = 0) -> Resolution
                 skipped.append({"option": oid, "constraint": "follow", "text": str(exc)})
                 continue
             inner.purpose, inner.scope = pid, scope or inner.scope
-            inner.reason = reason0 if i == 0 else "fallback"
+            inner.reason = "fallback" if (i > 0 or inner.reason == "fallback") else reason0      # a fallback at either level is a fallback
             inner.followed = target
             inner.skipped = skipped + inner.skipped
             inner.params = {**inner.params, **_params(pid, doc)}

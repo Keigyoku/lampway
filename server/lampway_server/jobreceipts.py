@@ -174,7 +174,7 @@ class JobReceipts:
 
     # --------------------------------------------------------------------------------------------------------- create
     def create(self, provider: str, model: str, payload, idempotency_key: Optional[str], origin: str, price: Optional[dict] = None, approval_id: Optional[str] = None,
-               job_id: str = "") -> tuple:
+               job_id: str = "", choice: Optional[dict] = None) -> tuple:
         """(receipt, created). The receipt file is opened with ``"x"``: a key that already has one returns it and is NEVER a second job."""
         check_rendered(payload)
         from .ledger import find_secret
@@ -189,6 +189,8 @@ class JobReceipts:
         r = {"schema": SCHEMA, "key": key, "job_id": job_id, "provider": provider, "model": model, "state": "planned", "created_at": _now(), "updated_at": _now(), "origin": origin,
              "price": price or {}, "approval_id": approval_id, "payload_sha256": payload_sha256(payload), "provider_job_id": None, "status_url": None, "response_url": None,
              "cancel_url": None, "error_class": None, "error_text": "", "outputs": [], "history": [{"state": "planned", "at": _now(), "note": ""}]}
+        if choice:                                                    # which option served the job and why (specs/choices CHOICES.md 5.5)
+            r["choice"] = choice
         tmp = d / f".create.{os.getpid()}.{threading.get_ident()}.tmp"
         fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(fd, "w") as fh:

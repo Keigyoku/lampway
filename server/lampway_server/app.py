@@ -324,10 +324,20 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     from .library import hooks as _vault_hooks
     from .library.render import Renderer as _VaultRenderer
     renderer = _VaultRenderer(library, blender=os.environ.get("LAMPWAY_BIN") or None) if library is not None else None     # previews: never the live window
+    def image_chooser(service, model, payload, origin):
+        """The image job's purpose (the Client's ``params.purpose``, else AI Render, which follows Plates), on what its backend runs
+        (OpenRouter), the Client's model a job override (HC6, HC10)."""
+        from . import choices as CHO
+        from .choices import registry as CREG
+        purpose = str(((payload or {}).get("params") or {}).get("purpose") or "")
+        pid = f"image.{purpose}" if f"image.{purpose}" in CREG.PURPOSES else "image.ai_render"
+        override = None if model in ("", "default", None) else (model if ":" in model else f"openrouter:{model}")
+        return CHO.resolve(pid, CHO.Job(needs={"runs_on": ["openrouter"]}, override=override, origin="user" if origin == "user" else "agent"))
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
                     video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts,
-                    provenance=_vault_hooks.job_hook(library, settings.state_dir / "library-spool.jsonl"))
+                    provenance=_vault_hooks.job_hook(library, settings.state_dir / "library-spool.jsonl"),
+                    chooser=image_chooser if job_backends is None and "image_gen" in default_job_backends(settings) else None)
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
