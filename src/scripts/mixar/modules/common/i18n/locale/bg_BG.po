@@ -5333,6 +5333,65 @@ msgstr ""
 msgid "Main agent"
 msgstr ""
 
+msgid "Switch route"
+msgstr ""
+
+msgid ""
+"Switch a route. Every route is off until you switch it on, and on takes two clicks of yours: this one opens the\n"
+"confirm row, its button lets data leave"
+msgstr ""
+
+msgid "The confirm row's own button"
+msgstr ""
+
+msgid "Not now"
+msgstr ""
+
+msgid "Close the confirm row: the route stays off"
+msgstr ""
+
+msgid "Allow this asset once"
+msgstr ""
+
+msgid "Let this one asset through this route once. Logged as an override; your click only"
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
+msgid "What this row says in full"
+msgstr ""
+
+msgid "No details"
+msgstr ""
+
+msgid "What leaves this machine"
+msgstr ""
+
+msgid "What leaves this machine: the routes, what is sending, the last refusal and the log"
+msgstr ""
+
+msgid "Nothing is leaving this machine"
+msgstr ""
+
+msgid "Off"
+msgstr "Изкл."
+
+msgid "Let it leave"
+msgstr ""
+
+msgid "What left, and what was refused"
+msgstr ""
+
+msgid "Privacy (what leaves this machine)"
+msgstr ""
+
+msgid "Privacy in the viewport's Lampway sidebar."
+msgstr ""
+
+msgid "The pop-out the status bar's wire chip opens."
+msgstr ""
+
 msgid "spend unknown: server not running"
 msgstr ""
 
@@ -5373,12 +5432,6 @@ msgid "Refresh privacy"
 msgstr ""
 
 msgid "Read the Privacy state from the server and keep it fresh while data may leave"
-msgstr ""
-
-msgid "Switch route"
-msgstr ""
-
-msgid "Opt a route in or out. Every route is OFF until you switch it on. Your click only"
 msgstr ""
 
 msgid "Export egress log"
@@ -5921,9 +5974,6 @@ msgstr ""
 msgid "Providers: agent, swarm, images"
 msgstr ""
 
-msgid "Not now"
-msgstr ""
-
 msgid "Plan an action (clicks nothing)"
 msgstr ""
 
@@ -5952,18 +6002,6 @@ msgid "Animation clips"
 msgstr ""
 
 msgid "The clip table: one row per action (primary class, speed, loop, an inferred marker, the proposed name). draw() reads the cache only."
-msgstr ""
-
-msgid "Privacy (what leaves this machine)"
-msgstr ""
-
-msgid "Privacy: every outbound route, off until you switch it on, with its retention and training policy; the DATA LEAVING badge; the last log rows. draw() reads the cache only."
-msgstr ""
-
-msgid "Switch off"
-msgstr ""
-
-msgid "Switch on"
 msgstr ""
 
 msgid "Connections (MCP servers)"
@@ -7321,9 +7359,6 @@ msgstr "Референция {number}"
 
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Този шаблон се нуждае от наличен модел за генерация. Проверете връзката."
-
-msgid "Off"
-msgstr "Изкл."
 
 msgid "Choose one of the options supported by this model."
 msgstr "Изберете една от опциите, поддържани от този модел."
