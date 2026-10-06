@@ -43,6 +43,7 @@ ROUTES = {r.id: r for r in (
     Route("chatgpt_plan", "ChatGPT plan", ("chatgpt.com", "auth.openai.com", "api.openai.com"), _UNREAD, _UNREAD, "unknown"),
     Route("claude_plan", "Claude plan", ("api.anthropic.com", "claude.ai"), _UNREAD, _UNREAD, "unknown"),
     Route("custom_llm", "Custom LLM endpoint (OPENAI_BASE_URL)", (), _UNREAD, _UNREAD, "unknown"),
+    Route("mcp_probe", "MCP connection check (a server you configured)", (), "sends only initialize and tools/list, no credential and none of your content; the server you configured sees the request", "n/a: no content is sent", "ok"),
     Route("studio:tripo", "Tripo Studio", ("tripo3d.ai", "tripo3d.com", "tripo.ai"), _UNREAD, _UNREAD, "unknown"),
     Route("studio:meshy", "Meshy", ("meshy.ai",), _UNREAD, _UNREAD, "unknown"),
     Route("studio:hi3d", "Hi3D", ("hitem3d.com", "hitem3d.ai"), _UNREAD, _UNREAD, "unknown"),

@@ -154,8 +154,8 @@ def test_audit_every_route_host_is_gated_off_refuses_on_sends_one_row(mgr, route
     r = E.ROUTES[route]
     host = r.hosts[0] if r.hosts else "llm.example"
     url = f"https://{host.lstrip('.')}/x"
-    if route == "custom_llm":
-        mgr.register_host("custom_llm", "llm.example")
+    if not r.hosts:                                            # a route whose hosts are configured, not fixed (the custom LLM endpoint, the MCP probe's servers)
+        mgr.register_host(route, "llm.example")
     with pytest.raises(E.EgressRefused):
         client().get(url)
     mgr.set_route(route, True)

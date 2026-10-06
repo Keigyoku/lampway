@@ -602,6 +602,31 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     def _wb_err(exc, code=409):
         return JSONResponse({"detail": str(exc)}, status_code=code)
 
+    async def mcp_inventory_get(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        from .mcp_inventory import api as _INV
+        from .mcp import offered_tools
+        inst = request.headers.get("x-mixar-instance-id", "")
+        elig = lambda: (True, "connected") if hub.sockets.get(inst) is not None else (False, "desktop not connected")  # noqa: E731
+        try:
+            return JSONResponse(await asyncio.to_thread(_INV.inventory, _project_root(), Path.home(), None, request.query_params.get("client") or "all", request.query_params.get("scope") or "all",
+                                                        elig, lambda: len(offered_tools())))
+        except _INV.InventoryError as exc:
+            return _wb_err(exc, 422)
+
+    async def mcp_check_post(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        from .mcp_inventory import api as _INV
+        body = await _json_body(request)
+        try:
+            return JSONResponse(await asyncio.to_thread(_INV.check, _project_root(), Path.home(), str(body.get("id") or "")))
+        except _INV.InventoryError as exc:
+            return _wb_err(exc, 422)
+        except PermissionError as exc:                                               # egress consent: the mcp_probe route is off
+            return _wb_err(exc, 403)
+
     async def egress_state(request: Request):
         if (r := _wb(request)) is not None:
             return r
@@ -738,7 +763,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except CockpitError as exc:
             return _wb_err(exc)
 
-    routes += [Route("/app/egress", egress_state, methods=["GET"]), Route("/app/egress/route", egress_route, methods=["POST"]), Route("/app/egress/override", egress_override, methods=["POST", "DELETE"]),
+    routes += [Route("/app/mcp/inventory", mcp_inventory_get, methods=["GET"]), Route("/app/mcp/check", mcp_check_post, methods=["POST"]), Route("/app/egress", egress_state, methods=["GET"]), Route("/app/egress/route", egress_route, methods=["POST"]), Route("/app/egress/override", egress_override, methods=["POST", "DELETE"]),
                Route("/app/egress/log", egress_log, methods=["GET"]), Route("/app/egress/export", egress_export, methods=["GET"]), Route("/app/video/ingest", video_ingest, methods=["POST"]), Route("/app/workbench", wb_home, methods=["GET"]), Route("/app/workbench/server/start", wb_server_start, methods=["POST"]),
                Route("/app/workbench/server/stop", wb_server_stop, methods=["POST"]), Route("/app/workbench/reconcile", wb_reconcile, methods=["POST"]),
                Route("/app/workbench/sessions", wb_create, methods=["POST"]), Route("/app/workbench/sessions/{sid}/screen", wb_screen, methods=["GET"]),
