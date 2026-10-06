@@ -129,3 +129,17 @@ def test_the_tool_specs_are_the_agents():
     done = subprocess.run([sys.executable, str(ROOT / "scripts/lampway/facelift/tool_specs.py"), "--check"], capture_output=True,
                           text=True)
     assert done.returncode == 0, done.stdout + done.stderr
+
+
+def test_every_tool_has_a_place(way):
+    """A tool the agent gains appears in the Way: in a step, or named as off the Way with the reason. Without this, a tool
+    the integration adds is simply absent from the sidebar and nothing says so."""
+    import json
+    import tomllib
+    the_way, _ = way
+    specs = json.loads((ROOT / "src/scripts/mixar/modules/lampway_tools/tool_specs.json").read_text(encoding="utf-8"))["tools"]
+    off = tomllib.loads((ROOT / "src/scripts/mixar/modules/lampway_tools/status.toml").read_text(encoding="utf-8")).get("off_the_way", {})
+    placed = {t for s in the_way.steps() for t in s.get("tools", [])}
+    homeless = sorted(s["name"] for s in specs if s["name"] not in placed and s["name"] not in off)
+    assert homeless == [], homeless
+    assert all(isinstance(v, str) and v for v in off.values()), off

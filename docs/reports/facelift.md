@@ -519,6 +519,12 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   new (the Features-panel assertion above, fixed and re-run: passes). Visual suite (`tests/lampway_visual`) 20 passed.
   Theme 0, cues 0, WezTerm 0, tool specs current.
 
+- After merging `origin/lp/wave5` (`5e5cf3e`): the agent gained seven tools (the orphans lane's O33). `tool_specs.json`
+  regenerated (30 tools); five join Parts critique with their own word, Built, sourced to `docs/reports/orphans.md`
+  (judge_pack, render_final, export_parts, verify_set, gen_parts_table); libwiki and index_delta are library chores,
+  listed in `status.toml`'s `[off_the_way]` with the reason. New gate `test_every_tool_has_a_place` (RED observed: the
+  seven were simply absent from the sidebar and nothing said so).
+
 ## Which build is in `build/Prod`
 
 The coordinator's rule from here on: `build/Prod` is built from a clean tree at a pushed sha, and that sha is written to
