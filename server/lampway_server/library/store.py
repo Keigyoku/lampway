@@ -521,9 +521,10 @@ class AssetLibrary:
             return [{**dict(r), "config": json.loads(r["config_json"] or "{}")} for r in db.execute("SELECT id,kind,root,label,config_json,enabled FROM source ORDER BY id")]
 
     # -- embeddings ----------------------------------------------------------------------------------------------
-    def put_embedding(self, version_id: str, space: str, vec, model=None, sub_key: str = "", model_version=None) -> dict:
+    def put_embedding(self, version_id: str, space: str, vec, model=None, sub_key: str = "", model_version=None, normalise: bool = True) -> dict:
+        import numpy as np
         from . import vectors
-        blob = vectors.pack(vec)
+        blob = vectors.pack(vec) if normalise else np.asarray(vec, dtype="<f4").reshape(-1).tobytes()      # an L1 space (shape_d2) is stored raw
         dim = len(blob) // 4
         with self._lock:
             have = self._db.execute("SELECT dim FROM embedding WHERE space=? LIMIT 1", (space,)).fetchone()
