@@ -5,6 +5,7 @@ One writer (this process; a second is refused with the holder's pid), any number
 ``cas/<aa>/<bb>/<sha256>``. Deletion is soft; nothing the library did not create is ever unlinked."""
 from __future__ import annotations
 
+import contextlib
 import fcntl
 import hashlib
 import json
@@ -70,6 +71,7 @@ class AssetLibrary:
         self._lock = threading.RLock()
         self._after_blobs: Callable[[], None] = lambda: None
         self._memo: dict = {}
+        self._bulk = 0
         self._lockfile = open(self.root / "writer.lock", "a+")
         try:
             fcntl.flock(self._lockfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -140,7 +142,24 @@ class AssetLibrary:
         with open(self.journal, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(row, sort_keys=True) + "\n")
             fh.flush()
-            os.fsync(fh.fileno())
+            if not self._bulk:
+                os.fsync(fh.fileno())               # one decision = one durable line
+
+    @contextlib.contextmanager
+    def bulk(self):
+        """Many decisions in one go (an importer): lines are written as they come and fsynced ONCE at the end, not once per line."""
+        with self._lock:
+            self._bulk += 1
+            try:
+                yield self
+            finally:
+                self._bulk -= 1
+                if not self._bulk and self.journal.exists():
+                    fd = os.open(self.journal, os.O_RDONLY)
+                    try:
+                        os.fsync(fd)
+                    finally:
+                        os.close(fd)
 
     # -- files ---------------------------------------------------------------------------------------------------
     def _check_root(self, path: Path):
@@ -492,6 +511,10 @@ class AssetLibrary:
             if watch is not None:
                 self._db.execute("UPDATE source SET config_json=?,enabled=1 WHERE kind=? AND root=?", (json.dumps({"watch": bool(watch)}), kind, root))
             return self._db.execute("SELECT id FROM source WHERE kind=? AND root=?", (kind, root)).fetchone()[0]
+
+    def find_by_name(self, token: str) -> list:
+        with closing(self._reader()) as db:
+            return [r[0] for r in db.execute("SELECT id FROM asset WHERE status!='deleted' AND (name LIKE ? OR source_key LIKE ?) ORDER BY created_at", (f"%{token}%", f"%{token}%"))]
 
     def sources(self) -> list:
         with closing(self._reader()) as db:
