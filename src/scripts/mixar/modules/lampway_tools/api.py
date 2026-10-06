@@ -647,6 +647,7 @@ from .features import uv_layout as _F_uvl                  # noqa: E402
 from .features import model_compare as _F_mc                # noqa: E402
 from .features import clip_classify as _F_cc                # noqa: E402
 from .features import scene_cleanup as _F_sc                # noqa: E402
+from .features import batch_export as _F_bx                 # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
 
@@ -842,6 +843,19 @@ def scene_cleanup(objects=None, steps=None, merge_distance="auto", ngon_policy="
     merge_distance 'auto' = 1e-4 x the bounding diagonal (scale-aware); a merge that would remove more than 5 % of the vertices stops and says the threshold is wrong. Work happens on `<object>_clean` copies with
     the source hash recorded (copy=false edits in place and refuses shared mesh data). Refused: Edit Mode."""
     return _F_sc.scene_cleanup(objects, steps, merge_distance, ngon_policy, convention, plan_only, copy)
+
+
+@tool
+def batch_export(objects=None, collection=None, convention=None, format="glb", preset="unreal", apply=None, out_dir="export", per="object", textures=None, plan_only=True, verify=True, undo=None):
+    """Audit meshes against YOUR convention, fix it as one pass, and export each object to its own file. plan_only (the default) lists, per object, the violations (name, scale, origin, default material names,
+    unused slots) and its new name, and changes and writes nothing. convention is required: {prefix, set, pattern ('{prefix}{set}_{piece}_{nn}'), origin base|center|keep, unit_scale, forward, up}: the tool will
+    not invent one. A real run (plan_only=false) writes rename_map.json, renames, applies transforms and the base origin (apply: transforms, modifiers, merge_materials, drop_unused_slots), then exports each
+    object from a temporary copy as fbx | glb | gltf | obj under out_dir (inside the project root), re-imports it and compares the bounding box (verified when within 1e-4), and writes manifest.json. The
+    project's convention (unit scale and axes) is recorded on the first real run; a later differing call is refused. undo=<rename_map.json> restores the names (not transforms). Refused: a name collision, an unknown
+    preset (unreal | unity | godot), usd (not built), glTF with a unit scale other than 1, a path outside the root, Edit Mode. The presets only default the axes and are unverified against each engine's importer."""
+    s = _settings()
+    return _F_bx.batch_export(str(s.project_root), objects, collection, convention, format, preset, apply, out_dir, per, textures, plan_only, verify, _p(undo) if undo else None,
+                              resolve=lambda p: _p(p, s.project_root))
 
 
 @tool
