@@ -27,6 +27,23 @@ Role: the implementer became the integrator; lanes lp/vault-ops, lp/vault-ui, lp
 - Now: `config.state_dir()` is the one function (LAMPWAY_STATE_DIR, else `<XDG_STATE_HOME>/lampway-server`), used by `Settings.from_env`, the compute CLI, the compute agent tool, `files_tools` and `imagegen`.
 - RED: `test_a_route_switched_on_through_the_server_is_on_for_the_compute_cli` (no explicit state dir anywhere; switch compute:boat on through `/app/egress/route`, then build the CLI as `compute` does: the route is on) failed before the fix.
 
+### The four tests/lampway failures at the integration tip (docs audit, item 2)
+- Why my batches did not show them: my per-wave client runs were `tests/lampway_tools` only, so the brand, links and gate checks under `tests/lampway` never ran. The batch script (`scratch/run_suites.sh`) now runs the whole root suite (`pytest` at the repository root with every pytest.ini testpath, the real binary for the tool tests) and the full server suite, in parallel.
+- Fixed: the provider API hosts (fal's queue, its site, model API and storage; the Meshy, Hyper3D, Hi3D and Tripo REST APIs) are on the hosts allow-list with reasons; "no Mixar Paint material" now reads "no layer-paint material"; the MCP inventory note about a legacy entry no longer names the upstream brand; the PII allow-list entry `/home/x` says why.
+
+### Python floor and dependencies (docs audit, item 3)
+- `uuid.uuid7` (3.14 only) is replaced by `library/ids.py` (RFC 9562 version 7, local); `requires-python >= 3.11` stays.
+- numpy is declared (`numpy>=1.26`) and pinned in the lock to 2.4.6: the obvious pin, 2.5.3 (the dev venv's), does not install on 3.11 (pip, measured in a 3.11 venv).
+- `tests/test_python_floor.py`: every server module compiles under a real `python3.11` when one is on the machine (one is: uv's 3.11.15), and a named list of post-3.11 stdlib APIs is denied (the list cannot see an API it does not name; the compile check covers syntax, PEP 701 f-strings included).
+- Evidence beyond the test: the full server suite run under a Python 3.11.15 venv built from the lock (results under "Merges").
+
+### Receipt resolution routes (docs audit, item 4): the contract for lane facelift (spend surfaces, contract 13)
+- `GET /app/receipts?state=submission_unknown` -> `{"receipts": [<export-safe receipt> + "actions": ["acknowledge", "link"]]}`.
+- `POST /app/receipts/{key}/acknowledge` `{}` -> 200 `{"receipt"}` (state `abandoned`, "acknowledged by the user: it did not run").
+- `POST /app/receipts/{key}/link` `{"provider_job_id": "..."}` -> 200 (state `submitted`; the queue's recovery resumes it by that id); 422 without an id.
+- 401 without the user's bearer; 404 unknown key; 409 if the receipt is not `submission_unknown`; 403 if the body says `"by": "agent"` or the header `X-Lampway-Origin: agent` is present. No agent or MCP tool resolves a receipt (pinned by a test).
+- After either action the job queue re-reads the receipts, so the Client's queue shows the new state at once.
+
 ## Merges
 (none yet: this section is appended per merge with lane, range, conflicts, suite and gate results)
 

@@ -982,6 +982,58 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             agent.provider = new_main
         return JSONResponse(provider_prefs.view(settings))
 
+    # ---- the way out of submission_unknown (jobreceipts): the USER acknowledges (it did not run) or links (here is the provider's job id); never an agent
+    def _receipt_user(request: Request, body: dict):
+        if (r := _wb(request)) is not None:
+            return r
+        if str(body.get("by") or "user") != "user" or request.headers.get("X-Lampway-Origin", "").lower() == "agent":
+            return JSONResponse({"detail": "only the user resolves a submission_unknown job, in the Client: an agent may not"}, status_code=403)
+        return None
+
+    def _receipt_view(r: dict) -> dict:
+        v = JR.export_safe(r)
+        if r["state"] == "submission_unknown":
+            v["actions"] = ["acknowledge", "link"]
+        return v
+
+    async def receipts_list(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        state = request.query_params.get("state") or None
+        return JSONResponse({"receipts": [_receipt_view(x) for x in receipts.list(state)]})
+
+    async def _receipt_resolve(request: Request, action: str):
+        body = await _json_body(request)
+        if (r := _receipt_user(request, body)) is not None:
+            return r
+        rec = receipts.get(request.path_params["key"])
+        if rec is None:
+            return JSONResponse({"detail": f"no receipt {request.path_params['key']}"}, status_code=404)
+        if rec["state"] != "submission_unknown":
+            return JSONResponse({"detail": f"only a submission_unknown job is resolved here; this one is {rec['state']}"}, status_code=409)
+        try:
+            if action == "acknowledge":
+                rec = receipts.acknowledge(rec, "user")
+            else:
+                if not str(body.get("provider_job_id") or "").strip():
+                    return JSONResponse({"detail": "link needs provider_job_id: the job id from the provider's own history"}, status_code=422)
+                rec = receipts.link(rec, str(body["provider_job_id"]).strip(), "user")
+        except JR.ReceiptError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=409)
+        try:
+            await jobs.recover()                                                   # the queue shows the new state now; a linked job resumes by its provider id
+        except Exception:  # noqa: BLE001 - the receipt is already moved on disk; recovery runs again at the next start
+            logging.getLogger("lampway.jobs").warning("recovery after a receipt resolution failed", exc_info=True)
+        return JSONResponse({"receipt": _receipt_view(rec)})
+
+    async def receipt_acknowledge(request: Request):
+        return await _receipt_resolve(request, "acknowledge")
+
+    async def receipt_link(request: Request):
+        return await _receipt_resolve(request, "link")
+
+    routes += [Route("/app/receipts", receipts_list, methods=["GET"]), Route("/app/receipts/{key}/acknowledge", receipt_acknowledge, methods=["POST"]),
+               Route("/app/receipts/{key}/link", receipt_link, methods=["POST"])]
     routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"])]
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
