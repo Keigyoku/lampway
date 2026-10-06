@@ -1616,6 +1616,10 @@ def anim_clip(reference_image, view="front", motion="walk", driver_video="", rou
     driver_video. Refused: a 16:9 clip, under 4 s, a reference without its recorded camera. Run the plan with lampway_video_gen (the user confirms the cost), then gate the file with lampway_video_gate
     kind=clip: 24 fps all distinct, 720x1280, 5.0 s, figure >= 1000 px not touching the border, locked camera, >= 4 strides. A failed gate is NOT retried: every draw is a new charge."""
     from .pipeline import anim_plan as _AP
+    for label, f in (("reference_image", reference_image), ("driver_video", driver_video)):
+        if f and not Path(_p(f)).is_file():           # audit F18: a paid plan is never priced for an input that does not exist
+            raise ValueError(f"{label} {f} is not a file under the project root: render the reference first (lampway_anim_reference_render)"
+                             if label == "reference_image" else f"{label} {f} is not a file under the project root (the front clip is its driver)")
     return _AP.clip_plan(reference_image, view, motion, driver_video or None, route, model or None, duration, resolution, aspect_ratio, generate_audio, has_camera_record)
 
 
@@ -1638,6 +1642,9 @@ def anim_from_video(character, motion="walk", views=None, stock_first=True, prov
     decision stays open: needs_decision) -> anim_check -> anim_loop_export, with the decisions.jsonl path the run would write. stock_first refuses when a stock animation (stock_inventory names) already has the
     move: retarget it with animation_retarget. Nothing is run or spent; each step is the tool of that name, a failed gate stops the run, and a clip is never re-drawn without the user."""
     from .pipeline import anim_plan as _AP
+    if bpy.data.objects.get(str(character or "")) is None:     # audit F18: priced only for a character that exists
+        raise ValueError(f"no object {character!r} in the scene: the plan renders the character first (anim_reference_render); "
+                         f"the meshes and armatures are {sorted(o.name for o in bpy.data.objects if o.type in ('MESH', 'ARMATURE'))[:20]}")
     p = {"character": character, "motion": motion, "views": views, "stock_first": stock_first, "provider_track": provider_track, "route": route, "out_package": out_package,
          "stock_inventory": stock_inventory or []}
     if anim_dir:
