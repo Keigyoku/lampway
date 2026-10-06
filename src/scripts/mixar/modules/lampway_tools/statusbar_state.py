@@ -7,23 +7,29 @@ ui/statusbar.py), one reader (its draw). No bpy and no network here: draw() must
 
 When the server cannot be reached the bar says so ("spend unknown: server not running", "egress unknown") and shows no number from before."""
 
-STATE = {"ok": False, "error": "", "egress": {}, "spend": {}, "studio": {}, "provider": ""}
+STATE = {"ok": False, "error": "", "signed_out": False, "egress": {}, "spend": {}, "studio": {}, "provider": ""}
 FAST_S, SLOW_S = 0.5, 5.0
 
 
 def reset() -> None:
-    STATE.update(ok=False, error="", egress={}, spend={}, studio={}, provider="")
+    STATE.update(ok=False, error="", signed_out=False, egress={}, spend={}, studio={}, provider="")
 
 
 def update(egress=None, spend=None, studio=None, provider=None) -> None:
     for key, value in (("egress", egress), ("spend", spend), ("studio", studio), ("provider", provider)):
         if value is not None:
             STATE[key] = value
-    STATE.update(ok=True, error="")
+    STATE.update(ok=True, error="", signed_out=False)
 
 
-def fail(message: str) -> None:
-    STATE.update(ok=False, error=message)
+def fail(message: str, signed_out: bool = False) -> None:
+    """The server did not answer (``signed_out``: it answered, and the user is signed out)."""
+    STATE.update(ok=False, error=message, signed_out=bool(signed_out))
+
+
+def down_line() -> str:
+    """What the bar says in place of the spend when it has no answer: signed out, or the server not running."""
+    return "signed out" if STATE["signed_out"] else "spend unknown: server not running"
 
 
 def _indicator() -> dict:
@@ -41,6 +47,8 @@ def sending() -> bool:
 def wire_chip() -> tuple:
     """(text, glyph, tooltip): local, N routes open, or Sending to <route>. The indicator is the truth: lit with no route named still sends."""
     if not STATE["ok"]:
+        if STATE["signed_out"]:
+            return "egress unknown", "wire", "Signed out: sign in to the Lampway server to see what leaves this machine"
         return "egress unknown", "wire", f"Lampway's server is not answering: {STATE['error'] or 'not running'}"
     if sending():
         labels = {r.get("id"): r.get("label") or r.get("id") for r in (STATE["egress"] or {}).get("routes") or []}
@@ -55,7 +63,7 @@ def wire_chip() -> tuple:
 def spend_line() -> tuple:
     """(text, meter step 0..10 or None, tooltip). Dollars against the cap the Providers dialog set; credits after them."""
     if not STATE["ok"]:
-        return "spend unknown: server not running", None, STATE["error"]
+        return down_line(), None, STATE["error"]
     rows = (STATE["spend"] or {}).get("providers") or []
     usd = [r for r in rows if r.get("unit") == "USD"]
     spent = sum(float(r.get("spent") or 0) for r in usd)

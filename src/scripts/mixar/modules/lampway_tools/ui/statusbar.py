@@ -66,7 +66,7 @@ def refresh():
         S.update(egress=client.egress(), spend=client.spend(), studio=client.studio(),
                  provider=((client.provider_settings() or {}).get("values") or {}).get("provider") or "")
     except studio_client.StudioError as exc:
-        S.fail(str(exc))
+        S.fail(str(exc), signed_out=isinstance(exc, studio_client.SignedOut))
     sync_animation()
     _sync_route_line()
     _open_awaited_card()
@@ -176,7 +176,7 @@ def draw(self, context):
     layout = self.layout
     row = layout.row(align=True)
     if not S.STATE["ok"]:
-        row.label(text="spend unknown: server not running", icon='LAMPWAY_COIN')
+        row.label(text=S.down_line(), icon='LAMPWAY_COIN')
         row.label(text="egress unknown", icon='LAMPWAY_WIRE')
         _plug(row)
         return   # the version is the status bar's own (Blender draws it at the far right)
