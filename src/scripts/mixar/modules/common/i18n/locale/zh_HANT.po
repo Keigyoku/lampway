@@ -5438,6 +5438,42 @@ msgstr ""
 msgid "Arguments"
 msgstr ""
 
+msgid "Add argument"
+msgstr ""
+
+msgid "Add an argument row to the plan form"
+msgstr ""
+
+msgid "Remove argument"
+msgstr ""
+
+msgid "Remove the selected argument row"
+msgstr ""
+
+msgid "It did not run"
+msgstr ""
+
+msgid "Say this job did not run: Lampway stops waiting for it and nothing is sent again (only you can do this)"
+msgstr ""
+
+msgid "Link its job id"
+msgstr ""
+
+msgid "It did run: give the job id from the provider's own history, and Lampway follows that job (nothing is sent again)"
+msgstr ""
+
+msgid "Job id"
+msgstr ""
+
+msgid "The job's id in the provider's own history"
+msgstr ""
+
+msgid "Link the provider's job id"
+msgstr ""
+
+msgid "Link"
+msgstr ""
+
 msgid "Confirm and spend"
 msgstr ""
 
@@ -5735,10 +5771,10 @@ msgstr ""
 msgid "Providers: agent, swarm, images"
 msgstr ""
 
-msgid "Waiting for YOUR confirmation"
+msgid "Not now"
 msgstr ""
 
-msgid "Plan (clicks nothing)"
+msgid "Plan an action (clicks nothing)"
 msgstr ""
 
 msgid "Features"
@@ -5790,6 +5826,36 @@ msgid "Show the signed-in name and address on the account card; off, it reads Lo
 msgstr ""
 
 msgid "enum values, | separated"
+msgstr ""
+
+msgid "Argument"
+msgstr ""
+
+msgid "The argument's name, as the Studio action names it (e.g. front, polycount)"
+msgstr ""
+
+msgid "Words"
+msgstr ""
+
+msgid "Number"
+msgstr "數目"
+
+msgid "A number"
+msgstr ""
+
+msgid "File"
+msgstr "檔案"
+
+msgid "A file inside the project root"
+msgstr ""
+
+msgid "Yes / no"
+msgstr ""
+
+msgid "On or off"
+msgstr ""
+
+msgid "Inside the project root"
 msgstr ""
 
 msgid "Recipe"
@@ -5922,9 +5988,6 @@ msgid "A prompt-library template (image or video)"
 msgstr ""
 
 msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
-msgstr ""
-
-msgid "Job id"
 msgstr ""
 
 msgid "The job to rate"
@@ -8056,9 +8119,6 @@ msgstr "字串值"
 
 msgid "Whole-number value"
 msgstr "整數值"
-
-msgid "Number"
-msgstr "數目"
 
 msgid "Floating-point value"
 msgstr "浮點數值"
@@ -22281,9 +22341,6 @@ msgstr "檔案路徑或 Blend 影像名稱"
 
 msgid "Image Source"
 msgstr "影像來源"
-
-msgid "File"
-msgstr "檔案"
 
 msgid "Image from file system"
 msgstr "來自檔案系統的影像"

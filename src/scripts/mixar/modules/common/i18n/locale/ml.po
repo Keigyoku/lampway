@@ -5438,6 +5438,42 @@ msgstr ""
 msgid "Arguments"
 msgstr ""
 
+msgid "Add argument"
+msgstr ""
+
+msgid "Add an argument row to the plan form"
+msgstr ""
+
+msgid "Remove argument"
+msgstr ""
+
+msgid "Remove the selected argument row"
+msgstr ""
+
+msgid "It did not run"
+msgstr ""
+
+msgid "Say this job did not run: Lampway stops waiting for it and nothing is sent again (only you can do this)"
+msgstr ""
+
+msgid "Link its job id"
+msgstr ""
+
+msgid "It did run: give the job id from the provider's own history, and Lampway follows that job (nothing is sent again)"
+msgstr ""
+
+msgid "Job id"
+msgstr ""
+
+msgid "The job's id in the provider's own history"
+msgstr ""
+
+msgid "Link the provider's job id"
+msgstr ""
+
+msgid "Link"
+msgstr ""
+
 msgid "Confirm and spend"
 msgstr ""
 
@@ -5735,10 +5771,10 @@ msgstr ""
 msgid "Providers: agent, swarm, images"
 msgstr ""
 
-msgid "Waiting for YOUR confirmation"
+msgid "Not now"
 msgstr ""
 
-msgid "Plan (clicks nothing)"
+msgid "Plan an action (clicks nothing)"
 msgstr ""
 
 msgid "Features"
@@ -5790,6 +5826,36 @@ msgid "Show the signed-in name and address on the account card; off, it reads Lo
 msgstr ""
 
 msgid "enum values, | separated"
+msgstr ""
+
+msgid "Argument"
+msgstr ""
+
+msgid "The argument's name, as the Studio action names it (e.g. front, polycount)"
+msgstr ""
+
+msgid "Words"
+msgstr ""
+
+msgid "Number"
+msgstr "സംഖ്യ"
+
+msgid "A number"
+msgstr ""
+
+msgid "File"
+msgstr "ഫയൽ"
+
+msgid "A file inside the project root"
+msgstr ""
+
+msgid "Yes / no"
+msgstr ""
+
+msgid "On or off"
+msgstr ""
+
+msgid "Inside the project root"
 msgstr ""
 
 msgid "Recipe"
@@ -5922,9 +5988,6 @@ msgid "A prompt-library template (image or video)"
 msgstr ""
 
 msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
-msgstr ""
-
-msgid "Job id"
 msgstr ""
 
 msgid "The job to rate"
@@ -8056,9 +8119,6 @@ msgstr "സ്ട്രിംഗ് വാല്യൂ"
 
 msgid "Whole-number value"
 msgstr "പൂർണ്ണസംഖ്യ വാല്യൂ"
-
-msgid "Number"
-msgstr "സംഖ്യ"
 
 msgid "Floating-point value"
 msgstr "ഫ്ലോട്ടിംഗ്-പോയിന്റ് വാല്യൂ"
@@ -22281,9 +22341,6 @@ msgstr "ഫയൽ പാത അല്ലെങ്കിൽ ബ്ലെൻഡ്
 
 msgid "Image Source"
 msgstr "ചിത്ര ഉറവിടം"
-
-msgid "File"
-msgstr "ഫയൽ"
 
 msgid "Image from file system"
 msgstr "ഫയൽ സിസ്റ്റത്തിൽ നിന്നുള്ള ചിത്രം"
