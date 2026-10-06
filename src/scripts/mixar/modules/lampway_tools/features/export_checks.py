@@ -23,6 +23,45 @@ from . import common as C
 
 
 FRAME_TOL_DEG = 0.01                    # canon 05 B.7 / Titan bind_mismatch: 0.01 deg per bone frame
+SCALE_TOL = 1e-4                        # Titan bind_mismatch: per-bone scale
+
+
+def fbx_bone_scale(path):
+    """{bone: [sx, sy, sz]} as an engine reads them: each LimbNode's Lcl Scaling times the file's UnitScaleFactor (UE converts the file's
+    unit into centimetres on every bone). Read from the FBX itself (Blender's parser, no import): the importer compensates the factor,
+    so a skeleton read after import can never show it (canon 21 G21.3)."""
+    from io_scene_fbx import parse_fbx
+    root, _v = parse_fbx.parse(str(path))
+    usf, out = 1.0, {}
+    for e in root.elems:
+        if e.id == b"GlobalSettings":
+            for sub in e.elems:
+                if sub.id == b"Properties70":
+                    for prop in sub.elems:
+                        if prop.props and prop.props[0] == b"UnitScaleFactor":
+                            usf = float(prop.props[4])
+        if e.id == b"Objects":
+            for m in e.elems:
+                if m.id == b"Model" and len(m.props) > 2 and m.props[2] == b"LimbNode":
+                    name = m.props[1].split(b"\x00")[0].decode("utf-8", "replace")
+                    s = [1.0, 1.0, 1.0]
+                    for sub in m.elems:
+                        if sub.id == b"Properties70":
+                            for prop in sub.elems:
+                                if prop.props and prop.props[0] == b"Lcl Scaling":
+                                    s = [float(x) for x in prop.props[4:7]]
+                    out[name] = s
+    return {n: [x * usf for x in s] for n, s in out.items()}
+
+
+def _bone_scale(t, ref):
+    rows = []
+    for n in sorted(set(t) & set(ref)):
+        r = [x / max(abs(y), 1e-12) for x, y in zip(t[n], ref[n])]
+        rows.append((n, max(r, key=lambda v: abs(v - 1.0)), max(abs(a - b) for a, b in zip(t[n], ref[n])) > SCALE_TOL * max(1.0, max(abs(y) for y in ref[n]))))
+    worst = max(rows, key=lambda r: abs(r[1] - 1.0), default=(None, 1.0, False))
+    return {"bones_compared": len(rows), "worst": round(worst[1], 6), "worst_bone": worst[0], "tolerance": SCALE_TOL,
+            "over_tolerance": [{"bone": n, "ratio": round(v, 6)} for n, v, bad in rows if bad]}
 BONE_AXES = ("Z", "X")                  # canon 01 C.3 / F: the export convention (primary Z, secondary X) the read-back imports with
 
 
@@ -96,17 +135,22 @@ def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, 
     elif (target or {}).get("profile"):
         raise C.FeatureError(f"profile {(target or {}).get('profile')!r} needs a reference skeleton file: pass target.names_from (no profile table is bundled yet)")
     if armature:
-        t = _table(C.need_object(armature, "ARMATURE"))
+        aob = C.need_object(armature, "ARMATURE")
+        t = _table(aob)
+        t_scale = {b.name: [float(x) for x in aob.matrix_world.to_scale()] for b in aob.data.bones}     # a rest bone has no scale of its own
     else:
         p = _within(root, fbx)
         if not p.exists():
             raise C.FeatureError(f"{fbx} not found under the project root")
         t = _import_table(p)
+        t_scale = fbx_bone_scale(p)
     names = set(t["bones"])
     leaf = sorted(n for n in names if n.endswith("_end") and (ref is None or n not in ref["bones"]))
     reasons = []
     missing, extra, mism, root_info, scale = [], [], [], {"name": None, "expected": None}, 1.0
     frames = {"bones_compared": 0, "worst_deg": None, "worst_bone": None, "over_tolerance": [], "tolerance_deg": FRAME_TOL_DEG}
+    ref_scale = fbx_bone_scale(_within(root, names_from)) if names_from and str(names_from).lower().endswith(".fbx") else {n: [1.0, 1.0, 1.0] for n in t_scale}
+    bone_scale = _bone_scale(t_scale, ref_scale)
     if ref is not None:
         rnames = set(ref["bones"])
         missing = sorted(rnames - names)
@@ -128,6 +172,9 @@ def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, 
     if frames["over_tolerance"]:
         reasons.append(f"{len(frames['over_tolerance'])} bone frame(s) differ from the target (worst {frames['worst_bone']} {frames['worst_deg']:.2f} deg): "
                        "positions can match while frames are turned, and a leader pose then moves the gear (canon 01 C.3)")
+    if bone_scale["over_tolerance"]:
+        reasons.append(f"{len(bone_scale['over_tolerance'])} bone scale(s) differ from the target (worst {bone_scale['worst_bone']} x{bone_scale['worst']:g}): "
+                       "an engine reads each bone's Lcl Scaling times the file's UnitScaleFactor (a metres file reads 100x in UE: export cm-native)")
     if root_info["name"] != root_info["expected"]:
         reasons.append(f"the root is {root_info['name']!r}, the target's is {root_info['expected']!r}")
     if abs(scale - float(expect_unit_scale)) > 0.05 * float(expect_unit_scale):
@@ -136,7 +183,7 @@ def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, 
     if posed:
         reasons.append(f"bones {posed[:6]} are posed with no animation: the rest pose is a posed frame (clear the pose before the export)")
     return {"ok": True, "leaf_bones": leaf, "missing_bones": missing, "extra_bones": extra, "hierarchy_mismatch": mism, "root": root_info, "unit_scale": round(scale, 4), "axes": {"up": t["up"], "forward": None},
-            "frames": frames,
+            "frames": frames, "bone_scale": bone_scale,
             "rest_vs_frame": {"rest_pose_is_frame_zero": bool(posed), "posed_bones": posed}, "pass": not reasons, "reasons": reasons}
 
 

@@ -456,7 +456,8 @@ DEFS = [
          P("armature", desc="default: the piece's Armature modifier"), P("validation", desc="judge: a validation dict or file")], api="fit_validate"),
     Def("lampway_skeleton_export_check", "Check an armature in the scene or an FBX under the project root (exactly one) against a reference skeleton (target.names_from: a reference FBX). Reports leaf bones (`*_end`: "
         "export with add_leaf_bones off), missing and extra bones, parents that differ, the root, the unit scale (height ratio to the reference: a 100x export reads 100), the up axis and rest_vs_frame (bones posed with no "
-        "animation: the bind pose was taken from a posed scene), with pass and reasons.",
+        "animation: the bind pose was taken from a posed scene), each bone's frame against the reference (0.01 deg) and each bone's engine scale read from the "
+        "FBX itself (Lcl Scaling x the file's UnitScaleFactor: a metres file reads 100x in UE; 1e-4), with pass and reasons.",
         [P("armature", desc="armature object name"), P("fbx", desc="an FBX path (alternative)"), P("target", "object", "{names_from: a reference FBX}"), P("expect_unit_scale", "number", "default 1"),
          P("allow_extra_bones", "boolean", "default false")], api="skeleton_export_check"),
     Def("lampway_engine_import_check", "Static check of an exported package (a folder with an FBX and Textures/) against the engine's import rules: FBX header version (Unreal 7400+; FBX 2020.2 = 7700), mesh names and "
