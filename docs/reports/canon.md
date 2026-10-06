@@ -457,3 +457,24 @@ Unreal) is below what a Blender edit bone holds: setting `EditBone.matrix` to an
 0.112 deg off (67 of 400 random frames over 0.01 deg) with no FBX involved; the FBX round trip shows the same size (max 0.092 deg
 over 60). The errors are NOT clustered at the roll singularity, so I do not name a cause. G21.2's "frames equal to 0.01 deg" is
 unreachable for arbitrary frames inside Blender; my R08 exporter test therefore uses 0.2 deg (a wrong pair is >= 90 deg off).
+
+## Item 7: pose solve (DONE for the engine, the chest table and the tool; the other kinds wait for the captain's ranges)
+`pipeline/pose_solve.py` (pure; the ray caster a seam: numpy Moller-Trumbore for the goldens, a Blender BVH in the tool): the sign
+check before any sweep (B.1: the first DOF at +20 deg must move its `expect` joint; a reversed axis refuses and the sweep never
+runs), axes in the joint grammar applied through the bone's joint with children carried (`canon_geom.pose_cs`), rays from each
+skin sample's projection onto its posed bone segment out to the sample (B.3), regions selected by BONE (never heights), the grid
+then the chain by coordinate descent (B.4), the canon selection (fewest over the threshold, then the worst depth, then the
+smallest pose), ranges over 90 deg refused, `mirror` (one DOF turns both sides: R(a, deg) reflected across x = 0 is R(Ma, -deg)),
+and `pose.json` (`lampway.fit-pose/1`) whose entries replay through `pose_cs` to the sweep's joints (G08.3, < 0.01 cm).
+`posing.CHEST` is canon 08 B.4's table verbatim (arms lowered 0..40 step 5 x swung -10..10 step 5, mirrored; spine_01, spine_03,
+neck_01 pitch -8..8 step 4; arms count over 10 mm, torso and neck over 2 mm); `lampway_fit_pose` runs the engine on the scene's
+piece, skinned body and armature when DOFs are passed, `dofs="chest"` by name. Without DOFs the old routes stand (chest ->
+`pose_clearance`, other kinds needs_decision).
+Golden C07: G08.1 best lower 30 deg exactly with 0 over 10 mm, A-pose over (pure and through the tool with the BVH caster); G08.2 a
+negated axis refused before any ray; G08.3 replay. RED: ImportError for the engine (weak), then behavioural REDs for the tool (it
+ignored DOFs), mirror (25 deg compromise with one arm) and the chest table (absent). Mutants: selection by pose cost first, the sign
+check off, the range bound off, mirror's sign, a BVH that never hits - each fails a test. **The ray origin's mutant (cast from the
+bone's head) SURVIVED C07** (the sleeve is symmetric about the arm); a new case kills it: a disk across the arm (a cap, canon 06 /
+INV-08.5) is crossed by no ray from the axis (0 over) and by 96 rays from the head.
+Not built: G08.4 (the recorded chest regression needs the shelf's chest inputs, not in the repository); the hands (B.5, curl
+fractions); the residual blockers' box in the piece's own frame (B.6, needs the placement meta); the optional limb initialiser (B.7).
