@@ -17,11 +17,22 @@ from bpy.types import Operator, PropertyGroup
 
 from mixar.modules.lampway_tools import onboarding as ob
 
+def n_(msgid):
+    """Marks a message for the catalogue; it is translated where it is drawn."""
+    return msgid
+
+
+def iface_(msgid):
+    out = bpy.app.translations.pgettext_iface(msgid)
+    return out if isinstance(out, str) else msgid      # a stubbed bpy (the unit tests) translates nothing
+
+
 WALK = {"walk": None, "anchor": None}
 WRAP = 60              # characters per body line: the body column holds about 78 at any UI scale (it scales with the text)
-STEP_TEXT = {2: "The agent thinks with the provider you pick here; nothing is sent until you use it",
-             3: "Every route is off until you switch it on",
-             4: "OpenRouter, in dollars: a click above the first amount, never past the caps"}
+STEP_TEXT = {2: n_("The agent thinks with the provider you pick here; nothing is sent until you use it"),
+             3: n_("Every route is off until you switch it on"),
+             4: n_("OpenRouter, in dollars: a click above the first amount, never past the caps")}
+OFFLINE_NEXT = n_("Continue saves your language and keys only")
 SHIELD = {"ok": 'LAMPWAY_SHIELD', "conditional": 'LAMPWAY_SHIELD_HALF', "retains": 'LAMPWAY_SHIELD_OPEN', "unknown": 'LAMPWAY_SHIELD_UNKNOWN'}
 PROVIDERS = (("chatgpt_plan", "ChatGPT plan", "Your ChatGPT subscription, signed in from Providers"),
              ("codex_cli", "Codex CLI", "The Codex command line on this machine, on your ChatGPT plan"),
@@ -65,19 +76,19 @@ def draw_rail(layout, walk):
 
 
 def wrapped(layout, text, icon='NONE'):
-    """A sentence as whole lines: a label never cuts it to an ellipsis (audit F23)."""
-    for i, line in enumerate(textwrap.wrap(text, WRAP)):
-        layout.label(text=line, icon=icon if i == 0 else 'NONE')
+    """A sentence as whole lines: a label never cuts it to an ellipsis (audit F23). Translated whole, then wrapped."""
+    for i, line in enumerate(textwrap.wrap(iface_(text), WRAP)):
+        layout.label(text=line, icon=icon if i == 0 else 'NONE', translate=False)
 
 
 def _lines(text) -> int:
-    return len(textwrap.wrap(text, WRAP))
+    return len(textwrap.wrap(iface_(text), WRAP))
 
 
 def body_rows(walk) -> int:
     """The tallest step's rows: every step is padded to it, so the dialog keeps one size and Continue one place (audit F23)."""
     if not walk.online:
-        return 1 + _lines(ob.OFFLINE) + _lines("Continue saves your language and keys only")
+        return 1 + _lines(ob.OFFLINE) + _lines(OFFLINE_NEXT)
     refusal = max((_lines(why) for why in [walk.refusal()] if why), default=0)
     return max(_lines(STEP_TEXT[2]) + 1 + max(refusal, 1), _lines(STEP_TEXT[3]) + len(walk.routes), _lines(STEP_TEXT[4]) + 3)
 
@@ -106,8 +117,8 @@ def _draw_body(body, walk, rows) -> int:
     """Draw the step's body; return how many rows it took."""
     if walk.step >= 2 and not walk.online:
         wrapped(body, ob.OFFLINE, icon='ERROR')
-        wrapped(body, "Continue saves your language and keys only")
-        return _lines(ob.OFFLINE) + _lines("Continue saves your language and keys only")
+        wrapped(body, OFFLINE_NEXT)
+        return _lines(ob.OFFLINE) + _lines(OFFLINE_NEXT)
     wm = getattr(bpy.context, "window_manager", None)
     if walk.step == 2:
         wrapped(body, STEP_TEXT[2])
