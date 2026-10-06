@@ -60,3 +60,8 @@ def test_texture_gen_takes_a_material_reference_variants_and_a_ledger_row():
     props = LT.BY_NAME["lampway_texture_gen"].spec().parameters["properties"]
     for k in ("reference_image", "count", "keep_original", "record", "piece", "delight", "min_coverage"):
         assert k in props, k
+
+
+def test_layered_material_offers_mask_invert():
+    d = LT.BY_NAME["lampway_layered_material"].description
+    assert "mask_invert" in d and "Mask invert is not built" not in d
