@@ -41,3 +41,7 @@ theme = "dark"
 paused_dash = "muted_dim"
 done_ring = "go"
 idle_ring = "line_hi"
+
+[vault_drag]
+theme = "dark"
+[vault_drag.surfaces]

@@ -143,7 +143,7 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
     {SPACE_MIXAR_ASSETS,
      "MIXAR_ASSETS",
      ICON_ASSET_MANAGER,
-     "Texturing Assets",
+     "Asset Vault",
      "Smart materials, brushes, and textures library"},
     /* SPACE_MIXAR_UV_PROPERTIES removed: merged into IMAGE_EDITOR sidebar */
     {SPACE_BAKING,

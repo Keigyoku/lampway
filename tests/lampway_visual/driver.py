@@ -68,11 +68,29 @@ def finish():
         json.dump(report, fh, indent=1)
 
 
+def quit_now():
+    """Quit without the unsaved-changes prompt: a state that edits the screen (an area's type) dirties the file, and the
+    prompt would wait forever on a virtual display."""
+    bpy.context.preferences.view.use_save_prompt = False
+    bpy.ops.wm.quit_blender()
+
+
 def tick():
+    try:
+        return _tick()
+    except Exception as exc:  # a state that raises must end the run, not stop the timer and leave the window open
+        print("VISUAL: failed:", repr(exc))
+        import traceback
+        traceback.print_exc()
+        sys.stdout.flush()
+        os._exit(1)
+
+
+def _tick():
     run["tick"] += 1
     if run["tick"] > MAX_TICKS:
         print("VISUAL: gave up waiting for the UI", run)
-        bpy.ops.wm.quit_blender()
+        quit_now()
         return None
     boot = sys.modules.get("bootstrap")
     if run["phase"] == "load":
@@ -101,7 +119,7 @@ def tick():
             traceback.print_exc()
             sys.stdout.flush()
             os._exit(1)
-        bpy.ops.wm.quit_blender()
+        quit_now()
         return None
     return 0.25
 
