@@ -116,3 +116,25 @@ def test_the_tool_docstring_offers_mask_invert_and_never_says_it_is_not_built():
     fn = next(n for n in ast.walk(ast.parse(api.read_text(encoding="utf-8"))) if isinstance(n, ast.FunctionDef) and n.name == "layered_material")
     doc = ast.get_docstring(fn)
     assert "mask_invert" in doc and "mask invert is not built" not in " ".join(doc.lower().split()), doc
+
+
+def test_init_on_a_textured_material_is_refused_until_the_maps_may_go(tmp_path):
+    """Audit F7: init on the Poly Haven barrel replaced its material and its diffuse, normal and ARM maps were lost (the export then
+    had no textures). init now refuses a material that carries image maps, naming them; params {discard_textures: true} starts
+    the paint project anyway, a decision the caller makes knowingly."""
+    d = one(go(tmp_path, '''
+ob = plate("Barrel")
+mat = bpy.data.materials.new("barrel"); mat.use_nodes = True; ob.data.materials.append(mat)
+nt = mat.node_tree; bsdf = nt.nodes["Principled BSDF"]
+for label, sock in (("barrel_diff", "Base Color"), ("barrel_nor", "Normal")):
+    tex = nt.nodes.new("ShaderNodeTexImage"); tex.image = bpy.data.images.new(label, 8, 8)
+    nt.links.new(tex.outputs["Color"], bsdf.inputs[sock])
+refused = lm(action="init", object="Barrel")
+kept = [n.image.name for n in ob.active_material.node_tree.nodes if n.type == "TEX_IMAGE" and n.image]
+forced = lm(action="init", object="Barrel", params={"discard_textures": True})
+print("RESULT", json.dumps({"refused": refused, "kept": sorted(kept), "material": ob.active_material.name, "forced": forced}))
+'''))
+    r = d["refused"]
+    assert r["ok"] is False and "barrel_diff" in r["error"] and "barrel_nor" in r["error"] and r["help"], r
+    assert d["kept"] == ["barrel_diff", "barrel_nor"] and d["material"] == "barrel"
+    assert d["forced"]["ok"] is True, d["forced"]

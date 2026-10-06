@@ -965,7 +965,7 @@ def procedural_library(action="list", category=None, query=None, material_id=Non
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def layered_material(action="inspect", object=None, material=None, layer=None, manifest=None, layer_index=-1, params=None):
-    """The Client's layer-paint stack (an editable material built from layers and masks) from the agent. init puts a paint project on the mesh's material; inspect returns the stack ({index, name, type, enabled,
+    """The Client's layer-paint stack (an editable material built from layers and masks) from the agent. init puts a paint project on the mesh's material (a material that samples image maps is refused, naming them: init rebuilds the material and would drop them; params {discard_textures: true} starts anyway); inspect returns the stack ({index, name, type, enabled,
     blend, opacity, channels, mask}); add_layer {type: fill | paint | image | group, name, blend: MIX|ADD|MULTIPLY|SUBTRACT|SCREEN|OVERLAY, opacity 0..1, color [r,g,b] for fill, size for paint/image, mask: {type:
     edge_detect | color_id | vcol | image}, projection: uv | triplanar | planar | spherical | cylindrical | decal} (uv needs a UV map: otherwise use triplanar or unwrap first); add_procedural puts a library
     material (see procedural_library) on as a layer; set_params {opacity, enabled, name, blend_type, projection_type, translation, rotation, scale ...} edits layer_index (-1 = the active layer); apply_manifest

@@ -55,6 +55,17 @@ def _mp(ob):
     return node.node_tree.mp if node is not None else None
 
 
+def _image_maps(ob):
+    """The image names a mesh's materials sample (TEX_IMAGE nodes with an image), in slot order."""
+    out = []
+    for slot in ob.material_slots:
+        m = slot.material
+        if m is None or not m.use_nodes or m.node_tree is None:
+            continue
+        out += [n.image.name for n in m.node_tree.nodes if n.type == "TEX_IMAGE" and n.image is not None and n.image.name not in out]
+    return out
+
+
 def _inverted(mask) -> bool:
     return any(m.type == "INVERT" and m.enable for m in mask.modifiers)
 
@@ -135,6 +146,11 @@ def layered_material(action="inspect", object=None, material=None, layer=None, m
         return _out(ob, {"applied": r.get("applied")})
     ob = _mesh(object)
     if action == "init":
+        maps = [] if _mp(ob) is not None or (params or {}).get("discard_textures") else _image_maps(ob)
+        if maps:                                       # audit F7: init rebuilds the material, and these maps would be lost
+            raise C.FeatureError(f"{ob.name}'s material carries image maps the paint project would drop: {', '.join(maps)}. "
+                                 "Keep them: paint on a copy of the object, or bake them into the stack later. "
+                                 "Start anyway: call init again with params {\"discard_textures\": true}")
         r = AT.initialize_layer_paint_project([ob.name], material_name=material or "")
         if not r.get("success"):
             raise C.FeatureError("init failed: " + str(r.get("errors") or r.get("error")))
