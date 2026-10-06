@@ -6,6 +6,7 @@ set a choice in Choices; the ``LAMPWAY_*`` environment as the session layer (CH4
 the three agree by construction."""
 
 import os
+import time
 
 from .. import provider_prefs as PP
 from ..config import Settings
@@ -208,3 +209,51 @@ def settings_for_option(s: Settings, oid: str, params=None) -> Settings:
     trial.sources = dict(s.sources)
     _apply(trial, "agent.main", {"preferred": oid, "params": params or {}})
     return trial
+
+
+def import_embed_defaults(library_root) -> int:
+    """Steps 2 and 8 for embeddings (HC20): ``<library>/embed_defaults.json`` (``job:sensitivity -> model``, written by a registry nothing
+    used) becomes the embed.<job> choices; the file is renamed ``.migrated`` once every entry is in the store or logged as unrepresentable."""
+    import json as _json
+    from pathlib import Path as _P
+    from .. import choices as CH
+    src = _P(library_root) / "embed_defaults.json"
+    if not src.exists():
+        return 0
+    try:
+        data = _json.loads(src.read_text())
+    except ValueError:
+        return 0
+    store, done = CH.active_store(), 0
+    for key, model in sorted((data or {}).items()):
+        job, _, sensitivity = key.partition(":")
+        pid = f"embed.{job}"
+        if pid not in REG.PURPOSES or sensitivity != "private":
+            continue                                          # a public pick has no scope of its own: the private default is the purpose's
+        oid = model if model.startswith(("local:", "deterministic:")) else f"openrouter:{model}"
+        try:
+            store.set(pid, "global", None, {"preferred": oid}, by="user")
+            done += 1
+        except Exception as exc:  # noqa: BLE001 - logged, never silently dropped
+            store._append_log({"t": time.time(), "purpose": pid, "action": "import_refused", "reason": str(exc)[:200], "by": "migration"})
+    src.rename(src.with_name("embed_defaults.json.migrated"))
+    return done
+
+
+MODELED = {"provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model", "swarm_provider", "claude_swarm_model",
+           "chatgpt_swarm_model", "chatgpt_swarm_effort", "openrouter_swarm_model", "image_backend", "image_purposes", "video_purposes"}
+
+
+def save_dialog_choices(s: Settings, values: dict) -> dict:
+    """Step 9: the Providers dialog's values that Choices models are written to choices.json as the user's click (the purposes they
+    decide, from the settings those values give); returns the values that have no Choices home (they stay in provider_prefs.json)."""
+    from .. import choices as CH
+    modeled = {k: v for k, v in values.items() if k in MODELED}
+    if modeled:
+        trial = PP.trial(s, modeled)
+        every = chains(trial)
+        for pid in sorted(_touched(modeled)):
+            if pid in every:
+                entry = {k: every[pid][k] for k in ("preferred", "fallbacks", "params")}
+                CH.active_store().set(pid, "global", None, entry, by="user")
+    return {k: v for k, v in values.items() if k not in MODELED}

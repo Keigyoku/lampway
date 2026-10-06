@@ -154,3 +154,32 @@ def option_param(oid: str, key: str, project: Optional[str] = None):
             if value not in (None, ""):
                 return value
     return None
+
+
+def import_quality(source: str, path: str, by: str) -> int:
+    """The user's import of measured quality (choices_store.md 4.1): ``bakeoff`` reads the 2026-10-05 image bake-off's results.json
+    (``{model: {status, cost, s, file}}``) into cost_usd and seconds for image.plates. The file must be inside the project root."""
+    from .store import Refused
+    if by != "user":
+        raise Refused("only your click in Choices can change a choice: an agent may propose one", 403)
+    if source != "bakeoff":
+        raise Refused("source is bakeoff")
+    from ..agent.server_tools import project_root
+    real, root = Path(os.path.realpath(path if os.path.isabs(path) else project_root() / path)), Path(os.path.realpath(project_root()))
+    if root not in real.parents or not real.is_file():
+        raise Refused(f"{path} must be a file inside the project root ({root})")
+    try:
+        data = json.loads(real.read_text())
+    except ValueError:
+        raise Refused(f"{real.name} is not JSON") from None
+    import time as _t
+    when = _t.strftime("%Y-%m-%d", _t.gmtime(real.stat().st_mtime))
+    records = []
+    for model, row in sorted((data or {}).items()):
+        if not isinstance(row, dict) or row.get("status") != 200:
+            continue
+        for metric, key in (("cost_usd", "cost"), ("seconds", "s")):
+            if isinstance(row.get(key), (int, float)):
+                records.append({"purpose": "image.plates", "option": f"openrouter:{model}", "metric": metric, "value": row[key], "n": 1,
+                                "source": f"bakeoff:{real.name}", "measured_at": when})
+    return active_store().add_quality(records, by)

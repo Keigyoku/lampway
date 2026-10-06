@@ -3,8 +3,17 @@
 import os
 
 
-def make_provider(settings, chatgpt_auth=None):
-    """The provider LAMPWAY_PROVIDER names (Choices' agent.main decides the settings, choices/bridge.py). Keys come from Connections."""
+def make_provider(settings, chatgpt_auth=None, resolution=None):
+    """The main agent's provider. With ``resolution`` (Choices' agent.main, 5.6) it is built from the resolved option - the user's
+    fallback when the preferred option cannot serve; without one, from the settings (which Choices also decides). Keys come from Connections."""
+    if resolution is not None and not str(resolution.option).startswith("follow:"):
+        from ...choices.bridge import settings_for_option
+        p = _make_provider(settings_for_option(settings, resolution.option, resolution.params), chatgpt_auth)
+        try:
+            p.choice = {"option": resolution.option, "reason": resolution.reason, "why": resolution.why}
+        except AttributeError:
+            pass
+        return p
     try:
         from ...choices import shadow as SH
         from ...choices.bridge import chains

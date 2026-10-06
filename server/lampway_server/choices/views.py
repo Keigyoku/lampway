@@ -8,6 +8,19 @@ from . import registry as REG
 from . import resolver as R
 
 
+def _quality(pid: str, oid: str) -> list:
+    """The latest record per metric for this option (evidence only: it never reorders a chain, CH7)."""
+    from .. import choices as CH
+    try:
+        recs = CH.active_store().quality(purpose=pid, option=oid)
+    except Exception:  # noqa: BLE001
+        return []
+    latest = {}
+    for r in recs:
+        latest[r["metric"]] = {k: r[k] for k in ("metric", "value", "n", "source", "measured_at")}
+    return list(latest.values())
+
+
 def option_view(purpose, oid: str, job, world, doc) -> dict:
     facts = REG.option_facts(oid)
     conn = facts["connection"] if not (facts["provider"] == "openai" and world.custom_llm_local) else None
@@ -19,7 +32,7 @@ def option_view(purpose, oid: str, job, world, doc) -> dict:
            "connection": {"id": conn, "state": world.connections.get(conn, "missing")} if conn else None,
            "route": {"id": route, "on": bool(world.routes.get(route, False))} if route else None,
            "cost": world.costs.get(oid) or {"basis": "unknown"}, "retention": R._retention(oid, world), "acknowledged": ack,
-           "quality": [], "verdict": "ok" if failure is None else "skipped"}
+           "quality": _quality(purpose.id, oid), "verdict": "ok" if failure is None else "skipped"}
     if failure is not None:
         out["skipped"] = {"constraint": failure[0], "text": failure[1]}
     return out

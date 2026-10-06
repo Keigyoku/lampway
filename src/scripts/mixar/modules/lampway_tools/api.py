@@ -992,7 +992,7 @@ def clip_classify(armature, action=None, samples=25, fps=None, landmarks=None, f
 
 @tool
 def view_verify(action="verify", image="", category="sheet", view="front", approved_front="", mask="", asymmetric_ok=False, judge="none", known_images=None, attempts=None, max_attempts=3,
-                original_prompt=""):
+                original_prompt="", models=None):
     """Is this generated image really the view that was asked for? admit: reject an empty, tiny, fragmented (largest piece under 0.60 of the figure) or duplicate (perceptual hash within 6 of a known_images
     plate) reference BEFORE any model is paid, with the reason. verify: measured checks on the silhouette (alpha, `mask`, or a flat background): shoulder-width ratio and mirror IoU about the figure's own
     axis, feet baseline, arm angle (A-pose is 30 to 60), framing margins, background flatness; verdict pass | soft_fail | hard_fail | uncertain with the signed estimated rotation, and every threshold (they
@@ -1003,7 +1003,7 @@ def view_verify(action="verify", image="", category="sheet", view="front", appro
     from .pipeline import view_verify_io as _VVI
     s = _settings()
     return _VVI.run(action, str(s.project_root), image, category, view, approved_front, mask, bool(asymmetric_ok), judge, known_images, attempts, max_attempts, original_prompt,
-                    resolve=lambda p: _p(p, s.project_root))
+                    resolve=lambda p: _p(p, s.project_root), models=models)
 
 
 @tool

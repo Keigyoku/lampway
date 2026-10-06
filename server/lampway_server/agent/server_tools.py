@@ -229,6 +229,37 @@ def _exec_local(cmd: list, env: dict, timeout: float):
 LOCAL_MODULES = {"seed_db"}            # drivers that read local files only
 
 
+_OPTION_BACKEND = {"studio:tripo.image": "tripo", "codex_cli:imagegen": "codex_cli"}
+
+
+def image_backend_for(purpose: str, backend=None) -> str:
+    """5.4: the image backend is the purpose's choice; an agent's ``backend`` is a job override the purpose's policy decides (CH3)."""
+    from .. import choices as CH
+    from .. import provider_prefs
+    pid = f"image.{purpose}"
+    override = None
+    if backend == "tripo":
+        override = "studio:tripo.image"
+    elif backend == "codex_cli":
+        override = "codex_cli:imagegen"
+    elif backend == "openrouter":
+        model = (provider_prefs.effective().image_purposes.get(purpose) or {}).get("model") or "openai/gpt-image-2.5-flare"
+        chain = CH.chain(pid)
+        override = next((o for o in chain if o.startswith("openrouter:")), f"openrouter:{model}")
+    elif backend:
+        raise BadToolCall(f"backend is tripo, codex_cli or openrouter, not {backend!r}")
+    try:
+        r = CH.resolve(pid, CH.Job(override=override, origin="agent"))
+    except CH.NoChoice as exc:
+        if not exc.skipped:                               # the policy refused the override (CH3): nothing runs
+            raise BadToolCall(str(exc)) from None
+        if override:                                      # a connection or route problem: the backend's own gate refuses it, as before
+            return _OPTION_BACKEND.get(override, "openrouter")
+        from .. import imagegen as IG
+        return IG.backend_name()
+    return _OPTION_BACKEND.get(r.option, "openrouter" if r.option.startswith("openrouter:") else "tripo")
+
+
 def _run_imagegen(arguments: dict) -> tuple:
     from .. import imagegen as IG
     try:
@@ -240,7 +271,8 @@ def _run_imagegen(arguments: dict) -> tuple:
             arguments["prompt_file"], _rendered = IG.render_prompt_file(arguments["template"], arguments.get("variables") or {}, arguments["out_dir"])
         elif not arguments.get("prompt_file"):
             raise BadToolCall("studio_image_generate needs prompt_file or template")
-        res = IG.generate(arguments.get("backend") or IG.backend_name(), arguments["prompt_file"], arguments.get("refs") or [],
+        backend = image_backend_for(str(arguments.get("purpose") or "plates"), arguments.get("backend"))
+        res = IG.generate(backend, arguments["prompt_file"], arguments.get("refs") or [],
                           arguments["out_dir"], int(arguments.get("count") or 4), bool(arguments.get("live")),
                           str(arguments.get("size") or ""), str(arguments.get("aspect_ratio") or ""), str(arguments.get("purpose") or "plates"))
     except (BadToolCall, IG.ImageGenError, ValueError) as exc:

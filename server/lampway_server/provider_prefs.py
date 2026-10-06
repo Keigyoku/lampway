@@ -167,7 +167,7 @@ FIELDS = {
 MAIN_FIELDS = {"provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model"}
 
 
-def choices() -> dict:
+def options() -> dict:
     return {"main_providers": list(MAIN_PROVIDERS), "swarm_providers": list(SWARM_PROVIDERS), "efforts": list(EFFORTS),
             "image_backends": list(IMAGE_BACKENDS), "image_qualities": list(IMAGE_QUALITIES), "max_image_pixels": MAX_IMAGE_PIXELS,
             "image_purposes": list(PURPOSES), "image_resolutions": list(RESOLUTIONS), "video_purposes": list(VIDEO_PURPOSES),
@@ -270,7 +270,7 @@ def trial(settings: Settings, values: dict) -> Settings:
 def view(settings: Settings) -> dict:
     saved = load(settings.state_dir)
     return {"values": {k: copy.deepcopy(getattr(settings, k)) for k in FIELDS},
-            "source": {k: settings.sources.get(k) or ("saved" if k in saved else "default") for k in FIELDS}, "choices": choices()}
+            "source": {k: settings.sources.get(k) or ("saved" if k in saved else "default") for k in FIELDS}, "choices": options()}
 
 
 def effective(env=None) -> Settings:

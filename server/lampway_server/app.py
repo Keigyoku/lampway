@@ -350,13 +350,24 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
-    routes += stub_routes(auth, store, settings, jobs)
+    choice_hook = []                                          # filled below, once the agent exists: a saved choice rebuilds what it decides
+    routes += stub_routes(auth, store, settings, jobs, on_choice=lambda pid: [f(pid) for f in choice_hook])
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
     from .herdr.host import Cockpit
     cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
     assets = AssetIndex(settings.state_dir)                  # the legacy /asset-search endpoints the Client's Train/Search UI calls
-    agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
+    def _main_provider():
+        """5.6: built from agent.main's resolution (the user's fallback runs when the preferred option cannot); with nothing that can
+        serve, from the settings as before, so the provider's own refusal names the fix at the first call."""
+        from . import choices as CHO
+        try:
+            return make_provider(settings, chatgpt_auth=chatgpt, resolution=CHO.resolve("agent.main", CHO.Job()))
+        except CHO.NoChoice:
+            return make_provider(settings, chatgpt_auth=chatgpt)
+        except (ValueError, RuntimeError):
+            return make_provider(settings, chatgpt_auth=chatgpt)
+    agent = AgentHub(provider if provider is not None else _main_provider(),
                      swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault)
 
     async def agent_ws(websocket):
@@ -1063,7 +1074,10 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
                 make_swarm_provider(trial, "worker-1", chatgpt_auth=chatgpt)
         except (provider_prefs.PrefsError, ValueError, RuntimeError, OSError) as exc:
             return JSONResponse({"detail": str(exc)}, status_code=400)
-        provider_prefs.save(settings.state_dir, provider_prefs.merge_values(provider_prefs.load(settings.state_dir), saved_values))
+        from .choices.bridge import save_dialog_choices
+        rest = save_dialog_choices(settings, saved_values)          # step 9: what Choices models is the user's choice now; the rest stays here
+        if rest:
+            provider_prefs.save(settings.state_dir, provider_prefs.merge_values(provider_prefs.load(settings.state_dir), rest))
         provider_prefs.apply(settings, values)
         settings.sources.update({k: "saved" for k in values})
         if new_main is not None:
@@ -1189,6 +1203,11 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         CHO.propose_dead_preferences(store._data.get("preferences") or {})      # HC22: proposed once, never applied silently
     except Exception:  # noqa: BLE001 - a migration note must never stop the server
         logging.getLogger("lampway.choices").warning("the per-role preferences could not be proposed", exc_info=True)
+    try:
+        from .choices.bridge import import_embed_defaults
+        import_embed_defaults(settings.state_dir / "library")                  # HC20: the unwired embedding defaults become Choices, once
+    except Exception:  # noqa: BLE001
+        logging.getLogger("lampway.choices").warning("the embedding defaults could not be imported", exc_info=True)
     def choice_changed(pid):
         """A saved choice takes effect at once where the settings decide (the Providers dialog's PUT did the same): the agent's
         provider is rebuilt BEFORE it replaces the old one, so a refusal leaves everything as it was."""
@@ -1209,6 +1228,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
                   "claude_swarm_model", "chatgpt_swarm_model", "openrouter_swarm_model", "image_backend", "image_purposes", "video_purposes"):
             setattr(settings, k, getattr(trial, k))
         settings.sources.update({k: v for k, v in trial.sources.items() if v == "choices"})
+    choice_hook.append(choice_changed)
     routes += choices_routes(_bearer_ok, choice_changed)
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))

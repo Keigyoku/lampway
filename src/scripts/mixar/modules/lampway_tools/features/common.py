@@ -37,6 +37,11 @@ def studio_slot(feature: str, engine: str) -> dict:
     studio = engine.split(":", 1)[1] if ":" in engine else ""
     if engine != "algorithmic" and not engine.startswith("studio:"):
         raise FeatureError(f"unknown engine {engine!r}; use 'algorithmic' or 'studio:tripo' (also studio:meshy, studio:hi3d)")
+    if "." in studio:                                  # a Choices option: the server's Studio action id itself (studio:meshy.remesh)
+        how = ("Ask the owner to approve this exact action: call studio_plan with action "
+               f"{studio!r}; the driver reads the price back (nothing is clicked) and the USER confirms it in the Client's Studios panel.")
+        return {"ok": False, "needs_approval": True, "studio": studio.split(".", 1)[0], "studio_action": studio, "action": studio, "price": None,
+                "how": how, "error": f"{studio} spends credits: nothing was clicked; it needs the owner's approval of the price first"}
     action, price = STUDIO_ACTIONS.get((feature, studio), (None, None))
     if action is None:
         known = sorted({s for (f, s) in STUDIO_ACTIONS if f == feature})

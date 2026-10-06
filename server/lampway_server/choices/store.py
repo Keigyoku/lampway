@@ -206,6 +206,35 @@ class MemoryStore:
             self._append_log({"t": time.time(), "option": option, "by": by, "action": "acknowledge" if private else "revoke"})
             return acks.get(option, {}).get("at")
 
+    # ------------------------------------------------------------------------------------------------- quality records (CHOICES.md 8.4)
+    def _load_quality(self) -> list:
+        return list(getattr(self, "_quality", []))
+
+    def _append_quality(self, rows: list) -> None:
+        self._quality = self._load_quality() + list(rows)
+
+    def add_quality(self, records: list, by: str) -> int:
+        """Append measured records ``{purpose, option, metric, value, n, source, measured_at}``; evidence for the user, never a reordering."""
+        self._gate(by)
+        clean = []
+        for r in records:
+            purpose = REG.get(str(r.get("purpose")))
+            if not REG.offers(purpose, str(r.get("option"))):
+                raise Refused(f"{r.get('option')} is not an option for {purpose.id}")
+            value = r.get("value")
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise Refused("a quality value is a number")
+            row = {"purpose": purpose.id, "option": str(r["option"]), "metric": str(r.get("metric") or "")[:40], "value": float(value),
+                   "n": int(r.get("n") or 1), "source": str(r.get("source") or "")[:120], "measured_at": str(r.get("measured_at") or "")[:32], "by": by}
+            _no_secret(row)
+            clean.append(row)
+        with self._locked():
+            self._append_quality(clean)
+        return len(clean)
+
+    def quality(self, purpose: Optional[str] = None, option: Optional[str] = None) -> list:
+        return [q for q in self._load_quality() if (purpose is None or q["purpose"] == purpose) and (option is None or q["option"] == option)]
+
     # ------------------------------------------------------------------------------------------------- proposals (an agent's)
     def propose(self, origin: str, pid: str, change: dict, reason: str, evidence) -> str:
         REG.get(pid)
@@ -310,6 +339,20 @@ class FileStore(MemoryStore):
     def _save_proposals(self, rows: list) -> None:
         from ..connections import files as CF
         CF.atomic_write_bytes(self.dir / "proposals.jsonl", "".join(json.dumps(r, sort_keys=True) + "\n" for r in rows).encode())
+
+    def _load_quality(self) -> list:
+        try:
+            return [json.loads(line) for line in (self.dir / "quality.jsonl").read_text().splitlines() if line.strip()]
+        except (OSError, ValueError):
+            return []
+
+    def _append_quality(self, rows: list) -> None:
+        from ..connections import files as CF
+        CF.ensure_dir(self.dir)
+        fd = os.open(self.dir / "quality.jsonl", os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        with os.fdopen(fd, "a") as fh:
+            for r in rows:
+                fh.write(json.dumps(r, sort_keys=True) + "\n")
 
     def _append_log(self, row: dict) -> None:
         from ..connections import files as CF

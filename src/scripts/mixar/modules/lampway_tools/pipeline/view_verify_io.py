@@ -26,7 +26,7 @@ def _load(path):
 
 
 def run(action, root, image=None, category="sheet", view="front", approved_front=None, mask=None, asymmetric_ok=False, judge=None, known_images=None, attempts=None,
-        max_attempts=3, original_prompt="", resolve=lambda p: p, judge_fn=None):
+        max_attempts=3, original_prompt="", resolve=lambda p: p, judge_fn=None, models=None):
     if action == "templates":
         return {"templates": list(TEMPLATE_IDS), "where": "the server's prompt library (built-in)", "note": "list them with lampway_prompt_list; each carries its upstream provenance"}
     if action == "ladder":
@@ -34,6 +34,11 @@ def run(action, root, image=None, category="sheet", view="front", approved_front
             raise ViewVerifyError("max_attempts is 1..4")
         hist = attempts or []
         d = RP.decide(hist, int(max_attempts))
+        names = models if isinstance(models, dict) else {}
+        if d.get("model") in ("primary", "same", "fallback") and names:    # HC17: the server resolved the purpose's models in Choices
+            named = names.get("fallback" if d["model"] == "fallback" else "primary")
+            if named:
+                d["model"] = named
         if d["action"] == "retry":
             last = hist[-1]
             if not original_prompt:
@@ -56,7 +61,8 @@ def run(action, root, image=None, category="sheet", view="front", approved_front
         if view not in ("front", "side", "back"):
             raise ViewVerifyError("view is front | side | back")
         if judge not in (None, "none") and judge_fn is None:
-            raise ViewVerifyError("no vision judge is configured: set one in Providers or use judge=none for the measured checks only")
+            raise ViewVerifyError("no vision judge is configured: the model is the agent.vision_judge choice in Choices, and no judge runs inside "
+                                  "Blender yet; use judge=none for the measured checks only")
         if not mask and img[..., 3].min() == 255:
             corners = np.concatenate([img[:8, :8, :3].reshape(-1, 3), img[-8:, -8:, :3].reshape(-1, 3)])
             if corners.std(axis=0).max() > 12:
