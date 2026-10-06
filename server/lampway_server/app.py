@@ -982,7 +982,22 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             agent.provider = new_main
         return JSONResponse(provider_prefs.view(settings))
 
-    routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"])]
+    async def spend_view(request: Request):
+        """What the status bar's spend gauge reads (facelift contract 03): each provider in its own unit, what this server session spent, and the
+        caps and click rule the Providers dialog set. Read-only. There is no day ledger, so the scope says session."""
+        if not _bearer_ok(request):
+            return unauthorized()
+        from .spendpolicy import PROVIDERS
+        policy = jobs.policy
+        rows = []
+        for p in PROVIDERS:
+            cfg = policy._cfg(p)
+            rows.append({"provider": p, "unit": "USD" if p == "openrouter" else "credits", "spent": round(float(policy.spent.get(p, 0.0)), 6),
+                         "session_cap": cfg.get("session_cap"), "job_cap": cfg.get("job_cap"), "click": cfg.get("click", "always"), "above": cfg.get("above")})
+        return JSONResponse({"scope": "session", "providers": rows})
+
+    routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"]),
+               Route("/app/spend", spend_view, methods=["GET"])]
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager

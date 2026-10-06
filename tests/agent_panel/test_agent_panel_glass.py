@@ -62,20 +62,20 @@ class TestTheCardIsLiquidGlass:
         assert "BLI_rcti_rctf_copy(&pane, rect);" in pane
 
     def test_the_tokens_bed_is_near_black_not_green(self):
-        """The pane's bed is a quiet dark, not a brand-green tint."""
+        """The pane's bed is a quiet dark, not a brand-green tint. Lampway (facelift contract 03): the bed is the
+        theme's night `surface`, so a dark that leads with blue, never green."""
         row = _glass_panel_row()
         tint = re.search(r"/\* tint_bottom\s+\*/\s*\{([^}]*)\}", row)
         rgb = _floats(tint.group(1))[:3]
-        assert max(rgb) < 0.08
-        assert abs(rgb[0] - rgb[1]) < 0.01
-        assert abs(rgb[1] - rgb[2]) < 0.01
+        assert max(rgb) < 0.15
+        assert rgb[1] <= max(rgb[0], rgb[2]), "a green lead is the old tint coming back"
 
     def test_the_token_row_carries_a_neutral_glass_rim(self):
-        """Equal RGB is a white/grey stroke; a green channel lead is the old
-        resting border coming back through the table."""
+        """A green channel lead is the old resting border coming back through the table. Lampway (facelift
+        contract 03): the rim is the theme's `line_hi`, a cool grey."""
         rim = re.search(r"/\* rim\s+\*/\s*\{([^}]*)\}", _glass_panel_row())
         rim_vals = _floats(rim.group(1))
-        assert rim_vals[0] == rim_vals[1] == rim_vals[2]
+        assert rim_vals[1] <= max(rim_vals[0], rim_vals[2])
         assert rim_vals[3] > 0.0
 
     def test_panel_fallback_keeps_the_viewport_visible(self):

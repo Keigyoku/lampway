@@ -2085,7 +2085,7 @@ static const MixarRnaColor mixar_theme_ui_colors[] = {
     {"mixar_slider_thumb_hover", N_("Slider Thumb Hover"), N_("Zen/Engine thumb hover"), {246.0f / 255.0f, 205.0f / 255.0f, 107.0f / 255.0f, 255.0f / 255.0f}},
     {"mixar_slider_label", N_("Slider Label"), N_("Zen/Engine slider label"), {236.0f / 255.0f, 232.0f / 255.0f, 223.0f / 255.0f, 255.0f / 255.0f}},
     {"mixar_cinema_pill_fill", N_("Cinema Pill Fill"), N_("Cinema mode pill at rest"), {17.0f / 255.0f, 19.0f / 255.0f, 26.0f / 255.0f, 255.0f / 255.0f}},
-    {"mixar_cinema_pill_border", N_("Cinema Pill Border"), N_("Cinema mode pill hairline"), {43.0f / 255.0f, 48.0f / 255.0f, 61.0f / 255.0f, 255.0f / 255.0f}},
+    {"mixar_cinema_pill_border", N_("Cinema Pill Border"), N_("Cinema mode pill hairline"), {43.0f / 255.0f, 48.0f / 255.0f, 61.0f / 255.0f, 0.0f / 255.0f}},
     {"mixar_cinema_pill_on_a", N_("Cinema Pill On A"), N_("Cinema mode pill gradient start"), {58.0f / 255.0f, 47.0f / 255.0f, 23.0f / 255.0f, 255.0f / 255.0f}},
     {"mixar_cinema_pill_on_b", N_("Cinema Pill On B"), N_("Cinema mode pill gradient end"), {90.0f / 255.0f, 71.0f / 255.0f, 32.0f / 255.0f, 255.0f / 255.0f}},
     {"mixar_cinema_pill_border_on", N_("Cinema Pill Border On"), N_("Cinema mode pill active hairline"), {237.0f / 255.0f, 185.0f / 255.0f, 68.0f / 255.0f, 255.0f / 255.0f}},

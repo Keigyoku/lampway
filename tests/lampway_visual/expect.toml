@@ -11,3 +11,19 @@ theme = "dark"
 [night_startup.surfaces]
 outliner_active_row = "accent_bed_hi"   # contract 01 T9
 outliner_back = "surface"               # contract 01 T9
+
+[status_local]
+theme = "dark"
+[status_local.surfaces]
+statusbar_back = "canvas"
+
+[status_open]
+theme = "dark"
+[status_open.surfaces]
+statusbar_back = "canvas"
+
+[status_sending]
+theme = "dark"
+[status_sending.surfaces]
+statusbar_back = "canvas"
+
