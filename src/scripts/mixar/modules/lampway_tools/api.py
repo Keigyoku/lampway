@@ -1714,6 +1714,9 @@ def project_views(object, views, size=1024, out="", occlusion=True):
     """Project cardinal-view images ({"Front": path, ...}, each framed to the subject) into the UV atlas by which way each texel faces
     (optional occlusion ray test) and apply it as the material ``<object>_proj``. Reports coverage and per-view share."""
     s_ = _settings()
+    if not isinstance(views, dict) or not views or not all(isinstance(p, str) and p for p in views.values()):   # audit F12
+        raise ValueError('views is an object {view: image path}, e.g. {"Front": "refs/front.png", "Back": "refs/back.png"}; '
+                         f"the views are {', '.join(_F_texture.R.TO_CAMERA)}")
     return _F_texture.project_views(object, {v: _p(p, s_.project_root) for v, p in views.items()}, size,
                                     _p(out or f"{object}_atlas.png", s_.project_root), occlusion)
 
