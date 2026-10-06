@@ -9,7 +9,6 @@ names (a dotenv file or the bare key); it is held only here and redacted from er
 
 import json
 import logging
-import os
 import re
 import threading
 import time
@@ -44,26 +43,15 @@ def redact(text, *secrets) -> str:
 
 
 def resolve_api_key(env=None) -> str:
-    """The key from the environment, else from the file LAMPWAY_OPENROUTER_KEY_FILE names. The error names variables, never values."""
-    env = os.environ if env is None else env
-    if env.get("OPENROUTER_API_KEY"):
-        return env["OPENROUTER_API_KEY"].strip()
-    ref = env.get("LAMPWAY_OPENROUTER_KEY_FILE")
-    if ref:
-        try:
-            text = Path(ref).expanduser().read_text(encoding="utf-8")
-        except OSError as exc:
-            raise KeyMissing(f"LAMPWAY_OPENROUTER_KEY_FILE does not name a readable file ({type(exc).__name__}); "
-                             "set OPENROUTER_API_KEY or point it at a file holding OPENROUTER_API_KEY=...") from None
-        for line in text.splitlines():
-            name, sep, value = line.partition("=")
-            if sep and name.strip() == "OPENROUTER_API_KEY":
-                return value.strip().strip("\"'")
-        bare = text.strip()
-        if bare and "\n" not in bare and "=" not in bare:
-            return bare
-    raise KeyMissing("no OpenRouter key: set OPENROUTER_API_KEY, or LAMPWAY_OPENROUTER_KEY_FILE to a file holding "
-                     "OPENROUTER_API_KEY=... (the key is never read from settings.json)")
+    """The key Connections resolves for ``openrouter`` (the environment, else the file LAMPWAY_OPENROUTER_KEY_FILE names - owner-only, C8 -
+    else a key saved in Connections). The error names variables and the fix, never values. ``env`` is for tests and one-off callers."""
+    from ... import connections as C
+    hub = C.active() if env is None else C.Hub(C.active().state_dir, secrets_dir=C.active().secrets_dir, env=env)
+    try:
+        return C.secret_of(hub.credential("openrouter"))
+    except C.Refused as exc:
+        raise KeyMissing(f"no OpenRouter key ({exc}): set OPENROUTER_API_KEY, or LAMPWAY_OPENROUTER_KEY_FILE to an owner-only file holding "
+                         "OPENROUTER_API_KEY=..., or connect it in Connections (the key is never read from settings.json)") from None
 
 
 class _RedactingFilter(logging.Filter):
