@@ -96,6 +96,16 @@ def test_split_detector_finds_the_divider_and_rects_sum_to_frame(clips):
     assert V.detect_panels(clips["plain"])["panel_layout"] == "single"
 
 
+def test_a_one_pixel_line_on_flat_grey_is_the_divider_not_the_empty_background(tmp_path):
+    """The shape of a real split render: two figures on one flat grey, a thin darker line between them, and empty grey either side of it (29 px: under the
+    10 % width cap, so the tone contrast, not the cap, is what rejects it)."""
+    out = tmp_path / "line.mp4"
+    ff("-f", "lavfi", "-i", "color=c=0x7b7b7b:s=320x120:r=24", "-f", "lavfi", "-i", "testsrc2=s=60x60:r=24", "-f", "lavfi", "-i", "testsrc2=s=60x60:r=24", "-t", 2,
+       "-filter_complex", "[0][1]overlay=70:30[t];[t][2]overlay=191:30,drawbox=x=159:y=0:w=2:h=120:color=0x5f5f5f:t=fill,format=yuv420p", out)
+    sp = V.detect_panels(out)
+    assert sp["panel_layout"] == "split_front_side" and 157 <= sp["divider"]["x"] <= 160 and sp["divider"]["w"] <= 4, sp
+
+
 # 6 -------------------------------------------------------------------------------------------------------------------------------
 def test_derived_artefacts_link_with_the_right_relations(clips, tmp_path):
     lib = make_lib(tmp_path)

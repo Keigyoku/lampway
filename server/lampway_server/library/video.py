@@ -27,6 +27,9 @@ SILENT_DB = -60.0
 MAX_ANALYZE_S = 300.0
 ANALYZE_WIDTH = 128
 PANEL_WIDTH = 640
+LINE_STD = 3.0                    # grey levels: a divider line is this still (codec noise on a flat line measured 1.8-2.8)
+EDGE_STEP = 8.0                   # a step in tone between neighbouring lines ends a run
+DIVIDER_CONTRAST = 12.0           # a divider differs from the lines beyond it on both sides by this much
 _VERSION = "lampway.video@" + hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:12]
 
 
@@ -150,19 +153,30 @@ def motion_of(frames: np.ndarray, fps: float, dup_threshold=None) -> dict:
     return {**out, "motion_fps": round(fps / g, 3), "motion_fps_confidence": round(max(0.0, 1.0 - cv), 4)}
 
 
-def _band(var: np.ndarray):
-    """The longest run of near-constant lines in the middle half (a divider), as (start, stop) in that axis, else None."""
-    n = len(var)
-    low = var < 0.1 * float(np.median(var)) if np.median(var) > 0 else np.zeros(n, bool)
-    best, run_start = None, None
+def _band(std: np.ndarray, mean: np.ndarray):
+    """A divider along one axis, as (start, stop), else None: a run of lines that never change and carry no detail (low std over frames and the other axis), of one
+    tone (a run is cut where the tone steps), standing out from the lines just beyond it on BOTH sides by at least DIVIDER_CONTRAST grey levels, at most 10 % of the
+    axis wide, and centred in the middle half. Measured on two real split clips: a 1-px dark line on grey (contrast 28) and a 3-px black band; a flat background
+    run is rejected because one of its sides is the same grey."""
+    n = len(std)
+    low = std < max(LINE_STD, 0.1 * float(np.median(std)))
+    runs, start = [], None
     for i in range(n + 1):
-        if i < n and low[i]:
-            run_start = i if run_start is None else run_start
+        cut = i == n or not low[i] or (start is not None and abs(float(mean[i]) - float(mean[i - 1])) > EDGE_STEP)
+        if start is not None and cut:
+            runs.append((start, i))
+            start = None
+        if i < n and low[i] and start is None:
+            start = i
+    best = None
+    for a, b in runs:
+        if b - a > 0.1 * n or not (0.25 * n <= (a + b) / 2 <= 0.75 * n) or a < 4 or b > n - 4:
             continue
-        if run_start is not None and i - run_start >= 2 and run_start >= n * 0.25 and i <= n * 0.75 and (best is None or i - run_start > best[1] - best[0]):
-            best = (run_start, i)
-        run_start = None
-    return best
+        inside = float(mean[a:b].mean())
+        contrast = min(abs(inside - float(mean[a - 4:a - 1].mean())), abs(inside - float(mean[b + 1:b + 4].mean())))
+        if contrast >= DIVIDER_CONTRAST and (best is None or contrast > best[0]):
+            best = (contrast, a, b)
+    return best[1:] if best else None
 
 
 def detect_panels(path) -> dict:
@@ -172,7 +186,7 @@ def detect_panels(path) -> dict:
     w = min(W, PANEL_WIDTH)
     h = max(2, int(round(w * H / W / 2)) * 2)
     f = decode_gray(path, w, h, fps=4).astype(np.float32)[:48]
-    cols, rows = _band(f.std(axis=(0, 1))), _band(f.std(axis=(0, 2)))
+    cols, rows = _band(f.std(axis=(0, 1)), f.mean(axis=(0, 1))), _band(f.std(axis=(0, 2)), f.mean(axis=(0, 2)))
     sx, sy = W / w, H / h
     if cols and not rows:
         x0, x1 = int(round(cols[0] * sx)), int(round(cols[1] * sx))
