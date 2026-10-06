@@ -598,3 +598,10 @@ H.3 (centring: the hits' mean leaves 1/8 vs the exact harmonic centre) and H.4 (
 canon 21 H.2 (the default export recipe after M-RIG-01) and H.3 (a Blender read-back's rotation tolerance: 0.01 deg is below an
 edit bone's measured storage noise of 0.112 deg); canon 08's DOF ranges for helmet / waist / boots / gauntlets; canon 07 G07.6's
 continuity number (not achievable by the canonical falloff, recorded under item 3).
+
+### Gates at the final push
+`scripts/lampway/test_all.sh` at 021c6437 (UNGATED: the lane binary has no `BUILT_FROM` stamp): server 1626 passed, 11 skipped,
+0 failed; client 8986 passed, 117 failed, 15 errors, 105 skipped against the baseline. New beyond it: the five live tests on my
+2026-10-05 binary (theme, icons, Vault editor), and the two i18n tests, which read the LOCAL generated template (`mixar.pot` is
+gitignored) - regenerated with the repository's own steps (`scripts/i18n/*`), both pass, nothing tracked changed.
+`check_canon.py` PASS; the rail PASS; the shelf-gated tests (118) pass with the shelf mounted.
