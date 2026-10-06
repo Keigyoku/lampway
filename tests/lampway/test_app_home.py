@@ -29,7 +29,7 @@ def env(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
     monkeypatch.setenv("HOME", str(home))
-    for k in ("LAMPWAY_APP_HOME", "LAMPWAY_HOME"):
+    for k in ("LAMPWAY_APP_HOME", "LAMPWAY_HOME", "LAMPWAY_LEGACY_HOME"):           # the conftest's isolated legacy home would shadow this test's own ~/.mixar
         monkeypatch.delenv(k, raising=False)
     return home
 

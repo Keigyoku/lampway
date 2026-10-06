@@ -19,8 +19,8 @@ Everything below was measured on 2026-10-04/05 on the machine described in
 ## 1. Build environment
 
 Blender 5.2 refuses GCC older than 14 and Ubuntu 24.04 ships 13.3 by default,
-so the versioned pair is required. Inside the box (a distrobox named
-a distrobox here; any Ubuntu 24.04 works):
+so the versioned pair is required. Inside the box (the maintainer's is a
+distrobox named `lampway-build`; any Ubuntu 24.04 works):
 
 ```bash
 sudo apt-get install -y --no-install-recommends \
@@ -143,6 +143,8 @@ LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x800x24" build/Dev/bin/mix
 ```
 
 ### The withheld `procedural_materials` package
+
+**Update (after the tools wave):** Lampway now ships a small replacement package at this path (a material registry, persistence and a generation queue that refuses honestly because the generating service was the withheld part), and `.gitignore` no longer hides it. The measurements below were taken on the earlier tree and are kept as history; the replacement was added to fix exactly these failures; they were not re-measured on a current build for this guide.
 
 `src/scripts/mixar/modules/paint/procedural_materials/` is gitignored
 (`.gitignore:197`) and absent from the published source; 23 files import it.

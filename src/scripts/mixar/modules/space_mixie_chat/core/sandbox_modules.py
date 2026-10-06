@@ -106,6 +106,28 @@ _DENIED_ATTRS = {
     }),
 }
 
+# Connections audit F2: first-party modules that hold or use the client's bearer, or that perform the user's clicks. A script that reached one could
+# forge the user's click on a human gate (POST /app/egress/route with the real token) or read the token itself. Refused by NAME at the import and at
+# every module attribute, and any class or function DEFINED in one is refused when reached through an allowed module.
+# tests/test_sandbox_bearer_modules.py holds this list to the source: every module that mentions a bearer must be covered here.
+_BEARER_MODULES = (
+    "mixar.mcp", "mixar.bootstrap", "mixar.modules.auth", "mixar.modules.byok", "mixar.modules.connector", "mixar.modules.mcp_bridge",
+    "mixar.modules.common.api", "mixar.modules.common.analytics", "mixar.modules.common.job_queue", "mixar.modules.common.notifications",
+    "mixar.modules.asset_search.ui", "mixar.modules.paint.procedural_materials.matgen_client", "mixar.modules.paint.procedural_materials.matgen_queue",
+    "mixar.modules.space_mixie_chat.core.connection_manager", "mixar.modules.space_mixie_chat.core.message_helpers",
+    "mixar.modules.space_mixie_chat.core.parked_resume", "mixar.modules.space_mixie_chat.core.socket_connection",
+    "mixar.modules.space_mixie_chat.core.sound_catalog", "mixar.modules.space_mixie_chat.core.voice", "mixar.modules.space_mixie_chat.core.voice_input", "mixar.modules.space_mixie_chat.ui",
+    "mixar.modules.lampway_tools.studio_client", "mixar.modules.lampway_tools.egress_client", "mixar.modules.lampway_tools.mcp_client",
+    "mixar.modules.lampway_tools.workbench_client", "mixar.modules.lampway_tools.library_client", "mixar.modules.lampway_tools.features.jobs_client",
+    "mixar.modules.lampway_tools.ui", "mixar.modules.lampway_tools.keyring_file", "mixar.modules.testing",
+)
+
+
+def is_denied_module(name: str) -> bool:
+    name = name or ""
+    return name in _DENIED_SUBMODULES or any(name == p or name.startswith(p + ".") for p in _BEARER_MODULES)
+
+
 _SAFE_MODULE_CACHE: dict = {}
 
 
@@ -153,6 +175,10 @@ def safe_module(module, root: str = None):
             # imported at all, and several of these are lazy attributes whose
             # import has side effects (numpy resolves numpy.ctypeslib through
             # a module-level __getattr__).
+            if is_denied_module(f"{name}.{attr}") and f"{name}.{attr}" not in _DENIED_SUBMODULES:
+                raise AttributeError(
+                    f"{name}.{attr} is not available in the sandbox: it holds the client's sign-in or performs the user's clicks."
+                )
             if f"{name}.{attr}" in _DENIED_SUBMODULES:
                 raise AttributeError(
                     f"{name}.{attr} is not available in the sandbox: it "
@@ -163,9 +189,14 @@ def safe_module(module, root: str = None):
                 # Every operator reached through bpy.ops.<mod>.<op>: its path arguments go through the
                 # file-system gate, and the operators that run Python from a file are refused.
                 return sandbox_paths.guard_operator(f"{name[len('bpy.ops.'):]}.{attr}", value)
+            if not isinstance(value, types.ModuleType) and is_denied_module(getattr(value, "__module__", "") or ""):
+                raise AttributeError(
+                    f"{name}.{attr} is not available in the sandbox: it comes from "
+                    f"'{value.__module__}', which holds the client's sign-in or performs the user's clicks."
+                )
             if isinstance(value, types.ModuleType):
                 child = getattr(value, "__name__", "")
-                if child in _DENIED_SUBMODULES:
+                if child in _DENIED_SUBMODULES or is_denied_module(child):
                     # An alias under another attribute name.
                     raise AttributeError(
                         f"{name}.{attr} is not available in the sandbox: "

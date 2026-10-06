@@ -194,8 +194,10 @@ def codex_image(binary: str, prompt: str, refs, out_dir, name: str, timeout: flo
             "When done, print the absolute path of the generated file on the last line.")
     cmd = [binary, "exec", "--skip-git-repo-check", "-C", str(out)] + [x for r in refs for x in ("-i", str(r))] + ["--", full]
     start = time.time() - 1
+    from .. import egress as EG
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        with EG.guard("chatgpt_plan", kind="image", nbytes=len(full) + sum(r.stat().st_size for r in refs if r.is_file())):      # the prompt and the reference images go to the owner's ChatGPT plan
+            p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
     except FileNotFoundError as exc:
         raise CLIError(f"{binary} not found: install codex and log in once yourself") from exc
     except subprocess.TimeoutExpired as exc:

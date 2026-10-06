@@ -1,0 +1,26 @@
+{
+  "_about": "The bundled open-weights embedding models (library/localmodels.py, scripts/lampway/fetch_models.py). Every URL is pinned to a repository commit; every sha256 was computed from the downloaded bytes on 2026-10-05 and, for the .onnx files, equals the Hugging Face LFS object id (x-linked-etag). Weights never go into git.",
+  "models": [
+    {"id": "clip-vit-b-32", "role": "image", "base": "image_local", "space": "image_local:clip-vit-b-32", "dim": 512, "license": "MIT",
+     "source": "https://github.com/openai/CLIP", "export": "https://huggingface.co/Xenova/clip-vit-base-patch32 @ d15189d7028b43f1d3e65039190477f6af591c2a (onnx/vision_model.onnx: pixel_values -> image_embeds)",
+     "output": "image_embeds",
+     "files": [{"name": "model.onnx", "url": "https://huggingface.co/Xenova/clip-vit-base-patch32/resolve/d15189d7028b43f1d3e65039190477f6af591c2a/onnx/vision_model.onnx",
+                "sha256": "fd6e1402a588279d1723c7534d4bcba5bc0b14b47dfab0e46f8c47b8270d7d40", "bytes": 351685709}]},
+    {"id": "clip-vit-b-32-text", "role": "text", "base": "image_text_local", "space": "image_local:clip-vit-b-32", "dim": 512, "license": "MIT",
+     "source": "https://github.com/openai/CLIP", "export": "https://huggingface.co/Xenova/clip-vit-base-patch32 @ d15189d7028b43f1d3e65039190477f6af591c2a (onnx/text_model.onnx: input_ids -> text_embeds; CLIP's own byte-level BPE)",
+     "output": "text_embeds", "tokenizer": "clip_bpe", "query_only": true,
+     "files": [{"name": "model.onnx", "url": "https://huggingface.co/Xenova/clip-vit-base-patch32/resolve/d15189d7028b43f1d3e65039190477f6af591c2a/onnx/text_model.onnx",
+                "sha256": "3f6571f5bad13a97c469c1622e1cfc4d9aef78b79fdbfcff804ca357bfada8cc", "bytes": 254058553},
+               {"name": "vocab.json", "url": "https://huggingface.co/Xenova/clip-vit-base-patch32/resolve/d15189d7028b43f1d3e65039190477f6af591c2a/vocab.json",
+                "sha256": "5047b556ce86ccaf6aa22b3ffccfc52d391ea4accdab9c2f2407da5b742d4363", "bytes": 862328},
+               {"name": "merges.txt", "url": "https://huggingface.co/Xenova/clip-vit-base-patch32/resolve/d15189d7028b43f1d3e65039190477f6af591c2a/merges.txt",
+                "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a", "bytes": 524619}]},
+    {"id": "bge-small-en-v1.5", "role": "text", "base": "text_local", "space": "text_local:bge-small-en-v1.5", "dim": 384, "license": "MIT",
+     "source": "https://huggingface.co/BAAI/bge-small-en-v1.5", "export": "https://huggingface.co/BAAI/bge-small-en-v1.5 @ 5c38ec7c405ec4b44b94cc5a9bb96e735b38267a (onnx/model.onnx: last_hidden_state, CLS pooled)",
+     "output": "last_hidden_state", "tokenizer": "wordpiece",
+     "files": [{"name": "model.onnx", "url": "https://huggingface.co/BAAI/bge-small-en-v1.5/resolve/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a/onnx/model.onnx",
+                "sha256": "828e1496d7fabb79cfa4dcd84fa38625c0d3d21da474a00f08db0f559940cf35", "bytes": 133093490},
+               {"name": "vocab.txt", "url": "https://huggingface.co/BAAI/bge-small-en-v1.5/resolve/5c38ec7c405ec4b44b94cc5a9bb96e735b38267a/vocab.txt",
+                "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3", "bytes": 231508}]}
+  ]
+}

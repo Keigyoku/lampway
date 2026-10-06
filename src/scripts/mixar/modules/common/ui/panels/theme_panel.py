@@ -43,7 +43,7 @@ class MIXAR_PT_theme_preferences(Panel):
         layout = self.layout
         theme = context.preferences.themes[0]
         layout.label(text="Shared across Zen, Engine and Texturing workspaces.")
-        layout.operator("mixar.apply_forest_theme", text=f"Apply {PRODUCT_NAME} Forest", icon='BRUSH_DATA')
+        layout.operator("lampway.apply_night_theme", icon='BRUSH_DATA')
         header, body = layout.panel("mixar_theme_canvases", default_closed=False)
         header.label(text="Workspace Backgrounds")
         if body:

@@ -195,8 +195,8 @@ def replay_spool(lib: AssetLibrary, spool) -> dict:
     for line in p.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
-        row = json.loads(line)
         try:
+            row = json.loads(line)                                  # a line torn by a crash mid-write is kept, never fatal
             record(lib, row["payload"])
             for o in row["payload"].get("outputs") or []:
                 if o.get("spool_blob"):

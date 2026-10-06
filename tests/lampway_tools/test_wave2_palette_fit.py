@@ -149,7 +149,7 @@ def test_apply_live_twice_leaves_one_node_set_and_read_live_returns_the_slider()
     assert r["gold_val"] == 1.1 and abs(r["gold_hue"] - 0.03) < 1e-3 and r["source_untouched"]
 
 
-def test_the_real_chest_reproduces_the_recorded_fit_as_the_median_in_srgb():
+def test_the_real_chest_reproduces_the_recorded_fit_as_the_median_in_srgb(tmp_path):
     """The measured answer to the contract's open question: on the user's chest (shelf pieces; skipped when the shelf is not configured) the recorded multipliers are the sRGB MEDIAN."""
     import os
     shelf = os.environ.get("LAMPWAY_SHELF_SCRATCH")
@@ -162,7 +162,7 @@ def test_the_real_chest_reproduces_the_recorded_fit_as_the_median_in_srgb():
     md = Path(shelf) / "relief_proj/p17_albedo_4k"
     if base is None or not md.exists():
         pytest.skip("the chest's pbrA base or p17 masks are not on this shelf")
-    tmp = Path(tempfile.mkdtemp()) / "studio4k.png"
+    tmp = tmp_path / "studio4k.png"
     Image.open(base).convert("RGB").resize((4096, 4096), Image.LANCZOS).save(tmp)
     classes = ["gold", "plate", "red", "linen", "leather", "embroidery"]
     res = {sp: PF.fit(str(tmp), str(md / "v3_colour_atlas.png"), str(md), classes, "median", sp) for sp in ("srgb", "linear")}

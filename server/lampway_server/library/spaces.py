@@ -43,6 +43,15 @@ def hamming(a, b) -> int:
 
 def glb_triangles(src) -> np.ndarray:
     """(T, 3, 3) float32 triangles from a GLB's BIN chunk (triangle-list primitives; node transforms are not applied)."""
+    parts = glb_parts(src)
+    if not parts:
+        raise ValueError("no triangle primitives")
+    return np.concatenate([p["pos"][p["idx"]] for p in parts])
+
+
+def glb_parts(src) -> list:
+    """One dict per triangle-list primitive: ``pos`` (N, 3) float32, ``idx`` (T, 3) int64, ``uv`` (N, 2) float32 or None (TEXCOORD_0), ``vcolor`` (N, 3) or None (COLOR_0),
+    ``color`` (3,) the material's base colour factor or None (none declared), ``texture`` the decoded base-colour image (an RGB PIL image embedded in the BIN chunk) or None. Node transforms are not applied."""
     fh = io.BytesIO(src) if isinstance(src, (bytes, bytearray)) else open(src, "rb")
     with fh:
         head = fh.read(12)
@@ -80,10 +89,40 @@ def glb_triangles(src) -> np.ndarray:
             pos = read(prim["attributes"]["POSITION"]).astype("float32")
             idx = read(prim["indices"]).reshape(-1).astype("int64") if "indices" in prim else np.arange(len(pos))
             idx = idx[: len(idx) // 3 * 3].reshape(-1, 3)
-            out.append(pos[idx])
-    if not out:
-        raise ValueError("no triangle primitives")
-    return np.concatenate(out)
+            attrs = prim["attributes"]
+            mats, mi = doc.get("materials") or [], prim.get("material")
+            mat = mats[mi] if mi is not None and mi < len(mats) else {}
+            pbr = mat.get("pbrMetallicRoughness") or {}
+            out.append({"pos": pos, "idx": idx, "uv": _norm(read(attrs["TEXCOORD_0"]), doc, attrs["TEXCOORD_0"])[:, :2] if "TEXCOORD_0" in attrs else None,
+                        "vcolor": _norm(read(attrs["COLOR_0"]), doc, attrs["COLOR_0"])[:, :3] if "COLOR_0" in attrs else None,
+                        "color": np.asarray(pbr["baseColorFactor"][:3], "float32") if pbr.get("baseColorFactor") else None,
+                        "texture": _texture(doc, binary, (pbr.get("baseColorTexture") or {}).get("index"))})
+    return out
+
+
+def _norm(a, doc, acc_i) -> np.ndarray:
+    """A normalized-integer accessor (UVs or colours stored as u8/u16) as floats in 0..1."""
+    a = np.asarray(a)
+    if a.dtype.kind in "iu" and doc["accessors"][acc_i].get("normalized"):
+        return (a / float(np.iinfo(a.dtype).max)).astype("float32")
+    return a.astype("float32")
+
+
+def _texture(doc, binary, tex_i):
+    if tex_i is None:
+        return None
+    try:
+        img = doc["images"][doc["textures"][tex_i]["source"]]
+        view = doc["bufferViews"][img["bufferView"]]
+    except (KeyError, IndexError, TypeError):
+        return None                                   # an external or missing image: the factor colour stands in
+    from PIL import Image
+    off = view.get("byteOffset", 0)
+    try:
+        with Image.open(io.BytesIO(binary[off:off + view["byteLength"]])) as im:
+            return im.convert("RGB")
+    except Exception:  # noqa: BLE001 - an undecodable texture is not a reason to lose the thumbnail
+        return None
 
 
 def _hist(x, bins, hi):

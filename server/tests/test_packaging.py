@@ -16,3 +16,10 @@ def test_runtime_dependencies_include_a_websocket_library():
     meta = tomllib.loads((Path(__file__).resolve().parents[1] / "pyproject.toml").read_text())
     runtime = " ".join(meta["project"]["dependencies"]).lower()
     assert "websockets" in runtime or "wsproto" in runtime or "uvicorn[standard]" in runtime
+
+
+def test_the_local_embeddings_extra_carries_the_onnx_runtime():
+    """The bundled weights need onnxruntime in the SERVER's environment; without it the Vault reports needs_runtime and stays deterministic."""
+    meta = tomllib.loads((Path(__file__).resolve().parents[1] / "pyproject.toml").read_text())
+    extra = " ".join(meta["project"]["optional-dependencies"].get("local-embeddings", [])).lower()
+    assert "onnxruntime" in extra and "numpy" in extra

@@ -176,7 +176,10 @@ class CodexAppServerProvider:
         self.schema_dir = schema_dir
         self._env = dict(env) if env is not None else child_env(os.environ)
         self._env.update(extra_env or {})
-        self.workdir = workdir or tempfile.mkdtemp(prefix="lampway-codex-")
+        if workdir is None:
+            self._own_workdir = tempfile.TemporaryDirectory(prefix="lampway-codex-")         # removed with the provider (it was a leaked /tmp dir per provider)
+            workdir = self._own_workdir.name
+        self.workdir = workdir
         self._clients: dict = {}
         self._probed = False
 
@@ -192,7 +195,8 @@ class CodexAppServerProvider:
         elif not isinstance(self.binary, (list, tuple)):
             if shutil.which(self.binary) is None:
                 raise CodexAppServerError(f"{self.binary} is not installed or not on PATH: install Codex and sign in once yourself")
-            probe_binary(self.binary, tempfile.mkdtemp(prefix="lampway-codex-schema-"))
+            with tempfile.TemporaryDirectory(prefix="lampway-codex-schema-") as schema_out:
+                probe_binary(self.binary, schema_out)
         self._probed = True
 
     @staticmethod

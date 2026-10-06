@@ -23,9 +23,8 @@ def specs() -> list:
 
 
 def _run(state_dir, root, arguments):
-    import os
-    from ..config import _default_state_dir
-    ctx = CLI.Context(root=Path(root), state=Path(state_dir or os.environ.get("LAMPWAY_STATE_DIR") or _default_state_dir()))
+    from ..config import state_dir as _one_state_dir
+    ctx = CLI.Context(root=Path(root), state=Path(state_dir) if state_dir else _one_state_dir())
     prefs, runner = CLI.build(ctx, own_egress=False)
     a = arguments.get("action")
     if a == "plan":

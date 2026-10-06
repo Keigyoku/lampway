@@ -261,3 +261,34 @@ def test_real_worktree_plan_matches_git_gitlink() -> None:
     result = _run_plan(REPO_ROOT)
     assert result.returncode == 0, result.stderr
     assert _kv(result.stdout)["upstream_pin"] == pinned
+
+
+# ---- the bundled embedding models (scripts/lampway/fetch_models.py) ------------------------------------------------------------
+def test_plan_names_where_the_bundled_models_go(fake_root: Path) -> None:
+    result = _run_plan(fake_root, {"MIXAR_ENV": "Prod"})
+    assert result.returncode == 0, result.stderr
+    assert _kv(result.stdout)["models_dir"] == str(fake_root / "build/Prod/bin/5.2/datafiles/lampway/models")
+
+
+def test_models_only_runs_the_fetcher_into_the_builds_data_directory(fake_root: Path) -> None:
+    log = fake_root / "fetch.log"
+    fetcher = fake_root / "scripts/lampway/fetch_models.py"
+    fetcher.write_text(f"import sys\nopen({str(log)!r}, 'w').write(' '.join(sys.argv[1:]))\n")
+    result = _run(fake_root, "--models-only", {"MIXAR_ENV": "Prod"})
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert log.read_text() == "--dest " + str(fake_root / "build/Prod/bin/5.2/datafiles/lampway/models")
+
+
+def test_a_failed_model_fetch_fails_the_step(fake_root: Path) -> None:
+    (fake_root / "scripts/lampway/fetch_models.py").write_text("import sys\nsys.exit(5)\n")
+    result = _run(fake_root, "--models-only")
+    assert result.returncode == 5
+    assert "models" in result.stderr
+
+
+def test_lampway_skip_models_leaves_the_build_without_weights(fake_root: Path) -> None:
+    log = fake_root / "fetch.log"
+    (fake_root / "scripts/lampway/fetch_models.py").write_text(f"open({str(log)!r}, 'w').write('ran')\n")
+    result = _run(fake_root, "--models-only", {"LAMPWAY_SKIP_MODELS": "1"})
+    assert result.returncode == 0 and not log.exists()
+    assert "LAMPWAY_SKIP_MODELS" in result.stdout

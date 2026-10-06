@@ -678,6 +678,8 @@ from .features import batch_export as _F_bx                 # noqa: E402
 from .features import camera_shot as _F_cs                  # noqa: E402
 from .features import procedural_library as _F_pl          # noqa: E402
 from .features import layered_material as _F_lm            # noqa: E402
+from .features import asset_place as _F_ap                # noqa: E402
+from .features import asset_catalog as _F_ac              # noqa: E402
 from .features import material_bake_export as _F_mbe        # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
@@ -939,6 +941,45 @@ def layered_material(action="inspect", object=None, material=None, layer=None, m
     builds a whole stack from a manifest (index 0 must be a PBR layer). Refused: not a mesh, no paint project yet (the refusal names init), unknown blend / type / mask / projection (each lists the choices).
     Mask invert is not built. One undo step per Blender operator the Client's package uses."""
     return _F_lm.layered_material(action, object, material, layer, manifest, layer_index, params)
+
+
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
+def asset_place(asset_id=None, mode="auto", target=None, options=None, version=None, asset=None):
+    """Put an Asset Vault asset into the open scene in the way its kind needs (specs/asset_library/asset_place.md), as one undo step, stamping lw_asset_id / lw_asset_version / lw_asset_sha256
+    on what it places. mode auto picks by kind (mesh: import or append, material: assign_material, hdri: set_world, ...); target {where: cursor | origin | object:<name> | slot:<object>:<index>
+    | node_tree:<material> | world | sequencer}; options {collection, scale_to_unit, force, replace, ...}. ``asset`` is the library record (given, no fetch); otherwise the record of asset_id
+    is read from the server. A placement is recorded on the server as a ``placed`` event (event_recorded false when the server could not take it: the placement stands)."""
+    from . import library_client as LC
+    if asset is None:
+        if not asset_id:
+            raise ValueError("asset_place needs asset_id: find one with lampway_vault_search")
+        try:
+            asset = LC.get_asset(asset_id, version)
+        except LC.LibraryClientError as exc:
+            raise ValueError(f"{exc}; the asset was not placed") from None
+    out = _F_ap.asset_place(asset, mode, target, options)
+    try:
+        LC.record_event("placed", str(asset.get("id")), version=asset.get("version"), mode=out["mode_used"], project=bpy.data.filepath or "",
+                        datablocks=[p.get("name") for p in out["placed"]])
+        out["event_recorded"] = True
+    except LC.LibraryClientError:
+        out["event_recorded"] = False
+    return out
+
+
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
+def asset_catalog_export(dest_library, assets=None, asset_ids=None, register=False, library_name="Lampway Vault"):
+    """Publish Asset Vault assets (their library records: materials and node groups from their .blend, meshes, rigs, actions) as a Blender asset library under dest_library (inside the project
+    root): a headless worker writes lampway_library.blend with every datablock marked as an asset (never your live file), and blender_assets.cats.txt from the taxonomy (<facet>/<label>,
+    catalogue ids are UUID5 of the path, stable across exports). register=true adds the folder to Blender's asset libraries as library_name. Refused: a lampway_library.blend Lampway did
+    not write, a kind that does not publish, a moved file. Pass the records (assets) or their ids (asset_ids, read from the server)."""
+    from . import library_client as LC
+    if assets is None:
+        try:
+            assets = [LC.get_asset(a) for a in asset_ids or []]
+        except LC.LibraryClientError as exc:
+            raise ValueError(f"{exc}; nothing was published") from None
+    return _F_ac.asset_catalog_export(list(assets), Path(_p(dest_library)), bool(register), str(library_name))
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))

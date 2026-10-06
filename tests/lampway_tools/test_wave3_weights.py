@@ -17,7 +17,7 @@ PRE = r'''
 import bpy, bmesh, json, math, os, tempfile
 from mathutils import Vector
 from mixar.modules.lampway_tools import api
-root = tempfile.mkdtemp(prefix="lw_w_"); api.settings_set(project_root=root)
+root = os.environ.get("LW_KEEP_ROOT") or tempfile.mkdtemp(prefix="lw_w_"); api.settings_set(project_root=root)   # a test that reads outputs after the run passes its own tmp_path
 bpy.ops.wm.read_factory_settings(use_empty=True)
 
 def armature(name="rig", bones=(("spine_03", (0, 0, 0), (0, 0, 1), None), ("upperarm_l", (0, 0, 1), (0, 0, 2), "spine_03"))):

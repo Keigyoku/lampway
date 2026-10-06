@@ -151,7 +151,7 @@ def inventory(project, home, env=None, client="all", scope="all", eligibility: O
     if lamp:
         row.update(launcher=lamp["_launcher"], launcher_ok=lamp["_exe_ok"], opted_in=lamp["enabled"])
     if any(s["name"] == LEGACY for s in servers):
-        notes.append("a legacy `mixar` entry points at the old name: replace with lampway (click Add)")
+        notes.append("an entry left from the upstream app points at the old name: replace with lampway (click Add)")
     if eligibility:
         ok, detail = eligibility()
         row.update(eligible=bool(ok), eligibility_detail=str(detail))

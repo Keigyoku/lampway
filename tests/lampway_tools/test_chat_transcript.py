@@ -32,7 +32,7 @@ d["content"] = "Found 3 loops."; d["text"] = "Found 3 loops."
 
 
 def run(body):
-    return run_script(PRE + body, env={"LAMPWAY_HOME": tempfile.mkdtemp(prefix="lw_home_")})
+    return run_script(PRE + body, env={"LAMPWAY_HOME": "@RUN_TMP@/home"})
 
 
 def test_the_raw_content_is_empty_but_chat_transcript_returns_every_message_text():
