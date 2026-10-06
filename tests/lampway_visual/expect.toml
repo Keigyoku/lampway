@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# Contract 15: per state, the token each named surface must sample as (within 2/255), and the theme variant whose
+# value applies. Surfaces are located by the state script (states/<name>.py), never by guessed coordinates here.
+
+[night_startup]
+theme = "dark"
+
+[night_startup.surfaces]
+outliner_active_row = "accent_bed_hi"   # contract 01 T9
+outliner_back = "surface"               # contract 01 T9

@@ -10,6 +10,18 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 |---|---|
 | (contract 01, native) | `userdef_default_theme.c` (the default theme is Lampway Night), `interface_mixar_theme.cc` (slot fallbacks), `UI_mixar_tokens.hh` (zen palette, included widely), `rna_userdef.cc` (RNA reset defaults). Also installs the two theme presets (`sync_python.sh` does not copy `src/scripts/presets/`). |
 
+## Gate totals at the contract 01 push (`30b6c2fd`, merged with `origin/lp/wave5` `00d907d4`)
+
+- Server suite (`venv-tools`): 0 failed, 6 skipped, rc 0.
+- Client, real binary (`tests/lampway_tools`, my Prod build): 826 collected, 780 passed, 46 skipped, 0 failed.
+- Client, host (`pytest --continue-on-collection-errors --ignore=tests/lampway_tools`): the same 132 failing ids as the
+  integration tip run the same way (most are environment: `mcp` not installed on the host, withheld subtitles, a
+  gitignored `.pot`), none new; mine passes 19 more tests.
+- Gates: theme 0 (6/6), cues 0 (4/4), WezTerm 0 (4/4), icons (spec copy, contract 14 brings it in) 0 (4/4); pre-push
+  PII gate 0 findings.
+- Windowed check of the product itself (Xvfb in the build box, a new profile): the app opens in Night, Quick Setup
+  reads "Lampway Night".
+
 ## Contract 01: tokens and theme
 
 ### Review of the stopped attempt's commit `8e851a07`
@@ -101,3 +113,29 @@ an RNA reset default: 10 of 10 killed.
   under any theme; not green, but not Night's either. Left as is; a decision.
 - `startup/bootstrap/__init__.py::_initialize_theme_defaults` seeds `chat_bubble_hover` with Mixar green when a stored
   profile has none; Night's default is non-zero, so new profiles never reach it. Left as is.
+
+## Contract 15: the visual harness
+
+`tests/lampway_visual/`: `harness.py` (host: launch, sample, diff, approve), `driver.py` (inside the build: waits for
+the deferred UI, closes the first-run splash with a simulated Escape, runs the state, applies planted colours,
+captures the window with the fork's `Window.mixar_qa_capture_frame`, locates surfaces from
+`WindowManager.mixar_qa_ui_dump`), `states/night_startup.py`, `expect.toml`, `golden/APPROVALS.md`.
+
+- Display: the host has no Xvfb; the `lampway-build` box has (`xvfb-run`, Mesa llvmpipe), which answers the contract's
+  open question. `LAMPWAY_XVFB` names the prefix, e.g. `podman exec --user 1000:1000 -w <repo> lampway-build xvfb-run
+  -a -s '-screen 0 1600x1000x24'`; without it or `xvfb-run` on PATH the three display tests skip with "no virtual
+  display: run inside the build box" (measured: 3 passed, 3 skipped).
+- States locate their surfaces from the QA dump, never by coordinates in `expect.toml`. Each run has its own HOME and
+  XDG dirs; nothing touches a real profile; every timer is bounded.
+- T9 for contract 01 is the first state: a new profile, Layout workspace, Cube active and selected. The outliner's active
+  row sampled `#5a4720` (`accent_bed_hi`), its back `#161922` (`surface`), both exact. The first back sample landed on
+  a `row_alternate` stripe (`#181b24`, inside the 2/255 tolerance by luck); the state now samples a row of the back's
+  parity.
+- Tests (6): skips loudly without a display; a planted off-token colour fails naming the surface and the token; T9
+  passes; a 20 px shift of the outliner exceeds the 1 percent tolerance and an unshifted copy differs by 0; a missing
+  golden fails by name; approving a golden is refused without `LAMPWAY_VISUAL_APPROVE=1`. Mutants: a tolerance that
+  swallows everything, sampling without the y flip, a diff threshold that swallows everything: 3 of 3 killed.
+- No golden is approved: approval is a person's act. The startup state checks tokens only until one is.
+- Not built: section 14's busyness and parity scripts measure the mockups' HTML DOM (text runs, borders, glow from
+  computed styles); an app-side count from the QA dump and the capture needs a mapping the contract does not give.
+  Recorded, not invented.
