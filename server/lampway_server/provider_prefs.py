@@ -11,7 +11,7 @@ from pathlib import Path
 
 from .config import Settings
 
-MAIN_PROVIDERS = ("mock", "anthropic", "openai", "openrouter", "chatgpt_plan", "codex_cli", "claude_cli")
+MAIN_PROVIDERS = ("mock", "anthropic", "openai", "openrouter", "chatgpt_plan", "codex_cli", "codex_app_server", "claude_cli")
 SWARM_PROVIDERS = ("", "claude_cli", "openrouter")            # '' = the main provider's own swarm path (chatgpt_plan, openrouter, mock...)
 EFFORTS = ("", "minimal", "low", "medium", "high", "xhigh")
 IMAGE_BACKENDS = ("tripo", "codex_cli", "openrouter")

@@ -313,7 +313,7 @@ class AgentHub:
     async def _agent_loop(self, socket, session, turn, stream, bubble_id, steps):
         system = self.system_prompt + (PLAN_MODE_PROMPT if turn.plan_mode else "")
         for _round in range(MAX_ROUNDS):
-            request = ModelRequest(system, trim_history(session.messages), list(TOOLS) + SWARM_SPECS)
+            request = ModelRequest(system, trim_history(session.messages), list(TOOLS) + SWARM_SPECS, session_id=session.session_id)
             text_parts: list[str] = []
             calls: list[ToolCall] = []
             stop = ""

@@ -24,6 +24,12 @@ def make_provider(settings, chatgpt_auth=None):
         from .chatgpt_plan import ChatGPTPlanProvider
         auth = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
         return ChatGPTPlanProvider(auth, settings.chatgpt_model, effort=settings.chatgpt_effort)
+    if settings.provider == "codex_app_server":
+        from .. import cli_adapters
+        from .codex_app_server import CodexAppServerProvider
+        cli_adapters.require_enabled(settings.state_dir)
+        return CodexAppServerProvider(binary=os.environ.get("LAMPWAY_CODEX_BINARY", "codex"), model=os.environ.get("LAMPWAY_CODEX_MODEL", ""), effort=os.environ.get("LAMPWAY_CODEX_EFFORT", "medium"),
+                                      turn_timeout_s=float(os.environ.get("LAMPWAY_CODEX_TURN_TIMEOUT_S", "180")))
     if settings.provider in ("codex_cli", "claude_cli"):
         # The owner's own official CLIs, for personal use. Off unless enabled; the refusal carries the terms caveat.
         from .. import cli_adapters
