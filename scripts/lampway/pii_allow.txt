@@ -35,3 +35,5 @@ X-Amz-Expires=900       # a fake or documentation value in tests (no person)
 raj@mixar.app           # a fake or documentation value in tests (no person)
 # fake signed-URL test value in upstream Mixar tests (tests/test_terrain_asset_prefetch.py), verified 2026-10-05
 X-Amz-Signature=secret  # a fake or documentation value in tests (no person)
+# a fake home directory used by the tests (herdr launcher and the Boat environment filter); not a real path
+/home/x
