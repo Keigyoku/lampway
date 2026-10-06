@@ -5,6 +5,7 @@ import contextlib
 import json
 import logging
 import os
+import threading
 from html import escape
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse
@@ -122,6 +123,21 @@ def default_studio_service(receipts=None):
     from .agent.server_tools import project_root
     from .studios.service import StudioService
     return StudioService(project_root(), shelf=os.environ.get("LAMPWAY_STUDIO_SHELF") or None, receipts=receipts)
+
+
+def _open_library(state_dir):
+    """The Vault (library/store.py) under ``<state>/library``, or None when another process holds its one writer lock: the job hook then spools what it would
+    have recorded (``<state>/library-spool.jsonl``) and ``provenance.replay_spool`` lands it once a library opens."""
+    from .library import provenance as _prov
+    from .library.store import AssetLibrary, LibraryError as VaultError
+    try:
+        lib = AssetLibrary(Path(state_dir) / "library")
+    except VaultError:
+        return None
+    spool = Path(state_dir) / "library-spool.jsonl"
+    if spool.is_file():
+        _prov.replay_spool(lib, spool)                             # what a locked period spooled lands now
+    return lib
 
 
 def unauthorized(message="Not authenticated"):
@@ -296,9 +312,14 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     receipts = job_receipts if job_receipts is not None else JR.JobReceipts(_project_root(), ledger=Ledger(Ledger_default_path()), fetchers=video_system.receipt_fetchers())
     studio = studio_service if studio_service is not None else default_studio_service(receipts)
     prompt_service = prompts if prompts is not None else PromptService.from_env(settings.state_dir)
+    library = _open_library(settings.state_dir)
+    from .library import hooks as _vault_hooks
+    from .library.render import Renderer as _VaultRenderer
+    renderer = _VaultRenderer(library, blender=os.environ.get("LAMPWAY_BIN") or None) if library is not None else None     # previews: never the live window
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
-                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts)
+                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts,
+                    provenance=_vault_hooks.job_hook(library, settings.state_dir / "library-spool.jsonl"))
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
@@ -1049,6 +1070,10 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         except Exception:  # noqa: BLE001 - a recovery problem must not stop the server; the receipts stay on disk
             logging.getLogger("lampway.jobs").warning("job recovery failed", exc_info=True)
 
+        render_stop = threading.Event()
+        if renderer is not None:
+            renderer.start(render_stop)                                # one worker thread: due previews, then thumbnails nobody asked for yet
+
         async def tick():
             while True:
                 await asyncio.sleep(60)
@@ -1061,6 +1086,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             yield
         finally:
             task.cancel()
+            render_stop.set()
 
     app = Starlette(routes=routes, lifespan=lifespan)
     app.add_middleware(HostGuard, bind_host=settings.host)
@@ -1076,4 +1102,6 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.prompts = prompt_service
     app.state.higgsfield_auth = hf_auth
     app.state.jobs = jobs
+    app.state.library = library
+    app.state.renderer = renderer
     return app
