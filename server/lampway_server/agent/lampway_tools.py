@@ -466,11 +466,17 @@ DEFS = [
         "(images = {\"Front\": path, \"Left\": path, ...}; Front u=+X, Left u=-Y; silhouettes from alpha or the corner colour), "
         "extrude = a rounded or slab extrusion of Front (+Back) for paired pieces (depth in metres), relief = a luminance relief of one "
         "image. The mesh is judged by re-projection IoU, volume and boundary edges. engine=studio:tripo is the Smart Mesh slot "
-        "(100 credits): it answers with action and price for the owner's approval and clicks nothing." + _PATHS,
-        [P("images", "object", "View name -> image path (project-relative)", required=True), P("size", "number", "Height in metres, default 1"),
+        "(100 credits): it answers with action and price for the owner's approval and clicks nothing. A turnaround SHEET is cut first: detect_views=<sheet> "
+        "with views = the panel order left to right (never guessed) splits it into labelled views (a single image wider than 2:1 is refused: it would fuse "
+        "the panels). paired=true (gauntlets, boots) takes front and back only. engine studio:tripo (tripo.mesh) | studio:meshy (meshy.multi_image_to_3d) | "
+        "studio:hi3d (hi3d.image_to_3d) answer with the action and its plan_args for studio_plan after a plate check (a plate under 1024 px, without a "
+        "subject or touching the border is named: fix the plate first; plate_check=false skips it)." + _PATHS,
+        [P("images", "object", "View name -> image path (project-relative); or detect_views"), P("size", "number", "Height in metres, default 1"),
          P("resolution", "integer", "Voxels along the height, 8-160, default 64"), P("mode", desc="hull (default) | extrude | relief"),
          P("depth", "number", "extrude/relief depth in metres"), P("profile", desc="extrude: round (default) | slab"), P("name"),
-         P("engine", desc="algorithmic (default) | studio:tripo")], api="image_to_3d"),
+         P("engine", desc="algorithmic (default) | studio:tripo | studio:meshy | studio:hi3d"), P("detect_views", desc="a turnaround sheet to cut into views"),
+         P("views", "array", "detect_views: the panel order left to right, e.g. Front, Left, Back, Right"), P("paired", "boolean", "front and back only"),
+         P("plate_check", "boolean", "studio engines: check the plates first, default true")], api="image_to_3d"),
     Def("lampway_splat_import", "Import a 3D Gaussian Splatting PLY (binary little endian with x y z f_dc_0..2 opacity scale_0..2) as ONE point "
         "object with colour, opacity and radius attributes and a geometry-nodes view. A splat has no faces and is never converted to "
         "a mesh; max_points subsamples deterministically. Generating a splat from an image or text needs a world model (not wired)."

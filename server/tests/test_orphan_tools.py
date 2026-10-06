@@ -70,3 +70,9 @@ def test_layered_material_offers_mask_invert():
 def test_auto_rig_takes_body_plans_naming_and_parts():
     props = LT.BY_NAME["lampway_auto_rig"].spec().parameters["properties"]
     assert {"naming", "parts", "chain_bones"} <= set(props) and "quadruped" in props["kind"]["description"]
+
+
+def test_image_to_3d_takes_a_sheet_paired_and_the_multi_view_slots():
+    sp = LT.BY_NAME["lampway_image_to_3d"].spec().parameters
+    assert {"detect_views", "views", "paired", "plate_check"} <= set(sp["properties"]) and "images" not in sp["required"]
+    assert "studio:meshy" in LT.BY_NAME["lampway_image_to_3d"].description

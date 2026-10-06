@@ -17,6 +17,7 @@ as a job (``jobs.py``) and its scene-touching tail runs from the app's timer.
 
 import functools
 import json
+import os
 from pathlib import Path
 
 import bpy
@@ -1455,14 +1456,36 @@ def detail_normals(material, strengths=None, ambientcg_dir=""):
 
 
 @tool
-def image_to_3d(images, size=1.0, resolution=64, mode="hull", depth=None, profile="round", name="", engine="algorithmic"):
+def image_to_3d(images=None, size=1.0, resolution=64, mode="hull", depth=None, profile="round", name="", engine="algorithmic", detect_views="", views=None,
+                paired=False, plate_check=True):
     """Mesh from images, no model: ``hull`` = visual hull of two or more cardinal views ({"Front": path, "Left": path, ...}, Front u=+X,
     Left u=-Y), ``extrude`` = rounded/slab extrusion of Front (+Back) for paired pieces, ``relief`` = luminance relief of one image.
-    Reported by re-projection IoU, volume and boundary edges. engine=studio:tripo is the Smart Mesh slot (100 credits: approval first)."""
-    if engine == "algorithmic":
-        s_ = _settings()
+    Reported by re-projection IoU, volume and boundary edges. detect_views = a turnaround sheet cut into panels named by ``views`` (left to right);
+    paired = front and back only. engine=studio:tripo | studio:meshy | studio:hi3d answers with the action, its plan_args and price, after a plate check."""
+    from .features import image3d_views as _IV
+    s_ = _settings()
+    detected = None
+    if detect_views:
+        sheet = _p(detect_views, s_.project_root)
+        detected = _IV.detect_views(sheet, os.path.join(os.path.dirname(sheet), "views_" + os.path.splitext(os.path.basename(sheet))[0]), list(views or []))
+        images = detected["views"]
+    elif images:
         images = {v: _p(p, s_.project_root) for v, p in images.items()}
-    return _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
+        if len(images) == 1 and _IV.looks_like_sheet(next(iter(images.values()))):
+            raise ValueError("this looks like a turnaround sheet (more than 2:1): pass detect_views=<sheet> with views (the panel order) so the panels are not fused into one mesh")
+    else:
+        raise ValueError("give images {View: path} or detect_views (a turnaround sheet) with views")
+    if paired and set(images) - {"Front", "Back"}:
+        raise ValueError(f"a paired piece (gauntlets, boots) takes front and back only: drop {sorted(set(images) - {'Front', 'Back'})}")
+    if engine != "algorithmic":
+        if not plate_check:
+            return _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
+        return _IV.studio_plan(images, engine, paired)
+    res = _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
+    res["views_used"] = sorted(images)
+    if detected:
+        res["detected"] = {k: v for k, v in detected.items() if k != "views"}
+    return res
 
 
 @tool
