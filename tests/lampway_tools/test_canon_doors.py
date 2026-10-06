@@ -104,6 +104,24 @@ def test_every_tool_declares_what_it_consumes():
     assert not bare, "tools without consumes= (declare Need(...), NONE('why') or, during migration, LEGACY('issue')):\n" + "\n".join(bare)
 
 
+def _call_form_tools(tree):
+    """(line, text) of every registration by CALLING tool (``tool(fn)``, ``api.tool(getattr(...))``) without consumes=: a call-form
+    registration is a tool all the same (api.py wraps api_wave6's functions that way), and a decorator-only scan never sees it."""
+    out = []
+    for n in ast.walk(tree):
+        name = _dotted(n.func) if isinstance(n, ast.Call) else None
+        if name and (name == "tool" or name.endswith("api.tool")) and n.args and not any(k.arg == "consumes" for k in n.keywords):
+            out.append((n.lineno, ast.unparse(n)[:80]))
+    return out
+
+
+def test_a_call_form_registration_declares_too():
+    assert _call_form_tools(ast.parse("x = tool(fn)\ny = api.tool(getattr(m, 'f'))\nz = tool(consumes=NONE('reads nothing'))(fn)\nw = PL.tool(1)\n")) == \
+        [(1, "tool(fn)"), (2, "api.tool(getattr(m, 'f'))")]
+    bare = [f"{p.relative_to(ROOT)}:{line} {text}" for p in sorted(LT.rglob("*.py")) for line, text in _call_form_tools(ast.parse(p.read_text(encoding="utf-8")))]
+    assert not bare, "tools registered by a call without consumes= (pass consumes= to tool(...)):\n" + "\n".join(bare)
+
+
 def _in_blender(body):
     import sys as _s
     _s.path.insert(0, str(Path(__file__).parent))
