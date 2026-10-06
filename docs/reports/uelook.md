@@ -181,9 +181,11 @@ use_tspace off, no bake-triangle check, no canonical check, no UV check, simplif
 lens off by 2 %. Every mutant failed its test.
 
 Suites before the push (scratch TMPDIR and basetemp, deleted after each run):
-- scoped: `tests/lampway_tools/test_uelook_*.py`: 55 passed; `test_wave3_fit_body_export.py` (the gates refactor): 6 passed;
-  `test_wave5_tool_door.py`: 3 passed (it failed in the first full run, naming the four tools without a server Def: fixed).
-- client `pytest -q tests/lampway_tools tests/lampway` with the lane's binary: **919 passed, 46 skipped, 4 failed** in 597 s.
+- scoped, after the ruling: `test_uelook_*.py` + `test_launcher.py` + `test_wave5_tool_door.py` + `test_wave3_fit_body_export.py`:
+  98 passed. (Before the ruling: the uelook tests 55 passed; the tool-door test failed in the first full run, naming the four
+  tools without a server Def: fixed.)
+- client `pytest -q tests/lampway_tools tests/lampway` with the lane's binary, after the ruling: **939 passed, 46 skipped,
+  4 failed** in 583 s (before it: 919 / 46 / 4).
   The 4 failures are pre-existing: the same 4 tests fail on a detached checkout of `origin/lp/wave5` (`4 failed, 11 passed`),
   and none names a file of this lane (merge notes).
 - server `pytest -q` in `server/` with venv-tools: **exit 0; 1,069 passed, 6 skipped, 0 failed** (counted from the progress
