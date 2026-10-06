@@ -564,3 +564,37 @@ mixed rig still failed, on schema validation, whose message also contains "mixed
 tables are mixamo and rigify only, and UE names are canon 16's canonical names. N5 maps UE names to themselves; inspect is unchanged.
 Not built: turning an armature (rest and actions), `normalize_clip` (canon R4 / Titan `animation_canon`, now in the tree through
 orphans' O36), converting the skeleton-argument tools' doors (side_label_check, mirror_pair, ...) now that skeleton documents exist.
+
+## Status at the end of this pass (lp/canon)
+| plan item | state | what is not built |
+|---|---|---|
+| 1 canon_geom | DONE | - |
+| 2 validation receipts | DONE | the UE engine leg; captured poses |
+| 3 weights | DONE (brief scope) | dress / plate / fade / seam-band profiles in fit_bind |
+| 4 bind and return | DONE | - |
+| 5 placement | DONE: inner wall, rotation, joint-relative regions | the source-part check (B.7); the sole band's thickness is still absolute (needs_decision) |
+| 6 the rest of 15/21/14/12/10/13 | PARTIAL | clearance's innermost-layer gap and hideable; per-bone scale in the export check; relative pose-clearance heights |
+| 7 pose solve | DONE: engine, chest table, tool | G08.4 (shelf inputs); hands (B.5); blockers in the piece frame (B.6); the other kinds (captain's ranges) |
+| 8 UV | DONE | xatlas option |
+| 9 bake | DONE: ray, measured auto cage, 16-bit GL + DX flip, attach flip, hit mask, bake.json | bake groups; hash dirs |
+| 10 retopo | DONE: two-sided deviation, explicit fallback, preserve-sharp, 3x refusal | per-part remesh (no part-map carrier on the object) |
+| 11 openings | DONE: the section containing the axis point, material textures | site axes from the posed body (the pose engine now exists) |
+| 12 joints from views | DONE on keypoints_json, centring, calibration | the detector (decision 11-H1), view rendering, the video variant |
+| 13 lampway_fit orchestrator | NOT BUILT | - |
+| 14 soft-part conform | BLOCKED on decision 03-H2 | - |
+| N0-N4 | DONE (Vault placement after the wave5 merge) | the strict `put` (a raw version is stored raw, not refused) |
+| door additions A/B/C | DONE (A: orphans' form adopted and hardened) | the material normalizer; image FILE paths at the door |
+| N5 normalize_rigged | DONE (rigs facing -Y) | turning a rig; normalize_clip; the skeleton-argument tools' doors |
+| typed judge | DONE as a slot | no judge model installed; accuracy per field: none measured |
+| canon finding: UE export axes | RESOLVED in canon (R08), default unchanged | the UE confirmation M-RIG-01 |
+
+**Goldens:** `docs/canon/check_canon.py` PASS - C01-C14 35 checks, R01-R08 32 checks (R08 added here), the schema 3 valid / 7
+invalid, every committed case byte-identical to a fresh run. In the Lampway suite the goldens are read from `docs/canon/goldens`
+(the tests' copies of C and R cases removed), regenerated per session and compared byte for byte.
+
+**needs_decision, in one place:** D4 `pair_scale_group`; D6's facing-margin NUMBER; the typed judge's `confidence_threshold`; the
+leather / cloth / embroidery and seam fit limits; chest clearance; bake `AUTO_PAD = 1.05`; placement `SOLE_BAND_M = 0.04`; canon 11
+H.3 (centring: the hits' mean leaves 1/8 vs the exact harmonic centre) and H.4 (G11.3's ambiguous outlier: refuse vs tie-break);
+canon 21 H.2 (the default export recipe after M-RIG-01) and H.3 (a Blender read-back's rotation tolerance: 0.01 deg is below an
+edit bone's measured storage noise of 0.112 deg); canon 08's DOF ranges for helmet / waist / boots / gauntlets; canon 07 G07.6's
+continuity number (not achievable by the canonical falloff, recorded under item 3).
