@@ -37,3 +37,6 @@ raj@mixar.app           # a fake or documentation value in tests (no person)
 X-Amz-Signature=secret  # a fake or documentation value in tests (no person)
 # a fake home directory used by the tests (herdr launcher and the Boat environment filter); not a real path
 /home/x                 # a fake home directory in two compute tests (server/tests/test_compute*.py), no person
+/home/keyring.json      # a test path under the run's own temp home (tests/lampway_tools/test_sandbox_secrets_in_app.py: "@RUN_TMP@/home/keyring.json"), no person
+/home/u                 # a fake home in lane vault-ui's test (tests/asset_library/test_viewmodel.py), no person
+/home/server-state      # the same test's state dir under the run's own temp home ("@RUN_TMP@/home/server-state"), no person
