@@ -430,3 +430,30 @@ the refusal names `lampway_normalize_rigged` (the door used to name `lampway_nor
 (measured: basis 22 cm from the mesh, the key's offset unturned) - now `shape_keys=True`; and normalization left the scene
 unevaluated, so `ob.dimensions` read the raw local size (a 2x-scaled 0.3 m box read 0.3; scale_to_measure then scaled it to
 0.64 m for a 0.32 m target) - now a view-layer update.
+
+## Canon finding from lane orphans: the default UE export recipe (canons 01/16/17/21)
+**Question:** `titan_cm_native` (primary Z / secondary X) reads back 120 deg off a canon-17 `blender` rig and 90 deg off a `ue_axes`
+rig, while X / -Y and Y / X pass - against REPORT contradiction 16 ("Titan's export recipe passes 342 of 342 bones"). Which is
+wrong: the recipe as ported, the canon-17 mapping, or the read-back's expected frames?
+**Answer, without a UE run: none of the three; the REPORT's generalisation was.** Blender's FBX writer turns a bone into the node
+frame `N = R_bone @ M(primary, secondary)` (the node's primary axis = the bone's +Y, secondary = the bone's +X). Canon 17's own
+construction (`frame_from`, golden R02) gives `R_ue_axes = R_blender @ T` with T = (X <- Y, Y <- -X, Z <- Z), which is exactly
+the read-back's `ENGINE_FROM_BLENDER`. Solving `M == T` gives X / -Y, `M == I` gives Y / X - the two pairs orphans measured passing -
+and Z / X is a 90 deg rotation about X: 120 deg from T, 90 deg from I, exactly the measured failures. Z / X carries neither
+convention; it is the round trip of a rig imported from the engine with Z / X, which is how Titan's MetaHuman entered Blender, so
+"passes 342 bones" was true of that rig only.
+**Built:** golden **R08** (`docs/canon/goldens`, generator + reference `fbx_node_map` / `recipe_for` / `frame_angle_deg` +
+self-test, 10 checks; falsifier: the transposed map puts the right pair 180 deg off); `test_canon_r08_export_axes.py` drives
+Blender's REAL FBX writer through all three pairs on three arbitrary bone frames and a raw read-back - every bone is
+`R_bone @ M` (RED: the reference and case did not exist; mutant: the transposed map fails the case test and the exporter test by
+180 deg, so the direction is pinned by Blender, not assumed). Pages: canon 21 B.2 (the rule, the default stays refused, H.2 the
+decision after M-RIG-01), 17 H.2, REPORT 16 corrected, the `rig_export_ue` contract, the goldens README and INDEX.
+`check_canon.py` PASS (R01-R08 32 checks; determinism byte-identical).
+**Not changed:** the default recipe itself - `titan_cm_native` is lane orphans' code (`lp/orphans`, not merged here) and stays the
+default, refusing canon-17 rigs, as ordered. **Recorded outside the repository:** `specs/ue_parity/MEASUREMENT_PLAN.md` row
+`M-RIG-01` (Session 1; the count 32 -> 33) - the shelf is not version-controlled, so this sentence is its record.
+**A second finding (needs_decision, canon 21 H.3):** the read-back gate's 0.01 deg bar (Titan's `bind_mismatch`, measured in
+Unreal) is below what a Blender edit bone holds: setting `EditBone.matrix` to an arbitrary frame and reading it back is up to
+0.112 deg off (67 of 400 random frames over 0.01 deg) with no FBX involved; the FBX round trip shows the same size (max 0.092 deg
+over 60). The errors are NOT clustered at the roll singularity, so I do not name a cause. G21.2's "frames equal to 0.01 deg" is
+unreachable for arbitrary frames inside Blender; my R08 exporter test therefore uses 0.2 deg (a wrong pair is >= 90 deg off).
