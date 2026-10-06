@@ -122,3 +122,7 @@ theme = "dark"
 [choices_window]
 theme = "dark"
 [choices_window.surfaces]
+
+[compare_window]
+theme = "dark"
+[compare_window.surfaces]

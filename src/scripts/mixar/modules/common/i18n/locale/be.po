@@ -5330,6 +5330,45 @@ msgstr ""
 msgid "Lampway's server is not running: start it, then Refresh"
 msgstr ""
 
+msgid "Open a compare set in its own window: one view per model, one camera"
+msgstr ""
+
+msgid "Change every view at once"
+msgstr ""
+
+msgid "not built yet: the data modes need their replacement materials"
+msgstr ""
+
+msgid "Sync the cameras, spin, or keep the names blind"
+msgstr ""
+
+msgid "Pick"
+msgstr "Выбар"
+
+msgid "Your pick: one decision row in the ledger, by you; while blind the names show only after it"
+msgstr ""
+
+msgid "only the user picks: a script cannot press it"
+msgstr ""
+
+msgid "No compare set is open"
+msgstr ""
+
+msgid "Blind"
+msgstr ""
+
+msgid "Names shown"
+msgstr ""
+
+msgid "pair, outline IoU (worst view), interior difference"
+msgstr ""
+
+msgid "Blind pick: a decision row in the ledger, by you, blind"
+msgstr ""
+
+msgid "Reveal without picking"
+msgstr ""
+
 msgid "On this machine"
 msgstr ""
 
@@ -6127,6 +6166,31 @@ msgid "Cockpit window"
 msgstr ""
 
 msgid "Open the cockpit window: a read-only mirror of the session in a Text editor, refreshed every two seconds"
+msgstr ""
+
+msgid "Get the Lampway terminal"
+msgstr ""
+
+msgid ""
+"Get the Lampway terminal: about 49 MB from github.com (the github route must be on), checked against the SHA-256\n"
+"Lampway pins, installed under LAMPWAY_HOME"
+msgstr ""
+
+msgid "Open the Lampway terminal"
+msgstr ""
+
+msgid "Open the Lampway terminal beside Blender: one tab per agent of Lampway's herdr server (Ctrl Alt T)"
+msgstr ""
+
+msgid "Remove the Lampway terminal"
+msgstr ""
+
+msgid "Remove the Lampway terminal: its window closes (never another WezTerm), the agents keep running"
+msgstr ""
+
+msgid ""
+"Open the cockpit window: every session with its state, the selected one's terminal, the reconcile banner and the report\n"
+"cards, in your browser from Lampway's own server (facelift contract 10)"
 msgstr ""
 
 msgid "Lampway tools"
@@ -21707,9 +21771,6 @@ msgstr ""
 
 msgid "Place a library asset dragged from the agent's picker where it was dropped"
 msgstr ""
-
-msgid "Pick"
-msgstr "Выбар"
 
 msgid "That library pick is no longer offered"
 msgstr ""

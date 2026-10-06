@@ -20,16 +20,16 @@ def _opt(oid, rank, **kw):
 PLATES = {"id": "images.plates", "label": "Plates", "group": "images", "cue": "fallback", "why": "studio:tripo is off",
           "now": {"option": "openrouter:openai/gpt-image-2.5-flare", "label": "openai/gpt-image-2.5-flare", "scope": "global", "reason": "fallback"},
           "chain": [_opt("studio:tripo", 0, runs="tripo3d.ai", connection={"id": "studio:tripo", "state": "connected"},
-                         route={"id": "studio:tripo", "on": False}, retention="kept", verdict="skipped",
+                         route={"id": "studio:tripo", "on": False}, retention="unknown", verdict="skipped",
                          skipped={"constraint": "route", "text": "route studio:tripo is off"}),
                     _opt("openrouter:openai/gpt-image-2.5-flare", 1),
-                    _opt("openrouter:sourceful/riverflow-v2.5-pro", 2, retention="kept", acknowledged="2026-10-06T10:00:00Z")],
+                    _opt("openrouter:sourceful/riverflow-v2.5-pro", 2, retention="unknown", acknowledged="2026-10-06T10:00:00Z")],
           "scopes": {"global": {}}, "params": {}}
 LISTING = {"groups": [{"id": "agents", "label": "Agents", "purposes": [{"id": "agent.main", "label": "Main agent", "group": "agents", "cue": "preferred",
                                                                          "now": {"option": "chatgpt_plan:gpt-5.5", "label": "gpt-5.5", "scope": "global"}}]},
                       {"id": "images", "label": "Images", "purposes": [PLATES]},
                       {"id": "tracking", "label": "Tracking and motion", "purposes": [{"id": "track.body_3d", "label": "Body tracking", "group": "tracking", "cue": "unset", "now": None}]}]}
-PROPOSALS = [{"id": "p1", "purpose": "images.plates", "option": "openrouter:sourceful/riverflow-v2.5-pro", "state": "open", "why": "flatter albedo"}]
+PROPOSALS = [{"id": "p1", "purpose": "images.plates", "change": {"preferred": "openrouter:sourceful/riverflow-v2.5-pro"}, "origin": "agent", "state": "open", "reason": "flatter albedo"}]
 
 
 def setup(bpy):

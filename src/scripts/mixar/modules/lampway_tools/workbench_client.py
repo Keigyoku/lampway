@@ -32,3 +32,16 @@ class WorkbenchClient(StudioClient):
 
     def close(self, sid: str, confirm: bool) -> dict:
         return self._call("POST", f"/app/workbench/sessions/{sid}/close", {"confirm": bool(confirm)})
+
+    # the Lampway terminal (facelift contract 16)
+    def terminal(self) -> dict:
+        return self._call("GET", "/app/terminal")
+
+    def terminal_get(self) -> dict:
+        return self._call("POST", "/app/terminal/get", {}, timeout=900)
+
+    def terminal_open(self, position=None) -> dict:
+        return self._call("POST", "/app/terminal/open", {"position": position})
+
+    def terminal_remove(self) -> dict:
+        return self._call("POST", "/app/terminal/remove", {})
