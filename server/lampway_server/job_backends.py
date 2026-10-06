@@ -76,6 +76,14 @@ if op == "image_to_3d":
 else:
     name = imported()
     if op == "retopo":
+        # a GLB splits vertices at UV seams and QuadriFlow refuses the split mesh ("Remeshing failed"; the tool no longer falls back
+        # to voxel silently): weld by position at the canon's distance first (canon 01, a generated mesh is welded) and say so
+        import bmesh
+        from mixar.modules.lampway_tools.canon_geom import WELD_M
+        me = bpy.data.objects[name].data
+        n0 = len(me.vertices)
+        bm = bmesh.new(); bm.from_mesh(me); bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=WELD_M); bm.to_mesh(me); bm.free()
+        res["welded_vertices"] = n0 - len(me.vertices)
         r = api.retopo(object=name, target_faces=int(p.get("target_faces", 2000)))
     elif op == "uv":
         r = api.uv_unwrap(object=name)
