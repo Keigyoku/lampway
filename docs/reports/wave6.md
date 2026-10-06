@@ -17,7 +17,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 | # | contract | pri | side | state |
 |---|---|---|---|---|
 | 1 | wiki/modular_character | P1 | Blender | done |
-| 2 | wiki/character_pipeline | P1 | Blender (plan) | |
+| 2 | wiki/character_pipeline | P1 | Blender (plan) | done |
 | 3 | wiki/playblast_capture | P2 | Blender | |
 | 4 | wiki/cinematic_shot_plan | P2 | server | |
 | 5 | wiki/lod_chain | P2 | Blender | |
@@ -63,3 +63,15 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
   `server/tests/test_wave6_tools.py` (both mutated RED: the registration loop removed, the items branch disabled).
 - [UNVERIFIED] the cover range (0.3 m) and poke-through range (2 cm) are mine; the contract gives none. Open (the contract's): whether Titan needs
   swappable outfits at all.
+
+### 2. character_pipeline (P1): done
+- Where: `pipeline/character_pipeline.py` (pure python), api `character_pipeline`, Def `lampway_character_pipeline`.
+- Thirteen stages with their tools; `missing_tools` is read from the live door (`api.TOOL_FUNCS`), so stage 4 (mirror_pair, mesh_join_boolean: STATUS
+  orphans) reads `no_tool` until those exist. Spend stages 2 (tripo.mesh, 100 per part) and 8 (tripo.texture, 30 + 5 PBR) are `needs_approval`.
+  record: a stage needs the stage before it passed; rigging (9-11) needs the assembly passed ("fit before rigging"). run: executes the given calls per
+  stage through `api.call`, stops at a failed gate, a spend stage (never called) or a missing tool; a call naming another stage's tool is refused.
+- UE leg: target `metahuman` returns the MetaHuman conform as `needs_decision` (a UE editor action; the UE leg waits on the parity exploration).
+- Tests: `test_wave6_character_pipeline.py` (8 pure python + 1 real binary). RED observed: ImportError (module absent). The contract's three tests
+  plus the falsifier (the same run passes when the gate passes). Mutants killed: the rig-before-assembly law, the gate reader, the spend stop, the
+  previous-stage law, credits per part.
+- Open (the contract's): is the MetaHuman conform in scope for the Lampway hand-off or only the captain's UE side.

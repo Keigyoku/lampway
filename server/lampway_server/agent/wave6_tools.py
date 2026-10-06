@@ -19,4 +19,14 @@ DEFS = [
          P("parts", "array", "manifest: [{object, role, fixed_or_deforming, wearer_side, bone}]", items=_OBJ), P("armature"),
          P("allowed_outfits", "array", "[[part ids]]", items={"type": "array", "items": {"type": "string"}}),
          P("poses", "string", "rest | wiki8 (default: the manifest's)"), P("out_dir")], api="modular_character"),
+    Def("lampway_character_pipeline", "The character route as thirteen gated stages: 1 reference pack, 2 generate parts (tripo.mesh, a spend), 3 prep and segment, "
+        "4 assemble (fit), 5 retopology to the part budgets, 6 UV, 7 bake, 8 projection texture (a spend), 9 auto rig, 10 weights, 11 secondary chains, 12 skeleton "
+        "check and export, 13 retarget test. parts: [{name, budget (triangles), rigid_bone}]. mode plan lists the stages with their tools (missing_tools = not built "
+        "yet), spend flags, credits and state. mode record {stage, gate: pass|fail, evidence} appends a gate; a stage needs the stage before it passed, and rigging "
+        "(9-11) needs the assembly (4) passed: 'fit before rigging'. mode run executes stage_calls {\"<n>\": [{tool, args}]} for from_stage..to_stage, each a tool of "
+        "that stage, and stops at the first failed gate, the first spend stage (needs_approval: the user's click confirms spends, never this tool) and a stage whose "
+        "tools are not built. target metahuman adds the MetaHuman conform as a needs_decision UE leg. Run record: <root>/<character_id>/pipeline/run.json.",
+        [P("character_id", required=True), P("parts", "array", "[{name, budget, rigid_bone}]", required=True, items=_OBJ), P("mode", desc="plan | record | run"),
+         P("target", desc="unreal_mannequin | metahuman | mixamo | vrm"), P("from_stage", "integer"), P("to_stage", "integer"), P("stage", "integer"),
+         P("gate", desc="pass | fail"), P("evidence"), P("stage_calls", "object", "{\"<n>\": [{tool, args}]}")], api="character_pipeline"),
 ]

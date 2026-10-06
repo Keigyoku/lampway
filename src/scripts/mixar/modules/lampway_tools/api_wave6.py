@@ -8,7 +8,7 @@ description; the server's Def (agent/wave6_tools.py) carries the same text."""
 
 from . import settings as S
 
-TOOLS = ("modular_character",)
+TOOLS = ("modular_character", "character_pipeline")
 
 
 def _root() -> str:
@@ -30,3 +30,25 @@ def modular_character(action="validate", character_id="", parts=None, armature=N
     part with the same armature under out_dir/<character_id>/. The full body is never deleted."""
     from .features import modular_character as M
     return M.run(_root(), action, character_id, parts, armature, allowed_outfits, poses, out_dir, resolve=_p)
+
+
+def character_pipeline(character_id, parts, mode="plan", target="unreal_mannequin", from_stage=1, to_stage=13, stage=None, gate=None, evidence="", stage_calls=None):
+    """The character route as thirteen gated stages: 1 reference pack, 2 generate parts (tripo.mesh, a spend), 3 prep and segment, 4 assemble (fit),
+    5 retopology to the part budgets, 6 UV, 7 bake, 8 projection texture (a spend), 9 auto rig, 10 weights, 11 secondary chains, 12 skeleton check and
+    export, 13 retarget test. parts: [{name, budget (triangles), rigid_bone}]. mode plan lists the stages with their tools (missing_tools = not built
+    yet), spend flags, credits and state. mode record {stage, gate: pass|fail, evidence} appends a gate; a stage needs the stage before it passed, and
+    rigging (9-11) needs the assembly (4) passed: "fit before rigging". mode run executes stage_calls {"<n>": [{tool, args}]} for from_stage..to_stage,
+    each a tool of that stage, and stops at the first failed gate, the first spend stage (needs_approval: the user's click confirms spends, never this
+    tool) and a stage whose tools are not built. target metahuman adds the MetaHuman conform as a needs_decision UE leg. Run record:
+    <root>/<character_id>/pipeline/run.json."""
+    from .pipeline import character_pipeline as CP
+    from . import api
+    door = list(api.TOOL_FUNCS)
+    if mode == "plan":
+        return CP.plan(_root(), character_id, parts, target, from_stage, to_stage, tools=door)
+    if mode == "record":
+        return CP.record(_root(), character_id, stage, gate, evidence, by="agent", tools=door)
+    if mode == "run":
+        import json as _json
+        return CP.run(_root(), character_id, parts, from_stage, to_stage, stage_calls, executor=lambda t, a: api.call(t, _json.dumps(a)), target=target, tools=door)
+    raise ValueError(f"unknown mode {mode!r}; plan | record | run")
