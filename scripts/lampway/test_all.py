@@ -49,6 +49,28 @@ def parse(log: str, prefix: str = "") -> tuple:
     return ids, counts
 
 
+NATIVE_PATHS = ("src/source", "src/intern", "src/CMakeLists.txt", "src/build_files", "src/release/datafiles", "native", "cmake", "upstream")
+
+
+def binary_gate(root, binary) -> tuple:
+    """("gated", sha) when <Prod>/BUILT_FROM names a commit whose native sources equal HEAD's; ("refused", why) when they differ;
+    ("ungated", why) when the binary records no BUILT_FROM (or there is none). A gated client run tests exactly the batch's native code."""
+    if not binary:
+        return "ungated", "UNGATED binary: no LAMPWAY_BIN, the real-binary tool tests skip"
+    built = Path(binary).resolve().parent.parent / "BUILT_FROM"
+    if not built.is_file():
+        return "ungated", f"UNGATED binary: {built} is absent, so the binary's native sources are unknown"
+    sha = built.read_text().split()[0]
+    paths = [p for p in NATIVE_PATHS if (Path(root) / p).exists()]
+    known = subprocess.run(["git", "-C", str(root), "cat-file", "-e", sha + "^{commit}"], capture_output=True)
+    if known.returncode != 0:
+        return "refused", f"the binary was built from {sha}, which this repository does not have: its native sources cannot be compared"
+    diff = subprocess.run(["git", "-C", str(root), "diff", "--quiet", sha, "HEAD", "--", *paths], capture_output=True)
+    if diff.returncode != 0:
+        return "refused", f"the binary was built from {sha[:12]}, whose native sources differ from HEAD's ({', '.join(paths)}): build at this batch, or a sha with the same native sources"
+    return "gated", sha
+
+
 def judge(failing: set, baseline: dict) -> dict:
     return {"new": sorted(failing - set(baseline)), "fixed": sorted(set(baseline) - failing), "known": sorted(failing & set(baseline))}
 
@@ -57,6 +79,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--only", choices=("server", "client"))
     ap.add_argument("--shrink-baseline", action="store_true")
+    ap.add_argument("--ungated", action="store_true", help="run on a binary whose native sources differ from HEAD (the result is not a gate)")
     a = ap.parse_args(argv)
     py = os.environ.get("LAMPWAY_TEST_PYTHON") or sys.executable
     tmp = Path(os.environ.get("TMPDIR") or "/tmp").resolve()
@@ -66,6 +89,12 @@ def main(argv=None) -> int:
     suites = {"server": ([py, "-m", "pytest", "tests", "-p", "no:cacheprovider", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-server")], ROOT / "server", "server/"),
               "client": ([py, "-m", "pytest", "-p", "no:cacheprovider", "--continue-on-collection-errors", "-q", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-client")], ROOT, "")}
     run = {k: v for k, v in suites.items() if not a.only or k == a.only}
+    gate = binary_gate(ROOT, os.environ.get("LAMPWAY_BIN")) if "client" in run else ("n/a", "server only")
+    if gate[0] == "refused" and not a.ungated:
+        print("REFUSED: " + gate[1] + " (pass --ungated to run anyway; the run is then not a gate)", file=sys.stderr)
+        return 4
+    if gate[0] != "gated" and "client" in run:
+        print(gate[1], file=sys.stderr)
     import fcntl
     lock = open(tmp / "lw-test-all.lock", "w")
     try:
@@ -102,12 +131,12 @@ def main(argv=None) -> int:
         keep = [l for l in BASELINE.read_text(encoding="utf-8").splitlines(keepends=True) if l.startswith("#") or not l.strip() or l.split("\t")[0] not in set(j["fixed"])]
         BASELINE.write_text("".join(keep), encoding="utf-8")
     green = not j["new"] and (not j["fixed"] or a.shrink_baseline)
-    summary = {"verdict": "GREEN" if green else "RED", "sha": subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip(),
+    summary = {"verdict": ("GREEN" if gate[0] in ("gated", "n/a") else "GREEN-UNGATED") if green else "RED", "binary": {"state": gate[0], "detail": gate[1]}, "sha": subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip(),
                "suites": report, "baseline": len(baseline), "known_red_seen": len(j["known"]), "new_failures": j["new"], "flaky_passed_on_rerun": flaky, "baseline_now_passing": j["fixed"],
                "minutes": round((time.time() - t0) / 60, 1), "logs": str(out)}
     (out / "summary.json").write_text(json.dumps(summary, indent=1))
     print(json.dumps(summary, indent=1))
-    return 0 if green else 1
+    return 0 if green and gate[0] in ("gated", "n/a") else (5 if green else 1)      # 5: green, but on a binary that is not this batch's: not a gate
 
 
 if __name__ == "__main__":

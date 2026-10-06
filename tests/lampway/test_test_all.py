@@ -31,3 +31,53 @@ def test_the_baseline_holds_no_absolute_path():
     """Reasons are copied from failure messages, which carry absolute paths: the published baseline keeps them repository-relative."""
     text = (ROOT / "tests" / "known_red.tsv").read_text()
     assert "/var/home/" not in text and "/home/" not in text and "/Users/" not in text
+
+
+# ---- the binary rule: a gated client run tests the binary built from the batch's own native sources
+import subprocess  # noqa: E402
+
+
+def _repo(tmp_path):
+    r = tmp_path / "repo"
+    (r / "src" / "source").mkdir(parents=True)
+    (r / "src" / "source" / "a.cc").write_text("int a;\n")
+    (r / "scripts").mkdir()
+    (r / "scripts" / "x.py").write_text("x = 1\n")
+    g = ["git", "-C", str(r), "-c", "user.name=t", "-c", "user.email=t@users.noreply.github.com"]
+    subprocess.run(["git", "init", "-q", str(r)], check=True)
+    subprocess.run(g + ["add", "-A"], check=True)
+    subprocess.run(g + ["commit", "-q", "-m", "one"], check=True)
+    return r, g
+
+
+def _bin(tmp_path, built_from=None):
+    prod = tmp_path / "Prod"
+    (prod / "bin").mkdir(parents=True)
+    (prod / "bin" / "mixar").write_text("")
+    if built_from is not None:
+        (prod / "BUILT_FROM").write_text(built_from + "\n")
+    return prod / "bin" / "mixar"
+
+
+def test_a_binary_built_from_the_same_native_sources_is_gated(tmp_path):
+    r, g = _repo(tmp_path)
+    sha = subprocess.run(g + ["rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    (r / "scripts" / "x.py").write_text("x = 2\n")                         # a Python-only change after the build: still the same native sources
+    subprocess.run(g + ["commit", "-qam", "py"], check=True)
+    assert T.binary_gate(r, _bin(tmp_path, sha))[0] == "gated"
+
+
+def test_a_binary_whose_native_sources_differ_is_refused(tmp_path):
+    r, g = _repo(tmp_path)
+    sha = subprocess.run(g + ["rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    (r / "src" / "source" / "a.cc").write_text("int b;\n")
+    subprocess.run(g + ["commit", "-qam", "native"], check=True)
+    state, msg = T.binary_gate(r, _bin(tmp_path, sha))
+    assert state == "refused" and "native sources" in msg
+
+
+def test_a_binary_without_built_from_runs_ungated_and_says_so(tmp_path):
+    r, _ = _repo(tmp_path)
+    state, msg = T.binary_gate(r, _bin(tmp_path))
+    assert state == "ungated" and "UNGATED binary" in msg
+    assert T.binary_gate(r, None)[0] == "ungated"
