@@ -195,31 +195,118 @@ class LAMPWAY_OT_receipt_link(_StudioOp):
         return self._done(context, "Linked: Lampway follows that job now")
 
 
+def _approval(approval_id: str, label: str, price: float, unit: str) -> dict:
+    """The pending approval the card is for, from the last /app/studio answer; the operator's own fields when the cache
+    has not caught up."""
+    found = next((a for a in studio_state.STATE.get("approvals") or [] if a.get("id") == approval_id), None)
+    return found or {"id": approval_id, "label": label, "price": price, "settings": {"unit": unit or "credits"}, "studio": "",
+                     "requested_by": "", "state": "pending"}
+
+
+def _route_of(approval: dict) -> str:
+    studio = str(approval.get("studio") or "")
+    return studio if studio in ("openrouter", "higgsfield") else f"studio:{studio}" if studio else ""
+
+
+def _meter_icon(meter: dict) -> int:
+    from mixar.modules.common.lampway_icons import icon_id
+    fill = meter["used"] + meter["pending"]
+    try:
+        return icon_id("meter_over" if fill > 1.0 else "meter_near" if meter["used_tone"] == "stop" else f"meter_{max(0, min(10, round(10 * fill)))}")
+    except Exception:  # noqa: BLE001  (a headless run has no previews: the words still draw)
+        return 0
+
+
 class LAMPWAY_OT_studio_confirm(_StudioOp):
-    """Spend the credits: confirm this Studio action at the price shown. Only your own click can do this"""
+    """Spend: the one card for every spend that waits for your click (facelift contract 13). The price is on the button and
+    is the price the server read back; only your own click on it spends, and Enter does nothing here"""
     bl_idname = "lampway.studio_confirm"
-    bl_label = "Confirm and spend"
+    bl_label = "Spend"
 
     approval_id: StringProperty(options={"HIDDEN"})
     price: FloatProperty(name="Price", min=0.0, precision=2)
     label: StringProperty(name="Action", options={"HIDDEN"})
+    unit: StringProperty(options={"HIDDEN", "SKIP_SAVE"})
+    state: StringProperty(options={"HIDDEN", "SKIP_SAVE"}, description="The state a refused confirm ended in (spend_face.classify)")
+    message: StringProperty(options={"HIDDEN", "SKIP_SAVE"})
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_confirm(self, event, title="Spend credits?",
-                                                           message=f"{self.label}: {self.price} credits, read back from Studio.",
-                                                           confirm_text="Spend")
+        # A popup with no default button (the old confirm dialog spent on Enter): nothing to press but Spend.
+        return context.window_manager.invoke_popup(self, width=520)
+
+    def draw(self, context):
+        from mixar.modules.lampway_tools import egress_state, privacy_face, spend_face, statusbar_state
+        ap = _approval(self.approval_id, self.label, self.price, self.unit)
+        layout = self.layout
+        if self.state:
+            row = spend_face.state_row(self.state, ap, self.message)
+            layout.label(text=row["title"], icon="ERROR" if row["state"] != "spent" else "CHECKMARK")
+            header, body = layout.panel(f"lampway_spend_state_{self.state}", default_closed=row["state"] != "price_changed")
+            header.label(text="Why, and what you can do")
+            if body is not None:
+                body.label(text=row["detail"][:110])
+                for fix in row["fixes"]:
+                    body.label(text=fix, icon="FORWARD")
+            if row.get("button"):
+                spend = layout.row()
+                spend.operator_context = 'EXEC_DEFAULT'
+                op = spend.operator(spend_face.OPERATOR, text=row["button"], depress=True)
+                op.approval_id, op.price, op.label, op.unit = ap["id"], float(row["price"]), ap.get("label") or "", self.unit
+            return
+        card = spend_face.card(ap, statusbar_state.STATE.get("spend") or {})
+        col = layout.column()
+        col.label(text=card["title"])
+        col.label(text=card["origin"], icon="USER" if card["origin"].startswith("planned by you") else "LIGHT")
+        price = col.row()
+        price.scale_y = 2.0
+        price.label(text=card["price"])
+        price.label(text=card["kind"])
+        col.label(text=card["source"])
+        for meter in card["meters"]:
+            col.label(text=meter["text"], icon_value=_meter_icon(meter))
+        chip = privacy_face.chip(_route_of(ap), egress_state.STATE.get("routes")) if _route_of(ap) else privacy_face.chip("local", [])
+        col.label(text=f"{chip['text']}: {card['uploads']}")
+        if card["expired"]:
+            col.label(text="This quote expired: ask for the plan again", icon="ERROR")
+            return
+        buttons = col.row(align=True)
+        buttons.operator_context = 'EXEC_DEFAULT'
+        op = buttons.operator(spend_face.OPERATOR, text=card["button"], depress=True)
+        op.approval_id, op.price, op.label, op.unit = ap["id"], float(ap.get("price") or 0.0), ap.get("label") or "", self.unit
+        buttons.operator("lampway.spend_not_now", text="Not now")
+        col.label(text=card["gate"])
+
+    def _again(self, state: str, message: str):
+        """Show the card again in the state the confirm ended in (the popup closed with the click)."""
+        bpy.ops.lampway.studio_confirm('INVOKE_DEFAULT', approval_id=self.approval_id, price=self.price, label=self.label,
+                                       unit=self.unit, state=state, message=message)
 
     def execute(self, context):
+        from mixar.modules.lampway_tools import spend_face
         if human_gate.script_running():
             return self._done(context, "A script cannot confirm a credit spend: click Confirm in the Studios panel yourself", ok=False)
         try:
             job = CLIENT_FACTORY().confirm(self.approval_id, round(float(self.price), 2))      # a FloatProperty is single precision: 9.6 -> 9.60000038
         except studio_client.StudioError as exc:
             refresh_state()
+            if not bpy.app.background:
+                self._again(spend_face.classify(str(exc)), str(exc))
             return self._done(context, str(exc), ok=False)
         refresh_state()
         ensure_poll()
+        if not bpy.app.background:
+            self._again("spent", "")
         return self._done(context, f"confirmed: job {job.get('id')} is running on the server")
+
+
+class LAMPWAY_OT_spend_not_now(Operator):
+    """Close the card: nothing is spent, and the spend still waits in the Studios panel"""
+    bl_idname = "lampway.spend_not_now"
+    bl_label = "Not now"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        return {"FINISHED"}
 
 
 class LAMPWAY_OT_studio_answer(_StudioOp):
@@ -447,5 +534,5 @@ class LAMPWAY_OT_providers_open(_ProviderProps, _StudioOp):
         return _save_changes(self, context)
 
 
-classes = [LAMPWAY_OT_providers_open, LAMPWAY_OT_providers_save, LAMPWAY_OT_studio_answer, LAMPWAY_OT_higgsfield_signin, LAMPWAY_OT_studio_refresh, LAMPWAY_OT_studio_plan, LAMPWAY_OT_studio_confirm, LAMPWAY_OT_studio_reject, LAMPWAY_OT_studio_import,
+classes = [LAMPWAY_OT_spend_not_now, LAMPWAY_OT_providers_open, LAMPWAY_OT_providers_save, LAMPWAY_OT_studio_answer, LAMPWAY_OT_higgsfield_signin, LAMPWAY_OT_studio_refresh, LAMPWAY_OT_studio_plan, LAMPWAY_OT_studio_confirm, LAMPWAY_OT_studio_reject, LAMPWAY_OT_studio_import,
            LAMPWAY_OT_studio_plan_arg_add, LAMPWAY_OT_studio_plan_arg_remove, LAMPWAY_OT_receipt_acknowledge, LAMPWAY_OT_receipt_link]

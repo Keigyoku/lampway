@@ -86,3 +86,27 @@ theme = "dark"
 [privacy_face.surfaces]
 confirm_button = "accent_bed"   # the confirm row is the only lit thing (contract 12 calm pass)
 on_switch = "raised"            # an open route is a plain switch, not lit
+
+[spend_waiting]
+theme = "dark"
+[spend_waiting.surfaces]
+
+[spend_over_job_cap]
+theme = "dark"
+[spend_over_job_cap.surfaces]
+
+[spend_past_cap]
+theme = "dark"
+[spend_past_cap.surfaces]
+
+[spend_price_changed]
+theme = "dark"
+[spend_price_changed.surfaces]
+
+[spend_agent_tried]
+theme = "dark"
+[spend_agent_tried.surfaces]
+
+[spend_spent]
+theme = "dark"
+[spend_spent.surfaces]

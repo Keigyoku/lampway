@@ -561,6 +561,33 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   a line of text, not an action: there is no generic local re-run of a refused job to call. The other surfaces'
   host words (04's route line, 08's route chip) say the same host but do not yet call `privacy_face.chip`.
 
+## Contract 13: the spend card (P0, the Python card)
+
+- **One card** (`lampway_tools/spend_face.py`, no bpy; drawn by `lampway.studio_confirm`'s popup): the action, who
+  planned it ("planned by the agent, only your click spends" for an agent or a worker), the price with its kind
+  (quoted for a Studio / Higgsfield read-back, estimate for an OpenRouter listing price, "price set by the model" for an
+  OpenRouter image), where it was read, the caps as meters from `/app/spend` with the pending amount apart from what is
+  used ("this job 18 of 40", "session 31.5 + 18 of 200"; the used part turns stop over 90 percent), the route chip
+  (contract 12's vocabulary), the uploads, and `Spend 18 credits` / `Not now`. `invoke_props_confirm` is gone: the
+  card is `invoke_popup` with no default button, so Enter has nothing to press; Spend is the card's own button
+  (EXEC), the script gate and the server's price check unchanged.
+- **States, one row each** (the calm pass): over the per-job cap, past the session cap, the price changed (its new Spend
+  button stays visible), an agent or script tried, expired, spent (its job id, "never resubmitted"), and any other
+  refusal as "This spend cannot go ahead: <reason>", never blank. A refused confirm reopens the card in its state; a
+  confirmed one reopens it as spent. Detail and fixes open in place.
+- **Every source opens this card**: the status bar's waiting chip and the Studios panel's Spend invoke it; a generation
+  (08) or a chat plan that needs a click becomes a server approval that waits in both. `studio_ops.py` is the only file
+  that confirms (a test scans for any other).
+- Tests: `tests/lampway/test_lampway_spend_face.py` (6). **RED honestly**: only `test_enter_does_not_spend` was observed
+  failing before its code (the popup and the source scan); the other five were written with `spend_face.py` in the
+  same step, so I mutation-checked them instead: the button saying "Spend" alone, the origin dropped, the stop tone
+  dropped and a blank unknown-state title each fail their test. `tests/lampway_visual/test_spend_card.py`: the card
+  waiting and in the five states in the real build (written after the card: they passed on their first run).
+- **Not done**: the P1 drawn card (C++: Fraunces price, accent left rule, hatched pending segment); the price is a
+  label row, not a large figure (a Python layout cannot size a font). The server's approval carries no uploads or
+  read-at time, so the card says "uploads: not reported by the server" and "Read back from <studio>" without a time.
+  The day cap is the server's session cap (Lampway keeps no day total), and the card says so.
+
 ## Which build is in `build/Prod`
 
 The coordinator's rule from here on: `build/Prod` is built from a clean tree at a pushed sha, and that sha is written to
