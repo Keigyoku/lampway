@@ -663,6 +663,27 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   (written after the sync change; its falsifier run: without `--delete-excluded` it fails).
 - Native: the CMake change needs a re-configure and an install (no compile).
 
+## Contract 11: the model-compare window (partial)
+
+- **The window exists now** (`ui/compare.py`, section 6.4 of `mrmak/05`, the local-view path): `lampway.compare_open`
+  loads a built set (`compare.json`, the files' own statistics, `numbers.json` when the numbers ran), opens a new window
+  on the scratch scene `LW_Compare`, splits its 3D view into one equal column per model (each split leaves 1/n), and
+  puts each column in local view of its own model. The probe the feature's docstring was waiting for ran in the real
+  build: four views, each local, each in Wire (`tests/lampway_visual/test_compare_window.py`).
+- **The overlay** is one `POST_PIXEL` handler: a compare area draws its alias large and, while blind, "name hidden";
+  any other area draws nothing. A test records every `blf.draw` argument before and after the reveal (falsifier run:
+  an overlay that ignores blind fails it). Labels come from the sealed file only through `reveal`, after a pick.
+- **The panel** (sidebar, tab Compare, in every compare view): the mode bar with its keys (1 Wire ... 7 ORM), Sync, Spin,
+  the blind state, per view the alias, Pick and its strip (triangles; vertices, quad status, largest texture; channels
+  as words, a missing map in stop with a cross: "no normal map baked"), the pair table (pair, worst-view IoU, interior
+  difference lit above 0.05) and the blind pick ("Reveal without picking"). Pick records the user's decision through
+  `model_compare.record_pick` (refused while a script runs) and reveals. Cameras follow one another on a 100 ms timer.
+- `compare_face.py` (no bpy) holds the words; `tests/lampway/test_lampway_compare_face.py` (5; RED observed: the
+  module missing).
+- **Not done**: the data modes (Base colour, Normal map, ORM) are drawn disabled with "not built yet": they need the
+  replacement materials of section 6.5; Spin does not turn the views; the header Pick buttons are in the sidebar panel,
+  not the area header; Fraunces / Plex Mono in the overlay (the default face); the capture against `shots/12-compare.png`.
+
 ## Which build is in `build/Prod`
 
 The coordinator's rule from here on: `build/Prod` is built from a clean tree at a pushed sha, and that sha is written to
