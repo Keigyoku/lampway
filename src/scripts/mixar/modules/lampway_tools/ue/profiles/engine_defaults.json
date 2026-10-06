@@ -1,0 +1,39 @@
+{
+ "schema": "lampway.ue-profile/1",
+ "source": "engine-defaults",
+ "engine": {"version": "5.8.2", "changelist": 56702186},
+ "project": {
+  "name": "Titan (engine defaults: not the project; the live dump replaces this)",
+  "working_color_space": "sRGB",
+  "cvars": {"r.Substrate": 0, "r.Material.EnergyConservation": 0, "r.DynamicGlobalIlluminationMethod": 0, "r.ReflectionMethod": 2,
+            "r.Shadow.Virtual.Enable": 0, "r.AntiAliasingMethod": 4, "r.LUT.Size": 32, "r.LUT.Shaper": 0, "r.HDR.Aces.Version": 2,
+            "r.MaxAnisotropy": 8},
+  "scalability": {"sg.ResolutionQuality": 3, "sg.ViewDistanceQuality": 3, "sg.AntiAliasingQuality": 3, "sg.ShadowQuality": 3,
+                  "sg.GlobalIlluminationQuality": 3, "sg.ReflectionQuality": 3, "sg.PostProcessQuality": 3, "sg.TextureQuality": 3,
+                  "sg.EffectsQuality": 3, "sg.FoliageQuality": 3, "sg.ShadingQuality": 3}
+ },
+ "tonemap": {
+  "method": "Filmic",
+  "film": {"slope": 0.88, "toe": 0.55, "shoulder": 0.26, "black_clip": 0.0, "white_clip": 0.04},
+  "blue_correction": 0.6, "expand_gamut": 1.0, "tone_curve_amount": 1.0, "white_temp": 6500, "white_tint": 0,
+  "grading": "neutral",
+  "lut": null
+ },
+ "exposure": {"method": "manual", "bias": 1.0, "apply_physical_camera": true, "fstop": 4.0, "shutter": 60, "iso": 100},
+ "post": {"bloom": 0.675, "vignette": 0.4, "local_exposure": {"highlight": 1.0, "shadow": 1.0, "detail": 1.0}, "ssao": 0.5},
+ "light_units": {"k": 683},
+ "judgement_surface": "capture",
+ "preview": {"texture_compression": "source"},
+ "export": {"precision": "standard"},
+ "material": {"clear_coat": false},
+ "notes": {
+  "source": "engine-defaults: values read from UE 5.8.2 source by the ue_parity audit (specs/ue_parity/DIFFERENCES.md, frame fact 1); Titan's DefaultEngine.ini overrides no render setting (CFG-01). A live dump from the UE editor leg replaces this file.",
+  "light_units.k": "OPEN CHOICE (captain): 683 lm/W, Blender's own glTF convention and the audit's working value (LGT-01, COL-08). 1 is the alternative; the picture is the same once exposure absorbs k.",
+  "judgement_surface": "OPEN CHOICE (captain): capture = the scripted SceneCapture recipe Titan already judges armour with (armour-render-ue.py); viewport and map:<name> are the alternatives.",
+  "project.cvars.r.Material.EnergyConservation": "OPEN CHOICE (captain): 0 = UE's legacy Default Lit (engine default, what Titan runs, SHD-02); the UE Default Lit group reproduces it. 1 would change every UE material; the group refuses that profile until it is rebuilt.",
+  "preview.texture_compression": "OPEN CHOICE (captain): source = Lampway samples the uncompressed maps (TEX-02 is reported, not previewed); bc_decoded is the alternative (cost).",
+  "export.precision": "OPEN CHOICE (captain): standard = UE's import defaults (8-bit tangents and weights, 16-bit UVs); hero = high-precision tangents, full-precision UVs, 16-bit weights for every export.",
+  "exposure": "UE's engine default is histogram AUTO exposure (COL-09), which Lampway cannot emulate; the profile pins MANUAL exposure at the physical-camera defaults (f/4, 1/60 s, ISO 100, bias 1.0) so a judgement is reproducible.",
+  "tonemap.lut": "null: the 32^3 cube is generated from the tonemapper maths; where that generator lives is a captain decision (REPORT.md decision 6, docs/reports/uelook.md item 1). A live profile names the cube and its shaper as data."
+ }
+}

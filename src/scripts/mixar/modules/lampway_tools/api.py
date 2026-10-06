@@ -1509,6 +1509,38 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
                                      _p(out, s_.project_root), feather)
 
 
+# ---- the UE Renderer (specs/ue_parity): ue/ owns the behaviour, these are its doors
+
+def _ue_profile(profile):
+    from .ue import profile as _UEP
+    return _UEP.load(_p(profile) if profile else _UEP.DEFAULT_PROFILE)
+
+
+@tool
+def ue_material(material, mode="report", merge_json=None, master=None, on_loss="report", profile=None):
+    """Translate a Principled material to UE's legacy Default Lit, deterministically: the UE material-instance parameters
+    (BaseColor/Metallic/Roughness/Specular/Emissive, blend mode Opaque|Masked(0.3333)|Translucent, Two Sided = not backface
+    culling, texture sRGB flags and compression), what is dropped or clamped, and translation_sha256. mode report changes nothing;
+    preview builds '<material> [UE]' with the LW_UE_DefaultLit_v1 node group (Lambert added to single-scatter GGX, UE's F0 and its
+    F90 = saturate(50 F0.g), the DirectX normal with Z rebuilt) beside the untouched original; export reads the pbr_pack
+    merge_json for the texture colour spaces and the ORM channel order. on_loss refuse refuses any loss. profile: a
+    lampway.ue-profile/1 file (default: the shipped engine-defaults profile). Free, no model."""
+    from .ue import material_group as _UEG
+    from .ue import material_map as _UEM
+    prof = _ue_profile(profile)
+    if mode == "preview":
+        return _UEG.preview(material, prof)
+    mat = bpy.data.materials.get(material)
+    if mat is None:
+        raise LookupError(f"no material named {material!r}; the materials are: {sorted(m.name for m in bpy.data.materials)}")
+    merge, files = None, None
+    if merge_json:
+        mj = Path(_p(merge_json))
+        merge = json.loads(mj.read_text(encoding="utf-8"))
+        files = sorted(q.name for q in mj.parent.glob("*.png"))
+    return _UEM.translate(_UEG.read_spec(mat), prof, mode, merge, files, master, on_loss)
+
+
 # ---- the door the agent's scripts use
 
 # Every @tool function, in definition order: derived, not listed by hand (a hand-kept list let 26 tools of Waves 2-4 be functions and Defs the agent could not run).
