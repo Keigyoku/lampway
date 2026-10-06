@@ -53,7 +53,13 @@ From the adoption commit on, every commit is judged on its own, and so is the un
    bodies; every parent's rows must survive in order, and only what the merge itself wrote owes a receipt. Two lanes that both
    appended a row produce a conflict in the table; keep both rows, sorted by date.
 5. Work merged in from a branch that had not yet merged the rail is inherited and **listed** (`inherited_pre_adoption` in the
-   check's output), not judged: the rule binds the commits that could see it.
+   check's output), not judged: the rule binds the commits that could see it. This is the captain's ruling (2026-10-06), and
+   its cost is stated rather than hidden: a branch forked before the rail's baseline can bring an unreceipted change to a rail
+   or a trigger in through a merge, and the check will name it in that list without failing. Once every lane has merged the
+   integration branch past the baseline, its later commits descend from the baseline and are judged one by one.
+6. A **generated document** named in the catalog's `generated` list (the tool reference, rendered from the live registry) must
+   pass its generator's own `--check`. That is how tool knowledge is held: no skill row is owed when a tool is added, but a
+   tool added without regenerating its page fails the check. A generator that cannot run is a red check, never a skip.
 
 An anneal row has six cells: `date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate`, an ISO date
 first, dates in order, and nothing but the table in the section.
@@ -69,13 +75,18 @@ generated copies match their sources byte for byte, nothing generated exists wit
 python3 rail/rail.py              # what the rail holds, and the next commands
 python3 rail/rail.py sync         # after editing a skill: regenerate the copies
 python3 rail/rail.py check        # the gate; exit 1 lists each finding with its code
+python3 rail/rail.py check --quick   # what the pre-push hook runs
 python3 rail/rail.py codes        # what each finding code means
 python3 rail/rail.py selftest     # prove each code fires on a planted violation
 python3 rail/rail.py closeout --tag v0.1.0   # before a tag: the root AGENTS.md row for that tag
 ```
 
-CI runs the self-test, the check and the rail's tests on every push and pull request (`.github/workflows/rail.yml`), beside the
-pre-publish gate. The check needs the history back to the baseline; a shallow clone is a red check, not a skipped one.
+The check runs in two places. The `pre-push` hook runs the **quick** form, `rail.py check --quick`, after the pre-publish gate:
+the tree's shape (stubs, indexes, frontmatter, registrations) and only the commits no remote-tracking ref holds yet, so a push
+costs a fraction of a second however long the history grows. CI runs the **full** form on every push and pull request
+(`.github/workflows/rail.yml`): the self-test, every commit since the baseline, the generated documents (with the server's
+dependencies installed), and the rail's tests. The full check needs the history back to the baseline; a shallow clone is a red
+check, not a skipped one.
 
 Repairing a finding: run `rail.py codes` for its meaning. Most repairs are one of three: append the missing row and make the
 body change in an amend of your own unpushed commit; run `sync` and commit the copies; or fix the index the finding names. A

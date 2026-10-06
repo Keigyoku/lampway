@@ -56,7 +56,8 @@ Each law is the captain's and is held by the gate named beside it. A change that
   `AGENTS.md` when you changed a contract, an invariant, a test command or the owner.
 - **DOE:** the canonical skills under `rail/skills/` are the directives, the agent orchestrates, the tools and scripts execute.
 - **The anneal rule:** an `AGENTS.md`, a canonical skill or a catalog trigger that changes owes an appended anneal row and a body
-  change in the same commit. `python3 rail/rail.py check` holds it for every commit since the rail's baseline; CI runs it.
+  change in the same commit. `python3 rail/rail.py check` holds it for every commit since the rail's baseline; CI runs it in full, and the
+  `pre-push` hook runs its quick form on the commits being pushed.
 - The long form, for people: [`docs/rail.md`](docs/rail.md). Maintaining the rail: the `lampway-rail` skill.
 
 ## Skills
@@ -113,8 +114,8 @@ The root `CLAUDE.md` used to be upstream's own guide, naming its closed backend.
     preset reload wipes C-registered items (`tests/moodboard/test_frame_selection_consumers.py`).
   - *No viewport render inside a window resize:* timer and modal code that renders defers while
     `WindowManager.mixar_window_resizing` is true (`tests/scribble_mark/test_scribble_resize.py`).
-  - *Upstream's 500-line file limit:* pinned only for the glass-kit family (`tests/test_mixar_liquid_glass_kit.py`); nine of
-    Lampway's own server and tool modules exceed it at adoption, so whether it binds Lampway code is an open decision.
+  - *Upstream's 500-line file limit:* a guideline, not a gate (captain, 2026-10-06; `lampway-coding-guidelines` §4b); pinned
+    only for the glass-kit family (`tests/test_mixar_liquid_glass_kit.py`).
 - Upstream's guide pointed at a private module-document map (`docs/modules/`); it is not in this repository.
 
 ## Child DOX Index
@@ -150,3 +151,4 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption: this file replaces the upstream guide | captain: "make the DOE x DOX AGENTS rail for Lampway, examples of it are in Vellum and Titan" | the root guide was upstream's, named its closed backend and a private doc map, and no file carried Lampway's laws | the laws with their gates, the DOX chain, the skill and child indexes (both checked against the tree), the verified facts kept from the upstream guide | captain ruling, 2026-10-05 |
+| 2026-10-06 | the 500-line rule settled; the rail in the hook | captain: "Those recs are fine" | the file limit was recorded as an open decision; the rail's place in the push was CI only | the limit is a guideline (the coding skill §4b); the laws' rail line names the pre-push quick check | captain ruling, 2026-10-06 |

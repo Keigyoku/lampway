@@ -30,6 +30,9 @@ history, the registrations and the verdict), `anneal.py` (the anneal rule as a p
    manifest; a harness never has to follow a pointer to reach a procedure. Stubs are for `CLAUDE.md` only, and those are exactly
    `@AGENTS.md`.
 6. **No symlinks** anywhere the rail reads or writes: a git symlink checks out as a one-line text file on Windows.
+7. **Two forms of the check.** `check --quick` (the pre-push hook) judges the tree's shape and only the commits no remote-tracking
+   ref holds yet; it skips the worktree and the generated documents. The full `check` (CI) judges every commit since the
+   baseline, the worktree, and runs each catalog `generated` row's own `--check`, red when the generator cannot run.
 
 ## Test
 
@@ -39,7 +42,8 @@ python3 rail/rail.py check
 python -m pytest -q tests/rail
 ```
 
-CI runs all three on every push and pull request (`.github/workflows/rail.yml`), with the full history so the baseline is reachable.
+CI runs all three on every push and pull request (`.github/workflows/rail.yml`), with the full history so the baseline is
+reachable and the server's dependencies installed for the generated documents. `.githooks/pre-push` runs `check --quick`.
 
 ## Owner
 
@@ -51,3 +55,4 @@ baseline policy is doctrine: the captain's word.
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway, examples of it are in Vellum and Titan" | no rail: procedures could drift from the code they describe, and nothing tied an AGENTS.md edit to a receipt | the check, sync, self-test and closeout; seventeen codes each with its plant; merge inheritance by three-way combination | captain ruling, 2026-10-05 |
+| 2026-10-06 | quick form and generated-doc leg | captain: "Those recs are fine" | a full history walk is the wrong cost for every push, and nothing held the generated tool docs | `--quick` for the hook (unpushed commits only), RAIL-018 for the catalog's generated documents, each with its plant and tests | captain ruling, 2026-10-06 |

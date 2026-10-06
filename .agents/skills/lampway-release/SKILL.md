@@ -25,6 +25,8 @@ python3 scripts/lampway/prepublish_gate.py --media docs    # no EXIF/XMP/C2PA/GP
 python3 rail/rail.py check                                 # the rail (also in CI)
 ```
 
+- The same hook then runs `python3 rail/rail.py check --quick` (the rail's shape and the commits this push brings); CI runs the
+  full rail check.
 - The gate blocks personal emails, home paths, owner usernames and paths, account ids, API keys, JWTs, bearer tokens, private
   keys, signed URLs and media metadata. A match prints only the first four characters of a secret.
 - **The maintainer's own patterns are never in the repository.** The hook reads `PII_OWNER_EMAIL_RE`, `PII_OWNER_USER_RE` and
@@ -70,3 +72,4 @@ the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` di
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the pre-publish and release steps were spread across the hook, CI, CONTRIBUTING and the build order | one procedure for every push and every tag, with the DOX closeout row read by `rail.py closeout` | captain ruling, 2026-10-05 |
+| 2026-10-06 | the rail in the pre-push hook | captain: "Those recs are fine" (recommendation 2) | an unreceipted rail change was caught only after it was published, by CI | `.githooks/pre-push` runs `rail.py check --quick` after the pre-publish gate; a branch without the rail skips it | captain ruling, 2026-10-06 |

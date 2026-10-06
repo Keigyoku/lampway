@@ -80,3 +80,32 @@ def test_this_repository_passes_its_own_rail():
     result = R.check(ROOT)
     assert result["findings"] == [], json.dumps(result["findings"], indent=1)
     assert result["skills"] >= 1 and result["rails"] >= 2
+
+
+def test_quick_mode_judges_only_what_the_push_brings(fixture, tmp_path):
+    """The pre-push form: a commit no remote-tracking ref holds is judged; one already pushed is left to CI's full check."""
+    repo = tmp_path / "repo"
+    shutil.copytree(fixture, repo, symlinks=True)
+    S.sh(tmp_path, "init", "-q", "--bare", "remote.git")
+    S.sh(repo, "remote", "add", "origin", str(tmp_path / "remote.git"))
+    S.sh(repo, "push", "-q", "origin", "main")
+    S.p_no_row(repo)                                            # an unreceipted commit, not pushed yet
+    assert {f["code"] for f in R.check(repo, quick=True)["findings"]} == {"RAIL-010"}
+    S.sh(repo, "push", "-q", "origin", "main")
+    assert R.check(repo, quick=True)["findings"] == []          # already on the remote: CI's full check owns it
+    assert {f["code"] for f in R.check(repo)["findings"]} == {"RAIL-010"}
+
+
+def test_quick_mode_leaves_the_generated_documents_to_ci(fixture, tmp_path):
+    repo = tmp_path / "repo"
+    shutil.copytree(fixture, repo, symlinks=True)
+    S.p_generated(repo)
+    assert R.check(repo, quick=True)["findings"] == []
+    assert {f["code"] for f in R.check(repo)["findings"]} == {"RAIL-018"}
+
+
+def test_a_generator_that_cannot_run_is_red_not_skipped(fixture, tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    shutil.copytree(fixture, repo, symlinks=True)
+    monkeypatch.setenv("LAMPWAY_SERVER_PYTHON", str(tmp_path / "no-such-python"))
+    assert {f["code"] for f in R.check(repo)["findings"]} == {"RAIL-018"}

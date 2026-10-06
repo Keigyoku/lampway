@@ -81,6 +81,13 @@ Blender runs through `tests/lampway_tools/blender_run.py` against the real binar
   bake, clearance), load `lampway-canon`; before driving the app, load `lampway-agent-tools`; before adding a tool, load
   `lampway-tool-authoring`.
 
+## 4b. Size
+
+Upstream's limit of 500 lines per file is a **guideline, not a gate** (captain, 2026-10-06): split a file when a second
+responsibility has grown in it, not to meet a number. Only the glass-kit family pins it in a test
+(`tests/test_mixar_liquid_glass_kit.py`); nine of Lampway's own server and tool modules were over it at the rail's adoption, and
+that is not a finding.
+
 ## 5. Lanes and integration
 
 - Work in your lane's worktree on its `lp/<lane>` branch. The integration branch `lp/wave5` merges lanes with `--no-ff` and
@@ -94,7 +101,8 @@ Blender runs through `tests/lampway_tools/blender_run.py` against the real binar
 
 1. The suites your change touches (§3), plus the full server suite when `server/` changed.
 2. `python3 rail/rail.py check` (the rail; it also runs in CI) and, when you changed `rail/`, `python3 rail/rail.py selftest`.
-3. The pre-publish gate runs in the `pre-push` hook (`git config core.hooksPath .githooks`) and in CI; never bypass it.
+3. The pre-publish gate and `rail.py check --quick` run in the `pre-push` hook (`git config core.hooksPath .githooks`); CI runs
+   both in full. Never bypass the hook.
 4. `reuse lint` (CI): every new file carries SPDX copyright and licence lines, or a `REUSE.toml` entry.
 
 ## 7. Keeping this skill true
@@ -112,3 +120,4 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the root guide was upstream's and named its closed backend; Lampway's laws lived only in module docstrings and the build order | one canonical operating guide carrying the laws, the build, the suites, the test-first contract and the merge-only lanes, verified against the tree | captain ruling, 2026-10-05 |
+| 2026-10-06 | the 500-line limit is a guideline; the rail in the hook | captain: "Those recs are fine" (recommendations 2 and 5) | upstream's 500-line rule read as a gate that nine Lampway modules already broke; the rail ran only in CI | §4b states the limit as a guideline with its one pinned family; §6 names the hook's quick rail check | captain ruling, 2026-10-06 |

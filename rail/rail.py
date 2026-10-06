@@ -9,6 +9,7 @@ the anneal rule over history. AXI output: `key: value` lines and tables on stdou
 
     python3 rail/rail.py                     # status: what the rail holds, and the next commands
     python3 rail/rail.py check               # the gate: inventory + registrations + the anneal rule over every commit since adoption
+    python3 rail/rail.py check --quick       # the pre-push form: only the commits no remote holds yet; no worktree, no generated docs
     python3 rail/rail.py sync                # regenerate .agents/skills and .claude/skills from rail/skills
     python3 rail/rail.py selftest            # plant one violation per finding code in a scratch repo and prove each is caught
     python3 rail/rail.py closeout --tag T    # the root rail's DOX closeout row for a planned tag
@@ -68,7 +69,7 @@ def main(argv=None) -> int:
     if args == ["--version"]:
         print(f"rail {R.VERSION}")
         return 0
-    repo, tag, verb = Path.cwd(), None, "status"
+    repo, tag, verb, quick = Path.cwd(), None, "status", False
     try:
         if args and not args[0].startswith("-"):
             verb = args.pop(0)
@@ -80,6 +81,8 @@ def main(argv=None) -> int:
                 repo = Path(args.pop(0))
             elif key == "--tag" and args:
                 tag = args.pop(0)
+            elif key == "--quick":
+                quick = True
             elif key == "--help":
                 verb = "help"
             else:
@@ -90,7 +93,7 @@ def main(argv=None) -> int:
         return 2
     try:
         if verb == "help":
-            emit({"verbs": [f"{k}: {v}" for k, v in VERBS.items()], "flags": ["--repo <dir>", "--tag <tag>", "--json", "--version"], "help": HELP}, as_json)
+            emit({"verbs": [f"{k}: {v}" for k, v in VERBS.items()], "flags": ["--repo <dir>", "--tag <tag>", "--quick", "--json", "--version"], "help": HELP}, as_json)
             return 0
         if verb == "codes":
             emit({"codes": [{"code": c, "means": m} for c, m in R.CODES.items()]}, as_json)
@@ -107,7 +110,7 @@ def main(argv=None) -> int:
         if verb == "closeout":
             emit(R.closeout(repo, tag), as_json)
             return 0
-        result = R.check(repo)
+        result = R.check(repo, quick=quick and verb == "check")
         if verb == "status":
             result = {"skills": result["skills"], "rails": result["rails"], "baseline": result["baseline"], "commits_judged": result["commits"],
                       "findings": len(result["findings"]), "exempted": len(result["exempted"]), "help": HELP}

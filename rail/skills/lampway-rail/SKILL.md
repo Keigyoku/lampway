@@ -38,6 +38,12 @@ and `rail/rail.py` is what makes both rules hold. The long form, for people: [`d
    inherited and owes nothing; every parent's rows survive in their order; a merge-owned row goes after the inherited ones.
    Resolving a conflict in an anneal table: keep both sides' rows, sorted by date.
 5. The uncommitted worktree is judged the same way, so `check` is red until an edit is receipted.
+6. Work a merge brings in from a branch that never merged the rail (it does not descend from the baseline) is inherited and
+   LISTED (`inherited_pre_adoption`), not judged: the rule binds the commits that could see it. Captain-ruled 2026-10-06.
+7. A generated document named in the catalog's `generated` list must pass its generator's own `--check` (RAIL-018); a generator
+   that cannot run is red, never skipped. Its interpreter is `$LAMPWAY_SERVER_PYTHON`, else `server/.venv/bin/python`, else the
+   one running the rail. No skill row is owed when a tool is added: the registry is the documentation, and its generated pages
+   are held here.
 
 A row: `| date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |`, six non-empty cells, ISO
 dates in order, and nothing but the table inside the Anneal log section. Record what happened and what changed, at its source.
@@ -47,12 +53,16 @@ dates in order, and nothing but the table inside the Anneal log section. Record 
 ```bash
 python3 rail/rail.py              # status and next commands
 python3 rail/rail.py sync         # regenerate .agents/skills and .claude/skills from rail/skills
-python3 rail/rail.py check        # the gate: inventory, registrations, and the rule over every commit since the baseline
+python3 rail/rail.py check        # the gate: inventory, registrations, the rule over every commit since the baseline, generated docs
+python3 rail/rail.py check --quick   # the pre-push form: only commits no remote holds yet; no worktree, no generated docs
 python3 rail/rail.py selftest     # plant one violation per finding code in a scratch repository; prove each one fires
 python3 rail/rail.py codes        # what each RAIL-0xx code means
 python3 rail/rail.py closeout --tag <tag>   # the root rail's DOX closeout row for a planned tag
 python -m pytest -q tests/rail    # the rail's own tests, including the self-test and the check of this repository
 ```
+
+Where it runs: `.githooks/pre-push` runs `check --quick` (fast: the tree's shape and the commits being pushed); CI runs the
+full check (`.github/workflows/rail.yml`, with the server's dependencies installed for the generated docs).
 
 ## Doing the common things
 
@@ -83,3 +93,4 @@ agent0ai/dox), adopted by Titan as captain decisions D88/D89 and Titan ADR 0034,
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | Lampway had no AGENTS.md tree, no canonical skills and no rule tying a procedure to the code it describes | `rail/rail.py` with sync, check, selftest and closeout; the per-commit anneal rule with merge inheritance; seventeen finding codes, each planted and caught | captain ruling, 2026-10-05 |
+| 2026-10-06 | pre-push quick check and generated-doc leg | captain: "Those recs are fine" (recommendations 2, 3, 4, 7) | the rail ran only in CI; tool docs could drift from the registry; an upstream note sat under an exemption | `check --quick` in the pre-push hook, the `generated` catalog leg (RAIL-018) with its plant, upstream's updates/CLAUDE.md deleted with its exemption, pre-rail merges listed not judged | captain ruling, 2026-10-06 |

@@ -72,7 +72,9 @@ canon page is part of the contract: load `lampway-canon` and build to it.
 The tool reference is generated from the live registry, never hand-written: `lampway_server.agent_files.generate` renders the
 per-area tool skills a user's project receives, and the docs lane's `docs/gen_tools.py` renders `docs/tools.md` with a `--check`
 that names added and removed tools. After adding a tool, regenerate and commit the output in the same change; where the
-generator is not on your base yet, say so in the report rather than writing the page by hand.
+generator is not on your base yet, say so in the report rather than writing the page by hand. **No skill update is owed per
+tool** (captain, 2026-10-06): the registry is the documentation. The rail holds the generated pages instead: each generator named
+in `rail/catalog.json` `generated` must pass its `--check` in CI (RAIL-018), so a tool added without regenerating its page is red.
 
 ## 7. Done means
 
@@ -87,3 +89,4 @@ Provenance: Lampway's `specs/CONTRACT_TEMPLATE.md` (the coordinator's spec shelf
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the procedure for adding a tool existed only across module docstrings and an off-tree contract template | one procedure: contract, client api, server Def and registry, MCP exposure, receipts, egress, spend gate, generated docs, tests on both halves | captain ruling, 2026-10-05 |
+| 2026-10-06 | tool docs held by the rail, not by skill rows | captain: "Those recs are fine" (recommendation 3) | binding every registry file to this skill would owe a body change per tool; nothing held the generated page | no per-tool skill row; the generated page's own --check is a rail leg (catalog `generated`, RAIL-018) | captain ruling, 2026-10-06 |
