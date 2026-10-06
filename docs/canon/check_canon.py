@@ -10,6 +10,7 @@ Legs, each a line `<leg>: PASS|FAIL <detail>`:
   goldens       goldens/selftest.py      (C01-C14: expected values reproduced by reference.py; every falsifier fails)
   rig-goldens   goldens/rig_selftest.py  (R01-R07, the same with rig_reference.py)
   schema        normalization/selftest_schema.py (needs jsonschema)
+Dependencies: docs/canon/requirements.txt (numpy, jsonschema): python3 -m pip install -r docs/canon/requirements.txt
   determinism   gen_goldens.py + gen_rig_goldens.py into a scratch directory, byte-compared with every committed case file
 Needs numpy and jsonschema. Scratch space comes from tempfile (honours TMPDIR); nothing in the tree is written."""
 import filecmp

@@ -19,8 +19,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - name: Dependencies (numpy for the goldens, jsonschema for the asset schema)
-        run: python3 -m pip install --quiet numpy jsonschema
+      - name: Dependencies (numpy for the goldens, jsonschema for the asset schema; declared in docs/canon/requirements.txt)
+        run: python3 -m pip install --quiet -r docs/canon/requirements.txt
       - name: Self-test (a hand-edited golden must be refused)
         run: python3 docs/canon/check_canon.py --self-test
       - name: Canon check (self-tests and byte-identical goldens)
