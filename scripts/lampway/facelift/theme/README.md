@@ -3,7 +3,7 @@
 
 # Lampway themes: Night (dark) and Paper (light)
 
-Ready to drop in (v2, the calm pass): `lampway_dark.xml` and `lampway_light.xml` are complete Blender 5.2 theme presets (959 attributes each, every attribute the 0.1.0 build's schema has). Copy them to `src/scripts/presets/interface_theme/Lampway_Night.xml` and `Lampway_Paper.xml`; pick them from Preferences, Themes, or the Quick Setup theme row. Contract `../01-tokens-and-theme.md` covers making Night the default.
+v2, the calm pass: `lampway_dark.xml` and `lampway_light.xml` are complete Blender 5.2 theme presets (959 attributes each, every attribute the 0.1.0 build's schema has). `python3 build_theme.py` writes them and ships the same bytes as `src/scripts/presets/interface_theme/Lampway_Night.xml` and `Lampway_Paper.xml` (`tests/lampway/test_lampway_theme.py` fails if a shipped copy or any other generated file drifts); pick them from Preferences, Themes, or the Quick Setup theme row. The facelift spec's contract 01 (tokens and theme) covers making Night the default.
 
 | file | what |
 |---|---|

@@ -3,9 +3,12 @@
 """Contract 01: the Night and Paper themes are generated from one token file and gated (T1-T6, T10)."""
 
 import filecmp
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 THEME = ROOT / "scripts/lampway/facelift/theme"
@@ -40,3 +43,20 @@ def test_shipped_presets_are_the_generated_files(tmp_path):
         assert (PRESETS / shipped).is_file(), shipped
         assert filecmp.cmp(PRESETS / shipped, tmp_path / generated, shallow=False), shipped
         assert filecmp.cmp(THEME / generated, tmp_path / generated, shallow=False), generated
+
+
+def test_every_generated_file_is_committed_as_generated(tmp_path):
+    """The provenance maps and the WezTerm config are generator outputs too: a hand edit or a stale copy fails."""
+    done = run("build_theme.py", "--out", str(tmp_path))
+    assert done.returncode == 0, done.stdout + done.stderr
+    for name in ("lampway_dark.provenance.json", "lampway_light.provenance.json", "lampway.wezterm.lua"):
+        assert filecmp.cmp(THEME / name, tmp_path / name, shallow=False), name
+
+
+@pytest.mark.skipif(shutil.which("luajit") is None, reason="check_wezterm.py runs the config under luajit")
+def test_wezterm_gate_passes_and_catches_its_plants():
+    assert run("check_wezterm.py").returncode == 0
+    done = run("check_wezterm.py", "--self-test")
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert "MISSED" not in done.stdout
+
