@@ -9,7 +9,7 @@ import textwrap
 import bpy
 from bpy.types import Panel
 
-from mixar.modules.lampway_tools import api, clip_state, egress_state, jobs, studio_state, workbench_state
+from mixar.modules.lampway_tools import api, clip_state, egress_state, jobs, mcp_state, studio_state, workbench_state
 
 
 class LAMPWAY_PT_main(Panel):
@@ -333,6 +333,38 @@ class LAMPWAY_PT_privacy(Panel):
         for row in st["log"][-20:]:
             layout.label(text=f"{row.get('event')} {row.get('route')} {row.get('provider', '')} {row.get('kind', '')} {row.get('bytes', 0)} B")
         layout.operator("lampway.egress_export", icon="EXPORT")
+
+
+class LAMPWAY_PT_mcp(Panel):
+    """Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."""
+    bl_idname = "LAMPWAY_PT_mcp"
+    bl_label = "Connections (MCP servers)"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Lampway"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        layout = self.layout
+        st = mcp_state.STATE
+        layout.operator("lampway.mcp_refresh", icon="FILE_REFRESH")
+        layout.label(text=mcp_state.lampway_line())
+        for note in st["lampway"].get("notes") or []:
+            layout.label(text=note[:80], icon="ERROR")
+        if st["error"]:
+            layout.label(text=st["error"][:80], icon="ERROR")
+        for s in st["servers"]:
+            box = layout.box()
+            box.label(text=mcp_state.card_line(s))
+            if s.get("missing_env"):
+                box.label(text="needs " + ", ".join(s["missing_env"]))
+            box.label(text=mcp_state.connection_line(s))
+            row = box.row(align=True)
+            if s.get("can_check"):
+                row.operator("lampway.mcp_check", text="Check").server_id = s["id"]
+            row.operator("lampway.mcp_open_config", text="Show config file").server_id = s["id"]
+        for p in st["problems"]:
+            layout.label(text=p["message"][:80], icon="ERROR")
 
 
 classes = [LAMPWAY_PT_privacy, LAMPWAY_PT_cockpit, LAMPWAY_PT_main, LAMPWAY_PT_clips, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_prompts, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
