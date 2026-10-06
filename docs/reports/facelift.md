@@ -17,6 +17,7 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | `c272b7c0` (Lamplight and Workshop) | the C++ that compares the workspace name (`STREQ(..., "Lamplight")`). |
 | `6881d79` (04 and the pill) | `mixie_chat_*` painters, the `Fraunces.woff2` datafile, `agent_ui_state.cc`, `agent_ui_controls_paint.cc`, `agent_ui_draw.cc`, `agent_bubble_references.cc`, `space_agent_bubble.cc`. |
 | (08) | `agent_ui_tabmedia.cc`, the new `agent_ui_tabmedia_estimate.cc` (CMake list), `agent_ui_tabmedia_intern.hh`, the `PlexMono.woff2` datafile, and `MixarVariant::Accent` in `UI_mixar_types.hh` (included widely: an 830-step rebuild), `interface/mixar/components.cc`, `interface/mixar/style.cc`. |
+| (12) | `userdef_default_theme.c` (Timeline `simulated_frames` leaves the wire colour) and the two theme presets. |
 
 ## Gate totals at the contract 01 push (`30b6c2fd`, merged with `origin/lp/wave5` `00d907d4`)
 
@@ -524,6 +525,41 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   (judge_pack, render_final, export_parts, verify_set, gen_parts_table); libwiki and index_delta are library chores,
   listed in `status.toml`'s `[off_the_way]` with the reason. New gate `test_every_tool_has_a_place` (RED observed: the
   seven were simply absent from the sidebar and nothing said so).
+
+## Contract 12: the privacy face
+
+- **One vocabulary** (`lampway_tools/privacy_face.py`, no bpy): `chip(route, routes)` is the lamp and "this machine",
+  or the wire and the route's host; an id no table names says "unknown route" in stop, never blank. `route_rows`: the
+  name, a shield for the privacy class (shield, half, open, unknown), the switch (off, waiting for your confirm, on);
+  host, last use, retention and training on hover. `last_refusal`: the newest refused row as a card; a private asset
+  gets "Use OpenRouter, zero retention", "Run it here instead" and "Allow this asset once (logged)". `log_rows`: time,
+  event (glyph + word), route, what; host, class and retention on hover. It reads only the keys it names, so a row
+  carrying content renders none of it.
+- **The window** (`ui/privacy.py`): one drawing in three places: the viewport sidebar, a pop-out the status bar's wire
+  chip now opens ("What leaves this machine"), and Preferences > Interface > Privacy (open question 1, as
+  recommended). "Sending now: <host>" with the wire's dot while data leaves (decision F3: the magenta wire and the word,
+  not a red DATA LEAVING), the latest refusal, the routes, the confirm row, the log, Export.
+- **Two clicks to open a route**: the switch opens the confirm row ("Let data leave for openrouter.ai?"); only its
+  "Let it leave" posts. Both refuse while a script runs ("A script cannot open a route: switch it on in Privacy
+  yourself"), as does the override (`POST /app/egress/override`, new `EgressClient.override`). The confirm row is the
+  only lit thing in the window: an open route is a plain switch (the visual test samples both).
+- **The wire is reserved**: the theme mapped Timeline/Dope Sheet `simulated_frames` to the wire; it is now the agent
+  violet (`agent@66`), and a gate scans the theme map and the icon renderer (only the travelling dot's two glyphs are
+  painted in it). Native: the regenerated `userdef_default_theme.c` and the presets; `base/theme_dna_0.1.0.json`
+  re-measured from the rebuilt binary.
+- **New route `github`** (server `egress.py`: github.com, objects / release-assets.githubusercontent.com), off by
+  default, class ok (a plain GET of a public release asset), for contract 16's WezTerm download.
+- Tests: `tests/lampway/test_lampway_privacy_face.py` (6; RED observed: the module missing, the `github` route
+  missing, and the wire test catching `simulated_frames`), `tests/lampway_tools/test_lampway_privacy_face_live.py`
+  (4, real binary; the gate's falsifier run: with the gate dropped, `test_route_switch_refuses_a_script` fails),
+  `tests/lampway_visual/test_privacy_face.py` (the pop-out with a route sending, a refusal and a confirm row).
+  `tests/lampway_tools/test_wave4b_egress_ui.py` re-pointed to the new surface (the panel moved to `ui/privacy.py`;
+  "OpenRouter: OFF" and the policy line became the row and its hover; DATA LEAVING became "Sending now"; switching on
+  is two clicks).
+- **Deviations, said plainly**: "Allow this asset once (logged)" is an `alert` button, which Blender draws as a red
+  tinted bed, not stop-coloured text on nothing (a Python layout cannot colour text otherwise). "Run it here instead" is
+  a line of text, not an action: there is no generic local re-run of a refused job to call. The other surfaces'
+  host words (04's route line, 08's route chip) say the same host but do not yet call `privacy_face.chip`.
 
 ## Which build is in `build/Prod`
 

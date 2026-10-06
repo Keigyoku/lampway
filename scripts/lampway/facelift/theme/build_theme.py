@@ -161,7 +161,7 @@ RULES = {
     "dopesheet_editor": {
         "grid": "line", "keyframe_border": "=#000000ff", "keyframe_border_selected": "=#000000ff", "keyframe_scale_factor": "=1",
         "summary": "agent_bed@66", "anim_interpolation_linear": "go@CC", "anim_interpolation_constant": "stop@CC",
-        "anim_interpolation_other": "agent@B3", "simulated_frames": "wire@66"},
+        "anim_interpolation_other": "agent@B3", "simulated_frames": "agent@66"},   # contract 12: the wire is data leaving only
     "image_editor": {
         "grid": "line_hi", "vertex": "=#000000", "vertex_select": "accent", "vertex_size": "=3", "face": "text@0A",
         "face_select": "accent@3C", "face_mode_select": "accent@00", "facedot_size": "=3", "editmesh_active": "text@40",

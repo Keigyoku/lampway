@@ -14,6 +14,10 @@ class EgressClient(StudioClient):
     def set_route(self, route: str, enabled: bool) -> dict:
         return self._call("POST", "/app/egress/route", {"route": route, "enabled": bool(enabled)})
 
+    def override(self, asset_id: str, route: str) -> dict:
+        """Let one private asset through one route once (the server logs it as an override)."""
+        return self._call("POST", "/app/egress/override", {"asset_id": asset_id, "route": route})
+
     def log(self, limit: int = 20) -> list:
         return self._call("GET", f"/app/egress/log?limit={int(limit)}")["rows"]
 

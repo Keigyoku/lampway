@@ -149,8 +149,8 @@ class LAMPWAY_OT_status_wire(Operator):
         return S.wire_chip()[2]
 
     def execute(self, context):
-        self.report({'INFO'}, S.wire_chip()[2])
-        return {'FINISHED'}
+        """Opens "What leaves this machine" (facelift contract 12)."""
+        return bpy.ops.lampway.privacy_open()
 
 
 classes = (LAMPWAY_OT_status_waiting, LAMPWAY_OT_status_spend, LAMPWAY_OT_status_wire)

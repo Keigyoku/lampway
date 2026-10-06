@@ -18,7 +18,7 @@ for _ in range(100000):
     if bootstrap._load_ui_batch_tick() is None: break
 from mixar.modules.lampway_tools import egress_state, human_gate
 from mixar.modules.lampway_tools.ui.operators import egress_ops as EO
-from mixar.modules.lampway_tools.ui.panels import lampway_panels as PANELS
+from mixar.modules.lampway_tools.ui import privacy as PANELS   # the panel moved with contract 12
 
 ROUTES = [{"id": "openrouter", "label": "OpenRouter", "enabled": False, "retention": "per model", "training": "per model", "privacy_class": "conditional", "last_used": None},
           {"id": "fal", "label": "fal.ai", "enabled": True, "retention": "unknown (terms not read)", "training": "unknown", "privacy_class": "unknown", "last_used": 1.0}]
@@ -36,10 +36,16 @@ def call(op, **kw):
     except RuntimeError as e:
         return ["REFUSED", str(e)[:140]]
 class Rec:
-    def __init__(self, log): self.log = log
-    def label(self, text="", icon=""): self.log.append(text)
-    def operator(self, idname, text="", icon=""):
-        self.log.append("op:" + idname); return type("P", (), {})()
+    def __init__(self, log): self.log = log; self.alert = False
+    def label(self, text="", icon="", **k): self.log.append(text)
+    def operator(self, idname, text="", icon="", **k):
+        self.log.append("op:" + idname); self.log.append(text)
+        log = self.log
+        class P:
+            def __setattr__(self, name, value):
+                if name == "hover": log.append("hover:" + value)
+                object.__setattr__(self, name, value)
+        return P()
     def prop(self, *a, **k): pass
     def row(self, align=False): return self
     def box(self): return self
@@ -66,10 +72,12 @@ print("RESULT", json.dumps({"log": log, "calls": fake.calls}))
     d = r.results[0]
     assert d["calls"] == []
     log = d["log"]
-    assert log.index("OpenRouter: OFF") < log.index("retention: per model | training: per model")
-    assert log.index("fal.ai: ON") < log.index("retention: unknown (terms not read) | training: unknown")
+    # Contract 12's calm pass: a row is the name, the shield and the switch; the policy is the name's hover.
+    assert log[log.index("OpenRouter") + 1].startswith("hover:") and "Retention: per model. Training: per model" in log[log.index("OpenRouter") + 1]
+    assert "Retention: unknown (terms not read)" in log[log.index("fal.ai") + 1]
+    assert log[log.index("fal.ai") + 3] == "On" and log[log.index("OpenRouter") + 3] == "Off"
     assert "op:lampway.egress_route" in log
-    assert not any("DATA LEAVING" in x for x in d["log"]) and any("nothing is leaving" in x for x in d["log"])
+    assert not any("Sending now" in x for x in d["log"]) and "Nothing is leaving this machine" in d["log"]
 
 
 def test_the_badge_is_loud_while_data_leaves_and_the_log_rows_show_what_went_where(tmp_path):
@@ -84,13 +92,16 @@ print("RESULT", json.dumps({"log": log}))
 ''', tmp_path)
     assert r.rc == 0, r.out[-1500:]
     log = r.results[0]["log"]
-    assert any("DATA LEAVING: fal" in x for x in log) and any("image" in x and "queue.fal.run" in x and "1200" in x for x in log)
+    # The badge is the magenta wire and the word Sending (contract 12, decision F3), not a red DATA LEAVING.
+    assert "Sending now: fal.ai" in log, log
+    assert "image, 1200 bytes" in log and any(x.startswith("hover:host queue.fal.run") for x in log), log
 
 
 def test_opting_a_route_in_is_the_users_click_and_refuses_while_a_script_runs(tmp_path):
     r = go('''
 res = {}
-res["user"] = call(bpy.ops.lampway.egress_route, route="openrouter", enabled=True)
+res["user"] = call(bpy.ops.lampway.egress_route, route="openrouter", enabled=True)            # opens the confirm row only
+res["user_confirm"] = call(bpy.ops.lampway.egress_route, route="openrouter", enabled=True, confirm=True)
 with human_gate.scripting():
     res["script"] = call(bpy.ops.lampway.egress_route, route="fal", enabled=False)
     res["script_export"] = call(bpy.ops.lampway.egress_export)
