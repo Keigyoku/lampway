@@ -148,7 +148,8 @@ def _local_job_services(settings: Settings):
     return JB.default_registry(work=work)
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None,
+               handwriting_reader=None) -> Starlette:
     from . import egress as _EG
     if egress is not None:
         _EG.set_active(egress)                                                      # an explicit manager (tests, embedding) wins
@@ -520,6 +521,30 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     async def dictation_ws(websocket):
         await dictation.run(websocket, auth, stt, bearer_from)
     routes.append(WebSocketRoute("/api/v1/dictation/ws", dictation_ws))
+
+    # ---- handwriting into composer text (handwriting.py): blank ink never reaches a model
+    from . import handwriting as HW
+    hw_reader = None if handwriting_reader is False else (handwriting_reader if handwriting_reader is not None else HW.default_reader(settings))
+
+    async def handwriting_recognize(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        form = await request.form()
+        up = form.get("image")
+        if up is None or not hasattr(up, "read"):
+            return JSONResponse({"detail": "send the ink as a multipart 'image' field"}, status_code=422)
+        data = await up.read()
+        if len(data) > HW.MAX_BYTES:
+            return JSONResponse({"detail": "image too large: rasterise at <= 2048 px"}, status_code=413)
+        try:
+            has, _crop = HW.ink(data)
+        except HW.NotAnImage as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=422)
+        if has and hw_reader is None:
+            return JSONResponse({"detail": "no vision model configured: set one in Providers (OpenRouter key, LAMPWAY_HANDWRITING_MODEL)"}, status_code=503)
+        out = await HW.recognize(data, str(form.get("hint") or ""), hw_reader)
+        return JSONResponse(envelope(out))
+    routes.append(Route("/api/v1/handwriting/recognize", handwriting_recognize, methods=["POST"]))
 
     async def swarm_status(request: Request):
         token = bearer_token(request)
