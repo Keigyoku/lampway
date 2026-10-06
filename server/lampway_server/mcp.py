@@ -2,7 +2,8 @@
 
 ``initialize``, ``ping``, ``tools/list`` and ``tools/call`` are served; notifications are accepted (202). A tool call runs in the
 app instance named by ``X-Mixar-Instance-Id`` and the scene session named by ``X-Mixar-Session-Id``, as a ``blender.execute_script``
-round trip, exactly like the agent's own tool calls. Offered: the scene tools and the Lampway tools that are one script in Blender.
+round trip, exactly like the agent's own tool calls. Offered: the scene tools, the Lampway tools that are one script in Blender, and the Asset Vault family
+(``lampway_vault_*``, run here on the server with the external client's authority: read and curate, never spend, never enrol a folder).
 NOT offered: the studio tools (they spend credits on the owner's subscription), the swarm and ``ask_user`` (they need the agent loop).
 """
 
@@ -12,6 +13,7 @@ import uuid
 from collections import OrderedDict
 
 from .agent import lampway_tools as lt
+from .agent import vault_tools as lib
 from .agent.providers.base import ToolSpec
 from .agent.tools import RUN_BLENDER_PYTHON, SCENE_SUMMARY, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -34,7 +36,7 @@ def _instructions() -> str:
 
 
 def offered_tools() -> list:
-    return [t for t in TOOLS if t.name in (RUN_BLENDER_PYTHON, SCENE_SUMMARY) or t.name in lt.BY_NAME] + list(SERVER_TOOLS)
+    return [t for t in TOOLS if t.name in (RUN_BLENDER_PYTHON, SCENE_SUMMARY) or t.name in lt.BY_NAME or t.name in lib.NAMES] + list(SERVER_TOOLS)
 
 
 def _error(request_id, code, message):
@@ -104,6 +106,9 @@ class McpServer:
             return self._result(request_id, json.dumps(self._credit_balance()), False)
         if name == "lampway_call_status":
             return self._call_status(request_id, (params.get("arguments") or {}).get("call_id"))
+        if name in lib.NAMES:                                              # the Vault answers here: no scene, no instance needed
+            text, is_error = await lib.call(getattr(self.agent, "assets", None), name, params.get("arguments") or {}, {"origin": "mcp", "agent_id": "mcp"})
+            return self._result(request_id, text, is_error)
         socket = self.hub.sockets.get(instance_id)
         if socket is None:
             return self._result(request_id, "the desktop app is not connected to this server (open Lampway and sign in)", True)

@@ -924,7 +924,7 @@ def asset_place(asset_id=None, mode="auto", target=None, options=None, version=N
     from . import library_client as LC
     if asset is None:
         if not asset_id:
-            raise ValueError("asset_place needs asset_id: find one with lampway_asset_search")
+            raise ValueError("asset_place needs asset_id: find one with lampway_vault_search")
         try:
             asset = LC.get_asset(asset_id, version)
         except LC.LibraryClientError as exc:

@@ -31,6 +31,8 @@ from .prompts.service import PromptService
 from .prompts.library import LibraryError
 from .prompts.render import RenderError
 from .assetsearch import AssetIndex
+from .library import rest as library_rest
+from .library.vault import Vault
 from .mcp import McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub, bearer_from
@@ -307,9 +309,10 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
     from .herdr.host import Cockpit
     cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
-    assets = AssetIndex(settings.state_dir)
+    assets = AssetIndex(settings.state_dir)                  # the legacy /asset-search endpoints the Client's Train/Search UI calls
+    vault = Vault(settings.state_dir)                         # the Asset Vault: ONE writer per process, shared by its routes, the agent tools, MCP and the hooks
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=assets)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -494,6 +497,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         Route("/api/v1/asset-search/search", assets_search, methods=["POST"]),
         Route("/api/v1/asset-search/search-batch", assets_search_batch, methods=["POST"]),
         Route("/api/v1/asset-search/embeddings", assets_delete, methods=["DELETE"]),
+        *library_rest.routes(vault, _bearer_ok),
         Route("/api/v1/mcp", mcp_route, methods=["POST"]),
         Route("/api/v1/mcp-desktop/eligibility", mcp_eligibility, methods=["GET"]),
         Route("/api/v1/matgen", matgen_route, methods=["POST"]),
@@ -1009,6 +1013,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             yield
         finally:
             task.cancel()
+            vault.close()
 
     app = Starlette(routes=routes, lifespan=lifespan)
     app.add_middleware(HostGuard, bind_host=settings.host)
@@ -1023,5 +1028,6 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.jobs = jobs
     app.state.prompts = prompt_service
     app.state.higgsfield_auth = hf_auth
+    app.state.vault = vault
     app.state.jobs = jobs
     return app

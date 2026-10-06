@@ -66,7 +66,7 @@ def _members(asset) -> list:
         return [asset]
     members = [m for m in asset.get("members") or [] if m.get("kind") == "map"]
     if not members:
-        raise PlaceError(f"{asset.get('name')!r} carries no map members: fetch it with include members (lampway_asset_get) or place its maps one by one")
+        raise PlaceError(f"{asset.get('name')!r} carries no map members: fetch it with include members (lampway_vault_get) or place its maps one by one")
     return members
 
 

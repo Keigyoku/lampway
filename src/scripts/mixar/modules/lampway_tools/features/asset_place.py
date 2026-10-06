@@ -22,8 +22,8 @@ IMPORTER_OPS = {".glb": "import_scene.gltf", ".gltf": "import_scene.gltf", ".fbx
 # the datablock collections a placement can create; a failure removes what is new in them (objects first, so their data is free to go)
 TRACKED = ("objects", "meshes", "materials", "images", "collections", "cameras", "lights", "armatures", "actions", "node_groups", "worlds", "movieclips", "curves", "textures",
            "libraries")
-NOT_PLACEABLE = {"uv_layout": "a UV layout is not placeable: use lampway_asset_render for an overlay on its mesh, or uv_unwrap to make a new layout",
-                 "prompt": "a prompt is not placeable: use it in a generation tool", "receipt": "a receipt is not placeable: read it with lampway_asset_get",
+NOT_PLACEABLE = {"uv_layout": "a UV layout is not placeable: use lampway_vault_render for an overlay on its mesh, or uv_unwrap to make a new layout",
+                 "prompt": "a prompt is not placeable: use it in a generation tool", "receipt": "a receipt is not placeable: read it with lampway_vault_get",
                  "collection": "a board or smart collection is not placeable: place its members one by one"}
 
 
@@ -42,7 +42,7 @@ def file_of(asset: dict, roles: tuple) -> tuple:
         for loc in f.get("locations") or []:
             if not loc.get("missing") and os.path.isfile(loc.get("path") or ""):
                 return loc["path"], f.get("sha256"), loc.get("storage")
-    raise PlaceError("the file moved: re-run lampway_asset_library verify")
+    raise PlaceError("the file moved: re-run lampway_vault {action: verify}")
 
 
 def stamp(idb, asset: dict, sha: str) -> None:

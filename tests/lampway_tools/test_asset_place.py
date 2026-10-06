@@ -87,7 +87,7 @@ r = place(asset=rec("uv_layout", p, subtype="smart_uv"), mode="auto")
 print("RESULT", json.dumps(r))
 '''))
     assert d["ok"] is False
-    assert "not placeable" in d["error"] and "asset_render" in d["error"] and "uv_unwrap" in d["error"]
+    assert "not placeable" in d["error"] and "lampway_vault_render" in d["error"] and "uv_unwrap" in d["error"]
 
 
 def test_place_refuses_a_moved_file_a_huge_mesh_and_a_missing_scene_target(tmp_path):
@@ -101,7 +101,7 @@ r_force = place(asset=rec("mesh", glb, stats={{"tris": 6_000_000}}), mode="impor
 r_slot = place(asset=rec("material", glb, role="blend", subtype="procedural"), mode="assign_material", target={{"where": "slot:Nope:0"}})
 print("RESULT", json.dumps({{"moved": r_moved, "huge": r_huge, "force": r_force, "slot": r_slot}}))
 '''))
-    assert d["moved"]["ok"] is False and "the file moved: re-run lampway_asset_library verify" in d["moved"]["error"]
+    assert d["moved"]["ok"] is False and "the file moved: re-run lampway_vault {action: verify}" in d["moved"]["error"]
     assert d["huge"]["ok"] is False and "6000000 triangles: place a LOD (lod:2) or confirm force:true" in d["huge"]["error"]
     assert d["force"]["ok"] is True
     assert d["slot"]["ok"] is False and "pick a mesh object with a material slot" in d["slot"]["error"]
