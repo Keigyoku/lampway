@@ -10,21 +10,21 @@
 namespace blender::ui::mixar_tokens {
 /* [[maybe_unused]]: the full palette is defined up front as the reference
  * palette; individual tokens land as each widget phase uses them. */
-inline constexpr uchar MX_BG[4] = {38, 38, 38, 255};
-inline constexpr uchar MX_BG_SUNKEN[4] = {30, 30, 30, 255};
-inline constexpr uchar MX_GRAY_800[4] = {30, 30, 30, 255};
-inline constexpr uchar MX_GRAY_700[4] = {51, 54, 53, 255};
-inline constexpr uchar MX_BORDER[4] = {63, 67, 66, 255};
-inline constexpr uchar MX_BORDER_STRONG[4] = {109, 111, 108, 255};
-inline constexpr uchar MX_ACCENT[4] = {127, 155, 120, 255};
-inline constexpr uchar MX_TOGGLE_ON[4] = {47, 89, 47, 255};
-inline constexpr uchar MX_WARNING[4] = {224, 160, 48, 255};     /* amber semantic */
-inline constexpr uchar MX_DANGER[4] = {224, 72, 72, 255};       /* red semantic   */
-inline constexpr uchar MX_INK[4] = {244, 245, 243, 255};
-inline constexpr uchar MX_FG_1[4] = {226, 226, 226, 255};
-inline constexpr uchar MX_FG_2[4] = {199, 204, 199, 255};
-inline constexpr uchar MX_FG_3[4] = {168, 173, 168, 255};
-inline constexpr uchar MX_FG_4[4] = {109, 111, 108, 255};
+inline constexpr uchar MX_BG[4] = {22, 25, 34, 255};
+inline constexpr uchar MX_BG_SUNKEN[4] = {17, 19, 26, 255};
+inline constexpr uchar MX_GRAY_800[4] = {17, 19, 26, 255};
+inline constexpr uchar MX_GRAY_700[4] = {30, 34, 45, 255};
+inline constexpr uchar MX_BORDER[4] = {43, 48, 61, 255};
+inline constexpr uchar MX_BORDER_STRONG[4] = {59, 66, 82, 255};
+inline constexpr uchar MX_ACCENT[4] = {237, 185, 68, 255};
+inline constexpr uchar MX_TOGGLE_ON[4] = {58, 47, 23, 255};
+inline constexpr uchar MX_WARNING[4] = {237, 185, 68, 255};
+inline constexpr uchar MX_DANGER[4] = {240, 118, 107, 255};
+inline constexpr uchar MX_INK[4] = {247, 244, 238, 255};
+inline constexpr uchar MX_FG_1[4] = {236, 232, 223, 255};
+inline constexpr uchar MX_FG_2[4] = {207, 203, 194, 255};
+inline constexpr uchar MX_FG_3[4] = {169, 166, 157, 255};
+inline constexpr uchar MX_FG_4[4] = {125, 122, 115, 255};
 
 /* Generate gradient is stored in ThemeUI; see MixarThemeSlot::GradientStart. */
 
@@ -39,20 +39,20 @@ struct Palette {
   float primary[4], danger[4], warning[4], action[4];
 };
 inline constexpr Palette zen = {
-    {30.0f / 255.0f, 30.0f / 255.0f, 30.0f / 255.0f, 255.0f / 255.0f},
-    {38.0f / 255.0f, 38.0f / 255.0f, 38.0f / 255.0f, 255.0f / 255.0f},
-    {30.0f / 255.0f, 30.0f / 255.0f, 30.0f / 255.0f, 255.0f / 255.0f},
-    {51.0f / 255.0f, 54.0f / 255.0f, 53.0f / 255.0f, 255.0f / 255.0f},
-    {47.0f / 255.0f, 89.0f / 255.0f, 47.0f / 255.0f, 255.0f / 255.0f},
-    {226.0f / 255.0f, 226.0f / 255.0f, 226.0f / 255.0f, 255.0f / 255.0f},
-    {244.0f / 255.0f, 245.0f / 255.0f, 243.0f / 255.0f, 255.0f / 255.0f},
-    {168.0f / 255.0f, 173.0f / 255.0f, 168.0f / 255.0f, 255.0f / 255.0f},
-    {63.0f / 255.0f, 67.0f / 255.0f, 66.0f / 255.0f, 255.0f / 255.0f},
-    {127.0f / 255.0f, 155.0f / 255.0f, 120.0f / 255.0f, 255.0f / 255.0f},
-    {47.0f / 255.0f, 89.0f / 255.0f, 47.0f / 255.0f, 255.0f / 255.0f},
-    {224.0f / 255.0f, 72.0f / 255.0f, 72.0f / 255.0f, 255.0f / 255.0f},
-    {224.0f / 255.0f, 160.0f / 255.0f, 48.0f / 255.0f, 255.0f / 255.0f},
-    {38.0f / 255.0f, 38.0f / 255.0f, 38.0f / 255.0f, 255.0f / 255.0f}};
+    {14.0f / 255.0f, 16.0f / 255.0f, 22.0f / 255.0f, 255.0f / 255.0f},
+    {22.0f / 255.0f, 25.0f / 255.0f, 34.0f / 255.0f, 255.0f / 255.0f},
+    {17.0f / 255.0f, 19.0f / 255.0f, 26.0f / 255.0f, 255.0f / 255.0f},
+    {30.0f / 255.0f, 34.0f / 255.0f, 45.0f / 255.0f, 255.0f / 255.0f},
+    {58.0f / 255.0f, 47.0f / 255.0f, 23.0f / 255.0f, 255.0f / 255.0f},
+    {236.0f / 255.0f, 232.0f / 255.0f, 223.0f / 255.0f, 255.0f / 255.0f},
+    {247.0f / 255.0f, 244.0f / 255.0f, 238.0f / 255.0f, 255.0f / 255.0f},
+    {169.0f / 255.0f, 166.0f / 255.0f, 157.0f / 255.0f, 255.0f / 255.0f},
+    {43.0f / 255.0f, 48.0f / 255.0f, 61.0f / 255.0f, 255.0f / 255.0f},
+    {237.0f / 255.0f, 185.0f / 255.0f, 68.0f / 255.0f, 255.0f / 255.0f},
+    {90.0f / 255.0f, 71.0f / 255.0f, 32.0f / 255.0f, 255.0f / 255.0f},
+    {240.0f / 255.0f, 118.0f / 255.0f, 107.0f / 255.0f, 255.0f / 255.0f},
+    {237.0f / 255.0f, 185.0f / 255.0f, 68.0f / 255.0f, 255.0f / 255.0f},
+    {22.0f / 255.0f, 25.0f / 255.0f, 34.0f / 255.0f, 255.0f / 255.0f}};
 /** Live palette. `zen` stays the measured artboard; painters read this. */
 const Palette &mixar_zen();
 /** Default density, unscaled. Island chips keep these aliases. Chrome

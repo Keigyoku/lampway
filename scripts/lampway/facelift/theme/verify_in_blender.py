@@ -3,10 +3,14 @@
 """Load a theme XML through the real preset path and read every attribute back (headless; a separate process).
 
     <lampway binary> --background --factory-startup --python verify_in_blender.py -- <theme.xml> <report.json>
+    ... -- <theme.xml> <report.json> --as-default   # load nothing: is the compiled default theme this file?
 
 Fails (exit 1) when: the preset operator does not finish; the loader skips a struct (secure types) or names an
 attribute it cannot find; or any value read back from RNA differs from the XML (colours within 1/255). This is the
 schema check that cannot be faked by a text comparison: Blender itself parses the file.
+
+--as-default skips the load and compares the factory theme (userdef_default_theme.c) with the file's <Theme>; the
+<ThemeStyle> half is not part of the compiled theme, so it is not compared.
 """
 import io
 import json
@@ -18,10 +22,13 @@ import bpy
 
 args = sys.argv[sys.argv.index("--") + 1:]
 path, report = args[0], args[1]
+as_default = "--as-default" in args[2:]
 
 buf = io.StringIO()
-with redirect_stdout(buf):
-    res = bpy.ops.script.execute_preset(filepath=path, menu_idname="USERPREF_MT_interface_theme_presets")
+res = {'FINISHED'}
+if not as_default:
+    with redirect_stdout(buf):
+        res = bpy.ops.script.execute_preset(filepath=path, menu_idname="USERPREF_MT_interface_theme_presets")
 log = buf.getvalue()
 problems = []
 if res != {'FINISHED'}:
@@ -80,7 +87,7 @@ def compare(xml_node, rna):
 doc = xml.dom.minidom.parse(path)
 root = doc.documentElement
 for node in root.childNodes:
-    if node.nodeType != node.ELEMENT_NODE:
+    if node.nodeType != node.ELEMENT_NODE or (as_default and node.nodeName != "Theme"):
         continue
     compare(node, theme if node.nodeName == "Theme" else style)
 

@@ -81,6 +81,10 @@ RULES = {
         "mixar_toolbar_background": "surface", "mixar_toolbar_border": "line", "mixar_toolbar_primary": "accent_bed",
         "mixar_toolbar_primary_border": "accent", "mixar_toolbar_text": "text", "mixar_toolbar_muted": "muted_dim",
         "mixar_toolbar_selected": "accent_bed", "mixar_glass_wash": "canvas@33", "mixar_sketch_ink": "muted_dim",
+        # RNA hides these five from presets (PROP_HIDDEN | PROP_SKIP_SAVE), so no XML carries them: only the compiled
+        # default does (emit_native). Each follows the visible slot it sits beside.
+        "mixar_pane_pill_dim": "line", "mixar_pane_pill_on": "accent_bed", "mixar_cinema_pill_fill": "well",
+        "mixar_profile_fill": "surface", "mixar_cinema_gate_fill": "text@12",
     },
     "user_interface/wcol_regular": widget("raised", "accent_bed", outline="raised", text_sel="text_hi"),
     "user_interface/wcol_tool": widget("raised", "accent_bed", outline="raised", text_sel="text_hi"),
@@ -541,6 +545,230 @@ def write_wezterm(path):
         fh.write(text)
 
 
+# ----------------------------------------------------------------------------------------------- the compiled defaults
+# Lampway Night is the default theme (contract 01 6.3/6.4): what a new profile starts with, what "Reset to Default"
+# gives back, and what the fork's painters fall back to are generated from the same rules as the preset.
+ROOT = os.path.normpath(os.path.join(HERE, "..", "..", "..", ".."))
+DNA_MAP = os.path.join(HERE, "base", "theme_dna_0.1.0.json")   # measured by dump_theme_dna.py
+NATIVE = {
+    "userdef_default_theme.c": os.path.join(ROOT, "src", "release", "datafiles", "userdef", "userdef_default_theme.c"),
+    "interface_mixar_theme.cc": os.path.join(ROOT, "src", "source", "blender", "editors", "interface",
+                                             "interface_mixar_theme.cc"),
+    "UI_mixar_tokens.hh": os.path.join(ROOT, "src", "source", "blender", "editors", "include", "UI_mixar_tokens.hh"),
+    "rna_userdef.cc": os.path.join(ROOT, "src", "source", "blender", "makesrna", "intern", "rna_userdef.cc"),
+}
+DEFAULT_NAME = "Lampway Night"
+# The zen palette is the slot table read by name (mixar_zen() in interface_mixar_theme.cc): field -> slot.
+ZEN = (("canvas", "mixar_canvas"), ("panel", "mixar_panel"), ("input", "mixar_input"), ("control", "mixar_control"),
+       ("selected", "mixar_selected"), ("text", "mixar_text"), ("strong", "mixar_text_strong"),
+       ("secondary", "mixar_text_secondary"), ("border", "mixar_border"), ("focus", "mixar_focus"),
+       ("primary", "mixar_primary"), ("danger", "mixar_danger"), ("warning", "mixar_warning"),
+       ("action", "mixar_action"))
+# The reference constants beside it, each the slot it was measured from.
+MX = {"MX_BG": ("tui", "mixar_bg"), "MX_BG_SUNKEN": ("tui", "mixar_sunken"), "MX_GRAY_800": ("tui", "mixar_gray_800"),
+      "MX_GRAY_700": ("tui", "mixar_gray_700"), "MX_BORDER": ("tui", "mixar_border"),
+      "MX_BORDER_STRONG": ("tui", "mixar_border_strong"), "MX_ACCENT": ("tui", "mixar_focus"),
+      "MX_TOGGLE_ON": ("space_mixie", "mixar_toggle_active"), "MX_WARNING": ("tui", "mixar_warning"),
+      "MX_DANGER": ("tui", "mixar_danger"), "MX_INK": ("tui", "mixar_ink"), "MX_FG_1": ("tui", "mixar_fg_1"),
+      "MX_FG_2": ("tui", "mixar_fg_2"), "MX_FG_3": ("tui", "mixar_fg_3"), "MX_FG_4": ("tui", "mixar_fg_4")}
+# The chat space's DNA carries copies of the moodboard's colours that no RNA reaches (ThemeMixieChat has no moodboard
+# properties); they follow the moodboard's own, so the compiled default holds no stale Forest copy.
+MIRROR = {("space_mixie_chat", "moodboard_"): "space_mixie"}
+# RNA's reset defaults live in three theme structs; their XML container names.
+RNA_FUNCS = {"rna_def_userdef_theme_space_mixie_chat": "mixie_chat",
+             "rna_def_userdef_theme_space_agent_bubble": "agent_bubble",
+             "rna_def_userdef_theme_space_mixie": "mixie"}
+
+
+def theme_values(tree):
+    """provenance key -> value, keyed exactly as build() writes the provenance file."""
+    counters, out = {}, {}
+
+    def walk(el, stack):
+        if el.tag[0].isupper() and el.tag not in ("Theme", "ThemeStyle"):
+            key = container_key(stack)
+            idx = counters.get(key, 0)
+            counters[key] = idx + 1
+            for attr, val in el.attrib.items():
+                out[f"{key}[{idx}].{attr}"] = val
+        for ch in el:
+            walk(ch, stack + [ch.tag])
+
+    walk(tree.getroot().find("Theme"), [])
+    return out
+
+
+def compiled_theme(values):
+    """The default theme as DNA: the measured baseline with every mapped field set from Lampway Night."""
+    dna = json.load(open(DNA_MAP))
+    fields = {tuple(p): v for p, v in dna["baseline"]}
+    if dna["unmapped"]:
+        raise Unmapped(f"{len(dna['unmapped'])} attributes have no DNA field (re-run dump_theme_dna.py): "
+                       f"{dna['unmapped'][:3]}")
+    channels = []
+    for key, m in sorted(dna["map"].items()):
+        path, kind = tuple(m["path"]), m["kind"]
+        if m.get("hidden"):
+            container, _, rest = key.partition("[")
+            attr = rest.split("].", 1)[1]
+            spec = RULES.get(container, {}).get(attr)
+            if spec is None:
+                raise Unmapped(f"{key}: a colour no preset carries has no rule")
+            val = resolve(spec, attr, container, 0, "dark", 4, {})[0]
+        elif key not in values:
+            raise Unmapped(f"{key}: in the DNA map but not in the theme (re-run dump_theme_dna.py)")
+        else:
+            val = values[key]
+        cur = fields[path]
+        if kind == "colour":
+            hx = val[1:].lower()
+            fields[path] = (hx + cur[6:])[:len(cur)] if len(hx) == 6 else hx[:len(cur)]
+        elif kind == "channel":
+            channels.append((path, m["channel"], val))
+        elif kind == "flag":
+            fields[path] = (int(cur) & ~m["mask"]) | (m["bit"] if val == "TRUE" else 0)
+        elif kind == "enum":
+            fields[path] = m["values"][val]
+        elif kind == "float":
+            fields[path] = m["scale"] * float(val) + m["offset"]
+        else:
+            fields[path] = int(round(m["scale"] * float(val) + m["offset"]))
+    for path, channel, val in channels:   # after the colour they live in (background_alpha is back's alpha)
+        b = bytearray.fromhex(fields[path])
+        b[channel] = round(float(val) * 255)
+        fields[path] = b.hex()
+    mapped = {tuple(m["path"]) for m in dna["map"].values()}
+    for (space, prefix), source in MIRROR.items():
+        for path in [p for p in fields if p[:1] == (space,) and len(p) == 2 and p[1].startswith(prefix)]:
+            if path not in mapped and isinstance(fields[path], str):
+                fields[path] = fields[(source, path[1])]
+    fields[("name",)] = DEFAULT_NAME
+    return fields
+
+
+def _upstream_theme_as_c():
+    tools = os.path.join(ROOT, "upstream", "tools", "utils")
+    if not os.path.isfile(os.path.join(tools, "blender_theme_as_c.py")):
+        raise Unmapped("upstream/ is not checked out: its tools/utils/blender_theme_as_c.py writes the C file")
+    sys.path.insert(0, tools)
+    try:
+        import blender_theme_as_c
+    finally:
+        sys.path.remove(tools)
+    return blender_theme_as_c
+
+
+def userdef_c(fields, path):
+    """Write userdef_default_theme.c the way upstream's own tool writes it (same writer, zeros omitted)."""
+    import io
+    tool = _upstream_theme_as_c()
+    items = []
+    for p, v in fields.items():
+        key = tuple(k.encode("ascii") if isinstance(k, str) else k for k in p)
+        if isinstance(v, str):
+            if len(v) in (6, 8) and all(c in "0123456789abcdef" for c in v):
+                v = bytes.fromhex(v)
+            elif not v:
+                continue
+            else:
+                v = v.encode("ascii")
+        items.append((key if len(key) > 1 else key[0], v))
+    # The writer closes a nested block only when the next field's path differs. bTheme ends on padding the tool
+    # skips (dump_theme_dna.py drops those names), so end on one top-level skipped name to close the last block.
+    items.append((b"_pad_end", 0))
+    buf = io.StringIO()
+    buf.write(tool.C_SOURCE_HEADER)
+    buf.write("const bTheme U_theme_default = {\n")
+    tool.write_member(buf.write, 1, None, None, items)
+    buf.write("};\n\n/* clang-format on */\n")
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(buf.getvalue())
+    tool.file_remove_empty_braces(path)
+
+
+def _rgba(hx):
+    return [int(hx[i:i + 2], 16) for i in (0, 2, 4, 6)]
+
+
+def _over255(hx):
+    return ", ".join(f"{c}.0f / 255.0f" for c in _rgba(hx))
+
+
+def _sub_once(pattern, repl, text, what, flags=0):
+    import re
+    new, n = re.subn(pattern, repl, text, flags=flags)
+    if n != 1:
+        raise Unmapped(f"{what}: expected one match, found {n}")
+    return new
+
+
+def slot_table_cc(fields, text):
+    """interface_mixar_theme.cc: each slot's compiled fallback is the default theme's value."""
+    import re
+    rows = re.compile(r"\{(false|true), offsetof\((ThemeUI|ThemeSpace), (\w+)\), \{\d+, \d+, \d+, \d+\}\},")
+
+    def row(m):
+        dna = ("space_agent_bubble" if m[1] == "true" else "tui", m[3])
+        return f"{{{m[1]}, offsetof({m[2]}, {m[3]}), {{{', '.join(map(str, _rgba(fields[dna])))}}}}},"
+    new, n = rows.subn(row, text)
+    if n != 89:
+        raise Unmapped(f"interface_mixar_theme.cc: expected the 89 slot rows, found {n}")
+    return new
+
+
+def tokens_hh(fields, text):
+    """UI_mixar_tokens.hh: the zen palette and the MX_ reference colours are the default theme's slots."""
+    zen = ",\n".join(f"    {{{_over255(fields[('tui', slot)])}}}" for _field, slot in ZEN)
+    text = _sub_once(r"inline constexpr Palette zen = \{.*?\}\};", lambda m: f"inline constexpr Palette zen = {{\n{zen}}};",
+                     text, "UI_mixar_tokens.hh zen", flags=__import__("re").S)
+    for name, dna in MX.items():
+        text = _sub_once(rf"(inline constexpr uchar {name}\[4\] = )\{{[^}}]*\}};[^\n]*",
+                         lambda m, dna=dna: m[1] + "{" + ", ".join(map(str, _rgba(fields[dna]))) + "};", text, name)
+    return text
+
+
+def rna_defaults_cc(fields, dna_map, text):
+    """rna_userdef.cc: "Reset to Default Value" on a Lampway theme colour gives back the default theme's value."""
+    import re
+    for table, dna_struct in (("mixar_theme_ui_colors", "tui"), ("mixar_theme_agent_colors", "space_agent_bubble")):
+        start = text.index(f"static const MixarRnaColor {table}[] = {{")
+        end = text.index("\n};", start)
+        body = text[start:end]
+        rows = re.compile(r'(\{"(\w+)", N_\("[^"]*"\), N_\("[^"]*"\), )\{[^}]*\}\}')
+        body, n = rows.subn(lambda m: f"{m[1]}{{{_over255(fields[(dna_struct, m[2])])}}}}}", body)
+        if n == 0 or n != body.count('{"'):
+            raise Unmapped(f"rna_userdef.cc {table}: rewrote {n} of {body.count(chr(123) + chr(34))} rows")
+        text = text[:start] + body + text[end:]
+    for func, container in RNA_FUNCS.items():
+        start = text.index(f"static void {func}(BlenderRNA *brna)")
+        end = text.index("\n}\n", start)
+        body = text[start:end]
+        for block in body.split("prop = RNA_def_property(srna, \"")[1:]:
+            rna, default = block.split('"', 1)[0], re.search(r"float_array_default\(prop, (default_\w+)\)", block)
+            if default is None:
+                continue
+            m = dna_map.get(f"{container}[0].{rna}")
+            if m is None:
+                raise Unmapped(f"rna_userdef.cc {func}: {rna} has a reset default but no DNA field")
+            body = _sub_once(rf"(static const float {default[1]}\[4\] = )\{{[^}}]*\}};[^\n]*",
+                             lambda mm, m=m: mm[1] + "{" + _over255(fields[tuple(m["path"])]) + "};", body, default[1])
+        text = text[:start] + body + text[end:]
+    return text
+
+
+def emit_native(values, out):
+    """Write the four compiled tables; into the source tree when out is None, else as files in out."""
+    fields = compiled_theme(values)
+    dna_map = json.load(open(DNA_MAP))["map"]
+    dest = (lambda name: NATIVE[name]) if out is None else (lambda name: os.path.join(out, name))
+    userdef_c(fields, dest("userdef_default_theme.c"))
+    for name, fn in (("interface_mixar_theme.cc", slot_table_cc), ("UI_mixar_tokens.hh", tokens_hh),
+                     ("rna_userdef.cc", lambda f, t: rna_defaults_cc(f, dna_map, t))):
+        text = open(NATIVE[name], encoding="utf-8").read()
+        with open(dest(name), "w", encoding="utf-8") as fh:
+            fh.write(fn(fields, text))
+
+
 if __name__ == "__main__":
     out = HERE
     if "--out" in sys.argv:
@@ -552,7 +780,13 @@ if __name__ == "__main__":
         print("BUILD REFUSED:", exc)
         sys.exit(1)
     write_wezterm(os.path.join(out, "lampway.wezterm.lua"))
+    try:
+        emit_native(theme_values(build("dark")[0]), None if out == HERE else out)
+    except Unmapped as exc:
+        print("BUILD REFUSED:", exc)
+        sys.exit(1)
     if out == HERE:  # the shipped presets are the same bytes as the generated themes
         for shipped, generated in (("Lampway_Night.xml", "lampway_dark.xml"), ("Lampway_Paper.xml", "lampway_light.xml")):
             shutil.copyfile(os.path.join(HERE, generated), os.path.join(PRESETS, shipped))
-    print(f"wrote lampway_dark.xml ({n1} attributes), lampway_light.xml ({n2} attributes) and lampway.wezterm.lua")
+    print(f"wrote lampway_dark.xml ({n1} attributes), lampway_light.xml ({n2} attributes), lampway.wezterm.lua "
+          f"and the compiled defaults ({', '.join(NATIVE)})")

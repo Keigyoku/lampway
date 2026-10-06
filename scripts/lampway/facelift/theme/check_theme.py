@@ -132,7 +132,7 @@ def check(tokens, design_text, xmls, provs):
             alpha = int(val[7:9], 16) if len(val) == 9 else 255
             is_go = kind == "token" and ref.split("@")[0] in ("go", "go_bed")
             if 70 <= h * 360 <= 175 and s > 0.25 and v > 0.15 and alpha > 0 and not is_go:
-                findings.append(f"T4 {variant}: {key}.{attr} = {val} is in the Mixar green family")
+                findings.append(f"T4 {variant}: {key}.{attr} = {val} is in the forbidden green family (the upstream brand's)")
         # T5 (read from the XML)
         ui = lambda a: xml_vals[("user_interface", 0, a)]  # noqa: E731
         w = lambda c, a: xml_vals[("user_interface/" + c, 0, a)]  # noqa: E731
@@ -188,7 +188,7 @@ def self_test():
     x = copy.deepcopy(xmls); p = copy.deepcopy(provs)
     x["dark"][("user_interface", 0, "mixar_selected")] = "#2f592fff"; p["dark"]["user_interface[0].mixar_selected"] = "kept:#2f592fff"
     build_theme.KEPT["#2f592fff"] = "planted"
-    plants.append(("T4 Mixar green", (tokens, design, x, p), "T4"))
+    plants.append(("T4 upstream green", (tokens, design, x, p), "T4"))
     x = copy.deepcopy(xmls); x["dark"][("user_interface/wcol_regular", 0, "text")] = "#2a2a2a"
     plants.append(("T5 unreadable button text", (tokens, design, x, provs), "T5"))
     x = copy.deepcopy(xmls); x["dark"][("user_interface", 0, "mixar_primary")] = "#edb944ff"
