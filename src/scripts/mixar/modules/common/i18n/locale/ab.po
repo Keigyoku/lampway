@@ -5324,6 +5324,45 @@ msgstr ""
 msgid "Lampway's server is not running: start it, then Refresh"
 msgstr ""
 
+msgid "Open a compare set in its own window: one view per model, one camera"
+msgstr ""
+
+msgid "Change every view at once"
+msgstr ""
+
+msgid "not built yet: the data modes need their replacement materials"
+msgstr ""
+
+msgid "Sync the cameras, spin, or keep the names blind"
+msgstr ""
+
+msgid "Pick"
+msgstr "Алхра"
+
+msgid "Your pick: one decision row in the ledger, by you; while blind the names show only after it"
+msgstr ""
+
+msgid "only the user picks: a script cannot press it"
+msgstr ""
+
+msgid "No compare set is open"
+msgstr ""
+
+msgid "Blind"
+msgstr ""
+
+msgid "Names shown"
+msgstr ""
+
+msgid "pair, outline IoU (worst view), interior difference"
+msgstr ""
+
+msgid "Blind pick: a decision row in the ledger, by you, blind"
+msgstr ""
+
+msgid "Reveal without picking"
+msgstr ""
+
 msgid "On this machine"
 msgstr ""
 
@@ -21704,9 +21743,6 @@ msgstr ""
 
 msgid "Place a library asset dragged from the agent's picker where it was dropped"
 msgstr ""
-
-msgid "Pick"
-msgstr "Алхра"
 
 msgid "That library pick is no longer offered"
 msgstr ""
