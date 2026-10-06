@@ -66,14 +66,8 @@ class Cards:
         with self._lock:
             if self._content is None:
                 self._content = ContentServer(self.reg().dir, host=self.host, port=0, api_port=self.api_port)
-                self._serve(self._content)
+                self._content.serve()
             return self._content
-
-    @staticmethod
-    def _serve(srv: ContentServer) -> None:
-        import uvicorn
-        server = uvicorn.Server(uvicorn.Config(srv.app, host=srv.host, port=srv.port, log_level="warning", lifespan="off"))
-        threading.Thread(target=server.run, name="lampway-cards-content", daemon=True).start()
 
     def open(self, card_id: str, step: int = 0) -> dict:
         card = self.reg().get(card_id)

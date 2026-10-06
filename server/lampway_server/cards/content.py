@@ -7,7 +7,8 @@ import mimetypes
 import os
 import re
 import secrets
-import socket
+import threading
+import time
 from pathlib import Path
 from urllib.parse import unquote
 
@@ -24,25 +25,35 @@ HEADERS = {"X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer"
            "Cache-Control": "no-store"}
 
 
-def _free_port(host: str) -> int:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((host, 0))
-        return s.getsockname()[1]
-
-
 class ContentServer:
     def __init__(self, root, host: str = "127.0.0.1", port: int = 0, api_port: int = 8787):
         if port and port == api_port:
             raise CardError("the content server needs its own port: a report on the API's origin could read the API token")
-        self.root, self.host = Path(root), host
-        self.port = port or _free_port(host)
-        if self.port == api_port:
-            self.port = _free_port(host)
+        self.root, self.host, self.api_port = Path(root), host, api_port
+        self.port = port                       # 0 = the operating system picks one when ``serve`` binds
         self._grants: dict = {}
         self.app = Starlette(routes=[Route("/view/{grant}/{path:path}", self._serve, methods=["GET", "HEAD"])])
 
     def origin(self) -> str:
+        if not self.port:
+            raise CardError("the content server is not serving yet: serve() first")
         return f"http://{self.host}:{self.port}"
+
+    def serve(self, timeout: float = 10.0) -> str:
+        """Start uvicorn on its own thread (a daemon: it ends with the server) and learn the port it bound; the origin is never the API's."""
+        import uvicorn
+        server = uvicorn.Server(uvicorn.Config(self.app, host=self.host, port=self.port, log_level="warning", lifespan="off"))
+        threading.Thread(target=server.run, name="lampway-cards-content", daemon=True).start()
+        deadline = time.monotonic() + timeout
+        while not server.started and time.monotonic() < deadline:
+            time.sleep(0.02)
+        if not server.started:
+            raise CardError("the content server did not start: is the loopback port free?")
+        self.port = server.servers[0].sockets[0].getsockname()[1]
+        if self.port == self.api_port:
+            server.should_exit = True
+            raise CardError("the content server needs its own port: a report on the API's origin could read the API token")
+        return self.origin()
 
     def grant(self, root=None) -> str:
         root = str(Path(root or self.root).resolve())

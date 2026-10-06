@@ -213,7 +213,12 @@ def test_content_server_refusals_on_its_own_origin(tmp_path):
 
 def test_two_ports_two_origins(tmp_path):
     srv = CON.ContentServer(tmp_path / "cards", host="127.0.0.1", port=0, api_port=8787)
-    assert srv.port not in (0, 8787) and srv.origin() == f"http://127.0.0.1:{srv.port}", "a report's script never shares the API's origin (and its token)"
+    with pytest.raises(CardError, match="not serving yet"):
+        srv.origin()
+    origin = srv.serve()
+    assert srv.port not in (0, 8787) and origin == f"http://127.0.0.1:{srv.port}", "a report's script never shares the API's origin (and its token)"
+    import httpx
+    assert httpx.get(f"{origin}/view/x/y.html").status_code == 404, "it really serves, on its own port"
     with pytest.raises(CardError, match="its own port"):
         CON.ContentServer(tmp_path / "cards", host="127.0.0.1", port=8787, api_port=8787)
 

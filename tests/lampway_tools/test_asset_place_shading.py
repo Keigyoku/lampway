@@ -36,7 +36,7 @@ print("RESULT", json.dumps({{**plain, "kept": kept, "still": still, "rep": rep, 
     assert d["r"]["ok"] and d["r"]["mode_used"] == "assign_material", d["r"]
     assert d["mat"] == "Bronze" and "Other" not in d["others"], d
     assert d["props"]["lw_asset_id"] == "asset-1" and d["props"]["lw_asset_sha256"] == "ab" * 32
-    assert d["kept"]["ok"] is False and "object already has a Mixar Paint material: pass replace:true" in d["kept"]["error"]
+    assert d["kept"]["ok"] is False and "object already has a layer-stack paint material: pass replace:true" in d["kept"]["error"]
     assert d["still"] == "Layers"
     assert d["rep"]["ok"] and d["after_rep"].startswith("Bronze"), d
     assert d["no_mesh"]["ok"] is False and "pick a mesh object with a material slot" in d["no_mesh"]["error"]
