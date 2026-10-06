@@ -26,13 +26,24 @@ def short_root(prefix="lwh-") -> Path:
     return Path(tempfile.mkdtemp(prefix=prefix, dir=base))
 
 
+def real_home() -> str:
+    """The person's real home (the tests' HOME is isolated in the basetemp): only for the opt-in fleet witness."""
+    import pwd
+    return pwd.getpwuid(os.getuid()).pw_dir
+
+
 def fleet_env() -> dict:
-    """The DEFAULT environment (the fleet's herdr), with this crew's own pane variables left out: used only for read-only status and snapshot queries."""
-    return {k: v for k, v in os.environ.items() if not k.startswith("HERDR_")}
+    """The DEFAULT environment (the fleet's herdr) in the real home, with this crew's own pane variables left out: used only for read-only status and snapshot queries."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith("HERDR_") and not k.startswith("XDG_")}
+    env["HOME"] = real_home()
+    return env
 
 
 def fleet_witness() -> dict:
-    """Read-only: the fleet server's status and the ids of its workspaces and panes (a marker leak or a stolen pane would show here)."""
+    """Read-only: the fleet server's status and the ids of its workspaces and panes (a marker leak or a stolen pane would show here).
+    It looks at the REAL fleet in the person's real home, which no test does by default: opt in with LAMPWAY_TEST_FLEET_WITNESS=1."""
+    if os.environ.get("LAMPWAY_TEST_FLEET_WITNESS") != "1":
+        pytest.skip("the fleet witness reads the person's real herdr state: opt in with LAMPWAY_TEST_FLEET_WITNESS=1 (tests never read the real home by default)")
     def q(*a):
         r = subprocess.run([HERDR, *a], capture_output=True, text=True, env=fleet_env(), timeout=30)
         return r.stdout

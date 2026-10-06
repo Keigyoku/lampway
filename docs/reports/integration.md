@@ -79,6 +79,13 @@ Fix:
   - `tests/lampway_tools/test_blender_run_placeholders.py`: `run_script` refuses an unexpanded `@...@` or a relative home-shaped env value before the binary starts; it also gives the binary its own HOME and `LAMPWAY_TEST_ROOT`.
   - The pre-publish gate's `--git` refuses any commit that ADDS a private home path (`PRIVATE_PATHS`: placeholder directories, an app home's chat_history/checkpoints/operation_history and siblings, root-level `*.mixar`, `MIGRATED-FROM-MIXAR.json`), with a self-test case that plants such a commit; `.gitignore` carries the same shapes.
 
+### ONE full-suite command and a checked known-red baseline (coordinator item, 2026-10-06)
+- My earlier reports' "client 753 passed / 46 skipped" was `tests/lampway_tools` only: a subset. Since batch b1 my batches ran the whole root suite (every pytest.ini testpath), but the 138 to 143 known-red tests were only compared against a scratch list.
+- Now: `scripts/lampway/test_all.sh` (one command: the server suite and the whole client suite in parallel, `LAMPWAY_BIN` for the tool tests) judged against `tests/known_red.tsv` (id, class, one-line reason). Green = no failure outside the baseline AND no baseline entry that now passes (the list only shrinks; `--shrink-baseline` drops the passing ones, nothing ever adds). It prints a JSON summary and writes `summary.json` beside the logs.
+- Triage of the 138 at 80ca6de3: inherited 118 (failing in the fork's pre-session baseline), env 16 (the MCP UI tests import jsonschema / mcp, which the test venv lacks), stale 4 (two export-verify tests pin the upstream name "Mixar export_package"; two terrain-prefetch tests expect an S3 asset host the hardening removed: all four failed at lp/wave4 already), broken 0 identified, unknown 0. The inherited ones are not triaged further here; their owners are the lanes of their modules.
+- `tests/lampway/test_test_all.py` pins the parser and the judge (written after the script, not RED-first).
+- The two herdr fleet-witness tests now SKIP unless `LAMPWAY_TEST_FLEET_WITNESS=1`: they read the person's real herdr state, which no test does by default now that HOME is isolated; with the opt-in they pass (measured).
+
 ## Merges
 (none yet: this section is appended per merge with lane, range, conflicts, suite and gate results)
 
