@@ -648,6 +648,7 @@ from .features import model_compare as _F_mc                # noqa: E402
 from .features import clip_classify as _F_cc                # noqa: E402
 from .features import scene_cleanup as _F_sc                # noqa: E402
 from .features import batch_export as _F_bx                 # noqa: E402
+from .features import camera_shot as _F_cs                  # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
 
@@ -856,6 +857,17 @@ def batch_export(objects=None, collection=None, convention=None, format="glb", p
     s = _settings()
     return _F_bx.batch_export(str(s.project_root), objects, collection, convention, format, preset, apply, out_dir, per, textures, plan_only, verify, _p(undo) if undo else None,
                               resolve=lambda p: _p(p, s.project_root))
+
+
+@tool
+def camera_shot(action="list", shot=None, camera=None, lens_mm=None, aspect=None, frame=1, preset=None, target=None, passes=None, out_dir="guides", handheld=False, size=512):
+    """Cinema-mode shots from the agent. A shot is a camera tagged with its name; its keys are ordinary location, rotation and lens keyframes (editable in the scene). new: a camera framed on `target` (or the selected
+    mesh) at lens_mm 18..135 and an aspect (16:9, 2.39:1, 9:16, 1:1, 4:3), key at `frame`. frame / key: re-frame or key the current pose. preset: the Client Director's moves from the camera's live pose, keys 12 frames
+    apart: ORBIT_LEFT/RIGHT (an arc that keeps the subject framed), DOLLY_IN/OUT, DOLLY_ZOOM (widens the lens by 0.6 while dollying in), CRANE_UP/DOWN, PAN_LEFT/RIGHT; handheld adds a small deterministic jitter.
+    render_guides: beauty, clay (Workbench, never Cycles) and depth (ray-cast, fixed near/far so frames compare; nearer is brighter) PNGs at every key under out_dir, the longest side `size`; refused with fewer than
+    two keyed poses. delete removes a camera this tool made (or just the shot tag and keys from yours). list shows the shots. Your frame and render engine are restored."""
+    s = _settings()
+    return _F_cs.camera_shot(str(s.project_root), action, shot, camera, lens_mm, aspect, frame, preset, target, passes, out_dir, handheld, size, resolve=lambda p: _p(p, s.project_root))
 
 
 @tool
