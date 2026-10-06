@@ -69,7 +69,10 @@ def validate_declaration(consumes):
 
 
 def _doc_of_datablock(name):
-    import bpy
+    try:
+        import bpy
+    except ImportError:                                            # outside Blender only paths resolve
+        return None, None, "missing"
     for coll in (bpy.data.objects, bpy.data.armatures, bpy.data.images, bpy.data.materials, bpy.data.actions):
         db = coll.get(name) if isinstance(name, str) else None
         if db is not None:
@@ -107,11 +110,9 @@ def unmet(arg, value, need):
     if isinstance(value, (list, tuple)):
         bad = first_bad(arg, value, need)
         return bad[2] if bad else []
-    if isinstance(value, str) and (os.sep in value or value.endswith((".npz", ".glb", ".fbx", ".obj", ".blend", ".png", ".exr"))):
+    db, doc, why = _doc_of_datablock(value)                  # a datablock by that name first: images are named "x.png" (the tools read it)
+    if why == "missing" and isinstance(value, str) and (os.sep in value or value.endswith((".npz", ".glb", ".fbx", ".obj", ".blend", ".png", ".exr"))):
         doc, why = _doc_of_path(value)
-        db = None
-    else:
-        db, doc, why = _doc_of_datablock(value)
     if doc is None:
         return [{"raw": f"{arg} {value!r} is a RAW import (lw_raw), not canonical",
                  "unstamped": f"{arg} {value!r} carries no canonical stamp (lw_canon)",
@@ -120,6 +121,9 @@ def unmet(arg, value, need):
     if db is not None and getattr(db, "type", None) == "MESH":
         from . import canon_io
         out += CA.check(doc, canon_io.facts(db))
+    elif db is not None and doc.get("kind") == "texture" and hasattr(db, "colorspace_settings"):
+        from .features import normalize_texture as NT
+        out += CA.check(doc, NT.facts(db))
     out += CA.satisfies(doc, need)
     return out
 

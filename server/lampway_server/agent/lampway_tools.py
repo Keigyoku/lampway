@@ -338,6 +338,15 @@ DEFS = [
     Def("lampway_weight_cleanup", "Fix weights on a COPY named <object>_wclean. ops in order: {op: normalize}, {op: limit, max_influences}, {op: remove_influence, bone, region: {bbox} | {vertex_group}} (refused over "
         "40 % of the vertices: that is a rebind; never leaves a vertex unweighted), {op: smooth, iterations, factor, region}, {op: rigid, bone, region}. Returns the ops applied and the audit of the result.",
         [P("object", required=True), P("armature", required=True), P("ops", "array", "the ops", required=True), P("mirror_from", desc="not built")], api="weight_cleanup"),
+    Def("lampway_normalize_texture", "An image (a scene image, or a file under the project root, loaded raw) into a CANONICAL texture (canon: specs/canon/normalization): its role "
+        "declared or from the declared source's naming (ambientcg | polyhaven | lampway; otherwise role=auto refuses), the colour space bound to the role and set on the image "
+        "(sRGB basecolor/emission/reference, Linear Rec.709 hdri, Non-Color every data map), a normal map's GL/DX convention from the naming or declared (never assumed), "
+        "ORM packed r=ao g=roughness b=metallic, size, bit depth, channels and the file's sha256 recorded; stamped lw_canon with a receipt. Tools that read images refuse a raw one "
+        "with 'normalize first'.",
+        [P("input", required=True, desc="image name or project path"), P("role", desc="auto (default: from source_naming) | basecolor | normal | roughness | metallic | ao | orm | height | "
+         "displacement | emission | opacity | mask | material_id | curvature | hdri | reference"), P("normal_convention", desc="auto (default: from the naming) | gl | dx"),
+         P("tiling_real_world_m", "array", "a tileable's physical size [w, h] in metres"), P("source_naming", desc="ambientcg | polyhaven | lampway | tripo | none (default)")],
+        api="normalize_texture"),
     Def("lampway_normalize_mesh", "A raw mesh (a scene object, or a file under the project root, imported raw) into a CANONICAL mesh (canon: specs/canon/normalization): metres, +Z up, "
         "front -Y, transform applied, the scale state recorded (Tripo / Hi3D generator_normalised; real only with evidence), a generated mesh welded by position (1e-5 m, refused above 5 % merged), "
         "lw_source_face, pivot at the bounding box's bottom centre; stamped lw_canon with a receipt. The facing is DECLARED by turn_deg (-90 for a +X-facing import) or a recipe; never guessed "

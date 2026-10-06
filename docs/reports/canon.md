@@ -170,7 +170,7 @@ TypeError, `TOOL_DOORS` derived with `TOOL_FUNCS`; a Need door refuses raw / uns
 names the normalizer. `runner.Tool.consumes` required. CI (`test_canon_doors.py`): one importer; every tool declares; doors =
 functions; runner declares; the LEGACY ratchet equals the code and its git history never rose; the door's three refusals and its
 opening (mutant: dropping the facts check fails it); the red-team pass over every door that names a kind - **vacuous today**: no
-consuming tool has a real `Need` yet (migration groups 2-6 are later work); only `normalize_mesh` declares a Need, with `accept_raw`.
+consuming tool has a real `Need` yet (migration groups 2-6 are later work); only the normalizers (`normalize_mesh`, `normalize_texture`) declare Needs, both with `accept_raw`.
 RED: measured on the pre-N2 HEAD (no `NONE`, no `TOOL_DOORS`, 84 bare tools). `test_wave5_tool_door` read `@tool\ndef` and would
 have matched NOTHING after the change (passing vacuously): its pattern now reads the new form and asserts it finds at least 80.
 
@@ -217,3 +217,68 @@ with no document as raw (`canon_state = 'raw'`) instead of refusing it. Every ve
 the vault lanes' many `put` callers (and their tests) keep working; a refusal would have broken them across three lanes. The
 coordinator may want the strict form once the callers declare.
 RED: 5 of 5 failed (no migration, no columns), then the ingest test (the twin stored raw).
+
+### Door additions for the other lanes (the coordinator's ruling, 2026-10-06: A, B, C)
+**A. Recorded rebaseline at a merge only** (`tests/lampway_tools/canon_ratchet.py`, used by the ratchet test). The count may rise
+only in a MERGE commit that adds the line `rebaseline <new count> merged=<sha of the merged-in parent> reason=<why>` to
+`canon_legacy_count.txt`: the number must be the new count, the sha (7+ hex, a prefix) one of the merge's NON-first parents, the
+reason non-empty, and the line new in that merge (a later commit cannot re-use it). A commit cannot name its own sha, so "the merge
+sha" is read as the merged-in branch's tip; say if the coordinator meant otherwise. During an uncommitted merge (`MERGE_HEAD`) the
+working tree may carry the raise when its record names `MERGE_HEAD`. Re-creating the file after its first commit is refused too.
+Self-tests on throwaway repos: plain raise refused; a plain commit borrowing a record refused; a recorded merge accepted, then a
+fall, then a re-used record refused; a merge with no record / the wrong number / a sha that is not a parent / an empty reason refused;
+the working tree with and without a merge in progress. RED: the old "never rose" rule refused the recorded merge (`110 -> 140`).
+Mutants (each record clause removed) fail their case. Lane orphans had not merged the door when I checked (`origin/lp/orphans`
+f5713e18 has no ratchet change), so there was no minimal version to adopt.
+
+**C. A Need over a list.** `canon_door.unmet` checks every element of a list or tuple argument; the refusal names the first bad
+element by index and its help normalizes that element (`normalize first: objects[2] 'rawp' ...`, help
+`lampway_normalize_mesh input=rawp`); an empty list opens. Value-driven (a list never bypasses a door), no declaration change.
+RED: a list "names no datablock". Also changed: the door now resolves a DATABLOCK name before treating a `.png` / `.glb` value as a
+path - images are named `x.png`, and the door had been reading the path's sidecar while the tool read the stamped image (RED in B's
+test: a stamped `Metal009_2K-PNG_NormalGL.png` was refused as unstamped).
+
+**B. `lampway_normalize_texture`** (`features/normalize_texture.py`, `api.normalize_texture`, its server Def). Role declared, or read
+from the DECLARED source's naming table (ambientcg `_Color/_NormalGL/_NormalDX/...`, polyhaven `_diff/_nor_gl/_nor_dx/_arm/...`,
+lampway `BaseColor/ORM/Normal_GL/Normal_DX/...`; `tripo` and `none` have no table, so `role=auto` refuses "role unknown for <file>:
+declare role=..."); colour space bound to the role and set on the image; a normal's convention from the naming or declared, never
+assumed ("normal convention unknown: declare normal_convention=gl|dx"); ORM packing; width, height, power of two; channels and bit
+depth from the PNG header (Blender reports 4 channels for an RGB PNG - measured: "24 bits over 4 channels"), else from Blender's bits
+per pixel; alpha; the file's sha256 as `image_sha256` and the raw sha. The door re-measures an image's colour space and file sha
+(`canon_asset.check` gained the `image_sha256` comparison), and `satisfies` no longer applies a scale requirement to a texture (an
+image has no world size). RED: `api` had no `normalize_texture`. GREEN: one Blender test covering ambientCG and Poly Haven sets,
+the refusals, a declared DX normal with tiling, and a real `Need(kind=("texture",), roles=("normal",))` door (raw refused, role
+refused, colour space changed refused, file rewritten refused, normalizing again restores it). Mutants: colour space not set, the
+image door facts skipped, a GL default, the image-sha check removed - each fails.
+Not built: the material normalizer, the contract's sign test (unverified method), `baked_by_lampway` evidence (the bake does not stamp
+its `normal_green` yet), the "8-bit sRGB-encoded data" refusal (no reliable detector), the UV binding (`uv_mesh`). No image tool was
+converted from LEGACY in this change: converting one makes its callers normalize first, which is each lane's change to make.
+
+## Item 12: joints from views (pure leg DONE; the Blender tool and the detector NOT built)
+`pipeline/joints_views.py`: cameras + keypoints files (detector=keypoints_json) -> triangulated joints (`canon_geom.triangulate`,
+the robust drop with the view names kept), `calibrate` on a body with known joints (offsets written with the cameras' sha256),
+`run(rig=True)` refuses without a calibration, refuses one from another camera framing, refuses a joint the calibration lacks;
+`hidden` joints left out; per joint `pos_m`, `views_used`, `residual_px`, `calibrated`, `centred`, `centred_cm` (INV-11.4).
+Centring (canon 11 B.8): 16 rays in the plane across the bone (bone direction from the next joint of the set on its chain, or the
+previous one for a last joint), reach 5 / 8 / 15 cm, 3 passes to the hits' mean, a ring under 12 of 16 hits (10 fingers) skipped
+with its reason. `detect()` is the model slot: it names decision 11-H1 and refuses.
+Tests (`test_canon_item12_joints.py`, 12): G11.1 exact; G11.4 built as the canon asks (a per-joint pixel bias recovered on one body,
+removed from a shifted second body, exact) and its falsifier (a different ortho refused); one view refused; the detector slot;
+centring on an upright and a tilted tube, the open ring, the wall beyond reach, run() centring the upper arm along its bone.
+RED: ImportError (the module did not exist) - weak, so each guard was mutation-checked instead: camera-framing check off, offsets
+not applied, ambiguity refusal off, reach ignored, closure ignored - each fails its test.
+
+**Canon defect in golden C08 / G11.3 (needs_decision).** The 40 px error is on the LEFT view's x pixel, which measures y; only the
+left and right views fix y, so the two disagree symmetrically and nothing can say which is wrong. The canon reference "drops the
+corrupt view" by a floating-point tie: measured with `reference.triangulate_robust`, the same 40 px in the RIGHT view leaves the
+joint **85.9 mm off with "3 views used"**, and re-projecting the same points (different rounding) flips which view is dropped. The
+tool therefore REFUSES an ambiguous outlier (`AMBIGUOUS = "refuse"`: more than one view whose removal leaves the rest consistent),
+naming both views; an identifiable outlier (the left view's height, fixed by four views) is dropped and exact. Reversal seam:
+`AMBIGUOUS = "drop_worst"` is the reference's rule, pinned by `test_the_reversal_seam_...` on the golden's own pixels.
+`canon_geom.triangulate_robust` itself is unchanged (it still matches the reference). The same tie bit G11.4 at first: a bias that
+makes front and back disagree by more than `max_px` puts calibration through the robust drop; the test's bias is a detector's (the
+same pixels in every view: a consistent shift, within `max_px` across views).
+**Centring finding:** the canon's rule (move to the hits' MEAN) halves an offset per pass, so 3 passes leave 1/8 of it (10 mm ->
+1.25 mm, predicted and measured; the test pins it). `canon_geom.harmonic_centre` (canon 09 B.4) is exact on a circle in one pass;
+whether centring should use it is the captain's call. Not built: rendering the views and fitting the cameras (the contract's
+`views/res/ortho_m`; the tool takes the cameras the keypoints were made in), the API tool and its server Def, the video variant.

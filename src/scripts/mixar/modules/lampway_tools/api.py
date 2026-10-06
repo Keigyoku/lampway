@@ -1195,6 +1195,18 @@ def weight_cleanup(object, armature, ops, mirror_from=None):
     return _W.cleanup(object, armature, ops, mirror_from)
 
 
+@tool(consumes={"input": Need(kind=("texture",), accept_raw=True)})
+def normalize_texture(input, role="auto", normal_convention="auto", tiling_real_world_m=None, source_naming="none"):
+    """An image (a datablock, or a file under the project root loaded raw) into a CANONICAL texture (lampway.canonical-asset/1): its
+    role declared or read from the declared source's naming (source_naming ambientcg | polyhaven | lampway; tripo / none have no
+    table, so role=auto refuses), the colour space bound to the role and set on the image (sRGB basecolor / emission / reference,
+    Linear Rec.709 hdri, Non-Color every data map), a normal map's convention from the naming or declared (normal_convention gl | dx;
+    never assumed), ORM packed r ao g roughness b metallic, size / bit depth / channels / alpha measured, the file's sha256; stamped
+    lw_canon with a receipt. tiling_real_world_m [w, h] records a tileable's physical size."""
+    from .features import normalize_texture as _NT
+    return _NT.run(input, role, normal_convention, tiling_real_world_m, source_naming, root=str(_settings().project_root))
+
+
 @tool(consumes={"input": Need(kind=("mesh",), accept_raw=True)})
 def normalize_mesh(input, turn_deg=None, plate="", recipe="", generator="", want_scale="any", scale_evidence=None, weld="auto", weld_distance_m=None):
     """A raw mesh (an object, or a file under the project root imported raw) into a CANONICAL mesh (lampway.canonical-asset/1:
