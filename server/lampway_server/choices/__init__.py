@@ -125,7 +125,7 @@ def propose_dead_preferences(preferences: dict) -> list:
         if (pid, json.dumps(change, sort_keys=True)) in seen or not REG.offers(REG.get(pid), change["preferred"]):
             continue
         try:
-            made.append(store.propose("migration", pid, change, f"the Mixar client saved this model for the {role} role; Lampway never applied it", []))
+            made.append(store.propose("migration", pid, change, f"the client's model picker saved this model for the {role} role; Lampway never applied it", []))
         except Refused:
             continue
     return made
