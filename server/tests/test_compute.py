@@ -313,3 +313,15 @@ def test_the_wrapper_is_gated_by_egress_consent_and_the_indicator_lights_during_
     e.runner.submit(e.job(idempotency_key="after-optin"))
     assert seen and seen[0] == ["compute:boat"]
     assert [r for r in m.log() if r["event"] == "send" and r["route"] == "compute:boat"]
+
+
+def test_blender_offload_stages_the_script_and_params_and_fetches_the_op_specific_image(tmp_path):
+    e = Env(tmp_path, outputs={"result.json": b'{"op": "thumbnail"}', "thumbnail.png": PNG})
+    out = e.runner.submit(e.job(recipe="blender_offload", params={"op": "thumbnail", "size": 64}, max_seconds=600))
+    assert out["state"] == "downloaded"
+    uploaded = sorted(c[2] for c in calls(e, "upload"))
+    assert uploaded == ["in.png", "offload.py", "params.json"]
+    assert sorted(c[2] for c in calls(e, "fetch")) == ["result.json", "thumbnail.png"]
+    stage = e.receipts._dir("compute:fake", out["key"]) / "stage"
+    assert json.loads((stage / "params.json").read_text()) == {"op": "thumbnail", "size": 64} and "bpy" in (stage / "offload.py").read_text()
+    assert (e.receipts._dir("compute:fake", out["key"]) / "assets" / "thumbnail.png").read_bytes() == PNG

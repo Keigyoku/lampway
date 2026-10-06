@@ -62,6 +62,9 @@ class Recipe:
     setup: str = ""
     type: str = "default"
     image_digest: str = ""
+    files: tuple = ()                 # ((name, source path), ...) staged next to the inputs
+    params_file: str = ""             # the job params are staged as this JSON file
+    outputs_by_param: tuple = ()      # (param name, ((value, (extra outputs...)), ...))
 
 
 _SECRET = [(re.compile(r"sk-[A-Za-z0-9_\-]{8,}"), "[redacted]"), (re.compile(r"[A-Za-z][A-Za-z0-9+.\-]*://[^/\s:@]+:[^/\s@]+@"), "https://"), (re.compile(r"(?i)bearer\s+[A-Za-z0-9._\-]{8,}"), "Bearer [redacted]"),

@@ -139,6 +139,27 @@ class ComputeRunner:
             return 0.0
         return cj.get("rate_usd_per_s", 0.0) * max(0.0, self.clock() - cj["provisioned_at"])
 
+    @staticmethod
+    def _outputs(recipe, spec) -> tuple:
+        extra = ()
+        if recipe.outputs_by_param:
+            key, table = recipe.outputs_by_param
+            extra = dict(table).get((spec.get("params") or {}).get(key), ())
+        return tuple(recipe.outputs) + tuple(extra)
+
+    def _stage(self, r, recipe, spec) -> list:
+        """Recipe files and the job's params travel with the inputs: (name, path) pairs under the receipt folder."""
+        d = self.receipts._dir(r["provider"], r["key"]) / "stage"
+        d.mkdir(parents=True, exist_ok=True)
+        out = []
+        for name, src in recipe.files:
+            (d / name).write_bytes(Path(src).read_bytes())
+            out.append((name, str(d / name)))
+        if recipe.params_file:
+            (d / recipe.params_file).write_text(json.dumps(spec.get("params") or {}))
+            out.append((recipe.params_file, str(d / recipe.params_file)))
+        return out
+
     # ------------------------------------------------------------------------------------------------ plan/approve
     def plan(self, job: dict) -> dict:
         spec = self._spec(job)
@@ -269,6 +290,8 @@ class ComputeRunner:
                     with self._gate(be, cj):
                         for i in spec["inputs"]:
                             be.upload(ref, i["name"], i["path"])
+                        for name, path in self._stage(r, recipe, spec):
+                            be.upload(ref, name, path)
                     cj["stage"] = "uploaded"
                     self._save(r, cj)
                 if cj["stage"] == "uploaded":
@@ -322,7 +345,7 @@ class ComputeRunner:
         """Outputs are fetched and verified BEFORE teardown: a stop on a no-snapshot box erases them."""
         dest.mkdir(parents=True, exist_ok=True)
         made, files = [], []
-        for name in recipe.outputs:
+        for name in self._outputs(recipe, cj["spec"]):
             part, final = dest / (name + ".part"), dest / name
             try:
                 n = be.fetch(ref, name, str(part), cj.get("handle"))
