@@ -119,6 +119,20 @@ def _resolve_engine(name: str, given: dict) -> dict:
     return out
 
 
+def ladder_models(category: str) -> dict:
+    """HC17: the view_verify ladder's models - the purpose's resolution, and the fallback resolve(..., avoid=[the first])."""
+    from .. import choices as CH
+    pid = "image.reference_sheet" if category == "sheet" else "image.plates"
+    out = {}
+    try:
+        first = CH.resolve(pid, CH.Job(needs={"runs_on": ["openrouter"]}))
+        out["primary"] = first.model
+        out["fallback"] = CH.resolve(pid, CH.Job(needs={"runs_on": ["openrouter"]}, avoid=(first.option,))).model
+    except CH.NoChoice:
+        pass
+    return {k: v for k, v in out.items() if v}
+
+
 def plate_template() -> str:
     """The Plates purpose's template param (Choices), else today's ``plate-4k-crisper`` (choices_migration.md 5.13)."""
     from .. import choices as CH
@@ -137,6 +151,8 @@ def build_script(d: Def, arguments: dict) -> str:
     given = {k: v for k, v in arguments.items() if k in known}
     if d.name in ENGINE_PURPOSES:
         given = _resolve_engine(d.name, given)
+    if d.name == "lampway_view_verify" and given.get("action") == "ladder" and not given.get("models"):
+        given["models"] = ladder_models(str(given.get("category") or "sheet"))
     if d.name == "lampway_plate_pick" and given.get("stage") == "prompt" and not given.get("template"):
         given["template"] = plate_template()                      # HC16: the Plates choice's template, not a literal
     if d.batch:
@@ -617,7 +633,8 @@ DEFS = [
     Def("lampway_clip_classify", "What kind of motion is each action on this armature, what should it be called, does it loop: all measured from six landmark bones (hip, head, hand.l, hand.r, foot.l, foot.r; the bone names default from the UE, MetaHuman and mannequin skeletons or are passed in `landmarks`), every length a fraction of the figure's height H (given, else the deform mesh's rest height, else head-bone to foot-bone; the source is reported). Returns per action the features (speed in H per SECOND: duration is (last - first) / fps), every class label that fits plus the primary one (null in a gap: a gap is a finding), the loop decision (true / false / null when not measurable; upstream's 0.5 deg + 0.01 H rule and what anim_loop_export's 1 deg limit would say, neither chosen), and a measured name with `inferred` true when its wording implies intent no number can prove. The default thresholds come from ONE subject on one rig (11 clips): single-subject, recalibrate before trusting a gap. A rig that scales joints is listed first. apply=props stores lw_clip_* on the Action; apply=rename is the USER's click (an agent is refused and may only propose names). The frame, action and pose are restored.",
         [P("armature", "string", required=True), P("action", "string"), P("samples", "integer"), P("fps", "number"), P("landmarks", "object"), P("figure_height_m", "number"), P("thresholds", "string"), P("apply", "string"), P("labels_for_naming", "object")], api="clip_classify"),
     Def("lampway_view_verify", "Is this generated image really the view that was asked for? admit: reject an empty, tiny, fragmented (largest piece under 0.60 of the figure) or duplicate (perceptual hash within 6 of a known_images plate) reference BEFORE any model is paid, with the reason. verify: measured checks on the silhouette (alpha, `mask`, or a flat background): shoulder-width ratio and mirror IoU about the figure's own axis, feet baseline, arm angle (A-pose is 30 to 60), framing margins, background flatness; verdict pass | soft_fail | hard_fail | uncertain with the signed estimated rotation, and every threshold (they are PLACEHOLDERS until calibrated on labelled images) in the result; asymmetric_ok (a weapon in one hand) skips the symmetry checks as not_applicable. A side view is `uncertain` (a profile cannot be read from a silhouette). A vision judge may rescue an uncertain and never override a measured hard failure; none is configured here (judge=vision is refused). ladder: the bounded retry decision over `attempts` [{verdict, reason, model, rotation_deg}]: accept | accept_with_warning | retry (the first on the same model, the second on the fallback, with the escalated prompt built from `original_prompt`) | stop at max_attempts (1..4, default 3, never bypassed) with the user's three options; it never generates. templates: the built-in prompt-library set.",
-        [P("action", "string"), P("image", "string"), P("category", "string"), P("view", "string"), P("approved_front", "string"), P("mask", "string"), P("asymmetric_ok", "boolean"), P("judge", "string"), P("known_images", "array"), P("attempts", "array"), P("max_attempts", "integer"), P("original_prompt", "string")], api="view_verify"),
+        [P("action", "string"), P("image", "string"), P("category", "string"), P("view", "string"), P("approved_front", "string"), P("mask", "string"), P("asymmetric_ok", "boolean"), P("judge", "string"), P("known_images", "array"), P("attempts", "array"), P("max_attempts", "integer"), P("original_prompt", "string"),
+         P("models", "object", "ladder: {primary, fallback} (filled from Choices when omitted)")], api="view_verify"),
     Def("lampway_scene_cleanup", "Report first, then clean. plan_only (the default) reads the scene and changes nothing: per object the non-uniform scale, loose vertices, doubled vertices at the merge distance, non-manifold edges (wire, boundary, multi-face), flipped faces (found on closed shells with doubles welded, so a double cannot hide a flip), n-gons, material slots (unused, duplicates) and UV layers, plus the scene's orphan data blocks. plan_only=false runs the steps IN THE DOCUMENTED ORDER whatever order you list: apply_transforms, loose, merge_by_distance, non_manifold, normals (closed shells only), ngons (policy report | triangulate | keep), purge_orphans, naming (needs `convention`: prefix, suffix, lowercase, replace_spaces, strip_numeric_suffix: it will not invent one), materials_uvs (removes unused slots; duplicates are reported). merge_distance 'auto' = 1e-4 x the bounding diagonal (scale-aware); a merge that would remove more than 5 % of the vertices stops and says the threshold is wrong. Work happens on `<object>_clean` copies with the source hash recorded (copy=false edits in place and refuses shared mesh data). Refused: Edit Mode.",
         [P("objects", "array"), P("steps", "array"), P("merge_distance", "string"), P("ngon_policy", "string"), P("convention", "object"), P("plan_only", "boolean"), P("copy", "boolean")], api="scene_cleanup"),
     Def("lampway_batch_export", "Audit meshes against YOUR convention, fix it as one pass, and export each object to its own file. plan_only (the default) lists, per object, the violations (name, scale, origin, default material names, unused slots) and its new name, and changes and writes nothing. convention is required: {prefix, set, pattern ('{prefix}{set}_{piece}_{nn}'), origin base|center|keep, unit_scale, forward, up}: the tool will not invent one. A real run (plan_only=false) writes rename_map.json, renames, applies transforms and the base origin (apply: transforms, modifiers, merge_materials, drop_unused_slots), then exports each object from a temporary copy as fbx | glb | gltf | obj under out_dir (inside the project root), re-imports it and compares the bounding box (verified when within 1e-4), and writes manifest.json. The project's convention (unit scale and axes) is recorded on the first real run; a later differing call is refused. undo=<rename_map.json> restores the names (not transforms). Refused: a name collision, an unknown preset (unreal | unity | godot), usd (not built), glTF with a unit scale other than 1, a path outside the root, Edit Mode. The presets only default the axes and are unverified against each engine's importer.",
