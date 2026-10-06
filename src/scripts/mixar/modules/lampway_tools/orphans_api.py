@@ -110,3 +110,11 @@ def edit_locality_check(before, after, region=None, margin_m=0.005, tolerance_m=
     """What a region edit changed OUTSIDE its region: moved vertices, faces, open edges, UVs, materials, dimensions, weights; read-only."""
     from .features import local_edit as _LE
     return _LE.edit_locality_check(before, after, region, margin_m, tolerance_m)
+
+
+@_export
+@tool
+def mesh_join_boolean(op, objects, voxel_m="coarse_first", clearance_mm=None, connector=None, name=""):
+    """Fuse (join + voxel remesh), union, difference with clearance, or plug/socket connectors with a measured gap; on copies, originals kept."""
+    from .features import join_boolean as _JB
+    return _JB.run(op, objects, voxel_m, clearance_mm, connector, name)

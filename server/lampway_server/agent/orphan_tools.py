@@ -118,4 +118,14 @@ ORPHAN_DEFS = [
         "(align with the asset_lineage anchors), an after mesh that lost its UV layer.",
         [P("before", required=True), P("after", required=True), P("region", "array", "[x0, y0, z0, x1, y1, z1] object space", required=True),
          P("margin_m", "number", "0..0.1, default 0.005"), P("tolerance_m", "number", "1e-6..0.01, default 0.0005")], api="edit_locality_check"),
+    Def("lampway_mesh_join_boolean", "Fuse, cut and connect parts, always on COPIES (the originals are kept). op join_remesh: the parts joined in world space then a "
+        "voxel remesh (joining alone does not fuse surfaces); voxel_m 'coarse_first' (default) remeshes at 4x the fine voxel first (reported) then at the "
+        "bounding diagonal / 100, or give a size; refused on a skinned mesh (remesh destroys weights; bind afterwards). op union: objects[0] + the rest, exact "
+        "Boolean. op difference: objects[0] - the rest, each cutter first INFLATED so every face moves out by clearance_mm (required; 0 for an exact cut). op "
+        "connector {kind plug_socket | pin, at [x, y, z] on the joint plane, size_mm diameter, axis default +Z}: a plug cylinder (2 x size long) united with "
+        "objects[0] and the same cylinder grown by clearance_mm cut from objects[1]; the fit gap is MEASURED (gap_mm_measured; clearance_mm is required: it "
+        "is the user's printer / paint tolerance). Returns faces, shells, manifold. Boolean inputs must be closed (the open-edge count is named).",
+        [P("op", required=True, desc="join_remesh | union | difference | connector"), P("objects", "array", "two or more mesh objects", required=True),
+         P("voxel_m", desc="join_remesh: 'coarse_first' (default) or a size in metres"), P("clearance_mm", "number", "0..2: difference and connector"),
+         P("connector", "object", "{kind, at: [x, y, z], size_mm, axis}"), P("name", desc="the result's name")], api="mesh_join_boolean"),
 ]
