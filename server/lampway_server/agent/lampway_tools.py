@@ -412,9 +412,18 @@ DEFS = [
          P("sample_frames", "integer", "2..64, default 8"), P("name", desc="default <action>_rt"), P("dry_run", "boolean"), P("keep_source", "boolean")], api="animation_retarget"),
     Def("lampway_anim_multiview_fit", "Motion from ONE split-screen clip (front + side), orthographic: per-panel 2D keypoints (JSON, 15 joints in the order of pipeline.anim_mv.JOINTS) triangulated to 3D, the side view's "
         "near/far leg labels corrected from the FRONT view, pelvis-relative, held frames listed, the grid clip's parallax giving the root speed. Refused: panels out of sync, no scale. single_view=true is the control "
-        "that cannot tell legs apart (it says so). The 2D detector (stage detect) is not wired: needs_approval; supply keypoints. Free.",
-        [P("front", required=True, desc="front-panel keypoints JSON"), P("side", required=True, desc="side-panel keypoints JSON"), P("calibration", "object", "{px_per_m}"), P("cameras", desc="cameras.json of anim_reference_render"),
-         P("fps", "number"), P("single_view", "boolean"), P("grid_frames", "array", "PNGs of the side-track grid clip"), P("stage", desc="fit (default) | detect"), P("out", desc="default anim/multiview/fit.json")], api="anim_multiview_fit"),
+        "that cannot tell legs apart (it says so). stage detect: the RTMW whole-body 2D detector on frames {front: [png] | folder, side: ...} with onnx = the RTMW "
+        "weights the user put on disk (never downloaded; rtmlib + onnxruntime in the science python): COCO-WholeBody points mapped to the 15 joints, confidence "
+        "kept, smoothed over time, written as front.json / side.json beside out. stage refine: the two-view SKINNED-silhouette analysis-by-synthesis: the "
+        "character's own rig (armature, its skinned mesh) posed per frame, the evaluated mesh rasterised through the recorded cameras (cameras.json), and the "
+        "bones' rotations (default thighs, calves, upper and lower arms; twist is not observable) moved by a coarse sweep then halving coordinate descent until "
+        "both silhouettes match masks {front: dir, side: dir}; a receipt with IoU before/after per frame and the worst frames; key=true keys the rig. Free.",
+        [P("front", desc="fit: front-panel keypoints JSON"), P("side", desc="fit: side-panel keypoints JSON"), P("calibration", "object", "{px_per_m}"), P("cameras", desc="cameras.json of anim_reference_render"),
+         P("fps", "number"), P("single_view", "boolean"), P("grid_frames", "array", "PNGs of the side-track grid clip"), P("stage", desc="fit (default) | detect | refine"),
+         P("out", desc="default anim/multiview/fit.json"), P("frames", "object", "detect: {front: [png] | folder, side: ...}"), P("onnx", desc="detect: the RTMW weights file"),
+         P("armature", desc="refine: the character's armature"), P("mesh", desc="refine: its skinned mesh"), P("masks", "object", "refine: {front: dir, side: dir} of silhouette PNGs"),
+         P("bones", "array", "refine: the bones to move"), P("step_deg", "number", "refine: default 8"), P("rounds", "integer", "refine: default 5"),
+         P("key", "boolean", "refine: key the rig per frame")], api="anim_multiview_fit"),
     Def("lampway_anim_check", "Judge a tracked motion against BOTH views' masks and the ground, with numbers: G-OUT-front >= 0.80, G-OUT-side >= 0.85, G-LEGS >= 85 %, G-FOOT-SLIDE <= 1 cm, G-FOOT-PLANT <= 1 cm, G-TWIST "
         "<= 5 deg (unverified without twist), G-CLAIMS. Controls run on the same take (a fore-aft mirrored copy must fail G-LEGS, a dragged foot must fail the slide gate); a check whose controls cannot fail does not "
         "pass. A single view is refused. Thresholds are proposed; G-TOE is unverified.",

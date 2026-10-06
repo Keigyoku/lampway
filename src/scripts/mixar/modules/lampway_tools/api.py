@@ -1361,7 +1361,8 @@ def _gray_loader():
 
 
 @tool
-def anim_multiview_fit(front, side, calibration=None, cameras="", fps=24.0, single_view=False, grid_frames=None, stage="fit", out="anim/multiview/fit.json"):
+def anim_multiview_fit(front="", side="", calibration=None, cameras="", fps=24.0, single_view=False, grid_frames=None, stage="fit", out="anim/multiview/fit.json",
+                       frames=None, onnx="", armature="", mesh="", masks=None, bones=None, step_deg=8.0, rounds=5, key=False):
     """Motion from ONE split-screen clip (front + side), orthographic: triangulate per-panel 2D joints (JSON {keypoints: [[[u, v] x 15 joints] per frame], conf?}, joint order = pipeline.anim_mv.JOINTS) into 3D, the side
     view's near/far leg and arm labels put right from the FRONT view (heights, then continuity), pelvis-relative (a drifting camera is not travel), one floor row for both panels. calibration {px_per_m} or `cameras`
     (the cameras.json of anim_reference_render: the render cameras are the video cameras). Refused: panels out of sync ('re-generate'), a missing scale. Held (duplicate) frames are listed with the true motion rate.
@@ -1369,9 +1370,25 @@ def anim_multiview_fit(front, side, calibration=None, cameras="", fps=24.0, sing
     detector) is not wired: it answers needs_approval; supply the keypoints. Free, no model."""
     from .pipeline import anim_io as _IO
     if stage == "detect":
-        return {"ok": False, "state": "needs_approval", "reason": "the RTMW whole-body 2D detector (rtmlib, ONNX) is a model download and a runner this build does not carry: supply per-panel keypoints (stage fit)"}
+        # the RTMW detector: frames {front: [pngs] | dir, side: ...} -> <out dir>/front.json, side.json (the fit's input); weights from disk, never downloaded
+        from .pipeline import rtmw as _RT
+        if not isinstance(frames, dict) or set(frames) != {"front", "side"}:
+            raise ValueError("stage detect needs frames {front: [png...] or a folder, side: ...} (the split panels) and onnx (the RTMW weights on disk)")
+        try:
+            backend = _RT.rtmw_backend(_p(onnx), run_tool=lambda n, a: RUN.run(n, a, timeout=3600))
+        except _RT.DetectorUnavailable as exc:
+            raise ValueError(str(exc)) from None
+        res = {}
+        for v, f in frames.items():
+            fp = _p(f) if isinstance(f, str) else None
+            paths = sorted(os.path.join(fp, x) for x in os.listdir(fp) if x.lower().endswith(".png")) if fp else [_p(x) for x in f]
+            res[v] = _RT.detect(paths, os.path.join(os.path.dirname(_p(out)), f"{v}.json"), backend)
+        return {"stage": "detect", "panels": res, "next": "stage fit with front/side = the two JSON files"}
+    if stage == "refine":
+        from .features import anim_abs as _ABS
+        return _ABS.refine(armature, mesh, {k: _p(v) for k, v in (masks or {}).items()}, _p(cameras), _p(out), bones, step_deg, rounds, key)
     if stage != "fit":
-        raise ValueError("stage is fit | detect")
+        raise ValueError("stage is fit | detect | refine")
     grid = None
     if grid_frames:
         load = _gray_loader()

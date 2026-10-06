@@ -76,3 +76,9 @@ def test_image_to_3d_takes_a_sheet_paired_and_the_multi_view_slots():
     sp = LT.BY_NAME["lampway_image_to_3d"].spec().parameters
     assert {"detect_views", "views", "paired", "plate_check"} <= set(sp["properties"]) and "images" not in sp["required"]
     assert "studio:meshy" in LT.BY_NAME["lampway_image_to_3d"].description
+
+
+def test_anim_multiview_fit_offers_detect_and_refine():
+    d = LT.BY_NAME["lampway_anim_multiview_fit"]
+    props = d.spec().parameters["properties"]
+    assert {"frames", "onnx", "armature", "mesh", "masks", "bones"} <= set(props) and "refine" in d.description and "not wired" not in d.description

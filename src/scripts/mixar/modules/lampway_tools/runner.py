@@ -52,6 +52,7 @@ TOOLS = dict([
     _t("delete_caps", "blender", "partseg/delete_caps.py", "delete a cap that closes an opening by ray-casting its footprint"),
     _t("bake_maps", "blender", "bake/bake_maps.py", "headless Cycles bake of high-poly donors onto a UV-mapped target: normal, colour-only albedo, AO"),
     _t("material_bake", "blender", "bake/material_bake.py", "headless Cycles bake of a material's channels (base colour, roughness, metallic, normal, AO, emission) with an ORM pack"),
+    _t("rtmw_detect", "science", "anim/rtmw_detect.py", "RTMW whole-body 2D keypoints per frame (rtmlib + onnxruntime, weights from disk)"),
     _t("robust_weight_transfer", "science", "rig/robust_weight_transfer.py", "biharmonic inpainting of unmatched vertices' skin weights (robust skin-weight transfer)"),
     _t("render_owner", "blender", "partseg/render_owner.py", "render a mesh coloured by part owner, four views plus legend"),
     _t("mesh_to_npz", "blender", "proportion/mesh_to_npz.py", "export a mesh or the MetaHuman body to npz"),
