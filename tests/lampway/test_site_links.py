@@ -31,6 +31,9 @@ HOSTS = {
     "huggingface.co": "model downloads", "opencode.ai": "documentation of a connected app", "www.blender.org": "provenance", "developer.blender.org": "provenance",
     "spdx.dev": "licence tooling", "www.contributor-covenant.org": "code of conduct source", "json-schema.org": "schema namespace", "www.w3.org": "xml namespace",
     "schemas.microsoft.com": "xml namespace", "developer.nvidia.com": "build dependency", "www.apple.com": "signing certificate authority",
+    "ambientcg.com": "CC0 materials (asset_seed_cc0, the cc0:ambientcg egress route)", "docs.ambientcg.com": "the ambientCG licence page, recorded per asset",
+    "api.polyhaven.com": "CC0 assets (asset_seed_cc0, the cc0:polyhaven egress route)", "polyhaven.com": "Poly Haven asset pages and its licence page",
+    "creativecommons.org": "the CC0 1.0 deed, recorded on the licence row",
     "example.com": "documentation placeholder", "example.invalid": "placeholder", "api.example.test": "test placeholder",
 }
 SCAN = ("src/scripts/mixar", "src/scripts/startup", "server/lampway_server", "scripts", "README.md", "SECURITY.md", "SUPPORT.md", "CODE_OF_CONDUCT.md",
