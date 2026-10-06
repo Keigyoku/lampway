@@ -206,3 +206,26 @@ print("RESULT", json.dumps({"out": out, "seen": seen}))
     assert res["out"]["ok"] is True
     assert res["seen"]["cwd"] == root
     assert res["seen"]["args"] == [f"{root}/demo/mesh.fbx", f"--out={root}/demo/x.npy", f"name={root}/demo/p.npz:12", "bare.png"]
+
+
+def test_a_batch_tool_whose_worker_failed_is_not_ok(tmp_path):
+    """Audit F6: lampway_place_piece and its batch siblings returned ok: true with rc: 1 and a traceback. A non-zero rc or a
+    timeout is ok: false, its error the worker's last error line, with a next step; rc, output and log stay in the reply."""
+    r = run(tmp_path, '''
+from mixar.modules.lampway_tools import runner as RUN
+class _Fail:
+    rc, log, timed_out = 1, "/root/logs/place_piece.log", False
+    stdout = "loading body\\nTraceback (most recent call last):\\n  File \\"place_piece.py\\", line 9\\nValueError: the piece has no chest landmarks\\n"
+class _Late:
+    rc, stdout, log, timed_out = -1, "error: place_piece timed out after 5 s and was killed", None, True
+RUN.run = lambda name, args, s, **kw: _Fail()
+fail = api.run_tool("render_owner", [])
+RUN.run = lambda name, args, s, **kw: _Late()
+late = api.run_tool("render_owner", [])
+print("RESULT", json.dumps({"fail": fail, "late": late}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    fail, late = r.results[0]["fail"], r.results[0]["late"]
+    assert fail["ok"] is False and fail["rc"] == 1 and fail["error"] == "ValueError: the piece has no chest landmarks", fail
+    assert fail["help"] and "Traceback" in fail["output"]
+    assert late["ok"] is False and late["timed_out"] is True and "timed out" in late["error"] and late["help"]

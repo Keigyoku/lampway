@@ -401,7 +401,23 @@ def run_tool(name, args=(), timeout=3600):
     jailed = S.jail_args(args, s.project_root)
     # The tool's working directory is the root, so a bare file name it writes lands inside it too.
     res = RUN.run(name, jailed, s, timeout=float(timeout), log_dir=s.project_root / "logs", cwd=str(s.project_root))
-    return {"rc": res.rc, "output": res.stdout, "log": res.log, "timed_out": res.timed_out, "ok_run": res.rc == 0}
+    out = {"rc": res.rc, "output": res.stdout, "log": res.log, "timed_out": res.timed_out, "ok_run": res.rc == 0}
+    if res.rc != 0 or res.timed_out:                  # audit F6: a failed worker is a failed call, never ok: true with rc: 1
+        out.update(ok=False, error=_last_error_line(res.stdout) or f"{name} exited with code {res.rc}",
+                   help=([f"The full log: {res.log}"] if res.log else []) + [
+                       f"{name} timed out: pass a larger timeout, or a smaller input" if res.timed_out
+                       else "Fix the input the error names, then call the tool again with the same arguments"])
+    return out
+
+
+def _last_error_line(text):
+    """The worker's last error line (``ValueError: ...``, ``error: ...``), else its last non-empty line."""
+    lines = [ln.strip() for ln in (text or "").splitlines() if ln.strip()]
+    for ln in reversed(lines):
+        head = ln.split(":", 1)[0]
+        if ":" in ln and (head.lower() == "error" or head.endswith(("Error", "Exception", "Exit"))):
+            return ln
+    return lines[-1] if lines else ""
 
 
 # ---- mesh-paint texturing (one entry for the panel button and the agent tool)
