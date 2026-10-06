@@ -91,3 +91,17 @@ source file in its `provenance`. Nothing is copied from the upstream arena-viewe
 `src/scripts/mixar/modules/lampway_tools/pipeline/clip_features.py` and its test `tests/lampway_tools/test_wave4b_clip_features.py` are translations of `forge/stage5_rig/clip_features.py` and
 `forge/tests/test_clip_features.py` from the img2threejs skill vendored in the Mr. Mak Workspace clone (Apache-2.0; the licence text is `LICENSES/Apache-2.0.txt`). Each file carries its upstream notice and a
 statement that it was modified. The default thresholds come from one subject on one rig (11 clips) and are reported as such.
+
+## Third-party models (Asset Vault)
+
+The Asset Vault can run two open-weights models locally, on the CPU, through ONNX Runtime. No weights are committed to this repository: the user fetches them with one click (public files; nothing
+of theirs is sent) and each fetch writes a `PROVENANCE.json` (URL, sha256, byte count, and whether the hash was checked against a pinned value or pinned on first fetch). Until the weights are fetched
+and `onnxruntime` is installed, the Vault uses its deterministic descriptors instead.
+
+| model id | role | licence | source |
+|---|---|---|---|
+| `clip-vit-b-32` | image embeddings (the CLIP ViT-B/32 image tower) | MIT | <https://github.com/openai/CLIP> |
+| `bge-small-en-v1.5` | text embeddings (CLS pooling) | MIT | <https://huggingface.co/BAAI/bge-small-en-v1.5> |
+
+[UNVERIFIED]: the licences are stated from the model cards as remembered, the ONNX export locations in `server/lampway_server/library/localmodels.py` were not downloaded, and no checksum is pinned yet.
+Re-check the licence text of the exact files fetched before redistributing anything.

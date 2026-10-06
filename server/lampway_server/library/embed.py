@@ -18,6 +18,7 @@ import numpy as np
 from .. import egress as EG
 from ..agent.providers.openrouter import BASE_URL, REFERER, TITLE, redact
 from . import ingest as I
+from . import localmodels as LM
 from . import spaces as SP
 from .store import AssetLibrary, LibraryError
 
@@ -64,8 +65,10 @@ class OpenRouterEmbed:
 
 
 class Embed:
-    def __init__(self, lib: AssetLibrary, openrouter: Optional[OpenRouterEmbed] = None):
+    def __init__(self, lib: AssetLibrary, openrouter: Optional[OpenRouterEmbed] = None, local: Optional[dict] = None, models_root=None):
         self.lib, self.or_ = lib, openrouter
+        self._local = dict(local or {})
+        self.models_root = Path(models_root) if models_root else lib.root / "models"
         self.plans = lib.root / "embed_plans"
 
     # -- targets -------------------------------------------------------------------------------------------------------
@@ -86,14 +89,14 @@ class Embed:
         return "public" if row["license_id"] in PUBLIC_LICENSES else "private"
 
     def _understands(self, space: str, row) -> bool:
-        if space.startswith("text_api"):
+        if space.startswith("text_api") or space == "text_local":
             return True
         p = self._main(row["id"])
         if not p:
             return False
         head = p.read_bytes()[:16] if p.stat().st_size else b""
         c = I.classify(head, p.name)
-        if space in ("image_hist", "image_dhash"):
+        if space in ("image_hist", "image_dhash", "image_local"):
             return row["kind"] in IMAGE_KINDS and bool(c) and c["kind"] in ("image", "hdri") and c["container"] in ("png", "jpeg", "webp", "gif")
         return row["kind"] == "mesh" and bool(c) and c["container"] == "glb"
 
@@ -101,12 +104,20 @@ class Embed:
         r = self.lib._reader().execute("SELECT version_id FROM embedding WHERE space=? AND sub_key=''", (space,)).fetchall()
         return {x[0] for x in r}
 
+    def _embedder(self, base: str):
+        if base not in self._local:
+            self._local[base] = LM.load(self.models_root, LM.BASES[base])
+        return self._local[base]
+
     # -- plan / run ----------------------------------------------------------------------------------------------------
     def plan(self, space: str, asset_ids=None, missing_only: bool = True, model: Optional[str] = None) -> dict:
         base = space.split(":")[0]
-        if base not in DETERMINISTIC and base != "text_api":
-            raise LibraryError(f"unknown space {space!r}; spaces: {list(DETERMINISTIC) + ['text_api']}")
+        if base not in DETERMINISTIC and base != "text_api" and base not in LM.BASES:
+            raise LibraryError(f"unknown space {space!r}; spaces: {list(DETERMINISTIC) + list(LM.BASES) + ['text_api']}")
         name = space
+        if base in LM.BASES:
+            self._embedder(base)                      # refuses with needs_weights / needs_runtime before anything is planned
+            name = LM.MANIFEST[LM.BASES[base]]["space"]
         if base == "text_api":
             if not model:
                 raise LibraryError("text_api needs a model")
@@ -160,6 +171,19 @@ class Embed:
                 out["actual_usd"] += res["cost_usd"] or 0.0
                 for t, v in zip(chunk, res["vectors"]):
                     self.lib.put_embedding(self.lib.version_of(t), plan["space"], v, model=plan["model"])
+                    out["done"] += 1
+            return out
+        if plan["base"] in LM.BASES:
+            emb = self._embedder(plan["base"])
+            for i in range(0, len(targets), 32):
+                chunk = targets[i:i + 32]
+                try:
+                    vecs = emb.embed_images([self._main(t) for t in chunk]) if plan["base"] == "image_local" else emb.embed_texts([self._text(t) for t in chunk])
+                except Exception as e:  # noqa: BLE001
+                    out["failed"] += [{"id": t, "why": f"{type(e).__name__}: {str(e)[:120]}"} for t in chunk]
+                    continue
+                for t, v in zip(chunk, vecs):
+                    self.lib.put_embedding(self.lib.version_of(t), plan["space"], v, model=emb.model_id)
                     out["done"] += 1
             return out
         for t in targets:

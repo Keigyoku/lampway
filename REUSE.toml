@@ -188,6 +188,9 @@ SPDX-License-Identifier = "LicenseRef-ITF-FFL"
 path = [
   "src/scripts/mixar/modules/lampway_tools/scripts/texlib/prompts/*.txt",
   "server/tests/fixtures/*.json",
+  "server/lampway_server/decisions_goldens.json",
+  "server/lampway_server/library/migrations/*.sql",
+  "server/lampway_server/library/rules/*.json",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Keigyoku"
