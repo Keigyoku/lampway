@@ -443,3 +443,50 @@ def test_cancel_drops_a_queued_job(tmp_path):
     assert rr.cancel(aid, ["thumb"]) == {"cancelled": ["thumb"]}
     rr.drain()
     assert rr.status(aid)["products"]["thumb"]["state"] == "cancelled" and not files_of(lib, aid, "thumb")
+
+
+# the tool surface (asset_mcp's lampway_asset_render calls this) and the background worker ----------------------------------------
+def test_handle_speaks_the_contracts_shape_and_refusals_carry_help(tmp_path):
+    lib = make_lib(tmp_path)
+    aid, _ = mesh_asset(tmp_path, lib)
+    rr = renderer(lib)
+    out = rr.handle({"action": "enqueue", "asset_id": aid, "products": ["thumb"]})
+    assert out["ok"] is True and out["queued"] == 1
+    rr.drain()
+    st = rr.handle({"action": "status", "asset_id": aid})
+    assert st["ok"] is True and st["products"]["thumb"]["state"] == "done" and st["products"]["thumb"]["engine"] == "software"
+    assert st["products"]["thumb"]["path"].endswith("thumb_256.jpg") and st["products"]["thumb"]["ms"] >= 0
+    bad = rr.handle({"action": "enqueue", "asset_id": aid, "products": ["thumb"], "size": 4096})
+    assert bad["ok"] is False and "size max 1024" in bad["error"] and bad["help"]
+    assert rr.handle({"action": "explode", "asset_id": aid})["ok"] is False
+    assert rr.handle({"action": "status", "asset_id": "nope"})["ok"] is False
+
+
+def test_backfill_queues_a_thumbnail_for_every_asset_without_one(tmp_path):
+    lib = make_lib(tmp_path)
+    a, _ = mesh_asset(tmp_path, lib)
+    png = tmp_path / "g.png"
+    gradient_png(png)
+    b = put(lib, "image", "grad", png)
+    lib.put({"kind": "receipt", "name": "r", "source": {"kind": "t", "key": "r"}, "files": [{"role": "main", "bytes": b"{}", "storage": "cas"}]})
+    rr = renderer(lib)
+    assert rr.backfill() == 2                                                # the receipt has no thumbnail product
+    rr.drain()
+    assert files_of(lib, a, "thumb") and files_of(lib, b, "thumb")
+    assert rr.backfill() == 0
+
+
+def test_the_worker_thread_drains_and_backfills_until_stopped(tmp_path):
+    import threading
+    import time as _t
+    lib = make_lib(tmp_path)
+    a, _ = mesh_asset(tmp_path, lib)
+    rr = renderer(lib)
+    stop = threading.Event()
+    t = rr.start(stop, idle_s=0.05)
+    deadline = _t.monotonic() + 20
+    while not files_of(lib, a, "thumb") and _t.monotonic() < deadline:
+        _t.sleep(0.05)
+    stop.set()
+    t.join(5)
+    assert files_of(lib, a, "thumb") and not t.is_alive()

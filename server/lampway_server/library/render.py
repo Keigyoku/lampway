@@ -14,6 +14,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import threading
 import time
 from pathlib import Path
 from typing import Callable, Optional
@@ -39,6 +40,7 @@ BACKOFF = (30, 120, 600)
 NICE = 15
 WORKER = Path(__file__).with_name("render_worker.py")
 BLENDER_NAMES = {"blender", "mixar"}
+BACKFILL_KINDS = ("mesh", "image", "video", "hdri", "map")
 
 
 def recipe_hash(product: str, size: Optional[int] = None, frames: Optional[int] = None) -> str:
@@ -105,6 +107,7 @@ class Renderer:
         self.live_window_cpu = live_window_cpu or LiveWindowMeter()
         self.now = now
         self.jobs: dict = {}                                       # (asset_id, product key) -> job
+        self._lock = threading.RLock()
 
     # -- interface --------------------------------------------------------------------------------------------------------------
     def enqueue(self, asset_id: str, products, size: Optional[int] = None, frames: Optional[int] = None, engine: str = "auto", priority: str = "normal", force: bool = False) -> dict:
@@ -119,31 +122,88 @@ class Renderer:
             if have and not force:
                 cached.append(pkey)
                 continue
-            self.jobs[(asset_id, pkey)] = {"asset_id": asset_id, "version_id": vid, "product": prod, "key": pkey, "size": int(size or DEFAULT_SIZE[prod]),
-                                           "frames": int(frames or DEFAULT_FRAMES), "engine": engine, "hash": h, "priority": priority, "state": "queued",
-                                           "attempts": 0, "backoff": -1, "next_at": None}
+            with self._lock:
+                self.jobs[(asset_id, pkey)] = {"asset_id": asset_id, "version_id": vid, "product": prod, "key": pkey, "size": int(size or DEFAULT_SIZE[prod]),
+                                               "frames": int(frames or DEFAULT_FRAMES), "engine": engine, "hash": h, "priority": priority, "state": "queued",
+                                               "attempts": 0, "backoff": -1, "next_at": None}
             queued.append(pkey)
         return {"ok": True, "queued": len(queued), "jobs": queued, "cached": cached}
+
+    def handle(self, req: dict) -> dict:
+        """The tool surface (``lampway_asset_render``): ``{action: enqueue|status|cancel|regenerate, asset_id, products, size, frames, engine, priority}`` ->
+        ``{ok, ...}``; a refusal is ``{ok: false, error, help}``, never an exception."""
+        action, aid = req.get("action") or "status", req.get("asset_id")
+        kw = {k: req[k] for k in ("size", "frames", "engine", "priority") if req.get(k) is not None}
+        try:
+            if not aid:
+                raise LibraryError("asset_id is required")
+            if action in ("enqueue", "regenerate"):
+                return {"ok": True, **getattr(self, action)(aid, list(req.get("products") or ["thumb"]), **kw)}
+            if action == "cancel":
+                return {"ok": True, **self.cancel(aid, list(req.get("products") or PRODUCTS))}
+            if action == "status":
+                self.lib.get(aid)
+                return {"ok": True, **self.status(aid)}
+            raise LibraryError(f"unknown action {action!r}: enqueue|status|cancel|regenerate")
+        except LibraryError as e:
+            return {"ok": False, "error": str(e), "help": [f"products: {list(PRODUCTS)}; size 128..1024; frames 8..72; engine auto|software|workbench|eevee",
+                                                           "status {asset_id} shows what is queued, deferred, done or failed"]}
+
+    def backfill(self, limit: int = 50) -> int:
+        """Queue a low-priority thumbnail for every active asset that has none and no job yet: every asset in the grid gets one without anyone asking."""
+        kinds = ",".join("?" * len(BACKFILL_KINDS))
+        rows = self.lib._reader().execute(
+            f"SELECT a.id FROM asset a JOIN version v ON v.asset_id=a.id AND v.n=a.current_version WHERE a.status='active' AND a.kind IN ({kinds}) "
+            "AND NOT EXISTS(SELECT 1 FROM version_file f WHERE f.version_id=v.id AND f.role='thumb') ORDER BY a.created_at, a.id", BACKFILL_KINDS).fetchall()
+        n = 0
+        with self._lock:
+            for (aid,) in rows:
+                if n >= limit:
+                    break
+                if (aid, "thumb") in self.jobs:
+                    continue
+                self.enqueue(aid, ["thumb"], priority="low")
+                n += 1
+        return n
+
+    def start(self, stop: threading.Event, idle_s: float = 2.0) -> threading.Thread:
+        """The single worker thread: drain what is due, else backfill, else wait ``idle_s`` (until ``stop`` is set)."""
+        def loop():
+            while not stop.is_set():
+                try:
+                    ran = self.drain() or self.backfill()
+                except Exception:  # noqa: BLE001 - one bad asset never stops the previews of the rest
+                    ran = 0
+                if not ran:
+                    stop.wait(idle_s)
+        t = threading.Thread(target=loop, name="vault-render", daemon=True)
+        t.start()
+        return t
 
     def regenerate(self, asset_id: str, products, **kw) -> dict:
         return self.enqueue(asset_id, products, force=True, **kw)
 
     def cancel(self, asset_id: str, products) -> dict:
         done = []
-        for (aid, pkey), job in self.jobs.items():
-            if aid == asset_id and (pkey in products or job["product"] in products) and job["state"] in ("queued", "deferred"):
-                job["state"] = "cancelled"
-                done.append(pkey)
+        with self._lock:
+            for (aid, pkey), job in self.jobs.items():
+                if aid == asset_id and (pkey in products or job["product"] in products) and job["state"] in ("queued", "deferred"):
+                    job["state"] = "cancelled"
+                    done.append(pkey)
         return {"cancelled": done}
 
     def status(self, asset_id: str) -> dict:
         out = {}
-        for (aid, pkey), job in self.jobs.items():
+        with self._lock:
+            jobs = list(self.jobs.items())
+        for (aid, pkey), job in jobs:
             if aid == asset_id:
                 out[pkey] = {k: job[k] for k in ("state", "engine") if k in job}
                 for k in ("error", "ms", "paths"):
                     if job.get(k) is not None:
                         out[pkey][k] = job[k]
+                if job.get("paths"):
+                    out[pkey]["path"] = job["paths"][0]
                 if job["state"] == "deferred":
                     out[pkey]["retry_in_s"] = BACKOFF[job["backoff"]]
         return {"asset_id": asset_id, "products": out}
@@ -151,8 +211,12 @@ class Renderer:
     def drain(self) -> int:
         """Run every job that is due, visible-in-UI (``priority: high``) first. Returns how many ran."""
         ran = 0
-        due = [j for j in self.jobs.values() if j["state"] == "queued" or (j["state"] == "deferred" and self.now() >= j["next_at"])]
-        due.sort(key=lambda j: (j["priority"] != "high", j["product"] == "contact_sheet"))     # a contact sheet reads the turntable's frames: last
+        with self._lock:
+            due = [j for j in self.jobs.values() if j["state"] == "queued" or (j["state"] == "deferred" and self.now() >= j["next_at"])]
+            for j in due:
+                j["state"] = "running"
+        rank = {"high": 0, "normal": 1, "low": 2}
+        due.sort(key=lambda j: (rank.get(j["priority"], 1), j["product"] == "contact_sheet"))     # visible first; a contact sheet reads the turntable's frames: last
         for job in due:
             self._run(job)
             ran += 1

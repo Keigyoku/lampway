@@ -5,6 +5,7 @@ import contextlib
 import json
 import logging
 import os
+import threading
 from html import escape
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse
@@ -313,6 +314,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     prompt_service = prompts if prompts is not None else PromptService.from_env(settings.state_dir)
     library = _open_library(settings.state_dir)
     from .library import hooks as _vault_hooks
+    from .library.render import Renderer as _VaultRenderer
+    renderer = _VaultRenderer(library, blender=os.environ.get("LAMPWAY_BIN") or None) if library is not None else None     # previews: never the live window
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
                     video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts,
@@ -1015,6 +1018,10 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         except Exception:  # noqa: BLE001 - a recovery problem must not stop the server; the receipts stay on disk
             logging.getLogger("lampway.jobs").warning("job recovery failed", exc_info=True)
 
+        render_stop = threading.Event()
+        if renderer is not None:
+            renderer.start(render_stop)                                # one worker thread: due previews, then thumbnails nobody asked for yet
+
         async def tick():
             while True:
                 await asyncio.sleep(60)
@@ -1027,6 +1034,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             yield
         finally:
             task.cancel()
+            render_stop.set()
 
     app = Starlette(routes=routes, lifespan=lifespan)
     app.add_middleware(HostGuard, bind_host=settings.host)
@@ -1043,4 +1051,5 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.higgsfield_auth = hf_auth
     app.state.jobs = jobs
     app.state.library = library
+    app.state.renderer = renderer
     return app

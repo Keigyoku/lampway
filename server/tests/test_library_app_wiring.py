@@ -61,3 +61,19 @@ def test_a_torn_spool_line_never_stops_the_server_starting(settings):
     (settings.state_dir / "library-spool.jsonl").write_text('{"payload": {"outp')                # a crash mid-write
     app = create_app(settings, provider=ScriptedProvider(), job_backends={})
     assert app.state.library is not None
+
+
+def test_a_running_server_thumbnails_what_lands_in_the_vault(settings, tmp_path):
+    import time
+    from PIL import Image
+    from starlette.testclient import TestClient
+    app = create_app(settings, provider=ScriptedProvider(), job_backends={})
+    assert app.state.renderer.lib is app.state.library
+    p = tmp_path / "plate.png"
+    Image.new("RGB", (40, 30), (200, 120, 40)).save(p)
+    aid = app.state.library.put({"kind": "image", "name": "plate", "source": {"kind": "t", "key": "p"}, "files": [{"role": "main", "path": str(p), "storage": "external"}]})["id"]
+    with TestClient(app, base_url="http://127.0.0.1:8787"):
+        deadline = time.monotonic() + 20
+        while time.monotonic() < deadline and not any(f["role"] == "thumb" for f in app.state.library.get(aid)["files"]):
+            time.sleep(0.1)
+    assert any(f["role"] == "thumb" for f in app.state.library.get(aid)["files"])
