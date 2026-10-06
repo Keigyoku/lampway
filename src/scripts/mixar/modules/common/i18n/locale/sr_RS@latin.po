@@ -6493,6 +6493,12 @@ msgstr ""
 msgid "UE Look is on"
 msgstr ""
 
+msgid "R"
+msgstr ""
+
+msgid "centre"
+msgstr ""
+
 msgid "Studios"
 msgstr ""
 
@@ -15549,9 +15555,6 @@ msgstr "Matematika"
 
 msgid "Alpha"
 msgstr "Alfa"
-
-msgid "R"
-msgstr ""
 
 msgid "G"
 msgstr ""
