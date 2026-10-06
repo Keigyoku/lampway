@@ -128,7 +128,7 @@ def read_roots() -> tuple:
 # (sign-ins, the BYOK key, the JWT secret, refresh tokens, the route switches) and the client's file keyring inside it. A DENY list is checked BEFORE the
 # roots, for reads and writes, on the resolved path, so '..' and symlinks cannot get round it.
 SECRET_NAMES = frozenset({"egress.json", "local_cli.json", "jwt_secret", "refresh_tokens.json", "agent_settings.json", "keyring.json",
-                          "provider_prefs.json", "connections.json"})
+                          "provider_prefs.json", "connections.json", "choices.json"})
 SECRET_SUFFIXES = ("_auth.json",)
 
 
@@ -140,7 +140,8 @@ def _server_state_dir() -> str:
 
 
 def denied_roots() -> tuple:
-    roots = [_server_state_dir()]
+    state_base = os.environ.get("XDG_STATE_HOME") or os.path.join(os.path.expanduser("~"), ".local", "state")
+    roots = [_server_state_dir(), os.path.join(state_base, "lampway-secrets")]        # Connections' default file store, named or not
     for home in _lampway_home()[:1]:
         roots += [os.path.join(home, "server-state"), os.path.join(home, "secrets"), os.path.join(home, "keyring.json")]
     for var in ("LAMPWAY_KEYRING_FILE", "LAMPWAY_SECRETS_DIR"):

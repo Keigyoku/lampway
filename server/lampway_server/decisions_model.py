@@ -16,7 +16,7 @@ import httpx
 from . import egress as E
 from .agent.providers.openrouter import BASE_URL, REFERER, TITLE, redact
 
-CANDIDATES = ("inception/mercury-decide:free", "cloudflare/clef", "liquid/d1", "perplexity/pplx-decider-v1-27b", "upstage/solar-decide")
+CANDIDATES = ("inception/mercury-decide:free", "cloudflare/clef", "liquid/d1", "perplexity/pplx-decider-v1-27b", "upstage/solar-decide")    # agent.decide's shipped chain (choices/registry.py)
 PRIVATE_ROUTING = {"zdr": True, "data_collection": "deny"}
 GOLDENS = Path(__file__).with_name("decisions_goldens.json")
 
@@ -46,10 +46,12 @@ class Decider:
         with E.context(route="openrouter", kind="request", content_class=content_class), self._client() as c:
             live = _ids(c.get(f"{self._base}/models").json(), "id")
             zdr = _ids(c.get(f"{self._base}/endpoints/zdr").json(), "model_id", "id", "model") if content_class == "private" else None
-        out = [m for m in CANDIDATES if m in live]
-        if content_class == "private":
-            out = [m for m in out if m in zdr and not m.endswith(":free")]
-        return out
+        from . import choices as CH
+        from .choices.snapshot import World
+        w = World(connections={"openrouter": "connected"}, routes={"openrouter": True}, catalogue={"openrouter": frozenset(live)},
+                  zdr=frozenset(zdr or ()), enforce_private=True)            # the judge already read the catalogue and the ZDR list through egress
+        options = CH.passing("agent.decide", CH.Job(content_class=content_class), world_=w)     # the user's chain; the ONE private rule (HC2, HC21)
+        return [o.split(":", 1)[1] for o in options if o.startswith("openrouter:")]
 
     def decide(self, question: str, options: list, content_class: str = "private", evidence: str = "", model: Optional[str] = None) -> dict:
         models = self.eligible(content_class) if model is None else [model]

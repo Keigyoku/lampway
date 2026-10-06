@@ -373,7 +373,8 @@ class VideoClient:
             body["input_references"] = refs
         elif refs:
             body["input_references"] = refs
-        with self._http() as client:
+        from . import egress as EG
+        with EG.context(content_class="private", kind="video", observe_private=True), self._http() as client:     # HC24: declared, observed (CH1)
             if on_sending:
                 on_sending()                                         # the write-ahead receipt goes pending HERE: after every refusal above, before the first byte is sent
             job = self._submit(client, body)

@@ -41,6 +41,15 @@ def _args_for(d: Def, arguments: dict) -> list:
     return out
 
 
+def plate_template() -> str:
+    """The Plates purpose's template param (Choices), else today's ``plate-4k-crisper`` (choices_migration.md 5.13)."""
+    from .. import choices as CH
+    try:
+        return str(CH.resolve_params("image.plates").get("template") or "plate-4k-crisper")
+    except Exception:  # noqa: BLE001 - an unreadable store keeps today's template
+        return "plate-4k-crisper"
+
+
 def build_script(d: Def, arguments: dict) -> str:
     arguments = arguments if isinstance(arguments, dict) else {}
     missing = [p.name for p in d.params if p.required and arguments.get(p.name) in (None, "")]
@@ -48,6 +57,8 @@ def build_script(d: Def, arguments: dict) -> str:
         raise BadArguments(f"{d.name} needs {', '.join(missing)}")
     known = {p.name for p in d.params}
     given = {k: v for k, v in arguments.items() if k in known}
+    if d.name == "lampway_plate_pick" and given.get("stage") == "prompt" and not given.get("template"):
+        given["template"] = plate_template()                      # HC16: the Plates choice's template, not a literal
     if d.batch:
         fn, payload = "run_tool", {"name": d.batch, "args": _args_for(d, given)}
     else:
@@ -235,7 +246,8 @@ DEFS = [
         [P("stage", required=True, desc="prompt | score | cut | run | status"), P("piece", required=True), P("view", desc="Front | Back | Left | Right"), P("paired", "boolean", "Front and Back only"),
          P("v3_dir", desc="Folder with <View>.png (RGBA) of the approved plates"), P("variants_dir", desc="Folder with 1.jpg..4.jpg for the view"), P("design_words", desc="prompt: the design inventory"),
          P("palette", desc="prompt: the colours"), P("pick", "integer", "1-4: the user's choice"), P("bg_threshold", "number", "0.01..0.2, default 0.06"),
-         P("opening_iters", "integer", "default 3"), P("min_px", "integer", "Refuse variants smaller than this, default 1024")], api="plate_pick"),
+         P("opening_iters", "integer", "default 3"), P("min_px", "integer", "Refuse variants smaller than this, default 1024"),
+         P("template", desc="prompt: the library template (default: the Plates choice's template, plate-4k-crisper)")], api="plate_pick"),
     Def("lampway_uv_score", "Score UV layouts on measurements, not by eye (the shelf's uv_score): utilization (rasterised at res 256..4096), overlap, UV islands, stretch p90/p10, the fraction "
         "of area off by 2x, flipped (mirrored) faces, seam length and a composite score; each row has gates {pass, failed}. objects: mesh objects in the scene; files: .fbx/.glb Smart UV "
         "attempts inside the project root (measured in a headless Blender, the live scene untouched). `best` is advice: the user picks (tripo.uv.pick, then save).",

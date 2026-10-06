@@ -333,10 +333,20 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     from .library import hooks as _vault_hooks
     from .library.render import Renderer as _VaultRenderer
     renderer = _VaultRenderer(library, blender=os.environ.get("LAMPWAY_BIN") or None) if library is not None else None     # previews: never the live window
+    def image_chooser(service, model, payload, origin):
+        """The image job's purpose (the Client's ``params.purpose``, else AI Render, which follows Plates), on what its backend runs
+        (OpenRouter), the Client's model a job override (HC6, HC10)."""
+        from . import choices as CHO
+        from .choices import registry as CREG
+        purpose = str(((payload or {}).get("params") or {}).get("purpose") or "")
+        pid = f"image.{purpose}" if f"image.{purpose}" in CREG.PURPOSES else "image.ai_render"
+        override = None if model in ("", "default", None) else (model if ":" in model else f"openrouter:{model}")
+        return CHO.resolve(pid, CHO.Job(needs={"runs_on": ["openrouter"]}, override=override, origin="user" if origin == "user" else "agent"))
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
                     video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services if job_services is not None else _local_job_services(settings),
-                    policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts, provenance=_vault_hooks.job_hook(library, vault.spool))
+                    policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts, provenance=_vault_hooks.job_hook(library, vault.spool),
+                    chooser=image_chooser if job_backends is None and "image_gen" in default_job_backends(settings) else None)
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
@@ -401,6 +411,18 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         data, media_type = found
         return Response(data, media_type=media_type, headers={"Content-Length": str(len(data)), "Cache-Control": "private, max-age=3600"})
 
+    def _material_provider():
+        """HC3: agent.material_script's choice; ``follow:agent.main`` (the shipped default) is the running agent's own provider."""
+        from . import choices as CHO
+        from .choices.bridge import settings_for_option
+        try:
+            r = CHO.resolve("agent.material_script", CHO.Job(content_class="public"))
+        except CHO.NoChoice:
+            return agent.provider
+        if r.followed == "agent.main" or r.option.startswith("follow:"):
+            return agent.provider
+        return make_provider(settings_for_option(settings, r.option, r.params), chatgpt_auth=chatgpt)
+
     async def matgen_route(request: Request):
         """A procedural material from a prompt, by the agent's own model (matgen.py)."""
         if not _bearer_ok(request):
@@ -413,7 +435,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         if not prompt:
             return JSONResponse({"detail": "prompt is required"}, status_code=422)
         try:
-            material = await matgen.generate(agent.provider, prompt, str(body.get("pipeline") or "fast"))
+            material = await matgen.generate(_material_provider(), prompt, str(body.get("pipeline") or "fast"))
         except matgen.BadScript as exc:
             return JSONResponse({"detail": f"no usable script: {exc}"}, status_code=502)
         except Exception as exc:  # noqa: BLE001 - the provider failed; the reason goes to the person, never a token
@@ -1159,6 +1181,35 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     routes.append(Route(MOA.HYPER3D.callback_path, h3d_callback, methods=["GET"]))
     from .connections.routes import connection_routes
     routes += connection_routes(lambda: conn_hub, _bearer_ok)
+    # ---- Choices (choices/): what serves each purpose, its fallbacks and why; the user's writes; the agent reads and proposes
+    from . import choices as CHO
+    from .choices.routes import choices_routes
+    CHO.set_active(CHO.FileStore(settings.state_dir), settings.state_dir)
+    try:
+        CHO.propose_dead_preferences(store._data.get("preferences") or {})      # HC22: proposed once, never applied silently
+    except Exception:  # noqa: BLE001 - a migration note must never stop the server
+        logging.getLogger("lampway.choices").warning("the per-role preferences could not be proposed", exc_info=True)
+    def choice_changed(pid):
+        """A saved choice takes effect at once where the settings decide (the Providers dialog's PUT did the same): the agent's
+        provider is rebuilt BEFORE it replaces the old one, so a refusal leaves everything as it was."""
+        from .choices.bridge import apply_choices
+        if pid not in ("agent.main", "agent.worker") and not pid.startswith(("image.", "video.")):
+            return
+        trial = provider_prefs.trial(settings, {})
+        trial.sources = dict(settings.sources)
+        apply_choices(trial)
+        if pid == "agent.main":
+            try:
+                new_main = make_provider(trial, chatgpt_auth=chatgpt)
+            except (ValueError, RuntimeError, OSError) as exc:
+                logging.getLogger("lampway.choices").warning("the main agent's choice could not be built: %s", exc)
+                return
+            agent.provider = new_main
+        for k in ("provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model", "swarm_provider",
+                  "claude_swarm_model", "chatgpt_swarm_model", "openrouter_swarm_model", "image_backend", "image_purposes", "video_purposes"):
+            setattr(settings, k, getattr(trial, k))
+        settings.sources.update({k: v for k, v in trial.sources.items() if v == "choices"})
+    routes += choices_routes(_bearer_ok, choice_changed)
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager

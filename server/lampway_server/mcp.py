@@ -12,6 +12,7 @@ import json
 import uuid
 from collections import OrderedDict
 
+from .agent import choices_tools as CHT
 from .agent import connections_tools as CNT
 from .agent import lampway_tools as lt
 from .agent import vault_tools as lib
@@ -37,7 +38,7 @@ def _instructions() -> str:
 
 
 def offered_tools() -> list:
-    return [t for t in TOOLS if t.name in (RUN_BLENDER_PYTHON, SCENE_SUMMARY) or t.name in lt.BY_NAME or t.name in lib.NAMES or t.name in CNT.NAMES] + list(SERVER_TOOLS)
+    return [t for t in TOOLS if t.name in (RUN_BLENDER_PYTHON, SCENE_SUMMARY) or t.name in lt.BY_NAME or t.name in lib.NAMES or t.name in CNT.NAMES or t.name in CHT.NAMES] + list(SERVER_TOOLS)
 
 
 def _error(request_id, code, message):
@@ -107,6 +108,9 @@ class McpServer:
             return self._result(request_id, json.dumps(self._credit_balance()), False)
         if name in CNT.NAMES:                                       # the same read-only projection the main agent gets
             text, is_error = await CNT.call(name, params.get("arguments") or {})
+            return self._result(request_id, text, is_error)
+        if name in CHT.NAMES:                                       # read and propose, attributed to the MCP client
+            text, is_error = await CHT.call(name, params.get("arguments") or {}, origin="mcp:" + (instance_id or "client"))
             return self._result(request_id, text, is_error)
         if name == "lampway_call_status":
             return self._call_status(request_id, (params.get("arguments") or {}).get("call_id"))
