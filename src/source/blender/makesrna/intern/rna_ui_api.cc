@@ -1946,7 +1946,7 @@ void RNA_api_ui_layout(StructRNA *srna)
        "VIEWPORT_PILL",
        0,
        "Viewport Pill",
-       "Zen viewport shading pill; dimmed when it is not the live mode"},
+       "Lamplight viewport shading pill; dimmed when it is not the live mode"},
       {5,
        "PROFILE_PILL",
        0,

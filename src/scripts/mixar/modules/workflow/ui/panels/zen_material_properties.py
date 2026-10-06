@@ -25,7 +25,7 @@ def draw_material_properties(layout, context, material):
         texture_action(copy, 'mixar.zen_copy_material', obj, material, text='Make Unique')
     shader = surface_shader(material, context.scene.render.engine)
     if shader is None:
-        layout.label(text='Edit this shader in Engine Mode.', icon='NODETREE')
+        layout.label(text='Edit this shader in the Workshop.', icon='NODETREE')
         return
     body = layout.column()
     body.use_property_split = False

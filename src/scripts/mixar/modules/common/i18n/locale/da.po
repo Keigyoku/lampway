@@ -28,9 +28,6 @@ msgstr "Aktiv række i den svævende bobles chathistorikliste"
 msgid "Share Usage Data"
 msgstr "Del brugsdata"
 
-msgid "Share content-free product usage events to help improve Lampway"
-msgstr "Del indholdsfrie hændelser om produktbrug for at hjælpe med at forbedre Lampway"
-
 msgid "No generation services"
 msgstr "Ingen genereringstjenester"
 
@@ -55,29 +52,59 @@ msgstr "Ingen stilarter"
 msgid "No styles available"
 msgstr "Ingen stilarter tilgængelige"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "Dokumentation"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "Opstartsbillede"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "Brugerdefineret opstartsmenu uden seneste filer."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "Vælg din tilstand"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Start med Zen-tilstand"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine-tilstand (Blender-stil)"
+msgid "Start"
+msgstr "Start"
 
-msgid "Getting Started"
-msgstr "Kom i gang"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "Om"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Join Discord"
-msgstr "Deltag i Discord"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
+msgstr ""
 
 msgid "Quick Setup"
 msgstr "Hurtig opsætning"
@@ -294,9 +321,6 @@ msgstr "Send"
 msgid "Scenes"
 msgstr ""
 
-msgid "New scene"
-msgstr ""
-
 msgid "Send selection to"
 msgstr ""
 
@@ -472,12 +496,6 @@ msgid "Add the selected images and videos to the moodboard, and the selected 3D 
 msgstr ""
 
 msgid "Nothing is selected"
-msgstr ""
-
-msgid "Open Lampway Agent"
-msgstr ""
-
-msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -822,6 +840,18 @@ msgstr "Mislykkedes"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "Fejlede, eller sprunget over, fordi en afhængighed mislykkedes"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "Startet"
 
@@ -833,6 +863,24 @@ msgstr "Lukker"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "Sættes, når du klikker kortet væk. Panelet afspiller den samme udglidning som et færdigt kort, og rækken fjernes, når den er ude — et klik må ikke få et kort til at forsvinde under markøren"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "Sluttet"
@@ -851,6 +899,12 @@ msgstr "Udgave af agentkort"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "Tælles op, hver gang en NY forgrening erstatter panelets indhold. C++-panelet nulstiller sin rulleposition og afspiller indglidningen igen, når dette ændres — det kan ikke udlede 'ny tur' fra sin egen kortliste, som kun synkroniseres ved en tegning og derfor stadig har forrige turs kort, mens panelet er skjult mellem målinger"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "Aktive agentkort"
@@ -1703,9 +1757,6 @@ msgstr "Download"
 msgid "Stop"
 msgstr "Stop"
 
-msgid "Start"
-msgstr "Start"
-
 msgid "Delete Download"
 msgstr "Slet download"
 
@@ -2420,16 +2471,13 @@ msgstr "Den rumtype, der skal skiftes til"
 msgid "No active area"
 msgstr "Intet aktivt område"
 
-msgid "Apply Lampway Forest"
-msgstr ""
-
-msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
+msgid "Lampway Night is not installed: reinstall Lampway to restore its themes"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2468,19 +2516,16 @@ msgstr "Privatliv"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "Samtykke til telemetri, placeret dér, hvor brugere normalt kigger for at framelde sig."
 
-msgid "Shares which Lampway features you use, to help improve the product."
-msgstr "Deler, hvilke Mixar-funktioner du bruger, for at hjælpe med at forbedre produktet."
-
 msgid "Your prompts, files, and scene content are never included."
 msgstr "Dine prompts, filer og sceneindhold medtages aldrig."
+
+msgid "Off by default; events only ever go to your configured Lampway server."
+msgstr ""
 
 msgid "Privacy Policy"
 msgstr "Privatlivspolitik"
 
-msgid "Lampway"
-msgstr ""
-
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2489,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2504,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "Topbjælkens krom (UI.svg-opskrift)"
 
-msgid "Zen"
-msgstr "Zen"
+msgid "Lamplight"
+msgstr ""
 
-msgid "Engine"
-msgstr "Engine"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "Filmtilstand"
@@ -2593,6 +2638,9 @@ msgstr "Lokale klik"
 
 msgid "Profile"
 msgstr "Profil"
+
+msgid "Zen"
+msgstr "Zen"
 
 msgid "Shared Zen components"
 msgstr "Delte Zen-komponenter"
@@ -3008,6 +3056,9 @@ msgstr "Eksporterede {filename} ({count} masker)"
 msgid "Unreal Connector"
 msgstr "Unreal-connector"
 
+msgid "Lampway"
+msgstr ""
+
 msgid "Connector properties not registered"
 msgstr "Connector-egenskaber er ikke registreret"
 
@@ -3080,7 +3131,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Lampway Agent read files in a folder"
+msgid "Let {agent} read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -4817,6 +4868,933 @@ msgstr "Luk"
 msgid "Dismiss the error and return to idle"
 msgstr "Luk fejlen, og vend tilbage til inaktiv"
 
+msgid "Front"
+msgstr "Front"
+
+msgid "RGB"
+msgstr ""
+
+msgid "Roughness"
+msgstr "Ruhed"
+
+msgid "Metallic"
+msgstr "Metallisk"
+
+msgid "Chest1"
+msgstr ""
+
+msgid "Waist1"
+msgstr ""
+
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "til"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "Venter på dig"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Refresh privacy"
+msgstr ""
+
+msgid "Read the Privacy state from the server and keep it fresh while data may leave"
+msgstr ""
+
+msgid "Switch route"
+msgstr ""
+
+msgid "Opt a route in or out. Every route is OFF until you switch it on. Your click only"
+msgstr ""
+
+msgid "Export egress log"
+msgstr ""
+
+msgid "Put the egress log (what left, to whom, when) into a Text datablock you can save"
+msgstr ""
+
+msgid "Set up Mesh QA"
+msgstr ""
+
+msgid "Point mesh QA at the active mesh object"
+msgstr ""
+
+msgid "Add tag layers"
+msgstr ""
+
+msgid "Add the three tag layers to the annotations: Red = Delete, Green = Mislabel, Yellow = Hole"
+msgstr ""
+
+msgid "Find candidates"
+msgstr ""
+
+msgid "Find open loops and floating shells on the piece and write them as typed candidates"
+msgstr ""
+
+msgid "Draw candidates"
+msgstr ""
+
+msgid "Draw the candidates into the scene (collection QA_candidates): yellow tubes and rings with their ids"
+msgstr ""
+
+msgid "Refresh markers"
+msgstr ""
+
+msgid "Recolour and relabel the active piece's markers from its proposals (red delete, yellow hole, green mislabel, grey keep)"
+msgstr ""
+
+msgid "Read tags"
+msgstr ""
+
+msgid "Read the Red/Green/Yellow annotation strokes into decisions and rulings"
+msgstr ""
+
+msgid "Save rebuild setup"
+msgstr ""
+
+msgid "Save what a rebuild needs besides the rulings"
+msgstr ""
+
+msgid "Read tags and rebuild"
+msgstr ""
+
+msgid "Read tags, write rulings, rebuild, and load the result beside the previous version"
+msgstr ""
+
+msgid "Run tool"
+msgstr ""
+
+msgid "Run one of the ported batch tools (parts, proportions, textures) in the background"
+msgstr ""
+
+msgid "Mesh-paint texture"
+msgstr ""
+
+msgid "Mesh-paint texturing: clay render per view, the image backend paints the design over it, pick the best of four per view, plates, projection at 4096 with no warp, masks, then load it with the albedo toggle"
+msgstr ""
+
+msgid "Toggle albedo"
+msgstr ""
+
+msgid "Switch the live material between the textured look and the projected albedo"
+msgstr ""
+
+msgid "Run feature"
+msgstr ""
+
+msgid "Run the chosen feature on the active object; options are JSON"
+msgstr ""
+
+msgid "Classify clips"
+msgstr ""
+
+msgid "Measure every action on the active armature: motion class, speed, loop, a proposed name. Changes nothing"
+msgstr ""
+
+msgid "Apply names"
+msgstr ""
+
+msgid "Rename the measured actions to their proposed labels (the old name is kept as lw_source_name). Your click only"
+msgstr ""
+
+msgid "Lampway settings"
+msgstr ""
+
+msgid "Project root, interpreters and texture libraries"
+msgstr ""
+
+msgid "Project root"
+msgstr ""
+
+msgid "Science python"
+msgstr ""
+
+msgid "A python with numpy, scipy, Pillow and OpenCV"
+msgstr ""
+
+msgid "Blender for batch tools"
+msgstr ""
+
+msgid "Empty = this app"
+msgstr ""
+
+msgid "Colour tiles"
+msgstr ""
+
+msgid "ambientCG library"
+msgstr ""
+
+msgid "Studio HDRI"
+msgstr ""
+
+msgid "Refresh connections"
+msgstr ""
+
+msgid "Read which MCP servers your agent apps have, from where, and whether each is ready"
+msgstr ""
+
+msgid "Check"
+msgstr ""
+
+msgid "Open a short connection to this server and list its tools (no tool is ever called). Your click only"
+msgstr ""
+
+msgid "Show config file"
+msgstr ""
+
+msgid "Show where this server's effective configuration lives (the path only, never the contents)"
+msgstr ""
+
+msgid "yes"
+msgstr ""
+
+msgid "Refresh templates"
+msgstr ""
+
+msgid "Read the prompt templates from the server"
+msgstr ""
+
+msgid "Load template"
+msgstr ""
+
+msgid "Load the chosen template: its variables become a form with their types, bounds and defaults"
+msgstr ""
+
+msgid "Render the template with the form's values (through the server: nothing is generated)"
+msgstr ""
+
+msgid "Edit as my own"
+msgstr ""
+
+msgid "Edit as my own: save a copy of this template in YOUR scope as the next version (the built-in is untouched)"
+msgstr ""
+
+msgid "Use in generation"
+msgstr ""
+
+msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
+msgstr ""
+
+msgid "Rate"
+msgstr "Hyppighed"
+
+msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
+msgstr ""
+
+msgid "Refresh Studios"
+msgstr ""
+
+msgid "Read the Studios state from the server: pending confirmations, jobs, the engine"
+msgstr ""
+
+msgid "Plan"
+msgstr "Plan"
+
+msgid "Ask a Studio to read back an action's settings and price (nothing is clicked or spent); a spend then waits for your confirmation"
+msgstr ""
+
+msgid "Arguments"
+msgstr ""
+
+msgid "Confirm and spend"
+msgstr ""
+
+msgid "Spend the credits: confirm this Studio action at the price shown. Only your own click can do this"
+msgstr ""
+
+msgid "Price"
+msgstr ""
+
+msgid "Spend credits?"
+msgstr ""
+
+msgid "Answer"
+msgstr ""
+
+msgid "Answer a question Higgsfield (or a Studio) asks you. Only your own click can"
+msgstr ""
+
+msgid "Sign in to Higgsfield"
+msgstr ""
+
+msgid "Open the server's Higgsfield sign-in page in your browser (one consent; the tokens stay on this machine)"
+msgstr ""
+
+msgid "Reject"
+msgstr ""
+
+msgid "Turn this Studio action down; nothing is spent"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Bring one of a finished job's files into the scene (collection Studio)"
+msgstr ""
+
+msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
+msgstr ""
+
+msgid "Provider for the main agent (the chat)"
+msgstr ""
+
+msgid "Model (ChatGPT plan)"
+msgstr ""
+
+msgid "Model when the main agent runs on your ChatGPT plan"
+msgstr ""
+
+msgid "Effort"
+msgstr ""
+
+msgid "Reasoning effort on your ChatGPT plan (default = the model's)"
+msgstr ""
+
+msgid "Swarm workers"
+msgstr ""
+
+msgid "Provider for the swarm's workers (default = the main provider's own)"
+msgstr ""
+
+msgid "Claude model"
+msgstr ""
+
+msgid "Model for workers on your own claude CLI"
+msgstr ""
+
+msgid "OpenRouter worker model"
+msgstr ""
+
+msgid "Model for workers on OpenRouter"
+msgstr ""
+
+msgid "Images"
+msgstr "Billeder"
+
+msgid "Image backend: tripo, codex_cli or openrouter"
+msgstr ""
+
+msgid "Image model"
+msgstr ""
+
+msgid "OpenRouter image model, e.g. openai/gpt-image-2.5-sunburst (precision) or -flare (speed)"
+msgstr ""
+
+msgid "Image size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT within the pixel budget (2880x2880 works), or default"
+msgstr ""
+
+msgid "Image quality"
+msgstr ""
+
+msgid "auto, low, medium, high, xhigh, max, or default"
+msgstr ""
+
+msgid "Plates model"
+msgstr ""
+
+msgid "Mesh-paint plates, e.g. openai/gpt-image-2.5-flare (or sourceful/riverflow-v2.5-pro: flattest albedo, slower, dearer)"
+msgstr ""
+
+msgid "Plates size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT, e.g. 2880x2880 or 2160x3840 for a tall plate (at most 3840 per edge, ~8.3 MP)"
+msgstr ""
+
+msgid "Mask model"
+msgstr ""
+
+msgid "Material-ID / mask drafts: flat colour regions, e.g. google/gemini-3.1-flash-image"
+msgstr ""
+
+msgid "Concept model"
+msgstr ""
+
+msgid "Concepts / moodboard, e.g. black-forest-labs/flux-3-image. It redesigns the piece: never for projection"
+msgstr ""
+
+msgid "Concept resolution"
+msgstr ""
+
+msgid "1K, 2K or 4K for models that take resolution, or default"
+msgstr ""
+
+msgid "Tile model"
+msgstr ""
+
+msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
+msgstr ""
+
+msgid "Bulk video"
+msgstr ""
+
+msgid "Bulk clips, e.g. heygen/heygen-video-1"
+msgstr ""
+
+msgid "Bulk resolution"
+msgstr ""
+
+msgid "e.g. 768p"
+msgstr ""
+
+msgid "Bulk seconds"
+msgstr ""
+
+msgid "Seconds, e.g. 10"
+msgstr ""
+
+msgid "Loop video"
+msgstr ""
+
+msgid "Loops (first = last frame), e.g. bytedance/seedance-1-5-pro"
+msgstr ""
+
+msgid "Loop resolution"
+msgstr ""
+
+msgid "e.g. 720p"
+msgstr ""
+
+msgid "Motion video"
+msgstr ""
+
+msgid "Motion transfer with a reference video, e.g. bytedance/seedance-2.0-mini"
+msgstr ""
+
+msgid "Motion resolution"
+msgstr ""
+
+msgid "e.g. 480p"
+msgstr ""
+
+msgid "Video cap (USD)"
+msgstr ""
+
+msgid "One video job above this estimate is refused before it is sent (0 = unchanged)"
+msgstr ""
+
+msgid "Save provider settings"
+msgstr ""
+
+msgid "Save provider choices on the server (fields left empty are unchanged)"
+msgstr ""
+
+msgid "Providers"
+msgstr ""
+
+msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
+msgstr ""
+
+msgid "Refresh sessions"
+msgstr ""
+
+msgid "Read the cockpit state from the server: the herdr server, the sessions and their chips"
+msgstr ""
+
+msgid "Start the herdr server"
+msgstr ""
+
+msgid "Start Lampway's own herdr server (detached: it outlives Blender). Your click only"
+msgstr ""
+
+msgid "Reconcile sessions"
+msgstr ""
+
+msgid "Re-adopt the live panes by the server's truth: nothing is spawned or killed"
+msgstr ""
+
+msgid "New session"
+msgstr ""
+
+msgid "Open a new agent session in the cockpit (your own CLI login)"
+msgstr ""
+
+msgid "Codex"
+msgstr ""
+
+msgid "OpenCode"
+msgstr ""
+
+msgid "Shell"
+msgstr ""
+
+msgid "Name"
+msgstr "Navn"
+
+msgid "Read to Text"
+msgstr ""
+
+msgid "Copy the last 70 screen lines of a session into a Text datablock (reading never marks an answer seen)"
+msgstr ""
+
+msgid "Type into a session (your own keystrokes: this is the user's send)"
+msgstr ""
+
+msgid "Close session"
+msgstr ""
+
+msgid "Close a session's pane (its agent process ends; its history stays). Needs your confirm"
+msgstr ""
+
+msgid "Yes, end this agent"
+msgstr ""
+
+msgid "Stop the herdr server"
+msgstr ""
+
+msgid "Stop Lampway's herdr server: every agent pane in it ends. Needs your confirm"
+msgstr ""
+
+msgid "Yes, end every session"
+msgstr ""
+
+msgid "Cockpit window"
+msgstr ""
+
+msgid "Open the cockpit window: a read-only mirror of the session in a Text editor, refreshed every two seconds"
+msgstr ""
+
+msgid "Lampway tools"
+msgstr ""
+
+msgid "Mesh QA"
+msgstr ""
+
+msgid "Tags: Red = Delete, Green = Mislabel, Yellow = Hole"
+msgstr ""
+
+msgid "Rebuild"
+msgstr ""
+
+msgid "Mesh-paint texturing"
+msgstr ""
+
+msgid "Parts and proportion tools"
+msgstr ""
+
+msgid "Review proposals"
+msgstr ""
+
+msgid "Set a piece up first (Mesh QA)"
+msgstr ""
+
+msgid "Proposals are not rulings: tag it to decide."
+msgstr ""
+
+msgid "Studios (online)"
+msgstr ""
+
+msgid "shelf engine"
+msgstr ""
+
+msgid "bundled drivers"
+msgstr ""
+
+msgid "Providers: agent, swarm, images"
+msgstr ""
+
+msgid "Waiting for YOUR confirmation"
+msgstr ""
+
+msgid "Plan (clicks nothing)"
+msgstr ""
+
+msgid "Features"
+msgstr ""
+
+msgid "Prompts"
+msgstr ""
+
+msgid "Cockpit (agent sessions)"
+msgstr ""
+
+msgid "The cockpit: the user's real agent CLIs as panes of Lampway's own herdr server. draw() reads the cached state only: it never touches the network."
+msgstr ""
+
+msgid "Read"
+msgstr "Læs"
+
+msgid "Window"
+msgstr "Vindue"
+
+msgid "Animation clips"
+msgstr ""
+
+msgid "The clip table: one row per action (primary class, speed, loop, an inferred marker, the proposed name). draw() reads the cache only."
+msgstr ""
+
+msgid "Privacy (what leaves this machine)"
+msgstr ""
+
+msgid "Privacy: every outbound route, off until you switch it on, with its retention and training policy; the DATA LEAVING badge; the last log rows. draw() reads the cache only."
+msgstr ""
+
+msgid "Switch off"
+msgstr ""
+
+msgid "Switch on"
+msgstr ""
+
+msgid "Connections (MCP servers)"
+msgstr ""
+
+msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
+msgstr ""
+
+msgid "enum values, | separated"
+msgstr ""
+
+msgid "Recipe"
+msgstr ""
+
+msgid "The parts recipe json (parts and their motion classes)"
+msgstr ""
+
+msgid "Owner map"
+msgstr ""
+
+msgid "A .npy of one part index per polygon; empty = the mesh's int face attribute 'part'"
+msgstr ""
+
+msgid "Piece"
+msgstr ""
+
+msgid "The piece's name; its rulings live in <project root>/<piece>/rulings"
+msgstr ""
+
+msgid "Lift"
+msgstr ""
+
+msgid "Live frame minus the mesh's own frame in Z (how far the piece was lifted onto the floor)"
+msgstr ""
+
+msgid "Source faces"
+msgstr ""
+
+msgid "A rebuild's orig_poly .npy (source face per polygon, -1 = patch); empty for a source mesh"
+msgstr ""
+
+msgid "Turn"
+msgstr ""
+
+msgid "The rebuild's turn about Z in degrees (patch_holes --turn)"
+msgstr ""
+
+msgid "Everything else is intentional"
+msgstr ""
+
+msgid "Answer every candidate nobody named 'keep' (his: everything else looks intentional)"
+msgstr ""
+
+msgid "Relabel to"
+msgstr ""
+
+msgid "Target parts for the green strokes, as stroke:part pairs, e.g. 0:cuirass_back_plate,1:cape_drape_upper"
+msgstr ""
+
+msgid "Source mesh"
+msgstr ""
+
+msgid "Source owner"
+msgstr ""
+
+msgid "Relief views"
+msgstr ""
+
+msgid "Plates"
+msgstr ""
+
+msgid "Template material"
+msgstr ""
+
+msgid "The live textured material to copy for the rebuild"
+msgstr ""
+
+msgid "Tag"
+msgstr ""
+
+msgid "A new name for this rebuild; a tag is never overwritten"
+msgstr ""
+
+msgid "Atlas"
+msgstr ""
+
+msgid "Colour at full resolution"
+msgstr ""
+
+msgid "Ornament"
+msgstr ""
+
+msgid "max_tris:reach_px:min_share, e.g. 600:24:0.25 at 4096"
+msgstr ""
+
+msgid "Gold from mesh relief"
+msgstr ""
+
+msgid "Rebuilt mesh"
+msgstr ""
+
+msgid "The rebuild's patched UV mesh (fbx) the clay renders are made from"
+msgstr ""
+
+msgid "Design plates"
+msgstr ""
+
+msgid "V3's plates: Front.png, Back.png, Left.png, Right.png"
+msgstr ""
+
+msgid "Rebuild outputs"
+msgstr ""
+
+msgid "The rebuild's out_root (holds patched/)"
+msgstr ""
+
+msgid "Rebuild tag"
+msgstr ""
+
+msgid "The rebuild whose mesh and maps the projection reuses"
+msgstr ""
+
+msgid "Generate for real"
+msgstr ""
+
+msgid "Off = a dry run (the image backend verifies its settings, nothing is generated or spent). On needs the owner's own arming of the backend"
+msgstr ""
+
+msgid "Albedo base colour"
+msgstr ""
+
+msgid "The projected albedo as the live material's base colour"
+msgstr ""
+
+msgid "Tool"
+msgstr "Værktøj"
+
+msgid "A prompt-library template (image or video)"
+msgstr ""
+
+msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
+msgstr ""
+
+msgid "Job id"
+msgstr ""
+
+msgid "The job to rate"
+msgstr ""
+
+msgid "Rating"
+msgstr "Bedømmelse"
+
+msgid "Note"
+msgstr ""
+
+msgid "Studio action"
+msgstr ""
+
+msgid "The action's arguments as JSON, paths inside the project root"
+msgstr ""
+
+msgid "Feature"
+msgstr ""
+
+msgid "Retopology"
+msgstr "Retopologi"
+
+msgid "A new all-quad mesh near a target face count"
+msgstr ""
+
+msgid "UV unwrap"
+msgstr ""
+
+msgid "A packed UV layout on a new mesh"
+msgstr ""
+
+msgid "Mesh segment"
+msgstr ""
+
+msgid "Split into part objects"
+msgstr ""
+
+msgid "Auto rig"
+msgstr ""
+
+msgid "A UE-named humanoid armature"
+msgstr ""
+
+msgid "Mesh prep"
+msgstr ""
+
+msgid "Branch, hash and repair defects"
+msgstr ""
+
+msgid "Asset acceptance"
+msgstr ""
+
+msgid "Identity, orientation, geometry, materials gates"
+msgstr ""
+
+msgid "Detail normals"
+msgstr ""
+
+msgid "Tiling detail normals on a textured_atlas material"
+msgstr ""
+
+msgid "Image to 3D"
+msgstr "Billede til 3D"
+
+msgid "A mesh from views"
+msgstr ""
+
+msgid "Render video"
+msgstr ""
+
+msgid "A turntable or fly-through"
+msgstr ""
+
+msgid "Options"
+msgstr "muligheder"
+
+msgid "The feature's other arguments as JSON, e.g. {\"target_faces\": 3000}; engine \"studio:tripo\" asks for approval and clicks nothing"
+msgstr ""
+
+msgid "The tool's arguments, space separated (paths relative to the project root)"
+msgstr ""
+
+msgid "Figure height (m)"
+msgstr ""
+
+msgid "0 = the deform mesh's rest height, else head bone to foot bone"
+msgstr ""
+
+msgid "Last result"
+msgstr ""
+
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
 msgstr "Mindste model med syn — hurtig på enhver maskine, god værktøjsbrug."
 
@@ -5012,7 +5990,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
+msgid "Codex defines an older entry in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5270,9 +6248,6 @@ msgstr "Orkidé"
 msgid "Generate Image"
 msgstr "Generér billede"
 
-msgid "Image to 3D"
-msgstr "Billede til 3D"
-
 msgid "Video Generation"
 msgstr "Videogenerering"
 
@@ -5284,9 +6259,6 @@ msgstr "Generér splat"
 
 msgid "PBR Generation"
 msgstr "PBR-generering"
-
-msgid "Retopology"
-msgstr "Retopologi"
 
 msgid "Mesh Segmentation"
 msgstr "Maskesegmentering"
@@ -5873,9 +6845,6 @@ msgstr "Reference {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Denne skabelon kræver en tilgængelig genereringsmodel. Tjek din forbindelse."
 
-msgid "On"
-msgstr "til"
-
 msgid "Off"
 msgstr "slukket"
 
@@ -6284,6 +7253,9 @@ msgstr "Vælg alle dele af én figur — rigget som ét skelet"
 msgid "Settings"
 msgstr "Indstillinger"
 
+msgid "About"
+msgstr "Om"
+
 msgid "Auto-detects the skeleton type"
 msgstr "Finder selv skelettets type"
 
@@ -6476,14 +7448,14 @@ msgstr "Send også hele figuren som designkontekst. Slået fra som standard, for
 msgid "Moodboard Drawer"
 msgstr "Moodboardskuffe"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Hvor langt moodboardskuffen i Zen-tilstand er trukket ud, 0 lukket og 1 åben"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "Mål for moodboardskuffe"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Den side, moodboardskuffen i Zen-tilstand lægger sig på, 0 lukket og 1 åben"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "Bredde på moodboardskuffe"
@@ -6793,9 +7765,6 @@ msgstr "Ramme-id"
 
 msgid "Stable identifier members refer to"
 msgstr "Stabilt id, som medlemmer henviser til"
-
-msgid "Name"
-msgstr "Navn"
 
 msgid "Frame name, painted above its top-left corner"
 msgstr "Rammenavn, malet over dets øverste venstre hjørne"
@@ -7980,9 +8949,6 @@ msgstr "Referencebillede, der styrer teksturerne"
 
 msgid "Treat the reference image as a style reference paired with the prompt (Tripo style_image) instead of a direct reference"
 msgstr "Behandl referencebilledet som en stilreference sammen med prompten (Tripo style_image) i stedet for en direkte reference"
-
-msgid "Front"
-msgstr "Front"
 
 msgid "Front view of the subject"
 msgstr "Motivets frontvisning"
@@ -10648,7 +11614,7 @@ msgstr "Velkommen til Lampway"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -10815,18 +11781,6 @@ msgstr "Påvirk alfa:"
 
 msgid "WARNING: Do NOT edit this group manually!"
 msgstr "ADVARSEL: Redigér IKKE denne gruppe manuelt!"
-
-msgid "Generated material response did not include a script"
-msgstr "Svaret for det genererede materiale indeholdt ikke et script"
-
-msgid "Generated material but failed to apply it: {result}"
-msgstr "Genererede materiale, men kunne ikke anvende det: {result}"
-
-msgid "Generate Procedural Material"
-msgstr "Generér procedurelt materiale"
-
-msgid "Material generation failed"
-msgstr "Materialegenerering mislykkedes"
 
 msgid "Show {channel} blend mode and opacity"
 msgstr "Vis blandingstilstand og opacitet for {channel}"
@@ -11193,9 +12147,6 @@ msgstr "Penselunderfane"
 
 msgid "Active subtab in the brush panel"
 msgstr "Aktiv underfane i penselpanelet"
-
-msgid "Tool"
-msgstr "Værktøj"
 
 msgid "General brush tool settings"
 msgstr "Generelle indstillinger for penselværktøjet"
@@ -11742,9 +12693,6 @@ msgstr "Ingen eksport"
 
 msgid "Do not export materials"
 msgstr "Eksportér ikke materialer"
-
-msgid "Images"
-msgstr "Billeder"
 
 msgid "Automatic"
 msgstr "Automatisk"
@@ -13515,9 +14463,6 @@ msgstr ""
 "Klik på denne knap for at gå tilbage til den oprindelige UV"
 
 msgid "BW"
-msgstr ""
-
-msgid "RGB"
 msgstr ""
 
 msgid "RGBA"
@@ -15330,12 +16275,6 @@ msgstr "Overførsel"
 msgid "Value Channels:"
 msgstr "Værdikanaler:"
 
-msgid "Metallic"
-msgstr "Metallisk"
-
-msgid "Roughness"
-msgstr "Ruhed"
-
 msgid "Subsurface"
 msgstr "Underflade"
 
@@ -17143,9 +18082,6 @@ msgstr "Decal-projektion"
 msgid "Camera coordinates"
 msgstr "Kamerakoordinater"
 
-msgid "Window"
-msgstr "Vindue"
-
 msgid "Window coordinates"
 msgstr "Vindueskoordinater"
 
@@ -17907,9 +18843,6 @@ msgstr "Radius"
 msgid "Stroke"
 msgstr "Strøg"
 
-msgid "Rate"
-msgstr "Hyppighed"
-
 msgid "Edge to Edge"
 msgstr "Kant til kant"
 
@@ -17984,9 +18917,6 @@ msgstr "Symmetri"
 
 msgid "Mirror"
 msgstr "Spejl"
-
-msgid "Options"
-msgstr "muligheder"
 
 msgid "Bleed"
 msgstr "Blødning"
@@ -19092,9 +20022,6 @@ msgstr "Værktøjslinje"
 msgid "Sidebar"
 msgstr "Sidepanel"
 
-msgid "Lampway Agent"
-msgstr ""
-
 msgid "UV Mesh Segmentation panel"
 msgstr "Panel til UV-maskesegmentering"
 
@@ -19599,8 +20526,8 @@ msgstr "Kunne ikke sende beskeden"
 msgid "You're out of credits"
 msgstr "Du har ikke flere kreditter"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
-msgstr "Du har brugt dine månedlige kreditter. Opgradér din plan for at blive ved med at skabe med Lampway Agent."
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with {agent}."
+msgstr ""
 
 msgid "Feedback comment is empty"
 msgstr "Feedbackkommentaren er tom"
@@ -20022,8 +20949,8 @@ msgstr "Hold dette felt åbent; Esc annullerer."
 msgid "Login"
 msgstr "Log ind"
 
-msgid "Login panel for Lampway Chat"
-msgstr "Loginpanel til Lampway Agent-chat"
+msgid "Login panel for the agent chat"
+msgstr ""
 
 msgid "Session expired"
 msgstr "Sessionen er udløbet"
@@ -20033,9 +20960,6 @@ msgstr "Log ind igen."
 
 msgid "Login Failed"
 msgstr "Login mislykkedes"
-
-msgid "Sign in with your Lampway account"
-msgstr "Log ind med din Mixar-konto"
 
 msgid "Waiting for browser..."
 msgstr "Venter på browseren..."
@@ -20062,12 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "Kontrolpanel"
-
-msgid "About Lampway"
-msgstr "Om Lampway"
-
-msgid "Documentation"
-msgstr "Dokumentation"
 
 msgid "Report a Bug"
 msgstr "Rapportér en fejl"
@@ -20129,23 +21047,14 @@ msgstr "Sessionen er udløbet. {reason}"
 msgid "Browser login did not complete. Please try again."
 msgstr "Browserlogin blev ikke fuldført. Prøv igen."
 
-msgid "Login to Lampway Chat via browser SSO"
-msgstr "Log ind på Lampway Agent-chat via SSO i browseren"
-
 msgid "Login failed"
 msgstr "Login mislykkedes"
-
-msgid "Logout from Lampway Chat"
-msgstr "Log ud af Lampway Agent-chat"
 
 msgid "Logged out successfully"
 msgstr "Logget ud"
 
 msgid "Open Dashboard"
 msgstr "Åbn kontrolpanel"
-
-msgid "Open Lampway Agent web dashboard in your browser"
-msgstr "Åbn Lampway Agents webkontrolpanel i din browser"
 
 msgid "Dashboard opened"
 msgstr "Kontrolpanel åbnet"
@@ -20392,9 +21301,6 @@ msgstr "Stem på et agentsvar med det eksisterende bedømmelsesformat"
 
 msgid "ID of the message bubble to rate"
 msgstr "Id for beskedboblen, der skal bedømmes"
-
-msgid "Rating"
-msgstr "Bedømmelse"
 
 msgid "Response rating (thumbs down=1, thumbs up=5)"
 msgstr "Bedømmelse af svar (tommelfinger ned=1, tommelfinger op=5)"
@@ -20822,21 +21728,6 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Lampway Chat"
-msgstr "Send til Lampway Agent-chat"
-
-msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
-msgstr "Åbn en prompt for at sende en besked til Lampway Agent-chat (Enter for at sende)"
-
-msgid "Message to send to Lampway Chat"
-msgstr "Besked, der skal sendes til Lampway Agent-chat"
-
-msgid "Not connected to Lampway Chat"
-msgstr "Ikke forbundet til Lampway Agent-chat"
-
-msgid "Lampway Chat is busy"
-msgstr "Lampway Agent-chat er optaget"
-
 msgid "Mode:"
 msgstr "Tilstand:"
 
@@ -20858,12 +21749,6 @@ msgstr "Besked"
 msgid "Please enter a message"
 msgstr "Skriv en besked"
 
-msgid "Not connected to server. Please connect in Lampway Chat."
-msgstr "Ikke forbundet til serveren. Opret forbindelse i Lampway Agent-chat."
-
-msgid "Lampway Chat is not ready to receive messages"
-msgstr "Lampway Agent-chat er ikke klar til at modtage beskeder"
-
 msgid "Dev Mode: Message sent"
 msgstr "Udviklingstilstand: Besked sendt"
 
@@ -20881,9 +21766,6 @@ msgstr ""
 
 msgid "Add Rules"
 msgstr "Tilføj regler"
-
-msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "Definér regler for Lampway Agent. Ændringer gælder ved din næste besked eller dit næste svar; globale regler gælder i alle Mixar-filer. Din aktuelle anmodning har forrang for projektregler og globale regler"
 
 msgid "Rule operation failed"
 msgstr "Regelhandlingen mislykkedes"
@@ -21070,9 +21952,6 @@ msgstr "Stop kunne ikke bekræftes. Opret forbindelse igen, og prøv Stop igen."
 msgid "Connect"
 msgstr "Opret forbindelse"
 
-msgid "Connect to the Lampway Agent agent server"
-msgstr "Opret forbindelse til Lampway Agent-agentserveren"
-
 msgid "Connecting to server..."
 msgstr "Opretter forbindelse til serveren..."
 
@@ -21084,9 +21963,6 @@ msgstr "Udviklingstilstand: Forbundet med testdata"
 
 msgid "Disconnect"
 msgstr "Afbryd forbindelse"
-
-msgid "Disconnect from the Lampway Agent agent server"
-msgstr "Afbryd forbindelsen til Lampway Agent-agentserveren"
 
 msgid "Dev Mode: Disconnected"
 msgstr "Udviklingstilstand: Forbindelse afbrudt"
@@ -21283,9 +22159,6 @@ msgstr "Assistentbesked"
 msgid "Error message"
 msgstr "Fejlmeddelelse"
 
-msgid "Plan"
-msgstr "Plan"
-
 msgid "Generated plan"
 msgstr "Genereret plan"
 
@@ -21478,8 +22351,8 @@ msgstr "Lokalt indsendt kommentar, vist som skrivebeskyttet i chatten"
 msgid "Message not sent"
 msgstr "Besked ikke sendt"
 
-msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
-msgstr "Skriv en renderprompt. Lampway Agent bruger den aktuelle scenes dybde som guide."
+msgid "Enter a render prompt. {agent} will use the current scene's depth as the guide."
+msgstr ""
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr "Skriv din prompt, og vælg maskeobjekterne i 3D-visningen, før du trykker på send."
@@ -21556,9 +22429,6 @@ msgstr "Automatisk tilstand"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "Agenten afgør selv hvert åbent valg i stedet for at spørge dig og viser sine beslutninger i oversigten"
 
-msgid "Lampway Agent Is Busy"
-msgstr "Lampway Agent er optaget"
-
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "Sand, når agenten behandler en anmodning (tilstanden BUSY)"
 
@@ -21630,9 +22500,6 @@ msgstr "Claude Haiku 4.0 – hurtig og effektiv"
 
 msgid "Password"
 msgstr "Adgangskode"
-
-msgid "Password for Lampway Chat login"
-msgstr "Adgangskode til login i Lampway Agent-chat"
 
 msgid "Is Logged In"
 msgstr "Er logget ind"
@@ -21828,9 +22695,6 @@ msgstr "Entydigt id for denne trinrække"
 
 msgid "What kind of tool call this row represents"
 msgstr "Hvilken slags værktøjskald denne række repræsenterer"
-
-msgid "Read"
-msgstr "Læs"
 
 msgid "File read"
 msgstr "Fillæsning"
@@ -22036,8 +22900,8 @@ msgstr "Deaktiverede regler bliver på listen, men sendes ikke"
 msgid "Global"
 msgstr "Global"
 
-msgid "Global rules apply to every .mixar file (~/.mixar/global_rules.json); others to this file only"
-msgstr "Globale regler gælder for alle .mixar-filer (~/.mixar/global_rules.json); de øvrige kun for denne fil"
+msgid "Global rules apply to every file you open (global_rules.json in your Lampway data folder); others to this file only"
+msgstr ""
 
 msgid "Project Rules"
 msgstr "Projektregler"
@@ -22056,9 +22920,6 @@ msgstr "Projektregler synlige"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "Om overlejringen med projektregler er åben"
-
-msgid "Waiting for you"
-msgstr "Venter på dig"
 
 msgid "Session"
 msgstr ""
@@ -24055,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine-tilstand"
-
-msgid "Zen Mode"
-msgstr "Zen-tilstand"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24070,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Skifter Lampway til Zen-tilstand (minimal 3D-visning + Agentboble + moodboard)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Kunne ikke oprette arbejdsområdet til Zen-tilstand — ingen skabelon tilgængelig"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Skifter Lampway til Engine-tilstand (fulde arbejdsområder i Blender-stil)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "Modelleringsarbejdsområdet blev ikke fundet"
@@ -24154,7 +25009,7 @@ msgstr "Scene og visningslag"
 msgid "View Layer"
 msgstr "Visningslag"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -24205,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -24295,38 +25150,38 @@ msgstr "Blend (.blend)"
 msgid "Tutorials"
 msgstr ""
 
-msgid "Creator Program"
-msgstr ""
-
 msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
 msgstr "Filen er gemt af en nyere Mixar-version (%d.%d). Nogle data kan gå tabt"
 
 msgid "The file was saved by a newer version, open it with Lampway %s or later"
 msgstr "Filen blev gemt af en nyere version. Åbn den med Lampway %s eller nyere"
 
-msgid "Failed to read mixar file '%s': %s"
-msgstr "Kunne ikke læse mixar-filen '%s': %s"
+msgid "Failed to read Lampway file '%s': %s"
+msgstr ""
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
-msgstr "Kan ikke læse mixar-filen '%s'. Filheaderen er ufuldstændig og kan være fra en nyere version af Lampway"
+msgid "Cannot read Lampway file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr ""
 
-msgid "Failed to read file '%s', not a mixar file"
-msgstr "Kunne ikke læse filen '%s'. Det er ikke en mixar-fil"
+msgid "Failed to read file '%s', not a Lampway file"
+msgstr ""
 
-msgid "Unable to open mixar <memory>"
-msgstr "Kan ikke åbne mixar <memory>"
+msgid "Unable to open Lampway <memory>"
+msgstr ""
 
-msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
-msgstr "Mixar-filen '%s' blev oprettet af en fremtidig version af Lampway og indeholder ID-navne der er længere end det der understøttes nu. De er blevet afkortet."
+msgid "Lampway file '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr ""
 
-msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Mixar-filen '%s' ser ud til at være beskadiget og indeholder ugyldige ID-navne. De er blevet afkortet."
+msgid "Lampway file '%s' appears corrupted, it contains invalid ID names. These have been truncated."
+msgstr ""
 
 msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
 msgstr "Biblioteket '%s' blev oprettet af en fremtidig version af Lampway og indeholder ID-navne der er længere end det der understøttes nu. Det kan give manglende linkede data. Overvej at åbne og gemme biblioteket igen med den nuværende Mixar-version."
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: Data henviser til den primære .mixar-fil: '%s' fra %s"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "Velkommen, %s !"
@@ -24448,8 +25303,8 @@ msgstr "Fanger"
 msgid "NEW"
 msgstr "NY"
 
-msgid "Ask Lampway Agent anything..."
-msgstr "Spørg Lampway Agent om hvad som helst..."
+msgid "Ask %s anything..."
+msgstr ""
 
 msgid "Write your prompt here..."
 msgstr "Skriv din prompt her..."
@@ -25243,6 +26098,24 @@ msgstr "Markørens X-position"
 msgid "Cursor Y position"
 msgstr "Markørens Y-position"
 
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
+
 msgid "Animate Moodboard Attachment"
 msgstr "Animér vedhæftning på moodboard"
 
@@ -25759,14 +26632,14 @@ msgstr "Placerer en redigerbar node dér hvor skabelonen slippes"
 msgid "Template to place"
 msgstr "Skabelon der skal placeres"
 
-msgid "Select Lampway Agent3D Preview"
-msgstr "Vælg Lampway Agent3D-forhåndsvisning"
+msgid "Select Lampway 3D Preview"
+msgstr ""
 
 msgid "Select a segmented image from the preview history"
 msgstr "Vælg et segmenteret billede fra forhåndsvisningshistorikken"
 
-msgid "Delete Lampway Agent3D Preview"
-msgstr "Slet Lampway Agent3D-forhåndsvisning"
+msgid "Delete Lampway 3D Preview"
+msgstr ""
 
 msgid "Delete a segmented image from the preview history"
 msgstr "Sletter et segmenteret billede fra forhåndsvisningshistorikken"
@@ -25945,8 +26818,8 @@ msgstr "Dette projekt"
 msgid "All projects"
 msgstr "Alle projekter"
 
-msgid "Add a rule above to guide Lampway Agent."
-msgstr "Tilføj en regel ovenfor for at vejlede Lampway Agent."
+msgid "Add a rule above to guide %s."
+msgstr ""
 
 msgid "Applies to"
 msgstr "Gælder for"
@@ -25989,6 +26862,24 @@ msgstr "Område for tekstursæt"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "Brug sidepanelerne til at administrere tekstursæt"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "Tilbage til første"
@@ -26740,8 +27631,8 @@ msgstr "Tekstureringsegenskaber"
 msgid "Layer and texture properties"
 msgstr "Egenskaber for lag og tekstur"
 
-msgid "Texturing Assets"
-msgstr "Tekstureringsassets"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Bibliotek med smarte materialer, pensler og teksturer"
@@ -26770,11 +27661,11 @@ msgstr "Tavle til referencebilleder i stil med PureRef"
 msgid "Lampway Agent Space"
 msgstr "Lampway Agent-område"
 
-msgid "Lampway Agent editor for Lampway"
-msgstr "Lampway Agent-editor til Lampway"
+msgid "Lampway agent editor"
+msgstr ""
 
-msgid "Lampway Agent editor mode"
-msgstr "Lampway Agent-editortilstand"
+msgid "Lampway editor mode"
+msgstr ""
 
 msgid "Agent Bubble Space"
 msgstr "Agentboble-område"
@@ -26965,8 +27856,8 @@ msgstr "Afrundet mørk pille med en gradueret etiket"
 msgid "Viewport Pill"
 msgstr "Pille til 3D-visning"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Skyggepille til Zen-3D-visning. Dæmpet når det ikke er den aktive tilstand"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "Profilpille"
@@ -27208,26 +28099,26 @@ msgstr "Chip med køantal"
 msgid "Slider Track"
 msgstr "Skydespor"
 
-msgid "Zen/Engine slider track"
-msgstr "Spor for Zen/Engine-skyder"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "Skydergreb"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Greb for Zen/Engine-skyder"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "Skydergreb ved pegning"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine-greb ved pegning"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "Skyderetiket"
 
-msgid "Zen/Engine slider label"
-msgstr "Etiket for Zen/Engine-skyder"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "Fyld til filmpille"
@@ -27796,8 +28687,8 @@ msgstr "Opacitet for vinduets baggrund (lavere = mere matteret glas)"
 msgid "Theme Lampway Agent Space"
 msgstr "Tema for Lampway Agent-område"
 
-msgid "Theme settings for Lampway Agent/Moodboard space"
-msgstr "Temaindstillinger for Lampway Agent/moodboard-området"
+msgid "Theme settings for Lampway/Moodboard space"
+msgstr ""
 
 msgid "Text Input Background"
 msgstr "Baggrund for tekstinput"
@@ -27985,14 +28876,14 @@ msgstr "Mikrofon afbrudt"
 msgid "Lampway File View"
 msgstr "Mixar-filvisning"
 
-msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
-msgstr "Proxyer er fjernet fra Lampway (%d proxyer blev automatisk konverteret til biblioteksoverstyringer, %d proxyer kunne ikke konverteres og blev ryddet). Overvej at gemme enhver biblioteks-.mixar-fil igen med den nyeste Mixar-version"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .Lampway file with the newest Lampway version"
+msgstr ""
 
-msgid "Cannot save mixar file, path \"%s\" is not writable"
-msgstr "Kan ikke gemme mixar-filen. Stien \"%s\" kan ikke skrives til"
+msgid "Cannot save Lampway file, path \"%s\" is not writable"
+msgstr ""
 
-msgid "Cannot save mixar file, path \"%s\" is a directory"
-msgstr "Kan ikke gemme mixar-filen. Stien \"%s\" er en mappe"
+msgid "Cannot save Lampway file, path \"%s\" is a directory"
+msgstr ""
 
 msgid "Lampway will start next time as it is now."
 msgstr "Lampway starter næste gang som den er nu."

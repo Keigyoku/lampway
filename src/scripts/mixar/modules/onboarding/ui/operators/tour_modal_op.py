@@ -32,7 +32,7 @@ class MIXAR_OT_onboarding_tour(Operator):
 
     bl_idname = config.OP_TOUR
     bl_label = "Start Tour"
-    bl_description = "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+    bl_description = "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
     bl_options = {"REGISTER", "INTERNAL"}
 
     rate: FloatProperty(name="Playback rate", default=1.0, min=0.25, max=8.0,

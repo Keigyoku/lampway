@@ -29,11 +29,11 @@ def _draw_chrome_preview(layout, fixture):
     slider = host.row(align=True)
     left = slider.row(align=True)
     left.ui_units_x = 5.5
-    left.operator("mixar.ui_gallery_action", text="Zen")
+    left.operator("mixar.ui_gallery_action", text="Lamplight")
     _tag_topbar(left, "MODE_SLIDER_LEFT", fixture.enabled)
     right = slider.row(align=True)
     right.ui_units_x = 5.5
-    right.operator("mixar.ui_gallery_action", text="Engine")
+    right.operator("mixar.ui_gallery_action", text="Workshop")
     _tag_topbar(right, "MODE_SLIDER_RIGHT", not fixture.enabled)
     pills = host.row(align=True)
     cinema = pills.row(align=True)

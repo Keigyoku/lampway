@@ -432,7 +432,7 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
        * `interface_template_id.cc` hides the Zen tab. */
       const WorkSpace *mixar_workspace = CTX_wm_workspace(C);
       const bool mixar_is_zen = mixar_workspace != nullptr &&
-                                STREQ(mixar_workspace->id.name + 2, "Zen Mode");
+                                STREQ(mixar_workspace->id.name + 2, "Lamplight");
       if (navgroup->state.rv3d.is_camera == false && !mixar_is_zen) {
         gz = navgroup->gz_array[rv3d->is_persp ? GZ_INDEX_PERSP : GZ_INDEX_ORTHO];
         gz->matrix_basis[3][0] = roundf(co[0]);

@@ -16,7 +16,7 @@ def _context(area_type, amount=1):
     region = NS(type='TOOL_PROPS' if area_type == 'VIEW_3D' else 'WINDOW',
                 x=640, y=80, width=340)
     context = NS(area=NS(type=area_type, regions=[region]),
-                 workspace=NS(name='Zen Mode'), region=NS(type='TEMP'),
+                 workspace=NS(name='Lamplight'), region=NS(type='TEMP'),
                  window_manager=NS(mixar_moodboard_drawer_amount=amount))
 
     @contextmanager

@@ -198,8 +198,9 @@ class LAMPWAY_MT_splash_help(Menu):
 
 
 class WM_MT_splash(Menu):
-    """The splash's menu (facelift contract 02): recent files, the way in, and the setup at a glance. Reads cached state
-    only (the status bar's cache): never the network in draw()."""
+    """Recent files, the way in, and your setup at a glance"""
+
+    # Facelift contract 02. Reads cached state only (the status bar's cache): never the network in draw().
 
     bl_label = "Splash"
 
@@ -230,8 +231,8 @@ class WM_MT_splash(Menu):
         start.operator("wm.read_homefile", text="New scene", icon='FILE_NEW')
         start.operator("wm.recover_last_session", text="Recover last session", icon='RECOVER_LAST')
         way = start.row(align=True)
-        way.operator("mixar.set_ui_mode_ai", text="Open in Zen")
-        way.operator("mixar.set_ui_mode_pro", text="Open in Engine")
+        way.operator("mixar.set_ui_mode_ai", text="Start in Lamplight")
+        way.operator("mixar.set_ui_mode_pro", text="Start in Workshop")
 
         layout.separator()
         _draw_setup(layout.row(align=True))

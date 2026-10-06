@@ -113,6 +113,11 @@ def _on_load_post(_dummy_arg) -> None:
     only touches Zen viewports, including files saved with the floating
     selection menu's host region hidden.
     """
+    try:  # first: a file saved before the Lamplight rename names its workspace "Zen Mode"
+        from mixar.modules.workflow.core.workspace_rename import rename_legacy
+        rename_legacy(bpy.data.workspaces)
+    except Exception as exc:  # noqa: BLE001 - load handler must never raise
+        logger.debug("workflow: Lamplight rename on load skipped: %s", exc)
     try:
         configure_basic_workspace_chrome()
     except Exception as exc:  # noqa: BLE001 - load handler must never raise
@@ -169,6 +174,17 @@ def register():
 
     if _on_load_post not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(_on_load_post)
+    # The startup file was read before this module registered: rename in it too, on the first tick.
+    bpy.app.timers.register(_rename_legacy_now, first_interval=0.0)
+
+
+def _rename_legacy_now():
+    try:
+        from mixar.modules.workflow.core.workspace_rename import rename_legacy
+        rename_legacy(bpy.data.workspaces)
+    except Exception as exc:  # noqa: BLE001 - never break startup
+        logger.debug("workflow: Lamplight rename at startup skipped: %s", exc)
+    return None
 
 
 def unregister():

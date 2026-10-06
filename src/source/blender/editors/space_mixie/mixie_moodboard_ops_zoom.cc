@@ -275,7 +275,7 @@ static wmOperatorStatus moodboard_ensure_visible_exec(bContext *C, wmOperator *o
       continue;
     }
     const WorkSpace *workspace = WM_window_get_active_workspace(win);
-    const bool zen = workspace != nullptr && STREQ(workspace->id.name + 2, "Zen Mode");
+    const bool zen = workspace != nullptr && STREQ(workspace->id.name + 2, "Lamplight");
     for (ScrArea *area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next)
     {
       const bool mixie_canvas = area->spacetype == SPACE_MIXIE;

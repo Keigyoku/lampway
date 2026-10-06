@@ -177,7 +177,7 @@ def test_texturing_viewport_keeps_the_stock_blender_header():
 def test_mixar_viewport_header_is_zen_only():
     from mixar.modules.workflow.ui.headers import view3d_header_filter as HEADER
 
-    zen = SimpleNamespace(workspace=SimpleNamespace(name="Zen Mode"))
+    zen = SimpleNamespace(workspace=SimpleNamespace(name="Lamplight"))
     texturing = SimpleNamespace(workspace=SimpleNamespace(name="Texturing"))
     paint = SimpleNamespace(workspace=SimpleNamespace(name="Texture Paint"))
     layout = SimpleNamespace(workspace=SimpleNamespace(name="Layout"))
@@ -201,7 +201,7 @@ def test_only_zen_floats_its_viewport_chrome():
     predicate = chrome.split(
         "static bool mixar_workspace_name_floats_viewport_chrome", 1
     )[1].split("}", 1)[0]
-    assert 'STREQ(name, "Zen Mode")' in predicate
+    assert 'STREQ(name, "Lamplight")' in predicate
     assert "Texturing" not in predicate
     assert "Texture Paint" not in predicate
 

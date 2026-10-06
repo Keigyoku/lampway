@@ -33,8 +33,8 @@ _MENU_PREFIXES = {
     "DOPESHEET_": "Dope Sheet", "OUTLINER_": "Outliner", "PROPERTIES_": "Properties editor",
 }
 # Zen Mode replaces the 3D Viewport's stock header; its menus are reachable in Engine.
-ZEN_HEADER_NOTE = ("In Zen Mode the 3D Viewport's stock header menus are hidden; switch the topbar "
-                   "Zen/Engine toggle to Engine to reach them. The Sidebar (N) works in both.")
+ZEN_HEADER_NOTE = ("In Lamplight the 3D Viewport's stock header menus are hidden; switch the topbar "
+                   "Lamplight/Workshop toggle to Workshop to reach them. The Sidebar (N) works in both.")
 
 
 def _owned(fn, entrypoint: str) -> bool:

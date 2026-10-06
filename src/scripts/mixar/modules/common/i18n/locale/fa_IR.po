@@ -28,9 +28,6 @@ msgstr "ﺭﻭﺎﻨﺷ ﺏﺎﺒﺣ ﯼﻮﮕﺘﻔﮔ ﻪﭽﺨﯾﺭﺎﺗ �
 msgid "Share Usage Data"
 msgstr "ﻩﺩﺎﻔﺘﺳﺍ ﯼﺎﻫ‌ﻩﺩﺍﺩ ﯽﻧﺎﺳﺭ‌ﻢﻫ"
 
-msgid "Share content-free product usage events to help improve Lampway"
-msgstr "ﺩﻮﺷ‌ﯽﻣ ﯽﻧﺎﺳﺭ‌ﻢﻫ Lampway ﻥﺪﺷ ﺮﺘﻬﺑ ﯼﺍﺮﺑ ،ﺍﻮﺘﺤﻣ ﻥﻭﺪﺑ ،ﻝﻮﺼﺤﻣ ﺯﺍ ﻩﺩﺎﻔﺘﺳﺍ ﯼﺎﻫﺩﺍﺪﯾﻭﺭ"
-
 msgid "No generation services"
 msgstr "ﺖﺴﯿﻧ ﺩﻮﺟﻮﻣ ﺪﯿﻟﻮﺗ ﺕﺎﻣﺪﺧ"
 
@@ -55,29 +52,59 @@ msgstr "ﺖﺴﯿﻧ ﯽﮑﺒﺳ"
 msgid "No styles available"
 msgstr "ﺖﺴﯿﻧ ﺱﺮﺘﺳﺩ ﺭﺩ ﯽﮑﺒﺳ"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "ﺕﺍﺪﻨﺘﺴﻣ"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "ﺯﺎﻏﺁ ﻪﺤﻔﺻ"
 
-msgid "Custom splash menu without Recent Files."
-msgstr ".ﺮﯿﺧﺍ ﯼﺎﻫ‌ﻞﯾﺎﻓ ﻥﻭﺪﺑ ،ﺯﺎﻏﺁ ﻪﺤﻔﺻ ﯽﺷﺭﺎﻔﺳ ﯼﻮﻨﻣ"
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "ﺪﯿﻨﮐ ﺏﺎﺨﺘﻧﺍ ﺍﺭ ﺩﻮﺧ ﺖﻟﺎﺣ"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Zen ﺖﻟﺎﺣ ﺎﺑ ﻉﻭﺮﺷ"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "(Blender ﮏﺒﺳ ﻪﺑ) Engine ﺖﻟﺎﺣ"
+msgid "Start"
+msgstr "ﻉﻭﺮﺷ"
 
-msgid "Getting Started"
-msgstr "ﺭﺎﮐ ﻉﻭﺮﺷ"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "ﻩﺭﺎﺑﺭﺩ"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Join Discord"
-msgstr "Discord ﻪﺑ ﻦﺘﺳﻮﯿﭘ"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
+msgstr ""
 
 msgid "Quick Setup"
 msgstr "ﻊﯾﺮﺳ ﯼﺯﺍﺪﻧﺍ‌ﻩﺍﺭ"
@@ -294,9 +321,6 @@ msgstr "ﻝﺎﺳﺭﺍ"
 msgid "Scenes"
 msgstr ""
 
-msgid "New scene"
-msgstr ""
-
 msgid "Send selection to"
 msgstr ""
 
@@ -472,12 +496,6 @@ msgid "Add the selected images and videos to the moodboard, and the selected 3D 
 msgstr ""
 
 msgid "Nothing is selected"
-msgstr ""
-
-msgid "Open Lampway Agent"
-msgstr ""
-
-msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -822,6 +840,18 @@ msgstr "ﻖﻓﻮﻣﺎﻧ"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "ﺪﺷ ﺩﺭ ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ ﯽﮕﺘﺴﺑﺍﻭ ﮏﯾ ﻥﻮﭼ ﺎﯾ ،ﺖﺷﺍﺩ ﺎﻄﺧ"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "ﻉﻭﺮﺷ ﻥﺎﻣﺯ"
 
@@ -833,6 +863,24 @@ msgstr "ﻥﺪﺷ ﻪﺘﺴﺑ ﻝﺎﺣ ﺭﺩ"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "ﺪﻨﮐ ﺪﯾﺪﭘﺎﻧ ﺎﻤﻧ‌ﻥﺎﮑﻣ ﺮﯾﺯ ﺍﺭ ﺕﺭﺎﮐ ﺪﯾﺎﺒﻧ ﮏﯿﻠﮐ — ﺩﻮﺷ‌ﯽﻣ ﻑﺬﺣ ﺝﻭﺮﺧ ﺯﺍ ﺲﭘ ﻒﯾﺩﺭ ﻭ ﺪﻨﮐ‌ﯽﻣ ﺶﺨﭘ ﺍﺭ ﻩﺪﺷ‌ﻡﺎﻤﺗ ﺕﺭﺎﮐ ﺝﻭﺮﺧ ﺵﺰﻐﻟ ﻥﺎﻤﻫ ﻞﻨﭘ .ﺩﻮﺷ‌ﯽﻣ ﻢﯿﻈﻨﺗ ﺩﺪﻨﺑ‌ﯽﻣ ﺍﺭ ﺕﺭﺎﮐ ﻦﯾﺍ ﺮﺑﺭﺎﮐ ﯽﺘﻗﻭ"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "ﻥﺎﯾﺎﭘ ﻥﺎﻣﺯ"
@@ -851,6 +899,12 @@ msgstr "ﻞﻣﺎﻋ ﯼﺎﻫ‌ﺕﺭﺎﮐ ﻞﺴﻧ"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "ﺩﺭﺍﺩ ﺍﺭ ﻞﺒﻗ ﺖﺑﻮﻧ ﯼﺎﻫ‌ﺕﺭﺎﮐ ﺯﻮﻨﻫ ﺖﺳﺍ ﻥﺎﻬﻨﭘ ﯽﺠﻨﺳﺮﻈﻧ ﺭﺩ ﻞﻨﭘ ﯽﺘﻗﻭ ﺎﺗ ﻭ ﺩﻮﺷ‌ﯽﻣ ﻡﺎﮕﻤﻫ ﻢﺳﺭ ﻡﺎﮕﻨﻫ ﻂﻘﻓ ﺖﺳﺮﻬﻓ ﻥﺁ ﻥﻮﭼ ،ﺪﻤﻬﻔﺑ ﺵﺩﻮﺧ ﺕﺭﺎﮐ ﺖﺳﺮﻬﻓ ﺯﺍ ﺍﺭ «ﺪﯾﺪﺟ ﺖﺑﻮﻧ» ﺪﻧﺍﻮﺗ‌ﯽﻤﻧ — ﺪﻨﮐ‌ﯽﻣ ﺶﺨﭘ ﻩﺭﺎﺑﻭﺩ ﺍﺭ ﺩﻭﺭﻭ ﺵﺰﻐﻟ ﻭ ﺪﻨﮐ‌ﯽﻣ ﯽﻧﺎﺸﻧﺯﺎﺑ ﺍﺭ ﺶﯾﺎﻤﯿﭘ ﺖﯿﻌﻗﻮﻣ ﺮﯿﯿﻐﺗ ﻦﯾﺍ ﺎﺑ ++C ﻞﻨﭘ .ﺩﻮﺷ‌ﯽﻣ ﺩﺎﯾﺯ ﺪﻨﮐ‌ﯽﻣ ﻦﯾﺰﮕﯾﺎﺟ ﺍﺭ ﻞﻨﭘ ﯼﺍﻮﺘﺤﻣ ﺪﯾﺪﺟ ﻪﺧﺎﺷ ﮏﯾ ﻪﮐ ﺭﺎﺑ ﺮﻫ"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "ﻝﺎﻌﻓ ﻞﻣﺎﻋ ﯼﺎﻫ‌ﺕﺭﺎﮐ"
@@ -1703,9 +1757,6 @@ msgstr "ﯼﺮﯿﮔﺭﺎﺑ"
 msgid "Stop"
 msgstr "ﻒﻗﻮﺗ"
 
-msgid "Start"
-msgstr "ﻉﻭﺮﺷ"
-
 msgid "Delete Download"
 msgstr "ﯼﺮﯿﮔﺭﺎﺑ ﻑﺬﺣ"
 
@@ -2420,16 +2471,13 @@ msgstr "ﺖﻓﺭ ﻥﺁ ﻪﺑ ﺪﯾﺎﺑ ﻪﮐ ﯽﯾﺎﻀﻓ ﻉﻮﻧ"
 msgid "No active area"
 msgstr "ﺖﺴﯿﻧ ﯽﻟﺎﻌﻓ ﻪﯿﺣﺎﻧ"
 
-msgid "Apply Lampway Forest"
-msgstr ""
-
-msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
+msgid "Lampway Night is not installed: reinstall Lampway to restore its themes"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2468,19 +2516,16 @@ msgstr "ﯽﺻﻮﺼﺧ ﻢﯾﺮﺣ"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr ".ﺪﻨﻨﮐ‌ﯽﻣ ﻩﺎﮕﻧ ﻑﺍﺮﺼﻧﺍ ﯼﺍﺮﺑ ﻻً﻿ﻮﻤﻌﻣ ﻥﺍﺮﺑﺭﺎﮐ ﻪﮐ ﯽﯾﺎﺟ ﺭﺩ ،ﺭﻭﺩ ﻩﺍﺭ ﺯﺍ ﺶﺠﻨﺳ ﺖﯾﺎﺿﺭ"
 
-msgid "Shares which Lampway features you use, to help improve the product."
-msgstr ".ﺩﻮﺷ ﺮﺘﻬﺑ ﻝﻮﺼﺤﻣ ﺎﺗ ،ﺩﻮﺷ‌ﯽﻣ ﯽﻧﺎﺳﺭ‌ﻢﻫ ﺪﯾﺮﺑ‌ﯽﻣ ﺭﺎﮐ ﻪﺑ ﺍﺭ Lampway ﯼﺎﻫ‌ﺖﯿﻠﺑﺎﻗ ﻡﺍﺪﮐ"
-
 msgid "Your prompts, files, and scene content are never included."
 msgstr ".ﺩﻮﺷ‌ﯽﻤﻧ ﻞﻣﺎﺷ ﺰﮔﺮﻫ ﺎﻤﺷ ﻪﻨﺤﺻ ﯼﺍﻮﺘﺤﻣ ﻭ ﺎﻫ‌ﻞﯾﺎﻓ ،ﺎﻫ‌ﺖﭙﻣﺍﺮﭘ"
+
+msgid "Off by default; events only ever go to your configured Lampway server."
+msgstr ""
 
 msgid "Privacy Policy"
 msgstr "ﯽﺻﻮﺼﺧ ﻢﯾﺮﺣ ﺖﺳﺎﯿﺳ"
 
-msgid "Lampway"
-msgstr ""
-
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2489,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2504,10 +2549,10 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "(UI.svg ﺭﻮﺘﺳﺩ) ﻂﺑﺍﺭ ﯼﻻ﻿ﺎﺑ ﺭﺍﻮﻧ"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
+msgid "Workshop"
 msgstr ""
 
 msgid "Cinema Mode"
@@ -2593,6 +2638,9 @@ msgstr "ﯽﻠﺤﻣ ﯼﺎﻫ‌ﮏﯿﻠﮐ"
 
 msgid "Profile"
 msgstr "ﻪﯾﺎﻤﻧ"
+
+msgid "Zen"
+msgstr ""
 
 msgid "Shared Zen components"
 msgstr "Zen ﮎﺮﺘﺸﻣ ﯼﺍﺰﺟﺍ"
@@ -3008,6 +3056,9 @@ msgstr "{filename} ﺪﺷ ﺭﺩﺎﺻ ({count} ﺶﻣ)"
 msgid "Unreal Connector"
 msgstr "Unreal ﻝﺎﺼﺗﺍ"
 
+msgid "Lampway"
+msgstr ""
+
 msgid "Connector properties not registered"
 msgstr "ﻩﺪﺸﻧ ﺖﺒﺛ ﻝﺎﺼﺗﺍ ﺕﺎﻤﯿﻈﻨﺗ"
 
@@ -3080,7 +3131,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Lampway Agent read files in a folder"
+msgid "Let {agent} read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -4817,6 +4868,933 @@ msgstr "ﻦﺘﺴﺑ"
 msgid "Dismiss the error and return to idle"
 msgstr "ﺩﺩﺮﮔ‌ﯽﻣﺮﺑ ﺭﺎﮑﯿﺑ ﺖﻟﺎﺣ ﻪﺑ ﻭ ﺩﺪﻨﺑ‌ﯽﻣ ﺍﺭ ﺎﻄﺧ"
 
+msgid "Front"
+msgstr "ﻮﻠﺟ"
+
+msgid "RGB"
+msgstr "RGB"
+
+msgid "Roughness"
+msgstr "ﯼﺮﺑﺯ"
+
+msgid "Metallic"
+msgstr "ﯼﺰﻠﻓ"
+
+msgid "Chest1"
+msgstr ""
+
+msgid "Waist1"
+msgstr ""
+
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "ﻦﺷﻭﺭ"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "ﺎﻤﺷ ﺮﻈﺘﻨﻣ"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Refresh privacy"
+msgstr ""
+
+msgid "Read the Privacy state from the server and keep it fresh while data may leave"
+msgstr ""
+
+msgid "Switch route"
+msgstr ""
+
+msgid "Opt a route in or out. Every route is OFF until you switch it on. Your click only"
+msgstr ""
+
+msgid "Export egress log"
+msgstr ""
+
+msgid "Put the egress log (what left, to whom, when) into a Text datablock you can save"
+msgstr ""
+
+msgid "Set up Mesh QA"
+msgstr ""
+
+msgid "Point mesh QA at the active mesh object"
+msgstr ""
+
+msgid "Add tag layers"
+msgstr ""
+
+msgid "Add the three tag layers to the annotations: Red = Delete, Green = Mislabel, Yellow = Hole"
+msgstr ""
+
+msgid "Find candidates"
+msgstr ""
+
+msgid "Find open loops and floating shells on the piece and write them as typed candidates"
+msgstr ""
+
+msgid "Draw candidates"
+msgstr ""
+
+msgid "Draw the candidates into the scene (collection QA_candidates): yellow tubes and rings with their ids"
+msgstr ""
+
+msgid "Refresh markers"
+msgstr ""
+
+msgid "Recolour and relabel the active piece's markers from its proposals (red delete, yellow hole, green mislabel, grey keep)"
+msgstr ""
+
+msgid "Read tags"
+msgstr ""
+
+msgid "Read the Red/Green/Yellow annotation strokes into decisions and rulings"
+msgstr ""
+
+msgid "Save rebuild setup"
+msgstr ""
+
+msgid "Save what a rebuild needs besides the rulings"
+msgstr ""
+
+msgid "Read tags and rebuild"
+msgstr ""
+
+msgid "Read tags, write rulings, rebuild, and load the result beside the previous version"
+msgstr ""
+
+msgid "Run tool"
+msgstr ""
+
+msgid "Run one of the ported batch tools (parts, proportions, textures) in the background"
+msgstr ""
+
+msgid "Mesh-paint texture"
+msgstr ""
+
+msgid "Mesh-paint texturing: clay render per view, the image backend paints the design over it, pick the best of four per view, plates, projection at 4096 with no warp, masks, then load it with the albedo toggle"
+msgstr ""
+
+msgid "Toggle albedo"
+msgstr ""
+
+msgid "Switch the live material between the textured look and the projected albedo"
+msgstr ""
+
+msgid "Run feature"
+msgstr ""
+
+msgid "Run the chosen feature on the active object; options are JSON"
+msgstr ""
+
+msgid "Classify clips"
+msgstr ""
+
+msgid "Measure every action on the active armature: motion class, speed, loop, a proposed name. Changes nothing"
+msgstr ""
+
+msgid "Apply names"
+msgstr ""
+
+msgid "Rename the measured actions to their proposed labels (the old name is kept as lw_source_name). Your click only"
+msgstr ""
+
+msgid "Lampway settings"
+msgstr ""
+
+msgid "Project root, interpreters and texture libraries"
+msgstr ""
+
+msgid "Project root"
+msgstr ""
+
+msgid "Science python"
+msgstr ""
+
+msgid "A python with numpy, scipy, Pillow and OpenCV"
+msgstr ""
+
+msgid "Blender for batch tools"
+msgstr ""
+
+msgid "Empty = this app"
+msgstr ""
+
+msgid "Colour tiles"
+msgstr ""
+
+msgid "ambientCG library"
+msgstr ""
+
+msgid "Studio HDRI"
+msgstr ""
+
+msgid "Refresh connections"
+msgstr ""
+
+msgid "Read which MCP servers your agent apps have, from where, and whether each is ready"
+msgstr ""
+
+msgid "Check"
+msgstr ""
+
+msgid "Open a short connection to this server and list its tools (no tool is ever called). Your click only"
+msgstr ""
+
+msgid "Show config file"
+msgstr ""
+
+msgid "Show where this server's effective configuration lives (the path only, never the contents)"
+msgstr ""
+
+msgid "yes"
+msgstr ""
+
+msgid "Refresh templates"
+msgstr ""
+
+msgid "Read the prompt templates from the server"
+msgstr ""
+
+msgid "Load template"
+msgstr ""
+
+msgid "Load the chosen template: its variables become a form with their types, bounds and defaults"
+msgstr ""
+
+msgid "Render the template with the form's values (through the server: nothing is generated)"
+msgstr ""
+
+msgid "Edit as my own"
+msgstr ""
+
+msgid "Edit as my own: save a copy of this template in YOUR scope as the next version (the built-in is untouched)"
+msgstr ""
+
+msgid "Use in generation"
+msgstr ""
+
+msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
+msgstr ""
+
+msgid "Rate"
+msgstr "ﺥﺮﻧ"
+
+msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
+msgstr ""
+
+msgid "Refresh Studios"
+msgstr ""
+
+msgid "Read the Studios state from the server: pending confirmations, jobs, the engine"
+msgstr ""
+
+msgid "Plan"
+msgstr "ﺡﺮﻃ"
+
+msgid "Ask a Studio to read back an action's settings and price (nothing is clicked or spent); a spend then waits for your confirmation"
+msgstr ""
+
+msgid "Arguments"
+msgstr ""
+
+msgid "Confirm and spend"
+msgstr ""
+
+msgid "Spend the credits: confirm this Studio action at the price shown. Only your own click can do this"
+msgstr ""
+
+msgid "Price"
+msgstr ""
+
+msgid "Spend credits?"
+msgstr ""
+
+msgid "Answer"
+msgstr ""
+
+msgid "Answer a question Higgsfield (or a Studio) asks you. Only your own click can"
+msgstr ""
+
+msgid "Sign in to Higgsfield"
+msgstr ""
+
+msgid "Open the server's Higgsfield sign-in page in your browser (one consent; the tokens stay on this machine)"
+msgstr ""
+
+msgid "Reject"
+msgstr ""
+
+msgid "Turn this Studio action down; nothing is spent"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Bring one of a finished job's files into the scene (collection Studio)"
+msgstr ""
+
+msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
+msgstr ""
+
+msgid "Provider for the main agent (the chat)"
+msgstr ""
+
+msgid "Model (ChatGPT plan)"
+msgstr ""
+
+msgid "Model when the main agent runs on your ChatGPT plan"
+msgstr ""
+
+msgid "Effort"
+msgstr ""
+
+msgid "Reasoning effort on your ChatGPT plan (default = the model's)"
+msgstr ""
+
+msgid "Swarm workers"
+msgstr ""
+
+msgid "Provider for the swarm's workers (default = the main provider's own)"
+msgstr ""
+
+msgid "Claude model"
+msgstr ""
+
+msgid "Model for workers on your own claude CLI"
+msgstr ""
+
+msgid "OpenRouter worker model"
+msgstr ""
+
+msgid "Model for workers on OpenRouter"
+msgstr ""
+
+msgid "Images"
+msgstr "ﺮﯾﻭﺎﺼﺗ"
+
+msgid "Image backend: tripo, codex_cli or openrouter"
+msgstr ""
+
+msgid "Image model"
+msgstr ""
+
+msgid "OpenRouter image model, e.g. openai/gpt-image-2.5-sunburst (precision) or -flare (speed)"
+msgstr ""
+
+msgid "Image size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT within the pixel budget (2880x2880 works), or default"
+msgstr ""
+
+msgid "Image quality"
+msgstr ""
+
+msgid "auto, low, medium, high, xhigh, max, or default"
+msgstr ""
+
+msgid "Plates model"
+msgstr ""
+
+msgid "Mesh-paint plates, e.g. openai/gpt-image-2.5-flare (or sourceful/riverflow-v2.5-pro: flattest albedo, slower, dearer)"
+msgstr ""
+
+msgid "Plates size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT, e.g. 2880x2880 or 2160x3840 for a tall plate (at most 3840 per edge, ~8.3 MP)"
+msgstr ""
+
+msgid "Mask model"
+msgstr ""
+
+msgid "Material-ID / mask drafts: flat colour regions, e.g. google/gemini-3.1-flash-image"
+msgstr ""
+
+msgid "Concept model"
+msgstr ""
+
+msgid "Concepts / moodboard, e.g. black-forest-labs/flux-3-image. It redesigns the piece: never for projection"
+msgstr ""
+
+msgid "Concept resolution"
+msgstr ""
+
+msgid "1K, 2K or 4K for models that take resolution, or default"
+msgstr ""
+
+msgid "Tile model"
+msgstr ""
+
+msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
+msgstr ""
+
+msgid "Bulk video"
+msgstr ""
+
+msgid "Bulk clips, e.g. heygen/heygen-video-1"
+msgstr ""
+
+msgid "Bulk resolution"
+msgstr ""
+
+msgid "e.g. 768p"
+msgstr ""
+
+msgid "Bulk seconds"
+msgstr ""
+
+msgid "Seconds, e.g. 10"
+msgstr ""
+
+msgid "Loop video"
+msgstr ""
+
+msgid "Loops (first = last frame), e.g. bytedance/seedance-1-5-pro"
+msgstr ""
+
+msgid "Loop resolution"
+msgstr ""
+
+msgid "e.g. 720p"
+msgstr ""
+
+msgid "Motion video"
+msgstr ""
+
+msgid "Motion transfer with a reference video, e.g. bytedance/seedance-2.0-mini"
+msgstr ""
+
+msgid "Motion resolution"
+msgstr ""
+
+msgid "e.g. 480p"
+msgstr ""
+
+msgid "Video cap (USD)"
+msgstr ""
+
+msgid "One video job above this estimate is refused before it is sent (0 = unchanged)"
+msgstr ""
+
+msgid "Save provider settings"
+msgstr ""
+
+msgid "Save provider choices on the server (fields left empty are unchanged)"
+msgstr ""
+
+msgid "Providers"
+msgstr ""
+
+msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
+msgstr ""
+
+msgid "Refresh sessions"
+msgstr ""
+
+msgid "Read the cockpit state from the server: the herdr server, the sessions and their chips"
+msgstr ""
+
+msgid "Start the herdr server"
+msgstr ""
+
+msgid "Start Lampway's own herdr server (detached: it outlives Blender). Your click only"
+msgstr ""
+
+msgid "Reconcile sessions"
+msgstr ""
+
+msgid "Re-adopt the live panes by the server's truth: nothing is spawned or killed"
+msgstr ""
+
+msgid "New session"
+msgstr ""
+
+msgid "Open a new agent session in the cockpit (your own CLI login)"
+msgstr ""
+
+msgid "Codex"
+msgstr ""
+
+msgid "OpenCode"
+msgstr ""
+
+msgid "Shell"
+msgstr ""
+
+msgid "Name"
+msgstr "ﻡﺎﻧ"
+
+msgid "Read to Text"
+msgstr ""
+
+msgid "Copy the last 70 screen lines of a session into a Text datablock (reading never marks an answer seen)"
+msgstr ""
+
+msgid "Type into a session (your own keystrokes: this is the user's send)"
+msgstr ""
+
+msgid "Close session"
+msgstr ""
+
+msgid "Close a session's pane (its agent process ends; its history stays). Needs your confirm"
+msgstr ""
+
+msgid "Yes, end this agent"
+msgstr ""
+
+msgid "Stop the herdr server"
+msgstr ""
+
+msgid "Stop Lampway's herdr server: every agent pane in it ends. Needs your confirm"
+msgstr ""
+
+msgid "Yes, end every session"
+msgstr ""
+
+msgid "Cockpit window"
+msgstr ""
+
+msgid "Open the cockpit window: a read-only mirror of the session in a Text editor, refreshed every two seconds"
+msgstr ""
+
+msgid "Lampway tools"
+msgstr ""
+
+msgid "Mesh QA"
+msgstr ""
+
+msgid "Tags: Red = Delete, Green = Mislabel, Yellow = Hole"
+msgstr ""
+
+msgid "Rebuild"
+msgstr ""
+
+msgid "Mesh-paint texturing"
+msgstr ""
+
+msgid "Parts and proportion tools"
+msgstr ""
+
+msgid "Review proposals"
+msgstr ""
+
+msgid "Set a piece up first (Mesh QA)"
+msgstr ""
+
+msgid "Proposals are not rulings: tag it to decide."
+msgstr ""
+
+msgid "Studios (online)"
+msgstr ""
+
+msgid "shelf engine"
+msgstr ""
+
+msgid "bundled drivers"
+msgstr ""
+
+msgid "Providers: agent, swarm, images"
+msgstr ""
+
+msgid "Waiting for YOUR confirmation"
+msgstr ""
+
+msgid "Plan (clicks nothing)"
+msgstr ""
+
+msgid "Features"
+msgstr ""
+
+msgid "Prompts"
+msgstr ""
+
+msgid "Cockpit (agent sessions)"
+msgstr ""
+
+msgid "The cockpit: the user's real agent CLIs as panes of Lampway's own herdr server. draw() reads the cached state only: it never touches the network."
+msgstr ""
+
+msgid "Read"
+msgstr "ﻥﺪﻧﺍﻮﺧ"
+
+msgid "Window"
+msgstr "ﻩﺮﺠﻨﭘ"
+
+msgid "Animation clips"
+msgstr ""
+
+msgid "The clip table: one row per action (primary class, speed, loop, an inferred marker, the proposed name). draw() reads the cache only."
+msgstr ""
+
+msgid "Privacy (what leaves this machine)"
+msgstr ""
+
+msgid "Privacy: every outbound route, off until you switch it on, with its retention and training policy; the DATA LEAVING badge; the last log rows. draw() reads the cache only."
+msgstr ""
+
+msgid "Switch off"
+msgstr ""
+
+msgid "Switch on"
+msgstr ""
+
+msgid "Connections (MCP servers)"
+msgstr ""
+
+msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
+msgstr ""
+
+msgid "enum values, | separated"
+msgstr ""
+
+msgid "Recipe"
+msgstr ""
+
+msgid "The parts recipe json (parts and their motion classes)"
+msgstr ""
+
+msgid "Owner map"
+msgstr ""
+
+msgid "A .npy of one part index per polygon; empty = the mesh's int face attribute 'part'"
+msgstr ""
+
+msgid "Piece"
+msgstr ""
+
+msgid "The piece's name; its rulings live in <project root>/<piece>/rulings"
+msgstr ""
+
+msgid "Lift"
+msgstr ""
+
+msgid "Live frame minus the mesh's own frame in Z (how far the piece was lifted onto the floor)"
+msgstr ""
+
+msgid "Source faces"
+msgstr ""
+
+msgid "A rebuild's orig_poly .npy (source face per polygon, -1 = patch); empty for a source mesh"
+msgstr ""
+
+msgid "Turn"
+msgstr ""
+
+msgid "The rebuild's turn about Z in degrees (patch_holes --turn)"
+msgstr ""
+
+msgid "Everything else is intentional"
+msgstr ""
+
+msgid "Answer every candidate nobody named 'keep' (his: everything else looks intentional)"
+msgstr ""
+
+msgid "Relabel to"
+msgstr ""
+
+msgid "Target parts for the green strokes, as stroke:part pairs, e.g. 0:cuirass_back_plate,1:cape_drape_upper"
+msgstr ""
+
+msgid "Source mesh"
+msgstr ""
+
+msgid "Source owner"
+msgstr ""
+
+msgid "Relief views"
+msgstr ""
+
+msgid "Plates"
+msgstr ""
+
+msgid "Template material"
+msgstr ""
+
+msgid "The live textured material to copy for the rebuild"
+msgstr ""
+
+msgid "Tag"
+msgstr ""
+
+msgid "A new name for this rebuild; a tag is never overwritten"
+msgstr ""
+
+msgid "Atlas"
+msgstr ""
+
+msgid "Colour at full resolution"
+msgstr ""
+
+msgid "Ornament"
+msgstr ""
+
+msgid "max_tris:reach_px:min_share, e.g. 600:24:0.25 at 4096"
+msgstr ""
+
+msgid "Gold from mesh relief"
+msgstr ""
+
+msgid "Rebuilt mesh"
+msgstr ""
+
+msgid "The rebuild's patched UV mesh (fbx) the clay renders are made from"
+msgstr ""
+
+msgid "Design plates"
+msgstr ""
+
+msgid "V3's plates: Front.png, Back.png, Left.png, Right.png"
+msgstr ""
+
+msgid "Rebuild outputs"
+msgstr ""
+
+msgid "The rebuild's out_root (holds patched/)"
+msgstr ""
+
+msgid "Rebuild tag"
+msgstr ""
+
+msgid "The rebuild whose mesh and maps the projection reuses"
+msgstr ""
+
+msgid "Generate for real"
+msgstr ""
+
+msgid "Off = a dry run (the image backend verifies its settings, nothing is generated or spent). On needs the owner's own arming of the backend"
+msgstr ""
+
+msgid "Albedo base colour"
+msgstr ""
+
+msgid "The projected albedo as the live material's base colour"
+msgstr ""
+
+msgid "Tool"
+msgstr "ﺭﺍﺰﺑﺍ"
+
+msgid "A prompt-library template (image or video)"
+msgstr ""
+
+msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
+msgstr ""
+
+msgid "Job id"
+msgstr ""
+
+msgid "The job to rate"
+msgstr ""
+
+msgid "Rating"
+msgstr "ﺯﺎﯿﺘﻣﺍ"
+
+msgid "Note"
+msgstr ""
+
+msgid "Studio action"
+msgstr ""
+
+msgid "The action's arguments as JSON, paths inside the project root"
+msgstr ""
+
+msgid "Feature"
+msgstr ""
+
+msgid "Retopology"
+msgstr "ﯼﮊﻮﻟﻮﭘﻮﺗﺯﺎﺑ"
+
+msgid "A new all-quad mesh near a target face count"
+msgstr ""
+
+msgid "UV unwrap"
+msgstr ""
+
+msgid "A packed UV layout on a new mesh"
+msgstr ""
+
+msgid "Mesh segment"
+msgstr ""
+
+msgid "Split into part objects"
+msgstr ""
+
+msgid "Auto rig"
+msgstr ""
+
+msgid "A UE-named humanoid armature"
+msgstr ""
+
+msgid "Mesh prep"
+msgstr ""
+
+msgid "Branch, hash and repair defects"
+msgstr ""
+
+msgid "Asset acceptance"
+msgstr ""
+
+msgid "Identity, orientation, geometry, materials gates"
+msgstr ""
+
+msgid "Detail normals"
+msgstr ""
+
+msgid "Tiling detail normals on a textured_atlas material"
+msgstr ""
+
+msgid "Image to 3D"
+msgstr "ﯼﺪﻌﺑ‌ﻪﺳ ﻪﺑ ﺮﯾﻮﺼﺗ"
+
+msgid "A mesh from views"
+msgstr ""
+
+msgid "Render video"
+msgstr ""
+
+msgid "A turntable or fly-through"
+msgstr ""
+
+msgid "Options"
+msgstr "ﺎﻫ‌ﻪﻨﯾﺰﮔ"
+
+msgid "The feature's other arguments as JSON, e.g. {\"target_faces\": 3000}; engine \"studio:tripo\" asks for approval and clicks nothing"
+msgstr ""
+
+msgid "The tool's arguments, space separated (paths relative to the project root)"
+msgstr ""
+
+msgid "Figure height (m)"
+msgstr ""
+
+msgid "0 = the deform mesh's rest height, else head bone to foot bone"
+msgstr ""
+
+msgid "Last result"
+msgstr ""
+
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
 msgstr ".ﺭﺍﺰﺑﺍ ﺯﺍ ﺏﻮﺧ ﻩﺩﺎﻔﺘﺳﺍ ،ﻊﯾﺮﺳ ﻩﺎﮕﺘﺳﺩ ﺮﻫ ﯼﻭﺭ — ﯽﯾﺎﻨﯿﺑ ﺎﺑ ﻝﺪﻣ ﻦﯾﺮﺗ‌ﮏﭼﻮﮐ"
 
@@ -5012,7 +5990,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
+msgid "Codex defines an older entry in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5270,9 +6248,6 @@ msgstr "ﻩﺪﯿﮐﺭﺍ"
 msgid "Generate Image"
 msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ ﺪﯿﻟﻮﺗ"
 
-msgid "Image to 3D"
-msgstr "ﯼﺪﻌﺑ‌ﻪﺳ ﻪﺑ ﺮﯾﻮﺼﺗ"
-
 msgid "Video Generation"
 msgstr "ﻮﯾﺪﯾﻭ ﺪﯿﻟﻮﺗ"
 
@@ -5284,9 +6259,6 @@ msgstr "ﺖﻠﭙﺳﺍ ﻥﺩﺮﮐ ﺪﯿﻟﻮﺗ"
 
 msgid "PBR Generation"
 msgstr "PBR ﺪﯿﻟﻮﺗ"
-
-msgid "Retopology"
-msgstr "ﯼﮊﻮﻟﻮﭘﻮﺗﺯﺎﺑ"
 
 msgid "Mesh Segmentation"
 msgstr "ﺶﻣ ﯼﺪﻨﺑ‌ﺶﺨﺑ"
@@ -5873,9 +6845,6 @@ msgstr "{number} ﻊﺟﺮﻣ"
 msgid "This template needs an available generation model. Check your connection."
 msgstr ".ﺪﯿﻨﮐ ﯽﺳﺭﺮﺑ ﺍﺭ ﺩﻮﺧ ﻝﺎﺼﺗﺍ .ﺩﺭﺍﺩ ﺯﺎﯿﻧ ﺩﻮﺟﻮﻣ ﺪﯿﻟﻮﺗ ﻝﺪﻣ ﮏﯾ ﻪﺑ ﻮﮕﻟﺍ ﻦﯾﺍ"
 
-msgid "On"
-msgstr "ﻦﺷﻭﺭ"
-
 msgid "Off"
 msgstr "ﺵﻮﻣﺎﺧ"
 
@@ -6284,6 +7253,9 @@ msgstr "ﺩﻮﺷ‌ﯽﻣ ﮓﯾﺭ ﺪﺣﺍﻭ ﺖﻠﮑﺳﺍ ﮏﯾ ﺕﺭ�
 msgid "Settings"
 msgstr "ﺕﺎﻤﯿﻈﻨﺗ"
 
+msgid "About"
+msgstr "ﻩﺭﺎﺑﺭﺩ"
+
 msgid "Auto-detects the skeleton type"
 msgstr "ﺪﻫﺩ‌ﯽﻣ ﺺﯿﺨﺸﺗ ﺭﺎﮐﺩﻮﺧ ﺍﺭ ﺖﻠﮑﺳﺍ ﻉﻮﻧ"
 
@@ -6476,14 +7448,14 @@ msgstr "ﺪﻧﺎﻣ‌ﯽﻣ ﺮﺗ‌ﮏﯾﺩﺰﻧ ﮏﺳﺎﻣ ﻪﺑ ،ﺵ
 msgid "Moodboard Drawer"
 msgstr "ﺩﺭﻮﺑﺩﻮﻣ ﻮﺸﮐ"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "ﺯﺎﺑ 1 ﻭ ﻪﺘﺴﺑ 0 ،ﻩﺪﺷ ﻩﺪﯿﺸﮐ ﻥﻭﺮﯿﺑ ﺭﺪﻘﭼ Zen ﺖﻟﺎﺣ ﺩﺭﻮﺑﺩﻮﻣ ﻮﺸﮐ"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "ﺩﺭﻮﺑﺩﻮﻣ ﻮﺸﮐ ﻑﺪﻫ"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "ﺯﺎﺑ 1 ﻭ ﻪﺘﺴﺑ 0 ،ﺪﻨﯿﺸﻧ‌ﯽﻣ ﻥﺁ ﯼﻭﺭ Zen ﺖﻟﺎﺣ ﺩﺭﻮﺑﺩﻮﻣ ﻮﺸﮐ ﻪﮐ ﯽﺘﻤﺳ"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "ﺩﺭﻮﺑﺩﻮﻣ ﻮﺸﮐ ﯼﺎﻨﻬﭘ"
@@ -6793,9 +7765,6 @@ msgstr "ﺏﺎﻗ ﻪﺳﺎﻨﺷ"
 
 msgid "Stable identifier members refer to"
 msgstr "ﺪﻨﻫﺩ‌ﯽﻣ ﻉﺎﺟﺭﺍ ﻥﺁ ﻪﺑ ﺎﻀﻋﺍ ﻪﮐ ﯼﺭﺍﺪﯾﺎﭘ ﻪﺳﺎﻨﺷ"
-
-msgid "Name"
-msgstr "ﻡﺎﻧ"
 
 msgid "Frame name, painted above its top-left corner"
 msgstr "ﺩﻮﺷ‌ﯽﻣ ﻩﺪﯿﺸﮐ ﻥﺁ ﭗﭼ-ﻻ﻿ﺎﺑ ﻪﺷﻮﮔ ﯼﻻ﻿ﺎﺑ ﻪﮐ ،ﺏﺎﻗ ﻡﺎﻧ"
@@ -7980,9 +8949,6 @@ msgstr "ﺪﻨﮐ‌ﯽﻣ ﺖﯾﺍﺪﻫ ﺍﺭ ﺎﻫ‌ﺖﻓﺎﺑ ﻪﮐ �
 
 msgid "Treat the reference image as a style reference paired with the prompt (Tripo style_image) instead of a direct reference"
 msgstr "ﻢﯿﻘﺘﺴﻣ ﻊﺟﺮﻣ ﻪﻧ ،(Tripo ﺭﺩ style_image) ﺩﺮﯿﮔ‌ﯽﻣ ﺮﻈﻧ ﺭﺩ ﺖﭙﻣﺍﺮﭘ ﻩﺍﺮﻤﻫ ﮏﺒﺳ ﻊﺟﺮﻣ ﺍﺭ ﻊﺟﺮﻣ ﺮﯾﻮﺼﺗ"
-
-msgid "Front"
-msgstr "ﻮﻠﺟ"
 
 msgid "Front view of the subject"
 msgstr "ﻩﮊﻮﺳ ﯼﻮﻠﺟ ﯼﺎﻤﻧ"
@@ -10648,7 +11614,7 @@ msgstr "ﺪﯾﺪﻣﺁ ﺵﻮﺧ Lampway ﻪﺑ"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -10815,18 +11781,6 @@ msgstr ":ﺎﻔﻟﺁ ﯼﻭﺭ ﺮﺛﺍ"
 
 msgid "WARNING: Do NOT edit this group manually!"
 msgstr "!ﺪﯿﻨﮑﻧ ﺶﯾﺍﺮﯾﻭ ﯽﺘﺳﺩ ﺍﺭ ﻩﻭﺮﮔ ﻦﯾﺍ :ﺭﺍﺪﺸﻫ"
-
-msgid "Generated material response did not include a script"
-msgstr "ﺖﺷﺍﺪﻧ ﺖﭙﯾﺮﮑﺳﺍ ﻩﺪﺷﺪﯿﻟﻮﺗ ﻩﺩﺎﻣ ﺦﺳﺎﭘ"
-
-msgid "Generated material but failed to apply it: {result}"
-msgstr "{result} :ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ ﻥﺁ ﻝﺎﻤﻋﺍ ﺎﻣﺍ ﺪﺷ ﺪﯿﻟﻮﺗ ﻩﺩﺎﻣ"
-
-msgid "Generate Procedural Material"
-msgstr "ﯼﺍ‌ﻪﯾﻭﺭ ﻩﺩﺎﻣ ﺪﯿﻟﻮﺗ"
-
-msgid "Material generation failed"
-msgstr "ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ ﻩﺩﺎﻣ ﺪﯿﻟﻮﺗ"
 
 msgid "Show {channel} blend mode and opacity"
 msgstr "ﺪﻫﺩ‌ﯽﻣ ﻥﺎﺸﻧ ﺍﺭ {channel} ﯼﺭﺪﮐ ﻭ ﺐﯿﮐﺮﺗ ﺖﻟﺎﺣ"
@@ -11193,9 +12147,6 @@ msgstr "ﻮﻣ‌ﻢﻠﻗ ﻪﻧﺎﺑﺯﺮﯾﺯ"
 
 msgid "Active subtab in the brush panel"
 msgstr "ﻮﻣ‌ﻢﻠﻗ ﻞﻧﺎﭘ ﺭﺩ ﻝﺎﻌﻓ ﻪﻧﺎﺑﺯﺮﯾﺯ"
-
-msgid "Tool"
-msgstr "ﺭﺍﺰﺑﺍ"
 
 msgid "General brush tool settings"
 msgstr "ﻮﻣ‌ﻢﻠﻗ ﺭﺍﺰﺑﺍ ﯽﻣﻮﻤﻋ ﺕﺎﻤﯿﻈﻨﺗ"
@@ -11742,9 +12693,6 @@ msgstr "ﺕﺍﺭﺩﺎﺻ ﻥﻭﺪﺑ"
 
 msgid "Do not export materials"
 msgstr "ﻦﮑﻧ ﺭﺩﺎﺻ ﺍﺭ ﺩﺍﻮﻣ"
-
-msgid "Images"
-msgstr "ﺮﯾﻭﺎﺼﺗ"
 
 msgid "Automatic"
 msgstr "ﺭﺎﮐﺩﻮﺧ"
@@ -13516,9 +14464,6 @@ msgstr ""
 
 msgid "BW"
 msgstr "ﺪﯿﻔﺳﻭ‌ﻩﺎﯿﺳ"
-
-msgid "RGB"
-msgstr "RGB"
 
 msgid "RGBA"
 msgstr ""
@@ -15330,12 +16275,6 @@ msgstr "ﻞﯿﺴﮔﺍﺮﺗ"
 msgid "Value Channels:"
 msgstr ":ﺭﺍﺪﻘﻣ ﯼﺎﻫ‌ﻝﺎﻧﺎﮐ"
 
-msgid "Metallic"
-msgstr "ﯼﺰﻠﻓ"
-
-msgid "Roughness"
-msgstr "ﯼﺮﺑﺯ"
-
 msgid "Subsurface"
 msgstr "ﺢﻄﺳﺮﯾﺯ"
 
@@ -17143,9 +18082,6 @@ msgstr "ﻝﺎﮐﺩ ﺏﺎﺗﺮﭘ"
 msgid "Camera coordinates"
 msgstr "ﻦﯿﺑﺭﻭﺩ ﺕﺎﺼﺘﺨﻣ"
 
-msgid "Window"
-msgstr "ﻩﺮﺠﻨﭘ"
-
 msgid "Window coordinates"
 msgstr "ﻩﺮﺠﻨﭘ ﺕﺎﺼﺘﺨﻣ"
 
@@ -17907,9 +18843,6 @@ msgstr "ﻉﺎﻌﺷ"
 msgid "Stroke"
 msgstr "ﻪﺑﺮﺿ"
 
-msgid "Rate"
-msgstr "ﺥﺮﻧ"
-
 msgid "Edge to Edge"
 msgstr "ﻪﺒﻟ ﺎﺗ ﻪﺒﻟ"
 
@@ -17984,9 +18917,6 @@ msgstr "ﻥﺭﺎﻘﺗ"
 
 msgid "Mirror"
 msgstr "ﻪﻨﯾﺁ"
-
-msgid "Options"
-msgstr "ﺎﻫ‌ﻪﻨﯾﺰﮔ"
 
 msgid "Bleed"
 msgstr "ﺖﺸﻧ"
@@ -19092,9 +20022,6 @@ msgstr "ﺭﺍﺰﺑﺍ ﺭﺍﻮﻧ"
 msgid "Sidebar"
 msgstr "ﯼﺭﺎﻨﮐ ﺭﺍﻮﻧ"
 
-msgid "Lampway Agent"
-msgstr ""
-
 msgid "UV Mesh Segmentation panel"
 msgstr "UV ﺶﻣ ﯼﺪﻨﺑ‌ﺶﺨﺑ ﻞﻨﭘ"
 
@@ -19599,8 +20526,8 @@ msgstr "ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ ﻡﺎﯿﭘ ﻥﺩﺎﺘﺳﺮﻓ"
 msgid "You're out of credits"
 msgstr "ﺖﺳﺍ ﻩﺪﺷ ﻡﺎﻤﺗ ﺎﻤﺷ ﺭﺎﺒﺘﻋﺍ"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
-msgstr ".ﺪﯿﻫﺩ ﺎﻘﺗﺭﺍ ﺍﺭ ﺩﻮﺧ ﺡﺮﻃ Lampway Agent ﺎﺑ ﺖﺧﺎﺳ ﻪﻣﺍﺩﺍ ﯼﺍﺮﺑ .ﺖﺳﺍ ﻩﺪﺷ ﻡﺎﻤﺗ ﺎﻤﺷ ﻪﻧﺎﻫﺎﻣ ﺭﺎﺒﺘﻋﺍ ﻪﯿﻤﻬﺳ"
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with {agent}."
+msgstr ""
 
 msgid "Feedback comment is empty"
 msgstr "ﺖﺳﺍ ﯽﻟﺎﺧ ﺩﺭﻮﺧﺯﺎﺑ ﺮﻈﻧ"
@@ -20022,8 +20949,8 @@ msgstr ".ﺪﻨﮐ‌ﯽﻣ ﻮﻐﻟ Esc ؛ﺪﯾﺭﺍﺩ ﻪﮕﻧ ﺯﺎﺑ 
 msgid "Login"
 msgstr "ﺩﻭﺭﻭ"
 
-msgid "Login panel for Lampway Chat"
-msgstr "Lampway Agent ﯼﻮﮕﺘﻔﮔ ﺩﻭﺭﻭ ﻞﻨﭘ"
+msgid "Login panel for the agent chat"
+msgstr ""
 
 msgid "Session expired"
 msgstr "ﺪﺷ ﯽﻀﻘﻨﻣ ﺖﺴﺸﻧ"
@@ -20033,9 +20960,6 @@ msgstr ".ﺪﯾﻮﺷ ﺩﺭﺍﻭ ﻩﺭﺎﺑﻭﺩ ﺎًﻔﻄﻟ"
 
 msgid "Login Failed"
 msgstr "ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ ﺩﻭﺭﻭ"
-
-msgid "Sign in with your Lampway account"
-msgstr "ﺪﯾﻮﺷ ﺩﺭﺍﻭ Lampway ﯼﺮﺑﺭﺎﮐ ﺏﺎﺴﺣ ﺎﺑ"
 
 msgid "Waiting for browser..."
 msgstr "...ﺮﮔﺭﻭﺮﻣ ﺭﺎﻈﺘﻧﺍ ﺭﺩ"
@@ -20062,12 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "ﻥﺍﻮﺨﺸﯿﭘ"
-
-msgid "About Lampway"
-msgstr "Lampway ﻩﺭﺎﺑﺭﺩ"
-
-msgid "Documentation"
-msgstr "ﺕﺍﺪﻨﺘﺴﻣ"
 
 msgid "Report a Bug"
 msgstr "ﻝﺎﮑﺷﺍ ﺵﺭﺍﺰﮔ"
@@ -20129,23 +21047,14 @@ msgstr "{reason} .ﺪﺷ ﯽﻀﻘﻨﻣ ﺖﺴﺸﻧ"
 msgid "Browser login did not complete. Please try again."
 msgstr ".ﺪﯿﻨﮐ ﺵﻼ﻿ﺗ ﻩﺭﺎﺑﻭﺩ ﺎًﻔﻄﻟ .ﺪﺸﻧ ﻞﻣﺎﮐ ﺮﮔﺭﻭﺮﻣ ﺩﻭﺭﻭ"
 
-msgid "Login to Lampway Chat via browser SSO"
-msgstr "ﺮﮔﺭﻭﺮﻣ SSO ﺎﺑ Lampway Agent ﯼﻮﮕﺘﻔﮔ ﻪﺑ ﺩﻭﺭﻭ"
-
 msgid "Login failed"
 msgstr "ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ ﺩﻭﺭﻭ"
-
-msgid "Logout from Lampway Chat"
-msgstr "Lampway Agent ﯼﻮﮕﺘﻔﮔ ﺯﺍ ﺝﻭﺮﺧ"
 
 msgid "Logged out successfully"
 msgstr "ﺪﯾﺪﺷ ﺝﺭﺎﺧ ﺖﯿﻘﻓﻮﻣ ﺎﺑ"
 
 msgid "Open Dashboard"
 msgstr "ﻥﺍﻮﺨﺸﯿﭘ ﻥﺩﺮﮐ ﺯﺎﺑ"
-
-msgid "Open Lampway Agent web dashboard in your browser"
-msgstr "ﺪﻨﮐ‌ﯽﻣ ﺯﺎﺑ ﺮﮔﺭﻭﺮﻣ ﺭﺩ ﺍﺭ Lampway Agent ﺏﻭ ﻥﺍﻮﺨﺸﯿﭘ"
 
 msgid "Dashboard opened"
 msgstr "ﺪﺷ ﺯﺎﺑ ﻥﺍﻮﺨﺸﯿﭘ"
@@ -20392,9 +21301,6 @@ msgstr "ﺪﻫﺩ‌ﯽﻣ ﯼﺃﺭ ﺩﻮﺟﻮﻣ ﺯﺎﯿﺘﻣﺍ ﺐﻟ�
 
 msgid "ID of the message bubble to rate"
 msgstr "ﺩﺮﯿﮔ‌ﯽﻣ ﺯﺎﯿﺘﻣﺍ ﻪﮐ ﯽﻣﺎﯿﭘ ﺏﺎﺒﺣ ﻪﺳﺎﻨﺷ"
-
-msgid "Rating"
-msgstr "ﺯﺎﯿﺘﻣﺍ"
 
 msgid "Response rating (thumbs down=1, thumbs up=5)"
 msgstr "(5=ﻥﺪﯾﺪﻨﺴﭘ ،1=ﺖﺴﯿﻧ ﻥﺪﯾﺪﻨﺴﭘ) ﺦﺳﺎﭘ ﺯﺎﯿﺘﻣﺍ"
@@ -20822,21 +21728,6 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Lampway Chat"
-msgstr "Lampway Agent ﯼﻮﮕﺘﻔﮔ ﻪﺑ ﻥﺩﺎﺘﺳﺮﻓ"
-
-msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
-msgstr "(ﻥﺩﺎﺘﺳﺮﻓ ﯼﺍﺮﺑ Enter) ﺩﻮﺷ ﻩﺩﺎﺘﺳﺮﻓ Lampway Agent ﯼﻮﮕﺘﻔﮔ ﻪﺑ ﯽﻣﺎﯿﭘ ﺎﺗ ﺪﻨﮐ‌ﯽﻣ ﺯﺎﺑ ﺍﺭ ﯽﺘﭙﻣﺍﺮﭘ"
-
-msgid "Message to send to Lampway Chat"
-msgstr "Lampway Agent ﯼﻮﮕﺘﻔﮔ ﻪﺑ ﻥﺩﺎﺘﺳﺮﻓ ﯼﺍﺮﺑ ﻡﺎﯿﭘ"
-
-msgid "Not connected to Lampway Chat"
-msgstr "ﺖﺴﯿﻧ ﻞﺼﺘﻣ Lampway Agent ﯼﻮﮕﺘﻔﮔ ﻪﺑ"
-
-msgid "Lampway Chat is busy"
-msgstr "ﺖﺳﺍ ﻝﻮﻐﺸﻣ Lampway Agent ﯼﻮﮕﺘﻔﮔ"
-
 msgid "Mode:"
 msgstr ":ﺖﻟﺎﺣ"
 
@@ -20858,12 +21749,6 @@ msgstr "ﻡﺎﯿﭘ"
 msgid "Please enter a message"
 msgstr "ﺪﯿﺴﯾﻮﻨﺑ ﻡﺎﯿﭘ ﮏﯾ ﺎًﻔﻄﻟ"
 
-msgid "Not connected to server. Please connect in Lampway Chat."
-msgstr ".ﺪﯾﻮﺷ ﻞﺼﺘﻣ Lampway Agent ﯼﻮﮕﺘﻔﮔ ﺭﺩ ﺎًﻔﻄﻟ .ﺖﺴﯿﻧ ﻞﺼﺘﻣ ﺯﺎﺳﺭﺎﮐ ﻪﺑ"
-
-msgid "Lampway Chat is not ready to receive messages"
-msgstr "ﺖﺴﯿﻧ ﻩﺩﺎﻣﺁ ﻡﺎﯿﭘ ﺖﻓﺎﯾﺭﺩ ﯼﺍﺮﺑ Lampway Agent ﯼﻮﮕﺘﻔﮔ"
-
 msgid "Dev Mode: Message sent"
 msgstr "ﺪﺷ ﻩﺩﺎﺘﺳﺮﻓ ﻡﺎﯿﭘ :ﻪﻌﺳﻮﺗ ﺖﻟﺎﺣ"
 
@@ -20881,9 +21766,6 @@ msgstr ""
 
 msgid "Add Rules"
 msgstr "ﺎﻫ‌ﻩﺪﻋﺎﻗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
-
-msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "ﺩﺭﺍﺩ ﺖﯾﻮﻟﻭﺍ ﯽﻧﺎﻬﺟ ﻭ ﻩﮊﻭﺮﭘ ﯼﺎﻫ‌ﻩﺪﻋﺎﻗ ﺮﺑ ﺎﻤﺷ ﯼﺭﺎﺟ ﺖﺳﺍﻮﺧﺭﺩ .ﺪﻧﻮﺷ‌ﯽﻣ ﻝﺎﻤﻋﺍ Lampway ﻞﯾﺎﻓ ﺮﻫ ﺭﺩ ﯽﻧﺎﻬﺟ ﯼﺎﻫ‌ﻩﺪﻋﺎﻗ ؛ﺩﻮﺷ‌ﯽﻣ ﻝﺎﻤﻋﺍ ﯼﺪﻌﺑ ﺦﺳﺎﭘ ﺎﯾ ﻡﺎﯿﭘ ﺭﺩ ﺕﺍﺮﯿﯿﻐﺗ .ﺪﯿﻨﮐ ﻒﯾﺮﻌﺗ Lampway Agent ﯼﺍﺮﺑ ﯽﯾﺎﻫ‌ﻩﺪﻋﺎﻗ"
 
 msgid "Rule operation failed"
 msgstr "ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ ﻩﺪﻋﺎﻗ ﺕﺎﯿﻠﻤﻋ"
@@ -21070,9 +21952,6 @@ msgstr ".ﺪﯿﻧﺰﺑ ﻩﺭﺎﺑﻭﺩ ﺍﺭ ﻒﻗﻮﺗ ﻭ ﺪﯾﻮﺷ
 msgid "Connect"
 msgstr "ﻝﺎﺼﺗﺍ"
 
-msgid "Connect to the Lampway Agent agent server"
-msgstr "ﺩﻮﺷ‌ﯽﻣ ﻞﺼﺘﻣ Lampway Agent ﻞﻣﺎﻋ ﺯﺎﺳﺭﺎﮐ ﻪﺑ"
-
 msgid "Connecting to server..."
 msgstr "...ﺯﺎﺳﺭﺎﮐ ﻪﺑ ﻝﺎﺼﺗﺍ ﻝﺎﺣ ﺭﺩ"
 
@@ -21084,9 +21963,6 @@ msgstr "ﺪﺷ ﻞﺼﺘﻣ ﯽﮕﺘﺧﺎﺳ ﻩﺩﺍﺩ ﺎﺑ :ﻪﻌﺳﻮ
 
 msgid "Disconnect"
 msgstr "ﻝﺎﺼﺗﺍ ﻊﻄﻗ"
-
-msgid "Disconnect from the Lampway Agent agent server"
-msgstr "ﺩﻮﺷ‌ﯽﻣ ﻊﻄﻗ Lampway Agent ﻞﻣﺎﻋ ﺯﺎﺳﺭﺎﮐ ﺯﺍ"
 
 msgid "Dev Mode: Disconnected"
 msgstr "ﺪﺷ ﻊﻄﻗ :ﻪﻌﺳﻮﺗ ﺖﻟﺎﺣ"
@@ -21283,9 +22159,6 @@ msgstr "ﺭﺎﯿﺘﺳﺩ ﻡﺎﯿﭘ"
 msgid "Error message"
 msgstr "ﺎﻄﺧ ﻡﺎﯿﭘ"
 
-msgid "Plan"
-msgstr "ﺡﺮﻃ"
-
 msgid "Generated plan"
 msgstr "ﻩﺪﺷﺪﯿﻟﻮﺗ ﺡﺮﻃ"
 
@@ -21478,8 +22351,8 @@ msgstr "ﺩﻮﺷ‌ﯽﻣ ﻩﺩﺍﺩ ﻥﺎﺸﻧ ﯽﻧﺪﻧﺍﻮﺧ‌ﻂ
 msgid "Message not sent"
 msgstr "ﺪﺸﻧ ﻩﺩﺎﺘﺳﺮﻓ ﻡﺎﯿﭘ"
 
-msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
-msgstr ".ﺩﺮﺑ‌ﯽﻣ ﺭﺎﮐ ﻪﺑ ﺎﻤﻨﻫﺍﺭ ﻥﺍﻮﻨﻋ‌ﻪﺑ ﺍﺭ ﯼﺭﺎﺟ ﻪﻨﺤﺻ ﻖﻤﻋ Lampway Agent .ﺪﯿﺴﯾﻮﻨﺑ ﺭﺪﻧﺭ ﺖﭙﻣﺍﺮﭘ ﮏﯾ"
+msgid "Enter a render prompt. {agent} will use the current scene's depth as the guide."
+msgstr ""
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr ".ﺪﯿﻨﮐ ﺏﺎﺨﺘﻧﺍ ﯼﺪﻌﺑ ﻪﺳ ﯼﺎﻤﻧ ﺭﺩ ﺍﺭ ﺶﻣ ﯼﺎﯿﺷﺍ ،ﻥﺩﺎﺘﺳﺮﻓ ﺯﺍ ﺶﯿﭘ ﻭ ﺪﯿﺴﯾﻮﻨﺑ ﺍﺭ ﺩﻮﺧ ﺖﭙﻣﺍﺮﭘ ﺎًﻔﻄﻟ"
@@ -21556,9 +22429,6 @@ msgstr "ﺭﺎﮐﺩﻮﺧ ﺖﻟﺎﺣ"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "ﺪﻨﮐ‌ﯽﻣ ﺖﺳﺮﻬﻓ ﻪﺻﻼ﻿ﺧ ﺭﺩ ﺍﺭ ﺎﻫ‌ﻢﯿﻤﺼﺗ ﻭ ،ﺪﺳﺮﭙﺑ ﺎﻤﺷ ﺯﺍ ﻪﮑﻧﺁ ﯼﺎﺟ‌ﻪﺑ ﺩﺮﯿﮔ‌ﯽﻣ ﻢﯿﻤﺼﺗ ﺵﺩﻮﺧ ﺍﺭ ﺯﺎﺑ ﺏﺎﺨﺘﻧﺍ ﺮﻫ ﻞﻣﺎﻋ"
 
-msgid "Lampway Agent Is Busy"
-msgstr "Lampway Agent ﺖﺳﺍ ﻝﻮﻐﺸﻣ"
-
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "(BUSY ﺖﯿﻌﺿﻭ) ﺪﻨﮐ‌ﯽﻣ ﺵﺯﺍﺩﺮﭘ ﺍﺭ ﯽﺘﺳﺍﻮﺧﺭﺩ ﻞﻣﺎﻋ ﯽﺘﻗﻭ ﺖﺳﺍ ﺖﺳﺭﺩ"
 
@@ -21630,9 +22500,6 @@ msgstr "Claude Haiku 4.0 - ﺪﻣﺁﺭﺎﮐ ﻭ ﻊﯾﺮﺳ"
 
 msgid "Password"
 msgstr "ﻩﮊﺍﻭﺭﺬﮔ"
-
-msgid "Password for Lampway Chat login"
-msgstr "Lampway Agent ﯼﻮﮕﺘﻔﮔ ﻪﺑ ﺩﻭﺭﻭ ﯼﺍﺮﺑ ﻩﮊﺍﻭﺭﺬﮔ"
 
 msgid "Is Logged In"
 msgstr "ﺖﺳﺍ ﻩﺪﺷ ﺩﺭﺍﻭ"
@@ -21828,9 +22695,6 @@ msgstr "ﻡﺎﮔ ﻒﯾﺩﺭ ﻦﯾﺍ ﯼﺍﺮﺑ ﺎﺘﮑﯾ ﻪﺳﺎﻨ�
 
 msgid "What kind of tool call this row represents"
 msgstr "ﺪﻫﺩ‌ﯽﻣ ﻥﺎﺸﻧ ﺍﺭ ﯼﺭﺍﺰﺑﺍ ﯽﻧﺍﻮﺧﺍﺮﻓ ﻉﻮﻧ ﻪﭼ ﻒﯾﺩﺭ ﻦﯾﺍ"
-
-msgid "Read"
-msgstr "ﻥﺪﻧﺍﻮﺧ"
 
 msgid "File read"
 msgstr "ﻞﯾﺎﻓ ﻥﺪﻧﺍﻮﺧ"
@@ -22036,8 +22900,8 @@ msgstr "ﺪﻧﻮﺷ‌ﯽﻤﻧ ﻩﺩﺎﺘﺳﺮﻓ ﺎﻣﺍ ﺪﻨﻧﺎﻣ
 msgid "Global"
 msgstr "ﯽﻧﺎﻬﺟ"
 
-msgid "Global rules apply to every .mixar file (~/.mixar/global_rules.json); others to this file only"
-msgstr "ﻞﯾﺎﻓ ﻦﯾﺍ ﯼﺍﺮﺑ ﻂﻘﻓ ﻪﯿﻘﺑ ؛(mixar/global_rules.json./~) ﺪﻧﻮﺷ‌ﯽﻣ ﻝﺎﻤﻋﺍ mixar. ﻞﯾﺎﻓ ﺮﻫ ﯼﺍﺮﺑ ﯽﻧﺎﻬﺟ ﯼﺎﻫ‌ﻩﺪﻋﺎﻗ"
+msgid "Global rules apply to every file you open (global_rules.json in your Lampway data folder); others to this file only"
+msgstr ""
 
 msgid "Project Rules"
 msgstr "ﻩﮊﻭﺮﭘ ﯼﺎﻫ‌ﻩﺪﻋﺎﻗ"
@@ -22056,9 +22920,6 @@ msgstr "ﯽﺋﺮﻣ ﻩﮊﻭﺮﭘ ﯼﺎﻫ‌ﻩﺪﻋﺎﻗ"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "ﺖﺳﺍ ﺯﺎﺑ ﻩﮊﻭﺮﭘ ﯼﺎﻫ‌ﻩﺪﻋﺎﻗ ﻢﻬﯾﻭﺭ ﺎﯾﺁ"
-
-msgid "Waiting for you"
-msgstr "ﺎﻤﺷ ﺮﻈﺘﻨﻣ"
 
 msgid "Session"
 msgstr ""
@@ -24055,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine ﺖﻟﺎﺣ"
-
-msgid "Zen Mode"
-msgstr "Zen ﺖﻟﺎﺣ"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24070,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Lampway ﺖﻟﺎﺣ ﻪﺑ ﺍﺭ Zen ﺩﺭﻮﺑﺩﻮﻣ + ﻞﻣﺎﻋ ﺏﺎﺒﺣ + ﻪﻨﯿﻤﮐ ﯼﺪﻌﺑ‌ﻪﺳ ﯼﺎﻤﻧ) ﺩﺮﺑ‌ﯽﻣ)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "ﺖﺴﯿﻧ ﺱﺮﺘﺳﺩ ﺭﺩ ﯽﯾﻮﮕﻟﺍ — ﺪﺸﻧ ﻪﺘﺧﺎﺳ Zen ﺖﻟﺎﺣ ﯼﺭﺎﮐ ﯼﺎﻀﻓ"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Lampway ﺖﻟﺎﺣ ﻪﺑ ﺍﺭ Engine ﮏﺒﺳ ﻪﺑ ﻞﻣﺎﮐ ﯼﺭﺎﮐ ﯼﺎﻫﺎﻀﻓ) ﺩﺮﺑ‌ﯽﻣ Blender)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "ﺪﺸﻧ ﺍﺪﯿﭘ ﯼﺯﺎﺳ‌ﻝﺪﻣ ﯼﺭﺎﮐ ﯼﺎﻀﻓ"
@@ -24154,7 +25009,7 @@ msgstr "ﺶﯾﺎﻤﻧ ﻪﯾﻻ﻿ ﻭ ﻪﻨﺤﺻ"
 msgid "View Layer"
 msgstr "ﺶﯾﺎﻤﻧ ﻪﯾﻻ﻿"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -24205,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -24295,38 +25150,38 @@ msgstr "Blend (.blend)"
 msgid "Tutorials"
 msgstr ""
 
-msgid "Creator Program"
-msgstr ""
-
 msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
 msgstr "ﺩﻭﺮﺑ ﺖﺳﺩ ﺯﺍ ﺎﻫ‌ﻩﺩﺍﺩ ﺯﺍ ﯽﺸﺨﺑ ﺖﺳﺍ ﻦﮑﻤﻣ ،(%d.%d) ﺖﺳﺍ ﻩﺪﺷ ﻩﺮﯿﺧﺫ Lampway ﺮﺗﺪﯾﺪﺟ ﻪﺨﺴﻧ ﺎﺑ ﻞﯾﺎﻓ"
 
 msgid "The file was saved by a newer version, open it with Lampway %s or later"
 msgstr "ﺪﯿﻨﮐ ﺯﺎﺑ ﺮﺗﺪﯾﺪﺟ ﺎﯾ Lampway %s ﺎﺑ ﺍﺭ ﻥﺁ ؛ﺖﺳﺍ ﻩﺪﺷ ﻩﺮﯿﺧﺫ ﯼﺮﺗﺪﯾﺪﺟ ﻪﺨﺴﻧ ﺎﺑ ﻞﯾﺎﻓ"
 
-msgid "Failed to read mixar file '%s': %s"
-msgstr "%s :ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ «mixar «%s ﻞﯾﺎﻓ ﻥﺪﻧﺍﻮﺧ"
+msgid "Failed to read Lampway file '%s': %s"
+msgstr ""
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
-msgstr "ﺪﺷﺎﺑ Lampway ﺮﺗﺪﯾﺪﺟ ﻪﺨﺴﻧ ﺯﺍ ﺖﺳﺍ ﻦﮑﻤﻣ ﻭ ﺖﺳﺍ ﺺﻗﺎﻧ ﺪﻨﯾﺁﺮﺳ ؛ﺩﻮﺷ‌ﯽﻤﻧ ﻩﺪﻧﺍﻮﺧ «mixar «%s ﻞﯾﺎﻓ"
+msgid "Cannot read Lampway file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr ""
 
-msgid "Failed to read file '%s', not a mixar file"
-msgstr "ﺖﺴﯿﻧ mixar ﻞﯾﺎﻓ ؛ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ «%s» ﻞﯾﺎﻓ ﻥﺪﻧﺍﻮﺧ"
+msgid "Failed to read file '%s', not a Lampway file"
+msgstr ""
 
-msgid "Unable to open mixar <memory>"
-msgstr "ﺖﺴﯿﻧ ﻦﮑﻤﻣ <memory> ﺯﺍ mixar ﻥﺩﺮﮐ ﺯﺎﺑ"
+msgid "Unable to open Lampway <memory>"
+msgstr ""
 
-msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
-msgstr ".ﺪﻧﺍ‌ﻩﺪﺷ ﻩﺎﺗﻮﮐ ﺎﻫ‌ﻡﺎﻧ ﻦﯾﺍ .ﺩﺭﺍﺩ ﯽﻠﻌﻓ ﯽﻧﺎﺒﯿﺘﺸﭘ ﺪﺣ ﺯﺍ ﺮﺗﺪﻨﻠﺑ ﯽﯾﺎﻫ‌ﻪﺳﺎﻨﺷ ﻡﺎﻧ ﻭ ﻩﺪﺷ ﻪﺘﺧﺎﺳ Lampway ﺯﺍ ﻩﺪﻨﯾﺁ ﯼﺍ‌ﻪﺨﺴﻧ ﺎﺑ «Lampway «%s ﻞﯾﺎﻓ"
+msgid "Lampway file '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr ""
 
-msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr ".ﺪﻧﺍ‌ﻩﺪﺷ ﻩﺎﺗﻮﮐ ﺎﻫ‌ﻡﺎﻧ ﻦﯾﺍ .ﺩﺭﺍﺩ ﺮﺒﺘﻌﻣﺎﻧ ﯼﺎﻫ‌ﻪﺳﺎﻨﺷ ﻡﺎﻧ ﻭ ﺪﺳﺭ‌ﯽﻣ ﺮﻈﻧ ﻪﺑ ﺏﺍﺮﺧ «Lampway «%s ﻞﯾﺎﻓ"
+msgid "Lampway file '%s' appears corrupted, it contains invalid ID names. These have been truncated."
+msgstr ""
 
 msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
 msgstr ".ﺪﯿﻨﮐ ﻩﺮﯿﺧﺫ ﻩﺭﺎﺑﻭﺩ ﻭ ﺪﯿﻨﮐ ﺯﺎﺑ Lampway ﯽﻠﻌﻓ ﻪﺨﺴﻧ ﺎﺑ ﺍﺭ ﻪﻧﺎﺨﺑﺎﺘﮐ ﻥﺁ ؛ﺪﻨﮐ ﻢﮔ ﺍﺭ ﯼﺪﻧﻮﯿﭘ ﻩﺩﺍﺩ ﺖﺳﺍ ﻦﮑﻤﻣ ﻦﯾﺍ .ﺩﺭﺍﺩ ﯽﻠﻌﻓ ﯽﻧﺎﺒﯿﺘﺸﭘ ﺪﺣ ﺯﺍ ﺮﺗﺪﻨﻠﺑ ﯽﯾﺎﻫ‌ﻪﺳﺎﻨﺷ ﻡﺎﻧ ﻭ ﻩﺪﺷ ﻪﺘﺧﺎﺳ Lampway ﺯﺍ ﻩﺪﻨﯾﺁ ﯼﺍ‌ﻪﺨﺴﻧ ﺎﺑ «%s» ﻪﻧﺎﺨﺑﺎﺘﮐ"
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: ﯽﻠﺻﺍ ﻞﯾﺎﻓ ﻪﺑ ﻩﺩﺍﺩ .mixar ﺪﻨﮐ‌ﯽﻣ ﻩﺭﺎﺷﺍ: «%s» ﺯﺍ %s"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "! %s ،ﺪﯾﺪﻣﺁ ﺵﻮﺧ"
@@ -24448,8 +25303,8 @@ msgstr "ﻦﺘﻓﺮﮔ ﻝﺎﺣ ﺭﺩ"
 msgid "NEW"
 msgstr "ﺪﯾﺪﺟ"
 
-msgid "Ask Lampway Agent anything..."
-msgstr "...ﺪﯿﺳﺮﭙﺑ Lampway Agent ﺯﺍ ﺪﯿﻫﺍﻮﺧ‌ﯽﻣ ﻪﭼ ﺮﻫ"
+msgid "Ask %s anything..."
+msgstr ""
 
 msgid "Write your prompt here..."
 msgstr "...ﺪﯿﺴﯾﻮﻨﺑ ﺎﺠﻨﯾﺍ ﺍﺭ ﺩﻮﺧ ﺖﭙﻣﺍﺮﭘ"
@@ -25243,6 +26098,24 @@ msgstr "ﺎﻤﻧ‌ﻥﺎﮑﻣ X ﺖﯿﻌﻗﻮﻣ"
 msgid "Cursor Y position"
 msgstr "ﺎﻤﻧ‌ﻥﺎﮑﻣ Y ﺖﯿﻌﻗﻮﻣ"
 
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
+
 msgid "Animate Moodboard Attachment"
 msgstr "ﺩﺭﻮﺑﺩﻮﻣ ﺖﺳﻮﯿﭘ ﯼﺯﺎﺳ‌ﮎﺮﺤﺘﻣ"
 
@@ -25759,14 +26632,14 @@ msgstr "ﺪﻫﺩ‌ﯽﻣ ﺭﺍﺮﻗ ﺩﻮﺷ‌ﯽﻣ ﺎﻫﺭ ﻮﮕﻟ�
 msgid "Template to place"
 msgstr "ﻥﺩﺍﺩ ﺭﺍﺮﻗ ﯼﺍﺮﺑ ﻮﮕﻟﺍ"
 
-msgid "Select Lampway Agent3D Preview"
-msgstr "Lampway Agent3D ﺶﯾﺎﻤﻧ‌ﺶﯿﭘ ﺏﺎﺨﺘﻧﺍ"
+msgid "Select Lampway 3D Preview"
+msgstr ""
 
 msgid "Select a segmented image from the preview history"
 msgstr "ﺪﻨﮐ‌ﯽﻣ ﺏﺎﺨﺘﻧﺍ ﺶﯾﺎﻤﻧ‌ﺶﯿﭘ ﻪﭽﺨﯾﺭﺎﺗ ﺯﺍ ﺍﺭ ﻩﺪﺷ‌ﯼﺪﻨﺑ‌ﺶﺨﺑ ﺮﯾﻮﺼﺗ ﮏﯾ"
 
-msgid "Delete Lampway Agent3D Preview"
-msgstr "Lampway Agent3D ﺶﯾﺎﻤﻧ‌ﺶﯿﭘ ﻑﺬﺣ"
+msgid "Delete Lampway 3D Preview"
+msgstr ""
 
 msgid "Delete a segmented image from the preview history"
 msgstr "ﺪﻨﮐ‌ﯽﻣ ﻑﺬﺣ ﺶﯾﺎﻤﻧ‌ﺶﯿﭘ ﻪﭽﺨﯾﺭﺎﺗ ﺯﺍ ﺍﺭ ﻩﺪﺷ‌ﯼﺪﻨﺑ‌ﺶﺨﺑ ﺮﯾﻮﺼﺗ ﮏﯾ"
@@ -25945,8 +26818,8 @@ msgstr "ﻩﮊﻭﺮﭘ ﻦﯾﺍ"
 msgid "All projects"
 msgstr "ﺎﻫ‌ﻩﮊﻭﺮﭘ ﻪﻤﻫ"
 
-msgid "Add a rule above to guide Lampway Agent."
-msgstr ".ﺪﻨﮐ ﯽﯾﺎﻤﻨﻫﺍﺭ ﺍﺭ Lampway Agent ﺎﺗ ﺪﯿﻨﮐ ﻪﻓﺎﺿﺍ ﻻ﻿ﺎﺑ ﺭﺩ ﻩﺪﻋﺎﻗ ﮏﯾ"
+msgid "Add a rule above to guide %s."
+msgstr ""
 
 msgid "Applies to"
 msgstr "ﺮﺑ ﺩﻮﺷ‌ﯽﻣ ﻝﺎﻤﻋﺍ"
@@ -25989,6 +26862,24 @@ msgstr "ﺖﻓﺎﺑ ﯼﺎﻫ‌ﻪﻋﻮﻤﺠﻣ ﯼﺎﻀﻓ"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "ﺪﯿﻨﮐ ﻩﺩﺎﻔﺘﺳﺍ ﺖﻓﺎﺑ ﯼﺎﻫ‌ﻪﻋﻮﻤﺠﻣ ﺖﯾﺮﯾﺪﻣ ﯼﺍﺮﺑ ﯼﺭﺎﻨﮐ ﺭﺍﻮﻧ ﯼﺎﻫ‌ﻞﻨﭘ ﺯﺍ"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "ﻝﻭﺍ ﻪﺑ ﺖﺸﮔﺯﺎﺑ"
@@ -26740,8 +27631,8 @@ msgstr "ﯽﻫﺩ‌ﺖﻓﺎﺑ ﺕﺎﻤﯿﻈﻨﺗ"
 msgid "Layer and texture properties"
 msgstr "ﺖﻓﺎﺑ ﻭ ﻪﯾﻻ﻿ ﯼﺎﻫ‌ﯽﮔﮋﯾﻭ"
 
-msgid "Texturing Assets"
-msgstr "ﯽﻫﺩ‌ﺖﻓﺎﺑ ﯼﺎﻫ‌ﯽﯾﺍﺭﺍﺩ"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "ﺎﻫ‌ﺖﻓﺎﺑ ﻭ ﺎﻫﻮﻣ‌ﻢﻠﻗ ،ﺪﻨﻤﺷﻮﻫ ﺩﺍﻮﻣ ﻪﻧﺎﺨﺑﺎﺘﮐ"
@@ -26770,11 +27661,11 @@ msgstr "PureRef ﺪﻨﻧﺎﻣ ﻊﺟﺮﻣ ﺮﯾﻮﺼﺗ ﻪﺘﺨﺗ"
 msgid "Lampway Agent Space"
 msgstr "Lampway Agent ﯼﺎﻀﻓ"
 
-msgid "Lampway Agent editor for Lampway"
-msgstr "Lampway ﯼﺍﺮﺑ Lampway Agent ﺮﮕﺸﯾﺍﺮﯾﻭ"
+msgid "Lampway agent editor"
+msgstr ""
 
-msgid "Lampway Agent editor mode"
-msgstr "Lampway Agent ﺮﮕﺸﯾﺍﺮﯾﻭ ﺖﻟﺎﺣ"
+msgid "Lampway editor mode"
+msgstr ""
 
 msgid "Agent Bubble Space"
 msgstr "ﻞﻣﺎﻋ ﺏﺎﺒﺣ ﯼﺎﻀﻓ"
@@ -26965,8 +27856,8 @@ msgstr "ﻩﺪﺷ‌ﯼﺪﻨﺑ‌ﻪﺟﺭﺩ ﺐﺴﭼﺮﺑ ﺎﺑ ﺩﺮﮔ
 msgid "Viewport Pill"
 msgstr "ﯼﺪﻌﺑ‌ﻪﺳ ﯼﺎﻤﻧ ﻝﻮﺴﭙﮐ"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "ﺖﺳﺍ ﺭﻮﻧ‌ﻢﮐ ﺖﺴﯿﻧ ﻩﺪﻧﺯ ﺖﻟﺎﺣ ﯽﺘﻗﻭ ؛Zen ﯼﺪﻌﺑ‌ﻪﺳ ﯼﺎﻤﻧ ﯽﻧﺯ‌ﻪﯾﺎﺳ ﻝﻮﺴﭙﮐ"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "ﻪﯾﺎﻤﻧ ﻝﻮﺴﭙﮐ"
@@ -27208,26 +28099,26 @@ msgstr "ﻒﺻ ﺩﺍﺪﻌﺗ ﻪﺷﺍﺮﺗ"
 msgid "Slider Track"
 msgstr "ﻩﺪﻧﺰﻐﻟ ﺮﯿﺴﻣ"
 
-msgid "Zen/Engine slider track"
-msgstr "Zen/Engine ﻩﺪﻧﺰﻐﻟ ﺮﯿﺴﻣ"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "ﻩﺪﻧﺰﻐﻟ ﻩﺮﯿﮕﺘﺳﺩ"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Zen/Engine ﻩﺪﻧﺰﻐﻟ ﻩﺮﯿﮕﺘﺳﺩ"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "ﻩﺪﻧﺰﻐﻟ ﻩﺮﯿﮕﺘﺳﺩ ﺭﻭﺎﻨﺷ"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine ﻩﺮﯿﮕﺘﺳﺩ ﺭﻭﺎﻨﺷ"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "ﻩﺪﻧﺰﻐﻟ ﺐﺴﭼﺮﺑ"
 
-msgid "Zen/Engine slider label"
-msgstr "Zen/Engine ﻩﺪﻧﺰﻐﻟ ﺐﺴﭼﺮﺑ"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "ﺎﻤﻨﯿﺳ ﻝﻮﺴﭙﮐ ﺮﭘ"
@@ -27796,8 +28687,8 @@ msgstr "(ﺮﺗ‌ﺕﺎﻣ ﻪﺸﯿﺷ = ﺮﺘﻤﮐ) ﻩﺮﺠﻨﭘ ﻪﻨ�
 msgid "Theme Lampway Agent Space"
 msgstr "Lampway Agent ﯼﺎﻀﻓ ﻪﺘﺳﻮﭘ"
 
-msgid "Theme settings for Lampway Agent/Moodboard space"
-msgstr "ﺩﺭﻮﺑﺩﻮﻣ/Lampway Agent ﯼﺎﻀﻓ ﻪﺘﺳﻮﭘ ﺕﺎﻤﯿﻈﻨﺗ"
+msgid "Theme settings for Lampway/Moodboard space"
+msgstr ""
 
 msgid "Text Input Background"
 msgstr "ﻦﺘﻣ ﯼﺩﻭﺭﻭ ﻪﻨﯿﻣﺯ‌ﺲﭘ"
@@ -27985,14 +28876,14 @@ msgstr "ﺪﺷ ﻊﻄﻗ ﻥﻮﻓﻭﺮﮑﯿﻣ"
 msgid "Lampway File View"
 msgstr "Lampway ﻞﯾﺎﻓ ﯼﺎﻤﻧ"
 
-msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
-msgstr "ﺪﯿﻨﮐ ﻩﺮﯿﺧﺫ ﻩﺭﺎﺑﻭﺩ Lampway ﻪﺨﺴﻧ ﻦﯾﺮﺗ‌ﻩﺯﺎﺗ ﺎﺑ ﺍﺭ mixar. ﻪﻧﺎﺨﺑﺎﺘﮐ ﻞﯾﺎﻓ ﺮﻫ .(ﺪﺷ ﮎﺎﭘ ﻭ ﺪﺸﻧ ﻞﯾﺪﺒﺗ ﯽﺴﮐﻭﺮﭘ %d ،ﺪﺷ ﻞﯾﺪﺒﺗ ﻪﻧﺎﺨﺑﺎﺘﮐ ﯽﺴﯾﻮﻧﺯﺎﺑ ﻪﺑ ﺭﺎﮐﺩﻮﺧ ﯽﺴﮐﻭﺮﭘ %d) ﺪﻧﺍ‌ﻩﺪﺷ ﻑﺬﺣ Lampway ﺯﺍ ﺎﻫ‌ﯽﺴﮐﻭﺮﭘ"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .Lampway file with the newest Lampway version"
+msgstr ""
 
-msgid "Cannot save mixar file, path \"%s\" is not writable"
-msgstr "ﺖﺴﯿﻧ ﯽﻨﺘﺷﻮﻧ «%s» ﺮﯿﺴﻣ ،ﺩﻮﺷ‌ﯽﻤﻧ ﻩﺮﯿﺧﺫ mixar ﻞﯾﺎﻓ"
+msgid "Cannot save Lampway file, path \"%s\" is not writable"
+msgstr ""
 
-msgid "Cannot save mixar file, path \"%s\" is a directory"
-msgstr "ﺖﺳﺍ ﻪﺷﻮﭘ ﮏﯾ «%s» ﺮﯿﺴﻣ ،ﺩﻮﺷ‌ﯽﻤﻧ ﻩﺮﯿﺧﺫ mixar ﻞﯾﺎﻓ"
+msgid "Cannot save Lampway file, path \"%s\" is a directory"
+msgstr ""
 
 msgid "Lampway will start next time as it is now."
 msgstr "Lampway ﺩﻮﺷ‌ﯽﻣ ﻉﻭﺮﺷ ﺖﺳﺍ ﻥﻮﻨﮐﺍ ﻪﮐ ﺭﻮﻃ‌ﻥﺎﻤﻫ ﺪﻌﺑ ﻪﻌﻓﺩ."

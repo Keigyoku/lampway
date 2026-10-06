@@ -311,13 +311,13 @@ MIXAR_INTRO = Tour(
         # -- Act 5: Zen vs Engine ("You are now in Zen mode…" 101.68;
         # "flip to engine mode." ends 106.84)
         Beat("engine-prompt", 101530, 107340, "half", PLACE_BOTTOM_CENTER,
-             label="Part 5 · Zen and Engine",
+             label="Part 5 · Lamplight and Workshop",
              actions=((101530, "drawer_set", {"amount": 0.0}),),
              overlays=(
                  _scribble("zen-now-ring", A_ZEN_BUTTON, appear=102200, disappear=104600),
                  _scribble("engine-ring", A_ENGINE_BUTTON, appear=104700),
                  _cursor("engine-cursor", A_ENGINE_BUTTON, appear=105100),
-                 _hint("engine-hint", "Switch to Engine mode", A_ENGINE_BUTTON,
+                 _hint("engine-hint", "Switch to the Workshop", A_ENGINE_BUTTON,
                        appear=106000),
              ),
              gate=Gate("ui_mode:PRO", "engine-mode", anchor=A_ENGINE_BUTTON,
@@ -326,7 +326,7 @@ MIXAR_INTRO = Tour(
         # "The full Blender workspace is there…" 107.77 · "Mixie works in
         # both" 112.98 · "Let's head back to Zen mode." 116.56–117.57
         Beat("engine-mode", 107620, 118080, "half", PLACE_BOTTOM_LEFT,
-             label="Part 5 · Zen and Engine",
+             label="Part 5 · Lamplight and Workshop",
              actions=(
                  (107620, "ui_mode", {"mode": "PRO"}),
                  (117300, "ui_mode", {"mode": "AI"}),

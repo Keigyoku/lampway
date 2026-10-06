@@ -123,7 +123,7 @@ def test_splash_menu_draw_is_pure_and_names_a_stopped_server(splash, monkeypatch
     assert "Lampway's server is not running" in texts
     assert [t for t in texts if t.endswith(".blend")] == ["lantern.blend", "bench.blend", "rig.blend", "fifth.blend"], \
         "four recent files, the missing one skipped"
-    assert {"Open in Zen", "Open in Engine", "New scene", "Recover last session"} <= set(texts)
+    assert {"Start in Lamplight", "Start in Workshop", "New scene", "Recover last session"} <= set(texts)
     assert "Help" in texts
 
 

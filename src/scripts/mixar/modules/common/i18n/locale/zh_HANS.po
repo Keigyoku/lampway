@@ -28,9 +28,6 @@ msgstr "浮动气泡聊天历史列表中的活动行"
 msgid "Share Usage Data"
 msgstr "共享使用数据"
 
-msgid "Share content-free product usage events to help improve Lampway"
-msgstr "共享不含内容的产品使用事件，帮助改进 Lampway"
-
 msgid "No generation services"
 msgstr "无生成服务"
 
@@ -55,29 +52,59 @@ msgstr "无风格"
 msgid "No styles available"
 msgstr "无可用风格"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "文档"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "欢迎画面"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "不含“最近文件”的自定义欢迎画面菜单。"
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "选择模式"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "以 Zen 模式开始"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine 模式（Blender 风格）"
+msgid "Start"
+msgstr "起始"
 
-msgid "Getting Started"
-msgstr "入门"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "关于"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Join Discord"
-msgstr "加入 Discord"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
+msgstr ""
 
 msgid "Quick Setup"
 msgstr "快速设置"
@@ -294,9 +321,6 @@ msgstr "发送"
 msgid "Scenes"
 msgstr ""
 
-msgid "New scene"
-msgstr ""
-
 msgid "Send selection to"
 msgstr ""
 
@@ -472,12 +496,6 @@ msgid "Add the selected images and videos to the moodboard, and the selected 3D 
 msgstr ""
 
 msgid "Nothing is selected"
-msgstr ""
-
-msgid "Open Lampway Agent"
-msgstr ""
-
-msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
 msgstr ""
 
 msgid "Capture Viewport"
@@ -822,6 +840,18 @@ msgstr "失败"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "出错，或因依赖项失败而跳过"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "开始时间"
 
@@ -833,6 +863,24 @@ msgstr "正在关闭"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "用户点击关闭此卡片时设置。面板会播放与已完成卡片相同的滑出动画，卡片离开后再移除该行——点击不能让卡片在光标下直接消失"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "结束时间"
@@ -851,6 +899,12 @@ msgstr "智能体卡片代次"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "每当新的分派替换面板内容时递增。该值变化时，C++ 面板会重置滚动位置并重播滑入动画——它无法从自身的卡片列表推断出“新轮次”，因为该列表仅在绘制时重新同步，面板因轮询而隐藏时仍保留上一轮次的卡片"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "活动智能体卡片"
@@ -1703,9 +1757,6 @@ msgstr "下载"
 msgid "Stop"
 msgstr "停止"
 
-msgid "Start"
-msgstr "起始"
-
 msgid "Delete Download"
 msgstr "删除下载内容"
 
@@ -2420,16 +2471,13 @@ msgstr "要切换到的空间类型"
 msgid "No active area"
 msgstr "没有活动区域"
 
-msgid "Apply Lampway Forest"
-msgstr ""
-
-msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
+msgid "Lampway Night is not installed: reinstall Lampway to restore its themes"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2468,19 +2516,16 @@ msgstr "隐私"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "遥测同意设置，放在用户通常寻找退出选项的位置。"
 
-msgid "Shares which Lampway features you use, to help improve the product."
-msgstr "共享您使用了哪些 Lampway 功能，以帮助改进产品。"
-
 msgid "Your prompts, files, and scene content are never included."
 msgstr "绝不包含您的提示词、文件和场景内容。"
+
+msgid "Off by default; events only ever go to your configured Lampway server."
+msgstr ""
 
 msgid "Privacy Policy"
 msgstr "隐私政策"
 
-msgid "Lampway"
-msgstr ""
-
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2489,13 +2534,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2504,11 +2549,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "顶栏外观（UI.svg 方案）"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
-msgstr "引擎"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "电影模式"
@@ -2593,6 +2638,9 @@ msgstr "本地单击次数"
 
 msgid "Profile"
 msgstr "轮廓"
+
+msgid "Zen"
+msgstr ""
 
 msgid "Shared Zen components"
 msgstr "共享 Zen 组件"
@@ -3008,6 +3056,9 @@ msgstr "已导出 {filename}（{count} 个网格）"
 msgid "Unreal Connector"
 msgstr "Unreal 连接器"
 
+msgid "Lampway"
+msgstr ""
+
 msgid "Connector properties not registered"
 msgstr "连接器属性未注册"
 
@@ -3080,7 +3131,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Lampway Agent read files in a folder"
+msgid "Let {agent} read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -4817,6 +4868,933 @@ msgstr "关闭"
 msgid "Dismiss the error and return to idle"
 msgstr "关闭错误并返回空闲状态"
 
+msgid "Front"
+msgstr "前"
+
+msgid "RGB"
+msgstr "RGB"
+
+msgid "Roughness"
+msgstr "糙度"
+
+msgid "Metallic"
+msgstr "金属度"
+
+msgid "Chest1"
+msgstr ""
+
+msgid "Waist1"
+msgstr ""
+
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "开启"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "等待您操作"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Refresh privacy"
+msgstr ""
+
+msgid "Read the Privacy state from the server and keep it fresh while data may leave"
+msgstr ""
+
+msgid "Switch route"
+msgstr ""
+
+msgid "Opt a route in or out. Every route is OFF until you switch it on. Your click only"
+msgstr ""
+
+msgid "Export egress log"
+msgstr ""
+
+msgid "Put the egress log (what left, to whom, when) into a Text datablock you can save"
+msgstr ""
+
+msgid "Set up Mesh QA"
+msgstr ""
+
+msgid "Point mesh QA at the active mesh object"
+msgstr ""
+
+msgid "Add tag layers"
+msgstr ""
+
+msgid "Add the three tag layers to the annotations: Red = Delete, Green = Mislabel, Yellow = Hole"
+msgstr ""
+
+msgid "Find candidates"
+msgstr ""
+
+msgid "Find open loops and floating shells on the piece and write them as typed candidates"
+msgstr ""
+
+msgid "Draw candidates"
+msgstr ""
+
+msgid "Draw the candidates into the scene (collection QA_candidates): yellow tubes and rings with their ids"
+msgstr ""
+
+msgid "Refresh markers"
+msgstr ""
+
+msgid "Recolour and relabel the active piece's markers from its proposals (red delete, yellow hole, green mislabel, grey keep)"
+msgstr ""
+
+msgid "Read tags"
+msgstr ""
+
+msgid "Read the Red/Green/Yellow annotation strokes into decisions and rulings"
+msgstr ""
+
+msgid "Save rebuild setup"
+msgstr ""
+
+msgid "Save what a rebuild needs besides the rulings"
+msgstr ""
+
+msgid "Read tags and rebuild"
+msgstr ""
+
+msgid "Read tags, write rulings, rebuild, and load the result beside the previous version"
+msgstr ""
+
+msgid "Run tool"
+msgstr ""
+
+msgid "Run one of the ported batch tools (parts, proportions, textures) in the background"
+msgstr ""
+
+msgid "Mesh-paint texture"
+msgstr ""
+
+msgid "Mesh-paint texturing: clay render per view, the image backend paints the design over it, pick the best of four per view, plates, projection at 4096 with no warp, masks, then load it with the albedo toggle"
+msgstr ""
+
+msgid "Toggle albedo"
+msgstr ""
+
+msgid "Switch the live material between the textured look and the projected albedo"
+msgstr ""
+
+msgid "Run feature"
+msgstr ""
+
+msgid "Run the chosen feature on the active object; options are JSON"
+msgstr ""
+
+msgid "Classify clips"
+msgstr ""
+
+msgid "Measure every action on the active armature: motion class, speed, loop, a proposed name. Changes nothing"
+msgstr ""
+
+msgid "Apply names"
+msgstr ""
+
+msgid "Rename the measured actions to their proposed labels (the old name is kept as lw_source_name). Your click only"
+msgstr ""
+
+msgid "Lampway settings"
+msgstr ""
+
+msgid "Project root, interpreters and texture libraries"
+msgstr ""
+
+msgid "Project root"
+msgstr ""
+
+msgid "Science python"
+msgstr ""
+
+msgid "A python with numpy, scipy, Pillow and OpenCV"
+msgstr ""
+
+msgid "Blender for batch tools"
+msgstr ""
+
+msgid "Empty = this app"
+msgstr ""
+
+msgid "Colour tiles"
+msgstr ""
+
+msgid "ambientCG library"
+msgstr ""
+
+msgid "Studio HDRI"
+msgstr ""
+
+msgid "Refresh connections"
+msgstr ""
+
+msgid "Read which MCP servers your agent apps have, from where, and whether each is ready"
+msgstr ""
+
+msgid "Check"
+msgstr ""
+
+msgid "Open a short connection to this server and list its tools (no tool is ever called). Your click only"
+msgstr ""
+
+msgid "Show config file"
+msgstr ""
+
+msgid "Show where this server's effective configuration lives (the path only, never the contents)"
+msgstr ""
+
+msgid "yes"
+msgstr ""
+
+msgid "Refresh templates"
+msgstr ""
+
+msgid "Read the prompt templates from the server"
+msgstr ""
+
+msgid "Load template"
+msgstr ""
+
+msgid "Load the chosen template: its variables become a form with their types, bounds and defaults"
+msgstr ""
+
+msgid "Render the template with the form's values (through the server: nothing is generated)"
+msgstr ""
+
+msgid "Edit as my own"
+msgstr ""
+
+msgid "Edit as my own: save a copy of this template in YOUR scope as the next version (the built-in is untouched)"
+msgstr ""
+
+msgid "Use in generation"
+msgstr ""
+
+msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
+msgstr ""
+
+msgid "Rate"
+msgstr "比率"
+
+msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
+msgstr ""
+
+msgid "Refresh Studios"
+msgstr ""
+
+msgid "Read the Studios state from the server: pending confirmations, jobs, the engine"
+msgstr ""
+
+msgid "Plan"
+msgstr "计划"
+
+msgid "Ask a Studio to read back an action's settings and price (nothing is clicked or spent); a spend then waits for your confirmation"
+msgstr ""
+
+msgid "Arguments"
+msgstr ""
+
+msgid "Confirm and spend"
+msgstr ""
+
+msgid "Spend the credits: confirm this Studio action at the price shown. Only your own click can do this"
+msgstr ""
+
+msgid "Price"
+msgstr ""
+
+msgid "Spend credits?"
+msgstr ""
+
+msgid "Answer"
+msgstr ""
+
+msgid "Answer a question Higgsfield (or a Studio) asks you. Only your own click can"
+msgstr ""
+
+msgid "Sign in to Higgsfield"
+msgstr ""
+
+msgid "Open the server's Higgsfield sign-in page in your browser (one consent; the tokens stay on this machine)"
+msgstr ""
+
+msgid "Reject"
+msgstr ""
+
+msgid "Turn this Studio action down; nothing is spent"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Bring one of a finished job's files into the scene (collection Studio)"
+msgstr ""
+
+msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
+msgstr ""
+
+msgid "Provider for the main agent (the chat)"
+msgstr ""
+
+msgid "Model (ChatGPT plan)"
+msgstr ""
+
+msgid "Model when the main agent runs on your ChatGPT plan"
+msgstr ""
+
+msgid "Effort"
+msgstr ""
+
+msgid "Reasoning effort on your ChatGPT plan (default = the model's)"
+msgstr ""
+
+msgid "Swarm workers"
+msgstr ""
+
+msgid "Provider for the swarm's workers (default = the main provider's own)"
+msgstr ""
+
+msgid "Claude model"
+msgstr ""
+
+msgid "Model for workers on your own claude CLI"
+msgstr ""
+
+msgid "OpenRouter worker model"
+msgstr ""
+
+msgid "Model for workers on OpenRouter"
+msgstr ""
+
+msgid "Images"
+msgstr "图像"
+
+msgid "Image backend: tripo, codex_cli or openrouter"
+msgstr ""
+
+msgid "Image model"
+msgstr ""
+
+msgid "OpenRouter image model, e.g. openai/gpt-image-2.5-sunburst (precision) or -flare (speed)"
+msgstr ""
+
+msgid "Image size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT within the pixel budget (2880x2880 works), or default"
+msgstr ""
+
+msgid "Image quality"
+msgstr ""
+
+msgid "auto, low, medium, high, xhigh, max, or default"
+msgstr ""
+
+msgid "Plates model"
+msgstr ""
+
+msgid "Mesh-paint plates, e.g. openai/gpt-image-2.5-flare (or sourceful/riverflow-v2.5-pro: flattest albedo, slower, dearer)"
+msgstr ""
+
+msgid "Plates size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT, e.g. 2880x2880 or 2160x3840 for a tall plate (at most 3840 per edge, ~8.3 MP)"
+msgstr ""
+
+msgid "Mask model"
+msgstr ""
+
+msgid "Material-ID / mask drafts: flat colour regions, e.g. google/gemini-3.1-flash-image"
+msgstr ""
+
+msgid "Concept model"
+msgstr ""
+
+msgid "Concepts / moodboard, e.g. black-forest-labs/flux-3-image. It redesigns the piece: never for projection"
+msgstr ""
+
+msgid "Concept resolution"
+msgstr ""
+
+msgid "1K, 2K or 4K for models that take resolution, or default"
+msgstr ""
+
+msgid "Tile model"
+msgstr ""
+
+msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
+msgstr ""
+
+msgid "Bulk video"
+msgstr ""
+
+msgid "Bulk clips, e.g. heygen/heygen-video-1"
+msgstr ""
+
+msgid "Bulk resolution"
+msgstr ""
+
+msgid "e.g. 768p"
+msgstr ""
+
+msgid "Bulk seconds"
+msgstr ""
+
+msgid "Seconds, e.g. 10"
+msgstr ""
+
+msgid "Loop video"
+msgstr ""
+
+msgid "Loops (first = last frame), e.g. bytedance/seedance-1-5-pro"
+msgstr ""
+
+msgid "Loop resolution"
+msgstr ""
+
+msgid "e.g. 720p"
+msgstr ""
+
+msgid "Motion video"
+msgstr ""
+
+msgid "Motion transfer with a reference video, e.g. bytedance/seedance-2.0-mini"
+msgstr ""
+
+msgid "Motion resolution"
+msgstr ""
+
+msgid "e.g. 480p"
+msgstr ""
+
+msgid "Video cap (USD)"
+msgstr ""
+
+msgid "One video job above this estimate is refused before it is sent (0 = unchanged)"
+msgstr ""
+
+msgid "Save provider settings"
+msgstr ""
+
+msgid "Save provider choices on the server (fields left empty are unchanged)"
+msgstr ""
+
+msgid "Providers"
+msgstr ""
+
+msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
+msgstr ""
+
+msgid "Refresh sessions"
+msgstr ""
+
+msgid "Read the cockpit state from the server: the herdr server, the sessions and their chips"
+msgstr ""
+
+msgid "Start the herdr server"
+msgstr ""
+
+msgid "Start Lampway's own herdr server (detached: it outlives Blender). Your click only"
+msgstr ""
+
+msgid "Reconcile sessions"
+msgstr ""
+
+msgid "Re-adopt the live panes by the server's truth: nothing is spawned or killed"
+msgstr ""
+
+msgid "New session"
+msgstr ""
+
+msgid "Open a new agent session in the cockpit (your own CLI login)"
+msgstr ""
+
+msgid "Codex"
+msgstr ""
+
+msgid "OpenCode"
+msgstr ""
+
+msgid "Shell"
+msgstr ""
+
+msgid "Name"
+msgstr "名称"
+
+msgid "Read to Text"
+msgstr ""
+
+msgid "Copy the last 70 screen lines of a session into a Text datablock (reading never marks an answer seen)"
+msgstr ""
+
+msgid "Type into a session (your own keystrokes: this is the user's send)"
+msgstr ""
+
+msgid "Close session"
+msgstr ""
+
+msgid "Close a session's pane (its agent process ends; its history stays). Needs your confirm"
+msgstr ""
+
+msgid "Yes, end this agent"
+msgstr ""
+
+msgid "Stop the herdr server"
+msgstr ""
+
+msgid "Stop Lampway's herdr server: every agent pane in it ends. Needs your confirm"
+msgstr ""
+
+msgid "Yes, end every session"
+msgstr ""
+
+msgid "Cockpit window"
+msgstr ""
+
+msgid "Open the cockpit window: a read-only mirror of the session in a Text editor, refreshed every two seconds"
+msgstr ""
+
+msgid "Lampway tools"
+msgstr ""
+
+msgid "Mesh QA"
+msgstr ""
+
+msgid "Tags: Red = Delete, Green = Mislabel, Yellow = Hole"
+msgstr ""
+
+msgid "Rebuild"
+msgstr ""
+
+msgid "Mesh-paint texturing"
+msgstr ""
+
+msgid "Parts and proportion tools"
+msgstr ""
+
+msgid "Review proposals"
+msgstr ""
+
+msgid "Set a piece up first (Mesh QA)"
+msgstr ""
+
+msgid "Proposals are not rulings: tag it to decide."
+msgstr ""
+
+msgid "Studios (online)"
+msgstr ""
+
+msgid "shelf engine"
+msgstr ""
+
+msgid "bundled drivers"
+msgstr ""
+
+msgid "Providers: agent, swarm, images"
+msgstr ""
+
+msgid "Waiting for YOUR confirmation"
+msgstr ""
+
+msgid "Plan (clicks nothing)"
+msgstr ""
+
+msgid "Features"
+msgstr ""
+
+msgid "Prompts"
+msgstr ""
+
+msgid "Cockpit (agent sessions)"
+msgstr ""
+
+msgid "The cockpit: the user's real agent CLIs as panes of Lampway's own herdr server. draw() reads the cached state only: it never touches the network."
+msgstr ""
+
+msgid "Read"
+msgstr "读取"
+
+msgid "Window"
+msgstr "窗口"
+
+msgid "Animation clips"
+msgstr ""
+
+msgid "The clip table: one row per action (primary class, speed, loop, an inferred marker, the proposed name). draw() reads the cache only."
+msgstr ""
+
+msgid "Privacy (what leaves this machine)"
+msgstr ""
+
+msgid "Privacy: every outbound route, off until you switch it on, with its retention and training policy; the DATA LEAVING badge; the last log rows. draw() reads the cache only."
+msgstr ""
+
+msgid "Switch off"
+msgstr ""
+
+msgid "Switch on"
+msgstr ""
+
+msgid "Connections (MCP servers)"
+msgstr ""
+
+msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
+msgstr ""
+
+msgid "enum values, | separated"
+msgstr ""
+
+msgid "Recipe"
+msgstr ""
+
+msgid "The parts recipe json (parts and their motion classes)"
+msgstr ""
+
+msgid "Owner map"
+msgstr ""
+
+msgid "A .npy of one part index per polygon; empty = the mesh's int face attribute 'part'"
+msgstr ""
+
+msgid "Piece"
+msgstr ""
+
+msgid "The piece's name; its rulings live in <project root>/<piece>/rulings"
+msgstr ""
+
+msgid "Lift"
+msgstr ""
+
+msgid "Live frame minus the mesh's own frame in Z (how far the piece was lifted onto the floor)"
+msgstr ""
+
+msgid "Source faces"
+msgstr ""
+
+msgid "A rebuild's orig_poly .npy (source face per polygon, -1 = patch); empty for a source mesh"
+msgstr ""
+
+msgid "Turn"
+msgstr ""
+
+msgid "The rebuild's turn about Z in degrees (patch_holes --turn)"
+msgstr ""
+
+msgid "Everything else is intentional"
+msgstr ""
+
+msgid "Answer every candidate nobody named 'keep' (his: everything else looks intentional)"
+msgstr ""
+
+msgid "Relabel to"
+msgstr ""
+
+msgid "Target parts for the green strokes, as stroke:part pairs, e.g. 0:cuirass_back_plate,1:cape_drape_upper"
+msgstr ""
+
+msgid "Source mesh"
+msgstr ""
+
+msgid "Source owner"
+msgstr ""
+
+msgid "Relief views"
+msgstr ""
+
+msgid "Plates"
+msgstr ""
+
+msgid "Template material"
+msgstr ""
+
+msgid "The live textured material to copy for the rebuild"
+msgstr ""
+
+msgid "Tag"
+msgstr ""
+
+msgid "A new name for this rebuild; a tag is never overwritten"
+msgstr ""
+
+msgid "Atlas"
+msgstr ""
+
+msgid "Colour at full resolution"
+msgstr ""
+
+msgid "Ornament"
+msgstr ""
+
+msgid "max_tris:reach_px:min_share, e.g. 600:24:0.25 at 4096"
+msgstr ""
+
+msgid "Gold from mesh relief"
+msgstr ""
+
+msgid "Rebuilt mesh"
+msgstr ""
+
+msgid "The rebuild's patched UV mesh (fbx) the clay renders are made from"
+msgstr ""
+
+msgid "Design plates"
+msgstr ""
+
+msgid "V3's plates: Front.png, Back.png, Left.png, Right.png"
+msgstr ""
+
+msgid "Rebuild outputs"
+msgstr ""
+
+msgid "The rebuild's out_root (holds patched/)"
+msgstr ""
+
+msgid "Rebuild tag"
+msgstr ""
+
+msgid "The rebuild whose mesh and maps the projection reuses"
+msgstr ""
+
+msgid "Generate for real"
+msgstr ""
+
+msgid "Off = a dry run (the image backend verifies its settings, nothing is generated or spent). On needs the owner's own arming of the backend"
+msgstr ""
+
+msgid "Albedo base colour"
+msgstr ""
+
+msgid "The projected albedo as the live material's base colour"
+msgstr ""
+
+msgid "Tool"
+msgstr "工具"
+
+msgid "A prompt-library template (image or video)"
+msgstr ""
+
+msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
+msgstr ""
+
+msgid "Job id"
+msgstr ""
+
+msgid "The job to rate"
+msgstr ""
+
+msgid "Rating"
+msgstr "评分"
+
+msgid "Note"
+msgstr ""
+
+msgid "Studio action"
+msgstr ""
+
+msgid "The action's arguments as JSON, paths inside the project root"
+msgstr ""
+
+msgid "Feature"
+msgstr ""
+
+msgid "Retopology"
+msgstr "重拓扑"
+
+msgid "A new all-quad mesh near a target face count"
+msgstr ""
+
+msgid "UV unwrap"
+msgstr ""
+
+msgid "A packed UV layout on a new mesh"
+msgstr ""
+
+msgid "Mesh segment"
+msgstr ""
+
+msgid "Split into part objects"
+msgstr ""
+
+msgid "Auto rig"
+msgstr ""
+
+msgid "A UE-named humanoid armature"
+msgstr ""
+
+msgid "Mesh prep"
+msgstr ""
+
+msgid "Branch, hash and repair defects"
+msgstr ""
+
+msgid "Asset acceptance"
+msgstr ""
+
+msgid "Identity, orientation, geometry, materials gates"
+msgstr ""
+
+msgid "Detail normals"
+msgstr ""
+
+msgid "Tiling detail normals on a textured_atlas material"
+msgstr ""
+
+msgid "Image to 3D"
+msgstr "图像转 3D"
+
+msgid "A mesh from views"
+msgstr ""
+
+msgid "Render video"
+msgstr ""
+
+msgid "A turntable or fly-through"
+msgstr ""
+
+msgid "Options"
+msgstr "选项"
+
+msgid "The feature's other arguments as JSON, e.g. {\"target_faces\": 3000}; engine \"studio:tripo\" asks for approval and clicks nothing"
+msgstr ""
+
+msgid "The tool's arguments, space separated (paths relative to the project root)"
+msgstr ""
+
+msgid "Figure height (m)"
+msgstr ""
+
+msgid "0 = the deform mesh's rest height, else head bone to foot bone"
+msgstr ""
+
+msgid "Last result"
+msgstr ""
+
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
 msgstr "最小的视觉模型——在任何机器上都很快，工具调用能力良好。"
 
@@ -5012,7 +5990,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
+msgid "Codex defines an older entry in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5270,9 +6248,6 @@ msgstr "兰花紫"
 msgid "Generate Image"
 msgstr "生成图像"
 
-msgid "Image to 3D"
-msgstr "图像转 3D"
-
 msgid "Video Generation"
 msgstr "视频生成"
 
@@ -5284,9 +6259,6 @@ msgstr "生成泼溅"
 
 msgid "PBR Generation"
 msgstr "PBR 生成"
-
-msgid "Retopology"
-msgstr "重拓扑"
 
 msgid "Mesh Segmentation"
 msgstr "网格分割"
@@ -5873,9 +6845,6 @@ msgstr "参考 {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "此模板需要可用的生成模型。请检查网络连接。"
 
-msgid "On"
-msgstr "开启"
-
 msgid "Off"
 msgstr "关闭"
 
@@ -6284,6 +7253,9 @@ msgstr "请选择一个角色的所有部件——将作为单一骨架进行绑
 msgid "Settings"
 msgstr "设置"
 
+msgid "About"
+msgstr "关于"
+
 msgid "Auto-detects the skeleton type"
 msgstr "自动检测骨架类型"
 
@@ -6476,14 +7448,14 @@ msgstr "同时发送完整角色以提供设计上下文；默认禁用，因为
 msgid "Moodboard Drawer"
 msgstr "情绪板抽屉"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Zen 模式情绪板抽屉的拉出程度，0 为关闭，1 为打开"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "情绪板抽屉目标"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Zen 模式情绪板抽屉最终停留的状态，0 为关闭，1 为打开"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "情绪板抽屉宽度"
@@ -6793,9 +7765,6 @@ msgstr "框架 ID"
 
 msgid "Stable identifier members refer to"
 msgstr "成员引用的稳定标识符"
-
-msgid "Name"
-msgstr "名称"
 
 msgid "Frame name, painted above its top-left corner"
 msgstr "框架名称，绘制在其左上角上方"
@@ -7980,9 +8949,6 @@ msgstr "引导纹理的参考图"
 
 msgid "Treat the reference image as a style reference paired with the prompt (Tripo style_image) instead of a direct reference"
 msgstr "将参考图视为与提示词配合的风格参考（Tripo style_image），而非直接参考"
-
-msgid "Front"
-msgstr "前"
 
 msgid "Front view of the subject"
 msgstr "主体的前视图"
@@ -10648,7 +11614,7 @@ msgstr "欢迎使用 Lampway"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -10815,18 +11781,6 @@ msgstr "影响 Alpha："
 
 msgid "WARNING: Do NOT edit this group manually!"
 msgstr "警告：请勿手动编辑此组！"
-
-msgid "Generated material response did not include a script"
-msgstr "生成的材质响应中未包含脚本"
-
-msgid "Generated material but failed to apply it: {result}"
-msgstr "已生成材质，但应用失败：{result}"
-
-msgid "Generate Procedural Material"
-msgstr "生成程序化材质"
-
-msgid "Material generation failed"
-msgstr "材质生成失败"
 
 msgid "Show {channel} blend mode and opacity"
 msgstr "显示 {channel} 的混合模式和不透明度"
@@ -11193,9 +12147,6 @@ msgstr "笔刷子选项卡"
 
 msgid "Active subtab in the brush panel"
 msgstr "笔刷面板中的活动子选项卡"
-
-msgid "Tool"
-msgstr "工具"
 
 msgid "General brush tool settings"
 msgstr "常规笔刷工具设置"
@@ -11742,9 +12693,6 @@ msgstr "不导出"
 
 msgid "Do not export materials"
 msgstr "不导出材质"
-
-msgid "Images"
-msgstr "图像"
 
 msgid "Automatic"
 msgstr "自动"
@@ -13516,9 +14464,6 @@ msgstr ""
 
 msgid "BW"
 msgstr "BW"
-
-msgid "RGB"
-msgstr "RGB"
 
 msgid "RGBA"
 msgstr "RGBA"
@@ -15330,12 +16275,6 @@ msgstr "透射"
 msgid "Value Channels:"
 msgstr "数值通道："
 
-msgid "Metallic"
-msgstr "金属度"
-
-msgid "Roughness"
-msgstr "糙度"
-
 msgid "Subsurface"
 msgstr "次表面"
 
@@ -17143,9 +18082,6 @@ msgstr "贴花投影"
 msgid "Camera coordinates"
 msgstr "摄像机坐标"
 
-msgid "Window"
-msgstr "窗口"
-
 msgid "Window coordinates"
 msgstr "窗口坐标"
 
@@ -17907,9 +18843,6 @@ msgstr "半径"
 msgid "Stroke"
 msgstr "笔画"
 
-msgid "Rate"
-msgstr "比率"
-
 msgid "Edge to Edge"
 msgstr "边到边"
 
@@ -17984,9 +18917,6 @@ msgstr "对称"
 
 msgid "Mirror"
 msgstr "镜像"
-
-msgid "Options"
-msgstr "选项"
 
 msgid "Bleed"
 msgstr "出血"
@@ -19092,9 +20022,6 @@ msgstr "工具栏"
 msgid "Sidebar"
 msgstr "侧栏"
 
-msgid "Lampway Agent"
-msgstr ""
-
 msgid "UV Mesh Segmentation panel"
 msgstr "UV 网格分割面板"
 
@@ -19599,8 +20526,8 @@ msgstr "发送消息失败"
 msgid "You're out of credits"
 msgstr "积分已用完"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
-msgstr "您已用完本月的积分额度。升级套餐即可继续使用 Lampway Agent 创作。"
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with {agent}."
+msgstr ""
 
 msgid "Feedback comment is empty"
 msgstr "反馈内容为空"
@@ -20022,8 +20949,8 @@ msgstr "请保持此字段处于打开状态；按 Esc 取消。"
 msgid "Login"
 msgstr "登录"
 
-msgid "Login panel for Lampway Chat"
-msgstr "Lampway Agent 对话的登录面板"
+msgid "Login panel for the agent chat"
+msgstr ""
 
 msgid "Session expired"
 msgstr "会话已过期"
@@ -20033,9 +20960,6 @@ msgstr "请重新登录。"
 
 msgid "Login Failed"
 msgstr "登录失败"
-
-msgid "Sign in with your Lampway account"
-msgstr "使用您的 Lampway 账户登录"
 
 msgid "Waiting for browser..."
 msgstr "正在等待浏览器..."
@@ -20062,12 +20986,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "控制台"
-
-msgid "About Lampway"
-msgstr "关于 Lampway"
-
-msgid "Documentation"
-msgstr "文档"
 
 msgid "Report a Bug"
 msgstr "报告问题"
@@ -20129,23 +21047,14 @@ msgstr "会话已过期。{reason}"
 msgid "Browser login did not complete. Please try again."
 msgstr "浏览器登录未完成。请重试。"
 
-msgid "Login to Lampway Chat via browser SSO"
-msgstr "通过浏览器 SSO 登录 Lampway Agent 对话"
-
 msgid "Login failed"
 msgstr "登录失败"
-
-msgid "Logout from Lampway Chat"
-msgstr "从 Lampway Agent 对话退出登录"
 
 msgid "Logged out successfully"
 msgstr "已成功退出登录"
 
 msgid "Open Dashboard"
 msgstr "打开控制台"
-
-msgid "Open Lampway Agent web dashboard in your browser"
-msgstr "在浏览器中打开 Lampway Agent 网页控制台"
 
 msgid "Dashboard opened"
 msgstr "控制台已打开"
@@ -20392,9 +21301,6 @@ msgstr "使用现有的评分传输格式对智能体回复进行投票"
 
 msgid "ID of the message bubble to rate"
 msgstr "要评价的消息气泡 ID"
-
-msgid "Rating"
-msgstr "评分"
 
 msgid "Response rating (thumbs down=1, thumbs up=5)"
 msgstr "回复评分（踩=1，赞=5）"
@@ -20822,21 +21728,6 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Lampway Chat"
-msgstr "发送到 Lampway Agent 对话"
-
-msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
-msgstr "打开输入框以向 Lampway Agent 对话发送消息（按 Enter 发送）"
-
-msgid "Message to send to Lampway Chat"
-msgstr "要发送到 Lampway Agent 对话的消息"
-
-msgid "Not connected to Lampway Chat"
-msgstr "未连接到 Lampway Agent 对话"
-
-msgid "Lampway Chat is busy"
-msgstr "Lampway Agent 对话正忙"
-
 msgid "Mode:"
 msgstr "模式："
 
@@ -20858,12 +21749,6 @@ msgstr "消息"
 msgid "Please enter a message"
 msgstr "请输入消息"
 
-msgid "Not connected to server. Please connect in Lampway Chat."
-msgstr "未连接到服务器。请在 Lampway Agent 对话中连接。"
-
-msgid "Lampway Chat is not ready to receive messages"
-msgstr "Lampway Agent 对话尚未准备好接收消息"
-
 msgid "Dev Mode: Message sent"
 msgstr "开发模式：消息已发送"
 
@@ -20881,9 +21766,6 @@ msgstr ""
 
 msgid "Add Rules"
 msgstr "添加规则"
-
-msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "为 Lampway Agent 定义规则。更改将在您的下一条消息或回答时生效；全局规则适用于所有 Lampway 文件。您当前的请求优先于项目规则和全局规则"
 
 msgid "Rule operation failed"
 msgstr "规则操作失败"
@@ -21070,9 +21952,6 @@ msgstr "无法确认停止。请重新连接后再次尝试停止。"
 msgid "Connect"
 msgstr "连接"
 
-msgid "Connect to the Lampway Agent agent server"
-msgstr "连接到 Lampway Agent 智能体服务器"
-
 msgid "Connecting to server..."
 msgstr "正在连接服务器..."
 
@@ -21084,9 +21963,6 @@ msgstr "开发模式：已使用虚拟数据连接"
 
 msgid "Disconnect"
 msgstr "断开"
-
-msgid "Disconnect from the Lampway Agent agent server"
-msgstr "断开与 Lampway Agent 智能体服务器的连接"
 
 msgid "Dev Mode: Disconnected"
 msgstr "开发模式：已断开连接"
@@ -21283,9 +22159,6 @@ msgstr "助手消息"
 msgid "Error message"
 msgstr "错误消息"
 
-msgid "Plan"
-msgstr "计划"
-
 msgid "Generated plan"
 msgstr "生成的计划"
 
@@ -21478,8 +22351,8 @@ msgstr "本地提交的评论，在对话中以只读方式显示"
 msgid "Message not sent"
 msgstr "消息未发送"
 
-msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
-msgstr "请输入渲染提示词。Lampway Agent 将以当前场景的深度作为引导。"
+msgid "Enter a render prompt. {agent} will use the current scene's depth as the guide."
+msgstr ""
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr "请输入提示词，并在 3D 视图中选择网格物体，然后再发送。"
@@ -21556,9 +22429,6 @@ msgstr "自动模式"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "智能体会自行决定所有待定选项而不询问您，并在摘要中列出其决定"
 
-msgid "Lampway Agent Is Busy"
-msgstr "Lampway Agent 正忙"
-
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "智能体正在处理请求（BUSY 状态）时为真"
 
@@ -21630,9 +22500,6 @@ msgstr "Claude Haiku 4.0 - 快速高效"
 
 msgid "Password"
 msgstr "密码"
-
-msgid "Password for Lampway Chat login"
-msgstr "用于登录 Lampway Agent 对话的密码"
 
 msgid "Is Logged In"
 msgstr "已登录"
@@ -21828,9 +22695,6 @@ msgstr "此步骤行的唯一标识符"
 
 msgid "What kind of tool call this row represents"
 msgstr "此行所代表的工具调用类型"
-
-msgid "Read"
-msgstr "读取"
 
 msgid "File read"
 msgstr "文件读取"
@@ -22036,8 +22900,8 @@ msgstr "禁用的规则保留在列表中，但不会发送"
 msgid "Global"
 msgstr "全局"
 
-msgid "Global rules apply to every .mixar file (~/.mixar/global_rules.json); others to this file only"
-msgstr "全局规则适用于所有 .mixar 文件（~/.mixar/global_rules.json）；其他规则仅适用于此文件"
+msgid "Global rules apply to every file you open (global_rules.json in your Lampway data folder); others to this file only"
+msgstr ""
 
 msgid "Project Rules"
 msgstr "项目规则"
@@ -22056,9 +22920,6 @@ msgstr "项目规则可见"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "项目规则叠加层是否打开"
-
-msgid "Waiting for you"
-msgstr "等待您操作"
 
 msgid "Session"
 msgstr ""
@@ -24055,12 +24916,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine 模式"
-
-msgid "Zen Mode"
-msgstr "Zen 模式"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24070,14 +24925,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "将 Lampway 切换到 Zen 模式（极简视图 + 智能体气泡 + 情绪板）"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "无法创建 Zen 模式工作区——没有可用的模板"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "将 Lampway 切换到 Engine 模式（完整的 Blender 风格工作区）"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "未找到建模工作区"
@@ -24154,7 +25009,7 @@ msgstr "场景与视图层"
 msgid "View Layer"
 msgstr "视图层"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -24205,13 +25060,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -24295,38 +25150,38 @@ msgstr "Blend 文件 (.blend)"
 msgid "Tutorials"
 msgstr ""
 
-msgid "Creator Program"
-msgstr ""
-
 msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
 msgstr "文件由更新版本的 Lampway (%d.%d) 保存，部分数据可能丢失"
 
 msgid "The file was saved by a newer version, open it with Lampway %s or later"
 msgstr "该文件由更新的版本保存，请使用 Lampway %s 或更高版本打开"
 
-msgid "Failed to read mixar file '%s': %s"
-msgstr "读取 mixar 文件“%s”失败：%s"
+msgid "Failed to read Lampway file '%s': %s"
+msgstr ""
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
-msgstr "无法读取 mixar 文件“%s”，文件头不完整，可能来自更新版本的 Lampway"
+msgid "Cannot read Lampway file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr ""
 
-msgid "Failed to read file '%s', not a mixar file"
-msgstr "读取文件“%s”失败，不是 mixar 文件"
+msgid "Failed to read file '%s', not a Lampway file"
+msgstr ""
 
-msgid "Unable to open mixar <memory>"
-msgstr "无法打开 mixar <memory>"
+msgid "Unable to open Lampway <memory>"
+msgstr ""
 
-msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
-msgstr "Lampway 文件“%s”由更新版本的 Lampway 创建，包含的 ID 名称超出当前支持的长度。这些名称已被截断。"
+msgid "Lampway file '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr ""
 
-msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Lampway 文件“%s”似乎已损坏，其中包含无效的 ID 名称。这些名称已被截断。"
+msgid "Lampway file '%s' appears corrupted, it contains invalid ID names. These have been truncated."
+msgstr ""
 
 msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
 msgstr "库“%s”由更新版本的 Lampway 创建，包含的 ID 名称超出当前支持的长度。这可能导致关联数据丢失，建议使用当前版本的 Lampway 打开并重新保存该库。"
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB：数据引用了主 .mixar 文件：“%s”（来自 %s）"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "欢迎，%s！"
@@ -24448,8 +25303,8 @@ msgstr "捕捉中"
 msgid "NEW"
 msgstr "新"
 
-msgid "Ask Lampway Agent anything..."
-msgstr "向 Lampway Agent 提问任何问题..."
+msgid "Ask %s anything..."
+msgstr ""
 
 msgid "Write your prompt here..."
 msgstr "在此输入提示词..."
@@ -25243,6 +26098,24 @@ msgstr "游标 X 位置"
 msgid "Cursor Y position"
 msgstr "游标 Y 位置"
 
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
+
 msgid "Animate Moodboard Attachment"
 msgstr "情绪板附件动画"
 
@@ -25759,14 +26632,14 @@ msgstr "在模板拖放位置放置可编辑节点"
 msgid "Template to place"
 msgstr "要放置的模板"
 
-msgid "Select Lampway Agent3D Preview"
-msgstr "选择 Lampway Agent3D 预览"
+msgid "Select Lampway 3D Preview"
+msgstr ""
 
 msgid "Select a segmented image from the preview history"
 msgstr "从预览历史中选择分割图像"
 
-msgid "Delete Lampway Agent3D Preview"
-msgstr "删除 Lampway Agent3D 预览"
+msgid "Delete Lampway 3D Preview"
+msgstr ""
 
 msgid "Delete a segmented image from the preview history"
 msgstr "从预览历史中删除分割图像"
@@ -25945,8 +26818,8 @@ msgstr "此项目"
 msgid "All projects"
 msgstr "所有项目"
 
-msgid "Add a rule above to guide Lampway Agent."
-msgstr "在上方添加规则来指导 Lampway Agent。"
+msgid "Add a rule above to guide %s."
+msgstr ""
 
 msgid "Applies to"
 msgstr "适用于"
@@ -25989,6 +26862,24 @@ msgstr "纹理集空间"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "使用侧栏面板管理纹理集"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "回到第一个"
@@ -26740,8 +27631,8 @@ msgstr "纹理属性"
 msgid "Layer and texture properties"
 msgstr "层和纹理属性"
 
-msgid "Texturing Assets"
-msgstr "纹理资产"
+msgid "Asset Vault"
+msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "智能材质、笔刷和纹理库"
@@ -26770,11 +27661,11 @@ msgstr "类似 PureRef 的参考图像板"
 msgid "Lampway Agent Space"
 msgstr "Lampway Agent 空间"
 
-msgid "Lampway Agent editor for Lampway"
-msgstr "Lampway 的 Lampway Agent 编辑器"
+msgid "Lampway agent editor"
+msgstr ""
 
-msgid "Lampway Agent editor mode"
-msgstr "Lampway Agent 编辑器模式"
+msgid "Lampway editor mode"
+msgstr ""
 
 msgid "Agent Bubble Space"
 msgstr "智能体气泡空间"
@@ -26965,8 +27856,8 @@ msgstr "带渐变标签的深色圆角胶囊"
 msgid "Viewport Pill"
 msgstr "视图胶囊"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Zen 视图着色胶囊；非当前模式时变暗"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "个人资料胶囊"
@@ -27208,26 +28099,26 @@ msgstr "队列计数标签块"
 msgid "Slider Track"
 msgstr "滑块滑轨"
 
-msgid "Zen/Engine slider track"
-msgstr "Zen/Engine 滑块滑轨"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "滑块滑钮"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Zen/Engine 滑块滑钮"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "滑块滑钮悬停"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine 滑钮悬停"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "滑块标签"
 
-msgid "Zen/Engine slider label"
-msgstr "Zen/Engine 滑块标签"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "电影胶囊填充"
@@ -27796,8 +28687,8 @@ msgstr "窗口背景的不透明度（越低磨砂玻璃效果越强）"
 msgid "Theme Lampway Agent Space"
 msgstr "Lampway Agent 空间主题"
 
-msgid "Theme settings for Lampway Agent/Moodboard space"
-msgstr "Lampway Agent/情绪板空间的主题设置"
+msgid "Theme settings for Lampway/Moodboard space"
+msgstr ""
 
 msgid "Text Input Background"
 msgstr "文本输入框背景"
@@ -27985,14 +28876,14 @@ msgstr "麦克风已断开连接"
 msgid "Lampway File View"
 msgstr "Lampway 文件视图"
 
-msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
-msgstr "Lampway 已移除代理（%d 个代理已自动转换为库覆盖，%d 个代理无法转换并已清除）。建议使用最新版本的 Lampway 重新保存所有库 .mixar 文件"
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .Lampway file with the newest Lampway version"
+msgstr ""
 
-msgid "Cannot save mixar file, path \"%s\" is not writable"
-msgstr "无法保存 mixar 文件，路径“%s”不可写"
+msgid "Cannot save Lampway file, path \"%s\" is not writable"
+msgstr ""
 
-msgid "Cannot save mixar file, path \"%s\" is a directory"
-msgstr "无法保存 mixar 文件，路径“%s”是一个目录"
+msgid "Cannot save Lampway file, path \"%s\" is a directory"
+msgstr ""
 
 msgid "Lampway will start next time as it is now."
 msgstr "Lampway 下次启动时将保持当前状态。"
