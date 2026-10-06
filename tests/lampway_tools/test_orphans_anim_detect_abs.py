@@ -82,7 +82,7 @@ pb.rotation_euler = (math.radians(-25), 0, 0); bpy.context.view_layer.update()
 back_front = masks()["front"]; back_side = masks()["side"]
 pb.rotation_euler = (0, 0, 0); bpy.context.view_layer.update()
 res = ABS.refine_frame(arm, mesh, cams, target, bones=["thigh_l"], step_deg=8.0, rounds=5)
-got = math.degrees(arm.pose.bones["thigh_l"].rotation_euler.x)
+got = math.degrees(arm.pose.bones["thigh_l"].rotation_quaternion.to_euler("XYZ").x)    # refine writes quaternions
 iou = lambda a, b: float((a & b).sum() / max((a | b).sum(), 1))
 print("RESULT", json.dumps({"got": got, "res": {k: v for k, v in res.items() if k != "rotations"},
                             "front_same": iou(fwd_front, back_front), "side_same": iou(target["side"], back_side)}))
@@ -124,3 +124,38 @@ def test_the_rtmw_script_refuses_without_rtmlib_or_without_the_weights(tmp_path)
     if importlib.util.find_spec("rtmlib") is None:
         nolib = subprocess.run([sys.executable, str(script), str(tmp_path / "o.json"), str(tmp_path / "w.onnx"), str(tmp_path / "f.png")], capture_output=True, text=True)
         assert nolib.returncode == 3 and "pip install rtmlib onnxruntime" in nolib.stdout, nolib.stdout
+
+
+def test_the_searched_axes_are_perpendicular_to_the_limb_not_to_the_imported_tail(tmp_path):
+    """AUDIT T62 / SCHEMA 4.2: a bone's direction is head -> the next joint's head, never its tail. An imported rig (UE axes, a glTF tail) can
+    carry a tail that is not along the limb; here thigh_l's tail points along +X (lateral), so its local Y is lateral and a forward swing is a
+    rotation ABOUT local Y. Searching local X and Z (the tail convention) cannot reach it; searching the two axes perpendicular to head -> calf
+    head does."""
+    r = run(tmp_path, RIG + '''
+from mathutils import Matrix
+bpy.context.view_layer.objects.active = arm
+bpy.ops.object.mode_set(mode="EDIT")
+eb = arm.data.edit_bones
+eb["calf_l"].use_connect = False
+th = eb["thigh_l"]; th.tail = th.head + Vector((0.3, 0.0, 0.0)); th.roll = 0.0
+bpy.ops.object.mode_set(mode="OBJECT")
+bone = arm.data.bones["thigh_l"]; calf = arm.data.bones["calf_l"]
+head = bone.head_local.copy()
+def limb():
+    bpy.context.view_layer.update()
+    return (arm.pose.bones["calf_l"].head - arm.pose.bones["thigh_l"].head).normalized()
+rest = limb()
+pb.matrix = Matrix.Translation(head) @ Matrix.Rotation(math.radians(25), 4, "X") @ Matrix.Translation(-head) @ bone.matrix_local
+bpy.context.view_layer.update()
+want = limb()
+target = masks()
+pb.matrix_basis = Matrix.Identity(4); bpy.context.view_layer.update()
+res = ABS.refine_frame(arm, mesh, cams, target, bones=["thigh_l"], step_deg=8.0, rounds=5)
+got = limb()
+print("RESULT", json.dumps({"err_deg": math.degrees(got.angle(want)), "rest_to_want": math.degrees(rest.angle(want)),
+                            "res": {k: v for k, v in res.items() if k != "rotations"}}))
+''', timeout=900)
+    assert r.rc == 0, r.out[-3000:]
+    o = r.results[0]
+    assert o["rest_to_want"] > 20 and o["err_deg"] <= 5.0, o
+    assert o["res"]["iou_after"]["side"] > 0.95, o
