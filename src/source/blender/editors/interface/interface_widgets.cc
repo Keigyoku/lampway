@@ -6408,8 +6408,22 @@ static void widget_tab(Button *but,
   draw_but_TAB_outline(rect, rad, theme_col_tab_highlight, wcol->inner);
 #endif
 
+  /* Lampway (contract 03): the active tab is its text with an underline in the
+   * theme's item colour (amber), not a pill. */
+  if (is_active) {
+    rctf line;
+    line.xmin = float(rect->xmin) + rad;
+    line.xmax = float(rect->xmax) - rad;
+    line.ymin = float(rect->ymin);
+    line.ymax = float(rect->ymin) + 2.0f * U.pixelsize;
+    float color[4];
+    rgba_uchar_to_float(color, wcol->item);
+    draw_roundbox_corner_set(CNR_ALL);
+    draw_roundbox_4fv(&line, true, U.pixelsize, color);
+  }
+
 #ifndef USE_TAB_SHADED_HIGHLIGHT
-  UNUSED_VARS(is_active, theme_col_tab_highlight);
+  UNUSED_VARS(theme_col_tab_highlight);
 #endif
 }
 

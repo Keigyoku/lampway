@@ -125,3 +125,36 @@ def view_products(lib, asset_id: str, version=None) -> dict:
     proxy = sorted(str(p) for p in (lib.root / "derived" / vid / "proxy").glob("*.jpg"))
     return {"turntable": [p for _, p in turns], "ball": by_role.get("ball"), "overlay": by_role.get("overlay"), "sheet": by_role.get("sheet"),
             "thumb": by_role.get("thumb"), "proxy": proxy, "strip": by_role.get("strip")}
+
+
+MOTION_THRESHOLD = 8.0        # mean absolute grey-level change between two proxy frames that counts as motion [UNVERIFIED: chosen, not calibrated]
+
+
+def _onset(frames: list) -> int:
+    """The last still frame before the first change above MOTION_THRESHOLD (0 when the clip moves from the start or never moves)."""
+    prev = None
+    for i, p in enumerate(frames):
+        cur = np.asarray(Image.open(p).convert("L").resize((32, 32)), dtype=np.float64)
+        if prev is not None and np.abs(cur - prev).mean() > MOTION_THRESHOLD:
+            return i - 1
+        prev = cur
+    return 0
+
+
+def clip_align(frames_a: list, frames_b: list, mode: str = "start", fps_a: float = 8.0, fps_b: float = 8.0) -> dict:
+    """Two clips' proxy frames as equal-length lists for one scrub bar (asset_ui_views 5, compare): ``start`` pairs frame 0 with frame 0; ``time`` pairs by timestamp at the
+    faster rate (the slower clip's frames repeat); ``motion`` starts each clip at its last still frame before it first moves."""
+    if mode not in ("start", "time", "motion"):
+        raise ValueError("mode is start, time or motion")
+    oa = ob = 0
+    if mode == "time":
+        rate = max(fps_a, fps_b)
+        n = int(min(len(frames_a) / fps_a, len(frames_b) / fps_b) * rate)
+        a = [frames_a[min(len(frames_a) - 1, int(k * fps_a / rate))] for k in range(n)]
+        b = [frames_b[min(len(frames_b) - 1, int(k * fps_b / rate))] for k in range(n)]
+        return {"mode": mode, "a": a, "b": b, "offset": {"a": 0, "b": 0}, "fps": rate}
+    if mode == "motion":
+        oa, ob = _onset(frames_a), _onset(frames_b)
+    a, b = frames_a[oa:], frames_b[ob:]
+    n = min(len(a), len(b))
+    return {"mode": mode, "a": a[:n], "b": b[:n], "offset": {"a": oa, "b": ob}, "fps": fps_a}

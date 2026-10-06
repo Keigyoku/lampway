@@ -89,3 +89,12 @@ def views(asset_id: str) -> dict:
 
 def lineage(asset_id: str, depth: int = 6) -> dict:
     return _data(_request("GET", f"/api/v1/library/assets/{urllib.parse.quote(str(asset_id), safe='')}/lineage?depth={int(depth)}"))
+
+
+def clip_align(a: str, b: str, mode: str = "start") -> dict:
+    return _data(_request("POST", "/api/v1/library/clip_align", {"a": a, "b": b, "mode": mode}))
+
+
+def board_move(board: str, asset_id: str, x: float, y: float) -> dict:
+    q = urllib.parse.quote
+    return _data(_request("POST", f"/api/v1/library/boards/{q(str(board), safe='')}/items/{q(str(asset_id), safe='')}", {"x": x, "y": y}))

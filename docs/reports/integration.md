@@ -87,10 +87,21 @@ Fix:
 - The two herdr fleet-witness tests now SKIP unless `LAMPWAY_TEST_FLEET_WITNESS=1`: they read the person's real herdr state, which no test does by default now that HOME is isolated; with the opt-in they pass (measured).
 
 ## Merges
-(none yet: this section is appended per merge with lane, range, conflicts, suite and gate results)
+
+All merges are `--no-ff` into lp/wave5, of PUSHED refs only (an earlier merge of a lane's unpushed local tip, `57b6d2e8` of lp/vault-ui, was amended by the lane afterwards and came back as add/add conflicts; that draft commit stays in lp/wave5's history).
+
+| batch | lane (ref) | conflicts and resolution | result |
+|---|---|---|---|
+| b1 (4e9001c7) | docs (10672940), vault-ops (local b7ec8d44), vault-ui (local 57b6d2e8), facelift (30b6c2fd) | app.py: vault-ops opened a library at startup and vault-ui a lazy Vault on the same root (the writer lock refuses a second): the Vault takes the opened library (`library=`), a test pins one shared library; docs/tools.md regenerated | full suites run; red items fixed as glue in later batches |
+| b2-b4 | rail (756b7636), vault-ops (0880e1bc), vault-ui (6c08348b) | vault-ui's UI files add/add (taken from the pushed branch: they superseded the draft I had merged); brand words from vault-ui reworded; cc0 hosts allow-listed; the launch audit's new findings (vault-ops ffmpeg, vault-ui git log) declared local; a cards f-string that needs 3.12 rewritten; rail anneal rows of two lanes kept in order | see the hotfix sections |
+| b6 (0ad57ab9, PUSHED) | rail (7ab204a9) | anneal rows: both kept | test_all GREEN: server 1224 passed / 10 skipped; client 8091 passed, 118 failed + 20 errors = the 138 known-red, no new failure |
+| b7 | rail (2377d64d), vault-ops (5c077cb4, final), vault-ui (d73637b6), facelift (79f22557), wave6 (40155a9f), orphans (f5713e18), uelook (2fa24569) | app.py: vault-ops now creates the Vault before the JobQueue (taken), facelift's /app/spend beside my receipt routes, orphans' local job services beside the provenance hook; tool registries: vault_tools + cards + wave6 plan_tools + orphan server tools in TOOLS, script_for and turns; egress: video_link + world_labs; lampway_tools.py: wave6 and orphan Defs + uelook's UE Defs; api.py: wave6 loop + orphans_api + uelook's UE tools; runner.py: both lanes' entries; launcher: models dir + LAMPWAY_BLENDER + ue_look banner (merge-owned anneal rows); REUSE: all lanes' annotations; docs/lampway/README.md: deleted by docs, uelook's two links moved into docs/README.md; i18n catalogs and docs/tools.md regenerated | b7 test_all RED on 2 new failures, both integration effects: wave6's world_gen host not on the links allow-list (added), and wave6's character-pipeline test expecting mirror_pair and mesh_join_boolean to be MISSING, which lp/orphans now provides (the test now asserts they are in the door); b8 pending |
 
 ## Requests to lanes
-(none yet)
+
+1. **canon (e16b9a3b): not merged, needs the lane.** Its door makes `consumes=` required on every `@tool` (a bare one raises at import) and holds a LEGACY ratchet that may never rise. lp/wave5 now carries 90 bare `@tool` functions in api.py alone that the canon branch never saw (wave6's `api_wave6` loop, orphans_api, uelook's UE tools, the Vault tools), plus new runner entries. Marking them LEGACY raises the ratchet (its own history test refuses that); a shared LEGACY object would hide N tools behind one count. Either way would weaken the check. Request: lp/canon merges origin/lp/wave5 and declares those tools (Need / NONE, or LEGACY with the ratchet re-baselined by the canon lane's own decision), then pushes; I merge it then.
+2. **facelift**: the binary I test with is a reflink copy of `wt-build/build/Prod` built 02:31 after facelift's 79f22557; wt-build had uncommitted native edits at the time (agent_bubble .cc files), so the binary may carry behaviour the branch does not yet have. Please say when a build exactly at a pushed sha is available.
+3. **inherited known-red (118)**: owners per module; tests/known_red.tsv lists them with their first error line.
 
 ## Lane overlap and duplication seen
 - The asset_mcp tool family (`lampway_vault_*`) was drafted by the previous implementer but not committed: a test draft is at `scratch/test_library_vault_tools.draft.py` for lane lp/vault-ui (asset_mcp is its contract). Its design: server-run tools (`agent/vault_tools.py`), a `Vault` facade (lib + ingest + embed + spool + project root), origin `agent|mcp`, rater `agent:<id>`, no SQL tool and no import tool, `scan` restricted to the project root or a user-registered source.

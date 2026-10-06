@@ -22,7 +22,7 @@ def _canvas_center(context):
     workspace = getattr(context, "workspace", None)
     if (
         getattr(area, "type", None) == 'VIEW_3D'
-        and getattr(workspace, "name", None) == "Zen Mode"
+        and getattr(workspace, "name", None) == "Lamplight"
     ):
         for region in getattr(area, "regions", ()):
             if region.type == 'TOOL_PROPS' and getattr(region, "view2d", None):
@@ -62,7 +62,7 @@ class MIXIE_OT_add_selected_mesh_to_moodboard(Operator):
 
         if (
             getattr(getattr(context, "area", None), "type", None) == 'VIEW_3D'
-            and getattr(getattr(context, "workspace", None), "name", None) == "Zen Mode"
+            and getattr(getattr(context, "workspace", None), "name", None) == "Lamplight"
         ):
             try:
                 bpy.ops.view3d.moodboard_drawer_reveal('EXEC_DEFAULT')

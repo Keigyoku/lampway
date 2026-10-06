@@ -51,13 +51,13 @@ def editable_channel(obj, material, engine, channel, *, loading=True):
         raise ValueError('Make the material local before editing its textures')
     shader = surface_shader(material, engine)
     if shader is None:
-        raise ValueError('Edit this shader in Engine Mode')
+        raise ValueError('Edit this shader in the Workshop')
     socket = shader.inputs[channel]
     image, normal = channel_nodes(socket, channel)
     if socket.is_linked and image is None:
-        raise ValueError('This channel is driven by nodes; edit it in Engine Mode')
+        raise ValueError('This channel is driven by nodes; edit it in the Workshop')
     if loading and channel == 'Normal' and not obj.data.uv_layers:
-        raise ValueError('Add a UV map in Engine Mode before loading a normal map')
+        raise ValueError('Add a UV map in the Workshop before loading a normal map')
     return shader, socket, image, normal
 
 

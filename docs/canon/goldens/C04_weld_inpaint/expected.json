@@ -1,0 +1,11 @@
+{
+ "unwelded_index_graph_fill": {
+  "unweighted_vertices": 30,
+  "why": "every vertex of island B (30) keeps no weight: its graph component has no constraint"
+ },
+ "welded_fill": {
+  "duplicate_pairs_bit_identical": 5,
+  "sums_to_one_tol": 1e-09,
+  "unweighted_vertices": 0
+ }
+}

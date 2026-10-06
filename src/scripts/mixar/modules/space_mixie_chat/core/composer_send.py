@@ -32,6 +32,8 @@ def model_change_pending(scene):
 def can_send(scene):
     if pending_video_attachments(scene):
         return False, VIDEO_ATTACHMENT_REJECTED
+    if getattr(scene, 'mixie_chat_mode', '') == 'LIBRARY':
+        return True, ''           # Library searches the Asset Vault over REST: no agent session is involved
     if model_change_pending(scene):
         from mixar.modules.byok.core.preference_state import PENDING_MESSAGE
         return False, PENDING_MESSAGE

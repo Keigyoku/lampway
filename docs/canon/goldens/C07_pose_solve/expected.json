@@ -1,0 +1,8 @@
+{
+ "a_pose_penetrating_min": 1,
+ "best_lower_deg": 30,
+ "penetrating_at_best": 0,
+ "selection": "fewest penetrations > 10 mm, then smallest worst depth, then smallest |angle| (shelf pose_clearance.py:118)",
+ "sign_check": "rotating +20 must move the elbow DOWN (z decreases); a negated axis must be REFUSED, not measured",
+ "tol_deg": 0
+}

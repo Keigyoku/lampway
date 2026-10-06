@@ -216,7 +216,7 @@ static wmOperatorStatus moodboard_drop_image_exec(bContext *C, wmOperator *op)
   const ScrArea *area = CTX_wm_area(C);
   const WorkSpace *workspace = CTX_wm_workspace(C);
   if (from_drop && area && area->spacetype == SPACE_VIEW3D && workspace &&
-      STREQ(workspace->id.name + 2, "Zen Mode"))
+      STREQ(workspace->id.name + 2, "Lamplight"))
   {
     /* Successful drops reveal the drawer. Never toggle: another reference
      * arriving while open must keep it open. The drawer clock eases to 1. */

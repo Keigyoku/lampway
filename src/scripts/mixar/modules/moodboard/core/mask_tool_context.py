@@ -21,7 +21,7 @@ def mouse_to_image_coords(context, event, target_image_index):
     if area.type == 'MIXIE':
         region_type = 'WINDOW'
     elif (area.type == 'VIEW_3D'
-          and context.workspace.name == 'Zen Mode'
+          and context.workspace.name == 'Lamplight'
           and context.window_manager.mixar_moodboard_drawer_amount >= .98):
         region_type = 'TOOL_PROPS'
     else:

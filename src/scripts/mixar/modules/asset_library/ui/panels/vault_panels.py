@@ -7,6 +7,7 @@
 Header: the space switcher, the title, search, kind segments, sort, view, tile size and the counts. Body: facets with counts | results | detail, three columns from 900 px, two
 from 600, one below. ``draw`` only reads the session's view-model and lays out; every network call is an operator's, run off the main thread."""
 
+import json
 import os
 
 from bpy.types import Header, Panel
@@ -23,6 +24,14 @@ GLYPH_ICON = {"lamp": "LIGHT", "wire": "URL"}
 def _ses():
     from mixar.modules.asset_library.core import session
     return session
+
+
+def _boards(col, vm) -> None:
+    head = col.row(align=True)
+    head.label(text="Boards")
+    head.operator("mixar.asset_library_boards", text="", icon="FILE_REFRESH", emboss=False)
+    for b in vm.boards:
+        col.operator("mixar.asset_library_board", text=b["name"], icon="IMAGE_REFERENCE").board_id = b["id"]
 
 
 def _facets(col, vm) -> None:
@@ -55,15 +64,15 @@ def _results(col, vm, props, width) -> None:
             if icon:
                 cell.template_icon(icon_value=icon, scale=tile / 20.0)
             else:
-                cell.label(text="", icon=KIND_ICON.get(it["kind"], "QUESTION"))
+                cell.label(text="", icon=KIND_ICON.get(it.get("kind"), "QUESTION"))
             op = cell.operator("mixar.asset_library_select", text=it["name"], depress=it["id"] in vm.selected)
             op.asset_id = it["id"]
     else:
         for it in vm.items:
             row = col.row(align=True)
-            op = row.operator("mixar.asset_library_select", text=it["name"], icon=KIND_ICON.get(it["kind"], "QUESTION"), depress=it["id"] in vm.selected)
+            op = row.operator("mixar.asset_library_select", text=it["name"], icon=KIND_ICON.get(it.get("kind"), "QUESTION"), depress=it["id"] in vm.selected)
             op.asset_id = it["id"]
-            row.label(text=f"{it['kind']}  {'*' * int(it.get('rating') or 0)}")
+            row.label(text=f"{it.get('kind')}  {'*' * int(it.get('rating') or 0)}")
     nav = col.row(align=True)
     sub = nav.row(align=True)
     sub.enabled = vm.can_prev
@@ -89,6 +98,26 @@ def _frame(col, vm, icon_scale=10.0) -> None:
     row.label(text=f"frame {fb.frame + 1} of {len(fb.frames)}, {fb.fps} fps")
 
 
+def _clip_pair(col, vm) -> None:
+    """Two clips on one scrub bar: the alignment modes, then frame A | frame B of the shared flipbook."""
+    modes = col.row(align=True)
+    for mode, label in (("START", "Start"), ("TIME", "Time"), ("MOTION", "Motion")):
+        modes.operator("mixar.asset_library_align", text=label, depress=bool(vm.align and vm.align["mode"] == mode.lower())).mode = mode
+    if not vm.align:
+        col.label(text="Choose how to line the two clips up", icon="INFO")
+        return
+    pair = vm.flipbook.path() or ("", "")
+    row = col.row()
+    for path in pair:
+        icon = _ses().file_icon(path)
+        row.template_icon(icon_value=icon, scale=8.0) if icon else None
+    col.label(text=f"{os.path.basename(pair[0])} | {os.path.basename(pair[1])}")
+    ctl = col.row(align=True)
+    ctl.operator("mixar.asset_library_play_toggle", text="", icon="PAUSE" if vm.flipbook.playing else "PLAY")
+    off = vm.align.get("offset") or {}
+    ctl.label(text=f"frame {vm.flipbook.frame + 1} of {len(vm.flipbook.frames)}, offset A {off.get('a', 0)} B {off.get('b', 0)}")
+
+
 def _preview(col, vm, rec) -> None:
     modes = col.row(align=True)
     for mode, label in MODE_LABELS:
@@ -97,12 +126,14 @@ def _preview(col, vm, rec) -> None:
     p = vm.products or {}
     mode = vm.view_mode
     if mode == "compare":
-        kinds = {it["id"]: it["kind"] for it in vm.items}
+        kinds = {it["id"]: it.get("kind") for it in vm.items}
         ids = ([rec["id"]] if rec["id"] not in vm.compare else []) + list(vm.compare)       # the selected asset is A; Compare on another makes B
         records = [{"id": i, "kind": kinds.get(i) or (rec["kind"] if i == rec["id"] else "?")} for i in ids]
         refusal = VW.compare_refusal(records)
         if refusal:
             col.label(text=refusal, icon="INFO")
+        elif all(r["kind"] == "video" for r in records[-2:]):
+            _clip_pair(col, vm)
         else:
             pair = col.row()
             for i in ids[-2:]:
@@ -120,6 +151,8 @@ def _preview(col, vm, rec) -> None:
         icon = _ses().file_icon(lin.get("png"))
         if icon:
             col.template_icon(icon_value=icon, scale=12.0)
+        op = col.operator("mixar.asset_library_canvas", text="Open on the canvas", icon="FULLSCREEN_ENTER")
+        op.action, op.path, op.lineage = "OPEN", lin.get("png") or "", json.dumps({k: lin[k] for k in ("root", "nodes", "width", "height") if k in lin})
         for n in lin["nodes"]:
             op = col.operator("mixar.asset_library_select", text=f"{n['name']} ({n['kind']})", depress=n["id"] == rec["id"])
             op.asset_id = n["id"]
@@ -141,9 +174,13 @@ def _preview(col, vm, rec) -> None:
     elif mode in ("preview", "video"):
         _frame(col, vm)
     else:
-        icon = _ses().file_icon(p.get({"uv": "overlay", "maps": "sheet"}[mode]))
+        path = p.get({"uv": "overlay", "maps": "sheet"}[mode])
+        icon = _ses().file_icon(path)
         if icon:
             col.template_icon(icon_value=icon, scale=10.0)
+        if path:
+            op = col.operator("mixar.asset_library_canvas", text="Open on the canvas", icon="FULLSCREEN_ENTER")
+            op.action, op.path = "OPEN", path
 
 
 def _detail(col, vm, scene_ok: bool) -> None:
@@ -185,7 +222,18 @@ def _detail(col, vm, scene_ok: bool) -> None:
     more.operator("mixar.asset_library_copy", text="Copy id", icon="COPYDOWN").text = rec["id"]
 
 
+def _canvas_bar(layout) -> None:
+    row = layout.row(align=True)
+    row.operator("mixar.asset_library_canvas", text="Fit", icon="ZOOM_ALL").action = "FIT"
+    row.operator("mixar.asset_library_canvas", text="Close canvas", icon="X").action = "CLOSE"
+    row.label(text="The wheel zooms, the middle button drags, a click on a node selects it, Esc closes")
+
+
 def draw_body(layout, context) -> None:
+    from mixar.modules.asset_library.core import canvas_view as CV
+    if CV.STATE["open"]:
+        _canvas_bar(layout)                                       # the picture is drawn by the canvas handler below this bar: nothing else is laid out under it
+        return
     vm = _ses().VM
     props = getattr(context.window_manager, "mixar_lib", None)
     width = getattr(getattr(context, "region", None), "width", 1200) or 1200
@@ -194,7 +242,9 @@ def draw_body(layout, context) -> None:
         layout.label(text=vm.empty_text(), icon="ERROR")
     if width >= 900:
         split = layout.split(factor=0.2)
-        _facets(split.column(), vm)
+        left = split.column()
+        _facets(left, vm)
+        _boards(left, vm)
         rest = split.split(factor=0.625)
         _results(rest.column(), vm, props, width * 0.5)
         _detail(rest.column(), vm, scene_ok)

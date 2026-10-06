@@ -1,0 +1,25 @@
+{
+ "body": {
+  "radius": 0.2,
+  "sphere_centre": [
+   0.0,
+   0.0,
+   1.0
+  ]
+ },
+ "capped_half_extent": {
+  "push_m": 0.004,
+  "surface_crossing_edges_min": 4,
+  "why": "the push = distance to the skin + min(depth, half extent): the rivet straddles the skin"
+ },
+ "push_direction": [
+  0,
+  1,
+  0
+ ],
+ "uncapped_1cm": {
+  "inside_vertices": 8,
+  "surface_crossing_edges": 0,
+  "verdict": "control UNPROVEN for a surface-crossing instrument"
+ }
+}

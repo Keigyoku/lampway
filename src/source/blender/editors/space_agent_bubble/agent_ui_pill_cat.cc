@@ -33,6 +33,9 @@
 #include "agent_ui_pill_cat.hh"
 #include "agent_ui_pill_cat_pose.hh"
 
+#include "UI_mixar_theme.hh"
+#include "UI_resources.hh"
+
 namespace blender {
 
 namespace {
@@ -178,7 +181,43 @@ void wisp(float pixel, const float color[4])
 
 }  // namespace
 
-static void draw_spark(const rctf &chip, const MixieCatStyle &style, const bool working, const bool offline, const float alpha)
+/** A stretch of ring from angle \a a0 to \a a1 (radians, anticlockwise from 3 o'clock). */
+static void arc(const float radius, const float width, const float a0, const float a1, const float pixel, const float color[4])
+{
+  const int count = std::max(4, int(48.0f * (a1 - a0) / 6.283185307f));
+  const float outer = radius + width * 0.5f, inner = radius - width * 0.5f;
+  for (int i = 0; i < count; i++) {
+    const float b0 = a0 + (a1 - a0) * float(i) / count, b1 = a0 + (a1 - a0) * float(i + 1) / count;
+    const float quad[4][2] = {{outer * std::cos(b0), outer * std::sin(b0)},
+                              {outer * std::cos(b1), outer * std::sin(b1)},
+                              {inner * std::cos(b1), inner * std::sin(b1)},
+                              {inner * std::cos(b0), inner * std::sin(b0)}};
+    const float mid[2] = {(quad[0][0] + quad[2][0]) * 0.5f, (quad[0][1] + quad[2][1]) * 0.5f};
+    polygon(quad, 4, pixel, color, mid);
+  }
+}
+
+/** A polyline as quads, in the SVG's 64 px frame (y down). */
+static void stroke(const float (*pts)[2], const int n, const float width, const float pixel, const float color[4])
+{
+  for (int i = 0; i + 1 < n; i++) {
+    const float x0 = (pts[i][0] - 32.0f) / 64.0f, y0 = -(pts[i][1] - 32.0f) / 64.0f;
+    const float x1 = (pts[i + 1][0] - 32.0f) / 64.0f, y1 = -(pts[i + 1][1] - 32.0f) / 64.0f;
+    const float len = std::max(std::hypot(x1 - x0, y1 - y0), 1e-6f);
+    const float nx = -(y1 - y0) / len * width * 0.5f, ny = (x1 - x0) / len * width * 0.5f;
+    const float quad[4][2] = {{x0 + nx, y0 + ny}, {x1 + nx, y1 + ny}, {x1 - nx, y1 - ny}, {x0 - nx, y0 - ny}};
+    polygon(quad, 4, pixel, color);
+    disc(x1, y1, width * 0.5f, pixel, color);
+  }
+}
+
+/**
+ * The Spark in one of the seven agent states (DESIGN.md 7 and 13, facelift contract 05). The ring IS the state, not the worker (F9): idle and
+ * working and unread keep `line_hi`; blocked is a thick `accent` ring; paused a dashed `muted_dim` one; done is `go` with a check under a smaller
+ * flame; failed is `stop` with the flame out. Nothing animates: working is a static amber arc (F10, "only egress moves"). Every colour is the
+ * theme's, so Paper recolours it.
+ */
+static void draw_spark(const rctf &chip, const AgentSparkState state, const float alpha)
 {
   const float s = std::min(BLI_rctf_size_x(&chip), BLI_rctf_size_y(&chip)) - 2.0f;
   if (s < 6.0f || alpha <= 0.0f) {
@@ -186,35 +225,76 @@ static void draw_spark(const rctf &chip, const MixieCatStyle &style, const bool 
   }
   const float a = std::clamp(alpha, 0.0f, 1.0f);
   const float px = 0.7f / s;
-  const float smoke[4] = {0.086f, 0.098f, 0.133f, a};  /* #161922 */
-  const float ring_color[4] = {offline ? 0.941f : style.ring[0], offline ? 0.463f : style.ring[1], offline ? 0.420f : style.ring[2], a};
-  const float flame_color[4] = {0.929f, 0.725f, 0.267f, a};   /* #EDB944 */
-  const float ghost_color[4] = {0.965f, 0.804f, 0.420f, a * 0.5f}; /* #F6CD6B at half strength */
-  const float ash[4] = {0.663f, 0.651f, 0.616f, a};            /* #A9A69D */
-  const bool second_frame = working && (int(BLI_time_now_seconds() / 0.8) & 1);
+  float smoke[4], line_hi[4], accent[4], muted_dim[4], muted[4], stop[4], go[4], agent[4];
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::Panel, smoke);            /* surface */
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::BorderStrong, line_hi);
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::Focus, accent);
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::Fg4, muted_dim);
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::TextSecondary, muted);
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::Danger, stop);
+  ui::theme::get_color_4fv(TH_ICON_OBJECT_DATA, go);                    /* the theme's `go` */
+  ui::theme::get_color_4fv(TH_GIZMO_SECONDARY, agent);                  /* the theme's `agent` (dusk) */
+  for (float *c : {smoke, line_hi, accent, muted_dim, muted, stop, go, agent}) {
+    c[3] = a;
+  }
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(BLI_rctf_cent_x(&chip), BLI_rctf_cent_y(&chip));
   GPU_matrix_scale_2f(s, s);
   disc(0.0f, 0.0f, 29.0f / 64.0f, px, smoke);
-  ring(29.0f / 64.0f, 3.0f / 64.0f, px, ring_color);
-  if (offline) {
-    wisp(px, ash);
-  }
-  else if (working) {
-    flame(second_frame ? 16.0f : 14.0f, second_frame ? 43.0f : 45.0f, 0.0f, px, flame_color);
-    flame(second_frame ? 14.0f : 18.0f, second_frame ? 45.0f : 42.0f, 2.0f, px, ghost_color);
-  }
-  else {
-    flame(16.0f, 43.0f, 0.0f, px, flame_color);
+  const float r = 29.0f / 64.0f, w = 3.0f / 64.0f;
+  switch (state) {
+    case AgentSparkState::Blocked:
+      ring(r - 1.0f / 64.0f, 5.5f / 64.0f, px, accent);
+      flame(16.0f, 43.0f, 0.0f, px, accent);
+      break;
+    case AgentSparkState::Paused:
+      for (int i = 0; i < 16; i++) {
+        const float a0 = float(i) * 6.283185307f / 16.0f;
+        arc(r, w, a0, a0 + 6.283185307f / 32.0f, px, muted_dim);
+      }
+      flame(16.0f, 43.0f, 0.0f, px, accent);
+      break;
+    case AgentSparkState::Done: {
+      ring(r, w, px, go);
+      flame(14.0f, 33.0f, 0.0f, px, accent);
+      const float check[3][2] = {{24.0f, 41.0f}, {30.0f, 46.0f}, {41.0f, 37.0f}};
+      stroke(check, 3, 3.5f / 64.0f, px, go);
+      break;
+    }
+    case AgentSparkState::Failed:
+      ring(r, w, px, stop);
+      wisp(px, muted);
+      break;
+    case AgentSparkState::Working:
+      ring(r, w, px, line_hi);
+      arc(r, 5.0f / 64.0f, 0.0f, 1.9f, px, accent); /* a static amber arc from 3 to 12 o'clock */
+      flame(16.0f, 43.0f, 0.0f, px, accent);
+      break;
+    case AgentSparkState::Unread:
+      ring(r, w, px, line_hi);
+      flame(16.0f, 43.0f, 0.0f, px, accent);
+      disc(0.24f, 0.39f, 6.0f / 64.0f, px, smoke);  /* a `surface` keyline around the dot at one o'clock */
+      disc(0.24f, 0.39f, 4.5f / 64.0f, px, agent);
+      break;
+    case AgentSparkState::Idle:
+    default:
+      ring(r, w, px, line_hi);
+      flame(16.0f, 43.0f, 0.0f, px, accent);
+      break;
   }
   GPU_matrix_pop();
 }
 
-void agent_ui_draw_cat(
-    const rctf &chip, const double /*now*/, const bool working, const int variation, const float alpha)
+void agent_ui_draw_spark(const rctf &chip, const AgentSparkState state, const float alpha)
 {
-  draw_spark(chip, mixie_cat_style(variation), working, false, alpha);
+  draw_spark(chip, state, alpha);
+}
+
+void agent_ui_draw_cat(
+    const rctf &chip, const double /*now*/, const bool working, const int /*variation*/, const float alpha)
+{
+  draw_spark(chip, working ? AgentSparkState::Working : AgentSparkState::Idle, alpha);
 }
 
 void agent_ui_draw_pill_cat(const rctf *chip,
@@ -231,7 +311,11 @@ void agent_ui_draw_pill_cat(const rctf *chip,
                      int(std::ceil(chip->ymax))};
   g_last_cat_valid = true;
   g_last_activity = activity;
-  draw_spark(*chip, mixie_cat_style(1), mixie_cat_is_working(activity), activity == MixieCatActivity::Offline, 1.0f);
+  draw_spark(*chip,
+             activity == MixieCatActivity::Offline ? AgentSparkState::Failed :
+             mixie_cat_is_working(activity)        ? AgentSparkState::Working :
+                                                     AgentSparkState::Idle,
+             1.0f);
 }
 
 bool agent_ui_pill_cat_last_rect(rcti *r_rect)

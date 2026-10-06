@@ -38,9 +38,9 @@ def _draw_mode_menu_entry(self, context):
     row.emboss = 'NORMAL'
     workspace = getattr(context, "workspace", None)
     if workspace is not None and workspace.name == BASIC_WORKSPACE_NAME:
-        row.operator("mixar.set_ui_mode_pro", text="Engine Mode")
+        row.operator("mixar.set_ui_mode_pro", text="Workshop")
     else:
-        row.operator("mixar.set_ui_mode_ai", text="Zen Mode")
+        row.operator("mixar.set_ui_mode_ai", text="Lamplight")
 
 
 def install_mode_menu_hook():

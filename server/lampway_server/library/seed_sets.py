@@ -95,6 +95,7 @@ class SeedSets:
             s["files"] += 1
             s["bytes"] += rec["size"]
             try:
+                # LEGACY(normalize): the user's meshes, clips and textures enter through asset_ingest's spec, not canon_io (not yet on lp/wave5); raw sha256 recorded, no frame or scale claimed
                 res = lib.put(ing._spec(rec, scan_id, "initial import"))
             except LibraryError as e:
                 s["failed"].append({"path": rec["path"], "why": str(e)})

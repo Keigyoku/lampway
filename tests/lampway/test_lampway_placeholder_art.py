@@ -25,10 +25,6 @@ BRAND_FILES = (
     "src/release/datafiles/blender_icons16/icon16_mixar_icon.dat",
     "src/release/datafiles/blender_icons32/icon32_mixar_icon.dat",
     "src/release/datafiles/icons_svg/mixar_icon.svg",
-    "src/release/datafiles/icons_svg/credits_upgrade.svg",
-    "src/release/datafiles/icons_svg/credits_slide.svg",
-    "src/release/datafiles/icons_svg/credits_refer.svg",
-    "src/release/datafiles/icons_svg/credits_creator.svg",
     "src/release/datafiles/mixar_icons.svg",
     "src/scripts/mixar/modules/common/notifications/assets/mixie_mascot.webp",
     "src/release/freedesktop/icons/scalable/apps/mixar.svg",
@@ -63,6 +59,16 @@ def test_every_brand_file_is_placeholder_licensed_with_the_source():
         assert block["SPDX-License-Identifier"] == "GPL-3.0-or-later", rel
         assert "Lampway" in block["SPDX-FileCopyrightText"], rel
         assert block["precedence"] == "override", rel
+
+
+def test_the_generator_does_not_bring_back_retired_icons(tmp_path):
+    """Facelift 14 retired Mixar's four credit badges; regenerating the placeholder art must not write them again."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("lampway_placeholder_art", ROOT / "scripts/dev/lampway_placeholder_art.py")
+    tool = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(tool)
+    tool.generate(tmp_path)
+    assert sorted(p.name for p in tmp_path.rglob("credits_*")) == []
 
 
 def test_icon_dat_headers_are_what_the_build_expects():

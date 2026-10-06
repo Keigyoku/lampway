@@ -57,6 +57,8 @@ def need_object(name: str, kind: str = "MESH"):
     if ob is None or (kind and ob.type != kind):
         meshes = sorted(o.name for o in bpy.data.objects if o.type == (kind or "MESH"))
         raise FeatureError(f"no {kind.lower() or 'object'} named {name!r}; the {kind.lower() or 'object'}s are: {meshes}")
+    if kind == "MESH" and "splat_opacity" in ob.data.attributes and not ob.data.polygons:
+        raise FeatureError(f"{name} is a Gaussian splat: a splat has no faces: mesh tools refuse it (splat_collision_proxy makes a mesh to work on)")
     return ob
 
 

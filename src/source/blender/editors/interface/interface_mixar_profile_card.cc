@@ -154,6 +154,7 @@ struct AccountInfo {
   bool has_subscription = false;
   bool can_top_up = false;
   bool stale = false;
+  bool show_identity = false; /* Lampway: no name or address until the user asks (contract 03). */
   float remaining_pct = 0.0f;
   int credits_remaining = 0;
   int credits_total = 0;
@@ -211,6 +212,7 @@ AccountInfo read_account(bContext *C)
     info.has_subscription = read_bool(&wm_ptr, "mixar_usage_has_subscription");
     info.can_top_up = read_bool(&wm_ptr, "mixar_usage_can_top_up");
     info.stale = read_bool(&wm_ptr, "mixar_usage_stale");
+    info.show_identity = read_bool(&wm_ptr, "lampway_show_identity");
     info.remaining_pct = read_float(&wm_ptr, "mixar_usage_remaining_pct");
     info.credits_remaining = read_int(&wm_ptr, "mixar_usage_credits_remaining");
     info.credits_total = read_int(&wm_ptr, "mixar_usage_credits_total");
@@ -264,7 +266,10 @@ void add_header(Layout *layout, const AccountInfo &info)
   names.alignment_set(blender::ui::LayoutAlign::Left);
 
   char greeting[192];
-  if (info.name[0]) {
+  if (!info.show_identity) {
+    BLI_strncpy(greeting, IFACE_("Local account"), sizeof(greeting));
+  }
+  else if (info.name[0]) {
     SNPRINTF(greeting, IFACE_("Welcome, %s !"), info.name);
   }
   else {
@@ -278,7 +283,7 @@ void add_header(Layout *layout, const AccountInfo &info)
   heading_row.label(greeting, ICON_NONE);
   mark_last(&heading_row, MixarCardElement::Heading);
 
-  if (info.email[0]) {
+  if (info.show_identity && info.email[0]) {
     char email_line[288];
     SNPRINTF(email_line, "(%s)", info.email);
     names.label(email_line, ICON_NONE);
@@ -500,6 +505,12 @@ void UI_layout_mixar_profile_card(Layout *layout, bContext *C)
   card.mixar_scope_set(scope);
 
   add_header(&card, info);
+  if (wmWindowManager *wm = CTX_wm_manager(C)) {
+    PointerRNA wm_ptr = RNA_id_pointer_create(&wm->id);
+    if (RNA_struct_find_property(&wm_ptr, "lampway_show_identity")) {
+      card.prop(&wm_ptr, "lampway_show_identity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    }
+  }
   card.separator(0.6f);
   add_usage(&card, info);
 

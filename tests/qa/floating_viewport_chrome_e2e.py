@@ -116,7 +116,7 @@ SWITCHER = {"region_type": "HEADER", "prop": "ui_type"}
 TEXTURING_EDITORS = (
     ("MIXAR_LAYERS", "Texturing Layers"),
     ("MIXAR_PROPERTIES", "Texturing Properties"),
-    ("MIXAR_ASSETS", "Texturing Assets"),
+    ("MIXAR_ASSETS", "Asset Vault"),
     ("BAKING", "Texturing Baking Space"),
     ("TEXTURE_SETS", "Texture Sets"),
 )

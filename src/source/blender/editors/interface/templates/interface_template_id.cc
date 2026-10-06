@@ -1499,7 +1499,7 @@ static void template_ID_tabs(const bContext *C,
      * Mirror in src/scripts/mixar/modules/workflow/constants.py if
      * these change. */
     if (template_id.idcode == ID_WS &&
-        (STREQ(id->name + 2, "Zen Mode") ||
+        (STREQ(id->name + 2, "Lamplight") ||
          STREQ(id->name + 2, "Basic Mode") ||
          STREQ(id->name + 2, "AI Mode")))
     {

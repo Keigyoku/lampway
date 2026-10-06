@@ -68,7 +68,7 @@ def _view3d_override():
         return None
 
     for window in window_manager.windows:
-        if window.workspace.name != 'Zen Mode':
+        if window.workspace.name != 'Lamplight':
             continue
         screen = window.screen
         if screen is None:
@@ -127,7 +127,7 @@ def _drawer_tick():
 def register():
     bpy.types.WindowManager.mixar_moodboard_drawer_amount = FloatProperty(
         name="Moodboard Drawer",
-        description="How far the Zen Mode moodboard drawer is pulled out, "
+        description="How far the Lamplight moodboard drawer is pulled out, "
                     "0 shut and 1 open",
         default=0.0,
         min=0.0,
@@ -136,7 +136,7 @@ def register():
     )
     bpy.types.WindowManager.mixar_moodboard_drawer_target = IntProperty(
         name="Moodboard Drawer Target",
-        description="Side the Zen Mode moodboard drawer settles on, "
+        description="Side the Lamplight moodboard drawer settles on, "
                     "0 shut and 1 open",
         default=0,
         min=0,

@@ -1660,10 +1660,165 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
                                      _p(out, s_.project_root), feather)
 
 
+# ---- Wave 6 tools (api_wave6.py): plain functions wrapped here, so they pass the same door with the same envelope
+
+from . import api_wave6 as _W6                              # noqa: E402
+
+# one door per wave 6 tool, each a LEGACY of its own (the ratchet counts every tool still owing its Need/NONE)
+_W6_DOORS = {
+    "modular_character": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "character_pipeline": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "playblast_capture": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "lod_chain": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "motion_experiment": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "secondary_chain_rig": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "cloth_garment_sim": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "face_rig_validate": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "glb_optimize": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "traversal_check": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "level_blockout": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "part_budget_plan": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "platform_budget_check": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "print_check": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "print_prep": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "profile_revolve": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "splat_world": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "splat_collision_proxy": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "vehicle_wheel_rig": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "editor_connection_receipt": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "terrain": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "addon_read": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "addon_stage_patch": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "addon_commit": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "addon_rollback": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "material_palette": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "scene_from_image": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+    "motion_generate": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
+}
+for _w6_name in _W6.TOOLS:
+    globals()[_w6_name] = tool(consumes=_W6_DOORS[_w6_name])(getattr(_W6, _w6_name))
+
+
 # ---- the orphan tools (STATUS.md ORPHANS): their own module, registered through tool() above
 
 from .orphans_api import *  # noqa: E402,F401,F403
 from .rig_api import *  # noqa: E402,F401,F403
+
+
+# ---- the UE Renderer (specs/ue_parity): ue/ owns the behaviour, these are its doors
+
+def _ue_profile(profile):
+    from .ue import profile as _UEP
+    return _UEP.load(_p(profile) if profile else _UEP.DEFAULT_PROFILE)
+
+
+@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
+def ue_material(material, mode="report", merge_json=None, master=None, on_loss="report", profile=None):
+    """Translate a Principled material to UE's legacy Default Lit, deterministically: the UE material-instance parameters
+    (BaseColor/Metallic/Roughness/Specular/Emissive, blend mode Opaque|Masked(0.3333)|Translucent, Two Sided = not backface
+    culling, texture sRGB flags and compression), what is dropped or clamped, and translation_sha256. mode report changes nothing;
+    preview builds '<material> [UE]' with the LW_UE_DefaultLit_v1 node group (Lambert added to single-scatter GGX, UE's F0 and its
+    F90 = saturate(50 F0.g), the DirectX normal with Z rebuilt) beside the untouched original; export reads the pbr_pack
+    merge_json for the texture colour spaces and the ORM channel order. on_loss refuse refuses any loss. profile: a
+    lampway.ue-profile/1 file (default: the shipped engine-defaults profile). Free, no model."""
+    from .ue import material_group as _UEG
+    from .ue import material_map as _UEM
+    prof = _ue_profile(profile)
+    if mode == "preview":
+        return _UEG.preview(material, prof)
+    mat = bpy.data.materials.get(material)
+    if mat is None:
+        raise LookupError(f"no material named {material!r}; the materials are: {sorted(m.name for m in bpy.data.materials)}")
+    merge, files = None, None
+    if merge_json:
+        mj = Path(_p(merge_json))
+        merge = json.loads(mj.read_text(encoding="utf-8"))
+        files = sorted(q.name for q in mj.parent.glob("*.png"))
+    return _UEM.translate(_UEG.read_spec(mat), prof, mode, merge, files, master, on_loss)
+
+
+@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
+def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=None, cube=None, cube_meta=None):
+    """The one-click UE Look mode, governed by one UE profile (lampway.ue-profile/1; default: the shipped engine-defaults
+    profile) and its tonemapper cube, generated on the UE side and named by the profile's tonemap_cube / tonemap_cube_meta (or
+    cube / cube_meta here; validated against the sidecar: sha256, grid, domain, engine version, tonemapper settings). action
+    enable: validate the cube, write the UE view's OCIO config and the launcher's state (the next launch starts with the view;
+    restart if this session lacks it). disable: clear the launcher's state. apply: the view, exposure = log2(k) + Bias - EV100,
+    curves and white balance off, EEVEE fast GI and screen tracing as the profile's GI and reflection methods say (all off with
+    parity=true, and dither 0), anisotropic filtering from r.MaxAnisotropy, soft falloff off on point/spot lights, every material
+    in scope swapped to its '<name> [UE]' UE Default Lit preview; returns the receipt path (with the cube's sha256 and engine
+    version), the lights' UE values and the per-class trust. revert: restores every recorded value exactly. status: active,
+    profile hash, view, classes. generate: the view's OCIO config only. Refused: a missing or mismatched cube (fix: generate the
+    cube on the UE side, then point UE Look at it), a session without the view, Standard ACES, a non-sRGB working space, auto
+    exposure or engine defaults with parity, area or temperature lights in scope, a scene already in a UE look."""
+    from .ue import launch as _UEL2
+    from .ue import look as _UEL
+    from .ue import ocio_view as _UEV
+    scene = bpy.context.scene
+    prof = _p(profile) if profile else None
+    # the cube and its sidecar come from the UE side, usually outside the project root: they are only read and hashed, and
+    # nothing of their content is returned, so they are the one exception to the project-root rule
+    cube, cube_meta = (str(Path(cube).expanduser().resolve()) if cube else None), (str(Path(cube_meta).expanduser().resolve()) if cube_meta else None)
+    if action == "status":
+        return _UEL.status(scene)
+    if action == "revert":
+        return _UEL.revert(scene, _p(receipt) if receipt and not Path(receipt).is_absolute() else receipt)
+    if action == "disable":
+        return {"disabled": _UEL2.disable(), "message": "UE Look is off for the next launch (OCIO is left as it was)"}
+    if action in ("generate", "enable"):
+        _, pr = _UEL.load_profile(prof, cube, cube_meta)
+        g = _UEV.generate(pr, bpy.utils.system_resource("DATAFILES", path="colormanagement"))
+        if action == "generate":
+            return g
+        state = _UEL2.enable(g["config_path"], g["cube_path"], g["cube_sha256"], g["view_name"])
+        restart = not _UEV.view_present(g["view_name"])
+        return dict(g, state_path=state, restart=restart,
+                    message="UE Look is on: restart Lampway (the launcher starts it with the UE view)" if restart else "UE Look is on")
+    if action != "apply":
+        raise ValueError("action is apply, status, revert, enable, disable or generate")
+    return _UEL.apply(scene, prof, scope, bool(parity), cube, cube_meta)
+
+
+@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
+def ue_export(type, object="", armature=None, action=None, out_dir="", textures=None, body=None, frame_rate=None, hero=None, format="fbx",
+              validation="", bind_check="", bake_receipt="", profile=None, allow_unverified=False, _bone_axis="Z"):
+    """Export to UE by the ONE path its type allows: skinned_piece (FBX: armature + mesh, primary bone axis Z / secondary X, no
+    leaf bones, units applied, tangents, triangles; fit_export's gates: body package, validation, bind_check, native bones, and
+    the joint read-back), static_prop (the same without the armature), animation (FBX: the armature, every frame keyed at the
+    scene rate, no simplification; frame_rate must equal the scene's) or texture_set (pbr_pack's BaseColor / ORM / Normal_DX with
+    their DECLARED colour spaces). Canonical input only: a transform not applied, a negative scale or a scene not in metres is
+    refused. Meshes are triangulated once (fixed method) on a temporary copy; bake_receipt's triangles_sha256 must match. Writes
+    out_dir/<name>.fbx, Textures/, README.md, export.json (settings, content_sha256 with the timestamp zeroed, triangles_sha256,
+    read-back, material translation, losses) and ue_import.json (the only import settings the UE editor leg may use). hero
+    (default: the profile's export.precision) keeps UVs outside [0,1] and asks for high-precision tangents, UVs and weights. glTF
+    for a skinned asset is refused. An existing out_dir is refused. Free, no model."""
+    from .ue import export as _UEX
+    s_ = _settings()
+    if not out_dir:
+        raise ValueError("out_dir is required: export/<asset>/<tag> under the project root")
+    _p(out_dir, s_.project_root)                                          # refused outside the project root
+    return _UEX.run(type, object, armature, action, out_dir, _p(textures) if textures else None, _p(body) if body else None, frame_rate, hero,
+                    format, validation, bind_check, bake_receipt, _p(profile) if profile else None, str(s_.project_root), _bone_axis, allow_unverified)
+
+
+@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
+def ue_parity(scene, profile=None, size=768, views=None, out_dir="", ue_captures=None, ue_linear_scale=None):
+    """The parity harness, Lampway half: build a standard scene (chart | furnace | normals | lights) from its one JSON
+    description in a throw-away scene, render each view (front | three_quarter | grazing) headless in EEVEE under ue_look
+    parity=true to float EXR, and write out_dir/scene.json, lampway_<view>.exr, report.json and report.md (Blender and UE versions,
+    profile, scene and file hashes, per-class verdicts). The UE half is needs_box until the captain's box time: given ue_captures
+    (ue_<view>.exr from the UE editor leg) it compares per class against the tolerances (COL display <= 3 codes / linear < 1 %,
+    SHD < 3 %, NRM sign agreement 100 % and mean dE2000 <= 2, LGT < 2 %, GEO IoU >= 0.995; PST and TEX reported). Refused: a
+    profile with engine defaults, auto exposure, GI, reflections, SSAO, bloom, vignette or local exposure on; a mislabelled or
+    .hdr capture; an armour scene without an ue_export receipt; an existing out_dir. Free, no model."""
+    from .ue import parity as _UEP
+    s_ = _settings()
+    if not out_dir:
+        raise ValueError("out_dir is required: parity/<scene>/<tag> under the project root")
+    _p(out_dir, s_.project_root)
+    return _UEP.run(scene, _p(profile) if profile else None, int(size), list(views or ["front"]), out_dir, ue_captures, ue_linear_scale,
+                    str(s_.project_root))
+
 
 # ---- the door the agent's scripts use
 

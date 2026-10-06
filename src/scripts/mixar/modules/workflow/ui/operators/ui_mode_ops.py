@@ -172,10 +172,10 @@ def _kick_slider_animation() -> None:
 
 
 class MIXAR_OT_set_ui_mode_ai(Operator):
-    """Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"""
+    """Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"""
 
     bl_idname = "mixar.set_ui_mode_ai"
-    bl_label = "Zen Mode"
+    bl_label = "Lamplight"
     bl_options = {"REGISTER", "INTERNAL"}
 
     def execute(self, context):
@@ -195,7 +195,7 @@ class MIXAR_OT_set_ui_mode_ai(Operator):
         if target is None:
             self.report(
                 {"WARNING"},
-                "Could not create Zen Mode workspace — no template available",
+                "Could not create the Lamplight workspace — no template available",
             )
             return {"CANCELLED"}
         # Enforce Zen Mode viewport chrome/overlay defaults (visible
@@ -214,15 +214,15 @@ class MIXAR_OT_set_ui_mode_ai(Operator):
         # start the first-run tour in this workspace if it is still due.
         _notify_splash_mode_chosen()
         _restart_onboarding_after_mode()
-        _logger.info("Switched to Zen mode")
+        _logger.info("Switched to Lamplight")
         return {"FINISHED"}
 
 
 class MIXAR_OT_set_ui_mode_pro(Operator):
-    """Switch Lampway into Engine Mode (full Blender-style workspaces)"""
+    """Switch Lampway into the Workshop (full Blender-style workspaces)"""
 
     bl_idname = "mixar.set_ui_mode_pro"
-    bl_label = "Engine Mode"
+    bl_label = "Workshop"
     bl_options = {"REGISTER", "INTERNAL"}
 
     def execute(self, context):
@@ -240,7 +240,7 @@ class MIXAR_OT_set_ui_mode_pro(Operator):
         # gate, then start the first-run tour if it is still due.
         _notify_splash_mode_chosen()
         _restart_onboarding_after_mode()
-        _logger.info("Switched to Engine mode")
+        _logger.info("Switched to the Workshop")
         return {"FINISHED"}
 
 

@@ -118,10 +118,6 @@ path = [
   "src/release/datafiles/blender_icons16/icon16_mixar_icon.dat",
   "src/release/datafiles/blender_icons32/icon32_mixar_icon.dat",
   "src/release/datafiles/icons_svg/mixar_icon.svg",
-  "src/release/datafiles/icons_svg/credits_upgrade.svg",
-  "src/release/datafiles/icons_svg/credits_slide.svg",
-  "src/release/datafiles/icons_svg/credits_refer.svg",
-  "src/release/datafiles/icons_svg/credits_creator.svg",
   "src/release/datafiles/mixar_icons.svg",
   "src/release/datafiles/mixar_logo.png",
   "src/release/datafiles/splash.png",
@@ -226,6 +222,35 @@ SPDX-License-Identifier = "GPL-3.0-or-later"
 # they cannot carry a header; the rail's catalog and the generated registration manifest are JSON, which has no comment syntax.
 [[annotations]]
 path = ["CLAUDE.md", "**/CLAUDE.md", "rail/catalog.json", ".agents/skills/LAMPWAY-RAIL.generated.json"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# The algorithm canon (docs/canon/): Lampway's own specification, goldens and self-tests. The goldens are generated OBJ and JSON
+# (docs/canon/goldens/gen_goldens.py, gen_rig_goldens.py) with no comment syntax; pages without an inline header are covered here.
+[[annotations]]
+path = "docs/canon/**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Facelift contract 02: the brand faces the splash is rendered with, vendored so the render never falls back to a
+# system font. Each OFL text sits beside its face.
+[[annotations]]
+path = ["scripts/dev/brand_art/fonts/fraunces-*.woff2", "scripts/dev/brand_art/fonts/OFL-Fraunces.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces)"
+SPDX-License-Identifier = "OFL-1.1"
+
+[[annotations]]
+path = ["scripts/dev/brand_art/fonts/ibm-plex-*.woff2", "scripts/dev/brand_art/fonts/OFL-IBM-Plex-*.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "2017-2019 IBM Corp."
+SPDX-License-Identifier = "OFL-1.1"
+
+# The UE Renderer's shipped profiles: JSON data with no comment syntax for an inline header.
+[[annotations]]
+path = "src/scripts/mixar/modules/lampway_tools/ue/profiles/*.json"
 precedence = "closest"
 SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"

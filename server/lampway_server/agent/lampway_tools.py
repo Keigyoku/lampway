@@ -8,47 +8,12 @@ are called by the server directly, never through Blender.
 """
 
 import json
-from dataclasses import dataclass, field
-from typing import Optional
 
-from .providers.base import ToolSpec
+from .tool_defs import Def, P  # noqa: F401  (the records live in tool_defs.py; re-exported here)
 
 
 class BadArguments(ValueError):
     pass
-
-
-@dataclass
-class P:
-    name: str
-    type: str = "string"                   # string | number | integer | boolean | array | object
-    desc: str = ""
-    required: bool = False
-    flag: Optional[str] = None             # batch tools: None = positional, else the command-line flag
-    repeat: bool = False                   # an array given as one flag per value
-
-
-@dataclass
-class Def:
-    name: str
-    description: str
-    params: list = field(default_factory=list)
-    api: Optional[str] = None              # an api.<fn> tool function, or
-    batch: Optional[str] = None            # a ported batch tool run through api.run_tool
-    wip: bool = False                      # WIP tooling (a DRAFT canon page): the description and the receipt say so
-
-    def spec(self) -> ToolSpec:
-        props, req = {}, []
-        for p in self.params:
-            prop = {"type": p.type, "description": p.desc}
-            if p.type == "array":
-                prop["items"] = ({"type": "object"} if p.name in ("poses", "waypoints", "anchors", "landmarks", "axis", "plane_origin", "depths_mm", "claims") else
-                                 {"type": "number"} if p.name in ("frame_range", "frames_with_pose") else {"type": "array"} if p.name == "twist" else {"type": "string"})
-            props[p.name] = prop
-            if p.required:
-                req.append(p.name)
-        return ToolSpec(name=self.name, description=self.description,
-                        parameters={"type": "object", "properties": props, "required": req, "additionalProperties": False})
 
 
 def _literal(payload: dict) -> str:
@@ -627,7 +592,20 @@ DEFS = [
         [P("asset_id", "string", required=True), P("version", "integer"), P("mode", "string"), P("target", "object"), P("options", "object")], api="asset_place"),
     Def("lampway_vault_catalog_export", "Publish Asset Vault assets as a Blender asset library under dest_library (inside the project root): a headless worker writes lampway_library.blend with every datablock (materials and node groups from their .blend, meshes, rigs, actions) marked as an asset in its catalogue (never your live file), and blender_assets.cats.txt from the taxonomy (<facet>/<label>; catalogue ids are UUID5 of the path, stable across exports). register=true adds the folder to Blender's asset libraries as library_name, so the Asset Browser and the island's library tab see it. Refused: a lampway_library.blend Lampway did not write, a kind that does not publish, a moved file." + _PATHS,
         [P("asset_ids", "array", required=True), P("dest_library", "string", required=True), P("register", "boolean"), P("library_name", "string")], api="asset_catalog_export"),
+    Def("lampway_ue_material", "Translate a Principled material to Unreal's legacy Default Lit, deterministically: the UE material-instance parameters (BaseColor, Metallic, Roughness, Specular = clamp(2 x level x F0(ior) / 0.08), Emissive x k), blend mode Opaque | Masked (clip 0.3333) | Translucent, Two Sided = not backface culling, the textures' sRGB flags and compression, what is dropped (sheen, coat tint, anisotropy, thin film, diffuse roughness...) or clamped, and translation_sha256. mode report changes nothing; preview builds '<material> [UE]' with the UE Default Lit node group beside the untouched original; export reads the pbr_pack merge_json for colour spaces and the ORM order. on_loss refuse refuses any loss. Free, no model." + _PATHS,
+        [P("material", "string", required=True), P("mode", "string"), P("merge_json", "string"), P("master", "string"), P("on_loss", "string"), P("profile", "string")], api="ue_material"),
+    Def("lampway_ue_look", "The UE Look mode: predict what Unreal shows. apply switches the scene to one UE profile (exposure log2(k) + Bias - EV100, GI and reflections as the profile says, lights mapped by k, every material swapped to its UE Default Lit preview) and returns the receipt, the lights' UE values and the trust per difference class (measured | unmeasured | needs_decision); revert restores every value exactly; status says whether a look is on and which classes are still unmeasured (quote them before saying 'this is what UE will show'); generate writes the UE view's OCIO config; enable also writes the launcher's state (the next launch starts with the view), disable clears it. The tonemapper cube is generated on the UE side and named by the profile (tonemap_cube, tonemap_cube_meta) or by cube / cube_meta; a missing or mismatched cube is refused with the fix. parity=true is the parity-render rule set. Refused: Standard ACES, a non-sRGB working space, auto exposure or engine defaults with parity, area or temperature lights, a scene already in a look. Agents call it on headless copies; the captain's live scene changes only by his click. Free.",
+        [P("action", "string", desc="apply | status | revert | enable | disable | generate"), P("profile", "string"), P("scope", "string", desc="scene | selected"), P("parity", "boolean"), P("receipt", "string"),
+         P("cube", "string", desc="the UE-side .cube (read, never copied)"), P("cube_meta", "string", desc="its lampway.ue-cube-meta/1 sidecar")], api="ue_look"),
+    Def("lampway_ue_export", "Export to Unreal by the ONE path the asset type allows, with receipts: skinned_piece (FBX, armature + mesh, bone axes Z/X, no leaf bones, tangents, triangles; fit_export's gates and the joint read-back: body package, validation, bind_check), static_prop, animation (every frame keyed at the scene rate; frame_rate must match) or texture_set (BaseColor / ORM / Normal_DX with their DECLARED colour spaces). Canonical input only: an unapplied transform, a negative scale or a non-metre scene is refused. Meshes are triangulated once on a temporary copy; a bake_receipt with other triangles is refused. Writes the FBX, Textures/, README.md, export.json (settings, content_sha256 with the FBX timestamp zeroed, read-back, losses) and ue_import.json (the only import settings the UE editor leg may use). glTF for a skinned asset is refused; an existing out_dir is refused. Free." + _PATHS,
+        [P("type", "string", required=True, desc="skinned_piece | static_prop | animation | texture_set"), P("object", "string"), P("armature", "string"), P("action", "string"), P("out_dir", "string", required=True), P("textures", "string"), P("body", "string"), P("frame_rate", "integer"), P("hero", "boolean"), P("format", "string"), P("validation", "string"), P("bind_check", "string"), P("bake_receipt", "string"), P("profile", "string"), P("allow_unverified", "boolean")], api="ue_export"),
+    Def("lampway_ue_parity", "The UE parity harness, Lampway half: build a standard scene (chart | furnace | normals | lights) from its one JSON description in a throw-away scene, render each view (front | three_quarter | grazing) headless in EEVEE under the UE look with parity rules to float EXR, and write report.json / report.md with versions, hashes and a verdict per difference class. The UE half needs box time (needs_box) until the UE editor leg captures ue_<view>.exr; with ue_captures the same report compares them (COL display <= 3 codes and linear < 1 %, SHD < 3 %, NRM sign 100 % and dE2000 <= 2, LGT < 2 %, GEO IoU >= 0.995). Refused: a profile with engine defaults, auto exposure, GI, reflections, SSAO, bloom, vignette or local exposure on; a mislabelled or .hdr capture; an existing out_dir. Free." + _PATHS,
+        [P("scene", "string", required=True), P("profile", "string"), P("size", "integer"), P("views", "array"), P("out_dir", "string", required=True), P("ue_captures", "string"), P("ue_linear_scale", "number")], api="ue_parity"),
 ]
+
+from .wave6_tools import DEFS as _WAVE6_DEFS  # noqa: E402  (after Def and P exist: wave6_tools imports them)
+
+DEFS += _WAVE6_DEFS
 
 from .orphan_tools import ORPHAN_DEFS  # noqa: E402  (the orphan tools, STATUS.md ORPHANS: their own file)
 DEFS += ORPHAN_DEFS

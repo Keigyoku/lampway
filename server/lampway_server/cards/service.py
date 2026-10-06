@@ -69,10 +69,20 @@ class Cards:
                 self._content.serve()
             return self._content
 
-    def open(self, card_id: str, step: int = 0) -> dict:
+    def open(self, card_id: str, step: int = 0, theme: str = "dark") -> dict:
         card = self.reg().get(card_id)
         steps = card.get("steps") or []
         if not steps:
             raise CardError("the card has no pages yet: build one")
         s = steps[max(0, min(int(step), len(steps) - 1))]
-        return {"url": self.content().url(f"{card['folder']}/{s['path']}"), "step": s["name"]}
+        url = self.content().url(f"{card['folder']}/{s['path']}") + ("?theme=light" if theme == "light" else "")
+        return {"url": url, "step": s["name"]}
+
+    def frame(self, card_id: str, step: int = 0, theme: str = "dark") -> str:
+        """The page the Workbench window mounts (contract section 6.4): the report in an iframe on the cards' own origin, sandboxed as the contract names."""
+        import html
+        opened = self.open(card_id, step, theme)
+        return ("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>" + html.escape(opened["step"]) + "</title>"
+                "<style>html,body,iframe{margin:0;border:0;width:100%;height:100%;background:#161922}</style></head><body>"
+                f"<iframe title=\"{html.escape(opened['step'])}\" src=\"{html.escape(opened['url'])}\" "
+                "sandbox=\"allow-scripts allow-same-origin allow-forms allow-popups allow-downloads\" referrerpolicy=\"no-referrer\"></iframe></body></html>")

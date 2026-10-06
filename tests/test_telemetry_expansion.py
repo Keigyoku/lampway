@@ -193,7 +193,7 @@ def test_session_started_once_guard_and_property_shapes() -> None:
 def test_workspace_names_outside_allowlist_report_as_custom() -> None:
     analytics_module = _analytics_module()
     assert analytics_module._safe_workspace_name("Layout") == "Layout"
-    assert analytics_module._safe_workspace_name("Zen Mode") == "Zen Mode"
+    assert analytics_module._safe_workspace_name("Lamplight") == "Lamplight"
     assert analytics_module._safe_workspace_name("Raj Secret Client") == "custom"
 
 

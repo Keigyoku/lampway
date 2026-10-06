@@ -44,7 +44,7 @@ static bool moodboard_image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *
    * native image/background drops. */
   const bool zen_reference = area && area->spacetype == SPACE_VIEW3D && region &&
                              ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_TOOL_PROPS) &&
-                             workspace && STREQ(workspace->id.name + 2, "Zen Mode");
+                             workspace && STREQ(workspace->id.name + 2, "Lamplight");
   if (!zen_reference && !ed::mixie::moodboard_poll(C)) {
     return false;
   }

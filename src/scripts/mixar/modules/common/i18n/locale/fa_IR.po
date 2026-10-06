@@ -52,28 +52,58 @@ msgstr "ﺖﺴﯿﻧ ﯽﮑﺒﺳ"
 msgid "No styles available"
 msgstr "ﺖﺴﯿﻧ ﺱﺮﺘﺳﺩ ﺭﺩ ﯽﮑﺒﺳ"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "ﺕﺍﺪﻨﺘﺴﻣ"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "ﺯﺎﻏﺁ ﻪﺤﻔﺻ"
 
-msgid "Custom splash menu without Recent Files."
-msgstr ".ﺮﯿﺧﺍ ﯼﺎﻫ‌ﻞﯾﺎﻓ ﻥﻭﺪﺑ ،ﺯﺎﻏﺁ ﻪﺤﻔﺻ ﯽﺷﺭﺎﻔﺳ ﯼﻮﻨﻣ"
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "ﺪﯿﻨﮐ ﺏﺎﺨﺘﻧﺍ ﺍﺭ ﺩﻮﺧ ﺖﻟﺎﺣ"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Zen ﺖﻟﺎﺣ ﺎﺑ ﻉﻭﺮﺷ"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "(Blender ﮏﺒﺳ ﻪﺑ) Engine ﺖﻟﺎﺣ"
+msgid "Start"
+msgstr "ﻉﻭﺮﺷ"
 
-msgid "Getting Started"
-msgstr "ﺭﺎﮐ ﻉﻭﺮﺷ"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "ﻩﺭﺎﺑﺭﺩ"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "ﻝﺎﺳﺭﺍ"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "ﻖﻓﻮﻣﺎﻧ"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "ﺪﺷ ﺩﺭ ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ ﯽﮕﺘﺴﺑﺍﻭ ﮏﯾ ﻥﻮﭼ ﺎﯾ ،ﺖﺷﺍﺩ ﺎﻄﺧ"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "ﻉﻭﺮﺷ ﻥﺎﻣﺯ"
 
@@ -824,6 +863,24 @@ msgstr "ﻥﺪﺷ ﻪﺘﺴﺑ ﻝﺎﺣ ﺭﺩ"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "ﺪﻨﮐ ﺪﯾﺪﭘﺎﻧ ﺎﻤﻧ‌ﻥﺎﮑﻣ ﺮﯾﺯ ﺍﺭ ﺕﺭﺎﮐ ﺪﯾﺎﺒﻧ ﮏﯿﻠﮐ — ﺩﻮﺷ‌ﯽﻣ ﻑﺬﺣ ﺝﻭﺮﺧ ﺯﺍ ﺲﭘ ﻒﯾﺩﺭ ﻭ ﺪﻨﮐ‌ﯽﻣ ﺶﺨﭘ ﺍﺭ ﻩﺪﺷ‌ﻡﺎﻤﺗ ﺕﺭﺎﮐ ﺝﻭﺮﺧ ﺵﺰﻐﻟ ﻥﺎﻤﻫ ﻞﻨﭘ .ﺩﻮﺷ‌ﯽﻣ ﻢﯿﻈﻨﺗ ﺩﺪﻨﺑ‌ﯽﻣ ﺍﺭ ﺕﺭﺎﮐ ﻦﯾﺍ ﺮﺑﺭﺎﮐ ﯽﺘﻗﻭ"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "ﻥﺎﯾﺎﭘ ﻥﺎﻣﺯ"
@@ -842,6 +899,12 @@ msgstr "ﻞﻣﺎﻋ ﯼﺎﻫ‌ﺕﺭﺎﮐ ﻞﺴﻧ"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "ﺩﺭﺍﺩ ﺍﺭ ﻞﺒﻗ ﺖﺑﻮﻧ ﯼﺎﻫ‌ﺕﺭﺎﮐ ﺯﻮﻨﻫ ﺖﺳﺍ ﻥﺎﻬﻨﭘ ﯽﺠﻨﺳﺮﻈﻧ ﺭﺩ ﻞﻨﭘ ﯽﺘﻗﻭ ﺎﺗ ﻭ ﺩﻮﺷ‌ﯽﻣ ﻡﺎﮕﻤﻫ ﻢﺳﺭ ﻡﺎﮕﻨﻫ ﻂﻘﻓ ﺖﺳﺮﻬﻓ ﻥﺁ ﻥﻮﭼ ،ﺪﻤﻬﻔﺑ ﺵﺩﻮﺧ ﺕﺭﺎﮐ ﺖﺳﺮﻬﻓ ﺯﺍ ﺍﺭ «ﺪﯾﺪﺟ ﺖﺑﻮﻧ» ﺪﻧﺍﻮﺗ‌ﯽﻤﻧ — ﺪﻨﮐ‌ﯽﻣ ﺶﺨﭘ ﻩﺭﺎﺑﻭﺩ ﺍﺭ ﺩﻭﺭﻭ ﺵﺰﻐﻟ ﻭ ﺪﻨﮐ‌ﯽﻣ ﯽﻧﺎﺸﻧﺯﺎﺑ ﺍﺭ ﺶﯾﺎﻤﯿﭘ ﺖﯿﻌﻗﻮﻣ ﺮﯿﯿﻐﺗ ﻦﯾﺍ ﺎﺑ ++C ﻞﻨﭘ .ﺩﻮﺷ‌ﯽﻣ ﺩﺎﯾﺯ ﺪﻨﮐ‌ﯽﻣ ﻦﯾﺰﮕﯾﺎﺟ ﺍﺭ ﻞﻨﭘ ﯼﺍﻮﺘﺤﻣ ﺪﯾﺪﺟ ﻪﺧﺎﺷ ﮏﯾ ﻪﮐ ﺭﺎﺑ ﺮﻫ"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "ﻝﺎﻌﻓ ﻞﻣﺎﻋ ﯼﺎﻫ‌ﺕﺭﺎﮐ"
@@ -862,6 +925,39 @@ msgstr ""
 "\n"
 "ﺎﻫ‌ﮏﯿﻠﮐ ؛ﺪﻨﻨﮐ‌ﯽﻣ ﺭﻮﺒﻋ ﺎﻤﻧ ﺯﺍ ﻥﻭﺮﯿﺑ ﯼﺎﻫ‌ﯼﺩﻭﺭﻭ ﻪﻤﻫ ﻭ ﯼﺮﺑﻭﺎﻧ\n"
 ".ﺪﻧﻮﺷ‌ﯽﻣ ﻑﺮﺼﻣ ﺎﻤﻧ ﻡﻮﺑ ﯼﻭﺭ ﺶﯾﺍﺮﯾﻭ ﺮﺒﻧﺎﯿﻣ ﯼﺎﻫﺪﯿﻠﮐ ﻭ\n"
+
+msgid "Canvas"
+msgstr "ﻡﻮﺑ"
+
+msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
+msgstr ""
+
+msgid "Open"
+msgstr "ﻥﺩﺮﮐ‌ﺯﺎﺑ"
+
+msgid "Fit"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "attach the pan/zoom handling to what is already open"
+msgstr ""
+
+msgid "the lineage layout as JSON, for clicks"
+msgstr ""
+
+msgid "Asset Vault Hotkey"
+msgstr ""
+
+msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
+msgstr ""
+
+msgid "Search the Asset Vault"
+msgstr ""
+
+msgid "Select an asset first"
+msgstr ""
 
 msgid "Search"
 msgstr "ﻮﺠﺘﺴﺟ"
@@ -995,10 +1091,55 @@ msgstr ""
 msgid "The Asset Vault window is already open"
 msgstr ""
 
+msgid "Align clips"
+msgstr ""
+
+msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
+msgstr ""
+
+msgid "Frame 0 with frame 0"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "By timestamp"
+msgstr ""
+
+msgid "Motion"
+msgstr ""
+
+msgid "Where each clip first moves"
+msgstr ""
+
+msgid "Press Compare on a second clip first"
+msgstr ""
+
+msgid "Refresh boards"
+msgstr ""
+
+msgid "Read the Vault's boards"
+msgstr ""
+
+msgid "Open board"
+msgstr ""
+
+msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
 msgid "Searching"
 msgstr ""
 
+msgid "Choose how to line the two clips up"
+msgstr ""
+
 msgid "Show the lineage"
+msgstr ""
+
+msgid "Open on the canvas"
 msgstr ""
 
 msgid "Select an asset"
@@ -1008,6 +1149,12 @@ msgid "Reading the asset"
 msgstr ""
 
 msgid "Copy id"
+msgstr ""
+
+msgid "Close canvas"
+msgstr ""
+
+msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
 msgstr ""
 
 msgid "Asset Vault"
@@ -1871,9 +2018,6 @@ msgstr "ﯼﺮﯿﮔﺭﺎﺑ"
 msgid "Stop"
 msgstr "ﻒﻗﻮﺗ"
 
-msgid "Start"
-msgstr "ﻉﻭﺮﺷ"
-
 msgid "Delete Download"
 msgstr "ﯼﺮﯿﮔﺭﺎﺑ ﻑﺬﺣ"
 
@@ -2549,9 +2693,6 @@ msgstr ".ﺖﺴﯿﻧ ﺱﺮﺘﺳﺩ ﺭﺩ ﻪﮑﺒﺷ"
 msgid "Network error: {short}"
 msgstr "{short} :ﻪﮑﺒﺷ ﯼﺎﻄﺧ"
 
-msgid "Open"
-msgstr "ﻥﺩﺮﮐ‌ﺯﺎﺑ"
-
 msgid "Toast Click"
 msgstr "ﻥﻼ﻿ﻋﺍ ﮏﯿﻠﮐ"
 
@@ -2639,7 +2780,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2828,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "ﯽﺻﻮﺼﺧ ﻢﯾﺮﺣ ﺖﺳﺎﯿﺳ"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2837,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,10 +2852,10 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "(UI.svg ﺭﻮﺘﺳﺩ) ﻂﺑﺍﺭ ﯼﻻ﻿ﺎﺑ ﺭﺍﻮﻧ"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
+msgid "Workshop"
 msgstr ""
 
 msgid "Cinema Mode"
@@ -2797,6 +2938,9 @@ msgstr "ﯽﻠﺤﻣ ﯼﺎﻫ‌ﮏﯿﻠﮐ"
 
 msgid "Profile"
 msgstr "ﻪﯾﺎﻤﻧ"
+
+msgid "Zen"
+msgstr ""
 
 msgid "Shared Zen components"
 msgstr "Zen ﮎﺮﺘﺸﻣ ﯼﺍﺰﺟﺍ"
@@ -5015,6 +5159,12 @@ msgstr "ﻦﺘﺴﺑ"
 msgid "Dismiss the error and return to idle"
 msgstr "ﺩﺩﺮﮔ‌ﯽﻣﺮﺑ ﺭﺎﮑﯿﺑ ﺖﻟﺎﺣ ﻪﺑ ﻭ ﺩﺪﻨﺑ‌ﯽﻣ ﺍﺭ ﺎﻄﺧ"
 
+msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
+msgstr ""
+
+msgid "UE Look is on"
+msgstr ""
+
 msgid "Front"
 msgstr "ﻮﻠﺟ"
 
@@ -5027,10 +5177,160 @@ msgstr "ﯼﺮﺑﺯ"
 msgid "Metallic"
 msgstr "ﯼﺰﻠﻓ"
 
+msgid "Scale"
+msgstr "ﺲﻧﺎﺠﺗ"
+
+msgid "Detail"
+msgstr "ﺕﺎﯿﺋﺰﺟ"
+
+msgid "NodeGroupOutput"
+msgstr ""
+
+msgid "GeometryNodeCollectionInfo"
+msgstr ""
+
+msgid "lampway_uv_check"
+msgstr ""
+
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
+msgstr ""
+
+msgid "KiB"
+msgstr ""
+
+msgid "MiB"
+msgstr ""
+
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "ﻦﺷﻭﺭ"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "ﺎﻤﺷ ﺮﻈﺘﻨﻣ"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Approve patch"
+msgstr ""
+
+msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
+msgstr ""
+
+msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -5243,9 +5543,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5268,9 +5565,6 @@ msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5429,6 +5723,12 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
+msgid "UE Look"
+msgstr ""
+
+msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
+msgstr ""
+
 msgid "Refresh sessions"
 msgstr ""
 
@@ -5451,9 +5751,6 @@ msgid "New session"
 msgstr ""
 
 msgid "Open a new agent session in the cockpit (your own CLI login)"
-msgstr ""
-
-msgid "Claude Code"
 msgstr ""
 
 msgid "Codex"
@@ -5583,6 +5880,21 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Engine defaults: not the project"
+msgstr ""
+
+msgid "UE Look: on"
+msgstr ""
+
+msgid "UE Look: off"
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -5811,6 +6123,24 @@ msgid "0 = the deform mesh's rest height, else head bone to foot bone"
 msgstr ""
 
 msgid "Last result"
+msgstr ""
+
+msgid "UE profile"
+msgstr ""
+
+msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
+msgstr ""
+
+msgid "Tonemapper cube"
+msgstr ""
+
+msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
+msgstr ""
+
+msgid "Cube sidecar"
+msgstr ""
+
+msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
@@ -6860,9 +7190,6 @@ msgstr "{number} ﻊﺟﺮﻣ"
 msgid "This template needs an available generation model. Check your connection."
 msgstr ".ﺪﯿﻨﮐ ﯽﺳﺭﺮﺑ ﺍﺭ ﺩﻮﺧ ﻝﺎﺼﺗﺍ .ﺩﺭﺍﺩ ﺯﺎﯿﻧ ﺩﻮﺟﻮﻣ ﺪﯿﻟﻮﺗ ﻝﺪﻣ ﮏﯾ ﻪﺑ ﻮﮕﻟﺍ ﻦﯾﺍ"
 
-msgid "On"
-msgstr "ﻦﺷﻭﺭ"
-
 msgid "Off"
 msgstr "ﺵﻮﻣﺎﺧ"
 
@@ -7271,6 +7598,9 @@ msgstr "ﺩﻮﺷ‌ﯽﻣ ﮓﯾﺭ ﺪﺣﺍﻭ ﺖﻠﮑﺳﺍ ﮏﯾ ﺕﺭ�
 msgid "Settings"
 msgstr "ﺕﺎﻤﯿﻈﻨﺗ"
 
+msgid "About"
+msgstr "ﻩﺭﺎﺑﺭﺩ"
+
 msgid "Auto-detects the skeleton type"
 msgstr "ﺪﻫﺩ‌ﯽﻣ ﺺﯿﺨﺸﺗ ﺭﺎﮐﺩﻮﺧ ﺍﺭ ﺖﻠﮑﺳﺍ ﻉﻮﻧ"
 
@@ -7463,14 +7793,14 @@ msgstr "ﺪﻧﺎﻣ‌ﯽﻣ ﺮﺗ‌ﮏﯾﺩﺰﻧ ﮏﺳﺎﻣ ﻪﺑ ،ﺵ
 msgid "Moodboard Drawer"
 msgstr "ﺩﺭﻮﺑﺩﻮﻣ ﻮﺸﮐ"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "ﺯﺎﺑ 1 ﻭ ﻪﺘﺴﺑ 0 ،ﻩﺪﺷ ﻩﺪﯿﺸﮐ ﻥﻭﺮﯿﺑ ﺭﺪﻘﭼ Zen ﺖﻟﺎﺣ ﺩﺭﻮﺑﺩﻮﻣ ﻮﺸﮐ"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "ﺩﺭﻮﺑﺩﻮﻣ ﻮﺸﮐ ﻑﺪﻫ"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "ﺯﺎﺑ 1 ﻭ ﻪﺘﺴﺑ 0 ،ﺪﻨﯿﺸﻧ‌ﯽﻣ ﻥﺁ ﯼﻭﺭ Zen ﺖﻟﺎﺣ ﺩﺭﻮﺑﺩﻮﻣ ﻮﺸﮐ ﻪﮐ ﯽﺘﻤﺳ"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "ﺩﺭﻮﺑﺩﻮﻣ ﻮﺸﮐ ﯼﺎﻨﻬﭘ"
@@ -8334,9 +8664,6 @@ msgstr "ﺩﺭﻮﺑﺩﻮﻣ ﻡﻮﺑ ﯼﻭﺭ X ﺖﯿﻌﻗﻮﻣ"
 
 msgid "Y position on the moodboard canvas"
 msgstr "ﺩﺭﻮﺑﺩﻮﻣ ﻡﻮﺑ ﯼﻭﺭ Y ﺖﯿﻌﻗﻮﻣ"
-
-msgid "Scale"
-msgstr "ﺲﻧﺎﺠﺗ"
 
 msgid "Scale factor for the image"
 msgstr "ﺮﯾﻮﺼﺗ ﺲﻧﺎﺠﺗ ﺐﯾﺮﺿ"
@@ -11626,7 +11953,7 @@ msgstr "ﺪﯾﺪﻣﺁ ﺵﻮﺧ Lampway ﻪﺑ"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -20601,9 +20928,6 @@ msgstr ""
 "\n"
 ".ﺪﯿﺴﯾﻮﻨﺑ ﯽﻨﺘﻣ ﯼﻮﺠﺘﺴﺟ ﮏﯾ ﻥﺁ ﯼﺎﺟ‌ﻪﺑ ﺎﯾ ،ﺪﯿﻨﮐ ﺵﻼ﻿ﺗ ﻩﺭﺎﺑﻭﺩ ﺪﻌﺑ ﯽﻤﮐ"
 
-msgid "Showing name matches only ({reason})."
-msgstr ".({reason}) ﺩﻮﺷ‌ﯽﻣ ﻩﺩﺍﺩ ﻥﺎﺸﻧ ﻡﺎﻧ ﻖﯿﺒﻄﺗ ﻂﻘﻓ"
-
 msgid "“{query}” + your image"
 msgstr "«{query}» + ﺎﻤﺷ ﺮﯾﻮﺼﺗ"
 
@@ -20971,9 +21295,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "ﻥﺍﻮﺨﺸﯿﭘ"
-
-msgid "Documentation"
-msgstr "ﺕﺍﺪﻨﺘﺴﻣ"
 
 msgid "Report a Bug"
 msgstr "ﻝﺎﮑﺷﺍ ﺵﺭﺍﺰﮔ"
@@ -22393,6 +22714,9 @@ msgstr "ﻪﻧﻭﺰﻓﺍ ﻩﮊﻭﺮﭘ"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "Blender ﻩﺩﺭﻮﺧﺪﻧﻮﯿﭘ ﯽﻠﯾﺎﻓﺪﻨﭼ ﻪﻧﻭﺰﻓﺍ ﮏﯾ ﯼﺭﺍﺪﻬﮕﻧ ﻭ ﺖﺧﺎﺳ"
 
+msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
+msgstr ""
+
 msgid "Add-on Project ID"
 msgstr "ﻪﻧﻭﺰﻓﺍ ﻩﮊﻭﺮﭘ ﻪﺳﺎﻨﺷ"
 
@@ -22711,9 +23035,6 @@ msgstr "«ﻥﺪﻧﺍﻮﺧ» ﻼً﻿ﺜﻣ ،ﻒﯾﺩﺭ ﺐﺴﭼﺮﺑ"
 msgid "Row target, e.g. a filename"
 msgstr "ﻞﯾﺎﻓ ﻡﺎﻧ ﮏﯾ ﻼً﻿ﺜﻣ ،ﻒﯾﺩﺭ ﻑﺪﻫ"
 
-msgid "Detail"
-msgstr "ﺕﺎﯿﺋﺰﺟ"
-
 msgid "Second-level detail body (command output / snippet)"
 msgstr "(ﻪﻌﻄﻗ / ﻥﺎﻣﺮﻓ ﯽﺟﻭﺮﺧ) ﻡﻭﺩ ﺢﻄﺳ ﺕﺎﯿﺋﺰﺟ ﻪﻧﺪﺑ"
 
@@ -22908,9 +23229,6 @@ msgstr "ﯽﺋﺮﻣ ﻩﮊﻭﺮﭘ ﯼﺎﻫ‌ﻩﺪﻋﺎﻗ"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "ﺖﺳﺍ ﺯﺎﺑ ﻩﮊﻭﺮﭘ ﯼﺎﻫ‌ﻩﺪﻋﺎﻗ ﻢﻬﯾﻭﺭ ﺎﯾﺁ"
-
-msgid "Waiting for you"
-msgstr "ﺎﻤﺷ ﺮﻈﺘﻨﻣ"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +25225,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine ﺖﻟﺎﺣ"
-
-msgid "Zen Mode"
-msgstr "Zen ﺖﻟﺎﺣ"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +25234,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Lampway ﺖﻟﺎﺣ ﻪﺑ ﺍﺭ Zen ﺩﺭﻮﺑﺩﻮﻣ + ﻞﻣﺎﻋ ﺏﺎﺒﺣ + ﻪﻨﯿﻤﮐ ﯼﺪﻌﺑ‌ﻪﺳ ﯼﺎﻤﻧ) ﺩﺮﺑ‌ﯽﻣ)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "ﺖﺴﯿﻧ ﺱﺮﺘﺳﺩ ﺭﺩ ﯽﯾﻮﮕﻟﺍ — ﺪﺸﻧ ﻪﺘﺧﺎﺳ Zen ﺖﻟﺎﺣ ﯼﺭﺎﮐ ﯼﺎﻀﻓ"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Lampway ﺖﻟﺎﺣ ﻪﺑ ﺍﺭ Engine ﮏﺒﺳ ﻪﺑ ﻞﻣﺎﮐ ﯼﺭﺎﮐ ﯼﺎﻫﺎﻀﻓ) ﺩﺮﺑ‌ﯽﻣ Blender)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "ﺪﺸﻧ ﺍﺪﯿﭘ ﯼﺯﺎﺳ‌ﻝﺪﻣ ﯼﺭﺎﮐ ﯼﺎﻀﻓ"
@@ -25006,7 +25318,7 @@ msgstr "ﺶﯾﺎﻤﻧ ﻪﯾﻻ﻿ ﻭ ﻪﻨﺤﺻ"
 msgid "View Layer"
 msgstr "ﺶﯾﺎﻤﻧ ﻪﯾﻻ﻿"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25369,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25488,9 @@ msgstr ".ﺪﯿﻨﮐ ﻩﺮﯿﺧﺫ ﻩﺭﺎﺑﻭﺩ ﻭ ﺪﯿﻨﮐ ﺯﺎ
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: ﯽﻠﺻﺍ ﻞﯾﺎﻓ ﻪﺑ ﻩﺩﺍﺩ .mixar ﺪﻨﮐ‌ﯽﻣ ﻩﺭﺎﺷﺍ: «%s» ﺯﺍ %s"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "! %s ،ﺪﯾﺪﻣﺁ ﺵﻮﺧ"
@@ -26083,6 +26398,24 @@ msgstr "ﺎﻤﻧ‌ﻥﺎﮑﻣ X ﺖﯿﻌﻗﻮﻣ"
 msgid "Cursor Y position"
 msgstr "ﺎﻤﻧ‌ﻥﺎﮑﻣ Y ﺖﯿﻌﻗﻮﻣ"
 
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
+
 msgid "Animate Moodboard Attachment"
 msgstr "ﺩﺭﻮﺑﺩﻮﻣ ﺖﺳﻮﯿﭘ ﯼﺯﺎﺳ‌ﮎﺮﺤﺘﻣ"
 
@@ -26829,6 +27162,24 @@ msgstr "ﺖﻓﺎﺑ ﯼﺎﻫ‌ﻪﻋﻮﻤﺠﻣ ﯼﺎﻀﻓ"
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "ﺪﯿﻨﮐ ﻩﺩﺎﻔﺘﺳﺍ ﺖﻓﺎﺑ ﯼﺎﻫ‌ﻪﻋﻮﻤﺠﻣ ﺖﯾﺮﯾﺪﻣ ﯼﺍﺮﺑ ﯼﺭﺎﻨﮐ ﺭﺍﻮﻧ ﯼﺎﻫ‌ﻞﻨﭘ ﺯﺍ"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "ﻝﻭﺍ ﻪﺑ ﺖﺸﮔﺯﺎﺑ"
@@ -27580,9 +27931,6 @@ msgstr "ﯽﻫﺩ‌ﺖﻓﺎﺑ ﺕﺎﻤﯿﻈﻨﺗ"
 msgid "Layer and texture properties"
 msgstr "ﺖﻓﺎﺑ ﻭ ﻪﯾﻻ﻿ ﯼﺎﻫ‌ﯽﮔﮋﯾﻭ"
 
-msgid "Texturing Assets"
-msgstr "ﯽﻫﺩ‌ﺖﻓﺎﺑ ﯼﺎﻫ‌ﯽﯾﺍﺭﺍﺩ"
-
 msgid "Smart materials, brushes, and textures library"
 msgstr "ﺎﻫ‌ﺖﻓﺎﺑ ﻭ ﺎﻫﻮﻣ‌ﻢﻠﻗ ،ﺪﻨﻤﺷﻮﻫ ﺩﺍﻮﻣ ﻪﻧﺎﺨﺑﺎﺘﮐ"
 
@@ -27805,8 +28153,8 @@ msgstr "ﻩﺪﺷ‌ﯼﺪﻨﺑ‌ﻪﺟﺭﺩ ﺐﺴﭼﺮﺑ ﺎﺑ ﺩﺮﮔ
 msgid "Viewport Pill"
 msgstr "ﯼﺪﻌﺑ‌ﻪﺳ ﯼﺎﻤﻧ ﻝﻮﺴﭙﮐ"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "ﺖﺳﺍ ﺭﻮﻧ‌ﻢﮐ ﺖﺴﯿﻧ ﻩﺪﻧﺯ ﺖﻟﺎﺣ ﯽﺘﻗﻭ ؛Zen ﯼﺪﻌﺑ‌ﻪﺳ ﯼﺎﻤﻧ ﯽﻧﺯ‌ﻪﯾﺎﺳ ﻝﻮﺴﭙﮐ"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "ﻪﯾﺎﻤﻧ ﻝﻮﺴﭙﮐ"
@@ -27882,9 +28230,6 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
-
-msgid "Canvas"
-msgstr "ﻡﻮﺑ"
 
 msgid "Shared canvas and page background"
 msgstr "ﻪﺤﻔﺻ ﻭ ﻡﻮﺑ ﮎﺮﺘﺸﻣ ﻪﻨﯿﻣﺯ‌ﺲﭘ"
@@ -28048,26 +28393,26 @@ msgstr "ﻒﺻ ﺩﺍﺪﻌﺗ ﻪﺷﺍﺮﺗ"
 msgid "Slider Track"
 msgstr "ﻩﺪﻧﺰﻐﻟ ﺮﯿﺴﻣ"
 
-msgid "Zen/Engine slider track"
-msgstr "Zen/Engine ﻩﺪﻧﺰﻐﻟ ﺮﯿﺴﻣ"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "ﻩﺪﻧﺰﻐﻟ ﻩﺮﯿﮕﺘﺳﺩ"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Zen/Engine ﻩﺪﻧﺰﻐﻟ ﻩﺮﯿﮕﺘﺳﺩ"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "ﻩﺪﻧﺰﻐﻟ ﻩﺮﯿﮕﺘﺳﺩ ﺭﻭﺎﻨﺷ"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine ﻩﺮﯿﮕﺘﺳﺩ ﺭﻭﺎﻨﺷ"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "ﻩﺪﻧﺰﻐﻟ ﺐﺴﭼﺮﺑ"
 
-msgid "Zen/Engine slider label"
-msgstr "Zen/Engine ﻩﺪﻧﺰﻐﻟ ﺐﺴﭼﺮﺑ"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "ﺎﻤﻨﯿﺳ ﻝﻮﺴﭙﮐ ﺮﭘ"

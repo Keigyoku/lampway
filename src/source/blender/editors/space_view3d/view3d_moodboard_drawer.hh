@@ -120,7 +120,7 @@ ARegion *view3d_moodboard_drawer_region_find(const ScrArea *area);
 
 inline bool view3d_moodboard_drawer_workspace_is_zen(const WorkSpace *workspace)
 {
-  return workspace != nullptr && STREQ(workspace->id.name + 2, "Zen Mode");
+  return workspace != nullptr && STREQ(workspace->id.name + 2, "Lamplight");
 }
 
 /** Zen Mode View3D that hosts the drawer: the context area if it qualifies,

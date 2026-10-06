@@ -58,6 +58,23 @@ _STATUS_FROM_TODO = {
 
 _TERMINAL = frozenset({'DONE', 'FAILED'})
 
+#: The card statuses, in the order of the C++ ``AgentCardStatus`` enum (view3d_agent_panel.hh): the mirror writes the
+#: identifier, RNA stores the index, the panel reads the index. Facelift contract 05 adds BLOCKED (needs you) and PAUSED.
+STATUSES = ('PENDING', 'RUNNING', 'DONE', 'FAILED', 'BLOCKED', 'PAUSED')
+
+#: The word for each hidden state on the overflow chevron, in the order it is read.
+_OVERFLOW_WORDS = (('RUNNING', 'working'), ('BLOCKED', 'need you'), ('FAILED', 'failed'), ('DONE', 'done'),
+                   ('PAUSED', 'waiting'), ('PENDING', 'queued'))
+
+
+def overflow_label(statuses, visible: int = 3) -> str:
+    """"4 more: 2 working, 1 done, 1 waiting" for the cards past the visible ones; "" when none are hidden."""
+    hidden = list(statuses)[visible:]
+    if not hidden:
+        return ""
+    parts = [f"{hidden.count(state)} {word}" for state, word in _OVERFLOW_WORDS if hidden.count(state)]
+    return f"{len(hidden)} more: " + ", ".join(parts)
+
 #: Per-tab dismissal memory and stored task lists live in `card_sessions`.
 
 
@@ -126,17 +143,27 @@ def _normalize(todo_items: Iterable[Any]) -> list[dict]:
             raw_id = item.get("id") or item.get("item_id") or ""
             text = item.get("text") or item.get("task") or ""
             status = item.get("status") or "PENDING"
+            needs, reason, waiting_on = item.get("needs") or "", item.get("reason") or "", item.get("waiting_on") or ""
         else:
             raw_id = getattr(item, "item_id", "") or ""
             text = getattr(item, "text", "") or ""
             status = getattr(item, "status", "PENDING") or "PENDING"
+            needs, reason, waiting_on = (getattr(item, k, "") or "" for k in ("needs", "reason", "waiting_on"))
         task_id = (str(raw_id) or f"idx:{idx}")[:AGENT_TASK_ID_MAXLEN]
         text = str(text)[:AGENT_TASK_MAXLEN]
+        card_status = _STATUS_FROM_TODO.get(str(status).upper(), 'PENDING')
+        if card_status == 'RUNNING' and needs:           # working, but it needs you: an answer, an approval, a spend, a sign-in
+            card_status = 'BLOCKED'
+        elif card_status == 'RUNNING' and waiting_on:    # a deliberate wait on something named
+            card_status = 'PAUSED'
         out.append({
             "task_id": task_id,
             "name": derive_agent_name(text),
             "task": text,
-            "status": _STATUS_FROM_TODO.get(str(status).upper(), 'PENDING'),
+            "status": card_status,
+            "needs": str(needs),
+            "reason": str(reason)[:AGENT_TASK_MAXLEN],
+            "waiting_on": str(waiting_on)[:AGENT_TASK_MAXLEN],
         })
     return out
 
@@ -283,6 +310,7 @@ def apply_records(records: list[dict], sid: str, scene=None) -> int:
             card.name = rec["name"]
             card.task = rec["task"]
             card.status = rec["status"]
+            _patch_reasons(card, rec)
             started, ended = timings.get(rec["task_id"], (0.0, 0.0))
             was_done = done_before.get(rec["task_id"], False)
             card.started_at = started
@@ -302,8 +330,12 @@ def apply_records(records: list[dict], sid: str, scene=None) -> int:
                 card.name = rec["name"]
             if card.task != rec["task"]:
                 card.task = rec["task"]
+            _patch_reasons(card, rec)
 
     count = len(records)
+    label = overflow_label([rec["status"] for rec in records])
+    if getattr(wm, "mixar_agent_cards_overflow", label) != label:
+        wm.mixar_agent_cards_overflow = label
     if wm.mixar_agent_cards_active != count:
         wm.mixar_agent_cards_active = count
     _tag_panel_redraw()
@@ -366,6 +398,13 @@ def _schedule_exit(task_id: str, sid: str, dwell: float = DONE_CARD_DWELL_S) -> 
         bpy.app.timers.register(_fire, first_interval=dwell + DONE_CARD_EXIT_S)
     except Exception:  # noqa: BLE001 — a failed timer just leaves the card up
         logger.debug("Could not schedule card exit for %s", task_id, exc_info=True)
+
+
+def _patch_reasons(card: Any, rec: dict) -> None:
+    """needs / reason / waiting_on: written only when they change (every write is a redraw)."""
+    for key in ("needs", "reason", "waiting_on"):
+        if hasattr(card, key) and getattr(card, key) != rec.get(key, ""):
+            setattr(card, key, rec.get(key, ""))
 
 
 def _stamp_clocks(card: Any, status: str, now: float) -> None:
