@@ -238,7 +238,8 @@ class JobQueue:
             self.policy.check(provider, amount)
         except Exception as exc:  # noqa: BLE001 - SpendRefused: said in the tab, never sent
             refused = str(exc)
-        return {"service": service, "model": model, "provider": provider, "route": provider, "price": price, "basis": basis,
+        last_run = self.prompts.runlog.last_line(service) if self.prompts is not None else None
+        return {"service": service, "model": model, "provider": provider, "route": provider, "price": price, "basis": basis, "last_run": last_run,
                 "policy": {"click": cfg.get("click", "always"), "above": cfg.get("above"), "job_cap": cfg.get("job_cap"), "session_cap": cfg.get("session_cap"),
                            "spent": round(float(self.policy.spent.get(provider, 0.0)), 6)},
                 "needs_click": self.policy.needs_click(provider, amount), "refused": refused}
@@ -465,7 +466,13 @@ class JobQueue:
         cost = r.get("actual_usd") if r.get("actual_usd") is not None else r.get("credits")
         out = (r.get("saved") or [None])[0] or ((r.get("images") or [{}])[0].get("url") if r.get("images") else None)
         try:
-            self.prompts.record_job(job, job.rendered, output=out, cost=cost, extra={"ok": ok, "error": job.error or None, "provider": r.get("provider")})
+            n = len(r.get("saved") or r.get("images") or r.get("result_files") or []) or 1
+            est = r.get("estimate_usd")
+            if est is None and job.service == "image_gen":
+                est = round(IMAGE_USD_ESTIMATE * n, 4)
+            self.prompts.record_job(job, job.rendered, output=out, cost=cost, extra={"ok": ok, "error": job.error or None, "provider": r.get("provider"),
+                                                                                     "estimate": est, "count": n,
+                                                                                     "unit": "USD" if r.get("actual_usd") is not None or r.get("credits") is None else "credits"})
         except Exception:  # noqa: BLE001 - the log must never fail a job
             log.warning("could not record the run of job %s", job.job_id, exc_info=True)
 
