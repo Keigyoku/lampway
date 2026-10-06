@@ -61,6 +61,7 @@ class Recipe:
     entry: str = ""
     setup: str = ""
     type: str = "default"
+    image_digest: str = ""
 
 
 _SECRET = [(re.compile(r"sk-[A-Za-z0-9_\-]{8,}"), "[redacted]"), (re.compile(r"[A-Za-z][A-Za-z0-9+.\-]*://[^/\s:@]+:[^/\s@]+@"), "https://"), (re.compile(r"(?i)bearer\s+[A-Za-z0-9._\-]{8,}"), "Bearer [redacted]"),

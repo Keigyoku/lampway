@@ -111,7 +111,8 @@ class ComputeRunner:
         return "private" if any(i["content_class"] not in ("public", "synthetic") for i in spec["inputs"]) else "synthetic"
 
     def _privacy(self, spec, be) -> dict:
-        cls, decl = self._class(spec), be.privacy
+        cls = self._class(spec)
+        decl = be.privacy_for(RC.get(spec["recipe"]), spec) if hasattr(be, "privacy_for") else be.privacy
         verdict = {"content_class": cls, "backend_class": decl.cls, "conditions_met": decl.conditions_met, "evidence": decl.evidence}
         if cls == "private":
             if decl.cls == "ephemeral_verified" or (decl.cls == "conditional" and decl.conditions_met):
@@ -179,6 +180,10 @@ class ComputeRunner:
         route = getattr(be, "egress_route", None)
         if not route:
             yield
+            return
+        if getattr(be, "egress_via", "guard") == "transport":                      # an httpx adapter: the transport hook logs and lights; this only declares what the call carries
+            with E.context(route=route, kind="file", asset_ids=[i["sha256"][:12] for i in cj["spec"]["inputs"]], content_class=cj["content_class"], constraints=getattr(be, "constraints", {})):
+                yield
             return
         with E.guard(route, kind="file", asset_ids=[i["sha256"][:12] for i in cj["spec"]["inputs"]], content_class=cj["content_class"], constraints=getattr(be, "constraints", {})):
             yield
@@ -302,6 +307,8 @@ class ComputeRunner:
                 return "the job failed on the box"
             bad = bad + 1 if st == "unknown" else 0
             if bad >= 3:
+                if not cj.get("handle") and cj.get("stage") == "ran":
+                    return "the run request's outcome is unknown (a timeout) and it is not resent: check the provider's console before running it again"
                 return "the box stopped answering for this job"
             if self.clock() - last_wd >= self.watchdog_s:
                 last_wd = self.clock()
