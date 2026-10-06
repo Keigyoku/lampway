@@ -1,0 +1,4711 @@
+{
+ "structs": {
+  "Theme": {
+   "agent_bubble": {
+    "readonly": true,
+    "struct": "ThemeAgentBubble",
+    "type": "POINTER"
+   },
+   "bone_color_sets": {
+    "readonly": true,
+    "struct": "ThemeBoneColorSet",
+    "type": "COLLECTION"
+   },
+   "clip_editor": {
+    "readonly": true,
+    "struct": "ThemeClipEditor",
+    "type": "POINTER"
+   },
+   "collection_color": {
+    "readonly": true,
+    "struct": "ThemeCollectionColor",
+    "type": "COLLECTION"
+   },
+   "common": {
+    "readonly": true,
+    "struct": "ThemeCommon",
+    "type": "POINTER"
+   },
+   "console": {
+    "readonly": true,
+    "struct": "ThemeConsole",
+    "type": "POINTER"
+   },
+   "dopesheet_editor": {
+    "readonly": true,
+    "struct": "ThemeDopeSheet",
+    "type": "POINTER"
+   },
+   "file_browser": {
+    "readonly": true,
+    "struct": "ThemeFileBrowser",
+    "type": "POINTER"
+   },
+   "filepath": {
+    "readonly": false,
+    "type": "STRING"
+   },
+   "graph_editor": {
+    "readonly": true,
+    "struct": "ThemeGraphEditor",
+    "type": "POINTER"
+   },
+   "image_editor": {
+    "readonly": true,
+    "struct": "ThemeImageEditor",
+    "type": "POINTER"
+   },
+   "info": {
+    "readonly": true,
+    "struct": "ThemeInfo",
+    "type": "POINTER"
+   },
+   "mixie": {
+    "readonly": true,
+    "struct": "ThemeSpaceMixie",
+    "type": "POINTER"
+   },
+   "mixie_chat": {
+    "readonly": true,
+    "struct": "ThemeMixieChat",
+    "type": "POINTER"
+   },
+   "name": {
+    "readonly": false,
+    "type": "STRING"
+   },
+   "nla_editor": {
+    "readonly": true,
+    "struct": "ThemeNLAEditor",
+    "type": "POINTER"
+   },
+   "node_editor": {
+    "readonly": true,
+    "struct": "ThemeNodeEditor",
+    "type": "POINTER"
+   },
+   "outliner": {
+    "readonly": true,
+    "struct": "ThemeOutliner",
+    "type": "POINTER"
+   },
+   "preferences": {
+    "readonly": true,
+    "struct": "ThemePreferences",
+    "type": "POINTER"
+   },
+   "properties": {
+    "readonly": true,
+    "struct": "ThemeProperties",
+    "type": "POINTER"
+   },
+   "regions": {
+    "readonly": true,
+    "struct": "ThemeRegions",
+    "type": "POINTER"
+   },
+   "sequence_editor": {
+    "readonly": true,
+    "struct": "ThemeSequenceEditor",
+    "type": "POINTER"
+   },
+   "spreadsheet": {
+    "readonly": true,
+    "struct": "ThemeSpreadsheet",
+    "type": "POINTER"
+   },
+   "statusbar": {
+    "readonly": true,
+    "struct": "ThemeStatusBar",
+    "type": "POINTER"
+   },
+   "strip_color": {
+    "readonly": true,
+    "struct": "ThemeStripColor",
+    "type": "COLLECTION"
+   },
+   "text_editor": {
+    "readonly": true,
+    "struct": "ThemeTextEditor",
+    "type": "POINTER"
+   },
+   "theme_area": {
+    "items": [
+     "USER_INTERFACE",
+     "STYLE",
+     "REGIONS",
+     "COMMON",
+     "VIEW_3D",
+     "DOPESHEET_EDITOR",
+     "FILE_BROWSER",
+     "GRAPH_EDITOR",
+     "IMAGE_EDITOR",
+     "INFO",
+     "CLIP_EDITOR",
+     "NODE_EDITOR",
+     "NLA_EDITOR",
+     "OUTLINER",
+     "PREFERENCES",
+     "PROPERTIES",
+     "CONSOLE",
+     "SPREADSHEET",
+     "STATUSBAR",
+     "TEXT_EDITOR",
+     "TOPBAR",
+     "SEQUENCE_EDITOR",
+     "MIXIE",
+     "AGENT_BUBBLE",
+     "BONE_COLOR_SETS"
+    ],
+    "readonly": false,
+    "type": "ENUM"
+   },
+   "topbar": {
+    "readonly": true,
+    "struct": "ThemeTopBar",
+    "type": "POINTER"
+   },
+   "user_interface": {
+    "readonly": true,
+    "struct": "ThemeUserInterface",
+    "type": "POINTER"
+   },
+   "view_3d": {
+    "readonly": true,
+    "struct": "ThemeView3D",
+    "type": "POINTER"
+   }
+  },
+  "ThemeAgentBubble": {
+   "agent_accent": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "agent_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "agent_tab_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "background_alpha": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   },
+   "footer_background": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeBoneColorSet": {
+   "active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "normal": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "show_colored_constraints": {
+    "readonly": false,
+    "type": "BOOLEAN"
+   }
+  },
+  "ThemeClipEditor": {
+   "active_marker": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "disabled_marker": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "grid": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "locked_marker": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "marker": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "marker_outline": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "metadatabg": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "metadatatext": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "path_after": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "path_before": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "path_keyframe_after": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "path_keyframe_before": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "selected_marker": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeCollectionColor": {
+   "color": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeCommon": {
+   "anim": {
+    "readonly": true,
+    "struct": "ThemeCommonAnim",
+    "type": "POINTER"
+   },
+   "curves": {
+    "readonly": true,
+    "struct": "ThemeCommonCurves",
+    "type": "POINTER"
+   }
+  },
+  "ThemeCommonAnim": {
+   "channel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "channel_group": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "channel_group_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "channel_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "channels": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "channels_sub": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_breakdown": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_breakdown_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_extreme": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_extreme_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_generated": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_generated_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_jitter": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_jitter_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_moving_hold": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_moving_hold_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "long_key": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "long_key_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "playhead": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "preview_range": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "scene_strip_range": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeCommonCurves": {
+   "handle_align": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_auto": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_auto_clamped": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_free": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_sel_align": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_sel_auto": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_sel_auto_clamped": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_sel_free": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_sel_vect": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_vect": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_vertex": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_vertex_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "handle_vertex_size": {
+    "max": 100,
+    "min": 1,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   }
+  },
+  "ThemeConsole": {
+   "cursor": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "line_error": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "line_info": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "line_input": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "line_output": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeDopeSheet": {
+   "anim_interpolation_constant": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "anim_interpolation_linear": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "anim_interpolation_other": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "grid": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_border_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_scale_factor": {
+    "max": 5.0,
+    "min": 0.800000011920929,
+    "readonly": false,
+    "size": 0,
+    "subtype": "NONE",
+    "type": "FLOAT"
+   },
+   "simulated_frames": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   },
+   "summary": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeFileBrowser": {
+   "row_alternate": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "selected_file": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeFontStyle": {
+   "character_weight": {
+    "max": 900,
+    "min": 100,
+    "readonly": false,
+    "size": 0,
+    "subtype": "NONE",
+    "type": "INT"
+   },
+   "points": {
+    "max": 32.0,
+    "min": 6.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "UNSIGNED",
+    "type": "FLOAT"
+   },
+   "shadow": {
+    "max": 6,
+    "min": 0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "NONE",
+    "type": "INT"
+   },
+   "shadow_alpha": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   },
+   "shadow_offset_x": {
+    "max": 10,
+    "min": -10,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "shadow_offset_y": {
+    "max": 10,
+    "min": -10,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "shadow_value": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeGradientColors": {
+   "background_type": {
+    "items": [
+     "SINGLE_COLOR",
+     "LINEAR",
+     "RADIAL"
+    ],
+    "readonly": false,
+    "type": "ENUM"
+   },
+   "gradient": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "high_gradient": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeGraphEditor": {
+   "grid": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   },
+   "vertex": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vertex_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vertex_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vertex_size": {
+    "max": 32,
+    "min": 1,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   }
+  },
+  "ThemeImageEditor": {
+   "edge_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "edge_width": {
+    "max": 32,
+    "min": 1,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "editmesh_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "face": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "face_mode_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "face_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "facedot_size": {
+    "max": 10,
+    "min": 1,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "grid": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "metadatabg": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "metadatatext": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "preview_stitch_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "preview_stitch_edge": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "preview_stitch_face": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "preview_stitch_stitchable": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "preview_stitch_unstitchable": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "preview_stitch_vert": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "scope_back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   },
+   "uv_shadow": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vertex": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vertex_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vertex_size": {
+    "max": 32,
+    "min": 1,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "wire_edit": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeInfo": {
+   "info_debug": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info_debug_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info_error_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info_info_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info_operator": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info_operator_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info_property": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info_property_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info_selected_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info_warning_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeMixieChat": {
+   "chat_action_button_corner_radius": {
+    "max": 16.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_action_button_height": {
+    "max": 48.0,
+    "min": 16.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_action_button_padding": {
+    "max": 32.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_action_button_spacing": {
+    "max": 16.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_agent_bubble": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_agent_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_attach_button_size": {
+    "max": 128.0,
+    "min": 16.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_bubble_h_padding": {
+    "max": 64.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_bubble_hover": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_bubble_spacing": {
+    "max": 64.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_bubble_v_padding": {
+    "max": 64.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_button_bg": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_button_hover": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_button_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_corner_radius": {
+    "max": 32.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_font_size": {
+    "max": 32.0,
+    "min": 8.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_footer_bottom_padding": {
+    "max": 20,
+    "min": 0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "chat_footer_button_row_height": {
+    "max": 128.0,
+    "min": 8.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_footer_general_padding": {
+    "max": 32.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_footer_input_height": {
+    "max": 400.0,
+    "min": 20.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_footer_row_spacing": {
+    "max": 32.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_footer_side_padding": {
+    "max": 64.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_footer_thumbnail_size": {
+    "max": 128.0,
+    "min": 32.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_footer_thumbnail_spacing": {
+    "max": 32.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_footer_thumbnail_top_margin": {
+    "max": 32.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_footer_top_padding": {
+    "max": 32.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_history_row_hover": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_image_corner_radius": {
+    "max": 32.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_image_margin": {
+    "max": 32.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_image_max_height": {
+    "max": 600.0,
+    "min": 100.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_image_max_width": {
+    "max": 800.0,
+    "min": 100.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_input_bg": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_label_color": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_label_font_size": {
+    "max": 24.0,
+    "min": 6.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_label_height": {
+    "max": 64.0,
+    "min": 12.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_main_footer_gap": {
+    "max": 64.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_mode_button": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_mode_button_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_padding": {
+    "max": 64.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_placeholder_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_plan_toggle_on": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_prompt_button": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_send_arrow_color": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_send_button_size": {
+    "max": 128.0,
+    "min": 16.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_send_icon_gradient_end": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_send_icon_gradient_start": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_thumbnail_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_thumbnail_border_radius": {
+    "max": 32.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_thumbnail_padding": {
+    "max": 16.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "chat_user_bubble": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "chat_user_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeNLAEditor": {
+   "active_action": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "active_action_unset": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "grid": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_border_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "meta_strips": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "meta_strips_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "sound_strips": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "sound_strips_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   },
+   "strips": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "strips_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "transition_strips": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "transition_strips_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "tweak": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "tweak_duplicate": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeNodeEditor": {
+   "attribute_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "closure_zone": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "color_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "converter_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "dash_alpha": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   },
+   "distor_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "filter_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "foreach_geometry_element_zone": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "frame_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "geometry_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "grid": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "grid_levels": {
+    "max": 3,
+    "min": 0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "NONE",
+    "type": "INT"
+   },
+   "group_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "group_socket_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "input_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "matte_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "node_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "node_backdrop": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "node_outline": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "node_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "noodle_curving": {
+    "max": 10,
+    "min": 0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "NONE",
+    "type": "INT"
+   },
+   "output_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "repeat_zone": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "script_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "shader_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "simulation_zone": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   },
+   "texture_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vector_node": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "wire": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "wire_inner": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "wire_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeOutliner": {
+   "active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "active_object": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "edited_object": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "match": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "row_alternate": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "selected_highlight": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "selected_object": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemePreferences": {
+   "match": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeProperties": {
+   "match": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeRegions": {
+   "asset_shelf": {
+    "readonly": true,
+    "struct": "ThemeRegionsAssetShelf",
+    "type": "POINTER"
+   },
+   "channels": {
+    "readonly": true,
+    "struct": "ThemeRegionsChannels",
+    "type": "POINTER"
+   },
+   "scrubbing": {
+    "readonly": true,
+    "struct": "ThemeRegionsScrubbing",
+    "type": "POINTER"
+   },
+   "sidebars": {
+    "readonly": true,
+    "struct": "ThemeRegionsSidebars",
+    "type": "POINTER"
+   }
+  },
+  "ThemeRegionsAssetShelf": {
+   "back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "header_back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeRegionsChannels": {
+   "back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "text_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeRegionsScrubbing": {
+   "back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "time_marker": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "time_marker_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeRegionsSidebars": {
+   "back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "tab_back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeSequenceEditor": {
+   "active_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "audio_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "color_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "effect_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "grid": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "image_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "keyframe_border_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mask_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "meta_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "metadatabg": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "metadatatext": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "movie_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "movieclip_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "preview_back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "row_alternate": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "scene_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "selected_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "selected_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   },
+   "text_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "text_strip_cursor": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "transition_strip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeSpaceGeneric": {
+   "back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "header": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "header_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "header_text_hi": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "text_hi": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "title": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeSpaceGradient": {
+   "gradients": {
+    "readonly": true,
+    "struct": "ThemeGradientColors",
+    "type": "POINTER"
+   },
+   "header": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "header_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "header_text_hi": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "text_hi": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "title": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeSpaceMixie": {
+   "mixar_action_button": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_tab_accent": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_tab_glow": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_tab_highlight": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_tab_inactive": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_tab_indicator": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_tab_strip_background": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_tab_text_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_tab_text_inactive": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_toggle_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "moodboard_button_background": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "moodboard_button_hover": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "moodboard_button_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "moodboard_corner_radius": {
+    "max": 20.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "moodboard_input_background": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "moodboard_input_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "moodboard_input_border_width": {
+    "max": 5.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "FLOAT"
+   },
+   "moodboard_input_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "moodboard_label_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "moodboard_panel_background": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeSpreadsheet": {
+   "row_alternate": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeStatusBar": {
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeStripColor": {
+   "color": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeStyle": {
+   "panel_title": {
+    "readonly": true,
+    "struct": "ThemeFontStyle",
+    "type": "POINTER"
+   },
+   "tooltip": {
+    "readonly": true,
+    "struct": "ThemeFontStyle",
+    "type": "POINTER"
+   },
+   "widget": {
+    "readonly": true,
+    "struct": "ThemeFontStyle",
+    "type": "POINTER"
+   }
+  },
+  "ThemeTextEditor": {
+   "cursor": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "line_numbers": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "line_numbers_background": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "selected_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   },
+   "syntax_builtin": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "syntax_comment": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "syntax_numbers": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "syntax_preprocessor": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "syntax_reserved": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "syntax_special": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "syntax_string": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "syntax_symbols": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeTopBar": {
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGeneric",
+    "type": "POINTER"
+   }
+  },
+  "ThemeUserInterface": {
+   "axis_w": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "axis_x": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "axis_y": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "axis_z": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "editor_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "editor_outline": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "editor_outline_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "gizmo_a": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "gizmo_b": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "gizmo_hi": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "gizmo_primary": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "gizmo_secondary": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "gizmo_view_align": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "icon_alpha": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   },
+   "icon_autokey": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "icon_border_intensity": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   },
+   "icon_collection": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "icon_folder": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "icon_modifier": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "icon_object": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "icon_object_data": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "icon_saturation": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   },
+   "icon_scene": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "icon_shading": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "link": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "menu_shadow_fac": {
+    "max": 1.0,
+    "min": 0.009999999776482582,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   },
+   "menu_shadow_width": {
+    "max": 24,
+    "min": 0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "mixar_action": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_bg": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_border_strong": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_brand": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_brand_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_canvas": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_chip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_chip_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_brand_bottom": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_brand_top": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_card_bottom": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_card_top": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_chip": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_dimmer": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_gate_fill": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_keycap": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_label": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_phone": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_pill_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_pill_border_on": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_pill_fill": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_pill_label": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_pill_label_on": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_pill_on_a": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_pill_on_b": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_row_bottom": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_row_caption": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_row_hover": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_row_slider_on": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_row_text_disabled": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_row_text_off": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_row_text_on": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_row_top": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_cinema_row_track": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_control": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_danger": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_fg_1": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_fg_2": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_fg_3": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_fg_4": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_focus": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_glass_wash": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_glyph": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_gradient_end": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_gradient_mid_a": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_gradient_mid_b": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_gradient_start": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_gray_700": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_gray_800": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_ink": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_input": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_pane_pill_dim": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_pane_pill_on": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_pane_wash": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_panel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_primary": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_profile_avatar": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_profile_fill": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_profile_glyph": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_profile_label": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_queue": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_queue_count": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_sketch_ink": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_slider_label": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_slider_thumb": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_slider_thumb_hover": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_slider_track": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_sunken": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_text_secondary": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_text_strong": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_toolbar_background": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_toolbar_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_toolbar_muted": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_toolbar_primary": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_toolbar_primary_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_toolbar_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_toolbar_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_viewport_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_viewport_fill": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_viewport_label": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_viewport_label_on": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_warning": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "mixar_widget_border": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "panel_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "panel_back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "panel_header": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "panel_outline": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "panel_roundness": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   },
+   "panel_sub_back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "panel_text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "panel_title": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "transparent_checker_primary": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "transparent_checker_secondary": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "transparent_checker_size": {
+    "max": 48,
+    "min": 2,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "wcol_box": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_curve": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_list_item": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_menu": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_menu_back": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_menu_item": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_num": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_numslider": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_option": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_pie_menu": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_progress": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_pulldown": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_radio": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_regular": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_scroll": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_state": {
+    "readonly": true,
+    "struct": "ThemeWidgetStateColors",
+    "type": "POINTER"
+   },
+   "wcol_tab": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_text": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_toggle": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_tool": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_toolbar_item": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "wcol_tooltip": {
+    "readonly": true,
+    "struct": "ThemeWidgetColors",
+    "type": "POINTER"
+   },
+   "widget_emboss": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "widget_text_cursor": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeView3D": {
+   "after_current_frame": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "before_current_frame": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "bevel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "bone_locked_weight": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "bone_pose": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "bone_pose_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "bone_solid": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "bundle_solid": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "camera": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "camera_passepartout": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "camera_path": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "clipping_border_3d": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "crease": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "edge_mode_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "edge_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "edge_width": {
+    "max": 32,
+    "min": 1,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "editmesh_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "empty": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "extra_edge_angle": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "extra_edge_len": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "extra_face_angle": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "extra_face_area": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "face": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "face_back": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "face_front": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "face_mode_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "face_retopology": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "face_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "facedot_size": {
+    "max": 10,
+    "min": 1,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "freestyle": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "gp_vertex": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "gp_vertex_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "gp_vertex_size": {
+    "max": 10,
+    "min": 1,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "gp_wire_edit": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "grid": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "grid_axis_brightness": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "NONE",
+    "type": "FLOAT"
+   },
+   "grid_major": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "light": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "normal": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "nurb_sel_uline": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "nurb_sel_vline": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "nurb_uline": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "nurb_vline": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "object_active": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "object_origin_size": {
+    "max": 10,
+    "min": 4,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "object_selected": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "outline_width": {
+    "max": 5,
+    "min": 1,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "seam": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "sharp": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "skin_root": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "space": {
+    "readonly": true,
+    "struct": "ThemeSpaceGradient",
+    "type": "POINTER"
+   },
+   "speaker": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "split_normal": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "text_grease_pencil": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "transform": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vertex": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vertex_normal": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vertex_select": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "vertex_size": {
+    "max": 32,
+    "min": 1,
+    "readonly": false,
+    "size": 0,
+    "subtype": "PIXEL",
+    "type": "INT"
+   },
+   "vertex_unreferenced": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "view_overlay": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "wire": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "wire_edit": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeWidgetColors": {
+   "inner": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_sel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "item": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "outline": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "outline_sel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "roundness": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   },
+   "shadedown": {
+    "max": 100,
+    "min": -100,
+    "readonly": false,
+    "size": 0,
+    "subtype": "NONE",
+    "type": "INT"
+   },
+   "shadetop": {
+    "max": 100,
+    "min": -100,
+    "readonly": false,
+    "size": 0,
+    "subtype": "NONE",
+    "type": "INT"
+   },
+   "show_shaded": {
+    "readonly": false,
+    "type": "BOOLEAN"
+   },
+   "text": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "text_sel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  },
+  "ThemeWidgetStateColors": {
+   "blend": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 0,
+    "subtype": "FACTOR",
+    "type": "FLOAT"
+   },
+   "error": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "info": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_anim": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_anim_sel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_changed": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_changed_sel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_driven": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_driven_sel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_key": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_key_sel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_overridden": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "inner_overridden_sel": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 3,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "success": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   },
+   "warning": {
+    "max": 1.0,
+    "min": 0.0,
+    "readonly": false,
+    "size": 4,
+    "subtype": "COLOR_GAMMA",
+    "type": "FLOAT"
+   }
+  }
+ },
+ "version": "0.1.0"
+}

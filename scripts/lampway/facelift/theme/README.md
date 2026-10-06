@@ -1,0 +1,30 @@
+<!-- SPDX-FileCopyrightText: 2026 Lampway contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+
+# Lampway themes: Night (dark) and Paper (light)
+
+Ready to drop in (v2, the calm pass): `lampway_dark.xml` and `lampway_light.xml` are complete Blender 5.2 theme presets (959 attributes each, every attribute the 0.1.0 build's schema has). Copy them to `src/scripts/presets/interface_theme/Lampway_Night.xml` and `Lampway_Paper.xml`; pick them from Preferences, Themes, or the Quick Setup theme row. Contract `../01-tokens-and-theme.md` covers making Night the default.
+
+| file | what |
+|---|---|
+| `tokens.json` | the token source (colour, worker rings, radii, spacing, type, motion); mirrored in `../DESIGN.md` 2.1 |
+| `build_theme.py` | generates both XMLs and their provenance from the tokens over the build's default theme; refuses a colour with no rule |
+| `check_theme.py` | the gate, T1-T6 (tokens = DESIGN.md, schema-complete, every colour accounted for, no Mixar green, readable text, the fork's own contrast pairs); `--self-test` plants one offender per check |
+| `verify_in_blender.py` | loads a theme through the real preset path in a headless build and reads every attribute back |
+| `check_cues.py` | the glance-cue gate (C1-C4): one glyph per state per family, only live egress moves, only waiting-on-you glows, colour distances under deuteranopia and protanopia; writes `cues_report.md` |
+| `lampway.wezterm.lua` | Lampway's own WezTerm config (contract 16), generated from the same tokens |
+| `check_wezterm.py` | runs the WezTerm config under a stub with luajit (W1-W4): tokens, no update check, isolation from the user's config, one tab glyph per agent state |
+| `dump_theme.py` | re-dumps the build's default theme and schema into `base/` after a DNA/RNA theme change |
+| `base/` | the 0.1.0 build's default theme and schema (dumped 2026-10-05), and upstream Blender 5.2's light preset (the source of the domain colours) |
+| `*.provenance.json` | per attribute: `token:<name>[@alpha]`, `domain:upstream`, `kept:<literal>` or `metric` |
+
+```
+python3 build_theme.py                 # writes both themes
+python3 check_theme.py                 # 0 findings, or exit 1
+python3 check_theme.py --self-test     # 6 of 6 caught
+python3 check_cues.py && python3 check_cues.py --self-test         # 0 findings; 4 of 4 caught
+python3 check_wezterm.py && python3 check_wezterm.py --self-test   # 0 findings; 4 of 4 caught (needs luajit)
+<build>/bin/lampway --background --factory-startup --python verify_in_blender.py -- lampway_dark.xml report.json
+```
+
+Measured 2026-10-05 against the 0.1.0 Linux build (Blender 5.2.0 schema): both files PASS, 959 attributes, 0 problems; a planted unknown attribute fails. Run the build with `HOME` and the XDG dirs in an empty scratch folder; never against a live session.
