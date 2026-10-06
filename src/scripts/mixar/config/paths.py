@@ -38,7 +38,10 @@ def app_home() -> Path:
 
 
 def legacy_home() -> Path:
-    return Path.home() / ".mixar"
+    """The stock install's folder the first run copies from; ``LAMPWAY_LEGACY_HOME`` overrides it (the test harness points it at an empty place, so
+    a test never reads the person's real chat history and checkpoints)."""
+    explicit = os.environ.get("LAMPWAY_LEGACY_HOME")
+    return Path(explicit).expanduser() if explicit else Path.home() / ".mixar"
 
 
 def _looks_secret(name: str) -> bool:

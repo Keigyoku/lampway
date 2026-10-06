@@ -53,6 +53,23 @@ Role: the implementer became the integrator; lanes lp/vault-ops, lp/vault-ui, lp
 ### Python 3.11 under the full server suite
 - Run: the server suite in a 3.11.15 venv built from the lock (at 341d8a5e): 1081 passed, 3 failed: `ast.TypeAlias` in the floor test itself (3.12+; fixed), `test_herdr_cockpit`'s end-reason test (ProcessLookupError: a kill race; passed on re-run under 3.11), and `test_ledger`'s concurrent appends, which deadlocked: it forks processes while its threads hold the ledger lock, and 3.11 forks by default (3.14 uses forkserver). The test now uses the spawn context; under 3.11: 21 passed (ledger, cockpit, floor). The hung forked children also kept the 3.11 pytest from exiting; killed by pid.
 
+### HOTFIX, Connections audit F1/F2: the agent's script sandbox could read every secret and forge the user's clicks
+Measured RED in the real binary through the real ScriptExecutor (`tests/lampway_tools/test_sandbox_secrets_in_app.py`, raw outcomes in `scratch/tmp-w4/logs/f1f2-red.txt` and `-green.txt`):
+- F1, read: every one of `server-state/{chatgpt_auth.json, higgsfield_auth.json, agent_settings.json, jwt_secret, refresh_tokens.json, egress.json, local_cli.json}`, `keyring.json` and `secrets/openrouter.key` came back to the script with its content; so did `projects/../server-state/jwt_secret` and a symlink planted in the temp dir.
+- F1, write: the script rewrote `egress.json` (switching openrouter on) and `local_cli.json`.
+- F2, measured YES: `import mixar.modules.lampway_tools.egress_client` worked and `EgressClient(...).set_route('openrouter', True)` reached the server as `POST /app/egress/route` with a bearer header; `from mixar.modules.auth.core.auth import get_access_token` was callable (it would hand the script the real token when signed in); `lampway_tools.studio_client.StudioClient` was reachable as an attribute; `mixar.modules.common.api.client` was importable.
+- (c), measured: the sandbox's own urllib may GET loopback (`DEFAULT_ASSET_HOSTS` = 127.0.0.1, localhost) and sends no bearer. Not changed here.
+Fix:
+- `sandbox_paths`: a deny check BEFORE the roots, reads and writes, on the resolved path: the server state directory (LAMPWAY_STATE_DIR, else the server's own default), `<home>/server-state`, `<home>/secrets`, the keyring file (LAMPWAY_KEYRING_FILE and `<home>/keyring.json`), and by name anywhere `egress.json`, `local_cli.json`, `jwt_secret`, `refresh_tokens.json`, `agent_settings.json`, `keyring.json`, `provider_prefs.json`, `connections.json`, `*_auth.json`.
+- `sandbox_modules.is_denied_module` + the executor's import: the first-party modules that hold or send the client's bearer, or perform the user's clicks (the `/app/*` client doors, the auth store, the API client, the job queue client, the chat transport, the MCP bridge, the lampway_tools UI...), are refused at `import`, at every module attribute, and any class or function DEFINED in one is refused when reached through an allowed module. `tests/test_sandbox_bearer_modules.py` scans the source for bearer markers and fails on any such module the list misses (it found one more on its first run: the voice-input transport).
+- GREEN: all 18 sandbox cases refused; the server saw no write; `egress.json` unchanged.
+- Owed (not a hotfix): the server still treats any request with the user's bearer as the user's click; a separate click credential the in-process scripts can never reach is the root fix (connections_store.md). Moving the secrets out of LAMPWAY_HOME is connections_migration.md step 2.
+
+### HOTFIX, disk: every client run copied the person's real ~/.mixar into each test home
+- Measured: a fresh test home allocated 109.7 MB before the test did anything: the first-run migration (`config/paths.migrate_from_mixar`) copied the person's real `~/.mixar` (105 MB of chat history and checkpoints) into it. So the suite also READ the person's real data. With the earlier leak (homes never removed) a full client run left ~25 GB.
+- Fix: `legacy_home()` honours `LAMPWAY_LEGACY_HOME`; `run_script` points it at an empty place and the run's TMPDIR/home are removed with the run; both suites keep only failed tests' tmp_path (`tmp_path_retention_policy = failed`).
+- Guard: `tests/lampway_tools/test_run_home_is_small.py` (real binary): a fresh run home allocates under 10 MB (RED at 109.7 MB) and holds nothing migrated.
+
 ## Merges
 (none yet: this section is appended per merge with lane, range, conflicts, suite and gate results)
 

@@ -48,3 +48,11 @@ def test_the_scan_sees_a_planted_leak(tmp_path):
     finally:
         ROOT = saved
     assert [b.split(":")[1] for b in bad] == ["2", "3"]
+
+
+def test_both_suites_remove_a_passed_tests_tmp_path():
+    import configparser
+    ini = configparser.ConfigParser()
+    ini.read(ROOT / "pytest.ini")
+    assert ini["pytest"]["tmp_path_retention_policy"] == "failed"
+    assert 'tmp_path_retention_policy = "failed"' in (ROOT / "server" / "pyproject.toml").read_text()

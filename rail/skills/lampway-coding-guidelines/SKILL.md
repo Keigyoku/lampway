@@ -66,6 +66,13 @@ scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server
 `bpy` is a MagicMock outside Blender, so operator logic is pinned through source-level or `ast` tests, and behaviour that needs
 Blender runs through `tests/lampway_tools/blender_run.py` against the real binary.
 
+Temp files: nothing a test makes may outlive the run in the shared `/tmp` (a quota'd tmpfs). `run_script` points the binary's TMPDIR
+into the run's own temp dir (removed after the run), resolves `@RUN_TMP@` in env values (`LAMPWAY_HOME="@RUN_TMP@/home"`) and points
+`LAMPWAY_LEGACY_HOME` at an empty place, so a test home never copies the person's real `~/.mixar`; a test that reads a run's files
+afterwards passes its own `tmp_path` in (for example `LW_KEEP_ROOT`). In-process tests use `tmp_path`; `tempfile.mkdtemp`/`mkstemp`
+need `dir=` (`tests/lampway/test_tmp_hygiene.py` holds that). Both suites keep only a failed test's tmp_path
+(`tmp_path_retention_policy = failed`).
+
 ## 4. Test-first, and the claim discipline
 
 - **No behaviour change without a failing test first.** Run it, see it fail for the reason you claim (a compile or import error is
@@ -112,3 +119,4 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the root guide was upstream's and named its closed backend; Lampway's laws lived only in module docstrings and the build order | one canonical operating guide carrying the laws, the build, the suites, the test-first contract and the merge-only lanes, verified against the tree | captain ruling, 2026-10-05 |
+| 2026-10-06 | suite hygiene | the integrator's batches: a full client run left ~25 GB and the coordinator's /tmp filled twice | test homes were never removed, scripts inside the binary wrote to the shared /tmp, and the first-run migration copied the person's real ~/.mixar (109.7 MB) into every test home | run_script owns the binary's TMPDIR and the legacy home; tmp_path_retention_policy = failed in pytest.ini; the temp-files paragraph in section 3 | none |

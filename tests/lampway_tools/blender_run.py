@@ -50,7 +50,9 @@ def run_script(source: str, *, scene: Path | None = None, args=(), env=None, tim
         run_tmp.mkdir()
         e = dict(os.environ)
         e.update({"XDG_CONFIG_HOME": str(Path(tmp) / "xdg"), "LAMPWAY_BACKEND_URL": "http://127.0.0.1:9",
-                  "LAMPWAY_BRIDGE_PORT": "0", "TMPDIR": str(run_tmp)})           # everything the binary's tempfile makes is removed with this run (the shared /tmp is a quota'd tmpfs)
+                  "LAMPWAY_BRIDGE_PORT": "0",
+                  "TMPDIR": str(run_tmp),                                    # everything the binary's tempfile makes is removed with this run (the shared /tmp is a quota'd tmpfs)
+                  "LAMPWAY_LEGACY_HOME": str(Path(tmp) / "no-legacy-home")})   # never migrate the person's real ~/.mixar into a test home
         e.update({k: str(v).replace(RUN_TMP, str(run_tmp)) for k, v in (env or {}).items()})
         cmd = ["nice", "-n", "15", str(lampway_bin()), "-b"]
         if scene:
