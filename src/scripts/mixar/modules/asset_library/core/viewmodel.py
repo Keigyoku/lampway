@@ -71,7 +71,7 @@ class VaultViewModel:
         self._pending_at = at
 
     def payload(self) -> dict:
-        p = {"limit": self.page_size, "facets": list(K.FACETS), "include": ["thumb", "tags"]}
+        p = {"limit": self.page_size, "facets": list(K.FACETS), "include": ["thumb", "tags", "path"]}
         if self.text.strip():
             p["text"] = self.text.strip()
         if self.kind:

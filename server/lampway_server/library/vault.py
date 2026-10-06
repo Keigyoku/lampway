@@ -74,13 +74,17 @@ class Vault:
     # ---- reads
     def query(self, q: dict) -> dict:
         """A page of ``asset_query``; a tile whose asset is itself a picture carries that picture's path as its thumbnail (rendered thumbnails are asset_render's)."""
-        res = Q.query(self.lib, q)
-        pics = [it for it in res["items"] if it.get("thumb") is None and it["kind"] in PICTURE_KINDS]
-        if pics:
-            with closing(self.lib._reader()) as db:
-                for it in pics:
-                    row = db.execute("SELECT l.path FROM version v JOIN version_file f ON f.version_id=v.id AND f.role='main' JOIN location l ON l.sha256=f.sha256 AND l.missing=0 "
-                                     "WHERE v.asset_id=? AND v.n=? ORDER BY l.storage='cas' DESC, l.path LIMIT 1", (it["id"], it["version"])).fetchone()
+        want_path = "path" in (q.get("include") or ())
+        res = Q.query(self.lib, {k: v for k, v in q.items() if k != "include"} | ({"include": [i for i in q["include"] if i != "path"]} if "include" in q else {}))
+        with closing(self.lib._reader()) as db:
+            for it in res["items"]:
+                if not (want_path or (it.get("thumb") is None and it["kind"] in PICTURE_KINDS)):
+                    continue
+                row = db.execute("SELECT l.path FROM version v JOIN version_file f ON f.version_id=v.id AND f.role='main' JOIN location l ON l.sha256=f.sha256 AND l.missing=0 "
+                                 "WHERE v.asset_id=? AND v.n=? ORDER BY l.storage='cas' DESC, l.path LIMIT 1", (it["id"], it["version"])).fetchone()
+                if want_path:
+                    it["path"] = row[0] if row else None
+                if it.get("thumb") is None and it["kind"] in PICTURE_KINDS:
                     it["thumb"] = row[0] if row else None
         return res
 

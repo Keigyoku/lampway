@@ -68,3 +68,12 @@ def test_the_view_routes_lineage_views_and_diff(lib):
     assert 0 < diff["mean_abs"] and diff["ssim"] <= 1.0 and Path(diff["diff"]).is_file()
     bad = fake.post("/api/v1/library/diff", json={"a": front, "b": mesh})
     assert bad.status_code == 422 and "two pictures" in bad.json()["detail"]
+
+
+def test_a_page_can_carry_each_assets_main_file_path(lib):
+    fake, root, items = lib
+    page = fake.post("/api/v1/library/query", json={"limit": 50, "include": ["thumb", "tags", "path"]}).json()["data"]
+    paths = {i["name"]: i["path"] for i in page["items"]}
+    assert paths["bronze_greaves"] == str(root / "bronze_greaves.glb") and paths["greaves_front"] == str(root / "greaves_front.png")
+    plain = fake.post("/api/v1/library/query", json={"limit": 50}).json()["data"]
+    assert "path" not in plain["items"][0]
