@@ -341,7 +341,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
-    routes += stub_routes(auth, store, settings, jobs)
+    choice_hook = []                                          # filled below, once the agent exists: a saved choice rebuilds what it decides
+    routes += stub_routes(auth, store, settings, jobs, on_choice=lambda pid: [f(pid) for f in choice_hook])
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
     from .herdr.host import Cockpit
@@ -1150,6 +1151,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
                   "claude_swarm_model", "chatgpt_swarm_model", "openrouter_swarm_model", "image_backend", "image_purposes", "video_purposes"):
             setattr(settings, k, getattr(trial, k))
         settings.sources.update({k: v for k, v in trial.sources.items() if v == "choices"})
+    choice_hook.append(choice_changed)
     routes += choices_routes(_bearer_ok, choice_changed)
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))

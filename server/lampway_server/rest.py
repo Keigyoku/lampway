@@ -58,7 +58,31 @@ async def _json(request: Request) -> dict:
     return body if isinstance(body, dict) else {}
 
 
-def stub_routes(auth, store, settings, jobs=None):
+_ROLE_PURPOSE = {"default": "agent.main", "main": "agent.main"}          # any other role is a worker role (agent.worker)
+_AGENT_WRITE = "only your click in Choices can change a choice: an agent may propose one"
+
+
+def _agent_declared(request) -> bool:
+    return any((request.headers.get(h) or "").strip().lower() == "agent" for h in ("x-lampway-origin", "x-mixar-job-origin"))
+
+
+def _preference_items(settings) -> list:
+    """The client's model picker reads the user's Choices for agent.main and agent.worker (Choices step 8)."""
+    from . import choices as CH
+    purposes = CH.active_store().global_doc().get("purposes") or {}
+    out = []
+    for role, pid in (("default", "agent.main"), ("worker", "agent.worker")):
+        entry = purposes.get(pid)
+        if not entry:
+            continue
+        prov, _, model = entry["preferred"].partition(":")
+        label = next((m["label"] for p in models_catalog(settings)["providers"] if p["id"] == prov for m in p["models"] if m["id"] == model), model or prov)
+        out.append({"role": role, "provider": prov, "model": model, "label": label, "thinking_level": (entry.get("params") or {}).get("thinking_level"),
+                    "eligible": True})
+    return out
+
+
+def stub_routes(auth, store, settings, jobs=None, on_choice=None):
     guard = require_bearer(auth)
 
     @guard
@@ -121,12 +145,23 @@ def stub_routes(auth, store, settings, jobs=None):
     async def credentials_delete_all(request):
         return ok({"removed": store.delete_byok()})
 
+    def _view():
+        return {"byok_active": bool(store.byok()), "items": _preference_items(settings)}
+
+    def _changed(pid):
+        if on_choice is not None:
+            on_choice(pid)
+
     @guard
     async def preference_get(request):
-        return ok(store.preference_view())
+        return ok(_view())
 
     @guard
     async def preference_put(request):
+        """The picker is a user surface: the PUT is the user's click and writes the Choices purpose (CH3: an agent may only propose)."""
+        from . import choices as CH
+        if _agent_declared(request):
+            return error(403, _AGENT_WRITE)
         body = await _json(request)
         provider, model = body.get("provider"), body.get("model")
         role = body.get("role") or "default"
@@ -134,19 +169,37 @@ def stub_routes(auth, store, settings, jobs=None):
             return error(422, "provider and model are required")
         if (provider, model) not in known_models(settings):
             return error(400, f"Model not available: {provider}/{model}")
-        label = next(m["label"] for p in models_catalog(settings)["providers"] if p["id"] == provider
-                     for m in p["models"] if m["id"] == model)
-        return ok(store.save_preference(role, provider, model, label, body.get("thinking_level")))
+        pid = _ROLE_PURPOSE.get(role, "agent.worker")
+        params = {"thinking_level": body["thinking_level"]} if body.get("thinking_level") else {}
+        try:
+            CH.active_store().set(pid, "global", None, {"preferred": f"{provider}:{model}" if provider != "mock" else "mock", "params": params}, by="user")
+        except CH.Refused as exc:
+            return error(400, str(exc))
+        _changed(pid)
+        return ok(_view())
 
     @guard
     async def preference_delete_role(request):
-        if not store.delete_preference(request.path_params["role"]):
+        from . import choices as CH
+        if _agent_declared(request):
+            return error(403, _AGENT_WRITE)
+        pid = _ROLE_PURPOSE.get(request.path_params["role"], "agent.worker")
+        if pid not in (CH.active_store().global_doc().get("purposes") or {}):
             return error(404, "No preference for that role")
+        CH.active_store().clear(pid, None, by="user")
+        _changed(pid)
         return ok({"removed": 1})
 
     @guard
     async def preference_delete_all(request):
-        return ok({"removed": store.delete_all_preferences()})
+        from . import choices as CH
+        if _agent_declared(request):
+            return error(403, _AGENT_WRITE)
+        have = [p for p in ("agent.main", "agent.worker") if p in (CH.active_store().global_doc().get("purposes") or {})]
+        for pid in have:
+            CH.active_store().clear(pid, None, by="user")
+            _changed(pid)
+        return ok({"removed": len(have)})
 
     @guard
     async def referrals_dashboard(request):
