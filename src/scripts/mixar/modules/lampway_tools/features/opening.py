@@ -125,17 +125,39 @@ def _section_outline(limb, origin, axis, n_samples=96):
             loop.append(cur)
         loops.append([x.co.copy() for x in loop])
     u, w = _basis(axis)
-    best, best_area = None, -1.0
-    for lp in loops:
+    best, best_area = None, math.inf
+    for lp in loops:                                         # canon 06 B.2: the loop CONTAINING the axis point (the origin), never the largest
         pts = np.array([[(p - Vector(origin)).dot(u), (p - Vector(origin)).dot(w)] for p in lp])
         area = 0.5 * abs(np.dot(pts[:, 0], np.roll(pts[:, 1], -1)) - np.dot(pts[:, 1], np.roll(pts[:, 0], -1)))
-        if area > best_area:
-            best, best_area = pts, area
+        if len(pts) >= 3 and _contains(pts, (0.0, 0.0)) and area < best_area:
+            best, best_area = pts, area                      # the innermost loop around the point
     bm.free()
+    if best is None:
+        raise C.FeatureError(f"no section of the limb contains the opening's axis point ({len(loops)} loop(s) at the cap plane): pose the body into the piece first")
     pts = best
     if np.dot(pts[:, 0], np.roll(pts[:, 1], -1)) - np.dot(pts[:, 1], np.roll(pts[:, 0], -1)) < 0:
         pts = pts[::-1]                                                              # counter-clockwise about the axis
     return pts
+
+
+def _contains(poly, p) -> bool:
+    """Even-odd point-in-polygon in the plane."""
+    x, y = p
+    inside = False
+    for (x1, y1), (x2, y2) in zip(poly, np.roll(poly, -1, axis=0)):
+        if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
+            inside = not inside
+    return inside
+
+
+def _textures(ob) -> list:
+    """The images the object's materials sample (canon 06 F.5: a texture is detected from the material, not only the studio flag)."""
+    out = []
+    for slot in ob.material_slots:
+        m = slot.material
+        if m is not None and m.use_nodes and m.node_tree is not None:
+            out += [n.image.name for n in m.node_tree.nodes if n.type == "TEX_IMAGE" and n.image is not None]
+    return sorted(set(out))
 
 
 def _offset(pts, d):
@@ -407,8 +429,10 @@ def run(stage, object, root, axis=None, plane_origin=None, limb="", pose=None, a
     deletes = [k for k, v in answers.items() if v == "delete"]
     if gaskets or deletes:
         _need_pose(pose)
-    if (gaskets or deletes) and (ob.get("lw_studio_textured") and not texture_discard_ack):
-        raise C.FeatureError("this is a geometry step: it discards the studio texture for the changed faces; run before the studio texture or pass texture_discard_ack=true and re-run it")
+    tex = _textures(ob)
+    if (gaskets or deletes) and ((ob.get("lw_studio_textured") or tex) and not texture_discard_ack):
+        raise C.FeatureError("this is a geometry step: it discards the studio texture for the changed faces" + (f" (the material samples {', '.join(tex)})" if tex else "")
+                             + "; run before the studio texture or pass texture_discard_ack=true and re-run it")
     if gaskets:
         if flange_mm is None:
             return {"needs_decision": {"what": "collar depth (flange length)", "question": "how deep is the gasket collar, in millimetres? (a formed tubular collar with a rolled lip, 'manifold it')",

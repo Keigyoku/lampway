@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# docs/canon/check_canon.py and its self-tests: numpy for the goldens and their reference implementations, jsonschema for the canonical
+# asset schema (Draft 2020-12, with the referencing library: jsonschema >= 4.18). Verified with numpy 2.5.3 and jsonschema 4.26.0.
+# Lampway's own runtime validates documents with the vendored validator (lampway_tools/canon/minischema.py) and needs no jsonschema.
+numpy>=1.26
+jsonschema>=4.18

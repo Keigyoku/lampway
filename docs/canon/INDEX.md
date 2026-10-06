@@ -41,10 +41,10 @@ implementation exists that meets the canon.
 | 18 | [Rig scale and units](18-rig-scale-and-units.md) | CANONICAL | `skeleton_export_check` reads the unit ratio | no apply-scale; GRT's is wrong for non-uniform (measured 0.2236 m) | R03 |
 | 19 | [Retarget, game rig, bake, root motion, rest change](19-retarget-bake-root-motion.md) | CANONICAL maths; game-rig scale policy DRAFT | `animation_retarget` (matrix, constraints) | no root bone, no game-rig extraction, no bake tool, no rest change | R04, R05, R07 |
 | 20 | [Template fit: rig the example from its own mesh](20-template-fit-example-rig.md) | CANONICAL; hidden joints DRAFT | `rig.auto_rig` (height fractions) | no measured joints, no provenance, no inside check | R06 |
-| 21 | [Engine export (Unreal)](21-engine-export-ue.md) | CANONICAL gate + Titan recipe | `skeleton_export_check`, `engine_import_check`, `fit_export` | no frame/scale read-back; no recipe writer | R02 (+ G21.2-3 to build) |
+| 21 | [Engine export (Unreal)](21-engine-export-ue.md) | CANONICAL gate; the axis pair per convention derived (R08), its UE confirmation owed (M-RIG-01) | `skeleton_export_check`, `engine_import_check`, `fit_export` | no frame/scale read-back; no recipe writer | R02, R08 (+ G21.2-3 to build) |
 | 22 | [Canonical rig and animation normalization (O36)](22-canonical-rig-normalization.md) | CANONICAL animation; skin/morph DRAFT | none (STATUS O36 orphan) | the maths exists only in Titan's pure modules | G22.x (Titan suite to port) |
 
-Also: [goldens/](goldens/README.md) (two generators + self-tests: C01-C14 35 checks, R01-R07 22 checks, both byte-deterministic),
+Also: [goldens/](goldens/README.md) (two generators + self-tests: C01-C14 35 checks, R01-R08 32 checks, both byte-deterministic),
 [rig_tools/](rig_tools/README.md) (the agent-facing rewrite specs of MB UE5 Rig Creator Pro and Game Rig Tools, 11 tools, O36)
 and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Canons 16-22 were added the same day (the captain's rig-tools scope) and
 cite Lampway at `4e9001c7`.

@@ -36,7 +36,7 @@ print("RESULT", json.dumps({"plan": plan, "auto": auto, "noobj": noobj}))
 
 def test_a_cube_runs_prep_retopo_uv_and_each_step_leaves_a_decision_row_and_a_spend_step_stays_blocked(tmp_path):
     r = run(tmp_path, '''
-sphere("crate", 0.5, subdiv=3); canon("crate", scale="any")
+sphere("crate", 0.5, subdiv=4); canon("crate", scale="any")     # 1280 faces: the retopo target (2000) within 3x the source (INV-12.5)
 a = call("workflow_reference_to_asset", piece="Crate", route="existing", existing_object="crate", steps=["prep", "retopo", "uv", "texture"], run=True)
 again = call("workflow_reference_to_asset", piece="Crate", route="existing", existing_object="crate", steps=["prep", "retopo", "uv", "texture"], run=True, resume=True)
 sphere("barrel", 0.4, subdiv=3, loc=(3, 0, 0)); canon("barrel", scale="any")

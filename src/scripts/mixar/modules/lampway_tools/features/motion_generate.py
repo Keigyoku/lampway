@@ -14,6 +14,7 @@ import bpy
 
 from ..meshqa import decisions as D
 from ..pipeline import motion_library as ML
+from .. import canon_io
 from . import common as C
 from .. import canon_io
 

@@ -26,6 +26,7 @@ def _go(tmp_path, body):
 
 def test_id_pass_has_one_flat_colour_per_object(tmp_path):
     res = _go(tmp_path, '''
+canon(*["near_box", "far_box"])
 r = call("render_condition_passes", objects=["near_box", "far_box"], passes=["id"], size=256, out_dir="cond")
 print("RESULT", json.dumps({"r": r, "colors": [list(o.color) for o in (near, far)]}))
 ''')
@@ -42,6 +43,7 @@ print("RESULT", json.dumps({"r": r, "colors": [list(o.color) for o in (near, far
 
 def test_depth_is_monotonic_with_distance(tmp_path):
     res = _go(tmp_path, '''
+canon(*["near_box", "far_box"])
 r = call("render_condition_passes", objects=["near_box", "far_box"], passes=["id", "depth"], size=128, out_dir="cond")
 print("RESULT", json.dumps(r))
 ''')
@@ -59,6 +61,7 @@ def test_edge_and_clay_passes_and_a_named_camera(tmp_path):
     res = _go(tmp_path, '''
 cd = bpy.data.cameras.new("shotcam"); cam = link(bpy.data.objects.new("shotcam", cd))
 cam.location = (0, -8, 2); cam.rotation_euler = (math.radians(80), 0, 0)
+canon(*["near_box", "far_box"])
 r = call("render_condition_passes", objects=["near_box", "far_box"], camera="shotcam", passes=["clay", "edge"], size=128, out_dir="cond2")
 print("RESULT", json.dumps({"r": r, "scenes": [s.name for s in bpy.data.scenes], "cams": sorted(o.name for o in bpy.data.objects if o.type == "CAMERA")}))
 ''')
@@ -71,6 +74,9 @@ print("RESULT", json.dumps({"r": r, "scenes": [s.name for s in bpy.data.scenes],
 
 def test_cycles_refused(tmp_path):
     res = _go(tmp_path, '''
+canon(*["near_box"])
+canon(*[])
+canon(*["near_box"])
 print("RESULT", json.dumps({"c": call("render_condition_passes", objects=["near_box"], engine="cycles", out_dir="c"),
                             "none": call("render_condition_passes", objects=[], out_dir="c"),
                             "bad": call("render_condition_passes", objects=["near_box"], passes=["normal"], out_dir="c")}))

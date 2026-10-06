@@ -28,6 +28,7 @@ def test_face_counts_follow_ratios_within_10_percent_and_deviation_grows(tmp_pat
     d = one(go(tmp_path, BUMPY + '''
 ob = bumpy()
 n0 = len(ob.data.polygons)
+canon("piece")
 res = call("lod_chain", object="piece", ratios=[0.5, 0.25, 0.1])
 print("RESULT", json.dumps({"res": res, "n0": n0, "src": len(bpy.data.objects["piece"].data.polygons)}))
 '''))
@@ -45,10 +46,12 @@ def test_protected_group_vertices_survive_and_protecting_everything_keeps_counts
     d = one(go(tmp_path, BUMPY + '''
 ob = bumpy()
 cap = sorted((round(v.co.x, 5), round(v.co.y, 5), round(v.co.z, 5)) for v in ob.data.vertices if v.co.z > 0.35)
+canon("piece")
 res = call("lod_chain", object="piece", ratios=[0.3], protect="emblem")
 lod = bpy.data.objects[res["lods"][0]["object"]]
 kept = {(round(v.co.x, 5), round(v.co.y, 5), round(v.co.z, 5)) for v in lod.data.vertices}
 g = ob.vertex_groups.new(name="all"); g.add(list(range(len(ob.data.vertices))), 1.0, "REPLACE")
+canon("piece")
 allp = call("lod_chain", object="piece", ratios=[0.3], protect="all", naming="{name}_ALL{n}")
 print("RESULT", json.dumps({"res": res, "missing": len([c for c in cap if c not in kept]), "cap": len(cap), "allp": allp, "n0": len(ob.data.polygons)}))
 '''))
@@ -69,7 +72,9 @@ for poly in ob.data.polygons:
     for li in poly.loop_indices:
         loops_by_vert.setdefault(ob.data.loops[li].vertex_index, set()).add(tuple(round(x, 5) for x in uv.data[li].uv))
 seam = sorted(tuple(round(c, 5) for c in ob.data.vertices[i].co) for i, s in loops_by_vert.items() if len(s) > 1)
+canon("piece")
 keep = call("lod_chain", object="piece", ratios=[0.2], naming="{name}_K{n}")
+canon("piece")
 lose = call("lod_chain", object="piece", ratios=[0.2], preserve_uv_seams=False, naming="{name}_L{n}")
 def missing(name):
     have = {tuple(round(c, 5) for c in v.co) for v in bpy.data.objects[name].data.vertices}
@@ -84,6 +89,7 @@ def test_textures_are_downsized_per_lod(tmp_path):
 ob = bumpy(subdiv=3)
 img = bpy.data.images.new("albedo", 256, 128); img.filepath_raw = os.path.join(root, "tex", "albedo.png"); img.file_format = "PNG"
 os.makedirs(os.path.join(root, "tex"), exist_ok=True); img.save()
+canon("piece")
 res = call("lod_chain", object="piece", ratios=[0.5, 0.25], texture_scale=[0.5, 0.25], textures=["tex/albedo.png"], out_dir="lods")
 sizes = [list(bpy.data.images.load(os.path.join(root, t)).size) for l in res["lods"] for t in l["textures"]]
 print("RESULT", json.dumps({"res": res, "sizes": sizes}))
@@ -95,13 +101,18 @@ print("RESULT", json.dumps({"res": res, "sizes": sizes}))
 def test_refusals_ratios_not_decreasing_out_of_range_and_a_skinned_mesh_without_protect(tmp_path):
     d = one(go(tmp_path, BUMPY + '''
 ob = bumpy(subdiv=3)
+canon("piece")
 up = call("lod_chain", object="piece", ratios=[0.25, 0.5])
+canon("piece")
 rng = call("lod_chain", object="piece", ratios=[0.95])
+canon("piece")
 scale = call("lod_chain", object="piece", ratios=[0.5, 0.25], texture_scale=[1.0])
 rig = armature()
 bind("piece")                                                          # a rigid bind replaces the groups: put the emblem group back
 g = ob.vertex_groups.new(name="emblem"); g.add([v.index for v in ob.data.vertices if v.co.z > 0.35], 1.0, "REPLACE")
+canon("piece")
 skinned = call("lod_chain", object="piece", ratios=[0.5])
+canon("piece")
 ok = call("lod_chain", object="piece", ratios=[0.5], protect="emblem")
 print("RESULT", json.dumps({"up": up, "rng": rng, "scale": scale, "skinned": skinned, "ok": ok}))
 '''))

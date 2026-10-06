@@ -80,6 +80,7 @@ def test_a_real_headless_retopology_returns_a_quad_mesh(tmp_path):
     src = run.make_test_glb(tmp_path / "sphere.glb")
     out = run("retopo", str(src), {"target_faces": 300})
     assert out["files"] and out["files"][0][0][:4] == b"glTF" and out["report"]["faces"] > 100, out.get("report")
+    assert out.get("welded_vertices", 0) > 0, "the GLB's seam-split vertices were welded before QuadriFlow, and the result says so"
 
 
 def test_the_app_registers_the_local_services_only_when_lampway_blender_names_the_binary(settings, provider, monkeypatch, tmp_path):

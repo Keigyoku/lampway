@@ -14,12 +14,12 @@ import numpy as np
 
 from features_support import run
 
-GOLD = Path(__file__).parent / "canon_goldens" / "rig"
-R04 = json.loads((GOLD / "R04_retarget.json").read_text())
-R05 = json.loads((GOLD / "R05_root_motion.json").read_text())
+GOLD = Path(__file__).resolve().parents[2] / "docs" / "canon" / "goldens"
+R04 = json.loads((GOLD / "R04_retarget" / "case.json").read_text())
+R05 = json.loads((GOLD / "R05_root_motion" / "case.json").read_text())
 
 CHAINS = '''
-R04 = json.loads(open(GOLD + "/R04_retarget.json").read())
+R04 = json.loads(open(GOLD + "/R04_retarget/case.json").read())
 def chain(name, rests, length_a):
     arm = bpy.data.armatures.new(name); ob = link(bpy.data.objects.new(name, arm))
     bpy.context.view_layer.objects.active = ob; bpy.ops.object.mode_set(mode="EDIT")
@@ -76,7 +76,7 @@ print("RESULT", json.dumps({"r": r, "got": got, "lengths": lengths, "naive": nai
 
 
 PELVIS = '''
-R05 = json.loads(open(GOLD + "/R05_root_motion.json").read())
+R05 = json.loads(open(GOLD + "/R05_root_motion/case.json").read())
 def rig(name, with_root):
     arm = bpy.data.armatures.new(name); ob = link(bpy.data.objects.new(name, arm))
     bpy.context.view_layer.objects.active = ob; bpy.ops.object.mode_set(mode="EDIT")

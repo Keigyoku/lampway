@@ -31,8 +31,8 @@ print("RESULT", json.dumps({{"r": r, "props": {{k: str(ob[k]) for k in ob.keys()
     p = r["placed"][0]
     assert p["kind"] == "object" and p["bytes_loaded"] > 0 and p["collection"]
     assert d["in_scene"] and len(d["meshes"]) == 1
-    raw = json.loads(d["props"].pop("lw_raw"))                 # the import went through canon_io: stamped raw with the file's bytes
-    assert raw["importer"] == "import_scene.gltf" and raw["container"] == "glb" and len(raw["sha256"]) == 64, raw
+    raw = json.loads(d["props"].pop("lw_raw"))                     # canon N1: an import through canon_io is stamped raw (its file's sha, the importer)
+    assert raw["container"] == "glb" and raw["importer"] == "import_scene.gltf" and len(raw["sha256"]) == 64
     assert d["props"] == {"lw_asset_id": "asset-1", "lw_asset_version": "1", "lw_asset_sha256": "ab" * 32}
     assert abs((d["lo"][0] + d["hi"][0]) / 2 - 1.0) < 1e-3 and abs((d["lo"][1] + d["hi"][1]) / 2 - 2.0) < 1e-3 and abs(d["lo"][2] - 3.0) < 1e-3
 

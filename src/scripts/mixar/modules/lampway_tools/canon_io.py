@@ -26,6 +26,8 @@ import numpy as np
 IMPORTERS = {".glb": ("import_scene", "gltf"), ".gltf": ("import_scene", "gltf"), ".fbx": ("import_scene", "fbx"),
              ".obj": ("wm", "obj_import"), ".bvh": ("import_anim", "bvh"), ".usd": ("wm", "usd_import"), ".usda": ("wm", "usd_import"),
              ".usdc": ("wm", "usd_import"), ".usdz": ("wm", "usd_import"), ".stl": ("wm", "stl_import"), ".ply": ("wm", "ply_import")}
+# Blender 5's C++ FBX importer instead of the add-on: the Vault's placement and catalogue export read FBX with it (flavour="native").
+NATIVE = dict(IMPORTERS, **{".fbx": ("wm", "fbx_import")})
 SRGB_ROLES = ("basecolor", "emission", "reference")
 LINEAR_ROLES = ("hdri",)
 DATA_ROLES = ("normal", "roughness", "metallic", "ao", "orm", "height", "displacement", "opacity", "mask", "material_id", "curvature")
@@ -51,18 +53,26 @@ def _stamp(db, record):
         pass
 
 
-def import_raw(path, **settings):
+def importers(flavour="addon"):
+    """{extension: (operator module, name)} of ``flavour``: addon (the default table) or native (FBX through wm.fbx_import)."""
+    if flavour not in ("addon", "native"):
+        raise ValueError(f"flavour is addon or native, not {flavour!r}")
+    return NATIVE if flavour == "native" else IMPORTERS
+
+
+def import_raw(path, flavour="addon", **settings):
     """{objects, meshes, armatures, actions, images, materials (names of what the import made), sha256, container, importer,
-    settings}. Refuses a container no importer here reads."""
+    settings, result (the operator's return set)}. Refuses a container no importer of ``flavour`` reads."""
     path = os.fspath(path)
     ext = os.path.splitext(path)[1].lower()
-    if ext not in IMPORTERS:
-        raise ValueError(f"cannot import {ext or 'a file without an extension'}: canon_io reads {', '.join(sorted(IMPORTERS))}")
-    module, name = IMPORTERS[ext]
+    table = importers(flavour)
+    if ext not in table:
+        raise ValueError(f"cannot import {ext or 'a file without an extension'}: canon_io reads {', '.join(sorted(table))}")
+    module, name = table[ext]
     record = {"sha256": file_sha256(path), "container": ext.lstrip("."), "importer": f"{module}.{name}", "settings": dict(settings)}
     before = _snapshot()
-    getattr(getattr(bpy.ops, module), name)(filepath=path, **settings)
-    out = dict(record)
+    result = getattr(getattr(bpy.ops, module), name)(filepath=path, **settings)
+    out = dict(record, result=sorted(result))
     for k in _KINDS:
         new = [d for d in getattr(bpy.data, k) if d not in before[k]]
         for d in new:
@@ -86,6 +96,8 @@ def load_image(path, role=None, **kw):
     given, stamped ``lw_raw`` with the role."""
     path = os.fspath(path)
     img = bpy.data.images.load(path, **kw)
+    if "lw_canon" in img.keys():                                    # check_existing returned a normalized image: it stays canonical
+        return img
     if role is not None:
         img.colorspace_settings.name = colour_space(role)
     _stamp(img, {"sha256": file_sha256(path) if os.path.exists(path) else None, "container": os.path.splitext(path)[1].lstrip(".").lower(),

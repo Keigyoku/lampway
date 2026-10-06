@@ -72,7 +72,7 @@ def test_g14_3_the_bake_ray_reaches_twice_the_cage_by_default():
 bpy.ops.mesh.primitive_plane_add(size=1.0); low = bpy.context.active_object; low.name = "low"
 bpy.ops.mesh.primitive_plane_add(size=1.0, location=(0, 0, -0.005)); high = bpy.context.active_object; high.name = "high"
 from mixar.modules.lampway_tools.features import bake as BK
-cfg = BK.plan("high", "low", ["normal"], 256, None, None, None, 4, "+Y", False, "bake", False, root)
+cfg = BK.plan("high", "low", ["normal"], 256, None, 0.02, None, 4, "gl", False, "bake", False, root)     # an explicit cage (auto is measured: item 9)
 res({"cage": cfg["cage_extrusion_m"], "ray": cfg["max_ray_m"]})
 ''')
     assert d["ray"] == pytest.approx(2.0 * d["cage"], rel=1e-9), d

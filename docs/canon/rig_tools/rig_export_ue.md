@@ -25,7 +25,10 @@ ported; GRT has no exporter (its export rig is the armature object named `root`,
  "recipe": "titan_cm_native | <recipe.json>", "out": "export/<name>.fbx", "readback": true, "allow_container_top_bone": true}
 ```
 `titan_cm_native` = cm-native FBX (`UnitScaleFactor 1`, `FBX_SCALE_NONE` + `apply_unit_scale`), primary bone axis Z, secondary
-X, deform only, no leaf bones, baked actions only. A recipe file states every exporter argument; nothing is left to defaults.
+X, deform only, no leaf bones, baked actions only. It is the DEFAULT and it refuses every canon-17 rig at the read-back (120 deg
+off `blender`, 90 deg off `ue_axes`; golden R08): Z / X is the round trip of a rig imported from the engine with Z / X. The
+convention's own pairs are X / -Y (`blender`) and Y / X (`ue_axes`), same cm-native scaling; the default changes only after
+ue_parity `M-RIG-01` confirms them in Unreal (canon 21 H.2). A recipe file states every exporter argument; nothing is left to defaults.
 Refusals: `mixed` convention (canon 17); root or hierarchy differing from the reference (the container top bone accepted and
 named); leaf bones; a vertex group naming a bone the reference lacks; constraints present; a read-back row over tolerance
 (rows listed, the file moved to `export/rejected/`); an existing different `out`.

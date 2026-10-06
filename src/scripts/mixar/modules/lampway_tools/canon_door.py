@@ -69,7 +69,10 @@ def validate_declaration(consumes):
 
 
 def _doc_of_datablock(name):
-    import bpy
+    try:
+        import bpy
+    except ImportError:                                            # outside Blender only paths resolve
+        return None, None, "missing"
     for coll in (bpy.data.objects, bpy.data.armatures, bpy.data.images, bpy.data.materials, bpy.data.actions):
         db = coll.get(name) if isinstance(name, str) else None
         if db is not None:
@@ -90,15 +93,26 @@ def _doc_of_path(path):
     return None, "unstamped"
 
 
+def first_bad(arg, value, need):
+    """(label, element, reasons) of the first element of a LIST argument that fails its Need (label ``arg[i]``), or None."""
+    for i, elem in enumerate(value):
+        reasons = unmet(f"{arg}[{i}]", elem, need)
+        if reasons:
+            return f"{arg}[{i}]", elem, reasons
+    return None
+
+
 def unmet(arg, value, need):
-    """[str] for one argument: empty when the door opens; else each reason, the first naming raw / unstamped / changed."""
+    """[str] for one argument: empty when the door opens; else each reason, the first naming raw / unstamped / changed. A list or
+    tuple passes only when every element does (the reasons are the first failing element's, named ``arg[i]``)."""
     if need.accept_raw:
         return []
-    if isinstance(value, str) and (os.sep in value or value.endswith((".npz", ".glb", ".fbx", ".obj", ".blend", ".png", ".exr"))):
+    if isinstance(value, (list, tuple)):
+        bad = first_bad(arg, value, need)
+        return bad[2] if bad else []
+    db, doc, why = _doc_of_datablock(value)                  # a datablock by that name first: images are named "x.png" (the tools read it)
+    if why == "missing" and isinstance(value, str) and (os.sep in value or value.endswith((".npz", ".glb", ".fbx", ".obj", ".blend", ".png", ".exr"))):
         doc, why = _doc_of_path(value)
-        db = None
-    else:
-        db, doc, why = _doc_of_datablock(value)
     if doc is None:
         return [{"raw": f"{arg} {value!r} is a RAW import (lw_raw), not canonical",
                  "unstamped": f"{arg} {value!r} carries no canonical stamp (lw_canon)",
@@ -107,13 +121,30 @@ def unmet(arg, value, need):
     if db is not None and getattr(db, "type", None) == "MESH":
         from . import canon_io
         out += CA.check(doc, canon_io.facts(db))
+    elif db is not None and doc.get("kind") == "texture" and hasattr(db, "colorspace_settings"):
+        from .features import normalize_texture as NT
+        out += CA.check(doc, NT.facts(db))
     out += CA.satisfies(doc, need)
     return out
 
 
+def _skinned(name):
+    try:
+        import bpy
+    except ImportError:
+        return False
+    ob = bpy.data.objects.get(name) if isinstance(name, str) else None
+    return bool(ob is not None and ob.type == "MESH" and any(m.type == "ARMATURE" for m in ob.modifiers))
+
+
 def refusal(arg, value, reasons, need):
+    if isinstance(value, (list, tuple)):
+        arg, value, reasons = first_bad(arg, value, need) or (arg, value, reasons)
     kind = need.kind[0] if need.kind else "mesh"
-    helps = [f"lampway_normalize_{'rigged' if kind == 'rigged_mesh' else kind} input={value}"]
+    if kind == "mesh" and _skinned(value):
+        kind = "rigged_mesh"                                       # lampway_normalize_mesh refuses a skinned mesh: name the right normalizer
+    helps = [f"lampway_normalize_{'rigged' if kind == 'rigged_mesh' else kind} input={value}"
+             + (" (not built yet: canon R1/R3, lane orphans)" if kind == "rigged_mesh" else "")]
     if any("scale" in r for r in reasons):
         helps.append("real scale comes from lampway_fit_place (armour) or lampway_scale_to_measure")
     return {"ok": False, "error": f"normalize first: {arg} {value!r} is not canonical: " + "; ".join(reasons), "help": helps}

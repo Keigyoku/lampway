@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Generator for the rig goldens R01-R07 (canon 16-21). numpy only; deterministic (two runs are byte-identical).
+"""Generator for the rig goldens R01-R08 (canon 16-21). numpy only; deterministic (two runs are byte-identical).
 
     python3 gen_rig_goldens.py [out_dir]
 
@@ -244,10 +244,25 @@ def r07():
                           "why": "a baked rest returned through the new bind is the blend of inverses (canon 04)"}}
 
 
+# ----------------------------------------------------------------------------- R08 FBX bone axes (canon 21 / 17)
+def r08():
+    pairs = [("Z", "X"), ("X", "-Y"), ("Y", "X")]
+    ang = {c: {f"{p}/{s}": R.frame_angle_deg(R.fbx_node_map(p, s), R.ENGINE[c]) for p, s in pairs} for c in ("blender", "ue_axes")}
+    return {"input": {"pairs": [f"{p}/{s}" for p, s in pairs], "engine_frames": {c: R.ENGINE[c] for c in R.ENGINE},
+                      "rule": "an exporter pair writes node frames R_bone @ M(primary, secondary) (the node's primary axis = the bone's +Y, its "
+                              "secondary = the bone's +X); it carries a convention when M equals the convention's engine frame"},
+            "expected": {"recipe": {c: list(R.recipe_for(c)) for c in ("blender", "ue_axes")}, "angle_deg": ang,
+                         "titan_cm_native": "Z/X carries neither canon-17 convention: it is the pair a rig imported FROM an engine with "
+                                            "primary Z / secondary X needs to go back (a round trip), which is how Titan measured it"},
+            "falsifier": {"inverse_map_angle_deg_blender_X/-Y": R.frame_angle_deg(R.fbx_node_map("X", "-Y").T, R.ENGINE["blender"]),
+                          "why": "reading the pair as the bone's axis in the node frame (M transposed) would make the right pair 180 deg off"}}
+
+
 def main(out):
     out = Path(out)
     for name, fn in (("R01_mapping", r01), ("R02_rest_frames", r02), ("R03_apply_scale", r03), ("R04_retarget", r04),
-                     ("R05_root_motion", r05), ("R06_template_fit", r06), ("R07_rest_change", r07)):
+                     ("R05_root_motion", r05), ("R06_template_fit", r06), ("R07_rest_change", r07),
+                     ("R08_export_axes", r08)):
         write(out, name, fn())
         print("wrote", name)
 

@@ -94,3 +94,41 @@ def test_a_gauntlets_residual_axis_angle_is_corrected_rigidly_not_left(tmp_path)
     _, _, vt = np.linalg.svd(V - c0, full_matrices=False)
     ang = np.degrees(np.arccos(min(1.0, abs(vt[0] @ np.array([1.0, 0, 0])))))
     assert ang < 0.5 and rep["axis_error_deg"]["l"] == pytest.approx(15.0, abs=1.0) and rep["axis_corrected"] is True
+
+
+def test_inv_09_4_a_body_twice_as_broad_places_the_same_way_no_absolute_torso_filter(goldens, tmp_path):
+    """canon 09 INV-09.4: every constant is relative to the joints. The torso filter |x| < 0.27 m cut a broad body's own sides; it
+    existed to drop the hanging arms, so the torso is now every vertex not nearest an arm bone (joint to next joint). Golden C06 scaled 2x in x and y: the scale the 1x
+    widths predict (the 15 mm clearance stays 15 mm), the displacement doubled."""
+    e = J(goldens, "C06_enclosure/expected.json")["inner_wall_enclosure"]
+    Vb, Fb, *_ = obj(goldens, "C06_enclosure/body.obj")
+    Vp, Fp, *_ = obj(goldens, "C06_enclosure/piece_displaced.obj")
+    k = np.array([2.0, 2.0, 1.0])
+    names = list(JOINTS)
+    np.savez(tmp_path / "body.npz", V=np.asarray(Vb) * k, T=tris(Fb), J=np.array([np.array(JOINTS[n]) * k for n in names], float), names=np.array(names))
+    np.savez(tmp_path / "piece.npz", V=np.asarray(Vp) * k, T=tris(Fp))
+    V, T, meta, rep = FP.place("waist", tmp_path / "body.npz", tmp_path / "piece.npz")
+    one = tmp_path / "one"
+    one.mkdir()
+    _, _, meta1, rep1 = FP.place("waist", *_npz(one, goldens))
+    bw, pw = (rep1["body_width_mm"] - 30.0) / 1000, rep1["piece_width_mm"] / 1000        # 1x widths (the body's carries + 2C, C = 15 mm)
+    assert meta["scale"] == pytest.approx((2 * bw + 0.030) / (2 * pw), abs=1e-3), (meta["scale"], bw, pw)   # the clearance does not scale
+    # the inner-wall centre shift (the translation also carries (1 - s) x the anchor position once s != 1)
+    assert np.abs(np.array(meta["anchor_shift"][:2]) - 2 * np.array(e["translation_m"][:2])).max() < 2 * e["tol_m"], meta["anchor_shift"]
+
+
+def test_regions_are_the_vertices_nearest_their_bones():
+    J = {"pelvis": np.array([0, 0, 1.0]), "spine_01": np.array([0, 0, 1.2]), "upperarm_l": np.array([0.2, 0, 1.4]), "lowerarm_l": np.array([0.45, 0, 1.2]),
+         "hand_l": np.array([0.6, 0, 1.05])}
+    P = np.array([[0.05, 0, 1.1], [0.32, 0, 1.3], [0.6, 0, 1.0], [0.1, 0.02, 1.25]])
+    assert FP._region(P, J, ("pelvis", "spine_01")).tolist() == [True, False, False, True]
+    assert FP._region(P, J, ("lowerarm_l", "hand_l")).tolist() == [False, False, True, False]
+
+
+def test_helper_and_twist_bones_do_not_claim_their_limbs_vertices():
+    """A real skeleton (the MetaHuman: 342 joints) has twist, corrective and toe bones inside the limbs; nearest-segment over ALL joints
+    let them claim the leg (2799 of the shelf body's 49789 leg vertices). Regions are taken over the main skeleton (canon 16's names)."""
+    J = {"upperarm_l": np.array([0.2, 0, 1.4]), "lowerarm_l": np.array([0.45, 0, 1.2]), "hand_l": np.array([0.6, 0, 1.05]),
+         "lowerarm_twist_01_l": np.array([0.52, 0, 1.13]), "bigtoe_01_l": np.array([0.62, 0, 1.03])}
+    P = np.array([[0.52, 0.01, 1.135], [0.61, 0, 1.03]])
+    assert FP._region(P, J, ("lowerarm_l", "hand_l")).tolist() == [True, True]

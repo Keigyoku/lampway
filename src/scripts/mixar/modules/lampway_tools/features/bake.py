@@ -25,6 +25,34 @@ OVERLAP_MAX = 0.001
 ALIGN_FRACTION = 0.02          # bbox centre distance as a fraction of the donors' diagonal
 SCALE_TOL = 1e-3
 RAY_PER_CAGE = 2.0             # canon 14 B.3: the ray must reach the HP's greatest depth below the LP (max_ray >= cage + depth); 0.5x missed a sunk HP (golden C10)
+# canon 14 B.3, `auto`: cage = the HP's greatest height above the LP, ray = cage + its greatest depth below, each times AUTO_PAD.
+# needs_decision: the canon states the two inequalities and no margin; 1.05 is this lane's placeholder, not a ruled number.
+AUTO_PAD = 1.05
+MEASURE_MAX = 200_000          # HP vertices measured (a stride beyond that: a bound on the loop, not a sample design)
+
+
+def measure(h_obs, lo):
+    """{height_max_m, depth_max_m, median_m, samples}: each HP vertex's signed distance to the nearest LP point along that face's
+    normal (+ above the LP, - below). HP vertices, not LP ones: an LP's few vertices cannot see a cap between them (golden C10's LP is
+    four corners)."""
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    from .rig import _body_mesh
+    V, T = _body_mesh(lo)
+    tree = BVHTree.FromPolygons([tuple(v) for v in V], [tuple(int(i) for i in t) for t in T])
+    d = []
+    for ob in h_obs:
+        P, _ = _body_mesh(ob)
+        step = max(1, len(P) // MEASURE_MAX)
+        for p in P[::step]:
+            loc, nrm, _i, _dist = tree.find_nearest(Vector(p))
+            if loc is not None:
+                d.append(float((Vector(p) - loc).dot(nrm)))
+    if not d:
+        raise C.FeatureError("the high-poly has no vertex near the low-poly: align them first")
+    d = np.array(d)
+    return {"height_max_m": round(float(max(d.max(), 0.0)), 9), "depth_max_m": round(float(max(-d.min(), 0.0)), 9),
+            "median_m": round(float(np.median(np.abs(d))), 9), "samples": int(len(d))}
 
 
 def _bbox(obs):
@@ -42,6 +70,8 @@ def plan(high, low, maps, size, margin_px, cage_extrusion_m, max_ray_m, samples,
     bad = [m for m in maps if m not in MAPS]
     if bad:
         raise C.FeatureError(f"{', '.join(bad)} cannot be baked here; the supported maps are: {', '.join(MAPS)} (curvature, cavity, dust, bevel, position are not Cycles bake types)")
+    if normal_green not in ("gl", "dx"):
+        raise C.FeatureError(f"normal_green is gl (OpenGL, +Y: Blender) or dx (DirectX, -Y: Unreal), not {normal_green!r}")
     if not 512 <= int(size) <= 8192 and not 32 <= int(size) <= 8192:
         raise C.FeatureError("size is 32..8192 (a power of two)")
     if int(size) & (int(size) - 1):
@@ -62,10 +92,18 @@ def plan(high, low, maps, size, margin_px, cage_extrusion_m, max_ray_m, samples,
     shift = float(np.linalg.norm((hlo + hhi) / 2 - (llo + lhi) / 2))
     if shift > ALIGN_FRACTION * diag:
         raise C.FeatureError(f"the donor and the target are not aligned (their bbox centres are {shift:.3f} apart, more than {ALIGN_FRACTION:.0%} of the diagonal {diag:.3f}): align them first")
-    ext = float(np.linalg.norm(lhi - llo)) * ALIGN_FRACTION if cage_extrusion_m in (None, "auto") else float(cage_extrusion_m)
-    if not 0 <= ext <= 0.2 and cage_extrusion_m not in (None, "auto"):
-        raise C.FeatureError("cage_extrusion_m is 0..0.2 or 'auto'")
-    ray = RAY_PER_CAGE * ext if max_ray_m is None else float(max_ray_m)
+    m = measure(h_obs, lo)
+    if cage_extrusion_m in (None, "auto"):
+        ext = m["height_max_m"] * AUTO_PAD
+        ray = (m["height_max_m"] + m["depth_max_m"]) * AUTO_PAD if max_ray_m is None else float(max_ray_m)
+    else:
+        ext = float(cage_extrusion_m)
+        if not 0 <= ext <= 0.2:
+            raise C.FeatureError("cage_extrusion_m is 0..0.2 or 'auto'")
+        if ext < m["median_m"]:
+            raise C.FeatureError(f"the cage {ext:g} m is below the median LP<->HP distance {m['median_m']:g} m: the cage must enclose the high-poly "
+                                 f"(canon 14 B.3); use cage_extrusion_m='auto' or at least {m['height_max_m']:g}")
+        ray = RAY_PER_CAGE * ext if max_ray_m is None else float(max_ray_m)
     margin = max(2, int(size) // 128) if margin_px is None else int(margin_px)
     if not 0 <= margin <= 64:
         raise C.FeatureError("margin_px is 0..64")
@@ -78,7 +116,7 @@ def plan(high, low, maps, size, margin_px, cage_extrusion_m, max_ray_m, samples,
     if existing and not overwrite:
         raise C.FeatureError(f"{Path(existing[0]).name} exists: a bake overwrites images and the undo story is not great; pass overwrite=true")
     return {"high": [o.name for o in h_obs], "low": lo.name, "maps": list(maps), "size": int(size), "margin_px": margin, "cage_extrusion_m": ext, "max_ray_m": ray,
-            "samples": int(samples), "normal_green": normal_green, "out_dir": str(out)}
+            "samples": int(samples), "normal_green": normal_green, "out_dir": str(out), "measured": m}
 
 
 def run(source, target, maps, size, margin_px, cage_extrusion_m, max_ray_m, samples, normal_green, allow_overlap, out_dir, overwrite, attach, root, timeout=1800):
@@ -103,6 +141,8 @@ def run(source, target, maps, size, margin_px, cage_extrusion_m, max_ray_m, samp
     body = {"ok": True, "maps": data["files"], "size": cfg["size"], "cage_used": {"extrusion_m": cfg["cage_extrusion_m"], "max_ray_m": cfg["max_ray_m"]}, "margin_px": cfg["margin_px"],
             "checks": {"black_texel_fraction": data["black_texel_fraction"], "covered_texels": data["covered_texels"]}, "colorspace": data["colorspace"], "albedo_passes": data["albedo_passes"],
             "hints": hints, "material": data["material"]}
+    if data.get("normal"):
+        body["normal"] = data["normal"]
     if attach:
         lo = bpy.data.objects[cfg["low"]]
         mat = bpy.data.materials.new(data["material"]); mat.use_nodes = True
@@ -113,7 +153,11 @@ def run(source, target, maps, size, margin_px, cage_extrusion_m, max_ray_m, samp
             if m == "albedo":
                 nt.links.new(node.outputs["Color"], bsdf.inputs["Base Color"])
             elif m == "normal":
-                nm = nt.nodes.new("ShaderNodeNormalMap"); nt.links.new(node.outputs["Color"], nm.inputs["Color"]); nt.links.new(nm.outputs["Normal"], bsdf.inputs["Normal"])
+                from .asset_place_shading import _flip_green
+                col = node.outputs["Color"]
+                if (data.get("normal") or {}).get("convention") == "dx":
+                    col = _flip_green(nt, col, -500, -300)      # Blender's Normal Map node reads GL: a DX map is flipped back in nodes
+                nm = nt.nodes.new("ShaderNodeNormalMap"); nt.links.new(col, nm.inputs["Color"]); nt.links.new(nm.outputs["Normal"], bsdf.inputs["Normal"])
         lo.data.materials.append(mat)
         lo["lw_baked_from"] = ",".join(cfg["high"])
     return body

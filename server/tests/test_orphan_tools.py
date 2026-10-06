@@ -17,7 +17,7 @@ def _client_functions() -> dict:
     tree = ast.parse(API.read_text())
     out = {}
     for n in tree.body:
-        if isinstance(n, ast.FunctionDef) and any(getattr(d.func if isinstance(d, ast.Call) else d, "id", "") == "tool" for d in n.decorator_list):
+        if isinstance(n, ast.FunctionDef) and any(getattr(d.func if isinstance(d, ast.Call) else d, "id", "") == "tool" for d in n.decorator_list):   # @tool or @tool(consumes=...)
             a = n.args
             out[n.name] = {x.arg for x in a.args + a.kwonlyargs} | ({"**"} if a.kwarg else set())
     return out

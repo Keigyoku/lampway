@@ -44,7 +44,9 @@ def test_lips_together_key_closes_the_gap_and_a_zero_key_gives_the_neutral_gap(t
     d = one(go(tmp_path, HEAD + '''
 head.data.shape_keys.key_blocks["browOuterUpLeft"].value = 0.3                    # a value the user left set: it must come back
 values0 = [k.value for k in head.data.shape_keys.key_blocks]
+canon("head")
 res = call("face_rig_validate", object="head", shape_key_profile="arkit", teeth="teeth")
+canon("head")
 zero = call("face_rig_validate", object="head", shape_key_profile="arkit", teeth="teeth", poses=[{"name": "wide_zero", "keys": {"jawOpen": 0.0}}])
 print("RESULT", json.dumps({"res": res, "zero": zero, "values": [k.value for k in head.data.shape_keys.key_blocks], "values0": values0}))
 '''))
@@ -63,9 +65,12 @@ print("RESULT", json.dumps({"res": res, "zero": zero, "values": [k.value for k i
 
 def test_missing_arkit_keys_listed_and_visemes_counted_when_asked(tmp_path):
     d = one(go(tmp_path, HEAD + '''
+canon("head")
 a = call("face_rig_validate", object="head", shape_key_profile="arkit")
+canon("head")
 v = call("face_rig_validate", object="head", shape_key_profile="arkit+visemes")
 key("custom_smirk", [])
+canon("head")
 x = call("face_rig_validate", object="head", shape_key_profile="arkit")
 print("RESULT", json.dumps({"a": a["keys"], "v": v["keys"], "x": x["keys"]}))
 '''))
@@ -78,9 +83,11 @@ print("RESULT", json.dumps({"a": a["keys"], "v": v["keys"], "x": x["keys"]}))
 
 def test_teeth_penetrating_a_lip_is_flagged(tmp_path):
     d = one(go(tmp_path, HEAD + '''
+canon("head")
 ok = call("face_rig_validate", object="head", teeth="teeth")
 teeth.location.y = -0.05                                                       # slide the teeth forward through the lips
 bpy.context.view_layer.update()
+canon("head")
 bad = call("face_rig_validate", object="head", teeth="teeth")
 print("RESULT", json.dumps({"ok": ok, "bad": bad}))
 '''))
@@ -94,11 +101,14 @@ print("RESULT", json.dumps({"ok": ok, "bad": bad}))
 def test_no_shape_keys_and_a_closed_mouth_with_an_interior_check_are_refused(tmp_path):
     d = one(go(tmp_path, HEAD + '''
 bare = sphere("bare", 0.1)
+canon("bare")
 nokeys = call("face_rig_validate", object="bare", shape_key_profile="arkit")
 for i in ids["lip_lower"]:
     head.data.shape_keys.key_blocks["Basis"].data[i].co.z = 0.01
     head.data.vertices[i].co.z = 0.01
+canon("head")
 closed = call("face_rig_validate", object="head", teeth="teeth")
+canon("head")
 none_ok = call("face_rig_validate", object="head", shape_key_profile="arkit")
 print("RESULT", json.dumps({"nokeys": nokeys, "closed": closed, "none_ok": none_ok}))
 '''))

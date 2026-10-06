@@ -1338,7 +1338,7 @@
     {
      "name": "fallback",
      "type": "boolean",
-     "desc": "autoremesher: use the voxel remesh when the engine fails",
+     "desc": "quadriflow / autoremesher: use the voxel remesh when the engine fails or leaves the mesh unchanged (else refused)",
      "required": false,
      "flag": null,
      "repeat": false
@@ -1347,6 +1347,14 @@
      "name": "hard_surface",
      "type": "boolean",
      "desc": "autoremesher: hard-surface model type",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "preserve_sharp",
+     "type": "boolean",
+     "desc": "quadriflow: keep sharp (hard-surface) edges, default true",
      "required": false,
      "flag": null,
      "repeat": false

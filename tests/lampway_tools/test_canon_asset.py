@@ -21,7 +21,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent))
 from mixar.modules.lampway_tools import canon_asset as CA  # noqa: E402
 
-EX = json.loads((Path(__file__).parent / "canon_goldens/normalization/canonical-asset.examples.json").read_text())
+EX = json.loads((Path(__file__).resolve().parents[2] / "docs/canon/normalization/canonical-asset.examples.json").read_text())
 for extra in filter(None, os.environ.get("LAMPWAY_TEST_PYDEPS", "").split(os.pathsep)):
     sys.path.append(extra)
 try:
@@ -183,3 +183,10 @@ def test_the_settings_are_named_and_only_d4_is_still_owed():
 
 def test_digest_is_sha256_hex():
     assert CA.digest(b"") == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+
+def test_the_shipped_schema_is_the_canons_byte_for_byte():
+    """The runtime ships its own copy (Blender's scripts tree has no docs/); it must be the canon's normalization schema exactly."""
+    root = Path(__file__).resolve().parents[2]
+    shipped = root / "src/scripts/mixar/modules/lampway_tools/canon/canonical-asset.schema.json"
+    assert shipped.read_bytes() == (root / "docs/canon/normalization/canonical-asset.schema.json").read_bytes()

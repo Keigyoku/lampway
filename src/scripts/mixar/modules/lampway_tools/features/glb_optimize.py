@@ -19,6 +19,7 @@ import numpy as np
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
+from .. import canon_io
 from . import common as C
 from .. import canon_io
 

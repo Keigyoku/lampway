@@ -17,7 +17,7 @@ RC = Path(__file__).resolve().parents[2] / "src/scripts/mixar/modules/lampway_to
 sys.path.insert(0, str(RC))
 import animation_canon as ac  # noqa: E402
 
-R04 = json.loads((Path(__file__).parent / "canon_goldens" / "rig" / "R04_retarget.json").read_text())
+R04 = json.loads((Path(__file__).resolve().parents[2] / "docs" / "canon" / "goldens" / "R04_retarget" / "case.json").read_text())
 
 
 def q_of(R):
