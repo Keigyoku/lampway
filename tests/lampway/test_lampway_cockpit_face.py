@@ -23,3 +23,16 @@ def test_the_page_url_carries_the_bearer_in_the_fragment_only():
 def test_the_terminal_opens_beside_blender():
     """Contract 16 section 6.6: --position at launch from Blender's window rect (later moves are the user's)."""
     assert W.beside(10, 40, 1600) == "1618,40"
+
+
+def test_the_terminal_fonts_are_generated_from_the_vendored_woff2():
+    """scripts/dev/brand_art/fonts_ttf.py --check: the add-on's TTFs decode from the repository's own woff2 (no other source)."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    import pytest
+    pytest.importorskip("fontTools", reason="fontTools with brotli decodes woff2: pip install 'fonttools[woff]'")
+    root = Path(__file__).resolve().parents[2]
+    done = subprocess.run([sys.executable, str(root / "scripts/dev/brand_art/fonts_ttf.py"), "--check"], capture_output=True, text=True)
+    assert done.returncode == 0, done.stdout + done.stderr

@@ -223,3 +223,14 @@ def test_every_redirect_hop_is_logged_under_its_own_host(home, egress):
     W.get(home, PIN, transport=httpx.MockTransport(handle))
     hosts = {r["provider"] for r in egress.log() if r.get("route") == "github"}
     assert {"github.com", "release-assets.githubusercontent.com"} <= hosts, hosts
+
+
+def test_the_terminal_gets_plex_mono_as_truetype(home):
+    """WezTerm 20240203 cannot read woff2 (measured live 2026-10-06: a Configuration Error pane): the add-on installs TTF."""
+    W.write_config(home)
+    fonts = home / "addons" / "wezterm" / "fonts"
+    ttfs = sorted(fonts.glob("*.ttf"))
+    assert ttfs and not list(fonts.glob("*.woff2")), sorted(p.name for p in fonts.iterdir())
+    for f in ttfs:
+        assert f.read_bytes()[:4] == b"\x00\x01\x00\x00", f.name     # an sfnt with TrueType outlines
+    assert (fonts / "OFL-IBM-Plex-Mono.txt").exists()
