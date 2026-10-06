@@ -349,7 +349,17 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
     assets = AssetIndex(settings.state_dir)                  # the legacy /asset-search endpoints the Client's Train/Search UI calls
     vault = Vault(settings.state_dir, library=library)        # the Asset Vault: ONE writer per process (the library opened above), shared by its routes, the agent tools, MCP, the renderer and the job hook
-    agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
+    def _main_provider():
+        """5.6: built from agent.main's resolution (the user's fallback runs when the preferred option cannot); with nothing that can
+        serve, from the settings as before, so the provider's own refusal names the fix at the first call."""
+        from . import choices as CHO
+        try:
+            return make_provider(settings, chatgpt_auth=chatgpt, resolution=CHO.resolve("agent.main", CHO.Job()))
+        except CHO.NoChoice:
+            return make_provider(settings, chatgpt_auth=chatgpt)
+        except (ValueError, RuntimeError):
+            return make_provider(settings, chatgpt_auth=chatgpt)
+    agent = AgentHub(provider if provider is not None else _main_provider(),
                      swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault)
 
     async def agent_ws(websocket):

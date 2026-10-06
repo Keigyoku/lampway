@@ -130,3 +130,18 @@ def test_compute_uses_the_chosen_backend_and_nothing_is_pre_chosen(live, tmp_pat
     CH.active_store().set("compute.blender_offload", "global", None, {"preferred": "compute:boat"}, by="user")
     assert env.runner._spec(dict(job))["backend"] == "boat"
     assert env.runner.plan(dict(job))["ok"] is True
+
+
+def test_make_provider_takes_the_resolution(live, settings, monkeypatch):
+    """5.6 (HC4, HC5): the main agent is built from agent.main's resolution, so the user's fallback runs when the preferred option cannot."""
+    from lampway_server.agent.providers import make_provider
+    from lampway_server.agent.providers.openrouter import OpenRouterProvider
+    from lampway_server.app import create_app
+    monkeypatch.setenv("OPENROUTER_API_KEY", KEY)
+    monkeypatch.setattr(CH, "WORLD_FACTORY", lambda: World(connections={"chatgpt_plan": "missing", "openrouter": "not_checked"}, routes={r: True for r in E.ROUTES}))
+    CH.active_store().set("agent.main", "global", None, {"preferred": "chatgpt_plan:gpt-6.1-sol", "fallbacks": ["openrouter:anthropic/claude-sonnet-5.5"]}, by="user")
+    r = CH.resolve("agent.main", CH.Job())
+    p = make_provider(settings, resolution=r)
+    assert isinstance(p, OpenRouterProvider) and p.model == "anthropic/claude-sonnet-5.5"
+    app = create_app(settings)
+    assert isinstance(app.state.agent.provider, OpenRouterProvider)
