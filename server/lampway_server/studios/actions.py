@@ -345,3 +345,52 @@ ACTIONS = {a.id: a for a in [
     Action("tripo.fetch", "tripo", "Download the variants of one generation by its card stamp", "tripo_fetch", needs_out_dir=True,
            validate=_v_fetch, run_args=lambda c, o: [o, c["stamp"], "--expect", str(c["expect"])]),
 ]}
+
+
+# ----------------------------------------------------------------------------------------------- REST studios (Meshy, Hyper3D, Hi3D, Tripo REST)
+def _rest_actions():
+    """One Action per REST shape. The price is read by the driver's plan (the docs' list price, dated, plus the balance); the confirmed run is the driver's armed --run."""
+    import json as _json
+    from .rest import shapes as SH
+    out = []
+    for studio_name, studio in SH.STUDIOS.items():
+        for name, shape in studio.actions.items():
+            aid = f"{studio_name}.{name}"
+            path_keys = ("image", "model", "image_style")
+
+            def validate(args, jail, _shape=shape):
+                a = dict(args or {})
+                for k in path_keys:
+                    if a.get(k):
+                        a[k] = jail(a[k])
+                if a.get("images"):
+                    a["images"] = [jail(i) for i in a["images"]]
+                try:
+                    ceiling = a.get("accept_up_to_credits")
+                    _shape.validate({k: v for k, v in a.items() if k != "accept_up_to_credits"})
+                except SH.ParamError as exc:
+                    raise ActionError(str(exc)) from None
+                if ceiling is not None:
+                    a["accept_up_to_credits"] = _int(ceiling, "accept_up_to_credits")
+                return a
+
+            def plan_args(clean, out_dir, _aid=aid):
+                return [_aid, "--plan", "--args", _json.dumps(clean)]
+
+            def run_args(clean, out_dir, _aid=aid):
+                return [_aid, "--run", "--out", out_dir, "--args", _json.dumps(clean)]
+
+            def read_plan(parsed, clean):
+                kv = parsed.kv
+                problems = [] if kv.get("dry_run") == "verified" else ["the dry run did not report 'verified'"]
+                price = kv.get("price_effective_credits")
+                return Plan(price, {"unit": "credits", "price_source": kv.get("price_source"), "balance_credits": kv.get("balance_credits"), "price_credits": kv.get("price_credits"),
+                                    "ceiling_credits": kv.get("price_ceiling_credits"), "usd_estimate": kv.get("usd_estimate")}, problems)
+
+            out.append(Action(aid, studio_name, shape.label, f"rest.{studio_name}", needs_approval=True, expected_price=None, needs_out_dir=True, validate=validate, plan_args=plan_args,
+                              run_args=run_args, read_plan=read_plan))
+    return out
+
+
+for _a in _rest_actions():
+    ACTIONS[_a.id] = _a

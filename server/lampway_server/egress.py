@@ -47,7 +47,7 @@ ROUTES = {r.id: r for r in (
     Route("studio:tripo", "Tripo Studio", ("tripo3d.ai", "tripo3d.com", "tripo.ai"), _UNREAD, _UNREAD, "unknown"),
     Route("studio:meshy", "Meshy", ("meshy.ai",), _UNREAD, _UNREAD, "unknown"),
     Route("studio:hi3d", "Hi3D", ("hitem3d.com", "hitem3d.ai"), _UNREAD, _UNREAD, "unknown"),
-    Route("studio:hyper3d", "Hyper3D / Rodin", ("hyper3d.ai", "deemos.com"), _UNREAD, _UNREAD, "unknown"),
+    Route("studio:hyper3d", "Hyper3D / Rodin", ("hyper3d.ai", "hyper3d.com", "deemos.com"), _UNREAD, _UNREAD, "unknown"),
     Route("higgsfield", "Higgsfield", ("higgsfield.ai",), _UNREAD, _UNREAD, "unknown"),
     Route("heygen", "HeyGen", ("heygen.com",), _UNREAD, _UNREAD, "unknown"),
     Route("fal", "fal.ai", ("fal.ai", "fal.run", "fal.media"), _UNREAD, _UNREAD, "unknown"),

@@ -92,7 +92,9 @@ def test_toon_parses_the_drivers_kv_tables_errors_and_help():
 def test_every_action_names_its_studio_its_spend_and_the_engine():
     assert {"tripo.mesh", "tripo.texture", "tripo.pbr", "tripo.image", "tripo.uv.unwrap", "tripo.uv.clone", "tripo.uv.retry",
             "tripo.uv.save", "tripo.state", "tripo.fetch"} <= set(ACTIONS)
-    spend = {k for k, a in ACTIONS.items() if a.needs_approval}
+    rest = {k for k, a in ACTIONS.items() if a.driver.startswith("rest.")}                  # the REST studios: their price is read by the driver's plan, so none carries an expected price
+    assert rest and all(ACTIONS[k].needs_approval and ACTIONS[k].expected_price is None for k in rest)
+    spend = {k for k, a in ACTIONS.items() if a.needs_approval} - rest
     assert spend == {"tripo.mesh", "tripo.texture", "tripo.pbr", "tripo.image", "tripo.uv.unwrap"}
     assert ACTIONS["tripo.mesh"].expected_price == 100 and ACTIONS["tripo.texture"].expected_price == 30 \
         and ACTIONS["tripo.pbr"].expected_price == 5 and ACTIONS["tripo.uv.unwrap"].expected_price == 20

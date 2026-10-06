@@ -57,6 +57,8 @@ class Engine:
         script = self.shelf_script(driver, studio)
         if script is not None:
             return [self.python, str(script)]
+        if driver.startswith("rest."):                                                        # the REST studios: one bundled driver, the studio is part of the action id
+            return [self.python, "-m", "lampway_server.studios.rest.driver"]
         if studio == "tripo" and driver in BUNDLED:
             return [self.python, "-m", f"lampway_server.studios.tripo.{driver}"]
         raise ActionError(f"the driver {driver} is not bundled: set LAMPWAY_STUDIO_SHELF to the shelf's tools directory "
@@ -146,7 +148,7 @@ class StudioService:
                 return self._refused(action, why)
         if plan.price is None:
             return self._refused(action, "no price was read back from Studio, so there is nothing to approve")
-        if plan.price != action.expected_price:
+        if action.expected_price is not None and plan.price != action.expected_price:
             return self._refused(action, f"Studio shows a price of {plan.price}, not the expected {action.expected_price}: nothing was approved")
         a = self._approvals.propose(action=action.id, studio=action.studio, label=action.label, args=clean, price=plan.price,
                                     settings=plan.settings, requested_by=by)
