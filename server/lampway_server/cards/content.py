@@ -25,6 +25,18 @@ HEADERS = {"X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer"
            "Cache-Control": "no-store"}
 
 
+MARK = b'data-lw-report="document"'
+
+
+def light(page: bytes) -> bytes:
+    """The light theme (contract section 6.6): ``data-lw-theme="light"`` on the root of a report marked as a document; the shared stylesheet recolours text and surfaces
+    only, so images, video and canvases are untouched. Anything else is served as it is."""
+    head, sep, rest = page.partition(MARK)
+    if not sep or b"data-lw-theme" in head + rest.split(b">", 1)[0]:
+        return page
+    return head + MARK + b' data-lw-theme="light"' + rest
+
+
 class ContentServer:
     def __init__(self, root, host: str = "127.0.0.1", port: int = 0, api_port: int = 8787):
         if port and port == api_port:
@@ -110,6 +122,10 @@ class ContentServer:
         headers = {**HEADERS, "Content-Length": str(end - start + 1)}
         if status == 206:
             headers["Content-Range"] = f"bytes {start}-{end}/{size}"
+        if request.query_params.get("theme") == "light" and status == 200 and full.suffix.lower() == ".html":
+            data = light(full.read_bytes())                   # a serve-time prelude: the page on disk is never changed
+            headers["Content-Length"] = str(len(data))
+            return Response(b"" if request.method == "HEAD" else data, status_code=200, headers=headers, media_type=ctype)
         if request.method == "HEAD":
             return Response(status_code=status, headers=headers, media_type=ctype)
         with open(full, "rb") as fh:
