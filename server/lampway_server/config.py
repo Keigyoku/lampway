@@ -6,9 +6,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
-def _default_state_dir() -> Path:
-    base = os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local" / "state")
+def _default_state_dir(env=None) -> Path:
+    env = os.environ if env is None else env
+    base = env.get("XDG_STATE_HOME") or str(Path.home() / ".local" / "state")
     return Path(base) / "lampway-server"
+
+
+def state_dir(env=None) -> Path:
+    """THE state directory of every Lampway process (the server, the compute CLI, the agent tools): LAMPWAY_STATE_DIR, else <XDG_STATE_HOME>/lampway-server.
+    Route switches, prefs and receipts live here, so two processes that disagree on it would read different privacy choices."""
+    env = os.environ if env is None else env
+    return Path(env.get("LAMPWAY_STATE_DIR") or _default_state_dir(env))
 
 
 # One image model per PURPOSE (the bake-off of 2026-10-05, scratch/subs/bakeoff): plates / mesh-paint, material-ID masks, concepts, seamless tiles.
@@ -77,7 +85,7 @@ class Settings:
     @classmethod
     def from_env(cls, env=None) -> "Settings":
         env = os.environ if env is None else env
-        state_dir = Path(env.get("LAMPWAY_STATE_DIR") or _default_state_dir())
+        state_dir_ = state_dir(env)
         return cls(
             host=env.get("LAMPWAY_HOST", "127.0.0.1"),
             port=int(env.get("LAMPWAY_PORT", "8787")),
@@ -87,7 +95,7 @@ class Settings:
             user_name=env.get("LAMPWAY_USER_NAME", "Owner"),
             user_password=env.get("LAMPWAY_USER_PASSWORD", ""),
             fake_credits=int(env.get("LAMPWAY_FAKE_CREDITS", "100000")),
-            state_dir=state_dir,
+            state_dir=state_dir_,
             provider=env.get("LAMPWAY_PROVIDER", "mock"),
             anthropic_model=env.get("LAMPWAY_ANTHROPIC_MODEL", "claude-sonnet-5-5"),
             openai_base_url=env.get("OPENAI_BASE_URL", "http://127.0.0.1:11434/v1"),

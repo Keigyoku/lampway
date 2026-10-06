@@ -186,7 +186,9 @@ scripts/upgrade/patches/
 src/scripts/mixar/modules/agent/vendor/
 src/scripts/mixar/modules/sample_images/
 ucupaint-master/
-.claude/
+# .claude/ is local harness state, except the generated skill registrations the rail tracks (rail/rail.py sync)
+.claude/*
+!.claude/skills/
 .codex/
 
 # cef
@@ -232,3 +234,14 @@ scripts/audit_out/
 # Local Azure signing metadata (values come from env vars / secrets in CI)
 scripts/windows/codesign-tools/metadata.json
 
+# A person's Lampway/Mixar home must never enter the repository (a test placeholder once did): unexpanded test placeholders, home-shaped
+# directories at the root, root-level .mixar files, first-run migration markers. The pre-publish gate refuses these too (PRIVATE_PATHS).
+/@*@/
+/chat_history/
+/chat_media/
+/checkpoints/
+/operation_history/
+/agent_history/
+/scenes-dossier/
+/*.mixar
+MIGRATED-FROM-MIXAR.json

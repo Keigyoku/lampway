@@ -16,7 +16,6 @@ import shutil
 import sqlite3
 import threading
 import time
-import uuid
 from contextlib import closing
 from pathlib import Path
 from typing import Callable, Optional
@@ -36,7 +35,8 @@ def _free_bytes(path) -> int:
 
 
 def _uuid7() -> str:
-    return str(uuid.uuid7())
+    from .ids import uuid7
+    return uuid7()
 
 
 def _clean_urls(o):

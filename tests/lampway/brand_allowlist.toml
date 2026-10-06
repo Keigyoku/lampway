@@ -12,8 +12,8 @@ category = "blocked-on-decision"
 
 [[allow]]
 path = "src/scripts/mixar/config/paths.py"
-text = 'return Path.home() / ".mixar"'
-reason = "legacy_home() is the READ side of migrate_from_mixar(): it names the stock install's folder so it can be copied from, and nothing is ever written there."
+text = 'if explicit else Path.home() / ".mixar"'
+reason = "legacy_home() is the READ side of migrate_from_mixar(): it names the stock install's folder so it can be copied from, and nothing is ever written there (LAMPWAY_LEGACY_HOME overrides it; the test harness points it at an empty place)."
 category = "legacy-read"
 
 [[allow]]

@@ -17,6 +17,8 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
+from . import egress as EG
+
 SCHEMES = ("http", "https")
 REDACT_PARAMS = {"token", "sig", "signature", "key", "auth"}
 DEFAULT_BYTES = 500 * 1024 ** 2
@@ -141,48 +143,49 @@ def ingest(root, url, origin: str = "user", confirmed: bool = False, audio: bool
     work = base / f".part-{uuid.uuid4().hex[:12]}"
     work.mkdir()
     try:
-        env = _env(work)
-        meta = _run([exe, "--no-playlist", "--dump-single-json", "--no-warnings", "--", url], env, META_TIMEOUT_S)
-        if meta.returncode != 0:
-            raise IngestError("the downloader could not read that link: " + (meta.stderr.strip().splitlines() or ["no message"])[-1][:200])
-        try:
-            info = json.loads(meta.stdout)
-        except ValueError:
-            raise IngestError("the downloader answered with something that is not JSON")
-        if info.get("_type") == "playlist" or info.get("entries"):
-            raise IngestError("that link is a playlist: one clip per call, pass the video's own link")
-        dur = info.get("duration")
-        if dur is not None and float(dur) > int(max_seconds):
-            raise IngestError(f"the clip is {float(dur):g} s: over the {int(max_seconds)} s cap; raise max_seconds or pass a range")
-        size = info.get("filesize") or info.get("filesize_approx")
-        if size is not None and int(size) > int(max_bytes):
-            raise IngestError(f"the clip is about {int(size)} bytes: over the {int(max_bytes)} byte cap")
-        argv = [exe, "--no-playlist", "--no-warnings", "--max-filesize", str(int(max_bytes)), "-f", _selector(audio, int(max_height)), "-o", str(work / "source.%(ext)s")]
-        if audio:
-            argv += ["--merge-output-format", "mp4"]
-        if sect:
-            argv += ["--download-sections", sect]
-        done = _run(argv + ["--", url], env, DOWNLOAD_TIMEOUT_S)
-        got = next((f for f in sorted(work.glob("source.*")) if not f.name.endswith((".part", ".ytdl"))), None)
-        if done.returncode != 0 or got is None:
-            raise IngestError("the download failed: " + (done.stderr.strip().splitlines() or ["no file was written"])[-1][:200])
-        sha, facts = _sha(got), probe(got)
-        final_dir = base / sha[:16]
-        final_dir.mkdir(exist_ok=True)
-        final = final_dir / f"source{got.suffix}"
-        if not final.exists():
-            os.replace(got, final)                                          # the rename is the only moment a file appears under its final name
-        ver = (info.get("_version") or {}).get("version") or _run([exe, "--version"], env, 30).stdout.strip() or "unknown"
-        rec = {"asset_id": f"video-{sha[:16]}", "path": str(final), "sha256": sha, "bytes": final.stat().st_size, **facts,
-               "provenance": {"url_redacted": redact(url), "retrieved_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "extractor": info.get("extractor_key") or info.get("extractor"),
-                              "title": info.get("title"), "uploader": info.get("uploader"), "license_note": info.get("license"), "tool": f"yt-dlp@{ver}"}}
-        if name:
-            rec["name"] = str(name)[:80]
-        (final_dir / "provenance.json").write_text(json.dumps(rec, indent=1, sort_keys=True))
-        index[ukey] = sha[:16]
-        index_path.write_text(json.dumps(index))
-        _ledger(ledger, rec, origin, False)
-        return dict(rec, reused=False)
+        with EG.guard("video_link", kind="video"):              # egress consent: the site the user pasted is a route, off until opted in; the row is written before yt-dlp starts
+            env = _env(work)
+            meta = _run([exe, "--no-playlist", "--dump-single-json", "--no-warnings", "--", url], env, META_TIMEOUT_S)
+            if meta.returncode != 0:
+                raise IngestError("the downloader could not read that link: " + (meta.stderr.strip().splitlines() or ["no message"])[-1][:200])
+            try:
+                info = json.loads(meta.stdout)
+            except ValueError:
+                raise IngestError("the downloader answered with something that is not JSON")
+            if info.get("_type") == "playlist" or info.get("entries"):
+                raise IngestError("that link is a playlist: one clip per call, pass the video's own link")
+            dur = info.get("duration")
+            if dur is not None and float(dur) > int(max_seconds):
+                raise IngestError(f"the clip is {float(dur):g} s: over the {int(max_seconds)} s cap; raise max_seconds or pass a range")
+            size = info.get("filesize") or info.get("filesize_approx")
+            if size is not None and int(size) > int(max_bytes):
+                raise IngestError(f"the clip is about {int(size)} bytes: over the {int(max_bytes)} byte cap")
+            argv = [exe, "--no-playlist", "--no-warnings", "--max-filesize", str(int(max_bytes)), "-f", _selector(audio, int(max_height)), "-o", str(work / "source.%(ext)s")]
+            if audio:
+                argv += ["--merge-output-format", "mp4"]
+            if sect:
+                argv += ["--download-sections", sect]
+            done = _run(argv + ["--", url], env, DOWNLOAD_TIMEOUT_S)
+            got = next((f for f in sorted(work.glob("source.*")) if not f.name.endswith((".part", ".ytdl"))), None)
+            if done.returncode != 0 or got is None:
+                raise IngestError("the download failed: " + (done.stderr.strip().splitlines() or ["no file was written"])[-1][:200])
+            sha, facts = _sha(got), probe(got)
+            final_dir = base / sha[:16]
+            final_dir.mkdir(exist_ok=True)
+            final = final_dir / f"source{got.suffix}"
+            if not final.exists():
+                os.replace(got, final)                                          # the rename is the only moment a file appears under its final name
+            ver = (info.get("_version") or {}).get("version") or _run([exe, "--version"], env, 30).stdout.strip() or "unknown"
+            rec = {"asset_id": f"video-{sha[:16]}", "path": str(final), "sha256": sha, "bytes": final.stat().st_size, **facts,
+                   "provenance": {"url_redacted": redact(url), "retrieved_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "extractor": info.get("extractor_key") or info.get("extractor"),
+                                  "title": info.get("title"), "uploader": info.get("uploader"), "license_note": info.get("license"), "tool": f"yt-dlp@{ver}"}}
+            if name:
+                rec["name"] = str(name)[:80]
+            (final_dir / "provenance.json").write_text(json.dumps(rec, indent=1, sort_keys=True))
+            index[ukey] = sha[:16]
+            index_path.write_text(json.dumps(index))
+            _ledger(ledger, rec, origin, False)
+            return dict(rec, reused=False)
     finally:
         shutil.rmtree(work, ignore_errors=True)
 

@@ -114,7 +114,8 @@ def test_the_lampway_server_never_changes_the_fleets_server_or_files(lroot):
         L.stop_server(root, confirmed=True)
     assert after["running"] and after["socket"] == before["socket"] and after["socket_inode"] == before["socket_inode"] and after["version"] == before["version"]
     assert "lampway-isolation-marker-7731" not in after["raw"] and "lampway-isolation-marker-7731" not in after["labels"]
-    fleet_dir = Path(os.path.expanduser("~/.config/herdr"))
+    from .herdr_support import real_home
+    fleet_dir = Path(real_home()) / ".config" / "herdr"
     for f in fleet_dir.glob("*.json*"):
         assert "lampway-isolation-marker-7731" not in f.read_text(errors="replace")
     for f in list(fleet_dir.glob("*.log")):

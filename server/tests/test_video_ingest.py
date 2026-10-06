@@ -20,6 +20,8 @@ cfg = json.load(open(os.path.join(here, "fake.json")))
 args = sys.argv[1:]
 with open(os.path.join(here, "calls.log"), "a") as fh:
     fh.write(json.dumps(args) + "\n")
+with open(os.path.join(here, "times.log"), "a") as fh:
+    fh.write(repr(time.time()) + "\n")
 if "--version" in args:
     print("2026.01.01"); sys.exit(0)
 if "--dump-single-json" in args:
@@ -202,3 +204,31 @@ def test_the_route_needs_the_bearer_and_the_agent_tool_only_proposes(settings, p
         root = tmp_path
     out, err = asyncio.run(VT.call(Sys(), "lampway_video_ingest_url", {"url": "https://example.com/v"}))
     assert err is False and json.loads(out)["state"] == "needs_approval" and "lampway_video_ingest_url" in VT.NAMES
+
+
+
+# ---- egress consent: a pasted link is a route like any other (the site truth-check found yt-dlp ran with no gate)
+@pytest.fixture
+def strict(tmp_path):
+    from lampway_server import egress as E
+    m = E.Egress(tmp_path / "egress-state")
+    E.install()
+    prev = E.ACTIVE
+    E.set_active(m)
+    yield m
+    E.set_active(prev)
+
+
+def test_a_link_download_is_refused_when_its_route_is_off_and_nothing_runs(env, strict):
+    from lampway_server import egress as E
+    with pytest.raises(E.EgressRefused, match="video_link is off"):
+        go(env)
+    assert env.calls() == [] and strict.log()[-1]["event"] == "refused" and strict.log()[-1]["route"] == "video_link"
+
+
+def test_with_the_route_on_the_log_row_is_written_before_the_downloader_starts(env, strict):
+    strict.set_route("video_link", True)
+    go(env)
+    rows = [r for r in strict.log() if r.get("route") == "video_link" and r.get("event") != "route"]
+    first_call = float((env.bindir / "times.log").read_text().splitlines()[0])
+    assert rows and rows[0]["t"] <= first_call and rows[0]["kind"] == "video" and "abc" not in json.dumps(rows)          # no query string in the log

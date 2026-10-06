@@ -212,9 +212,20 @@ def environment() -> dict:
     return env
 
 
-def _exec(cmd: list, env: dict, timeout: float):
+def _exec(cmd: list, env: dict, timeout: float, route: str = "studio:tripo"):
+    """A studio driver: it drives the owner's studio tab over the network, so it is gated and logged where Lampway launches it."""
+    from .. import egress as EG
+    with EG.guard(route, kind="request"):
+        p = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=timeout)
+    return p.returncode, (p.stdout or "") + (p.stderr or "")
+
+
+def _exec_local(cmd: list, env: dict, timeout: float):
     p = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=timeout)
     return p.returncode, (p.stdout or "") + (p.stderr or "")
+
+
+LOCAL_MODULES = {"seed_db"}            # drivers that read local files only
 
 
 def _run_imagegen(arguments: dict) -> tuple:
@@ -247,7 +258,7 @@ def run(name: str, arguments: dict) -> tuple:
         return str(exc), True
     d = BY_NAME[name]
     try:
-        rc, out = _exec(cmd, environment(), d.timeout)
+        rc, out = (_exec_local if d.module in LOCAL_MODULES else _exec)(cmd, environment(), d.timeout)
     except subprocess.TimeoutExpired:
         return f"{name} timed out after {d.timeout:.0f} s", True
     except OSError as exc:

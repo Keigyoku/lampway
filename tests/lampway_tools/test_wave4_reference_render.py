@@ -32,8 +32,8 @@ def run(body, **kw):
     return run_script(PRE + FIGURE + body, timeout=600, **kw)
 
 
-def test_it_renders_two_grey_views_with_the_camera_recorded_and_the_figure_framed():
-    r = run('''
+def test_it_renders_two_grey_views_with_the_camera_recorded_and_the_figure_framed(tmp_path):
+    r = run(env={"LW_KEEP_ROOT": str(tmp_path)}, body='''
 out = api.anim_reference_render("Character", size="180x320", out_dir=os.path.join(root, "ref"))
 res({"out": out})
 ''')
@@ -63,8 +63,8 @@ res({"files": {k: open(p, "rb").read().hex() for k, p in list(out["images"].item
     assert a.results[-1]["files"] == b.results[-1]["files"] and a.results[-1]["cams"] == b.results[-1]["cams"]
 
 
-def test_the_rest_mesh_projected_with_the_recorded_camera_matches_the_saved_mask_and_a_perturbed_camera_does_not():
-    r = run('''
+def test_the_rest_mesh_projected_with_the_recorded_camera_matches_the_saved_mask_and_a_perturbed_camera_does_not(tmp_path):
+    r = run(env={"LW_KEEP_ROOT": str(tmp_path)}, body='''
 out = api.anim_reference_render("Character", size="180x320", out_dir=os.path.join(root, "ref"))
 dg = bpy.context.evaluated_depsgraph_get(); verts, tris = [], []
 for n in ("torso", "legl", "legr", "head"):

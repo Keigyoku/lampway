@@ -13,7 +13,12 @@ ROOT = Path(__file__).resolve().parents[1]
 DNA = (ROOT / "src/source/blender/makesdna/DNA_theme_types.h").read_text(encoding="utf-8")
 CC = (ROOT / "src/source/blender/editors/interface/interface_mixar_theme.cc").read_text(encoding="utf-8")
 USERDEF = (ROOT / "src/release/datafiles/userdef/userdef_default_theme.c").read_text(encoding="utf-8")
-XML = (ROOT / "src/release/datafiles/userdef/Mixar_theme.xml").read_text(encoding="utf-8")
+# Lampway: the compiled default is Lampway Night (facelift contract 01, T8), so the shipped preset is the reference.
+XML = (ROOT / "src/scripts/presets/interface_theme/Lampway_Night.xml").read_text(encoding="utf-8")
+
+
+def _xml_hex(name):
+    return re.search(rf'\b{name}="#(\w+)"', XML)[1]
 
 _ROW = re.compile(
     r"\{(false|true), offsetof\((ThemeUI|ThemeSpace), (\w+)\), \{(\d+), (\d+), (\d+), (\d+)\}\},"
@@ -42,11 +47,11 @@ def test_slot_table_matches_dna_userdef_and_xml():
 
 def test_shared_palette_defaults():
     text = CC
-    assert "{false, offsetof(ThemeUI, mixar_canvas), {30, 30, 30, 255}}," in text
-    assert "{false, offsetof(ThemeUI, mixar_text), {226, 226, 226, 255}}," in text
-    assert "{false, offsetof(ThemeUI, mixar_focus), {127, 155, 120, 255}}," in text
-    assert "{false, offsetof(ThemeUI, mixar_danger), {224, 72, 72, 255}}," in text
-    assert "{true, offsetof(ThemeSpace, agent_border), {109, 111, 108, 255}}," in text
+    for agent, struct, name in (("false", "ThemeUI", "mixar_canvas"), ("false", "ThemeUI", "mixar_text"),
+                                ("false", "ThemeUI", "mixar_focus"), ("false", "ThemeUI", "mixar_danger"),
+                                ("true", "ThemeSpace", "agent_border")):
+        rgba = ", ".join(str(int(_xml_hex(name)[i:i + 2], 16)) for i in (0, 2, 4, 6))
+        assert f"{{{agent}, offsetof({struct}, {name}), {{{rgba}}}}}," in text, name
 
 
 @pytest.mark.parametrize("field", [
@@ -73,8 +78,10 @@ def test_chat_send_rna_reset_defaults_match_compiled_palette(field):
 def test_space_mixie_and_chat_agree():
     assert ".space_mixie = {" in USERDEF
     chat = USERDEF.split(".space_mixie_chat = {", 1)[1].split("},", 1)[0]
-    assert ".chat_mode_button_active = RGBA(0x2f592fff)," in chat
-    assert ".chat_label_color = RGBA(0xa8ada8ff)," in chat
+    import json
+    accent_bed = json.loads((ROOT / "scripts/lampway/facelift/theme/tokens.json").read_text())["colour"]["accent_bed"]
+    assert f".chat_mode_button_active = RGBA(0x{accent_bed['dark'][1:].lower()}ff)," in chat  # hidden: the rule
+    assert f".chat_label_color = RGBA(0x{_xml_hex('chat_label_color')})," in chat
     section = XML.split("<mixie_chat>", 1)[1].split("</mixie_chat>", 1)[0]
     assert 'chat_mode_button_active=' not in section
     for stale in ("#7e94d0", "#5a78c8", "#668cd9", "#70c62d"):

@@ -33,8 +33,8 @@ def specs() -> list:
 
 
 def _state_dir() -> Path:
-    from ..config import _default_state_dir
-    return Path(os.environ.get("LAMPWAY_STATE_DIR") or _default_state_dir())
+    from ..config import state_dir
+    return state_dir()
 
 
 def _in_root(root: Path, p: str) -> Path:

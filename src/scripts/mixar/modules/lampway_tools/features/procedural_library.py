@@ -8,9 +8,9 @@ Bump Strength, Seed, Mask). Everything is in Object space, so no UVs are needed,
 agent tools, library popup and layer stack read them unchanged, and each script passes the same AST gate matgen applies. Statistics (base colour, metallic, roughness) come from real Cycles bakes of a PROBE
 variant of the group that adds those three outputs; the registered group has only the Shader output.
 
-THE FIRST 12 ARE THE AUDITOR'S RECOMMENDATION, WHICH IS NOT WRITTEN IN ANY SPEC: asset_seed_procedural.md says "the captain fixes the first 12", and BUILD_ORDER names "the auditor's recommended 12, as written
-in asset_seed_procedural.md", which that file does not contain. This set is chosen from its proposed 55 to cover the captain's armour looks (bronze, gold, brass, steel, iron; charcoal and oiled leather; black
-linen and the heavy crimson cloak). Embroidery and the horsehair plume (templates `embroidery`, `cloth_fold`) are the next ones: flagged for the captain, not blocking."""
+The library is the contract's proposed 55 (40 metals, 5 leathers, 6 cloths, 4 embroideries) from 12 templates; the data is procedural_presets.py. The first 12 were
+an auditor's pick the captain never fixed (asset_seed_procedural.md section 13): the full 55 is the coordinator's order, and the looks remain the captain's call.
+The stat bakes are EEVEE emission readouts: never Cycles beside the captain's live work."""
 
 import hashlib
 import json
@@ -21,235 +21,9 @@ from pathlib import Path
 import bpy
 
 from . import common as C
-
-LIBRARY_VERSION = "1"
-CATEGORIES = ("metal", "leather", "cloth")
-INPUTS = [("Tint", "NodeSocketColor"), ("Roughness Scale", "NodeSocketFloat"), ("Wear", "NodeSocketFloat"), ("Scale", "NodeSocketFloat"), ("Bump Strength", "NodeSocketFloat"),
-          ("Seed", "NodeSocketFloat"), ("Mask", "NodeSocketFloat")]
+from .procedural_emit import INPUTS, LIBRARY_VERSION, _lin, emit, manifest, manifest_hash, script_sha  # noqa: F401  (re-exported: the tool's surface)
+from .procedural_presets import CATEGORIES, PRESETS, TEMPLATES  # noqa: F401  (TEMPLATES is read by the tests and the Vault seeder)
 BOUNDS = {"Roughness Scale": (1.0, 0.2, 2.0), "Wear": None, "Scale": None, "Bump Strength": None, "Seed": (0.0, 0.0, 1000.0), "Mask": (1.0, 0.0, 1.0)}
-
-
-def _lin(c):
-    return tuple(round(x ** 2.2, 5) for x in c)
-
-
-def _p(**kw):
-    return kw
-
-
-# id -> {template, category, name, description, params}.  Colours are sRGB looks (converted to linear when the script is written).
-PRESETS = {
-    "bronze_polished": {"template": "metal", "category": "metal", "name": "Bronze, polished", "description": "Warm polished bronze with a faint micro-grain.",
-                        "params": _p(color=(0.80, 0.50, 0.20), rough=0.22, micro=0.35, hammer=0.0, brushed=False, patina=0.0, scratch=0.0, wear=0.15, scale=3.0, bump=0.15)},
-    "bronze_hammered": {"template": "metal", "category": "metal", "name": "Bronze, hammered", "description": "Hand-hammered bronze: overlapping dimples over a warm base.",
-                        "params": _p(color=(0.74, 0.44, 0.18), rough=0.35, micro=0.3, hammer=1.0, brushed=False, patina=0.0, scratch=0.0, wear=0.25, scale=3.0, bump=0.6)},
-    "bronze_patina_light": {"template": "metal", "category": "metal", "name": "Bronze, light patina", "description": "Bronze with a verdigris bloom in the recesses.",
-                            "params": _p(color=(0.72, 0.45, 0.22), rough=0.4, micro=0.3, hammer=0.4, brushed=False, patina=0.55, scratch=0.0, wear=0.3, scale=3.0, bump=0.4)},
-    "gold_polished": {"template": "metal", "category": "metal", "name": "Gold, polished", "description": "Bright polished gold.",
-                      "params": _p(color=(1.0, 0.76, 0.34), rough=0.16, micro=0.2, hammer=0.0, brushed=False, patina=0.0, scratch=0.0, wear=0.1, scale=3.0, bump=0.1)},
-    "gold_aged": {"template": "metal", "category": "metal", "name": "Gold, aged", "description": "Gold dulled by handling: darker, rougher in the wear.",
-                  "params": _p(color=(0.85, 0.64, 0.28), rough=0.3, micro=0.35, hammer=0.0, brushed=False, patina=0.0, scratch=0.5, wear=0.55, scale=3.0, bump=0.25)},
-    "brass_antique": {"template": "metal", "category": "metal", "name": "Brass, antique", "description": "Yellow-green antique brass, brushed and tarnished.",
-                      "params": _p(color=(0.71, 0.60, 0.25), rough=0.38, micro=0.3, hammer=0.0, brushed=True, patina=0.12, scratch=0.2, wear=0.45, scale=3.0, bump=0.25)},
-    "steel_battle_worn": {"template": "metal", "category": "metal", "name": "Steel, battle-worn", "description": "Grey steel scratched and dulled by use.",
-                          "params": _p(color=(0.62, 0.63, 0.65), rough=0.35, micro=0.35, hammer=0.0, brushed=False, patina=0.0, scratch=1.0, wear=0.6, scale=3.0, bump=0.3)},
-    "iron_forged_dark": {"template": "metal", "category": "metal", "name": "Iron, forged dark", "description": "Dark forged iron with a scaled surface.",
-                         "params": _p(color=(0.30, 0.30, 0.31), rough=0.55, micro=0.5, hammer=0.5, brushed=False, patina=0.0, scratch=0.2, wear=0.4, scale=3.0, bump=0.5)},
-    "leather_charcoal_glove": {"template": "leather", "category": "leather", "name": "Leather, charcoal glove", "description": "Fine-grained charcoal glove leather.",
-                               "params": _p(color=(0.10, 0.10, 0.11), rough=0.55, grain=0.5, wear=0.25, scale=3.0, bump=0.35)},
-    "leather_oiled_brown": {"template": "leather", "category": "leather", "name": "Leather, oiled brown", "description": "Oiled brown leather with a soft sheen.",
-                            "params": _p(color=(0.30, 0.17, 0.08), rough=0.5, grain=0.6, wear=0.3, scale=3.0, bump=0.4)},
-    "cloth_linen_black": {"template": "cloth", "category": "cloth", "name": "Linen, black", "description": "Black plain-weave linen.",
-                          "params": _p(color=(0.07, 0.07, 0.08), rough=0.92, weave=0.5, wear=0.2, scale=3.0, bump=0.35)},
-    "cloth_cloak_crimson_heavy": {"template": "cloth", "category": "cloth", "name": "Cloak cloth, heavy crimson", "description": "Heavy crimson wool cloak cloth.",
-                                  "params": _p(color=(0.50, 0.05, 0.07), rough=0.95, weave=0.8, wear=0.3, scale=2.2, bump=0.5)},
-}
-
-
-# ------------------------------------------------------------------------------------------------ the script emitter
-class _S:
-    """Writes the node-group script: plain statements only (no setattr, no dunders, no ops), so it passes the sandbox's AST gate."""
-
-    def __init__(self):
-        self.lines, self.n = [], 0
-
-    def w(self, line):
-        self.lines.append(line)
-
-    def node(self, kind, **props):
-        self.n += 1
-        v = f"n{self.n}"
-        self.w(f"{v} = nodes.new({kind!r})")
-        for k, val in props.items():
-            self.w(f"{v}.{k} = {val!r}")
-        return v
-
-    def put(self, v, sock, val):
-        """Set an input: a constant, or a link from a (node, output) pair."""
-        if isinstance(val, tuple) and len(val) == 2 and isinstance(val[0], str) and isinstance(val[1], (str, int)):
-            self.w(f"links.new({val[0]}.outputs[{val[1]!r}], {v}.inputs[{sock!r}])")
-        else:
-            self.w(f"{v}.inputs[{sock!r}].default_value = {val!r}")
-
-    def math(self, op, a, b=None, c=None, clamp=False):
-        v = self.node("ShaderNodeMath", operation=op, use_clamp=clamp)
-        for i, x in enumerate((a, b, c)):
-            if x is not None:
-                self.put(v, i, x)
-        return (v, 0)
-
-    def mix(self, fac, a, b):
-        v = self.node("ShaderNodeMix", data_type="RGBA")
-        self.put(v, 0, fac)
-        self.put(v, 6, a)
-        self.put(v, 7, b)
-        return (v, 2)
-
-
-def emit(preset_id: str, probe: bool = False) -> str:
-    pr = PRESETS[preset_id]
-    q = pr["params"]
-    gname = ("LWPP_" if probe else "LWP_") + preset_id
-    s = _S()
-    s.w("import bpy")
-    s.w(f"g = bpy.data.node_groups.new({gname!r}, 'ShaderNodeTree')")
-    s.w("ifc = g.interface")
-    defaults = {"Tint": _lin(q["color"]) + (1.0,), "Roughness Scale": 1.0, "Wear": q["wear"], "Scale": q["scale"], "Bump Strength": q["bump"], "Seed": 0.0, "Mask": 1.0}
-    rng = {"Roughness Scale": (0.2, 2.0), "Wear": (0.0, 1.0), "Scale": (0.1, 10.0), "Bump Strength": (0.0, 1.0), "Seed": (0.0, 1000.0), "Mask": (0.0, 1.0)}
-    for name, kind in INPUTS:
-        s.w(f"s = ifc.new_socket({name!r}, in_out='INPUT', socket_type={kind!r})")
-        s.w(f"s.default_value = {defaults[name]!r}")
-        if name in rng:
-            s.w(f"s.min_value = {rng[name][0]!r}")
-            s.w(f"s.max_value = {rng[name][1]!r}")
-    s.w("ifc.new_socket('Shader', in_out='OUTPUT', socket_type='NodeSocketShader')")
-    if probe:
-        s.w("ifc.new_socket('Base Color', in_out='OUTPUT', socket_type='NodeSocketColor')")
-        s.w("ifc.new_socket('Metallic', in_out='OUTPUT', socket_type='NodeSocketFloat')")
-        s.w("ifc.new_socket('Roughness', in_out='OUTPUT', socket_type='NodeSocketFloat')")
-    s.w("nodes = g.nodes")
-    s.w("links = g.links")
-    gin = s.node("NodeGroupInput")
-    gout = s.node("NodeGroupOutput")
-    tc = s.node("ShaderNodeTexCoord")
-    # mapping scale: Scale on all axes (brushed metal stretches Y)
-    sx = s.node("ShaderNodeCombineXYZ")
-    s.put(sx, "X", (gin, "Scale"))
-    s.put(sx, "Z", (gin, "Scale"))
-    if q.get("brushed"):
-        y = s.math("MULTIPLY", (gin, "Scale"), 28.0)
-        s.put(sx, "Y", y)
-    else:
-        s.put(sx, "Y", (gin, "Scale"))
-    mp = s.node("ShaderNodeMapping")
-    s.put(mp, "Vector", (tc, "Object"))
-    s.put(mp, "Scale", (sx, "Vector"))
-    vec = (mp, "Vector")
-    seed2 = s.math("ADD", (gin, "Seed"), 11.0)
-    nwear = s.node("ShaderNodeTexNoise", noise_dimensions="4D")
-    s.put(nwear, "Vector", vec)
-    s.put(nwear, "W", (gin, "Seed"))
-    s.put(nwear, "Scale", 4.0)
-    s.put(nwear, "Detail", 6.0)
-    s.put(nwear, "Roughness", 0.55)
-    nmic = s.node("ShaderNodeTexNoise", noise_dimensions="4D")
-    s.put(nmic, "Vector", vec)
-    s.put(nmic, "W", seed2)
-    s.put(nmic, "Scale", 55.0)
-    s.put(nmic, "Detail", 2.0)
-    wear_f = s.math("MULTIPLY", s.math("MULTIPLY", (gin, "Wear"), (gin, "Mask")), (nwear, "Factor"), clamp=True)
-    tmpl = pr["template"]
-    height = None
-    base_rough = q["rough"]
-    colour = (gin, "Tint")
-    metallic = 1.0 if tmpl == "metal" else 0.0
-    normal_extra = None
-    if tmpl == "metal":
-        height = s.math("MULTIPLY", (nmic, "Factor"), q["micro"])
-        if q["hammer"] > 0:
-            vor = s.node("ShaderNodeTexVoronoi", voronoi_dimensions="4D", feature="DISTANCE_TO_EDGE")
-            s.put(vor, "Vector", vec)
-            s.put(vor, "W", (gin, "Seed"))
-            s.put(vor, "Scale", 2.2)
-            s.put(vor, "Detail", 0.0)
-            ramp = s.math("MULTIPLY", s.math("SQRT", (vor, "Distance"), clamp=True), q["hammer"])
-            height = s.math("ADD", height, ramp)
-        worn = s.mix(s.math("MULTIPLY", wear_f, 0.55), colour, (0.0, 0.0, 0.0, 1.0)) if False else s.mix(s.math("MULTIPLY", wear_f, 0.5), colour, _dark(q["color"]))
-        colour = worn
-        if q["scratch"] > 0:
-            wv = s.node("ShaderNodeTexWave", wave_type="BANDS", bands_direction="X")
-            s.put(wv, "Vector", vec)
-            s.put(wv, "Scale", 18.0)
-            s.put(wv, "Distortion", 14.0)
-            s.put(wv, "Detail", 2.0)
-            line = s.math("MULTIPLY", s.math("SUBTRACT", (wv, "Factor"), 0.82, clamp=True), 5.5 * q["scratch"], clamp=True)
-            colour = s.mix(s.math("MULTIPLY", line, s.math("ADD", 0.3, wear_f)), colour, (0.78, 0.78, 0.8, 1.0))
-            base_rough = base_rough + 0.0
-        rough = s.math("ADD", s.math("MULTIPLY", (gin, "Roughness Scale"), base_rough), s.math("MULTIPLY", wear_f, 0.45))
-        if q["patina"] > 0:
-            pm = s.math("MULTIPLY", s.math("MULTIPLY", s.math("SUBTRACT", (nwear, "Factor"), 0.42, clamp=True), 3.5, clamp=True), q["patina"], clamp=True)
-            colour = s.mix(pm, colour, (0.12, 0.45, 0.38, 1.0))
-            metallic = s.math("SUBTRACT", 1.0, s.math("MULTIPLY", pm, 0.8))
-            rough = s.math("ADD", rough, s.math("MULTIPLY", pm, 0.3))
-    elif tmpl == "leather":
-        vor = s.node("ShaderNodeTexVoronoi", voronoi_dimensions="4D", feature="F1")
-        s.put(vor, "Vector", vec)
-        s.put(vor, "W", (gin, "Seed"))
-        s.put(vor, "Scale", 9.0)
-        height = s.math("ADD", s.math("MULTIPLY", (vor, "Distance"), q["grain"]), s.math("MULTIPLY", (nmic, "Factor"), 0.25))
-        colour = s.mix(s.math("MULTIPLY", wear_f, 0.45), colour, _dark(q["color"]))
-        rough = s.math("ADD", s.math("MULTIPLY", (gin, "Roughness Scale"), base_rough), s.math("MULTIPLY", wear_f, 0.2))
-    else:                                                       # cloth: a plain weave from two crossed wave bands
-        warp = s.node("ShaderNodeTexWave", wave_type="BANDS", bands_direction="X")
-        s.put(warp, "Vector", vec)
-        s.put(warp, "Scale", 22.0)
-        s.put(warp, "Distortion", 1.5)
-        weft = s.node("ShaderNodeTexWave", wave_type="BANDS", bands_direction="Y")
-        s.put(weft, "Vector", vec)
-        s.put(weft, "Scale", 22.0)
-        s.put(weft, "Distortion", 1.5)
-        cross = s.math("MAXIMUM", (warp, "Factor"), (weft, "Factor"))
-        height = s.math("ADD", s.math("MULTIPLY", cross, q["weave"]), s.math("MULTIPLY", (nmic, "Factor"), 0.15))
-        vary = s.math("ADD", 0.85, s.math("MULTIPLY", (nwear, "Factor"), 0.3))
-        colour = s.mix(s.math("MULTIPLY", wear_f, 0.3), s.mix(1.0, (gin, "Tint"), _dark(q["color"], 0.6)) if False else (gin, "Tint"), _dark(q["color"], 0.5))
-        rough = s.math("ADD", s.math("MULTIPLY", (gin, "Roughness Scale"), base_rough), s.math("MULTIPLY", wear_f, 0.05), clamp=True)
-        _ = vary
-    colour = s.mix(s.math("MULTIPLY", s.math("MULTIPLY", s.math("SUBTRACT", (nwear, "Factor"), 0.38, clamp=True), 3.0, clamp=True), 0.55), colour, _dark(q["color"], 0.6))          # a slow tint drift: what the Seed input moves the most
-    rough = s.math("MINIMUM", s.math("MAXIMUM", rough, 0.03), 1.0) if not isinstance(rough, str) else rough
-    bump = s.node("ShaderNodeBump")
-    s.put(bump, "Strength", (gin, "Bump Strength"))
-    s.put(bump, "Distance", 0.02)
-    s.put(bump, "Height", height)
-    bsdf = s.node("ShaderNodeBsdfPrincipled")
-    s.put(bsdf, "Base Color", colour)
-    s.put(bsdf, "Metallic", metallic)
-    s.put(bsdf, "Roughness", rough)
-    s.put(bsdf, "Normal", (bump, "Normal"))
-    if tmpl == "cloth":
-        s.put(bsdf, "Sheen Weight", 0.4)
-    s.put(gout, "Shader", (bsdf, "BSDF"))
-    if probe:
-        s.put(gout, "Base Color", colour)
-        s.put(gout, "Metallic", metallic)
-        s.put(gout, "Roughness", rough)
-    return "\n".join(s.lines) + "\n"
-
-
-def _dark(c, k=0.35):
-    return _lin(tuple(x * k for x in c)) + (1.0,)
-
-
-def script_sha(preset_id: str) -> str:
-    return hashlib.sha256(emit(preset_id).encode()).hexdigest()
-
-
-def manifest() -> dict:
-    return {"library_version": LIBRARY_VERSION, "entries": [{"id": k, "template": v["template"], "params_sha": hashlib.sha256(json.dumps(v["params"], sort_keys=True).encode()).hexdigest()[:16],
-                                                            "script_sha": script_sha(k)[:16]} for k, v in sorted(PRESETS.items())]}
-
-
-def manifest_hash() -> str:
-    return hashlib.sha256(json.dumps(manifest(), sort_keys=True).encode()).hexdigest()
 
 
 # ------------------------------------------------------------------------------------------------ registry
@@ -347,13 +121,14 @@ _BAKES: dict = {}
 
 
 def _render_probe(pid: str, params: dict, size: int, out_png=None, tmp_dir=None):
-    """Three 1-sample Cycles CPU renders of a top-down plane whose emission is the probe's Base Color, Metallic and Roughness outputs."""
+    """Three 1-sample EEVEE renders of a top-down plane whose emission is the probe's Base Color, Metallic and Roughness outputs."""
     key = (pid, json.dumps(params, sort_keys=True), size)
     if key in _BAKES and out_png is None:
         return _BAKES[key]
     g, _ms = _build(pid, probe=True)
     import tempfile
-    scratch = Path(tmp_dir) if tmp_dir else Path(tempfile.mkdtemp(prefix="lw_probe_"))
+    own = None if tmp_dir else tempfile.TemporaryDirectory(prefix="lw_probe_")      # a probe's EXRs are deleted one by one; its folder goes with the probe
+    scratch = Path(tmp_dir) if tmp_dir else Path(own.name)
     scratch.mkdir(parents=True, exist_ok=True)
     sc = bpy.data.scenes.new("lw_probe")
     mat = bpy.data.materials.new("lw_probe_mat")
@@ -379,8 +154,8 @@ def _render_probe(pid: str, params: dict, size: int, out_png=None, tmp_dir=None)
         em = nt.nodes.new("ShaderNodeEmission")
         out = nt.nodes.new("ShaderNodeOutputMaterial")
         nt.links.new(em.outputs["Emission"], out.inputs["Surface"])
-        sc.render.engine = "CYCLES"
-        sc.cycles.device, sc.cycles.samples, sc.cycles.use_denoising = "CPU", 1, False
+        sc.render.engine = "BLENDER_EEVEE"                        # an emission readout: EEVEE renders it exactly; never Cycles beside the user's live work
+        sc.eevee.taa_render_samples = 1
         sc.render.resolution_x = sc.render.resolution_y = size
         sc.render.resolution_percentage = 100
         sc.view_settings.view_transform = "Standard"
@@ -413,6 +188,8 @@ def _render_probe(pid: str, params: dict, size: int, out_png=None, tmp_dir=None)
         g2 = bpy.data.node_groups.get("LWPP_" + pid)
         if g2 is not None:
             bpy.data.node_groups.remove(g2)
+        if own is not None:
+            own.cleanup()
     base = res["Base Color"]
     srgb = np.clip(base, 0, 1) ** (1 / 2.2)
     m = srgb.mean(axis=(0, 1))

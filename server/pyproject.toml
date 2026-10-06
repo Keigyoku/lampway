@@ -17,11 +17,17 @@ dependencies = [
     "PyJWT[crypto]>=2.8",
     "python-multipart>=0.0.9",     # the asset-search and handwriting endpoints take multipart/form-data
     "pillow>=10",                  # the asset-search image features (colour histograms of the previews)
+    "numpy>=1.26",                 # the Asset Vault's vectors and shape descriptors, the video gates, the fal pre-flight
     "keyring>=25",                 # Connections keeps the keys Lampway holds in the OS keyring (decision C6)
     "secretstorage>=3.3; sys_platform == 'linux'",   # keyring's Secret Service backend on Linux (decision C6)
 ]
 
 [project.optional-dependencies]
+# the Asset Vault's bundled embedding models (CLIP ViT-B/32, bge-small) run on the CPU through ONNX Runtime; verified with onnxruntime 1.30.0
+local-embeddings = [
+    "onnxruntime>=1.20",
+    "numpy>=2",
+]
 test = [
     "pytest>=8",
     "pytest-timeout>=2",
@@ -42,3 +48,4 @@ include = ["lampway_server*"]
 testpaths = ["tests"]
 addopts = "-q"
 timeout = 60
+tmp_path_retention_policy = "failed"   # a passed test's tmp_path is removed at session end; a failed one is kept

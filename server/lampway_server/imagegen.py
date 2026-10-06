@@ -59,7 +59,8 @@ _register_uses()
 
 
 def _state_dir() -> Path:
-    return Path(os.environ.get("LAMPWAY_STATE_DIR") or Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state") / "lampway-server")
+    from .config import state_dir
+    return state_dir()
 
 
 def _images(out: Path) -> list:

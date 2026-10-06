@@ -5,6 +5,7 @@ import contextlib
 import json
 import logging
 import os
+import threading
 from html import escape
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse
@@ -31,6 +32,9 @@ from .prompts.service import PromptService
 from .prompts.library import LibraryError
 from .prompts.render import RenderError
 from .assetsearch import AssetIndex
+from .library import rest as library_rest
+from .library.vault import Vault
+from .cards import routes as cards_routes
 from .mcp import McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub, bearer_from
@@ -122,6 +126,21 @@ def default_studio_service(receipts=None):
     from .agent.server_tools import project_root
     from .studios.service import StudioService
     return StudioService(project_root(), shelf=os.environ.get("LAMPWAY_STUDIO_SHELF") or None, receipts=receipts)
+
+
+def _open_library(state_dir):
+    """The Vault (library/store.py) under ``<state>/library``, or None when another process holds its one writer lock: the job hook then spools what it would
+    have recorded (``<state>/library-spool.jsonl``) and ``provenance.replay_spool`` lands it once a library opens."""
+    from .library import provenance as _prov
+    from .library.store import AssetLibrary, LibraryError as VaultError
+    try:
+        lib = AssetLibrary(Path(state_dir) / "library")
+    except VaultError:
+        return None
+    spool = Path(state_dir) / "library-spool.jsonl"
+    if spool.is_file():
+        _prov.replay_spool(lib, spool)                             # what a locked period spooled lands now
+    return lib
 
 
 def unauthorized(message="Not authenticated"):
@@ -301,9 +320,14 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     receipts = job_receipts if job_receipts is not None else JR.JobReceipts(_project_root(), ledger=Ledger(Ledger_default_path()), fetchers=video_system.receipt_fetchers())
     studio = studio_service if studio_service is not None else default_studio_service(receipts)
     prompt_service = prompts if prompts is not None else PromptService.from_env(settings.state_dir)
+    library = _open_library(settings.state_dir)
+    from .library import hooks as _vault_hooks
+    from .library.render import Renderer as _VaultRenderer
+    renderer = _VaultRenderer(library, blender=os.environ.get("LAMPWAY_BIN") or None) if library is not None else None     # previews: never the live window
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
-                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts)
+                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts,
+                    provenance=_vault_hooks.job_hook(library, settings.state_dir / "library-spool.jsonl"))
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
@@ -312,9 +336,10 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
     from .herdr.host import Cockpit
     cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
-    assets = AssetIndex(settings.state_dir)
+    assets = AssetIndex(settings.state_dir)                  # the legacy /asset-search endpoints the Client's Train/Search UI calls
+    vault = Vault(settings.state_dir, library=library)        # the Asset Vault: ONE writer per process (the library opened above), shared by its routes, the agent tools, MCP, the renderer and the job hook
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=assets)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -499,6 +524,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         Route("/api/v1/asset-search/search", assets_search, methods=["POST"]),
         Route("/api/v1/asset-search/search-batch", assets_search_batch, methods=["POST"]),
         Route("/api/v1/asset-search/embeddings", assets_delete, methods=["DELETE"]),
+        *library_rest.routes(vault, _bearer_ok),
+        *cards_routes.routes(_bearer_ok, api_port=settings.port),
         Route("/api/v1/mcp", mcp_route, methods=["POST"]),
         Route("/api/v1/mcp-desktop/eligibility", mcp_eligibility, methods=["GET"]),
         Route("/api/v1/matgen", matgen_route, methods=["POST"]),
@@ -989,6 +1016,58 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             agent.provider = new_main
         return JSONResponse(provider_prefs.view(settings))
 
+    # ---- the way out of submission_unknown (jobreceipts): the USER acknowledges (it did not run) or links (here is the provider's job id); never an agent
+    def _receipt_user(request: Request, body: dict):
+        if (r := _wb(request)) is not None:
+            return r
+        if str(body.get("by") or "user") != "user" or request.headers.get("X-Lampway-Origin", "").lower() == "agent":
+            return JSONResponse({"detail": "only the user resolves a submission_unknown job, in the Client: an agent may not"}, status_code=403)
+        return None
+
+    def _receipt_view(r: dict) -> dict:
+        v = JR.export_safe(r)
+        if r["state"] == "submission_unknown":
+            v["actions"] = ["acknowledge", "link"]
+        return v
+
+    async def receipts_list(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        state = request.query_params.get("state") or None
+        return JSONResponse({"receipts": [_receipt_view(x) for x in receipts.list(state)]})
+
+    async def _receipt_resolve(request: Request, action: str):
+        body = await _json_body(request)
+        if (r := _receipt_user(request, body)) is not None:
+            return r
+        rec = receipts.get(request.path_params["key"])
+        if rec is None:
+            return JSONResponse({"detail": f"no receipt {request.path_params['key']}"}, status_code=404)
+        if rec["state"] != "submission_unknown":
+            return JSONResponse({"detail": f"only a submission_unknown job is resolved here; this one is {rec['state']}"}, status_code=409)
+        try:
+            if action == "acknowledge":
+                rec = receipts.acknowledge(rec, "user")
+            else:
+                if not str(body.get("provider_job_id") or "").strip():
+                    return JSONResponse({"detail": "link needs provider_job_id: the job id from the provider's own history"}, status_code=422)
+                rec = receipts.link(rec, str(body["provider_job_id"]).strip(), "user")
+        except JR.ReceiptError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=409)
+        try:
+            await jobs.recover()                                                   # the queue shows the new state now; a linked job resumes by its provider id
+        except Exception:  # noqa: BLE001 - the receipt is already moved on disk; recovery runs again at the next start
+            logging.getLogger("lampway.jobs").warning("recovery after a receipt resolution failed", exc_info=True)
+        return JSONResponse({"receipt": _receipt_view(rec)})
+
+    async def receipt_acknowledge(request: Request):
+        return await _receipt_resolve(request, "acknowledge")
+
+    async def receipt_link(request: Request):
+        return await _receipt_resolve(request, "link")
+
+    routes += [Route("/app/receipts", receipts_list, methods=["GET"]), Route("/app/receipts/{key}/acknowledge", receipt_acknowledge, methods=["POST"]),
+               Route("/app/receipts/{key}/link", receipt_link, methods=["POST"])]
     routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"])]
     # ---- Connections (connections/): every credential, its source and its status; the user's writes; the read-only view the agent gets
     from . import connections as CONN
@@ -1035,6 +1114,10 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         except Exception:  # noqa: BLE001 - a recovery problem must not stop the server; the receipts stay on disk
             logging.getLogger("lampway.jobs").warning("job recovery failed", exc_info=True)
 
+        render_stop = threading.Event()
+        if renderer is not None:
+            renderer.start(render_stop)                                # one worker thread: due previews, then thumbnails nobody asked for yet
+
         async def tick():
             while True:
                 await asyncio.sleep(60)                            # never a remote check at start: the first poll is a minute in
@@ -1051,6 +1134,8 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             yield
         finally:
             task.cancel()
+            render_stop.set()
+            vault.close()                                              # closes the one library both lanes' wiring shares
 
     app = Starlette(routes=routes, lifespan=lifespan)
     app.add_middleware(HostGuard, bind_host=settings.host)
@@ -1066,5 +1151,8 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.prompts = prompt_service
     app.state.higgsfield_auth = hf_auth
     app.state.connections = conn_hub
+    app.state.vault = vault
     app.state.jobs = jobs
+    app.state.library = library
+    app.state.renderer = renderer
     return app

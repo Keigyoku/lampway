@@ -123,8 +123,54 @@ def read_roots() -> tuple:
     return tuple(dict.fromkeys(_realpath(r) for r in roots))
 
 
+# ---------------------------------------------------------------------------------------------------- secrets
+# Connections audit F1 (specs/connections/connections_store.md section 9): the Lampway home is a sandbox root, and the launcher keeps the server's state
+# (sign-ins, the BYOK key, the JWT secret, refresh tokens, the route switches) and the client's file keyring inside it. A DENY list is checked BEFORE the
+# roots, for reads and writes, on the resolved path, so '..' and symlinks cannot get round it.
+SECRET_NAMES = frozenset({"egress.json", "local_cli.json", "jwt_secret", "refresh_tokens.json", "agent_settings.json", "keyring.json",
+                          "provider_prefs.json", "connections.json"})
+SECRET_SUFFIXES = ("_auth.json",)
+
+
+def _server_state_dir() -> str:
+    if os.environ.get("LAMPWAY_STATE_DIR"):
+        return os.environ["LAMPWAY_STATE_DIR"]
+    base = os.environ.get("XDG_STATE_HOME") or os.path.join(os.path.expanduser("~"), ".local", "state")
+    return os.path.join(base, "lampway-server")                        # the server's own default (lampway_server.config.state_dir)
+
+
+def denied_roots() -> tuple:
+    roots = [_server_state_dir()]
+    for home in _lampway_home()[:1]:
+        roots += [os.path.join(home, "server-state"), os.path.join(home, "secrets"), os.path.join(home, "keyring.json")]
+    for var in ("LAMPWAY_KEYRING_FILE", "LAMPWAY_SECRETS_DIR"):
+        if os.environ.get(var):
+            roots.append(os.environ[var])
+    return tuple(dict.fromkeys(_realpath(r) for r in roots))
+
+
+def is_secret(path) -> bool:
+    """True when ``path`` (resolved) is inside a secrets location or is a secret / route-switch file by name."""
+    real = _realpath(path)
+    name = os.path.basename(real)
+    if name in SECRET_NAMES or name.endswith(SECRET_SUFFIXES):
+        return True
+    for root in denied_roots():
+        try:
+            if os.path.commonpath([real, root]) == root:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
 def _check(path, roots, verb: str) -> str:
     real = _realpath(path)
+    if is_secret(path):
+        raise SandboxPathError(
+            f"{verb} of {os.fspath(path)!r} is refused: it resolves to a Lampway secret or a privacy switch (sign-ins, keys, the keyring, "
+            f"the route switches), which a script may never {verb}"
+        )
     blend = _open_blend()
     if blend and real == _realpath(blend):
         return real

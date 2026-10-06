@@ -13,6 +13,7 @@ install, never copies loopback tokens or anything token-shaped, and writes ``MIG
 
 import json
 import os
+import re
 import shutil
 import time
 from pathlib import Path
@@ -27,18 +28,33 @@ SKIP = ("mcp", "connector")
 _SECRET_WORDS = ("token", "secret", "credential", "auth", "keyring")
 
 
+_PLACEHOLDER = re.compile(r"@[A-Z_]+@")
+
+
+def _absolute(var: str, value: str) -> Path:
+    """A home from the environment, refused loudly unless it is an absolute path: an unexpanded placeholder or a relative value would put the
+    home (and the first-run copy of the person's data) inside whatever directory the process happens to run in."""
+    p = Path(value).expanduser()
+    if _PLACEHOLDER.search(value) or not p.is_absolute():
+        raise ValueError(f"{var}={value!r} is not an absolute path (an unexpanded placeholder or a relative path); refusing to put a Lampway home there")
+    return p
+
+
 def app_home() -> Path:
     explicit = os.environ.get("LAMPWAY_APP_HOME")
     if explicit:
-        return Path(explicit).expanduser()
+        return _absolute("LAMPWAY_APP_HOME", explicit)
     profile = os.environ.get("LAMPWAY_HOME")
     if profile:
-        return Path(profile).expanduser() / "app"
+        return _absolute("LAMPWAY_HOME", profile) / "app"
     return Path.home() / ".lampway"
 
 
 def legacy_home() -> Path:
-    return Path.home() / ".mixar"
+    """The stock install's folder the first run copies from; ``LAMPWAY_LEGACY_HOME`` overrides it (the test harness points it at an empty place, so
+    a test never reads the person's real chat history and checkpoints)."""
+    explicit = os.environ.get("LAMPWAY_LEGACY_HOME")
+    return _absolute("LAMPWAY_LEGACY_HOME", explicit) if explicit else Path.home() / ".mixar"
 
 
 def _looks_secret(name: str) -> bool:
@@ -59,6 +75,11 @@ def _copy_tree(src: Path, dst: Path) -> None:
 def migrate_from_mixar() -> dict:
     """Idempotent. Returns ``{"copied": [...], "skipped": [...], "already": bool}``."""
     new, old = app_home(), legacy_home()
+    test_root = os.environ.get("LAMPWAY_TEST_ROOT")
+    if test_root:                                   # set by the test harness and conftest: a test never migrates the person's real data
+        real_root, real_old = os.path.realpath(test_root), os.path.realpath(old)
+        if os.path.commonpath([real_root, real_old]) != real_root:
+            raise PermissionError(f"refusing to migrate from {old}: it is outside the test root {test_root} (a test never reads the person's real home)")
     marker = new / MARKER
     if marker.is_file():
         return {"copied": [], "skipped": [], "already": True}

@@ -22,7 +22,7 @@ from typing import Optional
 
 from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
-from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, asset_tools, files_tools, connections_tools
+from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, connections_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -98,6 +98,7 @@ class AgentHub:
         # The swarm's workers think with their own (cheaper) provider; with none configured they share the main one.
         self.swarm = SwarmManager(swarm_provider_factory or (lambda label: self.provider), self._blender_script,
                                   script_timeout_s=script_timeout_s)
+        self.swarm.library = assets
 
     # ------------------------------------------------------------ dispatch
     async def handle(self, socket, method: str, request_id, params: dict):
@@ -399,8 +400,10 @@ class AgentHub:
             return await workbench_tools.call(self.cockpit, call.name, call.arguments, self.ops, call.id, last_user, turn.turn_id)
         if call.name in files_tools.NAMES:
             return await files_tools.call(server_tools.project_root(), call.name, call.arguments)
-        if call.name in asset_tools.NAMES:
-            return await asset_tools.call(self.assets, server_tools.project_root(), call.name, call.arguments)
+        if call.name in cards_tools.NAMES:
+            return await cards_tools.call(None, call.name, call.arguments)
+        if call.name in vault_tools.NAMES:
+            return await vault_tools.call(self.assets, call.name, call.arguments, {"origin": "agent", "agent_id": "main"})
         if call.name in connections_tools.NAMES:
             return await connections_tools.call(call.name, call.arguments)
         if call.name in compute_tools.NAMES:
