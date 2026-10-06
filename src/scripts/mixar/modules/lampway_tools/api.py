@@ -668,11 +668,16 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
 
 
 @tool
-def uv_unwrap(object, method="smart", angle_limit=66.0, margin=0.005, texel_density=None, texture_size=2048, engine="algorithmic"):
+def uv_unwrap(object, method="smart", angle_limit=66.0, margin=None, texel_density=None, texture_size=2048, engine="algorithmic", margin_px=None, seam_rule=None, checker=False):
     """A new mesh ``<object>_uv`` with a packed UV layout (smart project, angle-based or conformal with seams at sharp edges) and
     a measured report: islands, coverage, overlap, texel-density spread. The original keeps its UVs. engine=studio:tripo is the
-    Smart UV slot: it answers with the action and price for approval."""
-    return _F_uv.uv_unwrap(object, method, angle_limit, margin, texel_density, texture_size, engine)
+    Smart UV slot: it answers with the action and price for approval. margin_px sets the island margin in pixels (default 1 px per 256 px of map: 4 at 1K, 8 at 2K, 16 at 4K; margin is then
+    margin_px / texture_size). texel_density (texels per metre at texture_size) is ENFORCED by one uniform scale of the whole layout, and refused when it cannot fit (raise texture_size or lower it).
+    seam_rule {hide_from: +X -X +Y -Y +Z -Z top bottom front back left right, along: sharp | panel_lines, avoid_faces: [polygon index]} places seams through the edges least visible from that direction
+    (a minimum spanning cut, plus the sharp hidden edges) and uses the angle-based solver; the report says how many seam edges are still visible. The report carries worst_stretch {angle, area, face,
+    island, location}: the singular values of the UV Jacobian per triangle, located so it can be clicked. checker adds a UV-grid material to the new object only. texture_size is a power of two 256..8192.
+    Refused: unapplied non-uniform scale (apply scale first with scene_cleanup)."""
+    return _F_uv.uv_unwrap(object, method, angle_limit, margin, texel_density, texture_size, engine, margin_px, seam_rule, checker)
 
 
 @tool
