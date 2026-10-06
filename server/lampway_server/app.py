@@ -32,6 +32,9 @@ from .prompts.service import PromptService
 from .prompts.library import LibraryError
 from .prompts.render import RenderError
 from .assetsearch import AssetIndex
+from .library import rest as library_rest
+from .library.vault import Vault
+from .cards import routes as cards_routes
 from .mcp import McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub, bearer_from
@@ -125,18 +128,17 @@ def default_studio_service(receipts=None):
     return StudioService(project_root(), shelf=os.environ.get("LAMPWAY_STUDIO_SHELF") or None, receipts=receipts)
 
 
-def _open_library(state_dir):
-    """The Vault (library/store.py) under ``<state>/library``, or None when another process holds its one writer lock: the job hook then spools what it would
-    have recorded (``<state>/library-spool.jsonl``) and ``provenance.replay_spool`` lands it once a library opens."""
+def _open_library(vault):
+    """The shared Vault's library, or None when another process holds its one writer lock: the job hook then spools what it would have recorded
+    (``vault.spool``) and ``provenance.replay_spool`` lands it the next time a server opens the library."""
     from .library import provenance as _prov
-    from .library.store import AssetLibrary, LibraryError as VaultError
+    from .library.store import LibraryError as VaultError
     try:
-        lib = AssetLibrary(Path(state_dir) / "library")
+        lib = vault.lib
     except VaultError:
         return None
-    spool = Path(state_dir) / "library-spool.jsonl"
-    if spool.is_file():
-        _prov.replay_spool(lib, spool)                             # what a locked period spooled lands now
+    if vault.spool.is_file():
+        _prov.replay_spool(lib, vault.spool)                       # what a locked period spooled lands now
     return lib
 
 
@@ -312,14 +314,15 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     receipts = job_receipts if job_receipts is not None else JR.JobReceipts(_project_root(), ledger=Ledger(Ledger_default_path()), fetchers=video_system.receipt_fetchers())
     studio = studio_service if studio_service is not None else default_studio_service(receipts)
     prompt_service = prompts if prompts is not None else PromptService.from_env(settings.state_dir)
-    library = _open_library(settings.state_dir)
+    vault = Vault(settings.state_dir)                         # the Asset Vault: ONE writer per process, shared by its routes, the agent tools, MCP, the job hook and the renderer
+    library = _open_library(vault)
     from .library import hooks as _vault_hooks
     from .library.render import Renderer as _VaultRenderer
     renderer = _VaultRenderer(library, blender=os.environ.get("LAMPWAY_BIN") or None) if library is not None else None     # previews: never the live window
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
                     video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts,
-                    provenance=_vault_hooks.job_hook(library, settings.state_dir / "library-spool.jsonl"))
+                    provenance=_vault_hooks.job_hook(library, vault.spool))
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
@@ -328,9 +331,9 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
     from .herdr.host import Cockpit
     cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
-    assets = AssetIndex(settings.state_dir)
+    assets = AssetIndex(settings.state_dir)                  # the legacy /asset-search endpoints the Client's Train/Search UI calls
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=assets)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -515,6 +518,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         Route("/api/v1/asset-search/search", assets_search, methods=["POST"]),
         Route("/api/v1/asset-search/search-batch", assets_search_batch, methods=["POST"]),
         Route("/api/v1/asset-search/embeddings", assets_delete, methods=["DELETE"]),
+        *library_rest.routes(vault, _bearer_ok),
+        *cards_routes.routes(_bearer_ok, api_port=settings.port),
         Route("/api/v1/mcp", mcp_route, methods=["POST"]),
         Route("/api/v1/mcp-desktop/eligibility", mcp_eligibility, methods=["GET"]),
         Route("/api/v1/matgen", matgen_route, methods=["POST"]),
@@ -1019,8 +1024,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             logging.getLogger("lampway.jobs").warning("job recovery failed", exc_info=True)
 
         render_stop = threading.Event()
-        if renderer is not None:
-            renderer.start(render_stop)                                # one worker thread: due previews, then thumbnails nobody asked for yet
+        render_thread = renderer.start(render_stop) if renderer is not None else None     # one worker thread: due previews, then thumbnails nobody asked for yet
 
         async def tick():
             while True:
@@ -1035,6 +1039,9 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         finally:
             task.cancel()
             render_stop.set()
+            if render_thread is not None:
+                render_thread.join(10)                                # a preview in flight finishes before its library closes
+            vault.close()
 
     app = Starlette(routes=routes, lifespan=lifespan)
     app.add_middleware(HostGuard, bind_host=settings.host)
@@ -1049,6 +1056,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.jobs = jobs
     app.state.prompts = prompt_service
     app.state.higgsfield_auth = hf_auth
+    app.state.vault = vault
     app.state.jobs = jobs
     app.state.library = library
     app.state.renderer = renderer
