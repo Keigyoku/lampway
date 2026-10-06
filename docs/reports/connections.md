@@ -116,12 +116,18 @@ migration's list is open.
 
 ## Test totals
 
-- Final, `scripts/lampway/test_all.sh` at `3ab21b6` (`LAMPWAY_BIN` = the lane's binary): server **1425 passed, 10 skipped**; client 8087 passed,
-  126 failed, 74 skipped, 20 errors; all 138 baseline entries seen, none newly passing. 8 ids outside the baseline, none from this lane:
-  `test_lampway_theme` x4 and `test_open_mixie_shortcut` need `upstream/` checked out (not in this worktree: "BUILD REFUSED: upstream/ is not
-  checked out", a missing `keymap_data/blender_default.py`), and `test_lampway_theme_live` x3 need a binary built with the facelift theme
-  (the lane's binary was built 2026-10-05).
-- One failure of mine found by the full runs and fixed: a row label and a proposal text named the upstream brand (`test_brand_words`).
+- Final, `scripts/lampway/test_all.sh` at `4a044c5` (after merging `origin/lp/wave5` at `704eba5`; `LAMPWAY_BIN` = the lane's binary): server
+  **1591 passed, 10 skipped**; client 8573 passed, 120 failed, 85 skipped, 15 errors; 122 of the 138 baseline entries seen and 16 now passing
+  (the `tests/mcp` modules collect in this venv now). 13 ids outside the baseline, none from this lane:
+  - `tests/mcp` x3: the same 3 fail on `origin/lp/wave5` alone (run in a detached worktree of it): the client MCP bridge's own wording
+    and instruction length;
+  - `test_lampway_theme` x4 and `test_open_mixie_shortcut`: need `upstream/` checked out (absent from this worktree);
+  - the live theme x3, icons and vault-editor tests: need a binary built with the facelift lane's latest (the lane's binary is from
+    2026-10-05).
+- The server suite under Python 3.11.15 in a venv built from the regenerated lock: 1438 passed, 14 skipped (before the merge).
+- Failures of mine found by the full runs and fixed: a row label and a proposal text that named the upstream brand (`test_brand_words`).
+- `test_codex_app_server`'s duplicate-call-id test failed once in a combined run and passed alone and in its module twice: a timing flake
+  in a file this lane does not touch.
 
 ## Findings and things to know
 
