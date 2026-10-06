@@ -108,6 +108,8 @@ def test_it_calls_the_backend_with_jailed_paths_and_reports_the_files(root, monk
         return {"backend": backend, "files": [str(root / "runs/1.png")], "dry_run": not live, "output": "ok"}
 
     monkeypatch.setattr(IG, "generate", fake)
+    from lampway_server import choices as CH                      # CH3: an agent's backend must be one of the user's Plates options
+    CH.active_store().set("image.plates", "global", None, {"preferred": "studio:tripo.image", "fallbacks": ["codex_cli:imagegen"]}, by="user")
     text, is_error = ST.run("studio_image_generate", {"prompt_file": "p.txt", "refs": ["clay.png"], "out_dir": "runs/Front", "backend": "codex_cli"})
     assert is_error is False and "runs/1.png" in text and seen["live"] is False and seen["backend"] == "codex_cli"
     ST.run("studio_image_generate", {"prompt_file": "p.txt", "out_dir": "runs/Front", "live": True})
