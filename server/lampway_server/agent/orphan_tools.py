@@ -51,4 +51,14 @@ ORPHAN_DEFS = [
          P("islands", "array", "island ids (udim_move), or id pairs a, b, c, d (stack)"), P("dry_run", "boolean", "edits: default true"), P("mirror_axis", desc="x (default) | y | z"),
          P("match_tolerance", "number", "metres, 0.0005..0.05, default 0.003"), P("res", "integer", "raster size 64..4096, default 512"),
          P("discard_texture", "boolean", "allow an edit on a textured object")], api="uv_check"),
+    Def("lampway_render_condition_passes", "Render a blockout to the conditioning images an image or video model needs, all from ONE camera in a throw-away scene "
+        "(your scene, frame and the objects' colours are restored): id = a flat colour per object (Workbench, anti-aliasing off, every pixel snapped to its "
+        "object's palette colour; the palette is returned so a prompt can name regions), depth = a ray cast per pixel, 1 - (d - near)/(far - near) with near/far "
+        "from the objects' bounds (nearer is brighter, background 0), edge = 1-pixel lines where the id changes or the depth jumps, clay = studio-lit grey. "
+        "camera: a scene camera's name or auto (50 mm, 15 degrees above the -Y front, framing the objects). size is the long edge (64..2048; the aspect is your "
+        "scene's). Light engines only: workbench (default) or eevee for clay; Cycles is refused. Control-image inputs on the image APIs are [UNVERIFIED]: use "
+        "the passes as plain reference images. Nothing is spent." + _PATHS,
+        [P("objects", "array", "the mesh objects of the blockout", required=True), P("camera", desc="a camera name | auto (default)"),
+         P("passes", "array", "subset of id, depth, edge, clay; default clay, depth, id"), P("size", "integer", "long edge 64..2048, default 1024"),
+         P("out_dir", desc="under the project root, default condition"), P("engine", desc="workbench (default) | eevee")], api="render_condition_passes"),
 ]
