@@ -19,6 +19,21 @@ SET_KINDS = ("texture_set", "material")
 PICTURE_KINDS = ("image", "hdri", "map")
 
 
+def _chosen_openrouter_embed():
+    """D6 local-first (HC20): an OpenRouter client only when the user chose an OpenRouter embedding in Choices and Connections holds the
+    key; otherwise None, and only the bundled and deterministic spaces run."""
+    from .. import choices as CH
+    from .. import connections as C
+    try:
+        purposes = CH.active_store().global_doc().get("purposes") or {}
+        if not any(pid.startswith("embed.") and str(e.get("preferred", "")).startswith("openrouter:") for pid, e in purposes.items()):
+            return None
+        key = C.secret_of(C.credential("openrouter"))
+    except Exception:  # noqa: BLE001 - no choice store, no key: local only
+        return None
+    return EM.OpenRouterEmbed(key) if key else None
+
+
 class Vault:
     def __init__(self, state_dir, project_root: Optional[Path] = None, library: Optional[AssetLibrary] = None):
         self.root = Path(state_dir) / "library"
@@ -62,7 +77,7 @@ class Vault:
         lib = self.lib
         with self._lock:
             if self._embed is None:
-                self._embed = EM.Embed(lib)
+                self._embed = EM.Embed(lib, openrouter=_chosen_openrouter_embed())
             return self._embed
 
     def close(self) -> None:

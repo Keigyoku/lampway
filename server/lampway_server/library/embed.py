@@ -130,8 +130,21 @@ class Embed:
         return self._local[base]
 
     # -- plan / run ----------------------------------------------------------------------------------------------------
+    def default_model(self, base: str, job: str = "text_doc") -> Optional[str]:
+        """The model the user chose in Choices for ``embed.<job>`` when it is an OpenRouter one (5.10); None means local."""
+        if base != "text_api":
+            return None
+        from .. import choices as CH
+        try:
+            oid = CH.preferred(f"embed.{job}") or ""
+        except Exception:  # noqa: BLE001
+            return None
+        return oid.split(":", 1)[1] if oid.startswith("openrouter:") else None
+
     def plan(self, space: str, asset_ids=None, missing_only: bool = True, model: Optional[str] = None) -> dict:
         base = space.split(":")[0]
+        if base == "text_api" and not model:
+            model = self.default_model(base)
         if base not in DETERMINISTIC and base != "text_api" and base not in LM.BASES:
             raise LibraryError(f"unknown space {space!r}; spaces: {list(DETERMINISTIC) + list(LM.BASES) + ['text_api']}")
         name = space

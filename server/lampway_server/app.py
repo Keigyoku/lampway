@@ -1141,6 +1141,11 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         CHO.propose_dead_preferences(store._data.get("preferences") or {})      # HC22: proposed once, never applied silently
     except Exception:  # noqa: BLE001 - a migration note must never stop the server
         logging.getLogger("lampway.choices").warning("the per-role preferences could not be proposed", exc_info=True)
+    try:
+        from .choices.bridge import import_embed_defaults
+        import_embed_defaults(settings.state_dir / "library")                  # HC20: the unwired embedding defaults become Choices, once
+    except Exception:  # noqa: BLE001
+        logging.getLogger("lampway.choices").warning("the embedding defaults could not be imported", exc_info=True)
     def choice_changed(pid):
         """A saved choice takes effect at once where the settings decide (the Providers dialog's PUT did the same): the agent's
         provider is rebuilt BEFORE it replaces the old one, so a refusal leaves everything as it was."""
