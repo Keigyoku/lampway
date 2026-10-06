@@ -53,6 +53,7 @@ ROUTES = {r.id: r for r in (
     Route("fal", "fal.ai", ("fal.ai", "fal.run", "fal.media"), _UNREAD, _UNREAD, "unknown"),
     Route("video_link", "Video download from a link you pasted (yt-dlp)", (), "the site you pasted sees your IP address and the link; nothing of yours is uploaded; what the site keeps is its own policy",
           "n/a: nothing of yours is sent", "ok"),
+    Route("world_labs", "World Labs (Marble world model)", ("worldlabs.ai",), _UNREAD, _UNREAD, "unknown"),
     Route("model_download", "Model weights download (Hugging Face)", ("huggingface.co", "cdn-lfs.huggingface.co", "cdn-lfs-us-1.hf.co", "hf.co", "cas-bridge.xethub.hf.co"),
           "no user content: a plain GET of public weights; the host sees your IP address and which file you asked for", "n/a: no content is sent", "ok"),
     Route("cc0:ambientcg", "ambientCG (CC0 materials)", ("ambientcg.com", "acg-media.struffelproductions.com"),
