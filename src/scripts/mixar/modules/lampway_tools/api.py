@@ -839,12 +839,14 @@ def mesh_defect_scan(object, piece="", kinds=None, thin_threshold_m=0.002, max_c
 
 
 @tool
-def silhouette_compare(a, b, piece="", views=None, size=512, min_iou=0.9, landmarks=None):
+def silhouette_compare(a, b, piece="", views=None, size=512, min_iou=0.9, landmarks=None, interior=False):
     """Did the piece drift? Render the approved source `a` and the candidate `b` (a mesh, or a plate image with an alpha or a flat background) from the SAME orthographic cameras
     (Front/Back/Left/Right, framed on `a`) and report per view the silhouette IoU, area ratio, centroid shift and, with landmarks [{name, point}] in world space, the drift to b's
-    surface; `pass` = worst IoU >= min_iou (0.9 is a placeholder, unverified). Side-by-side PNGs go to <root>/<piece>/compare/. A mirrored candidate fails the view that sees the mirror."""
+    surface; `pass` = worst IoU >= min_iou (0.9 is a placeholder, unverified). Side-by-side PNGs go to <root>/<piece>/compare/. A mirrored candidate fails the view that sees the mirror.
+    interior=true (mesh vs mesh) adds what outline IoU cannot see: `interior_diff` (mean luminance difference on the cells that are figure in BOTH, 192 lattice after bounding-box alignment), ten height
+    bands, `cells_compared` with an `evidence` flag (a handful of cells is `insufficient`), and the enclosed background holes of each side (a face with a hole through it reads IoU-identical)."""
     from .features import silhouette as _SIL
-    return _SIL.run(a, b, str(_settings().project_root), piece, views, size, min_iou, landmarks)
+    return _SIL.run(a, b, str(_settings().project_root), piece, views, size, min_iou, landmarks, interior)
 
 
 @tool

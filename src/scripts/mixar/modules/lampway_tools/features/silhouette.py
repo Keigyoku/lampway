@@ -20,8 +20,8 @@ from . import render as R
 VIEWS = ("Front", "Back", "Left", "Right")
 
 
-def _render_mask(ob, camera_from, view, size, tmp):
-    """The alpha mask (size x size bool) of ``ob`` seen by the camera framed on ``camera_from``."""
+def _render_mask(ob, camera_from, view, size, tmp, shaded=False):
+    """The alpha mask (size x size bool) of ``ob`` seen by the camera framed on ``camera_from``; with ``shaded`` also its studio-lit luminance (0..1) for the interior difference."""
     lo, hi = R.bbox_world(camera_from)
     center = (lo + hi) / 2
     dim = hi - lo
@@ -42,7 +42,8 @@ def _render_mask(ob, camera_from, view, size, tmp):
         r = sc.render
         r.engine, r.resolution_x, r.resolution_y, r.resolution_percentage, r.film_transparent = "BLENDER_WORKBENCH", size, size, 100, True
         r.image_settings.file_format, r.image_settings.color_mode = "PNG", "RGBA"
-        sc.display.shading.light, sc.display.shading.color_type = "FLAT", "SINGLE"
+        sc.display.shading.light, sc.display.shading.color_type = ("STUDIO" if shaded else "FLAT"), "SINGLE"
+        sc.display.render_aa = "OFF"
         r.filepath = str(tmp)
         bpy.ops.render.render(write_still=True, scene=sc.name)
     finally:
@@ -52,7 +53,10 @@ def _render_mask(ob, camera_from, view, size, tmp):
         bpy.data.scenes.remove(sc)
         bpy.data.cameras.remove(cam_data)
     from PIL import Image
-    return np.asarray(Image.open(tmp).convert("RGBA"))[..., 3] > 8
+    px = np.asarray(Image.open(tmp).convert("RGBA"))
+    if shaded:
+        return px[..., 3] > 8, px[..., :3].astype(float).mean(axis=2) / 255.0
+    return px[..., 3] > 8
 
 
 def _image_mask(path, size):
@@ -99,7 +103,7 @@ def _drift(a, b, landmarks):
     return out
 
 
-def run(a, b, root, piece="", views=None, size=512, min_iou=0.9, landmarks=None):
+def run(a, b, root, piece="", views=None, size=512, min_iou=0.9, landmarks=None, interior=False):
     views = list(views or VIEWS)
     if any(v not in VIEWS for v in views):
         raise C.FeatureError(f"views are {', '.join(VIEWS)}")
@@ -120,14 +124,22 @@ def run(a, b, root, piece="", views=None, size=512, min_iou=0.9, landmarks=None)
     from PIL import Image
     tmp = outdir / ".tmp.png"
     for v in views:
-        ma = _render_mask(oa, oa, v, size, tmp)
+        want_interior = bool(interior) and not image
+        if want_interior:
+            ma, la = _render_mask(oa, oa, v, size, tmp, shaded=True)
+            mb, lb = _render_mask(ob, oa, v, size, tmp, shaded=True)
+        else:
+            ma = _render_mask(oa, oa, v, size, tmp)
         if image:
             mb = _image_mask(b, size)
             ma, mb = _fit(ma, size), _fit(mb, size)
-        else:
+        elif not want_interior:
             mb = _render_mask(ob, oa, v, size, tmp)
         row = {"view": v, "iou": round(_iou(ma, mb), 4), "area_ratio": round(float(mb.sum() / max(ma.sum(), 1)), 4),
                "centroid_shift_frac": round(float(np.linalg.norm(_centroid(ma) - _centroid(mb)) / size), 4)}
+        if want_interior:
+            from ..pipeline import interior_diff as ID
+            row.update(ID.interior_diff(la, ma, lb, mb))
         if landmarks and ob is not None:
             row["landmark_drift_m"] = _drift(oa, ob, landmarks)
         rows.append(row)
