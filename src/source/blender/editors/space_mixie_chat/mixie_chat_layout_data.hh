@@ -86,6 +86,7 @@ struct ChatTodoItemProps {
   PropertyRNA *item_id;
   PropertyRNA *text;
   PropertyRNA *status;
+  PropertyRNA *price_text;
   bool initialized;
 };
 

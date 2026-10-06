@@ -22,6 +22,7 @@ from mathutils.bvhtree import BVHTree
 
 from .. import canon_io
 from . import common as C
+from .. import canon_io
 from . import silhouette as _sil
 from . import weights as _w
 
@@ -122,7 +123,7 @@ def _decimate(src, name, ratio, keep: set):
 
 
 def _texture(path, scale, out_dir, n, root):
-    img = canon_io.load_image(path, check_existing=False)   # a texture copied downsized, colour space untouched
+    img = canon_io.load_image(path, check_existing=False)   # the one image load: a texture copied downsized, colour space untouched (no role)
     try:
         w, h = img.size
         img.scale(max(1, int(round(w * scale))), max(1, int(round(h * scale))))

@@ -181,7 +181,8 @@ def transfer(proxy, atlas, out_dir, res=None, keep_proxy=False):
         mat.use_nodes = True
         t = mat.node_tree
         node = t.nodes.new("ShaderNodeTexImage")
-        node.image = canon_io.load_image(path, check_existing=False)
+        from .. import canon_io
+        node.image = canon_io.load_image(path, role="basecolor", check_existing=False)   # the one image load: sRGB bound to the role
         t.links.new(node.outputs["Color"], next(n for n in t.nodes if n.type == "BSDF_PRINCIPLED").inputs["Base Color"])
         new.data.materials.clear()
         new.data.materials.append(mat)

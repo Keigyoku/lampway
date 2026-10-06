@@ -48,6 +48,23 @@ def _egress_permissive(tmp_path):
     E.set_active(None)
 
 
+@pytest.fixture(autouse=True)
+def _no_real_secret_store(tmp_path, monkeypatch):
+    """Connections never touches the person's keyring, ~/.local/state/lampway-secrets or the default server state in a test: no keyring
+    backend (the file store is chosen, in the test's tmp), an active hub in the test's tmp, reset after each test."""
+    import keyring
+    import keyring.backends.fail
+    monkeypatch.setenv("LAMPWAY_SECRETS_DIR", str(tmp_path / "secrets"))
+    keyring.set_keyring(keyring.backends.fail.Keyring())
+    from lampway_server import connections as C
+    C.set_active(C.Hub(tmp_path / "connections-state", secrets_dir=tmp_path / "secrets"))   # a consumer outside create_app records here, never in ~/.local/state
+    from lampway_server import choices as CH
+    CH.set_active(CH.FileStore(tmp_path / "choices-state"), tmp_path / "choices-state")
+    yield
+    C.set_active(None)
+    CH.set_active(None, None)
+
+
 @pytest.fixture
 def anyio_backend():
     return "asyncio"

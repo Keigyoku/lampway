@@ -19,6 +19,7 @@ for n in ("plate", "gold", "leather"):
 idx = np.array([0] * 6 + [1] * 6 + [2] * 6, dtype=np.int32)
 ob.data.polygons.foreach_set("material_index", idx)
 a = ob.data.attributes.new("part", "INT", "FACE"); a.data.foreach_set("value", np.array([0] * 6 + [1] * 12, dtype=np.int64))
+canon("piece")                                       # the door: the tool reads a canonical mesh
 '''
 
 

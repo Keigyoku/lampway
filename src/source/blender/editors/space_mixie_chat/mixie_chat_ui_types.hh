@@ -261,6 +261,9 @@ struct TodoItemSlotData {
   char id[64];
   char text[512];
   int status;  /* 0=pending, 1=in_progress, 2=done, 3=failed */
+  /* The step's price chip, as lampway_tools/price_chips.py words it ("≈ $0.07 est., openrouter.ai"); empty: none.
+   * Must match MixieChatTodoItem.price_text (maxlen=128). */
+  char price[128];
   float height;
   rctf bounds;
   bool is_hovered;

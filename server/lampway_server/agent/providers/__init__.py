@@ -3,21 +3,39 @@
 import os
 
 
-def make_provider(settings, chatgpt_auth=None):
-    """The provider LAMPWAY_PROVIDER names. Keys are read from the environment
-    here or by the SDK and never pass through logs or responses."""
+def make_provider(settings, chatgpt_auth=None, resolution=None):
+    """The main agent's provider. With ``resolution`` (Choices' agent.main, 5.6) it is built from the resolved option - the user's
+    fallback when the preferred option cannot serve; without one, from the settings (which Choices also decides). Keys come from Connections."""
+    if resolution is not None and not str(resolution.option).startswith("follow:"):
+        from ...choices.bridge import settings_for_option
+        p = _make_provider(settings_for_option(settings, resolution.option, resolution.params), chatgpt_auth)
+        try:
+            p.choice = {"option": resolution.option, "reason": resolution.reason, "why": resolution.why}
+        except AttributeError:
+            pass
+        return p
+    try:
+        from ...choices import shadow as SH
+        from ...choices.bridge import chains
+        from ... import choices as CH
+        SH.record("agent.main", chains(settings)["agent.main"]["preferred"], CH.Job())       # the shadow row: resolved vs ran
+    except Exception:  # noqa: BLE001
+        pass
+    return _make_provider(settings, chatgpt_auth)
+
+
+def _make_provider(settings, chatgpt_auth=None):
     if settings.provider == "mock":
         from .mock import MockProvider
         return MockProvider()
     if settings.provider == "anthropic":
         from .anthropic_provider import AnthropicProvider
-        return AnthropicProvider(model=settings.anthropic_model)
+        return AnthropicProvider(model=settings.anthropic_model, api_key=_held_key("anthropic"))
     if settings.provider == "openai":
         from .openai_compat import OpenAICompatProvider
         if not settings.openai_model:
             raise ValueError("LAMPWAY_OPENAI_MODEL is required with LAMPWAY_PROVIDER=openai")
-        return OpenAICompatProvider(settings.openai_base_url, settings.openai_model,
-                                    os.environ.get("OPENAI_API_KEY", ""))
+        return OpenAICompatProvider(settings.openai_base_url, settings.openai_model, _held_key("custom_llm") or "")
     if settings.provider == "chatgpt_plan":
         # ChatGPT plan usage (Sign in with ChatGPT): OAuth tokens from /app/chatgpt, never an API key, never Codex's tokens.
         from ...chatgpt_auth import ChatGPTAuth
@@ -42,6 +60,15 @@ def make_provider(settings, chatgpt_auth=None):
     raise ValueError(f"unknown LAMPWAY_PROVIDER {settings.provider!r}")
 
 
+def _held_key(cid: str):
+    """The key Connections resolves (the environment first, C3), or None: then the SDK resolves its own (an ``ant auth login`` profile)."""
+    from ... import connections as C
+    try:
+        return C.secret_of(C.credential(cid)) or None
+    except C.Refused:
+        return None
+
+
 _LEDGERS: dict = {}
 
 
@@ -62,7 +89,50 @@ def _openrouter(settings, model, label):
 
 
 def make_swarm_provider(settings, label: str, chatgpt_auth=None):
-    """A provider for one swarm worker: the cheap swarm model, the shared ledger. The mock/scripted providers serve themselves.
+    """A provider for one swarm worker. When the configured one cannot be built (a CLI switch off, a missing key), the next option of the
+    agent.worker chain in Choices is built instead, at spawn - never mid-turn - and the provider says so in ``choice`` (HC23)."""
+    try:
+        return _make_swarm_provider(settings, label, chatgpt_auth)
+    except (ValueError, RuntimeError) as exc:
+        first_error = exc
+    from ... import choices as CH
+    from ...logredact import redact_text
+    tried = []
+    for oid in CH.chain("agent.worker")[1:]:
+        try:
+            p = _build_worker_option(settings, oid, label, chatgpt_auth)
+        except (ValueError, RuntimeError) as exc:
+            tried.append(f"{oid}: {redact_text(str(exc))[:120]}")
+            continue
+        why = f"fallback: {settings.swarm_provider or settings.provider} could not be built (" + redact_text(str(first_error))[:160] + ")"
+        try:
+            p.choice = {"option": oid, "reason": "fallback", "why": "; ".join([why] + tried)}
+        except AttributeError:
+            pass
+        return p
+    raise first_error
+
+
+def _build_worker_option(settings, oid: str, label: str, chatgpt_auth=None):
+    prov, _, model = oid.partition(":")
+    if prov == "openrouter":
+        return _openrouter(settings, model, label)
+    if prov == "chatgpt_plan":
+        from ...chatgpt_auth import ChatGPTAuth
+        from .chatgpt_plan import ChatGPTPlanProvider
+        auth = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
+        return ChatGPTPlanProvider(auth, model or settings.chatgpt_swarm_model, effort=settings.chatgpt_swarm_effort)
+    if prov == "claude_cli":
+        from .. import cli_adapters
+        cli_adapters.require_enabled(settings.state_dir)
+        return cli_adapters.ClaudeCLIProvider(model=model or settings.claude_swarm_model, workdir=settings.state_dir)
+    if oid == "follow:agent.main":
+        return make_provider(settings, chatgpt_auth=chatgpt_auth)
+    raise ValueError(f"{oid} cannot serve a swarm worker")
+
+
+def _make_swarm_provider(settings, label: str, chatgpt_auth=None):
+    """The configured worker provider: the cheap swarm model, the shared ledger. The mock/scripted providers serve themselves.
     ``settings.swarm_provider`` puts the workers on a different provider from the main agent."""
     kind = settings.swarm_provider or settings.provider
     if kind == "claude_cli":

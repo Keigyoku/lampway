@@ -836,13 +836,15 @@ def workflow_graph(action, name="", graph=None, inputs=None, from_node="", versi
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def plate_pick(stage, piece="", view="Front", paired=False, v3_dir="", variants_dir="", design_words="", palette="", pick=None, bg_threshold=0.06, opening_iters=3, min_px=1024):
+def plate_pick(stage, piece="", view="Front", paired=False, v3_dir="", variants_dir="", design_words="", palette="", pick=None, bg_threshold=0.06, opening_iters=3, min_px=1024,
+               template=""):
     """Plates stage of the piece pipeline. prompt: the library template (plate-4k-crisper) and its variables for one view (render it, generate 4 images per view); score: rank
     the 4 regenerations (variants_dir/1..4) against the approved V3 plate (v3_dir/<View>.png, RGBA): silhouette IoU x DoG structure x (1 - colour error); cut: the pick's alpha
     (luminance threshold, opening, fill holes, 1 px feather); run: score + cut + checks (margins, aspect, view correspondence) -> <piece>/plates_4k_alpha/<View>.png + alpha.json;
     status. A the user's `pick` (1-4) overrides the best score. Paired pieces: Front and Back only. Free, local, never overwrites."""
     from .pipeline import plates as PL
-    return PL.tool(stage, str(_settings().project_root), piece, view, paired, _p(v3_dir), _p(variants_dir), design_words, palette, pick, bg_threshold, opening_iters, min_px)
+    return PL.tool(stage, str(_settings().project_root), piece, view, paired, _p(v3_dir), _p(variants_dir), design_words, palette, pick, bg_threshold, opening_iters, min_px,
+                   template)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
@@ -952,7 +954,7 @@ def layered_material(action="inspect", object=None, material=None, layer=None, m
     edge_detect | color_id | vcol | image}, projection: uv | triplanar | planar | spherical | cylindrical | decal} (uv needs a UV map: otherwise use triplanar or unwrap first); add_procedural puts a library
     material (see procedural_library) on as a layer; set_params {opacity, enabled, name, blend_type, projection_type, translation, rotation, scale ...} edits layer_index (-1 = the active layer); apply_manifest
     builds a whole stack from a manifest (index 0 must be a PBR layer). Refused: not a mesh, no paint project yet (the refusal names init), unknown blend / type / mask / projection (each lists the choices).
-    Mask invert is not built. One undo step per Blender operator the Client's package uses."""
+    mask_invert (params {invert: true, the default | false}) inverts layer_index's first mask (add_layer takes mask.invert too). One undo step per Blender operator the Client's package uses."""
     return _F_lm.layered_material(action, object, material, layer, manifest, layer_index, params)
 
 
@@ -1019,7 +1021,7 @@ def clip_classify(armature, action=None, samples=25, fps=None, landmarks=None, f
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def view_verify(action="verify", image="", category="sheet", view="front", approved_front="", mask="", asymmetric_ok=False, judge="none", known_images=None, attempts=None, max_attempts=3,
-                original_prompt=""):
+                original_prompt="", models=None):
     """Is this generated image really the view that was asked for? admit: reject an empty, tiny, fragmented (largest piece under 0.60 of the figure) or duplicate (perceptual hash within 6 of a known_images
     plate) reference BEFORE any model is paid, with the reason. verify: measured checks on the silhouette (alpha, `mask`, or a flat background): shoulder-width ratio and mirror IoU about the figure's own
     axis, feet baseline, arm angle (A-pose is 30 to 60), framing margins, background flatness; verdict pass | soft_fail | hard_fail | uncertain with the signed estimated rotation, and every threshold (they
@@ -1030,7 +1032,7 @@ def view_verify(action="verify", image="", category="sheet", view="front", appro
     from .pipeline import view_verify_io as _VVI
     s = _settings()
     return _VVI.run(action, str(s.project_root), image, category, view, approved_front, mask, bool(asymmetric_ok), judge, known_images, attempts, max_attempts, original_prompt,
-                    resolve=lambda p: _p(p, s.project_root))
+                    resolve=lambda p: _p(p, s.project_root), models=models)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
@@ -1723,6 +1725,7 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 
 from . import api_wave6 as _W6                              # noqa: E402
 
+# each wave 6 tool's declaration lives beside it (api_wave6.CONSUMES); a missing name fails the import
 for _w6_name in _W6.TOOLS:
     globals()[_w6_name] = tool(consumes=_W6.CONSUMES[_w6_name])(getattr(_W6, _w6_name))
 
@@ -1730,6 +1733,7 @@ for _w6_name in _W6.TOOLS:
 # ---- the orphan tools (STATUS.md ORPHANS): their own module, registered through tool() above
 
 from .orphans_api import *  # noqa: E402,F401,F403
+from .rig_api import *  # noqa: E402,F401,F403
 
 
 # ---- the UE Renderer (specs/ue_parity): ue/ owns the behaviour, these are its doors

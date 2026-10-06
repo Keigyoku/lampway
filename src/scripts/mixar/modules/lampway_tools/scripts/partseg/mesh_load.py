@@ -10,7 +10,6 @@ import sys
 import bpy
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-import lw_canon  # noqa: E402  (canon_io by path: the one importer)
 
 
 def load(path):
@@ -20,8 +19,8 @@ def load(path):
     if ext == ".blend":
         bpy.ops.wm.open_mainfile(filepath=path)
         return
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-    if ext in (".glb", ".gltf", ".fbx"):
-        lw_canon.io.import_raw(path)               # a raw part-set source, stamped lw_raw
-    else:
+    if ext not in (".glb", ".gltf", ".fbx"):
         raise SystemExit(f"error: {path}: a .blend, .glb, .gltf or .fbx")
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    import lw_canon                                          # canon_io, the one importer: the import is stamped lw_raw
+    lw_canon.io.import_raw(path)

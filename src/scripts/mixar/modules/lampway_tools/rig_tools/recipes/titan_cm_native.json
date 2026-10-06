@@ -1,0 +1,30 @@
+{
+ "expect": {
+  "unit_scale_factor": 1.0
+ },
+ "exporter": {
+  "add_leaf_bones": false,
+  "apply_scale_options": "FBX_SCALE_NONE",
+  "apply_unit_scale": true,
+  "axis_forward": "-Z",
+  "axis_up": "Y",
+  "bake_anim_force_startend_keying": true,
+  "bake_anim_simplify_factor": 0.0,
+  "bake_anim_step": 1.0,
+  "global_scale": 1.0,
+  "mesh_smooth_type": "OFF",
+  "object_types": [
+   "ARMATURE",
+   "MESH"
+  ],
+  "primary_bone_axis": "Z",
+  "secondary_bone_axis": "X",
+  "use_armature_deform_only": true,
+  "use_custom_props": false,
+  "use_mesh_modifiers": false,
+  "use_tspace": false
+ },
+ "name": "titan_cm_native",
+ "provenance": "canon 21 B.2: TITAN's measured centimetre-native recipe (UnitScaleFactor 1, FBX_SCALE_NONE + apply_unit_scale, primary Z / secondary X), read back in Unreal 5.8 on the native MetaHuman body (342 bone rows). Its Blender-side bone convention was the one that rig's import gave it; on a canon-17 rig this pair reads back 120 deg off ('blender') or 90 deg off ('ue_axes') in Blender's raw-frame read-back (measured 2026-10-06): use the convention's own recipe below, and let the read-back decide.",
+ "schema": "lampway.fbx-recipe/1"
+}

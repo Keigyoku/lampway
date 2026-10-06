@@ -40,8 +40,50 @@ class PromptVar(PropertyGroup):
     help: StringProperty()
 
 
+class PromptLibraryRow(PropertyGroup):
+    """One template of the prompt library list (facelift contract 08), mirrored from the server by lampway.prompts_refresh."""
+    template_id: StringProperty()
+    title: StringProperty()
+    version: StringProperty()
+    media: StringProperty()
+    price: StringProperty(description="Mean billed price of this version, or 'no runs yet'")
+    hover: StringProperty(description="Runs and rating of this version")
+
+
+def _library_filter_items(self, context):
+    rows = getattr(self, "prompt_library", ())
+    counts = {"image": sum(1 for r in rows if r.media == "image"), "video": sum(1 for r in rows if r.media == "video")}
+    _FILTER[:] = [("ALL", f"All {len(rows)}", "Every template"), ("IMAGE", f"Image {counts['image']}", "Image templates"),
+                  ("VIDEO", f"Video {counts['video']}", "Video templates")]
+    return _FILTER
+
+
+_FILTER = []
+
+
+def _library_pick(self, context):
+    """Choosing a row chooses its template for the form below."""
+    rows = self.prompt_library
+    if 0 <= self.prompt_library_index < len(rows):
+        try:
+            self.prompt_template = rows[self.prompt_library_index].template_id
+        except TypeError:   # the template enum has not been refreshed with this id yet
+            pass
+
+
 def _tool_items(self, context):
     return [(t.name, t.name, t.summary) for t in runner.TOOLS.values()]
+
+
+class StudioPlanArg(PropertyGroup):
+    """One typed argument of a Studio action's plan (facelift contract 06: the plan form has no JSON field)."""
+    key: StringProperty(name="Argument", description="The argument's name, as the Studio action names it (e.g. front, polycount)")
+    kind: EnumProperty(name="Kind", items=[('TEXT', "Text", "Words"), ('NUMBER', "Number", "A number"),
+                                           ('FILE', "File", "A file inside the project root"), ('FLAG', "Yes / no", "On or off")])
+    text: StringProperty(name="Text")
+    number: FloatProperty(name="Number")
+    path: StringProperty(name="File", subtype='FILE_PATH', description="Inside the project root")
+    flag: BoolProperty(name="On")
 
 
 class LampwayToolsProps(PropertyGroup):
@@ -82,6 +124,9 @@ class LampwayToolsProps(PropertyGroup):
     # ---- other tools
     tool: EnumProperty(name="Tool", items=_tool_items)
     prompt_template: EnumProperty(name="Template", items=_prompt_items, description="A prompt-library template (image or video)")
+    prompt_library: CollectionProperty(type=PromptLibraryRow)
+    prompt_library_index: IntProperty(default=0, update=_library_pick)
+    prompt_library_filter: EnumProperty(name="Show", items=_library_filter_items)
     prompt_vars: CollectionProperty(type=PromptVar)
     prompt_model: StringProperty(name="Model", description="Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default")
     prompt_preview: StringProperty(name="Preview")
@@ -89,7 +134,9 @@ class LampwayToolsProps(PropertyGroup):
     prompt_rating: IntProperty(name="Rating", min=1, max=5, default=3)
     prompt_note: StringProperty(name="Note")
     studio_action: EnumProperty(name="Studio action", items=_studio_items)
-    studio_args: StringProperty(name="Arguments", default="{}", description="The action's arguments as JSON, paths inside the project root")
+    studio_args: StringProperty(name="Arguments", default="{}", description="The action's arguments as JSON, paths inside the project root")  # kept for old files; the panel draws studio_plan_args
+    studio_plan_args: CollectionProperty(type=StudioPlanArg)
+    studio_plan_args_index: IntProperty(default=0)
     feature: EnumProperty(name="Feature", items=[
         ("retopo", "Retopology", "A new all-quad mesh near a target face count"), ("uv_unwrap", "UV unwrap", "A packed UV layout on a new mesh"),
         ("segment_mesh", "Mesh segment", "Split into part objects"), ("auto_rig", "Auto rig", "A UE-named humanoid armature"),
@@ -102,7 +149,7 @@ class LampwayToolsProps(PropertyGroup):
     last_message: StringProperty(name="Last result", default="")
 
 
-classes = [PromptVar, LampwayToolsProps]
+classes = [PromptVar, StudioPlanArg, PromptLibraryRow, LampwayToolsProps]
 
 
 def register():

@@ -46,19 +46,87 @@ def parse(log: str, prefix: str = "") -> tuple:
     if tail:
         for n, what in COUNT.findall(tail[-1]):
             counts[what.rstrip("s") if what.startswith("error") else what] = int(n)
+    env = [l for l in log.splitlines() if l.startswith("ENV-SKIPPED ")]
+    counts["env_skipped"] = int(env[-1].split()[1].rstrip(":")) if env else 0
     return ids, counts
+
+
+NATIVE_PATHS = ("src/source", "src/intern", "src/CMakeLists.txt", "src/build_files", "src/release/datafiles", "native", "cmake", "upstream")
+
+
+def binary_gate(root, binary) -> tuple:
+    """("gated", sha) when <Prod>/BUILT_FROM names a commit whose native sources equal HEAD's; ("refused", why) when they differ;
+    ("ungated", why) when the binary records no BUILT_FROM (or there is none). A gated client run tests exactly the batch's native code."""
+    if not binary:
+        return "ungated", "UNGATED binary: no LAMPWAY_BIN, the real-binary tool tests skip"
+    built = Path(binary).resolve().parent.parent / "BUILT_FROM"
+    if not built.is_file():
+        return "ungated", f"UNGATED binary: {built} is absent, so the binary's native sources are unknown"
+    sha = built.read_text().split()[0]
+    paths = [p for p in NATIVE_PATHS if (Path(root) / p).exists()]
+    known = subprocess.run(["git", "-C", str(root), "cat-file", "-e", sha + "^{commit}"], capture_output=True)
+    if known.returncode != 0:
+        return "refused", f"the binary was built from {sha}, which this repository does not have: its native sources cannot be compared"
+    diff = subprocess.run(["git", "-C", str(root), "diff", "--quiet", sha, "HEAD", "--", *paths], capture_output=True)
+    if diff.returncode != 0:
+        return "refused", f"the binary was built from {sha[:12]}, whose native sources differ from HEAD's ({', '.join(paths)}): build at this batch, or a sha with the same native sources"
+    return "gated", sha
+
+
+# The reference test environment (scripts/lampway/test_env.sh builds it): upstream/ at its pin, and these importable (module -> distribution).
+UPSTREAM_FILES = ("upstream/release/datafiles/userdef/userdef_default_theme.c", "upstream/scripts/presets/keyconfig/keymap_data/blender_default.py")
+TEST_PACKAGES = {"pytest": "pytest", "pytest_timeout": "pytest-timeout", "numpy": "numpy", "PIL": "pillow", "requests": "requests", "jsonschema": "jsonschema",
+                 "mcp": "mcp", "onnxruntime": "onnxruntime", "starlette": "starlette", "httpx": "httpx"}
+
+
+def verify_env(root, packages=None, python=None) -> list:
+    """What the test environment lacks (empty = ready). ``python`` checks another interpreter's imports; None checks this one."""
+    problems = [f"{rel} is missing (upstream/ not checked out at its pin)" for rel in UPSTREAM_FILES if not (Path(root) / rel).is_file()]
+    packages = TEST_PACKAGES if packages is None else packages
+    code = "import importlib, sys\nbad = []\nfor m in sys.argv[1:]:\n    try:\n        importlib.import_module(m)\n    except Exception:\n        bad.append(m)\nprint(' '.join(bad))\n"
+    if python:
+        missing = subprocess.run([python, "-c", code, *packages], capture_output=True, text=True).stdout.split()
+    else:
+        import importlib
+        missing = []
+        for m in packages:
+            try:
+                importlib.import_module(m)
+            except Exception:  # noqa: BLE001
+                missing.append(m)
+    if "mcp" in packages and "mcp" not in missing and python:
+        if subprocess.run([python, "-c", "from mcp import Client"], capture_output=True).returncode:
+            missing.append("mcp")
+    problems += [f"python package {packages[m]} does not import" for m in missing]
+    return problems
 
 
 def judge(failing: set, baseline: dict) -> dict:
     return {"new": sorted(failing - set(baseline)), "fixed": sorted(set(baseline) - failing), "known": sorted(failing & set(baseline))}
 
 
+def head_sha(root) -> str:
+    return subprocess.run(["git", "-C", str(root), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--only", choices=("server", "client"))
     ap.add_argument("--shrink-baseline", action="store_true")
+    ap.add_argument("--verify-env", action="store_true", help="only check the test environment (test_env.sh calls this)")
+    ap.add_argument("--ungated", action="store_true", help="run on a binary whose native sources differ from HEAD (the result is not a gate)")
     a = ap.parse_args(argv)
     py = os.environ.get("LAMPWAY_TEST_PYTHON") or sys.executable
+    problems = verify_env(ROOT, python=py)
+    if problems or a.verify_env:
+        for p in problems:
+            print("env: " + p, file=sys.stderr)
+        if problems:
+            print("the test environment is not the reference one: run scripts/lampway/test_env.sh", file=sys.stderr)
+            return 6
+        print("env: ready (upstream at its pin; every test package imports)")
+        return 0
+    os.environ["LAMPWAY_TEST_ALL"] = "1"                  # inside the reference environment: an environment skip would be a defect, so the conftest does not skip
     tmp = Path(os.environ.get("TMPDIR") or "/tmp").resolve()
     out = Path(os.environ.get("LAMPWAY_TEST_OUT") or tmp / "lampway-test-all")
     out.mkdir(parents=True, exist_ok=True)
@@ -66,6 +134,12 @@ def main(argv=None) -> int:
     suites = {"server": ([py, "-m", "pytest", "tests", "-p", "no:cacheprovider", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-server")], ROOT / "server", "server/"),
               "client": ([py, "-m", "pytest", "-p", "no:cacheprovider", "--continue-on-collection-errors", "-q", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-client")], ROOT, "")}
     run = {k: v for k, v in suites.items() if not a.only or k == a.only}
+    gate = binary_gate(ROOT, os.environ.get("LAMPWAY_BIN")) if "client" in run else ("n/a", "server only")
+    if gate[0] == "refused" and not a.ungated:
+        print("REFUSED: " + gate[1] + " (pass --ungated to run anyway; the run is then not a gate)", file=sys.stderr)
+        return 4
+    if gate[0] != "gated" and "client" in run:
+        print(gate[1], file=sys.stderr)
     import fcntl
     lock = open(tmp / "lw-test-all.lock", "w")
     try:
@@ -73,6 +147,8 @@ def main(argv=None) -> int:
     except OSError:
         print("another test_all run holds " + str(tmp / "lw-test-all.lock") + ": wait for it, or use another TMPDIR", file=sys.stderr)
         return 3
+    sha = head_sha(ROOT)                                  # what this run tests and is judged against: fixed at the start (b11/b12 read both at the end)
+    baseline = {k: v for k, v in load_baseline().items() if not a.only or (k.startswith("server/") == (a.only == "server"))}
     procs = {}
     t0 = time.time()
     for name, (cmd, cwd, _) in run.items():
@@ -83,7 +159,6 @@ def main(argv=None) -> int:
         ids, counts = parse((out / f"{name}.log").read_text(errors="replace"), run[name][2])
         failing |= ids
         report[name] = {"rc": rc, **counts}
-    baseline = {k: v for k, v in load_baseline().items() if not a.only or (k.startswith("server/") == (a.only == "server"))}
     j = judge(failing, baseline)
     flaky = []
     if j["new"]:                                    # a new failure is re-run once, alone: one that passes then is reported as flaky, never hidden
@@ -102,12 +177,15 @@ def main(argv=None) -> int:
         keep = [l for l in BASELINE.read_text(encoding="utf-8").splitlines(keepends=True) if l.startswith("#") or not l.strip() or l.split("\t")[0] not in set(j["fixed"])]
         BASELINE.write_text("".join(keep), encoding="utf-8")
     green = not j["new"] and (not j["fixed"] or a.shrink_baseline)
-    summary = {"verdict": "GREEN" if green else "RED", "sha": subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip(),
+    summary = {"verdict": ("GREEN" if gate[0] in ("gated", "n/a") else "GREEN-UNGATED") if green else "RED", "binary": {"state": gate[0], "detail": gate[1]}, "sha": sha,
                "suites": report, "baseline": len(baseline), "known_red_seen": len(j["known"]), "new_failures": j["new"], "flaky_passed_on_rerun": flaky, "baseline_now_passing": j["fixed"],
                "minutes": round((time.time() - t0) / 60, 1), "logs": str(out)}
+    end = head_sha(ROOT)
+    if end != sha:
+        summary["head_at_end"] = end                    # a commit landed during the run: the run tested the tree at "sha", not this
     (out / "summary.json").write_text(json.dumps(summary, indent=1))
     print(json.dumps(summary, indent=1))
-    return 0 if green else 1
+    return 0 if green and gate[0] in ("gated", "n/a") else (5 if green else 1)      # 5: green, but on a binary that is not this batch's: not a gate
 
 
 if __name__ == "__main__":

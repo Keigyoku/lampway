@@ -72,3 +72,22 @@ print("RESULT", json.dumps({{"refused": refused, "ok": ok, "libs": libs}}))
     assert d["refused"]["ok"] is False and "was not written by Lampway" in d["refused"]["error"], d["refused"]
     assert d["ok"]["ok"] and d["ok"]["registered"] == "Lampway Vault", d["ok"]
     assert any(n == "Lampway Vault" and p.rstrip("/").endswith("pub2") for n, p in d["libs"]), d["libs"]
+
+
+def test_catalog_export_imports_a_mesh_through_canon_io(tmp_path):
+    """A GLB mesh asset is read by the worker through lw_canon (canon_io, the one importer) and published as one object asset."""
+    d = one(go(tmp_path, f'''
+glb = {str(tmp_path / "greaves.glb")!r}
+dest = {str(tmp_path / "published")!r}
+make_glb(glb)
+r = call("asset_catalog_export", assets=[rec("mesh", glb)], dest_library=dest)
+got = {{}}
+if r.get("ok"):
+    with bpy.data.libraries.load(r["blend"], assets_only=True) as (s, dd):
+        dd.objects = list(s.objects)
+    got = {{o.name: [o.type, str(o.get("lw_raw", ""))] for o in dd.objects if o is not None}}
+print("RESULT", json.dumps({{"r": r, "got": got}}))
+''', timeout=400))
+    assert d["r"]["ok"], d["r"]
+    assert list(d["got"]) == ["Greaves"] and d["got"]["Greaves"][0] == "MESH", d
+    assert '"importer": "import_scene.gltf"' in d["got"]["Greaves"][1], "the worker's import is stamped by canon_io"

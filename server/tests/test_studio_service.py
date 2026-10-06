@@ -94,7 +94,9 @@ def test_every_action_names_its_studio_its_spend_and_the_engine():
             "tripo.uv.save", "tripo.state", "tripo.fetch"} <= set(ACTIONS)
     rest = {k for k, a in ACTIONS.items() if a.driver.startswith("rest.")}                  # the REST studios: their price is read by the driver's plan, so none carries an expected price
     assert rest and all(ACTIONS[k].needs_approval and ACTIONS[k].expected_price is None for k in rest)
-    spend = {k for k, a in ACTIONS.items() if a.needs_approval} - rest
+    mcp = {k for k, a in ACTIONS.items() if a.driver.startswith("mcp.") and a.needs_approval}  # a studio's MCP: no published price, the plan needs a ceiling
+    assert mcp == {"hyper3d.mcp.generate", "hyper3d.mcp.generate_bang"} and all(ACTIONS[k].expected_price is None for k in mcp)
+    spend = {k for k, a in ACTIONS.items() if a.needs_approval} - rest - mcp
     assert spend == {"tripo.mesh", "tripo.texture", "tripo.pbr", "tripo.image", "tripo.uv.unwrap", "tripo.regen.region"}   # region: free, but the user's confirm is its approval flag
     assert ACTIONS["tripo.mesh"].expected_price == 100 and ACTIONS["tripo.texture"].expected_price == 30 \
         and ACTIONS["tripo.pbr"].expected_price == 5 and ACTIONS["tripo.uv.unwrap"].expected_price == 20

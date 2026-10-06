@@ -107,3 +107,12 @@ res2 = lm(action="apply_manifest", object="Plate", manifest={"layers": [{"index"
 print("RESULT", json.dumps({"a": res, "b": res2}))
 '''))
     assert d["a"]["ok"] is False and "no layers" in d["a"]["error"] and d["b"]["ok"] is False and "index 0 layer must be type PBR" in d["b"]["error"]
+
+
+def test_the_tool_docstring_offers_mask_invert_and_never_says_it_is_not_built():
+    """The Client-side docstring is what the in-Blender agent reads: it names the mask_invert action O31 built."""
+    import ast
+    api = Path(__file__).resolve().parents[2] / "src/scripts/mixar/modules/lampway_tools/api.py"
+    fn = next(n for n in ast.walk(ast.parse(api.read_text(encoding="utf-8"))) if isinstance(n, ast.FunctionDef) and n.name == "layered_material")
+    doc = ast.get_docstring(fn)
+    assert "mask_invert" in doc and "mask invert is not built" not in " ".join(doc.lower().split()), doc

@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <string>
 
 #include "BLF_api.hh"
 
@@ -314,6 +315,52 @@ void agent_ui_draw_status_pill(ARegion *region, const float width,
   GPU_blend(GPU_BLEND_NONE);
 }
 
+/** The agent's glance cues in the island header's free middle (facelift contracts 04 and 05; they were the
+ * floating pill's): the Spark in its state, the state in words, and the counts. */
+static void agent_ui_draw_header_glance(const AgentIslandLayout *layout, const AgentIslandState *state, const float u)
+{
+  const bool working = state->status_busy || state->status_active || state->queue_count > 0;
+  AgentSparkState spark = AgentSparkState::Idle;
+  switch (state->cat_activity) {
+    case MixieCatActivity::Waiting:
+      spark = AgentSparkState::Blocked;
+      break;
+    case MixieCatActivity::Offline:
+    case MixieCatActivity::Connecting:
+      spark = AgentSparkState::Paused;
+      break;
+    default:
+      spark = working ? AgentSparkState::Working : AgentSparkState::Idle;
+      break;
+  }
+  std::string words = working && mixie_cat_is_working(state->cat_activity) ?
+                          IFACE_(mixie_cat_activity_name(state->cat_activity)) :
+                          (state->status_text[0] ? state->status_text : IFACE_("Idle"));
+  if (state->agents_running > 0) {
+    words += std::string(" \u00b7 ") + std::to_string(state->agents_running) + " " + IFACE_("agents running");
+  }
+  if (state->queue_count > 0) {
+    words += std::string(" \u00b7 ") + std::to_string(state->queue_count) + " " + IFACE_("jobs");
+  }
+  if (state->pill_note) {
+    words = IFACE_("No floating pill: its state is here (Preferences > Interface > Agent)");
+  }
+  const float size = agent_ui_body_font_size();
+  const float spark_edge = 20.0f * u;
+  const float gap = 6.0f * u;
+  const float left_limit = layout->hdr_scenes.xmax + 16.0f * u;
+  const float right_limit = layout->hdr_handwriting.xmin - 16.0f * u;
+  const std::string fitted = ui::mixar_fit_text(
+      words.c_str(), std::max(0.0f, right_limit - left_limit - spark_edge - gap), size);
+  const float total = spark_edge + gap + text_width(fitted.c_str(), size);
+  const float x0 = std::max(left_limit, layout->hdr_title_cx - total * 0.5f);
+  const float cy = layout->hdr_title_y;
+  const rctf chip = {x0, x0 + spark_edge, cy - spark_edge * 0.5f, cy + spark_edge * 0.5f};
+  agent_ui_draw_spark(chip, spark, 1.0f);
+  MIXAR_THEME_LOAD(text_dim, TextSecondary);
+  label_left(fitted.c_str(), x0 + spark_edge + gap, cy, size, text_dim);
+}
+
 void agent_ui_draw_island(ARegion *region,
                           const AgentIslandLayout *layout,
                           const AgentIslandState *state)
@@ -462,6 +509,9 @@ void agent_ui_draw_island(ARegion *region,
       const float col_dim[4] = {0.50f, 0.50f, 0.50f, 0.80f};
       const float *text_col = state->input_text[0] ? col_active : col_dim;
       label_centre(disp, cx, cy, font_size, text_col);
+    }
+    else {
+      agent_ui_draw_header_glance(layout, state, u);
     }
   }
 

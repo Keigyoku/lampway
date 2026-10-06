@@ -98,4 +98,24 @@ void media_param_chip_control(ui::Block *block,
 int media_collect_reference_images(
     const bContext *C, PointerRNA *tab_ptr, bool video, Image **r_images, int max_images);
 
+/* -------------------------------------------------------------------- */
+/* Facelift contract 08: the "Before you send" column (agent_ui_tabmedia_estimate.cc). */
+
+/** What lampway_tools/ui/generate_pump.py wrote into `wm.lampway_gen_*` for one tab. */
+struct MediaFace {
+  char estimate[96], estimate_kind[16], estimate_tip[256];
+  char cap_job[128], cap_job_level[8], cap_session[128];
+  char route[96], content[128];
+  char button[96], button_kind[16], policy[256], refusal[256];
+  float cap_job_fill, cap_session_fill;
+};
+
+/** Read the face the pump computed for \a owner (the tab PropertyGroup's RNA identifier); false when there is
+ * none for it (the pump is not registered, or it answered for the other half). */
+bool media_face_read(const bContext *C, const char *owner, MediaFace *r_face);
+/** Width of the column for \a panel, 0 when the pane is too narrow for two columns. */
+float media_face_column_w(const rctf &panel, float u);
+/** Paint the column; returns the rect Generate takes at its foot. */
+rctf media_face_paint(const MediaFace &face, const rctf &column, float u);
+
 }  // namespace blender

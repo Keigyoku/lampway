@@ -80,6 +80,16 @@ class StudioClient:
     def download(self, job_id: str, name: str) -> bytes:
         return self._call("GET", f"/app/studio/jobs/{job_id}/files/{name}", raw=True, timeout=300)
 
+    # ---- receipts: the user's two ways out of submission_unknown (docs/reports/integration.md; never an agent)
+    def receipts(self, state="submission_unknown") -> list:
+        return self._call("GET", f"/app/receipts?state={state}")["receipts"]
+
+    def acknowledge_receipt(self, key: str) -> dict:
+        return self._call("POST", f"/app/receipts/{key}/acknowledge", {"by": "user"})
+
+    def link_receipt(self, key: str, provider_job_id: str) -> dict:
+        return self._call("POST", f"/app/receipts/{key}/link", {"by": "user", "provider_job_id": provider_job_id})
+
     # ---- provider setup (the same server door)
     def provider_settings(self) -> dict:
         return self._call("GET", "/app/provider-settings")
@@ -90,6 +100,14 @@ class StudioClient:
     # ---- the prompt library (the same server door)
     def prompts(self, media=None) -> dict:
         return self._call("GET", "/app/prompts" + (f"?media={media}" if media else ""))
+
+    def prompt_stats(self) -> list:
+        return self._call("GET", "/app/prompts/stats").get("stats", [])
+
+    def generate_estimate(self, service: str, model: str, params: dict, references: int = 0) -> dict:
+        """The tab's estimate, policy and caps before Generate (facelift contract 08). The server sends nothing for it."""
+        return self._call("POST", "/app/generate/estimate", {"service": service, "model": model, "params": params or {}, "references": int(references or 0)},
+                          timeout=5)
 
     def prompt(self, template_id: str, version=None) -> dict:
         return self._call("GET", f"/app/prompts/{template_id}" + (f"?version={version}" if version else ""))

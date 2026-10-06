@@ -326,6 +326,15 @@
     "variant_of": {
       "type": "string",
       "description": "id@version this is an A/B variant of"
+    },
+    "pin": {
+      "type": "boolean",
+      "description": "CH5: true keeps defaults.model over the purpose's choice; needs pin_reason"
+    },
+    "pin_reason": {
+      "type": "string",
+      "maxLength": 300,
+      "description": "why this template must run its own model"
     }
   }
 }

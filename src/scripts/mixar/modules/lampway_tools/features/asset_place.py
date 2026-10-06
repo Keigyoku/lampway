@@ -16,6 +16,7 @@ import bpy
 
 from .. import canon_io
 from . import common as C
+from .. import canon_io
 
 MODES = ("auto", "append", "link", "import", "assign_material", "assign_maps", "add_node_group", "set_world", "add_clip", "apply_animation", "attach_rig", "reference_image")
 MAX_TRIS = 5_000_000

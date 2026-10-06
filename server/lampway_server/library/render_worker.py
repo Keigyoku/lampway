@@ -18,6 +18,12 @@ import bpy
 from mathutils import Matrix, Vector
 
 
+def canon_io():
+    """Lampway's canon_io, the one importer (specs/canon/normalization DOOR.md 1): the worker runs in the Lampway binary (LAMPWAY_BIN)."""
+    from mixar.modules.lampway_tools import canon_io as io
+    return io
+
+
 def srgb_to_linear(c):
     return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
 
@@ -33,14 +39,10 @@ def empty_scene():
 def import_input(path: Path):
     before = set(bpy.data.objects)
     ext = path.suffix.lower()
-    if ext in (".glb", ".gltf"):
-        bpy.ops.import_scene.gltf(filepath=str(path))
-    elif ext == ".fbx":
-        bpy.ops.import_scene.fbx(filepath=str(path))
-    elif ext == ".obj":
-        bpy.ops.wm.obj_import(filepath=str(path))
+    if ext in (".glb", ".gltf", ".fbx", ".obj"):
+        canon_io().import_raw(str(path))
     elif ext == ".blend":
-        with bpy.data.libraries.load(str(path), link=False) as (src, dst):
+        with canon_io().load_library(str(path), link=False) as (src, dst):
             dst.objects = list(src.objects)
         for ob in dst.objects:
             if ob is not None:
@@ -175,7 +177,7 @@ def ball(job):
 
 
 def blend_material(path: Path, want=None):
-    with bpy.data.libraries.load(str(path), link=False) as (src, dst):
+    with canon_io().load_library(str(path), link=False) as (src, dst):
         dst.materials = [m for m in src.materials if want is None or m == want][:1]
     if not dst.materials or dst.materials[0] is None:
         raise SystemExit(f"no material {want or ''} in {path.name}")

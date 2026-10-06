@@ -21,6 +21,7 @@ from mathutils.bvhtree import BVHTree
 
 from .. import canon_io
 from . import common as C
+from .. import canon_io
 
 KINDS = ("objects", "meshes", "materials", "images", "actions", "cameras", "lights", "armatures", "textures", "node_groups", "collections")
 
@@ -29,7 +30,7 @@ def _import(path):
     before = {k: set(x.name for x in getattr(bpy.data, k)) for k in KINDS}
     sc = bpy.data.scenes.new("lw_glbopt")
     with bpy.context.temp_override(scene=sc, view_layer=sc.view_layers[0]):
-        canon_io.import_raw(path)                  # a round-trip check of the tool's own output, compared raw to raw (stamped lw_raw)
+        canon_io.import_raw(path)                  # the one importer (stamped raw): a round-trip check of the tool's own output, raw to raw
     new = {k: [x for x in getattr(bpy.data, k) if x.name not in before[k]] for k in KINDS}
     return sc, new
 

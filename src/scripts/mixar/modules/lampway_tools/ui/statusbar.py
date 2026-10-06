@@ -63,11 +63,22 @@ def sync_animation():
 def refresh():
     try:
         client = CLIENT_FACTORY()
-        S.update(egress=client.egress(), spend=client.spend(), studio=client.studio())
+        S.update(egress=client.egress(), spend=client.spend(), studio=client.studio(),
+                 provider=((client.provider_settings() or {}).get("values") or {}).get("provider") or "")
     except studio_client.StudioError as exc:
         S.fail(str(exc))
     sync_animation()
+    _sync_route_line()
     _redraw_statusbar()
+
+
+def _sync_route_line():
+    """Where the next chat message goes, for the island's Send (facelift contract 04)."""
+    from mixar.modules.lampway_tools import chat_route
+    wm = getattr(bpy.context, "window_manager", None)
+    scene = getattr(bpy.context, "scene", None)
+    if wm is not None and hasattr(wm, "lampway_chat_send_ok"):
+        chat_route.sync(wm, scene)
 
 
 def _tick():
@@ -81,6 +92,7 @@ def draw(self, context):
     if not S.STATE["ok"]:
         row.label(text="spend unknown: server not running", icon='LAMPWAY_COIN')
         row.label(text="egress unknown", icon='LAMPWAY_WIRE')
+        _plug(row)
         return   # the version is the status bar's own (Blender draws it at the far right)
     count = S.waiting()
     if count:
@@ -94,6 +106,12 @@ def draw(self, context):
     if glyph == "wire_dot":
         glyph = "wire_dot_b" if FRAME["b"] else "wire_dot_a"
     row.operator("lampway.status_wire", text=chip, icon_value=preview(glyph), emboss=False)
+    _plug(row)
+
+
+def _plug(row):
+    """Connections, beside the wire chip (specs/connections/connections_face.md 3): which accounts work, and which may send."""
+    row.operator("lampway.connections_open", text="", icon_value=preview("plug"), emboss=False)
 
 
 class LAMPWAY_OT_status_waiting(Operator):
@@ -138,8 +156,8 @@ class LAMPWAY_OT_status_wire(Operator):
         return S.wire_chip()[2]
 
     def execute(self, context):
-        self.report({'INFO'}, S.wire_chip()[2])
-        return {'FINISHED'}
+        """Opens "What leaves this machine" (facelift contract 12)."""
+        return bpy.ops.lampway.privacy_open()
 
 
 classes = (LAMPWAY_OT_status_waiting, LAMPWAY_OT_status_spend, LAMPWAY_OT_status_wire)

@@ -41,7 +41,7 @@ enum class MixarComponent : uint8_t {
   /** Flat, hairline-outlined native toolbar groups; aligned rows share one bed. */
   Toolbar
 };
-enum class MixarVariant : uint8_t { Primary, Secondary, Ghost, Danger };
+enum class MixarVariant : uint8_t { Primary, Secondary, Ghost, Danger, /** The accent fill: a spend that waits for your click (facelift 08). */ Accent };
 
 enum class MixarCardElement : uint8_t {
   None = 0,

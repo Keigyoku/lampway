@@ -170,6 +170,40 @@ def _legacy_calls():
     return n
 
 
+REBASELINE = re.compile(r"^rebaseline (\d+) merge ([0-9a-f]{7,40}) ([0-9a-f]{7,40}): (\S.{9,})$", re.M)
+
+
+def _ratchet_problems(history):
+    """history: [(sha, [parent shas], file text)] oldest first. A count may only fall, except at a merge commit whose file records
+    `rebaseline <N> merge <p1> <p2>: <reason>` naming that count and that commit's own two parents (a recorded one-time rebaseline,
+    never an ordinary commit)."""
+    out, prev = [], None
+    for sha, parents, text in history:
+        n = int(text.split()[0])
+        if prev is not None and n > prev:
+            rec = [m for m in REBASELINE.finditer(text) if int(m.group(1)) == n]
+            named = rec and len(parents) == 2 and all(any(p.startswith(x) for p in parents) for x in rec[-1].group(2, 3))
+            if not named:
+                out.append(f"{sha[:12]}: the ratchet rose {prev} -> {n} outside a recorded merge rebaseline (rebaseline {n} merge <p1> <p2>: <reason>)")
+        prev = n
+    return out
+
+
+def test_a_recorded_rebaseline_is_accepted_only_in_the_merge_commit_it_names():
+    """The ratchet may rise ONCE per merge of a pre-door lane, recorded in the file itself: `rebaseline <N> merge <parent1> <parent2>:
+    <reason>`; a rise anywhere else (an ordinary commit, or a merge the line does not name) is refused."""
+    a, b, c, m = "a" * 40, "b" * 40, "c" * 40, "d" * 40
+    reb = f"120\nrebaseline 120 merge {a[:8]} {b[:8]}: pre-door lane merged: 10 texture/list tools await the texture normalizer\n"
+    ok = [(a, [c], "110\n"), (m, [a, b], reb)]
+    assert _ratchet_problems(ok) == []
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a], reb)]), "a rise in an ordinary (single-parent) commit is refused"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, c], reb)]), "a rebaseline naming other parents is refused"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], "120\n")]), "a rise without its recorded line is refused"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], reb.split(": ")[0] + ":\n")]), "a rebaseline needs its reason"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], reb), (c, [m], reb.replace("120", "125"))]), "the next rise is refused again"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], reb), (c, [m], "118\n")]) == [], "falling is always fine"
+
+
 def test_the_legacy_ratchet_matches_the_code_and_only_falls():
     import sys as _s
     _s.path.insert(0, str(Path(__file__).parent))

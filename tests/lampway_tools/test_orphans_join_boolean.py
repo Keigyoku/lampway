@@ -23,7 +23,7 @@ def _go(tmp_path, body):
 
 def test_join_remesh_yields_one_shell(tmp_path):
     res = _go(tmp_path, '''
-canon(*["a", "b"])
+canon(*["a", "b"], welded=True)
 r = call("mesh_join_boolean", op="join_remesh", objects=["a", "b"], voxel_m="coarse_first")
 print("RESULT", json.dumps({"r": r, "objects": sorted(o.name for o in bpy.data.objects)}))
 ''')
@@ -38,7 +38,7 @@ out = {}
 for c in (0.35, 0.0):
     for o in list(bpy.data.objects):
         if o.name not in ("a", "b"): bpy.data.objects.remove(o)
-    canon(*["a", "b"])
+    canon(*["a", "b"], welded=True)
     out[str(c)] = call("mesh_join_boolean", op="connector", objects=["a", "b"], clearance_mm=c, connector={"kind": "plug_socket", "at": [0, 0, 1.0], "size_mm": 40})
 print("RESULT", json.dumps(out))
 ''')
@@ -49,7 +49,7 @@ print("RESULT", json.dumps(out))
 
 def test_difference_with_clearance_cuts_a_larger_hole(tmp_path):
     res = _go(tmp_path, '''
-canon(*["a", "b"])
+canon(*["a", "b"], welded=True)
 r = call("mesh_join_boolean", op="difference", objects=["a", "b"], clearance_mm=1.0)
 o = bpy.data.objects[r["object"]]
 floor = min(v.co.z for v in o.data.vertices if abs(v.co.x) < 0.35 and abs(v.co.y) < 0.35 and v.co.z > 0.5)
@@ -64,13 +64,13 @@ def test_refusals(tmp_path):
     res = _go(tmp_path, '''
 arm = bpy.data.armatures.new("rig"); rig = link(bpy.data.objects.new("rig", arm))
 m = a.modifiers.new("Armature", "ARMATURE"); m.object = rig
-canon(*["a", "b"])
+canon(*["a", "b"], welded=True)
 skin = call("mesh_join_boolean", op="join_remesh", objects=["a", "b"])
 a.modifiers.remove(m)
-canon(*["a", "b"])
+canon(*["a", "b"], welded=True)
 noclear = call("mesh_join_boolean", op="connector", objects=["a", "b"], connector={"kind": "plug_socket", "at": [0, 0, 1.0], "size_mm": 40})
 me = bpy.data.meshes.new("open"); me.from_pydata([(0, 0, 0), (1, 0, 0), (1, 1, 0)], [], [(0, 1, 2)]); link(bpy.data.objects.new("open", me))
-canon(*["a", "open"])
+canon(*["a", "open"], welded=True)
 openb = call("mesh_join_boolean", op="union", objects=["a", "open"])
 print("RESULT", json.dumps({"skin": skin, "noclear": noclear, "open": openb}))
 ''')

@@ -51,6 +51,8 @@ def validate(t) -> list:
     for key in t:
         if key not in _TOP:
             err(errors, key, f"unknown field (the fields are {sorted(_TOP)})")
+    if isinstance(t, dict) and t.get("pin") is True and not str(t.get("pin_reason") or "").strip():
+        err(errors, "pin_reason", "a pinned template says why it must run its own model (CH5: the purpose's choice wins otherwise)")
     for key in SCHEMA["required"]:
         if key not in t:
             err(errors, key, "required")

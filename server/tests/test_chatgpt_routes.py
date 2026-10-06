@@ -15,6 +15,10 @@ from lampway_server.config import Settings
 from tests.test_chatgpt_auth import FakeOpenAI, ISSUED, JWKS, SCOPES
 
 
+def _bearer(app):
+    return {"Authorization": "Bearer " + app.state.auth.issue_pair()["access_token"]}
+
+
 @pytest.fixture
 def stack(tmp_path):
     fake = FakeOpenAI()
@@ -50,7 +54,9 @@ def test_the_callback_completes_the_sign_in_and_the_page_links_to_manage_usage(s
     cb = client.get("/auth/callback", params={"code": "CODE", "state": q["state"], "client_id": ISSUED, "scope": SCOPES})
     assert cb.status_code == 200 and "Using ChatGPT plan" in cb.text and "https://chatgpt.com/settings/usage" in cb.text
     assert "u@example.com" in client.get("/app/chatgpt").text
-    status = client.get("/app/chatgpt/status").json()
+    assert client.get("/app/chatgpt/status").status_code == 401                      # F8: the bearer, and no identity
+    status = client.get("/app/chatgpt/status", headers=_bearer(app)).json()
+    assert set(status) == {"signed_in", "plan_usage_enabled"}
     assert status["signed_in"] is True and status["plan_usage_enabled"] is True and "access_token" not in str(status) and "refresh" not in str(status)
 
 
@@ -66,7 +72,7 @@ def test_declining_consent_shows_how_to_retry_and_stores_nothing(stack):
     state = parse_qs(urlparse(r.headers["location"]).query)["state"][0]
     cb = client.get("/auth/callback", params={"error": "access_denied", "state": state})
     assert cb.status_code == 200 and "not authorized" in cb.text and "Continue with ChatGPT" in cb.text
-    assert client.get("/app/chatgpt/status").json()["signed_in"] is False
+    assert client.get("/app/chatgpt/status", headers=_bearer(app)).json()["signed_in"] is False
 
 
 def test_sign_out_from_a_foreign_origin_is_refused(stack):

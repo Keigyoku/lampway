@@ -40,6 +40,8 @@
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 
+#include "UI_mixar_theme.hh"
+
 #include "mixie_chat_intern.hh"
 #include "mixie_chat_layout_data.hh"
 #include "mixie_chat_ui_types.hh"
@@ -438,9 +440,9 @@ void chat_ui_draw_steps_block(Main *bmain,
 
   /* Neutral structural rail — the steps list is settled process record; only
    * a RUNNING row's glyph carries the live accent. */
-  const float tools_accent[4] = CHAT_ACCENT_TOOLS;
-  chat_ui_draw_accent_bar(x, card_rect.ymin, layout->slot_steps_height,
-                          tools_accent, UI_SCALE_FAC);
+  float agent_rule[4];
+  chat_ui_get_agent_color(agent_rule); /* the agent wrote it (facelift contract 04) */
+  chat_ui_draw_block_rule(x, card_rect.ymin, layout->slot_steps_height, agent_rule, UI_SCALE_FAC);
 
   const int font_id = BLF_default();
   BLF_size(font_id, card.font_size);
@@ -509,7 +511,8 @@ void chat_ui_draw_steps_block(Main *bmain,
                           card.text_color[2], card.text_color[3] * 0.55f};
     const char *glyph = step_kind_glyph(step.kind);
     if (step.status == 1) { /* running */
-      const float live[4] = CHAT_ACCENT_LIVE;
+      float live[4]; /* the running step: the theme's accent, not Mixar's green */
+      ui::mixar_theme_color_f(ui::MixarThemeSlot::Focus, live);
       glyph_col[0] = live[0];
       glyph_col[1] = live[1];
       glyph_col[2] = live[2];
@@ -626,8 +629,9 @@ void chat_ui_draw_images_block(Main *bmain,
     return;
   }
   const ChatBubbleStyle &card = *style;
-  const float tools_accent[4] = CHAT_ACCENT_TOOLS;
-  chat_ui_draw_accent_bar(x, y, layout->slot_gallery_height, tools_accent, UI_SCALE_FAC);
+  float agent_rule[4];
+  chat_ui_get_agent_color(agent_rule); /* the agent wrote it (facelift contract 04) */
+  chat_ui_draw_block_rule(x, y, layout->slot_gallery_height, agent_rule, UI_SCALE_FAC);
 
   const int font_id = BLF_default();
   BLF_size(font_id, card.font_size);

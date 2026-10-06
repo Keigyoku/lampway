@@ -470,12 +470,29 @@ void agent_ui_draw_chip_row(ARegion *region,
       generate,
       agent_ui_motion_sample(region, AgentIslandControl::Generate, layout->btn_generate),
       generate_fill);
+  const bool refused = !state->send_ok && !state->stop_visible;
+  if (refused) {
+    generate_fill[3] *= 0.35f; /* the provider's route is off: Send cannot leave (the tooltip says why) */
+  }
   fill_round(&layout->btn_generate, radius, generate_fill);
+  float send_ink[4] = {text[0], text[1], text[2], refused ? text[3] * 0.45f : text[3]};
   label_centre(state->stop_visible ? IFACE_("Stop") : IFACE_("Send"),
                BLI_rctf_cent_x(&layout->btn_generate),
                BLI_rctf_cent_y(&layout->btn_generate),
                size,
-               text);
+               send_ink);
+  /* The route line, calm form (facelift contract 04): the host beside Send, only where it fits. */
+  if (state->route_host[0] && !state->stop_visible) {
+    float muted[4];
+    ui::mixar_theme_color_f(ui::MixarThemeSlot::TextSecondary, muted);
+    const float gap = 8.0f * (BLI_rctf_size_y(&layout->btn_generate) / 32.0f);
+    const float room = layout->btn_generate.xmin - gap - (layout->chip_model.xmax + gap);
+    const float host_w = ui::mixar_text_width(state->route_host, size);
+    if (host_w <= room) {
+      label_centre(state->route_host, layout->btn_generate.xmin - gap - host_w * 0.5f,
+                   BLI_rctf_cent_y(&layout->btn_generate), size, muted);
+    }
+  }
 }
 
 /** \} */

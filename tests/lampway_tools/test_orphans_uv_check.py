@@ -25,7 +25,9 @@ def quads(name, rects, xs=None, mirror_second=False):
         for k, (u, v) in enumerate(((u0, v0), (u1, v0), (u1, v1), (u0, v1))):
             uv.data[4 * i + k].uv = (u, v)
     me.update()
-    return link(bpy.data.objects.new(name, me))
+    ob = link(bpy.data.objects.new(name, me))
+    canon(name)                                 # the door: uv_check reads a canonical mesh at real scale
+    return ob
 
 def mirrored_pair(name):
     """Two quads mirrored across x = 0 in 3D (x in [0.5, 1.5] and [-1.5, -0.5]), each its own UV island."""
@@ -36,7 +38,9 @@ def mirrored_pair(name):
     for k, p in enumerate([(0.0, 0.0), (0.4, 0.0), (0.4, 0.4), (0.0, 0.4), (0.6, 0.0), (0.6, 0.4), (1.0, 0.4), (1.0, 0.0)]):
         uv.data[k].uv = p
     me.update()
-    return link(bpy.data.objects.new(name, me))
+    ob = link(bpy.data.objects.new(name, me))
+    canon(name)                                 # the door: uv_check reads a canonical mesh at real scale
+    return ob
 
 def uvhash(ob):
     return [tuple(round(c, 6) for c in d.uv) for d in ob.data.uv_layers.active.data]
@@ -150,7 +154,7 @@ print("RESULT", json.dumps({"s": s, "sel": sel, "u": u}))
 
 def test_refusals_name_the_fix(tmp_path):
     res = _go(tmp_path, '''
-me = bpy.data.meshes.new("n"); me.from_pydata([(0, 0, 0), (1, 0, 0), (1, 1, 0)], [], [(0, 1, 2)]); link(bpy.data.objects.new("n", me))
+me = bpy.data.meshes.new("n"); me.from_pydata([(0, 0, 0), (1, 0, 0), (1, 1, 0)], [], [(0, 1, 2)]); link(bpy.data.objects.new("n", me)); canon("n")
 quads("p", [(0.0, 0.0, 0.4, 0.4)])
 canon("n", "p")
 print("RESULT", json.dumps({"nouv": call("uv_check", object="n", action="measure"), "bad": call("uv_check", object="p", action="explode")}))

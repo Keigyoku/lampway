@@ -243,3 +243,54 @@ def test_without_bundled_models_the_server_gets_no_models_dir(tree, env, tmp_pat
     e, _ = env
     assert lampway(tree, e, "--env", "Prod").returncode == 0
     assert "LAMPWAY_MODELS_DIR=" not in (tmp_path / "server_env.txt").read_text()
+
+
+# ------------------------------------------------------------------------------------------------ Connections, migration step 2 (C7)
+def _state_env(env, tmp_path):
+    e, port = env
+    e = dict(e, XDG_STATE_HOME=str(tmp_path / "xdgstate"))
+    e.pop("LAMPWAY_KEYRING_FILE", None)
+    e.pop("LAMPWAY_SECRETS_DIR", None)
+    return e, port
+
+
+def test_old_keyring_file_moved_once(tree, env, tmp_path):
+    """The client's login pair leaves the agent sandbox's roots: $LAMPWAY_HOME/keyring.json moves to the state dir, once, verified."""
+    e, _ = _state_env(env, tmp_path)
+    old = tmp_path / "home" / "keyring.json"
+    old.parent.mkdir(parents=True)
+    pair = '{"LampwaySafeStorage": {"AccessToken": "tok-FAKE", "RefreshToken": "ref-FAKE"}}'
+    old.write_text(pair)
+    old.chmod(0o600)
+    new = tmp_path / "xdgstate" / "lampway" / "keyring.json"
+    r = lampway(tree, e, "--env", "Prod", "--no-server")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert not old.exists() and new.read_text() == pair
+    assert stat.S_IMODE(new.stat().st_mode) == 0o600 and stat.S_IMODE(new.parent.stat().st_mode) == 0o700
+    assert f"LAMPWAY_KEYRING_FILE={new}" in (tmp_path / "app.txt").read_text()
+    log = (tmp_path / "home" / "server-state" / "connections" / "log.jsonl").read_text()
+    assert '"action": "moved"' in log and "tok-FAKE" not in log and "tok-FAKE" not in r.stdout
+    r2 = lampway(tree, e, "--env", "Prod", "--no-server")
+    assert r2.returncode == 0 and new.read_text() == pair and log == (tmp_path / "home" / "server-state" / "connections" / "log.jsonl").read_text()
+
+
+def test_an_existing_new_keyring_is_never_overwritten(tree, env, tmp_path):
+    e, _ = _state_env(env, tmp_path)
+    old = tmp_path / "home" / "keyring.json"
+    old.parent.mkdir(parents=True)
+    old.write_text('{"a": {"u": "OLD"}}')
+    new = tmp_path / "xdgstate" / "lampway" / "keyring.json"
+    new.parent.mkdir(parents=True)
+    new.write_text('{"a": {"u": "NEW"}}')
+    r = lampway(tree, e, "--env", "Prod", "--no-server")
+    assert r.returncode == 0 and new.read_text() == '{"a": {"u": "NEW"}}' and old.exists()
+
+
+def test_the_server_gets_a_secrets_dir_outside_the_lampway_home(tree, env, tmp_path):
+    e, _ = _state_env(env, tmp_path)
+    r = lampway(tree, e, "--env", "Prod", "--provider", "mock")
+    assert r.returncode == 0, r.stdout + r.stderr
+    server_env = (tmp_path / "server_env.txt").read_text()
+    assert f"LAMPWAY_SECRETS_DIR={tmp_path}/xdgstate/lampway-secrets" in server_env
+    plan = lampway(tree, e, "--env", "Prod", "--plan").stdout
+    assert f"secrets_dir: {tmp_path}/xdgstate/lampway-secrets" in plan and f"keyring_file: {tmp_path}/xdgstate/lampway/keyring.json" in plan

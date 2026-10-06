@@ -70,8 +70,23 @@ void agent_ui_tabmedia_draw(const bContext *C,
     return;
   }
 
+  /* Facelift contract 08: the face the pump computed for this half, and the
+   * "Before you send" column it takes on the right when the pane is wide enough. */
+  PointerRNA wm_ptr = RNA_id_pointer_create(&wm->id);
+  char tab_id[64] = "IMAGE", tab_label[64] = "";
+  media_read_enum(C, &wm_ptr, "mixar_bubble_tab", tab_id, tab_label);
+  const bool video = STREQ(tab_id, "VIDEO");
+  PointerRNA tab_ptr = {};
+  const bool tab_ok = media_sidebar_tab_ptr(
+      scene, video ? "tab_video_gen" : "tab_imagegen", &tab_ptr);
+  MediaFace face;
+  const bool face_ok = tab_ok && media_face_read(C, RNA_struct_identifier(tab_ptr.type), &face);
+  const float column_w = face_ok ? media_face_column_w(panel, u) : 0.0f;
+  rctf work = panel; /* What the chips and the prompt box lay out in. */
+  work.xmax -= column_w;
+
   /* Drawable band: the panel clipped to this region's framebuffer. */
-  rctf band = panel;
+  rctf band = work;
   band.ymin = std::max(band.ymin, 0.0f);
   band.ymax = std::min(band.ymax, float(BLI_rcti_size_y(&region->winrct) + 1));
   if (BLI_rctf_size_y(&band) < 120.0f * u) {
@@ -86,17 +101,8 @@ void agent_ui_tabmedia_draw(const bContext *C,
   const float left = band.xmin + PANE_INSET_X * u;
   const float right = band.xmax - PANE_INSET_X * u;
 
-  /* The header tab is the single source of Image/Video selection. */
-  PointerRNA wm_ptr = RNA_id_pointer_create(&wm->id);
-  char tab_id[64] = "IMAGE", tab_label[64] = "";
-  media_read_enum(C, &wm_ptr, "mixar_bubble_tab", tab_id, tab_label);
-  const bool video = STREQ(tab_id, "VIDEO");
-
-  /* ---- Tab group + catalog identity. ---- */
-  PointerRNA tab_ptr = {};
-  const bool tab_ok = media_sidebar_tab_ptr(
-      scene, video ? "tab_video_gen" : "tab_imagegen", &tab_ptr);
-
+  /* ---- Tab group + catalog identity (the header tab, read above, is the
+   * single source of Image/Video selection). ---- */
   char mode_id[64] = "", mode_label[64] = "";
   char model_id[64] = "", model_label[64] = "";
   if (tab_ok) {
@@ -182,7 +188,7 @@ void agent_ui_tabmedia_draw(const bContext *C,
   float row_y = band.ymax - PANE_STRIP_TOP * u;
   /* Never lifted above the first chip row's own bottom — the box would climb
    * over the chips it is supposed to sit under. */
-  const float params_floor = std::min(pane_params_floor(panel, u), row_y - chip_h_px);
+  const float params_floor = std::min(pane_params_floor(work, u), row_y - chip_h_px);
   ui::MixarFlow flow;
   flow.x = flow.x0 = left;
   flow.x_max = right;
@@ -215,7 +221,7 @@ void agent_ui_tabmedia_draw(const bContext *C,
    * row INSIDE the box foot like every other pane. ---- */
 
   const float strip_bottom = std::max(row_y - chip_h_px, params_floor);
-  rctf prompt_box = pane_prompt_box_rect(panel, strip_bottom, u);
+  rctf prompt_box = pane_prompt_box_rect(work, strip_bottom, u);
   const bool prompt_fits = pane_prompt_fits(prompt_box, u);
   /* Generate is a PAID action and must never submit a prompt the user cannot
    * see or edit, so it is armed only where the field is actually drawn. */
@@ -261,10 +267,24 @@ void agent_ui_tabmedia_draw(const bContext *C,
    * the point — so an active job is INFORMATION (the label carries the
    * count), never a lock. Only a missing prompt field or an unusable
    * catalog can disarm it. */
-  const bool can_generate = tab_ok && !video_unavailable && prompt_ok;
-  char gen_label[64];
+  const bool refused = face_ok && STREQ(face.button_kind, "refused");
+  const bool can_generate = tab_ok && !video_unavailable && prompt_ok && !refused;
+  char gen_label[96];
   pane_queue_label(gen_label, sizeof(gen_label), active_jobs, running_jobs > 0);
-  generate = pane_generate_rect(prompt_box, u, gen_label);
+  if (face_ok && active_jobs == 0) {
+    /* The label carries the number: "Generate, ≈ $0.07", "Spend $0.40". */
+    STRNCPY(gen_label, face.button);
+  }
+  if (column_w > 0.0f) {
+    const rctf column = {work.xmax + 0.5f * PANE_INSET_X * u,
+                         panel.xmax - PANE_INSET_X * u,
+                         prompt_box.ymin + PANE_BOTTOM_UP * u,
+                         band.ymax - PANE_STRIP_TOP * u * 0.5f};
+    generate = media_face_paint(face, column, u);
+  }
+  else {
+    generate = pane_generate_rect(prompt_box, u, gen_label);
+  }
 
   /* ---- Controls. Two blocks, the composer's split: unembossed operator /
    * dropdown buttons, embossed prompt field. ---- */
@@ -334,7 +354,8 @@ void agent_ui_tabmedia_draw(const bContext *C,
                             bx + PANE_REF_THUMB_GAP * u,
                             bottom_y,
                             bottom_h,
-                            generate.xmin - PANE_CHIP_GAP * u,
+                            std::min(generate.xmin, prompt_box.xmax - PANE_BOTTOM_IN_R * u) -
+                                PANE_CHIP_GAP * u,
                             u);
     }
   }
@@ -396,7 +417,17 @@ void agent_ui_tabmedia_draw(const bContext *C,
                                 short(BLI_rctf_size_x(&generate)),
                                 short(BLI_rctf_size_y(&generate)),
                                 video ? TIP_("Generate a video") : TIP_("Generate images"));
-    ui::mixar_style_button(but, ui::MixarComponent::Action, ui::MixarVariant::Primary, u, agent_ui_text_unit());
+    /* Generate is the lamplit bed; a Spend that waits for your click is the accent fill (contract 08). */
+    const bool spend = face_ok && STREQ(face.button_kind, "spend");
+    ui::mixar_style_button(but,
+                           ui::MixarComponent::Action,
+                           spend ? ui::MixarVariant::Accent : ui::MixarVariant::Primary,
+                           u,
+                           agent_ui_text_unit());
+    if (but && face_ok) {
+      /* The policy sentence is the hover (the calm pass); a refusal says why instead. */
+      pane_but_tooltip_owned(but, refused ? face.refusal : face.policy);
+    }
     if (but && !can_generate) {
       ui::button_flag_enable(but, ui::BUT_DISABLED);
     }

@@ -103,7 +103,7 @@ msgstr ""
 msgid "agent: open Providers to choose"
 msgstr ""
 
-msgid "Providers and privacy"
+msgid "Choices and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -5165,8 +5165,23 @@ msgstr ""
 msgid "UE Look is on"
 msgstr ""
 
+msgid "R"
+msgstr "R"
+
+msgid "centre"
+msgstr ""
+
+msgid "Studios"
+msgstr ""
+
+msgid "Video and images"
+msgstr ""
+
 msgid "Front"
 msgstr "Davant"
+
+msgid "Run"
+msgstr ""
 
 msgid "RGB"
 msgstr "RGB"
@@ -5202,6 +5217,234 @@ msgid "KiB"
 msgstr ""
 
 msgid "MiB"
+msgstr ""
+
+msgid "Hide this note (the pill stays off; the preference brings it back)"
+msgstr ""
+
+msgid "Floating agent pill"
+msgstr ""
+
+msgid "When the chat is minimised, leave a small floating pill with the agent's state. Off: minimising closes the chat, and the agent chip in the top bar carries the state and opens it again"
+msgstr ""
+
+msgid "Pill note pending"
+msgstr ""
+
+msgid "Route"
+msgstr ""
+
+msgid "Where the next message goes"
+msgstr ""
+
+msgid "Send may leave"
+msgstr ""
+
+msgid "Generate estimates"
+msgstr ""
+
+msgid "Move this option up or down the chain (the first that can run serves the purpose)"
+msgstr ""
+
+msgid "Use yours again"
+msgstr ""
+
+msgid "Use yours again: drop this project's choice for this purpose"
+msgstr ""
+
+msgid "Allow private content"
+msgstr ""
+
+msgid "Allow (or take back) private content to an option whose provider may keep it; logged by the server"
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Accept what the agent proposed"
+msgstr ""
+
+msgid "Decline"
+msgstr ""
+
+msgid "Decline what the agent proposed; nothing changes"
+msgstr ""
+
+msgid "Show this purpose"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Read the choices again"
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
+msgid "What this says in full"
+msgstr ""
+
+msgid "No details"
+msgstr ""
+
+msgid "Choices"
+msgstr "Opcions"
+
+msgid "Choices: what Lampway uses for each thing now, and why"
+msgstr ""
+
+msgid "Providers are Choices now: the main agent, the workers, images, video and spending"
+msgstr ""
+
+msgid "Spending"
+msgstr ""
+
+msgid "Spending: what may spend without your click, and the caps"
+msgstr ""
+
+msgid "Change spending"
+msgstr ""
+
+msgid "Choose a purpose on the left"
+msgstr ""
+
+msgid "Accept for this project"
+msgstr ""
+
+msgid "Accept for all projects"
+msgstr ""
+
+msgid "The chain: the first option that can run serves it"
+msgstr ""
+
+msgid "this project overrides yours"
+msgstr ""
+
+msgid "This Lampway server has no Choices yet: the Providers dialog still sets the agent, images, video and spending"
+msgstr ""
+
+msgid "Providers"
+msgstr ""
+
+msgid "Lampway's server is not running: start it, then Refresh"
+msgstr ""
+
+msgid "On this machine"
+msgstr ""
+
+msgid "Use what is already on this machine (a login, a variable, a file)"
+msgstr ""
+
+msgid "Paste a key"
+msgstr ""
+
+msgid "Paste a key: it is kept in your keyring, or in a file only you can read"
+msgstr ""
+
+msgid "Point to a file or variable"
+msgstr ""
+
+msgid "Point at a file or an environment variable that holds it"
+msgstr ""
+
+msgid "Sign in"
+msgstr ""
+
+msgid "Sign in in your browser"
+msgstr ""
+
+msgid "Save and test"
+msgstr ""
+
+msgid "Save the pasted key and test it. The field empties itself; the key is never shown again"
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "Check that it works now"
+msgstr ""
+
+msgid "Use this"
+msgstr ""
+
+msgid "Use this way in for the connection"
+msgstr ""
+
+msgid "Sign in in your browser; the row waits, lit, until the browser comes back"
+msgstr ""
+
+msgid "Sign out"
+msgstr ""
+
+msgid "Sign out: the login is removed from Lampway"
+msgstr ""
+
+msgid "Forget this key"
+msgstr ""
+
+msgid "Forget the key Lampway keeps for this connection"
+msgstr ""
+
+msgid "Move into keyring"
+msgstr ""
+
+msgid "Move the key from a file into your keyring"
+msgstr ""
+
+msgid "Show this connection"
+msgstr ""
+
+msgid "How Lampway gets it"
+msgstr ""
+
+msgid "Choose how Lampway gets it"
+msgstr ""
+
+msgid "Read the connections again"
+msgstr ""
+
+msgid "Connections"
+msgstr ""
+
+msgid "Connections: which of your accounts work now, and which may send data"
+msgstr ""
+
+msgid "Open on this row"
+msgstr ""
+
+msgid "Choose a connection on the left"
+msgstr ""
+
+msgid "File"
+msgstr "Document"
+
+msgid "Variable"
+msgstr ""
+
+msgid "Use it"
+msgstr ""
+
+msgid "Use what is on this machine"
+msgstr ""
+
+msgid "Open in Privacy"
+msgstr ""
+
+msgid "Used by, other sources, history"
+msgstr ""
+
+msgid "The NAME of an environment variable (never its value)"
+msgstr ""
+
+msgid "LOADING"
+msgstr ""
+
+msgid "none"
+msgstr ""
+
+msgid "Tab of the face"
 msgstr ""
 
 msgid "ChatGPT plan"
@@ -5297,6 +5540,59 @@ msgstr ""
 msgid "Main agent"
 msgstr ""
 
+msgid "Switch route"
+msgstr ""
+
+msgid ""
+"Switch a route. Every route is off until you switch it on, and on takes two clicks of yours: this one opens the\n"
+"confirm row, its button lets data leave"
+msgstr ""
+
+msgid "The confirm row's own button"
+msgstr ""
+
+msgid "Not now"
+msgstr ""
+
+msgid "Close the confirm row: the route stays off"
+msgstr ""
+
+msgid "Allow this asset once"
+msgstr ""
+
+msgid "Let this one asset through this route once. Logged as an override; your click only"
+msgstr ""
+
+msgid "What this row says in full"
+msgstr ""
+
+msgid "What leaves this machine"
+msgstr ""
+
+msgid "What leaves this machine: the routes, what is sending, the last refusal and the log"
+msgstr ""
+
+msgid "Nothing is leaving this machine"
+msgstr ""
+
+msgid "Off"
+msgstr "Desactivada"
+
+msgid "Let it leave"
+msgstr ""
+
+msgid "What left, and what was refused"
+msgstr ""
+
+msgid "Privacy (what leaves this machine)"
+msgstr ""
+
+msgid "Privacy in the viewport's Lampway sidebar."
+msgstr ""
+
+msgid "The pop-out the status bar's wire chip opens."
+msgstr ""
+
 msgid "spend unknown: server not running"
 msgstr ""
 
@@ -5337,12 +5633,6 @@ msgid "Refresh privacy"
 msgstr ""
 
 msgid "Read the Privacy state from the server and keep it fresh while data may leave"
-msgstr ""
-
-msgid "Switch route"
-msgstr ""
-
-msgid "Opt a route in or out. Every route is OFF until you switch it on. Your click only"
 msgstr ""
 
 msgid "Export egress log"
@@ -5531,16 +5821,60 @@ msgstr ""
 msgid "Arguments"
 msgstr ""
 
-msgid "Confirm and spend"
+msgid "Add argument"
 msgstr ""
 
-msgid "Spend the credits: confirm this Studio action at the price shown. Only your own click can do this"
+msgid "Add an argument row to the plan form"
+msgstr ""
+
+msgid "Remove argument"
+msgstr ""
+
+msgid "Remove the selected argument row"
+msgstr ""
+
+msgid "It did not run"
+msgstr ""
+
+msgid "Say this job did not run: Lampway stops waiting for it and nothing is sent again (only you can do this)"
+msgstr ""
+
+msgid "Link its job id"
+msgstr ""
+
+msgid "It did run: give the job id from the provider's own history, and Lampway follows that job (nothing is sent again)"
+msgstr ""
+
+msgid "Job id"
+msgstr ""
+
+msgid "The job's id in the provider's own history"
+msgstr ""
+
+msgid "Link the provider's job id"
+msgstr ""
+
+msgid "Link"
+msgstr ""
+
+msgid ""
+"Spend: the one card for every spend that waits for your click (facelift contract 13). The price is on the button and\n"
+"is the price the server read back; only your own click on it spends, and Enter does nothing here"
 msgstr ""
 
 msgid "Price"
 msgstr ""
 
-msgid "Spend credits?"
+msgid "The state a refused confirm ended in (spend_face.classify)"
+msgstr ""
+
+msgid "Why, and what you can do"
+msgstr ""
+
+msgid "This quote expired: ask for the plan again"
+msgstr ""
+
+msgid "Close the card: nothing is spent, and the spend still waits in the Studios panel"
 msgstr ""
 
 msgid "Answer"
@@ -5717,10 +6051,10 @@ msgstr ""
 msgid "Save provider choices on the server (fields left empty are unchanged)"
 msgstr ""
 
-msgid "Providers"
-msgstr ""
-
-msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
+msgid ""
+"The Providers dialog: the main agent, the swarm workers, images, video and spending, saved on the server. Choices replaces\n"
+"it (specs/choices/facelift_06_amendment.md: lampway.providers_open opens Choices); it stays for a server that has no\n"
+"Choices yet and for the Change spending button in Choices"
 msgstr ""
 
 msgid "UE Look"
@@ -5798,7 +6132,22 @@ msgstr ""
 msgid "Lampway tools"
 msgstr ""
 
-msgid "Mesh QA"
+msgid "more"
+msgstr ""
+
+msgid "Last result"
+msgstr ""
+
+msgid "The whole last result (the main panel shows one line)."
+msgstr ""
+
+msgid "The way"
+msgstr ""
+
+msgid "The Way (facelift contract 07): the captain's piece runbook, one step per panel, a node for this piece."
+msgstr ""
+
+msgid "Find and draw candidates"
 msgstr ""
 
 msgid "Tags: Red = Delete, Green = Mislabel, Yellow = Hole"
@@ -5810,10 +6159,10 @@ msgstr ""
 msgid "Mesh-paint texturing"
 msgstr ""
 
-msgid "Parts and proportion tools"
+msgid "Review proposals"
 msgstr ""
 
-msgid "Review proposals"
+msgid "Reading the proposals..."
 msgstr ""
 
 msgid "Set a piece up first (Mesh QA)"
@@ -5831,19 +6180,19 @@ msgstr ""
 msgid "bundled drivers"
 msgstr ""
 
-msgid "Providers: agent, swarm, images"
+msgid "Choices: agent, images, video, spending"
 msgstr ""
 
-msgid "Waiting for YOUR confirmation"
-msgstr ""
-
-msgid "Plan (clicks nothing)"
-msgstr ""
-
-msgid "Features"
+msgid "Plan an action (clicks nothing)"
 msgstr ""
 
 msgid "Prompts"
+msgstr ""
+
+msgid "Rendered prompt"
+msgstr ""
+
+msgid "The rendered prompt, whole (it was eight cut labels)."
 msgstr ""
 
 msgid "Cockpit (agent sessions)"
@@ -5864,22 +6213,19 @@ msgstr ""
 msgid "The clip table: one row per action (primary class, speed, loop, an inferred marker, the proposed name). draw() reads the cache only."
 msgstr ""
 
-msgid "Privacy (what leaves this machine)"
-msgstr ""
-
-msgid "Privacy: every outbound route, off until you switch it on, with its retention and training policy; the DATA LEAVING badge; the last log rows. draw() reads the cache only."
-msgstr ""
-
-msgid "Switch off"
-msgstr ""
-
-msgid "Switch on"
-msgstr ""
-
 msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Runs and rating"
+msgstr ""
+
+msgid "Runs and rating of this template version"
+msgstr ""
+
+msgid "No runs yet"
 msgstr ""
 
 msgid "Engine defaults: not the project"
@@ -5898,6 +6244,39 @@ msgid "Show the signed-in name and address on the account card; off, it reads Lo
 msgstr ""
 
 msgid "enum values, | separated"
+msgstr ""
+
+msgid "Mean billed price of this version, or 'no runs yet'"
+msgstr ""
+
+msgid "Runs and rating of this version"
+msgstr ""
+
+msgid "Argument"
+msgstr ""
+
+msgid "The argument's name, as the Studio action names it (e.g. front, polycount)"
+msgstr ""
+
+msgid "Words"
+msgstr ""
+
+msgid "Number"
+msgstr "Nombre"
+
+msgid "A number"
+msgstr ""
+
+msgid "A file inside the project root"
+msgstr ""
+
+msgid "Yes / no"
+msgstr ""
+
+msgid "On or off"
+msgstr ""
+
+msgid "Inside the project root"
 msgstr ""
 
 msgid "Recipe"
@@ -6029,10 +6408,10 @@ msgstr "Eina"
 msgid "A prompt-library template (image or video)"
 msgstr ""
 
-msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
+msgid "Show"
 msgstr ""
 
-msgid "Job id"
+msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
 msgstr ""
 
 msgid "The job to rate"
@@ -6120,9 +6499,6 @@ msgid "Figure height (m)"
 msgstr ""
 
 msgid "0 = the deform mesh's rest height, else head bone to foot bone"
-msgstr ""
-
-msgid "Last result"
 msgstr ""
 
 msgid "UE profile"
@@ -7190,9 +7566,6 @@ msgstr "Referència {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "Aquesta plantilla necessita un model de generació disponible. Comprovi la connexió."
 
-msgid "Off"
-msgstr "Desactivada"
-
 msgid "Choose one of the options supported by this model."
 msgstr "Triï una de les opcions que admet aquest model."
 
@@ -8183,9 +8556,6 @@ msgstr "Valor de text"
 msgid "Whole-number value"
 msgstr "Valor enter"
 
-msgid "Number"
-msgstr "Nombre"
-
 msgid "Floating-point value"
 msgstr "[Float]: Valor de coma flotant"
 
@@ -8200,9 +8570,6 @@ msgstr "Giny"
 
 msgid "Group"
 msgstr "Grupal"
-
-msgid "Choices"
-msgstr "Opcions"
 
 msgid "Visibility Condition"
 msgstr "Condició de visibilitat"
@@ -12075,9 +12442,6 @@ msgstr "Matemàtica"
 
 msgid "Alpha"
 msgstr "Alfa"
-
-msgid "R"
-msgstr "R"
 
 msgid "G"
 msgstr ""
@@ -22402,9 +22766,6 @@ msgstr "Camí de fitxer o nom d'imatge del blend"
 msgid "Image Source"
 msgstr "Font de la imatge"
 
-msgid "File"
-msgstr "Document"
-
 msgid "Image from file system"
 msgstr "Imatge del sistema de fitxers"
 
@@ -22890,6 +23251,9 @@ msgstr "Identificador únic d'aquest element pendent"
 
 msgid "Todo item text"
 msgstr "Text de l'element pendent"
+
+msgid "The step's price chip: an estimate, a quote, billed, or local"
+msgstr ""
 
 msgid "Current status of the todo item"
 msgstr "Estat actual de l'element pendent"
@@ -25615,6 +25979,15 @@ msgstr "NOU"
 msgid "Ask %s anything..."
 msgstr ""
 
+msgid "agents running"
+msgstr ""
+
+msgid "jobs"
+msgstr ""
+
+msgid "No floating pill: its state is here (Preferences > Interface > Agent)"
+msgstr ""
+
 msgid "Write your prompt here..."
 msgstr "Escrigui la indicació aquí..."
 
@@ -25860,6 +26233,12 @@ msgstr "Generar un vídeo"
 
 msgid "Generate images"
 msgstr "Generar imatges"
+
+msgid "Before you send"
+msgstr ""
+
+msgid "leaves:"
+msgstr ""
 
 msgid "LOD"
 msgstr ""
@@ -27007,8 +27386,11 @@ msgstr "Col·loca i empaqueta les illes en 2 UDIM"
 msgid "Generate a 3D model of the image selected in moodboard"
 msgstr "Genera un model 3D de la imatge seleccionada al moodboard"
 
-msgid "Hey friend! How can I help today?"
-msgstr "Hola! En què el puc ajudar avui?"
+msgid "spends credits: priced first"
+msgstr ""
+
+msgid "Ask %s anything. Plans, questions and spends wait for you."
+msgstr ""
 
 msgid "Add a comment (optional)"
 msgstr "Afegir un comentari (opcional)"

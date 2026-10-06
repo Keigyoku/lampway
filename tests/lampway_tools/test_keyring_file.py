@@ -85,12 +85,6 @@ def test_a_corrupt_file_reads_as_empty_and_is_replaced_on_write(kr, tmp_path):
     assert json.loads(f.read_text())["s"]["u"] == "p"
 
 
-def test_default_path_is_under_lampway_home(monkeypatch, tmp_path):
-    monkeypatch.delenv("LAMPWAY_KEYRING_FILE", raising=False)
-    monkeypatch.setenv("LAMPWAY_HOME", str(tmp_path / "home"))
-    assert keyring_file.keyring_path() == tmp_path / "home" / "keyring.json"
-
-
 def test_it_is_a_usable_keyring_backend_by_dotted_name(tmp_path, monkeypatch, real_keyring):
     monkeypatch.setenv("LAMPWAY_KEYRING_FILE", str(tmp_path / "k.json"))
     monkeypatch.setenv("PYTHON_KEYRING_BACKEND", "mixar.modules.lampway_tools.keyring_file.FileKeyring")
@@ -98,3 +92,19 @@ def test_it_is_a_usable_keyring_backend_by_dotted_name(tmp_path, monkeypatch, re
     keyring.core.init_backend()
     keyring.set_password("LampwaySafeStorage", "RefreshToken", "r1")
     assert keyring.get_password("LampwaySafeStorage", "RefreshToken") == "r1"
+
+
+def test_the_default_file_is_outside_the_lampway_home(tmp_path, monkeypatch):
+    """Connections C7: the agent's script sandbox reaches the Lampway home, so the login pair's default place is the state dir."""
+    monkeypatch.delenv("LAMPWAY_KEYRING_FILE", raising=False)
+    monkeypatch.setenv("LAMPWAY_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    assert keyring_file.keyring_path() == tmp_path / "state" / "lampway" / "keyring.json"
+
+
+def test_a_moved_pair_still_signs_the_client_in(tmp_path, monkeypatch):
+    moved = tmp_path / "state" / "lampway" / "keyring.json"
+    moved.parent.mkdir(parents=True)
+    moved.write_text(json.dumps({"LampwaySafeStorage": {"AccessToken": "tok-FAKE"}}))
+    monkeypatch.setenv("LAMPWAY_KEYRING_FILE", str(moved))
+    assert keyring_file.FileKeyring().get_password("LampwaySafeStorage", "AccessToken") == "tok-FAKE"

@@ -592,7 +592,7 @@ const bTheme U_theme_default = {
     .vertex_size = 3,
     .outline_width = 1,
     .facedot_size = 4,
-    .simulated_frames = RGBA(0xf27bcb66),
+    .simulated_frames = RGBA(0x9ea0f766),
     .keyframe_scale_fac = 1.0f,
     .anim_active = RGBA(0x23264a66),
   },

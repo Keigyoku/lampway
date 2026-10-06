@@ -5,6 +5,7 @@
 """What the Privacy panel shows: the last /app/egress snapshot and the last log rows. One writer (the refresh operator and its timer), many readers; draw() reads this and never the network."""
 
 STATE = {"routes": [], "indicator": {"over_the_wire": False, "active": [], "last": None}, "log": [], "error": ""}
+PENDING = {"route": ""}   # the route whose confirm row is open (facelift contract 12: switching on takes the user's two clicks)
 
 
 def update(state: dict, log: list) -> None:

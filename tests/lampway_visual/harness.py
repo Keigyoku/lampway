@@ -86,7 +86,7 @@ def run_state(state, out_dir, *, plant=None, timeout=300):
            "--factory-startup", "--enable-event-simulate", "--window-geometry", "0", "0", *map(str, WINDOW),
            "--python-exit-code", "1", "--python", str(DRIVER), "--",
            str(STATES / f"{state}.py"), str(out), json.dumps(plant or {})]
-    done = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    done = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env=_runner_env())
     (out / "run.log").write_text(done.stdout + done.stderr, encoding="utf-8")
     report_path = out / "report.json"
     if done.returncode != 0 or not report_path.exists():
@@ -105,6 +105,19 @@ def run_state(state, out_dir, *, plant=None, timeout=300):
     report["expect"] = expectations(state)
     report_path.write_text(json.dumps(report, indent=1), encoding="utf-8")
     return report
+
+
+def _runner_env():
+    """The environment of the display runner itself (podman / xvfb-run), not of the build. The test session points HOME and
+    the XDG homes into the basetemp (conftest.py: no test touches the person's home); rootless podman reads its container
+    store from the person's home, so the runner gets that home back. The build inside never sees it: the ``env`` in front
+    of it sets HOME and every XDG home to the run's own directory."""
+    import pwd
+    out = dict(os.environ)
+    out["HOME"] = pwd.getpwuid(os.getuid()).pw_dir
+    for key in ("XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_STATE_HOME", "XDG_CACHE_HOME"):
+        out.pop(key, None)
+    return out
 
 
 def token_failures(report):

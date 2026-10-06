@@ -44,6 +44,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "UI_mixar_theme.hh"
+
 #include "mixie_chat_intern.hh"
 /* Mixar 5.2 port: namespace wrap. */
 namespace blender {
@@ -199,6 +201,10 @@ void mixie_chat_render_messages(const bContext *C,
                             todo_bubble_y - layout.slot_todo_height,
                             todo_block_width, layout.slot_todo_height,
                             layout.content_width);
+        float agent_rule[4];
+        chat_ui_get_agent_color(agent_rule); /* the plan: the agent wrote it (facelift contract 04) */
+        chat_ui_draw_block_rule(layout.bubble_x, todo_bubble_y - layout.slot_todo_height,
+                                layout.slot_todo_height, agent_rule, UI_SCALE_FAC);
       }
 
       if (layout.is_slot_based && layout.slot_action_count > 0) {
@@ -215,6 +221,25 @@ void mixie_chat_render_messages(const bContext *C,
                                          2.0f * layout.style.h_padding +
                                          4.0f * UI_SCALE_FAC;
 
+        /* A question or choice waits for the user (facelift contract 04, DESIGN.md 4): lamplight behind the whole
+         * set of choices, and a `line_hi` rule beside it. */
+        {
+          float total = 0.0f;
+          for (int i = 0; i < layout.slot_action_count; i++) {
+            total += layout.slot_actions[i].height + (i ? metrics.bubble_spacing : 0.0f);
+          }
+          rctf waiting;
+          waiting.xmin = layout.bubble_x;
+          waiting.xmax = layout.bubble_x + action_block_width;
+          waiting.ymax = action_y;
+          waiting.ymin = action_y - total;
+          chat_ui_draw_lamplight(&waiting, layout.style.corner_radius, UI_SCALE_FAC);
+          float line_hi[4];
+          ui::mixar_theme_color_f(ui::MixarThemeSlot::BorderStrong, line_hi);
+          chat_ui_draw_block_rule(waiting.xmin - 6.0f * UI_SCALE_FAC, waiting.ymin, total, line_hi,
+                                  UI_SCALE_FAC);
+        }
+
         for (int i = 0; i < layout.slot_action_count; i++) {
           ActionSlotData &action = mutable_layout.slot_actions[i];
 
@@ -227,9 +252,13 @@ void mixie_chat_render_messages(const bContext *C,
           /* Choose background color based on style and hover state */
           ChatBubbleStyle action_style = layout.style;
           if (action.style == 2) {
-            /* Danger style - red tinted */
-            float danger_color[4] = {0.8f, 0.2f, 0.2f, 0.3f};
-            memcpy(action_style.bg_color, danger_color, sizeof(float) * 4);
+            /* Danger style: the theme's `stop`, tinted */
+            ui::mixar_theme_color_f(ui::MixarThemeSlot::Danger, action_style.bg_color);
+            action_style.bg_color[3] = 0.3f;
+          } else if (action.style == 0) {
+            /* The primary choice is the one flame on screen: `accent` fill, `on_accent` text. */
+            ui::mixar_theme_color_f(ui::MixarThemeSlot::Focus, action_style.bg_color);
+            ui::mixar_theme_color_f(ui::MixarThemeSlot::BrandText, action_style.text_color);
           } else {
             chat_ui_get_prompt_button_color(action_style.bg_color);
           }
@@ -237,8 +266,10 @@ void mixie_chat_render_messages(const bContext *C,
           /* Override with hover color if currently hovered */
           if (action.is_hovered) {
             if (action.style == 2) {
-              float danger_hover[4] = {0.9f, 0.3f, 0.3f, 0.5f};
-              memcpy(action_style.bg_color, danger_hover, sizeof(float) * 4);
+              ui::mixar_theme_color_f(ui::MixarThemeSlot::Danger, action_style.bg_color);
+              action_style.bg_color[3] = 0.5f;
+            } else if (action.style == 0) {
+              /* stays the accent fill: the click is the same one */
             } else {
               memcpy(action_style.bg_color, layout.style.hover_color,
                      sizeof(float) * 4);

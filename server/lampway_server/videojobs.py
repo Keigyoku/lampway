@@ -123,6 +123,7 @@ class VideoSystem:
         self.uploads = UploadStore(self.root / "uploads", probe)
         self.jobs = None                          # set by create_app: the JobQueue this system serves
         self._or_models = None
+        self._or_read_at = 0.0                    # when the OpenRouter catalogue (and so its listed prices) was read
         self._or_failed_until = 0.0
         self._hf_cache: dict = {}
 
@@ -142,6 +143,7 @@ class VideoSystem:
         if self._or_models is None and time.time() >= self._or_failed_until:
             try:
                 self._or_models = self.client.models()
+                self._or_read_at = time.time()
             except Exception as exc:  # noqa: BLE001 - no key, no network: the capability stays hidden, retried in a minute
                 log.info("the OpenRouter video catalogue is unavailable: %s", type(exc).__name__)
                 self._or_failed_until = time.time() + 60
@@ -228,13 +230,16 @@ class VideoSystem:
         return out
 
     def upscale_models(self) -> list:
+        from . import choices as CH
+        chosen = (CH.preferred("video.upscale") or "").split(":", 1)[-1]           # HC12: the video.upscale choice is the default when listed
+        rows = [r for r in self._openrouter_models() if VG.is_upscaler(r)]
+        default = chosen if any(r["id"] == chosen for r in rows) else (rows[0]["id"] if rows else None)
         out = []
-        for row in self._openrouter_models():
-            if VG.is_upscaler(row):
-                span = row["upscale_factor"]
-                out.append({"slug": row["id"], "label": row.get("name") or row["id"], "is_default": not out, "max_reference_images": 0, "parameters": {
-                    "upscale_factor": {"type": "number", "label": "Upscale factor", "default": 2, "min": span["min"], "max": span["max"], "visible": True, "order": 1},
-                    "creativity": {"type": "integer", "label": "Creativity (0 precise, 1 creative)", "enum": [0, 1], "default": 0, "visible": True, "order": 2}}})
+        for row in rows:
+            span = row["upscale_factor"]
+            out.append({"slug": row["id"], "label": row.get("name") or row["id"], "is_default": row["id"] == default, "max_reference_images": 0, "parameters": {
+                "upscale_factor": {"type": "number", "label": "Upscale factor", "default": 2, "min": span["min"], "max": span["max"], "visible": True, "order": 1},
+                "creativity": {"type": "integer", "label": "Creativity (0 precise, 1 creative)", "enum": [0, 1], "default": 0, "visible": True, "order": 2}}})
         return out
 
     def image_models(self) -> list:
@@ -266,6 +271,20 @@ class VideoSystem:
         images = [self.uploads.get(k) for k in payload.get("reference_image_s3_keys") or []]
         videos = [self.uploads.get(k) for k in ([payload["video_s3_key"]] if payload.get("video_s3_key") else payload.get("reference_video_s3_keys") or [])]
         return images, videos
+
+    def listing_estimate(self, model: str, params: dict, references: int = 0) -> dict:
+        """The price of an OpenRouter video job from the model listing the server already read (facelift contract 08): no upload, no request.
+        ``usd`` None with the reason when the model, its parameters or its price family are not known."""
+        row = next((m for m in self._openrouter_models() if m.get("id") == model), None)
+        if row is None:
+            return {"usd": None, "basis": f"{model} is not in the OpenRouter video listing this server read", "known": False, "read_at": self._or_read_at}
+        raw = dict(params or {})
+        raw.pop("image_mode", None)
+        try:
+            clean = VG.validate(row, dict(raw, frame_images=[], reference_videos=[]))
+        except VG.VideoError as exc:
+            return {"usd": None, "basis": str(exc), "known": False, "read_at": self._or_read_at}
+        return dict(VG.estimate(row, dict(clean, frames=0, references=int(references or 0))), read_at=self._or_read_at)
 
     def plan(self, service: str, model: str, payload: dict) -> dict:
         """What the job would do and cost; for Higgsfield also the uploads and the get_cost price (``gated``: the user confirms)."""

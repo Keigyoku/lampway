@@ -19,6 +19,7 @@ def _rows(root, piece):
 
 def test_the_plan_names_each_steps_tool_cost_and_gate_and_auto_is_no_spend_gate(tmp_path):
     r = run(tmp_path, '''
+sphere("crate", 0.5, subdiv=3); canon("crate", scale="any")
 plan = call("workflow_reference_to_asset", piece="Crate", route="existing", existing_object="crate", steps=["prep", "retopo", "uv", "texture", "export"])
 auto = call("workflow_reference_to_asset", piece="Crate", route="existing", existing_object="crate", gates={"spend": "auto"})
 noobj = call("workflow_reference_to_asset", piece="Crate", route="existing")
@@ -35,10 +36,10 @@ print("RESULT", json.dumps({"plan": plan, "auto": auto, "noobj": noobj}))
 
 def test_a_cube_runs_prep_retopo_uv_and_each_step_leaves_a_decision_row_and_a_spend_step_stays_blocked(tmp_path):
     r = run(tmp_path, '''
-sphere("crate", 0.5, subdiv=4)                     # 1280 faces: the retopo target (2000) must be within 3x the source (canon INV-12.5)
+sphere("crate", 0.5, subdiv=4); canon("crate", scale="any")     # 1280 faces: the retopo target (2000) within 3x the source (INV-12.5)
 a = call("workflow_reference_to_asset", piece="Crate", route="existing", existing_object="crate", steps=["prep", "retopo", "uv", "texture"], run=True)
 again = call("workflow_reference_to_asset", piece="Crate", route="existing", existing_object="crate", steps=["prep", "retopo", "uv", "texture"], run=True, resume=True)
-sphere("barrel", 0.4, subdiv=3, loc=(3, 0, 0))
+sphere("barrel", 0.4, subdiv=3, loc=(3, 0, 0)); canon("barrel", scale="any")
 b = call("workflow_reference_to_asset", piece="Barrel", route="existing", existing_object="barrel", steps=["prep"], run=True)
 print("RESULT", json.dumps({"a": a, "again": again, "b": b, "objects": sorted(o.name for o in bpy.data.objects)}))
 ''', timeout=900)

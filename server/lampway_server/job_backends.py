@@ -43,14 +43,10 @@ src, op, p, out = a["input"], a["op"], a["params"], a["out"]
 res = {"files": [], "report": {}}
 def imported():
     ext = os.path.splitext(src)[1].lower()
-    if ext in (".glb", ".gltf"):
-        bpy.ops.import_scene.gltf(filepath=src)  # LEGACY(normalize): a Client job file (Tripo/Hunyuan GLB) lands raw; canon_io.import_canonical when it lands
-    elif ext == ".obj":
-        bpy.ops.wm.obj_import(filepath=src)  # LEGACY(normalize): raw OBJ (+Y up by default), not normalized; route through canon_io
-    elif ext == ".fbx":
-        bpy.ops.import_scene.fbx(filepath=src)  # LEGACY(normalize): raw FBX (cm, axis by exporter), not normalized; route through canon_io
-    else:
+    if ext not in (".glb", ".gltf", ".obj", ".fbx"):
         raise SystemExit("unsupported mesh file " + ext)
+    from mixar.modules.lampway_tools import canon_io          # the one importer: the job file lands stamped lw_raw
+    canon_io.import_raw(src)
     ms = [o for o in bpy.context.scene.objects if o.type == "MESH"]
     if not ms:
         raise SystemExit("no mesh in the file")

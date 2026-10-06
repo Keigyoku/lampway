@@ -12,12 +12,24 @@
  * Split from mixie_chat_messages.cc for modularity.
  */
 
+#include <algorithm>
 #include <cstring>
+#include <optional>
+#include <string>
 
 #include "BLI_rect.h"
 #include "BLI_time.h"
 
+#include "BKE_appdir.hh"
 #include "BKE_context.hh"
+
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
+
+#include "RNA_access.hh"
+#include "RNA_prototypes.hh"
+
+#include "UI_mixar_theme.hh"
 
 #include "BLF_api.hh"
 
@@ -28,6 +40,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "GPU_immediate.hh"
 #include "GPU_state.hh"
 
 #include "UI_interface.hh"
@@ -78,6 +91,95 @@ const char *g_empty_prompt_generate_types[CHAT_EMPTY_PROMPT_COUNT] = {
     "",          /* "Place and pack islands..." - not GENERATE mode */
     "model_3d",  /* "Generate a 3D model..." */
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Facelift contract 04: the brand line in Fraunces, and an estimate on every prompt that spends
+ * \{ */
+
+/** The vendored Fraunces (release/datafiles/fonts/Fraunces.woff2); the default face when it is missing. */
+static int empty_state_heading_font()
+{
+  static int font = -2;
+  if (font == -2) {
+    font = -1;
+    if (std::optional<std::string> dir = BKE_appdir_folder_id(BLENDER_DATAFILES, "fonts")) {
+      char path[FILE_MAX];
+      BLI_path_join(path, sizeof(path), dir->c_str(), "Fraunces.woff2");
+      font = BLF_load(path);
+    }
+  }
+  return font >= 0 ? font : BLF_default();
+}
+
+/** The chip words for a generate type ("≈ 30 credits est."), from the WindowManager's
+ * `lampway_generate_estimates` ("image_gen=...;model_3d=..."), which lampway_tools/chat_route.py fills from the
+ * generation catalogue. Empty when the type does not spend. */
+static std::string empty_state_estimate(const bContext *C, const char *generate_type)
+{
+  if (!generate_type || !generate_type[0]) {
+    return "";
+  }
+  wmWindowManager *wm = CTX_wm_manager(C);
+  std::string table;
+  if (wm) {
+    PointerRNA wm_ptr = RNA_id_pointer_create(&wm->id);
+    if (PropertyRNA *prop = RNA_struct_find_property(&wm_ptr, "lampway_generate_estimates")) {
+      char buf[512];
+      RNA_property_string_get(&wm_ptr, prop, buf);
+      table = buf;
+    }
+  }
+  const std::string key = std::string(generate_type) + "=";
+  size_t at = table.find(key);
+  if (at != std::string::npos && (at == 0 || table[at - 1] == ';')) {
+    at += key.size();
+    return table.substr(at, table.find(';', at) - at);
+  }
+  /* Spends, price not known yet: say so rather than show a number nobody computed. */
+  return IFACE_("spends credits: priced first");
+}
+
+/** A dashed chip (DESIGN.md 8: an estimate is dashed, so it can never be read as a quote). */
+static void empty_state_draw_chip(const char *text, float right, float cy, int font_size, float scale)
+{
+  float muted[4], line[4];
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::TextSecondary, muted);
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::BorderStrong, line);
+  const int font = BLF_default();
+  BLF_size(font, font_size);
+  const float pad = 6.0f * scale;
+  const float w = BLF_width(font, text, strlen(text)) + 2.0f * pad;
+  const float h = float(font_size) + 2.0f * pad * 0.6f;
+  const float x0 = right - w, y0 = cy - h * 0.5f, x1 = right, y1 = cy + h * 0.5f;
+  const float dash = 4.0f * scale;
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor4fv(line);
+  immBegin(GPU_PRIM_LINES, 4 * (int((x1 - x0) / dash) + int((y1 - y0) / dash) + 4));
+  int verts = 0;
+  for (float x = x0; x < x1; x += 2.0f * dash) {
+    immVertex2f(pos, x, y0); immVertex2f(pos, std::min(x + dash, x1), y0);
+    immVertex2f(pos, x, y1); immVertex2f(pos, std::min(x + dash, x1), y1);
+    verts += 4;
+  }
+  for (float y = y0; y < y1; y += 2.0f * dash) {
+    immVertex2f(pos, x0, y); immVertex2f(pos, x0, std::min(y + dash, y1));
+    immVertex2f(pos, x1, y); immVertex2f(pos, x1, std::min(y + dash, y1));
+    verts += 4;
+  }
+  while (verts < 4 * (int((x1 - x0) / dash) + int((y1 - y0) / dash) + 4)) { /* pad the declared count */
+    immVertex2f(pos, x0, y0);
+    verts++;
+  }
+  immEnd();
+  immUnbindProgram();
+  BLF_color4fv(font, muted);
+  BLF_position(font, x0 + pad, cy - float(font_size) * 0.35f, 0.0f);
+  BLF_draw(font, text, strlen(text));
+}
 
 /** \} */
 
@@ -138,6 +240,12 @@ void mixie_chat_draw_empty_state(const bContext *C,
                              &text_width, &text_height);
     bubble_heights[i] = text_height + bubble_padding_v * 2.0f;
     bubble_widths[i] = text_width + bubble_padding_h * 2.0f + 4.0f;
+    if (STREQ(g_empty_prompt_modes[i], "GENERATE")) { /* room for the estimate chip */
+      const std::string chip = empty_state_estimate(C, g_empty_prompt_generate_types[i]);
+      BLF_size(font_id, int(float(metrics.font_size) * 0.8f));
+      bubble_widths[i] += BLF_width(font_id, chip.c_str(), chip.size()) + 24.0f * metrics.scale_factor;
+      BLF_size(font_id, metrics.font_size);
+    }
 
     if (bubble_widths[i] > max_bubble_width) {
       bubble_widths[i] = max_bubble_width;
@@ -155,14 +263,19 @@ void mixie_chat_draw_empty_state(const bContext *C,
 
   float uniform_bubble_width = max_bubble_width_found;
 
-  /* Heading text */
-  const char *heading_text = IFACE_("Hey friend! How can I help today?");
+  /* Heading: the brand line, in Fraunces 28 (BRAND.md 6, facelift contract 04). */
+  char heading_buf[256];
+  BLI_snprintf(heading_buf, sizeof(heading_buf),
+               IFACE_("Ask %s anything. Plans, questions and spends wait for you."), "Lampway Agent");
+  const char *heading_text = heading_buf;
   const float heading_spacing = 24.0f * metrics.scale_factor;
-  int heading_font_size = int(float(metrics.font_size) * 1.2f);
+  const int heading_font = empty_state_heading_font();
+  const int heading_font_size = int(28.0f * metrics.scale_factor);
+  const float heading_max_w = float(winx) * 0.8f;
 
   float heading_width, heading_height;
-  chat_ui_calc_text_bounds(heading_text, float(winx), heading_font_size, 0,
-                           &heading_width, &heading_height);
+  chat_ui_calc_text_bounds_font(heading_text, heading_max_w, heading_font_size, 0, heading_font,
+                                &heading_width, &heading_height);
 
   float total_height_with_heading = heading_height + heading_spacing + total_prompt_height;
 
@@ -219,10 +332,13 @@ void mixie_chat_draw_empty_state(const bContext *C,
   float heading_x = (float(winx) - heading_width) / 2.0f;
   float heading_y = start_y - heading_height;
   float anim_heading_col[4] = {text_color[0], text_color[1], text_color[2], h_prog};
-  BLF_size(font_id, heading_font_size);
-  BLF_color4fv(font_id, anim_heading_col);
-  BLF_position(font_id, heading_x, heading_y - h_yoff, 0.0f);
-  BLF_draw(font_id, heading_text, strlen(heading_text));
+  rctf heading_rect;
+  heading_rect.xmin = heading_x;
+  heading_rect.xmax = heading_x + heading_width + 1.0f;
+  heading_rect.ymin = heading_y - h_yoff;
+  heading_rect.ymax = heading_y - h_yoff + heading_height;
+  chat_ui_draw_text_wrapped_font(heading_text, &heading_rect, heading_font_size, 0, heading_font,
+                                 anim_heading_col);
 
   BLF_size(font_id, metrics.font_size);
   start_y = heading_y - heading_spacing;
@@ -271,6 +387,18 @@ void mixie_chat_draw_empty_state(const bContext *C,
     text_rect.ymax = start_y - bubble_padding_v - b_yoff;
     chat_ui_draw_text_wrapped(IFACE_(g_empty_prompt_texts[i]), &text_rect, metrics.font_size, 0,
                               anim_text_col);
+
+    /* A prompt that switches to GENERATE can spend: it carries its estimate (facelift contract 04). */
+    if (STREQ(g_empty_prompt_modes[i], "GENERATE")) {
+      const std::string chip = empty_state_estimate(C, g_empty_prompt_generate_types[i]);
+      if (!chip.empty()) {
+        empty_state_draw_chip(chip.c_str(),
+                              bubble_x + uniform_bubble_width - 8.0f * metrics.scale_factor,
+                              (bubble_y + start_y) * 0.5f - b_yoff,
+                              int(float(metrics.font_size) * 0.8f),
+                              metrics.scale_factor);
+      }
+    }
 
     start_y = bubble_y - bubble_spacing;
   }

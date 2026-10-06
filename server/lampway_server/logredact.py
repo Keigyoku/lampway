@@ -16,10 +16,21 @@ _QUERY = re.compile(r"(?i)([?&](?:" + "|".join(SENSITIVE) + r")=)[^&\s\"'#]*")
 _JWT = re.compile(r"eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+")
 _SK = re.compile(r"sk-[A-Za-z0-9_\-]{16,}")
 _installed = False
+_SECRETS: set = set()
+
+
+def register_secret(value) -> None:
+    """Remember an exact secret value (in memory only) so every later log record and refusal string has it replaced."""
+    if isinstance(value, str) and len(value) >= 8:
+        _SECRETS.add(value)
 
 
 def redact_text(text) -> str:
-    out = _QUERY.sub(lambda m: m.group(1) + REDACTED, str(text))
+    out = str(text)
+    for secret in sorted(_SECRETS, key=len, reverse=True):          # exact values first: a key with no known shape is still a key
+        if secret in out:
+            out = out.replace(secret, REDACTED)
+    out = _QUERY.sub(lambda m: m.group(1) + REDACTED, out)
     return _SK.sub(REDACTED, _JWT.sub(REDACTED, out))
 
 
@@ -43,6 +54,8 @@ def install() -> None:
                 record.args = tuple(_clean(a) for a in record.args)
             elif isinstance(record.args, dict):
                 record.args = {k: _clean(v) for k, v in record.args.items()}
+            if record.exc_info and not record.exc_text:                     # a traceback is text too: format it once, redacted
+                record.exc_text = redact_text(logging.Formatter().formatException(record.exc_info))
         except Exception:  # noqa: BLE001 - a malformed record is not ours to judge
             pass
         return record

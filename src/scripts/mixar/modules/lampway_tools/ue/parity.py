@@ -52,6 +52,7 @@ def parity_refusals(profile):
 
 
 def _load_exr(path):
+    from .. import canon_io
     img = canon_io.load_image(str(path), check_existing=False)
     try:
         w, h = img.size

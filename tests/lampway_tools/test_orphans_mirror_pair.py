@@ -16,11 +16,14 @@ def crest(name, cx=0.4):
     ob = boxes(name, [((cx, 0.0, 1.0), (0.10, 0.20, 0.30))])
     g1 = ob.vertex_groups.new(name="hand_l"); g1.add(list(range(len(ob.data.vertices))), 1.0, "REPLACE")
     ob.vertex_groups.new(name="spine_01")
+    canon(name)                                 # the door: a mesh tool reads canonical input
     return ob
 
 def lion(name, cx=0.4):
     """An asymmetric piece: a plate with a head block on its outer side only."""
-    return boxes(name, [((cx, 0.0, 1.0), (0.20, 0.20, 0.05)), ((cx + 0.08, 0.0, 1.06), (0.05, 0.08, 0.08))])
+    ob = boxes(name, [((cx, 0.0, 1.0), (0.20, 0.20, 0.05)), ((cx + 0.08, 0.0, 1.06), (0.05, 0.08, 0.08))])
+    canon(name)
+    return ob
 
 def outward(ob):
     """Every face normal points away from the shape's centre (a closed convex box)."""

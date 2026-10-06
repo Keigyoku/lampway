@@ -161,6 +161,12 @@ def _on_workspace_change() -> None:
         return
 
     if _st.user_explicitly_closed:
+        from mixar.modules.agent_bubble.core import pill_pref
+        if not pill_pref.enabled():
+            # The floating pill is off (the default): a chat the user closed stays closed. The top bar's agent chip
+            # is the way back in.
+            logger.debug("agent_bubble: workspace change keeps the closed chat closed (pill off)")
+            return
         logger.debug(
             "agent_bubble: workspace change → reopening in pill-only state"
         )
@@ -302,6 +308,17 @@ def _draw_topbar_open_agent(self, context):
     layout = self.layout
 
     layout.separator()
+    # With the floating pill off (the default; facelift 04/05) the way back into a closed chat is this agent chip:
+    # the pill's cues on one button. With the pill on, the pill is the way in, as before.
+    try:
+        from mixar.modules.agent_bubble.core import pill_pref, unread
+        if not pill_pref.enabled():
+            from mixar.modules.agent_bubble.ui import glance
+            scene = context.scene
+            glance.draw_topbar(layout, scene, context.window_manager, island_open=_has_agent_bubble_windows(),
+                               unread=unread.count(scene))
+    except Exception:  # noqa: BLE001 - a header draw must never raise
+        pass
     # No "Open Mixie" button in either mode: the chat's own floating pill is
     # the way in, and a second door to the same room only crowded the topbar.
     # The update BADGE below stays — it is the only persistent signal that an

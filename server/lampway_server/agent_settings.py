@@ -2,10 +2,11 @@
 model preference, stored locally under the state dir. The provider/model
 catalogue the client's pickers show is ours (GET /agent/models)."""
 
-import json
-import os
+import logging
 from pathlib import Path
 from typing import Optional
+
+from .connections import files as CF
 
 ANTHROPIC_MODELS = [
     ("claude-sonnet-5-5", "Claude Sonnet 5.5"),
@@ -38,49 +39,97 @@ def known_models(settings) -> set:
     return {(p["id"], m["id"]) for p in models_catalog(settings)["providers"] for m in p["models"]}
 
 
+BYOK_CONNECTIONS = {"anthropic": "anthropic", "openai": "custom_llm"}
+
+
 class AgentSettingsStore:
-    """One JSON file, mode 0600. Keys are written here and nowhere else."""
+    """One JSON file, mode 0600: the hosted model preference and the BYOK choice. A BYOK key lives in Connections, never here."""
 
     def __init__(self, state_dir: Path):
         self._path = Path(state_dir) / "agent_settings.json"
         self._data = {"byok": None, "preferences": {}}
-        if self._path.exists():
-            try:
-                self._data.update(json.loads(self._path.read_text()))
-            except ValueError:
-                pass
+        try:
+            self._data.update(CF.read_json(self._path))
+        except CF.Unreadable as exc:                 # set aside, never emptied: the user's file survives as <name>.corrupt-<time>
+            logging.getLogger("lampway.settings").warning("%s", exc)
 
     def _save(self):
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        fd = os.open(self._path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, "w") as handle:
-            json.dump(self._data, handle)
+        CF.atomic_write_json(self._path, self._data)          # a crash mid-write keeps the old file (finding F5)
 
     # ------------------------------------------------------------------ BYOK
+    # C5: BYOK only writes into Connections. The key becomes the manual source of the matching connection; this file keeps the choice
+    # ({provider, model, base_url, supports_vision}) and where the key went, never the key (finding F3).
+    def _hub(self):
+        from . import connections as C
+        return C.active()
+
     def credentials_view(self) -> dict:
         byok = self._data.get("byok")
         if not byok:
             return {"byok_active": False, "items": []}
-        key = byok.get("api_key") or ""
+        key, preview = byok.get("api_key") or "", ""
+        if key:                                                   # a key not yet moved (an older file whose move failed)
+            preview = f"...{key[-4:]}"
+        elif byok.get("connection"):
+            fp = self._hub().held_fingerprint(byok["connection"]) or {}
+            preview = f"...{fp['last4']}" if fp.get("last4") else ""
         return {"byok_active": True, "items": [{
             "provider": byok["provider"], "model": byok["model"],
             "supports_vision": bool(byok.get("supports_vision", True)),
-            "key_preview": f"...{key[-4:]}" if key else "",
+            "key_preview": preview,
         }]}
 
     def save_byok(self, provider: str, model: str, api_key: Optional[str],
                   base_url: Optional[str] = None, supports_vision: Optional[bool] = None) -> dict:
-        self._data["byok"] = {
-            "provider": provider, "model": model, "api_key": api_key, "base_url": base_url,
-            "supports_vision": True if supports_vision is None else bool(supports_vision),
-        }
+        from . import connections as C
+        cid = BYOK_CONNECTIONS.get(provider)
+        if api_key:
+            if cid is None:
+                raise C.Refused(f"Lampway has no connection for provider {provider!r}: BYOK keys go to {', '.join(sorted(BYOK_CONNECTIONS))}", 422)
+            self._hub().put_secret(cid, {"key": api_key}, by="user")
+        self._data["byok"] = {"provider": provider, "model": model, "base_url": base_url,
+                              "supports_vision": True if supports_vision is None else bool(supports_vision),
+                              "stored_in": "connections", "connection": cid}
         self._save()
         return self.credentials_view()
+
+    def migrate_into_connections(self) -> Optional[str]:
+        """An older plain key moves into Connections once; it leaves this file only after the store gives it back. Returns the
+        reason it could not move, or None."""
+        from . import connections as C
+        byok = self._data.get("byok") or {}
+        key, cid = byok.get("api_key"), BYOK_CONNECTIONS.get(byok.get("provider"))
+        if not key:
+            return None
+        hub = self._hub()
+        try:
+            if cid is None:
+                raise C.Refused(f"provider {byok.get('provider')!r} has no connection")
+            hub.put_secret(cid, {"key": key}, by="user")
+            if hub.store().get(cid, "key") != key:
+                raise C.Refused("the store did not give the key back")
+        except Exception as exc:  # noqa: BLE001 - any failure keeps the key where it was; the row says why
+            reason = str(exc) if isinstance(exc, C.Refused) else type(exc).__name__
+            hub.note("byok_legacy", "move_error", reason)
+            return reason
+        byok.pop("api_key", None)
+        byok.update(stored_in="connections", connection=cid)
+        self._save()
+        hub.note("byok_legacy", "move_error", None)
+        hub._log(cid, "byok-moved", "system", True, "the BYOK key moved from agent_settings.json into Connections")
+        return None
 
     def byok(self) -> Optional[dict]:
         return self._data.get("byok")
 
     def delete_byok(self) -> int:
+        from . import connections as C
+        byok = self._data.get("byok") or {}
+        if byok.get("connection") and byok.get("stored_in") == "connections":
+            try:
+                self._hub().forget(byok["connection"], "manual", by="user")
+            except C.Refused:
+                pass
         removed = 1 if self._data.get("byok") else 0
         self._data["byok"] = None
         self._save()

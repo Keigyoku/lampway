@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The Way (facelift contract 07): the captain's piece runbook (specs BUILD_ORDER.md, Wave 2), in his order, one sidebar
+# panel per step. Each status word is the TOOL's, not the piece's, and every live / built / partial word names the report
+# that measured it (tests/lampway/test_lampway_the_way.py checks the file exists):
+#   live     run end to end in the app on a real piece
+#   built    built and tested, not yet run live on a piece
+#   partial  part of the step is built; the note says which part is not
+#   planned  not built; "when" says when
+
+[[step]]
+id = "seeds"
+name = "Seeds and plates"
+status = "partial"
+source = "docs/reports/studios.md"
+note = "Seed catalogue and plate picks run through the Studio drivers, dry only so far"
+tools = ["lampway_image_to_3d"]
+
+[[step]]
+id = "uv"
+name = "UV score"
+status = "built"
+source = "docs/reports/features.md"
+note = "Retopology and UV unwrap with measured reports"
+tools = ["lampway_retopo", "lampway_uv_unwrap"]
+
+[[step]]
+id = "mesh_qa"
+name = "Mesh QA"
+status = "live"
+source = "docs/reports/tools.md"
+note = "Reproduced the recorded runs (84 of 84 loops) and ran in the app on the textured chest"
+tools = ["lampway_mesh_prep", "lampway_asset_acceptance", "lampway_delete_caps"]
+
+[[step]]
+id = "parts"
+name = "Parts critique"
+status = "built"
+source = "docs/reports/tools.md"
+note = "Parts tools ported and tested"
+tools = ["lampway_segment_mesh", "lampway_render_owner", "lampway_split_relief", "lampway_transfer_parts", "lampway_apply_part_fixes",
+         "lampway_judge_pack", "lampway_render_final", "lampway_export_parts", "lampway_verify_set", "lampway_gen_parts_table"]
+
+[[step]]
+id = "mesh_paint"
+name = "Mesh-paint texture"
+status = "partial"
+source = "docs/reports/tools.md"
+note = "Projection and albedo tested on recorded plates; the live image generation step has not run"
+tools = ["lampway_detail_normals", "lampway_pbr_merge"]
+
+[[step]]
+id = "fit"
+name = "Fit and openings"
+status = "partial"
+source = "docs/reports/tools.md"
+note = "Proportion and clearance tools built; fit_place, fit_pose and fit_openings are not ported"
+tools = ["lampway_mesh_to_npz", "lampway_place_piece", "lampway_pose_clearance", "lampway_piece_ratios", "lampway_proportion_ratios", "lampway_mesh_compare", "lampway_pauldron_symmetry"]
+
+[[step]]
+id = "bind"
+name = "Bind and export"
+status = "partial"
+source = "docs/reports/features.md"
+note = "Auto rig and the export bundle are built; the bind to UE is Wave 3"
+when = "Wave 3"
+tools = ["lampway_auto_rig", "lampway_export_piece", "lampway_render_video"]
+
+# A tool's own word when it differs from its step's (the source is the report that measured the tool).
+[tools.lampway_image_to_3d]
+status = "built"
+source = "docs/reports/features.md"
+
+[tools.lampway_mesh_prep]
+status = "built"
+source = "docs/reports/features.md"
+
+[tools.lampway_asset_acceptance]
+status = "built"
+source = "docs/reports/features.md"
+
+[tools.lampway_segment_mesh]
+status = "built"
+source = "docs/reports/features.md"
+
+[tools.lampway_detail_normals]
+status = "built"
+source = "docs/reports/wave0.md"
+
+[tools.lampway_auto_rig]
+status = "built"
+source = "docs/reports/features.md"
+
+[tools.lampway_export_piece]
+status = "built"
+source = "docs/reports/features.md"
+
+[tools.lampway_render_video]
+status = "built"
+source = "docs/reports/features.md"
+
+[tools.lampway_judge_pack]
+status = "built"
+source = "docs/reports/orphans.md"
+
+[tools.lampway_render_final]
+status = "built"
+source = "docs/reports/orphans.md"
+
+[tools.lampway_export_parts]
+status = "built"
+source = "docs/reports/orphans.md"
+
+[tools.lampway_verify_set]
+status = "built"
+source = "docs/reports/orphans.md"
+
+[tools.lampway_gen_parts_table]
+status = "built"
+source = "docs/reports/orphans.md"
+
+# Tools the agent has that are not a step of one piece's runbook, each with why (test_every_tool_has_a_place).
+[off_the_way]
+lampway_libwiki = "Publishes a whole library's inventory as a wiki: a library chore, not a step of one piece"
+lampway_index_delta = "A texture library's next index as a delta: a library chore, not a step of one piece"

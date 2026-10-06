@@ -93,7 +93,8 @@ _EXT = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}
 
 class JobQueue:
     def __init__(self, backends: dict, hub, base_url: str, model_labels: Optional[dict] = None, video=None, approvals=None, prompts=None, registry=None, policy=None,
-                 receipts=None, provenance=None):
+                 receipts=None, provenance=None, chooser=None):
+        self.chooser = chooser            # choices: (service, model, payload, origin) -> Resolution for the image job, or None (HC6, HC7, HC10)
         self.provenance = provenance      # library.hooks.job_hook: called with (job, ok, provider) as a job ends, before its payload is cleared; it can never fail a job
         self.policy = policy if policy is not None else SpendPolicy(lambda: DEFAULT_SPEND_POLICY)      # per-provider caps and clicks (the Providers dialog)
         self.registry = registry if registry is not None else ServiceRegistry()           # services.py: the Client's other job types
@@ -112,7 +113,7 @@ class JobQueue:
     def catalog(self) -> dict:
         capabilities = []
         if "image_gen" in self.backends:
-            label = self.model_labels.get("image_gen", "default")
+            label = self._image_label()
             capabilities.append({
                 "key": "image_gen", "label": CAPABILITY_LABELS["image_gen"], "sort_order": 1,
                 "services": [{"key": "image_gen", "surface": "moodboard", "sort_order": 1, "models": [{
@@ -131,8 +132,19 @@ class JobQueue:
 
     def chat_options(self) -> list:
         return [{"service_key": "image_gen", "label": "Image", "display_label": "Generate an image", "default_model": "default",
-                 "models": [{"slug": "default", "label": self.model_labels.get("image_gen", "default")}]}] \
+                 "models": [{"slug": "default", "label": self._image_label()}]}] \
             if "image_gen" in self.backends else []
+
+    def _image_label(self) -> str:
+        """The image slot's label is the model the resolver would run now (HC7): what the Client is shown is what runs."""
+        if self.chooser is not None:
+            try:
+                r = self.chooser("image_gen", "default", {}, "user")
+                if r is not None and r.model:
+                    return r.model
+            except Exception:  # noqa: BLE001 - a label must never break the catalogue; the fallback names the setting
+                pass
+        return self.model_labels.get("image_gen", "default")
 
     # ------------------------------------------------------------------ submit
     def submit(self, service: str, model: str, payload: dict, idempotency_key: Optional[str] = None, origin: str = "user") -> Job:
@@ -154,11 +166,21 @@ class JobQueue:
         key = idempotency_key or str(uuid.uuid4())
         if key in self._by_key:
             return self.jobs[self._by_key[key]]
+        resolution = None
+        if self.chooser is not None and service == "image_gen" and not video_job:
+            from . import choices as CH
+            try:
+                resolution = self.chooser(service, model, payload, origin)
+            except CH.NoChoice as exc:                                    # refused before a receipt or a byte: the text names the fix
+                raise BadJob(str(exc)) from None
+            if resolution is not None:
+                model = resolution.model or model
         job_id, receipt = str(uuid.uuid4()), None
         if self.receipts is not None:
             try:
                 JR.check_rendered({"prompt": payload.get("prompt"), "params": payload.get("params")})
-                receipt, created = self.receipts.create(self._provider_of(service, model), model or "default", payload, key, origin, job_id=job_id)
+                receipt, created = self.receipts.create(self._provider_of(service, model), model or "default", payload, key, origin, job_id=job_id,
+                                                        choice=resolution.record(at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())) if resolution else None)
             except JR.ReceiptError as exc:
                 raise BadJob(str(exc)) from None
             if not created:                                               # a restart (or a second submitter) met the same key: never a second job
@@ -185,6 +207,41 @@ class JobQueue:
         if service in self.backends:
             return "openrouter"
         return service
+
+    def estimate(self, service: str, model: str, params: Optional[dict] = None, references: int = 0) -> dict:
+        """What a generation would cost and whether it waits for the user, before anything is sent (facelift contract 08). Computed from what the
+        server holds (the listing it read, the measured per-image figure, the policy): no upload and no provider call. A Higgsfield price is read back
+        by its own get_cost only when the job is submitted, so here it is unknown."""
+        from .videojobs import PREFIX
+        provider = self._provider_of(service, model)
+        params = dict(params or {})
+        price, basis = None, ""
+        if str(model or "").startswith(PREFIX):
+            basis = "Higgsfield's credit price is read back when the job is submitted, before any spend"
+        elif service == "image_gen":
+            n = max(1, int(params.get("number_of_images") or 1))
+            price = {"kind": "estimate", "amount": round(IMAGE_USD_ESTIMATE * n, 4), "unit": "USD",
+                     "source": f"about ${IMAGE_USD_ESTIMATE:.2f} per image (measured), not read back", "basis": f"{n} x ${IMAGE_USD_ESTIMATE:.2f} per image"}
+            basis = price["basis"]
+        elif self.video is not None and self.video.handles(service, model):
+            est = self.video.listing_estimate(model, params, references)
+            basis = est["basis"]
+            if est["known"]:
+                read = time.strftime("%Y-%m-%d", time.localtime(est["read_at"])) if est.get("read_at") else "this session"
+                price = {"kind": "estimate", "amount": round(est["usd"], 4), "unit": "USD", "source": f"OpenRouter model listing, read {read}", "basis": basis}
+        else:
+            basis = f"no price is known for {service}"
+        amount = price["amount"] if price else None
+        cfg = self.policy._cfg(provider)
+        refused = None
+        try:
+            self.policy.check(provider, amount)
+        except Exception as exc:  # noqa: BLE001 - SpendRefused: said in the tab, never sent
+            refused = str(exc)
+        return {"service": service, "model": model, "provider": provider, "route": provider, "price": price, "basis": basis,
+                "policy": {"click": cfg.get("click", "always"), "above": cfg.get("above"), "job_cap": cfg.get("job_cap"), "session_cap": cfg.get("session_cap"),
+                           "spent": round(float(self.policy.spent.get(provider, 0.0)), 6)},
+                "needs_click": self.policy.needs_click(provider, amount), "refused": refused}
 
     _RECEIPT_STATUS = {"planned": "PENDING", "submission_pending": "POLLING", "submitted": "POLLING", "running": "POLLING", "submission_unknown": "PENDING", "completed": "POLLING",
                        "downloaded": "DONE", "result_saved": "DONE", "provider_error": "FAILED", "cancelled": "CANCELLED", "abandoned": "CANCELLED"}

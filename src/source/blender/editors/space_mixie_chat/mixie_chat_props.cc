@@ -91,6 +91,7 @@ void init_todo_item_property_cache(PointerRNA *item_ptr) {
   g_todo_props.item_id = RNA_struct_find_property(item_ptr, "item_id");
   g_todo_props.text = RNA_struct_find_property(item_ptr, "text");
   g_todo_props.status = RNA_struct_find_property(item_ptr, "status");
+  g_todo_props.price_text = RNA_struct_find_property(item_ptr, "price_text");
   g_todo_props.initialized = true;
 }
 

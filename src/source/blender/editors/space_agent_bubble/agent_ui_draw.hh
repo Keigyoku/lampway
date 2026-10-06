@@ -48,6 +48,18 @@ struct AgentIslandState {
   /* The primary button reads Stop instead of Send: busy AND nothing typed.
    * A non-empty composer always sends (an interjection joins the open run). */
   bool stop_visible;
+  /* Where the next message goes (facelift contract 04, lampway_tools/route_line.py through the WindowManager):
+   * the host beside Send, the whole sentence as Send's tooltip, and whether Send may be pressed at all (its
+   * provider's route is off in Privacy: refused here, before the server is asked). */
+  /* The glance cues the floating pill carried, now in the island's header (facelift 04/05): agents running in the
+   * Parallel Agents mirror (wm.mixar_agent_cards with status WORKING). */
+  int agents_running;
+  /* The one-time note for existing users: no floating pill now, its state is in this header (until the chat
+   * first closes; agent_bubble/core/pill_pref.py). */
+  bool pill_note;
+  char route_host[96];
+  char route_tip[320];
+  bool send_ok;
   /* A conversation exists, so the panel splits: transcript above, input below.
    * Empty, the input takes the whole panel exactly as the artboard draws it. */
   bool has_transcript;

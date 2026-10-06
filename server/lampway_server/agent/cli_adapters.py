@@ -126,6 +126,9 @@ async def _run(cmd: list, prompt: str, timeout: float, env=None, cwd=None):
 
 
 async def _run_gated(cmd: list, prompt: str, timeout: float, env=None, cwd=None):
+    if env is None:                                     # finding F4: the CLI runs on its own login and inherits no provider key
+        from .. import connections
+        env = connections.env_for([])
     try:
         proc = await asyncio.create_subprocess_exec(*cmd, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
                                                     stderr=asyncio.subprocess.PIPE, env=env, cwd=cwd)
@@ -197,7 +200,8 @@ def codex_image(binary: str, prompt: str, refs, out_dir, name: str, timeout: flo
     from .. import egress as EG
     try:
         with EG.guard("chatgpt_plan", kind="image", nbytes=len(full) + sum(r.stat().st_size for r in refs if r.is_file())):      # the prompt and the reference images go to the owner's ChatGPT plan
-            p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+            from .. import connections
+            p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env=connections.env_for([]))     # its own login, no provider key (F4)
     except FileNotFoundError as exc:
         raise CLIError(f"{binary} not found: install codex and log in once yourself") from exc
     except subprocess.TimeoutExpired as exc:

@@ -142,9 +142,11 @@ def test_the_key_comes_from_the_environment_or_a_file_reference_never_from_a_val
     assert resolve_api_key({"OPENROUTER_API_KEY": FAKE_KEY}) == FAKE_KEY
     dotenv = tmp_path / "keys.env"
     dotenv.write_text(f"OTHER=1\nOPENROUTER_API_KEY=\"{FAKE_KEY}\"\n")
+    dotenv.chmod(0o600)                                  # C8: a key file readable by others is refused (test_connections_keyfiles)
     assert resolve_api_key({"LAMPWAY_OPENROUTER_KEY_FILE": str(dotenv)}) == FAKE_KEY
     raw = tmp_path / "raw"
     raw.write_text(FAKE_KEY + "\n")
+    raw.chmod(0o600)
     assert resolve_api_key({"LAMPWAY_OPENROUTER_KEY_FILE": str(raw)}) == FAKE_KEY
     with pytest.raises(KeyMissing) as raised:
         resolve_api_key({"LAMPWAY_OPENROUTER_KEY_FILE": str(tmp_path / "nope")})

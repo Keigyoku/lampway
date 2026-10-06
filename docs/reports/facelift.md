@@ -13,6 +13,12 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | `0afc2d19` (03) | `interface_widgets.cc`, `agent_ui_draw.cc`, `interface_mixar_profile_card.cc`, the theme defaults and glass tokens. |
 | `c92396d5` (05) | `agent_ui_pill_cat.*`, `view3d_agent_panel*`. |
 | `ce3c9897` (02) | `wm_splash_screen.cc` and the `splash.png` datafile. |
+| `d6b543fc` (Asset Vault) | `rna_space.cc`, `space_mixar_assets.cc`, the new `space_mixar_assets/mixar_assets_dnd.cc` and its CMake libs. |
+| `c272b7c0` (Lamplight and Workshop) | the C++ that compares the workspace name (`STREQ(..., "Lamplight")`). |
+| `6881d79` (04 and the pill) | `mixie_chat_*` painters, the `Fraunces.woff2` datafile, `agent_ui_state.cc`, `agent_ui_controls_paint.cc`, `agent_ui_draw.cc`, `agent_bubble_references.cc`, `space_agent_bubble.cc`. |
+| (08) | `agent_ui_tabmedia.cc`, the new `agent_ui_tabmedia_estimate.cc` (CMake list), `agent_ui_tabmedia_intern.hh`, the `PlexMono.woff2` datafile, and `MixarVariant::Accent` in `UI_mixar_types.hh` (included widely: an 830-step rebuild), `interface/mixar/components.cc`, `interface/mixar/style.cc`. |
+| (12) | `userdef_default_theme.c` (Timeline `simulated_frames` leaves the wire colour) and the two theme presets. |
+| (install rule) | `src/source/creator/CMakeLists.txt`: a re-configure and `ninja install` (no compile). |
 
 ## Gate totals at the contract 01 push (`30b6c2fd`, merged with `origin/lp/wave5` `00d907d4`)
 
@@ -340,3 +346,329 @@ ctrl+alt+Space switches the screen to its full-screen copy. **Cause**: ctrl+Spac
 returns CANCELLED in Lamplight, because Lamplight is a one-area screen and upstream refuses to maximise a single area
 (`screen_maximize_area_exec`, Blender #144740). The keymap is fine and no shortcut is overridden. No code change; the
 event-simulated test `test_zen_shortcuts.py` pins N and ctrl+alt+Space.
+
+## Contract 04: the chat face (partial) and the captain's pill change
+
+The chat lives in the floating island (`space_agent_bubble`; the docked chat editor is deprecated), whose transcript is
+drawn by `space_mixie_chat`. Measured in the real build under Xvfb (the island is its own window; the states capture it).
+
+Done:
+- **Theme spacing** (test 1): bubble spacing and label height read the theme (Mixar forced 8 and 13 over it).
+- **User card**: `raised` fill, 1 px `line` border, the corner nearest the composer tight (4 px), in place of the
+  glass bed (`chat_ui_draw_user_card`).
+- **Rules**: plan (todo), steps, images, thinking and live blocks carry a 3 px rule in the theme's `agent` (dusk), the
+  agent's prose too. The running step's glyph is the theme accent; **Mixar's green live accent is gone from the chat
+  blocks**, but it is still in `CHAT_ACCENT_LIVE` for the history overlay, the rules editor and the ink overlay
+  (not the chat face; recorded, not changed).
+- **A question waiting** (choices): lamplight behind the set, a `line_hi` rule beside it, the primary choice an accent
+  fill with `on_accent` text (also on hover), danger choices in the theme's `stop`. Visual test
+  `tests/lampway_visual/test_chat_face.py`: the primary choice samples `#edb944` (accent). That test was written after
+  the code: its RED was not observed.
+- **Price chips** (test 2): `lampway_tools/price_chips.py` words each kind (`≈ $0.07 est., openrouter.ai`,
+  `13.5 credits, read back from Tripo 14:32`, `$0.05 billed`, `local, no cost`); the slot processor writes them into
+  each plan step (`price_text`) and the native row prints them after the step. **Words only**: the dashed / solid /
+  filled chip shapes are not drawn in plan rows (they are on the empty state's estimate chips).
+- **Route line** (test 3): `lampway_tools/route_line.py` + `chat_route.py`; the status timer writes host, sentence and
+  `send_ok` into the WindowManager, the island draws the host beside Send, Send's tooltip is the sentence, and with
+  the provider's route off Send is disabled and `mixie_chat.send_message` refuses before the server is asked. An
+  unknown provider or a silent server never reads as "this machine". Found by the visual probe: the Send button kept a
+  pointer to a per-draw buffer as its tooltip (garbage in the QA dump); it now points at storage that outlives the
+  draw.
+- **Empty state** (test 4): the brand line ("Ask Lampway Agent anything. Plans, questions and spends wait for you.")
+  in Fraunces 28 (vendored into `release/datafiles/fonts/`, OFL-1.1); the two GENERATE prompts carry a dashed estimate
+  chip from the generation catalogue's credit cost, or "spends credits: priced first" when it has none. Test written
+  after the code; the chip call was mutated out and the test failed.
+
+Not done (contract 04): the who line (Spark 20 px, name, plan chip, mono time); the calm pass's collapses (an answered
+question as one line, the step log as "3 steps done, 1.5 s, local"); the lamp glyph for local steps; test 6 (region
+diff against `shots/04-chat.png`, a mockup render; needs an approved golden of the app).
+
+### The floating agent pill (the captain: "toggleable, off by default or just combined into the chat window")
+
+Both, as the coordinator asked. The pill was a second always-on-top window created with the chat, sitting above it
+(`agent_bubble_show_window_exec`), and the chat's minimised form.
+- Preference "Floating agent pill" (Preferences > Interface > Agent), a persisted config key, **off by default,
+  existing users included**. Off: no pill window is created; minimise (Escape, the yellow light, Ctrl+Shift+B) closes
+  the chat; the workspace switch and the tour no longer bring a pill back; the native minimise refuses. Turning it on
+  reopens the open chat with its pill at once.
+- What the pill showed now lives in the chat's own header band (painted natively: the Spark in its contract 05 state,
+  the activity word or state name, "N agents running", "N jobs") and, while the chat is closed, in a top-bar agent chip
+  that opens it (state glyph, the pill's status words with the queue clock, agents running, "N unread").
+  `docs/reports/facelift/pill_parity.md` lists every datum and where it went.
+- Existing users: a one-time note replaces the header cues until the chat first closes ("No floating pill: its state is
+  here (Preferences > Interface > Agent)").
+- Tests: `tests/lampway/test_lampway_agent_pill.py` (6: off by default, on shows it, the switch and the tour with the
+  pill off, close and reopen, the parity of header and chip, told once) and the real-build
+  `tests/lampway_visual/test_agent_pill.py`: a new profile has the chat and no pill; Ctrl+Shift+B closes it and the top
+  bar's chip appears; Ctrl+Shift+B opens it; the preference gives the open chat its pill; minimising then rests in the
+  pill. RED: the probe on the build before the gate showed the pill window (94 x 26) at startup.
+- Reading the coordinator's words: "the chat window" is the island. The pill's sketch draft (typing over the viewport
+  while a sketch is armed) was not driven with the pill off; the composer shows the same draft, but only a live run
+  proves the flow.
+- Native rebuild: yes.
+
+## Contract 06: the Studios panel (the Providers half moved to Choices)
+
+`specs/choices/facelift_06_amendment.md` (the captain's CH8): Choices absorbs the Providers dialog, so 06 keeps the
+Studios panel only; the Providers dialog is untouched until the Choices window replaces it.
+- A waiting spend is a card: what, the price read back and from which Studio, a **"Spend 13.5 credits"** button (the
+  number on the button, on its own row so a narrow sidebar never clips it: measured clipped in a popover before) and
+  "Not now". It is the panel's one glow.
+- A job Lampway cannot account for (`submission_unknown`) shows "maybe sent" with the user's two ways out, **"It did
+  not run"** and **"Link its job id"** (a dialog asks for the provider's job id), visible and not glowing, against the
+  integrator's routes (`GET /app/receipts`, `POST .../acknowledge`, `POST .../link`, sent with `"by": "user"`). This is
+  also the coordinator's contract 13 addition (the spend surfaces' submission_unknown UI); contract 13's own card will
+  reuse it.
+- The plan form has typed rows (name, kind: text / number / file / yes-no, value) instead of a JSON field, and is
+  closed by default; `plan_args()` turns them into the action's arguments (a file is project-relative).
+- Tests: `tests/lampway/test_lampway_studios_face.py` (4, RED observed: the panel read `studio_args`) and the real-build
+  `tests/lampway_visual/test_studios_face.py` (the real panel's draw code, as a popover: the sidebar's tab cannot be
+  chosen from Python).
+- Not done: the accounts lines (name and route; their state belongs to Connections now, the Connections amendment);
+  the per-action schema the contract imagined does not exist server-side (the actions list is id and label only), so
+  the rows are typed by the user, not generated; `test_providers_entry_opens_choices` waits for the Choices window.
+
+### The visual harness after the integration merge
+The integration's root `conftest.py` now points HOME and the XDG homes into the basetemp for every test. Rootless
+podman reads its container store from the person's home, so every windowed state failed with "no container
+lampway-build". The harness gives the display runner (only) the person's home back; the build inside still gets the
+run's own HOME and XDG homes from the `env` in front of it. The Asset Vault drag state now always registers its
+stand-ins (vault-ui's real operators are in the build since the merge) and drags its own tile by name.
+
+## Contract 07: the Way (partial)
+
+- **The Way**: a "The way" parent panel ("<piece>: 2 of 7 done") and one panel per step of the captain's piece runbook
+  (BUILD_ORDER.md Wave 2), in his order: Seeds and plates, UV score, Mesh QA, Parts critique, Mesh-paint texture, Fit and
+  openings, Bind and export. Each header carries the node for this piece (contract 14's `node_lit` / `node_half` /
+  `node` previews; the done steps are a custom property on the object, written when a step's tool succeeds) and the
+  tool's word (Live, Built, Partial, Planned) at its right.
+- **Status words with sources**: `lampway_tools/status.toml`, every live / built / partial word names the report that
+  measured it, and the test checks the file exists. The words are measured, not the mockup's: Mesh QA is Live
+  (reproduced the recorded runs and ran in the app, `tools.md`); Mesh-paint is Partial (the live image generation has
+  not run); Seeds and plates Partial (Studio drivers dry only); Fit and openings Partial (fit_place / fit_pose /
+  fit_openings not ported); Bind and export Partial (auto rig and the export bundle built; the UE bind is Wave 3). The
+  mockup had Seeds and Mesh-paint Live and Bind Planned.
+- **No free-text runner**: the "Parts and proportion tools" and "Features" panels (a tool name plus free-text
+  arguments, a feature plus JSON) are gone. Each tool is one operator with its own typed properties
+  (`ui/operators/tool_ops.py`), generated from `tool_specs.json`, which `scripts/lampway/facelift/tool_specs.py`
+  generates from the agent's own tool definitions (`server/.../agent/lampway_tools.py`), so the form and the agent's
+  schema are one thing; a batch tool's command line is built exactly as the server builds it for the agent. Run opens
+  the form as a dialog.
+- **No work in a draw**: Review proposals reads a cache a timer fills (it called `api.qa_proposals()` on every redraw).
+- The last result is one line with a "more" popover.
+- Tests: `tests/lampway/test_lampway_the_way.py` (8; RED observed) and the real-build
+  `tests/lampway_visual/test_the_way.py` (registered in order, the typed Retopology form's property kinds, the
+  free-text panels gone, and a real Retopology run on the Cube from the typed operator marks UV score done).
+- **Lost from the UI, said plainly**: 13 batch tools have no typed definition in the agent's registry (uv_score,
+  bake_maps, material_bake, clay_view, mesh_paint_set, relief_project, material_masks, uv_patches, patch_holes,
+  render_textured, asset_catalog_export, robust_weight_transfer, mesh_qa as a batch). The free-text runner reached them;
+  the Way does not. The agent still runs them (`lampway_run_tool`). Each needs a `Def` in the server's registry (not
+  this lane's file) to get a form here.
+- Not done: the Mesh QA body's redesign (result box with run line, tag counts on one row, "Review 17 by hand" and "Ask
+  the agent"); the drawn rail (phase 2, C++); test 6 (a sidebar capture: the sidebar's tab cannot be chosen from
+  Python, and child panels do not draw in a popover); the workflow picker (open question 1).
+
+## Contract 08: the generation face (partial)
+
+- **Server** (`POST /app/generate/estimate`, `JobQueue.estimate`, `VideoSystem.listing_estimate`): before anything is
+  sent, the price of a request marked as the kind of number it is, the policy the Providers dialog set, whether it needs
+  a click and whether a cap refuses it. It sends nothing: an OpenRouter video is priced from the model listing the
+  server already read (`pricing_skus`, the same `videogen.estimate` a real run uses; the source says the date the
+  listing was read); an image is the measured per-image figure the click decision already used
+  (`IMAGE_USD_ESTIMATE`, about $0.07); a Higgsfield price is unknown until its own `get_cost` at submit (no upload is
+  made for an estimate). An unknown price needs a click unless the policy is off. Tests:
+  `server/tests/test_generate_estimate.py` (6; RED observed: every route 404).
+- **The face** (`lampway_tools/generate_face.py`, no bpy, no price arithmetic): the dashed estimate chip
+  ("≈ $0.067 est."; a quote reads "$0.40, read back" with neither mark; none reads "price unknown" in the stop colour),
+  the job against its cap ("≈ $0.07 of cap $1.00 per job", amber from 80 percent, red over), the session line, the
+  route host, the content ("prompt only, no asset" / "prompt and 2 reference images"), the button
+  ("Generate, ≈ $0.07" / "Spend $0.40" / "Spend, price unknown" / disabled "Generate") and the policy sentence as its
+  hover. A route that is off asks the server nothing and refuses with the egress gate's own sentence ("openrouter is
+  off: switch it on in Privacy to let data leave").
+- **The pump** (`ui/generate_pump.py`): the island's half and its request (service, model, the catalogue params via
+  `collect_params`, the reference images counted the way the pane previews them); 300 ms debounce, the request off the
+  main thread, the answer through a timer into `wm.lampway_gen_*`. **Generate refuses** in
+  `mixie.moodboard_prompt_generate` (the island button and Enter) before it dispatches, only for the tab the face was
+  computed for (a 3D or Splat Generate is never judged by it).
+- **Native** (`agent_ui_tabmedia.cc`, new `agent_ui_tabmedia_estimate.cc`): a "Before you send" column on the right of
+  the Image / Video pane when it is at least 560 px wide (the chips and prompt box take the rest), numbers in IBM Plex
+  Mono (vendored as `datafiles/fonts/PlexMono.woff2`, OFL), Generate at its foot. Generate is the lamplit bed
+  (`accent_bed_hi`); a Spend is the accent fill: a new `MixarVariant::Accent` (accent fill, on-accent text; QA dump
+  name `ACCENT`). Narrower panes keep Generate in the box with the same label.
+- **The prompt library**: a `UIList` (`LAMPWAY_UL_prompt_library`) over `scene.lampway_tools.prompt_library`,
+  mirrored by Refresh from `/app/prompts` and `/app/prompts/stats`; filter All / Image / Video with counts; rows are
+  name, version and mean billed price ("no runs yet" before the first run); runs and rating are the price's hover
+  (the calm pass). Choosing a row chooses the template. The eight cut preview labels are a popover with the whole text.
+- Tests: `tests/lampway/test_lampway_generate_face.py` (10; RED observed: the module missing, then the panel test
+  failing on the old panel; a mutation treating an unknown price as no click fails `test_unknown_price_needs_a_click`)
+  and `tests/lampway_visual/test_generate_face.py` (three policy states in the real build: no click, click, refused).
+- **Disagreements with the brief, recorded**: the brief's "18 built-ins (7 video, 11 image)" is the WEBSITE.md
+  snapshot; the server ships 27 (19 image, 8 video) and the test checks every one it ships. The brief's image source
+  "model listing <date>" is not what the number is: OpenRouter lists image models by token, and the figure is the
+  spike's measured per-image cost, so the source says that. The WindowManager carries more than the five named props
+  (`_estimate`, `_cap_job`, `_cap_session`, `_route`, `_content`): also the kind, the fills, the button, its kind, the
+  policy, the refusal and the owner tab.
+- **Not done**: the A/B action (the run log has `variant_of`, no surface submits a variant yet); the results row's
+  "billed against the estimate" line; Spend opens the server's approval (the Studios card) rather than contract 13's
+  card (13 is later in the order); the pump's own request gathering is not exercised by a test (the visual states fix
+  the request: offline there is no catalogue to give the tab a model); acceptance evidence 11 (a real OpenRouter image)
+  is a spend this lane does not make.
+- Also re-pointed `tests/lampway_tools/test_ui.py::test_the_features_panel_runs_a_feature_on_the_active_object_and_reports_one_line`:
+  it asserted the free-text Features panel exists, which contract 07 removed on purpose; it now asserts it is gone (the
+  `lampway.feature_run` operator it drives is kept for scripts and still passes its three cases).
+- Gates before the push: `scripts/lampway/test_all.sh` on the uncommitted 08 tree with my build: server 1233 passed,
+  10 skipped, rc 0; client 8177 passed, 89 skipped, 119 failed + 20 errors, all 138 in `tests/known_red.tsv` and one
+  new (the Features-panel assertion above, fixed and re-run: passes). Visual suite (`tests/lampway_visual`) 20 passed.
+  Theme 0, cues 0, WezTerm 0, tool specs current.
+
+- After merging `origin/lp/wave5` (`5e5cf3e`): the agent gained seven tools (the orphans lane's O33). `tool_specs.json`
+  regenerated (30 tools); five join Parts critique with their own word, Built, sourced to `docs/reports/orphans.md`
+  (judge_pack, render_final, export_parts, verify_set, gen_parts_table); libwiki and index_delta are library chores,
+  listed in `status.toml`'s `[off_the_way]` with the reason. New gate `test_every_tool_has_a_place` (RED observed: the
+  seven were simply absent from the sidebar and nothing said so).
+
+## Contract 12: the privacy face
+
+- **One vocabulary** (`lampway_tools/privacy_face.py`, no bpy): `chip(route, routes)` is the lamp and "this machine",
+  or the wire and the route's host; an id no table names says "unknown route" in stop, never blank. `route_rows`: the
+  name, a shield for the privacy class (shield, half, open, unknown), the switch (off, waiting for your confirm, on);
+  host, last use, retention and training on hover. `last_refusal`: the newest refused row as a card; a private asset
+  gets "Use OpenRouter, zero retention", "Run it here instead" and "Allow this asset once (logged)". `log_rows`: time,
+  event (glyph + word), route, what; host, class and retention on hover. It reads only the keys it names, so a row
+  carrying content renders none of it.
+- **The window** (`ui/privacy.py`): one drawing in three places: the viewport sidebar, a pop-out the status bar's wire
+  chip now opens ("What leaves this machine"), and Preferences > Interface > Privacy (open question 1, as
+  recommended). "Sending now: <host>" with the wire's dot while data leaves (decision F3: the magenta wire and the word,
+  not a red DATA LEAVING), the latest refusal, the routes, the confirm row, the log, Export.
+- **Two clicks to open a route**: the switch opens the confirm row ("Let data leave for openrouter.ai?"); only its
+  "Let it leave" posts. Both refuse while a script runs ("A script cannot open a route: switch it on in Privacy
+  yourself"), as does the override (`POST /app/egress/override`, new `EgressClient.override`). The confirm row is the
+  only lit thing in the window: an open route is a plain switch (the visual test samples both).
+- **The wire is reserved**: the theme mapped Timeline/Dope Sheet `simulated_frames` to the wire; it is now the agent
+  violet (`agent@66`), and a gate scans the theme map and the icon renderer (only the travelling dot's two glyphs are
+  painted in it). Native: the regenerated `userdef_default_theme.c` and the presets; `base/theme_dna_0.1.0.json`
+  re-measured from the rebuilt binary.
+- **New route `github`** (server `egress.py`: github.com, objects / release-assets.githubusercontent.com), off by
+  default, class ok (a plain GET of a public release asset), for contract 16's WezTerm download.
+- Tests: `tests/lampway/test_lampway_privacy_face.py` (6; RED observed: the module missing, the `github` route
+  missing, and the wire test catching `simulated_frames`), `tests/lampway_tools/test_lampway_privacy_face_live.py`
+  (4, real binary; the gate's falsifier run: with the gate dropped, `test_route_switch_refuses_a_script` fails),
+  `tests/lampway_visual/test_privacy_face.py` (the pop-out with a route sending, a refusal and a confirm row).
+  `tests/lampway_tools/test_wave4b_egress_ui.py` re-pointed to the new surface (the panel moved to `ui/privacy.py`;
+  "OpenRouter: OFF" and the policy line became the row and its hover; DATA LEAVING became "Sending now"; switching on
+  is two clicks).
+- **Deviations, said plainly**: "Allow this asset once (logged)" is an `alert` button, which Blender draws as a red
+  tinted bed, not stop-coloured text on nothing (a Python layout cannot colour text otherwise). "Run it here instead" is
+  a line of text, not an action: there is no generic local re-run of a refused job to call. The other surfaces'
+  host words (04's route line, 08's route chip) say the same host but do not yet call `privacy_face.chip`.
+
+## Contract 13: the spend card (P0, the Python card)
+
+- **One card** (`lampway_tools/spend_face.py`, no bpy; drawn by `lampway.studio_confirm`'s popup): the action, who
+  planned it ("planned by the agent, only your click spends" for an agent or a worker), the price with its kind
+  (quoted for a Studio / Higgsfield read-back, estimate for an OpenRouter listing price, "price set by the model" for an
+  OpenRouter image), where it was read, the caps as meters from `/app/spend` with the pending amount apart from what is
+  used ("this job 18 of 40", "session 31.5 + 18 of 200"; the used part turns stop over 90 percent), the route chip
+  (contract 12's vocabulary), the uploads, and `Spend 18 credits` / `Not now`. `invoke_props_confirm` is gone: the
+  card is `invoke_popup` with no default button, so Enter has nothing to press; Spend is the card's own button
+  (EXEC), the script gate and the server's price check unchanged.
+- **States, one row each** (the calm pass): over the per-job cap, past the session cap, the price changed (its new Spend
+  button stays visible), an agent or script tried, expired, spent (its job id, "never resubmitted"), and any other
+  refusal as "This spend cannot go ahead: <reason>", never blank. A refused confirm reopens the card in its state; a
+  confirmed one reopens it as spent. Detail and fixes open in place.
+- **Every source opens this card**: the status bar's waiting chip and the Studios panel's Spend invoke it; a generation
+  (08) or a chat plan that needs a click becomes a server approval that waits in both. `studio_ops.py` is the only file
+  that confirms (a test scans for any other).
+- Tests: `tests/lampway/test_lampway_spend_face.py` (6). **RED honestly**: only `test_enter_does_not_spend` was observed
+  failing before its code (the popup and the source scan); the other five were written with `spend_face.py` in the
+  same step, so I mutation-checked them instead: the button saying "Spend" alone, the origin dropped, the stop tone
+  dropped and a blank unknown-state title each fail their test. `tests/lampway_visual/test_spend_card.py`: the card
+  waiting and in the five states in the real build (written after the card: they passed on their first run).
+- **Not done**: the P1 drawn card (C++: Fraunces price, accent left rule, hatched pending segment); the price is a
+  label row, not a large figure (a Python layout cannot size a font). The server's approval carries no uploads or
+  read-at time, so the card says "uploads: not reported by the server" and "Read back from <studio>" without a time.
+  The day cap is the server's session cap (Lampway keeps no day total), and the card says so.
+
+## Coordinator addition: the Connections window (P0, `specs/connections/connections_face.md`)
+
+- **Against the contract, not yet the server**: the hub's routes live on `origin/lp/connections` (`connections/routes.py`),
+  which `origin/lp/wave5` has not merged; the client speaks those routes (`connections_client.py`, read from that
+  branch's code) and every test uses a fake client. Nothing was run against a live hub.
+- **Words and cues** (`connections_face.py`, no bpy): one glyph per state, readable in greyscale (connected, connected
+  with a warning, not checked, signed out, expired, not connected, error, and the hand for a sign-in waiting on the
+  browser, the only lit row); "route off" is the route column and a word on hover, never a colour on the glyph; the
+  one action that clears the state (Test, Sign in with <label>, Paste a key); the list in the contract's group order
+  with source and check age on hover; Sign out only for a login Lampway holds, Forget only for a key or pointer it holds.
+  It reads only an allow-list of view fields, so a planted secret in any other field never reaches a word. The cue
+  family is in `tokens.json` (`check_cues.py`: rest state "connected"; the warning row is coloured by its accent
+  triangle, which is the distinguishing mark) and the eight glyphs are preview-only icons rendered by
+  `lampway_icons.py` from the sheet (new symbols `ring-open`, `ring-dashed`, `tri-small`; no native rebuild), plus a
+  `plug` preview.
+- **The window** (`ui/connections.py`): a pop-out and Preferences > Interface > Connections, one drawing; the status
+  bar has a plug beside the wire chip that opens it (server up or down). The pasted key is a WindowManager
+  `PASSWORD`, `SKIP_SAVE`, `HIDDEN` field, emptied after the request whatever it returned; refusals are drawn under the
+  field; every write refuses while a script runs; the window links to Privacy and has no route switch.
+- Tests: `tests/lampway/test_lampway_connections_face.py` (10; RED observed: the module missing, then the route word,
+  the foot rule), `tests/lampway_tools/test_lampway_connections_live.py` (5, real binary; mutation-checked: without
+  the `finally` the secret-cleared test fails, without the gate the script test fails),
+  `tests/lampway/test_statusbar.py::test_the_plug_beside_the_wire_chip_opens_connections` (RED observed), and
+  `tests/lampway_visual/test_connections_window.py` (a missing row with the paste field, which the QA dump reports as
+  secret; a sign-in waiting).
+- **Not done**: test 9 (an agent card's `needs_connection` button: the cards are native, contract 05); the expander's
+  Used by, other sources, history and Rotate (only Move into keyring is there); the Studios accounts lines and the
+  Privacy rows reading Connections; the splash's fifth cue; captures against `mockups/16-connections.html`.
+
+## Coordinator addition: the Choices window (P0, `specs/choices/choices_face.md`; CH8 and CH1 as ruled)
+
+- **Against the contract, not yet the server**: like Connections, the Choices routes are on `origin/lp/connections`
+  (`choices/routes.py`, `views.py`), not in `origin/lp/wave5`; `choices_client.py` speaks them and every test uses a
+  fake client.
+- **CH8, Choices absorbs Providers**: `lampway.providers_open` (the Studios panel's button, now "Choices: agent, images,
+  video, spending", and the splash's row, now "Choices and privacy") opens Choices on Agents. The old dialog is kept as
+  `lampway.providers_dialog` for two uses only: Choices' "Change spending" (the spend rows' existing write path), and a
+  server that has no Choices yet (an HTTP 404), where the window says so and offers it, so nothing is lost before the
+  server lands. Spending is the list's last row: each provider's click rule, caps and session spend from `/app/spend`.
+- **Words and cues** (`choices_face.py`): a diamond per purpose (preferred filled, fallback half, override dotted,
+  blocked crossed, not chosen dashed) and the hand for a waiting proposal, the one glow; the reason word ("fallback:
+  studio:tripo is off", "this project", "not chosen yet", "nothing can run: ..."); each option's six facts (where it
+  runs, its connection's glyph from the Connections family, cost on hover with the date it was measured, retention:
+  lamp local, shield zero retention, eye "kept by the provider: terms unread", quality); a skipped option's reason and
+  its one fix (Open in Privacy, Connect <label>). The `choice` family is in `tokens.json` (`check_cues.py` passes;
+  its "waits for you" now counts as waiting for C3), the five diamonds and the eye are preview-only glyphs.
+- **CH1, the eye**: an option acknowledged for private content carries the eye; clicking it takes the acknowledgement
+  back (`POST /app/choices/acknowledge` with `private: false`); a kept option not yet acknowledged offers "Allow private
+  content to <option>".
+- **The window** (`ui/choices.py`): pop-out and Preferences > Interface > Choices; the chain reorders with up / down
+  (a PUT of the new preferred and fallbacks); proposals are accepted for this project or all projects, or declined;
+  "Use yours again" clears a project override. Every write refuses while a script runs; nothing here switches a route
+  or touches a connection.
+- Tests: `tests/lampway/test_lampway_choices_face.py` (8; RED observed: the module missing, the window file missing),
+  `tests/lampway_tools/test_lampway_choices_live.py` (3, real binary: draw pure, the not-running and no-Choices rows,
+  the script gate (its falsifier run: dropping the gate fails it), reorder, accept, the Providers button),
+  `tests/lampway_visual/test_choices_window.py` (a fallback purpose with a waiting proposal and the eye).
+- **Not done**: test 7 (`needs_choice` on an agent card: the cards are native); test 9 (`mockups/parity.py`
+  extended to 17-choices); params as typed fields and the scope switch (the window shows scopes and clears an
+  override, it does not edit params); the expanders (override policy, recent jobs, quality records, closed
+  proposals); "Add an option"; the Connections window's "Used by" linking here.
+
+## Coordinator addition: the install carries no agent contract
+
+- The installed app had `scripts/mixar/modules/lampway_tools/AGENTS.md` and `CLAUDE.md` (the rail's contract files).
+  `src/source/creator/CMakeLists.txt` now excludes `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, `.agents` and `.claude` from the
+  scripts install, and an `install(CODE)` step removes any an older install still has (an install over an install keeps
+  what was there). `scripts/lampway/sync_python.sh` excludes the same names and deletes them from the target, with the
+  install's own `_build_env.py` and caches protected.
+- Tests: `tests/lampway_tools/test_install_has_no_agent_contracts.py` walks the installed tree of the build under test
+  (RED observed: the two files), and `tests/lampway_tools/test_sync_python.py::test_sync_does_not_ship_agent_contracts_and_takes_old_ones_out`
+  (written after the sync change; its falsifier run: without `--delete-excluded` it fails).
+- Native: the CMake change needs a re-configure and an install (no compile).
+
+## Which build is in `build/Prod`
+
+The coordinator's rule from here on: `build/Prod` is built from a clean tree at a pushed sha, and that sha is written to
+`build/Prod/BUILT_FROM`. (The 10-06 02:31 build the integrator copied held the then-uncommitted 6881d79 native
+changes; the coordinator traced that from the reflog.) The current build's sha is recorded at the end of this file
+after each native push.
+
+- `build/Prod` built from `cf1fc1f755218c2a32a433d15ba3c392c29c8693` (pushed, clean tree; `build/Prod/BUILT_FROM`), 2026-10-06.
+  It contains contracts 01-08 as pushed and the `origin/lp/wave5` merge `5e5cf3e` (which brought no native change).

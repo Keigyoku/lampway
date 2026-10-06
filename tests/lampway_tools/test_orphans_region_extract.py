@@ -26,6 +26,7 @@ def plate(name):
     g = ob.vertex_groups.new(name="left"); g.add(sorted({v for i in left for v in me.polygons[i].vertices}), 1.0, "REPLACE")
     return ob, left
 ob, left = plate("plate")
+canon("plate", welded=True, scale="any")              # the door: regions follow adjacency, so the mesh is welded by position
 def loops(name):
     bm = bmesh.new(); bm.from_mesh(bpy.data.objects[name].data)
     edges = [e for e in bm.edges if len(e.link_faces) == 1]; seen, n = set(), 0
@@ -52,7 +53,7 @@ def _go(tmp_path, body):
 
 def test_box_region_separates_the_expected_faces(tmp_path):
     res = _go(tmp_path, '''
-canon("plate")
+canon("plate", welded=True)
 r = call("mesh_region_extract", object="plate", region={"bbox": [-0.6, -0.6, -0.1, -0.3, 0.6, 1.1]}, cap="none")
 print("RESULT", json.dumps({"r": r, "left": len(left), "src": info("plate")}))
 ''')
@@ -63,11 +64,11 @@ print("RESULT", json.dumps({"r": r, "left": len(left), "src": info("plate")}))
 
 def test_fill_holes_makes_the_part_watertight_and_cap_none_leaves_the_loop(tmp_path):
     res = _go(tmp_path, '''
-canon("plate")
+canon("plate", welded=True)
 a = call("mesh_region_extract", object="plate", region={"material_slot": "gold"}, cap="fill_holes", name="filled")
-canon("plate")
+canon("plate", welded=True)
 b = call("mesh_region_extract", object="plate", region={"vertex_group": "left"}, cap="none", name="open")
-canon("plate")
+canon("plate", welded=True)
 c = call("mesh_region_extract", object="plate", region={"zone": 2, "by": "material_slot"}, cap="fan", name="fanned")
 print("RESULT", json.dumps({"a": a, "b": b, "c": c, "fa": info("filled"), "fb": info("open"), "fc": info("fanned")}))
 ''')
@@ -78,7 +79,7 @@ print("RESULT", json.dumps({"a": a, "b": b, "c": c, "fa": info("filled"), "fb": 
 
 def test_keep_in_source_false_leaves_a_hole_in_the_remainder(tmp_path):
     res = _go(tmp_path, '''
-canon("plate")
+canon("plate", welded=True)
 r = call("mesh_region_extract", object="plate", region={"material_slot": 1}, keep_in_source=False)
 print("RESULT", json.dumps({"r": r, "rem": info(r["remainder"]), "src": info("plate")}))
 ''')
@@ -88,11 +89,11 @@ print("RESULT", json.dumps({"r": r, "rem": info(r["remainder"]), "src": info("pl
 
 def test_a_lasso_in_the_front_view_and_the_refusals(tmp_path):
     res = _go(tmp_path, '''
-canon("plate")
+canon("plate", welded=True)
 lasso = call("mesh_region_extract", object="plate", region={"polygon_2d": [[-0.6, -0.1], [-0.3, -0.1], [-0.3, 1.1], [-0.6, 1.1]], "view": "Front"}, cap="none")
-canon("plate")
-canon("plate")
-canon("plate")
+canon("plate", welded=True)
+canon("plate", welded=True)
+canon("plate", welded=True)
 out = {"lasso": lasso,
        "empty": call("mesh_region_extract", object="plate", region={"bbox": [5, 5, 5, 6, 6, 6]}),
        "whole": call("mesh_region_extract", object="plate", region={"bbox": [-1, -1, -1, 1, 1, 2]}),

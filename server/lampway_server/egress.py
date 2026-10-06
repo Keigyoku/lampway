@@ -54,6 +54,8 @@ ROUTES = {r.id: r for r in (
     Route("video_link", "Video download from a link you pasted (yt-dlp)", (), "the site you pasted sees your IP address and the link; nothing of yours is uploaded; what the site keeps is its own policy",
           "n/a: nothing of yours is sent", "ok"),
     Route("world_labs", "World Labs (Marble world model)", ("worldlabs.ai",), _UNREAD, _UNREAD, "unknown"),
+    Route("github", "GitHub release download (Lampway's WezTerm)", ("github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com"),
+          "no user content: a plain GET of a public release asset; the host sees your IP address and which file you asked for", "n/a: no content is sent", "ok"),
     Route("model_download", "Model weights download (Hugging Face)", ("huggingface.co", "cdn-lfs.huggingface.co", "cdn-lfs-us-1.hf.co", "hf.co", "cas-bridge.xethub.hf.co"),
           "no user content: a plain GET of public weights; the host sees your IP address and which file you asked for", "n/a: no content is sent", "ok"),
     Route("cc0:ambientcg", "ambientCG (CC0 materials)", ("ambientcg.com", "acg-media.struffelproductions.com"),
@@ -82,6 +84,8 @@ LAUNCHES: dict = {
     "job_backends.py:BlenderRun.make_test_glb": ("local", "a niced headless Lampway process that writes a test GLB"),
     "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets"),
     "herdr/launcher.py:_systemd_ok": ("local", "systemctl --user is-system-running: a local query"),
+    "job_backends.py:BlenderRun.__call__": ("local", "nice headless Lampway (-b, bridge port 0) running one local mesh job on the uploaded file; no network"),
+    "job_backends.py:BlenderRun.make_test_glb": ("local", "nice headless Lampway writing a UV-sphere GLB for the real-run test; no network"),
     "library/ingest.py:extract_video": ("local", "ffprobe on a local file"),
     "library/previews.py:video_thumb": ("local", "nice ffmpeg: one thumbnail frame of a library video file"),
     "library/video.py:_run": ("local", "nice ffmpeg/ffprobe on library video files (probe, frame count, loudness, derived strips and panels); every caller in video.py passes an ffmpeg or ffprobe argv"),
@@ -246,18 +250,20 @@ class Egress:
         if not self.enabled(route):
             self._append({"event": "refused", "route": route, **base, **policy, "reason": "route off"})
             raise EgressRefused(f"{route} is off: switch it on in Privacy to let data leave")
-        override = False
+        override = would = False
         if base["content_class"] == "private" and not self._permissive:
             ok = spec is not None and (spec.privacy_class == "ok" or (spec.privacy_class == "conditional" and all((d.get("constraints") or {}).get(k) == v for k, v in spec.requires)))
             if not ok:
                 ids = base["asset_ids"]
                 if ids and all(self.overridden(i, route) for i in ids):
                     override = True
+                elif d.get("observe_private"):                      # CH1, first release: record what the rule would refuse, refuse nothing yet
+                    would = True
                 else:
                     need = ", ".join(f"{k}={v}" for k, v in spec.requires) if spec and spec.requires else "a verified-ephemeral guarantee"
                     self._append({"event": "refused", "route": route, **base, **policy, "reason": "private content"})
                     raise EgressRefused(f"this asset is private and {route} requires {need} (policy: {policy['retention'][:80]}): use a verified route, run it locally, or flip the per-asset override (logged)")
-        self._append({"event": "send", "route": route, **base, **policy, "override": override})
+        self._append({"event": "send", "route": route, **base, **policy, "override": override, **({"would_refuse_private": True} if would else {})})
         with self._lock:
             self._active[route] = self._active.get(route, 0) + 1
             self._last = {"route": route, "t": time.time()}
@@ -331,7 +337,8 @@ def install() -> None:
 
 
 @contextlib.contextmanager
-def guard(route: str, kind: Optional[str] = None, asset_ids=None, content_class: Optional[str] = None, constraints=None, nbytes: int = 0):
+def guard(route: str, kind: Optional[str] = None, asset_ids=None, content_class: Optional[str] = None, constraints=None, nbytes: int = 0,
+          observe_private: Optional[bool] = None):
     """The same gate for a call that starts another process (a studio driver, a local CLI, yt-dlp, a cloud box CLI): lit while it runs, logged before it starts.
     What it does not say is inherited from an enclosing ``context`` (a runner declares the asset ids; the backend's own guard gates each call)."""
     m = ACTIVE
@@ -340,7 +347,8 @@ def guard(route: str, kind: Optional[str] = None, asset_ids=None, content_class:
         return
     outer = _ctx.get()
     with context(kind=kind or outer.get("kind", "request"), asset_ids=list(asset_ids if asset_ids is not None else outer.get("asset_ids") or []),
-                 content_class=content_class or outer.get("content_class", "unclassified"), constraints=constraints if constraints is not None else outer.get("constraints") or {}):
+                 content_class=content_class or outer.get("content_class", "unclassified"), constraints=constraints if constraints is not None else outer.get("constraints") or {},
+                 observe_private=outer.get("observe_private", False) if observe_private is None else observe_private):
         r = m.begin(route, "PROCESS", nbytes, explicit_route=route)
     try:
         yield
