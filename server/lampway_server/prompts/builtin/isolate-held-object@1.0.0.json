@@ -1,0 +1,73 @@
+{
+  "id": "isolate-held-object",
+  "version": "1.0.0",
+  "purpose": "plate",
+  "media": "image",
+  "title": "Isolate one held object from an equipped reference",
+  "description": "The single weapon or tool a character holds, as a standalone rendering: the hand and everything else removed, occluded areas completed conservatively. Isolate first, then make its plates from this.",
+  "body": {
+    "subject": "The first image is the equipped character reference. Isolate its ONE {{item}} as a standalone rendering",
+    "action": "Keep its visible proportions, materials, fittings and wear. Remove the character, the hand and all other equipment; complete the hand-occluded areas conservatively, inventing nothing decorative",
+    "camera": "{{camera}}",
+    "style": "Pure solid #FF00FF background edge to edge, orthographic projection, flat even diffuse lighting from the camera direction, matte materials, minimal specular",
+    "constraints": "One object only; no hand, body, second item, text or watermark"
+  },
+  "variables": {
+    "item": {
+      "type": "string",
+      "default": "weapon",
+      "description": "the held object, e.g. spear, sword, shield"
+    },
+    "camera": {
+      "type": "string",
+      "default": "The object upright and centred, its broad face toward the camera",
+      "description": "the framing of the standalone rendering"
+    }
+  },
+  "negatives": [
+    "no hand or fingers",
+    "no shadow or floor",
+    "no added ornament"
+  ],
+  "inputs": {
+    "reference_image": {
+      "required": true,
+      "order": 1,
+      "description": "the equipped character holding the object"
+    }
+  },
+  "defaults": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "size": "2048x2048",
+    "quality": "high",
+    "background": "opaque",
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "view_verify",
+      "description": "the hidden construction is inferred, not recovered: say so when the plates are made from it"
+    }
+  ],
+  "provenance": {
+    "source": "astra-1 crew shelf: the TITAN ImageGen workflow (titan-imagegen SKILL.md, 2026-09-26), its templates and encountered failures",
+    "note": "generalised from one armour set to any equipment: the wearer-axis camera table, one physical piece per plate, the 3x2 turnaround order at one physical scale, isolation of a held object, and the synthetic-character provenance that cleared an image-service refusal"
+  }
+}

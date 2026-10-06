@@ -1,0 +1,73 @@
+{
+  "id": "turnaround-six-view",
+  "version": "1.0.0",
+  "purpose": "plate",
+  "media": "image",
+  "title": "Six-view turnaround sheet of one piece at one physical scale",
+  "description": "A 3x2 sheet of one physical piece, the six wearer-axis views in a fixed order at an identical physical scale, for lampway_image_matte's 3x2 split.",
+  "body": {
+    "subject": "One {{piece}}, the same design in every view, exactly as in the first image",
+    "action": "Landscape 3:2, exactly 3 columns by 2 rows, six equal cells with even gutters. Top row FRONT, RIGHT, BACK. Bottom row LEFT, TOP, BOTTOM. These are layout instructions, not printed labels; each view centred in its own cell",
+    "camera": "The wearer's axes: front toward the chest, right from the wearer's own right, back from behind, left from the wearer's own left, top directly down, bottom directly up. IDENTICAL physical scale: one object and one fixed orthographic camera scale rotated around it, never enlarged per cell; short views stay short and end views stay small",
+    "style": "Pure solid #FF00FF including the gutters, identical flat diffuse camera lighting in every cell, matte materials, minimal specular",
+    "constraints": "No merged cells, repeated views, extra views or hero shot; no dividing lines, borders, text or labels"
+  },
+  "variables": {
+    "piece": {
+      "type": "string",
+      "default": "piece",
+      "description": "the physical piece and its side, e.g. left bracer"
+    }
+  },
+  "negatives": [
+    "no shadows or floor",
+    "no gradient or vignette",
+    "no per-cell rescaling",
+    "no labels or text"
+  ],
+  "inputs": {
+    "reference_image": {
+      "required": true,
+      "order": 1,
+      "description": "the design authority for this piece"
+    }
+  },
+  "defaults": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "size": "3072x2048",
+    "quality": "high",
+    "background": "opaque",
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "image_matte",
+      "description": "split 3x2 with lampway_image_matte (cuts and erase rectangles pinned in a recipe), then verify"
+    },
+    {
+      "id": "scale_check",
+      "description": "compare a known cross-view dimension before claiming one scale: equal cells do not prove equal object scale"
+    }
+  ],
+  "provenance": {
+    "source": "astra-1 crew shelf: the TITAN ImageGen workflow (titan-imagegen SKILL.md, 2026-09-26), its templates and encountered failures",
+    "note": "generalised from one armour set to any equipment: the wearer-axis camera table, one physical piece per plate, the 3x2 turnaround order at one physical scale, isolation of a held object, and the synthetic-character provenance that cleared an image-service refusal"
+  }
+}
