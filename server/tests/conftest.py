@@ -58,8 +58,11 @@ def _no_real_secret_store(tmp_path, monkeypatch):
     keyring.set_keyring(keyring.backends.fail.Keyring())
     from lampway_server import connections as C
     C.set_active(C.Hub(tmp_path / "connections-state", secrets_dir=tmp_path / "secrets"))   # a consumer outside create_app records here, never in ~/.local/state
+    from lampway_server import choices as CH
+    CH.set_active(CH.FileStore(tmp_path / "choices-state"), tmp_path / "choices-state")
     yield
     C.set_active(None)
+    CH.set_active(None, None)
 
 
 @pytest.fixture

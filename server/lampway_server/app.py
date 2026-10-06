@@ -1100,6 +1100,11 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     routes.append(Route(MOA.HYPER3D.callback_path, h3d_callback, methods=["GET"]))
     from .connections.routes import connection_routes
     routes += connection_routes(lambda: conn_hub, _bearer_ok)
+    # ---- Choices (choices/): what serves each purpose, its fallbacks and why; the user's writes; the agent reads and proposes
+    from . import choices as CHO
+    from .choices.routes import choices_routes
+    CHO.set_active(CHO.FileStore(settings.state_dir), settings.state_dir)
+    routes += choices_routes(_bearer_ok)
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager
