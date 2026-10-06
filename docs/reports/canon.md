@@ -421,6 +421,9 @@ own arguments, never at a door). The generic red-team test over every Need door 
 **Two stay LEGACY, with the reason found by converting them:** `edit_locality_check` (its `after` is another tool's output, and
 outputs are not re-stamped yet - `produces=Inherit` is not built - so a Need would refuse every real use); `scale_to_measure` (it
 scales armatures too, by design and by its own tests, and a skeleton has no normalizer - orphans' table stated mesh kinds only).
+**CORRECTED at the next merge (5f9c35af): that second reason was a misreading.** The tool never scales armatures - it REFUSES them
+("never blindly on a skinned mesh or an armature"); its old test passed an armature to check that refusal. Lane orphans' declaration
+(`object` a mesh Need; the armature now refused at the door) is the right one and stands.
 **Tests:** 58 tests in 15 files built raw fixtures. A helper `canon(*names)` in `features_support` normalizes a fixture through
 `features.normalize.normalize_object` (pivot at the scene origin, so world positions hold; real scale declared as the fixture's
 authored size; welded as a generated mesh) and is called immediately before each converted call - 105 insertions by script,
@@ -498,3 +501,31 @@ and in CI they SKIP. I ran them by hand against the mounted shelf: all 14 pass o
 they are the only regression evidence for the MetaHuman-sized cases.
 **needs_decision:** `SOLE_BAND_M = 0.04` - the band's thickness is still absolute (a ratio of the ankle height would need the native
 body's joints to calibrate). Not built: the source-part check (B.7, the detached-glove guard).
+
+
+## Merge notes: origin/lp/wave5 at fd0f1085 (with lane orphans' O36) into lp/canon (5f9c35af)
+Wave5 now carried lane orphans' work, which had merged an older lp/canon and made its own declarations, importer routing and ratchet
+records. Resolution, hunk by hunk (24 in `orphans_api.py`, 7 in `api.py`):
+- **Orphans' declarations for its own tools stand** where theirs is a real Need or equal to mine (side_label_check, mirror_pair,
+  scale_to_measure, uv_check, image_material_id, the region / edit / slot / zone tools, workflow_reference_to_asset, recon_measure,
+  the NONEs) - their stated policy: the mesh argument is declared now, an optional texture or skeleton argument when its normalizer
+  lands.
+- **The canon lane's stand** where theirs was LEGACY only because the door lacked something it now has: the list Needs
+  (render_condition_passes, mesh_join_boolean, multi_piece_material - their reason "awaits the list form of the door"; I built it);
+  the image-path tools keep my reason (theirs said "awaits the texture normalizer", which exists now; the gap is that the door does
+  not resolve project paths); `edit_locality_check` stays LEGACY (its `after` is an edit output with a stale stamp, and normalizing
+  it re-pivots by its new bounding box, which would show the edit as global movement); the four UE tools and wave6's 28 keep their
+  per-tool declarations (`api_wave6.CONSUMES`); orphans' `_W6_DOORS` table (28 placeholder LEGACYs) was dead after that and is removed.
+- **Runner part-set tools stay LEGACY**: orphans declared a mesh Need on argv FILE paths "declarative until run_tool checks path
+  sidecars" - a Need the door never checks promises what does not exist; LEGACY says the check is missing.
+- **Importer routing:** equivalent on both sides; orphans' taken where it bound an image's role (multi_piece: basecolor); the
+  Vault placement and catalogue export keep the canon lane's `flavour="native"` (the Vault lanes' wm.fbx_import, and the FINISHED
+  check orphans' version dropped).
+- **One fixture helper** `canon()` for both lanes' call forms (`welded=`, `scale=`, `real=`); welding is opt-in (orphans' default -
+  a fixture with coincident vertices trips the 5 % weld guard otherwise, as recon_measure's did); the welded-Need tests pass
+  `welded=True`.
+- **The ratchet FELL to 145** (parents 151 and 155): no record needed; both lanes' records are kept in the file.
+- After the merge (776dae86): lane orphans' rig tests read `docs/canon/goldens`; their copies (R01-R07 flattened, C02) were
+  byte-identical and are removed, as the test-side copy of the C goldens was (72185d03).
+Checks on the resolution: 596 canon / door / orphans / wave6 / rig / placement tests, the server's orphan, canonical, tool-definition
+and job-backend tests, the rail, and the 118 shelf-gated tests (with the shelf mounted) - all pass.
