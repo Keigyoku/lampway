@@ -53,6 +53,19 @@ def _uv_connected(edge, f, g, uv_layer) -> bool:
     return True
 
 
+def _gather_isolated(label, min_faces):
+    """Regions still under ``min_faces`` after merging have no neighbour (isolated shells): they become ONE remainder region."""
+    counts = {}
+    for lab in label.values():
+        counts[lab] = counts.get(lab, 0) + 1
+    small = {lab for lab, n in counts.items() if n < min_faces}
+    if len(small) > 1:
+        target = min(small)
+        for k, v in label.items():
+            if v in small:
+                label[k] = target
+
+
 def _merge_small(bm, label, min_faces):
     """Merge every region below ``min_faces`` into the neighbouring region it shares the most edges with (repeat until stable)."""
     while True:
@@ -83,7 +96,10 @@ def _merge_small(bm, label, min_faces):
             return                                      # an isolated small shell has no neighbour: it stays a part
 
 
-def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algorithmic", hide_original=True):
+MAX_PARTS = 200          # audit F15: ~900 shells became ~900 objects in 52 s and slowed every later tool
+
+
+def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algorithmic", hide_original=True, max_parts=MAX_PARTS):
     if engine != "algorithmic":
         return C.studio_slot("segment", engine)
     if method not in METHODS:
@@ -98,11 +114,17 @@ def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algor
     label = _labels(bm, method, float(angle), uv_layer)
     if int(min_faces) > 1:
         _merge_small(bm, label, int(min_faces))
+        _gather_isolated(label, int(min_faces))
     bm.free()
     groups = {}
     for fi, lab in label.items():
         groups.setdefault(lab, []).append(fi)
     ordered = sorted(groups.values(), key=len, reverse=True)
+    if len(ordered) > int(max_parts):                  # refused before any object is made
+        keep = len(ordered[int(max_parts) - 2]) if int(max_parts) >= 2 else len(ordered[0])
+        raise C.FeatureError(f"{len(ordered)} parts is more than max_parts={int(max_parts)}: gather the small ones with min_faces={keep} "
+                             f"(regions under it merge into a neighbour, isolated ones into one remainder part), weld a seam-split import "
+                             f"first (lampway_normalize_mesh), or raise max_parts")
     coll = bpy.data.collections.get(f"{src.name}_parts") or bpy.data.collections.new(f"{src.name}_parts")
     if coll.name not in bpy.context.scene.collection.children:
         bpy.context.scene.collection.children.link(coll)
