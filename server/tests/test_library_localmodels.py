@@ -101,7 +101,7 @@ def test_bge_pools_the_cls_token_and_normalises():
 def test_status_names_what_is_missing_and_never_downloads(tmp_path, monkeypatch):
     root = tmp_path / "models"
     st = LM.status(root)
-    assert {m["id"]: m["state"] for m in st} == {"clip-vit-b-32": "needs_weights", "bge-small-en-v1.5": "needs_weights"}
+    assert {m["id"]: m["state"] for m in st} == {"clip-vit-b-32": "needs_weights", "clip-vit-b-32-text": "needs_weights", "bge-small-en-v1.5": "needs_weights"}
     for m in LM.MANIFEST.values():
         for f in m["files"]:
             (root / m["id"]).mkdir(parents=True, exist_ok=True)
@@ -113,13 +113,20 @@ def test_status_names_what_is_missing_and_never_downloads(tmp_path, monkeypatch)
     assert not any(root.rglob("*.part"))
 
 
-def test_the_manifest_records_licence_source_and_provenance_honestly():
+def test_the_manifest_pins_every_file_to_a_commit_and_a_sha256():
+    import re
+    assert set(LM.MANIFEST) == {"clip-vit-b-32", "clip-vit-b-32-text", "bge-small-en-v1.5"}
     for m in LM.MANIFEST.values():
         assert m["license"] == "MIT" and m["source"].startswith("https://") and m["space"] and m["dim"] in (384, 512)
         for f in m["files"]:
-            assert f["name"] and f["url"].startswith("https://") and "sha256" in f
+            assert re.fullmatch(r"https://huggingface\.co/[\w.-]+/[\w.-]+/resolve/[0-9a-f]{40}/[\w./-]+", f["url"]), f["url"]     # a commit, never a moving branch
+            assert re.fullmatch(r"[0-9a-f]{64}", f["sha256"] or ""), f
+    assert LM.MANIFEST["clip-vit-b-32-text"]["space"] == LM.MANIFEST["clip-vit-b-32"]["space"]          # CLIP's two towers share ONE space: text finds images
     notice = (REPO / "NOTICE.md").read_text()
-    assert "clip-vit-b-32" in notice and "bge-small-en-v1.5" in notice and "[UNVERIFIED]" in notice
+    for m in LM.MANIFEST.values():
+        assert m["id"] in notice
+        for f in m["files"]:
+            assert f["sha256"] in notice
 
 
 def test_a_local_space_is_planned_and_run_with_zero_egress(tmp_path, monkeypatch):
@@ -184,3 +191,79 @@ def test_default_spaces_prefer_the_local_model_and_fall_back_to_deterministic(tm
     assert LM.default_spaces(tmp_path / "none") == {"image": ["image_hist", "image_dhash"], "text": []}
     ready = {"image_local": object(), "text_local": object()}
     assert LM.default_spaces(tmp_path / "none", ready=ready) == {"image": ["image_local:clip-vit-b-32"], "text": ["text_local:bge-small-en-v1.5"]}
+
+
+# a toy CLIP BPE: byte-level, end-of-word marked "</w>", merges ranked by order
+TOY_VOCAB = {"<|startoftext|>": 0, "<|endoftext|>": 1, "r": 2, "e": 3, "d": 4, "d</w>": 5, "re": 6, "red</w>": 7, "a</w>": 8, "!</w>": 9, "x": 10, "x</w>": 11, "s": 12}
+TOY_MERGES = ["#version: 0.2", "r e", "re d</w>"]
+
+
+def test_clip_bpe_merges_by_rank_and_wraps_in_start_and_end_tokens():
+    tok = LM.ClipBPE(TOY_VOCAB, TOY_MERGES, bos=0, eos=1)
+    assert tok.ids("A  Red!") == [0, 8, 7, 9, 1]                   # lowercased, whitespace collapsed, punctuation its own word
+    assert tok.ids("rex") == [0, 6, 11, 1]                          # "r e" merges; "x" is word-final
+    ids = tok.encode(["red", "a red red"])["input_ids"]
+    assert ids.shape == (2, 5) and ids[0].tolist() == [0, 7, 1, 1, 1]  # padded with the end token: the model pools at the FIRST end token
+
+
+class NamedSession:
+    """A session with two outputs in a fixed order: the embedder must ask for the projected embedding by NAME, not take output 0."""
+    def __init__(self, want):
+        self.want = want
+
+    def get_inputs(self):
+        return [type("I", (), {"name": "pixel_values" if self.want == "image_embeds" else "input_ids"})()]
+
+    def get_outputs(self):
+        return [type("O", (), {"name": n})() for n in ("last_hidden_state", self.want)]
+
+    def run(self, names, feed):
+        n = next(iter(feed.values())).shape[0]
+        out = {"last_hidden_state": np.zeros((n, 50, 768), "float32"), self.want: np.tile(np.arange(1, 513, dtype="float32"), (n, 1))}
+        return [out[k] for k in (names or ["last_hidden_state", self.want])]
+
+
+def test_the_clip_towers_read_their_projected_output_by_name(tmp_path):
+    p = tmp_path / "a.png"
+    Image.new("RGB", (32, 32), (1, 2, 3)).save(p)
+    assert LM.OnnxEmbedder("clip-vit-b-32", NamedSession("image_embeds")).embed_images([p]).shape == (1, 512)
+    txt = LM.OnnxEmbedder("clip-vit-b-32-text", NamedSession("text_embeds"), tokenizer=LM.ClipBPE(TOY_VOCAB, TOY_MERGES, bos=0, eos=1))
+    v = txt.embed_texts(["red"])
+    assert v.shape == (1, 512) and abs(np.linalg.norm(v[0]) - 1) < 1e-6
+    assert txt.space == "image_local:clip-vit-b-32"
+
+
+def test_the_server_reads_the_models_the_client_bundled(tmp_path, monkeypatch):
+    lib = make_lib(tmp_path)
+    monkeypatch.delenv("LAMPWAY_MODELS_DIR", raising=False)
+    assert EM.Embed(lib).models_root == lib.root / "models"                       # no bundle: the one-click fetch's own directory
+    monkeypatch.setenv("LAMPWAY_MODELS_DIR", str(tmp_path / "install/models"))
+    assert EM.Embed(lib).models_root == tmp_path / "install/models"               # the launcher's pointer into the install
+    assert EM.Embed(lib, models_root=tmp_path / "x").models_root == tmp_path / "x"
+
+
+class FixedText:
+    """A text encoder that answers one fixed unit vector (stands in for CLIP's text tower)."""
+    model_id, space = "clip-vit-b-32-text", "image_local:clip-vit-b-32"
+
+    def __init__(self, v):
+        self.v = np.asarray(v, "float32") / np.linalg.norm(v)
+
+    def embed_texts(self, texts):
+        return np.tile(self.v, (len(texts), 1))
+
+
+def test_text_finds_images_through_clips_text_tower_in_the_image_space(tmp_path):
+    lib = make_lib(tmp_path)
+    ids = []
+    for name, vec in (("red sphere", [1, 0, 0]), ("blue cube", [0, 1, 0]), ("green torus", [0, 0, 1])):
+        p = tmp_path / f"{name}.png"
+        Image.new("RGB", (8, 8), tuple(int(255 * x) for x in vec)).save(p)                       # distinct bytes: three assets, not one deduped
+        a = lib.put({"kind": "image", "name": name, "source": {"kind": "t", "key": name}, "files": [{"role": "main", "path": str(p), "storage": "external"}]})["id"]
+        lib.put_embedding(lib.version_of(a), "image_local:clip-vit-b-32", vec, model="clip-vit-b-32")
+        ids.append(a)
+    svc = EM.Embed(lib, local={"image_text_local": FixedText([0.1, 0.9, 0.2])})
+    hits = svc.search_images("a blue cube", k=2)
+    assert [h["id"] for h in hits] == [ids[1], ids[2]] and hits[0]["score"] > hits[1]["score"]
+    with pytest.raises(LibraryError, match="needs_weights"):
+        EM.Embed(lib, models_root=tmp_path / "none").search_images("x")

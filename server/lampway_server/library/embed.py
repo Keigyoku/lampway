@@ -68,7 +68,7 @@ class Embed:
     def __init__(self, lib: AssetLibrary, openrouter: Optional[OpenRouterEmbed] = None, local: Optional[dict] = None, models_root=None):
         self.lib, self.or_ = lib, openrouter
         self._local = dict(local or {})
-        self.models_root = Path(models_root) if models_root else lib.root / "models"
+        self.models_root = Path(models_root or os.environ.get("LAMPWAY_MODELS_DIR") or lib.root / "models")       # the bundle the launcher names, else the fetch dir
         self.plans = lib.root / "embed_plans"
 
     # -- targets -------------------------------------------------------------------------------------------------------
@@ -193,6 +193,15 @@ class Embed:
             except Exception as e:  # noqa: BLE001 - one bad file never stops the batch
                 out["failed"].append({"id": t, "why": f"{type(e).__name__}: {str(e)[:120]}"})
         return out
+
+    def search_images(self, text: str, k: int = 12) -> list:
+        """Text to images, locally: CLIP's text tower embeds ``text`` into the SAME space as the image tower's vectors, so the nearest images are the answer.
+        Nothing leaves the machine; refuses with ``needs_weights`` / ``needs_runtime`` like any local space."""
+        from . import vectors
+        mid = LM.QUERY_ENCODERS[LM.MANIFEST[LM.BASES["image_local"]]["space"]]
+        enc = self._local.get("image_text_local") or self._local.setdefault("image_text_local", LM.load(self.models_root, mid))
+        ids, mat = self.lib.load_space(enc.space)
+        return [{"id": i, "score": round(s, 6)} for i, s in vectors.NumpyBrute(ids, mat).topk(enc.embed_texts([text])[0], max(1, min(int(k), 100)))]
 
     def ensure(self, asset_id: str, space: str):
         """Compute and store one deterministic descriptor now (the probe path: a similar-to query on an asset that has none yet)."""
