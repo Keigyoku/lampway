@@ -62,7 +62,8 @@ def main(argv=None) -> int:
     tmp = Path(os.environ.get("TMPDIR") or "/tmp").resolve()
     out = Path(os.environ.get("LAMPWAY_TEST_OUT") or tmp / "lampway-test-all")
     out.mkdir(parents=True, exist_ok=True)
-    suites = {"server": ([py, "-m", "pytest", "tests", "-p", "no:cacheprovider", "-q", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-server")], ROOT / "server", "server/"),
+    # the server's pyproject already adds -q (a second -q hides the summary line the counts are read from)
+    suites = {"server": ([py, "-m", "pytest", "tests", "-p", "no:cacheprovider", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-server")], ROOT / "server", "server/"),
               "client": ([py, "-m", "pytest", "-p", "no:cacheprovider", "--continue-on-collection-errors", "-q", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-client")], ROOT, "")}
     run = {k: v for k, v in suites.items() if not a.only or k == a.only}
     procs = {}
@@ -77,12 +78,24 @@ def main(argv=None) -> int:
         report[name] = {"rc": rc, **counts}
     baseline = {k: v for k, v in load_baseline().items() if not a.only or (k.startswith("server/") == (a.only == "server"))}
     j = judge(failing, baseline)
+    flaky = []
+    if j["new"]:                                    # a new failure is re-run once, alone: one that passes then is reported as flaky, never hidden
+        for name, (cmd, cwd, prefix) in run.items():
+            mine = [t[len(prefix):] for t in j["new"] if t.startswith(prefix) and (prefix or not t.startswith("server/"))]
+            if not mine:
+                continue
+            rerun = subprocess.run([c for c in cmd if not c.startswith("--basetemp") and c != str(tmp / f"lw-test-{name}")] + ["--basetemp", str(tmp / f"lw-test-{name}-rerun"), *mine],
+                                   cwd=cwd, capture_output=True, text=True)
+            (out / f"{name}-rerun.log").write_text(rerun.stdout + rerun.stderr)
+            still, _ = parse(rerun.stdout, prefix)
+            flaky += [prefix + t for t in mine if prefix + t not in still]
+        j["new"] = [t for t in j["new"] if t not in flaky]
     if a.shrink_baseline and j["fixed"]:
         keep = [l for l in BASELINE.read_text(encoding="utf-8").splitlines(keepends=True) if l.startswith("#") or not l.strip() or l.split("\t")[0] not in set(j["fixed"])]
         BASELINE.write_text("".join(keep), encoding="utf-8")
     green = not j["new"] and (not j["fixed"] or a.shrink_baseline)
     summary = {"verdict": "GREEN" if green else "RED", "sha": subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip(),
-               "suites": report, "baseline": len(baseline), "known_red_seen": len(j["known"]), "new_failures": j["new"], "baseline_now_passing": j["fixed"],
+               "suites": report, "baseline": len(baseline), "known_red_seen": len(j["known"]), "new_failures": j["new"], "flaky_passed_on_rerun": flaky, "baseline_now_passing": j["fixed"],
                "minutes": round((time.time() - t0) / 60, 1), "logs": str(out)}
     (out / "summary.json").write_text(json.dumps(summary, indent=1))
     print(json.dumps(summary, indent=1))
