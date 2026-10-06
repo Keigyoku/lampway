@@ -22,11 +22,31 @@ def sync(wm, scene) -> dict:
     line = route_line(S.STATE.get("provider") or "", S.STATE["egress"] if S.STATE["ok"] else None,
                       dict(BASE_CONTENT, images=images))
     table = estimates(_catalog_cost)
+    msgs = getattr(scene, "mixie_chat_messages", None)
+    if msgs is not None and len(msgs) and hasattr(msgs[0], "lampway_who"):
+        import time
+        stamp_who(msgs, time.strftime("%H:%M"), line["host"])
     for key, value in (("lampway_chat_route_host", line["host"]), ("lampway_chat_route_tip", line["tooltip"]),
                        ("lampway_chat_send_ok", line["send_ok"]), ("lampway_generate_estimates", table)):
         if getattr(wm, key, None) != value:
             setattr(wm, key, value)
     return line
+
+
+def stamp_who(messages, clock: str, host: str):
+    """Contract 04's who line: the first agent message after a user message (a turn's start) gets "<HH:MM>\x1f<host>", the
+    time it was first seen and the route it came by ("this machine" when nothing left). Already-stamped messages keep theirs.
+    The native renderer draws it (mixie_chat_messages_render.cc). Returns ``messages``."""
+    turn_open = True
+    for m in messages:
+        if getattr(m, "sender", "") == "USER":
+            turn_open = True
+            continue
+        if getattr(m, "sender", "") == "AGENT" and turn_open:
+            turn_open = False
+            if not getattr(m, "lampway_who", ""):
+                m.lampway_who = f"{clock}\x1f{host or 'this machine'}"
+    return messages
 
 
 GENERATE_TYPES = ("image_gen", "model_3d")   # the empty state's prompts that switch to GENERATE (mixie_chat_empty_state.cc)

@@ -138,3 +138,17 @@ def test_generate_prompts_carry_an_estimate():
     draw = src[src.index("void mixie_chat_draw_empty_state("):]
     assert 'STREQ(g_empty_prompt_modes[i], "GENERATE")' in draw and "empty_state_draw_chip(" in draw
     assert [m for m in re.findall(r'"(AGENT|GENERATE)"', src[src.index("g_empty_prompt_modes"):src.index("g_empty_prompt_generate_types")])].count("GENERATE") == 2
+
+
+def test_each_agent_turn_gets_its_who_line():
+    """Contract 04's who line: the first agent message after a user message is stamped with the time it arrived and the
+    route it came by (the sync stamps it when it first sees it, so the time is the arrival within a poll)."""
+    from types import SimpleNamespace
+
+    from mixar.modules.lampway_tools import chat_route as CR
+    msgs = [SimpleNamespace(sender="USER", lampway_who=""), SimpleNamespace(sender="AGENT", lampway_who=""),
+            SimpleNamespace(sender="AGENT", lampway_who=""), SimpleNamespace(sender="USER", lampway_who=""),
+            SimpleNamespace(sender="AGENT", lampway_who="09:00\x1fchatgpt.com")]
+    CR.stamp_who(msgs, "14:32", "chatgpt.com")
+    assert [m.lampway_who for m in msgs] == ["", "14:32\x1fchatgpt.com", "", "", "09:00\x1fchatgpt.com"]
+    assert CR.stamp_who([SimpleNamespace(sender="AGENT", lampway_who="")], "10:01", "")[0].lampway_who == "10:01\x1fthis machine"

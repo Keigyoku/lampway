@@ -70,6 +70,8 @@ struct ChatMessageProps {
   /* USER bubbles: short delivery note drawn above the bubble ("queued")
    * while an interjection awaits the backend's ack. */
   PropertyRNA *delivery_hint;
+  /* AGENT bubbles (Lampway, facelift contract 04): the turn's who line, "<HH:MM>\x1f<host>" (lampway_tools/chat_route.py). */
+  PropertyRNA *lampway_who;
 
   bool initialized;
 };

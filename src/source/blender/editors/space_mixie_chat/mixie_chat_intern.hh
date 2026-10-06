@@ -530,6 +530,9 @@ float chat_ui_get_action_buttons_height(float scale_factor);
  * and nullptr otherwise — plain "You" / "Mixie" labels are not drawn
  * (mixie_chat_messages_content.cc; the buffer is valid until the next call). */
 const char *mixie_chat_sender_label(const MessageLayoutData &layout, PointerRNA *msg_ptr);
+/** Contract 04's who line over an agent turn: the Spark, "Lampway Agent", the route as an outlined chip, the time in mono.
+ * \a who is "<HH:MM>\x1f<host>". */
+void chat_ui_draw_who_line(const char *who, float x, float y, const ChatLayoutMetrics *metrics);
 void chat_ui_draw_sender_label(const char *label,
                                float x,
                                float y,

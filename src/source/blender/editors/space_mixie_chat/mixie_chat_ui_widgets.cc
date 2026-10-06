@@ -10,9 +10,28 @@
  * Provides bubbles, sender labels and action button handling.
  */
 
+#include <cstring>
+#include <optional>
+#include <string>
+
+#include "BKE_appdir.hh"
+
+#include "BLF_api.hh"
+
+#include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 
+#include "BLT_translation.hh"
+
 #include "DNA_userdef_types.h"
+
+#include "GPU_state.hh"
+
+#include "UI_interface.hh"
+#include "UI_interface_c.hh"
+#include "UI_interface_icons.hh"
+#include "UI_mixar_theme.hh"
+#include "UI_resources.hh"
 
 #include "mixie_chat_ui_types.hh"
 #include "mixie_chat_intern.hh"
@@ -280,6 +299,66 @@ float chat_ui_get_action_buttons_height(float scale_factor)
 /* -------------------------------------------------------------------- */
 /** \name Sender Label Widget
  * \{ */
+
+static int who_mono_font()
+{
+  static int font = -2;
+  if (font == -2) {
+    font = -1;
+    if (std::optional<std::string> dir = BKE_appdir_folder_id(BLENDER_DATAFILES, "fonts")) {
+      char path[FILE_MAX];
+      BLI_path_join(path, sizeof(path), dir->c_str(), "PlexMono.woff2");
+      font = BLF_load(path);
+    }
+  }
+  return font >= 0 ? font : BLF_default();
+}
+
+void chat_ui_draw_who_line(const char *who, const float x, const float y, const ChatLayoutMetrics *metrics)
+{
+  if (!who || !who[0]) {
+    return;
+  }
+  const char *sep = strchr(who, '\x1f');
+  std::string clock = sep ? std::string(who, size_t(sep - who)) : std::string(who);
+  std::string host = sep ? std::string(sep + 1) : std::string();
+  float muted[4], text[4], line[4];
+  chat_ui_get_label_color(muted);
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::Text, text);
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::BorderStrong, line);
+  const float s = metrics->scale_factor;
+  const int size = metrics->label_font_size;
+  float cx = x;
+  /* The Spark (contract 05's agent glyph, contract 14's icon). */
+  GPU_blend(GPU_BLEND_ALPHA);
+  const uchar accent[4] = {0xED, 0xB9, 0x44, 0xFF}; /* the Spark is the lamp: accent */
+  ui::icon_draw_ex(cx, y - 4.0f * s, ICON_LAMPWAY_SPARK, 16.0f / (16.0f * UI_SCALE_FAC), 1.0f, 0.0f, accent, false,
+                   UI_NO_ICON_OVERLAY_TEXT);
+  cx += 20.0f * s;
+  const int font = BLF_default();
+  BLF_size(font, size);
+  BLF_color4fv(font, text);
+  const char *name = IFACE_("Lampway Agent");
+  BLF_position(font, cx, y, 0.0f);
+  BLF_draw(font, name, strlen(name));
+  cx += BLF_width(font, name, strlen(name)) + 8.0f * s;
+  if (!host.empty()) {
+    const float pad = 5.0f * s;
+    const float w = BLF_width(font, host.c_str(), host.size()) + 2.0f * pad;
+    const rctf chip = {cx, cx + w, y - 4.0f * s, y + float(size) + 2.0f * s};
+    ui::draw_roundbox_corner_set(ui::CNR_ALL);
+    ui::draw_roundbox_4fv(&chip, false, 4.0f * s, line);
+    BLF_color4fv(font, muted);
+    BLF_position(font, cx + pad, y, 0.0f);
+    BLF_draw(font, host.c_str(), host.size());
+    cx += w + 8.0f * s;
+  }
+  const int mono = who_mono_font();
+  BLF_size(mono, size);
+  BLF_color4fv(mono, muted);
+  BLF_position(mono, cx, y, 0.0f);
+  BLF_draw(mono, clock.c_str(), clock.size());
+}
 
 void chat_ui_draw_sender_label(const char *label,
                                float x,
