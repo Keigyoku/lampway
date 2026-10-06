@@ -125,4 +125,22 @@ RIG_DEFS = [
          P("weights", desc="procedural (default) | none"), P("allow_outside", "array", "joints allowed outside the example"),
          P("out", desc="default rig/<example>.rig.blend"), P("dry_run", "boolean", "return the fit without writing")],
         api="rig_fit_template"),
+    Def("lampway_rig_game_extract", "An engine-clean deform rig from any control rig (Rigify, a tweak rig, a constraint stack; canon 19 B.4; Game "
+        "Rig Tools' Generate Game Rig re-implemented, its measured defects fixed): the control is copied as name (default <control>_game), the "
+        "bones extract keeps (deform | selected | selected_deform | deform_and_selected) stay, hierarchy keep (nearest kept ancestor) | "
+        "rigify_fix (an ORG- ancestor's DEF- twin first; ambiguous twins refuse) | flat, every bone disconnected, shapes, custom properties, "
+        "animation and EVERY constraint dropped, ALL kept bones in one collection (GRT left 1 of 5), each game bone constrained to its control "
+        "twin (lotrot: Copy Location + Copy Rotation, the default; transform: Copy Transforms; none), root_scale_from adds a Copy Scale (auto: onto "
+        "the game rig's own root bone, when it kept one; <bone>: from that control bone onto every top bone). B-Bones are refused, or converted: one bone per segment copying the bendy bone at its "
+        "segment start along the curve, the bendy bone's mesh weights split between its segments. Meshes deformed by (or parented to) the "
+        "control are re-pointed to the game rig with their world matrix kept (rebind_meshes). The receipt: kept and dropped bones, hierarchy "
+        "changes, constraints added, meshes re-pointed, collection members (= kept), the follow error of the game rig against the control, "
+        "sha256 of both rests. Refused: an armature rig_inspect did not read, B-Bones with bbones=refuse, a mesh hanging from a dropped bone, "
+        "a taken name. Next: lampway_rig_bake to turn the constraints into keys.",
+        [P("control", required=True, desc="the control armature"), P("name", desc="default <control>_game"),
+         P("extract", desc="deform (default) | selected | selected_deform | deform_and_selected"), P("hierarchy", desc="keep (default) | rigify_fix | flat"),
+         P("constraint", desc="lotrot (default) | transform | none"), P("root_scale_from", desc="auto (default) | <bone> | none"),
+         P("bbones", desc="refuse (default) | convert"), P("rebind_meshes", "boolean", "re-point the control's meshes (default true)"),
+         P("collection", desc="the bone collection of the game rig (default Deform)"), P("dry_run", "boolean", "return the plan only")],
+        api="rig_game_extract"),
 ]

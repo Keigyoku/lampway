@@ -79,6 +79,17 @@ def rig_fit_template(example, joints, template="", hands="none", hidden=None, co
 
 
 @_export
+@tool(consumes={"control": Need(kind=("skeleton", "rigged_mesh"), scale=ALL, accept_raw=True)})
+def rig_game_extract(control, name="", extract="deform", hierarchy="keep", constraint="lotrot", root_scale_from="auto", bbones="refuse",
+                     rebind_meshes=True, collection="Deform", dry_run=False):
+    """An engine-clean deform rig from any control rig (canon 19 B.4; GRT's Generate Game Rig re-implemented with its defects fixed): kept
+    bones by extract mode, hierarchy keep | rigify_fix | flat, every kept bone in one collection, constraints to the control twin (lotrot |
+    transform | none), B-Bones refused or converted per segment, meshes re-pointed with their world matrix kept; the follow error measured."""
+    from .features import rig_game as _RG
+    return _RG.extract(control, name, extract, hierarchy, constraint, root_scale_from, bbones, rebind_meshes, collection, dry_run)
+
+
+@_export
 @tool(consumes=RIG_RAW)
 def rig_convert(verb, input="", profile="", target_profile="", rules="", target="", out="", armature="", action="", duration="", name="",
                 basis=None, centimeters_per_unit=100.0, channels=None):
