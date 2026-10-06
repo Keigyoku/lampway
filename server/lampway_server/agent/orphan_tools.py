@@ -230,6 +230,17 @@ ORPHAN_DEFS = [
          P("count", "integer", "images, default 1"), P("live", "boolean", "generate (one spend)"), P("model", desc="optional: render for this model"),
          P("piece", desc="the ledger row's piece")],
         api="prompt_image"),
+    Def("lampway_recon_measure", "Measure a reconstructed mesh (an image-to-3D result, a Studio mesh) against its approved plates, the reconstruction "
+        "instrument's numbers: the best of the 24 axis-aligned orientations by mean silhouette IoU against the front, left and top plates (orientation, and "
+        "whether the input was already canonical), the IoU of every given view (front, right, back, left, top, bottom on the WEARER's axes: front -Y, "
+        "wearer's left +X, +Z up), the cavity ratio (a ray up through the crown centre: floor to first surface over height; ~0 solid, high for a hollow "
+        "crown) and shell ratio, the crest-fin width and length ratios from the top view (rows narrower than 35% of the widest), and the albedo's "
+        "left/right luminance ratio (wearer's left over right, from the colour attribute or the Base Color image; a baked directional light shows as one "
+        "side brighter). IoU compares silhouettes cropped and resized to one size: shape, not scale. Read-only. Refused: a plate without alpha, a missing "
+        "front/left/top plate, an unknown view.",
+        [P("object", required=True, desc="the reconstructed mesh"), P("plates", "object", "{view: PNG with alpha under the project root}", required=True),
+         P("size", "integer", "raster size in px (default 256)")],
+        api="recon_measure"),
     Def("lampway_scribble_read", "The Scribble marks in this scene, re-read from the Client's own mark records (they persist in the .blend, so a mark from three turns "
         "ago is still readable after the message that carried it is gone). Returns mode (point: marks say WHERE to work; sketch: the drawing is WHAT to build), "
         "marks [{id, kind (circle|arrow|point|strike|stroke), object (the object it resolved to, or null for empty space), region (frame bbox u0,v0,u1,v1, "

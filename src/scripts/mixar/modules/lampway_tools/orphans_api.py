@@ -336,3 +336,13 @@ def prompt_image(template, variables=None, references=None, out_dir="prompt_imag
                           "output_hashes": [hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in files], "cost": {},
                           "reason": "prompt_image: the image job carries its own price row"})
     return {**plan, "live": True, "image": files[0], "images": files, "ledger": led}
+
+
+@_export
+@tool
+def recon_measure(object, plates, size=256):
+    """A reconstruction measured against its approved plates: the best of the 24 axis orientations by mean silhouette IoU (front, left, top), the IoU of
+    every given view (front, right, back, left, top, bottom: the wearer's axes), the cavity and shell ratios through the crown, the crest-fin width and
+    length ratios from the top view, and the albedo's left/right luminance ratio. Read-only."""
+    from .features import recon_measure as _RCM
+    return _RCM.run(object, plates, str(_settings().project_root), size)

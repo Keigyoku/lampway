@@ -49,6 +49,7 @@ CONSUMES = {
                                     "body_refs": need(("texture",), roles=("reference",)), "example_sheet": need(("texture",), roles=("reference",))},
     "image_matte": {"src": need(("texture",), roles=("reference",))},     # 8-bit sRGB plates; pixel-only, no scale
     "prompt_image": {"references": need(("texture",), roles=("reference",))},   # images only; the template carries the rest
+    "recon_measure": {"object": need(GEOMETRY), "plates": need(("texture",), roles=("reference",))},   # scale-free: both sides are normalised
     "scribble_read": NONE("reads the Client's own mark records and frozen frames; no asset"),
 }
 
