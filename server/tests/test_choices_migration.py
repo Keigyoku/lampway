@@ -113,3 +113,20 @@ def test_matgen_runs_the_material_script_choice(live, settings, provider, monkey
         http.post("/api/v1/matgen", json={"prompt": "rusted bronze"}, headers=fake.rest_headers())
     assert used[0] is provider
     assert isinstance(used[1], OpenRouterProvider) and used[1].model == "anthropic/claude-sonnet-5.5"
+
+
+def test_compute_uses_the_chosen_backend_and_nothing_is_pre_chosen(live, tmp_path):
+    """5.11 (G1, CH6): a job with no backend runs compute.blender_offload's choice; with none set the refusal is today's."""
+    from lampway_server.compute import runner as R
+    from tests.test_compute import Env
+    env = Env(tmp_path / "c")
+    env.prefs.update({"backends": ["boat"], "private_backends": ["boat"]})
+    env.runner = R.ComputeRunner(env.root, env.receipts, env.ledger, env.prefs, {"boat": env.fake}, clock=env.clock.now, sleep=env.clock.sleep,
+                                 poll_s=5.0, watchdog_s=15.0)
+    job = env.job()
+    del job["backend"]
+    with pytest.raises(R.Refused, match="pick a provider for this job"):
+        env.runner.plan(dict(job))
+    CH.active_store().set("compute.blender_offload", "global", None, {"preferred": "compute:boat"}, by="user")
+    assert env.runner._spec(dict(job))["backend"] == "boat"
+    assert env.runner.plan(dict(job))["ok"] is True
