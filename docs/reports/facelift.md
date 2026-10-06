@@ -311,3 +311,32 @@ hotkeys vault-ui tried were not reproduced here: I do not know which keys or key
 The Connections window (`specs/connections/`), then Choices (`specs/choices/`, absorbing the Providers dialog), the
 build rule that keeps `AGENTS.md` / `CLAUDE.md` / skills files under `src/` out of the installed app, and the report
 cards' Workbench frame in contract 10.
+
+### Lamplight and Workshop (the captain's rename, `c272b7c0`)
+
+- Every user-visible "Zen Mode" / "Engine Mode" is Lamplight / the Workshop: splash, topbar toggle, mode menu and
+  operators, workspace name, tooltips and notes, the tour's labels, the theme panel, the analytics allow-list, and the
+  C++ that recognises the workspace by name (nine places). Internal identifiers stay.
+- Existing files: `workflow/core/workspace_rename.py` renames a "Zen Mode" workspace to Lamplight on load (and once
+  at startup for the startup file, which is read before the module registers). Tested in the real binary: the file's
+  own workspace comes back as Lamplight with its contents. Renaming marks the file changed, so Lampway asks to save an
+  old file on quit; I did not suppress that. The workspace's screen keeps its stored name ("Zen Mode"), which nothing
+  displays.
+- Gate: `tests/lampway/test_mode_names.py`. Allow-listed with reasons: the legacy name constant itself, and the
+  account card's theme-profile style called "Zen" (Python and its C++ enum). That style is a different thing from the
+  workspace; whether it becomes "Lamplight" too is the captain's call.
+- Not renamed: the tour's recorded narration says "Zen mode" and "engine mode" (its subtitles transcribe the audio, so
+  they still do); a world datablock named "Zen Sky"; log messages. The translation catalogues have the new strings
+  untranslated.
+- **Merge note**: the 48 `.po` catalogues are regenerated. On a conflict, take either side and run
+  `scripts/i18n/extract_messages.py && scripts/i18n/update_catalogs.py`.
+
+### The Zen keymap bug, with real input
+
+Confirmed with real X input: xdotool against the app on my own Xvfb display, without `--enable-event-simulate`
+(event simulation mode ignores real input, and the visual driver needs it for its Escape, so this run used a
+standalone script). The run logged: N toggles the viewport sidebar (`false` to `true`), ctrl+Space changes nothing,
+ctrl+alt+Space switches the screen to its full-screen copy. **Cause**: ctrl+Space runs `screen.screen_full_area`, which
+returns CANCELLED in Lamplight, because Lamplight is a one-area screen and upstream refuses to maximise a single area
+(`screen_maximize_area_exec`, Blender #144740). The keymap is fine and no shortcut is overridden. No code change; the
+event-simulated test `test_zen_shortcuts.py` pins N and ctrl+alt+Space.
