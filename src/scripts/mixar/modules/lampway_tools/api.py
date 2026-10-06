@@ -1588,6 +1588,25 @@ def ue_export(type, object="", armature=None, action=None, out_dir="", textures=
                     format, validation, bind_check, bake_receipt, _p(profile) if profile else None, str(s_.project_root), _bone_axis, allow_unverified)
 
 
+@tool
+def ue_parity(scene, profile=None, size=768, views=None, out_dir="", ue_captures=None, ue_linear_scale=None):
+    """The parity harness, Lampway half: build a standard scene (chart | furnace | normals | lights) from its one JSON
+    description in a throw-away scene, render each view (front | three_quarter | grazing) headless in EEVEE under ue_look
+    parity=true to float EXR, and write out_dir/scene.json, lampway_<view>.exr, report.json and report.md (Blender and UE versions,
+    profile, scene and file hashes, per-class verdicts). The UE half is needs_box until the captain's box time: given ue_captures
+    (ue_<view>.exr from the UE editor leg) it compares per class against the tolerances (COL display <= 3 codes / linear < 1 %,
+    SHD < 3 %, NRM sign agreement 100 % and mean dE2000 <= 2, LGT < 2 %, GEO IoU >= 0.995; PST and TEX reported). Refused: a
+    profile with engine defaults, auto exposure, GI, reflections, SSAO, bloom, vignette or local exposure on; a mislabelled or
+    .hdr capture; an armour scene without an ue_export receipt; an existing out_dir. Free, no model."""
+    from .ue import parity as _UEP
+    s_ = _settings()
+    if not out_dir:
+        raise ValueError("out_dir is required: parity/<scene>/<tag> under the project root")
+    _p(out_dir, s_.project_root)
+    return _UEP.run(scene, _p(profile) if profile else None, int(size), list(views or ["front"]), out_dir, ue_captures, ue_linear_scale,
+                    str(s_.project_root))
+
+
 # ---- the door the agent's scripts use
 
 # Every @tool function, in definition order: derived, not listed by hand (a hand-kept list let 26 tools of Waves 2-4 be functions and Defs the agent could not run).

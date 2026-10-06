@@ -12,4 +12,7 @@
   ocio_view     the UE view's consumer side: a profile-named cube behind UE's log2 shaper, and the two traps refused
   export        ue_export: one canonical export path per asset type, with receipts (bpy)
   fbx_bytes     a minimal binary FBX reader: the timestamp-free content hash and the read-back facts (pure)
+  parity_metrics  ue_parity's per-class comparison maths, tolerances, capture checks, the camera map (pure)
+  parity_scene  the standard parity scenes from one JSON description, built in a throw-away scene (bpy)
+  parity        the harness's Lampway half and its report; the UE half is needs_box (bpy)
 """
