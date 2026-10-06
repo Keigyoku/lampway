@@ -32,6 +32,10 @@ lampway-server = "lampway_server.__main__:main"
 [tool.setuptools.packages.find]
 include = ["lampway_server*"]
 
+[tool.setuptools.package-data]
+# data files the code reads from its own package directory (the built-in prompt templates, the library migrations, the decisions goldens)
+"*" = ["*.json", "*.sql", "*.md"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
