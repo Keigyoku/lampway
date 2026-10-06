@@ -15,10 +15,10 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src/scripts"))
 from mixar.modules.lampway_tools.rig_tools import core as RC  # noqa: E402
 
-GOLD = Path(__file__).parent / "canon_goldens" / "rig"
-R01 = json.loads((GOLD / "R01_mapping.json").read_text())
-R02 = json.loads((GOLD / "R02_rest_frames.json").read_text())
-R03 = json.loads((GOLD / "R03_apply_scale.json").read_text())
+GOLD = Path(__file__).resolve().parents[2] / "docs" / "canon" / "goldens"
+R01 = json.loads((GOLD / "R01_mapping" / "case.json").read_text())
+R02 = json.loads((GOLD / "R02_rest_frames" / "case.json").read_text())
+R03 = json.loads((GOLD / "R03_apply_scale" / "case.json").read_text())
 
 
 # ---------------------------------------------------------------- R01 mapping (canon 16)
@@ -255,7 +255,7 @@ def test_small_angles_are_measured_well_conditioned_on_float32_rest_data():
 
 
 # ---------------------------------------------------------------- R7 rig_fit_template (canon 20) against R06
-R06 = json.loads((GOLD / "R06_template_fit.json").read_text())
+R06 = json.loads((GOLD / "R06_template_fit" / "case.json").read_text())
 
 
 def _r06_template(extra=None):
@@ -304,8 +304,8 @@ def test_unmeasured_bones_follow_their_measured_segment_and_a_parentless_one_the
 
 
 # ---------------------------------------------------------------- R8 rig_retarget (canon 19 B.1, B.5) against R04 / R05
-R04 = json.loads((GOLD / "R04_retarget.json").read_text())
-R05 = json.loads((GOLD / "R05_root_motion.json").read_text())
+R04 = json.loads((GOLD / "R04_retarget" / "case.json").read_text())
+R05 = json.loads((GOLD / "R05_root_motion" / "case.json").read_text())
 
 
 def test_the_retarget_rule_reproduces_r04_and_the_local_copy_misses_by_55_degrees():
@@ -393,7 +393,7 @@ def test_g22_2_the_canonical_retarget_agrees_with_the_blender_rule_on_r04():
 
 
 # ---------------------------------------------------------------- R11 rig_rest_pose (canon 19 B.7, canon 04) against R07
-R07 = json.loads((GOLD / "R07_rest_change.json").read_text())
+R07 = json.loads((GOLD / "R07_rest_change" / "case.json").read_text())
 C02 = GOLD / "C02_inverse_lbs"
 
 
