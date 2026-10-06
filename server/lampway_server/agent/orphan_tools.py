@@ -128,4 +128,15 @@ ORPHAN_DEFS = [
         [P("op", required=True, desc="join_remesh | union | difference | connector"), P("objects", "array", "two or more mesh objects", required=True),
          P("voxel_m", desc="join_remesh: 'coarse_first' (default) or a size in metres"), P("clearance_mm", "number", "0..2: difference and connector"),
          P("connector", "object", "{kind, at: [x, y, z], size_mm, axis}"), P("name", desc="the result's name")], api="mesh_join_boolean"),
+    Def("lampway_multi_piece_material", "One material language across 2..8 separate pieces through ONE shared texturing pass. action merge: copies of the pieces "
+        "joined in world space into <first>_proxy; each face keeps its piece (face attribute lw_piece) and its ORIGINAL UVs (layer lw_orig) and gets a shared "
+        "non-overlapping atlas (layer lw_shared); the texel density each piece gets in the shared atlas (atlas_res) is compared with its own layout "
+        "(individual_res, default atlas_res): ratio and pass against density_floor_ratio (0.7, UNVERIFIED). Texture the proxy on lw_shared with any texturing "
+        "tool and never edit it. action transfer: the painted atlas returns to each piece's ORIGINAL UVs texel by texel (barycentric), giving <piece>_mpm (a "
+        "copy) with <piece>_mpm_shared as its base colour; refused when the proxy changed after merge (re-merge); the proxy is removed unless keep_proxy. "
+        "The originals are untouched. Refused: pieces whose world bounds overlap (move them apart for the proxy only), a piece without UVs." + _PATHS,
+        [P("action", required=True, desc="merge | transfer"), P("pieces", "array", "merge: the mesh objects"), P("atlas_res", "integer", "merge: 2048 | 4096"),
+         P("individual_res", "integer", "merge: the pieces' own texture size for the density comparison"), P("density_floor_ratio", "number", "0.3..1, default 0.7"),
+         P("proxy", desc="transfer: the proxy"), P("atlas", desc="transfer: the painted atlas image"), P("out_dir", desc="transfer: default mpm"),
+         P("res", "integer", "transfer: output size, default atlas_res"), P("keep_proxy", "boolean"), P("name", desc="merge: the proxy's name")], api="multi_piece_material"),
 ]

@@ -118,3 +118,14 @@ def mesh_join_boolean(op, objects, voxel_m="coarse_first", clearance_mm=None, co
     """Fuse (join + voxel remesh), union, difference with clearance, or plug/socket connectors with a measured gap; on copies, originals kept."""
     from .features import join_boolean as _JB
     return _JB.run(op, objects, voxel_m, clearance_mm, connector, name)
+
+
+@_export
+@tool
+def multi_piece_material(action, pieces=None, atlas_res=4096, individual_res=None, density_floor_ratio=0.7, proxy="", atlas="", out_dir="mpm", res=None, keep_proxy=False,
+                         name=""):
+    """One material across pieces: merge copies into a proxy with a shared atlas, texture it once, transfer the atlas back to each piece's original UVs."""
+    from .features import multi_piece as _MP
+    s_ = _settings()
+    return _MP.run(action, str(s_.project_root), pieces, atlas_res, individual_res, density_floor_ratio, proxy, _p(atlas, s_.project_root),
+                   _p(out_dir, s_.project_root), res, keep_proxy, name)
