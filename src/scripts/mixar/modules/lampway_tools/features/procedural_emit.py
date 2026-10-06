@@ -266,7 +266,7 @@ def _thread_mask(s, vec, pattern, density, slow):
         s.put(br, "Vector", vec)
         s.put(br, "Scale", 4.0)
         s.put(br, "Mortar Size", 0.08 + 0.1 * density)
-        return (br, "Factor")
+        return s.math("SUBTRACT", 1.0, (br, "Factor"))              # Factor is 1 on the bricks: the thread is the mortar lattice, the bricks are the ground
     if pattern == "edge":
         return _stitch_mask(s, vec, 30.0, 2.0, 1.0 - density * 0.3)
     tw = s.node("ShaderNodeTexWave", wave_type="BANDS", bands_direction="DIAGONAL")
