@@ -200,3 +200,63 @@ print("RESULT", json.dumps({{"missing": labels(missing), "turn_icons": [e for e 
     assert "37 duplicate frames" in d["video"] and "24 fps file, 12 fps motion" in d["video"]
     assert "DX (green down)" in d["maps"] and "no maps sheet yet: queued (asset_render)" in d["maps"]
     assert "mixar.asset_library_to_timeline" in d["anim"]
+
+
+def test_the_hotkeys_sit_in_the_addon_ui_keymap_and_act_only_over_a_vault_area(tmp_path):
+    d = one(go(tmp_path, PRE + '''
+kc = bpy.context.window_manager.keyconfigs.addon
+km = kc.keymaps.get("User Interface") if kc else None
+items = sorted((k.type, k.properties.action) for k in (km.keymap_items if km else []) if k.idname == "mixar.asset_library_hotkey")
+poll_no_area = bpy.ops.mixar.asset_library_hotkey.poll()
+print("RESULT", json.dumps({"addon_kc": kc is not None, "items": items, "poll_no_area": poll_no_area}))
+'''))
+    assert d["addon_kc"], "the add-on keyconfig exists in a headless run"
+    assert d["items"] == sorted([["ONE", "RATE_1"], ["TWO", "RATE_2"], ["THREE", "RATE_3"], ["FOUR", "RATE_4"], ["FIVE", "RATE_5"], ["X", "REJECT"], ["P", "PICK"],
+                                 ["SPACE", "PLAY"], ["SLASH", "SEARCH"], ["F", "FIND"], ["C", "COMPARE"], ["RET", "PLACE"]])
+    assert d["poll_no_area"] is False, "outside a Vault area the key falls through"
+
+
+def test_the_canvas_opens_over_the_body_and_a_click_selects_the_lineage_node_under_it(tmp_path):
+    d = one(go(tmp_path, PRE + f'''
+from mixar.modules.asset_library.core import canvas_view as CV
+pic = {str(tmp_path / "lineage.png")!r}
+png(pic, w=400, h=200)
+LAY = {{"root": "a1", "width": 400, "height": 200, "collapsed": 0, "edges": [],
+       "nodes": [{{"id": "a0", "name": "plate", "kind": "image", "x": 16, "y": 16, "w": 168, "h": 44}}, {{"id": "a1", "name": "mesh", "kind": "mesh", "x": 216, "y": 16, "w": 168, "h": 44}}]}}
+land(page(3))
+res = sorted(bpy.ops.mixar.asset_library_canvas(action="OPEN", path=pic, lineage=json.dumps(LAY)))
+log = []
+VP.draw_body(Rec(log), ctx(width=1200))
+region = SimpleNamespace(width=416, height=260)            # view 8..408 x 8..216: the 400x200 picture fits at zoom 1
+c = CV.ensure_fitted(region)
+hit = CV.click(8 + 216 + 10, 216 - 16 - 10)                # 10 px into node a1 from its top-left
+miss = CV.click(8 + 200, 216 - 100)
+sel = SES.VM.active
+bpy.ops.mixar.asset_library_canvas(action="CLOSE")
+log2 = []
+VP.draw_body(Rec(log2), ctx(width=1200))
+print("RESULT", json.dumps({{"res": res, "ops": [e[1] for e in log if e[0] == "op"], "labels": [e[1] for e in log if e[0] == "label"], "zoom": c.zoom,
+                            "hit": hit, "miss": miss, "sel": sel, "open_after": CV.STATE["open"], "after_ops": len([e for e in log2 if e[0] == "op"])}}))
+'''))
+    assert d["res"] == ["FINISHED"]
+    assert d["ops"] == ["mixar.asset_library_canvas", "mixar.asset_library_canvas"], "while open, the body is only the canvas bar (Fit, Close)"
+    assert any("wheel zooms" in t for t in d["labels"])
+    assert d["zoom"] == 1.0 and d["hit"] == "a1" and d["miss"] is None and d["sel"] == "a1"
+    assert d["open_after"] is False and d["after_ops"] > 2
+
+
+def test_a_find_like_this_list_draws_although_its_items_carry_no_kind(tmp_path):
+    """Found by the windowed probe: similar() items are {id, name, score, axes, thumb}; the grid and the list read ``kind`` and raised KeyError in draw."""
+    d = one(go(tmp_path, PRE + '''
+land(page(2))
+SES.VM.select("a0")
+SES.VM.show_similar("greave 0", [{"id": "s1", "name": "near one", "score": 0.9, "axes": {}, "thumb": None}])
+out = {}
+for view in ("GRID", "LIST"):
+    bpy.context.window_manager.mixar_lib.view = view
+    log = []
+    VP.draw_body(Rec(log), ctx())
+    out[view] = [e[1] for e in log if e[0] == "label"]
+print("RESULT", json.dumps(out))
+'''))
+    assert "Like greave 0" in d["GRID"] and "Like greave 0" in d["LIST"]
