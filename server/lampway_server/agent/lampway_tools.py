@@ -446,6 +446,11 @@ DEFS = [
          P("body_open_band_m", "number", "an OPEN body (boundary edges) is refused without it: vertices within this band of the opening stay unsigned (canon 15)"),
          P("gap_classes", "object", "{vertex group: class}: the gap on the piece's innermost layer per class (p50, p90; canon 15 B.5)"),
          P("hideable_regions", "object", "{name: [bones]}: per region the armour's cover per standard view and hideable (>= 98 %, canon 15 B.6)")], api="garment_clearance"),
+    Def("lampway_fit_source_check", "The source-part check, the detached-glove guard (canon: specs/canon/03-fit-and-deform.md G): is the piece ONE similarity of its source (the same mesh before any weld or fit: "
+        "same vertex count and order) per rigid group, residual < 0.5 mm? Parts are the source's vertex groups; rigid_groups lists the parts that move as one (default: every part, one shell). A failing group "
+        "reports each part's rotation relative to the group's first part (a glove turned 22 deg off its bracer says so). Changes nothing.",
+        [P("piece", required=True), P("source", required=True, desc="the same mesh before any weld or fit"), P("rigid_groups", "array", "[[part, ...], ...] (default: all parts one group)")],
+        api="fit_source_check"),
     Def("lampway_fit", "The fit of one piece in canon 03's ORDER (specs/canon/03-fit-and-deform.md): intake -> proportion -> match -> place -> pose_correct -> pose -> openings -> conform -> "
         "bind -> weights -> validate -> export, each arrow a refusal that names the next command. Each stage runs its tool with `args` (that tool's own arguments) and appends {stage, tool, inputs "
         "sha256, receipt sha256, decider} to <piece>/fit/fit.json. intake: `roles` for every part in args.parts (the captain's or the recipe's, never a render's colour) and `body` (a fit_body package, "

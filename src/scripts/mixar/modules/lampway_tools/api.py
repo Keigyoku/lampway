@@ -1495,6 +1495,16 @@ def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None
     raise ValueError("stage is labels | pose | bind | report")
 
 
+@tool(consumes={"piece": Need(kind=("mesh",), accept_raw=True), "source": Need(kind=("mesh",), accept_raw=True)})
+def fit_source_check(piece, source, rigid_groups=None):
+    """The source-part check, the detached-glove guard (canon 03 G, 09 G): is `piece` ONE similarity of its `source` (the same mesh
+    before any weld or fit: same vertex count and order) per rigid group, residual < 0.5 mm? Parts are the source's vertex groups;
+    rigid_groups [[part, ...], ...] lists the parts that move as one (default: every part, one shell). A failing group reports each
+    part's rotation relative to the group's first part (a glove turned 22 deg off its bracer says so). Changes nothing."""
+    from .features import source_check as _SC
+    return _SC.run(piece, source, rigid_groups)
+
+
 @tool(consumes=NONE("an orchestrator: each stage's tool passes its own door with the stage's arguments"))
 def fit(stage="status", piece="", kind="", roles=None, args=None, body="", decider="agent", texture_discard_ack=False):
     """The fit of one piece in canon 03's ORDER (docs/canon/03-fit-and-deform.md B, G): intake -> proportion -> match -> place ->
