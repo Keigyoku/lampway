@@ -368,3 +368,44 @@ and orphans' pure test is in `test_canon_doors.py` verbatim (through an adapter,
   `rebaseline <N> merged=<parent2> reason=<why>` stays accepted because 09dec65 (pushed) uses it, and is not to be written again.
 RED: `ratchet_problems` absent, and the old checker refused orphans' form on a real merge. Mutants (lowest parent, parents not
 named, empty reason, re-creation allowed) each fail a test.
+
+## Integration: origin/lp/wave5 at 704eba5 merged into lp/canon (ed8e5f2) - the coordinator's request
+The integrator could not merge lp/canon: wave5 carried tools from other lanes that never saw the door. I merged wave5 into lp/canon
+(no rebase) and used ruling A for the one rise.
+- **63 pre-door tools declared** in the merge commit: **12 NONE** (scribble_read, texture_library_stage, gen_parts_table, libwiki,
+  index_delta, level_blockout, profile_revolve, editor_connection_receipt, addon_read / stage_patch / commit / rollback) and
+  **51 LEGACY, each with its own reason** - a skeleton or clip normalizer not built (side_label_check, mirror_pair,
+  modular_character, motion_experiment, secondary_chain_rig, cloth_garment_sim, ue_export, motion_generate); image / GLB FILE paths
+  the door does not resolve (image_material_id, seamless_tile, image_upscale, reference_pack, image_matte, prompt_image,
+  recon_measure, glb_optimize, terrain, material_palette, scene_from_image, ue_parity); directories, collections or objects inside
+  dicts (relief_tiles, traversal_check, part_budget_plan, vehicle_wheel_rig); orchestrators and scene-wide tools
+  (workflow_reference_to_asset, character_pipeline, playblast_capture, ue_look); no canonical kind (splat_world,
+  splat_collision_proxy, rtmw_detect); a material normalizer not built (ue_material); runner argv mesh FILE paths (export_parts,
+  verify_set, render_final, judge_pack); and the mesh-object tools to be converted to real Needs next (orphans' 10 and wave6's 5).
+  wave6's 28 tools now carry their declarations beside them (`api_wave6.CONSUMES`, a missing name fails the import).
+- **The ratchet** rose 113 -> 164 IN the merge commit with its record in the adopted form
+  (`rebaseline 164 merge 1b99ba3d 704eba50: ...`). I first committed the merge at 143 having missed wave6's tools, then AMENDED the
+  unpushed merge commit to the true count and record rather than leave a false record in history (see the next point).
+- **Scanner gap found:** api.py registers api_wave6's 28 tools by CALLING `tool(fn)`, and the door's CI scan only read decorators, so
+  it reported nothing for them - the import's own TypeError caught it. The scan now also flags call-form registrations without
+  `consumes=` (RED: api.py:1715 listed; a false positive on the plates pipeline's own `PL.tool(...)` was excluded by name).
+- **Importers** the merge brought (glb_optimize, lod_chain, motion_generate, multi_piece, terrain, ue/parity, partseg mesh_load)
+  now go through canon_io.
+- **Tests adapted, each for a stated reason:** orphans' and the server's declaration checks read `@tool(consumes=...)`;
+  `test_orphans_ref_to_asset` retopologised a 320-face sphere to 2000 faces, which canon INV-12.5 (my item 10) now refuses - its
+  fixture is 1280 faces. **The server's real headless retopology had passed only through the silent voxel fallback** canon 12
+  forbids: a GLB splits vertices at UV seams (4512 vs 1106 welded on its 48x24 sphere) and QuadriFlow fails on the split mesh with
+  or without preserve-sharp (measured). The job now welds by position at `canon_geom.WELD_M` first and reports
+  `welded_vertices`; the test asserts it.
+- **Dependencies (request 2):** `canon_asset` imports numpy, which is already a core server dependency (`numpy>=1.26`; I first
+  misread it as an extra and a guard test, mutated, proves the check bites). jsonschema is NOT a runtime dependency of canon_asset (it
+  validates with the vendored minischema); it is check_canon.py's, with numpy: both now in `docs/canon/requirements.txt`, which
+  `.github/workflows/canon.yml` installs from; `test_canon_deps.py` ties every canon import to its manifest. The rail's anneal rule
+  (RAIL-013) required the lampway-canon skill's anneal row and body change in that same commit: amended in (unpushed).
+- **Gates before the push (24a3c9c):** server 1380 passed, 10 skipped (0 failed); client 8762 passed, 120 failed, 15 errors, 85
+  skipped against the 138-entry baseline. New beyond the baseline, none in a file this lane changed: the four theme tests and the
+  Shift+M keymap test read `upstream/` (not checked out here); the theme, icon and Vault-editor live tests run my lane binary, built
+  before those lanes' changes; three mcp tests (`test_stdio_catalog` guide 2053 > 2048 characters, `test_ui_control_opt_in`
+  expecting a `mixar_` name the rebrand renamed, `test_ui_stdio` connection closed) - their files are identical to 704eba5's.
+- **Lane orphans' later rebaselines (to 155, coordinator FYI):** they are on lp/orphans, not on wave5; when the branches meet, the
+  merge resolves both counts under the one adopted rule.
