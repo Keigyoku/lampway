@@ -325,6 +325,24 @@ def _region_run(c, o):
     return argv + ["--approved-exact-region"]                       # only ever reached through the user's confirm (needs_approval)
 
 
+def _v_relief(args, jail):
+    """relief: 1-16 plate images inside the project root; adjust 'C,B,S' (the site's Contrast, Brightness, Sharpen/Smooth, each -1..1) saves the site's own export too."""
+    imgs = list(args.get("images") or [])
+    if not 1 <= len(imgs) <= 16:
+        raise ActionError("images names 1 to 16 plate images (project paths)")
+    clean = {"images": [jail(str(i)) for i in imgs]}
+    adj = args.get("adjust")
+    if adj not in (None, ""):
+        try:
+            vals = [float(v) for v in str(adj).split(",")]
+        except ValueError:
+            vals = []
+        if len(vals) != 3 or any(not -1.0 <= v <= 1.0 for v in vals):
+            raise ActionError("adjust is 'C,B,S': the site's Contrast, Brightness and Sharpen/Smooth, each -1..1")
+        clean["adjust"] = ",".join(f"{v:g}" for v in vals)
+    return clean
+
+
 def _v_regen_discard(args, jail):
     return {"expect_faces": _int(args["expect_faces"], "expect_faces")} if args.get("expect_faces") not in (None, "") else {}
 
@@ -385,6 +403,9 @@ ACTIONS = {a.id: a for a in [
            validate=_v_none, run_args=lambda c, o: ["apply"]),
     Action("tripo.regen.discard", "tripo", "Throw the Current Version away; verifies the original's face count is back", "tripo_regen",
            validate=_v_regen_discard, run_args=lambda c, o: ["discard"] + (["--expect-faces", str(c["expect_faces"])] if c.get("expect_faces") else [])),
+    Action("tripo.relief", "tripo", "Free 3D Relief Generator: uploads each plate image to tripo3d.ai and keeps the one 8-bit depth PNG it returns (no credits)",
+           "relief_gen", needs_out_dir=True, validate=_v_relief,
+           run_args=lambda c, o: (["--adjust", c["adjust"]] if c.get("adjust") else []) + [o, *c["images"]]),
     Action("tripo.fetch", "tripo", "Download the variants of one generation by its card stamp", "tripo_fetch", needs_out_dir=True,
            validate=_v_fetch, run_args=lambda c, o: [o, c["stamp"], "--expect", str(c["expect"])]),
 ]}

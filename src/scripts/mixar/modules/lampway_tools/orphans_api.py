@@ -172,3 +172,18 @@ def seamless_tile(src="", out="", mode="grain", size=1024, flatten=False, cell_p
     if sheet:
         res["sheet"] = sheet
     return res
+
+
+@_export
+@tool
+def relief_tiles(stage, v3_dir="", tile_dir="", out_dir="", views=None, fine=3072):
+    """Multi-scale relief: make = tile each plate view so the relief generator sees ornament at full scale; stitch = the tile reliefs' fine band per view."""
+    from .pipeline import relief_tiles as _RT
+    s_ = _settings()
+    if stage == "make":
+        rec = _RT.make(_p(v3_dir, s_.project_root), _p(tile_dir, s_.project_root), list(views or []) or None)
+        rec["next"] = "run the Studio action tripo.relief (studio_plan) on the tile images, into the tile folder, then relief_tiles stage=stitch"
+        return rec
+    if stage == "stitch":
+        return _RT.stitch(_p(v3_dir, s_.project_root), _p(tile_dir, s_.project_root), _p(out_dir, s_.project_root), fine)
+    raise ValueError("stage is make | stitch")

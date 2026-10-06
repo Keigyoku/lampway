@@ -152,4 +152,13 @@ ORPHAN_DEFS = [
          P("mode", desc="grain (default) | motif | fibre | motif_cell"), P("size", "integer", "256..4096, default 1024"), P("flatten", "boolean", "remove very-low-frequency tone first"),
          P("cell_px", "integer", "motif_cell: the cell size; must divide size"), P("prompt", desc="make the sheet through the image slot (the MATERIAL, not a scene)"),
          P("live", "boolean", "prompt: really generate (default a dry run)")], api="seamless_tile"),
+    Def("lampway_relief_tiles", "Multi-scale relief for mesh-paint projection (the second stage of relief_map): stage make tiles each 704 px plate view (v3_dir/<View>.png) "
+        "into 200 px crops at stride 150 over its alpha box, each upscaled to 1024, boxes recorded in tile_dir/tiles.json; run the free Studio action "
+        "tripo.relief (studio_plan: it uploads each image to tripo3d.ai and keeps the one 8-bit depth PNG) on the tiles into tile_dir as <tile>.relief.png; "
+        "stage stitch keeps only each tile relief's FINE band (difference of gaussians, robust-normalised, clipped to +-3) and blends it into one fine frame per "
+        "view (default 3072) with a raised-cosine window: <View>.fine.npy, a preview and fine.json (missing tile reliefs listed). The whole-view relief keeps "
+        "the big form; the tiles add ornament detail. Free and local." + _PATHS,
+        [P("stage", required=True, desc="make | stitch"), P("v3_dir", required=True, desc="the folder with <View>.png plates (704 px)"), P("tile_dir", required=True),
+         P("out_dir", desc="stitch: the output folder"), P("views", "array", "default Front, Back, Left, Right"), P("fine", "integer", "stitch: the fine frame, default 3072")],
+        api="relief_tiles"),
 ]
