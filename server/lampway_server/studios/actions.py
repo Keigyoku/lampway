@@ -285,6 +285,46 @@ def _v_regen_sift(args, jail):
     return {"faces": _int(args.get("faces"), "faces"), "n": n}
 
 
+def _v_regen_region(args, jail):
+    """region: the original by its face count, the EXACT box in the Blender-import frame, a pad. The approval flag is never an argument: the driver's
+    --approved-exact-region rides only on the run the USER confirmed in the Studios panel."""
+    if args.get("approved_exact_region") not in (None, False):
+        raise ActionError("approved_exact_region is not an argument: exact-region substitution needs the user's approval flag, which is the user's confirm in "
+                          "the Studios panel (this plan proposes it; only the user can confirm)")
+    raw = args.get("bbox_blender")
+    vals = raw.split(",") if isinstance(raw, str) else list(raw or [])
+    try:
+        box = [float(v) for v in vals]
+    except (TypeError, ValueError):
+        box = []
+    if len(box) != 6:
+        raise ActionError("bbox_blender is x0,y0,z0,x1,y1,z1 in metres (the Blender-import frame; fit_pose reports bbox_piece_frame)")
+    if not all(box[i] < box[i + 3] for i in range(3)):
+        raise ActionError("bbox_blender: the min corner x0,y0,z0 must be below the max corner x1,y1,z1 on every axis")
+    pad = float(args.get("pad_m") or 0.0)
+    if not 0.0 <= pad <= 0.05:
+        raise ActionError("pad_m is 0 to 0.05 metres")
+    return {"faces": _int(args.get("faces"), "faces"), "bbox_blender": box, "pad_m": pad}
+
+
+def _read_region_state(parsed, clean):
+    kv = parsed.kv
+    faces = kv.get("faces")
+    problems = []
+    if faces != clean["faces"]:
+        problems.append(f"the selected model shows {faces} faces, not {clean['faces']}: select the ORIGINAL with tripo.uv.select faces={clean['faces']} "
+                        "(Edit Mesh exists on originals only, never on a clone)")
+    return Plan(0 if not problems else None, {"faces": faces, "credits": kv.get("credits"), "history": kv.get("history"), "bbox_blender": clean["bbox_blender"],
+                                              "pad_m": clean["pad_m"], "price_note": "an Edit Mesh retry costs 0 credits (the owner's measurement)"}, problems)
+
+
+def _region_run(c, o):
+    argv = ["region", o, str(c["faces"]), "--bbox-blender", ",".join(f"{v:g}" for v in c["bbox_blender"])]
+    if c.get("pad_m"):
+        argv += ["--pad", f"{c['pad_m']:g}"]
+    return argv + ["--approved-exact-region"]                       # only ever reached through the user's confirm (needs_approval)
+
+
 def _v_regen_discard(args, jail):
     return {"expect_faces": _int(args["expect_faces"], "expect_faces")} if args.get("expect_faces") not in (None, "") else {}
 
@@ -332,6 +372,9 @@ ACTIONS = {a.id: a for a in [
            run_args=lambda c, o: ["save", "--expect-utilization", str(c["expect_utilization"])]),
     Action("tripo.regen.retry", "tripo", "One free seed reroll on an ORIGINAL (Edit Mesh Retry; the modal stays open to score it)", "tripo_regen", needs_out_dir=True,
            validate=_v_regen_pick, run_args=lambda c, o: ["retry", o, c["stamp"], str(c["faces"])]),
+    Action("tripo.regen.region", "tripo", "EXACT-box Edit Mesh retry on an ORIGINAL (free); the user's confirm is the approval flag", "tripo_regen", needs_approval=True,
+           expected_price=0, needs_out_dir=True, plan_driver="tripo_uv", validate=_v_regen_region, plan_args=lambda c, o: ["state"], run_args=_region_run,
+           read_plan=_read_region_state),
     Action("tripo.regen.sift", "tripo", "N free seed rerolls on an original, each discarded (banked in History)", "tripo_regen", needs_out_dir=True,
            validate=_v_regen_sift, run_args=lambda c, o: ["sift", o, str(c["faces"]), "--n", str(c["n"])]),
     Action("tripo.regen.harvest", "tripo", "Download every History version (banked rerolls) of an original", "tripo_regen", needs_out_dir=True,

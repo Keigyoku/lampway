@@ -95,7 +95,7 @@ def test_every_action_names_its_studio_its_spend_and_the_engine():
     rest = {k for k, a in ACTIONS.items() if a.driver.startswith("rest.")}                  # the REST studios: their price is read by the driver's plan, so none carries an expected price
     assert rest and all(ACTIONS[k].needs_approval and ACTIONS[k].expected_price is None for k in rest)
     spend = {k for k, a in ACTIONS.items() if a.needs_approval} - rest
-    assert spend == {"tripo.mesh", "tripo.texture", "tripo.pbr", "tripo.image", "tripo.uv.unwrap"}
+    assert spend == {"tripo.mesh", "tripo.texture", "tripo.pbr", "tripo.image", "tripo.uv.unwrap", "tripo.regen.region"}   # region: free, but the user's confirm is its approval flag
     assert ACTIONS["tripo.mesh"].expected_price == 100 and ACTIONS["tripo.texture"].expected_price == 30 \
         and ACTIONS["tripo.pbr"].expected_price == 5 and ACTIONS["tripo.uv.unwrap"].expected_price == 20
     assert not any("privacy" in k for k in ACTIONS), "nothing here changes the privacy setting"
@@ -304,7 +304,8 @@ def test_the_regen_driver_has_an_action_row_for_every_verb_and_none_of_them_spen
     assert set(REGEN) <= set(ACTIONS)
     assert not any(ACTIONS[a].needs_approval for a in REGEN), "a whole-piece regen is free on the user's plan"
     assert all(ACTIONS[a].driver == "tripo_regen" and ACTIONS[a].studio == "tripo" for a in REGEN)
-    assert "tripo.regen.region" not in ACTIONS, "an exact-region retry needs the user's approval flag: not offered as an action"
+    region = ACTIONS["tripo.regen.region"]                                  # the exact-region retry: the user's confirm in the Studios panel is its approval flag
+    assert region.needs_approval and region.expected_price == 0 and region.driver == "tripo_regen"
 
 
 async def test_regen_actions_run_the_bundled_driver_with_the_verb_and_validated_arguments(tmp_path):
