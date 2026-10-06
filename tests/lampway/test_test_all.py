@@ -19,7 +19,7 @@ def test_the_baseline_is_well_formed_and_every_line_has_a_class_and_a_reason():
 def test_parse_reads_ids_and_counts():
     log = "x\nFAILED tests/a.py::t1 - boom\nERROR tests/b.py\nERROR    some.logger:mod.py:1 noise\n= 1 failed, 3 passed, 2 skipped, 1 error in 1.0s =\n"
     ids, counts = T.parse(log, "server/")
-    assert ids == {"server/tests/a.py::t1", "server/tests/b.py"} and counts == {"failed": 1, "passed": 3, "skipped": 2, "error": 1}
+    assert ids == {"server/tests/a.py::t1", "server/tests/b.py"} and counts == {"failed": 1, "passed": 3, "skipped": 2, "error": 1, "env_skipped": 0}
 
 
 def test_judge_new_fixed_known():
@@ -81,3 +81,24 @@ def test_a_binary_without_built_from_runs_ungated_and_says_so(tmp_path):
     state, msg = T.binary_gate(r, _bin(tmp_path))
     assert state == "ungated" and "UNGATED binary" in msg
     assert T.binary_gate(r, None)[0] == "ungated"
+
+
+# ---- one test environment: test_all verifies it before it runs anything
+def test_verify_env_names_a_missing_upstream_and_a_missing_package(tmp_path):
+    (tmp_path / "upstream").mkdir()
+    problems = T.verify_env(tmp_path, packages={"surely_not_a_module_xyz": "surely-not"}, python=None)
+    assert any("upstream/" in p for p in problems) and any("surely-not" in p for p in problems)
+
+
+def test_verify_env_passes_when_everything_is_there(tmp_path):
+    for rel in T.UPSTREAM_FILES:
+        f = tmp_path / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text("x")
+    assert T.verify_env(tmp_path, packages={"json": "json"}, python=None) == []
+
+
+def test_the_test_requirements_cover_what_verify_env_checks():
+    reqs = (ROOT / "tests" / "requirements-test.txt").read_text().lower() + (ROOT / "server" / "pyproject.toml").read_text().lower()
+    for dist in T.TEST_PACKAGES.values():
+        assert dist.lower() in reqs, dist

@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+# The client suite's Python dependencies (the root pytest run, tests/ and the module test folders). scripts/lampway/test_env.sh installs
+# these and the server's declared dependencies (server/pyproject.toml: dependencies + the test and local-embeddings extras) into the
+# test interpreter; scripts/lampway/test_all.py refuses to run until every one imports.
+pytest>=8
+pytest-timeout>=2
+numpy>=1.26
+pillow>=10
+requests>=2.31
+jsonschema>=4.20        # the MCP UI-control schema (src/scripts/mixar/modules/common/ui_control)
+mcp==2.3.0              # tests/mcp import mcp.Client (the 2.x SDK); additive in the reference venv (measured with pip --dry-run)
+onnxruntime>=1.20       # the Asset Vault's bundled local embeddings (server extra local-embeddings)

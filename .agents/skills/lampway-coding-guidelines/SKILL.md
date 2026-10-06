@@ -81,6 +81,11 @@ afterwards passes its own `tmp_path` in (for example `LW_KEEP_ROOT`). In-process
 need `dir=` (`tests/lampway/test_tmp_hygiene.py` holds that). Both suites keep only a failed test's tmp_path
 (`tmp_path_retention_policy = failed`).
 
+The reference test environment is `scripts/lampway/test_env.sh` (upstream/ at its pin without LFS, `tests/requirements-test.txt`
+and the server's declared dependency ranges into `LAMPWAY_TEST_PYTHON`); `scripts/lampway/test_all.sh` verifies it first and refuses
+("run test_env.sh") when anything is missing, and refuses a binary whose `BUILT_FROM` native sources differ from HEAD. Outside test_all,
+tests that need that environment SKIP with the reason and the conftest prints one `ENV-SKIPPED n` line.
+
 No test reads the person's real home: the root `conftest.py` points `HOME`, the `XDG_*` dirs, `LAMPWAY_HOME`, `LAMPWAY_LEGACY_HOME`
 and `LAMPWAY_TEST_ROOT` inside the basetemp for the whole session (the server's conftest does the same for `HOME` and `XDG_*`);
 `mixar.config.paths` refuses a relative or placeholder-shaped home loudly and refuses to migrate from outside `LAMPWAY_TEST_ROOT`;
@@ -148,3 +153,4 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | merge of lp/uelook into lp/wave5 | the integrator's merge: lp/vault-ops added a models line and lp/uelook a ue_look line to the launcher's start banner | two lanes appended to the same banner block; the merged banner prints both | the banner bullet in section 2 | none |
 | 2026-10-06 | secrets out of the Lampway home | Connections decision C7 (captain, "Those recs are fine"); lane connections, migration step 2 | the client's file keyring and the server's secrets sat inside the agent sandbox's roots | the launcher moves the keyring to the state dir once and exports LAMPWAY_SECRETS_DIR; section 2 names both places | captain ruling, 2026-10-06 |
 | 2026-10-06 | merge of lp/connections into lp/wave5 | the integrator's merge: lp/connections added LAMPWAY_SECRETS_DIR, lp/orphans LAMPWAY_BLENDER, on the launcher's server-start line | two lanes edited the same line; the merged line carries both | the launcher bullet in section 2 names LAMPWAY_SECRETS_DIR | none |
+| 2026-10-06 | one test environment | the coordinator's gate: 704eba5 gave a different verdict in a fresh worktree (no upstream/ checkout, no MCP SDK) | the suite's outcome depended on which checkout and venv ran it | test_env.sh, test_all's environment check, the conftest's explicit environment skips, the paragraph in section 3 | none |

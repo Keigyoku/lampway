@@ -46,6 +46,8 @@ def parse(log: str, prefix: str = "") -> tuple:
     if tail:
         for n, what in COUNT.findall(tail[-1]):
             counts[what.rstrip("s") if what.startswith("error") else what] = int(n)
+    env = [l for l in log.splitlines() if l.startswith("ENV-SKIPPED ")]
+    counts["env_skipped"] = int(env[-1].split()[1].rstrip(":")) if env else 0
     return ids, counts
 
 
@@ -71,6 +73,34 @@ def binary_gate(root, binary) -> tuple:
     return "gated", sha
 
 
+# The reference test environment (scripts/lampway/test_env.sh builds it): upstream/ at its pin, and these importable (module -> distribution).
+UPSTREAM_FILES = ("upstream/release/datafiles/userdef/userdef_default_theme.c", "upstream/scripts/presets/keyconfig/keymap_data/blender_default.py")
+TEST_PACKAGES = {"pytest": "pytest", "pytest_timeout": "pytest-timeout", "numpy": "numpy", "PIL": "pillow", "requests": "requests", "jsonschema": "jsonschema",
+                 "mcp": "mcp", "onnxruntime": "onnxruntime", "starlette": "starlette", "httpx": "httpx"}
+
+
+def verify_env(root, packages=None, python=None) -> list:
+    """What the test environment lacks (empty = ready). ``python`` checks another interpreter's imports; None checks this one."""
+    problems = [f"{rel} is missing (upstream/ not checked out at its pin)" for rel in UPSTREAM_FILES if not (Path(root) / rel).is_file()]
+    packages = TEST_PACKAGES if packages is None else packages
+    code = "import importlib, sys\nbad = []\nfor m in sys.argv[1:]:\n    try:\n        importlib.import_module(m)\n    except Exception:\n        bad.append(m)\nprint(' '.join(bad))\n"
+    if python:
+        missing = subprocess.run([python, "-c", code, *packages], capture_output=True, text=True).stdout.split()
+    else:
+        import importlib
+        missing = []
+        for m in packages:
+            try:
+                importlib.import_module(m)
+            except Exception:  # noqa: BLE001
+                missing.append(m)
+    if "mcp" in packages and "mcp" not in missing and python:
+        if subprocess.run([python, "-c", "from mcp import Client"], capture_output=True).returncode:
+            missing.append("mcp")
+    problems += [f"python package {packages[m]} does not import" for m in missing]
+    return problems
+
+
 def judge(failing: set, baseline: dict) -> dict:
     return {"new": sorted(failing - set(baseline)), "fixed": sorted(set(baseline) - failing), "known": sorted(failing & set(baseline))}
 
@@ -79,9 +109,20 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--only", choices=("server", "client"))
     ap.add_argument("--shrink-baseline", action="store_true")
+    ap.add_argument("--verify-env", action="store_true", help="only check the test environment (test_env.sh calls this)")
     ap.add_argument("--ungated", action="store_true", help="run on a binary whose native sources differ from HEAD (the result is not a gate)")
     a = ap.parse_args(argv)
     py = os.environ.get("LAMPWAY_TEST_PYTHON") or sys.executable
+    problems = verify_env(ROOT, python=py)
+    if problems or a.verify_env:
+        for p in problems:
+            print("env: " + p, file=sys.stderr)
+        if problems:
+            print("the test environment is not the reference one: run scripts/lampway/test_env.sh", file=sys.stderr)
+            return 6
+        print("env: ready (upstream at its pin; every test package imports)")
+        return 0
+    os.environ["LAMPWAY_TEST_ALL"] = "1"                  # inside the reference environment: an environment skip would be a defect, so the conftest does not skip
     tmp = Path(os.environ.get("TMPDIR") or "/tmp").resolve()
     out = Path(os.environ.get("LAMPWAY_TEST_OUT") or tmp / "lampway-test-all")
     out.mkdir(parents=True, exist_ok=True)

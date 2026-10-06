@@ -91,7 +91,7 @@
   },
   {
    "name": "lampway_auto_rig",
-   "description": "Auto Rig: a UE-named humanoid armature `<object>_rig` placed from landmarks measured on a T-pose mesh (standing on Z, facing -Y by default; _l/_r are the FIGURE's own sides), the mesh parented with heat-map weights and a proximity fallback for vertices heat cannot solve. Test it with lampway_pose_test: a rig is not a claim of deformation quality. engine=studio:tripo is the Auto Rig slot (answers with action and price).",
+   "description": "Auto Rig: a UE-named humanoid armature `<object>_rig` placed from landmarks measured on a T-pose mesh (standing on Z, facing -Y by default; _l/_r are the FIGURE's own sides), the mesh parented with heat-map weights and a proximity fallback for vertices heat cannot solve. Test it with lampway_pose_test: a rig is not a claim of deformation quality. engine=studio:tripo is the Auto Rig slot (answers with action and price). Body plans beyond the humanoid, each from landmarks measured on the mesh standing on Z: quadruped | hexapod | octopod (feet clustered per side; upper, lower and foot per leg; spine, head, tail), avian (the humanoid with wing_* arms), serpentine | aquatic (a chain of chain_bones along the principal axis), auto (inferred, reported as kind_inferred). naming ue (default) | mixamo (mixamorig:*) | metahuman (the UE5 names; spine_04/05 and neck_02 are not made), humanoid and avian only; tripo is refused (its naming is not documented here). parts: more mesh objects rigged as ONE character with one armature.",
    "batch": null,
    "api": "auto_rig",
    "params": [
@@ -106,7 +106,7 @@
     {
      "name": "kind",
      "type": "string",
-     "desc": "humanoid",
+     "desc": "humanoid (default) | quadruped | hexapod | octopod | avian | serpentine | aquatic | auto",
      "required": false,
      "flag": null,
      "repeat": false
@@ -123,6 +123,30 @@
      "name": "facing",
      "type": "string",
      "desc": "-Y (default) | +Y",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "naming",
+     "type": "string",
+     "desc": "ue (default) | mixamo | metahuman",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "parts",
+     "type": "array",
+     "desc": "more mesh objects of the same character",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "chain_bones",
+     "type": "integer",
+     "desc": "serpentine/aquatic: 3..64, default 10",
      "required": false,
      "flag": null,
      "repeat": false
@@ -242,6 +266,78 @@
    ]
   },
   {
+   "name": "lampway_export_parts",
+   "description": "Parts Library publishing: export a finished part set as candidates, one GLB plus part.json per part under <out_dir>/Parts Library/Candidates/<item>/<source stem>/<part>/v####/ and SET.<set_version>.json. part.json records the source mesh and its sha256, the face ids into it, the recipe lineage and stages, motion class, bind, scale stage, the held notes for that part and the GLB sha256. Geometry is the source's own faces (positions, UVs untouched). Versions never overwrite: an unchanged part keeps its version, any change (faces, class, bind, notes, lineage, corners or UVs) writes the next v####; an existing SET version is refused. Recipe: {smartmesh, parts: {name: {class, bind, from?}}, held: [{note, parts}], stages?, repair?, scale_stage?}; owner.npy is one part index per face (-1 none). Paths are relative to the project root; a path outside it is refused.",
+   "batch": "export_parts",
+   "api": null,
+   "params": [
+    {
+     "name": "mesh",
+     "type": "string",
+     "desc": "the .blend (or .glb/.fbx) holding the source mesh",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "owner",
+     "type": "string",
+     "desc": "owner.npy",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "recipe",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "item",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "source_sha256",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "set_version",
+     "type": "string",
+     "desc": "v####",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
    "name": "lampway_export_piece",
    "description": "Export a finished piece for the engine: the object as FBX into out_dir, its texture maps copied under Textures/, and a README naming every file, what each map is (ORM order, normal convention) and its sha256. The scene is not changed. Paths are relative to the project root; a path outside it is refused.",
    "batch": null,
@@ -282,16 +378,56 @@
    ]
   },
   {
+   "name": "lampway_gen_parts_table",
+   "description": "Write a part set's table (part, version, faces, motion class, bind, held-note titles) and its held notes into a library-wiki entity spec FROM the exported files (SET.<v>.json and each part.json), never by hand; the table names the SET file and its sha256. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "gen_parts_table",
+   "api": null,
+   "params": [
+    {
+     "name": "spec",
+     "type": "string",
+     "desc": "the wiki's entities spec JSON",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "slug",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "set_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "set_version",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
    "name": "lampway_image_to_3d",
-   "description": "Image to 3D / multi-view WITHOUT a model: mode hull = the visual hull of two or more cardinal views (images = {\"Front\": path, \"Left\": path, ...}; Front u=+X, Left u=-Y; silhouettes from alpha or the corner colour), extrude = a rounded or slab extrusion of Front (+Back) for paired pieces (depth in metres), relief = a luminance relief of one image. The mesh is judged by re-projection IoU, volume and boundary edges. engine=studio:tripo is the Smart Mesh slot (100 credits): it answers with action and price for the owner's approval and clicks nothing. Paths are relative to the project root; a path outside it is refused.",
+   "description": "Image to 3D / multi-view WITHOUT a model: mode hull = the visual hull of two or more cardinal views (images = {\"Front\": path, \"Left\": path, ...}; Front u=+X, Left u=-Y; silhouettes from alpha or the corner colour), extrude = a rounded or slab extrusion of Front (+Back) for paired pieces (depth in metres), relief = a luminance relief of one image. The mesh is judged by re-projection IoU, volume and boundary edges. engine=studio:tripo is the Smart Mesh slot (100 credits): it answers with action and price for the owner's approval and clicks nothing. A turnaround SHEET is cut first: detect_views=<sheet> with views = the panel order left to right (never guessed) splits it into labelled views (a single image wider than 2:1 is refused: it would fuse the panels). paired=true (gauntlets, boots) takes front and back only. engine studio:tripo (tripo.mesh) | studio:meshy (meshy.multi_image_to_3d) | studio:hi3d (hi3d.image_to_3d) answer with the action and its plan_args for studio_plan after a plate check (a plate under 1024 px, without a subject or touching the border is named: fix the plate first; plate_check=false skips it). Paths are relative to the project root; a path outside it is refused.",
    "batch": null,
    "api": "image_to_3d",
    "params": [
     {
      "name": "images",
      "type": "object",
-     "desc": "View name -> image path (project-relative)",
-     "required": true,
+     "desc": "View name -> image path (project-relative); or detect_views",
+     "required": false,
      "flag": null,
      "repeat": false
     },
@@ -346,9 +482,193 @@
     {
      "name": "engine",
      "type": "string",
-     "desc": "algorithmic (default) | studio:tripo",
+     "desc": "algorithmic (default) | studio:tripo | studio:meshy | studio:hi3d",
      "required": false,
      "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "detect_views",
+     "type": "string",
+     "desc": "a turnaround sheet to cut into views",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "views",
+     "type": "array",
+     "desc": "detect_views: the panel order left to right, e.g. Front, Left, Back, Right",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "paired",
+     "type": "boolean",
+     "desc": "front and back only",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "plate_check",
+     "type": "boolean",
+     "desc": "studio engines: check the plates first, default true",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_index_delta",
+   "description": "A texture library's next INDEX as a delta: every file in the current listing the baseline listing lacked or holds with another sha256, and every removed path, with sha256 and size; the wiki layer excluded. The out file name carries the version (INDEX.v####.json) and is never overwritten. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "index_delta",
+   "api": null,
+   "params": [
+    {
+     "name": "baseline",
+     "type": "string",
+     "desc": "the listing taken right after the previous INDEX was uploaded",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "current",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "INDEX.v####.json",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "previous_index",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "note",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_judge_pack",
+   "description": "The review pack for a parts regroup: two face labellings of one mesh (vote_a, vote_b: integer face attributes, e.g. two segmenters) reconciled into candidates and decisions: agreed (face IoU >= 0.8), split (A cut by B into >= 2 pieces of >= 10 %), merge (B spanning >= 2 A parts), standalone. Writes pack.json, masks/, candidate sheets (isolated and in context) and one sheet per decision (option A over option B). The decisions are the user's. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "judge_pack",
+   "api": null,
+   "params": [
+    {
+     "name": "mesh",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "vote_a",
+     "type": "string",
+     "desc": "default vote_p3sam",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "vote_b",
+     "type": "string",
+     "desc": "default vote_geosam2",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_libwiki",
+   "description": "Publish a library inventory as an LLM wiki, deterministically. command build: spec.json + an `rclone lsjson -R --hash` inventory + authored pages (SCHEMA.md, concepts/, comparisons/, queries/) -> out: raw pointer pages pinning every file's sha256, one generated page per spec entity, index.md and an append-only log.md (pages added, removed, changed); refuses a bad spec by name, never replaces a directory that is not its wiki, keeps the previous wiki on failure. lint: frontmatter, links, tags, totals, pointer hashes, log format. drift: what changed in a new inventory. Generated pages are never hand-edited: change the spec or the authored page and rebuild. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "libwiki",
+   "api": null,
+   "params": [
+    {
+     "name": "command",
+     "type": "string",
+     "desc": "build | lint | drift",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "paths",
+     "type": "array",
+     "desc": "build: spec, inventory, authored dir, out; lint: out; drift: out, new inventory",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "date",
+     "type": "string",
+     "desc": "build: YYYY-MM-DD",
+     "required": false,
+     "flag": "--date",
+     "repeat": false
+    },
+    {
+     "name": "log",
+     "type": "string",
+     "desc": "build: one-line log message",
+     "required": false,
+     "flag": "--log",
+     "repeat": false
+    },
+    {
+     "name": "action",
+     "type": "string",
+     "desc": "build: the log action (default update)",
+     "required": false,
+     "flag": "--action",
+     "repeat": false
+    },
+    {
+     "name": "scanned",
+     "type": "string",
+     "desc": "build: the inventory's scan date",
+     "required": false,
+     "flag": "--scanned",
      "repeat": false
     }
    ]
@@ -738,6 +1058,54 @@
    ]
   },
   {
+   "name": "lampway_render_final",
+   "description": "Render a finished part set for review (Workbench, orthographic, deterministic, the wearer's axes): the assembly with every part its own colour, the unassigned faces in magenta, and per part an isolated front/back/left/right sheet and a context sheet. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "render_final",
+   "api": null,
+   "params": [
+    {
+     "name": "mesh",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "owner",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "recipe",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
    "name": "lampway_render_owner",
    "description": "Render a mesh coloured by its part owner map: four orthographic views plus a legend; flagged polygons in magenta. Paths are relative to the project root; a path outside it is refused.",
    "batch": "render_owner",
@@ -987,7 +1355,7 @@
   },
   {
    "name": "lampway_segment_mesh",
-   "description": "Mesh Segment: split a mesh into part objects in the collection `<object>_parts` (largest first, UVs and materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with. The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price).",
+   "description": "Mesh Segment: split a mesh into part objects in the collection `<object>_parts` (largest first, UVs and materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with. The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price). labels instead NAMES the UV islands as vertex groups <object>_<label> (nothing is split), with the Client's own island enumeration (Mesh Segment's island_labels): mode map takes island_labels {\"<island>\": label}; mode recipe gives each island the recipe part owning the majority of its faces in owner (a .npy per polygon, default the int face attribute 'part'), an island under min_share (0.6) unlabelled and named; labels outside the recipe's part names are refused, and more than max_unlabeled (0.3) of the faces unlabelled refuses to apply. Needs a UV map.",
    "batch": null,
    "api": "segment_mesh",
    "params": [
@@ -1027,6 +1395,14 @@
      "name": "engine",
      "type": "string",
      "desc": "algorithmic (default) | studio:tripo",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "labels",
+     "type": "object",
+     "desc": "{mode: map | recipe, island_labels: {island: label}, recipe: parts json, owner: .npy, min_share, max_unlabeled}",
      "required": false,
      "flag": null,
      "repeat": false
@@ -1243,6 +1619,46 @@
      "name": "engine",
      "type": "string",
      "desc": "algorithmic (default) | studio:tripo",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_verify_set",
+   "description": "Independent check of an exported part set, no Blender: every part GLB named by SET.<v>.json is re-read with a minimal glTF reader and must equal the faces of the source GLB its face_ids name corner by corner (positions, UVs, winding); triangle counts, sha256 and node names must match part.json; every source face is covered exactly once; evidence paths carry the set version and resolve. Writes <set dir>/evidence/VERIFY.<v>.json (never overwritten); exit 1 on any failure. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "verify_set",
+   "api": null,
+   "params": [
+    {
+     "name": "source",
+     "type": "string",
+     "desc": "the source (or repaired) GLB",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "set_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "set_version",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "original",
+     "type": "string",
+     "desc": "the original GLB, to compare the repaired mesh's first faces with",
      "required": false,
      "flag": null,
      "repeat": false
