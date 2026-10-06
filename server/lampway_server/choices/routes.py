@@ -95,8 +95,16 @@ def choices_routes(bearer_ok, on_change=None) -> list:
             return CH.purpose_view(row["purpose"]) if accept else {"declined": row["id"]}
         return fn
 
+    def quality(request, body):
+        return {"records": CH.active_store().quality(purpose=q(request, "purpose"), option=q(request, "option"))}
+
+    def quality_import(request, body):
+        return {"imported": CH.import_quality(str(body.get("source") or ""), str(body.get("path") or ""), by="user")}
+
     return [
         Route("/app/choices", handler(listing), methods=["GET"]),
+        Route("/app/choices/quality", handler(quality), methods=["GET"]),
+        Route("/app/choices/quality/import", handler(quality_import, True), methods=["POST"]),
         Route("/app/choices/resolve", handler(dry), methods=["POST"]),
         Route("/app/choices/acknowledge", handler(acknowledge, True), methods=["POST"]),
         Route("/app/choices/proposals", handler(proposals), methods=["GET"]),
