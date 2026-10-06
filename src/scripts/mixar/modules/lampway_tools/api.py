@@ -871,6 +871,19 @@ def camera_shot(action="list", shot=None, camera=None, lens_mm=None, aspect=None
 
 
 @tool
+def segment_image(image, method="alpha_components", min_pixels=6000, expected_parts=None, out_dir="segments", engine="algorithmic"):
+    """One image to per-part masks, no model: connected components (8-connected) on the alpha channel of a transparent plate (alpha_components) or on the foreground of an opaque sheet (color_regions: pixels
+    that differ from the border's commonest colour). Writes mask_NN.png (8-bit, same size as the image, white = the part) and overlay.png (numbered tints) under out_dir inside the project root; masks are in
+    reading order, left to right. expected_parts labels them only when the count matches. min_pixels (default 6000) drops specks and reports how many. Touching or overlapping parts are ONE component (the note says
+    so). Refused: no transparency for alpha_components (use color_regions), more than 64 components (raise min_pixels), over 16 megapixels, a mask that already exists and differs (a record is never overwritten),
+    a path outside the root, engine studio:* or model:* (no driver or provider exists for segmentation yet). Nothing lands in the scene."""
+    from .pipeline import segment_image as _SI
+    if engine != "algorithmic":
+        raise _SI.SegmentError(f"engine {engine!r}: no Studio driver or model provider exists for segment yet: use engine=algorithmic")
+    return _SI.segment(_p(image), _p(out_dir), method, int(min_pixels), expected_parts)
+
+
+@tool
 def clip_classify(armature, action=None, samples=25, fps=None, landmarks=None, figure_height_m=None, thresholds="default", apply="none", labels_for_naming=None):
     """What kind of motion is each action on this armature, what should it be called, does it loop: all measured from six landmark bones (hip, head, hand.l, hand.r, foot.l, foot.r; the bone names default from the UE,
     MetaHuman and mannequin skeletons or are passed in `landmarks`), every length a fraction of the figure's height H (given, else the deform mesh's rest height, else head-bone to foot-bone; the source is reported).
