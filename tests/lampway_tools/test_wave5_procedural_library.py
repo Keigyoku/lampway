@@ -89,6 +89,8 @@ print("RESULT", json.dumps({m["material_id"]: {"metal": m["metallic_mean"], "rou
         if m["cat"] == "leather":
             assert m["rough"] >= 0.45, (mid, m)
     assert d["cloth_cloak_crimson_heavy"]["hue"] < 20 or d["cloth_cloak_crimson_heavy"]["hue"] > 340
+    for mid in ("embroidery_gold_on_red", "embroidery_greek_key_trim_gold"):                     # thread ON a red ground: the ground shows, the mean is not the thread's gold
+        assert d[mid]["hue"] < 30 or d[mid]["hue"] > 340, (mid, d[mid])
 
 
 def test_no_two_materials_are_near_identical_and_a_swap_of_two_presets_colours_is_caught(tmp_path):

@@ -21,7 +21,7 @@ async def test_a_finished_generation_lands_in_the_vault_with_its_prompt(settings
     await job.task
     assert job.status == "DONE"
     lib = app.state.library
-    assert lib.root == settings.state_dir / "library"
+    assert lib.root == settings.state_dir / "library" and lib is app.state.vault.lib            # ONE library: the vault's
     img = [r[0] for r in lib._db.execute("select id from asset where kind='image'")]
     assert len(img) == 1
     g = lib.get(img[0])["generation"][0]
@@ -38,7 +38,7 @@ async def test_with_the_vault_locked_by_another_writer_generations_are_spooled(s
         job = app.state.jobs.submit("image_gen", "m", {"prompt": "x"})
         await job.task
         assert job.status == "DONE"
-        assert len((settings.state_dir / "library-spool.jsonl").read_text().splitlines()) == 1
+        assert len(app.state.vault.spool.read_text().splitlines()) == 1
     finally:
         other.close()
 
@@ -58,9 +58,10 @@ async def test_a_spool_left_by_a_locked_period_is_replayed_when_the_server_opens
 
 def test_a_torn_spool_line_never_stops_the_server_starting(settings):
     settings.state_dir.mkdir(parents=True, exist_ok=True)
-    (settings.state_dir / "library-spool.jsonl").write_text('{"payload": {"outp')                # a crash mid-write
+    (settings.state_dir / "library").mkdir(parents=True, exist_ok=True)
+    (settings.state_dir / "library" / "spool").write_text('{"payload": {"outp')               # a crash mid-write
     app = create_app(settings, provider=ScriptedProvider(), job_backends={})
-    assert app.state.library is not None
+    assert app.state.library is not None and app.state.library is app.state.vault.lib
 
 
 def test_a_running_server_thumbnails_what_lands_in_the_vault(settings, tmp_path):

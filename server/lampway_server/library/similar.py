@@ -88,9 +88,9 @@ def similar(lib: AssetLibrary, selection: dict, axes=AXES, weights: Optional[dic
                 ids, mat = lib.load_space(space)
                 if ids:
                     look.append(dict(zip(ids, fn(mat, np.mean(pv, axis=0)))))
-        if look:
-            common = set.intersection(*[set(d) for d in look])
-            sims["look"] = {i: float(np.mean([d[i] for d in look])) for i in common}
+        if look:                                                # each candidate on the look spaces it HAS: a space nobody indexed is never a veto
+            every = set().union(*[set(d) for d in look])
+            sims["look"] = {i: float(np.mean([d[i] for d in look if i in d])) for i in every}
     if "name" in axes:
         text = selection.get("text") or " ".join(lib.get(a)["name"] for a in sel_ids)
         if text.strip():
