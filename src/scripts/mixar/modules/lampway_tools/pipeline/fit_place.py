@@ -12,6 +12,7 @@ foot length by ``scale_anchor`` (REQUIRED: the user has not ruled which), gauntl
 
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -33,6 +34,44 @@ def _body(path):
     if "J" not in d.files or "names" not in d.files:
         raise PlaceError("body.npz has no joints: export with `mesh_to_npz ... body` (mode body)")
     return d["V"].astype(float), d["T"], {str(n): v for n, v in zip(d["names"], d["J"])}
+
+
+TORSO = ("pelvis", "spine_01", "spine_02", "spine_03", "spine_04", "spine_05")
+ARMS = tuple(f"{b}_{s}" for s in "lr" for b in ("upperarm", "lowerarm", "hand", *(f"{f}_0{k}" for f in ("thumb", "index", "middle", "ring", "pinky")
+                                                                                   for k in (1, 2, 3))))
+# The foot length is read on the sole band: 4 cm thick, measured from the foot's lowest point (it was z < 0.04 m, which assumed the
+# body stands at z = 0). The band's THICKNESS is still absolute: needs_decision (canon 09 INV-09.4 asks for a joint-relative form;
+# a ratio of the ankle height would need the native body's joints to calibrate, which are not in this repository).
+SOLE_BAND_M = 0.04
+
+
+# the main skeleton (canon 16's UE names): the bones a region is made of; every other joint (twist, corrective, helper, toe) lies inside them
+MAIN = re.compile(r"^(pelvis|spine_0[1-5]|neck_0[12]|head|clavicle_[lr]|upperarm_[lr]|lowerarm_[lr]|hand_[lr]|thigh_[lr]|calf_[lr]|foot_[lr]|ball_[lr]"
+                  r"|(thumb|index|middle|ring|pinky)_0[1-3]_[lr])$")
+
+
+def _region(P, J, bones, missing_ok=False):
+    """Mask of the points whose NEAREST bone segment (joint -> the next joint of its chain present in J; a last joint is a point) is
+    one of ``bones`` - a body region from its joints, never an absolute coordinate (canon 09 INV-09.4)."""
+    from .joints_views import _reaches
+    names = [n for n in J if MAIN.match(n)]                    # twist, corrective, helper and toe bones would claim their limb's vertices
+    segs = []
+    for n in names:
+        nxt = [k for k in names if k != n and _reaches(n, k)]
+        end = min(nxt, key=lambda k: np.linalg.norm(np.asarray(J[k]) - np.asarray(J[n]))) if nxt else n
+        segs.append((np.asarray(J[n], float), np.asarray(J[end], float)))
+    A = np.array([a for a, _b in segs])
+    D = np.array([b - a for a, b in segs])
+    P = np.asarray(P, float)
+    L2 = np.maximum((D * D).sum(1), 1e-18)
+    t = np.clip(np.einsum("nkj,kj->nk", P[:, None, :] - A[None], D) / L2, 0.0, 1.0)
+    d = np.linalg.norm(P[:, None, :] - (A[None] + t[..., None] * D[None]), axis=2)
+    keep = np.array([n in bones for n in names])
+    if not keep.any():
+        if missing_ok:
+            return np.zeros(len(P), bool)
+        raise PlaceError(f"the body's joints include none of {', '.join(bones)}")
+    return keep[d.argmin(1)]
 
 
 def _piece(path, turn):
@@ -130,7 +169,7 @@ def _helmet(bV, bT, J, V, T, C):
 
 def _waist(bV, bT, J, V, T, C):
     zw = J["spine_01"][2] + 0.03
-    torso = np.abs(bV[:, 0]) < 0.27
+    torso = ~_region(bV, J, ARMS, missing_ok=True)                           # INV-09.4: the arms by bone excluded, not |x| < 0.27 m
     bt = bT[torso[bT].all(1)]
     lo, hi = V[:, 2].min(), V[:, 2].max()
     L = hi - lo
@@ -149,11 +188,12 @@ def _boots(bV, bT, J, V, T, C, anchor, sides):
         if sides not in ("both", sfx):
             continue
         k_, a_ = J[f"calf_{sfx}"], J[f"foot_{sfx}"]
-        leg = bV[:, 0] * sgn > 0.02
+        leg = _region(bV, J, tuple(f"{b}_{sfx}" for b in ("thigh", "calf", "foot", "ball")))
         bt = bT[leg[bT].all(1)]
         zt = a_[2] + 0.6 * (k_[2] - a_[2])
         bw, bd, bp = S.section(bV, bt, np.zeros(3), S.Z, S.X, zt)
-        foot = bV[leg & (bV[:, 2] < 0.04)]
+        lv = bV[leg]                                                                 # INV-09.4: that leg by bone, not "x > 0, z < 0.04 m"
+        foot = lv[lv[:, 2] < lv[:, 2].min() + SOLE_BAND_M]                          # its sole band from its own lowest point
         fl = foot[:, 1].max() - foot[:, 1].min()
         pv = V[:, 0] * sgn > 0
         pt = T[pv[T].all(1)]
@@ -197,7 +237,7 @@ def _gauntlets(bV, bT, J, V, T, C, sides):
         side = np.cross(ax_, S.Z)
         side /= np.linalg.norm(side)
         fa = np.linalg.norm(wr - el)
-        arm = bV[:, 0] * sgn > 0.25
+        arm = _region(bV, J, tuple(f"{b}_{sfx}" for b in ("lowerarm", "hand")))   # INV-09.4: by bone, not |x| > 0.25 m
         bt = bT[arm[bT].all(1)]
         _, _, p = S.section(bV, bt, el, ax_, side, 0.5 * fa)
         ext = np.percentile(p - p.mean(0), 99, 0) - np.percentile(p - p.mean(0), 1, 0)
