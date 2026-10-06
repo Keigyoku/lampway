@@ -30,3 +30,8 @@ skeleton_export_check on the imported armature: no leaf bones, unit scale 1.0, u
 
 ## Test counts at the head
 client tests/lampway_tools: 528 passed, 5 skipped (real binary; LAMPWAY_PYTHON_SCIENCE and the shelf variables set); server suite green (rc 0); the root suite has no failure the pre-session commit did not already have.
+
+## Wave 3b: the herdr cockpit (branch lp/wave5)
+Built: the isolated launcher (own socket, config, HOME and XDG roots under a Lampway root; the fleet's server is never addressed), the session host with the durable registry and one idempotent reconcile (re-adopts live panes, never kills unknown panes, never respawns an ended one), native activity observers, the /app/workbench routes and the agent tool, the Blender pane, 02 codex_app_server provider (dynamic tools over one persistent app-server), and 10 agent_ops (closed tool set, quick router, operation records, effort/title/taint policies).
+Survival of a server or Blender crash was exercised against the real herdr binary (SIGKILL of the agent process and of the Lampway server; panes and records survive, the next reconcile re-adopts).
+Flake found and fixed at the head: `test_when_only_the_agent_process_dies...` asserted one end reason, but herdr closes a dead command's pane on its own clock, so the reason is either "gone from the server" or "no longer running"; both are the same fact and the test now accepts either (3 of 4 runs failed before, 3 of 3 pass after).
