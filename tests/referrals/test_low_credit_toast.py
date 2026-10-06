@@ -92,10 +92,12 @@ def test_opening_refer_a_friend_dismisses_the_toast(store):
     assert "low_credit.dismiss_toast()" in invoke
 
 
-def test_poller_checks_every_applied_reading():
+def test_the_poller_never_offers_refer_a_friend():
+    """Cloud audit F24: Lampway has no referral programme, and the profile card has no Refer a Friend row for the toast to
+    point at, so an applied reading never raises the low-credit referral toast."""
     poller = (MODULE / "common/usage/core/poller.py").read_text(encoding="utf-8")
     apply_fn = poller[poller.index("def _apply_snapshot"):poller.index("def _schedule_apply")]
-    assert "_notify_low_credit(previous, snapshot)" in apply_fn
+    assert "_notify_low_credit" not in apply_fn
 
 
 def test_card_row_is_the_open_cards_refer_a_friend_button():
