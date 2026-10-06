@@ -646,6 +646,7 @@ from .features import uv_rectify as _F_uvr                # noqa: E402
 from .features import uv_layout as _F_uvl                  # noqa: E402
 from .features import model_compare as _F_mc                # noqa: E402
 from .features import clip_classify as _F_cc                # noqa: E402
+from .features import scene_cleanup as _F_sc                # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
 
@@ -830,6 +831,17 @@ def model_compare(action="stats", set=None, views=None, size=512, blind=False, p
     require_pick). pick is the USER's: an agent is refused. close removes the scratch scene. Refused: fewer than 2 or more than 4 models, a file outside the root, not a glTF binary, a meshopt-only file for the 3D
     view. The live windowed viewer with synchronised cameras is not built (it needs the pop-out probe)."""
     return _F_mc.run(action, set, views, size, blind, pick, require_pick, str(_settings().project_root))
+
+
+@tool
+def scene_cleanup(objects=None, steps=None, merge_distance="auto", ngon_policy="report", convention=None, plan_only=True, copy=True):
+    """Report first, then clean. plan_only (the default) reads the scene and changes nothing: per object the non-uniform scale, loose vertices, doubled vertices at the merge distance, non-manifold edges (wire,
+    boundary, multi-face), flipped faces (found on closed shells with doubles welded, so a double cannot hide a flip), n-gons, material slots (unused, duplicates) and UV layers, plus the scene's orphan data blocks.
+    plan_only=false runs the steps IN THE DOCUMENTED ORDER whatever order you list: apply_transforms, loose, merge_by_distance, non_manifold, normals (closed shells only), ngons (policy report | triangulate |
+    keep), purge_orphans, naming (needs `convention`: prefix, suffix, lowercase, replace_spaces, strip_numeric_suffix: it will not invent one), materials_uvs (removes unused slots; duplicates are reported).
+    merge_distance 'auto' = 1e-4 x the bounding diagonal (scale-aware); a merge that would remove more than 5 % of the vertices stops and says the threshold is wrong. Work happens on `<object>_clean` copies with
+    the source hash recorded (copy=false edits in place and refuses shared mesh data). Refused: Edit Mode."""
+    return _F_sc.scene_cleanup(objects, steps, merge_distance, ngon_policy, convention, plan_only, copy)
 
 
 @tool
