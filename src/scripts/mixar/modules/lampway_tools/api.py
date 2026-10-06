@@ -950,7 +950,7 @@ def layered_material(action="inspect", object=None, material=None, layer=None, m
     edge_detect | color_id | vcol | image}, projection: uv | triplanar | planar | spherical | cylindrical | decal} (uv needs a UV map: otherwise use triplanar or unwrap first); add_procedural puts a library
     material (see procedural_library) on as a layer; set_params {opacity, enabled, name, blend_type, projection_type, translation, rotation, scale ...} edits layer_index (-1 = the active layer); apply_manifest
     builds a whole stack from a manifest (index 0 must be a PBR layer). Refused: not a mesh, no paint project yet (the refusal names init), unknown blend / type / mask / projection (each lists the choices).
-    Mask invert is not built. One undo step per Blender operator the Client's package uses."""
+    mask_invert (params {invert: true, the default | false}) inverts layer_index's first mask (add_layer takes mask.invert too). One undo step per Blender operator the Client's package uses."""
     return _F_lm.layered_material(action, object, material, layer, manifest, layer_index, params)
 
 
