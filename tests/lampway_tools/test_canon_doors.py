@@ -279,7 +279,7 @@ def test_ratchet_a_merge_commit_that_records_the_number_the_merged_sha_and_a_rea
     commit("139\n" + rec.format(tip=tip), "one tool migrated: the count falls again, the record stays")
     assert violations(r, "count.txt") == []
     commit("140\n" + rec.format(tip=tip), "a plain commit cannot re-use the merge's record to rise again")
-    assert violations(r, "count.txt") == ["the ratchet rose 139 -> 140 in a plain commit (a rise is accepted only in a merge commit that records it)"]
+    assert len(violations(r, "count.txt")) == 1 and "rose 139 -> 140 in a plain commit" in violations(r, "count.txt")[0]
 
 
 @pytest.mark.parametrize("record", ["", "rebaseline 141 merged={tip} reason=wrong number\n", "rebaseline 140 merged=0000000 reason=not the merged sha\n",
@@ -336,3 +336,67 @@ print("RESULT", json.dumps(out))
         assert e["ok"] is False and e["error"].startswith(f"normalize first: objects[{i}] 'rawp'") and "RAW" in e["error"], e
         assert "plainp" not in e["error"] and e["help"][0] == "lampway_normalize_mesh input=rawp", e
     assert d["one"]["ok"] is False and d["one"]["error"].startswith("normalize first: objects 'plainp'")
+
+
+# ------------------------------------------------------------------ lane orphans' rebaseline form, adopted (5a993b5) and hardened
+def _ratchet_problems(history):
+    """Lane orphans' pure interface: history = [(sha, [parents], text)] oldest first, parents looked up in the history itself."""
+    from canon_ratchet import ratchet_problems
+    texts = {sha: text for sha, _p, text in history}
+    return ratchet_problems(history, texts.get)
+
+
+def test_a_recorded_rebaseline_is_accepted_only_in_the_merge_commit_it_names():
+    """lane orphans' test, verbatim: the ratchet may rise ONCE per merge of a pre-door lane, recorded in the file itself:
+    `rebaseline <N> merge <parent1> <parent2>: <reason>`; a rise anywhere else (an ordinary commit, or a merge the line does not
+    name) is refused."""
+    a, b, c, m = "a" * 40, "b" * 40, "c" * 40, "d" * 40
+    reb = f"120\nrebaseline 120 merge {a[:8]} {b[:8]}: pre-door lane merged: 10 texture/list tools await the texture normalizer\n"
+    ok = [(a, [c], "110\n"), (m, [a, b], reb)]
+    assert _ratchet_problems(ok) == []
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a], reb)]), "a rise in an ordinary (single-parent) commit is refused"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, c], reb)]), "a rebaseline naming other parents is refused"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], "120\n")]), "a rise without its recorded line is refused"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], reb.split(": ")[0] + ":\n")]), "a rebaseline needs its reason"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], reb), (c, [m], reb.replace("120", "125"))]), "the next rise is refused again"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], reb), (c, [m], "118\n")]) == [], "falling is always fine"
+
+
+def test_ratchet_orphans_form_on_a_real_merge_and_a_merge_bringing_an_already_recorded_rise(tmp_path):
+    """the form lane orphans wrote, on a real repository; then lp/canon merging a lane whose rise was recorded THERE: compared with
+    the highest parent it is not a rise, so no second record is owed; a merge that adds rises of its own owes one."""
+    from canon_ratchet import violations
+    r, git, commit = _repo(tmp_path)
+    commit("110\n", "baseline")
+    git("checkout", "-q", "-b", "orphans")
+    (r / "t.py").write_text("x\n")
+    git("add", "t.py")
+    git("commit", "-q", "-m", "pre-door tools")
+    git("checkout", "-q", "main")
+    (r / "u.py").write_text("y\n")
+    git("add", "u.py")
+    git("commit", "-q", "-m", "main moves on")
+    git("checkout", "-q", "orphans")
+    git("merge", "-q", "--no-ff", "--no-commit", "main")
+    p1, p2 = git("rev-parse", "HEAD"), git("rev-parse", "MERGE_HEAD")
+    commit(f"120\nrebaseline 120 merge {p1[:8]} {p2[:8]}: pre-door lane merged: 10 tools await the texture normalizer\n", "merge main")
+    assert violations(r, "count.txt") == []
+    git("checkout", "-q", "main")
+    commit("109\n", "a tool migrated on main")
+    git("merge", "-q", "--no-ff", "--no-commit", "-X", "theirs", "orphans")                # count.txt conflicts; written below
+    (r / "count.txt").write_text(git("show", "orphans:count.txt") + "\n")
+    git("add", "count.txt")
+    git("commit", "-q", "-m", "merge orphans: its recorded 120 comes along")
+    assert violations(r, "count.txt") == []
+    commit("121\n" + git("show", "HEAD:count.txt").split("\n", 1)[1], "merge-less rise re-using orphans' record")
+    assert violations(r, "count.txt"), "a plain commit cannot rise on another merge's record"
+
+
+def test_ratchet_the_file_re_created_at_a_higher_count_is_refused(tmp_path):
+    from canon_ratchet import violations
+    r, git, commit = _repo(tmp_path)
+    commit("110\n", "baseline")
+    git("rm", "-q", "count.txt")
+    git("commit", "-q", "-m", "drop it")
+    commit("150\n", "bring it back higher")
+    assert any("re-creat" in v for v in violations(r, "count.txt")), violations(r, "count.txt")

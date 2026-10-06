@@ -355,3 +355,16 @@ refuses a target above 3x the source (INV-12.5; it was autoremesher-only). RED: 
 3x targets were accepted. The fallback test's fixture grew to a 100-face grid with a third face on one edge so it stays under 3x.
 Not built: per-part remesh with the part map carried (INV-12.3) - Lampway stores no part map on the object (the owner map lives in
 the shelf scripts' npy files), so it needs that carrier first.
+
+### Ruling A, revised: lane orphans' rebaseline form adopted and hardened
+Lane orphans merged lp/canon (5a993b5) with its own minimal version: `rebaseline <N> merge <parent1> <parent2>: <reason>`, naming
+the merge's own two parents, checked in log order. As the ruling asks, that form is now THE form (`tests/lampway_tools/canon_ratchet.py`),
+and orphans' pure test is in `test_canon_doors.py` verbatim (through an adapter, `_ratchet_problems(history)`). Hardened:
+- a rise is measured against the commit's REAL parents' counts (read with `git show <parent>:<file>`), not the previous row of
+  `git log -- file` (arbitrary order across branches); against the HIGHEST parent, so merging a lane whose rise was recorded there
+  owes no second record, and a merge that adds rises of its own does (tested on a real repository);
+- the file re-created after its first commit is refused (a deletion would otherwise reset the ratchet);
+- the record must name merge parents of that very commit and give a reason of at least 10 characters, in either grammar: my
+  `rebaseline <N> merged=<parent2> reason=<why>` stays accepted because 09dec65 (pushed) uses it, and is not to be written again.
+RED: `ratchet_problems` absent, and the old checker refused orphans' form on a real merge. Mutants (lowest parent, parents not
+named, empty reason, re-creation allowed) each fail a test.
