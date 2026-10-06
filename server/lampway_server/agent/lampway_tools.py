@@ -446,6 +446,16 @@ DEFS = [
          P("body_open_band_m", "number", "an OPEN body (boundary edges) is refused without it: vertices within this band of the opening stay unsigned (canon 15)"),
          P("gap_classes", "object", "{vertex group: class}: the gap on the piece's innermost layer per class (p50, p90; canon 15 B.5)"),
          P("hideable_regions", "object", "{name: [bones]}: per region the armour's cover per standard view and hideable (>= 98 %, canon 15 B.6)")], api="garment_clearance"),
+    Def("lampway_fit", "The fit of one piece in canon 03's ORDER (specs/canon/03-fit-and-deform.md): intake -> proportion -> match -> place -> pose_correct -> pose -> openings -> conform -> "
+        "bind -> weights -> validate -> export, each arrow a refusal that names the next command. Each stage runs its tool with `args` (that tool's own arguments) and appends {stage, tool, inputs "
+        "sha256, receipt sha256, decider} to <piece>/fit/fit.json. intake: `roles` for every part in args.parts (the captain's or the recipe's, never a render's colour) and `body` (a fit_body package, "
+        "verified); match: the captain's sign-off, args {captain_seen: true, render_sha256}; pose_correct: args {segments}; conform: metal refused, soft parts wait on decision 03-H2; weights: the "
+        "body's native sidecar. A geometry stage after a recorded texture needs texture_discard_ack. status: done, next, and why each later stage is refused.",
+        [P("stage", desc="status (default) | intake | proportion | match | place | pose_correct | pose | openings | conform | bind | weights | validate | export"),
+         P("piece", required=True, desc="the piece's folder under the project root"), P("kind", desc="chest | helmet | waist | boots | gauntlets | cloak | skirt"),
+         P("roles", "object", "{part: metal | leather | cloth | embroidery} (intake)"), P("args", "object", "the stage tool's own arguments"),
+         P("body", desc="intake: the fit_body package dir"), P("decider", desc="agent (default) | captain"),
+         P("texture_discard_ack", "boolean", "a geometry stage after a recorded texture discards it")], api="fit"),
     Def("lampway_fit_validate", "Measure a bound piece through poses against its ORIGINAL shell and judge it (canon: specs/canon/05-fit-validation.md). measure: `bound` (an Armature-modified piece), `original` "
         "(the pre-fit source shell, REQUIRED: a baked rest hides the distortion; same vertex count), `poses` (named poses such as rest, wrist_r_plus30, elbow_r_70, curl_r_full, or [{name, bones: [{bone, axis: up | "
         "forward | lateral | {line: [a, b]} | {perp: [a, b], to}, deg}], expect: {joint, along | closer_to, min_cm}} | {name, curl: {side, fraction}} | {name, bone, rotate} (Euler stress set)]), `roles` {part: metal | "

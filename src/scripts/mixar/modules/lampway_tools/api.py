@@ -1494,6 +1494,26 @@ def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None
     raise ValueError("stage is labels | pose | bind | report")
 
 
+@tool(consumes=NONE("an orchestrator: each stage's tool passes its own door with the stage's arguments"))
+def fit(stage="status", piece="", kind="", roles=None, args=None, body="", decider="agent", texture_discard_ack=False):
+    """The fit of one piece in canon 03's ORDER (docs/canon/03-fit-and-deform.md B, G): intake -> proportion -> match -> place ->
+    pose_correct -> pose -> openings -> conform -> bind -> weights -> validate -> export, each arrow a refusal. Each stage
+    delegates to its tool with `args` (the tool's own arguments: normalize_mesh, run_tool piece_ratios, fit_place, fit_pose,
+    fit_openings, fit_bind plan / weights, fit_validate, fit_export) and appends {stage, tool, inputs_sha256, receipt_sha256,
+    decider} to <piece>/fit/fit.json. intake records each part's role (`roles` {part: metal | leather | cloth | embroidery}, for
+    every part in args.parts: the captain's or the recipe's, never the render's colour) and verifies `body` (a fit_body package);
+    match is the captain's sign-off (args {captain_seen: true, render_sha256}); pose_correct records the measured rigid
+    correction per segment (args {segments}); conform refuses metal and is not built (decision 03-H2); weights needs the body
+    package's native sidecar. A geometry stage after a recorded texture needs texture_discard_ack. status: stages done, the next
+    one, and why each later one is refused."""
+    from .pipeline import fit_order as _FO
+    if not piece:
+        raise ValueError("piece is required (the folder under the project root that holds <piece>/fit/fit.json)")
+    _p(piece)                                                       # refused outside the project root
+    return _FO.run(stage, piece, str(_settings().project_root), lambda t, a: call(t, json.dumps(a)), kind, roles, args, decider, body,
+                   bool(texture_discard_ack))
+
+
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def anim_reference_render(character, views=None, size="720x1280", background="#808080", camera=None, out_dir="anim/reference"):
     """The character at rest from a KNOWN orthographic camera on a plain grey background, front and side: the start images for the clip step. character: an object (its children are included) or a collection;
