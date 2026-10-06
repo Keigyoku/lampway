@@ -24,6 +24,8 @@ Lampway is an open-source 3D suite on a Blender 5.2 core with an AI agent inside
 | [Animation from video](animation-from-video.md) | clip, multi-view motion fit, checks and loop export |
 | [Armour pipeline](armour-pipeline.md) | one armour piece from plates to an engine-ready, rigged export |
 | [Connect AI apps (MCP)](lampway/connect-ai-apps.md) | drive your open scene from Claude Code, Codex, Cursor and others |
+| [The UE Renderer](lampway/ue-renderer.md) | predict what Unreal shows: UE Default Lit materials, the UE Look view, canonical export, the parity harness |
+| [UE Look](ue-look.md) | pointing Lampway at the tonemapper cube generated on the UE side |
 | [Tools](tools.md) | every agent tool, generated from the live registry |
 
 ## Project
