@@ -17,6 +17,7 @@ as a job (``jobs.py``) and its scene-touching tail runs from the app's timer.
 
 import functools
 import json
+import os
 from pathlib import Path
 
 import bpy
@@ -683,18 +684,26 @@ def uv_unwrap(object, method="smart", angle_limit=66.0, margin=None, texel_densi
 
 
 @tool
-def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algorithmic"):
+def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algorithmic", labels=None):
     """Split a mesh into part objects in the collection ``<object>_parts`` (largest first): connected ``shells``, regions bounded by
     ``sharp`` edges (dihedral > angle), or ``uv_islands``; regions under min_faces merge into a neighbour. The original is hidden,
-    never deleted. engine=studio:tripo is the part-detection slot."""
+    never deleted. engine=studio:tripo is the part-detection slot. ``labels`` ({mode: map | recipe, island_labels, recipe, owner}) labels the
+    UV islands as vertex groups <object>_<label> instead (the Client's island enumeration; nothing is split)."""
+    if labels:
+        from .features import island_labels as _IL
+        return _IL.label(object, labels, _p(labels.get("recipe", "")), _p(labels.get("owner", "")))
     return _F_segment.segment_mesh(object, method, angle, min_faces, engine)
 
 
 @tool
-def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y", copy=True):
-    """A UE-named humanoid armature ``<object>_rig`` placed from landmarks measured on a T-pose mesh, the mesh parented with heat-map
-    weights (proximity fallback for the vertices heat cannot solve). ``_l``/``_r`` are the figure's own sides. engine=studio:tripo
-    is the Auto Rig slot (answers with action and price). The source mesh is never touched: ``<object>_rigged`` is the rigged copy (copy=false rigs in place)."""
+def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y", copy=True, naming="ue", parts=None, chain_bones=10):
+    """A fitted armature with skin weights (heat map, proximity fallback). kind humanoid (UE names), or the body plans quadruped | hexapod | octopod |
+    avian | serpentine | aquatic | auto (features/rig_plans.py); naming ue | mixamo | metahuman; parts rigs several meshes as ONE character."""
+    if engine == "algorithmic" and (kind != "humanoid" or naming != "ue" or parts):
+        from .features import rig_plans as _RP
+        return _RP.auto_rig(object, kind, naming, parts, weights, facing, copy, chain_bones)
+    # the humanoid: a UE-named armature <object>_rig from landmarks on a T-pose mesh; _l/_r are the figure's own sides; the source is never touched
+    # (<object>_rigged is the rigged copy; copy=false rigs in place); engine=studio:tripo is the Auto Rig slot (action and price only)
     return _F_rig.auto_rig(object, kind, engine, weights, facing, copy)
 
 
@@ -769,6 +778,7 @@ def asset_lineage(action, object, source="", transform="", anchors=None, changed
 def workflow_graph(action, name="", graph=None, inputs=None, from_node="", version="", template="", description=""):
     """A typed DAG of Lampway tool calls as data. define (graph = {nodes: [{id, tool, args, after, spend, studio_action, credits}], outputs}; args may use
     {{inputs}} and @node.key for an upstream output) | plan (order, cached?, credits_planned) | run | rerun (from_node: it and what follows re-execute) |
+    confirm (from_node: ONE spend node runs, on the user's word; its output is kept for those inputs) |
     version / rollback (version) | template_save / template_use (template, description) | show. Outputs are cached by the hash of (tool, args, upstream outputs);
     a spend node is planned and priced, never run (the user confirms in the Studios panel)."""
     from . import workflow_graph as WG
@@ -781,6 +791,8 @@ def workflow_graph(action, name="", graph=None, inputs=None, from_node="", versi
         return g.run(name)
     if action == "rerun":
         return g.rerun(name, from_node)
+    if action == "confirm":
+        return g.confirm(name, from_node)
     if action == "version":
         return g.version(name, version)
     if action == "rollback":
@@ -791,7 +803,7 @@ def workflow_graph(action, name="", graph=None, inputs=None, from_node="", versi
         return g.template_use(template, name, inputs)
     if action == "show":
         return g.show(name)
-    raise WG.GraphError("action is define|plan|run|rerun|version|rollback|template_save|template_use|show")
+    raise WG.GraphError("action is define|plan|run|rerun|confirm|version|rollback|template_save|template_use|show")
 
 
 @tool
@@ -1393,7 +1405,8 @@ def _gray_loader():
 
 
 @tool
-def anim_multiview_fit(front, side, calibration=None, cameras="", fps=24.0, single_view=False, grid_frames=None, stage="fit", out="anim/multiview/fit.json"):
+def anim_multiview_fit(front="", side="", calibration=None, cameras="", fps=24.0, single_view=False, grid_frames=None, stage="fit", out="anim/multiview/fit.json",
+                       frames=None, onnx="", armature="", mesh="", masks=None, bones=None, step_deg=8.0, rounds=5, key=False):
     """Motion from ONE split-screen clip (front + side), orthographic: triangulate per-panel 2D joints (JSON {keypoints: [[[u, v] x 15 joints] per frame], conf?}, joint order = pipeline.anim_mv.JOINTS) into 3D, the side
     view's near/far leg and arm labels put right from the FRONT view (heights, then continuity), pelvis-relative (a drifting camera is not travel), one floor row for both panels. calibration {px_per_m} or `cameras`
     (the cameras.json of anim_reference_render: the render cameras are the video cameras). Refused: panels out of sync ('re-generate'), a missing scale. Held (duplicate) frames are listed with the true motion rate.
@@ -1401,9 +1414,25 @@ def anim_multiview_fit(front, side, calibration=None, cameras="", fps=24.0, sing
     detector) is not wired: it answers needs_approval; supply the keypoints. Free, no model."""
     from .pipeline import anim_io as _IO
     if stage == "detect":
-        return {"ok": False, "state": "needs_approval", "reason": "the RTMW whole-body 2D detector (rtmlib, ONNX) is a model download and a runner this build does not carry: supply per-panel keypoints (stage fit)"}
+        # the RTMW detector: frames {front: [pngs] | dir, side: ...} -> <out dir>/front.json, side.json (the fit's input); weights from disk, never downloaded
+        from .pipeline import rtmw as _RT
+        if not isinstance(frames, dict) or set(frames) != {"front", "side"}:
+            raise ValueError("stage detect needs frames {front: [png...] or a folder, side: ...} (the split panels) and onnx (the RTMW weights on disk)")
+        try:
+            backend = _RT.rtmw_backend(_p(onnx), run_tool=lambda n, a: RUN.run(n, a, timeout=3600))
+        except _RT.DetectorUnavailable as exc:
+            raise ValueError(str(exc)) from None
+        res = {}
+        for v, f in frames.items():
+            fp = _p(f) if isinstance(f, str) else None
+            paths = sorted(os.path.join(fp, x) for x in os.listdir(fp) if x.lower().endswith(".png")) if fp else [_p(x) for x in f]
+            res[v] = _RT.detect(paths, os.path.join(os.path.dirname(_p(out)), f"{v}.json"), backend)
+        return {"stage": "detect", "panels": res, "next": "stage fit with front/side = the two JSON files"}
+    if stage == "refine":
+        from .features import anim_abs as _ABS
+        return _ABS.refine(armature, mesh, {k: _p(v) for k, v in (masks or {}).items()}, _p(cameras), _p(out), bones, step_deg, rounds, key)
     if stage != "fit":
-        raise ValueError("stage is fit | detect")
+        raise ValueError("stage is fit | detect | refine")
     grid = None
     if grid_frames:
         load = _gray_loader()
@@ -1488,14 +1517,36 @@ def detail_normals(material, strengths=None, ambientcg_dir=""):
 
 
 @tool
-def image_to_3d(images, size=1.0, resolution=64, mode="hull", depth=None, profile="round", name="", engine="algorithmic"):
+def image_to_3d(images=None, size=1.0, resolution=64, mode="hull", depth=None, profile="round", name="", engine="algorithmic", detect_views="", views=None,
+                paired=False, plate_check=True):
     """Mesh from images, no model: ``hull`` = visual hull of two or more cardinal views ({"Front": path, "Left": path, ...}, Front u=+X,
     Left u=-Y), ``extrude`` = rounded/slab extrusion of Front (+Back) for paired pieces, ``relief`` = luminance relief of one image.
-    Reported by re-projection IoU, volume and boundary edges. engine=studio:tripo is the Smart Mesh slot (100 credits: approval first)."""
-    if engine == "algorithmic":
-        s_ = _settings()
+    Reported by re-projection IoU, volume and boundary edges. detect_views = a turnaround sheet cut into panels named by ``views`` (left to right);
+    paired = front and back only. engine=studio:tripo | studio:meshy | studio:hi3d answers with the action, its plan_args and price, after a plate check."""
+    from .features import image3d_views as _IV
+    s_ = _settings()
+    detected = None
+    if detect_views:
+        sheet = _p(detect_views, s_.project_root)
+        detected = _IV.detect_views(sheet, os.path.join(os.path.dirname(sheet), "views_" + os.path.splitext(os.path.basename(sheet))[0]), list(views or []))
+        images = detected["views"]
+    elif images:
         images = {v: _p(p, s_.project_root) for v, p in images.items()}
-    return _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
+        if len(images) == 1 and _IV.looks_like_sheet(next(iter(images.values()))):
+            raise ValueError("this looks like a turnaround sheet (more than 2:1): pass detect_views=<sheet> with views (the panel order) so the panels are not fused into one mesh")
+    else:
+        raise ValueError("give images {View: path} or detect_views (a turnaround sheet) with views")
+    if paired and set(images) - {"Front", "Back"}:
+        raise ValueError(f"a paired piece (gauntlets, boots) takes front and back only: drop {sorted(set(images) - {'Front', 'Back'})}")
+    if engine != "algorithmic":
+        if not plate_check:
+            return _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
+        return _IV.studio_plan(images, engine, paired)
+    res = _F_image3d.image_to_3d(images, size, resolution, mode, depth, profile, name, engine)
+    res["views_used"] = sorted(images)
+    if detected:
+        res["detected"] = {k: v for k, v in detected.items() if k != "views"}
+    return res
 
 
 @tool
@@ -1524,14 +1575,17 @@ def project_views(object, views, size=1024, out="", occlusion=True):
 
 
 @tool
-def texture_gen(object, prompt, out_dir="", views=("Front", "Back"), size=1024, engine="algorithmic"):
-    """Texture Gen: clay render of each view -> the server's image model paints it -> projection into the atlas -> material applied.
-    The object needs UVs. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits: approval first)."""
+def texture_gen(object, prompt, out_dir="", views=("Front", "Back"), size=1024, engine="algorithmic", reference_image="", count=1, keep_original=True, record=True,
+                piece="", delight=False, min_coverage=0.6):
+    """Texture Gen: clay render of each view -> the server's image model paints it (count variants, best silhouette IoU kept; a material
+    reference_image rides second) -> projection into the atlas of a copy <object>_tex (keep_original) -> a ledger row. Under min_coverage the run
+    is refused before anything is paid. The object needs UVs. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits: approval first)."""
     if engine != "algorithmic":
         return _F_texture.texture_gen(object, prompt, "", views, size, engine)
     if not out_dir:
         raise ValueError("texture_gen needs out_dir (a project folder for the clay renders, the painted views and the atlas)")
-    return _F_texture.texture_gen(object, prompt, _p(out_dir), list(views), size, engine)
+    return _F_texture.texture_gen(object, prompt, _p(out_dir), list(views), size, engine, reference_image=_p(reference_image), count=count,
+                                  keep_original=keep_original, record=record, piece=piece, delight=delight, min_coverage=min_coverage)
 
 
 @tool
@@ -1557,6 +1611,10 @@ from . import api_wave6 as _W6                              # noqa: E402
 for _w6_name in _W6.TOOLS:
     globals()[_w6_name] = tool(getattr(_W6, _w6_name))
 
+
+# ---- the orphan tools (STATUS.md ORPHANS): their own module, registered through tool() above
+
+from .orphans_api import *  # noqa: E402,F401,F403
 
 # ---- the door the agent's scripts use
 

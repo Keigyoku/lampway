@@ -53,6 +53,7 @@ TOOLS = dict([
     _t("bake_maps", "blender", "bake/bake_maps.py", "headless Cycles bake of high-poly donors onto a UV-mapped target: normal, colour-only albedo, AO"),
     _t("material_bake", "blender", "bake/material_bake.py", "headless Cycles bake of a material's channels (base colour, roughness, metallic, normal, AO, emission) with an ORM pack"),
     _t("asset_catalog_export", "blender", "library/catalog_export.py", "write Asset Vault assets into a Blender asset library .blend, marked with their catalogues"),
+    _t("rtmw_detect", "science", "anim/rtmw_detect.py", "RTMW whole-body 2D keypoints per frame (rtmlib + onnxruntime, weights from disk)"),
     _t("robust_weight_transfer", "science", "rig/robust_weight_transfer.py", "biharmonic inpainting of unmatched vertices' skin weights (robust skin-weight transfer)"),
     _t("render_owner", "blender", "partseg/render_owner.py", "render a mesh coloured by part owner, four views plus legend"),
     _t("mesh_to_npz", "blender", "proportion/mesh_to_npz.py", "export a mesh or the MetaHuman body to npz"),
@@ -72,6 +73,13 @@ TOOLS = dict([
     _t("uv_score", "blender", "texlib/uv_score.py", "score UV layouts of files on measurements (utilization, overlap, islands, stretch, flipped, seams)"),
     _t("piece_ratios", "numpy", "proportion/piece_ratios.py", "proportion scores of helmet / waist / boots / gauntlets against the body (NEW, unvalidated)"),
     _t("place_piece", "numpy", "proportion/place_piece.py", "place a torso piece on the body the way the audits do"),
+    _t("export_parts", "blender", "partseg/export_parts.py", "export a finished part set as Parts Library candidates: one GLB + part.json per part, versions never overwritten"),
+    _t("verify_set", "numpy", "partseg/verify_set.py", "independent check of an exported part set: every part GLB corner by corner against the source, every face once"),
+    _t("render_final", "blender", "partseg/render_final.py", "render a finished part set: the assembly, the unassigned faces, each part isolated and in context"),
+    _t("judge_pack", "blender", "partseg/judge_pack.py", "the review pack for a parts regroup: two segmentations reconciled into candidates and decisions, with renders"),
+    _t("gen_parts_table", "numpy", "libwiki/gen_parts_table.py", "write a part set's table and held notes into the mesh wiki's entity spec from the exported files"),
+    _t("index_delta", "numpy", "texlib/index_delta.py", "a texture library's next INDEX as a delta against a baseline listing (added, changed, removed; never overwritten)"),
+    _t("libwiki", "numpy", "libwiki/libwiki.py", "publish a library inventory as an LLM wiki: build, lint, drift (deterministic; pages generated, never hand-edited)"),
     _t("pauldron_symmetry", "numpy", "proportion/pauldron_symmetry.py", "left versus mirrored-right shoulder height maps"),
 ])
 

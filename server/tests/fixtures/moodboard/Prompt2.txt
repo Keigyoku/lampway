@@ -1,0 +1,26 @@
+Create a photorealistic armor adaptation sheet using the attached references.
+
+Image A is the exact MetaHuman anatomy and body-proportion reference.
+Image B is the armor design reference only.
+
+Adapt the armor from Image B onto the exact MetaHuman body from Image A. Preserve the MetaHuman’s identity, face, body proportions, shoulder width, torso depth, arm length, pelvis width, leg proportions, hand size, and foot size. Do not replace the body with a larger, more muscular, or differently proportioned heroic figure. The MetaHuman anatomy must remain the foundation.
+
+Preserve the armor design language from Image B: materials, colors, motifs, engravings, silhouette language, trim, cape treatment, weapon style, shield style, and overall aesthetic. However, resize and reshape every armor component so it appears believable and wearable on the MetaHuman body from Image A.
+
+Create a clean design-evaluation sheet with:
+- one large full-body hero render of the armored MetaHuman on the left
+- two smaller supporting views on the right: front orthographic and side orthographic
+- optional small back view if space allows
+
+Presentation requirements:
+- clean neutral background
+- no cinematic scenery
+- no decorative borders
+- soft studio lighting
+- high photorealism
+- armor must clearly look fitted to the MetaHuman body
+- show believable spacing and thickness
+- no floating armor
+- no stylized anatomy changes
+
+This is not a final poster. It is a design adaptation and fitting reference showing how the concept armor translates onto the actual MetaHuman body.

@@ -167,10 +167,15 @@ DEFS = [
     Def("lampway_segment_mesh", "Mesh Segment: split a mesh into part objects in the collection `<object>_parts` (largest first, UVs and "
         "materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | "
         "uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with. "
-        "The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price).",
+        "The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price). labels instead NAMES the "
+        "UV islands as vertex groups <object>_<label> (nothing is split), with the Client's own island enumeration (Mesh Segment's island_labels): mode map "
+        "takes island_labels {\"<island>\": label}; mode recipe gives each island the recipe part owning the majority of its faces in owner (a .npy per polygon, "
+        "default the int face attribute 'part'), an island under min_share (0.6) unlabelled and named; labels outside the recipe's part names are refused, "
+        "and more than max_unlabeled (0.3) of the faces unlabelled refuses to apply. Needs a UV map.",
         [P("object", required=True), P("method", desc="shells (default) | sharp | uv_islands"), P("angle", "number", "Degrees, default 40"),
          P("min_faces", "integer", "Merge regions under this many faces, default 1 (no merge)"),
-         P("engine", desc="algorithmic (default) | studio:tripo")], api="segment_mesh"),
+         P("engine", desc="algorithmic (default) | studio:tripo"),
+         P("labels", "object", "{mode: map | recipe, island_labels: {island: label}, recipe: parts json, owner: .npy, min_share, max_unlabeled}")], api="segment_mesh"),
     Def("lampway_mesh_prep", "Workflow, geometry preparation: a branch `<object>_prep` of a generated mesh with its source hash "
         "recorded, loose and doubled vertices removed and inverted normals fixed; returns before/after reports. The source is untouched.",
         [P("object", required=True), P("merge_distance", "number", "Weld distance, default 1e-5")], api="mesh_prep"),
@@ -191,8 +196,13 @@ DEFS = [
     Def("lampway_auto_rig", "Auto Rig: a UE-named humanoid armature `<object>_rig` placed from landmarks measured on a T-pose mesh "
         "(standing on Z, facing -Y by default; _l/_r are the FIGURE's own sides), the mesh parented with heat-map weights and a "
         "proximity fallback for vertices heat cannot solve. Test it with lampway_pose_test: a rig is not a claim of deformation "
-        "quality. engine=studio:tripo is the Auto Rig slot (answers with action and price).", [P("object", required=True),
-        P("kind", desc="humanoid"), P("weights", desc="auto | proximity"), P("facing", desc="-Y (default) | +Y"),
+        "quality. engine=studio:tripo is the Auto Rig slot (answers with action and price). Body plans beyond the humanoid, each from landmarks measured "
+        "on the mesh standing on Z: quadruped | hexapod | octopod (feet clustered per side; upper, lower and foot per leg; spine, head, tail), avian (the "
+        "humanoid with wing_* arms), serpentine | aquatic (a chain of chain_bones along the principal axis), auto (inferred, reported as kind_inferred). "
+        "naming ue (default) | mixamo (mixamorig:*) | metahuman (the UE5 names; spine_04/05 and neck_02 are not made), humanoid and avian only; tripo is "
+        "refused (its naming is not documented here). parts: more mesh objects rigged as ONE character with one armature.", [P("object", required=True),
+        P("kind", desc="humanoid (default) | quadruped | hexapod | octopod | avian | serpentine | aquatic | auto"), P("weights", desc="auto | proximity"), P("facing", desc="-Y (default) | +Y"),
+        P("naming", desc="ue (default) | mixamo | metahuman"), P("parts", "array", "more mesh objects of the same character"), P("chain_bones", "integer", "serpentine/aquatic: 3..64, default 10"),
         P("engine", desc="algorithmic (default) | studio:tripo"),
         P("copy", "boolean", "Rig a copy `<object>_rigged` and leave the source untouched (default true); false rigs in place")], api="auto_rig"),
     Def("lampway_bind_to_armature", "Bind a piece (armor) to an armature: mode rigid = ONE bone at full weight (plates; give `bone`), "
@@ -213,10 +223,11 @@ DEFS = [
          P("parent", desc="The lineage id this derives from (chain)"), P("piece", desc="The piece folder name, default the object name")], api="asset_lineage"),
     Def("lampway_workflow_graph", "A workflow as data: a typed DAG of Lampway tool calls with cached outputs. action define (graph {nodes: [{id, tool, args, after: [ids], "
         "spend, studio_action, credits}], outputs}, inputs; an arg string @node.key is that upstream node's output, {{name}} an input) | plan (order, cached, credits_planned: "
-        "nothing runs) | run | rerun (from_node) | version / rollback (version) | template_save / template_use (template, description) | show. A spend node is only "
-        "planned and priced: the user confirms spends in the Studios panel and what depends on it waits.",
+        "nothing runs) | run | rerun (from_node) | confirm (from_node: ONE spend node runs once, on the user's word; its output is kept for exactly its inputs, "
+        "and what depends on it can then run) | version / rollback (version) | template_save / template_use (template, description) | show. A spend node is only "
+        "planned and priced by plan and run: the user confirms spends and what depends on it waits.",
         [P("action", required=True), P("name", desc="The graph's name"), P("graph", "object", "The graph (define)"), P("inputs", "object", "Values for {{name}} placeholders"),
-         P("from_node", desc="rerun: the node to start from"), P("version", desc="version / rollback: the version name"), P("template"), P("description")], api="workflow_graph"),
+         P("from_node", desc="rerun: the node to start from; confirm: the spend node"), P("version", desc="version / rollback: the version name"), P("template"), P("description")], api="workflow_graph"),
     Def("lampway_plate_pick", "Plates stage: stage prompt (the plate-4k-crisper template + variables for a view; render it and generate 4 images per view), score (rank the 4 "
         "regenerations in variants_dir against the approved V3 plate v3_dir/<View>.png by silhouette IoU x structure x (1 - colour error)), cut (the pick's deterministic alpha), "
         "run (score + cut + margins/aspect/view-correspondence checks -> <piece>/plates_4k_alpha/<View>.png + alpha.json), status. `pick` 1-4 is the user's override. Paired "
@@ -368,9 +379,18 @@ DEFS = [
          P("sample_frames", "integer", "2..64, default 8"), P("name", desc="default <action>_rt"), P("dry_run", "boolean"), P("keep_source", "boolean")], api="animation_retarget"),
     Def("lampway_anim_multiview_fit", "Motion from ONE split-screen clip (front + side), orthographic: per-panel 2D keypoints (JSON, 15 joints in the order of pipeline.anim_mv.JOINTS) triangulated to 3D, the side view's "
         "near/far leg labels corrected from the FRONT view, pelvis-relative, held frames listed, the grid clip's parallax giving the root speed. Refused: panels out of sync, no scale. single_view=true is the control "
-        "that cannot tell legs apart (it says so). The 2D detector (stage detect) is not wired: needs_approval; supply keypoints. Free.",
-        [P("front", required=True, desc="front-panel keypoints JSON"), P("side", required=True, desc="side-panel keypoints JSON"), P("calibration", "object", "{px_per_m}"), P("cameras", desc="cameras.json of anim_reference_render"),
-         P("fps", "number"), P("single_view", "boolean"), P("grid_frames", "array", "PNGs of the side-track grid clip"), P("stage", desc="fit (default) | detect"), P("out", desc="default anim/multiview/fit.json")], api="anim_multiview_fit"),
+        "that cannot tell legs apart (it says so). stage detect: the RTMW whole-body 2D detector on frames {front: [png] | folder, side: ...} with onnx = the RTMW "
+        "weights the user put on disk (never downloaded; rtmlib + onnxruntime in the science python): COCO-WholeBody points mapped to the 15 joints, confidence "
+        "kept, smoothed over time, written as front.json / side.json beside out. stage refine: the two-view SKINNED-silhouette analysis-by-synthesis: the "
+        "character's own rig (armature, its skinned mesh) posed per frame, the evaluated mesh rasterised through the recorded cameras (cameras.json), and the "
+        "bones' rotations (default thighs, calves, upper and lower arms; twist is not observable) moved by a coarse sweep then halving coordinate descent until "
+        "both silhouettes match masks {front: dir, side: dir}; a receipt with IoU before/after per frame and the worst frames; key=true keys the rig. Free.",
+        [P("front", desc="fit: front-panel keypoints JSON"), P("side", desc="fit: side-panel keypoints JSON"), P("calibration", "object", "{px_per_m}"), P("cameras", desc="cameras.json of anim_reference_render"),
+         P("fps", "number"), P("single_view", "boolean"), P("grid_frames", "array", "PNGs of the side-track grid clip"), P("stage", desc="fit (default) | detect | refine"),
+         P("out", desc="default anim/multiview/fit.json"), P("frames", "object", "detect: {front: [png] | folder, side: ...}"), P("onnx", desc="detect: the RTMW weights file"),
+         P("armature", desc="refine: the character's armature"), P("mesh", desc="refine: its skinned mesh"), P("masks", "object", "refine: {front: dir, side: dir} of silhouette PNGs"),
+         P("bones", "array", "refine: the bones to move"), P("step_deg", "number", "refine: default 8"), P("rounds", "integer", "refine: default 5"),
+         P("key", "boolean", "refine: key the rig per frame")], api="anim_multiview_fit"),
     Def("lampway_anim_check", "Judge a tracked motion against BOTH views' masks and the ground, with numbers: G-OUT-front >= 0.80, G-OUT-side >= 0.85, G-LEGS >= 85 %, G-FOOT-SLIDE <= 1 cm, G-FOOT-PLANT <= 1 cm, G-TWIST "
         "<= 5 deg (unverified without twist), G-CLAIMS. Controls run on the same take (a fore-aft mirrored copy must fail G-LEGS, a dragged foot must fail the slide gate); a check whose controls cannot fail does not "
         "pass. A single view is refused. Thresholds are proposed; G-TOE is unverified.",
@@ -422,11 +442,17 @@ DEFS = [
         "(images = {\"Front\": path, \"Left\": path, ...}; Front u=+X, Left u=-Y; silhouettes from alpha or the corner colour), "
         "extrude = a rounded or slab extrusion of Front (+Back) for paired pieces (depth in metres), relief = a luminance relief of one "
         "image. The mesh is judged by re-projection IoU, volume and boundary edges. engine=studio:tripo is the Smart Mesh slot "
-        "(100 credits): it answers with action and price for the owner's approval and clicks nothing." + _PATHS,
-        [P("images", "object", "View name -> image path (project-relative)", required=True), P("size", "number", "Height in metres, default 1"),
+        "(100 credits): it answers with action and price for the owner's approval and clicks nothing. A turnaround SHEET is cut first: detect_views=<sheet> "
+        "with views = the panel order left to right (never guessed) splits it into labelled views (a single image wider than 2:1 is refused: it would fuse "
+        "the panels). paired=true (gauntlets, boots) takes front and back only. engine studio:tripo (tripo.mesh) | studio:meshy (meshy.multi_image_to_3d) | "
+        "studio:hi3d (hi3d.image_to_3d) answer with the action and its plan_args for studio_plan after a plate check (a plate under 1024 px, without a "
+        "subject or touching the border is named: fix the plate first; plate_check=false skips it)." + _PATHS,
+        [P("images", "object", "View name -> image path (project-relative); or detect_views"), P("size", "number", "Height in metres, default 1"),
          P("resolution", "integer", "Voxels along the height, 8-160, default 64"), P("mode", desc="hull (default) | extrude | relief"),
          P("depth", "number", "extrude/relief depth in metres"), P("profile", desc="extrude: round (default) | slab"), P("name"),
-         P("engine", desc="algorithmic (default) | studio:tripo")], api="image_to_3d"),
+         P("engine", desc="algorithmic (default) | studio:tripo | studio:meshy | studio:hi3d"), P("detect_views", desc="a turnaround sheet to cut into views"),
+         P("views", "array", "detect_views: the panel order left to right, e.g. Front, Left, Back, Right"), P("paired", "boolean", "front and back only"),
+         P("plate_check", "boolean", "studio engines: check the plates first, default true")], api="image_to_3d"),
     Def("lampway_splat_import", "Import a 3D Gaussian Splatting PLY (binary little endian with x y z f_dc_0..2 opacity scale_0..2) as ONE point "
         "object with colour, opacity and radius attributes and a geometry-nodes view. A splat has no faces and is never converted to "
         "a mesh; max_points subsamples deterministically. Generating a splat from an image or text needs a world model (not wired)."
@@ -442,10 +468,18 @@ DEFS = [
         "of texels each view painted. The object needs UVs." + _PATHS, [P("object", required=True), P("views", "object", "View -> image path", required=True),
         P("size", "integer", "Atlas size, default 1024"), P("out", desc="Atlas PNG path"), P("occlusion", "boolean", "Default true")], api="project_views"),
     Def("lampway_texture_gen", "Texture Gen: a clay render of each view goes to the image model with the prompt, the painted views are projected into the "
-        "mesh's UV atlas and applied as a material. The object needs UVs; the image step costs money (about $0.07 an image on OpenRouter) and "
-        "runs on the server's image slot. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits): it answers with action and price "
-        "for the owner's approval and clicks nothing." + _PATHS, [P("object", required=True), P("prompt", required=True), P("out_dir", desc="Folder for the clay, painted views and atlas"),
-        P("views", "array", "Default Front, Back"), P("size", "integer"), P("engine", desc="algorithmic (default) | studio:tripo")], api="texture_gen"),
+        "mesh's UV atlas and applied as a material on a COPY <object>_tex (keep_original, default; the source keeps its materials). The object needs UVs; the "
+        "image step costs money (about $0.07 an image on OpenRouter) and runs on the server's image slot. The views' coverage is measured on the clay renders "
+        "FIRST: under min_coverage (0.6) the run is refused before anything is paid (add Back/Left/Right views). reference_image (a material reference) rides as "
+        "the SECOND image; count 1..4 variants per view, the best silhouette IoU against the clay kept (picks lists every IoU); delight divides out baked "
+        "low-frequency lighting before projection. Every run appends a ledger row (stage texture, hashes of the clay renders, reference, picked images and "
+        "atlas; the image jobs carry their own price rows) unless record=false. engine=studio:tripo is the Texture + PBR slot (30 + 5 credits): it answers "
+        "with action and price for the owner's approval and clicks nothing." + _PATHS, [P("object", required=True), P("prompt", required=True), P("out_dir", desc="Folder for the clay, painted views and atlas"),
+        P("views", "array", "Default Front, Back"), P("size", "integer"), P("engine", desc="algorithmic (default) | studio:tripo"),
+        P("reference_image", desc="a material reference image, passed second"), P("count", "integer", "variants per view 1..4, default 1"),
+        P("keep_original", "boolean", "texture a copy <object>_tex, default true"), P("record", "boolean", "append a ledger row, default true"),
+        P("piece", desc="the ledger piece, default the object name"), P("delight", "boolean", "flatten baked lighting, default false"),
+        P("min_coverage", "number", "refuse under this surface coverage, default 0.6")], api="texture_gen"),
     Def("lampway_ai_render", "AI Render: a clay render of an object from a view goes to the image model with the prompt; the result is saved and loaded as a "
         "Blender image. Look development only: it changes nothing in the scene. Costs about $0.07 on OpenRouter." + _PATHS,
         [P("object", required=True), P("prompt", required=True), P("view", desc="Front | Back | Left | Right"), P("out", desc="Result PNG path"), P("size", "integer")],
@@ -536,7 +570,7 @@ DEFS = [
         [P("image", "string", required=True), P("method", "string"), P("min_pixels", "integer"), P("expected_parts", "array"), P("out_dir", "string"), P("engine", "string")], api="segment_image"),
     Def("lampway_procedural_library", "The procedural material library: 12 armour materials (bronze, gold, brass, steel, iron, two leathers, two cloths) built from parametric node-group templates and a preset table, registered in the Client's own material registry. Every material is one node group with a single Shader output and bounded inputs (Tint, Roughness Scale, Wear, Scale, Bump Strength, Seed, Mask: a mask input lets curvature drive edge wear), in Object space so no UVs are needed. list / find (query ranks by name; material_id for one; category metal|leather|cloth) return the materials with their inputs. seed registers them (idempotent; a changed manifest at the same library_version is refused unless upgrade). verify builds every group and reports shader outputs, input bounds and build time (bake_stats adds real Cycles bakes: base colour mean, hue, metallic and roughness means, and near-duplicate pairs). bake renders one material at size px with params to a PNG and its sha256 (compare_to another PNG for the mean difference). add_to_layer puts the material on `object` as a procedural layer of its paint stack (initialise one first if the refusal says so).",
         [P("action", "string"), P("category", "string"), P("query", "string"), P("material_id", "string"), P("object", "string"), P("layer_name", "string"), P("params", "object"), P("size", "integer"), P("bake_stats", "boolean"), P("compare_to", "string"), P("upgrade", "boolean")], api="procedural_library"),
-    Def("lampway_layered_material", "The Client's layer-paint stack (an editable material built from layers and masks) from the agent. init puts a paint project on the mesh's material; inspect returns the stack ({index, name, type, enabled, blend, opacity, channels, mask}); add_layer {type: fill | paint | image | group, name, blend: MIX|ADD|MULTIPLY|SUBTRACT|SCREEN|OVERLAY, opacity 0..1, color [r,g,b] for fill, size for paint/image, mask: {type: edge_detect | color_id | vcol | image}, projection: uv | triplanar | planar | spherical | cylindrical | decal} (uv needs a UV map: otherwise use triplanar or unwrap first); add_procedural puts a library material (see procedural_library) on as a layer; set_params {opacity, enabled, name, blend_type, projection_type, translation, rotation, scale ...} edits layer_index (-1 = the active layer); apply_manifest builds a whole stack from a manifest (index 0 must be a PBR layer). Refused: not a mesh, no paint project yet (the refusal names init), unknown blend / type / mask / projection (each lists the choices). Mask invert is not built. One undo step per Blender operator the Client's package uses.",
+    Def("lampway_layered_material", "The Client's layer-paint stack (an editable material built from layers and masks) from the agent. init puts a paint project on the mesh's material; inspect returns the stack ({index, name, type, enabled, blend, opacity, channels, mask}); add_layer {type: fill | paint | image | group, name, blend: MIX|ADD|MULTIPLY|SUBTRACT|SCREEN|OVERLAY, opacity 0..1, color [r,g,b] for fill, size for paint/image, mask: {type: edge_detect | color_id | vcol | image}, projection: uv | triplanar | planar | spherical | cylindrical | decal} (uv needs a UV map: otherwise use triplanar or unwrap first); add_procedural puts a library material (see procedural_library) on as a layer; set_params {opacity, enabled, name, blend_type, projection_type, translation, rotation, scale ...} edits layer_index (-1 = the active layer); apply_manifest builds a whole stack from a manifest (index 0 must be a PBR layer). mask {type, invert: true} inverts the new mask, and action mask_invert {params: {invert: true|false}} toggles the INVERT mask modifier on layer_index's first mask (the paint package's own modifier, added once). Refused: not a mesh, no paint project yet (the refusal names init), unknown blend / type / mask / projection (each lists the choices), mask_invert on a layer without a mask. One undo step per Blender operator the Client's package uses.",
         [P("action", "string"), P("object", "string"), P("material", "string"), P("layer", "object"), P("manifest", "object"), P("layer_index", "string"), P("params", "object")], api="layered_material"),
     Def("lampway_material_bake_export", "Bake the layer-stack material of `object` to the images a destination needs, in a niced HEADLESS Cycles worker (never your live scene). channels: base_color, roughness, metallic, normal, ao, emission (default base_color, roughness, metallic, normal); size a power of two 1024..8192; format png | exr | tiff | jpeg (jpeg with normal is refused: lossy normals); normal_green gl (OpenGL, Unity/Blender/Godot) | dx (DirectX, Unreal); pack=orm also writes <object>_orm (R occlusion, G roughness, B metallic; R is 1.0 with a warning when no ao was baked; roughness and metallic must be baked too). Base colour and emission are sRGB, everything else Non-Color. Writes the images and a README with every file's sha256 and the conventions under out_dir (inside the project root). The layer stack is untouched. Refused: no paint-stack material (build one with layered_material), no UV map, an unsaved project (allow_dirty=true to override), a bad size or channel, a path outside the root.",
         [P("object", "string", required=True), P("material", "string"), P("channels", "array"), P("size", "integer"), P("format", "string"), P("pack", "string"), P("normal_green", "string"), P("out_dir", "string"), P("samples", "integer"), P("allow_dirty", "boolean")], api="material_bake_export"),
@@ -550,5 +584,9 @@ DEFS = [
 from .wave6_tools import DEFS as _WAVE6_DEFS  # noqa: E402  (after Def and P exist: wave6_tools imports them)
 
 DEFS += _WAVE6_DEFS
+
+from .orphan_tools import ORPHAN_DEFS  # noqa: E402  (the orphan tools, STATUS.md ORPHANS: their own file)
+DEFS += ORPHAN_DEFS
+
 BY_NAME = {d.name: d for d in DEFS}
 SPECS = [d.spec() for d in DEFS]

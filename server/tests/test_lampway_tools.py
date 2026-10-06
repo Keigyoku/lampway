@@ -11,6 +11,7 @@ from lampway_server.agent import lampway_tools as LT
 from lampway_server.agent import vault_tools as LIB
 from lampway_server.agent import tools as T
 from lampway_server.agent import plan_tools as PLAN_TOOLS
+from lampway_server.agent import orphan_server_tools as OST
 
 
 def args_of(script):
@@ -93,7 +94,7 @@ def test_the_system_prompt_names_the_workflow():
         assert needle in SYSTEM_PROMPT
 
 
-EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_agent_files", "lampway_skills_list", "lampway_skill_read", "lampway_note_write"} | LIB.NAMES | {"lampway_cards"} | PLAN_TOOLS.NAMES          # server-run tools added since the explicit list above (the Asset Vault family: vault_tools)
+EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_agent_files", "lampway_skills_list", "lampway_skill_read", "lampway_note_write"} | LIB.NAMES | {"lampway_cards"} | PLAN_TOOLS.NAMES | OST.NAMES          # server-run tools added since the explicit list above (the Asset Vault family: vault_tools)
 
 
 def test_every_tool_script_passes_the_clients_sandbox_dunder_rules():

@@ -21,7 +21,9 @@ def bbox_world(ob):
     return Vector([min(c[i] for c in corners) for i in range(3)]), Vector([max(c[i] for c in corners) for i in range(3)])
 
 
-def render_view(ob, view, size, out_path):
+def render_view(ob, view, size, out_path, shading=None):
+    """``shading``: Workbench shading attributes that replace the clay's (e.g. a flat material colour pass); anti-aliasing is then off and the view
+    transform Standard, so every pixel is an exact flat colour from the same camera as the clay render."""
     if view not in TO_CAMERA:
         raise C.FeatureError(f"unknown view {view!r}; the views are {', '.join(TO_CAMERA)}")
     lo, hi = bbox_world(ob)
@@ -53,6 +55,11 @@ def render_view(ob, view, size, out_path):
         r.image_settings.color_mode = "RGBA"
         sh = sc.display.shading
         sh.light, sh.color_type, sh.single_color = "FLAT", "SINGLE", (0.78, 0.78, 0.78)
+        if shading:
+            for k, v in shading.items():
+                setattr(sh, k, v)
+            sc.display.render_aa = "OFF"
+            sc.view_settings.view_transform, sc.view_settings.look = "Standard", "None"
         r.filepath = out_path
         bpy.ops.render.render(write_still=True, scene=sc.name)
     finally:

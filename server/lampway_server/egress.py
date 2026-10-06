@@ -78,6 +78,8 @@ LAUNCHES: dict = {
     "agent/server_tools.py:_exec_local": ("local", "the seed catalog driver reads the local seeds.sqlite only (LOCAL_MODULES)"),
     "compute/boat.py:default_runner": ("wrapped", "the Boat CLI; injected as BoatCliBackend.runner and called only inside _cli, which holds guard(compute:boat)"),
     "cards/activity.py:_commits": ("local", "git log on the local repository (the report card's recorded changes)"),
+    "job_backends.py:BlenderRun.__call__": ("local", "a niced headless Lampway process for one job, in its own 0700 directory"),
+    "job_backends.py:BlenderRun.make_test_glb": ("local", "a niced headless Lampway process that writes a test GLB"),
     "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets"),
     "herdr/launcher.py:_systemd_ok": ("local", "systemctl --user is-system-running: a local query"),
     "library/ingest.py:extract_video": ("local", "ffprobe on a local file"),

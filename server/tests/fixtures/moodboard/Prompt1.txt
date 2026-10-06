@@ -1,0 +1,22 @@
+Create a clean master anatomical reference sheet of the attached MetaHuman character.
+
+Use all attached turnaround images as the exact body and identity reference. Preserve the character’s face, hairstyle, skin tone, body proportions, shoulder width, torso depth, arm length, hand size, pelvis width, leg proportions, foot length, and overall silhouette exactly as shown.
+
+Show the same character in four full-body orthographic views: FRONT, LEFT, BACK, and RIGHT. Keep every view at the same scale. Use a relaxed A-pose with arms slightly away from the body and feet flat on the ground. The character should wear the same simple fitted underclothing shown in the reference: short-sleeve shirt and shorts. Do not stylize or idealize the physique.
+
+Presentation requirements:
+- square presentation sheet
+- neutral medium-gray background, flat and uniform
+- no gradient
+- no scenery
+- no props
+- no shadows
+- no dramatic lighting
+- soft even studio lighting
+- orthographic projection or the closest equivalent with no perspective distortion
+- consistent framing across all views
+- full body visible and uncropped
+- no armor
+- no extra text except small simple view labels: FRONT, LEFT, BACK, RIGHT
+
+The sheet should function as a production-ready MetaHuman proportion reference for later armor and clothing generation.

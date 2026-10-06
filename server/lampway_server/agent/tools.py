@@ -20,6 +20,7 @@ from . import cards_tools as crd
 from . import files_tools as flt
 from . import workbench_tools as wbt
 from . import plan_tools as plt
+from . import orphan_server_tools as ost
 
 RUN_BLENDER_PYTHON = "run_blender_python"
 SCENE_SUMMARY = "scene_summary"
@@ -83,19 +84,26 @@ TOOLS.append(ToolSpec(
     description=(
         "Ask the user one question and wait for the answer before going on: a choice to make, a detail the request "
         "leaves open, or approval of a plan. Give short `options` when the answer is one of a few; leave them out for a "
-        "free-text answer. The turn pauses until the user answers; their answer comes back as this tool's result."
+        "free-text answer. For several independent choices, pass `questions` (2 to 4, each with options) instead: the user "
+        "completes the set before you continue. The turn pauses until the user answers; their answer comes back as this tool's result."
     ),
     parameters={
         "type": "object",
         "properties": {"question": {"type": "string", "description": "The question, in plain language."},
                        "options": {"type": "array", "items": {"type": "string"},
-                                   "description": "The choices to offer (2 to 6 short labels), if any."}},
-        "required": ["question"],
+                                   "description": "The choices to offer (2 to 6 short labels), if any."},
+                       "questions": {"type": "array", "description": (
+                           "A batch instead of `question`: 2 to 4 independent questions, each {question, options} (options required), shown as one "
+                           "wizard and answered together; the result is the map {question: answer}."),
+                                     "items": {"type": "object", "properties": {"question": {"type": "string"},
+                                                                                "options": {"type": "array", "items": {"type": "string"}}},
+                                               "required": ["question", "options"], "additionalProperties": False}}},
+        "required": [],
         "additionalProperties": False,
     },
 ))
 
-TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + crd.specs() + flt.specs() + plt.specs()
+TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + crd.specs() + flt.specs() + plt.specs() + ost.specs()
 TOOL_NAMES = {t.name for t in TOOLS}
 
 
@@ -114,6 +122,8 @@ def script_for(name: str, arguments: dict) -> str:
     if name == ASK_USER:
         raise UnknownTool("ask_user is answered by the user, not by Blender")
     if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES or name in wbt.NAMES or name in cpt.NAMES or name in lib_.NAMES or name in crd.NAMES or name in flt.NAMES or name in plt.NAMES:
+        raise UnknownTool(f"{name} runs on the server, not in Blender")
+    if name in ost.NAMES:
         raise UnknownTool(f"{name} runs on the server, not in Blender")
     if st.is_local(name):
         raise UnknownTool(f"{name} runs on the server, not in Blender")

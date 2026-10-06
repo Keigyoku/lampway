@@ -49,6 +49,8 @@ scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server
   Cycles GPU kernels; never a release choice. A clean build is long and an unchanged rebuild short (BUILD-LAMPWAY.md §3).
 - If `distrobox enter` answers `unable to find user`, the numeric `podman exec --user 1000:1000 -w "$PWD" <box> ...` works.
 - Blender returns 0 when a `--python-expr` raises: always pass `--python-exit-code 1`.
+- The launcher hands the server two more things: `LAMPWAY_MODELS_DIR` (the bundled local models, when the build bundled them) and
+  `LAMPWAY_BLENDER` (the binary the server's headless jobs run; defaults to the app's own).
 - Long jobs run as a transient unit or a detached exec polled in the foreground, never a shell `&`. Kill recorded exact PIDs only;
   never a pattern kill. Never launch a window on the captain's desktop unless he asked; offscreen in the box is the default.
 
@@ -137,3 +139,4 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | suite hygiene | the integrator's batches: a full client run left ~25 GB and the coordinator's /tmp filled twice | test homes were never removed, scripts inside the binary wrote to the shared /tmp, and the first-run migration copied the person's real ~/.mixar (109.7 MB) into every test home | run_script owns the binary's TMPDIR and the legacy home; tmp_path_retention_policy = failed in pytest.ini; the temp-files paragraph in section 3 | none |
 | 2026-10-06 | test isolation | the coordinator's stop: 436 private files committed under `@RUN_TMP@/home/…/app/` | a test passed LAMPWAY_HOME="@RUN_TMP@/home" before the harness expanded it; the relative home landed in the repository and the first-run migration copied the person's real ~/.mixar into it | the conftest isolation fixture, the loud refusals in paths.py and run_script, the isolation paragraph in section 3 | none |
 | 2026-10-06 | the canon check among the suites | coordinator: "GO for rail row 1" | the canon's self-tests ran only on the shelf | `docs/canon/check_canon.py` in the suites table (CI: canon.yml) | captain ruling, 2026-10-06 |
+| 2026-10-06 | merge of lp/orphans into lp/wave5 | the integrator's merge: lp/vault-ops added LAMPWAY_MODELS_DIR to the launcher, lp/orphans added LAMPWAY_BLENDER on the same line | two lanes edited the launcher's server-start line; the merged line carries both | the launcher bullet in section 2 names both variables | none |

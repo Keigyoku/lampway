@@ -158,7 +158,16 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None) -> Starlette:
+def _local_job_services(settings: Settings):
+    """The Client's mesh job types backed by Lampway's own tools in a headless Lampway (job_backends.py) when LAMPWAY_BLENDER names the binary; else empty."""
+    from . import job_backends as JB
+    work = Path(settings.state_dir) / "jobs-local"
+    work.mkdir(parents=True, exist_ok=True)
+    return JB.default_registry(work=work)
+
+
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None,
+               handwriting_reader=None) -> Starlette:
     from . import egress as _EG
     if egress is not None:
         _EG.set_active(egress)                                                      # an explicit manager (tests, embedding) wins
@@ -321,8 +330,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     renderer = _VaultRenderer(library, blender=os.environ.get("LAMPWAY_BIN") or None) if library is not None else None     # previews: never the live window
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
-                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts,
-                    provenance=_vault_hooks.job_hook(library, vault.spool))
+                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services if job_services is not None else _local_job_services(settings),
+                    policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts, provenance=_vault_hooks.job_hook(library, vault.spool))
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
@@ -537,6 +546,30 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     async def dictation_ws(websocket):
         await dictation.run(websocket, auth, stt, bearer_from)
     routes.append(WebSocketRoute("/api/v1/dictation/ws", dictation_ws))
+
+    # ---- handwriting into composer text (handwriting.py): blank ink never reaches a model
+    from . import handwriting as HW
+    hw_reader = None if handwriting_reader is False else (handwriting_reader if handwriting_reader is not None else HW.default_reader(settings))
+
+    async def handwriting_recognize(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        form = await request.form()
+        up = form.get("image")
+        if up is None or not hasattr(up, "read"):
+            return JSONResponse({"detail": "send the ink as a multipart 'image' field"}, status_code=422)
+        data = await up.read()
+        if len(data) > HW.MAX_BYTES:
+            return JSONResponse({"detail": "image too large: rasterise at <= 2048 px"}, status_code=413)
+        try:
+            has, _crop = HW.ink(data)
+        except HW.NotAnImage as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=422)
+        if has and hw_reader is None:
+            return JSONResponse({"detail": "no vision model configured: set one in Providers (OpenRouter key, LAMPWAY_HANDWRITING_MODEL)"}, status_code=503)
+        out = await HW.recognize(data, str(form.get("hint") or ""), hw_reader)
+        return JSONResponse(envelope(out))
+    routes.append(Route("/api/v1/handwriting/recognize", handwriting_recognize, methods=["POST"]))
 
     async def swarm_status(request: Request):
         token = bearer_token(request)

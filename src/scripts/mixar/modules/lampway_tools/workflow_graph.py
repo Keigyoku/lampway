@@ -31,6 +31,11 @@ def _h(obj) -> str:
 
 def _subst(value, inputs: dict):
     if isinstance(value, str):
+        whole = _VAR.fullmatch(value)
+        if whole:                                                             # the whole argument is one input: it keeps its type (a list stays a list)
+            if whole.group(1) not in inputs:
+                raise GraphError(f"the graph needs the input {whole.group(1)!r}")
+            return inputs[whole.group(1)]
         def one(m):
             if m.group(1) not in inputs:
                 raise GraphError(f"the graph needs the input {m.group(1)!r}")
@@ -163,17 +168,18 @@ class Graphs:
         order = self._validate(graph)
         nodes = {n["id"]: n for n in graph["nodes"]}
         cache = self._cache(name)
-        outputs, out_hash, states, messages, plan = {}, {}, {}, {}, []
+        outputs, out_hash, states, messages, plan, resolved = {}, {}, {}, {}, [], {}
         credits = 0.0
         for nid in order:
             n = nodes[nid]
             deps = n.get("after") or []
-            bad = [d for d in deps if states.get(d) not in ("done", "cached")]
+            bad = [d for d in deps if states.get(d) not in ("done", "cached", "confirmed")]
             args = self._resolve(n.get("args") or {}, outputs)
             key = _h({"tool": n["tool"], "args": args, "upstream": {d: out_hash.get(d) for d in deps}}) if not bad else None
             hit = key is not None and (cache / f"{key}.json").exists() and nid not in force and not n.get("spend")
             row = {"node": nid, "tool": n["tool"], "input_hash": key, "cached": bool(hit), "credits_planned": float(n.get("credits") or 0) if n.get("spend") else 0}
             plan.append(row)
+            resolved[nid] = (args, key, bad)
             if n.get("spend"):
                 credits += row["credits_planned"]
             if not execute:
@@ -182,7 +188,13 @@ class Graphs:
                 states[nid], messages[nid] = "blocked", f"waiting on {', '.join(bad)}"
                 continue
             if n.get("spend"):
-                states[nid], messages[nid] = "planned_only", PLANNED
+                confirmed = cache / f"confirmed-{key}.json"
+                if not confirmed.exists():
+                    states[nid], messages[nid] = "planned_only", PLANNED
+                    continue
+                out = json.loads(confirmed.read_text(encoding="utf-8"))
+                states[nid] = "confirmed"
+                outputs[nid], out_hash[nid] = out, _h(out)
                 continue
             if hit:
                 out = json.loads((cache / f"{key}.json").read_text(encoding="utf-8"))
@@ -195,7 +207,8 @@ class Graphs:
                 (cache / f"{key}.json").write_text(json.dumps(out, default=str), encoding="utf-8")
                 states[nid] = "done"
             outputs[nid], out_hash[nid] = out, _h(out)
-        return {"plan": plan, "credits_planned": credits, "states": states, "messages": messages, "outputs": {o: outputs.get(o) for o in graph.get("outputs") or []}}
+        return {"plan": plan, "credits_planned": credits, "states": states, "messages": messages, "outputs": {o: outputs.get(o) for o in graph.get("outputs") or []},
+                "_resolved": resolved, "_nodes": nodes}
 
     @staticmethod
     def _resolve(value, outputs: dict):
@@ -217,12 +230,30 @@ class Graphs:
         from . import api
         return api.call(tool, json.dumps(args))
 
+    def confirm(self, name: str, node: str) -> dict:
+        """The user's confirm of ONE spend node: it runs that node's tool once with its resolved arguments, and the output is kept for exactly those inputs
+        (a changed upstream needs a new confirm). Nothing else that spends is run."""
+        res = self._walk(name, execute=True)
+        n = res["_nodes"].get(node)
+        if n is None or not n.get("spend"):
+            raise GraphError(f"{node!r} is not a spend node of {name!r}: only a planned spend is confirmed")
+        args, key, bad = res["_resolved"][node]
+        if bad:
+            raise GraphError(f"{node!r} is waiting on {', '.join(bad)}: confirm those first")
+        if res["states"].get(node) == "confirmed":
+            return {"node": node, "state": "confirmed", "already": True}
+        out = self._exec(n["tool"], args)
+        if not (isinstance(out, dict) and out.get("ok", True)):
+            return {"node": node, "state": "failed", "error": str((out or {}).get("error") or "the tool failed")}
+        (self._cache(name) / f"confirmed-{key}.json").write_text(json.dumps(out, default=str), encoding="utf-8")
+        return {"node": node, "state": "confirmed", "output": out}
+
     def plan(self, name: str) -> dict:
         res = self._walk(name)
         return {"plan": res["plan"], "credits_planned": res["credits_planned"]}
 
     def run(self, name: str) -> dict:
-        return self._walk(name, execute=True)
+        return {k: v for k, v in self._walk(name, execute=True).items() if not k.startswith("_")}
 
     def rerun(self, name: str, from_node: str) -> dict:
         graph = self._load(name)
@@ -235,4 +266,4 @@ class Graphs:
                 if n["id"] not in down and any(a in down for a in n.get("after") or []):
                     down.add(n["id"])
                     grew = True
-        return self._walk(name, force=frozenset(down), execute=True)
+        return {k: v for k, v in self._walk(name, force=frozenset(down), execute=True).items() if not k.startswith("_")}

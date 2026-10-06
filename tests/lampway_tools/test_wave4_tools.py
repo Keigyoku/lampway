@@ -60,7 +60,7 @@ res(out)
     assert r.rc == 0, r.out[-2000:]
     d = r.results[-1]
     assert d["fit"]["ok"] and d["fit"]["views"] == 2 and (tmp_path / "fit_out.json").exists()
-    assert d["detect"]["ok"] is False and d["detect"]["state"] == "needs_approval"
+    assert d["detect"]["ok"] is False and "frames" in d["detect"]["error"] and "onnx" in d["detect"]["error"]   # the RTMW detector is built (orphans O26): it needs the panels and the weights
     assert d["check"]["ok"] and {"G-OUT-front", "G-LEGS"} <= {g["id"] for g in d["check"]["gates"]} and (tmp_path / "check.json").exists()
     assert d["nomask"]["ok"] is False and "no side-view mask" in d["nomask"]["error"]
     assert d["loop"]["ok"] is True and d["loop"]["export"]["state"] == "not_run"
