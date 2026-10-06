@@ -649,6 +649,7 @@ from .features import clip_classify as _F_cc                # noqa: E402
 from .features import scene_cleanup as _F_sc                # noqa: E402
 from .features import batch_export as _F_bx                 # noqa: E402
 from .features import camera_shot as _F_cs                  # noqa: E402
+from .features import procedural_library as _F_pl          # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
 
@@ -881,6 +882,17 @@ def segment_image(image, method="alpha_components", min_pixels=6000, expected_pa
     if engine != "algorithmic":
         raise _SI.SegmentError(f"engine {engine!r}: no Studio driver or model provider exists for segment yet: use engine=algorithmic")
     return _SI.segment(_p(image), _p(out_dir), method, int(min_pixels), expected_parts)
+
+
+@tool
+def procedural_library(action="list", category=None, query=None, material_id=None, object=None, layer_name=None, params=None, size=64, bake_stats=False, compare_to=None, upgrade=False):
+    """The procedural material library: 12 armour materials (bronze, gold, brass, steel, iron, two leathers, two cloths) built from parametric node-group templates and a preset table, registered in the Client's
+    own material registry. Every material is one node group with a single Shader output and bounded inputs (Tint, Roughness Scale, Wear, Scale, Bump Strength, Seed, Mask: a mask input lets curvature drive edge
+    wear), in Object space so no UVs are needed. list / find (query ranks by name; material_id for one; category metal|leather|cloth) return the materials with their inputs. seed registers them (idempotent; a
+    changed manifest at the same library_version is refused unless upgrade). verify builds every group and reports shader outputs, input bounds and build time (bake_stats adds real Cycles bakes: base colour mean,
+    hue, metallic and roughness means, and near-duplicate pairs). bake renders one material at size px with params to a PNG and its sha256 (compare_to another PNG for the mean difference). add_to_layer puts
+    the material on `object` as a procedural layer of its paint stack (initialise one first if the refusal says so)."""
+    return _F_pl.procedural_library(str(_settings().project_root), action, category, query, material_id, object, layer_name, params, size, bake_stats, _p(compare_to) if compare_to else None, upgrade)
 
 
 @tool
