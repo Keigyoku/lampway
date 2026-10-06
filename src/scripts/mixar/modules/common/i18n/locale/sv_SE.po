@@ -103,7 +103,7 @@ msgstr ""
 msgid "agent: open Providers to choose"
 msgstr ""
 
-msgid "Providers and privacy"
+msgid "Choices and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -5237,6 +5237,93 @@ msgstr ""
 msgid "Generate estimates"
 msgstr ""
 
+msgid "Move this option up or down the chain (the first that can run serves the purpose)"
+msgstr ""
+
+msgid "Use yours again"
+msgstr ""
+
+msgid "Use yours again: drop this project's choice for this purpose"
+msgstr ""
+
+msgid "Allow private content"
+msgstr ""
+
+msgid "Allow (or take back) private content to an option whose provider may keep it; logged by the server"
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Accept what the agent proposed"
+msgstr ""
+
+msgid "Decline"
+msgstr ""
+
+msgid "Decline what the agent proposed; nothing changes"
+msgstr ""
+
+msgid "Show this purpose"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Read the choices again"
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
+msgid "What this says in full"
+msgstr ""
+
+msgid "No details"
+msgstr ""
+
+msgid "Choices"
+msgstr "Alternativ"
+
+msgid "Choices: what Lampway uses for each thing now, and why"
+msgstr ""
+
+msgid "Providers are Choices now: the main agent, the workers, images, video and spending"
+msgstr ""
+
+msgid "Spending"
+msgstr ""
+
+msgid "Spending: what may spend without your click, and the caps"
+msgstr ""
+
+msgid "Change spending"
+msgstr ""
+
+msgid "Choose a purpose on the left"
+msgstr ""
+
+msgid "Accept for this project"
+msgstr ""
+
+msgid "Accept for all projects"
+msgstr ""
+
+msgid "The chain: the first option that can run serves it"
+msgstr ""
+
+msgid "this project overrides yours"
+msgstr ""
+
+msgid "This Lampway server has no Choices yet: the Providers dialog still sets the agent, images, video and spending"
+msgstr ""
+
+msgid "Providers"
+msgstr ""
+
+msgid "Lampway's server is not running: start it, then Refresh"
+msgstr ""
+
 msgid "On this machine"
 msgstr ""
 
@@ -5309,9 +5396,6 @@ msgstr ""
 msgid "Choose how Lampway gets it"
 msgstr ""
 
-msgid "Refresh"
-msgstr ""
-
 msgid "Read the connections again"
 msgstr ""
 
@@ -5343,9 +5427,6 @@ msgid "Open in Privacy"
 msgstr ""
 
 msgid "Used by, other sources, history"
-msgstr ""
-
-msgid "Lampway's server is not running: start it, then Refresh"
 msgstr ""
 
 msgid "The NAME of an environment variable (never its value)"
@@ -5476,13 +5557,7 @@ msgstr ""
 msgid "Let this one asset through this route once. Logged as an override; your click only"
 msgstr ""
 
-msgid "Details"
-msgstr ""
-
 msgid "What this row says in full"
-msgstr ""
-
-msgid "No details"
 msgstr ""
 
 msgid "What leaves this machine"
@@ -5970,10 +6045,10 @@ msgstr ""
 msgid "Save provider choices on the server (fields left empty are unchanged)"
 msgstr ""
 
-msgid "Providers"
-msgstr ""
-
-msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
+msgid ""
+"The Providers dialog: the main agent, the swarm workers, images, video and spending, saved on the server. Choices replaces\n"
+"it (specs/choices/facelift_06_amendment.md: lampway.providers_open opens Choices); it stays for a server that has no\n"
+"Choices yet and for the Change spending button in Choices"
 msgstr ""
 
 msgid "UE Look"
@@ -6099,7 +6174,7 @@ msgstr ""
 msgid "bundled drivers"
 msgstr ""
 
-msgid "Providers: agent, swarm, images"
+msgid "Choices: agent, images, video, spending"
 msgstr ""
 
 msgid "Plan an action (clicks nothing)"
@@ -8489,9 +8564,6 @@ msgstr "Widget"
 
 msgid "Group"
 msgstr "Grupp"
-
-msgid "Choices"
-msgstr "Alternativ"
 
 msgid "Visibility Condition"
 msgstr "Synlighetsvillkor"
