@@ -49,4 +49,14 @@ DEFS = [
         [P("object", required=True), P("ratios", "array", items={"type": "number"}), P("protect", desc="vertex group never collapsed"),
          P("texture_scale", "array", items={"type": "number"}), P("textures", "array", "texture files to downsize per LOD"), P("naming", desc="default {name}_LOD{n}"),
          P("preserve_uv_seams", "boolean"), P("out_dir")], api="lod_chain"),
+    Def("lampway_motion_experiment", "The wiki's A/B/C motion comparison from a typed brief. brief: {duration_s 0.5..10, start, end (poses: {bones: [{bone, rotate: "
+        "[x, y, z] degrees]}}, {bone: [x, y, z]} or a named pose: rest or a wiki8 pose), contact: {time_s, landmark, pose (optional)}, action, weapon_hand: left|right|null, "
+        "preserve: [grip, foot_contact]}. variants: {A: keyed (made here: start at frame 1, the contact pose at its time, the end at the duration, the default "
+        "interpolation; the landmark is a pose marker; action `<armature>_motion_A`, replaced on a re-run), B and C: the names of actions imported from an external "
+        "tool}. B and C must start and end on the brief's poses (every named bone within 0.5 degrees) or the call is refused. Returns per variant the action and its "
+        "measured audit (frames, duration, start/end/contact pose error, the largest bone angular speed and acceleration), the comparison table, and grade.smoothest (a "
+        "measurement; a person picks). seed is not_exposed. Refused: a missing start or end pose ('explicit start and end poses are required'), foot_contact without "
+        "a contact landmark, an unknown bone or action.",
+        [P("brief", "object", "{duration_s, start, end, contact: {time_s, landmark, pose}, action, weapon_hand, preserve}", required=True), P("armature", required=True),
+         P("variants", "object", "{A: keyed, B: action name, C: action name}")], api="motion_experiment"),
 ]

@@ -22,7 +22,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 | 4 | wiki/cinematic_shot_plan | P2 | server | done |
 | 5 | wiki/lod_chain | P2 | Blender | done |
 | 6 | wiki/material_experiment | P2 | server | done |
-| 7 | wiki/motion_experiment | P2 | Blender | |
+| 7 | wiki/motion_experiment | P2 | Blender | done |
 | 8 | wiki/secondary_chain_rig | P2 | Blender | |
 | 9 | wiki/cloth_garment_sim | P3 | Blender | |
 | 10 | wiki/face_rig_validate | P3 | Blender | |
@@ -128,3 +128,18 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
   the run continues). Mutants killed: the dispatch name, the stop rule, the T1-first law, the acceptance gate, the RMS, the explicit-row refusal.
 - Limit: the server cannot re-run asset_acceptance (a Blender tool); `run` trusts the posted result and copies its object and mesh hash into the card.
 - Not run: no live Tripo texture (spend; the captain's click). Open (the contract's): whether T2 (an exact 30-credit repeat) is wanted at all.
+
+### 7. motion_experiment (P2): done
+- Where: `features/motion_experiment.py`, api `motion_experiment`, Def `lampway_motion_experiment`.
+- A is keyed from the brief (start at frame 1, an optional contact pose, end at the duration; the contact landmark is a pose marker), in each bone's
+  OWN rotation mode; B and C (imported actions) must reproduce the start and end poses within 0.5 deg [UNVERIFIED tolerance] or the call is refused.
+  Per variant: frames, duration, start/end/contact pose error, the largest angular speed and acceleration; the comparison table; `grade.smoothest`
+  (a measurement, a person picks); `seed: not_exposed`. No generative-motion driver (the contract's model slot needs a service the captain names).
+- Real RED on the first build: A was keyed on `rotation_euler` of bones whose mode is QUATERNION (the default), so the action drove nothing (frame 1
+  read 45 deg). Fixed by keying in the bone's own mode. A "frame_set to the current frame does not re-evaluate" guess I wrote into a comment was
+  falsified (the suite passes without it) and removed.
+- Tests: `test_wave6_motion_experiment.py` (4, real binary). RED observed: "no tool function 'motion_experiment'". The contract's three tests and its
+  falsifier (B with a shifted end is refused; the same B ending on the pose is compared). Mutants killed: the pose tolerance, the foot-contact
+  refusal, the end key, the contact marker frame, the speed metric.
+- Not written: ledger rows per variant (the contract lists experiment_ledger as a dependency, its outputs do not); the motion_clip_audit is
+  replaced by the per-frame measurements above because anim_check (where motion_clip_audit folded) measures tracked video, not actions.
