@@ -69,7 +69,28 @@ def refresh():
         S.fail(str(exc))
     sync_animation()
     _sync_route_line()
+    _open_awaited_card()
     _redraw_statusbar()
+
+
+def _open_awaited_card():
+    """A Spend pressed in the island's Image / Video tab opens the spend card of the approval it caused (contracts 08 and 13)."""
+    from mixar.modules.lampway_tools import generate_face
+    ap = generate_face.next_card((S.STATE.get("studio") or {}).get("approvals"))
+    if ap is None or bpy.app.background:
+        return
+    unit = (ap.get("settings") or {}).get("unit") or "credits"
+    wm = bpy.context.window_manager
+    win = next((w for w in wm.windows if w.parent is None), None)
+    if win is None:
+        return
+    area = max(win.screen.areas, key=lambda a: a.width * a.height)
+    try:
+        with bpy.context.temp_override(window=win, area=area):   # a timer has no window of its own: the card opens on the main one
+            bpy.ops.lampway.studio_confirm('INVOKE_DEFAULT', approval_id=ap["id"], price=float(ap.get("price") or 0.0),
+                                           label=ap.get("label") or "", unit=unit)
+    except RuntimeError:
+        pass
 
 
 def _sync_route_line():

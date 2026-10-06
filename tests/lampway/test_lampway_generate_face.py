@@ -213,3 +213,15 @@ def test_the_prompts_panel_leads_with_the_list_and_previews_whole(monkeypatch):
     lines = []
     panels.LAMPWAY_PT_prompt_preview.draw(SimpleNamespace(layout=L(lines)), SimpleNamespace(scene=SimpleNamespace(lampway_tools=p)))
     assert " ".join(e[1] for e in lines if e[0] == "label").split() == preview.split()
+
+
+def test_spend_opens_the_spend_card_for_the_approval_it_caused():
+    """Contract 08: Spend opens contract 13's card. The tab cannot know the approval id before the server makes it: Spend notes
+    the approvals already waiting, and the first new spend approval after it is the one whose card opens, once."""
+    before = [{"id": "old", "state": "pending", "settings": {"unit": "usd"}}]
+    G.await_card(before)
+    assert G.next_card(before) is None
+    later = before + [{"id": "q", "state": "pending", "settings": {"unit": "answer"}},
+                      {"id": "new", "state": "pending", "settings": {"unit": "usd"}, "price": 0.4, "label": "Video"}]
+    assert G.next_card(later)["id"] == "new"
+    assert G.next_card(later) is None, "once"
