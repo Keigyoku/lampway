@@ -58,6 +58,16 @@ def rig_readback(fbx, reference):
 
 @_export
 @tool(consumes=RIG_RAW)
+def rig_export_ue(armature, out, meshes=None, actions=None, reference="", recipe="titan_cm_native", readback=True):
+    """Write the FBX with a recipe that states every exporter argument, read it back raw (automatic bone orientation off, no axis correction)
+    and publish it only when every bone matches the reference at the bind_mismatch bars; the file's UnitScaleFactor read from the FBX and gated;
+    a failing file moved to export/rejected/."""
+    from .features import rig_export as _RE
+    return _RE.export_ue(armature, out, str(_settings().project_root), meshes, actions, reference, recipe, readback)
+
+
+@_export
+@tool(consumes=RIG_RAW)
 def rig_convert(verb, input="", profile="", target_profile="", rules="", target="", out="", armature="", action="", duration="", name="",
                 basis=None, centimeters_per_unit=100.0, channels=None):
     """The external rig-conversion and normalization tool (O36, canon 22): profile (an inspected armature -> titan.animation-profile/1) |

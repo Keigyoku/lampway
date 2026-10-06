@@ -92,4 +92,19 @@ RIG_DEFS = [
          P("merge_weights", "object", "{vertex group: bone}"), P("out_name", desc="the copy's name; default <armature>_ue"),
          P("dry_run", "boolean", "default true: return the plan")],
         api="rig_conform"),
+    Def("lampway_rig_export_ue", "Write the FBX the engine reads and prove it bone by bone (canon 21): the recipe states EVERY exporter argument "
+        "(titan_cm_native, the default: centimetre-native, FBX_SCALE_NONE + apply_unit_scale, primary Z / secondary X, deform only, no leaf bones; "
+        "or a recipe JSON - shipped: cm_native_blender_convention (primary X / secondary -Y, measured for a rig with local Y along the limb) and "
+        "cm_native_ue_axes (primary Y / secondary X, for X along)); the written file is imported back RAW (automatic bone orientation off, no axis "
+        "correction) and every bone compared with the reference at the bind_mismatch bars (0.01 cm, 0.01 deg, 1e-4 scale); the file's own "
+        "UnitScaleFactor is read from the FBX (Blender's importer hides the x100 a metre-scaled file gives UE) and gated by the recipe. reference: "
+        "empty = the armature itself in engine axes; an armature object; or a reference FBX. Published only on PASS; otherwise the file moves to "
+        "export/rejected/ and the rows over tolerance are named. Refused before writing: an armature rig_inspect did not read, a mixed convention, "
+        "constraints, leaf bones, a vertex group naming a bone the reference lacks, a deform hierarchy differing from the reference, more than one "
+        "action (one clip per file), an existing out, readback=false. The receipt carries the recipe, convention, read-back worst rows, corner "
+        "normals, UnitScaleFactor and the sha256 of the file, the reference and the armature's rest." + _PATHS,
+        [P("armature", required=True), P("out", required=True, desc="e.g. export/<name>.fbx"), P("meshes", "array", "mesh objects; default every mesh it deforms"),
+         P("actions", "array", "at most one action name (one clip per file)"), P("reference", desc="empty (the armature in engine axes) | armature | <reference>.fbx"),
+         P("recipe", desc="titan_cm_native (default) | a recipe JSON path"), P("readback", "boolean", "must stay true")],
+        api="rig_export_ue"),
 ]

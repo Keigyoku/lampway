@@ -214,6 +214,7 @@ path = [
   "src/scripts/mixar/modules/lampway_tools/rig_convert/recipes/*.json",
   "src/scripts/mixar/modules/lampway_tools/ue_recipes/*.json",
   "src/scripts/mixar/modules/lampway_tools/rig_tools/families/*.json",
+  "src/scripts/mixar/modules/lampway_tools/rig_tools/recipes/*.json",
   "tests/lampway_tools/canon_goldens/rig/*.json",
 ]
 precedence = "override"
