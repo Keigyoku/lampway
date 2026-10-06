@@ -198,8 +198,27 @@ class AssetLibrary:
         os.replace(tmp, dest)
         return dest
 
+    def _copy_cas(self, src: Path):
+        tmp_dir = self.cas / ".incoming"
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        tmp = tmp_dir / f"{os.getpid()}-{threading.get_ident()}-{src.name}"
+        h, n = hashlib.sha256(), 0
+        with open(src, "rb") as fin, open(tmp, "wb") as out:
+            while chunk := fin.read(CHUNK):
+                h.update(chunk)
+                out.write(chunk)
+                n += len(chunk)
+        sha = h.hexdigest()
+        dest = self._cas_path(sha)
+        if dest.exists():
+            tmp.unlink()
+        else:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(tmp, dest)
+        return sha, dest, n
+
     def _prepare(self, files: list) -> list:
-        incoming = sum(len(f["bytes"]) for f in files if f.get("storage") == "cas")
+        incoming = sum(len(f["bytes"]) if "bytes" in f else os.path.getsize(f["path"]) for f in files if f.get("storage") == "cas")
         if incoming and _free_bytes(self.root) < max(MIN_FREE, 2 * incoming):
             raise LibraryError(f"free space low: {_free_bytes(self.root) / 1024 ** 3:.1f} GB (a managed write needs max(5 GB, 2x incoming))")
         out, seen = [], {}
@@ -211,10 +230,18 @@ class AssetLibrary:
             ord_ = seen.get(role, 0)
             seen[role] = ord_ + 1
             if storage == "cas":
-                data = f["bytes"]
-                sha = hashlib.sha256(data).hexdigest()
-                path = self._write_cas(sha, data)
-                out.append({"role": role, "ord": ord_, "sha256": sha, "bytes": len(data), "path": str(path), "storage": "cas", "mtime": None, "size": len(data), "mime": mimetypes.guess_type(f.get("name", ""))[0]})
+                if "bytes" in f:
+                    data = f["bytes"]
+                    sha = hashlib.sha256(data).hexdigest()
+                    path, n = self._write_cas(sha, data), len(data)
+                    mime = mimetypes.guess_type(f.get("name", ""))[0]
+                else:                                                      # a produced file is copied in once, streaming (it is the only copy)
+                    src = Path(f["path"])
+                    if not src.is_file():
+                        raise LibraryError(f"file not found: {src}")
+                    sha, path, n = self._copy_cas(src)
+                    mime = mimetypes.guess_type(str(src))[0]
+                out.append({"role": role, "ord": ord_, "sha256": sha, "bytes": n, "path": str(path), "storage": "cas", "mtime": None, "size": n, "mime": mime})
             elif storage == "external":
                 p = Path(f["path"])
                 self._check_root(p)
@@ -570,6 +597,30 @@ class AssetLibrary:
                 self._db.execute("UPDATE source SET config_json=?,enabled=1 WHERE kind=? AND root=?", (json.dumps({"watch": bool(watch)}), kind, root))
             return self._db.execute("SELECT id FROM source WHERE kind=? AND root=?", (kind, root)).fetchone()[0]
 
+    def resolve_asset(self, ref: str) -> Optional[str]:
+        """An asset id, a sha256, a file path or a generation job id -> the asset id it names (None if nothing does)."""
+        if not ref:
+            return None
+        with closing(self._reader()) as db:
+            if db.execute("SELECT 1 FROM asset WHERE id=?", (ref,)).fetchone():
+                return ref
+            for sql in ("SELECT v.asset_id FROM version_file f JOIN version v ON v.id=f.version_id WHERE f.sha256=? ORDER BY v.created_at LIMIT 1",
+                        "SELECT v.asset_id FROM location l JOIN version_file f ON f.sha256=l.sha256 JOIN version v ON v.id=f.version_id WHERE l.path=? LIMIT 1",
+                        "SELECT v.asset_id FROM generation g JOIN version v ON v.id=g.version_id WHERE g.job_id=? ORDER BY g.rowid LIMIT 1"):
+                row = db.execute(sql, (ref,)).fetchone()
+                if row:
+                    return row[0]
+        return None
+
+    def add_generation(self, version_id: Optional[str], gen: dict) -> str:
+        with self.tx() as db:
+            cols = {r[1] for r in db.execute("PRAGMA table_info(generation)")} - {"id", "version_id"}
+            g = _clean_urls({k: v for k, v in gen.items() if k in cols})
+            gid = self._id()
+            db.execute(f"INSERT INTO generation(id,version_id{''.join(',' + k for k in g)}) VALUES(?,?{',?' * len(g)})", (gid, version_id, *g.values()))
+            self._event("generation", None, {"id": gid, "version": version_id})
+            return gid
+
     def find_by_name(self, token: str) -> list:
         with closing(self._reader()) as db:
             return [r[0] for r in db.execute("SELECT id FROM asset WHERE status!='deleted' AND (name LIKE ? OR source_key LIKE ?) ORDER BY created_at", (f"%{token}%", f"%{token}%"))]
@@ -675,7 +726,7 @@ class AssetLibrary:
                     if h.hexdigest() != sha:
                         mismatch.append(path)
             known = {r[0] for r in db.execute("SELECT sha256 FROM blob")}
-            orphans = sorted(f.name for f in self.cas.rglob("*") if f.is_file() and ".tmp" not in f.name and f.name not in known) if self.cas.exists() else []
+            orphans = sorted(f.name for f in self.cas.rglob("*") if f.is_file() and ".tmp" not in f.name and f.parent.name != ".incoming" and f.name not in known) if self.cas.exists() else []
             fk = db.execute("PRAGMA foreign_key_check").fetchall()
             active = db.execute("SELECT count(*) FROM asset WHERE status='active'").fetchone()[0]
             return {"checked": len(locs), "missing": missing, "hash_mismatch": mismatch, "changed": changed,
