@@ -192,6 +192,14 @@ PURPOSES = {p.id: p for p in _ALL}
 COSTLY_PREFIXES = ("openrouter:", "higgsfield:", "fal:", "studio:", "compute:", "anthropic:")
 
 
+# A prompt template's ``purpose`` (prompts/prompt_template.schema.json) -> the Choices purpose whose choice runs it (CH5).
+TEMPLATE_PURPOSES = {"plate": "image.plates", "albedo": "image.plates", "texture-plate": "image.plates", "material-id": "image.mask",
+                     "concept": "image.concept", "tile": "image.tile", "character-reference": "image.reference_sheet",
+                     "character-sheet": "image.reference_sheet", "character-part": "image.reference_sheet",
+                     "anim-start-frame": "image.anim_start_frame", "anim-walk": "video.side_track", "anim-split": "video.side_track",
+                     "articulation": "video.side_track", "anim-loop": "video.loop", "anim-motion-transfer": "video.motion", "turntable": "video.turntable"}
+
+
 def offers(purpose: Purpose, oid: str) -> bool:
     """An option this purpose offers: listed, or of a provider whose catalogue the purpose takes whole (``openrouter:*``)."""
     if oid in purpose.options:

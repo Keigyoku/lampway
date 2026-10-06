@@ -47,6 +47,14 @@ async def call(svc, name: str, arguments: dict) -> tuple:
             tpl = svc.library.get(a["template"])
             rendered = svc.render(a["template"], a.get("variables"), a.get("model"))
             prompt, model, params = rendered["prompt"], rendered["model"], dict(rendered["params"])
+            if not model:                                     # CH5: the purpose's choice runs the template (it pins its own model only with a reason)
+                from .. import choices as CH
+                from ..choices import registry as CREG
+                pid = CREG.TEMPLATE_PURPOSES.get(tpl.get("purpose"), "image.plates")
+                try:
+                    model = CH.resolve(pid, CH.Job(needs={"runs_on": ["openrouter"]}, origin="agent")).model
+                except CH.NoChoice as exc:
+                    return str(exc), True
             if a.get("references") is not None or any(i.get("required") for i in rendered["inputs_required"]):
                 refs = R.order_references(tpl, a.get("references") if a.get("references") is not None else {})
         else:
