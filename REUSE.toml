@@ -187,6 +187,7 @@ path = [
   "server/lampway_server/decisions_goldens.json",
   "server/lampway_server/library/migrations/*.sql",
   "server/lampway_server/library/rules/*.json",
+  ".claude/settings.json",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Keigyoku"
