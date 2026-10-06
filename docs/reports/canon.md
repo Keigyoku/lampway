@@ -343,9 +343,10 @@ None touches a file this lane changed.
   G14.1 on golden C10: the 7 analytic samples within 0.02; DX = GL with green flipped (< 1e-4). RED: bit depth 8.
   Mutants: no flip fails; **8-bit levels in a 16-bit container SURVIVED the first test** (it read the header only) - the test now
   also requires more than 256 distinct levels (the mutant has 69).
-- Not built: the per-texel hit mask, bake groups, `bake.json`, hash dirs. **Open defect found, not fixed:** `attach` wires the
-  normal image straight into a Normal Map node, so a DX bake attached in Blender shades inverted (AUDIT rank 10, contract
-  `normalize_texture` test 2) - the attach should flip green in nodes for dx.
+- Not built: the per-texel hit mask, bake groups, `bake.json`, hash dirs. **Defect found and FIXED after:** `attach` wired the
+  normal image straight into a Normal Map node, so a DX bake attached in Blender shaded inverted (AUDIT rank 10, contract
+  `normalize_texture` test 2). A DX map now goes through the green flip in nodes (`asset_place_shading._flip_green`, reused).
+  RED: EEVEE renders of the GL and DX attachments of golden C10 differed by 0.83; after, < 0.01 (32 px, a grazing sun).
 
 ## Item 10: retopo (DONE except per-part remesh)
 Besides the explicit fallback above: QuadriFlow keeps sharp edges by default (`preserve_sharp=True`, receipt field; measured on a

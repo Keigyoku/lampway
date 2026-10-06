@@ -116,3 +116,34 @@ res({"g": {k: g.get(k) for k in ("ok", "error", "normal")}, "x": {k: x.get(k) fo
         assert max(abs(px - s["rgb_gl"])) < 0.02, (s, px.tolist())
     assert abs(X[..., 1] - (1 - G[..., 1])).max() < 1e-4 and abs(X[..., [0, 2]] - G[..., [0, 2]]).max() < 1e-4
     assert d["g"]["normal"] == {"convention": "gl", "bit_depth": 16, "baked": "gl"} and d["x"]["normal"] == {"convention": "dx", "bit_depth": 16, "baked": "gl", "green_flipped": True}
+
+
+def test_attach_shades_a_dx_bake_like_the_gl_bake(goldens, tmp_path):
+    """contract normalize_texture test 2 / canon 14: Blender's Normal Map node reads GL; a DX map attached straight into it shades
+    the bump inverted. Attached through the green flip, the DX bake renders as the GL one (EEVEE, 32 px, a grazing sun)."""
+    d = run('''
+import numpy as np
+low = load_obj(GOLD + "/C10_bake/lp_plane.obj", "low")
+high = load_obj(GOLD + "/C10_bake/hp_bump.obj", "high")
+outs = {}
+for tag in ("gl", "dx"):
+    r = api.bake_maps("high", "low", maps=["normal"], size=64, samples=1, out_dir=tag, normal_green=tag, cage_extrusion_m=0.06, max_ray_m=0.12,
+                      attach=True, overwrite=True)
+    assert r.get("ok"), r
+    outs[tag] = low.data.materials[-1].name
+high.hide_render = True
+sun = bpy.data.objects.new("sun", bpy.data.lights.new("sun", "SUN")); bpy.context.scene.collection.objects.link(sun)
+sun.rotation_euler = (math.radians(80), 0, math.radians(30))
+cam = bpy.data.objects.new("cam", bpy.data.cameras.new("cam")); bpy.context.scene.collection.objects.link(cam)
+cam.data.type = "ORTHO"; cam.data.ortho_scale = 1.0; cam.location = (0, 0, 2); bpy.context.scene.camera = cam
+sc = bpy.context.scene; sc.render.engine = "BLENDER_EEVEE_NEXT" if "BLENDER_EEVEE_NEXT" in [e.identifier for e in bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items] else "BLENDER_EEVEE"
+sc.render.resolution_x = sc.render.resolution_y = 32; sc.render.image_settings.file_format = "PNG"
+px = {}
+for tag in ("gl", "dx"):
+    low.data.materials.clear(); low.data.materials.append(bpy.data.materials[outs[tag]])
+    sc.render.filepath = os.path.join(root, tag + ".png"); bpy.ops.render.render(write_still=True)
+    img = bpy.data.images.load(sc.render.filepath); px[tag] = np.array(img.pixels[:]).reshape(32, 32, 4)[..., :3]
+res({"diff": float(np.abs(px["gl"] - px["dx"]).max()), "spread": float(px["gl"].max() - px["gl"].min())})
+''', goldens)
+    assert d["spread"] > 0.05, d                     # the bump is visible in the GL render
+    assert d["diff"] < 0.01, d                       # and the DX bake attached through the flip renders the same

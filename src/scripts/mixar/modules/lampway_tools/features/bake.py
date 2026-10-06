@@ -153,7 +153,11 @@ def run(source, target, maps, size, margin_px, cage_extrusion_m, max_ray_m, samp
             if m == "albedo":
                 nt.links.new(node.outputs["Color"], bsdf.inputs["Base Color"])
             elif m == "normal":
-                nm = nt.nodes.new("ShaderNodeNormalMap"); nt.links.new(node.outputs["Color"], nm.inputs["Color"]); nt.links.new(nm.outputs["Normal"], bsdf.inputs["Normal"])
+                from .asset_place_shading import _flip_green
+                col = node.outputs["Color"]
+                if (data.get("normal") or {}).get("convention") == "dx":
+                    col = _flip_green(nt, col, -500, -300)      # Blender's Normal Map node reads GL: a DX map is flipped back in nodes
+                nm = nt.nodes.new("ShaderNodeNormalMap"); nt.links.new(col, nm.inputs["Color"]); nt.links.new(nm.outputs["Normal"], bsdf.inputs["Normal"])
         lo.data.materials.append(mat)
         lo["lw_baked_from"] = ",".join(cfg["high"])
     return body
