@@ -46,11 +46,5 @@
       "owner": "rail/skills/lampway-coding-guidelines/SKILL.md"
     }
   },
-  "exemptions": [
-    {
-      "code": "RAIL-007",
-      "path": "src/scripts/mixar/modules/common/updates/CLAUDE.md",
-      "reason": "upstream's module note for the self-updater, inherited from the fork; its claims (Windows MSI staging, the backend sha256 check, the 15 s watchdog) describe the upstream updater and were not verified against Lampway, whose server answers update_available false. Converting it to an AGENTS.md contract needs a read of core/install_flow.py by the lane that owns updates; until then it is recorded here, not rewritten unverified."
-    }
-  ]
+  "exemptions": []
 }

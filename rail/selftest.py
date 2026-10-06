@@ -81,9 +81,13 @@ def build(root: Path) -> Path:
     write(repo, "sub/AGENTS.md", SUB)
     write(repo, "sub/CLAUDE.md", "@AGENTS.md\n")
     write(repo, "tool.py", "print('demo')\n")
+    write(repo, "gen.py", "import pathlib, sys\nok = pathlib.Path('doc.md').read_text() == 'generated\\n'\n"
+                          "print('doc.md is current' if ok else 'doc.md is stale'); sys.exit(0 if ok else 1)\n")
+    write(repo, "doc.md", "generated\n")
     write(repo, "rail/skills/demo/SKILL.md", SKILL)
     write(repo, "rail/catalog.json", json.dumps({"schema": 1, "baseline": seed, "baseline_reason": "fixture",
-                                                 "triggers": {"tool.py": {"owner": "rail/skills/demo/SKILL.md"}}, "exemptions": []}, indent=2) + "\n")
+                                                 "triggers": {"tool.py": {"owner": "rail/skills/demo/SKILL.md"}}, "exemptions": [],
+                                                 "generated": [{"doc": "doc.md", "script": "gen.py", "args": ["--check"]}]}, indent=2) + "\n")
     R.sync(repo)
     commit(repo, "adopt the rail")
     return repo
@@ -140,6 +144,10 @@ def p_index(repo):
 def p_skill_index(repo):
     write(repo, "rail/skills/extra/SKILL.md", SKILL.replace("name: demo", "name: extra"))
     R.sync(repo)
+
+
+def p_generated(repo):
+    write(repo, "doc.md", "hand-edited\n")
 
 
 def p_section(repo):
@@ -271,6 +279,7 @@ PLANTS = [
     ("baseline not an ancestor", {"RAIL-015"}, p_baseline),
     ("stale exemption", {"RAIL-016"}, p_exemption),
     ("symlinked stub", {"RAIL-017"}, p_symlink),
+    ("generated document edited by hand", {"RAIL-018"}, p_generated),
     ("merge loses a lane's row", {"RAIL-011"}, p_merge_lost_row),
     ("merge authors an unreceipted rule", {"RAIL-010"}, p_merge_unreceipted),
 ]

@@ -19,6 +19,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -35,7 +36,7 @@ REGISTRATIONS = (".agents/skills", ".claude/skills")
 STUB = "@AGENTS.md\n"
 ROOT_SECTIONS = ("Skills", "Child DOX Index", "DOX closeout", "Anneal log")
 NESTED_SECTIONS = ("Invariants", "Test", "Owner", "Anneal log")
-CATALOG_KEYS = {"schema", "baseline", "baseline_reason", "triggers", "exemptions"}
+CATALOG_KEYS = {"schema", "baseline", "baseline_reason", "triggers", "exemptions", "generated"}
 SKIP_PARTS = {"upstream", "source", "build", "node_modules", ".git", "__pycache__", ".venv"}
 
 CODES = {
@@ -56,6 +57,7 @@ CODES = {
     "RAIL-015": "the adoption baseline is not an ancestor commit (or the history is too shallow to judge)",
     "RAIL-016": "an exemption that is malformed or no longer matches a finding",
     "RAIL-017": "a symlink where a rail, stub or registration must be a regular file",
+    "RAIL-018": "a generated document is stale, or its generator's check could not run",
 }
 
 
@@ -162,6 +164,14 @@ def _catalog(repo: Path, findings: list) -> dict:
     if catalog.get("schema") != 1 or unknown or not isinstance(catalog.get("triggers"), dict) or not isinstance(catalog.get("exemptions"), list):
         findings.append(_finding("RAIL-003", CATALOG, f"the catalog needs schema 1, a triggers map and an exemptions list; unknown keys: {sorted(unknown)}"))
         return {"triggers": {}, "exemptions": [], **{k: v for k, v in catalog.items() if k == "baseline"}}
+    generated = catalog.get("generated", [])
+    if not isinstance(generated, list):
+        findings.append(_finding("RAIL-003", CATALOG, "generated must be a list of {doc, script, args}"))
+        catalog["generated"] = []
+    for row in catalog.get("generated", []):
+        ok = isinstance(row, dict) and isinstance(row.get("doc"), str) and isinstance(row.get("script"), str) and isinstance(row.get("args", []), list)
+        if not ok or not (repo / row["script"]).is_file():
+            findings.append(_finding("RAIL-003", CATALOG, f"generated row {row!r}: needs doc, an existing script and an args list"))
     for trigger, row in sorted(catalog["triggers"].items()):
         owner = row.get("owner") if isinstance(row, dict) else None
         if not (repo / trigger).is_file():
@@ -354,7 +364,7 @@ def _pre_adoption(commit, parents, before, after, triggers, lineage) -> List[dic
     return out
 
 
-def maintain(repo: Path, catalog: dict) -> dict:
+def maintain(repo: Path, catalog: dict, quick: bool = False) -> dict:
     baseline = catalog.get("baseline")
     if not isinstance(baseline, str) or not re.fullmatch(r"[0-9a-f]{40}", baseline):
         return {"commits": 0, "findings": [_finding("RAIL-015", CATALOG, "baseline must be the full SHA of the adoption commit")], "inherited": []}
@@ -394,7 +404,10 @@ def maintain(repo: Path, catalog: dict) -> dict:
             pass
     findings, inherited = [], []
     lineage = {baseline, *commits}
-    steps =[(c, git(repo, "rev-list", "--parents", "-n", "1", c).decode().split()[1:]) for c in commits]
+    if quick:                                                   # only what no remote-tracking ref holds: what this push brings
+        unpushed = set(git(repo, "rev-list", "HEAD", "--not", "--remotes").decode().split())
+        commits = [c for c in commits if c in unpushed]
+    steps = [(c, git(repo, "rev-list", "--parents", "-n", "1", c).decode().split()[1:]) for c in commits]
     head = git(repo, "rev-parse", "HEAD").decode().strip()
     merge_head = repo / ".git" / "MERGE_HEAD"
     try:
@@ -404,7 +417,7 @@ def maintain(repo: Path, catalog: dict) -> dict:
         pass
     worktree = snapshot_worktree(repo, triggers_all)
     work_parents = [head] + (merge_head.read_text().split() if merge_head.is_file() else [])
-    for commit, parents in steps + [("WORKTREE", work_parents)]:
+    for commit, parents in steps + ([] if quick else [("WORKTREE", work_parents)]):
         after = worktree if commit == "WORKTREE" else snap(commit)
         before = [snap(p) for p in parents]
         triggers = triggers_of(after, *before)
@@ -447,18 +460,49 @@ def _apply_exemptions(findings: List[dict], exemptions: list) -> (List[dict], Li
     return kept + problems, exempted
 
 
-def check(repo) -> dict:
+def server_python(repo: Path) -> str:
+    """The interpreter a generator runs under: $LAMPWAY_SERVER_PYTHON, else the server's own venv, else this one."""
+    env = os.environ.get("LAMPWAY_SERVER_PYTHON")
+    if env:
+        return env
+    venv = repo / "server" / ".venv" / "bin" / "python"
+    return str(venv) if venv.is_file() else sys.executable
+
+
+def generated_findings(repo: Path, catalog: dict) -> List[dict]:
+    """Run each generated document's own --check. A generator that cannot run (a missing dependency) is red, never skipped."""
+    findings = []
+    for row in catalog.get("generated", []) or []:
+        if not (isinstance(row, dict) and isinstance(row.get("script"), str) and (repo / row["script"]).is_file()):
+            continue                                            # already a RAIL-003 from the catalog
+        cmd = [server_python(repo), str(repo / row["script"]), *[str(a) for a in row.get("args", [])]]
+        try:
+            result = subprocess.run(cmd, cwd=repo, capture_output=True, text=True, timeout=600)
+            rc, tail = result.returncode, (result.stdout + result.stderr).strip().splitlines()[-1:]
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            rc, tail = -1, [str(exc)]
+        if rc != 0:
+            findings.append(_finding("RAIL-018", row.get("doc", row["script"]),
+                                     f"`{row['script']} {' '.join(map(str, row.get('args', [])))}` exited {rc}: {(tail or [''])[0][:240]}"))
+    return findings
+
+
+def check(repo, quick: bool = False) -> dict:
+    """The gate. ``quick`` (the pre-push hook) judges only commits no remote-tracking ref holds yet, skips the worktree and the
+    generated documents (their generators need the server's dependencies); CI runs the full check."""
     repo = Path(repo).resolve()
     files = worktree_files(repo)
     findings, info = inventory(repo, files)
     outputs = plan(repo, info["skills"])
     findings += registration_findings(repo, outputs)
-    history = maintain(repo, info["catalog"])
+    history = maintain(repo, info["catalog"], quick=quick)
     findings += history["findings"]
+    if not quick:
+        findings += generated_findings(repo, info["catalog"])
     findings, exempted = _apply_exemptions(findings, info["catalog"].get("exemptions") or [])
-    return {"verdict": "FAIL" if findings else "PASS", "skills": len(info["skills"]), "rails": info["rails"],
-            "commits": history["commits"], "baseline": (history.get("baseline") or "")[:12], "findings": findings,
-            "exempted": exempted, "inherited_pre_adoption": history["inherited"]}
+    return {"verdict": "FAIL" if findings else "PASS", "mode": "quick" if quick else "full", "skills": len(info["skills"]),
+            "rails": info["rails"], "commits": history["commits"], "baseline": (history.get("baseline") or "")[:12],
+            "findings": findings, "exempted": exempted, "inherited_pre_adoption": history["inherited"]}
 
 
 def closeout(repo, tag: str) -> dict:
