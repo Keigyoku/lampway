@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route
 
 from ..rest import envelope
@@ -35,6 +35,16 @@ def routes(bearer_ok, api_port: int = 8787, cards: Cards = None) -> list:
         return b if isinstance(b, dict) else {}
 
     q = lambda r, k, d="": r.query_params.get(k) or d  # noqa: E731
+
+    async def frame(request: Request):
+        """The page the Workbench window mounts: the card in a sandboxed iframe on the cards' own origin."""
+        if not bearer_ok(request):
+            return JSONResponse({"detail": "Not authenticated"}, status_code=401)
+        try:
+            text = await asyncio.to_thread(svc.frame, request.path_params["card_id"], int(q(request, "step", "0")), q(request, "theme", "dark"))
+        except CardError as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=404 if str(exc).startswith("no card") else 422)
+        return HTMLResponse(text)
     return [
         Route("/app/cards", guarded(lambda r, b: svc.list(q(r, "query"), q(r, "status"), q(r, "category"))), methods=["GET"]),
         Route("/app/cards/activity", guarded(lambda r, b: svc.activity(q(r, "date"))), methods=["GET"]),
@@ -42,5 +52,6 @@ def routes(bearer_ok, api_port: int = 8787, cards: Cards = None) -> list:
                                                                  b.get("round") or "auto", b.get("title"))), methods=["POST"]),
         Route("/app/cards/{card_id}", guarded(lambda r, b: svc.read(r.path_params["card_id"], int(q(r, "step", "0")))), methods=["GET"]),
         Route("/app/cards/{card_id}", guarded(lambda r, b: svc.update(r.path_params["card_id"], **{k: b[k] for k in ("status", "pinned") if k in b})), methods=["POST"]),
-        Route("/app/cards/{card_id}/open", guarded(lambda r, b: svc.open(r.path_params["card_id"], int(q(r, "step", "0")))), methods=["GET"]),
+        Route("/app/cards/{card_id}/open", guarded(lambda r, b: svc.open(r.path_params["card_id"], int(q(r, "step", "0")), q(r, "theme", "dark"))), methods=["GET"]),
+        Route("/app/cards/{card_id}/frame", frame, methods=["GET"]),
     ]

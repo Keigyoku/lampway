@@ -224,3 +224,37 @@ def test_a_second_message_in_the_same_session_carries_the_history(fake, provider
     history = [(m.role, m.text()) for m in provider.requests[1].messages]
     assert history == [("user", history[0][1]), ("assistant", "First answer."), ("user", history[2][1])]
     assert "first" in history[0][1] and "second" in history[2][1]
+
+
+# Scribble marks (specs/mixar_docs/scribble_marks.md): the Client's agent.chat payload carries ``mark_context`` (scribble_mark/core/payload.build_payload,
+# after serialize); the server restates it deterministically as prose beside the user's words: which object was circled, where on the ground a placement was
+# pointed, or that a sketch was drawn and what it crosses. Shapes below are build_payload's own keys.
+MARKS = {"v": 1, "surface": "view3d", "intent": "point", "intent_source": "auto", "views": {"mark_cam_1": {}}, "marks": [
+    {"id": 1, "view": "mark_cam_1", "gesture": "circle", "closed": True, "stroke_count": 1, "region": {"bbox": [0.1, 0.1, 0.3, 0.3], "polygon": [], "anchor": None},
+     "resolved": {"hit": True, "objects": [{"name": "alpha_cube", "partial": True, "object_fraction": 0.4}, {"name": "floor"}], "point": [1.0, 2.0, 0.5]}},
+    {"id": 2, "view": "mark_cam_1", "gesture": "point", "closed": False, "stroke_count": 1, "region": {"bbox": [0.6, 0.6, 0.6, 0.6], "polygon": [], "anchor": [0.6, 0.6]},
+     "resolved": {"hit": False, "plane": True, "point": [3.0, -1.0, 0.0]}}]}
+
+
+def test_marks_are_described_as_object_names_and_world_points():
+    from lampway_server.agent import marks_context as MC
+    text = MC.describe(MARKS)
+    assert "Mark 1: the user circled `alpha_cube`" in text and "about 40% of it" in text and "`floor`" in text and "(1, 2, 0.5)" in text, text
+    assert "Mark 2: the user tapped an empty spot on the ground plane at world (3, -1, 0)" in text, text
+    sketch = dict(MARKS, intent="sketch", sketch={"stroke_count": 3, "world_bbox": {"size": [2.0, 1.0, 0.0], "center": [0.5, 0.5, 0.0]}})
+    sk = MC.describe(sketch)
+    assert "DREW A SKETCH" in sk and "3 strokes" in sk and "2.0 m by 1.0 m" in sk and "crosses existing objects: `alpha_cube`, `floor`" in sk, sk
+    assert MC.describe(None) == "" and MC.describe({"marks": []}) == "" and MC.describe("junk") == ""
+
+
+def test_marks_are_in_the_model_context(fake, provider):
+    provider.script.append([Text("Making it red.")])
+    fake.login()
+    with fake.connect_ws() as ws:
+        fake.handshake(ws)
+        payload = fake.chat_payload("make this red", str(uuid.uuid4()))
+        payload["mark_context"] = MARKS
+        command_id = fake.command(ws, "chat", payload)
+        fake.run_turn(ws, command_id, on_script=lambda p: {"success": True})
+    text = provider.requests[0].messages[-1].text()
+    assert "make this red" in text and "the user circled `alpha_cube`" in text, text

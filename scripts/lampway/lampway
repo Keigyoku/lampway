@@ -16,6 +16,9 @@
 # fresh spend log (the old one is kept as openrouter_spend.jsonl.prev).
 #   lampway --install-desktop | --uninstall-desktop      the app-menu entry (lampway.desktop); it runs this same command
 #
+# UE Look: while it is enabled (<home>/ue_look/launch.state, written by the app's UE Look toggle) and its cube still validates
+# (the generated OCIO config exists and the cube's sha256 is the one recorded), the app starts with OCIO=<that config>, so the UE
+# view exists; otherwise OCIO is left exactly as it was. The state file is read as key=value lines, never sourced.
 # --copy opens a COPY of the .blend (under <home>/copies); your file is never opened for saving.
 # The app runs through scripts/unix/run.sh, which owns the Wayland/X11 switch (LAMPWAY_LINUX_BACKEND=auto|x11).
 # Profile: everything lives under $LAMPWAY_HOME (default ~/.local/share/lampway): an isolated config/data profile (your stock
@@ -63,6 +66,21 @@ if [ "$ACTION" = install ]; then
   exec "$ROOT/scripts/unix/install_desktop_entry.sh" "$BUILD_ENV"
 fi
 
+# UE Look state: UE_LOOK is off | on | invalid; UE_OCIO the config to export when on
+UE_LOOK=off; UE_OCIO=""
+UE_STATE="$HOME_DIR/ue_look/launch.state"
+if [ -f "$UE_STATE" ]; then
+  ue_cfg=""; ue_cube=""; ue_sha=""
+  while IFS='=' read -r key value; do
+    case "$key" in config) ue_cfg="$value" ;; cube) ue_cube="$value" ;; cube_sha256) ue_sha="$value" ;; esac
+  done < "$UE_STATE"
+  UE_LOOK=invalid
+  if [ -n "$ue_cfg" ] && [ -f "$ue_cfg" ] && [ -n "$ue_cube" ] && [ -f "$ue_cube" ] && [ -n "$ue_sha" ] \
+     && [ "$(sha256sum < "$ue_cube" | cut -d' ' -f1)" = "$ue_sha" ]; then
+    UE_LOOK=on; UE_OCIO="$ue_cfg"
+  fi
+fi
+
 if [ "$PLAN" = 1 ]; then
   echo "bin: $0"; echo "description: Starts the Lampway server and the app on localhost; opens a .blend (a copy with --copy)"
   echo "server_url: $SERVER_URL"; echo "build_env: $BUILD_ENV"; echo "binary: $BINARY"; echo "bridge_port: $BRIDGE_PORT"
@@ -73,6 +91,7 @@ if [ "$PLAN" = 1 ]; then
     echo "key_file: ${KEY_FILE:-none (OPENROUTER_API_KEY from the environment: $([ -n "${OPENROUTER_API_KEY:-}" ] && echo set || echo not set))}"
   fi
   echo "models: $MODELS_DIR $([ -d "$MODELS_DIR" ] && echo '(bundled)' || echo '(absent: the Vault offers the one-click fetch)')"
+  echo "ue_look: $UE_LOOK${UE_OCIO:+ (OCIO=$UE_OCIO)}"
   echo "home: $HOME_DIR"; echo "keyring: $([ $SYSTEM_KEYRING = 1 ] && echo system || echo file)"
   echo "server: $([ $NO_SERVER = 1 ] && echo none || echo started-and-stopped-by-this-command)"; echo "blend: ${BLEND:-none}${BLEND:+ $([ $COPY = 1 ] && echo '(copy)' || echo '(opened directly)')}"
   exit 0
@@ -119,7 +138,7 @@ if [ "$NO_SERVER" = 0 ]; then
       SERVER_CMD="$PY -m lampway_server"
     fi
     [ -d "$MODELS_DIR" ] && export LAMPWAY_MODELS_DIR="$MODELS_DIR"
-    LAMPWAY_HOST=127.0.0.1 LAMPWAY_PORT="$PORT" LAMPWAY_PROVIDER="$PROVIDER" LAMPWAY_STATE_DIR="$HOME_DIR/server-state" \
+    LAMPWAY_HOST=127.0.0.1 LAMPWAY_PORT="$PORT" LAMPWAY_PROVIDER="$PROVIDER" LAMPWAY_STATE_DIR="$HOME_DIR/server-state" LAMPWAY_BLENDER="${LAMPWAY_BLENDER:-$BINARY}" \
       LAMPWAY_PROJECT_ROOT="$HOME_DIR/projects" PYTHONPATH="$ROOT/server${PYTHONPATH:+:$PYTHONPATH}" \
       $SERVER_CMD > "$HOME_DIR/server.log" 2>&1 &
     SERVER_PID=$!
@@ -139,6 +158,11 @@ export LAMPWAY_PROJECT_ROOT="$HOME_DIR/projects" LAMPWAY_SERVER_PID_FILE="$HOME_
 [ -d "$ROOT/server" ] && export LAMPWAY_SERVER_DIR="$ROOT/server"
 if [ "$SYSTEM_KEYRING" = 0 ]; then
   export PYTHON_KEYRING_BACKEND="mixar.modules.lampway_tools.keyring_file.FileKeyring" LAMPWAY_KEYRING_FILE="$HOME_DIR/keyring.json"
+fi
+if [ "$UE_LOOK" = on ]; then
+  export OCIO="$UE_OCIO"; echo "UE Look: OCIO=$UE_OCIO"
+elif [ "$UE_LOOK" = invalid ]; then
+  echo "UE Look is on but its cube does not validate (missing, moved or changed since it was enabled): OCIO left as it was; point UE Look at the cube again"
 fi
 # the app: through run.sh (it owns LAMPWAY_LINUX_BACKEND); not exec'd, so this shell can stop the server it started
 "$ROOT/scripts/unix/run.sh" "$BUILD_ENV" ${BLEND:+"$BLEND"}

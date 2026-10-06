@@ -44,6 +44,12 @@
     },
     "conftest.py": {
       "owner": "rail/skills/lampway-coding-guidelines/SKILL.md"
+    },
+    "docs/canon/check_canon.py": {
+      "owner": "rail/skills/lampway-canon/SKILL.md"
+    },
+    ".github/workflows/canon.yml": {
+      "owner": "rail/skills/lampway-canon/SKILL.md"
     }
   },
   "exemptions": []

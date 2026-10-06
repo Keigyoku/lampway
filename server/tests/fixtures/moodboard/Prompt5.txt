@@ -1,0 +1,32 @@
+Create a Tripo-ready orthographic multiview reference sheet of the [ASSET NAME].
+
+Image A is the MetaHuman body reference.
+Image B is the approved armor fit-check or breakdown reference.
+
+Generate only the [ASSET NAME] as an isolated object. Preserve the exact design, materials, ornamentation, weathering, thickness, silhouette, and construction from Image B. Where relevant, preserve the correct scale and fit relationship to the MetaHuman from Image A.
+
+Show the same exact object in four orthographic views:
+- FRONT
+- LEFT
+- BACK
+- RIGHT
+
+Requirements:
+- clean isolated object only
+- no character wearing it
+- no mannequin
+- no hands or body parts
+- no props unless the asset itself includes them
+- pure white or neutral light background
+- soft even lighting
+- no cast shadows
+- no perspective distortion
+- the item must remain the same object across all four views
+- consistent scale and framing across all views
+- all edges fully visible and uncropped
+- preserve interior openings and thickness where visible
+- do not redesign or improvise new details
+
+Arrange the four views in a clean 2x2 layout with small simple labels: FRONT, LEFT, BACK, RIGHT.
+
+This image is intended as a multi-view technical input reference for 3D asset generation.

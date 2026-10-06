@@ -926,6 +926,39 @@ msgstr ""
 "ยอมให้การนำทางและอินพุตทั้งหมดที่ไม่ใช่วิวพอร์ตผ่านไป แต่ดักจับ\n"
 "การคลิกและปุ่มลัดการแก้ไขบนพื้นที่วิวพอร์ต\n"
 
+msgid "Canvas"
+msgstr "ผืนผ้าใบ"
+
+msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
+msgstr ""
+
+msgid "Open"
+msgstr "เปิด"
+
+msgid "Fit"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "attach the pan/zoom handling to what is already open"
+msgstr ""
+
+msgid "the lineage layout as JSON, for clicks"
+msgstr ""
+
+msgid "Asset Vault Hotkey"
+msgstr ""
+
+msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
+msgstr ""
+
+msgid "Search the Asset Vault"
+msgstr ""
+
+msgid "Select an asset first"
+msgstr ""
+
 msgid "Search"
 msgstr "ค้นหา"
 
@@ -1058,10 +1091,55 @@ msgstr ""
 msgid "The Asset Vault window is already open"
 msgstr ""
 
+msgid "Align clips"
+msgstr ""
+
+msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
+msgstr ""
+
+msgid "Frame 0 with frame 0"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "By timestamp"
+msgstr ""
+
+msgid "Motion"
+msgstr ""
+
+msgid "Where each clip first moves"
+msgstr ""
+
+msgid "Press Compare on a second clip first"
+msgstr ""
+
+msgid "Refresh boards"
+msgstr ""
+
+msgid "Read the Vault's boards"
+msgstr ""
+
+msgid "Open board"
+msgstr ""
+
+msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
 msgid "Searching"
 msgstr ""
 
+msgid "Choose how to line the two clips up"
+msgstr ""
+
 msgid "Show the lineage"
+msgstr ""
+
+msgid "Open on the canvas"
 msgstr ""
 
 msgid "Select an asset"
@@ -1071,6 +1149,12 @@ msgid "Reading the asset"
 msgstr ""
 
 msgid "Copy id"
+msgstr ""
+
+msgid "Close canvas"
+msgstr ""
+
+msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
 msgstr ""
 
 msgid "Asset Vault"
@@ -2608,9 +2692,6 @@ msgstr "ไม่สามารถเข้าถึงเครือข่า
 
 msgid "Network error: {short}"
 msgstr "ข้อผิดพลาดเครือข่าย: {short}"
-
-msgid "Open"
-msgstr "เปิด"
 
 msgid "Toast Click"
 msgstr "คลิกการแจ้งเตือน"
@@ -5078,6 +5159,12 @@ msgstr "ปิด"
 msgid "Dismiss the error and return to idle"
 msgstr "ปิดข้อผิดพลาดและกลับสู่สถานะว่าง"
 
+msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
+msgstr ""
+
+msgid "UE Look is on"
+msgstr ""
+
 msgid "Front"
 msgstr "หน้า"
 
@@ -5093,10 +5180,31 @@ msgstr "ความหยาบ"
 msgid "Metallic"
 msgstr "ความเป็นโลหะ"
 
+msgid "Scale"
+msgstr "ขนาด"
+
+msgid "Detail"
+msgstr "รายละเอียด"
+
+msgid "NodeGroupOutput"
+msgstr ""
+
+msgid "GeometryNodeCollectionInfo"
+msgstr ""
+
+msgid "lampway_uv_check"
+msgstr ""
+
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
+msgstr ""
+
+msgid "KiB"
+msgstr ""
+
+msgid "MiB"
 msgstr ""
 
 msgid "Hide this note (the pill stays off; the preference brings it back)"
@@ -5250,6 +5358,15 @@ msgid "Egress"
 msgstr ""
 
 msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Approve patch"
+msgstr ""
+
+msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
+msgstr ""
+
+msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -5678,6 +5795,12 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
+msgid "UE Look"
+msgstr ""
+
+msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
+msgstr ""
+
 msgid "Refresh sessions"
 msgstr ""
 
@@ -5856,6 +5979,15 @@ msgid "Runs and rating of this template version"
 msgstr ""
 
 msgid "No runs yet"
+msgstr ""
+
+msgid "Engine defaults: not the project"
+msgstr ""
+
+msgid "UE Look: on"
+msgstr ""
+
+msgid "UE Look: off"
 msgstr ""
 
 msgid "Show account details"
@@ -6123,6 +6255,24 @@ msgid "Figure height (m)"
 msgstr ""
 
 msgid "0 = the deform mesh's rest height, else head bone to foot bone"
+msgstr ""
+
+msgid "UE profile"
+msgstr ""
+
+msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
+msgstr ""
+
+msgid "Tonemapper cube"
+msgstr ""
+
+msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
+msgstr ""
+
+msgid "Cube sidecar"
+msgstr ""
+
+msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
@@ -8643,9 +8793,6 @@ msgstr "ตำแหน่ง X บนผืนผ้าใบมู้ดบอ
 
 msgid "Y position on the moodboard canvas"
 msgstr "ตำแหน่ง Y บนผืนผ้าใบมู้ดบอร์ด"
-
-msgid "Scale"
-msgstr "ขนาด"
 
 msgid "Scale factor for the image"
 msgstr "ตัวประกอบมาตราส่วนของภาพ"
@@ -20910,9 +21057,6 @@ msgstr ""
 "\n"
 "โปรดลองอีกครั้งในอีกสักครู่ หรือพิมพ์ค้นหาด้วยข้อความแทน"
 
-msgid "Showing name matches only ({reason})."
-msgstr "แสดงเฉพาะรายการที่ชื่อตรงกัน ({reason})"
-
 msgid "“{query}” + your image"
 msgstr "“{query}” + ภาพของคุณ"
 
@@ -22696,6 +22840,9 @@ msgstr "โปรเจกต์แอดออน"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "สร้างและดูแลแอดออน Blender หลายไฟล์ที่เชื่อมโยงไว้"
 
+msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
+msgstr ""
+
 msgid "Add-on Project ID"
 msgstr "ID โปรเจกต์แอดออน"
 
@@ -23016,9 +23163,6 @@ msgstr "ข้อความของแถว เช่น 'อ่าน'"
 
 msgid "Row target, e.g. a filename"
 msgstr "เป้าหมายของแถว เช่น ชื่อไฟล์"
-
-msgid "Detail"
-msgstr "รายละเอียด"
 
 msgid "Second-level detail body (command output / snippet)"
 msgstr "เนื้อหารายละเอียดระดับที่สอง (ผลลัพธ์คำสั่ง / ส่วนย่อยของโค้ด)"
@@ -28233,9 +28377,6 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
-
-msgid "Canvas"
-msgstr "ผืนผ้าใบ"
 
 msgid "Shared canvas and page background"
 msgstr "พื้นหลังผืนผ้าใบและหน้าที่ใช้ร่วมกัน"

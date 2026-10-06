@@ -49,6 +49,9 @@ scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server
   Cycles GPU kernels; never a release choice. A clean build is long and an unchanged rebuild short (BUILD-LAMPWAY.md §3).
 - If `distrobox enter` answers `unable to find user`, the numeric `podman exec --user 1000:1000 -w "$PWD" <box> ...` works.
 - Blender returns 0 when a `--python-expr` raises: always pass `--python-exit-code 1`.
+- The launcher hands the server two more things: `LAMPWAY_MODELS_DIR` (the bundled local models, when the build bundled them) and
+  `LAMPWAY_BLENDER` (the binary the server's headless jobs run; defaults to the app's own).
+- The launcher's start banner prints the models directory and, when UE Look is on, the UE look state (`ue_look:` and its OCIO config).
 - Long jobs run as a transient unit or a detached exec polled in the foreground, never a shell `&`. Kill recorded exact PIDs only;
   never a pattern kill. Never launch a window on the captain's desktop unless he asked; offscreen in the box is the default.
 
@@ -62,6 +65,7 @@ scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server
 | client tools on the real binary | `LAMPWAY_BIN=build/<env>/bin/mixar python -m pytest -q tests/lampway_tools` | a built binary; without one they SKIP, which is not a pass |
 | rail | `python3 rail/rail.py selftest && python3 rail/rail.py check` and `python -m pytest -q tests/rail` | git with the history back to the rail's baseline |
 | pre-publish | `python3 scripts/lampway/prepublish_gate.py --self-test` then `--tree .` | Pillow (and ffprobe for `--media`) |
+| algorithm canon | `python3 docs/canon/check_canon.py --self-test && python3 docs/canon/check_canon.py` | numpy, jsonschema |
 
 `bpy` is a MagicMock outside Blender, so operator logic is pinned through source-level or `ast` tests, and behaviour that needs
 Blender runs through `tests/lampway_tools/blender_run.py` against the real binary.
@@ -135,3 +139,6 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | the 500-line limit is a guideline; the rail in the hook | captain: "Those recs are fine" (recommendations 2 and 5) | upstream's 500-line rule read as a gate that nine Lampway modules already broke; the rail ran only in CI | §4b states the limit as a guideline with its one pinned family; §6 names the hook's quick rail check | captain ruling, 2026-10-06 |
 | 2026-10-06 | suite hygiene | the integrator's batches: a full client run left ~25 GB and the coordinator's /tmp filled twice | test homes were never removed, scripts inside the binary wrote to the shared /tmp, and the first-run migration copied the person's real ~/.mixar (109.7 MB) into every test home | run_script owns the binary's TMPDIR and the legacy home; tmp_path_retention_policy = failed in pytest.ini; the temp-files paragraph in section 3 | none |
 | 2026-10-06 | test isolation | the coordinator's stop: 436 private files committed under `@RUN_TMP@/home/…/app/` | a test passed LAMPWAY_HOME="@RUN_TMP@/home" before the harness expanded it; the relative home landed in the repository and the first-run migration copied the person's real ~/.mixar into it | the conftest isolation fixture, the loud refusals in paths.py and run_script, the isolation paragraph in section 3 | none |
+| 2026-10-06 | the canon check among the suites | coordinator: "GO for rail row 1" | the canon's self-tests ran only on the shelf | `docs/canon/check_canon.py` in the suites table (CI: canon.yml) | captain ruling, 2026-10-06 |
+| 2026-10-06 | merge of lp/orphans into lp/wave5 | the integrator's merge: lp/vault-ops added LAMPWAY_MODELS_DIR to the launcher, lp/orphans added LAMPWAY_BLENDER on the same line | two lanes edited the launcher's server-start line; the merged line carries both | the launcher bullet in section 2 names both variables | none |
+| 2026-10-06 | merge of lp/uelook into lp/wave5 | the integrator's merge: lp/vault-ops added a models line and lp/uelook a ue_look line to the launcher's start banner | two lanes appended to the same banner block; the merged banner prints both | the banner bullet in section 2 | none |

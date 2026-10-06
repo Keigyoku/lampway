@@ -174,6 +174,7 @@ def _import(asset, path, sha, opts, target) -> list:
     mod, name = op.split(".")
     before = _snapshot()
     try:
+        # LEGACY(normalize): importer defaults, no lampway_normalize_mesh pass; the canon lane rewires this landing (specs/canon/normalization, N3)
         res = getattr(getattr(bpy.ops, mod), name)(filepath=path)
         if "FINISHED" not in res:
             raise RuntimeError(f"the importer returned {sorted(res)}")

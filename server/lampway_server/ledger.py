@@ -154,6 +154,15 @@ class Ledger:
         self._append(out)
         return out
 
+    def record_event(self, kind: str, row: dict) -> dict:
+        """One row of another kind (a workflow's own events: prototype gates, ...): never an experiment row, never a secret."""
+        if kind in ("experiment", "job", "run"):
+            raise LedgerError(f"kind {kind!r} has its own recorder")
+        out = {"kind": kind, "t": time.time(), **row}
+        reject_secret(out, f"a {kind} ledger row")
+        self._append(out)
+        return out
+
     def list(self, piece: Optional[str] = None, stage: Optional[str] = None, include_superseded: bool = False) -> list:
         rows = [r for r in self.rows("experiment") if piece in (None, r["piece"]) and stage in (None, r["stage"])]
         if include_superseded:

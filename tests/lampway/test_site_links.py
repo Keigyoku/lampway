@@ -34,9 +34,10 @@ HOSTS = {
     "queue.fal.run": "provider: the fal queue (specs/mrmak/12, behind the job receipts and egress)", "fal.ai": "provider: fal's site, named in the price-source note",
     "api.fal.ai": "provider: fal's model/price API", "rest.alpha.fal.ai": "provider: fal's storage upload API",
     "api.meshy.ai": "studio REST API (Meshy)", "api.hyper3d.com": "studio REST API (Hyper3D / Rodin)", "api.hitem3d.ai": "studio REST API (Hi3D)",
-    "openapi.tripo3d.ai": "studio REST API (Tripo)",
-    "ambientcg.com": "CC0 source (asset_seed_cc0; egress route cc0:ambientcg)", "api.polyhaven.com": "CC0 source API (egress route cc0:polyhaven)",
-    "polyhaven.com": "CC0 source (egress route cc0:polyhaven)", "docs.ambientcg.com": "CC0 source documentation", "creativecommons.org": "licence text (CC0)",
+    "openapi.tripo3d.ai": "studio REST API (Tripo)", "api.worldlabs.ai": "provider: World Labs (wave 6 world_gen; egress route world_labs)",
+    "ambientcg.com": "CC0 materials (asset_seed_cc0, the cc0:ambientcg egress route)", "docs.ambientcg.com": "the ambientCG licence page, recorded per asset",
+    "api.polyhaven.com": "CC0 assets (asset_seed_cc0, the cc0:polyhaven egress route)", "polyhaven.com": "Poly Haven asset pages and its licence page",
+    "creativecommons.org": "the CC0 1.0 deed, recorded on the licence row",
     "example.com": "documentation placeholder", "example.invalid": "placeholder", "api.example.test": "test placeholder",
 }
 SCAN = ("src/scripts/mixar", "src/scripts/startup", "server/lampway_server", "scripts", "README.md", "SECURITY.md", "SUPPORT.md", "CODE_OF_CONDUCT.md",

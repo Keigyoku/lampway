@@ -926,6 +926,39 @@ msgstr ""
 "வழிசெலுத்தலையும் வியூபோர்ட் அல்லாத அனைத்து உள்ளீட்டையும் கடக்கவிடுகிறது; வியூபோர்ட்\n"
 "கேன்வாசின் மேல் சொடுக்கல்களையும் தொகுப்புக் குறுக்குவிசைகளையும் எடுத்துக்கொள்கிறது.\n"
 
+msgid "Canvas"
+msgstr "கேன்வாச்"
+
+msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
+msgstr ""
+
+msgid "Open"
+msgstr "திற"
+
+msgid "Fit"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "attach the pan/zoom handling to what is already open"
+msgstr ""
+
+msgid "the lineage layout as JSON, for clicks"
+msgstr ""
+
+msgid "Asset Vault Hotkey"
+msgstr ""
+
+msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
+msgstr ""
+
+msgid "Search the Asset Vault"
+msgstr ""
+
+msgid "Select an asset first"
+msgstr ""
+
 msgid "Search"
 msgstr "தேடல்"
 
@@ -1058,10 +1091,55 @@ msgstr ""
 msgid "The Asset Vault window is already open"
 msgstr ""
 
+msgid "Align clips"
+msgstr ""
+
+msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
+msgstr ""
+
+msgid "Frame 0 with frame 0"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "By timestamp"
+msgstr ""
+
+msgid "Motion"
+msgstr ""
+
+msgid "Where each clip first moves"
+msgstr ""
+
+msgid "Press Compare on a second clip first"
+msgstr ""
+
+msgid "Refresh boards"
+msgstr ""
+
+msgid "Read the Vault's boards"
+msgstr ""
+
+msgid "Open board"
+msgstr ""
+
+msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
 msgid "Searching"
 msgstr ""
 
+msgid "Choose how to line the two clips up"
+msgstr ""
+
 msgid "Show the lineage"
+msgstr ""
+
+msgid "Open on the canvas"
 msgstr ""
 
 msgid "Select an asset"
@@ -1071,6 +1149,12 @@ msgid "Reading the asset"
 msgstr ""
 
 msgid "Copy id"
+msgstr ""
+
+msgid "Close canvas"
+msgstr ""
+
+msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
 msgstr ""
 
 msgid "Asset Vault"
@@ -2608,9 +2692,6 @@ msgstr "பிணையத்தை அடைய முடியவில்ல�
 
 msgid "Network error: {short}"
 msgstr "பிணையப் பிழை: {short}"
-
-msgid "Open"
-msgstr "திற"
 
 msgid "Toast Click"
 msgstr "டோஸ்ட் சொடுக்கு"
@@ -5078,6 +5159,12 @@ msgstr "விலக்கு"
 msgid "Dismiss the error and return to idle"
 msgstr "பிழையை விலக்கி செயலற்ற நிலைக்குத் திரும்புகிறது"
 
+msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
+msgstr ""
+
+msgid "UE Look is on"
+msgstr ""
+
 msgid "Front"
 msgstr "முன்"
 
@@ -5093,10 +5180,31 @@ msgstr "கடினத்தன்மை"
 msgid "Metallic"
 msgstr "உலோகம்"
 
+msgid "Scale"
+msgstr "அளவு"
+
+msgid "Detail"
+msgstr "விவரம்"
+
+msgid "NodeGroupOutput"
+msgstr ""
+
+msgid "GeometryNodeCollectionInfo"
+msgstr ""
+
+msgid "lampway_uv_check"
+msgstr ""
+
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
+msgstr ""
+
+msgid "KiB"
+msgstr ""
+
+msgid "MiB"
 msgstr ""
 
 msgid "Hide this note (the pill stays off; the preference brings it back)"
@@ -5250,6 +5358,15 @@ msgid "Egress"
 msgstr ""
 
 msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Approve patch"
+msgstr ""
+
+msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
+msgstr ""
+
+msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -5678,6 +5795,12 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
+msgid "UE Look"
+msgstr ""
+
+msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
+msgstr ""
+
 msgid "Refresh sessions"
 msgstr ""
 
@@ -5856,6 +5979,15 @@ msgid "Runs and rating of this template version"
 msgstr ""
 
 msgid "No runs yet"
+msgstr ""
+
+msgid "Engine defaults: not the project"
+msgstr ""
+
+msgid "UE Look: on"
+msgstr ""
+
+msgid "UE Look: off"
 msgstr ""
 
 msgid "Show account details"
@@ -6123,6 +6255,24 @@ msgid "Figure height (m)"
 msgstr ""
 
 msgid "0 = the deform mesh's rest height, else head bone to foot bone"
+msgstr ""
+
+msgid "UE profile"
+msgstr ""
+
+msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
+msgstr ""
+
+msgid "Tonemapper cube"
+msgstr ""
+
+msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
+msgstr ""
+
+msgid "Cube sidecar"
+msgstr ""
+
+msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
@@ -8643,9 +8793,6 @@ msgstr "மூட்போர்டு கேன்வாசில் X நி�
 
 msgid "Y position on the moodboard canvas"
 msgstr "மூட்போர்டு கேன்வாசில் Y நிலை"
-
-msgid "Scale"
-msgstr "அளவு"
 
 msgid "Scale factor for the image"
 msgstr "படத்துக்கான அளவுக் காரணி"
@@ -20910,9 +21057,6 @@ msgstr ""
 "\n"
 "சிறிது நேரத்தில் மீண்டும் முயலவும், அல்லது அதற்குப் பதிலாக உரைத் தேடலைத் தட்டச்சு செய்யவும்."
 
-msgid "Showing name matches only ({reason})."
-msgstr "பெயர் பொருத்தங்கள் மட்டும் காட்டப்படுகின்றன ({reason})."
-
 msgid "“{query}” + your image"
 msgstr "“{query}” + உங்கள் படம்"
 
@@ -22696,6 +22840,9 @@ msgstr "துணை நிரல் திட்டம்"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "இணைத்த பல கோப்பு Blender துணை நிரலைக் கட்டிப் பராமரி"
 
+msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
+msgstr ""
+
 msgid "Add-on Project ID"
 msgstr "துணை நிரல் திட்ட அடையாளம்"
 
@@ -23016,9 +23163,6 @@ msgstr "நிரைச் சிட்டை, எ.கா. 'படி'"
 
 msgid "Row target, e.g. a filename"
 msgstr "நிரை இலக்கு, எ.கா. ஒரு கோப்புப் பெயர்"
-
-msgid "Detail"
-msgstr "விவரம்"
 
 msgid "Second-level detail body (command output / snippet)"
 msgstr "இரண்டாம் நிலை விவர உடல் (கட்டளை வெளியீடு / துணுக்கு)"
@@ -28233,9 +28377,6 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
-
-msgid "Canvas"
-msgstr "கேன்வாச்"
 
 msgid "Shared canvas and page background"
 msgstr "பகிர்ந்த கேன்வாச் மற்றும் பக்கப் பின்னணி"

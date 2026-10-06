@@ -25,6 +25,7 @@ from . import jobs_client
 from . import render as R
 
 generate_image = jobs_client.generate_image          # the slot; tests and other engines replace this name
+record_run = jobs_client.record_ledger               # the ledger door; tests replace this name
 
 
 def _texel_samples(ob, size):
@@ -221,26 +222,115 @@ def project_views(object, views, size=1024, out="", occlusion=True, power=4.0, a
                        "note": "no occlusion test on a concave mesh seen head-on would paint hidden surfaces: leave occlusion on"}}
 
 
-def texture_gen(object, prompt, out_dir, views=("Front", "Back"), size=1024, engine="algorithmic", clay_size=768, occlusion=True):
+def _delight(path, out):
+    """Flatten baked lighting: divide the subject's colour by its low-frequency luminance (a masked blur at 1/12 of the image), normalised to its mean."""
+    from PIL import Image
+    from ..pipeline.imgops import gaussian
+    im = Image.open(path).convert("RGBA")
+    a = np.asarray(im).astype(np.float64) / 255.0
+    rgb = a[..., :3]
+    if (a[..., 3] < 0.98).any():
+        m = a[..., 3] > 0.5
+    else:
+        m = np.abs(rgb - rgb[0, 0]).sum(axis=2) > 40 / 255.0
+    lum = rgb @ np.array([0.2126, 0.7152, 0.0722])
+    small = 64
+    sl = np.asarray(Image.fromarray((lum * m * 255).astype(np.uint8)).resize((small, small), Image.BILINEAR)).astype(np.float64) / 255.0
+    sm = np.asarray(Image.fromarray((m * 255).astype(np.uint8)).resize((small, small), Image.BILINEAR)).astype(np.float64) / 255.0
+    sigma = small / 12.0
+    blur = gaussian(sl, sigma) / np.maximum(gaussian(sm, sigma), 1e-6)
+    big = np.asarray(Image.fromarray((np.clip(blur, 0, 1) * 255).astype(np.uint8)).resize(im.size, Image.BILINEAR)).astype(np.float64) / 255.0
+    mean = float(lum[m].mean()) if m.any() else 1.0
+    gain = np.where(m, mean / np.maximum(big, 0.05), 1.0)
+    rgb2 = np.clip(rgb * gain[..., None], 0, 1)
+    out_a = np.dstack([rgb2, a[..., 3:4]])
+    Image.fromarray((out_a * 255).round().astype(np.uint8), "RGBA").save(out)
+    return out
+
+
+def _sha(path) -> str:
+    import hashlib
+    with open(path, "rb") as fh:
+        return hashlib.sha256(fh.read()).hexdigest()
+
+
+def texture_gen(object, prompt, out_dir, views=("Front", "Back"), size=1024, engine="algorithmic", clay_size=768, occlusion=True, reference_image="", count=1,
+                keep_original=True, record=True, piece="", delight=False, min_coverage=0.6):
+    """Clay render per view -> the image slot paints it (``count`` variants, the best silhouette IoU against the clay kept) -> projection into the UV atlas
+    of a COPY ``<object>_tex`` (keep_original) -> a ledger row. A material reference (``reference_image``) rides as the SECOND image. The views' coverage is
+    measured on the clay renders first: under ``min_coverage`` the run is refused before anything is paid."""
     if engine != "algorithmic":
         return C.studio_slot("texture", engine)
+    import hashlib
+    from ..meshpaint import silhouette_iou
     ob = C.need_object(object)
+    views = list(views)
+    count = int(count)
+    if not 1 <= count <= 4:
+        raise C.FeatureError("count is 1..4 variants per view")
+    if not ob.data.uv_layers:
+        raise C.FeatureError(f"{ob.name!r} has no UV layer: unwrap it first (lampway_uv_unwrap)")
+    ref_bytes = None
+    if reference_image:
+        if not os.path.exists(reference_image):
+            raise FileNotFoundError(f"reference_image {reference_image} not found")
+        with open(reference_image, "rb") as fh:
+            ref_bytes = fh.read()
     os.makedirs(out_dir, exist_ok=True)
-    painted = {}
+    clays = {}
     for view in views:
         clay = os.path.join(out_dir, f"clay_{view}.png")
         R.render_view(ob, view, clay_size, clay)
+        clays[view] = clay
+    cov = project_views(ob.name, clays, min(int(size), 256), os.path.join(out_dir, "coverage_clay.png"), occlusion, apply=False)["report"]["coverage"]
+    if cov < float(min_coverage):
+        raise C.FeatureError(f"the views {views} cover {cov:.0%} of the surface (< {float(min_coverage):.0%}): add Back/Left/Right views; nothing was generated or paid")
+    painted, picks = {}, {}
+    for view in views:
         full = (f"{prompt}. Paint ONLY the flat albedo colour of this object as seen from its {view.lower()}: no lighting, no shadows, "
                 "no background, keep the silhouette and every shape exactly as in the reference image.")
-        with open(clay, "rb") as fh:
-            images = generate_image(full, fh.read(), 1)
-        target = os.path.join(out_dir, f"gen_{view}.png")
-        with open(target, "wb") as fh:
-            fh.write(images[0])
+        if ref_bytes:
+            full += " The second image is a material reference: match its material, colour and surface finish, not its shape."
+        with open(clays[view], "rb") as fh:
+            clay_png = fh.read()
+        images = generate_image(full, clay_png, count, extra_references=[ref_bytes]) if ref_bytes else generate_image(full, clay_png, count)
+        if count == 1:
+            target = os.path.join(out_dir, f"gen_{view}.png")
+            with open(target, "wb") as fh:
+                fh.write(images[0])
+        else:
+            files, ious = [], []
+            for k, data in enumerate(images[:count], 1):
+                f = os.path.join(out_dir, f"gen_{view}_{k}.png")
+                with open(f, "wb") as fh:
+                    fh.write(data)
+                files.append(f)
+                ious.append(round(silhouette_iou(clays[view], f), 4))
+            best = int(np.argmax(ious))
+            target = files[best]
+            picks[view] = {"variant": best + 1, "iou": ious[best], "ious": ious}
+        if delight:
+            target = _delight(target, target.rsplit(".", 1)[0] + "_delit.png")
         painted[view] = target
-    res = project_views(ob.name, painted, size, os.path.join(out_dir, "atlas.png"), occlusion)
-    res["views"] = painted
-    res["slot"] = "image_gen (the server's image model)"
+    dest = ob
+    if keep_original:
+        dest = C.duplicate(ob, "_tex")
+    res = project_views(dest.name, painted, size, os.path.join(out_dir, "atlas.png"), occlusion)
+    res.update({"views": painted, "slot": "image_gen (the server's image model)", "source": ob.name, "picks": picks, "delight": bool(delight),
+                "reference_image": os.path.basename(reference_image) if reference_image else None, "coverage_before_paying": cov})
+    if record:
+        row = {"piece": piece or ob.name, "stage": "texture", "studio": "local", "seed": "not_exposed", "by": "agent", "model_version": None,
+               "settings": {"views": views, "size": int(size), "count": count, "clay_size": int(clay_size), "occlusion": bool(occlusion), "delight": bool(delight),
+                            "keep_original": bool(keep_original), "reference_image": res["reference_image"], "image_slot": "server image_gen (job queue)"},
+               "prompt_hash": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+               "reference_hashes": [_sha(clays[v]) for v in views] + ([hashlib.sha256(ref_bytes).hexdigest()] if ref_bytes else []),
+               "output_hashes": [_sha(painted[v]) for v in views] + [_sha(res["atlas"])], "cost": {},
+               "reason": "texture_gen run: the image jobs carry their own price rows (match them by output hash)"}
+        try:
+            stored = record_run(row)
+            res["ledger"] = {"recorded": True, "id": (stored or {}).get("id")}
+        except Exception as exc:  # noqa: BLE001 - the images are made: the run stands, the missing row is said
+            res["ledger"] = {"recorded": False, "error": str(exc), "row": row}
     return res
 
 

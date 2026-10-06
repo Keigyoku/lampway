@@ -1144,6 +1144,39 @@ msgstr ""
 "Propušta navigaciju i sav unos van prikaza; upija\n"
 "klikove i prečice za uređivanje nad platnom prikaza.\n"
 
+msgid "Canvas"
+msgstr "Platno"
+
+msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
+msgstr ""
+
+msgid "Open"
+msgstr "Otvori"
+
+msgid "Fit"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "attach the pan/zoom handling to what is already open"
+msgstr ""
+
+msgid "the lineage layout as JSON, for clicks"
+msgstr ""
+
+msgid "Asset Vault Hotkey"
+msgstr ""
+
+msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
+msgstr ""
+
+msgid "Search the Asset Vault"
+msgstr ""
+
+msgid "Select an asset first"
+msgstr ""
+
 msgid "Search"
 msgstr "Pretraga"
 
@@ -1276,10 +1309,55 @@ msgstr ""
 msgid "The Asset Vault window is already open"
 msgstr ""
 
+msgid "Align clips"
+msgstr ""
+
+msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
+msgstr ""
+
+msgid "Frame 0 with frame 0"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "By timestamp"
+msgstr ""
+
+msgid "Motion"
+msgstr ""
+
+msgid "Where each clip first moves"
+msgstr ""
+
+msgid "Press Compare on a second clip first"
+msgstr ""
+
+msgid "Refresh boards"
+msgstr ""
+
+msgid "Read the Vault's boards"
+msgstr ""
+
+msgid "Open board"
+msgstr ""
+
+msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
 msgid "Searching"
 msgstr ""
 
+msgid "Choose how to line the two clips up"
+msgstr ""
+
 msgid "Show the lineage"
+msgstr ""
+
+msgid "Open on the canvas"
 msgstr ""
 
 msgid "Select an asset"
@@ -1289,6 +1367,12 @@ msgid "Reading the asset"
 msgstr ""
 
 msgid "Copy id"
+msgstr ""
+
+msgid "Close canvas"
+msgstr ""
+
+msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
 msgstr ""
 
 msgid "Asset Vault"
@@ -3277,9 +3361,6 @@ msgstr "Mreža je nedostupna."
 # derived
 msgid "Network error: {short}"
 msgstr "Mrežna greška: {short}"
-
-msgid "Open"
-msgstr "Otvori"
 
 # derived
 msgid "Toast Click"
@@ -6406,6 +6487,12 @@ msgstr "Odbaci"
 msgid "Dismiss the error and return to idle"
 msgstr "Odbacuje grešku i vraća se u neaktivno"
 
+msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
+msgstr ""
+
+msgid "UE Look is on"
+msgstr ""
+
 msgid "Front"
 msgstr "Spreda"
 
@@ -6422,10 +6509,31 @@ msgstr "Hrapavost"
 msgid "Metallic"
 msgstr "Metalik"
 
+msgid "Scale"
+msgstr "Uvećanje"
+
+msgid "Detail"
+msgstr "Detaljnost"
+
+msgid "NodeGroupOutput"
+msgstr ""
+
+msgid "GeometryNodeCollectionInfo"
+msgstr ""
+
+msgid "lampway_uv_check"
+msgstr ""
+
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
+msgstr ""
+
+msgid "KiB"
+msgstr ""
+
+msgid "MiB"
 msgstr ""
 
 msgid "Hide this note (the pill stays off; the preference brings it back)"
@@ -6581,6 +6689,15 @@ msgid "Egress"
 msgstr ""
 
 msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Approve patch"
+msgstr ""
+
+msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
+msgstr ""
+
+msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -7009,6 +7126,12 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
+msgid "UE Look"
+msgstr ""
+
+msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
+msgstr ""
+
 msgid "Refresh sessions"
 msgstr ""
 
@@ -7188,6 +7311,15 @@ msgid "Runs and rating of this template version"
 msgstr ""
 
 msgid "No runs yet"
+msgstr ""
+
+msgid "Engine defaults: not the project"
+msgstr ""
+
+msgid "UE Look: on"
+msgstr ""
+
+msgid "UE Look: off"
 msgstr ""
 
 msgid "Show account details"
@@ -7458,6 +7590,24 @@ msgid "Figure height (m)"
 msgstr ""
 
 msgid "0 = the deform mesh's rest height, else head bone to foot bone"
+msgstr ""
+
+msgid "UE profile"
+msgstr ""
+
+msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
+msgstr ""
+
+msgid "Tonemapper cube"
+msgstr ""
+
+msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
+msgstr ""
+
+msgid "Cube sidecar"
+msgstr ""
+
+msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 # derived
@@ -10696,9 +10846,6 @@ msgstr "Pozicija X na platnu mudborda"
 # derived
 msgid "Y position on the moodboard canvas"
 msgstr "Pozicija Y na platnu mudborda"
-
-msgid "Scale"
-msgstr "Uvećanje"
 
 # derived
 msgid "Scale factor for the image"
@@ -26666,10 +26813,6 @@ msgstr ""
 "Pokušajte ponovo za trenutak ili umesto toga unesite tekstualnu pretragu."
 
 # derived
-msgid "Showing name matches only ({reason})."
-msgstr "Prikazana su samo poklapanja imena ({reason})."
-
-# derived
 msgid "“{query}” + your image"
 msgstr "„{query}“ + vaša slika"
 
@@ -28951,6 +29094,9 @@ msgstr "Projekat dodatka"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "Gradi i održava povezani dodatak za Blender od više datoteka"
 
+msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
+msgstr ""
+
 # derived
 msgid "Add-on Project ID"
 msgstr "ID projekta dodatka"
@@ -29368,9 +29514,6 @@ msgstr "Naziv reda, npr. „Čitanje“"
 # derived
 msgid "Row target, e.g. a filename"
 msgstr "Cilj reda, npr. ime datoteke"
-
-msgid "Detail"
-msgstr "Detaljnost"
 
 # derived
 msgid "Second-level detail body (command output / snippet)"
@@ -35900,9 +36043,6 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
-
-msgid "Canvas"
-msgstr "Platno"
 
 # derived
 msgid "Shared canvas and page background"

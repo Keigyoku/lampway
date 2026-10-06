@@ -64,15 +64,11 @@ def _readback(fbx, joints):
             bpy.data.armatures.remove(a)
 
 
-def run(object, armature, out_dir, body, textures, validation, bind_check, note, allow_unverified, root, bone_axis="Z"):
-    ob = C.need_object(object)
-    arm = C.need_object(armature, "ARMATURE")
-    out = Path(root) / out_dir
-    if out.exists():
-        raise C.FeatureError(f"{out_dir} exists: a tag directory is never reused (pick a new one)")
-    pkg = Path(body)
+def gates(ob, body, textures, validation, bind_check, allow_unverified, root):
+    """Every gate of a rigged export of ``ob`` against the body package, in order; returns what the export needs. Shared with
+    ue_export's skinned_piece path (specs/ue_parity/contracts/ue_export.md §8: fit_export's gates)."""
     FB.verify(body)
-    joints = json.loads((pkg / "joints.json").read_text())["joints"]
+    joints = json.loads((Path(body) / "joints.json").read_text())["joints"]
     val = _json(root, validation, "validation")
     counts = (val.get("summary") or {}).get("counts", {})
     if counts.get("FAIL", 0) or counts.get("UNPROVEN", 0):
@@ -94,6 +90,17 @@ def run(object, armature, out_dir, body, textures, validation, bind_check, note,
         mj = t.parent / "merge.json"
         if mj.exists() and json.loads(mj.read_text()).get("mesh_sha256") not in (None, mesh_sha):
             raise C.FeatureError(f"the textures predate the openings/bind geometry (their merge.json names another mesh): re-run steps 13-14 (a geometry step discards the texture)")
+    return {"joints": joints, "counts": counts, "roles": roles, "mesh_sha256": mesh_sha, "textures": tex_paths, "validation": val}
+
+
+def run(object, armature, out_dir, body, textures, validation, bind_check, note, allow_unverified, root, bone_axis="Z"):
+    ob = C.need_object(object)
+    arm = C.need_object(armature, "ARMATURE")
+    out = Path(root) / out_dir
+    if out.exists():
+        raise C.FeatureError(f"{out_dir} exists: a tag directory is never reused (pick a new one)")
+    g = gates(ob, body, textures, validation, bind_check, allow_unverified, root)
+    joints, counts, roles, mesh_sha, tex_paths, val = g["joints"], g["counts"], g["roles"], g["mesh_sha256"], g["textures"], g["validation"]
     out.mkdir(parents=True)
     fbx = out / f"{ob.name}.fbx"
     sel = [o for o in bpy.context.view_layer.objects if o.select_get()]

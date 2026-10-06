@@ -1,0 +1,179 @@
+{
+ "base_case": {
+  "cage_extrusion": 0.06,
+  "hit_fraction": 1.0,
+  "max_ray": 0.12,
+  "rule": "the cage must ENCLOSE the high-poly (extrusion >= its greatest height above the low-poly) and the ray must reach its greatest depth below (max_ray >= extrusion + depth)"
+ },
+ "dx_is_gl_green_flipped": true,
+ "samples": [
+  {
+   "normal_tangent": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "rgb_dx": [
+    0.5,
+    0.5,
+    1.0
+   ],
+   "rgb_gl": [
+    0.5,
+    0.5,
+    1.0
+   ],
+   "uv": [
+    0.5,
+    0.5
+   ]
+  },
+  {
+   "normal_tangent": [
+    0.2,
+    0.0,
+    0.979795897
+   ],
+   "rgb_dx": [
+    0.6,
+    0.5,
+    0.989897949
+   ],
+   "rgb_gl": [
+    0.6,
+    0.5,
+    0.989897949
+   ],
+   "uv": [
+    0.55,
+    0.5
+   ]
+  },
+  {
+   "normal_tangent": [
+    0.0,
+    0.4,
+    0.916515139
+   ],
+   "rgb_dx": [
+    0.5,
+    0.3,
+    0.958257569
+   ],
+   "rgb_gl": [
+    0.5,
+    0.7,
+    0.958257569
+   ],
+   "uv": [
+    0.5,
+    0.6
+   ]
+  },
+  {
+   "normal_tangent": [
+    0.32,
+    0.32,
+    0.891739872
+   ],
+   "rgb_dx": [
+    0.66,
+    0.34,
+    0.945869936
+   ],
+   "rgb_gl": [
+    0.66,
+    0.66,
+    0.945869936
+   ],
+   "uv": [
+    0.58,
+    0.58
+   ]
+  },
+  {
+   "normal_tangent": [
+    0.48,
+    0.0,
+    0.877268488
+   ],
+   "rgb_dx": [
+    0.74,
+    0.5,
+    0.938634244
+   ],
+   "rgb_gl": [
+    0.74,
+    0.5,
+    0.938634244
+   ],
+   "uv": [
+    0.62,
+    0.5
+   ]
+  },
+  {
+   "normal_tangent": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "rgb_dx": [
+    0.5,
+    0.5,
+    1.0
+   ],
+   "rgb_gl": [
+    0.5,
+    0.5,
+    1.0
+   ],
+   "uv": [
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "normal_tangent": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "rgb_dx": [
+    0.5,
+    0.5,
+    1.0
+   ],
+   "rgb_gl": [
+    0.5,
+    0.5,
+    1.0
+   ],
+   "uv": [
+    0.1,
+    0.5
+   ]
+  }
+ ],
+ "sunk_variant": {
+  "cage_extrusion": 0.06,
+  "hp_offset_z": -0.01,
+  "max_ray_0p5x_cage": {
+   "hit_fraction_max": 0.03,
+   "max_ray": 0.03,
+   "why": "rays from the cage (z=+0.06) travel 0.03 and stop at z=+0.03: the sunk plane (z=-0.01) and most of the cap are missed; only the cap's top (rho <= 0.07 m, area 0.0154) is hit"
+  },
+  "max_ray_2x_cage": {
+   "hit_fraction": 1.0,
+   "max_ray": 0.12
+  }
+ },
+ "surface": {
+  "cap_base_radius": 0.15,
+  "cap_height": 0.05,
+  "sphere_centre_z": -0.2,
+  "sphere_radius": 0.25
+ },
+ "tol_normal": 0.02,
+ "tol_rgb": 0.01
+}
