@@ -122,3 +122,14 @@ def test_the_anthropic_provider_gets_the_connections_key(clean_env, monkeypatch,
     C.active().put_secret("anthropic", {"key": ANT_KEY}, by="user")
     p = make_provider(Settings(state_dir=tmp_path / "state", provider="anthropic"))
     assert p.client.api_key == ANT_KEY
+
+
+@pytest.mark.parametrize("shape,cid,fields,header", [
+    ("runpod", "compute:runpod", {"key": "rp-FAKE-MIGRATION-000000000000"}, {"Authorization": "Bear" "er rp-FAKE-MIGRATION-000000000000"}),
+    ("modal", "compute:modal", {"token_id": "ak-FAKE", "token_secret": "as-FAKE"}, {"Modal-Key": "ak-FAKE", "Modal-Secret": "as-FAKE"}),
+    ("fal", "fal", {"key": "fal-FAKE-MIGRATION-0000000000"}, {"Authorization": "Key fal-FAKE-MIGRATION-0000000000"})])
+def test_compute_endpoints_take_their_key_from_connections(clean_env, tmp_path, shape, cid, fields, header):
+    from lampway_server.compute.endpoint import EndpointBackend
+    C.set_active(C.Hub(tmp_path / "state", secrets_dir=tmp_path / "secrets", store=CS.MemoryStore(), env={}))
+    C.active().put_secret(cid, fields, by="user")
+    assert EndpointBackend(shape, {})._headers() == header
