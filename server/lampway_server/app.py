@@ -382,7 +382,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
             return JSONResponse({"detail": f"material generation failed: {type(exc).__name__}"}, status_code=502)
         return JSONResponse(material.as_dict())
 
-    mcp = McpServer(hub, agent)
+    mcp = McpServer(hub, agent, ledger=Ledger(Ledger_default_path()), caps=lambda: {"video_max_job_usd": settings.video_max_job_usd})
 
     def _metadata(value):
         """The form's ``metadata`` JSON list, or None when it is not a list of objects."""
