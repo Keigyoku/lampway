@@ -9,6 +9,7 @@
 #   scripts/lampway/build_linux.sh --plan       # resolve and print what WOULD be used
 #   scripts/lampway/build_linux.sh --check-deps # exit 2 naming any missing build tool
 #   scripts/lampway/build_linux.sh --sync-only  # submodules + libs, no compile
+#   scripts/lampway/build_linux.sh --models-only # bundle the Asset Vault embedding weights only
 #
 # Every step is a no-op when its result is already in place, so re-running after
 # a failure (or a `git pull`) only does the remaining work. Run it INSIDE the
@@ -24,8 +25,10 @@
 #   BUILD_CORES          parallel jobs (default: nproc, via settings.sh)
 #   LAMPWAY_MIN_FREE_GB  refuse to start a big step below this (default 100)
 #   LAMPWAY_LOG_DIR      where build logs go (default build/logs)
+#   LAMPWAY_SKIP_MODELS  1 = do not bundle the embedding weights (the install then
+#                        offers the one-click fetch instead)
 #
-# Exit codes: 0 ok, 2 missing tools, 3 .env conflict, 4 disk floor, 5 pin or
+# Exit codes: 0 ok, 2 missing tools, 3 .env conflict, 4 disk floor, 5 pin, model checksum or
 # binary verification failed, 1 anything else.
 
 set -euo pipefail
@@ -41,6 +44,10 @@ LAMPWAY_MIN_FREE_GB="${LAMPWAY_MIN_FREE_GB:-100}"
 LAMPWAY_LOG_DIR="${LAMPWAY_LOG_DIR:-$ROOT_DIR/build/logs}"
 LIB_SUBMODULE="lib/linux_x64"
 BINARY="$ROOT_DIR/build/$MIXAR_ENV/bin/mixar"
+# The Asset Vault's open-weights embedding models ship inside the install's data
+# directory (5.2 = the pinned upstream's version directory). The launcher points
+# the server at it with LAMPWAY_MODELS_DIR; nothing is fetched at runtime.
+MODELS_DIR="$ROOT_DIR/build/$MIXAR_ENV/bin/5.2/datafiles/lampway/models"
 MIN_COMPILER_MAJOR=14
 
 # Compiler: an explicit CC/CXX wins; otherwise prefer the versioned GCC 14
@@ -263,7 +270,20 @@ build_dir=$ROOT_DIR/build/$MIXAR_ENV
 binary=$BINARY
 log_dir=$LAMPWAY_LOG_DIR
 min_free_gb=$LAMPWAY_MIN_FREE_GB
+models_dir=$MODELS_DIR
 EOF
+}
+
+# The embedding weights: pinned in server/lampway_server/library/models.json,
+# fetched and sha256-checked by fetch_models.py, never committed to git.
+bundle_models() {
+    if [[ "${LAMPWAY_SKIP_MODELS:-0}" == 1 ]]; then
+        say "LAMPWAY_SKIP_MODELS=1: the embedding weights are not bundled"
+        return 0
+    fi
+    say "bundling the embedding models into $MODELS_DIR"
+    python3 "$ROOT_DIR/scripts/lampway/fetch_models.py" --dest "$MODELS_DIR" \
+        || { _rc=5 die "bundling the embedding models failed (see above); LAMPWAY_SKIP_MODELS=1 builds without them"; }
 }
 
 build() {
@@ -306,7 +326,7 @@ build() {
     echo "$BINARY"
 }
 
-usage() { sed -n '7,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '7,32p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
 main() {
     local mode="build"
@@ -315,6 +335,7 @@ main() {
         --plan) mode=plan ;;
         --check-deps) mode=deps ;;
         --sync-only) mode=sync ;;
+        --models-only) mode=models ;;
         -h|--help) usage; exit 0 ;;
         *) usage >&2; exit 1 ;;
     esac
@@ -323,6 +344,7 @@ main() {
     case "$mode" in
         plan) print_plan; exit 0 ;;
         deps) check_deps; exit $? ;;
+        models) bundle_models; exit 0 ;;
     esac
     check_deps || exit $?
 
@@ -334,6 +356,7 @@ main() {
 
     require_disk "compile"
     build
+    bundle_models
 }
 
 main "$@"

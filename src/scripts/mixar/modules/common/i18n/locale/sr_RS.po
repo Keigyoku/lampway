@@ -926,6 +926,186 @@ msgstr ""
 "Пропушта навигацију и сав унос ван приказа; упија\n"
 "кликове и пречице за уређивање над платном приказа.\n"
 
+msgid "Search"
+msgstr "Претрага"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "Филтер"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "Пребаци"
+
+msgid "Range"
+msgstr "Опсег"
+
+msgid "Page"
+msgstr "Страна"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "Следеча реч"
+
+msgid "Previous"
+msgstr "Претходни"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "Стопа"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "Поглед"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "Упореди"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "Копирај"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "Име"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "Мрежа"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "радник прегледа је изашао пре рендеровања овог ресурса"
 
@@ -1030,9 +1210,6 @@ msgstr "Референтна слика (опционо)"
 
 msgid "Searching…"
 msgstr "Претрага…"
-
-msgid "Search"
-msgstr "Претрага"
 
 msgid "{count} result(s)"
 msgstr "Резултати: {count}"
@@ -1940,6 +2117,54 @@ msgstr "Тачно када сервер пријави byok_active за ово�
 msgid "Dialog State"
 msgstr "Стање дијалога"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "Постави режим Lampway Agent"
 
@@ -2354,9 +2579,6 @@ msgstr "Направљено (unix секунде)"
 msgid "Frozen Elapsed"
 msgstr "Заустављено протекло време"
 
-msgid "Filter"
-msgstr "Филтер"
-
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2587,9 +2809,6 @@ msgstr "Подножје"
 
 msgid "Confirm"
 msgstr "Потврди"
-
-msgid "Grid"
-msgstr "Мрежа"
 
 msgid "Disabled action"
 msgstr "Онемогућена радња"
@@ -3638,9 +3857,6 @@ msgstr "Камера"
 msgid "Using {name}"
 msgstr "Користи се {name}"
 
-msgid "Range"
-msgstr "Опсег"
-
 msgid "Videos"
 msgstr "Видео-снимци"
 
@@ -3926,17 +4142,11 @@ msgstr "Пребаци мрежу"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Приказује или скрива линије мреже приказа (мрежа пода и осе X/Y)"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "Пребаци"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5210,9 +5420,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "Стопа"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5259,9 +5466,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5363,9 +5567,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5461,9 +5662,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "Име"
 
 msgid "Read to Text"
 msgstr ""
@@ -6070,9 +6268,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "Копирај"
 
 msgid "Open Config File"
 msgstr ""
@@ -8457,9 +8652,6 @@ msgstr "Име компоненте"
 
 msgid "Named character component represented by this image"
 msgstr "Именована компонента лика коју представља ова слика"
-
-msgid "View"
-msgstr "Поглед"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Угао камере који ова слика приказује. Има смисла само док слика припада скупу више погледа — шаље се уз улазну слику картице као тај угао"
@@ -17340,30 +17532,6 @@ msgstr "Поново испеци канале"
 msgid "Bake channels first to enable export"
 msgstr "Прво испеците канале да бисте омогућили извоз"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "Панел збирке ресурса — приказује процедуралне материјале из позадинског система сликања"
-
-msgid "{count} categories available"
-msgstr "Доступних категорија: {count}"
-
-msgid "Open Material Library"
-msgstr "Отвори збирку материјала"
-
-msgid "No materials loaded"
-msgstr "Ниједан материјал није учитан"
-
-msgid "Material registry unavailable"
-msgstr "Регистар материјала није доступан"
-
-msgid "Smart Materials"
-msgstr "Паметни материјали"
-
-msgid "Coming soon"
-msgstr "Ускоро"
-
-msgid "Brushes"
-msgstr "Четкице"
-
 msgid "Baked Maps"
 msgstr "Испечене мапе"
 
@@ -19319,9 +19487,6 @@ msgstr "Мапирање нормала у простору света, сагл
 
 msgid "Replace"
 msgstr "Замени"
-
-msgid "Compare"
-msgstr "Упореди"
 
 msgid "Use layer's source texture/color"
 msgstr "Користи изворну текстуру или боју слоја"
@@ -25441,9 +25606,6 @@ msgstr "Клизај"
 msgid "Scroll library content"
 msgstr "Померај садржај збирке"
 
-msgid "Page"
-msgstr "Страна"
-
 msgid "Move by the viewport height"
 msgstr "Помери за висину приказа"
 
@@ -25524,12 +25686,6 @@ msgstr "Одустани од овог задатка"
 
 msgid "Select this job"
 msgstr "Изабери овај задатак"
-
-msgid "Previous"
-msgstr "Претходни"
-
-msgid "Next"
-msgstr "Следеча реч"
 
 msgid "Browse queue jobs"
 msgstr "Прегледај задатке у реду"
@@ -27669,9 +27825,6 @@ msgstr "Особине текстурисања"
 
 msgid "Layer and texture properties"
 msgstr "Особине слоја и текстуре"
-
-msgid "Asset Vault"
-msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Збирка паметних материјала, четкица и текстура"

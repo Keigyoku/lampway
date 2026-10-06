@@ -926,6 +926,186 @@ msgstr ""
 "ยอมให้การนำทางและอินพุตทั้งหมดที่ไม่ใช่วิวพอร์ตผ่านไป แต่ดักจับ\n"
 "การคลิกและปุ่มลัดการแก้ไขบนพื้นที่วิวพอร์ต\n"
 
+msgid "Search"
+msgstr "ค้นหา"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "ตัวกรอง"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "สลับ"
+
+msgid "Range"
+msgstr "ช่วง"
+
+msgid "Page"
+msgstr "หน้า"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "ถัดไป"
+
+msgid "Previous"
+msgstr "ก่อนหน้า"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "อัตรา"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "มุมมอง"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "เปรียบเทียบ"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "คัดลอก"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "ชื่อ"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "ตาราง"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "ตัวทำงานภาพตัวอย่างปิดตัวลงก่อนเรนเดอร์สินทรัพย์นี้"
 
@@ -1030,9 +1210,6 @@ msgstr "ภาพอ้างอิง (ไม่บังคับ)"
 
 msgid "Searching…"
 msgstr "กำลังค้นหา…"
-
-msgid "Search"
-msgstr "ค้นหา"
 
 msgid "{count} result(s)"
 msgstr "{count} ผลลัพธ์"
@@ -1940,6 +2117,54 @@ msgstr "เป็นจริงเมื่อเซิร์ฟเวอร์
 msgid "Dialog State"
 msgstr "สถานะกล่องโต้ตอบ"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "ตั้งโหมด Lampway Agent"
 
@@ -2354,9 +2579,6 @@ msgstr "สร้างเมื่อ (วินาที unix)"
 msgid "Frozen Elapsed"
 msgstr "เวลาที่ผ่านไปที่ตรึงไว้"
 
-msgid "Filter"
-msgstr "ตัวกรอง"
-
 msgid "{message} ({code})"
 msgstr ""
 
@@ -2587,9 +2809,6 @@ msgstr "ส่วนท้าย"
 
 msgid "Confirm"
 msgstr "ยืนยัน"
-
-msgid "Grid"
-msgstr "ตาราง"
 
 msgid "Disabled action"
 msgstr "การกระทำที่ปิดใช้งาน"
@@ -3638,9 +3857,6 @@ msgstr "กล้อง"
 msgid "Using {name}"
 msgstr "ใช้ {name}"
 
-msgid "Range"
-msgstr "ช่วง"
-
 msgid "Videos"
 msgstr "วิดีโอ"
 
@@ -3926,17 +4142,11 @@ msgstr "สลับตาราง"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "แสดงหรือซ่อนเส้นตารางของวิวพอร์ต (ตารางพื้นและแกน X/Y)"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "สลับ"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5210,9 +5420,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "อัตรา"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5259,9 +5466,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5363,9 +5567,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5461,9 +5662,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "ชื่อ"
 
 msgid "Read to Text"
 msgstr ""
@@ -6070,9 +6268,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "คัดลอก"
 
 msgid "Open Config File"
 msgstr ""
@@ -8457,9 +8652,6 @@ msgstr "ชื่อส่วนประกอบ"
 
 msgid "Named character component represented by this image"
 msgstr "ส่วนประกอบตัวละครที่มีชื่อซึ่งภาพนี้แสดง"
-
-msgid "View"
-msgstr "มุมมอง"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "มุมกล้องที่ภาพนี้แสดง มีความหมายเฉพาะขณะที่ภาพอยู่ในชุดหลายมุมมอง — ภาพจะถูกส่งไปพร้อมภาพอินพุตของแท็บเป็นมุมนั้น"
@@ -17340,30 +17532,6 @@ msgstr "อบช่องใหม่"
 msgid "Bake channels first to enable export"
 msgstr "อบช่องก่อนเพื่อเปิดใช้การส่งออก"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "แผงคลังสินทรัพย์ - แสดงวัสดุเชิงกระบวนการจากแบ็กเอนด์ระบายสี"
-
-msgid "{count} categories available"
-msgstr "มี {count} หมวดหมู่"
-
-msgid "Open Material Library"
-msgstr "เปิดคลังวัสดุ"
-
-msgid "No materials loaded"
-msgstr "ไม่มีวัสดุที่โหลด"
-
-msgid "Material registry unavailable"
-msgstr "รีจิสทรีวัสดุไม่พร้อมใช้งาน"
-
-msgid "Smart Materials"
-msgstr "วัสดุอัจฉริยะ"
-
-msgid "Coming soon"
-msgstr "เร็วๆ นี้"
-
-msgid "Brushes"
-msgstr "แปรงสี"
-
 msgid "Baked Maps"
 msgstr "แผนที่ที่อบแล้ว"
 
@@ -19319,9 +19487,6 @@ msgstr "การแมปแนวฉากในปริภูมิโลก
 
 msgid "Replace"
 msgstr "แทนที่"
-
-msgid "Compare"
-msgstr "เปรียบเทียบ"
 
 msgid "Use layer's source texture/color"
 msgstr "ใช้พื้นผิว/สีต้นทางของชั้นภาพ"
@@ -25441,9 +25606,6 @@ msgstr "เลื่อน"
 msgid "Scroll library content"
 msgstr "เลื่อนเนื้อหาในคลัง"
 
-msgid "Page"
-msgstr "หน้า"
-
 msgid "Move by the viewport height"
 msgstr "เลื่อนตามความสูงของวิวพอร์ต"
 
@@ -25524,12 +25686,6 @@ msgstr "ยกเลิกงานนี้"
 
 msgid "Select this job"
 msgstr "เลือกงานนี้"
-
-msgid "Previous"
-msgstr "ก่อนหน้า"
-
-msgid "Next"
-msgstr "ถัดไป"
 
 msgid "Browse queue jobs"
 msgstr "เรียกดูงานในคิว"
@@ -27669,9 +27825,6 @@ msgstr "คุณสมบัติการทำพื้นผิว"
 
 msgid "Layer and texture properties"
 msgstr "คุณสมบัติชั้นภาพและพื้นผิว"
-
-msgid "Asset Vault"
-msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "คลังวัสดุอัจฉริยะ แปรง และพื้นผิว"

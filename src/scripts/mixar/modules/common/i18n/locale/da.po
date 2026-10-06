@@ -926,6 +926,186 @@ msgstr ""
 "Navigation og alt input uden for 3D-visningen slipper igennem;\n"
 "klik og redigeringsgenveje over 3D-visningens tegneflade forbruges.\n"
 
+msgid "Search"
+msgstr "Søg"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "Filter"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "Omskift"
+
+msgid "Range"
+msgstr "Rækkevidde"
+
+msgid "Page"
+msgstr "Side"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "Næste"
+
+msgid "Previous"
+msgstr "Forrige"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "Hyppighed"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "Visning"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "Sammenlign"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "kopier"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "Navn"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "Gitter"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "forhåndsvisningsarbejderen stoppede, før dette asset blev gengivet"
 
@@ -1030,9 +1210,6 @@ msgstr "Referencebillede (valgfrit)"
 
 msgid "Searching…"
 msgstr "Søger…"
-
-msgid "Search"
-msgstr "Søg"
 
 msgid "{count} result(s)"
 msgstr "{count} resultat(er)"
@@ -1940,6 +2117,54 @@ msgstr "Sand, når serveren rapporterer byok_active for denne bruger"
 msgid "Dialog State"
 msgstr "Dialogtilstand"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "Angiv Lampway Agent-tilstand"
 
@@ -2354,9 +2579,6 @@ msgstr "Oprettet (unix-sekunder)"
 msgid "Frozen Elapsed"
 msgstr "Frosset forløbet tid"
 
-msgid "Filter"
-msgstr "Filter"
-
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2587,9 +2809,6 @@ msgstr "Sidefod"
 
 msgid "Confirm"
 msgstr "Bekræft"
-
-msgid "Grid"
-msgstr "Gitter"
 
 msgid "Disabled action"
 msgstr "Deaktiveret handling"
@@ -3638,9 +3857,6 @@ msgstr "Kamera"
 msgid "Using {name}"
 msgstr "Bruger {name}"
 
-msgid "Range"
-msgstr "Rækkevidde"
-
 msgid "Videos"
 msgstr "Videoer"
 
@@ -3926,17 +4142,11 @@ msgstr "Omskift gitter"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Vis eller skjul 3D-visningens gitterlinjer (gulvgitter og X/Y-akser)"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "Omskift"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5210,9 +5420,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "Hyppighed"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5259,9 +5466,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5363,9 +5567,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5461,9 +5662,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "Navn"
 
 msgid "Read to Text"
 msgstr ""
@@ -6070,9 +6268,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "kopier"
 
 msgid "Open Config File"
 msgstr ""
@@ -8457,9 +8652,6 @@ msgstr "Delnavn"
 
 msgid "Named character component represented by this image"
 msgstr "Navngiven figurdel, som dette billede forestiller"
-
-msgid "View"
-msgstr "Visning"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Kameravinkel, dette billede viser. Giver kun mening, mens billedet hører til et flervisningssæt — den sendes sammen med fanens inputbillede som den vinkel"
@@ -17340,30 +17532,6 @@ msgstr "Bag kanaler igen"
 msgid "Bake channels first to enable export"
 msgstr "Bag kanaler først for at aktivere eksport"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "Panelet Assetbibliotek – viser procedurelle materialer fra male-backend"
-
-msgid "{count} categories available"
-msgstr "Kategorier tilgængelige: {count}"
-
-msgid "Open Material Library"
-msgstr "Åbn materialebibliotek"
-
-msgid "No materials loaded"
-msgstr "Ingen materialer indlæst"
-
-msgid "Material registry unavailable"
-msgstr "Materialeregistret er ikke tilgængeligt"
-
-msgid "Smart Materials"
-msgstr "Smarte materialer"
-
-msgid "Coming soon"
-msgstr "Kommer snart"
-
-msgid "Brushes"
-msgstr "Pensler"
-
 msgid "Baked Maps"
 msgstr "Bagte kort"
 
@@ -19319,9 +19487,6 @@ msgstr "Normalkortlægning i verdensrum, kompatibel med Blenders renderbagning"
 
 msgid "Replace"
 msgstr "Udskift"
-
-msgid "Compare"
-msgstr "Sammenlign"
 
 msgid "Use layer's source texture/color"
 msgstr "Brug lagets kildetekstur eller farve"
@@ -25441,9 +25606,6 @@ msgstr "Rul"
 msgid "Scroll library content"
 msgstr "Ruller bibliotekets indhold"
 
-msgid "Page"
-msgstr "Side"
-
 msgid "Move by the viewport height"
 msgstr "Flytter med højden af 3D-visningen"
 
@@ -25524,12 +25686,6 @@ msgstr "Annuller dette job"
 
 msgid "Select this job"
 msgstr "Vælg dette job"
-
-msgid "Previous"
-msgstr "Forrige"
-
-msgid "Next"
-msgstr "Næste"
 
 msgid "Browse queue jobs"
 msgstr "Gennemse job i køen"
@@ -27669,9 +27825,6 @@ msgstr "Tekstureringsegenskaber"
 
 msgid "Layer and texture properties"
 msgstr "Egenskaber for lag og tekstur"
-
-msgid "Asset Vault"
-msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Bibliotek med smarte materialer, pensler og teksturer"

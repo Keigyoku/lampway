@@ -926,6 +926,186 @@ msgstr ""
 "नेविगेशन और व्यूपोर्ट के बाहर के सभी इनपुट को आगे जाने देता है; व्यूपोर्ट\n"
 "चित्रपटी पर क्लिक और संपादन हॉटकी को रोक लेता है।\n"
 
+msgid "Search"
+msgstr "खोज"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "निस्पादक"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "बंद/बुझ"
+
+msgid "Range"
+msgstr "सीमा"
+
+msgid "Page"
+msgstr "पृष्ठ"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "अगला"
+
+msgid "Previous"
+msgstr "पिछला"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "दर"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "दृश्य"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "तुलना"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "प्रतिलिपि"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "नाम"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "जालक"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "इस एसेट को प्रतिपादित करने से पहले पूर्वावलोकन वर्कर बंद हो गया"
 
@@ -1030,9 +1210,6 @@ msgstr "संदर्भ छवि (वैकल्पिक)"
 
 msgid "Searching…"
 msgstr "खोज जारी…"
-
-msgid "Search"
-msgstr "खोज"
 
 msgid "{count} result(s)"
 msgstr "{count} परिणाम"
@@ -1940,6 +2117,54 @@ msgstr "जब सर्वर इस प्रयोक्ता के लि�
 msgid "Dialog State"
 msgstr "संवाद स्थिति"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "Lampway Agent रूप सेट करें"
 
@@ -2354,9 +2579,6 @@ msgstr "बनाया गया (unix सेकंड)"
 msgid "Frozen Elapsed"
 msgstr "स्थिर बीता समय"
 
-msgid "Filter"
-msgstr "निस्पादक"
-
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2587,9 +2809,6 @@ msgstr "फ़ुटर"
 
 msgid "Confirm"
 msgstr "पुष्टि करें"
-
-msgid "Grid"
-msgstr "जालक"
 
 msgid "Disabled action"
 msgstr "अक्षम क्रिया"
@@ -3638,9 +3857,6 @@ msgstr "प्रतिबिंबक"
 msgid "Using {name}"
 msgstr "{name} का उपयोग हो रहा है"
 
-msgid "Range"
-msgstr "सीमा"
-
 msgid "Videos"
 msgstr "वीडियो"
 
@@ -3926,17 +4142,11 @@ msgstr "जालक टॉगल करें"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "व्यूपोर्ट की जालक रेखाएँ (फ़र्श जालक और X/Y अक्ष) दिखाता या छिपाता है"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "बंद/बुझ"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5210,9 +5420,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "दर"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5259,9 +5466,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5363,9 +5567,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5461,9 +5662,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "नाम"
 
 msgid "Read to Text"
 msgstr ""
@@ -6070,9 +6268,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "प्रतिलिपि"
 
 msgid "Open Config File"
 msgstr ""
@@ -8457,9 +8652,6 @@ msgstr "घटक नाम"
 
 msgid "Named character component represented by this image"
 msgstr "इस छवि द्वारा दर्शाया गया नामित पात्र घटक"
-
-msgid "View"
-msgstr "दृश्य"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "यह छवि जो प्रतिबिंबक कोण दिखाती है। केवल तब अर्थपूर्ण जब छवि बहु-दृश्य समूह की हो — इसे उस कोण के रूप में टैब की निवेश छवि के साथ भेजा जाता है"
@@ -17340,30 +17532,6 @@ msgstr "सरणियों का पुनः भर्जन करें"
 msgid "Bake channels first to enable export"
 msgstr "निर्यात सक्षम करने के लिए पहले सरणियों का भर्जन करें"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "एसेट लायब्रेरी पैनल - रंगलेप बैकएंड से प्रक्रियात्मक पदार्थ दिखाता है"
-
-msgid "{count} categories available"
-msgstr "{count} श्रेणियाँ उपलब्ध"
-
-msgid "Open Material Library"
-msgstr "पदार्थ लायब्रेरी खोलें"
-
-msgid "No materials loaded"
-msgstr "कोई पदार्थ लोड नहीं हुआ"
-
-msgid "Material registry unavailable"
-msgstr "पदार्थ रजिस्ट्री उपलब्ध नहीं"
-
-msgid "Smart Materials"
-msgstr "स्मार्ट पदार्थ"
-
-msgid "Coming soon"
-msgstr "जल्द आ रहा है"
-
-msgid "Brushes"
-msgstr "तूलिका"
-
 msgid "Baked Maps"
 msgstr "भर्जित मैप"
 
@@ -19319,9 +19487,6 @@ msgstr "जगत स्पेस नॉर्मल मैपिंग, Blender
 
 msgid "Replace"
 msgstr "बदलें"
-
-msgid "Compare"
-msgstr "तुलना"
 
 msgid "Use layer's source texture/color"
 msgstr "परत की स्रोत बनावट/रंग का उपयोग करता है"
@@ -25441,9 +25606,6 @@ msgstr "स्क्रॉल"
 msgid "Scroll library content"
 msgstr "लायब्रेरी सामग्री स्क्रॉल करता है"
 
-msgid "Page"
-msgstr "पृष्ठ"
-
 msgid "Move by the viewport height"
 msgstr "व्यूपोर्ट की ऊँचाई जितना खिसकाता है"
 
@@ -25524,12 +25686,6 @@ msgstr "इस जॉब को रद्द करता है"
 
 msgid "Select this job"
 msgstr "इस जॉब का चयन करता है"
-
-msgid "Previous"
-msgstr "पिछला"
-
-msgid "Next"
-msgstr "अगला"
 
 msgid "Browse queue jobs"
 msgstr "कतार के जॉब ब्राउज़ करता है"
@@ -27669,9 +27825,6 @@ msgstr "टेक्सचरिंग गुण"
 
 msgid "Layer and texture properties"
 msgstr "परत और बनावट गुण"
-
-msgid "Asset Vault"
-msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "स्मार्ट पदार्थ, तूलिकाएँ और बनावट लायब्रेरी"

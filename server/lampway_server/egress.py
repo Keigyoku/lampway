@@ -51,13 +51,49 @@ ROUTES = {r.id: r for r in (
     Route("higgsfield", "Higgsfield", ("higgsfield.ai",), _UNREAD, _UNREAD, "unknown"),
     Route("heygen", "HeyGen", ("heygen.com",), _UNREAD, _UNREAD, "unknown"),
     Route("fal", "fal.ai", ("fal.ai", "fal.run", "fal.media"), _UNREAD, _UNREAD, "unknown"),
+    Route("video_link", "Video download from a link you pasted (yt-dlp)", (), "the site you pasted sees your IP address and the link; nothing of yours is uploaded; what the site keeps is its own policy",
+          "n/a: nothing of yours is sent", "ok"),
     Route("model_download", "Model weights download (Hugging Face)", ("huggingface.co", "cdn-lfs.huggingface.co", "cdn-lfs-us-1.hf.co", "hf.co", "cas-bridge.xethub.hf.co"),
           "no user content: a plain GET of public weights; the host sees your IP address and which file you asked for", "n/a: no content is sent", "ok"),
+    Route("cc0:ambientcg", "ambientCG (CC0 materials)", ("ambientcg.com", "acg-media.struffelproductions.com"),
+          "no user content: GETs of public CC0 files; the host sees your IP address and which assets you asked for", "n/a: no content is sent", "ok"),
+    Route("cc0:polyhaven", "Poly Haven (CC0 textures, HDRIs, models)", ("api.polyhaven.com", "dl.polyhaven.org", "polyhaven.com", "cdn.polyhaven.com"),
+          "no user content: GETs of public CC0 files; the host sees your IP address and which assets you asked for", "n/a: no content is sent", "ok"),
     Route("compute:boat", "Boat (cloud CPU box)", ("boat.dev",), "a sandbox with snapshots off is erased by a stop (measured, BOAT.md section 6); what Boat does with content in flight is unread",
           _UNREAD, "conditional", (("snapshots", False), ("noEnv", True))),
     Route("compute:modal", "Modal (serverless GPU)", ("modal.run", "modal.com"), _UNREAD, _UNREAD, "unknown"),
     Route("compute:runpod", "RunPod (serverless GPU)", ("runpod.ai", "runpod.io", "runpod.net"), _UNREAD, _UNREAD, "unknown"),
 )}
+
+# Every process the server starts that is NOT lexically inside ``guard(route)``, with its reason (tests/test_egress_launch_audit.py holds this list to the code):
+#   local          the program it starts sends nothing of ours off the machine;
+#   callers_guard  a launch helper whose every call in its module is inside ``guard``;
+#   wrapped        a launch helper injected as a value: every use of it in its module goes through the named wrapper, which holds ``guard``;
+#   driver         a launch inside a studio driver script, which itself only ever runs as a gated process (studios.service._gated_execute, agent.server_tools._exec).
+LAUNCHES: dict = {
+    "agent/cli_adapters.py:_run_gated": ("callers_guard", "the Claude/Codex CLI subprocess; its only caller, _run, holds guard(claude_plan|chatgpt_plan)"),
+    "agent/providers/codex_app_server.py:probe_binary": ("local", "codex --version and generate-json-schema: local schema generation, no model call (measured)"),
+    "agent/providers/codex_app_server.py:_Client.start": ("local", "starts the long-lived codex app-server process; every turn that talks to the provider is gated by guard(chatgpt_plan) in stream()"),
+    "agent/server_tools.py:_exec_local": ("local", "the seed catalog driver reads the local seeds.sqlite only (LOCAL_MODULES)"),
+    "compute/boat.py:default_runner": ("wrapped", "the Boat CLI; injected as BoatCliBackend.runner and called only inside _cli, which holds guard(compute:boat)"),
+    "cards/activity.py:_commits": ("local", "git log on the local repository (the report card's recorded changes)"),
+    "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets"),
+    "herdr/launcher.py:_systemd_ok": ("local", "systemctl --user is-system-running: a local query"),
+    "library/ingest.py:extract_video": ("local", "ffprobe on a local file"),
+    "library/previews.py:video_thumb": ("local", "nice ffmpeg: one thumbnail frame of a library video file"),
+    "library/video.py:_run": ("local", "nice ffmpeg/ffprobe on library video files (probe, frame count, loudness, derived strips and panels); every caller in video.py passes an ffmpeg or ffprobe argv"),
+    "mcp_inventory/probe.py:_stdio": ("local", "starts the user's own configured stdio MCP server and speaks initialize/tools-list over stdin; what that program does is the user's own configuration"),
+    "studios/service.py:default_execute": ("wrapped", "the studio driver process; injected as StudioService.execute and called only through _gated_execute, which holds guard(studio:<name>)"),
+    "studios/tripo/relief_gen.py:ensure_browser": ("driver", "the relief site's headed browser, started from inside the Tripo driver process, which only runs gated"),
+    "studios/tripo/tripo_texture.py:run_and_fetch": ("local", "nice blender -b on the downloaded FBX: a local headless render"),
+    "videogate.py:probe": ("local", "ffprobe on a local clip"),
+    "videogate.py:decode": ("local", "ffmpeg decode of a local clip"),
+    "videogate.py:pingpong_file": ("local", "ffmpeg re-encode of a local clip"),
+    "videoingest.py:_run": ("callers_guard", "yt-dlp; its only caller, ingest, holds guard(video_link) around every call"),
+    "videoingest.py:probe": ("local", "ffprobe on the downloaded local file"),
+    "videojobs.py:probe_video": ("local", "ffprobe on a local clip"),
+}
+WRAPPERS = {"compute/boat.py:default_runner": ("BoatCliBackend._cli", "runner"), "studios/service.py:default_execute": ("_gated_execute", "execute")}
 
 _ctx: contextvars.ContextVar = contextvars.ContextVar("lampway_egress_ctx", default={})
 
@@ -292,13 +328,16 @@ def install() -> None:
 
 
 @contextlib.contextmanager
-def guard(route: str, kind: str = "request", asset_ids=(), content_class: str = "unclassified", constraints=None, nbytes: int = 0):
-    """The same gate for a call that starts another process (a studio driver, a local CLI, yt-dlp, a cloud box CLI): lit while it runs, logged before it starts."""
+def guard(route: str, kind: Optional[str] = None, asset_ids=None, content_class: Optional[str] = None, constraints=None, nbytes: int = 0):
+    """The same gate for a call that starts another process (a studio driver, a local CLI, yt-dlp, a cloud box CLI): lit while it runs, logged before it starts.
+    What it does not say is inherited from an enclosing ``context`` (a runner declares the asset ids; the backend's own guard gates each call)."""
     m = ACTIVE
     if m is None:
         yield
         return
-    with context(kind=kind, asset_ids=list(asset_ids), content_class=content_class, constraints=constraints or {}):
+    outer = _ctx.get()
+    with context(kind=kind or outer.get("kind", "request"), asset_ids=list(asset_ids if asset_ids is not None else outer.get("asset_ids") or []),
+                 content_class=content_class or outer.get("content_class", "unclassified"), constraints=constraints if constraints is not None else outer.get("constraints") or {}):
         r = m.begin(route, "PROCESS", nbytes, explicit_route=route)
     try:
         yield

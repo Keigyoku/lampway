@@ -13,6 +13,8 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
+from .. import egress as E
+
 from . import backend as BK
 
 RATES_PER_HOUR = {"small": 0.018, "default": 0.036, "large": 0.072}            # docs.boat.dev/pricing.md, dated 2026-10-06 (BOAT.md section 3)
@@ -42,6 +44,7 @@ def default_runner(argv, timeout=60, env=None):
 class BoatCliBackend:
     name = "boat"
     egress_route = "compute:boat"
+    egress_via = "self"                                                         # it gates each CLI call itself (_cli); the runner only declares what the job carries
     constraints = {"snapshots": False, "noEnv": True}                           # true by construction: every box is made with --no-snapshots --no-env
 
     def __init__(self, binary: Optional[str] = None, runner=None, clock=None, allow_xlarge: bool = False):
@@ -62,7 +65,8 @@ class BoatCliBackend:
         argv = [self.binary, verb, "--json", "--no-update", *args]               # flags BEFORE the arguments: a trailing command string swallows anything after it (measured)
         if not Path(self.binary).exists() and self.runner is default_runner:
             raise BK.Rejected(f"the boat CLI is not at {self.binary}: install it and run `boat login` yourself (Lampway never creates a Boat key)")
-        return self.runner(argv, timeout, clean_env()) if self.runner is default_runner else self.runner(argv, timeout)
+        with E.guard(self.egress_route, constraints=self.constraints):                                          # every Boat CLI call (status, list, fetch and teardown too) is gated and logged; the runner's context names the assets
+            return self.runner(argv, timeout, clean_env()) if self.runner is default_runner else self.runner(argv, timeout)
 
     def _exec(self, ref, script, detach=False, timeout=30):
         """`boat exec <id> "<one shell string>"` (measured 2026-10-06: the command is ONE argument; `--` and `sh -c` lose their quoting; --detach cannot take --timeout). The answer is JSON with exitCode,

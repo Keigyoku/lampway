@@ -926,6 +926,186 @@ msgstr ""
 "Deixa passar a navegação e toda entrada fora da Janela de Exibição; consome\n"
 "cliques e atalhos de edição sobre a tela da Janela de Exibição.\n"
 
+msgid "Search"
+msgstr "Pesquisar"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "Filtrar"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "Alternar"
+
+msgid "Range"
+msgstr "Amplitude"
+
+msgid "Page"
+msgstr "Página"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "Próximo"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "Taxa"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "Visualizar"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "Comparar"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "Grade"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "o processo de pré-visualização terminou antes de renderizar este recurso"
 
@@ -1030,9 +1210,6 @@ msgstr "Imagem de referência (opcional)"
 
 msgid "Searching…"
 msgstr "Pesquisando…"
-
-msgid "Search"
-msgstr "Pesquisar"
 
 msgid "{count} result(s)"
 msgstr "{count} resultado(s)"
@@ -1940,6 +2117,54 @@ msgstr "Verdadeiro quando o servidor informa byok_active para este usuário"
 msgid "Dialog State"
 msgstr "Estado da caixa de diálogo"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "Definir modo da Lampway Agent"
 
@@ -2354,9 +2579,6 @@ msgstr "Criado (segundos unix)"
 msgid "Frozen Elapsed"
 msgstr "Tempo decorrido congelado"
 
-msgid "Filter"
-msgstr "Filtrar"
-
 msgid "{message} ({code})"
 msgstr ""
 
@@ -2587,9 +2809,6 @@ msgstr "Rodapé"
 
 msgid "Confirm"
 msgstr "Confirmar"
-
-msgid "Grid"
-msgstr "Grade"
 
 msgid "Disabled action"
 msgstr "Ação desabilitada"
@@ -3638,9 +3857,6 @@ msgstr "Câmera"
 msgid "Using {name}"
 msgstr "Usando {name}"
 
-msgid "Range"
-msgstr "Amplitude"
-
 msgid "Videos"
 msgstr "Vídeos"
 
@@ -3926,17 +4142,11 @@ msgstr "Alternar grade"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Mostra ou oculta as linhas de grade da Janela de Exibição (grade do chão e eixos X/Y)"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "Alternar"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5210,9 +5420,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "Taxa"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5259,9 +5466,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5363,9 +5567,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5461,9 +5662,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "Nome"
 
 msgid "Read to Text"
 msgstr ""
@@ -6070,9 +6268,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "Copiar"
 
 msgid "Open Config File"
 msgstr ""
@@ -8457,9 +8652,6 @@ msgstr "Nome do componente"
 
 msgid "Named character component represented by this image"
 msgstr "Componente de personagem nomeado representado por esta imagem"
-
-msgid "View"
-msgstr "Visualizar"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Ângulo de câmera que esta imagem mostra. Só tem significado enquanto a imagem pertence a um conjunto de múltiplas vistas — ela é enviada junto com a imagem de entrada da aba como esse ângulo"
@@ -17340,30 +17532,6 @@ msgstr "Gerar e gravar canais novamente"
 msgid "Bake channels first to enable export"
 msgstr "Gere e grave os canais primeiro para habilitar a exportação"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "Painel da biblioteca de recursos - mostra materiais procedurais do backend de pintura"
-
-msgid "{count} categories available"
-msgstr "{count} categorias disponíveis"
-
-msgid "Open Material Library"
-msgstr "Abrir biblioteca de materiais"
-
-msgid "No materials loaded"
-msgstr "Nenhum material carregado"
-
-msgid "Material registry unavailable"
-msgstr "Registro de materiais indisponível"
-
-msgid "Smart Materials"
-msgstr "Materiais inteligentes"
-
-msgid "Coming soon"
-msgstr "Em breve"
-
-msgid "Brushes"
-msgstr "Pincéis"
-
 msgid "Baked Maps"
 msgstr "Mapas gerados e gravados"
 
@@ -19319,9 +19487,6 @@ msgstr "Mapeamento das normais no espaço de ambiente (mundo), compatível com a
 
 msgid "Replace"
 msgstr "Substituir"
-
-msgid "Compare"
-msgstr "Comparar"
 
 msgid "Use layer's source texture/color"
 msgstr "Usa a textura/cor fonte da camada"
@@ -25441,9 +25606,6 @@ msgstr "Rolar"
 msgid "Scroll library content"
 msgstr "Rola o conteúdo da biblioteca"
 
-msgid "Page"
-msgstr "Página"
-
 msgid "Move by the viewport height"
 msgstr "Move pela altura da área visível"
 
@@ -25524,12 +25686,6 @@ msgstr "Cancela esta tarefa"
 
 msgid "Select this job"
 msgstr "Seleciona esta tarefa"
-
-msgid "Previous"
-msgstr "Anterior"
-
-msgid "Next"
-msgstr "Próximo"
 
 msgid "Browse queue jobs"
 msgstr "Navega pelas tarefas da fila"
@@ -27669,9 +27825,6 @@ msgstr "Propriedades de texturização"
 
 msgid "Layer and texture properties"
 msgstr "Propriedades de camadas e texturas"
-
-msgid "Asset Vault"
-msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Biblioteca de materiais inteligentes, pincéis e texturas"

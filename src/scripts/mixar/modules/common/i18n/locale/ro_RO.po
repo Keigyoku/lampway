@@ -926,6 +926,186 @@ msgstr ""
 "Lasă să treacă navigarea și orice intrare din afara ferestrei; consumă\n"
 "clicurile și tastele de editare peste suprafața ferestrei.\n"
 
+msgid "Search"
+msgstr "Căutare"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "Filtru"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "Comutator"
+
+msgid "Range"
+msgstr "Interval"
+
+msgid "Page"
+msgstr "Pagină"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "Următor"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "Rată"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "Vedere"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "Comparare"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "Copiere"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "Nume"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "Grilă"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "procesul de previzualizare s-a oprit înainte de a randa această resursă"
 
@@ -1030,9 +1210,6 @@ msgstr "Imagine de referință (opțional)"
 
 msgid "Searching…"
 msgstr "Se caută…"
-
-msgid "Search"
-msgstr "Căutare"
 
 msgid "{count} result(s)"
 msgstr "Rezultate: {count}"
@@ -1940,6 +2117,54 @@ msgstr "Adevărat când serverul raportează byok_active pentru acest utilizator
 msgid "Dialog State"
 msgstr "Stare dialog"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "Setare mod Lampway Agent"
 
@@ -2354,9 +2579,6 @@ msgstr "Creat (secunde unix)"
 msgid "Frozen Elapsed"
 msgstr "Timp scurs înghețat"
 
-msgid "Filter"
-msgstr "Filtru"
-
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2587,9 +2809,6 @@ msgstr "Subsol"
 
 msgid "Confirm"
 msgstr "Confirmare"
-
-msgid "Grid"
-msgstr "Grilă"
 
 msgid "Disabled action"
 msgstr "Acțiune dezactivată"
@@ -3638,9 +3857,6 @@ msgstr "Cameră"
 msgid "Using {name}"
 msgstr "Se folosește {name}"
 
-msgid "Range"
-msgstr "Interval"
-
 msgid "Videos"
 msgstr "Videoclipuri"
 
@@ -3926,17 +4142,11 @@ msgstr "Comutare grilă"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "Afișează sau ascunde liniile grilei din Fereastra de Vizualizare (grila podelei și axele X/Y)"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "Comutator"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5210,9 +5420,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "Rată"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5259,9 +5466,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5363,9 +5567,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5461,9 +5662,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "Nume"
 
 msgid "Read to Text"
 msgstr ""
@@ -6070,9 +6268,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "Copiere"
 
 msgid "Open Config File"
 msgstr ""
@@ -8457,9 +8652,6 @@ msgstr "Nume componentă"
 
 msgid "Named character component represented by this image"
 msgstr "Componenta de personaj numită, reprezentată de această imagine"
-
-msgid "View"
-msgstr "Vedere"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "Unghiul de cameră pe care îl arată această imagine. Are sens doar cât imaginea aparține unui set multi-vedere — este trimis alături de imaginea de intrare a filei, ca acel unghi"
@@ -17340,30 +17532,6 @@ msgstr "Recoacere canale"
 msgid "Bake channels first to enable export"
 msgstr "Coaceți mai întâi canalele pentru a activa exportul"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "Panou bibliotecă de resurse — afișează materiale procedurale din backend-ul de pictare"
-
-msgid "{count} categories available"
-msgstr "Categorii disponibile: {count}"
-
-msgid "Open Material Library"
-msgstr "Deschidere bibliotecă de materiale"
-
-msgid "No materials loaded"
-msgstr "Niciun material încărcat"
-
-msgid "Material registry unavailable"
-msgstr "Registrul de materiale este indisponibil"
-
-msgid "Smart Materials"
-msgstr "Materiale inteligente"
-
-msgid "Coming soon"
-msgstr "În curând"
-
-msgid "Brushes"
-msgstr "Perii"
-
 msgid "Baked Maps"
 msgstr "Hărți coapte"
 
@@ -19319,9 +19487,6 @@ msgstr "Mapare normale în spațiul lume, compatibilă cu coacerea randării Ble
 
 msgid "Replace"
 msgstr "Înlocuire"
-
-msgid "Compare"
-msgstr "Comparare"
 
 msgid "Use layer's source texture/color"
 msgstr "Folosire textură/culoare sursă a stratului"
@@ -25441,9 +25606,6 @@ msgstr "Derulare"
 msgid "Scroll library content"
 msgstr "Derulează conținutul bibliotecii"
 
-msgid "Page"
-msgstr "Pagină"
-
 msgid "Move by the viewport height"
 msgstr "Deplasare cu înălțimea Ferestrei de Vizualizare"
 
@@ -25524,12 +25686,6 @@ msgstr "Anulează această sarcină"
 
 msgid "Select this job"
 msgstr "Selectează această sarcină"
-
-msgid "Previous"
-msgstr "Anterior"
-
-msgid "Next"
-msgstr "Următor"
 
 msgid "Browse queue jobs"
 msgstr "Răsfoire sarcini din coadă"
@@ -27669,9 +27825,6 @@ msgstr "Proprietăți texturare"
 
 msgid "Layer and texture properties"
 msgstr "Proprietăți strat și textură"
-
-msgid "Asset Vault"
-msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Bibliotecă de materiale inteligente, pensule și texturi"

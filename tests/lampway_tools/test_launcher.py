@@ -224,3 +224,22 @@ def test_the_app_is_told_which_python_and_directory_run_the_servers_image_backen
     assert r.returncode == 0, r.stdout + r.stderr
     app = (tmp_path / "app.txt").read_text()
     assert f"LAMPWAY_PYTHON_SERVER={py}" in app and f"LAMPWAY_SERVER_DIR={tree}/server" in app
+
+
+def test_the_server_is_pointed_at_the_models_the_build_bundled(tree, env, tmp_path):
+    e, _ = env
+    models = tree / "build/Prod/bin/5.2/datafiles/lampway/models"
+    r = lampway(tree, e, "--plan", "--env", "Prod")
+    assert f"models: {models} (absent: the Vault offers the one-click fetch)" in r.stdout
+    models.mkdir(parents=True)
+    r = lampway(tree, e, "--plan", "--env", "Prod")
+    assert f"models: {models} (bundled)" in r.stdout
+    r = lampway(tree, e, "--env", "Prod")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert f"LAMPWAY_MODELS_DIR={models}\n" in (tmp_path / "server_env.txt").read_text()
+
+
+def test_without_bundled_models_the_server_gets_no_models_dir(tree, env, tmp_path):
+    e, _ = env
+    assert lampway(tree, e, "--env", "Prod").returncode == 0
+    assert "LAMPWAY_MODELS_DIR=" not in (tmp_path / "server_env.txt").read_text()

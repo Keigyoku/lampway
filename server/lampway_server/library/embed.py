@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -36,6 +37,24 @@ class OpenRouterEmbed:
     def _client(self):
         return httpx.Client(transport=self._transport, timeout=60, headers={"Authorization": f"Bearer {self._key}", "HTTP-Referer": REFERER, "X-Title": TITLE})
 
+    def models(self) -> list:
+        """The live embeddings catalogue as OpenRouter lists it (id, pricing): read, never hard-coded."""
+        with EG.context(route="openrouter", kind="request", content_class="public"), self._client() as c:
+            return [{"id": r["id"], "pricing": r.get("pricing") or {}} for r in c.get(f"{self._base}/embeddings/models").json().get("data", [])]
+
+    def zdr_ids(self) -> list:
+        with EG.context(route="openrouter", kind="request", content_class="public"), self._client() as c:
+            return sorted({(r.get("model_id") or r.get("id")) for r in c.get(f"{self._base}/endpoints/zdr").json().get("data", [])})
+
+    def free_remaining(self):
+        """Today's remaining free-model requests from ``GET /key`` (``free_model_daily_requests.remaining``; the field shape is [UNVERIFIED] against the live API), or None."""
+        with EG.context(route="openrouter", kind="request", content_class="public"), self._client() as c:
+            r = c.get(f"{self._base}/key")
+        if r.status_code >= 400:
+            return None
+        rem = ((r.json().get("data") or {}).get("free_model_daily_requests") or {}).get("remaining")
+        return int(rem) if isinstance(rem, (int, float)) else None
+
     def catalogue(self, content_class: str):
         with EG.context(route="openrouter", kind="request", content_class=content_class), self._client() as c:
             live = {r["id"] for r in c.get(f"{self._base}/embeddings/models").json().get("data", [])}
@@ -61,14 +80,15 @@ class OpenRouterEmbed:
         if r.status_code >= 400:
             raise LibraryError(redact(f"OpenRouter answered HTTP {r.status_code}", self._key))
         data = r.json()
-        return {"vectors": [d["embedding"] for d in sorted(data["data"], key=lambda d: d["index"])], "cost_usd": (data.get("usage") or {}).get("cost")}
+        usage = data.get("usage") or {}
+        return {"vectors": [d["embedding"] for d in sorted(data["data"], key=lambda d: d["index"])], "cost_usd": usage.get("cost"), "usage_tokens": usage.get("prompt_tokens")}
 
 
 class Embed:
     def __init__(self, lib: AssetLibrary, openrouter: Optional[OpenRouterEmbed] = None, local: Optional[dict] = None, models_root=None):
         self.lib, self.or_ = lib, openrouter
         self._local = dict(local or {})
-        self.models_root = Path(models_root) if models_root else lib.root / "models"
+        self.models_root = Path(models_root or os.environ.get("LAMPWAY_MODELS_DIR") or lib.root / "models")       # the bundle the launcher names, else the fetch dir
         self.plans = lib.root / "embed_plans"
 
     # -- targets -------------------------------------------------------------------------------------------------------
@@ -156,7 +176,13 @@ class Embed:
         targets = plan["targets"]
         if plan["uploads"]:
             self.or_.check(plan["model"], plan["content_class"])
-            for i in range(0, len(targets), BATCH):
+            batches = list(range(0, len(targets), BATCH))
+            if plan["model"].endswith(":free"):
+                remaining = self.or_.free_remaining()
+                if remaining is not None and remaining < len(batches):        # one request per batch: the rest waits for tomorrow's free quota
+                    batches = batches[:max(0, remaining)]
+                    out.update(partial=True, note=f"free daily limit reached (remaining {remaining}): the rest is queued for the next UTC day or pick a paid model")
+            for i in batches:
                 chunk = targets[i:i + BATCH]
                 texts = [self._text(t) for t in chunk]
                 try:
@@ -170,7 +196,13 @@ class Embed:
                 out["bytes_uploaded"] += sum(len(t.encode()) for t in texts)
                 out["actual_usd"] += res["cost_usd"] or 0.0
                 for t, v in zip(chunk, res["vectors"]):
-                    self.lib.put_embedding(self.lib.version_of(t), plan["space"], v, model=plan["model"])
+                    try:
+                        self.lib.put_embedding(self.lib.version_of(t), plan["space"], v, model=plan["model"])
+                    except LibraryError as e:
+                        m = re.search(r"expects (\d+) dimensions, got (\d+)", str(e))
+                        why = f"model returned a different dimension than the space expects ({m.group(2)} vs {m.group(1)}): not stored; choose dimensions or a new space" if m else str(e)
+                        out["failed"].append({"id": t, "why": why})
+                        continue
                     out["done"] += 1
             return out
         if plan["base"] in LM.BASES:
@@ -193,6 +225,15 @@ class Embed:
             except Exception as e:  # noqa: BLE001 - one bad file never stops the batch
                 out["failed"].append({"id": t, "why": f"{type(e).__name__}: {str(e)[:120]}"})
         return out
+
+    def search_images(self, text: str, k: int = 12) -> list:
+        """Text to images, locally: CLIP's text tower embeds ``text`` into the SAME space as the image tower's vectors, so the nearest images are the answer.
+        Nothing leaves the machine; refuses with ``needs_weights`` / ``needs_runtime`` like any local space."""
+        from . import vectors
+        mid = LM.QUERY_ENCODERS[LM.MANIFEST[LM.BASES["image_local"]]["space"]]
+        enc = self._local.get("image_text_local") or self._local.setdefault("image_text_local", LM.load(self.models_root, mid))
+        ids, mat = self.lib.load_space(enc.space)
+        return [{"id": i, "score": round(s, 6)} for i, s in vectors.NumpyBrute(ids, mat).topk(enc.embed_texts([text])[0], max(1, min(int(k), 100)))]
 
     def ensure(self, asset_id: str, space: str):
         """Compute and store one deterministic descriptor now (the probe path: a similar-to query on an asset that has none yet)."""

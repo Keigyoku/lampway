@@ -48,7 +48,7 @@ TEXTURING_SPACES = (
 HEADER_FILES = (
     SCRIPTS / "mixar/modules/paint/ui/panels/layers_panel.py",
     SCRIPTS / "mixar/modules/paint/ui/panels/properties_panel.py",
-    SCRIPTS / "mixar/modules/paint/ui/panels/assets_panel.py",
+    SCRIPTS / "mixar/modules/asset_library/ui/panels/vault_panels.py",      # the Asset Vault took over the MIXAR_ASSETS space
     SCRIPTS / "mixar/modules/paint/ui/panels/baking_panel.py",
     SCRIPTS / "mixar/modules/space_texture_sets/ui/header.py",
 )
@@ -56,7 +56,7 @@ HEADER_FILES = (
 HEADER_TITLES = (
     'layout.label(text="Layers")',
     'layout.label(text="Properties")',
-    'layout.label(text="Assets")',
+    'layout.label(text="Asset Vault")',
     'layout.label(text="Baking")',
     'layout.label(text="Texture Sets")',
 )

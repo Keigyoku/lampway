@@ -926,6 +926,186 @@ msgstr ""
 "A navigációt és minden nem a nézetablakra irányuló bevitelt átengedi; a\n"
 "nézetablak vásznán elnyeli a kattintásokat és a szerkesztési gyorsbillentyűket.\n"
 
+msgid "Search"
+msgstr "Keresés"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "Szűrő"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "Kapcsoló"
+
+msgid "Range"
+msgstr "Tartomány"
+
+msgid "Page"
+msgstr "Oldal"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "Következő"
+
+msgid "Previous"
+msgstr "Előző"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "Ráta"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "Nézet"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "Összehasonlítás"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "Másolás"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "Név"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "Rács"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "az előnézet-feldolgozó kilépett, mielőtt renderelte volna ezt az assetet"
 
@@ -1030,9 +1210,6 @@ msgstr "Referenciakép (nem kötelező)"
 
 msgid "Searching…"
 msgstr "Keresés…"
-
-msgid "Search"
-msgstr "Keresés"
 
 msgid "{count} result(s)"
 msgstr "{count} találat"
@@ -1940,6 +2117,54 @@ msgstr "Igaz, ha a kiszolgáló byok_active értéket jelez ennél a felhasznál
 msgid "Dialog State"
 msgstr "Párbeszéd állapota"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "Lampway Agent mód beállítása"
 
@@ -2354,9 +2579,6 @@ msgstr "Létrehozva (unix másodperc)"
 msgid "Frozen Elapsed"
 msgstr "Rögzített eltelt idő"
 
-msgid "Filter"
-msgstr "Szűrő"
-
 msgid "{message} ({code})"
 msgstr ""
 
@@ -2587,9 +2809,6 @@ msgstr "Lábléc"
 
 msgid "Confirm"
 msgstr "Megerősítés"
-
-msgid "Grid"
-msgstr "Rács"
 
 msgid "Disabled action"
 msgstr "Letiltott művelet"
@@ -3638,9 +3857,6 @@ msgstr "Kamera"
 msgid "Using {name}"
 msgstr "Használatban: {name}"
 
-msgid "Range"
-msgstr "Tartomány"
-
 msgid "Videos"
 msgstr "Videók"
 
@@ -3926,17 +4142,11 @@ msgstr "Rács ki-be"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "A nézetablak rácsvonalainak megjelenítése vagy elrejtése (padlórács és X/Y tengelyek)"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "Kapcsoló"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5210,9 +5420,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "Ráta"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5259,9 +5466,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5363,9 +5567,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5461,9 +5662,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "Név"
 
 msgid "Read to Text"
 msgstr ""
@@ -6070,9 +6268,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "Másolás"
 
 msgid "Open Config File"
 msgstr ""
@@ -8457,9 +8652,6 @@ msgstr "Komponens neve"
 
 msgid "Named character component represented by this image"
 msgstr "Az ezen a képen ábrázolt, megnevezett karakterkomponens"
-
-msgid "View"
-msgstr "Nézet"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "A kép által mutatott kameraszög. Csak akkor értelmes, ha a kép egy többnézetű készlethez tartozik — a lap bemeneti képe mellé kerül, mint az a szög"
@@ -17340,30 +17532,6 @@ msgstr "Csatornák újrasütése"
 msgid "Bake channels first to enable export"
 msgstr "Az exportáláshoz először süsse ki a csatornákat"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "Asset-könyvtár panel – a festési háttérrendszer procedurális anyagait jeleníti meg"
-
-msgid "{count} categories available"
-msgstr "{count} kategória érhető el"
-
-msgid "Open Material Library"
-msgstr "Anyagkönyvtár megnyitása"
-
-msgid "No materials loaded"
-msgstr "Nincs betöltött anyag"
-
-msgid "Material registry unavailable"
-msgstr "Az anyagnyilvántartás nem érhető el"
-
-msgid "Smart Materials"
-msgstr "Intelligens anyagok"
-
-msgid "Coming soon"
-msgstr "Hamarosan"
-
-msgid "Brushes"
-msgstr "Ecsetek"
-
 msgid "Baked Maps"
 msgstr "Sütött térképek"
 
@@ -19319,9 +19487,6 @@ msgstr "Világtérbeli normálletérképezés, a Blender rendersütésével komp
 
 msgid "Replace"
 msgstr "Lecserél"
-
-msgid "Compare"
-msgstr "Összehasonlítás"
 
 msgid "Use layer's source texture/color"
 msgstr "A réteg forrástextúrájának vagy színének használata"
@@ -25441,9 +25606,6 @@ msgstr "Görgetés"
 msgid "Scroll library content"
 msgstr "A könyvtár tartalmának görgetése"
 
-msgid "Page"
-msgstr "Oldal"
-
 msgid "Move by the viewport height"
 msgstr "Mozgatás a nézetablak magasságával"
 
@@ -25524,12 +25686,6 @@ msgstr "Feladat megszakítása"
 
 msgid "Select this job"
 msgstr "Feladat kijelölése"
-
-msgid "Previous"
-msgstr "Előző"
-
-msgid "Next"
-msgstr "Következő"
 
 msgid "Browse queue jobs"
 msgstr "Várólista feladatainak böngészése"
@@ -27669,9 +27825,6 @@ msgstr "Textúrázási tulajdonságok"
 
 msgid "Layer and texture properties"
 msgstr "Réteg- és textúratulajdonságok"
-
-msgid "Asset Vault"
-msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "Intelligens anyagok, ecsetek és textúrák könyvtára"

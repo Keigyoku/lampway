@@ -154,6 +154,34 @@ def scan_git(rng):
                 findings.append((sev, pid, f"{cur} {fil}", shown))
     return findings
 
+# Paths a commit may never ADD: a person's Lampway/Mixar home (chat history, checkpoints, operation history) or a test's unexpanded placeholder
+# directory. A test once ran the binary with LAMPWAY_HOME="@RUN_TMP@/home" before the placeholder was expanded; it copied the person's real
+# ~/.mixar into the repository and 436 private files were committed (purged before any push).
+PRIVATE_PATHS = [
+    (re.compile(r"^@[A-Z_]+@(/|$)"), "an unexpanded test placeholder directory"),
+    (re.compile(r"(^|/)app/(chat_history|chat_media|checkpoints|operation_history|agent_history|scenes-dossier)/"), "a Lampway app home"),
+    (re.compile(r"^(chat_history|chat_media|checkpoints|operation_history|agent_history|scenes-dossier)/"), "a home directory at the repository root"),
+    (re.compile(r"^[^/]+\.mixar$"), "a .mixar file at the repository root"),
+    (re.compile(r"(^|/)MIGRATED-FROM-MIXAR\.json$"), "a first-run migration marker (a copied home)"),
+]
+
+
+def scan_paths(rng, cwd=None):
+    """Every file a commit in the range ADDS, held to PRIVATE_PATHS."""
+    git = ["git"] + (["-C", cwd] if cwd else [])
+    out = run(git + ["log", "--diff-filter=A", "--name-only", "--no-renames", "--format=@@@%H", *rng.split()])
+    findings, cur = [], None
+    for line in out.stdout.splitlines():
+        if line.startswith("@@@"):
+            cur = line[3:11]
+        elif line.strip():
+            for rx, what in PRIVATE_PATHS:
+                if rx.search(line):
+                    findings.append(("CRITICAL", "private-path", f"{cur} {line}", what))
+                    break
+    return findings
+
+
 def report(findings, label):
     order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
     findings = sorted(set(findings), key=lambda f: (order[f[0]], f[1], f[2]))
@@ -189,6 +217,17 @@ def self_test():
                 miss.add("media-chunk")
         except ImportError:
             print("Pillow missing: media self-test skipped")
+        # a commit that adds a private home path
+        repo = os.path.join(d, "repo")
+        os.makedirs(os.path.join(repo, "@RUN_TMP@/home/app/chat_history"))
+        open(os.path.join(repo, "@RUN_TMP@/home/app/chat_history/s.json"), "w").write("{}")
+        open(os.path.join(repo, "ok.py"), "w").write("x = 1\n")
+        g = ["git", "-C", repo, "-c", "user.name=t", "-c", "user.email=t@users.noreply.github.com"]
+        if run(["git", "init", "-q", repo]).returncode == 0 and run(g + ["add", "-A"]).returncode == 0 and run(g + ["commit", "-q", "-m", "x"]).returncode == 0:
+            if "private-path" not in {x[1] for x in scan_paths("HEAD", cwd=repo)}:
+                miss.add("private-path")
+        else:
+            miss.add("private-path (no git to plant a commit)")
         print("self-test:", "FAIL missing " + ",".join(sorted(miss)) if miss else "ok (every planted offender was seen)")
         return 1 if miss else 0
 
@@ -201,7 +240,7 @@ def main(argv):
         a = argv[i]
         if a == "--tree": bad += report(scan_tree(argv[i + 1]), "tree"); i += 2
         elif a == "--media": bad += report(scan_media(argv[i + 1]), "media"); i += 2
-        elif a == "--git": bad += report(scan_git(argv[i + 1]), "git"); i += 2
+        elif a == "--git": bad += report(scan_git(argv[i + 1]) + scan_paths(argv[i + 1]), "git"); i += 2
         else: print(__doc__); return 2
     blocking = [f for f in bad if f[0] != "LOW"]
     return 1 if blocking else 0

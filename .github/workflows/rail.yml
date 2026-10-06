@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The agent rail (rail/AGENTS.md, docs/rail.md), beside the pre-publish gate. The self-test runs first: a check is trusted only
+# after every finding code has been seen to fire on a planted violation. The history is fetched in full, because the anneal rule
+# judges every commit since the rail's baseline and a shallow clone cannot reach it (that is a red check, never a skip).
+# The pre-push hook runs the quick form (`check --quick`); this is the full one.
+name: rail
+on:
+  pull_request:
+  push:
+    branches: ["lp/**", "main"]
+permissions:
+  contents: read
+jobs:
+  rail:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Self-test (every finding code fires on its plant; the controls stay clean)
+        run: python3 rail/rail.py selftest
+      - name: The server's dependencies (the generated documents' --check imports the live tool registry)
+        run: python3 -m pip install --quiet -e server/
+      - name: Check (the AGENTS.md tree, the skills, the registrations, the anneal rule over history, the generated docs)
+        run: python3 rail/rail.py check
+      - name: The rail's tests
+        run: |
+          python3 -m pip install --quiet pytest numpy pillow requests
+          python3 -m pytest -q -p no:cacheprovider tests/rail

@@ -38,7 +38,7 @@ def test_concurrent_appends_from_threads_and_processes_lose_no_row(tmp_path):
     path = tmp_path / "runs.jsonl"
     lg = Ledger(path)
     ts = [threading.Thread(target=lambda i=i: [lg.record(run(piece=f"t{i}", reason=str(k))) for k in range(25)]) for i in range(8)]
-    ps = [multiprocessing.Process(target=_proc_append, args=(str(path), i)) for i in range(4)]
+    ps = [multiprocessing.get_context("spawn").Process(target=_proc_append, args=(str(path), i)) for i in range(4)]            # spawn, not fork: forking while the threads above hold the ledger lock deadlocks the child (Python 3.11 forks by default; measured)
     for t in ts + ps:
         t.start()
     for t in ts + ps:

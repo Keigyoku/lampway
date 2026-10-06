@@ -926,6 +926,186 @@ msgstr ""
 "放行导航及所有非视图输入；拦截\n"
 "视图画布上的点击和编辑快捷键。\n"
 
+msgid "Search"
+msgstr "搜索"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "滤镜(过滤)"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "切换"
+
+msgid "Range"
+msgstr "范围"
+
+msgid "Page"
+msgstr "页面"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "下一个"
+
+msgid "Previous"
+msgstr "上一个"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "比率"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "视图"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "比较"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "复制"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "名称"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "栅格"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "预览工作进程在渲染此资产前已退出"
 
@@ -1030,9 +1210,6 @@ msgstr "参考图（可选）"
 
 msgid "Searching…"
 msgstr "正在搜索…"
-
-msgid "Search"
-msgstr "搜索"
 
 msgid "{count} result(s)"
 msgstr "{count} 个结果"
@@ -1940,6 +2117,54 @@ msgstr "服务器为此用户报告 byok_active 时为真"
 msgid "Dialog State"
 msgstr "对话框状态"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "设置 Lampway Agent 模式"
 
@@ -2354,9 +2579,6 @@ msgstr "创建时间（Unix 秒）"
 msgid "Frozen Elapsed"
 msgstr "冻结的已用时间"
 
-msgid "Filter"
-msgstr "滤镜(过滤)"
-
 msgid "{message} ({code})"
 msgstr ""
 
@@ -2587,9 +2809,6 @@ msgstr "底栏"
 
 msgid "Confirm"
 msgstr "确认"
-
-msgid "Grid"
-msgstr "栅格"
 
 msgid "Disabled action"
 msgstr "已禁用的操作"
@@ -3638,9 +3857,6 @@ msgstr "摄像机"
 msgid "Using {name}"
 msgstr "正在使用 {name}"
 
-msgid "Range"
-msgstr "范围"
-
 msgid "Videos"
 msgstr "视频"
 
@@ -3926,17 +4142,11 @@ msgstr "切换栅格"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "显示或隐藏视图的栅格线（地面栅格和 X/Y 轴）"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "切换"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5210,9 +5420,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "比率"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5259,9 +5466,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5363,9 +5567,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5461,9 +5662,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "名称"
 
 msgid "Read to Text"
 msgstr ""
@@ -6070,9 +6268,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "复制"
 
 msgid "Open Config File"
 msgstr ""
@@ -8457,9 +8652,6 @@ msgstr "组件名称"
 
 msgid "Named character component represented by this image"
 msgstr "此图像所表示的已命名角色组件"
-
-msgid "View"
-msgstr "视图"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "此图像显示的摄像机角度。仅当图像属于多视图集时才有意义——它会作为该角度与选项卡的输入图像一同发送"
@@ -17340,30 +17532,6 @@ msgstr "重新烘焙通道"
 msgid "Bake channels first to enable export"
 msgstr "请先烘焙通道以启用导出"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "资产库面板 - 显示来自绘制后端的程序化材质"
-
-msgid "{count} categories available"
-msgstr "{count} 个可用类别"
-
-msgid "Open Material Library"
-msgstr "打开材质库"
-
-msgid "No materials loaded"
-msgstr "未加载材质"
-
-msgid "Material registry unavailable"
-msgstr "材质注册表不可用"
-
-msgid "Smart Materials"
-msgstr "智能材质"
-
-msgid "Coming soon"
-msgstr "即将推出"
-
-msgid "Brushes"
-msgstr "笔刷"
-
 msgid "Baked Maps"
 msgstr "烘焙贴图"
 
@@ -19319,9 +19487,6 @@ msgstr "世界空间法线映射, 与 Blender 渲染烘焙兼容"
 
 msgid "Replace"
 msgstr "替换"
-
-msgid "Compare"
-msgstr "比较"
 
 msgid "Use layer's source texture/color"
 msgstr "使用层的源纹理/颜色"
@@ -25441,9 +25606,6 @@ msgstr "滚动"
 msgid "Scroll library content"
 msgstr "滚动库内容"
 
-msgid "Page"
-msgstr "页面"
-
 msgid "Move by the viewport height"
 msgstr "按可视区域高度移动"
 
@@ -25524,12 +25686,6 @@ msgstr "取消此任务"
 
 msgid "Select this job"
 msgstr "选择此任务"
-
-msgid "Previous"
-msgstr "上一个"
-
-msgid "Next"
-msgstr "下一个"
 
 msgid "Browse queue jobs"
 msgstr "浏览队列任务"
@@ -27669,9 +27825,6 @@ msgstr "纹理属性"
 
 msgid "Layer and texture properties"
 msgstr "层和纹理属性"
-
-msgid "Asset Vault"
-msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "智能材质、笔刷和纹理库"

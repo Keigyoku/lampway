@@ -926,6 +926,186 @@ msgstr ""
 "გატარებს ნავიგაციას და სარკმლის გარეშე ყველა შენატანს; შთანთქავს\n"
 "დაწკაპუნებებსა და რედაქტირების ცხელ კლავიშებს სარკმლის ტილოზე.\n"
 
+msgid "Search"
+msgstr "ძიება"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "ფილტრი"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "გადართვა"
+
+msgid "Range"
+msgstr "დიაპაზონი"
+
+msgid "Page"
+msgstr "გვერდი"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "შემდეგი"
+
+msgid "Previous"
+msgstr "წინა"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "სიხშირე"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "ხედი"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "შედარება"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "კოპირება"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "სახელი"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "ბადე"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "გადახედვის პროცესი ამ აქტივის დახატვამდე დასრულდა"
 
@@ -1030,9 +1210,6 @@ msgstr "რეფერენსი გამოსახულება (არ
 
 msgid "Searching…"
 msgstr "იძებნება…"
-
-msgid "Search"
-msgstr "ძიება"
 
 msgid "{count} result(s)"
 msgstr "{count} შედეგი"
@@ -1940,6 +2117,54 @@ msgstr "ჭეშმარიტია, როცა სერვერი ა�
 msgid "Dialog State"
 msgstr "დიალოგის მდგომარეობა"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "Lampway Agent-ს რეჟიმის დაყენება"
 
@@ -2354,9 +2579,6 @@ msgstr "შექმნილია (unix წამები)"
 msgid "Frozen Elapsed"
 msgstr "გაყინული გასული დრო"
 
-msgid "Filter"
-msgstr "ფილტრი"
-
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2587,9 +2809,6 @@ msgstr "ქვედა კოლონტიტული"
 
 msgid "Confirm"
 msgstr "დადასტურება"
-
-msgid "Grid"
-msgstr "ბადე"
 
 msgid "Disabled action"
 msgstr "გათიშული ქმედება"
@@ -3638,9 +3857,6 @@ msgstr "კამერა"
 msgid "Using {name}"
 msgstr "გამოიყენება {name}"
 
-msgid "Range"
-msgstr "დიაპაზონი"
-
 msgid "Videos"
 msgstr "ვიდეოები"
 
@@ -3926,17 +4142,11 @@ msgstr "ბადის გადართვა"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "აჩვენებს ან მალავს სარკმლის ბადის ხაზებს (იატაკის ბადე და X/Y ღერძები)"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "გადართვა"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -5210,9 +5420,6 @@ msgstr ""
 msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
 msgstr ""
 
-msgid "Rate"
-msgstr "სიხშირე"
-
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
@@ -5259,9 +5466,6 @@ msgid "Reject"
 msgstr ""
 
 msgid "Turn this Studio action down; nothing is spent"
-msgstr ""
-
-msgid "Import"
 msgstr ""
 
 msgid "Bring one of a finished job's files into the scene (collection Studio)"
@@ -5363,9 +5567,6 @@ msgstr ""
 msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
 msgstr ""
 
-msgid "Tile size"
-msgstr ""
-
 msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
 msgstr ""
 
@@ -5461,9 +5662,6 @@ msgstr ""
 
 msgid "Shell"
 msgstr ""
-
-msgid "Name"
-msgstr "სახელი"
 
 msgid "Read to Text"
 msgstr ""
@@ -6070,9 +6268,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "კოპირება"
 
 msgid "Open Config File"
 msgstr ""
@@ -8457,9 +8652,6 @@ msgstr "კომპონენტის სახელი"
 
 msgid "Named character component represented by this image"
 msgstr "სახელდებული პერსონაჟის კომპონენტი, რომელსაც ეს გამოსახულება წარმოადგენს"
-
-msgid "View"
-msgstr "ხედი"
 
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "კამერის კუთხე, რომელსაც ეს გამოსახულება აჩვენებს. აზრი აქვს მხოლოდ სანამ გამოსახულება მრავალ-ხედის ნაკრებს ეკუთვნის — ის იგზავნება ჩანართის შენატან გამოსახულებასთან ერთად, როგორც ეს კუთხე"
@@ -17340,30 +17532,6 @@ msgstr "არხების ხელახლა ცხობა"
 msgid "Bake channels first to enable export"
 msgstr "ექსპორტის ჩასართავად ჯერ გამოაცხვეთ არხები"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "აქტივების ბიბლიოთეკის პანელი — აჩვენებს პროცედურულ მასალებს ხატვის ბექენდიდან"
-
-msgid "{count} categories available"
-msgstr "ხელმისაწვდომია {count} კატეგორია"
-
-msgid "Open Material Library"
-msgstr "მასალების ბიბლიოთეკის გახსნა"
-
-msgid "No materials loaded"
-msgstr "მასალები ჩატვირთული არ არის"
-
-msgid "Material registry unavailable"
-msgstr "მასალების რეესტრი მიუწვდომელია"
-
-msgid "Smart Materials"
-msgstr "ჭკვიანური მასალები"
-
-msgid "Coming soon"
-msgstr "მალე"
-
-msgid "Brushes"
-msgstr "ფუნჯები"
-
 msgid "Baked Maps"
 msgstr "გამოცხობილი რუკები"
 
@@ -19319,9 +19487,6 @@ msgstr "სამყაროს სივრცის ნორმალებ�
 
 msgid "Replace"
 msgstr "ჩანაცვლება"
-
-msgid "Compare"
-msgstr "შედარება"
 
 msgid "Use layer's source texture/color"
 msgstr "შრის წყაროს ტექსტურის/ფერის გამოყენება"
@@ -25441,9 +25606,6 @@ msgstr "გადაფურცლვა"
 msgid "Scroll library content"
 msgstr "ბიბლიოთეკის შიგთავსის გადახვევა"
 
-msgid "Page"
-msgstr "გვერდი"
-
 msgid "Move by the viewport height"
 msgstr "გადაადგილება სარკმლის სიმაღლით"
 
@@ -25524,12 +25686,6 @@ msgstr "ამ დავალების გაუქმება"
 
 msgid "Select this job"
 msgstr "ამ დავალების მონიშვნა"
-
-msgid "Previous"
-msgstr "წინა"
-
-msgid "Next"
-msgstr "შემდეგი"
 
 msgid "Browse queue jobs"
 msgstr "რიგის დავალებების დათვალიერება"
@@ -27669,9 +27825,6 @@ msgstr "ტექსტურირების თვისებები"
 
 msgid "Layer and texture properties"
 msgstr "შრისა და ტექსტურის თვისებები"
-
-msgid "Asset Vault"
-msgstr ""
 
 msgid "Smart materials, brushes, and textures library"
 msgstr "ჭკვიანური მასალების, ფუნჯებისა და ტექსტურების ბიბლიოთეკა"

@@ -131,8 +131,8 @@ PANE_CALLS = {
     "space_agent_bubble/agent_ui_draw.cc": ("MIXAR_GLASS_PILL",),
     "space_view3d/view3d_agent_panel_draw.cc": ("MIXAR_GLASS_PANEL",),
     "space_mixie_chat/mixie_chat_ui_primitives.cc": ("MIXAR_GLASS_CHAT",),
-    "space_mixie_chat/mixie_chat_ui_widgets.cc": (),
-    "space_mixie_chat/mixie_chat_messages_content.cc": (),
+    # Facelift contract 04: the user's message is a raised card with a line border (DESIGN v2), no longer a glass pane,
+    # so mixie_chat_ui_widgets.cc and mixie_chat_messages_content.cc left the register.
 }
 
 # The family declares eight roles; seven have a surface. MENU is the queue.
