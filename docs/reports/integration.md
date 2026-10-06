@@ -10,6 +10,23 @@ Role: the implementer became the integrator; lanes lp/vault-ops, lp/vault-ui, lp
 - Consequence found while doing it: the job queue asked the policy about an UNKNOWN price for every image job, which under any "above" rule means a click for every image. The queue now passes an estimate (`IMAGE_USD_ESTIMATE = 0.07` per image, from the spike's measured ~$0.067, times `number_of_images`); only the click decision uses it, never a charge. One to three images run untouched; four or more wait for the click.
 - RED first: `test_openrouter_defaults_to_the_d1_rule_a_click_above_25_cents` failed on the old default; the three existing job-queue tests then hung on the unknown-price click, which is what drove the estimate; `test_image_jobs_follow_the_d1_click_rule_by_estimated_price` pins both sides (mutant: dropping the per-image multiplier fails it).
 
+### Video ingest bypassed egress consent; the coverage audit is now structural (site truth-check, fix request 1)
+- The bug: `videoingest.ingest` ran yt-dlp (metadata and download) with no egress check, while `egress.py` says every outbound call is checked.
+- Why the promised coverage test did not catch it: `test_no_server_module_opens_a_network_door_around_the_hook` scanned only for in-process network imports (urllib, sockets, requests...). Process launches were covered by convention ("each calls `guard` where it launches") and nothing checked the convention.
+- Closed by construction: `tests/test_egress_launch_audit.py` parses the server package (AST) and fails on ANY process launch (subprocess.*, asyncio.create_subprocess_*, os.system/popen/exec*/spawn*) that is not lexically inside `with ...guard(route)` and not declared in `egress.LAUNCHES` with a kind and a reason (`local`, `callers_guard` checked through every call site, `wrapped` checked through its wrapper and attribute uses, `driver` for studio driver scripts). Stale declarations fail too; a planted unguarded yt-dlp launch in a temp module is reported (the instrument is not blind).
+- RED: the audit's first run listed 21 undeclared launches. Four were real bypasses and are now gated:
+  1. `videoingest.ingest` → new route `video_link` (off until opted in; refused before yt-dlp starts; the log row is written before the first downloader call: `test_with_the_route_on_the_log_row_is_written_before_the_downloader_starts`).
+  2. `agent/cli_adapters.codex_image` (codex `$imagegen` sends the prompt and reference images to the ChatGPT plan) → `guard(chatgpt_plan, kind=image)`.
+  3. `agent/server_tools._exec` (the studio_tripo_* driver tools drive the owner's Tripo tab) → `guard(studio:tripo)`; the seed catalog (a local SQLite read) moved to `_exec_local`.
+  4. Boat: only provision/upload/run were gated by the runner; status, fetch, meter, list and teardown ran the Boat CLI ungated. The guard now sits in `BoatCliBackend._cli` (every CLI call), carrying the backend's constraints (snapshots off, no env); the runner only declares the job's assets (`egress_via = "self"`). `guard()` now inherits what an enclosing `context` declared.
+  The other 17 are local (ffmpeg/ffprobe, herdr, systemctl, a local blender render, codex schema generation), each declared with its reason. Declared judgement calls: the user's own stdio MCP servers (`mcp_inventory/probe._stdio`) and the long-lived codex app-server start (turns are gated in `stream()`).
+- Mutants: removing each of the four new guards fails the audit.
+
+### One state directory for the server and the compute CLI (site truth-check, fix request 2)
+- Was: the server defaulted to `<XDG_STATE_HOME>/lampway-server`, `compute/cli.py` to `<XDG_STATE_HOME>/lampway`, so a route switched on in one was off in the other. `imagegen`, `files_tools` and `compute_tools` each re-derived it.
+- Now: `config.state_dir()` is the one function (LAMPWAY_STATE_DIR, else `<XDG_STATE_HOME>/lampway-server`), used by `Settings.from_env`, the compute CLI, the compute agent tool, `files_tools` and `imagegen`.
+- RED: `test_a_route_switched_on_through_the_server_is_on_for_the_compute_cli` (no explicit state dir anywhere; switch compute:boat on through `/app/egress/route`, then build the CLI as `compute` does: the route is on) failed before the fix.
+
 ## Merges
 (none yet: this section is appended per merge with lane, range, conflicts, suite and gate results)
 

@@ -44,7 +44,8 @@ class Context:
 
 def default_context() -> Context:
     root = Path(os.environ.get("LAMPWAY_PROJECT_ROOT") or Path.cwd())
-    state = Path(os.environ.get("LAMPWAY_STATE_DIR") or Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local" / "state") / "lampway")
+    from ..config import state_dir
+    state = state_dir()                                    # the server's own state directory: the same egress.json, prefs and receipts
     return Context(root, state)
 
 

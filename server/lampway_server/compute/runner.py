@@ -202,7 +202,7 @@ class ComputeRunner:
         if not route:
             yield
             return
-        if getattr(be, "egress_via", "guard") == "transport":                      # an httpx adapter: the transport hook logs and lights; this only declares what the call carries
+        if getattr(be, "egress_via", "guard") in ("transport", "self"):                      # an httpx adapter: the transport hook logs and lights; this only declares what the call carries
             with E.context(route=route, kind="file", asset_ids=[i["sha256"][:12] for i in cj["spec"]["inputs"]], content_class=cj["content_class"], constraints=getattr(be, "constraints", {})):
                 yield
             return
