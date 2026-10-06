@@ -172,9 +172,12 @@ def qa_setup(object, recipe, owner="", piece="", session="", offset=(0, 0, 0), o
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def qa_tag_layers():
+def qa_tag_layers(piece=""):
+    """The three tag layers for ``piece`` (default: the active piece). Refused before any edit when no piece is set up (audit F21: an
+    empty call added layers to a scene with nothing to tag)."""
+    cfg = L.load_config(bpy.context.scene, piece or None)
     ann = M.create_tag_layers()
-    return {"layers": [l.info for l in ann.layers]}
+    return {"piece": cfg.piece, "layers": [l.info for l in ann.layers]}
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))

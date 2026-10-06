@@ -35,3 +35,18 @@ print("RESULT", json.dumps(cases))
     assert "views" in res["views_list"]["error"] and "Front" in res["views_list"]["error"]
     assert "set" in res["set_list"]["error"] and "models" in res["set_list"]["error"]
     assert "file" in res["models_str"]["error"]
+
+
+def test_tag_layers_need_a_piece_set_up_and_add_nothing_without_one(tmp_path):
+    """Audit F21: lampway_qa_tag_layers {} added annotation layers to a scene with nothing to tag. It edits only for a piece that
+    is set up (the named piece, else the active one), and says how to set one up."""
+    r = run(tmp_path, '''
+sphere("s")
+out = call("qa_tag_layers")
+ann = bpy.context.scene.annotation
+print("RESULT", json.dumps({"out": out, "layers": [l.info for l in ann.layers] if ann else []}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[0]
+    assert d["out"]["ok"] is False and "qa_setup" in d["out"]["error"], d["out"]
+    assert d["layers"] == []

@@ -145,7 +145,8 @@ DEFS = [
          P("max_shell_tris", "integer", "A floating shell has at most this many triangles; default 400"),
          P("float_mm", "number", "A shell floats when its nearest neighbour is further than this (mm); default 3")], api="qa_setup"),
     Def("lampway_qa_tag_layers", "Add the three annotation tag layers the user draws on: Red = Delete, Green = Mislabel, "
-        "Yellow = Hole (placement Surface). Existing layers are kept.", api="qa_tag_layers"),
+        "Yellow = Hole (placement Surface). Existing layers are kept. For a piece set up with lampway_qa_setup (piece, default the "
+        "active one); refused when none is.", [P("piece", desc="The piece (default: the last one set up)")], api="qa_tag_layers"),
     Def("lampway_qa_candidates", "Find open loops (holes) and floating shells on the piece and write them as typed candidates "
         "(descriptor: size, bordering parts and their motion classes, side of the body, which views see it, what lies behind). "
         "Ruled deletions are applied first. `draw` also draws them into the scene (collection QA_<piece>, markers <piece>_L000).",
