@@ -185,3 +185,9 @@ def test_initial_import_previews_first_and_imports_only_on_the_users_confirm():
     assert vm.importing["state"] == "done" and vm.import_summary() == "Imported 15 new assets (2 duplicates, 0 failed)"
     assert vm.due() is not None, "the page refreshes after an import"
     assert vm.import_confirmable() is None
+
+
+def test_the_payload_asks_for_paths_so_the_island_and_the_editor_share_one_query():
+    vm = VaultViewModel(clock=Clock())
+    vm.submit()
+    assert "path" in vm.due()["payload"]["include"]

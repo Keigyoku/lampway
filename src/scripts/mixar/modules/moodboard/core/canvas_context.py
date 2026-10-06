@@ -34,7 +34,7 @@ def is_moodboard_context(context):
         return getattr(space, "mixie_mode", "MOODBOARD") == "MOODBOARD"
     return (
         getattr(space, "type", None) == "VIEW_3D"
-        and getattr(getattr(context, "workspace", None), "name", None) == "Zen Mode"
+        and getattr(getattr(context, "workspace", None), "name", None) == "Lamplight"
         and getattr(getattr(context, "region", None), "type", None) in {"TOOL_PROPS", "TEMP"}
         and getattr(context.window_manager, "mixar_moodboard_drawer_amount", 0.0) >= 0.98
     )
@@ -102,7 +102,7 @@ def redraw_moodboard_canvases():
                 area.tag_redraw()
             elif (
                 area.type == "VIEW_3D"
-                and window.workspace.name == "Zen Mode"
+                and window.workspace.name == "Lamplight"
                 and getattr(wm, "mixar_moodboard_drawer_amount", 0.0) > 0.0
             ):
                 for region in area.regions:

@@ -404,11 +404,14 @@ class MIXIE_CHAT_OT_select_slot_action(Operator):
             self.report({'WARNING'}, "That asset is no longer available")
             return {'CANCELLED'}
 
-        from ...core import library_browse
-        ok, message = library_browse.add_asset_to_scene(
-            context, action.library, action.blend_file,
-            action.asset_name, action.asset_type,
-        )
+        from ...core import library_browse, library_vault_chat
+        if action.blend_file.startswith(library_vault_chat.PREFIX):
+            ok, message = library_vault_chat.place(context, action.blend_file)
+        else:
+            ok, message = library_browse.add_asset_to_scene(
+                context, action.library, action.blend_file,
+                action.asset_name, action.asset_type,
+            )
         if ok:
             self.report({'INFO'}, rpt_("Added '{name}' to the scene").format(name=message))
             return {'FINISHED'}

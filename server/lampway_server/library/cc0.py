@@ -34,6 +34,8 @@ ACG_SUFFIX = (("_NormalGL", "normal_gl"), ("_NormalDX", "normal_dx"), ("_Color",
               ("_AmbientOcclusion", "ao"), ("_Displacement", "displacement"), ("_Opacity", "opacity"))
 PH_KEYS = {"Diffuse": "color", "nor_gl": "normal_gl", "nor_dx": "normal_dx", "Rough": "roughness", "AO": "ao", "Displacement": "displacement", "arm": "arm", "Metal": "metalness"}
 NORMALS = {"normal_gl", "normal_dx"}
+CONVENTION = {"normal_gl": "GL", "normal_dx": "DX"}
+COLORSPACE = {"color": "sRGB"}                    # colour is display-referred; every data map (normal, roughness, metalness, ao, height, arm, opacity) is Non-Color
 SUBTYPE = {"color": "basecolor", "normal_gl": "normal_gl", "normal_dx": "normal_dx", "roughness": "roughness", "metalness": "metallic", "ao": "ao", "displacement": "height",
            "arm": "orm", "opacity": "mask"}
 ROLE = {"metal": "plate_metal", "metalplates": "plate_metal", "paintedmetal": "plate_metal", "diamondplate": "plate_metal", "corrugatedsteel": "plate_metal",
@@ -147,7 +149,7 @@ class CC0:
             return f"no {attr} download"
         return {"id": rec["id"], "name": rec.get("displayName") or rec["id"], "category": rec["category"], "bytes": int(dl["size"]), "files": [{"url": dl["downloadLink"], "name": dl["fileName"], "size": int(dl["size"])}],
                 "thumb": (rec.get("previewImage") or {}).get("256-PNG"), "source_url": rec.get("shortLink"), "tags": rec.get("tags") or [],
-                "dimensions_m": [rec["dimensionX"] / 100.0, rec["dimensionY"] / 100.0] if rec.get("dimensionX") else None, "creation_method": rec.get("creationMethod"),
+                "dimensions_raw": {"x": rec["dimensionX"], "y": rec["dimensionY"], "unit": None} if rec.get("dimensionX") else None, "creation_method": rec.get("creationMethod"),
                 "snapshot": hashlib.sha256(json.dumps(rec, sort_keys=True).encode()).hexdigest(), "attribution": f"Created using {rec.get('displayName') or rec['id']} from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."}
 
     def _ph_item(self, rec, resolution, fmt, normal_format, want):
@@ -164,7 +166,7 @@ class CC0:
         authors = ", ".join(sorted((rec.get("authors") or {}).keys()))
         return {"id": rec["id"], "name": rec.get("name") or rec["id"], "category": rec["category"], "bytes": sum(f["size"] for f in files), "files": files,
                 "thumb": rec.get("thumbnail_url"), "source_url": f"https://polyhaven.com/a/{rec['id']}", "tags": rec.get("tags") or [],
-                "dimensions_m": [d / 1000.0 for d in rec["dimensions"]] if rec.get("dimensions") else None, "creation_method": None,
+                "dimensions_raw": {"x": rec["dimensions"][0], "y": rec["dimensions"][1], "unit": None} if rec.get("dimensions") else None, "creation_method": None,
                 "snapshot": hashlib.sha256(json.dumps(rec, sort_keys=True).encode()).hexdigest(), "attribution": f"{rec.get('name') or rec['id']} by {authors or 'Poly Haven'}, polyhaven.com (CC0)"}
 
     # -- fetch ----------------------------------------------------------------------------------------------------------------------
@@ -193,9 +195,9 @@ class CC0:
             except LibraryError as err:
                 out["failed"].append({"id": e["id"], "why": str(err)})
                 continue
-            out["bytes"] += n
+            out["bytes"] += n[0]
             out["verified"] += 1
-            out["assets"][e["id"]] = self._register(src, e, maps, plan_id)
+            out["assets"][e["id"]] = self._register(src, e, maps, plan_id, n[1])
             out["fetched"] += 1
         return out
 
@@ -215,6 +217,7 @@ class CC0:
         f = e["files"][0]
         z = self.downloads / "ambientcg" / f["name"]
         n = self._download(f["url"], z, "cc0:ambientcg")
+        raw = hashlib.sha256(z.read_bytes()).hexdigest()                     # the raw download's hash, recorded before anything is unpacked
         try:
             if n != f["size"]:
                 raise LibraryError(f"size {n} is not the API's {f['size']}: rejected")
@@ -234,7 +237,7 @@ class CC0:
             z.unlink(missing_ok=True)
         if not maps:
             raise LibraryError("the zip held no recognised map")
-        return maps, n
+        return maps, (n, raw)
 
     def _ph_maps(self, e):
         maps, n = {}, 0
@@ -246,23 +249,26 @@ class CC0:
                 raise LibraryError(f"md5 mismatch for {f['name']}: the set is not registered")
             maps[f["channel"]] = (f["name"], r.content)
             n += len(r.content)
-        return maps, n
+        return maps, (n, None)                                             # each map's own blob is its raw sha256 (no archive)
 
-    def _register(self, src, e, maps: dict, batch: str) -> str:
+    def _register(self, src, e, maps: dict, batch: str, archive_sha=None) -> str:
         role = ROLE.get(str(e["category"]).lower().replace(" ", ""))
         terms = ([{"facet": "material_role", "label": role}] if role else []) + [{"facet": "license", "label": "cc0"}]
-        attrs = {"source_url": e["source_url"], "dimensions_m": e["dimensions_m"], "creation_method": e["creation_method"], "api_snapshot_sha256": e["snapshot"],
+        attrs = {"source_url": e["source_url"], "dimensions_raw": e["dimensions_raw"], "creation_method": e["creation_method"], "api_snapshot_sha256": e["snapshot"],
+                 "archive_sha256": archive_sha, "map_colorspaces": {ch: COLORSPACE.get(ch, "Non-Color") for ch in maps},
+                 "normal_conventions": {ch: CONVENTION[ch] for ch in maps if ch in CONVENTION},
                  "licence_text": "CC0 1.0 Universal (stated site-wide)", "licence_page": LICENCE_PAGES[src], "fetched_at": time.time(), "category": e["category"]}
         source = {"kind": f"cc0:{src}", "root": HOSTS[src][0], "label": src}
         with self.lib.bulk():
+            # LEGACY(normalize): texture maps enter without canon_io (not yet on lp/wave5); colour space and normal convention are bound per map here
             sid = self.lib.put({"kind": "texture_set", "name": e["name"], "license": CC0_LICENCE["id"], "attribution": e["attribution"], "source": {**source, "key": e["id"]},
                                 "files": [{"role": f"map:{ch}", "bytes": data, "storage": "cas", "name": name} for ch, (name, data) in sorted(maps.items())],
-                                "stats": {"maps_json": sorted(maps), "colorspace": "sRGB"}, "attrs": attrs, "terms": terms, "tags": list(e["tags"])[:12], "batch": batch})["id"]
+                                "stats": {"maps_json": sorted(maps), "colorspace": None}, "attrs": attrs, "terms": terms, "tags": list(e["tags"])[:12], "batch": batch})["id"]
             for ch, (name, data) in sorted(maps.items()):
                 st = I.extract_image(io.BytesIO(data))["stats"]
                 self.lib.put({"kind": "map", "subtype": SUBTYPE.get(ch), "name": f"{e['name']} {ch}", "license": CC0_LICENCE["id"], "attribution": e["attribution"],
                               "source": {**source, "key": f"{e['id']}:{ch}"}, "files": [{"role": "main", "bytes": data, "storage": "cas", "name": name}],
-                              "stats": {"channel": ch, "convention": "GL" if ch == "normal_gl" else "DX" if ch == "normal_dx" else None, "bit_depth": st.get("bit_depth")},
+                              "stats": {"channel": ch, "convention": CONVENTION.get(ch), "bit_depth": st.get("bit_depth"), "colorspace": COLORSPACE.get(ch, "Non-Color")},
                               "attrs": {"width": st.get("width"), "height": st.get("height")}, "terms": terms, "batch": batch,
                               "relations": [{"type": "part_of", "to": sid, "role": f"map:{ch}"}]})
         with self.lib.tx() as db:

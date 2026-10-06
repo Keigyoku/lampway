@@ -113,3 +113,45 @@ def test_the_view_products_of_an_asset_by_role(lib, tmp_path):
     out = V.view_products(lib, aid)
     assert out["turntable"] == [f["path"] for f in frames] and out["ball"] == str(ball)
     assert out["overlay"] is None and out["sheet"] is None and out["proxy"] == []
+
+
+def _frames(tmp_path, name, values):
+    d = tmp_path / name
+    d.mkdir()
+    out = []
+    for i, v in enumerate(values):
+        p = d / f"{i:05d}.jpg"
+        Image.new("RGB", (16, 16), (v, v, v)).save(p)
+        out.append(str(p))
+    return out
+
+
+def test_compare_alignment_modes_return_equal_length_frame_lists(tmp_path):
+    a = _frames(tmp_path, "a", [10, 10, 10, 200, 60, 200, 60, 200])           # still for 3 frames, then moves
+    b = _frames(tmp_path, "b", [10, 200, 60, 200, 60, 200])                   # moves from its second frame
+    start = V.clip_align(a, b, "start", fps_a=8, fps_b=8)
+    assert [len(p) for p in (start["a"], start["b"])] == [6, 6] and start["a"][0] == a[0] and start["b"][0] == b[0]
+    timed = V.clip_align(a, b[::2], "time", fps_a=8, fps_b=4)                  # b at half the proxy rate: each of its frames is shown twice
+    assert len(timed["a"]) == len(timed["b"]) == 6 and timed["b"][:4] == [b[0], b[0], b[2], b[2]]
+    motion = V.clip_align(a, b, "motion", fps_a=8, fps_b=8)
+    assert motion["offset"] == {"a": 2, "b": 0} and motion["a"][0] == a[2] and motion["b"][0] == b[0]
+    assert len(motion["a"]) == len(motion["b"]) == 6
+    with pytest.raises(ValueError, match="start, time or motion"):
+        V.clip_align(a, b, "beat")
+
+
+def test_a_board_tile_moves_and_keeps_its_note_and_order(tmp_path):
+    from lampway_server.library import curate as CU
+    from lampway_server.library.vault import Vault
+    v = Vault.open(tmp_path / "state")
+    a1 = v.lib.put({"kind": "mesh", "name": "a", "source": {"kind": "t", "key": "a"}})["id"]
+    a2 = v.lib.put({"kind": "mesh", "name": "b", "source": {"kind": "t", "key": "b"}})["id"]
+    board = CU.collect(v.lib, "create", name="picks")["collection"]["id"]
+    CU.collect(v.lib, "add", board, asset_ids=[a1, a2])
+    v.lib._db.execute("UPDATE collection_item SET note='keep me' WHERE asset_id=?", (a2,))
+    v.board_move(board, a2, 120.5, 40.0)
+    items = {i["id"]: i for i in CU.collect(v.lib, "get", board)["items"]}
+    assert (items[a2]["x"], items[a2]["y"], items[a2]["note"], items[a2]["ord"]) == (120.5, 40.0, "keep me", 1)
+    with pytest.raises(Exception, match="not on the board"):
+        v.board_move(board, "nope", 1, 1)
+    v.close()

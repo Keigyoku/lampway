@@ -44,7 +44,7 @@ def hosts_scenes_drawer(area, workspace=None) -> bool:
             return bool(hosts())
         except Exception:  # noqa: BLE001 — a stale area never breaks a draw or a tick
             return False
-    return getattr(workspace, 'name', None) == 'Zen Mode'
+    return getattr(workspace, 'name', None) == 'Lamplight'
 
 
 def drawer_view3d_override() -> dict | None:

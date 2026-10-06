@@ -52,28 +52,58 @@ msgstr "பாணிகள் இல்லை"
 msgid "No styles available"
 msgstr "பாணிகள் எதுவும் கிடைக்கவில்லை"
 
+msgid "Help"
+msgstr ""
+
+msgid "Docs, what is new and how to report a bug, in one place"
+msgstr ""
+
+msgid "Documentation"
+msgstr "ஆவணம்"
+
+msgid "What is new"
+msgstr ""
+
+msgid "Report a bug"
+msgstr ""
+
 msgid "Splash"
 msgstr "ச்பிளாச்"
 
-msgid "Custom splash menu without Recent Files."
-msgstr "அண்மைக் கோப்புகள் இல்லாத தனிப்பயன் தொடக்கப் பட்டி."
+msgid "Recent files, the way in, and your setup at a glance"
+msgstr ""
 
-msgid "Choose Your Mode"
-msgstr "உங்கள் பயன்முறையைத் தேர்ந்தெடுங்கள்"
+msgid "Recent Files"
+msgstr ""
 
-msgid "Start with Zen Mode"
-msgstr "Zen பயன்முறையில் தொடங்குங்கள்"
+msgid "No recent files"
+msgstr ""
 
-msgid "Engine Mode (Blender-style)"
-msgstr "Engine பயன்முறை (Blender பாணி)"
+msgid "Start"
+msgstr "தொடங்கு"
 
-msgid "Getting Started"
-msgstr "தொடங்குதல்"
+msgid "New scene"
+msgstr ""
 
-msgid "About"
-msgstr "பற்றி"
+msgid "Recover last session"
+msgstr ""
 
-msgid "Website"
+msgid "Start in Lamplight"
+msgstr ""
+
+msgid "Start in Workshop"
+msgstr ""
+
+msgid "Lampway's server is not running"
+msgstr ""
+
+msgid "server on this machine"
+msgstr ""
+
+msgid "agent: open Providers to choose"
+msgstr ""
+
+msgid "Providers and privacy"
 msgstr ""
 
 msgid "Quick Setup"
@@ -289,9 +319,6 @@ msgid "Send"
 msgstr "அனுப்பு"
 
 msgid "Scenes"
-msgstr ""
-
-msgid "New scene"
 msgstr ""
 
 msgid "Send selection to"
@@ -813,6 +840,18 @@ msgstr "தோல்வி"
 msgid "Errored, or skipped because a dependency failed"
 msgstr "பிழை ஏற்பட்டது, அல்லது சார்பு தோல்வியால் தவிர்க்கப்பட்டது"
 
+msgid "Needs you"
+msgstr ""
+
+msgid "Working, and waiting for your answer, approval, spend or sign-in"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Waiting on something named, not on you"
+msgstr ""
+
 msgid "Started At"
 msgstr "தொடங்கிய நேரம்"
 
@@ -824,6 +863,24 @@ msgstr "விலக்குகிறது"
 
 msgid "Set when the user clicks this card away. The panel plays the same slide-out a finished card gets, and the row is removed once it has left — clicking must not make a card vanish under the cursor"
 msgstr "பயனர் இந்த அட்டையைச் சொடுக்கி அகற்றும்போது அமைக்கப்படும். முடிந்த அட்டைக்குக் கிடைக்கும் அதே வெளிச்சறுக்கலைப் பேனல் இயக்கும், அட்டை வெளியேறிய பிறகு வரி அகலும் — சொடுக்கு கர்சருக்குக் கீழ் அட்டையை மறைக்கக் கூடாது"
+
+msgid "Needs"
+msgstr ""
+
+msgid "What this agent waits for from you: answer, approve, spend or sign_in; empty when nothing"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "One line: why it failed, or why it is blocked"
+msgstr ""
+
+msgid "Waiting On"
+msgstr ""
+
+msgid "What a paused agent waits on"
+msgstr ""
 
 msgid "Ended At"
 msgstr "முடிந்த நேரம்"
@@ -842,6 +899,12 @@ msgstr "முகவர் அட்டைகள் தலைமுறை"
 
 msgid "Bumped every time a NEW fan-out replaces the panel's contents. The C++ panel resets its scroll position and replays the slide-in when this changes — it cannot infer 'new turn' from its own card list, which only re-syncs on a draw and so still holds the previous turn's cards while the panel is poll-hidden"
 msgstr "புதிய கிளைவிரிவு பேனலின் உள்ளடக்கத்தை மாற்றும் ஒவ்வொரு முறையும் உயர்த்தப்படும். இது மாறும்போது C++ பேனல் உருள்வு நிலையை மீட்டமைத்து உள்ச்சறுக்கலை மீண்டும் இயக்கும் — வரைவின்போது மட்டுமே மீளொத்திசைக்கும் தன் அட்டைப் பட்டியலிலிருந்து 'புதிய சுழற்சி' என்பதை அது ஊகிக்க முடியாது, அதனால் பேனல் வாக்கெடுப்பில் மறைந்திருக்கும்போதும் முந்தைய சுழற்சியின் அட்டைகளை வைத்திருக்கும்"
+
+msgid "Hidden Agent Cards"
+msgstr ""
+
+msgid "The overflow chevron's label: how many cards are past the visible ones, by state"
+msgstr ""
 
 msgid "Active Agent Cards"
 msgstr "செயலில் உள்ள முகவர் அட்டைகள்"
@@ -862,6 +925,39 @@ msgstr ""
 "\n"
 "வழிசெலுத்தலையும் வியூபோர்ட் அல்லாத அனைத்து உள்ளீட்டையும் கடக்கவிடுகிறது; வியூபோர்ட்\n"
 "கேன்வாசின் மேல் சொடுக்கல்களையும் தொகுப்புக் குறுக்குவிசைகளையும் எடுத்துக்கொள்கிறது.\n"
+
+msgid "Canvas"
+msgstr "கேன்வாச்"
+
+msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
+msgstr ""
+
+msgid "Open"
+msgstr "திற"
+
+msgid "Fit"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "attach the pan/zoom handling to what is already open"
+msgstr ""
+
+msgid "the lineage layout as JSON, for clicks"
+msgstr ""
+
+msgid "Asset Vault Hotkey"
+msgstr ""
+
+msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
+msgstr ""
+
+msgid "Search the Asset Vault"
+msgstr ""
+
+msgid "Select an asset first"
+msgstr ""
 
 msgid "Search"
 msgstr "தேடல்"
@@ -995,10 +1091,55 @@ msgstr ""
 msgid "The Asset Vault window is already open"
 msgstr ""
 
+msgid "Align clips"
+msgstr ""
+
+msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
+msgstr ""
+
+msgid "Frame 0 with frame 0"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "By timestamp"
+msgstr ""
+
+msgid "Motion"
+msgstr ""
+
+msgid "Where each clip first moves"
+msgstr ""
+
+msgid "Press Compare on a second clip first"
+msgstr ""
+
+msgid "Refresh boards"
+msgstr ""
+
+msgid "Read the Vault's boards"
+msgstr ""
+
+msgid "Open board"
+msgstr ""
+
+msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
 msgid "Searching"
 msgstr ""
 
+msgid "Choose how to line the two clips up"
+msgstr ""
+
 msgid "Show the lineage"
+msgstr ""
+
+msgid "Open on the canvas"
 msgstr ""
 
 msgid "Select an asset"
@@ -1008,6 +1149,12 @@ msgid "Reading the asset"
 msgstr ""
 
 msgid "Copy id"
+msgstr ""
+
+msgid "Close canvas"
+msgstr ""
+
+msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
 msgstr ""
 
 msgid "Asset Vault"
@@ -1871,9 +2018,6 @@ msgstr "பதிவிறக்கு"
 msgid "Stop"
 msgstr "நிறுத்து"
 
-msgid "Start"
-msgstr "தொடங்கு"
-
 msgid "Delete Download"
 msgstr "பதிவிறக்கத்தை அழி"
 
@@ -2549,9 +2693,6 @@ msgstr "பிணையத்தை அடைய முடியவில்ல�
 msgid "Network error: {short}"
 msgstr "பிணையப் பிழை: {short}"
 
-msgid "Open"
-msgstr "திற"
-
 msgid "Toast Click"
 msgstr "டோஸ்ட் சொடுக்கு"
 
@@ -2639,7 +2780,7 @@ msgstr ""
 msgid "Reset Workspace Backgrounds"
 msgstr ""
 
-msgid "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
+msgid "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
 msgstr ""
 
 msgid "Local gallery action"
@@ -2687,7 +2828,7 @@ msgstr ""
 msgid "Privacy Policy"
 msgstr "தனியுரிமைக் கொள்கை"
 
-msgid "Shared across Zen, Engine and Texturing workspaces."
+msgid "Shared across the Lamplight, Workshop and Texturing workspaces."
 msgstr ""
 
 msgid "Workspace Backgrounds"
@@ -2696,13 +2837,13 @@ msgstr ""
 msgid "Viewport Style"
 msgstr ""
 
-msgid "Viewport (Zen & Engine)"
+msgid "Viewport (Lamplight & Workshop)"
 msgstr ""
 
 msgid "Viewport Gradient"
 msgstr ""
 
-msgid "Moodboard (Zen & Panel)"
+msgid "Moodboard (Lamplight & Panel)"
 msgstr ""
 
 msgid "Defaults: Viewport #0F0F0F · Moodboard #1E1E1E"
@@ -2711,11 +2852,11 @@ msgstr ""
 msgid "Topbar chrome (UI.svg recipe)"
 msgstr "மேல்பட்டை தோற்றம் (UI.svg செய்முறை)"
 
-msgid "Zen"
+msgid "Lamplight"
 msgstr ""
 
-msgid "Engine"
-msgstr "இயந்திரம்"
+msgid "Workshop"
+msgstr ""
 
 msgid "Cinema Mode"
 msgstr "சினிமா பயன்முறை"
@@ -2797,6 +2938,9 @@ msgstr "உள்ளகச் சொடுக்கல்கள்"
 
 msgid "Profile"
 msgstr "சுயவிவரம்"
+
+msgid "Zen"
+msgstr ""
 
 msgid "Shared Zen components"
 msgstr "பகிர்ந்த Zen கூறுகள்"
@@ -5015,6 +5159,12 @@ msgstr "விலக்கு"
 msgid "Dismiss the error and return to idle"
 msgstr "பிழையை விலக்கி செயலற்ற நிலைக்குத் திரும்புகிறது"
 
+msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
+msgstr ""
+
+msgid "UE Look is on"
+msgstr ""
+
 msgid "Front"
 msgstr "முன்"
 
@@ -5027,10 +5177,160 @@ msgstr "கடினத்தன்மை"
 msgid "Metallic"
 msgstr "உலோகம்"
 
+msgid "Scale"
+msgstr "அளவு"
+
+msgid "Detail"
+msgstr "விவரம்"
+
+msgid "NodeGroupOutput"
+msgstr ""
+
+msgid "GeometryNodeCollectionInfo"
+msgstr ""
+
+msgid "lampway_uv_check"
+msgstr ""
+
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
+msgstr ""
+
+msgid "KiB"
+msgstr ""
+
+msgid "MiB"
+msgstr ""
+
+msgid "ChatGPT plan"
+msgstr ""
+
+msgid "Your ChatGPT subscription, signed in from Providers"
+msgstr ""
+
+msgid "Codex CLI"
+msgstr ""
+
+msgid "The Codex command line on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "The Claude command line on this machine, on your Claude plan"
+msgstr ""
+
+msgid "OpenRouter"
+msgstr ""
+
+msgid "Pay per use with your OpenRouter key"
+msgstr ""
+
+msgid "Anthropic API key"
+msgstr ""
+
+msgid "Pay per use with your Anthropic key"
+msgstr ""
+
+msgid "OpenAI API key"
+msgstr ""
+
+msgid "Pay per use with your OpenAI key"
+msgstr ""
+
+msgid "Codex app server"
+msgstr ""
+
+msgid "The Codex app server on this machine, on your ChatGPT plan"
+msgstr ""
+
+msgid "No agent"
+msgstr ""
+
+msgid "A stand-in that answers on this machine and thinks nothing"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Click above"
+msgstr ""
+
+msgid "Per job"
+msgstr ""
+
+msgid "Per session"
+msgstr ""
+
+msgid "On"
+msgstr "துவங்கு"
+
+msgid "Let data go over this route"
+msgstr ""
+
+msgid "Lampway setup"
+msgstr ""
+
+msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "The step before"
+msgstr ""
+
+msgid "Route policy"
+msgstr ""
+
+msgid "What this route keeps and whether it trains on what you send"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "spend unknown: server not running"
+msgstr ""
+
+msgid "egress unknown"
+msgstr ""
+
+msgid "Waiting for you"
+msgstr "உங்களுக்காகக் காத்திருக்கிறது"
+
+msgid "Open the first decision that waits for your click"
+msgstr ""
+
+msgid "Nothing waits for you"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "What has been spent, against which cap"
+msgstr ""
+
+msgid "Egress"
+msgstr ""
+
+msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Approve patch"
+msgstr ""
+
+msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
+msgstr ""
+
+msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -5243,9 +5543,6 @@ msgstr ""
 msgid "Spend credits?"
 msgstr ""
 
-msgid "Spend"
-msgstr ""
-
 msgid "Answer"
 msgstr ""
 
@@ -5268,9 +5565,6 @@ msgid "Bring one of a finished job's files into the scene (collection Studio)"
 msgstr ""
 
 msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
-msgstr ""
-
-msgid "Main agent"
 msgstr ""
 
 msgid "Provider for the main agent (the chat)"
@@ -5429,6 +5723,12 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
+msgid "UE Look"
+msgstr ""
+
+msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
+msgstr ""
+
 msgid "Refresh sessions"
 msgstr ""
 
@@ -5451,9 +5751,6 @@ msgid "New session"
 msgstr ""
 
 msgid "Open a new agent session in the cockpit (your own CLI login)"
-msgstr ""
-
-msgid "Claude Code"
 msgstr ""
 
 msgid "Codex"
@@ -5583,6 +5880,21 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Engine defaults: not the project"
+msgstr ""
+
+msgid "UE Look: on"
+msgstr ""
+
+msgid "UE Look: off"
+msgstr ""
+
+msgid "Show account details"
+msgstr ""
+
+msgid "Show the signed-in name and address on the account card; off, it reads Local account"
 msgstr ""
 
 msgid "enum values, | separated"
@@ -5811,6 +6123,24 @@ msgid "0 = the deform mesh's rest height, else head bone to foot bone"
 msgstr ""
 
 msgid "Last result"
+msgstr ""
+
+msgid "UE profile"
+msgstr ""
+
+msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
+msgstr ""
+
+msgid "Tonemapper cube"
+msgstr ""
+
+msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
+msgstr ""
+
+msgid "Cube sidecar"
+msgstr ""
+
+msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
@@ -6860,9 +7190,6 @@ msgstr "குறிப்பு {number}"
 msgid "This template needs an available generation model. Check your connection."
 msgstr "இந்த வார்ப்புருவுக்குக் கிடைக்கும் உருவாக்க மாதிரி தேவை. உங்கள் இணைப்பைச் சரிபாருங்கள்."
 
-msgid "On"
-msgstr "துவங்கு"
-
 msgid "Off"
 msgstr "அணை"
 
@@ -7271,6 +7598,9 @@ msgstr "ஒரு பாத்திரத்தின் அனைத்து�
 msgid "Settings"
 msgstr "அமைப்புகள்"
 
+msgid "About"
+msgstr "பற்றி"
+
 msgid "Auto-detects the skeleton type"
 msgstr "எலும்புக்கூறு வகையைத் தானாகக் கண்டறியும்"
 
@@ -7463,14 +7793,14 @@ msgstr "வடிவமைப்புச் சூழலுக்கு மு�
 msgid "Moodboard Drawer"
 msgstr "மூட்போர்டு இழுப்பறை"
 
-msgid "How far the Zen Mode moodboard drawer is pulled out, 0 shut and 1 open"
-msgstr "Zen பயன்முறை மூட்போர்டு இழுப்பறை எவ்வளவு வெளியே இழுக்கப்பட்டுள்ளது, 0 மூடி 1 திற"
+msgid "How far the Lamplight moodboard drawer is pulled out, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Target"
 msgstr "மூட்போர்டு இழுப்பறை இலக்கு"
 
-msgid "Side the Zen Mode moodboard drawer settles on, 0 shut and 1 open"
-msgstr "Zen பயன்முறை மூட்போர்டு இழுப்பறை எந்தப் பக்கத்தில் நிற்கும், 0 மூடி 1 திற"
+msgid "Side the Lamplight moodboard drawer settles on, 0 shut and 1 open"
+msgstr ""
 
 msgid "Moodboard Drawer Width"
 msgstr "மூட்போர்டு இழுப்பறை அகலம்"
@@ -8334,9 +8664,6 @@ msgstr "மூட்போர்டு கேன்வாசில் X நி�
 
 msgid "Y position on the moodboard canvas"
 msgstr "மூட்போர்டு கேன்வாசில் Y நிலை"
-
-msgid "Scale"
-msgstr "அளவு"
 
 msgid "Scale factor for the image"
 msgstr "படத்துக்கான அளவுக் காரணி"
@@ -11626,7 +11953,7 @@ msgstr "Mixarக்கு வரவேற்கிறோம்"
 msgid "Start Tour"
 msgstr ""
 
-msgid "Walk through the viewport, Lampway Agent, the moodboard and Engine mode"
+msgid "Walk through the viewport, Lampway Agent, the moodboard and the Workshop"
 msgstr ""
 
 msgid "Playback rate"
@@ -20601,9 +20928,6 @@ msgstr ""
 "\n"
 "சிறிது நேரத்தில் மீண்டும் முயலவும், அல்லது அதற்குப் பதிலாக உரைத் தேடலைத் தட்டச்சு செய்யவும்."
 
-msgid "Showing name matches only ({reason})."
-msgstr "பெயர் பொருத்தங்கள் மட்டும் காட்டப்படுகின்றன ({reason})."
-
 msgid "“{query}” + your image"
 msgstr "“{query}” + உங்கள் படம்"
 
@@ -20971,9 +21295,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "டாஷ்போர்டு"
-
-msgid "Documentation"
-msgstr "ஆவணம்"
 
 msgid "Report a Bug"
 msgstr "பிழையைப் புகாரளி"
@@ -22393,6 +22714,9 @@ msgstr "துணை நிரல் திட்டம்"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "இணைத்த பல கோப்பு Blender துணை நிரலைக் கட்டிப் பராமரி"
 
+msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
+msgstr ""
+
 msgid "Add-on Project ID"
 msgstr "துணை நிரல் திட்ட அடையாளம்"
 
@@ -22711,9 +23035,6 @@ msgstr "நிரைச் சிட்டை, எ.கா. 'படி'"
 msgid "Row target, e.g. a filename"
 msgstr "நிரை இலக்கு, எ.கா. ஒரு கோப்புப் பெயர்"
 
-msgid "Detail"
-msgstr "விவரம்"
-
 msgid "Second-level detail body (command output / snippet)"
 msgstr "இரண்டாம் நிலை விவர உடல் (கட்டளை வெளியீடு / துணுக்கு)"
 
@@ -22908,9 +23229,6 @@ msgstr "திட்ட விதிகள் தெரியும்"
 
 msgid "Whether the project-rules overlay is open"
 msgstr "திட்ட விதிகள் மேலடுக்கு திறந்துள்ளதா"
-
-msgid "Waiting for you"
-msgstr "உங்களுக்காகக் காத்திருக்கிறது"
 
 msgid "Session"
 msgstr ""
@@ -24907,12 +25225,6 @@ msgstr ""
 msgid "New Workspace"
 msgstr ""
 
-msgid "Engine Mode"
-msgstr "Engine பயன்முறை"
-
-msgid "Zen Mode"
-msgstr "Zen பயன்முறை"
-
 msgid "Add Modifier"
 msgstr ""
 
@@ -24922,14 +25234,14 @@ msgstr ""
 msgid "Particles"
 msgstr ""
 
-msgid "Switch Lampway into Zen Mode (minimal viewport + Agent Bubble + moodboard)"
-msgstr "Mixar-ஐ Zen பயன்முறைக்கு மாற்றுகிறது (குறைந்த வியூபோர்ட் + முகவர் குமிழி + மூட்போர்டு)"
+msgid "Switch Lampway into Lamplight (minimal viewport + Agent Bubble + moodboard)"
+msgstr ""
 
-msgid "Could not create Zen Mode workspace — no template available"
-msgstr "Zen பயன்முறைப் பணியிடத்தை உருவாக்க முடியவில்லை — வார்ப்புரு இல்லை"
+msgid "Could not create the Lamplight workspace — no template available"
+msgstr ""
 
-msgid "Switch Lampway into Engine Mode (full Blender-style workspaces)"
-msgstr "Mixar-ஐ Engine பயன்முறைக்கு மாற்றுகிறது (முழு Blender-பாணிப் பணியிடங்கள்)"
+msgid "Switch Lampway into the Workshop (full Blender-style workspaces)"
+msgstr ""
 
 msgid "Modeling workspace not found"
 msgstr "வடிவமைப்புப் பணியிடம் காணவில்லை"
@@ -25006,7 +25318,7 @@ msgstr "காட்சி மற்றும் பார்வை அடுக
 msgid "View Layer"
 msgstr "அடுக்கு காண்க"
 
-msgid "Edit this shader in Engine Mode."
+msgid "Edit this shader in the Workshop."
 msgstr ""
 
 msgid "Driven by nodes"
@@ -25057,13 +25369,13 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-msgid "Edit node inputs in Engine Mode."
+msgid "Edit node inputs in the Workshop."
 msgstr ""
 
-msgid "Complete setup in Engine Mode."
+msgid "Complete setup in the Workshop."
 msgstr ""
 
-msgid "Edit settings in Engine Mode."
+msgid "Edit settings in the Workshop."
 msgstr ""
 
 msgid "Apply"
@@ -25176,6 +25488,9 @@ msgstr "நூலகம் '%s' எதிர்கால Lampway பதிப்
 
 msgid "LIB: Data refers to main .mixar file: '%s' from %s"
 msgstr "LIB: தரவு முதன்மை .mixar கோப்பைக் குறிக்கிறது: '%s', %s-இலிருந்து"
+
+msgid "Local account"
+msgstr ""
 
 msgid "Welcome, %s !"
 msgstr "வரவேற்கிறோம், %s !"
@@ -26083,6 +26398,24 @@ msgstr "கர்சர் X நிலை"
 msgid "Cursor Y position"
 msgstr "கர்சர் Y நிலை"
 
+msgid "The Asset Vault is not in this build: nothing was placed"
+msgstr ""
+
+msgid "Place from the Asset Vault"
+msgstr ""
+
+msgid "Place the dragged Vault asset where it was dropped"
+msgstr ""
+
+msgid "The Vault asset to place"
+msgstr ""
+
+msgid "Where"
+msgstr ""
+
+msgid "asset_place's target: cursor, object:<name>, slot:<object>:<index>, node_tree:<material>"
+msgstr ""
+
 msgid "Animate Moodboard Attachment"
 msgstr "மூட்போர்டு இணைப்புக் கோப்பை இயக்கமாக்கு"
 
@@ -26829,6 +27162,24 @@ msgstr "அமைப்புத் தொகுப்புகள் இடம�
 
 msgid "Use the sidebar panels to manage texture sets"
 msgstr "அமைப்புத் தொகுப்புகளை நிர்வகிக்க பக்கப்பட்டிப் பேனல்களைப் பயன்படுத்து"
+
+msgid "working"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "needs you"
+msgstr ""
+
+msgid "paused"
+msgstr ""
+
+msgid "failed: no reason given"
+msgstr ""
 
 msgid "Back to first"
 msgstr "முதலுக்குத் திரும்பு"
@@ -27580,9 +27931,6 @@ msgstr "அமைப்பாக்க பண்புகள்"
 msgid "Layer and texture properties"
 msgstr "அடுக்கு மற்றும் அமைப்புப் பண்புகள்"
 
-msgid "Texturing Assets"
-msgstr "அமைப்பாக்க சொத்துக்கள்"
-
 msgid "Smart materials, brushes, and textures library"
 msgstr "திறன்மிகு மூலப்பொருட்கள், தூரிகைகள், அமைப்புகள் நூலகம்"
 
@@ -27805,8 +28153,8 @@ msgstr "சாய்வுச் சிட்டையுடன் வட்ட�
 msgid "Viewport Pill"
 msgstr "வியூபோர்ட் நீள்வட்டம்"
 
-msgid "Zen viewport shading pill; dimmed when it is not the live mode"
-msgstr "Zen வியூபோர்ட் நிழலிடல் நீள்வட்டம்; நேரடிப் பயன்முறை இல்லையென்றால் மங்கும்"
+msgid "Lamplight viewport shading pill; dimmed when it is not the live mode"
+msgstr ""
 
 msgid "Profile Pill"
 msgstr "சுயவிவர நீள்வட்டம்"
@@ -27882,9 +28230,6 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
-
-msgid "Canvas"
-msgstr "கேன்வாச்"
 
 msgid "Shared canvas and page background"
 msgstr "பகிர்ந்த கேன்வாச் மற்றும் பக்கப் பின்னணி"
@@ -28048,26 +28393,26 @@ msgstr "வரிசை எண்ணிக்கைச் சிப்"
 msgid "Slider Track"
 msgstr "சறுக்கித் தடம்"
 
-msgid "Zen/Engine slider track"
-msgstr "Zen/Engine சறுக்கித் தடம்"
+msgid "Lamplight/Workshop slider track"
+msgstr ""
 
 msgid "Slider Thumb"
 msgstr "சறுக்கி நழுவி"
 
-msgid "Zen/Engine slider thumb"
-msgstr "Zen/Engine சறுக்கி நழுவி"
+msgid "Lamplight/Workshop slider thumb"
+msgstr ""
 
 msgid "Slider Thumb Hover"
 msgstr "சறுக்கி நழுவி சுட்டுதல்"
 
-msgid "Zen/Engine thumb hover"
-msgstr "Zen/Engine நழுவி சுட்டுதல்"
+msgid "Lamplight/Workshop thumb hover"
+msgstr ""
 
 msgid "Slider Label"
 msgstr "சறுக்கிச் சிட்டை"
 
-msgid "Zen/Engine slider label"
-msgstr "Zen/Engine சறுக்கிச் சிட்டை"
+msgid "Lamplight/Workshop slider label"
+msgstr ""
 
 msgid "Cinema Pill Fill"
 msgstr "சினிமா நீள்வட்ட நிரப்பு"

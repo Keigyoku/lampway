@@ -66,11 +66,11 @@ def test_new_drawer_region_answers_its_own_poll_and_requests_layout():
 def test_the_zen_workspace_name_is_the_shared_constant():
     """Every drawer gate compares this one literal; it must be the workspace
     `workflow/constants.py` creates, or the drawer silently never appears."""
-    assert 'BASIC_WORKSPACE_NAME = "Zen Mode"' in CONSTANTS
+    assert 'BASIC_WORKSPACE_NAME = "Lamplight"' in CONSTANTS
     header = (ROOT / "src/source/blender/editors/space_view3d/view3d_moodboard_drawer.hh").read_text()
     predicate = _fn(header, "inline bool view3d_moodboard_drawer_workspace_is_zen(const WorkSpace *workspace)")
-    assert 'STREQ(workspace->id.name + 2, "Zen Mode")' in predicate
-    assert (DRAWER + header).count('"Zen Mode"') == 1
+    assert 'STREQ(workspace->id.name + 2, "Lamplight")' in predicate
+    assert (DRAWER + header).count('"Lamplight"') == 1
 
 
 def test_region_init_seeds_the_hit_rect_amount_from_the_wm_property():

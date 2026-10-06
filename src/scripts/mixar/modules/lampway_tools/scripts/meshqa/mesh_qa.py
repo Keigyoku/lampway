@@ -32,6 +32,8 @@ if __name__ == '__main__' and len(_A) < 4:
 import argparse, bpy, json, math, colorsys, os, numpy as np
 from mathutils import Vector
 from mixar.modules.lampway_tools.meshqa import candidates as C
+from mixar.modules.lampway_tools.meshqa.review import review_camera
+from mathutils.bvhtree import BVHTree
 ap = argparse.ArgumentParser(prog='mesh_qa.py'); [ap.add_argument(k) for k in ('mesh', 'owner', 'recipe', 'out')]
 ap.add_argument('--turn', type=float, default=0.0); ap.add_argument('--min-perimeter', type=float, default=0.15)
 ap.add_argument('--max-shell-tris', type=int, default=400); ap.add_argument('--float-mm', type=float, default=3.0)
@@ -63,9 +65,10 @@ sc = bpy.context.scene; sc.render.engine = 'BLENDER_EEVEE' if 'BLENDER_EEVEE' in
 w = bpy.data.worlds.new('w'); sc.world = w; w.use_nodes = True; w.node_tree.nodes['Background'].inputs['Color'].default_value = (0.05, 0.05, 0.06, 1); w.node_tree.nodes['Background'].inputs['Strength'].default_value = 1.0
 for nm_, rot in (('k', (50, 0, 30)), ('f', (60, 0, 200)), ('t', (0, 0, 0))):
     Ld = bpy.data.lights.new(nm_, 'SUN'); Ld.energy = 3.0 if nm_ == 'k' else 1.2; lo = bpy.data.objects.new(nm_, Ld); sc.collection.objects.link(lo); lo.rotation_euler = [math.radians(x) for x in rot]
-ym = bpy.data.materials.new('mark'); ym.use_nodes = True; bb = ym.node_tree.nodes['Principled BSDF']; bb.inputs['Base Color'].default_value = (1, 0.9, 0, 1); bb.inputs['Emission Color'].default_value = (1, 0.9, 0, 1); bb.inputs['Emission Strength'].default_value = 4
+ym = bpy.data.materials.new('mark'); ym.use_nodes = True; bb = ym.node_tree.nodes['Principled BSDF']; bb.inputs['Base Color'].default_value = (1, 0.9, 0, 1); bb.inputs['Emission Color'].default_value = (1, 0.9, 0, 1); bb.inputs['Emission Strength'].default_value = 1
 cam = bpy.data.cameras.new('c'); co = bpy.data.objects.new('c', cam); sc.collection.objects.link(co); sc.camera = co; cam.type = 'ORTHO'; cam.clip_end = 20
 sc.render.resolution_x = sc.render.resolution_y = 640; sc.render.film_transparent = False
+sc.view_settings.view_transform = 'Standard'                                # a saturated highlight: AgX washes the yellow out to cream
 shell_of = {}
 def mark_obj(c):
     vv, ee, ff = [], [], []
@@ -74,7 +77,7 @@ def mark_obj(c):
             j = len(vv); vv += [p0, p1]; ee.append((j, j + 1))
         mm = bpy.data.meshes.new('mk'); mm.from_pydata(vv, ee, []); o = bpy.data.objects.new('mk', mm); sc.collection.objects.link(o)
         o.modifiers.new('s', 'SKIN')
-        r_ = max(0.0015, min(0.004, max(c['extent_m']) / 120))
+        r_ = c['review_camera']['highlight_radius_m']                       # several pixels wide at the crop's scale (was capped at 4 mm)
         for sv in mm.skin_vertices[0].data: sv.radius = (r_, r_)
     else:
         src = set(c['orig_polys'])
@@ -84,10 +87,14 @@ def mark_obj(c):
         mm = bpy.data.meshes.new('mk'); mm.from_pydata(vv, [], ff); o = bpy.data.objects.new('mk', mm); sc.collection.objects.link(o)
         md = o.modifiers.new('d', 'DISPLACE'); md.strength = 0.0008
     mm.materials.append(ym); return o
+bm.verts.ensure_lookup_table(); _tree = BVHTree.FromBMesh(bm)
+for c in cands:                                                          # the crop camera: its near clip passes whatever lies in front of the candidate
+    c['review_camera'] = review_camera(c['centroid_m'], c['facing'], c['extent_m'], _tree, res=640)
 for c in ([] if a.no_render else cands):
-    o = mark_obj(c); n = Vector(c['facing']); ctr = Vector(c['centroid_m'])
-    for tag, scale, dist in (('', max(max(c['extent_m']) * 1.7, 0.08), 1.2), ('_loc', 1.25, 3.0)):
+    o = mark_obj(c); n = Vector(c['facing']); ctr = Vector(c['centroid_m']); rc = c['review_camera']
+    for tag, scale, dist in (('', rc['ortho_scale_m'], 1.2), ('_loc', 1.25, 3.0)):
         cam.ortho_scale = scale; co.location = (ctr if tag == '' else Vector((center[0], center[1], center[2]))) + n * dist
+        cam.clip_start = rc['clip_start_m'] if tag == '' else 0.1
         tgt = ctr if tag == '' else Vector((center[0], center[1], center[2]))
         co.rotation_euler = (tgt - co.location).to_track_quat('-Z', 'Y').to_euler()
         sc.render.filepath = os.path.join(a.out, 'img', f"{c['id']}{tag}.png"); bpy.ops.render.render(write_still=True)

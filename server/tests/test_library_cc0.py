@@ -61,6 +61,7 @@ class Sites:
         self.records = records if records is not None else [acg_record()]
         self.ph_assets = ph_assets if ph_assets is not None else {"metal_plate_02": {"name": "Metal Plate 02", "categories": ["metal"], "tags": ["plate"], "dimensions": [2000, 2000], "authors": {"Someone": "All"}}}
         self.reqs, self.corrupt, self.drop_range, self.crc = [], set(corrupt), drop_range, set(crc)
+        self.served = {}
 
     def ph_body(self, asset, key, res, fmt):
         return png_bytes(hash((asset, key, res, fmt)) % 1000)
@@ -88,6 +89,7 @@ class Sites:
             body = acg_zip(asset, attr)
             if name in self.corrupt:
                 body = body[:-40] + b"\0" * 40                                  # the central directory gone: not a zip at all
+            self.served[name] = body
             if name in self.crc:
                 body = body[:80] + bytes([body[80] ^ 0xFF]) + body[81:]        # one byte of the first member's data: the directory is intact, the CRC is not
             rng = req.headers.get("range")
@@ -141,16 +143,23 @@ def test_ambientcg_record_maps_to_asset_with_licence_cc0_and_source_key(tmp_path
     lib, c = cc(tmp_path, sites)
     out = c.fetch(c.plan("ambientcg", {"categories": ["Metal"]}, fmt="png")["plan_id"], by="captain")
     assert out["fetched"] == 1 and out["failed"] == [] and out["verified"] == 1
+    served = sites.served["Metal049A_1K-PNG.zip"]
     sid = lib.resolve_asset(out["assets"]["Metal049A"])
     a = lib.get(sid)
     assert (a["kind"], a["source_key"], a["license_id"]) == ("texture_set", "Metal049A", "CC0-1.0")
-    assert a["attrs"]["source_url"] == "https://ambientcg.com/a/Metal049A" and a["attrs"]["dimensions_m"] == [1.0, 1.0] and a["attrs"]["api_snapshot_sha256"]
+    assert a["attrs"]["source_url"] == "https://ambientcg.com/a/Metal049A" and a["attrs"]["api_snapshot_sha256"]
+    assert "dimensions_m" not in a["attrs"] and a["attrs"]["dimensions_raw"] == {"x": 100, "y": 100, "unit": None}      # the site's numbers, no unit claimed
+    assert a["attrs"]["archive_sha256"] == hashlib.sha256(served).hexdigest()                                          # the raw download's hash
     roles = sorted(f["role"] for f in a["files"])
     assert roles == ["map:color", "map:displacement", "map:normal_dx", "map:normal_gl", "map:roughness"]                 # no preview, no .usdc
     lic = lib._reader().execute("select attribution_required,commercial_ok,redistribute_ok,url from license where id='CC0-1.0'").fetchone()
     assert tuple(lic[:3]) == (0, 1, 1) and lic[3].startswith("https://")
     maps = [r for r in a["relations"] if r["type"] == "part_of" and r["dst"] == sid]
     assert len(maps) == 5
+    members = {lib.get(r["src"])["stats"]["channel"]: lib.get(r["src"]) for r in maps}
+    assert {ch: m["attrs"]["colorspace"] for ch, m in members.items()} == {"color": "sRGB", "normal_gl": "Non-Color", "normal_dx": "Non-Color", "roughness": "Non-Color", "displacement": "Non-Color"}
+    assert a["attrs"]["map_colorspaces"]["color"] == "sRGB" and a["attrs"]["map_colorspaces"]["roughness"] == "Non-Color" and a["stats"]["colorspace"] is None
+    assert a["attrs"]["normal_conventions"] == {"normal_gl": "GL", "normal_dx": "DX"} and members["normal_dx"]["stats"]["convention"] == "DX"
     gl = next(lib.get(r["src"]) for r in maps if lib.get(r["src"])["subtype"] == "normal_gl")
     assert gl["stats"]["convention"] == "GL" and gl["stats"]["channel"] == "normal_gl" and gl["license_id"] == "CC0-1.0"      # map_channel (the DDL's columns)
     assert ("material_role", "plate_metal") in {(t["facet"], t["label"]) for t in a["terms"]}

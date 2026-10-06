@@ -32,6 +32,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+
+#include "mixar_assets_dnd.hh"
 /* Mixar 5.2 port: namespace wrap. */
 namespace blender {
 
@@ -70,7 +72,9 @@ static void mixar_assets_main_region_init(wmWindowManager *wm, ARegion *region)
 
 static void mixar_assets_main_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, region);
+  /* The layout callback has built the panels (and made the tiles draggable); laying them out again here would rebuild
+   * the buttons without their drag. */
+  ED_region_panels_draw(C, region);
 }
 
 static void mixar_assets_main_region_listener(const wmRegionListenerParams *params)
@@ -121,7 +125,7 @@ void ED_spacetype_mixar_assets()
   std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
 
   st->spaceid = SPACE_MIXAR_ASSETS;
-  STRNCPY_UTF8(st->name, "Texturing Assets");
+  STRNCPY_UTF8(st->name, "Asset Vault");
   st->iconid = ICON_ASSET_MANAGER;
 
   st->create = mixar_assets_create;
@@ -129,13 +133,15 @@ void ED_spacetype_mixar_assets()
   st->init = mixar_assets_init;
   st->duplicate = mixar_assets_duplicate;
   st->blend_write = mixar_assets_blend_write;
+  st->operatortypes = mixar_assets_operatortypes;
+  st->dropboxes = mixar_assets_dropboxes;
 
   /* Main region */
   ARegionType *art = MEM_new_zeroed<ARegionType>("spacetype mixar_assets main");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI;
   art->init = mixar_assets_main_region_init;
-  art->layout = ED_region_panels_layout;
+  art->layout = mixar_assets_main_region_layout; /* the panels, then the tiles drag */
   art->draw = mixar_assets_main_region_draw;
   art->listener = mixar_assets_main_region_listener;
   BLI_addhead(&st->regiontypes, art);

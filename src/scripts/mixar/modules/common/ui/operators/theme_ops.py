@@ -30,7 +30,7 @@ class MIXAR_OT_apply_forest_backgrounds(Operator):
     bl_idname = "mixar.apply_forest_backgrounds"
     bl_label = "Reset Workspace Backgrounds"
     bl_description = (
-        "Set Zen and Engine viewport backgrounds to #0F0F0F and both Moodboard "
+        "Set Lamplight and Workshop viewport backgrounds to #0F0F0F and both Moodboard "
         "hosts to #1E1E1E; use theme backgrounds and hide Material Preview HDRI backdrops"
     )
 

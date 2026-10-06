@@ -72,14 +72,15 @@ ball = sphere("ball", 0.5, subdiv=4, loc=(0, 0, 0.5))
 uv = call("uv_unwrap", object="ball", method="smart")
 res = call("texture_gen", object=uv["object"], prompt="mossy stone", views=["Front", "Back"], size=128, out_dir="tex/gen")
 print("RESULT", json.dumps({"res": res, "calls": calls, "files": sorted(os.listdir(root + "/tex/gen")),
-                            "mat": [m.name for m in bpy.data.objects[uv["object"]].data.materials]}))
+                            "mat": [m.name for m in bpy.data.objects[res["object"]].data.materials],
+                            "src_mat": [m.name for m in bpy.data.objects[uv["object"]].data.materials]}))
 ''')
     assert r.rc == 0, r.out[-2500:]
     out = r.results[0]
     assert out["res"]["ok"] is True and len(out["calls"]) == 2 and all(c["ref_bytes"] > 100 for c in out["calls"])
     assert all("mossy stone" in c["prompt"] for c in out["calls"])
     assert {"clay_Front.png", "clay_Back.png", "gen_Front.png", "gen_Back.png", "atlas.png"} <= set(out["files"])
-    assert out["res"]["report"]["coverage"] > 0.8 and out["mat"] == ["ball_uv_proj"]
+    assert out["res"]["report"]["coverage"] > 0.8 and out["mat"] == ["ball_uv_tex_proj"] and out["src_mat"] == [], "the result is a copy; the source keeps its materials"
 
 
 def test_ai_render_renders_the_clay_view_and_hands_it_to_the_image_slot(tmp_path):

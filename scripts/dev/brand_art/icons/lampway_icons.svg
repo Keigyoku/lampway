@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+<!-- SPDX-FileCopyrightText: 2026 Lampway contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Lampway UI icon set (source of the native icons and the previews; scripts/dev/brand_art/lampway_icons.py renders it): monoline on a 16 px grid, 1.5 px stroke, round caps and joins (DESIGN.md 6, contract 14).
+     Stroke-only so the host colours them with currentColor; the flame and status dots are the only fills. -->
+<symbol id="lamp" viewBox="0 0 16 16"><path d="M3 14.5h10M5 14.5V6.2C5 3.8 6.6 2.6 9.4 2.6M9.4 2.6v1.3"/><rect x="7.6" y="4.4" width="3.6" height="5.4" rx="1.3"/><path d="M9.4 5.6c-.9 1-.9 2 0 3 .9-1 .9-2 0-3z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="wire" viewBox="0 0 16 16"><rect x="1.5" y="5" width="5" height="6" rx="1.2"/><path d="M6.5 8h8"/><path d="M12 5.6 14.5 8 12 10.4"/></symbol>
+<symbol id="coin" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path d="M8 4.8v6.4M6.2 9.6c.4.6 1 .9 1.8.9 1 0 1.8-.5 1.8-1.3 0-1.9-3.5-1-3.5-2.9 0-.7.7-1.2 1.7-1.2.7 0 1.3.3 1.6.8"/></symbol>
+<symbol id="cap" viewBox="0 0 16 16"><path d="M2.6 11.5a5.6 5.6 0 1 1 10.8 0"/><path d="M8 11.2l3-4.2"/><circle cx="8" cy="11.4" r=".9" fill="currentColor"/></symbol>
+<symbol id="receipt" viewBox="0 0 16 16"><path d="M4 1.8h8v12.4l-1.6-1-1.2 1-1.2-1-1.2 1-1.2-1-1.6 1z"/><path d="M6 5.2h4M6 7.6h4M6 10h2.4"/></symbol>
+<symbol id="route" viewBox="0 0 16 16"><circle cx="3.4" cy="12.6" r="1.6"/><circle cx="12.6" cy="3.4" r="1.6"/><path d="M5 12.6h3.2a2.4 2.4 0 0 0 2.4-2.4V5.8M10.6 5.8 12.6 3.4"/></symbol>
+<symbol id="shield" viewBox="0 0 16 16"><path d="M8 1.8 13 3.6v4.1c0 3.1-2.1 5.4-5 6.5-2.9-1.1-5-3.4-5-6.5V3.6z" fill="currentColor" fill-opacity=".9"/></symbol>
+<symbol id="shield-half" viewBox="0 0 16 16"><path d="M8 1.8 13 3.6v4.1c0 3.1-2.1 5.4-5 6.5-2.9-1.1-5-3.4-5-6.5V3.6z"/><path d="M8 1.8v12.4c-2.9-1.1-5-3.4-5-6.5V3.6z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="shield-open" viewBox="0 0 16 16"><path d="M8 1.8 13 3.6v4.1c0 3.1-2.1 5.4-5 6.5-2.9-1.1-5-3.4-5-6.5V3.6z"/><path d="M5.6 8.4h4.8"/></symbol>
+<symbol id="shield-q" viewBox="0 0 16 16"><path d="M8 1.8 13 3.6v4.1c0 3.1-2.1 5.4-5 6.5-2.9-1.1-5-3.4-5-6.5V3.6z"/><path d="M6.6 6.4c0-.8.6-1.3 1.4-1.3s1.4.5 1.4 1.2c0 1.1-1.4 1.1-1.4 2.2"/><circle cx="8" cy="10.6" r=".5" fill="currentColor"/></symbol>
+<symbol id="hand" viewBox="0 0 16 16"><path d="M5.2 8V3.6a1.1 1.1 0 0 1 2.2 0V7.4M7.4 7V2.6a1.1 1.1 0 0 1 2.2 0V7.2M9.6 7.2V3.6a1.1 1.1 0 0 1 2.2 0v5.6c0 3-1.8 5-4.5 5-2 0-3-1-4.1-2.7L1.8 9.1a1.1 1.1 0 0 1 1.8-1.2L5.2 10"/></symbol>
+<symbol id="worker" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6c-1.5 1.7-1.6 3.6 0 5.4 1.6-1.8 1.5-3.7 0-5.4z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="pane" viewBox="0 0 16 16"><rect x="1.8" y="2.8" width="12.4" height="10.4" rx="2"/><path d="M4.6 6.4 6.6 8l-2 1.6M8.2 10h3"/></symbol>
+<symbol id="compare" viewBox="0 0 16 16"><rect x="1.6" y="3" width="5.6" height="10" rx="1.4"/><rect x="8.8" y="3" width="5.6" height="10" rx="1.4"/></symbol>
+<symbol id="vault" viewBox="0 0 16 16"><rect x="1.8" y="5.4" width="12.4" height="8.4" rx="1.6"/><path d="M1.8 5.4 3.4 2.4h9.2l1.6 3M6 8.6h4"/></symbol>
+<symbol id="gate" viewBox="0 0 16 16"><path d="M3 14V3M13 14V3M3 6.2h10M3 10h10"/></symbol>
+<symbol id="node-lit" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5" fill="currentColor"/></symbol>
+<symbol id="node-half" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/><path d="M8 3.5a4.5 4.5 0 0 0 0 9z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="node" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/></symbol>
+<symbol id="check" viewBox="0 0 16 16"><path d="M3.2 8.6 6.4 11.6 12.8 4.6"/></symbol>
+<symbol id="cross" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+<symbol id="eye" viewBox="0 0 16 16"><path d="M1.6 8s2.4-4.4 6.4-4.4S14.4 8 14.4 8 12 12.4 8 12.4 1.6 8 1.6 8z"/><circle cx="8" cy="8" r="1.9"/></symbol>
+<symbol id="chev-d" viewBox="0 0 16 16"><path d="M4.4 6.4 8 10l3.6-3.6"/></symbol>
+<symbol id="chev-r" viewBox="0 0 16 16"><path d="M6.4 4.4 10 8l-3.6 3.6"/></symbol>
+<symbol id="search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.4"/><path d="m10.2 10.2 3.6 3.6"/></symbol>
+<symbol id="plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+<symbol id="gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6 5 5M11 11l1.4 1.4M3.6 12.4 5 11M11 5l1.4-1.4"/></symbol>
+<symbol id="play" viewBox="0 0 16 16"><path d="M5 3.4v9.2L12.4 8z"/></symbol>
+<symbol id="stop" viewBox="0 0 16 16"><rect x="4" y="4" width="8" height="8" rx="1.4"/></symbol>
+<symbol id="folder" viewBox="0 0 16 16"><path d="M1.8 4.2a1.2 1.2 0 0 1 1.2-1.2h3.1l1.5 1.6h5.4a1.2 1.2 0 0 1 1.2 1.2v6.8a1.2 1.2 0 0 1-1.2 1.2H3a1.2 1.2 0 0 1-1.2-1.2z"/></symbol>
+<symbol id="image" viewBox="0 0 16 16"><rect x="1.8" y="2.8" width="12.4" height="10.4" rx="1.6"/><circle cx="5.6" cy="6.2" r="1.2"/><path d="m2.2 11.8 3.6-3.4 2.6 2.4 2.2-2 3.2 3"/></symbol>
+<symbol id="video" viewBox="0 0 16 16"><rect x="1.6" y="3.6" width="9" height="8.8" rx="1.6"/><path d="m10.6 7 3.8-2.2v6.4L10.6 9"/></symbol>
+<symbol id="cube" viewBox="0 0 16 16"><path d="M8 1.8 13.6 5v6L8 14.2 2.4 11V5z"/><path d="M2.4 5 8 8.2 13.6 5M8 8.2v6"/></symbol>
+<symbol id="prompt" viewBox="0 0 16 16"><path d="M2.4 3.4h11.2M2.4 6.6h11.2M2.4 9.8h7"/><path d="M11 12.6h3" stroke-width="1.8"/></symbol>
+<symbol id="clock" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.6V8l2.4 1.6"/></symbol>
+<symbol id="user" viewBox="0 0 16 16"><circle cx="8" cy="5.6" r="2.8"/><path d="M2.8 14c.5-2.8 2.6-4.4 5.2-4.4s4.7 1.6 5.2 4.4"/></symbol>
+<symbol id="lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.6"/><path d="M5.2 7V5a2.8 2.8 0 0 1 5.6 0v2"/></symbol>
+<symbol id="ext" viewBox="0 0 16 16"><path d="M9.6 2.4h4v4M13.6 2.4 7.6 8.4M12 9.6v3a1.2 1.2 0 0 1-1.2 1.2H3.6a1.2 1.2 0 0 1-1.2-1.2V5.2A1.2 1.2 0 0 1 3.6 4h3"/></symbol>
+<symbol id="filter" viewBox="0 0 16 16"><path d="M2.2 3h11.6L9.4 8.4v4.8l-2.8 1.2v-6z"/></symbol>
+<symbol id="grid" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></symbol>
+<symbol id="list" viewBox="0 0 16 16"><path d="M5.6 4h8.4M5.6 8h8.4M5.6 12h8.4"/><circle cx="2.6" cy="4" r=".7" fill="currentColor"/><circle cx="2.6" cy="8" r=".7" fill="currentColor"/><circle cx="2.6" cy="12" r=".7" fill="currentColor"/></symbol>
+<symbol id="star" viewBox="0 0 16 16"><path d="m8 2 1.8 3.8 4.1.5-3 2.8.8 4.1L8 11.2l-3.7 2 .8-4.1-3-2.8 4.1-.5z"/></symbol>
+<symbol id="star-f" viewBox="0 0 16 16"><path d="m8 2 1.8 3.8 4.1.5-3 2.8.8 4.1L8 11.2l-3.7 2 .8-4.1-3-2.8 4.1-.5z" fill="currentColor"/></symbol>
+<symbol id="refresh" viewBox="0 0 16 16"><path d="M13.2 7.2A5.2 5.2 0 0 0 3.6 4.8M2.8 8.8a5.2 5.2 0 0 0 9.6 2.4"/><path d="M3.4 2.4v2.6H6M12.6 13.6V11H10"/></symbol>
+<symbol id="more" viewBox="0 0 16 16"><circle cx="3.6" cy="8" r=".9" fill="currentColor"/><circle cx="8" cy="8" r=".9" fill="currentColor"/><circle cx="12.4" cy="8" r=".9" fill="currentColor"/></symbol>
+<symbol id="send" viewBox="0 0 16 16"><path d="M8 13V3.4M3.8 7.4 8 3.2l4.2 4.2" stroke-width="1.8"/></symbol>
+<symbol id="paperclip" viewBox="0 0 16 16"><path d="m13 7.4-5 5a3.2 3.2 0 0 1-4.6-4.5l5.4-5.4a2.1 2.1 0 0 1 3 3L6.6 10.7a1 1 0 0 1-1.5-1.5l4.6-4.6"/></symbol>
+<symbol id="mic" viewBox="0 0 16 16"><rect x="5.8" y="1.8" width="4.4" height="7.4" rx="2.2"/><path d="M3.4 7.4a4.6 4.6 0 0 0 9.2 0M8 12v2.4"/></symbol>
+<symbol id="select-t" viewBox="0 0 16 16"><path d="M3 2.4 3 12l2.8-2.6L8 14l1.8-.8-2.2-4.6 3.8-.2z"/></symbol>
+<symbol id="cursor-t" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.4" stroke-dasharray="2.2 1.6"/><path d="M8 1.6v3M8 11.4v3M1.6 8h3M11.4 8h3"/></symbol>
+<symbol id="move-t" viewBox="0 0 16 16"><path d="M8 1.8v12.4M1.8 8h12.4M8 1.8 6.2 3.6M8 1.8l1.8 1.8M8 14.2l-1.8-1.8M8 14.2l1.8-1.8M1.8 8l1.8-1.8M1.8 8l1.8 1.8M14.2 8l-1.8-1.8M14.2 8l-1.8 1.8"/></symbol>
+<symbol id="rotate-t" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.6"/><path d="M11.8 1.8v2.8H9"/><circle cx="8" cy="8" r="1" fill="currentColor"/></symbol>
+<symbol id="scale-t" viewBox="0 0 16 16"><rect x="2" y="7" width="7" height="7" rx="1"/><path d="M8.6 2h5.4v5.4M14 2 9.6 6.4"/></symbol>
+<symbol id="annotate-t" viewBox="0 0 16 16"><path d="m10.6 2.2 3.2 3.2-7.8 7.8-3.8.6.6-3.8z"/><path d="M9 3.8 12.2 7"/></symbol>
+<symbol id="measure-t" viewBox="0 0 16 16"><path d="M2.4 12.2 12.2 2.4l1.4 1.4-9.8 9.8z"/><path d="m5 9.6 1.2 1.2M7.2 7.4l1.2 1.2M9.4 5.2l1.2 1.2"/></symbol>
+<symbol id="addcube-t" viewBox="0 0 16 16"><path d="M7 2.2 11.8 5v5.4L7 13.2 2.2 10.4V5z"/><path d="M12.6 10.2v4M10.6 12.2h4"/></symbol>
+<symbol id="window" viewBox="0 0 16 16"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.8"/><path d="M1.8 5.6h12.4"/></symbol>
+<symbol id="pin" viewBox="0 0 16 16"><path d="M6 2h4l-.6 4 2.4 2.2H4.2L6.6 6zM8 8.2v5.8"/></symbol>
+<symbol id="download" viewBox="0 0 16 16"><path d="M8 2.4v8M4.4 7 8 10.6 11.6 7M2.6 13.6h10.8"/></symbol>
+<symbol id="info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.2V11"/><circle cx="8" cy="5" r=".6" fill="currentColor"/></symbol>
+<symbol id="warn" viewBox="0 0 16 16"><path d="M8 2.2 14.2 13H1.8z"/><path d="M8 6.4v3.2"/><circle cx="8" cy="11.2" r=".6" fill="currentColor"/></symbol>
+<symbol id="link" viewBox="0 0 16 16"><path d="M6.6 9.4 9.4 6.6M5 7.6l-1.4 1.4a2.4 2.4 0 0 0 3.4 3.4L8.4 11M7.6 5l1.4-1.4a2.4 2.4 0 0 1 3.4 3.4L11 8.4"/></symbol>
+<symbol id="sync" viewBox="0 0 16 16"><path d="M2.4 6.4h9.2l-2.4-2.4M13.6 9.6H4.4l2.4 2.4"/></symbol>
+<symbol id="blind" viewBox="0 0 16 16"><path d="M1.6 8s2.4-4.4 6.4-4.4S14.4 8 14.4 8 12 12.4 8 12.4 1.6 8 1.6 8z"/><path d="M2.6 13.4 13.4 2.6"/></symbol>
+<symbol id="cloud-box" viewBox="0 0 16 16"><path d="M4.4 12.4a3 3 0 0 1-.4-6 4.2 4.2 0 0 1 8.1 1 2.5 2.5 0 0 1 .3 5z"/></symbol>
+<!-- Added for the native set (contract 14, DESIGN.md 13): the agent spark and its states, the gauge in ten steps
+     with its near and over marks, and the two frames of the sending wire. Same construction. -->
+<symbol id="spark" viewBox="0 0 16 16"><path d="M8 2.2C5.6 4.9 5.3 7.8 8 10.8 10.7 7.8 10.4 4.9 8 2.2z" fill="currentColor" stroke="none"/><path d="M5.4 13.8h5.2"/></symbol>
+<symbol id="agent-idle" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.4C6.3 6.3 6.1 8.3 8 10.4 9.9 8.3 9.7 6.3 8 4.4z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="agent-working" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"/><path d="M8 1.8a6.2 6.2 0 0 1 5.4 9.1" stroke-width="2.8"/><path d="M8 4.4C6.3 6.3 6.1 8.3 8 10.4 9.9 8.3 9.7 6.3 8 4.4z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="agent-unread" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"/><circle cx="11.6" cy="2.9" r="1.9" fill="currentColor" stroke="none"/><path d="M8 4.4C6.3 6.3 6.1 8.3 8 10.4 9.9 8.3 9.7 6.3 8 4.4z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="agent-blocked" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.9" stroke-width="2.6"/><path d="M8 4.4C6.3 6.3 6.1 8.3 8 10.4 9.9 8.3 9.7 6.3 8 4.4z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="agent-paused" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" stroke-dasharray="2.4 2.1"/><path d="M8 4.4C6.3 6.3 6.1 8.3 8 10.4 9.9 8.3 9.7 6.3 8 4.4z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="agent-done" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"/><path d="M8 3.6C6.9 4.8 6.8 6.1 8 7.4 9.2 6.1 9.1 4.8 8 3.6z" fill="currentColor" stroke="none"/><path d="M5.6 10.1 7.3 11.6 10.5 8.6"/></symbol>
+<symbol id="agent-failed" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"/><path d="M8 10.6C6.8 9.1 9.2 8 8 6.4 7.2 5.3 8.3 4.3 8 3.4"/><circle cx="8" cy="11.6" r=".8" fill="currentColor" stroke="none"/></symbol>
+<symbol id="wire-dot-a" viewBox="0 0 16 16"><path d="M1.6 8h12.8"/><circle cx="5.6" cy="8" r="2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="wire-dot-b" viewBox="0 0 16 16"><path d="M1.6 8h12.8"/><circle cx="10.4" cy="8" r="2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="meter-near" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="9" height="3.6" rx="1.8"/><path d="M2.8 8h4.6" stroke-width="1.4"/><path d="M13 5.4l2 3.6h-4z"/></symbol>
+<symbol id="meter-over" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="9" height="3.6" rx="1.8"/><path d="M2.8 8h6.2" stroke-width="1.4"/><path d="M12 6l3 3M15 6l-3 3"/></symbol>
+<symbol id="meter-0" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/></symbol>
+<symbol id="meter-1" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="1.1" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="meter-2" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="2.2" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="meter-3" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="3.3" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="meter-4" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="4.4" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="meter-5" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="5.5" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="meter-6" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="6.6" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="meter-7" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="7.7" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="meter-8" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="8.8" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="meter-9" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="9.9" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="meter-10" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="11.0" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="generate" viewBox="0 0 16 16"><path d="M10.4 2.6H3.4a1.6 1.6 0 0 0-1.6 1.6v7a1.6 1.6 0 0 0 1.6 1.6h4.2"/><path d="M1.8 10.4 5 7.4l2.6 2.4"/><circle cx="9" cy="5.6" r="1"/><path d="M12.4 8.8v5.6M9.6 11.6h5.6"/></symbol>
+</svg>

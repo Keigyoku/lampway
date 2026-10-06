@@ -1,0 +1,70 @@
+{
+  "id": "moodboard-turnaround-3x2",
+  "version": "1.0.0",
+  "purpose": "plate",
+  "media": "image",
+  "title": "3x2 six-view turnaround sheet of one piece (wearer's axes, identical scale)",
+  "description": "Moodboard P8 (sheet): a turnaround sheet for each piece in turn, starting with the Helmet, laid out like the attached example sheet (the Sandal sheet).",
+  "body": {
+    "subject": "A turnaround sheet of the {{asset_name}}, similar to the attached example turnaround sheet (the Sandal sheet), one per piece, starting with the Helmet. Match the reference of the piece exactly for proportion, materials, wear and detail.",
+    "action": "LAYOUT: a 3x2 grid, six cells, in this exact order. Top row, left to right: FRONT, RIGHT, BACK. Bottom row, left to right: LEFT, TOP, BOTTOM. Even gutters between cells. Each view centred in its own cell. No cell merged, no view repeated, no extra views, no hero shot.",
+    "camera": "VIEW DEFINITIONS (axes are the WEARER's, not the object's): FRONT from directly in front of the wearer, looking at their chest; RIGHT from the wearer's own right side; BACK from directly behind the wearer; LEFT from the wearer's own left side; TOP from directly above, looking down; BOTTOM from directly below, looking up. SCALE (the single most important requirement): All six views rendered at IDENTICAL scale, as if one object photographed six times by a camera moved around it. Do not resize any view to fill its cell. A shorter view must leave more empty space, not be enlarged. Orthographic projection. No perspective distortion.",
+    "style": "PRESENTATION (follow exactly): Flat solid background, pure magenta #FF00FF, edge to edge, including the gutters. No gradient, no vignette, no checkerboard, no drawn transparency pattern, no panel borders, no dividing lines. Flat, even, diffuse lighting from the camera direction, IDENTICAL in every cell. No cast shadow, no contact shadow, no ground plane, no rim light. Minimal specular highlight. Matte material response.",
+    "constraints": "No text, no labels, no captions, no view names, no watermark, no props, no set dressing, no hands, no mannequin, no other pieces. Landscape 3:2 aspect ratio. Highest resolution available."
+  },
+  "variables": {
+    "asset_name": {
+      "type": "string",
+      "default": "Helmet",
+      "description": "the piece of this sheet; one sheet per piece, starting with the Helmet"
+    }
+  },
+  "negatives": [],
+  "inputs": {
+    "reference_image": {
+      "required": true,
+      "order": 1,
+      "description": "the piece's design reference (its multiview sheet)"
+    },
+    "image_references": {
+      "required": false,
+      "multiple": true,
+      "order": 2,
+      "description": "the example turnaround sheet to follow for layout (the Sandal sheet)"
+    }
+  },
+  "defaults": {
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "image_matte",
+      "description": "split 3x2 with lampway_image_matte and verify; equal cells do not prove equal object scale"
+    },
+    {
+      "id": "view_verify",
+      "description": "inspect every result: names and hashes cannot prove a view, a side or a scale"
+    }
+  ],
+  "provenance": {
+    "source": "the captain's moodboard prompts (specs/prompts/moodboard/Prompt1-8.txt), 2026-10-06",
+    "note": "spruced up into the five-part spine; nothing lost: every original clause is mapped in prompts/moodboard_parity.json and checked by tests/test_moodboard_parity.py"
+  }
+}

@@ -25,7 +25,7 @@ class DrawerGuard:
         if self._saved is not None:
             return True
         wm = context.window_manager
-        if getattr(window.workspace, "name", "") != "Zen Mode":
+        if getattr(window.workspace, "name", "") != "Lamplight":
             return True
         amount = getattr(wm, "mixar_moodboard_drawer_amount", 0.0)
         target = getattr(wm, "mixar_moodboard_drawer_target", 0)
@@ -55,7 +55,7 @@ class DrawerGuard:
         window, area, region = resolve(context, self._area_ptr, self._region_ptr)
         try:
             if (window is not None and area is not None and region is not None
-                    and window.workspace.name == "Zen Mode"):
+                    and window.workspace.name == "Lamplight"):
                 with context.temp_override(window=window, area=area, region=region):
                     result = bpy.ops.view3d.moodboard_drawer_set(
                         amount=amount, target=float(target))

@@ -88,15 +88,18 @@ def pose_samples() -> dict[str, dict[str, float]]:
 def test_painter_draws_the_lampway_spark_not_the_upstream_mascot():
     """The pill and the Parallel Agents cards draw a flame in a ring (scripts/dev/brand_art/logo_agent_spark.svg); the upstream black cat is gone from the painter."""
     assert "static void draw_spark(" in CAT_CC and "flame(" in CAT_CC and "ring(" in CAT_CC
-    assert "0.929f, 0.725f, 0.267f" in CAT_CC          # Flame #EDB944
+    body = CAT_CC[CAT_CC.index("static void draw_spark("):]
+    assert "MixarThemeSlot::Focus, accent" in body      # the flame is the theme's accent (facelift 05), never a literal
+    assert "0.929f, 0.725f, 0.267f" not in body
     for cat_part in ("draw_eyes", "void ear(", "catchlight", "pose.look_x", "mixie_cat_eval_pose"):
         assert cat_part not in CAT_CC, cat_part
 
 
-def test_the_working_state_alternates_two_flame_frames_and_offline_shows_the_flame_out():
-    body = CAT_CC[CAT_CC.index("static void draw_spark("):]
-    assert "BLI_time_now_seconds() / 0.8" in body          # 1.6 s per full cycle
-    assert "second_frame" in body and "wisp(" in body and "offline" in body
+def test_the_spark_never_animates_and_failed_shows_the_flame_out():
+    """Facelift 05 and F10 (BUILD_ORDER.md): the working flame is retired; each state is a still ring, failed is the wisp."""
+    body = CAT_CC[CAT_CC.index("static void draw_spark("):CAT_CC.index("void agent_ui_draw_spark(")]
+    assert "BLI_time_now_seconds" not in body and "second_frame" not in body
+    assert "case AgentSparkState::Failed" in body and "wisp(" in body
 
 
 def test_worker_colours_are_the_brand_pack_in_order():

@@ -1,0 +1,2728 @@
+{
+ "frame_check_mm": {
+  "pelvis": 0.0,
+  "hand_r": 0.001,
+  "upperarm_r": 0.0,
+  "calf_r": 0.001,
+  "foot_r": 0.001,
+  "middle_01_r": 0.002,
+  "index_03_r": 0.014
+ },
+ "seams_min_median_mm": {
+  "MT-1": {
+   "source": {
+    "cap_index_1->index_1": [
+     4.0,
+     4.4
+    ],
+    "cap_index_2->index_2": [
+     4.0,
+     4.36
+    ],
+    "cap_index_3->index_3": [
+     4.0,
+     4.32
+    ],
+    "cap_middle_1->middle_1": [
+     4.0,
+     4.41
+    ],
+    "cap_middle_2->middle_2": [
+     4.0,
+     4.36
+    ],
+    "cap_middle_3->middle_3": [
+     4.0,
+     4.28
+    ],
+    "cap_pinky_1->pinky_1": [
+     4.0,
+     4.38
+    ],
+    "cap_pinky_2->pinky_2": [
+     4.0,
+     4.33
+    ],
+    "cap_pinky_3->pinky_3": [
+     4.0,
+     4.25
+    ],
+    "cap_ring_1->ring_1": [
+     4.0,
+     4.39
+    ],
+    "cap_ring_2->ring_2": [
+     4.0,
+     4.34
+    ],
+    "cap_ring_3->ring_3": [
+     4.0,
+     4.31
+    ],
+    "cap_thumb_2->thumb_2": [
+     4.0,
+     4.39
+    ],
+    "cap_thumb_3->thumb_3": [
+     4.0,
+     4.44
+    ]
+   },
+   "export_bind": {
+    "cap_index_1->index_1": [
+     1.1,
+     3.19
+    ],
+    "cap_index_2->index_2": [
+     2.36,
+     4.3
+    ],
+    "cap_index_3->index_3": [
+     1.43,
+     4.96
+    ],
+    "cap_middle_1->middle_1": [
+     1.89,
+     2.77
+    ],
+    "cap_middle_2->middle_2": [
+     2.0,
+     3.08
+    ],
+    "cap_middle_3->middle_3": [
+     3.0,
+     5.43
+    ],
+    "cap_pinky_1->pinky_1": [
+     0.05,
+     2.06
+    ],
+    "cap_pinky_2->pinky_2": [
+     0.03,
+     0.9
+    ],
+    "cap_pinky_3->pinky_3": [
+     4.84,
+     6.33
+    ],
+    "cap_ring_1->ring_1": [
+     0.1,
+     2.67
+    ],
+    "cap_ring_2->ring_2": [
+     2.33,
+     3.32
+    ],
+    "cap_ring_3->ring_3": [
+     2.81,
+     4.46
+    ],
+    "cap_thumb_2->thumb_2": [
+     0.13,
+     3.04
+    ],
+    "cap_thumb_3->thumb_3": [
+     2.22,
+     7.38
+    ]
+   },
+   "fist_40_per_joint": {
+    "cap_index_1->index_1": [
+     1.22,
+     3.44
+    ],
+    "cap_index_2->index_2": [
+     0.35,
+     4.1
+    ],
+    "cap_index_3->index_3": [
+     0.8,
+     3.56
+    ],
+    "cap_middle_1->middle_1": [
+     2.02,
+     3.07
+    ],
+    "cap_middle_2->middle_2": [
+     1.92,
+     3.05
+    ],
+    "cap_middle_3->middle_3": [
+     3.52,
+     5.85
+    ],
+    "cap_pinky_1->pinky_1": [
+     0.01,
+     2.04
+    ],
+    "cap_pinky_2->pinky_2": [
+     0.0,
+     0.84
+    ],
+    "cap_pinky_3->pinky_3": [
+     4.06,
+     6.08
+    ],
+    "cap_ring_1->ring_1": [
+     0.16,
+     2.7
+    ],
+    "cap_ring_2->ring_2": [
+     2.65,
+     3.46
+    ],
+    "cap_ring_3->ring_3": [
+     2.68,
+     4.36
+    ],
+    "cap_thumb_2->thumb_2": [
+     0.13,
+     3.04
+    ],
+    "cap_thumb_3->thumb_3": [
+     2.12,
+     7.38
+    ]
+   }
+  },
+  "MT-3": {
+   "source": {
+    "strip_00->strip_01": [
+     26.52,
+     51.24
+    ],
+    "strip_01->strip_02": [
+     8.89,
+     41.17
+    ],
+    "strip_02->strip_03": [
+     17.51,
+     41.87
+    ],
+    "strip_03->strip_04": [
+     5.99,
+     36.59
+    ],
+    "strip_04->strip_05": [
+     17.85,
+     42.04
+    ],
+    "strip_05->strip_06": [
+     9.24,
+     41.36
+    ],
+    "strip_06->strip_07": [
+     24.7,
+     50.26
+    ],
+    "strip_07->strip_08": [
+     8.53,
+     47.1
+    ],
+    "strip_08->strip_09": [
+     8.66,
+     47.1
+    ],
+    "strip_09->strip_10": [
+     49.96,
+     64.8
+    ],
+    "strip_10->strip_11": [
+     13.52,
+     36.86
+    ],
+    "strip_11->strip_12": [
+     5.45,
+     33.31
+    ],
+    "strip_12->strip_13": [
+     15.23,
+     37.73
+    ],
+    "strip_13->strip_14": [
+     47.13,
+     62.71
+    ],
+    "strip_14->strip_15": [
+     9.32,
+     47.16
+    ],
+    "strip_15->strip_00": [
+     8.24,
+     47.2
+    ],
+    "strip_top_to_belt_mm": {
+     "min": 6.33,
+     "max": 18.53
+    }
+   },
+   "export_bind": {
+    "strip_00->strip_01": [
+     26.52,
+     51.24
+    ],
+    "strip_01->strip_02": [
+     8.89,
+     41.17
+    ],
+    "strip_02->strip_03": [
+     17.51,
+     41.87
+    ],
+    "strip_03->strip_04": [
+     5.99,
+     36.59
+    ],
+    "strip_04->strip_05": [
+     17.85,
+     42.04
+    ],
+    "strip_05->strip_06": [
+     9.24,
+     41.36
+    ],
+    "strip_06->strip_07": [
+     24.7,
+     50.26
+    ],
+    "strip_07->strip_08": [
+     8.53,
+     47.1
+    ],
+    "strip_08->strip_09": [
+     8.66,
+     47.1
+    ],
+    "strip_09->strip_10": [
+     49.96,
+     64.8
+    ],
+    "strip_10->strip_11": [
+     13.52,
+     36.86
+    ],
+    "strip_11->strip_12": [
+     5.45,
+     33.31
+    ],
+    "strip_12->strip_13": [
+     15.23,
+     37.73
+    ],
+    "strip_13->strip_14": [
+     47.13,
+     62.71
+    ],
+    "strip_14->strip_15": [
+     9.32,
+     47.16
+    ],
+    "strip_15->strip_00": [
+     8.24,
+     47.2
+    ],
+    "strip_top_to_belt_mm": {
+     "min": 6.33,
+     "max": 18.53
+    }
+   },
+   "hips_flexed_60": {
+    "strip_00->strip_01": [
+     26.46,
+     50.16
+    ],
+    "strip_01->strip_02": [
+     8.87,
+     40.32
+    ],
+    "strip_02->strip_03": [
+     15.4,
+     41.87
+    ],
+    "strip_03->strip_04": [
+     5.99,
+     36.6
+    ],
+    "strip_04->strip_05": [
+     13.12,
+     43.65
+    ],
+    "strip_05->strip_06": [
+     9.24,
+     42.27
+    ],
+    "strip_06->strip_07": [
+     24.59,
+     49.99
+    ],
+    "strip_07->strip_08": [
+     8.21,
+     45.59
+    ],
+    "strip_08->strip_09": [
+     8.0,
+     44.35
+    ],
+    "strip_09->strip_10": [
+     49.74,
+     66.18
+    ],
+    "strip_10->strip_11": [
+     13.52,
+     42.47
+    ],
+    "strip_11->strip_12": [
+     5.45,
+     36.75
+    ],
+    "strip_12->strip_13": [
+     15.23,
+     46.7
+    ],
+    "strip_13->strip_14": [
+     47.03,
+     67.7
+    ],
+    "strip_14->strip_15": [
+     7.89,
+     41.73
+    ],
+    "strip_15->strip_00": [
+     6.94,
+     44.88
+    ],
+    "strip_top_to_belt_mm": {
+     "min": 6.19,
+     "max": 18.48
+    }
+   }
+  },
+  "MT-4": {
+   "source": {
+    "lid->greave": [
+     55.55,
+     55.55
+    ]
+   },
+   "export_bind": {
+    "lid->greave": [
+     11.88,
+     11.88
+    ]
+   },
+   "knee_bent_90": {
+    "lid->greave": [
+     11.87,
+     11.87
+    ]
+   }
+  }
+ },
+ "cases": {
+  "MT-1": {
+   "export_vertices": 2294,
+   "source_vertices": 2294,
+   "uv_conflicts": 0,
+   "uv_v_flipped": false,
+   "source_covered": 2294,
+   "whole": {
+    "scale": 0.9588,
+    "rot_deg": 82.9,
+    "rms_mm": 18.08,
+    "max_mm": 56.36
+   },
+   "edge_strain": {
+    "median_pct": 22.11,
+    "p95_pct": 118.91,
+    "max_pct": 917.17
+   },
+   "parts": {
+    "cap_index_1": {
+     "n": 28,
+     "scale": 0.9353,
+     "rot_deg": 88.03,
+     "rigid_rms_mm": 5.315,
+     "rigid_max_mm": 10.27,
+     "strain_med_pct": 14.17,
+     "strain_max_pct": 208.17,
+     "top_bones": [
+      [
+       "index_01_r",
+       0.27
+      ],
+      [
+       "index_01_side_out_r",
+       0.16
+      ],
+      [
+       "index_02_pip_r",
+       0.095
+      ]
+     ],
+     "influences_max": 16,
+     "influences_mean": 9.71
+    },
+    "cap_index_2": {
+     "n": 28,
+     "scale": 1.069,
+     "rot_deg": 71.55,
+     "rigid_rms_mm": 0.93,
+     "rigid_max_mm": 1.605,
+     "strain_med_pct": 8.67,
+     "strain_max_pct": 18.29,
+     "top_bones": [
+      [
+       "index_02_r",
+       0.226
+      ],
+      [
+       "index_02_dip_r",
+       0.147
+      ],
+      [
+       "index_02_pip_r",
+       0.135
+      ]
+     ],
+     "influences_max": 17,
+     "influences_mean": 12.11
+    },
+    "cap_index_3": {
+     "n": 28,
+     "scale": 1.4601,
+     "rot_deg": 63.72,
+     "rigid_rms_mm": 2.319,
+     "rigid_max_mm": 6.853,
+     "strain_med_pct": 37.62,
+     "strain_max_pct": 176.86,
+     "top_bones": [
+      [
+       "index_03_r",
+       0.631
+      ],
+      [
+       "middle_03_r",
+       0.1
+      ],
+      [
+       "index_03_bulge_r",
+       0.079
+      ]
+     ],
+     "influences_max": 12,
+     "influences_mean": 7.82
+    },
+    "cap_middle_1": {
+     "n": 28,
+     "scale": 1.0006,
+     "rot_deg": 76.71,
+     "rigid_rms_mm": 1.436,
+     "rigid_max_mm": 2.837,
+     "strain_med_pct": 4.66,
+     "strain_max_pct": 40.68,
+     "top_bones": [
+      [
+       "middle_01_r",
+       0.311
+      ],
+      [
+       "middle_01_side_out_r",
+       0.175
+      ],
+      [
+       "middle_01_side_inn_r",
+       0.092
+      ]
+     ],
+     "influences_max": 16,
+     "influences_mean": 11.36
+    },
+    "cap_middle_2": {
+     "n": 28,
+     "scale": 1.0946,
+     "rot_deg": 68.7,
+     "rigid_rms_mm": 1.125,
+     "rigid_max_mm": 2.083,
+     "strain_med_pct": 11.86,
+     "strain_max_pct": 30.45,
+     "top_bones": [
+      [
+       "middle_02_r",
+       0.209
+      ],
+      [
+       "middle_02_dip_r",
+       0.164
+      ],
+      [
+       "middle_02_side_out_r",
+       0.15
+      ]
+     ],
+     "influences_max": 16,
+     "influences_mean": 9.79
+    },
+    "cap_middle_3": {
+     "n": 28,
+     "scale": 1.5622,
+     "rot_deg": 64.28,
+     "rigid_rms_mm": 2.555,
+     "rigid_max_mm": 7.656,
+     "strain_med_pct": 49.02,
+     "strain_max_pct": 271.82,
+     "top_bones": [
+      [
+       "middle_03_r",
+       0.633
+      ],
+      [
+       "index_03_r",
+       0.255
+      ],
+      [
+       "middle_03_bulge_r",
+       0.047
+      ]
+     ],
+     "influences_max": 10,
+     "influences_mean": 6.43
+    },
+    "cap_pinky_1": {
+     "n": 28,
+     "scale": 0.9917,
+     "rot_deg": 77.94,
+     "rigid_rms_mm": 3.886,
+     "rigid_max_mm": 10.18,
+     "strain_med_pct": 21.89,
+     "strain_max_pct": 224.06,
+     "top_bones": [
+      [
+       "pinky_01_r",
+       0.316
+      ],
+      [
+       "pinky_metacarpal_r",
+       0.14
+      ],
+      [
+       "pinky_01_side_inn_r",
+       0.137
+      ]
+     ],
+     "influences_max": 13,
+     "influences_mean": 9.82
+    },
+    "cap_pinky_2": {
+     "n": 28,
+     "scale": 1.1039,
+     "rot_deg": 77.49,
+     "rigid_rms_mm": 4.176,
+     "rigid_max_mm": 12.163,
+     "strain_med_pct": 16.21,
+     "strain_max_pct": 299.87,
+     "top_bones": [
+      [
+       "pinky_02_r",
+       0.227
+      ],
+      [
+       "pinky_02_pip_r",
+       0.112
+      ],
+      [
+       "pinky_02_side_inn_r",
+       0.109
+      ]
+     ],
+     "influences_max": 21,
+     "influences_mean": 11.71
+    },
+    "cap_pinky_3": {
+     "n": 28,
+     "scale": 1.7138,
+     "rot_deg": 72.97,
+     "rigid_rms_mm": 0.443,
+     "rigid_max_mm": 0.991,
+     "strain_med_pct": 69.58,
+     "strain_max_pct": 85.54,
+     "top_bones": [
+      [
+       "pinky_03_r",
+       0.706
+      ],
+      [
+       "pinky_02_dip_r",
+       0.101
+      ],
+      [
+       "ring_02_bulge_r",
+       0.063
+      ]
+     ],
+     "influences_max": 18,
+     "influences_mean": 12.21
+    },
+    "cap_ring_1": {
+     "n": 28,
+     "scale": 1.0662,
+     "rot_deg": 100.19,
+     "rigid_rms_mm": 4.663,
+     "rigid_max_mm": 7.756,
+     "strain_med_pct": 17.39,
+     "strain_max_pct": 131.5,
+     "top_bones": [
+      [
+       "middle_01_side_out_r",
+       0.161
+      ],
+      [
+       "ring_01_side_out_r",
+       0.153
+      ],
+      [
+       "ring_01_r",
+       0.14
+      ]
+     ],
+     "influences_max": 17,
+     "influences_mean": 10.86
+    },
+    "cap_ring_2": {
+     "n": 28,
+     "scale": 1.0764,
+     "rot_deg": 68.95,
+     "rigid_rms_mm": 1.294,
+     "rigid_max_mm": 2.883,
+     "strain_med_pct": 8.53,
+     "strain_max_pct": 27.52,
+     "top_bones": [
+      [
+       "ring_02_side_inn_r",
+       0.223
+      ],
+      [
+       "ring_02_r",
+       0.147
+      ],
+      [
+       "ring_02_dip_r",
+       0.135
+      ]
+     ],
+     "influences_max": 21,
+     "influences_mean": 12.75
+    },
+    "cap_ring_3": {
+     "n": 28,
+     "scale": 1.476,
+     "rot_deg": 67.36,
+     "rigid_rms_mm": 2.228,
+     "rigid_max_mm": 7.677,
+     "strain_med_pct": 31.22,
+     "strain_max_pct": 274.53,
+     "top_bones": [
+      [
+       "ring_03_r",
+       0.736
+      ],
+      [
+       "ring_03_bulge_r",
+       0.106
+      ],
+      [
+       "middle_03_r",
+       0.038
+      ]
+     ],
+     "influences_max": 14,
+     "influences_mean": 8.43
+    },
+    "cap_thumb_2": {
+     "n": 28,
+     "scale": 1.0277,
+     "rot_deg": 36.19,
+     "rigid_rms_mm": 4.299,
+     "rigid_max_mm": 12.889,
+     "strain_med_pct": 16.51,
+     "strain_max_pct": 210.23,
+     "top_bones": [
+      [
+       "thumb_02_r",
+       0.48
+      ],
+      [
+       "thumb_02_bulge_r",
+       0.16
+      ],
+      [
+       "thumb_01_r",
+       0.11
+      ]
+     ],
+     "influences_max": 11,
+     "influences_mean": 8.04
+    },
+    "cap_thumb_3": {
+     "n": 28,
+     "scale": 1.5244,
+     "rot_deg": 93.12,
+     "rigid_rms_mm": 2.741,
+     "rigid_max_mm": 7.722,
+     "strain_med_pct": 48.65,
+     "strain_max_pct": 233.36,
+     "top_bones": [
+      [
+       "thumb_03_r",
+       0.564
+      ],
+      [
+       "thumb_03_pip_r",
+       0.181
+      ],
+      [
+       "thumb_03_bulge_r",
+       0.135
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 6.54
+    },
+    "index_1": {
+     "n": 60,
+     "scale": 0.8729,
+     "rot_deg": 86.57,
+     "rigid_rms_mm": 4.355,
+     "rigid_max_mm": 10.827,
+     "strain_med_pct": 14.48,
+     "strain_max_pct": 153.65,
+     "top_bones": [
+      [
+       "index_01_bulge_r",
+       0.171
+      ],
+      [
+       "index_01_palm_r",
+       0.151
+      ],
+      [
+       "index_01_side_out_r",
+       0.109
+      ]
+     ],
+     "influences_max": 25,
+     "influences_mean": 16.15
+    },
+    "index_2": {
+     "n": 60,
+     "scale": 0.9415,
+     "rot_deg": 66.35,
+     "rigid_rms_mm": 2.964,
+     "rigid_max_mm": 5.212,
+     "strain_med_pct": 11.43,
+     "strain_max_pct": 80.72,
+     "top_bones": [
+      [
+       "index_02_bulge_r",
+       0.308
+      ],
+      [
+       "index_02_r",
+       0.123
+      ],
+      [
+       "index_02_side_out_r",
+       0.117
+      ]
+     ],
+     "influences_max": 18,
+     "influences_mean": 10.32
+    },
+    "index_3": {
+     "n": 60,
+     "scale": 1.2607,
+     "rot_deg": 61.37,
+     "rigid_rms_mm": 2.451,
+     "rigid_max_mm": 10.954,
+     "strain_med_pct": 16.62,
+     "strain_max_pct": 300.7,
+     "top_bones": [
+      [
+       "index_03_r",
+       0.372
+      ],
+      [
+       "index_02_bulge_r",
+       0.229
+      ],
+      [
+       "index_03_bulge_r",
+       0.142
+      ]
+     ],
+     "influences_max": 17,
+     "influences_mean": 12.57
+    },
+    "marker_index_0": {
+     "n": 42,
+     "scale": 2.2666,
+     "rot_deg": 92.24,
+     "rigid_rms_mm": 5.865,
+     "rigid_max_mm": 10.292,
+     "strain_med_pct": 125.42,
+     "strain_max_pct": 783.94,
+     "top_bones": [
+      [
+       "index_01_r",
+       0.348
+      ],
+      [
+       "index_01_mcp_r",
+       0.231
+      ],
+      [
+       "index_metacarpal_r",
+       0.181
+      ]
+     ],
+     "influences_max": 12,
+     "influences_mean": 7.6
+    },
+    "marker_index_1": {
+     "n": 42,
+     "scale": 0.8747,
+     "rot_deg": 76.82,
+     "rigid_rms_mm": 0.867,
+     "rigid_max_mm": 1.701,
+     "strain_med_pct": 9.42,
+     "strain_max_pct": 42.62,
+     "top_bones": [
+      [
+       "index_02_pip_r",
+       0.623
+      ],
+      [
+       "index_02_r",
+       0.203
+      ],
+      [
+       "index_02_side_out_r",
+       0.068
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 7.57
+    },
+    "marker_index_2": {
+     "n": 42,
+     "scale": 1.2288,
+     "rot_deg": 60.2,
+     "rigid_rms_mm": 0.688,
+     "rigid_max_mm": 1.704,
+     "strain_med_pct": 25.69,
+     "strain_max_pct": 56.83,
+     "top_bones": [
+      [
+       "index_03_r",
+       0.726
+      ],
+      [
+       "index_02_dip_r",
+       0.244
+      ],
+      [
+       "index_02_r",
+       0.017
+      ]
+     ],
+     "influences_max": 9,
+     "influences_mean": 6.93
+    },
+    "marker_index_3": {
+     "n": 42,
+     "scale": 1.6564,
+     "rot_deg": 63.91,
+     "rigid_rms_mm": 2.09,
+     "rigid_max_mm": 5.652,
+     "strain_med_pct": 58.9,
+     "strain_max_pct": 245.01,
+     "top_bones": [
+      [
+       "index_03_r",
+       0.984
+      ],
+      [
+       "index_03_bulge_r",
+       0.016
+      ]
+     ],
+     "influences_max": 2,
+     "influences_mean": 1.88
+    },
+    "marker_middle_0": {
+     "n": 42,
+     "scale": 0.8908,
+     "rot_deg": 90.74,
+     "rigid_rms_mm": 0.373,
+     "rigid_max_mm": 0.881,
+     "strain_med_pct": 9.96,
+     "strain_max_pct": 29.95,
+     "top_bones": [
+      [
+       "middle_01_mcp_r",
+       0.459
+      ],
+      [
+       "middle_metacarpal_r",
+       0.221
+      ],
+      [
+       "middle_01_r",
+       0.212
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 6.79
+    },
+    "marker_middle_1": {
+     "n": 42,
+     "scale": 0.8896,
+     "rot_deg": 71.07,
+     "rigid_rms_mm": 0.986,
+     "rigid_max_mm": 2.015,
+     "strain_med_pct": 8.77,
+     "strain_max_pct": 53.02,
+     "top_bones": [
+      [
+       "middle_02_r",
+       0.342
+      ],
+      [
+       "middle_02_pip_r",
+       0.317
+      ],
+      [
+       "middle_02_side_inn_r",
+       0.19
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 7.95
+    },
+    "marker_middle_2": {
+     "n": 42,
+     "scale": 1.3805,
+     "rot_deg": 62.99,
+     "rigid_rms_mm": 0.682,
+     "rigid_max_mm": 1.515,
+     "strain_med_pct": 41.02,
+     "strain_max_pct": 74.97,
+     "top_bones": [
+      [
+       "middle_03_r",
+       0.931
+      ],
+      [
+       "middle_02_dip_r",
+       0.06
+      ],
+      [
+       "middle_02_r",
+       0.009
+      ]
+     ],
+     "influences_max": 7,
+     "influences_mean": 5.05
+    },
+    "marker_middle_3": {
+     "n": 42,
+     "scale": 1.9296,
+     "rot_deg": 68.46,
+     "rigid_rms_mm": 2.357,
+     "rigid_max_mm": 8.837,
+     "strain_med_pct": 83.95,
+     "strain_max_pct": 413.15,
+     "top_bones": [
+      [
+       "middle_03_r",
+       0.847
+      ],
+      [
+       "middle_03_bulge_r",
+       0.153
+      ]
+     ],
+     "influences_max": 2,
+     "influences_mean": 1.95
+    },
+    "marker_pinky_0": {
+     "n": 42,
+     "scale": 0.7595,
+     "rot_deg": 86.3,
+     "rigid_rms_mm": 0.612,
+     "rigid_max_mm": 1.201,
+     "strain_med_pct": 20.83,
+     "strain_max_pct": 48.6,
+     "top_bones": [
+      [
+       "pinky_01_mcp_r",
+       0.54
+      ],
+      [
+       "pinky_metacarpal_r",
+       0.264
+      ],
+      [
+       "ring_metacarpal_r",
+       0.102
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 6.83
+    },
+    "marker_pinky_1": {
+     "n": 42,
+     "scale": 1.7554,
+     "rot_deg": 79.34,
+     "rigid_rms_mm": 5.169,
+     "rigid_max_mm": 9.971,
+     "strain_med_pct": 71.52,
+     "strain_max_pct": 717.95,
+     "top_bones": [
+      [
+       "pinky_02_pip_r",
+       0.239
+      ],
+      [
+       "pinky_01_r",
+       0.238
+      ],
+      [
+       "pinky_01_side_inn_r",
+       0.213
+      ]
+     ],
+     "influences_max": 10,
+     "influences_mean": 7.07
+    },
+    "marker_pinky_2": {
+     "n": 42,
+     "scale": 1.2994,
+     "rot_deg": 74.24,
+     "rigid_rms_mm": 0.444,
+     "rigid_max_mm": 1.08,
+     "strain_med_pct": 32.77,
+     "strain_max_pct": 45.94,
+     "top_bones": [
+      [
+       "ring_02_side_out_r",
+       0.203
+      ],
+      [
+       "pinky_02_dip_r",
+       0.186
+      ],
+      [
+       "pinky_03_r",
+       0.14
+      ]
+     ],
+     "influences_max": 20,
+     "influences_mean": 16.38
+    },
+    "marker_pinky_3": {
+     "n": 42,
+     "scale": 1.7546,
+     "rot_deg": 73.15,
+     "rigid_rms_mm": 0.311,
+     "rigid_max_mm": 0.993,
+     "strain_med_pct": 77.34,
+     "strain_max_pct": 86.2,
+     "top_bones": [
+      [
+       "pinky_03_r",
+       0.382
+      ],
+      [
+       "ring_03_r",
+       0.361
+      ],
+      [
+       "ring_02_side_out_r",
+       0.104
+      ]
+     ],
+     "influences_max": 13,
+     "influences_mean": 10.43
+    },
+    "marker_ring_0": {
+     "n": 42,
+     "scale": 0.8989,
+     "rot_deg": 97.41,
+     "rigid_rms_mm": 0.44,
+     "rigid_max_mm": 0.868,
+     "strain_med_pct": 8.57,
+     "strain_max_pct": 33.59,
+     "top_bones": [
+      [
+       "ring_metacarpal_r",
+       0.373
+      ],
+      [
+       "ring_01_mcp_r",
+       0.367
+      ],
+      [
+       "middle_metacarpal_r",
+       0.151
+      ]
+     ],
+     "influences_max": 7,
+     "influences_mean": 6.67
+    },
+    "marker_ring_1": {
+     "n": 42,
+     "scale": 0.8867,
+     "rot_deg": 73.39,
+     "rigid_rms_mm": 0.558,
+     "rigid_max_mm": 1.084,
+     "strain_med_pct": 10.01,
+     "strain_max_pct": 34.01,
+     "top_bones": [
+      [
+       "ring_01_side_inn_r",
+       0.321
+      ],
+      [
+       "ring_02_pip_r",
+       0.268
+      ],
+      [
+       "ring_02_side_inn_r",
+       0.219
+      ]
+     ],
+     "influences_max": 16,
+     "influences_mean": 12.62
+    },
+    "marker_ring_2": {
+     "n": 42,
+     "scale": 1.2961,
+     "rot_deg": 70.14,
+     "rigid_rms_mm": 1.215,
+     "rigid_max_mm": 2.652,
+     "strain_med_pct": 35.76,
+     "strain_max_pct": 103.46,
+     "top_bones": [
+      [
+       "ring_03_r",
+       0.961
+      ],
+      [
+       "middle_03_r",
+       0.021
+      ],
+      [
+       "ring_03_bulge_r",
+       0.008
+      ]
+     ],
+     "influences_max": 11,
+     "influences_mean": 6.52
+    },
+    "marker_ring_3": {
+     "n": 42,
+     "scale": 1.7892,
+     "rot_deg": 77.54,
+     "rigid_rms_mm": 2.137,
+     "rigid_max_mm": 6.231,
+     "strain_med_pct": 70.94,
+     "strain_max_pct": 311.19,
+     "top_bones": [
+      [
+       "ring_03_r",
+       0.897
+      ],
+      [
+       "ring_03_bulge_r",
+       0.103
+      ]
+     ],
+     "influences_max": 2,
+     "influences_mean": 1.95
+    },
+    "marker_thumb_0": {
+     "n": 42,
+     "scale": 0.9443,
+     "rot_deg": 99.51,
+     "rigid_rms_mm": 0.001,
+     "rigid_max_mm": 0.002,
+     "strain_med_pct": 5.57,
+     "strain_max_pct": 5.6,
+     "top_bones": [
+      [
+       "hand_r",
+       0.364
+      ],
+      [
+       "thumb_01_r",
+       0.336
+      ],
+      [
+       "wrist_outer_r",
+       0.063
+      ]
+     ],
+     "influences_max": 14,
+     "influences_mean": 14.0
+    },
+    "marker_thumb_1": {
+     "n": 42,
+     "scale": 0.8508,
+     "rot_deg": 85.18,
+     "rigid_rms_mm": 0.245,
+     "rigid_max_mm": 0.391,
+     "strain_med_pct": 15.06,
+     "strain_max_pct": 25.83,
+     "top_bones": [
+      [
+       "index_metacarpal_r",
+       0.584
+      ],
+      [
+       "thumb_01_r",
+       0.312
+      ],
+      [
+       "thumb_01_side_inn_r",
+       0.076
+      ]
+     ],
+     "influences_max": 10,
+     "influences_mean": 8.21
+    },
+    "marker_thumb_2": {
+     "n": 42,
+     "scale": 2.4354,
+     "rot_deg": 86.08,
+     "rigid_rms_mm": 5.159,
+     "rigid_max_mm": 12.067,
+     "strain_med_pct": 113.68,
+     "strain_max_pct": 917.17,
+     "top_bones": [
+      [
+       "thumb_03_pip_r",
+       0.332
+      ],
+      [
+       "thumb_03_r",
+       0.249
+      ],
+      [
+       "thumb_02_r",
+       0.237
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 5.43
+    },
+    "marker_thumb_3": {
+     "n": 42,
+     "scale": 1.2289,
+     "rot_deg": 88.96,
+     "rigid_rms_mm": 1.799,
+     "rigid_max_mm": 3.611,
+     "strain_med_pct": 25.7,
+     "strain_max_pct": 118.71,
+     "top_bones": [
+      [
+       "thumb_03_r",
+       0.582
+      ],
+      [
+       "thumb_03_pip_r",
+       0.346
+      ],
+      [
+       "thumb_02_r",
+       0.06
+      ]
+     ],
+     "influences_max": 5,
+     "influences_mean": 4.5
+    },
+    "marker_wrist": {
+     "n": 42,
+     "scale": 0.9609,
+     "rot_deg": 97.85,
+     "rigid_rms_mm": 0.009,
+     "rigid_max_mm": 0.015,
+     "strain_med_pct": 3.84,
+     "strain_max_pct": 4.38,
+     "top_bones": [
+      [
+       "hand_r",
+       0.464
+      ],
+      [
+       "wrist_outer_r",
+       0.33
+      ],
+      [
+       "lowerarm_twist_01_r",
+       0.111
+      ]
+     ],
+     "influences_max": 14,
+     "influences_mean": 14.0
+    },
+    "middle_1": {
+     "n": 60,
+     "scale": 0.9332,
+     "rot_deg": 75.74,
+     "rigid_rms_mm": 4.619,
+     "rigid_max_mm": 15.141,
+     "strain_med_pct": 11.25,
+     "strain_max_pct": 190.78,
+     "top_bones": [
+      [
+       "middle_01_r",
+       0.173
+      ],
+      [
+       "middle_01_side_out_r",
+       0.141
+      ],
+      [
+       "middle_01_bulge_r",
+       0.118
+      ]
+     ],
+     "influences_max": 22,
+     "influences_mean": 13.75
+    },
+    "middle_2": {
+     "n": 60,
+     "scale": 0.9587,
+     "rot_deg": 66.97,
+     "rigid_rms_mm": 3.929,
+     "rigid_max_mm": 8.818,
+     "strain_med_pct": 13.96,
+     "strain_max_pct": 123.45,
+     "top_bones": [
+      [
+       "middle_02_bulge_r",
+       0.243
+      ],
+      [
+       "middle_02_side_out_r",
+       0.132
+      ],
+      [
+       "middle_02_r",
+       0.1
+      ]
+     ],
+     "influences_max": 20,
+     "influences_mean": 12.58
+    },
+    "middle_3": {
+     "n": 60,
+     "scale": 1.3585,
+     "rot_deg": 62.63,
+     "rigid_rms_mm": 2.346,
+     "rigid_max_mm": 7.302,
+     "strain_med_pct": 25.85,
+     "strain_max_pct": 285.27,
+     "top_bones": [
+      [
+       "middle_03_r",
+       0.32
+      ],
+      [
+       "middle_03_bulge_r",
+       0.164
+      ],
+      [
+       "middle_02_bulge_r",
+       0.148
+      ]
+     ],
+     "influences_max": 25,
+     "influences_mean": 17.12
+    },
+    "palm": {
+     "n": 120,
+     "scale": 0.9683,
+     "rot_deg": 99.19,
+     "rigid_rms_mm": 6.978,
+     "rigid_max_mm": 15.503,
+     "strain_med_pct": 7.06,
+     "strain_max_pct": 185.59,
+     "top_bones": [
+      [
+       "thumb_01_r",
+       0.158
+      ],
+      [
+       "hand_r",
+       0.151
+      ],
+      [
+       "pinky_metacarpal_r",
+       0.128
+      ]
+     ],
+     "influences_max": 24,
+     "influences_mean": 12.4
+    },
+    "pinky_1": {
+     "n": 60,
+     "scale": 0.8206,
+     "rot_deg": 86.95,
+     "rigid_rms_mm": 5.632,
+     "rigid_max_mm": 15.742,
+     "strain_med_pct": 22.15,
+     "strain_max_pct": 214.64,
+     "top_bones": [
+      [
+       "pinky_01_bulge_r",
+       0.198
+      ],
+      [
+       "pinky_01_palm_r",
+       0.161
+      ],
+      [
+       "pinky_01_r",
+       0.152
+      ]
+     ],
+     "influences_max": 13,
+     "influences_mean": 9.4
+    },
+    "pinky_2": {
+     "n": 60,
+     "scale": 1.4576,
+     "rot_deg": 74.07,
+     "rigid_rms_mm": 2.012,
+     "rigid_max_mm": 5.975,
+     "strain_med_pct": 44.07,
+     "strain_max_pct": 148.96,
+     "top_bones": [
+      [
+       "pinky_01_bulge_r",
+       0.14
+      ],
+      [
+       "pinky_01_r",
+       0.116
+      ],
+      [
+       "pinky_02_r",
+       0.109
+      ]
+     ],
+     "influences_max": 26,
+     "influences_mean": 16.62
+    },
+    "pinky_3": {
+     "n": 60,
+     "scale": 1.7525,
+     "rot_deg": 72.78,
+     "rigid_rms_mm": 1.029,
+     "rigid_max_mm": 3.678,
+     "strain_med_pct": 71.64,
+     "strain_max_pct": 191.4,
+     "top_bones": [
+      [
+       "pinky_03_r",
+       0.771
+      ],
+      [
+       "pinky_02_bulge_r",
+       0.057
+      ],
+      [
+       "pinky_02_r",
+       0.052
+      ]
+     ],
+     "influences_max": 11,
+     "influences_mean": 9.63
+    },
+    "ring_1": {
+     "n": 60,
+     "scale": 0.938,
+     "rot_deg": 86.46,
+     "rigid_rms_mm": 5.014,
+     "rigid_max_mm": 13.519,
+     "strain_med_pct": 15.94,
+     "strain_max_pct": 311.66,
+     "top_bones": [
+      [
+       "ring_01_bulge_r",
+       0.114
+      ],
+      [
+       "ring_01_side_out_r",
+       0.108
+      ],
+      [
+       "ring_metacarpal_r",
+       0.097
+      ]
+     ],
+     "influences_max": 29,
+     "influences_mean": 14.93
+    },
+    "ring_2": {
+     "n": 60,
+     "scale": 0.9255,
+     "rot_deg": 70.21,
+     "rigid_rms_mm": 3.984,
+     "rigid_max_mm": 9.098,
+     "strain_med_pct": 12.11,
+     "strain_max_pct": 123.28,
+     "top_bones": [
+      [
+       "ring_02_bulge_r",
+       0.226
+      ],
+      [
+       "ring_02_side_inn_r",
+       0.212
+      ],
+      [
+       "ring_02_side_out_r",
+       0.103
+      ]
+     ],
+     "influences_max": 20,
+     "influences_mean": 10.93
+    },
+    "ring_3": {
+     "n": 60,
+     "scale": 1.2702,
+     "rot_deg": 66.4,
+     "rigid_rms_mm": 2.346,
+     "rigid_max_mm": 7.065,
+     "strain_med_pct": 11.39,
+     "strain_max_pct": 262.31,
+     "top_bones": [
+      [
+       "ring_03_r",
+       0.382
+      ],
+      [
+       "ring_02_bulge_r",
+       0.197
+      ],
+      [
+       "ring_03_bulge_r",
+       0.126
+      ]
+     ],
+     "influences_max": 17,
+     "influences_mean": 11.07
+    },
+    "thumb_1": {
+     "n": 60,
+     "scale": 0.8736,
+     "rot_deg": 97.79,
+     "rigid_rms_mm": 4.612,
+     "rigid_max_mm": 10.563,
+     "strain_med_pct": 13.96,
+     "strain_max_pct": 62.28,
+     "top_bones": [
+      [
+       "thumb_01_r",
+       0.651
+      ],
+      [
+       "middle_metacarpal_r",
+       0.083
+      ],
+      [
+       "index_metacarpal_r",
+       0.058
+      ]
+     ],
+     "influences_max": 15,
+     "influences_mean": 8.0
+    },
+    "thumb_2": {
+     "n": 60,
+     "scale": 0.9809,
+     "rot_deg": 56.99,
+     "rigid_rms_mm": 7.674,
+     "rigid_max_mm": 18.673,
+     "strain_med_pct": 22.25,
+     "strain_max_pct": 228.05,
+     "top_bones": [
+      [
+       "thumb_02_r",
+       0.332
+      ],
+      [
+       "thumb_02_bulge_r",
+       0.187
+      ],
+      [
+       "thumb_01_r",
+       0.168
+      ]
+     ],
+     "influences_max": 10,
+     "influences_mean": 7.63
+    },
+    "thumb_3": {
+     "n": 60,
+     "scale": 1.8247,
+     "rot_deg": 106.52,
+     "rigid_rms_mm": 2.013,
+     "rigid_max_mm": 8.817,
+     "strain_med_pct": 84.3,
+     "strain_max_pct": 371.11,
+     "top_bones": [
+      [
+       "thumb_03_r",
+       0.759
+      ],
+      [
+       "thumb_03_bulge_r",
+       0.163
+      ],
+      [
+       "thumb_03_pip_r",
+       0.032
+      ]
+     ],
+     "influences_max": 12,
+     "influences_mean": 9.4
+    }
+   },
+   "influences": {
+    "max": 29,
+    "mean": 9.97
+   },
+   "bones_used": [
+    "hand_r",
+    "index_01_bulge_r",
+    "index_01_mcp_r",
+    "index_01_palmMid_r",
+    "index_01_palm_r",
+    "index_01_r",
+    "index_01_side_inn_r",
+    "index_01_side_out_r",
+    "index_02_bulge_r",
+    "index_02_dip_r",
+    "index_02_in_r",
+    "index_02_pip_r",
+    "index_02_r",
+    "index_02_side_inn_r",
+    "index_02_side_out_r",
+    "index_03_bulge_r",
+    "index_03_in_r",
+    "index_03_r",
+    "index_metacarpal_r",
+    "index_metacarpal_slide_r",
+    "lowerarm_twist_01_r",
+    "lowerarm_twist_02_r",
+    "middle_01_bulge_r",
+    "middle_01_mcp_r",
+    "middle_01_palmMid_r",
+    "middle_01_palm_r",
+    "middle_01_r",
+    "middle_01_side_inn_r",
+    "middle_01_side_out_r",
+    "middle_02_bulge_r",
+    "middle_02_dip_r",
+    "middle_02_in_r",
+    "middle_02_pip_r",
+    "middle_02_r",
+    "middle_02_side_inn_r",
+    "middle_02_side_out_r",
+    "middle_03_bulge_r",
+    "middle_03_in_r",
+    "middle_03_r",
+    "middle_metacarpal_r",
+    "middle_metacarpal_slide_r",
+    "pinky_01_bulge_r",
+    "pinky_01_mcp_r",
+    "pinky_01_palmMid_r",
+    "pinky_01_palm_r",
+    "pinky_01_r",
+    "pinky_01_side_inn_r",
+    "pinky_01_side_out_r",
+    "pinky_02_bulge_r",
+    "pinky_02_dip_r",
+    "pinky_02_in_r",
+    "pinky_02_pip_r",
+    "pinky_02_r",
+    "pinky_02_side_inn_r",
+    "pinky_02_side_out_r",
+    "pinky_03_bulge_r",
+    "pinky_03_in_r",
+    "pinky_03_r",
+    "pinky_metacarpal_r",
+    "pinky_metacarpal_slide_r",
+    "ring_01_bulge_r",
+    "ring_01_mcp_r",
+    "ring_01_palmMid_r",
+    "ring_01_palm_r",
+    "ring_01_r",
+    "ring_01_side_inn_r",
+    "ring_01_side_out_r",
+    "ring_02_bulge_r",
+    "ring_02_dip_r",
+    "ring_02_in_r",
+    "ring_02_pip_r",
+    "ring_02_r",
+    "ring_02_side_inn_r",
+    "ring_02_side_out_r",
+    "ring_03_bulge_r",
+    "ring_03_in_r",
+    "ring_03_r",
+    "ring_metacarpal_r",
+    "ring_metacarpal_slide_r",
+    "thumb_01_r",
+    "thumb_01_side_inn_r",
+    "thumb_01_side_out_r",
+    "thumb_02_bulge_r",
+    "thumb_02_in_r",
+    "thumb_02_mcp_r",
+    "thumb_02_r",
+    "thumb_03_bulge_r",
+    "thumb_03_in_r",
+    "thumb_03_pip_r",
+    "thumb_03_r",
+    "thumb_03_side_inn_r",
+    "thumb_03_side_out_r",
+    "wrist_inner_r",
+    "wrist_outer_r"
+   ],
+   "inside_by_part": {
+    "palm": 33,
+    "thumb_1": 10,
+    "index_1": 1,
+    "cap_index_1": 1,
+    "pinky_1": 1,
+    "marker_wrist": 42,
+    "marker_thumb_0": 42,
+    "marker_index_0": 7
+   },
+   "clearance_bind_garment_only": {
+    "min_mm": -23.11,
+    "p01_mm": -18.12,
+    "median_mm": 3.7,
+    "inside_vertices": 46,
+    "of": 1412
+   },
+   "clearance_bind": {
+    "min_mm": -23.39,
+    "median_mm": 3.89,
+    "inside_vertices": 137,
+    "of": 2294
+   },
+   "marker_to_avatar_joint_mm": {
+    "wrist": 0.9,
+    "thumb_0": 2.1,
+    "thumb_1": 21.0,
+    "thumb_2": 1.0,
+    "index_0": 8.8,
+    "index_1": 14.2,
+    "index_2": 16.6,
+    "middle_0": 13.6,
+    "middle_1": 15.5,
+    "middle_2": 17.8,
+    "ring_0": 16.2,
+    "ring_1": 13.7,
+    "ring_2": 17.0,
+    "pinky_0": 13.0,
+    "pinky_1": 4.0,
+    "pinky_2": 15.2
+   },
+   "marker_authored_offset_mm": {
+    "wrist": 26.3,
+    "thumb_0": 28.2,
+    "thumb_1": 28.2,
+    "thumb_2": 20.4,
+    "index_0": 20.6,
+    "index_1": 20.6,
+    "index_2": 19.2,
+    "middle_0": 21.1,
+    "middle_1": 21.1,
+    "middle_2": 19.5,
+    "ring_0": 20.4,
+    "ring_1": 20.4,
+    "ring_2": 18.6,
+    "pinky_0": 20.1,
+    "pinky_1": 20.1,
+    "pinky_2": 18.3
+   }
+  },
+  "MT-2": {
+   "export_vertices": 143,
+   "source_vertices": 143,
+   "uv_conflicts": 0,
+   "uv_v_flipped": false,
+   "source_covered": 143,
+   "whole": {
+    "scale": 1.0,
+    "rot_deg": 0.0,
+    "rms_mm": 0.0,
+    "max_mm": 0.0
+   },
+   "edge_strain": {
+    "median_pct": 0.0,
+    "p95_pct": 0.0,
+    "max_pct": 0.0
+   },
+   "parts": {
+    "plate": {
+     "n": 143,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "upperarm_out_r",
+       0.463
+      ],
+      [
+       "clavicle_r",
+       0.248
+      ],
+      [
+       "upperarm_twistCor_01_r",
+       0.132
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 6.08
+    }
+   },
+   "influences": {
+    "max": 8,
+    "mean": 6.08
+   },
+   "bones_used": [
+    "clavicle_out_r",
+    "clavicle_r",
+    "spine_04",
+    "upperarm_bck_r",
+    "upperarm_bicep_r",
+    "upperarm_fwd_r",
+    "upperarm_in_r",
+    "upperarm_out_r",
+    "upperarm_twistCor_01_r",
+    "upperarm_twistCor_02_r"
+   ],
+   "inside_by_part": {},
+   "clearance_bind": {
+    "min_mm": 14.77,
+    "median_mm": 19.0,
+    "inside_vertices": 0,
+    "of": 143
+   },
+   "clearance_source": {
+    "min_mm": 14.77,
+    "median_mm": 19.0,
+    "inside_vertices": 0
+   },
+   "moved_vertices": {
+    "count_gt_1mm": 0,
+    "labels": [],
+    "source_clearance_of_moved_mm": [],
+    "export_clearance_of_moved_mm": []
+   },
+   "displacement_source_to_export_mm": {
+    "median": 0.0,
+    "max": 0.0
+   }
+  },
+  "MT-3": {
+   "export_vertices": 768,
+   "source_vertices": 768,
+   "uv_conflicts": 0,
+   "uv_v_flipped": false,
+   "source_covered": 768,
+   "whole": {
+    "scale": 1.0,
+    "rot_deg": 0.0,
+    "rms_mm": 0.0,
+    "max_mm": 0.0
+   },
+   "edge_strain": {
+    "median_pct": 0.0,
+    "p95_pct": 0.0,
+    "max_pct": 0.0
+   },
+   "parts": {
+    "belt": {
+     "n": 128,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "pelvis",
+       0.443
+      ],
+      [
+       "thigh_fwd_lwr_l",
+       0.058
+      ],
+      [
+       "thigh_fwd_lwr_r",
+       0.058
+      ]
+     ],
+     "influences_max": 9,
+     "influences_mean": 6.13
+    },
+    "strip_00": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_l",
+       0.403
+      ],
+      [
+       "thigh_twistCor_01_l",
+       0.304
+      ],
+      [
+       "thigh_out_l",
+       0.159
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 6.08
+    },
+    "strip_01": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_l",
+       0.365
+      ],
+      [
+       "thigh_twistCor_01_l",
+       0.291
+      ],
+      [
+       "thigh_bck_lwr_l",
+       0.169
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 6.12
+    },
+    "strip_02": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_l",
+       0.32
+      ],
+      [
+       "thigh_twistCor_01_l",
+       0.237
+      ],
+      [
+       "thigh_bck_lwr_l",
+       0.211
+      ]
+     ],
+     "influences_max": 12,
+     "influences_mean": 8.7
+    },
+    "strip_03": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_l",
+       0.238
+      ],
+      [
+       "pelvis",
+       0.233
+      ],
+      [
+       "thigh_bck_lwr_l",
+       0.176
+      ]
+     ],
+     "influences_max": 18,
+     "influences_mean": 13.62
+    },
+    "strip_04": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_r",
+       0.245
+      ],
+      [
+       "pelvis",
+       0.222
+      ],
+      [
+       "thigh_bck_lwr_r",
+       0.166
+      ]
+     ],
+     "influences_max": 19,
+     "influences_mean": 13.82
+    },
+    "strip_05": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_r",
+       0.32
+      ],
+      [
+       "thigh_twistCor_01_r",
+       0.239
+      ],
+      [
+       "thigh_bck_lwr_r",
+       0.209
+      ]
+     ],
+     "influences_max": 12,
+     "influences_mean": 8.65
+    },
+    "strip_06": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_r",
+       0.365
+      ],
+      [
+       "thigh_twistCor_01_r",
+       0.292
+      ],
+      [
+       "thigh_bck_lwr_r",
+       0.168
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 6.28
+    },
+    "strip_07": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_r",
+       0.402
+      ],
+      [
+       "thigh_twistCor_01_r",
+       0.304
+      ],
+      [
+       "thigh_out_r",
+       0.159
+      ]
+     ],
+     "influences_max": 8,
+     "influences_mean": 6.05
+    },
+    "strip_08": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_r",
+       0.391
+      ],
+      [
+       "thigh_twistCor_01_r",
+       0.286
+      ],
+      [
+       "thigh_out_r",
+       0.156
+      ]
+     ],
+     "influences_max": 7,
+     "influences_mean": 5.55
+    },
+    "strip_09": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_r",
+       0.369
+      ],
+      [
+       "thigh_twistCor_01_r",
+       0.254
+      ],
+      [
+       "thigh_fwd_lwr_r",
+       0.219
+      ]
+     ],
+     "influences_max": 7,
+     "influences_mean": 6.05
+    },
+    "strip_10": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_r",
+       0.377
+      ],
+      [
+       "thigh_twistCor_01_r",
+       0.202
+      ],
+      [
+       "thigh_fwd_lwr_r",
+       0.189
+      ]
+     ],
+     "influences_max": 9,
+     "influences_mean": 7.38
+    },
+    "strip_11": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_r",
+       0.301
+      ],
+      [
+       "pelvis",
+       0.29
+      ],
+      [
+       "thigh_twistCor_01_r",
+       0.129
+      ]
+     ],
+     "influences_max": 17,
+     "influences_mean": 12.8
+    },
+    "strip_12": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_l",
+       0.314
+      ],
+      [
+       "pelvis",
+       0.276
+      ],
+      [
+       "thigh_twistCor_01_l",
+       0.131
+      ]
+     ],
+     "influences_max": 17,
+     "influences_mean": 12.95
+    },
+    "strip_13": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_l",
+       0.38
+      ],
+      [
+       "thigh_twistCor_01_l",
+       0.205
+      ],
+      [
+       "thigh_fwd_lwr_l",
+       0.19
+      ]
+     ],
+     "influences_max": 11,
+     "influences_mean": 7.55
+    },
+    "strip_14": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_l",
+       0.371
+      ],
+      [
+       "thigh_twistCor_01_l",
+       0.254
+      ],
+      [
+       "thigh_fwd_lwr_l",
+       0.22
+      ]
+     ],
+     "influences_max": 7,
+     "influences_mean": 6.1
+    },
+    "strip_15": {
+     "n": 40,
+     "scale": 1.0,
+     "rot_deg": 0.0,
+     "rigid_rms_mm": 0.0,
+     "rigid_max_mm": 0.0,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 0.0,
+     "top_bones": [
+      [
+       "thigh_twistCor_02_l",
+       0.391
+      ],
+      [
+       "thigh_twistCor_01_l",
+       0.287
+      ],
+      [
+       "thigh_out_l",
+       0.156
+      ]
+     ],
+     "influences_max": 7,
+     "influences_mean": 5.6
+    }
+   },
+   "influences": {
+    "max": 19,
+    "mean": 7.96
+   },
+   "bones_used": [
+    "calf_kneeBack_l",
+    "calf_kneeBack_r",
+    "calf_knee_l",
+    "calf_knee_r",
+    "calf_twistCor_02_l",
+    "calf_twistCor_02_r",
+    "calf_twist_02_l",
+    "calf_twist_02_r",
+    "pelvis",
+    "spine_01",
+    "spine_02",
+    "thigh_bck_l",
+    "thigh_bck_lwr_l",
+    "thigh_bck_lwr_r",
+    "thigh_bck_r",
+    "thigh_fwd_l",
+    "thigh_fwd_lwr_l",
+    "thigh_fwd_lwr_r",
+    "thigh_fwd_r",
+    "thigh_in_l",
+    "thigh_in_r",
+    "thigh_out_l",
+    "thigh_out_r",
+    "thigh_twistCor_01_l",
+    "thigh_twistCor_01_r",
+    "thigh_twistCor_02_l",
+    "thigh_twistCor_02_r"
+   ],
+   "inside_by_part": {},
+   "clearance_bind": {
+    "min_mm": 11.81,
+    "median_mm": 34.16,
+    "inside_vertices": 0,
+    "of": 768
+   },
+   "clearance_source": {
+    "min_mm": 11.81,
+    "median_mm": 34.16,
+    "inside_vertices": 0
+   },
+   "moved_vertices": {
+    "count_gt_1mm": 0,
+    "labels": [],
+    "source_clearance_of_moved_mm": [],
+    "export_clearance_of_moved_mm": []
+   },
+   "displacement_source_to_export_mm": {
+    "median": 0.0,
+    "max": 0.0
+   },
+   "thigh_share_by_height": {
+    "0.94": 0.63,
+    "0.9": 0.686,
+    "0.86": 0.768,
+    "0.83": 0.858,
+    "0.79": 0.923,
+    "0.75": 0.967,
+    "0.71": 0.99,
+    "0.68": 0.998,
+    "0.64": 1.0,
+    "0.6": 1.0
+   }
+  },
+  "MT-4": {
+   "export_vertices": 289,
+   "source_vertices": 289,
+   "uv_conflicts": 0,
+   "uv_v_flipped": false,
+   "source_covered": 289,
+   "whole": {
+    "scale": 0.9998,
+    "rot_deg": 0.21,
+    "rms_mm": 2.8,
+    "max_mm": 46.38
+   },
+   "edge_strain": {
+    "median_pct": 0.0,
+    "p95_pct": 3.61,
+    "max_pct": 68.28
+   },
+   "parts": {
+    "greave": {
+     "n": 288,
+     "scale": 1.0003,
+     "rot_deg": 0.09,
+     "rigid_rms_mm": 0.543,
+     "rigid_max_mm": 3.234,
+     "strain_med_pct": 0.0,
+     "strain_max_pct": 4.5,
+     "top_bones": [
+      [
+       "calf_twist_01_r",
+       0.493
+      ],
+      [
+       "calf_twist_02_r",
+       0.385
+      ],
+      [
+       "calf_twistCor_02_r",
+       0.051
+      ]
+     ],
+     "influences_max": 6,
+     "influences_mean": 3.49
+    }
+   },
+   "influences": {
+    "max": 6,
+    "mean": 3.49
+   },
+   "bones_used": [
+    "ankle_bck_r",
+    "ankle_fwd_r",
+    "calf_kneeBack_r",
+    "calf_knee_r",
+    "calf_twistCor_02_r",
+    "calf_twist_01_r",
+    "calf_twist_02_r",
+    "foot_r",
+    "thigh_twistCor_02_r"
+   ],
+   "inside_by_part": {},
+   "clearance_bind": {
+    "min_mm": 6.0,
+    "median_mm": 14.3,
+    "inside_vertices": 0,
+    "of": 289
+   },
+   "clearance_source": {
+    "min_mm": -41.19,
+    "median_mm": 14.27,
+    "inside_vertices": 1
+   },
+   "moved_vertices": {
+    "count_gt_1mm": 15,
+    "labels": [
+     "greave",
+     "lid"
+    ],
+    "source_clearance_of_moved_mm": [
+     13.7,
+     14.1,
+     14.6,
+     14.8,
+     14.6,
+     13.9,
+     12.7,
+     13.2,
+     14.3,
+     14.6,
+     14.7,
+     14.6,
+     14.1,
+     13.4,
+     -41.2
+    ],
+    "export_clearance_of_moved_mm": [
+     15.3,
+     16.8,
+     18.0,
+     18.4,
+     17.7,
+     16.2,
+     13.7,
+     14.9,
+     16.9,
+     17.8,
+     18.0,
+     17.6,
+     16.3,
+     14.6,
+     6.0
+    ]
+   },
+   "displacement_source_to_export_mm": {
+    "median": 0.0,
+    "max": 47.22
+   }
+  }
+ },
+ "poses": {
+  "MT-3 hips_flexed_60": {
+   "strain_by_group_p95_pct": {
+    "belt": 21.13,
+    "strip": 38.61
+   },
+   "strain_cross_label_edges_p95_pct": null,
+   "inside_by_part": null,
+   "strain_med_pct": 2.31,
+   "strain_p95_pct": 36.16,
+   "strain_max_pct": 79.41,
+   "inside_body_vertices_garment": 5,
+   "inside_body_vertices": 5,
+   "of": 768,
+   "part_rigid_rms_mm_vs_bind": {
+    "belt": 22.17,
+    "strip_00": 3.08,
+    "strip_01": 8.86,
+    "strip_02": 14.87,
+    "strip_03": 19.93,
+    "strip_04": 18.19,
+    "strip_05": 13.89,
+    "strip_06": 8.29,
+    "strip_07": 2.85,
+    "strip_08": 2.65,
+    "strip_09": 7.23,
+    "strip_10": 16.78,
+    "strip_11": 22.45,
+    "strip_12": 21.62,
+    "strip_13": 16.19,
+    "strip_14": 6.62,
+    "strip_15": 2.45
+   }
+  },
+  "MT-4 knee_bent_90": {
+   "strain_by_group_p95_pct": {
+    "greave": 0.25
+   },
+   "strain_cross_label_edges_p95_pct": 1.32,
+   "inside_by_part": null,
+   "strain_med_pct": 0.0,
+   "strain_p95_pct": 0.4,
+   "strain_max_pct": 3.06,
+   "inside_body_vertices_garment": 0,
+   "inside_body_vertices": 0,
+   "of": 289,
+   "part_rigid_rms_mm_vs_bind": {
+    "greave": 0.18
+   }
+  },
+  "MT-2 arm_raised_60": {
+   "strain_by_group_p95_pct": {
+    "plate": 21.69
+   },
+   "strain_cross_label_edges_p95_pct": null,
+   "inside_by_part": null,
+   "strain_med_pct": 5.5,
+   "strain_p95_pct": 21.69,
+   "strain_max_pct": 32.53,
+   "inside_body_vertices_garment": 0,
+   "inside_body_vertices": 0,
+   "of": 143,
+   "part_rigid_rms_mm_vs_bind": {
+    "plate": 6.4
+   }
+  },
+  "MT-1 fist_40_per_joint": {
+   "strain_by_group_p95_pct": {
+    "cap": 34.11,
+    "index": 36.9,
+    "marker": 27.69,
+    "middle": 45.01,
+    "palm": 15.76,
+    "pinky": 44.41,
+    "ring": 29.85,
+    "thumb": 2.82
+   },
+   "strain_cross_label_edges_p95_pct": null,
+   "inside_by_part": {
+    "cap_index_1": 1,
+    "cap_index_2": 3,
+    "cap_index_3": 8,
+    "cap_middle_1": 0,
+    "cap_middle_2": 0,
+    "cap_middle_3": 0,
+    "cap_pinky_1": 0,
+    "cap_pinky_2": 0,
+    "cap_pinky_3": 0,
+    "cap_ring_1": 0,
+    "cap_ring_2": 0,
+    "cap_ring_3": 0,
+    "cap_thumb_2": 0,
+    "cap_thumb_3": 1,
+    "index_1": 1,
+    "index_2": 6,
+    "index_3": 20,
+    "middle_1": 0,
+    "middle_2": 0,
+    "middle_3": 0,
+    "palm": 34,
+    "pinky_1": 1,
+    "pinky_2": 0,
+    "pinky_3": 0,
+    "ring_1": 0,
+    "ring_2": 0,
+    "ring_3": 0,
+    "thumb_1": 10,
+    "thumb_2": 2,
+    "thumb_3": 6
+   },
+   "strain_med_pct": 1.97,
+   "strain_p95_pct": 32.24,
+   "strain_max_pct": 220.78,
+   "inside_body_vertices_garment": 93,
+   "inside_body_vertices": 184,
+   "of": 2294,
+   "part_rigid_rms_mm_vs_bind": {
+    "cap_index_1": 2.8,
+    "cap_index_2": 3.72,
+    "cap_index_3": 3.35,
+    "cap_middle_1": 2.53,
+    "cap_middle_2": 3.61,
+    "cap_middle_3": 4.09,
+    "cap_pinky_1": 1.06,
+    "cap_pinky_2": 1.22,
+    "cap_pinky_3": 1.26,
+    "cap_ring_1": 1.81,
+    "cap_ring_2": 2.22,
+    "cap_ring_3": 0.48,
+    "cap_thumb_2": 0.0,
+    "cap_thumb_3": 0.0,
+    "index_1": 2.79,
+    "index_2": 1.9,
+    "index_3": 3.1,
+    "middle_1": 2.73,
+    "middle_2": 2.8,
+    "middle_3": 2.43,
+    "palm": 2.83,
+    "pinky_1": 1.22,
+    "pinky_2": 4.03,
+    "pinky_3": 0.91,
+    "ring_1": 2.41,
+    "ring_2": 1.82,
+    "ring_3": 2.15,
+    "thumb_1": 0.0,
+    "thumb_2": 0.0,
+    "thumb_3": 0.73
+   },
+   "middle_03_head_move_along_dorsal_mm": -51.5
+  }
+ }
+}

@@ -118,9 +118,9 @@ TOOL_HEADER = _region("TOOL_HEADER", y=570, height=26)
 
 @pytest.mark.parametrize("workspace, regions, expected", [
     # Zen's scene toolbar paints an opaque bed: frame the canvas below it.
-    ("Zen Mode", (TOP_HEADER,), 54),
+    ("Lamplight", (TOP_HEADER,), 54),
     # Zen's empty tool header is transparent, so the scene shows through it.
-    ("Zen Mode", (TOP_HEADER, TOOL_HEADER), 54),
+    ("Lamplight", (TOP_HEADER, TOOL_HEADER), 54),
     # Engine headers are transparent over the canvas; the mesh is visible
     # behind them, so the halo must span the full region.
     ("Layout", (TOP_HEADER,), 0),

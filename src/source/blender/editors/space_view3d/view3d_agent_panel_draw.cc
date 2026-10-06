@@ -47,6 +47,10 @@
 #include "WM_types.hh"
 
 #include "../space_agent_bubble/agent_ui_pill_cat.hh"
+#include "../space_agent_bubble/agent_ui_cat_style.hh"
+#include "UI_mixar_theme.hh"
+#include "BLT_translation.hh"
+#include "BLI_utildefines.h"
 #include "view3d_agent_panel.hh"
 #include "view3d_workspace_viewer.hh"
 
@@ -55,22 +59,12 @@ namespace blender {
 
 namespace {
 
-constexpr float TEXT_NAME[4] = {0.94f, 0.96f, 0.94f, 1.0f};
-constexpr float GLYPH[4] = {0.80f, 0.86f, 0.82f, 1.0f};
-constexpr float GLYPH_DONE[4] = {0.36f, 0.86f, 0.50f, 1.0f};
-constexpr float GLYPH_FAILED[4] = {0.90f, 0.42f, 0.38f, 1.0f};
-
-/* The card carries no status text: the outcome is the right-hand glyph (a
- * dismiss cross while the agent works, a check or a red cross once it
- * settles). The elapsed clock the mirror keeps (`started_at`/`ended_at`/
- * `seen_running_at`) is deliberately not drawn here. */
-
-void with_alpha(const float src[4], const float alpha, float r_out[4])
+/* Lampway (facelift contract 05): the card's colours are the theme's; the right side carries the state word and the clock the
+ * mirror keeps (`seen_running_at`, or the settled `ended_at - started_at`), the left a dot in the worker's colour before the name
+ * (the ring itself is the state, F9). A failed card names its reason, and is never blank. */
+void theme_rgba(const ui::MixarThemeSlot slot, float r_out[4])
 {
-  r_out[0] = src[0];
-  r_out[1] = src[1];
-  r_out[2] = src[2];
-  r_out[3] = src[3] * alpha;
+  ui::mixar_theme_color_f(slot, r_out);
 }
 
 rctf to_rctf(const rcti &r)
@@ -128,12 +122,7 @@ void draw_elided(const int font_id,
  * shadow is clipped hard at that boundary, where it reads as a scratched line
  * across the viewport. Panes that float free of a clip (the island, the pill)
  * ask for one at their call sites. */
-void glass_pane(const rctf *rect,
-                const ui::eMixarGlassRole role,
-                const float radius,
-                const float alpha,
-                const float progress = 0.0f,
-                const bool completed = false)
+void glass_pane(const rctf *rect, const ui::eMixarGlassRole role, const float radius, const float alpha)
 {
   rcti pane;
   BLI_rcti_rctf_copy(&pane, rect);
@@ -141,12 +130,43 @@ void glass_pane(const rctf *rect,
   style.role = role;
   style.radius = radius;
   style.alpha = alpha;
-  style.progress = progress;
-  style.progress_tint[0] = 0.015f;
-  style.progress_tint[1] = 0.74f;
-  style.progress_tint[2] = 0.19f;
-  style.progress_tint[3] = completed ? 0.16f : 0.28f;
   ui::mixar_glass_draw(pane, style);
+}
+
+AgentSparkState spark_state(const AgentCardStatus status)
+{
+  switch (status) {
+    case AgentCardStatus::Running:
+      return AgentSparkState::Working;
+    case AgentCardStatus::Done:
+      return AgentSparkState::Done;
+    case AgentCardStatus::Failed:
+      return AgentSparkState::Failed;
+    case AgentCardStatus::Blocked:
+      return AgentSparkState::Blocked;
+    case AgentCardStatus::Paused:
+      return AgentSparkState::Paused;
+    default:
+      return AgentSparkState::Idle;
+  }
+}
+
+const char *state_word(const AgentCardStatus status)
+{
+  switch (status) {
+    case AgentCardStatus::Running:
+      return IFACE_("working");
+    case AgentCardStatus::Done:
+      return IFACE_("done");
+    case AgentCardStatus::Failed:
+      return IFACE_("failed");
+    case AgentCardStatus::Blocked:
+      return IFACE_("needs you");
+    case AgentCardStatus::Paused:
+      return IFACE_("paused");
+    default:
+      return IFACE_("queued");
+  }
 }
 
 rcti control_glyph(const rcti &box, const float alpha, const bool hovered)
@@ -166,47 +186,96 @@ void draw_card(const AgentPanelCard &card, const float alpha, const double now,
                const AgentPanelHit hover)
 {
   const float scale = UI_SCALE_FAC;
-  const bool running = card.status == AgentCardStatus::Running;
+  const bool live = ELEM(card.status, AgentCardStatus::Running, AgentCardStatus::Blocked, AgentCardStatus::Paused);
   const rctf rect = to_rctf(card.rect);
   const float radius = AGENT_PANEL_CARD_RADIUS * scale;
 
-  /* The progress light shares the glass mask, under its sheen, rim and text. */
-  glass_pane(&rect,
-             ui::MIXAR_GLASS_PANEL,
-             radius,
-             alpha,
-             card.progress,
-             card.status == AgentCardStatus::Done);
+  /* No simulated light: a card that does not know how far it is does not pretend. */
+  glass_pane(&rect, ui::MIXAR_GLASS_PANEL, radius, alpha);
+  if (card.status == AgentCardStatus::Failed) {
+    /* The red left edge (DESIGN.md 13). */
+    float stop[4];
+    theme_rgba(ui::MixarThemeSlot::Danger, stop);
+    stop[3] *= alpha;
+    rctf edge = rect;
+    edge.xmax = edge.xmin + 3.0f * scale;
+    ui::draw_roundbox_corner_set(ui::CNR_TOP_LEFT | ui::CNR_BOTTOM_LEFT);
+    ui::draw_roundbox_4fv(&edge, true, radius, stop);
+  }
 
-  /* The same silhouette as the island, with per-task identity and phase. */
   const rctf cat = to_rctf(card.cat_rect);
-  const double cat_time = running ? now + double(card.cat_ordinal) * 1.137 : 1.0;
-  agent_ui_draw_cat(cat, cat_time, running, card.cat_ordinal, alpha);
+  agent_ui_draw_spark(cat, spark_state(card.status), alpha);
   const float avatar_cy = BLI_rctf_cent_y(&cat);
 
-  /* Keep the single readable task line above the progress light. */
   const int font_id = BLF_default();
   BLF_size(font_id, 12.0f * scale);
   const float line_h = BLF_height_max(font_id);
   const float baseline = avatar_cy - line_h * 0.34f;
 
-  const float text_x = cat.xmax + 7.0f * scale;
-  const float text_right = float(card.has_workspace ? card.eye_rect.xmin : card.action_rect.xmin) - 8.0f * scale;
+  /* The worker's colour is a 6 px dot before the name (F9). */
+  const MixieCatStyle &worker = mixie_cat_style(card.cat_ordinal);
+  const float dot_r = 3.0f * scale;
+  const float dot_x = cat.xmax + 7.0f * scale + dot_r;
+  const float dot_color[4] = {worker.ring[0], worker.ring[1], worker.ring[2], worker.ring[3] * alpha};
+  const rctf dot = {dot_x - dot_r, dot_x + dot_r, avatar_cy - dot_r, avatar_cy + dot_r};
+  ui::draw_roundbox_corner_set(ui::CNR_ALL);
+  ui::draw_roundbox_4fv(&dot, true, dot_r, dot_color);
 
+  /* The right side: the state word and the clock, in the muted text colour. */
+  float muted[4];
+  theme_rgba(ui::MixarThemeSlot::TextSecondary, muted);
+  muted[3] *= alpha;
+  char right[64];
+  const double elapsed = live ? std::max(0.0, now - card.seen_running_at) :
+                                std::max(0.0, double(card.ended_at - card.started_at));
+  const int secs = int(elapsed);
+  if (live || card.ended_at > card.started_at) {
+    SNPRINTF(right, "%s %d:%02d", state_word(card.status), secs / 60, secs % 60);
+  }
+  else {
+    STRNCPY(right, state_word(card.status));
+  }
+  BLF_size(font_id, 10.5f * scale);
+  const float right_w = BLF_width(font_id, right, strlen(right));
+  const float right_edge = float(card.has_workspace ? card.eye_rect.xmin : card.action_rect.xmin) - 8.0f * scale;
+  BLF_color4fv(font_id, muted);
+  BLF_position(font_id, right_edge - right_w, baseline, 0.0f);
+  BLF_draw(font_id, right, strlen(right));
+
+  const float text_x = dot_x + dot_r + 6.0f * scale;
+  const float text_right = right_edge - right_w - 8.0f * scale;
   BLF_size(font_id, 12.0f * scale);
   float name_color[4];
-  with_alpha(TEXT_NAME, alpha, name_color);
-  draw_elided(font_id,
-              card.name,
-              text_x,
-              baseline,
-              text_right - text_x,
-              name_color);
+  theme_rgba(ui::MixarThemeSlot::Text, name_color);
+  name_color[3] *= alpha;
+  draw_elided(font_id, card.name, text_x, baseline, text_right - text_x, name_color);
+
+  /* A failed card names its reason (never blank); a blocked one names what it needs; a paused one what it waits on. */
+  const char *second = nullptr;
+  float second_color[4];
+  theme_rgba(ui::MixarThemeSlot::TextSecondary, second_color);
+  if (card.status == AgentCardStatus::Failed) {
+    second = card.reason[0] ? card.reason : IFACE_("failed: no reason given");
+    theme_rgba(ui::MixarThemeSlot::Danger, second_color);
+  }
+  else if (card.status == AgentCardStatus::Blocked) {
+    second = card.needs[0] ? card.needs : IFACE_("needs you");
+    theme_rgba(ui::MixarThemeSlot::Focus, second_color);
+  }
+  else if (card.status == AgentCardStatus::Paused && card.waiting_on[0]) {
+    second = card.waiting_on;
+  }
+  if (second) {
+    second_color[3] *= alpha;
+    BLF_size(font_id, 10.5f * scale);
+    draw_elided(font_id, second, text_x, baseline - line_h * 1.05f, text_right - text_x, second_color);
+  }
 
   /* Controls: the eye opens this task's workspace; the right slot is a
    * dismiss cross while the agent works and its outcome once it settles. */
   float glyph[4];
-  with_alpha(GLYPH, alpha, glyph);
+  theme_rgba(ui::MixarThemeSlot::Glyph, glyph);
+  glyph[3] *= alpha;
   if (card.has_workspace) {
     const rcti eye = control_glyph(card.eye_rect, alpha, hover == AgentPanelHit::Eye);
     view3d_agent_panel_glyph_eye(eye, scale, glyph);
@@ -215,14 +284,16 @@ void draw_card(const AgentPanelCard &card, const float alpha, const double now,
     case AgentCardStatus::Done: {
       const rcti action = control_glyph(card.action_rect, alpha, hover == AgentPanelHit::Action);
       float done[4];
-      with_alpha(GLYPH_DONE, alpha, done);
+      ui::theme::get_color_4fv(TH_ICON_OBJECT_DATA, done); /* the theme's `go` */
+      done[3] = alpha;
       view3d_agent_panel_glyph_check(action, scale, done);
       break;
     }
     case AgentCardStatus::Failed: {
       const rcti action = control_glyph(card.action_rect, alpha, hover == AgentPanelHit::Action);
       float failed[4];
-      with_alpha(GLYPH_FAILED, alpha, failed);
+      theme_rgba(ui::MixarThemeSlot::Danger, failed);
+      failed[3] *= alpha;
       view3d_agent_panel_glyph_cross(action, scale, failed);
       break;
     }
@@ -247,12 +318,15 @@ void draw_chevron(const AgentPanelRuntime *runtime, const float alpha, const boo
     ui::draw_roundbox_4fv(&rect, true, BLI_rctf_size_y(&rect) * 0.5f, wash);
   }
   float glyph[4];
-  with_alpha(GLYPH, alpha, glyph);
+  theme_rgba(ui::MixarThemeSlot::Glyph, glyph);
+  glyph[3] *= alpha;
   const bool at_end = view3d_agent_panel_at_end(runtime);
   const int font = BLF_default();
   BLF_size(font, 11.0f * scale);
   const float cy = BLI_rctf_cent_y(&rect);
-  draw_elided(font, runtime->chevron_label, rect.xmin + 14.0f * scale,
+  /* The mirror's count by state ("4 more: 2 working, 1 done"), unless the column is scrolled to its end. */
+  const char *label = (!at_end && runtime->overflow_label[0]) ? runtime->overflow_label : runtime->chevron_label;
+  draw_elided(font, label, rect.xmin + 14.0f * scale,
               cy - BLF_height_max(font) * 0.34f, BLI_rctf_size_x(&rect) - 42.0f * scale, glyph);
   const float cx = rect.xmax - 17.0f * scale;
   const float direction = at_end ? -1.0f : 1.0f;
@@ -269,7 +343,8 @@ void ED_agent_panel_draw_close(const rcti &bounds, const float alpha, const bool
   GPU_blend(GPU_BLEND_ALPHA);
   const rcti glyph = control_glyph(bounds, alpha, hovered);
   float color[4];
-  with_alpha(GLYPH, alpha, color);
+  theme_rgba(ui::MixarThemeSlot::Glyph, color);
+  color[3] *= alpha;
   view3d_agent_panel_glyph_cross(glyph, UI_SCALE_FAC, color);
   GPU_blend(previous_blend);
 }

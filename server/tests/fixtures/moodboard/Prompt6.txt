@@ -1,0 +1,22 @@
+Create a clean orthographic [VIEW NAME] view of the [ASSET NAME].
+
+Image A is the MetaHuman anatomical reference.
+Image B is the approved armor design / breakdown reference.
+
+Generate only the [ASSET NAME] as an isolated object in strict orthographic [VIEW NAME] view. Preserve the exact design, scale, materials, ornamentation, weathering, and construction from the reference. This must be the same object as in the other views, not a redesign.
+
+Requirements:
+- isolated object only
+- no character
+- no mannequin
+- no extra props
+- pure white or neutral light background
+- soft even studio lighting
+- no cast shadow
+- no perspective distortion
+- centered in frame
+- full object visible and uncropped
+- keep silhouette clean and readable
+- preserve accurate thickness and openings
+
+This image is one of a matched four-view technical set for 3D generation.

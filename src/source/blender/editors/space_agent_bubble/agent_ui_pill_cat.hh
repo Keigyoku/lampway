@@ -27,7 +27,13 @@ enum class MixieCatActivity;
  */
 void agent_ui_draw_pill_cat(const rctf *chip, const MixieCatPose &pose, MixieCatActivity activity);
 
-/** Shared painter; does not modify the pill's QA geometry. Alpha follows card
+/** The seven agent states one painter draws everywhere an agent appears (facelift contract 05, DESIGN.md 7 and 13). */
+enum class AgentSparkState { Idle, Working, Unread, Blocked, Paused, Done, Failed };
+
+/** The Spark in \a state; the ring is the state, every colour the theme's, nothing animates. */
+void agent_ui_draw_spark(const rctf &chip, AgentSparkState state, float alpha);
+
+/** Shared painter (idle or working); does not modify the pill's QA geometry. Alpha follows card
  * transitions. */
 void agent_ui_draw_cat(const rctf &chip, double now, bool working, int variation, float alpha);
 

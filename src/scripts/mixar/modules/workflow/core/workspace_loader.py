@@ -79,7 +79,7 @@ def ensure_basic_workspace() -> bool:
 
     template = _pick_basic_template()
     if template is None:
-        _logger.warning("No workspace available to seed Zen Mode from")
+        _logger.warning("No workspace available to seed Lamplight from")
         return False
 
     original = window.workspace
@@ -111,7 +111,7 @@ def ensure_basic_workspace() -> bool:
         window.workspace = original
 
     _logger.info(
-        "Created Zen Mode workspace from template %r", template.name
+        "Created the Lamplight workspace from template %r", template.name
     )
     return True
 

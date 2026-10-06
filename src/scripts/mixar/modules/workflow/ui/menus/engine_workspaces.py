@@ -46,7 +46,7 @@ class MIXAR_MT_engine_workspaces(bpy.types.Menu):
 
 
 class MIXAR_MT_workspace_overflow(bpy.types.Menu):
-    """Workspace tabs that did not fit before the Zen/Engine switch.
+    """Workspace tabs that did not fit before the Lamplight/Workshop switch.
 
     Drawn after the tab strip; native layout shows it (after the "+") only
     while some tabs are hidden. It also offers New Workspace, so it is a

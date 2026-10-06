@@ -1,0 +1,33 @@
+{
+ "Q_breathe_1pct": {
+  "why": "scale is never fitted per pose (metal pose receipt)",
+  "with_scale_false_max_m_min": 0.000975561,
+  "with_scale_true_scale": 1.01
+ },
+ "Q_mirror": {
+  "det_R": 1.0,
+  "rms_m_min": 0.01,
+  "why": "a proper rotation cannot reproduce a reflection; a solver that returns det -1 is wrong"
+ },
+ "Q_one_vertex_5mm": {
+  "max_m_max": 0.005,
+  "max_m_min": 0.004,
+  "rms_m_max": 0.000890569
+ },
+ "Q_similar": {
+  "axis": [
+   0.267261242,
+   0.534522484,
+   0.801783726
+  ],
+  "rms_m": 0.0,
+  "rotation_deg": 37.0,
+  "scale": 1.07,
+  "tol": 1e-09,
+  "translation_m": [
+   0.12,
+   -0.4,
+   1.3
+  ]
+ }
+}

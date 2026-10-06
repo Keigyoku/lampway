@@ -108,7 +108,7 @@ class MIXAR_OT_zen_copy_material(bpy.types.Operator):
         try:
             obj, material = _target(self, context)
             if not obj.data.is_editable or obj.data.users > 1:
-                raise ValueError('Make the mesh data single-user in Engine Mode first')
+                raise ValueError('Make the mesh data single-user in the Workshop first')
             obj.active_material = material.copy()
         except ValueError as exc:
             self.report({'ERROR'}, str(exc))

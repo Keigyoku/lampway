@@ -37,8 +37,9 @@ def _tick():
             return _TICK_SECONDS
         if getattr(wm, "mixar_generations_source", "") == 'LIBRARY':
             try:
-                from mixar.modules.agent_bubble.core import library_media
+                from mixar.modules.agent_bubble.core import library_media, library_vault
 
+                library_vault.poll()
                 library_media.refresh(bpy.context)
             except Exception:  # noqa: BLE001 — a bad folder must not stop redraws
                 pass

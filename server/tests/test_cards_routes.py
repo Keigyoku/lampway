@@ -61,3 +61,14 @@ def test_the_agent_tool_has_the_same_actions(tmp_path, monkeypatch):
     assert err and "status is active, done or archived" in out
     out, err = call(action="explode")
     assert err and "action is one of" in out
+
+
+def test_the_frame_and_the_light_theme_over_rest(fake, tmp_path):
+    seed(tmp_path / "project")
+    fake.login()
+    cid = fake.post("/app/cards/build", json={"card": "Boots1", "kind": "receipt", "piece": "Boots1"}).json()["data"]["card"]["id"]
+    opened = fake.get(f"/app/cards/{cid}/open?step=0&theme=light").json()["data"]
+    assert opened["url"].endswith("/receipt.html?theme=light")
+    frame = fake.get(f"/app/cards/{cid}/frame?step=0&theme=light")
+    assert frame.status_code == 200 and frame.headers["content-type"].startswith("text/html")
+    assert 'sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"' in frame.text

@@ -374,7 +374,7 @@ inline bool moodboard_zen_drawer_active(const bContext *C)
     return false;
   }
   const WorkSpace *workspace = CTX_wm_workspace(C);
-  if (workspace == nullptr || !STREQ(workspace->id.name + 2, "Zen Mode")) {
+  if (workspace == nullptr || !STREQ(workspace->id.name + 2, "Lamplight")) {
     return false;
   }
   wmWindowManager *wm = CTX_wm_manager(C);

@@ -1,0 +1,55 @@
+{
+  "id": "moodboard-anatomy-sheet",
+  "version": "1.0.0",
+  "purpose": "character-reference",
+  "media": "image",
+  "title": "Master anatomical reference sheet of the MetaHuman (4 orthographic views)",
+  "description": "Moodboard P1: the MetaHuman's proportion reference for later armor and clothing generation; the first step of the moodboard chain.",
+  "body": {
+    "subject": "Create a clean master anatomical reference sheet of the attached MetaHuman character. Use all attached turnaround images as the exact body and identity reference. Preserve the character's face, hairstyle, skin tone, body proportions, shoulder width, torso depth, arm length, hand size, pelvis width, leg proportions, foot length, and overall silhouette exactly as shown.",
+    "action": "Show the same character in four full-body orthographic views: FRONT, LEFT, BACK, and RIGHT. Keep every view at the same scale. Use a relaxed A-pose with arms slightly away from the body and feet flat on the ground. The character should wear the same simple fitted underclothing shown in the reference: short-sleeve shirt and shorts. Do not stylize or idealize the physique.",
+    "camera": "Orthographic projection or the closest equivalent with no perspective distortion; consistent framing across all views; full body visible and uncropped.",
+    "style": "Presentation requirements: square presentation sheet; neutral medium-gray background, flat and uniform; no gradient; no scenery; no props; no shadows; no dramatic lighting; soft even studio lighting.",
+    "constraints": "No armor; no extra text except small simple view labels: FRONT, LEFT, BACK, RIGHT. The sheet should function as a production-ready MetaHuman proportion reference for later armor and clothing generation."
+  },
+  "variables": {},
+  "negatives": [],
+  "inputs": {
+    "image_references": {
+      "required": true,
+      "multiple": true,
+      "order": 1,
+      "description": "all attached turnaround images of the MetaHuman character: the exact body and identity reference"
+    }
+  },
+  "defaults": {
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "view_verify",
+      "description": "inspect every result: names and hashes cannot prove a view, a side or a scale"
+    }
+  ],
+  "provenance": {
+    "source": "the captain's moodboard prompts (specs/prompts/moodboard/Prompt1-8.txt), 2026-10-06",
+    "note": "spruced up into the five-part spine; nothing lost: every original clause is mapped in prompts/moodboard_parity.json and checked by tests/test_moodboard_parity.py"
+  }
+}

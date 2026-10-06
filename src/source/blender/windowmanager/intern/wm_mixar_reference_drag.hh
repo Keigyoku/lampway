@@ -28,7 +28,7 @@ inline void wm_mixar_reference_drag_enter(bContext *C, wmWindow *win, const char
    * its attachment drop handler; just reveal the parent's reference board. */
   wmWindow *host = win->parent ? win->parent : win;
   WorkSpace *workspace = WM_window_get_active_workspace(host);
-  if (!workspace || !STREQ(workspace->id.name + 2, "Zen Mode")) {
+  if (!workspace || !STREQ(workspace->id.name + 2, "Lamplight")) {
     return;
   }
   bScreen *screen = WM_window_get_active_screen(host);

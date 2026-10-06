@@ -54,7 +54,7 @@ REJECTION_WINDOW_SECONDS = 60.0
 # Workspace names can be user-authored; anything outside this allowlist is
 # reported as "custom" so a personal workspace name never leaves the machine.
 WORKSPACE_NAME_ALLOWLIST = frozenset({
-    "Zen Mode",
+    "Lamplight",
     "AI Mode",
     "Layout",
     "Modeling",

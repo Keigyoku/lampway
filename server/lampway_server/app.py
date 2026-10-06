@@ -128,18 +128,17 @@ def default_studio_service(receipts=None):
     return StudioService(project_root(), shelf=os.environ.get("LAMPWAY_STUDIO_SHELF") or None, receipts=receipts)
 
 
-def _open_library(state_dir):
-    """The Vault (library/store.py) under ``<state>/library``, or None when another process holds its one writer lock: the job hook then spools what it would
-    have recorded (``<state>/library-spool.jsonl``) and ``provenance.replay_spool`` lands it once a library opens."""
+def _open_library(vault):
+    """The shared Vault's library, or None when another process holds its one writer lock: the job hook then spools what it would have recorded
+    (``vault.spool``) and ``provenance.replay_spool`` lands it the next time a server opens the library."""
     from .library import provenance as _prov
-    from .library.store import AssetLibrary, LibraryError as VaultError
+    from .library.store import LibraryError as VaultError
     try:
-        lib = AssetLibrary(Path(state_dir) / "library")
+        lib = vault.lib
     except VaultError:
         return None
-    spool = Path(state_dir) / "library-spool.jsonl"
-    if spool.is_file():
-        _prov.replay_spool(lib, spool)                             # what a locked period spooled lands now
+    if vault.spool.is_file():
+        _prov.replay_spool(lib, vault.spool)                       # what a locked period spooled lands now
     return lib
 
 
@@ -159,7 +158,16 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None) -> Starlette:
+def _local_job_services(settings: Settings):
+    """The Client's mesh job types backed by Lampway's own tools in a headless Lampway (job_backends.py) when LAMPWAY_BLENDER names the binary; else empty."""
+    from . import job_backends as JB
+    work = Path(settings.state_dir) / "jobs-local"
+    work.mkdir(parents=True, exist_ok=True)
+    return JB.default_registry(work=work)
+
+
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None,
+               handwriting_reader=None) -> Starlette:
     from . import egress as _EG
     if egress is not None:
         _EG.set_active(egress)                                                      # an explicit manager (tests, embedding) wins
@@ -315,14 +323,15 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     receipts = job_receipts if job_receipts is not None else JR.JobReceipts(_project_root(), ledger=Ledger(Ledger_default_path()), fetchers=video_system.receipt_fetchers())
     studio = studio_service if studio_service is not None else default_studio_service(receipts)
     prompt_service = prompts if prompts is not None else PromptService.from_env(settings.state_dir)
-    library = _open_library(settings.state_dir)
+    vault = Vault(settings.state_dir)                         # the Asset Vault: ONE writer per process, shared by its routes, the agent tools, MCP, the job hook and the renderer
+    library = _open_library(vault)
     from .library import hooks as _vault_hooks
     from .library.render import Renderer as _VaultRenderer
     renderer = _VaultRenderer(library, blender=os.environ.get("LAMPWAY_BIN") or None) if library is not None else None     # previews: never the live window
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
-                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts,
-                    provenance=_vault_hooks.job_hook(library, settings.state_dir / "library-spool.jsonl"))
+                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services if job_services is not None else _local_job_services(settings),
+                    policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts, provenance=_vault_hooks.job_hook(library, vault.spool))
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
@@ -332,7 +341,6 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     from .herdr.host import Cockpit
     cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
     assets = AssetIndex(settings.state_dir)                  # the legacy /asset-search endpoints the Client's Train/Search UI calls
-    vault = Vault(settings.state_dir, library=library)        # the Asset Vault: ONE writer per process (the library opened above), shared by its routes, the agent tools, MCP, the renderer and the job hook
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
                      swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault)
 
@@ -538,6 +546,30 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     async def dictation_ws(websocket):
         await dictation.run(websocket, auth, stt, bearer_from)
     routes.append(WebSocketRoute("/api/v1/dictation/ws", dictation_ws))
+
+    # ---- handwriting into composer text (handwriting.py): blank ink never reaches a model
+    from . import handwriting as HW
+    hw_reader = None if handwriting_reader is False else (handwriting_reader if handwriting_reader is not None else HW.default_reader(settings))
+
+    async def handwriting_recognize(request: Request):
+        if not _bearer_ok(request):
+            return unauthorized()
+        form = await request.form()
+        up = form.get("image")
+        if up is None or not hasattr(up, "read"):
+            return JSONResponse({"detail": "send the ink as a multipart 'image' field"}, status_code=422)
+        data = await up.read()
+        if len(data) > HW.MAX_BYTES:
+            return JSONResponse({"detail": "image too large: rasterise at <= 2048 px"}, status_code=413)
+        try:
+            has, _crop = HW.ink(data)
+        except HW.NotAnImage as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=422)
+        if has and hw_reader is None:
+            return JSONResponse({"detail": "no vision model configured: set one in Providers (OpenRouter key, LAMPWAY_HANDWRITING_MODEL)"}, status_code=503)
+        out = await HW.recognize(data, str(form.get("hint") or ""), hw_reader)
+        return JSONResponse(envelope(out))
+    routes.append(Route("/api/v1/handwriting/recognize", handwriting_recognize, methods=["POST"]))
 
     async def swarm_status(request: Request):
         token = bearer_token(request)
@@ -1061,7 +1093,22 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
 
     routes += [Route("/app/receipts", receipts_list, methods=["GET"]), Route("/app/receipts/{key}/acknowledge", receipt_acknowledge, methods=["POST"]),
                Route("/app/receipts/{key}/link", receipt_link, methods=["POST"])]
-    routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"])]
+    async def spend_view(request: Request):
+        """What the status bar's spend gauge reads (facelift contract 03): each provider in its own unit, what this server session spent, and the
+        caps and click rule the Providers dialog set. Read-only. There is no day ledger, so the scope says session."""
+        if not _bearer_ok(request):
+            return unauthorized()
+        from .spendpolicy import PROVIDERS
+        policy = jobs.policy
+        rows = []
+        for p in PROVIDERS:
+            cfg = policy._cfg(p)
+            rows.append({"provider": p, "unit": "USD" if p == "openrouter" else "credits", "spent": round(float(policy.spent.get(p, 0.0)), 6),
+                         "session_cap": cfg.get("session_cap"), "job_cap": cfg.get("job_cap"), "click": cfg.get("click", "always"), "above": cfg.get("above")})
+        return JSONResponse({"scope": "session", "providers": rows})
+
+    routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"]),
+               Route("/app/spend", spend_view, methods=["GET"])]
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager
@@ -1077,8 +1124,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             logging.getLogger("lampway.jobs").warning("job recovery failed", exc_info=True)
 
         render_stop = threading.Event()
-        if renderer is not None:
-            renderer.start(render_stop)                                # one worker thread: due previews, then thumbnails nobody asked for yet
+        render_thread = renderer.start(render_stop) if renderer is not None else None     # one worker thread: due previews, then thumbnails nobody asked for yet
 
         async def tick():
             while True:
@@ -1093,7 +1139,9 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         finally:
             task.cancel()
             render_stop.set()
-            vault.close()                                              # closes the one library both lanes' wiring shares
+            if render_thread is not None:
+                render_thread.join(10)                                # a preview in flight finishes before its library closes
+            vault.close()
 
     app = Starlette(routes=routes, lifespan=lifespan)
     app.add_middleware(HostGuard, bind_host=settings.host)

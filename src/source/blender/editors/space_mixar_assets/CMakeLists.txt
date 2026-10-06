@@ -12,14 +12,22 @@ set(INC
 set(INC_SYS)
 
 set(SRC
+  mixar_assets_dnd.cc
   space_mixar_assets.cc
+
+  mixar_assets_dnd.hh
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::blenloader
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
   bf_editor_interface

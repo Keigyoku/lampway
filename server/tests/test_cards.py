@@ -240,3 +240,37 @@ def test_activity_for_a_date(tmp_path):
     subprocess.run(["git", "-C", str(root), "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "cards: Boots1 round 4"], check=True)
     committed = ACT.activity(reg, led, time.strftime("%Y-%m-%d"), git_root=root)
     assert "cards: Boots1 round 4" in committed["commits"]
+
+
+def test_the_light_theme_is_a_serve_time_prelude_on_marked_documents_only(tmp_path):
+    root = tmp_path / "cards"
+    (root / "c1").mkdir(parents=True)
+    doc = '<!-- generated -->\n<!doctype html>\n<html lang="en" data-lw-report="document"><head></head><body><img src="a.png" alt="x"></body></html>\n'
+    (root / "c1" / "page.html").write_text(doc)
+    (root / "c1" / "plain.html").write_text("<html><body>not a report</body></html>")
+    (root / "c1" / "a.png").write_bytes(b"\x89PNG fixture")
+    srv = CON.ContentServer(root, host="127.0.0.1", port=18998)
+    g = srv.grant()
+    with TestClient(srv.app, base_url="http://127.0.0.1:18998") as http:
+        dark = http.get(f"/view/{g}/c1/page.html")
+        light = http.get(f"/view/{g}/c1/page.html?theme=light")
+        plain = http.get(f"/view/{g}/c1/plain.html?theme=light")
+        img = http.get(f"/view/{g}/c1/a.png?theme=light")
+    assert dark.text == doc
+    assert '<html lang="en" data-lw-report="document" data-lw-theme="light">' in light.text and int(light.headers["content-length"]) == len(light.content)
+    assert plain.text == "<html><body>not a report</body></html>", "only a report marked as a document is recoloured"
+    assert img.content == b"\x89PNG fixture", "images are never touched"
+    assert "data-lw-theme" not in (root / "c1" / "page.html").read_text(), "the theme is applied when served, never written into the page"
+
+
+def test_the_workbench_frame_wraps_the_card_in_the_sandboxed_iframe_on_the_cards_origin(tmp_path, monkeypatch):
+    from lampway_server.cards.service import Cards
+    project = tmp_path / "project"
+    monkeypatch.setenv("LAMPWAY_PROJECT_ROOT", str(project))
+    led, runs, *_ = ledger_fixture(project)
+    cards = Cards(api_port=8787)
+    built = cards.build("Boots1", "receipt", "Boots1")
+    html_text = cards.frame(built["card"]["id"], 0, theme="light")
+    assert 'sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"' in html_text
+    src = html_text.split('src="', 1)[1].split('"', 1)[0]
+    assert src.startswith("http://127.0.0.1:") and ":8787/" not in src and src.endswith("/receipt.html?theme=light")

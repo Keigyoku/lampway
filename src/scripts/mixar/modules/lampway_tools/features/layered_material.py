@@ -4,13 +4,15 @@
 
 """layered_material (specs/mixar_docs/layered_material.md): the Client's layer-paint stack from the agent: init, inspect, add fill / paint / image / group layers (with an edge-detect, colour-ID, vertex-colour or image
 mask), procedural layers from the library, parameter edits and manifests. A thin, VALIDATED wrapper over the paint package's own agent_tools (`paint/core/agent_tools`) and its layer operator: no new
-algorithm. Not built: mask invert (the package exposes no operator), curvature-baked masks (use mask type edge_detect), and manifests whose base layer downloads map URLs are the builder's (offline path unverified)."""
+algorithm. Mask invert is the package's own INVERT mask modifier (the helper its wm.m_new_mask_modifier operator calls, then the layer's nodes are rearranged and reconnected as the operator
+does): ``mask.invert`` on add_layer, or action mask_invert {invert} on a layer's first mask (one modifier, toggled by its enable). Not built: curvature-baked masks (use mask type edge_detect), and
+manifests whose base layer downloads map URLs are the builder's (offline path unverified)."""
 
 import bpy
 
 from . import common as C
 
-ACTIONS = ("init", "inspect", "set_params", "add_layer", "add_procedural", "apply_manifest")
+ACTIONS = ("init", "inspect", "set_params", "add_layer", "add_procedural", "apply_manifest", "mask_invert")
 BLENDS = ("MIX", "ADD", "MULTIPLY", "SUBTRACT", "SCREEN", "OVERLAY")
 TYPES = {"fill": "COLOR", "paint": "IMAGE", "image": "IMAGE", "group": "GROUP", "procedural": "PROCEDURAL"}
 MASKS = ("EDGE_DETECT", "COLOR_ID", "VCOL", "IMAGE")
@@ -47,9 +49,49 @@ def _stack(ob):
     return r
 
 
+def _mp(ob):
+    _AT, CM = _agent_tools()
+    node = CM._find_mpaint_node(ob)
+    return node.node_tree.mp if node is not None else None
+
+
+def _inverted(mask) -> bool:
+    return any(m.type == "INVERT" and m.enable for m in mask.modifiers)
+
+
+def set_mask_invert(ob, index, invert):
+    """The paint package's INVERT mask modifier on the layer's first mask: added once (its own helper, then the operator's rearrange/reconnect), toggled by enable."""
+    from mixar.modules.paint.core.io.arrangements.layer_arrangements import rearrange_layer_nodes
+    from mixar.modules.paint.core.io.connections.layer_connections import reconnect_layer_nodes
+    from mixar.modules.paint.ui.mask_modifier.mask_modifier_operators_helpers import add_new_mask_modifier
+    mp = _mp(ob)
+    if mp is None:
+        raise C.FeatureError("initialise a layer paint project first (lampway_layered_material action=init)")
+    i = int(index) if int(index) >= 0 else mp.active_layer_index
+    if not 0 <= i < len(mp.layers):
+        raise C.FeatureError(f"no layer {index}: the stack has {len(mp.layers)} layers")
+    layer = mp.layers[i]
+    if not len(layer.masks):
+        raise C.FeatureError(f"layer {i} ({layer.name}) has no mask to invert: add the layer with a mask first")
+    mask = layer.masks[0]
+    mods = [m for m in mask.modifiers if m.type == "INVERT"]
+    if invert and not mods:
+        add_new_mask_modifier(mask, "INVERT")
+        rearrange_layer_nodes(layer)
+        reconnect_layer_nodes(layer)
+        mods = [m for m in mask.modifiers if m.type == "INVERT"]
+    for m in mods:
+        m.enable = bool(invert)
+    return i
+
+
 def _out(ob, extra=None):
     r = _stack(ob)
+    mp = _mp(ob)
     res = {"ok": True, "object": ob.name, "material": r.get("material_name"), "stack": [_row(i, l) for i, l in enumerate(r["layers"])], "active_layer_index": r.get("active_layer_index")}
+    for row in res["stack"]:
+        if row["mask"] is not None and mp is not None and row["index"] < len(mp.layers) and len(mp.layers[row["index"]].masks):
+            row["mask"]["invert"] = _inverted(mp.layers[row["index"]].masks[0])
     res.update(extra or {})
     return res
 
@@ -67,8 +109,6 @@ def _validate_layer(layer):
         mt = str(mask.get("type") or "").upper()
         if mt not in MASKS:
             raise C.FeatureError(f"unknown mask type {mt!r}: the masks are {', '.join(MASKS)}")
-        if mask.get("invert"):
-            raise C.FeatureError("mask invert is not built: the paint package exposes no operator for it; use a white/black mask colour or the layer's blend")
     proj = layer.get("projection")
     if proj is not None and str(proj).upper() not in PROJECTIONS:
         raise C.FeatureError(f"unknown projection {proj!r}: {', '.join(p.lower() for p in PROJECTIONS)}")
@@ -107,6 +147,10 @@ def layered_material(action="inspect", object=None, material=None, layer=None, m
         if not r.get("success"):
             raise C.FeatureError("the edit failed: " + str(r.get("error")))
         return _out(ob, {"changed": r.get("changed")})
+    if action == "mask_invert":
+        _stack(ob)
+        i = set_mask_invert(ob, layer_index, bool((params or {}).get("invert", True)))
+        return _out(ob, {"layer_index": i})
     if action == "add_procedural":
         from . import procedural_library as PL
         mid = material or (layer or {}).get("material_id")
@@ -153,6 +197,8 @@ def layered_material(action="inspect", object=None, material=None, layer=None, m
         updates["projection_type"] = proj
     if updates:
         AT.set_paint_layer_parameters(ob.name, new, updates)
+    if mt and (layer or {}).get("mask", {}).get("invert"):
+        set_mask_invert(ob, new, True)
     return _out(ob, {"added_index": new})
 
 

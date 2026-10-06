@@ -103,7 +103,9 @@ void agent_panel_qa_targets(const wmWindow * /*win*/,
   if (BLI_rcti_size_x(&runtime->chevron_rect) > 0) {
     push(runtime->chevron_rect, "agent_panel_chevron", "more", -1);
     r_targets.back().value = view3d_agent_panel_at_end(runtime) ? "first" : "next";
-    r_targets.back().detail = runtime->chevron_label;
+    r_targets.back().detail = (!view3d_agent_panel_at_end(runtime) && runtime->overflow_label[0]) ?
+                                  runtime->overflow_label :
+                                  runtime->chevron_label;
   }
 }
 

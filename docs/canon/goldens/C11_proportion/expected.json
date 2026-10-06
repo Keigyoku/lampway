@@ -1,0 +1,33 @@
+{
+ "depth_x1p10_DW_dev_pct": 10.0,
+ "rms_logdev_vs_body_plus_C": 0.0,
+ "sections": [
+  {
+   "D": 0.25,
+   "DW": 0.757575758,
+   "W": 0.33,
+   "z": 1.0
+  },
+  {
+   "D": 0.27,
+   "DW": 0.75,
+   "W": 0.36,
+   "z": 1.2
+  },
+  {
+   "D": 0.28,
+   "DW": 0.736842105,
+   "W": 0.38,
+   "z": 1.4
+  }
+ ],
+ "silhouette_aspect": {
+  "iou_aspect_preserved": 0.5,
+  "iou_crop_and_stretch_to_square": 1.0,
+  "mask_a": "rectangle 200x100 px",
+  "mask_b": "square 100x100 px",
+  "why": "cropping each mask to its own box and resizing to a square erases proportion (astra measure.py; Lampway silhouette._fit)"
+ },
+ "tol": 1e-09,
+ "uniform_scale_1p37_dev": 0.0
+}
