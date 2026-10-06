@@ -651,6 +651,7 @@ from .features import batch_export as _F_bx                 # noqa: E402
 from .features import camera_shot as _F_cs                  # noqa: E402
 from .features import procedural_library as _F_pl          # noqa: E402
 from .features import layered_material as _F_lm            # noqa: E402
+from .features import material_bake_export as _F_mbe        # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
 
@@ -905,6 +906,17 @@ def layered_material(action="inspect", object=None, material=None, layer=None, m
     builds a whole stack from a manifest (index 0 must be a PBR layer). Refused: not a mesh, no paint project yet (the refusal names init), unknown blend / type / mask / projection (each lists the choices).
     Mask invert is not built. One undo step per Blender operator the Client's package uses."""
     return _F_lm.layered_material(action, object, material, layer, manifest, layer_index, params)
+
+
+@tool
+def material_bake_export(object, material=None, channels=None, size=1024, format="png", pack="none", normal_green="gl", out_dir="bake_export", samples=8, allow_dirty=False):
+    """Bake the layer-stack material of `object` to the images a destination needs, in a niced HEADLESS Cycles worker (never your live scene). channels: base_color, roughness, metallic, normal, ao, emission
+    (default base_color, roughness, metallic, normal); size a power of two 1024..8192; format png | exr | tiff | jpeg (jpeg with normal is refused: lossy normals); normal_green gl (OpenGL, Unity/Blender/Godot) |
+    dx (DirectX, Unreal); pack=orm also writes <object>_orm (R occlusion, G roughness, B metallic; R is 1.0 with a warning when no ao was baked; roughness and metallic must be baked too). Base colour and
+    emission are sRGB, everything else Non-Color. Writes the images and a README with every file's sha256 and the conventions under out_dir (inside the project root). The layer stack is untouched. Refused: no
+    paint-stack material (build one with layered_material), no UV map, an unsaved project (allow_dirty=true to override), a bad size or channel, a path outside the root."""
+    s = _settings()
+    return _F_mbe.material_bake_export(str(s.project_root), object, material, channels, size, format, pack, normal_green, out_dir, samples, allow_dirty, resolve=lambda p: _p(p, s.project_root))
 
 
 @tool
