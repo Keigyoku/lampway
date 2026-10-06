@@ -404,6 +404,13 @@ DEFS = [
          P("known", desc="project path {joints_m}: calibrate instead, writing out"), P("detector", desc="keypoints_json (default) | rtmw_wholebody | rtmpose_hand (not installed)"),
          P("rig", "boolean", "default true: needs a calibration"), P("max_px", "number", "default 4"), P("centre", "boolean", "default true"),
          P("hidden", "array", "joints read off cloth: left out"), P("out", desc="default joints.json")], api="joints_from_views"),
+    Def("lampway_normalize_rigged", "An armature and the meshes skinned to it into a canonical skeleton and canonical rigged meshes (canon: specs/canon/normalization): "
+        "rig_inspect (convention, roster, units) then rig_normalize (unit and object scale, drift-checked), then the documents - bones with along = head -> the next joint "
+        "(never the imported tail) and their frames; stamped lw_canon. Refused: a mixed convention, an incomplete roster (the missing bones named), units no known factor "
+        "explains, a turn (the rig must face -Y). dry_run (default true) changes nothing and answers the plan.",
+        [P("armature", required=True, desc="the armature object"), P("meshes", "array", "default: every mesh skinned to it"),
+         P("profile", desc="ue5_body (default) | ue5_body_fingers | metahuman"), P("turn_deg", "number", "0 only (turning a rig is not built)"),
+         P("dry_run", "boolean", "default true")], api="normalize_rigged"),
     Def("lampway_normalize_texture", "An image (a scene image, or a file under the project root, loaded raw) into a CANONICAL texture (canon: specs/canon/normalization): its role "
         "declared or from the declared source's naming (ambientcg | polyhaven | lampway; otherwise role=auto refuses), the colour space bound to the role and set on the image "
         "(sRGB basecolor/emission/reference, Linear Rec.709 hdri, Non-Color every data map), a normal map's GL/DX convention from the naming or declared (never assumed), "
