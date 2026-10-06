@@ -221,3 +221,36 @@ def test_the_image_model_size_and_quality_come_from_the_settings_and_are_absent_
     imagegen.openrouter_images("a lamp", [], 1)
     assert seen[0]["model"] == "openai/gpt-image-2.5-sunburst" and seen[0]["size"] == "2880x2880" and seen[0]["quality"] == "high"
     assert "size" not in seen[1] and "quality" not in seen[1]
+
+
+
+class _Approvals:
+    def __init__(self):
+        self.proposed = []
+
+    def propose(self, **kw):
+        self.proposed.append(kw)
+        return type("A", (), {"id": f"ap{len(self.proposed)}"})()
+
+
+@pytest.mark.anyio
+async def test_image_jobs_follow_the_d1_click_rule_by_estimated_price():
+    """One image (~$0.07) runs untouched; four (~$0.28) wait for the user's click above $0.25."""
+    import asyncio
+    from lampway_server.jobqueue import JobQueue
+    from lampway_server.spendpolicy import DEFAULT_SPEND_POLICY, SpendPolicy
+
+    class Hub:
+        sockets = {}
+    appr = _Approvals()
+    q = JobQueue({"image_gen": FakeImages()}, Hub(), "http://127.0.0.1:1", approvals=appr, policy=SpendPolicy(lambda: DEFAULT_SPEND_POLICY))
+    one = q.submit("image_gen", "m", {"prompt": "a", "params": {"number_of_images": 1}})
+    await one.task
+    assert one.status == "DONE" and appr.proposed == []
+    four = q.submit("image_gen", "m", {"prompt": "a", "params": {"number_of_images": 4}})
+    for _ in range(50):
+        await asyncio.sleep(0.01)
+        if appr.proposed:
+            break
+    assert len(appr.proposed) == 1 and four.status != "DONE" and "confirm" in four.note.lower()
+    four.task.cancel()

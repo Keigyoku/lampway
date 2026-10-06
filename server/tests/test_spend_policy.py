@@ -14,8 +14,8 @@ from .test_video_jobs import hf_calls, sign_in_higgsfield, stack, submit, wait_f
 
 def test_the_defaults_and_the_shape_the_dialog_saves(settings):
     d = settings.spend_policy
-    assert {k: d[k]["click"] for k in ("higgsfield", "studios", "hyper3d")} == {"higgsfield": "always", "studios": "always", "hyper3d": "always"} and d["openrouter"]["click"] == "off"
-    assert PP.view(settings)["values"]["spend_policy"]["openrouter"]["click"] == "off"
+    assert {k: d[k]["click"] for k in ("higgsfield", "studios", "hyper3d")} == {"higgsfield": "always", "studios": "always", "hyper3d": "always"} and d["openrouter"] == {"click": "above", "above": 0.25}
+    assert PP.view(settings)["values"]["spend_policy"]["openrouter"] == {"click": "above", "above": 0.25}
     ok = PP.validate({"spend_policy": {"openrouter": {"click": "above", "above": 0.5, "session_cap": 3, "job_cap": 1}}})
     assert ok["spend_policy"]["openrouter"] == {"click": "above", "above": 0.5, "session_cap": 3.0, "job_cap": 1.0}
     for bad in ({"nobody": {"click": "off"}}, {"openrouter": {"click": "sometimes"}}, {"openrouter": {"click": "above"}}, {"openrouter": {"job_cap": -1}}, {"openrouter": {"colour": 1}}):
