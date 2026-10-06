@@ -84,6 +84,9 @@ class Job:
     recovered: bool = False           # built from a receipt after a restart, not run in this process
 
 
+IMAGE_USD_ESTIMATE = 0.07          # about $0.067 per image through OpenRouter (specs/cloud/WORKFLOWS.md C7, measured by the spike); only the click decision uses it, never a charge
+
+
 _STATE = {"PENDING": "pending", "POLLING": "running", "DONE": "succeeded", "FAILED": "failed", "CANCELLED": "cancelled"}
 _EXT = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}
 
@@ -422,7 +425,8 @@ class JobQueue:
                 if out is None:
                     return
             else:
-                if job.service == "image_gen" and self.policy.needs_click("openrouter", None) and self.approvals is not None:     # the price is set by the model: unknown until it ran
+                est = IMAGE_USD_ESTIMATE * max(1, int(((job.payload or {}).get("params") or {}).get("number_of_images") or 1))      # the model sets the price: an estimate per image (cloud D1 click above $0.25)
+                if job.service == "image_gen" and self.policy.needs_click("openrouter", est) and self.approvals is not None:
                     a = self.approvals.propose(action="openrouter.job", studio="openrouter", label=f"Image generation ({job.model}): price set by the model", args={"job_id": job.job_id},
                                                price=0.0, requested_by=job.origin, settings={"unit": "usd", "service": job.service})
                     job.note = "Waiting for your confirmation: an image generation on openrouter. Confirm it in the Studios panel."
