@@ -245,3 +245,24 @@ def scribble_read(include_image=False, include_sent=True):
     Client's own prose summary. include_image writes the frozen annotated frame under <root>/scribble/. Read-only."""
     from .features import scribble_read as _SR
     return _SR.read(str(_settings().project_root), bool(include_image), bool(include_sent))
+
+
+@_export
+@tool
+def image_matte(action, src, out, background="magenta", key="border", opaque=None, clear=None, despill=True, split=None, recipe="", canvas_size=None,
+                verify_out=""):
+    """Deterministic chroma matting of generated plates: remove (key to transparent RGBA, the key read from each image's border ring; sheet split
+    by recipe) | center (integer shifts onto one canvas; canvas_size int or "common") | verify (decode, CRC, hashes, preserved pixels, border, light/dark
+    contact sheet). Writes NEW directories under the project root; sources are never touched."""
+    from .pipeline import image_matte as _IM
+    root = str(_settings().project_root)
+    s, o = _p(src, root), _p(out, root)
+    if action == "remove":
+        return _IM.remove(s, o, opaque, clear, bool(despill), background=background, key=key, split=split, sheet_recipe=_p(recipe, root) or None)
+    if action == "center":
+        if isinstance(canvas_size, str) and canvas_size.isdigit():
+            canvas_size = int(canvas_size)
+        return _IM.center(s, o, canvas_size)
+    if action == "verify":
+        return _IM.verify(o, s, _p(verify_out, root) or o + ".verify")
+    raise ValueError("action is remove | center | verify")

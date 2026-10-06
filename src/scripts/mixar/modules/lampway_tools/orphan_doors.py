@@ -46,6 +46,7 @@ CONSUMES = {
     "image_upscale": {"image": need(("texture",), roles=IMAGE_IN)},
     "reference_pack": {"approved_reference": need(("texture",), roles=("reference",)), "image": need(("texture",), roles=("reference",))},
     "workflow_reference_to_asset": {"reference": need(("texture",), roles=("reference",)), "existing_object": need(("mesh", "part"))},
+    "image_matte": {"src": need(("texture",), roles=("reference",))},     # 8-bit sRGB plates; pixel-only, no scale
     "scribble_read": NONE("reads the Client's own mark records and frozen frames; no asset"),
 }
 

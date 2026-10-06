@@ -195,6 +195,25 @@ ORPHAN_DEFS = [
          P("existing_object", desc="route existing: the mesh"), P("steps", "array", "the steps in order"), P("gates", "object", "{spend: stop}"),
          P("target", desc="unreal (default) | unity | godot"), P("run", "boolean", "run the local steps (default: plan only)"), P("resume", "boolean", "skip the steps done")],
         api="workflow_reference_to_asset"),
+    Def("lampway_image_matte", "Deterministic chroma matting of generated plates (magenta or white backgrounds), no model, no spend. action remove: every PNG under "
+        "src keyed to transparent RGBA in a NEW directory `out` with manifest.json (settings, source/output/pixel sha256 per file); the key colour and clear "
+        "threshold are read from each image's border ring (key=border; key=ideal is the literal #FF00FF), edges unmixed against that key (despill), enclosed "
+        "key-coloured holes keyed. A sheet recipe (JSON {schema: 1, images: {name: {split: 2x2|3x2, x_cuts, y_cuts, row_x_cuts, erase: [[x0,y0,x1,y1]], "
+        "background, opaque, clear, sha256?, size?}}}) splits turnaround sheets into named views (Front/Left/Back/Right or Front/Right/Back/Left/Top/Bottom). "
+        "action center: transparent PNGs shifted by whole pixels onto a canvas (canvas_size an integer, or `common` = the smallest square holding every plate); "
+        "never resampled. action verify: re-decodes every output (CRC), checks file and pixel hashes against the manifest, sources unchanged, every non-key "
+        "source pixel preserved (remove) or the foreground bytes preserved (center), names files whose border is not fully transparent, and writes a light/dark "
+        "contact sheet to verify_out for the edge review. Refused: PNGs that are not 8-bit RGB/RGBA non-interlaced (never converted), more than 16 million "
+        "pixels, a ring that is not mostly the background, an image the key empties, an existing output, nested or symlinked paths. Limit: genuine magenta "
+        "foreground is keyed too.",
+        [P("action", required=True, desc="remove | center | verify"), P("src", required=True, desc="a PNG or a folder of PNGs (verify: the run's source)"),
+         P("out", required=True, desc="the NEW output folder (verify: the folder to check)"), P("background", desc="magenta (default) | white"),
+         P("key", desc="border (default) | ideal"), P("opaque", "integer", "key score at or under which a pixel stays opaque"),
+         P("clear", "integer", "key score at or over which a pixel is cleared (default: 220, or the ring's own score)"),
+         P("despill", "boolean", "unmix the key from edge pixels (default true)"), P("split", desc="2x2 | 3x2 for every image (a recipe sets it per image)"),
+         P("recipe", desc="the sheet recipe JSON"), P("canvas_size", desc="center: an integer side in px, or common"),
+         P("verify_out", desc="verify: the folder for checks.json and contact_sheet.png (default <out>.verify)")],
+        api="image_matte"),
     Def("lampway_scribble_read", "The Scribble marks in this scene, re-read from the Client's own mark records (they persist in the .blend, so a mark from three turns "
         "ago is still readable after the message that carried it is gone). Returns mode (point: marks say WHERE to work; sketch: the drawing is WHAT to build), "
         "marks [{id, kind (circle|arrow|point|strike|stroke), object (the object it resolved to, or null for empty space), region (frame bbox u0,v0,u1,v1, "
