@@ -8,7 +8,7 @@ description; the server's Def (agent/wave6_tools.py) carries the same text."""
 
 from . import settings as S
 
-TOOLS = ("modular_character", "character_pipeline", "playblast_capture")
+TOOLS = ("modular_character", "character_pipeline", "playblast_capture", "lod_chain")
 
 
 def _root() -> str:
@@ -64,3 +64,15 @@ def playblast_capture(shots, out_dir="playblast", fps=24, width=640, height=360,
     names, more than 1200 frames. The temporary scene and waypoint cameras are removed and your frame is restored."""
     from .features import playblast as PB
     return PB.playblast_capture(_root(), _p(out_dir), shots, fps, width, height, engine, stills, target_duration_s, scene_objects)
+
+
+def lod_chain(object, ratios=None, protect=None, texture_scale=None, textures=None, naming="{name}_LOD{n}", preserve_uv_seams=True, out_dir="lods"):
+    """LOD copies of a mesh by collapse decimation, each measured. ratios: the fraction of faces each LOD keeps, 0.05..0.9 and strictly decreasing
+    (default [0.5, 0.25, 0.1]); protect: a vertex group whose vertices are never collapsed (joints, rims, an emblem); preserve_uv_seams (default true)
+    also keeps every vertex where the UV layout splits. Per LOD (`<name>_LOD<n>`, a new object; the source is untouched; a re-run replaces this tool's
+    own LODs): faces, max_deviation_rel (the symmetric vertex-to-surface distance over the source's bounding diagonal), silhouette_iou (front and left,
+    the smaller), weight_audit_pass (skinned meshes; null otherwise) and `textures` downsized by texture_scale (one per ratio, default halving) to
+    out_dir/<stem>_LOD<n>.png (materials are not rewired). Refused: ratios not strictly decreasing or outside 0.05..0.9, a texture_scale list of
+    another length, a skinned mesh without `protect` ("protect the joint loops or run weight_audit after"). The engine import is the user's check."""
+    from .features import lod_chain as L
+    return L.lod_chain(_root(), object, ratios, protect, texture_scale, textures, naming, preserve_uv_seams, _p(out_dir), resolve=_p)

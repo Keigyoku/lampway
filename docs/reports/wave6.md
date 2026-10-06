@@ -20,7 +20,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 | 2 | wiki/character_pipeline | P1 | Blender (plan) | done |
 | 3 | wiki/playblast_capture | P2 | Blender | done |
 | 4 | wiki/cinematic_shot_plan | P2 | server | done |
-| 5 | wiki/lod_chain | P2 | Blender | |
+| 5 | wiki/lod_chain | P2 | Blender | done |
 | 6 | wiki/material_experiment | P2 | server | |
 | 7 | wiki/motion_experiment | P2 | Blender | |
 | 8 | wiki/secondary_chain_rig | P2 | Blender | |
@@ -102,3 +102,15 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
   dispatch test. Mutants killed: the one-clause rule, the right-side check (a survivor first; a "left only" case added), the price sum, shortest
   first, the split's second action.
 - Not run: no live plan against the OpenRouter catalogue (no key on this box; the fake catalogue row carries a `duration_seconds` SKU).
+
+### 5. lod_chain (P2): done
+- Where: `features/lod_chain.py`, api `lod_chain`, Def `lampway_lod_chain`.
+- Collapse Decimate on copies (`<name>_LOD<n>`, tagged; a re-run replaces only this tool's own LODs), the protect group plus every UV-split vertex as the
+  inverted vertex group (zero weight is never collapsed). Per LOD: faces, `max_deviation_rel` (symmetric vertex-to-surface over the source diagonal),
+  `silhouette_iou` (front and left from the source's cameras, the smaller; `silhouette._render_mask`), `weight_audit_pass` when skinned, textures
+  downsized per LOD (materials not rewired). Refusals: ratios not strictly decreasing or outside 0.05..0.9, texture_scale length, a skinned mesh
+  without `protect` (the contract's sentence).
+- Tests: `test_wave6_lod_chain.py` (6, real binary). RED observed: "no tool function 'lod_chain'". The contract's three tests and its falsifier
+  (protect everything: the count stays above the ratio). Mutants killed: the inverted protect group, the seam set, the skinned refusal, the texture
+  scale; the deviation's lost-detail direction SURVIVED the first suite (both directions grow on a sphere) and was killed by a spike test.
+- [UNVERIFIED] engine LOD naming (the contract's open question); the engine import is the captain's.

@@ -39,4 +39,14 @@ DEFS = [
         [P("shots", "array", "[{name, camera, frames: [a, b], duration_s, look_at}]", required=True, items=_OBJ), P("out_dir"), P("fps", "integer"), P("width", "integer"),
          P("height", "integer"), P("engine", desc="workbench | eevee"), P("stills", desc="first | last | both | none"), P("target_duration_s", "number"),
          P("scene_objects", "array", "objects that must be visible")], api="playblast_capture"),
+    Def("lampway_lod_chain", "LOD copies of a mesh by collapse decimation, each measured. ratios: the fraction of faces each LOD keeps, 0.05..0.9 and strictly "
+        "decreasing (default [0.5, 0.25, 0.1]); protect: a vertex group whose vertices are never collapsed (joints, rims, an emblem); preserve_uv_seams (default true) "
+        "also keeps every vertex where the UV layout splits. Per LOD (`<name>_LOD<n>`, a new object; the source is untouched; a re-run replaces this tool's own LODs): "
+        "faces, max_deviation_rel (the symmetric vertex-to-surface distance over the source's bounding diagonal), silhouette_iou (front and left, the smaller), "
+        "weight_audit_pass (skinned meshes; null otherwise) and `textures` downsized by texture_scale (one per ratio, default halving) to out_dir/<stem>_LOD<n>.png "
+        "(materials are not rewired). Refused: ratios not strictly decreasing or outside 0.05..0.9, a texture_scale list of another length, a skinned mesh without "
+        "`protect` ('protect the joint loops or run weight_audit after'). The engine import is the user's check." + _PATHS,
+        [P("object", required=True), P("ratios", "array", items={"type": "number"}), P("protect", desc="vertex group never collapsed"),
+         P("texture_scale", "array", items={"type": "number"}), P("textures", "array", "texture files to downsize per LOD"), P("naming", desc="default {name}_LOD{n}"),
+         P("preserve_uv_seams", "boolean"), P("out_dir")], api="lod_chain"),
 ]
