@@ -27,6 +27,7 @@ annotation for these paths in step.
 from __future__ import annotations
 
 import argparse
+import os
 import pathlib
 import importlib.util
 import shutil
@@ -175,26 +176,92 @@ def version() -> str:
 BRAND_DIR = pathlib.Path(__file__).resolve().parent / "brand_art"
 
 
-def rasterize(svg_path, width, height=None, text_edit=None):
-    """Rasterize a brand SVG with ImageMagick (``magick``), transparent where the SVG is; ``text_edit`` maps strings to replace in the SVG first."""
+FONTS_DIR = BRAND_DIR / "fonts"   # the brand faces, vendored (OFL texts beside them): the art never reaches the system's
+# family -> {weight: file}. The art's <text> is drawn from these files by Pillow (FreeType with WOFF2), never through
+# fontconfig: this host's librsvg resolved the woff2 faces by name and then drew tofu, the silent fallback contract 02 forbids.
+FACES = {
+    "Fraunces": {400: "fraunces-latin-opsz-normal.woff2"},          # variable: opsz and wght are set per line
+    "IBM Plex Mono": {400: "ibm-plex-mono-latin-400-normal.woff2", 500: "ibm-plex-mono-latin-500-normal.woff2"},
+    "IBM Plex Sans": {400: "ibm-plex-sans-latin-400-normal.woff2", 500: "ibm-plex-sans-latin-500-normal.woff2",
+                      600: "ibm-plex-sans-latin-600-normal.woff2"},
+}
+
+
+def splash_faces(svg_text):
+    """[(family, file)] for every font-family the art names. A family scripts/dev/brand_art/fonts/ does not carry is
+    refused by name, never substituted."""
+    import re
+    out = []
+    for family in sorted(set(re.findall(r'font-family="([^"]+)"', svg_text))):
+        if family not in FACES:
+            raise SystemExit(f"the splash names {family!r}, which scripts/dev/brand_art/fonts/ does not carry: "
+                             "vendor the face (and add it to FACES) or change the art")
+        out.append((family, str(FONTS_DIR / FACES[family][400])))
+    return out
+
+
+def _texts(svg_text):
+    """The art's <text> lines: (x, y, family, size, weight, fill, letter_spacing, content)."""
+    import html
+    import re
+    rows = []
+    for attrs, content in re.findall(r"<text\s([^>]*)>(.*?)</text>", svg_text, re.S):
+        a = dict(re.findall(r'([\w-]+)="([^"]*)"', attrs))
+        rows.append((float(a["x"]), float(a["y"]), a["font-family"], float(a["font-size"]), int(a.get("font-weight", 400)),
+                     a.get("fill", "#000000"), float(a.get("letter-spacing", 0)), html.unescape(content)))
+    return rows
+
+
+def _face(family, size, weight):
+    weights = FACES[family]
+    file = weights.get(weight) or weights[min(weights, key=lambda w: abs(w - weight))]
+    font = ImageFont.truetype(str(FONTS_DIR / file), round(size))
+    if family == "Fraunces":
+        font.set_variation_by_axes([min(max(size, 9), 144), min(max(weight, 100), 900)])
+    return font
+
+
+def draw_texts(image, svg_text):
+    """Draw the art's text lines onto ``image`` in the vendored faces (baseline-left anchored, as SVG places them)."""
+    draw = ImageDraw.Draw(image)
+    for x, y, family, size, weight, fill, spacing, content in _texts(svg_text):
+        font = _face(family, size, weight)
+        if not spacing:
+            draw.text((x, y), content, font=font, fill=fill, anchor="ls")
+            continue
+        for ch in content:
+            draw.text((x, y), ch, font=font, fill=fill, anchor="ls")
+            x += font.getlength(ch) + spacing
+    return image
+
+
+def rasterize(svg_path, width, height=None, text_edit=None, fonts_only=False):
+    """Rasterize a brand SVG with ImageMagick (``magick``), transparent where the SVG is; ``text_edit`` maps strings to replace
+    in the SVG first. ``fonts_only``: the shapes through ImageMagick, the text in the vendored faces through Pillow."""
+    import re
     magick = shutil.which("magick") or shutil.which("convert")
     if magick is None:
         raise SystemExit("ImageMagick (magick) is required to rasterize scripts/dev/brand_art/*.svg")
     svg = pathlib.Path(svg_path).read_text(encoding="utf-8")
     for old, new in (text_edit or {}).items():
         svg = svg.replace(old, new)
+    shapes = svg
+    if fonts_only:
+        splash_faces(svg)
+        shapes = re.sub(r"<text\s[^>]*>.*?</text>", "", svg, flags=re.S)  # not the comment's "<text>"
     with tempfile.TemporaryDirectory() as tmp:
         src, dst = pathlib.Path(tmp) / "in.svg", pathlib.Path(tmp) / "out.png"
-        src.write_text(svg, encoding="utf-8")
+        src.write_text(shapes, encoding="utf-8")
         # -density scales the vector before rasterizing so the output is crisp at the requested size
         subprocess.run([magick, "-background", "none", "-density", str(int(96 * max(width, height or width) / 256 + 96)), str(src),
                         "-resize", f"{width}x{height or width}!", str(dst)], check=True, capture_output=True)
-        return Image.open(dst).convert("RGBA").copy()
+        image = Image.open(dst).convert("RGBA").copy()
+    return draw_texts(image, svg) if fonts_only else image
 
 
 def render_splash(width=1672, height=941):
-    """The splash concept of brand_art, with the version line filled from VERSION."""
-    return rasterize(BRAND_DIR / "splash_concept.svg", width, height, {"v0.1.0": f"v{version()}"})
+    """The splash (facelift contract 02): splash_v2.svg, its text in the vendored brand faces, the version from VERSION."""
+    return rasterize(BRAND_DIR / "splash_v2.svg", width, height, {"v0.1.0": f"v{version()}"}, fonts_only=True)
 
 
 def render_icon(size):

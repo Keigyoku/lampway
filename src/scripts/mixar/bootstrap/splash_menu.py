@@ -6,9 +6,8 @@
 """
 Splash Menu Replacement
 
-Replaces the native WM_MT_splash menu with a custom version that:
-- Hides the Recent Files section
-- Shows Donate to Blender and Support links in its place
+Replaces the native WM_MT_splash menu (facelift contract 02): four recent files, the way in
+(New scene, Recover, Zen or Engine), the setup as four glance cues, and Help.
 
 Also exposes `is_splash_visible()` so other modules (notably the
 agent bubble auto-show) can react to splash dismissal regardless of
@@ -19,6 +18,7 @@ popup is on screen Blender re-runs draw() once per frame; once
 dismissed, draws stop entirely and the timestamp goes stale.
 """
 
+import os
 import time
 
 import bpy
@@ -172,8 +172,34 @@ def has_splash_ever_drawn() -> bool:
     return _splash_last_drawn_ts != 0.0
 
 
+def _recent_files_path() -> str:
+    return os.path.join(bpy.utils.user_resource('CONFIG'), "recent-files.txt")
+
+
+def recent_files(limit: int = 4) -> list:
+    """The last files opened that still exist, newest first (Blender's own recent-files list)."""
+    try:
+        with open(_recent_files_path(), encoding="utf-8") as fh:
+            lines = [line.strip() for line in fh]
+    except OSError:
+        return []
+    return [path for path in lines if path and os.path.isfile(path)][:limit]
+
+
+class LAMPWAY_MT_splash_help(Menu):
+    """Docs, what is new and how to report a bug, in one place"""
+    bl_label = "Help"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("wm.url_open", text="Documentation", icon='HELP').url = website_url("/docs")
+        layout.operator("wm.url_open", text="What is new", icon='URL').url = website_url("/changelog")
+        layout.operator("wm.url_open", text="Report a bug", icon='URL').url = website_url("/issues")
+
+
 class WM_MT_splash(Menu):
-    """Custom splash menu without Recent Files."""
+    """The splash's menu (facelift contract 02): recent files, the way in, and the setup at a glance. Reads cached state
+    only (the status bar's cache): never the network in draw()."""
 
     bl_label = "Splash"
 
@@ -191,40 +217,47 @@ class WM_MT_splash(Menu):
         layout.scale_y = 1.3
 
         split = layout.split()
+        recent = split.column()
+        recent.label(text="Recent Files")
+        paths = recent_files()
+        for path in paths:
+            recent.operator("wm.open_mainfile", text=os.path.basename(path), icon='FILE_BLEND').filepath = path
+        if not paths:
+            recent.label(text="No recent files")
 
-        col1 = split.column()
-        col1.label(text="Choose Your Mode")
-
-        col1.operator(
-            "mixar.set_ui_mode_ai",
-            text="Start with Zen Mode",
-            icon='SHADERFX',
-        )
-        col1.operator(
-            "mixar.set_ui_mode_pro",
-            text="Engine Mode (Blender-style)",
-            icon='WORKSPACE',
-        )
-
-        col2 = split.column()
-        col2.label(text="Getting Started")
-
-        # LAMPWAY: links come from the fork's one website constant; the
-        # upstream community invite is not ours to hand out.
-        col2.operator(
-            "wm.url_open", text="About", icon='URL'
-        ).url = website_url("/about")
-        col2.operator(
-            "wm.url_open", text="Website", icon='URL'
-        ).url = website_url()
+        start = split.column()
+        start.label(text="Start")
+        start.operator("wm.read_homefile", text="New scene", icon='FILE_NEW')
+        start.operator("wm.recover_last_session", text="Recover last session", icon='RECOVER_LAST')
+        way = start.row(align=True)
+        way.operator("mixar.set_ui_mode_ai", text="Open in Zen")
+        way.operator("mixar.set_ui_mode_pro", text="Open in Engine")
 
         layout.separator()
+        _draw_setup(layout.row(align=True))
+        layout.menu("LAMPWAY_MT_splash_help", text="Help", icon='HELP')
+
+
+def _draw_setup(row) -> None:
+    """Four glance cues: the server, the agent's plan, the routes, today's spend (DESIGN.md 13)."""
+    from mixar.modules.lampway_tools import statusbar_state as S
+    from mixar.modules.lampway_tools import studio_state
+    if not S.STATE["ok"]:
+        row.label(text="Lampway's server is not running", icon='LAMPWAY_LAMP')
+        return
+    row.label(text="server on this machine", icon='LAMPWAY_LAMP')
+    provider = ((studio_state.PROVIDERS or {}).get("values") or {}).get("provider")
+    row.label(text=f"agent: {provider}" if provider else "agent: open Providers to choose", icon='LAMPWAY_SPARK')
+    row.operator("lampway.status_wire", text=S.wire_chip()[0], icon='LAMPWAY_WIRE', emboss=False)
+    row.operator("lampway.status_spend", text=S.spend_line()[0], icon='LAMPWAY_COIN', emboss=False)
+    row.operator("lampway.providers_open", text="Providers and privacy", icon='LAMPWAY_SHIELD')
 
 
 def register():
     """Replace native WM_MT_splash with custom one."""
     global _splash_mode_chosen
     _splash_mode_chosen = False
+    bpy.utils.register_class(LAMPWAY_MT_splash_help)
     bpy.utils.register_class(WM_MT_splash)
 
 
@@ -241,3 +274,4 @@ def unregister():
 
     # Unregister our custom menu
     bpy.utils.unregister_class(WM_MT_splash)
+    bpy.utils.unregister_class(LAMPWAY_MT_splash_help)
