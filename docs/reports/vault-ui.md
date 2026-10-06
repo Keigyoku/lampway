@@ -14,7 +14,7 @@ file by file.
 |---|---|---|
 | asset_place | done (P0 and P1 kinds, catalogue export and link); drag-and-drop is native work, handed to the facelift lane by the coordinator | ac30942c, b4e1f6a8 (NLA strip), 2f2288f7 (brand word) |
 | asset_mcp + wiring | done | ac1a3ff8 |
-| asset_ui_editor | done: A docked, B pop-out, C island tab (a8d26a7a), D chat LIBRARY mode (f0e4b99d; the mode stays retired upstream), hotkeys (87b0790a), E export verb; the label rename is native (facelift lane) | 335f04e2, 068b6be9, a8d26a7a, f0e4b99d, 87b0790a |
+| asset_ui_editor | done: A docked, B pop-out, C island tab (a8d26a7a), D chat LIBRARY mode (f0e4b99d; the mode listed again on the captain's word, see the decision), hotkeys (87b0790a), E export verb; the label rename is native (facelift lane) | 335f04e2, 068b6be9, a8d26a7a, f0e4b99d, 87b0790a |
 | asset_ui_views | done on this lane's side: views, gpu pan/zoom canvas (87b0790a), clip alignment and the board canvas (568fe0ab); turntable, ball and proxy frames wait on vault-ops' asset_render/asset_video (not on origin/lp/wave5 at the last check) | 74825a29, b4e1f6a8, 87b0790a, 568fe0ab |
 | mrmak 09 report cards | done, light theme and Workbench frame included; the Workbench window page itself (facelift contract 10, `server/lampway_server/web/workbench/`) does not exist on lp/wave5, so the frame is ready but not mounted | 5d53f750, 068b6be9, 2f2288f7, d55f9ae2 |
 
@@ -100,9 +100,8 @@ file by file.
    asset's main file path (`include: path`, server). Tests: `test_island_vault.py` (one request equal to the editor's payload, answer lands on the tick, rows exact,
    throttled), mutants on the kind filter and the throttle killed.
 2. **Chat LIBRARY mode** (f0e4b99d). `space_mixie_chat/core/library_vault_chat.py`: browse and text search ask the Vault off the main thread with a token; a picture is its
-   own thumbnail; a click places through `asset_place`; an attached image still goes to the trained index (the old path). **The mode is retired upstream**
-   (`tests/test_library_mode_retired.py`, "re-listing the enum item is the whole of bringing the feature back"); I did not re-list it: that reverses an upstream product
-   decision, so it is the captain's call (needs-decision). The test re-lists the item for its own run. The "never opens a .blend" claim is proven against an enrolled library
+   own thumbnail; a click places through `asset_place`; an attached image still goes to the trained index (the old path). The mode was retired upstream; the captain brought it back (see the
+   decision below). The "never opens a .blend" claim is proven against an enrolled library
    holding a real .blend: the spy sees the old scan open it, then sees nothing on the Vault path; a mutant that reruns the old scan is killed.
 3. **Hotkeys** (87b0790a). `core/hotkeys.py` (pure table and plan) and `ui/operators/vault_keys.py` (one operator, poll = mouse over a Vault area) in the add-on
    keyconfig's **User Interface** keymap. Windowed probe (Xvfb in lampway-build, Blender's own `--enable-event-simulate`): 4, X, F, C and P reached the operator and the
@@ -128,6 +127,22 @@ worker `scripts/library/catalog_export.py`. No new raw landing was added: the is
 
 Not done, and why: the turntable / ball / proxy-frame switch to real products waits on vault-ops (`origin/lp/wave5` had none of it at each item boundary); the Workbench
 window page and the C++ items are other lanes'. The clip-pair view was not driven in a window (the live Vault has no proxy frames until asset_video lands).
+
+## Decision: Library mode is back (the captain, 2026-10-06: "yeah bring LIBRARY mode back")
+
+- `scene.mixie_chat_mode` lists `('LIBRARY', "Library", ..., 'ASSET_MANAGER', 4)` again, on its old value 4, so a .blend saved in Library mode before the retirement opens
+  in Library mode; value 2 (the old ASK) stays reserved. The load sanitizer keeps LIBRARY. Every dropdown (C++ chat footer, bubble footer, bubble menu) binds the one
+  property, so it shows everywhere; the quick-prompt operators still only enter AGENT and GENERATE.
+- Switching into the mode schedules the Vault's first page (`library_browse._show_all`, a named timer so it can be checked); Enter runs the Vault search.
+- Found while testing: the composer's `can_send` refused Library sends whenever no agent session was connected ("Not Connected"). Library talks to the Vault over REST,
+  so `can_send` now allows a send in LIBRARY mode (pending video attachments are still refused first).
+- Tests: `tests/test_library_mode_retired.py` became `tests/test_library_mode_available.py` (listed on value 4, value 2 reserved, one property for every dropdown,
+  quick prompts unchanged, files load in Library mode, send and switch reach the Vault; RED observed on the two contract changes); `test_chat_library_vault.py` no longer
+  re-lists the item itself and gains `test_selecting_library_mode_shows_the_vault_and_enter_searches_it` (RED observed: "enum LIBRARY not found", then "Not Connected").
+  Mutants killed: the can_send exemption, the first-page timer, LIBRARY dropped from the load sanitizer.
+- Suites after this change: server 1113 passed, 6 skipped; client (`tests/lampway_tools`) 788 passed, 46 skipped, 0 failed; the standalone suite (`tests/` without
+  lampway_tools; 5 tests/mcp modules fail to import `mcp.Client` in venv-tools) 87 failed and 20 errors, the SAME 108 ids as the integration base 00d907d4 run the same
+  way (diffed: none new, none gone).
 
 ## Test totals against wave5.md (server 900 passed, 5 skipped; client 753 passed, 46 skipped)
 Second pass, run on d55f9ae2 plus the two LEGACY comment lines:
