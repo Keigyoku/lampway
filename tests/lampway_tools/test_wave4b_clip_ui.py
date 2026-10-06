@@ -40,6 +40,7 @@ print("RESULT", json.dumps({"op": sorted(res), "rows": rows, "script_ok": script
                             "msg": bpy.context.scene.lampway_tools.last_message}))
 ''')
     assert r.rc == 0, r.out[-2500:]
+    assert "Error registering class" not in r.out, r.out[r.out.index("Error registering"):][:300]            # a child panel registered before its parent never appears
     d = r.results[0]
     assert d["op"] == ["FINISHED"] and len(d["rows"]) == 2
     walk_row = next(x for x in d["rows"] if x["a"].endswith("003"))
