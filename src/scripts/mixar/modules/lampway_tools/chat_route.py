@@ -25,7 +25,8 @@ def sync(wm, scene) -> dict:
     msgs = getattr(scene, "mixie_chat_messages", None)
     if msgs is not None and len(msgs) and hasattr(msgs[0], "lampway_who"):
         import time
-        stamp_who(msgs, time.strftime("%H:%M"), line["host"])
+        stamp_who(msgs, time.strftime("%H:%M"), line["host"], plan_label(S.STATE.get("provider") or ""),
+                  busy=bool(getattr(scene, "mixie_chat_is_busy", False)))
     for key, value in (("lampway_chat_route_host", line["host"]), ("lampway_chat_route_tip", line["tooltip"]),
                        ("lampway_chat_send_ok", line["send_ok"]), ("lampway_generate_estimates", table)):
         if getattr(wm, key, None) != value:
@@ -33,19 +34,36 @@ def sync(wm, scene) -> dict:
     return line
 
 
-def stamp_who(messages, clock: str, host: str):
-    """Contract 04's who line: the first agent message after a user message (a turn's start) gets "<HH:MM>\x1f<host>", the
-    time it was first seen and the route it came by ("this machine" when nothing left). Already-stamped messages keep theirs.
-    The native renderer draws it (mixie_chat_messages_render.cc). Returns ``messages``."""
+PLAN_LABEL = {"chatgpt_plan": "ChatGPT plan", "codex_cli": "ChatGPT plan", "codex_app_server": "ChatGPT plan", "claude_cli": "Claude plan",
+              "anthropic": "Anthropic key", "openai": "OpenAI key", "openrouter": "OpenRouter key", "mock": "no agent"}
+
+
+def plan_label(provider: str) -> str:
+    """The who line's plan chip: what the agent thinks on (contract 04: "ChatGPT plan"); empty when not known."""
+    return PLAN_LABEL.get(provider or "", "")
+
+
+def stamp_who(messages, clock: str, host: str, plan: str = "", busy: bool = False):
+    """Contract 04's who line: "<HH:MM>\x1f<host>\x1f<plan>\x1f<state>" on the first agent message of each turn. The time,
+    route and plan are written when the sync first sees the turn and kept; the state is the agent's now: the latest turn
+    is "working" while the chat is busy, every other turn "idle". The native renderer draws it (mixie_chat_ui_widgets.cc).
+    Returns ``messages``."""
     turn_open = True
+    stamped = []
     for m in messages:
         if getattr(m, "sender", "") == "USER":
             turn_open = True
             continue
         if getattr(m, "sender", "") == "AGENT" and turn_open:
             turn_open = False
-            if not getattr(m, "lampway_who", ""):
-                m.lampway_who = f"{clock}\x1f{host or 'this machine'}"
+            parts = (getattr(m, "lampway_who", "") or "").split("\x1f")
+            if not parts[0]:
+                parts = [clock, host or "this machine", plan]
+            stamped.append((m, (parts + ["", "", ""])[:3]))
+    for i, (m, parts) in enumerate(stamped):
+        value = "\x1f".join(parts + ["working" if busy and i == len(stamped) - 1 else "idle"])
+        if getattr(m, "lampway_who", "") != value:
+            m.lampway_who = value
     return messages
 
 

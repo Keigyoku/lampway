@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """Contract 04's who line: a user message and the agent's answer, the answer stamped as lampway_tools/chat_route.py stamps a
-turn's first agent message ("<HH:MM>\\x1f<host>"). The island is captured; the fact is the stamp the renderer reads."""
+turn's first agent message ("<HH:MM>\\x1f<host>\\x1f<plan>\\x1f<state>"). The island is captured; the fact is the stamp the renderer reads."""
 
 import os
 import sys
@@ -24,7 +24,7 @@ def setup(bpy):
     a = m.add()
     a.sender = 'AGENT'
     a.text = "Done: the glass is clear and the frame is brushed brass."
-    a.lampway_who = "14:32\x1fchatgpt.com"
+    a.lampway_who = "14:32\x1fchatgpt.com\x1fChatGPT plan\x1fidle"
 
 
 def surfaces(bpy, dump):

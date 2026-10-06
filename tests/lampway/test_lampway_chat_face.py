@@ -149,9 +149,29 @@ def test_each_agent_turn_gets_its_who_line():
     msgs = [SimpleNamespace(sender="USER", lampway_who=""), SimpleNamespace(sender="AGENT", lampway_who=""),
             SimpleNamespace(sender="AGENT", lampway_who=""), SimpleNamespace(sender="USER", lampway_who=""),
             SimpleNamespace(sender="AGENT", lampway_who="09:00\x1fchatgpt.com")]
-    CR.stamp_who(msgs, "14:32", "chatgpt.com")
-    assert [m.lampway_who for m in msgs] == ["", "14:32\x1fchatgpt.com", "", "", "09:00\x1fchatgpt.com"]
-    assert CR.stamp_who([SimpleNamespace(sender="AGENT", lampway_who="")], "10:01", "")[0].lampway_who == "10:01\x1fthis machine"
+    CR.stamp_who(msgs, "14:32", "chatgpt.com", "ChatGPT plan", busy=False)
+    assert [m.lampway_who for m in msgs] == ["", "14:32\x1fchatgpt.com\x1fChatGPT plan\x1fidle", "", "",
+                                              "09:00\x1fchatgpt.com\x1f\x1fidle"], "a stamp keeps its time, route and plan"
+    assert CR.stamp_who([SimpleNamespace(sender="AGENT", lampway_who="")], "10:01", "", "")[0].lampway_who == "10:01\x1fthis machine\x1f\x1fidle"
+
+
+def test_the_who_line_spark_is_the_agents_state_and_the_chip_its_plan():
+    """Contract 04 line 29: "the Spark (20 px) in the agent's state, the name, a plan chip (agent outline: 'ChatGPT plan'),
+    time in mono". Only the latest turn's Spark follows the agent while it works; earlier turns are idle."""
+    from types import SimpleNamespace
+
+    from mixar.modules.lampway_tools import chat_route as CR
+    msgs = [SimpleNamespace(sender="USER", lampway_who=""), SimpleNamespace(sender="AGENT", lampway_who=""),
+            SimpleNamespace(sender="USER", lampway_who=""), SimpleNamespace(sender="AGENT", lampway_who="")]
+    CR.stamp_who(msgs, "14:32", "chatgpt.com", "ChatGPT plan", busy=True)
+    assert [m.lampway_who.split("\x1f")[3] for m in msgs if m.sender == "AGENT"] == ["idle", "working"]
+    CR.stamp_who(msgs, "14:40", "chatgpt.com", "ChatGPT plan", busy=False)
+    assert msgs[3].lampway_who == "14:32\x1fchatgpt.com\x1fChatGPT plan\x1fidle", "the turn ended: idle, its time unchanged"
+    assert CR.plan_label("codex_cli") == "ChatGPT plan" and CR.plan_label("claude_cli") == "Claude plan"
+    assert CR.plan_label("openrouter") == "OpenRouter key" and CR.plan_label("mock") == "no agent" and CR.plan_label("") == ""
+    native = (ROOT / "src/source/blender/editors/space_mixie_chat/mixie_chat_ui_widgets.cc").read_text()
+    who = native[native.index("void chat_ui_draw_who_line"):native.index("void chat_ui_draw_sender_label")]
+    assert "chat_ui_get_agent_color" in who and '"working"' in who, "the chip in the agent's outline; the Spark by state"
 
 
 def test_the_step_log_collapses_to_what_happened_and_where():

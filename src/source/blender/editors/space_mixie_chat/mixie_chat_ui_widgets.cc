@@ -18,6 +18,7 @@
 
 #include "BLF_api.hh"
 
+#include "BLI_math_color.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 
@@ -319,20 +320,35 @@ void chat_ui_draw_who_line(const char *who, const float x, const float y, const 
   if (!who || !who[0]) {
     return;
   }
-  const char *sep = strchr(who, '\x1f');
-  std::string clock = sep ? std::string(who, size_t(sep - who)) : std::string(who);
-  std::string host = sep ? std::string(sep + 1) : std::string();
-  float muted[4], text[4], line[4];
+  /* "<HH:MM>\x1f<host>\x1f<plan>\x1f<state>" (lampway_tools/chat_route.py stamp_who). */
+  std::string field[4];
+  {
+    int i = 0;
+    for (const char *p = who; *p && i < 4; p++) {
+      if (*p == '\x1f') {
+        i++;
+      }
+      else {
+        field[i] += *p;
+      }
+    }
+  }
+  const std::string &clock = field[0], &host = field[1], &plan = field[2], &state = field[3];
+  float muted[4], text[4], agent[4];
   chat_ui_get_label_color(muted);
   ui::mixar_theme_color_f(ui::MixarThemeSlot::Text, text);
-  ui::mixar_theme_color_f(ui::MixarThemeSlot::BorderStrong, line);
+  chat_ui_get_agent_color(agent);
   const float s = metrics->scale_factor;
   const int size = metrics->label_font_size;
   float cx = x;
-  /* The Spark (contract 05's agent glyph, contract 14's icon). */
+  /* The Spark (contract 05's agent glyph, contract 14's icon) in the agent's state: the lamp while it works, else at rest. */
   GPU_blend(GPU_BLEND_ALPHA);
-  const uchar accent[4] = {0xED, 0xB9, 0x44, 0xFF}; /* the Spark is the lamp: accent */
-  ui::icon_draw_ex(cx, y - 4.0f * s, ICON_LAMPWAY_SPARK, 16.0f / (16.0f * UI_SCALE_FAC), 1.0f, 0.0f, accent, false,
+  const bool working = state == "working";
+  uchar spark[4] = {0xED, 0xB9, 0x44, 0xFF}; /* accent */
+  if (!working) {
+    rgba_float_to_uchar(spark, muted);
+  }
+  ui::icon_draw_ex(cx, y - 4.0f * s, ICON_LAMPWAY_SPARK, 16.0f / (16.0f * UI_SCALE_FAC), 1.0f, 0.0f, spark, false,
                    UI_NO_ICON_OVERLAY_TEXT);
   cx += 20.0f * s;
   const int font = BLF_default();
@@ -342,15 +358,16 @@ void chat_ui_draw_who_line(const char *who, const float x, const float y, const 
   BLF_position(font, cx, y, 0.0f);
   BLF_draw(font, name, strlen(name));
   cx += BLF_width(font, name, strlen(name)) + 8.0f * s;
-  if (!host.empty()) {
+  if (!plan.empty()) {
+    /* The plan chip: what the agent thinks on, outlined in the agent's colour. */
     const float pad = 5.0f * s;
-    const float w = BLF_width(font, host.c_str(), host.size()) + 2.0f * pad;
+    const float w = BLF_width(font, plan.c_str(), plan.size()) + 2.0f * pad;
     const rctf chip = {cx, cx + w, y - 4.0f * s, y + float(size) + 2.0f * s};
     ui::draw_roundbox_corner_set(ui::CNR_ALL);
-    ui::draw_roundbox_4fv(&chip, false, 4.0f * s, line);
-    BLF_color4fv(font, muted);
+    ui::draw_roundbox_4fv(&chip, false, 4.0f * s, agent);
+    BLF_color4fv(font, agent);
     BLF_position(font, cx + pad, y, 0.0f);
-    BLF_draw(font, host.c_str(), host.size());
+    BLF_draw(font, plan.c_str(), plan.size());
     cx += w + 8.0f * s;
   }
   const int mono = who_mono_font();
@@ -358,6 +375,13 @@ void chat_ui_draw_who_line(const char *who, const float x, const float y, const 
   BLF_color4fv(mono, muted);
   BLF_position(mono, cx, y, 0.0f);
   BLF_draw(mono, clock.c_str(), clock.size());
+  cx += BLF_width(mono, clock.c_str(), clock.size()) + 8.0f * s;
+  if (!host.empty()) {
+    /* Where the turn came from: the route's host, or "this machine". */
+    BLF_color4fv(font, muted);
+    BLF_position(font, cx, y, 0.0f);
+    BLF_draw(font, host.c_str(), host.size());
+  }
 }
 
 void chat_ui_draw_sender_label(const char *label,
