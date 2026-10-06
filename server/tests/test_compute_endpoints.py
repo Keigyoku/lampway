@@ -15,7 +15,12 @@ from lampway_server.compute import recipes as RC
 from lampway_server.compute import runner as R
 from lampway_server.ledger import Ledger
 
-RC.RECIPES["gpu_probe"] = BK.Recipe("gpu_probe", "1.0.0", hardware_gpu="A10", setup_seconds_max=30, outputs=("result.json",), no_payload_logging=True, entry="true")
+@pytest.fixture(autouse=True)
+def _gpu_recipe():
+    RC.RECIPES["gpu_probe"] = BK.Recipe("gpu_probe", "1.0.0", hardware_gpu="A10", setup_seconds_max=30, outputs=("result.json",), no_payload_logging=True, entry="true")
+    yield
+    RC.RECIPES.pop("gpu_probe", None)
+
 CFG = {"base_url": "https://ep.example", "rate_usd_per_s": 0.0003, "exec_timeout_s": 60, "idle_timeout_s": 5, "max_workers": 1, "kind": "web"}
 KEYS = {"runpod": {"RUNPOD_API_KEY": "rp-SECRETKEY0123456789"}, "modal": {"MODAL_TOKEN_ID": "ak-id12345", "MODAL_TOKEN_SECRET": "as-SECRET0123456789"}, "fal": {"FAL_KEY": "Key fal-SECRETKEY0123456789"}}
 HOSTS = {"runpod": "https://api.runpod.ai/v2/ep1", "modal": "https://lampway--gemx.modal.run", "fal": "https://queue.fal.run/fal-ai/gemx"}

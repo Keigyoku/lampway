@@ -170,12 +170,12 @@ def test_the_captains_own_sandboxes_are_never_touched(env):
 
 def test_a_gpu_recipe_and_xlarge_are_refused_with_the_fix(env):
     from lampway_server.compute import recipes as RC
-    RC.RECIPES["gpu_probe"] = BK.Recipe("gpu_probe", "1", hardware_gpu="A10", entry="true")
+    RC.RECIPES["boat_gpu_probe"] = BK.Recipe("boat_gpu_probe", "1", hardware_gpu="A10", entry="true")
     try:
         with pytest.raises(R.Refused, match="Boat has no GPU"):
-            env.runner.plan(env.job(recipe="gpu_probe"))
+            env.runner.plan(env.job(recipe="boat_gpu_probe"))
     finally:
-        RC.RECIPES.pop("gpu_probe")
+        RC.RECIPES.pop("boat_gpu_probe")
     with pytest.raises(R.Refused, match="xlarge"):
         env.runner.plan(env.job(params={"type": "xlarge"}))
 
