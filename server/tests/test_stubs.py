@@ -102,26 +102,26 @@ def test_agent_models_lists_our_providers(fake):
     assert fake.get("/api/v1/agent/models", headers={"If-None-Match": response.headers["etag"]}).status_code == 304
 
 
-def test_byok_round_trip_stores_locally_and_never_echoes_the_key(fake, settings):
+def test_byok_round_trip_stores_in_connections_and_never_echoes_the_key(fake, settings):
     fake.login()
     before = fake.get("/api/v1/agent/credentials").json()["data"]
     assert before == {"byok_active": False, "items": []}  # credential_state.py:152-153
 
     saved = fake.put("/api/v1/agent/byok", json={"provider": "anthropic", "model": "claude-sonnet-5-5",
-                                                  "api_key": "sk-" "ant-secret-1234"})
+                                                  "api_key": "sk-" "ant-secret-FAKE-0000000000001234"})
     assert saved.status_code == 200
     data = saved.json()["data"]
     assert data["byok_active"] is True
     item = data["items"][0]
     assert item["provider"] == "anthropic" and item["model"] == "claude-sonnet-5-5"
     assert "api_key" not in item
-    assert "sk-" "ant-secret-1234" not in saved.text
+    assert "sk-" "ant-secret-FAKE-0000000000001234" not in saved.text
     assert item["key_preview"].endswith("1234")
 
     assert fake.get("/api/v1/agent/credentials").json()["data"]["byok_active"] is True
-    # Stored under the state dir, not anywhere else, and never logged.
+    # C5 / finding F3: the key is Connections' (the anthropic row's manual source), never the plain JSON, and never logged.
     stored = (settings.state_dir / "agent_settings.json").read_text()
-    assert "sk-" "ant-secret-1234" in stored
+    assert "sk-" "ant-secret-FAKE-0000000000001234" not in stored and "api_key" not in stored
 
     removed = fake.delete("/api/v1/agent/credentials/all")
     assert removed.status_code == 200

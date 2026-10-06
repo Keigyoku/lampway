@@ -226,3 +226,16 @@ class Hub(Views, Actions):
     def _sig(self, spec) -> Optional[str]:
         src, _ = self._active(spec, self._sources(spec), self._rec(spec.id))
         return src.sig if src is not None else None
+
+    def held_fingerprint(self, cid: str):
+        """The fingerprint of the key Lampway holds for ``cid`` (its manual source), or None."""
+        return ((self._rec(cid).get("manual") or {}).get("fingerprint")) or None
+
+    def note(self, cid: str, key: str, value) -> None:
+        """A system fact on a row (a migration that could not finish); ``None`` clears it."""
+        def fn(rec):
+            if value is None:
+                rec.pop(key, None)
+            else:
+                rec[key] = value
+        self._update(cid, fn)

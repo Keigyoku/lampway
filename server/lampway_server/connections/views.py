@@ -52,6 +52,9 @@ class Views:
             return {"state": "connected", "next_step": "this server is running", "check_kind": "local"}
         if spec.id == "mcp_clients":
             return {"state": "not_checked", "next_step": spec.note, "check_kind": "none"}
+        if spec.id == "byok_legacy" and rec.get("move_error"):
+            return {"state": "error", "check_kind": "none",
+                    "next_step": f"the BYOK key could not be moved into Connections ({rec['move_error']}): it stays in agent_settings.json until it can"}
         if spec.id == "byok_legacy":
             return ({"state": "not_checked", "next_step": spec.note, "check_kind": "none"} if self.byok_present()
                     else {"state": "missing", "next_step": "nothing is stored here", "check_kind": "none"})

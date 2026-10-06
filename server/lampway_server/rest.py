@@ -110,8 +110,12 @@ def stub_routes(auth, store, settings, jobs=None):
         provider, model = body.get("provider"), body.get("model")
         if not provider or not model:
             return error(422, "provider and model are required")
-        return ok(store.save_byok(provider, model, body.get("api_key"), body.get("base_url"),
-                                  body.get("supports_vision")), "Credentials saved")
+        from . import connections as C
+        try:
+            return ok(store.save_byok(provider, model, body.get("api_key"), body.get("base_url"),
+                                      body.get("supports_vision")), "Credentials saved")
+        except C.Refused as exc:                                  # the key goes into Connections (C5): its refusal names the fix
+            return error(exc.status if exc.status != 400 else 422, str(exc))
 
     @guard
     async def credentials_delete_all(request):

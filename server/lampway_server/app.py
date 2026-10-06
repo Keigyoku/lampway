@@ -1004,6 +1004,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     conn_hub.oauth["mcp:hyper3d"] = h3d_auth
     conn_hub.mcp_clients["mcp:hyper3d"] = lambda: McpClient(h3d_auth, url=MOA.HYPER3D.mcp_url, label="Hyper3D", transport=connections_transport)
     CONN.set_active(conn_hub)
+    store.migrate_into_connections()                         # finding F3: an older plain BYOK key moves into Connections, verified first
 
     async def h3d_callback(request: Request):
         """The loopback end of the Hyper3D sign-in Connections starts (POST /app/connections/mcp:hyper3d/signin)."""
