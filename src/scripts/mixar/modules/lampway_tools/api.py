@@ -686,15 +686,16 @@ from .features import workflows as _F_wf                   # noqa: E402
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic", symmetry=False, adaptivity=1.0, anisotropy=1.0, sharp_edge=90.0, smooth_normal=0.0, edge_scaling=1.0,
-           timeout=900, fallback=False, hard_surface=False):
+           timeout=900, fallback=False, hard_surface=False, preserve_sharp=True):
     """A new all-quad mesh ``<object>_retopo`` near ``target_faces`` (QuadriFlow, voxel fallback, or AutoRemesher) with a measured report; the original is untouched. method=autoremesher runs the Qt-free
     lampway-quadremesh configured by the settings key autoremesher_bin (never an argument: the app downloads nothing) niced in its own process group with a timeout: adaptivity 0..1, anisotropy 0..1, sharp_edge
     30..180 degrees, smooth_normal 0..180, edge_scaling 1..4, timeout 10..3600 s; refused: symmetry, a target above 3x the source, an engine that exits non-zero (its last 20 log lines; fallback=true uses the
     voxel remesh instead), and a QuadriFlow run that leaves the mesh unchanged (CANCELLED on a non-manifold input; fallback=true uses the
-    voxel remesh and says so in ``note``). The result has no UV layer. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
+    voxel remesh and says so in ``note``). QuadriFlow keeps sharp (hard-surface) edges unless preserve_sharp=false; any method refuses
+    a target above 3x the source. The result has no UV layer. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
     s = _settings()
     return _F_retopo.retopo(object, target_faces, method, engine, symmetry, True, adaptivity, anisotropy, sharp_edge, smooth_normal, edge_scaling, timeout, fallback, hard_surface,
-                            str(s.autoremesher_bin or ""), str(s.project_root), s.nice)
+                            str(s.autoremesher_bin or ""), str(s.project_root), s.nice, preserve_sharp=preserve_sharp)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))

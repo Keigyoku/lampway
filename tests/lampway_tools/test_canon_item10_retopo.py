@@ -14,9 +14,11 @@ from test_wave3_weights import PRE  # noqa: E402
 
 NONMANIFOLD = r'''
 bm = bmesh.new()
-a = [bm.verts.new(p) for p in ((0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0), (0.5, 0.5, 1), (0.5, 0.5, -1), (0.5, -0.5, 0.5))]
-for f in ((0, 1, 4), (1, 2, 4), (2, 3, 4), (3, 0, 4), (0, 1, 5), (1, 2, 5), (2, 3, 5), (3, 0, 5), (0, 1, 6)):     # edge 0-1 has three faces
-    bm.faces.new([a[i] for i in f])
+bmesh.ops.create_grid(bm, x_segments=10, y_segments=10, size=0.5)
+e = next(e for e in bm.edges if len(e.link_faces) == 2)                         # an interior edge
+a, b = e.verts
+top = bm.verts.new((a.co + b.co) / 2 + Vector((0, 0, 0.3)))
+bm.faces.new([a, b, top])                                                       # a third face on it: non-manifold
 me = bpy.data.meshes.new("nm"); bm.to_mesh(me); bm.free()
 ob = bpy.data.objects.new("nm", me); bpy.context.scene.collection.objects.link(ob)
 '''
@@ -33,3 +35,31 @@ res({"a_ok": a.get("ok"), "a_err": a.get("error"), "a_method": a.get("method"), 
     d = r.results[-1]
     assert d["a_ok"] is False and "fallback" in d["a_err"] and d["left"] == ["nm"], d
     assert d["b_method"] == "voxel" and "fallback" in (d["b_note"] or ""), d
+
+
+HARD = r'''
+bm = bmesh.new()
+bmesh.ops.create_cube(bm, size=1.0)
+bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=12, use_grid_fill=True)
+bmesh.ops.triangulate(bm, faces=bm.faces[:])
+me = bpy.data.meshes.new("box"); bm.to_mesh(me); bm.free()
+ob = bpy.data.objects.new("box", me); bpy.context.scene.collection.objects.link(ob)
+'''
+
+
+def test_b3_sharp_edges_are_preserved_by_default_and_a_target_above_3x_is_refused_for_every_method():
+    """canon 12 B.3 (hard-surface flags) and INV-12.5. Measured on this 1 m box (2028 triangles, target 600): QuadriFlow's two-sided
+    max deviation 3.98 mm without preserve-sharp, 1.41 mm with it."""
+    r = run_script(PRE + HARD + '''
+n = len(bpy.data.objects["box"].data.polygons)
+a = api.retopo("box", target_faces=600, method="quadriflow")
+b = api.retopo("box", target_faces=600, method="quadriflow", preserve_sharp=False)
+big = {m: api.retopo("box", target_faces=3 * n + 1, method=m) for m in ("quadriflow", "voxel")}
+res({"a": a["report"]["max_deviation"], "a_sharp": a.get("preserve_sharp"), "b": b["report"]["max_deviation"], "b_sharp": b.get("preserve_sharp"),
+     "big": {m: {"ok": v.get("ok"), "error": v.get("error")} for m, v in big.items()}})
+''', timeout=300)
+    assert r.rc == 0, r.out[-1500:]
+    d = r.results[-1]
+    assert d["a_sharp"] is True and d["b_sharp"] is False and d["a"] < d["b"] / 2, d
+    for m, v in d["big"].items():
+        assert v["ok"] is False and "3x the source" in v["error"], (m, v)

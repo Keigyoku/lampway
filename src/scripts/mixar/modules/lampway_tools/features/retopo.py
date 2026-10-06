@@ -106,7 +106,7 @@ class _EngineFailed(C.FeatureError):
 
 
 def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic", symmetry=False, keep_original_visible=True, adaptivity=1.0, anisotropy=1.0, sharp_edge=90.0,
-           smooth_normal=0.0, edge_scaling=1.0, timeout=900, fallback=False, hard_surface=False, engine_bin="", root="", nice=15):
+           smooth_normal=0.0, edge_scaling=1.0, timeout=900, fallback=False, hard_surface=False, engine_bin="", root="", nice=15, preserve_sharp=True):
     if engine != "algorithmic":
         return C.studio_slot("retopo", engine)
     if method not in ("quadriflow", "voxel", "autoremesher"):
@@ -123,7 +123,7 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
     if target_faces < 50:
         raise C.FeatureError(f"target_faces {target_faces} is too small (at least 50)")
     src = C.need_object(object)
-    if method == "autoremesher" and target_faces > 3 * len(src.data.polygons):
+    if target_faces > 3 * len(src.data.polygons):                       # canon INV-12.5, every method
         raise C.FeatureError(f"target {target_faces} exceeds 3x the source ({len(src.data.polygons)}): a remesher cannot invent detail")
     new = C.duplicate(src, "_retopo")
     used = method
@@ -145,7 +145,7 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
         n0 = len(new.data.polygons)
         try:
             ran = bpy.ops.object.quadriflow_remesh(mode="FACES", target_faces=target_faces, use_mesh_symmetry=bool(symmetry),
-                                                   use_preserve_sharp=False, use_preserve_boundary=True, seed=0)
+                                                   use_preserve_sharp=bool(preserve_sharp), use_preserve_boundary=True, seed=0)
             why = None if ("FINISHED" in ran and any(len(p.vertices) == 4 for p in new.data.polygons)) else \
                 f"QuadriFlow returned {sorted(ran)} and left the mesh as it was ({n0} faces, no quads)"
         except RuntimeError as exc:
@@ -157,6 +157,7 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
                 raise C.FeatureError(f"{why}: fix the mesh (lampway_mesh_prep), or pass fallback=true to use the voxel remesh instead")
             used = "voxel"
             extra = {"note": f"{why}; the voxel remesh was used (fallback=true)"}
+        extra["preserve_sharp"] = bool(preserve_sharp)          # canon 12 B.3: hard-surface edges kept (measured: 1 m box 3.98 -> 1.41 mm)
     if used == "voxel":
         _voxel(new, target_faces)
     bpy.context.view_layer.update()
