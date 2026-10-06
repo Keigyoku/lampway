@@ -409,3 +409,24 @@ The integrator could not merge lp/canon: wave5 carried tools from other lanes th
   expecting a `mixar_` name the rebrand renamed, `test_ui_stdio` connection closed) - their files are identical to 704eba5's.
 - **Lane orphans' later rebaselines (to 155, coordinator FYI):** they are on lp/orphans, not on wave5; when the branches meet, the
   merge resolves both counts under the one adopted rule.
+
+### The mesh-object tools behind real Needs (after the 704eba5 merge)
+13 tools now declare what they consume (orphans' needs as stated in `orphan_doors.CONSUMES`; wave6's five by what they measure):
+render_condition_passes, parts_material_slots, zone_sheet, mesh_region_extract (welded), mesh_local_edit (real, welded),
+mesh_join_boolean (real, welded), multi_piece_material (real), uv_check (real: px per metre), face_rig_validate, lod_chain,
+platform_budget_check, print_check (real: millimetres), print_prep (real). The ratchet fell 164 -> 151.
+RED: `test_canon_doors_converted.py` - every one of them accepted a raw mesh (`scale_to_measure` ran on it; the rest failed on their
+own arguments, never at a door). The generic red-team test over every Need door is no longer vacuous.
+**Two stay LEGACY, with the reason found by converting them:** `edit_locality_check` (its `after` is another tool's output, and
+outputs are not re-stamped yet - `produces=Inherit` is not built - so a Need would refuse every real use); `scale_to_measure` (it
+scales armatures too, by design and by its own tests, and a skeleton has no normalizer - orphans' table stated mesh kinds only).
+**Tests:** 58 tests in 15 files built raw fixtures. A helper `canon(*names)` in `features_support` normalizes a fixture through
+`features.normalize.normalize_object` (pivot at the scene origin, so world positions hold; real scale declared as the fixture's
+authored size; welded as a generated mesh) and is called immediately before each converted call - 105 insertions by script,
+11 moved out of dict literals, 3 widened to every object on a two-call line; it skips missing, non-mesh and skinned objects so
+refusal tests still reach a refusal. Changed expectations, each for a reason: a skinned mesh is now refused at the door first, and
+the refusal names `lampway_normalize_rigged` (the door used to name `lampway_normalize_mesh`, which refuses skinned meshes).
+**Two normalizer defects the conversion surfaced (fixed, RED first):** `Mesh.transform` left every shape key in the raw frame
+(measured: basis 22 cm from the mesh, the key's offset unturned) - now `shape_keys=True`; and normalization left the scene
+unevaluated, so `ob.dimensions` read the raw local size (a 2x-scaled 0.3 m box read 0.3; scale_to_measure then scaled it to
+0.64 m for a 0.32 m target) - now a view-layer update.
