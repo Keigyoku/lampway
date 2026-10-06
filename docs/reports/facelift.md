@@ -711,6 +711,46 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   the History search and Resume, the vendored Fraunces / Plex Mono in the page (system faces), test 5's headless-browser
   network log (a static scan of the files and the CSP instead), and the page captured against `shots/11-cockpit.png`.
 
+## Contract 16: the Lampway terminal (partial)
+
+- **Server add-on** (`server/lampway_server/addons/wezterm.py`, pins in `lampway_terminal.toml`, the config a generated
+  copy of `theme/lampway.wezterm.lua` written by `build_theme.py`): Get is refused before any request while the `github`
+  route is off ("github.com is off: open it in Privacy to download the Lampway terminal (about 49 MB); nothing was
+  sent"); the download streams to a `.part`, its SHA-256 must equal the pin AND the release's published `.sha256`, and
+  its size the pinned size; redirects are followed one hop at a time so every host passes the egress gate and is
+  logged; only then it is moved into `$LAMPWAY_HOME/addons/wezterm/<version>/` with WezTerm's `LICENSE.md` and a
+  `PROVENANCE.json`. Launch: `--config-file <Lampway's lua> start --always-new-process --class dev.lampway.terminal
+  --workspace lampway`, detached in its own session, the isolated herdr environment, and every directory WezTerm uses
+  (HOME, XDG_RUNTIME/DATA/CONFIG/CACHE/STATE) under `$LAMPWAY_HOME/wezterm/`. The CLI always carries the class,
+  `--no-auto-start` and Lampway's own GUI socket; send-text and focus refuse a pane not in the registry; reconcile
+  re-adopts through the recorded pid and `cli list` and spawns nothing; Remove signals only the process group Lampway
+  started. Routes `/app/terminal` (status), `/get`, `/open`, `/remove` behind the bearer, an agent origin refused.
+- **In Blender**: the Sessions panel's "Lampway terminal" box: "not installed (Get downloads about 49 MB from
+  github.com)", Get, then Open (placed just right of Blender's window) and Remove, each the user's click.
+- **Live, measured** (2026-10-06): the one allowed download of the pinned release into a scratch Lampway home through
+  the github route (`server/tests/test_terminal_live.py`, opt-in): PROVENANCE `{"version": "20240203-110809-5046fc22",
+  "sha256": "34010a07...56c60f0", "bytes": 49505472, "verified": true}`, `LICENSE.md` beginning "MIT License /
+  Copyright (c) 2018-Present Wez Furlong". The real window on the build box's own virtual display: its GUI socket in
+  Lampway's runtime directory, `cli list` answering, the bootstrap pane recording `$WEZTERM_PANE` and
+  `$WEZTERM_UNIX_SOCKET` (the spec's [UNVERIFIED] that the GUI exports the socket into panes: it does), reconcile
+  re-adopting twice with the same answer, a foreign pane refused.
+- **Incident, said plainly**: my first live GUI run gave the WezTerm processes the person's HOME. A `cli` call that
+  found no window auto-started `wezterm-mux-server`, which locked and wrote `~/.local/share/wezterm/pid` (8 bytes, its
+  own pid, 12:11:15) and ran about six minutes until I stopped it by verified PID. It did not touch `~/.wezterm.lua`,
+  `~/.config/wezterm`, the captain's GUI (pids 6497/6500, same uptime before and after) or his GUI socket; no mux
+  socket was left in his runtime directory. The stale pid file still names that dead pid: I did not touch it again.
+  The fix is in the code and pinned by `test_user_config_untouched` (RED observed): every WezTerm directory is
+  Lampway's own, and the CLI never auto-starts a mux server.
+- Tests: `server/tests/test_terminal_addon.py` (11; RED observed: the module missing, the redirect hops, the dirs;
+  falsifiers run: skipping the checksum or the route check fails its test), `tests/lampway_tools/test_lampway_terminal_ui.py`
+  (1, real binary), `tests/lampway/test_lampway_cockpit_face.py::test_the_terminal_opens_beside_blender`.
+- **Not done / found**: the vendored Plex Mono is woff2, which WezTerm 20240203 does not load: the window shows a
+  "Configuration Error" pane and falls back (it needs the OFL TTF vendored; no converter here). The bootstrap's
+  `herdr session attach lampway` and one tab per agent (`cli spawn ... herdr agent attach`) are wired but not run live;
+  tests 6, 7, 9 and 11 (SIGKILL survival, persistence through herdr, images, the fleet socket) were not run; the
+  Ctrl Alt T key, Focus and Update are not built; the state file the config reads (`state.json`) is not written by the
+  server yet.
+
 ## Which build is in `build/Prod`
 
 The coordinator's rule from here on: `build/Prod` is built from a clean tree at a pushed sha, and that sha is written to

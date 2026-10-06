@@ -18,3 +18,8 @@ def test_the_page_url_carries_the_bearer_in_the_fragment_only():
     url = W.page_url("http://127.0.0.1:8787/", "tok en")
     assert url == "http://127.0.0.1:8787/app/workbench/page#t=tok%20en"
     assert "?" not in url
+
+
+def test_the_terminal_opens_beside_blender():
+    """Contract 16 section 6.6: --position at launch from Blender's window rect (later moves are the user's)."""
+    assert W.beside(10, 40, 1600) == "1618,40"

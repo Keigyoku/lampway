@@ -545,6 +545,7 @@ def write_wezterm(path):
         fh.write(text)
 
 
+ROOT_DIR = os.path.normpath(os.path.join(HERE, "..", "..", "..", ".."))
 TOKENS_CSS = os.path.normpath(os.path.join(HERE, "..", "..", "..", "..", "server", "lampway_server", "web", "workbench", "tokens.css"))
 
 
@@ -837,6 +838,8 @@ if __name__ == "__main__":
         print("BUILD REFUSED:", exc)
         sys.exit(1)
     write_wezterm(os.path.join(out, "lampway.wezterm.lua"))
+    if out == HERE:   # the copy the server's terminal add-on installs (facelift contract 16): the same bytes
+        write_wezterm(os.path.join(ROOT_DIR, "server", "lampway_server", "addons", "lampway.wezterm.lua"))
     write_tokens_css(TOKENS_CSS if out == HERE else os.path.join(out, "tokens.css"))
     try:
         emit_native(theme_values(build("dark")[0]), None if out == HERE else out)

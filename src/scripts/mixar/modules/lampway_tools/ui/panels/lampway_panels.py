@@ -351,6 +351,15 @@ class LAMPWAY_PT_cockpit(Panel):
         row.operator("lampway.wb_refresh", icon="FILE_REFRESH")
         row.operator("lampway.wb_reconcile", icon="CHECKMARK")
         layout.operator("lampway.wb_page_open", text="Cockpit window", icon="WINDOW")
+        term = layout.box()
+        term.label(text=workbench_state.terminal_line(), icon="CONSOLE")
+        t = st.get("terminal") or {}
+        if not t.get("installed"):
+            term.operator("lampway.terminal_get", text="Get the Lampway terminal", icon="IMPORT")
+        else:
+            trow = term.row(align=True)
+            trow.operator("lampway.terminal_open", text="Open", icon="WINDOW")
+            trow.operator("lampway.terminal_remove", text="Remove", icon="TRASH")
         layout.label(text=workbench_state.summary_line(), icon="CHECKMARK" if st["server"].get("running") else "ERROR")
         if st["error"]:
             for line in textwrap.wrap(st["error"], 46)[:4]:

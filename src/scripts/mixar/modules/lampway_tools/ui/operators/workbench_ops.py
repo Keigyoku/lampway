@@ -28,7 +28,12 @@ def _redraw():
 
 def refresh_state() -> None:
     try:
-        workbench_state.update(CLIENT_FACTORY().home())
+        client = CLIENT_FACTORY()
+        workbench_state.update(client.home())
+        try:
+            workbench_state.STATE["terminal"] = client.terminal()
+        except (studio_client.StudioError, AttributeError):
+            workbench_state.STATE["terminal"] = {}
     except studio_client.StudioError as exc:
         workbench_state.fail(str(exc))
     _redraw()
@@ -247,6 +252,57 @@ class LAMPWAY_OT_wb_popout(_WbOp):
         return self._done(context, f"cockpit window for {s['name']}")
 
 
+class LAMPWAY_OT_terminal_get(_UserClick):
+    """Get the Lampway terminal: about 49 MB from github.com (the github route must be on), checked against the SHA-256
+    Lampway pins, installed under LAMPWAY_HOME"""
+    bl_idname = "lampway.terminal_get"
+    bl_label = "Get the Lampway terminal"
+
+    def execute(self, context):
+        if (r := self._gate(context)) is not None:
+            return r
+        try:
+            out = CLIENT_FACTORY().terminal_get()
+        except studio_client.StudioError as exc:
+            return self._done(context, str(exc), ok=False)
+        refresh_state()
+        return self._done(context, f"the Lampway terminal {out.get('version')} is installed")
+
+
+class LAMPWAY_OT_terminal_open(_UserClick):
+    """Open the Lampway terminal beside Blender: one tab per agent of Lampway's herdr server (Ctrl Alt T)"""
+    bl_idname = "lampway.terminal_open"
+    bl_label = "Open the Lampway terminal"
+
+    def execute(self, context):
+        if (r := self._gate(context)) is not None:
+            return r
+        win = getattr(context, "window", None)
+        position = workbench_state.beside(win.x, win.y, win.width) if win is not None else None
+        try:
+            CLIENT_FACTORY().terminal_open(position)
+        except studio_client.StudioError as exc:
+            return self._done(context, str(exc), ok=False)
+        refresh_state()
+        return self._done(context, "the Lampway terminal is open")
+
+
+class LAMPWAY_OT_terminal_remove(_UserClick):
+    """Remove the Lampway terminal: its window closes (never another WezTerm), the agents keep running"""
+    bl_idname = "lampway.terminal_remove"
+    bl_label = "Remove the Lampway terminal"
+
+    def execute(self, context):
+        if (r := self._gate(context)) is not None:
+            return r
+        try:
+            CLIENT_FACTORY().terminal_remove()
+        except studio_client.StudioError as exc:
+            return self._done(context, str(exc), ok=False)
+        refresh_state()
+        return self._done(context, "the Lampway terminal is removed; the agents keep running")
+
+
 class LAMPWAY_OT_wb_page_open(_WbOp):
     """Open the cockpit window: every session with its state, the selected one's terminal, the reconcile banner and the report
     cards, in your browser from Lampway's own server (facelift contract 10)"""
@@ -261,5 +317,5 @@ class LAMPWAY_OT_wb_page_open(_WbOp):
         return self._done(context, "the cockpit window is open in your browser")
 
 
-classes = [LAMPWAY_OT_wb_page_open, LAMPWAY_OT_wb_refresh, LAMPWAY_OT_wb_start_server, LAMPWAY_OT_wb_reconcile, LAMPWAY_OT_wb_new, LAMPWAY_OT_wb_read_to_text, LAMPWAY_OT_wb_send, LAMPWAY_OT_wb_close,
+classes = [LAMPWAY_OT_terminal_get, LAMPWAY_OT_terminal_open, LAMPWAY_OT_terminal_remove, LAMPWAY_OT_wb_page_open, LAMPWAY_OT_wb_refresh, LAMPWAY_OT_wb_start_server, LAMPWAY_OT_wb_reconcile, LAMPWAY_OT_wb_new, LAMPWAY_OT_wb_read_to_text, LAMPWAY_OT_wb_send, LAMPWAY_OT_wb_close,
            LAMPWAY_OT_wb_stop_server, LAMPWAY_OT_wb_popout]

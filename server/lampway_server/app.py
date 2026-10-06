@@ -771,6 +771,67 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         wb_last_reconcile.update(out)
         return JSONResponse(out)
 
+    # ---- the Lampway terminal (facelift contract 16): an optional WezTerm add-on; every write is the user's, never an agent's
+    def _term_home():
+        return Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir)
+
+    def _term_guard(request, write=False):
+        if (r := _wb(request)) is not None:
+            return r
+        if write and request.headers.get("x-lampway-origin", "").lower() == "agent":
+            return JSONResponse({"detail": "only your click installs, opens or removes the Lampway terminal"}, status_code=403)
+        return None
+
+    async def terminal_status(request: Request):
+        if (r := _term_guard(request)) is not None:
+            return r
+        from .addons import wezterm as _WZ
+        home = _term_home()
+        exe = _WZ.binary(home)
+        try:
+            pin = _WZ.pin_for(_WZ.platform_key())
+        except _WZ.TerminalRefused as exc:
+            pin = {"refused": str(exc)}
+        state = await asyncio.to_thread(_WZ.reconcile, home, str(exe)) if exe else {"window": "gone", "panes": [], "foreign_panes": []}
+        return JSONResponse({"installed": bool(exe), "binary": str(exe) if exe else None, "pin": {k: pin.get(k) for k in ("version", "bytes", "refused")},
+                             **state})
+
+    async def terminal_get(request: Request):
+        if (r := _term_guard(request, True)) is not None:
+            return r
+        from .addons import wezterm as _WZ
+        try:
+            return JSONResponse(await asyncio.to_thread(_WZ.get, _term_home(), _WZ.pin_for(_WZ.platform_key())))
+        except (_WZ.TerminalRefused, _EG.EgressRefused) as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=409)
+
+    async def terminal_open(request: Request):
+        if (r := _term_guard(request, True)) is not None:
+            return r
+        from .addons import wezterm as _WZ
+        home = _term_home()
+        exe = _WZ.binary(home)
+        if not exe:
+            return JSONResponse({"detail": "the Lampway terminal is not installed: Get it first (about 49 MB from github.com)"}, status_code=409)
+        body = await _json_body(request)
+        try:
+            boot = [_HL.bin_path(), "session", "attach", "lampway"]
+        except _HL.HerdrError:
+            boot = None
+        try:
+            return JSONResponse(await asyncio.to_thread(_WZ.launch, home, str(exe), cockpit.root, body.get("position"), True, boot))
+        except _WZ.TerminalRefused as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=409)
+
+    async def terminal_remove(request: Request):
+        if (r := _term_guard(request, True)) is not None:
+            return r
+        from .addons import wezterm as _WZ
+        return JSONResponse(await asyncio.to_thread(_WZ.remove, _term_home()))
+
+    routes += [Route("/app/terminal", terminal_status, methods=["GET"]), Route("/app/terminal/get", terminal_get, methods=["POST"]),
+               Route("/app/terminal/open", terminal_open, methods=["POST"]), Route("/app/terminal/remove", terminal_remove, methods=["POST"])]
+
     # ---- the cockpit window (facelift contract 10): a static page from this origin only; its data behind the bearer
     _WB_PAGE = Path(__file__).resolve().parent / "web" / "workbench"
     _WB_STATIC = {"cockpit.js": "text/javascript", "cockpit.css": "text/css", "tokens.css": "text/css"}

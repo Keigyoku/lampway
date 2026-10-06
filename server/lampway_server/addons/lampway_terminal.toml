@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The Lampway terminal's pinned WezTerm release (facelift contract 16, section 2: read 2026-10-05). The SHA-256 here is the
+# authority: the release ships no signature, so the published .sha256 is only a cross-check that must also agree.
+# Reviewed like code: a new pin is a new commit.
+
+[linux-x86_64]
+version = "20240203-110809-5046fc22"
+kind = "appimage"
+asset = "WezTerm-20240203-110809-5046fc22-Ubuntu20.04.AppImage"
+bytes = 49505472
+sha256 = "34010a07076d2272c4d4f94b5e0dae608a679599e8d729446323f88f956c60f0"
+url = "https://github.com/wezterm/wezterm/releases/download/20240203-110809-5046fc22/WezTerm-20240203-110809-5046fc22-Ubuntu20.04.AppImage"
+license_url = "https://github.com/wezterm/wezterm/raw/20240203-110809-5046fc22/LICENSE.md"
+
+[macos]
+version = "20240203-110809-5046fc22"
+kind = "zip"
+asset = "WezTerm-macos-20240203-110809-5046fc22.zip"
+sha256 = "e77388cad55f2e9da95a220a89206a6c58f865874a629b7c3ea3c162f5692224"
+url = "https://github.com/wezterm/wezterm/releases/download/20240203-110809-5046fc22/WezTerm-macos-20240203-110809-5046fc22.zip"
+license_url = "https://github.com/wezterm/wezterm/raw/20240203-110809-5046fc22/LICENSE.md"
+
+[windows-x86_64]
+version = "20240203-110809-5046fc22"
+kind = "zip"
+asset = "WezTerm-windows-20240203-110809-5046fc22.zip"
+sha256 = "57e5d03b585303d81e8b8e96d1230362852eb39aca92b3b29c7a42cfb82f9ac4"
+url = "https://github.com/wezterm/wezterm/releases/download/20240203-110809-5046fc22/WezTerm-windows-20240203-110809-5046fc22.zip"
+license_url = "https://github.com/wezterm/wezterm/raw/20240203-110809-5046fc22/LICENSE.md"
