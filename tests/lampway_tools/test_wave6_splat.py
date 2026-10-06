@@ -44,6 +44,7 @@ def test_spz_imports_through_the_clients_decoder_and_mesh_tools_refuse_the_splat
     d = one(go(tmp_path, f'''
 res = call("splat_world", action="import", path="world.spz", name="env")
 ob = bpy.data.objects.get("env")
+canon("env")
 lod = call("lod_chain", object="env", ratios=[0.5])
 print("RESULT", json.dumps({{"res": res, "faces": len(ob.data.polygons) if ob else None, "attrs": sorted(a.name for a in ob.data.attributes if a.name.startswith("splat_")) if ob else [],
                             "lod": lod, "files": sorted(os.listdir(root))}}))

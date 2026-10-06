@@ -687,14 +687,16 @@ from .features import workflows as _F_wf                   # noqa: E402
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic", symmetry=False, adaptivity=1.0, anisotropy=1.0, sharp_edge=90.0, smooth_normal=0.0, edge_scaling=1.0,
-           timeout=900, fallback=False, hard_surface=False):
+           timeout=900, fallback=False, hard_surface=False, preserve_sharp=True):
     """A new all-quad mesh ``<object>_retopo`` near ``target_faces`` (QuadriFlow, voxel fallback, or AutoRemesher) with a measured report; the original is untouched. method=autoremesher runs the Qt-free
     lampway-quadremesh configured by the settings key autoremesher_bin (never an argument: the app downloads nothing) niced in its own process group with a timeout: adaptivity 0..1, anisotropy 0..1, sharp_edge
     30..180 degrees, smooth_normal 0..180, edge_scaling 1..4, timeout 10..3600 s; refused: symmetry, a target above 3x the source, an engine that exits non-zero (its last 20 log lines; fallback=true uses the
-    voxel remesh instead). The result has no UV layer. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
+    voxel remesh instead), and a QuadriFlow run that leaves the mesh unchanged (CANCELLED on a non-manifold input; fallback=true uses the
+    voxel remesh and says so in ``note``). QuadriFlow keeps sharp (hard-surface) edges unless preserve_sharp=false; any method refuses
+    a target above 3x the source. The result has no UV layer. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
     s = _settings()
     return _F_retopo.retopo(object, target_faces, method, engine, symmetry, True, adaptivity, anisotropy, sharp_edge, smooth_normal, edge_scaling, timeout, fallback, hard_surface,
-                            str(s.autoremesher_bin or ""), str(s.project_root), s.nice)
+                            str(s.autoremesher_bin or ""), str(s.project_root), s.nice, preserve_sharp=preserve_sharp)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
@@ -956,7 +958,7 @@ def layered_material(action="inspect", object=None, material=None, layer=None, m
     return _F_lm.layered_material(action, object, material, layer, manifest, layer_index, params)
 
 
-@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the orphans merge): the Asset Vault tool awaits its owner's Need/NONE"))
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def asset_place(asset_id=None, mode="auto", target=None, options=None, version=None, asset=None):
     """Put an Asset Vault asset into the open scene in the way its kind needs (specs/asset_library/asset_place.md), as one undo step, stamping lw_asset_id / lw_asset_version / lw_asset_sha256
     on what it places. mode auto picks by kind (mesh: import or append, material: assign_material, hdri: set_world, ...); target {where: cursor | origin | object:<name> | slot:<object>:<index>
@@ -980,7 +982,7 @@ def asset_place(asset_id=None, mode="auto", target=None, options=None, version=N
     return out
 
 
-@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the orphans merge): the Asset Vault tool awaits its owner's Need/NONE"))
+@tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def asset_catalog_export(dest_library, assets=None, asset_ids=None, register=False, library_name="Lampway Vault"):
     """Publish Asset Vault assets (their library records: materials and node groups from their .blend, meshes, rigs, actions) as a Blender asset library under dest_library (inside the project
     root): a headless worker writes lampway_library.blend with every datablock marked as an asset (never your live file), and blender_assets.cats.txt from the taxonomy (<facet>/<label>,
@@ -1167,8 +1169,9 @@ def palette_fit(stage, piece, studio_base="", albedo="", masks="", classes=None,
 def bake_maps(source, target, maps=None, size=2048, margin_px=None, cage_extrusion_m="auto", max_ray_m=None, samples=16, normal_green="gl", allow_overlap=False, out_dir="bake", overwrite=False,
               attach=True):
     """Bake a high-poly donor (`source`: a name or a list) into a UV-mapped low-poly `target`: maps from normal (tangent), albedo (Cycles COLOR pass only: no lighting, by construction) and ao;
-    size a power of two 32..8192 (default 2048); margin_px default size/128 (at least 2); cage_extrusion_m 0..0.2 or auto (2 % of the target's diagonal), max_ray_m default half of it; samples
-    1..512. Runs in a niced HEADLESS Cycles worker, never in the live scene (the pair is exported to a temporary .blend). Refused before anything runs, each with its fix: no UV (unwrap first),
+    size a power of two 32..8192 (default 2048); margin_px default size/128 (at least 2); cage_extrusion_m 0..0.2 or auto (measured: the high-poly's greatest height above the target,
+    and max_ray_m the cage plus its greatest depth below; an explicit cage under the median distance is refused), max_ray_m default twice an explicit cage; samples 1..512. Normals are
+    16-bit, baked once in GL; normal_green=dx flips the green of that bake (never a second bake). Runs in a niced HEADLESS Cycles worker, never in the live scene (the pair is exported to a temporary .blend). Refused before anything runs, each with its fix: no UV (unwrap first),
     overlapping UVs, unapplied non-uniform scale, source == target, a pair not aligned (bbox centres > 2 % of the diagonal apart), an unsupported map, an existing map without overwrite=true.
     Returns the PNG paths under <root>/<out_dir>/, the black-texel fraction per map (a cage-too-small hint when > 0.5 %), the colour spaces (normal and ao Non-Color, albedo sRGB) and, with
     attach, a <target>_baked material wired with the maps and `lw_baked_from` on the target. Curvature, cavity, dust, bevel and position are not Cycles bake types and are refused by name."""
@@ -1219,10 +1222,22 @@ def armor_piece_pipeline(piece, mode="plan", from_step=1, to_step=15, paired=Non
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_pose(kind, **kw):
-    """The closest pose of the body to a piece. chest: routed to pose_clearance (arms lowered and swung, then the spine and neck pitch chain). helmet, waist, boots, gauntlets: answers needs_decision -
-    the bones, axes and ranges to sweep are the user's to rule; the contract's proposals come with it, marked unverified."""
+def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, regions=None, out=""):
+    """The closest pose of the body to a piece (canon 08). With dofs [{bone, axis (joint grammar: up | forward | lateral | {line} | {perp} |
+    a vector), range [lo, hi] (<= 90 deg wide), step, expect (the first DOF's sign check: {joint, along, min_cm})}] and the scene's piece,
+    skinned body and armature: a deterministic sweep (the grid over dofs, then each chain link in turn), rays from each skin sample's bone
+    axis to the piece, regions {name: {bones, threshold_m}}; answers the pose in the replayable grammar, the A-pose and posed numbers, and
+    writes pose.json to out. dofs="chest" is the canon's chest table (arms lowered 0..40 x swung -10..10, mirrored; then spine_01,
+    spine_03, neck_01 pitch -8..8). Without dofs: chest is routed to pose_clearance; helmet, waist, boots, gauntlets answer needs_decision (the
+    bones, axes and ranges are the user's to rule; the contract's proposals come with it, marked unverified)."""
     from . import posing as _PO
+    if dofs == "chest":                                          # the canon's chest table (canon 08 B.4), by name
+        t = _PO.CHEST
+        dofs, chain, regions = t["dofs"], chain if chain is not None else t["chain"], regions or t["regions"]
+    elif isinstance(dofs, str):
+        raise ValueError(f"dofs is a list of DOFs or 'chest' (the canon's table); {dofs!r} names no table")
+    if dofs:
+        return _PO.solve_scene(kind, piece, body, armature, dofs, chain, regions, out, root=str(_settings().project_root))
     return _PO.fit_pose(kind)
 
 
@@ -1247,6 +1262,61 @@ def weight_cleanup(object, armature, ops, mirror_from=None):
     {op: rigid, bone, region} (full weight on one bone). Returns the ops applied with the vertices each changed and the weight_audit of the result. mirror_from is not built (it needs a verified symmetric mesh)."""
     from .features import weights as _W
     return _W.cleanup(object, armature, ops, mirror_from)
+
+
+@tool(consumes={"mesh": Need(kind=("mesh",))})
+def joints_from_views(mesh="", cameras="", keypoints="", calibration="", known="", detector="keypoints_json", rig=True, max_px=4.0, centre=True, hidden=None,
+                      out="joints.json"):
+    """Joints of a humanoid from orthographic views (canon 11): keypoints {keypoints_px: {joint: {view: [x, y(, confidence)]}}} made in
+    the cameras {cameras: [{name, res, ortho, center, right, up, look}]} (pixels right and DOWN) are triangulated (exact for
+    orthographic views; a view missing by more than max_px dropped while the rest fix the point; an AMBIGUOUS outlier - two views
+    that alone fix a direction and disagree - refused, naming both), moved by the calibration measured on a body with known joints in
+    the SAME cameras (rig=true needs it; known=<{joints_m}> writes one to out instead), and centred in the canonical mesh's limb
+    cross-section (centre=true). One view per joint, a calibration from another camera framing, or a detector (rtmw_wholebody |
+    rtmpose_hand: a model slot, decision 11-H1) are refused. Writes the receipt {joints: {name: {pos_m, views_used, residual_px,
+    calibrated, centred, centred_cm}}} to out."""
+    from .pipeline import joints_views as _JV
+    root = str(_settings().project_root)
+    if detector != "keypoints_json":
+        _JV.detect(mesh, detector)
+    if not cameras or not keypoints:
+        raise ValueError("cameras and keypoints are required with detector=keypoints_json")
+    if known:
+        return _JV.calibrate(_p(cameras), _p(keypoints), _p(known), root, _p(out), max_px=max_px)
+    vt = None
+    if mesh and centre:
+        from .features import rig as _rig
+        vt = _rig._body_mesh(bpy.data.objects[mesh])
+    res = _JV.run(_p(cameras), _p(keypoints), root, rig=rig, calibration=_p(calibration), max_px=max_px, hidden=tuple(hidden or ()), mesh=vt)
+    if out:
+        p = Path(_p(out))
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(res, indent=1, sort_keys=True))
+        res["out"] = out
+    return res
+
+
+@tool(consumes={"armature": Need(kind=("skeleton",), accept_raw=True)})
+def normalize_rigged(armature, meshes=None, profile="ue5_body", turn_deg=0.0, dry_run=True):
+    """An armature (and the meshes skinned to it) into a canonical skeleton and canonical rigged meshes (specs/canon/normalization
+    contracts/normalize_rig.md): rig_inspect (convention, roster, units) then rig_normalize (unit and object scale, drift-checked),
+    then the documents - bones with along = head -> the next joint (never the tail) and their frames; stamped lw_canon. Refused: a
+    mixed convention, a roster incomplete against the profile (ue5_body | ue5_body_fingers | metahuman), units no known factor explains,
+    a turn (the rig must face -Y). dry_run (default) changes nothing and answers the plan."""
+    from .features import normalize_rigged as _NR
+    return _NR.run(armature, meshes, profile, turn_deg, dry_run)
+
+
+@tool(consumes={"input": Need(kind=("texture",), accept_raw=True)})
+def normalize_texture(input, role="auto", normal_convention="auto", tiling_real_world_m=None, source_naming="none"):
+    """An image (a datablock, or a file under the project root loaded raw) into a CANONICAL texture (lampway.canonical-asset/1): its
+    role declared or read from the declared source's naming (source_naming ambientcg | polyhaven | lampway; tripo / none have no
+    table, so role=auto refuses), the colour space bound to the role and set on the image (sRGB basecolor / emission / reference,
+    Linear Rec.709 hdri, Non-Color every data map), a normal map's convention from the naming or declared (normal_convention gl | dx;
+    never assumed), ORM packed r ao g roughness b metallic, size / bit depth / channels / alpha measured, the file's sha256; stamped
+    lw_canon with a receipt. tiling_real_world_m [w, h] records a tileable's physical size."""
+    from .features import normalize_texture as _NT
+    return _NT.run(input, role, normal_convention, tiling_real_world_m, source_naming, root=str(_settings().project_root))
 
 
 @tool(consumes={"input": Need(kind=("mesh",), accept_raw=True)})
@@ -1666,39 +1736,9 @@ def repair_texture(object, texture, view, patch, mask, out, feather=2):
 
 from . import api_wave6 as _W6                              # noqa: E402
 
-# one door per wave 6 tool, each a LEGACY of its own (the ratchet counts every tool still owing its Need/NONE)
-_W6_DOORS = {
-    "modular_character": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "character_pipeline": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "playblast_capture": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "lod_chain": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "motion_experiment": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "secondary_chain_rig": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "cloth_garment_sim": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "face_rig_validate": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "glb_optimize": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "traversal_check": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "level_blockout": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "part_budget_plan": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "platform_budget_check": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "print_check": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "print_prep": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "profile_revolve": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "splat_world": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "splat_collision_proxy": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "vehicle_wheel_rig": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "editor_connection_receipt": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "terrain": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "addon_read": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "addon_stage_patch": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "addon_commit": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "addon_rollback": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "material_palette": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "scene_from_image": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-    "motion_generate": LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the wave 6 tool awaits its owner's Need/NONE"),
-}
+# each wave 6 tool's declaration lives beside it (api_wave6.CONSUMES); a missing name fails the import
 for _w6_name in _W6.TOOLS:
-    globals()[_w6_name] = tool(consumes=_W6_DOORS[_w6_name])(getattr(_W6, _w6_name))
+    globals()[_w6_name] = tool(consumes=_W6.CONSUMES[_w6_name])(getattr(_W6, _w6_name))
 
 
 # ---- the orphan tools (STATUS.md ORPHANS): their own module, registered through tool() above
@@ -1714,7 +1754,7 @@ def _ue_profile(profile):
     return _UEP.load(_p(profile) if profile else _UEP.DEFAULT_PROFILE)
 
 
-@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
+@tool(consumes=LEGACY("a material datablock: lampway_normalize_material is not built"))
 def ue_material(material, mode="report", merge_json=None, master=None, on_loss="report", profile=None):
     """Translate a Principled material to UE's legacy Default Lit, deterministically: the UE material-instance parameters
     (BaseColor/Metallic/Roughness/Specular/Emissive, blend mode Opaque|Masked(0.3333)|Translucent, Two Sided = not backface
@@ -1739,7 +1779,7 @@ def ue_material(material, mode="report", merge_json=None, master=None, on_loss="
     return _UEM.translate(_UEG.read_spec(mat), prof, mode, merge, files, master, on_loss)
 
 
-@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
+@tool(consumes=LEGACY("acts on the whole open scene (scope=scene), not on named assets: the door checks named arguments only"))
 def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=None, cube=None, cube_meta=None):
     """The one-click UE Look mode, governed by one UE profile (lampway.ue-profile/1; default: the shipped engine-defaults
     profile) and its tonemapper cube, generated on the UE side and named by the profile's tonemap_cube / tonemap_cube_meta (or
@@ -1781,7 +1821,7 @@ def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=
     return _UEL.apply(scene, prof, scope, bool(parity), cube, cube_meta)
 
 
-@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
+@tool(consumes=LEGACY("armature and action need lampway_normalize_rigged / lampway_normalize_clip, not built (canon R1/R3/R4)"))
 def ue_export(type, object="", armature=None, action=None, out_dir="", textures=None, body=None, frame_rate=None, hero=None, format="fbx",
               validation="", bind_check="", bake_receipt="", profile=None, allow_unverified=False, _bone_axis="Z"):
     """Export to UE by the ONE path its type allows: skinned_piece (FBX: armature + mesh, primary bone axis Z / secondary X, no
@@ -1803,7 +1843,7 @@ def ue_export(type, object="", armature=None, action=None, out_dir="", textures=
                     format, validation, bind_check, bake_receipt, _p(profile) if profile else None, str(s_.project_root), _bone_axis, allow_unverified)
 
 
-@tool(consumes=LEGACY("pre-door lane merged (lp/wave5 at the second orphans merge): the UE look tool awaits its owner's Need/NONE"))
+@tool(consumes=LEGACY("builds its own standard scene and reads UE captures (image files): the door resolves datablocks and canon sidecars, not paths"))
 def ue_parity(scene, profile=None, size=768, views=None, out_dir="", ue_captures=None, ue_linear_scale=None):
     """The parity harness, Lampway half: build a standard scene (chart | furnace | normals | lights) from its one JSON
     description in a throw-away scene, render each view (front | three_quarter | grazing) headless in EEVEE under ue_look

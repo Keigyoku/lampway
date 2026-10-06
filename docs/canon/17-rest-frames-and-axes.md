@@ -99,5 +99,7 @@ the detected input convention, the output convention.
 
 1. The finger up-axis table: take it from the native MetaHuman skeleton (recommended; measured once, sha-pinned) or from GRT's
    Manny asset.
-2. Which convention Lampway keeps inside Blender: `blender` (recommended — Titan's measured export recipe converts axes at the
-   FBX writer, canon 21) or `ue_axes` (GRT/MB style). Mixing the two is the 28.8 cm failure.
+2. Which convention Lampway keeps inside Blender: `blender` (recommended — the axes are converted at the FBX writer, canon 21) or
+   `ue_axes` (GRT/MB style). Mixing the two is the 28.8 cm failure. Each convention has exactly one exporter pair that carries it
+   (golden R08: `blender` X / -Y, `ue_axes` Y / X); Titan's measured Z / X carries neither (it was a round trip of a rig imported
+   from the engine with Z / X), so the recommendation no longer rests on Titan's recipe passing - see canon 21 B.2.

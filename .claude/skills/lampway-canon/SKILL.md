@@ -26,6 +26,7 @@ generator, reference implementations and self-tests), `rig_tools/` (the agent-fa
 contracts), and `IMPLEMENTATION_PLAN.md` (what to build in what order). The spec shelf's `specs/canon/` is no longer edited.
 
 ```bash
+python3 -m pip install -r docs/canon/requirements.txt   # the check's dependencies (numpy, jsonschema), declared there
 python3 docs/canon/check_canon.py               # the three self-tests + generators re-run and byte-compared (numpy, jsonschema)
 python3 docs/canon/check_canon.py --self-test   # proves the check refuses a hand-edited golden
 ```
@@ -82,3 +83,4 @@ Provenance: `docs/canon/INDEX.md` and `IMPLEMENTATION_PLAN.md` §3 (the agent sk
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | the canon's implementation plan §3 asks for a canon skill; captain: "make the DOE x DOX AGENTS rail for Lampway" | agents re-derived frames, weights and thresholds from memory and repeated recorded failures | load the canon page before any fit or geometry work, call its tool, route its open decisions; the canon's location stated honestly while it is off-tree | canon plan §3 |
 | 2026-10-06 | the canon moved into the repository | coordinator: "GO for rail row 1" (the captain's recommendation 1) | the skill sent agents to an off-tree shelf and covered pages 01-15 only | point at docs/canon as the source of truth; pages 16-22, rig_tools and normalization in the table; check_canon.py named; page fixes land in the repo through a lane | captain ruling, 2026-10-06 |
+| 2026-10-06 | the check's dependencies declared | coordinator: "Declare jsonschema (and numpy) as dependencies of whatever imports them at runtime"; they were missing from the tools venv | numpy and jsonschema were named only in an inline CI pip line, so a fresh environment could not run check_canon.py | docs/canon/requirements.txt declares them, the canon workflow installs from it, the skill names the install line, a test ties every canon import to its manifest | coordinator, 2026-10-06 |

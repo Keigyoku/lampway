@@ -136,6 +136,8 @@ def check(doc, facts):
         out.append("geometry_sha256 differs: the mesh changed since it was normalized (normalize it again)")
     if "colour_space" in facts and doc["kind"] == "texture" and facts["colour_space"] != doc["body"].get("colour_space"):
         out.append(f"colour space {facts['colour_space']!r} vs the document's {doc['body'].get('colour_space')!r}")
+    if "image_sha256" in facts and doc["kind"] == "texture" and facts["image_sha256"] != doc["body"].get("image_sha256"):
+        out.append("image_sha256 differs: the image file changed since it was normalized (normalize it again)")
     return out
 
 
@@ -157,7 +159,7 @@ def satisfies(doc, need):
     if kind not in need.kind:
         out.append(f"kind {kind!r} is not one of {list(need.kind)}")
     state = (doc.get("scale") or {}).get("state")
-    if state not in need.scale:
+    if state not in need.scale and kind != "texture":                    # an image has no world size (a tileable states its tiling)
         out.append(f"scale is {state!r}, this tool needs {list(need.scale)} (real scale comes from fit_place or scale_to_measure)")
     body = doc.get("body") or {}
     if need.convention is not None:

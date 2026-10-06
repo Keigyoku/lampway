@@ -35,9 +35,24 @@ for attr in ('visible_camera', 'visible_diffuse', 'visible_glossy', 'visible_tra
 mat = bpy.data.materials.new(low.name + '_baked'); mat.use_nodes = True
 low.data.materials.clear(); low.data.materials.append(mat)
 nt = mat.node_tree
-files, colorspace, passes = {}, {}, []
+files, colorspace, passes, normal = {}, {}, [], None
+
+
+def png16(path, rgb):
+    """A 16-bit RGB PNG of ``rgb`` ((h, w, 3) floats 0..1, top row first), written here: Blender's image save applies its colour
+    management and Pillow cannot write 48-bit RGB (canon 14 F.2: normals are 16-bit)."""
+    import struct, zlib
+    h, w, _ = rgb.shape
+    q = np.clip(np.round(rgb * 65535.0), 0, 65535).astype('>u2')
+    raw = b''.join(b'\x00' + q[y].tobytes() for y in range(h))
+    def chunk(kind, data):
+        return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data) & 0xffffffff)
+    open(path, 'wb').write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 16, 2, 0, 0, 0)) + chunk(b'IDAT', zlib.compress(raw, 6)) + chunk(b'IEND', b''))
+
+
+arrays = {}
 for m in a['maps']:
-    img = bpy.data.images.new(f"{low.name}_{m}", size, size, alpha=False, float_buffer=False)
+    img = bpy.data.images.new(f"{low.name}_{m}", size, size, alpha=False, float_buffer=(m == 'normal'))
     img.colorspace_settings.name = 'sRGB' if m == 'albedo' else 'Non-Color'
     colorspace[m] = img.colorspace_settings.name
     node = nt.nodes.new('ShaderNodeTexImage'); node.image = img; node.label = f"bake {m}"
@@ -49,14 +64,22 @@ for m in a['maps']:
     kw = dict(type=BAKE[m], use_selected_to_active=True, margin=margin, cage_extrusion=a['cage_extrusion_m'], max_ray_distance=a['max_ray_m'], use_clear=True)
     if m == 'normal':
         kw.update(normal_space='TANGENT')
-        sc.render.bake.normal_r = 'POS_X'; sc.render.bake.normal_g = 'POS_Y' if a['normal_green'] == 'gl' else 'NEG_Y'; sc.render.bake.normal_b = 'POS_Z'
+        sc.render.bake.normal_r = 'POS_X'; sc.render.bake.normal_g = 'POS_Y'; sc.render.bake.normal_b = 'POS_Z'      # ONE bake, in GL (canon 14 B.4)
     if m == 'albedo':
         sc.render.bake.use_pass_direct = False; sc.render.bake.use_pass_indirect = False; sc.render.bake.use_pass_color = True   # colour only: no lighting, by construction
         passes = ['COLOR']
         kw.update(pass_filter={'COLOR'})
     bpy.ops.object.bake(**kw)
     path = os.path.join(a['out_dir'], f"{low.name}_{m}.png")
-    img.filepath_raw = path; img.file_format = 'PNG'; img.save()
+    if m == 'normal':
+        px = np.array(img.pixels[:], dtype=np.float64).reshape(size, size, 4)[::-1, :, :3]     # top row first
+        if a['normal_green'] == 'dx':
+            px[..., 1] = 1.0 - px[..., 1]                                                    # DX = the GL bake with green flipped, never a second bake
+        png16(path, px)
+        arrays[m] = np.round(px * 255).astype(int)
+        normal = {'convention': a['normal_green'], 'bit_depth': 16, 'baked': 'gl', **({'green_flipped': True} if a['normal_green'] == 'dx' else {})}
+    else:
+        img.filepath_raw = path; img.file_format = 'PNG'; img.save()
     files[m] = path
 # coverage and black texels: how much of the UV-covered area stayed black (a cage that is too small, rays that miss)
 from mixar.modules.lampway_tools.features import uv_islands as UI
@@ -70,9 +93,35 @@ for poly in bm_uv:
 cov = np.asarray(mask) > 0
 checks = {}
 for m, p in files.items():
-    px = np.asarray(Image.open(p).convert('RGB')).astype(int)
+    px = arrays[m] if m in arrays else np.asarray(Image.open(p).convert('RGB')).astype(int)
     black = (px.max(axis=2) <= 1) & cov
     checks[m] = round(float(black.sum() / max(cov.sum(), 1)), 5)
+# canon 14 B.7: the HIT mask - one EMIT bake of the donors in constant white with the same cage and ray, no margin: a texel no ray
+# reached stays black. Last, because it replaces the donors' materials (the worker's scene is a throw-away copy).
+white = bpy.data.materials.new('lw_hit'); white.use_nodes = True; wt = white.node_tree
+for n_ in list(wt.nodes): wt.nodes.remove(n_)
+em = wt.nodes.new('ShaderNodeEmission'); em.inputs['Color'].default_value = (1, 1, 1, 1); em.inputs['Strength'].default_value = 1.0
+wo = wt.nodes.new('ShaderNodeOutputMaterial'); wt.links.new(em.outputs[0], wo.inputs['Surface'])
+for h in highs:
+    h.data.materials.clear(); h.data.materials.append(white)
+himg = bpy.data.images.new(f"{low.name}_hit", size, size, alpha=False, float_buffer=True)
+hnode = nt.nodes.new('ShaderNodeTexImage'); hnode.image = himg
+for n_ in nt.nodes: n_.select = False
+hnode.select = True; nt.nodes.active = hnode
+bpy.ops.object.select_all(action='DESELECT')
+for h in highs: h.select_set(True)
+low.select_set(True); bpy.context.view_layer.objects.active = low
+bpy.ops.object.bake(type='EMIT', use_selected_to_active=True, margin=0, cage_extrusion=a['cage_extrusion_m'], max_ray_distance=a['max_ray_m'], use_clear=True)
+hit = np.array(himg.pixels[:], dtype=np.float64).reshape(size, size, 4)[::-1, :, 0] > 0.5
+hit_path = os.path.join(a['out_dir'], f"{low.name}_hit.png")
+Image.fromarray((hit * 255).astype(np.uint8), 'L').save(hit_path)
+hit_fraction = round(float((hit & cov).sum() / max(cov.sum(), 1)), 5)
 nan = 0
-json.dump({'files': files, 'colorspace': colorspace, 'albedo_passes': passes, 'black_texel_fraction': checks, 'covered_texels': int(cov.sum()), 'material': mat.name}, open(OUT, 'w'))
+bake_json = os.path.join(a['out_dir'], 'bake.json')
+json.dump({'schema': 'lampway.bake/1', 'low': {'name': low.name, 'geometry_sha256': lw_canon.io.geometry_sha256(low)},
+           'high': [{'name': h.name, 'geometry_sha256': lw_canon.io.geometry_sha256(h)} for h in highs],
+           'size': size, 'margin_px': margin, 'cage_extrusion_m': a['cage_extrusion_m'], 'max_ray_m': a['max_ray_m'], 'samples': a['samples'],
+           'tangent_basis': 'mikktspace', 'normal': normal, 'maps': files, 'black_texel_fraction': checks, 'hit_fraction': hit_fraction,
+           'hit_mask': hit_path, 'colorspace': colorspace}, open(bake_json, 'w'), indent=1, sort_keys=True)
+json.dump({'files': files, 'normal': normal, 'hit_fraction': hit_fraction, 'hit_mask': hit_path, 'bake_json': bake_json, 'colorspace': colorspace, 'albedo_passes': passes, 'black_texel_fraction': checks, 'covered_texels': int(cov.sum()), 'material': mat.name}, open(OUT, 'w'))
 _ax.kv({'baked': ','.join(files), 'size': size})

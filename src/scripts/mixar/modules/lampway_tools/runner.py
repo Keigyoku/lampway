@@ -25,10 +25,7 @@ from pathlib import Path
 from typing import Optional
 
 from . import settings as S
-from .canon_door import LEGACY, NONE, Need, validate_declaration
-
-# the part-set tools read a mesh FILE: the runner's door is declarative until run_tool checks path sidecars (DOOR.md 2.1)
-MESH_ANY = {"mesh": Need(kind=("mesh", "part"), scale=("real", "generator_normalised", "unknown"))}
+from .canon_door import LEGACY, NONE, validate_declaration
 
 SCRIPTS = Path(__file__).resolve().parent / "scripts"
 
@@ -60,6 +57,8 @@ TOOLS = dict([
     _t("delete_caps", "blender", "partseg/delete_caps.py", "delete a cap that closes an opening by ray-casting its footprint", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
     _t("bake_maps", "blender", "bake/bake_maps.py", "headless Cycles bake of high-poly donors onto a UV-mapped target: normal, colour-only albedo, AO", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
     _t("material_bake", "blender", "bake/material_bake.py", "headless Cycles bake of a material's channels (base colour, roughness, metallic, normal, AO, emission) with an ORM pack", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("asset_catalog_export", "blender", "library/catalog_export.py", "write Asset Vault assets into a Blender asset library .blend, marked with their catalogues", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("rtmw_detect", "science", "anim/rtmw_detect.py", "RTMW whole-body 2D keypoints per frame (rtmlib + onnxruntime, weights from disk)", LEGACY("reads video frames: a frame sequence has no kind in lampway.canonical-asset/1 yet")),
     _t("robust_weight_transfer", "science", "rig/robust_weight_transfer.py", "biharmonic inpainting of unmatched vertices' skin weights (robust skin-weight transfer)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
     _t("render_owner", "blender", "partseg/render_owner.py", "render a mesh coloured by part owner, four views plus legend", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
     _t("mesh_to_npz", "blender", "proportion/mesh_to_npz.py", "export a mesh or the MetaHuman body to npz", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
@@ -79,16 +78,14 @@ TOOLS = dict([
     _t("uv_score", "blender", "texlib/uv_score.py", "score UV layouts of files on measurements (utilization, overlap, islands, stretch, flipped, seams)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
     _t("piece_ratios", "numpy", "proportion/piece_ratios.py", "proportion scores of helmet / waist / boots / gauntlets against the body (NEW, unvalidated)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
     _t("place_piece", "numpy", "proportion/place_piece.py", "place a torso piece on the body the way the audits do", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("export_parts", "blender", "partseg/export_parts.py", "export a finished part set as Parts Library candidates: one GLB + part.json per part, versions never overwritten", LEGACY("runner argv: a mesh FILE path (npz/glb); the door resolves datablocks and canon sidecars, and mesh_to_npz does not yet write the npz canon header (migration group 1)")),
+    _t("verify_set", "numpy", "partseg/verify_set.py", "independent check of an exported part set: every part GLB corner by corner against the source, every face once", LEGACY("runner argv: a source mesh FILE path; npz canon headers come with migration group 1 (mesh_to_npz)")),
+    _t("render_final", "blender", "partseg/render_final.py", "render a finished part set: the assembly, the unassigned faces, each part isolated and in context", LEGACY("runner argv: a mesh FILE path; npz canon headers come with migration group 1 (mesh_to_npz)")),
+    _t("judge_pack", "blender", "partseg/judge_pack.py", "the review pack for a parts regroup: two segmentations reconciled into candidates and decisions, with renders", LEGACY("runner argv: a mesh FILE path; npz canon headers come with migration group 1 (mesh_to_npz)")),
+    _t("gen_parts_table", "numpy", "libwiki/gen_parts_table.py", "write a part set's table and held notes into the mesh wiki's entity spec from the exported files", NONE("reads the exported SET and part.json files, no geometry")),
+    _t("index_delta", "numpy", "texlib/index_delta.py", "a texture library's next INDEX as a delta against a baseline listing (added, changed, removed; never overwritten)", NONE("compares two library listings (paths, sizes, sha256), no asset")),
+    _t("libwiki", "numpy", "libwiki/libwiki.py", "publish a library inventory as an LLM wiki: build, lint, drift (deterministic; pages generated, never hand-edited)", NONE("reads a library listing (paths, sizes, sha256), no asset")),
     _t("pauldron_symmetry", "numpy", "proportion/pauldron_symmetry.py", "left versus mirrored-right shoulder height maps", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
-    _t("rtmw_detect", "science", "anim/rtmw_detect.py", "RTMW whole-body 2D keypoints per frame (rtmlib + onnxruntime, weights from disk)", LEGACY("pre-door lane merged: video frames are texture input; awaits the texture normalizer")),
-    _t("export_parts", "blender", "partseg/export_parts.py", "export a finished part set as Parts Library candidates: one GLB + part.json per part, versions never overwritten", MESH_ANY),
-    _t("verify_set", "numpy", "partseg/verify_set.py", "independent check of an exported part set: every part GLB corner by corner against the source, every face once", MESH_ANY),
-    _t("render_final", "blender", "partseg/render_final.py", "render a finished part set: the assembly, the unassigned faces, each part isolated and in context", MESH_ANY),
-    _t("judge_pack", "blender", "partseg/judge_pack.py", "the review pack for a parts regroup: two segmentations reconciled into candidates and decisions, with renders", MESH_ANY),
-    _t("gen_parts_table", "numpy", "libwiki/gen_parts_table.py", "write a part set's table and held notes into the mesh wiki's entity spec from the exported files", NONE("reads the exported SET and part.json files: no geometry")),
-    _t("index_delta", "numpy", "texlib/index_delta.py", "a texture library's next INDEX as a delta against a baseline listing (added, changed, removed; never overwritten)", NONE("compares two library listings: no asset")),
-    _t("libwiki", "numpy", "libwiki/libwiki.py", "publish a library inventory as an LLM wiki: build, lint, drift (deterministic; pages generated, never hand-edited)", NONE("reads a library listing (paths, sizes, sha256): no asset")),
-    _t("asset_catalog_export", "blender", "library/catalog_export.py", "write Asset Vault assets into a Blender asset library .blend, marked with their catalogues", LEGACY("pre-door lane merged (lp/wave5 at the orphans merge): the Asset Vault tool awaits its owner's Need/NONE")),
 ])
 
 _NOISE = re.compile(r"\[INFO\]|\[WARNING\]|\[agent_bubble\]|empty keymap|^register_class\(|^Info: Registering|^Warning: '.*' does not contain"

@@ -203,3 +203,44 @@ res({"a_canon": "lw_canon" in oa, "a_nose": nose_dir(oa), "a_note": a.get("norma
 ''')
     assert d["a_canon"] and d["a_nose"] == [0.0, -1.0, 0.0] and d["a_coll"] == "Studio"
     assert not d["b_canon"] and d["b_raw"] and "frame undecided" in d["b_note"]
+
+
+def test_shape_keys_ride_the_normalization_with_the_basis():
+    """A mesh with shape keys, turned and moved: every key is transformed with the basis (Mesh.transform leaves keys behind unless asked),
+    so a key's offset from the basis is the same vector turned, never a key stranded in the raw frame."""
+    r = run_script(PRE + '''
+import math
+from mixar.modules.lampway_tools.features import normalize as N
+bm = bmesh.new(); bmesh.ops.create_cube(bm, size=0.2)
+me = bpy.data.meshes.new("head"); bm.to_mesh(me); bm.free()
+ob = bpy.data.objects.new("head", me); bpy.context.scene.collection.objects.link(ob)
+ob.location = (1.0, 2.0, 3.0)
+ob.shape_key_add(name="Basis"); k = ob.shape_key_add(name="jawOpen")
+for v in k.data: v.co.x += 0.05                                                   # the key moves every vertex 5 cm along raw +X
+N.normalize_object(ob, turn_deg=-90, generator="captain_authored")
+kb = ob.data.shape_keys.key_blocks
+d = [(a.co - b.co)[:] for a, b in zip(kb["jawOpen"].data, kb["Basis"].data)]
+dv = [(a.co - b.co).length for a, b in zip(kb["Basis"].data, ob.data.vertices)]
+res({"delta": d[0], "basis_vs_mesh": max(dv)})
+''', timeout=180)
+    assert r.rc == 0, r.out[-1500:]
+    d = r.results[-1]
+    assert d["basis_vs_mesh"] < 1e-6, d                                    # the basis key is where the mesh is
+    assert abs(d["delta"][1] + 0.05) < 1e-6 and abs(d["delta"][0]) < 1e-6, d   # raw +X turned -90 deg about Z is -Y
+
+
+def test_the_object_reads_its_new_dimensions_at_once():
+    """Normalization leaves the scene evaluated: a tool reading ob.dimensions right after it sees the applied transform (it read the
+    raw mesh's local size - a 2x-scaled 0.3 m box measured 0.3, so scale_to_measure scaled it to 0.64 m for a 0.32 m target)."""
+    r = run_script(PRE + '''
+from mixar.modules.lampway_tools.features import normalize as N
+bm = bmesh.new(); bmesh.ops.create_cube(bm, size=0.3)
+me = bpy.data.meshes.new("helm"); bm.to_mesh(me); bm.free()
+ob = bpy.data.objects.new("helm", me); bpy.context.scene.collection.objects.link(ob)
+ob.scale = (2.0, 2.0, 2.0); bpy.context.view_layer.update()
+N.normalize_object(ob, turn_deg=0, generator="lampway_tool", pivot="source_origin")
+res({"dims": list(ob.dimensions), "scale": list(ob.scale)})
+''', timeout=180)
+    assert r.rc == 0, r.out[-1500:]
+    d = r.results[-1]
+    assert d["scale"] == [1.0, 1.0, 1.0] and max(abs(x - 0.6) for x in d["dims"]) < 1e-6, d

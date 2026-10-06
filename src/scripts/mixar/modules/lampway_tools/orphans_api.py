@@ -16,6 +16,8 @@ REAL = ("real",)
 GEO = ("mesh", "part", "rigged_mesh")
 _TEX = "pre-door lane merged: texture input awaits the texture normalizer"
 _LIST = "pre-door lane merged: a list of objects awaits the list form of the door"
+_GEOM, _MESH_PART = GEO, ("mesh", "part")      # the canon lane's names for the same kinds
+_ANY = ALL
 
 __all__ = []
 
@@ -67,7 +69,7 @@ def uv_check(object, action="measure", target_density_px_m=None, texture_size=20
 
 
 @_export
-@tool(consumes=LEGACY(_LIST))
+@tool(consumes={"objects": Need(kind=_GEOM, scale=_ANY)})
 def render_condition_passes(objects, camera="auto", passes=None, size=1024, out_dir="condition", engine="workbench"):
     """The conditioning images from ONE camera: flat id colour per object (with its palette), depth (nearer brighter), edges and clay; light engines only."""
     from .features import condition_passes as _CP
@@ -121,7 +123,7 @@ def mesh_local_edit(object, region, engine="deform", op="move", delta=None, fall
 
 
 @_export
-@tool(consumes={"before": Need(kind=("mesh", "part"), scale=REAL), "after": Need(kind=("mesh", "part"), scale=REAL)})
+@tool(consumes=LEGACY("its after is another tool's output, and outputs are not re-stamped yet (produces=Inherit is not built): a Need would refuse every real use"))
 def edit_locality_check(before, after, region=None, margin_m=0.005, tolerance_m=0.0005):
     """What a region edit changed OUTSIDE its region: moved vertices, faces, open edges, UVs, materials, dimensions, weights; read-only."""
     from .features import local_edit as _LE
@@ -129,7 +131,7 @@ def edit_locality_check(before, after, region=None, margin_m=0.005, tolerance_m=
 
 
 @_export
-@tool(consumes=LEGACY(_LIST))
+@tool(consumes={"objects": Need(kind=_MESH_PART, scale=("real",), welded=True)})
 def mesh_join_boolean(op, objects, voxel_m="coarse_first", clearance_mm=None, connector=None, name=""):
     """Fuse (join + voxel remesh), union, difference with clearance, or plug/socket connectors with a measured gap; on copies, originals kept."""
     from .features import join_boolean as _JB
@@ -137,7 +139,7 @@ def mesh_join_boolean(op, objects, voxel_m="coarse_first", clearance_mm=None, co
 
 
 @_export
-@tool(consumes=LEGACY(_LIST))
+@tool(consumes={"pieces": Need(kind=_MESH_PART, scale=("real",))})
 def multi_piece_material(action, pieces=None, atlas_res=4096, individual_res=None, density_floor_ratio=0.7, proxy="", atlas="", out_dir="mpm", res=None, keep_proxy=False,
                          name=""):
     """One material across pieces: merge copies into a proxy with a shared atlas, texture it once, transfer the atlas back to each piece's original UVs."""
@@ -148,7 +150,7 @@ def multi_piece_material(action, pieces=None, atlas_res=4096, individual_res=Non
 
 
 @_export
-@tool(consumes=LEGACY(_TEX))
+@tool(consumes=LEGACY("image FILE paths: the door resolves datablocks and canon sidecars, not project-relative paths, and normalize_texture stamps the datablock only"))
 def seamless_tile(src="", out="", mode="grain", size=1024, flatten=False, cell_px=None, prompt="", live=False):
     """A seamless tile BUILT by rules (motif crop, quilt, cross-fade, or an exact motif cell) from a sheet, never repainted by a model, and gated; prompt makes the
     sheet through the image slot (purpose tile) first, a dry run unless live."""
@@ -185,7 +187,7 @@ def seamless_tile(src="", out="", mode="grain", size=1024, flatten=False, cell_p
 
 
 @_export
-@tool(consumes=LEGACY(_TEX))
+@tool(consumes=LEGACY("directories of image files: the door checks one asset (or a list of them) per argument"))
 def relief_tiles(stage, v3_dir="", tile_dir="", out_dir="", views=None, fine=3072):
     """Multi-scale relief: make = tile each plate view so the relief generator sees ornament at full scale; stitch = the tile reliefs' fine band per view."""
     from .pipeline import relief_tiles as _RT
@@ -200,7 +202,7 @@ def relief_tiles(stage, v3_dir="", tile_dir="", out_dir="", views=None, fine=307
 
 
 @_export
-@tool(consumes=LEGACY(_TEX))
+@tool(consumes=LEGACY("image FILE paths: the door resolves datablocks and canon sidecars, not project-relative paths, and normalize_texture stamps the datablock only"))
 def image_upscale(image, target=4096, method="lanczos", live=False, prompt="", suffix=""):
     """Raise a plate to 2048..4096 px without changing it: lanczos (exact baseline), model (gated for faithfulness, a dry run until live) or tripo (a plan)."""
     from .pipeline import upscale as _UP
@@ -220,7 +222,7 @@ def _record_ledger(row):
 
 
 @_export
-@tool(consumes=LEGACY(_TEX))
+@tool(consumes=LEGACY("image FILE paths: the door resolves datablocks and canon sidecars, not project-relative paths, and normalize_texture stamps the datablock only"))
 def reference_pack(stage, asset, approved_reference, components=None, pose="T", views=None, left_description="", right_description="", model_purpose="plates",
                    count=4, live=False, image="", sheet_views=None):
     """The four-stage reference method, gated: sheet (left and right named) -> audit against the approved source -> extract parts -> only the missing views."""
@@ -274,7 +276,7 @@ def scribble_read(include_image=False, include_sent=True):
 
 
 @_export
-@tool(consumes=LEGACY(_TEX))
+@tool(consumes=LEGACY("image FILE paths: the door resolves datablocks and canon sidecars, not project-relative paths, and normalize_texture stamps the datablock only"))
 def image_matte(action, src, out, background="magenta", key="border", opaque=None, clear=None, despill=True, split=None, recipe="", canvas_size=None,
                 verify_out=""):
     """Deterministic chroma matting of generated plates: remove (key to transparent RGBA, the key read from each image's border ring; sheet split
@@ -301,7 +303,7 @@ def _render_prompt(template, variables=None, model=""):
 
 
 @_export
-@tool(consumes=LEGACY(_TEX))
+@tool(consumes=LEGACY("image FILE paths: the door resolves datablocks and canon sidecars, not project-relative paths, and normalize_texture stamps the datablock only"))
 def prompt_image(template, variables=None, references=None, out_dir="prompt_images", count=1, live=False, model="", piece=""):
     """One image from a built-in or user prompt template: the server renders it, the references are sent in the template's own input order (references
     {role: path or [paths]}, e.g. character_body = Image A, design_plate = Image B). Dry run unless live (one generation = one spend: only on the user's word;

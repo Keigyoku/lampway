@@ -104,6 +104,24 @@ def test_every_tool_declares_what_it_consumes():
     assert not bare, "tools without consumes= (declare Need(...), NONE('why') or, during migration, LEGACY('issue')):\n" + "\n".join(bare)
 
 
+def _call_form_tools(tree):
+    """(line, text) of every registration by CALLING tool (``tool(fn)``, ``api.tool(getattr(...))``) without consumes=: a call-form
+    registration is a tool all the same (api.py wraps api_wave6's functions that way), and a decorator-only scan never sees it."""
+    out = []
+    for n in ast.walk(tree):
+        name = _dotted(n.func) if isinstance(n, ast.Call) else None
+        if name and (name == "tool" or name.endswith("api.tool")) and n.args and not any(k.arg == "consumes" for k in n.keywords):
+            out.append((n.lineno, ast.unparse(n)[:80]))
+    return out
+
+
+def test_a_call_form_registration_declares_too():
+    assert _call_form_tools(ast.parse("x = tool(fn)\ny = api.tool(getattr(m, 'f'))\nz = tool(consumes=NONE('reads nothing'))(fn)\nw = PL.tool(1)\n")) == \
+        [(1, "tool(fn)"), (2, "api.tool(getattr(m, 'f'))")]
+    bare = [f"{p.relative_to(ROOT)}:{line} {text}" for p in sorted(LT.rglob("*.py")) for line, text in _call_form_tools(ast.parse(p.read_text(encoding="utf-8")))]
+    assert not bare, "tools registered by a call without consumes= (pass consumes= to tool(...)):\n" + "\n".join(bare)
+
+
 def _in_blender(body):
     import sys as _s
     _s.path.insert(0, str(Path(__file__).parent))
@@ -187,23 +205,14 @@ def test_a_recorded_rebaseline_is_accepted_only_in_the_merge_commit_it_names():
 
 
 def test_the_legacy_ratchet_matches_the_code_and_only_falls():
-    want = int(RATCHET.read_text().split()[0])
-    assert _legacy_calls() == want, f"LEGACY( calls: {_legacy_calls()}, the ratchet file says {want}: lower the file when you migrate a tool (never raise it)"
-    rel = str(RATCHET.relative_to(ROOT))
-    log = subprocess.run(["git", "log", "--format=%H %P", "--", rel], cwd=ROOT, capture_output=True, text=True).stdout.splitlines()
-    history = []
-    for line in reversed(log):
-        sha, *parents = line.split()
-        show = subprocess.run(["git", "show", f"{sha}:{rel}"], cwd=ROOT, capture_output=True, text=True)
-        if show.returncode == 0 and show.stdout.strip():
-            history.append((sha, parents, show.stdout))
+    import sys as _s
+    _s.path.insert(0, str(Path(__file__).parent))
+    from canon_ratchet import violations
     text = RATCHET.read_text()
-    if not history or text != history[-1][2]:                       # the working tree: mid-merge, its parents are HEAD and MERGE_HEAD
-        heads = [subprocess.run(["git", "rev-parse", "--verify", "-q", h], cwd=ROOT, capture_output=True, text=True).stdout.strip()
-                 for h in ("HEAD", "MERGE_HEAD")]
-        history.append(("working-tree", [h for h in heads if h], text))
-    problems = _ratchet_problems(history)
-    assert not problems, "the ratchet rose in its history:\n" + "\n".join(problems)
+    want = int(text.split()[0])
+    assert _legacy_calls() == want, f"LEGACY( calls: {_legacy_calls()}, the ratchet file says {want}: lower the file when you migrate a tool (never raise it)"
+    bad = violations(ROOT, str(RATCHET.relative_to(ROOT)), worktree_text=text)
+    assert not bad, "\n".join(bad)
 
 
 def test_the_door_refuses_raw_unstamped_and_changed_assets_and_opens_for_a_canonical_one():
@@ -225,7 +234,7 @@ out = {"raw": probe(object="raw"), "plain": probe(object="plain"), "good": probe
 good.data.vertices[0].co.x += 0.1; good.data.update()
 out["changed"] = probe(object="good")
 print("RESULT", json.dumps(out))
-""".replace("EXAMPLES", repr(str(Path(__file__).parent / "canon_goldens/normalization/canonical-asset.examples.json"))))
+""".replace("EXAMPLES", repr(str(Path(__file__).resolve().parents[2] / "docs/canon/normalization/canonical-asset.examples.json"))))
     assert d["good"] == {"ok": True, "ran": "good"}, d["good"]
     for k, word in (("raw", "RAW"), ("plain", "no canonical stamp"), ("changed", "changed since it was normalized")):
         assert d[k]["ok"] is False and d[k]["error"].startswith("normalize first") and word in d[k]["error"], (k, d[k])
@@ -250,3 +259,196 @@ print("RESULT", json.dumps({"rows": rows, "legacy": sum(1 for c, _p in api.TOOL_
 """)
     assert all(r["refused"] for r in d["rows"]), [r for r in d["rows"] if not r["refused"]]
     assert d["rows"] or d["legacy"] > 0, "no door names a kind and none is LEGACY: the check would be empty for no reason"
+
+
+# ------------------------------------------------------------------ the ratchet's recorded rebaseline (coordinator ruling A)
+def _repo(tmp_path):
+    import os
+    r = tmp_path / "repo"
+    r.mkdir()
+    env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@users.noreply.github.com", GIT_COMMITTER_NAME="t",
+               GIT_COMMITTER_EMAIL="t@users.noreply.github.com", GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_SYSTEM="/dev/null")
+
+    def git(*a):
+        out = subprocess.run(["git", *a], cwd=r, capture_output=True, text=True, env=env)
+        assert out.returncode == 0, out.stderr
+        return out.stdout.strip()
+
+    def commit(text, msg):
+        (r / "count.txt").write_text(text)
+        git("add", "count.txt")
+        git("commit", "-q", "-m", msg)
+        return git("rev-parse", "HEAD")
+    git("init", "-q", "-b", "main")
+    return r, git, commit
+
+
+import sys as _sys  # noqa: E402
+_sys.path.insert(0, str(Path(__file__).parent))
+
+
+def test_ratchet_a_plain_commit_that_raises_the_count_is_refused(tmp_path):
+    from canon_ratchet import violations
+    r, git, commit = _repo(tmp_path)
+    commit("110\n", "baseline")
+    commit("108\n", "two tools migrated")
+    commit("140\n", "raised in a plain commit")
+    assert any("108 -> 140" in v for v in violations(r, "count.txt")), violations(r, "count.txt")
+
+
+def test_ratchet_a_plain_commit_cannot_borrow_a_rebaseline_record(tmp_path):
+    from canon_ratchet import violations
+    r, git, commit = _repo(tmp_path)
+    commit("110\n", "baseline")
+    side = commit("110\n# side\n", "x")
+    commit(f"140\nrebaseline 140 merged={side} reason=a plain commit pretending to merge\n", "raised")
+    assert violations(r, "count.txt")
+
+
+def _merge(r, git, count, record):
+    base = git("rev-parse", "HEAD")
+    git("checkout", "-q", "-b", "orphans", base + "~0")
+    (r / "tool.py").write_text("LEGACY\n" * 30)
+    git("add", "tool.py")
+    git("commit", "-q", "-m", "pre-door tools")
+    tip = git("rev-parse", "HEAD")
+    git("checkout", "-q", "main")
+    git("merge", "-q", "--no-ff", "--no-commit", "orphans")
+    text = f"{count}\n" + (record.format(tip=tip) if record else "")
+    (r / "count.txt").write_text(text)
+    git("add", "count.txt")
+    git("commit", "-q", "-m", "merge orphans")
+    return tip
+
+
+def test_ratchet_a_merge_commit_that_records_the_number_the_merged_sha_and_a_reason_is_accepted(tmp_path):
+    from canon_ratchet import violations
+    r, git, commit = _repo(tmp_path)
+    commit("110\n", "baseline")
+    rec = "rebaseline 140 merged={tip} reason=lane orphans: 30 tools written before the door\n"
+    tip = _merge(r, git, 140, rec)
+    assert violations(r, "count.txt") == []
+    commit("139\n" + rec.format(tip=tip), "one tool migrated: the count falls again, the record stays")
+    assert violations(r, "count.txt") == []
+    commit("140\n" + rec.format(tip=tip), "a plain commit cannot re-use the merge's record to rise again")
+    assert len(violations(r, "count.txt")) == 1 and "rose 139 -> 140 in a plain commit" in violations(r, "count.txt")[0]
+
+
+@pytest.mark.parametrize("record", ["", "rebaseline 141 merged={tip} reason=wrong number\n", "rebaseline 140 merged=0000000 reason=not the merged sha\n",
+                                    "rebaseline 140 merged={tip} reason=\n"])
+def test_ratchet_a_merge_that_raises_without_a_whole_record_is_refused(tmp_path, record):
+    from canon_ratchet import violations
+    r, git, commit = _repo(tmp_path)
+    commit("110\n", "baseline")
+    _merge(r, git, 140, record)
+    assert violations(r, "count.txt"), record
+
+
+def test_ratchet_in_the_working_tree_a_rise_needs_a_merge_in_progress_and_its_record(tmp_path):
+    from canon_ratchet import violations
+    r, git, commit = _repo(tmp_path)
+    commit("110\n", "baseline")
+    assert violations(r, "count.txt", worktree_text="140\n")                                   # no merge in progress
+    git("checkout", "-q", "-b", "orphans")
+    (r / "tool.py").write_text("x\n")
+    git("add", "tool.py")
+    git("commit", "-q", "-m", "pre-door tools")
+    tip = git("rev-parse", "HEAD")
+    git("checkout", "-q", "main")
+    commit("109\n", "a tool migrated on main")
+    git("merge", "-q", "--no-ff", "--no-commit", "orphans")
+    assert violations(r, "count.txt", worktree_text="140\n")                                   # merging, but no record
+    assert violations(r, "count.txt", worktree_text=f"140\nrebaseline 140 merged={tip} reason=lane orphans\n") == []
+
+
+def test_the_door_checks_each_element_of_a_list_and_names_the_index_of_the_first_bad_one():
+    """coordinator ruling C: a tool taking a LIST of objects passes its door only when every element does; the refusal names the
+    index of the first element that fails, and its help normalizes that element."""
+    d = _in_blender("""
+import bmesh, copy
+from mixar.modules.lampway_tools import canon_asset as CA, canon_io
+probe = api.tool(consumes={"objects": api.Need(kind=("mesh",), scale=CA.ANY_SCALE)})(lambda objects: {"ran": list(objects)})
+ex = json.load(open(EXAMPLES))["valid"][0]["doc"]
+def cube(name, canon):
+    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1.0); me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    ob = bpy.data.objects.new(name, me); bpy.context.scene.collection.objects.link(ob)
+    if canon:
+        doc = copy.deepcopy(ex); f = canon_io.facts(ob)
+        doc["body"]["bbox_min_m"], doc["body"]["bbox_max_m"], doc["body"]["geometry_sha256"] = f["bbox_min_m"], f["bbox_max_m"], f["geometry_sha256"]
+        ob["lw_canon"] = json.dumps(doc)
+    return ob
+cube("g1", True); cube("g2", True); r = cube("rawp", False); r["lw_raw"] = json.dumps({"sha256": "0" * 64}); cube("plainp", False)
+out = {"good": probe(objects=["g1", "g2"]), "tuple": probe(objects=("g1", "rawp")), "bad": probe(objects=["g1", "g2", "rawp", "plainp"]),
+       "empty": probe(objects=[]), "one": probe(objects="plainp")}
+print("RESULT", json.dumps(out))
+""".replace("EXAMPLES", repr(str(Path(__file__).resolve().parents[2] / "docs/canon/normalization/canonical-asset.examples.json"))))
+    assert d["good"] == {"ok": True, "ran": ["g1", "g2"]} and d["empty"] == {"ok": True, "ran": []}
+    for k, i in (("tuple", 1), ("bad", 2)):
+        e = d[k]
+        assert e["ok"] is False and e["error"].startswith(f"normalize first: objects[{i}] 'rawp'") and "RAW" in e["error"], e
+        assert "plainp" not in e["error"] and e["help"][0] == "lampway_normalize_mesh input=rawp", e
+    assert d["one"]["ok"] is False and d["one"]["error"].startswith("normalize first: objects 'plainp'")
+
+
+# ------------------------------------------------------------------ lane orphans' rebaseline form, adopted (5a993b5) and hardened
+def _ratchet_problems(history):
+    """Lane orphans' pure interface: history = [(sha, [parents], text)] oldest first, parents looked up in the history itself."""
+    from canon_ratchet import ratchet_problems
+    texts = {sha: text for sha, _p, text in history}
+    return ratchet_problems(history, texts.get)
+
+
+def test_a_recorded_rebaseline_is_accepted_only_in_the_merge_commit_it_names():
+    """lane orphans' test, verbatim: the ratchet may rise ONCE per merge of a pre-door lane, recorded in the file itself:
+    `rebaseline <N> merge <parent1> <parent2>: <reason>`; a rise anywhere else (an ordinary commit, or a merge the line does not
+    name) is refused."""
+    a, b, c, m = "a" * 40, "b" * 40, "c" * 40, "d" * 40
+    reb = f"120\nrebaseline 120 merge {a[:8]} {b[:8]}: pre-door lane merged: 10 texture/list tools await the texture normalizer\n"
+    ok = [(a, [c], "110\n"), (m, [a, b], reb)]
+    assert _ratchet_problems(ok) == []
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a], reb)]), "a rise in an ordinary (single-parent) commit is refused"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, c], reb)]), "a rebaseline naming other parents is refused"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], "120\n")]), "a rise without its recorded line is refused"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], reb.split(": ")[0] + ":\n")]), "a rebaseline needs its reason"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], reb), (c, [m], reb.replace("120", "125"))]), "the next rise is refused again"
+    assert _ratchet_problems([(a, [c], "110\n"), (m, [a, b], reb), (c, [m], "118\n")]) == [], "falling is always fine"
+
+
+def test_ratchet_orphans_form_on_a_real_merge_and_a_merge_bringing_an_already_recorded_rise(tmp_path):
+    """the form lane orphans wrote, on a real repository; then lp/canon merging a lane whose rise was recorded THERE: compared with
+    the highest parent it is not a rise, so no second record is owed; a merge that adds rises of its own owes one."""
+    from canon_ratchet import violations
+    r, git, commit = _repo(tmp_path)
+    commit("110\n", "baseline")
+    git("checkout", "-q", "-b", "orphans")
+    (r / "t.py").write_text("x\n")
+    git("add", "t.py")
+    git("commit", "-q", "-m", "pre-door tools")
+    git("checkout", "-q", "main")
+    (r / "u.py").write_text("y\n")
+    git("add", "u.py")
+    git("commit", "-q", "-m", "main moves on")
+    git("checkout", "-q", "orphans")
+    git("merge", "-q", "--no-ff", "--no-commit", "main")
+    p1, p2 = git("rev-parse", "HEAD"), git("rev-parse", "MERGE_HEAD")
+    commit(f"120\nrebaseline 120 merge {p1[:8]} {p2[:8]}: pre-door lane merged: 10 tools await the texture normalizer\n", "merge main")
+    assert violations(r, "count.txt") == []
+    git("checkout", "-q", "main")
+    commit("109\n", "a tool migrated on main")
+    git("merge", "-q", "--no-ff", "--no-commit", "-X", "theirs", "orphans")                # count.txt conflicts; written below
+    (r / "count.txt").write_text(git("show", "orphans:count.txt") + "\n")
+    git("add", "count.txt")
+    git("commit", "-q", "-m", "merge orphans: its recorded 120 comes along")
+    assert violations(r, "count.txt") == []
+    commit("121\n" + git("show", "HEAD:count.txt").split("\n", 1)[1], "merge-less rise re-using orphans' record")
+    assert violations(r, "count.txt"), "a plain commit cannot rise on another merge's record"
+
+
+def test_ratchet_the_file_re_created_at_a_higher_count_is_refused(tmp_path):
+    from canon_ratchet import violations
+    r, git, commit = _repo(tmp_path)
+    commit("110\n", "baseline")
+    git("rm", "-q", "count.txt")
+    git("commit", "-q", "-m", "drop it")
+    commit("150\n", "bring it back higher")
+    assert any("re-creat" in v for v in violations(r, "count.txt")), violations(r, "count.txt")

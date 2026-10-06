@@ -229,7 +229,8 @@ DEFS = [
         P("engine", desc="algorithmic (default) | studio:tripo"), P("symmetry", "boolean"),
         P("adaptivity", "number", "autoremesher: 0..1"), P("anisotropy", "number", "autoremesher: 0..1"), P("sharp_edge", "number", "autoremesher: 30..180 degrees"),
         P("smooth_normal", "number", "autoremesher: 0..180 degrees"), P("edge_scaling", "number", "autoremesher: 1..4"), P("timeout", "integer", "autoremesher: 10..3600 s"),
-        P("fallback", "boolean", "autoremesher: use the voxel remesh when the engine fails"), P("hard_surface", "boolean", "autoremesher: hard-surface model type")], api="retopo"),
+        P("fallback", "boolean", "quadriflow / autoremesher: use the voxel remesh when the engine fails or leaves the mesh unchanged (else refused)"), P("hard_surface", "boolean", "autoremesher: hard-surface model type"),
+        P("preserve_sharp", "boolean", "quadriflow: keep sharp (hard-surface) edges, default true")], api="retopo"),
     Def("lampway_uv_unwrap", "UV unwrap: a NEW mesh `<object>_uv` with a packed layout (method smart | angle | conformal; seams at edges "
         "sharper than angle_limit) and a measured report (islands, coverage, overlap by rasterising, texel-density spread, the "
         "density achieved at texture_size). The original keeps its UVs; inspect the checker before texturing. engine=studio:tripo "
@@ -357,12 +358,12 @@ DEFS = [
          P("name", desc="the copy's name"), P("source", desc="write_params: fit (default) | live"), P("metal_zero_on", "array", "classes with metallic forced to 0"),
          P("statistic", desc="median (default) | mean"), P("space", desc="srgb (default) | linear"), P("min_texels", "integer", "default 1000")], api="palette_fit"),
     Def("lampway_bake_maps", "Bake a high-poly donor (`source`: a name or a list) into a UV-mapped low-poly `target`: normal (tangent), albedo (Cycles COLOR pass only: no lighting, by construction) and ao, "
-        "in a niced HEADLESS Cycles worker, never the live scene. size a power of two 32..8192 (default 2048), margin_px default size/128 (>= 2), cage_extrusion_m 0..0.2 or auto, max_ray_m, samples 1..512. "
+        "in a niced HEADLESS Cycles worker, never the live scene. size a power of two 32..8192 (default 2048), margin_px default size/128 (>= 2), cage_extrusion_m 0..0.2 or auto (measured from the pair: the high-poly's height above the target; the ray reaches the cage plus its depth below), max_ray_m, samples 1..512; normals 16-bit, one GL bake, DX by flipping its green. "
         "Refused before running, each with its fix: no UV (unwrap first), overlapping UVs, unapplied non-uniform scale, source == target, a pair not aligned (bbox centres > 2 % of the diagonal), an "
         "unsupported map (curvature, cavity, dust, bevel, position are not Cycles bake types), an existing map without overwrite. Returns the PNG paths, the black-texel fraction per map with a "
         "cage-too-small hint, the colour spaces, and (attach) a <target>_baked material wired with the maps.",
         [P("source", required=True, desc="donor object name, or a list"), P("target", required=True, desc="the UV-mapped low-poly object"), P("maps", "array", "normal | albedo | ao (default normal, albedo)"),
-         P("size", "integer", "power of two, default 2048"), P("margin_px", "integer", "0..64"), P("cage_extrusion_m", desc="0..0.2 or auto"), P("max_ray_m", "number", "default half the extrusion"),
+         P("size", "integer", "power of two, default 2048"), P("margin_px", "integer", "0..64"), P("cage_extrusion_m", desc="0..0.2 or auto (measured, default)"), P("max_ray_m", "number", "auto: measured; with an explicit cage, twice it"),
          P("samples", "integer", "1..512, default 16"), P("normal_green", desc="gl (default) | dx"), P("allow_overlap", "boolean", "bake despite overlapping UVs"),
          P("out_dir", desc="under the project root, default bake"), P("overwrite", "boolean", "replace existing maps"), P("attach", "boolean", "add the baked material, default true")], api="bake_maps"),
     Def("lampway_pbr_pack", "Engine-ready PBR maps. pack: maps {base, normal, rough, metal, ao|null} -> BaseColor (sRGB), ORM (R occlusion, 1 when no AO, G roughness, B metallic: Unreal order, linear), "
@@ -379,8 +380,13 @@ DEFS = [
         [P("piece", required=True, desc="Helmet1 | Chest1 | Waist1 | Gauntlets1 | Boots1"), P("mode", desc="plan (default) | start | record"), P("from_step", "integer", "1..15"), P("to_step", "integer", "1..15"),
          P("paired", "boolean", "front and back views only (default true for Gauntlets1, Boots1)"), P("topology", desc="Quad | Triangle"), P("v3_dir", desc="the V3 plates folder"),
          P("record_step", "integer", "record: which step"), P("artefacts", "array", "record: files produced"), P("mesh_hash", desc="record: the mesh+UV hash at that step"), P("note")], api="armor_piece_pipeline"),
-    Def("lampway_fit_pose", "The closest pose of the body to a piece. chest: routed to pose_clearance. helmet | waist | boots | gauntlets: needs_decision - the bones, axes and ranges to sweep are the user's to rule; "
-        "the contract's proposals are included, marked unverified.", [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets")], api="fit_pose"),
+    Def("lampway_fit_pose", "The closest pose of the body to a piece (canon 08). With dofs (bone, axis in the joint grammar, range <= 90 deg, step; the first with an expect for the "
+        "sign check) and the scene's piece, skinned body and armature: a deterministic sweep, rays from each skin sample's bone axis to the piece, regions by bone; answers the pose in "
+        "the replayable grammar with the A-pose and posed numbers and writes pose.json. Without dofs: chest is routed to pose_clearance; helmet | waist | boots | gauntlets: "
+        "needs_decision - the bones, axes and ranges to sweep are the user's to rule; the contract's proposals are included, marked unverified.",
+        [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets"), P("piece", desc="the placed piece"), P("body", desc="the skinned body"),
+         P("armature", desc="the body's armature"), P("dofs", desc="[{bone, axis, range, step, expect, mirror}] or 'chest' (the canon's chest table)"), P("chain", "array", "[{bone, axis, range, step}] after the grid"),
+         P("regions", "object", "{name: {bones, threshold_m}}"), P("out", desc="pose.json path under the project root")], api="fit_pose"),
     Def("lampway_weight_audit", "Read-only audit of a skinned mesh's weights, or a plan for how to bind it. audit: unweighted vertices, vertices over the influence cap, sums not 1, per-bone counts and mean weight, a "
         "rigid check (intended {rigid_bone}: vertices with any other influence), a side check (a *_l group on a right-side mesh), and competing-bone hotspots (two bones each >= 20 %). plan: rigid (>= 90 % of the "
         "vertices nearest one bone) or deforming (it spans bones that rotate against each other), with the bone(s) and the reason. An unbound object is told to bind first. Nothing is changed.",
@@ -389,6 +395,31 @@ DEFS = [
     Def("lampway_weight_cleanup", "Fix weights on a COPY named <object>_wclean. ops in order: {op: normalize}, {op: limit, max_influences}, {op: remove_influence, bone, region: {bbox} | {vertex_group}} (refused over "
         "40 % of the vertices: that is a rebind; never leaves a vertex unweighted), {op: smooth, iterations, factor, region}, {op: rigid, bone, region}. Returns the ops applied and the audit of the result.",
         [P("object", required=True), P("armature", required=True), P("ops", "array", "the ops", required=True), P("mirror_from", desc="not built")], api="weight_cleanup"),
+    Def("lampway_joints_from_views", "Joints of a humanoid from orthographic views (canon 11): 2D keypoints made in known cameras are triangulated (exact for orthographic "
+        "views; a view missing by more than max_px dropped; an ambiguous outlier refused), moved by a calibration measured on a body with known joints in the SAME cameras (a rig "
+        "run needs it; known= writes one), and centred in the canonical mesh's limb cross-section. One view per joint, a calibration from another framing, or a 2D detector "
+        "(a model slot pending the captain's decision) are refused. Writes {joints: {name: {pos_m, views_used, residual_px, calibrated, centred, centred_cm}}}.",
+        [P("mesh", desc="the canonical example mesh (for centring)"), P("cameras", desc="project path {cameras: [{name, res, ortho, center, right, up, look}]}"),
+         P("keypoints", desc="project path {keypoints_px: {joint: {view: [x, y, confidence?]}}}"), P("calibration", desc="calibration json from a known body in the same cameras"),
+         P("known", desc="project path {joints_m}: calibrate instead, writing out"), P("detector", desc="keypoints_json (default) | rtmw_wholebody | rtmpose_hand (not installed)"),
+         P("rig", "boolean", "default true: needs a calibration"), P("max_px", "number", "default 4"), P("centre", "boolean", "default true"),
+         P("hidden", "array", "joints read off cloth: left out"), P("out", desc="default joints.json")], api="joints_from_views"),
+    Def("lampway_normalize_rigged", "An armature and the meshes skinned to it into a canonical skeleton and canonical rigged meshes (canon: specs/canon/normalization): "
+        "rig_inspect (convention, roster, units) then rig_normalize (unit and object scale, drift-checked), then the documents - bones with along = head -> the next joint "
+        "(never the imported tail) and their frames; stamped lw_canon. Refused: a mixed convention, an incomplete roster (the missing bones named), units no known factor "
+        "explains, a turn (the rig must face -Y). dry_run (default true) changes nothing and answers the plan.",
+        [P("armature", required=True, desc="the armature object"), P("meshes", "array", "default: every mesh skinned to it"),
+         P("profile", desc="ue5_body (default) | ue5_body_fingers | metahuman"), P("turn_deg", "number", "0 only (turning a rig is not built)"),
+         P("dry_run", "boolean", "default true")], api="normalize_rigged"),
+    Def("lampway_normalize_texture", "An image (a scene image, or a file under the project root, loaded raw) into a CANONICAL texture (canon: specs/canon/normalization): its role "
+        "declared or from the declared source's naming (ambientcg | polyhaven | lampway; otherwise role=auto refuses), the colour space bound to the role and set on the image "
+        "(sRGB basecolor/emission/reference, Linear Rec.709 hdri, Non-Color every data map), a normal map's GL/DX convention from the naming or declared (never assumed), "
+        "ORM packed r=ao g=roughness b=metallic, size, bit depth, channels and the file's sha256 recorded; stamped lw_canon with a receipt. Tools that read images refuse a raw one "
+        "with 'normalize first'.",
+        [P("input", required=True, desc="image name or project path"), P("role", desc="auto (default: from source_naming) | basecolor | normal | roughness | metallic | ao | orm | height | "
+         "displacement | emission | opacity | mask | material_id | curvature | hdri | reference"), P("normal_convention", desc="auto (default: from the naming) | gl | dx"),
+         P("tiling_real_world_m", "array", "a tileable's physical size [w, h] in metres"), P("source_naming", desc="ambientcg | polyhaven | lampway | tripo | none (default)")],
+        api="normalize_texture"),
     Def("lampway_normalize_mesh", "A raw mesh (a scene object, or a file under the project root, imported raw) into a CANONICAL mesh (canon: specs/canon/normalization): metres, +Z up, "
         "front -Y, transform applied, the scale state recorded (Tripo / Hi3D generator_normalised; real only with evidence), a generated mesh welded by position (1e-5 m, refused above 5 % merged), "
         "lw_source_face, pivot at the bounding box's bottom centre; stamped lw_canon with a receipt. The facing is DECLARED by turn_deg (-90 for a +X-facing import) or a recipe; never guessed "

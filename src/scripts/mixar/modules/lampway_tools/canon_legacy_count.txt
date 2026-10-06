@@ -1,4 +1,6 @@
-155
+145
+rebaseline 113 merged=0ad57ab97b573238f402f852737ef8df54baef3b reason=lp/wave5 brought three tools written before the door (api asset_place and asset_catalog_export, runner asset_catalog_export from the vault lanes): declared LEGACY at this merge
+rebaseline 164 merge 1b99ba3d 704eba50: lp/wave5 at 704eba5 brought 63 tools written before the door: 51 LEGACY each with its reason (21 orphans api tools, 21 wave6 tools in api_wave6.CONSUMES, 4 UE tools, 5 runner rows) and 12 NONE; the mesh-object ones are converted to Needs in the commits after this merge
 rebaseline 120 merge f5713e18 e16b9a3b: pre-door lane merged: 10 texture/list tools await the texture normalizer and the list door (lp/orphans merging lp/canon)
 rebaseline 123 merge ec0529b4 0ad57ab9: pre-door lane merged: lp/wave5's Asset Vault tools (asset_place, asset_catalog_export x2 registrations) await their owner's Need/NONE (lp/orphans merging lp/wave5)
 rebaseline 155 merge 7a79ecff 704eba50: pre-door lane merged: lp/wave5's UE look tools (ue_material, ue_look, ue_export, ue_parity) and its 28 wave 6 tools (one LEGACY each, in api._W6_DOORS) await their owners' Need/NONE (lp/orphans merging lp/wave5, second)

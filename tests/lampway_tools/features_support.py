@@ -51,18 +51,22 @@ def humanoid(name="body"):
 def call(fn, **kw):
     return api.call(fn, json.dumps(kw))
 
-def canon(*names, welded=False, scale="real"):
-    """Stamp test fixtures canonical through canon's own normalizer (the door refuses a raw object): metres, +Z up, front -Y, the transform
-    applied, the origin kept (pivot source_origin, so world positions do not move), real scale on a declared length (or scale=any), and
-    a weld by position when the tool's door asks for welded input. Call it after the fixture is built and before the tool: any later edit
-    to the mesh changes its hash and the door refuses it again."""
-    from mixar.modules.lampway_tools.features import normalize as _NZ
+def canon(*names, real=None, welded=False, scale="real"):
+    """Normalize test fixtures through the canonical door's normalizer (features.normalize, pivot kept at the scene origin, so world
+    positions do not move): real scale with a declared length (the fixture's authored size; scale="any" or real=False keeps it unknown),
+    welded by position (as a generated mesh is) only when asked: welded=True for a door that requires it. Call it after the fixture is built and
+    before the tool: a later edit changes the mesh's hash and the door refuses it again. Missing, non-mesh and skinned names are left as
+    they are (the door answers for them). Both lanes' call forms: canon(n), canon(n, welded=True), canon(n, scale="any"), canon(n, real=False)."""
+    from mixar.modules.lampway_tools.features import normalize as _N
+    real = (scale == "real") if real is None else real
     for n in names:
-        _NZ.normalize_object(bpy.data.objects[n], turn_deg=0.0, generator="trellis" if welded else "lampway_tool",
-                             want_scale="real" if scale == "real" else "any",
-                             scale_evidence={"method": "captain_length", "value": 1.0} if scale == "real" else None,
-                             pivot="source_origin", pivot_offset=(0.0, 0.0, 0.0))
-    return names
+        ob = bpy.data.objects.get(n) if isinstance(n, str) else None
+        if ob is None or ob.type != "MESH" or any(m.type == "ARMATURE" for m in ob.modifiers):
+            continue
+        _N.normalize_object(ob, turn_deg=0, generator="tripo_api" if welded else "lampway_tool", pivot="source_origin",
+                            want_scale="real" if real else "any",
+                            scale_evidence={"method": "captain_length", "value": 1.0, "reference": "a test fixture at its authored size"} if real else None)
+    return bpy.data.objects.get(names[0]) if names and isinstance(names[0], str) else None
 '''
 
 

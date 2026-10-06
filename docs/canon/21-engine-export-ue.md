@@ -26,6 +26,18 @@ meshes and actions. Output: an FBX, and a read-back receipt comparing every bone
    and the leader-driven rest of the test rivet. Two failures on the way, both now refusals of the gate: `primary_bone_axis='Y'`
    matched joint POSITIONS to 1e-4 cm while frames rotated up to 90 deg (gear moved up to 28.8 cm); primary Z / secondary X with
    default scaling left scale 100 on every bone.
+   **Which axis pair is a property of the rig's Blender-side convention, not of the engine (golden R08, 2026-10-06).** The FBX
+   writer turns each bone into a node frame `N = R_bone @ M(primary, secondary)` (the node's primary axis is the bone's +Y, its
+   secondary the bone's +X); a pair carries a convention exactly when `M` equals that convention's engine frame (canon 17 B.2:
+   `ue_axes` bones are the engine frames; a `blender` bone's engine frame is `R_bone @ T`, X <- Y, Y <- -X, Z <- Z). Solved: the
+   `blender` convention needs **primary X / secondary -Y**, `ue_axes` needs **primary Y / secondary X**. Primary Z / secondary X
+   carries neither: it is 120 deg off a `blender` rig and 90 deg off a `ue_axes` rig (exactly lane orphans' read-back measurement,
+   2026-10-06), and it is the pair a rig needs that entered Blender from an engine FBX imported with Z / X - a ROUND TRIP, which is
+   how Titan's MetaHuman body was measured. Blender's real FBX writer was driven through all three pairs and wrote `R_bone @ M`
+   for every bone (Lampway `tests/lampway_tools/test_canon_r08_export_axes.py`; the transposed map is 180 deg off, so the direction
+   is pinned). Lampway's default recipe `titan_cm_native` (Z / X) is therefore refused by the read-back on any canon-17 rig, and it
+   STAYS the default, refusing, until the engine side is confirmed (ue_parity MEASUREMENT_PLAN `M-RIG-01`: the R08 recipes on the
+   native body in Unreal 5.8). Use the convention's own recipe and let the read-back decide.
 3. **Hierarchy and root follow the reference.** The native MetaHuman has a real `root` bone; its armature container imports as
    one more top bone (`NewMetaHumanCharacter_FullBody`, parent of `root`, identity, scale 1 — accepted, recorded). GRT and MB
    instead name the ARMATURE OBJECT `root` and have no `root` bone (GRT's Unreal armature: 88 bones, none named `root`, measured;
@@ -64,7 +76,8 @@ meshes and actions. Output: an FBX, and a read-back receipt comparing every bone
 | Test | Fixture | Expected | Falsifier |
 |---|---|---|---|
 | G21.1 convention gate | R02's mixed set | refused before writing | an exporter that writes it |
-| G21.2 read-back (to build, Blender headless) | a synthetic 5-bone chain in `blender` convention exported with each axis pair, re-imported with `automatic_bone_orientation=False` | the passing pair's frames equal the source to 0.01 deg | primary Y on the same chain: frames off by 90 deg while heads match |
+| G21.2 read-back (to build, Blender headless) | a synthetic 5-bone chain in `blender` convention exported with each axis pair, re-imported with `automatic_bone_orientation=False` | the passing pair's frames equal the source to 0.01 deg - **unreachable for arbitrary frames inside Blender (measured 2026-10-06): an edit bone set to an arbitrary frame reads back up to 0.112 deg off (67 of 400 random frames over 0.01 deg), with no FBX involved; the gate's 0.01 deg is a decision owed (H.3)** | primary Y on the same chain: frames off by 90 deg while heads match |
+| G21.4 axis pair (R08) | the three pairs Z/X, X/-Y, Y/X against both canon-17 engine frames | X/-Y carries `blender` (0 deg), Y/X carries `ue_axes` (0 deg); Z/X is 120 / 90 deg off | the transposed map (180 deg off the right pair) |
 | G21.3 scale (to build) | the chain exported with default scaling and with FBX_SCALE_NONE + apply_unit_scale | the second reads scale 1 | the first reads 100 |
 
 ## F. Implementation gap
@@ -87,3 +100,10 @@ worst_position_cm, worst_rotation_deg, worst_scale, over_tolerance}, sha256: {fb
 
 1. Whether Lampway exports with GRT/MB's `root`-object convention for third-party (non-MetaHuman) targets at all, or only the
    native body's hierarchy.
+2. The default export recipe once `M-RIG-01` has run in Unreal: the canon-17 convention's own pair (R08: X / -Y for `blender`,
+   Y / X for `ue_axes`) or Titan's Z / X for rigs that entered Blender from an engine FBX. Until then the default stays
+   `titan_cm_native` and refuses canon-17 rigs by its read-back.
+3. The read-back's rotation tolerance inside Blender: 0.01 deg (Titan's `bind_mismatch`, measured in UNREAL) is below what a
+   Blender edit bone holds for an arbitrary frame (max 0.112 deg, 17 % of 400 random frames over 0.01 deg, 2026-10-06, no FBX
+   involved); the cause is not identified (the errors are not clustered at the roll singularity, the bone's Y near -Z). A Blender
+   read-back may need a measured bar of its own, or a comparison against frames that went through the same storage.

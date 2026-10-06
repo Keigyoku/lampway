@@ -11,7 +11,7 @@ from pathlib import Path
 
 from features_support import run
 
-C02 = Path(__file__).parent / "canon_goldens" / "rig" / "C02_inverse_lbs"
+C02 = Path(__file__).resolve().parents[2] / "docs" / "canon" / "goldens" / "C02_inverse_lbs"
 
 TUBE = f"C02 = {str(C02)!r}\n" + '''
 w = json.loads(open(C02 + "/weights.json").read()); ex = json.loads(open(C02 + "/expected.json").read())

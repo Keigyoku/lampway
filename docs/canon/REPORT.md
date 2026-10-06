@@ -5,7 +5,7 @@ statuses are in `INDEX.md`; the build order is in `IMPLEMENTATION_PLAN.md` (§3a
 
 ## Goldens
 - **C01-C14:** 35 checks pass.
-- **R01-R07:** 22 checks pass.
+- **R01-R08:** 32 checks pass (R08 added 2026-10-06: the FBX axis pair per convention).
 - Both generators reproduce byte-identical output.
 
 ## Rig tools (MBTools, GameRigTools)
@@ -76,8 +76,11 @@ statuses are in `INDEX.md`; the build order is in `IMPLEMENTATION_PLAN.md` (§3a
 13. Welding: only for generated-armour adjacency, never for authored rigs.
 14. Silhouette comparison: at the true aspect, never cropped and stretched.
 15. Openings: before texture.
-16. Bone axes inside Blender: Blender-native per armature (Titan's export recipe passes 342 of 342 bones). A mixed
-    armature is refused.
+16. Bone axes inside Blender: Blender-native per armature. A mixed armature is refused. **Corrected 2026-10-06 (lane orphans'
+    read-back, golden R08):** "Titan's export recipe passes 342 of 342 bones" held for Titan's MetaHuman, whose Blender bones came
+    from importing the engine FBX with primary Z / secondary X - the recipe was the round trip of that import. On a canon-17 rig
+    Z / X reads back 120 deg off (`blender`) or 90 deg off (`ue_axes`); each convention's own pair is X / -Y (`blender`) and
+    Y / X (`ue_axes`). The engine-side confirmation is ue_parity `M-RIG-01`; the default recipe stays Z / X and refuses until then.
 17. Hierarchy: the reference skeleton's hierarchy, not GRT/MB's "root" object without a root bone.
 18. The Lampway working frame (right-handed, metres) vs ADR 0012's interchange frame (UE-style, cm): both, at different
     layers, mapped by an adapter. **The captain confirms.**

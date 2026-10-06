@@ -19,7 +19,7 @@ from lampway_server.library import schema as SCH
 from lampway_server.library.store import AssetLibrary, LibraryError
 
 ROOT = Path(__file__).resolve().parents[2]
-EXAMPLES = json.loads((ROOT / "tests/lampway_tools/canon_goldens/normalization/canonical-asset.examples.json").read_text())
+EXAMPLES = json.loads((ROOT / "docs/canon/normalization/canonical-asset.examples.json").read_text())
 
 
 def make(tmp_path):
@@ -129,3 +129,15 @@ def test_ingest_stores_a_glb_raw_and_its_canonical_twin_canonical_with_the_docum
         dims = db.execute("SELECT m.dim_z FROM mesh_stats m JOIN version v ON v.id = m.version_id WHERE v.asset_id=?", (can["id"],)).fetchone()[0]
         b = doc["body"]
         assert dims == pytest.approx(b["bbox_max_m"][2] - b["bbox_min_m"][2])                  # from the document, not the GLB header's 0.98
+
+
+def test_get_returns_the_versions_canon_state_and_its_document(tmp_path):
+    """asset_place reads what it places from get: the version's canon_state and, for a canonical version, its document."""
+    lib = make(tmp_path)
+    raw = lib.put(spec(ext(tmp_path, "a.glb", b"raw-bytes")))
+    doc = canon_doc()
+    lib.put(spec(ext(tmp_path, "a.canon.blend", b"canon-bytes"), canonical=doc, normalized_from={"version": raw["version"]}))
+    cur = lib.get(raw["id"])
+    assert cur["version"] == 2 and cur["canon_state"] == "canonical" and cur["canonical"] == doc
+    old = lib.get(raw["id"], 1)
+    assert old["canon_state"] == "raw" and "canonical" not in old

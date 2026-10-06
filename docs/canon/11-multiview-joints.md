@@ -35,7 +35,9 @@ keypoints with confidences. Output: per-joint 3D positions (body frame), the vie
 7. **Hidden joints:** keypoints read off a skirt or cloak are not joints (`merge(..., hidden)`).
 8. **Centre in the limb cross-section** (grt `rig_axi/centre.py`): in the plane across the bone at the joint, 16 rays out to the
    example's surface (reach 5 cm fingers, 8 cm hand/foot, 15 cm else); move to the hits' mean projected into the plane; 3
-   iterations; skip a joint whose ring is not closed (fewer than 12 of 16 hits; 10 for fingers).
+   iterations; skip a joint whose ring is not closed (fewer than 12 of 16 hits; 10 for fingers). **Measured 2026-10-06:** the
+   hits' mean HALVES an offset per pass on a circular section, so three passes leave 1/8 of it (10 mm -> 1.25 mm); the first-harmonic
+   fit of canon 09 B.4 (`canon_geom.harmonic_centre`) is exact on a circle in one pass - which rule centring keeps is H.3.
 9. **Video variant** (LT `anim_mv.py`): one split-screen clip, front (x, height) + side (forward, height); height shared
    (confidence-weighted); LEFT/RIGHT legs and arms identified from the FRONT view and propagated to the side by height, ties broken
    by constant-velocity prediction; single-view mode is the control that must FAIL leg identity.
@@ -64,7 +66,8 @@ keypoints with confidences. Output: per-joint 3D positions (body frame), the vie
 | G11.1 exact | 15 joints, 4 orthographic cameras | every joint within 1e-9 m | a perspective model applied to orthographic views |
 | G11.2 one view | front only | REFUSED (depth unfixed) | a solver that returns y = camera centre |
 | G11.3 outlier | lowerarm_l in the left view +40 px | robust: 3 views used, exact; plain least squares off by 43 mm | — |
-| G11.4 calibration (to build) | the same cameras on a body with known joints and a constant per-joint keypoint offset | offsets recovered exactly; applied to a second body the joints are exact | offsets from a different camera framing |
+| G11.3 note (2026-10-06, measured) | the same 40 px in the RIGHT view | the case is NOT identifiable: left and right are the only views fixing y, so they disagree symmetrically; the reference drops the corrupt view only by a floating-point tie (the right-view error leaves the joint 85.9 mm off with "3 views used", and re-projected points flip the choice). Lampway's tool refuses an ambiguous outlier and names both views; an identifiable one (the left view's HEIGHT, fixed by four views) is dropped exactly | a robust rule that picks either view of a tie |
+| G11.4 calibration (built in Lampway, `test_canon_item12_joints.py`) | the same cameras on a body with known joints and a constant per-joint keypoint offset (the same pixels in every view, within `max_px` across views) | offsets recovered exactly; applied to a second body the joints are exact | offsets from a different camera framing (refused) |
 | G11.5 leg identity (video) | LT `test_wave4_multiview.py` synthetic two-view walk | identity 100 %, bone directions within 5 deg (1.9 deg measured); single view fails | — |
 
 ## F. Implementation gap
@@ -93,3 +96,7 @@ Receipt: `{joints: {name: {pos_m, views_used, residual_px, centred_cm, calibrate
 2. Hand keypoints on a GLOVE: from the body's exact joints (deterministic) or from the hand model on the glove's own renders
    (the piece's implied hand)? He judged RTMPose hand keypoints on the armoured gloves "really good, maybe millimeters off"
    (memory spike-helper-armour-tooling).
+3. Joint centring: the hits' mean (B.8 as written, 1/8 of an offset left after three passes) or the first-harmonic centre (exact on a
+   circle; canon 09 B.4 already uses it for placement).
+4. G11.3's ambiguous outlier: refuse it (Lampway's tool, naming both views) or keep the reference's tie-break (the same error in the
+   other view then goes undetected, 85.9 mm off).

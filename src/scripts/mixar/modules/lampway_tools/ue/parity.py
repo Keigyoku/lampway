@@ -18,6 +18,7 @@ from pathlib import Path
 import bpy
 import numpy as np
 
+from .. import canon_io
 from . import look as LK
 from . import parity_metrics as PM
 from . import parity_scene as PS

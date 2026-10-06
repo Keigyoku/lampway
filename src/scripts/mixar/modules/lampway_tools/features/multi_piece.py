@@ -20,6 +20,7 @@ import os
 import bpy
 import numpy as np
 
+from .. import canon_io
 from . import common as C
 from . import workflows as W
 

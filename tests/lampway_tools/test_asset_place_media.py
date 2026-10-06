@@ -17,10 +17,8 @@ def test_every_importer_the_tool_names_exists_in_this_build(tmp_path):
 from mixar.modules.lampway_tools.features import asset_place as AP
 from mixar.modules.lampway_tools import canon_io
 ok = {}
-for ext in AP.IMPORT_EXTS:                                  # each placed container is read by canon_io, the one importer
-    if ext not in canon_io.IMPORTERS:
-        ok[ext] = "canon_io has no importer for it"; continue
-    mod, name = canon_io.IMPORTERS[ext]
+for ext in AP.IMPORT_EXTS:                                  # the placement imports through canon_io (flavour native)
+    mod, name = canon_io.importers("native")[ext]
     try:
         getattr(getattr(bpy.ops, mod), name).get_rna_type(); ok[ext] = True
     except Exception as e:

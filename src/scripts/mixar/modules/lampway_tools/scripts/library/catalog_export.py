@@ -7,14 +7,13 @@
 # live scene: the runner starts it niced in a fresh -b process.
 # blender -b -P catalog_export.py -- <job.json> <result.json>
 import sys as _sys, os as _os
-_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax; import lw_canon as _lc
 _A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
 if __name__ == '__main__' and len(_A) < 2:
     if not _A: _ax.home(__file__, "Write Asset Vault assets into a Blender asset library .blend, marked with their catalogues")
     else: print(f'error: {len(_A)} argument(s); 2 needed')
     _ax.helps(['blender -b -P scripts/library/catalog_export.py -- <job.json> <result.json>']); _sys.stdout.flush(); raise SystemExit(0 if not _A else 1)
 import json, bpy
-import lw_canon                                              # canon_io, the one importer: each import is stamped lw_raw
 JOB, OUT = _A[:2]
 job = json.load(open(JOB))
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -22,16 +21,14 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 
 def read(it):
     if it['import']:
-        before = set(bpy.data.objects)
-        lw_canon.io.import_raw(it['path'])
-        new = [o for o in bpy.data.objects if o not in before]
+        new = [bpy.data.objects[n] for n in _lc.io.import_raw(it['path'], flavour='native')['objects']]   # canon_io: the one importer
         roots = [o for o in new if o.parent is None]
         if len(roots) != 1:
             raise SystemExit(f"{it['name']}: the import gave {len(roots)} root objects; one is publishable")
         roots[0].name = it['name']
         return roots[0]
     slot = it['slot']
-    with lw_canon.io.load_library(it['path']) as (src, dst):
+    with _lc.io.load_library(it['path']) as (src, dst):
         names = list(getattr(src, slot))
         if it['name'] not in names and slot == 'materials' and it['name'] in src.node_groups:
             slot, names = 'node_groups', list(src.node_groups)
