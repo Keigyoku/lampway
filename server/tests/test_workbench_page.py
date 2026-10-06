@@ -89,3 +89,11 @@ def test_the_view_needs_the_bearer_and_mounts_the_report_cards(stack):
     assert "/app/cards" in js and "/open" in js, "the report cards mount in the window (mrmak 09's Workbench frame)"
     html = (PAGE / "index.html").read_text(encoding="utf-8")
     assert 'id="cards"' in html
+
+
+def test_the_page_offers_the_lampway_terminal():
+    """Contract 10's terminal is contract 16's window: the page asks /app/terminal and offers Open when it is installed, Get
+    otherwise; the browser pane stays the zero-install fallback."""
+    js = (PAGE / "cockpit.js").read_text(encoding="utf-8")
+    assert "/app/terminal" in js and "/app/terminal/open" in js and "Open in the Lampway terminal" in js
+    assert 'id="terminal"' in (PAGE / "index.html").read_text(encoding="utf-8")
