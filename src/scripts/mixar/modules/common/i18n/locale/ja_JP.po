@@ -5483,6 +5483,18 @@ msgstr ""
 msgid "Tab of the face"
 msgstr ""
 
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
 msgid "ChatGPT plan"
 msgstr ""
 
@@ -5529,18 +5541,6 @@ msgid "No agent"
 msgstr ""
 
 msgid "A stand-in that answers on this machine and thinks nothing"
-msgstr ""
-
-msgid "Continue saves your language and keys only"
-msgstr ""
-
-msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
-msgstr ""
-
-msgid "Every route is off until you switch it on"
-msgstr ""
-
-msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
 msgstr ""
 
 msgid "Click above"
@@ -5627,9 +5627,6 @@ msgid "Privacy in the viewport's Lampway sidebar."
 msgstr ""
 
 msgid "The pop-out the status bar's wire chip opens."
-msgstr ""
-
-msgid "spend unknown: server not running"
 msgstr ""
 
 msgid "egress unknown"
@@ -6177,6 +6174,12 @@ msgid "Open the Lampway terminal"
 msgstr ""
 
 msgid "Open the Lampway terminal beside Blender: one tab per agent of Lampway's herdr server (Ctrl Alt T)"
+msgstr ""
+
+msgid "Focus the Lampway terminal"
+msgstr ""
+
+msgid "Bring Lampway's agent tab forward in the Lampway terminal (never another WezTerm's pane)"
 msgstr ""
 
 msgid "Remove the Lampway terminal"
@@ -21448,6 +21451,21 @@ msgid "{n} tool called"
 msgstr ""
 
 msgid "{n} tools called"
+msgstr ""
+
+msgid "{done} of {n} steps done, local"
+msgstr ""
+
+msgid "{n} step done"
+msgstr ""
+
+msgid "{n} steps done"
+msgstr ""
+
+msgid "{n} failed"
+msgstr ""
+
+msgid "local"
 msgstr ""
 
 msgid "Viewport render"
