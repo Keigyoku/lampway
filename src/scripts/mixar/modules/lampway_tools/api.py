@@ -1195,6 +1195,38 @@ def weight_cleanup(object, armature, ops, mirror_from=None):
     return _W.cleanup(object, armature, ops, mirror_from)
 
 
+@tool(consumes={"mesh": Need(kind=("mesh",))})
+def joints_from_views(mesh="", cameras="", keypoints="", calibration="", known="", detector="keypoints_json", rig=True, max_px=4.0, centre=True, hidden=None,
+                      out="joints.json"):
+    """Joints of a humanoid from orthographic views (canon 11): keypoints {keypoints_px: {joint: {view: [x, y(, confidence)]}}} made in
+    the cameras {cameras: [{name, res, ortho, center, right, up, look}]} (pixels right and DOWN) are triangulated (exact for
+    orthographic views; a view missing by more than max_px dropped while the rest fix the point; an AMBIGUOUS outlier - two views
+    that alone fix a direction and disagree - refused, naming both), moved by the calibration measured on a body with known joints in
+    the SAME cameras (rig=true needs it; known=<{joints_m}> writes one to out instead), and centred in the canonical mesh's limb
+    cross-section (centre=true). One view per joint, a calibration from another camera framing, or a detector (rtmw_wholebody |
+    rtmpose_hand: a model slot, decision 11-H1) are refused. Writes the receipt {joints: {name: {pos_m, views_used, residual_px,
+    calibrated, centred, centred_cm}}} to out."""
+    from .pipeline import joints_views as _JV
+    root = str(_settings().project_root)
+    if detector != "keypoints_json":
+        _JV.detect(mesh, detector)
+    if not cameras or not keypoints:
+        raise ValueError("cameras and keypoints are required with detector=keypoints_json")
+    if known:
+        return _JV.calibrate(_p(cameras), _p(keypoints), _p(known), root, _p(out), max_px=max_px)
+    vt = None
+    if mesh and centre:
+        from .features import rig as _rig
+        vt = _rig._body_mesh(bpy.data.objects[mesh])
+    res = _JV.run(_p(cameras), _p(keypoints), root, rig=rig, calibration=_p(calibration), max_px=max_px, hidden=tuple(hidden or ()), mesh=vt)
+    if out:
+        p = Path(_p(out))
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(res, indent=1, sort_keys=True))
+        res["out"] = out
+    return res
+
+
 @tool(consumes={"input": Need(kind=("texture",), accept_raw=True)})
 def normalize_texture(input, role="auto", normal_convention="auto", tiling_real_world_m=None, source_naming="none"):
     """An image (a datablock, or a file under the project root loaded raw) into a CANONICAL texture (lampway.canonical-asset/1): its

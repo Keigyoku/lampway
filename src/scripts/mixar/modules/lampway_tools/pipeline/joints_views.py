@@ -149,7 +149,9 @@ def run(cameras, keypoints, root, rig=True, calibration="", max_px=MAX_PX, hidde
     joints = {}
     for j, r in tri.items():
         q, row = pos[j], {"centred": False, "centred_cm": None}
-        if mesh is not None:
+        if mesh is None:
+            row["centre_skip"] = "no mesh: pass the example to centre each joint in its limb's cross-section (canon 11 B.8)"
+        else:
             d = bone_direction(j, pos)
             if d is None:
                 row["centre_skip"] = "no bone direction: neither the next nor the previous joint of its chain is in the set"

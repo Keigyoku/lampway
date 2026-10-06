@@ -338,6 +338,15 @@ DEFS = [
     Def("lampway_weight_cleanup", "Fix weights on a COPY named <object>_wclean. ops in order: {op: normalize}, {op: limit, max_influences}, {op: remove_influence, bone, region: {bbox} | {vertex_group}} (refused over "
         "40 % of the vertices: that is a rebind; never leaves a vertex unweighted), {op: smooth, iterations, factor, region}, {op: rigid, bone, region}. Returns the ops applied and the audit of the result.",
         [P("object", required=True), P("armature", required=True), P("ops", "array", "the ops", required=True), P("mirror_from", desc="not built")], api="weight_cleanup"),
+    Def("lampway_joints_from_views", "Joints of a humanoid from orthographic views (canon 11): 2D keypoints made in known cameras are triangulated (exact for orthographic "
+        "views; a view missing by more than max_px dropped; an ambiguous outlier refused), moved by a calibration measured on a body with known joints in the SAME cameras (a rig "
+        "run needs it; known= writes one), and centred in the canonical mesh's limb cross-section. One view per joint, a calibration from another framing, or a 2D detector "
+        "(a model slot pending the captain's decision) are refused. Writes {joints: {name: {pos_m, views_used, residual_px, calibrated, centred, centred_cm}}}.",
+        [P("mesh", desc="the canonical example mesh (for centring)"), P("cameras", desc="project path {cameras: [{name, res, ortho, center, right, up, look}]}"),
+         P("keypoints", desc="project path {keypoints_px: {joint: {view: [x, y, confidence?]}}}"), P("calibration", desc="calibration json from a known body in the same cameras"),
+         P("known", desc="project path {joints_m}: calibrate instead, writing out"), P("detector", desc="keypoints_json (default) | rtmw_wholebody | rtmpose_hand (not installed)"),
+         P("rig", "boolean", "default true: needs a calibration"), P("max_px", "number", "default 4"), P("centre", "boolean", "default true"),
+         P("hidden", "array", "joints read off cloth: left out"), P("out", desc="default joints.json")], api="joints_from_views"),
     Def("lampway_normalize_texture", "An image (a scene image, or a file under the project root, loaded raw) into a CANONICAL texture (canon: specs/canon/normalization): its role "
         "declared or from the declared source's naming (ambientcg | polyhaven | lampway; otherwise role=auto refuses), the colour space bound to the role and set on the image "
         "(sRGB basecolor/emission/reference, Linear Rec.709 hdri, Non-Color every data map), a normal map's GL/DX convention from the naming or declared (never assumed), "

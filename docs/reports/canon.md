@@ -254,7 +254,7 @@ Not built: the material normalizer, the contract's sign test (unverified method)
 its `normal_green` yet), the "8-bit sRGB-encoded data" refusal (no reliable detector), the UV binding (`uv_mesh`). No image tool was
 converted from LEGACY in this change: converting one makes its callers normalize first, which is each lane's change to make.
 
-## Item 12: joints from views (pure leg DONE; the Blender tool and the detector NOT built)
+## Item 12: joints from views (DONE on keypoints_json; the detector and the view rendering NOT built)
 `pipeline/joints_views.py`: cameras + keypoints files (detector=keypoints_json) -> triangulated joints (`canon_geom.triangulate`,
 the robust drop with the view names kept), `calibrate` on a body with known joints (offsets written with the cameras' sha256),
 `run(rig=True)` refuses without a calibration, refuses one from another camera framing, refuses a joint the calibration lacks;
@@ -281,4 +281,7 @@ same pixels in every view: a consistent shift, within `max_px` across views).
 **Centring finding:** the canon's rule (move to the hits' MEAN) halves an offset per pass, so 3 passes leave 1/8 of it (10 mm ->
 1.25 mm, predicted and measured; the test pins it). `canon_geom.harmonic_centre` (canon 09 B.4) is exact on a circle in one pass;
 whether centring should use it is the captain's call. Not built: rendering the views and fitting the cameras (the contract's
-`views/res/ortho_m`; the tool takes the cameras the keypoints were made in), the API tool and its server Def, the video variant.
+`views/res/ortho_m`; the tool takes the cameras the keypoints were made in), the video variant.
+`api.joints_from_views` (+ server Def `lampway_joints_from_views`) behind `Need(kind=("mesh",))` (real scale): calibrates (`known=`),
+runs, centres on the canonical mesh, writes `out`. Blender test: a raw mesh refused at the door, then normalized and centred
+(0.35 cm moved, as predicted), the detector refused naming 11-H1, a calibrated rig run.

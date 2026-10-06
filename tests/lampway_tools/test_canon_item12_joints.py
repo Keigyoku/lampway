@@ -180,3 +180,53 @@ def test_run_centres_each_joint_along_its_bone_and_records_it(goldens, tmp_path)
 def test_the_detector_is_a_model_slot_that_names_what_is_missing():
     with pytest.raises(JV.JointsError, match="detector"):
         JV.detect(mesh="x", detector="rtmw_wholebody")
+
+
+TOOL = r"""
+import bpy, bmesh, json, numpy as np
+from pathlib import Path
+from mixar.modules.lampway_tools import api
+root = Path(ROOT); api.settings_set(project_root=str(root))
+V, T = np.array(VV), np.array(TT)
+me = bpy.data.meshes.new("arm"); me.from_pydata([tuple(v) for v in V], [], [tuple(int(i) for i in t) for t in T]); me.update()
+ob = bpy.data.objects.new("arm", me); bpy.context.scene.collection.objects.link(ob)
+raw = {"raw": api.joints_from_views(mesh="arm", cameras="cams.json", keypoints="kp.json", rig=False)}
+n = api.normalize_mesh(input="arm", turn_deg=0, generator="lampway_tool", want_scale="real", scale_evidence={"method": "captain_length", "value": 1.8, "reference": "test"})
+raw["norm"] = {k: n.get(k) for k in ("ok", "error")}
+raw["run"] = api.joints_from_views(mesh="arm", cameras="cams.json", keypoints="kp.json", rig=False, out="out/joints.json")
+raw["file"] = json.loads((root / "out/joints.json").read_text())
+raw["nomesh"] = api.joints_from_views(cameras="cams.json", keypoints="kp.json", rig=False)
+raw["det"] = api.joints_from_views(mesh="arm", detector="rtmw_wholebody")
+raw["cal"] = api.joints_from_views(cameras="cams.json", keypoints="kp.json", known="known.json", out="cal.json")
+raw["rig"] = api.joints_from_views(cameras="cams.json", keypoints="kp.json", calibration="cal.json")
+print("RESULT", json.dumps(raw))
+"""
+
+
+def test_the_tool_behind_its_door_centres_on_a_canonical_mesh_and_refuses_a_raw_one(goldens, tmp_path):
+    from blender_run import run_script
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    truth = _inputs(goldens, proj)
+    (proj / "known.json").write_text(json.dumps({"joints_m": truth}))
+    a, b = np.array(truth["upperarm_l"]), np.array(truth["lowerarm_l"])
+    d = (b - a) / np.linalg.norm(b - a)
+    z = np.array([0, 0, 1.0])
+    ax = np.cross(z, d)
+    ang = np.arccos(np.clip(z @ d, -1, 1))
+    K = np.array([[0, -ax[2], ax[1]], [ax[2], 0, -ax[0]], [-ax[1], ax[0], 0]]) / np.linalg.norm(ax)
+    R = np.eye(3) + np.sin(ang) * K + (1 - np.cos(ang)) * K @ K
+    V, T = _tube(0.045, z0=-0.05, z1=np.linalg.norm(b - a) + 0.05, R=R)
+    V = V + a + R @ np.array([0.004, 0.0, 0.0])
+    floor = np.array([[-0.6, -0.1, 0.0], [0.6, 0.1, 0.0], [0.0, 0.0, 0.002]])             # puts the bbox bottom centre on the origin
+    V, T = np.vstack([V, floor]), np.vstack([T, [[len(V), len(V) + 1, len(V) + 2]]])
+    r = run_script(TOOL.replace("ROOT", repr(str(proj))).replace("VV", repr(V.tolist())).replace("TT", repr(T.tolist())), timeout=180)
+    assert r.rc == 0, r.out[-2000:]
+    d = r.results[-1]
+    assert d["raw"]["ok"] is False and d["raw"]["error"].startswith("normalize first") and d["raw"]["help"][0] == "lampway_normalize_mesh input=arm"
+    assert d["norm"]["ok"], d["norm"]
+    row = d["run"]["joints"]["upperarm_l"]
+    assert d["run"]["ok"] and row["centred"] is True and abs(row["centred_cm"] - 0.35) < 0.01 and d["file"]["joints"]["upperarm_l"] == row
+    assert d["nomesh"]["ok"] and d["nomesh"]["joints"]["upperarm_l"]["centred"] is False and "no mesh" in d["nomesh"]["joints"]["upperarm_l"]["centre_skip"]
+    assert d["det"]["ok"] is False and "11-H1" in d["det"]["error"]
+    assert d["cal"]["ok"] and d["rig"]["ok"] and d["rig"]["calibrated"] is True
