@@ -14,6 +14,7 @@ import bpy
 
 from ..meshqa import decisions as D
 from ..pipeline import motion_library as ML
+from .. import canon_io
 from . import common as C
 
 CLIP_EXT = (".fbx", ".glb", ".gltf", ".bvh")
@@ -39,13 +40,8 @@ def index(root, lib):
 def _import(path):
     before = set(bpy.data.objects.keys())
     ext = os.path.splitext(path)[1].lower()
-    # LEGACY(normalize): a raw clip enters the scene with its own frame and bone names; route through canon_io once it lands
-    if ext == ".fbx":
-        bpy.ops.import_scene.fbx(filepath=path, use_anim=True)
-    elif ext in (".glb", ".gltf"):
-        bpy.ops.import_scene.gltf(filepath=path)
-    else:
-        bpy.ops.import_anim.bvh(filepath=path)
+    # a raw clip enters the scene with its own frame and bone names (stamped lw_raw; lampway_normalize_clip is not built)
+    canon_io.import_raw(path, **({"use_anim": True} if ext == ".fbx" else {}))
     return [bpy.data.objects[n] for n in bpy.data.objects.keys() if n not in before]
 
 

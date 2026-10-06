@@ -18,6 +18,7 @@ from pathlib import Path
 import bpy
 import numpy as np
 
+from .. import canon_io
 from . import look as LK
 from . import parity_metrics as PM
 from . import parity_scene as PS
@@ -51,7 +52,7 @@ def parity_refusals(profile):
 
 
 def _load_exr(path):
-    img = bpy.data.images.load(str(path), check_existing=False)
+    img = canon_io.load_image(str(path), check_existing=False)
     try:
         w, h = img.size
         return np.array(img.pixels[:], dtype=np.float64).reshape(h, w, 4)[::-1].copy()

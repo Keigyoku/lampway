@@ -20,6 +20,7 @@ import os
 import bpy
 import numpy as np
 
+from .. import canon_io
 from . import common as C
 from . import workflows as W
 
@@ -180,7 +181,7 @@ def transfer(proxy, atlas, out_dir, res=None, keep_proxy=False):
         mat.use_nodes = True
         t = mat.node_tree
         node = t.nodes.new("ShaderNodeTexImage")
-        node.image = bpy.data.images.load(path, check_existing=False)
+        node.image = canon_io.load_image(path, check_existing=False)
         t.links.new(node.outputs["Color"], next(n for n in t.nodes if n.type == "BSDF_PRINCIPLED").inputs["Base Color"])
         new.data.materials.clear()
         new.data.materials.append(mat)
