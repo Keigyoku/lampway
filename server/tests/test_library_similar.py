@@ -112,3 +112,15 @@ def test_refusals_and_the_best_three_when_nothing_clears_min_score(shapes):
         SM.similar(lib, {"asset_ids": [img]}, axes=["shape"])
     got = SM.similar(lib, {"asset_ids": [ids["cube"]]}, axes=["shape"], min_score=0.9999999, k=2)
     assert "lower min_score" in got["note"] and len(got["items"]) == 3
+
+
+def test_the_look_axis_degrades_to_the_spaces_a_candidate_has(tmp_path):
+    """Found by lane vault-ui: with only image_hist indexed, the look axis answered nothing (the probe's on-demand dhash made the intersection the probe alone).
+    A candidate is scored on the look spaces it HAS; a missing space is never a veto."""
+    lib = make_lib(tmp_path)
+    red, red2, blue = image(lib, tmp_path, "red", (200, 30, 30)), image(lib, tmp_path, "red2", (190, 40, 35)), image(lib, tmp_path, "blue", (30, 40, 200))
+    svc = E.Embed(lib)
+    svc.run(svc.plan("image_hist")["plan_id"], by="agent")                      # dhash never indexed
+    res = SM.similar(lib, {"asset_ids": [red]}, axes=["look"])
+    got = [it["id"] for it in res["items"]]
+    assert got[:2] == [red2, blue] and res["items"][0]["axes"]["look"] > res["items"][1]["axes"]["look"]
