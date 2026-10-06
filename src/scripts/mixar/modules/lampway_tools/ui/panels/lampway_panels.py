@@ -9,7 +9,25 @@ import textwrap
 import bpy
 from bpy.types import Panel, UIList
 
-from mixar.modules.lampway_tools import api, clip_state, egress_state, jobs, mcp_state, studio_state, workbench_state
+from mixar.modules.lampway_tools import api, clip_state, egress_state, jobs, mcp_state, studio_state, the_way, workbench_state
+from mixar.modules.lampway_tools.ui.operators import tool_ops
+
+QA_CACHE = {"result": None}
+QA_REFRESH_S = 2.0
+
+
+def _qa_refresh():
+    """The Review panel's proposals, read on a timer (a draw never does the work)."""
+    try:
+        QA_CACHE["result"] = api.qa_proposals()
+    except Exception as exc:  # noqa: BLE001
+        QA_CACHE["result"] = {"ok": False, "error": str(exc)}
+    return QA_REFRESH_S
+
+
+def ensure_qa_refresh():
+    if not bpy.app.background and not bpy.app.timers.is_registered(_qa_refresh):
+        bpy.app.timers.register(_qa_refresh, first_interval=0.0, persistent=True)
 
 
 class LAMPWAY_PT_main(Panel):
@@ -24,21 +42,83 @@ class LAMPWAY_PT_main(Panel):
         p = context.scene.lampway_tools
         layout.operator("lampway.settings_open", icon="PREFERENCES")
         if p.last_message:
-            box = layout.box()
-            for line in textwrap.wrap(p.last_message, 46)[:6]:
-                box.label(text=line)
+            # One line and "more" (facelift contract 07), not six wrapped labels.
+            row = layout.row(align=True)
+            row.label(text=p.last_message[:60] + ("..." if len(p.last_message) > 60 else ""))
+            if len(p.last_message) > 60:
+                row.popover("LAMPWAY_PT_last_message", text="more")
         rows = [j for j in jobs.status() if j["state"] == "running"]
         for j in rows:
             layout.label(text=f"{j['id']} running ({j['seconds']:.0f} s)", icon="TIME")
 
 
-class LAMPWAY_PT_qa(Panel):
-    bl_idname = "LAMPWAY_PT_qa"
-    bl_label = "Mesh QA"
+class LAMPWAY_PT_last_message(Panel):
+    """The whole last result (the main panel shows one line)."""
+    bl_idname = "LAMPWAY_PT_last_message"
+    bl_label = "Last result"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "HEADER"
+    bl_ui_units_x = 18
+
+    def draw(self, context):
+        for line in textwrap.wrap(context.scene.lampway_tools.last_message, 70)[:20]:
+            self.layout.label(text=line)
+
+
+class LAMPWAY_PT_way(Panel):
+    """The Way (facelift contract 07): the captain's piece runbook, one step per panel, a node for this piece."""
+    bl_idname = "LAMPWAY_PT_way"
+    bl_label = "The way"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Lampway"
-    bl_parent_id = "LAMPWAY_PT_main"
+
+    def draw(self, context):
+        obj = context.active_object
+        done = the_way.done_steps(obj)
+        self.layout.label(text=f"{obj.name if obj else 'No piece selected'}: {the_way.progress(done)}")
+
+
+def _way_step_panel(step):
+    """A step of the Way: the node (this piece) and the name in the header, the tool's word in the header's right."""
+
+    def draw_header(self, context):
+        from mixar.modules.common.lampway_icons import icon_id
+        try:
+            icon = icon_id(the_way.node(step["id"], the_way.done_steps(context.active_object)))
+        except Exception:  # noqa: BLE001 - a header draw never raises
+            icon = 0
+        self.layout.label(text="", icon_value=icon)
+
+    def draw_header_preset(self, context):
+        self.layout.label(text=the_way.WORD[step["status"]], icon=the_way.WORD_ICON[step["status"]])
+
+    def draw(self, context):
+        layout = self.layout
+        if step.get("note"):
+            layout.label(text=step["note"][:80])
+        status = the_way.tool_status()
+        for name in step.get("tools", []):
+            spec = tool_ops.SPECS.get(name)
+            if spec is not None:
+                the_way.draw_tool(layout, spec, status.get(name, {"status": step["status"], "when": step.get("when", "")}))
+
+    return type(f"LAMPWAY_PT_way_{step['id']}", (Panel,), {
+        "bl_idname": f"LAMPWAY_PT_way_{step['id']}", "bl_label": step["name"], "bl_space_type": "VIEW_3D",
+        "bl_region_type": "UI", "bl_category": "Lampway", "bl_parent_id": "LAMPWAY_PT_way", "bl_options": {"DEFAULT_CLOSED"},
+        "draw_header": draw_header, "draw_header_preset": draw_header_preset, "draw": draw})
+
+
+WAY_STEPS = [_way_step_panel(step) for step in the_way.steps()]
+
+
+class LAMPWAY_PT_qa(Panel):
+    bl_idname = "LAMPWAY_PT_qa"
+    bl_label = "Find and draw candidates"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Lampway"
+    bl_parent_id = "LAMPWAY_PT_way_mesh_qa"
 
     def draw(self, context):
         col = self.layout.column(align=True)
@@ -66,7 +146,7 @@ class LAMPWAY_PT_rebuild(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Lampway"
-    bl_parent_id = "LAMPWAY_PT_main"
+    bl_parent_id = "LAMPWAY_PT_way_mesh_paint"
     bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
@@ -90,7 +170,7 @@ class LAMPWAY_PT_meshpaint(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Lampway"
-    bl_parent_id = "LAMPWAY_PT_main"
+    bl_parent_id = "LAMPWAY_PT_way_mesh_paint"
     bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
@@ -102,34 +182,21 @@ class LAMPWAY_PT_meshpaint(Panel):
         col.operator("lampway.meshpaint_albedo", icon="SHADING_TEXTURE")
 
 
-class LAMPWAY_PT_tools(Panel):
-    bl_idname = "LAMPWAY_PT_tools"
-    bl_label = "Parts and proportion tools"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Lampway"
-    bl_parent_id = "LAMPWAY_PT_main"
-    bl_options = {"DEFAULT_CLOSED"}
-
-    def draw(self, context):
-        col = self.layout.column(align=True)
-        p = context.scene.lampway_tools
-        col.prop(p, "tool")
-        col.prop(p, "tool_args")
-        col.operator("lampway.run_tool", icon="PLAY")
-
-
 class LAMPWAY_PT_qa_review(Panel):
     bl_idname = "LAMPWAY_PT_qa_review"
     bl_label = "Review proposals"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Lampway"
-    bl_parent_id = "LAMPWAY_PT_main"
+    bl_parent_id = "LAMPWAY_PT_way_mesh_qa"
 
     def draw(self, context):
         col = self.layout.column(align=True)
-        res = api.qa_proposals()
+        res = QA_CACHE["result"]                     # filled by a timer: never an api call in a draw (contract 07)
+        if res is None:
+            ensure_qa_refresh()
+            col.label(text="Reading the proposals...")
+            return
         if not res.get("ok"):
             col.label(text="Set a piece up first (Mesh QA)")
             return
@@ -217,24 +284,6 @@ class LAMPWAY_PT_studios(Panel):
                 if f["name"].lower().endswith((".glb", ".gltf", ".fbx", ".obj")):
                     imp = row.operator("lampway.studio_import", text=f"Import {f['name']}", icon="IMPORT")
                     imp.job_id, imp.name = job["id"], f["name"]
-
-
-class LAMPWAY_PT_features(Panel):
-    bl_idname = "LAMPWAY_PT_features"
-    bl_label = "Features"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Lampway"
-    bl_parent_id = "LAMPWAY_PT_main"
-
-    def draw(self, context):
-        col = self.layout.column(align=True)
-        p = context.scene.lampway_tools
-        col.prop(p, "feature")
-        col.prop(p, "feature_args")
-        col.operator("lampway.feature_run", icon="PLAY")
-        if p.last_message:
-            col.label(text=p.last_message[:80])
 
 
 class LAMPWAY_PT_prompts(Panel):
@@ -390,4 +439,7 @@ class LAMPWAY_PT_mcp(Panel):
             layout.label(text=p["message"][:80], icon="ERROR")
 
 
-classes = [LAMPWAY_UL_studio_plan_args, LAMPWAY_PT_privacy, LAMPWAY_PT_cockpit, LAMPWAY_PT_main, LAMPWAY_PT_clips, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_prompts, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
+
+classes = [LAMPWAY_UL_studio_plan_args, LAMPWAY_PT_last_message, LAMPWAY_PT_privacy, LAMPWAY_PT_cockpit, LAMPWAY_PT_main,
+           LAMPWAY_PT_way, *WAY_STEPS, LAMPWAY_PT_qa, LAMPWAY_PT_qa_review, LAMPWAY_PT_meshpaint, LAMPWAY_PT_rebuild,
+           LAMPWAY_PT_clips, LAMPWAY_PT_studios, LAMPWAY_PT_prompts]

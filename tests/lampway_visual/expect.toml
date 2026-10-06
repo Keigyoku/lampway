@@ -62,3 +62,7 @@ primary_choice = "accent"
 [studios_face]
 theme = "dark"
 [studios_face.surfaces]
+
+[the_way]
+theme = "dark"
+[the_way.surfaces]

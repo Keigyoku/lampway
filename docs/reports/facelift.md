@@ -428,3 +428,36 @@ podman reads its container store from the person's home, so every windowed state
 lampway-build". The harness gives the display runner (only) the person's home back; the build inside still gets the
 run's own HOME and XDG homes from the `env` in front of it. The Asset Vault drag state now always registers its
 stand-ins (vault-ui's real operators are in the build since the merge) and drags its own tile by name.
+
+## Contract 07: the Way (partial)
+
+- **The Way**: a "The way" parent panel ("<piece>: 2 of 7 done") and one panel per step of the captain's piece runbook
+  (BUILD_ORDER.md Wave 2), in his order: Seeds and plates, UV score, Mesh QA, Parts critique, Mesh-paint texture, Fit and
+  openings, Bind and export. Each header carries the node for this piece (contract 14's `node_lit` / `node_half` /
+  `node` previews; the done steps are a custom property on the object, written when a step's tool succeeds) and the
+  tool's word (Live, Built, Partial, Planned) at its right.
+- **Status words with sources**: `lampway_tools/status.toml`, every live / built / partial word names the report that
+  measured it, and the test checks the file exists. The words are measured, not the mockup's: Mesh QA is Live
+  (reproduced the recorded runs and ran in the app, `tools.md`); Mesh-paint is Partial (the live image generation has
+  not run); Seeds and plates Partial (Studio drivers dry only); Fit and openings Partial (fit_place / fit_pose /
+  fit_openings not ported); Bind and export Partial (auto rig and the export bundle built; the UE bind is Wave 3). The
+  mockup had Seeds and Mesh-paint Live and Bind Planned.
+- **No free-text runner**: the "Parts and proportion tools" and "Features" panels (a tool name plus free-text
+  arguments, a feature plus JSON) are gone. Each tool is one operator with its own typed properties
+  (`ui/operators/tool_ops.py`), generated from `tool_specs.json`, which `scripts/lampway/facelift/tool_specs.py`
+  generates from the agent's own tool definitions (`server/.../agent/lampway_tools.py`), so the form and the agent's
+  schema are one thing; a batch tool's command line is built exactly as the server builds it for the agent. Run opens
+  the form as a dialog.
+- **No work in a draw**: Review proposals reads a cache a timer fills (it called `api.qa_proposals()` on every redraw).
+- The last result is one line with a "more" popover.
+- Tests: `tests/lampway/test_lampway_the_way.py` (8; RED observed) and the real-build
+  `tests/lampway_visual/test_the_way.py` (registered in order, the typed Retopology form's property kinds, the
+  free-text panels gone, and a real Retopology run on the Cube from the typed operator marks UV score done).
+- **Lost from the UI, said plainly**: 13 batch tools have no typed definition in the agent's registry (uv_score,
+  bake_maps, material_bake, clay_view, mesh_paint_set, relief_project, material_masks, uv_patches, patch_holes,
+  render_textured, asset_catalog_export, robust_weight_transfer, mesh_qa as a batch). The free-text runner reached them;
+  the Way does not. The agent still runs them (`lampway_run_tool`). Each needs a `Def` in the server's registry (not
+  this lane's file) to get a form here.
+- Not done: the Mesh QA body's redesign (result box with run line, tag counts on one row, "Review 17 by hand" and "Ask
+  the agent"); the drawn rail (phase 2, C++); test 6 (a sidebar capture: the sidebar's tab cannot be chosen from
+  Python, and child panels do not draw in a popover); the workflow picker (open question 1).
