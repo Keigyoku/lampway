@@ -1114,6 +1114,10 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     from . import choices as CHO
     from .choices.routes import choices_routes
     CHO.set_active(CHO.FileStore(settings.state_dir), settings.state_dir)
+    try:
+        CHO.propose_dead_preferences(store._data.get("preferences") or {})      # HC22: proposed once, never applied silently
+    except Exception:  # noqa: BLE001 - a migration note must never stop the server
+        logging.getLogger("lampway.choices").warning("the per-role preferences could not be proposed", exc_info=True)
     routes += choices_routes(_bearer_ok)
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))

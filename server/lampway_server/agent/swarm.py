@@ -106,6 +106,7 @@ class Worker:
     calls: list = field(default_factory=list)       # what this worker did, for the owner (not sent to the model)
     handle: object = None
     receipt: Optional[dict] = None
+    choice: Optional[dict] = None                   # the agent.worker option that served it, when it was a fallback (HC23)
     inputs_loaded: list = field(default_factory=list)
     task: Optional[asyncio.Task] = None
 
@@ -118,6 +119,8 @@ class Worker:
             out["error"] = self.error
         if self.receipt:
             out["receipt"] = self.receipt
+        if self.choice:
+            out["choice"] = self.choice
         return out
 
     def detail(self) -> dict:
@@ -341,6 +344,7 @@ class SwarmManager:
     async def _run_worker(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
         harness, run = swarm.harness, swarm.run
         provider = self.provider_factory(worker.id)
+        worker.choice = getattr(provider, "choice", None)
         system = worker_system_prompt(worker)
         tools = worker_tools()
         messages = [Message.user_text(worker.prompt)]

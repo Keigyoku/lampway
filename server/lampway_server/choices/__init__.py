@@ -12,6 +12,7 @@ The consumer interface:
 
 ``NoChoice`` is raised (with ``needs_choice``) when nothing can serve the job; nothing has been sent."""
 
+import json
 import os
 from pathlib import Path
 from typing import Optional
@@ -91,3 +92,40 @@ def list_view(job: Optional[Job] = None, group: Optional[str] = None) -> dict:
             continue
         groups.append({"id": gid, "label": label, "purposes": [V.summary(p.id, job, w, d) for p in REG.PURPOSES.values() if p.group == gid]})
     return {"doc_version": d["version"], "catalogue_at": w.catalogue_at, "groups": groups, "proposals_open": len(active_store().proposals(state="open"))}
+
+
+def preferred(pid: str, project: Optional[str] = None) -> Optional[str]:
+    """The head of the chain in force for ``pid`` (what the user chose), with no world applied: what a catalogue marks as the default."""
+    from .resolver import _in_force
+    _, chain = _in_force(pid, document(project))
+    return chain[0] if chain else None
+
+
+def chain(pid: str, project: Optional[str] = None) -> list:
+    from .resolver import _in_force
+    return _in_force(pid, document(project))[1]
+
+
+_ROLE_PROVIDER = {"anthropic": "anthropic:{model}", "openrouter": "openrouter:{model}", "chatgpt_plan": "chatgpt_plan:{model}", "openai": "openai:local",
+                  "mock": "mock"}
+
+
+def propose_dead_preferences(preferences: dict) -> list:
+    """choices_migration.md step 2: the Mixar client's per-role model preferences were stored and never applied (HC22); each becomes ONE
+    proposal the user accepts or declines - applying it silently would change what runs."""
+    made = []
+    store = active_store()
+    seen = {(p["purpose"], json.dumps(p["change"], sort_keys=True)) for p in store.proposals() if p["origin"] == "migration"}
+    for role, pick in sorted((preferences or {}).items()):
+        fmt = _ROLE_PROVIDER.get(str((pick or {}).get("provider") or ""))
+        if not fmt:
+            continue
+        pid = "agent.main" if role in ("default", "main") else "agent.worker"
+        change = {"preferred": fmt.format(model=pick.get("model") or "")}
+        if (pid, json.dumps(change, sort_keys=True)) in seen or not REG.offers(REG.get(pid), change["preferred"]):
+            continue
+        try:
+            made.append(store.propose("migration", pid, change, f"the Mixar client saved this model for the {role} role; Lampway never applied it", []))
+        except Refused:
+            continue
+    return made

@@ -85,7 +85,12 @@ def default_transcriber(settings):
         key = resolve_api_key()
     except KeyMissing:
         return None
-    return OpenRouterTranscriber(key, settings.openrouter_stt_model, spend_ledger(settings))
+    from . import choices as CH
+    try:                                                         # HC1: the agent.dictation choice (the environment's model is its session layer)
+        model = CH.resolve("agent.dictation", CH.Job(needs={"runs_on": ["openrouter"]})).model
+    except CH.NoChoice:
+        model = (CH.preferred("agent.dictation") or f"openrouter:{settings.openrouter_stt_model}").split(":", 1)[1]   # the route gate refuses at the send, as before
+    return OpenRouterTranscriber(key, model or settings.openrouter_stt_model, spend_ledger(settings))
 
 
 async def run(websocket, auth, transcriber, bearer_from) -> None:

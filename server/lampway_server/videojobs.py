@@ -228,13 +228,16 @@ class VideoSystem:
         return out
 
     def upscale_models(self) -> list:
+        from . import choices as CH
+        chosen = (CH.preferred("video.upscale") or "").split(":", 1)[-1]           # HC12: the video.upscale choice is the default when listed
+        rows = [r for r in self._openrouter_models() if VG.is_upscaler(r)]
+        default = chosen if any(r["id"] == chosen for r in rows) else (rows[0]["id"] if rows else None)
         out = []
-        for row in self._openrouter_models():
-            if VG.is_upscaler(row):
-                span = row["upscale_factor"]
-                out.append({"slug": row["id"], "label": row.get("name") or row["id"], "is_default": not out, "max_reference_images": 0, "parameters": {
-                    "upscale_factor": {"type": "number", "label": "Upscale factor", "default": 2, "min": span["min"], "max": span["max"], "visible": True, "order": 1},
-                    "creativity": {"type": "integer", "label": "Creativity (0 precise, 1 creative)", "enum": [0, 1], "default": 0, "visible": True, "order": 2}}})
+        for row in rows:
+            span = row["upscale_factor"]
+            out.append({"slug": row["id"], "label": row.get("name") or row["id"], "is_default": row["id"] == default, "max_reference_images": 0, "parameters": {
+                "upscale_factor": {"type": "number", "label": "Upscale factor", "default": 2, "min": span["min"], "max": span["max"], "visible": True, "order": 1},
+                "creativity": {"type": "integer", "label": "Creativity (0 precise, 1 creative)", "enum": [0, 1], "default": 0, "visible": True, "order": 2}}})
         return out
 
     def image_models(self) -> list:
