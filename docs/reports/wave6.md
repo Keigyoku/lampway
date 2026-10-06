@@ -42,7 +42,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 | 24 | wiki/vehicle_wheel_rig | P3 | Blender | |
 | 25 | mixar_docs/splat_world (generate half) | P3 | server | |
 | 26 | wiki/splat_collision_proxy | P3 | Blender | |
-| 27 | wiki/texture_route_select | P3 | server | |
+| 27 | wiki/texture_route_select | P3 | server | done |
 | 28 | resources/material_palette | P3 | Blender | |
 | 29 | resources/motion_generate | P3 | Blender | |
 
@@ -165,3 +165,13 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
 - Tests: `server/tests/test_wave6_prototype_gates.py` (6). RED observed: ImportError. Mutants killed: the earlier-pass law, the allowance, the
   proposed state, the forced agent identity.
 - Gap: the captain's own door for a captain-owned gate (a Client button or REST route) is not built; the module accepts `by: captain` for it.
+
+### 27. texture_route_select (P3): done
+- Where: `server/lampway_server/texture_routes.py`, agent tool `lampway_texture_route_select` (`agent/plan_tools.py`).
+- The wiki's five rows as data; `driver_exists` read from `studios/actions.py` and `tool_exists` from the agent's Lampway Defs at every call; shape_fix
+  never carries a texture route; engine_available marks what can be used.
+- Disagreement with the contract, recorded: its test is named `test_keep_uv_marks_meshy_as_no_driver`, written when Meshy had no driver. Wave 5 added
+  the Meshy REST driver (`meshy.retexture`, fake transport only), and the contract's own acceptance says the flags must match `studios/actions.py`, so
+  the test asserts the registry (True today) and its falsifier deletes the action (False).
+- Tests: `server/tests/test_wave6_texture_route.py` (6). RED observed: ImportError. Mutants killed: a texture route in shape_fix, a hand-set driver
+  flag, a hand-set tool flag.

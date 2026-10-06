@@ -7,7 +7,7 @@ import json
 
 from .providers.base import ToolSpec
 
-NAMES = {"lampway_cinematic_shot_plan", "lampway_material_experiment", "lampway_prototype_gates"}
+NAMES = {"lampway_cinematic_shot_plan", "lampway_material_experiment", "lampway_prototype_gates", "lampway_texture_route_select"}
 
 
 def _obj(props, req=()):
@@ -49,6 +49,10 @@ def specs() -> list:
                  "answer uses one generation. It never spends: the user still clicks. action status {project}. Every event is an experiment-ledger row (kind gate).",
                  _obj({"action": {"type": "string", "description": "define | record_gate | may_spend | status"}, "project": {"type": "string"},
                        "passes": {"type": "array", "items": {"type": "object"}}, "gate_result": {"type": "object"}, "spend": {"type": "object"}}, ["action", "project"])),
+        ToolSpec("lampway_texture_route_select", "Before picking a texture tool: the supported routes for a need, in Lampway and in the Studios, each with its acceptance "
+                 "condition. need: restyle | keep_uv | local_defect | shared_material | shape_fix (a shape fix never gets a texture route: fix the geometry). Each route "
+                 "says whether its Studio driver exists (read from the action registry) or its Lampway tool exists; engine_available marks which you can use.",
+                 _obj({"need": {"type": "string"}, "engine_available": {"type": "array", "items": {"type": "string"}}}, ["need"])),
     ]
 
 
@@ -103,6 +107,9 @@ async def call(hub, root, name: str, arguments: dict) -> tuple:
             else:
                 return "action is define | record_gate | may_spend | status", True
             return json.dumps(out), False
+        if name == "lampway_texture_route_select":
+            from .. import texture_routes as TRS
+            return json.dumps(TRS.select(a.get("need"), a.get("engine_available"))), False
     except ValueError as exc:
         return str(exc), True
     return f"unknown planning tool {name!r}", True
