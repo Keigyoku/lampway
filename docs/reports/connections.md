@@ -21,7 +21,7 @@ scratch directory, deleted after. Commits are the noreply identity, no trailers.
 | 5 | F8: bearer on `/app/chatgpt/status` and `/app/higgsfield/status`, answers narrowed | done | `d814003` |
 | 6 | `connections_status_tool` (`lampway_connections`) | done | `0ccab19` |
 | 7 | `connections_migration`: BYOK into Connections (F3, C5), compute endpoints, keyring move and `LAMPWAY_SECRETS_DIR` (C7), real-use reporting | done | `ba7e492`, `b975279`, `be09123`, `8d743b1` |
-| 8 | Choices server side | partial: priorities 1-5 done, the migration's remaining consumers listed below | `e1eee63` .. `9a3dfb4` |
+| 8 | Choices server side | partial: priorities 1-5 done and most of the migration; what remains is listed below | `e1eee63` .. tip |
 
 Pushed: `lp/connections` at `cb81b01` (Connections, Hyper3D, the merge). The Choices commits follow it (see "Push" at the end).
 
@@ -65,17 +65,20 @@ and an older plain key moves at start, verified before it leaves the JSON; the l
 5. **HC11/CH5**: a template's model is a hint (`template_model`) unless `pin: true` with a `pin_reason`; the image tool runs the template
    purpose's resolved model. H4 measured: `plate-4k-crisper` names Sunburst, the Plates choice is Flare, Flare now runs.
 6. **Migration so far**: `lampway_choices` (read, explain, propose); `choices.json` and the default secrets directory on the sandbox deny
-   list; the per-role preferences become proposals (HC22); the upscale default is the `video.upscale` choice (HC12); the swarm falls back
-   along `agent.worker`'s chain at spawn (HC23); dictation runs `agent.dictation` (HC1); the decisions judge follows `agent.decide`'s chain
-   and its ZDR filter is the resolver's (HC2, HC21); a choice set in Choices takes effect where the settings decide
-   (`provider_prefs.effective()`, the server's settings, the agent's provider rebuilt on save).
+   list; the shadow log and `python -m lampway_server.choices.shadow --report` (steps 0-1); the per-role preferences become proposals
+   (HC22); the upscale default is the `video.upscale` choice (HC12); the swarm falls back along `agent.worker`'s chain at spawn (HC23);
+   dictation runs `agent.dictation` (HC1); the decisions judge follows `agent.decide`'s chain and its ZDR filter is the resolver's (HC2,
+   HC21); MatGen runs `agent.material_script` (HC3); the Studio REST models, Tripo Studio's image model and plate_pick's template come
+   from the purpose's params (HC13, HC8, HC16); a compute job with no backend runs `compute.blender_offload`'s choice (G1, CH6); a choice
+   set in Choices takes effect where the settings decide (`provider_prefs.effective()`, the server's settings, the agent rebuilt on save).
 
-**Not done (the rest of the migration, in its order):** the shadow log and report (steps 0-1; consumers were switched by the priorities
-above without it); 5.3's Tripo model string (HC8) and 5.4's `server_tools` backend/purpose overrides; 5.6's `make_provider` reading the
-resolution directly (it reads the settings Choices now decide); 5.7 MatGen (`follow:agent.main` is shipped, so nothing differs until a user
-sets another option); 5.8 the Blender-side `engine` Defs (client); 5.9 Studio models (HC13); 5.10 the embedding service (HC20); 5.11 compute
-(G1, CH6); 5.12 `view_verify` (client; HC17, HC18); 5.13 `plate_pick` (HC16); step 8 (the preferences route answering from the store,
-`embed_defaults.json` renamed); step 9; the quality records and their import.
+**Not done (in the migration's order):** 5.4's `studio_image_generate` backend/purpose as job overrides; 5.6 `make_provider` taking the
+resolution directly (it reads the settings Choices now decide, so what runs already follows the choice); 5.8 the Blender-side `engine`
+Defs (client); 5.10 the embedding service (HC20); 5.12 `view_verify` (client; HC17, HC18); the quality records and their import; step 9.
+**Step 8 is a decision, not built**: making `GET/PUT /api/v1/agent/model-preference` answer from Choices means the client's model picker
+would change the main agent (Mixar's documented rule, never implemented here) and the route's round-trip contract changes
+(`test_model_preference_round_trip` expects an empty list on a fresh server). Recommendation: do it, with the PUT writing `agent.main`
+as the user's click, since the picker is a user surface; until then the saved roles are proposals.
 
 ## Spec values I followed but question
 
