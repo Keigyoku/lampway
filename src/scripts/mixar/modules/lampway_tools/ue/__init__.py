@@ -10,4 +10,6 @@
   lights        Blender light -> UE light by the profile's k (pure)
   look          the UE Look mode: apply / status / revert with an exact receipt (bpy)
   ocio_view     the UE view's consumer side: a profile-named cube behind UE's log2 shaper, and the two traps refused
+  export        ue_export: one canonical export path per asset type, with receipts (bpy)
+  fbx_bytes     a minimal binary FBX reader: the timestamp-free content hash and the read-back facts (pure)
 """

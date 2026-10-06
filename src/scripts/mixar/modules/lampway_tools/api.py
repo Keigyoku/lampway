@@ -1566,6 +1566,28 @@ def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=
     return _UEL.apply(scene, _p(profile) if profile else None, scope, bool(parity))
 
 
+@tool
+def ue_export(type, object="", armature=None, action=None, out_dir="", textures=None, body=None, frame_rate=None, hero=None, format="fbx",
+              validation="", bind_check="", bake_receipt="", profile=None, allow_unverified=False, _bone_axis="Z"):
+    """Export to UE by the ONE path its type allows: skinned_piece (FBX: armature + mesh, primary bone axis Z / secondary X, no
+    leaf bones, units applied, tangents, triangles; fit_export's gates: body package, validation, bind_check, native bones, and
+    the joint read-back), static_prop (the same without the armature), animation (FBX: the armature, every frame keyed at the
+    scene rate, no simplification; frame_rate must equal the scene's) or texture_set (pbr_pack's BaseColor / ORM / Normal_DX with
+    their DECLARED colour spaces). Canonical input only: a transform not applied, a negative scale or a scene not in metres is
+    refused. Meshes are triangulated once (fixed method) on a temporary copy; bake_receipt's triangles_sha256 must match. Writes
+    out_dir/<name>.fbx, Textures/, README.md, export.json (settings, content_sha256 with the timestamp zeroed, triangles_sha256,
+    read-back, material translation, losses) and ue_import.json (the only import settings the UE editor leg may use). hero
+    (default: the profile's export.precision) keeps UVs outside [0,1] and asks for high-precision tangents, UVs and weights. glTF
+    for a skinned asset is refused. An existing out_dir is refused. Free, no model."""
+    from .ue import export as _UEX
+    s_ = _settings()
+    if not out_dir:
+        raise ValueError("out_dir is required: export/<asset>/<tag> under the project root")
+    _p(out_dir, s_.project_root)                                          # refused outside the project root
+    return _UEX.run(type, object, armature, action, out_dir, _p(textures) if textures else None, _p(body) if body else None, frame_rate, hero,
+                    format, validation, bind_check, bake_receipt, _p(profile) if profile else None, str(s_.project_root), _bone_axis, allow_unverified)
+
+
 # ---- the door the agent's scripts use
 
 # Every @tool function, in definition order: derived, not listed by hand (a hand-kept list let 26 tools of Waves 2-4 be functions and Defs the agent could not run).
