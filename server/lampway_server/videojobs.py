@@ -55,6 +55,25 @@ def probe_video(path: str) -> dict:
         return {"duration": 0.0, "width": 0, "height": 0}
 
 
+def sniff(kind: str, data: bytes) -> str:
+    """The media type from the BYTES: never from a file name or the kind the caller claims."""
+    if kind == "image":
+        if data[:8] == b"\x89PNG\r\n\x1a\n":
+            return "image/png"
+        if data[:3] == b"\xff\xd8\xff":
+            return "image/jpeg"
+        if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+            return "image/webp"
+        if data[:6] in (b"GIF87a", b"GIF89a"):
+            return "image/gif"
+        raise ValueError("the upload is not an image: its bytes are not PNG, JPEG, WebP or GIF (the file name is not trusted)")
+    if data[4:8] == b"ftyp":
+        return "video/quicktime" if data[8:12] == b"qt  " else "video/mp4"
+    if data[:4] == b"\x1a\x45\xdf\xa3":
+        return "video/webm"
+    raise ValueError("the upload is not a video: its bytes are not an MP4/MOV or WebM container")
+
+
 class UploadStore:
     """The files the client stages for a job. A key is an unguessable token; nothing here is path-addressable from outside."""
 
@@ -67,13 +86,14 @@ class UploadStore:
             raise ValueError(f"unsupported media kind {kind!r}: image or video")
         if not data:
             raise ValueError("the upload is empty")
+        media_type = sniff(kind, data)
         if len(data) > (MAX_IMAGE_BYTES if kind == "image" else MAX_VIDEO_BYTES):
             raise ValueError(f"the {kind} is larger than the {(MAX_IMAGE_BYTES if kind == 'image' else MAX_VIDEO_BYTES) // 1_000_000} MB limit")
         key = f"{kind}-{secrets.token_urlsafe(18)}"
         self.root.mkdir(parents=True, exist_ok=True)
         path = self.root / key
         path.write_bytes(data)
-        out = {"s3_key": key, "size_bytes": len(data)}
+        out = {"s3_key": key, "size_bytes": len(data), "media_type": media_type}
         if kind == "video":
             info = self.probe(str(path))
             out.update(duration_seconds=info.get("duration") or 0.0, width=info.get("width"), height=info.get("height"))
