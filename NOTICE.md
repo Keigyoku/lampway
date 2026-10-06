@@ -111,14 +111,27 @@ against MB's own table and the canon golden R01 only.
 
 ## Third-party models (Asset Vault)
 
-The Asset Vault can run two open-weights models locally, on the CPU, through ONNX Runtime. No weights are committed to this repository: the user fetches them with one click (public files; nothing
-of theirs is sent) and each fetch writes a `PROVENANCE.json` (URL, sha256, byte count, and whether the hash was checked against a pinned value or pinned on first fetch). Until the weights are fetched
-and `onnxruntime` is installed, the Vault uses its deterministic descriptors instead.
+The Asset Vault runs three open-weights models locally, on the CPU, through ONNX Runtime. No weights are committed to this repository. The client build fetches them into the
+install (`scripts/lampway/fetch_models.py`, called by `scripts/lampway/build_linux.sh`), each file pinned to a repository commit and checked against the sha256 below; a
+`PROVENANCE.json` beside each model records what was fetched. An install without them can fetch them with one click (public files; nothing of the user's is sent). Until the
+weights and `onnxruntime` are both present, the Vault uses its deterministic descriptors instead. The pins live in `server/lampway_server/library/models.json`.
 
-| model id | role | licence | source |
-|---|---|---|---|
-| `clip-vit-b-32` | image embeddings (the CLIP ViT-B/32 image tower) | MIT | <https://github.com/openai/CLIP> |
-| `bge-small-en-v1.5` | text embeddings (CLS pooling) | MIT | <https://huggingface.co/BAAI/bge-small-en-v1.5> |
+| model id | role | licence | source | export (repository @ commit) |
+|---|---|---|---|---|
+| `clip-vit-b-32` | image embeddings (the CLIP ViT-B/32 image tower) | MIT (see below) | <https://github.com/openai/CLIP> | `Xenova/clip-vit-base-patch32` @ `d15189d7028b43f1d3e65039190477f6af591c2a` |
+| `clip-vit-b-32-text` | text queries into the same space as the image tower (CLIP's text tower) | MIT (see below) | <https://github.com/openai/CLIP> | `Xenova/clip-vit-base-patch32` @ `d15189d7028b43f1d3e65039190477f6af591c2a` |
+| `bge-small-en-v1.5` | text embeddings (CLS pooling) | MIT | <https://huggingface.co/BAAI/bge-small-en-v1.5> | `BAAI/bge-small-en-v1.5` @ `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a` |
 
-[UNVERIFIED]: the licences are stated from the model cards as remembered, the ONNX export locations in `server/lampway_server/library/localmodels.py` were not downloaded, and no checksum is pinned yet.
-Re-check the licence text of the exact files fetched before redistributing anything.
+| file | sha256 |
+|---|---|
+| `clip-vit-b-32/model.onnx` (onnx/vision_model.onnx, 351 685 709 bytes) | `fd6e1402a588279d1723c7534d4bcba5bc0b14b47dfab0e46f8c47b8270d7d40` |
+| `clip-vit-b-32-text/model.onnx` (onnx/text_model.onnx, 254 058 553 bytes) | `3f6571f5bad13a97c469c1622e1cfc4d9aef78b79fdbfcff804ca357bfada8cc` |
+| `clip-vit-b-32-text/vocab.json` | `5047b556ce86ccaf6aa22b3ffccfc52d391ea4accdab9c2f2407da5b742d4363` |
+| `clip-vit-b-32-text/merges.txt` | `9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a` |
+| `bge-small-en-v1.5/model.onnx` (onnx/model.onnx, 133 093 490 bytes) | `828e1496d7fabb79cfa4dcd84fa38625c0d3d21da474a00f08db0f559940cf35` |
+| `bge-small-en-v1.5/vocab.txt` | `07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3` |
+
+Licences, as read on 2026-10-05: `BAAI/bge-small-en-v1.5` carries `license: mit` in its model card and README. The `openai/CLIP` repository's `LICENSE` is the MIT License
+(Copyright (c) 2021 OpenAI); neither the `openai/clip-vit-base-patch32` nor the `Xenova/clip-vit-base-patch32` Hugging Face card carries a licence tag, so the MIT terms are
+taken from the upstream repository. [UNVERIFIED] that the repository's MIT text is meant to cover the released weights; OpenAI's CLIP model card describes the model as a
+research output. The three `.onnx` sha256 values equal the Hugging Face LFS object ids of the pinned commits.

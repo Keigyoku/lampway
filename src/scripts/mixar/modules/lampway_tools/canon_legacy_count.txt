@@ -1,2 +1,3 @@
-120
+123
 rebaseline 120 merge f5713e18 e16b9a3b: pre-door lane merged: 10 texture/list tools await the texture normalizer and the list door (lp/orphans merging lp/canon)
+rebaseline 123 merge ec0529b4 0ad57ab9: pre-door lane merged: lp/wave5's Asset Vault tools (asset_place, asset_catalog_export x2 registrations) await their owner's Need/NONE (lp/orphans merging lp/wave5)

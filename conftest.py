@@ -64,3 +64,38 @@ def _preload_real_optional_modules():
 
 
 _preload_real_optional_modules()
+
+
+# ---------------------------------------------------------------------------------------------------------- isolation
+# No test may read or write the person's real home (a relative test home once copied their real ~/.mixar into the repository). For the whole
+# session every home-shaped variable points inside the basetemp; each test starts with them there (tests/lampway/test_test_isolation.py).
+import os as _os  # noqa: E402
+
+import pytest as _pytest  # noqa: E402
+
+ISOLATED_VARS = {"HOME": "home", "XDG_CONFIG_HOME": "config", "XDG_DATA_HOME": "data", "XDG_STATE_HOME": "state", "XDG_CACHE_HOME": "cache",
+                 "LAMPWAY_HOME": "lampway", "LAMPWAY_LEGACY_HOME": "legacy-mixar", "LAMPWAY_TEST_ROOT": ".."}       # the test root is the whole basetemp
+
+
+@_pytest.fixture(scope="session", autouse=True)
+def _isolated_homes(tmp_path_factory):
+    base = tmp_path_factory.getbasetemp() / "isolated-home"
+    saved = {k: _os.environ.get(k) for k in ISOLATED_VARS}
+    for var, sub in ISOLATED_VARS.items():
+        d = (base / sub).resolve()
+        d.mkdir(parents=True, exist_ok=True)
+        _os.environ[var] = str(d)
+    yield base
+    for k, v in saved.items():
+        if v is None:
+            _os.environ.pop(k, None)
+        else:
+            _os.environ[k] = v
+
+
+@_pytest.fixture(autouse=True)
+def _homes_stay_inside_the_basetemp(_isolated_homes, tmp_path_factory):
+    base = str(tmp_path_factory.getbasetemp().resolve())
+    for var in ISOLATED_VARS:
+        real = _os.path.realpath(_os.environ.get(var, ""))
+        assert _os.path.commonpath([real, base]) == base, f"{var}={_os.environ.get(var)!r} points outside the test basetemp {base}"

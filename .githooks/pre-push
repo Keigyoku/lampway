@@ -15,4 +15,10 @@ while read local_ref local_sha remote_ref remote_sha; do
 done
 # media shipped in the tree (site folders, docs images)
 for d in docs; do [ -d "$d" ] && { python3 "$GATE" --media "$d" || exit 1; }; done
+# the agent rail, quick form: the tree's shape plus the commits no remote holds yet (CI runs the full check: history, worktree,
+# generated docs). A branch without the rail has no rail/rail.py and skips this.
+RAIL="$(git rev-parse --show-toplevel)/rail/rail.py"
+if [ -f "$RAIL" ]; then
+  python3 "$RAIL" check --quick || { echo "pre-push: blocked by the rail (see above; docs/rail.md says how to repair each code)." >&2; exit 1; }
+fi
 exit 0

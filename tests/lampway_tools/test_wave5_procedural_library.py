@@ -30,17 +30,21 @@ def one(r):
     return r.results[0]
 
 
-def test_seed_registers_twelve_materials_idempotently_and_the_count_equals_the_preset_table(tmp_path):
+def test_seed_registers_fifty_five_materials_from_twelve_templates_idempotently(tmp_path):
     d = one(go(tmp_path, '''
 a = lib(action="seed")
 b = lib(action="seed")
 lst = lib(action="list")
 from mixar.modules.lampway_tools.features import procedural_library as PL
 from mixar.modules.paint.procedural_materials import material_registry as MR
-print("RESULT", json.dumps({"a": a, "b": b, "n": len(lst["materials"]), "presets": len(PL.PRESETS), "registry": len(MR.get_all_materials()), "cats": sorted({m["category"] for m in lst["materials"]})}))
+print("RESULT", json.dumps({"a": a, "b": b, "n": len(lst["materials"]), "presets": len(PL.PRESETS), "registry": len(MR.get_all_materials()), "cats": sorted({m["category"] for m in lst["materials"]}),
+                            "templates": sorted({p["template"] for p in PL.PRESETS.values()}), "declared": sorted(PL.TEMPLATES),
+                            "by_cat": {c: sum(1 for p in PL.PRESETS.values() if p["category"] == c) for c in PL.CATEGORIES}}))
 '''))
-    assert d["a"]["ok"] and d["a"]["registered"] == 12 and d["b"]["registered"] == 0 and d["b"]["unchanged"] == 12
-    assert d["n"] == d["presets"] == d["registry"] == 12 and d["cats"] == ["cloth", "leather", "metal"]
+    assert d["a"]["ok"] and d["a"]["registered"] == 55 and d["b"]["registered"] == 0 and d["b"]["unchanged"] == 55
+    assert d["n"] == d["presets"] == d["registry"] == 55 and d["cats"] == ["cloth", "embroidery", "leather", "metal"]
+    assert d["by_cat"] == {"metal": 40, "leather": 5, "cloth": 6, "embroidery": 4}
+    assert len(d["declared"]) == 12 and d["templates"] == d["declared"]                               # every one of the 12 templates makes at least one material
 
 
 def test_every_preset_builds_one_group_with_one_shader_output_bounded_inputs_in_under_a_second(tmp_path):
@@ -49,7 +53,7 @@ lib(action="seed")
 res = lib(action="verify")
 print("RESULT", json.dumps(res))
 '''))
-    assert d["ok"] and len(d["materials"]) == 12 and d["broken"] == []
+    assert d["ok"] and len(d["materials"]) == 55 and d["broken"] == []
     for m in d["materials"]:
         assert m["shader_outputs"] == 1 and m["build_ms"] < 1000 and m["generator"].count("@") == 1, m
         names = {i["name"]: i for i in m["inputs"]}
@@ -63,18 +67,27 @@ def test_metals_are_metallic_and_in_their_hue_band_leather_and_cloth_are_not_met
     d = one(go(tmp_path, '''
 lib(action="seed")
 res = lib(action="verify", bake_stats=True)
-print("RESULT", json.dumps({m["material_id"]: {"metal": m["metallic_mean"], "rough": m["roughness_mean"], "hue": m["hue_deg"], "chroma": m["chroma"], "cat": m["category"], "val": m["value_mean"]} for m in res["materials"]}))
+print("RESULT", json.dumps({m["material_id"]: {"metal": m["metallic_mean"], "rough": m["roughness_mean"], "hue": m["hue_deg"], "chroma": m["chroma"], "cat": m["category"], "val": m["value_mean"], "rgb": m["base_color_mean"]} for m in res["materials"]}))
 '''))
+    exempt = ("rust_", "patina_heavy", "scaled", "verdigris")                                         # the contract's declared exemptions: corrosion is not metal
+    bands = {"gold_": (35, 55), "bronze_": (20, 35), "brass_": (40, 55), "copper_": (10, 25)}
     for mid, m in d.items():
         if m["cat"] == "metal":
-            floor = 0.3 if "patina" in mid else 0.85
+            floor = 0.3 if any(e in mid for e in exempt) or "patina" in mid else 0.85
             assert m["metal"] >= floor, (mid, m)
+            for prefix, (lo, hi) in bands.items():
+                if mid.startswith(prefix) and not any(e in mid for e in exempt) and "patina" not in mid:
+                    assert lo <= m["hue"] <= hi, (mid, m)
+            if mid.startswith(("silver_", "steel_", "tin", "pewter")) and mid != "steel_blued":
+                assert m["chroma"] < 0.10, (mid, m)
         else:
-            assert m["metal"] <= 0.05, (mid, m)
+            assert m["metal"] <= 0.05, (mid, m)                                                       # leather, cloth and embroidery are not metal
         assert 0.02 < m["val"] < 0.98, (mid, m)                                                       # not black, not white
-    assert 35 <= d["gold_polished"]["hue"] <= 55 and 20 <= d["bronze_polished"]["hue"] <= 40 and 35 <= d["brass_antique"]["hue"] <= 55
-    assert d["steel_battle_worn"]["chroma"] < 0.12 and d["iron_forged_dark"]["chroma"] < 0.12
-    assert d["leather_charcoal_glove"]["rough"] >= 0.45 and d["leather_oiled_brown"]["rough"] >= 0.45
+    rgb = d["copper_verdigris"]["rgb"]
+    assert rgb[1] + rgb[2] > rgb[0]
+    for mid, m in d.items():
+        if m["cat"] == "leather":
+            assert m["rough"] >= 0.45, (mid, m)
     assert d["cloth_cloak_crimson_heavy"]["hue"] < 20 or d["cloth_cloak_crimson_heavy"]["hue"] > 340
 
 
@@ -138,3 +151,15 @@ ok = lib(action="seed", upgrade=True)
 print("RESULT", json.dumps({"refused": refused, "ok": ok}))
 '''))
     assert d["refused"]["ok"] is False and "library manifest changed: bump library_version" in d["refused"]["error"] and d["ok"]["ok"]
+
+
+def test_the_probe_bakes_never_use_cycles(tmp_path):
+    """The captain's standing rule: no Cycles beside his live work. The stat bakes are emission readouts, which EEVEE renders exactly."""
+    d = one(go(tmp_path, '''
+engines = []
+bpy.app.handlers.render_pre.append(lambda sc, *a: engines.append(sc.render.engine))
+lib(action="seed")
+lib(action="bake", material_id="gold_polished")
+print("RESULT", json.dumps({"engines": sorted(set(engines))}))
+'''))
+    assert d["engines"] == ["BLENDER_EEVEE"]

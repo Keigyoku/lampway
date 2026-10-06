@@ -11,18 +11,19 @@ from mixar.config.brand import PRODUCT_NAME
 from ...core.theme_backgrounds import apply_forest_backgrounds
 
 
-class MIXAR_OT_apply_forest_theme(Operator):
-    bl_idname = "mixar.apply_forest_theme"
-    bl_label = f"Apply {PRODUCT_NAME} Forest"
-    bl_description = f"Apply {PRODUCT_NAME}'s charcoal and forest-green theme with default text styling"
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_confirm(self, event)
+class LAMPWAY_OT_apply_night_theme(Operator):
+    """Facelift F2: Night is the default theme and the only one offered here; this applies it to any profile."""
+    bl_idname = "lampway.apply_night_theme"
+    bl_label = f"Apply {PRODUCT_NAME} Night"
+    bl_description = f"Switch to {PRODUCT_NAME} Night, the default theme: night slate and lamplight"
 
     def execute(self, context):
-        bpy.ops.preferences.reset_default_theme()
-        apply_forest_backgrounds(context.preferences.themes[0], bpy.data.screens)
-        return {'FINISHED'}
+        from ...core.lampway_night import preset_path
+        path = preset_path(bpy.utils.preset_paths("interface_theme"))
+        if path is None:
+            self.report({'ERROR'}, "Lampway Night is not installed: reinstall Lampway to restore its themes")
+            return {'CANCELLED'}
+        return bpy.ops.script.execute_preset(filepath=path, menu_idname="USERPREF_MT_interface_theme_presets")
 
 
 class MIXAR_OT_apply_forest_backgrounds(Operator):
@@ -38,4 +39,4 @@ class MIXAR_OT_apply_forest_backgrounds(Operator):
         return {'FINISHED'}
 
 
-classes = (MIXAR_OT_apply_forest_theme, MIXAR_OT_apply_forest_backgrounds)
+classes = (LAMPWAY_OT_apply_night_theme, MIXAR_OT_apply_forest_backgrounds)

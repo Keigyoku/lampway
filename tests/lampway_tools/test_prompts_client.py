@@ -64,7 +64,7 @@ P = bpy.context.scene.lampway_tools
 
 
 def run(body, **kw):
-    return run_script(PRE + body, env={"LAMPWAY_HOME": tempfile.mkdtemp(prefix="lw_home_")}, **kw)
+    return run_script(PRE + body, env={"LAMPWAY_HOME": "@RUN_TMP@/home"}, **kw)
 
 
 def test_the_picker_lists_templates_and_loading_one_builds_the_form_from_the_schema():

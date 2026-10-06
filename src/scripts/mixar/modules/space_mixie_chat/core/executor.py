@@ -379,6 +379,12 @@ class ScriptExecutor(SceneStateMixin, HandlerCleanupMixin):
                 # the `import x.y` statement form was being rejected.
                 # NOT urllib.* — only the RestrictedUrllib wrapper may reach the network.
                 top_module = name.split(".")[0]
+                from .sandbox_modules import is_denied_module
+                fromlist_ = args[2] if len(args) > 2 else kwargs.get("fromlist")
+                if is_denied_module(name) or any(is_denied_module(f"{name}.{f}") for f in (fromlist_ or ()) if isinstance(f, str)):
+                    raise ImportError(
+                        f"Module '{name}' is not available in the sandbox: it holds the client's sign-in or performs the user's clicks."
+                    )
                 if top_module in ("mixar", "numpy", "mathutils", "bmesh", "bpy_extras"):
                     real = _real_import(name, *args, **kwargs)
                     # `import a.b` binds `a`, so handing back the real package

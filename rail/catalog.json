@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "baseline": "53d08bad0efa63fcfa0658ad9dfa0fcbb64263f2",
+  "baseline_reason": "adoption: the commit that brought the rail (53d08bad0efa, on lp/rail). It was itself judged clean against its parent 00d907d4 before the baseline was set to it. Only commits that descend from the baseline are judged, plus the worktree; work merged in from a branch that has not merged the rail is inherited and listed (inherited_pre_adoption), not judged. Moving this value is the captain's call and is recorded here with its reason and what it stops re-checking.",
+  "triggers": {
+    "rail/rail.py": {
+      "owner": "rail/skills/lampway-rail/SKILL.md"
+    },
+    "rail/railcore.py": {
+      "owner": "rail/skills/lampway-rail/SKILL.md"
+    },
+    "rail/anneal.py": {
+      "owner": "rail/skills/lampway-rail/SKILL.md"
+    },
+    "rail/selftest.py": {
+      "owner": "rail/skills/lampway-rail/SKILL.md"
+    },
+    ".github/workflows/rail.yml": {
+      "owner": "rail/skills/lampway-rail/SKILL.md"
+    },
+    "scripts/lampway/prepublish_gate.py": {
+      "owner": "rail/skills/lampway-release/SKILL.md"
+    },
+    ".githooks/pre-push": {
+      "owner": "rail/skills/lampway-release/SKILL.md"
+    },
+    ".github/workflows/pii-gate.yml": {
+      "owner": "rail/skills/lampway-release/SKILL.md"
+    },
+    ".github/workflows/reuse-lint.yml": {
+      "owner": "rail/skills/lampway-release/SKILL.md"
+    },
+    "scripts/lampway/build_linux.sh": {
+      "owner": "rail/skills/lampway-coding-guidelines/SKILL.md"
+    },
+    "scripts/lampway/sync_python.sh": {
+      "owner": "rail/skills/lampway-coding-guidelines/SKILL.md"
+    },
+    "scripts/lampway/lampway": {
+      "owner": "rail/skills/lampway-coding-guidelines/SKILL.md"
+    },
+    "pytest.ini": {
+      "owner": "rail/skills/lampway-coding-guidelines/SKILL.md"
+    },
+    "conftest.py": {
+      "owner": "rail/skills/lampway-coding-guidelines/SKILL.md"
+    }
+  },
+  "exemptions": []
+}

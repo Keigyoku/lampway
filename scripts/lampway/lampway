@@ -54,6 +54,8 @@ if [ -z "$BUILD_ENV" ]; then
 fi
 BINARY="$ROOT/build/$BUILD_ENV/bin/mixar"
 SERVER_URL="http://127.0.0.1:$PORT"
+# the Asset Vault's embedding weights, bundled by build_linux.sh into the install (never fetched at runtime)
+MODELS_DIR="$ROOT/build/$BUILD_ENV/bin/5.2/datafiles/lampway/models"
 
 if [ "$ACTION" = uninstall ]; then exec "$ROOT/scripts/unix/install_desktop_entry.sh" --uninstall; fi
 if [ "$ACTION" = install ]; then
@@ -70,6 +72,7 @@ if [ "$PLAN" = 1 ]; then
     echo "image_model: ${LAMPWAY_OPENROUTER_IMAGE_MODEL:-google/gemini-3.1-flash-image}"; echo "budget_usd: $BUDGET"
     echo "key_file: ${KEY_FILE:-none (OPENROUTER_API_KEY from the environment: $([ -n "${OPENROUTER_API_KEY:-}" ] && echo set || echo not set))}"
   fi
+  echo "models: $MODELS_DIR $([ -d "$MODELS_DIR" ] && echo '(bundled)' || echo '(absent: the Vault offers the one-click fetch)')"
   echo "home: $HOME_DIR"; echo "keyring: $([ $SYSTEM_KEYRING = 1 ] && echo system || echo file)"
   echo "server: $([ $NO_SERVER = 1 ] && echo none || echo started-and-stopped-by-this-command)"; echo "blend: ${BLEND:-none}${BLEND:+ $([ $COPY = 1 ] && echo '(copy)' || echo '(opened directly)')}"
   exit 0
@@ -115,6 +118,7 @@ if [ "$NO_SERVER" = 0 ]; then
       PY="${LAMPWAY_SERVER_PYTHON:-}"; [ -z "$PY" ] && [ -x "$ROOT/server/.venv/bin/python" ] && PY="$ROOT/server/.venv/bin/python"; PY="${PY:-python3}"
       SERVER_CMD="$PY -m lampway_server"
     fi
+    [ -d "$MODELS_DIR" ] && export LAMPWAY_MODELS_DIR="$MODELS_DIR"
     LAMPWAY_HOST=127.0.0.1 LAMPWAY_PORT="$PORT" LAMPWAY_PROVIDER="$PROVIDER" LAMPWAY_STATE_DIR="$HOME_DIR/server-state" LAMPWAY_BLENDER="${LAMPWAY_BLENDER:-$BINARY}" \
       LAMPWAY_PROJECT_ROOT="$HOME_DIR/projects" PYTHONPATH="$ROOT/server${PYTHONPATH:+:$PYTHONPATH}" \
       $SERVER_CMD > "$HOME_DIR/server.log" 2>&1 &

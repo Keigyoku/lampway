@@ -554,6 +554,13 @@ def register():
         # 3. Initialize theme defaults
         _initialize_theme_defaults()
 
+        # 3b. Offer Lampway Night once to a profile that kept its own theme (facelift F2)
+        try:
+            from mixar.modules.common.core.lampway_night import schedule_offer
+            schedule_offer(bpy)
+        except Exception as e:
+            logger.warning("Lampway Night offer not scheduled: %s", e)
+
         # 4. Start API background infrastructure
         try:
             from mixar.modules.common.api import start_executor, start_api_processor

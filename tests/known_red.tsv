@@ -1,0 +1,144 @@
+# The integration's known-red tests: the failures present at a recorded point, each with a class and a one-line reason.
+# scripts/lampway/test_all.py fails a run on ANY failure not listed here, and on any listed test that now passes (the list only shrinks:
+# remove the line, or run test_all.py --shrink-baseline). Classes: env (the test environment lacks something: a package, a display, a box),
+# inherited (already failing in the pre-session baseline of the fork, scratch/full_base.out), stale (names a file or behaviour this tree
+# does not have), broken (a real defect: a fix request), unknown (not triaged yet). Recorded 2026-10-06 at lp/wave5 80ca6de3.
+# id	class	reason
+src/scripts/mixar/modules/space_mixie_chat/tests/test_delivery_identity.py::test_only_interjections_display_queued[IDLE-False-]	inherited	failing in the pre-session baseline; AttributeError: 'types.SimpleNamespace' object has no attribute 'get'
+src/scripts/mixar/modules/space_mixie_chat/tests/test_delivery_identity.py::test_only_interjections_display_queued[IDLE-True-]	inherited	failing in the pre-session baseline; AttributeError: 'types.SimpleNamespace' object has no attribute 'get'
+src/scripts/mixar/modules/space_mixie_chat/tests/test_export_verify.py::test_export_package_clears_only_its_own_previous_files	stale	failing since lp/wave4 at least (measured) beside its sibling, which pins the upstream name 'Mixar export_package' the rebrand changed; AssertionError: assert 0 == 1
+src/scripts/mixar/modules/space_mixie_chat/tests/test_export_verify.py::test_export_package_signature_and_isolation	stale	pins the upstream name 'Mixar export_package' that the rebrand changed (failing since lp/wave4 at least); AssertionError: assert 'Lampway export_package' == 'Mixar export_package'
+src/scripts/mixar/modules/space_mixie_chat/tests/test_main_thread_routing.py::test_a_timer_tick_without_a_context_window_borrows_the_first_window	inherited	failing in the pre-session baseline; AssertionError: assert ((None, False,...ssion sess-a') == (namespace(na...), True, None)
+src/scripts/mixar/modules/space_mixie_chat/tests/test_main_thread_routing.py::test_no_switch_when_the_window_already_shows_the_target	inherited	failing in the pre-session baseline; AssertionError: assert (None, False,...ssion sess-b') == (namespace(na..., False, None)
+src/scripts/mixar/modules/space_mixie_chat/tests/test_main_thread_routing.py::test_no_window_at_all_refuses_rather_than_running_in_the_wrong_scene	inherited	failing in the pre-session baseline; AssertionError: assert (None is None and 'no window to pin' in 'no scene for session sess-a')
+src/scripts/mixar/modules/space_mixie_chat/tests/test_main_thread_routing.py::test_pin_runs_in_the_sessions_scene_and_restores_the_scene_the_user_viewed	inherited	failing in the pre-session baseline; no message captured
+src/scripts/mixar/modules/space_mixie_chat/tests/test_main_thread_routing.py::test_restore_never_lands_on_a_lane_scene	inherited	failing in the pre-session baseline; AssertionError: assert (namespace(name='Workspace_x', mixie_session_id='agentlane:abc', mixie_chat_state='IDLE', mixie_chat_is_busy=False, mix...ode='AGENT', mixie_chat_cat_activit
+src/scripts/mixar/modules/space_mixie_chat/tests/test_main_thread_routing.py::test_unknown_and_ambiguous_sessions_are_rejected	inherited	failing in the pre-session baseline; AssertionError: assert ('matches 2 scenes' in 'no scene for session sess-a')
+src/scripts/mixar/modules/space_mixie_chat/tests/test_main_thread_routing.py::test_unpinned_scripts_follow_and_track_the_users_scene	inherited	failing in the pre-session baseline; AssertionError: assert '' == 'B'
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_identity.py::test_a_script_made_scene_is_adopted_while_connected	inherited	failing in the pre-session baseline; AssertionError: assert [] == ['Classroom']
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_identity.py::test_depsgraph_hook_only_scans_when_the_scene_count_grows	inherited	failing in the pre-session baseline; assert ([] == []
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_identity.py::test_the_bound_scene_wins_over_the_shorter_name	inherited	failing in the pre-session baseline; AssertionError: assert [] == ['Kitchen']
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_identity.py::test_the_copy_is_detached_and_the_original_kept	inherited	failing in the pre-session baseline; AssertionError: assert [] == ['Kitchen.001']
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_identity.py::test_the_growth_timer_also_adopts	inherited	failing in the pre-session baseline; AssertionError: assert 'OFFLINE' == 'IDLE'
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_batch_close_moves_windows_straight_to_the_survivor	inherited	failing in the pre-session baseline; AssertionError: assert (0, 'Invalid scene selection') == (2, '')
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_batch_delete_all_creates_replacement_and_uses_close_cleanup	inherited	failing in the pre-session baseline; AssertionError: assert (0, 'Invalid scene selection') == (2, '')
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_batch_preflight_refuses_offline_running_tab_before_deleting_any	inherited	failing in the pre-session baseline; AssertionError: assert (_TabScene(name='Scene', mixie_session_id='sess-a', mixie_chat_state='IDLE', mixie_chat_is_busy=False, mixie_run_open=F...xie_chat_cat_activity_until='', mix
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_batch_subset_leaves_unselected_scene_and_reports_partial_failure	inherited	failing in the pre-session baseline; AssertionError: assert (0, 'Invalid scene selection') == (1, 'Cannot remove')
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_batch_uses_identity_after_rename_and_refuses_missing	inherited	failing in the pre-session baseline; AssertionError: assert ([], 'Invalid...ne selection') == ([<MagicMock ...468400'>], '')
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_close_of_a_background_tab_leaves_the_shown_tab_alone	inherited	failing in the pre-session baseline; AssertionError: assert (False, 'Keep...e scene open') == (True, '')
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_close_of_a_running_tab_is_refused_offline	inherited	failing in the pre-session baseline; AssertionError: assert (False is False and 'Reconnect' in 'Keep at least one scene open')
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_close_stops_a_running_tab_then_removes_it	inherited	failing in the pre-session baseline; AssertionError: assert (False, 'Keep...e scene open') == (True, '')
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_manual_rename_keeps_identity_chat_and_order	inherited	failing in the pre-session baseline; AssertionError: assert [] == [_TabScene(na...14005468400'>]
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_new_tab_is_empty_connected_and_shown_in_every_window	inherited	failing in the pre-session baseline; AssertionError: assert <MagicMock name='mock.data.scenes.new()' id='139814005468400'> is None
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_reorder_moves_a_tab_and_new_tabs_take_the_last_slot	inherited	failing in the pre-session baseline; AssertionError: assert [] == ['Scene', 'B', 'C']
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tab_ops.py::test_switch_moves_every_window_and_refuses_lanes	inherited	failing in the pre-session baseline; assert False
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tabs_mirror.py::test_add_switch_rename_and_remove_refresh_immediately	inherited	failing in the pre-session baseline; assert 0 == 2
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tabs_mirror.py::test_empty_mirror_after_file_load_repopulates	inherited	failing in the pre-session baseline; assert 0 == 1
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tabs_mirror.py::test_finished_attention_clears_when_scene_shown	inherited	failing in the pre-session baseline; StopIteration
+src/scripts/mixar/modules/space_mixie_chat/tests/test_scene_tabs_mirror.py::test_unchanged_refresh_does_not_rebuild_rna	inherited	failing in the pre-session baseline; assert 0 == 1
+src/scripts/mixar/modules/space_mixie_chat/tests/test_turn_resume.py::test_abandoned_turn_is_offered	inherited	failing in the pre-session baseline; AssertionError: assert False
+src/scripts/mixar/modules/space_mixie_chat/tests/test_turn_resume.py::test_running_turn_is_offered	inherited	failing in the pre-session baseline; AssertionError: assert False
+src/scripts/mixar/modules/space_mixie_chat/tests/test_turn_resume.py::test_status_absent_falls_back_to_the_active_bit	inherited	failing in the pre-session baseline; AssertionError: assert False
+src/scripts/mixar/modules/space_mixie_chat/tests/test_turn_resume.py::test_status_hit_prompts_on_main_thread	inherited	failing in the pre-session baseline; assert 0 == 1
+tests/agent_panel/test_todo_slot_wiring.py::TestMirrorRunsAgainstTheRealSlot::test_a_fan_out_on_the_slot_opens_the_panel	inherited	failing in the pre-session baseline; no message captured
+tests/glass/test_glass_sections.py::TestEverySurfaceThatReachesThePainterIsOnTheRegister::test_each_registered_file_paints_the_role_the_register_names	inherited	failing in the pre-session baseline; no message captured
+tests/glass/test_glass_sections.py::TestEverySurfaceThatReachesThePainterIsOnTheRegister::test_every_file_that_reaches_the_painter_is_registered	inherited	failing in the pre-session baseline; no message captured
+tests/mcp/test_client_presentation.py	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ImportError: cannot import name 'Client' from 'mcp' (unknown location)
+tests/mcp/test_projects.py::test_schema_and_connector_treat_open_as_a_rebinding_local_tool	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ModuleNotFoundError: No module named 'jsonschema'
+tests/mcp/test_scene_tabs.py::test_scene_tools_are_local_free_and_validated	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ModuleNotFoundError: No module named 'jsonschema'
+tests/mcp/test_stdio_catalog.py	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ImportError: cannot import name 'Client' from 'mcp' (unknown location)
+tests/mcp/test_tool_availability.py	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ImportError: cannot import name 'Client' from 'mcp' (unknown location)
+tests/mcp/test_ui_control_opt_in.py	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ImportError: cannot import name 'Client' from 'mcp' (unknown location)
+tests/mcp/test_ui_receipt_startup.py::test_service_waits_for_receipts_and_registers_blender_only_on_main_thread	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); collection error
+tests/mcp/test_ui_receipts.py::test_nonfinite_wait_cannot_disable_the_request_deadline[-inf]	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ModuleNotFoundError: No module named 'jsonschema'
+tests/mcp/test_ui_receipts.py::test_nonfinite_wait_cannot_disable_the_request_deadline[inf]	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ModuleNotFoundError: No module named 'jsonschema'
+tests/mcp/test_ui_receipts.py::test_nonfinite_wait_cannot_disable_the_request_deadline[nan]	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ModuleNotFoundError: No module named 'jsonschema'
+tests/mcp/test_ui_receipts.py::test_text_rejects_embedded_control_bytes_before_any_input	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ModuleNotFoundError: No module named 'jsonschema'
+tests/mcp/test_ui_receipts.py::test_ui_arguments_cannot_smuggle_execution_or_unbounded_gestures[args0]	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ModuleNotFoundError: No module named 'jsonschema'
+tests/mcp/test_ui_receipts.py::test_ui_arguments_cannot_smuggle_execution_or_unbounded_gestures[args1]	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ModuleNotFoundError: No module named 'jsonschema'
+tests/mcp/test_ui_receipts.py::test_ui_arguments_cannot_smuggle_execution_or_unbounded_gestures[args2]	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ModuleNotFoundError: No module named 'jsonschema'
+tests/mcp/test_ui_receipts.py::test_ui_arguments_cannot_smuggle_execution_or_unbounded_gestures[args3]	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ModuleNotFoundError: No module named 'jsonschema'
+tests/mcp/test_ui_stdio.py	env	the test venv has no jsonschema / mcp package (the MCP UI tests import them); ImportError: cannot import name 'ClientSession' from 'mcp' (unknown location)
+tests/moodboard/test_moodboard_drawer.py::test_the_drawer_tab_uses_shared_palette_and_hit_geometry	inherited	failing in the pre-session baseline; AssertionError: assert 'MIXAR_THEME_LOAD(outer_green, CinemaPillOnB)' in '/* SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited\n *\n * SPDX-License-Identifier: GPL-3
+tests/network/test_network_enterprise_wiring.py::test_enterprise_doc_lists_every_surface	inherited	failing in the pre-session baseline; FileNotFoundError: [Errno 2] No such file or directory: 'docs/enterprise-network.md'
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ab]	inherited	failing in the pre-session baseline; AssertionError: ab
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ar]	inherited	failing in the pre-session baseline; AssertionError: ar
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[be]	inherited	failing in the pre-session baseline; AssertionError: be
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[bg_BG]	inherited	failing in the pre-session baseline; AssertionError: bg_BG
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ca_AD]	inherited	failing in the pre-session baseline; AssertionError: ca_AD
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[cs_CZ]	inherited	failing in the pre-session baseline; AssertionError: cs_CZ
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[da]	inherited	failing in the pre-session baseline; AssertionError: da
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[de]	inherited	failing in the pre-session baseline; AssertionError: de
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[el_GR]	inherited	failing in the pre-session baseline; AssertionError: el_GR
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[en]	inherited	failing in the pre-session baseline; AssertionError: en
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[en_GB]	inherited	failing in the pre-session baseline; AssertionError: en_GB
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[eo]	inherited	failing in the pre-session baseline; AssertionError: eo
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[es]	inherited	failing in the pre-session baseline; AssertionError: es
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[eu_EU]	inherited	failing in the pre-session baseline; AssertionError: eu_EU
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[fa_IR]	inherited	failing in the pre-session baseline; AssertionError: fa_IR
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[fi_FI]	inherited	failing in the pre-session baseline; AssertionError: fi_FI
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[fr]	inherited	failing in the pre-session baseline; AssertionError: fr
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[he_IL]	inherited	failing in the pre-session baseline; AssertionError: he_IL
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[hi_IN]	inherited	failing in the pre-session baseline; AssertionError: hi_IN
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[hr]	inherited	failing in the pre-session baseline; AssertionError: hr
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[hu_HU]	inherited	failing in the pre-session baseline; AssertionError: hu_HU
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[id_ID]	inherited	failing in the pre-session baseline; AssertionError: id_ID
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[it]	inherited	failing in the pre-session baseline; AssertionError: it
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ja]	inherited	failing in the pre-session baseline; AssertionError: ja
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ka]	inherited	failing in the pre-session baseline; AssertionError: ka
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ko]	inherited	failing in the pre-session baseline; AssertionError: ko
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ky_KG]	inherited	failing in the pre-session baseline; AssertionError: ky_KG
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[lt]	inherited	failing in the pre-session baseline; AssertionError: lt
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ml]	inherited	failing in the pre-session baseline; AssertionError: ml
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[nb]	inherited	failing in the pre-session baseline; AssertionError: nb
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[nl_NL]	inherited	failing in the pre-session baseline; AssertionError: nl_NL
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[pl_PL]	inherited	failing in the pre-session baseline; AssertionError: pl_PL
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[pt]	inherited	failing in the pre-session baseline; AssertionError: pt
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[pt_BR]	inherited	failing in the pre-session baseline; AssertionError: pt_BR
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ro_RO]	inherited	failing in the pre-session baseline; AssertionError: ro_RO
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ru_RU]	inherited	failing in the pre-session baseline; AssertionError: ru_RU
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sk_SK]	inherited	failing in the pre-session baseline; AssertionError: sk_SK
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sl]	inherited	failing in the pre-session baseline; AssertionError: sl
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sr_RS@latin]	inherited	failing in the pre-session baseline; AssertionError: sr_RS@latin
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sr_RS]	inherited	failing in the pre-session baseline; AssertionError: sr_RS
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sv_SE]	inherited	failing in the pre-session baseline; AssertionError: sv_SE
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sw]	inherited	failing in the pre-session baseline; AssertionError: sw
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ta]	inherited	failing in the pre-session baseline; AssertionError: ta
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[th_TH]	inherited	failing in the pre-session baseline; AssertionError: th_TH
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[tr_TR]	inherited	failing in the pre-session baseline; AssertionError: tr_TR
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[uk_UA]	inherited	failing in the pre-session baseline; AssertionError: uk_UA
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ur]	inherited	failing in the pre-session baseline; AssertionError: ur
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[vi_VN]	inherited	failing in the pre-session baseline; AssertionError: vi_VN
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[zh]	inherited	failing in the pre-session baseline; AssertionError: zh
+tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[zh_HANT]	inherited	failing in the pre-session baseline; AssertionError: zh_HANT
+tests/onboarding/test_unified_language.py::test_new_tracks_share_english_cues_and_do_not_bridge_interactive_pauses	inherited	failing in the pre-session baseline; AttributeError: 'NoneType' object has no attribute 'cues'
+tests/onboarding/test_unified_language.py::test_rtl_assets_are_shaped_but_translator_sources_are_logical	inherited	failing in the pre-session baseline; AttributeError: 'NoneType' object has no attribute 'cues'
+tests/test_agent_bubble_window_shape.py::TestIslandWindowTranslucency::test_chat_and_pill_share_the_neutral_native_wash	inherited	failing in the pre-session baseline; no message captured
+tests/test_agent_feedback_ui.py::test_feedback_cpp_is_split_into_bounded_translation_units	inherited	failing in the pre-session baseline; AssertionError: assert 529 <= 500
+tests/test_agent_job_context.py::test_matgen_forwards_context_captured_at_construction	inherited	failing in the pre-session baseline; AttributeError: <module 'mixar.modules.paint.procedural_materials.matgen_queue' from 'src/scripts/mixar/modules/paint/procedural_materials/mat
+tests/test_agent_scene_cost.py::test_a_probe_failure_never_changes_the_outcome	inherited	failing in the pre-session baseline; assert False is True
+tests/test_agent_scene_cost.py::test_the_pump_measures_an_effectful_script	inherited	failing in the pre-session baseline; KeyError: 'scene_cost'
+tests/test_cat_activity_events.py::test_activity_result_joins_the_row_the_script_opened	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_content_and_completion_in_one_batch_keep_only_finishing_reaction	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_expired_or_clock_shifted_response_cannot_survive_idle[-1.0]	inherited	failing in the pre-session baseline; ModuleNotFoundError: No module named 'jsonschema'
+tests/test_cat_activity_events.py::test_expired_or_clock_shifted_response_cannot_survive_idle[1.0]	inherited	failing in the pre-session baseline; ModuleNotFoundError: No module named 'jsonschema'
+tests/test_cat_activity_events.py::test_history_content_while_idle_does_not_reanimate_cat	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_internal_or_unmatched_steps_do_not_emit_reactions	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_new_content_and_reasoning_override_completed_tool	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_new_turn_and_cleared_session_do_not_inherit_response	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_script_row_joins_the_bubble_its_activity_opened	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_synchronous_step_start_and_end_leave_readable_activity[execute_bpy_script-WORKING]	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_synchronous_step_start_and_end_leave_readable_activity[get_scene-READING]	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_waiting_and_connectivity_clear_pulse_and_reject_late_tool[SessionState.AWAITING_INPUT]	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_waiting_and_connectivity_clear_pulse_and_reject_late_tool[SessionState.CONNECTING]	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_waiting_and_connectivity_clear_pulse_and_reject_late_tool[SessionState.MODIFYING]	inherited	failing in the pre-session baseline; no message captured
+tests/test_cat_activity_events.py::test_waiting_and_connectivity_clear_pulse_and_reject_late_tool[SessionState.OFFLINE]	inherited	failing in the pre-session baseline; no message captured
+tests/test_cinema_surface_fixes.py::test_the_stage_spans_the_columns_and_hosts_the_gizmos	inherited	failing in the pre-session baseline; AssertionError: assert 'CinemaBrandTop' in '/* SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited\n *\n * SPDX-License-Identifier: GPL-3.0-or-later...lready driving. 
+tests/test_parked_resume.py::test_ask_fires_only_first_auto_eligible_once	inherited	failing in the pre-session baseline; AssertionError: assert [('Scene Two'...ne Three', 1)] == [('Scene Two', 2)]
+tests/test_render_device.py::test_the_contract_documents_the_device_rule_and_the_final_cap	inherited	failing in the pre-session baseline; FileNotFoundError: [Errno 2] No such file or directory: 'docs/render-job-contract.md'
+tests/test_render_job_guard.py::test_contract_doc_exists_and_is_linked	inherited	failing in the pre-session baseline; AssertionError: assert False
+tests/test_sketch_theme_color.py::test_untouched_brush_follows_live_theme_but_explicit_choice_survives	inherited	failing in the pre-session baseline; assert (0.4117647058...17647059, 1.0) == (0.2, 0.4, 0.6, 1)
+tests/test_terrain_asset_prefetch.py::test_queued_terrain_warms_the_same_cache_without_main_thread_network	stale	expects an S3 asset host the hardening removed from the sandbox's asset hosts (loopback only; failing since lp/wave4 at least); assert False
+tests/test_terrain_asset_prefetch.py::test_terrain_transport_failure_is_refused	stale	expects an S3 asset host the hardening removed from the sandbox's asset hosts (loopback only; failing since lp/wave4 at least); PermissionError: urllib.urlopen: host 'bucket.s3.amazonaws.com' is not allowed (asset hosts only: 127.0.0.1, localhost)
+tests/test_update_packaging_paths.py::test_macos_dmg_bundle_name_has_no_version	inherited	failing in the pre-session baseline; FileNotFoundError: [Errno 2] No such file or directory: 'scripts/unix/package.sh'
+tests/test_zen_motion.py::test_qa_capture_preserves_hover_and_avoids_stale_frontbuffer	inherited	failing in the pre-session baseline; ValueError: substring not found

@@ -27,6 +27,7 @@ from typing import Awaitable, Callable, Optional
 
 from ..brand import AGENT_COLLECTION
 from . import lampway_tools as lt
+from . import vault_tools
 from .harness import Harness, HarnessError, export_script, import_script, reset_script, stage_script
 from .providers.base import Message, ModelRequest, Text, ToolCall, ToolSpec
 from .tools import RUN_BLENDER_PYTHON, SCENE_SUMMARY, TOOLS, UnknownTool, format_tool_result, script_for
@@ -141,7 +142,7 @@ RunScript = Callable[..., Awaitable[dict]]
 
 def worker_tools() -> list:
     """The worker's tools: Blender work and the Lampway tools; never the swarm itself and never anything that runs on the server."""
-    keep = {RUN_BLENDER_PYTHON, SCENE_SUMMARY} | {s.name for s in lt.SPECS}
+    keep = {RUN_BLENDER_PYTHON, SCENE_SUMMARY} | {s.name for s in lt.SPECS} | {n for n in vault_tools.NAMES if vault_tools.AUTHORITY[n] in vault_tools.GRANTS["worker"]}
     return [t for t in TOOLS if t.name in keep]
 
 
@@ -173,6 +174,7 @@ class SwarmManager:
         self.script_timeout_s = script_timeout_s
         self.swarms: dict[str, Swarm] = {}
         self._harness: dict = {}                      # parent socket -> Harness
+        self.library = None                           # the Asset Vault (set by the hub)
         self._seq = 0
 
     def harness_for(self, socket) -> Harness:
@@ -451,6 +453,8 @@ class SwarmManager:
                 worker.created.append(name)
 
     async def _worker_tool(self, swarm: Swarm, worker: Worker, ctx: SwarmContext, call: ToolCall) -> tuple[str, bool]:
+        if call.name in vault_tools.NAMES:                         # the Vault runs on the server, attributed to this worker
+            return await vault_tools.call(self.library, call.name, call.arguments, {"origin": "worker", "agent_id": worker.id})
         try:
             script = script_for(call.name, call.arguments)
         except UnknownTool as exc:

@@ -59,7 +59,7 @@ class WM_MT_splash_quick_setup(Menu):
         sub = col.column(heading="Theme")
         label = bpy.types.USERPREF_MT_interface_theme_presets.bl_label
         if label == "Presets":
-            label = "Blender Dark"
+            label = "Lampway Night"  # the compiled default theme (facelift contract 01)
         sub.menu("USERPREF_MT_interface_theme_presets", text=label)
 
         col.separator()

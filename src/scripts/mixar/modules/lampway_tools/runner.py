@@ -88,6 +88,7 @@ TOOLS = dict([
     _t("gen_parts_table", "numpy", "libwiki/gen_parts_table.py", "write a part set's table and held notes into the mesh wiki's entity spec from the exported files", NONE("reads the exported SET and part.json files: no geometry")),
     _t("index_delta", "numpy", "texlib/index_delta.py", "a texture library's next INDEX as a delta against a baseline listing (added, changed, removed; never overwritten)", NONE("compares two library listings: no asset")),
     _t("libwiki", "numpy", "libwiki/libwiki.py", "publish a library inventory as an LLM wiki: build, lint, drift (deterministic; pages generated, never hand-edited)", NONE("reads a library listing (paths, sizes, sha256): no asset")),
+    _t("asset_catalog_export", "blender", "library/catalog_export.py", "write Asset Vault assets into a Blender asset library .blend, marked with their catalogues", LEGACY("pre-door lane merged (lp/wave5 at the orphans merge): the Asset Vault tool awaits its owner's Need/NONE")),
 ])
 
 _NOISE = re.compile(r"\[INFO\]|\[WARNING\]|\[agent_bubble\]|empty keymap|^register_class\(|^Info: Registering|^Warning: '.*' does not contain"
