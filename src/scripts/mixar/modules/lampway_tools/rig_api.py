@@ -7,7 +7,7 @@ as it does orphans_api. The rig front door (inspect, map, normalize) accepts a r
 (no other skeleton normalizer exists), and every one after rig_inspect requires its stamp."""
 
 from .api import _p, _settings, tool  # noqa: F401  (api is mid-import here: these names are already bound)
-from .canon_door import Need
+from .canon_door import NONE, Need
 
 __all__ = []
 ALL = ("real", "generator_normalised", "unknown")
@@ -54,3 +54,24 @@ def rig_readback(fbx, reference):
     armature at the bind_mismatch bars (0.01 cm, 0.01 deg, 1e-4 scale); PASS or FAIL with the rows over tolerance."""
     from .features import rig_tools as _RT
     return _RT.readback(fbx, reference, str(_settings().project_root))
+
+
+@_export
+@tool(consumes=RIG_RAW)
+def rig_convert(verb, input="", profile="", target_profile="", rules="", target="", out="", armature="", action="", duration="", name="",
+                basis=None, centimeters_per_unit=100.0, channels=None):
+    """The external rig-conversion and normalization tool (O36, canon 22): profile (an inspected armature -> titan.animation-profile/1) |
+    extract (an action -> native samples on the 30 fps rational schedule) | normalize | adapt | retarget | compare | verify (the A1 bars).
+    Every output is an immutable publication with a receipt; the wire ids are a stable contract shared with TITAN."""
+    from .features import rig_convert_tool as _RC, rig_tools as _RT
+    return _RC.convert(verb, str(_settings().project_root), input, profile, target_profile, rules, target, out, armature, action, duration, name,
+                       basis, centimeters_per_unit, channels, inspected=_RT._inspected)
+
+
+@_export
+@tool(consumes=NONE("reads canonical JSON documents (meshes, joints, weights, poses) by path: no scene asset"))
+def rig_skin(verb, input, out, space="", joints="", weights="", pose="", joint_map="", geometry_only=False):
+    """WIP skin and morph (canon 22 B.10 and canon 07 DRAFT): mesh_normalize | mesh_adapt (unrigged mesh with morphs, canonical cm) | capture
+    (canonical mesh + global binds + named weights) | rebind | evaluate (P * inverse(B)). Receipts and refusals carry the WIP badge."""
+    from .features import rig_convert_tool as _RC
+    return _RC.skin(verb, str(_settings().project_root), input, space, joints, weights, pose, joint_map, out, geometry_only)

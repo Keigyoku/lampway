@@ -10,7 +10,7 @@ from lampway_server.agent import tools as T
 from lampway_server.mcp import offered_tools
 
 API = Path(__file__).resolve().parents[2] / "src/scripts/mixar/modules/lampway_tools/rig_api.py"
-EXPECTED = ("lampway_rig_inspect", "lampway_rig_map", "lampway_rig_normalize", "lampway_rig_readback")
+EXPECTED = ("lampway_rig_inspect", "lampway_rig_map", "lampway_rig_normalize", "lampway_rig_readback", "lampway_rig_convert", "lampway_rig_skin")
 
 
 def _client_functions() -> dict:
@@ -30,3 +30,4 @@ def test_every_rig_tool_is_registered_offered_and_names_its_client_function():
         assert {p.name for p in d.params} <= fns[d.api], (d.name, {p.name for p in d.params} - fns[d.api])
         if d.wip:
             assert "WIP" in d.description, d.name
+    assert LT.BY_NAME["lampway_rig_skin"].wip is True and LT.BY_NAME["lampway_rig_convert"].wip is False

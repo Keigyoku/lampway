@@ -41,4 +41,37 @@ RIG_DEFS = [
         "by name. The imported objects are removed afterwards; the reference is not touched." + _PATHS,
         [P("fbx", required=True, desc="the exported FBX under the project root"), P("reference", required=True, desc="the reference armature object")],
         api="rig_readback"),
+    Def("lampway_rig_convert", "The external rig-conversion and normalization tool (O36, canon 22; the game reads only its output). verb profile: an "
+        "armature rig_inspect read -> a COMPLETE native profile (titan.animation-profile/1: every bone's bind and reference, the adapter basis, cm "
+        "per unit; the to-blender adapter reflects Blender's right-handed frame across Y, metres = 100 cm per unit, the UE5 Manny's basis unless "
+        "basis is given; the armature object stands as the root when the root bone is off the origin; rules = authored alignment {bone, toward, "
+        "direction} for the T reference, else the bind). verb extract: an action -> native samples on the 30 fps rational schedule plus the exact "
+        "terminal time (duration in seconds). verb normalize: native samples (or a canonical packet, validated idempotently) + profile -> the "
+        "canonical packet titan.animation/1 (q_c = b q q_ref^-1 b^-1, t_c = units * rotate(b, t)). adapt: canonical -> native, onto the ORIGINAL "
+        "profile only. retarget: canonical + target_profile + rules {map (one-to-one, every source bone), reference_follow (every other target "
+        "bone), translation_scales, anchors} -> canonical on the target. compare (input vs target): the worst translation, rotation, scale. verify: "
+        "a native emission (target) against the canonical packet (input) + profile at the A1 bars (0.1 cm, 0.1 deg, 1e-5 scale), both hashes, the "
+        "bones over the bars. Every output is an immutable publication with <out>.receipt.json (input, profile, rules, output sha256, the owner "
+        "modules' sha256); an identical repeat keeps the bytes, a different existing output is refused. Refused: an incomplete or non-rebuilding "
+        "profile, a non-uniform scale, a schedule that is not 30 fps rational + terminal, an incomplete retarget map, a roster mismatch. The wire ids "
+        "(titan.animation/1 ...) are a stable contract shared with TITAN: never renamed." + _PATHS,
+        [P("verb", required=True, desc="profile | extract | normalize | adapt | retarget | compare | verify"), P("input", desc="a packet file"),
+         P("profile", desc="profile.json"), P("target_profile", desc="retarget: the target profile.json"), P("rules", desc="retarget rules or profile alignment rules"),
+         P("target", desc="compare / verify: the second sample file"), P("out", desc="the published output"), P("armature", desc="profile / extract"),
+         P("action", desc="extract: the action"), P("duration", desc="extract: seconds, a decimal or rational"), P("name", desc="profile: its name"),
+         P("basis", "array", "profile: the adapter basis quaternion xyzw (default the UE5 Manny's)"), P("centimeters_per_unit", "number", "profile: default 100 (metres)"),
+         P("channels", "object", "extract: notifies, curves, root motion flags carried as data")],
+        api="rig_convert"),
+    Def("lampway_rig_skin", "WIP: skin and morph tooling (canon 22 B.10 and canon 07 are DRAFT; the TITAN crews dogfood and improve it through "
+        "Lampway). verb mesh_normalize: an unrigged mesh document {meshes: [{name, verts, faces, loop_uv, materials, face_mat, morphs}]} + space "
+        "{unit_cm, basis_to_canonical (orthogonal)} -> canonical cm (titan.canonical-mesh/1; a reflection reverses winding, UVs and corner normals; "
+        "morph deltas converted, native morph names kept); mesh_adapt: back through the inverse space. capture: a CANONICAL mesh + joints [{name, "
+        "parent, bind (global affine 4x4)}] + weights {mesh: [[[joint, w], ...] per vertex]} -> a native-bind skin packet (weights normalized to "
+        "exact ratios, no implicit influence cap). rebind: onto target joints by an explicit joint_map naming every weighted joint (many-to-one "
+        "merges reported). evaluate: posed positions and morph directions P * inverse(B) for a pose {joint: 4x4} (a shaded packet needs "
+        "geometry_only). Receipts and refusals carry the WIP badge." + _PATHS,
+        [P("verb", required=True, desc="mesh_normalize | mesh_adapt | capture | rebind | evaluate"), P("input", required=True), P("out", required=True),
+         P("space", desc="mesh_*: the space JSON"), P("joints", desc="capture / rebind: joints JSON"), P("weights", desc="capture: weights JSON"),
+         P("pose", desc="evaluate: pose JSON"), P("joint_map", desc="rebind: joint map JSON"), P("geometry_only", "boolean", "evaluate a shaded packet without normals")],
+        api="rig_skin", wip=True),
 ]
