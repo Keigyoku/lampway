@@ -8,7 +8,7 @@ description; the server's Def (agent/wave6_tools.py) carries the same text."""
 
 from . import settings as S
 
-TOOLS = ("modular_character", "character_pipeline")
+TOOLS = ("modular_character", "character_pipeline", "playblast_capture")
 
 
 def _root() -> str:
@@ -52,3 +52,15 @@ def character_pipeline(character_id, parts, mode="plan", target="unreal_mannequi
         import json as _json
         return CP.run(_root(), character_id, parts, from_stage, to_stage, stage_calls, executor=lambda t, a: api.call(t, _json.dumps(a)), target=target, tools=door)
     raise ValueError(f"unknown mode {mode!r}; plan | record | run")
+
+
+def playblast_capture(shots, out_dir="playblast", fps=24, width=640, height=360, engine="workbench", stills="both", target_duration_s=None, scene_objects=None):
+    """Light-engine playblasts of the posed blockout, one per shot, for the video model and the framing review. shots: [{name, camera: a camera
+    object's name or waypoints [{frame, location}], frames: [first, last], duration_s (the planned video length of this shot), look_at: object name or
+    [x, y, z] (waypoint cameras)}]. Each shot renders frames first..last of YOUR scene (its animation plays; the scene is linked, never edited) to
+    out_dir/<name>.mp4 (H.264) plus <name>_first.png and <name>_last.png (stills: first | last | both | none), and out_dir/shot_list.json lists every
+    file with its sha256. Refused: a shot whose length differs from its duration_s (or target_duration_s) by more than one frame ("playblast length
+    must match the planned video duration"), Cycles (workbench | eevee only), an unknown camera, a hidden object named in scene_objects, duplicate shot
+    names, more than 1200 frames. The temporary scene and waypoint cameras are removed and your frame is restored."""
+    from .features import playblast as PB
+    return PB.playblast_capture(_root(), _p(out_dir), shots, fps, width, height, engine, stills, target_duration_s, scene_objects)

@@ -18,7 +18,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 |---|---|---|---|---|
 | 1 | wiki/modular_character | P1 | Blender | done |
 | 2 | wiki/character_pipeline | P1 | Blender (plan) | done |
-| 3 | wiki/playblast_capture | P2 | Blender | |
+| 3 | wiki/playblast_capture | P2 | Blender | done |
 | 4 | wiki/cinematic_shot_plan | P2 | server | |
 | 5 | wiki/lod_chain | P2 | Blender | |
 | 6 | wiki/material_experiment | P2 | server | |
@@ -75,3 +75,16 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
   plus the falsifier (the same run passes when the gate passes). Mutants killed: the rig-before-assembly law, the gate reader, the spend stop, the
   previous-stage law, credits per part.
 - Open (the contract's): is the MetaHuman conform in scope for the Lampway hand-off or only the captain's UE side.
+
+### 3. playblast_capture (P2): done
+- Where: `features/playblast.py` (beside `features/video.py`, reusing its engines and frame cap), api `playblast_capture`, Def `lampway_playblast_capture`.
+- Per shot: frames [a, b] from a named camera or waypoints (look_at an object or a point), PNG per frame, H.264 mp4 encoded by a throw-away scene's
+  sequencer, first/last stills copied from the very frames encoded, `shot_list.json` with sha256. Refusals: length vs planned duration beyond one frame,
+  Cycles, unknown camera, a hidden `scene_objects` entry, duplicate names, > 1200 frames.
+- Finding (measured): a throw-away scene that links the user's collection does NOT evaluate the user's animation at its own frame (`render_video`'s
+  approach): a ball keyed from x = -1.5 to 1.5 rendered at its current position on every frame of the temp scene (centroid 0.757 at frames 1 and 12;
+  the home scene gives 0.224 and 0.753). So each frame is reached with the user's scene `frame_set` (restored afterwards). `render_video` itself is
+  not affected for its own use (it animates only its own camera), but it cannot playblast a posed, animated blockout.
+- Tests: `test_wave6_playblast.py` (4, real binary). RED observed: "no tool function 'playblast_capture'". Then a real RED on the first build: the
+  stills were identical (the finding above). `test_feature_video.py` stays green. Mutants killed: the user-scene frame_set, the one-frame slack, the
+  last still taken from the first frame.

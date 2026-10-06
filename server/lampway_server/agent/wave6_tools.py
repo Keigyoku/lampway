@@ -29,4 +29,14 @@ DEFS = [
         [P("character_id", required=True), P("parts", "array", "[{name, budget, rigid_bone}]", required=True, items=_OBJ), P("mode", desc="plan | record | run"),
          P("target", desc="unreal_mannequin | metahuman | mixamo | vrm"), P("from_stage", "integer"), P("to_stage", "integer"), P("stage", "integer"),
          P("gate", desc="pass | fail"), P("evidence"), P("stage_calls", "object", "{\"<n>\": [{tool, args}]}")], api="character_pipeline"),
+    Def("lampway_playblast_capture", "Light-engine playblasts of the posed blockout, one per shot, for the video model and the framing review. shots: [{name, camera: a "
+        "camera object's name or waypoints [{frame, location}], frames: [first, last], duration_s (the planned video length of this shot), look_at: object name or "
+        "[x, y, z] (waypoint cameras)}]. Each shot renders frames first..last of YOUR scene (its animation plays; the scene is linked, never edited) to "
+        "out_dir/<name>.mp4 (H.264) plus <name>_first.png and <name>_last.png (stills: first | last | both | none), and out_dir/shot_list.json lists every file with "
+        "its sha256. Refused: a shot whose length differs from its duration_s (or target_duration_s) by more than one frame ('playblast length must match the "
+        "planned video duration'), Cycles (workbench | eevee only), an unknown camera, a hidden object named in scene_objects, duplicate shot names, more than 1200 "
+        "frames. The temporary scene and waypoint cameras are removed and your frame is restored." + _PATHS,
+        [P("shots", "array", "[{name, camera, frames: [a, b], duration_s, look_at}]", required=True, items=_OBJ), P("out_dir"), P("fps", "integer"), P("width", "integer"),
+         P("height", "integer"), P("engine", desc="workbench | eevee"), P("stills", desc="first | last | both | none"), P("target_duration_s", "number"),
+         P("scene_objects", "array", "objects that must be visible")], api="playblast_capture"),
 ]
