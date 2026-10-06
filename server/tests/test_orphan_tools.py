@@ -10,7 +10,7 @@ from lampway_server.agent import tools as T
 from lampway_server.mcp import offered_tools
 
 API = Path(__file__).resolve().parents[2] / "src/scripts/mixar/modules/lampway_tools/orphans_api.py"
-EXPECTED = ("lampway_side_label_check", "lampway_mirror_pair", "lampway_scale_to_measure", "lampway_uv_check", "lampway_render_condition_passes")
+EXPECTED = ("lampway_side_label_check", "lampway_mirror_pair", "lampway_scale_to_measure", "lampway_uv_check", "lampway_render_condition_passes", "lampway_image_material_id")
 
 
 def _client_functions() -> dict:

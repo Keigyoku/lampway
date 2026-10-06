@@ -57,3 +57,14 @@ def render_condition_passes(objects, camera="auto", passes=None, size=1024, out_
     from .features import condition_passes as _CP
     s_ = _settings()
     return _CP.run(objects, str(s_.project_root), camera, passes, size, _p(out_dir, s_.project_root), engine)
+
+
+@_export
+@tool
+def image_material_id(piece, object="", view="Front", palette=None, source="parts", recipe="", owner="", part_materials=None, design_plate="", live=False, size=768,
+                      out_dir="material_id"):
+    """A flat material-ID map: source parts renders each part in its material's palette colour from the clay camera (exact, free); source model is a gated DRAFT."""
+    from .features import material_id as _MI
+    s_ = _settings()
+    return _MI.run(piece, str(s_.project_root), object, view, palette, source, _p(recipe, s_.project_root), _p(owner, s_.project_root), part_materials,
+                   _p(design_plate, s_.project_root), live, size, _p(out_dir, s_.project_root))

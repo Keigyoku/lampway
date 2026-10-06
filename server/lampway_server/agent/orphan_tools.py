@@ -61,4 +61,17 @@ ORPHAN_DEFS = [
         [P("objects", "array", "the mesh objects of the blockout", required=True), P("camera", desc="a camera name | auto (default)"),
          P("passes", "array", "subset of id, depth, edge, clay; default clay, depth, id"), P("size", "integer", "long edge 64..2048, default 1024"),
          P("out_dir", desc="under the project root, default condition"), P("engine", desc="workbench (default) | eevee")], api="render_condition_passes"),
+    Def("lampway_image_material_id", "A flat material-ID map (which region is metal, cloth, leather, gold ...) for masks and material assignment, written to "
+        "<out_dir>/<piece>/<View>_matid.png. source parts (default; the FACT, free and exact): each polygon takes its part's material (the recipe's class, or "
+        "part_materials {part: material}; the part per polygon from owner .npy or the int face attribute 'part'), rendered from the SAME camera as the clay "
+        "render in flat Workbench colour with anti-aliasing off, every pixel snapped to the palette; regions report pixels and fractions. source model (a DRAFT, "
+        "only when the mesh has no parts): the design_plate goes to the image slot with purpose mask (about $0.10 an image, measured) and the palette in the "
+        "prompt; the black line art is filled, the rest quantised to the palette, and the draft is REJECTED under 0.99 conformance; it is named *_draft and never "
+        "auto-accepted. live=false (default) is a dry run that sends nothing. palette {material: '#rrggbb'} 2..16 entries is the user's; two colours closer "
+        "than dE 60 are refused as indistinguishable. Refused: parts on an unsegmented piece, model without design_plate." + _PATHS,
+        [P("piece", required=True), P("object", desc="source parts: the mesh"), P("view", desc="Front (default) | Back | Left | Right | all"),
+         P("palette", "object", "{material: '#rrggbb'}", required=True), P("source", desc="parts (default) | model"), P("recipe", desc="parts json (class per part)"),
+         P("owner", desc="owner .npy, one part index per polygon"), P("part_materials", "object", "{part: material} overriding the recipe's classes"),
+         P("design_plate", desc="source model: the plate image"), P("live", "boolean", "source model: really send (default false: a dry run)"),
+         P("size", "integer", "render size, default 768"), P("out_dir", desc="default material_id")], api="image_material_id"),
 ]
