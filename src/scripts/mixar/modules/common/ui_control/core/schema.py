@@ -29,7 +29,8 @@ def action(name, props=None, required=()):
 SCHEMAS = {
     "mixar_ui_context": obj({"release": BOOL, "instance": TOKEN, "session": TOKEN}),
     "mixar_ui_observe": obj({"query": QUERY, "image": BOOL, "window": TOKEN,
-                             "limit": {"type": "integer", "minimum": 1, "maximum": 200}}),
+                             "limit": {"type": "integer", "minimum": 1, "maximum": 200},
+                             "offset": {"type": "integer", "minimum": 0}}),
     "mixar_ui_act": {"type": "object", "oneOf": [
         action("click", {"double": BOOL, "modifiers": MODS}),
         action("set_text", {"text": TEXT, "enter": BOOL}, ("text",)),
@@ -63,7 +64,7 @@ DESTRUCTIVE = {"mixar_project_open"}
 DOMAINS = {name: ("scenes" if name.startswith(("mixar_scene", "mixar_project")) else "ui") for name in SCHEMAS}
 DESCRIPTIONS = {
     "mixar_ui_context": "Read UI readiness and current/bound scene. Explicitly select an instance or bind its current session after changing documents. Can release your input ownership.",
-    "mixar_ui_observe": "Inspect visible Lampway controls and regions. Returns fresh opaque context/target handles; optionally a screenshot. Inspect before each action.",
+    "mixar_ui_observe": "Inspect visible Lampway controls and regions. Returns fresh opaque context/target handles; optionally a screenshot. Each control has a label (its text, else its tooltip). Pages with offset/limit (next_offset while more remain). Inspect before each action.",
     "mixar_ui_act": "Drive one observed Lampway control or region through native events. User input cancels control. Gesture points are normalized bottom-left region coordinates. Never blindly retry an uncertain action.",
     "mixar_ui_wait": "Wait for matching visible controls to appear/disappear, with a bounded deadline. No Python expressions.",
     "mixar_ui_call_status": "Recover a local UI action's durable receipt without executing it again.",

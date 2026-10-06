@@ -54,6 +54,10 @@ theme = "dark"
 theme = "dark"
 [terminal_image.surfaces]
 
+[observe_labels]
+theme = "dark"
+[observe_labels.surfaces]
+
 [agent_pill]
 theme = "dark"
 [agent_pill.surfaces]
