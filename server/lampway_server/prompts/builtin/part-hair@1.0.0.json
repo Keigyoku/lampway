@@ -1,0 +1,69 @@
+{
+  "id": "part-hair",
+  "version": "1.0.0",
+  "purpose": "character-part",
+  "media": "image",
+  "title": "Hair, isolated, strict front",
+  "description": "Hair extracted by default (skipped only for a bald or fully covered figure, or the user's opt-out), lifted off the head and shown dead-on.",
+  "body": {
+    "subject": "Reference the attached strict-front A-pose character sheet and head extract. Render ONLY the hair of the same character, isolated on a white background, as if lifted off the head and floated in space.",
+    "action": "Exactly the same front-facing angle as the head on the sheet; every strand, braid, accessory or extension visible from the front.",
+    "camera": "STRICT FRONT VIEW: no three-quarter, no profile, no back view.",
+    "style": "Soft alpha-style edges where the hair meets the air, no harsh cut-out; neutral flat lighting; same colour, highlights, shine and accessories as the sheet; sharp strand detail at 2K.",
+    "constraints": "No head, no face, no body, no shoulders."
+  },
+  "variables": {},
+  "negatives": [
+    "no three-quarter or profile view",
+    "no head, face or body",
+    "no environment or shadow",
+    "no harsh outline or clean silhouette cut",
+    "no showcase angle"
+  ],
+  "provenance": {
+    "source": "mr-mak-workspace:.agents/skills/character-sheet-pipeline/prompts/05_parts_hair.md@1e0c7c3",
+    "note": "MIT (Copyright (c) 2026 Mr. Mak Workspace contributors); the wording is adapted to Lampway's five-part body and its five-negative cap (the upstream negative list is shipped as the long-negative variant where it is a tuning question)"
+  },
+  "inputs": {
+    "reference_image": {
+      "required": true,
+      "order": 1,
+      "description": "the strict-front sheet"
+    },
+    "design_plate": {
+      "required": false,
+      "order": 2,
+      "description": "the head extract"
+    }
+  },
+  "defaults": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "size": "2048x2048",
+    "quality": "high",
+    "background": "opaque",
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "view_verify",
+      "description": "verify the view with lampway_view_verify; a stop after the ladder's ceiling is the user's decision"
+    }
+  ]
+}

@@ -832,6 +832,22 @@ def model_compare(action="stats", set=None, views=None, size=512, blind=False, p
 
 
 @tool
+def view_verify(action="verify", image="", category="sheet", view="front", approved_front="", mask="", asymmetric_ok=False, judge="none", known_images=None, attempts=None, max_attempts=3,
+                original_prompt=""):
+    """Is this generated image really the view that was asked for? admit: reject an empty, tiny, fragmented (largest piece under 0.60 of the figure) or duplicate (perceptual hash within 6 of a known_images
+    plate) reference BEFORE any model is paid, with the reason. verify: measured checks on the silhouette (alpha, `mask`, or a flat background): shoulder-width ratio and mirror IoU about the figure's own
+    axis, feet baseline, arm angle (A-pose is 30 to 60), framing margins, background flatness; verdict pass | soft_fail | hard_fail | uncertain with the signed estimated rotation, and every threshold (they
+    are PLACEHOLDERS until calibrated on labelled images) in the result; asymmetric_ok (a weapon in one hand) skips the symmetry checks as not_applicable. A side view is `uncertain` (a profile cannot be read
+    from a silhouette). A vision judge may rescue an uncertain and never override a measured hard failure; none is configured here (judge=vision is refused). ladder: the bounded retry decision over
+    `attempts` [{verdict, reason, model, rotation_deg}]: accept | accept_with_warning | retry (the first on the same model, the second on the fallback, with the escalated prompt built from
+    `original_prompt`) | stop at max_attempts (1..4, default 3, never bypassed) with the user's three options; it never generates. templates: the built-in prompt-library set."""
+    from .pipeline import view_verify_io as _VVI
+    s = _settings()
+    return _VVI.run(action, str(s.project_root), image, category, view, approved_front, mask, bool(asymmetric_ok), judge, known_images, attempts, max_attempts, original_prompt,
+                    resolve=lambda p: _p(p, s.project_root))
+
+
+@tool
 def uv_texel_density(object, texture_size=2048, target="auto", weights=None, mode="island", repack=True, margin=0.005, name="", discard_texture=False):
     """Set and equalise texel density per UV island on a NEW object `<object>_td` (the source keeps its UVs), then repack and report the density actually achieved. target: px/metre,
     'N px/cm' or 'auto' (the current mean: only the spread changes); weights: {material | vertex group | island:N: factor 0.1..4}; mode island | all; texture_size a power of two.

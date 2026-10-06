@@ -38,7 +38,10 @@
         "tile",
         "character-reference",
         "anim-start-frame",
-        "texture-plate"
+        "texture-plate",
+        "character-sheet",
+        "character-part",
+        "turntable"
       ]
     },
     "media": {

@@ -100,15 +100,21 @@ def admit(img, known_hashes=None, thresholds=None) -> dict:
             "thresholds": {k: t[k] for k in ("coverage_min", "coverage_max", "short_side_min", "largest_component_min", "phash_distance_max")}}
 
 
-def background_stats(rgb) -> dict:
+def background_stats(rgb, mask=None) -> dict:
+    """Corner colour spread and the strongest left-right or top-bottom drift of the BACKGROUND (figure pixels excluded when a mask is given)."""
     a = np.asarray(rgb, float)[..., :3]
+    keep = np.ones(a.shape[:2], bool) if mask is None else ~np.asarray(mask, bool)
     k = max(2, min(a.shape[0], a.shape[1]) // 10)
-    patches = [a[:k, :k], a[:k, -k:], a[-k:, :k], a[-k:, -k:]]
-    means = np.array([p.reshape(-1, 3).mean(0) for p in patches])
-    corner_delta = max(float(np.abs(means[i] - means[j]).max()) for i in range(4) for j in range(i + 1, 4))
-    horiz = float(np.abs(a[:, :k].reshape(-1, 3).mean(0) - a[:, -k:].reshape(-1, 3).mean(0)).max())
-    vert = float(np.abs(a[:k].reshape(-1, 3).mean(0) - a[-k:].reshape(-1, 3).mean(0)).max())
-    return {"corner_delta": round(corner_delta, 3), "gradient": round(max(horiz, vert), 3)}
+
+    def mean(ys, xs):
+        sel = keep[ys, xs]
+        return a[ys, xs][sel].mean(0) if sel.any() else None
+    corners = [mean(slice(0, k), slice(0, k)), mean(slice(0, k), slice(-k, None)), mean(slice(-k, None), slice(0, k)), mean(slice(-k, None), slice(-k, None))]
+    corners = [c for c in corners if c is not None]
+    corner_delta = max((float(np.abs(corners[i] - corners[j]).max()) for i in range(len(corners)) for j in range(i + 1, len(corners))), default=0.0)
+    pairs = [(mean(slice(None), slice(0, k)), mean(slice(None), slice(-k, None))), (mean(slice(0, k), slice(None)), mean(slice(-k, None), slice(None)))]
+    grad = max((float(np.abs(p - q).max()) for p, q in pairs if p is not None and q is not None), default=0.0)
+    return {"corner_delta": round(corner_delta, 3), "gradient": round(grad, 3)}
 
 
 def _extent(m, axis_x):
@@ -178,7 +184,7 @@ def verify(mask, view="front", category="sheet", approved_front=None, asymmetric
         return {**base, "verdict": "uncertain", "checks": {}, "measured": {}, "estimated_rotation_deg": None, "reason": "no figure found in the mask", "by": "measured", "judge_cost_usd": None}
     me = _measure(m)
     if image is not None:
-        me["background"] = background_stats(image)
+        me["background"] = background_stats(image, m)
     if approved_front is not None:
         a = to_mask(approved_front)
         ya, xa = np.nonzero(a)

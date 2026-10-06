@@ -1,0 +1,81 @@
+{
+  "id": "part-body",
+  "version": "1.0.0",
+  "purpose": "character-part",
+  "media": "image",
+  "title": "Body part, strict front (torso, legs, arms, head)",
+  "description": "One body-essential part cut clean from the strict-front sheet.",
+  "body": {
+    "subject": "Reference the attached strict-front A-pose character sheet. Render ONLY the {{part}} of the same character: {{part_extent}}.",
+    "action": "Exact same A-pose orientation as the sheet, no rotation, no tilt, no three-quarter angle.",
+    "camera": "STRICT FRONT VIEW, dead-on; both sides of the part at equal width and equal angle; orthographic framing.",
+    "style": "White background (#FFFFFF), neutral flat lighting; same art style, colour palette, materials and wear as the sheet; sharp focus at 2K.",
+    "constraints": "Clean cuts at the boundaries, no clothing detail hanging off the cut; hands are NOT included in the arms (extracted separately)."
+  },
+  "variables": {
+    "part": {
+      "type": "enum",
+      "default": "torso",
+      "enum": [
+        "torso",
+        "legs",
+        "arms",
+        "head"
+      ],
+      "description": "which body part"
+    },
+    "part_extent": {
+      "type": "string",
+      "default": "from the base of the neck down to the top of the hips",
+      "description": "the extent: torso neck to hips; legs hips to soles, both together; arms shoulder cap to wrist, side by side at the A-pose angle; head the head and neck, neutral expression"
+    }
+  },
+  "negatives": [
+    "no three-quarter view",
+    "no body rotation or twist",
+    "no hero or dynamic pose",
+    "no environment, shadow or rim lighting",
+    "no cropped or missing limbs"
+  ],
+  "provenance": {
+    "source": "mr-mak-workspace:.agents/skills/character-sheet-pipeline/prompts/02_parts_body.md@1e0c7c3",
+    "note": "MIT (Copyright (c) 2026 Mr. Mak Workspace contributors); the wording is adapted to Lampway's five-part body and its five-negative cap (the upstream negative list is shipped as the long-negative variant where it is a tuning question)"
+  },
+  "inputs": {
+    "reference_image": {
+      "required": true,
+      "order": 1,
+      "description": "the strict-front A-pose sheet (always attached)"
+    }
+  },
+  "defaults": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "size": "2048x2048",
+    "quality": "high",
+    "background": "opaque",
+    "n": 1
+  },
+  "gates": [
+    {
+      "id": "view_verify",
+      "description": "strict front, matching the sheet"
+    }
+  ],
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  }
+}

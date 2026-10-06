@@ -175,3 +175,32 @@ def test_a_judge_can_rescue_an_uncertain_but_never_override_a_measured_hard_fail
 def test_a_soft_fail_is_accepted_with_the_warning_text_to_log():
     d = RP.decide(hist(["soft_fail"], reason="T-pose not A-pose"), 3)
     assert d["action"] == "accept_with_warning" and "T-pose not A-pose" in d["reason"]
+
+
+def test_the_file_actions_admit_verify_ladder_and_the_refusals(tmp_path):
+    from PIL import Image
+    from mixar.modules.lampway_tools.pipeline import view_verify_io as IO
+    rgba = np.zeros((H, W, 4), np.uint8)
+    rgba[..., :3] = 255
+    rgba[..., 3] = 255
+    rgba[figure()] = (40, 40, 40, 255)
+    Image.fromarray(rgba).save(tmp_path / "front.png")
+    res = lambda p: str(tmp_path / p)
+    v = IO.run("verify", str(tmp_path), image="front.png", resolve=res)
+    assert v["verdict"] == "pass" and (tmp_path / "front.view_verify.json").exists() and v["measured"]["background"]["gradient"] < 1e-6
+    assert IO.run("admit", str(tmp_path), image="front.png", resolve=res)["ok"]
+    dup = IO.run("admit", str(tmp_path), image="front.png", known_images=["front.png"], resolve=res)
+    assert not dup["ok"] and "rejected at intake" in dup["error_text"]
+    with pytest.raises(IO.ViewVerifyError, match="no vision judge is configured"):
+        IO.run("verify", str(tmp_path), image="front.png", judge="vision", resolve=res)
+    gradient = rgba.copy()
+    gradient[..., :3] = np.linspace(0, 255, W).astype(np.uint8)[None, :, None]
+    gradient[figure()] = (40, 40, 40, 255)
+    Image.fromarray(gradient).convert("RGB").save(tmp_path / "grad.png")
+    with pytest.raises(IO.ViewVerifyError, match="alpha or a flat background"):
+        IO.run("verify", str(tmp_path), image="grad.png", resolve=res)
+    d = IO.run("ladder", str(tmp_path), attempts=[{"verdict": "hard_fail", "reason": "turned 24 degrees", "rotation_deg": 24.0, "model": "a"}], original_prompt="ORIGINAL TEXT")
+    assert d["action"] == "retry" and d["next_prompt"].endswith("ORIGINAL TEXT") and "+24" in d["next_prompt"] and d["model"] == "same"
+    with pytest.raises(IO.ViewVerifyError, match="original_prompt"):
+        IO.run("ladder", str(tmp_path), attempts=[{"verdict": "hard_fail", "reason": "x"}])
+    assert "sheet-apose-front" in IO.run("templates", str(tmp_path))["templates"]

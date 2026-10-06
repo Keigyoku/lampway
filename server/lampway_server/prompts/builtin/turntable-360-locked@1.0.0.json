@@ -1,0 +1,85 @@
+{
+  "id": "turntable-360-locked",
+  "version": "1.0.0",
+  "purpose": "turntable",
+  "media": "video",
+  "title": "Locked-camera 360 turntable",
+  "description": "The camera is LOCKED and the subject rotates: a reference turntable, never a cinematic move. Never created by default; its cost is quoted first.",
+  "body": {
+    "subject": "Locked-camera turntable of {{subject}} from the reference image, kept in its pose throughout.",
+    "action": "The subject rotates a smooth full 360 degrees around its own vertical axis over {{seconds}} seconds, starting facing the camera and rotating clockwise back to facing the camera at the end of the clip.",
+    "camera": "The camera does NOT move: fixed at eye level on a tripod; no zoom, no dolly, no pan, no tilt, no shake.",
+    "style": "White background pure throughout; neutral flat lighting, no rim light appearing, no shadow shifting; no motion blur; sharp focus across the rotation, identical to a 3D software preview render.",
+    "constraints": "Pure rotation only: no pose or expression changes."
+  },
+  "variables": {
+    "subject": {
+      "type": "string",
+      "default": "the full character",
+      "description": "the full character, or an accessory"
+    },
+    "seconds": {
+      "type": "integer",
+      "default": 5,
+      "min": 3,
+      "max": 10,
+      "description": "the rotation time"
+    }
+  },
+  "negatives": [
+    "no camera movement",
+    "no cinematic lighting",
+    "no pose change",
+    "no motion blur",
+    "no second subject"
+  ],
+  "provenance": {
+    "source": "mr-mak-workspace:.agents/skills/character-sheet-pipeline/prompts/07_360_video.md@1e0c7c3",
+    "note": "MIT (Copyright (c) 2026 Mr. Mak Workspace contributors); the wording is adapted to Lampway's five-part body and its five-negative cap (the upstream negative list is shipped as the long-negative variant where it is a tuning question)"
+  },
+  "inputs": {
+    "start_image": {
+      "required": true,
+      "order": 1,
+      "description": "the still of the asset (first-frame anchor)"
+    }
+  },
+  "defaults": {
+    "model": "bytedance/seedance-1-5-pro",
+    "resolution": "720p",
+    "aspect_ratio": "1:1",
+    "duration": 5,
+    "image_mode": "first_frame"
+  },
+  "model_adapters": {
+    "bytedance/seedance*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "end_image": "the end image",
+        "video_reference": "the reference video"
+      },
+      "note": "names references in prose; roles are start_image / end_image / video references"
+    },
+    "higgsfield/*": {
+      "ref_names": {
+        "start_image": "the start image",
+        "video_reference": "the reference video"
+      },
+      "note": "Higgsfield media roles: start_image, end_image, image_references, video_references"
+    },
+    "heygen/*": {
+      "note": "audio is always on and not controllable; only a first frame is taken"
+    },
+    "kwaivgi/*": {
+      "ref_names": {
+        "start_image": "the first frame"
+      }
+    }
+  },
+  "gates": [
+    {
+      "id": "locked_camera",
+      "description": "camera locked: the rotation is the subject's, checked with lampway_video_gate kind=clip"
+    }
+  ]
+}

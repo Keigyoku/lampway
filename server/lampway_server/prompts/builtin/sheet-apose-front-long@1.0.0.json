@@ -1,0 +1,65 @@
+{
+  "id": "sheet-apose-front-long",
+  "version": "1.0.0",
+  "purpose": "character-sheet",
+  "media": "image",
+  "title": "Strict-front A-pose sheet, long negative list (upstream tuning variant)",
+  "description": "The upstream wording with its 20-25 negatives kept in the body's constraints, for the A/B on drift rate.",
+  "body": {
+    "subject": "A clean character reference sheet of {{character_description}}, full body visible from head to toe, standing in a relaxed A-pose, matching the character's identity, proportions, colour palette and accessories exactly from the reference image.",
+    "action": "Arms angled about 45 degrees down-and-out from the torso, palms facing the camera, fingers relaxed; legs shoulder-width apart, weight even on both feet, toes pointing forward at the camera; eyes looking at the camera.",
+    "camera": "STRICT FRONT VIEW: the character faces the camera dead-on, no three-quarter angle, no rotation, no tilt of the body; both shoulders at equal width, both feet equally visible; eye-level, orthographic-style framing, zero perspective distortion.",
+    "style": "Pure white background (#FFFFFF), no shadow on the ground, no ground plane; neutral diffuse studio lighting, soft and even; sharp focus over the whole silhouette, reference-grade clarity at 2K.",
+    "constraints": "Preserve the face identity. Avoid: three-quarter view, 3/4 angle, body rotation, body twist, contrapposto, hero pose, dynamic pose, action shot, looking away from camera, closed eyes, head tilt, shoulder tilt, asymmetric stance, foreshortening, perspective distortion, environment, background props, shadow on the ground, rim lighting, cinematic mood lighting, motion blur, depth of field, cropped limbs, missing parts, duplicate limbs."
+  },
+  "variables": {
+    "character_description": {
+      "type": "string",
+      "default": "the character in the reference image",
+      "description": "gender presentation if obvious, apparent age, art style, key wardrobe, key accessories, colour palette"
+    }
+  },
+  "negatives": [],
+  "provenance": {
+    "source": "mr-mak-workspace:.agents/skills/character-sheet-pipeline/prompts/01a_apose_front.md@1e0c7c3",
+    "note": "MIT (Copyright (c) 2026 Mr. Mak Workspace contributors); the wording is adapted to Lampway's five-part body and its five-negative cap (the upstream negative list is shipped as the long-negative variant where it is a tuning question)"
+  },
+  "inputs": {
+    "reference_image": {
+      "required": true,
+      "order": 1,
+      "description": "the user's character image"
+    }
+  },
+  "defaults": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "size": "2048x2048",
+    "quality": "high",
+    "background": "opaque",
+    "n": 1
+  },
+  "variant_of": "sheet-apose-front@1.0.0",
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "view_verify",
+      "description": "verify the view with lampway_view_verify; a stop after the ladder's ceiling is the user's decision"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "id": "part-paired",
+  "version": "1.0.0",
+  "purpose": "character-part",
+  "media": "image",
+  "title": "Paired item close-up, strict front (hands, boots, generic pair)",
+  "description": "A pair kept together at the SAME strict-front angle as on the sheet, cropped close for detail.",
+  "body": {
+    "subject": "Reference the attached strict-front A-pose character sheet. Render BOTH {{pair}} of the same character as a labelled pair, close-up framing, including any gloves, rings, armour, straps or buckles exactly as on the sheet.",
+    "action": "Left item on the left of the frame, right item on the right, both at the SAME strict-front angle ({{front_cue}}).",
+    "camera": "STRICT FRONT VIEW: no three-quarter outer view, no side angle, no hero angle; identical orientation for both items.",
+    "style": "White background, neutral flat lighting; same colour, material and wear as the sheet; sharp focus at 2K.",
+    "constraints": "If the pair is asymmetric (a glove and a bracer) label which is left and which is right."
+  },
+  "variables": {
+    "pair": {
+      "type": "enum",
+      "default": "hands",
+      "enum": [
+        "hands",
+        "boots",
+        "items"
+      ],
+      "description": "which pair"
+    },
+    "front_cue": {
+      "type": "string",
+      "default": "palms to the camera, fingers relaxed and slightly spread",
+      "description": "hands: palms to camera; boots: toes pointing at the camera"
+    }
+  },
+  "negatives": [
+    "no three-quarter view",
+    "no body rotation or twist",
+    "no hero or dynamic pose",
+    "no environment, shadow or rim lighting",
+    "no cropped or missing limbs"
+  ],
+  "provenance": {
+    "source": "mr-mak-workspace:.agents/skills/character-sheet-pipeline/prompts/03_parts_paired.md@1e0c7c3",
+    "note": "MIT (Copyright (c) 2026 Mr. Mak Workspace contributors); the wording is adapted to Lampway's five-part body and its five-negative cap (the upstream negative list is shipped as the long-negative variant where it is a tuning question)"
+  },
+  "inputs": {
+    "reference_image": {
+      "required": true,
+      "order": 1,
+      "description": "the strict-front A-pose sheet (always attached)"
+    }
+  },
+  "defaults": {
+    "model": "openai/gpt-image-2.5-sunburst",
+    "size": "2048x2048",
+    "quality": "high",
+    "background": "opaque",
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "view_verify",
+      "description": "verify the view with lampway_view_verify; a stop after the ladder's ceiling is the user's decision"
+    }
+  ]
+}

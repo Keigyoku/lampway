@@ -79,3 +79,9 @@ builds the executable, and Lampway's retopo tool runs that executable as a separ
 `autoremesher_bin` setting; the app downloads nothing). Anyone who redistributes a built executable must carry
 the MIT notice and the notices of its bundled TBB (Apache-2.0), Eigen (MPL-2.0), meshoptimizer (MIT) and
 isotropicremesher sources.
+
+### Mr. Mak Workspace (character-sheet prompts)
+
+The character-sheet and part prompt templates in `server/lampway_server/prompts/builtin/` (`sheet-*`, `part-*`, `turntable-360-locked`) are adapted from the character-sheet pipeline of Mr. Mak Workspace
+(MIT, Copyright (c) 2026 Mr. Mak Workspace contributors; upstream commit 1e0c7c3, `.agents/skills/character-sheet-pipeline/prompts/`). The licence text is `LICENSES/MIT.txt`; each template names its
+source file in its `provenance`. Nothing is copied from the upstream arena-viewer header (its licence lineage is uncleared).
