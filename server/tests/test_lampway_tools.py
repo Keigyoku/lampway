@@ -91,7 +91,7 @@ def test_the_system_prompt_names_the_workflow():
         assert needle in SYSTEM_PROMPT
 
 
-EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute"}          # server-run tools added since the explicit list above
+EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_asset_search"}          # server-run tools added since the explicit list above
 
 
 def test_every_tool_script_passes_the_clients_sandbox_dunder_rules():

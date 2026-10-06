@@ -307,8 +307,9 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
     from .herdr.host import Cockpit
     cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
+    assets = AssetIndex(settings.state_dir)
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=assets)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -382,7 +383,6 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         return JSONResponse(material.as_dict())
 
     mcp = McpServer(hub, agent)
-    assets = AssetIndex(settings.state_dir)
 
     def _metadata(value):
         """The form's ``metadata`` JSON list, or None when it is not a list of objects."""

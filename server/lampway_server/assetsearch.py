@@ -58,8 +58,16 @@ def intersection(a: list, b: list) -> float:
     return float(sum(min(x, y) for x, y in zip(a, b)))
 
 
+def cosine(a: list, b: list) -> float:
+    na, nb = math.sqrt(sum(x * x for x in a)), math.sqrt(sum(x * x for x in b))
+    return float(sum(x * y for x, y in zip(a, b)) / (na * nb)) if na and nb else 0.0
+
+
 class AssetIndex:
-    def __init__(self, state_dir):
+    def __init__(self, state_dir, embedder=None):
+        """``embedder``: bytes -> vector (the slot). None keeps the colour histogram and its intersection; any vector embedder is compared by cosine."""
+        self.embed = embedder or histogram
+        self.similar = intersection if embedder is None else cosine
         self.path = Path(state_dir) / "asset_index.json"
         self.assets: dict = {}
         self.checksum = ""
@@ -117,7 +125,7 @@ class AssetIndex:
             if not isinstance(row, dict) or not row.get("name"):
                 continue
             raw = images.get(row.get("image_name"))
-            hist = histogram(raw) if raw is not None and len(raw) <= MAX_PREVIEW_BYTES else None
+            hist = self.embed(raw) if raw is not None and len(raw) <= MAX_PREVIEW_BYTES else None
             embedded += int(hist is not None)
             self.assets[identity(row)] = {"name": row["name"], "library": row.get("library", ""), "blend_file": row.get("blend_file", ""),
                                           "type": row.get("type", ""), "image_name": row.get("image_name", ""), "hist": hist}
@@ -137,11 +145,11 @@ class AssetIndex:
     def _doc(self, a: dict) -> list:
         return tokens(a["name"]) * 2 + tokens(a["library"]) + tokens(a["type"]) + tokens(Path(a["blend_file"]).stem)
 
-    def search(self, prompt: str = "", image: Optional[bytes] = None, top_k: int = 10) -> list:
+    def search(self, prompt: str = "", image: Optional[bytes] = None, top_k: int = 10, libraries=None) -> list:
         if not self.assets:
             raise LookupError("no trained model")
         q = tokens(prompt)
-        qh = histogram(image) if image else None
+        qh = self.embed(image) if image else None
         docs = {k: self._doc(a) for k, a in self.assets.items()}
         n = len(docs)
         avg = sum(len(d) for d in docs.values()) / max(n, 1)
@@ -151,6 +159,8 @@ class AssetIndex:
                 df[t] = df.get(t, 0) + 1
         scored = []
         for k, a in self.assets.items():
+            if libraries and a["library"] not in libraries:
+                continue
             d = docs[k]
             text = 0.0
             for t in set(q):
@@ -159,7 +169,7 @@ class AssetIndex:
                     idf = math.log(1 + (n - df[t] + 0.5) / (df[t] + 0.5))
                     text += idf * f * (K1 + 1) / (f + K1 * (1 - B + B * len(d) / max(avg, 1e-9)))
             text_norm = text / (text + 2.0)
-            img = intersection(qh, a["hist"]) if qh is not None and a.get("hist") else 0.0
+            img = self.similar(qh, a["hist"]) if qh is not None and a.get("hist") else 0.0
             if q and qh is not None:
                 score = TEXT_WEIGHT * text_norm + IMAGE_WEIGHT * img if (text > 0 or img > 0.3) else 0.0
             elif q:
