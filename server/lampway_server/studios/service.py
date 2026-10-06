@@ -34,6 +34,13 @@ def default_execute(argv, env, timeout):
     return p.returncode, (p.stdout or "") + (p.stderr or "")
 
 
+def _gated_execute(execute, studio, argv, env, timeout):
+    """Every driver run leaves through the studio's egress route (egress_consent): off until the user opts in, lit and logged while it runs."""
+    from .. import egress as EG
+    with EG.guard(f"studio:{studio}", kind="request"):
+        return execute(argv, env, timeout)
+
+
 class Engine:
     """Resolves a driver name to the command that runs it: the shelf's script when configured, else the bundled port."""
 
@@ -119,9 +126,11 @@ class StudioService:
         if out_dir:
             Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
         try:
-            rc, text = await asyncio.to_thread(self.execute, argv, self._env(False), PLAN_TIMEOUT_S)
+            rc, text = await asyncio.to_thread(_gated_execute, self.execute, action.studio, argv, self._env(False), PLAN_TIMEOUT_S)
         except subprocess.TimeoutExpired:
             return self._refused(action, f"the read back timed out after {PLAN_TIMEOUT_S:.0f} s")
+        except PermissionError as exc:                                                    # egress_consent: the route is off
+            return self._refused(action, str(exc))
         parsed = toon.parse(text)
         if parsed.error or rc != 0:
             reason = parsed.error or text.strip()[-300:] or f"the driver exited {rc}"
@@ -194,10 +203,18 @@ class StudioService:
     async def _run(self, job: dict, armed: bool) -> None:
         Path(job["_dir"]).mkdir(parents=True, exist_ok=True)
         rcpt = job.get("_receipt")
+        from .. import egress as EG
+        try:
+            EG.preflight(f"studio:{job['studio']}")
+        except PermissionError as exc:                                                    # egress_consent: nothing was sent, so the receipt is cancelled, not 'unknown'
+            if rcpt is not None:
+                self.receipts.cancel(rcpt, "egress route off")
+            job.update(state="failed", error=str(exc), finished=self._now())
+            return
         if rcpt is not None:
             self.receipts.mark_pending(rcpt)               # on disk BEFORE the driver clicks anything
         try:
-            rc, text = await asyncio.to_thread(self.execute, job["_argv"], self._env(armed), RUN_TIMEOUT_S)
+            rc, text = await asyncio.to_thread(_gated_execute, self.execute, job["studio"], job["_argv"], self._env(armed), RUN_TIMEOUT_S)
         except subprocess.TimeoutExpired:
             rc, text = 1, f"error: the driver did not finish within {RUN_TIMEOUT_S:.0f} s: HUNG (never re-click)"
         except Exception as exc:  # noqa: BLE001

@@ -19,6 +19,17 @@ def _project_root_in_tmp(tmp_path, monkeypatch):
         monkeypatch.setenv("LAMPWAY_PROJECT_ROOT", str(tmp_path / "project"))
 
 
+@pytest.fixture(autouse=True)
+def _egress_permissive(tmp_path):
+    """The egress hook is installed for the whole test run with a PERMISSIVE manager (every route on, unmapped hosts allowed, log in the test's tmp): existing provider tests drive fake transports at
+    invented hosts. tests/test_egress.py swaps in a strict manager to test the gate itself."""
+    from lampway_server import egress as E
+    E.install()
+    E.set_active(E.Egress.permissive(tmp_path / "egress-test-state"))
+    yield
+    E.set_active(None)
+
+
 @pytest.fixture
 def anyio_backend():
     return "asyncio"

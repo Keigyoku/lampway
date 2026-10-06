@@ -116,7 +116,16 @@ def parse_answer(text: str, tools) -> list:
 
 
 # ------------------------------------------------------------------ running a binary
+CLI_ROUTES = {"claude": "claude_plan", "codex": "chatgpt_plan"}
+
+
 async def _run(cmd: list, prompt: str, timeout: float, env=None, cwd=None):
+    from .. import egress as EG
+    with EG.guard(CLI_ROUTES.get(Path(cmd[0]).name, "custom_llm"), kind="text", nbytes=len(prompt)):                 # the CLI talks to its own provider: gated and logged where Lampway launches it
+        return await _run_gated(cmd, prompt, timeout, env, cwd)
+
+
+async def _run_gated(cmd: list, prompt: str, timeout: float, env=None, cwd=None):
     try:
         proc = await asyncio.create_subprocess_exec(*cmd, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
                                                     stderr=asyncio.subprocess.PIPE, env=env, cwd=cwd)

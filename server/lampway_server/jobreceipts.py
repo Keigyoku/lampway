@@ -321,7 +321,9 @@ class JobReceipts:
             stem = f"{i:02d}-{hashlib.sha256(url.encode()).hexdigest()[:10]}"
             if any(o["path"].startswith(f"assets/{stem}") for o in r["outputs"]):
                 continue
-            chunks, ctype, length = fetch(url)
+            from . import egress as EG
+            with EG.context(route=r["provider"] if r["provider"] in EG.ROUTES else None, kind="file"):
+                chunks, ctype, length = fetch(url)
             if length is not None and length > MAX_FILE_BYTES:
                 raise ReceiptError("Media exceeds the 512 MB per-file limit; download it separately")
             ext = Path(urllib.parse.urlparse(url).path).suffix.lower()

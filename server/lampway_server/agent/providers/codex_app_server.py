@@ -236,6 +236,12 @@ class CodexAppServerProvider:
 
     # ----------------------------------------------------------------------------------------------------- stream
     async def stream(self, request: ModelRequest, session_id: Optional[str] = None):
+        from ... import egress as EG
+        with EG.guard("chatgpt_plan", kind="text"):                    # one turn: gated and lit while the app-server talks to its provider
+            async for ev in self._stream(request, session_id):
+                yield ev
+
+    async def _stream(self, request: ModelRequest, session_id: Optional[str] = None):
         sid = session_id or getattr(request, "session_id", "") or "default"
         c = await self._ensure(sid, request)
         last = request.messages[-1]

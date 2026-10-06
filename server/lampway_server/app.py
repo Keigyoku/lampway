@@ -140,7 +140,16 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None) -> Starlette:
+    from . import egress as _EG
+    if egress is not None:
+        _EG.set_active(egress)                                                      # an explicit manager (tests, embedding) wins
+    elif _EG.ACTIVE is None:
+        _EG.set_active(_EG.Egress(settings.state_dir))                              # production: strict, every route off until the user opts in
+    _EG.install()
+    if not str(settings.openai_base_url).startswith(("http://127.0.0.1", "http://localhost", "http://[::1]")):
+        from urllib.parse import urlsplit
+        _EG.ACTIVE.register_host("custom_llm", urlsplit(settings.openai_base_url).hostname or "")
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     provider_prefs.apply_saved(settings, provider_prefs.load(settings.state_dir))   # the saved provider choices apply where the environment is silent (an env var is the session's override)
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
@@ -593,6 +602,44 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     def _wb_err(exc, code=409):
         return JSONResponse({"detail": str(exc)}, status_code=code)
 
+    async def egress_state(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        m = _EG.ACTIVE
+        return JSONResponse({"routes": m.routes_view(), "indicator": m.indicator(), "overrides": m._prefs()["overrides"]})
+
+    async def egress_route(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        body = await _json_body(request)
+        try:
+            return JSONResponse(_EG.ACTIVE.set_route(str(body.get("route") or ""), bool(body.get("enabled"))))
+        except ValueError as exc:
+            return _wb_err(exc, 422)
+
+    async def egress_override(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        body = await _json_body(request)
+        try:
+            if request.method == "DELETE":
+                _EG.ACTIVE.clear_override(str(body.get("asset_id") or ""), str(body.get("route") or ""))
+                return JSONResponse({"cleared": True})
+            return JSONResponse(_EG.ACTIVE.override(str(body.get("asset_id") or ""), str(body.get("route") or "")))
+        except ValueError as exc:
+            return _wb_err(exc, 422)
+
+    async def egress_log(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        return JSONResponse({"rows": _EG.ACTIVE.log(int(request.query_params.get("limit") or 200))})
+
+    async def egress_export(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        from starlette.responses import PlainTextResponse
+        return PlainTextResponse(_EG.ACTIVE.export_text(), headers={"content-disposition": "attachment; filename=egress-log.jsonl"})
+
     async def video_ingest(request: Request):
         """The user's confirm of the ingest card (the agent's tool only proposes). One clip, with provenance."""
         if (r := _wb(request)) is not None:
@@ -691,7 +738,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except CockpitError as exc:
             return _wb_err(exc)
 
-    routes += [Route("/app/video/ingest", video_ingest, methods=["POST"]), Route("/app/workbench", wb_home, methods=["GET"]), Route("/app/workbench/server/start", wb_server_start, methods=["POST"]),
+    routes += [Route("/app/egress", egress_state, methods=["GET"]), Route("/app/egress/route", egress_route, methods=["POST"]), Route("/app/egress/override", egress_override, methods=["POST", "DELETE"]),
+               Route("/app/egress/log", egress_log, methods=["GET"]), Route("/app/egress/export", egress_export, methods=["GET"]), Route("/app/video/ingest", video_ingest, methods=["POST"]), Route("/app/workbench", wb_home, methods=["GET"]), Route("/app/workbench/server/start", wb_server_start, methods=["POST"]),
                Route("/app/workbench/server/stop", wb_server_stop, methods=["POST"]), Route("/app/workbench/reconcile", wb_reconcile, methods=["POST"]),
                Route("/app/workbench/sessions", wb_create, methods=["POST"]), Route("/app/workbench/sessions/{sid}/screen", wb_screen, methods=["GET"]),
                Route("/app/workbench/sessions/{sid}/input", wb_input, methods=["POST"]), Route("/app/workbench/sessions/{sid}/close", wb_close, methods=["POST"]),

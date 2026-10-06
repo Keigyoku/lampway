@@ -301,7 +301,8 @@ class Higgsfield:
         return iter([data]), mime, len(data)
 
     def download(self, url: str) -> tuple:
-        with httpx.Client(transport=self._http_transport, timeout=300.0, follow_redirects=True) as client:
+        from . import egress as EG
+        with EG.context(route="higgsfield", kind="file"), httpx.Client(transport=self._http_transport, timeout=300.0, follow_redirects=True) as client:
             resp = client.get(url)
         if resp.status_code >= 400 or not resp.content:
             raise HiggsfieldError(f"downloading the result answered HTTP {resp.status_code}")
