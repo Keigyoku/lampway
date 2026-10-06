@@ -307,12 +307,12 @@ DEFS = [
          P("name", desc="the copy's name"), P("source", desc="write_params: fit (default) | live"), P("metal_zero_on", "array", "classes with metallic forced to 0"),
          P("statistic", desc="median (default) | mean"), P("space", desc="srgb (default) | linear"), P("min_texels", "integer", "default 1000")], api="palette_fit"),
     Def("lampway_bake_maps", "Bake a high-poly donor (`source`: a name or a list) into a UV-mapped low-poly `target`: normal (tangent), albedo (Cycles COLOR pass only: no lighting, by construction) and ao, "
-        "in a niced HEADLESS Cycles worker, never the live scene. size a power of two 32..8192 (default 2048), margin_px default size/128 (>= 2), cage_extrusion_m 0..0.2 or auto, max_ray_m, samples 1..512. "
+        "in a niced HEADLESS Cycles worker, never the live scene. size a power of two 32..8192 (default 2048), margin_px default size/128 (>= 2), cage_extrusion_m 0..0.2 or auto (measured from the pair: the high-poly's height above the target; the ray reaches the cage plus its depth below), max_ray_m, samples 1..512; normals 16-bit, one GL bake, DX by flipping its green. "
         "Refused before running, each with its fix: no UV (unwrap first), overlapping UVs, unapplied non-uniform scale, source == target, a pair not aligned (bbox centres > 2 % of the diagonal), an "
         "unsupported map (curvature, cavity, dust, bevel, position are not Cycles bake types), an existing map without overwrite. Returns the PNG paths, the black-texel fraction per map with a "
         "cage-too-small hint, the colour spaces, and (attach) a <target>_baked material wired with the maps.",
         [P("source", required=True, desc="donor object name, or a list"), P("target", required=True, desc="the UV-mapped low-poly object"), P("maps", "array", "normal | albedo | ao (default normal, albedo)"),
-         P("size", "integer", "power of two, default 2048"), P("margin_px", "integer", "0..64"), P("cage_extrusion_m", desc="0..0.2 or auto"), P("max_ray_m", "number", "default half the extrusion"),
+         P("size", "integer", "power of two, default 2048"), P("margin_px", "integer", "0..64"), P("cage_extrusion_m", desc="0..0.2 or auto (measured, default)"), P("max_ray_m", "number", "auto: measured; with an explicit cage, twice it"),
          P("samples", "integer", "1..512, default 16"), P("normal_green", desc="gl (default) | dx"), P("allow_overlap", "boolean", "bake despite overlapping UVs"),
          P("out_dir", desc="under the project root, default bake"), P("overwrite", "boolean", "replace existing maps"), P("attach", "boolean", "add the baked material, default true")], api="bake_maps"),
     Def("lampway_pbr_pack", "Engine-ready PBR maps. pack: maps {base, normal, rough, metal, ao|null} -> BaseColor (sRGB), ORM (R occlusion, 1 when no AO, G roughness, B metallic: Unreal order, linear), "

@@ -70,6 +70,8 @@ def plan(high, low, maps, size, margin_px, cage_extrusion_m, max_ray_m, samples,
     bad = [m for m in maps if m not in MAPS]
     if bad:
         raise C.FeatureError(f"{', '.join(bad)} cannot be baked here; the supported maps are: {', '.join(MAPS)} (curvature, cavity, dust, bevel, position are not Cycles bake types)")
+    if normal_green not in ("gl", "dx"):
+        raise C.FeatureError(f"normal_green is gl (OpenGL, +Y: Blender) or dx (DirectX, -Y: Unreal), not {normal_green!r}")
     if not 512 <= int(size) <= 8192 and not 32 <= int(size) <= 8192:
         raise C.FeatureError("size is 32..8192 (a power of two)")
     if int(size) & (int(size) - 1):
@@ -139,6 +141,8 @@ def run(source, target, maps, size, margin_px, cage_extrusion_m, max_ray_m, samp
     body = {"ok": True, "maps": data["files"], "size": cfg["size"], "cage_used": {"extrusion_m": cfg["cage_extrusion_m"], "max_ray_m": cfg["max_ray_m"]}, "margin_px": cfg["margin_px"],
             "checks": {"black_texel_fraction": data["black_texel_fraction"], "covered_texels": data["covered_texels"]}, "colorspace": data["colorspace"], "albedo_passes": data["albedo_passes"],
             "hints": hints, "material": data["material"]}
+    if data.get("normal"):
+        body["normal"] = data["normal"]
     if attach:
         lo = bpy.data.objects[cfg["low"]]
         mat = bpy.data.materials.new(data["material"]); mat.use_nodes = True

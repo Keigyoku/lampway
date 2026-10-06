@@ -1155,8 +1155,9 @@ def palette_fit(stage, piece, studio_base="", albedo="", masks="", classes=None,
 def bake_maps(source, target, maps=None, size=2048, margin_px=None, cage_extrusion_m="auto", max_ray_m=None, samples=16, normal_green="gl", allow_overlap=False, out_dir="bake", overwrite=False,
               attach=True):
     """Bake a high-poly donor (`source`: a name or a list) into a UV-mapped low-poly `target`: maps from normal (tangent), albedo (Cycles COLOR pass only: no lighting, by construction) and ao;
-    size a power of two 32..8192 (default 2048); margin_px default size/128 (at least 2); cage_extrusion_m 0..0.2 or auto (2 % of the target's diagonal), max_ray_m default half of it; samples
-    1..512. Runs in a niced HEADLESS Cycles worker, never in the live scene (the pair is exported to a temporary .blend). Refused before anything runs, each with its fix: no UV (unwrap first),
+    size a power of two 32..8192 (default 2048); margin_px default size/128 (at least 2); cage_extrusion_m 0..0.2 or auto (measured: the high-poly's greatest height above the target,
+    and max_ray_m the cage plus its greatest depth below; an explicit cage under the median distance is refused), max_ray_m default twice an explicit cage; samples 1..512. Normals are
+    16-bit, baked once in GL; normal_green=dx flips the green of that bake (never a second bake). Runs in a niced HEADLESS Cycles worker, never in the live scene (the pair is exported to a temporary .blend). Refused before anything runs, each with its fix: no UV (unwrap first),
     overlapping UVs, unapplied non-uniform scale, source == target, a pair not aligned (bbox centres > 2 % of the diagonal apart), an unsupported map, an existing map without overwrite=true.
     Returns the PNG paths under <root>/<out_dir>/, the black-texel fraction per map (a cage-too-small hint when > 0.5 %), the colour spaces (normal and ao Non-Color, albedo sRGB) and, with
     attach, a <target>_baked material wired with the maps and `lw_baked_from` on the target. Curvature, cavity, dust, bevel and position are not Cycles bake types and are refused by name."""
