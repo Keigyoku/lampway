@@ -12,11 +12,11 @@ file by file.
 
 | contract | state | commits |
 |---|---|---|
-| asset_place | done (P0 and P1 kinds, catalogue export and link); drag-and-drop not built (C++ dropbox) | ac30942c, b4e1f6a8 (NLA strip), 2f2288f7 (brand word) |
+| asset_place | done (P0 and P1 kinds, catalogue export and link); drag-and-drop is native work, handed to the facelift lane by the coordinator | ac30942c, b4e1f6a8 (NLA strip), 2f2288f7 (brand word) |
 | asset_mcp + wiring | done | ac1a3ff8 |
-| asset_ui_editor | done for surfaces A, B and E's export verb; C (island tab) and D (chat LIBRARY mode) not built | 335f04e2, 068b6be9 (cards panel in it) |
-| asset_ui_views | partial: views drawn from server products; no gpu canvas pan/zoom, no clip-to-clip alignment | 74825a29, b4e1f6a8 |
-| mrmak 09 report cards | done except the light theme (P2) and the Workbench-window embed | 5d53f750, 068b6be9, 2f2288f7 (content port without a raw socket) |
+| asset_ui_editor | done: A docked, B pop-out, C island tab (a8d26a7a), D chat LIBRARY mode (f0e4b99d; the mode stays retired upstream), hotkeys (87b0790a), E export verb; the label rename is native (facelift lane) | 335f04e2, 068b6be9, a8d26a7a, f0e4b99d, 87b0790a |
+| asset_ui_views | done on this lane's side: views, gpu pan/zoom canvas (87b0790a), clip alignment and the board canvas (568fe0ab); turntable, ball and proxy frames wait on vault-ops' asset_render/asset_video (not on origin/lp/wave5 at the last check) | 74825a29, b4e1f6a8, 87b0790a, 568fe0ab |
+| mrmak 09 report cards | done, light theme and Workbench frame included; the Workbench window page itself (facelift contract 10, `server/lampway_server/web/workbench/`) does not exist on lp/wave5, so the frame is ready but not mounted | 5d53f750, 068b6be9, 2f2288f7, d55f9ae2 |
 
 ### asset_place
 - `features/asset_place.py` (record, transaction, drop point, meshes), `asset_place_shading.py` (material onto a slot, PBR/texture sets by role, node groups, HDRI world),
@@ -92,17 +92,53 @@ file by file.
 - The routes test was written before the wiring but first run after it; its RED was then observed by removing the wiring (3 failed) and restoring (3 passed).
 - Open questions kept as the contract's defaults: cards under the project root; one card per piece.
 
+## Remainders (second pass, after the coordinator's list)
+
+1. **Island Library tab** (a8d26a7a). `agent_bubble/core/library_vault.py`: the pane's `mixar_generations_files` rows gain the Vault's pictures and clips under the
+   library name "Asset Vault", from ONE query whose payload is the editor's own (`session.VM.payload()`, now with `include: path`); run off the main thread from the island's
+   pump at most every 10 s. Meshes and other kinds stay in the Vault editor: the C++ tile has only image and video kinds (a mesh tile is native work). A page can carry each
+   asset's main file path (`include: path`, server). Tests: `test_island_vault.py` (one request equal to the editor's payload, answer lands on the tick, rows exact,
+   throttled), mutants on the kind filter and the throttle killed.
+2. **Chat LIBRARY mode** (f0e4b99d). `space_mixie_chat/core/library_vault_chat.py`: browse and text search ask the Vault off the main thread with a token; a picture is its
+   own thumbnail; a click places through `asset_place`; an attached image still goes to the trained index (the old path). **The mode is retired upstream**
+   (`tests/test_library_mode_retired.py`, "re-listing the enum item is the whole of bringing the feature back"); I did not re-list it: that reverses an upstream product
+   decision, so it is the captain's call (needs-decision). The test re-lists the item for its own run. The "never opens a .blend" claim is proven against an enrolled library
+   holding a real .blend: the spy sees the old scan open it, then sees nothing on the Vault path; a mutant that reruns the old scan is killed.
+3. **Hotkeys** (87b0790a). `core/hotkeys.py` (pure table and plan) and `ui/operators/vault_keys.py` (one operator, poll = mouse over a Vault area) in the add-on
+   keyconfig's **User Interface** keymap. Windowed probe (Xvfb in lampway-build, Blender's own `--enable-event-simulate`): 4, X, F, C and P reached the operator and the
+   rating 4 landed on the live server. Two facts measured on the way: xdotool events did not reach the Xvfb window at all, and in the **Zen Mode** workspace no keyboard
+   shortcut fired, Blender's own ctrl+Space included (the Layout workspace works). The first attempt used the "Window" keymap and was never polled in Zen; whether it
+   would work in Layout was not measured.
+4. **Pan/zoom canvas** (87b0790a). `core/canvas.py` (pure mapping: fit, zoom about the cursor, pan, top-left image pixels for the hit test), `core/canvas_view.py` (gpu
+   POST_PIXEL handler, scissored to the canvas), `ui/operators/vault_canvas.py` (modal: wheel, middle-drag, click a lineage node, Esc). While open, the body is only the
+   canvas bar. Windowed: two wheel steps took the zoom 5.90 -> 9.22 (x1.25 twice), a click selected the clicked node, Esc closed it; capture `canvas_zoomed.png`.
+5. **Clip alignment and the board canvas** (568fe0ab). Server `views.clip_align` (start, time at the faster rate, motion = the last still frame before each clip first
+   moves; the motion threshold is chosen, not calibrated) over the proxy frames asset_video will write, route `/clip_align` (refuses "no proxy frames yet: queued
+   (asset_video)"); `Vault.board_move` and `/boards/{board}/items/{asset}` (order and note kept); board tiles carry their picture. Client: two clips as one flipbook of
+   pairs with Start/Time/Motion; boards listed in the facet column and opened on the canvas, tiles drawn with gpu and blf, dragged and saved. Windowed: a tile dragged
+   by simulated events moved (16,16) -> (114,53) and the server returned the same place; the dragged tile drew under its neighbour (`board_after.png`), so it is now raised
+   on press (test written from that capture).
+6. **Report cards' light theme and Workbench embed** (d55f9ae2). The light theme is a serve-time prelude (`?theme=light` adds `data-lw-theme="light"` to a report marked
+   `data-lw-report="document"`; unmarked pages and images are served as they are; the file on disk never changes); Blender opens a card in its own UI's light. The
+   Workbench frame (`/app/cards/{id}/frame`) is the card in the contract's sandboxed iframe on the cards' origin.
+
+Normalization rule (coordinator, during this pass): the two raw importer calls this lane owns are marked `# LEGACY(normalize)`: `asset_place.py` `_import` and the catalogue
+worker `scripts/library/catalog_export.py`. No new raw landing was added: the island, the chat and the editor all place through `asset_place`. `canon_io` was not on
+`origin/lp/wave5` at the last check, so the switch to `lampway_normalize_mesh` is still owed.
+
+Not done, and why: the turntable / ball / proxy-frame switch to real products waits on vault-ops (`origin/lp/wave5` had none of it at each item boundary); the Workbench
+window page and the C++ items are other lanes'. The clip-pair view was not driven in a window (the live Vault has no proxy frames until asset_video lands).
+
 ## Test totals against wave5.md (server 900 passed, 5 skipped; client 753 passed, 46 skipped)
-Run on 29319e6b (the same tree as 2f2288f7 but for the two-line test literal below):
-- server (`server/`, venv-tools): **1106 passed, 6 skipped, 0 failed** (lp/wave5's own library commits added about 180 tests before this lane; this lane adds the
-  library_mcp / vault_tools / e2e / rest / views / cards / cards_routes files). An earlier full run caught `cards/content.py` importing `socket` (the egress door test);
-  fixed in 2f2288f7.
-- client (`tests/lampway_tools`, real binary `blender-lanes/vault-ui`): **781 passed, 46 skipped, 0 failed**.
-- standalone: `tests/asset_library` 29 passed, `tests/test_texturing_space_menu.py` passed.
-- `tests/lampway` (brand and gate checks): 4 failures, the SAME 4 on the integration base 00d907d4 (checked in a detached worktree): material_bake_export's and
-  mcp_inventory's "Mixar" strings, the allow-list's `/home/x` entry, eight provider hosts in fal.py and studios/rest. This lane's own "Mixar Paint" strings were renamed.
-- Pre-publish gate over origin/lp/wave5..HEAD: the first pass found a home-directory path in a test literal in the editor commit; the lane's unpushed commits after the integration
-  merge were replayed with the literal changed to `/projects/...` (the only difference, checked by `git diff`); the gate then reported 0 findings.
+Second pass, run on d55f9ae2 plus the two LEGACY comment lines:
+- server: **1113 passed, 6 skipped, 0 failed**.
+- client (`tests/lampway_tools`, this lane's binary): **786 passed, 46 skipped, 1 failed**. The failure was `test_wave2_bake_maps.py::test_a_bake_never_overwrites_an_existing_map_and_the_live_scene_is_untouched`
+  (`TypeError: argument of type 'NoneType' is not a container`); it passed alone right after (6 of 6 in that file) and in the first pass's full run; this lane does not touch
+  bake_maps. Treated as a flake under load, not explained.
+- standalone: `tests/asset_library` 43 passed with the menu, retirement, folder-media and browse-hardening tests; `tests/lampway` keeps the same 4 failures as the integration
+  base 00d907d4 (offender lists unchanged: material_bake_export, mcp_inventory, the `/home/x` allow-list entry, eight provider hosts).
+- First pass (29319e6b): server 1106 passed, 6 skipped; client 781 passed, 46 skipped.
+- Pre-publish gate: see the push.
 
 ## Merge notes
 - `app.py`: separate hunks (imports, the Vault next to `AssetIndex`, two route spreads, `vault.close()` in the lifespan, `app.state.vault`). Lane vault-ops's provenance hook
