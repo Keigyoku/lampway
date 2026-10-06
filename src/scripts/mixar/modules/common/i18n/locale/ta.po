@@ -28,9 +28,6 @@ msgstr "மிதக்கும் குமிழியின் அரட்�
 msgid "Share Usage Data"
 msgstr "பயன்பாட்டுத் தரவைப் பகிர்"
 
-msgid "Share content-free product usage events to help improve Lampway"
-msgstr "Mixar-ஐ மேம்படுத்த உதவும் வகையில், உள்ளடக்கம் இல்லாத தயாரிப்புப் பயன்பாட்டு நிகழ்வுகளைப் பகிர்கிறது"
-
 msgid "No generation services"
 msgstr "உருவாக்கச் சேவைகள் இல்லை"
 
@@ -76,8 +73,8 @@ msgstr "தொடங்குதல்"
 msgid "About"
 msgstr "பற்றி"
 
-msgid "Join Discord"
-msgstr "Discord-இல் சேருங்கள்"
+msgid "Website"
+msgstr ""
 
 msgid "Quick Setup"
 msgstr "விரைவான அமைப்பு"
@@ -474,12 +471,6 @@ msgstr ""
 msgid "Nothing is selected"
 msgstr ""
 
-msgid "Open Lampway Agent"
-msgstr ""
-
-msgid "Open Lampway Agent, the agent chat, ready to type (Shift M)"
-msgstr ""
-
 msgid "Capture Viewport"
 msgstr "வியூபோர்ட்டைப் பிடி"
 
@@ -872,6 +863,186 @@ msgstr ""
 "வழிசெலுத்தலையும் வியூபோர்ட் அல்லாத அனைத்து உள்ளீட்டையும் கடக்கவிடுகிறது; வியூபோர்ட்\n"
 "கேன்வாசின் மேல் சொடுக்கல்களையும் தொகுப்புக் குறுக்குவிசைகளையும் எடுத்துக்கொள்கிறது.\n"
 
+msgid "Search"
+msgstr "தேடல்"
+
+msgid "Search the Vault now"
+msgstr ""
+
+msgid "Filter"
+msgstr "வடிகட்டி"
+
+msgid "Filter by this value (click again to remove the filter)"
+msgstr ""
+
+msgid "Select this asset (Ctrl adds or removes it, Shift selects the range)"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "Toggle"
+msgstr "மாற்று"
+
+msgid "Range"
+msgstr "சரகம்"
+
+msgid "Page"
+msgstr "பக்கம்"
+
+msgid "Show the next or the previous page"
+msgstr ""
+
+msgid "Next"
+msgstr "அடுத்தது"
+
+msgid "Previous"
+msgstr "முந்தைய"
+
+msgid "Place in scene"
+msgstr ""
+
+msgid "Put this asset into the scene the way its kind needs (one undo step)"
+msgstr ""
+
+msgid "Rate"
+msgstr "விகிதம்"
+
+msgid "Rate this asset (your stars always win over an agent's)"
+msgstr ""
+
+msgid "View"
+msgstr "பார்வை"
+
+msgid "Show this view of the selected asset"
+msgstr ""
+
+msgid "Play"
+msgstr ""
+
+msgid "Play or pause the turntable or the clip"
+msgstr ""
+
+msgid "To timeline"
+msgstr ""
+
+msgid "Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"
+msgstr ""
+
+msgid "Lineage"
+msgstr ""
+
+msgid "Draw where this asset came from and what came of it"
+msgstr ""
+
+msgid "Compare"
+msgstr "ஒப்பிடுக"
+
+msgid "Add this asset to the comparison (the last two are compared)"
+msgstr ""
+
+msgid "Find like this"
+msgstr ""
+
+msgid "Find assets like this one (runs on this machine)"
+msgstr ""
+
+msgid "Show in folder"
+msgstr ""
+
+msgid "Open the folder that holds this file (the file itself is never changed)"
+msgstr ""
+
+msgid "the folder is gone: re-run the Vault's verify"
+msgstr ""
+
+msgid "Copy"
+msgstr "நகலெடு"
+
+msgid "Copy to the clipboard"
+msgstr ""
+
+msgid "Save search"
+msgstr ""
+
+msgid "Keep this search in the Vault under a name"
+msgstr ""
+
+msgid "Name"
+msgstr "பெயர்"
+
+msgid "Initial import"
+msgstr ""
+
+msgid "Choose a folder to add to the Vault: it is read and previewed first; nothing is imported until you confirm. Files stay where they are"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import what the preview listed (the files are referenced where they are, never moved or changed)"
+msgstr ""
+
+msgid "there is no preview to import: choose a folder with Initial import first"
+msgstr ""
+
+msgid "Asset Vault Window"
+msgstr ""
+
+msgid "Open the Asset Vault in its own window (a second press brings it to the front)"
+msgstr ""
+
+msgid "The Asset Vault window is already open"
+msgstr ""
+
+msgid "Searching"
+msgstr ""
+
+msgid "Show the lineage"
+msgstr ""
+
+msgid "Select an asset"
+msgstr ""
+
+msgid "Reading the asset"
+msgstr ""
+
+msgid "Copy id"
+msgstr ""
+
+msgid "Asset Vault"
+msgstr ""
+
+msgid "offline"
+msgstr ""
+
+msgid "Search the Vault: names, tags and terms (Enter searches at once)"
+msgstr ""
+
+msgid "Every kind"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Grid"
+msgstr "கட்டம்"
+
+msgid "Tiles with big previews"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "One row per asset"
+msgstr ""
+
+msgid "Tile size"
+msgstr ""
+
+msgid "Thumbnail size in pixels"
+msgstr ""
+
 msgid "preview worker exited before rendering this asset"
 msgstr "இந்தச் சொத்தை வழங்குவதற்கு முன் முன்னோட்டப் பணியாளர் வெளியேறியது"
 
@@ -976,9 +1147,6 @@ msgstr "குறிப்புப் படம் (விருப்பம்
 
 msgid "Searching…"
 msgstr "தேடுகிறது…"
-
-msgid "Search"
-msgstr "தேடல்"
 
 msgid "{count} result(s)"
 msgstr "முடிவுகள்: {count}"
@@ -1889,6 +2057,54 @@ msgstr "இந்தப் பயனருக்குச் சேவையக�
 msgid "Dialog State"
 msgstr "உரையாடல் நிலை"
 
+msgid "Refresh cards"
+msgstr ""
+
+msgid "Read the project cards from the server"
+msgstr ""
+
+msgid "Pin card"
+msgstr ""
+
+msgid "Pin the card so it never archives itself"
+msgstr ""
+
+msgid "Card status"
+msgstr ""
+
+msgid "Mark the card active, done or archived (metadata only: its pages and media stay)"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Rebuild page"
+msgstr ""
+
+msgid "Rebuild this card's page from the ledger (the page is generated: change the data, not the page)"
+msgstr ""
+
+msgid "Design rounds"
+msgstr ""
+
+msgid "Motion tests"
+msgstr ""
+
+msgid "Receipt"
+msgstr ""
+
+msgid "Open card"
+msgstr ""
+
+msgid "Open this card's page in your browser (served on its own local origin; Blender never renders it)"
+msgstr ""
+
+msgid "Project cards"
+msgstr ""
+
+msgid "No cards yet: build one with lampway_cards"
+msgstr ""
+
 msgid "Set Lampway Agent Mode"
 msgstr "Lampway Agent பயன்முறையை அமை"
 
@@ -2303,9 +2519,6 @@ msgstr "உருவாக்கியது (unix வினாடிகள்)"
 msgid "Frozen Elapsed"
 msgstr "உறைந்த கடந்த நேரம்"
 
-msgid "Filter"
-msgstr "வடிகட்டி"
-
 msgid "{message} ({code})"
 msgstr "{message} ({code})"
 
@@ -2420,10 +2633,7 @@ msgstr "மாற வேண்டிய இட வகை"
 msgid "No active area"
 msgstr "செயலில் உள்ள பகுதி இல்லை"
 
-msgid "Apply Lampway Forest"
-msgstr ""
-
-msgid "Apply Lampway's charcoal and forest-green theme with default text styling"
+msgid "Lampway Night is not installed: reinstall Lampway to restore its themes"
 msgstr ""
 
 msgid "Reset Workspace Backgrounds"
@@ -2468,17 +2678,14 @@ msgstr "தனியுரிமை"
 msgid "Telemetry consent, placed where users conventionally look to opt out."
 msgstr "பயனர்கள் வழக்கமாக விலகப் பார்க்கும் இடத்தில் வைத்த தொலை அளவீட்டு ஒப்புதல்."
 
-msgid "Shares which Lampway features you use, to help improve the product."
-msgstr "தயாரிப்பை மேம்படுத்த நீங்கள் பயன்படுத்தும் Lampway அம்சங்களைப் பகிர்கிறது."
-
 msgid "Your prompts, files, and scene content are never included."
 msgstr "உங்கள் ப்ராம்ப்ட்கள், கோப்புகள், காட்சி உள்ளடக்கம் ஒருபோதும் சேர்க்கப்படாது."
 
+msgid "Off by default; events only ever go to your configured Lampway server."
+msgstr ""
+
 msgid "Privacy Policy"
 msgstr "தனியுரிமைக் கொள்கை"
-
-msgid "Lampway"
-msgstr ""
 
 msgid "Shared across Zen, Engine and Texturing workspaces."
 msgstr ""
@@ -2542,9 +2749,6 @@ msgstr "அடிக்குறிப்பு"
 
 msgid "Confirm"
 msgstr "உறுதிப்படுத்தவும்"
-
-msgid "Grid"
-msgstr "கட்டம்"
 
 msgid "Disabled action"
 msgstr "முடக்கப்பட்ட செயல்"
@@ -3008,6 +3212,9 @@ msgstr "{filename} ஏற்றுமதி செய்யப்பட்டத
 msgid "Unreal Connector"
 msgstr "Unreal இணைப்பான்"
 
+msgid "Lampway"
+msgstr ""
+
 msgid "Connector properties not registered"
 msgstr "இணைப்பான் பண்புகள் பதிவு செய்யப்படவில்லை"
 
@@ -3080,7 +3287,7 @@ msgstr ""
 msgid "Project folder"
 msgstr ""
 
-msgid "Let Lampway Agent read files in a folder"
+msgid "Let {agent} read files in a folder"
 msgstr ""
 
 msgid "Attach"
@@ -3587,9 +3794,6 @@ msgstr "புகைப்பட கருவி"
 msgid "Using {name}"
 msgstr "{name}-ஐப் பயன்படுத்துகிறது"
 
-msgid "Range"
-msgstr "சரகம்"
-
 msgid "Videos"
 msgstr "வீடியோக்கள்"
 
@@ -3875,17 +4079,11 @@ msgstr "கட்டத்தை மாற்று"
 msgid "Show or hide the viewport's grid lines (floor grid and X/Y axes)"
 msgstr "வியூபோர்ட்டின் கட்டக் கோடுகளைக் காட்டுகிறது அல்லது மறைக்கிறது (தரைக் கட்டம் மற்றும் X/Y அச்சுகள்)"
 
-msgid "Set"
-msgstr ""
-
 msgid "Make these keys the selection"
 msgstr ""
 
 msgid "Add these keys to the selection"
 msgstr ""
-
-msgid "Toggle"
-msgstr "மாற்று"
 
 msgid "Deselect these keys if selected, select them otherwise"
 msgstr ""
@@ -4817,6 +5015,804 @@ msgstr "விலக்கு"
 msgid "Dismiss the error and return to idle"
 msgstr "பிழையை விலக்கி செயலற்ற நிலைக்குத் திரும்புகிறது"
 
+msgid "Front"
+msgstr "முன்"
+
+msgid "RGB"
+msgstr "ஆர்சிபி"
+
+msgid "Roughness"
+msgstr "கடினத்தன்மை"
+
+msgid "Metallic"
+msgstr "உலோகம்"
+
+msgid "Chest1"
+msgstr ""
+
+msgid "Waist1"
+msgstr ""
+
+msgid "Refresh privacy"
+msgstr ""
+
+msgid "Read the Privacy state from the server and keep it fresh while data may leave"
+msgstr ""
+
+msgid "Switch route"
+msgstr ""
+
+msgid "Opt a route in or out. Every route is OFF until you switch it on. Your click only"
+msgstr ""
+
+msgid "Export egress log"
+msgstr ""
+
+msgid "Put the egress log (what left, to whom, when) into a Text datablock you can save"
+msgstr ""
+
+msgid "Set up Mesh QA"
+msgstr ""
+
+msgid "Point mesh QA at the active mesh object"
+msgstr ""
+
+msgid "Add tag layers"
+msgstr ""
+
+msgid "Add the three tag layers to the annotations: Red = Delete, Green = Mislabel, Yellow = Hole"
+msgstr ""
+
+msgid "Find candidates"
+msgstr ""
+
+msgid "Find open loops and floating shells on the piece and write them as typed candidates"
+msgstr ""
+
+msgid "Draw candidates"
+msgstr ""
+
+msgid "Draw the candidates into the scene (collection QA_candidates): yellow tubes and rings with their ids"
+msgstr ""
+
+msgid "Refresh markers"
+msgstr ""
+
+msgid "Recolour and relabel the active piece's markers from its proposals (red delete, yellow hole, green mislabel, grey keep)"
+msgstr ""
+
+msgid "Read tags"
+msgstr ""
+
+msgid "Read the Red/Green/Yellow annotation strokes into decisions and rulings"
+msgstr ""
+
+msgid "Save rebuild setup"
+msgstr ""
+
+msgid "Save what a rebuild needs besides the rulings"
+msgstr ""
+
+msgid "Read tags and rebuild"
+msgstr ""
+
+msgid "Read tags, write rulings, rebuild, and load the result beside the previous version"
+msgstr ""
+
+msgid "Run tool"
+msgstr ""
+
+msgid "Run one of the ported batch tools (parts, proportions, textures) in the background"
+msgstr ""
+
+msgid "Mesh-paint texture"
+msgstr ""
+
+msgid "Mesh-paint texturing: clay render per view, the image backend paints the design over it, pick the best of four per view, plates, projection at 4096 with no warp, masks, then load it with the albedo toggle"
+msgstr ""
+
+msgid "Toggle albedo"
+msgstr ""
+
+msgid "Switch the live material between the textured look and the projected albedo"
+msgstr ""
+
+msgid "Run feature"
+msgstr ""
+
+msgid "Run the chosen feature on the active object; options are JSON"
+msgstr ""
+
+msgid "Classify clips"
+msgstr ""
+
+msgid "Measure every action on the active armature: motion class, speed, loop, a proposed name. Changes nothing"
+msgstr ""
+
+msgid "Apply names"
+msgstr ""
+
+msgid "Rename the measured actions to their proposed labels (the old name is kept as lw_source_name). Your click only"
+msgstr ""
+
+msgid "Lampway settings"
+msgstr ""
+
+msgid "Project root, interpreters and texture libraries"
+msgstr ""
+
+msgid "Project root"
+msgstr ""
+
+msgid "Science python"
+msgstr ""
+
+msgid "A python with numpy, scipy, Pillow and OpenCV"
+msgstr ""
+
+msgid "Blender for batch tools"
+msgstr ""
+
+msgid "Empty = this app"
+msgstr ""
+
+msgid "Colour tiles"
+msgstr ""
+
+msgid "ambientCG library"
+msgstr ""
+
+msgid "Studio HDRI"
+msgstr ""
+
+msgid "Refresh connections"
+msgstr ""
+
+msgid "Read which MCP servers your agent apps have, from where, and whether each is ready"
+msgstr ""
+
+msgid "Check"
+msgstr ""
+
+msgid "Open a short connection to this server and list its tools (no tool is ever called). Your click only"
+msgstr ""
+
+msgid "Show config file"
+msgstr ""
+
+msgid "Show where this server's effective configuration lives (the path only, never the contents)"
+msgstr ""
+
+msgid "yes"
+msgstr ""
+
+msgid "Refresh templates"
+msgstr ""
+
+msgid "Read the prompt templates from the server"
+msgstr ""
+
+msgid "Load template"
+msgstr ""
+
+msgid "Load the chosen template: its variables become a form with their types, bounds and defaults"
+msgstr ""
+
+msgid "Render the template with the form's values (through the server: nothing is generated)"
+msgstr ""
+
+msgid "Edit as my own"
+msgstr ""
+
+msgid "Edit as my own: save a copy of this template in YOUR scope as the next version (the built-in is untouched)"
+msgstr ""
+
+msgid "Use in generation"
+msgstr ""
+
+msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job then records the template and its variables"
+msgstr ""
+
+msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
+msgstr ""
+
+msgid "Refresh Studios"
+msgstr ""
+
+msgid "Read the Studios state from the server: pending confirmations, jobs, the engine"
+msgstr ""
+
+msgid "Plan"
+msgstr "திட்டம்"
+
+msgid "Ask a Studio to read back an action's settings and price (nothing is clicked or spent); a spend then waits for your confirmation"
+msgstr ""
+
+msgid "Arguments"
+msgstr ""
+
+msgid "Confirm and spend"
+msgstr ""
+
+msgid "Spend the credits: confirm this Studio action at the price shown. Only your own click can do this"
+msgstr ""
+
+msgid "Price"
+msgstr ""
+
+msgid "Spend credits?"
+msgstr ""
+
+msgid "Spend"
+msgstr ""
+
+msgid "Answer"
+msgstr ""
+
+msgid "Answer a question Higgsfield (or a Studio) asks you. Only your own click can"
+msgstr ""
+
+msgid "Sign in to Higgsfield"
+msgstr ""
+
+msgid "Open the server's Higgsfield sign-in page in your browser (one consent; the tokens stay on this machine)"
+msgstr ""
+
+msgid "Reject"
+msgstr ""
+
+msgid "Turn this Studio action down; nothing is spent"
+msgstr ""
+
+msgid "Bring one of a finished job's files into the scene (collection Studio)"
+msgstr ""
+
+msgid "Does a job wait for your click? off | above | always (the agent and swarm can never click)"
+msgstr ""
+
+msgid "Main agent"
+msgstr ""
+
+msgid "Provider for the main agent (the chat)"
+msgstr ""
+
+msgid "Model (ChatGPT plan)"
+msgstr ""
+
+msgid "Model when the main agent runs on your ChatGPT plan"
+msgstr ""
+
+msgid "Effort"
+msgstr ""
+
+msgid "Reasoning effort on your ChatGPT plan (default = the model's)"
+msgstr ""
+
+msgid "Swarm workers"
+msgstr ""
+
+msgid "Provider for the swarm's workers (default = the main provider's own)"
+msgstr ""
+
+msgid "Claude model"
+msgstr ""
+
+msgid "Model for workers on your own claude CLI"
+msgstr ""
+
+msgid "OpenRouter worker model"
+msgstr ""
+
+msgid "Model for workers on OpenRouter"
+msgstr ""
+
+msgid "Images"
+msgstr "படங்கள்"
+
+msgid "Image backend: tripo, codex_cli or openrouter"
+msgstr ""
+
+msgid "Image model"
+msgstr ""
+
+msgid "OpenRouter image model, e.g. openai/gpt-image-2.5-sunburst (precision) or -flare (speed)"
+msgstr ""
+
+msgid "Image size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT within the pixel budget (2880x2880 works), or default"
+msgstr ""
+
+msgid "Image quality"
+msgstr ""
+
+msgid "auto, low, medium, high, xhigh, max, or default"
+msgstr ""
+
+msgid "Plates model"
+msgstr ""
+
+msgid "Mesh-paint plates, e.g. openai/gpt-image-2.5-flare (or sourceful/riverflow-v2.5-pro: flattest albedo, slower, dearer)"
+msgstr ""
+
+msgid "Plates size"
+msgstr ""
+
+msgid "WIDTHxHEIGHT, e.g. 2880x2880 or 2160x3840 for a tall plate (at most 3840 per edge, ~8.3 MP)"
+msgstr ""
+
+msgid "Mask model"
+msgstr ""
+
+msgid "Material-ID / mask drafts: flat colour regions, e.g. google/gemini-3.1-flash-image"
+msgstr ""
+
+msgid "Concept model"
+msgstr ""
+
+msgid "Concepts / moodboard, e.g. black-forest-labs/flux-3-image. It redesigns the piece: never for projection"
+msgstr ""
+
+msgid "Concept resolution"
+msgstr ""
+
+msgid "1K, 2K or 4K for models that take resolution, or default"
+msgstr ""
+
+msgid "Tile model"
+msgstr ""
+
+msgid "Seamless tiles, e.g. openai/gpt-image-2.5-flare"
+msgstr ""
+
+msgid "WIDTHxHEIGHT of a seamless tile, e.g. 2048x2048"
+msgstr ""
+
+msgid "Bulk video"
+msgstr ""
+
+msgid "Bulk clips, e.g. heygen/heygen-video-1"
+msgstr ""
+
+msgid "Bulk resolution"
+msgstr ""
+
+msgid "e.g. 768p"
+msgstr ""
+
+msgid "Bulk seconds"
+msgstr ""
+
+msgid "Seconds, e.g. 10"
+msgstr ""
+
+msgid "Loop video"
+msgstr ""
+
+msgid "Loops (first = last frame), e.g. bytedance/seedance-1-5-pro"
+msgstr ""
+
+msgid "Loop resolution"
+msgstr ""
+
+msgid "e.g. 720p"
+msgstr ""
+
+msgid "Motion video"
+msgstr ""
+
+msgid "Motion transfer with a reference video, e.g. bytedance/seedance-2.0-mini"
+msgstr ""
+
+msgid "Motion resolution"
+msgstr ""
+
+msgid "e.g. 480p"
+msgstr ""
+
+msgid "Video cap (USD)"
+msgstr ""
+
+msgid "One video job above this estimate is refused before it is sent (0 = unchanged)"
+msgstr ""
+
+msgid "Save provider settings"
+msgstr ""
+
+msgid "Save provider choices on the server (fields left empty are unchanged)"
+msgstr ""
+
+msgid "Providers"
+msgstr ""
+
+msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
+msgstr ""
+
+msgid "Refresh sessions"
+msgstr ""
+
+msgid "Read the cockpit state from the server: the herdr server, the sessions and their chips"
+msgstr ""
+
+msgid "Start the herdr server"
+msgstr ""
+
+msgid "Start Lampway's own herdr server (detached: it outlives Blender). Your click only"
+msgstr ""
+
+msgid "Reconcile sessions"
+msgstr ""
+
+msgid "Re-adopt the live panes by the server's truth: nothing is spawned or killed"
+msgstr ""
+
+msgid "New session"
+msgstr ""
+
+msgid "Open a new agent session in the cockpit (your own CLI login)"
+msgstr ""
+
+msgid "Claude Code"
+msgstr ""
+
+msgid "Codex"
+msgstr ""
+
+msgid "OpenCode"
+msgstr ""
+
+msgid "Shell"
+msgstr ""
+
+msgid "Read to Text"
+msgstr ""
+
+msgid "Copy the last 70 screen lines of a session into a Text datablock (reading never marks an answer seen)"
+msgstr ""
+
+msgid "Type into a session (your own keystrokes: this is the user's send)"
+msgstr ""
+
+msgid "Close session"
+msgstr ""
+
+msgid "Close a session's pane (its agent process ends; its history stays). Needs your confirm"
+msgstr ""
+
+msgid "Yes, end this agent"
+msgstr ""
+
+msgid "Stop the herdr server"
+msgstr ""
+
+msgid "Stop Lampway's herdr server: every agent pane in it ends. Needs your confirm"
+msgstr ""
+
+msgid "Yes, end every session"
+msgstr ""
+
+msgid "Cockpit window"
+msgstr ""
+
+msgid "Open the cockpit window: a read-only mirror of the session in a Text editor, refreshed every two seconds"
+msgstr ""
+
+msgid "Lampway tools"
+msgstr ""
+
+msgid "Mesh QA"
+msgstr ""
+
+msgid "Tags: Red = Delete, Green = Mislabel, Yellow = Hole"
+msgstr ""
+
+msgid "Rebuild"
+msgstr ""
+
+msgid "Mesh-paint texturing"
+msgstr ""
+
+msgid "Parts and proportion tools"
+msgstr ""
+
+msgid "Review proposals"
+msgstr ""
+
+msgid "Set a piece up first (Mesh QA)"
+msgstr ""
+
+msgid "Proposals are not rulings: tag it to decide."
+msgstr ""
+
+msgid "Studios (online)"
+msgstr ""
+
+msgid "shelf engine"
+msgstr ""
+
+msgid "bundled drivers"
+msgstr ""
+
+msgid "Providers: agent, swarm, images"
+msgstr ""
+
+msgid "Waiting for YOUR confirmation"
+msgstr ""
+
+msgid "Plan (clicks nothing)"
+msgstr ""
+
+msgid "Features"
+msgstr ""
+
+msgid "Prompts"
+msgstr ""
+
+msgid "Cockpit (agent sessions)"
+msgstr ""
+
+msgid "The cockpit: the user's real agent CLIs as panes of Lampway's own herdr server. draw() reads the cached state only: it never touches the network."
+msgstr ""
+
+msgid "Read"
+msgstr "படி"
+
+msgid "Window"
+msgstr "சாளரம்"
+
+msgid "Animation clips"
+msgstr ""
+
+msgid "The clip table: one row per action (primary class, speed, loop, an inferred marker, the proposed name). draw() reads the cache only."
+msgstr ""
+
+msgid "Privacy (what leaves this machine)"
+msgstr ""
+
+msgid "Privacy: every outbound route, off until you switch it on, with its retention and training policy; the DATA LEAVING badge; the last log rows. draw() reads the cache only."
+msgstr ""
+
+msgid "Switch off"
+msgstr ""
+
+msgid "Switch on"
+msgstr ""
+
+msgid "Connections (MCP servers)"
+msgstr ""
+
+msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "enum values, | separated"
+msgstr ""
+
+msgid "Recipe"
+msgstr ""
+
+msgid "The parts recipe json (parts and their motion classes)"
+msgstr ""
+
+msgid "Owner map"
+msgstr ""
+
+msgid "A .npy of one part index per polygon; empty = the mesh's int face attribute 'part'"
+msgstr ""
+
+msgid "Piece"
+msgstr ""
+
+msgid "The piece's name; its rulings live in <project root>/<piece>/rulings"
+msgstr ""
+
+msgid "Lift"
+msgstr ""
+
+msgid "Live frame minus the mesh's own frame in Z (how far the piece was lifted onto the floor)"
+msgstr ""
+
+msgid "Source faces"
+msgstr ""
+
+msgid "A rebuild's orig_poly .npy (source face per polygon, -1 = patch); empty for a source mesh"
+msgstr ""
+
+msgid "Turn"
+msgstr ""
+
+msgid "The rebuild's turn about Z in degrees (patch_holes --turn)"
+msgstr ""
+
+msgid "Everything else is intentional"
+msgstr ""
+
+msgid "Answer every candidate nobody named 'keep' (his: everything else looks intentional)"
+msgstr ""
+
+msgid "Relabel to"
+msgstr ""
+
+msgid "Target parts for the green strokes, as stroke:part pairs, e.g. 0:cuirass_back_plate,1:cape_drape_upper"
+msgstr ""
+
+msgid "Source mesh"
+msgstr ""
+
+msgid "Source owner"
+msgstr ""
+
+msgid "Relief views"
+msgstr ""
+
+msgid "Plates"
+msgstr ""
+
+msgid "Template material"
+msgstr ""
+
+msgid "The live textured material to copy for the rebuild"
+msgstr ""
+
+msgid "Tag"
+msgstr ""
+
+msgid "A new name for this rebuild; a tag is never overwritten"
+msgstr ""
+
+msgid "Atlas"
+msgstr ""
+
+msgid "Colour at full resolution"
+msgstr ""
+
+msgid "Ornament"
+msgstr ""
+
+msgid "max_tris:reach_px:min_share, e.g. 600:24:0.25 at 4096"
+msgstr ""
+
+msgid "Gold from mesh relief"
+msgstr ""
+
+msgid "Rebuilt mesh"
+msgstr ""
+
+msgid "The rebuild's patched UV mesh (fbx) the clay renders are made from"
+msgstr ""
+
+msgid "Design plates"
+msgstr ""
+
+msgid "V3's plates: Front.png, Back.png, Left.png, Right.png"
+msgstr ""
+
+msgid "Rebuild outputs"
+msgstr ""
+
+msgid "The rebuild's out_root (holds patched/)"
+msgstr ""
+
+msgid "Rebuild tag"
+msgstr ""
+
+msgid "The rebuild whose mesh and maps the projection reuses"
+msgstr ""
+
+msgid "Generate for real"
+msgstr ""
+
+msgid "Off = a dry run (the image backend verifies its settings, nothing is generated or spent). On needs the owner's own arming of the backend"
+msgstr ""
+
+msgid "Albedo base colour"
+msgstr ""
+
+msgid "The projected albedo as the live material's base colour"
+msgstr ""
+
+msgid "Tool"
+msgstr "கருவி"
+
+msgid "A prompt-library template (image or video)"
+msgstr ""
+
+msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
+msgstr ""
+
+msgid "Job id"
+msgstr ""
+
+msgid "The job to rate"
+msgstr ""
+
+msgid "Rating"
+msgstr "மதிப்பீடு"
+
+msgid "Note"
+msgstr ""
+
+msgid "Studio action"
+msgstr ""
+
+msgid "The action's arguments as JSON, paths inside the project root"
+msgstr ""
+
+msgid "Feature"
+msgstr ""
+
+msgid "Retopology"
+msgstr "ரெட்டோபாலசி"
+
+msgid "A new all-quad mesh near a target face count"
+msgstr ""
+
+msgid "UV unwrap"
+msgstr ""
+
+msgid "A packed UV layout on a new mesh"
+msgstr ""
+
+msgid "Mesh segment"
+msgstr ""
+
+msgid "Split into part objects"
+msgstr ""
+
+msgid "Auto rig"
+msgstr ""
+
+msgid "A UE-named humanoid armature"
+msgstr ""
+
+msgid "Mesh prep"
+msgstr ""
+
+msgid "Branch, hash and repair defects"
+msgstr ""
+
+msgid "Asset acceptance"
+msgstr ""
+
+msgid "Identity, orientation, geometry, materials gates"
+msgstr ""
+
+msgid "Detail normals"
+msgstr ""
+
+msgid "Tiling detail normals on a textured_atlas material"
+msgstr ""
+
+msgid "Image to 3D"
+msgstr "படத்திலிருந்து 3D"
+
+msgid "A mesh from views"
+msgstr ""
+
+msgid "Render video"
+msgstr ""
+
+msgid "A turntable or fly-through"
+msgstr ""
+
+msgid "Options"
+msgstr "விருப்பங்கள்"
+
+msgid "The feature's other arguments as JSON, e.g. {\"target_faces\": 3000}; engine \"studio:tripo\" asks for approval and clicks nothing"
+msgstr ""
+
+msgid "The tool's arguments, space separated (paths relative to the project root)"
+msgstr ""
+
+msgid "Figure height (m)"
+msgstr ""
+
+msgid "0 = the deform mesh's rest height, else head bone to foot bone"
+msgstr ""
+
+msgid "Last result"
+msgstr ""
+
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
 msgstr "மிகச் சிறிய பார்வைத் திறன் மாதிரி — எந்த இயந்திரத்திலும் வேகம், நல்ல கருவிப் பயன்பாடு."
 
@@ -5012,7 +6008,7 @@ msgstr ""
 msgid "Codex's config.toml could not be read; copy the setup and add it by hand."
 msgstr ""
 
-msgid "Codex defines mixar in a form Lampway cannot update; edit config.toml by hand."
+msgid "Codex defines an older entry in a form Lampway cannot update; edit config.toml by hand."
 msgstr ""
 
 msgid "Codex's config.toml was left unchanged; copy the setup and add it by hand."
@@ -5068,9 +6064,6 @@ msgstr ""
 
 msgid "Add to {app}"
 msgstr ""
-
-msgid "Copy"
-msgstr "நகலெடு"
 
 msgid "Open Config File"
 msgstr ""
@@ -5270,9 +6263,6 @@ msgstr "ஆர்க்கிட்"
 msgid "Generate Image"
 msgstr "படத்தை உருவாக்கு"
 
-msgid "Image to 3D"
-msgstr "படத்திலிருந்து 3D"
-
 msgid "Video Generation"
 msgstr "காணொளி உருவாக்கம்"
 
@@ -5284,9 +6274,6 @@ msgstr "ஸ்பிளாட்டை உருவாக்கு"
 
 msgid "PBR Generation"
 msgstr "PBR உருவாக்கம்"
-
-msgid "Retopology"
-msgstr "ரெட்டோபாலசி"
 
 msgid "Mesh Segmentation"
 msgstr "கண்ணிப் பிரிவாக்கம்"
@@ -6794,9 +7781,6 @@ msgstr "சட்டக அடையாளம்"
 msgid "Stable identifier members refer to"
 msgstr "உறுப்பினர்கள் குறிக்கும் நிலையான அடையாளங்காட்டி"
 
-msgid "Name"
-msgstr "பெயர்"
-
 msgid "Frame name, painted above its top-left corner"
 msgstr "சட்டகப் பெயர், அதன் மேல்-இடது மூலைக்கு மேலே வரையப்படும்"
 
@@ -7465,9 +8449,6 @@ msgstr "கூறுப் பெயர்"
 msgid "Named character component represented by this image"
 msgstr "இந்தப் படம் குறிக்கும் பெயரிட்ட பாத்திரக் கூறு"
 
-msgid "View"
-msgstr "பார்வை"
-
 msgid "Camera angle this image shows. Only meaningful while the image belongs to a multi-view set — it is sent alongside the tab's input image as that angle"
 msgstr "இந்தப் படம் காட்டும் கேமராக் கோணம். படம் ஒரு பல பார்வைத் தொகுப்பில் இருக்கும்போது மட்டுமே பொருள் — அந்தக் கோணமாகத் தாவலின் உள்ளீட்டுப் படத்துடன் அனுப்பப்படும்"
 
@@ -7980,9 +8961,6 @@ msgstr "அமைப்புகளை வழிநடத்தும் கு�
 
 msgid "Treat the reference image as a style reference paired with the prompt (Tripo style_image) instead of a direct reference"
 msgstr "குறிப்புப் படத்தைப் ப்ராம்ப்ட்டுடன் இணைந்த பாணிக் குறிப்பாகக் கருதுங்கள் (Tripo style_image), நேரடிக் குறிப்பாக அல்ல"
-
-msgid "Front"
-msgstr "முன்"
 
 msgid "Front view of the subject"
 msgstr "பொருளின் முன் பார்வை"
@@ -10816,18 +11794,6 @@ msgstr "ஆல்பா பாதிப்பு:"
 msgid "WARNING: Do NOT edit this group manually!"
 msgstr "எச்சரிக்கை: இந்தக் குழுவைக் கைமுறையாகத் திருத்த வேண்டாம்!"
 
-msgid "Generated material response did not include a script"
-msgstr "உருவாக்கிய மூலப்பொருள் பதிலில் ஸ்கிரிப்ட் இல்லை"
-
-msgid "Generated material but failed to apply it: {result}"
-msgstr "மூலப்பொருள் உருவாக்கப்பட்டது, ஆனால் இட முடியவில்லை: {result}"
-
-msgid "Generate Procedural Material"
-msgstr "செயல்முறை மூலப்பொருளை உருவாக்கு"
-
-msgid "Material generation failed"
-msgstr "மூலப்பொருள் உருவாக்கம் தோல்வியடைந்தது"
-
 msgid "Show {channel} blend mode and opacity"
 msgstr "{channel} கலவைப் பயன்முறையும் ஒளிபுகாநிலையும் காட்டும்"
 
@@ -11193,9 +12159,6 @@ msgstr "தூரிகை உட்தாவல்"
 
 msgid "Active subtab in the brush panel"
 msgstr "தூரிகைப் பேனலின் செயலில் உட்தாவல்"
-
-msgid "Tool"
-msgstr "கருவி"
 
 msgid "General brush tool settings"
 msgstr "பொதுத் தூரிகைக் கருவி அமைப்புகள்"
@@ -11742,9 +12705,6 @@ msgstr "ஏற்றுமதி இல்லை"
 
 msgid "Do not export materials"
 msgstr "மூலப்பொருட்களை ஏற்றுமதி செய்யாது"
-
-msgid "Images"
-msgstr "படங்கள்"
 
 msgid "Automatic"
 msgstr "தானியங்கி"
@@ -13516,9 +14476,6 @@ msgstr ""
 
 msgid "BW"
 msgstr "bw"
-
-msgid "RGB"
-msgstr "ஆர்சிபி"
 
 msgid "RGBA"
 msgstr "ஆர்சிபிஏ"
@@ -15330,12 +16287,6 @@ msgstr "பரவும் முறை"
 msgid "Value Channels:"
 msgstr "மதிப்புச் சேனல்கள்:"
 
-msgid "Metallic"
-msgstr "உலோகம்"
-
-msgid "Roughness"
-msgstr "கடினத்தன்மை"
-
 msgid "Subsurface"
 msgstr "மேற்பரப்பு"
 
@@ -16377,30 +17328,6 @@ msgstr "சேனல்களை மீண்டும் சுட்டு"
 msgid "Bake channels first to enable export"
 msgstr "ஏற்றுமதியை இயக்க முதலில் சேனல்களைச் சுட்டுக்கொள்ளவும்"
 
-msgid "Assets Library Panel - Shows procedural materials from paint backend"
-msgstr "சொத்து நூலகப் பேனல் - வண்ணப்பூச்சுப் பின்தளத்திலிருந்து செயல்முறை மூலப்பொருட்களைக் காட்டும்"
-
-msgid "{count} categories available"
-msgstr "{count} வகைகள் கிடைக்கும்"
-
-msgid "Open Material Library"
-msgstr "மூலப்பொருள் நூலகத்தைத் திற"
-
-msgid "No materials loaded"
-msgstr "மூலப்பொருட்கள் ஏற்றப்படவில்லை"
-
-msgid "Material registry unavailable"
-msgstr "மூலப்பொருள் பதிவேடு கிடைக்கவில்லை"
-
-msgid "Smart Materials"
-msgstr "அறிவார்ந்த மூலப்பொருட்கள்"
-
-msgid "Coming soon"
-msgstr "விரைவில்"
-
-msgid "Brushes"
-msgstr "தூரிகைகள்"
-
 msgid "Baked Maps"
 msgstr "சுட்ட வரைபடங்கள்"
 
@@ -17142,9 +18069,6 @@ msgstr "டெக்கல் வீழ்த்தல்"
 
 msgid "Camera coordinates"
 msgstr "புகைப்பட கருவி ஆயங்கள்"
-
-msgid "Window"
-msgstr "சாளரம்"
 
 msgid "Window coordinates"
 msgstr "சாளர ஆயங்கள்"
@@ -17907,9 +18831,6 @@ msgstr "ஆரம்"
 msgid "Stroke"
 msgstr "வீச்சு"
 
-msgid "Rate"
-msgstr "விகிதம்"
-
 msgid "Edge to Edge"
 msgstr "எட்ச் டு எட்ச்"
 
@@ -17984,9 +18905,6 @@ msgstr "சமச்சீர்"
 
 msgid "Mirror"
 msgstr "கண்ணாடி"
-
-msgid "Options"
-msgstr "விருப்பங்கள்"
 
 msgid "Bleed"
 msgstr "இரத்தம்"
@@ -18365,9 +19283,6 @@ msgstr "உலக விண்வெளி இயல்பான மேப்ப
 
 msgid "Replace"
 msgstr "மாற்று"
-
-msgid "Compare"
-msgstr "ஒப்பிடுக"
 
 msgid "Use layer's source texture/color"
 msgstr "அடுக்கின் மூல அமைப்பு/நிறத்தைப் பயன்படுத்து"
@@ -19092,9 +20007,6 @@ msgstr "கருவிப்பட்டி"
 msgid "Sidebar"
 msgstr "பக்கப்பட்டி"
 
-msgid "Lampway Agent"
-msgstr ""
-
 msgid "UV Mesh Segmentation panel"
 msgstr "UV கண்ணி பிரிவாக்கப் பேனல்"
 
@@ -19599,8 +20511,8 @@ msgstr "செய்தியை அனுப்பத் தவறியது"
 msgid "You're out of credits"
 msgstr "உங்கள் கிரெடிட்கள் தீர்ந்துவிட்டன"
 
-msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with Lampway Agent."
-msgstr "உங்கள் மாதக் கிரெடிட் ஒதுக்கீட்டைப் பயன்படுத்திவிட்டீர்கள். Lampway Agent-உடன் தொடர்ந்து உருவாக்க உங்கள் திட்டத்தை மேம்படுத்தவும்."
+msgid "You've used your monthly credit allowance. Upgrade your plan to keep creating with {agent}."
+msgstr ""
 
 msgid "Feedback comment is empty"
 msgstr "பின்னூட்டக் கருத்து காலியாக உள்ளது"
@@ -20022,8 +20934,8 @@ msgstr "இந்தப் புலத்தைத் திறந்து வ
 msgid "Login"
 msgstr "உள்நுழைவு"
 
-msgid "Login panel for Lampway Chat"
-msgstr "Lampway Agent அரட்டைக்கான உள்நுழைவுப் பேனல்"
+msgid "Login panel for the agent chat"
+msgstr ""
 
 msgid "Session expired"
 msgstr "அமர்வு காலாவதியானது"
@@ -20033,9 +20945,6 @@ msgstr "மீண்டும் உள்நுழையவும்."
 
 msgid "Login Failed"
 msgstr "உள்நுழைவு தோல்வி"
-
-msgid "Sign in with your Lampway account"
-msgstr "உங்கள் Lampway கணக்கில் உள்நுழையவும்"
 
 msgid "Waiting for browser..."
 msgstr "உலாவிக்காகக் காத்திருக்கிறது..."
@@ -20062,9 +20971,6 @@ msgstr ""
 
 msgid "Dashboard"
 msgstr "டாஷ்போர்டு"
-
-msgid "About Lampway"
-msgstr "Lampway பற்றி"
 
 msgid "Documentation"
 msgstr "ஆவணம்"
@@ -20129,23 +21035,14 @@ msgstr "அமர்வு காலாவதியானது. {reason}"
 msgid "Browser login did not complete. Please try again."
 msgstr "உலாவி உள்நுழைவு முடியவில்லை. மீண்டும் முயலவும்."
 
-msgid "Login to Lampway Chat via browser SSO"
-msgstr "உலாவி SSO வழியாக Lampway Agent அரட்டையில் உள்நுழைகிறது"
-
 msgid "Login failed"
 msgstr "உள்நுழைவு தோல்வி"
-
-msgid "Logout from Lampway Chat"
-msgstr "Lampway Agent அரட்டையிலிருந்து வெளியேறுகிறது"
 
 msgid "Logged out successfully"
 msgstr "வெற்றிகரமாக வெளியேறியது"
 
 msgid "Open Dashboard"
 msgstr "டாஷ்போர்டைத் திற"
-
-msgid "Open Lampway Agent web dashboard in your browser"
-msgstr "உங்கள் உலாவியில் Lampway Agent வலை டாஷ்போர்டைத் திறக்கிறது"
 
 msgid "Dashboard opened"
 msgstr "டாஷ்போர்டு திறக்கப்பட்டது"
@@ -20392,9 +21289,6 @@ msgstr "இருக்கும் மதிப்பீட்டு வடி�
 
 msgid "ID of the message bubble to rate"
 msgstr "மதிப்பிட வேண்டிய செய்திக் குமிழியின் அடையாளம்"
-
-msgid "Rating"
-msgstr "மதிப்பீடு"
 
 msgid "Response rating (thumbs down=1, thumbs up=5)"
 msgstr "பதில் மதிப்பீடு (கீழ்கட்டை=1, மேல்கட்டை=5)"
@@ -20822,21 +21716,6 @@ msgstr ""
 msgid "Toggle automatic sounds without discarding the selected clip."
 msgstr ""
 
-msgid "Send to Lampway Chat"
-msgstr "Lampway Agent அரட்டைக்கு அனுப்பு"
-
-msgid "Open a prompt to send a message to Lampway Chat (Enter to send)"
-msgstr "Lampway Agent அரட்டைக்குச் செய்தி அனுப்ப ஒரு ப்ராம்ப்டைத் திறக்கிறது (அனுப்ப Enter)"
-
-msgid "Message to send to Lampway Chat"
-msgstr "Lampway Agent அரட்டைக்கு அனுப்ப வேண்டிய செய்தி"
-
-msgid "Not connected to Lampway Chat"
-msgstr "Lampway Agent அரட்டையுடன் இணைக்கப்படவில்லை"
-
-msgid "Lampway Chat is busy"
-msgstr "Lampway Agent அரட்டை பிஸியாக உள்ளது"
-
 msgid "Mode:"
 msgstr "பயன்முறை:"
 
@@ -20858,12 +21737,6 @@ msgstr "செய்தி"
 msgid "Please enter a message"
 msgstr "ஒரு செய்தியை உள்ளிடவும்"
 
-msgid "Not connected to server. Please connect in Lampway Chat."
-msgstr "சேவையகத்துடன் இணைக்கப்படவில்லை. Lampway Agent அரட்டையில் இணையவும்."
-
-msgid "Lampway Chat is not ready to receive messages"
-msgstr "Lampway Agent அரட்டை செய்திகளைப் பெறத் தயாராக இல்லை"
-
 msgid "Dev Mode: Message sent"
 msgstr "Dev பயன்முறை: செய்தி அனுப்பப்பட்டது"
 
@@ -20881,9 +21754,6 @@ msgstr ""
 
 msgid "Add Rules"
 msgstr "விதிகளைச் சேர்"
-
-msgid "Define rules for Lampway Agent. Changes apply on your next message or answer; global rules apply in every Lampway file. Your current request takes priority over project and global rules"
-msgstr "Lampway Agent-க்கு விதிகளை வரையறுக்கிறது. மாற்றங்கள் அடுத்த செய்தி அல்லது பதிலில் பொருந்தும்; உலகளாவிய விதிகள் ஒவ்வொரு Lampway கோப்பிலும் பொருந்தும். உங்கள் நடப்புக் கோரிக்கை திட்ட மற்றும் உலகளாவிய விதிகளை விட முன்னுரிமை பெறும்"
 
 msgid "Rule operation failed"
 msgstr "விதிச் செயல் தோல்வி"
@@ -21070,9 +21940,6 @@ msgstr "நிறுத்தத்தை உறுதிப்படுத்�
 msgid "Connect"
 msgstr "இணைக்கவும்"
 
-msgid "Connect to the Lampway Agent agent server"
-msgstr "Lampway Agent முகவர் சேவையகத்துடன் இணை"
-
 msgid "Connecting to server..."
 msgstr "சேவையகத்துடன் இணைக்கிறது..."
 
@@ -21084,9 +21951,6 @@ msgstr "Dev பயன்முறை: போலித் தரவுடன் �
 
 msgid "Disconnect"
 msgstr "துண்டிக்கவும்"
-
-msgid "Disconnect from the Lampway Agent agent server"
-msgstr "Lampway Agent முகவர் சேவையகத்திலிருந்து துண்டி"
 
 msgid "Dev Mode: Disconnected"
 msgstr "Dev பயன்முறை: துண்டிக்கப்பட்டது"
@@ -21283,9 +22147,6 @@ msgstr "உதவியாளர் செய்தி"
 msgid "Error message"
 msgstr "பிழைச் செய்தி"
 
-msgid "Plan"
-msgstr "திட்டம்"
-
 msgid "Generated plan"
 msgstr "உருவாக்கப்பட்ட திட்டம்"
 
@@ -21478,8 +22339,8 @@ msgstr "உள்ளகமாகச் சமர்ப்பித்த கர�
 msgid "Message not sent"
 msgstr "செய்தி அனுப்பப்படவில்லை"
 
-msgid "Enter a render prompt. Lampway Agent will use the current scene's depth as the guide."
-msgstr "வழங்கல் ப்ராம்ப்டை உள்ளிடவும். Lampway Agent நடப்புக் காட்சியின் ஆழத்தை வழிகாட்டியாகப் பயன்படுத்தும்."
+msgid "Enter a render prompt. {agent} will use the current scene's depth as the guide."
+msgstr ""
 
 msgid "Please enter your prompt and select the mesh objects in the 3D viewport before hitting send."
 msgstr "அனுப்புவதற்கு முன் உங்கள் ப்ராம்ப்டை உள்ளிட்டு 3D வியூபோர்ட்டில் கண்ணி பொருள்களைத் தேர்ந்தெடுக்கவும்."
@@ -21556,9 +22417,6 @@ msgstr "தானி பயன்முறை"
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "திறந்த ஒவ்வொரு தேர்வையும் உங்களிடம் கேட்பதற்குப் பதிலாக முகவரே முடிவு செய்து, அந்த முடிவுகளைச் சுருக்கத்தில் பட்டியலிடும்"
 
-msgid "Lampway Agent Is Busy"
-msgstr "Lampway Agent பிஸியாக உள்ளது"
-
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "முகவர் ஒரு கோரிக்கையைச் செயலாக்கும்போது உண்மை (BUSY நிலை)"
 
@@ -21630,9 +22488,6 @@ msgstr "Claude Haiku 4.0 - வேகமானதும் திறமையா�
 
 msgid "Password"
 msgstr "கடவுச்சொல்"
-
-msgid "Password for Lampway Chat login"
-msgstr "Lampway Agent அரட்டை உள்நுழைவுக்கான கடவுச்சொல்"
 
 msgid "Is Logged In"
 msgstr "உள்நுழைந்துள்ளாரா"
@@ -21828,9 +22683,6 @@ msgstr "இந்தப் படி நிரையின் தனித்த
 
 msgid "What kind of tool call this row represents"
 msgstr "இந்த நிரை எந்த வகைக் கருவி அழைப்பைக் குறிக்கிறது"
-
-msgid "Read"
-msgstr "படி"
 
 msgid "File read"
 msgstr "கோப்பு படிப்பு"
@@ -22036,8 +22888,8 @@ msgstr "முடக்கப்பட்ட விதிகள் பட்ட�
 msgid "Global"
 msgstr "உலகளாவிய"
 
-msgid "Global rules apply to every .mixar file (~/.mixar/global_rules.json); others to this file only"
-msgstr "உலகளாவிய விதிகள் ஒவ்வொரு .mixar கோப்புக்கும் பொருந்தும் (~/.mixar/global_rules.json); மற்றவை இந்தக் கோப்புக்கு மட்டும்"
+msgid "Global rules apply to every file you open (global_rules.json in your Lampway data folder); others to this file only"
+msgstr ""
 
 msgid "Project Rules"
 msgstr "திட்ட விதிகள்"
@@ -24295,32 +25147,29 @@ msgstr "Blend (.blend)"
 msgid "Tutorials"
 msgstr ""
 
-msgid "Creator Program"
-msgstr ""
-
 msgid "File saved by newer Lampway version (%d.%d), some data may be lost"
 msgstr "புதிய Lampway பதிப்பால் சேமித்த கோப்பு (%d.%d), சில தரவு இழக்கப்படலாம்"
 
 msgid "The file was saved by a newer version, open it with Lampway %s or later"
 msgstr "கோப்பு புதிய பதிப்பால் சேமிக்கப்பட்டது, அதை Lampway %s அல்லது அதற்குப் பின் திறக்கவும்"
 
-msgid "Failed to read mixar file '%s': %s"
-msgstr "mixar கோப்பு '%s'-ஐப் படிக்கத் தவறியது: %s"
+msgid "Failed to read Lampway file '%s': %s"
+msgstr ""
 
-msgid "Cannot read mixar file '%s', incomplete header, may be from a newer version of Lampway"
-msgstr "mixar கோப்பு '%s'-ஐப் படிக்க முடியாது, தலைப்பு முழுமையில்லை, புதிய Lampway பதிப்பிலிருந்து இருக்கலாம்"
+msgid "Cannot read Lampway file '%s', incomplete header, may be from a newer version of Lampway"
+msgstr ""
 
-msgid "Failed to read file '%s', not a mixar file"
-msgstr "கோப்பு '%s'-ஐப் படிக்கத் தவறியது, அது mixar கோப்பு அல்ல"
+msgid "Failed to read file '%s', not a Lampway file"
+msgstr ""
 
-msgid "Unable to open mixar <memory>"
-msgstr "mixar <memory>-ஐத் திறக்க முடியவில்லை"
+msgid "Unable to open Lampway <memory>"
+msgstr ""
 
-msgid "Mixarfile '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
-msgstr "Mixarfile '%s' எதிர்கால Lampway பதிப்பால் உருவாக்கப்பட்டது, தற்போது ஆதரிக்கும் நீளத்தை விட நீண்ட ID பெயர்களைக் கொண்டுள்ளது. அவை சுருக்கப்பட்டன."
+msgid "Lampway file '%s' was created by a future version of Lampway and contains ID names longer than currently supported. These have been truncated."
+msgstr ""
 
-msgid "Mixarfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
-msgstr "Mixarfile '%s' சிதைந்தது போல் உள்ளது, தவறான ID பெயர்களைக் கொண்டுள்ளது. அவை சுருக்கப்பட்டன."
+msgid "Lampway file '%s' appears corrupted, it contains invalid ID names. These have been truncated."
+msgstr ""
 
 msgid "Library '%s' was created by a future version of Lampway and contains ID names longer than currently supported. This may cause missing linked data, consider opening and re-saving that library with the current Lampway version."
 msgstr "நூலகம் '%s' எதிர்கால Lampway பதிப்பால் உருவாக்கப்பட்டது, தற்போது ஆதரிக்கும் நீளத்தை விட நீண்ட ID பெயர்களைக் கொண்டுள்ளது. இணைத்த தரவு காணாமல் போகலாம்; அந்த நூலகத்தை நடப்பு Lampway பதிப்பில் திறந்து மீண்டும் சேமிப்பதைக் கருதுங்கள்."
@@ -24448,8 +25297,8 @@ msgstr "பிடிக்கிறது"
 msgid "NEW"
 msgstr "புதியது"
 
-msgid "Ask Lampway Agent anything..."
-msgstr "Lampway Agent-இடம் எதையும் கேளுங்கள்..."
+msgid "Ask %s anything..."
+msgstr ""
 
 msgid "Write your prompt here..."
 msgstr "உங்கள் ப்ராம்ப்டை இங்கே எழுதுங்கள்..."
@@ -24550,9 +25399,6 @@ msgstr "சுருள்"
 msgid "Scroll library content"
 msgstr "நூலக உள்ளடக்கத்தை உருட்டு"
 
-msgid "Page"
-msgstr "பக்கம்"
-
 msgid "Move by the viewport height"
 msgstr "வியூபோர்ட் உயரம் அளவு நகர்த்து"
 
@@ -24633,12 +25479,6 @@ msgstr "இந்தப் பணியை ரத்துசெய்"
 
 msgid "Select this job"
 msgstr "இந்தப் பணியைத் தேர்ந்தெடு"
-
-msgid "Previous"
-msgstr "முந்தைய"
-
-msgid "Next"
-msgstr "அடுத்தது"
 
 msgid "Browse queue jobs"
 msgstr "வரிசைப் பணிகளை உலாவு"
@@ -25759,14 +26599,14 @@ msgstr "வார்ப்புரு விடப்படும் இடத�
 msgid "Template to place"
 msgstr "வைக்க வேண்டிய வார்ப்புரு"
 
-msgid "Select Lampway Agent3D Preview"
-msgstr "Lampway Agent3D முன்னோட்டத்தைத் தேர்ந்தெடு"
+msgid "Select Lampway 3D Preview"
+msgstr ""
 
 msgid "Select a segmented image from the preview history"
 msgstr "முன்னோட்ட வரலாற்றிலிருந்து பிரிக்கப்பட்ட படத்தைத் தேர்ந்தெடுக்கிறது"
 
-msgid "Delete Lampway Agent3D Preview"
-msgstr "Lampway Agent3D முன்னோட்டத்தை அழி"
+msgid "Delete Lampway 3D Preview"
+msgstr ""
 
 msgid "Delete a segmented image from the preview history"
 msgstr "முன்னோட்ட வரலாற்றிலிருந்து பிரிக்கப்பட்ட படத்தை அழிக்கிறது"
@@ -25945,8 +26785,8 @@ msgstr "இந்தத் திட்டம்"
 msgid "All projects"
 msgstr "அனைத்துத் திட்டங்கள்"
 
-msgid "Add a rule above to guide Lampway Agent."
-msgstr "Lampway Agent-க்கு வழிகாட்ட மேலே ஒரு விதியைச் சேர்க்கவும்."
+msgid "Add a rule above to guide %s."
+msgstr ""
 
 msgid "Applies to"
 msgstr "இதற்குப் பொருந்தும்"
@@ -26770,11 +27610,11 @@ msgstr "PureRef போன்ற குறிப்புப் படப் ப�
 msgid "Lampway Agent Space"
 msgstr "Lampway Agent இடம்"
 
-msgid "Lampway Agent editor for Lampway"
-msgstr "Mixar-க்கான Lampway Agent திருத்தி"
+msgid "Lampway agent editor"
+msgstr ""
 
-msgid "Lampway Agent editor mode"
-msgstr "Lampway Agent திருத்திப் பயன்முறை"
+msgid "Lampway editor mode"
+msgstr ""
 
 msgid "Agent Bubble Space"
 msgstr "முகவர் குமிழி இடம்"
@@ -27796,8 +28636,8 @@ msgstr "சாளரப் பின்னணியின் ஒளிபுக�
 msgid "Theme Lampway Agent Space"
 msgstr "கருப்பொருள் Lampway Agent இடம்"
 
-msgid "Theme settings for Lampway Agent/Moodboard space"
-msgstr "Lampway Agent/மூட்போர்டு இடத்துக்கான கருப்பொருள் அமைப்புகள்"
+msgid "Theme settings for Lampway/Moodboard space"
+msgstr ""
 
 msgid "Text Input Background"
 msgstr "உரை உள்ளீட்டுப் பின்னணி"
@@ -27985,14 +28825,14 @@ msgstr "ஒலிவாங்கி துண்டிக்கப்பட்�
 msgid "Lampway File View"
 msgstr "Lampway கோப்புப் பார்வை"
 
-msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .mixar file with the newest Lampway version"
-msgstr "Mixar-இலிருந்து ப்ராக்சிகள் அகற்றப்பட்டுள்ளன (%d ப்ராக்சிகள் தானாக நூலக மேலெழுதல்களாக மாற்றப்பட்டன, %d ப்ராக்சிகளை மாற்ற முடியாமல் துடைக்கப்பட்டன). நூலக .mixar கோப்புகளைப் புதிய Lampway பதிப்பில் மீண்டும் சேமிப்பதைக் கருதுங்கள்."
+msgid "Proxies have been removed from Lampway (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .Lampway file with the newest Lampway version"
+msgstr ""
 
-msgid "Cannot save mixar file, path \"%s\" is not writable"
-msgstr "mixar கோப்பைச் சேமிக்க முடியவில்லை, பாதை \"%s\" எழுதக்கூடியதல்ல"
+msgid "Cannot save Lampway file, path \"%s\" is not writable"
+msgstr ""
 
-msgid "Cannot save mixar file, path \"%s\" is a directory"
-msgstr "mixar கோப்பைச் சேமிக்க முடியவில்லை, பாதை \"%s\" ஒரு கோப்பகம்"
+msgid "Cannot save Lampway file, path \"%s\" is a directory"
+msgstr ""
 
 msgid "Lampway will start next time as it is now."
 msgstr "Lampway அடுத்த முறை இப்போது உள்ளபடியே தொடங்கும்."

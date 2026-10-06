@@ -106,11 +106,12 @@ def _design(reg, card_dir, rows, runs, piece, round_) -> tuple:
         mark = ("<span class=\"mark-chosen\">chosen</span>" if chosen else "<span class=\"mark-rejected\">not chosen</span>") if pick else ""
         others = [variables[o["id"]] for o in variants if o["id"] != v["id"]]
         changes = sorted(k for k, val in variables[v["id"]].items() if any(o.get(k) != val for o in others))
+        change_text = ", ".join(f"{k}={variables[v['id']][k]}" for k in changes)      # outside the f-string below: nested same-kind quotes are Python 3.12+ only
         out.append(f'<div class="cell {"chosen" if chosen else ("rejected" if pick else "")}"><h3>{e(letter)} {mark}</h3>'
                    f'{_img(reg, card_dir, run.get("output"), f"variant {letter} of {piece} round {rnd}")}'
                    f'<p class="tag">{e(v["settings"].get("model") or run.get("model"))} · {e(_cost(v["cost"]))}</p>'
                    f'<p>rating {e(run.get("rating") or "not rated")}{(": " + e(run.get("note"))) if run.get("note") else ""}</p>'
-                   f'<p>What it changes: {e(", ".join(f"{k}={variables[v["id"]][k]}" for k in changes) or "nothing in its variables")}</p>'
+                   f'<p>What it changes: {e(change_text or "nothing in its variables")}</p>'
                    f'<details><summary>Saved generation prompt</summary><p class="tag">{e(run.get("template") or "no template")} · '
                    f'{e(json.dumps(run.get("variables") or {}, sort_keys=True))}</p><pre>{e(run.get("prompt") or "not recorded")}</pre></details>'
                    f'<p class="tag">ledger {e(v["id"])}</p></div>')
