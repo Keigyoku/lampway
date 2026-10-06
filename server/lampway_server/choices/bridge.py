@@ -200,3 +200,11 @@ def apply_choices(s: Settings, env=None) -> Settings:
         for field in _apply(s, pid, entry):
             s.sources[field] = "choices"
     return s
+
+
+def settings_for_option(s: Settings, oid: str, params=None) -> Settings:
+    """A copy of ``s`` set as if ``oid`` were the main agent's choice: how a chat option of another purpose is built (MatGen, a judge)."""
+    trial = PP.trial(s, {})
+    trial.sources = dict(s.sources)
+    _apply(trial, "agent.main", {"preferred": oid, "params": params or {}})
+    return trial

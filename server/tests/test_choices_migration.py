@@ -88,3 +88,28 @@ def test_the_decisions_judge_follows_the_users_chain_and_one_private_rule(live):
     d = D.Decider(KEY, transport=httpx.MockTransport(handler))
     assert d.eligible("private") == ["liquid/d1", "cloudflare/clef"]
     assert d.eligible("public") == ["liquid/d1", "cloudflare/clef", "inception/mercury-decide:free"]
+
+
+def test_matgen_runs_the_material_script_choice(live, settings, provider, monkeypatch):
+    """5.7 (HC3): MatGen follows the main agent by default; a different agent.material_script choice builds that provider."""
+    from starlette.testclient import TestClient
+    from lampway_server import matgen
+    from lampway_server.agent.providers.openrouter import OpenRouterProvider
+    from lampway_server.app import create_app
+    from tests.fake_client import FakeMixarClient
+    monkeypatch.setenv("OPENROUTER_API_KEY", KEY)
+    used = []
+
+    async def fake_generate(p, prompt, pipeline):
+        used.append(p)
+        raise matgen.BadScript("stop here")
+    monkeypatch.setattr(matgen, "generate", fake_generate)
+    app = create_app(settings, provider=provider)
+    with TestClient(app, base_url="http://127.0.0.1:8787") as http:
+        fake = FakeMixarClient(http, password=settings.user_password)
+        fake.login()
+        http.post("/api/v1/matgen", json={"prompt": "rusted bronze"}, headers=fake.rest_headers())
+        CH.active_store().set("agent.material_script", "global", None, {"preferred": "openrouter:anthropic/claude-sonnet-5.5"}, by="user")
+        http.post("/api/v1/matgen", json={"prompt": "rusted bronze"}, headers=fake.rest_headers())
+    assert used[0] is provider
+    assert isinstance(used[1], OpenRouterProvider) and used[1].model == "anthropic/claude-sonnet-5.5"

@@ -403,6 +403,18 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         data, media_type = found
         return Response(data, media_type=media_type, headers={"Content-Length": str(len(data)), "Cache-Control": "private, max-age=3600"})
 
+    def _material_provider():
+        """HC3: agent.material_script's choice; ``follow:agent.main`` (the shipped default) is the running agent's own provider."""
+        from . import choices as CHO
+        from .choices.bridge import settings_for_option
+        try:
+            r = CHO.resolve("agent.material_script", CHO.Job(content_class="public"))
+        except CHO.NoChoice:
+            return agent.provider
+        if r.followed == "agent.main" or r.option.startswith("follow:"):
+            return agent.provider
+        return make_provider(settings_for_option(settings, r.option, r.params), chatgpt_auth=chatgpt)
+
     async def matgen_route(request: Request):
         """A procedural material from a prompt, by the agent's own model (matgen.py)."""
         if not _bearer_ok(request):
@@ -415,7 +427,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         if not prompt:
             return JSONResponse({"detail": "prompt is required"}, status_code=422)
         try:
-            material = await matgen.generate(agent.provider, prompt, str(body.get("pipeline") or "fast"))
+            material = await matgen.generate(_material_provider(), prompt, str(body.get("pipeline") or "fast"))
         except matgen.BadScript as exc:
             return JSONResponse({"detail": f"no usable script: {exc}"}, status_code=502)
         except Exception as exc:  # noqa: BLE001 - the provider failed; the reason goes to the person, never a token
