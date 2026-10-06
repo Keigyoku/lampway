@@ -19,7 +19,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 | 1 | wiki/modular_character | P1 | Blender | done |
 | 2 | wiki/character_pipeline | P1 | Blender (plan) | done |
 | 3 | wiki/playblast_capture | P2 | Blender | done |
-| 4 | wiki/cinematic_shot_plan | P2 | server | |
+| 4 | wiki/cinematic_shot_plan | P2 | server | done |
 | 5 | wiki/lod_chain | P2 | Blender | |
 | 6 | wiki/material_experiment | P2 | server | |
 | 7 | wiki/motion_experiment | P2 | Blender | |
@@ -88,3 +88,17 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
 - Tests: `test_wave6_playblast.py` (4, real binary). RED observed: "no tool function 'playblast_capture'". Then a real RED on the first build: the
   stills were identical (the finding above). `test_feature_video.py` stays green. Mutants killed: the user-scene frame_set, the one-frame slack, the
   last still taken from the first frame.
+
+### 4. cinematic_shot_plan (P2): done
+- Where: `server/lampway_server/cinematic.py` (pure), agent tool `lampway_cinematic_shot_plan` in the new server-run module `agent/plan_tools.py`
+  (dispatched by `turns._run_tool`; `script_for` refuses it as server-run, like the ledger and asset tools; not offered over MCP: it needs the
+  server's video catalogue).
+- plan: one action and one camera move per shot (a second clause joined by and / then / while / before / after or , ; & + is refused), character
+  references must name both wearer sides, the wiki's prompt template per shot, five stages with image_edit and video_generate `needs_approval`, the
+  video price from the model's own `pricing_skus` through `videogen.estimate` (unknown stays unknown; a Higgsfield model is read back at the confirm;
+  no OpenRouter catalogue = `needs_key`), the total, the shortest shot first. split: two actions, durations summing to the shot's, the second starts
+  from the first's end frame. review: typed pass/fail on identity, doubling, action_order, camera -> chain | split | redo.
+- Tests: `server/tests/test_wave6_cinematic.py` (7). RED observed: ImportError, then "lampway_cinematic_shot_plan not in TOOL_NAMES" for the
+  dispatch test. Mutants killed: the one-clause rule, the right-side check (a survivor first; a "left only" case added), the price sum, shortest
+  first, the split's second action.
+- Not run: no live plan against the OpenRouter catalogue (no key on this box; the fake catalogue row carries a `duration_seconds` SKU).
