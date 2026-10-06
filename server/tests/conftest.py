@@ -12,6 +12,24 @@ from lampway_server.agent.providers.mock import ScriptedProvider
 from .fake_client import FakeMixarClient
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _isolated_homes(tmp_path_factory):
+    """No server test reads or writes the person's real home: HOME and the XDG dirs point inside the basetemp for the whole session."""
+    base = tmp_path_factory.getbasetemp() / "isolated-home"
+    names = {"HOME": "home", "XDG_CONFIG_HOME": "config", "XDG_DATA_HOME": "data", "XDG_STATE_HOME": "state", "XDG_CACHE_HOME": "cache"}
+    saved = {k: os.environ.get(k) for k in names}
+    for var, sub in names.items():
+        d = (base / sub).resolve()
+        d.mkdir(parents=True, exist_ok=True)
+        os.environ[var] = str(d)
+    yield base
+    for k, v in saved.items():
+        if v is None:
+            os.environ.pop(k, None)
+        else:
+            os.environ[k] = v
+
+
 @pytest.fixture(autouse=True)
 def _project_root_in_tmp(tmp_path, monkeypatch):
     """Job receipts, the ledger and the studios write under the project root: never the real home during a test."""

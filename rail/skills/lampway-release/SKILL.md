@@ -35,6 +35,10 @@ python3 rail/rail.py check                                 # the rail (also in C
   gate exists for.
 - A known-fake value goes in `scripts/lampway/pii_allow.txt`, exactly, with the reason on the same line.
 - Commit as your GitHub noreply address; the gate refuses any other author or committer email on a new commit.
+- `--git` also refuses any commit that ADDS a person's home: an unexpanded test placeholder directory (`@RUN_TMP@/...`), an app
+  home's `chat_history/`, `checkpoints/`, `operation_history/` (and their siblings), a root-level `*.mixar`, or a
+  `MIGRATED-FROM-MIXAR.json` marker (`PRIVATE_PATHS`; `.gitignore` carries the same shapes). A `git rm` in a later commit does not
+  remove a published blob: rewrite the unpushed commits instead, and never rewrite what is already on origin.
 - A blocked push is fixed by amending your own unpushed commits; never by `--no-verify`, never by widening the allow-list for a
   real value.
 
@@ -73,3 +77,4 @@ the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` di
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the pre-publish and release steps were spread across the hook, CI, CONTRIBUTING and the build order | one procedure for every push and every tag, with the DOX closeout row read by `rail.py closeout` | captain ruling, 2026-10-05 |
 | 2026-10-06 | the rail in the pre-push hook | captain: "Those recs are fine" (recommendation 2) | an unreceipted rail change was caught only after it was published, by CI | `.githooks/pre-push` runs `rail.py check --quick` after the pre-publish gate; a branch without the rail skips it | captain ruling, 2026-10-06 |
+| 2026-10-06 | private paths in --git | the coordinator found 436 files under `@RUN_TMP@/home/…/app/` in the integrator's unpushed commit d4272d6e | a test ran the binary with an unexpanded placeholder home; it migrated the person's real ~/.mixar into the repository and `git add -A` committed it | PRIVATE_PATHS in `--git` with a self-test case, the same shapes in .gitignore, the history rewrite rule above | none |

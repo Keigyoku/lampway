@@ -70,6 +70,15 @@ Fix:
 - Fix: `legacy_home()` honours `LAMPWAY_LEGACY_HOME`; `run_script` points it at an empty place and the run's TMPDIR/home are removed with the run; both suites keep only failed tests' tmp_path (`tmp_path_retention_policy = failed`).
 - Guard: `tests/lampway_tools/test_run_home_is_small.py` (real binary): a fresh run home allocates under 10 MB (RED at 109.7 MB) and holds nothing migrated.
 
+### STOP fixed: 436 private files in an unpushed commit, purged from history
+- What: `d4272d6e` (mine, never pushed) added 436 files under a literal `@RUN_TMP@/home/…/app/` (chat history, checkpoints, operation history). Not opened or printed.
+- Cause: while writing `test_tmp_hygiene_live.py` I ran it RED before `run_script` knew the `@RUN_TMP@` placeholder. The binary got `LAMPWAY_HOME="@RUN_TMP@/home"` as a RELATIVE path, resolved it against the repository, and its first-run migration copied the person's real `~/.mixar` there; my next `git add -A` committed it.
+- Purge: the unpushed range `origin/lp/wave5..lp/wave5` (51 commits) was replayed without the top-level `@RUN_TMP@` tree entry (git plumbing: `scratch/purge_replay.py`; this git has no filter-branch, and filter-repo would have touched the shared repository's remotes). 7 commits were rewritten (`d4272d6e`, the rail, vault-ops and vault-ui merges, the sandbox hotfix, the b2 glue, the second rail merge); every lane commit kept its id, nothing on origin was rewritten. The old head was `1dc45537`, the new one `374ae6e4`; the tree difference is exactly the 436 removed paths. Verified: `git log origin/lp/wave5..lp/wave5 -- '@RUN_TMP@'` is empty; `git ls-tree -r --name-only lp/wave5 | grep -c '^@RUN_TMP@'` is 0; the new gate rule finds 436 private paths in the old range and 0 in the new one. The working-tree directory is deleted; the unreachable objects go with `git reflog expire` + `git gc --prune=now` after the push is clean.
+- Guards (RED first, each failed before its fix):
+  - `tests/lampway/test_test_isolation.py`: every home-shaped variable (HOME, XDG_*, LAMPWAY_HOME, LAMPWAY_LEGACY_HOME, LAMPWAY_TEST_ROOT) points inside the basetemp for the test (the root `conftest.py` sets them for the session and checks them at every test start; the server's conftest isolates HOME and XDG_*); a relative or placeholder-shaped home is refused by `mixar.config.paths` with a ValueError; the migration refuses a source outside `LAMPWAY_TEST_ROOT`.
+  - `tests/lampway_tools/test_blender_run_placeholders.py`: `run_script` refuses an unexpanded `@...@` or a relative home-shaped env value before the binary starts; it also gives the binary its own HOME and `LAMPWAY_TEST_ROOT`.
+  - The pre-publish gate's `--git` refuses any commit that ADDS a private home path (`PRIVATE_PATHS`: placeholder directories, an app home's chat_history/checkpoints/operation_history and siblings, root-level `*.mixar`, `MIGRATED-FROM-MIXAR.json`), with a self-test case that plants such a commit; `.gitignore` carries the same shapes.
+
 ## Merges
 (none yet: this section is appended per merge with lane, range, conflicts, suite and gate results)
 

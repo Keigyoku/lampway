@@ -2,6 +2,7 @@
 Two checks: every module byte-compiles under a real 3.11 interpreter when one is on the machine (syntax, PEP 701 f-strings included), and no module calls a
 standard-library API that was added after 3.11 (a named list: an interpreter-free check, so it runs everywhere; it cannot see an API it does not name)."""
 import ast
+import os
 import shutil
 import subprocess
 import time
@@ -42,7 +43,8 @@ def test_no_module_calls_a_stdlib_api_newer_than_the_floor():
 
 def _floor_python():
     for name in (f"python{FLOOR[0]}.{FLOOR[1]}",):
-        exe = shutil.which(name) or str(Path.home() / ".local/bin" / name)
+        import pwd
+        exe = shutil.which(name) or str(Path(pwd.getpwuid(os.getuid()).pw_dir) / ".local/bin" / name)        # the real home: the tests' HOME is isolated
         if Path(exe).exists():
             return exe
     return None

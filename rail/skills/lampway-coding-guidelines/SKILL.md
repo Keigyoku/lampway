@@ -73,6 +73,11 @@ afterwards passes its own `tmp_path` in (for example `LW_KEEP_ROOT`). In-process
 need `dir=` (`tests/lampway/test_tmp_hygiene.py` holds that). Both suites keep only a failed test's tmp_path
 (`tmp_path_retention_policy = failed`).
 
+No test reads the person's real home: the root `conftest.py` points `HOME`, the `XDG_*` dirs, `LAMPWAY_HOME`, `LAMPWAY_LEGACY_HOME`
+and `LAMPWAY_TEST_ROOT` inside the basetemp for the whole session (the server's conftest does the same for `HOME` and `XDG_*`);
+`mixar.config.paths` refuses a relative or placeholder-shaped home loudly and refuses to migrate from outside `LAMPWAY_TEST_ROOT`;
+`run_script` refuses an unexpanded `@PLACEHOLDER@` before the binary starts.
+
 ## 4. Test-first, and the claim discipline
 
 - **No behaviour change without a failing test first.** Run it, see it fail for the reason you claim (a compile or import error is
@@ -129,3 +134,4 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the root guide was upstream's and named its closed backend; Lampway's laws lived only in module docstrings and the build order | one canonical operating guide carrying the laws, the build, the suites, the test-first contract and the merge-only lanes, verified against the tree | captain ruling, 2026-10-05 |
 | 2026-10-06 | the 500-line limit is a guideline; the rail in the hook | captain: "Those recs are fine" (recommendations 2 and 5) | upstream's 500-line rule read as a gate that nine Lampway modules already broke; the rail ran only in CI | §4b states the limit as a guideline with its one pinned family; §6 names the hook's quick rail check | captain ruling, 2026-10-06 |
 | 2026-10-06 | suite hygiene | the integrator's batches: a full client run left ~25 GB and the coordinator's /tmp filled twice | test homes were never removed, scripts inside the binary wrote to the shared /tmp, and the first-run migration copied the person's real ~/.mixar (109.7 MB) into every test home | run_script owns the binary's TMPDIR and the legacy home; tmp_path_retention_policy = failed in pytest.ini; the temp-files paragraph in section 3 | none |
+| 2026-10-06 | test isolation | the coordinator's stop: 436 private files committed under `@RUN_TMP@/home/…/app/` | a test passed LAMPWAY_HOME="@RUN_TMP@/home" before the harness expanded it; the relative home landed in the repository and the first-run migration copied the person's real ~/.mixar into it | the conftest isolation fixture, the loud refusals in paths.py and run_script, the isolation paragraph in section 3 | none |
