@@ -45,6 +45,10 @@ scripts/lampway/sync_python.sh --bin-dir build/Prod/bin   # a Python-only change
 scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server + app, on a COPY of the file
 ```
 
+- Every build stamps `build/<env>/BUILT_FROM` itself (`scripts/lampway/built_from.sh`, read before the compile, written after
+  it): the bare sha only for a clean, pushed native tree (`src/source`, `src/CMakeLists.txt`, `src/build_files`,
+  `src/release/datafiles`) that held still through the build; otherwise `UNCLEAN <sha>: ...` or `UNPUSHED <sha>`. test_all
+  refuses an UNCLEAN binary by name. Never write the file by hand except to mark a build that predates the stamp.
 - The build runs in an Ubuntu 24.04 box with GCC 14 (the box is named in your brief; one crew per box). `MIXAR_CUDA=0` skips the
   Cycles GPU kernels; never a release choice. A clean build is long and an unchanged rebuild short (BUILD-LAMPWAY.md §3).
 - If `distrobox enter` answers `unable to find user`, the numeric `podman exec --user 1000:1000 -w "$PWD" <box> ...` works.
@@ -162,3 +166,4 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | merge of lp/wave5 into lp/orphans | the orphans lane's merge: lp/wave5 brought LAMPWAY_MODELS_DIR to the launcher's server-start line, where lp/orphans had added LAMPWAY_BLENDER | two lanes edited the same line; the merged line carries both | the launcher bullet in section 2 names both variables | none |
 | 2026-10-06 | agent contracts out of the install | coordinator: "EXCLUDE agent contract files (AGENTS.md, CLAUDE.md, skills under src/) from the installed app" | the scripts install copied `lampway_tools/AGENTS.md` and `CLAUDE.md` into the app, and the Python sync kept them | the install excludes and removes them, the sync excludes and deletes them; the bullet in section 2 | none |
 | 2026-10-06 | merge of lp/wave5 into lp/facelift | the facelift lane's merge: lp/wave5 named LAMPWAY_SECRETS_DIR in the launcher bullet where lp/facelift had added the install bullet above it | two lanes edited neighbouring lines of section 2; the merged section carries the install bullet and the three-variable launcher bullet | section 2 | none |
+| 2026-10-06 | BUILT_FROM written by the build | coordinator: "Write BUILT_FROM INTO wt-build/build/Prod/ every time you build ... Make it automatic" | the stamp was a hand step after the build, and it was missed: build/Prod held no BUILT_FROM while the integrator's copy was stamped | build_linux.sh stamps through built_from.sh; test_all reads its UNCLEAN and UNPUSHED marks; the bullet in section 2 | none |

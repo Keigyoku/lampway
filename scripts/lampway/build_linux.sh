@@ -316,12 +316,16 @@ build() {
     fi
     say "build: MIXAR_ENV=$MIXAR_ENV MIXAR_CUDA=$MIXAR_CUDA BUILD_CORES=${BUILD_CORES:-$(nproc)} CC=$CC CXX=$CXX"
     say "build: MIXAR_BACKEND_URL=${MIXAR_BACKEND_URL:-(tree default)} MIXAR_FRONTEND_URL=${MIXAR_FRONTEND_URL:-(tree default)} log=$log"
+    local built_from
+    built_from="$("$ROOT_DIR/scripts/lampway/built_from.sh" state "$ROOT_DIR")"     # read BEFORE compiling: an edit during the build shows
+    say "build: from $built_from"
     start="$(date +%s)"
     "$ROOT_DIR/scripts/unix/build.sh" 2>&1 | tee "$log"
     end="$(date +%s)"
     say "build.sh finished in $(( (end - start) / 60 )) min $(( (end - start) % 60 )) s"
     [[ -x "$BINARY" ]] || { _rc=5 die "build.sh returned 0 but $BINARY is not an executable"; }
     say "disk after build: $(free_gb "$ROOT_DIR") GB free"
+    say "BUILT_FROM: $("$ROOT_DIR/scripts/lampway/built_from.sh" stamp "$ROOT_DIR" "$ROOT_DIR/build/$MIXAR_ENV" "$built_from")"
     say "binary: $BINARY"
     echo "$BINARY"
 }

@@ -76,6 +76,16 @@ def test_a_binary_whose_native_sources_differ_is_refused(tmp_path):
     assert state == "refused" and "native sources" in msg
 
 
+def test_the_stamp_build_linux_writes_is_read(tmp_path):
+    """build_linux.sh stamps "UNPUSHED <sha>" for a commit no remote has (its native sources still decide the gate) and
+    "UNCLEAN <sha>: ..." for a tree that was not the commit: an unclean binary is refused by name, not as an unknown sha."""
+    r, g = _repo(tmp_path)
+    sha = subprocess.run(g + ["rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    assert T.binary_gate(r, _bin(tmp_path / "a", f"UNPUSHED {sha}")) == ("gated", sha)
+    state, msg = T.binary_gate(r, _bin(tmp_path / "b", f"UNCLEAN {sha}: native sources differ from the commit (src/source/a.cc)"))
+    assert state == "refused" and msg.startswith("the binary was built from an unclean tree:") and "src/source/a.cc" in msg, msg
+
+
 def test_a_binary_without_built_from_runs_ungated_and_says_so(tmp_path):
     r, _ = _repo(tmp_path)
     state, msg = T.binary_gate(r, _bin(tmp_path))
