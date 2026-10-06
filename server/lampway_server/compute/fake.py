@@ -115,7 +115,7 @@ class FakeBackend:
             return "failed" if self.error_result else "done"
         return "running"
 
-    def fetch(self, ref, name, dest) -> int:
+    def fetch(self, ref, name, dest, handle=None) -> int:
         self._rec("fetch", ref, name)
         r = self.resources[ref]
         if r["state"] in ("gone", "stopped") and self.stop_erases:
@@ -127,7 +127,7 @@ class FakeBackend:
             fh.write(data)
         return len(data)
 
-    def teardown(self, ref, mode) -> str:
+    def teardown(self, ref, mode, handle=None) -> str:
         self._rec("teardown", ref, mode)
         if self.teardown_fails:
             return "failed"

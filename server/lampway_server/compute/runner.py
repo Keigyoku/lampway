@@ -142,7 +142,10 @@ class ComputeRunner:
     def plan(self, job: dict) -> dict:
         spec = self._spec(job)
         be, recipe = self.backends[spec["backend"]], RC.get(spec["recipe"])
-        q = be.quote(spec, recipe)
+        try:
+            q = be.quote(spec, recipe)
+        except BK.Rejected as exc:
+            raise Refused(str(exc))
         privacy = self._privacy(spec, be)
         s = self.prefs.data["spend"]
         cap = min(float(s["job_cap"]), spec["max_usd"])
@@ -227,6 +230,19 @@ class ComputeRunner:
         return self._continue(r, cj)
 
     # ------------------------------------------------------------------------------------------------- the run
+    def _tell(self, be) -> None:
+        """A backend that cannot name its resources (the Boat CLI has no --name) learns which ids are ours from the receipts: ownership is the receipt set, never a guess."""
+        if hasattr(be, "set_known"):
+            known, pending = set(), []
+            for r in self.receipts.list():
+                if r["provider"] == f"compute:{be.name}":
+                    cj = self._cj(r)
+                    if cj.get("ref"):
+                        known.add(cj["ref"])
+                    elif r["state"] in ("submission_unknown", "submission_pending") and cj.get("pending_at"):
+                        pending.append((r["key"], cj["pending_at"]))
+            be.set_known(known, pending)
+
     def _watchdog(self, be, cj, ref) -> Optional[str]:
         est = self._live_estimate(cj)
         meter = None
@@ -255,7 +271,8 @@ class ComputeRunner:
                     self._save(r, cj)                                            # intent first: run is never called twice for one receipt
                     try:
                         with self._gate(be, cj):
-                            be.run(ref, recipe, spec)
+                            cj["handle"] = be.run(ref, recipe, spec)
+                        self._save(r, cj)
                     except BK.Unknown:
                         pass                                                     # a timeout on run: poll, do not re-run
                 if r["state"] == "submitted":
@@ -278,7 +295,7 @@ class ComputeRunner:
     def _poll(self, be, cj, r, ref) -> Optional[str]:
         last_wd, bad = self.clock(), 0
         while True:
-            st = be.status(ref)
+            st = be.status(ref, cj.get("handle"))
             if st == "done":
                 return None
             if st == "failed":
@@ -301,7 +318,7 @@ class ComputeRunner:
         for name in recipe.outputs:
             part, final = dest / (name + ".part"), dest / name
             try:
-                n = be.fetch(ref, name, str(part))
+                n = be.fetch(ref, name, str(part), cj.get("handle"))
             except BK.ComputeError as exc:
                 return f"output {name} missing: {BK.sanitize(exc)}"
             if not n:
@@ -324,11 +341,12 @@ class ComputeRunner:
         be, ref = self.backends[cj["backend"]], cj["ref"]
         mode = "stop" if cj["content_class"] == "private" else "delete"
         try:
-            res = be.teardown(ref, mode)
+            res = be.teardown(ref, mode, cj.get("handle"))
         except Exception:  # noqa: BLE001
             res = "failed"
         alive = True
         try:
+            self._tell(be)
             alive = any(o.ref == ref and o.billing for o in be.list_owned())
         except Exception:  # noqa: BLE001
             pass
@@ -407,6 +425,7 @@ class ComputeRunner:
             try:
                 if route:
                     E.preflight(route)
+                self._tell(be)
                 owned[name] = be.list_owned()
                 owned_ok[name] = True
             except PermissionError:
@@ -440,7 +459,10 @@ class ComputeRunner:
                         cj.update(ref=ref, provisioned_at=cands[0].since, stage="provisioned", linked_by="reconcile")
                         self._save(r, cj)
                 if not ref:
-                    rep["waiting"].append(r["key"]) if r["key"] not in rep["unknown"] else None
+                    if r["key"] not in rep["unknown"]:
+                        rep["waiting"].append(r["key"])
+                    if owned_ok.get(name) and hasattr(self.backends[name], "candidates"):
+                        rep.setdefault("candidates", {})[r["key"]] = self.backends[name].candidates(cj.get("pending_at") or 0)      # report only: the user links one, or none
                     continue
                 cj.setdefault("provisioned_at", self.clock())
                 self._save(r, cj)
