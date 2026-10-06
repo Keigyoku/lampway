@@ -20,6 +20,35 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | (12) | `userdef_default_theme.c` (Timeline `simulated_frames` leaves the wire colour) and the two theme presets. |
 | (install rule) | `src/source/creator/CMakeLists.txt`: a re-configure and `ninja install` (no compile). |
 
+## Status per contract (the lane's order) and per coordinator addition
+
+| item | state | commits |
+|---|---|---|
+| 01 tokens and theme | done | `8e851a07`, `99d338a4`, `0b5f26fc` |
+| 15 visual harness | done | `b28846b2` |
+| 14 iconography | done (two fixes) | `5f37ee91`, `ba835be1`, `edf0d549` |
+| 03 window chrome | done | `0afc2d19` |
+| 02 splash and onboarding | done | `ce3c9897` |
+| 04 chat face | partial | `6881d79c` |
+| 05 parallel agents | done | `c92396d5` |
+| 06 Studios panel (Providers half to Choices) | done | `10233050` |
+| 07 the Way | partial | `faa750b3`, `cf1fc1f7` |
+| 08 generation face | partial | `a86df92f` |
+| 12 privacy face | done (two deviations said) | `0fff1aed` |
+| 13 spend card | P0 done, P1 (drawn card) not | `afa173f9` |
+| Connections window | P0 done | `59279873`, `add28e00` |
+| Choices window (CH8, CH1) | P0 done | `c6002ee9`, `add28e00` |
+| install carries no agent contract | done | `e6668a6b` |
+| 11 model compare | partial (data modes not built) | `3e496b4a` |
+| 10 cockpit window + report cards mounted | done for the page; xterm.js not | `3f33a237` |
+| 16 Lampway terminal | partial (live download and window measured) | `ad44c557` |
+| Asset Vault name and drag | done | `d6b543fc` |
+| Zen shortcuts (vault-ui's finding) | done: not a bug, pinned with real input | `8eac47fb` |
+| Lamplight and Workshop (captain's rename) | done | `c272b7c0` |
+| floating agent pill (captain) | done, off by default, combined into the chat header | `6881d79c` |
+| 13's submission_unknown UI | done in 06 | `10233050` |
+| 09 | not this lane's (vault-ui) | |
+
 ## Gate totals at the contract 01 push (`30b6c2fd`, merged with `origin/lp/wave5` `00d907d4`)
 
 - Server suite (`venv-tools`): 0 failed, 6 skipped, rc 0.
@@ -762,6 +791,13 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   hub is one the faces know.
 - The merge's rail conflict (both lanes edited section 2 of the coding-guidelines skill) is resolved with both bullets
   and its own anneal row; the generated registrations were taken from the integration and re-synced.
+
+## Gate totals at the final push
+
+- `scripts/lampway/test_all.sh` (`--verify-env`: ready) on the merged tree with my build: **GREEN** against
+  `tests/known_red.tsv`: server 1625 passed, 11 skipped, rc 0; client 8933 passed, 105 skipped, 110 failed and 15 errors,
+  every one in the baseline, none new, none of the baseline now passing.
+- Theme 0, cues 0 (self-test 4 of 4 caught), WezTerm 0, tool specs current, rail PASS; PII gate at the pre-push hook.
 
 ## Which build is in `build/Prod`
 
