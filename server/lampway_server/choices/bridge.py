@@ -101,7 +101,7 @@ def providers_scope(state_dir) -> dict:
     saved = PP.load(state_dir)
     if not saved:
         return {}
-    s = PP.apply_saved(Settings(), saved, env={})
+    s = PP.apply_saved(Settings(), saved, env={}, choices=False)
     every = chains(s, env={})
     return {pid: {**every[pid], "source": "providers"} for pid in _touched(saved) if pid in every}
 
@@ -123,3 +123,80 @@ def env_scope(env=None) -> dict:
             names = sorted({PP.ENV_VARS[k] for k in set_keys if pid in _touched({k})} | {n for n in _EXTRA_ENV.get(pid, ()) if n in env})
             out[pid] = {**every[pid], "source": ", ".join(names)}
     return out
+
+
+# ---------------------------------------------------------------------------------------------------------------- choices -> settings
+_MAIN_FIELD = {"chatgpt_plan": "chatgpt_model", "anthropic": "anthropic_model", "openrouter": "openrouter_model"}
+
+
+def _apply(s: Settings, pid: str, entry: dict) -> set:
+    """The settings fields one Choices entry decides; returns the fields it set."""
+    oid, params = entry.get("preferred") or "", entry.get("params") or {}
+    prov, _, model = oid.partition(":")
+    out = set()
+    if pid == "agent.main":
+        provider = {"openai": "openai"}.get(prov, prov)
+        if provider not in PP.MAIN_PROVIDERS:
+            return out
+        s.provider = provider
+        out.add("provider")
+        if provider in _MAIN_FIELD and model:
+            setattr(s, _MAIN_FIELD[provider], model)
+            out.add(_MAIN_FIELD[provider])
+        if provider == "chatgpt_plan" and params.get("effort") is not None:
+            s.chatgpt_effort = params["effort"]
+            out.add("chatgpt_effort")
+        if provider == "openai" and params.get("model"):
+            s.openai_model = params["model"]
+            out.add("openai_model")
+    elif pid == "agent.worker":
+        if prov == "claude_cli":
+            s.swarm_provider, out = "claude_cli", {"swarm_provider"}
+            if params.get("model"):
+                s.claude_swarm_model = params["model"]
+                out.add("claude_swarm_model")
+        elif prov == "openrouter" and model:
+            s.swarm_provider, s.openrouter_swarm_model, out = "openrouter", model, {"swarm_provider", "openrouter_swarm_model"}
+        elif prov == "chatgpt_plan" and model and s.provider == "chatgpt_plan":
+            s.swarm_provider, s.chatgpt_swarm_model, out = "", model, {"swarm_provider", "chatgpt_swarm_model"}
+        elif oid == "follow:agent.main":
+            s.swarm_provider, out = "", {"swarm_provider"}
+    elif pid.startswith("image.") and pid.split(".", 1)[1] in PP.PURPOSES:
+        purpose = pid.split(".", 1)[1]
+        cfg = s.image_purposes.setdefault(purpose, {})
+        if prov == "openrouter" and model:
+            cfg["model"] = model
+            out.add("image_purposes")
+            if purpose == "plates":
+                s.image_backend, out = "openrouter", out | {"image_backend"}
+        elif purpose == "plates" and oid in ("studio:tripo.image", "codex_cli:imagegen"):
+            s.image_backend, out = ("tripo" if oid.startswith("studio") else "codex_cli"), {"image_backend"}
+            fb = next((f for f in entry.get("fallbacks") or [] if f.startswith("openrouter:")), None)
+            if fb:
+                cfg["model"] = fb.split(":", 1)[1]
+                out.add("image_purposes")
+        cfg.update({k: v for k, v in params.items() if k in ("size", "resolution", "quality")})
+    elif pid.startswith("video.") and pid.split(".", 1)[1] in PP.VIDEO_PURPOSES and model:
+        cfg = s.video_purposes.setdefault(pid.split(".", 1)[1], {})
+        cfg["model"] = ("higgsfield/" + model) if prov == "higgsfield" else model
+        cfg.update({k: v for k, v in params.items() if k in ("resolution", "duration", "aspect_ratio", "image_mode")})
+        out.add("video_purposes")
+    return out
+
+
+def apply_choices(s: Settings, env=None) -> Settings:
+    """The user's Choices (``choices.json``) over the Providers dialog's values, under the environment (CH4): a purpose the environment
+    decides this session is left as the environment has it. ``s.sources`` names "choices" for every field a choice set."""
+    from .store import FileStore
+    env = os.environ if env is None else env
+    try:
+        purposes = FileStore(s.state_dir).global_doc().get("purposes") or {}
+    except Exception:  # noqa: BLE001 - an unreadable store is reported by Choices itself; the settings keep the dialog's values
+        return s
+    session = set(env_scope(env))
+    for pid, entry in sorted(purposes.items()):
+        if pid in session:
+            continue
+        for field in _apply(s, pid, entry):
+            s.sources[field] = "choices"
+    return s

@@ -21,7 +21,7 @@ def _job(raw) -> Job:
                origin="user", avoid=tuple(raw.get("avoid") or ()))
 
 
-def choices_routes(bearer_ok) -> list:
+def choices_routes(bearer_ok, on_change=None) -> list:
     from .. import choices as CH
 
     def guard(request, write=False):
@@ -60,11 +60,15 @@ def choices_routes(bearer_ok) -> list:
         entry = {k: body[k] for k in ("preferred", "fallbacks", "params", "override_policy") if k in body}
         scope = body.get("scope") or "global"
         CH.active_store().set(pid, scope, body.get("project"), entry, by="user")
+        if on_change is not None:
+            on_change(pid)
         return CH.purpose_view(pid, Job(project=body.get("project")))
 
     def delete(request, body):
         pid = request.path_params["purpose"]
         CH.active_store().clear(pid, q(request, "project"), by="user")
+        if on_change is not None:
+            on_change(pid)
         return CH.purpose_view(pid, Job(project=q(request, "project")))
 
     def dry(request, body):
@@ -86,6 +90,8 @@ def choices_routes(bearer_ok) -> list:
     def decide(accept):
         def fn(request, body):
             row = CH.active_store().decide(request.path_params["pid"], accept, by="user", scope=body.get("scope") or "global", project=body.get("project"))
+            if accept and on_change is not None:
+                on_change(row["purpose"])
             return CH.purpose_view(row["purpose"]) if accept else {"declined": row["id"]}
         return fn
 

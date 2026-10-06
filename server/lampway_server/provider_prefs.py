@@ -231,7 +231,7 @@ ENV_VARS = {"provider": "LAMPWAY_PROVIDER", "anthropic_model": "LAMPWAY_ANTHROPI
             "openrouter_image_quality": "LAMPWAY_OPENROUTER_IMAGE_QUALITY"}
 
 
-def apply_saved(settings: Settings, saved: dict, env=None) -> Settings:
+def apply_saved(settings: Settings, saved: dict, env=None, choices: bool = True) -> Settings:
     """The saved choices UNDER the environment: a field the environment sets is left as the environment has it. ``settings.sources`` records, per field, whether
     the value in force is env, saved or default."""
     env = os.environ if env is None else env
@@ -246,6 +246,9 @@ def apply_saved(settings: Settings, saved: dict, env=None) -> Settings:
             setattr(settings, key, value)
         sources[key] = "saved"
     settings.sources = sources
+    if choices:                                         # the user's Choices over the dialog's values, under the environment (specs/choices)
+        from .choices.bridge import apply_choices
+        apply_choices(settings, env)
     return settings
 
 
