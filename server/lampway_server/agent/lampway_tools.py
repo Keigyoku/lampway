@@ -230,7 +230,9 @@ DEFS = [
         P("adaptivity", "number", "autoremesher: 0..1"), P("anisotropy", "number", "autoremesher: 0..1"), P("sharp_edge", "number", "autoremesher: 30..180 degrees"),
         P("smooth_normal", "number", "autoremesher: 0..180 degrees"), P("edge_scaling", "number", "autoremesher: 1..4"), P("timeout", "integer", "autoremesher: 10..3600 s"),
         P("fallback", "boolean", "quadriflow / autoremesher: use the voxel remesh when the engine fails or leaves the mesh unchanged (else refused)"), P("hard_surface", "boolean", "autoremesher: hard-surface model type"),
-        P("preserve_sharp", "boolean", "quadriflow: keep sharp (hard-surface) edges, default true")], api="retopo"),
+        P("preserve_sharp", "boolean", "quadriflow: keep sharp (hard-surface) edges, default true"),
+        P("per_part", "boolean", "quadriflow: remesh each part alone (boundary kept, welded back): no face spans two parts"),
+        P("part_attribute", desc="the INT face attribute holding the parts, default part")], api="retopo"),
     Def("lampway_uv_unwrap", "UV unwrap: a NEW mesh `<object>_uv` with a packed layout (method smart | angle | conformal; seams at edges "
         "sharper than angle_limit) and a measured report (islands, coverage, overlap by rasterising, texel-density spread, the "
         "density achieved at texture_size). The original keeps its UVs; inspect the checker before texturing. engine=studio:tripo "

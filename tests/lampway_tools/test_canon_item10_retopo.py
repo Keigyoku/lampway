@@ -63,3 +63,53 @@ res({"a": a["report"]["max_deviation"], "a_sharp": a.get("preserve_sharp"), "b":
     assert d["a_sharp"] is True and d["b_sharp"] is False and d["a"] < d["b"] / 2, d
     for m, v in d["big"].items():
         assert v["ok"] is False and "3x the source" in v["error"], (m, v)
+
+
+C03 = r'''
+G = GOLD + "/C03_seam_tube/piece.obj"
+V, F, grp, cur = [], [], [], None
+for line in open(G):
+    w = line.split()
+    if not w: continue
+    if w[0] == "v": V.append(tuple(map(float, w[1:4])))
+    elif w[0] == "g": cur = w[1]
+    elif w[0] == "f": F.append([int(x.split("/")[0]) - 1 for x in w[1:]]); grp.append(cur)
+def piece(name, part=True):
+    me = bpy.data.meshes.new(name); me.from_pydata(V, [], F); me.update()
+    ob = bpy.data.objects.new(name, me); bpy.context.scene.collection.objects.link(ob)
+    if part:
+        a = me.attributes.new("part", "INT", "FACE"); a.data.foreach_set("value", [0 if g == "lower" else 1 for g in grp])
+    bm = bmesh.new(); bm.from_mesh(me); bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5); bm.to_mesh(me); bm.free()   # one shell, as normalized
+    return ob
+def span(ob, eps=1e-4):
+    me = ob.data
+    return sum(1 for p in me.polygons if min(me.vertices[i].co.z for i in p.vertices) < 1.2 - eps and max(me.vertices[i].co.z for i in p.vertices) > 1.2 + eps)
+'''
+
+
+def test_g12_3_per_part_remesh_keeps_the_cut_and_carries_the_part_map():
+    """canon 12 B.1 / INV-12.3 / G12.3 on golden C03 (one shell cut into two parts at z = 1.2, welded as a generated piece is): each
+    part is remeshed alone with its boundary preserved, then welded by position; no face spans both parts, every face carries its part.
+    The falsifier, measured: the whole shell remeshed puts faces across the cut."""
+    from canon_support import goldens as _g  # noqa: F401
+    import canon_support
+    gold = str(canon_support.GOLDENS_SRC)
+    r = run_script(PRE + f"GOLD = {gold!r}\n" + C03 + '''
+whole = piece("whole"); w = api.retopo("whole", target_faces=400, method="quadriflow")
+pp = piece("parts"); p = api.retopo("parts", target_faces=400, method="quadriflow", per_part=True)
+none = piece("bare", part=False); n = api.retopo("bare", target_faces=400, method="quadriflow", per_part=True)
+out = bpy.data.objects.get(p.get("object") or "")
+parts = sorted(set(out.data.attributes["part"].data[i].value for i in range(len(out.data.polygons)))) if out and "part" in out.data.attributes else None
+strays = sorted(o.name for o in bpy.data.objects if o.name.startswith("parts") and o.name not in ("parts", p.get("object")))
+res({"strays": strays, "faces": len(out.data.polygons) if out else 0, "whole_span": span(bpy.data.objects[w["object"]]), "ok": p.get("ok"), "error": p.get("error"), "span": span(out) if out else None,
+     "parts": parts, "per_part": p.get("per_part"), "bare": n.get("error")})
+''', timeout=300)
+    assert r.rc == 0, r.out[-1500:]
+    d = r.results[-1]
+    assert d["whole_span"] > 0, d                                       # the falsifier: a whole-shell remesh crosses the cut
+    assert d["ok"], d["error"]
+    assert d["span"] == 0 and d["parts"] == [0, 1] and d["strays"] == [], d          # one result object holding both parts
+    assert d["faces"] == sum(v["faces"] for v in d["per_part"]["parts"].values()), d
+    pp = d["per_part"]
+    assert set(pp["parts"]) == {"0", "1"} and all(v["faces"] > 0 for v in pp["parts"].values()) and pp["attribute"] == "part", pp
+    assert d["bare"] and "part" in d["bare"], d
