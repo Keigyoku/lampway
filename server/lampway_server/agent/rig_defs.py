@@ -74,4 +74,22 @@ RIG_DEFS = [
          P("space", desc="mesh_*: the space JSON"), P("joints", desc="capture / rebind: joints JSON"), P("weights", desc="capture: weights JSON"),
          P("pose", desc="evaluate: pose JSON"), P("joint_map", desc="rebind: joint map JSON"), P("geometry_only", "boolean", "evaluate a shaded packet without normals")],
         api="rig_skin", wip=True),
+    Def("lampway_rig_conform", "Turn a mapped rig into the project's skeleton (canon 16 B.4-B.7, 17; the rewrite of MB's Create UE5 Rig, nothing "
+        "ported), always ON A COPY (out_name, default <armature>_ue, with its meshes copied as <mesh>_<out_name>): mapped bones take their UE names "
+        "from map.json (a colliding unmapped bone is renamed <name>_src first), the torso bones the map synthesized are created at their arc-length "
+        "fractions, every UE slot hangs from its nearest reference ancestor (unmapped bones keep their renamed parent), and every frame is built from "
+        "the joints (head -> next joint) and the reference bone's Z in ONE convention (blender: Y along the limb; ue_axes: X along, mirrored where the "
+        "reference points back), so the input roll cannot survive. Heads never move (bit for bit); vertex groups follow their bones; merge_weights "
+        "{group: bone} adds a group into a bone's and removes it, only when named. Verified before it returns: the rest skin against an untouched "
+        "copy (float32 bar printed), and a world-space test pose on both rigs (a vertex group that did not follow its bone fails it). The copy "
+        "carries no animation (rig_retarget / rig_convert carry motion). ik_bones adds UE's ik_* bones (and a root at the armature origin when the "
+        "rig has none). offsets {bone: {roll_deg}} turns a frame about its own axis. reference: a titan.animation-profile/1 (default UE5 Manny). "
+        "dry_run (default true) returns the plan. Refused: an armature rig_inspect did not read (or changed since), no map, a map made from another "
+        "rest, an object scale (run rig_normalize), a mixed convention, an existing out_name." + _PATHS,
+        [P("armature", required=True), P("map", required=True, desc="the rig_map out, e.g. rig/<name>.map.json"),
+         P("reference", desc="a titan.animation-profile/1 JSON; default the shipped UE5 Manny"), P("convention", desc="blender (default) | ue_axes"),
+         P("ik_bones", "boolean", "add UE's ik_* bones (default false)"), P("offsets", "object", "{bone: {roll_deg}}"),
+         P("merge_weights", "object", "{vertex group: bone}"), P("out_name", desc="the copy's name; default <armature>_ue"),
+         P("dry_run", "boolean", "default true: return the plan")],
+        api="rig_conform"),
 ]

@@ -69,6 +69,16 @@ def rig_convert(verb, input="", profile="", target_profile="", rules="", target=
 
 
 @_export
+@tool(consumes=RIG_RAW)
+def rig_conform(armature, map, reference="", convention="blender", ik_bones=False, offsets=None, merge_weights=None, out_name="", dry_run=True):
+    """Turn a mapped rig into the project's skeleton ON A COPY (canon 16 B.4-B.7, 17): UE names from map.json, missing torso bones at their
+    fractions, the reference's hierarchy, frames from the joints and the reference's Z (blender | ue_axes), vertex groups following their bones,
+    merge_weights only when named; heads, rest skin and a world-space test pose verified; the source never touched."""
+    from .features import rig_conform as _RF
+    return _RF.conform(armature, map, str(_settings().project_root), reference, convention, ik_bones, offsets, merge_weights, out_name, dry_run)
+
+
+@_export
 @tool(consumes=NONE("reads canonical JSON documents (meshes, joints, weights, poses) by path: no scene asset"))
 def rig_skin(verb, input, out, space="", joints="", weights="", pose="", joint_map="", geometry_only=False):
     """WIP skin and morph (canon 22 B.10 and canon 07 DRAFT): mesh_normalize | mesh_adapt (unrigged mesh with morphs, canonical cm) | capture

@@ -125,7 +125,10 @@ def unit(v):
 
 
 def angle_deg(Ra, Rb):
-    return float(np.degrees(np.arccos(np.clip((np.trace(np.asarray(Ra).T @ np.asarray(Rb)) - 1.0) / 2.0, -1.0, 1.0))))
+    """The angle between two rotations by the chord ||Ra - Rb||_F = 2 sqrt(2) sin(theta / 2): well conditioned near 0, where an arccos of
+    the trace reads float32 rounding (a Blender rest) as ~0.02 deg."""
+    c = float(np.linalg.norm(np.asarray(Ra, float) - np.asarray(Rb, float))) / (2.0 * math.sqrt(2.0))
+    return float(np.degrees(2.0 * math.asin(min(1.0, c))))
 
 
 def along_axis_angle(R_rest, head, child_head, axis="y"):
@@ -214,3 +217,194 @@ def readback_rows(reference, readback, bars=BARS):
             over.append(row)
     return {"bones_compared": len(rows), "worst_position_cm": max(r["position_cm"] for r in rows), "worst_rotation_deg": max(r["rotation_deg"] for r in rows),
             "worst_scale": max(r["scale"] for r in rows), "over_tolerance": over, "bars": dict(bars), "rows": rows}
+
+
+# ---------------------------------------------------------------- rig_conform (canon 16 B.4-B.7, 17): the plan, applied by features/rig_conform
+CONVENTIONS = {"blender": "y", "ue_axes": "x"}
+# the continuation of every UE limb bone that has helper children beside its next joint (canon 01 C; canon_geom.bones.CONTINUATION)
+CONTINUATION = dict({f"{a}_{s}": f"{b}_{s}" for s in ("l", "r") for a, b in (("clavicle", "upperarm"), ("upperarm", "lowerarm"), ("lowerarm", "hand"),
+                                                                          ("thigh", "calf"), ("calf", "foot"), ("foot", "ball"), ("hand", "middle_01"))},
+                    pelvis="spine_01", spine_03="spine_04", spine_05="neck_01", neck_01="neck_02", neck_02="head")
+# UE's IK bones and the bone each one stands on (the mannequin's convention: ik_hand_gun on the right hand)
+IK_TARGETS = {"ik_foot_root": "root", "ik_foot_l": "foot_l", "ik_foot_r": "foot_r", "ik_hand_root": "root", "ik_hand_gun": "hand_r",
+              "ik_hand_l": "hand_l", "ik_hand_r": "hand_r"}
+ROOT_LENGTH = 0.1                                     # metres: the length of a synthesized root (a root has no next joint to measure)
+
+
+def _descendant(b, a, parents):
+    seen = set()
+    while b is not None and b not in seen:
+        seen.add(b)
+        b = parents.get(b)
+        if b == a:
+            return True
+    return False
+
+
+def _next_joint(b, heads, parents, kids, ref_kids):
+    """The joint a bone points at: its named continuation, else its single reference child, else its single child (a distinct head), else
+    its parent's line continued (a leaf); None when nothing defines a direction."""
+    h = np.asarray(heads[b], float)
+    c = CONTINUATION.get(b)
+    if c in heads and _descendant(c, b, parents) and np.linalg.norm(np.subtract(heads[c], h)) > 1e-9:
+        return np.asarray(heads[c], float)
+    for group in (ref_kids.get(b, []), kids.get(b, [])):
+        far = [k for k in group if k in heads and np.linalg.norm(np.subtract(heads[k], h)) > 1e-9]
+        if len(far) == 1:
+            return np.asarray(heads[far[0]], float)
+    p = parents.get(b)
+    if p is not None and np.linalg.norm(h - np.asarray(heads[p], float)) > 1e-9:
+        return h + (h - np.asarray(heads[p], float))
+    return None
+
+
+def _up(candidates, along):
+    for c in candidates:
+        c = np.asarray(c, float)
+        if abs(float(unit(c) @ along)) < 0.99:
+            return c
+    return None
+
+
+def conform_plan(src, mapping, synthesized, ref, convention="blender", offsets=None, ik_bones=False):
+    """The conformed skeleton as a plan (no Blender): {bones: [{name, source, kind, parent, head, frame, length}] parents first, renamed,
+    synthesized, reparented, frames: {bone: angle to the reference re-expressed in the convention, deg}, unreferenced}.
+
+    src / ref: {names, parents, heads, frames (3x3, columns X Y Z)} in one space (src also lengths); mapping {slot: source bone};
+    synthesized {slot: arc-length fraction on the torso}. Heads never move; frames come from the joints and the reference's Z (canon 17),
+    never from the source's frame, so the input roll cannot survive."""
+    if convention not in CONVENTIONS:
+        raise RigRefused(f"convention is blender or ue_axes, not {convention!r}: one convention per rig (a mixed rig is never exported)")
+    along = CONVENTIONS[convention]
+    offsets = dict(offsets or {})
+    inv = {s: k for k, s in mapping.items()}
+    missing = sorted(s for s in mapping.values() if s not in src["heads"])
+    if missing:
+        raise RigRefused(f"the map names bones the armature does not have: {', '.join(missing)}")
+    slots = set(mapping) | set(synthesized) | (set(IK_TARGETS) | {"root"} if ik_bones else set())
+    taken = set(slots) | set(src["names"])
+    renamed = {}
+    for b in src["names"]:
+        if b in inv:
+            renamed[b] = inv[b]
+        elif b in slots:                                  # an unmapped bone named like a slot this rig will carry: out of the way first
+            n, k = f"{b}_src", 1
+            while n in taken:
+                k += 1
+                n = f"{b}_src{k}"
+            taken.add(n)
+            renamed[b] = n
+    out = lambda b: renamed.get(b, b)                     # noqa: E731
+    heads, kinds, source, lengths = {}, {}, {}, {}
+    for b in src["names"]:
+        n = out(b)
+        heads[n], kinds[n], source[n], lengths[n] = tuple(float(x) for x in src["heads"][b]), "mapped" if b in inv else "unmapped", b, float(src["lengths"][b])
+    synth_doc = {}
+    if synthesized:
+        present = [(s, src["heads"][mapping[s]]) for s in TORSO if s in mapping]
+        made = synthesize_chain(present, dict(synthesized))
+        for s in synthesized:
+            heads[s], kinds[s], source[s] = tuple(float(x) for x in made[s]), "synthesized", None
+            synth_doc[s] = {"rule": "torso arc-length fraction", "fraction": synthesized[s], "head": list(heads[s])}
+    rparents = ref["parents"]
+    if ik_bones:
+        need = sorted({t for t in IK_TARGETS.values() if t != "root"} - set(heads))
+        if need:
+            raise RigRefused(f"ik_bones stand on {', '.join(need)}, which this rig does not carry: map them, or pass ik_bones=false")
+        if "root" not in heads:
+            heads["root"], kinds["root"], source["root"], lengths["root"] = (0.0, 0.0, 0.0), "synthesized", None, ROOT_LENGTH
+            synth_doc["root"] = {"rule": "ik_bones: the reference's root at the armature origin", "head": [0.0, 0.0, 0.0]}
+        for ik, t in IK_TARGETS.items():
+            heads[ik], kinds[ik], source[ik] = heads[t], "ik", None
+            synth_doc[ik] = {"rule": f"ik bone on {t}", "head": list(heads[t])}
+    # parents: a reference slot hangs from its nearest reference ancestor this rig carries; everything else keeps its (renamed) parent
+    parents = {}
+    for n in heads:
+        p = None
+        if n in rparents or n in IK_TARGETS:
+            a = rparents.get(n)
+            while a is not None and a not in heads:
+                a = rparents.get(a)
+            p = a
+        if p is None and source[n] is not None and src["parents"].get(source[n]) is not None:
+            p = out(src["parents"][source[n]])
+        parents[n] = p
+    order, state = [], {}
+
+    def visit(n, trail=()):
+        if state.get(n) == 2:
+            return
+        if state.get(n) == 1:
+            raise RigRefused(f"the reference hierarchy and the source's make a cycle through {' -> '.join(trail + (n,))}")
+        state[n] = 1
+        if parents[n] is not None:
+            visit(parents[n], trail + (n,))
+        state[n] = 2
+        order.append(n)
+    for n in heads:
+        visit(n)
+    reparented = [{"bone": n, "from": out(src["parents"][source[n]]) if src["parents"].get(source[n]) else None, "to": parents[n]}
+                  for n in order if source[n] is not None and (out(src["parents"][source[n]]) if src["parents"].get(source[n]) else None) != parents[n]]
+    kids, ref_kids = {}, {}
+    for n, p in parents.items():
+        if p is not None:
+            kids.setdefault(p, []).append(n)
+    for n, p in rparents.items():
+        if p is not None:
+            ref_kids.setdefault(p, []).append(n)
+    rkids_present = {b: [k for k in v if k in heads] for b, v in ref_kids.items()}
+    unknown = sorted(set(offsets) - set(heads))
+    if unknown:
+        raise RigRefused(f"offsets: no bone named {unknown[0]!r} in the conformed rig")
+    ref_up = {}
+    for n in order:                                      # the up hint: the reference bone's Z, else the nearest referenced ancestor's
+        a = n
+        while a is not None and a not in ref["frames"]:
+            a = parents.get(a)
+        ref_up[n] = a
+    def ref_sign(n):
+        """-1 where the reference's X points back along its limb (UE's mirrored side), for the ue_axes convention; else +1."""
+        if along != "x" or n not in ref["frames"]:
+            return 1.0
+        rn = _next_joint(n, ref["heads"], rparents, ref_kids, ref_kids)
+        return -1.0 if rn is not None and float(np.asarray(ref["frames"][n], float)[:, 0] @ (rn - np.asarray(ref["heads"][n], float))) < 0 else 1.0
+
+    frames, angles, unreferenced = {}, {}, []
+    for n in order:
+        r = ref_up[n]
+        if n in IK_TARGETS and IK_TARGETS[n] in frames:
+            frames[n] = frames[IK_TARGETS[n]]
+            continue
+        nxt = _next_joint(n, heads, parents, kids, rkids_present)
+        if nxt is None:
+            if r is None:
+                raise RigRefused(f"{n!r} has no next joint and no referenced ancestor: nothing defines its frame")
+            R = np.asarray(ref["frames"][r], float)
+        else:
+            d = unit(nxt - np.asarray(heads[n], float))
+            cand = [np.asarray(ref["frames"][r], float)[:, k] for k in (2, 0, 1)] if r is not None else []
+            cand.append(np.asarray(src["frames"][source[n]], float)[:, 2] if source[n] is not None else (0.0, 0.0, 1.0))
+            up = _up(cand, d)
+            if up is None:
+                raise RigRefused(f"{n!r} points along every up hint it has: pass an offset or map it")
+            R = frame_from(heads[n], nxt, up, along=along, sign=ref_sign(n))
+        roll = float(offsets.get(n, {}).get("roll_deg", 0.0))
+        if roll:
+            R = R @ rot(along, roll)
+        frames[n] = R
+        if n in ref["frames"] and nxt is not None:
+            rn = _next_joint(n, ref["heads"], rparents, ref_kids, ref_kids)
+            if rn is not None:
+                Rr = frame_from(ref["heads"][n], rn, np.asarray(ref["frames"][n], float)[:, 2], along=along, sign=ref_sign(n))
+                angles[n] = round(angle_deg(R, Rr), 6)
+        elif n not in ref["frames"]:
+            unreferenced.append(n)
+        if n not in lengths:
+            lengths[n] = float(np.linalg.norm(nxt - np.asarray(heads[n], float))) if nxt is not None else ROOT_LENGTH
+    for n in order:
+        if n in IK_TARGETS and n not in lengths:
+            lengths[n] = lengths.get(IK_TARGETS[n], ROOT_LENGTH)
+    bones = [{"name": n, "source": source[n], "kind": kinds[n], "parent": parents[n], "head": heads[n], "frame": frames[n], "length": lengths[n]}
+             for n in order]
+    return {"bones": bones, "renamed": {b: n for b, n in renamed.items() if b != n}, "synthesized": synth_doc, "reparented": reparented,
+            "frames": angles, "unreferenced": unreferenced, "convention": convention}

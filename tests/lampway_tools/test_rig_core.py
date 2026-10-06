@@ -131,3 +131,124 @@ def test_the_readback_rows_use_the_bind_mismatch_bars():
     assert [x["bone"] for x in RC.readback_rows(ref, got)["over_tolerance"]] == ["arm"]
     with pytest.raises(RC.RigRefused, match="roster"):
         RC.readback_rows(ref, {"root": ref["root"]})
+
+
+# ---------------------------------------------------------------- R6 rig_conform's plan (canon 16 B.4-B.7, 17)
+def _conform_fixture(roll_deg=0.0, extra=None):
+    """R02's arm under R01's Mixamo torso: source frames rolled by roll_deg about their own Y; a reference (UE names, X along, Z = R02's up)."""
+    i, j = R02["input"], R02["input"]["joints"]
+    src_heads = {"Hips": (0, -0.02, 0.93), "Spine": (0, -0.015, 0.99), "Spine1": (0, -0.005, 1.06), "Spine2": (0, 0.0, 1.35),
+                 "LeftArm": j["upperarm_l"], "LeftForeArm": j["lowerarm_l"], "LeftHand": j["hand_l"], "LeftMiddle1": j["middle_01_l"]}
+    src_parents = {"Hips": None, "Spine": "Hips", "Spine1": "Spine", "Spine2": "Spine1", "LeftArm": "Spine2", "LeftForeArm": "LeftArm",
+                   "LeftHand": "LeftForeArm", "LeftMiddle1": "LeftHand"}
+    src_parents.update(extra or {})
+    for b in extra or {}:
+        src_heads.setdefault(b, (0.0, 0.1, 1.5))
+    kids = {}
+    for b, p in src_parents.items():
+        if p:
+            kids.setdefault(p, []).append(b)
+    frames, lengths = {}, {}
+    for b, h in src_heads.items():
+        nxt = src_heads[kids[b][0]] if b in kids else np.add(h, (0, 0, 0.05))
+        frames[b] = RC.frame_from(h, nxt, (1.0, 0.3, 0.2)) @ RC.rot("y", roll_deg)       # an arbitrary input roll
+        lengths[b] = 0.05 + 0.01 * len(b)
+    src = {"names": list(src_heads), "parents": src_parents, "heads": src_heads, "frames": frames, "lengths": lengths}
+    mapping = {"pelvis": "Hips", "spine_01": "Spine", "spine_02": "Spine1", "spine_05": "Spine2", "upperarm_l": "LeftArm", "lowerarm_l": "LeftForeArm",
+               "hand_l": "LeftHand", "middle_01_l": "LeftMiddle1"}
+    fr = RC.chain_fractions(R01["input"]["ref_torso"])
+    synthesized = {"spine_03": fr["spine_03"], "spine_04": fr["spine_04"]}
+    ref_heads = dict(R01["input"]["ref_torso"])
+    ref_heads.update({"upperarm_l": j["upperarm_l"], "lowerarm_l": j["lowerarm_l"], "hand_l": j["hand_l"], "middle_01_l": j["middle_01_l"],
+                      "lowerarm_twist_01_l": j["lowerarm_l"]})
+    ref_parents = {"pelvis": None, "spine_01": "pelvis", "spine_02": "spine_01", "spine_03": "spine_02", "spine_04": "spine_03", "spine_05": "spine_04",
+                   "upperarm_l": "spine_05", "lowerarm_l": "upperarm_l", "lowerarm_twist_01_l": "lowerarm_l", "hand_l": "lowerarm_l", "middle_01_l": "hand_l"}
+    ref_frames = {}
+    for b in ref_heads:
+        kid = {"pelvis": "spine_01", "spine_05": "upperarm_l", "upperarm_l": "lowerarm_l", "lowerarm_l": "hand_l", "hand_l": "middle_01_l"}.get(b)
+        kid = kid or next((c for c, p in ref_parents.items() if p == b), None)
+        nxt = ref_heads[kid] if kid else np.add(ref_heads[b], (0.05, 0, -0.02))
+        if np.linalg.norm(np.subtract(nxt, ref_heads[b])) < 1e-9:
+            nxt = np.add(ref_heads[b], (0.05, 0, -0.02))
+        ref_frames[b] = RC.frame_from(ref_heads[b], nxt, i["up_hint"], along="x")
+    ref = {"names": list(ref_heads), "parents": ref_parents, "heads": ref_heads, "frames": ref_frames}
+    return src, mapping, synthesized, ref
+
+
+def test_the_conform_plan_renames_synthesizes_at_r01_fractions_and_takes_the_reference_hierarchy():
+    src, mapping, synth, ref = _conform_fixture(extra={"Prop": "LeftHand"})
+    p = RC.conform_plan(src, mapping, synth, ref, convention="blender")
+    by = {b["name"]: b for b in p["bones"]}
+    assert p["renamed"] == {"Hips": "pelvis", "Spine": "spine_01", "Spine1": "spine_02", "Spine2": "spine_05", "LeftArm": "upperarm_l",
+                            "LeftForeArm": "lowerarm_l", "LeftHand": "hand_l", "LeftMiddle1": "middle_01_l"}
+    for k, v in R01["expected"]["synthesized"].items():          # R01: spine_03 / spine_04 at the reference's arc-length fractions
+        assert np.allclose(by[k]["head"], v, atol=1e-8) and by[k]["kind"] == "synthesized", (k, by[k]["head"])
+    assert [by[b]["parent"] for b in ("spine_03", "spine_04", "spine_05", "upperarm_l")] == ["spine_02", "spine_03", "spine_04", "spine_05"]
+    assert by["Prop"]["parent"] == "hand_l" and by["Prop"]["kind"] == "unmapped", "an unmapped bone stays under its (renamed) parent"
+    assert {"bone": "spine_05", "from": "spine_02", "to": "spine_04"} in p["reparented"]
+    names = [b["name"] for b in p["bones"]]
+    assert all(names.index(b["parent"]) < names.index(b["name"]) for b in p["bones"] if b["parent"]), "parents before children"
+    for b in src["names"]:                                        # heads never move
+        assert by[p["renamed"].get(b, b)]["head"] == tuple(float(x) for x in src["heads"][b])
+
+
+def test_the_conform_frames_are_r02s_frames_whatever_the_input_roll():
+    e = R02["expected"]
+    plans = [RC.conform_plan(*_conform_fixture(roll), convention=c) for roll in (0.0, 40.0) for c in ("blender", "ue_axes")]
+    for k, c in enumerate(("blender", "ue_axes") * 2):
+        by = {b["name"]: b for b in plans[k]["bones"]}
+        for bone in ("upperarm_l", "lowerarm_l", "hand_l"):
+            assert np.allclose(by[bone]["frame"], e[f"frames_{c}"][bone], atol=1e-8), (c, bone)
+            assert plans[k]["frames"][bone] == pytest.approx(0.0, abs=1e-6), "the reference's own frame, re-expressed in the convention"
+    # the falsifier: the source's own (rolled) frame differs by the roll; the plan's does not
+    src0, src40 = _conform_fixture(0.0)[0], _conform_fixture(40.0)[0]
+    assert RC.angle_deg(src0["frames"]["LeftArm"], src40["frames"]["LeftArm"]) == pytest.approx(40.0, abs=1e-6)
+
+
+def test_the_conform_plan_applies_a_named_roll_offset_and_refuses_a_mixed_convention():
+    src, mapping, synth, ref = _conform_fixture()
+    p = RC.conform_plan(src, mapping, synth, ref, convention="blender", offsets={"hand_l": {"roll_deg": 15.0}})
+    assert {b["name"]: b for b in p["bones"]} and p["frames"]["hand_l"] == pytest.approx(15.0, abs=1e-6)
+    with pytest.raises(RC.RigRefused, match="blender or ue_axes"):
+        RC.conform_plan(src, mapping, synth, ref, convention="mixed")
+    with pytest.raises(RC.RigRefused, match="no bone named 'nope'"):
+        RC.conform_plan(src, mapping, synth, ref, offsets={"nope": {"roll_deg": 1.0}})
+
+
+def test_a_colliding_unmapped_bone_is_renamed_out_of_the_way_first():
+    src, mapping, synth, ref = _conform_fixture(extra={"spine_03": "Spine1"})      # an unmapped source bone already named like a synthesized slot
+    p = RC.conform_plan(src, mapping, synth, ref)
+    by = {b["name"]: b for b in p["bones"]}
+    assert p["renamed"]["spine_03"] == "spine_03_src" and by["spine_03_src"]["kind"] == "unmapped" and by["spine_03"]["kind"] == "synthesized"
+    assert by["spine_03_src"]["parent"] == "spine_02"
+
+
+def test_ue_axes_follow_the_references_mirrored_side_where_x_points_back_along_the_limb():
+    src, mapping, synth, ref = _conform_fixture()
+    for b in ("upperarm_l", "lowerarm_l", "hand_l"):                   # UE's right-side style: X (and Y) turned to point back
+        ref["frames"][b] = ref["frames"][b] @ RC.rot("z", 180.0)
+    p = RC.conform_plan(src, mapping, synth, ref, convention="ue_axes")
+    by = {b["name"]: b for b in p["bones"]}
+    d = np.subtract(R02["input"]["joints"]["lowerarm_l"], R02["input"]["joints"]["upperarm_l"])
+    assert float(np.asarray(by["upperarm_l"]["frame"])[:, 0] @ d) < 0 and p["frames"]["upperarm_l"] == pytest.approx(0.0, abs=1e-6)
+    assert RC.angle_deg(by["upperarm_l"]["frame"], R02["expected"]["frames_ue_axes"]["upperarm_l"]) == pytest.approx(180.0, abs=1e-6)
+
+
+def test_small_angles_are_measured_well_conditioned_on_float32_rest_data():
+    """Blender stores rests in float32: an arccos of the trace (or of a quaternion dot) reads its rounding as ~0.02 deg, above the
+    bind_mismatch bar (0.01 deg). The angle is measured by a chord formula instead (measured on 400 Blender bones: true error <= 1e-3 deg)."""
+    rng = np.random.default_rng(7)
+    worst_m = worst_q = 0.0
+    for _ in range(200):
+        q = rng.normal(size=4)
+        q /= np.linalg.norm(q)
+        x, y, z, w = q
+        R = np.array([[1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)], [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+                      [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)]])
+        worst_m = max(worst_m, RC.angle_deg(R.astype(np.float32).astype(float), R))
+        worst_q = max(worst_q, RC._qangle_deg(q.astype(np.float32).astype(float), q))
+    assert worst_m < 1e-4 and worst_q < 1e-4, (worst_m, worst_q)
+    assert RC.angle_deg(np.eye(3), RC.rot("y", 1e-6)) == pytest.approx(1e-6, rel=1e-6)
+    assert RC.angle_deg(np.eye(3), RC.rot("x", 179.0)) == pytest.approx(179.0, abs=1e-9)
+    assert RC._qangle_deg([0, 0, 0, 1], [0, 0, np.sin(np.radians(0.5)), np.cos(np.radians(0.5))]) == pytest.approx(1.0, abs=1e-9)
+    assert RC._qangle_deg([0, 0, 0, 1], [0, 0, 0, -1]) == pytest.approx(0.0, abs=1e-9), "q and -q are one rotation"
