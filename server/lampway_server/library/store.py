@@ -253,11 +253,14 @@ class AssetLibrary:
                 self._event("dedupe", dup[0], {"source_key": src["key"], "paths": [f["path"] for f in files]})
                 return {"id": dup[0], "version": db.execute("SELECT current_version FROM asset WHERE id=?", (dup[0],)).fetchone()[0], "created": False, "deduped": True, "dedupe_of": dup[0], "near_duplicates": []}
             aid, n, created, made = self._id(), 1, True, True
+            batch = spec.get("batch")
+            if batch:
+                db.execute("INSERT OR IGNORE INTO batch(id,label,source_id,started_at) VALUES(?,?,?,?)", (batch, src.get("label"), source_id, now))
             lic = spec.get("license")
             if lic:
                 db.execute("INSERT OR IGNORE INTO license(id,name) VALUES(?,?)", (lic, lic))
-            db.execute("INSERT INTO asset(id,kind,subtype,name,slug,description,source_id,source_key,license_id,attribution,current_version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                       (aid, kind, spec.get("subtype"), spec["name"], _slug(spec["name"]), spec.get("description"), source_id, src["key"], lic, spec.get("attribution"), 1, now, now))
+            db.execute("INSERT INTO asset(id,kind,subtype,name,slug,description,source_id,source_key,license_id,attribution,current_version,created_at,updated_at,batch_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                       (aid, kind, spec.get("subtype"), spec["name"], _slug(spec["name"]), spec.get("description"), source_id, src["key"], lic, spec.get("attribution"), 1, now, now, batch))
         vid = self._id()
         attrs = _clean_urls(dict(spec.get("attrs") or {}))
         stats = dict(spec.get("stats") or {})
@@ -273,10 +276,10 @@ class AssetLibrary:
         for f in files:
             db.execute("INSERT INTO version_file(version_id,role,ord,sha256) VALUES(?,?,?,?)", (vid, f["role"], f["ord"], f["sha256"]))
         db.execute("UPDATE asset SET current_version=?,updated_at=? WHERE id=?", (n, now, aid))
-        for t in spec.get("terms") or []:
-            db.execute("INSERT OR IGNORE INTO term(facet,label) VALUES(?,?)", (t["facet"], t["label"]))
-            tid = db.execute("SELECT id FROM term WHERE facet=? AND label=?", (t["facet"], t["label"])).fetchone()[0]
-            db.execute("INSERT OR REPLACE INTO asset_term(asset_id,term_id,by,confidence,rule,ts) VALUES(?,?,?,?,?,?)", (aid, tid, t.get("by", "rule"), t.get("confidence"), t.get("rule"), now))
+        self._terms_tx(aid, spec.get("terms") or [], "rule")
+        for g in spec.get("gates") or []:
+            db.execute("INSERT INTO gate_result(version_id,gate,value,threshold,passed,detail_json,run_id,ts) VALUES(?,?,?,?,?,?,?,?)",
+                       (vid, g["gate"], g.get("value"), g.get("threshold"), 1 if g.get("passed") else 0, json.dumps(g.get("detail") or {}, sort_keys=True), g.get("run_id"), now))
         for tag in spec.get("tags") or []:
             db.execute("INSERT OR IGNORE INTO tag(asset_id,tag,by) VALUES(?,?,?)", (aid, tag, spec.get("tags_by", "rule")))
         gen = spec.get("generation")
@@ -291,6 +294,73 @@ class AssetLibrary:
         self._fts_sync(aid)
         self._event("put" if created else "version", aid, {"version": n, "source_key": src["key"]})
         return {"id": aid, "version": n, "created": True, "deduped": False, "near_duplicates": []}
+
+    _RANK = {"model": 1, "rule": 2, "captain": 3}
+
+    def _terms_tx(self, aid, terms, default_by):
+        """A term row is replaced only by an equal or higher authority: captain > rule > model. A model's guess never overwrites a captain's term."""
+        db, now = self._db, self._now()
+        for t in terms:
+            if t["facet"] not in S.FACETS:
+                raise LibraryError(f"unknown facet {t['facet']!r}; facets: {S.FACETS}")
+            by = t.get("by", default_by)
+            if by not in self._RANK:
+                raise LibraryError("term by: captain|rule|model")
+            db.execute("INSERT OR IGNORE INTO term(facet,label) VALUES(?,?)", (t["facet"], t["label"]))
+            tid = db.execute("SELECT id FROM term WHERE facet=? AND label=?", (t["facet"], t["label"])).fetchone()[0]
+            cur = db.execute("SELECT by FROM asset_term WHERE asset_id=? AND term_id=?", (aid, tid)).fetchone()
+            if cur and self._RANK[cur[0]] > self._RANK[by]:
+                continue
+            db.execute("INSERT OR REPLACE INTO asset_term(asset_id,term_id,by,confidence,rule,ts) VALUES(?,?,?,?,?,?)", (aid, tid, by, t.get("confidence"), t.get("rule"), now))
+
+    def add_terms(self, aid: str, terms: list, by: str = "rule") -> dict:
+        with self._lock:
+            self._db.execute("BEGIN IMMEDIATE")
+            try:
+                if not self._db.execute("SELECT 1 FROM asset WHERE id=?", (aid,)).fetchone():
+                    raise LibraryError(f"no asset {aid}")
+                self._terms_tx(aid, [{**t, "by": t.get("by", by)} for t in terms], by)
+                self._fts_sync(aid)
+                self._event("terms", aid, {"terms": [f"{t['facet']}:{t['label']}" for t in terms]}, by)
+                self._db.execute("COMMIT")
+            except BaseException:
+                self._db.execute("ROLLBACK")
+                raise
+        return {"id": aid, "terms": len(terms)}
+
+    def record_blob(self, path, note=None) -> dict:
+        """Hash a referenced file into ``blob`` + ``location`` with no asset (an archive the user keeps, recorded and never unpacked)."""
+        with self._lock:
+            p = Path(path)
+            self._check_root(p)
+            sha, st = self._hash_file(p)
+            self._db.execute("BEGIN IMMEDIATE")
+            try:
+                now = self._now()
+                self._db.execute("INSERT OR IGNORE INTO blob(sha256,bytes,mime,cas_path,first_seen) VALUES(?,?,?,?,?)", (sha, st.st_size, mimetypes.guess_type(str(p))[0], None, now))
+                self._db.execute("INSERT INTO location(sha256,path,storage,mtime,size,last_verified,missing) VALUES(?,?,?,?,?,?,0) ON CONFLICT(sha256,path) DO UPDATE SET mtime=excluded.mtime,size=excluded.size,last_verified=excluded.last_verified,missing=0",
+                                 (sha, str(p), "external", st.st_mtime, st.st_size, now))
+                self._event("blob", None, {"sha256": sha, "path": str(p), "note": note})
+                self._db.execute("COMMIT")
+            except BaseException:
+                self._db.execute("ROLLBACK")
+                raise
+        return {"sha256": sha, "bytes": st.st_size}
+
+    def rollback(self, batch: str) -> dict:
+        with self._lock:
+            self._db.execute("BEGIN IMMEDIATE")
+            try:
+                ids = [r[0] for r in self._db.execute("SELECT id FROM asset WHERE batch_id=? AND status='active'", (batch,))]
+                for aid in ids:
+                    self._db.execute("UPDATE asset SET status='deleted',updated_at=? WHERE id=?", (self._now(), aid))
+                    self._fts_sync(aid)
+                self._event("rollback", None, {"batch": batch, "soft_deleted": len(ids)})
+                self._db.execute("COMMIT")
+            except BaseException:
+                self._db.execute("ROLLBACK")
+                raise
+        return {"batch": batch, "soft_deleted": len(ids)}
 
     def _fts_sync(self, aid: str):
         db = self._db
@@ -374,11 +444,16 @@ class AssetLibrary:
             self._journal({"question": "rating", "answer": {"stars": stars, "flag": flag}, "decider": rater, "asset_id": aid, "how": "rate", "words": note, "ts": ts})
         return {"id": aid, "stars": stars, "flag": flag}
 
-    def decide(self, question, answer, decider, asset_id=None, version_id=None, options=None, how=None, session=None, descriptor=None, words=None) -> dict:
+    def decide(self, question, answer, decider, asset_id=None, version_id=None, options=None, how=None, session=None, descriptor=None, words=None, idempotent=False) -> dict:
         if decider not in ("captain", "model", "rule"):
             raise LibraryError("decider: captain|model|rule")
         desc = json.dumps(descriptor, sort_keys=True) if descriptor is not None else None
         with self._lock:
+            if idempotent:
+                sha = hashlib.sha256(desc.encode()).hexdigest() if desc else None
+                row = self._db.execute("SELECT id FROM decision WHERE question=? AND answer=? AND decider=? AND session IS ? AND descriptor_sha256 IS ?", (question, answer, decider, session, sha)).fetchone()
+                if row:
+                    return {"id": row[0], "existing": True}
             ts = self._now()
             self._db.execute("BEGIN IMMEDIATE")
             try:
@@ -391,7 +466,7 @@ class AssetLibrary:
                 self._db.execute("ROLLBACK")
                 raise
             self._journal({"session": session, "descriptor": descriptor, "question": question, "options": options, "answer": answer, "decider": decider, "how": how, "words": words, "asset_id": asset_id, "ts": ts})
-        return {"id": cur.lastrowid}
+        return {"id": cur.lastrowid, "existing": False}
 
     # -- read interface ------------------------------------------------------------------------------------------
     def get(self, aid: str, version: Optional[int] = None) -> dict:
@@ -413,6 +488,7 @@ class AssetLibrary:
             out["tags"] = [r[0] for r in db.execute("SELECT tag FROM tag WHERE asset_id=? ORDER BY tag", (aid,))]
             out["relations"] = [dict(r) for r in db.execute("SELECT src,dst,type,role,by FROM relation WHERE src=? OR dst=? ORDER BY id", (aid, aid))]
             out["generation"] = [dict(r) for r in db.execute("SELECT * FROM generation WHERE version_id=?", (v["id"],))]
+            out["gates"] = [dict(r) for r in db.execute("SELECT gate,value,threshold,passed,detail_json FROM gate_result WHERE version_id=? ORDER BY id", (v["id"],))]
             return out
 
     def status(self) -> dict:

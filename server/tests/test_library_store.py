@@ -98,7 +98,7 @@ def test_migration_applies_and_refuses_newer_db(tmp_path):
     lib.close()
     with sqlite3.connect(lib.db_path) as db:
         db.execute("PRAGMA user_version = 99")
-    with pytest.raises(LibraryError, match=r"library schema 99 is newer than this server \(1\): update the server"):
+    with pytest.raises(LibraryError, match=r"library schema 99 is newer than this server \(%d\): update the server" % __import__("lampway_server.library.schema", fromlist=["x"]).latest_version()):
         AssetLibrary(tmp_path / "lib")
 
 
@@ -183,7 +183,7 @@ def test_a_second_writer_is_refused_with_the_holders_pid(tmp_path):
     held = make(tmp_path)           # the holder must stay referenced: a collected library releases its lock
     with pytest.raises(LibraryError, match=r"locked by another writer \(pid \d+\)"):
         AssetLibrary(tmp_path / "lib")
-    assert held.status()["schema_version"] == 1
+    assert held.status()["schema_version"] >= 1
 
 
 def test_low_disk_refuses_managed_writes(tmp_path, monkeypatch):
@@ -191,3 +191,60 @@ def test_low_disk_refuses_managed_writes(tmp_path, monkeypatch):
     monkeypatch.setattr("lampway_server.library.store._free_bytes", lambda p: 1 * 1024 ** 3)
     with pytest.raises(LibraryError, match="free space low"):
         lib.put({"kind": "image", "name": "n", "source": {"kind": "t", "key": "1"}, "files": [{"role": "main", "bytes": b"x", "storage": "cas"}]})
+
+
+# ---- slice 2 additions: batches, gates, term authority, idempotent decisions, blobs without assets, v1 -> v2 migration ----
+def test_a_batch_rolls_back_by_soft_delete_only(tmp_path):
+    lib = make(tmp_path)
+    p1, p2 = ext(tmp_path, "a", b"1"), ext(tmp_path, "b", b"2")
+    keep = lib.put(spec(ext(tmp_path, "k", b"k"), key="k"))["id"]
+    lib.put({**spec(p1, key="a"), "batch": "B1"})
+    lib.put({**spec(p2, key="b"), "batch": "B1"})
+    out = lib.rollback("B1")
+    assert out["soft_deleted"] == 2 and lib.get(keep)["status"] == "active"
+    assert p1.exists() and p2.exists() and lib.status()["assets"]["active"] == 1 and lib.verify()["fts_drift"] == 0
+
+
+def test_gate_rows_ride_the_put(tmp_path):
+    lib = make(tmp_path)
+    r = lib.put({**spec(ext(tmp_path, "a", b"1")), "gates": [{"gate": "proportion_rms", "value": 0.4, "threshold": 0.5, "passed": True, "detail": {"k": 1}}]})
+    assert lib.get(r["id"])["gates"][0]["gate"] == "proportion_rms"
+
+
+def test_model_terms_never_overwrite_captain_terms(tmp_path):
+    lib = make(tmp_path)
+    a = lib.put(spec(ext(tmp_path, "a", b"1")))["id"]
+    lib.add_terms(a, [{"facet": "piece_type", "label": "chest"}], by="captain")
+    lib.add_terms(a, [{"facet": "piece_type", "label": "chest", "confidence": 0.3}], by="model")
+    lib.add_terms(a, [{"facet": "piece_type", "label": "helmet"}], by="model")
+    terms = {(t["label"], t["by"]) for t in lib.get(a)["terms"]}
+    assert ("chest", "captain") in terms and ("chest", "model") not in terms and ("helmet", "model") in terms
+    lib.add_terms(a, [{"facet": "piece_type", "label": "helmet"}], by="captain")
+    assert ("helmet", "captain") in {(t["label"], t["by"]) for t in lib.get(a)["terms"]}
+
+
+def test_decisions_can_be_idempotent_by_session_descriptor_and_question(tmp_path):
+    lib = make(tmp_path)
+    kw = dict(question="open_loop_defect", answer="keep", decider="captain", session="s1", descriptor={"id": "L1"}, idempotent=True)
+    a, b = lib.decide(**kw), lib.decide(**kw)
+    assert a["id"] == b["id"] and b["existing"] is True
+    assert len((tmp_path / "lib" / "decisions.jsonl").read_text().splitlines()) == 1
+
+
+def test_a_blob_can_be_recorded_without_an_asset(tmp_path):
+    lib = make(tmp_path)
+    z = ext(tmp_path, "pack.zip", b"PK\x03\x04zip")
+    r = lib.record_blob(z, note="archive")
+    assert r["sha256"] == hashlib.sha256(b"PK\x03\x04zip").hexdigest() and lib.status()["assets"]["total"] == 0 and lib.status()["blobs"] == 1
+
+
+def test_a_v1_library_migrates_to_the_latest_with_a_backup(tmp_path):
+    from lampway_server.library import schema as S
+    root = tmp_path / "lib"
+    root.mkdir()
+    db = sqlite3.connect(root / "library.sqlite")
+    db.executescript("BEGIN;\n" + S.migration_files()[0].read_text() + "\nPRAGMA user_version=1;\nCOMMIT;")
+    db.close()
+    lib = AssetLibrary(root)
+    assert lib.status()["schema_version"] == S.latest_version() >= 2
+    assert (root / "library.sqlite.pre-0002.bak").exists()
