@@ -77,3 +77,13 @@ def test_a_running_server_thumbnails_what_lands_in_the_vault(settings, tmp_path)
         while time.monotonic() < deadline and not any(f["role"] == "thumb" for f in app.state.library.get(aid)["files"]):
             time.sleep(0.1)
     assert any(f["role"] == "thumb" for f in app.state.library.get(aid)["files"])
+
+
+def test_the_vault_and_the_job_hook_share_one_library(settings, provider):
+    """Integration (lanes vault-ops and vault-ui each wired a library): a second AssetLibrary on the same root is refused by the writer lock, so the
+    Vault the routes and agent tools use must BE the library the job hook and the renderer write."""
+    from starlette.testclient import TestClient
+    from lampway_server.app import create_app
+    app = create_app(settings, provider=provider)
+    with TestClient(app, base_url="http://127.0.0.1:8787"):
+        assert app.state.library is not None and app.state.vault.lib is app.state.library

@@ -15,7 +15,7 @@ from . import seed_tools as sdt
 from . import image_tools as it
 from . import engine_tools as eng
 from . import compute_tools as cpt
-from . import asset_tools as ast_
+from . import vault_tools as lib_
 from . import files_tools as flt
 from . import workbench_tools as wbt
 
@@ -93,7 +93,7 @@ TOOLS.append(ToolSpec(
     },
 ))
 
-TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + ast_.specs() + flt.specs()
+TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + flt.specs()
 TOOL_NAMES = {t.name for t in TOOLS}
 
 
@@ -111,7 +111,7 @@ def script_for(name: str, arguments: dict) -> str:
         return SCENE_SUMMARY_SCRIPT
     if name == ASK_USER:
         raise UnknownTool("ask_user is answered by the user, not by Blender")
-    if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES or name in wbt.NAMES or name in cpt.NAMES or name in ast_.NAMES or name in flt.NAMES:
+    if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES or name in wbt.NAMES or name in cpt.NAMES or name in lib_.NAMES or name in flt.NAMES:
         raise UnknownTool(f"{name} runs on the server, not in Blender")
     if st.is_local(name):
         raise UnknownTool(f"{name} runs on the server, not in Blender")

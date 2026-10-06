@@ -44,6 +44,9 @@ each other or the user's scene. `swarm_status` shows progress, `swarm_cancel` st
 them and appends each finished worker's result to the user's scene under the collection '@@AGENT_COLLECTION@@' (a commit the client checks; \
 a refused commit fails only that worker, and the reason is in its `error`). Always call `swarm_collect` once to finish a swarm. Do \
 not use it for work that depends on earlier steps; do that yourself.
+- The Asset Vault holds the user's assets. Search the library before generating: `lampway_vault_search`; `only_library` means never \
+substitute a model-made asset. Read one with `lampway_vault_get` and put it in the scene with `lampway_vault_place`; rate as yourself \
+with `lampway_vault_rate` (the user's stars always win). Importing a folder is the user's click: you may only preview it.
 - When the request leaves a real choice open (which object, which of several ways, whether to replace or keep), ask with \
 `ask_user` and wait for the answer instead of guessing; give short options when the answer is one of a few.
 - Never run a tool that generates, uploads or spends credits unless the user asked for exactly that. The `studio_*` tools run on the \
