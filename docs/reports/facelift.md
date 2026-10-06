@@ -275,3 +275,39 @@ captures the window with the fork's `Window.mixar_qa_capture_frame`, locates sur
 - Visual harness (Xvfb in the build box): 11 passed (night startup, three status bar states, two card states, the
   harness's own falsifiers).
 - Gates: theme 0, cues 0, WezTerm 0, icons (spec copy) 0; the pre-push PII gate runs on push.
+
+## Coordinator's additions
+
+### Asset Vault: the name and the drag (`d6b543fc`)
+
+- The `MIXAR_ASSETS` Editor Type label and space name are "Asset Vault" (were Mixar's "Texturing Assets"); RED observed
+  in a source test and in the real binary. The 49 `.po` catalogues still carry the old msgid, so the new label is
+  untranslated until the catalogues are refreshed (`make i18n_update`, not run here: it rewrites every catalogue).
+- Drag and drop, `space_mixar_assets/mixar_assets_dnd.cc`: after the Vault's panels lay out, each
+  `mixar.asset_library_select` / `mixar.asset_library_place` button with an `asset_id` gets a named drag
+  ("Vault Asset: <id>"); the 3D viewport, the node editor and a material slot take it through `LAMPWAY_OT_vault_drop`,
+  which calls `mixar.asset_library_place`. Lane vault-ui's report names no drop operator; that is the one that places.
+- **For lane vault-ui**: `mixar.asset_library_place` has only `asset_id`, so where the asset landed is lost. The drop
+  passes it as `target_where` (asset_place's `target.where`: `cursor`, `object:<name>`, `slot:<object>:<index>`,
+  `node_tree:<material>`) whenever the operator has that property: add `target_where: StringProperty()` and pass
+  `target={"where": self.target_where}` when it is set. Until then a drop places the way the kind needs, at the default.
+- Tested end to end under Xvfb with stand-ins for vault-ui's two operators (this branch does not carry them): a click
+  on a tile selects it; a tile dragged onto the Cube places `a-42` on `object:Cube`. The node-editor and material-slot
+  drops are built but not driven by a test.
+- The region's draw used to lay the panels out a second time, which rebuilt the buttons without their drag; it now
+  draws what the layout callback built (the upstream pattern).
+- Native rebuild: yes.
+
+### Zen shortcuts (vault-ui's finding, `8eac47fb`)
+
+Not a keymap override. In Zen, N over the viewport toggles its sidebar and ctrl+alt+Space goes full screen (both
+measured in the real build). Plain ctrl+Space does nothing because `screen.screen_full_area` itself returns CANCELLED:
+Zen is a single-area screen and upstream refuses to maximise a singleton (`screen_maximize_area_exec`, #144740). No
+code changed. Whether ctrl+Space should do something in Zen (full screen, say) is a decision, not a fix. The Vault
+hotkeys vault-ui tried were not reproduced here: I do not know which keys or keymap they used.
+
+### Queued (after contract 13, in this order)
+
+The Connections window (`specs/connections/`), then Choices (`specs/choices/`, absorbing the Providers dialog), the
+build rule that keeps `AGENTS.md` / `CLAUDE.md` / skills files under `src/` out of the installed app, and the report
+cards' Workbench frame in contract 10.
