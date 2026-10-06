@@ -102,3 +102,35 @@ def test_the_test_requirements_cover_what_verify_env_checks():
     reqs = (ROOT / "tests" / "requirements-test.txt").read_text().lower() + (ROOT / "server" / "pyproject.toml").read_text().lower()
     for dist in T.TEST_PACKAGES.values():
         assert dist.lower() in reqs, dist
+
+
+def test_a_run_is_judged_on_the_head_and_baseline_it_started_with(tmp_path, monkeypatch):
+    """b11/b12: the baseline was read and the sha taken when the suites ENDED, so a commit or a baseline edit made during a run
+    changed what the run claimed to have tested. Both are fixed at the start; a head that moved is reported beside it."""
+    heads = iter(["aaa1111", "bbb2222"])
+    started = []
+
+    class FakeProc:
+        def __init__(self, cmd, cwd, stdout, stderr, start_new_session):
+            started.append(cmd)
+            stdout.write("= 1 failed, 2 passed in 1.0s =\nFAILED tests/x.py::t - boom\n")
+            stdout.close()
+
+        def wait(self):
+            return 1
+
+    def baseline():
+        assert not started, "the baseline must be read before the suites start"
+        return {"tests/x.py::t": ("inherited", "r")}
+
+    monkeypatch.setattr(T, "verify_env", lambda *a, **k: [])
+    monkeypatch.setattr(T, "binary_gate", lambda *a, **k: ("gated", "sha"))
+    monkeypatch.setattr(T, "load_baseline", baseline)
+    monkeypatch.setattr(T, "head_sha", lambda root: next(heads))
+    monkeypatch.setattr(T.subprocess, "Popen", FakeProc)
+    monkeypatch.setenv("TMPDIR", str(tmp_path))
+    monkeypatch.setenv("LAMPWAY_TEST_OUT", str(tmp_path / "out"))
+    assert T.main(["--only", "client"]) == 0
+    import json
+    summary = json.loads((tmp_path / "out" / "summary.json").read_text())
+    assert summary["sha"] == "aaa1111" and summary["head_at_end"] == "bbb2222"

@@ -105,6 +105,10 @@ def judge(failing: set, baseline: dict) -> dict:
     return {"new": sorted(failing - set(baseline)), "fixed": sorted(set(baseline) - failing), "known": sorted(failing & set(baseline))}
 
 
+def head_sha(root) -> str:
+    return subprocess.run(["git", "-C", str(root), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--only", choices=("server", "client"))
@@ -143,6 +147,8 @@ def main(argv=None) -> int:
     except OSError:
         print("another test_all run holds " + str(tmp / "lw-test-all.lock") + ": wait for it, or use another TMPDIR", file=sys.stderr)
         return 3
+    sha = head_sha(ROOT)                                  # what this run tests and is judged against: fixed at the start (b11/b12 read both at the end)
+    baseline = {k: v for k, v in load_baseline().items() if not a.only or (k.startswith("server/") == (a.only == "server"))}
     procs = {}
     t0 = time.time()
     for name, (cmd, cwd, _) in run.items():
@@ -153,7 +159,6 @@ def main(argv=None) -> int:
         ids, counts = parse((out / f"{name}.log").read_text(errors="replace"), run[name][2])
         failing |= ids
         report[name] = {"rc": rc, **counts}
-    baseline = {k: v for k, v in load_baseline().items() if not a.only or (k.startswith("server/") == (a.only == "server"))}
     j = judge(failing, baseline)
     flaky = []
     if j["new"]:                                    # a new failure is re-run once, alone: one that passes then is reported as flaky, never hidden
@@ -172,9 +177,12 @@ def main(argv=None) -> int:
         keep = [l for l in BASELINE.read_text(encoding="utf-8").splitlines(keepends=True) if l.startswith("#") or not l.strip() or l.split("\t")[0] not in set(j["fixed"])]
         BASELINE.write_text("".join(keep), encoding="utf-8")
     green = not j["new"] and (not j["fixed"] or a.shrink_baseline)
-    summary = {"verdict": ("GREEN" if gate[0] in ("gated", "n/a") else "GREEN-UNGATED") if green else "RED", "binary": {"state": gate[0], "detail": gate[1]}, "sha": subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip(),
+    summary = {"verdict": ("GREEN" if gate[0] in ("gated", "n/a") else "GREEN-UNGATED") if green else "RED", "binary": {"state": gate[0], "detail": gate[1]}, "sha": sha,
                "suites": report, "baseline": len(baseline), "known_red_seen": len(j["known"]), "new_failures": j["new"], "flaky_passed_on_rerun": flaky, "baseline_now_passing": j["fixed"],
                "minutes": round((time.time() - t0) / 60, 1), "logs": str(out)}
+    end = head_sha(ROOT)
+    if end != sha:
+        summary["head_at_end"] = end                    # a commit landed during the run: the run tested the tree at "sha", not this
     (out / "summary.json").write_text(json.dumps(summary, indent=1))
     print(json.dumps(summary, indent=1))
     return 0 if green and gate[0] in ("gated", "n/a") else (5 if green else 1)      # 5: green, but on a binary that is not this batch's: not a gate
