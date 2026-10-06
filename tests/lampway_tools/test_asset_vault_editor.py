@@ -260,3 +260,57 @@ for view in ("GRID", "LIST"):
 print("RESULT", json.dumps(out))
 '''))
     assert "Like greave 0" in d["GRID"] and "Like greave 0" in d["LIST"]
+
+
+def test_two_clips_align_on_one_scrub_bar_and_a_board_opens_on_the_canvas_with_tiles_that_drag(tmp_path):
+    d = one(go(tmp_path, PRE + f'''
+from mixar.modules.asset_library.core import canvas_view as CV
+frames = []
+for i in range(3):
+    p = {str(tmp_path)!r} + f"/f{{i}}.png"; png(p); frames.append(p)
+def fake4(method, path, body=None, timeout=60):
+    calls.append([method, path, body])
+    if path.endswith("/clip_align"):
+        return {{"data": {{"mode": body["mode"], "a": frames, "b": frames[::-1], "offset": {{"a": 0, "b": 0}}, "fps": 8}}}}
+    if path.endswith("/collect") and body.get("action") == "list":
+        return {{"data": {{"collections": [{{"id": "bd1", "name": "Armour wall", "kind": "board", "items": 2}}], "total": 1}}}}
+    if path.endswith("/collect") and body.get("action") == "get":
+        return {{"data": {{"collection": {{"id": "bd1", "name": "Armour wall", "kind": "board"}},
+                         "items": [{{"id": "a0", "name": "greave 0", "ord": 0, "x": None, "y": None, "note": None, "thumb": frames[0]}},
+                                   {{"id": "a1", "name": "greave 1", "ord": 1, "x": 400.0, "y": 50.0, "note": None, "thumb": None}}]}}}}
+    return {{"data": {{"x": body.get("x"), "y": body.get("y")}}}}
+LC._request = fake4
+land({{"items": [{{"id": "v1", "kind": "video", "name": "walk A", "version": 1, "thumb": None}}, {{"id": "v2", "kind": "video", "name": "walk B", "version": 1, "thumb": None}}],
+       "total": 2, "facets": {{}}, "cursor": None}})
+SES.VM.select("v1"); SES.VM.receive_detail("v1", {{"id": "v1", "kind": "video", "name": "walk A", "created_at": 1.0, "generation": [], "relations": [], "files": [], "stats": {{}}}})
+SES.VM.compare_add("v2"); SES.VM.set_view("compare")
+log = []; VP.draw_body(Rec(log), ctx())
+align_ops = [e for e in log if e[0] == "op" and e[1] == "mixar.asset_library_align"]
+bpy.ops.mixar.asset_library_align(mode="MOTION")
+SES.PUMP.tick()
+log2 = []; VP.draw_body(Rec(log2), ctx())
+bpy.ops.mixar.asset_library_boards()
+SES.PUMP.tick()
+log3 = []; VP.draw_body(Rec(log3), ctx())
+bpy.ops.mixar.asset_library_board(board_id="bd1")
+SES.PUMP.tick()
+placed = [[i["id"], i["x"], i["y"]] for i in CV.STATE["board"]["items"]]
+region = SimpleNamespace(width=1000, height=700)
+c = CV.ensure_fitted(region)
+sx = c.ox + (16 + 10) * c.zoom; sy = c.oy + (c.image[1] - (16 + 10)) * c.zoom
+pressed = CV.board_press(sx, sy)
+CV.board_drag(sx + 50 * c.zoom, sy - 20 * c.zoom)
+CV.board_release()
+SES.PUMP.tick()
+moves = [cl for cl in calls if "/boards/" in cl[1]]
+print("RESULT", json.dumps({{"align_ops": [e[2] for e in align_ops], "aligned": [c2[2] for c2 in calls if c2[1].endswith("/clip_align")],
+    "pair_labels": [e[1] for e in log2 if e[0] == "label"], "boards": [e[2] for e in log3 if e[0] == "op" and e[1] == "mixar.asset_library_board"],
+    "placed": placed, "pressed": pressed, "moves": moves}}))
+'''))
+    assert d["align_ops"] == ["Start", "Time", "Motion"]
+    assert d["aligned"] == [{"a": "v1", "b": "v2", "mode": "motion"}]
+    assert "f0.png | f2.png" in d["pair_labels"], d["pair_labels"]
+    assert d["boards"] == ["Armour wall"]
+    assert d["placed"] == [["a0", 16.0, 16.0], ["a1", 400.0, 50.0]]
+    assert d["pressed"] == "a0"
+    assert d["moves"] == [["POST", "/api/v1/library/boards/bd1/items/a0", {"x": 66.0, "y": 36.0}]], d["moves"]

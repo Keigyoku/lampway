@@ -26,6 +26,14 @@ def _ses():
     return session
 
 
+def _boards(col, vm) -> None:
+    head = col.row(align=True)
+    head.label(text="Boards")
+    head.operator("mixar.asset_library_boards", text="", icon="FILE_REFRESH", emboss=False)
+    for b in vm.boards:
+        col.operator("mixar.asset_library_board", text=b["name"], icon="IMAGE_REFERENCE").board_id = b["id"]
+
+
 def _facets(col, vm) -> None:
     for facet in K.FACETS:
         rows = vm.facets.get(facet) or []
@@ -90,6 +98,26 @@ def _frame(col, vm, icon_scale=10.0) -> None:
     row.label(text=f"frame {fb.frame + 1} of {len(fb.frames)}, {fb.fps} fps")
 
 
+def _clip_pair(col, vm) -> None:
+    """Two clips on one scrub bar: the alignment modes, then frame A | frame B of the shared flipbook."""
+    modes = col.row(align=True)
+    for mode, label in (("START", "Start"), ("TIME", "Time"), ("MOTION", "Motion")):
+        modes.operator("mixar.asset_library_align", text=label, depress=bool(vm.align and vm.align["mode"] == mode.lower())).mode = mode
+    if not vm.align:
+        col.label(text="Choose how to line the two clips up", icon="INFO")
+        return
+    pair = vm.flipbook.path() or ("", "")
+    row = col.row()
+    for path in pair:
+        icon = _ses().file_icon(path)
+        row.template_icon(icon_value=icon, scale=8.0) if icon else None
+    col.label(text=f"{os.path.basename(pair[0])} | {os.path.basename(pair[1])}")
+    ctl = col.row(align=True)
+    ctl.operator("mixar.asset_library_play_toggle", text="", icon="PAUSE" if vm.flipbook.playing else "PLAY")
+    off = vm.align.get("offset") or {}
+    ctl.label(text=f"frame {vm.flipbook.frame + 1} of {len(vm.flipbook.frames)}, offset A {off.get('a', 0)} B {off.get('b', 0)}")
+
+
 def _preview(col, vm, rec) -> None:
     modes = col.row(align=True)
     for mode, label in MODE_LABELS:
@@ -104,6 +132,8 @@ def _preview(col, vm, rec) -> None:
         refusal = VW.compare_refusal(records)
         if refusal:
             col.label(text=refusal, icon="INFO")
+        elif all(r["kind"] == "video" for r in records[-2:]):
+            _clip_pair(col, vm)
         else:
             pair = col.row()
             for i in ids[-2:]:
@@ -212,7 +242,9 @@ def draw_body(layout, context) -> None:
         layout.label(text=vm.empty_text(), icon="ERROR")
     if width >= 900:
         split = layout.split(factor=0.2)
-        _facets(split.column(), vm)
+        left = split.column()
+        _facets(left, vm)
+        _boards(left, vm)
         rest = split.split(factor=0.625)
         _results(rest.column(), vm, props, width * 0.5)
         _detail(rest.column(), vm, scene_ok)

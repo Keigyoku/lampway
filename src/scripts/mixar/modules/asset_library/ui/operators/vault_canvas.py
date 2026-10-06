@@ -22,7 +22,8 @@ class MIXAR_OT_asset_library_canvas(Operator):
     bl_idname = "mixar.asset_library_canvas"
     bl_label = "Canvas"
     bl_options = {"INTERNAL"}
-    action: EnumProperty(items=[("OPEN", "Open", ""), ("FIT", "Fit", ""), ("CLOSE", "Close", "")], default="OPEN")
+    action: EnumProperty(items=[("OPEN", "Open", ""), ("FIT", "Fit", ""), ("CLOSE", "Close", ""), ("MODAL", "Modal", "attach the pan/zoom handling to what is already open")],
+                         default="OPEN")
     path: StringProperty()
     lineage: StringProperty(description="the lineage layout as JSON, for clicks")
 
@@ -39,7 +40,7 @@ class MIXAR_OT_asset_library_canvas(Operator):
 
     def invoke(self, context, event):
         self.execute(context)
-        if self.action != "OPEN":
+        if self.action not in ("OPEN", "MODAL"):
             return {"FINISHED"}
         self._pan = None
         context.window_manager.modal_handler_add(self)
@@ -63,6 +64,12 @@ class MIXAR_OT_asset_library_canvas(Operator):
             return {"PASS_THROUGH"}
         region, mx, my = where
         c = CV.ensure_fitted(region)
+        if event.type == "MOUSEMOVE" and CV.board_drag(mx, my):
+            CV.redraw()
+            return {"RUNNING_MODAL"}
+        if event.type == "LEFTMOUSE" and event.value == "RELEASE" and CV.board_release():
+            CV.redraw()
+            return {"RUNNING_MODAL"}
         if event.type == "MOUSEMOVE" and self._pan is not None:
             c.pan(mx - self._pan[0], my - self._pan[1])
             self._pan = (mx, my)
@@ -76,6 +83,8 @@ class MIXAR_OT_asset_library_canvas(Operator):
             return {"RUNNING_MODAL"}
         if event.type == "MIDDLEMOUSE":
             self._pan = (mx, my) if event.value == "PRESS" else None
+            return {"RUNNING_MODAL"}
+        if CV.STATE.get("board") and event.type == "LEFTMOUSE" and event.value == "PRESS" and CV.board_press(mx, my):
             return {"RUNNING_MODAL"}
         if event.type == "LEFTMOUSE" and event.value == "PRESS" and CV.STATE["layout"]:
             if CV.click(mx, my):

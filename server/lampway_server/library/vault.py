@@ -115,6 +115,24 @@ class Vault:
     def rate(self, asset_id: str, rater: str, origin: str = "user", **kw) -> dict:
         return CU.rate(self.lib, asset_id, rater, origin=origin, **kw)
 
+    def thumbs(self, asset_ids) -> dict:
+        """asset id -> the picture path a tile shows (a picture asset's own main file; None otherwise, until asset_render makes thumbnails)."""
+        out = {}
+        with closing(self.lib._reader()) as db:
+            for aid in asset_ids:
+                row = db.execute("SELECT a.kind, l.path FROM asset a JOIN version v ON v.asset_id=a.id AND v.n=a.current_version JOIN version_file f ON f.version_id=v.id "
+                                 "AND f.role='main' JOIN location l ON l.sha256=f.sha256 AND l.missing=0 WHERE a.id=? ORDER BY l.storage='cas' DESC, l.path LIMIT 1", (aid,)).fetchone()
+                out[aid] = row[1] if row and row[0] in PICTURE_KINDS else None
+        return out
+
+    def board_move(self, board: str, asset_id: str, x: float, y: float) -> dict:
+        """A tile's place on a board (asset_ui_views boards); its order and note stay."""
+        with self.lib.tx() as db:
+            cur = db.execute("UPDATE collection_item SET x=?, y=? WHERE collection_id=? AND asset_id=?", (float(x), float(y), board, asset_id))
+            if cur.rowcount == 0:
+                raise LibraryError(f"{asset_id} is not on the board {board}")
+        return {"board": board, "asset_id": asset_id, "x": float(x), "y": float(y)}
+
     def record_event(self, verb: str, asset_id: str, detail: dict, actor: str) -> dict:
         if verb not in ("placed",):
             raise LibraryError(f"unknown event {verb!r}; events: placed")

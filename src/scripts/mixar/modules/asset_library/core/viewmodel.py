@@ -36,6 +36,8 @@ class VaultViewModel:
         self.view_mode = "preview"           # the detail preview: preview | uv | maps | lineage | compare | video
         self.products = None                  # the active asset's derived view files (turntable, ball, overlay, sheet, proxy, strip)
         self.flipbook = V.Flipbook(clock)
+        self.align = None                     # two clips on one scrub bar: {mode, a, b, offset, fps} from the server
+        self.boards: list = []                # the Vault's boards (collect list), for the facet column
         self.lineage = None                   # the last lineage layout fetched ({root, nodes, edges, png, collapsed})
         self.importing: dict = {"state": "idle"}   # Initial import: idle -> scanning -> preview -> importing -> done (the user's confirm moves preview on)
         self._detail_sent = None              # the id whose record was last asked for
@@ -220,6 +222,12 @@ class VaultViewModel:
         self.products = products
         self._load_flipbook()
         return True
+
+    def load_pairs(self, aligned: dict) -> None:
+        """Two aligned clips (``clip_align``) as one flipbook of (frame A, frame B) pairs, shown in the compare view."""
+        self.align = aligned
+        self.view_mode = "compare"
+        self.flipbook.load(list(zip(aligned["a"], aligned["b"])), fps=aligned.get("fps") or self.flipbook.fps)
 
     def set_view(self, mode: str) -> None:
         if mode in V.MODES:
