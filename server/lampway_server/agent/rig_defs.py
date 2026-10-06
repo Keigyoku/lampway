@@ -143,4 +143,21 @@ RIG_DEFS = [
          P("bbones", desc="refuse (default) | convert"), P("rebind_meshes", "boolean", "re-point the control's meshes (default true)"),
          P("collection", desc="the bone collection of the game rig (default Deform)"), P("dry_run", "boolean", "return the plan only")],
         api="rig_game_extract"),
+    Def("lampway_rig_bake", "Constraint-driven motion to plain keys, action by action (canon 19 B.6; Game Rig Tools' Action Bakery semantics, "
+        "the bake re-implemented): for each listed action of the driver (e.g. the control rig after lampway_rig_game_extract), the target's "
+        "constraints are unmuted, its evaluated pose sampled every frame and written as LOCAL keys against the sampled parent (parent-first: "
+        "independent of constraint order; linear keys), then the baked action is played with the constraints MUTED and compared with the "
+        "samples frame by frame - over 1e-4 m or 0.01 deg the action is removed and reported failed (no partial action stays). frames: action "
+        "| [start, end] | trim:[a, b] (inclusive end); name {mode: suffix | prefix | replace | local, value, to} (default suffix _baked); "
+        "overwrite replaces an existing baked action by rename-remap-remove; offset_to_one moves the keys to start at frame 1; push_to_nla "
+        "puts each on a track of its own name (a stale one replaced); channels location / rotation (the bone's own mode) / scale. The "
+        "driver's previous action is restored (even none); the target's constraints stay muted so the keys play. Refused: an armature "
+        "rig_inspect did not read, a driver with no animation data, an action that drives no driver bone, an empty frame range, a baked name "
+        "equal to its source, an existing baked name without overwrite, target bones nothing drives. Receipt per action: source, baked, "
+        "frames, offset, keys, max world error (m, deg), NLA track, status.",
+        [P("driver", required=True), P("target", required=True), P("actions", "array", "the driver's action names", required=True),
+         P("frames", desc="action (default) | [start, end] | trim:[a, b]"), P("name", "object", "{mode, value, to}"), P("overwrite", "boolean"),
+         P("offset_to_one", "boolean"), P("push_to_nla", "boolean", "default true"), P("channels", "array", "location, rotation, scale"),
+         P("dry_run", "boolean")],
+        api="rig_bake"),
 ]

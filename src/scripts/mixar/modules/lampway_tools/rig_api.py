@@ -90,6 +90,18 @@ def rig_game_extract(control, name="", extract="deform", hierarchy="keep", const
 
 
 @_export
+@tool(consumes={"driver": Need(kind=("skeleton", "rigged_mesh"), scale=ALL, accept_raw=True),
+                "target": Need(kind=("skeleton", "rigged_mesh"), scale=ALL, accept_raw=True)})
+def rig_bake(driver, target, actions, frames="action", name=None, overwrite=False, offset_to_one=False, push_to_nla=True, channels=None,
+             dry_run=False):
+    """A driver's actions to plain keys on the target (canon 19 B.6; GRT's Action Bakery semantics): the target's evaluated pose sampled per
+    frame and written as LOCAL keys against the sampled parent, played back with the constraints muted and compared frame by frame (over
+    1e-4 m or 0.01 deg the action is removed); naming, frame ranges, overwrite, offset and NLA as GRT; the driver's action restored."""
+    from .features import rig_bake as _RB
+    return _RB.bake(driver, target, actions, frames, name, overwrite, offset_to_one, push_to_nla, channels, dry_run)
+
+
+@_export
 @tool(consumes=RIG_RAW)
 def rig_convert(verb, input="", profile="", target_profile="", rules="", target="", out="", armature="", action="", duration="", name="",
                 basis=None, centimeters_per_unit=100.0, channels=None):
