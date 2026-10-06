@@ -23,7 +23,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 | 5 | wiki/lod_chain | P2 | Blender | done |
 | 6 | wiki/material_experiment | P2 | server | done |
 | 7 | wiki/motion_experiment | P2 | Blender | done |
-| 8 | wiki/secondary_chain_rig | P2 | Blender | |
+| 8 | wiki/secondary_chain_rig | P2 | Blender | done |
 | 9 | wiki/cloth_garment_sim | P3 | Blender | |
 | 10 | wiki/face_rig_validate | P3 | Blender | |
 | 11 | wiki/glb_optimize | P3 | Blender | |
@@ -143,3 +143,15 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
   refusal, the end key, the contact marker frame, the speed metric.
 - Not written: ledger rows per variant (the contract lists experiment_ledger as a dependency, its outputs do not); the motion_clip_audit is
   replaced by the per-frame measurements above because anim_check (where motion_clip_audit folded) measures tracked video, not actions.
+
+### 8. secondary_chain_rig (P2): done
+- Where: `features/secondary_chain.py`, api `secondary_chain_rig`, Def `lampway_secondary_chain_rig`.
+- On copies (`<armature>_chain`, `<object>_chain`): a connected chain along the region's principal axis (PCA) from the end nearer parent_bone; region
+  weights interpolate between control points (the parent at the root, each chain bone at its middle), every other influence removed and counted;
+  DAMPED_TRACK preview constraints; capsule colliders per body bone (radius = its farthest dominated vertex from the segment, parented to the bone);
+  "numeric presets are not provided". Refusals: > 24 bones, unknown parent bone (lists them), a region under 4 vertices, a base rig failing
+  weight_audit (the contract's precondition).
+- Tests: `test_wave6_secondary_chain.py` (5, real binary). RED observed: "no tool function 'secondary_chain_rig'". A fixture bug (the torso's back
+  face at y = -0.15 fell on the region boundary) was fixed in the test, not the tool. Mutants killed: competing-influence removal, chain direction,
+  connection, collider radius; the audit precondition SURVIVED the first suite and got its own test.
+- [UNVERIFIED] engine naming for physics chains (the contract's open question).
