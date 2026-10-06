@@ -5336,9 +5336,6 @@ msgstr ""
 msgid "Change every view at once"
 msgstr ""
 
-msgid "not built yet: the data modes need their replacement materials"
-msgstr ""
-
 msgid "Sync the cameras, spin, or keep the names blind"
 msgstr ""
 
@@ -27582,6 +27579,9 @@ msgstr "םיבלש"
 msgid "Thought for %ds"
 msgstr "%ds ךשמב הבישח"
 
+msgid "Lampway Agent"
+msgstr ""
+
 msgid "Start Voice Input"
 msgstr "ילוק טלק תלחתה"
 
@@ -28506,6 +28506,12 @@ msgstr "לובג ילב הלועפ"
 msgid "Destructive action"
 msgstr "תינסרה הלועפ"
 
+msgid "Accent"
+msgstr "השגדה"
+
+msgid "The accent fill: a spend that waits for your click (Lampway)"
+msgstr ""
+
 msgid "Option"
 msgstr "תורשפא"
 
@@ -28522,6 +28528,42 @@ msgid "Non-interactive explanation"
 msgstr "יביטקארטניא אל רבסה"
 
 msgid "Action card with a title and supporting line"
+msgstr ""
+
+msgid "The action, in Fraunces"
+msgstr ""
+
+msgid "\"<number> <unit>\\x1f<kind>\": the price large, its unit and kind"
+msgstr ""
+
+msgid "Meter"
+msgstr ""
+
+msgid "\"<words>\\x1f<used>\\x1f<pending>\\x1f<hot>\": a cap meter"
+msgstr ""
+
+msgid "A secondary line"
+msgstr ""
+
+msgid "Waiting"
+msgstr ""
+
+msgid "Accent: it waits for your click"
+msgstr ""
+
+msgid "Refused"
+msgstr ""
+
+msgid "Stop: refused before sending"
+msgstr ""
+
+msgid "An agent tried to confirm"
+msgstr ""
+
+msgid "Spent"
+msgstr ""
+
+msgid "Go: spent"
 msgstr ""
 
 msgid "Oversized full-contrast heading"
@@ -28559,9 +28601,6 @@ msgstr "הנכס טסקט"
 
 msgid "Danger-tinted body text for inline errors"
 msgstr "הרושה ךותב תואיגשל הנכס ןווגב ףוג טסקט"
-
-msgid "Accent"
-msgstr "השגדה"
 
 msgid "Filled accent button, the one primary action"
 msgstr "תחאה תישארה הלועפה ,אלמ השגדה רותפכ"

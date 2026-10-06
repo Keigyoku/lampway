@@ -86,30 +86,39 @@ theme = "dark"
 [privacy_face.surfaces]
 confirm_button = "accent_bed"   # the confirm row is the only lit thing (contract 12 calm pass)
 on_switch = "raised"            # an open route is a plain switch, not lit
+override_bed = "surface"        # "Allow this asset once" is never a filled button (contract 12, 5)
+override_text = "stop"          # it is stop-coloured text
 
 [spend_waiting]
 theme = "dark"
 [spend_waiting.surfaces]
+card_rule = "accent"   # the card's left rule in its state's colour (contract 13 P1)
+spend_bed = "accent"   # Spend is the accent fill
 
 [spend_over_job_cap]
 theme = "dark"
 [spend_over_job_cap.surfaces]
+card_rule = "stop"   # the card's left rule in its state's colour (contract 13 P1)
 
 [spend_past_cap]
 theme = "dark"
 [spend_past_cap.surfaces]
+card_rule = "stop"   # the card's left rule in its state's colour (contract 13 P1)
 
 [spend_price_changed]
 theme = "dark"
 [spend_price_changed.surfaces]
+card_rule = "accent"   # the card's left rule in its state's colour (contract 13 P1)
 
 [spend_agent_tried]
 theme = "dark"
 [spend_agent_tried.surfaces]
+card_rule = "agent"   # the card's left rule in its state's colour (contract 13 P1)
 
 [spend_spent]
 theme = "dark"
 [spend_spent.surfaces]
+card_rule = "go"   # the card's left rule in its state's colour (contract 13 P1)
 
 [connections_missing]
 theme = "dark"
@@ -126,3 +135,12 @@ theme = "dark"
 [compare_window]
 theme = "dark"
 [compare_window.surfaces]
+
+[spend_from_tab]
+theme = "dark"
+[spend_from_tab.surfaces]
+card_rule = "accent"
+
+[chat_who]
+theme = "dark"
+[chat_who.surfaces]

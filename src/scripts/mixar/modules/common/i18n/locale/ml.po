@@ -5336,9 +5336,6 @@ msgstr ""
 msgid "Change every view at once"
 msgstr ""
 
-msgid "not built yet: the data modes need their replacement materials"
-msgstr ""
-
 msgid "Sync the cameras, spin, or keep the names blind"
 msgstr ""
 
@@ -27582,6 +27579,9 @@ msgstr "ഘട്ടങ്ങൾ"
 msgid "Thought for %ds"
 msgstr "%d സെക്കൻഡ് ആലോചിച്ചു"
 
+msgid "Lampway Agent"
+msgstr ""
+
 msgid "Start Voice Input"
 msgstr "ശബ്ദ ഇൻപുട്ട് ആരംഭിക്കുക"
 
@@ -28506,6 +28506,12 @@ msgstr "ബോർഡറില്ലാത്ത പ്രവർത്തനം"
 msgid "Destructive action"
 msgstr "നശിപ്പിക്കുന്ന പ്രവർത്തനം"
 
+msgid "Accent"
+msgstr "ആക്സന്റ്"
+
+msgid "The accent fill: a spend that waits for your click (Lampway)"
+msgstr ""
+
 msgid "Option"
 msgstr "ഓപ്ഷൻ"
 
@@ -28522,6 +28528,42 @@ msgid "Non-interactive explanation"
 msgstr "ഇന്ററാക്റ്റീവ് അല്ലാത്ത വിശദീകരണം"
 
 msgid "Action card with a title and supporting line"
+msgstr ""
+
+msgid "The action, in Fraunces"
+msgstr ""
+
+msgid "\"<number> <unit>\\x1f<kind>\": the price large, its unit and kind"
+msgstr ""
+
+msgid "Meter"
+msgstr ""
+
+msgid "\"<words>\\x1f<used>\\x1f<pending>\\x1f<hot>\": a cap meter"
+msgstr ""
+
+msgid "A secondary line"
+msgstr ""
+
+msgid "Waiting"
+msgstr ""
+
+msgid "Accent: it waits for your click"
+msgstr ""
+
+msgid "Refused"
+msgstr ""
+
+msgid "Stop: refused before sending"
+msgstr ""
+
+msgid "An agent tried to confirm"
+msgstr ""
+
+msgid "Spent"
+msgstr ""
+
+msgid "Go: spent"
 msgstr ""
 
 msgid "Oversized full-contrast heading"
@@ -28559,9 +28601,6 @@ msgstr "അപകട ടെക്സ്റ്റ്"
 
 msgid "Danger-tinted body text for inline errors"
 msgstr "ഇൻലൈൻ പിശകുകൾക്കുള്ള അപകട-നിറമുള്ള ബോഡി ടെക്സ്റ്റ്"
-
-msgid "Accent"
-msgstr "ആക്സന്റ്"
 
 msgid "Filled accent button, the one primary action"
 msgstr "നിറച്ച ആക്സന്റ് ബട്ടൺ, ഒരേയൊരു പ്രാഥമിക പ്രവർത്തനം"
