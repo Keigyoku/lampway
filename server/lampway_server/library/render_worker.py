@@ -151,15 +151,11 @@ def ball(job):
     """A UV sphere with the job's material (from a .blend), a three-point rig, EEVEE, 64 samples."""
     sc = empty_scene()
     path = Path(job["input"])
-    with bpy.data.libraries.load(str(path), link=False) as (src, dst):
-        want = job.get("material")
-        dst.materials = [m for m in src.materials if want is None or m == want][:1]
-    if not dst.materials or dst.materials[0] is None:
-        raise SystemExit(f"no material {job.get('material') or ''} in {path.name}")
+    mat = script_material(path) if job.get("input_role") == "script" else blend_material(path, job.get("material"))     # a CAS blob has no file extension
     bpy.ops.mesh.primitive_uv_sphere_add(segments=64, ring_count=32, radius=1.0)
     sph = bpy.context.active_object
     bpy.ops.object.shade_smooth()
-    sph.data.materials.append(dst.materials[0])
+    sph.data.materials.append(mat)
     for name, loc, energy in (("key", (4, -4, 5), 800), ("fill", (-5, -3, 2), 250), ("rim", (0, 5, 4), 400)):
         ld = bpy.data.lights.new(f"lw_{name}", "AREA")
         ld.energy, ld.size = energy, 3
@@ -174,11 +170,45 @@ def ball(job):
     bpy.ops.render.render(write_still=True)
 
 
+def blend_material(path: Path, want=None):
+    with bpy.data.libraries.load(str(path), link=False) as (src, dst):
+        dst.materials = [m for m in src.materials if want is None or m == want][:1]
+    if not dst.materials or dst.materials[0] is None:
+        raise SystemExit(f"no material {want or ''} in {path.name}")
+    return dst.materials[0]
+
+
+def script_material(path: Path):
+    """A procedural library script builds one node group; the ball's material is that group into the surface. The script passes the sandbox's AST gate first."""
+    src = path.read_text(encoding="utf-8")
+    try:
+        from mixar.modules.space_mixie_chat.core.sandbox_validator import validate_script_ast
+    except ImportError:
+        raise SystemExit("the sandbox gate is not available in this binary: a material script is never run ungated") from None
+    err = validate_script_ast(src)
+    if err:
+        raise SystemExit(f"the material script was blocked by the sandbox gate: {err}")
+    before = set(bpy.data.node_groups)
+    exec(compile(src, str(path), "exec"), {"__name__": "__material__"})  # noqa: S102 (gated above)
+    made = [g for g in bpy.data.node_groups if g not in before and g.bl_idname == "ShaderNodeTree"]
+    if not made:
+        raise SystemExit(f"{path.name} built no shader node group")
+    mat = bpy.data.materials.new(made[0].name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    grp = nt.nodes.new("ShaderNodeGroup")
+    grp.node_tree = made[0]
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    nt.links.new(grp.outputs["Shader"], out.inputs["Surface"])
+    return mat
+
+
 def main():
     job = json.loads(Path(sys.argv[sys.argv.index("--") + 1]).read_text())
     if job["engine"] not in ("workbench", "eevee"):
         raise SystemExit("the worker renders workbench or eevee only (never Cycles)")
-    if job["product"] == "ball":
+    if job["product"] == "ball" or job.get("kind") == "material":
         ball(job)
         return
     empty_scene()

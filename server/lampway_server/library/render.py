@@ -26,7 +26,7 @@ from .raster import RECIPE, encode_jpeg, frame_views, glb_mesh, render_mesh  # n
 from .store import AssetLibrary, LibraryError
 
 PRODUCTS = ("thumb", "turntable", "ball", "uv_overlay", "map_sheet", "contact_sheet")
-FOR_KINDS = {"thumb": ("mesh", "image", "video", "hdri", "map", "material", "uv_layout"), "turntable": ("mesh",), "ball": ("material", "texture_set"),
+FOR_KINDS = {"thumb": ("mesh", "image", "video", "hdri", "map", "material", "uv_layout", "texture_set"), "turntable": ("mesh",), "ball": ("material", "texture_set"),
              "uv_overlay": ("mesh",), "map_sheet": ("texture_set", "material"), "contact_sheet": ("mesh",)}
 WRONG_KIND = {"turntable": "turntable is for meshes: use ball for materials", "ball": "ball is for materials and texture sets: use turntable for meshes",
               "uv_overlay": "uv_overlay is for meshes with a UV set", "map_sheet": "map_sheet is for texture sets and materials with maps",
@@ -48,12 +48,12 @@ def recipe_hash(product: str, size: Optional[int] = None, frames: Optional[int] 
     return hashlib.sha256(json.dumps(key, sort_keys=True).encode()).hexdigest()[:16]
 
 
-def blender_command(blender, job_path, scratch) -> tuple:
+def blender_command(blender, job_path, scratch, script=None) -> tuple:
     """argv and environment of one headless render job: niced, batch mode, factory settings, a private user config, the bridge disabled."""
     scratch = Path(scratch)
     env = {k: v for k, v in os.environ.items() if k not in ("BLENDER_MCP_PORT",)}
     env.update(BLENDER_USER_CONFIG=str(scratch / "config"), BLENDER_USER_SCRIPTS=str(scratch / "scripts"), LAMPWAY_BRIDGE_PORT="0", LAMPWAY_BACKEND_URL="http://127.0.0.1:9")
-    argv = ["nice", "-n", str(NICE), str(blender), "-b", "--factory-startup", "--python-exit-code", "1", "--python", str(WORKER), "--", str(job_path)]
+    argv = ["nice", "-n", str(NICE), str(blender), "-b", "--factory-startup", "--python-exit-code", "1", "--python", str(script or WORKER), "--", str(job_path)]
     return argv, env
 
 
@@ -251,10 +251,13 @@ class Renderer:
             raise LibraryError(f"engine: {'|'.join(ENGINES)}")
 
     def _main(self, a):
-        for role in ("main", "blend", "script"):
+        for role in ("main", "blend", "script", "map:color"):
             for f in a["files"]:
                 if f["role"] == role and f["locations"]:
                     return Path(f["locations"][0]["path"])
+        maps = [f for f in a["files"] if f["role"].startswith("map:") and f["locations"]]
+        if maps:
+            return Path(maps[0]["locations"][0]["path"])
         raise LibraryError("no primary file on this asset")
 
     def _tris(self, a, path) -> Optional[int]:
@@ -269,7 +272,7 @@ class Renderer:
     def _engine(self, job, a, path) -> tuple:
         """(engine, decimate_to) for this job."""
         prod, want = job["product"], job["engine"]
-        if prod == "ball":
+        if prod == "ball" or (a["kind"] == "material" and prod == "thumb"):          # a material's thumbnail IS its ball
             return ("eevee" if want == "auto" else want), None
         if a["kind"] != "mesh" or prod in ("uv_overlay", "contact_sheet"):
             return "software", None
@@ -334,6 +337,9 @@ class Renderer:
             return [("contact.jpg", contact_sheet(frames, size))]
         if prod == "uv_overlay":
             return [("uv_overlay.png", uv_overlay(glb_mesh(path), size))]
+        if prod == "map_sheet":
+            maps = [{"channel": f["role"][4:], "path": f["locations"][0]["path"]} for f in sorted(a["files"], key=lambda f: f["role"]) if f["role"].startswith("map:") and f["locations"]]
+            return [("maps_sheet.jpg", map_sheet(maps, size)["bytes"])]
         raise LibraryError(f"{prod} has no software path")
 
     def _blender(self, job, a, path, engine, decimate) -> list:
@@ -342,7 +348,8 @@ class Renderer:
         work = Path(tempfile.mkdtemp(prefix="render-", dir=self.lib.root))
         out = work / "out"
         out.mkdir()
-        spec = {"product": job["product"], "input": str(path), "kind": a["kind"], "frames": job["frames"], "size": job["size"], "engine": engine,
+        role = next((f["role"] for f in a["files"] if any(l["path"] == str(path) for l in f["locations"])), "main")
+        spec = {"product": job["product"], "input": str(path), "input_role": role, "kind": a["kind"], "frames": job["frames"], "size": job["size"], "engine": engine,
                 "decimate_to": decimate, "recipe": RECIPE, "out_dir": str(out)}
         (work / "job.json").write_text(json.dumps(spec, sort_keys=True))
         argv, env = blender_command(self.blender, work / "job.json", work / "scratch")
