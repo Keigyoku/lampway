@@ -140,7 +140,7 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
-def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None) -> Starlette:
+def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None) -> Starlette:
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     provider_prefs.apply_saved(settings, provider_prefs.load(settings.state_dir))   # the saved provider choices apply where the environment is silent (an env var is the session's override)
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
@@ -296,8 +296,10 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     routes += stub_routes(auth, store, settings, jobs)
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
         swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
+    from .herdr.host import Cockpit
+    cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
     agent = AgentHub(provider if provider is not None else make_provider(settings, chatgpt_auth=chatgpt),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -581,6 +583,106 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         studio.acknowledge_hung(request.path_params["job_id"], by="captain")
         return JSONResponse({"ok": True})
 
+    # ---- the cockpit: the user's real agent CLIs as panes of Lampway's OWN herdr server (herdr/): start/stop/close are explicit user actions, reconcile never spawns or kills
+    from .herdr.host import CockpitError
+    from .herdr import launcher as _HL
+
+    def _wb(request):
+        return None if _bearer_ok(request) else unauthorized()
+
+    def _wb_err(exc, code=409):
+        return JSONResponse({"detail": str(exc)}, status_code=code)
+
+    async def wb_home(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        status = await asyncio.to_thread(_HL.server_status, cockpit.root)
+        return JSONResponse({"server": {"running": bool(status.get("running")), "version": status.get("version"), "method": _HL.server_info(cockpit.root).get("method")},
+                             "sessions": cockpit.list_sessions(), "offered": [] if status.get("running") else ["start", "resume"]})
+
+    async def wb_server_start(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        try:
+            return JSONResponse(await asyncio.to_thread(cockpit.ensure_server))
+        except _HL.HerdrError as exc:
+            return _wb_err(exc)
+
+    async def wb_server_stop(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        body = await _json_body(request)
+        try:
+            return JSONResponse(await asyncio.to_thread(cockpit.stop_server, bool(body.get("confirm"))))
+        except _HL.HerdrError as exc:
+            return _wb_err(exc)
+
+    async def wb_reconcile(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        return JSONResponse(await asyncio.to_thread(cockpit.reconcile))
+
+    async def wb_create(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        from .agent import cli_adapters
+        body = await _json_body(request)
+        if body.get("bypass") and os.environ.get("LAMPWAY_ALLOW_BYPASS_ROUTE") != "1":
+            return _wb_err("bypass can only be raised by the user's own click in the cockpit: a request cannot lift the permission level", 403)
+        if body.get("agent") in ("claude", "codex", "opencode"):
+            try:
+                cli_adapters.require_enabled(settings.state_dir)
+            except ValueError as exc:
+                return _wb_err(f"the local CLI switch is off: {exc}", 403)
+        try:
+            rec = await asyncio.to_thread(cockpit.create_session, body.get("agent"), body.get("name"), body.get("cwd") or str(_project_root()), body.get("task") or "", body.get("effort"),
+                                          False, body.get("resume_id"), body.get("command"), "user")
+            return JSONResponse(rec)
+        except (CockpitError, _HL.HerdrError) as exc:
+            return _wb_err(exc)
+
+    async def wb_screen(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        try:
+            return JSONResponse({"screen": await asyncio.to_thread(cockpit.read_screen, request.path_params["sid"], int(request.query_params.get("lines") or 70))})
+        except (CockpitError, _HL.HerdrError) as exc:
+            return _wb_err(exc)
+
+    async def wb_input(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        body = await _json_body(request)
+        try:
+            await asyncio.to_thread(cockpit.send_input, request.path_params["sid"], str(body.get("text") or ""), bool(body.get("submit", True)), body.get("by") or "agent", body.get("user_typed_at"))
+            return JSONResponse({"sent": True})
+        except (CockpitError, _HL.HerdrError) as exc:
+            return _wb_err(exc)
+
+    async def wb_close(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        body = await _json_body(request)
+        try:
+            return JSONResponse(await asyncio.to_thread(cockpit.close_session, request.path_params["sid"], bool(body.get("confirm"))))
+        except (CockpitError, _HL.HerdrError) as exc:
+            return _wb_err(exc)
+
+    async def wb_agent_sends(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        body = await _json_body(request)
+        try:
+            cockpit.set_agent_sends(request.path_params["sid"], bool(body.get("on")))
+            return JSONResponse({"ok": True})
+        except CockpitError as exc:
+            return _wb_err(exc)
+
+    routes += [Route("/app/workbench", wb_home, methods=["GET"]), Route("/app/workbench/server/start", wb_server_start, methods=["POST"]),
+               Route("/app/workbench/server/stop", wb_server_stop, methods=["POST"]), Route("/app/workbench/reconcile", wb_reconcile, methods=["POST"]),
+               Route("/app/workbench/sessions", wb_create, methods=["POST"]), Route("/app/workbench/sessions/{sid}/screen", wb_screen, methods=["GET"]),
+               Route("/app/workbench/sessions/{sid}/input", wb_input, methods=["POST"]), Route("/app/workbench/sessions/{sid}/close", wb_close, methods=["POST"]),
+               Route("/app/workbench/sessions/{sid}/agent-sends", wb_agent_sends, methods=["POST"])]
     routes += [Route("/app/studio", studio_home, methods=["GET"]), Route("/app/studio/plan", studio_plan, methods=["POST"]),
                Route("/app/studio/approvals/{approval_id}/confirm", studio_confirm, methods=["POST"]),
                Route("/app/studio/approvals/{approval_id}/reject", studio_reject, methods=["POST"]),
@@ -800,6 +902,10 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     @contextlib.asynccontextmanager
     async def lifespan(_app):
         """Receipts first: a restart finds every in-flight paid job in its receipt, resumes by provider id, and marks what it cannot know as submission_unknown (never resubmitted)."""
+        try:
+            await asyncio.to_thread(cockpit.reconcile)             # sessions and paid jobs are reconciled in ONE pass at start; the herdr server is never auto-started
+        except Exception:  # noqa: BLE001
+            logging.getLogger("lampway.jobs").warning("cockpit reconcile failed", exc_info=True)
         try:
             await jobs.recover()
         except Exception:  # noqa: BLE001 - a recovery problem must not stop the server; the receipts stay on disk

@@ -9,7 +9,7 @@ import textwrap
 import bpy
 from bpy.types import Panel
 
-from mixar.modules.lampway_tools import api, jobs, studio_state
+from mixar.modules.lampway_tools import api, jobs, studio_state, workbench_state
 
 
 class LAMPWAY_PT_main(Panel):
@@ -248,4 +248,40 @@ class LAMPWAY_PT_prompts(Panel):
             col.label(text=p.last_message[:80])
 
 
-classes = [LAMPWAY_PT_main, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_prompts, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
+class LAMPWAY_PT_cockpit(Panel):
+    """The cockpit: the user's real agent CLIs as panes of Lampway's own herdr server. draw() reads the cached state only: it never touches the network."""
+    bl_idname = "LAMPWAY_PT_cockpit"
+    bl_label = "Cockpit (agent sessions)"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Lampway"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        layout = self.layout
+        st = workbench_state.STATE
+        row = layout.row(align=True)
+        row.operator("lampway.wb_refresh", icon="FILE_REFRESH")
+        row.operator("lampway.wb_reconcile", icon="CHECKMARK")
+        layout.label(text=workbench_state.summary_line(), icon="CHECKMARK" if st["server"].get("running") else "ERROR")
+        if st["error"]:
+            for line in textwrap.wrap(st["error"], 46)[:4]:
+                layout.label(text=line)
+        if not st["server"].get("running"):
+            layout.operator("lampway.wb_start_server", icon="PLAY")
+        else:
+            layout.operator("lampway.wb_new", icon="ADD")
+        for s in st["sessions"]:
+            box = layout.box()
+            box.label(text=f"{s['name']} ({s['agent']})  [{', '.join(workbench_state.chips(s))}]", icon="TEXT")
+            if s.get("state") == "live":
+                r = box.row(align=True)
+                r.operator("lampway.wb_read_to_text", text="Read").session_id = s["id"]
+                r.operator("lampway.wb_popout", text="Window").session_id = s["id"]
+                r.operator("lampway.wb_send", text="Send").session_id = s["id"]
+                r.operator("lampway.wb_close", text="Close").session_id = s["id"]
+        if st["server"].get("running"):
+            layout.operator("lampway.wb_stop_server", icon="CANCEL")
+
+
+classes = [LAMPWAY_PT_cockpit, LAMPWAY_PT_main, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_prompts, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
