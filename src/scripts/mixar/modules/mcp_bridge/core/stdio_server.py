@@ -18,41 +18,33 @@ from .connector import Connector, instances, signed_in, usable
 # keeps only their first 2,048 characters: core rules first, the full playbook
 # is the backend's free mixar_guide tool.
 GUIDE = """\
-Lampway is an AI-native 3D editor built on Blender 5.2. These tools act on the
-user's open, signed-in Lampway desktop. Call mixar_guide first, then
-mixar_guide(topic) before planning that kind of work (build, generate,
-characters, environments, materials, delivery).
+Lampway is a 3D editor built on Blender 5.2. These tools act on the user's
+open, signed-in Lampway desktop.
 
-Each connection works in one scene tab; every tool and generation result
-follows it. Start separate work in a new tab with
-lampway_scene_new (never bpy.data.scenes.new); lampway_scenes and
-lampway_scene_switch move between tabs; lampway_projects and lampway_project_open
-continue a saved project.
+Each connection works in one scene tab; every tool result follows it. Start
+separate work in a new tab with lampway_scene_new (never
+bpy.data.scenes.new); lampway_scenes and lampway_scene_switch move between
+tabs; lampway_projects and lampway_project_open continue a saved project.
 
-1. Inspect: scene_overview, then scene_hierarchy or get_object_details.
-2. Build in small steps with execute_bpy_script: one part per script, real
+1. Inspect: scene_summary, and lampway_status for what Lampway's tools are
+   set up to do here.
+2. Build in small steps with run_blender_python: one part per script, real
    size in metres, exact names, print what you check.
-3. Verify every visible change with render_viewport and inspect_geometry; fix
+3. Verify every visible change (scene_summary, lampway_ui_observe); fix
    problems first and never report what you have not seen.
-4. Choose each part's approach by judgement (notes in mixar_guide("generate")):
-   scripts, existing assets or AI generation, which usually suits organic
-   subjects. Ask when the choice matters and the request does not settle it.
-   Splat worlds (world_labs) and videos only when the user wants one.
-   enqueue_generation returns at once; check get_all_queue_status later and
-   never resubmit a running job.
-5. Before modelling props or plants, try search_asset_library and
-   list_terrain_assets. Realistic materials: create_layered_material.
-6. Deliver with render_scene_image / render_scene_video or export_scene /
-   export_asset.
+4. Lampway's own tools (lampway_*) do the measured work: normalize, retopo,
+   UV, rig, paint, bake, export. Read a tool's description before calling
+   it; a refusal says what to call next.
+5. Assets: lampway_vault_search, then lampway_vault_place.
 
-Ask the user when an open choice matters (method, style, scale, detail, a
-large credit spend); settle small details yourself.
-Native UI tools (mixar_ui_*, if the user allows them) cover what no other
-tool does; never use OS-level computer use on Lampway.
-Only generation costs Lampway credits (its job price, as does
-create_layered_material); everything else is free. After an uncertain outcome, inspect and use
-mixar_call_status or lampway_ui_call_status with the same call UUID; never
-blindly repeat an edit.
+Nothing offered here spends credits: generation and studio actions are the
+user's, in the Client. Ask the user when an open choice matters (method,
+style, scale, detail); settle small details yourself.
+Native UI tools (lampway_ui_observe, lampway_ui_act and their siblings, if
+the user allows them) cover what no other tool does; never use OS-level
+computer use on Lampway.
+After an uncertain outcome, inspect and use lampway_call_status or
+lampway_ui_call_status with the same call id; never blindly repeat an edit.
 """
 #: Domains of the tools this launcher serves locally (the backend never sees them).
 LOCAL_DOMAINS = tuple(dict.fromkeys(schema.DOMAINS.values()))
@@ -210,8 +202,8 @@ def create_server(connector):
             raise ValueError("Specify build-and-verify with a nonempty goal of at most 8000 characters")
         return types.GetPromptResult(messages=[types.PromptMessage(role="user",
             content=types.TextContent(type="text", text="Complete this task in Lampway: " + goal +
-                "\n\n" + GUIDE + "Inspect the scene with Lampway's tools (render_viewport, lampway_ui_observe) before and after editing. "
-                "Check tool costs and report credits and any unverified outcomes."))])
+                "\n\n" + GUIDE + "Inspect the scene with Lampway's tools (scene_summary, lampway_ui_observe) before and after editing. "
+                "Report any unverified outcomes."))])
 
     return Server("Lampway", version="1", instructions=GUIDE,
                   on_list_tools=list_tools, on_call_tool=call_tool,
