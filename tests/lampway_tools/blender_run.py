@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
+RUN_TMP = "@RUN_TMP@"          # in an env value: the run's own temp dir (e.g. LAMPWAY_HOME="@RUN_TMP@/home"), removed after the run
 
 
 def lampway_bin() -> Path:
@@ -45,10 +46,12 @@ def run_script(source: str, *, scene: Path | None = None, args=(), env=None, tim
     with tempfile.TemporaryDirectory() as tmp:
         script = Path(tmp) / "t.py"
         script.write_text(source, encoding="utf-8")
+        run_tmp = Path(tmp) / "tmp"
+        run_tmp.mkdir()
         e = dict(os.environ)
         e.update({"XDG_CONFIG_HOME": str(Path(tmp) / "xdg"), "LAMPWAY_BACKEND_URL": "http://127.0.0.1:9",
-                  "LAMPWAY_BRIDGE_PORT": "0"})
-        e.update(env or {})
+                  "LAMPWAY_BRIDGE_PORT": "0", "TMPDIR": str(run_tmp)})           # everything the binary's tempfile makes is removed with this run (the shared /tmp is a quota'd tmpfs)
+        e.update({k: str(v).replace(RUN_TMP, str(run_tmp)) for k, v in (env or {}).items()})
         cmd = ["nice", "-n", "15", str(lampway_bin()), "-b"]
         if scene:
             cmd.append(str(scene))

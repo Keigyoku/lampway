@@ -353,7 +353,8 @@ def _render_probe(pid: str, params: dict, size: int, out_png=None, tmp_dir=None)
         return _BAKES[key]
     g, _ms = _build(pid, probe=True)
     import tempfile
-    scratch = Path(tmp_dir) if tmp_dir else Path(tempfile.mkdtemp(prefix="lw_probe_"))
+    own = None if tmp_dir else tempfile.TemporaryDirectory(prefix="lw_probe_")      # a probe's EXRs are deleted one by one; its folder goes with the probe
+    scratch = Path(tmp_dir) if tmp_dir else Path(own.name)
     scratch.mkdir(parents=True, exist_ok=True)
     sc = bpy.data.scenes.new("lw_probe")
     mat = bpy.data.materials.new("lw_probe_mat")
@@ -413,6 +414,8 @@ def _render_probe(pid: str, params: dict, size: int, out_png=None, tmp_dir=None)
         g2 = bpy.data.node_groups.get("LWPP_" + pid)
         if g2 is not None:
             bpy.data.node_groups.remove(g2)
+        if own is not None:
+            own.cleanup()
     base = res["Base Color"]
     srgb = np.clip(base, 0, 1) ** (1 / 2.2)
     m = srgb.mean(axis=(0, 1))

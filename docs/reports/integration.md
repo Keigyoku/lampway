@@ -44,6 +44,15 @@ Role: the implementer became the integrator; lanes lp/vault-ops, lp/vault-ui, lp
 - 401 without the user's bearer; 404 unknown key; 409 if the receipt is not `submission_unknown`; 403 if the body says `"by": "agent"` or the header `X-Lampway-Origin: agent` is present. No agent or MCP tool resolves a receipt (pinned by a test).
 - After either action the job queue re-reads the receipts, so the Client's queue shows the new state at once.
 
+### Temp files leaking into the shared /tmp (coordinator fix request)
+- Cause: the real-binary tool tests made Lampway homes with `tempfile.mkdtemp(prefix="lw_home_")` in the pytest process and handed them to the binary; scripts run INSIDE the binary made `lw_bake_`, `lw_pbr_`, `lw_w_` and `lw_probe_` dirs with the binary's own TMPDIR (the shared /tmp unless the caller set one). Nothing removed them; my own batches left 24 GB in `scratch/tmp-w4`. Three production leaks too: the codex app-server provider's workdir and schema dir, and the procedural-library probe's scratch folder (one dir per probe render).
+- Fixed by construction: `blender_run.run_script` points the binary's TMPDIR into the run's own temp dir (removed after the run) and resolves `@RUN_TMP@` in env values (`LAMPWAY_HOME="@RUN_TMP@/home"`); the in-process helpers use `tmp_path`; the three production sites use self-removing `TemporaryDirectory`.
+- Guards: `tests/lampway/test_tmp_hygiene.py` (AST over the tests and the Lampway Python: `mkdtemp`/`mkstemp`/`NamedTemporaryFile(delete=False)` must say `dir=`; a planted leak is seen) and `tests/lampway_tools/test_tmp_hygiene_live.py` (in the real binary: a dir a script makes is not in the shared temp dir and is gone after the run; removing the TMPDIR redirect fails it).
+- Not built: a before/after snapshot of every user-owned /tmp entry: other agents write /tmp at the same time, so a new entry cannot be attributed to this run.
+
+### Python 3.11 under the full server suite
+- Run: the server suite in a 3.11.15 venv built from the lock (at 341d8a5e): 1081 passed, 3 failed: `ast.TypeAlias` in the floor test itself (3.12+; fixed), `test_herdr_cockpit`'s end-reason test (ProcessLookupError: a kill race; passed on re-run under 3.11), and `test_ledger`'s concurrent appends, which deadlocked: it forks processes while its threads hold the ledger lock, and 3.11 forks by default (3.14 uses forkserver). The test now uses the spawn context; under 3.11: 21 passed (ledger, cockpit, floor). The hung forked children also kept the 3.11 pytest from exiting; killed by pid.
+
 ## Merges
 (none yet: this section is appended per merge with lane, range, conflicts, suite and gate results)
 

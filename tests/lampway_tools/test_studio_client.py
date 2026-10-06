@@ -48,7 +48,7 @@ client = SC.StudioClient(f"http://127.0.0.1:{srv.server_port}", lambda: "tok123"
 
 
 def run(body, **kw):
-    return run_script(PRE + body, env={"LAMPWAY_HOME": tempfile.mkdtemp(prefix="lw_home_")}, **kw)
+    return run_script(PRE + body, env={"LAMPWAY_HOME": "@RUN_TMP@/home"}, **kw)
 
 
 def test_the_client_speaks_the_studio_routes_with_the_users_bearer():

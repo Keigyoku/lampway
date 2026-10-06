@@ -10,10 +10,19 @@ from lampway_server.prompts import render as R
 from .test_prompt_library import template
 
 
+_TMP = None
+
+
+@pytest.fixture(autouse=True)
+def _per_test_tmp(tmp_path):
+    global _TMP
+    _TMP = tmp_path
+
+
 def lib_with(**kw):
-    import tempfile, json
+    import json, tempfile
     from pathlib import Path
-    d = Path(tempfile.mkdtemp())
+    d = Path(tempfile.mkdtemp(dir=_TMP))                                          # under the test's own tmp_path, never the shared /tmp
     (d / "t.json").write_text(json.dumps(template(**kw)))
     return L.Library(builtin_dir=d)
 
