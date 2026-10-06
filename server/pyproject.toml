@@ -18,6 +18,8 @@ dependencies = [
     "python-multipart>=0.0.9",     # the asset-search and handwriting endpoints take multipart/form-data
     "pillow>=10",                  # the asset-search image features (colour histograms of the previews)
     "numpy>=1.26",                 # the Asset Vault's vectors and shape descriptors, the video gates, the fal pre-flight
+    "keyring>=25",                 # Connections keeps the keys Lampway holds in the OS keyring (decision C6)
+    "secretstorage>=3.3; sys_platform == 'linux'",   # keyring's Secret Service backend on Linux (decision C6)
 ]
 
 [project.optional-dependencies]

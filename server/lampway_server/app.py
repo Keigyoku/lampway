@@ -167,7 +167,7 @@ def _local_job_services(settings: Settings):
 
 
 def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None,
-               handwriting_reader=None) -> Starlette:
+               handwriting_reader=None, connections_transport=None) -> Starlette:
     from . import egress as _EG
     if egress is not None:
         _EG.set_active(egress)                                                      # an explicit manager (tests, embedding) wins
@@ -292,7 +292,12 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         return _chatgpt_page("<p>Signed in.</p>")
 
     async def chatgpt_status(request: Request):
-        return JSONResponse(chatgpt.status())
+        """Finding F8: the bearer, and whether the sign-in works - never the email or the client id (the row in Connections shows those, masked)."""
+        token = bearer_token(request)
+        if not token or auth.verify_access(token) is None:
+            return unauthorized()
+        st = chatgpt.status()
+        return JSONResponse({"signed_in": bool(st["signed_in"]), "plan_usage_enabled": bool(st["plan_usage_enabled"])})
 
     async def chatgpt_signout(request: Request):
         if not loopback_origin(request):
@@ -882,7 +887,9 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         return _hf_page("<p>Signed in.</p>")
 
     async def hf_status(request: Request):
-        return JSONResponse(hf_auth.status())
+        if not _bearer_ok(request):                                                      # finding F8
+            return unauthorized()
+        return JSONResponse({"signed_in": bool(hf_auth.status()["signed_in"])})
 
     async def hf_signout(request: Request):
         if not loopback_origin(request):
@@ -1109,6 +1116,37 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
 
     routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"]),
                Route("/app/spend", spend_view, methods=["GET"])]
+    # ---- Connections (connections/): every credential, its source and its status; the user's writes; the read-only view the agent gets
+    from . import connections as CONN
+    from .higgsfield_mcp import HiggsfieldMCP
+    from . import mcp_oauth as MOA
+    from .mcp_client import McpClient
+    conn_hub = CONN.Hub(settings.state_dir, oauth={"chatgpt_plan": chatgpt, "higgsfield": hf_auth},
+                        endpoint=lambda: settings.openai_base_url, mcp_clients={"higgsfield": lambda: HiggsfieldMCP(hf_auth)},
+                        byok_present=lambda: bool((store.byok() or {}).get("api_key")), transport=connections_transport)
+    import httpx as _httpx
+    h3d_auth = MOA.for_store(MOA.HYPER3D, conn_hub.store, conn_hub.secrets_dir, redirect_port=settings.port,      # ONE per server: its session lives in the store
+                             http=_httpx.Client(transport=connections_transport, timeout=30.0))
+    conn_hub.oauth["mcp:hyper3d"] = h3d_auth
+    conn_hub.mcp_clients["mcp:hyper3d"] = lambda: McpClient(h3d_auth, url=MOA.HYPER3D.mcp_url, label="Hyper3D", transport=connections_transport)
+    CONN.set_active(conn_hub)
+    store.migrate_into_connections()                         # finding F3: an older plain BYOK key moves into Connections, verified first
+
+    async def h3d_callback(request: Request):
+        """The loopback end of the Hyper3D sign-in Connections starts (POST /app/connections/mcp:hyper3d/signin)."""
+        query = {k: v for k, v in request.query_params.items()}
+        try:
+            await asyncio.to_thread(h3d_auth.complete_login, query)
+        except MOA.LoginDeclined as exc:
+            return HTMLResponse(f"<p>Hyper3D access was not authorized ({escape(str(exc))}). You can try again from Connections.</p>")
+        except MOA.LoginError as exc:
+            return HTMLResponse(f"<p class='error'>Sign-in failed: {escape(str(exc))}</p>", status_code=400)
+        except Exception as exc:  # noqa: BLE001 - shown to the person at the keyboard, never with a token
+            return HTMLResponse(f"<p class='error'>Sign-in could not finish: {escape(type(exc).__name__)}</p>", status_code=502)
+        return HTMLResponse("<p>Signed in to Hyper3D. You can close this tab and go back to Connections.</p>")
+    routes.append(Route(MOA.HYPER3D.callback_path, h3d_callback, methods=["GET"]))
+    from .connections.routes import connection_routes
+    routes += connection_routes(lambda: conn_hub, _bearer_ok)
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager
@@ -1128,11 +1166,15 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
 
         async def tick():
             while True:
-                await asyncio.sleep(60)
+                await asyncio.sleep(60)                            # never a remote check at start: the first poll is a minute in
                 try:
                     await jobs.recover()
                 except Exception:  # noqa: BLE001
                     pass
+                try:
+                    await asyncio.to_thread(conn_hub.poll)          # C2: reads only, routes on, used in the last day, every 30 min
+                except Exception:  # noqa: BLE001
+                    logging.getLogger("lampway.connections").warning("the connections poll failed", exc_info=True)
         task = asyncio.get_running_loop().create_task(tick())
         try:
             yield
@@ -1156,6 +1198,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.jobs = jobs
     app.state.prompts = prompt_service
     app.state.higgsfield_auth = hf_auth
+    app.state.connections = conn_hub
     app.state.vault = vault
     app.state.jobs = jobs
     app.state.library = library

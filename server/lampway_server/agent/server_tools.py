@@ -204,9 +204,10 @@ def command(name: str, arguments: dict, *, allow_live: bool = False) -> list:
 
 
 def environment() -> dict:
-    """The driver's environment: ours, plus PYTHONPATH to the server package. The arming variable is passed on exactly as the
-    owner set it for this server process; nothing in a tool call can add to it."""
-    env = dict(os.environ)
+    """The driver's environment: ours scrubbed of every key, plus PYTHONPATH to the server package. The arming variable is passed on
+    exactly as the owner set it for this server process; nothing in a tool call can add to it."""
+    from .. import connections
+    env = connections.env_for([])                       # finding F4: the browser drivers need no provider key
     env["PYTHONPATH"] = PKG_ROOT + os.pathsep + env.get("PYTHONPATH", "")
     return env
 

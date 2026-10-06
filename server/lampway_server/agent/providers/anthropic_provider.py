@@ -1,7 +1,7 @@
 """Claude through the official Anthropic SDK (streaming Messages API).
 
-The API key is resolved by the SDK from the environment (ANTHROPIC_API_KEY or an
-``ant auth login`` profile); this module never reads, stores or logs it.
+The API key comes from Connections (the environment's ANTHROPIC_API_KEY first, else a key saved there, the BYOK form's included);
+with none, the SDK resolves its own (an ``ant auth login`` profile). This module never stores or logs it.
 """
 
 from typing import AsyncIterator, Optional
@@ -19,12 +19,13 @@ class AnthropicProvider:
     name = "anthropic"
 
     def __init__(self, model: str = DEFAULT_MODEL, *, client: Optional[AsyncAnthropic] = None,
-                 transport=None, max_tokens: int = MAX_TOKENS):
+                 transport=None, max_tokens: int = MAX_TOKENS, api_key: Optional[str] = None):
         if client is None:
+            key = {"api_key": api_key} if api_key else {}              # Connections' key; else the SDK resolves its own
             if transport is not None:
-                client = AsyncAnthropic(http_client=DefaultAsyncHttpxClient(transport=transport))
+                client = AsyncAnthropic(http_client=DefaultAsyncHttpxClient(transport=transport), **key)
             else:
-                client = AsyncAnthropic()
+                client = AsyncAnthropic(**key)
         self.client = client
         self.model = model
         self.max_tokens = max_tokens

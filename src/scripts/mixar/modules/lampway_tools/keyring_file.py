@@ -7,8 +7,8 @@ mixar.modules.lampway_tools.keyring_file.FileKeyring``).
 
 Why: the client keeps its login pair in the OS keyring; on a machine with no Secret Service (a box, a VM, a
 virtual display) every store fails and the login never persists, and on a desktop the pair would land in the
-wallet next to the user's other credentials. This backend keeps Lampway's pair in ``<lampway home>/keyring.json``
-(0600, in a 0700 directory). That is weaker than an OS wallet: anything running as the user can read it. The
+wallet next to the user's other credentials. This backend keeps Lampway's pair in ``$XDG_STATE_HOME/lampway/keyring.json``
+(0600, in a 0700 directory), outside the Lampway home the agent's script sandbox can reach. That is weaker than an OS wallet: anything running as the user can read it. The
 launcher selects it; a user who prefers the OS keyring simply does not set the variable.
 """
 
@@ -20,12 +20,15 @@ from pathlib import Path
 from keyring.backend import KeyringBackend
 from keyring.errors import PasswordDeleteError
 
-from .settings import lampway_home
 
 
 def keyring_path() -> Path:
+    """``LAMPWAY_KEYRING_FILE``, else ``$XDG_STATE_HOME/lampway/keyring.json``: outside the Lampway home, which the agent's script
+    sandbox can reach (Connections, decision C7). The launcher moves an older ``<lampway home>/keyring.json`` there once."""
     override = os.environ.get("LAMPWAY_KEYRING_FILE")
-    return Path(override) if override else lampway_home() / "keyring.json"
+    if override:
+        return Path(override)
+    return Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local" / "state") / "lampway" / "keyring.json"
 
 
 class FileKeyring(KeyringBackend):

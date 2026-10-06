@@ -11,13 +11,12 @@ def make_provider(settings, chatgpt_auth=None):
         return MockProvider()
     if settings.provider == "anthropic":
         from .anthropic_provider import AnthropicProvider
-        return AnthropicProvider(model=settings.anthropic_model)
+        return AnthropicProvider(model=settings.anthropic_model, api_key=_held_key("anthropic"))
     if settings.provider == "openai":
         from .openai_compat import OpenAICompatProvider
         if not settings.openai_model:
             raise ValueError("LAMPWAY_OPENAI_MODEL is required with LAMPWAY_PROVIDER=openai")
-        return OpenAICompatProvider(settings.openai_base_url, settings.openai_model,
-                                    os.environ.get("OPENAI_API_KEY", ""))
+        return OpenAICompatProvider(settings.openai_base_url, settings.openai_model, _held_key("custom_llm") or "")
     if settings.provider == "chatgpt_plan":
         # ChatGPT plan usage (Sign in with ChatGPT): OAuth tokens from /app/chatgpt, never an API key, never Codex's tokens.
         from ...chatgpt_auth import ChatGPTAuth
@@ -40,6 +39,15 @@ def make_provider(settings, chatgpt_auth=None):
     if settings.provider == "openrouter":
         return _openrouter(settings, settings.openrouter_model, "main")
     raise ValueError(f"unknown LAMPWAY_PROVIDER {settings.provider!r}")
+
+
+def _held_key(cid: str):
+    """The key Connections resolves (the environment first, C3), or None: then the SDK resolves its own (an ``ant auth login`` profile)."""
+    from ... import connections as C
+    try:
+        return C.secret_of(C.credential(cid)) or None
+    except C.Refused:
+        return None
 
 
 _LEDGERS: dict = {}

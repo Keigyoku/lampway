@@ -230,6 +230,10 @@ class JobReceipts:
 
     # ------------------------------------------------------------------------------------------------------ transitions
     def _move(self, r: dict, new: str, note: str = "", **fields) -> dict:
+        from .logredact import redact_text                              # a provider's error text can carry a key (finding F6)
+        note = redact_text(note)
+        if isinstance(fields.get("error_text"), str):
+            fields["error_text"] = redact_text(fields["error_text"])
         cur = self._load(self._dir(r["provider"], r["key"]))
         if new not in _ALLOWED.get(cur["state"], ()):
             raise ReceiptError(f"a {cur['state']} job cannot become {new}")
@@ -254,12 +258,16 @@ class JobReceipts:
         return self._move(r, "submitted", provider_job_id=str(provider_job_id), status_url=urls.get("status"), response_url=urls.get("response"), cancel_url=urls.get("cancel"))
 
     def mark_unknown(self, r: dict, error_class: str, text: str = "") -> dict:
+        from .logredact import redact_text
+        text = redact_text(text)                                        # before the cut: a key split at the limit is still a key
         return self._move(r, "submission_unknown", "Submission outcome is unknown. Inspect the provider's history before resubmitting.", error_class=error_class[:80], error_text=text[:600])
 
     def mark_running(self, r: dict) -> dict:
         return self._move(r, "running")
 
     def mark_error(self, r: dict, text: str, error_class: str = "provider_error") -> dict:
+        from .logredact import redact_text
+        text = redact_text(text)
         return self._move(r, "provider_error", text, error_class=error_class[:80], error_text=text[:600])
 
     def cancel(self, r: dict, note: str = "") -> dict:

@@ -51,9 +51,13 @@ scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server
 - Blender returns 0 when a `--python-expr` raises: always pass `--python-exit-code 1`.
 - The launcher hands the server two more things: `LAMPWAY_MODELS_DIR` (the bundled local models, when the build bundled them) and
   `LAMPWAY_BLENDER` (the binary the server's headless jobs run; defaults to the app's own).
+- The launcher also passes `LAMPWAY_SECRETS_DIR` (the secrets directory, outside the Lampway home) to the server.
 - The launcher's start banner prints the models directory and, when UE Look is on, the UE look state (`ue_look:` and its OCIO config).
 - Long jobs run as a transient unit or a detached exec polled in the foreground, never a shell `&`. Kill recorded exact PIDs only;
   never a pattern kill. Never launch a window on the captain's desktop unless he asked; offscreen in the box is the default.
+- No secret lives in `$LAMPWAY_HOME` (the agent's script sandbox reaches it): the launcher keeps the client's login keyring at
+  `$XDG_STATE_HOME/lampway/keyring.json` (an older `$LAMPWAY_HOME/keyring.json` is moved there once, verified) and points the server
+  at Connections' file store, `LAMPWAY_SECRETS_DIR` (default `$XDG_STATE_HOME/lampway-secrets`). A test never uses the real ones.
 
 ## 3. Test suites
 
@@ -142,3 +146,5 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | the canon check among the suites | coordinator: "GO for rail row 1" | the canon's self-tests ran only on the shelf | `docs/canon/check_canon.py` in the suites table (CI: canon.yml) | captain ruling, 2026-10-06 |
 | 2026-10-06 | merge of lp/orphans into lp/wave5 | the integrator's merge: lp/vault-ops added LAMPWAY_MODELS_DIR to the launcher, lp/orphans added LAMPWAY_BLENDER on the same line | two lanes edited the launcher's server-start line; the merged line carries both | the launcher bullet in section 2 names both variables | none |
 | 2026-10-06 | merge of lp/uelook into lp/wave5 | the integrator's merge: lp/vault-ops added a models line and lp/uelook a ue_look line to the launcher's start banner | two lanes appended to the same banner block; the merged banner prints both | the banner bullet in section 2 | none |
+| 2026-10-06 | secrets out of the Lampway home | Connections decision C7 (captain, "Those recs are fine"); lane connections, migration step 2 | the client's file keyring and the server's secrets sat inside the agent sandbox's roots | the launcher moves the keyring to the state dir once and exports LAMPWAY_SECRETS_DIR; section 2 names both places | captain ruling, 2026-10-06 |
+| 2026-10-06 | merge of lp/connections into lp/wave5 | the integrator's merge: lp/connections added LAMPWAY_SECRETS_DIR, lp/orphans LAMPWAY_BLENDER, on the launcher's server-start line | two lanes edited the same line; the merged line carries both | the launcher bullet in section 2 names LAMPWAY_SECRETS_DIR | none |

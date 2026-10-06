@@ -45,6 +45,19 @@ def backend_name() -> str:
     return name
 
 
+IMAGE_CONNECTIONS = {"openrouter": "openrouter", "tripo": "studio:tripo", "codex_cli": "codex_cli"}
+
+
+def _register_uses() -> None:
+    """Connections' "where it is used" for the image backends: the connection follows the backend chosen now."""
+    from .connections import register_use
+    register_use("studio_image_generate", lambda: IMAGE_CONNECTIONS.get(backend_name()), "the agent's image generation (studio_image_generate)")
+    register_use("image_gen", "openrouter", "the Client's image generation job (image_gen)")
+
+
+_register_uses()
+
+
 def _state_dir() -> Path:
     from .config import state_dir
     return state_dir()

@@ -19,9 +19,7 @@ import base64
 import hashlib
 import json
 import logging
-import os
 import secrets
-import tempfile
 import threading
 import time
 import uuid
@@ -48,6 +46,7 @@ DIRECT_SCOPE = "chatgpt.tokens.use.direct"
 SCOPES = "openid profile email offline_access resource.invoke " + DIRECT_SCOPE
 USAGE_URL = "https://chatgpt.com/settings/usage"
 REFRESH_MARGIN_S = 120
+INTERRUPTED = "the session was interrupted during a refresh: sign in again"
 _UNUSABLE_REFRESH = {"invalid_grant", "invalid_refresh_token", "token_expired", "refresh_token_expired",
                      "refresh_token_invalidated", "refresh_token_reused"}
 
@@ -119,20 +118,8 @@ class ChatGPTAuth:
             return {}
 
     def _write(self, data: dict) -> None:
-        created = not self.dir.exists()
-        self.dir.mkdir(parents=True, exist_ok=True)
-        if created:
-            os.chmod(self.dir, 0o700)
-        fd, tmp = tempfile.mkstemp(dir=self.dir, prefix=".chatgpt")
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as fh:
-                json.dump(data, fh)
-            os.chmod(tmp, 0o600)
-            os.replace(tmp, self.path)
-        except BaseException:
-            if os.path.exists(tmp):
-                os.unlink(tmp)
-            raise
+        from .connections import files as CF
+        CF.atomic_write_json(self.path, data)                    # 0600 in a 0700 dir, fsynced before anyone is handed a token
 
     def host_id(self) -> str:
         """The stable id of this host (the documented ext_agent_host_id), chosen once and kept."""
@@ -251,8 +238,9 @@ class ChatGPTAuth:
         return await asyncio.to_thread(self._access_token_sync)
 
     def _access_token_sync(self) -> str:
-        with self._lock:                                          # one refresh at a time: the refresh token rotates
-            data, cid, acct = self._account()
+        from .connections import files as CF
+        with self._lock, CF.locked(self.dir / ".chatgpt_auth.lock"):   # one refresh at a time ACROSS processes: the refresh token rotates
+            data, cid, acct = self._account()                            # re-read after the lock: another process may have just refreshed
             if not acct or not acct.get("access_token"):
                 raise NotSignedIn("not signed in with ChatGPT: open /app/chatgpt on this server and choose Continue with ChatGPT")
             if DIRECT_SCOPE not in acct.get("scopes", []):
@@ -264,7 +252,10 @@ class ChatGPTAuth:
 
     def _refresh(self, data, cid, acct) -> str:
         if not acct.get("refresh_token"):
-            raise NotSignedIn("the ChatGPT session expired: sign in again")
+            raise NotSignedIn(INTERRUPTED if acct.get("interrupted") else "the ChatGPT session expired: sign in again")
+        interrupted = (acct.get("refresh_started_at") or 0) > (acct.get("saved_at") or 0)      # an earlier refresh never wrote its result
+        acct["refresh_started_at"] = self._clock()
+        self._write(data)                                         # on disk BEFORE the request: a crash after it is named on the next start
         body = {"grant_type": "refresh_token", "client_id": cid, "refresh_token": acct["refresh_token"], "resource": RESOURCE}
         try:
             resp = self.http.post(TOKEN_URL, data=body)
@@ -279,7 +270,11 @@ class ChatGPTAuth:
             if code in _UNUSABLE_REFRESH or resp.status_code in (400, 401):
                 for k in ("access_token", "refresh_token", "id_token"):
                     acct.pop(k, None)
+                if interrupted:
+                    acct["interrupted"] = True
                 self._write(data)                                 # the client id and identity stay; the tokens are unusable
+                if interrupted:
+                    raise NotSignedIn(INTERRUPTED)
                 raise NotSignedIn(f"the ChatGPT session can no longer be refreshed ({code or resp.status_code}): sign in again")
             raise TemporaryAuthError(f"the refresh failed (HTTP {resp.status_code}); credentials kept")
         tok = resp.json()
@@ -289,11 +284,19 @@ class ChatGPTAuth:
         acct["expires_at"] = self._clock() + int(acct["expires_in"])
         if tok.get("scope"):
             acct["scopes"] = sorted(tok["scope"].split())
-        acct["saved_at"] = int(self._clock())
+        acct["saved_at"] = self._clock()
+        acct.pop("interrupted", None)
         self._write(data)                                         # access, expiry, scopes and the rotated refresh token together
         return acct["access_token"]
 
     # ------------------------------------------------------------- state and sign-out
+    def connection_state(self) -> dict:
+        """What Connections shows beyond ``status``: an interrupted refresh is named (CONNECTIONS.md section 9.4)."""
+        _, _, acct = self._account()
+        if acct and acct.get("interrupted") and not acct.get("access_token"):
+            return {"state": "signed_out", "next_step": INTERRUPTED}
+        return {}
+
     def status(self) -> dict:
         data, cid, acct = self._account()
         if not acct or not acct.get("access_token"):

@@ -23,7 +23,7 @@ from typing import Optional
 
 from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
-from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, orphan_server_tools, marks_context, questions as Q
+from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, connections_tools, orphan_server_tools, marks_context, questions as Q
 from . import plan_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
@@ -468,6 +468,8 @@ class AgentHub:
             return await cards_tools.call(None, call.name, call.arguments)
         if call.name in vault_tools.NAMES:
             return await vault_tools.call(self.assets, call.name, call.arguments, {"origin": "agent", "agent_id": "main"})
+        if call.name in connections_tools.NAMES:
+            return await connections_tools.call(call.name, call.arguments)
         if call.name in compute_tools.NAMES:
             return await compute_tools.call(None, server_tools.project_root(), call.name, call.arguments)
         if call.name in plan_tools.NAMES:
