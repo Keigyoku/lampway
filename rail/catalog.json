@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "baseline": "00d907d488d5929f6a7d0addf6c6080891660dd3",
-  "baseline_reason": "adoption: the integration commit the rail was built on (lp/wave5 00d907d4). Only commits that descend from the baseline are judged; work merged in from a branch that has not merged the rail is inherited and listed, not judged. A move of this value is the captain's call and is recorded here with its reason and what it stops re-checking.",
+  "baseline": "53d08bad0efa63fcfa0658ad9dfa0fcbb64263f2",
+  "baseline_reason": "adoption: the commit that brought the rail (53d08bad0efa, on lp/rail). It was itself judged clean against its parent 00d907d4 before the baseline was set to it. Only commits that descend from the baseline are judged, plus the worktree; work merged in from a branch that has not merged the rail is inherited and listed (inherited_pre_adoption), not judged. Moving this value is the captain's call and is recorded here with its reason and what it stops re-checking.",
   "triggers": {
     "rail/rail.py": {
       "owner": "rail/skills/lampway-rail/SKILL.md"
