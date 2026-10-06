@@ -65,9 +65,16 @@ def _serve_client(fake, answers, ready, stop):
                 frame = ws.receive_json()
             except Exception:  # noqa: BLE001
                 return
-            if frame.get("method") == "blender.execute_script":
+            if frame.get("method") == "mcp.begin_operation":                # the scene lease every MCP scene call runs in (audit F2)
+                answers.append(frame["params"])
+                ws.send_json({"jsonrpc": "2.0", "id": frame["id"], "result": {"success": True, "operation_id": frame["params"]["operation_id"],
+                                                                             "session_id": frame["params"]["session_id"], "scene_name": "Scene"}})
+            elif frame.get("method") == "blender.execute_script":
                 answers.append(frame["params"])
                 ws.send_json({"jsonrpc": "2.0", "id": frame["id"], "result": {"success": True, "output": "hello from blender", "created_objects": ["Cube"]}})
+            elif frame.get("method") == "mcp.end_operation":
+                answers.append(frame["params"])
+                ws.send_json({"jsonrpc": "2.0", "id": frame["id"], "result": {"success": True, "released": True}})
                 return
 
 
@@ -82,7 +89,9 @@ def test_tools_call_runs_the_script_in_the_named_instance_and_scene_and_returns_
     t.join(5)
     res = r.json()["result"]
     assert res["isError"] is False and "hello from blender" in res["content"][0]["text"] and "Cube" in res["content"][0]["text"]
-    assert answers[0]["script"] == "print('hi')" and answers[0]["session_id"] == "scene-xyz" and answers[0]["tool_name"] == "run_blender_python"
+    begin, script, end = answers
+    assert script["script"] == "print('hi')" and script["session_id"] == "scene-xyz" and script["tool_name"] == "run_blender_python"
+    assert begin["session_id"] == "scene-xyz" and script["agent_ctx"]["mcp_operation_id"] == begin["operation_id"] == end["operation_id"]
 
 
 def test_tools_call_without_a_connected_instance_or_with_a_bad_tool_is_an_error_result_not_a_crash(signed):

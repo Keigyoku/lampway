@@ -2,7 +2,8 @@
 
 ``initialize``, ``ping``, ``tools/list`` and ``tools/call`` are served; notifications are accepted (202). A tool call runs in the
 app instance named by ``X-Mixar-Instance-Id`` and the scene session named by ``X-Mixar-Session-Id``, as a ``blender.execute_script``
-round trip, exactly like the agent's own tool calls. Offered: the scene tools, the Lampway tools that are one script in Blender, and the Asset Vault family
+round trip inside an MCP operation (``mcp.begin_operation`` leases the scene, the script carries its ``mcp_operation_id``,
+``mcp.end_operation`` releases it), the client's condition for admitting a script from an external app. Offered: the scene tools, the Lampway tools that are one script in Blender, and the Asset Vault family
 (``lampway_vault_*``, run here on the server with the external client's authority: read and curate, never spend, never enrol a folder).
 NOT offered: the studio tools (they spend credits on the owner's subscription), the swarm and ``ask_user`` (they need the agent loop).
 """
@@ -29,6 +30,9 @@ SERVER_TOOLS = (
 )
 
 PROTOCOL_VERSION = "2025-06-18"
+MAX_LEASE_SECONDS = 600            # the client caps an operation at 600 s (mcp_bridge/constants.py MAX_TIMEOUT_SECONDS)
+LEASE_MARGIN_SECONDS = 30          # the lease outlives the script's own timeout
+LEASE_RPC_SECONDS = 30             # begin/end are main-thread bookkeeping in the client
 PARSE_ERROR, METHOD_NOT_FOUND, INVALID_PARAMS = -32700, -32601, -32602
 
 
@@ -126,7 +130,7 @@ class McpServer:
             return self._result(request_id, str(exc), True)
         call_id = str(uuid.uuid4())
         self._remember(call_id, {"state": "running", "tool": name})
-        task = asyncio.ensure_future(self.agent._blender_script(socket, session_id=session_id, chat_session_id=session_id, turn_id="mcp", call_id=call_id, tool_name=name, script=script))
+        task = asyncio.ensure_future(self._leased_script(socket, session_id, call_id, name, script))
 
         def record(t):
             if t.cancelled():
@@ -148,6 +152,26 @@ class McpServer:
         res = self._result(request_id, f"{rec['text']}\n(call id: {call_id})", rec["is_error"])
         res["result"]["_meta"] = {"call_id": call_id}
         return res
+
+    async def _leased_script(self, socket, session_id, call_id, name, script):
+        """The script inside an MCP operation (audit F2): the client admits a script only while its scene is leased and only with
+        that lease's id in the agent context. Begin over the socket, run, and end in ``finally`` (a failed or dropped script
+        still releases the scene). A refused lease is the call's answer; no script is sent."""
+        operation_id = str(uuid.uuid4())
+        timeout = max(1, min(MAX_LEASE_SECONDS, int(getattr(self.agent, "script_timeout_s", MAX_LEASE_SECONDS)) + LEASE_MARGIN_SECONDS))
+        begun = await socket.request("mcp.begin_operation", {"operation_id": operation_id, "session_id": session_id or "", "timeout_seconds": timeout},
+                                     timeout=LEASE_RPC_SECONDS)
+        if not isinstance(begun, dict) or not begun.get("success"):
+            return begun if isinstance(begun, dict) else {"success": False, "error": "the app did not lease a scene for this call"}
+        leased = begun.get("session_id") or session_id
+        try:
+            return await self.agent._blender_script(socket, session_id=leased, chat_session_id=leased, turn_id="mcp", call_id=call_id, tool_name=name,
+                                                    script=script, mcp_operation_id=operation_id)
+        finally:
+            try:
+                await socket.request("mcp.end_operation", {"operation_id": operation_id, "session_id": leased}, timeout=LEASE_RPC_SECONDS)
+            except Exception:  # noqa: BLE001 - the lease also expires on its own deadline; the call's outcome stands
+                pass
 
     @staticmethod
     def _result(request_id, text, is_error):
