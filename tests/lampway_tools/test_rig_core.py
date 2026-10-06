@@ -390,3 +390,25 @@ def test_g22_2_the_canonical_retarget_agrees_with_the_blender_rule_on_r04():
     assert worst < 1e-5, worst
     # the comparison can fail: the source's own world rotations are tens of degrees from R04's target rotations
     assert max(RC._qangle_deg(_quat(np.asarray(f["Ws"][n])), _quat(np.asarray(f["Wt"][n]))) for f in frames for n in ("A", "B")) > 20
+
+
+# ---------------------------------------------------------------- R11 rig_rest_pose (canon 19 B.7, canon 04) against R07
+R07 = json.loads((GOLD / "R07_rest_change.json").read_text())
+C02 = GOLD / "C02_inverse_lbs"
+
+
+def _c02():
+    w = json.loads((C02 / "weights.json").read_text())
+    V = np.array([[float(x) for x in ln.split()[1:4]] for ln in (C02 / "piece_fit_pose.obj").read_text().splitlines() if ln.startswith("v ")])
+    return V, np.array(w["W"]), [np.eye(4), np.array(w["fit_pose"]["B"])]
+
+
+def test_the_return_cost_of_a_baked_rest_is_the_blend_of_inverses_and_the_exact_inverse_returns_zero():
+    V, W, mats = _c02()
+    from mixar.modules.lampway_tools.canon_geom.lbs import lbs_inverse
+    v0 = lbs_inverse(V, W, mats)                         # the rest whose pose is V; V becomes the new rest, bind = the pose
+    cost = RC.return_cost(V, v0, W, mats)
+    f, e = R07["falsifier"], R07["expected"]
+    assert cost["blend_of_inverses_max_m"] == pytest.approx(f["apply_pose_as_rest_then_return_max_m"], abs=1e-6)
+    assert cost["vertices_over_1mm"] == f["vertices_over_1mm"]
+    assert cost["exact_return_max_m"] <= 1e-12 and cost["rigid_vertices_error_m"] == pytest.approx(e["rigid_vertices_error_m"], abs=1e-12)

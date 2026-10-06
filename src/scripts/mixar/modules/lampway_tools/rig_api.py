@@ -115,6 +115,17 @@ def rig_retarget(source, target, action="", map="auto", method="matrix", root_mo
 
 @_export
 @tool(consumes=RIG_RAW)
+def rig_rest_pose(armature, pose, meshes=None, actions="all", keep_original=True, out_suffix="_rest2", dry_run=True):
+    """Make a pose the rest of a COPY, once (canon 19 B.7, canon 04): the copy armature takes the pose as rest, its meshes move to LBS_P(v0) (no
+    join, UV layers untouched), each action is re-expressed keys and handles (basis' = rest'_local^-1 rest_local basis); the receipt keeps the
+    original rest's sha256 and the return cost (blend of inverses against the exact inverse). No chaining; shape keys and non-uniform scale
+    refuse."""
+    from .features import rig_rest as _RR
+    return _RR.rest_pose(armature, pose, str(_settings().project_root), meshes, actions, keep_original, out_suffix, dry_run)
+
+
+@_export
+@tool(consumes=RIG_RAW)
 def rig_convert(verb, input="", profile="", target_profile="", rules="", target="", out="", armature="", action="", duration="", name="",
                 basis=None, centimeters_per_unit=100.0, channels=None):
     """The external rig-conversion and normalization tool (O36, canon 22): profile (an inspected armature -> titan.animation-profile/1) |

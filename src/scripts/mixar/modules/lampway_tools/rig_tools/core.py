@@ -535,3 +535,21 @@ def root_from_pelvis(P, yaw="none", forward=(0.0, -1.0, 0.0)):
     elif yaw != "none":
         raise RigRefused(f"root_yaw is none | heading, not {yaw!r}")
     return root, np.linalg.inv(root) @ P
+
+
+# ---------------------------------------------------------------- rig_rest_pose (canon 19 B.7, canon 04)
+def return_cost(posed, rest, weights, mats, over_m=0.001):
+    """What returning a baked rest would cost (R07): the blend of inverses sum_b w_b M_b^-1 v (a naive return through the new bind) against
+    the exact inverse of the blend (canon 04), both measured from the posed points back to the original rest."""
+    from ..canon_geom.lbs import lbs_inverse
+    P, R0 = np.asarray(posed, float), np.asarray(rest, float)
+    W, M = np.asarray(weights, float), np.asarray(mats, float)
+    inv = np.linalg.inv(M)
+    Ph = np.c_[P, np.ones(len(P))]
+    naive = np.einsum("nb,bij,nj->ni", W, inv, Ph)[:, :3]
+    err = np.linalg.norm(naive - R0, axis=1)
+    exact = np.linalg.norm(lbs_inverse(P, W, M) - R0, axis=1)
+    rigid = W.max(axis=1) > 1 - 1e-12
+    return {"blend_of_inverses_max_m": float(err.max()) if len(err) else 0.0, "vertices_over_1mm": int((err > over_m).sum()),
+            "exact_return_max_m": float(exact.max()) if len(exact) else 0.0,
+            "rigid_vertices_error_m": float(err[rigid].max()) if rigid.any() else 0.0}

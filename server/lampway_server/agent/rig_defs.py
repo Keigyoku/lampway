@@ -178,4 +178,19 @@ RIG_DEFS = [
          P("fps", "number", "resample to this rate"), P("check_objects", "array", "meshes to measure edge stretch on"),
          P("name", desc="default <action>_rt"), P("dry_run", "boolean")],
         api="rig_retarget"),
+    Def("lampway_rig_rest_pose", "Make a pose the rest, once, ON A COPY, and say what it cost (canon 19 B.7-B.8, canon 04; MB's helperT / PoseUE "
+        "behaviour re-implemented without its joins, UV renames and action deletions): the copy armature <armature><out_suffix> takes the pose "
+        "as its rest; each skinned mesh is copied (<mesh><out_suffix>, no join, UV layers untouched) with its vertices moved to LBS_P(v0) over "
+        "the normalized deform weights; each listed action (all = every action keying the armature's bones) is copied <action><out_suffix> "
+        "with every key AND handle re-expressed (basis' = rest'_local^-1 rest_local basis), so the copy moves exactly as the original did. "
+        "pose: action:<name>:<frame> or a lampway.pose/1 JSON ({bones: {name: {matrix_basis}}}); 'reference' is not built. The copy is stamped: "
+        "its rest is never changed again (no chaining; return through the original, which is kept). The receipt: pose, original and new rest "
+        "sha256, per mesh the largest move, the actions rewritten, and the RETURN COST - the blend of inverses a naive return through the new "
+        "bind gives (R07: 12.5 mm on 46 vertices) against the exact inverse (0). Refused: an armature rig_inspect did not read, a rest already "
+        "changed by this tool, shape keys, a non-uniform scale (rig_normalize), Euler-keyed rotations (set QUATERNION), keep_original=false, "
+        "existing outputs. dry_run (default true) returns the plan." + _PATHS,
+        [P("armature", required=True), P("pose", required=True, desc="action:<name>:<frame> | pose.json"), P("meshes", "array", "default every mesh it deforms"),
+         P("actions", "array", "names, or all (default)"), P("keep_original", "boolean", "must stay true"), P("out_suffix", desc="default _rest2"),
+         P("dry_run", "boolean", "default true")],
+        api="rig_rest_pose"),
 ]
