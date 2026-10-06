@@ -162,3 +162,41 @@ print("RESULT", json.dumps({{"early": early, "early_calls": early_calls, "scan":
     assert d["preview"] == "2 files: 2 mesh" and d["before"] == [], "nothing is imported before the user confirms"
     assert ["label", "2 files: 2 mesh", "IMPORT"] in d["header"] and any(e[0] == "op" and e[1] == "mixar.asset_library_import_confirm" for e in d["header"])
     assert d["imported"] == [{"scan_id": "s1"}] and d["after"] == "Imported 2 new assets (0 duplicates, 0 failed)"
+
+
+def test_each_view_draws_what_it_has_and_names_what_is_missing(tmp_path):
+    d = one(go(tmp_path, PRE + f'''
+frames = []
+for i in range(3):
+    p = {str(tmp_path)!r} + f"/turn_{{i:03d}}.png"
+    png(p, rgba=(0.2 * i, 0.3, 0.4, 1.0)); frames.append(p)
+EMPTY = {{"turntable": [], "ball": None, "overlay": None, "sheet": None, "thumb": None, "proxy": [], "strip": None}}
+def detail(rec):
+    land({{"items": [{{"id": rec["id"], "kind": rec["kind"], "name": rec["id"], "version": 1, "score": 0, "rating": None, "thumb": None, "tags": []}}], "total": 1, "facets": {{}}, "cursor": None}})
+    SES.VM.select(rec["id"]); SES.VM.receive_detail(rec["id"], {{"created_at": 1759672920.0, "generation": [], "relations": [], "files": [], "stats": {{}}, **rec}})
+def draw(mode, products):
+    SES.VM.set_view(mode); SES.VM.receive_views(SES.VM.active, products)
+    log = []; VP.draw_body(Rec(log), ctx()); return log
+detail({{"id": "m1", "kind": "mesh"}})
+missing = draw("preview", EMPTY)
+turn = draw("preview", {{**EMPTY, "turntable": frames}})
+compare_one = draw("compare", EMPTY)
+detail({{"id": "v1", "kind": "video", "stats": {{"dup_ratio": 0.31, "dup_frames": 37, "container_fps": 24.0, "motion_fps": 12.0}}}})
+video = draw("video", {{**EMPTY, "proxy": frames}})
+detail({{"id": "n1", "kind": "map", "subtype": "normal_dx"}})
+maps = draw("maps", EMPTY)
+detail({{"id": "an1", "kind": "animation"}})
+anim = draw("preview", EMPTY)
+labels = lambda log: [e[1] for e in log if e[0] == "label"]
+ops = lambda log: [e[1] for e in log if e[0] == "op"]
+print("RESULT", json.dumps({{"missing": labels(missing), "turn_icons": [e for e in turn if e[0] == "icon"], "turn_labels": labels(turn), "turn_ops": ops(turn), "compare": labels(compare_one),
+    "video": labels(video), "maps": labels(maps), "anim": ops(anim), "modes": [e[2] for e in turn if e[0] == "op" and e[1] == "mixar.asset_library_set_view"]}}))
+'''))
+    assert "no turntable yet: queued (asset_render)" in d["missing"]
+    assert "turn_000.png" in d["turn_labels"] and "frame 1 of 3, 12 fps" in d["turn_labels"] and "mixar.asset_library_play_toggle" in d["turn_ops"]
+    assert d["turn_icons"] == [], "headless: preview icons are 0 without a window (measured), so the frame is named; the picture is a windowed check"
+    assert d["modes"] == ["Turntable", "UV", "Maps", "Lineage", "Compare", "Video"]
+    assert "compare needs two assets of the same kind: press Compare on a second mesh" in d["compare"]
+    assert "37 duplicate frames" in d["video"] and "24 fps file, 12 fps motion" in d["video"]
+    assert "DX (green down)" in d["maps"] and "no maps sheet yet: queued (asset_render)" in d["maps"]
+    assert "mixar.asset_library_to_timeline" in d["anim"]

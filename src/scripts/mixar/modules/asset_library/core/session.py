@@ -27,6 +27,10 @@ class RestClient:
         from mixar.modules.lampway_tools import library_client as LC
         return LC.get_asset(asset_id, include=("members",))
 
+    def views(self, asset_id: str) -> dict:
+        from mixar.modules.lampway_tools import library_client as LC
+        return LC.views(asset_id)
+
 
 VM = VaultViewModel(clock=time.monotonic)
 PUMP = Pump(VM, RestClient())
@@ -45,7 +49,7 @@ def vault_areas():
 
 def _tick():
     try:
-        if PUMP.tick():
+        if PUMP.tick() | VM.flipbook.advance():
             for area in vault_areas():
                 area.tag_redraw()
     except Exception:  # noqa: BLE001 - a failing tick must never stop the timer
@@ -64,6 +68,11 @@ def ensure_running() -> None:
 def stop() -> None:
     if bpy.app.timers.is_registered(_tick):
         bpy.app.timers.unregister(_tick)
+
+
+def file_icon(path) -> int:
+    """The preview icon id of an image file (a flipbook frame, a ball, a sheet, a lineage picture), kept in the same LRU; 0 when there is no file."""
+    return thumb_icon({"id": f"file:{path}", "thumb": path}) if path else 0
 
 
 def thumb_icon(item: dict) -> int:

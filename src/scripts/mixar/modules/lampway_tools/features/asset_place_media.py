@@ -71,6 +71,12 @@ def apply_animation(asset, opts, target) -> list:
         raise PlaceError(f"{arm.name} has no bones named {missing[:30]}: map them with animation_retarget, then place the retargeted clip")
     stamp(act, asset, sha)
     ad = arm.animation_data or arm.animation_data_create()
+    if opts.get("as_nla_strip"):                                  # to the timeline: a new NLA track at the current frame; the active action is left alone
+        track = ad.nla_tracks.new()
+        track.name = act.name
+        strip = track.strips.new(act.name, int(bpy.context.scene.frame_current), act)
+        return [{"kind": "nla_strip", "datablock": act.name, "name": strip.name, "object": arm.name, "track": track.name,
+                 "frame_start": strip.frame_start, "frame_end": strip.frame_end}]
     ad.action = act
     if ad.action_slot is None and len(act.slots):
         ad.action_slot = act.slots[0]

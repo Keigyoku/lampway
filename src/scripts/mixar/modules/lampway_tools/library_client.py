@@ -81,3 +81,11 @@ def scan(paths) -> dict:
 
 def import_scan(scan_id: str) -> dict:
     return _data(_request("POST", "/api/v1/library/ingest/import", {"scan_id": scan_id}))
+
+
+def views(asset_id: str) -> dict:
+    return _data(_request("GET", f"/api/v1/library/assets/{urllib.parse.quote(str(asset_id), safe='')}/views"))
+
+
+def lineage(asset_id: str, depth: int = 6) -> dict:
+    return _data(_request("GET", f"/api/v1/library/assets/{urllib.parse.quote(str(asset_id), safe='')}/lineage?depth={int(depth)}"))

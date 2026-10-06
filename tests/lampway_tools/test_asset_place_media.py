@@ -121,3 +121,20 @@ print("RESULT", json.dumps({{"r": r, "arm": arm.type if arm else None, "parent":
     assert d["r"]["ok"] and d["r"]["mode_used"] == "attach_rig", d["r"]
     assert d["arm"] == "ARMATURE" and d["lw"] == "asset-1"
     assert d["parent"] == d["r"]["placed"][0]["object"] and d["mods"] == [["ARMATURE", d["r"]["placed"][0]["object"]]], d
+
+
+def test_nla_strip_created_for_animation_asset(tmp_path):
+    """asset_ui_views "drag to NLA/timeline": as_nla_strip puts the action on a new NLA track at the current frame instead of the active action."""
+    d = one(go(tmp_path, f'''
+lib = {str(tmp_path / "walk.blend")!r}
+write_blend(lib, [keyed_action("WalkCycle", ("hip", "spine"))])
+arm = armature("Rig", ("hip", "spine"))
+bpy.context.scene.frame_current = 30
+r = place(asset=rec("animation", lib, subtype="clip", name="WalkCycle"), mode="apply_animation", target={{"where": "object:Rig"}}, options={{"as_nla_strip": True}})
+ad = arm.animation_data
+strips = [(t.name, s.name, s.action.name, s.frame_start, s.frame_end) for t in ad.nla_tracks for s in t.strips] if ad else []
+print("RESULT", json.dumps({{"r": r, "strips": strips, "active": ad.action.name if ad and ad.action else None}}))
+'''))
+    assert d["r"]["ok"] and d["r"]["placed"][0]["kind"] == "nla_strip", d["r"]
+    assert d["strips"] == [["WalkCycle", "WalkCycle", "WalkCycle", 30.0, 39.0]], d
+    assert d["active"] is None, "the strip does not also take over the active action"

@@ -11,6 +11,7 @@ from starlette.routing import Route
 from . import curate as CU
 from . import query as Q
 from . import similar as SIM
+from . import views as VW
 from .store import LibraryError
 from ..rest import envelope
 
@@ -98,6 +99,33 @@ def routes(vault, bearer_ok) -> list:
             return JSONResponse(envelope(await run(vault.embed.run, str(b.get("plan_id") or ""), "captain")))
         raise LibraryError("action is plan or run")
 
+    async def relate(request):
+        b = await body(request)
+        return JSONResponse(envelope(await run(CU.relate, vault.lib, str(b.get("src") or ""), str(b.get("type") or ""), str(b.get("dst") or ""), "captain",
+                                               str(b.get("role") or ""), b.get("attrs"), bool(b.get("remove")))))
+
+    def _lineage(aid, depth):
+        lay = VW.lineage_layout(vault.lib, aid, depth=depth)
+        lay["png"] = VW.render_lineage(lay, vault.root / "derived" / f"lineage_{aid}.png")
+        return lay
+
+    async def lineage(request):
+        return JSONResponse(envelope(await run(_lineage, request.path_params["asset_id"], int(request.query_params.get("depth") or 6))))
+
+    async def views(request):
+        return JSONResponse(envelope(await run(VW.view_products, vault.lib, request.path_params["asset_id"])))
+
+    def _diff(a, b):
+        recs = [vault.get_record(x) for x in (a, b)]
+        if any(r["kind"] not in ("image", "hdri", "map") for r in recs):
+            raise LibraryError("diff compares two pictures (image, hdri or map); use the compare view for other kinds")
+        paths = [vault.file_path(next(f["sha256"] for f in r["files"] if f["role"] == "main")) for r in recs]
+        return VW.image_diff(paths[0], paths[1], vault.root / "derived" / f"diff_{a}_{b}.png")
+
+    async def diff(request):
+        b = await body(request)
+        return JSONResponse(envelope(await run(_diff, str(b.get("a") or ""), str(b.get("b") or ""))))
+
     p = "/api/v1/library"
     return [Route(f"{p}/status", guarded(status), methods=["GET"]), Route(f"{p}/query", guarded(query), methods=["POST"]),
             Route(f"{p}/assets/{{asset_id}}", guarded(asset), methods=["GET"]), Route(f"{p}/assets/{{asset_id}}/versions/{{n:int}}", guarded(version), methods=["GET"]),
@@ -105,4 +133,6 @@ def routes(vault, bearer_ok) -> list:
             Route(f"{p}/sql", guarded(sql), methods=["POST"]), Route(f"{p}/events", guarded(event), methods=["POST"]),
             Route(f"{p}/ingest/scan", guarded(scan), methods=["POST"]), Route(f"{p}/ingest/import", guarded(import_), methods=["POST"]),
             Route(f"{p}/similar", guarded(similar), methods=["POST"]), Route(f"{p}/collect", guarded(collect), methods=["POST"]),
-            Route(f"{p}/embed", guarded(embed), methods=["POST"])]
+            Route(f"{p}/embed", guarded(embed), methods=["POST"]), Route(f"{p}/relate", guarded(relate), methods=["POST"]),
+            Route(f"{p}/assets/{{asset_id}}/lineage", guarded(lineage), methods=["GET"]), Route(f"{p}/assets/{{asset_id}}/views", guarded(views), methods=["GET"]),
+            Route(f"{p}/diff", guarded(diff), methods=["POST"])]

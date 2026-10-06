@@ -35,6 +35,8 @@ HOSTS = {
     "api.fal.ai": "provider: fal's model/price API", "rest.alpha.fal.ai": "provider: fal's storage upload API",
     "api.meshy.ai": "studio REST API (Meshy)", "api.hyper3d.com": "studio REST API (Hyper3D / Rodin)", "api.hitem3d.ai": "studio REST API (Hi3D)",
     "openapi.tripo3d.ai": "studio REST API (Tripo)",
+    "ambientcg.com": "CC0 source (asset_seed_cc0; egress route cc0:ambientcg)", "api.polyhaven.com": "CC0 source API (egress route cc0:polyhaven)",
+    "polyhaven.com": "CC0 source (egress route cc0:polyhaven)", "docs.ambientcg.com": "CC0 source documentation", "creativecommons.org": "licence text (CC0)",
     "example.com": "documentation placeholder", "example.invalid": "placeholder", "api.example.test": "test placeholder",
 }
 SCAN = ("src/scripts/mixar", "src/scripts/startup", "server/lampway_server", "scripts", "README.md", "SECURITY.md", "SUPPORT.md", "CODE_OF_CONDUCT.md",

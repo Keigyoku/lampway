@@ -176,8 +176,8 @@ def test_compare_keeps_the_last_two():
 def test_initial_import_previews_first_and_imports_only_on_the_users_confirm():
     vm = VaultViewModel(clock=Clock())
     assert vm.importing["state"] == "idle"
-    vm.import_scanning(["/home/u/Armour", "/home/u/Plates"])
-    assert vm.importing == {"state": "scanning", "paths": ["/home/u/Armour", "/home/u/Plates"]}
+    vm.import_scanning(["/projects/Armour", "/projects/Plates"])
+    assert vm.importing == {"state": "scanning", "paths": ["/projects/Armour", "/projects/Plates"]}
     vm.import_previewed({"scan_id": "s1", "report": {"by_kind": {"mesh": 5, "image": 12}, "deduped": 2, "new_assets": 15, "seen": 19, "unknown": [{"path": "x"}], "skipped": [{"path": "y"}]}})
     assert vm.importing["state"] == "preview" and vm.import_summary() == "17 files: 12 image, 5 mesh (2 already in the Vault, 2 not imported)"
     assert vm.import_confirmable() == "s1"

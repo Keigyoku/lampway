@@ -79,3 +79,18 @@ def test_an_operators_call_runs_off_thread_and_its_answer_lands_on_the_tick():
     assert got == []
     assert pump.tick() is True
     assert got[0] == (True, {"items": [{"id": "z"}]}) and got[1][0] is False and "division" in got[1][1]
+
+
+def test_the_active_assets_view_products_arrive_and_load_the_flipbook():
+    vm, client, pump, jobs = make()
+    client.views = lambda aid: (client.calls.append(("views", aid)), {"turntable": [f"/t{i}.jpg" for i in range(36)], "ball": None, "overlay": None, "sheet": None,
+                                                                       "thumb": None, "proxy": ["/p0.jpg", "/p1.jpg"], "strip": None})[1]
+    vm.submit(); pump.tick(); drain(jobs); pump.tick()
+    vm.select("a")
+    pump.tick(); drain(jobs); pump.tick()
+    assert ("views", "a") in client.calls and vm.products["turntable"][0] == "/t0.jpg"
+    assert vm.flipbook.frames[:2] == ["/t0.jpg", "/t1.jpg"]
+    vm.set_view("video")
+    assert vm.flipbook.frames == ["/p0.jpg", "/p1.jpg"] and vm.view_mode == "video"
+    vm.set_view("nonsense")
+    assert vm.view_mode == "video"

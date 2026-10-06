@@ -42,6 +42,8 @@ class Pump:
                 landed |= self.vm.receive(key, value) if ok else self.vm.fail(key, value)
             elif kind == "detail" and ok:
                 landed |= self.vm.receive_detail(key, value)
+            elif kind == "views" and ok:
+                landed |= self.vm.receive_views(key, value)
             elif kind == "later":
                 key(ok, value)
                 landed = True
@@ -51,4 +53,6 @@ class Pump:
         aid = self.vm.detail_due()
         if aid:
             self._run("detail", aid, self.client.get, aid)
+            if hasattr(self.client, "views"):
+                self._run("views", aid, self.client.views, aid)
         return landed

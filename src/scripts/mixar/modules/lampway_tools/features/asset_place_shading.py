@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""asset_place's shading kinds: a material appended onto a slot (a Mixar Paint material is never replaced silently), a PBR / texture set built into a Principled BSDF by role
+"""asset_place's shading kinds: a material appended onto a slot (a layer-stack paint material is never replaced silently), a PBR / texture set built into a Principled BSDF by role
 (base colour sRGB, everything else Non-Color, ORM split G=roughness B=metallic, a DX normal map's green flipped before the Normal Map node), a node group dropped into a
 material's tree, an HDRI as the world's environment."""
 
@@ -46,7 +46,7 @@ def _assign(mat, target, opts) -> dict:
         ob.data.materials.append(None)
     current = ob.material_slots[index].material
     if is_mixar_paint(current) and not opts.get("replace"):
-        raise PlaceError(f"object already has a layer-paint material: pass replace:true (slot {index} holds {current.name!r})")
+        raise PlaceError(f"object already has a layer-stack paint material: pass replace:true (slot {index} holds {current.name!r})")
     ob.material_slots[index].material = mat
     return {"object": ob.name, "slot": index}
 
