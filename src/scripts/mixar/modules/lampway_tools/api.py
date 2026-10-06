@@ -776,6 +776,7 @@ def asset_lineage(action, object, source="", transform="", anchors=None, changed
 def workflow_graph(action, name="", graph=None, inputs=None, from_node="", version="", template="", description=""):
     """A typed DAG of Lampway tool calls as data. define (graph = {nodes: [{id, tool, args, after, spend, studio_action, credits}], outputs}; args may use
     {{inputs}} and @node.key for an upstream output) | plan (order, cached?, credits_planned) | run | rerun (from_node: it and what follows re-execute) |
+    confirm (from_node: ONE spend node runs, on the user's word; its output is kept for those inputs) |
     version / rollback (version) | template_save / template_use (template, description) | show. Outputs are cached by the hash of (tool, args, upstream outputs);
     a spend node is planned and priced, never run (the user confirms in the Studios panel)."""
     from . import workflow_graph as WG
@@ -788,6 +789,8 @@ def workflow_graph(action, name="", graph=None, inputs=None, from_node="", versi
         return g.run(name)
     if action == "rerun":
         return g.rerun(name, from_node)
+    if action == "confirm":
+        return g.confirm(name, from_node)
     if action == "version":
         return g.version(name, version)
     if action == "rollback":
@@ -798,7 +801,7 @@ def workflow_graph(action, name="", graph=None, inputs=None, from_node="", versi
         return g.template_use(template, name, inputs)
     if action == "show":
         return g.show(name)
-    raise WG.GraphError("action is define|plan|run|rerun|version|rollback|template_save|template_use|show")
+    raise WG.GraphError("action is define|plan|run|rerun|confirm|version|rollback|template_save|template_use|show")
 
 
 @tool

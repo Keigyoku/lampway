@@ -257,10 +257,11 @@ DEFS = [
          P("parent", desc="The lineage id this derives from (chain)"), P("piece", desc="The piece folder name, default the object name")], api="asset_lineage"),
     Def("lampway_workflow_graph", "A workflow as data: a typed DAG of Lampway tool calls with cached outputs. action define (graph {nodes: [{id, tool, args, after: [ids], "
         "spend, studio_action, credits}], outputs}, inputs; an arg string @node.key is that upstream node's output, {{name}} an input) | plan (order, cached, credits_planned: "
-        "nothing runs) | run | rerun (from_node) | version / rollback (version) | template_save / template_use (template, description) | show. A spend node is only "
-        "planned and priced: the user confirms spends in the Studios panel and what depends on it waits.",
+        "nothing runs) | run | rerun (from_node) | confirm (from_node: ONE spend node runs once, on the user's word; its output is kept for exactly its inputs, "
+        "and what depends on it can then run) | version / rollback (version) | template_save / template_use (template, description) | show. A spend node is only "
+        "planned and priced by plan and run: the user confirms spends and what depends on it waits.",
         [P("action", required=True), P("name", desc="The graph's name"), P("graph", "object", "The graph (define)"), P("inputs", "object", "Values for {{name}} placeholders"),
-         P("from_node", desc="rerun: the node to start from"), P("version", desc="version / rollback: the version name"), P("template"), P("description")], api="workflow_graph"),
+         P("from_node", desc="rerun: the node to start from; confirm: the spend node"), P("version", desc="version / rollback: the version name"), P("template"), P("description")], api="workflow_graph"),
     Def("lampway_plate_pick", "Plates stage: stage prompt (the plate-4k-crisper template + variables for a view; render it and generate 4 images per view), score (rank the 4 "
         "regenerations in variants_dir against the approved V3 plate v3_dir/<View>.png by silhouette IoU x structure x (1 - colour error)), cut (the pick's deterministic alpha), "
         "run (score + cut + margins/aspect/view-correspondence checks -> <piece>/plates_4k_alpha/<View>.png + alpha.json), status. `pick` 1-4 is the user's override. Paired "

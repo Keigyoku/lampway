@@ -45,8 +45,10 @@ CONSUMES = {
     "relief_tiles": {"v3_dir": need(("texture",), roles=("reference",)), "tile_dir": need(("texture",), roles=("height",))},
     "image_upscale": {"image": need(("texture",), roles=IMAGE_IN)},
     "reference_pack": {"approved_reference": need(("texture",), roles=("reference",)), "image": need(("texture",), roles=("reference",))},
-    "workflow_reference_to_asset": {"reference": need(("texture",), roles=("reference",)), "existing_object": need(("mesh", "part"))},
+    "workflow_reference_to_asset": {"reference": need(("texture",), roles=("reference",)), "existing_object": need(("mesh", "part")),
+                                    "body_refs": need(("texture",), roles=("reference",)), "example_sheet": need(("texture",), roles=("reference",))},
     "image_matte": {"src": need(("texture",), roles=("reference",))},     # 8-bit sRGB plates; pixel-only, no scale
+    "prompt_image": {"references": need(("texture",), roles=("reference",))},   # images only; the template carries the rest
     "scribble_read": NONE("reads the Client's own mark records and frozen frames; no asset"),
 }
 

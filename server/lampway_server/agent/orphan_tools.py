@@ -190,8 +190,14 @@ ORPHAN_DEFS = [
         "here: it stays blocked with the plan to make, the user's click its only confirm (gates.spend has no 'auto'). The first blocked or failed step stops the "
         "chain. Every step appends a row to <root>/<piece>/decisions.jsonl ({id, at, step, kind, by, detail}); resume=true skips the steps already done; "
         "workflow_report.md is the plan as a table. run=false (default) returns the plan only. Refused: route existing without existing_object, a route without "
-        "reference, an unknown step, two chains on one object at once.",
-        [P("piece", required=True), P("reference", desc="the clean reference image (generate / algorithmic)"), P("route", desc="existing (default) | generate | algorithmic"),
+        "reference, an unknown step, two chains on one object at once. route moodboard: the captain's moodboard chain as the workflow graph named `piece`: "
+        "P1 anatomy sheet (body_refs) -> P2 armor adaptation (reference = the armor design) -> P3 fit-check -> P4 modular breakdown -> P7 cutout, then per "
+        "entry of `pieces`: P5 multiview, P6 the four single views, P8 the 3x2 turnaround (example_sheet rides it); each image is the next step's Image A or "
+        "Image B; every node is one generation, run only by workflow_graph action=confirm, one node at a time, on the user's word. Returns the graph's plan.",
+        [P("piece", required=True), P("reference", desc="the clean reference image (generate / algorithmic); moodboard: the armor design"),
+         P("route", desc="existing (default) | generate | algorithmic | moodboard"),
+         P("pieces", "array", "moodboard: the parts to carry through, e.g. helmet, chest armor, left greave"),
+         P("body_refs", "array", "moodboard: the MetaHuman turnaround images"), P("example_sheet", desc="moodboard: a turnaround sheet to follow for layout"),
          P("existing_object", desc="route existing: the mesh"), P("steps", "array", "the steps in order"), P("gates", "object", "{spend: stop}"),
          P("target", desc="unreal (default) | unity | godot"), P("run", "boolean", "run the local steps (default: plan only)"), P("resume", "boolean", "skip the steps done")],
         api="workflow_reference_to_asset"),
@@ -214,6 +220,16 @@ ORPHAN_DEFS = [
          P("recipe", desc="the sheet recipe JSON"), P("canvas_size", desc="center: an integer side in px, or common"),
          P("verify_out", desc="verify: the folder for checks.json and contact_sheet.png (default <out>.verify)")],
         api="image_matte"),
+    Def("lampway_prompt_image", "One image from a prompt template of the library (built-in or the user's): the server renders it with `variables`, and the "
+        "references go in the template's own input order (references {role: path or [paths]}: character_body is Image A, design_plate Image B, reference_image, "
+        "image_references ...; a missing required role or an unknown one is refused). live=false (default) returns the rendered prompt and the ordered "
+        "references, nothing sent; live=true is ONE generation through the server's image slot (a spend: only on the user's word), saved under out_dir in the "
+        "project root with a ledger row. Use lampway_prompt_list to see the templates (moodboard-* are the captain's moodboard prompts).",
+        [P("template", required=True, desc="the template id"), P("variables", "object", "the template's variables"),
+         P("references", "object", "{role: path or [paths]} under the project root"), P("out_dir", desc="default prompt_images"),
+         P("count", "integer", "images, default 1"), P("live", "boolean", "generate (one spend)"), P("model", desc="optional: render for this model"),
+         P("piece", desc="the ledger row's piece")],
+        api="prompt_image"),
     Def("lampway_scribble_read", "The Scribble marks in this scene, re-read from the Client's own mark records (they persist in the .blend, so a mark from three turns "
         "ago is still readable after the message that carried it is gone). Returns mode (point: marks say WHERE to work; sketch: the drawing is WHAT to build), "
         "marks [{id, kind (circle|arrow|point|strike|stroke), object (the object it resolved to, or null for empty space), region (frame bbox u0,v0,u1,v1, "

@@ -225,13 +225,29 @@ def reference_pack(stage, asset, approved_reference, components=None, pose="T", 
 
 @_export
 @tool
-def workflow_reference_to_asset(piece, reference="", route="existing", existing_object="", steps=None, gates=None, target="unreal", run=False, resume=False):
+def workflow_reference_to_asset(piece, reference="", route="existing", existing_object="", steps=None, gates=None, target="unreal", run=False, resume=False,
+                                pieces=None, body_refs=None, example_sheet=""):
     """One piece through the existing tools in order (prep, retopo, uv, ... export), stopping at every gate; a spend step stays blocked for the user's click;
-    every step is a row in <piece>/decisions.jsonl."""
+    every step is a row in <piece>/decisions.jsonl. route=moodboard defines the captain's moodboard chain as the workflow graph <piece> (reference = the armor
+    design, body_refs = the MetaHuman turnarounds, pieces = the parts to carry through, example_sheet = a turnaround sheet to follow) and returns its plan;
+    each generation is then confirmed one node at a time (workflow_graph action=confirm)."""
     import json
     from . import api as _API
     from .features import ref_to_asset as _RA
     s_ = _settings()
+    if route == "moodboard":
+        from . import workflow_graph as _WG
+        from .features import moodboard_chain as _MC
+        if not reference or not body_refs:
+            raise ValueError("route moodboard needs reference (the armor design: Image B of the adaptation) and body_refs (the MetaHuman turnaround images)")
+        g = _WG.Graphs(s_.project_root)
+        inputs = {"armor_design": reference, "body_refs": list(body_refs) if isinstance(body_refs, (list, tuple)) else [body_refs]}
+        if example_sheet:
+            inputs["example_sheet"] = example_sheet
+        g.define(piece, _MC.graph(pieces or [], name=piece, example_sheet=bool(example_sheet)), inputs)
+        return {"route": "moodboard", "graph": piece, **g.plan(piece),
+                "help": [f"workflow_graph action=confirm name={piece} from_node=anatomy generates the first image (one spend, on the user's word)",
+                         f"workflow_graph action=run name={piece} shows what is confirmed and what waits"]}
 
     def _call(fn, args):
         return _API.call(fn, json.dumps(args))
@@ -266,3 +282,57 @@ def image_matte(action, src, out, background="magenta", key="border", opaque=Non
     if action == "verify":
         return _IM.verify(o, s, _p(verify_out, root) or o + ".verify")
     raise ValueError("action is remove | center | verify")
+
+
+def _render_prompt(template, variables=None, model=""):
+    """The server's prompt library renders the template (POST /app/prompts/render); tests replace this name."""
+    from .features import jobs_client
+    return jobs_client._request("POST", "/app/prompts/render", {"id": template, "variables": variables or {}, "model": model or None})
+
+
+@_export
+@tool
+def prompt_image(template, variables=None, references=None, out_dir="prompt_images", count=1, live=False, model="", piece=""):
+    """One image from a built-in or user prompt template: the server renders it, the references are sent in the template's own input order (references
+    {role: path or [paths]}, e.g. character_body = Image A, design_plate = Image B). Dry run unless live (one generation = one spend: only on the user's word;
+    in a workflow graph a spend node runs only through confirm). Saves under the project root and writes a ledger row."""
+    import hashlib
+    import os
+    from pathlib import Path
+    s_ = _settings()
+    root = str(s_.project_root)
+    r = _render_prompt(template, variables, model)
+    roles = [i["role"] for i in r.get("inputs_required") or []]
+    given = dict(references or {})
+    unknown = sorted(set(given) - set(roles))
+    if unknown:
+        raise ValueError(f"{template} takes the references {roles}; not {unknown}")
+    ordered = []
+    for i in r.get("inputs_required") or []:
+        v = given.get(i["role"])
+        paths = [] if v in (None, "", []) else (list(v) if isinstance(v, (list, tuple)) else [v])
+        if i.get("required") and not paths:
+            raise ValueError(f"{template} needs {i['role']}: {i['description']}")
+        ordered += [(i["role"], _p(p, root)) for p in paths]
+    for _, p in ordered:
+        if not os.path.isfile(p):
+            raise ValueError(f"no reference image at {p}")
+    plan = {"template": r.get("template", template), "prompt": r["prompt"], "references": [{"role": k, "file": p} for k, p in ordered], "count": int(count)}
+    if not live:
+        return {**plan, "live": False, "help": ["live=true generates it: one spend, only on the user's word"]}
+    blobs = [Path(p).read_bytes() for _, p in ordered]
+    imgs = _generate_image(r["prompt"], blobs[0] if blobs else None, int(count), extra_references=blobs[1:], params_extra=r.get("params") or None)
+    d = Path(_p(out_dir, root))
+    d.mkdir(parents=True, exist_ok=True)
+    stem = str(r.get("template", template)).replace("@", "-")
+    files = []
+    for k, data in enumerate(imgs, 1):
+        f = d / f"{stem}-{k}.png"
+        f.write_bytes(data)
+        files.append(str(f))
+    led = _record_ledger({"piece": piece or stem, "stage": "image", "studio": "local", "seed": "not_exposed", "by": "agent", "model_version": None,
+                          "settings": {"template": plan["template"], "variables": variables or {}, "count": int(count), "image_slot": "server image_gen"},
+                          "prompt_hash": hashlib.sha256(r["prompt"].encode()).hexdigest(), "reference_hashes": [hashlib.sha256(b).hexdigest() for b in blobs],
+                          "output_hashes": [hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in files], "cost": {},
+                          "reason": "prompt_image: the image job carries its own price row"})
+    return {**plan, "live": True, "image": files[0], "images": files, "ledger": led}
