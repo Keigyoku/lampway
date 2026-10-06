@@ -152,3 +152,13 @@ def test_the_studio_image_tool_accepts_size_and_aspect_ratio():
     from lampway_server.agent import server_tools as ST
     props = ST.BY_NAME["studio_image_generate"].spec().parameters["properties"]
     assert "size" in props and "aspect_ratio" in props
+
+
+def test_openrouter_defaults_to_the_d1_rule_a_click_above_25_cents():
+    from lampway_server.spendpolicy import DEFAULT_SPEND_POLICY, SpendPolicy
+    p = SpendPolicy(lambda: DEFAULT_SPEND_POLICY)
+    assert DEFAULT_SPEND_POLICY["openrouter"] == {"click": "above", "above": 0.25}
+    assert p.needs_click("openrouter", 0.25) is False and p.needs_click("openrouter", 0.26) is True and p.needs_click("openrouter", 0.01) is False
+    assert p.needs_click("openrouter", None) is True                       # an unknown price is never waved through
+    off = SpendPolicy(lambda: {"openrouter": {"click": "off"}})
+    assert off.needs_click("openrouter", 5.0) is False                      # configurable in prefs

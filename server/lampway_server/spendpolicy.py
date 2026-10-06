@@ -7,7 +7,7 @@ from typing import Callable, Optional
 
 PROVIDERS = ("openrouter", "higgsfield", "studios", "hyper3d")
 CLICKS = ("off", "above", "always")
-DEFAULT_SPEND_POLICY = {"openrouter": {"click": "off"}, "higgsfield": {"click": "always"}, "studios": {"click": "always"}, "hyper3d": {"click": "always"}}
+DEFAULT_SPEND_POLICY = {"openrouter": {"click": "above", "above": 0.25}, "higgsfield": {"click": "always"}, "studios": {"click": "always"}, "hyper3d": {"click": "always"}}
 
 
 class SpendRefused(ValueError):
