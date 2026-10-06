@@ -693,10 +693,14 @@ def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algor
 
 
 @tool
-def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y", copy=True):
-    """A UE-named humanoid armature ``<object>_rig`` placed from landmarks measured on a T-pose mesh, the mesh parented with heat-map
-    weights (proximity fallback for the vertices heat cannot solve). ``_l``/``_r`` are the figure's own sides. engine=studio:tripo
-    is the Auto Rig slot (answers with action and price). The source mesh is never touched: ``<object>_rigged`` is the rigged copy (copy=false rigs in place)."""
+def auto_rig(object, kind="humanoid", engine="algorithmic", weights="auto", facing="-Y", copy=True, naming="ue", parts=None, chain_bones=10):
+    """A fitted armature with skin weights (heat map, proximity fallback). kind humanoid (UE names), or the body plans quadruped | hexapod | octopod |
+    avian | serpentine | aquatic | auto (features/rig_plans.py); naming ue | mixamo | metahuman; parts rigs several meshes as ONE character."""
+    if engine == "algorithmic" and (kind != "humanoid" or naming != "ue" or parts):
+        from .features import rig_plans as _RP
+        return _RP.auto_rig(object, kind, naming, parts, weights, facing, copy, chain_bones)
+    # the humanoid: a UE-named armature <object>_rig from landmarks on a T-pose mesh; _l/_r are the figure's own sides; the source is never touched
+    # (<object>_rigged is the rigged copy; copy=false rigs in place); engine=studio:tripo is the Auto Rig slot (action and price only)
     return _F_rig.auto_rig(object, kind, engine, weights, facing, copy)
 
 

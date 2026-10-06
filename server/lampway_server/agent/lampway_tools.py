@@ -230,8 +230,13 @@ DEFS = [
     Def("lampway_auto_rig", "Auto Rig: a UE-named humanoid armature `<object>_rig` placed from landmarks measured on a T-pose mesh "
         "(standing on Z, facing -Y by default; _l/_r are the FIGURE's own sides), the mesh parented with heat-map weights and a "
         "proximity fallback for vertices heat cannot solve. Test it with lampway_pose_test: a rig is not a claim of deformation "
-        "quality. engine=studio:tripo is the Auto Rig slot (answers with action and price).", [P("object", required=True),
-        P("kind", desc="humanoid"), P("weights", desc="auto | proximity"), P("facing", desc="-Y (default) | +Y"),
+        "quality. engine=studio:tripo is the Auto Rig slot (answers with action and price). Body plans beyond the humanoid, each from landmarks measured "
+        "on the mesh standing on Z: quadruped | hexapod | octopod (feet clustered per side; upper, lower and foot per leg; spine, head, tail), avian (the "
+        "humanoid with wing_* arms), serpentine | aquatic (a chain of chain_bones along the principal axis), auto (inferred, reported as kind_inferred). "
+        "naming ue (default) | mixamo (mixamorig:*) | metahuman (the UE5 names; spine_04/05 and neck_02 are not made), humanoid and avian only; tripo is "
+        "refused (its naming is not documented here). parts: more mesh objects rigged as ONE character with one armature.", [P("object", required=True),
+        P("kind", desc="humanoid (default) | quadruped | hexapod | octopod | avian | serpentine | aquatic | auto"), P("weights", desc="auto | proximity"), P("facing", desc="-Y (default) | +Y"),
+        P("naming", desc="ue (default) | mixamo | metahuman"), P("parts", "array", "more mesh objects of the same character"), P("chain_bones", "integer", "serpentine/aquatic: 3..64, default 10"),
         P("engine", desc="algorithmic (default) | studio:tripo"),
         P("copy", "boolean", "Rig a copy `<object>_rigged` and leave the source untouched (default true); false rigs in place")], api="auto_rig"),
     Def("lampway_bind_to_armature", "Bind a piece (armor) to an armature: mode rigid = ONE bone at full weight (plates; give `bone`), "

@@ -65,3 +65,8 @@ def test_texture_gen_takes_a_material_reference_variants_and_a_ledger_row():
 def test_layered_material_offers_mask_invert():
     d = LT.BY_NAME["lampway_layered_material"].description
     assert "mask_invert" in d and "Mask invert is not built" not in d
+
+
+def test_auto_rig_takes_body_plans_naming_and_parts():
+    props = LT.BY_NAME["lampway_auto_rig"].spec().parameters["properties"]
+    assert {"naming", "parts", "chain_bones"} <= set(props) and "quadruped" in props["kind"]["description"]
