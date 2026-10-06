@@ -133,3 +133,35 @@ def test_compute_endpoints_take_their_key_from_connections(clean_env, tmp_path, 
     C.set_active(C.Hub(tmp_path / "state", secrets_dir=tmp_path / "secrets", store=CS.MemoryStore(), env={}))
     C.active().put_secret(cid, fields, by="user")
     assert EndpointBackend(shape, {})._headers() == header
+
+
+def test_a_real_call_that_answers_401_turns_the_row_expired_and_a_good_one_marks_the_use(clean_env, tmp_path):
+    import asyncio
+    import httpx
+    from lampway_server.agent.providers.base import Message, ModelRequest
+    from lampway_server.agent.providers.openrouter import OpenRouterProvider, SpendLedger
+    clock = [1_000_000.0]
+    C.set_active(C.Hub(tmp_path / "state", secrets_dir=tmp_path / "secrets", store=CS.MemoryStore(), env={"OPENROUTER_API_KEY": OR_KEY},
+                       route_on=lambda r: True, clock=lambda: clock[0]))
+    status = [401]
+
+    def answer(request):
+        if status[0] != 200:
+            return httpx.Response(status[0], json={"error": "no"})
+        return httpx.Response(200, text='data: {"choices": [{"delta": {"content": "hi"}, "finish_reason": "stop"}]}\n\ndata: [DONE]\n')
+    p = OpenRouterProvider("m", OR_KEY, SpendLedger(10.0), transport=httpx.MockTransport(answer))
+    req = ModelRequest(system="s", messages=[Message.user_text("x")], tools=[])
+
+    async def run():
+        return [e async for e in p.stream(req)]
+    with pytest.raises(RuntimeError):
+        asyncio.run(run())
+    assert C.active().view(["openrouter"])[0]["state"] == "expired"
+    status[0] = 200
+    asyncio.run(run())
+    rec = json.loads((tmp_path / "state" / "connections.json").read_text())["connections"]["openrouter"]
+    assert rec["last_used"] == clock[0] and C.active().view(["openrouter"])[0]["state"] == "connected"
+    before = (tmp_path / "state" / "connections.json").read_text()
+    clock[0] += 60
+    asyncio.run(run())
+    assert (tmp_path / "state" / "connections.json").read_text() == before, "a good use is recorded at most once an hour"

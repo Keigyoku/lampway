@@ -32,14 +32,15 @@ def _egress_permissive(tmp_path):
 
 @pytest.fixture(autouse=True)
 def _no_real_secret_store(tmp_path, monkeypatch):
-    """Connections never touches the person's keyring or ~/.local/state/lampway-secrets in a test: no keyring backend (the file store
-    is chosen, in the test's tmp), and the active hub is reset after each test."""
+    """Connections never touches the person's keyring, ~/.local/state/lampway-secrets or the default server state in a test: no keyring
+    backend (the file store is chosen, in the test's tmp), an active hub in the test's tmp, reset after each test."""
     import keyring
     import keyring.backends.fail
     monkeypatch.setenv("LAMPWAY_SECRETS_DIR", str(tmp_path / "secrets"))
     keyring.set_keyring(keyring.backends.fail.Keyring())
-    yield
     from lampway_server import connections as C
+    C.set_active(C.Hub(tmp_path / "connections-state", secrets_dir=tmp_path / "secrets"))   # a consumer outside create_app records here, never in ~/.local/state
+    yield
     C.set_active(None)
 
 

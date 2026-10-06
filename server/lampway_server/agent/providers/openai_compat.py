@@ -13,6 +13,7 @@ from .base import Message, ModelRequest, ProviderEvent, Stop, Text, ToolCall, To
 
 class OpenAICompatProvider:
     name = "openai"
+    connection = "custom_llm"                 # the Connections row a real call's outcome is reported to
 
     def __init__(self, base_url: str, model: str, api_key: str = "", *, transport=None,
                  http_client: Optional[httpx.AsyncClient] = None, timeout: float = 600.0):
@@ -41,7 +42,12 @@ class OpenAICompatProvider:
                                       headers=headers) as response:
             if response.status_code >= 400:
                 detail = (await response.aread()).decode("utf-8", "replace")[:500]
+                if response.status_code in (401, 403):            # a revoked key turns its row "expired" without anyone pressing Test
+                    from ... import connections
+                    connections.report_use(self.connection, ok=False, status=response.status_code)
                 raise RuntimeError(self._http_error(response.status_code, detail))
+            from ... import connections
+            connections.report_use(self.connection, ok=True)
             async for line in response.aiter_lines():
                 if not line.startswith("data:"):
                     continue

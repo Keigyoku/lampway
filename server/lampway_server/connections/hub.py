@@ -34,6 +34,7 @@ USED_WITHIN_S = 24 * 3600
 EXPIRY_WARNING_S = 24 * 3600
 MAX_SECRET_BYTES = 8 * 1024
 HISTORY = 10
+USE_WRITE_EVERY_S = 3600
 
 
 def _spec(cid: str) -> R.Spec:
@@ -209,6 +210,11 @@ class Hub(Views, Actions):
     def report_use(self, cid: str, ok: bool, status: Optional[int] = None) -> None:
         spec = _spec(cid)
         now = self.clock()
+        if ok:                                            # a good use is written at most once an hour while the row already says connected
+            rec = self._rec(cid)
+            last = (rec.get("checks") or [{}])[-1]
+            if now - (rec.get("last_used") or 0) < USE_WRITE_EVERY_S and last.get("state") == "connected" and last.get("sig") == self._sig(spec):
+                return
 
         def fn(rec):
             rec["last_used"] = now

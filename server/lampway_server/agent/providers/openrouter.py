@@ -155,6 +155,7 @@ class SpendLedger:
 
 class OpenRouterProvider(OpenAICompatProvider):
     name = "openrouter"
+    connection = "openrouter"
 
     def __init__(self, model: str, api_key: str, ledger: SpendLedger, *, max_tokens: int = 4096, label: str = "main",
                  base_url: str = BASE_URL, transport=None, **kw):
