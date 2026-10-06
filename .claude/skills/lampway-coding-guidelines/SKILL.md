@@ -49,6 +49,9 @@ scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server
   Cycles GPU kernels; never a release choice. A clean build is long and an unchanged rebuild short (BUILD-LAMPWAY.md §3).
 - If `distrobox enter` answers `unable to find user`, the numeric `podman exec --user 1000:1000 -w "$PWD" <box> ...` works.
 - Blender returns 0 when a `--python-expr` raises: always pass `--python-exit-code 1`.
+- The installed app never carries the repository's agent contracts (AGENTS.md, CLAUDE.md, SKILL.md, `.agents`, `.claude`): the
+  scripts install excludes them and removes ones an older install kept, and `sync_python.sh` excludes and deletes them too
+  (`tests/lampway_tools/test_install_has_no_agent_contracts.py` walks the installed tree).
 - The launcher hands the server two more things: `LAMPWAY_MODELS_DIR` (the bundled local models, when the build bundled them) and
   `LAMPWAY_BLENDER` (the binary the server's headless jobs run; defaults to the app's own).
 - The launcher's start banner prints the models directory and, when UE Look is on, the UE look state (`ue_look:` and its OCIO config).
@@ -142,3 +145,4 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | the canon check among the suites | coordinator: "GO for rail row 1" | the canon's self-tests ran only on the shelf | `docs/canon/check_canon.py` in the suites table (CI: canon.yml) | captain ruling, 2026-10-06 |
 | 2026-10-06 | merge of lp/orphans into lp/wave5 | the integrator's merge: lp/vault-ops added LAMPWAY_MODELS_DIR to the launcher, lp/orphans added LAMPWAY_BLENDER on the same line | two lanes edited the launcher's server-start line; the merged line carries both | the launcher bullet in section 2 names both variables | none |
 | 2026-10-06 | merge of lp/uelook into lp/wave5 | the integrator's merge: lp/vault-ops added a models line and lp/uelook a ue_look line to the launcher's start banner | two lanes appended to the same banner block; the merged banner prints both | the banner bullet in section 2 | none |
+| 2026-10-06 | agent contracts out of the install | coordinator: "EXCLUDE agent contract files (AGENTS.md, CLAUDE.md, skills under src/) from the installed app" | the scripts install copied `lampway_tools/AGENTS.md` and `CLAUDE.md` into the app, and the Python sync kept them | the install excludes and removes them, the sync excludes and deletes them; the bullet in section 2 | none |

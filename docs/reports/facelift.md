@@ -18,6 +18,7 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | `6881d79` (04 and the pill) | `mixie_chat_*` painters, the `Fraunces.woff2` datafile, `agent_ui_state.cc`, `agent_ui_controls_paint.cc`, `agent_ui_draw.cc`, `agent_bubble_references.cc`, `space_agent_bubble.cc`. |
 | (08) | `agent_ui_tabmedia.cc`, the new `agent_ui_tabmedia_estimate.cc` (CMake list), `agent_ui_tabmedia_intern.hh`, the `PlexMono.woff2` datafile, and `MixarVariant::Accent` in `UI_mixar_types.hh` (included widely: an 830-step rebuild), `interface/mixar/components.cc`, `interface/mixar/style.cc`. |
 | (12) | `userdef_default_theme.c` (Timeline `simulated_frames` leaves the wire colour) and the two theme presets. |
+| (install rule) | `src/source/creator/CMakeLists.txt`: a re-configure and `ninja install` (no compile). |
 
 ## Gate totals at the contract 01 push (`30b6c2fd`, merged with `origin/lp/wave5` `00d907d4`)
 
@@ -649,6 +650,18 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   extended to 17-choices); params as typed fields and the scope switch (the window shows scopes and clears an
   override, it does not edit params); the expanders (override policy, recent jobs, quality records, closed
   proposals); "Add an option"; the Connections window's "Used by" linking here.
+
+## Coordinator addition: the install carries no agent contract
+
+- The installed app had `scripts/mixar/modules/lampway_tools/AGENTS.md` and `CLAUDE.md` (the rail's contract files).
+  `src/source/creator/CMakeLists.txt` now excludes `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, `.agents` and `.claude` from the
+  scripts install, and an `install(CODE)` step removes any an older install still has (an install over an install keeps
+  what was there). `scripts/lampway/sync_python.sh` excludes the same names and deletes them from the target, with the
+  install's own `_build_env.py` and caches protected.
+- Tests: `tests/lampway_tools/test_install_has_no_agent_contracts.py` walks the installed tree of the build under test
+  (RED observed: the two files), and `tests/lampway_tools/test_sync_python.py::test_sync_does_not_ship_agent_contracts_and_takes_old_ones_out`
+  (written after the sync change; its falsifier run: without `--delete-excluded` it fails).
+- Native: the CMake change needs a re-configure and an install (no compile).
 
 ## Which build is in `build/Prod`
 

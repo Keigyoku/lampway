@@ -24,7 +24,10 @@ if [ ! -d "$DST/mixar" ]; then
   echo "help[1]:"; echo "  - Run \`scripts/lampway/build_linux.sh\` first"
   exit 1
 fi
-EX=(--exclude=__pycache__ --exclude=tests --exclude=testing --exclude=_build_env.py)
+# _build_env.py and the caches are the install's own (protected); the agent contracts never ship, so a sync also takes
+# them out of an install made before this rule (--delete-excluded).
+EX=(--filter='P _build_env.py' --filter='P __pycache__/' --exclude=__pycache__ --exclude=tests --exclude=testing --exclude=_build_env.py
+    --exclude=AGENTS.md --exclude=CLAUDE.md --exclude=SKILL.md --exclude=.agents --exclude=.claude --delete-excluded)
 rsync -a --delete "${EX[@]}" "$ROOT/src/scripts/mixar/" "$DST/mixar/"
 if [ -d "$ROOT/src/scripts/startup/bootstrap" ]; then
   mkdir -p "$DST/startup/bootstrap"
