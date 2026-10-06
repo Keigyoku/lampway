@@ -10,6 +10,12 @@ from .api import _p, _settings, tool  # noqa: F401  (api is mid-import here: the
 __all__ = []
 
 
+def _generate_image(*a, **kw):
+    """The image slot (the server's image_gen); tests replace this name."""
+    from .features import jobs_client
+    return jobs_client.generate_image(*a, **kw)
+
+
 def _export(fn):
     __all__.append(fn.__name__)
     return fn
@@ -129,3 +135,40 @@ def multi_piece_material(action, pieces=None, atlas_res=4096, individual_res=Non
     s_ = _settings()
     return _MP.run(action, str(s_.project_root), pieces, atlas_res, individual_res, density_floor_ratio, proxy, _p(atlas, s_.project_root),
                    _p(out_dir, s_.project_root), res, keep_proxy, name)
+
+
+@_export
+@tool
+def seamless_tile(src="", out="", mode="grain", size=1024, flatten=False, cell_px=None, prompt="", live=False):
+    """A seamless tile BUILT by rules (motif crop, quilt, cross-fade, or an exact motif cell) from a sheet, never repainted by a model, and gated; prompt makes the
+    sheet through the image slot (purpose tile) first, a dry run unless live."""
+    from .pipeline import seamless_tile as _ST
+    s_ = _settings()
+    if not out:
+        raise ValueError("out names the tile (a project path; .png, _mosaic.png and .qa.json are written beside it)")
+    out_p = _p(out, s_.project_root)
+    sheet = None
+    if prompt:
+        if not live:
+            return {"dry_run": True, "prompt": prompt, "purpose": "tile", "cost_note": "one image on the server's tile purpose (gpt-image-2.5-flare measured $0.0238 at 1024 px)",
+                    "how": "live=true makes the sheet (only when the user asked for it); the tile is then built and gated by rules"}
+        import os as _os
+        sheet = _os.path.splitext(out_p)[0] + "_sheet.png"
+        if _os.path.exists(sheet):
+            raise ValueError(f"{sheet} exists: never overwritten")
+        _os.makedirs(_os.path.dirname(sheet), exist_ok=True)
+        data = _generate_image(prompt, None, 1, params_extra={"purpose": "tile"})[0]
+        with open(sheet, "wb") as fh:
+            fh.write(data)
+        src_p = sheet
+    else:
+        if not src:
+            raise ValueError("give src (a sheet under the project root) or prompt (make one through the image slot)")
+        src_p = _p(src, s_.project_root)
+    try:
+        res = _ST.build(src_p, out_p, mode, size, flatten, cell_px)
+    except _ST.TileRefused as exc:
+        raise ValueError(str(exc)) from None
+    if sheet:
+        res["sheet"] = sheet
+    return res

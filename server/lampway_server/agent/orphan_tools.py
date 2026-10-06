@@ -139,4 +139,17 @@ ORPHAN_DEFS = [
          P("individual_res", "integer", "merge: the pieces' own texture size for the density comparison"), P("density_floor_ratio", "number", "0.3..1, default 0.7"),
          P("proxy", desc="transfer: the proxy"), P("atlas", desc="transfer: the painted atlas image"), P("out_dir", desc="transfer: default mpm"),
          P("res", "integer", "transfer: output size, default atlas_res"), P("keep_proxy", "boolean"), P("name", desc="merge: the proxy's name")], api="multi_piece_material"),
+    Def("lampway_seamless_tile", "Make a seamless material tile BY RULES, never by repainting with a model (generated 'tileable' sheets are not seamless: measured "
+        "wrap-edge error 20.5 vs interior 5.9), and gate it by measurement. mode motif (a true repeat: a crop searched at a whole number of periods, then a "
+        "min-cut quilt only if needed), grain (no repeat: a variance-preserving cross-fade, narrowest passing band), fibre (as grain, named), motif_cell (one "
+        "motif cell resampled to cell_px and repeated exactly). The gate (every check before 8-bit rounding): wrap ratio, line, chunk, signed step and structure "
+        "z per RGB and chroma channel, wrap tone step, band and edge sharpness, band tone shift, low-frequency range, half-tile self-correlation, and the TONE "
+        "SEAM (8 px bands across the wrap, <= 5 % of the mean luminance; derived from four bake-off tiles, UNVERIFIED beyond them). Writes <out>.png, "
+        "<out>_mosaic.png (2N x 2N of the 3x3 tiling) and <out>.qa.json; passed=false is a gate verdict, not an error. prompt makes the sheet through the "
+        "image slot (purpose tile) first: a dry run unless live=true. Refused: motif without a true repeat (use grain or fibre), grain/fibre on a periodic "
+        "sheet (use motif), a sheet under twice the tile size, an existing output (never overwritten), size outside 256..4096." + _PATHS,
+        [P("src", desc="the material sheet (or give prompt)"), P("out", required=True, desc="the tile path (no extension needed)"),
+         P("mode", desc="grain (default) | motif | fibre | motif_cell"), P("size", "integer", "256..4096, default 1024"), P("flatten", "boolean", "remove very-low-frequency tone first"),
+         P("cell_px", "integer", "motif_cell: the cell size; must divide size"), P("prompt", desc="make the sheet through the image slot (the MATERIAL, not a scene)"),
+         P("live", "boolean", "prompt: really generate (default a dry run)")], api="seamless_tile"),
 ]
