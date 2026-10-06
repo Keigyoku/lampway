@@ -5165,6 +5165,12 @@ msgstr ""
 msgid "UE Look is on"
 msgstr ""
 
+msgid "R"
+msgstr ""
+
+msgid "centre"
+msgstr ""
+
 msgid "Front"
 msgstr "ﻻ﻿ﺍﻭ ﮯﻨﻣﺎﺳ"
 
@@ -12247,9 +12253,6 @@ msgstr "ﯽﺿﺎﯾﺭ"
 
 msgid "Alpha"
 msgstr "ﺎﻔﻟﺍ"
-
-msgid "R"
-msgstr ""
 
 msgid "G"
 msgstr ""

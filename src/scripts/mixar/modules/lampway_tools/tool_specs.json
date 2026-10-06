@@ -154,7 +154,7 @@
     {
      "name": "engine",
      "type": "string",
-     "desc": "algorithmic (default) | studio:tripo",
+     "desc": "algorithmic (default) | studio:tripo; or one of the purpose's options (local:heat_map, local:proximity); omit it to use the user's choice in Choices",
      "required": false,
      "flag": null,
      "repeat": false
@@ -482,7 +482,7 @@
     {
      "name": "engine",
      "type": "string",
-     "desc": "algorithmic (default) | studio:tripo | studio:meshy | studio:hi3d",
+     "desc": "algorithmic (default) | studio:tripo | studio:meshy | studio:hi3d; or one of the purpose's options (local:visual_hull, local:extrude, local:relief, studio:tripo.mesh, studio:meshy.image_to_3d, studio:hi3d.image_to_3d, studio:hyper3d.generate, studio:hyper3d.mcp.generate, studio:tripo.rest.image_to_model); omit it to use the user's choice in Choices",
      "required": false,
      "flag": null,
      "repeat": false
@@ -1274,7 +1274,7 @@
     {
      "name": "engine",
      "type": "string",
-     "desc": "algorithmic (default) | studio:tripo",
+     "desc": "algorithmic (default) | studio:tripo; or one of the purpose's options (local:quadriflow, local:voxel, local:autoremesher, studio:meshy.remesh, studio:tripo.rest.decimate); omit it to use the user's choice in Choices",
      "required": false,
      "flag": null,
      "repeat": false
@@ -1394,7 +1394,7 @@
     {
      "name": "engine",
      "type": "string",
-     "desc": "algorithmic (default) | studio:tripo",
+     "desc": "algorithmic (default) | studio:tripo; or one of the purpose's options (local:shells, local:sharp, local:uv_islands, local:transfer_parts, studio:hyper3d.bang, studio:hyper3d.mcp.generate_bang, studio:hi3d.split); omit it to use the user's choice in Choices",
      "required": false,
      "flag": null,
      "repeat": false
@@ -1618,7 +1618,7 @@
     {
      "name": "engine",
      "type": "string",
-     "desc": "algorithmic (default) | studio:tripo",
+     "desc": "algorithmic (default) | studio:tripo; or one of the purpose's options (local:smart, local:angle, local:conformal, studio:tripo.uv.unwrap, studio:meshy.uv_unwrap); omit it to use the user's choice in Choices",
      "required": false,
      "flag": null,
      "repeat": false

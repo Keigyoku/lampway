@@ -5165,6 +5165,12 @@ msgstr ""
 msgid "UE Look is on"
 msgstr ""
 
+msgid "R"
+msgstr "R"
+
+msgid "centre"
+msgstr ""
+
 msgid "Front"
 msgstr "前"
 
@@ -12247,9 +12253,6 @@ msgstr "运算"
 
 msgid "Alpha"
 msgstr "Alpha"
-
-msgid "R"
-msgstr "R"
 
 msgid "G"
 msgstr ""
