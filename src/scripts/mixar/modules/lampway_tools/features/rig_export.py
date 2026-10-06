@@ -98,9 +98,7 @@ def _table(ob, names=None, turn=None):
 
 
 def _convention(ob):
-    rig = RT.read(ob)
-    angles = [RC.along_axis_angle(rig["frames"][b], rig["heads"][b], rig["heads"][c]) for b, c in RT._single_child(rig).items()]
-    return RC.classify_convention(angles)
+    return RC.classify_convention(list(RT.convention_angles(RT.read(ob)).values()))
 
 
 def _import(path):

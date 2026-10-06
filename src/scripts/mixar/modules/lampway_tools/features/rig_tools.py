@@ -102,6 +102,12 @@ def _single_child(rig):
     return {b: k[0] for b, k in kids.items() if len(k) == 1 and np.linalg.norm(np.subtract(rig["heads"][k[0]], rig["heads"][b])) > 1e-6}
 
 
+def convention_angles(rig):
+    """{bone: angle of its local Y to its head -> single child line}, limb bones only: UE's ik_* bones copy their target's (or the root's)
+    frame and point at nothing, so they say nothing about the rig's convention."""
+    return {b: RC.along_axis_angle(rig["frames"][b], rig["heads"][b], rig["heads"][c]) for b, c in _single_child(rig).items() if b not in RC.IK_TARGETS}
+
+
 def inspect(armature, reference="", family="auto", profile="ue5_body"):
     ob = _armature(armature)
     if profile not in RC.REQUIRED:
@@ -119,8 +125,7 @@ def inspect(armature, reference="", family="auto", profile="ue5_body"):
     except RC.RigRefused as exc:
         fam["note"] = str(exc)
     mapped, missing = RC.map_slots(names, tables[fam["name"]], RC.REQUIRED[profile]) if fam["name"] else ({}, list(RC.REQUIRED[profile]))
-    angles = {b: RC.along_axis_angle(rig["frames"][b], rig["heads"][b], rig["heads"][c]) for b, c in _single_child(rig).items()}
-    vals = list(angles.values())
+    vals = list(convention_angles(rig).values())
     ref = _reference()
     zs = [h[2] for h in rig["heads"].values()]
     height = (max(zs) - min(zs)) if zs else 0.0

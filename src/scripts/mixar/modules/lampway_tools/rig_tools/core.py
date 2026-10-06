@@ -408,3 +408,98 @@ def conform_plan(src, mapping, synthesized, ref, convention="blender", offsets=N
              for n in order]
     return {"bones": bones, "renamed": {b: n for b, n in renamed.items() if b != n}, "synthesized": synth_doc, "reparented": reparented,
             "frames": angles, "unreferenced": unreferenced, "convention": convention}
+
+
+# ---------------------------------------------------------------- rig_fit_template (canon 20): the joints ARE the fit
+# TITAN rig-axi's REQUIRED_JOINTS (the body grammar a joints file must measure; rig-axi is the prior art, the list reused)
+REQUIRED_JOINTS = (("pelvis", "spine_01", "spine_02", "spine_03", "spine_04", "spine_05", "neck_01", "neck_02", "head")
+                   + tuple(f"{b}_{s}" for s in ("l", "r") for b in ("clavicle", "upperarm", "lowerarm", "hand"))
+                   + tuple(f"{b}_{s}" for s in ("l", "r") for b in ("thigh", "calf", "foot", "ball"))
+                   + tuple(f"{f}_{k}_{s}" for s in ("l", "r") for f in ("thumb", "index", "middle", "ring", "pinky") for k in ("01", "02", "03")))
+COPIED_TOL = 0.001                                    # canon 20 B.3: every bone length within 0.1 % of the template's = copied, not fitted
+
+
+def _parents_first(names, parents):
+    order, seen = [], set()
+
+    def visit(n):
+        if n in seen:
+            return
+        seen.add(n)
+        if parents.get(n) is not None and parents[n] in names:
+            visit(parents[n])
+        order.append(n)
+    for n in names:
+        visit(n)
+    return order
+
+
+def fit_template(template, joints, required):
+    """{heads, ratios, copied_not_fitted, residual, synthesized, measured, unused}: the template's joint heads set to the measured joints
+    (canon 20 B.2; R06: residual 0), every other template bone placed by its nearest measured segment (the template's offset from the
+    segment's start, carried by the similarity that takes the template segment onto the measured one) or, with no such segment above it,
+    by the similarity of all measured joints. A required joint missing refuses: it is never borrowed from the template."""
+    from ..canon_geom.rigid import apply_similarity, similarity_fit
+    names = list(template["names"])
+    T = {n: np.asarray(template["heads"][n], float) for n in names}
+    parents = template["parents"]
+    missing = [n for n in required if n in T and n not in joints]
+    if missing:
+        raise RigRefused(f"required joints missing from the joints file: {', '.join(missing)}; a joint is measured on the example, never "
+                         "borrowed from the template")
+    measured = {n: np.asarray(joints[n], float) for n in names if n in joints}
+    heads = dict(measured)
+    kids = {}
+    for n in names:
+        if parents.get(n) is not None:
+            kids.setdefault(parents[n], []).append(n)
+
+    def segment(a):
+        c = CONTINUATION.get(a)
+        if c not in measured:
+            far = [k for k in kids.get(a, []) if k in measured and np.linalg.norm(T[k] - T[a]) > 1e-9]
+            c = far[0] if len(far) == 1 else None
+        if c is None or a not in heads or np.linalg.norm(T[c] - T[a]) < 1e-9 or np.linalg.norm(measured[c] - heads[a]) < 1e-9:
+            return None
+        return c
+
+    glob = None
+    synthesized = {}
+    for n in _parents_first(names, parents):
+        if n in heads:
+            continue
+        if n in IK_TARGETS and IK_TARGETS[n] in heads and IK_TARGETS[n] != "root":
+            heads[n] = heads[IK_TARGETS[n]]
+            synthesized[n] = {"rule": f"ik bone on {IK_TARGETS[n]}"}
+            continue
+        a = parents.get(n)
+        while a is not None and segment(a) is None:
+            a = parents.get(a)
+        if a is not None:
+            c = segment(a)
+            up = np.asarray(template["frames"][a], float)[:, 2]
+            dt, dm = T[c] - T[a], measured[c] - heads[a]
+            if abs(float(unit(dt) @ unit(up))) > 0.99:
+                up = np.asarray(template["frames"][a], float)[:, 0]
+            Ft, Fm = frame_from(T[a], T[c], up), frame_from(heads[a], measured[c], up)
+            s = float(np.linalg.norm(dm) / np.linalg.norm(dt))
+            heads[n] = heads[a] + s * (Fm @ Ft.T @ (T[n] - T[a]))
+            synthesized[n] = {"rule": f"segment {a} -> {c}", "scale": round(s, 9)}
+        else:
+            if glob is None:
+                keys = sorted(measured)
+                glob = similarity_fit([T[k] for k in keys], [measured[k] for k in keys])
+            heads[n] = apply_similarity(glob, [T[n]])[0]
+            synthesized[n] = {"rule": "similarity of all measured joints", "scale": round(glob["s"], 9)}
+    ratios = {}
+    for n in names:
+        p = parents.get(n)
+        if n in measured and p in measured:
+            lt = float(np.linalg.norm(T[n] - T[p]))
+            if lt > 1e-9:
+                ratios[n] = float(np.linalg.norm(measured[n] - measured[p]) / lt)
+    res = [float(np.linalg.norm(heads[n] - np.asarray(joints[n], float))) for n in measured]
+    return {"heads": {n: tuple(float(x) for x in heads[n]) for n in names}, "ratios": ratios,
+            "copied_not_fitted": bool(ratios) and all(abs(r - 1.0) <= COPIED_TOL for r in ratios.values()),
+            "residual": {"rms_m": float(np.sqrt(np.mean(np.square(res)))) if res else 0.0, "max_m": max(res, default=0.0)},
+            "synthesized": synthesized, "measured": sorted(measured), "unused": sorted(set(joints) - set(names))}

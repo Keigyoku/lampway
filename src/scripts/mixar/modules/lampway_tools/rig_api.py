@@ -12,6 +12,7 @@ from .canon_door import NONE, Need
 __all__ = []
 ALL = ("real", "generator_normalised", "unknown")
 RIG_RAW = {"armature": Need(kind=("skeleton", "rigged_mesh"), scale=ALL, accept_raw=True)}
+REAL = ("real",)
 
 
 def _export(fn):
@@ -64,6 +65,17 @@ def rig_export_ue(armature, out, meshes=None, actions=None, reference="", recipe
     a failing file moved to export/rejected/."""
     from .features import rig_export as _RE
     return _RE.export_ue(armature, out, str(_settings().project_root), meshes, actions, reference, recipe, readback)
+
+
+@_export
+@tool(consumes={"example": Need(kind=("mesh", "part", "rigged_mesh"), scale=REAL)})
+def rig_fit_template(example, joints, template="", hands="none", hidden=None, convention="blender", weights="procedural", allow_outside=None, out="",
+                     dry_run=False):
+    """Rig the fitted example at its OWN joints (canon 20): the template's heads written to the joints measured on the example (residual 0),
+    the other bones placed by their measured segments, frames by canon 17, six axis rays per joint inside the example, the example's own
+    weights from the fitted segments on a copy; refuses copied joints (copied_not_fitted), a joints file from another mesh, a missing joint."""
+    from .features import rig_fit as _RF
+    return _RF.fit(example, joints, str(_settings().project_root), template, hands, hidden, convention, weights, allow_outside, out, dry_run)
 
 
 @_export

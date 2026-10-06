@@ -252,3 +252,52 @@ def test_small_angles_are_measured_well_conditioned_on_float32_rest_data():
     assert RC.angle_deg(np.eye(3), RC.rot("x", 179.0)) == pytest.approx(179.0, abs=1e-9)
     assert RC._qangle_deg([0, 0, 0, 1], [0, 0, np.sin(np.radians(0.5)), np.cos(np.radians(0.5))]) == pytest.approx(1.0, abs=1e-9)
     assert RC._qangle_deg([0, 0, 0, 1], [0, 0, 0, -1]) == pytest.approx(0.0, abs=1e-9), "q and -q are one rotation"
+
+
+# ---------------------------------------------------------------- R7 rig_fit_template (canon 20) against R06
+R06 = json.loads((GOLD / "R06_template_fit.json").read_text())
+
+
+def _r06_template(extra=None):
+    i = R06["input"]
+    names = list(i["template"])
+    heads = {n: tuple(i["template"][n]) for n in names}
+    parents = dict(i["parents"])
+    for n, (p, h) in (extra or {}).items():
+        names.append(n)
+        heads[n], parents[n] = tuple(h), p
+    return {"names": names, "parents": parents, "heads": heads, "frames": {n: np.eye(3) for n in names}}
+
+
+def test_the_fit_writes_the_measured_joints_and_reports_r06s_ratios():
+    i, e = R06["input"], R06["expected"]
+    f = RC.fit_template(_r06_template(), i["example_joints"], required=list(i["template"]))
+    for n, v in e["heads"].items():
+        assert np.allclose(f["heads"][n], v, atol=1e-12), n
+    for n, v in e["length_ratios"].items():
+        assert f["ratios"][n] == pytest.approx(v, abs=1e-9), n
+    assert f["residual"]["max_m"] == e["residual_m"] and f["copied_not_fitted"] is e["copied_flag_fitted"]
+
+
+def test_joints_copied_from_the_template_body_are_flagged_and_a_missing_joint_refuses():
+    i = R06["input"]
+    f = RC.fit_template(_r06_template(), i["template"], required=list(i["template"]))
+    assert f["copied_not_fitted"] is R06["expected"]["copied_flag_copied"], "the falsifier: every ratio 1.000"
+    j = dict(i["example_joints"])
+    del j["head"]
+    with pytest.raises(RC.RigRefused, match="head"):
+        RC.fit_template(_r06_template(), j, required=list(i["template"]))
+
+
+def test_unmeasured_bones_follow_their_measured_segment_and_a_parentless_one_the_whole_fit():
+    i = R06["input"]
+    t = i["template"]
+    mid = tuple((np.add(t["lowerarm_l"], t["hand_l"]) / 2).tolist())
+    extra = {"lowerarm_twist_01_l": ("lowerarm_l", mid), "root": (None, (0.0, 0.0, 0.0))}
+    tpl = _r06_template(extra)
+    tpl["parents"]["pelvis"] = "root"
+    f = RC.fit_template(tpl, i["example_joints"], required=list(t))
+    j = i["example_joints"]
+    assert np.allclose(f["heads"]["lowerarm_twist_01_l"], np.add(j["lowerarm_l"], j["hand_l"]) / 2, atol=1e-9), "half way along the MEASURED forearm"
+    assert f["synthesized"]["lowerarm_twist_01_l"]["rule"] == "segment lowerarm_l -> hand_l"
+    assert f["synthesized"]["root"]["rule"] == "similarity of all measured joints" and "root" not in f["ratios"]
