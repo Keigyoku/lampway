@@ -4,6 +4,7 @@ exit codes (0 ok, 1 refused or failed, 2 usage), no interactive prompts, unknown
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 import time
@@ -59,9 +60,10 @@ def default_backends(prefs) -> dict:
     return out
 
 
-def build(ctx: Context):
+def build(ctx: Context, own_egress: bool = True):
     E.install()
-    E.set_active(E.Egress(ctx.state))                          # the CLI is its own Lampway process: every route is off until the user opts in (the same egress.json the server uses)
+    if own_egress:
+        E.set_active(E.Egress(ctx.state))                      # the CLI is its own Lampway process: every route is off until the user opts in (the same egress.json the server uses)
     prefs = PF.Prefs(ctx.state / "compute_prefs.json")
     ledger = Ledger(ctx.root / "ledger" / "runs.jsonl")
     receipts = JR.JobReceipts(ctx.root, ledger=ledger)
@@ -84,6 +86,7 @@ def _parser() -> _Parser:
         s.add_argument("--max-seconds", type=int, default=300)
         s.add_argument("--max-usd", type=float)
         s.add_argument("--type", help="machine type for Boat: small | default | large")
+        s.add_argument("--param", action="append", default=[], metavar="KEY=VALUE", help="a recipe parameter, e.g. op=silhouette (repeatable; a value that parses as JSON is JSON)")
         s.add_argument("--key", help="idempotency key")
         s.add_argument("--origin", default="user", choices=["user", "agent", "swarm"])
         if name == "submit":
@@ -104,7 +107,14 @@ def _job(a) -> dict:
     for i in a.input:
         path, _, cls = i.partition(":")
         ins.append({"path": path, **({"content_class": cls} if cls else {})})
-    j = {"recipe": a.recipe, "inputs": ins, "backend": a.backend, "max_seconds": a.max_seconds, "origin": a.origin, "idempotency_key": a.key, "params": {"type": a.type} if a.type else {}}
+    params = {"type": a.type} if a.type else {}
+    for kv in a.param:
+        k, _, v = kv.partition("=")
+        try:
+            params[k] = json.loads(v)
+        except ValueError:
+            params[k] = v
+    j = {"recipe": a.recipe, "inputs": ins, "backend": a.backend, "max_seconds": a.max_seconds, "origin": a.origin, "idempotency_key": a.key, "params": params}
     if a.max_usd is not None:
         j["max_usd"] = a.max_usd
     return j

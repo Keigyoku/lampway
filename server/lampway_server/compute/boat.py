@@ -59,14 +59,23 @@ class BoatCliBackend:
 
     # --------------------------------------------------------------------------------------------------- plumbing
     def _cli(self, verb, *args, timeout=60):
-        argv = [self.binary, verb, *args, "--json", "--no-update"]
+        argv = [self.binary, verb, "--json", "--no-update", *args]               # flags BEFORE the arguments: a trailing command string swallows anything after it (measured)
         if not Path(self.binary).exists() and self.runner is default_runner:
             raise BK.Rejected(f"the boat CLI is not at {self.binary}: install it and run `boat login` yourself (Lampway never creates a Boat key)")
         return self.runner(argv, timeout, clean_env()) if self.runner is default_runner else self.runner(argv, timeout)
 
     def _exec(self, ref, script, detach=False, timeout=30):
-        args = [ref, "--timeout", str(timeout)] + (["--detach"] if detach else []) + ["--", "sh", "-c", script]
-        return self._cli("exec", *args, timeout=timeout + 30)
+        """`boat exec <id> "<one shell string>"` (measured 2026-10-06: the command is ONE argument; `--` and `sh -c` lose their quoting; --detach cannot take --timeout). The answer is JSON with exitCode,
+        stdout and stderr; this returns (exit code, stdout, stderr), or the process's own failure when the CLI did not answer in JSON."""
+        args = [ref] + (["--detach"] if detach else ["--timeout", str(timeout)]) + [script]
+        rc, out, err = self._cli("exec", *args, timeout=timeout + 30)
+        try:
+            d = json.loads(out)
+        except ValueError:
+            return rc, out, err
+        if detach:
+            return (0 if d.get("success") else 1), out, err
+        return (rc or int(d.get("exitCode") or 0)), d.get("stdout") or "", d.get("stderr") or err
 
     # ---------------------------------------------------------------------------------------------- the seam
     def quote(self, spec, recipe) -> BK.Quote:

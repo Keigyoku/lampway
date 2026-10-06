@@ -33,6 +33,7 @@ class FakeBoatCli:
 
     def __call__(self, argv, timeout=60, env=None):
         self.envs.append(env)
+        assert argv[2:4] == ["--json", "--no-update"], "the real CLI treats flags after a command string as part of the command"
         a = [x for x in argv[1:] if x not in ("--json", "--no-update")]
         verb = a[0]
         self.calls.append((verb, *a[1:]))
@@ -54,16 +55,19 @@ class FakeBoatCli:
         if sb is None:
             return 1, "", "not_found"
         if verb == "exec":
-            script = a[-1]
+            script = a[-1]                                           # the real CLI takes ONE shell string (measured); --detach cannot be combined with --timeout
+            assert not ("--detach" in a and "--timeout" in a), "the real boat CLI refuses --detach with --timeout"
+            assert not script.startswith("-") and "sh -c" not in script
+            ok = lambda out="": (0, json.dumps({"exitCode": 0, "stdout": out, "stderr": "", "success": True}), "")  # noqa: E731
             if "--detach" in a:
                 sb["exit_at"] = self.clock.now() + self.run_seconds
-                return 0, json.dumps({"processId": "p1"}), ""
+                return 0, json.dumps({"processId": 1, "pid": 1, "success": True}), ""
             if "/tmp/lw/exit" in script:
                 if sb["exit_at"] is not None and self.clock.now() >= sb["exit_at"]:
                     sb["files"]["/tmp/lw/out/result.json"] = b'{"cpus": 4}'
-                    return 0, "0\n", ""
-                return 0, "running\n", ""
-            return 0, "", ""
+                    return ok("0\n")
+                return ok("running\n")
+            return ok()
         if verb == "scp":
             src, dst = a[1], a[2]
             if dst.startswith(sid + ":"):

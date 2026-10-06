@@ -22,7 +22,7 @@ from typing import Optional
 
 from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
-from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools
+from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -396,6 +396,8 @@ class AgentHub:
                 return "the cockpit is not available on this server", True
             last_user = next((m.text() for m in reversed(session.messages) if m.role == "user" and m.text()), "")
             return await workbench_tools.call(self.cockpit, call.name, call.arguments, self.ops, call.id, last_user, turn.turn_id)
+        if call.name in compute_tools.NAMES:
+            return await compute_tools.call(None, server_tools.project_root(), call.name, call.arguments)
         if call.name in engine_tools.NAMES:
             return await engine_tools.call(call.name, call.arguments)
         if call.name in image_tools.NAMES:

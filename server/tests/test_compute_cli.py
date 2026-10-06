@@ -76,3 +76,12 @@ def test_reconcile_report_states_explicitly_when_nothing_bills(tmp_path):
     run(["prefs", "--set", "backends=fake"], tmp_path)
     rc, out, _e, _f = run(["reconcile"], tmp_path)
     assert rc == 0 and "billing_now: nothing" in out and "orphans[0]:" in out
+
+
+def test_a_recipe_parameter_travels_with_the_job_and_selects_the_ops_outputs(tmp_path):
+    run(["prefs", "--set", "backends=fake"], tmp_path)
+    rc, out, err, fake = run(["plan", "blender_offload", "--backend", "fake", "--input", "in.png:synthetic", "--param", "op=silhouette", "--param", "size=64", "--max-seconds", "300"], tmp_path)
+    assert rc == 0 and "upper_bound_usd:" in out
+    rc, out, err, fake = run(["submit", "blender_offload", "--backend", "fake", "--input", "in.png:synthetic", "--param", "op=silhouette", "--param", "size=64", "--max-seconds", "300"], tmp_path)
+    assert any(c[0] == "upload" and c[2] == "params.json" for c in fake.calls)
+    assert "silhouette.png" in out and "state: provider_error" in out                      # the op named the extra output; the fake does not produce it, and the job says so

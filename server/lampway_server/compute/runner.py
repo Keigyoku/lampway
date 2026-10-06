@@ -370,6 +370,11 @@ class ComputeRunner:
             return
         be, ref = self.backends[cj["backend"]], cj["ref"]
         mode = "stop" if cj["content_class"] == "private" else "delete"
+        meter = None
+        try:
+            meter = be.meter(ref)                                                # BEFORE the teardown: an erased box has no usage to read (measured: 404)
+        except Exception:  # noqa: BLE001
+            pass
         try:
             res = be.teardown(ref, mode, cj.get("handle"))
         except Exception:  # noqa: BLE001
@@ -381,11 +386,6 @@ class ComputeRunner:
         except Exception:  # noqa: BLE001
             pass
         cj["teardown_mode"] = mode
-        meter = None
-        try:
-            meter = be.meter(ref)
-        except Exception:  # noqa: BLE001
-            pass
         if res != "failed" and not alive:
             cj.update(teardown="verified", torn_down_at=now, accrued_usd_estimate=cj["rate_usd_per_s"] * max(0.0, now - cj["provisioned_at"]), accrued_usd_meter=meter)
             cj.pop("next_teardown_at", None)
