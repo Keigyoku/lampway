@@ -22,7 +22,7 @@ from typing import Optional
 
 from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
-from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools
+from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -385,6 +385,8 @@ class AgentHub:
             return await seed_tools.call(call.name, call.arguments)
         if call.name in ledger_tools.NAMES:
             return await ledger_tools.call(self.prompts, call.name, call.arguments)
+        if call.name in engine_tools.NAMES:
+            return await engine_tools.call(call.name, call.arguments)
         if call.name in image_tools.NAMES:
             return await image_tools.call(self.prompts, call.name, call.arguments)
         if call.name in video_tools.NAMES:

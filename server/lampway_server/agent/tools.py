@@ -13,6 +13,7 @@ from . import prompt_tools as pt
 from . import ledger_tools as lgt
 from . import seed_tools as sdt
 from . import image_tools as it
+from . import engine_tools as eng
 
 RUN_BLENDER_PYTHON = "run_blender_python"
 SCENE_SUMMARY = "scene_summary"
@@ -88,7 +89,7 @@ TOOLS.append(ToolSpec(
     },
 ))
 
-TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs()
+TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs()
 TOOL_NAMES = {t.name for t in TOOLS}
 
 
@@ -106,7 +107,7 @@ def script_for(name: str, arguments: dict) -> str:
         return SCENE_SUMMARY_SCRIPT
     if name == ASK_USER:
         raise UnknownTool("ask_user is answered by the user, not by Blender")
-    if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES:
+    if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES:
         raise UnknownTool(f"{name} runs on the server, not in Blender")
     if st.is_local(name):
         raise UnknownTool(f"{name} runs on the server, not in Blender")
