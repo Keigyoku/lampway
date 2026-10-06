@@ -437,3 +437,20 @@ def _mcp_actions():
 
 for _a in _mcp_actions():
     ACTIONS[_a.id] = _a
+
+
+def _register_uses() -> None:
+    """Connections' "where it is used" for every Studio action that needs a credential: REST shapes by their studio, the MCP by its sign-in,
+    the browser drivers by the tool browser's session."""
+    from ..connections import register_use
+    rest = {"meshy": "studio:meshy", "hyper3d": "studio:hyper3d", "hi3d": "studio:hi3d", "tripo": "studio:tripo_api"}
+    for aid, a in ACTIONS.items():
+        if a.driver.startswith("rest."):
+            register_use(aid, rest[a.studio], a.label)
+        elif a.driver.startswith("mcp."):
+            register_use(aid, "mcp:hyper3d", a.label)
+        elif a.studio == "tripo":
+            register_use(aid, "studio:tripo", a.label)
+
+
+_register_uses()

@@ -158,7 +158,17 @@ def register_use(use_id: str, connection: Resolver, label: str = "") -> None:
     _USES[use_id] = (connection, label or use_id)
 
 
+CONSUMERS = ("lampway_server.imagegen", "lampway_server.studios.actions")     # the modules that register their uses at import
+
+
+def _load() -> None:
+    import importlib
+    for m in CONSUMERS:
+        importlib.import_module(m)
+
+
 def connection_for(use_id: str) -> Optional[str]:
+    _load()
     entry = _USES.get(use_id)
     if entry is None:
         return None
@@ -167,6 +177,7 @@ def connection_for(use_id: str) -> Optional[str]:
 
 
 def uses_of(cid: str) -> list:
+    _load()
     out = []
     for use_id, (conn, label) in sorted(_USES.items()):
         try:
@@ -179,4 +190,5 @@ def uses_of(cid: str) -> list:
 
 
 def known_uses() -> list:
+    _load()
     return sorted(_USES)
