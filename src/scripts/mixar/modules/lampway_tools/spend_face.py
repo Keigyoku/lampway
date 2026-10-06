@@ -123,3 +123,23 @@ def state_row(state: str, approval: dict, message: str) -> dict:
                 "detail": "Its receipt was written before the request left; it is never resubmitted", "fixes": ["Show the job"], "button": ""}
     return {"state": "unknown", "glyph": "LAMPWAY_GATE", "title": f"This spend cannot go ahead: {message or 'no reason given'}",
             "detail": message or "no reason given", "fixes": ["Not now"], "button": ""}
+
+
+RULE = {"over_job_cap": "REFUSED", "past_cap": "REFUSED", "expired": "REFUSED", "unknown": "REFUSED", "agent_tried": "AGENT",
+        "spent": "SPENT"}
+
+
+def rule(state: str) -> str:
+    """The card's left rule for a state: accent while it waits (a changed price waits too), stop refused, agent, go spent."""
+    return RULE.get(state, "WAITING")
+
+
+def drawn_rows(card: dict) -> list:
+    """[(element, text)] for the drawn card (layout.mixar_spend, interface_mixar_spend_card.cc): a price packs its kind and
+    a meter its used part, pending part and whether the used part is hot, after \\x1f."""
+    rows = [("TITLE", card["title"]), ("LINE", card["origin"]), ("PRICE", f"{card['price']}\x1f{card['kind']}"),
+            ("LINE", card["source"])]
+    for m in card["meters"]:
+        rows.append(("METER", f"{m['text']}\x1f{m['used']:.4f}\x1f{m['pending']:.4f}\x1f{1 if m['used_tone'] == 'stop' else 0}"))
+    rows.append(("LINE", card["uploads"]))
+    return rows

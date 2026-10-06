@@ -35,7 +35,17 @@ def open_card(bpy, state="", message=""):
 
 
 def surfaces(bpy, dump):
-    return {}
+    popup = [w for w in dump["widgets"] if w.get("popup")]
+    out = {}
+    title = next((w for w in popup if (w.get("text") or "").startswith(("Higgsfield video", "Refused", "Past the", "The price", "Agents can", "Spent:"))), None)
+    if title:
+        x0, y0, x1, y1 = title["rect"]
+        out["card_rule"] = (x0 + 1, (y0 + y1) // 2, 1)                 # the 4 px left rule (nearest pixel in a 3x3 box)
+    spend = next((w for w in popup if w.get("op") == "LAMPWAY_OT_studio_confirm"), None)
+    if spend:
+        x0, y0, x1, y1 = spend["rect"]
+        out["spend_bed"] = (x0 + 6, (y0 + y1) // 2)
+    return out
 
 
 def regions(bpy):
@@ -45,4 +55,5 @@ def regions(bpy):
 def facts(bpy, dump):
     popup = [w for w in dump["widgets"] if w.get("popup")]
     return {"texts": [w.get("text") for w in popup if w.get("text")],
-            "spend": [(w.get("text"), w.get("enabled")) for w in popup if w.get("op") == "LAMPWAY_OT_studio_confirm"]}
+            "spend": [(w.get("text"), w.get("enabled")) for w in popup if w.get("op") == "LAMPWAY_OT_studio_confirm"],
+            "variants": [w.get("mixar_variant") for w in popup if w.get("op") == "LAMPWAY_OT_studio_confirm"]}
