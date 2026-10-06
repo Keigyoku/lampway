@@ -221,3 +221,18 @@ def reference_pack(stage, asset, approved_reference, components=None, pose="T", 
                              model_purpose, count, live, _p(image, s_.project_root), sheet_views, _generate_image, _record_ledger)
     except _RP.ReferenceRefused as exc:
         raise ValueError(str(exc)) from None
+
+
+@_export
+@tool
+def workflow_reference_to_asset(piece, reference="", route="existing", existing_object="", steps=None, gates=None, target="unreal", run=False, resume=False):
+    """One piece through the existing tools in order (prep, retopo, uv, ... export), stopping at every gate; a spend step stays blocked for the user's click;
+    every step is a row in <piece>/decisions.jsonl."""
+    import json
+    from . import api as _API
+    from .features import ref_to_asset as _RA
+    s_ = _settings()
+
+    def _call(fn, args):
+        return _API.call(fn, json.dumps(args))
+    return _RA.run(str(s_.project_root), piece, _p(reference, s_.project_root) if reference else "", route, existing_object, steps, gates, target, run, resume, _call)

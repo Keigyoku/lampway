@@ -184,4 +184,15 @@ ORPHAN_DEFS = [
          P("left_description", desc="sheet: what is on the anatomical left"), P("right_description", desc="sheet: what is on the anatomical right"),
          P("model_purpose", desc="plates (default) | concept"), P("count", "integer", "1..4, default 4"), P("live", "boolean", "really send (default a dry run)"),
          P("image", desc="audit: the candidate"), P("sheet_views", "array", "sheet: the views the sheet shows, default Front")], api="reference_pack"),
+    Def("lampway_workflow_reference_to_asset", "One piece from reference to finished asset through the existing tools IN ORDER, stopping at every gate. steps (default for "
+        "route existing: prep, retopo, uv, texture, pbr, rig, preview, export; generate/algorithmic add image and mesh first): each step is the Lampway tool of "
+        "that name on a COPY of the previous step's object, with its cost class: local steps run; a SPEND step (image, texture, a generated mesh) is never run "
+        "here: it stays blocked with the plan to make, the user's click its only confirm (gates.spend has no 'auto'). The first blocked or failed step stops the "
+        "chain. Every step appends a row to <root>/<piece>/decisions.jsonl ({id, at, step, kind, by, detail}); resume=true skips the steps already done; "
+        "workflow_report.md is the plan as a table. run=false (default) returns the plan only. Refused: route existing without existing_object, a route without "
+        "reference, an unknown step, two chains on one object at once.",
+        [P("piece", required=True), P("reference", desc="the clean reference image (generate / algorithmic)"), P("route", desc="existing (default) | generate | algorithmic"),
+         P("existing_object", desc="route existing: the mesh"), P("steps", "array", "the steps in order"), P("gates", "object", "{spend: stop}"),
+         P("target", desc="unreal (default) | unity | godot"), P("run", "boolean", "run the local steps (default: plan only)"), P("resume", "boolean", "skip the steps done")],
+        api="workflow_reference_to_asset"),
 ]
