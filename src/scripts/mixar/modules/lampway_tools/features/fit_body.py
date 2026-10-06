@@ -6,7 +6,12 @@
 
 build writes ``<out>/<sha8>/``: ``joints.json`` (parents before children, the armature's head, tail and rest axes in metres, Blender frame), ``body.npz`` (V, T of the body mesh when one is given), the
 optional ``body.glb`` and ``sidecar.json`` (the NATIVE weights, copied from a file the user's UE editor leg produced), and ``receipt.json`` with the sha256 of every file and the conventions. verify
-recomputes every hash. Only the project-native body is accepted (never a GLB copy for weights); the UE editor leg (the sidecar and helpers scripts of the user's project) is not run from here."""
+recomputes every hash. Only the project-native body is accepted (never a GLB copy for weights); the UE editor leg (the sidecar and helpers scripts of the user's project) is not run from here.
+
+The sidecar is READ at build (features/native_sidecar: titan.native-weight-sidecar/1, the engine's weights): a file that is not the
+engine's weights, or one weighted to a bone the package's skeleton lacks, is refused before anything is written; the receipt records
+its summary. The receipt also records the body mesh's state for the fit order (canon 03 G): ``closed`` (no boundary edge) and
+``head_included`` (the ``head`` joint lies inside the closed body: winding number > 0.5)."""
 
 import hashlib
 import json
@@ -17,6 +22,8 @@ import bpy
 import numpy as np
 
 from . import common as C
+from . import native_sidecar as NS
+from .. import canon_geom as G
 
 NATIVE_PREFIX = "/Game/MetaHumans/"
 NATIVE_DEFAULT = "/Game/MetaHumans/NewMetaHumanCharacter_FullBody"
@@ -59,12 +66,25 @@ def build(armature, mesh, glb, native_asset, uproject, sidecar, out, root):
         raise C.FeatureError("name the armature object whose bones are the body's joints")
     arm = C.need_object(armature, "ARMATURE")
     joints = _joints(arm)
+    side = None
+    if sidecar:
+        src = Path(root) / sidecar if not Path(sidecar).is_absolute() else Path(sidecar)
+        try:
+            side = NS.read(str(src))
+        except NS.SidecarError as e:
+            raise C.FeatureError(f"the sidecar is refused: {e}")
+        have = {j["name"] for j in joints}
+        foreign = [side.names[j] for j in range(len(side.names)) if side.W[:, j].any() and side.names[j] not in have]
+        if foreign:
+            raise C.FeatureError(f"the sidecar weights bones the package's skeleton ({armature}) does not have: {foreign[:10]} - "
+                                 "the armature must be the native skeleton")
     files = {}
     tmp = Path(root) / (out or "fit/body") / ".build"
     shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(parents=True)
     (tmp / "joints.json").write_text(json.dumps({"units": "m", "frame": "blender", "joints": joints}, indent=1))
     verts = 0
+    state = {"closed": None, "boundary_edges": None, "head_included": None, "head_joint": None}
     if mesh:
         ob = C.need_object(mesh)
         bpy.context.view_layer.update()
@@ -73,21 +93,27 @@ def build(armature, mesh, glb, native_asset, uproject, sidecar, out, root):
         T = np.array([t.vertices[:] for t in ob.data.loop_triangles])
         np.savez(tmp / "body.npz", V=V, T=T, names=np.array([j["name"] for j in joints]), J=np.array([j["head"] for j in joints]))
         verts = len(V)
+        open_edges = int(G.boundary_edges(T))
+        head = next((j for j in joints if j["name"] == "head"), None)
+        inside = bool(head is not None and open_edges == 0 and G.winding_numbers(V, T, np.array([head["head"]]))[0] > 0.5)
+        state = {"closed": open_edges == 0, "boundary_edges": open_edges, "head_included": inside, "head_joint": head and head["name"]}
     if glb:
         src = Path(root) / glb if not Path(glb).is_absolute() else Path(glb)
         if not src.exists():
             raise C.FeatureError(f"{glb} not found")
         shutil.copy(src, tmp / "body.glb")
     sidecar_vertices = 0
-    if sidecar:
-        src = Path(root) / sidecar if not Path(sidecar).is_absolute() else Path(sidecar)
-        data = json.loads(src.read_text())
-        sidecar_vertices = int(len(data.get("vertices", data.get("rest_positions", []))))
+    side_summary = None
+    if side is not None:
+        sidecar_vertices = int(len(side.ids))
+        side_summary = {"schema": NS.SCHEMA, "vertices": sidecar_vertices, "triangles": int(len(side.T)), "bones": len(side.names),
+                        "root_bone": side.root_bone, "dropped_triangles": side.dropped_triangles, "reoriented": side.reoriented}
         shutil.copy(src, tmp / "sidecar.json")
     for f in sorted(tmp.iterdir()):
         files[f.name] = _sha(f)
     pkg_sha = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
     receipt = {"package_sha256": pkg_sha, "files": files, "joints": len(joints), "vertices": verts, "sidecar_vertices": sidecar_vertices, "native_asset": native_asset or NATIVE_DEFAULT,
+               "sidecar": side_summary, "body": state,
                "conventions": CONVENTIONS, "weights": "native sidecar" if sidecar else "none: weights come from the native asset (pass sidecar=)"}
     (tmp / "receipt.json").write_text(json.dumps(receipt, indent=1))
     final = Path(root) / (out or "fit/body") / pkg_sha[:8]
@@ -107,7 +133,8 @@ def verify(package):
     bad = [n for n, h in receipt["files"].items() if not (pkg / n).exists() or _sha(pkg / n) != h]
     if bad:
         raise C.FeatureError(f"the body asset changed: rebuild the package (these files no longer match their hash: {bad})")
-    return {"ok": True, "package": str(pkg), "files": len(receipt["files"]), "joints": receipt["joints"], "package_sha256": receipt["package_sha256"]}
+    return {"ok": True, "package": str(pkg), "files": len(receipt["files"]), "joints": receipt["joints"], "package_sha256": receipt["package_sha256"],
+            "body": receipt.get("body"), "sidecar": "sidecar.json" in receipt["files"]}
 
 
 def need_weights(package):

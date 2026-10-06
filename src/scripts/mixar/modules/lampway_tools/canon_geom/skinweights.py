@@ -12,7 +12,11 @@
   and both copies carry bit-identical rows (golden C04). Weld only generated armour (canon 01 D.2).
 * ``dress``: CC5's Dress template by rule (pelvis alone above the hips, the thighs to ``follow`` at the hem by smoothstep).
 * ``falloff_weights``: continuous in position - every bone within ``margin`` of the nearest takes (1 - excess/margin)^2.
-* ``band_weights``: the seam band - the blend across a cut as a function of POSITION alone (smoothstep over ``width``)."""
+* ``band_weights``: the seam band - the blend across a cut as a function of POSITION alone (smoothstep over ``width``).
+* ``rigid_blend``: a hard part fused to cloth/leather (B.5) - each rigid part's rigidity smoothstep(1 - d/fade) takes its bone,
+  the field keeps what remains; the STRICT form (Titan hand_pose.rigid_blend_strict): two different anchors at one point refuse."""
+
+import math
 
 import fnmatch
 
@@ -161,3 +165,39 @@ def band_weights(V, cut_point, axis, width):
     u = np.clip((s + width / 2) / width, 0, 1)
     ahead = u * u * (3 - 2 * u)
     return np.stack([1 - ahead, ahead], 1)
+
+
+def rigid_blend(field, near, fade):
+    """{bone: weight}: canon 07 B.5, ported from Titan hand_pose.rigid_blend_strict. ``near`` = {bone: distance to the nearest
+    rigid part riding it}; each part's rigidity r = smoothstep(1 - d / fade); a bone's mass is r_b * prod(1 - r_other), the field's
+    prod(1 - r_all), normalised. Exactly on a part (and at its seam, d = 0) only that part's bone survives; past ``fade``, the field.
+    Two different bones anchored at one point (r = 1) are refused, never deformed both."""
+    if not math.isfinite(fade) or fade <= 0:
+        raise ValueError("rigidity fade must be positive and finite")
+    if any(not math.isfinite(x) or x < 0 for x in field.values()):
+        raise ValueError("field weights must be finite and nonnegative")
+    r = {}
+    for bone, distance in sorted(near.items()):
+        if not math.isfinite(distance) or distance < 0:
+            raise ValueError("rigid part distances must be finite and nonnegative")
+        x = min(1.0, max(0.0, 1.0 - distance / fade))
+        value = x * x * (3.0 - 2.0 * x)
+        if value > 0:
+            r[bone] = value
+    anchors = [bone for bone, value in r.items() if value == 1.0]
+    if len(anchors) > 1:
+        raise ValueError("conflicting rigid anchors: " + ", ".join(anchors))
+    if anchors:
+        return {anchors[0]: 1.0}
+    field_mass = math.prod(1.0 - value for value in r.values())
+    w = {bone: value * math.prod(1.0 - other for name, other in r.items() if name != bone) for bone, value in r.items()}
+    if field_mass:
+        total_field = sum(field.values())
+        if total_field <= 0:
+            raise ValueError("a point off every rigid part has no field weight")
+        for bone, value in field.items():
+            w[bone] = w.get(bone, 0.0) + field_mass * value / total_field
+    total = sum(w.values())
+    if not math.isfinite(total) or total <= 0:
+        raise ValueError("rigidity blend has no finite positive mass")
+    return {bone: value / total for bone, value in sorted(w.items()) if value > 0}

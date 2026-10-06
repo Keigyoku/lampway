@@ -167,3 +167,21 @@ def test_g07_6_falsifier_the_two_nearest_rule_jumps():
 def test_falloff_is_the_nearest_bone_alone_out_of_reach():
     segs = {"a": ((0.0, 0, 0), (0.0, 0, 1)), "b": ((0.1, 0, 0), (0.1, 0, 1))}
     assert G.falloff_weights((0.01, 0, 0.5), segs, 0.006) == {"a": 1.0}
+
+
+# ------------------------------------------------------------------ canon 07 B.5: rigid parts fused to cloth/leather (Titan hand_pose)
+def test_b5_the_rigidity_eases_in_by_smoothstep_over_the_fade():
+    w = G.rigid_blend({"index_03": 1.0}, {"index_02": 0.00125}, fade=0.005)          # a quarter of the fade: smoothstep(0.75)
+    assert w["index_02"] == pytest.approx(0.84375, abs=1e-12) and w["index_03"] == pytest.approx(0.15625, abs=1e-12)
+
+
+def test_b5_on_the_plate_and_at_its_seam_the_plates_bone_alone_past_the_fade_the_field():
+    assert G.rigid_blend({"spine_03": 0.5, "spine_01": 0.5}, {"spine_01": 0.0}, fade=0.005) == {"spine_01": 1.0}
+    assert G.rigid_blend({"spine_03": 0.25, "spine_01": 0.75}, {"pelvis": 0.006}, fade=0.005) == {"spine_01": 0.75, "spine_03": 0.25}
+
+
+def test_b5_strict_two_different_rigid_anchors_at_one_point_are_refused():
+    with pytest.raises(ValueError, match="conflicting rigid anchors"):
+        G.rigid_blend({"spine_03": 1.0}, {"spine_01": 0.0, "pelvis": 0.0}, fade=0.005)
+    with pytest.raises(ValueError, match="fade"):
+        G.rigid_blend({"spine_03": 1.0}, {"spine_01": 0.0}, fade=0.0)
