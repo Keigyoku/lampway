@@ -151,3 +151,15 @@ def test_the_poll_is_fast_only_while_a_route_is_on():
     assert S.poll_interval() == 5.0
     S.update(egress={"routes": [{"id": "fal", "label": "fal.ai", "enabled": True}], "indicator": {"over_the_wire": False, "active": []}}, spend=SPEND, studio={})
     assert S.poll_interval() == 0.5
+
+
+def test_the_plug_beside_the_wire_chip_opens_connections(statusbar):
+    """specs/connections/connections_face.md section 3: the plug glyph beside the wire chip opens Connections, server up or not."""
+    for fail in (False, True):
+        S.update(egress=EGRESS_IDLE, spend=SPEND, studio={})
+        if fail:
+            S.fail("down")
+        layout = Recorder()
+        statusbar.draw(SimpleNamespace(layout=layout), SimpleNamespace())
+        ops = [e[1] for e in layout.log if e[0] == "op"]
+        assert "lampway.connections_open" in ops, layout.log

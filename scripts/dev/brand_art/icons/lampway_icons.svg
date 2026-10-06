@@ -93,5 +93,8 @@
 <symbol id="meter-8" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="8.8" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
 <symbol id="meter-9" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="9.9" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
 <symbol id="meter-10" viewBox="0 0 16 16"><rect x="1.4" y="6.2" width="13.2" height="3.6" rx="1.8"/><rect x="2.5" y="7.1" width="11.0" height="1.8" rx=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="ring-open" viewBox="0 0 16 16"><path d="M9.54 3.77A4.5 4.5 0 1 1 6.46 3.77"/></symbol>
+<symbol id="ring-dashed" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5" stroke-dasharray="2.2 1.9"/></symbol>
+<symbol id="tri-small" viewBox="0 0 16 16"><path d="M12.4 9.4 15.2 14.4H9.6z" fill="currentColor"/></symbol>
 <symbol id="generate" viewBox="0 0 16 16"><path d="M10.4 2.6H3.4a1.6 1.6 0 0 0-1.6 1.6v7a1.6 1.6 0 0 0 1.6 1.6h4.2"/><path d="M1.8 10.4 5 7.4l2.6 2.4"/><circle cx="9" cy="5.6" r="1"/><path d="M12.4 8.8v5.6M9.6 11.6h5.6"/></symbol>
 </svg>

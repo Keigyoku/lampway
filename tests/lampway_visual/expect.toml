@@ -110,3 +110,11 @@ theme = "dark"
 [spend_spent]
 theme = "dark"
 [spend_spent.surfaces]
+
+[connections_missing]
+theme = "dark"
+[connections_missing.surfaces]
+
+[connections_waiting]
+theme = "dark"
+[connections_waiting.surfaces]

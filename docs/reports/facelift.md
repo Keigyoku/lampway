@@ -588,6 +588,35 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   read-at time, so the card says "uploads: not reported by the server" and "Read back from <studio>" without a time.
   The day cap is the server's session cap (Lampway keeps no day total), and the card says so.
 
+## Coordinator addition: the Connections window (P0, `specs/connections/connections_face.md`)
+
+- **Against the contract, not yet the server**: the hub's routes live on `origin/lp/connections` (`connections/routes.py`),
+  which `origin/lp/wave5` has not merged; the client speaks those routes (`connections_client.py`, read from that
+  branch's code) and every test uses a fake client. Nothing was run against a live hub.
+- **Words and cues** (`connections_face.py`, no bpy): one glyph per state, readable in greyscale (connected, connected
+  with a warning, not checked, signed out, expired, not connected, error, and the hand for a sign-in waiting on the
+  browser, the only lit row); "route off" is the route column and a word on hover, never a colour on the glyph; the
+  one action that clears the state (Test, Sign in with <label>, Paste a key); the list in the contract's group order
+  with source and check age on hover; Sign out only for a login Lampway holds, Forget only for a key or pointer it holds.
+  It reads only an allow-list of view fields, so a planted secret in any other field never reaches a word. The cue
+  family is in `tokens.json` (`check_cues.py`: rest state "connected"; the warning row is coloured by its accent
+  triangle, which is the distinguishing mark) and the eight glyphs are preview-only icons rendered by
+  `lampway_icons.py` from the sheet (new symbols `ring-open`, `ring-dashed`, `tri-small`; no native rebuild), plus a
+  `plug` preview.
+- **The window** (`ui/connections.py`): a pop-out and Preferences > Interface > Connections, one drawing; the status
+  bar has a plug beside the wire chip that opens it (server up or down). The pasted key is a WindowManager
+  `PASSWORD`, `SKIP_SAVE`, `HIDDEN` field, emptied after the request whatever it returned; refusals are drawn under the
+  field; every write refuses while a script runs; the window links to Privacy and has no route switch.
+- Tests: `tests/lampway/test_lampway_connections_face.py` (10; RED observed: the module missing, then the route word,
+  the foot rule), `tests/lampway_tools/test_lampway_connections_live.py` (5, real binary; mutation-checked: without
+  the `finally` the secret-cleared test fails, without the gate the script test fails),
+  `tests/lampway/test_statusbar.py::test_the_plug_beside_the_wire_chip_opens_connections` (RED observed), and
+  `tests/lampway_visual/test_connections_window.py` (a missing row with the paste field, which the QA dump reports as
+  secret; a sign-in waiting).
+- **Not done**: test 9 (an agent card's `needs_connection` button: the cards are native, contract 05); the expander's
+  Used by, other sources, history and Rotate (only Move into keyring is there); the Studios accounts lines and the
+  Privacy rows reading Connections; the splash's fifth cue; captures against `mockups/16-connections.html`.
+
 ## Which build is in `build/Prod`
 
 The coordinator's rule from here on: `build/Prod` is built from a clean tree at a pushed sha, and that sha is written to

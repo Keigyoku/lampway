@@ -92,6 +92,7 @@ def draw(self, context):
     if not S.STATE["ok"]:
         row.label(text="spend unknown: server not running", icon='LAMPWAY_COIN')
         row.label(text="egress unknown", icon='LAMPWAY_WIRE')
+        _plug(row)
         return   # the version is the status bar's own (Blender draws it at the far right)
     count = S.waiting()
     if count:
@@ -105,6 +106,12 @@ def draw(self, context):
     if glyph == "wire_dot":
         glyph = "wire_dot_b" if FRAME["b"] else "wire_dot_a"
     row.operator("lampway.status_wire", text=chip, icon_value=preview(glyph), emboss=False)
+    _plug(row)
+
+
+def _plug(row):
+    """Connections, beside the wire chip (specs/connections/connections_face.md 3): which accounts work, and which may send."""
+    row.operator("lampway.connections_open", text="", icon_value=preview("plug"), emboss=False)
 
 
 class LAMPWAY_OT_status_waiting(Operator):
