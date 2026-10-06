@@ -269,7 +269,23 @@ Items O2 to O15 were reported to the coordinator as they landed; their notes are
 
 ## Test totals against the baseline
 
-(Filled from the HEAD run; see the section below.)
+Baseline = origin/lp/wave5 `00d907d4` (unchanged through the lane), both suites run on a detached worktree with a copy of the same
+binary; HEAD runs used this lane's binary (`LAMPWAY_BIN`), `--basetemp` under the lane's scratch, deleted after reading.
+
+| suite | baseline 00d907d4 | HEAD 2dcba1fc | delta |
+|---|---|---|---|
+| server (`server/tests`) | 1069 passed, 6 skipped, 0 failed | 1164 passed, 6 skipped, 0 failed | +95 passed |
+| client (repo root, `--continue-on-collection-errors`) | 7904 passed, 123 failed, 75 skipped, 20 errors | 8074 passed, 124 failed, 76 skipped, 20 errors | +170 passed; 1 new failure |
+
+- The 123 baseline failures and 20 collection errors (no `mcp` module in the venv, among others) are pre-existing: the failure
+  list at HEAD equals the baseline list exactly, except for one new row, which was mine.
+- The new row was `test_tool_smoke.py::test_a_tool_with_no_arguments_shows_its_home_view[export_parts]`. The shelf's export_parts
+  had no AXI prelude by design; Lampway's runner contract needs one. Fixed in the commit after this report: an AXI prelude, no
+  args shows the home view.
+  - After the fix, `test_tool_smoke.py` and `test_orphans_parts_publish.py` pass in full (29 passed, 7 skipped: the science tools,
+    no science python).
+  - The full client suite was NOT re-run after that one-file fix.
+- Intermediate run at 35995a42: server 1097 passed, client failure set identical to the baseline.
 
 ## Merge notes for the integrator
 

@@ -23,6 +23,16 @@
 # so the GLB node and mesh are named exactly the part id (a long-lived session gave .001/.002 names and session-dependent bytes).
 # Background: blender -b <votes.blend> -P export_parts.py -- <object> <owner.npy> <recipe.json> <out_dir> <item> <source_sha256> <set_version>
 # Live:       exec(open(path).read()); export_set(obj_name, owner, recipe, out, item, src_sha, set_version)
+# --- AXI prelude (tools/AXI.md): no args shows what this is; too few args refuses on stdout (script runs only, never on import or exec) ---
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax
+_A = (_sys.argv[_sys.argv.index('--') + 1:] if '--' in _sys.argv else [])
+_USE = 'blender -b -P scripts/partseg/export_parts.py -- <mesh.blend|glb|fbx> <object> <owner.npy> <recipe.json> <out_dir> <item> <source_sha256> <set_version>'
+if __name__ == '__main__' and len(_A) < 8:
+    if not _A: _ax.home(__file__, 'Export a finished part set as Parts Library candidates: one GLB + part.json per part, versions never overwritten')
+    else: print(f'error: {len(_A)} argument(s); at least 8 needed')
+    _ax.helps([_USE]); _sys.stdout.flush(); raise SystemExit(0 if not _A else 1)
+# --- end AXI prelude ---
 import bpy, bmesh, sys, os, re, json, hashlib, numpy as np
 
 h = lambda p: hashlib.sha256(open(p, 'rb').read()).hexdigest()
