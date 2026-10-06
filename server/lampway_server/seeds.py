@@ -24,7 +24,7 @@ SCHEMA = """CREATE TABLE IF NOT EXISTS seeds (
   id TEXT PRIMARY KEY, piece TEXT, kind TEXT, parent_id TEXT, project_id TEXT, created_at INTEGER, topology TEXT, faces INTEGER,
   url TEXT, file TEXT, sha256 TEXT, bytes INTEGER, plates_json TEXT, score_rms REAL, score_json TEXT, verdict TEXT, verdict_note TEXT,
   audit_path TEXT, added_at INTEGER, source TEXT)"""
-EXTRA = {"stage": "TEXT", "model_version": "TEXT", "settings_json": "TEXT", "seed": "TEXT"}
+EXTRA = {"stage": "TEXT", "model_version": "TEXT", "settings_json": "TEXT", "seed": "TEXT", "studio": "TEXT", "action": "TEXT"}
 _UUID = re.compile(r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})")
 
 
@@ -183,6 +183,45 @@ class Catalog:
         row = dict(self._one(c, prefix))
         c.close()
         return row
+
+    # ------------------------------------------------------------------ versions (cross-studio passes, crosspass.py)
+    def add_version(self, parent_id, piece: str, file: str, studio: str, action: str, root: bool = False, settings: Optional[dict] = None) -> dict:
+        """One version of a piece made by ``action`` in ``studio``: a child of ``parent_id`` (``root`` only for a source with no parent). Its sha256 equal to its
+        parent's flags a no-op pass. A decisions.jsonl row records it."""
+        import uuid
+        if not root and not parent_id:
+            raise SeedError("lineage requires parent_id: record the source version first")
+        f = Path(file)
+        if not f.exists():
+            raise SeedError(f"{file} not found")
+        sha = _sha(f)
+        with self._locked():
+            c = self._con()
+            parent = None
+            if parent_id:
+                rows = c.execute("SELECT * FROM seeds WHERE id = ?", (parent_id,)).fetchall()
+                if len(rows) != 1:
+                    c.close()
+                    raise SeedError(f"no seed {parent_id!r} to be the parent: record the source version first")
+                parent = dict(rows[0])
+            row = dict(id=str(uuid.uuid4()), piece=piece, kind="source" if root else "cross_pass", parent_id=parent_id or None, file=str(f.resolve()), sha256=sha,
+                       bytes=f.stat().st_size, created_at=int(time.time()), studio=studio, action=action, stage="mesh", seed="not_exposed",
+                       settings_json=json.dumps(settings) if settings else None, source=f"studio:{studio}")
+            self._upsert(c, row)
+            c.commit()
+            c.close()
+        no_op = bool(parent and parent.get("sha256") == sha)
+        self.decisions.parent.mkdir(parents=True, exist_ok=True)
+        with self.decisions.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps({"kind": "cross_pass", "t": time.time(), "id": row["id"], "parent_id": parent_id or None, "studio": studio, "action": action,
+                                 "sha256": sha, "no_op_pass": no_op}) + "\n")
+        return {**row, "no_op_pass": no_op}
+
+    def get(self, seed_id: str) -> Optional[dict]:
+        c = self._con()
+        rows = c.execute("SELECT * FROM seeds WHERE id = ?", (seed_id,)).fetchall()
+        c.close()
+        return dict(rows[0]) if rows else None
 
     # ------------------------------------------------------------------ verdicts
     def verdict(self, prefix: str, verdict: str, note: str = "", audit: str = "", by: str = "agent") -> dict:

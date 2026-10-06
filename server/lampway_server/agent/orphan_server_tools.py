@@ -25,6 +25,17 @@ def specs() -> list:
                  _obj({"action": {"type": "string", "description": "list | show | record | expire"}, "slot": {"type": "string"},
                        "row": {"type": "object", "description": "record: {evidence, driver_exists, eligibility, price_read_back, read_back_at, source}"},
                        "family": {"type": "string"}, "runnable_only": {"type": "boolean"}}, ["action"])),
+        ToolSpec("lampway_studio_cross_pass", "Use one Studio's tool on another Studio's mesh, recorded as lineage in the ONE seed catalogue. verb plan: the mesh "
+                 "(a saved copy, never the original) goes to a MESH-TAKING action of to_studio (meshy.remesh | meshy.uv_unwrap | meshy.retexture | hyper3d.texture_only | "
+                 "hyper3d.bang | hi3d.texture_only | hi3d.split | tripo.rest.texture | tripo.rest.decimate) through that Studio's own plan: its price is read back and "
+                 "only the user confirms it in the Studios panel; needs parent_id (the source's catalogue id). A Tripo Studio browser action has no upload verb: "
+                 "refused, never assumed. verb record: after the confirmed job, its result file becomes a child version (parent_id, studio, action, piece; root=true "
+                 "only for a first source); a result identical to its parent is flagged no_op_pass. verb lineage (id): the chain of versions A -> B -> A. The "
+                 "proportion score of a result is the proportion tools' (then seed_catalog ingest_scores).",
+                 _obj({"verb": {"type": "string", "description": "plan | record | lineage"}, "mesh": {"type": "string"}, "from_studio": {"type": "string"},
+                       "to_studio": {"type": "string"}, "action": {"type": "string"}, "args": {"type": "object"}, "parent_id": {"type": "string"},
+                       "file": {"type": "string"}, "studio": {"type": "string"}, "piece": {"type": "string"}, "root": {"type": "boolean"}, "id": {"type": "string"}},
+                      ["verb"])),
     ]
 
 
@@ -49,5 +60,26 @@ async def call(hub, name: str, arguments: dict) -> tuple:
                 return json.dumps({"row": reg.expire(str(a.get("slot") or ""), by="agent")}), False
             return "action is list | show | record | expire", True
         except SL.SlotError as exc:
+            return str(exc), True
+    if name == "lampway_studio_cross_pass":
+        from .. import crosspass as XP
+        from ..seeds import Catalog
+        from . import server_tools as SVT
+        verb = a.get("verb")
+        try:
+            cp = XP.CrossPass(Catalog(), getattr(hub, "studio", None))
+            if verb == "plan":
+                if cp.studio is None:
+                    return "the Studio service is not available on this server", True
+                return json.dumps(await cp.plan(str(a.get("mesh") or ""), str(a.get("from_studio") or ""), str(a.get("to_studio") or ""), str(a.get("action") or ""),
+                                                a.get("args") or {}, str(a.get("parent_id") or ""), "agent"), default=str), False
+            if verb == "record":
+                row = await asyncio.to_thread(cp.record, str(a.get("parent_id") or ""), str(a.get("piece") or ""), SVT.jail(str(a.get("file") or "")),
+                                              str(a.get("studio") or ""), str(a.get("action") or ""), bool(a.get("root")))
+                return json.dumps({"row": row}), False
+            if verb == "lineage":
+                return json.dumps({"chain": XP.lineage(cp.cat, str(a.get("id") or ""))}), False
+            return "verb is plan | record | lineage", True
+        except (XP.CrossPassError, SVT.BadToolCall, ValueError) as exc:
             return str(exc), True
     return f"unknown orphan server tool {name!r}", True
