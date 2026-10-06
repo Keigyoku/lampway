@@ -9,6 +9,7 @@ import pytest
 
 from lampway_server.agent import lampway_tools as LT
 from lampway_server.agent import tools as T
+from lampway_server.agent import plan_tools as PLAN_TOOLS
 
 
 def args_of(script):
@@ -91,7 +92,7 @@ def test_the_system_prompt_names_the_workflow():
         assert needle in SYSTEM_PROMPT
 
 
-EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_asset_search", "lampway_agent_files", "lampway_skills_list", "lampway_skill_read", "lampway_note_write"}          # server-run tools added since the explicit list above
+EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_asset_search", "lampway_agent_files", "lampway_skills_list", "lampway_skill_read", "lampway_note_write"} | PLAN_TOOLS.NAMES   # server-run tools added since the explicit list above; the Wave 6 planners come from their own module's NAMES
 
 
 def test_every_tool_script_passes_the_clients_sandbox_dunder_rules():
