@@ -350,6 +350,16 @@ class LAMPWAY_PT_cockpit(Panel):
         row = layout.row(align=True)
         row.operator("lampway.wb_refresh", icon="FILE_REFRESH")
         row.operator("lampway.wb_reconcile", icon="CHECKMARK")
+        layout.operator("lampway.wb_page_open", text="Cockpit window", icon="WINDOW")
+        term = layout.box()
+        term.label(text=workbench_state.terminal_line(), icon="CONSOLE")
+        t = st.get("terminal") or {}
+        if not t.get("installed"):
+            term.operator("lampway.terminal_get", text="Get the Lampway terminal", icon="IMPORT")
+        else:
+            trow = term.row(align=True)
+            trow.operator("lampway.terminal_open", text="Open", icon="WINDOW")
+            trow.operator("lampway.terminal_remove", text="Remove", icon="TRASH")
         layout.label(text=workbench_state.summary_line(), icon="CHECKMARK" if st["server"].get("running") else "ERROR")
         if st["error"]:
             for line in textwrap.wrap(st["error"], 46)[:4]:
@@ -360,7 +370,12 @@ class LAMPWAY_PT_cockpit(Panel):
             layout.operator("lampway.wb_new", icon="ADD")
         for s in st["sessions"]:
             box = layout.box()
-            box.label(text=f"{s['name']} ({s['agent']})  [{', '.join(workbench_state.chips(s))}]", icon="TEXT")
+            try:
+                from mixar.modules.common.lampway_icons import icon_id
+                spark = icon_id(workbench_state.spark(s), 16)
+            except Exception:  # noqa: BLE001  (a headless run has no previews)
+                spark = 0
+            box.label(text=f"{s['name']} ({s['agent']})  [{', '.join(workbench_state.chips(s))}]", icon_value=spark)
             if s.get("state") == "live":
                 r = box.row(align=True)
                 r.operator("lampway.wb_read_to_text", text="Read").session_id = s["id"]

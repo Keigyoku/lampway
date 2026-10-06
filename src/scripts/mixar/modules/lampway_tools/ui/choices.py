@@ -322,7 +322,7 @@ def _detail(layout):
     proposals = [p for p in st["proposals"] if p.get("purpose") == pid and p.get("state") == "open"]
     for p in proposals:
         box = layout.box()
-        box.label(text=f"The agent proposes {p.get('option')}: {p.get('why') or ''}".rstrip(": "), icon_value=_preview("conn_waiting"))
+        box.label(text=choices_face.proposal_line(p), icon_value=_preview("conn_waiting"))
         row = box.row(align=True)
         acc = row.operator("lampway.choices_proposal_accept", text="Accept for this project", depress=True)
         acc.proposal, acc.scope = p["id"], "project"
@@ -364,7 +364,7 @@ def _detail(layout):
                 op = sk.operator(row["fix"]["op"], text=row["fix"]["label"], emboss=False)
                 if row["fix"].get("connection"):
                     op.connection = row["fix"]["connection"]
-        elif o.get("retention") == "kept" and not row["ack"]:
+        elif choices_face.kept(o.get("retention") or "") and not row["ack"]:
             allow = layout.operator("lampway.choices_acknowledge", text=f"Allow private content to {row['name']}", emboss=False)
             allow.option, allow.private = row["id"], True
     if "project" in (view.get("scopes") or {}):

@@ -799,10 +799,99 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except _HL.HerdrError as exc:
             return _wb_err(exc)
 
+    wb_last_reconcile: dict = {}
+
     async def wb_reconcile(request: Request):
         if (r := _wb(request)) is not None:
             return r
-        return JSONResponse(await asyncio.to_thread(cockpit.reconcile))
+        out = await asyncio.to_thread(cockpit.reconcile)
+        wb_last_reconcile.clear()
+        wb_last_reconcile.update(out)
+        return JSONResponse(out)
+
+    # ---- the Lampway terminal (facelift contract 16): an optional WezTerm add-on; every write is the user's, never an agent's
+    def _term_home():
+        return Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir)
+
+    def _term_guard(request, write=False):
+        if (r := _wb(request)) is not None:
+            return r
+        if write and request.headers.get("x-lampway-origin", "").lower() == "agent":
+            return JSONResponse({"detail": "only your click installs, opens or removes the Lampway terminal"}, status_code=403)
+        return None
+
+    async def terminal_status(request: Request):
+        if (r := _term_guard(request)) is not None:
+            return r
+        from .addons import wezterm as _WZ
+        home = _term_home()
+        exe = _WZ.binary(home)
+        try:
+            pin = _WZ.pin_for(_WZ.platform_key())
+        except _WZ.TerminalRefused as exc:
+            pin = {"refused": str(exc)}
+        state = await asyncio.to_thread(_WZ.reconcile, home, str(exe)) if exe else {"window": "gone", "panes": [], "foreign_panes": []}
+        return JSONResponse({"installed": bool(exe), "binary": str(exe) if exe else None, "pin": {k: pin.get(k) for k in ("version", "bytes", "refused")},
+                             **state})
+
+    async def terminal_get(request: Request):
+        if (r := _term_guard(request, True)) is not None:
+            return r
+        from .addons import wezterm as _WZ
+        try:
+            return JSONResponse(await asyncio.to_thread(_WZ.get, _term_home(), _WZ.pin_for(_WZ.platform_key())))
+        except (_WZ.TerminalRefused, _EG.EgressRefused) as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=409)
+
+    async def terminal_open(request: Request):
+        if (r := _term_guard(request, True)) is not None:
+            return r
+        from .addons import wezterm as _WZ
+        home = _term_home()
+        exe = _WZ.binary(home)
+        if not exe:
+            return JSONResponse({"detail": "the Lampway terminal is not installed: Get it first (about 49 MB from github.com)"}, status_code=409)
+        body = await _json_body(request)
+        try:
+            boot = [_HL.bin_path(), "session", "attach", "lampway"]
+        except _HL.HerdrError:
+            boot = None
+        try:
+            return JSONResponse(await asyncio.to_thread(_WZ.launch, home, str(exe), cockpit.root, body.get("position"), True, boot))
+        except _WZ.TerminalRefused as exc:
+            return JSONResponse({"detail": str(exc)}, status_code=409)
+
+    async def terminal_remove(request: Request):
+        if (r := _term_guard(request, True)) is not None:
+            return r
+        from .addons import wezterm as _WZ
+        return JSONResponse(await asyncio.to_thread(_WZ.remove, _term_home()))
+
+    routes += [Route("/app/terminal", terminal_status, methods=["GET"]), Route("/app/terminal/get", terminal_get, methods=["POST"]),
+               Route("/app/terminal/open", terminal_open, methods=["POST"]), Route("/app/terminal/remove", terminal_remove, methods=["POST"])]
+
+    # ---- the cockpit window (facelift contract 10): a static page from this origin only; its data behind the bearer
+    _WB_PAGE = Path(__file__).resolve().parent / "web" / "workbench"
+    _WB_STATIC = {"cockpit.js": "text/javascript", "cockpit.css": "text/css", "tokens.css": "text/css"}
+    _WB_CSP = ("default-src 'self'; connect-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+               "frame-src http://127.0.0.1:* http://localhost:*; base-uri 'none'; form-action 'none'")
+
+    async def wb_page(request: Request):
+        return HTMLResponse((_WB_PAGE / "index.html").read_text(encoding="utf-8"), headers={"Content-Security-Policy": _WB_CSP, "Cache-Control": "no-store"})
+
+    async def wb_static(request: Request):
+        name = request.path_params["name"]
+        if name not in _WB_STATIC:
+            return JSONResponse({"detail": "not found"}, status_code=404)
+        return Response((_WB_PAGE / name).read_bytes(), media_type=_WB_STATIC[name], headers={"Cache-Control": "no-store"})
+
+    async def wb_view(request: Request):
+        if (r := _wb(request)) is not None:
+            return r
+        from . import workbench_view as _WV
+        status = await asyncio.to_thread(_HL.server_status, cockpit.root)
+        home = {"server": {"running": bool(status.get("running"))}, "sessions": cockpit.list_sessions()}
+        return JSONResponse(_WV.view(home, dict(wb_last_reconcile) or None))
 
     async def wb_create(request: Request):
         if (r := _wb(request)) is not None:
@@ -861,7 +950,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
             return _wb_err(exc)
 
     routes += [Route("/app/mcp/inventory", mcp_inventory_get, methods=["GET"]), Route("/app/mcp/check", mcp_check_post, methods=["POST"]), Route("/app/egress", egress_state, methods=["GET"]), Route("/app/egress/route", egress_route, methods=["POST"]), Route("/app/egress/override", egress_override, methods=["POST", "DELETE"]),
-               Route("/app/egress/log", egress_log, methods=["GET"]), Route("/app/egress/export", egress_export, methods=["GET"]), Route("/app/video/ingest", video_ingest, methods=["POST"]), Route("/app/workbench", wb_home, methods=["GET"]), Route("/app/workbench/server/start", wb_server_start, methods=["POST"]),
+               Route("/app/egress/log", egress_log, methods=["GET"]), Route("/app/egress/export", egress_export, methods=["GET"]), Route("/app/video/ingest", video_ingest, methods=["POST"]), Route("/app/workbench", wb_home, methods=["GET"]), Route("/app/workbench/page", wb_page, methods=["GET"]),
+               Route("/app/workbench/static/{name}", wb_static, methods=["GET"]), Route("/app/workbench/view", wb_view, methods=["GET"]), Route("/app/workbench/server/start", wb_server_start, methods=["POST"]),
                Route("/app/workbench/server/stop", wb_server_stop, methods=["POST"]), Route("/app/workbench/reconcile", wb_reconcile, methods=["POST"]),
                Route("/app/workbench/sessions", wb_create, methods=["POST"]), Route("/app/workbench/sessions/{sid}/screen", wb_screen, methods=["GET"]),
                Route("/app/workbench/sessions/{sid}/input", wb_input, methods=["POST"]), Route("/app/workbench/sessions/{sid}/close", wb_close, methods=["POST"]),

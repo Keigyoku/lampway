@@ -62,8 +62,8 @@ def test_the_panel_draws_the_rows_and_chips_with_zero_network_calls(tmp_path):
 workbench_state.update({"server": {"running": True, "method": "systemd"}, "sessions": SESSIONS, "offered": []})
 class Rec:
     def __init__(self, log): self.log = log
-    def label(self, text="", icon=""): self.log.append(text)
-    def operator(self, idname, text="", icon=""): self.log.append("op:" + idname); return type("P", (), {})()
+    def label(self, text="", icon="", **k): self.log.append(text)   # contract 10: the row's Spark is an icon_value
+    def operator(self, idname, text="", icon="", **k): self.log.append("op:" + idname); return type("P", (), {})()
     def row(self, align=False): return self
     def box(self): return self
     def column(self, align=False): return self

@@ -99,6 +99,8 @@ LAUNCHES: dict = {
     "videoingest.py:_run": ("callers_guard", "yt-dlp; its only caller, ingest, holds guard(video_link) around every call"),
     "videoingest.py:probe": ("local", "ffprobe on the downloaded local file"),
     "videojobs.py:probe_video": ("local", "ffprobe on a local clip"),
+    "addons/wezterm.py:launch": ("local", "Lampway's own WezTerm window (facelift contract 16): a local GUI process; its config sets check_for_updates = false"),
+    "addons/wezterm.py:cli": ("local", "wezterm cli against Lampway's own window and socket: local IPC"),
 }
 WRAPPERS = {"compute/boat.py:default_runner": ("BoatCliBackend._cli", "runner"), "studios/service.py:default_execute": ("_gated_execute", "execute")}
 
