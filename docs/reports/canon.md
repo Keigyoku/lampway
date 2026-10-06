@@ -343,7 +343,13 @@ None touches a file this lane changed.
   G14.1 on golden C10: the 7 analytic samples within 0.02; DX = GL with green flipped (< 1e-4). RED: bit depth 8.
   Mutants: no flip fails; **8-bit levels in a 16-bit container SURVIVED the first test** (it read the header only) - the test now
   also requires more than 256 distinct levels (the mutant has 69).
-- Not built: the per-texel hit mask, bake groups, `bake.json`, hash dirs. **Defect found and FIXED after:** `attach` wired the
+- **Built after (b6e6ef8f): the per-texel hit mask and `bake.json`** (canon 14 B.7). Cycles has no hit pass, so the worker bakes the
+  donors once more as constant white EMISSION with the same cage and ray and no margin: a texel no ray reached stays black. The
+  result carries `hit_mask` (8-bit PNG), `checks.hit_fraction` over the UV-covered texels, and `bake_json` (`lampway.bake/1`:
+  parameters, both meshes' geometry sha256, `tangent_basis: mikktspace`, the normal convention, black and hit fractions). Golden C10
+  sunk 1 cm: ray 0.03 m hits <= 3 % (G14.2), ray 0.12 m hits 1.0 (G14.3). RED: no `hit_fraction`. Mutant: the hit bake with a 10x
+  ray reads 1.0 on the short case and fails. Not built: bake groups, hash dirs (the plan still refuses an existing map without
+  `overwrite`). **Defect found and FIXED after:** `attach` wired the
   normal image straight into a Normal Map node, so a DX bake attached in Blender shaded inverted (AUDIT rank 10, contract
   `normalize_texture` test 2). A DX map now goes through the green flip in nodes (`asset_place_shading._flip_green`, reused).
   RED: EEVEE renders of the GL and DX attachments of golden C10 differed by 0.83; after, < 0.01 (32 px, a grazing sun).
