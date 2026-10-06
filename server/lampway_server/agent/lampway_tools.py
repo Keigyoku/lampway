@@ -441,7 +441,9 @@ DEFS = [
         "Refused: an unskinned body, a piece more than 0.5 m away (run place_piece first), an open body without body_open_band_m (canon: specs/canon/15-clearance-penetration.md).",
         [P("piece", required=True), P("body", required=True), P("armature", required=True), P("pose_set", desc="rest (default) | wiki8 | a list of poses"),
          P("clearance_target_m", "number", "0..0.1, default 0.015"), P("classes", "object", "{vertex group: target metres}"),
-         P("body_open_band_m", "number", "an OPEN body (boundary edges) is refused without it: vertices within this band of the opening stay unsigned (canon 15)")], api="garment_clearance"),
+         P("body_open_band_m", "number", "an OPEN body (boundary edges) is refused without it: vertices within this band of the opening stay unsigned (canon 15)"),
+         P("gap_classes", "object", "{vertex group: class}: the gap on the piece's innermost layer per class (p50, p90; canon 15 B.5)"),
+         P("hideable_regions", "object", "{name: [bones]}: per region the armour's cover per standard view and hideable (>= 98 %, canon 15 B.6)")], api="garment_clearance"),
     Def("lampway_fit_validate", "Measure a bound piece through poses against its ORIGINAL shell and judge it (canon: specs/canon/05-fit-validation.md). measure: `bound` (an Armature-modified piece), `original` "
         "(the pre-fit source shell, REQUIRED: a baked rest hides the distortion; same vertex count), `poses` (named poses such as rest, wrist_r_plus30, elbow_r_70, curl_r_full, or [{name, bones: [{bone, axis: up | "
         "forward | lateral | {line: [a, b]} | {perp: [a, b], to}, deg}], expect: {joint, along | closer_to, min_cm}} | {name, curl: {side, fraction}} | {name, bone, rotate} (Euler stress set)]), `roles` {part: metal | "
