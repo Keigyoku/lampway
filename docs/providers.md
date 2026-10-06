@@ -38,7 +38,7 @@ Pick the main provider with `LAMPWAY_PROVIDER`, the launcher's `--provider`, or 
 Give the key as `OPENROUTER_API_KEY` or point `LAMPWAY_OPENROUTER_KEY_FILE` (launcher: `--openrouter-key-file`) at a dotenv file or a bare key file. The key is never an argument and never printed, and `redact()` removes it and anything shaped like `sk-or-v1-...` from errors and logs.
 
 - **Budget.** `LAMPWAY_OPENROUTER_BUDGET_USD` (launcher `--budget`, default 3.0) is a session ceiling. Every response's reported `usage.cost` goes on one ledger shared by the main agent, the swarm and the image backend; past the ceiling the next call is refused **before** anything is sent. The launcher starts each session with a fresh spend log (the old one is kept as `.prev`).
-- **Per-call click.** The default spend policy for OpenRouter is `click: off` (the session budget and the per-job cap are the limits). The project decision is a click above $0.25, as for the compute wrapper; see [spend](spend.md) for how to set it today.
+- **Per-call click.** Image and video jobs on OpenRouter follow the click rule `above $0.25`: a job whose estimated price is over $0.25 waits for your click (an image is estimated at $0.07 each, so a single image runs without one; a video uses the price estimate computed before submit). The rule is a per-provider spend policy you can change in the Providers dialog, including `off` and `always` ([spend](spend.md)). Chat tokens are not clicked per call: the session budget and `max_tokens` are their limits.
 - **Models.** `LAMPWAY_OPENROUTER_MODEL`, `LAMPWAY_OPENROUTER_SWARM_MODEL`, `LAMPWAY_OPENROUTER_IMAGE_MODEL`, `LAMPWAY_OPENROUTER_MAX_TOKENS` (4096).
 
 ## 2. Image and video generation

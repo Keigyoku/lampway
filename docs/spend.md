@@ -24,12 +24,12 @@ The **Providers** dialog sets a spend policy per provider (`server/lampway_serve
 
 | Provider | Default click | Unit |
 |---|---|---|
-| `openrouter` | `off` (the session budget and the per-job caps are the limits) | dollars |
+| `openrouter` | `above` $0.25 (image and video jobs by estimated price; chat tokens are limited by the session budget) | dollars |
 | `higgsfield` | `always` | credits |
 | `studios` (the Studio actions) | `always` | credits |
 | `hyper3d` | `always` | credits |
 
-The policy decides **whether** a job waits for you; it never lets anyone else click. The project decision for OpenRouter dollars is a click above $0.25 (the same threshold as the compute wrapper); until your build carries it, set `click: above` and `above: 0.25` for `openrouter` in the Providers dialog.
+The policy decides **whether** a job waits for you; it never lets anyone else click. For OpenRouter an image is estimated at $0.07 (the measured cost was about $0.067), so one image runs without a click and a batch or a video above $0.25 waits. The estimate decides the click only; it is never a charge.
 
 ## 2. Caps
 

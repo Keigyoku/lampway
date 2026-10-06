@@ -34,6 +34,8 @@ Three implementer lanes work beside the integrator, each on its own branch and i
 | vault-ui | `lp/vault-ui` | Asset Vault: place into the scene (`asset_place`), the MCP and agent tool family (`lampway_vault_*`), the dockable editor and pop-out (`asset_ui_editor`), the views (`asset_ui_views`), and report cards |
 | facelift | `lp/facelift` | The client facelift: themes Night and Paper from one token file, splash and first run with every route off, window chrome, agent chat, honest Parallel Agents cards, Providers and Studios, tool panels as a lit path, generation, the cockpit window, model compare, the privacy face with the wire colour, the spend card, icons, a visual harness, and the Lampway WezTerm add-on |
 
+Progress so far on the lane branches, not yet integrated when this page was written: `lp/vault-ops` has the Vault wiring and the render products (thumbnails, turntables, sheets, UV overlays); `lp/vault-ui` has placing assets into a scene; `lp/facelift` has the Night and Paper themes generated from one token file with their gates. The tables on this page describe the integration branch.
+
 The facelift keeps the same information with better hierarchy and stronger at-a-glance cues. The wire indicator uses a dedicated colour; the cockpit's first terminal surface is a themed chromeless browser window, with the optional WezTerm add-on (a pinned stable release, an on-demand checksum-verified download through egress consent, current platform only) alongside it ([cockpit](cockpit.md)).
 
 ## Decisions only the maintainer can make

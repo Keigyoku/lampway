@@ -5,7 +5,7 @@
 
 The Asset Vault is Lampway's local library for everything you make and collect: meshes, images, materials, maps, UV layouts, rigs, animations, videos, prompts, receipts and boards. It is one deep module behind a small interface: a SQLite database (WAL mode, FTS5 text search) plus a content-addressed blob store. It runs on your machine, uploads nothing by default, and never moves, copies or modifies your own files.
 
-**Honest status.** The library modules are built and tested. They are **not wired into the server yet**: `create_app` does not construct an `AssetLibrary`, does not pass the provenance hook to the job queue, and registers no route or agent tool for it. Generations therefore do **not** land in the Vault today. Two lanes are working on the rest (see section 7). Until they land, treat this page as the description of the library that the wiring will expose.
+**Honest status.** The library modules are built and tested. They are **not wired into the server yet**: `create_app` does not construct an `AssetLibrary`, does not pass the provenance hook to the job queue, and registers no route or agent tool for it. Generations therefore do **not** land in the Vault today. Two lanes are working on the rest (see section 7). Lane branches already hold commits that are not yet integrated: `lp/vault-ops` opens `<state>/library` in `create_app`, passes the provenance hook to the job queue and renders thumbnails, turntables and UV overlays; `lp/vault-ui` adds placing assets into a scene. This page describes the integration branch (`lp/wave5`); when those lanes merge, re-read the roadmap table in section 7.
 
 ## 1. What exists today
 
