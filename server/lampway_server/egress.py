@@ -51,6 +51,7 @@ ROUTES = {r.id: r for r in (
     Route("higgsfield", "Higgsfield", ("higgsfield.ai",), _UNREAD, _UNREAD, "unknown"),
     Route("heygen", "HeyGen", ("heygen.com",), _UNREAD, _UNREAD, "unknown"),
     Route("fal", "fal.ai", ("fal.ai", "fal.run", "fal.media"), _UNREAD, _UNREAD, "unknown"),
+    Route("world_labs", "World Labs (Marble world model)", ("worldlabs.ai",), _UNREAD, _UNREAD, "unknown"),
     Route("model_download", "Model weights download (Hugging Face)", ("huggingface.co", "cdn-lfs.huggingface.co", "cdn-lfs-us-1.hf.co", "hf.co", "cas-bridge.xethub.hf.co"),
           "no user content: a plain GET of public weights; the host sees your IP address and which file you asked for", "n/a: no content is sent", "ok"),
     Route("compute:boat", "Boat (cloud CPU box)", ("boat.dev",), "a sandbox with snapshots off is erased by a stop (measured, BOAT.md section 6); what Boat does with content in flight is unread",

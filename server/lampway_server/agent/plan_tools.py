@@ -7,7 +7,7 @@ import json
 
 from .providers.base import ToolSpec
 
-NAMES = {"lampway_cinematic_shot_plan", "lampway_material_experiment", "lampway_prototype_gates", "lampway_texture_route_select"}
+NAMES = {"lampway_cinematic_shot_plan", "lampway_material_experiment", "lampway_prototype_gates", "lampway_texture_route_select", "lampway_splat_world"}
 
 
 def _obj(props, req=()):
@@ -53,7 +53,21 @@ def specs() -> list:
                  "condition. need: restyle | keep_uv | local_defect | shared_material | shape_fix (a shape fix never gets a texture route: fix the geometry). Each route "
                  "says whether its Studio driver exists (read from the action registry) or its Lampway tool exists; engine_available marks which you can use.",
                  _obj({"need": {"type": "string"}, "engine_available": {"type": "array", "items": {"type": "string"}}}, ["need"])),
+        ToolSpec("lampway_splat_world", "Generate a Gaussian-splat environment with a world model (text or one image -> an SPZ, a GLB collider and a panorama): a PLAN only, "
+                 "nothing is sent. action plan {mode: text | image, prompt, image (a project path, for mode image), lod: low | medium | high}: validated; with no "
+                 "world-model backend configured the answer is needs_key (World Labs is not one of the configured subscriptions), otherwise a needs_approval card "
+                 "with the price read back at the confirm (never estimated here). Only the user confirms the job; the files then land under worlds/<job>/, and "
+                 "lampway_splat_world_import brings the SPZ into the scene.",
+                 _obj({"action": {"type": "string", "description": "plan"}, "mode": {"type": "string"}, "prompt": {"type": "string"}, "image": {"type": "string"},
+                       "lod": {"type": "string"}}, ["action", "mode", "prompt", "lod"])),
     ]
+
+
+def _world_client():
+    import os
+    from .. import world_gen as WG
+    key = os.environ.get("LAMPWAY_WORLD_LABS_KEY", "")
+    return WG.WorldClient(key=key) if key else None
 
 
 def _catalogue(hub):
@@ -106,6 +120,13 @@ async def call(hub, root, name: str, arguments: dict) -> tuple:
                 out = PG.status(r, a.get("project"))
             else:
                 return "action is define | record_gate | may_spend | status", True
+            return json.dumps(out), False
+        if name == "lampway_splat_world":
+            from .. import world_gen as WG
+            if a.get("action") != "plan":
+                return "action is plan (a world-model job is the user's confirm in the Client; an agent only plans it)", True
+            out = WG.plan_or_needs_key(_world_client(), str(root), {k: a.get(k) for k in ("mode", "prompt", "image", "lod")})
+            out.pop("_clean", None)
             return json.dumps(out), False
         if name == "lampway_texture_route_select":
             from .. import texture_routes as TRS

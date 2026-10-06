@@ -28,3 +28,14 @@ print("RESULT", json.dumps({"door": list(api.TOOL_FUNCS), "w6": list(api_wave6.T
     defs = re.findall(r'api="(\w+)"', (ROOT / "server/lampway_server/agent/wave6_tools.py").read_text())
     assert sorted(defs) == sorted(d["w6"]) and len(defs) == len(set(defs))
     assert d["probe"]["ok"] is False and d["probe"]["help"]                         # the @tool envelope, not a traceback
+
+
+def test_every_def_description_is_its_functions_docstring_word_for_word():
+    import ast
+    sys.path.insert(0, str(ROOT / "server"))
+    from lampway_server.agent import wave6_tools as W6
+    tree = ast.parse((ROOT / "src/scripts/mixar/modules/lampway_tools/api_wave6.py").read_text())
+    docs = {n.name: " ".join(ast.get_docstring(n).split()) for n in tree.body if isinstance(n, ast.FunctionDef) and ast.get_docstring(n)}
+    for d in W6.DEFS:
+        text = d.description[:-len(W6._PATHS)] if d.description.endswith(W6._PATHS) else d.description
+        assert text == docs[d.api], d.name                                          # one text: change the docstring and regenerate the Defs
