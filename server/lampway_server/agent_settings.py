@@ -2,10 +2,11 @@
 model preference, stored locally under the state dir. The provider/model
 catalogue the client's pickers show is ours (GET /agent/models)."""
 
-import json
-import os
+import logging
 from pathlib import Path
 from typing import Optional
+
+from .connections import files as CF
 
 ANTHROPIC_MODELS = [
     ("claude-sonnet-5-5", "Claude Sonnet 5.5"),
@@ -44,17 +45,13 @@ class AgentSettingsStore:
     def __init__(self, state_dir: Path):
         self._path = Path(state_dir) / "agent_settings.json"
         self._data = {"byok": None, "preferences": {}}
-        if self._path.exists():
-            try:
-                self._data.update(json.loads(self._path.read_text()))
-            except ValueError:
-                pass
+        try:
+            self._data.update(CF.read_json(self._path))
+        except CF.Unreadable as exc:                 # set aside, never emptied: the user's file survives as <name>.corrupt-<time>
+            logging.getLogger("lampway.settings").warning("%s", exc)
 
     def _save(self):
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        fd = os.open(self._path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, "w") as handle:
-            json.dump(self._data, handle)
+        CF.atomic_write_json(self._path, self._data)          # a crash mid-write keeps the old file (finding F5)
 
     # ------------------------------------------------------------------ BYOK
     def credentials_view(self) -> dict:

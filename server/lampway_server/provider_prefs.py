@@ -2,7 +2,6 @@
 state dir (``provider_prefs.json``, 0600). The environment stays the default; a saved choice wins. Credentials are never part of this:
 keys stay in the environment, a key file or the sign-in stores."""
 
-import json
 import os
 import re
 import copy
@@ -180,22 +179,19 @@ def _path(state_dir) -> Path:
 
 
 def load(state_dir) -> dict:
-    p = _path(state_dir)
-    if not p.exists():
-        return {}
+    from .connections import files as CF
     try:
-        data = json.loads(p.read_text(encoding="utf-8"))
-    except ValueError:
+        data = CF.read_json(_path(state_dir))
+    except CF.Unreadable as exc:                     # set aside, never emptied (finding F5); the defaults apply until it is saved again
+        import logging
+        logging.getLogger("lampway.settings").warning("%s", exc)
         return {}
-    return {k: v for k, v in data.items() if k in FIELDS} if isinstance(data, dict) else {}
+    return {k: v for k, v in data.items() if k in FIELDS}
 
 
 def save(state_dir, values: dict) -> None:
-    p = _path(state_dir)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    fd = os.open(p, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w") as fh:
-        json.dump(values, fh, indent=1)
+    from .connections import files as CF
+    CF.atomic_write_json(_path(state_dir), values)            # a crash mid-write keeps the old file (finding F5)
 
 
 def validate(values: dict) -> dict:

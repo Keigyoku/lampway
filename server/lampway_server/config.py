@@ -114,12 +114,14 @@ class Settings:
         (0600) so access tokens survive a server restart."""
         if self.jwt_secret:
             return self.jwt_secret
+        from .connections import files as CF
         path = self.state_dir / "jwt_secret"
         if path.exists():
-            self.jwt_secret = path.read_text().strip()
-            return self.jwt_secret
-        self.state_dir.mkdir(parents=True, exist_ok=True)
+            kept = path.read_text().strip()
+            if len(kept) >= 32:
+                self.jwt_secret = kept
+                return self.jwt_secret
+            CF.set_aside(path)                         # an empty or cut secret is never used to sign: a new one is made (sign in again)
         self.jwt_secret = secrets.token_urlsafe(48)
-        path.touch(mode=0o600)
-        path.write_text(self.jwt_secret)
+        CF.atomic_write_bytes(path, self.jwt_secret.encode("ascii"))     # whole or not at all (finding F5)
         return self.jwt_secret
