@@ -500,6 +500,9 @@ class SlotEventProcessor:
             # (item_id=64 matches the C++ TodoItemSlotData::id buffer).
             _fast_set(item, "item_id", (item_data.get("id") or "")[:64])
             _fast_set(item, "text", (item_data.get("text") or "")[:512])
+            # The step's price chip words (facelift contract 04): what kind of number, and where it would go.
+            chip = _price_chip(item_data)
+            _fast_set(item, "price_text", (chip["text"] if chip else "")[:128])
 
             # Map status string to enum
             status_str = item_data.get("status") or "pending"
@@ -690,6 +693,17 @@ class SlotEventProcessor:
 
 # Global slot processor instance
 _slot_processor: Optional[SlotEventProcessor] = None
+
+
+def _price_chip(item_data: dict):
+    """lampway_tools.price_chips for one plan step; the route hosts come from the status bar's egress cache."""
+    try:
+        from mixar.modules.lampway_tools import price_chips, statusbar_state
+        hosts = {r.get("id"): (r.get("hosts") or [""])[0] for r in (statusbar_state.STATE.get("egress") or {}).get("routes") or []}
+        return price_chips.chip(item_data, hosts=hosts)
+    except Exception:  # noqa: BLE001 - a chip must never break the plan's rendering
+        logger.debug("price chip skipped", exc_info=True)
+        return None
 
 
 def get_slot_processor() -> SlotEventProcessor:

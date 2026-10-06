@@ -51,6 +51,58 @@ from mixar.modules.common.analytics.bubble_events import capture_bubble_state
 # any surface that draws these without checking the platform first.
 
 
+def _pill_off() -> bool:
+    from mixar.modules.agent_bubble.core import pill_pref
+    return not pill_pref.enabled()
+
+
+def _island_open() -> bool:
+    from mixar.modules.agent_bubble.core.bubble_lifecycle import is_agent_bubble_window
+    return any(getattr(w, "parent", None) is not None and is_agent_bubble_window(w)
+               for w in bpy.context.window_manager.windows)
+
+
+def _close_island() -> int:
+    """Close the chat window (the pill is off, so minimising has nowhere to go). Only the floating chat windows, the
+    main window's children: an Agent Bubble area the user put in a main window is not the island."""
+    from mixar.modules.agent_bubble.core import pill_pref, unread
+    from mixar.modules.agent_bubble.core.bubble_lifecycle import is_agent_bubble_window
+    unread.closed(getattr(bpy.context, "scene", None))
+    pill_pref.mark_note_seen()   # the one-time note in the chat header has been there for a whole session
+    purge = getattr(getattr(bpy.ops, "mixar", None), "agent_bubble_purge_windows", None)
+    if purge is not None:
+        try:
+            # The native side closes exactly its own transient chat windows (never a main window).
+            if 'CANCELLED' not in purge() and not _island_open():
+                return 1
+        except Exception:  # noqa: BLE001 - fall back to closing the windows one by one
+            pass
+    closed = 0
+    for window in list(bpy.context.window_manager.windows):
+        if getattr(window, "parent", None) is None or not is_agent_bubble_window(window):
+            continue
+        area = next((a for a in window.screen.areas if a.type == 'AGENT_BUBBLE'), None)
+        region = next((r for r in area.regions if r.type == 'WINDOW'), None) if area else None
+        override = {"window": window, "screen": window.screen}
+        if area is not None:
+            override["area"] = area
+        if region is not None:
+            override["region"] = region
+        try:
+            with bpy.context.temp_override(**override):
+                if 'CANCELLED' not in bpy.ops.wm.window_close():
+                    closed += 1
+        except Exception:  # noqa: BLE001 - never break the close path
+            pass
+    return closed
+
+
+def _open_island():
+    from mixar.modules.agent_bubble.core import unread
+    unread.opened()
+    return bpy.ops.mixar.agent_bubble_open_window('INVOKE_DEFAULT')
+
+
 def _tour_wants_exit_dialog() -> bool:
     """While the interactive tour runs, Escape in the island asks the tour
     to exit (its dialog lives in the main window) instead of minimising
@@ -89,6 +141,15 @@ class MIXAR_OT_bubble_close(Operator):
             agent_bubble_module.mark_user_closed()
         except Exception:  # noqa: BLE001 — never break the close path
             pass
+
+        if _pill_off():
+            # The floating pill is off (the default): close the chat; the top bar's agent chip opens it again.
+            _close_island()
+            try:
+                capture_bubble_state("minimized", context=context)
+            except Exception:
+                pass
+            return {'FINISHED'}
 
         # Minimise to pill instead of destroying the window.
         try:
@@ -166,6 +227,19 @@ class MIXAR_OT_bubble_toggle_minimise(Operator):
     def execute(self, context):
         if _tour_wants_exit_dialog():
             return {'FINISHED'}
+        if _pill_off():
+            # No pill (the default): the shortcut closes an open chat and opens a closed one.
+            if _island_open():
+                _close_island()
+                MIXAR_OT_bubble_toggle_minimise._mark(closed=True)
+            else:
+                try:
+                    _open_island()
+                except RuntimeError:
+                    return {'CANCELLED'}
+                MIXAR_OT_bubble_toggle_minimise._mark(closed=False)
+            return {'FINISHED'}
+
         # bubble_minimise returns FINISHED when it actually minimises, and
         # CANCELLED when there is no bubble or it is already a pill.
         try:

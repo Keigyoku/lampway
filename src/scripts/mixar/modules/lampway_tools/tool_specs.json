@@ -1,0 +1,1253 @@
+{
+ "generated_by": "scripts/lampway/facelift/tool_specs.py",
+ "tools": [
+  {
+   "name": "lampway_apply_part_fixes",
+   "description": "Apply an auditor's part fixes (island or bbox relabels) to a transferred owner map; writes a new map. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "apply_part_fixes",
+   "api": null,
+   "params": [
+    {
+     "name": "transfer_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "piece_uv",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "recipe",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "fixes",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_owner_poly",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_asset_acceptance",
+   "description": "Workflow, engine acceptance: identity / orientation / geometry / materials gates for a candidate asset (optionally against a `reference` object), each with reasons, and an overall `accepted`. Lists what it did not check.",
+   "batch": null,
+   "api": "asset_acceptance",
+   "params": [
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "reference",
+     "type": "string",
+     "desc": "An approved object to compare bounds against",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "tolerance",
+     "type": "number",
+     "desc": "Fraction of the reference diagonal, default 0.1",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "source_hash",
+     "type": "string",
+     "desc": "sha256 of the approved source: identity fails unless the object records it (mesh_prep does) or is identical to it",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_auto_rig",
+   "description": "Auto Rig: a UE-named humanoid armature `<object>_rig` placed from landmarks measured on a T-pose mesh (standing on Z, facing -Y by default; _l/_r are the FIGURE's own sides), the mesh parented with heat-map weights and a proximity fallback for vertices heat cannot solve. Test it with lampway_pose_test: a rig is not a claim of deformation quality. engine=studio:tripo is the Auto Rig slot (answers with action and price).",
+   "batch": null,
+   "api": "auto_rig",
+   "params": [
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "kind",
+     "type": "string",
+     "desc": "humanoid",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "weights",
+     "type": "string",
+     "desc": "auto | proximity",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "facing",
+     "type": "string",
+     "desc": "-Y (default) | +Y",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "engine",
+     "type": "string",
+     "desc": "algorithmic (default) | studio:tripo",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "copy",
+     "type": "boolean",
+     "desc": "Rig a copy `<object>_rigged` and leave the source untouched (default true); false rigs in place",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_delete_caps",
+   "description": "Delete a cap that closes an opening that must stay open (neck bowl, waist fan, arm dome) by ray-casting through a rectangular footprint; UVs kept; writes a NEW file. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "delete_caps",
+   "api": null,
+   "params": [
+    {
+     "name": "input",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "output",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "axis",
+     "type": "string",
+     "desc": "z+ | z- | x+ | x- | y+ | y-",
+     "required": true,
+     "flag": "--axis",
+     "repeat": false
+    },
+    {
+     "name": "footprint",
+     "type": "string",
+     "desc": "x0,x1,y0,y1 in metres",
+     "required": true,
+     "flag": "--footprint",
+     "repeat": false
+    },
+    {
+     "name": "beyond",
+     "type": "number",
+     "desc": "threshold coordinate: the cap is the first hit beyond it",
+     "required": true,
+     "flag": "--beyond",
+     "repeat": false
+    },
+    {
+     "name": "step",
+     "type": "number",
+     "desc": "",
+     "required": false,
+     "flag": "--step",
+     "repeat": false
+    },
+    {
+     "name": "grow",
+     "type": "integer",
+     "desc": "rings of neighbouring polygons also deleted",
+     "required": false,
+     "flag": "--grow",
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_detail_normals",
+   "description": "Micro depth for a textured_atlas material without the relief map: per-material tiling detail normals box-projected in object space (metals take their ambientCG NormalGL maps; cloth and leather a small bump from their colour), blended by the material's per-texel masks. Idempotent: its 'DN:' nodes are replaced on a re-run. strengths: {plate, gold, cloth, leather}.",
+   "batch": null,
+   "api": "detail_normals",
+   "params": [
+    {
+     "name": "material",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "strengths",
+     "type": "object",
+     "desc": "Per-layer strengths, defaults plate 0.6, gold 0.45, cloth 0.25, leather 0.3",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "ambientcg_dir",
+     "type": "string",
+     "desc": "The ambientCG folder (default: the settings / LAMPWAY_AMBIENTCG_DIR)",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_export_piece",
+   "description": "Export a finished piece for the engine: the object as FBX into out_dir, its texture maps copied under Textures/, and a README naming every file, what each map is (ORM order, normal convention) and its sha256. The scene is not changed. Paths are relative to the project root; a path outside it is refused.",
+   "batch": null,
+   "api": "export_piece",
+   "params": [
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "The object to export",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "textures",
+     "type": "array",
+     "desc": "The maps to ship (e.g. the pbr_merge outputs)",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "note",
+     "type": "string",
+     "desc": "A line for the README",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_image_to_3d",
+   "description": "Image to 3D / multi-view WITHOUT a model: mode hull = the visual hull of two or more cardinal views (images = {\"Front\": path, \"Left\": path, ...}; Front u=+X, Left u=-Y; silhouettes from alpha or the corner colour), extrude = a rounded or slab extrusion of Front (+Back) for paired pieces (depth in metres), relief = a luminance relief of one image. The mesh is judged by re-projection IoU, volume and boundary edges. engine=studio:tripo is the Smart Mesh slot (100 credits): it answers with action and price for the owner's approval and clicks nothing. Paths are relative to the project root; a path outside it is refused.",
+   "batch": null,
+   "api": "image_to_3d",
+   "params": [
+    {
+     "name": "images",
+     "type": "object",
+     "desc": "View name -> image path (project-relative)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "size",
+     "type": "number",
+     "desc": "Height in metres, default 1",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "resolution",
+     "type": "integer",
+     "desc": "Voxels along the height, 8-160, default 64",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "mode",
+     "type": "string",
+     "desc": "hull (default) | extrude | relief",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "depth",
+     "type": "number",
+     "desc": "extrude/relief depth in metres",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "profile",
+     "type": "string",
+     "desc": "extrude: round (default) | slab",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "name",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "engine",
+     "type": "string",
+     "desc": "algorithmic (default) | studio:tripo",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_mesh_compare",
+   "description": "Compare candidate meshes with a reference: faces, open boundary loops, shells, matcap renders. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "mesh_compare",
+   "api": null,
+   "params": [
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "reference",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "candidates",
+     "type": "array",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_mesh_prep",
+   "description": "Workflow, geometry preparation: a branch `<object>_prep` of a generated mesh with its source hash recorded, loose and doubled vertices removed and inverted normals fixed; returns before/after reports. The source is untouched.",
+   "batch": null,
+   "api": "mesh_prep",
+   "params": [
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "merge_distance",
+     "type": "number",
+     "desc": "Weld distance, default 1e-5",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_mesh_to_npz",
+   "description": "Export a mesh (fbx/glb) or the MetaHuman body (with joints) to npz for the proportion tools. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "mesh_to_npz",
+   "api": null,
+   "params": [
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "mode",
+     "type": "string",
+     "desc": "piece | piece_uv | body",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "file",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_pauldron_symmetry",
+   "description": "Is one pauldron sunken? Height maps of each shoulder against the mirrored other. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "pauldron_symmetry",
+   "api": null,
+   "params": [
+    {
+     "name": "compare_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "labels",
+     "type": "array",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_pbr_merge",
+   "description": "The engine-ready PBR set (BaseColor sRGB, Normal GL and DX, ORM = occlusion/roughness/metallic, Roughness, Metallic) for a patched mesh from a studio PBR set plus our projection: the studio texels are kept, the patch islands are filled from our albedo atlas and the class medians, the live palette is baked in linear space, metal is forced to 0 on non-metal classes. Writes merge.json beside the maps. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "pbr_merge",
+   "api": null,
+   "params": [
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "base",
+     "type": "string",
+     "desc": "Studio base colour map",
+     "required": true,
+     "flag": "--base",
+     "repeat": false
+    },
+    {
+     "name": "normal",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": "--normal",
+     "repeat": false
+    },
+    {
+     "name": "rough",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": "--rough",
+     "repeat": false
+    },
+    {
+     "name": "metal",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": "--metal",
+     "repeat": false
+    },
+    {
+     "name": "masks",
+     "type": "string",
+     "desc": "Directory with mask_*.png and texel_face.npy (the projection's)",
+     "required": true,
+     "flag": "--masks",
+     "repeat": false
+    },
+    {
+     "name": "albedo",
+     "type": "string",
+     "desc": "Our projected albedo atlas (v3_colour_atlas.png)",
+     "required": true,
+     "flag": "--albedo",
+     "repeat": false
+    },
+    {
+     "name": "mesh_npz",
+     "type": "string",
+     "desc": "The piece_uv npz",
+     "required": true,
+     "flag": "--mesh-npz",
+     "repeat": false
+    },
+    {
+     "name": "orig_poly",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": "--orig-poly",
+     "repeat": false
+    },
+    {
+     "name": "params",
+     "type": "string",
+     "desc": "live_material_params.json (palette per mask, metal_zero_on, normal strength)",
+     "required": true,
+     "flag": "--params",
+     "repeat": false
+    },
+    {
+     "name": "res",
+     "type": "integer",
+     "desc": "Map size, default 4096",
+     "required": false,
+     "flag": "--res",
+     "repeat": false
+    },
+    {
+     "name": "base_res",
+     "type": "integer",
+     "desc": "Base colour size, default 8192",
+     "required": false,
+     "flag": "--base-res",
+     "repeat": false
+    },
+    {
+     "name": "ao",
+     "type": "string",
+     "desc": "An AO map for ORM.R",
+     "required": false,
+     "flag": "--ao",
+     "repeat": false
+    },
+    {
+     "name": "dilate",
+     "type": "integer",
+     "desc": "",
+     "required": false,
+     "flag": "--dilate",
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_piece_ratios",
+   "description": "Proportion scores of the NON-torso pieces (kind helmet | waist | boots | gauntlets) against the MetaHuman body: scale-free landmark ratios, piece vs body + a uniform wear clearance, score = RMS log deviation (0 = the body's proportions). The torso (chest) is lampway_proportion_ratios. NEW and UNVALIDATED (`validated: false` until an auditor's falsification is recorded): it ranks, it does not decide. Known biases: helmet depth includes a crest, the waist scores the design flare, boots score knee height and relief, gauntlets cannot see collapsed or slotted plates. A gauntlet that is not cuff-up is refused. body.npz needs joints (mesh_to_npz body). Paths are relative to the project root; a path outside it is refused.",
+   "batch": "piece_ratios",
+   "api": null,
+   "params": [
+    {
+     "name": "kind",
+     "type": "string",
+     "desc": "helmet | waist | boots | gauntlets",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "body",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "pieces",
+     "type": "array",
+     "desc": "name=piece.npz:turn_deg entries (Tripo FBX: -90)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "clear_mm",
+     "type": "number",
+     "desc": "Wear clearance in mm, 0-40, default 15",
+     "required": false,
+     "flag": "--clear-mm",
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_place_piece",
+   "description": "Place a torso piece on the body the way the audits do (chest width + 40 mm, axilla aligned). Paths are relative to the project root; a path outside it is refused.",
+   "batch": "place_piece",
+   "api": null,
+   "params": [
+    {
+     "name": "placed",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "body",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "piece",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "turn",
+     "type": "number",
+     "desc": "",
+     "required": false,
+     "flag": "--turn",
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_pose_clearance",
+   "description": "The MetaHuman's closest pose to a placed piece (arms, hips, chest, neck) and the residual blocking surfaces. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "pose_clearance",
+   "api": null,
+   "params": [
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "body",
+     "type": "string",
+     "desc": "Body glb",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "placed",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_proportion_ratios",
+   "description": "The PRIMARY proportion score of torso pieces against the MetaHuman body: scale-free landmark ratios (lower is closer; 0 = the body's proportions). Paths are relative to the project root; a path outside it is refused.",
+   "batch": "proportion_ratios",
+   "api": null,
+   "params": [
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "body",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "pieces",
+     "type": "array",
+     "desc": "name=piece.npz:turn_deg entries",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_render_owner",
+   "description": "Render a mesh coloured by its part owner map: four orthographic views plus a legend; flagged polygons in magenta. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "render_owner",
+   "api": null,
+   "params": [
+    {
+     "name": "mesh",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "owner",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "recipe",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_prefix",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "turn",
+     "type": "number",
+     "desc": "",
+     "required": false,
+     "flag": "--turn",
+     "repeat": false
+    },
+    {
+     "name": "flag_poly",
+     "type": "string",
+     "desc": "",
+     "required": false,
+     "flag": "--flag-poly",
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_render_video",
+   "description": "Video: render a turntable or a keyframed camera path (waypoints [{frame, location}]) of an object to an H.264 mp4 under the project root, in a throw-away scene, with the light engines only (workbench | eevee; Cycles is refused). The file is read back (frames, size, bytes). engine=model:<name> is the generative video slot: not wired. Paths are relative to the project root; a path outside it is refused.",
+   "batch": null,
+   "api": "render_video",
+   "params": [
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "mp4 path under the project root",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "kind",
+     "type": "string",
+     "desc": "turntable (default) | camera_path",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "frames",
+     "type": "integer",
+     "desc": "Turntable frames, default 48 (max 1200)",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "width",
+     "type": "integer",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "height",
+     "type": "integer",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "fps",
+     "type": "integer",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "engine",
+     "type": "string",
+     "desc": "workbench (default) | eevee",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "waypoints",
+     "type": "array",
+     "desc": "camera_path waypoints",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_retopo",
+   "description": "Retopology: a NEW all-quad mesh `<object>_retopo` near target_faces (QuadriFlow; voxel remesh as the fallback) with a measured report (faces, quads, non-manifold and open-boundary edges, surface deviation). The original is untouched; keep it until the replacement passes your checks. engine=studio:tripo answers with the studio action and its price for the owner's approval and clicks nothing. method=autoremesher runs the Qt-free lampway-quadremesh configured by the settings key autoremesher_bin (never an argument), niced with a timeout; the result has no UV layer.",
+   "batch": null,
+   "api": "retopo",
+   "params": [
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "Mesh object name",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "target_faces",
+     "type": "integer",
+     "desc": "Default 2000",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "method",
+     "type": "string",
+     "desc": "quadriflow (default) | voxel | autoremesher",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "engine",
+     "type": "string",
+     "desc": "algorithmic (default) | studio:tripo",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "symmetry",
+     "type": "boolean",
+     "desc": "",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "adaptivity",
+     "type": "number",
+     "desc": "autoremesher: 0..1",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "anisotropy",
+     "type": "number",
+     "desc": "autoremesher: 0..1",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "sharp_edge",
+     "type": "number",
+     "desc": "autoremesher: 30..180 degrees",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "smooth_normal",
+     "type": "number",
+     "desc": "autoremesher: 0..180 degrees",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "edge_scaling",
+     "type": "number",
+     "desc": "autoremesher: 1..4",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "timeout",
+     "type": "integer",
+     "desc": "autoremesher: 10..3600 s",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "fallback",
+     "type": "boolean",
+     "desc": "autoremesher: use the voxel remesh when the engine fails",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "hard_surface",
+     "type": "boolean",
+     "desc": "autoremesher: hard-surface model type",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_segment_mesh",
+   "description": "Mesh Segment: split a mesh into part objects in the collection `<object>_parts` (largest first, UVs and materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with. The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price).",
+   "batch": null,
+   "api": "segment_mesh",
+   "params": [
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "method",
+     "type": "string",
+     "desc": "shells (default) | sharp | uv_islands",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "angle",
+     "type": "number",
+     "desc": "Degrees, default 40",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "min_faces",
+     "type": "integer",
+     "desc": "Merge regions under this many faces, default 1 (no merge)",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "engine",
+     "type": "string",
+     "desc": "algorithmic (default) | studio:tripo",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_split_relief",
+   "description": "Split a raised relief (the pauldron lion heads) out of its part as a material-only part, by the part's dense Smart UV islands. Paths are relative to the project root; a path outside it is refused.",
+   "batch": "split_relief",
+   "api": null,
+   "params": [
+    {
+     "name": "out_prefix",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "piece_uv",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "owner_tri",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "recipe",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "split",
+     "type": "array",
+     "desc": "part:new_part pairs",
+     "required": true,
+     "flag": "--split",
+     "repeat": true
+    },
+    {
+     "name": "max_face_mm2",
+     "type": "number",
+     "desc": "",
+     "required": false,
+     "flag": "--max-face-mm2",
+     "repeat": false
+    },
+    {
+     "name": "min_share",
+     "type": "number",
+     "desc": "",
+     "required": false,
+     "flag": "--min-share",
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_transfer_parts",
+   "description": "Carry an APPROVED part set onto a new seed of the same design (body-frame nearest label, then a Smart UV island vote; weak islands are flagged, never silently relabelled). Paths are relative to the project root; a path outside it is refused.",
+   "batch": "transfer_parts",
+   "api": null,
+   "params": [
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "body",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "old",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "old_owner",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "recipe",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "new_piece_uv",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "old_turn",
+     "type": "number",
+     "desc": "",
+     "required": false,
+     "flag": "--old-turn",
+     "repeat": false
+    },
+    {
+     "name": "new_turn",
+     "type": "number",
+     "desc": "",
+     "required": false,
+     "flag": "--new-turn",
+     "repeat": false
+    },
+    {
+     "name": "weak",
+     "type": "number",
+     "desc": "",
+     "required": false,
+     "flag": "--weak",
+     "repeat": false
+    },
+    {
+     "name": "far_mm",
+     "type": "number",
+     "desc": "",
+     "required": false,
+     "flag": "--far-mm",
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_uv_unwrap",
+   "description": "UV unwrap: a NEW mesh `<object>_uv` with a packed layout (method smart | angle | conformal; seams at edges sharper than angle_limit) and a measured report (islands, coverage, overlap by rasterising, texel-density spread, the density achieved at texture_size). The original keeps its UVs; inspect the checker before texturing. engine=studio:tripo is the Smart UV slot: it answers with the action and price for the owner's approval.",
+   "batch": null,
+   "api": "uv_unwrap",
+   "params": [
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "method",
+     "type": "string",
+     "desc": "smart (default) | angle | conformal",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "angle_limit",
+     "type": "number",
+     "desc": "Degrees, default 66",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "margin",
+     "type": "number",
+     "desc": "Island margin in UV units, default 0.005",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "texel_density",
+     "type": "number",
+     "desc": "Texels per metre wanted",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "texture_size",
+     "type": "integer",
+     "desc": "Default 2048",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "engine",
+     "type": "string",
+     "desc": "algorithmic (default) | studio:tripo",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  }
+ ]
+}

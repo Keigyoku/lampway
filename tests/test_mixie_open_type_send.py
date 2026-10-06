@@ -155,7 +155,9 @@ def test_agent_action_reads_send_not_generate():
     assert '"mixie_chat.send_message"' in references
     send = _function_body(references, "void agent_bubble_send_button(")
     assert 'state.stop_visible ? "mixie_chat.abort_session" : "mixie_chat.send_message"' in send
-    assert 'state.stop_visible ? TIP_("Stop the running turn") : TIP_("Send")' in send
+    # Facelift contract 04: Send's tooltip is the route sentence when there is one, else "Send".
+    assert 'state.stop_visible ? TIP_("Stop the running turn") :' in send and 'TIP_("Send")' in send
+    assert "route_tip[0]" in send
     column = _function_body(references, "void agent_bubble_references_draw(")
     assert "agent_bubble_send_button(C, region, block, layout, state)" in column
     assert '"Generate"' not in send

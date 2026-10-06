@@ -69,10 +69,9 @@ float chat_ui_get_padding()
 
 float chat_ui_get_bubble_spacing()
 {
-  /* Flat layout: one modular unit between blocks of a turn — a consistent,
-   * tight rhythm so the turn reads as a single composed unit. Forced over
-   * the theme. */
-  return 8.0f;
+  /* The theme's (facelift contract 04: Mixar forced 8 over it). */
+  const ThemeSpace *ts = chat_ui_get_theme_space();
+  return ts ? ts->chat_bubble_spacing : CHAT_BASE_BUBBLE_SPACING;
 }
 
 float chat_ui_get_bubble_h_padding()
@@ -95,9 +94,9 @@ float chat_ui_get_corner_radius()
 
 float chat_ui_get_label_height()
 {
-  /* Flat layout: the sender label sits closer to its message. Forced tighter
-   * than the bubble-era default to remove the large header gap. */
-  return 13.0f;
+  /* The theme's (facelift contract 04: Mixar forced 13 over it). */
+  const ThemeSpace *ts = chat_ui_get_theme_space();
+  return ts ? ts->chat_label_height : CHAT_BASE_LABEL_HEIGHT;
 }
 
 float chat_ui_get_image_max_width()

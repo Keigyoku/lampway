@@ -340,3 +340,124 @@ ctrl+alt+Space switches the screen to its full-screen copy. **Cause**: ctrl+Spac
 returns CANCELLED in Lamplight, because Lamplight is a one-area screen and upstream refuses to maximise a single area
 (`screen_maximize_area_exec`, Blender #144740). The keymap is fine and no shortcut is overridden. No code change; the
 event-simulated test `test_zen_shortcuts.py` pins N and ctrl+alt+Space.
+
+## Contract 04: the chat face (partial) and the captain's pill change
+
+The chat lives in the floating island (`space_agent_bubble`; the docked chat editor is deprecated), whose transcript is
+drawn by `space_mixie_chat`. Measured in the real build under Xvfb (the island is its own window; the states capture it).
+
+Done:
+- **Theme spacing** (test 1): bubble spacing and label height read the theme (Mixar forced 8 and 13 over it).
+- **User card**: `raised` fill, 1 px `line` border, the corner nearest the composer tight (4 px), in place of the
+  glass bed (`chat_ui_draw_user_card`).
+- **Rules**: plan (todo), steps, images, thinking and live blocks carry a 3 px rule in the theme's `agent` (dusk), the
+  agent's prose too. The running step's glyph is the theme accent; **Mixar's green live accent is gone from the chat
+  blocks**, but it is still in `CHAT_ACCENT_LIVE` for the history overlay, the rules editor and the ink overlay
+  (not the chat face; recorded, not changed).
+- **A question waiting** (choices): lamplight behind the set, a `line_hi` rule beside it, the primary choice an accent
+  fill with `on_accent` text (also on hover), danger choices in the theme's `stop`. Visual test
+  `tests/lampway_visual/test_chat_face.py`: the primary choice samples `#edb944` (accent). That test was written after
+  the code: its RED was not observed.
+- **Price chips** (test 2): `lampway_tools/price_chips.py` words each kind (`≈ $0.07 est., openrouter.ai`,
+  `13.5 credits, read back from Tripo 14:32`, `$0.05 billed`, `local, no cost`); the slot processor writes them into
+  each plan step (`price_text`) and the native row prints them after the step. **Words only**: the dashed / solid /
+  filled chip shapes are not drawn in plan rows (they are on the empty state's estimate chips).
+- **Route line** (test 3): `lampway_tools/route_line.py` + `chat_route.py`; the status timer writes host, sentence and
+  `send_ok` into the WindowManager, the island draws the host beside Send, Send's tooltip is the sentence, and with
+  the provider's route off Send is disabled and `mixie_chat.send_message` refuses before the server is asked. An
+  unknown provider or a silent server never reads as "this machine". Found by the visual probe: the Send button kept a
+  pointer to a per-draw buffer as its tooltip (garbage in the QA dump); it now points at storage that outlives the
+  draw.
+- **Empty state** (test 4): the brand line ("Ask Lampway Agent anything. Plans, questions and spends wait for you.")
+  in Fraunces 28 (vendored into `release/datafiles/fonts/`, OFL-1.1); the two GENERATE prompts carry a dashed estimate
+  chip from the generation catalogue's credit cost, or "spends credits: priced first" when it has none. Test written
+  after the code; the chip call was mutated out and the test failed.
+
+Not done (contract 04): the who line (Spark 20 px, name, plan chip, mono time); the calm pass's collapses (an answered
+question as one line, the step log as "3 steps done, 1.5 s, local"); the lamp glyph for local steps; test 6 (region
+diff against `shots/04-chat.png`, a mockup render; needs an approved golden of the app).
+
+### The floating agent pill (the captain: "toggleable, off by default or just combined into the chat window")
+
+Both, as the coordinator asked. The pill was a second always-on-top window created with the chat, sitting above it
+(`agent_bubble_show_window_exec`), and the chat's minimised form.
+- Preference "Floating agent pill" (Preferences > Interface > Agent), a persisted config key, **off by default,
+  existing users included**. Off: no pill window is created; minimise (Escape, the yellow light, Ctrl+Shift+B) closes
+  the chat; the workspace switch and the tour no longer bring a pill back; the native minimise refuses. Turning it on
+  reopens the open chat with its pill at once.
+- What the pill showed now lives in the chat's own header band (painted natively: the Spark in its contract 05 state,
+  the activity word or state name, "N agents running", "N jobs") and, while the chat is closed, in a top-bar agent chip
+  that opens it (state glyph, the pill's status words with the queue clock, agents running, "N unread").
+  `docs/reports/facelift/pill_parity.md` lists every datum and where it went.
+- Existing users: a one-time note replaces the header cues until the chat first closes ("No floating pill: its state is
+  here (Preferences > Interface > Agent)").
+- Tests: `tests/lampway/test_lampway_agent_pill.py` (6: off by default, on shows it, the switch and the tour with the
+  pill off, close and reopen, the parity of header and chip, told once) and the real-build
+  `tests/lampway_visual/test_agent_pill.py`: a new profile has the chat and no pill; Ctrl+Shift+B closes it and the top
+  bar's chip appears; Ctrl+Shift+B opens it; the preference gives the open chat its pill; minimising then rests in the
+  pill. RED: the probe on the build before the gate showed the pill window (94 x 26) at startup.
+- Reading the coordinator's words: "the chat window" is the island. The pill's sketch draft (typing over the viewport
+  while a sketch is armed) was not driven with the pill off; the composer shows the same draft, but only a live run
+  proves the flow.
+- Native rebuild: yes.
+
+## Contract 06: the Studios panel (the Providers half moved to Choices)
+
+`specs/choices/facelift_06_amendment.md` (the captain's CH8): Choices absorbs the Providers dialog, so 06 keeps the
+Studios panel only; the Providers dialog is untouched until the Choices window replaces it.
+- A waiting spend is a card: what, the price read back and from which Studio, a **"Spend 13.5 credits"** button (the
+  number on the button, on its own row so a narrow sidebar never clips it: measured clipped in a popover before) and
+  "Not now". It is the panel's one glow.
+- A job Lampway cannot account for (`submission_unknown`) shows "maybe sent" with the user's two ways out, **"It did
+  not run"** and **"Link its job id"** (a dialog asks for the provider's job id), visible and not glowing, against the
+  integrator's routes (`GET /app/receipts`, `POST .../acknowledge`, `POST .../link`, sent with `"by": "user"`). This is
+  also the coordinator's contract 13 addition (the spend surfaces' submission_unknown UI); contract 13's own card will
+  reuse it.
+- The plan form has typed rows (name, kind: text / number / file / yes-no, value) instead of a JSON field, and is
+  closed by default; `plan_args()` turns them into the action's arguments (a file is project-relative).
+- Tests: `tests/lampway/test_lampway_studios_face.py` (4, RED observed: the panel read `studio_args`) and the real-build
+  `tests/lampway_visual/test_studios_face.py` (the real panel's draw code, as a popover: the sidebar's tab cannot be
+  chosen from Python).
+- Not done: the accounts lines (name and route; their state belongs to Connections now, the Connections amendment);
+  the per-action schema the contract imagined does not exist server-side (the actions list is id and label only), so
+  the rows are typed by the user, not generated; `test_providers_entry_opens_choices` waits for the Choices window.
+
+### The visual harness after the integration merge
+The integration's root `conftest.py` now points HOME and the XDG homes into the basetemp for every test. Rootless
+podman reads its container store from the person's home, so every windowed state failed with "no container
+lampway-build". The harness gives the display runner (only) the person's home back; the build inside still gets the
+run's own HOME and XDG homes from the `env` in front of it. The Asset Vault drag state now always registers its
+stand-ins (vault-ui's real operators are in the build since the merge) and drags its own tile by name.
+
+## Contract 07: the Way (partial)
+
+- **The Way**: a "The way" parent panel ("<piece>: 2 of 7 done") and one panel per step of the captain's piece runbook
+  (BUILD_ORDER.md Wave 2), in his order: Seeds and plates, UV score, Mesh QA, Parts critique, Mesh-paint texture, Fit and
+  openings, Bind and export. Each header carries the node for this piece (contract 14's `node_lit` / `node_half` /
+  `node` previews; the done steps are a custom property on the object, written when a step's tool succeeds) and the
+  tool's word (Live, Built, Partial, Planned) at its right.
+- **Status words with sources**: `lampway_tools/status.toml`, every live / built / partial word names the report that
+  measured it, and the test checks the file exists. The words are measured, not the mockup's: Mesh QA is Live
+  (reproduced the recorded runs and ran in the app, `tools.md`); Mesh-paint is Partial (the live image generation has
+  not run); Seeds and plates Partial (Studio drivers dry only); Fit and openings Partial (fit_place / fit_pose /
+  fit_openings not ported); Bind and export Partial (auto rig and the export bundle built; the UE bind is Wave 3). The
+  mockup had Seeds and Mesh-paint Live and Bind Planned.
+- **No free-text runner**: the "Parts and proportion tools" and "Features" panels (a tool name plus free-text
+  arguments, a feature plus JSON) are gone. Each tool is one operator with its own typed properties
+  (`ui/operators/tool_ops.py`), generated from `tool_specs.json`, which `scripts/lampway/facelift/tool_specs.py`
+  generates from the agent's own tool definitions (`server/.../agent/lampway_tools.py`), so the form and the agent's
+  schema are one thing; a batch tool's command line is built exactly as the server builds it for the agent. Run opens
+  the form as a dialog.
+- **No work in a draw**: Review proposals reads a cache a timer fills (it called `api.qa_proposals()` on every redraw).
+- The last result is one line with a "more" popover.
+- Tests: `tests/lampway/test_lampway_the_way.py` (8; RED observed) and the real-build
+  `tests/lampway_visual/test_the_way.py` (registered in order, the typed Retopology form's property kinds, the
+  free-text panels gone, and a real Retopology run on the Cube from the typed operator marks UV score done).
+- **Lost from the UI, said plainly**: 13 batch tools have no typed definition in the agent's registry (uv_score,
+  bake_maps, material_bake, clay_view, mesh_paint_set, relief_project, material_masks, uv_patches, patch_holes,
+  render_textured, asset_catalog_export, robust_weight_transfer, mesh_qa as a batch). The free-text runner reached them;
+  the Way does not. The agent still runs them (`lampway_run_tool`). Each needs a `Def` in the server's registry (not
+  this lane's file) to get a form here.
+- Not done: the Mesh QA body's redesign (result box with run line, tag counts on one row, "Review 17 by hand" and "Ask
+  the agent"); the drawn rail (phase 2, C++); test 6 (a sidebar capture: the sidebar's tab cannot be chosen from
+  Python, and child panels do not draw in a popover); the workflow picker (open question 1).

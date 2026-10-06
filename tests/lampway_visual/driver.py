@@ -33,6 +33,8 @@ def window():
 
 
 def redraw():
+    if not bpy.context.window_manager.windows:  # a window being rebuilt (the island's bounce): next tick
+        return
     win = window()
     for area in [*win.screen.areas, *win.global_areas]:  # the top and status bars are global areas
         area.tag_redraw()

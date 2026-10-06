@@ -44,6 +44,17 @@ def _tool_items(self, context):
     return [(t.name, t.name, t.summary) for t in runner.TOOLS.values()]
 
 
+class StudioPlanArg(PropertyGroup):
+    """One typed argument of a Studio action's plan (facelift contract 06: the plan form has no JSON field)."""
+    key: StringProperty(name="Argument", description="The argument's name, as the Studio action names it (e.g. front, polycount)")
+    kind: EnumProperty(name="Kind", items=[('TEXT', "Text", "Words"), ('NUMBER', "Number", "A number"),
+                                           ('FILE', "File", "A file inside the project root"), ('FLAG', "Yes / no", "On or off")])
+    text: StringProperty(name="Text")
+    number: FloatProperty(name="Number")
+    path: StringProperty(name="File", subtype='FILE_PATH', description="Inside the project root")
+    flag: BoolProperty(name="On")
+
+
 class LampwayToolsProps(PropertyGroup):
     # ---- Mesh QA
     qa_recipe: StringProperty(name="Recipe", subtype="FILE_PATH", description="The parts recipe json (parts and their motion classes)")
@@ -89,7 +100,9 @@ class LampwayToolsProps(PropertyGroup):
     prompt_rating: IntProperty(name="Rating", min=1, max=5, default=3)
     prompt_note: StringProperty(name="Note")
     studio_action: EnumProperty(name="Studio action", items=_studio_items)
-    studio_args: StringProperty(name="Arguments", default="{}", description="The action's arguments as JSON, paths inside the project root")
+    studio_args: StringProperty(name="Arguments", default="{}", description="The action's arguments as JSON, paths inside the project root")  # kept for old files; the panel draws studio_plan_args
+    studio_plan_args: CollectionProperty(type=StudioPlanArg)
+    studio_plan_args_index: IntProperty(default=0)
     feature: EnumProperty(name="Feature", items=[
         ("retopo", "Retopology", "A new all-quad mesh near a target face count"), ("uv_unwrap", "UV unwrap", "A packed UV layout on a new mesh"),
         ("segment_mesh", "Mesh segment", "Split into part objects"), ("auto_rig", "Auto rig", "A UE-named humanoid armature"),
@@ -102,7 +115,7 @@ class LampwayToolsProps(PropertyGroup):
     last_message: StringProperty(name="Last result", default="")
 
 
-classes = [PromptVar, LampwayToolsProps]
+classes = [PromptVar, StudioPlanArg, LampwayToolsProps]
 
 
 def register():

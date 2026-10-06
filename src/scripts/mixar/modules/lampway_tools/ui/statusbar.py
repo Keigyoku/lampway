@@ -63,11 +63,22 @@ def sync_animation():
 def refresh():
     try:
         client = CLIENT_FACTORY()
-        S.update(egress=client.egress(), spend=client.spend(), studio=client.studio())
+        S.update(egress=client.egress(), spend=client.spend(), studio=client.studio(),
+                 provider=((client.provider_settings() or {}).get("values") or {}).get("provider") or "")
     except studio_client.StudioError as exc:
         S.fail(str(exc))
     sync_animation()
+    _sync_route_line()
     _redraw_statusbar()
+
+
+def _sync_route_line():
+    """Where the next chat message goes, for the island's Send (facelift contract 04)."""
+    from mixar.modules.lampway_tools import chat_route
+    wm = getattr(bpy.context, "window_manager", None)
+    scene = getattr(bpy.context, "scene", None)
+    if wm is not None and hasattr(wm, "lampway_chat_send_ok"):
+        chat_route.sync(wm, scene)
 
 
 def _tick():

@@ -80,6 +80,16 @@ class StudioClient:
     def download(self, job_id: str, name: str) -> bytes:
         return self._call("GET", f"/app/studio/jobs/{job_id}/files/{name}", raw=True, timeout=300)
 
+    # ---- receipts: the user's two ways out of submission_unknown (docs/reports/integration.md; never an agent)
+    def receipts(self, state="submission_unknown") -> list:
+        return self._call("GET", f"/app/receipts?state={state}")["receipts"]
+
+    def acknowledge_receipt(self, key: str) -> dict:
+        return self._call("POST", f"/app/receipts/{key}/acknowledge", {"by": "user"})
+
+    def link_receipt(self, key: str, provider_job_id: str) -> dict:
+        return self._call("POST", f"/app/receipts/{key}/link", {"by": "user", "provider_job_id": provider_job_id})
+
     # ---- provider setup (the same server door)
     def provider_settings(self) -> dict:
         return self._call("GET", "/app/provider-settings")

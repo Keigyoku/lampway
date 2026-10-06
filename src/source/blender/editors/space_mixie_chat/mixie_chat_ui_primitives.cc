@@ -27,6 +27,12 @@
 
 #include "ED_mixar_glass.hh"
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_vector.hh"
+
+#include "UI_mixar_theme.hh"
+#include "UI_resources.hh"
+
 #include "mixie_chat_ui_types.hh"
 /* Mixar 5.2 port: namespace wrap. */
 namespace blender {
@@ -223,6 +229,93 @@ void chat_ui_draw_glass_pane(const rctf *rect, const float radius, const float a
   style.alpha = alpha;
   style.draw_specular = false;
   ui::mixar_glass_draw(pane, style);
+}
+
+void chat_ui_get_agent_color(float out_color[4])
+{
+  /* The theme generator writes the `agent` token into gizmo_secondary (theme/build_theme.py). */
+  ui::theme::get_color_4fv(TH_GIZMO_SECONDARY, out_color);
+  out_color[3] = 1.0f;
+}
+
+void chat_ui_draw_block_rule(
+    const float x, const float y_bottom, const float height, const float color[4], const float scale)
+{
+  if (height <= 0.0f) {
+    return;
+  }
+  rctf bar;
+  bar.xmin = x;
+  bar.xmax = x + 3.0f * scale;
+  bar.ymin = y_bottom;
+  bar.ymax = y_bottom + height;
+  chat_ui_draw_rounded_rect(&bar, 1.5f * scale, color);
+}
+
+/** Perimeter of a rect whose four corners have their own radii (bottom-left, bottom-right, top-right, top-left). */
+static void corner_outline(const rctf *rect, const float r[4], Vector<float2> &r_points)
+{
+  const float x0 = rect->xmin, y0 = rect->ymin, x1 = rect->xmax, y1 = rect->ymax;
+  const float cx[4] = {x0 + r[0], x1 - r[1], x1 - r[2], x0 + r[3]};
+  const float cy[4] = {y0 + r[0], y0 + r[1], y1 - r[2], y1 - r[3]};
+  for (int c = 0; c < 4; c++) {
+    const float a0 = PI + c * (PI / 2.0f);
+    for (int i = 0; i <= CORNER_SEGMENTS; i++) {
+      const float a = a0 + (PI / 2.0f) * float(i) / float(CORNER_SEGMENTS);
+      r_points.append(float2(cx[c] + r[c] * cosf(a), cy[c] + r[c] * sinf(a)));
+    }
+  }
+}
+
+void chat_ui_draw_user_card(const rctf *rect, const float radius, const float fill[4], const float scale)
+{
+  const float w = BLI_rctf_size_x(rect), h = BLI_rctf_size_y(rect);
+  const float big = std::min({radius, w / 2.0f, h / 2.0f});
+  const float tight = std::min(4.0f * scale, big);
+  /* The user's card sits on the right, above the composer: its bottom-right corner is the tight one. */
+  const float radii[4] = {big, tight, big, big};
+  Vector<float2> points;
+  corner_outline(rect, radii, points);
+
+  float line[4];
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::Border, line);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor4fv(fill);
+  immBegin(GPU_PRIM_TRI_FAN, points.size() + 2);
+  immVertex2f(pos, BLI_rctf_cent_x(rect), BLI_rctf_cent_y(rect));
+  for (const float2 &p : points) {
+    immVertex2f(pos, p.x, p.y);
+  }
+  immVertex2f(pos, points[0].x, points[0].y);
+  immEnd();
+  immUniformColor4fv(line);
+  GPU_line_width(1.0f);
+  immBegin(GPU_PRIM_LINE_LOOP, points.size());
+  for (const float2 &p : points) {
+    immVertex2f(pos, p.x, p.y);
+  }
+  immEnd();
+  immUnbindProgram();
+}
+
+void chat_ui_draw_lamplight(const rctf *rect, const float radius, const float scale)
+{
+  /* An `accent` pool at 22 percent at its heart, fading out over 18 px: rings of decreasing alpha. */
+  float accent[4];
+  ui::mixar_theme_color_f(ui::MixarThemeSlot::Focus, accent);
+  GPU_blend(GPU_BLEND_ALPHA); /* a glow, never paint: callers do not all leave blending on */
+  const int rings = 6;
+  for (int i = rings; i >= 1; i--) {
+    const float grow = 3.0f * scale * float(i);
+    rctf ring = *rect;
+    BLI_rctf_pad(&ring, grow, grow);
+    /* Every ring covers the heart, so the alphas stack there to about 0.22 and thin out toward the edge. */
+    float c[4] = {accent[0], accent[1], accent[2], 0.22f / float(rings)};
+    chat_ui_draw_rounded_rect(&ring, radius + grow, c);
+  }
 }
 
 void chat_ui_draw_accent_bar(float x,

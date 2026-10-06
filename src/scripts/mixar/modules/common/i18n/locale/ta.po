@@ -926,39 +926,6 @@ msgstr ""
 "வழிசெலுத்தலையும் வியூபோர்ட் அல்லாத அனைத்து உள்ளீட்டையும் கடக்கவிடுகிறது; வியூபோர்ட்\n"
 "கேன்வாசின் மேல் சொடுக்கல்களையும் தொகுப்புக் குறுக்குவிசைகளையும் எடுத்துக்கொள்கிறது.\n"
 
-msgid "Canvas"
-msgstr "கேன்வாச்"
-
-msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
-msgstr ""
-
-msgid "Open"
-msgstr "திற"
-
-msgid "Fit"
-msgstr ""
-
-msgid "Modal"
-msgstr ""
-
-msgid "attach the pan/zoom handling to what is already open"
-msgstr ""
-
-msgid "the lineage layout as JSON, for clicks"
-msgstr ""
-
-msgid "Asset Vault Hotkey"
-msgstr ""
-
-msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
-msgstr ""
-
-msgid "Search the Asset Vault"
-msgstr ""
-
-msgid "Select an asset first"
-msgstr ""
-
 msgid "Search"
 msgstr "தேடல்"
 
@@ -1091,55 +1058,10 @@ msgstr ""
 msgid "The Asset Vault window is already open"
 msgstr ""
 
-msgid "Align clips"
-msgstr ""
-
-msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
-msgstr ""
-
-msgid "Frame 0 with frame 0"
-msgstr ""
-
-msgid "Time"
-msgstr ""
-
-msgid "By timestamp"
-msgstr ""
-
-msgid "Motion"
-msgstr ""
-
-msgid "Where each clip first moves"
-msgstr ""
-
-msgid "Press Compare on a second clip first"
-msgstr ""
-
-msgid "Refresh boards"
-msgstr ""
-
-msgid "Read the Vault's boards"
-msgstr ""
-
-msgid "Open board"
-msgstr ""
-
-msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
-msgstr ""
-
-msgid "Boards"
-msgstr ""
-
 msgid "Searching"
 msgstr ""
 
-msgid "Choose how to line the two clips up"
-msgstr ""
-
 msgid "Show the lineage"
-msgstr ""
-
-msgid "Open on the canvas"
 msgstr ""
 
 msgid "Select an asset"
@@ -1149,12 +1071,6 @@ msgid "Reading the asset"
 msgstr ""
 
 msgid "Copy id"
-msgstr ""
-
-msgid "Close canvas"
-msgstr ""
-
-msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
 msgstr ""
 
 msgid "Asset Vault"
@@ -2692,6 +2608,9 @@ msgstr "பிணையத்தை அடைய முடியவில்ல�
 
 msgid "Network error: {short}"
 msgstr "பிணையப் பிழை: {short}"
+
+msgid "Open"
+msgstr "திற"
 
 msgid "Toast Click"
 msgstr "டோஸ்ட் சொடுக்கு"
@@ -5159,14 +5078,11 @@ msgstr "விலக்கு"
 msgid "Dismiss the error and return to idle"
 msgstr "பிழையை விலக்கி செயலற்ற நிலைக்குத் திரும்புகிறது"
 
-msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
-msgstr ""
-
-msgid "UE Look is on"
-msgstr ""
-
 msgid "Front"
 msgstr "முன்"
+
+msgid "Run"
+msgstr ""
 
 msgid "RGB"
 msgstr "ஆர்சிபி"
@@ -5177,31 +5093,34 @@ msgstr "கடினத்தன்மை"
 msgid "Metallic"
 msgstr "உலோகம்"
 
-msgid "Scale"
-msgstr "அளவு"
-
-msgid "Detail"
-msgstr "விவரம்"
-
-msgid "NodeGroupOutput"
-msgstr ""
-
-msgid "GeometryNodeCollectionInfo"
-msgstr ""
-
-msgid "lampway_uv_check"
-msgstr ""
-
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
 msgstr ""
 
-msgid "KiB"
+msgid "Hide this note (the pill stays off; the preference brings it back)"
 msgstr ""
 
-msgid "MiB"
+msgid "Floating agent pill"
+msgstr ""
+
+msgid "When the chat is minimised, leave a small floating pill with the agent's state. Off: minimising closes the chat, and the agent chip in the top bar carries the state and opens it again"
+msgstr ""
+
+msgid "Pill note pending"
+msgstr ""
+
+msgid "Route"
+msgstr ""
+
+msgid "Where the next message goes"
+msgstr ""
+
+msgid "Send may leave"
+msgstr ""
+
+msgid "Generate estimates"
 msgstr ""
 
 msgid "ChatGPT plan"
@@ -5322,15 +5241,6 @@ msgid "Egress"
 msgstr ""
 
 msgid "Whether data is leaving this machine"
-msgstr ""
-
-msgid "Approve patch"
-msgstr ""
-
-msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
-msgstr ""
-
-msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -5531,6 +5441,42 @@ msgstr ""
 msgid "Arguments"
 msgstr ""
 
+msgid "Add argument"
+msgstr ""
+
+msgid "Add an argument row to the plan form"
+msgstr ""
+
+msgid "Remove argument"
+msgstr ""
+
+msgid "Remove the selected argument row"
+msgstr ""
+
+msgid "It did not run"
+msgstr ""
+
+msgid "Say this job did not run: Lampway stops waiting for it and nothing is sent again (only you can do this)"
+msgstr ""
+
+msgid "Link its job id"
+msgstr ""
+
+msgid "It did run: give the job id from the provider's own history, and Lampway follows that job (nothing is sent again)"
+msgstr ""
+
+msgid "Job id"
+msgstr ""
+
+msgid "The job's id in the provider's own history"
+msgstr ""
+
+msgid "Link the provider's job id"
+msgstr ""
+
+msgid "Link"
+msgstr ""
+
 msgid "Confirm and spend"
 msgstr ""
 
@@ -5723,12 +5669,6 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
-msgid "UE Look"
-msgstr ""
-
-msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
-msgstr ""
-
 msgid "Refresh sessions"
 msgstr ""
 
@@ -5798,7 +5738,22 @@ msgstr ""
 msgid "Lampway tools"
 msgstr ""
 
-msgid "Mesh QA"
+msgid "more"
+msgstr ""
+
+msgid "Last result"
+msgstr ""
+
+msgid "The whole last result (the main panel shows one line)."
+msgstr ""
+
+msgid "The way"
+msgstr ""
+
+msgid "The Way (facelift contract 07): the captain's piece runbook, one step per panel, a node for this piece."
+msgstr ""
+
+msgid "Find and draw candidates"
 msgstr ""
 
 msgid "Tags: Red = Delete, Green = Mislabel, Yellow = Hole"
@@ -5810,10 +5765,10 @@ msgstr ""
 msgid "Mesh-paint texturing"
 msgstr ""
 
-msgid "Parts and proportion tools"
+msgid "Review proposals"
 msgstr ""
 
-msgid "Review proposals"
+msgid "Reading the proposals..."
 msgstr ""
 
 msgid "Set a piece up first (Mesh QA)"
@@ -5834,13 +5789,10 @@ msgstr ""
 msgid "Providers: agent, swarm, images"
 msgstr ""
 
-msgid "Waiting for YOUR confirmation"
+msgid "Not now"
 msgstr ""
 
-msgid "Plan (clicks nothing)"
-msgstr ""
-
-msgid "Features"
+msgid "Plan an action (clicks nothing)"
 msgstr ""
 
 msgid "Prompts"
@@ -5882,15 +5834,6 @@ msgstr ""
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
 msgstr ""
 
-msgid "Engine defaults: not the project"
-msgstr ""
-
-msgid "UE Look: on"
-msgstr ""
-
-msgid "UE Look: off"
-msgstr ""
-
 msgid "Show account details"
 msgstr ""
 
@@ -5898,6 +5841,36 @@ msgid "Show the signed-in name and address on the account card; off, it reads Lo
 msgstr ""
 
 msgid "enum values, | separated"
+msgstr ""
+
+msgid "Argument"
+msgstr ""
+
+msgid "The argument's name, as the Studio action names it (e.g. front, polycount)"
+msgstr ""
+
+msgid "Words"
+msgstr ""
+
+msgid "Number"
+msgstr "எண்"
+
+msgid "A number"
+msgstr ""
+
+msgid "File"
+msgstr "கோப்பு"
+
+msgid "A file inside the project root"
+msgstr ""
+
+msgid "Yes / no"
+msgstr ""
+
+msgid "On or off"
+msgstr ""
+
+msgid "Inside the project root"
 msgstr ""
 
 msgid "Recipe"
@@ -6032,9 +6005,6 @@ msgstr ""
 msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
 msgstr ""
 
-msgid "Job id"
-msgstr ""
-
 msgid "The job to rate"
 msgstr ""
 
@@ -6120,27 +6090,6 @@ msgid "Figure height (m)"
 msgstr ""
 
 msgid "0 = the deform mesh's rest height, else head bone to foot bone"
-msgstr ""
-
-msgid "Last result"
-msgstr ""
-
-msgid "UE profile"
-msgstr ""
-
-msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
-msgstr ""
-
-msgid "Tonemapper cube"
-msgstr ""
-
-msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
-msgstr ""
-
-msgid "Cube sidecar"
-msgstr ""
-
-msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
@@ -8183,9 +8132,6 @@ msgstr "சரம் மதிப்பு"
 msgid "Whole-number value"
 msgstr "முழு எண் மதிப்பு"
 
-msgid "Number"
-msgstr "எண்"
-
 msgid "Floating-point value"
 msgstr "மிதக்கும்-புள்ளி மதிப்பு"
 
@@ -8664,6 +8610,9 @@ msgstr "மூட்போர்டு கேன்வாசில் X நி�
 
 msgid "Y position on the moodboard canvas"
 msgstr "மூட்போர்டு கேன்வாசில் Y நிலை"
+
+msgid "Scale"
+msgstr "அளவு"
 
 msgid "Scale factor for the image"
 msgstr "படத்துக்கான அளவுக் காரணி"
@@ -20928,6 +20877,9 @@ msgstr ""
 "\n"
 "சிறிது நேரத்தில் மீண்டும் முயலவும், அல்லது அதற்குப் பதிலாக உரைத் தேடலைத் தட்டச்சு செய்யவும்."
 
+msgid "Showing name matches only ({reason})."
+msgstr "பெயர் பொருத்தங்கள் மட்டும் காட்டப்படுகின்றன ({reason})."
+
 msgid "“{query}” + your image"
 msgstr "“{query}” + உங்கள் படம்"
 
@@ -22402,9 +22354,6 @@ msgstr "கோப்புப் பாதை அல்லது blend படப
 msgid "Image Source"
 msgstr "பட மூலம்"
 
-msgid "File"
-msgstr "கோப்பு"
-
 msgid "Image from file system"
 msgstr "கோப்பு அமைப்பிலிருந்து படம்"
 
@@ -22714,9 +22663,6 @@ msgstr "துணை நிரல் திட்டம்"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "இணைத்த பல கோப்பு Blender துணை நிரலைக் கட்டிப் பராமரி"
 
-msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
-msgstr ""
-
 msgid "Add-on Project ID"
 msgstr "துணை நிரல் திட்ட அடையாளம்"
 
@@ -22891,6 +22837,9 @@ msgstr "இந்தச் செய்யவேண்டிய உருப்�
 msgid "Todo item text"
 msgstr "செய்யவேண்டிய உருப்படி உரை"
 
+msgid "The step's price chip: an estimate, a quote, billed, or local"
+msgstr ""
+
 msgid "Current status of the todo item"
 msgstr "செய்யவேண்டிய உருப்படியின் நடப்பு நிலைமை"
 
@@ -23034,6 +22983,9 @@ msgstr "நிரைச் சிட்டை, எ.கா. 'படி'"
 
 msgid "Row target, e.g. a filename"
 msgstr "நிரை இலக்கு, எ.கா. ஒரு கோப்புப் பெயர்"
+
+msgid "Detail"
+msgstr "விவரம்"
 
 msgid "Second-level detail body (command output / snippet)"
 msgstr "இரண்டாம் நிலை விவர உடல் (கட்டளை வெளியீடு / துணுக்கு)"
@@ -25615,6 +25567,15 @@ msgstr "புதியது"
 msgid "Ask %s anything..."
 msgstr ""
 
+msgid "agents running"
+msgstr ""
+
+msgid "jobs"
+msgstr ""
+
+msgid "No floating pill: its state is here (Preferences > Interface > Agent)"
+msgstr ""
+
 msgid "Write your prompt here..."
 msgstr "உங்கள் ப்ராம்ப்டை இங்கே எழுதுங்கள்..."
 
@@ -27007,8 +26968,11 @@ msgstr "2 UDIM-களில் தீவுகளை வைத்து அட�
 msgid "Generate a 3D model of the image selected in moodboard"
 msgstr "மூட்போர்டில் தேர்ந்தெடுத்த படத்தின் 3D மாதிரியை உருவாக்கு"
 
-msgid "Hey friend! How can I help today?"
-msgstr "வணக்கம்! இன்று உங்களுக்கு எப்படி உதவலாம்?"
+msgid "spends credits: priced first"
+msgstr ""
+
+msgid "Ask %s anything. Plans, questions and spends wait for you."
+msgstr ""
 
 msgid "Add a comment (optional)"
 msgstr "ஒரு கருத்தைச் சேர் (விருப்பம்)"
@@ -28230,6 +28194,9 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
+
+msgid "Canvas"
+msgstr "கேன்வாச்"
 
 msgid "Shared canvas and page background"
 msgstr "பகிர்ந்த கேன்வாச் மற்றும் பக்கப் பின்னணி"

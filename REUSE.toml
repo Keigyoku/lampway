@@ -211,7 +211,8 @@ SPDX-License-Identifier = "GPL-3.0-or-later"
 # Facelift contract 02: the brand faces the splash is rendered with, vendored so the render never falls back to a
 # system font. Each OFL text sits beside its face.
 [[annotations]]
-path = ["scripts/dev/brand_art/fonts/fraunces-*.woff2", "scripts/dev/brand_art/fonts/OFL-Fraunces.txt"]
+path = ["scripts/dev/brand_art/fonts/fraunces-*.woff2", "scripts/dev/brand_art/fonts/OFL-Fraunces.txt",
+        "src/release/datafiles/fonts/Fraunces.woff2", "src/release/datafiles/fonts/Fraunces-LICENSE.txt"]
 precedence = "override"
 SPDX-FileCopyrightText = "2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces)"
 SPDX-License-Identifier = "OFL-1.1"

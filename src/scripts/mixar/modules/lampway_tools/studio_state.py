@@ -6,12 +6,17 @@
 
 PROMPTS = {"templates": [], "current": None, "rendered": None}      # the prompt library as the panel shows it
 PROVIDERS = {}          # the last GET /app/provider-settings: {values, source, choices}
-STATE = {"actions": [], "approvals": [], "jobs": [], "engine": {}, "error": ""}
+STATE = {"actions": [], "approvals": [], "jobs": [], "engine": {}, "error": "", "receipts": []}
 
 
 def update(home: dict) -> None:
     STATE.update(actions=home.get("actions") or [], approvals=home.get("approvals") or [], jobs=home.get("jobs") or [],
                  engine=home.get("engine") or {}, error="")
+
+
+def maybe_sent() -> list:
+    """Jobs Lampway cannot account for (submission_unknown): the user says it did not run, or links its job id."""
+    return [r for r in STATE.get("receipts") or [] if r.get("state") == "submission_unknown"]
 
 
 def fail(message: str) -> None:

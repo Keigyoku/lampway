@@ -309,6 +309,7 @@ bool populate_slot_layout_data(PointerRNA *msg_ptr, MessageLayoutData *layout) {
       TodoItemSlotData &todo = layout->slot_todo_items[layout->slot_todo_count];
       todo.id[0] = '\0';
       todo.text[0] = '\0';
+      todo.price[0] = '\0';
       todo.status = 0; /* pending */
       todo.height = 0.0f;
       todo.is_hovered = false;
@@ -324,6 +325,9 @@ bool populate_slot_layout_data(PointerRNA *msg_ptr, MessageLayoutData *layout) {
         }
       }
       read_rna_string_bounded(&todo_ptr, g_todo_props.text, todo.text, sizeof(todo.text));
+      if (g_todo_props.price_text) {
+        read_rna_string_bounded(&todo_ptr, g_todo_props.price_text, todo.price, sizeof(todo.price));
+      }
       if (g_todo_props.status) {
         todo.status = RNA_property_enum_get(&todo_ptr, g_todo_props.status);
       }

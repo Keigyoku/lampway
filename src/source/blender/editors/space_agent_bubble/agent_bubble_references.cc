@@ -1,6 +1,7 @@
 /* SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited
  * SPDX-License-Identifier: GPL-3.0-or-later */
 
+#include "BLI_string.h"
 #include "agent_bubble_references.hh"
 #include "../interface/interface_qa_inspect.hh"
 #include "BKE_context.hh"
@@ -127,7 +128,14 @@ void agent_bubble_send_button(const bContext * /*C*/,
   /* A draft joins the running turn; Stop is only shown for an empty composer.
    * Both composer regions share the same action and painted state. */
   const rctf &r = layout.btn_generate;
-  uiDefButO(block,
+  /* The button keeps the tip's pointer, and `state` is gathered per draw: hold the route sentence in storage that
+   * outlives it. */
+  static char route_tip[sizeof(state.route_tip)];
+  STRNCPY(route_tip, state.route_tip);
+  const char *tip = state.stop_visible ? TIP_("Stop the running turn") :
+                    route_tip[0]       ? route_tip :
+                                         TIP_("Send");
+  ui::Button *but = uiDefButO(block,
             ui::ButtonType::But,
             state.stop_visible ? "mixie_chat.abort_session" : "mixie_chat.send_message",
             wm::OpCallContext::InvokeDefault,
@@ -136,7 +144,10 @@ void agent_bubble_send_button(const bContext * /*C*/,
             int(r.ymin) - region->winrct.ymin,
             short(BLI_rctf_size_x(&r)),
             short(BLI_rctf_size_y(&r)),
-            state.stop_visible ? TIP_("Stop the running turn") : TIP_("Send"));
+            tip);
+  if (!state.stop_visible && !state.send_ok && but) {
+    ui::button_flag_enable(but, ui::BUT_DISABLED);
+  }
 }
 
 namespace {

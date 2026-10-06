@@ -1144,39 +1144,6 @@ msgstr ""
 "Propušta navigaciju i sav unos van prikaza; upija\n"
 "klikove i prečice za uređivanje nad platnom prikaza.\n"
 
-msgid "Canvas"
-msgstr "Platno"
-
-msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
-msgstr ""
-
-msgid "Open"
-msgstr "Otvori"
-
-msgid "Fit"
-msgstr ""
-
-msgid "Modal"
-msgstr ""
-
-msgid "attach the pan/zoom handling to what is already open"
-msgstr ""
-
-msgid "the lineage layout as JSON, for clicks"
-msgstr ""
-
-msgid "Asset Vault Hotkey"
-msgstr ""
-
-msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
-msgstr ""
-
-msgid "Search the Asset Vault"
-msgstr ""
-
-msgid "Select an asset first"
-msgstr ""
-
 msgid "Search"
 msgstr "Pretraga"
 
@@ -1309,55 +1276,10 @@ msgstr ""
 msgid "The Asset Vault window is already open"
 msgstr ""
 
-msgid "Align clips"
-msgstr ""
-
-msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
-msgstr ""
-
-msgid "Frame 0 with frame 0"
-msgstr ""
-
-msgid "Time"
-msgstr ""
-
-msgid "By timestamp"
-msgstr ""
-
-msgid "Motion"
-msgstr ""
-
-msgid "Where each clip first moves"
-msgstr ""
-
-msgid "Press Compare on a second clip first"
-msgstr ""
-
-msgid "Refresh boards"
-msgstr ""
-
-msgid "Read the Vault's boards"
-msgstr ""
-
-msgid "Open board"
-msgstr ""
-
-msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
-msgstr ""
-
-msgid "Boards"
-msgstr ""
-
 msgid "Searching"
 msgstr ""
 
-msgid "Choose how to line the two clips up"
-msgstr ""
-
 msgid "Show the lineage"
-msgstr ""
-
-msgid "Open on the canvas"
 msgstr ""
 
 msgid "Select an asset"
@@ -1367,12 +1289,6 @@ msgid "Reading the asset"
 msgstr ""
 
 msgid "Copy id"
-msgstr ""
-
-msgid "Close canvas"
-msgstr ""
-
-msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
 msgstr ""
 
 msgid "Asset Vault"
@@ -3361,6 +3277,9 @@ msgstr "Mreža je nedostupna."
 # derived
 msgid "Network error: {short}"
 msgstr "Mrežna greška: {short}"
+
+msgid "Open"
+msgstr "Otvori"
 
 # derived
 msgid "Toast Click"
@@ -6487,14 +6406,11 @@ msgstr "Odbaci"
 msgid "Dismiss the error and return to idle"
 msgstr "Odbacuje grešku i vraća se u neaktivno"
 
-msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
-msgstr ""
-
-msgid "UE Look is on"
-msgstr ""
-
 msgid "Front"
 msgstr "Spreda"
+
+msgid "Run"
+msgstr ""
 
 msgid "RGB"
 msgstr "RGB"
@@ -6506,31 +6422,34 @@ msgstr "Hrapavost"
 msgid "Metallic"
 msgstr "Metalik"
 
-msgid "Scale"
-msgstr "Uvećanje"
-
-msgid "Detail"
-msgstr "Detaljnost"
-
-msgid "NodeGroupOutput"
-msgstr ""
-
-msgid "GeometryNodeCollectionInfo"
-msgstr ""
-
-msgid "lampway_uv_check"
-msgstr ""
-
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
 msgstr ""
 
-msgid "KiB"
+msgid "Hide this note (the pill stays off; the preference brings it back)"
 msgstr ""
 
-msgid "MiB"
+msgid "Floating agent pill"
+msgstr ""
+
+msgid "When the chat is minimised, leave a small floating pill with the agent's state. Off: minimising closes the chat, and the agent chip in the top bar carries the state and opens it again"
+msgstr ""
+
+msgid "Pill note pending"
+msgstr ""
+
+msgid "Route"
+msgstr ""
+
+msgid "Where the next message goes"
+msgstr ""
+
+msgid "Send may leave"
+msgstr ""
+
+msgid "Generate estimates"
 msgstr ""
 
 msgid "ChatGPT plan"
@@ -6653,15 +6572,6 @@ msgid "Egress"
 msgstr ""
 
 msgid "Whether data is leaving this machine"
-msgstr ""
-
-msgid "Approve patch"
-msgstr ""
-
-msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
-msgstr ""
-
-msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -6862,6 +6772,42 @@ msgstr ""
 msgid "Arguments"
 msgstr ""
 
+msgid "Add argument"
+msgstr ""
+
+msgid "Add an argument row to the plan form"
+msgstr ""
+
+msgid "Remove argument"
+msgstr ""
+
+msgid "Remove the selected argument row"
+msgstr ""
+
+msgid "It did not run"
+msgstr ""
+
+msgid "Say this job did not run: Lampway stops waiting for it and nothing is sent again (only you can do this)"
+msgstr ""
+
+msgid "Link its job id"
+msgstr ""
+
+msgid "It did run: give the job id from the provider's own history, and Lampway follows that job (nothing is sent again)"
+msgstr ""
+
+msgid "Job id"
+msgstr ""
+
+msgid "The job's id in the provider's own history"
+msgstr ""
+
+msgid "Link the provider's job id"
+msgstr ""
+
+msgid "Link"
+msgstr ""
+
 msgid "Confirm and spend"
 msgstr ""
 
@@ -7054,12 +7000,6 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
-msgid "UE Look"
-msgstr ""
-
-msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
-msgstr ""
-
 msgid "Refresh sessions"
 msgstr ""
 
@@ -7129,7 +7069,22 @@ msgstr ""
 msgid "Lampway tools"
 msgstr ""
 
-msgid "Mesh QA"
+msgid "more"
+msgstr ""
+
+msgid "Last result"
+msgstr ""
+
+msgid "The whole last result (the main panel shows one line)."
+msgstr ""
+
+msgid "The way"
+msgstr ""
+
+msgid "The Way (facelift contract 07): the captain's piece runbook, one step per panel, a node for this piece."
+msgstr ""
+
+msgid "Find and draw candidates"
 msgstr ""
 
 msgid "Tags: Red = Delete, Green = Mislabel, Yellow = Hole"
@@ -7141,10 +7096,10 @@ msgstr ""
 msgid "Mesh-paint texturing"
 msgstr ""
 
-msgid "Parts and proportion tools"
+msgid "Review proposals"
 msgstr ""
 
-msgid "Review proposals"
+msgid "Reading the proposals..."
 msgstr ""
 
 msgid "Set a piece up first (Mesh QA)"
@@ -7165,13 +7120,10 @@ msgstr ""
 msgid "Providers: agent, swarm, images"
 msgstr ""
 
-msgid "Waiting for YOUR confirmation"
+msgid "Not now"
 msgstr ""
 
-msgid "Plan (clicks nothing)"
-msgstr ""
-
-msgid "Features"
+msgid "Plan an action (clicks nothing)"
 msgstr ""
 
 msgid "Prompts"
@@ -7214,15 +7166,6 @@ msgstr ""
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
 msgstr ""
 
-msgid "Engine defaults: not the project"
-msgstr ""
-
-msgid "UE Look: on"
-msgstr ""
-
-msgid "UE Look: off"
-msgstr ""
-
 msgid "Show account details"
 msgstr ""
 
@@ -7230,6 +7173,36 @@ msgid "Show the signed-in name and address on the account card; off, it reads Lo
 msgstr ""
 
 msgid "enum values, | separated"
+msgstr ""
+
+msgid "Argument"
+msgstr ""
+
+msgid "The argument's name, as the Studio action names it (e.g. front, polycount)"
+msgstr ""
+
+msgid "Words"
+msgstr ""
+
+msgid "Number"
+msgstr "Broj"
+
+msgid "A number"
+msgstr ""
+
+msgid "File"
+msgstr "Datoteka"
+
+msgid "A file inside the project root"
+msgstr ""
+
+msgid "Yes / no"
+msgstr ""
+
+msgid "On or off"
+msgstr ""
+
+msgid "Inside the project root"
 msgstr ""
 
 msgid "Recipe"
@@ -7364,9 +7337,6 @@ msgstr ""
 msgid "Render for this model (adapters rename references, cut phrases, warn on length); empty = the template's default"
 msgstr ""
 
-msgid "Job id"
-msgstr ""
-
 msgid "The job to rate"
 msgstr ""
 
@@ -7455,27 +7425,6 @@ msgid "Figure height (m)"
 msgstr ""
 
 msgid "0 = the deform mesh's rest height, else head bone to foot bone"
-msgstr ""
-
-msgid "Last result"
-msgstr ""
-
-msgid "UE profile"
-msgstr ""
-
-msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
-msgstr ""
-
-msgid "Tonemapper cube"
-msgstr ""
-
-msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
-msgstr ""
-
-msgid "Cube sidecar"
-msgstr ""
-
-msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 # derived
@@ -10099,9 +10048,6 @@ msgstr "Tekstualna vrednost"
 msgid "Whole-number value"
 msgstr "Vrednost celog broja"
 
-msgid "Number"
-msgstr "Broj"
-
 # derived
 msgid "Floating-point value"
 msgstr "Vrednost sa pokretnim zarezom"
@@ -10717,6 +10663,9 @@ msgstr "Pozicija X na platnu mudborda"
 # derived
 msgid "Y position on the moodboard canvas"
 msgstr "Pozicija Y na platnu mudborda"
+
+msgid "Scale"
+msgstr "Uvećanje"
 
 # derived
 msgid "Scale factor for the image"
@@ -26684,6 +26633,10 @@ msgstr ""
 "Pokušajte ponovo za trenutak ili umesto toga unesite tekstualnu pretragu."
 
 # derived
+msgid "Showing name matches only ({reason})."
+msgstr "Prikazana su samo poklapanja imena ({reason})."
+
+# derived
 msgid "“{query}” + your image"
 msgstr "„{query}“ + vaša slika"
 
@@ -28556,9 +28509,6 @@ msgstr "Putanja datoteke ili ime slike blend-a"
 msgid "Image Source"
 msgstr "Izvor slike"
 
-msgid "File"
-msgstr "Datoteka"
-
 # derived
 msgid "Image from file system"
 msgstr "Slika iz sistema datoteka"
@@ -28968,9 +28918,6 @@ msgstr "Projekat dodatka"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "Gradi i održava povezani dodatak za Blender od više datoteka"
 
-msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
-msgstr ""
-
 # derived
 msgid "Add-on Project ID"
 msgstr "ID projekta dodatka"
@@ -29200,6 +29147,9 @@ msgstr "Jedinstveni identifikator ove stavke zadatka"
 msgid "Todo item text"
 msgstr "Tekst stavke zadatka"
 
+msgid "The step's price chip: an estimate, a quote, billed, or local"
+msgstr ""
+
 # derived
 msgid "Current status of the todo item"
 msgstr "Tekući status stavke zadatka"
@@ -29385,6 +29335,9 @@ msgstr "Naziv reda, npr. „Čitanje“"
 # derived
 msgid "Row target, e.g. a filename"
 msgstr "Cilj reda, npr. ime datoteke"
+
+msgid "Detail"
+msgstr "Detaljnost"
 
 # derived
 msgid "Second-level detail body (command output / snippet)"
@@ -32601,6 +32554,15 @@ msgstr "NOVO"
 msgid "Ask %s anything..."
 msgstr ""
 
+msgid "agents running"
+msgstr ""
+
+msgid "jobs"
+msgstr ""
+
+msgid "No floating pill: its state is here (Preferences > Interface > Agent)"
+msgstr ""
+
 # derived
 msgid "Write your prompt here..."
 msgstr "Napišite prompt ovde..."
@@ -34380,9 +34342,11 @@ msgstr "Postavi i spakuj ostrva na 2 UDIM-a"
 msgid "Generate a 3D model of the image selected in moodboard"
 msgstr "Generiši 3D model slike izabrane na mudbordu"
 
-# derived
-msgid "Hey friend! How can I help today?"
-msgstr "Zdravo! Kako mogu da vam pomognem danas?"
+msgid "spends credits: priced first"
+msgstr ""
+
+msgid "Ask %s anything. Plans, questions and spends wait for you."
+msgstr ""
 
 # derived
 msgid "Add a comment (optional)"
@@ -35897,6 +35861,9 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
+
+msgid "Canvas"
+msgstr "Platno"
 
 # derived
 msgid "Shared canvas and page background"

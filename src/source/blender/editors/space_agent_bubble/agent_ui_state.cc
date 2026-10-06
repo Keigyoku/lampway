@@ -377,6 +377,33 @@ void agent_ui_state_gather(const bContext *C, AgentIslandState *r_state)
     }
   }
 
+  r_state->agents_running = 0;
+  if (wm) {
+    PointerRNA wm_ptr = RNA_id_pointer_create(&wm->id);
+    if (PropertyRNA *cards = RNA_struct_find_property(&wm_ptr, "mixar_agent_cards")) {
+      CollectionPropertyIterator it;
+      RNA_property_collection_begin(&wm_ptr, cards, &it);
+      for (; it.valid; RNA_property_collection_next(&it)) {
+        r_state->agents_running += enum_is(&it.ptr, "status", "WORKING") ? 1 : 0;
+      }
+      RNA_property_collection_end(&it);
+    }
+  }
+  r_state->pill_note = false;
+  if (wm) {
+    PointerRNA wm_ptr = RNA_id_pointer_create(&wm->id);
+    r_state->pill_note = read_bool_prop(&wm_ptr, "lampway_pill_note_pending");
+  }
+  r_state->send_ok = true; /* until Python has said otherwise */
+  if (wm) {
+    PointerRNA wm_ptr = RNA_id_pointer_create(&wm->id);
+    read_string_prop(&wm_ptr, "lampway_chat_route_host", r_state->route_host, sizeof(r_state->route_host));
+    read_string_prop(&wm_ptr, "lampway_chat_route_tip", r_state->route_tip, sizeof(r_state->route_tip));
+    if (RNA_struct_find_property(&wm_ptr, "lampway_chat_send_ok")) {
+      r_state->send_ok = read_bool_prop(&wm_ptr, "lampway_chat_send_ok");
+    }
+  }
+
   r_state->queue_count = read_queue_count(wm);
   cat.generating = r_state->queue_count > 0;
 

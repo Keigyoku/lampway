@@ -7,16 +7,16 @@ ui/statusbar.py), one reader (its draw). No bpy and no network here: draw() must
 
 When the server cannot be reached the bar says so ("spend unknown: server not running", "egress unknown") and shows no number from before."""
 
-STATE = {"ok": False, "error": "", "egress": {}, "spend": {}, "studio": {}}
+STATE = {"ok": False, "error": "", "egress": {}, "spend": {}, "studio": {}, "provider": ""}
 FAST_S, SLOW_S = 0.5, 5.0
 
 
 def reset() -> None:
-    STATE.update(ok=False, error="", egress={}, spend={}, studio={})
+    STATE.update(ok=False, error="", egress={}, spend={}, studio={}, provider="")
 
 
-def update(egress=None, spend=None, studio=None) -> None:
-    for key, value in (("egress", egress), ("spend", spend), ("studio", studio)):
+def update(egress=None, spend=None, studio=None, provider=None) -> None:
+    for key, value in (("egress", egress), ("spend", spend), ("studio", studio), ("provider", provider)):
         if value is not None:
             STATE[key] = value
     STATE.update(ok=True, error="")

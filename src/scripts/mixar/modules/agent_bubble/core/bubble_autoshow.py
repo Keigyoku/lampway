@@ -57,6 +57,11 @@ def find_target_context():
 
 def try_invoke_bubble(start_minimised: bool = False) -> bool:
     """Invoke the bubble popup. Returns True on success."""
+    if start_minimised:
+        from mixar.modules.agent_bubble.core import pill_pref
+        if not pill_pref.enabled():
+            # A minimised show is the floating pill, which is off (the default): there is nothing to show.
+            return True
     target = find_target_context()
     if target is None:
         logger.info("agent_bubble: no usable window/area yet")
