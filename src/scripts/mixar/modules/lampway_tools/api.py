@@ -1541,6 +1541,31 @@ def ue_material(material, mode="report", merge_json=None, master=None, on_loss="
     return _UEM.translate(_UEG.read_spec(mat), prof, mode, merge, files, master, on_loss)
 
 
+@tool
+def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=None):
+    """The one-click UE Look mode, governed by one UE profile (lampway.ue-profile/1; default: the shipped engine-defaults
+    profile). action apply: exposure = log2(k) + Bias - EV100, curves and white balance off, EEVEE fast GI and screen tracing as
+    the profile's GI and reflection methods say (all off with parity=true, and dither 0), anisotropic filtering from
+    r.MaxAnisotropy, soft falloff off on point/spot lights, every material in scope swapped to its '<name> [UE]' UE Default Lit
+    preview; returns the receipt path, the lights' UE values (lux / cd by k, cones, radii), the material translations and the
+    per-class trust (measured | unmeasured | needs_decision | ...). revert: restores every recorded value exactly (receipt, or
+    the scene's active one). status: active, profile hash, view, classes. generate: the UE view's cube and OCIO config (answers
+    needs_decision while the generator's home is undecided). Refused: Standard ACES, a non-sRGB working space, auto exposure or
+    engine defaults with parity, area or temperature lights in scope, a scene already in a UE look. scope: scene | selected."""
+    from .ue import look as _UEL
+    from .ue import ocio_view as _UEV
+    scene = bpy.context.scene
+    if action == "status":
+        return _UEL.status(scene)
+    if action == "revert":
+        return _UEL.revert(scene, _p(receipt) if receipt and not Path(receipt).is_absolute() else receipt)
+    if action == "generate":
+        return _UEV.generate(_ue_profile(profile), bpy.utils.system_resource("DATAFILES", path="colormanagement"))
+    if action != "apply":
+        raise ValueError("action is apply, status, revert or generate")
+    return _UEL.apply(scene, _p(profile) if profile else None, scope, bool(parity))
+
+
 # ---- the door the agent's scripts use
 
 # Every @tool function, in definition order: derived, not listed by hand (a hand-kept list let 26 tools of Waves 2-4 be functions and Defs the agent could not run).

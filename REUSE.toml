@@ -195,3 +195,10 @@ path = [
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Keigyoku"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# The UE Renderer's shipped profiles: JSON data with no comment syntax for an inline header.
+[[annotations]]
+path = "src/scripts/mixar/modules/lampway_tools/ue/profiles/*.json"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"

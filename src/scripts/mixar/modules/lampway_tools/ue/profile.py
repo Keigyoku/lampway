@@ -68,7 +68,13 @@ def validate(p: dict) -> dict:
         _num(film, k, "tonemap.film")
     for k in ("blue_correction", "expand_gamut", "tone_curve_amount", "white_temp", "white_tint"):
         _num(tm, k, "tonemap")
-    _need(tm, "grading", "tonemap"), _need(tm, "lut", "tonemap")
+    _need(tm, "grading", "tonemap")
+    lut = _need(tm, "lut", "tonemap")
+    if lut is not None:
+        for k in ("cube", "cube_sha256", "size", "shaper"):
+            _need(lut, k, "tonemap.lut")
+        for k in ("base", "lin_side_slope", "lin_side_offset", "log_side_slope", "log_side_offset"):
+            _num(lut["shaper"], k, "tonemap.lut.shaper")
     ex = _need(p, "exposure", "")
     _one_of(ex, "method", "exposure", ("manual", "auto"), "exposure.method is manual or auto")
     _num(ex, "bias", "exposure")
