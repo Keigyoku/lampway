@@ -26,7 +26,7 @@ from .raster import RECIPE, encode_jpeg, frame_views, glb_mesh, render_mesh  # n
 from .store import AssetLibrary, LibraryError
 
 PRODUCTS = ("thumb", "turntable", "ball", "uv_overlay", "map_sheet", "contact_sheet")
-FOR_KINDS = {"thumb": ("mesh", "image", "video", "hdri", "map", "material", "uv_layout"), "turntable": ("mesh",), "ball": ("material", "texture_set"),
+FOR_KINDS = {"thumb": ("mesh", "image", "video", "hdri", "map", "material", "uv_layout", "texture_set"), "turntable": ("mesh",), "ball": ("material", "texture_set"),
              "uv_overlay": ("mesh",), "map_sheet": ("texture_set", "material"), "contact_sheet": ("mesh",)}
 WRONG_KIND = {"turntable": "turntable is for meshes: use ball for materials", "ball": "ball is for materials and texture sets: use turntable for meshes",
               "uv_overlay": "uv_overlay is for meshes with a UV set", "map_sheet": "map_sheet is for texture sets and materials with maps",
@@ -251,10 +251,13 @@ class Renderer:
             raise LibraryError(f"engine: {'|'.join(ENGINES)}")
 
     def _main(self, a):
-        for role in ("main", "blend", "script"):
+        for role in ("main", "blend", "script", "map:color"):
             for f in a["files"]:
                 if f["role"] == role and f["locations"]:
                     return Path(f["locations"][0]["path"])
+        maps = [f for f in a["files"] if f["role"].startswith("map:") and f["locations"]]
+        if maps:
+            return Path(maps[0]["locations"][0]["path"])
         raise LibraryError("no primary file on this asset")
 
     def _tris(self, a, path) -> Optional[int]:
@@ -334,6 +337,9 @@ class Renderer:
             return [("contact.jpg", contact_sheet(frames, size))]
         if prod == "uv_overlay":
             return [("uv_overlay.png", uv_overlay(glb_mesh(path), size))]
+        if prod == "map_sheet":
+            maps = [{"channel": f["role"][4:], "path": f["locations"][0]["path"]} for f in sorted(a["files"], key=lambda f: f["role"]) if f["role"].startswith("map:") and f["locations"]]
+            return [("maps_sheet.jpg", map_sheet(maps, size)["bytes"])]
         raise LibraryError(f"{prod} has no software path")
 
     def _blender(self, job, a, path, engine, decimate) -> list:
