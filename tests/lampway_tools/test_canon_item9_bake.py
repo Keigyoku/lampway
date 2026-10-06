@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent))
-from canon_support import goldens  # noqa: E402,F401
+from canon_support import J, goldens  # noqa: E402,F401
 from test_canon_item6_tools import run  # noqa: E402
 
 BODY = '''
@@ -147,3 +147,25 @@ res({"diff": float(np.abs(px["gl"] - px["dx"]).max()), "spread": float(px["gl"].
 ''', goldens)
     assert d["spread"] > 0.05, d                     # the bump is visible in the GL render
     assert d["diff"] < 0.01, d                       # and the DX bake attached through the flip renders the same
+
+
+def test_g14_2_and_g14_3_the_hit_mask_and_bake_json(goldens, tmp_path):
+    """canon 14 B.7 / G14.2-G14.3: every bake records a per-texel HIT mask (texels no ray reached stay flat and are counted) and
+    bake.json (parameters, both meshes' hashes, the tangent basis, hit and black fractions). Golden C10's HP sunk 1 cm under a 6 cm
+    cage: a 0.03 m ray hits at most 3 % of the texels (only the cap's top), a 0.12 m ray all of them."""
+    exp = J(goldens, "C10_bake/expected.json")["sunk_variant"]
+    d = run('''
+import json as _j
+low = load_obj(GOLD + "/C10_bake/lp_plane.obj", "low")
+high = load_obj(GOLD + "/C10_bake/hp_bump.obj", "high"); high.location.z = -0.01; bpy.context.view_layer.update()
+out = {}
+for tag, ray in (("short", 0.03), ("long", 0.12)):
+    r = api.bake_maps("high", "low", maps=["normal"], size=64, samples=1, out_dir=tag, cage_extrusion_m=0.06, max_ray_m=ray, attach=False)
+    assert r.get("ok"), r
+    out[tag] = {"hit": r["checks"]["hit_fraction"], "mask": os.path.exists(r["hit_mask"]), "json": _j.load(open(r["bake_json"]))}
+res(out)
+''', goldens)
+    assert d["short"]["hit"] <= exp["max_ray_0p5x_cage"]["hit_fraction_max"] and d["long"]["hit"] == 1.0, d
+    j = d["long"]["json"]
+    assert d["long"]["mask"] and j["schema"] == "lampway.bake/1" and j["tangent_basis"] == "mikktspace" and j["max_ray_m"] == 0.12
+    assert len(j["low"]["geometry_sha256"]) == 64 and len(j["high"][0]["geometry_sha256"]) == 64 and j["hit_fraction"] == 1.0

@@ -96,6 +96,32 @@ for m, p in files.items():
     px = arrays[m] if m in arrays else np.asarray(Image.open(p).convert('RGB')).astype(int)
     black = (px.max(axis=2) <= 1) & cov
     checks[m] = round(float(black.sum() / max(cov.sum(), 1)), 5)
+# canon 14 B.7: the HIT mask - one EMIT bake of the donors in constant white with the same cage and ray, no margin: a texel no ray
+# reached stays black. Last, because it replaces the donors' materials (the worker's scene is a throw-away copy).
+white = bpy.data.materials.new('lw_hit'); white.use_nodes = True; wt = white.node_tree
+for n_ in list(wt.nodes): wt.nodes.remove(n_)
+em = wt.nodes.new('ShaderNodeEmission'); em.inputs['Color'].default_value = (1, 1, 1, 1); em.inputs['Strength'].default_value = 1.0
+wo = wt.nodes.new('ShaderNodeOutputMaterial'); wt.links.new(em.outputs[0], wo.inputs['Surface'])
+for h in highs:
+    h.data.materials.clear(); h.data.materials.append(white)
+himg = bpy.data.images.new(f"{low.name}_hit", size, size, alpha=False, float_buffer=True)
+hnode = nt.nodes.new('ShaderNodeTexImage'); hnode.image = himg
+for n_ in nt.nodes: n_.select = False
+hnode.select = True; nt.nodes.active = hnode
+bpy.ops.object.select_all(action='DESELECT')
+for h in highs: h.select_set(True)
+low.select_set(True); bpy.context.view_layer.objects.active = low
+bpy.ops.object.bake(type='EMIT', use_selected_to_active=True, margin=0, cage_extrusion=a['cage_extrusion_m'], max_ray_distance=a['max_ray_m'], use_clear=True)
+hit = np.array(himg.pixels[:], dtype=np.float64).reshape(size, size, 4)[::-1, :, 0] > 0.5
+hit_path = os.path.join(a['out_dir'], f"{low.name}_hit.png")
+Image.fromarray((hit * 255).astype(np.uint8), 'L').save(hit_path)
+hit_fraction = round(float((hit & cov).sum() / max(cov.sum(), 1)), 5)
 nan = 0
-json.dump({'files': files, 'normal': normal, 'colorspace': colorspace, 'albedo_passes': passes, 'black_texel_fraction': checks, 'covered_texels': int(cov.sum()), 'material': mat.name}, open(OUT, 'w'))
+bake_json = os.path.join(a['out_dir'], 'bake.json')
+json.dump({'schema': 'lampway.bake/1', 'low': {'name': low.name, 'geometry_sha256': lw_canon.io.geometry_sha256(low)},
+           'high': [{'name': h.name, 'geometry_sha256': lw_canon.io.geometry_sha256(h)} for h in highs],
+           'size': size, 'margin_px': margin, 'cage_extrusion_m': a['cage_extrusion_m'], 'max_ray_m': a['max_ray_m'], 'samples': a['samples'],
+           'tangent_basis': 'mikktspace', 'normal': normal, 'maps': files, 'black_texel_fraction': checks, 'hit_fraction': hit_fraction,
+           'hit_mask': hit_path, 'colorspace': colorspace}, open(bake_json, 'w'), indent=1, sort_keys=True)
+json.dump({'files': files, 'normal': normal, 'hit_fraction': hit_fraction, 'hit_mask': hit_path, 'bake_json': bake_json, 'colorspace': colorspace, 'albedo_passes': passes, 'black_texel_fraction': checks, 'covered_texels': int(cov.sum()), 'material': mat.name}, open(OUT, 'w'))
 _ax.kv({'baked': ','.join(files), 'size': size})

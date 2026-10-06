@@ -139,7 +139,8 @@ def run(source, target, maps, size, margin_px, cage_extrusion_m, max_ray_m, samp
     res.unlink(missing_ok=True)
     hints = [f"{m}: {f:.1%} of the covered texels are black: the cage is too small or the rays miss; raise cage_extrusion_m / max_ray_m" for m, f in data["black_texel_fraction"].items() if f > 0.005]
     body = {"ok": True, "maps": data["files"], "size": cfg["size"], "cage_used": {"extrusion_m": cfg["cage_extrusion_m"], "max_ray_m": cfg["max_ray_m"]}, "margin_px": cfg["margin_px"],
-            "checks": {"black_texel_fraction": data["black_texel_fraction"], "covered_texels": data["covered_texels"]}, "colorspace": data["colorspace"], "albedo_passes": data["albedo_passes"],
+            "checks": {"black_texel_fraction": data["black_texel_fraction"], "covered_texels": data["covered_texels"], "hit_fraction": data["hit_fraction"]},
+            "hit_mask": data["hit_mask"], "bake_json": data["bake_json"], "colorspace": data["colorspace"], "albedo_passes": data["albedo_passes"],
             "hints": hints, "material": data["material"]}
     if data.get("normal"):
         body["normal"] = data["normal"]
