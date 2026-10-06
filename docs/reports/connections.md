@@ -105,11 +105,12 @@ as the user's click, since the picker is a user surface; until then the saved ro
 
 ## Test totals
 
-- Server suite (`7ba319b`'s tree + the brand fix): 1339 passed, 10 skipped. Choices tip: see the final run below.
-- `scripts/lampway/test_all.sh` at the merge: client 8084 passed, 127 failed, 74 skipped, 20 errors; all 138 baseline entries seen; 9 new
-  ids, of which one was mine (a row label naming the upstream brand: fixed in `cb81b01`) and 8 need what this worktree does not have:
-  `upstream/` checked out (the theme generator and the keymap file) and a binary rebuilt with the facelift lane's theme (this lane's binary
-  was built 2026-10-05).
+- Final, `scripts/lampway/test_all.sh` at `3ab21b6` (`LAMPWAY_BIN` = the lane's binary): server **1425 passed, 10 skipped**; client 8087 passed,
+  126 failed, 74 skipped, 20 errors; all 138 baseline entries seen, none newly passing. 8 ids outside the baseline, none from this lane:
+  `test_lampway_theme` x4 and `test_open_mixie_shortcut` need `upstream/` checked out (not in this worktree: "BUILD REFUSED: upstream/ is not
+  checked out", a missing `keymap_data/blender_default.py`), and `test_lampway_theme_live` x3 need a binary built with the facelift theme
+  (the lane's binary was built 2026-10-05).
+- One failure of mine found by the full runs and fixed: a row label and a proposal text named the upstream brand (`test_brand_words`).
 
 ## Findings and things to know
 
