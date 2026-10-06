@@ -1,0 +1,65 @@
+{
+  "id": "moodboard-asset-multiview",
+  "version": "1.0.0",
+  "purpose": "plate",
+  "media": "image",
+  "title": "Tripo-ready orthographic multiview sheet of one asset (2x2)",
+  "description": "Moodboard P5: one isolated piece in four orthographic views, the multi-view technical input for 3D asset generation.",
+  "body": {
+    "subject": "Create a Tripo-ready orthographic multiview reference sheet of the {{asset_name}}. Image A is the MetaHuman body reference. Image B is the approved armor fit-check or breakdown reference.",
+    "action": "Generate only the {{asset_name}} as an isolated object. Preserve the exact design, materials, ornamentation, weathering, thickness, silhouette, and construction from Image B. Where relevant, preserve the correct scale and fit relationship to the MetaHuman from Image A. Show the same exact object in four orthographic views: FRONT; LEFT; BACK; RIGHT (the wearer's axes).",
+    "camera": "Arrange the four views in a clean 2x2 layout with small simple labels: FRONT, LEFT, BACK, RIGHT. No perspective distortion; consistent scale and framing across all views; all edges fully visible and uncropped.",
+    "style": "Pure white or neutral light background; soft even lighting; no cast shadows.",
+    "constraints": "Requirements: clean isolated object only; no character wearing it; no mannequin; no hands or body parts; no props unless the asset itself includes them; the item must remain the same object across all four views; preserve interior openings and thickness where visible; do not redesign or improvise new details. This image is intended as a multi-view technical input reference for 3D asset generation."
+  },
+  "variables": {
+    "asset_name": {
+      "type": "string",
+      "default": "asset",
+      "description": "the one piece to isolate, e.g. helmet, left greave"
+    }
+  },
+  "negatives": [],
+  "inputs": {
+    "character_body": {
+      "required": true,
+      "order": 1,
+      "description": "Image A: the MetaHuman body reference (the anatomy sheet)"
+    },
+    "design_plate": {
+      "required": true,
+      "order": 2,
+      "description": "Image B: the approved armor fit-check or breakdown reference"
+    }
+  },
+  "defaults": {
+    "n": 1
+  },
+  "model_adapters": {
+    "openai/gpt-image*": {
+      "note": "GPT Image wants the reference order stated in prose and takes an explicit size (<= 3840 per edge, ~8.3 MP)"
+    },
+    "black-forest-labs/*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "google/gemini*": {
+      "note": "takes resolution + aspect_ratio; tolerates shorter prompts"
+    },
+    "bytedance-seed/*": {
+      "note": "takes resolution + aspect_ratio"
+    },
+    "sourceful/*": {
+      "note": "Riverflow: flattest albedo; takes resolution + aspect_ratio"
+    }
+  },
+  "gates": [
+    {
+      "id": "view_verify",
+      "description": "inspect every result: names and hashes cannot prove a view, a side or a scale"
+    }
+  ],
+  "provenance": {
+    "source": "the captain's moodboard prompts (specs/prompts/moodboard/Prompt1-8.txt), 2026-10-06",
+    "note": "spruced up into the five-part spine; nothing lost: every original clause is mapped in prompts/moodboard_parity.json and checked by tests/test_moodboard_parity.py"
+  }
+}

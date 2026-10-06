@@ -78,7 +78,7 @@ def test_the_image_gates_are_declared_per_template():
     gate_ids = {t["id"]: {g["id"] for g in t["gates"]} for t in LIB.list(media="image")}
     assert {"silhouette_iou"} <= gate_ids["mesh-paint-albedo-front"] and {"seam_step", "tone_seam"} <= gate_ids["seamless-tile"]
     assert {"region_count"} <= gate_ids["material-id-draft"] and "pieces_present" in gate_ids["character-reference-fullbody"]
-    assert len(LIB.list(media="image")) == 23            # + the four O35 process templates (test_prompt_imagegen_process.py)
+    assert len(LIB.list(media="image")) == 32            # + the four O35 process templates and the nine moodboard templates (test_moodboard_parity.py)
 
 
 @pytest.mark.parametrize("template, fixture", [("mesh-paint-albedo-front-first", "mesh_paint_front.txt"), ("mesh-paint-albedo-side-first", "mesh_paint_side.txt")])

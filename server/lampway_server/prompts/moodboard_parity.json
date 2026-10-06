@@ -1,0 +1,34 @@
+{
+ "Prompt1.txt": {"templates": ["moodboard-anatomy-sheet"], "aliases": {}},
+ "Prompt2.txt": {"templates": ["moodboard-armor-adaptation"], "aliases": {}},
+ "Prompt3.txt": {"templates": ["moodboard-fit-check"], "aliases": {}},
+ "Prompt4.txt": {"templates": ["moodboard-armor-breakdown"], "aliases": {}},
+ "Prompt5.txt": {"templates": ["moodboard-asset-multiview"], "aliases": {}},
+ "Prompt6.txt": {"templates": ["moodboard-asset-view"], "aliases": {}},
+ "Prompt7.txt": {"templates": ["moodboard-cutout-sheet"], "aliases": {}},
+ "Prompt8.txt": {"templates": ["moodboard-turnaround-3x2", "moodboard-piece-plate"], "aliases": {
+  "I want you to give me a turnaround sheet similar to this Sandal sheet for each piece, we are going to start with the Helmet LAYOUT — a 3x2 grid, six cells, in this exact order: Top row, left to right: FRONT, RIGHT, BACK Bottom row, left to right: LEFT, TOP, BOTTOM Even gutters between cells.": {"parts": [
+    {"as": "A turnaround sheet of the [ASSET NAME], similar to the attached example turnaround sheet (the Sandal sheet), one per piece, starting with the Helmet", "at": "moodboard-turnaround-3x2:body.subject"},
+    {"as": "LAYOUT: a 3x2 grid, six cells, in this exact order. Top row, left to right: FRONT, RIGHT, BACK. Bottom row, left to right: LEFT, TOP, BOTTOM. Even gutters between cells", "at": "moodboard-turnaround-3x2:body.action"}]},
+  "VIEW DEFINITIONS — axes are the WEARER's, not the object's: FRONT from directly in front of the wearer, looking at their chest RIGHT from the wearer's own right side BACK from directly behind the wearer LEFT from the wearer's own left side TOP from directly above, looking down BOTTOM from directly below, looking up SCALE — the single most important requirement: All six views rendered at IDENTICAL scale, as if one object photographed six times by a camera moved around it.": {
+    "as": "VIEW DEFINITIONS (axes are the WEARER's, not the object's): FRONT from directly in front of the wearer, looking at their chest; RIGHT from the wearer's own right side; BACK from directly behind the wearer; LEFT from the wearer's own left side; TOP from directly above, looking down; BOTTOM from directly below, looking up. SCALE (the single most important requirement): All six views rendered at IDENTICAL scale, as if one object photographed six times by a camera moved around it", "at": "moodboard-turnaround-3x2:body.camera"},
+  "PRESENTATION — follow exactly:": {"parts": [
+    {"as": "PRESENTATION (follow exactly)", "at": "moodboard-turnaround-3x2:body.style"},
+    {"as": "PRESENTATION (follow exactly)", "at": "moodboard-piece-plate:body.style"}]},
+  "Now we are going to do plates of Single piece only: Helmet.": {"parts": [
+    {"as": "Plates of a single piece only: [ASSET NAME]", "at": "moodboard-piece-plate:body.subject"},
+    {"as": "Helmet", "at": "moodboard-piece-plate:variables.asset_name.default"}]},
+  "One view only: front.": {"parts": [
+    {"as": "One view only: [VIEW NAME]", "at": "moodboard-piece-plate:body.subject"},
+    {"as": "FRONT (from directly in front of the wearer, looking at their chest)", "at": "moodboard-piece-plate:variables.view.default"}]},
+  "VIEW DEFINITION: from directly in front of the wearer, looking at their chest PRESENTATION — follow exactly:": {"parts": [
+    {"as": "VIEW DEFINITION: the view on the wearer's axes, as named", "at": "moodboard-piece-plate:body.camera"},
+    {"as": "FRONT (from directly in front of the wearer, looking at their chest)", "at": "moodboard-piece-plate:variables.view.enum[0]"},
+    {"as": "PRESENTATION (follow exactly)", "at": "moodboard-piece-plate:body.style"}]},
+  "Now VIEW: Back VIEW DEFINITION: from directly behind the wearer": {"as": "BACK (from directly behind the wearer)", "at": "moodboard-piece-plate:variables.view.enum[2]"},
+  "Now VIEW: left VIEW DEFINITION: from the wearer's own left side": {"as": "LEFT (from the wearer's own left side)", "at": "moodboard-piece-plate:variables.view.enum[1]"},
+  "Now VIEW: right VIEW DEFINITION: from the wearer's own right side": {"as": "RIGHT (from the wearer's own right side)", "at": "moodboard-piece-plate:variables.view.enum[3]"},
+  "Now VIEW: top VIEW DEFINITION: from directly above, looking down": {"as": "TOP (from directly above, looking down)", "at": "moodboard-piece-plate:variables.view.enum[4]"},
+  "Now VIEW: bottom VIEW DEFINITION: from directly below, looking up": {"as": "BOTTOM (from directly below, looking up)", "at": "moodboard-piece-plate:variables.view.enum[5]"}
+ }}
+}
