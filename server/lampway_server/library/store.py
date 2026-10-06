@@ -226,6 +226,18 @@ class AssetLibrary:
                 raise LibraryError(f"unknown storage {storage!r}: external|cas")
         return out
 
+    @contextlib.contextmanager
+    def tx(self):
+        """One write transaction on the single writer connection (BEGIN IMMEDIATE ... COMMIT, ROLLBACK on any error)."""
+        with self._lock:
+            self._db.execute("BEGIN IMMEDIATE")
+            try:
+                yield self._db
+                self._db.execute("COMMIT")
+            except BaseException:
+                self._db.execute("ROLLBACK")
+                raise
+
     # -- write interface -----------------------------------------------------------------------------------------
     def put(self, spec: dict) -> dict:
         kind = spec.get("kind")
@@ -333,6 +345,8 @@ class AssetLibrary:
                 raise LibraryError("term by: captain|rule|model")
             db.execute("INSERT OR IGNORE INTO term(facet,label) VALUES(?,?)", (t["facet"], t["label"]))
             tid = db.execute("SELECT id FROM term WHERE facet=? AND label=?", (t["facet"], t["label"])).fetchone()[0]
+            if by == "model" and db.execute("SELECT 1 FROM decision WHERE asset_id=? AND question=? AND answer='rejected' LIMIT 1", (aid, f"term:{t['facet']}:{t['label']}")).fetchone():
+                continue                                       # the user rejected this suggestion before: it is not proposed again
             cur = db.execute("SELECT by FROM asset_term WHERE asset_id=? AND term_id=?", (aid, tid)).fetchone()
             if cur and self._RANK[cur[0]] > self._RANK[by]:
                 continue
@@ -451,6 +465,50 @@ class AssetLibrary:
                 self._db.execute("ROLLBACK")
                 raise
 
+    def _effective_rating(self, aid: str):
+        """The captain's latest stars if any, else the (floored) mean of every other rater's latest stars, else NULL."""
+        db = self._db
+        cap = db.execute("SELECT stars FROM rating WHERE asset_id=? AND rater='captain' AND stars IS NOT NULL ORDER BY ts DESC LIMIT 1", (aid,)).fetchone()
+        if cap:
+            return cap[0]
+        latest = {}
+        for rater, stars in db.execute("SELECT rater,stars FROM rating WHERE asset_id=? AND stars IS NOT NULL ORDER BY ts", (aid,)):
+            latest[rater] = stars
+        return int(sum(latest.values()) // len(latest)) if latest else None
+
+    def rating_summary(self, aid: str) -> dict:
+        with closing(self._reader()) as db:
+            rows = db.execute("SELECT rater,stars FROM rating WHERE asset_id=? AND stars IS NOT NULL ORDER BY ts", (aid,)).fetchall()
+        latest = {}
+        for rater, stars in rows:
+            latest[rater] = stars
+        return {"captain": latest.pop("captain", None), "agents": [{"id": r.split(":", 1)[-1], "stars": v} for r, v in latest.items()]}
+
+    def _descriptor(self, aid):
+        if not aid:
+            return None
+        a = self._db.execute("SELECT name,kind,current_version FROM asset WHERE id=?", (aid,)).fetchone()
+        return {"asset_id": aid, "name": a[0], "kind": a[1], "version": a[2]} if a else {"asset_id": aid}
+
+    def _journal_decision(self, question, answer, decider, asset_id, how, words, options, session, descriptor, ts):
+        desc = descriptor if descriptor is not None else self._descriptor(asset_id)
+        if descriptor is not None and asset_id and "asset_id" not in desc:
+            desc = {"asset_id": asset_id, **descriptor}
+        self._journal({"session": session, "descriptor": desc, "descriptor_sha256": hashlib.sha256(json.dumps(desc, sort_keys=True).encode()).hexdigest() if desc is not None else None,
+                       "question": question, "options": options, "answer": answer, "decider": decider, "how": how, "captain_words": words, "region_rule": None,
+                       "source": "library", "asset_id": asset_id, "ts": ts})
+
+    def remove_relation(self, src, rtype, dst, role="") -> bool:
+        with self.tx() as db:
+            row = db.execute("SELECT id,by FROM relation WHERE src=? AND dst=? AND type=? AND role=?", (src, dst, rtype, role or "")).fetchone()
+            if not row:
+                return False
+            if row[1] == "rule":
+                raise LibraryError("that relation came from provenance capture or a rule: remove it by superseding (add a 'supersedes' relation), history is kept")
+            db.execute("DELETE FROM relation WHERE id=?", (row[0],))
+            self._event("unrelate", src, {"type": rtype, "dst": dst, "role": role})
+            return True
+
     def rate(self, aid, rater, stars=None, flag=None, note=None) -> dict:
         with self._lock:
             self._db.execute("BEGIN IMMEDIATE")
@@ -459,15 +517,15 @@ class AssetLibrary:
                     raise LibraryError(f"no asset {aid}")
                 ts = self._now()
                 self._db.execute("INSERT INTO rating(asset_id,rater,stars,flag,note,ts) VALUES(?,?,?,?,?,?)", (aid, rater, stars, flag, note, ts))
-                if stars is not None:
-                    self._db.execute("UPDATE asset SET rating=?,updated_at=? WHERE id=?", (stars, ts, aid))
+                eff = self._effective_rating(aid)
+                self._db.execute("UPDATE asset SET rating=?,updated_at=? WHERE id=?", (eff, ts, aid))
                 self._event("rate", aid, {"stars": stars, "flag": flag}, rater)
                 self._db.execute("COMMIT")
             except BaseException:
                 self._db.execute("ROLLBACK")
                 raise
-            self._journal({"question": "rating", "answer": {"stars": stars, "flag": flag}, "decider": rater, "asset_id": aid, "how": "rate", "words": note, "ts": ts})
-        return {"id": aid, "stars": stars, "flag": flag}
+            self._journal_decision("rating", {"stars": stars, "flag": flag}, "captain" if rater == "captain" else ("rule" if rater.startswith("rule") else "model"), aid, "rate", note, None, None, None, ts)
+        return {"id": aid, "stars": stars, "flag": flag, "rating": eff}
 
     def decide(self, question, answer, decider, asset_id=None, version_id=None, options=None, how=None, session=None, descriptor=None, words=None, idempotent=False) -> dict:
         if decider not in ("captain", "model", "rule"):
@@ -490,7 +548,7 @@ class AssetLibrary:
             except BaseException:
                 self._db.execute("ROLLBACK")
                 raise
-            self._journal({"session": session, "descriptor": descriptor, "question": question, "options": options, "answer": answer, "decider": decider, "how": how, "words": words, "asset_id": asset_id, "ts": ts})
+            self._journal_decision(question, answer, decider, asset_id, how, words, options, session, descriptor, ts)
         return {"id": cur.lastrowid, "existing": False}
 
     # -- helpers the ingest layer needs --------------------------------------------------------------------------

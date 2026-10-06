@@ -10,6 +10,7 @@ import re
 import sqlite3
 from pathlib import Path
 
+from . import curate as C
 from . import ingest as I
 from .store import AssetLibrary, LibraryError
 
@@ -124,12 +125,17 @@ def import_shelf_seeds(lib: AssetLibrary, seeds_db, by: str, batch: str = None) 
                     except LibraryError as e:
                         rep["unresolved"].append({"ref": r["id"], "why": str(e)})
             if r["verdict"]:
-                d = lib.decide("verdict", r["verdict"], "captain", asset_id=ids[r["id"]], how="shelf_seeds", words=r["verdict_note"], idempotent=True,
+                try:
+                    mapped, flag = C.map_verdict(r["verdict"])
+                except LibraryError as e:
+                    rep["unresolved"].append({"ref": r["id"], "why": str(e)})
+                    continue
+                d = lib.decide("verdict", mapped, "captain", asset_id=ids[r["id"]], how=f"shelf_seeds:{r['verdict']}", words=r["verdict_note"], idempotent=True,
                                session=f"shelf_seeds:{r['id']}", descriptor={"seed": r["id"], "piece": r["piece"]})
                 if not d["existing"]:
                     rep["verdicts"] += 1
-                    if r["verdict"] == "chosen":
-                        lib.rate(ids[r["id"]], "captain", flag="pick", note=r["verdict_note"])
+                    if flag:
+                        lib.rate(ids[r["id"]], "captain", flag=flag, note=r["verdict_note"])
     return rep
 
 

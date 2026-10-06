@@ -8,6 +8,7 @@ import sqlite3
 
 import pytest
 
+from lampway_server.library import curate as C
 from lampway_server.library import importers as M
 from lampway_server.library.store import AssetLibrary
 
@@ -83,8 +84,9 @@ def test_parent_ids_become_derived_from_relations_orphans_are_listed_not_dropped
 def test_verdicts_are_decisions_with_the_words_and_a_pick_flag_only_for_chosen(tmp_path, shelf):
     lib, rep = run_import(tmp_path, shelf)
     assert rep["verdicts"] == 3
-    rows = lib._db.execute("select question,answer,decider,words,asset_id from decision order by id").fetchall()
-    assert [(r[1], r[3]) for r in rows] == [("chosen", "the words"), ("runner-up", "the words"), ("fix", "the words")] and {r[2] for r in rows} == {"captain"}
+    rows = lib._db.execute("select question,answer,decider,words,asset_id,how from decision order by id").fetchall()
+    assert [(r[1], r[3], r[5]) for r in rows] == [("usable", "the words", "shelf_seeds:chosen"), ("usable", "the words", "shelf_seeds:runner-up"), ("fix", "the words", "shelf_seeds:fix")] and {r[2] for r in rows} == {"captain"}
+    assert C.shelf_word(lib, lib.find_by_name("v1")[0]) == "chosen"          # the shelf's own word survives the mapping
     flags = lib._db.execute("select asset_id,flag from rating").fetchall()
     assert flags == [(lib.find_by_name("v1")[0], "pick")]
 
