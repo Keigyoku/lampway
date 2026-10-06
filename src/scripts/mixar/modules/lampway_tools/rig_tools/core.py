@@ -503,3 +503,35 @@ def fit_template(template, joints, required):
             "copied_not_fitted": bool(ratios) and all(abs(r - 1.0) <= COPIED_TOL for r in ratios.values()),
             "residual": {"rms_m": float(np.sqrt(np.mean(np.square(res)))) if res else 0.0, "max_m": max(res, default=0.0)},
             "synthesized": synthesized, "measured": sorted(measured), "unused": sorted(set(joints) - set(names))}
+
+
+# ---------------------------------------------------------------- rig_retarget (canon 19 B.1, B.5)
+def retarget_world(Ws, Rs_rest, Rt_rest):
+    """The target bone's world rotation W_t = W_s R_s^-1 R_t: the source bone's world change applied to the target's rest (R04)."""
+    return np.asarray(Ws, float) @ np.asarray(Rs_rest, float).T @ np.asarray(Rt_rest, float)
+
+
+def local_from_world(W_child, W_parent, R_child_rest, R_parent_rest):
+    """The pose basis rotation (rest-relative, parent-relative) giving W_child under a parent at W_parent."""
+    rest_local = np.asarray(R_parent_rest, float).T @ np.asarray(R_child_rest, float)
+    return rest_local.T @ (np.asarray(W_parent, float).T @ np.asarray(W_child, float))
+
+
+def tilt_deg(R):
+    """The angle between a transform's local Z and world Z."""
+    z = np.asarray(R, float)[:3, 2]
+    return float(np.degrees(2.0 * math.asin(min(1.0, float(np.linalg.norm(z - (0.0, 0.0, 1.0))) / 2.0))))
+
+
+def root_from_pelvis(P, yaw="none", forward=(0.0, -1.0, 0.0)):
+    """(root 4x4, pelvis-local 4x4), root @ local == P: the root at the pelvis's ground projection (x, y, 0), turned by nothing (none) or by
+    the heading of the pelvis's forward axis on the ground (heading); never pitched or rolled (R05)."""
+    P = np.asarray(P, float)
+    root = np.eye(4)
+    root[:2, 3] = P[:2, 3]
+    if yaw == "heading":
+        f = P[:3, :3] @ np.asarray(forward, float)
+        root[:3, :3] = rot("z", float(np.degrees(np.arctan2(f[0], -f[1]))))
+    elif yaw != "none":
+        raise RigRefused(f"root_yaw is none | heading, not {yaw!r}")
+    return root, np.linalg.inv(root) @ P

@@ -301,3 +301,92 @@ def test_unmeasured_bones_follow_their_measured_segment_and_a_parentless_one_the
     assert np.allclose(f["heads"]["lowerarm_twist_01_l"], np.add(j["lowerarm_l"], j["hand_l"]) / 2, atol=1e-9), "half way along the MEASURED forearm"
     assert f["synthesized"]["lowerarm_twist_01_l"]["rule"] == "segment lowerarm_l -> hand_l"
     assert f["synthesized"]["root"]["rule"] == "similarity of all measured joints" and "root" not in f["ratios"]
+
+
+# ---------------------------------------------------------------- R8 rig_retarget (canon 19 B.1, B.5) against R04 / R05
+R04 = json.loads((GOLD / "R04_retarget.json").read_text())
+R05 = json.loads((GOLD / "R05_root_motion.json").read_text())
+
+
+def test_the_retarget_rule_reproduces_r04_and_the_local_copy_misses_by_55_degrees():
+    i = R04["input"]
+    Rs = {k: np.asarray(v) for k, v in i["Rs_rest"].items()}
+    Rt = {k: np.asarray(v) for k, v in i["Rt_rest"].items()}
+    worst = 0.0
+    for f in R04["expected"]["frames"]:
+        Ws = {k: np.asarray(v) for k, v in f["Ws"].items()}
+        Wt = {k: RC.retarget_world(Ws[k], Rs[k], Rt[k]) for k in Ws}
+        for k in Wt:
+            assert np.allclose(Wt[k], f["Wt"][k], atol=1e-8), k
+        assert np.allclose(RC.local_from_world(Wt["B"], Wt["A"], Rt["B"], Rt["A"]), f["key"]["B"], atol=1e-8)
+        worst = max(worst, RC.angle_deg(Rt["B"] @ (Rs["B"].T @ Ws["B"]), Wt["B"]))      # the falsifier: a local copy
+    assert worst == pytest.approx(R04["falsifier"]["local_copy_max_error_deg"], abs=1e-4)
+
+
+def test_the_root_comes_from_the_pelvis_never_tilted_and_recomposes_exactly():
+    for f in R05["expected"]["frames"]:
+        P = np.asarray(f["pelvis"])
+        for mode in ("none", "heading"):
+            root, local = RC.root_from_pelvis(P, yaw=mode)
+            e = f["modes"][mode]
+            assert np.allclose(root, e["root"], atol=1e-8) and np.allclose(local, e["pelvis_local"], atol=1e-8), (f["t"], mode)
+            assert np.abs(root @ local - P).max() <= 1e-12 and root[2, 3] == 0.0 and RC.tilt_deg(root) == pytest.approx(0.0, abs=1e-9)
+    full = max(RC.tilt_deg(np.asarray(f["pelvis"])) for f in R05["expected"]["frames"])
+    assert full == pytest.approx(R05["falsifier"]["max_tilt_deg"], abs=1e-6), "copying the pelvis's whole rotation tilts the root"
+    with pytest.raises(RC.RigRefused, match="none | heading"):
+        RC.root_from_pelvis(np.eye(4), yaw="full")
+
+
+def _quat(R):
+    """xyzw of a rotation matrix (Shepperd)."""
+    R = np.asarray(R, float)
+    t = np.trace(R)
+    if t > 0:
+        s = 2.0 * np.sqrt(1.0 + t)
+        return [(R[2, 1] - R[1, 2]) / s, (R[0, 2] - R[2, 0]) / s, (R[1, 0] - R[0, 1]) / s, 0.25 * s]
+    i = int(np.argmax(np.diag(R)))
+    j, k = (i + 1) % 3, (i + 2) % 3
+    s = 2.0 * np.sqrt(1.0 + R[i, i] - R[j, j] - R[k, k])
+    q = [0.0, 0.0, 0.0, 0.0]
+    q[i], q[j], q[k], q[3] = 0.25 * s, (R[j, i] + R[i, j]) / s, (R[k, i] + R[i, k]) / s, (R[k, j] - R[j, k]) / s
+    return q
+
+
+def test_g22_2_the_canonical_retarget_agrees_with_the_blender_rule_on_r04():
+    """canon 22 G22.2: rig_convert's canonical retarget (TITAN's animation_canon, reference = bind) gives R04's W_s R_s^-1 R_t."""
+    from mixar.modules.lampway_tools.rig_convert import animation_canon as ac
+    i = R04["input"]
+    Rs = {k: np.asarray(v) for k, v in i["Rs_rest"].items()}
+    Rt = {k: np.asarray(v) for k, v in i["Rt_rest"].items()}
+
+    def tf(p, R=None):
+        return {"translation": [float(x) for x in p], "rotation": _quat(np.eye(3) if R is None else R), "scale": [1, 1, 1]}
+
+    def prof(name, R, la):
+        a, b = np.array([0.0, 0.0, 100.0]), None
+        b = a + R["A"][:, 1] * la
+        bones = [{"name": "root", "parent": None, "bind": tf([0, 0, 0]), "reference": tf([0, 0, 0])},
+                 {"name": "A", "parent": "root", "bind": tf(a, R["A"]), "reference": tf(a, R["A"])},
+                 {"name": "B", "parent": "A", "bind": tf(b, R["B"]), "reference": tf(b, R["B"])}]
+        return ac.make_profile(name, bones, basis=[0, 0, 0, 1], centimeters_per_unit=1)
+    src, tgt = prof("s", Rs, 100 * i["lengths"]["source_A"]), prof("t", Rt, 100 * i["lengths"]["target_A"])
+    frames = R04["expected"]["frames"]
+    times = ac.sample_times(f"{(len(frames) - 1) / 30:.9f}")
+    assert len(times) == len(frames)
+    samples = []
+    for t, f in zip(times, frames):
+        a = np.array([0.0, 0.0, 100.0])
+        WsA, WsB = np.asarray(f["Ws"]["A"]), np.asarray(f["Ws"]["B"])
+        samples.append({"time": t, "pose": {"root": tf([0, 0, 0]), "A": tf(a, WsA), "B": tf(a + WsA[:, 1] * 100 * i["lengths"]["source_A"], WsB)}})
+    packet = ac.normalize(samples, src, duration=f"{(len(frames) - 1) / 30:.9f}", channels={})
+    rules = {"map": {"root": "root", "A": "A", "B": "B"}, "reference_follow": [], "translation_scales": {"root": 1, "A": 1, "B": 1}, "anchors": {}}
+    out = ac.adapt(ac.retarget(packet, tgt, rules), tgt)
+    worst = 0.0
+    for f, pose in zip(frames, out):
+        for n in ("A", "B"):
+            want = _quat(np.asarray(f["Wt"][n]))
+            got = pose["pose"][n]["rotation"]
+            worst = max(worst, RC._qangle_deg(got, want))
+    assert worst < 1e-5, worst
+    # the comparison can fail: the source's own world rotations are tens of degrees from R04's target rotations
+    assert max(RC._qangle_deg(_quat(np.asarray(f["Ws"][n])), _quat(np.asarray(f["Wt"][n]))) for f in frames for n in ("A", "B")) > 20

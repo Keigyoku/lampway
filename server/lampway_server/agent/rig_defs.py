@@ -160,4 +160,22 @@ RIG_DEFS = [
          P("offset_to_one", "boolean"), P("push_to_nla", "boolean", "default true"), P("channels", "array", "location, rotation, scale"),
          P("dry_run", "boolean")],
         api="rig_bake"),
+    Def("lampway_rig_retarget", "Motion from one skeleton onto another, with a root bone when asked (canon 19 B.1-B.3, B.5; the canonical "
+        "upgrade of lampway_animation_retarget, which stays as it is): every mapped target bone's WORLD rotation is the source bone's world "
+        "change applied to the target's rest (W_t = W_s R_s^-1 R_t; a local key copy misses by 55.7 deg on R04), solved parent-first into a "
+        "NEW action of LOCAL keys; bones below the pelvis key rotation only, so no bone length changes; the pelvis travels by the source "
+        "pelvis's displacement times the pelvis-height ratio (scale auto, or a number), in_place zeroes the ground components, root_bone "
+        "writes the target's root bone from the pelvis (on the ground, never pitched or rolled, recomposing the pelvis exactly; root_yaw none "
+        "| heading). map: auto (the target's own names on the source, else a shipped family table) or a rig_map file (its source sha must "
+        "match). The action is played back and measured: world-rotation error per mapped bone, bone-length change, edge stretch of "
+        "check_objects, the root's tilt and recomposition. source: an armature or a project .fbx/.bvh/.glb (imported through canon_io and "
+        "removed after). Refused: method other than matrix (constraints: lampway_rig_bake), root_bone on a target with no root bone (or a "
+        "pelvis not under it), a map from another rest, a source without animation, an existing action name, an armature rig_inspect did not "
+        "read." + _PATHS,
+        [P("source", required=True), P("target", required=True), P("action", desc="an action of the source; default its active one"),
+         P("map", desc="auto (default) | rig/<x>.map.json"), P("method", desc="matrix"), P("root_motion", desc="keep (default) | in_place | root_bone"),
+         P("root_yaw", desc="none (default) | heading"), P("scale", desc="auto (pelvis-height ratio) or 0.01..100"), P("frames", desc="action | [a, b]"),
+         P("fps", "number", "resample to this rate"), P("check_objects", "array", "meshes to measure edge stretch on"),
+         P("name", desc="default <action>_rt"), P("dry_run", "boolean")],
+        api="rig_retarget"),
 ]

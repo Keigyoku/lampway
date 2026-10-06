@@ -102,6 +102,18 @@ def rig_bake(driver, target, actions, frames="action", name=None, overwrite=Fals
 
 
 @_export
+@tool(consumes={"target": Need(kind=("skeleton", "rigged_mesh"), scale=ALL, accept_raw=True)})
+def rig_retarget(source, target, action="", map="auto", method="matrix", root_motion="keep", root_yaw="none", scale="auto", frames="action", fps=None,
+                 check_objects=None, name="", dry_run=False):
+    """Motion from one skeleton onto another (canon 19 B.1-B.3, B.5): W_t = W_s R_s^-1 R_t per mapped bone, parent-first LOCAL keys, rotation
+    only below the pelvis (no bone length changes), the pelvis travel scaled by the pelvis-height ratio, and root_motion=root_bone writes a
+    root from the pelvis (on the ground, never tilted, recomposing exactly; yaw none | heading); measured after writing."""
+    from .features import rig_retarget as _RR
+    return _RR.retarget(source, target, str(_settings().project_root), action, map, method, root_motion, root_yaw, scale, frames, fps, check_objects,
+                        name, dry_run)
+
+
+@_export
 @tool(consumes=RIG_RAW)
 def rig_convert(verb, input="", profile="", target_profile="", rules="", target="", out="", armature="", action="", duration="", name="",
                 basis=None, centimeters_per_unit=100.0, channels=None):
