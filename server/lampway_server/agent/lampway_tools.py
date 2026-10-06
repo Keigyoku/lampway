@@ -75,6 +75,50 @@ def _args_for(d: Def, arguments: dict) -> list:
     return out
 
 
+# 5.8 (HC14): each Def with an `engine` serves one Choices purpose; a local option is the Def's own method (or mode / weights)
+ENGINE_PURPOSES = {"lampway_retopo": "3d.retopo", "lampway_uv_unwrap": "3d.uv", "lampway_segment_mesh": "3d.segment_mesh", "lampway_auto_rig": "3d.rig",
+                   "lampway_image_to_3d": "3d.image_to_3d", "lampway_texture_gen": "3d.texture", "lampway_segment_image": "3d.segment_image"}
+_LOCAL_ARG = {"lampway_retopo": ("method", {}), "lampway_uv_unwrap": ("method", {}), "lampway_segment_mesh": ("method", {}),
+              "lampway_auto_rig": ("weights", {"heat_map": "auto", "proximity": "proximity"}),
+              "lampway_image_to_3d": ("mode", {"visual_hull": "hull"}), "lampway_segment_image": ("method", {})}
+_LEGACY_ENGINES = ("algorithmic", "studio:tripo")
+
+
+def _engine_desc(name: str, legacy: str) -> str:
+    from ..choices import registry as REG
+    opts = ", ".join(REG.listed(REG.get(ENGINE_PURPOSES[name])))
+    return f"{legacy}; or one of the purpose's options ({opts}); omit it to use the user's choice in Choices"
+
+
+def _resolve_engine(name: str, given: dict) -> dict:
+    """The engine an agent names is a job override (the purpose's policy decides: CH3); none named is the user's choice. A local option
+    becomes ``algorithmic`` with the Def's method; a Studio option is passed as is (the client answers with that action for approval)."""
+    from .. import choices as CH
+    engine = given.get("engine")
+    if engine in _LEGACY_ENGINES:
+        return given
+    pid = ENGINE_PURPOSES[name]
+    try:
+        r = CH.resolve(pid, CH.Job(override=engine or None, origin="agent"))
+        oid = r.option
+    except CH.NoChoice as exc:
+        if engine and not exc.skipped:
+            raise BadArguments(str(exc)) from None
+        if not engine:
+            return given                                    # nothing can serve now: the Def's own default runs, as before
+        oid = engine
+    out = dict(given)
+    if oid.startswith(("local:", "deterministic:")):
+        out["engine"] = "algorithmic"
+        arg, names = _LOCAL_ARG.get(name, (None, {}))
+        local = oid.split(":", 1)[1]
+        if arg and not given.get(arg) and (local in names or arg == "method"):
+            out[arg] = names.get(local, local)
+    else:
+        out["engine"] = oid
+    return out
+
+
 def plate_template() -> str:
     """The Plates purpose's template param (Choices), else today's ``plate-4k-crisper`` (choices_migration.md 5.13)."""
     from .. import choices as CH
@@ -91,6 +135,8 @@ def build_script(d: Def, arguments: dict) -> str:
         raise BadArguments(f"{d.name} needs {', '.join(missing)}")
     known = {p.name for p in d.params}
     given = {k: v for k, v in arguments.items() if k in known}
+    if d.name in ENGINE_PURPOSES:
+        given = _resolve_engine(d.name, given)
     if d.name == "lampway_plate_pick" and given.get("stage") == "prompt" and not given.get("template"):
         given["template"] = plate_template()                      # HC16: the Plates choice's template, not a literal
     if d.batch:
@@ -593,5 +639,10 @@ DEFS = [
         [P("asset_ids", "array", required=True), P("dest_library", "string", required=True), P("register", "boolean"), P("library_name", "string")], api="asset_catalog_export"),
 ]
 
+for _d in DEFS:                                                 # 5.8: every engine Def names its purpose's options
+    if _d.name in ENGINE_PURPOSES:
+        for _p in _d.params:
+            if _p.name == "engine":
+                _p.desc = _engine_desc(_d.name, _p.desc or "algorithmic (default) | studio:tripo")
 BY_NAME = {d.name: d for d in DEFS}
 SPECS = [d.spec() for d in DEFS]
