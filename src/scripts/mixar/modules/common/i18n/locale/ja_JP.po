@@ -926,6 +926,39 @@ msgstr ""
 "ナビゲーションとビューポート以外の入力はすべて通過させ、\n"
 "ビューポートキャンバス上のクリックと編集ホットキーを消費します。\n"
 
+msgid "Canvas"
+msgstr "キャンバス"
+
+msgid "Open this picture on the pan/zoom canvas (wheel zooms, middle-drag pans, a click on a lineage node selects it, Esc closes)"
+msgstr ""
+
+msgid "Open"
+msgstr "開く"
+
+msgid "Fit"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "attach the pan/zoom handling to what is already open"
+msgstr ""
+
+msgid "the lineage layout as JSON, for clicks"
+msgstr ""
+
+msgid "Asset Vault Hotkey"
+msgstr ""
+
+msgid "Vault hotkey: 1-5 rate, X reject, P pick, Space play, / search, F find like this, C compare, Enter place"
+msgstr ""
+
+msgid "Search the Asset Vault"
+msgstr ""
+
+msgid "Select an asset first"
+msgstr ""
+
 msgid "Search"
 msgstr "検索"
 
@@ -1058,10 +1091,55 @@ msgstr ""
 msgid "The Asset Vault window is already open"
 msgstr ""
 
+msgid "Align clips"
+msgstr ""
+
+msgid "Play the two compared clips on one scrub bar, lined up by their first frame, by time, or by where each first moves"
+msgstr ""
+
+msgid "Frame 0 with frame 0"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "By timestamp"
+msgstr ""
+
+msgid "Motion"
+msgstr ""
+
+msgid "Where each clip first moves"
+msgstr ""
+
+msgid "Press Compare on a second clip first"
+msgstr ""
+
+msgid "Refresh boards"
+msgstr ""
+
+msgid "Read the Vault's boards"
+msgstr ""
+
+msgid "Open board"
+msgstr ""
+
+msgid "Open this board on the canvas: drag a tile to place it (the place is saved), the wheel zooms, the middle button drags, Esc closes"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
 msgid "Searching"
 msgstr ""
 
+msgid "Choose how to line the two clips up"
+msgstr ""
+
 msgid "Show the lineage"
+msgstr ""
+
+msgid "Open on the canvas"
 msgstr ""
 
 msgid "Select an asset"
@@ -1071,6 +1149,12 @@ msgid "Reading the asset"
 msgstr ""
 
 msgid "Copy id"
+msgstr ""
+
+msgid "Close canvas"
+msgstr ""
+
+msgid "The wheel zooms, the middle button drags, a click on a node selects it, Esc closes"
 msgstr ""
 
 msgid "Asset Vault"
@@ -2608,9 +2692,6 @@ msgstr "ネットワークに到達できません。"
 
 msgid "Network error: {short}"
 msgstr "ネットワークエラー: {short}"
-
-msgid "Open"
-msgstr "開く"
 
 msgid "Toast Click"
 msgstr "トーストのクリック"
@@ -5078,6 +5159,12 @@ msgstr "閉じる"
 msgid "Dismiss the error and return to idle"
 msgstr "エラーを閉じて待機状態に戻ります"
 
+msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
+msgstr ""
+
+msgid "UE Look is on"
+msgstr ""
+
 msgid "Front"
 msgstr "前"
 
@@ -5093,10 +5180,31 @@ msgstr "粗さ"
 msgid "Metallic"
 msgstr "メタリック"
 
+msgid "Scale"
+msgstr "スケール"
+
+msgid "Detail"
+msgstr "細かさ"
+
+msgid "NodeGroupOutput"
+msgstr ""
+
+msgid "GeometryNodeCollectionInfo"
+msgstr ""
+
+msgid "lampway_uv_check"
+msgstr ""
+
 msgid "Chest1"
 msgstr ""
 
 msgid "Waist1"
+msgstr ""
+
+msgid "KiB"
+msgstr ""
+
+msgid "MiB"
 msgstr ""
 
 msgid "Hide this note (the pill stays off; the preference brings it back)"
@@ -5241,6 +5349,15 @@ msgid "Egress"
 msgstr ""
 
 msgid "Whether data is leaving this machine"
+msgstr ""
+
+msgid "Approve patch"
+msgstr ""
+
+msgid "Approve this staged add-on patch so the agent may commit it. Your click only"
+msgstr ""
+
+msgid "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"
 msgstr ""
 
 msgid "Refresh privacy"
@@ -5669,6 +5786,12 @@ msgstr ""
 msgid "Choose the main agent, the swarm workers and the image model; saved on the server"
 msgstr ""
 
+msgid "UE Look"
+msgstr ""
+
+msgid "Switch this scene to the UE profile's look (its cube validated, the next launch started with the UE view), or back exactly"
+msgstr ""
+
 msgid "Refresh sessions"
 msgstr ""
 
@@ -5832,6 +5955,15 @@ msgid "Connections (MCP servers)"
 msgstr ""
 
 msgid "Connections: which MCP servers your agent apps have, where each comes from and whether it is ready; a Check starts a short probe (your click). draw() reads the cache only."
+msgstr ""
+
+msgid "Engine defaults: not the project"
+msgstr ""
+
+msgid "UE Look: on"
+msgstr ""
+
+msgid "UE Look: off"
 msgstr ""
 
 msgid "Show account details"
@@ -6090,6 +6222,24 @@ msgid "Figure height (m)"
 msgstr ""
 
 msgid "0 = the deform mesh's rest height, else head bone to foot bone"
+msgstr ""
+
+msgid "UE profile"
+msgstr ""
+
+msgid "A lampway.ue-profile/1 file (the UE editor leg's live dump); empty = the shipped engine defaults, which are not the project"
+msgstr ""
+
+msgid "Tonemapper cube"
+msgstr ""
+
+msgid "The .cube generated on the UE side (Lampway reads it, never copies it); empty = the profile's tonemap_cube"
+msgstr ""
+
+msgid "Cube sidecar"
+msgstr ""
+
+msgid "The cube's JSON sidecar (engine version, tonemapper settings, generator, sha256); empty = the profile's tonemap_cube_meta"
 msgstr ""
 
 msgid "Smallest vision-capable model — fast on any machine, good tool use."
@@ -8610,9 +8760,6 @@ msgstr "ムードボードキャンバス上のX位置"
 
 msgid "Y position on the moodboard canvas"
 msgstr "ムードボードキャンバス上のY位置"
-
-msgid "Scale"
-msgstr "スケール"
 
 msgid "Scale factor for the image"
 msgstr "画像のスケール係数"
@@ -20881,9 +21028,6 @@ msgstr ""
 "\n"
 "しばらくしてから再試行するか、テキストで検索してください。"
 
-msgid "Showing name matches only ({reason})."
-msgstr "名前の一致のみ表示しています（{reason}）。"
-
 msgid "“{query}” + your image"
 msgstr "「{query}」+ 添付画像"
 
@@ -22667,6 +22811,9 @@ msgstr "アドオンプロジェクト"
 msgid "Build and maintain a linked multi-file Blender add-on"
 msgstr "リンクされた複数ファイル構成の Blender アドオンを構築・保守します"
 
+msgid "Browse and search your Asset Vault; click an asset to put it in the scene"
+msgstr ""
+
 msgid "Add-on Project ID"
 msgstr "アドオンプロジェクト ID"
 
@@ -22987,9 +23134,6 @@ msgstr "行のラベル（例: 'Read'）"
 
 msgid "Row target, e.g. a filename"
 msgstr "行の対象（例: ファイル名）"
-
-msgid "Detail"
-msgstr "細かさ"
 
 msgid "Second-level detail body (command output / snippet)"
 msgstr "第2レベルの詳細本文（コマンド出力/スニペット）"
@@ -28198,9 +28342,6 @@ msgstr ""
 
 msgid "Generate Gradient Start"
 msgstr ""
-
-msgid "Canvas"
-msgstr "キャンバス"
 
 msgid "Shared canvas and page background"
 msgstr "共通のキャンバスとページの背景"
