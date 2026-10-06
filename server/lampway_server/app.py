@@ -140,6 +140,14 @@ def default_job_backends(settings: Settings) -> dict:
     return {"image_gen": imagegen.openrouter_image_backend}
 
 
+def _local_job_services(settings: Settings):
+    """The Client's mesh job types backed by Lampway's own tools in a headless Lampway (job_backends.py) when LAMPWAY_BLENDER names the binary; else empty."""
+    from . import job_backends as JB
+    work = Path(settings.state_dir) / "jobs-local"
+    work.mkdir(parents=True, exist_ok=True)
+    return JB.default_registry(work=work)
+
+
 def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None) -> Starlette:
     from . import egress as _EG
     if egress is not None:
@@ -298,7 +306,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     prompt_service = prompts if prompts is not None else PromptService.from_env(settings.state_dir)
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
-                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services, policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts)
+                    video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services if job_services is not None else _local_job_services(settings),
+                    policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts)
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
         studio.register_gate(gate_action, lambda a, answer: jobs.resolve_approval(a.id, True, answer), lambda a: jobs.resolve_approval(a.id, False))
