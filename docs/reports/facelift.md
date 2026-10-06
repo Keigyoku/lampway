@@ -531,3 +531,6 @@ The coordinator's rule from here on: `build/Prod` is built from a clean tree at 
 `build/Prod/BUILT_FROM`. (The 10-06 02:31 build the integrator copied held the then-uncommitted 6881d79 native
 changes; the coordinator traced that from the reflog.) The current build's sha is recorded at the end of this file
 after each native push.
+
+- `build/Prod` built from `cf1fc1f755218c2a32a433d15ba3c392c29c8693` (pushed, clean tree; `build/Prod/BUILT_FROM`), 2026-10-06.
+  It contains contracts 01-08 as pushed and the `origin/lp/wave5` merge `5e5cf3e` (which brought no native change).
