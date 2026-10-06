@@ -21,7 +21,7 @@ service gets a fake transport and a `needs_key` / `needs_approval` stub for the 
 | 3 | wiki/playblast_capture | P2 | Blender | done |
 | 4 | wiki/cinematic_shot_plan | P2 | server | done |
 | 5 | wiki/lod_chain | P2 | Blender | done |
-| 6 | wiki/material_experiment | P2 | server | |
+| 6 | wiki/material_experiment | P2 | server | done |
 | 7 | wiki/motion_experiment | P2 | Blender | |
 | 8 | wiki/secondary_chain_rig | P2 | Blender | |
 | 9 | wiki/cloth_garment_sim | P3 | Blender | |
@@ -114,3 +114,17 @@ traversal_check moved ahead of level_blockout (the blockout calls it).
   (protect everything: the count stays above the ratio). Mutants killed: the inverted protect group, the seam set, the skinned refusal, the texture
   scale; the deviation's lost-detail direction SURVIVED the first suite (both directions grow on a sphere) and was killed by a spike test.
 - [UNVERIFIED] engine LOD naming (the contract's open question); the engine import is the captain's.
+
+### 6. material_experiment (P2): done
+- Where: `server/lampway_server/material_experiment.py`, agent tool `lampway_material_experiment` (`agent/plan_tools.py`, server-run).
+- plan: rows T1..L1 with the Studio action and expected credits from `studios.actions` (tripo.texture 30); meshy.retexture and hi3d.texture_only exist
+  as REST drivers (fake transport only, never live) with unpublished prices read back by their plan; 3dai_prism and Material AI have no driver: the
+  wiki's documentation prices (20, 10) marked [UNVERIFIED], plan-only. Rows an engine cannot express (T3 needs a seed control, T4 an alignment
+  control; only Prism has either, per the wiki) are refused when asked and listed as skipped from the default set. run: never spends; a
+  needs_approval card for `lampway_studio_plan`; refused without a driver, without a passing asset_acceptance, T2/T3/T4 before T1, and after any
+  identity or fit failure (the stop rule). record: one experiment-ledger row (stage texture, seed not_exposed unless the engine has one, the
+  read-back price with its source, by agent). compare: texel RMS T1 vs T2 / T3 with verdicts.
+- Tests: `server/tests/test_wave6_material_experiment.py` (9). RED observed: ImportError. The contract's four tests and its falsifier (T1 passes,
+  the run continues). Mutants killed: the dispatch name, the stop rule, the T1-first law, the acceptance gate, the RMS, the explicit-row refusal.
+- Limit: the server cannot re-run asset_acceptance (a Blender tool); `run` trusts the posted result and copies its object and mesh hash into the card.
+- Not run: no live Tripo texture (spend; the captain's click). Open (the contract's): whether T2 (an exact 30-credit repeat) is wanted at all.

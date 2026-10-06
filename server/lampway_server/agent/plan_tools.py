@@ -7,7 +7,7 @@ import json
 
 from .providers.base import ToolSpec
 
-NAMES = {"lampway_cinematic_shot_plan"}
+NAMES = {"lampway_cinematic_shot_plan", "lampway_material_experiment"}
 
 
 def _obj(props, req=()):
@@ -29,6 +29,18 @@ def specs() -> list:
                        "model": {"type": "string"}, "shot": {"type": "string"}, "actions": {"type": "array", "items": {"type": "string"}},
                        "durations": {"type": "array", "items": {"type": "number"}}, "review": {"type": "object"}, "by": {"type": "string", "description": "captain | agent"},
                        "note": {"type": "string"}}, ["action", "scene"])),
+        ToolSpec("lampway_material_experiment", "The credit-efficient material matrix before committing a texture engine: T1 baseline, T2 T1 repeated exactly (is the seed "
+                 "repeatable?), T3 seed only, T4 texture alignment only, M1 one shared material, L1 one local patch (repair_texture, free). action plan {piece, engine: tripo | meshy | "
+                 "hi3d | 3dai_prism, rows (default T1, T2, T3; rows the engine cannot express are skipped with the reason)}: each row's Studio action and expected credits from the "
+                 "action catalogue (tripo.texture 30); an engine with no driver (3dai_prism) keeps the wiki's documentation price, marked UNVERIFIED, and is plan-only. action run "
+                 "{piece, engine, row, acceptance: the lampway_asset_acceptance result of the source}: never spends; returns the needs_approval card for lampway_studio_plan (the "
+                 "user confirms); refused: no driver, no passing acceptance, T2/T3/T4 before T1 is recorded, and anything after an identity or fit failure (the stop rule). action "
+                 "record {piece, engine, row, texture (project path), identity_pass, fit_pass, read_back_price, seed}: one experiment-ledger row (you record as the agent). action "
+                 "compare {piece, engine}: texel RMS of T1 vs T2 and T1 vs T3 with verdicts.",
+                 _obj({"action": {"type": "string", "description": "plan | run | record | compare"}, "piece": {"type": "string"}, "engine": {"type": "string"},
+                       "rows": {"type": "array", "items": {"type": "string"}}, "row": {"type": "string"}, "acceptance": {"type": "object"}, "texture": {"type": "string"},
+                       "identity_pass": {"type": "boolean"}, "fit_pass": {"type": "boolean"}, "read_back_price": {"type": "integer"}, "seed": {"type": "integer"},
+                       "note": {"type": "string"}}, ["action", "piece", "engine"])),
     ]
 
 
@@ -53,6 +65,21 @@ async def call(hub, root, name: str, arguments: dict) -> tuple:
                 out = CI._load(str(root), a.get("scene"))
             else:
                 return "action is plan | split | review | show", True
+            return json.dumps(out), False
+        if name == "lampway_material_experiment":
+            from .. import material_experiment as ME
+            act, r = a.get("action"), str(root)
+            if act == "plan":
+                out = ME.plan(r, a.get("piece"), a.get("engine"), a.get("rows"))
+            elif act == "run":
+                out = ME.run(r, a.get("piece"), a.get("engine"), a.get("row"), a.get("acceptance"))
+            elif act == "record":
+                out = await asyncio.to_thread(ME.record, r, a.get("piece"), a.get("engine"), a.get("row"), a.get("texture") or "", a.get("identity_pass"), a.get("fit_pass"),
+                                              a.get("read_back_price"), a.get("seed"), a.get("note") or "")
+            elif act == "compare":
+                out = await asyncio.to_thread(ME.compare, r, a.get("piece"), a.get("engine"))
+            else:
+                return "action is plan | run | record | compare", True
             return json.dumps(out), False
     except ValueError as exc:
         return str(exc), True
