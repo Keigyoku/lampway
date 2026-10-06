@@ -1225,9 +1225,15 @@ def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, region
     a vector), range [lo, hi] (<= 90 deg wide), step, expect (the first DOF's sign check: {joint, along, min_cm})}] and the scene's piece,
     skinned body and armature: a deterministic sweep (the grid over dofs, then each chain link in turn), rays from each skin sample's bone
     axis to the piece, regions {name: {bones, threshold_m}}; answers the pose in the replayable grammar, the A-pose and posed numbers, and
-    writes pose.json to out. Without dofs: chest is routed to pose_clearance; helmet, waist, boots, gauntlets answer needs_decision (the
+    writes pose.json to out. dofs="chest" is the canon's chest table (arms lowered 0..40 x swung -10..10, mirrored; then spine_01,
+    spine_03, neck_01 pitch -8..8). Without dofs: chest is routed to pose_clearance; helmet, waist, boots, gauntlets answer needs_decision (the
     bones, axes and ranges are the user's to rule; the contract's proposals come with it, marked unverified)."""
     from . import posing as _PO
+    if dofs == "chest":                                          # the canon's chest table (canon 08 B.4), by name
+        t = _PO.CHEST
+        dofs, chain, regions = t["dofs"], chain if chain is not None else t["chain"], regions or t["regions"]
+    elif isinstance(dofs, str):
+        raise ValueError(f"dofs is a list of DOFs or 'chest' (the canon's table); {dofs!r} names no table")
     if dofs:
         return _PO.solve_scene(kind, piece, body, armature, dofs, chain, regions, out, root=str(_settings().project_root))
     return _PO.fit_pose(kind)

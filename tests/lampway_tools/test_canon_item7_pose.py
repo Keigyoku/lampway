@@ -160,3 +160,68 @@ def test_a_mirrored_dof_drives_the_other_side_by_the_sagittal_reflection(goldens
     assert out["entries"] == [{"bone": "upperarm_l", "axis": [0.0, 1.0, 0.0], "deg": 30.0}, {"bone": "upperarm_r", "axis": [0.0, 1.0, 0.0], "deg": -30.0}]
     assert out["posed"]["arm_l"]["over"] == 0 and out["posed"]["arm_r"]["over"] == 0 and out["a_pose"]["arm_r"]["over"] >= 1
     assert len(out["sweeps"]) == 9
+
+
+def _a_pose_skeleton():
+    """A synthetic A-pose skeleton in the body frame (front -Y, the wearer's left +X): arms 40 deg below horizontal."""
+    a = math.radians(-40.0)
+    J = {"pelvis": (0, 0, 0.95), "spine_01": (0, 0, 1.00), "spine_02": (0, 0, 1.08), "spine_03": (0, 0, 1.16), "spine_04": (0, 0, 1.24),
+         "spine_05": (0, 0, 1.32), "neck_01": (0, 0, 1.45), "neck_02": (0, 0, 1.50), "head": (0, 0, 1.56),
+         "upperarm_l": (0.18, 0, 1.42), "lowerarm_l": (0.18 + 0.30 * math.cos(a), 0, 1.42 + 0.30 * math.sin(a)),
+         "upperarm_r": (-0.18, 0, 1.42), "lowerarm_r": (-0.18 - 0.30 * math.cos(a), 0, 1.42 + 0.30 * math.sin(a))}
+    P = {"pelvis": None, "spine_01": "pelvis", "spine_02": "spine_01", "spine_03": "spine_02", "spine_04": "spine_03", "spine_05": "spine_04",
+         "neck_01": "spine_05", "neck_02": "neck_01", "head": "neck_02", "upperarm_l": "spine_05", "lowerarm_l": "upperarm_l",
+         "upperarm_r": "spine_05", "lowerarm_r": "upperarm_r"}
+    return {b: {"parent": P[b], "rot": (0.0, 0.0, 0.0, 1.0), "pos": tuple(float(x) for x in J[b])} for b in J}
+
+
+def test_the_chest_table_is_the_canons_and_passes_its_own_sign_check():
+    from mixar.modules.lampway_tools import posing as PO
+    t = PO.CHEST
+    assert [(d["bone"], d["range"], d["step"], d.get("mirror")) for d in t["dofs"]] == [("upperarm_l", [0, 40], 5, True), ("upperarm_l", [-10, 10], 5, True)]
+    assert [(d["bone"], d["range"], d["step"]) for d in t["chain"]] == [("spine_01", [-8, 8], 4), ("spine_03", [-8, 8], 4), ("neck_01", [-8, 8], 4)]
+    assert t["regions"]["arm_l"]["threshold_m"] == 0.010 and t["regions"]["neck"]["threshold_m"] == 0.002 and t["regions"]["torso"]["threshold_m"] == 0.002
+    ref = _a_pose_skeleton()
+    samples = [(tuple(np.add(ref[b]["pos"], (0.0, 0.0, -0.01))), b) for b in ("upperarm_l", "upperarm_r", "spine_02", "neck_01")]
+    far = (np.array([[5.0, 5, 5], [5.1, 5, 5], [5, 5.1, 5]]), np.array([[0, 1, 2]]))            # nothing to avoid: the natural pose wins
+    out = PS.solve(ref, FRAME, samples, far, t["dofs"], t["chain"], regions=t["regions"])
+    assert out["entries"] == [] and out["sign_check"]["moved_cm"] > 2.0 and len(out["sweeps"]) == 9 * 5 + 3 * 5
+    flipped = [dict(t["dofs"][0], axis="forward")] + t["dofs"][1:]
+    with pytest.raises(PS.PoseError, match="sign check"):
+        PS.solve(ref, FRAME, samples, far, flipped, t["chain"], regions=t["regions"])
+
+
+def test_the_tool_takes_the_canon_chest_table_by_name():
+    from test_wave3_weights import PRE
+    from blender_run import run_script
+    ref = _a_pose_skeleton()
+    body = r'''
+from mathutils import Vector
+REF = ''' + repr(ref) + '''
+arm = bpy.data.armatures.new("rig"); ob = bpy.data.objects.new("rig", arm); bpy.context.scene.collection.objects.link(ob)
+bpy.context.view_layer.objects.active = ob; bpy.ops.object.mode_set(mode="EDIT")
+kids = {}
+for b, t in REF.items():
+    if t["parent"]: kids.setdefault(t["parent"], []).append(b)
+for b, t in REF.items():
+    eb = arm.edit_bones.new(b); eb.head = t["pos"]
+    k = [c for c in kids.get(b, []) if not c.startswith("upperarm")]
+    eb.tail = REF[k[0]]["pos"] if k else (Vector(t["pos"]) + Vector((0, 0, 0.05)) if not b.startswith("lowerarm") else Vector(t["pos"]) + (Vector(t["pos"]) - Vector(REF[t["parent"]]["pos"])) * 0.5)
+for b, t in REF.items():
+    if t["parent"]: arm.edit_bones[b].parent = arm.edit_bones[t["parent"]]
+bpy.ops.object.mode_set(mode="OBJECT")
+verts = [tuple(Vector(t["pos"]) + Vector((0, 0.03, 0))) for t in REF.values()]
+me = bpy.data.meshes.new("body"); me.from_pydata(verts, [], []); me.update()
+body = bpy.data.objects.new("body", me); bpy.context.scene.collection.objects.link(body)
+for i, b in enumerate(REF):
+    body.vertex_groups.new(name=b).add([i], 1.0, "REPLACE")
+me2 = bpy.data.meshes.new("piece"); me2.from_pydata([(5, 5, 5), (5.1, 5, 5), (5, 5.1, 5)], [], [(0, 1, 2)]); me2.update()
+bpy.context.scene.collection.objects.link(bpy.data.objects.new("piece", me2))
+r = api.fit_pose(kind="chest", piece="piece", body="body", armature="rig", dofs="chest")
+res({"ok": r.get("ok"), "error": r.get("error"), "entries": r.get("entries"), "sweeps": len(r.get("sweeps") or []), "sign": r.get("sign_check")})
+'''
+    r = run_script(PRE + body, timeout=300)
+    assert r.rc == 0, r.out[-2000:]
+    d = r.results[-1]
+    assert d["ok"], d["error"]
+    assert d["entries"] == [] and d["sweeps"] == 60 and d["sign"]["moved_cm"] > 2.0, d

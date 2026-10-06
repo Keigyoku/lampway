@@ -29,6 +29,22 @@ def fit_pose(kind, **_):
         "needs_from_user": "the DOF list (bone, axis, range, step) or 'accept the proposal'"}}
 
 
+# canon 08 B.4, the chest (CANONICAL, measured): both arms lowered 0..40 step 5 x swung -10..10 step 5 (one DOF each, mirrored to the
+# right arm), then hips, chest and neck pitch -8..8 step 4 in turn. Axes in the joint grammar of the body frame (front -Y): a left arm
+# lowers about -forward (+Y; the sign check proves it), swings about up, the spine pitches about lateral. Regions by bone: the arms
+# count samples over 10 mm, the torso and the neck the fraction over 2 mm (B.3). G08.4 (the recorded chest 166/207 -> 90/103, neck
+# 0.2538 -> 0.0639) needs the shelf's chest inputs, which are not in the repository.
+CHEST = {
+    "dofs": [{"bone": "upperarm_l", "axis": "-forward", "range": [0, 40], "step": 5, "mirror": True,
+              "expect": {"joint": "lowerarm_l", "along": "-up", "min_cm": 2.0}},
+             {"bone": "upperarm_l", "axis": "up", "range": [-10, 10], "step": 5, "mirror": True}],
+    "chain": [{"bone": "spine_01", "axis": "lateral", "range": [-8, 8], "step": 4}, {"bone": "spine_03", "axis": "lateral", "range": [-8, 8], "step": 4},
+              {"bone": "neck_01", "axis": "lateral", "range": [-8, 8], "step": 4}],
+    "regions": {"arm_l": {"bones": ["upperarm_l", "lowerarm_l"], "threshold_m": 0.010}, "arm_r": {"bones": ["upperarm_r", "lowerarm_r"], "threshold_m": 0.010},
+                "torso": {"bones": ["spine_01", "spine_02", "spine_03", "spine_04", "spine_05"], "threshold_m": 0.002},
+                "neck": {"bones": ["neck_01", "neck_02", "head"], "threshold_m": 0.002}},
+}
+
 MAX_SAMPLES = 20000          # skin samples per solve (a stride over the body's vertices beyond that: a bound on the sweep's cost)
 
 
