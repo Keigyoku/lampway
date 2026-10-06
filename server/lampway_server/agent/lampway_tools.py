@@ -461,7 +461,7 @@ DEFS = [
         "forward | lateral | {line: [a, b]} | {perp: [a, b], to}, deg}], expect: {joint, along | closer_to, min_cm}} | {name, curl: {side, fraction}} | {name, bone, rotate} (Euler stress set)]), `roles` {part: metal | "
         "leather | cloth | embroidery} (the user's or the recipe's, never a render's colour). The expect is measured on the posed JOINTS first: a wrong sign is REFUSED; an expect on the commanded angle is refused. "
         "Per pose and part: rigid residual with the scale FIXED, edge strain p95/max (fraction), the source seam ledger (open over 2 mm), SURFACE crossings both ways and inside vertices of `body`; rest fidelity per "
-        "metal part; a capped crossing control (no crossing seen = UNPROVEN). Verdicts PASS | FAIL | UNVERIFIED (no limits for the role, or a metric not measured) | REFUSED | UNPROVEN; default limits are Titan's, "
+        "metal part, JUDGED against the metal limit (a metal part pushed or bulged off a similarity of its source FAILs); a capped crossing control (no crossing seen = UNPROVEN). Verdicts PASS | FAIL | UNVERIFIED (no limits for the role, or a metric not measured) | REFUSED | UNPROVEN; default limits are Titan's, "
         "adopted (metal rigid < 0.5 mm, strain p95 < 1 %, no body crossing). judge: re-judge a validation under new limits.",
         [P("stage", required=True, desc="measure | judge"), P("piece", desc="the piece's name"), P("bound", desc="the bound object"), P("original", desc="the pre-fit source shell"),
          P("poses", "array", "the poses"), P("roles", "object", "{part: role}"), P("limits", "object", "{status, body: {crossings}, metal: {rigid_max_mm, strain_p95}}"), P("body", desc="the posed body for crossings"),

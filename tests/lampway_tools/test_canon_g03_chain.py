@@ -46,8 +46,8 @@ body_pkg = os.path.relpath(pkg["package"], root)
 TWIST = [{"name": "twist", "bones": [{"bone": "spine_03", "axis": [0, 0, 1], "deg": 40.0}]}]
 
 
-def run(tmp_path, gold, body):
-    r = run_script(FIT_PRE + LOAD_OBJ + f"GOLD = {str(gold)!r}\n" + C03_SCENE + body, env={"LW_KEEP_ROOT": str(tmp_path)}, timeout=600)
+def run(tmp_path, gold, body, scene=C03_SCENE):
+    r = run_script(FIT_PRE + LOAD_OBJ + f"GOLD = {str(gold)!r}\n" + scene + body, env={"LW_KEEP_ROOT": str(tmp_path)}, timeout=600)
     assert r.rc == 0, r.out[-2500:]
     return r.results[-1]
 
@@ -108,3 +108,96 @@ res(out)
 ''')
     assert d["w"]["ok"], d["w"]
     assert min(d["spine_03"]) > 0.99, d["spine_03"]
+
+
+C07_SCENE = r'''
+rig = json.load(open(GOLD + "/C07_pose_solve/rig.json"))
+sh = rig["shoulder"]; L = rig["upperarm_length_m"]; ra = rig["arm_radius_m"]
+a = math.radians(-40.0)                                              # the A-pose arm: 40 deg below horizontal (canon 08 C07)
+elbow = (sh[0] + L * math.cos(a), sh[1], sh[2] + L * math.sin(a))
+arm = armature("rig", (("upperarm_l", tuple(sh), elbow, None),))
+src = load_obj(GOLD + "/C07_pose_solve/sleeve.obj", "sleeve")
+def bound_copy(name, P):
+    me = src.data.copy(); ob = bpy.data.objects.new(name, me); bpy.context.scene.collection.objects.link(ob)
+    for v, p in zip(me.vertices, P): v.co = p
+    g = ob.vertex_groups.new(name="upperarm_l"); g.add(list(range(len(me.vertices))), 1.0, "REPLACE")
+    s = ob.vertex_groups.new(name="sleeve"); s.add(list(range(len(me.vertices))), 1.0, "REPLACE")
+    m = ob.modifiers.new("Armature", "ARMATURE"); m.object = arm
+    return ob
+d = Vector(elbow) - Vector(sh); d.normalize()
+P0 = [tuple(v.co) for v in src.data.vertices]
+# the posed solution: the sweep found the arm lowered 30 deg (C07); the sleeve, bound there, RETURNS to rest by that rotation
+# undone (+deg about +Y lowers the arm), unchanged in shape - a similarity of its source
+from mathutils import Matrix
+back = Matrix.Translation(sh) @ Matrix.Rotation(math.radians(-30.0), 4, Vector((0, 1, 0))) @ Matrix.Translation(Vector(sh) * -1)
+posed = bound_copy("posed", [tuple(back @ Vector(p)) for p in P0])
+# the body: the A-pose arm, a closed capped cylinder skinned to upperarm_l
+bm = bmesh.new()
+bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=24, radius1=ra, radius2=ra, depth=L,
+                      matrix=Matrix.Translation((Vector(sh) + Vector(elbow)) / 2) @ d.to_track_quat("Z", "Y").to_matrix().to_4x4())
+me = bpy.data.meshes.new("armbody"); bm.to_mesh(me); bm.free()
+armbody = bpy.data.objects.new("armbody", me); bpy.context.scene.collection.objects.link(armbody)
+weights(armbody, arm, lambda co: {"upperarm_l": 1.0})
+# the trap (canon 03 G03.4): instead of the pose sweep, push the sleeve's vertices outward from the A-pose arm (along the arm's
+# surface normal at the nearest point) until no vertex penetrates, in 5 mm steps (bounded): what a penetration-only judge counts
+from mathutils.bvhtree import BVHTree
+armbody.data.calc_loop_triangles()
+tree = BVHTree.FromPolygons([tuple(v.co) for v in armbody.data.vertices], [tuple(t.vertices) for t in armbody.data.loop_triangles])
+E = [tuple(e.vertices) for e in src.data.edges]
+P = [Vector(p) for p in P0]
+def inside():
+    out_ = set()
+    for i, p in enumerate(P):
+        loc, nor, _f, _dist = tree.find_nearest(p)
+        if (p - loc).dot(nor) < 0:
+            out_.add(i)
+    return out_
+def outward(i, step):
+    loc, nor, _f, _dist = tree.find_nearest(P[i])
+    P[i] = P[i] + nor.normalized() * step
+steps = 0
+for steps in range(1, 101):
+    bad = inside()
+    if not bad:
+        break
+    for i in bad:
+        outward(i, 0.005)
+PUSH_STEPS, PUSH_CLEAR = steps, not inside()
+pushed = bound_copy("pushed", [tuple(p) for p in P])
+# a second trap with no crossing at all: the returned sleeve bulged 8 % across its own axis (a non-uniform "fit" of a metal part)
+ax = (back.to_3x3() @ Matrix.Rotation(math.radians(30.0), 3, Vector((0, 1, 0))) @ d).normalized()
+def bulge(p):
+    v = p - Vector(sh); t = v.dot(ax); return Vector(sh) + t * ax + (v - t * ax) * 1.08
+bulged = bound_copy("bulged", [tuple(bulge(back @ Vector(p))) for p in P0])
+'''
+
+
+def test_g03_4_the_push_trap_fails_its_judge_and_the_posed_solution_does_not(tmp_path, goldens):
+    d = run(tmp_path, goldens, '''
+out = {"moved": sum(1 for a_, b_ in zip(P0, pushed.data.vertices) if (Vector(a_) - b_.co).length > 1e-9), "push_steps": PUSH_STEPS, "push_clear": PUSH_CLEAR}
+for name in ("pushed", "posed", "bulged"):
+    out[name] = api.fit_validate("measure", piece="sleeve", bound=name, original="sleeve", poses=[{"name": "rest"}], roles={"sleeve": "metal"},
+                                 body="armbody")
+res(out)
+''', scene=C07_SCENE)
+    m = {}
+    for name in ("pushed", "posed", "bulged"):
+        v = d[name]
+        assert v["ok"], v
+        m[name] = {"rest_fidelity_max_mm": v["rest_fidelity"]["per_part"]["sleeve"]["max_mm"],
+                   "rest_fidelity_verdict": (v["rest_fidelity"].get("judge") or {}).get("sleeve", {}).get("verdict"), "summary_counts": v["summary"]["counts"],
+                   "summary_ok": v["summary"]["ok"], "crossings": v["poses"][0]["pieces"]["sleeve"]["surface_crossings"],
+                   "inside_vertices": v["poses"][0]["pieces"]["sleeve"]["inside_vertices"],
+                   "pose_rigid_mm": v["poses"][0]["pieces"]["sleeve"]["rigid_residual_mm"], "control": v["crossing_control"]["ok"]}
+    m["moved_vertices"], m["push_steps"] = d["moved"], d["push_steps"]
+    assert d["push_clear"], d
+    (tmp_path / "g03_4.json").write_text(json.dumps(m, indent=1))
+    print("G03.4", json.dumps(m))
+    assert d["moved"] > 0
+    assert m["pushed"]["rest_fidelity_max_mm"] > 10.0 and m["posed"]["rest_fidelity_max_mm"] < 1e-3, m
+    assert m["pushed"]["inside_vertices"] == 0 and m["pushed"]["pose_rigid_mm"] < 1e-3, m    # what a penetration-only judge sees: nothing wrong
+    assert m["pushed"]["rest_fidelity_verdict"] == "FAIL" and m["pushed"]["summary_ok"] is False, m
+    # the bulge crosses nothing and is rigid through every pose: only the rest fidelity against the source can fail it
+    assert m["bulged"]["crossings"] == 0 and m["bulged"]["inside_vertices"] == 0 and m["bulged"]["rest_fidelity_max_mm"] > 0.5, m
+    assert m["bulged"]["rest_fidelity_verdict"] == "FAIL" and m["bulged"]["summary_ok"] is False, m
+    assert m["posed"]["rest_fidelity_verdict"] == "PASS" and m["posed"]["crossings"] == 0 and m["posed"]["summary_ok"] is True, m
