@@ -19,7 +19,7 @@ from lampway_server.library import schema as SCH
 from lampway_server.library.store import AssetLibrary, LibraryError
 
 ROOT = Path(__file__).resolve().parents[2]
-EXAMPLES = json.loads((ROOT / "tests/lampway_tools/canon_goldens/normalization/canonical-asset.examples.json").read_text())
+EXAMPLES = json.loads((ROOT / "docs/canon/normalization/canonical-asset.examples.json").read_text())
 
 
 def make(tmp_path):

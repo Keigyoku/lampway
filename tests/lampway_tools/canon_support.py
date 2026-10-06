@@ -2,12 +2,11 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The algorithm canon's goldens inside the Lampway suite.
-
-`canon_goldens/` is a verbatim copy of the canon's generator (`gen_goldens.py`, `meshgen.py`), its reference
-implementations (`reference.py`, the oracle) and its self-test. The goldens are generated once per session into the
-pytest base temp and every written file is checked against `goldens.sha256` (the canon tree's own bytes), so a test can
-never pass on a drifted fixture. The OBJ/JSON are never committed here: the generator is the artefact.
+"""The algorithm canon's goldens inside the Lampway suite, read from the canon itself: `docs/canon/goldens/` (the source of truth,
+lampway-canon skill: "load a golden's case from docs/canon/goldens/; never copy it elsewhere"). Its generator, reference
+implementations (the oracles) and committed cases are used in place. Once per session the generator re-runs into the pytest base
+temp and every case file it writes must equal the committed one byte for byte, so a test can never pass on a drifted case
+(`check_canon.py` holds the same in CI).
 """
 
 import hashlib
@@ -19,7 +18,9 @@ import numpy as np
 import pytest
 
 HERE = Path(__file__).resolve().parent
-GOLDENS_SRC = HERE / "canon_goldens"
+ROOT = HERE.parents[1]
+GOLDENS_SRC = ROOT / "docs/canon/goldens"
+EXAMPLES = ROOT / "docs/canon/normalization/canonical-asset.examples.json"
 if str(GOLDENS_SRC) not in sys.path:
     sys.path.insert(0, str(GOLDENS_SRC))
 
@@ -27,15 +28,6 @@ import meshgen  # noqa: E402
 import reference  # noqa: E402
 
 _CACHE = {}
-
-
-def pinned_hashes():
-    out = {}
-    for line in (GOLDENS_SRC / "goldens.sha256").read_text().splitlines():
-        if line and not line.startswith("#"):
-            h, name = line.split(maxsplit=1)
-            out[name] = h
-    return out
 
 
 def generate(out: Path) -> Path:
@@ -47,16 +39,15 @@ def generate(out: Path) -> Path:
 
 @pytest.fixture(scope="session")
 def goldens(tmp_path_factory):
-    """The generated canon goldens directory, byte-checked against the pinned hashes."""
+    """docs/canon/goldens, after a fresh generation was compared with it byte for byte."""
     if "dir" not in _CACHE:
-        out = generate(tmp_path_factory.mktemp("canon_goldens"))
-        bad = []
-        for name, h in pinned_hashes().items():
-            p = out / name
-            if not p.exists() or hashlib.sha256(p.read_bytes()).hexdigest() != h:
-                bad.append(name)
-        assert not bad, f"the golden generator's bytes changed: {bad}"
-        _CACHE["dir"] = out
+        fresh = generate(tmp_path_factory.mktemp("canon_goldens"))
+        files = [p for p in fresh.rglob("*") if p.is_file()]
+        bad = [str(p.relative_to(fresh)) for p in files
+               if not (GOLDENS_SRC / p.relative_to(fresh)).is_file()
+               or hashlib.sha256(p.read_bytes()).digest() != hashlib.sha256((GOLDENS_SRC / p.relative_to(fresh)).read_bytes()).digest()]
+        assert files and not bad, f"the generator's output differs from the committed docs/canon/goldens: {bad}"
+        _CACHE["dir"] = GOLDENS_SRC
     return _CACHE["dir"]
 
 

@@ -200,7 +200,7 @@ out = {"raw": probe(object="raw"), "plain": probe(object="plain"), "good": probe
 good.data.vertices[0].co.x += 0.1; good.data.update()
 out["changed"] = probe(object="good")
 print("RESULT", json.dumps(out))
-""".replace("EXAMPLES", repr(str(Path(__file__).parent / "canon_goldens/normalization/canonical-asset.examples.json"))))
+""".replace("EXAMPLES", repr(str(Path(__file__).resolve().parents[2] / "docs/canon/normalization/canonical-asset.examples.json"))))
     assert d["good"] == {"ok": True, "ran": "good"}, d["good"]
     for k, word in (("raw", "RAW"), ("plain", "no canonical stamp"), ("changed", "changed since it was normalized")):
         assert d[k]["ok"] is False and d[k]["error"].startswith("normalize first") and word in d[k]["error"], (k, d[k])
@@ -347,7 +347,7 @@ cube("g1", True); cube("g2", True); r = cube("rawp", False); r["lw_raw"] = json.
 out = {"good": probe(objects=["g1", "g2"]), "tuple": probe(objects=("g1", "rawp")), "bad": probe(objects=["g1", "g2", "rawp", "plainp"]),
        "empty": probe(objects=[]), "one": probe(objects="plainp")}
 print("RESULT", json.dumps(out))
-""".replace("EXAMPLES", repr(str(Path(__file__).parent / "canon_goldens/normalization/canonical-asset.examples.json"))))
+""".replace("EXAMPLES", repr(str(Path(__file__).resolve().parents[2] / "docs/canon/normalization/canonical-asset.examples.json"))))
     assert d["good"] == {"ok": True, "ran": ["g1", "g2"]} and d["empty"] == {"ok": True, "ran": []}
     for k, i in (("tuple", 1), ("bad", 2)):
         e = d[k]
