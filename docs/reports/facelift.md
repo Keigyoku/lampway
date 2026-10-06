@@ -751,6 +751,18 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   Ctrl Alt T key, Focus and Update are not built; the state file the config reads (`state.json`) is not written by the
   server yet.
 
+## After the merge that brought the hub (`d2b142e`: lp/connections is in lp/wave5 now)
+
+- `server/tests/test_facelift_faces_on_the_real_hub.py` runs the real `/app/connections` and `/app/choices` answers
+  through the windows' own words (`connections_face`, `choices_face`, loaded by file). Two things the contracts' words
+  had not told me, fixed (RED observed for each): the hub's retention words are `local`, `zdr`, `conditional`,
+  `retains` and `unknown` (I had `kept`): `retains` and `unknown` draw the eye and need the acknowledgement,
+  `conditional` the half shield; a proposal row is `{change: {preferred, ...}, reason, origin}` (I had `option` and
+  `why`): `choices_face.proposal_line` reads the hub's shape. Every connection state and every purpose cue of the real
+  hub is one the faces know.
+- The merge's rail conflict (both lanes edited section 2 of the coding-guidelines skill) is resolved with both bullets
+  and its own anneal row; the generated registrations were taken from the integration and re-synced.
+
 ## Which build is in `build/Prod`
 
 The coordinator's rule from here on: `build/Prod` is built from a clean tree at a pushed sha, and that sha is written to

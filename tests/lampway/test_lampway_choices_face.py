@@ -63,8 +63,12 @@ def test_an_option_row_carries_its_six_facts():
     assert "$0.14 an image, measured 2026-10-05" in row["cost_tip"] and row["quality"] == "IoU 0.987"
     local = F.option_row(option(runs="this machine", retention="local", route=None, connection=None, cost={"basis": "free"}))
     assert local["runs"] == {"icon": "LAMPWAY_LAMP", "text": "this machine"} and local["retention"] == "LAMPWAY_LAMP"
-    kept = F.option_row(option(retention="kept"))
-    assert kept["retention"] == "eye" and "terms unread" in kept["retention_tip"]
+    # the hub's own words (choices/resolver.py _retention, registry facts): local, zdr, conditional, retains, unknown
+    for word in ("unknown", "retains"):
+        kept = F.option_row(option(retention=word))
+        assert kept["retention"] == "eye" and "terms unread" in kept["retention_tip"], word
+    assert F.option_row(option(retention="conditional"))["retention"] == "LAMPWAY_SHIELD_HALF"
+    assert F.kept("unknown") and F.kept("retains") and not F.kept("zdr") and not F.kept("local")
 
 
 def test_skipped_option_shows_its_fix():
@@ -77,7 +81,7 @@ def test_skipped_option_shows_its_fix():
 
 
 def test_an_acknowledgement_shows_the_eye_and_can_be_taken_back():
-    row = F.option_row(option(retention="kept", acknowledged="2026-10-06T10:00:00Z"))
+    row = F.option_row(option(retention="unknown", acknowledged="2026-10-06T10:00:00Z"))
     assert row["ack"] == {"glyph": "eye", "tip": "You allowed private content here on 2026-10-06 (terms unread): click to take it back"}
     assert F.option_row(option())["ack"] is None
 
@@ -95,3 +99,11 @@ def test_route_and_connections_are_read_only_here():
     src = (ROOT / "src/scripts/mixar/modules/lampway_tools/ui/choices.py").read_text(encoding="utf-8")
     for needle in ("egress/route", "set_route", "lampway.egress_route\"", "/app/connections", "put_secret", "connections_save_secret"):
         assert needle not in src, needle
+
+
+def test_a_proposal_says_what_and_why_in_the_hubs_shape():
+    """The hub's proposal row (choices/store.py propose): {id, origin, purpose, change: {preferred, ...}, reason, state}."""
+    p = {"id": "p1", "origin": "agent", "purpose": "images.plates", "change": {"preferred": "openrouter:sourceful/riverflow-v2.5-pro"},
+         "reason": "flatter albedo", "state": "open"}
+    assert F.proposal_line(p) == "The agent proposes openrouter:sourceful/riverflow-v2.5-pro: flatter albedo"
+    assert F.proposal_line(dict(p, change={"params": {"size": "2048x2048"}})) == "The agent proposes new settings: flatter albedo"

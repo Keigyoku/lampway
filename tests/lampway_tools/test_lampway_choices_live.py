@@ -36,7 +36,7 @@ LISTING = {"doc_version": 3, "groups": [
 PLATES = dict(LISTING["groups"][1]["purposes"][0], params={}, chain=[
     opt("studio:tripo", 0, verdict="skipped", skipped={"constraint": "route", "text": "route studio:tripo is off"}, route={"id": "studio:tripo", "on": False}),
     opt("openrouter:a", 1), opt("openrouter:b", 2)], other_options=[], scopes={"global": {"preferred": "studio:tripo"}}, history=[],
-    proposals=[{"id": "p1", "purpose": "images.plates", "option": "openrouter:b", "by": "agent", "state": "open", "why": "flatter albedo"}])
+    proposals=[{"id": "p1", "purpose": "images.plates", "change": {"preferred": "openrouter:b"}, "origin": "agent", "state": "open", "reason": "flatter albedo"}])
 class FakeClient:
     def __init__(self, missing=False): self.calls = []; self.missing = missing
     def list(self, project=None):

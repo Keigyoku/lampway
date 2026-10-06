@@ -16,9 +16,17 @@ CUE = {"preferred": ("choice_preferred", "preferred"), "fallback": ("choice_fall
        "unset": ("choice_unset", "not chosen yet")}
 CONNECTION_GLYPH = {"connected": "conn_connected", "not_checked": "conn_unchecked", "signed_out": "conn_signed_out",
                     "expired": "conn_expired", "missing": "conn_missing", "error": "conn_error"}
+# The hub's words (choices/resolver.py _retention and the registry's facts): local, zdr, conditional, retains, unknown.
 RETENTION = {"local": ("LAMPWAY_LAMP", "runs on this machine: nothing is kept anywhere else"),
              "zdr": ("LAMPWAY_SHIELD", "zero retention: the provider keeps nothing"),
-             "kept": ("eye", "kept by the provider: terms unread")}
+             "conditional": ("LAMPWAY_SHIELD_HALF", "kept unless the call carries the route's private-content flags"),
+             "retains": ("eye", "kept by the provider: terms unread"),
+             "unknown": ("eye", "kept by the provider: terms unread")}
+
+
+def kept(retention: str) -> bool:
+    """An option whose provider may keep what it is sent: private content to it needs your acknowledgement (CH1)."""
+    return retention in ("retains", "unknown")
 PER = {"image": "an image", "second": "a second", "job": "a job", "call": "a call", "1k tokens": "per 1k tokens"}
 
 
@@ -97,3 +105,11 @@ def action(summary: dict, proposal: bool, chain=None):
             if fix:
                 return fix
     return None
+
+
+def proposal_line(p: dict) -> str:
+    """The proposal card's line from the hub's row ({change: {preferred, fallbacks, params}, reason, origin})."""
+    change = p.get("change") or {}
+    what = change.get("preferred") or "new settings"
+    who = "The agent" if str(p.get("origin") or "agent") != "user" else "You"
+    return f"{who} proposes {what}: {p.get('reason') or ''}".rstrip(": ")
