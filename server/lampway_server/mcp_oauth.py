@@ -124,7 +124,7 @@ class StoreSession:
         self.store().put(self.cid, {"session": json.dumps(data)})
 
     def lock(self):
-        return CF.locked(self.lock_dir / f"{self.cid.replace(':', '_')}.lock")
+        return CF.locked(self.lock_dir / f"{self.cid.replace(':', '_')}.session.lock")    # not the store's own write lock: that one nests inside
 
 
 # ------------------------------------------------------------------------------------------------------------------ the flow

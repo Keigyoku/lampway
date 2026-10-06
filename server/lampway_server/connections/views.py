@@ -79,6 +79,7 @@ class Views:
                     out.update(extra)
             if last and last.get("kind") in ("remote", "use") and last.get("checked_at", 0) >= (rec.get("source_changed_at") or 0):
                 out["check"] = last
+                out["check_kind"] = "remote"
                 if last["state"] != "connected":
                     out.update(state=last["state"], next_step=(last.get("evidence") or {}).get("reason") or out["next_step"])
             return out

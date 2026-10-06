@@ -986,10 +986,31 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     # ---- Connections (connections/): every credential, its source and its status; the user's writes; the read-only view the agent gets
     from . import connections as CONN
     from .higgsfield_mcp import HiggsfieldMCP
+    from . import mcp_oauth as MOA
+    from .mcp_client import McpClient
     conn_hub = CONN.Hub(settings.state_dir, oauth={"chatgpt_plan": chatgpt, "higgsfield": hf_auth},
                         endpoint=lambda: settings.openai_base_url, mcp_clients={"higgsfield": lambda: HiggsfieldMCP(hf_auth)},
                         byok_present=lambda: bool((store.byok() or {}).get("api_key")), transport=connections_transport)
+    import httpx as _httpx
+    h3d_auth = MOA.for_store(MOA.HYPER3D, conn_hub.store, conn_hub.secrets_dir, redirect_port=settings.port,      # ONE per server: its session lives in the store
+                             http=_httpx.Client(transport=connections_transport, timeout=30.0))
+    conn_hub.oauth["mcp:hyper3d"] = h3d_auth
+    conn_hub.mcp_clients["mcp:hyper3d"] = lambda: McpClient(h3d_auth, url=MOA.HYPER3D.mcp_url, label="Hyper3D", transport=connections_transport)
     CONN.set_active(conn_hub)
+
+    async def h3d_callback(request: Request):
+        """The loopback end of the Hyper3D sign-in Connections starts (POST /app/connections/mcp:hyper3d/signin)."""
+        query = {k: v for k, v in request.query_params.items()}
+        try:
+            await asyncio.to_thread(h3d_auth.complete_login, query)
+        except MOA.LoginDeclined as exc:
+            return HTMLResponse(f"<p>Hyper3D access was not authorized ({escape(str(exc))}). You can try again from Connections.</p>")
+        except MOA.LoginError as exc:
+            return HTMLResponse(f"<p class='error'>Sign-in failed: {escape(str(exc))}</p>", status_code=400)
+        except Exception as exc:  # noqa: BLE001 - shown to the person at the keyboard, never with a token
+            return HTMLResponse(f"<p class='error'>Sign-in could not finish: {escape(type(exc).__name__)}</p>", status_code=502)
+        return HTMLResponse("<p>Signed in to Hyper3D. You can close this tab and go back to Connections.</p>")
+    routes.append(Route(MOA.HYPER3D.callback_path, h3d_callback, methods=["GET"]))
     from .connections.routes import connection_routes
     routes += connection_routes(lambda: conn_hub, _bearer_ok)
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))

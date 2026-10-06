@@ -57,6 +57,8 @@ class Engine:
         script = self.shelf_script(driver, studio)
         if script is not None:
             return [self.python, str(script)]
+        if driver.startswith("mcp."):                                                         # a studio's MCP on Lampway's own sign-in (studios/mcp_driver.py)
+            return [self.python, "-m", "lampway_server.studios.mcp_driver"]
         if driver.startswith("rest."):                                                        # the REST studios: one bundled driver, the studio is part of the action id
             return [self.python, "-m", "lampway_server.studios.rest.driver"]
         if studio == "tripo" and driver in BUNDLED:
