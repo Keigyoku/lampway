@@ -688,7 +688,8 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
     """A new all-quad mesh ``<object>_retopo`` near ``target_faces`` (QuadriFlow, voxel fallback, or AutoRemesher) with a measured report; the original is untouched. method=autoremesher runs the Qt-free
     lampway-quadremesh configured by the settings key autoremesher_bin (never an argument: the app downloads nothing) niced in its own process group with a timeout: adaptivity 0..1, anisotropy 0..1, sharp_edge
     30..180 degrees, smooth_normal 0..180, edge_scaling 1..4, timeout 10..3600 s; refused: symmetry, a target above 3x the source, an engine that exits non-zero (its last 20 log lines; fallback=true uses the
-    voxel remesh instead). The result has no UV layer. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
+    voxel remesh instead), and a QuadriFlow run that leaves the mesh unchanged (CANCELLED on a non-manifold input; fallback=true uses the
+    voxel remesh and says so in ``note``). The result has no UV layer. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
     s = _settings()
     return _F_retopo.retopo(object, target_faces, method, engine, symmetry, True, adaptivity, anisotropy, sharp_edge, smooth_normal, edge_scaling, timeout, fallback, hard_surface,
                             str(s.autoremesher_bin or ""), str(s.project_root), s.nice)

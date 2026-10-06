@@ -142,11 +142,21 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
             raise
     elif method == "quadriflow":
         C.activate(new)
+        n0 = len(new.data.polygons)
         try:
-            bpy.ops.object.quadriflow_remesh(mode="FACES", target_faces=target_faces, use_mesh_symmetry=bool(symmetry),
-                                             use_preserve_sharp=False, use_preserve_boundary=True, seed=0)
-        except RuntimeError:
-            used = "voxel"                                   # QuadriFlow refuses a non-manifold input: the voxel remesh does not
+            ran = bpy.ops.object.quadriflow_remesh(mode="FACES", target_faces=target_faces, use_mesh_symmetry=bool(symmetry),
+                                                   use_preserve_sharp=False, use_preserve_boundary=True, seed=0)
+            why = None if ("FINISHED" in ran and any(len(p.vertices) == 4 for p in new.data.polygons)) else \
+                f"QuadriFlow returned {sorted(ran)} and left the mesh as it was ({n0} faces, no quads)"
+        except RuntimeError as exc:
+            why = f"QuadriFlow refused the mesh: {str(exc).strip()[:200]}"
+        if why:                                              # canon 12: never a silent fallback (QuadriFlow refuses a non-manifold input)
+            if not fallback:
+                bpy.data.objects.remove(new)
+                bpy.context.view_layer.objects.active = src     # the removed copy was the active object
+                raise C.FeatureError(f"{why}: fix the mesh (lampway_mesh_prep), or pass fallback=true to use the voxel remesh instead")
+            used = "voxel"
+            extra = {"note": f"{why}; the voxel remesh was used (fallback=true)"}
     if used == "voxel":
         _voxel(new, target_faces)
     bpy.context.view_layer.update()
