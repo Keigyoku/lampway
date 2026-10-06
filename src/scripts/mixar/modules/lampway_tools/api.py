@@ -645,6 +645,7 @@ from .features import uv as _F_uv                          # noqa: E402
 from .features import uv_rectify as _F_uvr                # noqa: E402
 from .features import uv_layout as _F_uvl                  # noqa: E402
 from .features import model_compare as _F_mc                # noqa: E402
+from .features import clip_classify as _F_cc                # noqa: E402
 from .features import workflows as _F_wf                   # noqa: E402
 
 
@@ -829,6 +830,17 @@ def model_compare(action="stats", set=None, views=None, size=512, blind=False, p
     require_pick). pick is the USER's: an agent is refused. close removes the scratch scene. Refused: fewer than 2 or more than 4 models, a file outside the root, not a glTF binary, a meshopt-only file for the 3D
     view. The live windowed viewer with synchronised cameras is not built (it needs the pop-out probe)."""
     return _F_mc.run(action, set, views, size, blind, pick, require_pick, str(_settings().project_root))
+
+
+@tool
+def clip_classify(armature, action=None, samples=25, fps=None, landmarks=None, figure_height_m=None, thresholds="default", apply="none", labels_for_naming=None):
+    """What kind of motion is each action on this armature, what should it be called, does it loop: all measured from six landmark bones (hip, head, hand.l, hand.r, foot.l, foot.r; the bone names default from the UE,
+    MetaHuman and mannequin skeletons or are passed in `landmarks`), every length a fraction of the figure's height H (given, else the deform mesh's rest height, else head-bone to foot-bone; the source is reported).
+    Returns per action the features (speed in H per SECOND: duration is (last - first) / fps), every class label that fits plus the primary one (null in a gap: a gap is a finding), the loop decision (true / false /
+    null when not measurable; upstream's 0.5 deg + 0.01 H rule and what anim_loop_export's 1 deg limit would say, neither chosen), and a measured name with `inferred` true when its wording implies intent no number can
+    prove. The default thresholds come from ONE subject on one rig (11 clips): single-subject, recalibrate before trusting a gap. A rig that scales joints is listed first. apply=props stores lw_clip_* on the
+    Action; apply=rename is the USER's click (an agent is refused and may only propose names). The frame, action and pose are restored."""
+    return _F_cc.classify_actions(armature, action, fps, samples, landmarks, figure_height_m, thresholds, apply, labels_for_naming, by="agent")
 
 
 @tool

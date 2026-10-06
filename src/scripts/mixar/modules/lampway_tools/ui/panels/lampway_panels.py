@@ -9,7 +9,7 @@ import textwrap
 import bpy
 from bpy.types import Panel
 
-from mixar.modules.lampway_tools import api, jobs, studio_state, workbench_state
+from mixar.modules.lampway_tools import api, clip_state, jobs, studio_state, workbench_state
 
 
 class LAMPWAY_PT_main(Panel):
@@ -284,4 +284,27 @@ class LAMPWAY_PT_cockpit(Panel):
             layout.operator("lampway.wb_stop_server", icon="CANCEL")
 
 
-classes = [LAMPWAY_PT_cockpit, LAMPWAY_PT_main, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_prompts, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]
+class LAMPWAY_PT_clips(Panel):
+    """The clip table: one row per action (primary class, speed, loop, an inferred marker, the proposed name). draw() reads the cache only."""
+    bl_idname = "LAMPWAY_PT_clips"
+    bl_label = "Animation clips"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Lampway"
+    bl_parent_id = "LAMPWAY_PT_main"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        col.prop(context.scene.lampway_tools, "clip_height")
+        col.operator("lampway.clip_classify", icon="ACTION")
+        for r in sorted(clip_state.ROWS, key=lambda r: not r["scales_joints"]):
+            box = col.box()
+            box.label(text=("SCALES JOINTS  " if r["scales_joints"] else "") + r["action"][:40], icon="ACTION")
+            box.label(text=clip_state.line(r))
+            box.label(text=f"-> {r['label']}")
+        if clip_state.ROWS:
+            col.operator("lampway.clip_apply_names", icon="CHECKMARK")
+
+
+classes = [LAMPWAY_PT_clips, LAMPWAY_PT_cockpit, LAMPWAY_PT_main, LAMPWAY_PT_studios, LAMPWAY_PT_qa_review, LAMPWAY_PT_features, LAMPWAY_PT_prompts, LAMPWAY_PT_qa, LAMPWAY_PT_rebuild, LAMPWAY_PT_meshpaint, LAMPWAY_PT_tools]

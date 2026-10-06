@@ -37,3 +37,13 @@ def test_every_tool_function_in_api_is_in_the_door():
     tools = set(re.findall(r"@tool\ndef (\w+)\(", src))
     door = set(_door()["door"])
     assert sorted(tools - door) == [], f"@tool functions missing from TOOL_FUNCS: {sorted(tools - door)}"
+
+
+INTERNAL = {"settings_get", "settings_set", "chat_transcript"}          # the Client's own plumbing: not tools the model is meant to call
+
+
+def test_every_agent_tool_function_has_a_server_def_so_the_model_can_actually_call_it():
+    src = (ROOT / "src/scripts/mixar/modules/lampway_tools/api.py").read_text()
+    tools = set(re.findall(r"@tool\ndef (\w+)\(", src)) - INTERNAL
+    defs = set(re.findall(r'api="(\w+)"', (ROOT / "server/lampway_server/agent/lampway_tools.py").read_text()))
+    assert sorted(tools - defs) == [], f"api tools with no Def (the model never sees them): {sorted(tools - defs)}"

@@ -85,3 +85,9 @@ isotropicremesher sources.
 The character-sheet and part prompt templates in `server/lampway_server/prompts/builtin/` (`sheet-*`, `part-*`, `turntable-360-locked`) are adapted from the character-sheet pipeline of Mr. Mak Workspace
 (MIT, Copyright (c) 2026 Mr. Mak Workspace contributors; upstream commit 1e0c7c3, `.agents/skills/character-sheet-pipeline/prompts/`). The licence text is `LICENSES/MIT.txt`; each template names its
 source file in its `provenance`. Nothing is copied from the upstream arena-viewer header (its licence lineage is uncleared).
+
+### img2threejs (clip classification)
+
+`src/scripts/mixar/modules/lampway_tools/pipeline/clip_features.py` and its test `tests/lampway_tools/test_wave4b_clip_features.py` are translations of `forge/stage5_rig/clip_features.py` and
+`forge/tests/test_clip_features.py` from the img2threejs skill vendored in the Mr. Mak Workspace clone (Apache-2.0; the licence text is `LICENSES/Apache-2.0.txt`). Each file carries its upstream notice and a
+statement that it was modified. The default thresholds come from one subject on one rig (11 clips) and are reported as such.

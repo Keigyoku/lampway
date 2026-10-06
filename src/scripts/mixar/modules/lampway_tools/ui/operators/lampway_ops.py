@@ -11,13 +11,15 @@ import bpy
 from bpy.props import StringProperty
 from bpy.types import Operator
 
-from mixar.modules.lampway_tools import api, jobs
+from mixar.modules.lampway_tools import api, clip_state, human_gate, jobs
 
 
 def summarize(res: dict) -> str:
     """One line for the status area."""
     if not res.get("ok"):
         return res.get("error", "failed")
+    if "message" in res:
+        return res["message"]
     if "candidates" in res:
         s = f"{res['candidates']} candidates ({res['open_loops']} open loops, {res['loose_shells']} floating shells)"
         return s + (f", drew {res['drawn']}" if "drawn" in res else "")
@@ -230,6 +232,43 @@ class LAMPWAY_OT_feature_run(_ApiOp):
         return self._finish(context, api.call(p.feature, json.dumps(kw)))
 
 
+class LAMPWAY_OT_clip_classify(_ApiOp):
+    """Measure every action on the active armature: motion class, speed, loop, a proposed name. Changes nothing"""
+    bl_idname = "lampway.clip_classify"
+    bl_label = "Classify clips"
+
+    def execute(self, context):
+        ob = context.active_object
+        if ob is None or ob.type != "ARMATURE":
+            return self._finish(context, {"ok": False, "error": "select the armature first"})
+        h = context.scene.lampway_tools.clip_height
+        res = api.clip_classify(armature=ob.name, figure_height_m=h or None)
+        if res.get("ok"):
+            clip_state.fill(res)
+            res = {"ok": True, "message": f"{len(res['clips'])} clip(s) measured (height from {res['figure_height_source']})"}
+        return self._finish(context, res)
+
+
+class LAMPWAY_OT_clip_apply_names(_ApiOp):
+    """Rename the measured actions to their proposed labels (the old name is kept as lw_source_name). Your click only"""
+    bl_idname = "lampway.clip_apply_names"
+    bl_label = "Apply names"
+
+    def execute(self, context):
+        if human_gate.script_running():
+            return self._finish(context, {"ok": False, "error": "this is the user's click: a script (the agent's, a worker's or the bridge's) cannot press it"})
+        ob = context.active_object
+        if ob is None or ob.type != "ARMATURE" or not clip_state.ROWS:
+            return self._finish(context, {"ok": False, "error": "classify the active armature's clips first"})
+        from mixar.modules.lampway_tools.features import clip_classify as cc
+        try:
+            res = cc.classify_actions(ob.name, None, None, 25, None, context.scene.lampway_tools.clip_height or None, "default", "rename", {r["action"]: r["label"] for r in clip_state.ROWS}, by="user")
+        except Exception as exc:  # noqa: BLE001
+            return self._finish(context, {"ok": False, "error": str(exc)})
+        clip_state.fill(res)
+        return self._finish(context, {"ok": True, "message": f"renamed {sum(1 for c in res['clips'] if c.get('renamed_to'))} action(s)"})
+
+
 class LAMPWAY_OT_settings_open(Operator):
     """Project root, interpreters and texture libraries"""
     bl_idname = "lampway.settings_open"
@@ -257,4 +296,4 @@ class LAMPWAY_OT_settings_open(Operator):
 
 classes = [LAMPWAY_OT_qa_setup, LAMPWAY_OT_qa_tag_layers, LAMPWAY_OT_qa_candidates, LAMPWAY_OT_qa_draw, LAMPWAY_OT_qa_refresh, LAMPWAY_OT_qa_read_tags,
            LAMPWAY_OT_rebuild_setup, LAMPWAY_OT_rebuild, LAMPWAY_OT_meshpaint_run, LAMPWAY_OT_meshpaint_albedo,
-           LAMPWAY_OT_run_tool, LAMPWAY_OT_feature_run, LAMPWAY_OT_settings_open]
+           LAMPWAY_OT_run_tool, LAMPWAY_OT_feature_run, LAMPWAY_OT_clip_classify, LAMPWAY_OT_clip_apply_names, LAMPWAY_OT_settings_open]

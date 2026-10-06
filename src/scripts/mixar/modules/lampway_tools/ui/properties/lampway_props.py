@@ -98,6 +98,7 @@ class LampwayToolsProps(PropertyGroup):
         ("image_to_3d", "Image to 3D", "A mesh from views"), ("render_video", "Render video", "A turntable or fly-through")])
     feature_args: StringProperty(name="Options", description='The feature\'s other arguments as JSON, e.g. {"target_faces": 3000}; engine "studio:tripo" asks for approval and clicks nothing')
     tool_args: StringProperty(name="Arguments", description="The tool's arguments, space separated (paths relative to the project root)")
+    clip_height: FloatProperty(name="Figure height (m)", default=0.0, min=0.0, description="0 = the deform mesh's rest height, else head bone to foot bone")
     last_message: StringProperty(name="Last result", default="")
 
 
