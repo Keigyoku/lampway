@@ -130,6 +130,71 @@ class MIXAR_OT_asset_library_rate(Operator):
         return {"FINISHED"}
 
 
+class MIXAR_OT_asset_library_set_view(Operator):
+    """Show this view of the selected asset"""
+    bl_idname = "mixar.asset_library_set_view"
+    bl_label = "View"
+    bl_options = {"INTERNAL"}
+    mode: EnumProperty(items=[(m, m.title(), "") for m in ("preview", "uv", "maps", "lineage", "compare", "video")])
+
+    def execute(self, context):
+        _ses().VM.set_view(self.mode)
+        _redraw()
+        return {"FINISHED"}
+
+
+class MIXAR_OT_asset_library_play_toggle(Operator):
+    """Play or pause the turntable or the clip"""
+    bl_idname = "mixar.asset_library_play_toggle"
+    bl_label = "Play"
+    bl_options = {"INTERNAL"}
+
+    def execute(self, context):
+        _ses().VM.flipbook.toggle()
+        return {"FINISHED"}
+
+
+class MIXAR_OT_asset_library_to_timeline(Operator):
+    """Put this animation on the selected armature as an NLA strip at the current frame (one undo step)"""
+    bl_idname = "mixar.asset_library_to_timeline"
+    bl_label = "To timeline"
+    bl_options = {"REGISTER"}
+    asset_id: StringProperty()
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene is not None
+
+    def execute(self, context):
+        from mixar.modules.lampway_tools import api
+        res = api.asset_place(asset_id=self.asset_id, mode="apply_animation", options={"as_nla_strip": True})
+        if not res.get("ok"):
+            self.report({"ERROR"}, f"{res.get('error')} ({'; '.join(res.get('help') or [])})")
+            return {"CANCELLED"}
+        return {"FINISHED"}
+
+
+class MIXAR_OT_asset_library_lineage(Operator):
+    """Draw where this asset came from and what came of it"""
+    bl_idname = "mixar.asset_library_lineage"
+    bl_label = "Lineage"
+    bl_options = {"INTERNAL"}
+    asset_id: StringProperty()
+
+    def execute(self, context):
+        from mixar.modules.lampway_tools import library_client as LC
+        ses = _ses()
+        aid = self.asset_id
+
+        def done(ok, value):
+            if ok:
+                ses.VM.lineage = value
+            else:
+                ses.VM.message = str(value)
+        ses.PUMP.later(lambda: LC.lineage(aid), done)
+        return {"FINISHED"}
+
+
 class MIXAR_OT_asset_library_compare_add(Operator):
     """Add this asset to the comparison (the last two are compared)"""
     bl_idname = "mixar.asset_library_compare_add"
@@ -289,4 +354,5 @@ class MIXAR_OT_asset_library_open_window(Operator):
 classes = (MIXAR_OT_asset_library_search, MIXAR_OT_asset_library_toggle_facet, MIXAR_OT_asset_library_select, MIXAR_OT_asset_library_page,
            MIXAR_OT_asset_library_place, MIXAR_OT_asset_library_rate, MIXAR_OT_asset_library_compare_add, MIXAR_OT_asset_library_find_similar,
            MIXAR_OT_asset_library_open_folder, MIXAR_OT_asset_library_copy, MIXAR_OT_asset_library_save_search, MIXAR_OT_asset_library_initial_import,
-           MIXAR_OT_asset_library_import_confirm, MIXAR_OT_asset_library_open_window)
+           MIXAR_OT_asset_library_import_confirm, MIXAR_OT_asset_library_set_view, MIXAR_OT_asset_library_play_toggle, MIXAR_OT_asset_library_to_timeline,
+           MIXAR_OT_asset_library_lineage, MIXAR_OT_asset_library_open_window)

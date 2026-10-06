@@ -7,10 +7,13 @@
 Header: the space switcher, the title, search, kind segments, sort, view, tile size and the counts. Body: facets with counts | results | detail, three columns from 900 px, two
 from 600, one below. ``draw`` only reads the session's view-model and lays out; every network call is an operator's, run off the main thread."""
 
+import os
+
 from bpy.types import Header, Panel
 
 from mixar.modules.asset_library import constants as K
 from mixar.modules.asset_library.core import present as PR
+from mixar.modules.asset_library.core import views as VW
 
 KIND_ICON = {"mesh": "MESH_DATA", "image": "IMAGE_DATA", "material": "MATERIAL", "texture_set": "TEXTURE", "map": "TEXTURE", "hdri": "WORLD", "video": "FILE_MOVIE",
              "animation": "ACTION", "rig": "ARMATURE_DATA", "uv_layout": "UV", "prompt": "TEXT", "receipt": "FILE_TEXT", "collection": "ASSET_MANAGER"}
@@ -71,12 +74,85 @@ def _results(col, vm, props, width) -> None:
     sub.operator("mixar.asset_library_page", text="", icon="TRIA_RIGHT").direction = "NEXT"
 
 
+MODE_LABELS = (("preview", "Turntable"), ("uv", "UV"), ("maps", "Maps"), ("lineage", "Lineage"), ("compare", "Compare"), ("video", "Video"))
+
+
+def _frame(col, vm, icon_scale=10.0) -> None:
+    fb = vm.flipbook
+    icon = _ses().file_icon(fb.path())
+    if icon:
+        col.template_icon(icon_value=icon, scale=icon_scale)
+    else:                                                        # no preview icons without a window (a headless run): the frame is named instead
+        col.label(text=os.path.basename(fb.path() or ""), icon="IMAGE_DATA")
+    row = col.row(align=True)
+    row.operator("mixar.asset_library_play_toggle", text="", icon="PAUSE" if fb.playing else "PLAY")
+    row.label(text=f"frame {fb.frame + 1} of {len(fb.frames)}, {fb.fps} fps")
+
+
+def _preview(col, vm, rec) -> None:
+    modes = col.row(align=True)
+    for mode, label in MODE_LABELS:
+        op = modes.operator("mixar.asset_library_set_view", text=label, depress=vm.view_mode == mode)
+        op.mode = mode
+    p = vm.products or {}
+    mode = vm.view_mode
+    if mode == "compare":
+        kinds = {it["id"]: it["kind"] for it in vm.items}
+        ids = ([rec["id"]] if rec["id"] not in vm.compare else []) + list(vm.compare)       # the selected asset is A; Compare on another makes B
+        records = [{"id": i, "kind": kinds.get(i) or (rec["kind"] if i == rec["id"] else "?")} for i in ids]
+        refusal = VW.compare_refusal(records)
+        if refusal:
+            col.label(text=refusal, icon="INFO")
+        else:
+            pair = col.row()
+            for i in ids[-2:]:
+                cell = pair.column()
+                item = next((it for it in vm.items if it["id"] == i), {"id": i, "kind": kinds.get(i), "thumb": None})
+                icon = _ses().thumb_icon(item)
+                cell.template_icon(icon_value=icon, scale=8.0) if icon else cell.label(text="", icon=KIND_ICON.get(item.get("kind"), "QUESTION"))
+                cell.label(text=item.get("name") or i)
+        return
+    if mode == "lineage":
+        lin = vm.lineage if getattr(vm, "lineage", None) and vm.lineage.get("root") == rec["id"] else None
+        if lin is None:
+            col.operator("mixar.asset_library_lineage", text="Show the lineage", icon="NODETREE").asset_id = rec["id"]
+            return
+        icon = _ses().file_icon(lin.get("png"))
+        if icon:
+            col.template_icon(icon_value=icon, scale=12.0)
+        for n in lin["nodes"]:
+            op = col.operator("mixar.asset_library_select", text=f"{n['name']} ({n['kind']})", depress=n["id"] == rec["id"])
+            op.asset_id = n["id"]
+        if lin.get("collapsed"):
+            col.label(text=f"{lin['collapsed']} more beyond the limit", icon="THREE_DOTS")
+        return
+    if mode == "maps":
+        stamp = VW.normal_stamp(rec)
+        if stamp:
+            col.label(text=stamp, icon="NORMALS_FACE")
+    if mode == "video":
+        chip = VW.dup_chip(rec.get("stats") or {})
+        if chip:
+            col.label(text=chip["text"], icon="ERROR")
+        col.label(text=VW.fps_badge(rec.get("stats") or {}), icon="TIME")
+    status = VW.view_status(mode, rec, p)
+    if status:
+        col.label(text=status, icon="INFO")
+    elif mode in ("preview", "video"):
+        _frame(col, vm)
+    else:
+        icon = _ses().file_icon(p.get({"uv": "overlay", "maps": "sheet"}[mode]))
+        if icon:
+            col.template_icon(icon_value=icon, scale=10.0)
+
+
 def _detail(col, vm, scene_ok: bool) -> None:
     rec = vm.detail
     if not rec or rec.get("id") != vm.active:
         col.label(text="Select an asset" if vm.active is None else "Reading the asset", icon="INFO")
         return
     col.label(text=rec.get("name") or rec["id"], icon=KIND_ICON.get(rec.get("kind"), "QUESTION"))
+    _preview(col, vm, rec)
     stars = col.row(align=True)
     for n in range(1, 6):
         op = stars.operator("mixar.asset_library_rate", text="", icon="SOLO_ON" if n <= int(rec.get("rating") or 0) else "SOLO_OFF", emboss=False)
@@ -99,6 +175,8 @@ def _detail(col, vm, scene_ok: bool) -> None:
     act.enabled = scene_ok
     act.scale_y = 1.4
     act.operator("mixar.asset_library_place", text="Place in scene", icon="IMPORT").asset_id = rec["id"]
+    if rec.get("kind") == "animation":
+        act.operator("mixar.asset_library_to_timeline", text="To timeline", icon="NLA").asset_id = rec["id"]
     more = col.row(align=True)
     more.operator("mixar.asset_library_compare_add", text="Compare", icon="SPLIT_HORIZONTAL").asset_id = rec["id"]
     path = next((loc["path"] for f in rec.get("files") or [] if f.get("role") == "main" for loc in f.get("locations") or [] if not loc.get("missing")), None)

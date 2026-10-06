@@ -11,6 +11,7 @@ read it; the worker thread sends what ``due()`` hands out and gives the answer b
 from collections import OrderedDict
 
 from .. import constants as K
+from . import views as V
 
 
 class VaultViewModel:
@@ -32,6 +33,10 @@ class VaultViewModel:
         self.detail = None                    # the active asset's full record
         self.banner = ""                      # what the list shows when it is not the query ("Like <name>")
         self.compare: list = []               # at most two ids for the compare view
+        self.view_mode = "preview"           # the detail preview: preview | uv | maps | lineage | compare | video
+        self.products = None                  # the active asset's derived view files (turntable, ball, overlay, sheet, proxy, strip)
+        self.flipbook = V.Flipbook(clock)
+        self.lineage = None                   # the last lineage layout fetched ({root, nodes, edges, png, collapsed})
         self.importing: dict = {"state": "idle"}   # Initial import: idle -> scanning -> preview -> importing -> done (the user's confirm moves preview on)
         self._detail_sent = None              # the id whose record was last asked for
 
@@ -208,6 +213,23 @@ class VaultViewModel:
             return False
         self.detail = record
         return True
+
+    def receive_views(self, asset_id: str, products: dict) -> bool:
+        if asset_id != self.active:
+            return False
+        self.products = products
+        self._load_flipbook()
+        return True
+
+    def set_view(self, mode: str) -> None:
+        if mode in V.MODES:
+            self.view_mode = mode
+            self._load_flipbook()
+
+    def _load_flipbook(self) -> None:
+        p = self.products or {}
+        frames = p.get("turntable") if self.view_mode == "preview" else (p.get("proxy") if self.view_mode == "video" else [])
+        self.flipbook.load(frames or [], fps=self.flipbook.fps)
 
     def refresh_detail(self) -> None:
         self._detail_sent = None
