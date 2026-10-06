@@ -68,3 +68,12 @@ def image_material_id(piece, object="", view="Front", palette=None, source="part
     s_ = _settings()
     return _MI.run(piece, str(s_.project_root), object, view, palette, source, _p(recipe, s_.project_root), _p(owner, s_.project_root), part_materials,
                    _p(design_plate, s_.project_root), live, size, _p(out_dir, s_.project_root))
+
+
+@_export
+@tool
+def parts_material_slots(object, recipe, owner="", by="part", name=""):
+    """On a copy <object>_slots: the piece's one material becomes one slot per part (or per material class), each a copy sharing the images, faces by part."""
+    from .features import parts_slots as _PS
+    s_ = _settings()
+    return _PS.run(object, _p(recipe, s_.project_root), _p(owner, s_.project_root), by, name)

@@ -74,4 +74,11 @@ ORPHAN_DEFS = [
          P("owner", desc="owner .npy, one part index per polygon"), P("part_materials", "object", "{part: material} overriding the recipe's classes"),
          P("design_plate", desc="source model: the plate image"), P("live", "boolean", "source model: really send (default false: a dry run)"),
          P("size", "integer", "render size, default 768"), P("out_dir", desc="default material_id")], api="image_material_id"),
+    Def("lampway_parts_material_slots", "Make the parts of a piece its material SLOTS (the piece pipeline's one-material-per-piece gap): on a COPY <object>_slots "
+        "the piece's one material becomes one slot per recipe part (by part, default) or per material class (by class, the recipe's class), each slot a copy "
+        "of the material named <material>_<part|class> that SHARES its images (no re-bake, the texels stay), and every face takes its part's slot from owner "
+        "(.npy, one part index per polygon) or the int face attribute 'part'. The source keeps its single material. Refused: no part per face, owner indices "
+        "outside the recipe, no material." + _PATHS,
+        [P("object", required=True), P("recipe", required=True, desc="the parts json"), P("owner", desc="owner .npy (default the face attribute 'part')"),
+         P("by", desc="part (default) | class"), P("name", desc="the copy's name, default <object>_slots")], api="parts_material_slots"),
 ]
