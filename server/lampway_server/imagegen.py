@@ -243,7 +243,11 @@ def openrouter_images(prompt: str, references: list, count: int, size: str = "",
     key = resolve_api_key()
     ledger = spend_ledger(settings)
     out = []
-    with httpx.Client(transport=openrouter_transport, timeout=300.0) as client:
+    from . import egress as EG
+    from .choices import registry as CREG
+    cls = CREG.PURPOSES.get(f"image.{purpose or 'plates'}", CREG.PURPOSES["image.plates"]).content_class
+    with EG.context(content_class=cls, kind="image", observe_private=True), \
+            httpx.Client(transport=openrouter_transport, timeout=300.0) as client:          # HC24: declared, observed (CH1 first release)
         if explicit_model:                              # validated against that model's supported parameters
             model, extra = _purpose_body(client, key, settings, purpose or "plates", size, aspect_ratio,
                                          override={"model": explicit_model, "resolution": resolution, "quality": quality})

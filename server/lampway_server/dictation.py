@@ -60,9 +60,11 @@ class OpenRouterTranscriber:
         body = {"model": self.model, "max_tokens": MAX_TOKENS, "usage": {"include": True}, "messages": [
             {"role": "user", "content": [{"type": "text", "text": PROMPT},
                                          {"type": "input_audio", "input_audio": {"data": wav, "format": "wav"}}]}]}
-        async with httpx.AsyncClient(transport=self._transport, timeout=60.0) as client:
-            resp = await client.post(f"{BASE_URL}/chat/completions", json=body, headers={
-                "Authorization": f"Bearer {self._key}", "HTTP-Referer": REFERER, "X-Title": TITLE})
+        from . import egress as EG
+        with EG.context(content_class="private", kind="request", observe_private=True):          # his voice: HC24, declared and observed (CH1)
+            async with httpx.AsyncClient(transport=self._transport, timeout=60.0) as client:
+                resp = await client.post(f"{BASE_URL}/chat/completions", json=body, headers={
+                    "Authorization": f"Bearer {self._key}", "HTTP-Referer": REFERER, "X-Title": TITLE})
         if resp.status_code >= 400:
             raise RuntimeError(redact(f"speech-to-text answered HTTP {resp.status_code}: {resp.text[:300]}", self._key))
         data = resp.json()

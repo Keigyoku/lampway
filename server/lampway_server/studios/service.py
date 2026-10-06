@@ -39,7 +39,7 @@ def default_execute(argv, env, timeout):
 def _gated_execute(execute, studio, argv, env, timeout):
     """Every driver run leaves through the studio's egress route (egress_consent): off until the user opts in, lit and logged while it runs."""
     from .. import egress as EG
-    with EG.guard(f"studio:{studio}", kind="request"):
+    with EG.guard(f"studio:{studio}", kind="request", content_class="private", observe_private=True):      # the captain's designs: HC24, observed (CH1)
         return execute(argv, env, timeout)
 
 
