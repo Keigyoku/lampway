@@ -126,10 +126,19 @@ def _v_image(args, jail):
     if not args.get("prompt_file"):
         raise ActionError("an image generation needs prompt_file or template")
     out = {"prompt_file": jail(args["prompt_file"]), "refs": [jail(r) for r in args.get("refs") or []],
-           "aspect": str(args.get("aspect") or "1:1"), "model": str(args.get("model") or "GPT Image 2.5")}
+           "aspect": str(args.get("aspect") or "1:1"), "model": str(args.get("model") or tripo_image_model())}
     if template:
         out["template"] = template
     return out
+
+
+def tripo_image_model() -> str:
+    """Tripo Studio's image model: the Plates purpose's ``tripo_model`` param (Choices), else today's "GPT Image 2.5" (HC8)."""
+    from .. import choices as CH
+    try:
+        return str(CH.resolve_params("image.plates").get("tripo_model") or "GPT Image 2.5")
+    except Exception:  # noqa: BLE001
+        return "GPT Image 2.5"
 
 
 def _image_argv(clean, out_dir):
@@ -348,6 +357,7 @@ ACTIONS = {a.id: a for a in [
 
 
 # ----------------------------------------------------------------------------------------------- REST studios (Meshy, Hyper3D, Hi3D, Tripo REST)
+MODEL_ARG = {"meshy": "ai_model", "hyper3d": "tier", "hi3d": "model", "tripo": "model_version"}     # the model inside an action (HC13)
 def _rest_actions():
     """One Action per REST shape. The price is read by the driver's plan (the docs' list price, dated, plus the balance); the confirmed run is the driver's armed --run."""
     import json as _json
@@ -358,18 +368,26 @@ def _rest_actions():
             aid = f"{studio_name}.{name}"
             path_keys = ("image", "model", "image_style")
 
-            def validate(args, jail, _shape=shape):
+            def validate(args, jail, _shape=shape, _studio=studio_name, _aid=aid):
                 a = dict(args or {})
                 for k in path_keys:
                     if a.get(k):
                         a[k] = jail(a[k])
                 if a.get("images"):
                     a["images"] = [jail(i) for i in a["images"]]
+                key = MODEL_ARG.get(_studio)
+                if key and not a.get(key):                        # HC13: the purpose's param (meshy.ai_model ...), else the shape's default
+                    from .. import choices as CH
+                    chosen = CH.option_param(f"studio:{_aid}", f"{_studio}.{key}")
+                    if chosen:
+                        a[key] = chosen
                 try:
                     ceiling = a.get("accept_up_to_credits")
-                    _shape.validate({k: v for k, v in a.items() if k != "accept_up_to_credits"})
+                    clean = _shape.validate({k: v for k, v in a.items() if k != "accept_up_to_credits"})
                 except SH.ParamError as exc:
                     raise ActionError(str(exc)) from None
+                if key and key in clean and not a.get(key):
+                    a[key] = clean[key]
                 if ceiling is not None:
                     a["accept_up_to_credits"] = _int(ceiling, "accept_up_to_credits")
                 return a

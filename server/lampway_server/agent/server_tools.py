@@ -161,7 +161,8 @@ def command(name: str, arguments: dict, *, allow_live: bool = False) -> list:
             cmd += [val("out_dir"), val("prompt_file")]
             for r in arguments.get("refs") or []:
                 cmd += ["--ref", jail(r)]
-            cmd += ["--model", str(arguments.get("model") or "GPT Image 2.5"), "--aspect", str(arguments.get("aspect") or "1:1"), "--count", count]
+            from ..studios.actions import tripo_image_model
+            cmd += ["--model", str(arguments.get("model") or tripo_image_model()), "--aspect", str(arguments.get("aspect") or "1:1"), "--count", count]
             if arguments.get("no_4k"):
                 cmd.append("--no-4k")
         elif name == "studio_tripo_mesh":

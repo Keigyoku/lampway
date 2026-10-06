@@ -138,3 +138,19 @@ def passing(pid: str, job: Optional[Job] = None, world_=None, doc=None) -> list:
     w, d = world_ or world(), doc or document(job.project)
     purpose = REG.get(pid)
     return [o for o in _in_force(pid, d)[1] if _check(purpose, o, job, w, d) is None]
+
+
+def resolve_params(pid: str, project: Optional[str] = None) -> dict:
+    """The params in force for ``pid`` (per key, most specific scope first), with no world applied."""
+    from .resolver import _params
+    return _params(pid, document(project))
+
+
+def option_param(oid: str, key: str, project: Optional[str] = None):
+    """A param a purpose sets for one of its options (``meshy.ai_model``), from the first purpose that offers ``oid`` and sets ``key``."""
+    for p in REG.PURPOSES.values():
+        if oid in p.options:
+            value = resolve_params(p.id, project).get(key)
+            if value not in (None, ""):
+                return value
+    return None
