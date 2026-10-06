@@ -99,4 +99,23 @@ ORPHAN_DEFS = [
         [P("object", required=True), P("region", "object", "{bbox} | {polygon_2d, view} | {vertex_group} | {material_slot} | {zone, by}", required=True),
          P("cap", desc="fill_holes (default) | fan | flat | none"), P("keep_in_source", "boolean", "default true: false also writes the remainder"),
          P("name", desc="the extracted object's name, default <object>_region"), P("recipe", desc="zone by part: the parts json")], api="mesh_region_extract"),
+    Def("lampway_mesh_local_edit", "Change ONE bounded region of a derivative, on a COPY <object>_edit (the source is untouched); the object must have a lineage "
+        "(asset_lineage record) first. engine deform (default): the region (bbox [x0, y0, z0, x1, y1, z1] in object space | vertex_group | face_ids) moves "
+        "(delta metres), rotates (delta degrees about the region centre) or scales (delta factors), the rest follows by a smooth falloff of its distance to "
+        "the region (falloff_m 0..0.2, default 0.01); no topology change, so counts and UVs survive; edit_locality_check then runs on the region grown by "
+        "the falloff and the lineage anchors are verified. engine studio:tripo: the exact-box Edit Mesh retry (Studio action tripo.regen.region, free, the "
+        "user's confirm in the Studios panel is its approval flag) answered as a plan with its studio_plan arguments; nothing is clicked; needs side and "
+        "the three lineage anchors, plus an instruction. Rodin and Modddif have no driver. Refused: no lineage, an empty region, a region and falloff over "
+        "60 % of the vertices (a regeneration: use the smallest region).",
+        [P("object", required=True), P("region", "object", "{bbox} | {vertex_group} | {face_ids}", required=True), P("engine", desc="deform (default) | studio:tripo"),
+         P("op", desc="move (default) | rotate | scale"), P("delta", "array", "[x, y, z]: metres, degrees or factors"), P("falloff_m", "number", "0..0.2, default 0.01"),
+         P("instruction", desc="studio: the region-edit instruction"), P("side", desc="studio: left | right | center"), P("anchors", "array", "studio: the three lineage anchor names")],
+        api="mesh_local_edit"),
+    Def("lampway_edit_locality_check", "What a region edit changed OUTSIDE its region (read-only): moved vertices (by index on the same topology, else the "
+        "distance to the other mesh's surface) beyond tolerance_m (0.0005), faces added or removed outside, open edges (all, and outside), UVs and UV "
+        "islands, materials, dimensions and vertex-group weights; pass = nothing moved or changed outside and UVs, materials and weights unchanged, with "
+        "reasons. region (a bbox in object space) is required, grown by margin_m (0.005) for the joining context. Refused: no region, different frames "
+        "(align with the asset_lineage anchors), an after mesh that lost its UV layer.",
+        [P("before", required=True), P("after", required=True), P("region", "array", "[x0, y0, z0, x1, y1, z1] object space", required=True),
+         P("margin_m", "number", "0..0.1, default 0.005"), P("tolerance_m", "number", "1e-6..0.01, default 0.0005")], api="edit_locality_check"),
 ]

@@ -94,3 +94,19 @@ def mesh_region_extract(object, region, cap="fill_holes", keep_in_source=True, n
     """A chosen region (bbox, a lasso in a view, vertex group, material slot or zone number) as its own object from copies, capped or filled; the source is unchanged."""
     from .features import region_extract as _RX
     return _RX.run(object, region, cap, keep_in_source, name, _p(recipe))
+
+
+@_export
+@tool
+def mesh_local_edit(object, region, engine="deform", op="move", delta=None, falloff_m=0.01, instruction="", side="", anchors=None):
+    """One bounded edit of a derivative with a lineage, on a copy <object>_edit (deform with falloff; studio:tripo = the exact-box Edit Mesh plan), then its locality."""
+    from .features import local_edit as _LE
+    return _LE.mesh_local_edit(object, region, str(_settings().project_root), engine, op, delta, falloff_m, instruction, side, anchors)
+
+
+@_export
+@tool
+def edit_locality_check(before, after, region=None, margin_m=0.005, tolerance_m=0.0005):
+    """What a region edit changed OUTSIDE its region: moved vertices, faces, open edges, UVs, materials, dimensions, weights; read-only."""
+    from .features import local_edit as _LE
+    return _LE.edit_locality_check(before, after, region, margin_m, tolerance_m)

@@ -17,11 +17,13 @@ STUDIO_ACTIONS = {
     ("rig", "tripo"): ("Tripo Studio Auto Rig on the saved copy of the model", "credits (read back before any click)"),
     ("image_to_3d", "tripo"): ("Tripo Studio Smart Mesh from the four cardinal views, 4 variants at maximum polycount", "100 credits"),
     ("texture", "tripo"): ("Tripo Studio Texture (8K, Remove Lighting) then PBR on the Smart UV clone", "30 credits (texture) + 5 credits (PBR)"),
+    ("local_edit", "tripo"): ("Tripo Studio Edit Mesh exact-box retry on the ORIGINAL (tripo.regen.region)", "0 credits (free; the user's confirm is the approval flag)"),
 }
 
 
 # (feature, studio) -> the server's Studio action id (studios/actions.py); absent = no driver exists yet
-STUDIO_ACTION_IDS = {("uv", "tripo"): "tripo.uv.unwrap", ("image_to_3d", "tripo"): "tripo.mesh", ("texture", "tripo"): "tripo.texture"}
+STUDIO_ACTION_IDS = {("uv", "tripo"): "tripo.uv.unwrap", ("image_to_3d", "tripo"): "tripo.mesh", ("texture", "tripo"): "tripo.texture",
+                     ("local_edit", "tripo"): "tripo.regen.region"}
 
 
 class FeatureError(ValueError):
