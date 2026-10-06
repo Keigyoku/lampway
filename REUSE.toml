@@ -195,3 +195,11 @@ path = [
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Keigyoku"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# The agent rail (rail/, docs/rail.md). CLAUDE.md files are exactly the one line `@AGENTS.md` (rail/rail.py check, RAIL-006), so
+# they cannot carry a header; the rail's catalog and the generated registration manifest are JSON, which has no comment syntax.
+[[annotations]]
+path = ["CLAUDE.md", "**/CLAUDE.md", "rail/catalog.json", ".agents/skills/LAMPWAY-RAIL.generated.json"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"

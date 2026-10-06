@@ -186,7 +186,9 @@ scripts/upgrade/patches/
 src/scripts/mixar/modules/agent/vendor/
 src/scripts/mixar/modules/sample_images/
 ucupaint-master/
-.claude/
+# .claude/ is local harness state, except the generated skill registrations the rail tracks (rail/rail.py sync)
+.claude/*
+!.claude/skills/
 .codex/
 
 # cef
