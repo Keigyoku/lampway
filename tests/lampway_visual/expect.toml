@@ -27,3 +27,17 @@ theme = "dark"
 [status_sending.surfaces]
 statusbar_back = "canvas"
 
+[agent_cards_a]
+theme = "dark"
+[agent_cards_a.surfaces]
+blocked_ring = "accent"
+working_arc = "accent"
+working_ring = "line_hi"
+failed_ring = "stop"
+
+[agent_cards_b]
+theme = "dark"
+[agent_cards_b.surfaces]
+paused_dash = "muted_dim"
+done_ring = "go"
+idle_ring = "line_hi"

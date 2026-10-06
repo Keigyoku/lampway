@@ -141,6 +141,8 @@ enum class AgentCardStatus {
   Running = 1,
   Done = 2,
   Failed = 3,
+  Blocked = 4, /* Lampway (facelift contract 05): working, and it needs you. */
+  Paused = 5,  /* Waiting on something named, not on you. */
 };
 
 struct AgentPanelCard {
@@ -149,6 +151,10 @@ struct AgentPanelCard {
   char task[AGENT_PANEL_TASK_BUF] = {};
 
   AgentCardStatus status = AgentCardStatus::Pending;
+  /** What it needs from you (answer, approve, spend, sign_in), why it failed or is blocked, what it waits on. */
+  char needs[16] = {};
+  char reason[AGENT_PANEL_TASK_BUF] = {};
+  char waiting_on[AGENT_PANEL_TASK_BUF] = {};
 
   /** Stable within a fan-out, independent of display order and status. */
   int cat_ordinal = 0;
@@ -177,8 +183,8 @@ struct AgentPanelCard {
    * is when the client learned the agent started, and so what the user saw. */
   double seen_running_at = 0.0;
 
-  /** Simulated visual progress, never mirrored to RNA or reported as backend
-   * completion. Running approaches 90%; only Done reaches 100%. */
+  /** Retired (facelift contract 05): a card that does not know its progress does not pretend. Kept one release for
+   * layout code that still names it; nothing writes or draws it. */
   float progress = 0.0f;
 
   /** Per-task arrival and visual pose survive collection rebuilds and reorders. */
@@ -212,6 +218,8 @@ struct AgentPanelRuntime {
   rcti chevron_rect = {};
   /** Paging copy derived from the layout's pixel-rounded rows, shared with QA. */
   char chevron_label[48] = {};
+  /** The mirror's count of the hidden cards by state ("4 more: 2 working, 1 done"); drawn in place of the plain count. */
+  char overflow_label[96] = {};
 
   /** `wm.mixar_agent_cards_generation` as of the last sync. Python bumps it
    * for every new fan-out; a change resets the scroll and replays the
