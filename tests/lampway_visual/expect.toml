@@ -66,6 +66,10 @@ theme = "dark"
 theme = "dark"
 [compare_spin.surfaces]
 
+[chat_answered]
+theme = "dark"
+[chat_answered.surfaces]
+
 [agent_pill]
 theme = "dark"
 [agent_pill.surfaces]

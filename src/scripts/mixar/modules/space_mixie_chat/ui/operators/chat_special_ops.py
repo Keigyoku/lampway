@@ -192,6 +192,15 @@ class MIXIE_CHAT_OT_select_slot_action(Operator):
         if self.action_value.startswith("lib_add:"):
             return self._add_library_asset(context)
 
+        # Contract 04: an answered question's expander opens and closes here (no backend round-trip).
+        from mixar.modules.lampway_tools import answered as _answered
+        if self.action_value.startswith(_answered.PREFIX):
+            bubble = next((m for m in context.scene.mixie_chat_messages if getattr(m, "bubble_id", "") == self.bubble_id), None)
+            if bubble is None or not _answered.toggle(bubble):
+                return {'CANCELLED'}
+            redraw_chat_areas()
+            return {'FINISHED'}
+
         if self.action_value == "export_destination_selected":
             from ...core import get_session_manager
             from ...core.export_destination import has_destination
@@ -318,8 +327,12 @@ class MIXIE_CHAT_OT_select_slot_action(Operator):
                     if action_item.value == self.action_value:
                         action_label = action_item.label
                         break
-                # Clear action items from the bubble
-                msg.action_items.clear()
+                if self.action_value == "modify":
+                    msg.action_items.clear()
+                else:
+                    # Contract 04: the answered question collapses to one line; the other choices sit behind an expander
+                    import time
+                    _answered.collapse(msg, self.action_value, time.strftime("%H:%M"))
                 break
 
         # Dispatch action

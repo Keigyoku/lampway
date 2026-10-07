@@ -292,6 +292,8 @@ class MixieChatMessage(PropertyGroup):
     # AGENT bubbles, Lampway (facelift contract 04): the turn's who line, "<HH:MM>\x1f<host>", stamped on a turn's first
     # agent message by lampway_tools/chat_route.py and drawn by the native renderer.
     lampway_who: StringProperty(default="", maxlen=96, options={'SKIP_SAVE'})
+    # contract 04: an answered question's record (lampway_tools/answered.py): the line it collapsed to and the other choices
+    lampway_answered: StringProperty(default="", options={'SKIP_SAVE'})
 
     # Collection slots
     todo_items: CollectionProperty(
