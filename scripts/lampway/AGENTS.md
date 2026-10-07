@@ -11,7 +11,7 @@ verification-mode: deterministic
 
 Lampway's own operator scripts: `build_linux.sh` (clone to runnable app in the build box), `lampway` (the one command: server plus
 app on a copy of a file), `sync_python.sh` (a Python-only change into an installed build), `prepublish_gate.py` with
-`pii_allow.txt` (what may never be published). Upstream's build machinery stays in `scripts/unix/` and `scripts/windows/`; these
+`pii_allow.txt` (what may never be published), `engine_env.py` (the pinned Hermes engine environment, agent-modes spec E1.1). Upstream's build machinery stays in `scripts/unix/` and `scripts/windows/`; these
 wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) and the `lampway-release` skill (the gate).
 
 ## Invariants
@@ -32,7 +32,7 @@ wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) a
 ## Test
 
 ```bash
-python -m pytest -q tests/lampway/test_build_linux.py tests/lampway/test_prepublish_gate.py
+python -m pytest -q tests/lampway/test_build_linux.py tests/lampway/test_prepublish_gate.py tests/lampway/test_engine_env.py
 python -m pytest -q tests/lampway_tools/test_launcher.py tests/lampway_tools/test_linux_scripts.py
 python3 scripts/lampway/prepublish_gate.py --self-test
 scripts/lampway/build_linux.sh --plan
@@ -49,3 +49,4 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the scripts' refusal shape, secret handling and the gate's outside-the-tree patterns were known only from their headers | the five invariants, the test commands, and the scripts bound to their skills as rail triggers | captain ruling, 2026-10-05 |
+| 2026-10-07 | the engine environment script | captain: Hermes Agent's runtime in Mode 1's seat (agent-modes spec Q7, E1.1) | the pinned engine had no build step, and Hermes refuses wheel builds | `engine_env.py` in the scripts list, in the AXI shape, with its test in the test command | captain ruling, 2026-10-06 |

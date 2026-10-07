@@ -1,3 +1,7 @@
 [submodule "upstream"]
 	path = upstream
 	url = https://projects.blender.org/blender/blender.git
+[submodule "third_party/hermes-agent"]
+	path = third_party/hermes-agent
+	url = https://github.com/NousResearch/hermes-agent
+	shallow = true
