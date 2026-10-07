@@ -42,7 +42,7 @@ The renderer remains sequential from frame zero. The determinism probe remains a
 ## Measured validation
 
 - Baseline browser RED: nine containment/audit/scene-hash plants failed to refuse. Launcher compatibility alone was applied to make that baseline executable.
-- Isolated public-fixture Chromium: 14 containment/target tests pass on HeadlessChrome 155.0.8059.39. The allowed SVG test asserts the actual green pixel.
+- Containment/target suite: 14 pass, comprising eight actual isolated-Chromium cases and six helper/target unit cases. The browser engine is HeadlessChrome 155.0.8059.39; the allowed SVG test asserts the actual green pixel.
 - Output/probe/verify hardening: 11 tests pass; each reported defect was observed failing before its fix. These use the fake capture seam and real ffmpeg; they are unit/encoder evidence, not browser acceptance.
 - Pillow checks: 15 tests pass on Pillow 12.3.0 and actual Pillow 10.0.1.
 - Template/library review tests: 37 pass.
@@ -57,7 +57,7 @@ The public synthetic fixtures were rendered by real isolated Chromium. They do n
 
 ## Remaining coordinated gates
 
-The original-head CI failures are mapped to PR1's assigned G24-G26 fixes: [PII commit-range](https://github.com/Keigyoku/lampway/actions/runs/37665448930), [R04 determinism](https://github.com/Keigyoku/lampway/actions/runs/37665448853), and [REUSE](https://github.com/Keigyoku/lampway/actions/runs/37665448852). Tested dependency commits were requested through the parent; these files are not changed independently here. The normal pre-push range currently includes the already-published main merge identity and remains blocked by G24.
+The original-head CI failures are mapped to PR1's assigned G24-G26 fixes: [PII commit-range](https://github.com/Keigyoku/lampway/actions/runs/37665448930), [R04 determinism](https://github.com/Keigyoku/lampway/actions/runs/37665448853), and [REUSE](https://github.com/Keigyoku/lampway/actions/runs/37665448852). Tested dependency commits were requested through the parent; these files are not changed independently here. The normal push was attempted and its pre-push hook refused the already-published main merge identity (`eab73f5f`), one commit-email finding. Remote `lp/motion` remains `8d13560765ac68bc6f67679f098c4d3fe3428a61`; no hook was bypassed and no history rewritten. Local REUSE lint also fails: five invalid SPDX expressions and inherited missing coverage/unused-license findings remain coordinated with G26. No new hardening file was listed as a REUSE offender. Exact-head CI cannot run until publication succeeds.
 
 The supplied source index's 15 archive hashes verify, but no member contains the motion-graphics spec/handoff. The source remains unavailable; no unrelated text or private asset was extracted or published.
 
