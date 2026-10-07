@@ -15,7 +15,7 @@ def test_the_child_environment_holds_no_secret_and_never_the_users_hermes(tmp_pa
     assert env["HERMES_HOME"] == str(tmp_path / "h") and env["HOME"] == str(tmp_path / "h" / "home")
     assert not [k for k in env if k.endswith(("_KEY", "_TOKEN", "_SECRET"))]
     assert env["HTTPS_PROXY"] == env["HTTP_PROXY"] == env["ALL_PROXY"] == "http://127.0.0.1:9999"
-    assert env["NO_PROXY"] == "127.0.0.1,localhost,::1" and env["PATH"] == "/usr/bin" and env["LANG"] == "C.UTF-8"
+    assert env["NO_PROXY"] == "127.0.0.1" and env["PATH"] == "/usr/bin" and env["LANG"] == "C.UTF-8"
 
 
 def test_the_minimal_config_names_only_the_gateway():

@@ -52,8 +52,10 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    (the state directory, a dotenv file the launcher is pointed at); `logredact.py` redacts query secrets and token-shaped strings in every log record.
 8. **Never the upstream service.** No code here calls the upstream backend; the client's stubbed endpoints are answered locally.
 9. **Capabilities are the user's switches** (docs/reports/agent-modes-spec.md E2). `capabilities/` holds what an agent may do,
-   globally and per project; only a user request changes it (`PUT /app/capabilities/{id}` refuses agent and cross-origin callers),
-   and an agent only proposes (`lampway_capabilities`). Lampway's tool families are checked at call time by `capabilities.check_tool`
+   globally and per project; only a user request changes it (`PUT /app/capabilities/{id}`, `DELETE` of a project override and
+   `POST /app/capabilities/proposals/{pid}` refuse agent and cross-origin callers), and an agent only proposes (`lampway_capabilities`),
+   which the user accepts or declines. A family row (`messaging.*`, `mcp.*`) is the default for each member with no setting of its
+   own, scope by scope (`Store.setting`). Lampway's tool families are checked at call time by `capabilities.check_tool`
    for the in-app agent and for MCP clients; a capability that needs an egress route is in force only while that route is on.
    The engine's Hermes config is rendered from the same board (`engine/hermes_config.py`, spec E1.3): the model is the loopback
    gateway only (`provider: custom`, no other provider, no adopted logins), the ACP toolsets are exactly those of the
@@ -66,7 +68,15 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     `engine/proxy.py` is its only way out: bound to loopback, it decides before it connects (the gateway's port; a host whose route is on
     and whose capability is in force; any host only with `web:any` and `web.browse`), writes a log row for every refusal and sends an allowed
     connection through `Egress.begin`. It is the one module that opens an outbound stream outside the httpx hook
-    (`tests/test_engine_proxy.py` holds that in both directions).
+    (`tests/test_engine_proxy.py` holds that in both directions). The gateway's one tokenless path is the models.dev mirror
+    (`/engine/v1/models-dev.json`, loopback only, the model's name and window, no secret), because Hermes fetches it with no key.
+    `engine/wiring.py` puts the engine in the seat only when `LAMPWAY_AGENT_ENGINE=hermes` and a finished build is found
+    (`$LAMPWAY_ENGINES_DIR`, else `<repo>/build/engines`, else `<state_dir>/engines`), the server is on loopback, and says why in one
+    log line otherwise. Then the lifespan starts the proxy, each child gets a fresh gateway token (revoked when it stops), its config
+    from `hermes_config.write` and the active board (a swarm worker's less `WORKER_NEVER`), and one environment
+    (`runtime.child_env` with `proxy.proxy_vars`: `NO_PROXY` the gateway's loopback host only, `HERMES_MANAGED_DIR` an empty
+    directory in its home so no system `/etc/hermes` overrides the config); `check_advertised` runs on each token's first request
+    with tools and a mismatch refuses that child's requests; shutdown kills every child by PID, then stops the proxy.
 
 ## Test
 
@@ -78,7 +88,8 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
 
 `tests/test_engine_hermes_config.py` also runs the built engine (`build/engines/hermes/<tag>/env/bin/hermes-acp`, or
 `$LAMPWAY_HERMES_ENGINE`) against a fake loopback model behind a refusing proxy; without the engine or the ACP SDK those tests
-SKIP, which is not a pass. The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a paid
+SKIP, which is not a pass. `tests/test_engine_wiring_live.py` and `tests/test_engine_conformance.py` run the built engine in the real
+server (`LAMPWAY_ENGINES_DIR=<a dir holding hermes/<tag>/engine.json>`); the same rule holds for their skips. The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a paid
 or egress path is tested against a fake transport, never a live provider, unless the captain named the spend.
 
 ## Owner
@@ -100,3 +111,5 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | BYOA egress and pane environment (B5) | agent-modes spec B5, law 2 | herdr launches were classed "local" and passed no gate; herdr and its panes inherited the server's full environment, API keys included | one `byoa:<harness>` route per harness, off by default, guarding each start; herdr from the scrubbed base; keys only by the user's per-pane opt-in; invariant 6 says so | captain ruling, 2026-10-06 |
 | 2026-10-07 | harness adapter interface (BYOA B1) | agent-modes spec B1, captain's Q5 and Q6 (2026-10-06): seven starting adapters, the old CLI switch repurposed | each harness was a branch in `host.agent_args`, the BYOA switch lived in the retired `agent/cli_adapters.py`, and nothing described how a harness is detected, wired or observed | `herdr/harnesses/` with the Protocol and seven adapters, the switch moved there, the host starts panes through them; invariant 6 states what an adapter may not do, held by a source gate | captain ruling, 2026-10-06 |
 | 2026-10-07 | a pane bound to a scene tab (BYOA B2, server side) | agent-modes spec B2, law 5 | panes reached Lampway only through a user-scope connector, with no tab binding, and the session record had no harness, scene or config fields | the record carries harness, native id, scene session, project root and config path; a per-pane MCP config pinned by LAMPWAY_BOUND_SESSION; bind and unbind never touch the pane; invariant 6 says so | captain ruling, 2026-10-06 |
+| 2026-10-07 | capabilities: proposals decided, overrides cleared, family rows | coordinator brief: the client crew needs E2's accept/decline card, "this project only" undone and the family switches (agent-modes spec E2) | a proposal could be made but never answered, a project override could not be dropped, and switching `messaging.*` or `mcp.*` changed no member | invariant 9 names the decide and clear routes (user only) and the member -> family -> default fallback | none |
+| 2026-10-07 | the engine in production (E1 wiring) | coordinator brief: Hermes runs Mode 1 when `LAMPWAY_AGENT_ENGINE=hermes` and a build is found (agent-modes spec E1.2-E1.5, E1.3's start-up check) | the gateway, proxy, config renderer and runtime existed but nothing in `create_app` joined them; two `child_env` helpers disagreed on `NO_PROXY`; a system `/etc/hermes` could override the written config; models.dev pointed at a path the gateway did not serve | invariant 10 names the wiring, its selection and its one log line, the per-child token's life, the one environment, the tokenless models.dev mirror and the start-up check; the Test section names the live wiring test | none |

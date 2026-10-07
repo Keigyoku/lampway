@@ -11,6 +11,11 @@ clients only, for the pinned Hermes child (``hermes acp``) and for nobody else.
   whatever the user chose in Choices, an API key, a bare endpoint or Sign in with ChatGPT), so Lampway's own egress gate, budgets and
   disclosure apply and the engine holds no key. The gateway never builds a provider and never retries or falls back to another one: a
   provider's failure is an OpenAI-style error object carrying its own recovery text (the ChatGPT usage-limit text, for one).
+* ``GET /engine/v1/models-dev.json`` is the engine's models.dev mirror (hermes_config points ``models_dev.url`` at it): a minimal
+  registry naming the gateway's model. Hermes fetches it with no key, so it is served to loopback clients without the token; it
+  holds no secret. Measured 2026-10-07 with the pinned engine: the child's ``models_dev_cache.json`` is this registry.
+* E1.3's start-up check: ``Registry.first_check`` (set by ``engine/wiring.py``) judges the tool list of a token's first request
+  that carries tools; a refusal is an OpenAI-style 400 (``engine_tools_mismatch``) for that request and every later one of the token.
 * Not carried, because the neutral request has no field for it: ``temperature``, ``max_tokens``, ``stop``, ``tool_choice``, ``usage``
   accounting. Image parts become a text placeholder (the neutral message is text and tool parts).
 
@@ -41,6 +46,7 @@ log = logging.getLogger("lampway.engine.gateway")
 PREFIX = "lwe_"                                   # the shape logredact.py redacts
 CHAT_PATH = "/engine/v1/chat/completions"
 MODELS_PATHS = ("/engine/v1/models", "/api/v1/models")
+MODELS_DEV_PATH = "/engine/v1/models-dev.json"   # hermes_config points ``models_dev.url`` here (E1.3)
 IMAGE_NOTE = "[image omitted: the engine gateway carries text only]"
 
 
@@ -51,6 +57,10 @@ class Registry:
         self._lock = threading.Lock()
         self._sessions: dict = {}                          # sha256 hex of the token -> session id
         self.observers: list = []                          # callables (session_id, provider_name), called before each model call
+        #: E1.3's start-up check: ``(session_id, token, tools) -> refusal text or None``, run on a token's first request that
+        #: carries tools (the tool list the model is sent); its verdict stands for the token's life (engine/wiring.py sets it).
+        self.first_check: Optional[Callable] = None
+        self._checked: dict = {}                           # sha256 hex of the token -> None (passed) or the refusal text
 
     def __repr__(self) -> str:
         return f"Registry({len(self._sessions)} tokens)"
@@ -67,6 +77,7 @@ class Registry:
 
     def revoke(self, token: str) -> bool:
         with self._lock:
+            self._checked.pop(self._digest(token), None)
             return self._sessions.pop(self._digest(token), None) is not None
 
     def revoke_session(self, session_id: str) -> int:
@@ -74,7 +85,28 @@ class Registry:
             gone = [d for d, s in self._sessions.items() if s == str(session_id)]
             for d in gone:
                 del self._sessions[d]
+                self._checked.pop(d, None)
         return len(gone)
+
+    def check_first(self, token: str, session_id: str, tools) -> Optional[str]:
+        """None when the request may go on; otherwise the refusal. Only a token's first request with tools is checked; a refused
+        token stays refused (the engine's session is refused, E1.3) and a passed one is not checked again."""
+        check = self.first_check
+        if check is None or not tools:
+            return None
+        digest = self._digest(token)
+        with self._lock:
+            if digest in self._checked:
+                return self._checked[digest]
+        try:
+            verdict = check(session_id, token, list(tools))
+        except Exception as exc:  # noqa: BLE001 - a check that cannot decide refuses
+            log.warning("engine gateway: the start-up check failed: %s", type(exc).__name__)
+            verdict = f"refused: the engine's tools could not be checked against your Capabilities ({type(exc).__name__})"
+        with self._lock:
+            if digest in self._sessions:
+                self._checked[digest] = verdict
+        return verdict
 
     def session_for(self, token: str) -> Optional[str]:
         if not token:
@@ -292,6 +324,23 @@ class _Completion:
                 "choices": [{"index": 0, "message": self.message(), "finish_reason": self.finish_reason()}]}
 
 
+# ---------------------------------------------------------------------------------------------------- models.dev
+DEFAULT_CONTEXT = 200000          # Hermes's own fallback for an uncatalogued model (agent/models_dev.py at the pin)
+
+
+def models_dev_registry(provider, model_id: str = "lampway") -> dict:
+    """The smallest registry Hermes's ``agent/models_dev.py`` accepts (a non-empty ``{provider: {..., "models": {...}}}``), naming
+    the gateway's model ids: the one the engine's config asks for and the current provider's own."""
+    window = getattr(provider, "context_length", None)
+    window = window if isinstance(window, int) and window > 0 else DEFAULT_CONTEXT
+    models = {}
+    for mid in dict.fromkeys((model_id, _model_of(provider))):
+        models[mid] = {"id": mid, "name": mid, "family": "lampway", "tool_call": True, "reasoning": False, "attachment": False,
+                       "temperature": True, "modalities": {"input": ["text"], "output": ["text"]}, "limit": {"context": window},
+                       "cost": {"input": 0, "output": 0}}
+    return {"lampway": {"id": "lampway", "name": "Lampway gateway", "env": [], "api": "", "doc": "", "models": models}}
+
+
 # ---------------------------------------------------------------------------------------------------- the routes
 def _loopback_client(request: Request) -> bool:
     host = (request.client.host if request.client else "") or ""
@@ -343,6 +392,14 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
             entry["context_length"] = window
         return JSONResponse({"object": "list", "data": [entry]})
 
+    async def models_dev(request: Request):
+        """A models.dev registry describing the gateway's model, so the engine's model metadata never needs the network (E1.3).
+        Hermes fetches it with a plain GET and no key, so it is served to loopback clients without the token: it carries the
+        model's name and context window only, no secret."""
+        if not _loopback_client(request):
+            return JSONResponse(error_body("the engine gateway answers loopback clients only", type="permission_error", code="not_loopback"), status_code=403)
+        return JSONResponse(models_dev_registry(provider_getter()))
+
     async def chat(request: Request):
         session_id, refused = admit(request)
         if refused is not None:
@@ -357,6 +414,9 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
             req = to_request(body, session_id)
         except BadRequest as exc:
             return JSONResponse(error_body(str(exc), type="invalid_request_error", code="invalid_request"), status_code=400)
+        refusal = registry.check_first(_bearer(request), session_id, body.get("tools"))
+        if refusal is not None:                                        # E1.3: the engine offered what the choices do not allow
+            return JSONResponse(error_body(refusal, type="invalid_request_error", code="engine_tools_mismatch"), status_code=400)
         provider = provider_for(session_id)
         for observer in list(registry.observers):                      # e.g. the island's one-time "Using your ChatGPT plan" notice
             try:
@@ -413,4 +473,5 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
 
         return StreamingResponse(sse(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
-    return [Route(CHAT_PATH, chat, methods=["POST"])] + [Route(p, models, methods=["GET"]) for p in MODELS_PATHS]
+    return ([Route(CHAT_PATH, chat, methods=["POST"])] + [Route(p, models, methods=["GET"]) for p in MODELS_PATHS]
+            + [Route(MODELS_DEV_PATH, models_dev, methods=["GET"])])
