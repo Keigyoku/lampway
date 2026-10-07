@@ -160,6 +160,11 @@ class AgentHub:
         message = payload.get("message")
         if not session_id or not isinstance(message, str):
             raise InvalidParams("payload.session_id and payload.message are required")
+        if self.engine is not None and self.engine.is_running(session_id) and message.strip():
+            # R4: a message during the engine's turn joins it (the client's queued bubble settles on this ok); no new turn.
+            marks = marks_context.describe(payload.get("mark_context"))
+            await self.engine.steer(session_id, message + ("\n\n" + marks if marks else ""))
+            return {"state": "complete", "result": {"ok": True, "joined": True}}
         return self._admit(socket, command_id, session_id, message, plan_mode=bool(payload.get("plan_required")),
                            marks_text=marks_context.describe(payload.get("mark_context")))
 

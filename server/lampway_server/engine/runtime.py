@@ -35,6 +35,8 @@ from typing import Optional
 log = logging.getLogger("lampway.engine")
 
 MCP_PREFIX = "mcp__lampway__"
+PERMISSION_TIMEOUT_S = 300.0           # E2: an unanswered approval times out to deny
+STEER_ACKS = ("\u23e9 Steer queued", "No active turn", "\u26a0\ufe0f Steer failed")   # Hermes's /steer replies (acp_adapter/commands.py)
 IDLE_REAP_S = 600.0                    # E1.2: a child with no live turn is reaped after 10 minutes
 SCRUB = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
 
@@ -74,6 +76,7 @@ class EngineSession:
     provider: object = None
     collector: Optional[list] = None
     on_progress: object = None
+    steering: bool = False                           # a /steer is in flight: its one-line acknowledgement is not the agent's words
 
 
 def find_engine(engines_dir) -> Optional[dict]:
@@ -133,6 +136,8 @@ class LampwayACPClient:
         try:
             if kind == "agent_message_chunk":
                 text = getattr(getattr(update, "content", None), "text", "") or ""
+                if self.es.steering and text.startswith(STEER_ACKS):
+                    return
                 if text:
                     sink.text.append(text)
                     await sink.stream.emit({"bubble_id": sink.bubble_id, "ephemeral": {"append": text}})
@@ -156,11 +161,10 @@ class LampwayACPClient:
             log.debug("engine update not delivered", exc_info=True)
 
     async def request_permission(self, options, session_id, tool_call, **kw):
-        """Hermes asks before an action the user's Capabilities set to ask (E2). Until the client's approval input is wired (R4),
-        nothing is allowed without the user: the request is refused and the engine is told so."""
-        from acp.schema import DeniedOutcome, RequestPermissionResponse
-        log.info("engine permission request refused (no approval surface yet): %s", getattr(tool_call, "title", ""))
-        return RequestPermissionResponse(outcome=DeniedOutcome(outcome="cancelled"))
+        """Hermes asks before an action the user's Capabilities set to ask (E2, R4): the island shows the question with the
+        engine's own options; the user's choice is the answer. No answer within PERMISSION_TIMEOUT_S, no client turn to ask in, or
+        an answer that names no option: denied."""
+        return await self.runtime.ask_permission(self.es, options, tool_call)
 
     # The engine is never given the client's file system or terminals: everything goes through Lampway's tools.
     async def write_text_file(self, *a, **k):
@@ -341,6 +345,41 @@ class EngineRuntime:
             es.sink = None
             es.prompt_task = None
         # else: a question: the hub's _ask already ended the client turn's bubble; the prompt continues
+
+    def is_running(self, session_id: str) -> bool:
+        es = self.sessions.get(session_id)
+        return es is not None and es.prompt_task is not None and not es.prompt_task.done() and es.question is None
+
+    async def steer(self, session_id: str, text: str) -> None:
+        """R4: a message sent while the engine's turn runs joins that turn (Hermes's /steer) instead of cancelling it."""
+        from acp import text_block
+        es = self.sessions[session_id]
+        es.steering = True
+        try:
+            await asyncio.wait_for(es.conn.prompt(session_id=es.acp_session_id, prompt=[text_block("/steer " + text.strip())]), 30)
+        finally:
+            es.steering = False
+
+    async def ask_permission(self, es: EngineSession, options, tool_call):
+        from acp.schema import AllowedOutcome, DeniedOutcome, RequestPermissionResponse
+        from ..agent.providers.base import ToolCall
+        sink = es.sink
+        names = {str(o.name): o.option_id for o in (options or [])}
+        title = str(getattr(tool_call, "title", "") or "do this")
+        if sink is None or not names:
+            log.info("engine permission request denied (no turn to ask in): %s", title)
+            return RequestPermissionResponse(outcome=DeniedOutcome(outcome="cancelled"))
+        call = ToolCall(id=f"perm_{uuid.uuid4().hex[:12]}", name="ask_user",
+                        arguments={"question": f"Allow the agent to {title}?", "options": list(names)[:6]})
+        try:
+            answer = await asyncio.wait_for(self._ask(es, sink, call), PERMISSION_TIMEOUT_S)
+        except asyncio.TimeoutError:
+            log.info("engine permission request timed out, denied: %s", title)
+            return RequestPermissionResponse(outcome=DeniedOutcome(outcome="cancelled"))
+        option_id = names.get(str(answer).strip())
+        if option_id is None:
+            return RequestPermissionResponse(outcome=DeniedOutcome(outcome="cancelled"))
+        return RequestPermissionResponse(outcome=AllowedOutcome(outcome="selected", option_id=option_id))
 
     def has_question(self, session_id: str) -> bool:
         es = self.sessions.get(session_id)

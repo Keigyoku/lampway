@@ -80,7 +80,8 @@ class FakeModel:
             def do_POST(self):
                 body = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
                 model.seen.append({"auth": self.headers.get("Authorization"), "stream": body.get("stream"),
-                                   "tools": [t.get("function", {}).get("name") for t in body.get("tools") or []]})
+                                   "tools": [t.get("function", {}).get("name") for t in body.get("tools") or []],
+                                   "text": json.dumps(body.get("messages") or [])})
                 msgs = body.get("messages") or []
                 if msgs and msgs[-1].get("role") == "tool":
                     model.tool_results.append(str(msgs[-1].get("content")))
@@ -89,7 +90,11 @@ class FakeModel:
                                             "choices": [{"index": 0, "message": {"role": "assistant", "content": "Title"},
                                                          "finish_reason": "stop"}]})
                 step = model.plan.pop(0) if model.plan else ("say", "(no more steps)")
-                if step[0] == "call":
+                if step[0] == "native":                                    # one of Hermes's own tools, called directly
+                    delta = {"role": "assistant", "tool_calls": [{"index": 0, "id": f"call_{len(model.seen)}", "type": "function",
+                                                                  "function": {"name": step[1], "arguments": json.dumps(step[2])}}]}
+                    finish = "tool_calls"
+                elif step[0] == "call":
                     names = model.seen[-1]["tools"]
                     full = "mcp__lampway__" + step[1]
                     name, args = (full, step[2]) if full in names else ("tool_call", {"calls": [{"name": full, "arguments": step[2]}]})
@@ -250,3 +255,64 @@ def test_a_question_is_asked_in_the_island_and_the_answer_continues_the_same_pro
     final = [e for e in second if (e.get("content") or {}).get("set")]
     assert final and final[-1]["content"]["set"] == "Round it is."
     assert model.tool_results and "Round" in model.tool_results[-1]
+
+
+def test_a_message_during_the_engines_turn_joins_it(stack):
+    """R4: the second message steers the running turn (Hermes /steer); the client's command is answered ok, no turn is cancelled."""
+    model = FakeModel([("call", "run_blender_python", {"script": "import bpy"}), ("say", "Red it is.")])
+    stack["attach"](model)
+
+    async def script(ws, fake):
+        sid = str(uuid.uuid4())
+        command_id = str(uuid.uuid4())
+        await ws.send(json.dumps({"jsonrpc": "2.0", "id": "r1", "method": "agent.chat",
+                                  "params": {"command_id": command_id, "payload": fake.chat_payload("Make a chair", sid)}}))
+        frames, joined, steer_reply = [], None, None
+        deadline = time.monotonic() + 120
+        while True:
+            frame = json.loads(await asyncio.wait_for(ws.recv(), max(1, deadline - time.monotonic())))
+            frames.append(frame)
+            if frame.get("method") == "blender.execute_script" and frame.get("id"):
+                await ws.send(json.dumps({"jsonrpc": "2.0", "id": "r2", "method": "agent.chat", "params": {
+                    "command_id": str(uuid.uuid4()), "payload": fake.chat_payload("Actually make it red", sid)}}))
+                while steer_reply is None:
+                    f2 = json.loads(await asyncio.wait_for(ws.recv(), 30))
+                    frames.append(f2)
+                    if f2.get("id") == "r2":
+                        steer_reply = f2
+                await ws.send(json.dumps({"jsonrpc": "2.0", "id": frame["id"], "result": SCENE}))
+            if frame.get("method") == "agent.turn.ended" and frame["params"].get("turn_id") == command_id:
+                return frames, steer_reply
+
+    frames, steer_reply = _run(stack, script)
+    assert steer_reply["result"] == {"state": "complete", "result": {"ok": True, "joined": True}}
+    events = [f["params"]["event"] for f in frames if f.get("method") == "agent.turn.event"]
+    assert events[-1]["type"] == "turn_end" and events[-1]["status"] == "completed", "the turn was not cancelled"
+    final = [e for e in events if (e.get("content") or {}).get("set")]
+    assert final and final[-1]["content"]["set"] == "Red it is.", "the steer acknowledgement is not the agent's words"
+    later = [s for s in model.seen if s["stream"]][1:]
+    assert later and any("Actually make it red" in s["text"] for s in later), "the model saw the steer in the same turn"
+
+
+def test_a_permission_request_is_the_users_choice_in_the_island(stack, tmp_path):
+    """R4/E2: Hermes asks before a file edit; the island shows its own options; Allow lets the write happen."""
+    model = FakeModel([("native", "write_file", {"path": "note.txt", "content": "hello"}), ("say", "Wrote the note.")])
+    stack["attach"](model)
+
+    async def script(ws, fake):
+        sid = str(uuid.uuid4())
+        first, _ = await _turn(ws, "agent.chat", fake.chat_payload("Write a note", sid), lambda p: SCENE)
+        asked = [e for e in first if e.get("interrupt_id")]
+        assert asked, first
+        q = asked[-1]
+        allow = next(a["value"] for a in q["actions"] if "allow" in a["value"].lower())
+        second, _ = await _turn(ws, "agent.input", {"session_id": sid, "action": "respond", "text": allow, "answers": [allow],
+                                                    "interrupt_id": q["interrupt_id"]}, lambda p: SCENE)
+        return q, second
+
+    q, second = _run(stack, script)
+    assert q["content"]["set"].startswith("Allow the agent to") and len(q["actions"]) >= 2
+    final = [e for e in second if (e.get("content") or {}).get("set")]
+    assert final and final[-1]["content"]["set"] == "Wrote the note."
+    project = tmp_path / "project"
+    assert (project / "note.txt").read_text() == "hello", "the allowed write happened in the project"
