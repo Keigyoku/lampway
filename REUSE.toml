@@ -254,3 +254,41 @@ path = "src/scripts/mixar/modules/lampway_tools/ue/profiles/*.json"
 precedence = "closest"
 SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Official TOON conformance fixtures, unmodified from toon-format/spec.
+[[annotations]]
+path = ["tests/toon/fixtures/**/*.json", "tests/toon/fixtures/LICENSE"]
+precedence = "override"
+SPDX-FileCopyrightText = "2025-2026 Johann Schopplich"
+SPDX-License-Identifier = "MIT"
+
+# MCP T3: offline RST generated from Lampway's Blender core and the pinned manual.
+[[annotations]]
+path = "server/lampway_server/blender_docs/data/api/**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2009-2026 Blender Authors"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+[[annotations]]
+path = "server/lampway_server/blender_docs/data/manual/**"
+precedence = "closest"
+SPDX-FileCopyrightText = "Blender Documentation Team"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = "server/lampway_server/blender_docs/data/manifest.json"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "server/lampway_server/blender_docs/data/licenses/**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["docs/schemas/inspect/*.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"

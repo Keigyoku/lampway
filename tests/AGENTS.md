@@ -40,6 +40,8 @@ python -m pytest -q tests/rail            # the rail, including its self-test an
 LAMPWAY_BIN=build/<env>/bin/mixar python -m pytest -q tests/lampway_tools
 ```
 
+The MCP-specific binary tests accept `LAMPWAY_INSPECT_BIN` and `LAMPWAY_VIEW_BIN`, load the current source overlay in an isolated background profile, and never sync an installed app. TOON fixtures run from `tests/toon/`; binary absence and untested desktop pixels remain skips or unverified evidence.
+
 The standalone suite has failures that predate the rail; measure a change against the integration branch's own run on the
 same commit rather than against zero.
 
@@ -53,3 +55,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the test discipline lived in the gates' docstrings and the lanes' reports | seven invariants (RED first, plants, shrinking allow-lists, skips, no live spend, no weakening, no shipped tests) and the suite commands | captain ruling, 2026-10-05 |
+| 2026-10-07 | MCP wrapper contract receipt | captain: scoped MCP wrapper and migration | new transport, observation, schemas and offline data needed reproducible ownership and evidence | document the scoped implementation, generated checks and explicit limits above | scoped contract evidence in docs/reports/mcp-wrapper-migration.md |

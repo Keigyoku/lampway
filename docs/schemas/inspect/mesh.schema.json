@@ -1,0 +1,301 @@
+{
+  "$comment": "Generated from inspect/schema.py. SPDX-FileCopyrightText: 2026 Lampway contributors; SPDX-License-Identifier: GPL-3.0-or-later",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "if": {
+    "properties": {
+      "skipped": {
+        "maxItems": 0
+      }
+    }
+  },
+  "properties": {
+    "count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "data": {
+      "properties": {
+        "canon": {
+          "properties": {
+            "kind": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "scale": {
+              "type": [
+                "object",
+                "string",
+                "number",
+                "null"
+              ]
+            },
+            "state": {
+              "enum": [
+                "canonical",
+                "raw",
+                "unstamped",
+                "invalid_stamp"
+              ]
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        },
+        "counts": {
+          "properties": {
+            "edges": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "faces": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "loose_edges": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "loose_verts": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "ngons": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "quads": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "tris": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "verts": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [],
+          "type": "object"
+        },
+        "defects": {
+          "properties": {
+            "degenerate": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "flipped_shells": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "isolated_tri": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [],
+          "type": "object"
+        },
+        "holes": {
+          "items": {
+            "properties": {
+              "centroid": {
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "z": {
+                    "type": "number"
+                  }
+                },
+                "required": [],
+                "type": "object"
+              },
+              "edges": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "id": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "normal": {
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "z": {
+                    "type": "number"
+                  }
+                },
+                "required": [],
+                "type": "object"
+              },
+              "rim_length_m": {
+                "type": "number"
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "holes_total": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "intersections": {
+          "items": {
+            "properties": {},
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "manifold": {
+          "properties": {
+            "boundary_edges": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "non_manifold_edges": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [],
+          "type": "object"
+        },
+        "object": {
+          "type": "string"
+        },
+        "shells": {
+          "items": {
+            "properties": {
+              "area_m2": {
+                "type": "number"
+              },
+              "closed": {
+                "type": "boolean"
+              },
+              "faces": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "id": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "thin_regions": {
+          "items": {
+            "properties": {},
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "description": {
+      "type": "string"
+    },
+    "help": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "scene": {
+      "type": "string"
+    },
+    "skipped": {
+      "items": {
+        "properties": {
+          "object": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "object",
+          "section",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "tool": {
+      "const": "lampway_inspect"
+    },
+    "total": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "view": {
+      "const": "mesh"
+    }
+  },
+  "required": [
+    "view",
+    "scene",
+    "count",
+    "total",
+    "data",
+    "skipped",
+    "help"
+  ],
+  "then": {
+    "properties": {
+      "data": {
+        "required": [
+          "counts",
+          "manifold",
+          "shells",
+          "holes",
+          "defects"
+        ]
+      }
+    }
+  },
+  "title": "lampway_inspect mesh",
+  "type": "object"
+}

@@ -255,3 +255,27 @@ class TestGuiQueueShape:
         assert isinstance(req, ExecutionRequest)
         assert (req.request_id, req.session_id, req.agent_ctx) == ("t-3", "scene-3", {"turn_id": "x"})
         assert req.envelope.run_id == "r"
+
+
+@pytest.mark.parametrize('tool_name', ['lampway_inspect', 'lampway_view'])
+def test_wrapper_tools_disable_the_pumps_automatic_undo(tool_name):
+    calls = []
+    def execute(script, **kwargs):
+        calls.append((script, kwargs))
+        return SimpleNamespace(to_dict=lambda: {'success': True})
+    req = _req(1, tool_name=tool_name, session_id='scene-1')
+    result = pump.execute_request(req, SimpleNamespace(execute=execute))
+    assert result['success'] is True
+    assert calls == [('s1', {'session_id': 'scene-1', 'push_undo': False})]
+
+
+@pytest.mark.parametrize('tool_name', ['unknown', 'lampway_uv_unwrap', 'lampway_blender_docs'])
+def test_other_tools_keep_the_executors_default_undo(tool_name):
+    calls = []
+    def execute(script, **kwargs):
+        calls.append(kwargs)
+        return SimpleNamespace(to_dict=lambda: {'success': True})
+    req = _req(1, tool_name=tool_name, session_id='scene-1')
+    result = pump.execute_request(req, SimpleNamespace(execute=execute))
+    assert result['success'] is True
+    assert calls == [{'session_id': 'scene-1'}]

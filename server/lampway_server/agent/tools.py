@@ -23,6 +23,7 @@ from . import plan_tools as plt
 from . import orphan_server_tools as ost
 from . import connections_tools as cnt
 from . import choices_tools as cht
+from . import blender_docs_tools as bdt
 
 RUN_BLENDER_PYTHON = "run_blender_python"
 SCENE_SUMMARY = "scene_summary"
@@ -105,7 +106,7 @@ TOOLS.append(ToolSpec(
     },
 ))
 
-TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + crd.specs() + flt.specs() + plt.specs() + ost.specs() + cnt.specs() + cht.specs()
+TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + crd.specs() + flt.specs() + plt.specs() + ost.specs() + cnt.specs() + cht.specs() + bdt.specs()
 TOOL_NAMES = {t.name for t in TOOLS}
 
 
@@ -124,6 +125,8 @@ def script_for(name: str, arguments: dict) -> str:
     if name == ASK_USER:
         raise UnknownTool("ask_user is answered by the user, not by Blender")
     if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES or name in wbt.NAMES or name in cpt.NAMES or name in lib_.NAMES or name in crd.NAMES or name in flt.NAMES or name in plt.NAMES or name in cnt.NAMES or name in cht.NAMES:
+        raise UnknownTool(f"{name} runs on the server, not in Blender")
+    if name in bdt.NAMES:
         raise UnknownTool(f"{name} runs on the server, not in Blender")
     if name in ost.NAMES:
         raise UnknownTool(f"{name} runs on the server, not in Blender")

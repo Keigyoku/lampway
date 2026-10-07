@@ -16,7 +16,7 @@ as a job (``jobs.py``) and its scene-touching tail runs from the app's timer.
 """
 
 import functools
-import inspect
+import inspect as _inspect
 import json
 import os
 from pathlib import Path
@@ -30,7 +30,7 @@ from . import live_load
 from . import meshpaint as MP
 from . import rebuild as RB
 from . import runner as RUN
-from .canon_door import LEGACY, NONE, Need, validate_declaration  # noqa: F401  (the door: NONE / Need for tool authors)
+from .canon_door import LEGACY, NONE, OBSERVE, Need, validate_declaration  # noqa: F401
 from .canon_door import refusal as _door_refusal, unmet as _door_unmet
 from . import settings as S
 from .meshqa import decisions as D
@@ -69,7 +69,7 @@ def tool(fn=None, *, consumes=None, produces=None):
     def deco(fn):
         _REGISTRY.append(fn.__name__)
         TOOL_DOORS[fn.__name__] = (consumes, produces or {})
-        sig = inspect.signature(fn)
+        sig = _inspect.signature(fn)
 
         @functools.wraps(fn)
         def wrapper(*a, **kw):
@@ -387,6 +387,8 @@ def job_status(job=None):
         out["steps"] = [{"name": s["name"], "rc": s["rc"]} for s in j.result.get("steps", [])]
         out["skipped"] = j.result.get("skipped", [])
         out["mesh"] = j.result.get("mesh")
+        if "path" in j.result:
+            out["path"] = j.result["path"]
     return out
 
 
@@ -1863,6 +1865,12 @@ def ue_parity(scene, profile=None, size=768, views=None, out_dir="", ue_captures
 
 
 # ---- the door the agent's scripts use
+
+from . import api_inspect as _API_INSPECT, api_view as _API_VIEW
+inspect = tool(consumes=OBSERVE("reads raw and canonical scene data without edits; reports canon state"))(_API_INSPECT.inspect)
+# Focus may explicitly unhide a raw asset; this is a declared raw consumer,
+# rather than a read-only OBSERVE declaration for a mutating action.
+view = tool(consumes={"object": Need(accept_raw=True), "data": Need(accept_raw=True)})(_API_VIEW.view)
 
 # Every @tool function, in definition order: derived, not listed by hand (a hand-kept list let 26 tools of Waves 2-4 be functions and Defs the agent could not run).
 TOOL_FUNCS = tuple(_REGISTRY)

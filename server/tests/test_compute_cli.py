@@ -24,14 +24,14 @@ def run(argv, tmp_path, backends=None, env=None):
 
 def test_toon_encodes_scalars_tables_scalar_lists_and_explicit_empties():
     s = T.dumps({"ok": True, "n": 3, "name": "a, b", "jobs": [{"key": "k1", "state": "done"}, {"key": "k2", "state": "x"}], "none": [], "tags": ["x", "y"], "nested": {"a": 1}})
-    assert 'name: "a, b"' in s and "jobs[2]{key,state}:\n  k1,done\n  k2,x" in s and "none[0]:" in s and "tags[2]: x,y" in s and "nested:\n  a: 1" in s and "ok: true" in s
+    assert 'name: "a, b"' in s and "jobs[2]{key,state}:\n  k1,done\n  k2,x" in s and "none: []" in s and "tags[2]: x,y" in s and "nested:\n  a: 1" in s and "ok: true" in s
 
 
 def test_no_arguments_shows_live_state_not_help_with_every_empty_stated(tmp_path):
     rc, out, err, _ = run([], tmp_path)
     assert rc == 0 and "usage:" not in out
-    assert "backends[0]:" in out or "backends[" in out
-    assert "jobs[0]:" in out and "billing_now: nothing" in out and "spent_today_usd: 0" in out and "job_cap_usd: 1" in out and "day_cap_usd: 5" in out
+    assert "backends: []" in out or "backends[" in out
+    assert "jobs: []" in out and "billing_now: nothing" in out and "spent_today_usd: 0" in out and "job_cap_usd: 1" in out and "day_cap_usd: 5" in out
     assert "help[" in out and "compute backends" in out
 
 
@@ -75,7 +75,7 @@ def test_egress_view_and_the_users_switch_are_the_same_prefs_the_server_uses(tmp
 def test_reconcile_report_states_explicitly_when_nothing_bills(tmp_path):
     run(["prefs", "--set", "backends=fake"], tmp_path)
     rc, out, _e, _f = run(["reconcile"], tmp_path)
-    assert rc == 0 and "billing_now: nothing" in out and "orphans[0]:" in out
+    assert rc == 0 and "billing_now: nothing" in out and "orphans: []" in out
 
 
 def test_a_recipe_parameter_travels_with_the_job_and_selects_the_ops_outputs(tmp_path):
@@ -85,3 +85,9 @@ def test_a_recipe_parameter_travels_with_the_job_and_selects_the_ops_outputs(tmp
     rc, out, err, fake = run(["submit", "blender_offload", "--backend", "fake", "--input", "in.png:synthetic", "--param", "op=silhouette", "--param", "size=64", "--max-seconds", "300"], tmp_path)
     assert any(c[0] == "upload" and c[2] == "params.json" for c in fake.calls)
     assert "silhouette.png" in out and "state: provider_error" in out                      # the op named the extra output; the fake does not produce it, and the job says so
+
+
+def test_cli_emits_no_document_final_newline(tmp_path):
+    rc, out, _, _ = run([], tmp_path)
+    assert rc == 0
+    assert not out.endswith('\n')

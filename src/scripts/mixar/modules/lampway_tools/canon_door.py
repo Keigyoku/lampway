@@ -8,6 +8,8 @@ Declarations (``api.tool(consumes=..., produces=...)``, ``runner.Tool(consumes=.
 * ``{"<arg>": Need(...)}`` - the argument must name a canonical datablock (or a file with its ``.canon.json`` / an npz with its
   ``canon`` header) satisfying the Need; a raw, unstamped or changed asset is refused with "normalize first";
 * ``NONE("why")`` - the tool reads no asset (the reason is mandatory text);
+* ``OBSERVE("why")`` - reads raw or canonical assets without changing them,
+  and reports their canon state; observation never requires normalization;
 * ``LEGACY("issue")`` - during migration (decision D7, the ratchet): logged and let through. The count of ``LEGACY(`` calls in
   the tree is committed in ``canon_legacy_count.txt`` and may only fall (tests/lampway_tools/test_canon_doors.py).
 * produces: ``Inherit(src, remeasure=...)``, ``Fresh(kind)``, ``Raw()`` (the stamping of outputs lands with the tools that
@@ -32,6 +34,15 @@ class NONE(Declared):
     def __post_init__(self):
         if not isinstance(self.why, str) or len(self.why.strip()) < 3:
             raise TypeError("NONE(why): say why this tool reads no asset")
+
+
+@dataclass(frozen=True)
+class OBSERVE(Declared):
+    why: str
+
+    def __post_init__(self):
+        if not isinstance(self.why, str) or len(self.why.strip()) < 3:
+            raise TypeError("OBSERVE(why): describe the read-only observation")
 
 
 @dataclass(frozen=True)
@@ -60,8 +71,8 @@ class Raw:
 
 
 def validate_declaration(consumes):
-    """Raise TypeError unless ``consumes`` is NONE(...), LEGACY(...) or {arg: Need}."""
-    if isinstance(consumes, (NONE, LEGACY)):
+    """Raise TypeError unless consumption is an explicit declaration or {arg: Need}."""
+    if isinstance(consumes, (NONE, OBSERVE, LEGACY)):
         return
     if isinstance(consumes, dict) and consumes and all(isinstance(k, str) and isinstance(v, CA.Need) for k, v in consumes.items()):
         return

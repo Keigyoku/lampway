@@ -98,6 +98,7 @@ The root `CLAUDE.md` used to be upstream's own guide, naming its closed backend.
 - **Bootstrap.** `src/scripts/startup/bootstrap/__init__.py` configures the network (trust store, proxy) before any bootstrap
   module, then registers the bootstrap modules, then loads every `modules/**/ui/` file in time-budgeted batches (4 ms per frame by
   default): properties first, then operators, then panels and menus.
+- **Shared TOON.** The pure client `common/toon/codec.py` and server `compute/toon_out.py` are byte-identical TOON 4.3 codecs. Official pinned encode/decode fixtures and property tests live in `tests/toon/`; AXI compatibility helpers use this codec.
 - **Tests outside Blender.** `bpy` is a MagicMock (the root `conftest.py`), which also preloads the real numpy, PIL and requests so
   collection order cannot decide whether a test sees a mock. Operator logic is pinned by source-level or `ast` tests.
 - **Pinned contracts with their tests:** the network contract (`tests/network/`), atexit cleanups never touch `bpy` data
@@ -154,3 +155,4 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 | 2026-10-05 | rail adoption: this file replaces the upstream guide | captain: "make the DOE x DOX AGENTS rail for Lampway, examples of it are in Vellum and Titan" | the root guide was upstream's, named its closed backend and a private doc map, and no file carried Lampway's laws | the laws with their gates, the DOX chain, the skill and child indexes (both checked against the tree), the verified facts kept from the upstream guide | captain ruling, 2026-10-05 |
 | 2026-10-06 | the 500-line rule settled; the rail in the hook | captain: "Those recs are fine" | the file limit was recorded as an open decision; the rail's place in the push was CI only | the limit is a guideline (the coding skill §4b); the laws' rail line names the pre-push quick check | captain ruling, 2026-10-06 |
 | 2026-10-06 | the canon indexed | coordinator: "GO for rail row 1" | the canon lived off-tree, outside every index | docs/canon in the repository map, the Child DOX Index and the canon skill's row | captain ruling, 2026-10-06 |
+| 2026-10-07 | MCP wrapper contract receipt | captain: scoped MCP wrapper and migration | new transport, observation, schemas and offline data needed reproducible ownership and evidence | document the scoped implementation, generated checks and explicit limits above | scoped contract evidence in docs/reports/mcp-wrapper-migration.md |

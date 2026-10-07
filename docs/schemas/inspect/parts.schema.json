@@ -1,0 +1,202 @@
+{
+  "$comment": "Generated from inspect/schema.py. SPDX-FileCopyrightText: 2026 Lampway contributors; SPDX-License-Identifier: GPL-3.0-or-later",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "if": {
+    "properties": {
+      "skipped": {
+        "maxItems": 0
+      }
+    }
+  },
+  "properties": {
+    "count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "data": {
+      "properties": {
+        "canon": {
+          "properties": {
+            "kind": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "scale": {
+              "type": [
+                "object",
+                "string",
+                "number",
+                "null"
+              ]
+            },
+            "state": {
+              "enum": [
+                "canonical",
+                "raw",
+                "unstamped",
+                "invalid_stamp"
+              ]
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "type": "object"
+        },
+        "method": {
+          "default": "shells",
+          "enum": [
+            "shells",
+            "sharp",
+            "uv_islands",
+            "materials"
+          ],
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        },
+        "parts": {
+          "items": {
+            "properties": {
+              "area_m2": {
+                "type": "number"
+              },
+              "bounds": {
+                "properties": {
+                  "max": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "type": "array"
+                  },
+                  "min": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "min",
+                  "max"
+                ],
+                "type": "object"
+              },
+              "centroid": {
+                "items": {
+                  "type": "number"
+                },
+                "maxItems": 3,
+                "minItems": 3,
+                "type": "array"
+              },
+              "faces": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "id": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "material": {
+                "anyOf": [
+                  {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "description": {
+      "type": "string"
+    },
+    "help": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "scene": {
+      "type": "string"
+    },
+    "skipped": {
+      "items": {
+        "properties": {
+          "object": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "object",
+          "section",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "tool": {
+      "const": "lampway_inspect"
+    },
+    "total": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "view": {
+      "const": "parts"
+    }
+  },
+  "required": [
+    "view",
+    "scene",
+    "count",
+    "total",
+    "data",
+    "skipped",
+    "help"
+  ],
+  "then": {
+    "properties": {
+      "data": {
+        "required": [
+          "parts",
+          "method"
+        ]
+      }
+    }
+  },
+  "title": "lampway_inspect parts",
+  "type": "object"
+}

@@ -50,21 +50,18 @@ def run(check):
     asyncio.run(main())
 
 
-#: Claude Code keeps only this many characters of server instructions and of
-#: each tool description; the full playbook is the backend's mixar_guide tool.
+#: Claude Code keeps only this many characters of server instructions and
+#: each tool description.
 CLAUDE_CODE_TEXT_CAP = 2048
 
 
 def test_instructions_teach_the_scene_workflow_within_claude_codes_cap():
-    assert len(stdio_server.GUIDE) <= CLAUDE_CODE_TEXT_CAP
-    for tool in ("mixar_guide", "mixar_scene_new", "scene_overview", "execute_bpy_script",
-                 "render_viewport", "enqueue_generation", "get_all_queue_status",
-                 "create_layered_material", "mixar_call_status"):
-        assert tool in stdio_server.GUIDE
-    flat = " ".join(stdio_server.GUIDE.split())
-    assert "Splat worlds (world_labs) and videos only when the user wants one" in flat
-    assert "Ask the user when an open choice matters" in flat and "never use OS-level computer use" in flat
-    assert 'Choose each part\'s approach by judgement (notes in mixar_guide("generate"))' in flat
+    import re
+    assert len(stdio_server.GUIDE.encode()) <= CLAUDE_CODE_TEXT_CAP
+    assert re.search(r"First call (?:scene_summary|lampway_inspect) with no arguments", stdio_server.GUIDE)
+    assert "plan, never confirm" in stdio_server.GUIDE
+    assert "Never delete or overwrite the user's source files" in stdio_server.GUIDE
+    assert set(re.findall(r"[a-z]+(?:_[a-z0-9]+)+", stdio_server.GUIDE)) <= {"scene_summary", "lampway_inspect"}
     from mixar.modules.common.ui_control.core import schema
     assert all(len(tool["description"]) <= CLAUDE_CODE_TEXT_CAP for tool in schema.tools())
 

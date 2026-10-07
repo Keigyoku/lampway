@@ -1,0 +1,245 @@
+{
+  "$comment": "Generated from inspect/schema.py. SPDX-FileCopyrightText: 2026 Lampway contributors; SPDX-License-Identifier: GPL-3.0-or-later",
+  "$defs": {
+    "collection": {
+      "properties": {
+        "children": {
+          "items": {
+            "$ref": "#/$defs/collection"
+          },
+          "type": "array"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "objects": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "if": {
+    "properties": {
+      "skipped": {
+        "maxItems": 0
+      }
+    }
+  },
+  "properties": {
+    "count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "data": {
+      "properties": {
+        "cameras": {
+          "items": {
+            "properties": {
+              "clip_end": {
+                "type": "number"
+              },
+              "clip_start": {
+                "type": "number"
+              },
+              "lens_mm": {
+                "type": "number"
+              },
+              "name": {
+                "type": "string"
+              },
+              "sensor_mm": {
+                "type": "number"
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "collections": {
+          "$ref": "#/$defs/collection"
+        },
+        "frames": {
+          "properties": {
+            "current": {
+              "type": "integer"
+            },
+            "end": {
+              "type": "integer"
+            },
+            "fps": {
+              "type": "number"
+            },
+            "start": {
+              "type": "integer"
+            }
+          },
+          "required": [],
+          "type": "object"
+        },
+        "lights": {
+          "items": {
+            "properties": {
+              "color": {
+                "items": {
+                  "type": "number"
+                },
+                "maxItems": 3,
+                "minItems": 3,
+                "type": "array"
+              },
+              "energy_w": {
+                "type": "number"
+              },
+              "name": {
+                "type": "string"
+              },
+              "size_m": {
+                "type": "number"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "render": {
+          "properties": {
+            "engine": {
+              "type": "string"
+            },
+            "percentage": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "resolution": {
+              "items": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "resolution_percentage": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [],
+          "type": "object"
+        },
+        "world": {
+          "properties": {
+            "hdri": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "strength": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [],
+          "type": "object"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "description": {
+      "type": "string"
+    },
+    "help": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "scene": {
+      "type": "string"
+    },
+    "skipped": {
+      "items": {
+        "properties": {
+          "object": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "object",
+          "section",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "tool": {
+      "const": "lampway_inspect"
+    },
+    "total": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "view": {
+      "const": "scene"
+    }
+  },
+  "required": [
+    "view",
+    "scene",
+    "count",
+    "total",
+    "data",
+    "skipped",
+    "help"
+  ],
+  "then": {
+    "properties": {
+      "data": {
+        "required": [
+          "collections",
+          "cameras",
+          "lights",
+          "world",
+          "frames",
+          "render"
+        ]
+      }
+    }
+  },
+  "title": "lampway_inspect scene",
+  "type": "object"
+}

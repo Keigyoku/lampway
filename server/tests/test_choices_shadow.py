@@ -53,7 +53,7 @@ def test_the_report_is_a_command(live):
     SH.record("agent.main", "mock", CH.Job(content_class="public"))
     out = subprocess.run([sys.executable, "-m", "lampway_server.choices.shadow", "--report", "--state", str(live)], capture_output=True, text=True,
                          timeout=60, cwd=str(__import__("pathlib").Path(__file__).resolve().parents[1]))
-    assert out.returncode == 0 and "rows: 1" in out.stdout and "differences[0]" in out.stdout
+    assert out.returncode == 0 and "rows: 1" in out.stdout and "differences: []" in out.stdout
 
 
 def test_a_failing_shadow_never_breaks_the_call(live, monkeypatch):

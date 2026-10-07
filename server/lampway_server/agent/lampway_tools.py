@@ -114,6 +114,10 @@ def build_script(d: Def, arguments: dict) -> str:
     if missing:
         raise BadArguments(f"{d.name} needs {', '.join(missing)}")
     known = {p.name for p in d.params}
+    if d.name in ("lampway_inspect", "lampway_view"):
+        unknown = set(arguments) - known
+        if unknown:
+            raise BadArguments("unknown argument: " + ", ".join(sorted(unknown)))
     given = {k: v for k, v in arguments.items() if k in known}
     if d.name in ENGINE_PURPOSES:
         given = _resolve_engine(d.name, given)
@@ -717,6 +721,9 @@ from .orphan_tools import ORPHAN_DEFS  # noqa: E402  (the orphan tools, STATUS.m
 DEFS += ORPHAN_DEFS
 from .rig_defs import RIG_DEFS  # noqa: E402  (the rig tools, specs/canon/rig_tools: their own file)
 DEFS += RIG_DEFS
+from .inspect_tools import DEFS as _INSPECT_DEFS  # noqa: E402
+from .view_tools import DEFS as _VIEW_DEFS  # noqa: E402
+DEFS += _INSPECT_DEFS + _VIEW_DEFS
 
 for _d in DEFS:                                                 # 5.8: every engine Def names its purpose's options
     if _d.name in ENGINE_PURPOSES:
