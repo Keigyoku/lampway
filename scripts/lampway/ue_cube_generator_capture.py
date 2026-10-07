@@ -40,7 +40,7 @@ def engine_identity(raw, expected):
     return {'version': match[1], 'changelist': int(match[2]), 'raw': raw}
 
 
-def write_outputs(root, request, engine, rows, settings, controls):
+def write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=None):
     if len(rows) != request['profile']['project']['cvars']['r.LUT.Size'] ** 3:
         raise ValueError('incomplete engine capture; no cube published')
     if any(len(row) != 3 or not all(math.isfinite(v) and 0 <= v <= 1 for v in row) for row in rows):
@@ -72,6 +72,7 @@ def write_outputs(root, request, engine, rows, settings, controls):
             'shaper': request['shaper'], 'capture': {'source': 'SCS_FINAL_COLOR_LDR',
                      'readback': 'RenderingLibrary.read_render_target_pixel', 'format': 'RTF_RGBA8',
                      'precision_bits_per_channel': 8, 'output': 'engine sRGB display pixels',
+                     'camera_forward_world': camera_forward_world,
                      'postprocess_readback': settings, 'controls': controls,
                      'shaper_source': request['shaper_source'],
                      'profile_sha256': hashlib.sha256(json.dumps(request['profile'], sort_keys=True).encode()).hexdigest()}}
@@ -139,6 +140,20 @@ def plan(request):
             'precision_bits_per_channel': 8}
 
 
+def capture_rotation(ue):
+    return ue.Rotator(pitch=-90.0, yaw=0.0, roll=0.0)
+
+
+def capture_forward_readback(component):
+    """Read the capture component's actual world axis, including relative transforms."""
+    forward = component.get_forward_vector()
+    values = [float(forward.x), float(forward.y), float(forward.z)]
+    if not all(math.isfinite(value) for value in values) or max(
+            abs(value - expected) for value, expected in zip(values, (0.0, 0.0, -1.0))) > 1e-5:
+        raise ValueError('actual capture component does not point down world Z at the QA plane; no cube emitted')
+    return values
+
+
 def capture(ue):
     root = (Path(ue.Paths.project_dir()).resolve() / 'Saved' / 'LampwayCubeQA')
     request = json.loads((root / 'request.json').read_text())
@@ -175,9 +190,10 @@ def capture(ue):
         plane.set_actor_scale3d(ue.Vector(10, 10, 10))
         mesh.set_material(0, material)
         dynamic = mesh.create_dynamic_material_instance(0)
-        camera = ue.EditorLevelLibrary.spawn_actor_from_class(ue.SceneCapture2D, ue.Vector(0, 0, 100), ue.Rotator(-90, 0, 0))
+        camera = ue.EditorLevelLibrary.spawn_actor_from_class(ue.SceneCapture2D, ue.Vector(0, 0, 100), capture_rotation(ue))
         actors.append(camera)
         component = camera.get_component_by_class(ue.SceneCaptureComponent2D)
+        camera_forward_world = capture_forward_readback(component)
         component.set_editor_property('capture_every_frame', False)
         component.set_editor_property('capture_on_movement', False)
         component.set_editor_property('primitive_render_mode', ue.SceneCapturePrimitiveRenderMode.PRM_USE_SHOW_ONLY_LIST)
@@ -246,7 +262,7 @@ def capture(ue):
             rows.append(sample(rgb))
             if index % 1024 == 0:
                 print('LAMPWAY_UE_CUBE_PROGRESS ' + str(index) + '/' + str(len(points)))
-        paths = write_outputs(root, request, engine, rows, settings, controls)
+        paths = write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=camera_forward_world)
         print('LAMPWAY_UE_CUBE_COMPLETE ' + json.dumps({'cube': paths[0].name, 'sidecar': paths[1].name, 'rows': len(rows)}))
     finally:
         for actor in reversed(actors):

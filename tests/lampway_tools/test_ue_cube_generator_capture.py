@@ -146,3 +146,75 @@ def test_enum_readback_uses_typed_value_equality_and_stable_member_receipt():
     with pytest.raises(ValueError, match='actual postprocess differs'):
         C.postprocess_readback(UEPostProcess(auto_exposure_method=2),
                               {'auto_exposure_method': UEExposureMethod.AEM_MANUAL})
+
+
+class UEPositionalRotator:
+    """The actual documented UE Python order is roll, pitch, yaw."""
+    def __init__(self, roll=0, pitch=0, yaw=0):
+        self.roll, self.pitch, self.yaw = roll, pitch, yaw
+
+
+def test_capture_rotation_uses_explicit_pitch_not_ue_positional_roll():
+    from types import SimpleNamespace
+    rotation = C.capture_rotation(SimpleNamespace(Rotator=UEPositionalRotator))
+    assert (rotation.pitch, rotation.yaw, rotation.roll) == (-90, 0, 0)
+
+
+@pytest.mark.parametrize('direction', [(1, 0, 0), (0, 0, 1), (0.1, 0, -1),
+                                       (float('nan'), 0, -1), (0, float('inf'), -1)])
+def test_actual_capture_component_wrong_or_nonfinite_forward_is_refused(direction):
+    from types import SimpleNamespace
+    component = SimpleNamespace(get_forward_vector=lambda: SimpleNamespace(x=direction[0], y=direction[1], z=direction[2]))
+    with pytest.raises(ValueError, match='does not point down world Z'):
+        C.capture_forward_readback(component)
+
+
+def test_actual_component_forward_readback_records_finite_values_with_tolerance():
+    from types import SimpleNamespace
+    component = SimpleNamespace(get_forward_vector=lambda: SimpleNamespace(x=1e-7, y=0, z=-1))
+    assert C.capture_forward_readback(component) == [1e-7, 0.0, -1.0]
+
+
+def test_wrong_component_direction_prevents_capture_and_outputs_and_cleans_qa_actors(tmp_path):
+    from types import SimpleNamespace
+    profile = json.loads((PATH.parents[2] / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
+    root = tmp_path / 'Saved/LampwayCubeQA'
+    root.mkdir(parents=True)
+    request = dict(disposable_qa_project=True, profile=profile, name='synthetic', shaper=SHAPER,
+                   shaper_source='synthetic test only', max_seconds=1)
+    (root / 'request.json').write_text(json.dumps(request))
+    destroyed, spawned, renders = [], [], []
+    def unexpected_render(*args):
+        renders.append(args)
+        raise AssertionError('wrong camera must refuse before any render')
+    material = SimpleNamespace(set_editor_property=lambda *args: None)
+    dynamic = object()
+    mesh = SimpleNamespace(set_static_mesh=lambda *args: None, set_material=lambda *args: None,
+                           create_dynamic_material_instance=lambda *args: dynamic)
+    plane = SimpleNamespace(get_component_by_class=lambda cls: mesh, set_actor_scale3d=lambda vector: None)
+    # An actor can face down while its relative capture component faces sideways.
+    component = SimpleNamespace(get_forward_vector=lambda: SimpleNamespace(x=1, y=0, z=0),
+                                capture_scene=unexpected_render)
+    camera = SimpleNamespace(get_component_by_class=lambda cls: component,
+                             get_actor_forward_vector=lambda: SimpleNamespace(x=0, y=0, z=-1))
+    def spawn(*args):
+        actor = plane if not spawned else camera
+        spawned.append(actor)
+        return actor
+    ue = SimpleNamespace(
+        Paths=SimpleNamespace(project_dir=lambda: str(tmp_path)),
+        SystemLibrary=SimpleNamespace(get_engine_version=lambda: '5.8.2-56702186+++UE5',
+            get_console_variable_int_value=lambda key: profile['project']['cvars'][key]),
+        EditorLevelLibrary=SimpleNamespace(get_editor_world=lambda: object(), spawn_actor_from_class=spawn,
+                                           destroy_actor=lambda actor: destroyed.append(actor)),
+        Material=lambda: material, MaterialShadingModel=SimpleNamespace(MSM_UNLIT=object()),
+        MaterialEditingLibrary=SimpleNamespace(create_material_expression=lambda *args: material,
+            connect_material_property=lambda *args: True, recompile_material=lambda *args: None),
+        MaterialExpressionVectorParameter=object(), MaterialProperty=SimpleNamespace(MP_EMISSIVE_COLOR=object()),
+        StaticMeshActor=object(), StaticMeshComponent=object(), SceneCapture2D=object(), SceneCaptureComponent2D=object(),
+        Rotator=UEPositionalRotator, Vector=lambda *args: args, load_asset=lambda path: object(),
+        RenderingLibrary=SimpleNamespace(create_render_target2d=unexpected_render))
+    with pytest.raises(ValueError, match='does not point down world Z'):
+        C.capture(ue)
+    assert len(spawned) == 2 and destroyed == list(reversed(spawned)) and not renders
+    assert list(root.iterdir()) == [root / 'request.json']
