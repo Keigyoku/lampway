@@ -227,8 +227,8 @@ def test_live_the_first_chat_opens_the_real_pane_and_a_tool_turn_runs_through_it
     assert json.loads((home / "session.json").read_text())["stored_session_id"] == rec["stored_session_id"]
     assert token not in json.dumps(live["cockpit"].list_sessions()) and token not in " ".join(proc.argv)
     # the TUI shows the island's turn: the same live session, resumed (the island's prompt and the model's reply are on screen)
-    assert wait_for(lambda: "There is one cube." in proc.text(), 30), proc.text()[-3000:]
-    assert "what is in my scene" in proc.text()
+    assert wait_for(lambda: "There is one cube." in proc.screen_text(), 30), proc.screen_text()
+    assert "what is in my scene" in proc.screen_text()
     # E1.3: the config came from hermes_config and passed the start-up check on its first request with tools
     assert len(checks) == 1 and checks[0][0] == unit and checks[0][2] is None, checks
     text = (home / "config.yaml").read_text()
@@ -473,7 +473,7 @@ def test_live_a_turn_typed_in_the_tui_is_shown_in_the_island_and_its_tool_reache
         cid, _ = await chat(island, "Hello", unit)
         await island.ended(cid, timeout=240)
         proc = live["herdr"].proc_for(pane_of(live, unit))
-        assert wait_for(lambda: "Hello from the gateway." in proc.text(), 30)
+        assert wait_for(lambda: "Hello from the gateway." in proc.screen_text(), 30)
         before = len(island.scripts)
         proc.write("SCENE typed in the pane")
         await asyncio.sleep(0.5)
@@ -527,7 +527,7 @@ def test_live_quitting_the_tui_keeps_serve_and_only_enter_reopens_it(live):
         await island.ended(cid, timeout=240)
         rec = pane_of(live, unit)
         proc = live["herdr"].proc_for(rec)
-        assert wait_for(lambda: "Hello from the gateway." in proc.text(), 30)
+        assert wait_for(lambda: "Hello from the gateway." in proc.screen_text(), 30)
         mark = len(proc.text())
         proc.write("/quit")
         await asyncio.sleep(0.5)
@@ -542,7 +542,7 @@ def test_live_quitting_the_tui_keeps_serve_and_only_enter_reopens_it(live):
         await asyncio.sleep(1.0)
         nothing_yet = "Hello again" not in proc.text()[mark2:]
         proc.write("\r")                                                  # the user's Enter
-        back = wait_for(lambda: "Hello again" in proc.text()[mark2:], 60)
+        back = wait_for(lambda: "Hello again" in proc.screen_text(), 60)
         return reopened_prompt, alive, island.events(cid2), nothing_yet, back
 
     prompt, alive, events, nothing_yet, back = run(live, scenario)

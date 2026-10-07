@@ -27,6 +27,7 @@ ANSI = re.compile(rb"\x1b\[[0-9;?<>=]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(\x07|\x1b\\
 class PtyProcess:
     def __init__(self, argv, env, cwd, cols=120, rows=40):
         self.argv = argv
+        self.cols, self.rows = cols, rows
         self.buf = bytearray()
         self.pid, self.fd = pty.fork()
         if self.pid == 0:                                           # the child: the pane's foreground program
@@ -54,6 +55,19 @@ class PtyProcess:
         with self.lock:
             raw = bytes(self.buf)
         return ANSI.sub(b"", raw).decode("utf-8", "replace")
+
+    def screen_text(self) -> str:
+        """The current visible terminal, with cursor movement and erasure applied.
+
+        Ink writes differential redraws: stripping ANSI and concatenating those bytes loses words and retains erased text.
+        Keep ``text`` as the legacy output log for tests that mark/slice its length; use this method for displayed evidence.
+        """
+        import pyte
+        with self.lock:
+            raw = bytes(self.buf)
+        screen = pyte.Screen(self.cols, self.rows)
+        pyte.ByteStream(screen).feed(raw)
+        return "\n".join(screen.display)
 
     def write(self, s: str) -> None:
         os.write(self.fd, s.encode())
