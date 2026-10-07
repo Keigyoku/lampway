@@ -194,6 +194,8 @@ def _old_conversation(scene, metadata) -> bool:
     if is_byoa(scene):
         return False
     cid = str(metadata.get('conversation_id') or '')
+    if not cid:
+        return False
     known = str(scene.get(CONVERSATION_KEY) or '')
     return bool(cid and known and cid != known)
 
