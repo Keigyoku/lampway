@@ -127,7 +127,7 @@ a law, this file. Each child states its invariants, its test commands and its ow
 
 | path | owns | touch carries |
 |---|---|---|
-| [`server/AGENTS.md`](server/AGENTS.md) | Lampway's backend: agent loop, tools registry, MCP, egress, receipts, spend, studios, herdr | the egress, spend, receipt and decoupling invariants; the server suite |
+| [`server/AGENTS.md`](server/AGENTS.md) | Lampway's backend: the island's front end to Mode 1's Hermes pane (no agent loop of its own), the model gateway, the tools registry, MCP, egress, receipts, spend, studios, herdr | the egress, spend, receipt and decoupling invariants; the server suite |
 | [`src/scripts/mixar/modules/lampway_tools/AGENTS.md`](src/scripts/mixar/modules/lampway_tools/AGENTS.md) | the client-side tools the agent calls inside Blender | the api door, the refusal shape, the project-root jail, the human gate; the binary-driven suite |
 | [`src/source/AGENTS.md`](src/source/AGENTS.md) | Lampway's patches to the native (C/C++) overlay | the `LAMPWAY` guard, upstream compatibility, the native build owner |
 | [`scripts/lampway/AGENTS.md`](scripts/lampway/AGENTS.md) | the build, launcher, Python sync and pre-publish gate scripts | AXI refusals, the box, the gate's outside-the-tree owner patterns |
@@ -158,3 +158,4 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 | 2026-10-06 | the canon indexed | coordinator: "GO for rail row 1" | the canon lived off-tree, outside every index | docs/canon in the repository map, the Child DOX Index and the canon skill's row | captain ruling, 2026-10-06 |
 | 2026-10-07 | the engine pinned | captain: Hermes Agent's runtime in Mode 1's seat (agent-modes spec Q7, E1.1) | a second pinned source tree had no row in the map | `third_party/hermes-agent` in the repository map, read-only like `upstream/` | captain ruling, 2026-10-06 |
 | 2026-10-07 | herdr pinned; both pins named by tag | captain: "Pin the current herdr and Hermes releases the same way the Blender pin is done" | herdr was whatever the user had installed, so the layout depended on an unknown version (a misspelled metadata option went unseen until a real herdr ran); the Hermes row named no tag | `third_party/herdr` at herdr's current release (v0.9.3) in the map beside Blender's and Hermes's rows, each with its tag; Hermes stays at its current release (v2026.9.24) | captain ruling, 2026-10-07 |
+| 2026-10-07 | the server's index row after the loop's removal | coordinator brief, Mode 1 loose end 10 | the Child DOX Index still said the server owns an "agent loop", which spec A5 removed: Mode 1 runs only on Hermes in its pane | the server row names what it owns now: the island's front end to the Hermes pane and the model gateway, no loop of its own | none |
