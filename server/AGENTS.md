@@ -48,6 +48,14 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    A harness pane bound to a scene tab (spec B2) gets its own MCP config, 0600 under `<herdr root>/panes/<id>/`, pointing at Lampway's
    launcher with `LAMPWAY_BOUND_SESSION`; nothing is written outside the Lampway root. Binding and unbinding change only that file and
    the record, never the pane; only the user's Client binds (`POST /app/workbench/sessions/{id}/binding` refuses agent callers).
+   A scene tab's agent mode (spec M0) is known from the chat payload's `agent_mode` and from that binding table (`agent/byoa.py`):
+   a Mode 1 `agent.chat` or `agent.input` into a tab in Your agent mode is refused with `code: wrong_mode` before any turn starts.
+   Only the user's Client switches a tab (`POST /app/workbench/mode` binds or unbinds, never touching a pane; agent callers refused).
+   The island view (spec B4) tails a bound pane's own session file read-only (Claude Code, Codex: `herdr/observers/mirror.py`) and
+   streams it as observed turns in Mode 1's frames; history before the first observation is never replayed unless the client names
+   its offset; a harness without a readable file is shown by its screen, and the user's own Hermes home is never read (E1.10).
+   `agent.byoa.send` finds the pane from the binding, decides who typed from the socket, and holds an agent's send in the 2.5 s
+   quiet window after the user's own.
 7. **Secrets never reach a log or a file in the repository.** Keys come from the environment or 0600 files the user owns
    (the state directory, a dotenv file the launcher is pointed at); `logredact.py` redacts query secrets and token-shaped strings in every log record.
 8. **Never the upstream service.** No code here calls the upstream backend; the client's stubbed endpoints are answered locally.
@@ -100,3 +108,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | BYOA egress and pane environment (B5) | agent-modes spec B5, law 2 | herdr launches were classed "local" and passed no gate; herdr and its panes inherited the server's full environment, API keys included | one `byoa:<harness>` route per harness, off by default, guarding each start; herdr from the scrubbed base; keys only by the user's per-pane opt-in; invariant 6 says so | captain ruling, 2026-10-06 |
 | 2026-10-07 | harness adapter interface (BYOA B1) | agent-modes spec B1, captain's Q5 and Q6 (2026-10-06): seven starting adapters, the old CLI switch repurposed | each harness was a branch in `host.agent_args`, the BYOA switch lived in the retired `agent/cli_adapters.py`, and nothing described how a harness is detected, wired or observed | `herdr/harnesses/` with the Protocol and seven adapters, the switch moved there, the host starts panes through them; invariant 6 states what an adapter may not do, held by a source gate | captain ruling, 2026-10-06 |
 | 2026-10-07 | a pane bound to a scene tab (BYOA B2, server side) | agent-modes spec B2, law 5 | panes reached Lampway only through a user-scope connector, with no tab binding, and the session record had no harness, scene or config fields | the record carries harness, native id, scene session, project root and config path; a per-pane MCP config pinned by LAMPWAY_BOUND_SESSION; bind and unbind never touch the pane; invariant 6 says so | captain ruling, 2026-10-06 |
+| 2026-10-07 | one agent mode per scene tab and the BYOA island view (M0, B4, server side) | coordinator brief: agent-modes spec M0, B4, captain's E1.10 rule | nothing told the server a tab was in Your agent mode, so a Mode 1 turn could run in a tab a pane drives; the observers were wired to nothing and the island could not show or type into a bound pane | invariant 6 names the two sources of a tab's mode and the `wrong_mode` refusal, the user-only mode route, the read-only observed stream with its replay rule and screen fallback, and the socket-decided origin of the island's sends | none |
