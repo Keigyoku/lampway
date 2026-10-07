@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from test_wave3_weights import PRE as WEIGHTS_PRE  # noqa: E402
 
 FIT_PRE = WEIGHTS_PRE + r'''
+import numpy as np
 def write_sidecar(body, arm, path, root_bone=None, schema="titan.native-weight-sidecar/1"):
     """The engine's weights as the editor leg writes them, from a skinned scene body: every vertex, every influence, UE space."""
     me = body.data
@@ -67,4 +68,43 @@ def human(name="body", head=True, open_body=False, arm=None):
         return {"pelvis": 1.0}
     weights(ob, arm, fn)
     return ob, arm
+
+FIG_BONES = HUMAN_BONES + (("thigh_l", (0.08, 0, 0.9), (0.08, 0, 0.5), "pelvis"), ("calf_l", (0.08, 0, 0.5), (0.08, 0, 0.1), "thigh_l"),
+                           ("thigh_r", (-0.08, 0, 0.9), (-0.08, 0, 0.5), "pelvis"), ("calf_r", (-0.08, 0, 0.5), (-0.08, 0, 0.1), "thigh_r"))
+
+def cyl(bm, c, r, depth, seg=32, cuts=0):
+    M = __import__("mathutils").Matrix.Translation(c)
+    geom = bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=seg, radius1=r, radius2=r, depth=depth, matrix=M)
+    if cuts:
+        bmesh.ops.subdivide_edges(bm, edges=[e for e in bm.edges if abs(e.verts[0].co.z - e.verts[1].co.z) > depth * 0.9 and
+                                             abs((e.verts[0].co.x + e.verts[1].co.x) / 2 - c[0]) < r + 1e-6], cuts=cuts, use_grid_fill=False)
+
+def figure(name="body"):
+    """A closed figure with legs and a head, rounded (capped cylinders and a sphere), skinned by region to FIG_BONES."""
+    arm = armature("rig", FIG_BONES)
+    bm = bmesh.new()
+    cyl(bm, (0, 0, 1.2), 0.15, 0.62, cuts=11)
+    cyl(bm, (0, 0, 1.5), 0.06, 0.12, seg=16)
+    bmesh.ops.create_uvsphere(bm, u_segments=16, v_segments=12, radius=0.11, matrix=__import__("mathutils").Matrix.Translation((0, 0, 1.66)))
+    for x in (0.08, -0.08):
+        cyl(bm, (x, 0, 0.5), 0.06, 0.86, seg=16, cuts=7)
+    me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    ob = bpy.data.objects.new(name, me); bpy.context.scene.collection.objects.link(ob)
+    def fn(co):
+        if co.z < 0.92 and abs(co.x) > 0.02:
+            side = "l" if co.x > 0 else "r"
+            return {("calf_" if co.z < 0.5 else "thigh_") + side: 1.0}
+        for n, h, t, _p in HUMAN_BONES:
+            if h[2] - 1e-9 <= co.z < t[2] or n == "head" and co.z >= h[2]:
+                return {n: 1.0}
+        return {"pelvis": 1.0}
+    weights(ob, arm, fn)
+    return ob, arm
+
+def npz(ob, path):
+    """the scene object's world mesh as mesh_to_npz writes it (V, T)"""
+    me = ob.data; me.calc_loop_triangles()
+    V = np.array([tuple(ob.matrix_world @ v.co) for v in me.vertices]); T = np.array([tuple(t.vertices) for t in me.loop_triangles])
+    os.makedirs(os.path.dirname(path), exist_ok=True); np.savez(path, V=V, T=T)
+    return path
 '''

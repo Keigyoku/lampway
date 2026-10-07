@@ -385,10 +385,11 @@ DEFS = [
     Def("lampway_fit_pose", "The closest pose of the body to a piece (canon 08). With dofs (bone, axis in the joint grammar, range <= 90 deg, step; the first with an expect for the "
         "sign check) and the scene's piece, skinned body and armature: a deterministic sweep, rays from each skin sample's bone axis to the piece, regions by bone; answers the pose in "
         "the replayable grammar with the A-pose and posed numbers and writes pose.json. Without dofs: chest is routed to pose_clearance; helmet | waist | boots | gauntlets: "
-        "needs_decision - the bones, axes and ranges to sweep are the user's to rule; the contract's proposals are included, marked unverified.",
+        "needs_decision - the bones, axes and ranges to sweep are the user's to rule; the contract's proposals are included, marked unverified. apply=true puts the armature in the pose found (the fit pose).",
         [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets"), P("piece", desc="the placed piece"), P("body", desc="the skinned body"),
          P("armature", desc="the body's armature"), P("dofs", desc="[{bone, axis, range, step, expect, mirror}] or 'chest' (the canon's chest table)"), P("chain", "array", "[{bone, axis, range, step}] after the grid"),
-         P("regions", "object", "{name: {bones, threshold_m}}"), P("out", desc="pose.json path under the project root")], api="fit_pose"),
+         P("regions", "object", "{name: {bones, threshold_m}}"), P("out", desc="pose.json path under the project root"),
+         P("apply", "boolean", "put the armature in the pose found (the fit pose bind samples at)")], api="fit_pose"),
     Def("lampway_weight_audit", "Read-only audit of a skinned mesh's weights, or a plan for how to bind it. audit: unweighted vertices, vertices over the influence cap, sums not 1, per-bone counts and mean weight, a "
         "rigid check (intended {rigid_bone}: vertices with any other influence), a side check (a *_l group on a right-side mesh), and competing-bone hotspots (two bones each >= 20 %). plan: rigid (>= 90 % of the "
         "vertices nearest one bone) or deforming (it spans bones that rotate against each other), with the bone(s) and the reason. An unbound object is told to bind first. Nothing is changed.",
@@ -453,9 +454,11 @@ DEFS = [
         api="fit_source_check"),
     Def("lampway_fit", "The fit of one piece in canon 03's ORDER (specs/canon/03-fit-and-deform.md): intake -> proportion -> match -> place -> pose_correct -> pose -> openings -> conform -> "
         "bind -> weights -> validate -> export, each arrow a refusal that names the next command. Each stage runs its tool with `args` (that tool's own arguments) and appends {stage, tool, inputs "
-        "sha256, receipt sha256, decider} to <piece>/fit/fit.json. intake: `roles` for every part in args.parts (the captain's or the recipe's, never a render's colour) and `body` (a fit_body package, "
-        "verified); match: the captain's sign-off, args {captain_seen: true, render_sha256}; pose_correct: args {segments}; conform: metal refused, soft parts wait on decision 03-H2; weights: the "
-        "body's native sidecar. A geometry stage after a recorded texture needs texture_discard_ack. status: done, next, and why each later stage is refused.",
+        "sha256, receipt sha256, decider} to <piece>/fit/fit.json. intake: `roles` for every part in args.parts (the captain's or the recipe's, never a render's colour), `body` (a fit_body package: "
+        "verified, CLOSED with its HEAD), and args.source for the source-part check (the detached-glove guard) before normalize_mesh; match: the captain's sign-off, args {captain_seen: true, "
+        "render_sha256}; pose_correct: args {segments}; pose: fit_pose applied (the fit pose); conform: metal refused, soft parts wait on decision 03-H2; bind: fit_bind plan; weights: fit_bind weights "
+        "from the package's native sidecar, then return; validate: fit_validate measure, written to <piece>/fit/validation.json; export: fit_export with it. The roles, kind and package are the "
+        "intake's record. A geometry stage after a recorded texture needs texture_discard_ack. status: done, next, and why each later stage is refused.",
         [P("stage", desc="status (default) | intake | proportion | match | place | pose_correct | pose | openings | conform | bind | weights | validate | export"),
          P("piece", required=True, desc="the piece's folder under the project root"), P("kind", desc="chest | helmet | waist | boots | gauntlets | cloak | skirt"),
          P("roles", "object", "{part: metal | leather | cloth | embroidery} (intake)"), P("args", "object", "the stage tool's own arguments"),
@@ -558,10 +561,11 @@ DEFS = [
     Def("lampway_fit_place", "Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): kind helmet = the widest head level above neck_02; waist = "
         "the band at spine_01 + 3 cm; boots = shaft width | knee height | foot length by scale_anchor (REQUIRED: the user has not ruled which anchor); gauntlets = the bracer at 35 % of its length "
         "vs the forearm's middle (an axis >25 degrees off is refused); chest = the audits' placement unchanged. piece and body are npz files (mesh_to_npz; the body with joints); turn brings the piece "
-        "to -Y front, +Z up. Writes placed.npz + .json (scale, translation, anchor_shift, turn) and returns the report. Run before mesh-paint and texture: a geometry step discards a texture.",
+        "to -Y front, +Z up. Writes placed.npz + .json (scale, translation, anchor_shift, turn) and returns the report. object=<name>: the scene piece is moved by the same placement (the "
+        "similarity fitted from piece.npz to placed.npz), after checking piece.npz is that object's world mesh. Run before mesh-paint and texture: a geometry step discards a texture.",
         [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets"), P("piece", required=True), P("body", required=True), P("turn", "number", "default 0"),
          P("clear_mm", "number", "wear clearance 0-40, default 15"), P("scale_anchor", desc="boots: width | height | foot"), P("sides", desc="both (default) | l | r"),
-         P("out", desc="default placed.npz")], api="fit_place"),
+         P("out", desc="default placed.npz"), P("object", desc="the scene piece to move by the placement")], api="fit_place"),
     Def("lampway_fit_openings", "The openings decision at fit: every cap a seed put across a limb, neck or waist opening gets keep | gasket | delete, logged append-only in <piece>/fit/decisions.jsonl. "
         "stage detect: the capped sites along `axis` (pointing out of the piece); propose: proposals only (the user rules); apply: answers {'OP000': 'gasket'}; check: manifold report; variants: "
         "builds and renders three collar depths. A GASKET cuts the POSED limb's cross-section (`limb`, an object) plus clearance_mm (5..40, default 15) into the cap plane and forms a COLLAR: a tubular "

@@ -324,6 +324,10 @@ def weights(piece, armature, out_dir, body_object, root, body=""):
     ix = {b: i for i, b in enumerate(names)}
     restrict = [p for p, r in pl["parts"].items() if r["mode"] != "rigid"]
     source, pkg_sha = f"{body_object} (a scene body: an approximation, not the native sidecar)", None
+    if body and not restrict:
+        from . import fit_body as _FBODY
+        pkg_sha = _FBODY.need_weights(str(Path(body) if Path(body).is_absolute() else Path(root) / body))["package_sha256"]
+        source = f"none sampled: every part is rigid (one bone each); the package {body} carries its native sidecar (package {pkg_sha[:12]})"
     faded = 0
     if restrict:
         if body:

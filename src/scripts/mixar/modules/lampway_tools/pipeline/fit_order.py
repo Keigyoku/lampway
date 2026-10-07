@@ -14,16 +14,21 @@ the record of what ran.
 * ``match`` is the captain's sign-off on the render beside the V3 turnarounds (INV-03.5): ``captain_seen`` with the render's sha256.
 * ``pose_correct`` has no tool in Lampway (canon 03 F.2): the stage records the measured rigid correction per segment the caller passes.
 * ``conform`` refuses a metal part (INV-03.2) and is otherwise not built: the soft-part deformer waits on the captain's decision 03-H2.
-* ``intake`` needs ``body``, a fit_body package: verified there (its package_sha256 recorded); ``weights`` needs its native weight
-  sidecar (fit_body verb=weights) and the same package_sha256.
+* ``intake`` needs ``body``, a fit_body package: verified there (its package_sha256 recorded), refused unless the package records a
+  CLOSED body with its HEAD included; and it runs the SOURCE-PART CHECK first (lampway_fit_source_check: ``args.source`` the same
+  mesh before any weld or fit, ``args.rigid_groups`` optional), refusing a detached part before anything is normalized.
+* ``bind`` is fit_bind's plan; ``weights`` is fit_bind weights FROM THE PACKAGE (its native sidecar: fit_body verb=weights, the same
+  package_sha256) and then fit_bind return (canon 03 B.9: bound at the fit pose, returned to rest); ``validate`` is fit_validate
+  measure, written to ``<piece>/fit/validation.json``, which ``export`` (fit_export, with the package) reads.
+* ``pose`` is fit_pose with apply=true: the armature is put in the closest pose, the fit pose bind samples at.
+* ``proportion`` is run_tool proportion_ratios (chest) or piece_ratios (the other kinds); a run that exits non-zero is refused.
 * A geometry stage (pose_correct, openings, conform: armor_piece's geometry steps) after a texture recorded in the piece's
   armor_piece run (step 13) needs ``texture_discard_ack`` (INV-03.14).
 * Every other stage delegates to its canon tool through ``call(tool, args)`` (the tool's own door and refusals apply) and appends
   {stage, tool, inputs_sha256, receipt_sha256, decider} to ``<piece>/fit/fit.json``; a failing tool records nothing.
 * Receipt: {piece, stage, ok, receipt_path, sha256, next, limits_status}; ``status`` adds why each later stage is refused.
 
-Not built here: the source-part check (the detached-glove guard) and the body package's "closed, head included" check (canon 03 G);
-the motion acceptance in UE (B.13) is outside the order."""
+The motion acceptance in UE (B.13) is outside the order."""
 
 import hashlib
 import json
@@ -34,10 +39,11 @@ STAGES = ("intake", "proportion", "match", "place", "pose_correct", "pose", "ope
 ROLES = ("metal", "leather", "cloth", "embroidery")
 SOFT = ("leather", "cloth")
 #: stage -> (the api tool it delegates to, the default arguments it adds) - None: no tool (a recorded decision or measurement)
-TOOLS = {"intake": ("normalize_mesh", {}), "proportion": ("run_tool", {"name": "piece_ratios"}), "match": (None, {}), "place": ("fit_place", {}),
+TOOLS = {"intake": ("normalize_mesh", {}), "proportion": ("run_tool", {}), "match": (None, {}), "place": ("fit_place", {}),
          "pose_correct": (None, {}), "pose": ("fit_pose", {}), "openings": ("fit_openings", {"stage": "detect"}), "conform": (None, {}),
-         "bind": ("fit_bind", {"stage": "bind"}), "weights": ("fit_bind", {"stage": "weights"}), "validate": ("fit_validate", {"stage": "validate"}),
+         "bind": ("fit_bind", {"stage": "plan"}), "weights": ("fit_bind", {"stage": "weights"}), "validate": ("fit_validate", {"stage": "measure"}),
          "export": ("fit_export", {})}
+THEN = {"weights": ("fit_bind", {"stage": "return"})}       # a second call the stage owes (canon 03 B.9: bind at the fit pose, return to rest)
 KIND_ARG = ("place", "pose")             # the tools that take the piece kind
 GEOMETRY = ("pose_correct", "openings", "conform")    # armor_piece STEPS marks openings geometry and fit_place not
 
@@ -63,7 +69,7 @@ def _tool_name(stage):
     t = TOOLS[stage][0]
     if t is None:
         return {"match": "the captain's sign-off", "pose_correct": "a recorded rigid correction per segment", "conform": "not built"}[stage]
-    return "lampway_run_tool piece_ratios" if t == "run_tool" else f"lampway_{t}"
+    return "lampway_run_tool piece_ratios | proportion_ratios" if t == "run_tool" else f"lampway_{t}"
 
 
 def _status(rec):
@@ -73,6 +79,11 @@ def _status(rec):
     return {"ok": True, "piece": rec["piece"], "kind": rec["kind"], "roles": rec["roles"], "body": rec.get("body"), "done": done,
             "not_applicable": skip, "next": [f"lampway_fit stage={s}" for s in todo[:1]],
             "refused": {s: f"needs {todo[0]} first" for s in todo[1:]}}
+
+
+def _limits_status(result):
+    lim = result.get("limits")
+    return lim.get("status") if isinstance(lim, dict) else None
 
 
 def _textured(root, piece):
@@ -117,6 +128,29 @@ def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent
         pkg = call("fit_body", {"verb": "verify", "out": body})
         if not pkg.get("ok"):
             return _refuse(f"intake: lampway_fit_body refused the body package: {pkg.get('error')}", *(pkg.get("help") or []))
+        st = pkg.get("body") or {}
+        if st.get("closed") is None:
+            return _refuse("intake: the body package records no closed/head state: rebuild it with its mesh (lampway_fit_body verb=build mesh=<body>)",
+                           "lampway_fit_body verb=build")
+        if not st.get("closed"):
+            return _refuse(f"intake: the body package's mesh is not closed ({st.get('boundary_edges')} boundary edges): fit only on the closed native body, "
+                           "head included (canon 03 G); signs near an opening are not measurements", "lampway_fit_body verb=build")
+        if not st.get("head_included"):
+            return _refuse("intake: the body package's head is not included (its head joint is not inside the closed body): the native FullBody with its "
+                           "head (canon 03 A, G)", "lampway_fit_body verb=build")
+        source = args.pop("source", None)
+        groups = args.pop("rigid_groups", None)
+        if not source:
+            return _refuse("intake needs args.source: the piece's source (the same mesh before any weld or fit) for the source-part check, the "
+                           "detached-glove guard (lampway_fit_source_check; canon 03 G)", "lampway_fit_source_check")
+        sc_args = {"piece": args.get("input"), "source": source}
+        if groups:
+            sc_args["rigid_groups"] = groups
+        chk = call("fit_source_check", sc_args)
+        if not chk.get("ok"):
+            return _refuse(f"intake: lampway_fit_source_check refused: {chk.get('error')}", *(chk.get("help") or []))
+        if not chk.get("pass"):
+            return _refuse(f"intake: the source-part check failed: {chk.get('reason')}")
         rec["roles"], rec["kind"] = roles, kind or rec["kind"]
         rec["body"] = {"package": body, "package_sha256": pkg.get("package_sha256")}
     if stage == "match":
@@ -134,6 +168,16 @@ def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent
                            f"similarity (canon 03 INV-03.2)")
         return _refuse("conform is not built: the soft-part deformer for cloth and leather waits on the captain's decision 03-H2 (canon 03 B, "
                        "the measured candidates)")
+    if stage == "proportion" and "name" not in args:
+        args["name"] = "proportion_ratios" if rec.get("kind") == "chest" else "piece_ratios"
+    if stage == "pose":
+        args.setdefault("apply", True)                    # the closest pose IS the fit pose the piece is bound at (canon 03 B.6 -> B.9)
+    if stage in ("bind", "validate"):
+        args.setdefault("roles", dict(rec["roles"]))      # the roles are the intake's record (G03.3), never re-typed per stage
+    if stage in ("weights", "export"):
+        args.setdefault("body", rec["body"]["package"])
+    if stage == "export":
+        args.setdefault("validation", str(Path(piece) / "fit" / "validation.json"))
     if stage == "weights":
         pkg = call("fit_body", {"verb": "weights", "out": rec["body"]["package"]})
         if not pkg.get("ok"):
@@ -147,11 +191,24 @@ def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent
     result = None
     if tool is not None:
         targs = dict(defaults, **args)
-        if stage in KIND_ARG and kind and "kind" not in targs:
-            targs["kind"] = kind
+        if stage in KIND_ARG and (kind or rec.get("kind")) and "kind" not in targs:
+            targs["kind"] = kind or rec["kind"]
         result = call(tool, targs)
         if not result.get("ok"):
             return _refuse(f"{stage}: {_tool_name(stage)} refused: {result.get('error')}", *(result.get("help") or []))
+        if result.get("ok_run") is False:
+            return _refuse(f"{stage}: {_tool_name(stage)} {args.get('name')} exited with rc {result.get('rc')}: {str(result.get('output') or '')[-400:]}")
+        if stage in THEN:
+            t2, d2 = THEN[stage]
+            a2 = dict(d2, **{k: v for k, v in targs.items() if k not in ("stage", "body", "body_object")})
+            second = call(t2, a2)
+            if not second.get("ok"):
+                return _refuse(f"{stage}: lampway_{t2} {d2.get('stage', '')} refused: {second.get('error')}", *(second.get("help") or []))
+            result = {"ok": True, tool: result, f"{t2}_{d2.get('stage', '')}": second}
+        if stage == "validate":
+            vf = Path(root) / piece / "fit" / "validation.json"
+            vf.parent.mkdir(parents=True, exist_ok=True)
+            vf.write_text(json.dumps(result, indent=1, sort_keys=True, default=str))
     else:
         result = {"recorded": args, "decider": decider}
     row = {"stage": stage, "tool": tool, "inputs_sha256": _sha(args), "receipt_sha256": _sha(result), "decider": decider, "at": round(time.time(), 3)}
@@ -161,4 +218,4 @@ def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent
     p.write_text(json.dumps(rec, indent=1, sort_keys=True))
     st = _status(rec)
     return {"ok": True, "piece": piece, "stage": stage, "receipt_path": str(p.relative_to(root)) if p.is_relative_to(root) else str(p),
-            "sha256": row["receipt_sha256"], "next": st["next"], "limits_status": (result.get("limits") or {}).get("status"), "result": result}
+            "sha256": row["receipt_sha256"], "next": st["next"], "limits_status": _limits_status(result), "result": result}
