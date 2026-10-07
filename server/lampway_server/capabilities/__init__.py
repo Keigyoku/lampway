@@ -12,7 +12,8 @@ choose Routes." Nothing is removed from the harness; every ability is a row here
 * Only the user's click changes a capability (``by="user"``). An agent reads the board and proposes a change
   (``lampway_capabilities``); the proposal waits for the user.
 * Law 2 is unchanged: a capability that needs egress routes is in force only while each of its routes is on. A route that does
-  not exist yet (``web:any``, ``msg:<platform>``: planned with the engine's egress proxy, spec E1.5) is off.
+  not exist yet (``web_search``, ``msg:<platform>``) is off; ``web:any`` exists (spec E1.5, ``engine/proxy.py`` enforces both it and
+  ``web.browse`` for the engine's network).
 * Enforcement for Lampway's own tool families is ``check_tool``, at call time, for the in-app agent and for MCP clients alike.
 """
 

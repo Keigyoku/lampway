@@ -23,6 +23,7 @@ A route is one place data can go. The server knows these routes and their hosts;
 | `model_download` | a plain GET of public model weights (Hugging Face) | huggingface.co and its CDNs | ok: no content is sent, the host sees your IP address and the file you asked for |
 | `compute:boat` | Boat cloud CPU boxes | boat.dev | conditional: snapshots off and no environment passed |
 | `compute:modal`, `compute:runpod` | serverless GPU endpoints | their own hosts | unknown |
+| `web:any` | the agent's own browser, for the engine's `web.browse` capability: any host, each one logged (built and tested as the engine's egress proxy; no engine starts it yet) | any website | unknown |
 
 "Unknown" is stated honestly: the providers' terms (retention, training) have not been read or recorded for these routes, so Lampway does not claim a policy it has not verified. The panel shows each route's retention and training line as the code has it.
 
