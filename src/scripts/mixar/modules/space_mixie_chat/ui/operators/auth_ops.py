@@ -163,7 +163,6 @@ def _clear_byok_state_on_logout(wm):
         ('byok_key_preview', ''),
         ('byok_form_api_key', ''),
         ('byok_form_openrouter_model', ''),
-        ('byok_form_codex_bundle', ''),
         ('byok_form_local_custom_base', ''),
         ('byok_form_local_custom_model', ''),
         ('byok_form_local_custom_key', ''),
