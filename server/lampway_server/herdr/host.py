@@ -11,9 +11,11 @@ import uuid
 from pathlib import Path
 
 from .. import egress as EG
+from . import harnesses as HN
 from . import launcher as L
 
-AGENTS = ("claude", "codex", "opencode", "shell", "command")
+#: Every harness adapter (spec B1), then Lampway's two plain kinds: a shell, and a command the user typed.
+AGENTS = (*HN.ids(), "shell", "command")
 EFFORTS = (None, "medium", "high", "xhigh", "max")
 GENERIC_NAMES = {"session", "new session", "untitled", "chat", "agent"}
 WORKSPACE_LABEL = "lampway"
@@ -22,21 +24,15 @@ _CTRL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]|\x1b\[[0-9;?]*[ -/]*[@-~]"
 _LOCK = threading.Lock()
 
 
-#: The egress route that gates starting each harness (agent-modes spec B5): the harness talks to its vendor directly; the start is the opt-in.
-HARNESS_ROUTES = {"claude": "byoa:claude", "codex": "byoa:codex", "opencode": "byoa:opencode"}
-#: The Connections entries whose key a pane receives when the user ticks "bill this pane to my API key" (B5); none otherwise.
-API_KEY_CONNECTIONS = {"claude": ("anthropic",)}
-
-
 class CockpitError(ValueError):
     pass
 
 
-def _key_env(agent) -> list:
-    """['--env', 'NAME=value', ...] for the user's per-pane API-key opt-in: only the keys of this harness's own vendor."""
+def _key_env(ad) -> list:
+    """['--env', 'NAME=value', ...] for the user's per-pane API-key opt-in (spec B5): only the keys of this harness's own vendor."""
     from .. import connections
     out = []
-    for cid in API_KEY_CONNECTIONS.get(agent, ()):
+    for cid in ad.api_key_connections:
         try:
             values = connections.credential(cid).env()
         except Exception:  # noqa: BLE001 - not connected: the pane runs on the harness's own login
@@ -44,33 +40,8 @@ def _key_env(agent) -> list:
         for k, v in values.items():
             out += ["--env", f"{k}={v}"]
     if not out:
-        raise CockpitError(f"no API key is connected for {agent}: connect one in Connections, or start the pane on the harness's own login")
+        raise CockpitError(f"no API key is connected for {ad.label}: connect one in Connections, or start the pane on the harness's own login")
     return out
-
-
-def agent_args(agent, effort=None, bypass=False, resume_id=None, session_id=None) -> list:
-    """The CLI arguments exactly as the cockpit contract fixes them: Codex `[resume <id>] --no-alt-screen ...`, Claude `[--resume <id> | --session-id <uuid>] ...`, OpenCode `[--session <id>] [--auto]`."""
-    a = []
-    if agent == "codex":
-        if resume_id:
-            a += ["resume", resume_id]
-        a += ["--no-alt-screen"]
-        if bypass:
-            a += ["--dangerously-bypass-approvals-and-sandbox"]
-        if effort:
-            a += ["-c", f'model_reasoning_effort="{effort}"']
-    elif agent == "claude":
-        a += ["--resume", resume_id] if resume_id else (["--session-id", session_id] if session_id else [])
-        if bypass:
-            a += ["--dangerously-skip-permissions"]
-        if effort:
-            a += ["--effort", effort]
-    elif agent == "opencode":
-        if resume_id:
-            a += ["--session", resume_id]
-        if bypass:
-            a += ["--auto"]
-    return a
 
 
 class Cockpit:
@@ -147,14 +118,16 @@ class Cockpit:
             raise CockpitError("only the user can bill a pane to an API key, with their own click in the cockpit: an agent never can")
         if not L.server_status(self.root).get("running"):
             raise CockpitError("the herdr server is not running: start it from the cockpit first (nothing is launched automatically)")
-        route = HARNESS_ROUTES.get(agent)
-        with (EG.guard(route, kind="request") if route else contextlib.nullcontext()):    # B5: logged before herdr is asked; refused with the route off
-            return self._create(agent, name, real, task, effort, bypass, resume_id, command, by, api_key)
+        ad = HN.ADAPTERS.get(agent)
+        with (EG.guard(ad.route, kind="request") if ad else contextlib.nullcontext()):    # B5: logged before herdr is asked; refused with the route off
+            return self._create(agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key)
 
-    def _create(self, agent, name, real, task, effort, bypass, resume_id, command, by, api_key) -> dict:
+    def _create(self, agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key) -> dict:
+        if api_key and ad is None:
+            raise CockpitError("only a harness pane can be billed to an API key")
         snap = self.snapshot()
         ws = next((w for w in snap["workspaces"] if w.get("label") == WORKSPACE_LABEL), None)
-        env = L.pane_env() + (_key_env(agent) if api_key else [])
+        env = L.pane_env() + (_key_env(ad) if api_key else [])
         if ws is None:
             out = json.loads(L.run(self.root, ["workspace", "create", "--cwd", real, "--label", WORKSPACE_LABEL, "--no-focus", *env]))["result"]
         else:
@@ -163,16 +136,21 @@ class Cockpit:
         pane_id = pane["pane_id"]
         native_id = resume_id
         tokens = []
-        if agent in ("command", "claude", "codex", "opencode"):
+        if agent == "command" or ad is not None:
             self._wait_prompt(pane_id)
         if agent == "command":
             L.run(self.root, ["pane", "run", pane_id, *shlex.split(command)])
             tokens = [os.path.basename(shlex.split(command)[-1])]
-        elif agent in ("claude", "codex", "opencode"):
-            sid = str(uuid.uuid4()) if agent == "claude" and not resume_id else None
+        elif ad is not None:
+            sid = str(uuid.uuid4()) if ad.picks_session_id and not resume_id else None
             native_id = native_id or sid
-            L.run(self.root, ["agent", "start", name[:40], "--kind", agent, "--pane", pane_id, "--", *agent_args(agent, effort, bypass, resume_id, sid)], timeout=120)
-            tokens = [agent]
+            spec = HN.PaneSpec(cwd=real, project_root=pr, effort=effort, bypass=bool(bypass), session_id=sid)
+            argv = ad.resume(resume_id, spec) if resume_id else ad.launch(spec)
+            if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
+                L.run(self.root, ["agent", "start", name[:40], "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
+            else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
+                L.run(self.root, ["pane", "run", pane_id, *argv])
+            tokens = [ad.binary]
         rec = {"id": uuid.uuid4().hex[:12], "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
                "terminal_id": pane.get("terminal_id"), "workspace_id": pane.get("workspace_id"), "tab_id": pane.get("tab_id"), "native_id": native_id, "command": command, "match": tokens,
                "state": "live", "adopted": True, "agent_sends": False, "created_at": time.time(), "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by,

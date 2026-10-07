@@ -1,15 +1,13 @@
-"""The switch for the user's own agent CLIs in Lampway's panes (Bring Your Own Agent).
-
-The CLI-as-model-endpoint code that lived here is gone (docs/reports/agent-modes-spec.md R0, captain's Q6, 2026-10-06): the
-``claude_cli`` / ``codex_cli`` providers that flattened a transcript into ``claude -p`` / ``codex exec``, their ``TOOL_CALL`` text
-protocol, and ``codex_image``. What is left is the switch the cockpit's pane spawn checks; it moves into the harness adapter
-interface (spec B1) with the binary detection and the pane environment.
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+"""The switch for the user's own agents in Lampway's panes (Bring Your Own Agent), moved here from ``agent/cli_adapters.py``
+(agent-modes spec B1, captain's Q6). The cockpit's create route and the agent's open path both check it (B6).
 
 In BYOA Lampway starts the vendor's own, unmodified binary for the user, on the user's own login, in a pane on Lampway's herdr
 server. It never reads, copies, stores or forwards that login, and never sends a model request through it (spec B0).
-Off by default: switch on with ``LAMPWAY_LOCAL_CLI=1`` or ``{"enabled": true}`` in ``<state>/local_cli.json``.
+Off by default: switch on with ``LAMPWAY_LOCAL_CLI=1`` or ``{"enabled": true}`` in ``<state>/local_cli.json`` (Lampway's own
+state file; this module reads nothing else).
 """
-
 import json
 import os
 from pathlib import Path

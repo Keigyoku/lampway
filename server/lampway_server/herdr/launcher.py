@@ -81,6 +81,38 @@ def _spawn(cmd: list, env: dict, timeout=30, input=None, detached=False):
     return subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=timeout, input=input)
 
 
+def _probe_spawn(argv: list, env: dict, timeout: float):
+    """A harness's own version flag (harnesses/: Adapter.detect). Local: it prints a version and sends nothing."""
+    return subprocess.run(argv, env=env, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
+
+
+def probe(argv: list, timeout: float = 10) -> tuple:
+    """(exit code, output) of a harness's version flag, run with the scrubbed environment; (None, "") when it cannot run."""
+    try:
+        r = _probe_spawn([str(a) for a in argv], scrubbed_base(), timeout)
+    except (OSError, subprocess.TimeoutExpired):
+        return None, ""
+    return r.returncode, r.stdout or r.stderr or ""
+
+
+def _status_spawn(argv: list, env: dict, timeout: float):
+    """A harness's own login status command (harnesses/: Adapter.login_state). Only ever called inside guard(byoa:<harness>)."""
+    return subprocess.run(argv, env=env, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
+
+
+def login_probe(route: str, argv: list, timeout: float = 20) -> tuple:
+    """(exit code, output) of a harness's own status command, inside its egress route (the harness may ask its vendor): refused
+    with the route off, logged before it starts. It runs with the scrubbed environment and the user's real home, so it reads its own
+    login, which Lampway never does (spec B0)."""
+    from .. import egress as EG
+    with EG.guard(route, kind="request"):
+        try:
+            r = _status_spawn([str(a) for a in argv], scrubbed_base(), timeout)
+        except (OSError, subprocess.TimeoutExpired):
+            return None, ""
+    return r.returncode, r.stdout or r.stderr or ""
+
+
 def run(root, args: list, timeout=30, input=None) -> str:
     """One herdr command against the Lampway server; returns stdout. The environment is checked BEFORE the spawn."""
     env = env_for(root)

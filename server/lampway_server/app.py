@@ -904,15 +904,15 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     async def wb_create(request: Request):
         if (r := _wb(request)) is not None:
             return r
-        from .agent import cli_adapters
+        from .herdr import harnesses as _HN
         body = await _json_body(request)
         if body.get("bypass") and os.environ.get("LAMPWAY_ALLOW_BYPASS_ROUTE") != "1":
             return _wb_err("bypass can only be raised by the user's own click in the cockpit: a request cannot lift the permission level", 403)
         if body.get("api_key") and _wb_origin(request) != "user":
             return _wb_err("only your click in the cockpit bills a pane to an API key: a request from an agent cannot", 403)
-        if body.get("agent") in ("claude", "codex", "opencode"):
+        if body.get("agent") in _HN.ids():
             try:
-                cli_adapters.require_enabled(settings.state_dir)
+                _HN.require_enabled(settings.state_dir)
             except ValueError as exc:
                 return _wb_err(f"the local CLI switch is off: {exc}", 403)
         try:
