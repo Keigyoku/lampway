@@ -5159,6 +5159,12 @@ msgstr "Închidere"
 msgid "Dismiss the error and return to idle"
 msgstr "Închide eroarea și revine la inactiv"
 
+msgid "Exception"
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
 msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
 msgstr ""
 

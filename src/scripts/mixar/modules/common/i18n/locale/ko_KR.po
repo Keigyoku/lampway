@@ -5159,6 +5159,12 @@ msgstr "닫기"
 msgid "Dismiss the error and return to idle"
 msgstr "오류를 닫고 대기 상태로 돌아갑니다"
 
+msgid "Exception"
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
 msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
 msgstr ""
 

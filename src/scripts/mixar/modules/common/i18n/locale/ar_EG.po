@@ -5159,6 +5159,12 @@ msgstr "ﻞﻫﺎﺠﺗ"
 msgid "Dismiss the error and return to idle"
 msgstr "ﻝﻮﻤﺨﻟﺍ ﺔﻟﺎﺣ ﻰﻟﺇ ﺩﻮﻌﻳﻭ ﺄﻄﺨﻟﺍ ﻞﻫﺎﺠﺘﻳ"
 
+msgid "Exception"
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
 msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
 msgstr ""
 

@@ -5159,6 +5159,12 @@ msgstr "Odbaci"
 msgid "Dismiss the error and return to idle"
 msgstr "Odbacuje pogrešku i vraća se u mirovanje"
 
+msgid "Exception"
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
 msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
 msgstr ""
 

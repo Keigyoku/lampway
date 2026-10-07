@@ -1241,6 +1241,14 @@ msgid "e.g. Use meters for all dimensions"
 msgstr "e.g. Use metres for all dimensions"
 
 # derived
+msgid "Meter"
+msgstr "Metre"
+
+# derived
+msgid "\"<words>\\x1f<used>\\x1f<pending>\\x1f<hot>\": a cap meter"
+msgstr "\"<words>\\x1f<used>\\x1f<pending>\\x1f<hot>\": a cap metre"
+
+# derived
 msgid "Island Glass Wash color"
 msgstr "Island Glass Wash colour"
 
