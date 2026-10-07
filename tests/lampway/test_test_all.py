@@ -110,7 +110,16 @@ def _shelf(tmp_path):
     return {"LAMPWAY_SHELF_DIR": str(shelf)}
 
 
+def test_verify_env_names_a_missing_i18n_template(tmp_path):
+    """b19 (2026-10-06): mixar.pot is git-ignored (generated), so a fresh worktree has none and tests/i18n's template check fails
+    while the catalog check skips. The reference environment generates it (test_env.sh); verify_env says when it is missing."""
+    problems = T.verify_env(tmp_path, packages={}, python=None, shelf={})
+    assert any(T.I18N_TEMPLATE in p and "test_env.sh" in p for p in problems), problems
+
+
 def test_verify_env_passes_when_everything_is_there(tmp_path):
+    (tmp_path / T.I18N_TEMPLATE).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / T.I18N_TEMPLATE).write_text("x")
     for rel in T.UPSTREAM_FILES:
         f = tmp_path / rel
         f.parent.mkdir(parents=True, exist_ok=True)

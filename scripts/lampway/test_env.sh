@@ -12,7 +12,8 @@
 #   3. the shelf, READ ONLY: export LAMPWAY_SHELF_DIR (and LAMPWAY_SHELF_SCRATCH when its scratch is not <shelf>/scratch) to the machine's
 #      copy of the owner's recorded fixtures; test_all requires its placement fixtures (test_all.py SHELF_FILES), fails a shelf test that
 #      would skip, and fails a run that wrote to it. The path is the machine's: it is never written in the repository.
-#   4. test_all.py --verify-env must then pass.
+#   4. the i18n template (src/scripts/mixar/modules/common/i18n/locale/mixar.pot, git-ignored) is written from the source and upstream/.
+#   5. test_all.py --verify-env must then pass.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PY="${LAMPWAY_TEST_PYTHON:-python3}"
@@ -58,4 +59,6 @@ for extra in ("test", "local-embeddings"):
 print("\n".join(out))
 PYEOF
 "$PY" -m pip install -q -r "$ROOT/tests/requirements-test.txt" -r "$SERVER_REQS"
+# the i18n template is git-ignored (generated from the source and upstream/): tests/i18n reads it, so the environment writes it
+"$PY" "$ROOT/scripts/i18n/extract_messages.py" > /dev/null
 "$PY" "$ROOT/scripts/lampway/test_all.py" --verify-env
