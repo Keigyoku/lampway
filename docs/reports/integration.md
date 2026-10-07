@@ -86,6 +86,39 @@ Fix:
 - `tests/lampway/test_test_all.py` pins the parser and the judge (written after the script, not RED-first).
 - The two herdr fleet-witness tests now SKIP unless `LAMPWAY_TEST_FLEET_WITNESS=1`: they read the person's real herdr state, which no test does by default now that HOME is isolated; with the opt-in they pass (measured).
 
+### Cloud audit of fd0f108 (specs/bugs/2026-10-06-cloud-audit-wave5.md): findings ledger
+Each finding was re-checked against the tip first; every fix was RED first (the failing run named below), in the real binary for
+client code (a separate dev binary, `blender-lanes/integration-dev/Prod`, so a dev run never syncs into a gate's binary).
+The MCP wrapper (C0-C2, T1-T3) and the agent modes stay with the cloud crew.
+
+| finding | status | sha | evidence |
+|---|---|---|---|
+| F1 launcher dies on `import bpy` | fixed | 44d6e5fc | `tests/mcp/test_launcher_isolated.py` starts `python -I mcp.py` and completes an initialize (RED: No module named 'bpy'); `.github/workflows/mcp-launcher.yml` runs it on 3.11 with only mcp + pytest (verified in a clean 3.11 venv; the mutant without the fix fails there) |
+| F2 MCP scene tools never ran | fixed | 197f418a, 8add5ed0 | McpServer leases the scene (begin, the script's `mcp_operation_id`, end in finally). `server/tests/test_mcp_operation_lease.py` fakes the client's two gates (RED: "Agent session not active"); `tests/test_mcp_server_lease_contract.py` drives the server call through the client's REAL rpc.dispatch / has_active_session / authorize_script (a mutant that drops the id fails it). NOT driven against a live desktop + server |
+| F3 guide names 18 missing tools | fixed (minimal) | 93a34337 | the guide and prompt use Lampway's tools; a test holds every snake_case name in them to tools/list (launcher + server). The C2 contract stays the cloud crew's |
+| F4 80K tokens of schema; 10 `mixar_*` aliases | deferred: window not passed | - | `mcp_bridge/core/aliases.py` keeps the old names "for one release"; no Lampway release has shipped, so the window has not started. Dropping them is a release decision. T1-T3 stay the cloud crew's |
+| F5 refused import leaves objects | routed to lp/canon (active) | - | normalize.py is canon's, and canon's own test (`test_a_flat_shaded_box_..._refused_by_the_5_percent_guard`) pins the opposite: a refused file import leaves its raw object. A RED test and a fix that removes what the import brought in are at `scratch/audit-patches/F5-refused-import-cleanup.diff` (the canon test would change with it) |
+| F6 batch tools ok: true with rc 1 | fixed | 74466ed4 | run_tool: non-zero rc or timeout is ok: false with the last error line and a next step |
+| F7 init drops the barrel's maps | fixed | f894c528 | init refuses a material that samples image maps, naming them; params {discard_textures: true} starts anyway |
+| F8 unbounded replies | fixed (minimal) | b901926f, a78dc009, 0932b11e | scene_summary, scene_cleanup and uv_check page with limit/offset, totals and next_offset, full=true for all; segment_mesh is capped by F15's max_parts; mesh_defect_scan already had max_candidates (100). T1 stays the cloud crew's |
+| F9 TOON encoders corrupt data | fixed (minimal) | d73c71c0 | toon_out matches the 76 in-scope official encode fixtures (vendored, MIT; RED: 56 failed); both axi copies print canonical numbers and `key: []`; the studio parser reads `key: []`. C0 stays the cloud crew's |
+| F10 UV score 0 % with no reason; seam_m 0 | fixed | cc98a251 | uv_bounds and warnings (outside the scored tile; split at the seams) |
+| F11 moved normalised object non-canonical | routed to lp/canon (active) | - | the refusal is `canon_asset.py` (the canonical document's identity-matrix check), canon's |
+| F12 raw TypeError / AttributeError | fixed | d0554501 | project_views and model_compare refuse malformed shapes by name |
+| F13 refusals without a next step | fixed | 5f834ce9 | call templates on every required-argument refusal (Def, server-run and Vault tools); the call shape on in-Blender argument refusals; five refusals named tools that do not exist, and a scan test holds every `lampway_*` name in a refusal to the registry. `lampway_normalize_rigged`: already fixed at lp/canon 65c8654c (built) |
+| F14 schemas leave agents guessing | partial: ratchet | e98294e7, a78dc009 | the debt (691 undescribed of 1,540; 240 unbounded numbers) is recorded and may only fall; P carries minimum/maximum. Describing and bounding the existing parameters is left for the tool-surface work (T1-T3) |
+| F15 ~900 objects from segment shells | fixed | 8b30fec9 | max_parts (200) refuses before anything is made; isolated shells under min_faces gather into one remainder part |
+| F16 UI receipts stay unknown; 11 s timeout | deferred | - | the outcome_unknown path is upstream's UI-control pump (service.py): a late outcome would have to re-open a receipt after its generator is closed at the deadline. A change to that state machine wants its own slice; recommended with the MCP UI work |
+| F17 controls without labels; no paging | routed to facelift (via the coordinator) | - | UI-owned |
+| F18 plans priced for missing inputs | fixed | b7f3c828 | anim_clip needs its reference (and driver) files, anim_from_video its character |
+| F19 Text.write blocked; /tmp open | fixed | 18075cf0 | Text.write is content; the sandbox's temp root is its own owner-only per-process folder |
+| F20 tool failure not logged | fixed | 124d3855 | every failed reply is logged with tool, request id, error and type |
+| F21 tag layers with no arguments | fixed | ca177fa3 | refused before any edit without a piece set up |
+| F22 "server not running" when signed out | routed to facelift | - | UI-owned |
+| F23 first-run setup layout | routed to facelift | - | UI-owned; the audit saw it on software GL: check on the real binary |
+| F24 Mixar leftovers in custom-drawn text | routed to facelift | - | UI-owned (branding gate over custom-drawn text) |
+| F25 a 45 MB checkpoint per turn | deferred | - | upstream's turn-checkpoint design (a whole-file copy before every message, deduplicated by hash). Skipping a "read-only" turn needs a change detector the module itself says is blind to direct bpy.data writes, so a wrong skip would make a revert restore the wrong state. Recommended: a decision on incremental checkpoints, not a patch here |
+
 ## Merges
 
 All merges are `--no-ff` into lp/wave5, of PUSHED refs only (an earlier merge of a lane's unpushed local tip, `57b6d2e8` of lp/vault-ui, was amended by the lane afterwards and came back as add/add conflicts; that draft commit stays in lp/wave5's history).
