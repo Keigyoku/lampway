@@ -239,7 +239,9 @@ class JobQueue:
         except Exception as exc:  # noqa: BLE001 - SpendRefused: said in the tab, never sent
             refused = str(exc)
         last_run = self.prompts.runlog.last_line(service) if self.prompts is not None else None
+        last_short = self.prompts.runlog.last_line(service, short=True) if self.prompts is not None else None
         return {"service": service, "model": model, "provider": provider, "route": provider, "price": price, "basis": basis, "last_run": last_run,
+                "last_run_short": last_short,
                 "policy": {"click": cfg.get("click", "always"), "above": cfg.get("above"), "job_cap": cfg.get("job_cap"), "session_cap": cfg.get("session_cap"),
                            "spent": round(float(self.policy.spent.get(provider, 0.0)), 6)},
                 "needs_click": self.policy.needs_click(provider, amount), "refused": refused}

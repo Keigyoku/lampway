@@ -18,12 +18,21 @@ def setup(bpy):
     props = bpy.ops.lampway.tool_retopo.get_rna_type().properties
     OUT["kinds"] = {p.identifier: p.type for p in props if p.identifier in ("object", "target_faces", "symmetry", "adaptivity")}
     OUT["free_text"] = [n for n in ("LAMPWAY_PT_tools", "LAMPWAY_PT_features") if hasattr(bpy.types, n)]
-    cube = bpy.data.objects["Cube"]
-    bpy.context.view_layer.objects.active = cube
+    # The canon door bounds a retopo target: at least 50 faces and at most 3x the source ("a remesher cannot invent
+    # detail"), so the default Cube (6 faces) cannot be retopologised: a 128-face sphere is the subject.
+    import bmesh
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=16, v_segments=8, radius=1.0)
+    me = bpy.data.meshes.new("Ball")
+    bm.to_mesh(me)
+    bm.free()
+    ball = bpy.data.objects.new("Ball", me)
+    bpy.context.scene.collection.objects.link(ball)
+    bpy.context.view_layer.objects.active = ball
     win = bpy.context.window_manager.windows[0]
     with bpy.context.temp_override(window=win):
-        OUT["run"] = list(bpy.ops.lampway.tool_retopo(object="Cube", target_faces=200))
-    OUT["done"] = sorted(the_way.done_steps(cube))
+        OUT["run"] = list(bpy.ops.lampway.tool_retopo(object="Ball", target_faces=100))
+    OUT["done"] = sorted(the_way.done_steps(ball))
     OUT["message"] = bpy.context.scene.lampway_tools.last_message[:200]
 
 

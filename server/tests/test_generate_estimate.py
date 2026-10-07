@@ -76,10 +76,13 @@ def test_the_last_run_line_reads_billed_against_its_estimate(tmp_path):
     log.record("j1", prompt="a", service="image_gen", cost=0.2, extra={"estimate": 0.21, "count": 3})
     log.rate("j1", 4)
     assert log.last_line("image_gen") == "3 images, $0.20 billed against a $0.21 estimate, rated 4"
+    assert log.last_line("image_gen", short=True) == "$0.20 billed / $0.21 est.", "the narrow column's form"
     log.record("j2", prompt="b", service="image_gen", cost=None, extra={"estimate": 0.07, "count": 1})
     assert log.last_line("image_gen") == "1 image, billed amount not read back (a $0.07 estimate), not rated yet"
     log.record("v1", prompt="c", service="video_gen", cost=13.5, extra={"estimate": None, "count": 1, "unit": "credits"})
     assert log.last_line("video_gen") == "1 video, 13.5 credits billed (no estimate before it), not rated yet"
+    assert log.last_line("video_gen", short=True) == "13.5 credits billed"
+    assert log.last_line("image_gen", short=True) == "not read back / $0.07 est."
     assert log.last_line("image_gen").startswith("1 image"), "each tab reads its own kind's last run"
 
 
@@ -92,4 +95,5 @@ def test_the_estimate_answer_carries_the_last_run_of_its_kind(stack):
     assert fake.post("/app/prompts/rate", json={"job_id": jid, "rating": 4}).status_code == 200
     out = _estimate(fake, "video_gen", "heygen/heygen-video-1", {"duration": 5, "resolution": "480p"})
     assert out["last_run"] == "1 video, $0.12 billed against a $0.10 estimate, rated 4", out["last_run"]
+    assert out["last_run_short"] == "$0.12 billed / $0.10 est."
     assert _estimate(fake, "image_gen", "openai/gpt-5-image-mini", {})["last_run"] is None

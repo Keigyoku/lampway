@@ -89,6 +89,7 @@ bool media_face_read(const bContext *C, const char *owner, MediaFace *r_face)
   face_string(&wm_ptr, "lampway_gen_policy", r_face->policy, sizeof(r_face->policy));
   face_string(&wm_ptr, "lampway_gen_refusal", r_face->refusal, sizeof(r_face->refusal));
   face_string(&wm_ptr, "lampway_gen_last_run", r_face->last_run, sizeof(r_face->last_run));
+  face_string(&wm_ptr, "lampway_gen_last_run_short", r_face->last_run_short, sizeof(r_face->last_run_short));
   r_face->cap_job_fill = face_float(&wm_ptr, "lampway_gen_cap_job_fill");
   r_face->cap_session_fill = face_float(&wm_ptr, "lampway_gen_cap_session_fill");
   return r_face->button[0] != '\0';
@@ -277,18 +278,20 @@ rctf media_face_paint(const MediaFace &face, const rctf &column, const float u)
     pane_fit_text(refusal, w, font_sub);
     face_text(refusal, x, y, font_sub, stop, false);
   }
+  /* Generate fills the column's foot. */
+  const float h = 1.15f * PANE_ROW_H * u;
   if (face.last_run[0]) {
-    /* The last run, billed against what was estimated before it was sent: the numbers in Plex Mono. */
+    /* The last run, billed against what was estimated before it was sent, in Plex Mono: the whole line when it fits
+     * the column, else its short form (what was billed against the estimate). */
     y -= 1.8f * font;
-    char last_run[sizeof(face.last_run) + 4];
-    STRNCPY(last_run, face.last_run);
-    face_fit(last_run, sizeof(last_run), w, font_sub, true);
-    face_text(last_run, x, y, font_sub, muted, true);
+    const bool whole = face_text_w(face.last_run, font_sub, true) <= w || !face.last_run_short[0];
+    char buf[sizeof(face.last_run) + 4];
+    STRNCPY(buf, whole ? face.last_run : face.last_run_short);
+    face_fit(buf, sizeof(buf), w, font_sub, true);
+    face_text(buf, x, y, font_sub, muted, true);
   }
   GPU_blend(GPU_BLEND_NONE);
 
-  /* Generate fills the column's foot. */
-  const float h = 1.15f * PANE_ROW_H * u;
   return {x, column.xmax, column.ymin, column.ymin + h};
 }
 

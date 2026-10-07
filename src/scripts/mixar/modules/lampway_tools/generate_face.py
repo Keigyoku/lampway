@@ -86,7 +86,8 @@ def face(model: str, answer, egress, references: int = 0) -> dict:
     row = _route_row(route, egress)
     out = {"route": (row.get("hosts") or [row.get("label") or route])[0] if row else "",
            "route_ok": not route_off(route, egress), "content": _content(references), "refusal": "",
-           "last_run": (answer or {}).get("last_run") or ""}      # the results row's line (section 5), from the run log
+           "last_run": (answer or {}).get("last_run") or "",      # the results row's line (section 5), from the run log
+           "last_run_short": (answer or {}).get("last_run_short") or ""}
     price = (answer or {}).get("price")
     amount = None if not price else float(price.get("amount"))
     unit = (price or {}).get("unit") or "USD"

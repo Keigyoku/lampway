@@ -11,4 +11,6 @@ import harness
 def test_a_clicked_image_shows_in_an_image_editor(tmp_path):
     report = harness.run_state("terminal_image", tmp_path)
     assert report["facts"]["shown"] == ["clicked.png"], report["facts"]
-    assert report["facts"]["windows"] == 2, "the factory layout has no Image Editor: a new window, the user's areas untouched"
+    f = report["facts"]
+    assert f["in_main"] == [False] and "IMAGE_EDITOR" not in f["main_areas"], \
+        ("the factory layout has no Image Editor: a new window shows it, the main window's areas untouched", f)

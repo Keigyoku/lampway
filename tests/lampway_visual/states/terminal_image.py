@@ -38,12 +38,14 @@ def setup(bpy):
 
 
 def facts(bpy, dump):
-    shown = []
+    shown, in_main = [], []
+    main = bpy.context.window_manager.windows[0]
     for window in bpy.context.window_manager.windows:
         for area in window.screen.areas:
             if area.type == 'IMAGE_EDITOR' and area.spaces.active.image is not None:
                 shown.append(os.path.basename(area.spaces.active.image.filepath))
-    return {"shown": shown, "windows": len(bpy.context.window_manager.windows)}
+                in_main.append(window == main)
+    return {"shown": shown, "in_main": in_main, "main_areas": sorted(a.type for a in main.screen.areas)}
 
 
 def surfaces(bpy, dump):
