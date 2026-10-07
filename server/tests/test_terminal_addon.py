@@ -112,6 +112,9 @@ with open(log, "a") as fh:
                          "herdr": {k: v for k, v in os.environ.items() if k.startswith("HERDR_")}}) + "\\n")
 if "cli" in sys.argv and "list" in sys.argv:
     print(json.dumps([{"pane_id": 3}, {"pane_id": 12}]))
+if "cli" in sys.argv and "spawn" in sys.argv:
+    n = sum(1 for line in open(log) if '"spawn"' in line)
+    print(40 + n)
 """
 
 
@@ -392,3 +395,62 @@ def test_status_offers_update_when_the_pin_moved(settings, provider, tmp_path, m
         st = http.get("/app/terminal", headers=fake.rest_headers()).json()
     E.set_active(None)
     assert st["version"] == "20230712-072601-f4abf8fd" and st["update"] is True and st["pin"]["version"] == "20240203-110809-5046fc22"
+
+
+def test_each_live_agent_gets_its_own_tab_once(home, fake_wezterm, tmp_path, monkeypatch):
+    """Contract 16 section 6.3: one tab per agent, `cli spawn --cwd <project> -- herdr agent attach <its pane>`, recorded
+    in the registry so it is spawned once; an ended session and a command or shell session (no agent to attach to) get no
+    tab; the bootstrap tab (herdr's own UI, every session) is not an agent's."""
+    exe, log = fake_wezterm
+    herdr = tmp_path / "bin" / "herdr"
+    herdr.parent.mkdir()
+    herdr.write_text("#!/bin/sh\n")
+    herdr.chmod(0o755)
+    monkeypatch.setenv("LAMPWAY_HERDR_BIN", str(herdr))
+    W.save_instance(home, {"gui_pid": os.getpid(), "socket": str(W.socket_path(home)), "panes": {}})
+    sessions = [{"id": "s1", "name": "rig the lamp", "agent": "claude", "state": "live", "pane_id": "w1:p2", "cwd": str(tmp_path)},
+                {"id": "s2", "name": "texture pass", "agent": "codex", "state": "live", "pane_id": "w1:p3", "cwd": str(tmp_path)},
+                {"id": "s3", "name": "old task", "agent": "claude", "state": "ended", "pane_id": "w1:p4", "cwd": str(tmp_path)},
+                # measured live 2026-10-06: `herdr agent attach` refuses a pane with no detected agent (agent_not_found),
+                # so a command or shell session stays in the herdr tab
+                {"id": "s4", "name": "a build", "agent": "command", "state": "live", "pane_id": "w1:p5", "cwd": str(tmp_path)}]
+    first = W.agent_tabs(home, str(exe), sessions)
+    second = W.agent_tabs(home, str(exe), sessions)
+    spawns = [json.loads(line)["argv"] for line in log.read_text().splitlines() if "spawn" in json.loads(line)["argv"]]
+    assert len(spawns) == 2 and second == [], "spawned once per live agent"
+    a = spawns[0]
+    assert a[a.index("spawn"):] == ["spawn", "--cwd", str(tmp_path), "--", str(herdr), "agent", "attach", "w1:p2"], a
+    assert "--no-auto-start" in a and a[a.index("--class") + 1] == W.CLASS
+    assert first == ["41", "42"], first
+    panes = W.load_instance(home)["panes"]
+    assert {v["herdr_agent_id"] for v in panes.values()} == {"s1", "s2"}
+    W.send_text(home, str(exe), first[0], "go"), "an agent's tab is a Lampway pane"
+
+
+def test_no_tab_is_spawned_while_the_window_is_closed(home, fake_wezterm, tmp_path):
+    exe, log = fake_wezterm
+    W.save_instance(home, {"gui_pid": 2 ** 22 + 7, "socket": str(W.socket_path(home)), "panes": {}})
+    assert W.agent_tabs(home, str(exe), [{"id": "s1", "agent": "claude", "state": "live", "pane_id": "w1:p2", "cwd": str(tmp_path)}]) == []
+    assert not log.exists() or "spawn" not in log.read_text()
+
+
+def test_the_server_opens_a_tab_for_each_live_agent(settings, provider, tmp_path, monkeypatch, fake_wezterm):
+    """The state tick that keeps state.json current also gives each live agent its tab while the window runs."""
+    import time as _t
+    exe, log = fake_wezterm
+    home = tmp_path / "home"
+    monkeypatch.setenv("LAMPWAY_HOME", str(home))
+    _installed(home)
+    (home / "addons" / "wezterm" / "20240203-110809-5046fc22" / "wezterm.AppImage").write_bytes(exe.read_bytes())
+    (home / "addons" / "wezterm" / "20240203-110809-5046fc22" / "wezterm.AppImage").chmod(0o755)
+    (home / "herdr").mkdir(parents=True)
+    (home / "herdr" / "sessions.json").write_text(json.dumps({"version": 1, "sessions": [
+        {"id": "s1", "name": "rig the lamp", "agent": "claude", "state": "live", "pane_id": "w1:p2", "cwd": str(tmp_path)}]}))
+    W.save_instance(home, {"gui_pid": os.getpid(), "socket": str(W.socket_path(home)), "panes": {}})
+    http, _F = _app(settings, provider, tmp_path, monkeypatch)
+    with http:
+        end = _t.time() + 6
+        while _t.time() < end and not W.load_instance(home)["panes"]:
+            _t.sleep(0.1)
+    E.set_active(None)
+    assert [v["herdr_agent_id"] for v in W.load_instance(home)["panes"].values()] == ["s1"]

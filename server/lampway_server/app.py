@@ -859,6 +859,9 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         except _HL.HerdrError:
             boot = None
         try:
+            inst = _WZ.load_instance(home)
+            inst["panes"] = {}                      # a new window: its tabs are new panes, given to the agents by the state tick
+            _WZ.save_instance(home, inst)
             return JSONResponse(await asyncio.to_thread(_WZ.launch, home, str(exe), cockpit.root, body.get("position"), True, boot))
         except _WZ.TerminalRefused as exc:
             return JSONResponse({"detail": str(exc)}, status_code=409)
@@ -895,7 +898,9 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         if _WZ.binary(home) is None:
             return
         eg = _EG.ACTIVE
-        _WZ.write_state(home, _WZ.state_doc(_WZ.load_instance(home), cockpit.list_sessions(),
+        sessions = cockpit.list_sessions()
+        _WZ.agent_tabs(home, str(_WZ.binary(home)), sessions)        # one tab per live agent while the window runs
+        _WZ.write_state(home, _WZ.state_doc(_WZ.load_instance(home), sessions,
                                             eg.indicator() if eg else {}, eg.routes_view() if eg else []))
 
     # ---- the cockpit window (facelift contract 10): a static page from this origin only; its data behind the bearer

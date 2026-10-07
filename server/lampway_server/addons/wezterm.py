@@ -326,6 +326,35 @@ def focus(home, exe: str, pane_id) -> None:
     cli(home, exe, ["activate-pane", "--pane-id", str(pane_id)])
 
 
+ATTACHABLE = ("claude", "codex", "opencode")    # sessions herdr runs as a detected agent (`herdr agent start`)
+
+
+def agent_tabs(home, exe: str, sessions: list) -> list:
+    """One tab per live agent (section 6.3): `cli spawn --cwd <its folder> -- herdr agent attach <its pane>` for each live
+    session the window has no tab for, recorded in the registry so it is spawned once (a tab the user closed stays closed).
+    Only an agent herdr detects can be attached to (measured: a command pane is refused, agent_not_found): command and
+    shell sessions stay in the window's first tab, herdr's own view of every session. Nothing while the window is not
+    running. Returns the new WezTerm pane ids."""
+    inst = load_instance(home)
+    if not _alive(inst.get("gui_pid")):
+        return []
+    from ..herdr import launcher as L
+    shown = {(rec or {}).get("herdr_agent_id") for rec in (inst.get("panes") or {}).values()}
+    new = []
+    for s in sessions or []:
+        if s.get("state") != "live" or s.get("agent") not in ATTACHABLE or not s.get("pane_id") or s["id"] in shown:
+            continue
+        out = cli(home, exe, ["spawn", "--cwd", s.get("cwd") or str(_home(home)), "--", L.bin_path(), "agent", "attach", s["pane_id"]])
+        pane = out.strip().splitlines()[-1].strip() if out.strip() else ""
+        if not pane:
+            continue
+        inst = load_instance(home)
+        inst.setdefault("panes", {})[pane] = {"herdr_agent_id": s["id"], "created_at": time.time()}
+        save_instance(home, inst)
+        new.append(pane)
+    return new
+
+
 def _alive(pid) -> bool:
     if not pid:
         return False
