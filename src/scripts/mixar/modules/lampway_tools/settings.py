@@ -45,7 +45,7 @@ class Settings:
     hdri             the studio .hdr the textured render is lit with
     python_server    a python that can run lampway_server (the mesh-paint image backend runs there, not in the app)
     server_dir       the directory holding the lampway_server package (the repo's server/)
-    image_backend    the mesh-paint image backend: tripo | codex_cli | openrouter (unset = the backend's own default)
+    image_backend    the mesh-paint image backend: tripo | openrouter (unset = the backend's own default)
     autoremesher_bin the lampway-quadremesh executable (native/quadremesh/build.sh) that retopo method=autoremesher runs: the app never downloads one"""
 
     project_root: Path = None

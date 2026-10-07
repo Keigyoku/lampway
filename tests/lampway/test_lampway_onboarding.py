@@ -41,9 +41,9 @@ def test_step_two_refuses_a_provider_whose_route_is_off():
     assert w.step == 2, "the step stays"
     w.click_route("chatgpt_plan", True)
     assert w.next() is None and w.step == 3
-    local = walk("claude_cli")
-    local.step = 2
-    assert local.next() == "Claude plan needs the api.anthropic.com route: switch it on in step 3, or pick a local provider"
+    keyed = walk("anthropic")
+    keyed.step = 2
+    assert keyed.next() == "Claude plan needs the api.anthropic.com route: switch it on in step 3, or pick a local provider"
     for name in ("mock",):
         free = walk(name)
         free.step = 2

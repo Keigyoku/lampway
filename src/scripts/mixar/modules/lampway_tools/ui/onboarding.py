@@ -18,12 +18,9 @@ from mixar.modules.lampway_tools import onboarding as ob
 WALK = {"walk": None}
 SHIELD = {"ok": 'LAMPWAY_SHIELD', "conditional": 'LAMPWAY_SHIELD_HALF', "retains": 'LAMPWAY_SHIELD_OPEN', "unknown": 'LAMPWAY_SHIELD_UNKNOWN'}
 PROVIDERS = (("chatgpt_plan", "ChatGPT plan", "Your ChatGPT subscription, signed in from Providers"),
-             ("codex_cli", "Codex CLI", "The Codex command line on this machine, on your ChatGPT plan"),
-             ("claude_cli", "Claude Code", "The Claude command line on this machine, on your Claude plan"),
              ("openrouter", "OpenRouter", "Pay per use with your OpenRouter key"),
              ("anthropic", "Anthropic API key", "Pay per use with your Anthropic key"),
              ("openai", "OpenAI API key", "Pay per use with your OpenAI key"),
-             ("codex_app_server", "Codex app server", "The Codex app server on this machine, on your ChatGPT plan"),
              ("mock", "No agent", "A stand-in that answers on this machine and thinks nothing"))
 
 

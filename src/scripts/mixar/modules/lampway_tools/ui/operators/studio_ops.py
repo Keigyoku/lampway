@@ -433,7 +433,7 @@ class _ProviderProps:
     swarm_provider: StringProperty(name="Swarm workers", description="Provider for the swarm's workers (default = the main provider's own)", search=_suggest("swarm_provider"))
     claude_swarm_model: StringProperty(name="Claude model", description="Model for workers on your own claude CLI")
     openrouter_swarm_model: StringProperty(name="OpenRouter worker model", description="Model for workers on OpenRouter")
-    image_backend: StringProperty(name="Images", description="Image backend: tripo, codex_cli or openrouter", search=_suggest("image_backend"))
+    image_backend: StringProperty(name="Images", description="Image backend: tripo or openrouter", search=_suggest("image_backend"))
     image_model: StringProperty(name="Image model", description="OpenRouter image model, e.g. openai/gpt-image-2.5-sunburst (precision) or -flare (speed)")
     image_size: StringProperty(name="Image size", description="WIDTHxHEIGHT within the pixel budget (2880x2880 works), or default")
     image_quality: StringProperty(name="Image quality", description="auto, low, medium, high, xhigh, max, or default", search=_suggest("image_quality"))

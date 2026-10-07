@@ -217,16 +217,6 @@ def test_the_routes_need_the_bearer_switch_persist_override_log_and_export(setti
         assert exp.status_code == 200 and all(json.loads(l) for l in exp.text.splitlines())
 
 
-def test_the_local_cli_adapter_is_gated_where_lampway_launches_it(mgr):
-    from lampway_server.agent import cli_adapters as CA
-    with pytest.raises(E.EgressRefused, match="claude_plan is off"):
-        asyncio.run(CA._run(["/nonexistent/claude"], "hi", 5))                                # refused BEFORE the binary is even looked for
-    mgr.set_route("claude_plan", True)
-    with pytest.raises(CA.CLIError, match="not found"):
-        asyncio.run(CA._run(["/nonexistent/claude"], "hi", 5))
-    assert mgr.log()[-1]["route"] == "claude_plan" and mgr.indicator()["over_the_wire"] is False
-
-
 def test_preflight_refuses_without_a_row_for_a_send_and_the_studio_receipt_is_cancelled_not_unknown(mgr):
     with pytest.raises(E.EgressRefused, match="studio:meshy is off"):
         E.preflight("studio:meshy")

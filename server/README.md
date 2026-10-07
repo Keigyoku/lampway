@@ -20,7 +20,7 @@ pip install -r requirements-lock.txt      # the pinned set the suite was verifie
 pip install -e .
 
 export LAMPWAY_USER_PASSWORD='choose-a-password'   # optional: the sign-in page asks for it
-export LAMPWAY_PROVIDER=mock                        # mock | anthropic | openai | openrouter | chatgpt_plan | codex_cli | claude_cli | codex_app_server
+export LAMPWAY_PROVIDER=mock                        # mock | anthropic | openai | openrouter | chatgpt_plan
 python -m lampway_server                            # or: lampway-server
 # serving on http://127.0.0.1:8787
 ```
@@ -44,7 +44,7 @@ The full list lives in `lampway_server/config.py`; the ones you will touch:
 | `LAMPWAY_PROVIDER` | `mock` | the main provider; see [providers](../docs/providers.md) |
 | `LAMPWAY_ANTHROPIC_MODEL`, `OPENAI_BASE_URL`, `LAMPWAY_OPENAI_MODEL`, `OPENAI_API_KEY`, `LAMPWAY_CHATGPT_MODEL` | see `config.py` | per-provider models and endpoints |
 | `OPENROUTER_API_KEY` or `LAMPWAY_OPENROUTER_KEY_FILE`, `LAMPWAY_OPENROUTER_BUDGET_USD` | none / `3.0` | the OpenRouter key and the session ceiling |
-| `LAMPWAY_LOCAL_CLI` | off | `1` enables the local CLI adapters |
+| `LAMPWAY_LOCAL_CLI` | off | `1` lets the cockpit start your own agent CLIs (Claude Code, Codex, OpenCode) in its panes |
 | `LAMPWAY_LOG_LEVEL` | `INFO` | debug logs name methods and ids, never payloads or keys |
 
 Every outbound route is **off** until it is switched on in the Privacy panel ([privacy](../docs/privacy.md)), so a real provider is refused until you do.

@@ -508,7 +508,7 @@ def _mp_generate(spec, setup, s, view, template, refs, out_dir, live, count=4, n
         raise RuntimeError(f"the image backend refused or failed for {view}: {(p.stdout + p.stderr).strip()[-500:]}")
     if not live:
         raise RuntimeError(f"{view}: the image backend ran as a DRY RUN (settings verified, nothing generated): pass live=true "
-                           "(Tripo also needs the owner's LAMPWAY_STUDIO_ARMED=1; codex_cli needs LAMPWAY_LOCAL_CLI=1)")
+                           "(Tripo also needs the owner's LAMPWAY_STUDIO_ARMED=1)")
     return sorted(str(f) for f in Path(out_dir).glob("*") if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp") and f.stem.isdigit())
 
 

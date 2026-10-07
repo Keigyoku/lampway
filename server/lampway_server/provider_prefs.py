@@ -10,10 +10,13 @@ from pathlib import Path
 
 from .config import Settings
 
-MAIN_PROVIDERS = ("mock", "anthropic", "openai", "openrouter", "chatgpt_plan", "codex_cli", "codex_app_server", "claude_cli")
-SWARM_PROVIDERS = ("", "claude_cli", "openrouter")            # '' = the main provider's own swarm path (chatgpt_plan, openrouter, mock...)
+MAIN_PROVIDERS = ("mock", "anthropic", "openai", "openrouter", "chatgpt_plan")
+SWARM_PROVIDERS = ("", "openrouter")                           # '' = the main provider's own swarm path (chatgpt_plan, openrouter, mock...)
 EFFORTS = ("", "minimal", "low", "medium", "high", "xhigh")
-IMAGE_BACKENDS = ("tripo", "codex_cli", "openrouter")
+IMAGE_BACKENDS = ("tripo", "openrouter")
+#: Values an older provider_prefs.json may hold that no longer exist: the agent CLIs wrapped as Lampway's model and the Codex image
+#: backend (agent-modes spec R0). A saved one is set aside at load, so the default stays in force and the server still starts.
+RETIRED_VALUES = {"provider": {"claude_cli", "codex_cli", "codex_app_server"}, "swarm_provider": {"claude_cli"}, "image_backend": {"codex_cli"}}
 IMAGE_QUALITIES = ("", "auto", "low", "medium", "high", "xhigh", "max")
 MAX_IMAGE_PIXELS = 2880 * 2880                                 # measured 2026-10-05 on GPT Image 2.5: 2880x2880 works, 3840x3840 exceeds the budget
 MAX_IMAGE_EDGE = 3840                                           # ... and no edge may pass 3840 (2160x3840 is within both)
@@ -238,6 +241,10 @@ def apply_saved(settings: Settings, saved: dict, env=None, choices: bool = True)
     sources = {k: ("env" if k in ENV_VARS and ENV_VARS[k] in env else "default") for k in FIELDS}
     for key, value in saved.items():
         if sources.get(key) == "env":
+            continue
+        if value in RETIRED_VALUES.get(key, ()):
+            import logging
+            logging.getLogger("lampway.settings").warning("the saved %s %r is retired (agent-modes spec R0); the default stays in force", key, value)
             continue
         if key in ("image_purposes", "video_purposes", "spend_policy"):
             for purpose, cfg in value.items():

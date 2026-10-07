@@ -74,9 +74,6 @@ ROUTES = {r.id: r for r in (
 #   wrapped        a launch helper injected as a value: every use of it in its module goes through the named wrapper, which holds ``guard``;
 #   driver         a launch inside a studio driver script, which itself only ever runs as a gated process (studios.service._gated_execute, agent.server_tools._exec).
 LAUNCHES: dict = {
-    "agent/cli_adapters.py:_run_gated": ("callers_guard", "the Claude/Codex CLI subprocess; its only caller, _run, holds guard(claude_plan|chatgpt_plan)"),
-    "agent/providers/codex_app_server.py:probe_binary": ("local", "codex --version and generate-json-schema: local schema generation, no model call (measured)"),
-    "agent/providers/codex_app_server.py:_Client.start": ("local", "starts the long-lived codex app-server process; every turn that talks to the provider is gated by guard(chatgpt_plan) in stream()"),
     "agent/server_tools.py:_exec_local": ("local", "the seed catalog driver reads the local seeds.sqlite only (LOCAL_MODULES)"),
     "compute/boat.py:default_runner": ("wrapped", "the Boat CLI; injected as BoatCliBackend.runner and called only inside _cli, which holds guard(compute:boat)"),
     "cards/activity.py:_commits": ("local", "git log on the local repository (the report card's recorded changes)"),

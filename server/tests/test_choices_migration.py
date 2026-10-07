@@ -58,8 +58,8 @@ def test_swarm_fallback(live, monkeypatch, tmp_path):
     from lampway_server.agent.providers import make_swarm_provider
     from lampway_server.agent.providers.openrouter import OpenRouterProvider
     monkeypatch.setenv("OPENROUTER_API_KEY", KEY)
-    CH.active_store().set("agent.worker", "global", None, {"preferred": "claude_cli", "fallbacks": ["openrouter:deepseek/deepseek-v4.1-flash"]}, by="user")
-    s = Settings(state_dir=tmp_path / "srv", provider="chatgpt_plan", swarm_provider="claude_cli")      # the local CLI switch is off: claude_cli cannot be built
+    CH.active_store().set("agent.worker", "global", None, {"preferred": "chatgpt_plan:gpt-6.1-sol", "fallbacks": ["openrouter:deepseek/deepseek-v4.1-flash"]}, by="user")
+    s = Settings(state_dir=tmp_path / "srv", provider="chatgpt_plan", swarm_provider="claude_cli")      # a retired worker from the environment cannot be built (spec R0)
     p = make_swarm_provider(s, "worker-1")
     assert isinstance(p, OpenRouterProvider) and p.model == "deepseek/deepseek-v4.1-flash"
     assert p.choice["reason"] == "fallback" and p.choice["option"] == "openrouter:deepseek/deepseek-v4.1-flash" and "claude_cli" in p.choice["why"]

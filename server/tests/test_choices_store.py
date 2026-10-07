@@ -52,7 +52,7 @@ def test_a_chain_longer_than_eight_is_refused(store):
 
 def test_agent_main_keeps_its_override_policy_none(store):
     with pytest.raises(CS.Refused, match="an agent must not change its own provider"):
-        store.set("agent.main", "global", None, {"preferred": "claude_cli", "override_policy": "chain"}, by="user")
+        store.set("agent.main", "global", None, {"preferred": "anthropic:claude-sonnet-5-5", "override_policy": "chain"}, by="user")
 
 
 def test_only_the_user_writes(store):

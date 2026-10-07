@@ -42,16 +42,10 @@ def chains(s: Settings, env=None) -> dict:
         out["agent.main"] = _entry(f"{prov}:{getattr(s, _MAIN_MODEL[prov])}", params={"effort": s.chatgpt_effort} if prov == "chatgpt_plan" else None)
     elif prov == "openai":
         out["agent.main"] = _entry("openai:local", params={"model": s.openai_model, "base_url": s.openai_base_url})
-    elif prov in ("codex_cli", "codex_app_server"):
-        out["agent.main"] = _entry(prov, params={"model": env.get("LAMPWAY_CODEX_MODEL", ""), "effort": env.get("LAMPWAY_CODEX_EFFORT", "")})
-    elif prov == "claude_cli":
-        out["agent.main"] = _entry("claude_cli", params={"model": env.get("LAMPWAY_CLAUDE_MODEL", "")})
     else:
         out["agent.main"] = _entry("mock")
     kind = s.swarm_provider or prov
-    if kind == "claude_cli":
-        out["agent.worker"] = _entry("claude_cli", params={"model": s.claude_swarm_model})
-    elif kind == "openrouter":
+    if kind == "openrouter":
         out["agent.worker"] = _entry(f"openrouter:{s.openrouter_swarm_model}")
     elif kind == "chatgpt_plan":
         out["agent.worker"] = _entry(f"chatgpt_plan:{s.chatgpt_swarm_model}", params={"effort": s.chatgpt_swarm_effort})
@@ -65,8 +59,6 @@ def chains(s: Settings, env=None) -> dict:
             continue
         if purpose == "plates" and s.image_backend == "tripo":
             out[pid] = _entry("studio:tripo.image", [model], params)
-        elif purpose == "plates" and s.image_backend == "codex_cli":
-            out[pid] = _entry("codex_cli:imagegen", [model], params)
         else:
             out[pid] = _entry(model, params=params)
     for purpose, cfg in s.video_purposes.items():
@@ -154,12 +146,7 @@ def _apply(s: Settings, pid: str, entry: dict) -> set:
             s.openai_base_url = str(params["base_url"])
             out.add("openai_base_url")
     elif pid == "agent.worker":
-        if prov == "claude_cli":
-            s.swarm_provider, out = "claude_cli", {"swarm_provider"}
-            if params.get("model"):
-                s.claude_swarm_model = params["model"]
-                out.add("claude_swarm_model")
-        elif prov == "openrouter" and model:
+        if prov == "openrouter" and model:
             s.swarm_provider, s.openrouter_swarm_model, out = "openrouter", model, {"swarm_provider", "openrouter_swarm_model"}
         elif prov == "chatgpt_plan" and model and s.provider == "chatgpt_plan":
             s.swarm_provider, s.chatgpt_swarm_model, out = "", model, {"swarm_provider", "chatgpt_swarm_model"}
@@ -173,8 +160,8 @@ def _apply(s: Settings, pid: str, entry: dict) -> set:
             out.add("image_purposes")
             if purpose == "plates":
                 s.image_backend, out = "openrouter", out | {"image_backend"}
-        elif purpose == "plates" and oid in ("studio:tripo.image", "codex_cli:imagegen"):
-            s.image_backend, out = ("tripo" if oid.startswith("studio") else "codex_cli"), {"image_backend"}
+        elif purpose == "plates" and oid == "studio:tripo.image":
+            s.image_backend, out = "tripo", {"image_backend"}
             fb = next((f for f in entry.get("fallbacks") or [] if f.startswith("openrouter:")), None)
             if fb:
                 cfg["model"] = fb.split(":", 1)[1]

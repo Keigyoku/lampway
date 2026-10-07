@@ -2,6 +2,16 @@
 
 import os
 
+#: The agent CLIs that used to be wrapped as Lampway's model (agent-modes spec R0, captain's Q6, 2026-10-06). They run as the user's
+#: own agent now (Bring Your Own Agent), on their own login, never behind Lampway's loop.
+RETIRED = {"claude_cli": "Claude Code", "codex_cli": "Codex", "codex_app_server": "Codex"}
+
+
+def retired(kind: str) -> ValueError:
+    return ValueError(f"{kind} is retired: Lampway's agent thinks through an API key, an endpoint you run, or Sign in with ChatGPT. "
+                      f"To use {RETIRED[kind]} on its own login, run it as your own agent (Bring Your Own Agent) in a pane on "
+                      "Lampway's herdr server.")
+
 
 def make_provider(settings, chatgpt_auth=None, resolution=None):
     """The main agent's provider. With ``resolution`` (Choices' agent.main, 5.6) it is built from the resolved option - the user's
@@ -25,6 +35,8 @@ def make_provider(settings, chatgpt_auth=None, resolution=None):
 
 
 def _make_provider(settings, chatgpt_auth=None):
+    if settings.provider in RETIRED:
+        raise retired(settings.provider)
     if settings.provider == "mock":
         from .mock import MockProvider
         return MockProvider()
@@ -42,19 +54,6 @@ def _make_provider(settings, chatgpt_auth=None):
         from .chatgpt_plan import ChatGPTPlanProvider
         auth = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
         return ChatGPTPlanProvider(auth, settings.chatgpt_model, effort=settings.chatgpt_effort)
-    if settings.provider == "codex_app_server":
-        from .. import cli_adapters
-        from .codex_app_server import CodexAppServerProvider
-        cli_adapters.require_enabled(settings.state_dir)
-        return CodexAppServerProvider(binary=os.environ.get("LAMPWAY_CODEX_BINARY", "codex"), model=os.environ.get("LAMPWAY_CODEX_MODEL", ""), effort=os.environ.get("LAMPWAY_CODEX_EFFORT", "medium"),
-                                      turn_timeout_s=float(os.environ.get("LAMPWAY_CODEX_TURN_TIMEOUT_S", "180")))
-    if settings.provider in ("codex_cli", "claude_cli"):
-        # The owner's own official CLIs, for personal use. Off unless enabled; the refusal carries the terms caveat.
-        from .. import cli_adapters
-        cli_adapters.require_enabled(settings.state_dir)
-        if settings.provider == "codex_cli":
-            return cli_adapters.CodexCLIProvider(model=os.environ.get("LAMPWAY_CODEX_MODEL", ""))
-        return cli_adapters.ClaudeCLIProvider(model=os.environ.get("LAMPWAY_CLAUDE_MODEL", ""), workdir=settings.state_dir)
     if settings.provider == "openrouter":
         return _openrouter(settings, settings.openrouter_model, "main")
     raise ValueError(f"unknown LAMPWAY_PROVIDER {settings.provider!r}")
@@ -122,10 +121,8 @@ def _build_worker_option(settings, oid: str, label: str, chatgpt_auth=None):
         from .chatgpt_plan import ChatGPTPlanProvider
         auth = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
         return ChatGPTPlanProvider(auth, model or settings.chatgpt_swarm_model, effort=settings.chatgpt_swarm_effort)
-    if prov == "claude_cli":
-        from .. import cli_adapters
-        cli_adapters.require_enabled(settings.state_dir)
-        return cli_adapters.ClaudeCLIProvider(model=model or settings.claude_swarm_model, workdir=settings.state_dir)
+    if prov in RETIRED:
+        raise retired(prov)
     if oid == "follow:agent.main":
         return make_provider(settings, chatgpt_auth=chatgpt_auth)
     raise ValueError(f"{oid} cannot serve a swarm worker")
@@ -135,14 +132,12 @@ def _make_swarm_provider(settings, label: str, chatgpt_auth=None):
     """The configured worker provider: the cheap swarm model, the shared ledger. The mock/scripted providers serve themselves.
     ``settings.swarm_provider`` puts the workers on a different provider from the main agent."""
     kind = settings.swarm_provider or settings.provider
-    if kind == "claude_cli":
-        from .. import cli_adapters
-        cli_adapters.require_enabled(settings.state_dir)              # the owner's own login, personal use, terms note on refusal
-        return cli_adapters.ClaudeCLIProvider(model=settings.claude_swarm_model, workdir=settings.state_dir)
+    if kind in RETIRED:
+        raise retired(kind)
     if kind == "openrouter" and settings.provider != "openrouter":
         return _openrouter(settings, settings.openrouter_swarm_model, label)
     if kind != settings.provider:
-        raise ValueError(f"LAMPWAY_SWARM_PROVIDER {kind!r} is not supported (claude_cli, openrouter, or the main provider)")
+        raise ValueError(f"LAMPWAY_SWARM_PROVIDER {kind!r} is not supported (openrouter, or the main provider)")
     if settings.provider == "openrouter":
         return _openrouter(settings, settings.openrouter_swarm_model, label)
     if settings.provider == "chatgpt_plan":

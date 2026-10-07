@@ -49,8 +49,8 @@ def test_the_providers_dialogs_saved_values_are_the_global_scope(live):
     d = CH.document()
     assert d["global"]["agent.main"]["preferred"] == "chatgpt_plan:gpt-6.1-sol" and d["global"]["agent.main"]["source"] == "providers"
     assert d["global"]["agent.main"]["params"] == {"effort": "medium"}
-    CH.active_store().set("agent.main", "global", None, {"preferred": "claude_cli"}, by="user")
-    assert CH.document()["global"]["agent.main"]["preferred"] == "claude_cli", "a choice set in Choices wins over the dialog's projection"
+    CH.active_store().set("agent.main", "global", None, {"preferred": "anthropic:claude-sonnet-5-5"}, by="user")
+    assert CH.document()["global"]["agent.main"]["preferred"] == "anthropic:claude-sonnet-5-5", "a choice set in Choices wins over the dialog's projection"
 
 
 def test_environment_is_a_session_layer_with_the_conflict_shown(live, monkeypatch):

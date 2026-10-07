@@ -165,7 +165,7 @@ def _content_class(purpose, job) -> str:
 
 def _needs_click(oid, world) -> bool:
     prov = REG.option_facts(oid)["provider"]
-    if prov in ("local", "deterministic", "mock", "follow") or prov in ("claude_cli", "codex_cli", "codex_app_server", "chatgpt_plan", "openai"):
+    if prov in ("local", "deterministic", "mock", "follow") or prov in ("chatgpt_plan", "openai"):
         return False
     key = CLICK_PROVIDER.get(prov, "studios" if prov.startswith("studio:") else prov)
     from ..spendpolicy import DEFAULT_SPEND_POLICY

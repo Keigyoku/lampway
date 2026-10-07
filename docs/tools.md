@@ -177,7 +177,7 @@ server/.venv/bin/python docs/gen_tools.py --check  # exit 1 when this page is st
 | [`lampway_workflow_graph`](#lampway_workflow_graph) | yes | A workflow as data: a typed DAG of Lampway tool calls with cached outputs. |
 | [`lampway_workflow_reference_to_asset`](#lampway_workflow_reference_to_asset) | yes | One piece from reference to finished asset through the existing tools IN ORDER, stopping at every gate. |
 | [`studio_actions`](#studio_actions) | no | List the online Studio actions (Tripo today; Meshy and Hi3D when their drivers exist): what each does, whether it needs the user's approval and the price it must read back. |
-| [`studio_image_generate`](#studio_image_generate) | no | Painted variants of a clay render (the mesh-paint step): through the configured image backend, `tripo` (Tripo Studio driver: GPT Image 2.5, 4 images, 4K, free quota) or `codex_cli` (the own... |
+| [`studio_image_generate`](#studio_image_generate) | no | Painted variants of a clay render (the mesh-paint step): through the configured image backend, `tripo` (Tripo Studio driver: GPT Image 2.5, 4 images, 4K, free quota) or `openrouter` (an Ope... |
 | [`studio_job`](#studio_job) | no | Read one Studio job (state, what the driver reported, the files it made) or, with no job_id, all jobs and pending approvals. |
 | [`studio_plan`](#studio_plan) | no | Ask a Studio to do something. |
 | [`studio_seed_catalog`](#studio_seed_catalog) | no | List the local catalog of every 3D seed with proportion scores and audit verdicts (no signed URLs are stored). |
@@ -2325,7 +2325,7 @@ MCP: not offered.
 
 #### studio_image_generate
 
-Painted variants of a clay render (the mesh-paint step): through the configured image backend, `tripo` (Tripo Studio driver: GPT Image 2.5, 4 images, 4K, free quota) or `codex_cli` (the owner's own Codex login, only if the local-CLI setting is on) or `openrouter` (an OpenRouter image model; at most 4 images, each request costs money). refs in order: the clay render, a painted consistency view (optional), the design plate. Defaults to a dry run (tripo: settings read back, nothing clicked); `live: true` generates, and tripo additionally needs the owner's LAMPWAY_STUDIO_ARMED=1. Never pass live=true unless the user asked for exactly that.
+Painted variants of a clay render (the mesh-paint step): through the configured image backend, `tripo` (Tripo Studio driver: GPT Image 2.5, 4 images, 4K, free quota) or `openrouter` (an OpenRouter image model; at most 4 images, each request costs money). refs in order: the clay render, a painted consistency view (optional), the design plate. Defaults to a dry run (tripo: settings read back, nothing clicked); `live: true` generates, and tripo additionally needs the owner's LAMPWAY_STUDIO_ARMED=1. Never pass live=true unless the user asked for exactly that.
 
 Inputs:
 - `prompt_file` (string): a raw prompt file (or use template)
@@ -2333,7 +2333,7 @@ Inputs:
 - `variables` (object): the template's variables
 - `refs` (array): Reference images in order
 - `out_dir` (string, required)
-- `backend` (string): tripo (default), codex_cli, or openrouter (an OpenRouter image model; paid, counted against the session spend ceiling, live=true only when asked)
+- `backend` (string): tripo (default) or openrouter (an OpenRouter image model; paid, counted against the session spend ceiling, live=true only when asked)
 - `count` (integer): Default 4
 - `size` (string): openrouter only: WIDTHxHEIGHT for this call (e.g. 2048x1152), within the model's pixel budget
 - `aspect_ratio` (string): openrouter only: e.g. 3:2 for a non-square plate; the largest size the budget allows

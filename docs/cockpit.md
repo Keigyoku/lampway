@@ -26,7 +26,7 @@ Survival was exercised against the real herdr binary: SIGKILL of the agent proce
 
 ## 2. Using it
 
-Prerequisites: `herdr` installed (on `PATH`, at `~/.local/bin/herdr`, or `LAMPWAY_HERDR_BIN`) and run once by you; for Claude Code, Codex or OpenCode panes the local-CLI switch `LAMPWAY_LOCAL_CLI=1` and the usual terms caveat in [providers](providers.md). The cockpit root is `LAMPWAY_HERDR_ROOT`, else `<LAMPWAY_HOME or state dir>/herdr`.
+Prerequisites: `herdr` installed (on `PATH`, at `~/.local/bin/herdr`, or `LAMPWAY_HERDR_BIN`) and run once by you; for Claude Code, Codex or OpenCode panes the switch `LAMPWAY_LOCAL_CLI=1`. Each pane runs the vendor's own binary as you, on its own login; Lampway never reads that login and never sends a model request through it. The cockpit root is `LAMPWAY_HERDR_ROOT`, else `<LAMPWAY_HOME or state dir>/herdr`.
 
 In the Lampway tab, open **Cockpit (agent sessions)**:
 

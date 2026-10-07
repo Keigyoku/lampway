@@ -13,8 +13,8 @@ OFFLINE = "Lampway's server is not running: Start it"
 # BUILD_ORDER.md cloud D1 for OpenRouter (dollars). The server keeps a session ledger, not a day one: the D1 "$5 per day" is the session cap.
 DEFAULT_CAPS = {"job_cap": 1.0, "session_cap": 5.0, "above": 0.25}
 # The route a main provider needs to think; a provider with none runs on this machine. Labels are the egress route's own.
-PROVIDER_ROUTE = {"anthropic": "claude_plan", "claude_cli": "claude_plan", "openai": "chatgpt_plan", "chatgpt_plan": "chatgpt_plan",
-                  "codex_cli": "chatgpt_plan", "codex_app_server": "chatgpt_plan", "openrouter": "openrouter"}
+# Claude Code and Codex are not here: they run as the user's own agent, not as Lampway's model (agent-modes spec R0).
+PROVIDER_ROUTE = {"anthropic": "claude_plan", "openai": "chatgpt_plan", "chatgpt_plan": "chatgpt_plan", "openrouter": "openrouter"}
 ROUTE_HOST = {"claude_plan": "api.anthropic.com", "chatgpt_plan": "chatgpt.com", "openrouter": "openrouter.ai"}
 ROUTE_LABEL = {"claude_plan": "Claude plan", "chatgpt_plan": "ChatGPT plan", "openrouter": "OpenRouter"}
 

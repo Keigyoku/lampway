@@ -55,7 +55,7 @@ class ModelRequest:
     system: str
     messages: list[Message]
     tools: list[ToolSpec]
-    session_id: str = ""        # lets a provider that keeps a conversation open (codex_app_server) reuse it across the loop's repeated stream() calls
+    session_id: str = ""        # the Lampway session the request belongs to (a provider may key per-conversation state on it)
 
 
 class Provider(Protocol):

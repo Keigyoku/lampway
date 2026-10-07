@@ -95,7 +95,7 @@ Profile menu, **Connect AI Apps (MCP)**, enable MCP, pick your app and click **A
 | tool browser | `LAMPWAY_STUDIO_CDP` | the debugging address of the browser holding your studio login (default `http://127.0.0.1:9333`) |
 | studio guard | `LAMPWAY_STUDIO_ARMED=1` | set by the confirmed run for that process only; never set it yourself globally |
 | AutoRemesher | `LAMPWAY_AUTOREMESHER_BIN` | the executable built by `native/quadremesh/build.sh`; the app never downloads one |
-| local CLI adapters | `LAMPWAY_LOCAL_CLI=1` | lets the server start your own `codex` / `claude` binaries (see [providers](providers.md)) |
+| your own agents | `LAMPWAY_LOCAL_CLI=1` | lets the cockpit start your own Claude Code, Codex or OpenCode in its panes (see [cockpit](cockpit.md)) |
 | herdr | `LAMPWAY_HERDR_BIN`, `LAMPWAY_HERDR_ROOT` | the cockpit's own herdr server (see [cockpit](cockpit.md)) |
 | server bind | `LAMPWAY_HOST`, `LAMPWAY_PORT` | default `127.0.0.1:8787`; a Host guard answers 421 to any other Host |
 | state dir | `LAMPWAY_STATE_DIR` | secrets, prefs, egress prefs and log, spend log (the launcher sets `<home>/server-state`) |
@@ -111,7 +111,8 @@ Tool settings can also be saved in `<home>/settings.json`; the environment wins 
 | the server exits at start-up | read `<home>/server.log` |
 | `<route> is off: switch it on in Privacy` | expected; open the route in the Privacy panel |
 | `no OpenRouter key` | set `OPENROUTER_API_KEY` or pass `--openrouter-key-file` |
-| a refusal naming the local-CLI switch | the `codex_cli`, `claude_cli` and `codex_app_server` providers need `LAMPWAY_LOCAL_CLI=1`; read the terms note in [providers](providers.md) first |
+| a refusal naming the local-CLI switch | your own agents in the cockpit's panes need `LAMPWAY_LOCAL_CLI=1` (see [cockpit](cockpit.md)) |
+| `claude_cli is retired` (or `codex_cli`, `codex_app_server`) | those providers are gone: pick an API key, an endpoint you run or Sign in with ChatGPT, and run the CLI as your own agent in the cockpit (see [providers](providers.md)) |
 | startup logs `Failed to import ... procedural_materials` lines from the paint package | upstream withheld that package; Lampway ships a small replacement (see [`BUILD-LAMPWAY.md`](../BUILD-LAMPWAY.md) section 4) |
 
 ## Next
