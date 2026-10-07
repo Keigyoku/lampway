@@ -135,7 +135,7 @@ def _draw_body(body, walk, rows) -> int:
         wrapped(body, STEP_TEXT[ob.CAPS_STEP])
         body.prop(wm, "lampway_onboarding_above", text="Click above")
         body.prop(wm, "lampway_onboarding_job_cap", text="Per job")
-        body.prop(wm, "lampway_onboarding_session_cap", text="Per session")
+        body.prop(wm, "lampway_onboarding_day_cap", text="Per day")
         return _lines(STEP_TEXT[ob.CAPS_STEP]) + 3
     return 0
 
@@ -159,7 +159,7 @@ def _provider_picked(self, context):
 
 def _caps_changed(self, context):
     if WALK["walk"] is not None:
-        WALK["walk"].caps = {"job_cap": self.lampway_onboarding_job_cap, "session_cap": self.lampway_onboarding_session_cap,
+        WALK["walk"].caps = {"job_cap": self.lampway_onboarding_job_cap, "day_cap": self.lampway_onboarding_day_cap,
                              "above": self.lampway_onboarding_above}
 
 
@@ -256,7 +256,7 @@ class LAMPWAY_OT_onboarding_policy(Operator):
 
 
 classes = (LampwayOnboardingRoute, LAMPWAY_OT_onboarding, LAMPWAY_OT_onboarding_back, LAMPWAY_OT_onboarding_policy)
-_PROPS = ("lampway_onboarding_routes", "lampway_onboarding_provider", "lampway_onboarding_job_cap", "lampway_onboarding_session_cap",
+_PROPS = ("lampway_onboarding_routes", "lampway_onboarding_provider", "lampway_onboarding_job_cap", "lampway_onboarding_day_cap",
           "lampway_onboarding_above")
 
 
@@ -268,7 +268,7 @@ def register():
     wm.lampway_onboarding_provider = EnumProperty(name="Main agent", items=PROVIDERS, default="chatgpt_plan", update=_provider_picked)
     caps = ob.DEFAULT_CAPS
     wm.lampway_onboarding_job_cap = FloatProperty(name="Per job", default=caps["job_cap"], min=0.0, precision=2, unit='NONE', update=_caps_changed)
-    wm.lampway_onboarding_session_cap = FloatProperty(name="Per session", default=caps["session_cap"], min=0.0, precision=2, update=_caps_changed)
+    wm.lampway_onboarding_day_cap = FloatProperty(name="Per day", default=caps["day_cap"], min=0.0, precision=2, update=_caps_changed)
     wm.lampway_onboarding_above = FloatProperty(name="Click above", default=caps["above"], min=0.0, precision=2, update=_caps_changed)
 
 

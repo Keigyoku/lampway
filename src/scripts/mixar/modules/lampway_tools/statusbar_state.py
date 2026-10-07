@@ -67,15 +67,15 @@ def spend_line() -> tuple:
     rows = (STATE["spend"] or {}).get("providers") or []
     usd = [r for r in rows if r.get("unit") == "USD"]
     spent = sum(float(r.get("spent") or 0) for r in usd)
-    caps = [float(r["session_cap"]) for r in usd if r.get("session_cap")]
+    caps = [float(r["day_cap"]) for r in usd if r.get("day_cap")]
     credits = sum(float(r.get("spent") or 0) for r in rows if r.get("unit") == "credits")
-    tip = ("Spent this server session (Lampway keeps no day total yet); caps and clicks are set in the Providers dialog")
+    tip = ("Spent today: the saved local-day total, reset at local midnight; caps and clicks are set in the Providers dialog")
     tail = f" + {credits:g} credits" if credits else ""
     if caps:
         cap = sum(caps)
         step = max(0, min(10, round(10 * spent / cap)))
-        return f"${spent:.2f} of ${cap:.2f}{tail}", step, tip
-    return f"${spent:.2f}{tail}", None, tip
+        return f"spent today ${spent:.2f} of ${cap:.2f}{tail}", step, tip
+    return f"spent today ${spent:.2f}{tail}", None, tip
 
 
 def waiting() -> int:

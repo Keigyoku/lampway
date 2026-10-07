@@ -9,7 +9,7 @@ the WindowManager, where the native media pane reads them (agent_ui_tabmedia.cc)
 
     estimate   ≈ $0.067 est.           dashed chip; "price unknown" when there is none (in the stop colour)
     cap_job    ≈ $0.07 of cap $1.00 per job            amber from 80 percent of the cap, red over it
-    cap_session  session: $0.31 + 0.07 of $3.00
+    cap_session  spent today $0.31 + 0.07 of $3.00 (the saved local-day total against the day cap)
     route      openrouter.ai           the host the job goes to
     content    prompt only, no asset
     button     Generate, ≈ $0.07  |  Spend $0.40  |  Spend, price unknown  |  Generate (disabled, with the refusal)
@@ -100,7 +100,7 @@ def face(model: str, answer, egress, references: int = 0) -> dict:
         why = (answer or {}).get("basis") or (f"Not asked while {route} is off" if not out["route_ok"] else "Lampway's server is not answering")
         out.update(estimate="price unknown", estimate_kind="unknown", estimate_tip=why + ": an unknown price is never waved through")
     policy = (answer or {}).get("policy") or {}
-    job_cap, session_cap, spent = policy.get("job_cap"), policy.get("session_cap"), float(policy.get("spent") or 0.0)
+    job_cap, day_cap, spent = policy.get("job_cap"), policy.get("day_cap"), float(policy.get("spent") or 0.0)
     approx = "≈ " if out["estimate_kind"] == "estimate" else ""
     if answer is None:
         out.update(cap_job=f"caps not asked: {route} is off" if not out["route_ok"] else "caps unknown: the server is not answering",
@@ -113,11 +113,11 @@ def face(model: str, answer, egress, references: int = 0) -> dict:
         else:
             out.update(cap_job="no per-job cap", cap_job_fill=0.0, cap_job_level="ok")
         add = f" + {float(amount):.2f}" if amount is not None and unit.upper() == "USD" else f" + {amount:g}" if amount is not None else ""
-        if session_cap:
-            fill = (spent + (amount or 0.0)) / float(session_cap)
-            out.update(cap_session=f"session: {_cents(spent, unit)}{add} of {_cents(session_cap, unit)}", cap_session_fill=fill)
+        if day_cap:
+            fill = (spent + (amount or 0.0)) / float(day_cap)
+            out.update(cap_session=f"spent today {_cents(spent, unit)}{add} of {_cents(day_cap, unit)}", cap_session_fill=fill)
         else:
-            out.update(cap_session=f"session: {_cents(spent, unit)} spent, no cap", cap_session_fill=0.0)
+            out.update(cap_session=f"spent today {_cents(spent, unit)}, no daily cap", cap_session_fill=0.0)
     needs_click = True if answer is None else bool(answer.get("needs_click"))
     out["policy"] = _policy_sentence(route, policy, amount, unit, needs_click) if answer is not None else \
         "An unknown price is never waved through: Spend asks you first"

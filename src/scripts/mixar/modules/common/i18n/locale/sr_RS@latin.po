@@ -6886,7 +6886,7 @@ msgstr ""
 msgid "Per job"
 msgstr ""
 
-msgid "Per session"
+msgid "Per day"
 msgstr ""
 
 # derived

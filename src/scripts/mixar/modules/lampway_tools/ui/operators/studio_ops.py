@@ -415,10 +415,10 @@ _PROVIDER_FIELDS = {          # operator prop -> the server's setting
     "video_loop_resolution": ("video_purposes", "loop", "resolution"), "video_motion_model": ("video_purposes", "motion", "model"),
     "video_motion_resolution": ("video_purposes", "motion", "resolution"), "video_max_job_usd": "video_max_job_usd"}
 for _p in ("openrouter", "higgsfield", "studios", "hyper3d"):          # spend policy per provider: click off|above|always, the price above which a click is needed, the caps
-    for _f in ("click", "above", "job_cap", "session_cap"):
+    for _f in ("click", "above", "job_cap", "day_cap"):
         _PROVIDER_FIELDS[f"{_p}_{_f}"] = ("spend_policy", _p, _f)
 _INT_PROPS = {"video_bulk_duration"}
-_SPEND_AMOUNTS = {"above", "job_cap", "session_cap"}
+_SPEND_AMOUNTS = {"above", "job_cap", "day_cap"}
 _CHOICES = {"main_provider": "main_providers", "swarm_provider": "swarm_providers", "chatgpt_effort": "efforts",
             "image_backend": "image_backends", "image_quality": "image_qualities"}
 DEFAULT_WORD = "default"     # typed for a setting whose server value is the empty default
@@ -432,7 +432,7 @@ def _spend_props():
         out[f"{p}_click"] = StringProperty(name=f"{p.title()} click", description="Does a job wait for your click? off | above | always (the agent and swarm can never click)")
         out[f"{p}_above"] = StringProperty(name=f"{p.title()} click above", description=f"With 'above': the price ({unit}) over which your click is needed")
         out[f"{p}_job_cap"] = StringProperty(name=f"{p.title()} job cap", description=f"One job above this price ({unit}) is refused before it is sent; 'none' removes the cap")
-        out[f"{p}_session_cap"] = StringProperty(name=f"{p.title()} session cap", description=f"Total {unit} this session; 'none' removes the cap")
+        out[f"{p}_day_cap"] = StringProperty(name=f"{p.title()} day cap", description=f"Total {unit} per local day (saved, reset at local midnight); 'none' removes the cap")
     return out
 
 

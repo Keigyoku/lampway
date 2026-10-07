@@ -1250,8 +1250,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
 
     async def spend_view(request: Request):
         """What the status bar's spend gauge reads (facelift contract 03): each provider in its own unit, what was spent TODAY (the saved local-day
-        total, ruling 5), the caps and click rule the Providers dialog set, and the line "spent today $x of $y". Read-only. ``session_cap`` repeats
-        ``day_cap`` for a client that has not moved to the day keys: it would otherwise show "no cap" where there is one."""
+        total, ruling 5), the caps and click rule the Providers dialog set, and the line "spent today $x of $y". Read-only."""
         if not _bearer_ok(request):
             return unauthorized()
         from .spendpolicy import PROVIDERS, SpendRefused
@@ -1264,7 +1263,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
             except SpendRefused as exc:
                 spent, text = None, str(exc)
             rows.append({"provider": p, "unit": "USD" if p == "openrouter" else "credits", "spent": spent, "spent_today": spent, "text": text,
-                         "day_cap": cfg.get("day_cap"), "session_cap": cfg.get("day_cap"), "job_cap": cfg.get("job_cap"), "click": cfg.get("click", "always"),
+                         "day_cap": cfg.get("day_cap"), "job_cap": cfg.get("job_cap"), "click": cfg.get("click", "always"),
                          "above": cfg.get("above")})
         return JSONResponse({"scope": "day", "providers": rows})
 

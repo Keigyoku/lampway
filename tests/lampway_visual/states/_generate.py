@@ -10,7 +10,7 @@ import os
 import sys
 
 ROUTES = [{"id": "openrouter", "label": "OpenRouter", "hosts": ["openrouter.ai"]}]
-POLICY = {"click": "above", "above": 0.25, "job_cap": 1.0, "session_cap": 3.0, "spent": 0.31}
+POLICY = {"click": "above", "above": 0.25, "job_cap": 1.0, "day_cap": 3.0, "spent": 0.31}
 OWNER = "MixieMoodboardTabImageGenProps"
 OUT = {"island": None}
 LAST_RUN = "3 images, $0.20 billed against a $0.21 estimate, rated 4"

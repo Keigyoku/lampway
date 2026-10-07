@@ -10,7 +10,7 @@ import sys
 SETTLE_TICKS = 12
 APPROVAL = {"id": "a1", "action": "higgsfield.job", "studio": "higgsfield", "label": "Higgsfield video: a 5-second loop of the lantern, 720p",
             "price": 18.0, "settings": {"unit": "credits"}, "requested_by": "agent", "state": "pending", "expires": 4e9, "job_id": "j9"}
-SPEND = {"scope": "session", "providers": [{"provider": "higgsfield", "unit": "credits", "spent": 31.5, "session_cap": 200.0,
+SPEND = {"scope": "day", "providers": [{"provider": "higgsfield", "unit": "credits", "spent": 31.5, "day_cap": 200.0,
                                             "job_cap": 40.0, "click": "always", "above": None}]}
 
 
@@ -37,7 +37,7 @@ def open_card(bpy, state="", message=""):
 def surfaces(bpy, dump):
     popup = [w for w in dump["widgets"] if w.get("popup")]
     out = {}
-    title = next((w for w in popup if (w.get("text") or "").startswith(("Higgsfield video", "Refused", "Past the", "The price", "Agents can", "Spent:"))), None)
+    title = next((w for w in popup if (w.get("text") or "").startswith(("Higgsfield video", "Refused", "Past the", "Past today", "The price", "Agents can", "Spent:"))), None)
     if title:
         x0, y0, x1, y1 = title["rect"]
         out["card_rule"] = (x0 + 1, (y0 + y1) // 2, 1)                 # the 4 px left rule (nearest pixel in a 3x3 box)

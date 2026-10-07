@@ -68,4 +68,4 @@ def test_onboarding_starts_with_every_route_off(settings, provider, tmp_path, mo
     assert on == {"openrouter"}
     assert walk.clicks == [("openrouter", True)]
     policy = settings.spend_policy["openrouter"]
-    assert (policy["job_cap"], policy["day_cap"], policy["click"], policy["above"])     # the walk sends session_cap; ruling 5 saves it as day_cap == (1.0, 5.0, "above", 0.25)
+    assert (policy["job_cap"], policy["day_cap"], policy["click"], policy["above"]) == (1.0, 5.0, "above", 0.25)     # the walk sends day_cap (ruling 5)

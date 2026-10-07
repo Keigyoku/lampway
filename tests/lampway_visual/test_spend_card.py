@@ -10,10 +10,10 @@ import harness
 
 WANT = {
     "waiting": ["Higgsfield video: a 5-second loop of the lantern, 720p", "planned by the agent, only your click spends",
-                "18 credits\x1fquoted", "this job 18 of 40\x1f0.0000\x1f0.4500\x1f0", "session 31.5 + 18 of 200\x1f0.1575\x1f0.0900\x1f0",
+                "18 credits\x1fquoted", "this job 18 of 40\x1f0.0000\x1f0.4500\x1f0", "spent today 31.5 + 18 of 200\x1f0.1575\x1f0.0900\x1f0",
                 "Spend 18 credits", "Not now", "Only your click spends. Enter does nothing here."],
     "over_job_cap": ["Refused before sending: over the per-job cap"],
-    "past_cap": ["Past the session cap"],
+    "past_cap": ["Past today's cap"],
     "price_changed": ["The price changed: the old approval is void", "Spend 21 credits", "Spend at the new price"],
     "agent_tried": ["Agents can plan, never confirm"],
     "spent": ["Spent: job j9"],

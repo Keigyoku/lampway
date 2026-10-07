@@ -24,7 +24,7 @@ def test_an_image_estimate_is_an_estimate_per_image_and_waits_only_above_the_lin
     assert three["needs_click"] is False and three["refused"] is None
     four = _estimate(fake, "image_gen", "openai/gpt-5-image-mini", {"number_of_images": 4})
     assert four["price"]["amount"] == 0.28 and four["needs_click"] is True
-    assert four["policy"] == {"click": "above", "above": 0.25, "job_cap": 1.0, "day_cap": 5.0, "session_cap": 5.0, "spent": 0.0}     # ruling 5: the defaults fill what the prefs leave unset
+    assert four["policy"] == {"click": "above", "above": 0.25, "job_cap": 1.0, "day_cap": 5.0, "spent": 0.0}     # ruling 5: the defaults fill what the prefs leave unset
     assert orv.posts == [], "an estimate sends nothing"
 
 

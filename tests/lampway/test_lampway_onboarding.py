@@ -140,3 +140,13 @@ def test_offline_steps_name_the_stopped_server(ui):
     layout = Recorder()
     ui.draw_step(layout, w, [])
     assert ("label", "Lampway's server is not running: Start it", "ERROR") in layout.log
+
+
+def test_the_caps_step_saves_ruling_5s_day_cap_and_its_defaults():
+    """Ruling 5 (2026-10-07): the cap is a saved per-day total, $1 per job, $5 per day, a click above $0.25. The walk said
+    session_cap and its popup "Per session"; the server read it as day_cap, but the words were wrong."""
+    w = walk()
+    assert w.caps == {"job_cap": 1.0, "day_cap": 5.0, "above": 0.25}
+    from pathlib import Path
+    popup = (Path(ob.__file__).parent / "ui" / "onboarding.py").read_text(encoding="utf-8")
+    assert "session_cap" not in popup and "Per session" not in popup and '"Per day"' in popup

@@ -244,7 +244,7 @@ class JobQueue:
         return {"service": service, "model": model, "provider": provider, "route": provider, "price": price, "basis": basis, "last_run": last_run,
                 "last_run_short": last_short,
                 "policy": {"click": cfg.get("click", "always"), "above": cfg.get("above"), "job_cap": cfg.get("job_cap"), "day_cap": cfg.get("day_cap"),
-                           "session_cap": cfg.get("day_cap"), "spent": spent_today},          # session_cap: day_cap again, for a client not yet on the day keys
+                           "spent": spent_today},
                 "needs_click": self.policy.needs_click(provider, amount), "refused": refused}
 
     _RECEIPT_STATUS = {"planned": "PENDING", "submission_pending": "POLLING", "submitted": "POLLING", "running": "POLLING", "submission_unknown": "PENDING", "completed": "POLLING",

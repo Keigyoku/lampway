@@ -11,8 +11,8 @@ machine during the walk: ``finish`` writes the choices to Lampway's own server, 
 STEPS = ("Language and keys", "What may leave this machine", "Where the agent thinks", "Spending caps")
 ROUTES_STEP, PROVIDER_STEP, CAPS_STEP = 2, 3, 4
 OFFLINE = "Lampway's server is not running: Start it"
-# BUILD_ORDER.md cloud D1 for OpenRouter (dollars). The server keeps a session ledger, not a day one: the D1 "$5 per day" is the session cap.
-DEFAULT_CAPS = {"job_cap": 1.0, "session_cap": 5.0, "above": 0.25}
+# The captain's ruling 5 (2026-10-07): a saved per-day total, $1 per job, $5 per local day, a click above $0.25 (OpenRouter, dollars).
+DEFAULT_CAPS = {"job_cap": 1.0, "day_cap": 5.0, "above": 0.25}
 # The route a main provider needs to think; a provider with none runs on this machine. Labels are the egress route's own.
 PROVIDER_ROUTE = {"anthropic": "claude_plan", "claude_cli": "claude_plan", "openai": "chatgpt_plan", "chatgpt_plan": "chatgpt_plan",
                   "codex_cli": "chatgpt_plan", "codex_app_server": "chatgpt_plan", "openrouter": "openrouter"}

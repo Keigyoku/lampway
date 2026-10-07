@@ -39,8 +39,8 @@ class Recorder:
 
 
 EGRESS_IDLE = {"routes": [{"id": "openrouter", "label": "OpenRouter", "enabled": False}], "indicator": {"over_the_wire": False, "active": [], "last": None}}
-SPEND = {"scope": "session", "providers": [{"provider": "openrouter", "unit": "USD", "spent": 0.31, "session_cap": 5.0, "job_cap": 1.0, "click": "above", "above": 0.25},
-                                           {"provider": "higgsfield", "unit": "credits", "spent": 0.0, "session_cap": None, "job_cap": None, "click": "always", "above": None}]}
+SPEND = {"scope": "day", "providers": [{"provider": "openrouter", "unit": "USD", "spent": 0.31, "day_cap": 5.0, "job_cap": 1.0, "click": "above", "above": 0.25},
+                                           {"provider": "higgsfield", "unit": "credits", "spent": 0.0, "day_cap": None, "job_cap": None, "click": "always", "above": None}]}
 WAITING = {"approvals": [{"id": "a1", "state": "pending", "settings": {"unit": "credits"}}], "jobs": []}
 
 
@@ -68,7 +68,7 @@ def test_statusbar_draw_is_pure(statusbar, monkeypatch):
     statusbar.draw(SimpleNamespace(layout=layout), SimpleNamespace())
     texts = layout.texts()
     assert "1 waiting for you" in texts
-    assert "$0.31 of $5.00" in texts
+    assert "spent today $0.31 of $5.00" in texts
     assert "local" in texts
     assert calls == []
 
@@ -101,14 +101,14 @@ def test_wire_chip_states():
 def test_spend_gauge_steps_and_the_cap_it_falls_under():
     S.update(egress=EGRESS_IDLE, spend=SPEND, studio={})
     text, step, tip = S.spend_line()
-    assert (text, step) == ("$0.31 of $5.00", 1)
-    assert "this server session" in tip and "Providers" in tip
-    near = {"scope": "session", "providers": [dict(SPEND["providers"][0], spent=4.6)]}
+    assert (text, step) == ("spent today $0.31 of $5.00", 1)
+    assert "local-day" in tip and "Providers" in tip and "session" not in tip
+    near = {"scope": "day", "providers": [dict(SPEND["providers"][0], spent=4.6)]}
     S.update(egress=EGRESS_IDLE, spend=near, studio={})
     assert S.spend_line()[1] == 9
-    no_cap = {"scope": "session", "providers": [dict(SPEND["providers"][0], session_cap=None), dict(SPEND["providers"][1], spent=18)]}
+    no_cap = {"scope": "day", "providers": [dict(SPEND["providers"][0], day_cap=None), dict(SPEND["providers"][1], spent=18)]}
     S.update(egress=EGRESS_IDLE, spend=no_cap, studio={})
-    assert S.spend_line()[:2] == ("$0.31 + 18 credits", None)
+    assert S.spend_line()[:2] == ("spent today $0.31 + 18 credits", None)
 
 
 def test_wire_animation_only_while_sending(statusbar, monkeypatch):
