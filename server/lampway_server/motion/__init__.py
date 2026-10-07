@@ -148,9 +148,9 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> N
         raise EngineDiffers(f"cannot reproduce: the engine differs (receipt: {there[k]}, here: {here[k]})")
     if not capture.has_frame():
         raise Refused("the scene does not define window.__frame: see the scene contract in motion_graphics.md section 4")
+    ready = capture.setup() or {}
     if hasattr(capture, "has_audit") and not capture.has_audit():
         raise Refused("the scene does not define window.__audit: return text and marks arrays (motion_graphics.md section 4)")
-    ready = capture.setup() or {}
     misses = [f.get("font") for f in ready.get("fonts") or [] if not f.get("ok")] + [i.get("src") for i in ready.get("images") or [] if not i.get("ok")]
     if misses:
         raise Refused(f"scene not ready, these did not load: {misses}: put them in the scene folder and check the paths")

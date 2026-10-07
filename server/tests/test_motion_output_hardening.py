@@ -140,3 +140,16 @@ def test_verify_detects_frame_file_swapped_during_rerender(tmp_path, monkeypatch
     monkeypatch.setattr(M.E, "Encoder", swap)
     with pytest.raises(M.Refused, match="outside"):
         M.verify(root, {"receipt": result["out_dir"] + "/receipt.json"}, FakeCapture)
+
+
+def test_setup_can_install_required_audit_before_output_creation(tmp_path):
+    class SetupAudit(FakeCapture):
+        ready = False
+        def has_audit(self):
+            return self.ready
+        def setup(self):
+            self.ready = True
+            return super().setup()
+    scene = put_scene(tmp_path, "setup-audit", "<!doctype html>")
+    result = M.render(tmp_path, {"scene": scene, **SMALL, "formats": ["mp4"]}, SetupAudit)
+    assert result["ok"]
