@@ -41,6 +41,13 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    globally and per project; only a user request changes it (`PUT /app/capabilities/{id}` refuses agent and cross-origin callers),
    and an agent only proposes (`lampway_capabilities`). Lampway's tool families are checked at call time by `capabilities.check_tool`
    for the in-app agent and for MCP clients; a capability that needs an egress route is in force only while that route is on.
+10. **The engine has two doors, both on loopback and both Lampway's** (docs/reports/agent-modes-spec.md E1.4, E1.5). `engine/gateway.py`
+    is the engine child's only model endpoint: loopback clients, a per-process bearer (`Registry.issue_token`, in memory, redacted by
+    `logredact.py`), answered by the current main provider and never by another; a provider's failure is an OpenAI-style error, not a retry.
+    `engine/proxy.py` is its only way out: bound to loopback, it decides before it connects (the gateway's port; a host whose route is on
+    and whose capability is in force; any host only with `web:any` and `web.browse`), writes a log row for every refusal and sends an allowed
+    connection through `Egress.begin`. It is the one module that opens an outbound stream outside the httpx hook
+    (`tests/test_engine_proxy.py` holds that in both directions).
 
 ## Test
 
@@ -64,3 +71,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the server's invariants lived only in module docstrings | egress, approval, receipt, MCP, script-literal, herdr and secret invariants stated with their modules; the suite command | captain ruling, 2026-10-05 |
 | 2026-10-07 | capabilities switchboard | captain: "I want it all behind a single interface you can choose WHAT your agent can do" (agent-modes spec E2, Q8 defaults) | nothing recorded what an agent may do; the swarm and every tool family were always on for every agent | invariant 9: the user's switches, call-time checks for the agent and MCP, proposals only from agents, routes still decide egress | captain ruling, 2026-10-06 |
+| 2026-10-07 | the engine's gateway and egress proxy | captain: Hermes Agent's runtime takes Mode 1's engine seat; Hermes holds no key and only Lampway's doors lead out (agent-modes spec E0, E1.4, E1.5, Q7) | the engine child would have reached models and the network on its own: no key held by Lampway, no log row, no capability check, and `web:any` was not a route | invariant 10: the gateway (loopback, per-process token, current main provider, no retry elsewhere), the proxy (decide before connect, a row per refusal, `Egress.begin` for what it allows) and the `web:any` route | captain ruling, 2026-10-06 |

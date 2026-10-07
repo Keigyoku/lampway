@@ -66,6 +66,9 @@ ROUTES = {r.id: r for r in (
           _UNREAD, "conditional", (("snapshots", False), ("noEnv", True))),
     Route("compute:modal", "Modal (serverless GPU)", ("modal.run", "modal.com"), _UNREAD, _UNREAD, "unknown"),
     Route("compute:runpod", "RunPod (serverless GPU)", ("runpod.ai", "runpod.io", "runpod.net"), _UNREAD, _UNREAD, "unknown"),
+    # the agent's own browser (agent-modes spec E1.5, E2): hosts are not fixed, so none are listed; the engine's egress proxy (engine/proxy.py) is
+    # the only caller, and only while the web.browse capability is on too. Every host it reaches is a log row of its own.
+    Route("web:any", "Any website (the agent's browser)", (), _UNREAD, _UNREAD, "unknown"),
 )}
 
 # Every process the server starts that is NOT lexically inside ``guard(route)``, with its reason (tests/test_egress_launch_audit.py holds this list to the code):
@@ -267,6 +270,14 @@ class Egress:
             self._active[route] = self._active.get(route, 0) + 1
             self._last = {"route": route, "t": time.time()}
         return route
+
+    def note_refused(self, host: str, method: str, reason: str, route: Optional[str] = None, **extra) -> None:
+        """A refusal another gate decided before any connection (the engine proxy: a host no capability lets the engine reach). The same row as a
+        refusal ``begin`` writes: the host, the method, the route if there is one, the reason; never a path, a query, a header or content."""
+        spec = ROUTES.get(route) if route else None
+        policy = {"retention": spec.retention, "training": spec.training, "privacy_class": spec.privacy_class} if spec else {}
+        self._append({"event": "refused", "route": route, "provider": host, "method": method, "kind": "request", "bytes": 0, "asset_ids": [],
+                      "content_class": "unclassified", **policy, "reason": reason, **extra})
 
     def end(self, route: str) -> None:
         with self._lock:

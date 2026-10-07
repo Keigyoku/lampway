@@ -95,7 +95,9 @@ def test_the_agent_tool_reads_and_proposes_but_cannot_set(board):
     assert err
 
 
-def test_the_rest_route_refuses_an_agent_and_takes_the_users_click(fake, http, settings):
+def test_the_rest_route_refuses_an_agent_and_takes_the_users_click(fake, http, settings, tmp_path):
+    from lampway_server import egress as EG
+    EG.set_active(EG.Egress(tmp_path / "strict-egress"))      # a fresh install: every route off, web:any (a real route since the engine proxy) included
     fake.login()
     listed = fake.get("/app/capabilities")
     assert listed.status_code == 200
