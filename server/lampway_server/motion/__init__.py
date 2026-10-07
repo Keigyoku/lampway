@@ -7,7 +7,7 @@ new_capture)`` drives one adapter one frame at a time (t = i / fps, never real t
 streams it to one ffmpeg (``encode``), self-checks the sampled frames (``check``), then probes that the scene is a pure function of t: a SECOND,
 fresh browser renders from frame 0 in sequence up to the last of 8 evenly spaced probe frames, and those frames must match exactly (a re-capture in
 the same browser differs where an image is redrawn at a new scale: the decoded-image cache, measured on the teaser). It writes the outputs and the
-receipt to ``<project>/motion/out/<name>-<code8>/``. ``verify(project_root, args, new_capture)`` re-renders a receipt's inputs from frame 0 in a
+receipt to ``<project>/motion/out/<name>-<code8>-<unique-run>/``. ``verify(project_root, args, new_capture)`` re-renders a receipt's inputs from frame 0 in a
 fresh browser and compares every frame hash and both files. A refusal raises ``Refused`` with the fix in its text; a failing self-check is not a refusal (the files
 are written and ``ok`` is false)."""
 import hashlib
@@ -15,6 +15,7 @@ import io
 import json
 import re
 import shutil
+import tempfile
 import time
 from pathlib import Path
 
@@ -50,7 +51,7 @@ def inputs(args: dict) -> dict:
     a = {"action": args.get("action") or "render", "scene": args.get("scene"), "html": args.get("html"), "entry": args.get("entry") or "index.html",
          "name": args.get("name"), "duration_s": args.get("duration_s"), "fps": 30 if args.get("fps") is None else args["fps"],
          "width": 1920 if args.get("width") is None else args["width"], "height": 1080 if args.get("height") is None else args["height"],
-         "formats": list(args.get("formats") or ["mp4", "webm"]), "samples": args.get("samples"), "template": args.get("template") or None,
+         "formats": args.get("formats", ["mp4", "webm"]), "samples": args.get("samples"), "template": args.get("template") or None,
          "variables": args.get("variables") or None, "vault": args.get("vault", True) is not False, "receipt": args.get("receipt")}
     if a["action"] not in ("render", "verify"):
         raise Refused(f"action {a['action']!r}: pass render or verify")
@@ -63,7 +64,7 @@ def inputs(args: dict) -> dict:
         raise Refused(f"size {a['width']}x{a['height']}: width and height must be even, 16..3840 x 16..2160")
     if a["duration_s"] is not None:
         _duration(a["duration_s"])
-    if not a["formats"] or not set(a["formats"]) <= set(E.FORMATS) or len(set(a["formats"])) != len(a["formats"]):
+    if not isinstance(a["formats"], list) or not a["formats"] or not all(isinstance(f, str) for f in a["formats"]) or not set(a["formats"]) <= set(E.FORMATS) or len(set(a["formats"])) != len(a["formats"]):
         raise Refused(f"formats {a['formats']}: pass a non-empty subset of {list(E.FORMATS)}")
     if a["samples"] is not None:
         s = a["samples"]
@@ -100,6 +101,8 @@ def _scene(root: Path, a: dict) -> tuple:
         rel = f"motion/scenes/{a['name']}"
         d = _jail(root, rel)
         entry = d / "index.html"
+        if entry.is_symlink():
+            raise Refused("inline scene entry is a symlink: use a regular index.html in the scene folder")
         data = str(a["html"]).encode("utf-8")
         if entry.exists() and entry.read_bytes() != data:
             raise Refused(f"{rel}/index.html exists and differs: pass a new name, or render the folder with scene")
@@ -134,8 +137,9 @@ class EngineDiffers(Exception):
     pass
 
 
-def _ready(capture, entry, W, H, engine=None, ffmpeg=None) -> None:
+def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> None:
     """Open the adapter and run the scene contract's refusals: a different engine (verify), no __frame, a setup miss, CSS animations."""
+    capture.scene_root = scene_root or entry.parent
     capture.open(entry, W, H)
     if engine is not None and (capture.product, ffmpeg) != tuple(engine):
         here, there = (capture.product, ffmpeg), tuple(engine)
@@ -151,13 +155,13 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None) -> None:
         raise Refused("the scene runs CSS animations or transitions (document.getAnimations() is not empty): drive them from __frame(t)")
 
 
-def _probe(new_capture, entry, W, H, fps, rows, probe, samples) -> tuple:
+def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None) -> tuple:
     """(differing probe frames, frames rendered, seconds): a fresh browser, frames 0..max(probe) in sequence (the samples' audits at the same frames,
     as the first pass ran them), each probe frame compared exactly with the first pass."""
     t0, differ = time.monotonic(), []
     cap = new_capture()
     try:
-        _ready(cap, entry, W, H)
+        _ready(cap, entry, W, H, scene_root=scene_root)
         want = set(probe)
         for i in range(max(probe) + 1):
             png = cap.frame(i / fps)
@@ -185,17 +189,25 @@ def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=
     enc = None
     capture = new_capture()
     try:
-        _ready(capture, entry, W, H, engine, ffmpeg)                       # inside the try: a launch that fails half way is still closed
+        _ready(capture, entry, W, H, engine, ffmpeg, scene_root=scene_dir)                       # inside the try: a launch that fails half way is still closed
         duration = _duration(a["duration_s"] if a["duration_s"] is not None else (capture.scene() or {}).get("duration_s"))
         n = int(round(duration * fps))
         if n < 1:
             raise Refused(f"duration {duration:g} s at {fps} fps is no frame: lengthen the scene")
         samples = set(_sample_frames(n, a["samples"], fps))
         t_setup = time.monotonic() - t_start
-        out_rel = (out_root / f"{name}-{code_sha[:8]}").relative_to(root).as_posix()
-        out = root / out_rel
-        shutil.rmtree(out / "samples", ignore_errors=True)               # a re-render of the same code: no stale sample from an earlier run
-        (out / "samples").mkdir(parents=True, exist_ok=True)
+        # Never reuse a published directory: even identical requests own different runs.
+        # Reject symlink ancestors before creating the exclusive, unpredictable directory.
+        _jail(root, str(out_root))
+        for parent in (out_root, *out_root.parents):
+            if parent == root:
+                break
+            if parent.is_symlink():
+                raise Refused("output directory contains a symlink: use a real directory under the project root")
+        out_root.mkdir(parents=True, exist_ok=True)
+        out = Path(tempfile.mkdtemp(prefix=f"{name}-{code_sha[:8]}-", dir=out_root))
+        out_rel = out.relative_to(root).as_posix()
+        (out / "samples").mkdir()
         paths = {fmt: out / f"{name}.{fmt}" for fmt in E.FORMATS if fmt in a["formats"]}
         argv = E.argv(paths, fps, threads)
         enc = E.Encoder(argv)
@@ -231,7 +243,7 @@ def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=
         capture.close()
     probe, differ, probe_frames, t_probe = _probe_frames(n), [], 0, 0.0
     if probe_on:                                                           # the scene must be a pure function of t: a fresh browser agrees
-        differ, probe_frames, t_probe = _probe(new_capture, entry, W, H, fps, rows, probe, samples)
+        differ, probe_frames, t_probe = _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=scene_dir)
     (out / "frames.sha256").write_text(R.frames_text(rows), encoding="utf-8")
     digest = R.digest(rows)
     C.contact_sheet(out / "samples", out / "contact.png")
@@ -243,7 +255,7 @@ def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=
     fail = sum(1 for f in findings if f["severity"] == "fail")
     warn = sum(1 for f in findings if f["severity"] == "warn")
     ok = fail == 0 and not non_file
-    run_id = f"mg-{code_sha[:8]}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}"
+    run_id = f"mg-{out.name}"
     files_out = {fmt: f"{out_rel}/{p.name}" for fmt, p in paths.items()}
     files_out.update(contact=f"{out_rel}/contact.png", receipt=f"{out_rel}/receipt.json", frames=f"{out_rel}/frames.sha256")
     receipt = {
