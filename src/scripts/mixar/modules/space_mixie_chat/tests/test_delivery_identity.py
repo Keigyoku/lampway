@@ -14,6 +14,8 @@ def transport(monkeypatch, live_bpy):
     from mixar.modules.common.agent_rpc import client
     from mixar.modules.space_mixie_chat.core import rules
     scene = _scene(session_id='sid')
+    # Blender scenes expose ID properties separately from their RNA attributes.
+    scene.get = {}.get
     live_bpy.data.scenes.append(scene)
     monkeypatch.setattr(turn_events, 'arm', lambda: None)
     monkeypatch.setattr(client, 'get_client', lambda: SimpleNamespace(connection_id='connection'))
@@ -38,6 +40,7 @@ def test_only_interjections_display_queued(transport, state, run_open, hint):
     assert msg.delivery_hint == hint
     assert msg.bubble_id == calls[0][1]['command_id']
     assert 'user_message' not in calls[0][0][1]
+    assert scene.name == ('Message' if state == 'IDLE' else 'Scene')
 
 
 def test_batch_submit_does_not_reassign_prior_user_bubble(transport):

@@ -67,6 +67,20 @@ def _scene(name, session_id):
     return scene
 
 
+def _install_bpy(monkeypatch, scenes):
+    fake = _FakeBpy(scenes)
+    monkeypatch.setattr(turn_resume, "bpy", fake)
+    # get_turn_handler imports bpy at call time; give it the same collection
+    # as recovery, including Blender's name lookup rather than a Python list.
+    monkeypatch.setattr(sys.modules["bpy"].data, "scenes", fake._scenes)
+
+
+@pytest.fixture(autouse=True)
+def isolated_handlers(monkeypatch):
+    from mixar.modules.space_mixie_chat.core import turn_transport
+    monkeypatch.setattr(turn_transport, "_handlers", {})
+
+
 def test_status_asked_for_idle_sessions_only(monkeypatch):
     idle = _scene("Scene", "sid-1")
     busy = _scene("Scene.001", "sid-2")
@@ -78,9 +92,7 @@ def test_status_asked_for_idle_sessions_only(monkeypatch):
         def send_request(self, method, params, on_result=None):
             requests.append((method, params, on_result))
 
-    monkeypatch.setattr(
-        turn_resume, "bpy", _FakeBpy([idle, busy, no_session])
-    )
+    _install_bpy(monkeypatch, [idle, busy, no_session])
     monkeypatch.setattr(
         "mixar.modules.space_mixie_chat.core.session.SessionManager.get_state",
         lambda scene: MagicMock(),  # any state object
@@ -124,7 +136,7 @@ def test_no_candidates_no_request(monkeypatch):
             sent.append(args)
 
     empty_scene = _scene("Scene", "")
-    monkeypatch.setattr(turn_resume, "bpy", _FakeBpy([empty_scene]))
+    _install_bpy(monkeypatch, [empty_scene])
     monkeypatch.setattr(
         "mixar.modules.space_mixie_chat.core.jsonrpc_client.get_jsonrpc_client",
         lambda: _Client(),
@@ -141,7 +153,7 @@ def test_status_hit_prompts_on_main_thread(monkeypatch):
             on_result({"turns": {"sid-9": {"status": "running", "active": True,
                                            "last_seq": 40}}})
 
-    monkeypatch.setattr(turn_resume, "bpy", _FakeBpy([scene]))
+    _install_bpy(monkeypatch, [scene])
     from mixar.modules.space_mixie_chat.constants import SessionState
 
     import mixar.modules.space_mixie_chat.core.session as session_mod
@@ -364,7 +376,7 @@ def _hits_for(monkeypatch, info):
         def send_request(self, method, params, on_result=None):
             on_result({"turns": {"sid-s": info}})
 
-    monkeypatch.setattr(turn_resume, "bpy", _FakeBpy([scene]))
+    _install_bpy(monkeypatch, [scene])
     from mixar.modules.space_mixie_chat.constants import SessionState
     import mixar.modules.space_mixie_chat.core.session as session_mod
 
@@ -381,7 +393,9 @@ def _hits_for(monkeypatch, info):
         "mixar.modules.space_mixie_chat.core.main_thread_executor.run_on_main_thread",
         marshaled.append,
     )
-    turn_resume.check_orphaned_turns()
+    with patch.object(turn_resume.logger, "exception") as errors:
+        turn_resume.check_orphaned_turns()
+    errors.assert_not_called()
     if not marshaled:
         return False
     with patch.object(turn_resume, "offer_resume_prompt") as offer:
