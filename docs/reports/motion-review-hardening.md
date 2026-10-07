@@ -3,7 +3,7 @@
 
 # PR #3 motion review hardening
 
-Code snapshot: `192cbaebe9d50292942bd8af2ee4d77c416a1cb5` on `lp/motion`.
+Code snapshot: `c9bdd9fc` on `lp/motion`.
 Reviewed original head: `8d13560765ac68bc6f67679f098c4d3fe3428a61`.
 Current main `eab73f5f5a77780a7690378eec6c5dd44b468589` was merged normally, preserving both histories.
 
@@ -30,6 +30,7 @@ No finding was rejected or treated as stale. No human thread was resolved.
 
 ## Additional regressions found and fixed
 
+- Audit readiness must be checked after setup, allowing setup to install the required audit before output creation. A setup-time initialization plant reproduced the ordering regression.
 - Inline scene entry symlinks could be written before refusal; the regression observes the external file's mtime.
 - A request appearing only in the fresh probe could escape the network result; both passes now contribute forbidden requests.
 - Verify trusted a receipt-controlled frame path and later reread it through a raceable pathname. Checked regular-file reads precede rerender, and checked rereads detect replacement.
@@ -43,21 +44,24 @@ The renderer remains sequential from frame zero. The determinism probe remains a
 
 - Baseline browser RED: nine containment/audit/scene-hash plants failed to refuse. Launcher compatibility alone was applied to make that baseline executable.
 - Containment/target suite: 14 pass, comprising eight actual isolated-Chromium cases and six helper/target unit cases. The browser engine is HeadlessChrome 155.0.8059.39; the allowed SVG test asserts the actual green pixel.
-- Output/probe/verify hardening: 11 tests pass; each reported defect was observed failing before its fix. These use the fake capture seam and real ffmpeg; they are unit/encoder evidence, not browser acceptance.
+- Output/probe/verify hardening: 12 tests pass; each reported defect was observed failing before its fix. These use the fake capture seam and real ffmpeg; they are unit/encoder evidence, not browser acceptance.
 - Pillow checks: 15 tests pass on Pillow 12.3.0 and actual Pillow 10.0.1.
 - Template/library review tests: 37 pass.
 - Launch audit: 7 pass. Egress suite: 37 pass.
 - Existing motion plus output and browser hardening run: 49 pass, 3 teaser tests skip (before the final extra verify-race and UI classification tests).
 - Rail and canon pass locally; generated tool documentation is current. Changed motion code/tests have zero prepublish findings.
 - Full committed-head server suite: `LAMPWAY_CHROMIUM=<isolated-headless-shell> server/.venv/bin/python -m pytest -q -o addopts='' server/tests` at the code snapshot: **1,826 passed, 35 skipped, zero failures** (182.92 seconds). Skips remain unverified, including the three absent original-teaser tests.
-- Selected standalone client/rail gates: 57 pass, one fails because the newly merged docs corpus NOTICE/manifest contains ten `projects.blender.org` references rejected by the shipped-host allowlist. This is a coordinated docs-integration dependency, not waived.
-- Own commit range `origin/main..HEAD` and shipped docs media: zero prepublish findings. The pre-push range remains blocked as described below.
+- Selected standalone client/rail gates: 59 pass after the parent-authorized official documentation host entries and lookalike refusal test.
+- Actual unpushed range `origin/lp/motion..HEAD`, own commit range `origin/main..HEAD`, and shipped docs media: zero prepublish findings after the scoped gate integration. REUSE v3.3 passes, with metadata on all 9,760 files.
+- Scoped gate, workflow, host and R04 regressions: 33 pass. Both BLAS kernels retain exact byte assertions and small-angle/falsifier checks.
 
 The public synthetic fixtures were rendered by real isolated Chromium. They do not establish the unavailable original teaser's section-11 acceptance.
 
 ## Remaining coordinated gates
 
-The original-head CI failures are mapped to PR1's assigned G24-G26 fixes: [PII commit-range](https://github.com/Keigyoku/lampway/actions/runs/37665448930), [R04 determinism](https://github.com/Keigyoku/lampway/actions/runs/37665448853), and [REUSE](https://github.com/Keigyoku/lampway/actions/runs/37665448852). Tested dependency commits were requested through the parent; these files are not changed independently here. The normal push was attempted and its pre-push hook refused the already-published main merge identity (`eab73f5f`), one commit-email finding. Remote `lp/motion` remains `8d13560765ac68bc6f67679f098c4d3fe3428a61`; no hook was bypassed and no history rewritten. Local REUSE lint also fails: five invalid SPDX expressions and inherited missing coverage/unused-license findings remain coordinated with G26. No new hardening file was listed as a REUSE offender. Exact-head CI cannot run until publication succeeds.
+The original-head CI failures were mapped to PR1's assigned G24-G26 fixes: [PII commit-range](https://github.com/Keigyoku/lampway/actions/runs/37665448930), [R04 determinism](https://github.com/Keigyoku/lampway/actions/runs/37665448853), and [REUSE](https://github.com/Keigyoku/lampway/actions/runs/37665448852). The parent supplied tested scoped sources: gate prerequisite `75a00df9`, matrix classification `a4f2cee3`, workflow endpoints `dc732196`, R04 `323d44b9`, license metadata `d4f768de`, and official docs host entries `afcbe66d`. Their scoped integration preserves newer corpus metadata and excludes unfinished PR1/native changes. The exact source matrix expression is self-contained in the gate fixture because its PR1 native test file is absent. REUSE adds eight exact missing Lampway paths and keeps the full adjacent ITF legal terms.
+
+The earlier normal push was refused by the pre-push hook for the already-published main merge identity (`eab73f5f`). The supplied gate prerequisite admits only the exact public provider noreply identity, preserves personal/lookalike/secret-content controls, and now the actual unpushed range passes. No hook was bypassed and no history rewritten. Publication and exact-head CI verification are next; no all-green claim is made.
 
 The supplied source index's 15 archive hashes verify, but no member contains the motion-graphics spec/handoff. The source remains unavailable; no unrelated text or private asset was extracted or published.
 
