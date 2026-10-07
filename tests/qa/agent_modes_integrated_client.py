@@ -14,12 +14,17 @@ import traceback
 import bpy
 
 ROOT = Path(os.environ['LW_INTEGRATION_ROOT'])
-STATE = {'last': 0, 'booted': False, 'replies': {}, 'script_gates': []}
+STATE = {'last': 0, 'booted': False, 'replies': {}, 'script_gates': [], 'worker_processes': {}}
 
 
 def snapshot():
     from mixar.modules.space_mixie_chat.core import turn_events as TE
     from mixar.modules.space_mixie_chat.core import connection_manager as CM
+    from mixar.bootstrap import sandbox_supervisor
+    with sandbox_supervisor._lock:
+        children = list(sandbox_supervisor._children.items())
+    for cid, proc in children:
+        STATE['worker_processes'][cid] = {'pid': proc.pid, 'returncode': proc.poll()}
     sc = bpy.context.scene
     return {'connected': CM.get_connection_manager().is_connected, 'sid': sc.mixie_session_id,
             'delivery_blocked': sc.mixie_session_id in TE._blocked,
@@ -30,6 +35,10 @@ def snapshot():
             'turns': {k: {'complete': v.complete, 'pane': v.pane, 'observed': v.observed} for k, v in TE._turns.items()},
             'replies': STATE['replies'], 'command': STATE['last'],
             'script_gates': STATE['script_gates'],
+            'worker_processes': STATE['worker_processes'],
+            'scene_objects': sorted(o.name for o in sc.objects),
+            'collections': {c.name: sorted(o.name for o in c.objects) for c in bpy.data.collections},
+            'collection_children': {c.name: sorted(child.name for child in c.children) for c in bpy.data.collections},
             'conversation': str(sc.get('mixie_pane_conversation') or '')}
 
 
@@ -54,6 +63,16 @@ def act(command):
         assert result == {'FINISHED'}, result
     elif action == 'stop':
         assert bpy.ops.mixie_chat.abort_session() == {'FINISHED'}
+    elif action == 'enable_fixture_swarm':
+        # Synthetic fixture user click, using only its generated loopback bearer.
+        from urllib.request import Request, urlopen
+        from mixar.modules.auth.core import auth
+        url = os.environ['LAMPWAY_BACKEND_URL'] + '/app/capabilities/swarm'
+        request = Request(url, data=b'{"enabled":true}', method='PUT',
+                          headers={'Authorization': 'Bearer ' + auth.get_access_token(),
+                                   'Content-Type': 'application/json'})
+        with urlopen(request, timeout=15) as response:
+            reply(command['id'], json.load(response))
     elif action == 'rpc':
         rid = command['id']
         rpc.command(command['method'], command['payload'], lambda result: reply(rid, result))
