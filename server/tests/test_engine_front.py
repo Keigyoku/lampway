@@ -80,9 +80,10 @@ def test_the_island_attaches_as_a_client_that_takes_questions_and_submits_the_us
     serve, units = run(stack, scenario)
     methods = [m for m, _ in serve.calls]
     assert units.opened == ["scene-1"], "the user's first chat opened the unit's pane, once"
-    assert methods[:3] == ["client.capabilities", "session.resume", "prompt.submit"], methods
+    # session.history before the prompt: the checkpoint bookmark of this turn (the user turns Hermes's session holds)
+    assert methods[:4] == ["client.capabilities", "session.resume", "session.history", "prompt.submit"], methods
     assert serve.calls[0][1] == {"server_requests": True}
-    assert serve.calls[2][1]["text"] == "Hello there"
+    assert serve.calls[3][1]["text"] == "Hello there"
 
 
 def test_r3_rules_and_an_image_reach_the_pane_as_an_attachment_then_the_prompt(stack):

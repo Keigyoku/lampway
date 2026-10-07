@@ -344,18 +344,23 @@ class AgentHub:
         return {"status": "success"}
 
     async def _checkpoint_mark(self, socket, params):
-        """The client bookmarks the conversation after a scene snapshot (turn_checkpoints.py). Mode 1's conversation is Hermes's, in
-        its pane (A0): nothing is bookmarked here, and the reply says so."""
-        _command_parts(params)
-        return {"ok": True, "has_conversation": False}
+        """The client bookmarks the conversation after a scene snapshot (turn_checkpoints.py): the point Hermes's session is at,
+        under the client's id (``HermesFront.checkpoint_mark``). With no pane to reach, nothing is bookmarked, and the reply says
+        so."""
+        _, payload = _command_parts(params)
+        sid, rid = str(payload.get("session_id") or ""), str(payload.get("request_id") or "")
+        marked = self.engine is not None and bool(sid and rid) and await self.engine.checkpoint_mark(sid, rid)
+        return {"ok": True, "has_conversation": bool(marked)}
 
     async def _checkpoint_rewind(self, socket, params):
-        """The client restored a scene checkpoint and asks for the conversation to follow. Hermes keeps Mode 1's conversation and
-        Lampway does not rewind it, so the reply refuses, saying so (checkpoint_backend.py then tells the user the agent may still
-        remember the undone turns)."""
-        _command_parts(params)
-        return {"ok": False, "code": "rewind_unsupported",
-                "message": "Lampway Agent's conversation is kept by Hermes in its pane, and Lampway does not rewind it"}
+        """The client restored a scene checkpoint and asks for the conversation to follow: Hermes's session drops the undone turns
+        (``HermesFront.checkpoint_rewind``, serve's ``session.undo``), or the reply refuses, saying why (checkpoint_backend.py
+        then tells the user the agent may still remember them)."""
+        _, payload = _command_parts(params)
+        if self.engine is None:
+            return {"ok": False, "code": "rewind_unavailable",
+                    "message": "Lampway Agent is not running on this server, so there is no conversation to rewind"}
+        return await self.engine.checkpoint_rewind(str(payload.get("session_id") or ""), str(payload.get("request_id") or ""))
 
     # ------------------------------------------------------------ the turn
     async def _run_turn(self, socket, session: Session, turn: Turn, command: Command, user_text: Optional[str],

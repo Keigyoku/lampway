@@ -325,6 +325,36 @@ def test_live_the_clients_archive_is_served_from_the_panes_hermes_session(live):
     assert (Path(rec["home"]) / "archive.json").is_file(), "the delivery state lives in the unit's home"
 
 
+# ---------------------------------------------------------------------------------------------------- checkpoints: a rewind is Hermes's undo
+def test_live_a_checkpoint_rewind_drops_the_undone_turns_from_the_panes_hermes_conversation(live):
+    """The scene went back to before the second turn: serve's ``session.undo`` drops it from Hermes's session, so the next turn's
+    model request carries the first turn's words and not the second's; the tip's bookmark cannot bring them back."""
+    unit = f"scene-{uuid.uuid4().hex[:6]}"
+
+    async def scenario(stack, island):
+        cid1, _ = await chat(island, "Hello first turn", unit)
+        await island.ended(cid1, timeout=240)
+        cid2, _ = await chat(island, "Hello second turn", unit)
+        await island.ended(cid2, timeout=240)
+        _, rid = await island.command("agent.checkpoint.mark", {"session_id": unit, "request_id": "tip"})
+        tip = (await island.reply(rid))["result"]
+        _, rid = await island.command("agent.checkpoint.rewind", {"session_id": unit, "request_id": cid2})
+        back = (await island.reply(rid))["result"]
+        n = len(live["provider"].requests)
+        cid3, _ = await chat(island, "Hello third turn", unit)
+        await island.ended(cid3, timeout=240)
+        _, rid = await island.command("agent.checkpoint.rewind", {"session_id": unit, "request_id": "tip"})
+        forward = (await island.reply(rid))["result"]
+        return tip, back, live["provider"].requests[n:], forward
+
+    tip, back, reqs, forward = run(live, scenario)
+    assert tip == {"ok": True, "has_conversation": True}
+    assert back == {"ok": True, "has_conversation": True, "removed_turns": 1}, back
+    words = "\n".join(m.text() for r in reqs if r.tools for m in r.messages)
+    assert "Hello first turn" in words and "Hello third turn" in words and "Hello second turn" not in words
+    assert forward["ok"] is False and forward["code"] == "rewind_forward", forward
+
+
 # ---------------------------------------------------------------------------------------------------- A2: questions, permissions, steer
 def test_live_a_question_a_permission_and_a_steer_from_the_island(live):
     unit = f"scene-{uuid.uuid4().hex[:6]}"

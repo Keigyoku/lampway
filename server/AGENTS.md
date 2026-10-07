@@ -181,8 +181,12 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     `wiring.py` found, its fix and the switch to Your agent (`AgentHub.engine_refusal`); `HermesFront.precheck` refuses a missing
     hermes binary or prebuilt TUI (`engine_not_built`), Node.js (`node_missing`) and herdr (`herdr_not_built`, its build command)
     before a pane is asked for. Nothing answers in the engine's place. A swarm the pane's Hermes starts runs in the island turn that
-    shows its call, so its todo cards and progress reach the Parallel Agents panel. A checkpoint mark bookmarks nothing
-    (`has_conversation: false`) and a rewind is refused (`rewind_unsupported`): Lampway does not rewind Hermes's conversation.
+    shows its call, so its todo cards and progress reach the Parallel Agents panel. Checkpoints follow Hermes's conversation:
+    before each island turn and on `agent.checkpoint.mark` the island bookmarks the point Hermes's session is at (its user turns,
+    the last one's identity; `checkpoints.json`, 0600 in the unit's home) under the client's id, and `agent.checkpoint.rewind`
+    calls serve's `session.undo` (one user turn, durable in `state.db`, measured) until the session is back at the bookmark. A
+    rewind forward (Hermes cannot bring undone turns back), into a conversation the pane left, or while a turn runs is refused,
+    saying so; with no pane connected nothing is bookmarked (`has_conversation: false`).
 
 ## Test
 
@@ -251,3 +255,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | Lampway's instructions reach Hermes (A1, R3) | coordinator brief, Mode 1 loose end 4: `SYSTEM_PROMPT` and the per-turn context fed only the generated agent files once the loop was gone | Mode 1's Hermes never read Lampway's guidance on its tools (their `mcp__lampway__` names, clarify, the spend and source-file rules) nor Plan Mode or Auto mode | invariant 9: the guidance as `agent.system_prompt` in a main pane's config (measured: Hermes appends it to its system message), the turn policy in the prompt; `SYSTEM_PROMPT` rewritten for Mode 1 | none |
 | 2026-10-07 | `ask_user` left the registry (A2, A5) | coordinator brief, Mode 1 loose end 5 | `ask_user` stayed in the registry offered to no agent, its refusal special-cased in the hub, and its docs, generated skills and two canonical skills said it "needs the agent loop", which is gone | invariant 4: no question tool in the registry, Hermes asks with `clarify`; the exclusions name their real reasons | none |
 | 2026-10-07 | the archive from Hermes's sessions (R2) | coordinator brief, Mode 1 loose end 2: "Hermes's state.db under the unit's home is the conversation record; Lampway builds no store of its own" | the handshake advertised `agent_history_v1` and `v2` while `agent.history_sync` answered method-not-found; after the pane's `/new` the new session's first events were dropped as already seen (serve numbers each session's events from 1) | invariant 11: the archive served from serve's `session.list`/`session.history`, delivery state only, the epoch per session and rewrite, the handshake's one capability; events filtered by session before their seq counts, the count reset on a follow | none |
+| 2026-10-07 | a checkpoint rewind is Hermes's undo (A5) | coordinator brief, Mode 1 loose end 3: "a rewind really drops the undone turns from Hermes's conversation" | a mark bookmarked nothing and every rewind was refused (`rewind_unsupported`), so a restored scene always left the agent remembering the undone turns | invariant 11: bookmarks of Hermes's session point (count and identity of its user turns), the rewind by serve's `session.undo`, the refusals that say what Hermes cannot do | none |

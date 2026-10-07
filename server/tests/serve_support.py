@@ -8,6 +8,8 @@ and an island client that speaks the Lampway client's frames.
 client); ``prompt.submit`` -> ``{status: streaming}``, then the turn's events ``{method: event, params: {type, session_id, payload,
 seq}}`` with a per-session seq, ``message.start`` without a payload, ``message.complete {text, status}``; ``image.attach_bytes``;
 ``session.steer``; ``session.interrupt`` -> the running turn completes ``interrupted``; ``session.history`` (``{role, text, row_id}``);
+``session.undo`` (drops the last user turn and what followed, ``4009`` while a turn runs); ``session.list``, ``session.close``;
+``reload.env`` / ``reload.mcp``;
 ``session.events.since`` from a bounded ring (``truncated`` past it); ``session.status`` / ``session.active_list``; server requests
 ``clarify`` and ``approval`` to EVERY attached client that asked for them, first answer wins, no ``request.cancel`` to the others;
 ``/new`` from another client closes the session for everyone (``sessions.changed``, then ``4001``).
@@ -37,6 +39,10 @@ import websockets
 from lampway_server.engine.units import UnitInfo
 
 RING = 512
+
+
+class BusyError(Exception):
+    """serve's 4009: the session runs a turn (``session.undo`` refuses then, measured)."""
 
 
 def free_port():
@@ -260,6 +266,8 @@ class FakeServe:
                     out = {"jsonrpc": "2.0", "id": frame["id"], "result": result}
                 except LookupError:
                     out = {"jsonrpc": "2.0", "id": frame["id"], "error": {"code": 4001, "message": "session not found"}}
+                except BusyError:
+                    out = {"jsonrpc": "2.0", "id": frame["id"], "error": {"code": 4009, "message": "session busy: undo"}}
                 except NotImplementedError:
                     out = {"jsonrpc": "2.0", "id": frame["id"], "error": {"code": -32601, "message": "method not found"}}
                 await ws.send(json.dumps(out))
@@ -336,6 +344,16 @@ class FakeServe:
         if method == "session.status":
             s = self._live(params)
             return {"output": f"Session ID: {s.stored_id}"}
+        if method == "session.undo":
+            s = self._live(params)
+            if s.task is not None and not s.task.done():
+                raise BusyError
+            users = [i for i, m in enumerate(s.history) if m["role"] == "user"]
+            if not users:
+                return {"removed": 0}
+            removed = len(s.history) - users[-1]
+            del s.history[users[-1]:]
+            return {"removed": removed}
         if method == "session.list":
             return {"sessions": [{"id": s.stored_id, "title": "", "preview": "", "started_at": s.started_at,
                                   "message_count": len(s.history), "source": "tui"}

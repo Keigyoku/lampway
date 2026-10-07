@@ -50,8 +50,8 @@ with `studio_image_generate` for the images. Show the user the four variants and
 - Parallel work (the swarm, when the user switched it on): when a request splits into independent parts that need no shared results \
 (several pieces, objects, materials or checks), call `swarm_start` with one task per part (a short `name`, a self-contained `prompt` - \
 the worker sees only its prompt - and `objects`: the scene objects it must work on, which are copied into its scene). Each worker is \
-its OWN agent in a pane beside yours with its own Blender scene, running at the same time and shown as a card in the Parallel \
-Agents panel; workers cannot see or touch each other or the user's scene. `swarm_status` shows progress, `swarm_cancel` stops one \
+its OWN agent in a pane beside yours, working in its OWN Blender process with its own scene, running at the same time and shown as a \
+card in the Parallel Agents panel; workers cannot see or touch each other or the user's scene. `swarm_status` shows progress, `swarm_cancel` stops one \
 worker, and `swarm_collect` waits for all of them and appends each finished worker's result to the user's scene under the collection \
 '@@AGENT_COLLECTION@@' (a commit the client checks; a refused commit fails only that worker, and the reason is in its `error`). Always \
 call `swarm_collect` once to finish a swarm. Do not use it for work that depends on earlier steps; do that yourself.

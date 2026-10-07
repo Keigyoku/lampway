@@ -333,7 +333,26 @@ overwhelming/losing information the better."
   progress reach the Parallel Agents panel; the engine path passed no stream, so they never did.
 - **Checkpoints:** a mark bookmarks nothing (`has_conversation: false`) and a rewind is refused (`rewind_unsupported`), so the
   client tells the user the agent still remembers the undone turns, where the hub used to claim it forgot them. Rewinding through
-  serve's `session.undo` or `session.branch` is proposed, not measured: a decision for the captain.
+  serve's `session.undo` or `session.branch` is proposed, not measured: a decision for the captain. *Superseded, built
+  2026-10-07:*
+  - **Measured on the pinned serve:** `session.undo {session_id}` drops the last user turn and everything after it, answers
+    `{removed: <messages>}`, refuses while a turn runs (`4009`), and is durable: after serve was killed and resumed, the session
+    and the next model request lack the undone turns. `session.branch {session_id, count}` copies the visible user and assistant
+    rows (tool rows dropped) into a new stored session; it does not change the live one, so it is not a rewind.
+  - **Mapped:** the client binds the snapshot before turn N to that turn's command id and marks the tip before a jump. The
+    island bookmarks Hermes's point under those ids (before each island turn's prompt, and on `agent.checkpoint.mark`): the user
+    turns the session holds and the identity of the last one (its row id and words), in `checkpoints.json` (0600, the unit's
+    home). `agent.checkpoint.rewind` calls `session.undo` until the session holds the bookmark's turns, counting again after
+    each undo, and answers `{ok: true, has_conversation: true, removed_turns}`.
+  - **What differs from the upstream backend's fork:** Hermes's undo is destructive. A rewind forward (to the tip after going
+    back, or to a bookmark whose last turn was undone and replaced) cannot bring the turns back and is refused
+    (`rewind_forward`); so is a rewind into a conversation the pane left with `/new` (`rewind_other_conversation`, the old one is
+    left as it was), one while the agent works (`rewind_busy`) and one with no pane connected (`rewind_unavailable`). The client
+    then shows "the conversation could not be rewound" with Lampway's reason; its fixed tail ("may still remember the undone
+    turns") is the client's own wording. A turn typed in the pane takes no checkpoint (A2), and an undo is at user-turn
+    granularity: a rewind to a checkpoint inside a turn (an answer to a question) keeps that turn. `[UNVERIFIED]`: whether the
+    TUI's transcript drops the undone turns at once (Hermes sends no event for another client's undo that Lampway saw).
+  - Tests: `test_questions_checkpoints.py` (the scripted serve), the live `test_engine_pane_live.py` rewind on the real serve.
 - **Tests:** the hub's protocol tests run on the scripted serve (`tests/serve_support.py`: `FakeServe`, `stack`/`run` on a real port,
   `ServeThread`/`mode1_turn` under a TestClient); the tests whose subject was the loop itself were deleted.
 - `[UNVERIFIED]`: the `mock` provider (written for the loop) has not been run against Hermes, whose tool names it does not use; CI

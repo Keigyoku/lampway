@@ -36,9 +36,11 @@ with or without an island turn; with no client connected it is refused ("Lampway
 """
 
 import asyncio
+import json
 import logging
 import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
 
 from . import turn_context as TC
@@ -56,6 +58,9 @@ KNOWN_CONNECT_S = 15.0            # a recorded pane's serve answers at once; one
 ANSWERED_ELSEWHERE = "(Answered in Lampway Agent's pane.)"
 NOT_ANSWERED = "(Not answered: Lampway Agent went on to a new turn.)"
 TURN_WAIT_S = 20.0                # how long a tool call waits for the island turn that shows it (``_shown_turn``)
+MARKS_FILE = "checkpoints.json"   # the unit's checkpoint bookmarks (0600 in its home): request id -> {session, user turns}
+MAX_MARKS = 500
+BUSY = 4009                       # serve's "session busy" (session.undo while a turn runs)
 
 
 @dataclass
@@ -105,6 +110,7 @@ class Link:
     closing: bool = False
     carried: list = field(default_factory=list)   # steps still running when the turn stopped for a question
     stale: Optional["Question"] = None            # a question nobody can answer now, its card still open in the island
+    marks: Optional[dict] = None                  # checkpoint bookmarks: request id -> {session, turns} (``checkpoints.json``)
 
 
 def tool_name(payload: dict) -> str:
@@ -208,6 +214,7 @@ class HermesFront:
             settled = getattr(self.units, "settled", None)
             if settled is not None:
                 await settled()                             # a Capabilities change in flight reaches the pane first (E2)
+            await self._bookmark(link, turn.turn_id)        # the client's checkpoint before this turn is bound to its command id
             try:
                 for name, data in TC.attachments(context):
                     await link.client.call("image.attach_bytes", {"session_id": link.live_id, "content_base64": data, "filename": name})
@@ -319,6 +326,96 @@ class HermesFront:
         if link is None or link.client is None or link.client.closed.is_set() or not link.live_id:
             return None
         return link
+
+    # ------------------------------------------------------------------------------------------------- checkpoints
+    async def checkpoint_mark(self, session_id: str, request_id: str) -> bool:
+        """``agent.checkpoint.mark``: the conversation's point now (the user turns Hermes's session holds) under the client's id."""
+        link = await self.archive_link(session_id)
+        return link is not None and await self._bookmark(link, request_id)
+
+    async def checkpoint_rewind(self, session_id: str, request_id: str) -> dict:
+        """``agent.checkpoint.rewind``: the scene went back to a bookmark, and Hermes's conversation follows it. serve's
+        ``session.undo`` drops the last user turn and what followed, durably (``state.db``), and refuses while a turn runs
+        (measured 2026-10-07); it is called until the session holds the bookmark's user turns, counted again after each undo.
+        Hermes cannot bring undone turns back, so a rewind forward is refused, saying so, as is one into a conversation the pane
+        left (``/new``) and one while the agent works."""
+        link = await self.archive_link(session_id)
+        if link is None:
+            return _rewind_refusal("rewind_unavailable", "Lampway Agent's pane is not connected to Lampway now, so its conversation "
+                                   "could not be rewound")
+        mark = self._marks(link).get(str(request_id))
+        if mark is None:
+            return _rewind_refusal("rewind_unknown", "Lampway has no bookmark of Lampway Agent's conversation for that checkpoint")
+        if mark.get("session") != (link.info.stored_id if link.info is not None else None):
+            return _rewind_refusal("rewind_other_conversation", "that checkpoint belongs to an earlier conversation of Lampway Agent's "
+                                   "pane (it started a new one since), which stays as it was")
+        if link.running:
+            return _rewind_refusal("rewind_busy", "Lampway Agent is working on a turn; stop it, then restore the checkpoint again")
+        want = int(mark.get("turns") or 0)
+        users = await self._user_rows(link)
+        have = len(users)
+        if have < want or (want and _turn_key(users[want - 1]) != mark.get("last")):
+            # Fewer turns than the bookmark, or its last turn is not there any more (undone, then the conversation went on):
+            # the turns this checkpoint holds were undone, and Hermes cannot bring them back.
+            return _rewind_refusal("rewind_forward", "Hermes cannot bring back turns it already undid, so Lampway Agent does not "
+                                   "remember the turns this checkpoint restores")
+        start = have
+        while have > want:
+            try:
+                removed = int((await link.client.call("session.undo", {"session_id": link.live_id})).get("removed") or 0)
+            except ServeError as exc:
+                if exc.code == BUSY:
+                    return _rewind_refusal("rewind_busy", "Lampway Agent started a turn; stop it, then restore the checkpoint again")
+                raise
+            if removed <= 0:
+                break
+            have = len(await self._user_rows(link))
+        if self.feed is not None:
+            self.feed.forget(link.unit)                      # the archive reads the shortened history at its next poll
+        log.info("Lampway Agent's conversation for %s rewound by %d turn(s) to a checkpoint", link.unit, start - have)
+        return {"ok": True, "has_conversation": True, "removed_turns": start - have}
+
+    async def _user_rows(self, link: Link) -> list:
+        msgs = (await link.client.call("session.history", {"session_id": link.live_id})).get("messages") or []
+        return [m for m in msgs if m.get("role") == "user"]
+
+    def _marks(self, link: Link) -> dict:
+        if link.marks is None:
+            link.marks = {}
+            path = self._marks_path(link)
+            if path is not None:
+                try:
+                    link.marks = dict(json.loads(path.read_text(encoding="utf-8")))
+                except (OSError, ValueError, TypeError):
+                    link.marks = {}
+        return link.marks
+
+    @staticmethod
+    def _marks_path(link: Link):
+        home = getattr(link.info, "home", None) if link.info is not None else None
+        return Path(home) / MARKS_FILE if home else None
+
+    async def _bookmark(self, link: Link, request_id: str) -> bool:
+        if not request_id or link.client is None:
+            return False
+        try:
+            users = await self._user_rows(link)
+        except Exception:  # noqa: BLE001 - a bookmark never stops a turn
+            log.debug("the checkpoint bookmark %s could not be taken", request_id, exc_info=True)
+            return False
+        marks = self._marks(link)
+        marks[str(request_id)] = {"session": link.info.stored_id if link.info is not None else None, "turns": len(users),
+                                  "last": _turn_key(users[-1]) if users else ""}
+        while len(marks) > MAX_MARKS:
+            marks.pop(next(iter(marks)))
+        path = self._marks_path(link)
+        if path is not None:
+            from .units import write_private
+            try:
+                await asyncio.to_thread(write_private, path, json.dumps(marks))
+            except OSError:
+                log.warning("the checkpoint bookmarks of %s could not be saved", link.unit)
+        return True
 
     # ------------------------------------------------------------------------------------------------- tools (A3)
     def session_for_token(self, unit: str, token: str):
@@ -787,6 +884,16 @@ class HermesFront:
 class _NoSocket:
     async def notify(self, method, params):
         raise ConnectionError("no client")
+
+
+def _turn_key(message: dict) -> str:
+    """Which user turn this is: its durable row id and its words (a row id alone may be given again after an undo)."""
+    import hashlib
+    return hashlib.sha256(f"{message.get('row_id')}:{message.get('text')}".encode("utf-8")).hexdigest()[:24]
+
+
+def _rewind_refusal(code: str, message: str) -> dict:
+    return {"ok": False, "code": code, "message": message}
 
 
 def _refusal(code: str, message: str, help_: list) -> dict:
