@@ -56,6 +56,12 @@ def tick():
             STATE['stage'] = 1
             return 2.0
         if STATE['stage'] == 1:
+            # Retain actual UI evidence even when geometry assertions fail.
+            wm = bpy.context.window_manager
+            (OUT / 'native-widget-dump.json').write_text(wm.mixar_qa_ui_dump)
+            wm.mixar_ui_enable(enabled=True)  # Isolated fixture user capture permission only.
+            for win in wm.windows:
+                assert win.mixar_ui_capture(filepath=str(OUT / ('window-' + str(win.as_pointer()) + '.png')))
             mode, model = find_tip(MODE_TIP), find_tip(MODEL_TIP)
             assert mode['w'] == model['w'], (mode, model)
             left, right = mode['rect'], model['rect']
@@ -63,6 +69,7 @@ def tick():
             assert left[2] <= right[0], (left, right)
             assert left[1] == right[1] and left[3] == right[3], (left, right)
             win = next(w for w in bpy.context.window_manager.windows if w.as_pointer() == mode['w'])
+            bpy.context.window_manager.mixar_ui_enable(enabled=True)
             assert win.mixar_ui_capture(filepath=str(OUT / 'mode-chip.png')), 'native frame capture failed'
             STATE.update(window=win, rect=left, geometry={'mode': left, 'model': right})
             win.scene.lampway_agent_mode = 'byoa'
@@ -92,9 +99,10 @@ def tick():
             STATE['stage'] = 5
             return 1.0
         popup = [w for w in widgets() if w.get('popup')]
-        assert any(w.get('op') == 'mixie_chat.agent_mode_set' and w.get('text') == 'Lampway Agent' for w in popup), popup
-        assert any(w.get('op') == 'mixie_chat.agent_mode_refresh' for w in popup), popup
-        assert not any(w.get('op') == 'mixar.agent_model_set' for w in popup), popup
+        assert any(w.get('op') == 'MIXIE_CHAT_OT_agent_mode_set' and w.get('text') == 'Lampway Agent' for w in popup), popup
+        assert any(w.get('op') == 'MIXIE_CHAT_OT_agent_mode_refresh' for w in popup), popup
+        assert not any(w.get('op') == 'MIXAR_OT_agent_model_set' for w in popup), popup
+        bpy.context.window_manager.mixar_ui_enable(enabled=True)
         assert STATE['window'].mixar_ui_capture(filepath=str(OUT / 'mode-menu.png'))
         finish({'ok': True, 'geometry': STATE['geometry'], 'popup_rows': [w.get('text') for w in popup],
                 'scope': 'native uiBut geometry and mouse-opened registered menu; no provider or TUI'})

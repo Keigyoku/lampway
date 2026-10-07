@@ -355,6 +355,10 @@ void agent_ui_layout_build(const int window_w,
   r_layout->chip_scribble = f.box(scribble_x, chip_y, AGENT_CHIP_SCRIBBLE_W, AGENT_CHIP_H);
   r_layout->chip_voice = f.box(scribble_x, chip_y, AGENT_CHIP_VOICE_W, AGENT_CHIP_H);
   r_layout->chip_auto = f.box(scribble_x, chip_y, AGENT_CHIP_AUTO_W, AGENT_CHIP_H);
+#ifdef LAMPWAY
+  /* LAMPWAY: seed the row height before the fitter changes only its X extent. */
+  r_layout->chip_agent_mode = f.box(scribble_x, chip_y, AGENT_CHIP_MODEL_W, AGENT_CHIP_H);
+#endif
   r_layout->chip_model = f.box(scribble_x, chip_y, AGENT_CHIP_MODEL_W, AGENT_CHIP_H);
   r_layout->model_form = AgentModelChipForm::Full;
   r_layout->chip_reading = f.box(scribble_x, chip_y, AGENT_CHIP_READING_W, AGENT_CHIP_H);
