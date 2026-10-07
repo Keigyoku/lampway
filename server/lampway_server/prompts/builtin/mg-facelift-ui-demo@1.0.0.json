@@ -1,0 +1,127 @@
+{
+  "id": "mg-facelift-ui-demo",
+  "version": "1.0.0",
+  "purpose": "motion-graphics",
+  "media": "video",
+  "title": "Facelift UI demo",
+  "description": "A demo of one client facelift surface (cockpit, spend gate, Vault, privacy) from its design shots: the surface whole, then the one thing the eye should land on, zoomed until it reads.",
+  "body": {
+    "subject": "The {{surface}} surface of the Lampway client facelift, from the supplied design shot (input design_plate); the point it makes: {{point}}.",
+    "action": "The shot appears whole for {{whole_s}} s, then the frame zooms to {{region}} until its text is at least {{min_text_px}} px, a pointer path (a drawn dot, no OS cursor) moves to the control, the control's state change is shown as a crossfade between the two supplied states when two are given, then the frame pulls back.",
+    "camera": "2D zoom and pan on the shot, eased; one zoom in and one pull back.",
+    "style": "Night surface; the tag 'Design, in progress' on every design shot, in mono on the flame accent; {{palette}}.",
+    "constraints": "Write ONE scene folder: an HTML entry plus its JS, CSS, fonts and images, nothing fetched from elsewhere. Expose window.__scene = {duration_s, width, height}, an async window.__setup() that loads every font and decodes every image and reports each one, window.__frame(t) that sets EVERY animated property from t (seconds) alone, and window.__audit() that lists the visible text with its box, size and colour. No Date, performance.now, Math.random, requestAnimationFrame, CSS animations or CSS transitions: easing and any flicker are closed-form functions of t. All text inside the 5% title-safe area, at least {{min_text_px}} px tall at the output size, with contrast of at least 4.5:1 (3:1 at 24 px and up). No text over a busy image without a plate behind it. A design shot is never presented as the running app. Text baked into the shot is not measured by the self-check: zoom until it is at least min_text_px by its own size in the shot."
+  },
+  "variables": {
+    "min_text_px": {
+      "type": "integer",
+      "default": 28,
+      "min": 22,
+      "max": 200,
+      "description": "the smallest text at the output size; the self-check fails under 22"
+    },
+    "palette": {
+      "type": "string",
+      "default": "the brand's own tokens from the supplied stylesheet",
+      "description": "where the colours come from; never invented"
+    },
+    "surface": {
+      "type": "enum",
+      "default": "spend",
+      "enum": [
+        "cockpit",
+        "spend",
+        "vault",
+        "privacy",
+        "window"
+      ],
+      "description": "which facelift surface"
+    },
+    "point": {
+      "type": "string",
+      "description": "the one thing this demo shows"
+    },
+    "region": {
+      "type": "string",
+      "description": "the region to zoom to, as x,y,w,h in the shot's pixels"
+    },
+    "whole_s": {
+      "type": "number",
+      "default": 1.5,
+      "min": 0.5,
+      "max": 5,
+      "description": "how long the whole shot holds first"
+    }
+  },
+  "negatives": [
+    "no design shot shown without its tag",
+    "no fake OS cursor",
+    "no zoom that leaves the point unreadable"
+  ],
+  "inputs": {
+    "design_plate": {
+      "required": true,
+      "multiple": true,
+      "order": 1,
+      "description": "the facelift design shot; a second one is the after-state of the control"
+    }
+  },
+  "defaults": {
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "duration": 10
+  },
+  "gates": [
+    {
+      "id": "mg.network",
+      "description": "requests other than file: and data: during the render (the scene must be self-contained)",
+      "threshold": 0,
+      "unit": "requests"
+    },
+    {
+      "id": "mg.empty",
+      "description": "sampled frame with no visible mark: share of pixels carrying a local luminance step",
+      "threshold": 0.0001,
+      "unit": "share"
+    },
+    {
+      "id": "mg.sparse",
+      "description": "warning only: a nearly empty sampled frame (a weak poster frame)",
+      "threshold": 0.001,
+      "unit": "share"
+    },
+    {
+      "id": "mg.title_safe",
+      "description": "visible text box outside the 5% title-safe margin",
+      "threshold": 0,
+      "unit": "boxes"
+    },
+    {
+      "id": "mg.min_text_px",
+      "description": "smallest visible authored text",
+      "threshold": 22,
+      "unit": "px"
+    },
+    {
+      "id": "mg.contrast",
+      "description": "measured contrast of fully visible authored text against the pixels around it (3.0 at 24 px and up)",
+      "threshold": 4.5,
+      "unit": "ratio"
+    },
+    {
+      "id": "mg.overlap",
+      "description": "authored text overlapping a figure or card box",
+      "threshold": 0,
+      "unit": "boxes"
+    },
+    {
+      "id": "mg.determinism",
+      "description": "frames differing when the receipt is re-rendered by verify (same engine, sequential order)",
+      "threshold": 0,
+      "unit": "frames"
+    }
+  ],
+  "provenance": {
+    "source": "captain 2026-10-07: motion graphics from code ('add it to the list'); the scene contract and gates measured in the spike (the spike REPORT; receipts in scratch/motion/out/lampway-teaser/)"
+  }
+}

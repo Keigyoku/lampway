@@ -1,0 +1,105 @@
+{
+  "id": "mg-report-card",
+  "version": "1.0.0",
+  "purpose": "motion-graphics",
+  "media": "video",
+  "title": "Animated report card",
+  "description": "A clip of a measured result (a gate run, a bake-off, a wave's counts) from a receipt or report JSON: every number on screen comes from that file.",
+  "body": {
+    "subject": "The result in {{data_source}}: {{headline}}; the fields shown are {{fields}}.",
+    "action": "The title sets; each number counts up to its exact value or each bar grows to it, one at a time, with its label and unit; pass and fail marks appear after their numbers; the full card holds for at least 2 s at the end.",
+    "camera": "Fixed frame.",
+    "style": "Night surface; numbers in the site's mono; pass in the go colour, fail in the stop colour, a warning in flame, shape first and colour second (a tick, a cross, a dot); {{palette}}.",
+    "constraints": "Write ONE scene folder: an HTML entry plus its JS, CSS, fonts and images, nothing fetched from elsewhere. Expose window.__scene = {duration_s, width, height}, an async window.__setup() that loads every font and decodes every image and reports each one, window.__frame(t) that sets EVERY animated property from t (seconds) alone, and window.__audit() that lists the visible text with its box, size and colour. No Date, performance.now, Math.random, requestAnimationFrame, CSS animations or CSS transitions: easing and any flicker are closed-form functions of t. All text inside the 5% title-safe area, at least {{min_text_px}} px tall at the output size, with contrast of at least 4.5:1 (3:1 at 24 px and up). No text over a busy image without a plate behind it. Read the numbers from the data file at build time and print them exactly as the file states them (no rounding beyond the file's own precision); a count-up ends on the exact value for at least 1 s; name the source file and its date on the card."
+  },
+  "variables": {
+    "min_text_px": {
+      "type": "integer",
+      "default": 28,
+      "min": 22,
+      "max": 200,
+      "description": "the smallest text at the output size; the self-check fails under 22"
+    },
+    "palette": {
+      "type": "string",
+      "default": "the brand's own tokens from the supplied stylesheet",
+      "description": "where the colours come from; never invented"
+    },
+    "data_source": {
+      "type": "string",
+      "description": "project-relative path of the receipt or report JSON"
+    },
+    "headline": {
+      "type": "string",
+      "description": "one line saying what was measured"
+    },
+    "fields": {
+      "type": "string",
+      "description": "comma-separated JSON paths of the numbers to show"
+    }
+  },
+  "negatives": [
+    "no number that is not in the data file",
+    "no rounding up",
+    "no colour as the only signal of pass or fail"
+  ],
+  "inputs": {},
+  "defaults": {
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "duration": 10
+  },
+  "gates": [
+    {
+      "id": "mg.network",
+      "description": "requests other than file: and data: during the render (the scene must be self-contained)",
+      "threshold": 0,
+      "unit": "requests"
+    },
+    {
+      "id": "mg.empty",
+      "description": "sampled frame with no visible mark: share of pixels carrying a local luminance step",
+      "threshold": 0.0001,
+      "unit": "share"
+    },
+    {
+      "id": "mg.sparse",
+      "description": "warning only: a nearly empty sampled frame (a weak poster frame)",
+      "threshold": 0.001,
+      "unit": "share"
+    },
+    {
+      "id": "mg.title_safe",
+      "description": "visible text box outside the 5% title-safe margin",
+      "threshold": 0,
+      "unit": "boxes"
+    },
+    {
+      "id": "mg.min_text_px",
+      "description": "smallest visible authored text",
+      "threshold": 22,
+      "unit": "px"
+    },
+    {
+      "id": "mg.contrast",
+      "description": "measured contrast of fully visible authored text against the pixels around it (3.0 at 24 px and up)",
+      "threshold": 4.5,
+      "unit": "ratio"
+    },
+    {
+      "id": "mg.overlap",
+      "description": "authored text overlapping a figure or card box",
+      "threshold": 0,
+      "unit": "boxes"
+    },
+    {
+      "id": "mg.determinism",
+      "description": "frames differing when the receipt is re-rendered by verify (same engine, sequential order)",
+      "threshold": 0,
+      "unit": "frames"
+    }
+  ],
+  "provenance": {
+    "source": "captain 2026-10-07: motion graphics from code ('add it to the list'); the scene contract and gates measured in the spike (the spike REPORT; receipts in scratch/motion/out/lampway-teaser/)"
+  }
+}

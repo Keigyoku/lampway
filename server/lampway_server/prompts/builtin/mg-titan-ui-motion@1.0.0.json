@@ -1,0 +1,125 @@
+{
+  "id": "mg-titan-ui-motion",
+  "version": "1.0.0",
+  "purpose": "motion-graphics",
+  "media": "video",
+  "title": "Titan UI motion study",
+  "description": "A motion study of one TITAN game UI element (a HUD widget, a menu transition, a notification) from its mock and its UI tokens: the element's states and the transitions between them, timed, for review before the engine build.",
+  "body": {
+    "subject": "The TITAN UI element '{{element}}' from the supplied mock (input design_plate), in the states {{states}}.",
+    "action": "Each state holds for {{state_s}} s, and each transition between states plays at its specified length {{transition_ms}} ms with its specified easing; the sequence plays once at speed, then once at quarter speed with the state names labelled.",
+    "camera": "Fixed frame at the game's reference resolution, the element at its in-game size and position.",
+    "style": "The element's own colours, type and sizes from {{tokens_source}}; nothing taken from the Lampway site style.",
+    "constraints": "Write ONE scene folder: an HTML entry plus its JS, CSS, fonts and images, nothing fetched from elsewhere. Expose window.__scene = {duration_s, width, height}, an async window.__setup() that loads every font and decodes every image and reports each one, window.__frame(t) that sets EVERY animated property from t (seconds) alone, and window.__audit() that lists the visible text with its box, size and colour. No Date, performance.now, Math.random, requestAnimationFrame, CSS animations or CSS transitions: easing and any flicker are closed-form functions of t. All text inside the 5% title-safe area, at least {{min_text_px}} px tall at the output size, with contrast of at least 4.5:1 (3:1 at 24 px and up). No text over a busy image without a plate behind it. Transition lengths and easings are quoted from the tokens or the spec; where neither states one, the label on screen says 'proposed'."
+  },
+  "variables": {
+    "min_text_px": {
+      "type": "integer",
+      "default": 28,
+      "min": 22,
+      "max": 200,
+      "description": "the smallest text at the output size; the self-check fails under 22"
+    },
+    "palette": {
+      "type": "string",
+      "default": "the brand's own tokens from the supplied stylesheet",
+      "description": "where the colours come from; never invented"
+    },
+    "element": {
+      "type": "string",
+      "description": "the UI element"
+    },
+    "states": {
+      "type": "string",
+      "description": "comma-separated state names, in order"
+    },
+    "state_s": {
+      "type": "number",
+      "default": 1.0,
+      "min": 0.3,
+      "max": 5,
+      "description": "hold per state"
+    },
+    "transition_ms": {
+      "type": "integer",
+      "default": 200,
+      "min": 16,
+      "max": 2000,
+      "description": "transition length when the spec does not state one (labelled proposed)"
+    },
+    "tokens_source": {
+      "type": "string",
+      "description": "project-relative path of the TITAN UI tokens or spec"
+    }
+  },
+  "negatives": [
+    "no style borrowed from another product",
+    "no transition length invented without the 'proposed' label"
+  ],
+  "inputs": {
+    "design_plate": {
+      "required": true,
+      "multiple": true,
+      "order": 1,
+      "description": "the element's mock, one per state where they exist"
+    }
+  },
+  "defaults": {
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "duration": 12
+  },
+  "gates": [
+    {
+      "id": "mg.network",
+      "description": "requests other than file: and data: during the render (the scene must be self-contained)",
+      "threshold": 0,
+      "unit": "requests"
+    },
+    {
+      "id": "mg.empty",
+      "description": "sampled frame with no visible mark: share of pixels carrying a local luminance step",
+      "threshold": 0.0001,
+      "unit": "share"
+    },
+    {
+      "id": "mg.sparse",
+      "description": "warning only: a nearly empty sampled frame (a weak poster frame)",
+      "threshold": 0.001,
+      "unit": "share"
+    },
+    {
+      "id": "mg.title_safe",
+      "description": "visible text box outside the 5% title-safe margin",
+      "threshold": 0,
+      "unit": "boxes"
+    },
+    {
+      "id": "mg.min_text_px",
+      "description": "smallest visible authored text",
+      "threshold": 22,
+      "unit": "px"
+    },
+    {
+      "id": "mg.contrast",
+      "description": "measured contrast of fully visible authored text against the pixels around it (3.0 at 24 px and up)",
+      "threshold": 4.5,
+      "unit": "ratio"
+    },
+    {
+      "id": "mg.overlap",
+      "description": "authored text overlapping a figure or card box",
+      "threshold": 0,
+      "unit": "boxes"
+    },
+    {
+      "id": "mg.determinism",
+      "description": "frames differing when the receipt is re-rendered by verify (same engine, sequential order)",
+      "threshold": 0,
+      "unit": "frames"
+    }
+  ],
+  "provenance": {
+    "source": "captain 2026-10-07: motion graphics from code ('add it to the list'); the scene contract and gates measured in the spike (the spike REPORT; receipts in scratch/motion/out/lampway-teaser/)"
+  }
+}

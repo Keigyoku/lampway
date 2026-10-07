@@ -25,6 +25,7 @@ from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
 from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, connections_tools, choices_tools, orphan_server_tools, marks_context, questions as Q
 from . import plan_tools
+from . import motion_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
 
@@ -478,6 +479,8 @@ class AgentHub:
             return await plan_tools.call(self, server_tools.project_root(), call.name, call.arguments)
         if call.name in engine_tools.NAMES:
             return await engine_tools.call(call.name, call.arguments)
+        if call.name in motion_tools.NAMES:
+            return await motion_tools.call(self.assets, server_tools.project_root(), call.name, call.arguments)
         if call.name in image_tools.NAMES:
             return await image_tools.call(self.prompts, call.name, call.arguments)
         if call.name in video_tools.NAMES:

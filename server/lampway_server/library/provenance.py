@@ -16,7 +16,8 @@ from .store import AssetLibrary, LibraryError, _clean_urls
 
 REQUIRED = {"video_gen": ["model", "provider", "prompt_sha256", "params_json", "cost_basis", "job_id", "started_at"],
             "image_to_model": ["studio", "model", "action", "job_id", "seed|seed_not_exposed"],
-            "local_edit": ["tool", "parent_seed"], "image_gen": ["model", "prompt_sha256", "job_id"]}
+            "local_edit": ["tool", "parent_seed"], "image_gen": ["model", "prompt_sha256", "job_id"],
+            "motion_graphics": ["action", "job_id", "params_json"]}
 DEFAULT_REQUIRED = ["action", "job_id"]
 PARENT_RELATIONS = {"parent_seed": ("derived_from", "parent_seed"), "start_frame": ("generated_from", "start_frame"), "end_frame": ("generated_from", "end_frame"),
                     "reference_video": ("generated_from", "reference_video")}
@@ -109,7 +110,7 @@ def record(lib: AssetLibrary, payload: dict) -> dict:
             attrs["parent_ref"] = {u["role"]: u["ref"] for u in unresolved}
         terms = [{"facet": f, "label": l, "by": "rule"} for f, l in (o.get("terms") or {}).items()]
         ident = o.get("path") or o.get("name") or str(i)
-        spec = {"kind": o["kind"], "name": o.get("name") or Path(o["path"]).stem, "source": {"kind": "generation", "key": f"{g.get('job_id') or hashlib.sha1(ident.encode()).hexdigest()[:12]}:{o.get('role', 'main')}:{i}"},
+        spec = {"kind": o["kind"], "subtype": o.get("subtype"), "name": o.get("name") or Path(o["path"]).stem, "source": {"kind": "generation", "key": f"{g.get('job_id') or hashlib.sha1(ident.encode()).hexdigest()[:12]}:{o.get('role', 'main')}:{i}"},
                 "files": [{"role": o.get("role", "main"), "storage": "cas", **({"bytes": o["bytes"]} if "bytes" in o else {"path": o["path"]})}], "attrs": attrs, "terms": terms, "relations": [{**r, "by": "rule"} for r in rels], "generation": gen}
         put = lib.put(spec)
         res["assets"].append({"id": put["id"], "version": put["version"], "created": put["created"], "deduped": put["deduped"]})
