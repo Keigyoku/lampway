@@ -47,53 +47,54 @@ def test_find_engine_reads_only_finished_builds(tmp_path):
 def no_repo_build(monkeypatch, tmp_path):
     monkeypatch.setattr(W, "REPO_ENGINES", tmp_path / "no-repo-build")
     monkeypatch.delenv("LAMPWAY_ENGINES_DIR", raising=False)
-    monkeypatch.delenv(W.SWITCH, raising=False)
 
 
 # ---------------------------------------------------------------------------------------------------- selection
-def test_the_built_in_loop_stays_without_the_switch_and_says_why(no_repo_build, settings, tmp_path, caplog):
-    fake_build(tmp_path / "engines")
-    with caplog.at_level(logging.INFO, logger="lampway.engine"):
-        engine, why = W.select(settings.state_dir, environ={"LAMPWAY_ENGINES_DIR": str(tmp_path / "engines")})
-    assert engine is None and W.SWITCH in why
+def test_without_a_build_mode1_is_unavailable_and_the_hub_is_told_why_and_how_to_build_it(no_repo_build, settings, tmp_path, caplog):
+    engine, why = W.select(settings.state_dir, environ={"LAMPWAY_ENGINES_DIR": str(tmp_path / "empty")})
+    assert engine is None and why.code == "engine_not_built" and str(tmp_path / "empty") in why.why
+    assert "scripts/lampway/engine_env.py" in why.fix
     with caplog.at_level(logging.INFO, logger="lampway.engine"):
         app = create_app(settings)
     assert app.state.engine_wiring is None and app.state.agent.engine is None
-    assert [r for r in caplog.records if "built-in agent loop" in r.getMessage() and W.SWITCH in r.getMessage()]
+    assert app.state.agent.engine_problem[0] == "engine_not_built"
+    assert [r for r in caplog.records if "Mode 1 is unavailable" in r.getMessage() and "engine_env.py" in r.getMessage()]
 
 
-def test_the_switch_without_a_finished_build_keeps_the_built_in_loop(no_repo_build, settings, tmp_path):
-    engine, why = W.select(settings.state_dir, environ={W.SWITCH: "hermes", "LAMPWAY_ENGINES_DIR": str(tmp_path / "empty")})
-    assert engine is None and "no finished engine build" in why and str(tmp_path / "empty") in why
-    engine, why = W.select(settings.state_dir, environ={W.SWITCH: "claude"})
-    assert engine is None and "hermes" in why
+def test_the_retired_switch_is_not_read_and_a_server_that_finds_it_says_so(no_repo_build, settings, tmp_path, caplog, monkeypatch):
+    monkeypatch.setenv("LAMPWAY_ENGINES_DIR", str(fake_build(tmp_path / "engines")))
+    for value in ("off", "claude", "hermes"):
+        monkeypatch.setenv(W.RETIRED_SWITCH, value)
+        caplog.clear()
+        with caplog.at_level(logging.INFO, logger="lampway.engine"):
+            app = create_app(settings)
+        assert app.state.engine_wiring is not None, f"{W.RETIRED_SWITCH}={value} changed nothing"
+        assert [r for r in caplog.records if W.RETIRED_SWITCH in r.getMessage() and "no longer read" in r.getMessage()]
 
 
 def test_the_build_is_found_in_the_named_dir_then_the_repository_then_the_state_dir(no_repo_build, settings, tmp_path, monkeypatch):
     named = fake_build(tmp_path / "named")
-    engine, _ = W.select(settings.state_dir, environ={W.SWITCH: "hermes", "LAMPWAY_ENGINES_DIR": str(named)})
+    engine, _ = W.select(settings.state_dir, environ={"LAMPWAY_ENGINES_DIR": str(named)})
     assert engine["dir"].startswith(str(named))
     in_state = fake_build(settings.state_dir / "engines")
-    engine, _ = W.select(settings.state_dir, environ={W.SWITCH: "hermes"})
+    engine, _ = W.select(settings.state_dir, environ={})
     assert engine["dir"].startswith(str(in_state))
     repo = fake_build(tmp_path / "repo-build")
     monkeypatch.setattr(W, "REPO_ENGINES", repo)
-    engine, _ = W.select(settings.state_dir, environ={W.SWITCH: "hermes"})
+    engine, _ = W.select(settings.state_dir, environ={})
     assert engine["dir"].startswith(str(repo))
 
 
-def test_a_server_not_reachable_on_loopback_keeps_the_built_in_loop(no_repo_build, settings, tmp_path):
+def test_a_server_not_reachable_on_loopback_cannot_run_mode1_and_says_so(no_repo_build, settings, tmp_path):
     settings.host = "192.0.2.10"
-    engine, why = W.select(settings.state_dir, environ={W.SWITCH: "hermes", "LAMPWAY_ENGINES_DIR": str(fake_build(tmp_path / "e"))},
-                           host=settings.host)
-    assert engine is None and "loopback" in why
+    engine, why = W.select(settings.state_dir, environ={"LAMPWAY_ENGINES_DIR": str(fake_build(tmp_path / "e"))}, host=settings.host)
+    assert engine is None and why.code == "engine_unavailable" and "loopback" in why.why and "LAMPWAY_HOST" in why.fix
 
 
 # ---------------------------------------------------------------------------------------------------- the app with the engine selected
 @pytest.fixture
 def engine_app(no_repo_build, settings, provider, tmp_path, monkeypatch):
     import sys
-    monkeypatch.setenv(W.SWITCH, "hermes")
     monkeypatch.setenv("LAMPWAY_ENGINES_DIR", str(fake_build(tmp_path / "engines")))
     monkeypatch.setenv("LAMPWAY_NODE", sys.executable)                     # a stand-in Node: nothing runs it here
     return create_app(settings, provider=provider)

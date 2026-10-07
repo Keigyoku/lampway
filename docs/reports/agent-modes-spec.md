@@ -275,6 +275,31 @@ overwhelming/losing information the better."
   - The live suite runs the real pinned Hermes through the same wrapper the pane runs.
   - CI must build the engine (`engine_env.py`), or the live suite skips, and a skip is not a pass.
 
+**Built 2026-10-07** (`agent/turns.py`, `engine/wiring.py`, `engine/front.py`, `engine/units.py`):
+- **The loop is gone.** `turns.py` lost `_agent_loop` and everything only it used: its rounds (`MAX_ROUNDS`), `trim_history`, the
+  pairing repair (`pair_tool_calls`, `add_tool_results`) and the hub's own message list, `PLAN_MODE_PROMPT`, the empty-reply note,
+  the batched `ask_user` wizard, and the Retry-failed-tasks chip with the swarm's retry state. The hub drives only the engine; the
+  providers are the gateway's doors only. A source gate (`tests/test_mode1_only_hermes.py`) holds that the hub never streams from a
+  provider.
+- **No switch.** `LAMPWAY_AGENT_ENGINE` is no longer read: the engine is in Mode 1's seat whenever a finished build is found and the
+  server is on loopback. A server that finds the variable set says once that it is ignored.
+- **Refused before any turn, with the fix:** no engine build or no prebuilt TUI (`engine_not_built`, help
+  `scripts/lampway/engine_env.py`), an engine that could not start or a non-loopback bind (`engine_unavailable`), no Node.js
+  (`node_missing`, help Node.js 22 or 24 or `LAMPWAY_NODE`), no herdr (`herdr_not_built`, help `scripts/lampway/herdr_env.py` or
+  `LAMPWAY_HERDR_BIN`). The switch to Your agent is named in each, except herdr's: Your agent runs in a herdr pane too. The M0
+  `wrong_mode` refusal still comes first. Nothing answers in the engine's place.
+- **Kept:** R0a's plan notice (it was shown on engine turns too), `_run_tool` and the registry, Capabilities, the swarm substrate,
+  BYOA. `ask_user` stays in the registry but is offered to no agent (Hermes asks with `clarify`).
+- **Fixed on the way:** a swarm the pane's Hermes starts now runs in the island turn that shows its call, so its todo cards and
+  progress reach the Parallel Agents panel; the engine path passed no stream, so they never did.
+- **Checkpoints:** a mark bookmarks nothing (`has_conversation: false`) and a rewind is refused (`rewind_unsupported`), so the
+  client tells the user the agent still remembers the undone turns, where the hub used to claim it forgot them. Rewinding through
+  serve's `session.undo` or `session.branch` is proposed, not measured: a decision for the captain.
+- **Tests:** the hub's protocol tests run on the scripted serve (`tests/serve_support.py`: `FakeServe`, `stack`/`run` on a real port,
+  `ServeThread`/`mode1_turn` under a TestClient); the tests whose subject was the loop itself were deleted.
+- `[UNVERIFIED]`: the `mock` provider (written for the loop) has not been run against Hermes, whose tool names it does not use; CI
+  does not build the engine yet.
+
 ## 0. Where the code is today
 
 | Area | Today | Source |

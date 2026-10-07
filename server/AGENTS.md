@@ -9,8 +9,9 @@ verification-mode: mixed
 
 # server — Lampway's backend
 
-`lampway_server`: login for the single local account, the agent loop that drives Blender over the client's own JSON-RPC
-WebSocket protocol, the tool registry, MCP for external AI apps, the job queue, studios, prompts, the ledger, the asset library,
+`lampway_server`: login for the single local account, the agent hub that fronts Mode 1's Hermes pane over the client's own
+JSON-RPC WebSocket protocol and drives Blender for its tools (Lampway runs no agent loop of its own, spec A5), the tool registry,
+the model gateway, MCP for external AI apps, the job queue, studios, prompts, the ledger, the asset library,
 compute adapters and the cockpit's herdr host. Loopback by default (`config.py`: `LAMPWAY_HOST` defaults to `127.0.0.1`). How to
 run it and its environment: [`README.md`](README.md). The laws are the root [`AGENTS.md`](../AGENTS.md)'s; this file states how
 they bind here. Adding a tool: the `lampway-tool-authoring` skill.
@@ -130,9 +131,11 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     connection through `Egress.begin`. It is the one module that opens an outbound stream outside the httpx hook
     (`tests/test_engine_proxy.py` holds that in both directions). The gateway's one tokenless path is the models.dev mirror
     (`/engine/v1/models-dev.json`, loopback only, the model's name and window, no secret), because Hermes fetches it with no key.
-    `engine/wiring.py` puts the engine in the seat only when `LAMPWAY_AGENT_ENGINE=hermes` and a finished build is found
-    (`$LAMPWAY_ENGINES_DIR`, else `<repo>/build/engines`, else `<state_dir>/engines`), the server is on loopback, and says why in one
-    log line otherwise. Then the lifespan starts the proxy (on its previous port when free, so panes that outlived the server still
+    `engine/wiring.py` puts the engine in the seat whenever a finished build is found (`$LAMPWAY_ENGINES_DIR`, else
+    `<repo>/build/engines`, else `<state_dir>/engines`) and the server is on loopback; there is no switch (spec A5: nothing else runs
+    Mode 1, and `LAMPWAY_AGENT_ENGINE` is no longer read, a server that finds it set says so). Otherwise one log line says why and
+    the hub keeps that reason with its fix (`AgentHub.engine_problem`: `engine_not_built` with the build command, or
+    `engine_unavailable` for a non-loopback bind or an engine that could not start) for its Mode 1 refusals. Then the lifespan starts the proxy (on its previous port when free, so panes that outlived the server still
     reach it), makes `units.Mode1Units` the cockpit's `mode1` hook and `front.HermesFront` the hub's engine, and re-adopts the live
     Lampway panes. Each pane gets a fresh gateway token (an older one for the same pane revoked), its config from
     `hermes_config.write` and the active board (`worker=True`, the board less `WORKER_NEVER` and without clarify, for a Mode 1
@@ -148,6 +151,14 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     turn typed in the pane is an island turn (`agent.turn.started` with `origin: pane`); `/new` in the pane is followed; a dropped
     connection catches up from `session.events.since` (else the history); the island's socket closing stops nothing in Hermes.
     The M0 `wrong_mode` refusal comes first, before any of it.
+    **Mode 1 runs only on Hermes (spec A0, A5).** The hub has no provider loop, no transcript of its own and no rounds: the
+    providers are the gateway's doors only (it is their one caller for Mode 1), and Hermes keeps the conversation. With no engine on
+    this server (`AgentHub.engine` None) a Mode 1 `agent.chat` or `agent.input` is refused before any turn starts with the reason
+    `wiring.py` found, its fix and the switch to Your agent (`AgentHub.engine_refusal`); `HermesFront.precheck` refuses a missing
+    hermes binary or prebuilt TUI (`engine_not_built`), Node.js (`node_missing`) and herdr (`herdr_not_built`, its build command)
+    before a pane is asked for. Nothing answers in the engine's place. A swarm the pane's Hermes starts runs in the island turn that
+    shows its call, so its todo cards and progress reach the Parallel Agents panel. A checkpoint mark bookmarks nothing
+    (`has_conversation: false`) and a rewind is refused (`rewind_unsupported`): Lampway does not rewind Hermes's conversation.
 
 ## Test
 
@@ -157,12 +168,17 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
 .venv/bin/python -m pytest -q tests                            # the whole suite: no Blender, no network, no model
 ```
 
-Mode 1 without an engine: `tests/test_engine_front.py` drives the hub's front end against `tests/serve_support.py` `FakeServe`, a
-scripted `/api/ws` peer speaking the contract measured on the pinned serve, with the real server on a real port and the client's
-own frames; `tests/test_engine_pane.py` holds the adapter, the wrapper (against a stand-in `hermes`), `Mode1Units` and the unit's
+Mode 1 without an engine: the hub's client-protocol tests (`test_engine_front.py`, `test_agent_turn.py`, `test_agent_control.py`,
+`test_questions_checkpoints.py`, `test_modes_m0.py`, the swarm's and the tools' turns) drive Mode 1 against `tests/serve_support.py`
+`FakeServe`, a scripted `/api/ws` peer speaking the contract measured on the pinned serve, with the client's own frames: the real
+server on a real port (`stack`, `run`), or under a TestClient (`ServeThread`, `mode1_turn`, the pane's MCP calls through it). No
+test drives a turn through a provider: `ScriptedProvider` is the gateway's door (`test_engine_gateway.py`, the live suite).
+`tests/test_mode1_only_hermes.py` holds the refusals with no engine, no herdr and no Node, and that the loop is gone. The suite's
+conftest keeps engine discovery off (`LAMPWAY_ENGINES_DIR`, the repository's build) unless a test names its build.
+`tests/test_engine_pane.py` holds the adapter, the wrapper (against a stand-in `hermes`), `Mode1Units` and the unit's
 endpoint. Live: `tests/test_engine_hermes_config.py` runs the built engine's `hermes serve` (`build/engines/hermes/<tag>/env/bin/hermes`,
 or `$LAMPWAY_HERMES_ENGINE`) against a fake loopback model behind a refusing proxy; `tests/test_engine_pane_live.py` runs the real
-server with `LAMPWAY_AGENT_ENGINE=hermes`, the real wrapper, serve and TUI in a pty (herdr played but running its panes for real,
+server with a finished build in `LAMPWAY_ENGINES_DIR` (found, so in the seat), the real wrapper, serve and TUI in a pty (herdr played but running its panes for real,
 `tests/live_support.py`) and once on a real herdr server; it needs the build (`LAMPWAY_ENGINES_DIR`), its prebuilt TUI
 (`engine.json` `tui` or `LAMPWAY_HERMES_TUI_DIR`) and Node (`LAMPWAY_NODE` or PATH). Without them those tests SKIP, which is not a
 pass. The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a
@@ -204,3 +220,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | Lampway runs its pinned herdr | captain: "Pin the current herdr and Hermes releases the same way the Blender pin is done" | `launcher.bin_path` took the first herdr on PATH, so the server ran whichever version the user had | `bin_path` order (LAMPWAY_HERDR_BIN, the finished pinned build, PATH, ~/.local/bin) in the Test section's lookup; `tests/test_herdr_pin.py`; the live herdr tests use the same lookup | captain ruling, 2026-10-07 |
 | 2026-10-07 | Mode 1 in a pane: the Hermes pane, the island as its client, tools by unit (A1, A2, A3) | captain, 2026-10-07: Mode 1 runs Hermes's own TUI in its pane, the island loses nothing and gains persistence; coordinator brief for the lane (agent-modes spec A1-A3, E1.3-E1.6, S3) | Mode 1 ran as a hidden `hermes acp` child per tab (`EngineRuntime`, `LampwayACPClient`), killed with the server; `lampway_hermes` was a stub; the engine endpoint needed an island turn, so nothing typed in a pane could reach the scene; the config named the ACP platform and `no_mcp` | invariant 4: `/engine/mcp/<unit>` on the tab's current socket, no `ask_user`, refused with no window open; invariant 6: Mode 1's pane, its home, its record fields, no route, the user's chat as the only opener, re-adoption; invariant 9: the `cli` platform, clarify, the pinned toolsets, manual approvals; invariant 10: per-pane tokens adopted by digest, `/api/show`, the proxy's kept port, a shutdown that ends no pane; invariant 11 new: the island as serve's client; the Test section names the fake serve and the live pane suite | captain ruling, 2026-10-07 |
 | 2026-10-07 | merge: Mode 1 in a pane (A1-A3) beside the verified herdr layout and the herdr pin | coordinator integration of the A1-A3 lane | both sides rewrote the Test section's herdr sentence and the host's placement; the lane's still called the layout's shapes `[UNVERIFIED]` | the Test section keeps the lane's Mode 1 tests and the verified, pinned herdr sentence (the real-herdr case of `test_engine_pane_live.py` named); the host keeps the lane's Mode 1 unit with the swarm's `planned` column | none |
+| 2026-10-07 | Mode 1 only on Hermes: Lampway's built-in agent loop removed (A5) | captain, 2026-10-07: "two Agent Modes and the Runtime on Mode 1 to be Hermes Runtime. Agents/workers run on either of those modes nothing else"; coordinator brief for the last server lane (agent-modes spec A5) | `turns.py` still ran its own provider loop (rounds, history trimming, the pairing repair, Plan Mode's prompt, the Retry chip) whenever `LAMPWAY_AGENT_ENGINE` was unset or no engine was built, so Mode 1 silently ran a third runtime; the swarm's todo cards never reached the island on the engine path; a checkpoint rewind claimed to forget turns Hermes still had | invariant 10: the engine is in the seat whenever it is built, no switch; invariant 11: Mode 1 only on Hermes, the refusals with no engine, Node or herdr, the swarm in the island turn, checkpoints say Hermes keeps the conversation; the intro and the Test section: the hub's protocol tests on the scripted serve, no turn through a provider, `test_mode1_only_hermes.py`, the conftest's engine discovery | captain ruling, 2026-10-07 |

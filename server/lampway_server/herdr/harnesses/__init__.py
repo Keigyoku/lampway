@@ -64,8 +64,8 @@ def worker_adapter(mode: str, parent_harness=None) -> str:
 
 #: Why a Lampway adapter's pane cannot start on this server, with what to do (the cockpit has no ``mode1`` hook).
 MODE1_UNAVAILABLE = ("Lampway Agent runs on Lampway's pinned Hermes engine (agent-modes spec A1), and this server is not running it, "
-                     "so nothing was started: build the engine with scripts/lampway/engine_env.py and start Lampway with "
-                     "LAMPWAY_AGENT_ENGINE=hermes; or switch this scene tab to Your agent in the island's agent menu and ask your "
+                     "so nothing was started: build the engine with scripts/lampway/engine_env.py and restart Lampway (it runs the "
+                     "engine whenever it is built); or switch this scene tab to Your agent in the island's agent menu and ask your "
                      "own agent")
 
 

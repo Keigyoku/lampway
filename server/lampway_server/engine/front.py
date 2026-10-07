@@ -6,7 +6,9 @@ end. ``AgentHub.engine`` is a ``HermesFront``; the hub keeps the client protocol
 
 * **a scene tab's first ``agent.chat``** opens the unit's pane when it has none (``Mode1Units.open``; only the user's own Client
   may, ``precheck``), then this server attaches as a client: ``client.capabilities {server_requests}``, ``session.resume`` of the
-  stored session;
+  stored session. Nothing else runs Mode 1 (A5): with no engine build or prebuilt TUI (``engine_not_built``), no Node.js
+  (``node_missing``), no herdr (``herdr_not_built``) or no running herdr server (``herdr_not_running``) the chat is refused before
+  any turn starts, with the exact build command or setting (and the switch to Your agent where that would help);
 * **``agent.chat``** -> ``image.attach_bytes`` per image, then ``prompt.submit`` with R3's context blocks (``turn_context``);
 * **a chat while a turn runs** -> ``session.steer`` (the hub answers ``{ok: true, joined: true}``, R4);
 * **``agent.cancel``** -> ``session.interrupt``;
@@ -153,17 +155,27 @@ class HermesFront:
     async def precheck(self, socket, session_id: str) -> Optional[dict]:
         """Before a Mode 1 turn is admitted: a refusal (the client's ``{ok: false}`` shape) when the unit has no pane and none may be
         opened, else None. Opening Lampway Agent's pane is the user's own chat (law 5 and the human gate: an agent's socket never
-        opens one), on a running herdr server the user started (it is never started implicitly)."""
+        opens one), with the engine, its TUI and Node here, on a running herdr server the user started (it is never started
+        implicitly). Each refusal names the exact build command or setting, and the switch to Your agent where that would help
+        (spec A5: nothing else runs Mode 1)."""
         if self.connected(session_id) or await asyncio.to_thread(self.units.known, session_id) is not None:
             return None
         from ..agent.byoa import origin_of
         if origin_of(socket) != "user":
             return _refusal("agent_origin", "Only your own message in Lampway opens Lampway Agent's pane; an agent cannot.",
                             ["Ask from the island of the scene tab"])
-        why = self.units.problem()
-        if why:
-            return _refusal("engine_unavailable", why, ["scripts/lampway/engine_env.py --check-deps"])
+        from ..agent.turns import YOUR_AGENT_HELP
+        missing = self.units.missing()                      # spec A5: no other loop stands in; refused, saying what to build
+        if missing:
+            code, why, fix = missing
+            return _refusal(code, f"{why}, so this message was not sent.", [fix, YOUR_AGENT_HELP])
         from ..herdr import launcher as L
+        try:
+            await asyncio.to_thread(L.bin_path)
+        except L.HerdrError:
+            return _refusal("herdr_not_built", "Lampway Agent runs in a pane on Lampway's herdr server, and no herdr was found here, so "
+                            "this message was not sent.", ["Build Lampway's pinned herdr: scripts/lampway/herdr_env.py (or set "
+                                                           "LAMPWAY_HERDR_BIN to a herdr 0.9.3), then start its server from the cockpit"])
         running = await asyncio.to_thread(lambda: bool(L.server_status(self.units.cockpit.root).get("running")))
         if not running:
             return _refusal("herdr_not_running", "Lampway Agent runs in a pane on Lampway's herdr server, which is not running, so "
@@ -306,7 +318,10 @@ class HermesFront:
         session = sink.session if sink is not None else self.hub._session(unit)
         turn = sink.turn if sink is not None else Turn(unit, f"pane_{uuid.uuid4().hex[:12]}", "")
         call = ToolCall(id=f"eng_{uuid.uuid4().hex[:12]}", name=name, arguments=arguments if isinstance(arguments, dict) else {})
-        content, is_error = await self.hub._run_tool(socket, session, turn, call, None, None, None)
+        # The island turn showing this call (if any) is where a swarm's todo cards and progress go (the Parallel Agents panel); the
+        # call's own step row is serve's (tool.start), the last one in the turn's steps.
+        content, is_error = await self.hub._run_tool(socket, session, turn, call, *((sink.stream, sink.bubble_id, sink.steps)
+                                                                                    if sink is not None else (None, None, None)))
         return clip_result(content), is_error
 
     # ------------------------------------------------------------------------------------------------- the connection
@@ -590,8 +605,7 @@ class HermesFront:
         text = "".join(sink.text).strip()
         body = f"{text}\n\n{q.body}" if text else q.body
         q.body, q.bubble_id, q.run_id = body, sink.bubble_id, sink.turn.run_id
-        sink.session.pending_question = {"interrupt_id": q.interrupt_id, "call_id": q.request_id, "question": q.body,
-                                         "plan_mode": False, "engine": q.kind}
+        sink.session.pending_question = {"interrupt_id": q.interrupt_id, "call_id": q.request_id, "question": q.body, "engine": q.kind}
         sink.turn.asked = True
         event = {"bubble_id": sink.bubble_id, "content": {"set": body}, "interrupt_id": q.interrupt_id}
         if q.kind == "clarify":
@@ -638,6 +652,8 @@ class HermesFront:
             user_text = await self._last_user_text(link)
         socket = hub.socket_for(unit)
         session = hub._session(unit)
+        if user_text:
+            session.last_user = user_text                   # the user's words, typed in the pane
         tid = f"pane_{uuid.uuid4().hex[:12]}"
         turn = Turn(unit, tid, run_id or str(uuid.uuid4()))
         turn.socket = socket  # type: ignore[attr-defined]

@@ -1,4 +1,4 @@
-"""The system prompt for the Blender agent."""
+"""Lampway's guidance for an agent in the user's Blender: once the built-in loop's system prompt (gone, spec A5), now the agent files' source."""
 
 from ..brand import AGENT_COLLECTION
 
@@ -55,10 +55,3 @@ pass dry_run=false only when asked, and the owner's own server setting must also
 """
 
 SYSTEM_PROMPT = SYSTEM_PROMPT.replace("@@AGENT_COLLECTION@@", AGENT_COLLECTION)
-
-PLAN_MODE_PROMPT = """
-Plan Mode is on. Before changing anything in the scene: inspect what is there, write the plan as a short numbered list \
-of the steps you will take (what each creates or changes, named by object), then call `ask_user` with the plan as the \
-question and the options "Approve" and "Revise". Change nothing until the user approves; if they ask for changes, revise \
-the plan and ask again. Once approved, carry the plan out and report what you did.
-"""

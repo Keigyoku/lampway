@@ -12,53 +12,13 @@ import json
 import pytest
 import websockets
 
-from lampway_server.app import create_app
-from lampway_server.engine.front import ANSWERED_ELSEWHERE, HermesFront
+from lampway_server.engine.front import ANSWERED_ELSEWHERE
 from lampway_server.herdr import launcher as L
 
-from .serve_support import FakeServe, FakeUnits, Island, Stack, free_port
+from .serve_support import Island, chat, final_text, run, stack  # noqa: F401  (stack: the fixture)
 
 pytestmark = pytest.mark.timeout(120)
-SCENE = {"success": True, "scene": "Scene", "object_count": 1, "objects": [{"name": "Cube", "type": "MESH"}]}
 PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
-
-
-@pytest.fixture
-def stack(settings, provider, monkeypatch):
-    settings.port = free_port()
-    monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
-    app = create_app(settings, provider=provider)
-    with Stack(app, settings) as st:
-        yield st
-
-
-def run(stack, scenario, on_script=None):
-    async def go():
-        serve = await FakeServe().start()
-        units = FakeUnits(serve, asyncio.get_running_loop(), stack.base)
-        front = HermesFront(stack.app.state.agent, units)
-        stack.app.state.agent.engine = front
-        island = await Island(stack.base, stack.settings, on_script=on_script or (lambda p: SCENE)).connect()
-        try:
-            return await scenario(serve, units, island, front)
-        finally:
-            for link in list(front.links.values()):
-                link.closing = True
-            await island.close()
-            await serve.stop()
-            stack.app.state.agent.engine = None
-    return asyncio.run(go())
-
-
-async def chat(island, text, sid, **extra):
-    payload = {**island.chat(text, sid), **extra}
-    cid, rid = await island.command("agent.chat", payload)
-    return cid, rid
-
-
-def final_text(events):
-    sets = [e["content"]["set"] for e in events if (e.get("content") or {}).get("set")]
-    return sets[-1] if sets else None
 
 
 class Tui:

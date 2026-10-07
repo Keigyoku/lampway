@@ -9,11 +9,11 @@ help line naming the switch, before any turn starts. Two tabs run one mode each 
 
 The island's switch uses two routes: ``GET /app/workbench/harnesses`` (``harnesses.listing()``) and ``POST /app/workbench/mode``,
 which binds a pane to the tab (reusing one, or starting the harness the user picked) or unbinds every pane from it. Only the
-user's Client switches: an agent caller is refused. herdr is a recording fake; no harness binary runs."""
+user's Client switches: an agent caller is refused. herdr is a recording fake; no harness binary runs. A tab in Mode 1 runs on
+the unit's Hermes pane, played by the scripted serve (``serve_support.ServeThread``, spec A5)."""
 import pytest
 from starlette.testclient import TestClient
 
-from lampway_server.agent.providers.base import Text
 from lampway_server.app import create_app
 from lampway_server.herdr import harnesses as HN
 from lampway_server.herdr import host as H
@@ -21,6 +21,7 @@ from lampway_server.herdr import launcher as L
 from lampway_server.herdr.harnesses import base as HB
 
 from .fake_client import FakeMixarClient
+from .serve_support import ServeThread
 from .test_byoa_egress import FakeHerdr
 
 TAB_A = "a0000000-0000-4000-8000-00000000000a"
@@ -34,6 +35,7 @@ def stack(settings, provider, tmp_path, monkeypatch):
     herdr = FakeHerdr()
     monkeypatch.setattr(L, "run", herdr)
     monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
+    monkeypatch.setattr(L, "bin_path", lambda: "/usr/bin/herdr-played")
     proj = tmp_path / "proj"
     proj.mkdir()
     monkeypatch.setenv("LAMPWAY_PROJECT_ROOT", str(proj))
@@ -97,13 +99,15 @@ def test_a_chat_into_a_tab_a_harness_pane_is_bound_to_is_refused_even_if_the_pay
 def test_two_tabs_run_one_mode_each_at_the_same_time(stack):
     http, fake, cockpit, herdr, proj, provider = stack
     cockpit.create_session("claude", "Chest fit audit", str(proj), by="user", scene_session_id=TAB_A)
-    provider.script.append([Text("Mode 1 answers tab B.")])
-    with fake.connect_ws() as ws:
+    with ServeThread(http) as st, fake.connect_ws() as ws:
+        units = st.front(http.app.state.agent)
+        st.serve.scripts.append([("say", "Mode 1 answers tab B.")])
         fake.handshake(ws)
         _, rid_a = chat(fake, ws, TAB_A)
         refused = until(ws, lambda f: f.get("id") == rid_a)[-1]
         cid_b, _ = chat(fake, ws, TAB_B, agent_mode="runtime")
         frames = fake.run_turn(ws, cid_b, on_script=lambda p: fake.execute_script_result(p["script"]))
+    assert units.opened == [TAB_B], "only tab B's Mode 1 pane opened"
     assert refused["result"]["result"]["code"] == "wrong_mode"
     assert any(f.get("method") == "agent.turn.started" and f["params"]["session_id"] == TAB_B for f in frames)
     texts = [f["params"]["event"].get("content", {}).get("set") for f in frames if f.get("method") == "agent.turn.event"]
@@ -114,12 +118,15 @@ def test_an_unbound_pane_no_longer_puts_its_old_tab_in_your_agent_mode(stack):
     http, fake, cockpit, herdr, proj, provider = stack
     rec = cockpit.create_session("claude", "Chest fit audit", str(proj), by="user", scene_session_id=TAB_A)
     cockpit.unbind(rec["id"])
-    provider.script.append([Text("Back in Mode 1.")])
-    with fake.connect_ws() as ws:
+    with ServeThread(http) as st, fake.connect_ws() as ws:
+        units = st.front(http.app.state.agent)
+        st.serve.scripts.append([("say", "Back in Mode 1.")])
         fake.handshake(ws)
         cid, _ = chat(fake, ws, TAB_A)
         frames = fake.run_turn(ws, cid, on_script=lambda p: fake.execute_script_result(p["script"]))
-    assert any(f.get("method") == "agent.turn.started" for f in frames)
+    assert any(f.get("method") == "agent.turn.started" for f in frames) and units.opened == [TAB_A]
+    texts = [f["params"]["event"].get("content", {}).get("set") for f in frames if f.get("method") == "agent.turn.event"]
+    assert "Back in Mode 1." in texts
 
 
 # ------------------------------------------------------------------------------------------------------------------ the routes

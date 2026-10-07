@@ -17,7 +17,6 @@ import pytest
 from starlette.testclient import TestClient
 
 from lampway_server.agent import swarm_brains as SB
-from lampway_server.agent.providers.base import Text, ToolCall
 from lampway_server.agent.swarm import SwarmContext, SwarmError, SwarmManager
 from lampway_server.herdr import harnesses as HN
 from lampway_server.herdr import host as H
@@ -97,29 +96,28 @@ def test_a_mode1_swarm_start_is_refused_with_the_a1_help_before_anything_runs(tm
 
 
 def test_the_in_app_agent_s_swarm_is_refused_in_mode_1_and_nothing_reaches_herdr_or_the_desktop(settings, tmp_path, monkeypatch):
+    """The unit's Hermes pane (the scripted serve) calls ``swarm_start`` through its MCP endpoint on a server whose cockpit has no
+    Mode 1 hook: refused with A1's help, and nothing runs another way."""
     from lampway_server import capabilities as CAP
-    from lampway_server.agent.providers.mock import ScriptedProvider
     from lampway_server.app import create_app
+
+    from .serve_support import mode1_turn
     herdr = PaneHerdr()
     monkeypatch.setattr(L, "run", herdr)
-    monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
     (tmp_path / "proj").mkdir()
     cockpit = H.Cockpit(tmp_path / "herdr", project_root=str(tmp_path / "proj"))
-    provider = ScriptedProvider([[ToolCall(id="s1", name="swarm_start", arguments={"tasks": [{"name": "boots", "prompt": "Model the boots"}]})],
-                                 [Text("I could not start the swarm.")]])
-    app = create_app(settings, provider=provider, cockpit=cockpit)
+    app = create_app(settings, cockpit=cockpit)
     CAP.ACTIVE.set("swarm", enabled=True, by="user")
     with TestClient(app, base_url="http://127.0.0.1:8787") as http:
         fake = FakeMixarClient(http, password=settings.user_password)
         fake.login()
         fleet = FakeFleet(fake, fake.instance_id)
-        with fake.connect_ws() as ws:
-            fake.handshake(ws)
-            cmd = fake.command(ws, "chat", fake.chat_payload("Split it up", new_session()))
-            fleet.drive(ws, cmd)
+        _, serve = mode1_turn(monkeypatch, http, fake, [("mcp", "swarm_start", {"tasks": [{"name": "boots", "prompt": "Model the boots"}]}),
+                                                         ("say", "I could not start the swarm.")], "Split it up", session_id=new_session(),
+                              drive=fleet.drive)
         fleet.close()
-    result = next(p for m in provider.requests[1].messages for p in m.content if p.get("type") == "tool_result")
-    assert result["is_error"] and A1 in result["content"], result
+    result = serve.mcp_results[-1]
+    assert result["isError"] and A1 in result["content"][0]["text"], result
     assert [m for m, _ in fleet.requests if m.startswith("agent.")] == [], "no run activated, no worker spawned"
     assert herdr.made() == [] and not [c for c in herdr.calls if c["args"][:2] in (["agent", "start"], ["pane", "run"])]
     assert cockpit.list_sessions() == []

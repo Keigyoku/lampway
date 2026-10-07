@@ -148,8 +148,6 @@ class Swarm:
     brain: object = None             # the swarm's one PaneBrain (one swarm, one adapter)
     emit_todo: Optional[Callable[[list], Awaitable]] = None
     collected: bool = False
-    collected_turn: str = ""         # the turn whose swarm_collect ended it: that turn offers Retry failed tasks
-    retried: bool = False            # its failed tasks were re-run once (by a Retry): they are not offered again
 
 
 RunScript = Callable[..., Awaitable[dict]]
@@ -317,7 +315,6 @@ class SwarmManager:
             self.cancel_all(swarm)
             raise
         swarm.collected = True
-        swarm.collected_turn = ctx.turn_id
         operations = {}
         for w in swarm.workers:
             if w.status == "staged":
@@ -366,23 +363,6 @@ class SwarmManager:
     def cancel_all(self, swarm: Swarm) -> None:
         for worker in swarm.workers:
             self.cancel_worker(worker)
-
-    def failed_tasks(self, session_id: str, collected_in: Optional[str] = None) -> list:
-        """The tasks of this session's collected swarms that failed (or were cancelled) and were not retried yet, as swarm_start tasks."""
-        out = []
-        for swarm in self.swarms.values():
-            if swarm.parent_session != session_id or not swarm.collected or swarm.retried:
-                continue
-            if collected_in is not None and swarm.collected_turn != collected_in:
-                continue
-            out += [{"name": w.name, "prompt": w.prompt, **({"objects": list(w.objects)} if w.objects else {})}
-                    for w in swarm.workers if w.status in ("failed", "cancelled")]
-        return out
-
-    def mark_retried(self, session_id: str) -> None:
-        for swarm in self.swarms.values():
-            if swarm.parent_session == session_id and swarm.collected:
-                swarm.retried = True
 
     def cancel_session(self, session_id: str) -> None:
         for swarm in self.swarms.values():
