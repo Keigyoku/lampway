@@ -172,7 +172,7 @@ def test_a_run_is_judged_on_the_head_and_baseline_it_started_with(tmp_path, monk
     started = []
 
     class FakeProc:
-        def __init__(self, cmd, cwd, stdout, stderr, start_new_session):
+        def __init__(self, cmd, cwd, stdout, stderr, start_new_session, env=None):
             started.append(cmd)
             stdout.write("= 1 failed, 2 passed in 1.0s =\nFAILED tests/x.py::t - boom\n")
             stdout.close()
@@ -195,3 +195,32 @@ def test_a_run_is_judged_on_the_head_and_baseline_it_started_with(tmp_path, monk
     import json
     summary = json.loads((tmp_path / "out" / "summary.json").read_text())
     assert summary["sha"] == "aaa1111" and summary["head_at_end"] == "bbb2222"
+
+
+def test_a_run_leaves_the_callers_environment_unchanged_and_hands_the_suites_the_flag(tmp_path, monkeypatch):
+    """main() set os.environ["LAMPWAY_TEST_ALL"] = "1" in its own process: called in-process (as the test above does) it leaked into
+    every later test, and the shelf tests after it errored instead of skipping (measured by order). The flag goes to the suites'
+    environment only."""
+    seen = []
+
+    class FakeProc:
+        def __init__(self, cmd, cwd, stdout, stderr, start_new_session, env=None):
+            seen.append(env)
+            stdout.write("= 2 passed in 1.0s =\n")
+            stdout.close()
+
+        def wait(self):
+            return 0
+
+    monkeypatch.setattr(T, "verify_env", lambda *a, **k: [])
+    monkeypatch.setattr(T, "binary_gate", lambda *a, **k: ("gated", "sha"))
+    monkeypatch.setattr(T, "load_baseline", lambda: {})
+    monkeypatch.setattr(T, "head_sha", lambda root: "aaa1111")
+    monkeypatch.setattr(T.subprocess, "Popen", FakeProc)
+    monkeypatch.delenv("LAMPWAY_TEST_ALL", raising=False)
+    monkeypatch.setenv("TMPDIR", str(tmp_path))
+    monkeypatch.setenv("LAMPWAY_TEST_OUT", str(tmp_path / "out"))
+    import os
+    assert T.main(["--only", "client"]) == 0
+    assert "LAMPWAY_TEST_ALL" not in os.environ
+    assert seen and all(e is not None and e.get("LAMPWAY_TEST_ALL") == "1" for e in seen)

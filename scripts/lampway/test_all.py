@@ -176,7 +176,9 @@ def main(argv=None) -> int:
             return 6
         print("env: ready (upstream at its pin; every test package imports; the shelf's placement fixtures present)")
         return 0
-    os.environ["LAMPWAY_TEST_ALL"] = "1"                  # inside the reference environment: an environment skip would be a defect, so the conftest does not skip
+    # inside the reference environment an environment skip would be a defect, so the suites' conftest does not skip; the flag goes to
+    # the suites only, never into this process (called in-process by a test, it leaked into every later test)
+    suite_env = dict(os.environ, LAMPWAY_TEST_ALL="1")
     tmp = Path(os.environ.get("TMPDIR") or "/tmp").resolve()
     out = Path(os.environ.get("LAMPWAY_TEST_OUT") or tmp / "lampway-test-all")
     out.mkdir(parents=True, exist_ok=True)
@@ -203,7 +205,7 @@ def main(argv=None) -> int:
     t0 = time.time()
     shelf_before = shelf_snapshot(os.environ) if "client" in run and os.environ.get("LAMPWAY_SHELF_DIR") else None
     for name, (cmd, cwd, _) in run.items():
-        procs[name] = subprocess.Popen(cmd, cwd=cwd, stdout=open(out / f"{name}.log", "w"), stderr=subprocess.STDOUT, start_new_session=True)
+        procs[name] = subprocess.Popen(cmd, cwd=cwd, stdout=open(out / f"{name}.log", "w"), stderr=subprocess.STDOUT, start_new_session=True, env=suite_env)
     failing, report = set(), {}
     for name, p in procs.items():
         rc = p.wait()
@@ -220,7 +222,7 @@ def main(argv=None) -> int:
                 continue
             base_cmd = [c for c in cmd if not c.startswith("--basetemp") and c != str(tmp / f"lw-test-{name}") and c != "tests"]     # only the failing ids, not the whole suite again
             rerun = subprocess.run(base_cmd + ["--basetemp", str(tmp / f"lw-test-{name}-rerun"), *mine],
-                                   cwd=cwd, capture_output=True, text=True)
+                                   cwd=cwd, capture_output=True, text=True, env=suite_env)
             (out / f"{name}-rerun.log").write_text(rerun.stdout + rerun.stderr)
             still, _ = parse(rerun.stdout, prefix)
             flaky += [prefix + t for t in mine if prefix + t not in still]
