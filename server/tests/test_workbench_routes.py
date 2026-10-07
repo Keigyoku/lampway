@@ -44,7 +44,7 @@ def test_start_create_read_input_close_and_reconcile_through_the_routes(stack, f
     assert made.status_code == 200
     sid = made.json()["id"]
     assert wait_for(lambda: "fake agent ready" in http.get(f"/app/workbench/sessions/{sid}/screen", headers=h).json()["screen"])
-    assert http.post(f"/app/workbench/sessions/{sid}/input", headers=h, json={"text": "hi", "by": "agent"}).status_code == 409           # agent sends off by default
+    assert http.post(f"/app/workbench/sessions/{sid}/input", headers={**h, "X-Lampway-Origin": "agent"}, json={"text": "hi", "by": "user"}).status_code == 409   # agent sends off by default; the caller, not body.by, is the agent (spec B6)
     assert http.post(f"/app/workbench/sessions/{sid}/input", headers=h, json={"text": "hi from user", "by": "user"}).status_code == 200
     assert wait_for(lambda: "echo: hi from user" in http.get(f"/app/workbench/sessions/{sid}/screen", headers=h).json()["screen"])
     rec = http.post("/app/workbench/reconcile", headers=h).json()

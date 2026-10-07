@@ -25,6 +25,8 @@ def enabled(state_dir) -> bool:
     env = os.environ.get("LAMPWAY_LOCAL_CLI")
     if env is not None:
         return env == "1"
+    if state_dir is None:                               # no state directory known: only the environment switch counts
+        return False
     try:
         return json.loads((Path(state_dir) / "local_cli.json").read_text(encoding="utf-8")).get("enabled") is True
     except (OSError, ValueError):
@@ -34,4 +36,4 @@ def enabled(state_dir) -> bool:
 def require_enabled(state_dir) -> None:
     if not enabled(state_dir):
         raise ValueError("your own agents in Lampway's panes are off. Switch them on with LAMPWAY_LOCAL_CLI=1 (or write "
-                         "{\"enabled\": true} to " + str(Path(state_dir) / "local_cli.json") + "). " + TERMS_NOTE)
+                         "{\"enabled\": true} to " + str(Path(state_dir or "<state>") / "local_cli.json") + "). " + TERMS_NOTE)

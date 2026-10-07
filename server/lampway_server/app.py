@@ -375,7 +375,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except (ValueError, RuntimeError):
             return make_provider(settings, chatgpt_auth=chatgpt)
     agent = AgentHub(provider if provider is not None else _main_provider(),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault,
+                     switch_dir=settings.state_dir)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -927,12 +928,26 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
 
+    def _wb_origin(request: Request) -> str:
+        """Who is typing, decided from the caller and never from ``body.by`` (agent-modes spec B6): a request that declares an agent
+        origin, a cross-origin request, or a token minted for an agent or an MCP client is an agent send; the user's own Client (the
+        cockpit page, the Blender panel) is the user."""
+        from .connections.routes import _cross_origin
+        if any((request.headers.get(h) or "").strip().lower() in ("agent", "mcp") for h in ("x-lampway-origin", "x-mixar-job-origin")):
+            return "agent"
+        if _cross_origin(request):
+            return "agent"
+        claims = auth.verify_access(bearer_token(request) or "") or {}
+        if str(claims.get("origin") or "").lower() in ("agent", "mcp") or str(claims.get("aud") or "").lower() == "mcp":
+            return "agent"
+        return "user"
+
     async def wb_input(request: Request):
         if (r := _wb(request)) is not None:
             return r
         body = await _json_body(request)
         try:
-            await asyncio.to_thread(cockpit.send_input, request.path_params["sid"], str(body.get("text") or ""), bool(body.get("submit", True)), body.get("by") or "agent", body.get("user_typed_at"))
+            await asyncio.to_thread(cockpit.send_input, request.path_params["sid"], str(body.get("text") or ""), bool(body.get("submit", True)), _wb_origin(request), body.get("user_typed_at"))
             return JSONResponse({"sent": True})
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)

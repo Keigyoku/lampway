@@ -33,7 +33,9 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
 6. **Isolation and controlled decoupling (herdr).** Every herdr invocation goes through `herdr/launcher.py` with HOME, XDG and
    the HERDR socket and config paths under the Lampway root, refusing otherwise; the server is launched detached and survives a
    Blender or server crash; a start reconciles sessions and paid jobs in one idempotent pass and never kills an unknown pane or
-   respawns an ended one without a click.
+   respawns an ended one without a click. Who types into a pane is decided from the caller, never from a body field: the workbench
+   input route treats an agent-declared, cross-origin or agent/MCP-token request as an agent send; the agent's open path checks the
+   same BYOA switch as the create route; `lampway_workbench` is never offered over MCP (agent-modes spec B6).
 7. **Secrets never reach a log or a file in the repository.** Keys come from the environment or 0600 files the user owns
    (the state directory, a dotenv file the launcher is pointed at); `logredact.py` redacts query secrets and token-shaped strings in every log record.
 8. **Never the upstream service.** No code here calls the upstream backend; the client's stubbed endpoints are answered locally.
@@ -64,3 +66,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the server's invariants lived only in module docstrings | egress, approval, receipt, MCP, script-literal, herdr and secret invariants stated with their modules; the suite command | captain ruling, 2026-10-05 |
 | 2026-10-07 | capabilities switchboard | captain: "I want it all behind a single interface you can choose WHAT your agent can do" (agent-modes spec E2, Q8 defaults) | nothing recorded what an agent may do; the swarm and every tool family were always on for every agent | invariant 9: the user's switches, call-time checks for the agent and MCP, proposals only from agents, routes still decide egress | captain ruling, 2026-10-06 |
+| 2026-10-07 | herdr surface hardening (BYOA B6) | agent-modes spec B6, captain's Q4 (2026-10-06): Lampway's agent types only into its own panes, the origin from the session | the input route took `body.by` at its word, so any bearer holder could type as the user; the agent's open path skipped the BYOA switch | invariant 6 names the caller-decided origin, the shared switch and the MCP exclusion | captain ruling, 2026-10-06 |
