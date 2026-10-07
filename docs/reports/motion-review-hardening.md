@@ -3,7 +3,7 @@
 
 # PR #3 motion review hardening
 
-Code snapshot: `c9bdd9fc` on `lp/motion`.
+Code snapshot: `0cfba29ae5394063c99748dda09910337b647519` on `lp/motion`.
 Reviewed original head: `8d13560765ac68bc6f67679f098c4d3fe3428a61`.
 Current main `eab73f5f5a77780a7690378eec6c5dd44b468589` was merged normally, preserving both histories.
 
@@ -37,6 +37,7 @@ No finding was rejected or treated as stale. No human thread was resolved.
 - ffmpeg 7 adds stream encoder metadata after metadata options. A conditional local stream-copy remux removes it, checked afterwards. Already-clean engines keep their original bytes.
 - The pipe launcher failed on dash with high-numbered descriptors; bash handles the inherited descriptors. Modern headless-shell target creation no longer receives unsupported dimensions.
 - Browser-owned UI targets are distinguished from scene loaders. Workers remain paused/refused because their targets do not expose Fetch interception.
+- A full server run exposed an unchanged app-server fake-fixture log race: it completed the turn before consuming/logging reply 900. Parent assigned fixture-only ownership here, coordinated with PR1. The fake now drains/logs the reply before completion; a direct causal protocol test observed RED on the old fixture. Existing method-not-found code/message assertions remain intact; production provider is unchanged.
 
 The renderer remains sequential from frame zero. The determinism probe remains a fresh browser and preserves sampled audit timing. No socket, provider, spend, pricing or product expansion was added. The parent assigned the single shared local `motion/encode.py:Encoder.finish` launch declaration; no network/spend route changed.
 
@@ -50,7 +51,8 @@ The renderer remains sequential from frame zero. The determinism probe remains a
 - Launch audit: 7 pass. Egress suite: 37 pass.
 - Existing motion plus output and browser hardening run: 49 pass, 3 teaser tests skip (before the final extra verify-race and UI classification tests).
 - Rail and canon pass locally; generated tool documentation is current. Changed motion code/tests have zero prepublish findings.
-- Full committed-head server suite: `LAMPWAY_CHROMIUM=<isolated-headless-shell> server/.venv/bin/python -m pytest -q -o addopts='' server/tests` at the code snapshot: **1,826 passed, 35 skipped, zero failures** (182.92 seconds). Skips remain unverified, including the three absent original-teaser tests.
+- Historical full server suite at `192cbaebe9d50292942bd8af2ee4d77c416a1cb5`: `LAMPWAY_CHROMIUM=<isolated-headless-shell> server/.venv/bin/python -m pytest -q -o addopts='' server/tests`: **1,826 passed, 35 skipped, zero failures** (182.92 seconds). Skips remain unverified, including the three absent original-teaser tests.
+- Full published-head server rerun at `042bedf3ce3d9cfc3b18b52e1b201e8b79f76278`: **1,827 passed, 35 skipped, zero failures** (187.17 seconds). An earlier full run had the diagnosed fake-fixture race; clean repeats did not close it. After the fixture-only fix, all 12 app-server module tests pass, including the causal regression.
 - Selected standalone client/rail gates: 59 pass after the parent-authorized official documentation host entries and lookalike refusal test.
 - Actual unpushed range `origin/lp/motion..HEAD`, own commit range `origin/main..HEAD`, and shipped docs media: zero prepublish findings after the scoped gate integration. REUSE v3.3 passes, with metadata on all 9,760 files.
 - Scoped gate, workflow, host and R04 regressions: 33 pass. Both BLAS kernels retain exact byte assertions and small-angle/falsifier checks.
@@ -61,7 +63,7 @@ The public synthetic fixtures were rendered by real isolated Chromium. They do n
 
 The original-head CI failures were mapped to PR1's assigned G24-G26 fixes: [PII commit-range](https://github.com/Keigyoku/lampway/actions/runs/37665448930), [R04 determinism](https://github.com/Keigyoku/lampway/actions/runs/37665448853), and [REUSE](https://github.com/Keigyoku/lampway/actions/runs/37665448852). The parent supplied tested scoped sources: gate prerequisite `75a00df9`, matrix classification `a4f2cee3`, workflow endpoints `dc732196`, R04 `323d44b9`, license metadata `d4f768de`, and official docs host entries `afcbe66d`. Their scoped integration preserves newer corpus metadata and excludes unfinished PR1/native changes. The exact source matrix expression is self-contained in the gate fixture because its PR1 native test file is absent. REUSE adds eight exact missing Lampway paths and keeps the full adjacent ITF legal terms.
 
-The earlier normal push was refused by the pre-push hook for the already-published main merge identity (`eab73f5f`). The supplied gate prerequisite admits only the exact public provider noreply identity, preserves personal/lookalike/secret-content controls, and now the actual unpushed range passes. No hook was bypassed and no history rewritten. Publication and exact-head CI verification are next; no all-green claim is made.
+The earlier normal push was refused by the pre-push hook for the already-published main merge identity (`eab73f5f`). The supplied gate prerequisite admits only the exact public provider noreply identity, preserves personal/lookalike/secret-content controls, and now the actual unpushed range passes. No hook was bypassed and no history rewritten. Normal publication at `042bedf3ce3d9cfc3b18b52e1b201e8b79f76278` passed the commit, media and rail hooks. All five exact-head GitHub workflows passed: [PII](https://github.com/Keigyoku/lampway/actions/runs/37690204411), [canon](https://github.com/Keigyoku/lampway/actions/runs/37690204413), [REUSE](https://github.com/Keigyoku/lampway/actions/runs/37690204430), [rail](https://github.com/Keigyoku/lampway/actions/runs/37690204417), [MCP launcher](https://github.com/Keigyoku/lampway/actions/runs/37690204381). The subsequent fixture-only commit has its own causal regression; latest candidate checks are tracked in the PR description. No final acceptance claim is made.
 
 The supplied source index's 15 archive hashes verify, but no member contains the motion-graphics spec/handoff. The source remains unavailable; no unrelated text or private asset was extracted or published.
 
@@ -69,4 +71,4 @@ The original fixture contract is a directory with `teaser.html`, code SHA-256 `4
 
 The validation command for that parent-managed checkout is `server/.venv/bin/python -m pytest -q -o addopts='' server/tests/test_motion_graphics.py`, with `LAMPWAY_CHROMIUM` and `LAMPWAY_MOTION_TEASER` set to the verified local sources. Native source diff from the original PR head is zero files across `src/source`, `src/CMakeLists.txt`, `src/build_files` and `src/release/datafiles`.
 
-Reference aggregate remains unverified: its read-only shelf fixtures and a verified native binary BUILT_FROM stamp are absent. Parent validation is queued; no stamp or fixture is fabricated and no baseline is weakened.
+The zero-red reference acceptance requirement remains open. Historical baseline-relative GREEN allowed listed known-red failures and is not final acceptance. Reference aggregate remains unverified: its read-only shelf fixtures and a verified native binary BUILT_FROM stamp are absent. Parent validation is queued; no stamp or fixture is fabricated and no baseline is weakened.
