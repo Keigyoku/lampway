@@ -785,6 +785,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     async def wb_server_start(request: Request):
         if (r := _wb(request)) is not None:
             return r
+        if request.headers.get("x-lampway-origin", "").lower() == "agent":       # ruling 10: only the user's click starts the herdr server
+            return JSONResponse({"detail": "only your click starts the Lampway herdr server"}, status_code=403)
         try:
             return JSONResponse(await asyncio.to_thread(cockpit.ensure_server))
         except _HL.HerdrError as exc:
