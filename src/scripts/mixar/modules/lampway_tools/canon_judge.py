@@ -26,7 +26,7 @@ FIELDS = ("facing", "side", "texture_role", "bone_map", "piece_kind")
 FACTS = ("units", "axes", "transform", "weld", "scale", "colour_space", "bone_direction")
 SETTINGS = {
     "enabled": {"value": False, "why": "on only once its goldens beat refusal (never wrong), field by field"},
-    "confidence_threshold": {"value": None, "needs_decision": True, "why": "the captain named a threshold for fields without a cross-check, no number"},
+    "confidence_threshold": {"value": None, "needs_decision": True, "why": "a named pref, unset: the confidence a judged field without a cross-check needs (no number has been decided; needs_decision)"},
     "purpose": {"value": "normalize.judge", "why": "the Choices hub purpose once it lands; until then no route is configured"},
 }
 

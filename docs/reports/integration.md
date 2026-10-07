@@ -119,6 +119,23 @@ The MCP wrapper (C0-C2, T1-T3) and the agent modes stay with the cloud crew.
 | F24 Mixar leftovers in custom-drawn text | fixed by lp/facelift | d663255d | merged in b20 |
 | F25 a 45 MB checkpoint per turn | deferred | - | upstream's turn-checkpoint design (a whole-file copy before every message, deduplicated by hash). Skipping a "read-only" turn needs a change detector the module itself says is blind to direct bpy.data writes, so a wrong skip would make a revert restore the wrong state. Recommended: a decision on incremental checkpoints, not a patch here |
 
+### Claims of the captain's words in the tree (coordinator item, spec audit)
+`canon_judge.py:29` said "the captain named a threshold for fields without a cross-check"; he did not (the threshold came from a
+coordinator brief). It now says the threshold is a named pref, unset, `needs_decision`. Every other comment, docstring, doc and
+test line in the tree that attributes words or a ruling to the captain (`git grep` for "captain" + named / said / ruled / ruling /
+words / approved / decided / asked / wants / chose / agreed / confirmed, the generated .claude/.agents copies counted once) was
+checked against specs/BUILD_ORDER.md:
+- matched: the compute CLI's quote (D2), the Asset Vault name and `lampway_vault_*` (Wave 5b answer 3), the herdr invariants
+  (isolation, controlled decoupling, reconcile: the Mr. Mak section), the UE Look cube on the UE side ("Go with option 1"), the
+  Manny bone table, rail row 7 (pre-rail merges listed), the 2026-10-06 rulings in docs/canon/REPORT.md, the MetaTailor approval,
+  and the rail-adoption and "Those recs are fine" anneal rows.
+- NOT in BUILD_ORDER.md (each names an older source; I cannot match them there):
+  - `server/lampway_server/library/rules/terms.json:122` "the captain's ruling: the V3 turnarounds are the appearance authority";
+  - `src/scripts/mixar/modules/lampway_tools/pipeline/relief_tiles.py:8` the captain: "Go for the crops" (a shelf SPIKE header, 2026-10-04);
+  - `docs/canon/03-fit-and-deform.md:120` captain ruled "regenerate it" (2026-09-25);
+  - `src/scripts/mixar/modules/lampway_tools/features/motion_generate.py:38` "the captain's words rank first with the names".
+  These come from the Titan shelf's own history (ported headers and the canon's memory rows), which BUILD_ORDER.md does not quote.
+
 ## Merges
 
 All merges are `--no-ff` into lp/wave5, of PUSHED refs only (an earlier merge of a lane's unpushed local tip, `57b6d2e8` of lp/vault-ui, was amended by the lane afterwards and came back as add/add conflicts; that draft commit stays in lp/wave5's history).
