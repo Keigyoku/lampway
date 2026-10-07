@@ -31,7 +31,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SUBMODULE = "third_party/hermes-agent"
 PYTHON = "3.13"                       # Hermes allows 3.11-3.14; 3.13 is the server's own and was measured to work (2026-10-07)
-EXTRAS = ("acp",)
+EXTRAS = ("acp", "mcp")                # mcp: without it Hermes skips ACP-registered MCP servers silently (measured 2026-10-07)
 SKIP = {".git", "tests", "website", "evals", "__pycache__", "node_modules"}
 
 

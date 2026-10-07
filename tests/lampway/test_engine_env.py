@@ -65,7 +65,7 @@ def test_plan_resolves_the_pin_and_touches_nothing(fake_root, tmp_path):
     pin = _git(fake_root / "third_party/hermes-agent", "rev-parse", "HEAD")
     assert p["engine"] == "hermes" and p["tag"] == "v2026.9.24" and p["commit"] == pin
     assert p["dest"] == str(dest / "hermes" / "v2026.9.24")
-    assert p["python"] == "3.13" and p["extras"] == "acp"
+    assert p["python"] == "3.13" and p["extras"] == "acp,mcp"          # mcp carries Lampway's tools in (E1.6)
     assert not dest.exists(), "--plan must not create anything"
 
 
