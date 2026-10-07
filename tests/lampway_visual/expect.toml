@@ -62,6 +62,10 @@ theme = "dark"
 theme = "dark"
 [onboarding_steps.surfaces]
 
+[compare_spin]
+theme = "dark"
+[compare_spin.surfaces]
+
 [agent_pill]
 theme = "dark"
 [agent_pill.surfaces]
