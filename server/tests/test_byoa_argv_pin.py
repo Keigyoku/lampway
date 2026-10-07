@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The herdr command each existing harness pane starts with, pinned before the harness adapters (agent-modes spec B1) take it over:
 an unbound Claude Code, Codex CLI or OpenCode pane must start exactly as it did, new or resumed, with and without effort and the
-user's bypass. herdr is faked; nothing is started."""
+user's bypass. herdr is faked (as strict as herdr 0.9.3 about agent names); nothing is started."""
 import uuid
 
 import pytest
@@ -40,14 +40,15 @@ CASES = [
 @pytest.mark.parametrize("agent,effort,bypass,resume_id,args", CASES)
 def test_an_unbound_pane_starts_with_the_same_herdr_command_as_before(herdr, tmp_path, agent, effort, bypass, resume_id, args):
     c = H.Cockpit(tmp_path / "herdr")
-    c.create_session(agent, "Chest fit audit", str(tmp_path), effort=effort, bypass=bypass, resume_id=resume_id, by="user")
-    assert _start(herdr) == ["agent", "start", "Chest fit audit", "--kind", agent, "--pane", "p1", "--", *args]
+    rec = c.create_session(agent, "Chest fit audit", str(tmp_path), effort=effort, bypass=bypass, resume_id=resume_id, by="user")
+    # the agent's name is one herdr 0.9.3 accepts (the display name was refused by the real server: invalid_agent_name)
+    assert _start(herdr) == ["agent", "start", f"lw-{rec['id']}", "--kind", agent, "--pane", "p1", "--", *args]
 
 
 def test_a_new_claude_pane_gets_a_fresh_session_id_lampway_records_as_its_native_id(herdr, tmp_path):
     c = H.Cockpit(tmp_path / "herdr")
     rec = c.create_session("claude", "Chest fit audit", str(tmp_path), by="user")
     args = _start(herdr)
-    assert args[:8] == ["agent", "start", "Chest fit audit", "--kind", "claude", "--pane", "p1", "--"] and args[8] == "--session-id"
+    assert args[:8] == ["agent", "start", f"lw-{rec['id']}", "--kind", "claude", "--pane", "p1", "--"] and args[8] == "--session-id"
     assert str(uuid.UUID(args[9])) == args[9] == rec["native_id"] and len(args) == 10
     assert rec["match"] == ["claude"]

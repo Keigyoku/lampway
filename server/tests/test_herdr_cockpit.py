@@ -185,6 +185,34 @@ def test_closing_a_session_is_an_explicit_confirmed_action_and_blender_exit_does
     assert [s for s in c.list_sessions() if s["id"] == rec["id"]][0]["state"] == "ended"
 
 
+def test_the_interrupt_reaches_a_live_session_in_the_key_spelling_herdr_takes(lroot, fake_cli, tmp_path):
+    """herdr 0.9.3 refuses ``ctrl-c`` (``invalid_key``); the cockpit's interrupt (and the island's Stop) must be taken by it."""
+    c = Cockpit(lroot)
+    c.ensure_server()
+    rec = c.create_session("command", "Chest fit audit", str(tmp_path), command=fake_cli, by="user")
+    assert wait_for(lambda: "fake agent ready" in c.read_screen(rec["id"]))
+    assert c.interrupt(rec["id"]) == ["ctrl+c"]
+    assert wait_for(lambda: "KeyboardInterrupt" in c.read_screen(rec["id"]))                    # the fake CLI got the ^C
+    with pytest.raises(L.HerdrError, match="invalid_key"):
+        L.run(lroot, ["pane", "send-keys", rec["pane_id"], "ctrl-c"])                            # what the cockpit used to send
+
+
+def test_herdr_takes_the_agent_names_the_cockpit_gives_and_refuses_a_display_name(lroot, tmp_path):
+    """``agent start`` names: herdr 0.9.3 takes only [a-z][a-z0-9_-]{0,31}. A display name such as the session's own was refused
+    for every Claude Code, Codex and OpenCode pane; the cockpit's ``agent_name`` is accepted (it then fails only because no such
+    agent is installed in this pane, which says the name passed)."""
+    from lampway_server.herdr import host as HM
+    c = Cockpit(lroot)
+    c.ensure_server()
+    sh = c.create_session("shell", "scratch shell", str(tmp_path), by="user")
+    with pytest.raises(L.HerdrError, match="agent name must start with a lowercase letter"):
+        L.run(lroot, ["agent", "start", "Chest fit audit", "--kind", "pi", "--pane", sh["pane_id"], "--timeout", "3001"])
+    try:
+        L.run(lroot, ["agent", "start", HM.agent_name(sh["id"]), "--kind", "pi", "--pane", sh["pane_id"], "--timeout", "3001"], timeout=20)
+    except L.HerdrError as exc:
+        assert "agent name" not in str(exc)
+
+
 def test_the_whole_cockpit_run_leaves_the_fleets_server_untouched(lroot, fake_cli, tmp_path):
     before = fleet_witness()
     c = Cockpit(lroot)

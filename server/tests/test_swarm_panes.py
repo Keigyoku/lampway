@@ -415,9 +415,18 @@ def test_the_adapters_put_the_task_on_the_command_line_only_where_herdr_starts_t
     assert claude.launch(pane, task="Do the thing") == ["claude", "--session-id", "s-1", "Do the thing"]
     assert codex.launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing") == ["codex", "--no-alt-screen", "Do the thing"]
     assert opencode.launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing") == ["opencode", "--prompt", "Do the thing"]
-    for hid in ("hermes", "pi", "grok", "cursor"):                    # typed into a shell by herdr's pane run: never a model-written task
-        with pytest.raises(ValueError, match="task"):
-            HN.get(hid).launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing")
+    # herdr 0.9.3 starts Pi, Grok and Cursor's agent itself too (agent start --kind, its arguments quoted for the shell by herdr), and
+    # each takes its first prompt as a positional argument (their installed --help): the task goes on their command line.
+    assert HN.get("pi").launch(HN.PaneSpec(cwd=str(tmp_path), session_id="s-1"), task="Do the thing") == ["pi", "--session-id", "s-1", "Do the thing"]
+    assert HN.get("grok").launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing") == ["grok", "Do the thing"]
+    assert HN.get("cursor").launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing") == ["cursor-agent", "Do the thing"]
+    with pytest.raises(ValueError, match="task"):                      # your Hermes: no top-level prompt argument (v0.21.5 --help)
+        HN.get("hermes").launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing")
+
+    class Shell(HN.Adapter):                                           # a harness herdr has no kind for is typed into a shell by
+        id, label, binary, task_flag = "typed", "Typed", "typed-agent", ()   # pane run: never a model-written task
+    with pytest.raises(ValueError, match="task"):
+        Shell().launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing")
     assert claude.launch(pane) == ["claude", "--session-id", "s-1"]
 
 

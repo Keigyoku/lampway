@@ -91,8 +91,34 @@ def test_a_codex_rollout_renders_as_turns_bubbles_and_steps():
     assert "environment_context" not in repr(ops) and "thinking" not in repr(ops)
 
 
+def test_a_pi_session_file_renders_as_turns_bubbles_and_steps():
+    from .byoa_fixtures import PI_TURNS
+    ops = run(M.PiMirror("pane7"), PI_TURNS)
+    assert turns(ops) == [
+        ("Add a cone", "Adding a cone.\n\nThe cone is in.", [("lampway_scene", "done")], "completed"),
+        ("Make it red", "", [("bash", "failed")], "cancelled"),                                    # Esc: stopReason "aborted"
+        ("Try again", "429 rate limited", [], "failed"),
+    ]
+    assert "expert coding assistant" not in repr(ops) and "the scene tool" not in repr(ops)      # system prompt and thinking stay out
+
+
+def test_pis_session_file_is_found_by_its_folder_and_the_id_lampway_chose(tmp_path):
+    from lampway_server.herdr.observers import native as N
+    cwd = "/work/projects/my-scene"
+    assert N.pi_session_folder(cwd) == "--work-projects-my-scene--"     # what Pi 1.0.4's get_state named for such a folder
+    folder = tmp_path / N.pi_session_folder(cwd)
+    folder.mkdir()
+    (folder / "2026-10-07T18-25-32-383Z_other-id.jsonl").write_text("{}\n")
+    assert N.pi_find_session(str(tmp_path), cwd, "1b2c3d4e-0000-4000-8000-00000000abcd") is None
+    mine = folder / "2026-10-07T18-25-32-383Z_1b2c3d4e-0000-4000-8000-00000000abcd.jsonl"
+    mine.write_text("{}\n")
+    assert N.pi_find_session(str(tmp_path), cwd, "1b2c3d4e-0000-4000-8000-00000000abcd") == str(mine)
+    assert N.pi_find_session(str(tmp_path), cwd, None) is None
+
+
 def test_the_mirror_for_each_harness_and_none_for_a_harness_without_a_readable_file():
     assert isinstance(M.for_harness("claude", "k"), M.ClaudeMirror)
     assert isinstance(M.for_harness("codex", "k"), M.CodexMirror)
-    for hid in ("opencode", "hermes", "pi", "grok", "cursor", "shell", None):
+    assert isinstance(M.for_harness("pi", "k"), M.PiMirror)                    # Pi 1.0.4 keeps a session file (docs/session-format.md)
+    for hid in ("opencode", "hermes", "grok", "cursor", "shell", None):
         assert M.for_harness(hid, "k") is None, hid

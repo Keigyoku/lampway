@@ -125,6 +125,38 @@ def codex_find_rollout(codex_home: str, cwd: str, since: float, native_id=None):
     return matches[0] if len(matches) == 1 else None
 
 
+def codex_rollout_id(path: str):
+    """The Codex session id a rollout names in its first record (session_meta ``payload.id``), or None. Read-only, one line."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            first = json.loads(fh.readline())
+    except (OSError, ValueError):
+        return None
+    p = first.get("payload") if isinstance(first, dict) and first.get("type") == "session_meta" else None
+    return str(p["id"]) if isinstance(p, dict) and p.get("id") else None
+
+
+def pi_session_folder(cwd: str) -> str:
+    """Pi's folder for a working directory: the path without its leading separator, every '/', '\\' and ':' as '-', between
+    '--' and '--' (Pi 1.0.4 docs/session-format.md; its RPC get_state named exactly this folder for a session Lampway started)."""
+    body = cwd.lstrip("/\\")
+    for ch in ("/", "\\", ":"):
+        body = body.replace(ch, "-")
+    return f"--{body}--"
+
+
+def pi_find_session(sessions_dir: str, cwd: str, native_id):
+    """The Pi session file of a pane Lampway started with ``--session-id``: <sessions dir>/<pi_session_folder(cwd)>/<time>_<id>.jsonl.
+    Exactly one match, or None (never another session in the folder). Read-only: only names are listed."""
+    if not native_id or not cwd:
+        return None
+    folder = Path(sessions_dir) / pi_session_folder(cwd)
+    if not folder.is_dir():
+        return None
+    matches = sorted(str(f) for f in folder.glob(f"*_{native_id}.jsonl") if f.is_file())
+    return matches[0] if len(matches) == 1 else None
+
+
 def codex_find_session(codex_home: str, originator: str, cwd: str):
     """The Codex rollout whose first record is a session_meta with OUR originator marker, source 'cli' and this folder: exactly one match, or none (never another recent chat in the folder)."""
     matches = []

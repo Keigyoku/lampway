@@ -22,9 +22,22 @@ client polls.
 **Typing into the pane (B4, B6).** ``agent.byoa.send`` types the island composer's text into the tab's bound pane. Who typed is
 decided from the socket, never from the body: a worker socket, an agent or MCP token, or a cross-origin socket is an agent, and an
 agent send passes the cockpit's checks (agent sends switched on for the pane, and the 2.5 s quiet window after the user's own
-last send from the island).
+last send from the island). Images ride with the text for a harness that takes an image by its path (``Adapter.takes_image_paths``):
+the server writes them into a Lampway-owned folder inside the pane's project root (``Cockpit.write_pane_images``) and types their
+paths the way the harness reads them; a harness that cannot take one is refused with its reason (``images_unsupported``).
+
+**Stop (B4).** ``agent.byoa.interrupt``, and ``agent.cancel`` for a tab in Your agent mode, type the harness's own interrupt keys
+into the tab's pane (``Adapter.interrupt_keys``, ``Cockpit.interrupt``): only from the user's own socket (an agent never stops a
+user's pane from here), only into a live pane Lampway started and bound to that tab. The observed turn's end is what tells the
+island the agent stopped.
+
+**An ended pane (B2).** ``agent.byoa.observe`` answers ``view: ended`` with whether it can be resumed (a native session id was
+recorded). ``agent.byoa.resume`` is the user's Resume: a new pane runs the adapter's resume with that id, bound to the tab; never
+automatic (law 5), never from an agent. ``agent.byoa.unbind`` is the user's Unbind: the ended pane leaves the tab, nothing else.
 """
 import asyncio
+import base64
+import binascii
 import json
 import logging
 import os
@@ -32,7 +45,7 @@ import time
 
 from ..herdr import harnesses as HN
 from ..herdr.observers import mirror as MR
-from ..herdr.observers.native import codex_find_rollout
+from ..herdr.observers.native import codex_find_rollout, codex_rollout_id, pi_find_session
 
 log = logging.getLogger("lampway.byoa")
 
@@ -44,7 +57,10 @@ SCREEN_LINES = 70
 SWITCH_HELP = ("Switch this tab to Lampway Agent in the island's agent menu (the mode switch above the model list), "
                "or keep talking to your agent: in Your agent mode the composer types into its pane")
 BIND_HELP = "Pick Your agent in the island's agent menu: it starts your agent in a pane bound to this tab, or binds one you already run"
-RESUME_HELP = "Your agent's pane has ended: resume it from the cockpit (Lampway > Agents), or pick Your agent again to start a new one"
+RESUME_HELP = "Your agent's pane has ended: press Resume to continue its conversation in a new pane, or Unbind to let this tab go"
+NO_RESUME_HELP = ("Your agent's pane has ended and no session id was recorded for it, so it cannot be resumed: Unbind it, then pick "
+                  "Your agent again to start a new one")
+USER_ONLY = "Only your own click in Lampway does this: an agent cannot"
 
 
 def _result(ok: bool, **fields) -> dict:
@@ -122,6 +138,10 @@ class ByoaView:
         self.user_sent: dict = {}        # pane id -> when the user last typed into it from the island
 
     # ------------------------------------------------------------------------------------------------- the mode (M0)
+    @property
+    def state_dir(self):
+        return getattr(self.hub, "switch_dir", None)
+
     def _cockpit(self):
         return getattr(self.hub, "cockpit", None)
 
@@ -162,7 +182,21 @@ class ByoaView:
         if obs.kind == "session_file":
             return obs.path
         if obs.kind == "rollout":
-            return codex_find_rollout(obs.path, rec.get("cwd") or "", float(rec.get("created_at") or 0), rec.get("native_id"))
+            path = codex_find_rollout(obs.path, rec.get("cwd") or "", float(rec.get("created_at") or 0), rec.get("native_id"))
+            if path and not rec.get("native_id"):
+                # Codex picks its own session id: the rollout that is this pane's names it, and the record keeps it, so an ended
+                # pane can be resumed (spec B2). Only the record changes; never the pane.
+                nid = codex_rollout_id(path)
+                note = getattr(self._cockpit(), "note_native_id", None)
+                if nid and note is not None:
+                    try:
+                        note(rec["id"], nid)
+                        rec["native_id"] = nid
+                    except Exception:  # noqa: BLE001 - the record is the server's own; a failed write only costs the resume
+                        log.debug("native id not recorded for %s", rec["id"], exc_info=True)
+            return path
+        if obs.kind == "pi_session":
+            return pi_find_session(obs.path, rec.get("cwd") or "", rec.get("native_id"))
         return None
 
     @staticmethod
@@ -187,14 +221,16 @@ class ByoaView:
             return {"view": "none", "code": "not_bound", "help": [BIND_HELP]}
         base = {"pane": rec["id"], "harness": rec.get("harness"), "state": rec.get("state"), "name": rec.get("name")}
         if rec.get("state") != "live":
-            return {**base, "view": "ended", "help": [RESUME_HELP]}
+            resumable = bool(rec.get("native_id")) and rec.get("harness") in HN.ADAPTERS
+            return {**base, "view": "ended", "resumable": resumable, "help": [RESUME_HELP if resumable else NO_RESUME_HELP]}
         conv = MR.for_harness(rec.get("harness"), rec["id"])
         if conv is None:
             try:
                 screen = await asyncio.to_thread(self._cockpit().read_screen, rec["id"], SCREEN_LINES)
             except Exception as exc:  # noqa: BLE001 - herdr down or the pane gone: say so, the client keeps polling
-                return {**base, "view": "screen", "screen": "", "error": str(exc)}
-            return {**base, "view": "screen", "screen": screen}
+                return {**base, "view": "screen", "screen": "", "error": str(exc), "agent_status": "unknown"}
+            status = await asyncio.to_thread(self._cockpit().agent_status, rec["id"])
+            return {**base, "view": "screen", "screen": screen, "agent_status": status}     # herdr's own working/idle reading
         watch = self.mirrors.get(session_id)
         if watch is None or watch.rec_id != rec["id"]:
             if watch is not None and watch.task is not None:
@@ -279,19 +315,51 @@ class ByoaView:
             log.debug("byoa view could not deliver %s", method, exc_info=True)
 
     # ------------------------------------------------------------------------------------------------- typing into the pane
+    @staticmethod
+    def _images(payload: dict) -> list:
+        """The island's images as bytes: ``images`` is a list of ``{"data": <base64>}`` (any name or type the client sends is
+        ignored: the bytes decide)."""
+        from .turns import InvalidParams
+        out = []
+        for item in payload.get("images") or []:
+            data = item.get("data") if isinstance(item, dict) else None
+            if not isinstance(data, str) or not data:
+                raise InvalidParams("each payload.images item needs its base64 data")
+            try:
+                out.append(base64.b64decode(data, validate=True))
+            except (binascii.Error, ValueError):
+                raise InvalidParams("an image's data is not base64") from None
+        return out
+
     async def send(self, socket, params: dict) -> dict:
         from .turns import InvalidParams, _command_parts
         _command_id, payload = _command_parts(params)
         session_id = str(payload.get("session_id") or "")
         text = payload.get("text")
-        if not session_id or not isinstance(text, str) or not text.strip():
-            raise InvalidParams("payload.session_id and a non-empty payload.text are required")
+        images = self._images(payload)
+        if not session_id or not isinstance(text, str) or not (text.strip() or images):
+            raise InvalidParams("payload.session_id and a non-empty payload.text (or images) are required")
         rec = self.pane_for(session_id)
         if rec is None or rec.get("state") != "live":
             return _result(False, code="not_bound", status_code=409, help=[BIND_HELP if rec is None else RESUME_HELP],
                            message="No running agent pane is bound to this scene tab, so nothing was typed.")
         by = origin_of(socket)
         typed_at = self.user_sent.get(rec["id"]) if by != "user" else None
+        if images:
+            ad = HN.ADAPTERS.get(rec.get("harness"))
+            if ad is None or not ad.takes_image_paths:
+                return _result(False, code="images_unsupported", status_code=409,
+                               message=(ad.images_note if ad is not None else "") or "This agent cannot take an image, so nothing was typed.",
+                               help=["Send the message without the image, or describe what it shows"])
+            if by != "user":
+                return _result(False, code="agent_origin", status_code=403, message="Only your own message carries images into your agent's pane.",
+                               help=[USER_ONLY])
+            try:
+                paths = await asyncio.to_thread(self._cockpit().write_pane_images, rec["id"], images)
+            except Exception as exc:  # noqa: BLE001 - CockpitError carries the reason (no project root, not an image, too large)
+                return _result(False, code="images_refused", status_code=409, message=str(exc),
+                               help=["Attach a PNG, JPEG, GIF or WebP image, or send the text alone"])
+            text = ad.with_images(text, paths)
         try:
             await asyncio.to_thread(self._cockpit().send_input, rec["id"], text, True, by, typed_at)
         except Exception as exc:  # noqa: BLE001 - the cockpit's refusals (CockpitError, HerdrError) carry their reason
@@ -300,3 +368,68 @@ class ByoaView:
         if by == "user":
             self.user_sent[rec["id"]] = time.time()
         return _result(True, pane=rec["id"])
+
+    # ------------------------------------------------------------------------------------------------- Stop, Resume, Unbind
+    @staticmethod
+    def _session_of(params: dict) -> str:
+        from .turns import InvalidParams, _command_parts
+        _command_id, payload = _command_parts(params)
+        session_id = str(payload.get("session_id") or params.get("session_id") or "")
+        if not session_id:
+            raise InvalidParams("session_id is required")
+        return session_id
+
+    async def interrupt(self, socket, params: dict) -> dict:
+        """The island's Stop for a tab in Your agent mode: the harness's own interrupt keys into the tab's live pane. Only the user's
+        own socket: an agent never stops the user's pane from here (the cockpit tool's interrupt has its own request rule)."""
+        session_id = self._session_of(params)
+        if origin_of(socket) != "user":
+            return _result(False, code="agent_origin", status_code=403, message="Only your own Stop interrupts your agent's pane.", help=[USER_ONLY])
+        rec = self.pane_for(session_id)
+        if rec is None or rec.get("state") != "live":
+            return _result(False, code="not_bound", status_code=409, help=[BIND_HELP if rec is None else RESUME_HELP],
+                           message="No running agent pane is bound to this scene tab, so there is nothing to stop.")
+        try:
+            keys = await asyncio.to_thread(self._cockpit().interrupt, rec["id"])
+        except Exception as exc:  # noqa: BLE001 - CockpitError, HerdrError: their reason
+            return _result(False, code="pane_refused", status_code=409, message=str(exc),
+                           help=["Stop it in its own pane (Lampway > Agents)"])
+        return _result(True, pane=rec["id"], keys=keys, cancelled=True)
+
+    async def resume(self, socket, params: dict) -> dict:
+        """The user's Resume of the tab's ended pane (spec B2, law 5): never automatic, never an agent's."""
+        session_id = self._session_of(params)
+        if origin_of(socket) != "user":
+            return _result(False, code="agent_origin", status_code=403, message="Only your own click resumes your agent's pane.", help=[USER_ONLY])
+        rec = self.pane_for(session_id)
+        if rec is None:
+            return _result(False, code="not_bound", status_code=409, help=[BIND_HELP], message="No agent pane is bound to this scene tab.")
+        if rec.get("state") == "live":
+            return _result(True, pane=rec["id"], running=True)
+        payload = params.get("payload") if isinstance(params.get("payload"), dict) else params
+        try:
+            HN.require_enabled(self.state_dir)
+            new = await asyncio.to_thread(self._cockpit().resume_bound, rec["id"], session_id, str(payload.get("name") or "") or None)
+        except PermissionError as exc:                  # the harness's byoa route is off (spec B5)
+            return _result(False, code="route_off", status_code=403, message=str(exc), help=["Switch the harness's route on in Privacy"])
+        except Exception as exc:  # noqa: BLE001 - the BYOA switch off, herdr not running, no session id: the reason
+            return _result(False, code="resume_refused", status_code=409, message=str(exc),
+                           help=["Check the cockpit (Lampway > Agents): the herdr server must be running and your own agents switched on"])
+        self.forget(session_id)                         # the next observe watches the new pane, from now on (no replay)
+        return _result(True, pane=new["id"], harness=new.get("harness"), resumed=rec["id"])
+
+    async def unbind(self, socket, params: dict) -> dict:
+        """The user's Unbind of the tab's ended pane: the binding goes, the pane's record stays (law 5: nothing is closed)."""
+        session_id = self._session_of(params)
+        if origin_of(socket) != "user":
+            return _result(False, code="agent_origin", status_code=403, message="Only your own click unbinds your agent's pane.", help=[USER_ONLY])
+        done = []
+        for rec in self.bound(session_id):
+            if rec.get("state") != "live":
+                await asyncio.to_thread(self._cockpit().unbind, rec["id"])
+                done.append(rec["id"])
+        if not done:
+            return _result(False, code="nothing_to_unbind", status_code=409,
+                           message="No ended agent pane is bound to this scene tab (a running one is unbound by switching the tab's agent).")
+        self.forget(session_id)
+        return _result(True, unbound=done)

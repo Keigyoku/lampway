@@ -1,6 +1,7 @@
 """Shared helpers for the herdr cockpit tests: a short isolated root, the fake agent CLI, and the fleet-isolation witness. The fleet's own herdr is only ever READ (status and snapshot) to prove it is untouched."""
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -100,6 +101,47 @@ METADATA_OPTIONS = {"--source", "--agent", "--applies-to-source", "--title", "--
                     "--state-label", "--clear-state-labels", "--token", "--clear-token", "--seq", "--ttl-ms"}
 METADATA_STATES = {"idle", "working", "blocked", "done", "unknown"}
 
+#: herdr 0.9.3's ``agent start --kind`` kinds (CLI reference; src/detect/mod.rs ``interactive_agent_executable``).
+AGENT_KINDS = {"pi", "claude", "codex", "gemini", "cursor", "devin", "agy", "cline", "omp", "mastracode", "opencode", "copilot", "kimi",
+               "kiro", "droid", "amp", "grok", "hermes", "kilo", "qodercli", "qwen", "letta", "maki", "muse"}
+_AGENT_NAME = re.compile(r"[a-z][a-z0-9_-]{0,31}")
+_NAMED_KEYS = {"space", "enter", "return", "esc", "escape", "tab", "backspace", "bs", "left", "right", "up", "down", "minus", "comma",
+               "period", "slash", "backslash", "quote", "double_quote", "double-quote", "semicolon", "colon", "percent", "ampersand",
+               "backtick", "plus"}
+_MODIFIERS = {"ctrl", "control", "shift", "alt", "option", "meta", "cmd", "command", "super", "hyper"}
+
+
+def valid_key(key: str) -> bool:
+    """herdr 0.9.3's key spelling (src/config/keybinds.rs parse_key_combo, src/app/api_helpers.rs): ``C-c``/``c-c`` alias ``ctrl+c``;
+    otherwise ``+``-joined modifiers and one key, a named key, one character or ``f<n>``. ``ctrl-c`` is refused (``invalid_key``)."""
+    key = {"C-c": "ctrl+c", "c-c": "ctrl+c", "+": "plus"}.get(key.strip(), key.strip())
+    parts, main = key.split("+"), []
+    if any(not p.strip() for p in parts):
+        return False
+    for p in parts:
+        if p.strip().lower() not in _MODIFIERS:
+            main.append(p.strip().lower())
+    if len(main) != 1:
+        return False
+    k = main[0]
+    return k in _NAMED_KEYS or len(k) == 1 or (k.startswith("f") and k[1:].isdigit())
+
+
+def herdr_refusal(args: list):
+    """What herdr 0.9.3 refuses before it does anything, as its own error text, or None. The played herdrs share it, so a spelling
+    the real one refuses fails the unit suite too (``test_herdr_cockpit.py`` holds the same rules against the real binary)."""
+    if args[:2] == ["agent", "start"]:
+        if not _AGENT_NAME.fullmatch(args[2] if len(args) > 2 else ""):
+            return ("agent name must start with a lowercase letter and contain only lowercase letters, digits, '-' or '_' "
+                    "(1-32 characters)")
+        if "--kind" not in args or args[args.index("--kind") + 1] not in AGENT_KINDS:
+            return "unsupported agent kind"
+    if args[:2] in (["pane", "send-keys"], ["agent", "send-keys"]):
+        bad = next((k for k in args[3:] if not valid_key(k)), None)
+        if bad is not None or len(args) < 4:
+            return f'{{"error":{{"code":"invalid_key","message":"unsupported key {bad}"}}}}'
+    return None
+
 
 class PaneHerdr:
     """herdr, played (no binary runs). Every command is recorded with the egress rows written before it. It keeps herdr's layout:
@@ -142,6 +184,8 @@ class PaneHerdr:
         with self.lock:
             sent = [r["route"] for r in (self.egress.log() if self.egress else []) if r.get("event") == "send"]
             self.calls.append({"args": args, "sends_before": sent})
+            if (refused := herdr_refusal(args)) is not None:
+                raise L.HerdrError(refused)
             if args[:2] == ["api", "snapshot"]:
                 ws = [{"workspace_id": "w1", "label": self.workspace}] if self.workspace else []
                 return json.dumps({"result": {"snapshot": {"workspaces": ws, "panes": [
@@ -182,6 +226,12 @@ class PaneHerdr:
                 return ""
             if args[:2] == ["pane", "read"]:
                 return "user@box:~$ "
+            if args[:2] == ["pane", "get"]:
+                p = self.panes.get(args[2])
+                if p is None:
+                    raise L.HerdrError("no such pane")
+                return json.dumps({"result": {"pane": {"pane_id": args[2], "agent_status": p.get("status", "unknown"),
+                                                       "terminal_id": p["terminal_id"], "tab_id": p["tab_id"]}}})
             if args[:2] == ["agent", "start"]:
                 pid = args[args.index("--pane") + 1]
                 self.panes[pid]["cmd"] = " ".join([args[args.index("--kind") + 1], *args[args.index("--") + 1:]])

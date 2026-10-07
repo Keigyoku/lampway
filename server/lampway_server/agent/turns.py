@@ -96,6 +96,7 @@ class AgentHub:
         self.prompts = prompts
         self.jobs = jobs
         self.cockpit = cockpit
+        self.switch_dir = switch_dir    # where the BYOA switch's own file lives (harnesses/switch.py)
         self.ops = None
         if cockpit is not None:
             from ..ops.registry import AgentOps
@@ -128,6 +129,9 @@ class AgentHub:
             "agent.checkpoint.rewind": self._checkpoint_rewind,
             "agent.byoa.observe": self.byoa.observe,
             "agent.byoa.send": self.byoa.send,
+            "agent.byoa.interrupt": self.byoa.interrupt,
+            "agent.byoa.resume": self.byoa.resume,
+            "agent.byoa.unbind": self.byoa.unbind,
         }.get(method)
         if handler is None:
             await socket.send_error(request_id, METHOD_NOT_FOUND, f"Method not found: {method}")
@@ -268,6 +272,9 @@ class AgentHub:
     async def _cancel(self, socket, params):
         command_id, payload = _command_parts(params)
         session_id = str(payload.get("session_id") or "")
+        if session_id and self.byoa.mode_of(session_id, payload) == "byoa":
+            # A tab in Your agent mode (spec M0, B4): Stop interrupts its pane, with the same guards as agent.byoa.interrupt.
+            return await self.byoa.interrupt(socket, params)
         session = self.sessions.get(session_id)
         cancelled = False
         if session is not None and session.current is not None and session.current.task is not None:

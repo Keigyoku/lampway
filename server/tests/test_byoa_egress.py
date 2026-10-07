@@ -41,6 +41,9 @@ class FakeHerdr:
         args = [str(a) for a in args]
         sent = [r for r in (self.egress.log() if self.egress else []) if r.get("event") == "send"]
         self.calls.append({"args": args, "sends_before": [r["route"] for r in sent]})
+        from .herdr_support import herdr_refusal
+        if (refused := herdr_refusal(args)) is not None:          # herdr 0.9.3's own refusals: agent names, kinds, keys
+            raise L.HerdrError(refused)
         if args[:2] == ["api", "snapshot"]:
             return json.dumps({"result": {"snapshot": {"workspaces": [], "panes": []}}})
         if args[:2] in (["workspace", "create"], ["tab", "create"]):

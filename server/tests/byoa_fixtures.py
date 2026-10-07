@@ -94,5 +94,42 @@ CODEX_TURNS = [
 ]
 
 
+PI_SESSION = "1b2c3d4e-0000-4000-8000-000000000003"
+
+#: Pi's own session file (Pi 1.0.4 docs/session-format.md, docs/message-types.md): a header, then ``message`` records. Hand-built from
+#: those documented shapes (a turn needs a provider, so none was recorded from the installed copy) [UNVERIFIED by a recorded turn].
+PI_TURNS = [
+    {"type": "session", "version": 3, "id": PI_SESSION, "timestamp": "2026-10-07T10:00:00.000Z", "cwd": CWD},
+    {"type": "message", "id": "s0000001", "parentId": None, "timestamp": "2026-10-07T10:00:00.500Z",
+     "message": {"role": "system", "content": "", "sections": {"preamble": "You are an expert coding assistant"}, "timestamp": 1}},
+    {"type": "message", "id": "u0000001", "parentId": "s0000001", "timestamp": "2026-10-07T10:00:01.000Z",
+     "message": {"role": "user", "content": "Add a cone", "timestamp": 2}},
+    {"type": "message", "id": "a0000001", "parentId": "u0000001", "timestamp": "2026-10-07T10:00:02.000Z",
+     "message": {"role": "assistant", "content": [{"type": "thinking", "thinking": "the scene tool"}, {"type": "text", "text": "Adding a cone."},
+                                                  {"type": "toolCall", "id": "call_1", "name": "mcp__lampway__lampway_scene",
+                                                   "arguments": {"action": "add", "kind": "cone"}}],
+                 "api": "x", "provider": "x", "model": "x", "usage": {}, "stopReason": "toolUse", "timestamp": 3}},
+    {"type": "message", "id": "t0000001", "parentId": "a0000001", "timestamp": "2026-10-07T10:00:03.000Z",
+     "message": {"role": "toolResult", "toolCallId": "call_1", "toolName": "mcp__lampway__lampway_scene",
+                 "content": [{"type": "text", "text": "{\"ok\": true}"}], "isError": False, "timestamp": 4}},
+    {"type": "message", "id": "a0000002", "parentId": "t0000001", "timestamp": "2026-10-07T10:00:04.000Z",
+     "message": {"role": "assistant", "content": [{"type": "text", "text": "The cone is in."}], "api": "x", "provider": "x", "model": "x",
+                 "usage": {}, "stopReason": "stop", "timestamp": 5}},
+    {"type": "usage", "id": "g0000001", "parentId": "a0000002", "timestamp": "2026-10-07T10:00:04.100Z", "kind": "cache_warm"},
+    # a second turn the user interrupts (Esc), then one the provider fails
+    {"type": "message", "id": "u0000002", "parentId": "a0000002", "timestamp": "2026-10-07T10:01:00.000Z",
+     "message": {"role": "user", "content": [{"type": "text", "text": "Make it red"}, {"type": "image", "data": "AAAA", "mimeType": "image/png"}],
+                 "timestamp": 6}},
+    {"type": "message", "id": "a0000003", "parentId": "u0000002", "timestamp": "2026-10-07T10:01:01.000Z",
+     "message": {"role": "assistant", "content": [{"type": "toolCall", "id": "call_2", "name": "bash", "arguments": {"command": "ls"}}],
+                 "api": "x", "provider": "x", "model": "x", "usage": {}, "stopReason": "aborted", "timestamp": 7}},
+    {"type": "message", "id": "u0000003", "parentId": "a0000003", "timestamp": "2026-10-07T10:02:00.000Z",
+     "message": {"role": "user", "content": "Try again", "timestamp": 8}},
+    {"type": "message", "id": "a0000004", "parentId": "u0000003", "timestamp": "2026-10-07T10:02:01.000Z",
+     "message": {"role": "assistant", "content": [], "api": "x", "provider": "x", "model": "x", "usage": {}, "stopReason": "error",
+                 "errorMessage": "429 rate limited", "timestamp": 9}},
+]
+
+
 def jsonl(records) -> str:
     return "".join(json.dumps(r) + "\n" for r in records)

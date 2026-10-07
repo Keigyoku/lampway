@@ -9,7 +9,7 @@ file) and returns operations; it never opens a file, and the hub (agent/byoa.py)
 Operations, each ``(kind, turn_id, data)``:
 - ``("start", tid, {"user_text": str})``: a turn begins (the user's prompt, or "" when the observation began mid-turn);
 - ``("event", tid, payload)``: one ``agent.turn.event`` payload (``run_status``, a ``content.set`` slot, a ``steps`` slot);
-- ``("end", tid, {"status": "completed" | "cancelled"})``: the turn is over.
+- ``("end", tid, {"status": "completed" | "cancelled" | "failed"})``: the turn is over.
 
 A turn id is ``byoa-<key>-<offset of the record that opened it>``: the same file gives the same ids, and two panes never share one.
 The record shapes are the harnesses' own (observers/native.py reads the same ones). [UNVERIFIED] against an installed version:
@@ -203,7 +203,52 @@ class CodexMirror(_Mirror):
         return []
 
 
-MIRRORS = {"claude": ClaudeMirror, "codex": CodexMirror}
+class PiMirror(_Mirror):
+    """Pi's session file (Pi 1.0.4 docs/session-format.md and docs/message-types.md): ``message`` records carry a ``user`` message
+    (the prompt: text, or text and image blocks), an ``assistant`` message (``text``, ``thinking`` and ``toolCall`` blocks, and a
+    ``stopReason``: ``toolUse`` goes on, ``stop`` and ``length`` end the turn, ``aborted`` is the user's interrupt, ``error`` carries
+    ``errorMessage``) and a ``toolResult`` (``toolCallId``, ``isError``). The header, system messages, model and thinking changes,
+    usage and compaction records are not part of the conversation shown. [UNVERIFIED by a recorded turn: a turn needs a provider;
+    the shapes are the installed package's own documentation.]"""
+    harness = "pi"
+
+    def feed(self, record: dict, at: int) -> list:
+        if not isinstance(record, dict) or record.get("type") != "message" or not isinstance(record.get("message"), dict):
+            return []
+        msg = record["message"]
+        role = msg.get("role")
+        if role == "user":
+            content = msg.get("content")
+            if isinstance(content, str):
+                text = content
+            else:
+                text = "\n".join(i.get("text", "") for i in (content or []) if isinstance(i, dict) and i.get("type") == "text")
+            text = text.strip()
+            return self._start(at, text) if text else []
+        if role == "assistant":
+            ops = self._ensure(at)
+            for item in msg.get("content") or []:
+                if not isinstance(item, dict):
+                    continue
+                if item.get("type") == "text":
+                    ops += self._text(item.get("text", ""))
+                elif item.get("type") == "toolCall":
+                    ops += self._step_start(item.get("id"), item.get("name"), item.get("arguments"))
+            stop = msg.get("stopReason")
+            if stop == "error":
+                ops += self._text(str(msg.get("errorMessage") or API_ERROR))
+                ops += self._close("failed")
+            elif stop == "aborted":
+                ops += self._close("cancelled")
+            elif stop in ("stop", "length"):
+                ops += self._close("completed")
+            return ops
+        if role == "toolResult" and self.turn:
+            return self._step_end(msg.get("toolCallId"), bool(msg.get("isError")))
+        return []
+
+
+MIRRORS = {"claude": ClaudeMirror, "codex": CodexMirror, "pi": PiMirror}
 
 
 def for_harness(harness, key: str):
