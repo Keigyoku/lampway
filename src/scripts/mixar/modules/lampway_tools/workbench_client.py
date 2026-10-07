@@ -43,8 +43,5 @@ class WorkbenchClient(StudioClient):
     def terminal_open(self, position=None) -> dict:
         return self._call("POST", "/app/terminal/open", {"position": position})
 
-    def terminal_focus(self) -> dict:
-        return self._call("POST", "/app/terminal/focus", {})
-
     def terminal_remove(self) -> dict:
         return self._call("POST", "/app/terminal/remove", {})

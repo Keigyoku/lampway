@@ -863,20 +863,6 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         except _WZ.TerminalRefused as exc:
             return JSONResponse({"detail": str(exc)}, status_code=409)
 
-    async def terminal_focus(request: Request):
-        if (r := _term_guard(request, True)) is not None:
-            return r
-        from .addons import wezterm as _WZ
-        home = _term_home()
-        exe = _WZ.binary(home)
-        if not exe:
-            return JSONResponse({"detail": "the Lampway terminal is not installed: Get it first (about 49 MB from github.com)"}, status_code=409)
-        try:
-            await asyncio.to_thread(_WZ.focus, home, str(exe))      # the one window, forward
-        except _WZ.TerminalRefused as exc:
-            return JSONResponse({"detail": str(exc)}, status_code=409)
-        return JSONResponse({"focused": True})
-
     async def terminal_remove(request: Request):
         if (r := _term_guard(request, True)) is not None:
             return r
@@ -884,8 +870,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         return JSONResponse(await asyncio.to_thread(_WZ.remove, _term_home()))
 
     routes += [Route("/app/terminal", terminal_status, methods=["GET"]), Route("/app/terminal/get", terminal_get, methods=["POST"]),
-               Route("/app/terminal/open", terminal_open, methods=["POST"]), Route("/app/terminal/remove", terminal_remove, methods=["POST"]),
-               Route("/app/terminal/focus", terminal_focus, methods=["POST"])]
+               Route("/app/terminal/open", terminal_open, methods=["POST"]), Route("/app/terminal/remove", terminal_remove, methods=["POST"])]
 
     # ---- the cockpit window (facelift contract 10): a static page from this origin only; its data behind the bearer
     _WB_PAGE = Path(__file__).resolve().parent / "web" / "workbench"

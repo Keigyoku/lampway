@@ -287,23 +287,6 @@ class LAMPWAY_OT_terminal_open(_UserClick):
         return self._done(context, "the Lampway terminal is open")
 
 
-class LAMPWAY_OT_terminal_focus(_UserClick):
-    """Bring the Lampway terminal forward: the one window onto Lampway's herdr (never another WezTerm)"""
-    bl_idname = "lampway.terminal_focus"
-    bl_label = "Focus the Lampway terminal"
-
-    def execute(self, context):
-        if (r := self._gate(context)) is not None:
-            return r
-        if (workbench_state.STATE.get("terminal") or {}).get("window") != "re-adopted":
-            return self._done(context, "the Lampway terminal is not open: Open it first", ok=False)
-        try:
-            CLIENT_FACTORY().terminal_focus()
-        except studio_client.StudioError as exc:
-            return self._done(context, str(exc), ok=False)
-        return self._done(context, "the Lampway terminal is in front")
-
-
 class LAMPWAY_OT_terminal_remove(_UserClick):
     """Remove the Lampway terminal: its window closes (never another WezTerm), the agents keep running"""
     bl_idname = "lampway.terminal_remove"
@@ -334,7 +317,7 @@ class LAMPWAY_OT_wb_page_open(_WbOp):
         return self._done(context, "the cockpit window is open in your browser")
 
 
-classes = [LAMPWAY_OT_terminal_get, LAMPWAY_OT_terminal_open, LAMPWAY_OT_terminal_focus, LAMPWAY_OT_terminal_remove, LAMPWAY_OT_wb_page_open, LAMPWAY_OT_wb_refresh, LAMPWAY_OT_wb_start_server, LAMPWAY_OT_wb_reconcile, LAMPWAY_OT_wb_new, LAMPWAY_OT_wb_read_to_text, LAMPWAY_OT_wb_send, LAMPWAY_OT_wb_close,
+classes = [LAMPWAY_OT_terminal_get, LAMPWAY_OT_terminal_open, LAMPWAY_OT_terminal_remove, LAMPWAY_OT_wb_page_open, LAMPWAY_OT_wb_refresh, LAMPWAY_OT_wb_start_server, LAMPWAY_OT_wb_reconcile, LAMPWAY_OT_wb_new, LAMPWAY_OT_wb_read_to_text, LAMPWAY_OT_wb_send, LAMPWAY_OT_wb_close,
            LAMPWAY_OT_wb_stop_server, LAMPWAY_OT_wb_popout]
 
 

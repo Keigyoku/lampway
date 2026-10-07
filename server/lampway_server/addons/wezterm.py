@@ -1,7 +1,7 @@
 """The Lampway terminal (facelift contract 16): a pinned WezTerm release, downloaded on demand into $LAMPWAY_HOME and
 launched as Lampway's own companion window: ONE viewport onto Lampway's herdr server (the captain, 2026-10-06: "WezTerm is
 PURELY a viewport"). Herdr owns the workspace, the agents, the panes and the tabs; WezTerm opens no tab, spawns nothing, names
-no tab and draws no agent state (the config hides its tab bar). The CLI is used only to find the window and bring it forward.
+no tab, sends nothing and draws no agent state (the config hides its tab bar). The CLI is used only to find the window.
 
 Download: only through the egress gate's `github` route (refused before any request while it is off), streamed to a
 .part file, its SHA-256 compared with the value pinned in `lampway_terminal.toml` AND with the release's published
@@ -273,15 +273,6 @@ def cli(home, exe: str, args: list, timeout: int = 20) -> str:
     if r.returncode != 0:
         raise TerminalRefused((r.stderr or r.stdout).strip()[:300] or "the Lampway terminal did not answer")
     return r.stdout
-
-
-def focus(home, exe: str) -> None:
-    """Bring Lampway's one window forward: activate its pane (the viewport onto herdr). Nothing else is ever asked of WezTerm:
-    no tab, no spawn, no title (the captain, 2026-10-06: WezTerm is purely a viewport; herdr owns agents, panes and tabs)."""
-    listed = json.loads(cli(home, exe, ["list", "--format", "json"]) or "[]")
-    if not listed:
-        raise TerminalRefused("the Lampway terminal is not open: Open it first")
-    cli(home, exe, ["activate-pane", "--pane-id", str(listed[0]["pane_id"])])
 
 
 def _alive(pid) -> bool:

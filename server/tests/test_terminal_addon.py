@@ -305,26 +305,17 @@ def _app(settings, provider, tmp_path, monkeypatch):
     return http, FakeMixarClient
 
 
-def test_focus_brings_the_one_window_forward(settings, provider, tmp_path, monkeypatch):
+def test_there_is_no_focus_route(settings, provider, tmp_path, monkeypatch):
+    """The coordinator's audit (W6): no Focus. The routes are Get, Open, Remove and the status."""
     home = tmp_path / "home"
     monkeypatch.setenv("LAMPWAY_HOME", str(home))
     _installed(home)
-    seen = []
-
-    def cli(home_, exe, args, timeout=20):
-        seen.append(args)
-        return '[{"pane_id": 0}]' if args[0] == "list" else ""
-    monkeypatch.setattr(W, "cli", cli)
     http, FakeMixarClient = _app(settings, provider, tmp_path, monkeypatch)
     with http:
         fake = FakeMixarClient(http, password=settings.user_password)
         fake.login()
-        h = fake.rest_headers()
-        assert http.post("/app/terminal/focus", headers=h).status_code == 200
-        assert http.post("/app/terminal/focus", headers={**h, "X-Lampway-Origin": "agent"}).status_code == 403
+        assert http.post("/app/terminal/focus", headers=fake.rest_headers()).status_code in (404, 405)
     E.set_active(None)
-    assert seen == [["list", "--format", "json"], ["activate-pane", "--pane-id", "0"]]
-
 
 def test_status_offers_update_when_the_pin_moved(settings, provider, tmp_path, monkeypatch):
     """Section 6.1: Update fetches the new pinned version beside the old one. The status says which is installed and whether
@@ -344,7 +335,7 @@ def test_status_offers_update_when_the_pin_moved(settings, provider, tmp_path, m
 # ---- the captain (2026-10-06): "Our agents live in herdr, herdr has its own workspace, we don't make multiple WezTerm tabs.
 # WezTerm is PURELY a viewport." One window onto Lampway's herdr server; herdr owns the workspace, agents, panes and tabs.
 
-VIEWPORT_VERBS = {"list", "activate-pane"}       # the only CLI verbs: find the one window, bring it forward
+VIEWPORT_VERBS = {"list"}       # the only CLI verb: find the one window (reconcile); nothing is ever sent to it
 
 
 def test_the_launcher_issues_no_tab_or_spawn_command(home, fake_wezterm, tmp_path, monkeypatch):
@@ -353,7 +344,6 @@ def test_the_launcher_issues_no_tab_or_spawn_command(home, fake_wezterm, tmp_pat
     W.launch(home, str(exe), herdr_root=home / "herdr", detached=False, bootstrap=["herdr"])
     W.save_instance(home, dict(W.load_instance(home), gui_pid=os.getpid()))
     W.reconcile(home, str(exe))
-    W.focus(home, str(exe))
     calls = [json.loads(line)["argv"] for line in log.read_text().splitlines()]
     starts = [a for a in calls if "start" in a and "cli" not in a]
     assert len(starts) == 1, "one window"
@@ -363,6 +353,7 @@ def test_the_launcher_issues_no_tab_or_spawn_command(home, fake_wezterm, tmp_pat
     for verb in ("spawn", "new-tab", "set-tab-title", "split-pane", "send-text", "move-pane-to-new-tab", "activate-tab"):
         assert f'"{verb}"' not in src, f"wezterm.py names the CLI verb {verb}"
     assert not hasattr(W, "agent_tabs") and not hasattr(W, "send_text") and not hasattr(W, "write_state")
+    assert not hasattr(W, "focus") and not hasattr(W, "state_doc"), "no Focus, no state: the window is the user's to raise"
 
 
 def test_the_config_has_no_tab_bar_and_mirrors_no_state():

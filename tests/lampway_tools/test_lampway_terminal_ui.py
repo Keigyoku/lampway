@@ -112,7 +112,6 @@ class Open(FakeClient):
         self.calls.append("terminal")
         return {"installed": True, "window": "re-adopted", "version": "20230712-072601-f4abf8fd", "update": True,
                 "pin": {"version": "20240203-110809-5046fc22", "bytes": 49505472}}
-    def terminal_focus(self): self.calls.append("focus"); return {"focused": True}
 fake = Open()
 WO.CLIENT_FACTORY = lambda: fake
 WO.refresh_state()
@@ -120,9 +119,7 @@ log = []
 panel = PANELS.LAMPWAY_PT_cockpit
 panel.layout = Rec(log)
 panel.draw(panel, bpy.context)
-res = {"focus": call(bpy.ops.lampway.terminal_focus)}
-with human_gate.scripting():
-    res["script_focus"] = call(bpy.ops.lampway.terminal_focus)
+res = {"focus_op": hasattr(bpy.types, "LAMPWAY_OT_terminal_focus")}
 kc = bpy.context.window_manager.keyconfigs.addon
 keys = [[km.name, k.idname, k.type, k.ctrl, k.alt, k.shift] for km in (kc.keymaps if kc else []) for k in km.keymap_items
         if k.idname == "lampway.terminal_open"]
@@ -130,15 +127,14 @@ print("RESULT", json.dumps({"res": res, "calls": fake.calls, "log": log, "keys":
 '''
 
 
-def test_focus_update_and_the_shortcut(tmp_path):
-    """Section 6.6: Focus activates Lampway's pane (a user click, never a script), Update appears when the pin moved past the
-    installed version, and Ctrl Alt T opens the terminal from anywhere in the window."""
+def test_update_and_the_shortcut_and_no_focus(tmp_path):
+    """Update appears when the pin moved past the installed version, and Ctrl Alt T opens the terminal from anywhere in the
+    window. No Focus (the coordinator's audit, W6): the window is a viewport the user raises himself."""
     r = run(tmp_path, PRE + FOCUS)
     assert r.rc == 0, r.out[-2500:]
     d = r.results[0]
     ops = [x for x in d["log"] if x.startswith("op:")]
-    assert "op:lampway.terminal_focus|Focus" in ops, ops
+    assert not [o for o in ops if "terminal_focus" in o], ops
     assert "op:lampway.terminal_get|Update to 20240203-110809-5046fc22" in ops, ops
-    assert d["res"]["focus"] == ["FINISHED"] and "focus" in d["calls"], "Focus brings the one window forward (no pane named)"
-    assert d["res"]["script_focus"][0] == "REFUSED"
+    assert d["res"]["focus_op"] is False
     assert ["Window", "lampway.terminal_open", "T", True, True, False] in d["keys"], d["keys"]
