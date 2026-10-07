@@ -79,7 +79,7 @@ def test_swarm_workers_get_the_read_and_curation_tools_and_their_calls_run_on_th
     ids = imported(vault, root)
     names = {t.name for t in worker_tools()}
     assert {"lampway_vault_search", "lampway_vault_rate", "lampway_vault_relate"} <= names and "lampway_vault_scan" not in names
-    m = SwarmManager(lambda label: None, None)
+    m = SwarmManager(run_script=None)
     m.library = vault
     text, err = asyncio.run(m._worker_tool(None, SimpleNamespace(id="worker-2"), None, ToolCall(id="c1", name="lampway_vault_rate", arguments={"id": ids["bronze_greaves"], "stars": 2})))
     assert not err and json.loads(text)["rating"]["agents"] == [{"id": "worker-2", "stars": 2}]

@@ -229,13 +229,17 @@ def test_the_wiring_check_uses_check_advertised_against_the_board_the_config_cam
         assert wiring.check("s1", "lwe_other", allowed + [_tool("delegate_task")]) is None   # a scene child: subagents is chosen
 
 
-def test_the_gateway_is_answered_by_a_workers_own_provider_when_the_runtime_names_one(settings, provider):
+def test_the_gateway_is_answered_by_the_current_main_provider(settings, provider):
+    """The engine's hidden swarm workers, with a provider of their own, are gone (spec A5): every engine child is answered by the
+    current main provider, whatever its session."""
     agent = SimpleNamespace(provider=provider, engine=None)
     get = W.provider_getter(agent)
     assert get() is provider and get("s1") is provider
     other = object()
-    agent.engine = SimpleNamespace(provider_for=lambda sid: other if sid == "w1" else None)
-    assert get("w1") is other and get("s1") is provider
+    agent.engine = SimpleNamespace(provider_for=lambda sid: other)
+    assert get("w1") is provider and get("s1") is provider
+    agent.provider = other
+    assert get("s1") is other, "the provider is read at call time, not captured"
 
 
 def test_idle_children_are_reaped_on_the_tick(engine_app):

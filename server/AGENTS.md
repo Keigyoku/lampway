@@ -57,10 +57,25 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    A harness pane bound to a scene tab (spec B2) gets its own MCP config, 0600 under `<herdr root>/panes/<id>/`, pointing at Lampway's
    launcher with `LAMPWAY_BOUND_SESSION`; nothing is written outside the Lampway root. Binding and unbinding change only that file and
    the record, never the pane; only the user's Client binds (`POST /app/workbench/sessions/{id}/binding` refuses agent callers).
-   A swarm worker's pane (spec S3, `herdr/swarm_brain.py`) starts through the parent pane's adapter under the same route, with its
-   task on the harness's own command line (only where herdr starts the harness itself, never typed into a shell) and no desktop
-   launcher (its UI and scene-tab tools reach the user's scene); it cannot be bound to a tab. The swarm ends only a pane whose record
-   names it and that worker (`Cockpit.end_swarm_pane`): on cancel, failure or timeout; a finished worker's pane stays open.
+   Every swarm worker, in either mode, is a pane: `PaneBrain` (`herdr/swarm_brain.py`) is the one worker brain (spec S1, A5;
+   no worker thinks inside this server or as a hidden child), and the unit's mode picks the adapter its pane starts through
+   (`harnesses.worker_adapter`, decided in `SwarmManager.worker_brain` before any run is activated): Mode 2 (a bound pane, or a tab
+   in Your agent mode) the parent pane's harness under its route; Mode 1 `lampway_hermes` (`harnesses.LAMPWAY_ADAPTERS`, Lampway's
+   own, never in the user's list), a stub until A1 is built, so a Mode 1 `swarm_start` is refused with the A1 help and nothing
+   runs another way. A worker's pane has its task on the harness's own command line (only where herdr starts the harness itself,
+   never typed into a shell) and no desktop launcher (its UI and scene-tab tools reach the user's scene); it cannot be bound to a
+   tab. The swarm ends only a pane whose record names it and that worker (`Cockpit.end_swarm_pane`): on cancel, failure or
+   timeout; a finished worker's pane stays open (closing ended ones at the next swarm, Q13, is not decided).
+   The herdr view (spec A4, `herdr/layout.py`): a unit is one scene tab's conversation (its scene session id). A pane bound to a
+   tab (created bound, or bound later) is its unit's `main` agent and opens in a tab of its own labelled with the scene's name
+   (the Client's `name` on the mode route), else a short id; a worker pane splits into its unit's tab, the first right of the
+   main pane (ratio 0.4), each further one down from the last worker pane still in herdr, placements serialized in the host so
+   workers opened at once still form one column; a unit with no main pane gets one tab for its workers; an ad-hoc pane keeps a
+   tab of its own; a herdr that refuses the split gets the pane in a tab. Every pane reports `display_agent`, `title` and
+   `state_labels` (`pane.report_metadata`), best effort: a failure is logged, never a failed start. Each record carries `unit`,
+   `role` (`main` | `worker`) and `unit_label`; reconcile re-adopts them with herdr's current pane and tab ids, lists `units`,
+   and never closes an unknown pane. The herdr CLI argv shapes live only in `herdr/layout.py`; `pane split` and
+   `pane report-metadata` are `[UNVERIFIED]` against an installed herdr.
    A scene tab's agent mode (spec M0) is known from the chat payload's `agent_mode` and from that binding table (`agent/byoa.py`):
    a Mode 1 `agent.chat` or `agent.input` into a tab in Your agent mode is refused with `code: wrong_mode` before any turn starts.
    Only the user's Client switches a tab (`POST /app/workbench/mode` binds or unbinds, never touching a pane; agent callers refused).
@@ -94,7 +109,9 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     `engine/wiring.py` puts the engine in the seat only when `LAMPWAY_AGENT_ENGINE=hermes` and a finished build is found
     (`$LAMPWAY_ENGINES_DIR`, else `<repo>/build/engines`, else `<state_dir>/engines`), the server is on loopback, and says why in one
     log line otherwise. Then the lifespan starts the proxy, each child gets a fresh gateway token (revoked when it stops), its config
-    from `hermes_config.write` and the active board (a swarm worker's less `WORKER_NEVER`), and one environment
+    from `hermes_config.write` and the active board (`worker=True`, the board less `WORKER_NEVER`, is kept for a Mode 1 worker's
+    Hermes pane, A1; the engine's hidden worker children are gone, A5, and the gateway answers every child with the main
+    provider), and one environment
     (`runtime.child_env` with `proxy.proxy_vars`: `NO_PROXY` the gateway's loopback host only, `HERMES_MANAGED_DIR` an empty
     directory in its home so no system `/etc/hermes` overrides the config); `check_advertised` runs on each token's first request
     with tools and a mismatch refuses that child's requests; shutdown kills every child by PID, then stops the proxy.
@@ -112,6 +129,9 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
 SKIP, which is not a pass. `tests/test_engine_wiring_live.py` and `tests/test_engine_conformance.py` run the built engine in the real
 server (`LAMPWAY_ENGINES_DIR=<a dir holding hermes/<tag>/engine.json>`); the same rule holds for their skips. The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a paid
 or egress path is tested against a fake transport, never a live provider, unless the captain named the spend.
+herdr is played by `tests/herdr_support.py` `PaneHerdr` (tabs, splits, reported metadata; it parses exactly the `[UNVERIFIED]`
+shapes `herdr/layout.py` writes). The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 with a played
+stand-in for `lampway_hermes` in the adapter registry and play each worker pane over the pane endpoint, until A1's adapter exists.
 
 ## Owner
 
@@ -137,3 +157,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | the swarm in Mode 2: pane workers and the pane endpoint (S3) | coordinator brief: agent-modes spec S3, S4, S5 (captain, 2026-10-07: "put the Swarm V3 on the same Mode system") | invariant 4 kept the swarm from every MCP caller, a bound BYOA pane included; the client's launcher would hand a worker pane the desktop's UI and scene-tab tools, and the relay forwards only a UUID session header, so a `swarm:` binding could neither reach the server nor be told apart | invariant 4 names the pane endpoint, its two callers and their bearers, and the refused `swarm:` header on the external route; invariant 6 names how a worker pane starts and that the swarm ends only its own panes | none |
 | 2026-10-07 | one agent mode per scene tab and the BYOA island view (M0, B4, server side) | coordinator brief: agent-modes spec M0, B4, captain's E1.10 rule | nothing told the server a tab was in Your agent mode, so a Mode 1 turn could run in a tab a pane drives; the observers were wired to nothing and the island could not show or type into a bound pane | invariant 6 names the two sources of a tab's mode and the `wrong_mode` refusal, the user-only mode route, the read-only observed stream with its replay rule and screen fallback, and the socket-decided origin of the island's sends | none |
 | 2026-10-07 | merge: M0/B4 beside the swarm's pane workers (S3) | coordinator integration of the M0/B4 crew's branch | both branches extended invariant 6 (how a worker pane starts; how a tab's mode is known and observed) and the conflict could have dropped one | invariant 6 keeps both paragraphs; a Your agent tab's refusal comes before the engine's join-the-turn | none |
+| 2026-10-07 | one worker brain and the herdr view (S1, A4, A5) | captain, 2026-10-07: two modes only, every agent a process in a pane on Lampway's herdr server, wrappers only; coordinator brief for the lane (agent-modes spec A0, A4, A5, S1) | swarm workers could think inside the server (`BuiltinBrain`) or as hidden Hermes children (`EngineBrain`, `EngineRuntime.run_worker`); herdr opened one tab per pane, so a swarm meant one tab per worker; nothing reported what a pane is, and a record did not know its unit; concurrent worker starts each saw an empty column | invariant 6: `PaneBrain` the one brain, the mode picks the adapter, Mode 1's `lampway_hermes` a stub refused with the A1 help; the unit/tab/split layout, metadata best effort, `unit`/`role` re-adopted by reconcile, the argv shapes in `herdr/layout.py` with split and report-metadata `[UNVERIFIED]`; invariant 10 drops the hidden workers; the Test section names the played herdr and the played Mode 1 adapter | captain ruling, 2026-10-07 |

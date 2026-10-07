@@ -18,7 +18,8 @@ Selected, the app's lifespan (``start``/``stop``/``tick``) gives the runtime Lam
 * **the egress proxy** (E1.5): ``engine/proxy.py``, started on loopback in the lifespan with the server's port as the gateway's;
 * **the config** (E1.3): ``hermes_config.write`` from the ACTIVE Capabilities board and project, the terminal backend from the
   capability's ``options["backend"]`` (what the Client writes). A swarm worker's config (``worker=True``, spec S2) is the same
-  board less what a worker never does (``WORKER_NEVER``);
+  board less what a worker never does (``WORKER_NEVER``); it is kept for a Mode 1 worker's Hermes pane (spec A1), which is not
+  built yet, so nothing writes one today (the engine's hidden workers are gone, A5);
 * **the start-up check** (E1.3): ``hermes_config.check_advertised`` on each token's first chat request that carries tools, against
   the board its config was written from; a mismatch refuses that request and every later one of that child (``Registry.first_check``).
 
@@ -111,12 +112,10 @@ class WorkerBoard:
 
 
 def provider_getter(agent):
-    """The gateway's provider for a session: a swarm worker's own provider when the runtime names one
-    (``EngineRuntime.provider_for``), else the current main provider. Callable with or without the session id."""
+    """The gateway's provider for a session: the current main provider, read at call time. Callable with or without the session id.
+    The engine's hidden swarm workers, which had a provider of their own, are gone (spec A5)."""
     def get(session_id: Optional[str] = None):
-        engine = agent.engine
-        pick = getattr(engine, "provider_for", None) if engine is not None and session_id else None
-        return (pick(session_id) if pick is not None else None) or agent.provider
+        return agent.provider
     return get
 
 

@@ -5,10 +5,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path
 
 import pytest
+
+from lampway_server.herdr import launcher as L
 
 HERDR = os.environ.get("LAMPWAY_HERDR_BIN") or shutil.which("herdr") or str(Path.home() / ".local/bin/herdr")
 needs_herdr = pytest.mark.skipif(not Path(HERDR).exists(), reason="herdr is not installed (LAMPWAY_HERDR_BIN)")
@@ -87,3 +90,124 @@ def wait_for(cond, timeout=15.0, step=0.1):
             return v
         time.sleep(step)
     return cond()
+
+
+class PaneHerdr:
+    """herdr, played (no binary runs). Every command is recorded with the egress rows written before it. It keeps herdr's layout:
+    one ``lampway`` workspace, its tabs, and the panes of each tab in order. Panes appear on ``workspace create``, ``tab create`` and
+    ``pane split``; run what ``agent start`` (or ``pane run``) named; answer ``process-info`` while they live; and vanish on
+    ``pane close`` or ``exit`` (the harness quit). ``pane report-metadata`` is stored per pane.
+
+    The CLI spellings of ``pane split`` and ``pane report-metadata`` are [UNVERIFIED] against an installed herdr (agent-modes spec
+    A4): this fake parses exactly the shapes ``herdr/layout.py`` writes, so a change of spelling there is a change here too.
+    ``fail`` names verbs (``"split"``, ``"report-metadata"``) the played herdr refuses, as an older herdr would."""
+
+    def __init__(self, egress=None):
+        self.calls, self.panes, self.n, self.egress = [], {}, 0, egress
+        self.tabs: dict = {}                 # tab id -> {"label": str, "panes": [pane ids in order]}
+        self.workspace = None
+        self.metadata: dict = {}             # pane id -> the last metadata it reported
+        self.splits: dict = {}               # new pane id -> {"of": pane id, "direction": str, "ratio": float}
+        self.fail: set = set()
+        self.lock = threading.Lock()
+
+    @staticmethod
+    def _flag(args, name, default=None):
+        return args[args.index(name) + 1] if name in args else default
+
+    def _new_pane(self, tab_id):
+        self.n += 1
+        pid = f"p{self.n}"
+        self.panes[pid] = {"terminal_id": f"t{self.n}", "cmd": "-bash", "tab_id": tab_id}
+        self.tabs[tab_id]["panes"].append(pid)
+        return {"pane_id": pid, "terminal_id": f"t{self.n}", "workspace_id": "w1", "tab_id": tab_id}
+
+    def _new_tab(self, label):
+        tab = f"tab{len(self.tabs) + 1}"
+        self.tabs[tab] = {"label": label, "panes": []}
+        return tab
+
+    def __call__(self, root, args, timeout=30, input=None):
+        args = [str(a) for a in args]
+        with self.lock:
+            sent = [r["route"] for r in (self.egress.log() if self.egress else []) if r.get("event") == "send"]
+            self.calls.append({"args": args, "sends_before": sent})
+            if args[:2] == ["api", "snapshot"]:
+                ws = [{"workspace_id": "w1", "label": self.workspace}] if self.workspace else []
+                return json.dumps({"result": {"snapshot": {"workspaces": ws, "panes": [
+                    {"pane_id": p, "terminal_id": v["terminal_id"], "tab_id": v["tab_id"]} for p, v in self.panes.items()]}}})
+            if args[:2] == ["workspace", "create"]:
+                self.workspace = self._flag(args, "--label")
+                return json.dumps({"result": {"root_pane": self._new_pane(self._new_tab(None))}})
+            if args[:2] == ["tab", "create"]:
+                return json.dumps({"result": {"root_pane": self._new_pane(self._new_tab(self._flag(args, "--label")))}})
+            if args[:2] == ["pane", "split"]:
+                if "split" in self.fail:
+                    raise L.HerdrError("unknown subcommand 'split'")
+                of = args[2]
+                if of not in self.panes:
+                    raise L.HerdrError(f"no such pane {of}")
+                pane = self._new_pane(self.panes[of]["tab_id"])
+                self.splits[pane["pane_id"]] = {"of": of, "direction": self._flag(args, "--direction"),
+                                                "ratio": float(self._flag(args, "--ratio"))}
+                return json.dumps({"result": {"pane": pane}})
+            if args[:2] == ["pane", "report-metadata"]:
+                if "report-metadata" in self.fail:
+                    raise L.HerdrError("unknown subcommand 'report-metadata'")
+                if args[2] not in self.panes:
+                    raise L.HerdrError(f"no such pane {args[2]}")
+                self.metadata[args[2]] = {"source": self._flag(args, "--source"), "agent": self._flag(args, "--agent"),
+                                          "display_agent": self._flag(args, "--display-agent"), "title": self._flag(args, "--title"),
+                                          "state_labels": json.loads(self._flag(args, "--state-labels", "null"))}
+                return ""
+            if args[:2] == ["pane", "read"]:
+                return "user@box:~$ "
+            if args[:2] == ["agent", "start"]:
+                pid = args[args.index("--pane") + 1]
+                self.panes[pid]["cmd"] = " ".join([args[args.index("--kind") + 1], *args[args.index("--") + 1:]])
+                return ""
+            if args[:2] == ["pane", "run"]:
+                self.panes[args[2]]["cmd"] = " ".join(args[3:])
+                return ""
+            if args[:2] == ["pane", "process-info"]:
+                p = self.panes.get(args[args.index("--pane") + 1])
+                if p is None:
+                    raise L.HerdrError("no such pane")
+                return json.dumps({"result": {"process_info": {"foreground_processes": [{"cmdline": p["cmd"]}]}}})
+            if args[:2] == ["pane", "close"]:
+                p = self.panes.pop(args[2], None)
+                if p is not None:
+                    self.tabs[p["tab_id"]]["panes"].remove(args[2])
+                return ""
+            return ""
+
+    def exit(self, pane_id):
+        """The harness quit and its pane closed (the user closed it, or herdr reaped it)."""
+        with self.lock:
+            p = self.panes.pop(pane_id, None)
+            if p is not None:
+                self.tabs[p["tab_id"]]["panes"].remove(pane_id)
+
+    def renumber(self) -> dict:
+        """herdr gave its panes new pane ids (same terminals, same tabs): what a reconcile after a restart must re-adopt."""
+        with self.lock:
+            moved = {pid: "q" + pid[1:] for pid in self.panes}
+            self.panes = {moved[pid]: v for pid, v in self.panes.items()}
+            for tab in self.tabs.values():
+                tab["panes"] = [moved.get(p, p) for p in tab["panes"]]
+            return moved
+
+    def closed(self):
+        return [c["args"][2] for c in self.calls if c["args"][:2] == ["pane", "close"]]
+
+    def start_of(self, pane_id):
+        return next(c for c in self.calls if c["args"][:2] == ["agent", "start"] and c["args"][c["args"].index("--pane") + 1] == pane_id)
+
+    def made(self) -> list:
+        """Every command that made a pane, in order (the fake numbers panes in that order)."""
+        return [c for c in self.calls if c["args"][:2] in (["workspace", "create"], ["tab", "create"], ["pane", "split"])]
+
+    def env_of(self, pane_id) -> dict:
+        """The --env values herdr was given when it made this pane."""
+        made = self.made()[int(pane_id[1:]) - 1]["args"]
+        return dict(made[i + 1].split("=", 1) for i, a in enumerate(made) if a == "--env")

@@ -360,8 +360,9 @@ def _bearer(request: Request) -> str:
 
 def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
     """The gateway's routes. ``provider_getter()`` returns the current main provider at call time (a Choices change swaps it). A
-    getter that takes an argument gets the token's session id, so a swarm worker's engine is answered on the ``agent.worker``
-    choice rather than the main one (spec S2)."""
+    getter that takes an argument gets the token's session id, so a session can be answered on another choice than the main one.
+    ``wiring.provider_getter`` answers every session with the main provider since the engine's hidden swarm workers went (spec A5);
+    a Mode 1 worker's Hermes pane (A1) is not built yet."""
     import inspect
     try:
         takes_session = len(inspect.signature(provider_getter).parameters) >= 1

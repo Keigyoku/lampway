@@ -1,9 +1,14 @@
 """The cockpit's session host: a durable registry of the agent sessions Lampway created in ITS OWN herdr server, and a reconcile that treats the live server as the truth (see the package
-docstring for the invariants). Every herdr call goes through launcher.run; nothing here spawns a process or stops anything implicitly."""
+docstring for the invariants). Every herdr call goes through launcher.run; nothing here spawns a process or stops anything implicitly.
+
+Where a pane goes is the herdr view of agent-modes spec A4 (``layout.py``): a unit's main agent in a tab of its own, its swarm
+workers split into that tab, an ad-hoc pane in a tab of its own. Each record names its ``unit`` and ``role``, so a reconcile after a
+restart re-adopts the layout."""
 import contextlib
 import hashlib
 import hmac
 import json
+import logging
 import os
 import re
 import secrets
@@ -16,12 +21,15 @@ from pathlib import Path
 from .. import egress as EG
 from . import harnesses as HN
 from . import launcher as L
+from . import layout as LY
+
+log = logging.getLogger("lampway.herdr")
 
 #: Every harness adapter (spec B1), then Lampway's two plain kinds: a shell, and a command the user typed.
 AGENTS = (*HN.ids(), "shell", "command")
 EFFORTS = (None, "medium", "high", "xhigh", "max")
 GENERIC_NAMES = {"session", "new session", "untitled", "chat", "agent"}
-WORKSPACE_LABEL = "lampway"
+WORKSPACE_LABEL = LY.WORKSPACE_LABEL
 USER_TYPING_GRACE_S = 2.5
 _CTRL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]|\x1b\[[0-9;?]*[ -/]*[@-~]")
 _LOCK = threading.Lock()
@@ -66,6 +74,10 @@ class Cockpit:
         #: Lampway's own loopback MCP endpoint for panes (``/api/v1/mcp/pane``), set by the server (spec S3). None: no swarm entry
         #: is written for a bound pane and no worker pane can be opened.
         self.pane_mcp_url = None
+        #: Spec A4: one placement at a time (a swarm opens its workers' panes at once), and the panes opened but not yet recorded,
+        #: so the next worker finds the one before it in its unit's column.
+        self._layout = threading.Lock()
+        self._opening: dict = {}
 
     # ------------------------------------------------------------------------------------------------- registry
     def _load(self) -> dict:
@@ -115,11 +127,19 @@ class Cockpit:
 
     # ------------------------------------------------------------------------------------------------- sessions
     def create_session(self, agent, name, cwd, task="", effort=None, bypass=False, resume_id=None, command=None, by="user", project_root=None, api_key=False, scene_session_id=None,
-                       prompt=None, swarm_worker=None) -> dict:
+                       prompt=None, swarm_worker=None, unit=None, unit_label=None, display_agent=None) -> dict:
         """``prompt``: the new session's first prompt, on the harness's own command line (spec S3). ``swarm_worker``: (binding, token)
         for a swarm's worker pane: its only Lampway server is the pane endpoint, reached with that token as its bearer and pinned to
-        ``swarm:<swarm_id>:<worker_id>``; it gets no desktop launcher (whose UI and scene-tab tools reach the user's scene)."""
-        if agent not in AGENTS:
+        ``swarm:<swarm_id>:<worker_id>``; it gets no desktop launcher (whose UI and scene-tab tools reach the user's scene).
+        The herdr view (spec A4): a pane bound to a scene tab is its unit's main agent (the unit is that scene session; ``unit_label``
+        the scene tab's name, if known); a worker pane names its ``unit`` (its swarm's scene session) and splits into that unit's
+        tab; ``display_agent`` is what herdr's sidebar shows for it."""
+        if agent in HN.LAMPWAY_ADAPTERS:                       # Lampway's own (Mode 1, spec A1): refused with help until it is built
+            try:
+                HN.require_launchable(agent)
+            except ValueError as exc:
+                raise CockpitError(str(exc)) from None
+        elif agent not in AGENTS:
             raise CockpitError(f"unknown agent {agent!r}: the agents are {', '.join(AGENTS)}")
         name = str(name or "").strip()
         if not 2 <= len(name) <= 100 or name.lower() in GENERIC_NAMES:
@@ -138,7 +158,7 @@ class Cockpit:
             raise CockpitError("only the user can bill a pane to an API key, with their own click in the cockpit: an agent never can")
         if not L.server_status(self.root).get("running"):
             raise CockpitError("the herdr server is not running: start it from the cockpit first (nothing is launched automatically)")
-        ad = HN.ADAPTERS.get(agent)
+        ad = HN.ADAPTERS.get(agent) or HN.LAMPWAY_ADAPTERS.get(agent)
         if scene_session_id and ad is None:
             raise CockpitError("only a harness pane can be bound to a scene tab")
         if prompt and (ad is None or resume_id):
@@ -157,10 +177,38 @@ class Cockpit:
                 raise CockpitError("the server's pane endpoint is not known here: no worker pane can be opened")
             if scene_session_id:
                 raise CockpitError("a worker pane is bound to its worker, never to a scene tab")
+        scene = scene_session_id or None
+        role = LY.WORKER if swarm_worker is not None else (LY.MAIN if scene else None)
+        view = (role, (unit or None) if swarm_worker is not None else scene, unit_label, display_agent)
         with (EG.guard(ad.route, kind="request") if ad else contextlib.nullcontext()):    # B5: logged before herdr is asked; refused with the route off
-            return self._create(agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene_session_id or None, prompt, swarm_worker)
+            return self._create(agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene, prompt, swarm_worker, view)
 
-    def _create(self, agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene, prompt=None, swarm_worker=None) -> dict:
+    def _open(self, where, snap, real, env, label) -> dict:
+        """Make the pane where ``layout.place`` put it. A herdr that cannot split (an older one, or a spelling it does not know:
+        [UNVERIFIED]) still gets the pane, in a tab of its own; the failure is logged."""
+        ws = next((w for w in snap["workspaces"] if w.get("label") == WORKSPACE_LABEL), None)
+        if where.verb == "workspace":
+            return LY.created_pane(L.run(self.root, LY.workspace_create(real, env)))
+        if where.verb == "split":
+            try:
+                pane = LY.created_pane(L.run(self.root, LY.pane_split(where.of, where.direction, where.ratio, real, env)))
+            except L.HerdrError as exc:
+                log.warning("herdr could not split pane %s (%s): the new pane opens in a tab of its own", where.of, exc)
+            else:
+                if not pane.get("tab_id"):                     # [UNVERIFIED] whether a split's answer names its tab: it is the split pane's
+                    pane["tab_id"] = next((p.get("tab_id") for p in snap["panes"] if p["pane_id"] == where.of), None)
+                return pane
+        return LY.created_pane(L.run(self.root, LY.tab_create(ws["workspace_id"], real, label, env)))
+
+    def _report(self, pane_id: str, meta: dict) -> None:
+        """Tell herdr what the pane is (spec A4). Best effort: a failure is logged and never fails the start."""
+        try:
+            L.run(self.root, LY.pane_report_metadata(pane_id, meta), timeout=10)
+        except Exception as exc:  # noqa: BLE001 - an older herdr, a spelling it does not know ([UNVERIFIED]), a timeout
+            log.warning("herdr did not take pane %s's metadata (%s): the pane runs on without it", pane_id, exc)
+
+    def _create(self, agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene, prompt=None, swarm_worker=None,
+                view=(None, None, None, None)) -> dict:
         if api_key and ad is None:
             raise CockpitError("only a harness pane can be billed to an API key")
         rid = uuid.uuid4().hex[:12]
@@ -176,43 +224,53 @@ class Cockpit:
         wiring = ad.lampway_tools(spec) if cfg else None
         if wiring is not None:                                 # B2: the pane's own MCP config, pinned to its scene tab, before anything starts
             self._write_pane_files(wiring.files)
-        snap = self.snapshot()
-        ws = next((w for w in snap["workspaces"] if w.get("label") == WORKSPACE_LABEL), None)
         env = L.pane_env() + (_key_env(ad) if api_key else []) + [x for k, v in (wiring.env if wiring else {}).items() for x in ("--env", f"{k}={v}")]
-        if ws is None:
-            out = json.loads(L.run(self.root, ["workspace", "create", "--cwd", real, "--label", WORKSPACE_LABEL, "--no-focus", *env]))["result"]
-        else:
-            out = json.loads(L.run(self.root, ["tab", "create", "--workspace", ws["workspace_id"], "--cwd", real, "--label", name[:40], "--no-focus", *env]))["result"]
-        pane = out["root_pane"]
-        pane_id = pane["pane_id"]
-        native_id = resume_id
-        tokens = []
-        if agent == "command" or ad is not None:
-            self._wait_prompt(pane_id)
-        if agent == "command":
-            L.run(self.root, ["pane", "run", pane_id, *shlex.split(command)])
-            tokens = [os.path.basename(shlex.split(command)[-1])]
-        elif ad is not None:
-            native_id = native_id or sid
-            argv = ad.resume(resume_id, spec) if resume_id else ad.launch(spec, task=prompt)
-            if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
-                L.run(self.root, ["agent", "start", name[:40], "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
-            else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
-                L.run(self.root, ["pane", "run", pane_id, *argv])
-            tokens = [ad.binary]
-        rec = {"id": rid, "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
-               "terminal_id": pane.get("terminal_id"), "workspace_id": pane.get("workspace_id"), "tab_id": pane.get("tab_id"), "native_id": native_id, "command": command, "match": tokens,
-               "state": "live", "adopted": True, "agent_sends": False, "created_at": time.time(), "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by,
-               "api_key": bool(api_key), "harness": ad.id if ad is not None else None, "scene_session_id": scene, "project_root": pr, "mcp_config_path": cfg,
-               "swarm_binding": swarm_worker[0] if swarm_worker is not None else None, "pane_key_sha256": _sha(key) if key else None}
-        self._update(lambda d: d["sessions"].append(rec))
+        role, unit, unit_label, display_agent = view
+        with self._layout:
+            snap = self.snapshot()
+            sessions = self.list_sessions() + list(self._opening.values())
+            ulabel = LY.unit_label(unit, unit_label or (LY.unit_main(unit, sessions, snap) or {}).get("unit_label")) if unit else None
+            label = ulabel if unit else name[:LY.LABEL_MAX]
+            pane = self._open(LY.place(role, unit, label, sessions, snap), snap, real, env, label)
+            pane_id, opened = pane["pane_id"], time.time()
+            self._opening[pane_id] = {"pane_id": pane_id, "tab_id": pane.get("tab_id"), "unit": unit, "role": role, "unit_label": ulabel,
+                                      "state": "live", "created_at": opened}
+        try:
+            native_id = resume_id
+            tokens = []
+            if agent == "command" or ad is not None:
+                self._wait_prompt(pane_id)
+            if agent == "command":
+                L.run(self.root, ["pane", "run", pane_id, *shlex.split(command)])
+                tokens = [os.path.basename(shlex.split(command)[-1])]
+            elif ad is not None:
+                native_id = native_id or sid
+                argv = ad.resume(resume_id, spec) if resume_id else ad.launch(spec, task=prompt)
+                if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
+                    L.run(self.root, ["agent", "start", name[:40], "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
+                else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
+                    L.run(self.root, ["pane", "run", pane_id, *argv])
+                tokens = [ad.binary]
+            self._report(pane_id, LY.metadata(ad.id if ad is not None else agent, role, unit_name=ulabel or "", name=name, task=task,
+                                              display_agent=display_agent))
+            rec = {"id": rid, "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
+                   "terminal_id": pane.get("terminal_id"), "workspace_id": pane.get("workspace_id"), "tab_id": pane.get("tab_id"), "native_id": native_id, "command": command, "match": tokens,
+                   "state": "live", "adopted": True, "agent_sends": False, "created_at": opened, "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by,
+                   "api_key": bool(api_key), "harness": ad.id if ad is not None else None, "scene_session_id": scene, "project_root": pr, "mcp_config_path": cfg,
+                   "swarm_binding": swarm_worker[0] if swarm_worker is not None else None, "pane_key_sha256": _sha(key) if key else None,
+                   "unit": unit, "role": role, "unit_label": ulabel}
+            self._update(lambda d: d["sessions"].append(rec))
+        finally:
+            self._opening.pop(pane_id, None)
         return rec
 
     # ------------------------------------------------------------------------------------------------- binding (spec B2)
-    def bind(self, sid: str, scene_session_id) -> dict:
+    def bind(self, sid: str, scene_session_id, unit_label=None) -> dict:
         """Bind a harness pane to a scene tab, or unbind it (None). Only the pane's own config file under the Lampway root changes:
         the pane itself is never touched (law 5). A running harness reads the new binding when it next starts its Lampway server
-        (a resume does); the record says which tab the pane belongs to from now on."""
+        (a resume does); the record says which tab the pane belongs to from now on, and that it is that unit's main agent (spec
+        A4: its swarm's workers split into its herdr tab; ``unit_label`` is the scene tab's name, if known). The pane is not moved:
+        its herdr tab keeps the label it was opened with."""
         rec = self._get(sid)
         ad = HN.ADAPTERS.get(rec.get("agent"))
         if ad is None:
@@ -229,7 +287,10 @@ class Cockpit:
         def f(d):
             for s in d["sessions"]:
                 if s["id"] == sid:
-                    s.update(scene_session_id=scene, mcp_config_path=cfg, harness=ad.id, updated_at=time.time())
+                    s.update(scene_session_id=scene, mcp_config_path=cfg, harness=ad.id, updated_at=time.time(),     # A4: its unit's main agent
+                             unit=scene, role=LY.MAIN if scene else None,
+                             unit_label=(LY.unit_label(scene, unit_label or (s.get("unit_label") if s.get("unit") == scene else None))
+                                         if scene else None))
                     if key:
                         s["pane_key_sha256"] = _sha(key)
                     return dict(s)
@@ -401,8 +462,10 @@ class Cockpit:
         return ""
 
     def reconcile(self) -> dict:
-        """The live server is the truth, the registry the map. Never spawns, never kills, idempotent."""
-        out = {"server": "running", "adopted": [], "ended": [], "unadopted": [], "new_panes": 0, "offered": []}
+        """The live server is the truth, the registry the map. Never spawns, never kills, idempotent. A re-adopted pane keeps its
+        record's ``unit`` and ``role`` and takes herdr's current pane and tab ids, so the layout (spec A4) is re-adopted with it:
+        ``units`` maps each unit with a live pane to its tab, its main panes and its workers, in the order they were opened."""
+        out = {"server": "running", "adopted": [], "ended": [], "unadopted": [], "new_panes": 0, "offered": [], "units": {}}
         if not L.server_status(self.root).get("running"):
             out.update(server="not_running", offered=["start", "resume"])
             return out
@@ -430,11 +493,19 @@ class Cockpit:
                     rec.update(state="ended", ended_at=rec.get("ended_at") or time.time(), end_reason=why, adopted=False, updated_at=time.time())
                     out["ended"].append(rec["id"])
                 else:
-                    changed = rec.get("pane_id") != pane["pane_id"]
+                    changed = rec.get("pane_id") != pane["pane_id"] or (pane.get("tab_id") and rec.get("tab_id") != pane["tab_id"])
                     rec.update(pane_id=pane["pane_id"], terminal_id=pane.get("terminal_id"), adopted=True)
+                    if pane.get("tab_id"):
+                        rec["tab_id"] = pane["tab_id"]
                     if changed:
                         rec["updated_at"] = time.time()
                     out["adopted"].append(rec["id"])
+            for rec in sorted((r for r in d["sessions"] if r["id"] in out["adopted"] and r.get("unit") and r.get("role")),
+                              key=lambda r: r.get("created_at") or 0):
+                u = out["units"].setdefault(rec["unit"], {"tab_id": None, "main": [], "workers": []})
+                u["main" if rec["role"] == LY.MAIN else "workers"].append(rec["id"])
+                if rec["role"] == LY.MAIN or u["tab_id"] is None:
+                    u["tab_id"] = rec.get("tab_id")
         self._update(f)
         out["unadopted"] = [pid for pid in panes if pid not in claimed]
         out["new_panes"] = max(0, len(self.snapshot()["panes"]) - before)

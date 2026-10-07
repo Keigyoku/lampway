@@ -105,21 +105,12 @@ class AgentHub:
         self.commands: dict[str, Command] = {}
         from .byoa import ByoaView
         self.byoa = ByoaView(self)      # spec M0 and B4: a tab in Your agent mode, and its pane shown in the island
-        # The swarm's workers think with their own (cheaper) provider; with none configured they share the main one.
-        self.swarm = SwarmManager(swarm_provider_factory or (lambda label: self.provider), self._blender_script,
-                                  script_timeout_s=script_timeout_s)
+        # The agent.worker choice's provider (Choices), kept for the model gateway's Mode 1 workers (spec A1, S2 as superseded by A):
+        # no worker thinks inside this server; every one is a pane (spec S1, A5).
+        self.swarm_provider_factory = swarm_provider_factory or (lambda label: self.provider)
+        self.swarm = SwarmManager(self._blender_script, script_timeout_s=script_timeout_s)
         self.swarm.library = assets
-        builtin_brain = self.swarm.brain_for
-        self._swarm_provider_factory = swarm_provider_factory or (lambda label: self.provider)
-
-        def brain_for(ctx):
-            """Spec S4: a swarm thinks the way its tab does. With Lampway's engine in the seat (Mode 1) each worker is an engine
-            session; otherwise the built-in loop."""
-            if self.engine is not None:
-                from ..engine.swarm_brain import EngineBrain
-                return EngineBrain(self.engine, self._swarm_provider_factory)
-            return builtin_brain(ctx)
-        self.swarm.brain_for = brain_for
+        self.swarm.cockpit = cockpit
 
     # ------------------------------------------------------------ dispatch
     async def handle(self, socket, method: str, request_id, params: dict):
@@ -630,8 +621,14 @@ class AgentHub:
         async def emit_todo(rows):
             await stream.emit_quietly({"bubble_id": bubble_id, "todo": rows})
 
+        # The unit's mode picks the workers' adapter (spec S1 as superseded by A): a tab in Your agent mode runs them on its bound
+        # pane's harness; otherwise Mode 1, Lampway's Hermes pane.
+        mode = self.byoa.mode_of(session.session_id)
+        pane = self.byoa.pane_for(session.session_id) if mode == "byoa" else None
         ctx = SwarmContext(socket=socket, session_id=session.session_id, turn_id=turn.turn_id, call_id=call.id,
-                           run_id=turn.run_id, progress=progress, emit_todo=emit_todo if stream is not None else None)
+                           run_id=turn.run_id, progress=progress, emit_todo=emit_todo if stream is not None else None,
+                           mode=mode, harness=(pane or {}).get("harness"), cwd=(pane or {}).get("cwd"),
+                           project_root=(pane or {}).get("project_root"))
         try:
             return await self.swarm.call(call.name, call.arguments, ctx)
         finally:
