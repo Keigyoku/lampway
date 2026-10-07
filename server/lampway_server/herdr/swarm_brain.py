@@ -31,6 +31,8 @@ import asyncio
 import hashlib
 import hmac
 import logging
+import math
+import os
 import secrets
 from dataclasses import dataclass, field
 from typing import Optional
@@ -39,12 +41,34 @@ from ..agent.providers.base import ToolSpec
 
 log = logging.getLogger("lampway.swarm.panes")
 
-#: How long a pane worker may run before its task fails (a threshold the captain may set; the in-app worker's limit is its rounds).
+#: Existing proposed default, not a captain ruling. Set LAMPWAY_PANE_WORKER_TIMEOUT_S to configure the worker's deadline.
 PANE_WORKER_TIMEOUT_S = 1800.0
 #: How often the brain looks at its pane while it waits for ``lampway_worker_done``.
 POLL_S = 2.0
 #: Consecutive looks that find the harness gone before the task fails (one look can land between two foreground processes).
 MISSES = 2
+
+
+class WorkerTimeout(RuntimeError):
+    """An explicit task expiry, kept distinct from a harness failure."""
+    code = "worker_timeout"
+
+    def __init__(self, worker_id: str, timeout_s: float):
+        self.timeout_s = timeout_s
+        super().__init__(f"{worker_id} did not finish within {timeout_s:g}s: deadline expired; its pane never called lampway_worker_done")
+
+
+def worker_timeout(setting=None) -> float:
+    """Resolve once per swarm before any worker opens; an invalid setting never silently falls back."""
+    value = setting if setting is not None else os.environ.get("LAMPWAY_PANE_WORKER_TIMEOUT_S", PANE_WORKER_TIMEOUT_S)
+    try:
+        timeout_s = float(value)
+    except (TypeError, ValueError):
+        timeout_s = float("nan")
+    if not math.isfinite(timeout_s) or timeout_s <= 0:
+        raise ValueError("LAMPWAY_PANE_WORKER_TIMEOUT_S must be a positive finite number of seconds")
+    return timeout_s
+
 
 WORKER_DONE = ToolSpec(
     "lampway_worker_done",
@@ -126,12 +150,13 @@ class PaneBrain:
     mode picked (``SwarmManager.worker_brain``)."""
     kind = "pane"
 
-    def __init__(self, cockpit, harness: str, *, cwd: str, project_root: Optional[str], bindings: WorkerBindings):
+    def __init__(self, cockpit, harness: str, *, cwd: str, project_root: Optional[str], bindings: WorkerBindings, timeout_s=None):
         self.cockpit = cockpit
         self.harness = harness
         self.cwd = cwd
         self.project_root = project_root
         self.bindings = bindings
+        self.timeout_s = worker_timeout(timeout_s)
         self._panes: dict = {}               # worker id -> (cockpit session id, binding name)
         self._exited: dict = {}              # worker id -> why its pane is gone (nothing to close)
 
@@ -163,22 +188,35 @@ class PaneBrain:
             self.bindings.revoke(name)
             raise RuntimeError(f"{wid}'s pane could not start: {exc}") from None
         self._panes[wid] = (rec["id"], name)
-        job.progress(f"{wid} ({job.worker.name}): working in pane {rec['name']}")
-        timeout_s = PANE_WORKER_TIMEOUT_S
+        timeout_s = self.timeout_s
+        job.progress(f"{wid} ({job.worker.name}): working in pane {rec['name']}; {timeout_s:g}s deadline")
         deadline, misses = loop.time() + timeout_s, 0
         try:
             while True:
+                remaining = deadline - loop.time()
+                if remaining <= 0:
+                    expiry = WorkerTimeout(wid, timeout_s)
+                    job.progress(str(expiry))
+                    raise expiry
                 try:
-                    return await asyncio.wait_for(asyncio.shield(binding.done), POLL_S)
+                    return await asyncio.wait_for(asyncio.shield(binding.done), min(POLL_S, remaining))
                 except asyncio.TimeoutError:
                     pass
-                alive, why = await asyncio.to_thread(self.cockpit.pane_alive, rec["id"])
+                if loop.time() >= deadline:
+                    expiry = WorkerTimeout(wid, timeout_s)
+                    job.progress(str(expiry))
+                    raise expiry
+                try:
+                    alive, why = await asyncio.wait_for(asyncio.to_thread(self.cockpit.pane_alive, rec["id"]),
+                                                        max(0, deadline - loop.time()))
+                except asyncio.TimeoutError:
+                    expiry = WorkerTimeout(wid, timeout_s)
+                    job.progress(str(expiry))
+                    raise expiry from None
                 misses = 0 if alive else misses + 1
                 if misses >= MISSES:
                     self._exited[wid] = why
                     raise RuntimeError(f"{wid}'s pane exited without calling lampway_worker_done ({why})")
-                if loop.time() >= deadline:
-                    raise RuntimeError(f"{wid} did not finish within {timeout_s:.0f}s: its pane never called lampway_worker_done")
         finally:
             self.bindings.revoke(name)       # done or not: the pane can no longer reach the worker's scene
 

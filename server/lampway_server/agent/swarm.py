@@ -39,7 +39,7 @@ from . import lampway_tools as lt
 from . import vault_tools
 from .harness import Harness, HarnessError, export_script, import_script, reset_script, stage_script
 from ..herdr import harnesses as HN
-from ..herdr.swarm_brain import PaneBrain, WorkerBindings
+from ..herdr.swarm_brain import PaneBrain, WorkerBindings, WorkerTimeout
 from .swarm_brains import WorkerJob
 from .providers.base import ToolCall, ToolSpec
 from .tools import RUN_BLENDER_PYTHON, SCENE_SUMMARY, TOOLS, UnknownTool, format_tool_result, script_for
@@ -120,6 +120,8 @@ class Worker:
     created: list = field(default_factory=list)
     summary: str = ""
     error: str = ""
+    error_code: str = ""
+    timeout_s: Optional[float] = None
     calls: list = field(default_factory=list)       # what this worker did, for the owner (not sent to the model)
     handle: object = None
     receipt: Optional[dict] = None
@@ -134,6 +136,10 @@ class Worker:
             out["inputs"] = list(self.objects)
         if self.error:
             out["error"] = self.error
+        if self.error_code:
+            out["error_code"] = self.error_code
+        if self.timeout_s is not None:
+            out["timeout_s"] = self.timeout_s
         if self.receipt:
             out["receipt"] = self.receipt
         if self.choice:
@@ -194,10 +200,12 @@ def _head(prompt: str) -> str:
 
 
 class SwarmManager:
-    def __init__(self, run_script: RunScript, *, max_workers: int = MAX_WORKERS, script_timeout_s: float = 600.0):
+    def __init__(self, run_script: RunScript, *, max_workers: int = MAX_WORKERS, script_timeout_s: float = 600.0,
+                 worker_timeout_s: Optional[float] = None):
         self.run_script = run_script
         self.max_workers = max_workers
         self.script_timeout_s = script_timeout_s
+        self.worker_timeout_s = worker_timeout_s
         self.swarms: dict[str, Swarm] = {}
         self._harness: dict = {}                      # parent socket -> Harness
         self.library = None                           # the Asset Vault (set by the hub)
@@ -220,7 +228,7 @@ class SwarmManager:
         if HN.is_lampway(harness) and getattr(self.cockpit, "mode1", None) is None:
             raise SwarmError(f"refused: swarm_start did not run: {HN.MODE1_UNAVAILABLE}")
         return PaneBrain(self.cockpit, harness, cwd=ctx.cwd or str(self.cockpit.project_root or "."), project_root=ctx.project_root,
-                         bindings=self.bindings)
+                         bindings=self.bindings, timeout_s=self.worker_timeout_s)
 
     def harness_for(self, socket) -> Harness:
         h = self._harness.get(socket)
@@ -511,6 +519,8 @@ class SwarmManager:
         except Exception as exc:  # noqa: BLE001 - one worker's failure must not end the others
             worker.status = "failed"
             worker.error = (f"{exc.error_type}: {exc}" if isinstance(exc, HarnessError) and exc.error_type else str(exc))[:500]
+            if isinstance(exc, WorkerTimeout):
+                worker.error_code, worker.timeout_s = exc.code, exc.timeout_s
             log.warning("%s failed: %s", worker.id, worker.error)
             try:
                 await brain.stop(job)
