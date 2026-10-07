@@ -136,7 +136,8 @@ def test_send_continue_restores_input_on_failure(monkeypatch):
 
 # --- the ask/resume loop ------------------------------------------------------
 
-def test_ask_fires_each_auto_eligible_session_once(monkeypatch):
+def test_ask_fires_only_first_auto_eligible_once(monkeypatch):
+    """Keep the historical receipt ID: the one-shot guard applies to each independent session."""
     reports = {
         "s1": {"has_parked": True, "auto_eligible": False, "open_count": 9},
         "s2": {"has_parked": True, "auto_eligible": True, "open_count": 2},
