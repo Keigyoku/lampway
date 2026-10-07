@@ -36,7 +36,7 @@ import time
 from typing import Callable, Optional
 
 from starlette.requests import Request
-from starlette.responses import JSONResponse, StreamingResponse
+from starlette.responses import JSONResponse, Response, StreamingResponse
 from starlette.routing import Route
 
 from ..agent.providers.base import Message, ModelRequest, Stop, Text, ToolCall, ToolSpec
@@ -167,6 +167,44 @@ def revoke(token: str) -> bool:
 # ---------------------------------------------------------------------------------------------------- errors
 class BadRequest(Exception):
     pass
+
+
+class _Disconnected(Exception):
+    pass
+
+
+async def _while_connected(request, operation):
+    """After the body is parsed, cancel a pending model call when its HTTP client leaves.
+
+    The receive task is joined before StreamingResponse takes over disconnect monitoring.
+    """
+    async def disconnected():
+        while True:
+            if (await request.receive())["type"] == "http.disconnect":
+                return
+
+    pending = asyncio.ensure_future(operation)
+    pending.set_name("lampway-gateway-provider")
+    watcher = asyncio.create_task(disconnected(), name="lampway-gateway-disconnect")
+    try:
+        finished, _ = await asyncio.wait((pending, watcher), return_when=asyncio.FIRST_COMPLETED)
+        if watcher in finished:
+            raise _Disconnected
+        return await pending
+    finally:
+        for task in (pending, watcher):
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(pending, watcher, return_exceptions=True)
+
+
+async def _close_events(events):
+    aclose = getattr(events, "aclose", None)
+    if aclose is not None:
+        try:
+            await aclose()
+        except Exception:  # noqa: BLE001 - cleanup must not replace the provider's original failure
+            pass
 
 
 def error_body(message: str, *, type: str, code: str, param: Optional[str] = None) -> dict:
@@ -470,24 +508,39 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
         done = _Completion(_model_of(provider))
         events = provider.stream(req).__aiter__()
         if not body.get("stream"):
-            try:
+            async def consume():
                 async for event in events:
                     done.take(event)
+
+            try:
+                await _while_connected(request, consume())
+            except _Disconnected:
+                return Response(status_code=499)                    # the client has left; no response is delivered
             except asyncio.CancelledError:
                 raise
             except Exception as exc:  # noqa: BLE001 - reported to the engine, never retried here
                 status, err = _provider_error(provider, exc)
                 return JSONResponse(err, status_code=status)
+            finally:
+                await _close_events(events)
             return JSONResponse(done.full())
+        handed_off = False
         try:                                                           # before the first event the HTTP status can still carry the failure
-            first = await events.__anext__()
+            first = await _while_connected(request, events.__anext__())
+            handed_off = True
         except StopAsyncIteration:
             first = None
+            handed_off = True
+        except _Disconnected:
+            return Response(status_code=499)
         except asyncio.CancelledError:
             raise
         except Exception as exc:  # noqa: BLE001
             status, err = _provider_error(provider, exc)
             return JSONResponse(err, status_code=status)
+        finally:
+            if not handed_off:
+                await _close_events(events)
 
         async def sse():
             try:
@@ -508,12 +561,7 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
                     yield f"data: {json.dumps(err)}\n\n"
                 yield "data: [DONE]\n\n"
             finally:
-                aclose = getattr(events, "aclose", None)
-                if aclose is not None:
-                    try:
-                        await aclose()
-                    except Exception:  # noqa: BLE001
-                        pass
+                await _close_events(events)
 
         return StreamingResponse(sse(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
