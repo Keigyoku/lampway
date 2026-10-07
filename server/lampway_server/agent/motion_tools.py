@@ -55,14 +55,18 @@ def specs() -> list:
     return [SPEC]
 
 
-def _prompt_text(template, variables):
-    """The rendered template text a scene was written from (provenance), or None."""
+def _prompt_provenance(template, variables):
+    """Rendered motion template with effective variables and resolved version, or None."""
     if not template:
         return None
     from ..prompts import library as PL
     from ..prompts import render as PR
     tid, _, version = str(template).partition("@")
-    return PR.render(PL.Library.from_env(), tid, variables or {}, version=version or None)["prompt"]
+    lib = PL.Library.from_env()
+    t = lib.get(tid, version or None)
+    if t["purpose"] != "motion-graphics":
+        raise M.Refused(f"{template}: purpose is {t['purpose']}, not motion-graphics: choose a motion-graphics template")
+    return PR.render(lib, tid, variables or {}, version=t["version"])
 
 
 def _capture():
@@ -75,13 +79,15 @@ def _work(vault, root: Path, a: dict, new_capture):
         new_capture = _capture
     if a["action"] == "verify":
         return M.verify(root, a, new_capture)
-    prompt = _prompt_text(a["template"], a["variables"])
+    prompt = _prompt_provenance(a["template"], a["variables"])
+    if prompt is not None:
+        a = dict(a, template=prompt["template"], variables=prompt["variables"])
     E.require()
     out = M.render(root, a, new_capture)
     filed = {"assets": [], "spooled": False, "filed": False}
     if out["ok"] and a.get("vault", True) is not False and vault is not None:
         receipt = json.loads((root / out["out_dir"] / "receipt.json").read_text(encoding="utf-8"))
-        filed = R.file_in_vault(vault, root, receipt, prompt_text=prompt)
+        filed = R.file_in_vault(vault, root, receipt, prompt_text=prompt["prompt"] if prompt else None)
     out["vault"] = filed
     return out
 

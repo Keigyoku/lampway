@@ -34,19 +34,20 @@ def differing(a: list, b: list) -> list:
 
 
 def file_in_vault(vault, project_root: Path, receipt: dict, prompt_text=None) -> dict:
-    """ONE ``provenance.capture`` call with the MP4 (kind video, subtype render, role main), the WebM (kind video), the receipt (kind receipt,
-    subtype qa) and the contact sheet (kind image, subtype strip); then ``curate.relate``: WebM variant_of MP4, receipt and contact sheet
-    derived_from MP4. ``capture`` never raises and spools when the library is locked; a spooled filing carries no relations (they need the ids)."""
+    """ONE ``provenance.capture`` call: MP4 (or WebM when alone) is the primary video render, plus the QA receipt and image strip.
+    A second video is variant_of the primary; receipt and contact sheet are derived_from it. ``capture`` never raises and spools when
+    the library is locked; a spooled filing carries no relations (they need the ids)."""
     from ..library import curate as CU
     from ..library import provenance as PV
     from ..library.store import LibraryError
     out_dir = Path(project_root) / receipt["out_dir"]
     files, name = receipt["files"], receipt["inputs"]["name"]
     outputs, formats = [], []
+    primary = "mp4" if "mp4" in files else "webm"
     for fmt in ("mp4", "webm"):
         if fmt in files:
             o = {"path": str(Path(project_root) / files[fmt]), "kind": "video", "name": f"{name}.{fmt}"}
-            if fmt == "mp4":
+            if fmt == primary:
                 o.update(subtype="render", role="main")
             outputs.append(o)
             formats.append(fmt)
@@ -71,9 +72,10 @@ def file_in_vault(vault, project_root: Path, receipt: dict, prompt_text=None) ->
         return {"assets": [], "spooled": bool(res.get("spooled")), "filed": False, "error": res.get("error")}
     assets = [{"id": a["id"], "kind": o["kind"], "format": f} for a, o, f in zip(res["assets"], outputs, formats)]
     by = {a["format"]: a["id"] for a in assets}
-    if "mp4" in by:
-        if "webm" in by:
-            CU.relate(lib, by["webm"], "variant_of", by["mp4"], by="rule")
-        CU.relate(lib, by["receipt"], "derived_from", by["mp4"], by="rule")
-        CU.relate(lib, by["contact"], "derived_from", by["mp4"], by="rule")
+    if primary in by:
+        for fmt in ("mp4", "webm"):
+            if fmt in by and fmt != primary:
+                CU.relate(lib, by[fmt], "variant_of", by[primary], by="rule")
+        CU.relate(lib, by["receipt"], "derived_from", by[primary], by="rule")
+        CU.relate(lib, by["contact"], "derived_from", by[primary], by="rule")
     return {"assets": assets, "spooled": False, "filed": True}

@@ -20,11 +20,6 @@
       "max": 200,
       "description": "the smallest text at the output size; the self-check fails under 22"
     },
-    "palette": {
-      "type": "string",
-      "default": "the brand's own tokens from the supplied stylesheet",
-      "description": "where the colours come from; never invented"
-    },
     "sequence": {
       "type": "string",
       "description": "the sequence or shot name"
