@@ -28,7 +28,11 @@ with A-pose and posed penetration, pose cost, and the residual blocking surfaces
 3. **Penetration metric** per body region: for each sampled skin vertex, cast from its posed bone's axis (the projection of the
    vertex onto the bone line) outward to the vertex; the first armour hit BEFORE the vertex gives depth = |vertex - origin| - hit
    (`pose_clearance.py:80-92`). Count depths > 10 mm (arms) and the fraction > 2 mm (torso, neck). Body regions are selected from
-   the body's own joints (bone segment + radius), never absolute heights.
+   the body's own joints (bone segment + radius), never absolute heights. For weighted skin samples, a region seed
+   includes anatomical descendants through the actual skeleton parent graph. Assign each sample to its nearest configured
+   ancestor seed so torso/neck ancestors do not swallow arm descendants. Keep the original weighted bone for posing and
+   ray origins; membership never rewrites weights or sample positions. Requested regions must contain samples before
+   sign checks or sweeps; missing parents, cycles and ambiguous seeds refuse.
 4. **Search** (deterministic): a grid over the first-order DOFs (chest: arms lowered 0..40 step 5 x swung -10..10 step 5), then
    each chain link in turn (hips `spine_01`, chest `spine_03`, neck `neck_01`, pitch -8..+8 step 4) holding the earlier links'
    best (coordinate descent, `pose_clearance.py:134-145`). Selection: fewest penetrations over the threshold, then smallest worst
@@ -49,10 +53,14 @@ with A-pose and posed penetration, pose cost, and the residual blocking surfaces
 - **INV-08.4** The body is skinned by its own skeleton; poses never move the body by hand.
 - **INV-08.5** A cap or bowl inside a collar is a mesh defect counted by the neck metric (canon 06), not a pose problem.
 
+- **INV-08.6** A requested anatomical region must have weighted skin samples; zero samples cannot establish clearance or
+  successful pose acceptance. Validate actual ancestry and nonempty membership before any pose or ray evaluation.
+
 ## D. Failure modes already hit
 
 | Date | What | Lesson | Source |
 |---|---|---|---|
+| 2026-10-07 | Actual9f90 chest pose returned success with zero arm samples, although recorded native descendant groups contain1302left/1299right samples | region membership follows actual ancestry to the nearest configured seed; keep weighted bone rays and refuse empty regions | owner-only receipt archiveSHA2565f6330e1ae4071905d1550c1afaa67dadb3c9ff389177ab256d72430cbedf3e4; updated private geometry rerun remains required |
 | 2026-10-04 | Chest audits counted A-pose arm clipping as defects; neck:chest / back:hips pitch "can vastly change the chest fit" | pose first; report both | memory pose-body-to-the-piece |
 | 2026-10-04 | A first version without view-layer updates left the elbow fixed for every pose | update the evaluated pose before every read | `pose_clearance.py:50-51` comment |
 | 2026-09-29 | The fist test added 70 deg per joint to a hand the example rests half-curled and never moved the thumb | curl TO an angle about the knuckle line, thumb included | GENERATED-EQUIPMENT §7m (4) |
@@ -88,7 +96,7 @@ with A-pose and posed penetration, pose cost, and the residual blocking surfaces
  "chain": [{"bone": "spine_01", "axis": "lateral", "range": [-8, 8], "step": 4}], "classes": "labels per placed triangle (optional)",
  "out_dir": "dir"}
 ```
-Refusals: sign check fails; an `expect` fails; a range wider than 90 deg ("not 'closest': split the piece or ask"); no DOF table for
+Refusals: empty requested anatomical region; missing/cyclic skeleton ancestry or ambiguous seeds; sign check fails; an `expect` fails; a range wider than 90 deg ("not 'closest': split the piece or ask"); no DOF table for
 the kind and none passed (`needs_decision` with the proposal); placed meta missing (blockers cannot map back).
 Receipt `pose.json` (`lampway.fit-pose/1`): `{body_sha256, placed_sha256, kind, entries: [{bone, axis, deg}], a_pose: {...}, posed:
 {...}, pose_cost_deg, blocking: {side: {points, bbox_piece_frame, by_class}}, sweeps: [...]}`.

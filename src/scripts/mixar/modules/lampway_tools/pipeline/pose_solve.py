@@ -9,8 +9,8 @@
 * Axes in the joint-named grammar (B.2: 'up', 'forward', 'lateral', {'line'}, {'perp'}, a 3-vector), resolved AT REST and applied
   through the bone's joint with everything below it carried (``canon_geom.pose_cs``); never Euler angles on local axes.
 * Penetration (B.3): each skin sample rides its bone rigidly; a ray from the projection of the sample onto its posed bone segment
-  out to the sample; the first piece hit BEFORE the sample gives depth = |sample - origin| - hit. A REGION is the samples of its
-  bones (selected from the skeleton, never absolute heights) with a depth threshold.
+  out to the sample; the first piece hit BEFORE the sample gives depth = |sample - origin| - hit. A REGION includes descendants
+  of its seed bones up to the nearest other region, using the actual skeleton parents and retaining each sample's bone.
 * Search (B.4): a grid over the first-order DOFs, then each chain link in turn holding the earlier best (coordinate descent).
   Selection: fewest samples over the threshold (summed over regions), then the smallest worst depth, then the smallest pose
   (``selection_key``; INV-08.2 prefers the natural pose).
@@ -100,6 +100,40 @@ def selection_key(metrics, cost):
     return (over, round(worst, 9), round(cost, 9))
 
 
+def _region_members(ref, bones, regions):
+    """Partition samples by their nearest configured ancestor without changing skin identity."""
+    ancestry = {}
+    for bone in sorted(ref):
+        chain, seen, current = [], set(), bone
+        while current is not None:
+            if current not in ref:
+                raise PoseError(f"{bone}: missing skeleton parent {current!r}")
+            if current in seen:
+                raise PoseError(f"{bone}: skeleton parent cycle at {current!r}")
+            chain.append(current)
+            seen.add(current)
+            current = ref[current]['parent']
+        ancestry[bone] = chain
+    seeds = {}
+    for name in sorted(regions):
+        for bone in regions[name]['bones']:
+            if bone not in ref:
+                raise PoseError(f"region {name!r} names unknown skeleton bone {bone!r}")
+            if bone in seeds and seeds[bone] != name:
+                raise PoseError(f"ambiguous region membership for seed bone {bone!r}: {seeds[bone]!r}, {name!r}")
+            seeds[bone] = name
+    owners = []
+    for bone in bones:
+        if bone not in ancestry:
+            raise PoseError(f"sample names unknown skeleton bone {bone!r}")
+        owners.append(next((seeds[b] for b in ancestry[bone] if b in seeds), None))
+    member = {name: np.array([owner == name for owner in owners], dtype=bool) for name in regions}
+    empty = sorted(name for name, mask in member.items() if not mask.any())
+    if empty:
+        raise PoseError("no weighted skin samples in requested regions: " + ', '.join(empty) + "; bind the body or correct the anatomical region seeds before solving")
+    return member
+
+
 def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_hits, curl_side="", curl_fractions=None):
     """The closest pose (module docstring). ``ref`` {bone: {parent, rot (x,y,z,w), pos}} at rest; ``samples`` [(point, bone)] at
     rest; ``piece`` (V, T); ``dofs`` / ``chain`` [{bone, axis, range [lo, hi], step, expect?}]; ``regions`` {name: {bones,
@@ -112,6 +146,10 @@ def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_h
             raise PoseError(f"{d['bone']}: a range of {hi - lo:g} deg is wider than {MAX_RANGE_DEG:g}: not 'closest' - split the piece or ask")
         if d["bone"] not in ref or (d.get("mirror") and _other_side(d["bone"]) not in ref):
             raise PoseError(f"the DOF names bone {d['bone']!r} (or its mirror), which the skeleton does not have")
+    P = np.array([p for p, _b in samples], float)
+    B = [b for _p, b in samples]
+    regions = regions or {"all": {"bones": sorted(set(B)), "threshold_m": 0.01}}
+    member = _region_members(ref, B, regions)
     rest_joints = {b: t["pos"] for b, t in ref.items()}
     first = dofs[0]
     if "expect" not in first:
@@ -123,10 +161,6 @@ def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_h
                         f"{first['expect'].get('along', first['expect'].get('closer_to'))} (needs {first['expect'].get('min_cm', 0)}): the axis is "
                         f"reversed or wrong, and the sweep would be meaningless")
     ends = _ends(ref)
-    P = np.array([p for p, _b in samples], float)
-    B = [b for _p, b in samples]
-    regions = regions or {"all": {"bones": sorted(set(B)), "threshold_m": 0.01}}
-    member = {name: np.array([b in r["bones"] for b in B]) for name, r in regions.items()}
     V, T = piece
 
     def evaluate(entries):
