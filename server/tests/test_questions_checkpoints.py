@@ -17,6 +17,8 @@ import pytest
 
 from lampway_server.agent.providers.base import Text, ToolCall
 
+from .test_swarm_v3 import played  # noqa: F401  (Lampway's herdr, played, with Mode 1's adapter played)
+
 pytestmark = pytest.mark.anyio
 
 
@@ -216,7 +218,8 @@ def test_plan_mode_changes_nothing_before_approval(fake, provider):
     assert "Plan Mode" in provider.requests[0].system
 
 
-def test_retry_failed_tasks_reruns_only_failed(settings):
+def test_retry_failed_tasks_reruns_only_failed(settings, played):
+    """The swarm's workers think in panes (spec S1, A5); Mode 1's adapter is played here until it is built (test_swarm_v3)."""
     from starlette.testclient import TestClient
 
     from lampway_server.agent.providers.mock import ScriptedProvider
@@ -224,26 +227,26 @@ def test_retry_failed_tasks_reruns_only_failed(settings):
 
     from .fake_client import FakeMixarClient
     from .fake_harness import FakeFleet, new_session
-    from .test_swarm_v3 import tasks, worker_provider
+    from .test_swarm_v3 import PanePlayer, marker_play, tasks
 
-    first_swarm = {"done": False}
+    cockpit, herdr = played
 
-    def factory(label):
-        if label == "worker-2" and not first_swarm["done"]:
-            return ScriptedProvider([[Text("")]])                      # an empty response: worker-2 of the first swarm fails
-        return worker_provider(label)
+    def play(swarm_id, worker_id):
+        if swarm_id == "sw1" and worker_id == "worker-2":
+            return [("exit",)]                                         # the harness quits: worker-2 of the first swarm fails
+        return marker_play(swarm_id, worker_id)
     main = ScriptedProvider([[ToolCall(id="s1", name="swarm_start", arguments={"tasks": tasks("a", "b", "c")})],
                              [ToolCall(id="s2", name="swarm_collect", arguments={"swarm_id": "sw1"})],
                              [Text("Two of three finished.")],
                              [Text("The retried task finished.")]])
-    app = create_app(settings, provider=main, swarm_provider_factory=factory)
+    app = create_app(settings, provider=main, cockpit=cockpit)
     from lampway_server import capabilities as CAP
     CAP.ACTIVE.set("swarm", enabled=True, by="user")             # the swarm is off until the user switches it on (spec E2, Q8)
     with TestClient(app, base_url="http://127.0.0.1:8787") as http:
         fake = FakeMixarClient(http, password=settings.user_password)
         fake.login()
         fleet = FakeFleet(fake, fake.instance_id)
-        with fake.connect_ws() as ws:
+        with PanePlayer(http, cockpit, herdr, play), fake.connect_ws() as ws:
             fake.handshake(ws)
             session_id = new_session()
             cmd = fake.command(ws, "chat", fake.chat_payload("QA three pieces", session_id))
@@ -251,7 +254,6 @@ def test_retry_failed_tasks_reruns_only_failed(settings):
             chips = [e for e in (f["params"]["event"] for f in frames if f.get("method") == "agent.turn.event")
                      if any(a.get("value") == "retry_failed_tasks" for a in e.get("actions") or [])]
             assert chips and "input_type" not in chips[-1], "the post-turn Retry failed tasks chip (turn_actions: buttons, no paused input)"
-            first_swarm["done"] = True
             spawned_before = sum(1 for m, p in fleet.requests if m == "agent.sandbox_control" and p.get("action") == "spawn")
             fleet.frames = []
             cmd = fake.command(ws, "chat", fake.chat_payload("continue", session_id))   # parked_resume.CONTINUE_MESSAGE

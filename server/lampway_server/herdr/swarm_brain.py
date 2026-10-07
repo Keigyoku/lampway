@@ -2,11 +2,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The pane brain: a swarm worker that thinks in a pane on Lampway's herdr server (docs/reports/agent-modes-spec.md S3).
 
+It is the ONE worker brain (spec S1 and A5, captain 2026-10-07: every agent is a process in a pane; no agent runs without one), in
+either mode. The unit's mode picks the adapter it opens its pane through (``harnesses.worker_adapter``): Mode 2 the parent pane's
+harness (Q10), Mode 1 Lampway's Hermes pane (``lampway_hermes``, A1; refused with help until it is built).
+
 The swarm's substrate (``agent/swarm.py``) spawns, binds, resets and seeds the worker's own headless Lampway, then hands this brain a
 ``WorkerJob``. The brain:
 
-* opens ONE pane through the parent pane's harness adapter (Q10: the same harness), under that harness's ``byoa:<harness>`` route
-  (B5, inside ``Cockpit.create_session``), with the task (``job.system`` plus the task prompt) on the harness's own command line;
+* opens ONE pane through that adapter, under its route (B5, inside ``Cockpit.create_session``), with the task (``job.system`` plus
+  the task prompt) on the harness's own command line. The pane splits into its unit's tab (the swarm's scene session, spec A4) and
+  reports itself to herdr as "Worker N · <task>";
 * binds the pane to ``swarm:<swarm_id>:<worker_id>``: its own MCP config (B2's mechanism: 0600 under the Lampway root) has ONE
   Lampway server, the pane endpoint ``/api/v1/mcp/pane``, with that binding as its session header and a per-worker token as its
   bearer. The token is minted here, exists only in the pane's config (or its environment) and in this process's memory as a hash,
@@ -111,7 +116,8 @@ class WorkerBindings:
 
 
 class PaneBrain:
-    """``WorkerBrain`` kind ``pane`` (spec S1, S3): the worker is a pane running the parent pane's harness."""
+    """``WorkerBrain`` kind ``pane`` (spec S1, S3), the only one: the worker is a pane running ``harness``, the adapter its unit's
+    mode picked (``SwarmManager.worker_brain``)."""
     kind = "pane"
 
     def __init__(self, cockpit, harness: str, *, cwd: str, project_root: Optional[str], bindings: WorkerBindings):
@@ -134,7 +140,8 @@ class PaneBrain:
         opening = asyncio.ensure_future(asyncio.to_thread(
             self.cockpit.create_session, self.harness, f"{job.worker.name} ({job.meta.get('swarm_id')} {wid})", self.cwd,
             task=f"{job.worker.name}: {job.worker.prompt.strip()[:160]}", by="swarm", project_root=self.project_root,
-            prompt=task_text(job), swarm_worker=(name, token)))
+            prompt=task_text(job), swarm_worker=(name, token), unit=job.meta.get("session_id"),
+            display_agent=f"Worker {wid.rsplit('-', 1)[-1]} · {job.worker.name}"))
         try:
             rec = await asyncio.shield(opening)
         except asyncio.CancelledError:

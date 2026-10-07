@@ -16,8 +16,9 @@ MCP config (0600 under the Lampway root):
     workbench;
   * a **bound BYOA pane** (B2; bearer = the pane's key, its sha256 in the cockpit's record): offered only ``swarm_start``,
     ``swarm_status``, ``swarm_cancel`` and ``swarm_collect``, only with capability ``swarm`` in force and the BYOA switch on. Its
-    swarm thinks in panes (``PaneBrain``, S4: the caller decides) and lands in the pane's bound scene tab; it reaches only the
-    swarms it started. No swarm tool spends.
+    swarm is Mode 2's: its workers are panes on the pane's own harness (``PaneBrain``, the one brain; the unit's mode picks the
+    adapter), split into the pane's tab, and its work lands in the pane's bound scene tab; it reaches only the swarms it started.
+    No swarm tool spends.
 On the external route a ``swarm:`` session header is refused: a binding is not a credential.
 """
 
@@ -75,7 +76,9 @@ class McpServer:
         self.ledger = ledger
         self.caps = caps or (lambda: {})
         self.journal: "OrderedDict[str, dict]" = OrderedDict()               # call id -> recorded outcome (bounded)
-        self.workers = WorkerBindings()                                      # spec S3: the swarm's worker panes, by binding
+        # spec S3: the swarm's worker panes, by binding: the swarm's own table, whichever mode started it
+        swarm = getattr(agent, "swarm", None)
+        self.workers = swarm.bindings if swarm is not None else WorkerBindings()
         self.byoa_enabled = byoa_enabled or (lambda: False)
         self._pane_swarms: dict = {}                                         # swarm id -> the cockpit session that started it
 
@@ -283,7 +286,6 @@ class McpServer:
     async def _pane_call(self, rec, name, arguments) -> tuple:
         from . import capabilities as CAP
         from .agent.swarm import SWARM_NAMES, SwarmContext
-        from .herdr.swarm_brain import PaneBrain
         if name not in SWARM_NAMES:
             return f"refused: {name} is not served here: this entry is the swarm's; Lampway's scene tools are on the pane's lampway entry", True
         refusal = CAP.check_tool(name, arguments, origin=f"pane:{rec['id']}")
@@ -300,14 +302,10 @@ class McpServer:
         if name == "swarm_start" and len(desktops) != 1:
             return ("the desktop app is not connected to this server (open Lampway and sign in)" if not desktops else
                     "several Lampway apps are connected to this server: a pane's swarm needs exactly one"), True
-        cockpit = self.agent.cockpit
-        harness = rec.get("harness") or rec.get("agent")
-
-        def brain():                                                 # S3, Q10: the parent pane's own harness
-            return PaneBrain(cockpit, harness, cwd=rec.get("cwd") or str(cockpit.project_root or "."), project_root=rec.get("project_root"),
-                             bindings=self.workers)
+        # Mode 2 (a bound pane): its workers run on the pane's own harness (S3, Q10), in its unit's tab (the bound scene tab, A4)
         ctx = SwarmContext(socket=desktops[0] if len(desktops) == 1 else None, session_id=rec["scene_session_id"], turn_id=f"pane:{rec['id']}",
-                           call_id=str(uuid.uuid4()), brain=brain)
+                           call_id=str(uuid.uuid4()), mode="byoa", harness=rec.get("harness") or rec.get("agent"), cwd=rec.get("cwd"),
+                           project_root=rec.get("project_root"))
         text, is_error = await self.agent.swarm.call(name, arguments, ctx)
         if name == "swarm_start" and not is_error:
             try:

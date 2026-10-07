@@ -153,6 +153,17 @@ def test_switching_a_tab_to_your_agent_starts_the_picked_harness_bound_to_it(sta
     assert again["pane"]["id"] == out["pane"]["id"] and len(cockpit.list_sessions()) == 1                # a live bound pane is reused
 
 
+def test_the_tabs_pane_is_its_units_main_agent_named_after_the_scene(stack):
+    """Spec A4: the pane a tab's switch starts or binds is its unit's main agent; the Client's ``name`` (the scene's name) labels
+    the unit's herdr tab."""
+    http, fake, cockpit, herdr, proj, provider = stack
+    out = _mode(http, fake, {"scene_session_id": TAB_A, "mode": "byoa", "harness": "claude", "name": "Scene tab one"}).json()
+    assert (out["pane"]["unit"], out["pane"]["role"], out["pane"]["unit_label"]) == (TAB_A, "main", "Scene tab one")
+    rec = cockpit.create_session("claude", "Chest fit audit", str(proj), by="user")
+    out = _mode(http, fake, {"scene_session_id": TAB_B, "mode": "byoa", "pane": rec["id"], "name": "Scene tab two"}).json()
+    assert (out["pane"]["unit"], out["pane"]["role"], out["pane"]["unit_label"]) == (TAB_B, "main", "Scene tab two")
+
+
 def test_a_new_tab_session_takes_the_pane_over_from_the_previous_one(stack):
     http, fake, cockpit, herdr, proj, provider = stack
     rec = cockpit.create_session("claude", "Chest fit audit", str(proj), by="user", scene_session_id=TAB_A)

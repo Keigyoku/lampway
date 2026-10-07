@@ -1046,6 +1046,8 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                     out.append(rec["id"])
             return out
 
+        scene_name = str(body.get("name") or "").strip() or None      # the Client sends the scene's name: the unit's herdr tab label (A4)
+
         def switch():
             prev = str(body.get("previous_session_id") or "").strip()
             if mode == "runtime":
@@ -1065,9 +1067,9 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                 ad = _HN.get(harness)
                 name = str(body.get("name") or "").strip()[:80] or f"{ad.label} for a scene tab"
                 rec = cockpit.create_session(harness, name if len(name) >= 2 else f"{ad.label} for a scene tab", str(_project_root()),
-                                             by="user", scene_session_id=scene)
+                                             by="user", scene_session_id=scene, unit_label=scene_name)
             else:
-                rec = cockpit.bind(rec["id"], scene)
+                rec = cockpit.bind(rec["id"], scene, unit_label=scene_name)
             unbind_all(scene, keep=rec["id"])
             ad = _HN.ADAPTERS.get(rec.get("harness"))
             obs = ad.observe(rec) if ad is not None else None

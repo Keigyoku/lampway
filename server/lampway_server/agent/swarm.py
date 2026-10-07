@@ -2,9 +2,13 @@
 
 Mixar's client already ships this model ("harness v3"); the server speaks it:
   * ``swarm_start`` activates a run on the parent (``agent.execution.activate``), then for every task spawns a headless worker
-    through the parent's sandbox supervisor, binds the task to it (``agent.execution.bind_task``) and runs the worker's own agent
-    loop: every worker script goes to the worker's socket on its constant routing session with a v3 envelope. Workers share nothing:
+    through the parent's sandbox supervisor, binds the task to it (``agent.execution.bind_task``) and lets the worker's brain work
+    there: every worker script goes to the worker's socket on its constant routing session with a v3 envelope. Workers share nothing:
     a worker's ``bpy.data`` is its own, so the name collisions of the old in-process lane scenes cannot happen;
+  * what thinks in a worker is a pane on Lampway's herdr server (``herdr/swarm_brain.py`` ``PaneBrain``, the one brain: spec S1
+    and A5, no agent without a pane). The unit's mode picks the adapter the pane starts through (``harnesses.worker_adapter``):
+    Mode 2 the parent pane's harness, Mode 1 Lampway's Hermes pane (A1), which is not built yet, so a Mode 1 ``swarm_start`` is
+    refused with that help before any run is activated or any worker spawned;
   * the worker's objects reach the user's scene only through the typed ``append_collection`` commit of a worker-staged native
     artifact into the AGENT_COLLECTION (brand.py), under the client's epoch / fence / document checks, journalled PREPARED then APPLIED
     (``swarm_collect``); a refused commit fails that task, never the others;
@@ -29,8 +33,10 @@ from ..brand import AGENT_COLLECTION
 from . import lampway_tools as lt
 from . import vault_tools
 from .harness import Harness, HarnessError, export_script, import_script, reset_script, stage_script
-from .swarm_brains import MAX_WORKER_ROUNDS, MODEL_ROUND_TIMEOUT_S, BuiltinBrain, WorkerJob  # noqa: F401  (re-exported for tests)
-from .providers.base import Message, ModelRequest, Text, ToolCall, ToolSpec
+from ..herdr import harnesses as HN
+from ..herdr.swarm_brain import PaneBrain, WorkerBindings
+from .swarm_brains import WorkerJob
+from .providers.base import ToolCall, ToolSpec
 from .tools import RUN_BLENDER_PYTHON, SCENE_SUMMARY, TOOLS, UnknownTool, format_tool_result, script_for
 
 log = logging.getLogger("lampway.swarm")
@@ -88,8 +94,12 @@ class SwarmContext:
     run_id: str = ""
     progress: Callable[[str], None] = lambda text: None
     emit_todo: Optional[Callable[[list], Awaitable]] = None      # the chat's todo slot: the Parallel Agents cards
-    # spec S4: the caller's brain, when the caller decides (a bound BYOA pane's swarm thinks in panes); None = ``brain_for``
-    brain: Optional[Callable[[], object]] = None
+    # The unit's mode (spec M0, S1 as superseded by A): "byoa" (Mode 2: a bound pane, or a tab in Your agent mode) runs the workers
+    # on ``harness``, the parent pane's own; anything else is Mode 1 (Lampway's Hermes pane). ``session_id`` is the unit.
+    mode: str = "runtime"
+    harness: Optional[str] = None
+    cwd: Optional[str] = None                                    # where the worker panes start (default: the cockpit's project root)
+    project_root: Optional[str] = None
 
 
 @dataclass
@@ -135,6 +145,7 @@ class Swarm:
     workers: list
     run: object = None
     harness: object = None
+    brain: object = None             # the swarm's one PaneBrain (one swarm, one adapter)
     emit_todo: Optional[Callable[[list], Awaitable]] = None
     collected: bool = False
     collected_turn: str = ""         # the turn whose swarm_collect ended it: that turn offers Retry failed tasks
@@ -170,19 +181,30 @@ def _head(prompt: str) -> str:
 
 
 class SwarmManager:
-    def __init__(self, provider_factory: Callable[[str], object], run_script: RunScript, *, max_workers: int = MAX_WORKERS,
-                 script_timeout_s: float = 600.0):
-        self.provider_factory = provider_factory
-        # spec S4: what thinks in this swarm's workers; ctx -> a WorkerBrain. The hub sets it from the tab's mode.
-        self.brain_for: Callable[[SwarmContext], object] = lambda ctx: BuiltinBrain(self.provider_factory,
-                                                                                     round_timeout_s=MODEL_ROUND_TIMEOUT_S)
+    def __init__(self, run_script: RunScript, *, max_workers: int = MAX_WORKERS, script_timeout_s: float = 600.0):
         self.run_script = run_script
         self.max_workers = max_workers
         self.script_timeout_s = script_timeout_s
         self.swarms: dict[str, Swarm] = {}
         self._harness: dict = {}                      # parent socket -> Harness
         self.library = None                           # the Asset Vault (set by the hub)
+        self.cockpit = None                           # Lampway's herdr host, where every worker's pane opens (set by the hub)
+        self.bindings = WorkerBindings()              # the worker panes' bindings; the pane endpoint resolves them (mcp.py)
         self._seq = 0
+
+    def worker_brain(self, ctx: SwarmContext) -> PaneBrain:
+        """The swarm's one brain (spec S1 as superseded by A): a ``PaneBrain`` on the adapter the unit's mode picks. Refused, with
+        help, when that adapter cannot start a pane (Mode 1's, until A1 is built) or no herdr host is known: never run another way."""
+        try:
+            harness = HN.worker_adapter(ctx.mode, ctx.harness)
+            HN.require_launchable(harness)
+        except ValueError as exc:
+            raise SwarmError(f"refused: swarm_start did not run: {exc}") from None
+        if self.cockpit is None:
+            raise SwarmError("refused: swarm_start did not run: every worker runs in a pane on Lampway's herdr server, and this "
+                             "server has no herdr host")
+        return PaneBrain(self.cockpit, harness, cwd=ctx.cwd or str(self.cockpit.project_root or "."), project_root=ctx.project_root,
+                         bindings=self.bindings)
 
     def harness_for(self, socket) -> Harness:
         h = self._harness.get(socket)
@@ -233,12 +255,13 @@ class SwarmManager:
             if not (isinstance(objects, list) and all(isinstance(o, str) and o for o in objects)):
                 raise SwarmError(f"task {i}: `objects` must be a list of object names")
             clean.append((_safe_name(task["name"], i), task["prompt"], list(dict.fromkeys(objects))))
+        brain = self.worker_brain(ctx)                 # before anything runs: a refused mode activates no run and spawns no worker
         harness = self.harness_for(ctx.socket)
         run = await harness.activate(ctx.run_id or str(uuid.uuid4()), ctx.session_id)
         self._seq += 1
         swarm_id = f"sw{self._seq}"
         workers = [Worker(f"worker-{n}", name, prompt, objects) for n, (name, prompt, objects) in enumerate(clean, 1)]
-        swarm = Swarm(swarm_id, ctx.session_id, workers, run=run, harness=harness, emit_todo=ctx.emit_todo)
+        swarm = Swarm(swarm_id, ctx.session_id, workers, run=run, harness=harness, brain=brain, emit_todo=ctx.emit_todo)
         self.swarms[swarm_id] = swarm
         await self._todo(swarm)
         for worker in workers:
@@ -366,10 +389,9 @@ class SwarmManager:
 
     # ------------------------------------------------------------ one worker
     async def _run_worker(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
-        """The substrate (spec S1): spawn, bind, reset and seed this worker's own Lampway, let the swarm's brain think, then stage.
-        The brain's only door to a scene is the job's ``call_tool``, which runs on this worker's Lampway."""
-        harness, run = swarm.harness, swarm.run
-        brain = ctx.brain() if ctx.brain is not None else self.brain_for(ctx)      # one swarm, one kind of brain (spec S4)
+        """The substrate (spec S1): spawn, bind, reset and seed this worker's own Lampway, let the swarm's brain (its pane) think,
+        then stage. The brain's only door to a scene is the job's ``call_tool``, which runs on this worker's Lampway."""
+        harness, run, brain = swarm.harness, swarm.run, swarm.brain
 
         async def call_tool(name: str, arguments: dict) -> tuple:
             content, is_error = await self._worker_tool(swarm, worker, ctx, ToolCall(id=f"{worker.id}-{uuid.uuid4().hex[:8]}",
@@ -417,10 +439,6 @@ class SwarmManager:
                 if worker.connection_id:
                     await harness.shutdown_worker(worker.connection_id)
                 await self._todo(swarm)
-
-    @staticmethod
-    async def _model_round(provider, request) -> tuple[str, list]:
-        return await BuiltinBrain.model_round(provider, request, MODEL_ROUND_TIMEOUT_S)
 
     async def _seed(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
         """Copy the worker's input objects from the user's scene into its own: the parent stages them, the worker loads them."""

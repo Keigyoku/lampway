@@ -26,59 +26,11 @@ from lampway_server.herdr import harnesses as HN
 
 from .fake_client import FakeMixarClient
 from .fake_harness import FakeFleet
+from .herdr_support import PaneHerdr
 
 SCENE = "6f1c2a52-3c1e-4c55-9d7e-2b0f6c1d9a10"
 PANE_URL = "http://127.0.0.1:8787/api/v1/mcp/pane"
 NEVER_FOR_A_WORKER = {"swarm_start", "swarm_status", "swarm_cancel", "swarm_collect", "ask_user", "lampway_workbench"}
-
-
-class PaneHerdr:
-    """herdr, played: every command is recorded with the egress rows written before it; panes appear on create, run what
-    ``agent start`` named, answer ``process-info`` while they live, and vanish on ``pane close`` or ``exit`` (the harness quit)."""
-
-    def __init__(self, egress=None):
-        self.calls, self.panes, self.n, self.egress = [], {}, 0, egress
-        self.lock = threading.Lock()
-
-    def __call__(self, root, args, timeout=30, input=None):
-        args = [str(a) for a in args]
-        with self.lock:
-            sent = [r["route"] for r in (self.egress.log() if self.egress else []) if r.get("event") == "send"]
-            self.calls.append({"args": args, "sends_before": sent})
-            if args[:2] == ["api", "snapshot"]:
-                ws = [{"workspace_id": "w1", "label": "lampway"}] if self.n else []
-                return json.dumps({"result": {"snapshot": {"workspaces": ws, "panes": [
-                    {"pane_id": p, "terminal_id": v["terminal_id"]} for p, v in self.panes.items()]}}})
-            if args[:2] in (["workspace", "create"], ["tab", "create"]):
-                self.n += 1
-                pid = f"p{self.n}"
-                self.panes[pid] = {"terminal_id": f"t{self.n}", "cmd": "-bash"}
-                return json.dumps({"result": {"root_pane": {"pane_id": pid, "terminal_id": f"t{self.n}", "workspace_id": "w1", "tab_id": f"tab{self.n}"}}})
-            if args[:2] == ["pane", "read"]:
-                return "user@box:~$ "
-            if args[:2] == ["agent", "start"]:
-                pid = args[args.index("--pane") + 1]
-                self.panes[pid]["cmd"] = " ".join([args[args.index("--kind") + 1], *args[args.index("--") + 1:]])
-                return ""
-            if args[:2] == ["pane", "process-info"]:
-                p = self.panes.get(args[args.index("--pane") + 1])
-                if p is None:
-                    raise L.HerdrError("no such pane")
-                return json.dumps({"result": {"process_info": {"foreground_processes": [{"cmdline": p["cmd"]}]}}})
-            if args[:2] == ["pane", "close"]:
-                self.panes.pop(args[2], None)
-                return ""
-            return ""
-
-    def exit(self, pane_id):
-        with self.lock:
-            self.panes.pop(pane_id, None)
-
-    def closed(self):
-        return [c["args"][2] for c in self.calls if c["args"][:2] == ["pane", "close"]]
-
-    def start_of(self, pane_id):
-        return next(c for c in self.calls if c["args"][:2] == ["agent", "start"] and c["args"][c["args"].index("--pane") + 1] == pane_id)
 
 
 def wait_for(cond, timeout=10.0, step=0.05):
@@ -261,8 +213,11 @@ def test_a_bound_pane_starts_a_swarm_of_panes_each_bound_to_its_worker_and_their
         assert argv[argv.index("--mcp-config") + 1] == str(cfg) and argv.index(task) < argv.index("--mcp-config")
         by_worker[worker_id] = rec
     assert sorted(by_worker) == ["worker-1", "worker-2"]
-    creates = [c for c in rig.herdr.calls if c["args"][:2] in (["workspace", "create"], ["tab", "create"])]
+    creates = rig.herdr.made()
     assert len(creates) == 3 and all(c["sends_before"].count("byoa:claude") >= i + 1 for i, c in enumerate(creates)), "each pane's route row precedes its creation"
+    # spec A4: the workers split into the parent's tab (its unit is the bound scene tab), right of it, then down the column
+    assert [c["args"][:2] for c in creates[1:]] == [["pane", "split"]] * 2 and len(rig.herdr.tabs) == 1
+    assert {(w["unit"], w["role"], w["tab_id"]) for w in panes} == {(SCENE, "worker", rig.parent["tab_id"])}
 
     for worker_id, rec in by_worker.items():
         listed = {t["name"] for t in rig.worker_rpc(rec, "tools/list").json()["result"]["tools"]}
@@ -399,16 +354,10 @@ def test_a_pane_reaches_only_the_swarms_it_started(rig):
     assert res["isError"] is True and "not started by this pane" in res["content"][0]["text"]
 
 
-def env_of(herdr, pane_id):
-    """The --env values herdr was given when it made this pane (the fake numbers panes in creation order)."""
-    made = [c["args"] for c in herdr.calls if c["args"][:2] in (["workspace", "create"], ["tab", "create"])][int(pane_id[1:]) - 1]
-    return dict(made[i + 1].split("=", 1) for i, a in enumerate(made) if a == "--env")
-
-
 def test_a_codex_parent_gets_codex_workers_whose_bearers_live_only_in_their_pane_environment(rig):
     rig.egress.set_route("byoa:codex", True)
     parent = rig.cockpit.create_session("codex", "Codex parent pane", str(rig.cockpit.project_root), by="user", scene_session_id=SCENE)
-    key = env_of(rig.herdr, parent["pane_id"])["LAMPWAY_PANE_KEY"]
+    key = rig.herdr.env_of(parent["pane_id"])["LAMPWAY_PANE_KEY"]
     pargv = rig.herdr.start_of(parent["pane_id"])["args"]
     assert key not in json.dumps(pargv) and 'mcp_servers.lampway_swarm.bearer_token_env_var="LAMPWAY_PANE_KEY"' in pargv
     assert key not in Path(parent["mcp_config_path"]).read_text()
@@ -417,7 +366,7 @@ def test_a_codex_parent_gets_codex_workers_whose_bearers_live_only_in_their_pane
     sid = json.loads(res["content"][0]["text"])["swarm_id"]
     worker = wait_for(lambda: rig.worker_panes() and rig.worker_panes()[0])
     assert worker and worker["agent"] == "codex"                                         # Q10: the parent's harness
-    token = env_of(rig.herdr, worker["pane_id"])["LAMPWAY_WORKER_TOKEN"]
+    token = rig.herdr.env_of(worker["pane_id"])["LAMPWAY_WORKER_TOKEN"]
     wargv = rig.herdr.start_of(worker["pane_id"])["args"]
     wargv = wargv[wargv.index("--") + 1:]
     assert token not in json.dumps(wargv) and token not in Path(worker["mcp_config_path"]).read_text()
@@ -481,12 +430,3 @@ def test_a_codex_worker_reads_its_token_from_its_pane_environment_never_its_comm
     assert "tok-secret-value" not in json.dumps(argv) and w.env == {"LAMPWAY_WORKER_TOKEN": "tok-secret-value"}
     assert f'mcp_servers.lampway.url="{PANE_URL}"' in argv and 'mcp_servers.lampway.bearer_token_env_var="LAMPWAY_WORKER_TOKEN"' in argv
     assert not [a for a in argv if "mcp_servers.lampway.command" in a], "no desktop launcher for a worker"
-
-
-def test_the_builtin_brain_stays_the_default_and_the_pane_brain_is_kind_pane():
-    from lampway_server.agent.swarm import SwarmManager
-    from lampway_server.agent.swarm_brains import BuiltinBrain
-    from lampway_server.herdr.swarm_brain import PaneBrain
-    m = SwarmManager(lambda label: None, run_script=None)
-    assert isinstance(m.brain_for(None), BuiltinBrain)
-    assert PaneBrain.kind == "pane"
