@@ -42,6 +42,8 @@ UE cube capture scripts run only in an explicitly disposable UE QA project, save
 
 Construct UE rotations with explicit pitch/yaw/roll keywords. Before allocating render targets or taking controls, verify the capture component's actual finite world forward vector points down world Z at the disposable QA plane; an actor direction cannot substitute for component readback. Record the verified vector and preserve raw-control refusals, actor cleanup and no-output failure behavior.
 
+Source FBX bind diagnostics use the exact-hash pinned pure parser without package bootstrap, bpy or scene import. Record raw Model ancestors, authored unit/axis/transform properties, bind poses and cluster matrices without inferred coordinate conversion or engine acceptance. Hash the source before/after, refuse malformed/unsupported layouts, and write only a new exclusive0600 private receipt; stdout and errors contain aggregate counts/hash or sanitized reasons.
+
 ## Test
 
 ```bash
@@ -83,3 +85,4 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | 2026-10-07 | typed UE postprocess readback | actual UE QA capture rejected equal Vector4 values | wrapper display strings included different object addresses, causing a false settings mismatch and address-bearing receipts | compare finite four-component values numerically and enum values by matching types and stable members; serialize vector arrays, preserving mismatch and nonfinite refusals | actual UE-shaped address, component, scalar and enum falsifiers |
 | 2026-10-07 | interleaved reference warning parsing | actual full client failed-node receipt | ANSI warning text contaminated a known-red identity and manufactured stale/new classifications | strip formatting and separate top-level warning text while preserving bracketed parameters, actual failure IDs and crash refusals | actual FAILED/ERROR/PASSED warning and colored-summary controls |
 | 2026-10-07 | actual UE capture direction | owner-run9f90 raw control failed | positional Rotator arguments set roll instead of pitch and rendered background | explicit rotation keywords and finite component world-forward admission before targets/captures, retaining raw controls and cleanup | UE-shaped positional-order, relative-component direction and no-output controls |
+| 2026-10-07 | raw source FBX bind evidence | actual physical UE bind failed and aggregate receipt omitted transforms | LimbNode-only scale checks missed container ancestors while Blender self-reference hid engine interpretation | preserve raw ancestry, properties and matrices through pinned pure parsing, source checks and private exclusive output without evaluator claims | container100/USF1, malformed/privacy and native unchanged-scene controls |
