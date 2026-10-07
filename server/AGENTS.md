@@ -44,6 +44,11 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    globally and per project; only a user request changes it (`PUT /app/capabilities/{id}` refuses agent and cross-origin callers),
    and an agent only proposes (`lampway_capabilities`). Lampway's tool families are checked at call time by `capabilities.check_tool`
    for the in-app agent and for MCP clients; a capability that needs an egress route is in force only while that route is on.
+   The engine's Hermes config is rendered from the same board (`engine/hermes_config.py`, spec E1.3): the model is the loopback
+   gateway only (`provider: custom`, no other provider, no adopted logins), the ACP toolsets are exactly those of the
+   capabilities in force, every outbound check Hermes lets config switch off is off, context stays Hermes's unless given, and it
+   is never written into the user's own `~/.hermes` (E1.10). `check_advertised` compares the tools the model is sent (visible
+   and deferred behind tool_search) with the choices; an unexpected or unlistable tool refuses the session.
 10. **The engine has two doors, both on loopback and both Lampway's** (docs/reports/agent-modes-spec.md E1.4, E1.5). `engine/gateway.py`
     is the engine child's only model endpoint: loopback clients, a per-process bearer (`Registry.issue_token`, in memory, redacted by
     `logredact.py`), answered by the current main provider and never by another; a provider's failure is an OpenAI-style error, not a retry.
@@ -60,7 +65,9 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
 .venv/bin/python -m pytest -q tests                            # the whole suite: no Blender, no network, no model
 ```
 
-The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a paid
+`tests/test_engine_hermes_config.py` also runs the built engine (`build/engines/hermes/<tag>/env/bin/hermes-acp`, or
+`$LAMPWAY_HERMES_ENGINE`) against a fake loopback model behind a refusing proxy; without the engine or the ACP SDK those tests
+SKIP, which is not a pass. The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a paid
 or egress path is tested against a fake transport, never a live provider, unless the captain named the spend.
 
 ## Owner
@@ -76,3 +83,5 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | capabilities switchboard | captain: "I want it all behind a single interface you can choose WHAT your agent can do" (agent-modes spec E2, Q8 defaults) | nothing recorded what an agent may do; the swarm and every tool family were always on for every agent | invariant 9: the user's switches, call-time checks for the agent and MCP, proposals only from agents, routes still decide egress | captain ruling, 2026-10-06 |
 | 2026-10-07 | the engine's MCP endpoint | captain: Hermes Agent's runtime in Mode 1's seat (agent-modes spec Q7, E1.6) | invariant 4 read as if every MCP surface were an external app, which would keep `ask_user` and the user's swarm from the in-app engine | invariant 4 scoped to external apps; the engine endpoint named with its gates | captain ruling, 2026-10-06 |
 | 2026-10-07 | the engine's gateway and egress proxy | captain: Hermes Agent's runtime takes Mode 1's engine seat; Hermes holds no key and only Lampway's doors lead out (agent-modes spec E0, E1.4, E1.5, Q7) | the engine child would have reached models and the network on its own: no key held by Lampway, no log row, no capability check, and `web:any` was not a route | invariant 10: the gateway (loopback, per-process token, current main provider, no retry elsewhere), the proxy (decide before connect, a row per refusal, `Egress.begin` for what it allows) and the `web:any` route | captain ruling, 2026-10-06 |
+| 2026-10-07 | engine config from capabilities | coordinator brief: agent-modes spec E1.3 "Nothing is removed; everything is chosen" (captain, 2026-10-06), E1.10, Q3 | with no config the engine offered 23 tools (terminal, browser, execute_code, memory, delegate_task ...), would adopt other apps' logins and tried pypi.org, models.dev, hermes-agent.nousresearch.com and raw.githubusercontent.com | invariant 9 names the rendered Hermes config, its loopback-only model, the never-~/.hermes rule and the start-up check; the Test section names the live engine tests and that their skip is not a pass | none |
+| 2026-10-07 | merge of the E1.3 lane into the agent-modes branch | the coordinator's merge: the E1.3 lane extended invariant 9 while the gateway lane added invariant 10 at the same place | two lanes appended to the same list; the merged list keeps invariant 9's new paragraph under 9 and invariant 10 after it | invariants 9 and 10 as both lanes wrote them | none |
