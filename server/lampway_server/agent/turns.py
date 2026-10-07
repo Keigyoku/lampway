@@ -54,6 +54,7 @@ class Turn:
     task: Optional[asyncio.Task] = None
     plan_mode: bool = False
     asked: bool = False       # ended on an ask_user question: the run stays in progress until the answer
+    context: dict = field(default_factory=dict)   # what the client sent beside the message (R3): images, rules, folders, notes
 
     @property
     def last_seq(self) -> int:
@@ -166,7 +167,9 @@ class AgentHub:
             await self.engine.steer(session_id, message + ("\n\n" + marks if marks else ""))
             return {"state": "complete", "result": {"ok": True, "joined": True}}
         return self._admit(socket, command_id, session_id, message, plan_mode=bool(payload.get("plan_required")),
-                           marks_text=marks_context.describe(payload.get("mark_context")))
+                           marks_text=marks_context.describe(payload.get("mark_context")),
+                           context={k: payload[k] for k in ("content", "rules", "folder_context", "project_context",
+                                                            "attachment_names", "imported_object_names") if k in payload})
 
     async def _input(self, socket, params):
         command_id, payload = _command_parts(params)
@@ -201,13 +204,13 @@ class AgentHub:
             text = f"{text}\n{answers}" if text else str(answers)
         return self._admit(socket, command_id, session_id, text)
 
-    def _admit(self, socket, command_id, session_id, user_text, plan_mode=False, marks_text="", reply=None):
+    def _admit(self, socket, command_id, session_id, user_text, plan_mode=False, marks_text="", reply=None, context=None):
         session = self._session(session_id)
         if user_text is not None and session.pending_question is not None:
             # A new message instead of an answer: the question's call is closed here, so it never stays open (R1 pairing).
             self._close_question(session, "The user did not answer this question; they sent a new message instead.")
         command = self.commands[command_id] = Command(command_id, session_id)
-        turn = Turn(session_id, command_id, str(uuid.uuid4()), plan_mode=plan_mode)
+        turn = Turn(session_id, command_id, str(uuid.uuid4()), plan_mode=plan_mode, context=dict(context or {}))
         turn.socket = socket  # type: ignore[attr-defined]
         session.turns[command_id] = turn
         session.last_turn_id = command_id
@@ -341,7 +344,7 @@ class AgentHub:
                 return
             if self.engine is not None:                    # spec E1: Hermes runs the conversation over ACP
                 await self.engine.drive(socket, session, turn, stream, bubble_id, steps,
-                                        None if user_text is None else session.messages[-1].text())
+                                        None if user_text is None else session.messages[-1].text(), context=turn.context)
                 return
             if user_text is not None and user_text.strip().lower() == Q.CONTINUE_MESSAGE and self.swarm.failed_tasks(session.session_id):
                 await self._retry_failed(socket, session, turn, stream, bubble_id, steps)

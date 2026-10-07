@@ -77,6 +77,7 @@ class EngineSession:
     collector: Optional[list] = None
     on_progress: object = None
     steering: bool = False                           # a /steer is in flight: its one-line acknowledgement is not the agent's words
+    rules_key: str = ""                              # the rules last sent to this conversation (R3: sent again only on change)
 
 
 def find_engine(engines_dir) -> Optional[dict]:
@@ -106,14 +107,17 @@ def child_env(home: Path, proxy_url: Optional[str], base_env=None) -> dict:
     return env
 
 
-def minimal_config(gateway_url: str, model_token: str, model_id: str) -> str:
+def minimal_config(gateway_url: str, model_token: str, model_id: str, supports_vision: Optional[bool] = None) -> str:
     """The smallest config.yaml that makes the gateway the engine's only model endpoint. E1.3 (engine/hermes_config.py) renders
     the full one from the user's Capabilities; this is the fallback and the conformance suite's baseline."""
     return ("model:\n"
             f"  default: {json.dumps(model_id)}\n"
             "  provider: custom\n"
             f"  base_url: {json.dumps(gateway_url)}\n"
-            f"  api_key: {json.dumps(model_token)}\n")
+            f"  api_key: {json.dumps(model_token)}\n"
+            + (f"  supports_vision: {'true' if supports_vision else 'false'}\n" if supports_vision is not None else ""))
+    # supports_vision: Hermes sends attached images only to a model it knows sees them (agent/image_routing.py:133; R3). Lampway
+    # knows it per provider (the key dialog's flag; Sign in with ChatGPT stays off until its probe, R0a); unknown leaves it unset.
 
 
 class LampwayACPClient:
@@ -202,7 +206,8 @@ class EngineRuntime:
     """One engine child per scene session, driven over ACP; the AgentHub calls ``drive`` instead of its own model loop."""
 
     def __init__(self, hub, *, engine: dict, state_dir, gateway_url: str, model_token_for, model_id: str = "lampway",
-                 mcp_url_for, proxy_url: Optional[str] = None, project_root: Optional[str] = None, config_writer=None):
+                 mcp_url_for, proxy_url: Optional[str] = None, project_root: Optional[str] = None, config_writer=None,
+                 supports_vision=None):
         self.hub = hub
         self.engine = engine
         self.state_dir = Path(state_dir)
@@ -213,6 +218,7 @@ class EngineRuntime:
         self.proxy_url = proxy_url
         self.project_root = project_root or os.environ.get("LAMPWAY_PROJECT_ROOT") or os.getcwd()
         self.config_writer = config_writer                # (home, gateway_url, token, model_id) -> None; E1.3
+        self.supports_vision = supports_vision            # bool, None (unknown), or a callable returning either (R3)
         self.sessions: dict[str, EngineSession] = {}
 
     # ------------------------------------------------------------------ children (E1.2)
@@ -245,7 +251,8 @@ class EngineRuntime:
             self.config_writer(es.home, self.gateway_url, es.model_token, self.model_id, **({"worker": True} if es.worker else {}))
         else:
             cfg = es.home / "config.yaml"
-            cfg.write_text(minimal_config(self.gateway_url, es.model_token, self.model_id))
+            vision = self.supports_vision() if callable(self.supports_vision) else self.supports_vision
+            cfg.write_text(minimal_config(self.gateway_url, es.model_token, self.model_id, vision))
             os.chmod(cfg, 0o600)
         es.proc = await asyncio.create_subprocess_exec(
             self.engine["entry_path"], stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
@@ -302,7 +309,7 @@ class EngineRuntime:
         return n
 
     # ------------------------------------------------------------------ the turn (E1.7)
-    async def drive(self, socket, session, turn, stream, bubble_id, steps, user_text: Optional[str]) -> None:
+    async def drive(self, socket, session, turn, stream, bubble_id, steps, user_text: Optional[str], context=None) -> None:
         """Run (or continue) the session's engine prompt for this client turn. Returns when the prompt ends or stops for a
         question (then ``turn.asked`` is set and the prompt keeps running)."""
         es = self._session(session.session_id)
@@ -310,14 +317,15 @@ class EngineRuntime:
         async with es.lock:
             await self._ensure_child(es)
             if user_text is not None:
-                from acp import text_block
+                from .turn_context import prompt_blocks
                 if es.prompt_task is not None and not es.prompt_task.done():
                     await es.conn.cancel(session_id=es.acp_session_id)       # R4's join-the-turn is not built yet: a new message replaces
                     try:
                         await es.prompt_task
                     except BaseException:  # noqa: BLE001
                         pass
-                es.prompt_task = asyncio.create_task(es.conn.prompt(session_id=es.acp_session_id, prompt=[text_block(user_text)]))
+                blocks, es.rules_key = prompt_blocks(user_text, context, es.rules_key)        # R3: all the client sent
+                es.prompt_task = asyncio.create_task(es.conn.prompt(session_id=es.acp_session_id, prompt=blocks))
             if es.prompt_task is None:
                 return
             es.sink = Sink(socket, session, turn, stream, bubble_id, steps)

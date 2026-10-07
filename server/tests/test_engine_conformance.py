@@ -157,7 +157,8 @@ def stack(settings, provider, tmp_path):
         app.state.agent.engine = EngineRuntime(
             app.state.agent, engine=ENGINE, state_dir=settings.state_dir, gateway_url=model.url,
             model_token_for=lambda sid: "engine-model-token", model_id="lampway",
-            mcp_url_for=lambda sid: f"{base}/engine/mcp/{sid}", proxy_url=proxy.url, project_root=str(project))
+            mcp_url_for=lambda sid: f"{base}/engine/mcp/{sid}", proxy_url=proxy.url, project_root=str(project),
+            supports_vision=True)                                     # the scripted model "sees" (R3)
         return app.state.agent.engine
 
     yield {"app": app, "base": base, "settings": settings, "proxy": proxy, "attach": attach}
@@ -316,3 +317,26 @@ def test_a_permission_request_is_the_users_choice_in_the_island(stack, tmp_path)
     assert final and final[-1]["content"]["set"] == "Wrote the note."
     project = tmp_path / "project"
     assert (project / "note.txt").read_text() == "hello", "the allowed write happened in the project"
+
+
+def test_rules_folders_and_an_image_reach_the_engines_model(stack):
+    """R3: the client's rules snapshot, context folders and attached image reach the model through the engine."""
+    model = FakeModel([("say", "Noted.")])
+    stack["attach"](model)
+    png = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+
+    async def script(ws, fake):
+        sid = str(uuid.uuid4())
+        payload = fake.chat_payload("Model the chair.", sid)
+        payload["rules"] = {"version": 1, "global": [{"id": "g", "text": "Always use metric units.", "enabled": True}], "project": []}
+        payload["folder_context"] = {"version": 1, "folders": [{"name": "refs", "available": True, "file_count": 1,
+                                                                 "kinds": {"image": 1}, "files": ["front.png"]}]}
+        payload["content"] = [{"type": "text", "text": "Model the chair."},
+                              {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{png}"}}]
+        return await _turn(ws, "agent.chat", payload, lambda p: SCENE)
+
+    events, _ = _run(stack, script)
+    assert events[-1]["type"] == "turn_end"
+    sent = [s for s in model.seen if s["stream"]][0]["text"]
+    assert "Always use metric units." in sent and "refs: 1 files" in sent and "front.png" in sent
+    assert png[:24] in sent, "the attached image reached the model"
