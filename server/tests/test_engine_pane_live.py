@@ -355,6 +355,29 @@ def test_live_a_checkpoint_rewind_drops_the_undone_turns_from_the_panes_hermes_c
     assert forward["ok"] is False and forward["code"] == "rewind_forward", forward
 
 
+# ---------------------------------------------------------------------------------------------------- the quick start's mock provider
+def test_live_the_mock_provider_answers_hermes_through_the_gateway_and_reaches_the_scene(live):
+    """``--provider mock`` (the quick start): behind the gateway it drives the pane's real Hermes with the tool names Hermes offers,
+    so a question gets the scene's summary from Blender and a ``py:`` message runs its script in the scene."""
+    from lampway_server.agent.providers.mock import MockProvider
+    unit = f"scene-{uuid.uuid4().hex[:6]}"
+    app = create_app(live["settings"], provider=MockProvider(), egress=live["strict"], cockpit=live["cockpit"])
+
+    async def scenario(stack, island):
+        cid, _ = await chat(island, "What is in my scene?", unit)
+        await island.ended(cid, timeout=240)
+        first = (island.events(cid), list(island.scripts))
+        cid2, _ = await chat(island, "py: import bpy\n__RESULT__ = {'cubes': 1}", unit)
+        await island.ended(cid2, timeout=240)
+        return first, (island.events(cid2), list(island.scripts))
+
+    (events, scripts), (events2, scripts2) = run(live, scenario, app=app)
+    assert events[-1]["status"] == "completed" and "Scene summary from Blender" in (final_text(events) or ""), events
+    assert scripts and scripts[0]["session_id"] == unit and "bpy.data.objects" in scripts[0]["script"]
+    assert events2[-1]["status"] == "completed" and "Ran your script" in (final_text(events2) or ""), events2
+    assert len(scripts2) == len(scripts) + 1 and "__RESULT__ = {'cubes': 1}" in scripts2[-1]["script"]
+
+
 # ---------------------------------------------------------------------------------------------------- A2: questions, permissions, steer
 def test_live_a_question_a_permission_and_a_steer_from_the_island(live):
     unit = f"scene-{uuid.uuid4().hex[:6]}"

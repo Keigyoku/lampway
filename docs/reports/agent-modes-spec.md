@@ -364,7 +364,10 @@ overwhelming/losing information the better."
 - **Tests:** the hub's protocol tests run on the scripted serve (`tests/serve_support.py`: `FakeServe`, `stack`/`run` on a real port,
   `ServeThread`/`mode1_turn` under a TestClient); the tests whose subject was the loop itself were deleted.
 - `[UNVERIFIED]`: the `mock` provider (written for the loop) has not been run against Hermes, whose tool names it does not use; CI
-  does not build the engine yet.
+  does not build the engine yet. *The mock, built 2026-10-07:* it now answers Hermes behind the gateway: Lampway's tools by the
+  names Hermes offers (`mcp__lampway__<tool>`, or the `tool_call` bridge when deferred), never one the request did not offer, text
+  only for a request with no tools (Hermes's title call). Live-tested on the pinned serve: a question gets the scene's summary
+  from Blender, a `py:` message runs its script in the scene. CI still does not build the engine.
 
 ## 0. Where the code is today
 

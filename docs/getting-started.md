@@ -76,7 +76,7 @@ Lampway gives the agent its guidance on Lampway's tools through the pane's own c
 
 What the agent may do is your choice in **Choices and privacy > Capabilities**. A switch reaches a running conversation before its next tool call, without a restart and without losing the conversation (turning **Memory** on is the one exception: Hermes builds its memory with the conversation, so it works from the next new conversation).
 
-The agent thinks with the provider you chose, through the server's loopback gateway. `--provider mock` has no model behind it: it was written for Lampway's removed built-in loop and does not drive Hermes's tools, so use it only to check that the pane starts. To work with the scene, start with a real provider (next section).
+The agent thinks with the provider you chose, through the server's loopback gateway. `--provider mock` has no model behind it: it answers Lampway's agent with Lampway's own tools, so any message gets the scene's summary from Blender and a message that starts with `py:` runs the rest as a script in the scene. It thinks nothing; to work with the scene for real, start with a real provider (next section).
 
 ## 7. Choose a provider, then open its route
 
