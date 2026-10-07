@@ -5159,6 +5159,12 @@ msgstr "விலக்கு"
 msgid "Dismiss the error and return to idle"
 msgstr "பிழையை விலக்கி செயலற்ற நிலைக்குத் திரும்புகிறது"
 
+msgid "Exception"
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
 msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
 msgstr ""
 

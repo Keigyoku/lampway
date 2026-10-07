@@ -5159,6 +5159,12 @@ msgstr "ख़ारिज करें"
 msgid "Dismiss the error and return to idle"
 msgstr "त्रुटि ख़ारिज करके निष्क्रिय स्थिति में लौटता है"
 
+msgid "Exception"
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
 msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
 msgstr ""
 

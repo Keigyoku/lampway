@@ -99,6 +99,9 @@ def parse(text: str) -> Parsed:
         if key == "error" and p.error is None:
             p.error = rest.strip()
             continue
+        if rest.strip() == "[]":                                       # TOON 4's empty array (`key: []`; the legacy key[0]: is read above)
+            p.tables[key] = []
+            continue
         if rest.strip() == "":                                         # a nested block, one level
             nested = {}
             while i < len(lines) and lines[i].startswith("  ") and not lines[i].startswith("  - "):

@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The MCP launcher (src/scripts/mixar/mcp.py) as an AI app starts it: the interpreter alone, isolated (-I), outside Blender.
+# Audit F1 (2026-10-06): a bpy import reached through mixar.config killed it before the handshake, and every AI app saw only
+# "connection closed"; no suite started the launcher this way, so it shipped. The MCP SDK version is the one the tests pin.
+name: mcp-launcher
+on:
+  pull_request:
+  push:
+    branches: ["lp/**", "main"]
+permissions:
+  contents: read
+jobs:
+  launcher:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: The MCP SDK and pytest (pinned in tests/requirements-test.txt)
+        run: python3 -m pip install --quiet "$(awk '/^mcp==/{print $1}' tests/requirements-test.txt)" pytest
+      - name: Start the launcher with -I, outside Blender, and complete an MCP initialize
+        run: LAMPWAY_TEST_ALL=1 python3 -m pytest -q -p no:cacheprovider tests/mcp/test_launcher_isolated.py

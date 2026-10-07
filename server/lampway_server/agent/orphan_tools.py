@@ -50,7 +50,9 @@ ORPHAN_DEFS = [
          P("tolerance", "number", "fraction, default 0.15"), P("tile_from", "integer", "udim_move: only islands in this tile"), P("tile_to", "integer", "udim_move: 1001..1099"),
          P("islands", "array", "island ids (udim_move), or id pairs a, b, c, d (stack)"), P("dry_run", "boolean", "edits: default true"), P("mirror_axis", desc="x (default) | y | z"),
          P("match_tolerance", "number", "metres, 0.0005..0.05, default 0.003"), P("res", "integer", "raster size 64..4096, default 512"),
-         P("discard_texture", "boolean", "allow an edit on a textured object")], api="uv_check"),
+         P("discard_texture", "boolean", "allow an edit on a textured object"),
+         P("limit", "integer", "measure: islands per page, default 50 (island_count and next_offset cover every island)", minimum=1, maximum=1000),
+         P("offset", "integer", "measure: first island of the page, default 0", minimum=0), P("full", "boolean", "measure: every island, no paging")], api="uv_check"),
     Def("lampway_render_condition_passes", "Render a blockout to the conditioning images an image or video model needs, all from ONE camera in a throw-away scene "
         "(your scene, frame and the objects' colours are restored): id = a flat colour per object (Workbench, anti-aliasing off, every pixel snapped to its "
         "object's palette colour; the palette is returned so a prompt can name regions), depth = a ray cast per pixel, 1 - (d - near)/(far - near) with near/far "

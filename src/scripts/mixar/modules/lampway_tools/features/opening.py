@@ -96,6 +96,54 @@ def detect(ob, axis, min_area_frac=0.01):
     return out
 
 
+def site_axis(armature, site):
+    """(head, unit axis) of the POSED bone ``site``: its head and the line to the head of its next joint (canon 01 C.1 / 06 B.1)."""
+    from ..canon_geom.bones import chain_ends
+    rig = C.need_object(armature, "ARMATURE")
+    if site not in rig.pose.bones:
+        raise C.FeatureError(f"no bone {site!r} in {armature!r}: the site is a bone of the posed body (upperarm_l, neck_01, calf_l, ...)")
+    bpy.context.view_layer.update()
+    W = rig.matrix_world
+    heads = {pb.name: tuple(W @ pb.head) for pb in rig.pose.bones}
+    parents = {pb.name: pb.parent.name if pb.parent else None for pb in rig.pose.bones}
+    end = chain_ends(heads, parents)[site]
+    h = Vector(heads[site])
+    d = Vector(end) - h
+    if d.length < 1e-9:
+        raise C.FeatureError(f"bone {site!r} has no length to its next joint")
+    return h, d.normalized()
+
+
+def detect_site(ob, head, axis, min_area_frac=0.01):
+    """canon 06 B.1: the caps of one SITE - clusters within CAP_NORMAL_DEG of the posed bone line that the line runs into (as the limb
+    would push through them), wherever they sit on the piece, extreme or not."""
+    from mathutils.bvhtree import BVHTree
+    bm = _bm(ob)
+    total = sum(f.calc_area() for f in bm.faces)
+    n = Vector(axis).normalized()
+    out = []
+    for comp in _cap_clusters(bm, n):
+        area = sum(f.calc_area() for f in comp)
+        if area < min_area_frac * total:
+            continue
+        verts = sorted({v for f in comp for v in f.verts}, key=lambda v: v.index)
+        idx = {v: i for i, v in enumerate(verts)}
+        tree = BVHTree.FromPolygons([tuple(v.co) for v in verts], [[idx[v] for v in f.verts] for f in comp])
+        if tree.ray_cast(Vector(head), n)[0] is None:
+            continue                                                  # the posed limb's line does not meet this cluster
+        cen = sum((f.calc_center_median() * f.calc_area() for f in comp), Vector()) / area
+        rim = sum(e.calc_length() for f in comp for e in f.edges if any(nb not in comp for nb in e.link_faces))
+        out.append({"id": "", "kind": "opening", "state": "capped", "axis": [round(x, 12) for x in n], "plane_origin_m": [round(x, 6) for x in cen],
+                    "cap_faces": len(comp), "cap_area_cm2": round(area * 1e4, 3), "rim_perimeter_cm": round(rim * 100, 3), "end": "site",
+                    "distance_m": round((cen - Vector(head)).dot(n), 6)})
+    out.sort(key=lambda c: c["distance_m"])
+    out = out[:1]                                                     # the first cap along the limb is the opening; beyond it is the piece's far side
+    for i, c in enumerate(out):
+        c["id"] = f"OP{i:03d}"
+    bm.free()
+    return out
+
+
 # ------------------------------------------------------------------------------------------------ the limb's section
 def _section_outline(limb, origin, axis, n_samples=96):
     bm = _bm(limb)
@@ -367,14 +415,24 @@ def _need_pose(pose):
 
 
 def run(stage, object, root, axis=None, plane_origin=None, limb="", pose=None, answers=None, flange_mm=None, lip_mm=4.0, clearance_mm=15.0, piece="",
-        captain_words="", texture_discard_ack=False, depths_mm=None, size=384):
+        captain_words="", texture_discard_ack=False, depths_mm=None, size=384, armature="", site=""):
     if stage not in STAGES:
         raise C.FeatureError(f"stage is one of {', '.join(STAGES)}")
     ob = C.need_object(object)
     piece = piece or ob.name
-    if axis is None:
-        raise C.FeatureError("axis is needed: the opening's axis, pointing out of the piece, e.g. [0, 0, 1]")
-    ops = detect(ob, axis)
+    if site:
+        if not armature:
+            raise C.FeatureError("a site is a bone of the posed body: pass armature=<the body's armature> with site=<bone>")
+        _need_pose(pose)
+        head, axis = site_axis(armature, site)
+        ops = detect_site(ob, head, axis)
+        for o in ops:
+            o["site"] = site
+        axis = list(axis)
+    elif axis is None:
+        raise C.FeatureError("axis is needed (the opening's axis, pointing out of the piece, e.g. [0, 0, 1]), or armature + site (a bone of the posed body)")
+    else:
+        ops = detect(ob, axis)
     if plane_origin is not None:                                                         # a typed site: only the cap at that plane
         n = Vector(axis).normalized()
         ops = [o for o in ops if abs(Vector(o["plane_origin_m"]).dot(n) - Vector(plane_origin).dot(n)) < 1e-3] or ops

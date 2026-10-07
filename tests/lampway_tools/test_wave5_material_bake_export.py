@@ -103,7 +103,7 @@ while ob.data.uv_layers: ob.data.uv_layers.remove(ob.data.uv_layers[0])
 nouv = call("material_bake_export", object="Plate", allow_dirty=True)
 print("RESULT", json.dumps({"nostack": nostack, "jn": jpeg_normal, "dirty": dirty, "small": small, "odd": odd, "badch": badch, "outside": outside, "nouv": nouv}))
 '''))
-    assert "no layer-paint material on Plain: build one (lampway_layered_material) or use lampway_pbr_gen" in d["nostack"]["error"]
+    assert "no layer-paint material on Plain: build one first (lampway_layered_material action=init, or action=apply_manifest)" in d["nostack"]["error"]
     assert "lossy normal maps are refused (use png/exr)" in d["jn"]["error"]
     assert "save the project first" in d["dirty"]["error"]
     assert "size is 1024..8192" in d["small"]["error"] and "power of two" in d["odd"]["error"]

@@ -62,10 +62,12 @@ def scale_to_measure(object, target=None, reference_object="", apply=True, unit_
 @_export
 @tool(consumes={"object": Need(kind=("mesh", "part"), scale=REAL)})
 def uv_check(object, action="measure", target_density_px_m=None, texture_size=2048, tolerance=0.15, tile_from=None, tile_to=None, islands=None, dry_run=True,
-             mirror_axis="x", match_tolerance=0.003, res=512, discard_texture=False):
-    """UV measurements per island (density, overlaps stacked vs accidental, space usage, orientation, UDIM tiles) and two dry-run-by-default edits (udim_move, stack)."""
+             mirror_axis="x", match_tolerance=0.003, res=512, discard_texture=False, limit=50, offset=0, full=False):
+    """UV measurements per island (density, overlaps stacked vs accidental, space usage, orientation, UDIM tiles) and two dry-run-by-default edits (udim_move, stack).
+    measure lists a page of islands (limit, default 50, from offset; island_count and next_offset); full=true lists them all."""
     from .features import uv_check as _UC
-    return _UC.run(object, action, target_density_px_m, texture_size, tolerance, tile_from, tile_to, islands, dry_run, mirror_axis, match_tolerance, res, discard_texture)
+    return _UC.run(object, action, target_density_px_m, texture_size, tolerance, tile_from, tile_to, islands, dry_run, mirror_axis, match_tolerance, res, discard_texture,
+                   limit, offset, full)
 
 
 @_export

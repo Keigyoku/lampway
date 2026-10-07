@@ -230,7 +230,8 @@ async def call(vault, name: str, arguments: dict, ctx: dict = None, limiter: Lim
         return f"{name} takes no argument {', '.join(unknown)}; its arguments are {sorted(spec['properties'])} (the rater is always you)", True
     missing = [k for k in spec["required"] if a.get(k) in (None, "", [])]
     if missing:
-        return f"{name} needs {', '.join(missing)}", True
+        from .tool_defs import needs
+        return needs(name, missing, spec), True
     try:
         (limiter or LIMITER).check(actor, name in WRITES)
         out = await asyncio.to_thread(_run, vault, name, a, actor)

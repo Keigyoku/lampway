@@ -13,7 +13,9 @@ leather | cloth | embroidery from the user or the recipe, never from a render):
 * rigid residual with the scale FIXED, edge strain as a fraction (p95, max), the SOURCE seam ledger measured in the pose (pairs at
   exactly equal source coordinates across parts; open over 2 mm, max), SURFACE crossings both ways (piece edges through the body,
   body edges through the piece) and inside vertices;
-* rest fidelity of every metal part against its original (a similarity, scale recorded) and of the whole piece;
+* rest fidelity of every metal part against its original (a similarity, scale recorded) and of the whole piece; each metal part's
+  is JUDGED against the metal rigid limit (canon 03 INV-03.2, G03.4: a metal part pushed or bulged off a similarity of its source
+  FAILs even when it crosses nothing and is rigid through every pose);
 * the positive crossing control: the piece pushed into the skin where it is nearest, capped at half its extent along the push;
   a counter that sees no crossing makes the run UNPROVEN."""
 
@@ -173,16 +175,28 @@ def measure(piece, bound, original, poses, roles, limits=None, body=None, armatu
     O = np.array([(orig.matrix_world @ v.co)[:] for v in orig.data.vertices])
     _V, piece_T = _rig._body_mesh(ob)
     piece_E = _edges_of(piece_T)
-    parts = {p: _part_vertices(ob, p, roles) for p in roles}
+    labels = ob if any(p in {g.name for g in ob.vertex_groups} for p in roles) else orig     # a bound copy carries bone groups only: the parts are the source's
+    parts = {p: _part_vertices(labels, p, roles) for p in roles}
     whole = V.rigid_fit(O, rest, with_scale=True)
     fidelity = {"scale": round(whole["scale"], 6), "rms_mm": round(whole["rms_m"] * 1000, 4), "max_mm": round(whole["max_m"] * 1000, 4),
                 "per_part": {p: G.similarity_receipt(G.similarity_fit(O[idx], rest[idx])) for p, idx in parts.items() if roles[p] == "metal"}}
-    ledger = _ledger(ob, O, roles)
+    ledger = _ledger(labels, O, roles)
     lim = limits or V.DEFAULT_LIMITS
     body_ob = C.need_object(body) if body else None
     joints0 = _joints(arm)
     frame = _frame(joints0)
     judges, rows = [], []
+    fidelity["judge"] = {}
+    for p, rec in fidelity["per_part"].items():                        # canon 03 INV-03.2 / G03.4: one similarity per metal part, judged
+        metal = lim.get("metal") or {}
+        if "rigid_max_mm" not in metal:
+            j = {"verdict": "UNVERIFIED", "limits_status": lim.get("status", "proposed"), "over": [], "missing": ["limits for metal rest fidelity"]}
+        else:
+            over = ["rest_fidelity_max_mm"] if rec["max_mm"] > metal["rigid_max_mm"] else []
+            j = {"verdict": "FAIL" if over else "PASS", "limits_status": lim.get("status", "proposed"), "over": over, "missing": [],
+                 "measured_mm": rec["max_mm"], "limit_mm": metal["rigid_max_mm"]}
+        fidelity["judge"][p] = j
+        judges.append(j)
     for raw in poses:
         pose, entries = _entries(raw)
         name = pose.get("name") or "pose"

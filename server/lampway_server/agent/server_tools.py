@@ -138,7 +138,8 @@ def command(name: str, arguments: dict, *, allow_live: bool = False) -> list:
     arguments = arguments if isinstance(arguments, dict) else {}
     missing = [a.name for a in d.args if a.required and arguments.get(a.name) in (None, "")]
     if missing:
-        raise BadToolCall(f"{name} needs {', '.join(missing)}")
+        from .tool_defs import needs
+        raise BadToolCall(needs(name, missing, d.spec().parameters))
     if name in ("studio_tripo_image", "studio_tripo_mesh", "studio_tripo_texture", "studio_tripo_pbr") and arguments.get("dry_run", True) is False \
             and not allow_live:
         raise BadToolCall(f"{name} cannot run for real from here: a generation that costs credits is the user's to approve in the Client. "

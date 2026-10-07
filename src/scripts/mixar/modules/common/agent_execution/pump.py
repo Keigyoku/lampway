@@ -219,6 +219,9 @@ def respond(client: Any, req: ExecutionRequest, result: dict) -> bool:
     if req.is_notification or req.response_attempted:
         return False
     req.response_attempted = True
+    if isinstance(result, dict) and result.get("success") is False:        # audit F20: a failed tool is never silent in the app log
+        logger.warning("%s failed (id: %s): %s%s", req.tool_name, req.request_id, str(result.get("error") or "(no error text)")[:500],
+                       f" [{result['error_type']}]" if result.get("error_type") else "")
     if client is None or not getattr(client, "is_connected", False):
         logger.warning(f"No active client, dropping response (id: {req.request_id})")
         record_phase(req, "response_unavailable", result)

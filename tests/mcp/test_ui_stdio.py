@@ -17,7 +17,7 @@ def test_sdk_initializes_and_exposes_ui_without_blender_or_backend(tmp_path):
         env = {**os.environ, "MIXAR_MCP_DISCOVERY_DIR": str(tmp_path / "discovery")}
         async with stdio_client(StdioServerParameters(command=sys.executable, args=[str(script)], env=env)) as streams:
             async with ClientSession(*streams) as session:
-                result = await asyncio.wait_for(session.initialize(), 5)
+                result = await asyncio.wait_for(session.initialize(), 30)       # 5 s timed out under a loaded gate (b19: passed alone on the re-run)
                 assert result.server_info.name == "Lampway"
                 prompts = await session.list_prompts()
                 assert prompts.prompts[0].name == "build-and-verify"

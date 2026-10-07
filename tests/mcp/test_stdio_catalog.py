@@ -57,14 +57,13 @@ CLAUDE_CODE_TEXT_CAP = 2048
 
 def test_instructions_teach_the_scene_workflow_within_claude_codes_cap():
     assert len(stdio_server.GUIDE) <= CLAUDE_CODE_TEXT_CAP
-    for tool in ("mixar_guide", "mixar_scene_new", "scene_overview", "execute_bpy_script",
-                 "render_viewport", "enqueue_generation", "get_all_queue_status",
-                 "create_layered_material", "mixar_call_status"):
+    # Lampway's vocabulary (audit F3: the upstream backend's execute_bpy_script, render_viewport, ... do not exist here)
+    for tool in ("lampway_scene_new", "scene_summary", "run_blender_python", "lampway_status", "lampway_vault_search",
+                 "lampway_call_status", "lampway_ui_call_status"):
         assert tool in stdio_server.GUIDE
     flat = " ".join(stdio_server.GUIDE.split())
-    assert "Splat worlds (world_labs) and videos only when the user wants one" in flat
     assert "Ask the user when an open choice matters" in flat and "never use OS-level computer use" in flat
-    assert 'Choose each part\'s approach by judgement (notes in mixar_guide("generate"))' in flat
+    assert "Nothing offered here spends credits" in flat
     from mixar.modules.common.ui_control.core import schema
     assert all(len(tool["description"]) <= CLAUDE_CODE_TEXT_CAP for tool in schema.tools())
 
@@ -90,3 +89,31 @@ def test_catalog_index_merges_ui_tools_and_answers_the_ui_domain_locally():
         build_only = (await client.call_tool("mixar_tool_catalog", {"domain": "build"})).structured_content
         assert "ui" not in build_only["result"]["domains"]
     run(check)
+
+
+def test_every_tool_the_launchers_guide_and_prompt_name_is_listed():
+    """Audit F3 (2026-10-06): the launcher's guide replaced the server's instructions and named 18 tools that do not exist in Lampway
+    (upstream Mixar's backend vocabulary: execute_bpy_script, render_viewport, scene_overview, ...). Every tool name the guide and
+    the build-and-verify prompt use must be in tools/list as an AI app sees it: the launcher's own tools plus Lampway's server."""
+    import re
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "server"))
+    from lampway_server import mcp as server_mcp
+
+    class ServerConnector(FakeConnector):
+        def catalog(self):
+            return json.loads(json.dumps(server_mcp.McpServer(None, None).tools_payload()))
+
+    seen = {}
+
+    async def main():
+        async with Client(stdio_server.create_server(ServerConnector())) as client:
+            seen["names"] = {tool.name for tool in (await client.list_tools()).tools}
+            prompt = await client.get_prompt("build-and-verify", {"goal": "make a cube"})
+            seen["prompt"] = prompt.messages[0].content.text
+    asyncio.run(main())
+    # every snake_case word is read as a tool name, except attribute paths (bpy.data.scenes.new) and the words listed here
+    prose = {"build_and_verify"}
+    named = set(re.findall(r"(?<![.\w])[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b", stdio_server.GUIDE + seen["prompt"])) - prose
+    assert named and not (named - seen["names"]), sorted(named - seen["names"])

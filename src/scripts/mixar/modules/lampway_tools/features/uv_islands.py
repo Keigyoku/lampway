@@ -75,6 +75,8 @@ def measure_object(ob, res: int = 1024) -> dict:
     faces = len(bm.faces)
     isl = int(island_ids(bm, uvl).max() + 1) if faces else 0
     seam = _seam_length(bm, uvl)
+    rim = {v for e in bm.edges if len(e.link_faces) == 1 for v in e.verts}
+    split = len(rim) - len({tuple(round(c, 6) for c in v.co) for v in rim})          # rim vertices that coincide: the mesh was split there
     bmesh.ops.triangulate(bm, faces=bm.faces[:])
     bm.faces.ensure_lookup_table()
     T3 = np.array([[l.vert.co[:] for l in fc.loops] for fc in bm.faces])
@@ -98,8 +100,19 @@ def measure_object(ob, res: int = 1024) -> dict:
     cov = float((cnt > 0).mean())
     ovl = float((cnt > 1).sum() / max((cnt > 0).sum(), 1))
     score = cov * (1 - ovl) * (1 - offd) - 0.5 * flipped
+    flat = TU.reshape(-1, 2)
+    lo, hi = flat.min(axis=0), flat.max(axis=0)
+    warnings = []                                   # audit F10: a zero must say why
+    inside = float(au[(TU.mean(axis=1) >= 0).all(axis=1) & (TU.mean(axis=1) < 1).all(axis=1)].sum() / max(au.sum(), 1e-30))
+    if faces and inside < 0.999:
+        warnings.append(f"{round(100 * (1 - inside))} % of the UV area lies outside the 0..1 tile (UVs span u {lo[0]:.3f}..{hi[0]:.3f}, v {lo[1]:.3f}..{hi[1]:.3f}) "
+                        "and is not scored: utilization measures the 0..1 tile only (lampway_uv_check action=space_usage reads every tile)")
+    if seam == 0 and split:
+        warnings.append(f"seam_m is 0 but the mesh is split ({split} coincident vertices on open edges): an importer (glTF) splits vertices at the UV seams, so no "
+                        "edge is shared across one; weld it first (lampway_normalize_mesh welds a generated mesh) to measure its seams")
     return {"name": ob.name, "faces": faces, "utilization": round(cov, 4), "overlap": round(ovl, 4), "islands": isl, "stretch_p90_p10": round(float(p90 / p10), 3),
-            "off_density_2x": round(offd, 4), "flipped": round(flipped, 4), "seam_m": round(seam, 2), "score": round(score, 4)}
+            "off_density_2x": round(offd, 4), "flipped": round(flipped, 4), "seam_m": round(seam, 2), "score": round(score, 4),
+            "uv_bounds": [round(float(x), 4) for x in (*lo, *hi)], "warnings": warnings}
 
 
 def gate_row(row: dict, gates: dict = None) -> dict:

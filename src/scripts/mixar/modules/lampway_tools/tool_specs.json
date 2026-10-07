@@ -1990,6 +1990,22 @@
      "required": false,
      "flag": null,
      "repeat": false
+    },
+    {
+     "name": "per_part",
+     "type": "boolean",
+     "desc": "quadriflow: remesh each part alone (boundary kept, welded back): no face spans two parts",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "part_attribute",
+     "type": "string",
+     "desc": "the INT face attribute holding the parts, default part",
+     "required": false,
+     "flag": null,
+     "repeat": false
     }
    ]
   },
@@ -2027,7 +2043,7 @@
   },
   {
    "name": "lampway_segment_mesh",
-   "description": "Mesh Segment: split a mesh into part objects in the collection `<object>_parts` (largest first, UVs and materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with. The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price). labels instead NAMES the UV islands as vertex groups <object>_<label> (nothing is split), with the Client's own island enumeration (Mesh Segment's island_labels): mode map takes island_labels {\"<island>\": label}; mode recipe gives each island the recipe part owning the majority of its faces in owner (a .npy per polygon, default the int face attribute 'part'), an island under min_share (0.6) unlabelled and named; labels outside the recipe's part names are refused, and more than max_unlabeled (0.3) of the faces unlabelled refuses to apply. Needs a UV map.",
+   "description": "Mesh Segment: split a mesh into part objects in the collection `<object>_parts` (largest first, UVs and materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with (isolated ones into ONE remainder part). A split into more than max_parts (default 200) parts is refused before anything is made, naming the min_faces that fits. The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price). labels instead NAMES the UV islands as vertex groups <object>_<label> (nothing is split), with the Client's own island enumeration (Mesh Segment's island_labels): mode map takes island_labels {\"<island>\": label}; mode recipe gives each island the recipe part owning the majority of its faces in owner (a .npy per polygon, default the int face attribute 'part'), an island under min_share (0.6) unlabelled and named; labels outside the recipe's part names are refused, and more than max_unlabeled (0.3) of the faces unlabelled refuses to apply. Needs a UV map.",
    "batch": null,
    "api": "segment_mesh",
    "params": [
@@ -2059,6 +2075,14 @@
      "name": "min_faces",
      "type": "integer",
      "desc": "Merge regions under this many faces, default 1 (no merge)",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "max_parts",
+     "type": "integer",
+     "desc": "Refuse a split into more parts than this, default 200",
      "required": false,
      "flag": null,
      "repeat": false

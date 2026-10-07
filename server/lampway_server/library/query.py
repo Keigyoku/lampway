@@ -63,7 +63,7 @@ class _Compiler:
             if t == "generation" and c in self.gen_cols:
                 return f"(SELECT g.{c} FROM generation g WHERE g.version_id=v.id LIMIT 1)"
         near = difflib.get_close_matches(name, self.names, n=3, cutoff=0.6)
-        raise LibraryError(f"unknown field {name!r}; nearest: {near}; list: lampway_asset_schema")
+        raise LibraryError(f"unknown field {name!r}; nearest: {near}; the fields are: {', '.join(self.names)}")
 
     def cond(self, c: dict) -> str:
         op, value = c.get("op"), c.get("value")

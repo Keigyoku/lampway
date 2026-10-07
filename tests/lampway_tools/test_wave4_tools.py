@@ -49,6 +49,8 @@ out["check"] = api.anim_check("fit.json", masks={{"front": "mask_front", "side":
 out["nomask"] = api.anim_check("fit.json", masks={{"front": "mask_front"}}, cameras="cameras.json")
 out["loop"] = api.anim_loop_export("take.json", reference_bones=["a", "b", "c"], out="loop")
 out["manny"] = api.anim_loop_export("take.json", skeleton="SK_Manny")
+bpy.data.images.new("ref", 8, 8).save(filepath={str(tmp_path / "ref_front.png")!r})     # audit F18: a plan's inputs must exist
+bpy.ops.mesh.primitive_cube_add(); bpy.context.active_object.name = "Warrior"
 out["clip"] = api.anim_clip("ref_front.png", "front", "walk")
 out["clip16"] = api.anim_clip("ref_front.png", "front", "walk", aspect_ratio="16:9")
 out["track"] = api.anim_track("sam3d_body", True, "c.mp4", "m", "cameras.json")
@@ -69,3 +71,16 @@ res(out)
     assert d["track"]["state"] == "needs_decision" and d["gvhmr"]["ok"] is False and "research and non-profit" in d["gvhmr"]["error"]
     assert d["plan"]["ok"] and d["plan"]["spend_card"]["credits"] == 45.0
     assert d["jail"]["ok"] is False
+
+
+def test_a_plan_is_never_priced_for_inputs_that_do_not_exist(tmp_path):
+    """Audit F18: anim_clip and anim_from_video priced 45 credits ($1.22) for a reference named __no_such_thing__. A paid plan
+    first checks its inputs: the reference image is a file under the root, the character an object in the scene."""
+    r = run_script(PRE + f'''
+api.settings_set(project_root={str(tmp_path)!r})
+res({{"clip": api.anim_clip("__no_such_thing__.png", "front", "walk"), "plan": api.anim_from_video("__no_such_thing__", "walk")}})
+''', timeout=300)
+    assert r.rc == 0, r.out[-2000:]
+    d = r.results[-1]
+    assert d["clip"]["ok"] is False and "__no_such_thing__.png" in d["clip"]["error"] and "anim_reference_render" in d["clip"]["error"], d["clip"]
+    assert d["plan"]["ok"] is False and "__no_such_thing__" in d["plan"]["error"] and "spend_card" not in d["plan"], d["plan"]

@@ -48,6 +48,8 @@ def _validate(models):
     if len(models) > 4:
         raise C.FeatureError("compare takes 2..4 models")
     for m in models:
+        if not isinstance(m, dict):
+            raise C.FeatureError(f'each model is an object {{"file": "a.glb"}} or {{"object": "Name"}} (with rotation_deg), not {m!r}')
         rot = float(m.get("rotation_deg") or 0.0)
         if not -180.0 <= rot <= 180.0:
             raise C.FeatureError("rotation_deg must be between -180 and 180")
@@ -244,6 +246,9 @@ def record_pick(set_id, piece, model, how, note, by, root):
 
 def run(action, set_=None, views=None, size=512, blind=False, pick=None, require_pick=False, root=""):
     set_ = set_ or {}
+    if not isinstance(set_, dict):                    # audit F12: refused by name, never "'str' object has no attribute 'get'"
+        raise C.FeatureError('set is an object: {"models": [{"file": "a.glb"}, {"file": "b.glb"}]} (each model a file under the root '
+                             "or an object name), with id, piece and kind for build")
     if action == "stats":
         _validate(set_.get("models"))
         return {"stats": stats(set_["models"], root)}
