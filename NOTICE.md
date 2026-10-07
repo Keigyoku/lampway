@@ -59,10 +59,11 @@ metadata and [REUSE.toml](REUSE.toml) record per-file copyright attribution.
 
 ### Clash Grotesk
 
-The Cinema Mode button uses Clash Grotesk Regular by Indian Type Foundry,
+The upstream Cinema Mode button used Clash Grotesk Regular by Indian Type Foundry,
 obtained from [Fontshare](https://www.fontshare.com/fonts/clash-grotesk) under
-the [ITF Free Font License](LICENSES/LicenseRef-ITF-FFL.txt). The font is used
-for application UI only and is excluded from public source snapshots.
+the [ITF Free Font License](src/release/datafiles/fonts/ClashGrotesk-LICENSE.txt).
+The font asset is absent from this public source tree. The original licence terms
+and attribution are retained in the linked file; no Clash Grotesk font ships here.
 
 ### Audited, not incorporated
 
