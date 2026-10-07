@@ -112,7 +112,7 @@ def test_agent_cannot_write(http, auth, settings):
 
 def test_list_view_set_resolve_and_a_saved_note(http, auth):
     groups = http.get("/app/choices", headers=auth).json()["groups"]
-    assert [g["id"] for g in groups][:2] == ["agents", "images"] and sum(len(g["purposes"]) for g in groups) == 56
+    assert [g["id"] for g in groups][:2] == ["agents", "images"] and sum(len(g["purposes"]) for g in groups) == 57
     r = http.put("/app/choices/image.plates", json={"scope": "global", "preferred": "studio:meshy.image_to_3d"}, headers=auth)
     assert r.status_code == 400 and "is not an option for image.plates" in r.json()["detail"]
     r = http.put("/app/choices/image.plates", json={"scope": "global", "preferred": FLARE, "fallbacks": ["studio:tripo.image"]}, headers=auth)

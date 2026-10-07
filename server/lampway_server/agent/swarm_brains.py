@@ -8,8 +8,8 @@ task. Its only door to a scene is ``job.call_tool``, which runs on THIS worker's
 scene or another worker's.
 
 There is one brain (captain, 2026-10-07: every agent is a process in a pane on Lampway's herdr server; no agent runs without a
-pane): ``herdr/swarm_brain.py`` ``PaneBrain``. The unit's mode picks the adapter its pane starts through
-(``herdr.harnesses.worker_adapter``), not the brain. Lampway's own worker loop and the engine's hidden Hermes children are gone (A5).
+pane): ``herdr/swarm_brain.py`` ``PaneBrain``. Saved worker Choices selects the adapter in ``SwarmManager.worker_brain``;
+the parent unit's mode does not select it. Lampway's own worker loop and the engine's hidden Hermes children are gone (A5).
 """
 
 from dataclasses import dataclass, field

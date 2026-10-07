@@ -9,8 +9,8 @@ island. The cockpit host (``herdr/host.py``) starts every harness pane through t
 Beside the user's harnesses (``ADAPTERS``, Mode 2) the registry holds Lampway's own adapters (``LAMPWAY_ADAPTERS``, Mode 1, spec A0):
 ``lampway_hermes``, Lampway's Hermes pane (A1). They are never in the user's list, need no BYOA switch and have no byoa route. A
 Lampway adapter's pane starts only on a server whose engine is wired (the cockpit's ``mode1`` hook, ``engine/units.py``); the
-cockpit refuses it with help otherwise. The unit's mode picks a swarm worker's adapter (``worker_adapter``, spec S1 as superseded
-by A).
+cockpit refuses it with help otherwise. Saved worker Choices selects a swarm worker's mode and adapter in
+``SwarmManager.worker_brain``, independently of the parent unit.
 """
 import os
 from pathlib import Path
@@ -51,9 +51,10 @@ def get(hid: str) -> Adapter:
 
 
 def worker_adapter(mode: str, parent_harness=None) -> str:
-    """The adapter a swarm worker's pane starts through, picked by its unit's mode (spec S1 as superseded by A, S4, Q10): Mode 2
-    (``byoa``: a bound pane, or a tab in Your agent mode) the parent pane's own harness; Mode 1 (anything else) Lampway's
-    Hermes pane, whatever harness the caller names. There is no third choice and no brain choice."""
+    """Legacy mode-to-adapter mapping retained for compatibility.
+
+    Swarm runtime does not call this helper: it resolves saved worker Choices independently of the parent unit.
+    """
     if mode == "byoa":
         if not parent_harness:
             raise ValueError("a swarm in Your agent mode runs on its parent pane's harness, and this tab has no pane bound: "

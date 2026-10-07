@@ -3,8 +3,8 @@
 """The pane brain: a swarm worker that thinks in a pane on Lampway's herdr server (docs/reports/agent-modes-spec.md S3).
 
 It is the ONE worker brain (spec S1 and A5, captain 2026-10-07: every agent is a process in a pane; no agent runs without one), in
-either mode. Saved ``agent.worker`` Choices picks the worker's service independently of the parent's mode (Q10): a BYOA choice's
-harness, or Lampway's Hermes pane for an API service (``lampway_hermes``, A1; refused with help until it is built).
+either mode. Saved ``agent.worker_mode`` Choices picks the runtime independently of the parent's mode (Q10): a BYOA harness,
+or Lampway's Hermes pane (``lampway_hermes``, A1; refused with help until it is built). Mode 1 separately resolves ``agent.worker``'s API/model service.
 
 The swarm's substrate (``agent/swarm.py``) spawns, binds, resets and seeds the worker's own headless Lampway, then hands this brain a
 ``WorkerJob``. The brain:
@@ -157,7 +157,7 @@ class PaneBrain:
     kind = "pane"
 
     def __init__(self, cockpit, harness: str, *, cwd: str, project_root: Optional[str], bindings: WorkerBindings, timeout_s=None,
-                 choice=None):
+                 choice=None, mode_choice=None):
         self.cockpit = cockpit
         self.harness = harness
         self.cwd = cwd
@@ -165,6 +165,7 @@ class PaneBrain:
         self.bindings = bindings
         self.timeout_s = worker_timeout(timeout_s)
         self.choice = choice
+        self.mode_choice = mode_choice
         self._panes: dict = {}               # worker id -> (cockpit session id, binding name)
         self._exited: dict = {}              # worker id -> why its pane is gone (nothing to close)
 
@@ -176,6 +177,8 @@ class PaneBrain:
         wid, name = job.worker.id, self.binding_name(job)
         if self.choice is not None:
             job.meta["choice"] = self.choice
+        if self.mode_choice is not None:
+            job.meta["mode_choice"] = self.mode_choice
         binding, token = self.bindings.issue(name, job)
         loop = asyncio.get_running_loop()
         opening = asyncio.ensure_future(asyncio.to_thread(

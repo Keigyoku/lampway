@@ -8,9 +8,11 @@ from types import SimpleNamespace
 import pytest
 
 from lampway_server.agent.swarm import SwarmContext, SwarmManager, Worker
+from lampway_server import choices as CH, egress as EG
 from lampway_server.agent.swarm_brains import WorkerJob
 from lampway_server.herdr import swarm_brain as SB
 from .test_swarm_v3 import played, run_swarm, marker_play, events
+from .worker_choice_support import install_worker_harness
 
 
 def brain(cockpit=None, **kwargs):
@@ -34,8 +36,12 @@ def test_invalid_environment_refuses_a_worker_before_start(monkeypatch, value):
         brain()
 
 
-def test_manager_override_reaches_the_brain_and_wins_over_environment(monkeypatch):
+def test_manager_override_reaches_the_brain_and_wins_over_environment(tmp_path, monkeypatch):
     monkeypatch.setenv("LAMPWAY_PANE_WORKER_TIMEOUT_S", "100")
+    install_worker_harness(tmp_path, monkeypatch, "codex")
+    monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
+    EG.ACTIVE.set_route("byoa:codex", True)
+    CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
     manager = SwarmManager(None, worker_timeout_s=7.5)
     manager.cockpit = SimpleNamespace(project_root=".")
     assert manager.worker_brain(SwarmContext(None, "scene", "turn", "call", mode="byoa", harness="codex")).timeout_s == 7.5

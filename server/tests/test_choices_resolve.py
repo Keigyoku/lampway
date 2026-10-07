@@ -165,7 +165,7 @@ def test_follow_resolves_through_the_purpose_it_names():
 
 
 def test_the_registry_has_every_purpose_and_the_normalization_judge():
-    assert len(REG.PURPOSES) == 56 and "normalize.judge" in REG.PURPOSES
+    assert len(REG.PURPOSES) == 57 and "normalize.judge" in REG.PURPOSES and "agent.worker_mode" in REG.PURPOSES
     assert {p.group for p in REG.PURPOSES.values()} == {g for g, _ in REG.GROUPS}
     for p in REG.PURPOSES.values():
         assert set(p.default) <= set(p.options), p.id

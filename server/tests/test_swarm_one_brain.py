@@ -5,8 +5,8 @@ process in a pane on Lampway's herdr server; no agent runs without a pane.
 
 * ``BuiltinBrain`` (Lampway's own loop), ``EngineBrain`` (hidden Hermes children) and the brain choice are gone; ``PaneBrain`` is
   the only brain.
-* The unit's mode picks the worker's adapter: Mode 2 (a bound pane, or a tab in Your agent mode) the parent pane's harness;
-  Mode 1 ``lampway_hermes``, Lampway's own Hermes pane (A1). Its pane starts only on a server running the Hermes engine (the
+* The user's saved ``agent.worker_mode`` picks the worker's adapter independently of the parent. The separate ``agent.worker``
+  choice retains the API/model chain for Mode 1's ``lampway_hermes``, Lampway's own Hermes pane (A1). Its pane starts only on a server running the Hermes engine (the
   cockpit's ``mode1`` hook); elsewhere a swarm started in Mode 1 is refused with that help before anything runs, never run another
   way. ``EngineRuntime``'s hidden ACP children are gone too (A5): every Mode 1 agent is that pane."""
 import asyncio
@@ -17,6 +17,7 @@ import pytest
 from starlette.testclient import TestClient
 
 from lampway_server.agent import swarm_brains as SB
+from lampway_server import choices as CH, egress as EG
 from lampway_server.agent.swarm import SwarmContext, SwarmError, SwarmManager
 from lampway_server.herdr import harnesses as HN
 from lampway_server.herdr import host as H
@@ -25,6 +26,7 @@ from lampway_server.herdr import launcher as L
 from .fake_client import FakeMixarClient
 from .fake_harness import FakeFleet, new_session
 from .herdr_support import PaneHerdr
+from .worker_choice_support import install_worker_harness
 
 A1 = "Lampway Agent runs on Lampway's pinned Hermes engine (agent-modes spec A1), and this server is not running it"
 
@@ -42,13 +44,25 @@ def test_there_is_one_worker_brain_and_no_agent_without_a_pane():
     assert "from acp" not in src and "import acp" not in src, "nothing in the server speaks ACP"
 
 
-def test_the_units_mode_picks_the_workers_adapter():
-    assert HN.worker_adapter("byoa", "codex") == "codex", "Mode 2: the parent pane's own harness (Q10)"
-    assert HN.worker_adapter("byoa", "claude") == "claude"
-    assert HN.worker_adapter("runtime", None) == "lampway_hermes", "Mode 1: Lampway's Hermes pane (A1)"
-    assert HN.worker_adapter("runtime", "codex") == "lampway_hermes", "Mode 1 never borrows a user's harness"
-    with pytest.raises(ValueError, match="pane"):
-        HN.worker_adapter("byoa", None)
+@pytest.mark.parametrize("worker_mode,expected", [("byoa:codex", "codex"), ("byoa:claude", "claude"),
+                                                  ("local:lampway_hermes", "lampway_hermes")])
+def test_saved_worker_mode_picks_the_adapter_independently_of_the_parent(tmp_path, monkeypatch, worker_mode, expected):
+    model_chain = CH.chain("agent.worker")
+    if worker_mode.startswith("byoa:"):
+        install_worker_harness(tmp_path, monkeypatch, expected)
+        monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
+        EG.ACTIVE.set_route(worker_mode, True)
+    CH.active_store().set("agent.worker_mode", "global", None, {"preferred": worker_mode}, by="user")
+    mgr = SwarmManager(run_script=None)
+    mgr.cockpit = H.Cockpit(tmp_path / "herdr", project_root=str(tmp_path))
+    mgr.cockpit.mode1 = object()
+    for parent_mode, parent_harness in (("runtime", None), ("runtime", "codex"), ("byoa", "codex"),
+                                        ("byoa", "claude"), ("byoa", None)):
+        ctx = SwarmContext(None, "scene", "turn", "call", mode=parent_mode, harness=parent_harness)
+        brain = mgr.worker_brain(ctx)
+        assert brain.harness == expected, "the saved worker mode wins over the parent's mode and harness"
+        assert brain.mode_choice.option == worker_mode
+    assert CH.chain("agent.worker") == model_chain, "worker mode selection preserves the API/model chain"
 
 
 def test_lampway_hermes_is_registered_and_refused_with_help_where_the_engine_is_not_running(tmp_path, monkeypatch):
@@ -66,13 +80,18 @@ def test_lampway_hermes_is_registered_and_refused_with_help_where_the_engine_is_
     assert calls == [] and c.list_sessions() == [], "herdr is never asked"
 
 
-def test_the_swarm_manager_builds_a_pane_brain_on_the_units_adapter(tmp_path):
+def test_the_swarm_manager_builds_a_pane_brain_on_the_saved_workers_adapter(tmp_path, monkeypatch):
     from lampway_server.herdr.swarm_brain import PaneBrain
     mgr = SwarmManager(run_script=None)
     mgr.cockpit = H.Cockpit(tmp_path / "herdr", project_root=str(tmp_path))
+    install_worker_harness(tmp_path, monkeypatch, "codex")
+    monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
+    EG.ACTIVE.set_route("byoa:codex", True)
+    CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
     byoa = SwarmContext(socket=None, session_id="scene-1", turn_id="t", call_id="c", mode="byoa", harness="codex", cwd=str(tmp_path))
     brain = mgr.worker_brain(byoa)
     assert isinstance(brain, PaneBrain) and brain.kind == "pane" and brain.harness == "codex" and brain.bindings is mgr.bindings
+    CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "local:lampway_hermes"}, by="user")
     with pytest.raises(SwarmError, match=re.escape(A1)):
         mgr.worker_brain(SwarmContext(socket=None, session_id="scene-1", turn_id="t", call_id="c"))     # Mode 1 by default
     mgr.cockpit.mode1 = object()                                           # a server running the engine

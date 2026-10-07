@@ -46,5 +46,27 @@ def live_world(hub=None, egress=None, spend=None, enforce_private: bool = False,
     eg = egress or EG.ACTIVE
     conns = {v["id"]: v["state"] for v in hub.view()}
     routes = {r: bool(eg.enabled(r)) for r in EG.ROUTES} if eg is not None else {}
+    readiness = byoa_worker_readiness()
+    readiness.update(local or {})
     return World(connections=conns, routes=routes, zdr=zdr, catalogue=dict(catalogue or {}), spend=dict(spend or {}), costs=dict(costs or {}),
-                 local=dict(local or {}), custom_llm_local=custom_llm_local, enforce_private=enforce_private)
+                 local=readiness, custom_llm_local=custom_llm_local, enforce_private=enforce_private)
+
+
+def byoa_worker_readiness() -> dict:
+    """Local installation and opt-in facts only: no version process, login probe or credential file."""
+    from .. import choices as CH
+    from ..herdr import harnesses as HN
+    state_dir = getattr(CH.active_store(), "state_dir", None)
+    enabled = HN.enabled(state_dir)
+    missing = {}
+    for hid, adapter in HN.ADAPTERS.items():
+        reason = None
+        if not enabled:
+            reason = "your own agents in Lampway's panes are off: enable Bring Your Own Agent first"
+        elif not adapter.direct_ok:
+            reason = f"{adapter.label} cannot run a worker: {adapter.tools_note or 'no supported per-pane tool endpoint'}"
+        elif adapter.locate() is None:
+            reason = f"{adapter.label} is not installed: {adapter.install_hint}"
+        if reason:
+            missing[f"byoa:{hid}"] = reason
+    return missing

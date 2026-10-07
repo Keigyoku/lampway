@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The registry: specs/choices/PURPOSES.md as data (55 purposes) plus ``normalize.judge`` (the canon lane's typed judge). One place a
+"""The registry: the model purposes, ``normalize.judge`` and the separate saved worker mode. One place a
 purpose and its options are described; the resolver, the routes, the agent tool and the receipts read it.
 
 An option id names where it runs: ``openrouter:<model>``, ``chatgpt_plan:<model>``, ``anthropic:<model>``, ``openai:<model>`` (the
@@ -48,7 +48,7 @@ def provider_of(oid: str) -> str:
 
 def model_of(oid: str) -> Optional[str]:
     head, sep, rest = oid.partition(":")
-    return rest if sep and head not in ("studio", "local", "deterministic", "follow", "compute") else None
+    return rest if sep and head not in ("studio", "local", "deterministic", "follow", "compute", "byoa") else None
 
 
 def option_facts(oid: str) -> dict:
@@ -56,6 +56,11 @@ def option_facts(oid: str) -> dict:
     prov = provider_of(oid)
     facts = {"provider": prov, "model": model_of(oid), "runs": "local", "connection": None, "route": None, "retention": "local"}
     if prov in ("local", "deterministic", "mock", "follow"):
+        return facts
+    if prov == "byoa":
+        # The native harness owns its model and login; Choices names only the
+        # worker runtime here. No Lampway credential is read or forwarded.
+        facts.update(runs=oid, route=oid, retention="unknown")
         return facts
     if prov == "studio":
         action = oid.split(":", 1)[1]
@@ -92,7 +97,13 @@ _ALL = [
       _CHAT + ("openai:local", "mock", "chatgpt_plan:*", "anthropic:*", "openrouter:*"), (), "none",
       note="the shipped chain comes from the settings (provider_prefs)"),
     P("agent.worker", "Swarm workers", "agents", "text + tools, up to 6 at once", "private",
-      ("openrouter:deepseek/deepseek-v4.1-flash", "chatgpt_plan:gpt-6.1-sol", "follow:agent.main", "chatgpt_plan:*", "openrouter:*"), (), "none"),
+      ("openrouter:deepseek/deepseek-v4.1-flash", "chatgpt_plan:gpt-6.1-sol", "follow:agent.main", "chatgpt_plan:*", "openrouter:*",
+       "anthropic:*", "openai:local", "mock"), (), "none",
+      note="Mode 1's model/service only; agent.worker_mode separately chooses Hermes or the user's own harness."),
+    P("agent.worker_mode", "Swarm worker mode", "agents", "a pane on herdr, up to 6 at once", "private",
+      ("local:lampway_hermes", "byoa:claude", "byoa:codex", "byoa:hermes", "byoa:opencode", "byoa:pi", "byoa:grok", "byoa:cursor"),
+      ("local:lampway_hermes",), "none",
+      note="Mode 1 uses agent.worker's API/model choice in Lampway Hermes. Mode 2 uses the selected native harness on its own service/login; never inherits the parent harness."),
     P("agent.decide", "Decisions judge", "agents", "options in, one choice out", "private", _DECIDE + ("openrouter:*",), _DECIDE),
     P("agent.vision_judge", "Vision judge (view_verify)", "agents", "image + rubric in, JSON verdict out", "private",
       ("chatgpt_plan:gpt-6.1-sol", "openrouter:google/gemini-3.1-flash-image", "follow:agent.main", "openrouter:*")),

@@ -49,6 +49,138 @@ def test_project_saved_service_and_effort_override_global_worker_choice(saved_ch
     assert brain.choice.params["effort"] == "high"
 
 
+def test_saved_worker_mode_survives_reopen_without_erasing_api_service(tmp_path, monkeypatch):
+    store = CH.FileStore(tmp_path)
+    store.set("agent.worker", "global", None,
+              {"preferred": "chatgpt_plan:kept-api-model", "params": {"effort": "high"}}, by="user")
+    original_service = store.global_doc()["purposes"]["agent.worker"]
+    store.set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
+    reopened = CH.FileStore(tmp_path)
+    assert reopened.global_doc()["purposes"]["agent.worker"] == original_service
+    assert original_service["preferred"] == "chatgpt_plan:kept-api-model" and original_service["params"] == {"effort": "high"}
+    assert reopened.global_doc()["purposes"]["agent.worker_mode"]["preferred"] == "byoa:codex"
+
+
+def test_byoa_mode_facts_never_describe_a_login_as_a_lampway_model():
+    from lampway_server.choices import registry as REG
+    facts = REG.option_facts("byoa:codex")
+    assert facts["model"] is None and facts["connection"] is None
+    assert facts["route"] == "byoa:codex" and facts["retention"] == "unknown"
+
+
+def test_saved_byoa_mode_runs_from_a_mode1_parent_without_resolving_api_service(saved_choices, tmp_path, monkeypatch):
+    from lampway_server import egress as EG
+    from .worker_choice_support import install_worker_harness
+    install_worker_harness(tmp_path, monkeypatch, "codex")
+    monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
+    monkeypatch.setattr(CH, "WORLD_FACTORY", None)
+    EG.ACTIVE.set_route("byoa:codex", True)
+    saved_choices.set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
+    seen = []
+    resolve = CH.resolve
+
+    def observed(purpose, *args, **kwargs):
+        seen.append(purpose)
+        return resolve(purpose, *args, **kwargs)
+
+    monkeypatch.setattr(CH, "resolve", observed)
+    manager = SwarmManager(None)
+    manager.cockpit = SimpleNamespace(project_root=str(tmp_path), mode1=None)
+    brain = manager.worker_brain(SwarmContext(None, "scene", "turn", "call", mode="runtime",
+                                            project_root=str(tmp_path)))
+    assert brain.harness == "codex" and brain.choice is None
+    assert brain.mode_choice.option == "byoa:codex" and brain.mode_choice.scope == "global"
+    assert seen == ["agent.worker_mode"]
+
+
+@pytest.mark.parametrize("failure", ["opt_in", "route", "installation"])
+def test_byoa_refuses_before_activation_when_local_or_route_fact_is_missing(saved_choices, tmp_path, monkeypatch, failure):
+    from lampway_server import egress as EG
+    from .worker_choice_support import install_worker_harness
+    if failure != "installation":
+        install_worker_harness(tmp_path, monkeypatch, "codex")
+    else:
+        monkeypatch.setenv("PATH", str(tmp_path / "empty-vendor-bin"))
+    monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "0" if failure == "opt_in" else "1")
+    monkeypatch.setattr(CH, "WORLD_FACTORY", None)
+    strict = EG.Egress(tmp_path / "strict-egress")
+    monkeypatch.setattr(EG, "ACTIVE", strict)
+    if failure != "route":
+        strict.set_route("byoa:codex", True)
+    saved_choices.set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
+    asked = []
+
+    class Socket:
+        async def request(self, method, params, timeout=None):
+            asked.append(method)
+            return {"success": True}
+
+    manager = SwarmManager(None)
+    manager.cockpit = SimpleNamespace(project_root=str(tmp_path), mode1=object())
+    context = SwarmContext(Socket(), "scene", "turn", "call", mode="runtime", project_root=str(tmp_path))
+    text, is_error = asyncio.run(manager.call("swarm_start", {"tasks": [
+        {"name": "worker", "prompt": "Inspect the scene"}]}, context))
+    expected = {"opt_in": "enable Bring Your Own Agent", "route": "switch it on in Privacy", "installation": "not installed"}
+    assert is_error and expected[failure] in text
+    assert asked == [] and manager.swarms == {}
+
+
+def test_an_agent_cannot_override_its_worker_mode(saved_choices):
+    with pytest.raises(CH.NoChoice, match="must not change its own provider"):
+        CH.resolve("agent.worker_mode", CH.Job(origin="agent", override="byoa:codex"))
+    with pytest.raises(CH.Refused, match="must not change its own provider"):
+        saved_choices.set("agent.worker_mode", "global", None,
+                          {"preferred": "byoa:codex", "override_policy": "chain"}, by="user")
+
+
+@pytest.mark.parametrize("harness", ["hermes", "grok"])
+def test_unsupported_selected_byoa_does_not_fall_back_to_mode1(saved_choices, tmp_path, monkeypatch, harness):
+    from lampway_server import egress as EG
+    from .worker_choice_support import install_worker_harness
+    install_worker_harness(tmp_path, monkeypatch, harness)
+    monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
+    monkeypatch.setattr(CH, "WORLD_FACTORY", None)
+    EG.ACTIVE.set_route(f"byoa:{harness}", True)
+    saved_choices.set("agent.worker_mode", "global", None, {"preferred": f"byoa:{harness}"}, by="user")
+    manager = SwarmManager(None)
+    manager.cockpit = SimpleNamespace(project_root=str(tmp_path), mode1=object())
+    with pytest.raises(SwarmError, match="cannot run a worker"):
+        manager.worker_brain(SwarmContext(None, "scene", "turn", "call", mode="runtime"))
+    assert manager.swarms == {}
+    assert CH.chain("agent.worker_mode") == [f"byoa:{harness}"]
+
+
+def test_only_the_users_explicit_mode_fallback_chain_can_switch_modes(saved_choices, tmp_path, monkeypatch):
+    from lampway_server import egress as EG
+    monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
+    monkeypatch.setattr(CH, "WORLD_FACTORY", None)
+    EG.ACTIVE.set_route("byoa:hermes", True)
+    saved_choices.set("agent.worker", "global", None, {"preferred": "mock"}, by="user")
+    saved_choices.set("agent.worker_mode", "global", None,
+                      {"preferred": "byoa:hermes", "fallbacks": ["local:lampway_hermes"]}, by="user")
+    manager = SwarmManager(None)
+    manager.cockpit = SimpleNamespace(project_root=str(tmp_path), mode1=object())
+    brain = manager.worker_brain(SwarmContext(None, "scene", "turn", "call", mode="byoa", harness="codex"))
+    assert brain.harness == "lampway_hermes" and brain.choice.option == "mock"
+    assert brain.mode_choice.reason == "fallback" and brain.mode_choice.skipped[0]["option"] == "byoa:hermes"
+
+
+def test_running_worker_mode_remains_pinned_after_saved_mode_changes(saved_choices, tmp_path, monkeypatch):
+    from lampway_server import egress as EG
+    from .worker_choice_support import install_worker_harness
+    install_worker_harness(tmp_path, monkeypatch, "codex")
+    monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
+    monkeypatch.setattr(CH, "WORLD_FACTORY", None)
+    EG.ACTIVE.set_route("byoa:codex", True)
+    saved_choices.set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
+    manager = SwarmManager(None)
+    manager.cockpit = SimpleNamespace(project_root=str(tmp_path), mode1=object())
+    brain = manager.worker_brain(SwarmContext(None, "scene", "turn", "call"))
+    saved_choices.set("agent.worker_mode", "global", None, {"preferred": "local:lampway_hermes"}, by="user")
+    assert brain.harness == "codex" and brain.mode_choice.record()["option"] == "byoa:codex" and brain.choice is None
+    assert CH.preferred("agent.worker_mode") == "local:lampway_hermes"
+
+
 def test_saved_worker_choice_is_checked_before_any_run_starts(saved_choices, monkeypatch, tmp_path):
     monkeypatch.setattr(CH, "WORLD_FACTORY", lambda: World(
         connections={"chatgpt_plan": "connected"}, routes={"chatgpt_plan": False}))

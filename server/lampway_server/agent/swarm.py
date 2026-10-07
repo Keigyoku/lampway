@@ -6,7 +6,8 @@ Mixar's client already ships this model ("harness v3"); the server speaks it:
     there: every worker script goes to the worker's socket on its constant routing session with a v3 envelope. Workers share nothing:
     a worker's ``bpy.data`` is its own, so the name collisions of the old in-process lane scenes cannot happen;
   * what thinks in a worker is a pane on Lampway's herdr server (``herdr/swarm_brain.py`` ``PaneBrain``, the one brain: spec S1
-    and A5, no agent without a pane). The user's saved ``agent.worker`` Choices picks its mode and service (Q10): an API service
+    and A5, no agent without a pane). The user's saved ``agent.worker_mode`` Choices picks its mode/harness independently of
+    ``agent.worker``'s Mode 1 service (Q10): an API service
     runs on Lampway's Hermes pane (A1), a BYOA service on the selected harness, independently of the parent's mode. Hermes starts only on a server running the engine, so
     elsewhere a Mode 1 ``swarm_start`` is refused with that help before any run is activated or any worker spawned;
   * the worker's objects reach the user's scene only through the typed ``append_collection`` commit of a worker-staged native
@@ -101,7 +102,7 @@ class SwarmContext:
     progress: Callable[[str], None] = lambda text: None
     emit_todo: Optional[Callable[[list], Awaitable]] = None      # the chat's todo slot: the Parallel Agents cards
     # The caller's mode/harness describe the parent for delivery and Retry.
-    # Workers independently resolve the user's saved agent.worker Choices.
+    # Workers independently resolve agent.worker_mode, then agent.worker only in Mode 1.
     mode: str = "runtime"
     harness: Optional[str] = None
     cwd: Optional[str] = None                                    # where the worker panes start (default: the cockpit's project root)
@@ -126,7 +127,7 @@ class Worker:
     calls: list = field(default_factory=list)       # what this worker did, for the owner (not sent to the model)
     handle: object = None
     receipt: Optional[dict] = None
-    choice: Optional[dict] = None                   # spawn-time agent.worker resolution, including scope and fallback reason
+    choice: Optional[dict] = None                   # separate spawn-time mode and (Mode 1 only) service receipts
     inputs_loaded: list = field(default_factory=list)
     task: Optional[asyncio.Task] = None
 
@@ -164,7 +165,7 @@ class Swarm:
     collected_turn: str = ""         # the turn whose swarm_collect ended it: that turn offers Retry failed tasks
     retried: bool = False            # its failed tasks were re-run once (by a Retry): they are not offered again
     retried_as: str = ""             # the swarm that re-ran them (the agent sees it in swarm_status)
-    # what the swarm was started as, so a Retry runs the failed tasks the same way (spec S1: the unit's mode picks the adapter)
+    # The caller's mode/harness for delivery and Retry; new workers resolve saved Choices again on that user click.
     mode: str = "runtime"
     harness_id: Optional[str] = None
     cwd: Optional[str] = None
@@ -220,17 +221,21 @@ class SwarmManager:
         help, when no herdr host is known or the adapter cannot start a pane here (Mode 1's, on a server that is not running the
         Hermes engine): never run another way."""
         try:
-            choice = CH.resolve("agent.worker", CH.Job(project=ctx.project_root, origin="agent"))
-            if choice.option.startswith("byoa:"):
+            mode_choice = CH.resolve("agent.worker_mode", CH.Job(project=ctx.project_root, origin="agent"))
+            choice = None
+            if mode_choice.option.startswith("byoa:"):
                 HN.require_enabled(getattr(CH.active_store(), "state_dir", None))
-                harness = choice.option.split(":", 1)[1]
+                harness = mode_choice.option.split(":", 1)[1]
                 adapter = HN.get(harness)
                 if harness not in HN.ADAPTERS or not adapter.direct_ok:
                     raise ValueError(f"{harness} cannot run a swarm worker: no supported per-pane tool endpoint")
-            elif choice.provider in ("chatgpt_plan", "anthropic", "openrouter", "openai", "mock"):
+            elif mode_choice.option == "local:lampway_hermes":
+                choice = CH.resolve("agent.worker", CH.Job(project=ctx.project_root, origin="agent"))
+                if choice.provider not in ("chatgpt_plan", "anthropic", "openrouter", "openai", "mock"):
+                    raise ValueError(f"{choice.option} cannot serve a Mode 1 worker: choose its API service in Choices")
                 harness = HN.MODE1_ADAPTER
             else:
-                raise ValueError(f"{choice.option} cannot run a worker: choose its service in Choices")
+                raise ValueError(f"{mode_choice.option} cannot run a worker: choose its mode in Choices")
         except (CH.NoChoice, ValueError, KeyError) as exc:
             raise SwarmError(f"refused: swarm_start did not run: {exc}") from None
         if self.cockpit is None:
@@ -239,7 +244,7 @@ class SwarmManager:
         if HN.is_lampway(harness) and getattr(self.cockpit, "mode1", None) is None:
             raise SwarmError(f"refused: swarm_start did not run: {HN.MODE1_UNAVAILABLE}")
         return PaneBrain(self.cockpit, harness, cwd=ctx.cwd or str(self.cockpit.project_root or "."), project_root=ctx.project_root,
-                         bindings=self.bindings, timeout_s=self.worker_timeout_s, choice=choice)
+                         bindings=self.bindings, timeout_s=self.worker_timeout_s, choice=choice, mode_choice=mode_choice)
 
     def harness_for(self, socket) -> Harness:
         h = self._harness.get(socket)
@@ -298,7 +303,8 @@ class SwarmManager:
         swarm_id = f"sw{self._seq}"
         workers = [Worker(f"worker-{n}", name, prompt, objects) for n, (name, prompt, objects) in enumerate(clean, 1)]
         for worker in workers:
-            worker.choice = brain.choice.record()
+            worker.choice = {"mode": brain.mode_choice.record(),
+                             **({"service": brain.choice.record()} if brain.choice is not None else {})}
         swarm = Swarm(swarm_id, ctx.session_id, workers, run=run, harness=harness, brain=brain, emit_todo=ctx.emit_todo,
                       mode=ctx.mode, harness_id=ctx.harness, cwd=ctx.cwd, project_root=ctx.project_root, owner=ctx.owner)
         self.swarms[swarm_id] = swarm
@@ -446,8 +452,8 @@ class SwarmManager:
     async def retry(self, session_id: str, socket, *, emit_todo=None, progress=None, turn_id: str = "", run_id: str = "") -> Optional[dict]:
         """The user's "Retry failed tasks" click (the cards' chip sends the user's "continue" from the user's own Client socket: the
         callers, ``HermesFront.drive`` and ``ByoaView.send``, check that): the unit's failed tasks run again as ONE new swarm, in
-        the mode, harness and folder of the swarm they failed in, and it is collected into the scene. The same rules as any swarm:
-        capability ``swarm`` in force, the unit's mode picks the adapter, nothing spends. Returns what happened (None: nothing to
+        the folder of the swarm they failed in, using the current saved worker mode/service, and it is collected into the scene. The same rules as any swarm:
+        capability ``swarm`` in force, saved Choices picks the workers' mode/service, nothing spends. Returns what happened (None: nothing to
         retry); the caller tells the unit's agent (``retry_note``)."""
         from .. import capabilities as CAP
         sources = [s for s in self.swarms.values() if s.parent_session == session_id and s.collected and not s.retried

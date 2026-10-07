@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The swarm in Mode 2 (docs/reports/agent-modes-spec.md S3, S4, S5): pane workers.
 
-A bound BYOA pane (B2) starts a swarm over MCP; each worker is a pane on Lampway's herdr server running the parent's harness (Q10),
+A bound BYOA pane (B2) starts a swarm over MCP; each worker is a pane on Lampway's herdr server running the saved worker-mode harness (Q10),
 started under that harness's ``byoa:<harness>`` route (B5), with the task on its command line and its own MCP config bound to
 ``swarm:<swarm_id>:<worker_id>``. The worker pane's tool calls land on ITS worker's headless Lampway (``WorkerJob.call_tool``);
 ``lampway_worker_done(summary)`` stages and finishes the task; a pane that exits without it fails the task; the swarm closes only
@@ -27,6 +27,7 @@ from lampway_server.herdr import harnesses as HN
 from .fake_client import FakeMixarClient
 from .fake_harness import FakeFleet
 from .herdr_support import PaneHerdr
+from .worker_choice_support import install_worker_harness
 
 SCENE = "6f1c2a52-3c1e-4c55-9d7e-2b0f6c1d9a10"
 PANE_URL = "http://127.0.0.1:8787/api/v1/mcp/pane"
@@ -136,6 +137,8 @@ def rig(settings, tmp_path, monkeypatch, strict):
     from lampway_server.app import create_app
     from lampway_server.herdr import swarm_brain as SB
     monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
+    install_worker_harness(tmp_path, monkeypatch, "claude")
+    install_worker_harness(tmp_path, monkeypatch, "codex")
     monkeypatch.setenv("LAMPWAY_MCP_LAUNCHER", "/opt/lw/connector/lampway-mcp")
     monkeypatch.setattr(SB, "POLL_S", 0.05)
     herdr = PaneHerdr(strict)
@@ -144,6 +147,8 @@ def rig(settings, tmp_path, monkeypatch, strict):
     (tmp_path / "proj").mkdir()
     cockpit = H.Cockpit(tmp_path / "herdr", project_root=str(tmp_path / "proj"))
     app = create_app(settings, provider=ScriptedProvider([[Text("unused")]]), cockpit=cockpit, egress=strict)
+    from lampway_server import choices as CH
+    CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "byoa:claude"}, by="user")
     CAP.ACTIVE.set("swarm", enabled=True, by="user")
     with TestClient(app, base_url="http://127.0.0.1:8787") as http:
         fake = FakeMixarClient(http, password=settings.user_password)
@@ -186,12 +191,14 @@ def marker(rec_name):
 def test_a_bound_pane_starts_a_swarm_of_panes_each_bound_to_its_worker_and_their_work_lands_in_the_panes_scene(rig):
     rig.bind_parent()
     started = rig.parent_json("swarm_start", {"tasks": tasks("boots", "belt")})
+    assert all(worker["choice"]["mode"]["option"] == "byoa:claude" and "service" not in worker["choice"]
+               for worker in started["workers"])
     sid = started["swarm_id"]
     panes = wait_for(lambda: len(rig.worker_panes()) == 2 and rig.worker_panes())
     assert panes, "one pane per task was never opened"
     by_worker = {}
     for rec in panes:
-        # the parent's harness (Q10), under its route (B5): the route's row is written before herdr makes the pane
+        # The saved worker harness (Q10), under its route (B5): logged before herdr makes the pane.
         assert rec["agent"] == "claude" and rec["harness"] == "claude" and rec["created_by"] == "swarm"
         start = rig.herdr.start_of(rec["pane_id"])
         assert start["sends_before"].count("byoa:claude") >= 2, "the parent's row and this worker's row precede its start"
@@ -293,12 +300,14 @@ def test_cancelling_a_worker_closes_its_pane_and_nothing_else(rig):
 
 
 def test_with_the_harness_route_off_no_worker_pane_starts_and_the_task_fails_naming_the_route(rig):
+    """Saved worker Choices refuses before activation; the disabled route is named explicitly."""
     rig.bind_parent()
     rig.egress.set_route("byoa:claude", False)
-    sid = rig.parent_json("swarm_start", {"tasks": tasks("boots")})["swarm_id"]
-    w = wait_for(lambda: rig.status(sid)["worker-1"]["status"] == "failed" and rig.status(sid)["worker-1"])
-    assert w and "byoa:claude is off" in w["error"]
+    res = rig.parent_call("swarm_start", {"tasks": tasks("boots")})
+    assert res["isError"] is True and "byoa:claude is off" in res["content"][0]["text"]
     assert rig.worker_panes() == []
+    assert rig.app.state.agent.swarm.swarms == {}
+    assert not [p for method, p in rig.fleet.requests if method == "agent.execution.activate"]
 
 
 # ------------------------------------------------------------------------------------------------------------- who gets what
@@ -356,6 +365,8 @@ def test_a_pane_reaches_only_the_swarms_it_started(rig):
 
 
 def test_a_codex_parent_gets_codex_workers_whose_bearers_live_only_in_their_pane_environment(rig):
+    from lampway_server import choices as CH
+    CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
     rig.egress.set_route("byoa:codex", True)
     parent = rig.cockpit.create_session("codex", "Codex parent pane", str(rig.cockpit.project_root), by="user", scene_session_id=SCENE)
     key = rig.herdr.env_of(parent["pane_id"])["LAMPWAY_PANE_KEY"]
@@ -366,7 +377,7 @@ def test_a_codex_parent_gets_codex_workers_whose_bearers_live_only_in_their_pane
     assert res["isError"] is False, res
     sid = json.loads(res["content"][0]["text"])["swarm_id"]
     worker = wait_for(lambda: rig.worker_panes() and rig.worker_panes()[0])
-    assert worker and worker["agent"] == "codex"                                         # Q10: the parent's harness
+    assert worker and worker["agent"] == "codex"                                         # Q10: the user's saved worker mode
     token = rig.herdr.env_of(worker["pane_id"])["LAMPWAY_WORKER_TOKEN"]
     wargv = rig.herdr.start_of(worker["pane_id"])["args"]
     wargv = wargv[wargv.index("--") + 1:]
