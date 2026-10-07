@@ -114,7 +114,11 @@ b=call('mesh_prep',object='Cube',full=True,limit=1)
 print('RESULT '+json.dumps({'a':a,'b':b,'bytes':len(json.dumps(a).encode())}))
 ''')[0]
     assert out['a']['ok'] and out['bytes'] < 12000, out
-    assert 'source_hash' not in out['a'] and 'source_hash' in out['b']
+    assert out['a']['source_hash'] == out['b']['source_hash'] == out['a']['hash']['geometry']
+    assert out['a']['hash'] == out['b']['hash']
+    assert out['a']['shell_orientation'] == out['b']['shell_orientation']
+    assert out['a']['pages']['shell_orientation']['total'] == 1
+    assert 'dimensions' not in out['a'] and 'dimensions' in out['b']
     assert out['a']['before'] == out['b']['before']
     assert len(out['b']['shell_orientation']) == 1
     assert len(out['b']['dimensions']) == 3

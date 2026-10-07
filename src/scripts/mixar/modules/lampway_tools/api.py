@@ -843,7 +843,8 @@ def mesh_prep(object, merge_distance=1e-5, fields=None, limit=50, offset=0, full
     from . import bounded as B
     config = B.options(fields, limit, offset, full)
     return B.receipt(_F_wf.mesh_prep(object, merge_distance), config, tool="lampway_mesh_prep",
-                     defaults=["object", "source", "before", "after", "found"], tables=["shell_orientation", "found.flipped_shells"],
+                     defaults=["object", "source", "source_hash", "hash", "before", "after", "found", "shell_orientation"],
+                     tables=["shell_orientation", "found.flipped_shells"],
                      row_fields={"shell_orientation": ["shell", "faces", "outward_fraction"]})
 
 

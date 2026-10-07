@@ -45,6 +45,8 @@ api.settings_set(project_root={str(tmp_path)!r})
 out = {{}}
 out["fit"] = api.anim_multiview_fit("front.json", "side.json", calibration={{"px_per_m": 400.0}}, out="fit_out.json")
 out["detect"] = api.anim_multiview_fit("front.json", "side.json", stage="detect")
+out["detect_frames"] = api.anim_multiview_fit(stage="detect", onnx="weights.onnx")
+out["detect_jail"] = api.anim_multiview_fit(stage="detect", onnx="/etc/hostname", frames={{"front": "mask_front", "side": "mask_side"}})
 out["check"] = api.anim_check("fit.json", masks={{"front": "mask_front", "side": "mask_side"}}, cameras="cameras.json", out="check.json")
 out["nomask"] = api.anim_check("fit.json", masks={{"front": "mask_front"}}, cameras="cameras.json")
 out["loop"] = api.anim_loop_export("take.json", reference_bones=["a", "b", "c"], out="loop")
@@ -62,7 +64,10 @@ res(out)
     assert r.rc == 0, r.out[-2000:]
     d = r.results[-1]
     assert d["fit"]["ok"] and d["fit"]["views"] == 2 and (tmp_path / "fit_out.json").exists()
-    assert d["detect"]["ok"] is False and "frames" in d["detect"]["error"] and "onnx" in d["detect"]["error"]   # the RTMW detector is built (orphans O26): it needs the panels and the weights
+    # Validation refuses the first missing requirement before opening frames or weights.
+    assert d["detect"]["ok"] is False and d["detect"]["error"] == "onnx must be a nonempty project-relative file path"
+    assert d["detect_frames"]["ok"] is False and d["detect_frames"]["error"] == "frames must contain front and side PNG paths or folders"
+    assert d["detect_jail"]["ok"] is False and "outside the project root" in d["detect_jail"]["error"]
     assert d["check"]["ok"] and {"G-OUT-front", "G-LEGS"} <= {g["id"] for g in d["check"]["gates"]} and (tmp_path / "check.json").exists()
     assert d["nomask"]["ok"] is False and "no side-view mask" in d["nomask"]["error"]
     assert d["loop"]["ok"] is True and d["loop"]["export"]["state"] == "not_run"

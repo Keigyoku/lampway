@@ -54,6 +54,8 @@ Native frame diagnostics read loaded modules and authored matrices without proje
 
 Run the read-only supplemental UE surface probe before full cube capture. Missing LDR/material/neutral-grading APIs refuse; surface availability is not shader or pixel proof.
 
+Reference summary parsing strips ANSI formatting and separates interleaved warning messages only outside balanced parameter brackets. Preserve exact parameter node IDs, unknown failures and process errors; warning contamination cannot manufacture a new failure or an affirmative PASS.
+
 A pytest process error refuses GREEN even when no failure IDs were printed. Flaky classification requires a successful retry and an exact PASS receipt; crashed or silent retries retain the original failure.
 
 ## Owner
@@ -77,3 +79,4 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | 2026-10-07 | supplemental UE capture preflight | actual UE handoff | the initial probe omitted display readback and grading APIs | Run the read-only supplemental UE surface probe before full cube capture. Missing LDR/material/neutral-grading APIs refuse; surface availability is not shader or pixel proof. | missing API/property and complete mocked surface controls |
 | 2026-10-07 | full-suite process failure receipts | issue 2 AC05 bounded crash controls | pytest crashes without test IDs and crashed retries could appear green | refuse process errors and require exact successful retry PASS receipts before flaky classification | suite crash, crashed retry and affirmative retry controls |
 | 2026-10-07 | typed UE postprocess readback | actual UE QA capture rejected equal Vector4 values | wrapper display strings included different object addresses, causing a false settings mismatch and address-bearing receipts | compare finite four-component values numerically and enum values by matching types and stable members; serialize vector arrays, preserving mismatch and nonfinite refusals | actual UE-shaped address, component, scalar and enum falsifiers |
+| 2026-10-07 | interleaved reference warning parsing | actual full client failed-node receipt | ANSI warning text contaminated a known-red identity and manufactured stale/new classifications | strip formatting and separate top-level warning text while preserving bracketed parameters, actual failure IDs and crash refusals | actual FAILED/ERROR/PASSED warning and colored-summary controls |

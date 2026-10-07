@@ -149,6 +149,8 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 | tag | what annealed | evidence |
 |---|---|---|
 
+PR privacy workflow scans event `base.sha..head.sha`, never GitHub's synthetic merge identity. An unavailable event head refuses; fallback ancestry uses that same explicit head. Preserve bad-email negative controls and complete tracked REUSE coverage.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -158,3 +160,4 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 | 2026-10-06 | the canon indexed | coordinator: "GO for rail row 1" | the canon lived off-tree, outside every index | docs/canon in the repository map, the Child DOX Index and the canon skill's row | captain ruling, 2026-10-06 |
 | 2026-10-07 | MCP wrapper contract receipt | captain: scoped MCP wrapper and migration | new transport, observation, schemas and offline data needed reproducible ownership and evidence | document the scoped implementation, generated checks and explicit limits above | scoped contract evidence in docs/reports/mcp-wrapper-migration.md |
 | 2026-10-07 | deferred turn document copies | captain: complete issue 2 F25 | every read-only chat turn wrote a full document snapshot; deferral could lose restore boundaries or typed commits | certify complete read templates, capture before first admitted write, retain pre-turn metadata and mutation restore paths | checkpoint and commit regression receipts |
+| 2026-10-07 | PR event privacy and tracked licence coverage | captain: issue2 G24–G26 | synthetic merge identities were mistaken for branch commits and baseline icon coverage was obscured | scan explicit event endpoints, retain planted email refusals and verify tracked REUSE independently of private untracked files | event-range and whole tracked-tree licence controls |

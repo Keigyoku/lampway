@@ -57,6 +57,32 @@ def test_uncertain_parameter_syntax_is_not_a_pass_receipt():
     assert T.judge(T.parse(log)[0], {node: ("broken", "reason")}, T.parse_passed(log))["fixed"] == []
 
 
+@pytest.mark.parametrize("status", ["FAILED", "ERROR", "PASSED"])
+def test_actual_ansi_warning_does_not_become_part_of_a_node_id(status):
+    node = "tests/test_cat_activity_events.py::test_history_content_while_idle_does_not_reanimate_cat"
+    warning = "\x1b[33m⚠\x1b[0m \x1b[33m[WARNING]\x1b[0m Token refresh error: object supporting the buffer API required"
+    log = f"{status} {node}{warning}\n"
+    if status == "PASSED":
+        assert T.parse_passed(log) == {node}
+    else:
+        failing, _ = T.parse(log)
+        assert failing == {node}
+        assert T.judge(failing, {node: ("inherited", "reason")}, {node})["fixed"] == []
+
+
+def test_colored_summary_preserves_parameter_spaces_brackets_and_reason_separator():
+    node = "tests/a.py::TestGroup::test_case[value [nested] - with space]"
+    log = f"\x1b[31mFAILED\x1b[0m \x1b[1m{node}\x1b[0m - AssertionError: [detail]\n"
+    assert T.parse(log, "server/")[0] == {"server/" + node}
+    assert T.parse_passed(f"\x1b[32mPASSED\x1b[0m {node}\x1b[0m\n") == {node}
+
+
+def test_warning_marker_inside_a_parameter_is_preserved():
+    node = "tests/a.py::test_case[value ⚠ [WARNING] - [nested]]"
+    assert T.parse(f"FAILED {node} - reason\n")[0] == {node}
+    assert T.parse_passed(f"PASSED {node}\n") == {node}
+
+
 def _mock_runner(tmp_path, monkeypatch, log, suite_rc):
     class FakeProc:
         def __init__(self, cmd, cwd, stdout, stderr, start_new_session, env=None):

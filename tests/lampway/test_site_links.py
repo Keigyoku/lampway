@@ -48,6 +48,14 @@ SUFFIXES = {".py", ".sh", ".bat", ".md", ".xml", ".desktop", ".cmake", ".example
 SKIP_PARTS = {"tests", "testing", "locale", "__pycache__"}
 SKIP_FILES = {"pii_allow.txt", "prepublish_gate.py"}       # the PII gate's own self-test plants fake hosts
 URL = re.compile(r"https?://([A-Za-z0-9.\-]+)")
+# Only these references in this handoff are documentation, not an outbound API.
+# Do not admit the Epic host generally or carry this exception into executable code.
+UE_HANDOFF = "scripts/lampway/ue_cube_generator_handoff.md"
+UE_REFERENCES = {
+    f"https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/{name}?application_version=5.6"
+    for name in ("RenderingLibrary", "SceneCaptureComponent2D", "PostProcessSettings")
+}
+FULL_URL = re.compile(r"https?://[A-Za-z0-9.\-]+[^\s<>\"')\]]*")
 
 
 def _site_pages():
@@ -56,7 +64,7 @@ def _site_pages():
     return {l.strip() for l in lines if l.strip() and not l.startswith("#")}
 
 
-def _hosts_in(files):
+def _links_in(files):
     out = []
     for f in files:
         try:
@@ -64,9 +72,18 @@ def _hosts_in(files):
         except (UnicodeDecodeError, OSError):
             continue
         for n, line in enumerate(text.splitlines(), 1):
-            for m in URL.finditer(line):
-                out.append((str(f.relative_to(ROOT)), n, m.group(1)))
+            for m in FULL_URL.finditer(line):
+                out.append((str(f.relative_to(ROOT)), n, m.group(0)))
     return out
+
+
+def _hosts_in(files):
+    return [(p, n, URL.match(url).group(1)) for p, n, url in _links_in(files)]
+
+
+def _host_offenders(files):
+    return [f"{p}:{n}: {URL.match(url).group(1)}" for p, n, url in _links_in(files)
+            if URL.match(url).group(1) not in HOSTS and not (p == UE_HANDOFF and url in UE_REFERENCES)]
 
 
 def _files(roots):
@@ -95,7 +112,7 @@ def test_unknown_paths_land_on_the_site_root_never_a_404():
 
 
 def test_every_host_in_shipped_source_is_allowed():
-    offenders = [f"{p}:{n}: {h}" for p, n, h in _hosts_in(_files(SCAN)) if h not in HOSTS]
+    offenders = _host_offenders(_files(SCAN))
     assert offenders == [], offenders[:40]
 
 
@@ -137,3 +154,21 @@ def test_official_documentation_inventory_does_not_allow_lookalike_hosts(tmp_pat
     finally:
         sys.modules[__name__].ROOT = saved
     assert bad == ["docs.blender.org.example.invalid"]
+
+
+def test_ue_references_are_exact_and_confined_to_the_documentation_handoff(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys.modules[__name__], "ROOT", tmp_path)
+    handoff = tmp_path / UE_HANDOFF
+    handoff.parent.mkdir(parents=True)
+    reference = sorted(UE_REFERENCES)[0]
+    handoff.write_text("\n".join(sorted(UE_REFERENCES)))
+    assert _host_offenders([handoff]) == []
+    plants = (reference.replace("dev.epicgames.com", "dev.epicgames.com.example.invalid"),
+              reference.replace("application_version=5.6", "application_version=5.8"),
+              "https://dev.epicgames.com/api/upload",
+              reference + "&redirect=https://example.invalid")
+    handoff.write_text("\n".join(plants))
+    assert len(_host_offenders([handoff])) == len(plants)
+    executable = handoff.with_suffix(".py")
+    executable.write_text(reference)
+    assert len(_host_offenders([executable])) == 1

@@ -31,6 +31,8 @@ explains this rail and belongs to `rail/`'s owner. `docs/canon/` is the algorith
 6. **Licences:** every file carries SPDX lines (an HTML comment at the top of Markdown) or a `REUSE.toml` entry.
 7. **Authorized external ledgers:** `gen_status_ledger.py` verifies original row identities, order and content against the supplied recount, retains historical verdicts separately from current code/test evidence, and obtains header counts from `registry_counts`. Full identities and per-contract private evidence remain outside the repository; the public report carries original ordinals and source hashes. A registry entry, cited file or refusal is not full-contract verification; retain exact remaining gaps and do not upgrade them from enumeration alone.
 
+Acceptance audits include the complete current issue body and acceptance-bearing comments. Preserve existing criterion identities, append new criteria, and distinguish historical snapshots from the current denominator. A focused or baseline-relative result never substitutes for a missing aggregate gate receipt.
+
 ## Test
 
 ```bash
@@ -54,3 +56,4 @@ writes its own report; the integration lane lands them. What the product promise
 | 2026-10-07 | MCP wrapper contract receipt | captain: scoped MCP wrapper and migration | new transport, observation, schemas and offline data needed reproducible ownership and evidence | document the scoped implementation, generated checks and explicit limits above | scoped contract evidence in docs/reports/mcp-wrapper-migration.md |
 | 2026-10-07 | generated connection catalogue counts | captain: complete issue 2 G13 | the connection guide retained a stale hand-written tool count | generate and check both the tool reference and connection count paragraph from the live registry | generator checks and count falsifiers |
 | 2026-10-07 | authoritative external ledger recount | captain: issue 2 AC64 | stale classes and counts could be copied while private source identities leaked into public reports | verify row identity/content, generate live registry counts, retain per-row evidence and gaps privately, publish ordinal-only reconciliation | source-drift, privacy-output and manual-evidence falsifiers |
+| 2026-10-07 | complete issue acceptance inventory | captain: include G23 and G24–G26 | body-only review silently omitted comment criteria and overstated aggregate acceptance | preserve original rows, append comment criteria, source-pin all revisions and qualify absent gate evidence | complete73-row source reconciliation |

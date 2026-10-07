@@ -26,12 +26,16 @@ ROOT = Path(__file__).resolve().parents[2]
 BASELINE = ROOT / "tests" / "known_red.tsv"
 ID = re.compile(r"^(FAILED|ERROR) (.+)")
 COUNT = re.compile(r"(\d+) (passed|failed|skipped|errors?|xfailed|xpassed)")
+ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+WARNING = re.compile(r"⚠\s+\[WARNING\]")
 
 
 def node_identity(text: str, failure_reason=False) -> str:
     """Keep parameter delimiters inside balanced brackets; reject uncertain syntax as PASS evidence."""
     depth = 0
     for i, char in enumerate(text):
+        if depth == 0 and WARNING.match(text, i):
+            return text[:i].strip()
         if failure_reason and depth == 0 and text.startswith(" - ", i):
             return text[:i].strip()
         if char == "[":
@@ -53,6 +57,7 @@ def load_baseline(path=BASELINE) -> dict:
 
 
 def parse(log: str, prefix: str = "") -> tuple:
+    log = ANSI.sub("", log)
     ids, counts = set(), {}
     for line in log.splitlines():
         m = ID.match(line)
@@ -171,6 +176,7 @@ def verify_env(root, packages=None, python=None, shelf=None) -> list:
 
 def parse_passed(log: str, prefix: str = "") -> set:
     """Read affirmative pytest -rA PASS receipts, preserving class and parameter node IDs."""
+    log = ANSI.sub("", log)
     return {prefix + node for line in log.splitlines() if line.startswith("PASSED ") and "::" in line
             if (node := node_identity(line[len("PASSED "):]))}
 

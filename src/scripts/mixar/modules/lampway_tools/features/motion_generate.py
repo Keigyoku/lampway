@@ -59,22 +59,23 @@ def generate(root, prompt, lib, duration=3.0):
     full = os.path.join(root, best["file"])
     if not os.path.isfile(full):
         raise C.FeatureError(f"the index names {best['file']}, which is missing: run action=index again")
+    # Capture the previous output before the new armature can take its name.
+    old = bpy.data.objects.get(ARMATURE)
     new = _import(full)
     arm = next((o for o in new if o.type == "ARMATURE"), None)
     if arm is None:
         for o in new:
             bpy.data.objects.remove(o)
         raise C.FeatureError(f"{best['file']} holds no armature: a clip is an armature with an action")
-    arm.name = ARMATURE
-    arm["lw_motion_generate"] = best["name"]
     act = arm.animation_data.action if arm.animation_data else None
     if act is None:
         raise C.FeatureError(f"{best['file']} has no action on its armature")
-    old = bpy.data.objects.get(ARMATURE)
     if old is not None and old.get("lw_motion_generate"):
         for child in list(old.children):
             bpy.data.objects.remove(child)
         bpy.data.objects.remove(old)
+    arm.name = ARMATURE
+    arm["lw_motion_generate"] = best["name"]
     act.name = best["name"]
     f0, f1 = act.frame_range
     sc = bpy.context.scene
