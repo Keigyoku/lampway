@@ -2,14 +2,28 @@
 tool without one had no form). Each is written from its script's own usage line and argparse (scripts/<path> in
 mixar.modules.lampway_tools), positional arguments in order, flags as the script names them; descriptions are the scripts' own
 home lines. Four of the thirteen already had a typed in-app definition, which the Way now offers instead (uv_score, bake_maps,
-material_bake_export, asset_catalog_export: scripts/lampway/facelift/tool_specs.py FEATURES). render_textured is not here: it
-needs a .blend before -P, which api.run_tool does not pass."""
+material_bake_export, asset_catalog_export: scripts/lampway/facelift/tool_specs.py FEATURES). render_textured's first field is
+its .blend, which the runner opens before the script (runner.Tool.opens_blend)."""
 
 from .tool_defs import Def, P
 
 _PATHS = " Paths are relative to the project root."
 
 BATCH_FORM_DEFS = [
+    # the captain's ruling 6 (2026-10-06): the last three runner tools without a form
+    Def("lampway_rtmw_detect", "RTMW whole-body 2D keypoints per frame (rtmlib and onnxruntime, the weights read from disk)." + _PATHS, [
+        P("out", desc="The keypoints written (json)", required=True), P("onnx", desc="The RTMW model (onnx)", required=True),
+        P("frames", "array", "The frames (png), in order", required=True),
+        P("input", desc="The model's input size, WxH (for example 288x384)", flag="--input")], batch="rtmw_detect"),
+    Def("lampway_proportion_fit", "Clearance-fit overlays of pieces on a body (fragile as a ranking: a look, not a verdict)." + _PATHS, [
+        P("out_dir", desc="Where the overlays are written", required=True), P("body", desc="The body (glb)", required=True),
+        P("pieces", "array", "piece:turn pairs, a mesh and its turn about Z in degrees (for example helmet.glb:-90)", required=True)],
+        batch="proportion_fit"),
+    Def("lampway_render_textured", "The textured look of a parts set on its shared atlas, rendered from the parts set's .blend." + _PATHS, [
+        P("blend", desc="The parts set's .blend (Blender opens it before the script)", required=True),
+        P("projection_dir", desc="The projection's output directory (the atlas)", required=True),
+        P("out_dir", desc="Where the renders are written", required=True),
+        P("object", desc="The object to render, default chest_smartmesh_r6")], batch="render_textured"),
     Def("lampway_clay_view", "Orthographic clay render of a mesh from a cardinal view (mesh-paint input), camera recorded." + _PATHS, [
         P("mesh", desc="The mesh (fbx)", required=True), P("out", desc="The PNG written", required=True),
         P("view", desc="Front | Back | Left | Right", required=True), P("res", "integer", "Image size in pixels", required=True, minimum=64, maximum=8192),

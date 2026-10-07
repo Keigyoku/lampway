@@ -49,7 +49,7 @@ status = "partial"
 source = "docs/reports/tools.md"
 note = "Projection and albedo tested on recorded plates; the live image generation step has not run"
 tools = ["lampway_detail_normals", "lampway_pbr_merge", "lampway_clay_view", "lampway_mesh_paint_set", "lampway_relief_project",
-         "lampway_material_masks", "lampway_bake_maps", "lampway_material_bake_export"]
+         "lampway_material_masks", "lampway_bake_maps", "lampway_material_bake_export", "lampway_render_textured"]
 
 [[step]]
 id = "fit"
@@ -57,7 +57,8 @@ name = "Fit and openings"
 status = "partial"
 source = "docs/reports/tools.md"
 note = "Proportion and clearance tools built; fit_place, fit_pose and fit_openings are not ported"
-tools = ["lampway_mesh_to_npz", "lampway_place_piece", "lampway_pose_clearance", "lampway_piece_ratios", "lampway_proportion_ratios", "lampway_mesh_compare", "lampway_pauldron_symmetry"]
+tools = ["lampway_mesh_to_npz", "lampway_place_piece", "lampway_pose_clearance", "lampway_piece_ratios", "lampway_proportion_ratios", "lampway_mesh_compare", "lampway_pauldron_symmetry",
+         "lampway_proportion_fit"]
 
 [[step]]
 id = "bind"
@@ -66,7 +67,7 @@ status = "partial"
 source = "docs/reports/features.md"
 note = "Auto rig and the export bundle are built; the bind to UE is Wave 3"
 when = "Wave 3"
-tools = ["lampway_auto_rig", "lampway_export_piece", "lampway_render_video", "lampway_robust_weight_transfer"]
+tools = ["lampway_auto_rig", "lampway_export_piece", "lampway_render_video", "lampway_robust_weight_transfer", "lampway_rtmw_detect"]
 
 # A tool's own word when it differs from its step's (the source is the report that measured the tool).
 [tools.lampway_image_to_3d]
@@ -140,6 +141,21 @@ source = "docs/reports/tools.md"
 [tools.lampway_robust_weight_transfer]
 status = "built"
 source = "docs/reports/wave3.md"
+
+# The captain's ruling 6: the three runner tools that had no form (ported scripts; the canon report lists them in the runner)
+[tools.lampway_rtmw_detect]
+status = "built"
+source = "docs/reports/orphans.md"
+
+[tools.lampway_proportion_fit]
+status = "partial"
+source = "docs/reports/canon.md"
+note = "A ported runner script; no test runs it end to end"
+
+[tools.lampway_render_textured]
+status = "partial"
+source = "docs/reports/canon.md"
+note = "A ported runner script; no test runs it end to end"
 
 # Tools the agent has that are not a step of one piece's runbook, each with why (test_every_tool_has_a_place).
 [off_the_way]

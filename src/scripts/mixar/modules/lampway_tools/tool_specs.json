@@ -1578,6 +1578,38 @@
    ]
   },
   {
+   "name": "lampway_proportion_fit",
+   "description": "Clearance-fit overlays of pieces on a body (fragile as a ranking: a look, not a verdict). Paths are relative to the project root.",
+   "batch": "proportion_fit",
+   "api": null,
+   "params": [
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "Where the overlays are written",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "body",
+     "type": "string",
+     "desc": "The body (glb)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "pieces",
+     "type": "array",
+     "desc": "piece:turn pairs, a mesh and its turn about Z in degrees (for example helmet.glb:-90)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
    "name": "lampway_proportion_ratios",
    "description": "The PRIMARY proportion score of torso pieces against the MetaHuman body: scale-free landmark ratios (lower is closer; 0 = the body's proportions). Paths are relative to the project root; a path outside it is refused.",
    "batch": "proportion_ratios",
@@ -1789,6 +1821,46 @@
      "desc": "",
      "required": false,
      "flag": "--flag-poly",
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_render_textured",
+   "description": "The textured look of a parts set on its shared atlas, rendered from the parts set's .blend. Paths are relative to the project root.",
+   "batch": "render_textured",
+   "api": null,
+   "params": [
+    {
+     "name": "blend",
+     "type": "string",
+     "desc": "The parts set's .blend (Blender opens it before the script)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "projection_dir",
+     "type": "string",
+     "desc": "The projection's output directory (the atlas)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "out_dir",
+     "type": "string",
+     "desc": "Where the renders are written",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "object",
+     "type": "string",
+     "desc": "The object to render, default chest_smartmesh_r6",
+     "required": false,
+     "flag": null,
      "repeat": false
     }
    ]
@@ -2037,6 +2109,46 @@
      "desc": "point | surface, default point",
      "required": false,
      "flag": null,
+     "repeat": false
+    }
+   ]
+  },
+  {
+   "name": "lampway_rtmw_detect",
+   "description": "RTMW whole-body 2D keypoints per frame (rtmlib and onnxruntime, the weights read from disk). Paths are relative to the project root.",
+   "batch": "rtmw_detect",
+   "api": null,
+   "params": [
+    {
+     "name": "out",
+     "type": "string",
+     "desc": "The keypoints written (json)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "onnx",
+     "type": "string",
+     "desc": "The RTMW model (onnx)",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "frames",
+     "type": "array",
+     "desc": "The frames (png), in order",
+     "required": true,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "input",
+     "type": "string",
+     "desc": "The model's input size, WxH (for example 288x384)",
+     "required": false,
+     "flag": "--input",
      "repeat": false
     }
    ]

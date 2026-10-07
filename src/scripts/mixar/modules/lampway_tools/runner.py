@@ -41,13 +41,14 @@ class Tool:
     script: str        # relative to scripts/
     summary: str
     consumes: object   # REQUIRED (the normalization door): {arg: Need}, NONE("why") or, during migration, LEGACY("issue")
+    opens_blend: bool = False   # the first argument is a .blend Blender opens before the script (``blender -b <blend> -P ...``)
 
     def __post_init__(self):
         validate_declaration(self.consumes)
 
 
-def _t(name, kind, script, summary, consumes):
-    return name, Tool(name, kind, script, summary, consumes)
+def _t(name, kind, script, summary, consumes, opens_blend=False):
+    return name, Tool(name, kind, script, summary, consumes, opens_blend)
 
 
 TOOLS = dict([
@@ -65,7 +66,8 @@ TOOLS = dict([
     _t("proportion_fit", "blender", "proportion/proportion_fit.py", "clearance-fit overlays (fragile as a ranking)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
     _t("mesh_compare", "blender", "proportion/mesh_compare.py", "compare candidate meshes with a reference, matcap renders", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
     _t("pose_clearance", "blender", "proportion/pose_clearance.py", "the MetaHuman's closest pose and residual blocking surfaces", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
-    _t("render_textured", "blender", "texlib/render_textured.py", "textured look of a parts set on its shared atlas", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
+    _t("render_textured", "blender", "texlib/render_textured.py", "textured look of a parts set on its shared atlas", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"),
+       opens_blend=True),
     _t("clay_view", "blender", "texlib/clay_view.py", "orthographic clay render of a mesh from a cardinal view (the mesh-paint input)", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
     _t("mesh_paint_set", "numpy", "texlib/mesh_paint_set.py", "projection plate set from mesh-paint results: picked painted views with their clay-render alpha", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
     _t("split_relief", "science", "partseg/split_relief.py", "split a raised relief out of its part as a material-only part", LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)")),
@@ -114,7 +116,9 @@ def command(name: str, args, s: Optional[S.Settings] = None) -> list:
         blender = S.blender_binary(s)
         if blender is None:
             raise ToolUnavailable("no Blender to run under: set LAMPWAY_BLENDER (inside the app this is the app's own binary)")
-        return nice + [str(blender), "-b", "--python-exit-code", "1", "-P", script, "--", *map(str, args)]
+        args = list(map(str, args))
+        opened = [args.pop(0)] if tool.opens_blend and args else []
+        return nice + [str(blender), "-b", *opened, "--python-exit-code", "1", "-P", script, "--", *args]
     return nice + [_python_for(tool, s), script, *map(str, args)]
 
 
