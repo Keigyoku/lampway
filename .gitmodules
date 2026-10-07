@@ -5,3 +5,7 @@
 	path = third_party/hermes-agent
 	url = https://github.com/NousResearch/hermes-agent
 	shallow = true
+[submodule "third_party/herdr"]
+	path = third_party/herdr
+	url = https://github.com/herdrdev/herdr
+	shallow = true

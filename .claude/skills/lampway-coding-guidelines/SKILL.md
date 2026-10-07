@@ -24,6 +24,9 @@ owner values in tracked files; build the tool, not the output. Every procedure b
 
 ## 1. Repository layout and the overlay build
 
+- `third_party/hermes-agent` (tag v2026.9.24, Mode 1's agent engine) and `third_party/herdr` (tag v0.9.3, the terminal server
+  of every agent pane) are pinned the same way as `upstream/`, read-only, and built by `scripts/lampway/engine_env.py` and
+  `scripts/lampway/herdr_env.py`. Bumping one is a commit of the new gitlink at a release tag, with the records that name it.
 - `upstream/` is the pinned Blender source (a submodule; tag v5.2.0). `src/` is the overlay: Python under
   `src/scripts/mixar/modules/<module>`, native code under `src/source/blender/`. `source/` is GENERATED: `scripts/unix/overlay.sh`
   deletes it, copies `upstream/` in, then rsyncs `src/` on top. Never edit `source/` and never run CMake inside it.
@@ -171,3 +174,4 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | merge of lp/wave5 into lp/facelift | the facelift lane's merge: lp/wave5 named LAMPWAY_SECRETS_DIR in the launcher bullet where lp/facelift had added the install bullet above it | two lanes edited neighbouring lines of section 2; the merged section carries the install bullet and the three-variable launcher bullet | section 2 | none |
 | 2026-10-06 | the shelf in the reference environment | coordinator: "make them run in test_all's defined environment (LAMPWAY_SHELF_DIR provided, read only) rather than skipping everywhere" | the placement pins skipped in every suite run, so the only measurement of the MetaHuman-sized cases ran only by hand | test_all requires the shelf's placement fixtures, the conftest fails a shelf skip inside test_all, a run that wrote to the shelf is RED; the paragraph in section 3 | none |
 | 2026-10-06 | BUILT_FROM written by the build | coordinator: "Write BUILT_FROM INTO wt-build/build/Prod/ every time you build ... Make it automatic" | the stamp was a hand step after the build, and it was missed: build/Prod held no BUILT_FROM while the integrator's copy was stamped | build_linux.sh stamps through built_from.sh; test_all reads its UNCLEAN and UNPUSHED marks; the bullet in section 2 | none |
+| 2026-10-07 | the agent pins beside Blender's | captain: "Pin the current herdr and Hermes releases the same way the Blender pin is done" | only Blender's pin was named in the build model, so a lane could treat Hermes or herdr as whatever was installed | the bullet in section 1: both pins, their tags, their build scripts, and what a bump is | none |

@@ -10,7 +10,8 @@ This page takes you from a clone to a first conversation with the agent. Linux i
 - Ubuntu 24.04 (a container or VM is fine) with GCC 14. Blender 5.2 refuses older compilers and Ubuntu 24.04 ships GCC 13 by default, so the build script installs the versioned `gcc-14` pair.
 - About 13 GB of disk per build environment (`Dev` or `Prod`) and 100 GB free as a safety floor (`LAMPWAY_MIN_FREE_GB`, default 100).
 - Python 3.12 or newer for the server (`server/pyproject.toml` says 3.11 or newer; 3.12 and 3.14 have run the suite). The Asset Vault library needs 3.14 today ([asset vault](asset-vault.md)).
-- Optional, per feature: an OpenRouter key, a ChatGPT plan, an Anthropic key, a local OpenAI-compatible server, `herdr` for the cockpit, the `boat` CLI for the compute wrapper. See [providers](providers.md).
+- Optional, per feature: an OpenRouter key, a ChatGPT plan, an Anthropic key, a local OpenAI-compatible server, the `boat` CLI for the compute wrapper.
+- For agent panes (the cockpit, both agent modes): Lampway's pinned herdr (`third_party/herdr`, tag `v0.9.3`). Build it with `scripts/lampway/herdr_env.py`, which needs Rust through rustup and Zig 0.16.0; `--check-deps` names what is missing. See [providers](providers.md).
 
 ## 2. Get the source
 
@@ -96,7 +97,7 @@ Profile menu, **Connect AI Apps (MCP)**, enable MCP, pick your app and click **A
 | studio guard | `LAMPWAY_STUDIO_ARMED=1` | set by the confirmed run for that process only; never set it yourself globally |
 | AutoRemesher | `LAMPWAY_AUTOREMESHER_BIN` | the executable built by `native/quadremesh/build.sh`; the app never downloads one |
 | your own agents | `LAMPWAY_LOCAL_CLI=1` | lets the cockpit start your own Claude Code, Codex or OpenCode in its panes (see [cockpit](cockpit.md)) |
-| herdr | `LAMPWAY_HERDR_BIN`, `LAMPWAY_HERDR_ROOT` | the cockpit's own herdr server (see [cockpit](cockpit.md)) |
+| herdr | `LAMPWAY_HERDR_BIN`, `LAMPWAY_HERDR_BUILDS`, `LAMPWAY_HERDR_ROOT` | the cockpit's own herdr server (see [cockpit](cockpit.md)): the pinned build under `LAMPWAY_HERDR_BUILDS` (default `build/herdr`) is used ahead of one on PATH; `LAMPWAY_HERDR_BIN` overrides both |
 | server bind | `LAMPWAY_HOST`, `LAMPWAY_PORT` | default `127.0.0.1:8787`; a Host guard answers 421 to any other Host |
 | state dir | `LAMPWAY_STATE_DIR` | secrets, prefs, egress prefs and log, spend log (the launcher sets `<home>/server-state`) |
 

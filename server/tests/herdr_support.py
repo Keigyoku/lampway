@@ -13,8 +13,11 @@ import pytest
 
 from lampway_server.herdr import launcher as L
 
-HERDR = os.environ.get("LAMPWAY_HERDR_BIN") or shutil.which("herdr") or str(Path.home() / ".local/bin/herdr")
-needs_herdr = pytest.mark.skipif(not Path(HERDR).exists(), reason="herdr is not installed (LAMPWAY_HERDR_BIN)")
+try:
+    HERDR = L.bin_path()                     # the one lookup: LAMPWAY_HERDR_BIN, the pinned build, PATH, ~/.local/bin
+except L.HerdrError:
+    HERDR = ""
+needs_herdr = pytest.mark.skipif(not HERDR, reason="no herdr: build the pinned one (scripts/lampway/herdr_env.py) or set LAMPWAY_HERDR_BIN")
 FAKE_CLI = '''import sys
 print("fake agent ready", flush=True)
 for line in sys.stdin:

@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
+from typing import Optional
 
 PASS_THROUGH_FOR_PANES = ("HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME", "CLAUDE_CONFIG_DIR", "CODEX_HOME")
 SOCK_LIMIT = 100
@@ -15,10 +16,33 @@ class HerdrError(RuntimeError):
     pass
 
 
+#: Where scripts/lampway/herdr_env.py builds the pinned herdr (``third_party/herdr``): ``LAMPWAY_HERDR_BUILDS``, else the repository's
+#: ``build/herdr``.
+REPO_BUILDS = Path(__file__).resolve().parents[3] / "build" / "herdr"
+
+
+def pinned_build() -> Optional[str]:
+    """The newest FINISHED pinned build (``<builds>/<tag>/herdr.json`` written last by herdr_env.py), or None."""
+    base = Path(os.environ.get("LAMPWAY_HERDR_BUILDS") or REPO_BUILDS)
+    done = sorted((p for p in base.glob("*/herdr.json") if p.is_file()), key=lambda p: p.stat().st_mtime) if base.is_dir() else []
+    for rec_path in reversed(done):
+        try:
+            binary = rec_path.parent / json.loads(rec_path.read_text()).get("binary", "herdr")
+        except (OSError, ValueError):
+            continue
+        if binary.is_file() and os.access(binary, os.X_OK):
+            return str(binary)
+    return None
+
+
 def bin_path() -> str:
-    cand = os.environ.get("LAMPWAY_HERDR_BIN") or shutil.which("herdr") or str(Path.home() / ".local/bin/herdr")
+    """The herdr Lampway runs: ``LAMPWAY_HERDR_BIN``; else the pinned build, as Blender is built from its pin; else one on PATH or in
+    ``~/.local/bin``."""
+    cand = (os.environ.get("LAMPWAY_HERDR_BIN") or pinned_build() or shutil.which("herdr")
+            or str(Path.home() / ".local/bin/herdr"))
     if not Path(cand).exists():
-        raise HerdrError("herdr is not installed: install it (or set LAMPWAY_HERDR_BIN) and run it once yourself")
+        raise HerdrError("herdr is not installed: build Lampway's pinned herdr (scripts/lampway/herdr_env.py), or install one "
+                         "(or set LAMPWAY_HERDR_BIN) and run it once yourself")
     return cand
 
 
