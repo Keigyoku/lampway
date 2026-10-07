@@ -73,6 +73,7 @@ every later point back to the piece's own frame (canon 08 blockers, region regen
 | G09.2 chest regression | `place_piece.build` on the recorded chest inputs | byte-identical to the shelf output (1e-9) | — |
 | G09.3 self-test | the body's own region offset 15 mm | scale 1.000 ± 0.02, translation < 3 mm | — |
 | G09.4 uniform | any kind | singular values of the linear map equal within 1e-6 | per-axis scaling |
+| G09.6 asymmetric pair | `tests/lampway_tools/test_canon_pair_scale.py`, actual tubes with one side uniformly1.5× larger | measured scales differ >0.1; triangle/vertex identities retained; inverse error <1e-9m; native scene matches output <1e-6m | unconditional averaging cannot express independent scales |
 | G09.5 boots | no `scale_anchor` | REFUSED naming the three anchors | a default anchor |
 
 ## F. Implementation gap (Lampway `b806617f`)
@@ -83,14 +84,14 @@ every later point back to the piece's own frame (canon 08 blockers, region regen
 2. Rotation not applied for gauntlets (0–25 deg left; `fit_place.py:161-168`, `_similarity` :50-51).
 3. Absolute constants: waist torso filter `|x| < 0.27` (`fit_place.py:71`), boots foot `z < 0.04` (`:98`), gauntlet arm `|x| > 0.25`
    (`:132`).
-4. Pairs: one scale = mean of the two sides (`fit_place.py:113,165`) — whether pairs share a scale is open.
+4. Pairs: explicit `pair_scale_group=common|per_side` paths are implemented. Per-side placement records vertex ids and one proper similarity per separated side, with an exact inverse; cross-centre triangles refuse. The native scene API validates all groups before writing any vertex. Omitted mode preserves the historical calculation and records `pair_scale_needs_decision=true`; D4 has no canonical default.
 5. No source-part check before placement.
 
 ## G. Agent-facing tool contract — `lampway_fit_place`
 
 ```json
 {"kind": "chest|helmet|waist|boots|gauntlets", "piece": "piece.npz", "body": "fit_body package dir", "turn": -90,
- "clear_mm": 15, "scale_anchor": "width|height|foot|girth (boots: REQUIRED)", "sides": "both|l|r", "out": "placed.npz"}
+ "clear_mm": 15, "pair_scale_group": "common|per_side (explicit; default unruled)", "scale_anchor": "width|height|foot|girth (boots: REQUIRED)", "sides": "both|l|r", "out": "placed.npz"}
 ```
 Refusals: boots without an anchor; a side with < 50 triangles; axis more than 25 deg off its bone without `rotate: true`; a gauntlet
 whose finger end is up; a piece failing the source-part check; body package without joints. Receipt: meta above +

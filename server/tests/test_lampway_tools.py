@@ -167,8 +167,8 @@ def test_seed_audit_reaches_blender_with_its_proposals_as_an_object():
     assert got == {"stage": "record", "piece": "Boots1", "proposals": {"v1": {"verdict": "usable"}}, "by": "model"}
 
 
-def test_qa_tag_layers_requires_the_explicit_target_piece():
+def test_qa_tag_layers_requires_the_explicit_target_object():
     spec = next(t for t in T.TOOLS if t.name == "lampway_qa_tag_layers")
-    assert "piece" in spec.parameters.get("required", [])
-    with pytest.raises(ValueError, match="piece"):
+    assert "object" in spec.parameters.get("required", [])
+    with pytest.raises(ValueError, match="object"):
         LT.build_script(next(d for d in LT.DEFS if d.name == "lampway_qa_tag_layers"), {})

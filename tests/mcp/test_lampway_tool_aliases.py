@@ -69,3 +69,55 @@ def test_g15_whole_catalogue_size_is_bounded():
     # Measured full catalogue, including opt-in UI. Less than audit's 335,426 B.
     size = len(json.dumps({'tools': public}, ensure_ascii=False).encode())
     assert size <= 335000, size
+
+
+def _assert_full_public_registry_has_no_deprecated_names_or_descriptions():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'server'))
+    from lampway_server.agent import tools as registry
+    from lampway_server.mcp import McpServer
+    raw_server = registry.TOOLS
+    public = aliases.expose(schema.tools() + McpServer(None, None).tools_payload())
+    for name, description in [(t.name, t.description) for t in raw_server] + [(t['name'], t['description']) for t in public]:
+        assert not name.startswith("mixar_"), name
+        assert not __import__("re").search(r"\bmixar_[a-zA-Z0-9_]+", description), (name, description)
+    assert len({tool['name'] for tool in public}) == len(public)
+
+
+def test_deprecated_names_and_mentions_are_absent_from_the_whole_real_registry():
+    _assert_full_public_registry_has_no_deprecated_names_or_descriptions()
+
+
+@pytest.mark.parametrize("old_name", ["mixar_ui_act", "mixar_future_tool"])
+def test_whole_registry_alias_gate_rejects_a_backend_description_plant(monkeypatch, old_name):
+    from lampway_server.agent import tools as registry
+    from lampway_server.agent.providers.base import ToolSpec
+    monkeypatch.setattr(registry, 'TOOLS', [*registry.TOOLS, ToolSpec('lampway_alias_plant', f'First use {old_name}.', {'type':'object'})])
+    with pytest.raises(AssertionError, match=old_name):
+        _assert_full_public_registry_has_no_deprecated_names_or_descriptions()
+
+
+def _assert_local_schema_debt_absent(tools=None):
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'server/tests'))
+    from test_tool_schema_ratchet import _counts
+    from lampway_server.agent.providers.base import ToolSpec
+    registry = aliases.expose(schema.tools()) if tools is None else tools
+    objects = [ToolSpec(t['name'], t['description'], t['inputSchema']) for t in registry]
+    undescribed, unbounded = _counts(objects)
+    assert not undescribed, undescribed
+    assert not unbounded, unbounded
+
+
+def test_every_local_ui_parameter_is_described_and_numeric_bounds_are_recursive():
+    _assert_local_schema_debt_absent()
+
+
+def test_local_nested_schema_negative_control_cannot_escape_the_gate():
+    from copy import deepcopy
+    tools = deepcopy(aliases.expose(schema.tools()))
+    tools[0]['inputSchema']['properties']['planted'] = {'type':'object', 'description':'Negative control', 'properties':{'hidden':{'type':'number'}}}
+    with pytest.raises(AssertionError, match='hidden'):
+        _assert_local_schema_debt_absent(tools)

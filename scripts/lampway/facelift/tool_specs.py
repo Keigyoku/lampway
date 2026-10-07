@@ -41,7 +41,8 @@ def render() -> str:
     tools = specs()
     from lampway_server.agent.lampway_tools import DEFS
     calls = {d.api: {"name": d.name, "required": [p.name for p in d.params if p.required]} for d in DEFS if d.api and not d.batch}
-    return json.dumps({"generated_by": "scripts/lampway/facelift/tool_specs.py", "tools": tools, "api_calls": calls}, indent=1) + "\n"
+    batches = {d.batch: {"name": d.name, "required": [p.name for p in d.params if p.required]} for d in DEFS if d.batch}
+    return json.dumps({"generated_by": "scripts/lampway/facelift/tool_specs.py", "tools": tools, "api_calls": calls, "batch_calls": batches}, indent=1) + "\n"
 
 
 def main(argv=None) -> int:

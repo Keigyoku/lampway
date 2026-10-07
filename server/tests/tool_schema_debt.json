@@ -270,7 +270,6 @@
     "lampway_model_compare.action",
     "lampway_model_compare.blind",
     "lampway_model_compare.require_pick",
-    "lampway_model_compare.set",
     "lampway_model_compare.size",
     "lampway_model_compare.views",
     "lampway_modular_character.armature",

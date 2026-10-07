@@ -76,7 +76,7 @@ def _bvh_hits(origins, dirs, max_t, V, T):
     return out
 
 
-def solve_scene(kind, piece, body, armature, dofs, chain=(), regions=None, out="", root="."):
+def solve_scene(kind, piece, body, armature, dofs, chain=(), regions=None, out="", root=".", curl_side="", curl_fractions=None):
     """canon 08 on scene objects (pipeline.pose_solve): the armature's rest frames (component space), the body's vertices each riding
     its strongest bone, the placed piece's triangles, a BVH ray caster; writes pose.json (lampway.fit-pose/1) to ``out``."""
     import json
@@ -112,7 +112,7 @@ def solve_scene(kind, piece, body, armature, dofs, chain=(), regions=None, out="
         raise ValueError(f"{body!r} has no vertex weighted to a bone of {armature!r}: bind it first")
     V, T = _rig._body_mesh(pc)
     res = PS.solve(ref, {"up": (0.0, 0.0, 1.0), "forward": (0.0, -1.0, 0.0)}, samples, (V, T), list(dofs), list(chain or ()),
-                   regions=regions, hits=_bvh_hits)
+                   regions=regions, hits=_bvh_hits, curl_side=curl_side, curl_fractions=curl_fractions)
     res.update(kind=kind, piece=piece, body=body, armature=armature, samples=len(samples), sample_stride=step)
     if out:
         p = Path(root) / out

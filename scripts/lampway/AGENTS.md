@@ -14,6 +14,9 @@ app on a copy of a file), `sync_python.sh` (a Python-only change into an install
 `pii_allow.txt` (what may never be published). Upstream's build machinery stays in `scripts/unix/` and `scripts/windows/`; these
 wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) and the `lampway-release` skill (the gate).
 
+
+`measure_fit_decisions.py` runs in an explicitly supplied disposable scene and project config, never saving the blend or selecting defaults. Receipts/views remain under the project root; failed jobs produce a nonzero exit.
+
 ## Invariants
 
 1. **AXI refusals.** A refusal prints `error: <why>` and a `help[N]:` list of next commands on stdout and exits 1; an unknown flag
@@ -50,3 +53,4 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the scripts' refusal shape, secret handling and the gate's outside-the-tree patterns were known only from their headers | the five invariants, the test commands, and the scripts bound to their skills as rail triggers | captain ruling, 2026-10-05 |
 | 2026-10-07 | PII diagnostics privacy | captain: fix PR privacy exposure | findings echoed identifiers and email domains into public logs | fully redact personal values while retaining every blocking rule and planted offender | prepublish privacy regression tests |
+| 2026-10-07 | measured fit decision paths | captain: measure issue2 AC65 before defaults | configurable algorithm gaps and unmeasured proposals obscured required choices | `measure_fit_decisions.py` runs in an explicitly supplied disposable scene and project config, never saving the blend or selecting defaults. Receipts/views remain under the project root; failed jobs produce a nonzero exit. | native decision-pack fixture |

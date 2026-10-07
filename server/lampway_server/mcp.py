@@ -28,7 +28,7 @@ SERVER_TOOLS = (
     ToolSpec("lampway_credit_balance", "What the local ledger says was spent, by provider and unit, the job states, and the configured caps. Read-only; it never reads a studio's credit balance or any secret.",
              {"type": "object", "additionalProperties": False, "properties": {}}),
     ToolSpec("lampway_call_status", "The recorded outcome of an earlier tool call by its call id (every result names one): running, or complete with its text. Use it after your own request timed out.",
-             {"type": "object", "additionalProperties": False, "required": ["call_id"], "properties": {"call_id": {"type": "string"}}}),
+             {"type": "object", "additionalProperties": False, "required": ["call_id"], "properties": {"call_id": {"type": "string", "description": "Durable call identifier returned by the original MCP execution."}}}),
 )
 
 PROTOCOL_VERSION = "2025-06-18"
@@ -63,7 +63,7 @@ class McpServer:
         payload = []
         for t in offered_tools():
             row = {"name": t.name, "description": t.description, "inputSchema": t.parameters,
-                   "_meta": {"spend": False, "spend_policy": "No spend; only the user confirms in the Client."}}
+                   "_meta": {"spend": False, "spend_policy": "User confirms."}}
             if t.name in ENVELOPE.NAMES:
                 row["outputSchema"] = ENVELOPE.output_schema(t.name)
             payload.append(row)

@@ -42,6 +42,8 @@ def _bbox(region):
         region = region['bbox']
     if not isinstance(region, (list, tuple)) or len(region) != 6:
         raise C.FeatureError('region must contain six numeric object-space bbox coordinates')
+    if any(isinstance(x, bool) or not isinstance(x, (int, float)) for x in region):
+        raise C.FeatureError('region bbox coordinates must be finite numbers')
     try:
         b = [float(x) for x in region]
     except (TypeError, ValueError):
@@ -200,6 +202,11 @@ def _weights_sig(ob):
 
 
 def edit_locality_check(before, after, region=None, margin_m=0.005, tolerance_m=0.0005):
+    if not isinstance(before, str) or not before.strip() or not isinstance(after, str) or not after.strip():
+        raise C.FeatureError('before and after must be nonempty object names')
+    for name, value in (('margin_m', margin_m), ('tolerance_m', tolerance_m)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise C.FeatureError(name + ' must be a finite number')
     if region is None:
         raise C.FeatureError("give the region the edit was allowed to touch (a bbox [x0, y0, z0, x1, y1, z1] in object space)")
     lo, hi = _bbox(region)

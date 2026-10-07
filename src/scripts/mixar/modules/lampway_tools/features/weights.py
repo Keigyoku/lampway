@@ -261,6 +261,23 @@ def cleanup(object, armature, ops, mirror_from=None):
 # ------------------------------------------------------------------------------------------------------------------ transfer
 MAX_DISTANCE_LIMIT = 0.5
 
+# Issue 2 G10 native calibration (test_three_percent_matched_transfer_names_placement_and_threshold):
+# correctly placed coincident planar grid matches 1.0; unplaced sloped grid matches about .03
+# under the unchanged .05 m / 30 degree gates. Warn below majority matching, never gate export.
+MATCHED_FRACTION_WARNING_THRESHOLD = 0.5
+
+def _match_warnings(matched_fraction, threshold):
+    if threshold is None:
+        return []
+    value = float(threshold)
+    if not np.isfinite(value) or not 0 <= value <= 1:
+        raise C.FeatureError("matched_fraction_warning_threshold must be finite and in 0..1")
+    if matched_fraction >= value:
+        return []
+    return [f"matched_fraction {matched_fraction:.6f} is below matched_fraction_warning_threshold {value}; "
+            "weights may depend heavily on inpainting. Check placement with lampway_fit_place before trusting the transfer. "
+            "This diagnostic does not gate export."]
+
 
 def _source_arrays(src, bones):
     """Evaluated (deformed) world vertices, loop triangles, normals and the weight matrix of the bone groups."""
@@ -277,8 +294,9 @@ def _source_arrays(src, bones):
     return tree, np.array([v[:] for v in V]), np.array(tris), names, W
 
 
-def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", root=None, weld_m=G.WELD_M):
+def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", root=None, weld_m=G.WELD_M, matched_fraction_warning_threshold=MATCHED_FRACTION_WARNING_THRESHOLD):
     import math
+    _match_warnings(1.0, matched_fraction_warning_threshold)  # validate before creating the derivative
     ob = C.need_object(object)
     src = C.need_object(source)
     if not 0 < float(max_distance) <= MAX_DISTANCE_LIMIT:
@@ -362,7 +380,9 @@ def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_norm
     unweighted = int((Wt.sum(axis=1) <= EPS).sum())
     hist = {str(k): int(((Wt > EPS).sum(axis=1) == k).sum()) for k in range(1, 5)}
     return {"ok": True, "object": dup.name, "source": src.name, "engine": engine, "matched_fraction": round(float(matched.mean()), 6), "inpainted_vertices": inpainted, "groups_written": len(gnames),
-            "max_influences": int(limit_groups), "influence_histogram": hist, "unweighted_vertices": unweighted}
+            "max_influences": int(limit_groups), "influence_histogram": hist, "unweighted_vertices": unweighted,
+            "matched_fraction_warning_threshold": matched_fraction_warning_threshold,
+            "warnings": _match_warnings(float(matched.mean()), matched_fraction_warning_threshold)}
 
 
 def _harmonic_fill(me, matched, W, weld_m=G.WELD_M):

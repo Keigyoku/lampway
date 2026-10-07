@@ -34,3 +34,21 @@ def test_axis_and_range_bounds_are_float_domain_not_physical_angle_limits():
     args = arguments([1e20, 1, 0])
     args['dofs'][0]['range'] = [720, 728]
     assert LT.build_script(LT.BY_NAME['lampway_fit_glove'], args)
+
+
+@pytest.mark.parametrize('field', ['dofs', 'chain'])
+def test_fit_pose_accepts_the_actual_structured_grammar_and_nullable_defaults(field):
+    dof = arguments()['dofs'][0]
+    payload = {'kind': 'helmet', field: [dof]}
+    schema = LT.BY_NAME['lampway_fit_pose'].spec().parameters
+    jsonschema.validate(payload, schema)
+    jsonschema.validate({'kind': 'helmet', field: None}, schema)
+    assert LT.build_script(LT.BY_NAME['lampway_fit_pose'], payload)
+
+
+@pytest.mark.parametrize('value', [0, -1, float('nan')])
+def test_fit_pose_refuses_invalid_structured_steps_before_execution(value):
+    dof = arguments()['dofs'][0]
+    dof['step'] = value
+    with pytest.raises(LT.BadArguments):
+        LT.build_script(LT.BY_NAME['lampway_fit_pose'], {'kind': 'helmet', 'dofs': [dof]})

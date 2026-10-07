@@ -121,7 +121,7 @@ finally:
 ''')
 
 
-@pytest.mark.parametrize('case', ['rig_example', 'rig_fit', 'live_rebuild', 'motion', 'animation', 'compare_ui'])
+@pytest.mark.parametrize('case', ['rig_example', 'rig_fit', 'live_rebuild', 'motion', 'animation', 'compare_ui', 'studio', 'asset_place'])
 def test_downstream_import_refusals_remove_only_imported_ids(case, tmp_path):
     from issue2_native import run_issue_case
     run_issue_case(tmp_path, '''
@@ -167,6 +167,19 @@ try:
         from mixar.modules.lampway_tools.features import animation as R
         if os.environ.get("LAMPWAY_PLANT_IMPORT_GUARD"): R.retarget=R.retarget.__wrapped__
         R.retarget(p,'Target',root=root)
+    elif case=='studio':
+        from mixar.modules.lampway_tools import studio_landing as R
+        def failed_stat(path):raise RuntimeError('planted post-import file-stat failure')
+        saved_import=canon_io.import_raw
+        def imported_then_stat(*args,**kwargs):
+            result=saved_import(*args,**kwargs);R.os.path.getsize=failed_stat;return result
+        canon_io.import_raw=imported_then_stat
+        R.import_file(p)
+    elif case=='asset_place':
+        from mixar.modules.lampway_tools.features import asset_place as R
+        def failed_place(*args,**kwargs):raise RuntimeError('planted post-import placement failure')
+        R.place_objects=failed_place
+        R.asset_place({'kind':'mesh','name':'piece','files':[{'role':'main','locations':[{'path':p}]}]},mode='import',options={'undo_step':False})
     elif case=='compare_ui':
         import importlib.util
         spec=importlib.util.spec_from_file_location('native_compare_ui',OVERLAY+'/mixar/modules/lampway_tools/ui/compare.py')

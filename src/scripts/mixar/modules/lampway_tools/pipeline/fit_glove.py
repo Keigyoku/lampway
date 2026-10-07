@@ -77,13 +77,14 @@ def _record(root, piece, side):
     return rec
 
 
-def pose(root, piece, side, armature, body_object, dofs, chain, regions, out_dir, apply=False):
+def pose(root, piece, side, armature, body_object, dofs, chain, regions, out_dir, apply=False, curl_fractions=None):
     _record(root, piece, side)
     if not dofs:
         from .. import posing
         return posing.fit_pose("gauntlets")
     from .. import posing
-    result = posing.solve_scene("gauntlets", piece, body_object, armature, dofs, chain, regions, root=root)
+    result = posing.solve_scene("gauntlets", piece, body_object, armature, dofs, chain, regions, root=root,
+                                curl_side=side if curl_fractions is not None else "", curl_fractions=curl_fractions)
     result["keypoints"] = {"source": "body_joints", "side": side, "labels": "independent"}
     if apply:
         import bpy

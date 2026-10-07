@@ -43,29 +43,36 @@ from .meshqa.rulings import Rulings
 _rebuild_run = RB.run                    # replaced by tests: the real thing is minutes of batch work
 
 _HELP = {
-    LookupError: ["Run lampway_qa_setup object=<mesh> recipe=<parts.json> first, or lampway_status to see what is configured"],
+    LookupError: ["lampway_status shows configured objects and running jobs"],
     FileNotFoundError: ["Check the path (relative paths resolve under the project root); lampway_status shows the root"],
     S.PathOutsideProject: ["Put the file under the project root shown by lampway_status; the user can change the root in the Client"],
     RUN.ToolUnavailable: ["lampway_status lists the interpreters; the user can configure the named interpreter in the Client"],
     RB.TagExists: ["A tag is never overwritten: pick a new tag, or pass resume=True to finish an interrupted one"],
-    ValueError: ["Fix the argument named in the error and call again"],
 }
 
 
 _CALL_TEMPLATES = None
+_BATCH_CALL_TEMPLATES = None
 _SPECIFIC_CALLS = {
+    "model_compare": 'lampway_model_compare action=stats set={"models":[{"file":"<a.glb>"},{"file":"<b.glb>"}]}',
     "anim_multiview_fit": "lampway_anim_multiview_fit stage=fit front=<front.json> side=<side.json> calibration=<calibration>",
     "edit_locality_check": "lampway_edit_locality_check before=<before> after=<after> region=<bbox>",
 }
 
 
-def _call_template(api_name):
+def _call_template(api_name, arguments=None):
     """Use the generated registry mapping, rather than inventing names from Python functions."""
-    global _CALL_TEMPLATES
+    global _CALL_TEMPLATES, _BATCH_CALL_TEMPLATES
     if _CALL_TEMPLATES is None:
-        records = json.loads(Path(__file__).with_name("tool_specs.json").read_text())["api_calls"]
+        metadata = json.loads(Path(__file__).with_name("tool_specs.json").read_text())
+        records = metadata["api_calls"]
         _CALL_TEMPLATES = {api: (record["name"] + " " + " ".join(f"{key}=<{key}>" for key in record["required"])).strip()
                            for api, record in records.items()}
+        _BATCH_CALL_TEMPLATES = {batch: (record["name"] + " " + " ".join(f"{key}=<{key}>" for key in record["required"])).strip()
+                                 for batch, record in metadata["batch_calls"].items()}
+    if api_name == "run_tool":
+        batch = (arguments or {}).get("name")
+        return _BATCH_CALL_TEMPLATES.get(batch, "lampway_status") if isinstance(batch, str) else "lampway_status"
     return _SPECIFIC_CALLS.get(api_name, _CALL_TEMPLATES.get(api_name, "lampway_status"))
 
 
@@ -90,11 +97,13 @@ def tool(fn=None, *, consumes=None, produces=None):
 
         @functools.wraps(fn)
         def wrapper(*a, **kw):
+            try:
+                bound = sig.bind_partial(*a, **kw).arguments
+            except TypeError:
+                bound = dict(kw)
+                if fn.__name__ == "run_tool" and a:
+                    bound.setdefault("name", a[0])
             if isinstance(consumes, dict):
-                try:
-                    bound = sig.bind_partial(*a, **kw).arguments
-                except TypeError:
-                    bound = {}
                 for arg, need in consumes.items():
                     value = bound.get(arg)
                     if value not in (None, ""):
@@ -105,13 +114,13 @@ def tool(fn=None, *, consumes=None, produces=None):
                 out = fn(*a, **kw)
                 if isinstance(out, dict):
                     if out.get("ok") is False:
-                        out = {**out, "help": list(out.get("help") or []) + [_call_template(fn.__name__)]}
+                        out = {**out, "help": list(out.get("help") or []) + [_call_template(fn.__name__, bound)]}
                     return {"ok": True, **out}
                 return {"ok": True, "result": out}
             except Exception as exc:
-                help_ = list(next((h for t, h in _HELP.items() if isinstance(exc, t)), ["See the error"])) + [_call_template(fn.__name__)]
-                if isinstance(exc, ValueError) and not isinstance(exc, (LookupError, FileNotFoundError)):
-                    help_ = help_ + [f"The call: {fn.__name__}{sig}"]          # audit F13: the shape the next call needs, not just "fix it"
+                help_ = list(next((h for t, h in _HELP.items() if isinstance(exc, t)), [])) + [_call_template(fn.__name__, bound)]
+                if isinstance(exc, LookupError) and fn.__name__.startswith("qa_"):
+                    help_.insert(0, "lampway_qa_setup object=<mesh> recipe=<parts.json>")
                 return {"ok": False, "error": f"{type(exc).__name__}: {exc}" if not isinstance(exc, (LookupError, S.PathOutsideProject,
                         FileNotFoundError, ValueError, RUN.ToolUnavailable)) else str(exc).strip("'\""), "help": help_}
         return wrapper
@@ -193,12 +202,19 @@ def qa_setup(object, recipe, owner="", piece="", session="", offset=(0, 0, 0), o
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def qa_tag_layers(piece=""):
-    """The three tag layers for ``piece`` (default: the active piece). Refused before any edit when no piece is set up (audit F21: an
-    empty call added layers to a scene with nothing to tag)."""
+def qa_tag_layers(piece="", object=None):
+    """Tag layers for the explicit QA target object; an optional piece selects its configuration.
+    Existing client UI calls may still select their configured piece directly."""
+    if not isinstance(piece, str) or (object is not None and (not isinstance(object, str) or not object.strip())):
+        raise ValueError('object must be a nonempty target object name and piece must be a configuration name')
     cfg = L.load_config(bpy.context.scene, piece or None)
+    if object:
+        if cfg.object != object:
+            raise ValueError(f'QA configuration {cfg.piece!r} targets object {cfg.object!r}, not requested object {object!r}; use lampway_qa_setup for the target')
+        if bpy.data.objects.get(object) is None:
+            raise LookupError(f'QA target object {object!r} is missing; set up an existing object with lampway_qa_setup')
     ann = M.create_tag_layers()
-    return {"piece": cfg.piece, "layers": [l.info for l in ann.layers]}
+    return {"piece": cfg.piece, "object": cfg.object, "layers": [l.info for l in ann.layers]}
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
@@ -1139,20 +1155,20 @@ def seed_audit(stage, piece, seeds=None, scores=None, proposals=None, by="agent"
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_place(kind, piece, body, turn=0.0, clear_mm=15.0, scale_anchor="", sides="both", out="placed.npz", object=""):
+def fit_place(kind, piece, body, turn=0.0, clear_mm=15.0, scale_anchor="", sides="both", out="placed.npz", object="", pair_scale_group=None):
     """Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): helmet = the widest head level above neck_02, waist = the band at
     spine_01 + 3 cm, boots = shaft width | knee height | foot length (scale_anchor is REQUIRED: the user has not ruled which), gauntlets = the bracer at 35 % vs the forearm's middle (an axis
     more than 25 degrees off is refused), chest = the audits' placement unchanged. piece/body are npz files (mesh_to_npz, body with joints); turn brings the piece to -Y front, +Z up. Writes
     placed.npz and placed.npz.json (scale, translation, anchor_shift, turn, norm_lo/hi) and returns the report. object=<name>: the scene piece
     the later stages work on is moved by the same placement - the similarity fitted from piece.npz to placed.npz (it must be one, residual
     < 1e-9 m) - after checking that piece.npz IS that object's world mesh (same vertex count, within 1e-6 m)."""
-    res = _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out)
+    res = _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out, pair_scale_group)
     if object:
-        res["object"] = _place_object(object, _p(piece), res["placed"])
+        res["object"] = _place_object(object, _p(piece), res["placed"], res["meta"])
     return res
 
 
-def _place_object(name, piece_npz, placed_npz):
+def _place_object(name, piece_npz, placed_npz, meta=None):
     """Move the scene object by the placement's similarity (piece.npz -> placed.npz, vertex for vertex)."""
     import numpy as _np
     from . import canon_geom as _G
@@ -1168,6 +1184,25 @@ def _place_object(name, piece_npz, placed_npz):
     if len(W) != len(V0) or float(_np.abs(W - V0).max()) > 1e-6:
         raise ValueError(f"piece.npz is not {name}'s world mesh ({len(V0)} vs {len(W)} vertices"
                          + (f", max {float(_np.abs(W - V0).max()):.6f} m apart" if len(W) == len(V0) else "") + "): write it from this object, then place")
+    if meta and meta.get("side_transforms"):
+        covered = _np.zeros(len(V0), dtype=bool)
+        groups = {}
+        for side, tr in meta["side_transforms"].items():
+            ids = _np.asarray(tr["vertex_ids"], dtype=int)
+            if (ids < 0).any() or (ids >= len(V0)).any() or len(set(ids.tolist())) != len(ids) or covered[ids].any():
+                raise ValueError("pair placement has invalid or overlapping vertex ids")
+            covered[ids] = True
+            fit = _G.similarity_fit(V0[ids], V1[ids])
+            if fit["max"] > 1e-9:
+                raise ValueError(f"the {side} pair placement is not one similarity")
+            groups[side] = {"scale": float(fit["s"]), "similarity_residual_m": float(fit["max"]), "vertices": len(ids)}
+        if not covered.all():
+            raise ValueError("pair placement leaves vertices unassigned")
+        local = (V1-_np.array(ob.matrix_world)[:3, 3]) @ _np.linalg.inv(_np.array(ob.matrix_world)[:3, :3]).T
+        ob.data.vertices.foreach_set("co", local.ravel())
+        ob.data.update()
+        bpy.context.view_layer.update()
+        return {"name": name, "pair_scale_group": "per_side", "groups": groups, "vertices": len(W)}
     fit = _G.similarity_fit(V0, V1)
     if fit["max"] > 1e-9:
         raise ValueError(f"the placement is not one similarity of the piece (residual {fit['max']:.3e} m): it is never applied piecewise")
@@ -1180,9 +1215,9 @@ def _place_object(name, piece_npz, placed_npz):
     return {"name": name, "scale": round(float(fit["s"]), 9), "similarity_residual_m": float(fit["max"]), "vertices": int(len(W))}
 
 
-def _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out):
+def _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out, pair_scale_group=None):
     from .pipeline import fit_place as _FP
-    V, T, meta, rep = _FP.place(kind, _p(body), _p(piece), turn, clear_mm, scale_anchor or None, sides)
+    V, T, meta, rep = _FP.place(kind, _p(body), _p(piece), turn, clear_mm, scale_anchor or None, sides, pair_scale_group)
     import numpy as _np
     o = Path(_p(out or "placed.npz"))
     o.parent.mkdir(parents=True, exist_ok=True)
@@ -1315,7 +1350,7 @@ def armor_piece_pipeline(piece, mode="plan", from_step=1, to_step=15, paired=Non
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, regions=None, out="", apply=False):
+def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, regions=None, out="", apply=False, curl_side="", curl_fractions=None):
     """The closest pose of the body to a piece (canon 08). With dofs [{bone, axis (joint grammar: up | forward | lateral | {line} | {perp} |
     a vector), range [lo, hi] (<= 90 deg wide), step, expect (the first DOF's sign check: {joint, along, min_cm})}] and the scene's piece,
     skinned body and armature: a deterministic sweep (the grid over dofs, then each chain link in turn), rays from each skin sample's bone
@@ -1333,7 +1368,7 @@ def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, region
         t = _PO.TABLES[dofs]
         dofs, chain, regions = t["dofs"], chain if chain is not None else t["chain"], regions or t["regions"]
     if dofs:
-        res = _PO.solve_scene(kind, piece, body, armature, dofs, chain, regions, out, root=str(_settings().project_root))
+        res = _PO.solve_scene(kind, piece, body, armature, dofs, chain, regions, out, root=str(_settings().project_root), curl_side=curl_side, curl_fractions=curl_fractions)
         if apply:
             from .features import validate_pose as _VPO
             arm = bpy.data.objects[armature]
@@ -1439,17 +1474,18 @@ def normalize_mesh(input, turn_deg=None, plate="", recipe="", generator="", want
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", weld_m=1e-5):
+def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", weld_m=1e-5, matched_fraction_warning_threshold=0.5):
     """Copy skin weights from a rigged body onto a piece. Each piece vertex is matched to the closest point on the body's (deformed) surface and takes the barycentric weights when the distance <=
     max_distance (default 0.05 m, at most 0.5) and its normal is within max_normal_angle (default 30 degrees; a flipped normal also counts when flip_normals); every vertex with no trustworthy match is
     inpainted so armpits, crotch and chest-to-arm gaps blend without painting. engine algorithmic: a harmonic fill over the mesh graph (Blender's python); engine robust: the SIGGRAPH Asia 2023 method
     (robust Laplacian, biharmonic constrained solve) in the science python (needs LAMPWAY_PYTHON_SCIENCE with numpy scipy libigl robust_laplacian). limit_groups caps the influences (default 4, 0 = no cap).
     The source must carry vertex groups and exactly one Armature modifier; the piece must have no topology modifiers. Result: a NEW object <object>_wt (or `name`) with the body's groups and Armature; the
-    original is untouched. Returns matched_fraction, inpainted_vertices, groups_written, the influence histogram and unweighted_vertices.
+    original is untouched. matched_fraction_warning_threshold is a 0..1 diagnostic cutoff (default 0.5, calibrated against placed and unplaced native fixtures);
+    below it warnings suggest lampway_fit_place. It never gates export. Returns matched_fraction, inpainted_vertices, groups_written, the influence histogram and unweighted_vertices.
     weld_m (default 1e-5 m, canon 07 B.1): the piece's vertices are welded by position before matching and inpainting, so a seam-split smart
     mesh is one surface and both copies of a seam vertex carry the same row; 0 for an authored rig (a weld can invent identity there)."""
     from .features import weights as _W
-    return _W.transfer(object, source, max_distance, max_normal_angle, flip_normals, inpaint_mode, limit_groups, deform_only, name, engine, weld_m=weld_m)
+    return _W.transfer(object, source, max_distance, max_normal_angle, flip_normals, inpaint_mode, limit_groups, deform_only, name, engine, weld_m=weld_m, matched_fraction_warning_threshold=matched_fraction_warning_threshold)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
@@ -1581,7 +1617,7 @@ def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None, by="agent", armature="", body_object="", body="", dofs=None, chain=None, regions=None, out_dir="", apply=False, accept_seam_gap_mm=None):
+def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None, by="agent", armature="", body_object="", body="", dofs=None, chain=None, regions=None, out_dir="", apply=False, accept_seam_gap_mm=None, curl_fractions=None):
     """Fit one independently labelled glove using the body's joints and the existing canon pose/bind engines. labels: label every plate (piece vertex group) with this side's bone and material role; metal is rigid on one bone, cloth never rigid. pose: armature/body_object and explicit dofs (first sign expectation required), optional chain/regions, writes glove_pose.json; apply replays the fit pose. bind: recorded labels become bind overrides; body names the native fit_body package, or body_object the labelled scene approximation; plan, weights and exact return preserve metal and the source. apply also enforces the existing seam-gap gate. report: labels, pose, bind stages. out_dir defaults to <piece>/fit/glove. Each glove is labelled independently; no inferred mirror labels."""
     from .pipeline import fit_glove as _FG
     root = str(_settings().project_root)
@@ -1595,7 +1631,7 @@ def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None
         plates = [g.name for g in _C.need_object(piece).vertex_groups]
         return _FG.labels(root, piece, side, plates, labels or {}, roles or {}, overrides, by)
     if stage == "pose":
-        return _FG.pose(root, piece, side, armature, body_object, dofs, chain, regions, out_dir, apply)
+        return _FG.pose(root, piece, side, armature, body_object, dofs, chain, regions, out_dir, apply, curl_fractions)
     if stage == "bind":
         return _FG.bind(root, piece, side, armature, body_object, body, out_dir, apply, accept_seam_gap_mm)
     if stage == "report":
@@ -1694,38 +1730,54 @@ def anim_multiview_fit(front="", side="", calibration=None, cameras="", fps=24.0
         raise ValueError('single_view must be a boolean')
     if isinstance(fps, bool) or not isinstance(fps, (int, float)) or not isfinite(fps) or fps <= 0:
         raise ValueError('fps must be a finite positive number')
+    if not isinstance(key, bool):
+        raise ValueError('key must be a boolean')
+    if bones is not None and (not isinstance(bones, list) or not all(isinstance(b, str) and b.strip() for b in bones)):
+        raise ValueError('bones must be an array of nonempty bone names')
+    if isinstance(step_deg, bool) or not isinstance(step_deg, (int, float)) or not isfinite(step_deg):
+        raise ValueError('step_deg must be a finite number')
+    if isinstance(rounds, bool) or not isinstance(rounds, int):
+        raise ValueError('rounds must be an integer')
     if stage not in ('fit', 'detect', 'refine'):
         raise ValueError('stage must be fit, detect or refine')
     def path_arg(value, field):
         if not isinstance(value, str) or not value.strip():
             raise ValueError(field + ' must be a nonempty project-relative file path')
+    for value, field in ((front, 'front'), (side, 'side'), (cameras, 'cameras'), (onnx, 'onnx'), (armature, 'armature'), (mesh, 'mesh')):
+        if not isinstance(value, str):
+            raise ValueError(field + ' must be a string path or object name')
+    if grid_frames is not None and (not isinstance(grid_frames, list) or not all(isinstance(p, str) and p.strip() for p in grid_frames)):
+        raise ValueError('grid_frames must be an array of nonempty PNG paths')
+    if calibration is not None and not isinstance(calibration, dict):
+        raise ValueError('calibration must be an object containing px_per_m, or use cameras')
+    if masks is not None and (not isinstance(masks, dict) or set(masks) != {'front', 'side'} or not all(isinstance(p, str) and p.strip() for p in masks.values())):
+        raise ValueError('masks must contain front and side silhouette folder paths')
+    if frames is not None and (not isinstance(frames, dict) or set(frames) != {'front', 'side'}):
+        raise ValueError('frames must contain front and side PNG paths or folders')
+    if frames is not None:
+        for paths in frames.values():
+            if not ((isinstance(paths, str) and paths.strip()) or (isinstance(paths, list) and paths and all(isinstance(p, str) and p.strip() for p in paths))):
+                raise ValueError('each frames panel must be a folder path or a nonempty array of PNG paths')
+    if calibration:
+        px = calibration.get('px_per_m')
+        if isinstance(px, bool) or not isinstance(px, (int, float)) or not isfinite(px) or px <= 0:
+            raise ValueError('calibration.px_per_m must be a finite positive number')
     path_arg(out, 'out')
     if stage == 'fit':
         path_arg(front, 'front')
         path_arg(side, 'side')  # Both panels are read even when the fitting control uses one view.
-        if calibration is not None and not isinstance(calibration, dict):
-            raise ValueError('calibration must be an object containing px_per_m, or use cameras')
-        if calibration:
-            px = calibration.get('px_per_m')
-            if isinstance(px, bool) or not isinstance(px, (int, float)) or not isfinite(px) or px <= 0:
-                raise ValueError('calibration.px_per_m must be a finite positive number')
-        else:
+        if not calibration:
             path_arg(cameras, 'cameras when calibration is absent')
-        if grid_frames is not None and (not isinstance(grid_frames, list) or not all(isinstance(p, str) and p for p in grid_frames)):
-            raise ValueError('grid_frames must be an array of project-relative PNG paths')
     elif stage == 'refine':
         path_arg(armature, 'armature')
         path_arg(mesh, 'mesh')
         path_arg(cameras, 'cameras')
-        if not isinstance(masks, dict) or set(masks) != {'front', 'side'} or not all(isinstance(p, str) and p for p in masks.values()):
+        if masks is None:
             raise ValueError('masks must contain front and side silhouette folder paths')
     else:
         path_arg(onnx, 'onnx')
-        if not isinstance(frames, dict) or set(frames) != {'front', 'side'}:
+        if frames is None:
             raise ValueError('frames must contain front and side PNG paths or folders')
-        for paths in frames.values():
-            if not ((isinstance(paths, str) and paths) or (isinstance(paths, list) and paths and all(isinstance(p, str) and p for p in paths))):
-                raise ValueError('each frames panel must be a folder path or a nonempty array of PNG paths')
     from .pipeline import anim_io as _IO
     if stage == "detect":
         # the RTMW detector: frames {front: [pngs] | dir, side: ...} -> <out dir>/front.json, side.json (the fit's input); weights from disk, never downloaded

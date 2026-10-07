@@ -134,3 +134,67 @@ def test_registry_help_gate_rejects_a_planted_nonexistent_tool(monkeypatch):
     monkeypatch.setattr(Path, 'read_text', planted)
     with pytest.raises(AssertionError, match='lampway_not_a_real_tool'):
         test_every_literal_tool_in_help_lines_exists_in_the_whole_registry()
+
+
+def _runtime_help_lines(value):
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if key in ('help', 'helps', 'next_step'):
+                yield from ([child] if isinstance(child, str) else child or [])
+            yield from _runtime_help_lines(child)
+    elif isinstance(value, (list, tuple)):
+        for child in value:
+            yield from _runtime_help_lines(child)
+    elif isinstance(value, str):
+        try:
+            decoded = json.loads(value)
+        except (ValueError, TypeError):
+            for marker in ('Next call:', 'Call it as:'):
+                if marker in value:
+                    yield value.split(marker, 1)[1]
+        else:
+            if isinstance(decoded, (dict, list)):
+                yield from _runtime_help_lines(decoded)
+
+
+def _assert_runtime_help(value):
+    known = {t.name for t in [*TOOLS, *SERVER_TOOLS]}
+    lines = list(_runtime_help_lines(value))
+    assert lines, value
+    for line in lines:
+        assert isinstance(line, str), line
+        assert set(re.findall(r'\blampway_[a-z0-9_]+\b', line)) <= known, line
+        assert not re.search(r'\b(?:api\.[a-z_]+\(|mixar_[a-z0-9_]+)', line), line
+
+
+def test_actual_server_refusal_branches_have_registry_checked_next_calls(tmp_path):
+    from lampway_server.library.vault import Vault
+    root = tmp_path / 'project'; root.mkdir()
+    vault = Vault.open(tmp_path / 'vault', project_root=root)
+    replies = []
+    for arguments in ({}, {'action':'bogus'}, {'action':'view','purpose':'unknown'}, {'action':'view','project':'wrong'}):
+        text, error = asyncio.run(choices_tools.call('lampway_choices', arguments))
+        assert error
+        replies.append(text)
+    for instance, arguments in ((None, {}), (vault, {'unexpected':True}), (vault, {'text':'greave','k':'wrong'}),
+                                (vault, {'image':'../outside.png'}), (vault, {'asset_ids':1})):
+        text, error = asyncio.run(vault_tools.call(instance, 'lampway_vault_similar', arguments))
+        assert error
+        replies.append(text)
+    replies.append(McpServer(None, None)._call_status(1, 'absent'))
+    for reply in replies:
+        _assert_runtime_help(reply)
+
+
+def test_runtime_registry_gate_rejects_generated_nested_help():
+    import pytest
+    with pytest.raises(AssertionError, match='lampway_dynamically_unknown_tool'):
+        _assert_runtime_help({'rows':[{'details':{'help':['lampway_' + 'dynamically_unknown_tool']}}]})
+
+
+def test_generated_batch_call_templates_are_exact_live_registry_mappings():
+    from pathlib import Path
+    from lampway_server.agent.lampway_tools import DEFS
+    data = json.loads((Path(__file__).resolve().parents[2] / 'src/scripts/mixar/modules/lampway_tools/tool_specs.json').read_text())
+    expected = {d.batch: {'name': d.name, 'required': [p.name for p in d.params if p.required]} for d in DEFS if d.batch}
+    assert data['batch_calls'] == expected

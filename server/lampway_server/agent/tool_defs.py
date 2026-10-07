@@ -42,9 +42,10 @@ class Def:
         for p in self.params:
             prop = {"type": p.type, "description": p.desc}
             prop.update({k: v for k, v in (("minimum", p.minimum), ("maximum", p.maximum)) if v is not None})
-            if p.type == "array" and p.items is not None:
+            is_array = p.type == "array" or (isinstance(p.type, list) and "array" in p.type)
+            if is_array and p.items is not None:
                 prop["items"] = dict(p.items)
-            elif p.type == "array":
+            elif is_array:
                 prop["items"] = ({"type": "object"} if p.name in ("poses", "waypoints", "anchors", "landmarks", "axis", "plane_origin", "depths_mm", "claims") else
                                  {"type": "number"} if p.name in ("frame_range", "frames_with_pose") else {"type": "array"} if p.name == "twist" else {"type": "string"})
             props[p.name] = prop

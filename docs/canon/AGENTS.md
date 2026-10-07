@@ -18,6 +18,8 @@ work.
 
 Issue2 supersedes the inevitably refused default export recipe with selection from measured normalized frames, retaining explicit Titan and mandatory physical M-RIG-01 confirmation. Keep native metacarpal fanout and120° corrective-roll default-export falsifiers.
 
+Unruled AC65 values need actual owner measurements before recommendation. Keep experimental tables distinct from defaults; canon08/09 cover proper per-side maps and curled-hand falsifiers.
+
 ## Invariants
 
 1. **This copy is the source of truth.** It replaced the spec shelf's `specs/canon/` on 2026-10-06; edits land here, through a
@@ -66,5 +68,5 @@ needs it and lands through the integration lane. Statuses, thresholds and the de
 | 2026-10-07 | accepted helmet table | captain requested canon-recommended typed defaults | complete proposal remained stubbed while other numeric rows were absent | record the complete helmet proposal as accepted and keep other absent numerical rows explicit | issue 2 |
 
 | 2026-10-07 | cardinal facing golden | issue 2 AC65 | plate registration had no implementation despite its existing canon engine contract | pin winning rotation and tie refusal against real rendered masks with explicit margin | canon 10 and normalization contract |
-
 | 2026-10-07 | native MetaHuman normalization and export defaults | actual owner G4/G5 failures and issue2 default-chain instruction | metacarpal slide fanout lacked continuation and default recipe always rejected normalized frames | Issue2 supersedes the inevitably refused default export recipe with selection from measured normalized frames, retaining explicit Titan and mandatory physical M-RIG-01 confirmation. Keep native metacarpal fanout and120° corrective-roll default-export falsifiers. | native metacarpal and both-convention export RED/GREEN; UE proof remains pending |
+| 2026-10-07 | measured fit decision paths | captain: measure issue2 AC65 before defaults | configurable algorithm gaps and unmeasured proposals obscured required choices | Unruled AC65 values need actual owner measurements before recommendation. Keep experimental tables distinct from defaults; canon08/09 cover proper per-side maps and curled-hand falsifiers. | canon08/09 tests and disposable measurement runner |

@@ -18,7 +18,11 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
 
 Native MetaHuman metacarpals follow their named finger01 continuation beside slide helpers. Rig export defaults follow measured normalized frames with recorded recipe selection; explicit Titan stays available and every raw-frame readback bar stays unchanged. Physical UE M-RIG-01 confirmation remains separate and required.
 
+Measure unruled fit defaults before recommending them. Explicit pair modes retain side identities/inverse maps; finger search curls TO canon targets including thumb. The decision measurement runner reports and renders candidates without modifying canon settings; experimental tables require caller sign expectations and thresholds.
+
 ## Invariants
+
+Weight transfer warns below the documented majority-match diagnostic threshold and names `lampway_fit_place`. Validate overrides before creating an output; compare the unrounded fraction and keep this warning separate from export acceptance.
 
 1. **One door.** The agent's scripts reach a tool only through `api.call(name, payload)`, and only names registered by `@tool`
    (`TOOL_FUNCS`) are callable; the payload is one JSON object.
@@ -40,6 +44,8 @@ Native MetaHuman metacarpals follow their named finger01 continuation beside sli
    `LAMPWAY_HOME` and never in the user's stock Blender profile.
 9. **MCP inspection and view routing.** Inspection declares read-only `OBSERVE` and accepts raw geometry; `lampway_view` uses raw object/data consumption because explicit focus unhide can edit visibility. The execution pump suppresses automatic undo only for these two tools; view owns its one explicit unhide undo. Only inspection is exempt from the render read-only gate; evaluated inspection still refuses during a render. Inspection adapts caller-owned evaluated geometry into world metres for the shared defect/orientation interfaces, exact uncapped aggregates and precise BVH/parity relations. UV overlap includes triangles within one island while retaining canonical raster semantics. Native admission checks precede cooperative loops and content hashing; the concrete 2M-triangle/100ms refusal is measured, while arbitrary native modifier evaluation remains indivisible. Open-loop rim presentation rounds the full sum once to four metre decimals across inspection and defect candidates.
 
+Failed persistent import consumers remove only the datablocks they imported and restore caller selection. Canonical import ownership includes Library IDs as well as their loaded dependencies: a partial append/link failure must not leave a Library datablock. Studio ownership also includes replacement meshes created while normalizing the imported asset before landing, so a later collection failure removes that replacement. Successful raw intake and persistent imports remain intentional; temporary readbacks clean up on success too. Verify these rules with completed native loads followed by downstream exceptions, preserving existing IDs and selection; subprocess import checks verify failed child isolation without claiming unrelated recipe algorithms.
+
 Body intake measures UV-split topology on analytical positional identities at
 1e-5 m, preserving authored vertex/native weight ids. Generalized winding verifies
 the head and admits measured native openings without claiming watertightness.
@@ -56,6 +62,10 @@ Large receipts from `mesh_defect_scan`, `procedural_library`, `rig_game_extract`
 AXI renders through the authoritative `common/toon/codec.py`; numpy integer, float and boolean scalars normalize to their native scalar types before TOON formatting. A CLI loading `axi.py` by file path loads that same sibling codec by path when no package namespace exists; it never imports Blender registration or maintains a second codec. Standalone proportion CLI and numpy-table subprocess tests run with Python `-I` to prove this path. Refusals use registry-generated `tool_specs.json` `api_calls` templates (with specific multiview/locality shapes); normalization helpers and proportion CLI next steps name registered tools rather than Python API names or the old tool shelf.
 
 Plate-facing registration uses four cardinal Workbench silhouettes, the shared native-size plate loader, and canon aspect-preserving IoU. Keep the numeric margin explicit or ruled; unset margins and tied winners refuse, and measurements restore temporary IDs and selection before applying a winning turn.
+
+Recursive receipt presentation also pages large nested arrays and mappings, including B-Bone segment lists and nested mesh metrics; page paths retain original row indices and complete totals. Compact table rows retain their named fields or up to four scalar fields; full detail retains fields while applying the same bounds. Small numeric coordinate vectors remain atomic. QA's external schema requires the actual target object, independently of its optional piece configuration name, and the client verifies that match before creating layers.
+
+Refusal helpers select external API or batch names from generated registry metadata and include the required arguments. Batch failures retain structured refusals even for malformed direct-call names; do not let help generation mask the original error. Cover actual engine validation and recursively inspect nested help/next-step receipts against registered names in the isolated binary, alongside the source-template gate.
 
 ## Test
 
@@ -98,3 +108,11 @@ page; the canon's open decisions are the captain's.
 | 2026-10-07 | measured plate facing | issue 2 AC65 remaining implementation | a supplied margin still unconditionally refused the plate path | reuse cardinal silhouette rendering and true-aspect scoring; preserve unset/ambiguous refusals and transient cleanup | normalize_mesh contract golden |
 
 | 2026-10-07 | native MetaHuman normalization and export defaults | actual owner G4/G5 failures and issue2 default-chain instruction | metacarpal slide fanout lacked continuation and default recipe always rejected normalized frames | Native MetaHuman metacarpals follow their named finger01 continuation beside slide helpers. Rig export defaults follow measured normalized frames with recorded recipe selection; explicit Titan stays available and every raw-frame readback bar stays unchanged. Physical UE M-RIG-01 confirmation remains separate and required. | native metacarpal and both-convention export RED/GREEN; UE proof remains pending |
+
+| 2026-10-07 | strict issue 2 nested receipt and target audit | literal AC46/52/56 audit | full-detail segment lists and nested metrics bypassed table bounds, refinement shapes reached engines, and QA piece IDs were mistaken for object names | document recursive page totals and atomic coordinates, validate all exposed argument forms before work, and verify the configured QA object | strict native RED/GREEN receipts |
+
+| 2026-10-07 | strict callable refusal audit | AC45 full runtime branches | generic argument help and bare batch fallbacks could not be called, and invalid batch names broke help generation | use generated API/batch mappings, explicit model descriptor examples and recursive actual-output name gates | seven isolated Blender cases, including all API preflight refusals and malformed direct batch names |
+| 2026-10-07 | complete import ownership and failure inventory | issue 2 AC20 native mode audit | partial append/link loader exits leaked Library IDs and Studio collection refusal leaked a normalized replacement mesh | include Library IDs in canonical snapshots; record imported-asset normalization replacements within Studio ownership; verify native post-load failure and subprocess isolation | native importer/library/placement inventory and public issue-2-import-audit report |
+| 2026-10-07 | measured fit decision paths | captain: measure issue2 AC65 before defaults | configurable algorithm gaps and unmeasured proposals obscured required choices | Measure unruled fit defaults before recommending them. Explicit pair modes retain side identities/inverse maps; finger search curls TO canon targets including thumb. The decision measurement runner reports and renders candidates without modifying canon settings; experimental tables require caller sign expectations and thresholds. | native pair, hand and measurement-pack tests |
+
+| 2026-10-07 | low-match weight-transfer diagnostics | issue 2 G10 and native placed/unplaced calibration | inpainting concealed approximately three-percent direct matching on an unplaced piece | warn below the documented majority-match threshold, name placement, validate overrides before output and compare unrounded fractions without gating export | native placed/unplaced and strict-boundary RED/GREEN tests |

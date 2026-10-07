@@ -78,10 +78,25 @@ def _decide_frame(turn_deg, recipe, plate, generator, root, ob=None, facing_marg
 
 def _register_frame(ob, plate, margin, root):
     """Canon normalize_mesh §6: four cardinal yaws, shared silhouette masks, true-aspect IoU."""
-    from . import silhouette
-    from ..canon_geom import mask_iou, fit_masks_true_aspect
     if isinstance(margin, bool) or not isinstance(margin, (int, float)) or not math.isfinite(margin) or not 0 <= margin <= 1:
         raise C.FeatureError("facing_margin is an explicit IoU difference in 0..1; pass turn_deg instead if it is unruled")
+    report = measure_frame(ob, plate, root)
+    rows, path = report["ranking"], Path(root) / report["plate"]
+    best, second = rows[:2]
+    gap = report["gap"]
+    if gap <= 0 or gap < margin:
+        raise C.FeatureError(f"facing ambiguous: yaw {best['yaw']:g} IoU {best['iou']:.6f}, yaw {second['yaw']:g} IoU {second['iou']:.6f}; "
+                             f"difference {gap:.6f} needs margin {margin:g}; pass turn_deg")
+    evidence = {"method": "plate_silhouette_registration", "value": best["iou"], "second_best": second["iou"],
+                "margin": float(margin), "reference": report["plate"],
+                "receipt_sha256": hashlib.sha256(json.dumps({"plate_sha256": canon_io.file_sha256(path), "ranking": rows}, sort_keys=True).encode()).hexdigest()}
+    return best["yaw"], {"kind": "measured", "evidence": evidence}
+
+
+def measure_frame(ob, plate, root):
+    """Measure all cardinal candidates without accepting a facing margin or mutating input."""
+    from . import silhouette
+    from ..canon_geom import mask_iou, fit_masks_true_aspect
     if ob is None:
         raise C.FeatureError("plate registration needs the input mesh to render; pass turn_deg")
     path = (Path(root) / plate).resolve()
@@ -103,15 +118,8 @@ def _register_frame(ob, plate, margin, root):
     finally:
         canon_io.remove_new_ids(before)
     rows.sort(key=lambda row: (-row["iou"], row["yaw"]))
-    best, second = rows[:2]
-    gap = best["iou"] - second["iou"]
-    if gap <= 0 or gap < margin:
-        raise C.FeatureError(f"facing ambiguous: yaw {best['yaw']:g} IoU {best['iou']:.6f}, yaw {second['yaw']:g} IoU {second['iou']:.6f}; "
-                             f"difference {gap:.6f} needs margin {margin:g}; pass turn_deg")
-    evidence = {"method": "plate_silhouette_registration", "value": best["iou"], "second_best": second["iou"],
-                "margin": float(margin), "reference": str(path.relative_to(Path(root).resolve())),
-                "receipt_sha256": hashlib.sha256(json.dumps({"plate_sha256": canon_io.file_sha256(path), "ranking": rows}, sort_keys=True).encode()).hexdigest()}
-    return best["yaw"], {"kind": "measured", "evidence": evidence}
+    return {"ranking": rows, "gap": rows[0]["iou"]-rows[1]["iou"],
+            "plate": str(path.relative_to(Path(root).resolve())), "plate_sha256": canon_io.file_sha256(path)}
 
 
 def _skinned(ob):

@@ -241,4 +241,4 @@ print("RESULT", json.dumps(out))
     assert r.rc == 0, r.out[-2500:]
     out = r.results[0]
     assert out["ok"] is False
-    assert any("model_compare(action='stats', set=None" in h for h in out["help"]), out["help"]
+    assert any("lampway_model_compare action=stats set=" in h and "models" in h for h in out["help"]), out["help"]

@@ -35,7 +35,7 @@ SRGB_ROLES = ("basecolor", "emission", "reference")
 LINEAR_ROLES = ("hdri",)
 DATA_ROLES = ("normal", "roughness", "metallic", "ao", "orm", "height", "displacement", "opacity", "mask", "material_id", "curvature")
 _KINDS = ("objects", "meshes", "armatures", "actions", "images", "materials", "curves",
-          "cameras", "lights", "textures", "node_groups", "collections", "scenes", "worlds")
+          "cameras", "lights", "textures", "node_groups", "collections", "scenes", "worlds", "libraries")
 
 
 _IMPORT_SCOPES = ContextVar("lampway_import_scopes", default=())

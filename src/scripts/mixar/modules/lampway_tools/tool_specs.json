@@ -2665,7 +2665,7 @@
   "qa_tag_layers": {
    "name": "lampway_qa_tag_layers",
    "required": [
-    "piece"
+    "object"
    ]
   },
   "qa_candidates": {
@@ -3634,6 +3634,286 @@
   "view": {
    "name": "lampway_view",
    "required": []
+  }
+ },
+ "batch_calls": {
+  "pbr_merge": {
+   "name": "lampway_pbr_merge",
+   "required": [
+    "out_dir",
+    "base",
+    "normal",
+    "rough",
+    "metal",
+    "masks",
+    "albedo",
+    "mesh_npz",
+    "orig_poly",
+    "params"
+   ]
+  },
+  "delete_caps": {
+   "name": "lampway_delete_caps",
+   "required": [
+    "input",
+    "output",
+    "axis",
+    "footprint",
+    "beyond"
+   ]
+  },
+  "render_owner": {
+   "name": "lampway_render_owner",
+   "required": [
+    "mesh",
+    "owner",
+    "recipe",
+    "out_prefix"
+   ]
+  },
+  "split_relief": {
+   "name": "lampway_split_relief",
+   "required": [
+    "out_prefix",
+    "piece_uv",
+    "owner_tri",
+    "recipe",
+    "split"
+   ]
+  },
+  "transfer_parts": {
+   "name": "lampway_transfer_parts",
+   "required": [
+    "out_dir",
+    "body",
+    "old",
+    "old_owner",
+    "recipe",
+    "new_piece_uv"
+   ]
+  },
+  "apply_part_fixes": {
+   "name": "lampway_apply_part_fixes",
+   "required": [
+    "transfer_dir",
+    "piece_uv",
+    "recipe",
+    "fixes",
+    "out_owner_poly"
+   ]
+  },
+  "mesh_to_npz": {
+   "name": "lampway_mesh_to_npz",
+   "required": [
+    "out",
+    "mode",
+    "file"
+   ]
+  },
+  "proportion_ratios": {
+   "name": "lampway_proportion_ratios",
+   "required": [
+    "out",
+    "body",
+    "pieces"
+   ]
+  },
+  "piece_ratios": {
+   "name": "lampway_piece_ratios",
+   "required": [
+    "kind",
+    "out",
+    "body",
+    "pieces"
+   ]
+  },
+  "place_piece": {
+   "name": "lampway_place_piece",
+   "required": [
+    "placed",
+    "body",
+    "piece"
+   ]
+  },
+  "pose_clearance": {
+   "name": "lampway_pose_clearance",
+   "required": [
+    "out_dir",
+    "body",
+    "placed"
+   ]
+  },
+  "mesh_compare": {
+   "name": "lampway_mesh_compare",
+   "required": [
+    "out_dir",
+    "reference",
+    "candidates"
+   ]
+  },
+  "pauldron_symmetry": {
+   "name": "lampway_pauldron_symmetry",
+   "required": [
+    "compare_dir"
+   ]
+  },
+  "export_parts": {
+   "name": "lampway_export_parts",
+   "required": [
+    "mesh",
+    "object",
+    "owner",
+    "recipe",
+    "out_dir",
+    "item",
+    "source_sha256",
+    "set_version"
+   ]
+  },
+  "verify_set": {
+   "name": "lampway_verify_set",
+   "required": [
+    "source",
+    "set_dir",
+    "set_version"
+   ]
+  },
+  "render_final": {
+   "name": "lampway_render_final",
+   "required": [
+    "mesh",
+    "object",
+    "owner",
+    "recipe",
+    "out_dir"
+   ]
+  },
+  "judge_pack": {
+   "name": "lampway_judge_pack",
+   "required": [
+    "mesh",
+    "object",
+    "out_dir"
+   ]
+  },
+  "gen_parts_table": {
+   "name": "lampway_gen_parts_table",
+   "required": [
+    "spec",
+    "slug",
+    "set_dir",
+    "set_version"
+   ]
+  },
+  "libwiki": {
+   "name": "lampway_libwiki",
+   "required": [
+    "command",
+    "paths"
+   ]
+  },
+  "index_delta": {
+   "name": "lampway_index_delta",
+   "required": [
+    "baseline",
+    "current",
+    "out",
+    "previous_index",
+    "note"
+   ]
+  },
+  "rtmw_detect": {
+   "name": "lampway_rtmw_detect",
+   "required": [
+    "out",
+    "onnx",
+    "frames"
+   ]
+  },
+  "proportion_fit": {
+   "name": "lampway_proportion_fit",
+   "required": [
+    "out_dir",
+    "body",
+    "pieces"
+   ]
+  },
+  "render_textured": {
+   "name": "lampway_render_textured",
+   "required": [
+    "blend",
+    "projection_dir",
+    "out_dir"
+   ]
+  },
+  "clay_view": {
+   "name": "lampway_clay_view",
+   "required": [
+    "mesh",
+    "out",
+    "view",
+    "res"
+   ]
+  },
+  "mesh_paint_set": {
+   "name": "lampway_mesh_paint_set",
+   "required": [
+    "clay_dir",
+    "out",
+    "picks"
+   ]
+  },
+  "relief_project": {
+   "name": "lampway_relief_project",
+   "required": [
+    "mesh_npz",
+    "views_dir",
+    "v3_dir",
+    "out_dir"
+   ]
+  },
+  "material_masks": {
+   "name": "lampway_material_masks",
+   "required": [
+    "projection_out_dir",
+    "owner",
+    "recipe"
+   ]
+  },
+  "uv_patches": {
+   "name": "lampway_uv_patches",
+   "required": [
+    "mesh",
+    "orig",
+    "out"
+   ]
+  },
+  "patch_holes": {
+   "name": "lampway_patch_holes",
+   "required": [
+    "mesh",
+    "owner",
+    "recipe",
+    "cands",
+    "decisions",
+    "out"
+   ]
+  },
+  "robust_weight_transfer": {
+   "name": "lampway_robust_weight_transfer",
+   "required": [
+    "in_npz",
+    "out_npz"
+   ]
+  },
+  "mesh_qa": {
+   "name": "lampway_mesh_qa_batch",
+   "required": [
+    "mesh",
+    "owner",
+    "recipe",
+    "out"
+   ]
   }
  }
 }

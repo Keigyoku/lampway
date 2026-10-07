@@ -100,7 +100,7 @@ def selection_key(metrics, cost):
     return (over, round(worst, 9), round(cost, 9))
 
 
-def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_hits):
+def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_hits, curl_side="", curl_fractions=None):
     """The closest pose (module docstring). ``ref`` {bone: {parent, rot (x,y,z,w), pos}} at rest; ``samples`` [(point, bone)] at
     rest; ``piece`` (V, T); ``dofs`` / ``chain`` [{bone, axis, range [lo, hi], step, expect?}]; ``regions`` {name: {bones,
     threshold_m}}."""
@@ -184,6 +184,20 @@ def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_h
         chosen.append((link, row[1]))
         best = (row[0], None, row[2])
     entries = _entries([d for d, _g in chosen], [g for _d, g in chosen], rest_joints, frame)
+    if curl_side:
+        from . import finger_pose
+        row = None
+        fractions = finger_pose.FRACTIONS if curl_fractions is None else tuple(curl_fractions)
+        if not fractions:
+            raise PoseError("curl_fractions must contain at least one fraction")
+        for fraction in fractions:
+            trial = entries + finger_pose.entries(ref, curl_side, fraction)
+            metrics, _ = evaluate(trial)
+            key = selection_key(metrics, sum(abs(e["deg"]) for e in trial))
+            sweeps.append({"stage": "finger_curl_to", "side": curl_side, "fraction": fraction, "metrics": metrics})
+            if row is None or key < row[0]:
+                row = (key, trial, fraction)
+        entries = row[1]
     posed_metrics, posed = evaluate(entries)
     return {"schema": SCHEMA, "entries": entries, "a_pose": a_pose, "posed": posed_metrics,
             "pose_cost_deg": float(sum(abs(e["deg"]) for e in entries)), "joints_m": {b: [float(x) for x in t["pos"]] for b, t in posed.items()},

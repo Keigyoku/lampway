@@ -109,6 +109,7 @@ print('RESULT '+json.dumps({'a':a,'b':b,'bytes':len(json.dumps(a).encode())}))
     assert 'source_hash' not in out['a'] and 'source_hash' in out['b']
     assert out['a']['before'] == out['b']['before']
     assert len(out['b']['shell_orientation']) == 1
+    assert len(out['b']['dimensions']) == 3
     assert out['b']['pages']['shell_orientation']['total'] == 1
 
 
@@ -140,9 +141,81 @@ n=call('normalize_mesh',input='bunny.ply',turn_deg=0);assert n.get('ok'),n
 source=next(o for o in bpy.data.objects if o.type=='MESH');digest=W.mesh_hash(source)
 r=call('retopo',object=source.name,method='voxel',target_faces=2000);assert r.get('ok'),r
 u=call('uv_unwrap',object=r['object'],method='smart',texture_size=256);assert u.get('ok'),u
-ob=bpy.data.objects[u['object']];assert ob.get('lw_source_hash')==digest
-accepted=call('asset_acceptance',object=ob.name,reference=source.name)
-assert accepted.get('ok') and accepted['accepted'],accepted
+uv=bpy.data.objects[u['object']]
+normalized=call('normalize_mesh',input=uv.name,turn_deg=0);assert normalized.get('ok'),normalized
+l=call('lod_chain',object=uv.name,ratios=[.5],preserve_uv_seams=False);assert l.get('ok'),l
+lod=bpy.data.objects[l['lods'][0]['object']]
+arm=bpy.data.armatures.new('Rig');rig=bpy.data.objects.new('Rig',arm);bpy.context.scene.collection.objects.link(rig)
+bpy.ops.object.select_all(action='DESELECT');rig.select_set(True);bpy.context.view_layer.objects.active=rig
+bpy.ops.object.mode_set(mode='EDIT');bone=arm.edit_bones.new('root');bone.head=(0,0,0);bone.tail=(0,0,1);bpy.ops.object.mode_set(mode='OBJECT')
+body=lod.copy();body.data=lod.data.copy();body.name='weighted_reference_body';bpy.context.scene.collection.objects.link(body)
+g=body.vertex_groups.new(name='root');g.add(list(range(len(body.data.vertices))),1,'REPLACE')
+mod=body.modifiers.new('Armature','ARMATURE');mod.object=rig
+wt=call('weight_transfer',object=lod.name,source=body.name);assert wt.get('ok'),wt
+# This source-identity acceptance chain records weight quality; acceptance is not a skin-quality gate.
+assert 0<wt['matched_fraction']<=1 and wt['groups_written']==1,wt
+assert sum(wt['influence_histogram'].values())+wt['unweighted_vertices']==len(lod.data.vertices),wt
+outputs=[bpy.data.objects[r['object']],uv,lod,bpy.data.objects[wt['object']]]
+assert len({o.as_pointer() for o in [source,*outputs,body]})==6,'each stage must create an independent object'
+acceptance=[]
+for ob in outputs:
+    assert ob.get('lw_source_hash')==digest,(ob.name,dict(ob.items()))
+    accepted=call('asset_acceptance',object=ob.name,reference=source.name)
+    assert accepted.get('ok') and accepted['accepted'],accepted
+    acceptance.append(accepted)
 assert W.mesh_hash(source)==digest,'source changed'
-print('GEOMETRY_RECEIPT '+json.dumps({'asset':'bun_zipper.ply','source_hash':digest,'retopo':r,'uv':u,'acceptance':accepted}))
+assert not source.vertex_groups and not lod.vertex_groups,'weight transfer must preserve its inputs'
+print('GEOMETRY_RECEIPT '+json.dumps({'asset':'bun_zipper.ply','source_hash':digest,'retopo':r,'uv':u,'lod':l,'weights':wt,'acceptance':acceptance}))
 '''.replace('ASSET',repr(str(Path(asset_root)/'bun_zipper.ply'))))
+
+
+def test_large_nested_mesh_metrics_are_paged_even_with_selected_fields_and_full(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+def measured(*args):
+    return {'object':'Cube_prep','source':'Cube','before':{'faces':160,'metrics':[{'id':i,'value':i,'samples':list(range(160))} for i in range(160)]},'after':{'faces':160},'found':{}}
+api._F_wf.mesh_prep=measured
+rows=[call('mesh_prep',object='Cube',fields=['before'],full=full) for full in [False,True]]
+print('RESULT '+json.dumps(rows))
+''')[0]
+    for row in out:
+        assert row['ok'], row
+        assert len(row['before']['metrics']) == 50
+        assert row['pages']['before.metrics']['total'] == 160
+    assert 'samples' not in out[0]['before']['metrics'][0]
+    assert len(out[1]['before']['metrics'][0]['samples']) == 50
+    assert out[1]['pages']['before.metrics.0.samples']['total'] == 160
+
+
+def test_qa_tag_layers_matches_the_requested_object_and_piece_configuration(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+from mixar.modules.lampway_tools.meshqa import live
+live.save_config(bpy.context.scene,live.QAConfig(object='Cube',piece='helmet',recipe='',owner='',rulings_dir=''))
+wrong=call('qa_tag_layers',object='Other',piece='helmet')
+right=call('qa_tag_layers',object='Cube',piece='helmet')
+empty=call('qa_tag_layers',object='',piece='helmet')
+print('RESULT '+json.dumps({'wrong':wrong,'right':right,'empty':empty}))
+''')[0]
+    assert not out['wrong']['ok'] and 'object' in out['wrong']['error'], out
+    assert out['right']['ok'] and out['right']['object'] == 'Cube', out
+    assert not out['empty']['ok'] and 'object' in out['empty']['error'], out
+
+
+def test_many_shell_mesh_prep_receipts_keep_complete_metrics_and_bounded_shell_pages(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+me=bpy.data.meshes.new('shells'); verts=[]; faces=[]
+for i in range(160):
+    n=len(verts); verts.extend([(i*2,0,0),(i*2+1,0,0),(i*2,1,0)]); faces.append((n,n+1,n+2))
+me.from_pydata(verts,[],faces); ob=bpy.data.objects.new('shells',me); bpy.context.collection.objects.link(ob)
+a=call('mesh_prep',object='shells')
+b=call('mesh_prep',object='shells',full=True,limit=10,offset=50)
+print('RESULT '+json.dumps({'a':a,'b':b,'bytes':len(json.dumps(a).encode())}))
+''')[0]
+    assert out['a']['ok'] and out['b']['ok'], out
+    assert out['bytes'] < 12000
+    assert out['a']['before']['shells'] == out['b']['before']['shells'] == 160
+    assert out['b']['pages']['shell_orientation']['total'] == 160
+    assert len(out['b']['shell_orientation']) == 10
+    assert len(out['b']['dimensions']) == 3

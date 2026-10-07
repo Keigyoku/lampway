@@ -180,3 +180,22 @@ print('RESULT '+json.dumps(rows))
     assert all(not r['ok'] for r in out)
     assert all('calibration' in r['error'] for r in out), out
     assert all(any('lampway_anim_multiview_fit' in h for h in r['help']) for r in out)
+
+
+def test_refine_and_optional_argument_shapes_refuse_before_engine_or_file_work(tmp_path):
+    from issue2_isolated import run
+    out = run(tmp_path, '''
+from mixar.modules.lampway_tools.features import anim_abs
+from mixar.modules.lampway_tools.pipeline import anim_io
+entered=[]
+anim_abs.refine=lambda *a: entered.append('refine') or {}
+anim_io.multiview_fit=lambda *a: entered.append('fit') or {}
+base={'stage':'refine','armature':'rig','mesh':'mesh','cameras':'missing.json','masks':{'front':'front','side':'side'}}
+bad=[{'bones':'spine'},{'bones':[{}]},{'step_deg':[]},{'rounds':1.5},{'rounds':True},{'key':'yes'},{'cameras':[]},{'masks':{'front':[],'side':'side'}}]
+rows=[call('anim_multiview_fit',**dict(base,**change)) for change in bad]
+rows.append(call('anim_multiview_fit',front='front.json',side='side.json',calibration={'px_per_m':100},cameras=[]))
+print('RESULT '+json.dumps({'rows':rows,'entered':entered}))
+''')[0]
+    assert not out['entered'], out
+    assert all(not r['ok'] for r in out['rows']), out
+    assert all(any('lampway_anim_multiview_fit' in h for h in r['help']) for r in out['rows'])

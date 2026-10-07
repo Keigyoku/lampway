@@ -67,11 +67,12 @@ with A-pose and posed penetration, pose cost, and the residual blocking surfaces
 | G08.1 authored arm angle | `goldens/C07_pose_solve` | best lower = 30 deg exactly; 0 penetrations > 10 mm; A-pose > 0 (37 measured by the reference) | a sweep that ranks by mean clearance picks a different angle |
 | G08.2 sign check | same rig, axis negated | REFUSED before any sweep | — |
 | G08.3 replay | the produced `pose.json` replayed through `pose_cs` | joint positions agree with the sweep's within 0.01 cm | Euler-on-local-axes replay on another rig |
+| G08.5 curled hand | `tests/lampway_tools/test_canon_finger_targets.py`, authored20°/30° relative curl and all five digits | targets80/95/60 produce deltas60/65/60; native API fifteen entries and unchanged pose matrices; all three bounded candidate tables execute with positive sign probes | additive expansion gives80/95/60 and omits thumb |
 | G08.4 chest regression | the recorded chest inputs (`pose_9c052d49`) | 166/207 -> 90/103; neck 0.2538 -> 0.0639 | — |
 
 ## F. Implementation gap
 
-1. LT `posing.py` supplies chest and the accepted complete helmet table. `fit_pose` uses the helmet table by name or by default with scene inputs. Waist, boots and gauntlets still require the missing numerical rows; supplied DOFs run the shared engine.
+1. LT `posing.py` supplies chest and the accepted complete helmet table. `fit_pose` uses the helmet table by name or by default with scene inputs. Waist, boots and gauntlets still require the missing numerical rows; supplied DOFs run the shared engine. `pipeline/decision_tables.py` supplies complete bounded measurement candidates with an explicit caller sign expectation and positive region threshold, never canonical defaults. `curl_side` adds the B.5 coupled curl-TO sweep including thumb using shared `finger_axis`/`flex_axis` and `curl_delta`; authored existing curl is subtracted, rather than adding the target.
 2. LT/shelf `pose_clearance.py:73` and `:119` select torso and neck vertices by ABSOLUTE heights (z 1.15–1.52, 1.50–1.62 m) and
    |x| bands: body-specific constants that break on any other body or placement. Canon: regions from the body's joints.
 3. World axes `(0,1,0)` and `(1,0,0)` (`pose_clearance.py:111-113`) assume the body faces -Y in A-pose; the canon names axes from

@@ -152,3 +152,19 @@ print('RESULT '+json.dumps({'a':a,'b':b,'bytes':len(json.dumps(a).encode())}))
     assert out['a']['pages']['bones.kept']['total'] == 160
     assert out['b']['ok'] and len(out['b']['bones']['kept']) == 10
     assert 'hierarchy_changes' in out['b']
+
+
+def test_bbone_conversion_segment_lists_stay_paged_with_full_detail(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+from mixar.modules.lampway_tools.features import rig_game
+rig_game.extract=lambda *args: {'control':'ctl','game':'game','bones':{'kept':[],'dropped':[]},'bbones_converted':{'bend':['segment_%03d'%i for i in range(160)]}}
+a=call('rig_game_extract',control='ctl',full=True)
+b=call('rig_game_extract',control='ctl',full=True,offset=50,limit=10)
+print('RESULT '+json.dumps({'a':a,'b':b}))
+''')[0]
+    assert out['a']['ok'] and out['b']['ok'], out
+    assert len(out['a']['bbones_converted']['bend']) == 50
+    assert out['a']['pages']['bbones_converted.bend']['total'] == 160
+    assert out['b']['bbones_converted']['bend'][0] == 'segment_050'
+    assert len(out['b']['bbones_converted']['bend']) == 10
