@@ -51,6 +51,8 @@ writes its own report; the integration lane lands them. What the product promise
 
 Recovered public release assets retain exact release/file digests, installed-path provenance, original bytes and upstream licence attribution. Do not replace missing authored translations with fabricated content or force original dub timings into fallback schedules.
 
+Physical UE capture handoffs enumerate exact missing transform/importer fields and preserve owner-only absolute rows; returned deltas do not establish a corrective transform alone. Approved material-role overlays update only named roles in private-copy recipes; facing/match, numerical limits and full acceptance remain separate.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -64,3 +66,5 @@ Recovered public release assets retain exact release/file digests, installed-pat
 | 2026-10-07 | public network and render contracts | captain: inherited no-red audit | absent private maps and stale names made documentation checks fail despite current implementations | cite current guarded behavior and public modules, preserve certificate/egress/render controls and observed limitations | full network/render test-contract suite |
 
 | 2026-10-07 | original subtitle release recovery | captain: fix missing bundled originals without private transfer | public source omitted eight authored dub tracks and runtime packs contain no subtitles | verify official archive digest and installer file identities, preserve original bytes/timing and source licence | public release recovery hashes and maintained locale validation |
+
+| 2026-10-07 | precise physical bind and role handoffs | captain: continue actual bind diagnosis and approve three material roles | aggregate bind errors could not distinguish hierarchy, axes and comparison semantics; role approval risked implying full fit sign-off | enumerate minimum local capture with derived-only output and record exact role-only ruling without upgrading acceptance | owner-local capture and48role provenance overlays |

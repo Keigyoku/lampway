@@ -70,6 +70,8 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 
 The full-run harness reports RED for inherited as well as new failures/errors. Preserve attribution and affirmative exact PASS shrinking, but never treat known-red membership as permission for GREEN. Keep missing/skipped/crashed proof refusals.
 
+Physical bind diagnostics capture signed rest transforms locally and return derived deltas, topology and actual import metadata. Never upload original FBX, vertices or weights. Preserve the extra container and independent native reference, verify actual accessor/composition semantics, and keep supplied-data comparisons distinct from physical acceptance.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -90,3 +92,5 @@ The full-run harness reports RED for inherited as well as new failures/errors. P
 | 2026-10-07 | raw source FBX bind evidence | actual physical UE bind failed and aggregate receipt omitted transforms | LimbNode-only scale checks missed container ancestors while Blender self-reference hid engine interpretation | preserve raw ancestry, properties and matrices through pinned pure parsing, source checks and private exclusive output without evaluator claims | container100/USF1, malformed/privacy and native unchanged-scene controls |
 
 | 2026-10-07 | inherited failures stay RED | captain: no red checks | baseline-known failures escaped the completion predicate | require zero known/new failures while preserving attribution and exact passing proof | both-suite FAILED/ERROR shrink/no-shrink controls |
+
+| 2026-10-07 | physical bind capture contract | actual UE343bones/all342binds failed while Blender self-readback passed | signed transforms and actual importer semantics were absent, allowing root/unit speculation | derive private comparison-only reports from validated local captures without geometry, API guesses or correction selection | raw signed scales, quaternion signs, topology and privacy refusal controls |
