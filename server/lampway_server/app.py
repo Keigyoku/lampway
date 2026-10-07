@@ -346,7 +346,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
                     video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services if job_services is not None else _local_job_services(settings),
-                    policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts, provenance=_vault_hooks.job_hook(library, vault.spool),
+                    policy=SpendPolicy(lambda: settings.spend_policy, path=Path(settings.state_dir) / "spend" / "day.json"), receipts=receipts, provenance=_vault_hooks.job_hook(library, vault.spool),
                     chooser=image_chooser if job_backends is None and "image_gen" in default_job_backends(settings) else None)
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
@@ -786,6 +786,8 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     async def wb_server_start(request: Request):
         if (r := _wb(request)) is not None:
             return r
+        if request.headers.get("x-lampway-origin", "").lower() == "agent":       # ruling 10: only the user's click starts the herdr server
+            return JSONResponse({"detail": "only your click starts the Lampway herdr server"}, status_code=403)
         try:
             return JSONResponse(await asyncio.to_thread(cockpit.ensure_server))
         except _HL.HerdrError as exc:
@@ -1247,18 +1249,24 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         return JSONResponse(await asyncio.to_thread(jobs.estimate, str(body.get("service") or ""), str(body.get("model") or ""), params, refs))
 
     async def spend_view(request: Request):
-        """What the status bar's spend gauge reads (facelift contract 03): each provider in its own unit, what this server session spent, and the
-        caps and click rule the Providers dialog set. Read-only. There is no day ledger, so the scope says session."""
+        """What the status bar's spend gauge reads (facelift contract 03): each provider in its own unit, what was spent TODAY (the saved local-day
+        total, ruling 5), the caps and click rule the Providers dialog set, and the line "spent today $x of $y". Read-only. ``session_cap`` repeats
+        ``day_cap`` for a client that has not moved to the day keys: it would otherwise show "no cap" where there is one."""
         if not _bearer_ok(request):
             return unauthorized()
-        from .spendpolicy import PROVIDERS
+        from .spendpolicy import PROVIDERS, SpendRefused
         policy = jobs.policy
         rows = []
         for p in PROVIDERS:
             cfg = policy._cfg(p)
-            rows.append({"provider": p, "unit": "USD" if p == "openrouter" else "credits", "spent": round(float(policy.spent.get(p, 0.0)), 6),
-                         "session_cap": cfg.get("session_cap"), "job_cap": cfg.get("job_cap"), "click": cfg.get("click", "always"), "above": cfg.get("above")})
-        return JSONResponse({"scope": "session", "providers": rows})
+            try:
+                spent, text = round(policy.spent_today(p), 6), policy.status_text(p)
+            except SpendRefused as exc:
+                spent, text = None, str(exc)
+            rows.append({"provider": p, "unit": "USD" if p == "openrouter" else "credits", "spent": spent, "spent_today": spent, "text": text,
+                         "day_cap": cfg.get("day_cap"), "session_cap": cfg.get("day_cap"), "job_cap": cfg.get("job_cap"), "click": cfg.get("click", "always"),
+                         "above": cfg.get("above")})
+        return JSONResponse({"scope": "day", "providers": rows})
 
     routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"]),
                Route("/app/spend", spend_view, methods=["GET"]), Route("/app/generate/estimate", generate_estimate, methods=["POST"])]
