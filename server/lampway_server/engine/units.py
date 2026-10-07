@@ -55,6 +55,9 @@ TUI_ENV = "LAMPWAY_HERMES_TUI_DIR"
 NODE_ENV = "LAMPWAY_NODE"
 START_TIMEOUT_S = 120.0          # herdr types the wrapper into a fresh shell, then serve listens in ~3 s (measured)
 READY_TIMEOUT_S = 60.0           # a new session is ready 2-4 s after session.create (measured)
+REFRESH_CONNECT_S = 5.0          # a running serve answers at once; one that does not reads the new config when it starts
+REFRESH_CALL_S = 60.0            # reload.mcp lists Lampway's MCP server again
+REFRESH_WAIT_S = 30.0            # how long a turn about to start waits for a refresh in flight
 
 
 @dataclass(frozen=True)
@@ -106,6 +109,8 @@ class Mode1Units:
         self.loop: Optional[asyncio.AbstractEventLoop] = None
         self.mcp_digests: dict = {}               # unit -> sha256 of its MCP bearer (the live main pane's)
         self._starting: dict = {}                 # record id -> concurrent future of _start_session
+        self._dirty = False                       # the Capabilities changed since the last refresh began
+        self._refreshing: Optional[asyncio.Task] = None
 
     # ------------------------------------------------------------------------------------------------- where things are
     @property
@@ -304,6 +309,93 @@ class Mode1Units:
             raise CockpitError("Lampway Agent's pane opened but its serve token cannot be read")
         return info
 
+    # ------------------------------------------------------------------------------------------------- Capabilities, live (E2)
+    def capabilities_changed(self) -> None:
+        """A ``capabilities`` listener (any thread): every live Lampway pane is refreshed on the server's loop, coalesced."""
+        loop = self.loop
+        if loop is None or loop.is_closed():
+            return
+        try:
+            loop.call_soon_threadsafe(self._kick)
+        except RuntimeError:                       # the loop is closing: the next start renders the new board anyway
+            pass
+
+    def _kick(self) -> None:
+        self._dirty = True
+        if self._refreshing is None or self._refreshing.done():
+            self._refreshing = asyncio.ensure_future(self._refresh_loop())
+
+    async def _refresh_loop(self) -> None:
+        while self._dirty:
+            self._dirty = False
+            try:
+                await self.refresh_all()
+            except Exception:  # noqa: BLE001 - one failed refresh never stops the next
+                log.exception("Mode 1: the panes could not be refreshed after a Capabilities change")
+
+    async def settled(self, timeout: float = REFRESH_WAIT_S) -> None:
+        """Wait for a refresh in flight (a turn about to start obeys the board the user just set)."""
+        task = self._refreshing
+        if task is not None and not task.done():
+            try:
+                await asyncio.wait_for(asyncio.shield(task), timeout)
+            except asyncio.TimeoutError:
+                log.warning("Mode 1: a Capabilities refresh is still running after %.0fs; the turn goes on", timeout)
+
+    def rerender(self, rec: dict) -> bool:
+        """Write the pane's config again from the board now in force, with the keys it already holds (read back from its own
+        0600 config: the server keeps only their digests), its toolset pin (``.env``) and ``pane.json``'s toolsets. False when the
+        pane has no config of Lampway's to read."""
+        home = Path(rec.get("home") or "")
+        try:
+            old = HC.read(home)
+        except (OSError, ValueError) as exc:
+            log.warning("Mode 1 pane %s: its config cannot be read back (%s); it keeps the one it has", rec.get("id"), type(exc).__name__)
+            return False
+        model = old.get("model") or {}
+        server = (old.get("mcp_servers") or {}).get("lampway") or {}
+        rendered: dict = {}
+        self.write_config(home, model.get("base_url") or self.gateway_url, model.get("api_key"), model.get("default") or self.model_id,
+                          worker=rec.get("role") == LY.WORKER, mcp_url=server.get("url"), mcp_headers=server.get("headers"),
+                          rendered=rendered)
+        spec_path = home / SPEC_FILE
+        try:
+            spec = json.loads(spec_path.read_text(encoding="utf-8"))
+            spec["toolsets"] = HC.serve_toolsets(rendered)
+            write_private(spec_path, json.dumps(spec, indent=1, sort_keys=True))
+        except (OSError, ValueError):
+            log.warning("Mode 1 pane %s: its pane.json could not be updated", rec.get("id"))
+        return True
+
+    async def refresh_all(self) -> None:
+        """Every live Lampway pane obeys the board now in force, keeping its conversation (spec E2; measured on the pinned serve,
+        2026-10-07): its config and toolset pin are re-rendered, then its serve is asked for ``reload.env`` (the pin) and
+        ``reload.mcp`` (every live session's tools rebuilt from it; Lampway's MCP server listed again), and the gateway checks
+        that pane's next tool list against the new board. A serve that does not answer (stopped, starting) reads the new files
+        when it starts."""
+        recs = [r for r in await asyncio.to_thread(self.cockpit.list_sessions)
+                if HN.is_lampway(r.get("agent")) and r.get("state") == "live" and r.get("home")]
+        for rec in recs:
+            if not await asyncio.to_thread(self.rerender, rec):
+                continue
+            info = self.info(rec)
+            if info is not None and info.port:
+                client = None
+                try:
+                    client = await connect_when_up(info, timeout=REFRESH_CONNECT_S, server_requests=False)
+                    await client.call("reload.env", {}, timeout=REFRESH_CALL_S)
+                    await client.call("reload.mcp", {"confirm": True}, timeout=REFRESH_CALL_S)
+                except Exception as exc:  # noqa: BLE001 - serve down: it reads the new config and pin when it starts
+                    log.info("Mode 1 pane %s: its serve did not take the new Capabilities now (%s); it reads them at its next start",
+                             rec.get("id"), type(exc).__name__)
+                finally:
+                    if client is not None:
+                        await client.close()
+            digest = rec.get("gateway_token_sha256")
+            if digest:
+                self.registry.recheck(digest)
+        log.info("Mode 1: %d pane(s) refreshed to the Capabilities in force", len(recs))
+
     def check_mcp(self, unit: str, token: str) -> bool:
         known = self.mcp_digests.get(unit)
         return bool(known and token) and secrets.compare_digest(known, GW.Registry.digest(token))
@@ -331,12 +423,14 @@ def read_session(home: Path) -> str:
         return ""
 
 
-async def connect_when_up(info: UnitInfo, *, on_event=None, on_request=None, timeout: float = START_TIMEOUT_S) -> ServeClient:
-    """A connected client of the pane's serve, retried while serve starts."""
+async def connect_when_up(info: UnitInfo, *, on_event=None, on_request=None, timeout: float = START_TIMEOUT_S,
+                          server_requests: bool = True) -> ServeClient:
+    """A connected client of the pane's serve, retried while serve starts. ``server_requests`` False: a one-shot client that is
+    sent no question or approval."""
     deadline = time.monotonic() + timeout
     last = None
     while time.monotonic() < deadline:
-        client = ServeClient(info.port, info.token, on_event=on_event, on_request=on_request)
+        client = ServeClient(info.port, info.token, on_event=on_event, on_request=on_request, server_requests=server_requests)
         try:
             await client.connect()
             return client

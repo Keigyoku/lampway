@@ -97,6 +97,9 @@ class LiveProvider(ScriptedProvider):
             await asyncio.to_thread(self.release.wait, 120)              # the tool ran; the answer waits for the test
         if results:
             seen = str(results[-1].get("content") or "")
+            if "TERM" in last:
+                yield Text(f"Terminal said: {seen[:200]}")
+                return
             if "ASK" in last:
                 choice = "Round" if "Round" in seen else "Square" if "Square" in seen else "?"
                 yield Text(f"You chose {choice}.")
@@ -114,6 +117,14 @@ class LiveProvider(ScriptedProvider):
             call = ("clarify", {"question": "Round or square table?", "choices": ["Round", "Square"]})
         elif "APPROVE" in last:
             call = ("terminal", {"command": f"rm -rf {self.target}"})
+        elif "TERM" in last:
+            reach = set(names) | set(HC.deferred_listing([{"type": "function", "function": {"name": t.name, "description": t.description}}
+                                                          for t in request.tools])[0])
+            if "terminal" not in reach:
+                yield Text("No terminal here.")
+                return
+            call = ("terminal", {"command": "echo lampway-live-$((6*7))"}) if "terminal" in names else \
+                ("tool_call", {"calls": [{"name": "terminal", "arguments": {"command": "echo lampway-live-$((6*7))"}}]})
         if call is None:
             yield Text("Hello from the gateway." if "rules" not in last.lower() else "Noted the rules.")
             return
@@ -234,6 +245,47 @@ def test_live_the_first_chat_opens_the_real_pane_and_a_tool_turn_runs_through_it
     rows = live["strict"].log()
     assert not [r for r in rows if r.get("event") == "send"], rows
     print(f"\n[live pane] hosts the pane tried and the proxy refused: {sorted({r['provider'] for r in rows if r.get('via') == 'engine_proxy'})}")
+
+
+# ---------------------------------------------------------------------------------------------------- E2: a switch reaches the running pane
+def test_live_a_capability_switched_while_the_pane_runs_is_obeyed_from_the_next_turn_in_the_same_conversation(live):
+    """The user switches ``terminal`` on in Choices and privacy while Lampway Agent's pane runs: the next turn's model request offers
+    it and a command runs; switched off again, it is gone from the next request. The conversation is the same Hermes session
+    throughout (no new pane, the first turn's words still in the request)."""
+    import httpx
+    unit = f"scene-{uuid.uuid4().hex[:6]}"
+
+    async def scenario(stack, island):
+        auth = {"Authorization": f"Bearer {island.fake.access_token}"}
+        cid, _ = await chat(island, "Hello before the switch", unit)
+        await island.ended(cid, timeout=240)
+        async with httpx.AsyncClient(base_url=stack.base, headers=auth) as http:
+            put = await http.put("/app/capabilities/terminal", json={"enabled": True})
+            assert put.status_code == 200, put.text
+            n_on = len(live["provider"].requests)
+            cid2, _ = await chat(island, "TERM: run the echo", unit)
+            await island.ended(cid2, timeout=240)
+            on = (live["provider"].requests[n_on:], island.events(cid2))
+            put = await http.put("/app/capabilities/terminal", json={"enabled": False})
+            assert put.status_code == 200, put.text
+            n_off = len(live["provider"].requests)
+            cid3, _ = await chat(island, "TERM: try again", unit)
+            await island.ended(cid3, timeout=240)
+            off = (live["provider"].requests[n_off:], island.events(cid3))
+        return on, off
+
+    (on_reqs, on_events), (off_reqs, off_events) = run(live, scenario)
+
+    def reach(reqs):
+        r = next(r for r in reqs if r.tools)
+        return {t.name for t in r.tools} | set(HC.deferred_listing([{"type": "function", "function": {"name": t.name, "description":
+                                                                                                         t.description}} for t in r.tools])[0])
+    assert "terminal" in reach(on_reqs), "switched on: offered from the next turn"
+    assert "lampway-live-42" in (final_text(on_events) or ""), on_events
+    assert "terminal" not in reach(off_reqs), "switched off: gone from the next turn"
+    assert final_text(off_events) == "No terminal here."
+    assert any("Hello before the switch" in m.text() for m in next(r for r in off_reqs if r.tools).messages), "the same conversation"
+    assert len([r for r in live["cockpit"].list_sessions() if r.get("unit") == unit]) == 1, "the same pane"
 
 
 # ---------------------------------------------------------------------------------------------------- A2: questions, permissions, steer

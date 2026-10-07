@@ -329,6 +329,10 @@ class FakeServe:
         if method == "session.status":
             s = self._live(params)
             return {"output": f"Session ID: {s.stored_id}"}
+        if method == "reload.env":
+            return {"updated": 1}
+        if method == "reload.mcp":
+            return {"status": "reloaded", "loaded_rev": "test"}
         if method == "session.active_list":
             return {"sessions": [{"id": s.live_id, "session_key": s.stored_id, "started_at": s.started_at,
                                   "status": "working" if s.task is not None else "idle"} for s in self.sessions.values() if not s.closed]}

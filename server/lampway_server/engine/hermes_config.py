@@ -338,6 +338,78 @@ def to_yaml(config: dict) -> str:
     return "# Written by Lampway from your Capabilities; edits here are replaced at the next start.\n" + "\n".join(_lines(config, 0)) + "\n"
 
 
+_SPECIAL = {".nan": math.nan, ".inf": math.inf, "-.inf": -math.inf}
+
+
+def _unflow(text: str):
+    text = text.strip()
+    if text in _SPECIAL:
+        return _SPECIAL[text]
+    return json.loads(text)
+
+
+def from_yaml(text: str) -> dict:
+    """The dict ``to_yaml`` wrote: Lampway reads back only its own file (block mappings two spaces deep, ``- `` items, every value
+    in JSON's flow form), so no YAML library is needed; anything else is refused."""
+    root: dict = {}
+    stack = [(-1, root)]                                   # (indent, the mapping or list a deeper line goes into)
+    pending = None                                         # (indent, parent, key): a ``key:`` whose value is the next, deeper block
+    for raw in text.splitlines():
+        if not raw.strip() or raw.lstrip().startswith("#"):
+            continue
+        indent = len(raw) - len(raw.lstrip(" "))
+        line = raw.strip()
+        if pending is not None:
+            p_indent, parent, key = pending
+            pending = None
+            if indent <= p_indent:
+                raise Refused(f"refused: not Lampway's config (an empty block under {key!r})")
+            parent[key] = [] if line.startswith("- ") else {}
+            stack.append((p_indent, parent[key]))
+        while stack and indent <= stack[-1][0]:
+            stack.pop()
+        container = stack[-1][1]
+        if line.startswith("- "):
+            if not isinstance(container, list):
+                raise Refused("refused: not Lampway's config (a list item outside a list)")
+            container.append(_unflow(line[2:]))
+            continue
+        if not isinstance(container, dict):
+            raise Refused("refused: not Lampway's config (a key inside a list)")
+        if line.startswith('"'):
+            end = json.JSONDecoder().raw_decode(line)[1]
+            key, rest = json.loads(line[:end]), line[end:]
+        else:
+            key, sep, rest = line.partition(":")
+            rest = sep + rest
+        if not rest.startswith(":"):
+            raise Refused(f"refused: not Lampway's config ({line[:40]!r})")
+        value = rest[1:].strip()
+        if value:
+            container[key] = _unflow(value)
+        else:
+            pending = (indent, container, key)
+    if pending is not None:
+        raise Refused("refused: not Lampway's config (it ends inside a block)")
+    return root
+
+
+def read(home_dir) -> dict:
+    """A pane's ``config.yaml``, as the dict it was rendered from (``from_yaml``)."""
+    return from_yaml((Path(home_dir) / "config.yaml").read_text(encoding="utf-8"))
+
+
+#: The home's dotenv file: ``hermes serve`` loads it at start, over what it inherited (hermes_cli/env_loader.py ``load_hermes_dotenv``,
+#: override) and again on ``reload.env`` (hermes_cli/config.py ``reload_env``). Lampway writes only the toolset pin there.
+ENV_FILE = ".env"
+TOOLSETS_ENV = "HERMES_TUI_TOOLSETS"
+
+
+def env_text(config: dict) -> str:
+    """The pane's ``.env``: the toolset pin (``serve_toolsets``) and nothing else, no secret."""
+    return f"{TOOLSETS_ENV}={','.join(serve_toolsets(config))}\n"
+
+
 # ---------------------------------------------------------------------------------------------------- write
 def _users_hermes_home() -> Path:
     return Path.home().expanduser().resolve() / ".hermes"
@@ -361,10 +433,15 @@ def write(home_dir, capabilities, project, gateway_base_url, gateway_token, mode
     config = render(capabilities, project, gateway_base_url, gateway_token, model_id, **kw)
     if rendered is not None:
         rendered.update(config)
-    text = to_yaml(config)
     home.mkdir(parents=True, exist_ok=True, mode=0o700)
     home.chmod(0o700)
-    path, tmp = home / "config.yaml", home / ".config.yaml.lampway-tmp"
+    path = _write_private(home, "config.yaml", to_yaml(config))
+    _write_private(home, ENV_FILE, env_text(config))         # the toolset pin serve reloads live (spec E2)
+    return path
+
+
+def _write_private(home: Path, name: str, text: str) -> Path:
+    path, tmp = home / name, home / f".{name.lstrip('.')}.lampway-tmp"
     try:
         tmp.unlink()
     except FileNotFoundError:

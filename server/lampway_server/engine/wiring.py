@@ -25,6 +25,9 @@ Selected, the app's lifespan (``start``/``stop``/``tick``) gives Mode 1's panes 
   capability's ``options["backend"]``; a worker's (``worker=True``, spec S2) is the board less ``WORKER_NEVER``, without clarify;
 * **the start-up check** (E1.3): ``hermes_config.check_advertised`` on each token's first chat request that carries tools, against
   the board its config was written from; a mismatch refuses that request and every later one of that pane (``Registry.first_check``);
+* **a Capabilities change while panes run** (E2): ``capabilities.subscribe`` -> ``Mode1Units.capabilities_changed``: every live
+  Lampway pane's config and toolset pin are re-rendered, its serve reloads them (``reload.env``, ``reload.mcp``; the conversation is
+  kept), and the gateway checks its next tool list again (``Registry.recheck``); a turn about to start waits for that refresh;
 * **the panes** (A1): ``units.Mode1Units`` is the cockpit's ``mode1`` hook and ``front.HermesFront`` the hub's engine (A2). The
   start re-adopts every live Lampway pane the cockpit reconciled (its tokens by their digests) and re-attaches to it. Shutdown
   closes this server's connections and stops the proxy; it never ends a pane or its serve (law 5).
@@ -194,6 +197,7 @@ class EngineWiring:
         self.front = HermesFront(self.agent, self.units)
         cockpit.mode1 = self.units
         self.agent.engine = self.front
+        CAP.subscribe(self.units.capabilities_changed)      # spec E2: a switch reaches every running pane before its next tool call
         adopted = self.units.adopt()
         for rec in adopted:
             digest = rec.get("gateway_token_sha256")
@@ -204,6 +208,8 @@ class EngineWiring:
                  self.engine.get("tag", "?"), self.base, proxy_port, len(adopted))
 
     async def stop(self) -> None:
+        if self.units is not None:
+            CAP.unsubscribe(self.units.capabilities_changed)
         front, self.front = self.front, None
         if front is not None:
             try:

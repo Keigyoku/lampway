@@ -21,12 +21,15 @@ choose Routes." Nothing is removed from the harness; every ability is a row here
 """
 
 import json
+import logging
 import os
 import threading
 import time
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Callable, Optional
+
+log = logging.getLogger("lampway.capabilities")
 
 RISKS = ("reads", "writes_project", "runs_code", "reaches_internet", "acts_outside", "spends_plan")
 APPROVALS = ("none", "ask_each_time", "ask_once_per_session")
@@ -233,6 +236,7 @@ class Store:
                 entry["options"] = dict(options)
             self._save(doc)
         self._append({"id": cid, "event": "changed", "by": by, "project": project, "enabled": enabled, "approval": approval})
+        notify_changed()
         return self.setting(cid, project)
 
     def propose(self, origin: str, cid: str, change: dict, reason: str) -> str:
@@ -274,6 +278,8 @@ class Store:
             self._save(doc)
         self._append({"id": prop["id"], "event": prop["state"], "by": by, "pid": pid, "project": project,
                       **({"enabled": change.get("enabled")} if action == "accept" and "enabled" in change else {})})
+        if action == "accept":
+            notify_changed()
         return {k: prop[k] for k in ("pid", "id", "change", "reason", "state")}
 
     def clear(self, cid: str, project: Optional[str], *, by: str = "user") -> dict:
@@ -292,6 +298,7 @@ class Store:
                 doc["projects"].pop(project, None)
             self._save(doc)
         self._append({"id": cid, "event": "cleared", "by": by, "project": project, "had_override": had})
+        notify_changed()
         return self.setting(cid, project)
 
     def note_refused_use(self, cid: str, tool: str, origin: str, why: str) -> None:
@@ -299,6 +306,28 @@ class Store:
 
 
 ACTIVE: Optional[Store] = None
+#: Called (no arguments, on whatever thread made the change) after every change of what may be in force: the user's switch, an
+#: accepted proposal, a cleared override, an egress route turned on or off. Mode 1's running panes listen (engine/units.py,
+#: spec E2: the running session obeys the new set before its next tool call). A listener must be quick and never raise.
+LISTENERS: list = []
+
+
+def subscribe(listener: Callable) -> None:
+    if listener not in LISTENERS:
+        LISTENERS.append(listener)
+
+
+def unsubscribe(listener: Callable) -> None:
+    while listener in LISTENERS:
+        LISTENERS.remove(listener)
+
+
+def notify_changed() -> None:
+    for listener in list(LISTENERS):
+        try:
+            listener()
+        except Exception:  # noqa: BLE001 - a listener never undoes the user's change
+            log.warning("a capabilities listener failed", exc_info=True)
 
 
 def set_active(store: Optional[Store]) -> None:

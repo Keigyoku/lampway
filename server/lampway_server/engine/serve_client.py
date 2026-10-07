@@ -45,12 +45,13 @@ class ServeClient:
     question is seen after every event that came before it."""
 
     def __init__(self, port: int, token: str, *, on_event: Optional[Callable[[dict], Awaitable]] = None,
-                 on_request: Optional[Callable[[dict], Awaitable]] = None, host: str = "127.0.0.1"):
+                 on_request: Optional[Callable[[dict], Awaitable]] = None, host: str = "127.0.0.1", server_requests: bool = True):
         if host not in ("127.0.0.1", "localhost", "::1"):
             raise ValueError("hermes serve is reached on loopback only")
         self.url = f"ws://{host}:{int(port)}/api/ws?token={token}"
         self.on_event = on_event
         self.on_request = on_request
+        self.server_requests = server_requests
         self.ws = None
         self.ready: dict = {}
         self._ids = itertools.count(1)
@@ -71,7 +72,8 @@ class ServeClient:
         first = asyncio.get_running_loop().create_future()
         self._reader = asyncio.create_task(self._read(first))
         self.ready = await asyncio.wait_for(first, timeout)
-        await self.call("client.capabilities", {"server_requests": True})
+        if self.server_requests:                # a one-shot client (a reload, a read) is sent no question or approval
+            await self.call("client.capabilities", {"server_requests": True})
         return self.ready
 
     async def _read(self, first: asyncio.Future) -> None:

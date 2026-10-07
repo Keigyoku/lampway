@@ -204,6 +204,9 @@ class HermesFront:
             link.sink = sink
             if link.stale is not None:
                 await self._close_stale(link, sink)
+            settled = getattr(self.units, "settled", None)
+            if settled is not None:
+                await settled()                             # a Capabilities change in flight reaches the pane first (E2)
             try:
                 for name, data in TC.attachments(context):
                     await link.client.call("image.attach_bytes", {"session_id": link.live_id, "content_base64": data, "filename": name})

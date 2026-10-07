@@ -898,6 +898,26 @@ against a fake OpenAI-compatible model on loopback, with every proxy variable po
   `raw.githubusercontent.com`. All were refused by the proxy, and the turn still completed. E1.5's deny-and-log is the control;
   E1.3 should also switch these checks off where Hermes allows it.
 
+**Built 2026-10-07: a switch reaches the running pane** (`capabilities.subscribe`, `engine/units.py` `refresh_all`,
+`engine/hermes_config.py` `read`/`env_text`, `gateway.Registry.recheck`). Measured on the pinned serve (v2026.9.24, a scripted
+model on loopback, one session, its conversation counted at each step):
+- rewriting `config.yaml` alone changes nothing in a live session; `reload.mcp {confirm: true}` alone changes nothing either,
+  because the session's toolsets come from the `HERMES_TUI_TOOLSETS` pin, read from the process environment;
+- serve loads the home's `.env` over its environment at start and again on `reload.env`; with the pin in `.env`, `reload.env`
+  then `reload.mcp` gives every live session the new tool list (terminal on, off, on again), the conversation intact (14
+  messages after seven turns) and the TUI still attached; `session.close` + `session.resume` also works but closes the session
+  under the TUI ("type /resume"), so it is not used;
+- Hermes builds the memory store with the session: `memory` switched on mid-session offers its tool, which answers "Memory is
+  not available" until the session is next built (a new conversation, or serve restarted). Switched off, the tool is gone at
+  once.
+
+So Lampway re-renders each live pane's config with the keys it already holds, writes the pin to `.env` (0600, no secret), asks
+its serve for both reloads, and has the gateway check that pane's next tool list against the new board (a refused re-check
+refuses that request only, since one built before the reload may carry the old list). A turn about to start waits for the
+refresh. A route turned on or off is a change too. The MCP endpoint's call-time check stays the hard gate for Lampway's tools.
+Live-tested: `terminal` switched on through `PUT /app/capabilities/terminal` runs a command in the next turn, switched off is gone
+from the next request, in the same pane and conversation (`test_engine_pane_live.py`).
+
 **Still open** `[UNVERIFIED]`:
 - per-process session isolation;
 - `fork_session` targeting an earlier message;
