@@ -308,7 +308,9 @@ class LAMPWAY_PT_prompts(Panel):
         if len(p.prompt_vars):
             col.prop(p, "prompt_model")
             col.operator("lampway.prompt_preview", icon="VIEWZOOM")
-            col.operator("lampway.prompt_fork", icon="DUPLICATE")
+            row = col.row(align=True)
+            row.operator("lampway.prompt_fork", icon="DUPLICATE")
+            row.operator("lampway.prompt_ab", icon="LAMPWAY_COMPARE")
         if p.prompt_preview:
             col.popover("LAMPWAY_PT_prompt_preview", text=textwrap.shorten(p.prompt_preview, 40, placeholder="..."))
             col.operator("lampway.prompt_use", icon="PLAY")
