@@ -1,9 +1,14 @@
 /* SPDX-FileCopyrightText: 2026 Lampway contributors */
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 /* The cockpit page's face: the tokens (tokens.css) on the Night canvas. */
-html, body { margin: 0; height: 100%; background: var(--lw-canvas); color: var(--lw-text); font: 14px system-ui, sans-serif; }
+/* The site's faces (lampway_server/web/brand/fonts, SIL OFL 1.1), served from this origin. */
+@font-face { font-family: 'Fraunces'; font-weight: 300 700; font-display: block; src: url(/app/workbench/static/fraunces-latin-opsz-normal.woff2) format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-weight: 400; font-display: block; src: url(/app/workbench/static/ibm-plex-sans-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-weight: 600; font-display: block; src: url(/app/workbench/static/ibm-plex-sans-latin-600-normal.woff2) format('woff2'); }
+html, body { margin: 0; height: 100%; background: var(--lw-canvas); color: var(--lw-text); font: 14px 'IBM Plex Sans', system-ui, sans-serif; }
+header img.mark { height: 22px; align-self: center; }
 header { display: flex; gap: 16px; align-items: baseline; padding: 12px 20px; border-bottom: 1px solid var(--lw-line); }
-h1 { margin: 0; font: 600 22px Georgia, serif; color: var(--lw-text_hi); }
+h1 { margin: 0; font: 400 22px 'Fraunces', Georgia, serif; color: var(--lw-text_hi); }
 h2 { font-size: 13px; color: var(--lw-muted); margin: 0 0 8px; }
 #server { color: var(--lw-muted); }
 #banner { background: var(--lw-agent_bed); color: var(--lw-text); padding: 8px 20px; }
