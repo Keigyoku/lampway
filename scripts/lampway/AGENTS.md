@@ -19,6 +19,8 @@ wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) a
 
 Body-relative fit captures require explicit world-metre body context, fixed camera bounds and caller clearance limits. Keep execution success separate from all-vertex clearance acceptance; sampled diagnostics and isolated silhouettes cannot select physical defaults.
 
+`test_all.py --shrink-baseline` removes only exact node IDs with affirmative pytest PASS receipts. Skipped or uncollected known-red rows remain and make the reference verdict unverified; absence from the failure summary is never a passing receipt.
+
 ## Invariants
 
 1. **AXI refusals.** A refusal prints `error: <why>` and a `help[N]:` list of next commands on stdout and exits 1; an unknown flag
@@ -36,14 +38,19 @@ A Python matrix expression is executable code rather than a contact address only
 5. **The gate proves itself.** `prepublish_gate.py --self-test` plants one offender of each kind and fails if any goes unseen; a
    change to the patterns lands with its plant.
 
+UE cube capture scripts run only in an explicitly disposable UE QA project, save no scene/material asset, and write generated DATA solely under that project's `Saved/LampwayCubeQA`. The read-only capability marker is not rendering proof. Exact native shaper provenance, engine/profile agreement, raw-input controls and disabled native tone-curve controls precede a cube sidecar; the initial capture records its 8-bit display precision. Offline `--plan` reports the full capture count and bounded runtime allowance without launching UE or choosing settings. Pure packing tests are synthetic; actual UE capture remains a separate owner-run receipt.
+
 ## Test
 
 ```bash
 python -m pytest -q tests/lampway/test_build_linux.py tests/lampway/test_prepublish_gate.py
 python -m pytest -q tests/lampway_tools/test_launcher.py tests/lampway_tools/test_linux_scripts.py
+python -m pytest -q tests/lampway_tools/test_ue_cube_generator_probe.py tests/lampway_tools/test_ue_cube_generator_capture.py
 python3 scripts/lampway/prepublish_gate.py --self-test
 scripts/lampway/build_linux.sh --plan
 ```
+
+Native frame diagnostics read loaded modules and authored matrices without projection or scene mutation. Write the complete owner-only receipt exclusively with restrictive permissions; print aggregate errors and source identities, never owner matrices.
 
 ## Owner
 
@@ -60,3 +67,6 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | 2026-10-07 | measured fit decision paths | captain: measure issue2 AC65 before defaults | configurable algorithm gaps and unmeasured proposals obscured required choices | `measure_fit_decisions.py` runs in an explicitly supplied disposable scene and project config, never saving the blend or selecting defaults. Receipts/views remain under the project root; failed jobs produce a nonzero exit. | native decision-pack fixture |
 | 2026-10-07 | matrix code false positive | complete native topology regression push | adjacent matrix operator and structured bone attributes looked like an email | prove the Python operator and operands while retaining quoted, comment, bare-address and owner-pattern controls | planted matrix and email regressions |
 | 2026-10-07 | body-relative decision receipts | captain: AC65 measured boot handoff | isolated cropped silhouettes and sampled counts hid actual body placement and implied acceptance | require explicit body context, fixed world bounds and limits; report all-vertex clearance separately with opening-band refusal and no default promotion | native body-context placement and threshold falsifiers |
+| 2026-10-07 | affirmative baseline shrink receipts | issue 2 AC05 reference audit | subtracting failures treated skipped and uncollected known-red rows as passing and could delete them | require exact pytest PASS node IDs before shrinking, retain failures and unverified rows, and refuse an unverified green verdict | skipped, uncollected, teardown and parameter identity falsifiers |
+| 2026-10-07 | genuine UE cube QA handoff | captain: provide actual UE tonemapper cube generation | external generator was absent and synthetic data could be mistaken for renderer proof | bounded QA-only scene captures with exact native shaper provenance, engine/profile agreement, readback controls and explicit display precision; pure tests remain distinct from physical UE proof | owner-run UE capability/capture receipt pending |
+| 2026-10-07 | read-only native frame diagnostics | actual G4 numeric failure | loaded overlay and authored float32 matrices needed disambiguation | Native frame diagnostics read loaded modules and authored matrices without projection or scene mutation. Write the complete owner-only receipt exclusively with restrictive permissions; print aggregate errors and source identities, never owner matrices. | pure diagnostic controls and complete342 native unchanged-scene proof |

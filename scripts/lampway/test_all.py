@@ -9,7 +9,8 @@ tests/lampway_tools on the real binary, the module test folders), held to the kn
     scripts/lampway/test_all.sh --only server      # one suite
     scripts/lampway/test_all.sh --shrink-baseline  # also drop baseline lines whose test now passes (the list never grows here)
 
-Green means: no failure or error that is not in the baseline, and no baseline entry that now passes (the list only shrinks: remove it).
+Green means: no new failure/error, no unverified baseline entry, and no baseline entry with a recorded PASS left in the list.
+Baseline shrinking requires affirmative exact pytest PASS node IDs; skipped or uncollected entries are never removed.
 Environment: LAMPWAY_BIN (the real binary; without one the tool tests SKIP, which the summary counts), LAMPWAY_TEST_PYTHON (default: this
 interpreter), TMPDIR (the run's temp root), LAMPWAY_TEST_OUT (logs; default $TMPDIR/lampway-test-all)."""
 import argparse
@@ -23,8 +24,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 BASELINE = ROOT / "tests" / "known_red.tsv"
-ID = re.compile(r"^(FAILED|ERROR) (\S+)")
+ID = re.compile(r"^(FAILED|ERROR) (.+)")
 COUNT = re.compile(r"(\d+) (passed|failed|skipped|errors?|xfailed|xpassed)")
+
+
+def node_identity(text: str, failure_reason=False) -> str:
+    """Keep parameter delimiters inside balanced brackets; reject uncertain syntax as PASS evidence."""
+    depth = 0
+    for i, char in enumerate(text):
+        if failure_reason and depth == 0 and text.startswith(" - ", i):
+            return text[:i].strip()
+        if char == "[":
+            depth += 1
+        elif char == "]":
+            depth -= 1
+            if depth < 0:
+                return ""
+    return text.strip() if depth == 0 else ""
 
 
 def load_baseline(path=BASELINE) -> dict:
@@ -40,8 +56,10 @@ def parse(log: str, prefix: str = "") -> tuple:
     ids, counts = set(), {}
     for line in log.splitlines():
         m = ID.match(line)
-        if m and ("::" in m.group(2) or m.group(2).endswith(".py")):
-            ids.add(prefix + m.group(2))
+        if m:
+            node = node_identity(m.group(2), failure_reason=True) or m.group(2).strip()
+            if "::" in node or node.endswith(".py"):
+                ids.add(prefix + node)
     tail = [l for l in log.splitlines() if re.search(r"\d+ (passed|failed)", l) and " in " in l]
     if tail:
         for n, what in COUNT.findall(tail[-1]):
@@ -151,8 +169,17 @@ def verify_env(root, packages=None, python=None, shelf=None) -> list:
     return problems
 
 
-def judge(failing: set, baseline: dict) -> dict:
-    return {"new": sorted(failing - set(baseline)), "fixed": sorted(set(baseline) - failing), "known": sorted(failing & set(baseline))}
+def parse_passed(log: str, prefix: str = "") -> set:
+    """Read affirmative pytest -rA PASS receipts, preserving class and parameter node IDs."""
+    return {prefix + node for line in log.splitlines() if line.startswith("PASSED ") and "::" in line
+            if (node := node_identity(line[len("PASSED "):]))}
+
+
+def judge(failing: set, baseline: dict, passing=None) -> dict:
+    passing = set(passing or ()) - failing  # a later failure always beats an earlier PASS (e.g. teardown)
+    known = set(baseline)
+    return {"new": sorted(failing - known), "fixed": sorted(known & passing), "known": sorted(failing & known),
+            "unverified": sorted(known - failing - passing)}
 
 
 def head_sha(root) -> str:
@@ -183,8 +210,8 @@ def main(argv=None) -> int:
     out = Path(os.environ.get("LAMPWAY_TEST_OUT") or tmp / "lampway-test-all")
     out.mkdir(parents=True, exist_ok=True)
     # the server's pyproject already adds -q (a second -q hides the summary line the counts are read from)
-    suites = {"server": ([py, "-m", "pytest", "tests", "-p", "no:cacheprovider", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-server")], ROOT / "server", "server/"),
-              "client": ([py, "-m", "pytest", "-p", "no:cacheprovider", "--continue-on-collection-errors", "-q", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-client")], ROOT, "")}
+    suites = {"server": ([py, "-m", "pytest", "tests", "-rA", "-p", "no:cacheprovider", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-server")], ROOT / "server", "server/"),
+              "client": ([py, "-m", "pytest", "-rA", "-p", "no:cacheprovider", "--continue-on-collection-errors", "-q", "-W", "ignore", "--tb=short", "--basetemp", str(tmp / "lw-test-client")], ROOT, "")}
     run = {k: v for k, v in suites.items() if not a.only or k == a.only}
     gate = binary_gate(ROOT, os.environ.get("LAMPWAY_BIN")) if "client" in run else ("n/a", "server only")
     if gate[0] == "refused" and not a.ungated:
@@ -206,14 +233,16 @@ def main(argv=None) -> int:
     shelf_before = shelf_snapshot(os.environ) if "client" in run and os.environ.get("LAMPWAY_SHELF_DIR") else None
     for name, (cmd, cwd, _) in run.items():
         procs[name] = subprocess.Popen(cmd, cwd=cwd, stdout=open(out / f"{name}.log", "w"), stderr=subprocess.STDOUT, start_new_session=True, env=suite_env)
-    failing, report = set(), {}
+    failing, passing, report = set(), set(), {}
     for name, p in procs.items():
         rc = p.wait()
-        ids, counts = parse((out / f"{name}.log").read_text(errors="replace"), run[name][2])
+        log = (out / f"{name}.log").read_text(errors="replace")
+        ids, counts = parse(log, run[name][2])
         failing |= ids
+        passing |= parse_passed(log, run[name][2])
         report[name] = {"rc": rc, **counts}
     writes = shelf_writes(shelf_before, shelf_snapshot(os.environ)) if shelf_before is not None else []
-    j = judge(failing, baseline)
+    j = judge(failing, baseline, passing)
     flaky = []
     if j["new"]:                                    # a new failure is re-run once, alone: one that passes then is reported as flaky, never hidden
         for name, (cmd, cwd, prefix) in run.items():
@@ -230,10 +259,10 @@ def main(argv=None) -> int:
     if a.shrink_baseline and j["fixed"]:
         keep = [l for l in BASELINE.read_text(encoding="utf-8").splitlines(keepends=True) if l.startswith("#") or not l.strip() or l.split("\t")[0] not in set(j["fixed"])]
         BASELINE.write_text("".join(keep), encoding="utf-8")
-    green = not j["new"] and (not j["fixed"] or a.shrink_baseline) and not writes
+    green = not j["new"] and (not j["fixed"] or a.shrink_baseline) and not j["unverified"] and not writes
     summary = {"verdict": ("GREEN" if gate[0] in ("gated", "n/a") else "GREEN-UNGATED") if green else "RED", "binary": {"state": gate[0], "detail": gate[1]}, "sha": sha,
                "suites": report, "baseline": len(baseline), "known_red_seen": len(j["known"]), "new_failures": j["new"], "flaky_passed_on_rerun": flaky, "baseline_now_passing": j["fixed"],
-               "minutes": round((time.time() - t0) / 60, 1), "logs": str(out)}
+               "baseline_unverified": j["unverified"], "minutes": round((time.time() - t0) / 60, 1), "logs": str(out)}
     if writes:
         summary["shelf_writes"] = writes[:50]             # the shelf is read only: a run that changed it is RED, whatever passed
     end = head_sha(ROOT)

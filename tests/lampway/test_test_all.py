@@ -23,8 +23,80 @@ def test_parse_reads_ids_and_counts():
 
 
 def test_judge_new_fixed_known():
-    j = T.judge({"a", "b", "c"}, {"b": ("env", "x"), "d": ("env", "y")})
-    assert j == {"new": ["a", "c"], "fixed": ["d"], "known": ["b"]}
+    j = T.judge({"a", "b", "c"}, {"b": ("env", "x"), "d": ("env", "y")}, {"d"})
+    assert j == {"new": ["a", "c"], "fixed": ["d"], "known": ["b"], "unverified": []}
+
+
+def test_pass_evidence_preserves_class_and_parameter_identity():
+    log = "PASSED tests/a.py::TestGroup::test_case[value with space]\nSKIPPED tests/a.py::test_skip - absent\n"
+    assert T.parse_passed(log, "server/") == {"server/tests/a.py::TestGroup::test_case[value with space]"}
+
+
+def test_teardown_failure_keeps_the_complete_parameter_node_id():
+    node = "tests/a.py::TestGroup::test_case[value with space]"
+    log = f"PASSED {node}\nERROR {node} - teardown failed\n"
+    failing, _ = T.parse(log)
+    assert failing == {node}
+    assert T.judge(failing, {node: ("broken", "reason")}, T.parse_passed(log))["fixed"] == []
+
+
+def test_failure_reason_separator_inside_parameter_id_keeps_exact_identity():
+    node = "tests/a.py::TestGroup::test_case[value - with space]"
+    log = f"PASSED {node}\nFAILED {node} - AssertionError: detail - text\n"
+    failing, _ = T.parse(log)
+    assert failing == {node}
+    assert T.judge(failing, {node: ("broken", "reason")}, T.parse_passed(log))["fixed"] == []
+
+
+def test_uncertain_parameter_syntax_is_not_a_pass_receipt():
+    node = "tests/a.py::test_case[unclosed - value"
+    log = f"PASSED {node}\nFAILED {node} - reason\n"
+    assert T.parse_passed(log) == set()
+    assert T.judge(T.parse(log)[0], {node: ("broken", "reason")}, T.parse_passed(log))["fixed"] == []
+
+
+def test_missing_or_skipped_known_red_is_unverified_and_never_fixed():
+    b = {name: ("inherited", "reason") for name in ("failed", "skipped", "uncollected", "passed")}
+    assert T.judge({"failed"}, b, {"passed", "failed"}) == {
+        "new": [], "fixed": ["passed"], "known": ["failed"], "unverified": ["skipped", "uncollected"],
+    }
+
+
+def test_failure_absence_alone_is_not_a_pass_receipt():
+    assert T.judge(set(), {"tests/a.py::skipped": ("env", "missing")})["fixed"] == []
+
+
+def test_shrink_requires_a_pass_and_keeps_skipped_uncollected_and_failed_rows(tmp_path, monkeypatch):
+    baseline = tmp_path / "known_red.tsv"
+    baseline.write_text("# retained header\n" + "".join(
+        f"tests/a.py::{name}\tinherited\treason\n" for name in ("failed", "skipped", "uncollected", "passed")))
+
+    class FakeProc:
+        def __init__(self, cmd, cwd, stdout, stderr, start_new_session, env=None):
+            assert "-rA" in cmd
+            stdout.write("FAILED tests/a.py::failed - reason\nPASSED tests/a.py::passed\n"
+                         "SKIPPED tests/a.py::skipped - missing prerequisite\n= 1 failed, 1 passed, 1 skipped in 1.0s =\n")
+            stdout.close()
+
+        def wait(self):
+            return 1
+
+    monkeypatch.setattr(T, "BASELINE", baseline)
+    monkeypatch.setattr(T, "load_baseline", lambda: {
+        line.split("\t")[0]: ("inherited", "reason") for line in baseline.read_text().splitlines() if not line.startswith("#")})
+    monkeypatch.setattr(T, "verify_env", lambda *a, **k: [])
+    monkeypatch.setattr(T, "binary_gate", lambda *a, **k: ("gated", "sha"))
+    monkeypatch.setattr(T, "head_sha", lambda root: "aaa1111")
+    monkeypatch.setattr(T.subprocess, "Popen", FakeProc)
+    monkeypatch.setenv("TMPDIR", str(tmp_path))
+    monkeypatch.setenv("LAMPWAY_TEST_OUT", str(tmp_path / "out"))
+    assert T.main(["--only", "client", "--shrink-baseline"]) == 1
+    text = baseline.read_text()
+    assert "::passed\t" not in text
+    assert all(f"::{name}\t" in text for name in ("failed", "skipped", "uncollected"))
+    import json
+    summary = json.loads((tmp_path / "out" / "summary.json").read_text())
+    assert summary["baseline_unverified"] == ["tests/a.py::skipped", "tests/a.py::uncollected"]
 
 
 def test_the_baseline_holds_no_absolute_path():
