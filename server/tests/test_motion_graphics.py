@@ -155,7 +155,7 @@ def test_capture_fake_drives_encode_and_check_without_a_browser(tmp_path, monkey
     project = tmp_path / "project"
     scene = put_scene(project, "fake-ramp", "<!doctype html><title>fake</title>")
     cap = FakeCapture(duration_s=1.0)
-    res = M.render(project, {"scene": scene, **SMALL}, cap)
+    res = M.render(project, {"scene": scene, **SMALL}, lambda: cap)       # one fake serves the pass and the probe
     out = project / res["out_dir"]
     assert cap.opened and cap.closed and res["frames"] == 10 and res["out_dir"].startswith("motion/out/fake-ramp-")
     assert {p.name for p in out.iterdir()} >= {"fake-ramp.mp4", "fake-ramp.webm", "receipt.json", "frames.sha256", "contact.png", "samples"}
@@ -167,6 +167,20 @@ def test_capture_fake_drives_encode_and_check_without_a_browser(tmp_path, monkey
     assert r["outputs"]["webm"]["probe"]["stream"]["codec_name"] == "vp9"
     assert sorted(p.name for p in (out / "samples").glob("*.png")) == [f"f{i:04d}.png" for i in range(10)]   # 10 frames: every one sampled
     assert {"fail", "warn", "findings"} <= set(res["self_check"]) and res["ok"] is True
+
+
+def test_the_probe_renders_in_a_fresh_adapter_from_frame_0_in_order(tmp_path):
+    made = []
+
+    def fresh():
+        made.append(FakeCapture(duration_s=1.0))
+        return made[-1]
+    project = tmp_path / "project"
+    res = M.render(project, {"scene": put_scene(project, "probe", "<!doctype html>"), **SMALL}, fresh)
+    assert len(made) == 2 and all(c.opened and c.closed for c in made), "the pass and the probe each get their own adapter"
+    assert made[1].frames_asked == [i / 10 for i in range(10)], "the probe renders from frame 0 in sequence up to its last frame"
+    p = json.loads((project / res["out_dir"] / "receipt.json").read_text())["determinism_probe"]
+    assert p["browser"] == "fresh" and p["rendered_frames"] == 10 and p["differing"] == [] and p["frames"] == [0, 1, 3, 4, 5, 6, 8, 9]
 
 
 # 2
@@ -184,7 +198,7 @@ def test_mp4_bytes_depend_on_thread_count_so_receipt_pins_it(tmp_path):
         got[threads] = {k: hashlib.sha256(v.read_bytes()).hexdigest() for k, v in paths.items()}
     assert got[2]["mp4"] != got[4]["mp4"], "x264's output depends on its thread count (measured on the teaser): the pin is load-bearing"
     project = tmp_path / "project"
-    res = M.render(project, {"scene": put_scene(project, "pin", "<!doctype html>"), **SMALL}, FakeCapture())
+    res = M.render(project, {"scene": put_scene(project, "pin", "<!doctype html>"), **SMALL}, FakeCapture)
     enc = json.loads((project / res["out_dir"] / "receipt.json").read_text())["engine"]["encoder"]
     assert enc["threads"] == 4 and enc["args"].count("-threads") >= 1 and all(enc["args"][i + 1] == "4" for i, a in enumerate(enc["args"]) if a == "-threads")
 
@@ -196,7 +210,7 @@ def test_out_of_order_render_is_not_offered(tmp_path):
                                                   "template", "variables", "vault", "receipt"}
     assert spec.parameters["additionalProperties"] is False
     project = tmp_path / "project"
-    out, is_error = tool(project, {"scene": put_scene(project, "x", RAMP), "frame_range": [100, 200]}, capture=FakeCapture())
+    out, is_error = tool(project, {"scene": put_scene(project, "x", RAMP), "frame_range": [100, 200]}, capture=FakeCapture)
     assert is_error and "frame_range" in out["error"] and "in order from frame 0" in out["error"]
 
 
@@ -216,7 +230,7 @@ def test_the_tool_is_registered_and_runs_on_the_server():
 def test_refusals_name_their_fix(tmp_path, args, message):
     project = tmp_path / "project"
     put_scene(project, "x", RAMP)
-    out, is_error = tool(project, {"scene": "motion/scenes/x", **args}, capture=FakeCapture())
+    out, is_error = tool(project, {"scene": "motion/scenes/x", **args}, capture=FakeCapture)
     assert is_error and out["ok"] is False and out["error"] == message, out
 
 
@@ -227,23 +241,23 @@ def test_no_chromium_and_no_ffmpeg_are_refused_with_their_fix(tmp_path, monkeypa
     out, is_error = tool(project, {"scene": "motion/scenes/x"})
     assert is_error and out["error"] == "no headless Chromium: set LAMPWAY_CHROMIUM to a chrome-headless-shell binary"
     monkeypatch.setenv("PATH", str(tmp_path / "empty"))
-    out, is_error = tool(project, {"scene": "motion/scenes/x"}, capture=FakeCapture())
+    out, is_error = tool(project, {"scene": "motion/scenes/x"}, capture=FakeCapture)
     assert is_error and out["error"] == "ffmpeg not found on PATH: install ffmpeg"
 
 
 def test_a_scene_without_frame_and_a_page_resize_are_refused(tmp_path):
     project = tmp_path / "project"
     scene = put_scene(project, "x", RAMP)
-    out, _e = tool(project, {"scene": scene, **SMALL}, capture=FakeCapture(has_frame=False))
+    out, _e = tool(project, {"scene": scene, **SMALL}, capture=lambda: FakeCapture(has_frame=False))
     assert out["error"] == "the scene does not define window.__frame: see the scene contract in motion_graphics.md section 4"
-    out, _e = tool(project, {"scene": scene, **SMALL}, capture=FakeCapture(size=(320, 200)))
+    out, _e = tool(project, {"scene": scene, **SMALL}, capture=lambda: FakeCapture(size=(320, 200)))
     assert out["error"] == "frame 0 is 320x200, not 320x180: the scene must not resize the page"
 
 
 # 9
 def test_receipt_has_no_home_paths_and_outputs_have_no_metadata(tmp_path):
     project = tmp_path / "project"
-    res = M.render(project, {"scene": put_scene(project, "clean", "<!doctype html>"), **SMALL}, FakeCapture())
+    res = M.render(project, {"scene": put_scene(project, "clean", "<!doctype html>"), **SMALL}, FakeCapture)
     out = project / res["out_dir"]
     text = (out / "receipt.json").read_text()
     assert str(tmp_path) not in text and str(Path.home()) not in text
@@ -256,7 +270,7 @@ def test_receipt_has_no_home_paths_and_outputs_have_no_metadata(tmp_path):
 def test_vault_filing_links_variant_and_receipt(tmp_path):
     project, vault = tmp_path / "project", a_vault(tmp_path)
     out, is_error = tool(project, {"scene": put_scene(project, "filed", "<!doctype html>"), **SMALL, "template": "mg-site-clip@1.0.0"}, vault=vault,
-                         capture=FakeCapture())
+                         capture=FakeCapture)
     assert not is_error and out["ok"] and out["vault"]["spooled"] is False, out
     lib = vault.lib
     by_kind = {}
@@ -279,7 +293,7 @@ def test_vault_filing_links_variant_and_receipt(tmp_path):
 def test_a_failing_self_check_writes_the_files_and_files_nothing(tmp_path):
     project, vault = tmp_path / "project", a_vault(tmp_path)
     tiny = {"text": [{"sel": "#t", "text": "tiny", "opacity": 1, "font_px": 12, "color": "rgb(255,255,255)", "box": [40, 40, 80, 52]}], "marks": []}
-    out, is_error = tool(project, {"scene": put_scene(project, "tiny", "<!doctype html>"), **SMALL}, vault=vault, capture=FakeCapture(audit=tiny))
+    out, is_error = tool(project, {"scene": put_scene(project, "tiny", "<!doctype html>"), **SMALL}, vault=vault, capture=lambda: FakeCapture(audit=tiny))
     assert out["ok"] is False and out["self_check"]["fail"] > 0 and (project / out["out_dir"] / "contact.png").is_file()
     assert out["vault"] == {"assets": [], "spooled": False, "filed": False}
     assert lib_count(vault) == 0
@@ -373,6 +387,21 @@ def test_same_scene_twice_gives_identical_frames_and_files(tmp_path):
     b, _e = tool(project, {"scene": scene, "entry": "teaser.html"})
     assert rows(keep) == rows(project / b["out_dir"]) and a["frames_sha256_digest"] == b["frames_sha256_digest"] == TEASER_FRAMES
     assert a["outputs"] == b["outputs"]
+
+
+# 3, on the acceptance fixture: the probe must not fail a pure scene (coordinator ruling: probe in a fresh browser, in sequence from frame 0)
+@needs_chromium
+@needs_teaser
+@pytest.mark.timeout(1200)
+def test_the_teaser_passes_the_determinism_probe(tmp_path):
+    project = tmp_path / "project"
+    out, is_error = tool(project, {"scene": _teaser_copy(project), "entry": "teaser.html"})
+    probe = [f for f in out["self_check"]["findings"] if f["check"] == "determinism"]
+    assert not probe, f"a pure scene failed the probe: {probe}"
+    assert not is_error and out["ok"] is True and out["self_check"]["fail"] == 0, out["self_check"]
+    r = json.loads((project / out["out_dir"] / "receipt.json").read_text())
+    p = r["determinism_probe"]
+    assert p["browser"] == "fresh" and p["rendered_frames"] == 390 and p["differing"] == [] and p["seconds"] > 0 and r["timing_s"]["probe"] == p["seconds"]
 
 
 # 7

@@ -2,11 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Motion graphics: video drawn by code, frame by frame, deterministic (specs/motion_graphics/motion_graphics.md).
 
-Two calls. ``render(project_root, args, capture)`` drives a capture adapter (``frames.Chromium``, or a fake) one frame at a time (t = i / fps,
-never real time, in order from frame 0 in one browser), hashes every frame, streams it to one ffmpeg (``encode``), self-checks the sampled frames
-(``check``), re-captures 8 evenly spaced frames to probe that the scene is a pure function of t, and writes the outputs and the receipt to
-``<project>/motion/out/<name>-<code8>/``. ``verify(project_root, args, capture)`` re-renders a receipt's inputs from frame 0 in a fresh browser and
-compares every frame hash and both files. A refusal raises ``Refused`` with the fix in its text; a failing self-check is not a refusal (the files
+Two calls, each given ``new_capture``: a factory of FRESH capture adapters (``frames.Chromium``, or a fake). ``render(project_root, args,
+new_capture)`` drives one adapter one frame at a time (t = i / fps, never real time, in order from frame 0 in one browser), hashes every frame,
+streams it to one ffmpeg (``encode``), self-checks the sampled frames (``check``), then probes that the scene is a pure function of t: a SECOND,
+fresh browser renders from frame 0 in sequence up to the last of 8 evenly spaced probe frames, and those frames must match exactly (a re-capture in
+the same browser differs where an image is redrawn at a new scale: the decoded-image cache, measured on the teaser). It writes the outputs and the
+receipt to ``<project>/motion/out/<name>-<code8>/``. ``verify(project_root, args, new_capture)`` re-renders a receipt's inputs from frame 0 in a
+fresh browser and compares every frame hash and both files. A refusal raises ``Refused`` with the fix in its text; a failing self-check is not a refusal (the files
 are written and ``ok`` is false)."""
 import hashlib
 import io
@@ -132,9 +134,45 @@ class EngineDiffers(Exception):
     pass
 
 
-def _run(root: Path, a: dict, capture, out_root: Path, threads: int, engine=None) -> dict:
-    """One render: refusals, then the sequential pass, the probe, the files and the receipt. ``engine`` (verify) = the receipt's
-    (chromium, ffmpeg) pair: a different engine stops the run before any frame."""
+def _ready(capture, entry, W, H, engine=None, ffmpeg=None) -> None:
+    """Open the adapter and run the scene contract's refusals: a different engine (verify), no __frame, a setup miss, CSS animations."""
+    capture.open(entry, W, H)
+    if engine is not None and (capture.product, ffmpeg) != tuple(engine):
+        here, there = (capture.product, ffmpeg), tuple(engine)
+        k = 0 if here[0] != there[0] else 1
+        raise EngineDiffers(f"cannot reproduce: the engine differs (receipt: {there[k]}, here: {here[k]})")
+    if not capture.has_frame():
+        raise Refused("the scene does not define window.__frame: see the scene contract in motion_graphics.md section 4")
+    ready = capture.setup() or {}
+    misses = [f.get("font") for f in ready.get("fonts") or [] if not f.get("ok")] + [i.get("src") for i in ready.get("images") or [] if not i.get("ok")]
+    if misses:
+        raise Refused(f"scene not ready, these did not load: {misses}: put them in the scene folder and check the paths")
+    if capture.animations():
+        raise Refused("the scene runs CSS animations or transitions (document.getAnimations() is not empty): drive them from __frame(t)")
+
+
+def _probe(new_capture, entry, W, H, fps, rows, probe, samples) -> tuple:
+    """(differing probe frames, frames rendered, seconds): a fresh browser, frames 0..max(probe) in sequence (the samples' audits at the same frames,
+    as the first pass ran them), each probe frame compared exactly with the first pass."""
+    t0, differ = time.monotonic(), []
+    cap = new_capture()
+    try:
+        _ready(cap, entry, W, H)
+        want = set(probe)
+        for i in range(max(probe) + 1):
+            png = cap.frame(i / fps)
+            if i in samples:
+                cap.audit()
+            if i in want and _pixels(png)[1] != rows[i].split()[2]:
+                differ.append(i)
+    finally:
+        cap.close()
+    return differ, max(probe) + 1, round(time.monotonic() - t0, 3)
+
+
+def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=None, probe_on=True) -> dict:
+    """One render: refusals, then the sequential pass, the probe (a fresh browser; not in verify, which is itself the full re-render), the files
+    and the receipt. ``engine`` (verify) = the receipt's (chromium, ffmpeg) pair: a different engine stops the run before any frame."""
     t_start = time.monotonic()
     scene_dir, entry, scene_rel = _scene(root, a)
     E.require()
@@ -145,20 +183,9 @@ def _run(root: Path, a: dict, capture, out_root: Path, threads: int, engine=None
         raise Refused(f"name {name!r} (the scene folder's) is not kebab-case: pass name")
     W, H, fps = a["width"], a["height"], a["fps"]
     enc = None
+    capture = new_capture()
     try:
-        capture.open(entry, W, H)                                          # inside the try: a launch that fails half way is still closed
-        if engine is not None and (capture.product, ffmpeg) != tuple(engine):
-            here, there = (capture.product, ffmpeg), tuple(engine)
-            k = 0 if here[0] != there[0] else 1
-            raise EngineDiffers(f"cannot reproduce: the engine differs (receipt: {there[k]}, here: {here[k]})")
-        if not capture.has_frame():
-            raise Refused("the scene does not define window.__frame: see the scene contract in motion_graphics.md section 4")
-        ready = capture.setup() or {}
-        misses = [f.get("font") for f in ready.get("fonts") or [] if not f.get("ok")] + [i.get("src") for i in ready.get("images") or [] if not i.get("ok")]
-        if misses:
-            raise Refused(f"scene not ready, these did not load: {misses}: put them in the scene folder and check the paths")
-        if capture.animations():
-            raise Refused("the scene runs CSS animations or transitions (document.getAnimations() is not empty): drive them from __frame(t)")
+        _ready(capture, entry, W, H, engine, ffmpeg)                       # inside the try: a launch that fails half way is still closed
         duration = _duration(a["duration_s"] if a["duration_s"] is not None else (capture.scene() or {}).get("duration_s"))
         n = int(round(duration * fps))
         if n < 1:
@@ -197,15 +224,14 @@ def _run(root: Path, a: dict, capture, out_root: Path, threads: int, engine=None
         enc.finish()
         t_encode_tail = time.monotonic() - e0
         enc = None
-        probe, differ = _probe_frames(n), []
-        for i in probe:                                                    # the scene must be a pure function of t: a second capture agrees
-            if _pixels(capture.frame(i / fps))[1] != rows[i].split()[2]:
-                differ.append(i)
         requests = capture.requests()
     finally:
         if enc is not None:
             enc.abort()
         capture.close()
+    probe, differ, probe_frames, t_probe = _probe_frames(n), [], 0, 0.0
+    if probe_on:                                                           # the scene must be a pure function of t: a fresh browser agrees
+        differ, probe_frames, t_probe = _probe(new_capture, entry, W, H, fps, rows, probe, samples)
     (out / "frames.sha256").write_text(R.frames_text(rows), encoding="utf-8")
     digest = R.digest(rows)
     C.contact_sheet(out / "samples", out / "contact.png")
@@ -232,9 +258,10 @@ def _run(root: Path, a: dict, capture, out_root: Path, threads: int, engine=None
         "outputs": outputs,
         "network": {"requests": len(requests), "non_file": non_file},
         "timing_s": {"setup": round(t_setup, 3), "render_loop": round(t_render, 3), "capture": round(t_cap, 3), "encode_tail": round(t_encode_tail, 3),
-                     "wall": round(wall, 3), "wall_per_video_second": round(wall / duration, 3), "capture_ms_per_frame": round(1000 * t_cap / n, 1)},
+                     "probe": t_probe, "wall": round(wall, 3), "wall_per_video_second": round(wall / duration, 3), "capture_ms_per_frame": round(1000 * t_cap / n, 1)},
         "self_check": {"fail": fail, "warn": warn, "findings": findings, "samples": checks},
-        "determinism_probe": {"frames": probe, "differing": differ},
+        "determinism_probe": ({"browser": "fresh", "frames": probe, "differing": differ, "rendered_frames": probe_frames, "seconds": t_probe} if probe_on
+                              else {"browser": None, "skipped": "verify re-renders every frame itself"}),
     }
     if non_file:
         receipt["error"] = f"the scene asked for {non_file[0]}: every file must be in the scene folder"
@@ -255,13 +282,13 @@ def summary(receipt: dict) -> dict:
     return out
 
 
-def render(project_root, args: dict, capture, threads: int = E.THREADS) -> dict:
+def render(project_root, args: dict, new_capture, threads: int = E.THREADS) -> dict:
     root = Path(project_root)
     a = inputs(args)
-    return summary(_run(root, a, capture, root / "motion" / "out", threads))
+    return summary(_run(root, a, new_capture, root / "motion" / "out", threads))
 
 
-def verify(project_root, args: dict, capture) -> dict:
+def verify(project_root, args: dict, new_capture) -> dict:
     """Re-render a receipt's inputs from frame 0 in a fresh browser; compare every frame hash and both files. A different Chromium or ffmpeg is
     answered with engine_matches false and no frame comparison."""
     root = Path(project_root)
@@ -277,7 +304,8 @@ def verify(project_root, args: dict, capture) -> dict:
     work = root / "motion" / "out" / f".verify-{time.monotonic_ns()}"
     try:
         try:
-            new = _run(root, a, capture, work, int(r["engine"]["encoder"]["threads"]), engine=(r["engine"]["chromium"], r["engine"]["ffmpeg"]))
+            new = _run(root, a, new_capture, work, int(r["engine"]["encoder"]["threads"]), engine=(r["engine"]["chromium"], r["engine"]["ffmpeg"]),
+                       probe_on=False)
         except EngineDiffers as exc:
             return {"reproduced": False, "frames_differing": [], "mp4_equal": False, "webm_equal": False, "engine_matches": False, "error": str(exc)}
         old_rows = R.read_rows(root / r["out_dir"] / "frames.sha256")

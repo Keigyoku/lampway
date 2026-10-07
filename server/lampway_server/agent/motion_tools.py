@@ -22,7 +22,8 @@ _S, _I, _N, _B, _O = {"type": "string"}, {"type": "integer"}, {"type": "number"}
 SPEC = ToolSpec(NAME, (
     "Render a video from scene CODE (HTML with Canvas, SVG, CSS or three.js) frame by frame in a headless Chromium (t = i / fps, never real time, in "
     "order from frame 0), encode it to MP4 and WebM, self-check sampled frames (empty frame, text outside title-safe, text under 22 px, contrast, "
-    "text over a figure or card, a mark cut by the edge, and a re-capture proving the scene is a pure function of t), write a receipt (code hash, "
+    "text over a figure or card, a mark cut by the edge, and a fresh browser re-rendering from frame 0 to prove the scene is a pure function of t), "
+    "write a receipt (code hash, "
     "every frame's hash, output hashes) under motion/out/<name>-<code8>/, and file an accepted render in the Asset Vault as kind video. Look at "
     "contact.png yourself: some defects only an eye sees. The scene contract: window.__scene = {duration_s, width, height}; await window.__setup() "
     "loads every font and image and reports each; window.__frame(t) sets every animated property from t alone; window.__audit() lists the visible "
@@ -68,12 +69,15 @@ def _capture():
     return F.Chromium(F.chromium_binary(), config.state_dir() / "motion" / "chromium-home")
 
 
-def _work(vault, root: Path, a: dict, capture):
+def _work(vault, root: Path, a: dict, new_capture):
+    if new_capture is None:
+        F.chromium_binary()                                                # refuse before anything is written when there is no browser
+        new_capture = _capture
     if a["action"] == "verify":
-        return M.verify(root, a, capture or _capture())
+        return M.verify(root, a, new_capture)
     prompt = _prompt_text(a["template"], a["variables"])
     E.require()
-    out = M.render(root, a, capture or _capture())
+    out = M.render(root, a, new_capture)
     filed = {"assets": [], "spooled": False, "filed": False}
     if out["ok"] and a.get("vault", True) is not False and vault is not None:
         receipt = json.loads((root / out["out_dir"] / "receipt.json").read_text(encoding="utf-8"))
@@ -83,7 +87,7 @@ def _work(vault, root: Path, a: dict, capture):
 
 
 async def call(vault, project_root, name: str, arguments: dict, capture=None) -> tuple:
-    """(JSON text, is_error). ``capture`` is the capture adapter (the tests' fake); by default the user's headless Chromium."""
+    """(JSON text, is_error). ``capture`` is a factory of fresh capture adapters (the tests' fake); by default the user's headless Chromium."""
     if name != NAME:
         return json.dumps({"ok": False, "error": f"unknown tool {name!r}"}), True
     root = Path(project_root)
