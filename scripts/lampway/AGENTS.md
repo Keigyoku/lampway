@@ -52,6 +52,8 @@ scripts/lampway/build_linux.sh --plan
 
 Native frame diagnostics read loaded modules and authored matrices without projection or scene mutation. Write the complete owner-only receipt exclusively with restrictive permissions; print aggregate errors and source identities, never owner matrices.
 
+Run the read-only supplemental UE surface probe before full cube capture. Missing LDR/material/neutral-grading APIs refuse; surface availability is not shader or pixel proof.
+
 ## Owner
 
 The build script and the build box belong to the native-build lane (`lp/facelift` at the time of writing). The pre-publish gate is
@@ -70,3 +72,4 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | 2026-10-07 | affirmative baseline shrink receipts | issue 2 AC05 reference audit | subtracting failures treated skipped and uncollected known-red rows as passing and could delete them | require exact pytest PASS node IDs before shrinking, retain failures and unverified rows, and refuse an unverified green verdict | skipped, uncollected, teardown and parameter identity falsifiers |
 | 2026-10-07 | genuine UE cube QA handoff | captain: provide actual UE tonemapper cube generation | external generator was absent and synthetic data could be mistaken for renderer proof | bounded QA-only scene captures with exact native shaper provenance, engine/profile agreement, readback controls and explicit display precision; pure tests remain distinct from physical UE proof | owner-run UE capability/capture receipt pending |
 | 2026-10-07 | read-only native frame diagnostics | actual G4 numeric failure | loaded overlay and authored float32 matrices needed disambiguation | Native frame diagnostics read loaded modules and authored matrices without projection or scene mutation. Write the complete owner-only receipt exclusively with restrictive permissions; print aggregate errors and source identities, never owner matrices. | pure diagnostic controls and complete342 native unchanged-scene proof |
+| 2026-10-07 | supplemental UE capture preflight | actual UE handoff | the initial probe omitted display readback and grading APIs | Run the read-only supplemental UE surface probe before full cube capture. Missing LDR/material/neutral-grading APIs refuse; surface availability is not shader or pixel proof. | missing API/property and complete mocked surface controls |

@@ -5,7 +5,15 @@
 
 This stage is implemented but has not run in actual UE. It samples the engine renderer; it contains no Filmic/ACES tone-curve implementation. Its output precision is deliberately **8 bits per channel**, recorded in the sidecar. It is suitable for an initial genuine engine-capture receipt, not a high-precision parity claim. Local UE execution must establish that the transient material compiles, the component APIs work, and both render controls pass.
 
-First run the [capability probe](ue_cube_generator_handoff.md). Capture additionally needs `RenderingLibrary.read_render_target_pixel`, `TextureRenderTargetFormat.RTF_RGBA8`, `StaticMeshComponent`, `Vector4`, and normal mesh dynamic-material setters. The frozen first probe does not test these added LDR APIs. If any is missing, capture refuses with `error:` / `help[1]:`; no fallback generates an analytic cube.
+First run the [capability probe](ue_cube_generator_handoff.md). Capture additionally needs `RenderingLibrary.read_render_target_pixel`, `TextureRenderTargetFormat.RTF_RGBA8`, `StaticMeshComponent`, `Vector4`, and normal mesh dynamic-material setters. The first probe does not test these added LDR APIs. Run the supplemental read-only check before capture:
+
+```bash
+timeout 120s "$UE_EDITOR_CMD" "$UE_QA_PROJECT" -unattended -NoSplash -RenderOffscreen \
+  -ExecutePythonScript="$LAMPWAY_REPO/scripts/lampway/ue_cube_generator_supplemental_probe.py" \
+  > "$UE_QA_SUPPLEMENTAL_LOG" 2>&1
+```
+
+Require exactly one `LAMPWAY_UE_CUBE_SUPPLEMENTAL_PROBE` marker with `available:true`. This checks Python surface availability and neutral-grading properties; shader compilation and pixels remain unverified. If any is missing, capture refuses with `error:` / `help[1]:`; no fallback generates an analytic cube.
 
 In an explicitly disposable empty QA project, create `Saved/LampwayCubeQA/request.json` containing these exact fields:
 
