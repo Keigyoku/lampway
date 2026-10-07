@@ -1371,7 +1371,8 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     from .engine import gateway as ENG                                          # spec E1.4: the engine's one model endpoint, on loopback
     engine_tokens = ENG.Registry()
     ENG.set_active(engine_tokens)
-    routes += ENG.gateway_routes(engine_tokens, lambda: agent.provider)
+    routes += ENG.gateway_routes(engine_tokens, lambda session_id=None: (agent.engine.provider_for(session_id) if agent.engine is not None
+                                                                         else None) or agent.provider)   # spec S2: a worker on agent.worker
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager

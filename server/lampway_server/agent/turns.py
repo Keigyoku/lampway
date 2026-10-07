@@ -104,6 +104,17 @@ class AgentHub:
         self.swarm = SwarmManager(swarm_provider_factory or (lambda label: self.provider), self._blender_script,
                                   script_timeout_s=script_timeout_s)
         self.swarm.library = assets
+        builtin_brain = self.swarm.brain_for
+        self._swarm_provider_factory = swarm_provider_factory or (lambda label: self.provider)
+
+        def brain_for(ctx):
+            """Spec S4: a swarm thinks the way its tab does. With Lampway's engine in the seat (Mode 1) each worker is an engine
+            session; otherwise the built-in loop."""
+            if self.engine is not None:
+                from ..engine.swarm_brain import EngineBrain
+                return EngineBrain(self.engine, self._swarm_provider_factory)
+            return builtin_brain(ctx)
+        self.swarm.brain_for = brain_for
 
     # ------------------------------------------------------------ dispatch
     async def handle(self, socket, method: str, request_id, params: dict):

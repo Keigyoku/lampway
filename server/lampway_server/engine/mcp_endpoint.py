@@ -56,11 +56,11 @@ def engine_mcp_routes(get_runtime) -> list:
         if method == "ping":
             return JSONResponse({"jsonrpc": "2.0", "id": rid, "result": {}})
         if method == "tools/list":
-            tools = [{"name": t.name, "description": t.description, "inputSchema": t.parameters} for t in runtime.tool_specs()]
+            tools = [{"name": t.name, "description": t.description, "inputSchema": t.parameters} for t in runtime.tool_specs(session_id)]
             return JSONResponse({"jsonrpc": "2.0", "id": rid, "result": {"tools": tools}})
         if method == "tools/call":
             name = str(params.get("name") or "")
-            if name not in {t.name for t in runtime.tool_specs()}:
+            if name not in {t.name for t in runtime.tool_specs(session_id)}:
                 return JSONResponse({"jsonrpc": "2.0", "id": rid, "result": format_result(
                     f"refused: {name} is not one of Lampway's tools here, or its capability is off "
                     "(lampway_capabilities action=list shows what you may do)", True)})

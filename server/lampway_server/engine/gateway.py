@@ -310,7 +310,17 @@ def _bearer(request: Request) -> str:
 
 
 def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
-    """The gateway's routes. ``provider_getter()`` returns the current main provider at call time (a Choices change swaps it)."""
+    """The gateway's routes. ``provider_getter()`` returns the current main provider at call time (a Choices change swaps it). A
+    getter that takes an argument gets the token's session id, so a swarm worker's engine is answered on the ``agent.worker``
+    choice rather than the main one (spec S2)."""
+    import inspect
+    try:
+        takes_session = len(inspect.signature(provider_getter).parameters) >= 1
+    except (TypeError, ValueError):
+        takes_session = False
+
+    def provider_for(session_id):
+        return provider_getter(session_id) if takes_session else provider_getter()
 
     def admit(request: Request):
         """(session id, None) or (None, the refusal response)."""
@@ -323,10 +333,10 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
         return session_id, None
 
     async def models(request: Request):
-        _, refused = admit(request)
+        session_id, refused = admit(request)
         if refused is not None:
             return refused
-        provider = provider_getter()
+        provider = provider_for(session_id)
         entry = {"id": _model_of(provider), "object": "model", "created": 0, "owned_by": "lampway"}
         window = getattr(provider, "context_length", None)
         if isinstance(window, int) and window > 0:
@@ -347,7 +357,7 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
             req = to_request(body, session_id)
         except BadRequest as exc:
             return JSONResponse(error_body(str(exc), type="invalid_request_error", code="invalid_request"), status_code=400)
-        provider = provider_getter()
+        provider = provider_for(session_id)
         for observer in list(registry.observers):                      # e.g. the island's one-time "Using your ChatGPT plan" notice
             try:
                 observer(session_id, getattr(provider, "name", ""))

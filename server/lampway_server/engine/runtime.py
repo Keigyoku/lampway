@@ -66,6 +66,14 @@ class EngineSession:
     asked: Optional[asyncio.Event] = None            # set when the running prompt stops for a question
     last_used: float = 0.0
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    # A swarm worker's session (spec S2): its own tool list and router (the worker's headless Lampway), its own provider behind the
+    # gateway (agent.worker), and its text collected into the worker's summary instead of a client turn's bubble.
+    worker: bool = False
+    tools: Optional[list] = None
+    tool_router: object = None
+    provider: object = None
+    collector: Optional[list] = None
+    on_progress: object = None
 
 
 def find_engine(engines_dir) -> Optional[dict]:
@@ -114,9 +122,14 @@ class LampwayACPClient:
 
     async def session_update(self, session_id, update, **kw):
         sink = self.es.sink
-        if sink is None:
-            return
         kind = getattr(update, "session_update", "")
+        if sink is None:
+            if self.es.collector is not None:                       # a swarm worker: its words become its summary
+                if kind == "agent_message_chunk":
+                    self.es.collector.append(getattr(getattr(update, "content", None), "text", "") or "")
+                elif kind == "tool_call" and callable(self.es.on_progress):
+                    self.es.on_progress(f"{self.es.session_id.rsplit(':', 1)[-1]}: {getattr(update, 'title', '')}")
+            return
         try:
             if kind == "agent_message_chunk":
                 text = getattr(getattr(update, "content", None), "text", "") or ""
@@ -224,7 +237,8 @@ class EngineRuntime:
         es.model_token = self.model_token_for(es.session_id)
         es.mcp_token = es.mcp_token or secrets.token_urlsafe(32)
         if self.config_writer is not None:
-            self.config_writer(es.home, self.gateway_url, es.model_token, self.model_id)
+            # A worker's config is its parent's choices minus what would let it act outside its task (spec S2).
+            self.config_writer(es.home, self.gateway_url, es.model_token, self.model_id, **({"worker": True} if es.worker else {}))
         else:
             cfg = es.home / "config.yaml"
             cfg.write_text(minimal_config(self.gateway_url, es.model_token, self.model_id))
@@ -337,11 +351,49 @@ class EngineRuntime:
         if es is not None and es.question is not None and not es.question.done():
             es.question.set_result(text)
 
+    # ------------------------------------------------------------------ swarm workers (S2)
+    def provider_for(self, session_id: Optional[str]):
+        """The provider the gateway answers this engine session with: a worker's own (agent.worker), else None (the main one)."""
+        es = self.sessions.get(session_id or "")
+        return es.provider if es is not None else None
+
+    async def run_worker(self, key: str, home: Path, prompt_text: str, *, tools: list, tool_router, provider=None,
+                         on_progress=None) -> str:
+        """One swarm worker as one engine session: a fresh child and conversation, one prompt, its text as the summary. The child
+        is stopped afterwards (a worker is one task)."""
+        from acp import text_block
+        es = self.sessions.get(key) or EngineSession(key, Path(home))
+        self.sessions[key] = es
+        es.worker, es.tools, es.tool_router, es.provider, es.on_progress = True, list(tools), tool_router, provider, on_progress
+        es.collector = []
+        es.last_used = time.time()
+        try:
+            async with es.lock:
+                await self._ensure_child(es)
+            resp = await es.conn.prompt(session_id=es.acp_session_id, prompt=[text_block(prompt_text)])
+            stop = str(getattr(resp, "stop_reason", "") or "")
+            if stop == "cancelled":
+                raise RuntimeError("the worker's engine turn was cancelled")
+            return "".join(es.collector).strip()
+        except asyncio.CancelledError:
+            if es.conn is not None:
+                try:
+                    await es.conn.cancel(session_id=es.acp_session_id)
+                except Exception:  # noqa: BLE001
+                    pass
+            raise
+        finally:
+            await self.stop(key)
+            self.sessions.pop(key, None)
+
     # ------------------------------------------------------------------ tools (E1.6)
-    def tool_specs(self) -> list:
+    def tool_specs(self, session_id: Optional[str] = None) -> list:
         from .. import capabilities as CAP
         from ..agent.swarm import SWARM_SPECS
         from ..agent.tools import TOOLS
+        es = self.sessions.get(session_id or "")
+        if es is not None and es.tools is not None:                 # a worker: only its job's tools, as Capabilities allow
+            return [t for t in es.tools if CAP.tool_offered(t.name)]
         return [t for t in list(TOOLS) + list(SWARM_SPECS) if CAP.tool_offered(t.name)]
 
     async def call_tool(self, session_id: str, name: str, arguments: dict) -> tuple:
@@ -349,6 +401,11 @@ class EngineRuntime:
         from ..agent.tools import ASK_USER
         from ..agent.turns import clip_result
         es = self.sessions.get(session_id)
+        if es is not None and es.tool_router is not None:           # a worker: its job's door to its own headless Lampway
+            if name not in {t.name for t in self.tool_specs(session_id)}:
+                return f"refused: {name} is not one of this worker's tools", True
+            content, is_error = await es.tool_router(name, arguments if isinstance(arguments, dict) else {})
+            return clip_result(content), is_error
         sink = es.sink if es is not None else None
         if sink is None:
             return "no turn is running for this session", True
