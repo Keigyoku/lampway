@@ -15,6 +15,7 @@ Three scans, each exits non-zero on a finding:
   python3 prepublish_gate.py --self-test        # plants one of each offender and checks the gate sees it
 
 Secret VALUES are never printed: a match shows its first 4 characters then ***.
+Personal identifiers are fully redacted, including commit email domains.
 Allow a known-fake value by adding its exact text to scripts/lampway/pii_allow.txt (one per line, # comments), with the reason.
 """
 import fnmatch, os, re, subprocess, sys, json, tempfile
@@ -63,7 +64,7 @@ def scan_line(line):
             v = m.group(0)
             if any(a and (a in v or a in line) for a in ALLOW):
                 continue
-            out.append((pid, sev, mask(v) if sev == "CRITICAL" or pid in ("account-id",) else v[:60]))
+            out.append((pid, sev, mask(v) if sev == "CRITICAL" else "[redacted]"))
     return out
 
 def scan_tree(root):
@@ -137,8 +138,8 @@ def scan_git(rng):
             continue
         sha, ae, ce, an, cn, body = (rec.split("\x1f") + [""] * 6)[:6]
         for who, e in (("author", ae), ("committer", ce)):
-            if not e.endswith("@users.noreply.github.com") and e not in ("noreply@anthropic.com",) and not e.endswith("@lampway.dev"):
-                findings.append(("HIGH", "commit-email", f"{sha[:8]} {who}", mask(e) + e[e.find("@"):]))
+            if not e.endswith("@users.noreply.github.com") and e not in ("noreply@anthropic.com", "noreply@github.com") and not e.endswith("@lampway.dev"):
+                findings.append(("HIGH", "commit-email", f"{sha[:8]} {who}", "[redacted]"))
         for line in body.splitlines():
             for pid, sev, shown in scan_line(line):
                 findings.append((sev, pid, f"{sha[:8]} message", shown))

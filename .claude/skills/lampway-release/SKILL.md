@@ -28,12 +28,17 @@ python3 rail/rail.py check                                 # the rail (also in C
 - The same hook then runs `python3 rail/rail.py check --quick` (the rail's shape and the commits this push brings); CI runs the
   full rail check.
 - The gate blocks personal emails, home paths, owner usernames and paths, account ids, API keys, JWTs, bearer tokens, private
-  keys, signed URLs and media metadata. A match prints only the first four characters of a secret.
+  keys, signed URLs and media metadata. Personal identifiers and commit email domains are fully redacted; secrets show only
+  their first four characters. A finding must not republish the identifier it blocks.
+- Pull-request CI also scans GitHub's temporary merge commit. If GitHub authors it with a personal email, preserve the failure,
+  resolve the account privacy setting with the owner, and verify the regenerated merge identity; checking only the branch head
+  would hide this exposure. Published sensitive objects require coordinated removal, never an unapproved history rewrite.
 - **The maintainer's own patterns are never in the repository.** The hook reads `PII_OWNER_EMAIL_RE`, `PII_OWNER_USER_RE` and
   `PII_OWNER_PATH_RE` from a `pii_owner.env` file (mode 0600) in the shared git directory; CI reads repository secrets of the same
   names. Never print, copy or commit that file. Putting an owner value into a tracked file to make a test pass is the defect the
   gate exists for.
 - A known-fake value goes in `scripts/lampway/pii_allow.txt`, exactly, with the reason on the same line.
+- The exact public GitHub provider noreply identity is safe commit metadata; provider-domain lookalikes and other addresses remain blocked, and its content is still fully scanned.
 - Commit as your GitHub noreply address; the gate refuses any other author or committer email on a new commit.
 - `--git` also refuses any commit that ADDS a person's home: an unexpanded test placeholder directory (`@RUN_TMP@/...`), an app
   home's `chat_history/`, `checkpoints/`, `operation_history/` (and their siblings), a root-level `*.mixar`, or a
@@ -78,3 +83,4 @@ the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` di
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the pre-publish and release steps were spread across the hook, CI, CONTRIBUTING and the build order | one procedure for every push and every tag, with the DOX closeout row read by `rail.py closeout` | captain ruling, 2026-10-05 |
 | 2026-10-06 | the rail in the pre-push hook | captain: "Those recs are fine" (recommendation 2) | an unreceipted rail change was caught only after it was published, by CI | `.githooks/pre-push` runs `rail.py check --quick` after the pre-publish gate; a branch without the rail skips it | captain ruling, 2026-10-06 |
 | 2026-10-06 | private paths in --git | the coordinator found 436 files under `@RUN_TMP@/home/…/app/` in the integrator's unpushed commit d4272d6e | a test ran the binary with an unexpanded placeholder home; it migrated the person's real ~/.mixar into the repository and `git add -A` committed it | PRIVATE_PATHS in `--git` with a self-test case, the same shapes in .gitignore, the history rewrite rule above | none |
+| 2026-10-07 | PII finding output redacted | captain: fix the PR privacy failure | the gate retained personal values and commit email domains in public diagnostics; GitHub also generated a personal-email PR merge | redact identifiers, distinguish the exact public provider identity with lookalike and secret controls, preserve merge checks, and resolve provider privacy at its source | planted text and commit identity regressions |

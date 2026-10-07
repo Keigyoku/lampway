@@ -44,6 +44,8 @@ The MCP-specific binary tests accept `LAMPWAY_INSPECT_BIN` and `LAMPWAY_VIEW_BIN
 
 The inspection integration fixture also verifies main-owned canonical translation and refused-import cleanup through T1 world metrics and counts, using the same isolated current-overlay profile.
 
+Prepublish tests plant both content identifiers and invalid authored commit identities: findings must block and must not echo personal values or email domains.
+
 The standalone suite has failures that predate the rail; measure a change against the integration branch's own run on the
 same commit rather than against zero.
 
@@ -63,3 +65,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-07 | MCP main integration acceptance | captain: rebase and redo affected contracts | prior-head proofs did not cover merged lease, translation and import-cleanup interfaces | verify current overlay and exact successor head; baseline main and native receipts remain distinct | MCP reconciliation report |
 
 | 2026-10-07 | GUI opt-in startup readiness | exact-head acceptance reached native capture before the connector timer synchronized the saved opt-in | a fixed six-second startup delay raced deferred controller registration | await the observable native/controller snapshot once, retain pixel guards and undo/masking assertions | isolated seed-zero readiness receipt and exact-head aggregate |
+| 2026-10-07 | PII diagnostic negative controls | captain: fix PR privacy exposure | public diagnostic output could reproduce the identifier being blocked | plant content and commit identifiers, assert refusal and complete personal-value redaction | prepublish ten-test pass |

@@ -25,7 +25,7 @@ wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) a
    opened for saving. The profile lives under `LAMPWAY_HOME`.
 4. **The pre-publish gate holds no owner value.** The maintainer's patterns come from `PII_OWNER_*_RE` variables (a 0600
    `pii_owner.env` in the shared git directory locally, repository secrets in CI). `pii_allow.txt` holds only known-fake values,
-   each with its reason on its line. Secrets are printed as their first four characters only.
+   each with its reason on its line. Secrets are printed as their first four characters only; personal identifiers and commit email domains are fully redacted.
 5. **The gate proves itself.** `prepublish_gate.py --self-test` plants one offender of each kind and fails if any goes unseen; a
    change to the patterns lands with its plant.
 
@@ -49,3 +49,4 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the scripts' refusal shape, secret handling and the gate's outside-the-tree patterns were known only from their headers | the five invariants, the test commands, and the scripts bound to their skills as rail triggers | captain ruling, 2026-10-05 |
+| 2026-10-07 | PII diagnostics privacy | captain: fix PR privacy exposure | findings echoed identifiers and email domains into public logs | fully redact personal values while retaining every blocking rule and planted offender | prepublish privacy regression tests |
