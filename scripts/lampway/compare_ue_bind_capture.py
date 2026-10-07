@@ -23,6 +23,7 @@ CONVENTIONS = {"translation_unit": "cm", "quaternion_order": "xyzw",
                "spaces": {"local": "parent_local", "component": "component"}}
 BOOL_SETTINGS = {"convert_scene", "force_front_x", "convert_scene_unit", "use_t0_as_ref_pose",
                  "update_skeleton_reference_pose", "import_animations", "import_meshes_in_bone_hierarchy"}
+FIXED_JOINT_PAIRS = (("root", "pelvis"), ("pelvis", "head"), ("hand_l", "hand_r"), ("foot_l", "foot_r"))
 
 
 def _keys(value, required, optional=()):
@@ -146,6 +147,51 @@ def _summary(rows):
             "worst": {key: max((row["metrics"][key] for row in rows), default=None) for key in BARS}}
 
 
+def _joint_distance_diagnostics(native, candidate, shared, parent_changes):
+    """Only signed distance differences; no absolute lengths or frame inference."""
+    def difference(a, b):
+        pairs = [(table[a]["component"]["translation_cm"], table[b]["component"]["translation_cm"])
+                 for table in (native, candidate)]
+        lengths = [math.dist(left, right) for left, right in pairs]
+        if all(math.isfinite(value) for value in lengths):
+            delta = lengths[1] - lengths[0]
+        else:
+            # Scale all four vectors before subtracting: neither an absolute
+            # length nor a coordinate subtraction may overflow before the
+            # finite signed difference is computed. Equal huge pairs stay zero.
+            largest = max(abs(value) for pair in pairs for vector in pair for value in vector)
+            scaled_lengths = [math.hypot(*(x / largest - y / largest for x, y in zip(left, right)))
+                              for left, right in pairs]
+            delta = largest * (scaled_lengths[1] - scaled_lengths[0])
+        if not math.isfinite(delta):
+            raise ValueError("nonfinite derived comparison")
+        return delta
+
+    excluded = [row["name"] for row in parent_changes]
+    excluded_set = set(excluded)
+    edges = []
+    for child in shared:
+        parent = native[child]["parent"]
+        if child not in excluded_set and parent is not None:
+            # Closed validated tables and an identical parent imply that the
+            # parent also exists in both tables. Changed edges are never used.
+            edges.append({"parent": parent, "child": child, "distance_delta_cm": difference(parent, child)})
+    pairs = []
+    for a, b in FIXED_JOINT_PAIRS:
+        missing = [name for name in (a, b) if name not in native or name not in candidate]
+        row = {"a": a, "b": b, "status": "missing" if missing else "compared"}
+        if missing:
+            row["missing"] = missing
+        else:
+            row["distance_delta_cm"] = difference(a, b)
+        pairs.append(row)
+    compared = sum(row["status"] == "compared" for row in pairs)
+    return {"convention": "candidate minus native Euclidean joint distance in declared component cm; a common rigid rotation and translation preserves distances; diagnostic only",
+            "parent_child": edges, "excluded_parent_changes": excluded, "fixed_pairs": pairs,
+            "counts": {"parent_child": len(edges), "excluded_parent_changes": len(excluded),
+                       "fixed_pairs_compared": compared, "fixed_pairs_missing": len(pairs) - compared}}
+
+
 def compare_capture(capture):
     _keys(capture, ("schema", "provenance", "conventions", "tables"), ("native_self_control", "importer_settings"))
     if capture["schema"] != CAPTURE_SCHEMA or capture["conventions"] != CONVENTIONS:
@@ -180,6 +226,7 @@ def compare_capture(capture):
         "native_self_control": self_control, "provenance_hashes": {key: provenance[key] for key in
             ("candidate_fbx_sha256", "native_reference_sha256", "capture_code_sha256")},
         "missing": missing, "extra": extra, "parent_changes": parent_changes, **tables, **summaries,
+        "component_joint_distance_diagnostics": _joint_distance_diagnostics(native, candidate, shared, parent_changes),
         "counts": {"native": len(native), "candidate": len(candidate), "compared": len(shared),
                    "missing": len(missing), "extra": len(extra), "parent_changes": len(parent_changes)},
         "pass": bool(shared) and not missing and not extra and not parent_changes and

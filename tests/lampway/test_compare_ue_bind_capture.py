@@ -195,6 +195,112 @@ def test_new_norm_diagnostic_does_not_refuse_equal_finite_large_translations():
     assert all(row["translation_norm_delta_cm"] == 0. for row in report["component"])
 
 
+def joint_distance_capture():
+    data = capture()
+    rows = [bone("root", t=(2., 3., 4.)), bone("pelvis", "root", t=(2., 3., 6.)),
+            bone("head", "pelvis", t=(2., 3., 10.)),
+            bone("hand_l", "pelvis", t=(5., 3., 7.)), bone("hand_r", "pelvis", t=(-1., 3., 7.)),
+            bone("foot_l", "pelvis", t=(3., 3., 0.)), bone("foot_r", "pelvis", t=(1., 3., 0.))]
+    data["tables"] = {"native": rows, "candidate": copy.deepcopy(rows)}
+    return data
+
+
+def test_joint_distances_preserve_rigid_rotation_and_translation_without_changing_acceptance():
+    data = joint_distance_capture()
+    q = rotation(2, 35.)
+    for row in data["tables"]["candidate"]:
+        row["component"]["translation_cm"] = [v + shift for v, shift in
+            zip(rotate_vector(q, row["component"]["translation_cm"]), (11., -7., 2.))]
+    before = copy.deepcopy(data)
+    report = COMPARE.compare_capture(data)
+    diagnostics = report["component_joint_distance_diagnostics"]
+    assert diagnostics["counts"] == {"parent_child": 6, "excluded_parent_changes": 0,
+                                      "fixed_pairs_compared": 4, "fixed_pairs_missing": 0}
+    assert all(row["distance_delta_cm"] == pytest.approx(0., abs=1e-12)
+               for row in diagnostics["parent_child"] + diagnostics["fixed_pairs"])
+    assert data == before and not report["pass"]
+    assert report["bars"] == {"position_cm": .01, "rotation_deg": .01, "scale": 1e-4}
+
+
+def test_joint_distance_deformation_plant_is_signed_and_contains_no_absolute_distances():
+    data = joint_distance_capture()
+    next(row for row in data["tables"]["candidate"] if row["name"] == "head")["component"]["translation_cm"][2] += 2.
+    report = COMPARE.compare_capture(data)
+    diagnostics = report["component_joint_distance_diagnostics"]
+    edge = next(row for row in diagnostics["parent_child"] if row["child"] == "head")
+    pair = next(row for row in diagnostics["fixed_pairs"] if row["b"] == "head")
+    assert edge == {"parent": "pelvis", "child": "head", "distance_delta_cm": 2.}
+    assert pair == {"a": "pelvis", "b": "head", "status": "compared", "distance_delta_cm": 2.}
+    assert report["component_summary"]["over_limit_count"] == 1 and not report["pass"]
+    assert all(set(row) == {"parent", "child", "distance_delta_cm"} for row in diagnostics["parent_child"])
+    for row in data["tables"]["candidate"]:
+        if row["name"] == "head": row["component"]["translation_cm"][2] -= 4.
+    shorter = COMPARE.compare_capture(data)["component_joint_distance_diagnostics"]
+    assert next(row for row in shorter["parent_child"] if row["child"] == "head")["distance_delta_cm"] == -2.
+
+
+def test_joint_distances_mark_changed_parent_and_missing_fixed_pair_without_stripping_container():
+    data = joint_distance_capture()
+    data["tables"]["candidate"].append(bone("container"))
+    next(row for row in data["tables"]["candidate"] if row["name"] == "pelvis")["parent"] = "container"
+    data["tables"]["candidate"] = [row for row in data["tables"]["candidate"] if row["name"] != "hand_r"]
+    report = COMPARE.compare_capture(data)
+    diagnostics = report["component_joint_distance_diagnostics"]
+    assert diagnostics["excluded_parent_changes"] == ["pelvis"]
+    assert not any(row["child"] == "pelvis" for row in diagnostics["parent_child"])
+    assert len(diagnostics["fixed_pairs"]) == 4
+    assert next(row for row in diagnostics["fixed_pairs"] if row["a"] == "hand_l") == {
+        "a": "hand_l", "b": "hand_r", "status": "missing", "missing": ["hand_r"]}
+    assert next(row for row in diagnostics["fixed_pairs"] if row["a"] == "root")["status"] == "compared"
+    assert report["extra"] == ["container"] and report["missing"] == ["hand_r"] and not report["pass"]
+
+
+def test_joint_distances_bound_absent_named_pairs_with_closed_different_parents():
+    data = capture()
+    data["tables"]["native"].append(bone("native_only"))
+    data["tables"]["candidate"].append(bone("candidate_only"))
+    # Both tables are closed, but their otherwise shared child has a changed parent.
+    data["tables"]["native"][1]["parent"] = "native_only"
+    data["tables"]["candidate"][1]["parent"] = "candidate_only"
+    diagnostics = COMPARE.compare_capture(data)["component_joint_distance_diagnostics"]
+    assert diagnostics["excluded_parent_changes"] == ["child"]
+    assert diagnostics["parent_child"] == []
+    assert diagnostics["counts"]["fixed_pairs_missing"] == 4
+    assert len(diagnostics["fixed_pairs"]) == 4 and all(row["status"] == "missing" for row in diagnostics["fixed_pairs"])
+
+
+def test_equal_finite_huge_joint_pairs_preserve_pass_and_zero_distance_delta():
+    data = capture()
+    for table in data["tables"].values():
+        table[0]["component"]["translation_cm"] = [1.7e308, 0., 0.]
+        table[1]["component"]["translation_cm"] = [-1.7e308, 0., 0.]
+    report = COMPARE.compare_capture(data)
+    assert report["pass"]
+    assert report["component_joint_distance_diagnostics"]["parent_child"] == [
+        {"parent": "root", "child": "child", "distance_delta_cm": 0.}]
+
+
+def test_nonrepresentable_derived_joint_distance_delta_still_refuses():
+    data = capture()
+    # Each per-bone position delta fits in a float, but the pair difference does not.
+    data["tables"]["candidate"][0]["component"]["translation_cm"] = [1.7e308, 0., 0.]
+    data["tables"]["candidate"][1]["component"]["translation_cm"] = [-1.7e308, 0., 0.]
+    with pytest.raises(ValueError, match="nonfinite derived comparison"):
+        COMPARE.compare_capture(data)
+
+
+def test_huge_absolute_pair_lengths_keep_representable_signed_distance_difference():
+    data = capture()
+    for table in data["tables"].values():
+        table[0]["component"]["translation_cm"] = [1.2e308, 0., 0.]
+        table[1]["component"]["translation_cm"] = [-1.2e308, 0., 0.]
+    data["tables"]["candidate"][0]["component"]["translation_cm"][0] = 1.3e308
+    report = COMPARE.compare_capture(data)
+    row = report["component_joint_distance_diagnostics"]["parent_child"][0]
+    assert row["distance_delta_cm"] == pytest.approx(1e307)
+    assert not report["pass"]
+
+
 def test_signed_translation_scale_deltas_and_zero_reference_ratio():
     data = capture()
     data["tables"]["native"][0]["component"] = transform(scale=(-2., 0., 3.), t=(2., -3., 5.))

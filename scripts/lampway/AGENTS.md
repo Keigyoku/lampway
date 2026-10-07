@@ -72,6 +72,8 @@ The full-run harness reports RED for inherited as well as new failures/errors. P
 
 Physical bind diagnostics capture signed rest transforms locally and return derived deltas, topology and actual import metadata. Never upload original FBX, vertices or weights. Preserve the extra container and independent native reference, verify actual accessor/composition semantics, and keep supplied-data comparisons distinct from physical acceptance.
 
+Component joint-distance diagnostics report signed differences only, using unchanged parent edges and explicitly bounded fixed pairs from the existing capture. Mark changed/missing pairs instead of inventing correspondence. These invariants add no acceptance bars and do not select a rigid correction or alter the comparator verdict.
+
 Derived bind diagnostics include left-relative and right-relative quaternion deltas and rotation/translation invariants. Variable left deltas alone cannot rule out a common right correction or basis conjugation. Keep raw absolute transforms local and all existing pass metrics unchanged.
 
 ## Anneal log
@@ -98,3 +100,5 @@ Derived bind diagnostics include left-relative and right-relative quaternion del
 | 2026-10-07 | physical bind capture contract | actual UE343bones/all342binds failed while Blender self-readback passed | signed transforms and actual importer semantics were absent, allowing root/unit speculation | derive private comparison-only reports from validated local captures without geometry, API guesses or correction selection | raw signed scales, quaternion signs, topology and privacy refusal controls |
 
 | 2026-10-07 | actual unit-carrier and frame diagnosis | owner UE derived342-row capture | Blender self-readback hid scale100 Null ancestry; applying import object scale violated the existing drift guard | Derived bind diagnostics include left-relative and right-relative quaternion deltas and rotation/translation invariants. Variable left deltas alone cannot rule out a common right correction or basis conjugation. Keep raw absolute transforms local and all existing pass metrics unchanged. | old-default rawNull100 RED; disposable writer/skin/action/unit-factor and quaternion-order controls |
+
+| 2026-10-07 | component joint-distance diagnosis | actual corrected-unit candidate still fails native positions and frames | origin-relative norms cannot distinguish rigid translation from joint deformation | report derived unchanged-edge and bounded fixed-pair distance differences without absolute tables, new bars or changed verdicts | rigid-transform, displaced-joint, changed-parent, missing-pair and finite-range controls |
