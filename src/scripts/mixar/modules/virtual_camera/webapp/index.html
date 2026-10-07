@@ -5,18 +5,20 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="color-scheme" content="dark" />
   <meta name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Lampway Virtual Camera</title>
+  <link rel="stylesheet" href="brand.css" />
   <link rel="stylesheet" href="app.css" />
 </head>
 <body>
   <!-- ====== Connect / permission gate (iOS sensor access needs a user gesture) ====== -->
   <div id="gate" class="gate">
     <div class="gate-card">
-      <div class="gate-logo">MIXAR</div>
+      <img class="gate-mark" src="lockup.svg" alt="Lampway" />
       <div class="gate-title">Virtual Camera</div>
       <div id="gate-status" class="gate-status">Ready to pair with Lampway.</div>
       <button id="btn-connect" class="btn-primary">Connect</button>

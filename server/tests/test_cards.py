@@ -274,3 +274,24 @@ def test_the_workbench_frame_wraps_the_card_in_the_sandboxed_iframe_on_the_cards
     assert 'sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"' in html_text
     src = html_text.split('src="', 1)[1].split('"', 1)[0]
     assert src.startswith("http://127.0.0.1:") and ":8787/" not in src and src.endswith("/receipt.html?theme=light")
+
+
+def test_card_pages_carry_the_brand(tmp_path):
+    """The captain's brand pass (2026-10-06): a report card page is a Lampway page: the lockup, the site's faces and the
+    tokens, Night by default and Paper under the light theme the content server marks (data-lw-theme), all from the card's
+    own _shared folder (nothing fetched from anywhere)."""
+    from lampway_server import brand_page as BP
+    root = tmp_path / "project"
+    led, runs, *_ = ledger_fixture(root)
+    reg = Registry(root, today=lambda: "2026-10-05")
+    card = reg.create({"title": "Boots1"})
+    page = Path(BLD.build(reg, led, runs, card["id"], "receipt", "Boots1", "4")).read_text()
+    assert '<img class="mark" src="../_shared/lockup.svg" alt="Lampway">' in page
+    shared = root / "cards" / "_shared"
+    assert (shared / "lockup.svg").read_text() == (BP.BRAND / "lockup.svg").read_text()
+    css = (shared / "report.css").read_text()
+    assert "font-family:'Fraunces'" in css and "font-family:'IBM Plex Sans'" in css and "url(data:font/woff2;base64," in css
+    tokens = json.loads((Path(__file__).resolve().parents[2] / "scripts/lampway/facelift/theme/tokens.json").read_text())["colour"]
+    night, paper = css.split('html[data-lw-theme="light"]', 1)
+    assert f"--lw-canvas: {tokens['canvas']['dark'].lower()}" in night and f"--lw-canvas: {tokens['canvas']['light'].lower()}" in paper
+    assert "#6ee7a0" not in css.lower() and "system-ui, sans-serif; }" not in css, "no stock face or colour of its own"
