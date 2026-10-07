@@ -5,6 +5,8 @@
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("test_all", ROOT / "scripts/lampway/test_all.py")
 T = importlib.util.module_from_spec(spec)
@@ -53,6 +55,59 @@ def test_uncertain_parameter_syntax_is_not_a_pass_receipt():
     log = f"PASSED {node}\nFAILED {node} - reason\n"
     assert T.parse_passed(log) == set()
     assert T.judge(T.parse(log)[0], {node: ("broken", "reason")}, T.parse_passed(log))["fixed"] == []
+
+
+def _mock_runner(tmp_path, monkeypatch, log, suite_rc):
+    class FakeProc:
+        def __init__(self, cmd, cwd, stdout, stderr, start_new_session, env=None):
+            stdout.write(log)
+            stdout.close()
+
+        def wait(self):
+            return suite_rc
+
+    monkeypatch.setattr(T, "verify_env", lambda *a, **k: [])
+    monkeypatch.setattr(T, "load_baseline", lambda: {})
+    monkeypatch.setattr(T, "binary_gate", lambda *a, **k: ("gated", "sha"))
+    monkeypatch.setattr(T, "head_sha", lambda root: "aaa1111")
+    monkeypatch.setattr(T.subprocess, "Popen", FakeProc)
+    monkeypatch.setenv("TMPDIR", str(tmp_path))
+    monkeypatch.setenv("LAMPWAY_TEST_OUT", str(tmp_path / "out"))
+
+
+@pytest.mark.parametrize("suite_rc", [1, 3])
+def test_suite_process_crash_without_test_ids_is_red(tmp_path, monkeypatch, suite_rc):
+    _mock_runner(tmp_path, monkeypatch, "INTERNALERROR pytest crashed before reporting tests\n", suite_rc)
+    assert T.main(["--only", "server"]) == 1
+    import json
+    summary = json.loads((tmp_path / "out" / "summary.json").read_text())
+    assert summary["suite_errors"] == [f"server: pytest exited {suite_rc}"]
+
+
+@pytest.mark.parametrize("retry_rc,retry_log", [(3, "INTERNALERROR pytest crashed during retry\n"),
+                                                (0, "= 1 passed in 1.0s =\n")])
+def test_crashed_retry_without_a_pass_receipt_cannot_make_a_failure_flaky(tmp_path, monkeypatch, retry_rc, retry_log):
+    from types import SimpleNamespace
+    _mock_runner(tmp_path, monkeypatch, "FAILED tests/a.py::test_new - defect\n= 1 failed in 1.0s =\n", 1)
+    monkeypatch.setattr(T.subprocess, "run", lambda *a, **k: SimpleNamespace(
+        returncode=retry_rc, stdout=retry_log, stderr=""))
+    assert T.main(["--only", "client"]) == 1
+    import json
+    summary = json.loads((tmp_path / "out" / "summary.json").read_text())
+    assert summary["new_failures"] == ["tests/a.py::test_new"]
+    assert summary["flaky_passed_on_rerun"] == []
+
+
+def test_successful_retry_with_an_exact_pass_receipt_is_reported_as_flaky(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    _mock_runner(tmp_path, monkeypatch, "FAILED tests/a.py::test_new - defect\n= 1 failed in 1.0s =\n", 1)
+    monkeypatch.setattr(T.subprocess, "run", lambda *a, **k: SimpleNamespace(
+        returncode=0, stdout="PASSED tests/a.py::test_new\n= 1 passed in 1.0s =\n", stderr=""))
+    assert T.main(["--only", "client"]) == 0
+    import json
+    summary = json.loads((tmp_path / "out" / "summary.json").read_text())
+    assert summary["flaky_passed_on_rerun"] == ["tests/a.py::test_new"]
+    assert summary["new_failures"] == []
 
 
 def test_missing_or_skipped_known_red_is_unverified_and_never_fixed():

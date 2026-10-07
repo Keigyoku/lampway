@@ -113,3 +113,9 @@ G13 also runs the copied documentation generator after reverting `registry_count
 | `additional-restored-green` | 12 passed, 99 deselected; 5.05 s | `cb33292d893a2063e001ce4dd7872f33576370d2f1b24107346f74f2a8622a17` |
 
 The 12-case restored run includes both scalar-codec parameters, public alias/catalogue checks, local schema debt, the MCP-only ratchet plant, actual server refusal, failed-batch lease transport, declared-frame native parity/refusal, native model/batch refusal shapes, and regenerated registry counts. These passing results support the scoped controls above; they do not certify every issue criterion.
+
+## Successor controls
+
+The item10 existing covering case at `8e47cfe34bc9ad12671017473c53da7ac9edd701` verifies actual achieved faces and the requested target in the fallback note. Its isolated native run passes; reverting the production note expression in a disposable child process makes the same case fail. The production source was not edited for that control. Private receipts: `retopo-cover-root.xml`, `retopo-cover-control/control.xml` and `control-source.json`.
+
+The bounded numerical-frame fix at `f13fa7d9de627bc9e47efa5d3b7c25083ffb8edd` retains the unchanged proper-rotation validator. A complete342-bone oblique native graph fails before correction and passes after it; material shear, reflection, singularity and the producer-budget boundary retain refusal controls. Three supplied owner measurements also pass via an explicitly supplied private fixture; their matrices are not committed. The independent26-test run and13 retained normalization/rig/export checks pass. These component controls do not replace the actual complete-owner normalization/export rerun or establish universal historical RED-first chronology.

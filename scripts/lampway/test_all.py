@@ -233,7 +233,7 @@ def main(argv=None) -> int:
     shelf_before = shelf_snapshot(os.environ) if "client" in run and os.environ.get("LAMPWAY_SHELF_DIR") else None
     for name, (cmd, cwd, _) in run.items():
         procs[name] = subprocess.Popen(cmd, cwd=cwd, stdout=open(out / f"{name}.log", "w"), stderr=subprocess.STDOUT, start_new_session=True, env=suite_env)
-    failing, passing, report = set(), set(), {}
+    failing, passing, report, suite_errors = set(), set(), {}, []
     for name, p in procs.items():
         rc = p.wait()
         log = (out / f"{name}.log").read_text(errors="replace")
@@ -241,6 +241,8 @@ def main(argv=None) -> int:
         failing |= ids
         passing |= parse_passed(log, run[name][2])
         report[name] = {"rc": rc, **counts}
+        if rc not in (0, 1) or (rc == 1 and not ids):
+            suite_errors.append(f"{name}: pytest exited {rc}")
     writes = shelf_writes(shelf_before, shelf_snapshot(os.environ)) if shelf_before is not None else []
     j = judge(failing, baseline, passing)
     flaky = []
@@ -253,16 +255,20 @@ def main(argv=None) -> int:
             rerun = subprocess.run(base_cmd + ["--basetemp", str(tmp / f"lw-test-{name}-rerun"), *mine],
                                    cwd=cwd, capture_output=True, text=True, env=suite_env)
             (out / f"{name}-rerun.log").write_text(rerun.stdout + rerun.stderr)
-            still, _ = parse(rerun.stdout, prefix)
-            flaky += [prefix + t for t in mine if prefix + t not in still]
+            retry_log = rerun.stdout + rerun.stderr
+            still, _ = parse(retry_log, prefix)
+            retry_passed = parse_passed(retry_log, prefix)
+            if rerun.returncode == 0:
+                flaky += [prefix + t for t in mine if prefix + t in retry_passed and prefix + t not in still]
         j["new"] = [t for t in j["new"] if t not in flaky]
     if a.shrink_baseline and j["fixed"]:
         keep = [l for l in BASELINE.read_text(encoding="utf-8").splitlines(keepends=True) if l.startswith("#") or not l.strip() or l.split("\t")[0] not in set(j["fixed"])]
         BASELINE.write_text("".join(keep), encoding="utf-8")
-    green = not j["new"] and (not j["fixed"] or a.shrink_baseline) and not j["unverified"] and not writes
+    green = not j["new"] and (not j["fixed"] or a.shrink_baseline) and not j["unverified"] and not writes and not suite_errors
     summary = {"verdict": ("GREEN" if gate[0] in ("gated", "n/a") else "GREEN-UNGATED") if green else "RED", "binary": {"state": gate[0], "detail": gate[1]}, "sha": sha,
                "suites": report, "baseline": len(baseline), "known_red_seen": len(j["known"]), "new_failures": j["new"], "flaky_passed_on_rerun": flaky, "baseline_now_passing": j["fixed"],
-               "baseline_unverified": j["unverified"], "minutes": round((time.time() - t0) / 60, 1), "logs": str(out)}
+               "baseline_unverified": j["unverified"], "suite_errors": suite_errors,
+               "minutes": round((time.time() - t0) / 60, 1), "logs": str(out)}
     if writes:
         summary["shelf_writes"] = writes[:50]             # the shelf is read only: a run that changed it is RED, whatever passed
     end = head_sha(ROOT)

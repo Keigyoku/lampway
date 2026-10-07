@@ -54,6 +54,8 @@ Native frame diagnostics read loaded modules and authored matrices without proje
 
 Run the read-only supplemental UE surface probe before full cube capture. Missing LDR/material/neutral-grading APIs refuse; surface availability is not shader or pixel proof.
 
+A pytest process error refuses GREEN even when no failure IDs were printed. Flaky classification requires a successful retry and an exact PASS receipt; crashed or silent retries retain the original failure.
+
 ## Owner
 
 The build script and the build box belong to the native-build lane (`lp/facelift` at the time of writing). The pre-publish gate is
@@ -73,3 +75,4 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | 2026-10-07 | genuine UE cube QA handoff | captain: provide actual UE tonemapper cube generation | external generator was absent and synthetic data could be mistaken for renderer proof | bounded QA-only scene captures with exact native shaper provenance, engine/profile agreement, readback controls and explicit display precision; pure tests remain distinct from physical UE proof | owner-run UE capability/capture receipt pending |
 | 2026-10-07 | read-only native frame diagnostics | actual G4 numeric failure | loaded overlay and authored float32 matrices needed disambiguation | Native frame diagnostics read loaded modules and authored matrices without projection or scene mutation. Write the complete owner-only receipt exclusively with restrictive permissions; print aggregate errors and source identities, never owner matrices. | pure diagnostic controls and complete342 native unchanged-scene proof |
 | 2026-10-07 | supplemental UE capture preflight | actual UE handoff | the initial probe omitted display readback and grading APIs | Run the read-only supplemental UE surface probe before full cube capture. Missing LDR/material/neutral-grading APIs refuse; surface availability is not shader or pixel proof. | missing API/property and complete mocked surface controls |
+| 2026-10-07 | full-suite process failure receipts | issue 2 AC05 bounded crash controls | pytest crashes without test IDs and crashed retries could appear green | refuse process errors and require exact successful retry PASS receipts before flaky classification | suite crash, crashed retry and affirmative retry controls |
