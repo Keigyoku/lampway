@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 from urllib.parse import parse_qs, urlparse
 
 import httpx
+import pytest
 import uvicorn
 import websockets
 
@@ -74,6 +75,7 @@ class FakeServe:
         self.rows = itertools.count(1)
         self.mcp = None                          # (url, bearer) of Lampway's endpoint for this unit
         self.mcp_results: list = []
+        self.mcp_post = None                     # (url, body, headers) -> reply, when Lampway runs under a TestClient (ServeThread)
         self._srq: dict = {}
         self.port = None
         self.server = None
@@ -222,6 +224,9 @@ class FakeServe:
 
     async def call_mcp(self, tool, args):
         url, bearer = self.mcp
+        body = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": tool, "arguments": args}}
+        if self.mcp_post is not None:
+            return (await asyncio.to_thread(self.mcp_post, url, body, {"Authorization": f"Bearer {bearer}"}))["result"]
         async with httpx.AsyncClient(timeout=120) as http:
             r = await http.post(url, json={"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": tool, "arguments": args}},
                                 headers={"Authorization": f"Bearer {bearer}"})
@@ -338,7 +343,7 @@ class FakeUnits:
         self.bearer = "unit-bearer"
         self.dead: set = set()
 
-    def problem(self):
+    def missing(self):
         return None
 
     def known(self, unit):
@@ -399,6 +404,8 @@ class Island:
         self.on_script = on_script or (lambda params: {"success": True, "output": "ok"})
         self.frames: list = []
         self.scripts: list = []
+        self.hold_scripts = False                # True: Blender's script calls are recorded in ``held`` and left unanswered
+        self.held: list = []
         self.ws = None
         self.reader = None
         self.changed = asyncio.Event()
@@ -424,6 +431,10 @@ class Island:
                 self.frames.append(frame)
                 if frame.get("method") == "blender.execute_script" and frame.get("id"):
                     self.scripts.append(frame["params"])
+                    if self.hold_scripts:
+                        self.held.append(frame["id"])
+                        self.changed.set()
+                        continue
                     await self.ws.send(json.dumps({"jsonrpc": "2.0", "id": frame["id"], "result": self.on_script(frame["params"])}))
                 self.changed.set()
         except websockets.ConnectionClosed:
@@ -468,3 +479,120 @@ class Island:
 
     def chat(self, message, session_id):
         return self.fake.chat_payload(message, session_id)
+
+
+# ---------------------------------------------------------------------------------------------------- the island against a scripted serve
+@pytest.fixture
+def stack(settings, provider, monkeypatch):
+    """The real server on a real loopback port, with a herdr server that reports running (no pane is started: ``FakeUnits``)."""
+    from lampway_server.app import create_app
+    from lampway_server.herdr import launcher as L
+    settings.port = free_port()
+    monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
+    monkeypatch.setattr(L, "bin_path", lambda: "/usr/bin/herdr-played")
+    app = create_app(settings, provider=provider)
+    with Stack(app, settings) as st:
+        yield st
+
+
+def run(stack, scenario, on_script=None):
+    """``scenario(serve, units, island, front)`` against a scripted serve, the hub's real ``HermesFront`` and the Lampway client's
+    frames; the unit's pane is ``FakeUnits``."""
+    from lampway_server.engine.front import HermesFront
+
+    async def go():
+        serve = await FakeServe().start()
+        units = FakeUnits(serve, asyncio.get_running_loop(), stack.base)
+        front = HermesFront(stack.app.state.agent, units)
+        stack.app.state.agent.engine = front
+        island = await Island(stack.base, stack.settings, on_script=on_script or (lambda p: SCENE)).connect()
+        try:
+            return await scenario(serve, units, island, front)
+        finally:
+            for link in list(front.links.values()):
+                link.closing = True
+            await island.close()
+            await serve.stop()
+            stack.app.state.agent.engine = None
+    return asyncio.run(go())
+
+
+SCENE = {"success": True, "scene": "Scene", "object_count": 1, "objects": [{"name": "Cube", "type": "MESH"}]}
+
+
+async def chat(island, text, sid, **extra):
+    payload = {**island.chat(text, sid), **extra}
+    cid, rid = await island.command("agent.chat", payload)
+    return cid, rid
+
+
+def final_text(events):
+    sets = [e["content"]["set"] for e in events if (e.get("content") or {}).get("set")]
+    return sets[-1] if sets else None
+
+
+class ServeThread:
+    """A ``FakeServe`` in an event loop of its own, for a test whose server runs under Starlette's ``TestClient`` (no real port):
+    the island is the test's ``FakeMixarClient`` socket, and the pane's calls to Lampway's MCP endpoint go through the TestClient
+    (``http``). ``front(agent)`` puts the hub's real ``HermesFront`` in the seat, its unit's pane played by ``FakeUnits``."""
+
+    def __init__(self, http=None, base="http://127.0.0.1:8787"):
+        self.http, self.base = http, base
+        self.loop = asyncio.new_event_loop()
+        self.thread = threading.Thread(target=self.loop.run_forever, daemon=True)
+        self.serve = None
+        self.fronts: list = []
+
+    def __enter__(self):
+        self.thread.start()
+        self.serve = self.call(FakeServe().start())
+        if self.http is not None:
+            self.serve.mcp_post = self._post
+        return self
+
+    def call(self, coro, timeout=60):
+        return asyncio.run_coroutine_threadsafe(coro, self.loop).result(timeout)
+
+    def _post(self, url, body, headers):
+        return self.http.post(urlparse(url).path, json=body, headers=headers).json()
+
+    def front(self, agent) -> "FakeUnits":
+        from lampway_server.engine.front import HermesFront
+        units = FakeUnits(self.serve, self.loop, self.base)
+        front = HermesFront(agent, units)
+        agent.engine = front
+        self.fronts.append((agent, front))
+        return units
+
+    def __exit__(self, *exc):
+        for agent, front in self.fronts:
+            for link in list(front.links.values()):
+                link.closing = True
+            if agent.engine is front:
+                agent.engine = None
+        try:
+            self.call(self.serve.stop(), timeout=15)
+        finally:
+            self.loop.call_soon_threadsafe(self.loop.stop)
+            self.thread.join(5)
+            self.loop.close()
+
+
+def mode1_turn(monkeypatch, http, fake, steps, message="Go", session_id=None, on_script=None, drive=None):
+    """One Mode 1 turn under a TestClient, the pane's Hermes playing ``steps`` (FakeServe's script). The user's Client is ``fake``
+    (logged in); ``drive(ws, command_id)`` replaces ``fake.run_turn`` (e.g. a swarm's fleet). Returns (frames, the serve)."""
+    from lampway_server.herdr import launcher as L
+    monkeypatch.setattr(L, "bin_path", lambda: "/usr/bin/herdr-played")
+    monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
+    session_id = session_id or str(uuid.uuid4())
+    with ServeThread(http) as st:
+        st.front(http.app.state.agent)
+        st.serve.scripts.append(list(steps))
+        with fake.connect_ws() as ws:
+            fake.handshake(ws)
+            command_id = fake.command(ws, "chat", fake.chat_payload(message, session_id))
+            if drive is not None:
+                frames = drive(ws, command_id)
+            else:
+                frames = fake.run_turn(ws, command_id, on_script=on_script or (lambda p: fake.execute_script_result(p["script"])))
+        return frames, st.serve

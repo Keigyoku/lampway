@@ -1488,7 +1488,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     from .engine import gateway as ENG                                          # spec E1.4: the engine's one model endpoint, on loopback
     engine_tokens = ENG.Registry()
     ENG.set_active(engine_tokens)
-    from .engine import wiring as ENGW                                          # spec E1: Hermes in Mode 1's seat when chosen and built
+    from .engine import wiring as ENGW                                          # spec E1, A5: Hermes in Mode 1's seat whenever it is built
     engine_wiring = ENGW.wire(settings, agent, engine_tokens)
     routes += ENG.gateway_routes(engine_tokens, ENGW.provider_getter(agent))
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
@@ -1510,8 +1510,9 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         if engine_wiring is not None:
             try:
                 await engine_wiring.start()                        # the egress proxy on loopback, then the runtime in the seat
-            except Exception:  # noqa: BLE001 - the built-in loop keeps the seat
-                logging.getLogger("lampway.engine").warning("the engine could not start; the built-in loop runs", exc_info=True)
+            except Exception as exc:  # noqa: BLE001 - nothing else runs Mode 1 (spec A5): its chats are refused, saying why
+                agent.engine, agent.engine_problem = None, tuple(ENGW.start_failed(exc))
+                logging.getLogger("lampway.engine").warning("the engine could not start; Mode 1 chats are refused", exc_info=True)
 
         async def tick():
             while True:
@@ -1522,7 +1523,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                     pass
                 if engine_wiring is not None:
                     try:
-                        await engine_wiring.tick()                 # idle engine children are reaped (E1.2)
+                        await engine_wiring.tick()                 # nothing to reap: every agent is a pane (A0)
                     except Exception:  # noqa: BLE001
                         logging.getLogger("lampway.engine").warning("the engine reap failed", exc_info=True)
                 try:
@@ -1535,7 +1536,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         finally:
             task.cancel()
             if engine_wiring is not None:
-                await engine_wiring.stop()                         # every engine child, then the proxy
+                await engine_wiring.stop()                         # this server's connections to the panes, then the proxy
             render_stop.set()
             if render_thread is not None:
                 render_thread.join(10)                                # a preview in flight finishes before its library closes

@@ -2,12 +2,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The engine in production: Hermes in Mode 1's seat, every agent a pane (docs/reports/agent-modes-spec.md A1-A3, E1.3-E1.5).
 
-``create_app`` calls ``wire`` once. Mode 1 is the Hermes runtime only when both hold; otherwise the built-in loop stays, and one log
-line says why:
+``create_app`` calls ``wire`` once. Mode 1 runs only on the Hermes runtime (spec A0, A5): Lampway's own provider loop is gone, so
+nothing else can run it and there is no switch. The engine is in the seat whenever
 
-* ``LAMPWAY_AGENT_ENGINE=hermes`` is set (the user's or the launcher's choice; nothing turns it on by itself), and
 * a finished build is found: ``$LAMPWAY_ENGINES_DIR`` when it is set (and only there), else ``<repo>/build/engines``, else
-  ``<state_dir>/engines`` (``find_engine``: the newest ``hermes/*/engine.json``, written last by scripts/lampway/engine_env.py).
+  ``<state_dir>/engines`` (``find_engine``: the newest ``hermes/*/engine.json``, written last by scripts/lampway/engine_env.py), and
+* the server is reachable on loopback (its doors answer loopback only).
+
+Otherwise Mode 1 is unavailable on this server: one log line says why, and the hub refuses every Mode 1 chat with that reason and
+its fix (``AgentHub.engine_problem``: the code, why, and the exact build command or setting), before any turn starts. The same
+holds when the engine was selected but could not start (``start_failed``). ``LAMPWAY_AGENT_ENGINE``, the switch of the days when the
+built-in loop could stand in, is no longer read; a server that finds it set says so once.
 
 Selected, the app's lifespan (``start``/``stop``/``tick``) gives Mode 1's panes Lampway's two doors and the user's choices:
 
@@ -24,7 +29,6 @@ Selected, the app's lifespan (``start``/``stop``/``tick``) gives Mode 1's panes 
   start re-adopts every live Lampway pane the cockpit reconciled (its tokens by their digests) and re-attaches to it. Shutdown
   closes this server's connections and stops the proxy; it never ends a pane or its serve (law 5).
 
-The server must be reachable on loopback (its doors are loopback only): a non-loopback ``LAMPWAY_HOST`` keeps the built-in loop.
 """
 
 import asyncio
@@ -33,7 +37,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Optional
+from typing import NamedTuple, Optional
 
 from .. import capabilities as CAP
 from . import gateway as GW
@@ -42,7 +46,7 @@ from . import proxy as PX
 
 log = logging.getLogger("lampway.engine")
 
-SWITCH = "LAMPWAY_AGENT_ENGINE"
+RETIRED_SWITCH = "LAMPWAY_AGENT_ENGINE"   # no longer read (spec A5): the engine runs Mode 1 whenever it is built
 ENGINE_NAME = "hermes"
 REPO_ENGINES = Path(__file__).resolve().parents[3] / "build" / "engines"
 MODEL_ID = "lampway"                     # the id the engine asks the gateway for; the current main provider answers whatever it is
@@ -51,6 +55,21 @@ PROXY_PORT_FILE = "proxy.port"
 #: Spec S2: what a swarm worker never does, whatever the parent chose (its tool list also leaves out ``ask_user`` and ``clarify``).
 WORKER_NEVER = frozenset({"subagents", "swarm", "schedule", "panes.drive", "computer.use"})
 WORKER_NEVER_FAMILIES = ("messaging.",)
+
+
+class Unavailable(NamedTuple):
+    """Why Mode 1 cannot run on this server, as the hub's refusal says it: its code, why, and the exact fix."""
+    code: str
+    why: str
+    fix: str
+
+
+BUILD_FIX = "Build Lampway's pinned Hermes engine: scripts/lampway/engine_env.py (then restart Lampway)"
+
+
+def start_failed(exc: BaseException) -> Unavailable:
+    return Unavailable("engine_unavailable", f"the engine could not start: {type(exc).__name__}: {exc}",
+                       "Read the server log (server.log in the Lampway home) for why, fix it, then restart Lampway")
 
 
 def find_engine(engines_dir) -> Optional[dict]:
@@ -81,15 +100,11 @@ def engines_dirs(state_dir, environ) -> list:
 
 
 def select(state_dir, environ=None, host: str = "127.0.0.1") -> tuple:
-    """(the engine build record, why) or (None, why the built-in loop stays)."""
+    """(the engine build record, what was selected), or (None, ``Unavailable``: why Mode 1 cannot run here, and its fix)."""
     environ = os.environ if environ is None else environ
-    choice = (environ.get(SWITCH) or "").strip().lower()
-    if not choice:
-        return None, f"{SWITCH} is not set (set it to {ENGINE_NAME} to run the Hermes engine)"
-    if choice != ENGINE_NAME:
-        return None, f"{SWITCH}={choice!r} names no engine Lampway has; the one engine is {ENGINE_NAME}"
     if not _loopback_reachable(host):
-        return None, f"the server listens on {host}, not on loopback, and the engine's gateway and MCP endpoint answer loopback only"
+        return None, Unavailable("engine_unavailable", f"the server listens on {host}, not on loopback, and the engine's gateway and "
+                                 "MCP endpoint answer loopback only", "Run Lampway's server on loopback (LAMPWAY_HOST=127.0.0.1, the default)")
     dirs = engines_dirs(state_dir, environ)
     for d in dirs:
         try:
@@ -99,8 +114,7 @@ def select(state_dir, environ=None, host: str = "127.0.0.1") -> tuple:
             continue
         if rec is not None:
             return rec, f"the Hermes engine {rec.get('tag', '?')} from {rec['dir']}"
-    return None, (f"{SWITCH}={ENGINE_NAME} but no finished engine build under {', '.join(str(d) for d in dirs)} "
-                  "(scripts/lampway/engine_env.py builds one)")
+    return None, Unavailable("engine_not_built", f"no finished engine build under {', '.join(str(d) for d in dirs)}", BUILD_FIX)
 
 
 class WorkerBoard:
@@ -253,10 +267,16 @@ def sees_images(agent) -> Optional[bool]:
 
 
 def wire(settings, agent, registry: GW.Registry, environ=None) -> Optional[EngineWiring]:
-    """``create_app``'s one call: the wiring when the engine is selected, else None; one log line either way."""
+    """``create_app``'s one call: the wiring when the engine is selected, else None and the hub told why (its Mode 1 refusal); one
+    log line either way."""
+    environ = os.environ if environ is None else environ
+    if (environ.get(RETIRED_SWITCH) or "").strip():
+        log.warning("engine: %s is no longer read: Mode 1 runs on the Hermes engine whenever it is built, and only on it",
+                    RETIRED_SWITCH)
     engine, why = select(settings.state_dir, environ, host=settings.host)
     if engine is None:
-        log.info("engine: the built-in agent loop runs Mode 1: %s", why)
+        agent.engine_problem = tuple(why)
+        log.warning("engine: Mode 1 is unavailable on this server, and a Mode 1 chat is refused: %s (%s)", why.why, why.fix)
         return None
     log.info("engine: selected %s", why)
     return EngineWiring(engine, settings=settings, agent=agent, registry=registry)

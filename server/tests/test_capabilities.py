@@ -16,7 +16,6 @@ import uuid
 import pytest
 
 from lampway_server import capabilities as CAP
-from lampway_server.agent.providers.base import Text, ToolCall
 
 #: The captain's defaults (Q8, approved 2026-10-06 as proposed).
 ON_BY_DEFAULT = {"scene.read", "scene.edit", "vision", "history.search", "skills.use", "studio.plan"}
@@ -111,17 +110,25 @@ def test_the_rest_route_refuses_an_agent_and_takes_the_users_click(fake, http, s
     assert fake.put("/app/capabilities/teleport", json={"enabled": True}).status_code == 404
 
 
-def test_the_in_app_agent_does_not_see_or_run_a_family_that_is_off(fake, provider, http):
-    provider.script = [[ToolCall(id="s1", name="swarm_start", arguments={"tasks": []})], [Text("ok")]]
+def test_the_in_app_agent_does_not_see_or_run_a_family_that_is_off(fake, http, monkeypatch):
+    """Mode 1's Hermes (the scripted serve, spec A5) is offered and runs Lampway's tools through its unit's MCP endpoint (A3)."""
+    from .serve_support import mode1_turn
     fake.login()
-    with fake.connect_ws() as ws:
-        fake.handshake(ws)
-        cmd = fake.command(ws, "chat", fake.chat_payload("split it up", str(uuid.uuid4())))
-        fake.run_turn(ws, cmd, on_script=lambda p: {"success": True})
-    offered = {t.name for t in provider.requests[0].tools}
+    session_id = str(uuid.uuid4())
+    listed = {}
+
+    def drive(ws, command_id):
+        frames = fake.run_turn(ws, command_id, on_script=lambda p: {"success": True})
+        body = {"jsonrpc": "2.0", "id": 1, "method": "tools/list"}
+        listed["tools"] = http.post(f"/engine/mcp/{session_id}", json=body, headers={"Authorization": "Bearer unit-bearer"}).json()
+        return frames
+    _, serve = mode1_turn(monkeypatch, http, fake, [("mcp", "swarm_start", {"tasks": []}), ("say", "ok")], "split it up",
+                          session_id=session_id, drive=drive)
+    offered = {t["name"] for t in listed["tools"]["result"]["tools"]}
     assert "swarm_start" not in offered and "lampway_capabilities" in offered and "run_blender_python" in offered
-    result = next(p for m in provider.requests[1].messages for p in m.content if p.get("type") == "tool_result")
-    assert result["is_error"] and "swarm" in result["content"] and "lampway_capabilities" in result["content"]
+    result = serve.mcp_results[-1]
+    text = result["content"][0]["text"]
+    assert result["isError"] and "swarm" in text and "lampway_capabilities" in text
 
 
 def test_an_mcp_call_into_a_family_that_is_off_is_refused_with_its_name(fake, http):

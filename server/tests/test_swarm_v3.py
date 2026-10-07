@@ -3,7 +3,8 @@ the typed append_collection commit, and the Parallel Agents panel is fed by the 
 the fake fleet in fake_harness.py.
 
 Every worker thinks in a pane (``PaneBrain``, spec S1 and A5: no agent without a pane). These tests start the swarm from the in-app
-agent, i.e. in Mode 1, whose worker adapter is ``lampway_hermes`` (A1): the real adapter and the real ``Mode1Units`` hook, on a
+agent, i.e. in Mode 1: the unit's Hermes pane (the scripted serve, ``serve_support.ServeThread``) calls ``swarm_start`` and
+``swarm_collect`` through its MCP endpoint (A3) in the island's turn. Mode 1's worker adapter is ``lampway_hermes`` (A1): the real adapter and the real ``Mode1Units`` hook, on a
 stand-in engine build (``mode1_support``), so each worker pane gets its real home and config, whose one MCP server is the pane
 endpoint. ``PanePlayer`` plays each worker pane the way its Hermes would: its tool calls over that endpoint (read from the pane's
 config.yaml), then ``lampway_worker_done``. herdr is played (``herdr_support.PaneHerdr``); no binary runs and nothing leaves the
@@ -19,8 +20,6 @@ from pathlib import Path
 import pytest
 from starlette.testclient import TestClient
 
-from lampway_server.agent.providers.base import Text, ToolCall
-from lampway_server.agent.providers.mock import ScriptedProvider
 from lampway_server.app import create_app
 from lampway_server.herdr import harnesses as HN
 from lampway_server.herdr import host as H
@@ -30,6 +29,7 @@ from .fake_client import FakeMixarClient
 from .fake_harness import FakeFleet, new_session
 from .herdr_support import PaneHerdr
 from .mode1_support import fake_engine, mcp_entry, units_for
+from .serve_support import ServeThread
 
 
 def marker_play(swarm_id, worker_id):
@@ -88,6 +88,7 @@ def played(monkeypatch, tmp_path):
     herdr = PaneHerdr()
     monkeypatch.setattr(L, "run", herdr)
     monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
+    monkeypatch.setattr(L, "bin_path", lambda: "/usr/bin/herdr-played")
     monkeypatch.setattr(SB, "POLL_S", 0.05)
     (tmp_path / "proj").mkdir()
     cockpit = H.Cockpit(tmp_path / "herdr", project_root=str(tmp_path / "proj"))
@@ -100,16 +101,15 @@ def tasks(*names):
 
 
 def run_swarm(settings, played, names=("a", "b", "c"), *, play=marker_play, configure=None, collect=True, after=None):
-    """One in-app turn that starts a swarm of ``names`` and (by default) collects it. ``after(fake, ws, fleet, session_id)`` runs
-    further turns on the same socket. Returns (fleet, frames, session_id, command_id, cockpit, herdr, provider)."""
+    """One in-app turn that starts a swarm of ``names`` and (by default) collects it: the pane's Hermes calls the swarm tools.
+    ``after(fake, ws, fleet, session_id, serve)`` runs further turns on the same socket. Returns (fleet, frames, session_id,
+    command_id, cockpit, herdr, serve)."""
     cockpit, herdr = played
-    calls = [ToolCall(id="s1", name="swarm_start", arguments={"tasks": tasks(*names)})]
-    script = [calls]
+    steps = [("mcp", "swarm_start", {"tasks": tasks(*names)})]
     if collect:
-        script.append([ToolCall(id="s2", name="swarm_collect", arguments={"swarm_id": "sw1"})])
-    script.append([Text("Done.")])
-    provider = ScriptedProvider(script)
-    app = create_app(settings, provider=provider, cockpit=cockpit)
+        steps.append(("mcp", "swarm_collect", {"swarm_id": "sw1"}))
+    steps.append(("say", "Done."))
+    app = create_app(settings, cockpit=cockpit)
     cockpit.mode1 = units_for(cockpit, settings.state_dir, app.state.engine_tokens, engine=cockpit.engine_for_tests)
     from lampway_server import capabilities as CAP
     CAP.ACTIVE.set("swarm", enabled=True, by="user")             # the swarm is off until the user switches it on (spec E2, Q8)
@@ -119,15 +119,17 @@ def run_swarm(settings, played, names=("a", "b", "c"), *, play=marker_play, conf
         fleet = FakeFleet(fake, fake.instance_id)
         if configure:
             configure(fleet)
-        with PanePlayer(http, cockpit, herdr, play), fake.connect_ws() as ws:
+        with ServeThread(http) as st, PanePlayer(http, cockpit, herdr, play), fake.connect_ws() as ws:
+            st.front(app.state.agent)
+            st.serve.scripts.append(steps)
             fake.handshake(ws)
             session_id = new_session()
             command_id = fake.command(ws, "chat", fake.chat_payload("QA three pieces", session_id))
             frames = fleet.drive(ws, command_id)
             if after is not None:
-                after(fake, ws, fleet, session_id, provider)
+                after(fake, ws, fleet, session_id, st.serve)
         fleet.close()
-    return fleet, frames, session_id, command_id, cockpit, herdr, provider
+    return fleet, frames, session_id, command_id, cockpit, herdr, st.serve
 
 
 def events(frames):

@@ -69,7 +69,7 @@ def test_without_the_engine_lampways_pane_is_refused_with_help_and_herdr_is_neve
     monkeypatch.setattr(L, "run", lambda root, args, **k: calls.append(args) or "")
     monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
     c = H.Cockpit(tmp_path / "herdr")
-    with pytest.raises(H.CockpitError, match="LAMPWAY_AGENT_ENGINE=hermes"):
+    with pytest.raises(H.CockpitError, match="scripts/lampway/engine_env.py and restart Lampway"):
         c.create_session("lampway_hermes", "Lampway for a scene tab", str(tmp_path), by="user", unit="scene-1")
     assert calls == [] and c.list_sessions() == []
 

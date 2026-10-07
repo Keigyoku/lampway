@@ -1,13 +1,17 @@
-"""agent.chat turns as the client consumes them (turn_events.py, turn_transport.py,
-queue_processor.py, slot_processor.py, connection_manager.on_script_execute)."""
+"""agent.chat turns as the client consumes them (turn_events.py, turn_transport.py, queue_processor.py, slot_processor.py,
+connection_manager.on_script_execute). Mode 1 runs only on Hermes (docs/reports/agent-modes-spec.md A5): the turn is the unit's
+Hermes pane's, played by the scripted serve (``serve_support.FakeServe``), and the island is the Lampway client's own frames against
+the real server on a real port. A tool the pane calls reaches Blender through Lampway's MCP endpoint (A3)."""
 
 import json
 import uuid
 
+import httpx
 import pytest
 
-from lampway_server.agent.providers.base import Text, ToolCall
+from .serve_support import chat, final_text, run, stack  # noqa: F401  (stack: the fixture)
 
+pytestmark = pytest.mark.timeout(120)
 CUBE_SCRIPT = "import bpy\nbpy.ops.mesh.primitive_cube_add()\n"
 
 
@@ -20,36 +24,23 @@ def index_of(frames, predicate):
     return next(i for i, f in enumerate(frames) if predicate(f))
 
 
-@pytest.fixture
-def cube_script(provider):
-    provider.script.append([Text("Adding a cube."),
-                            ToolCall(id="call_1", name="run_blender_python",
-                                     arguments={"script": CUBE_SCRIPT})])
-    provider.script.append([Text("Done: the cube is in the scene.")])
-    return provider
+def created_cube(params):
+    return {"success": True, "created_objects": ["Cube"]}
 
 
-def start_chat(fake, ws, message, session_id=None):
-    session_id = session_id or str(uuid.uuid4())
-    command_id = fake.command(ws, "chat", fake.chat_payload(message, session_id))
-    return session_id, command_id
+def test_a_chat_turn_streams_in_the_order_the_client_requires(stack):
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Adding a cube."), ("mcp", "run_blender_python", {"script": CUBE_SCRIPT}),
+                              ("say", "Done: the cube is in the scene.")])
+        session_id = str(uuid.uuid4())
+        command_id, rid = await chat(island, "Add a cube", session_id)
+        await island.ended(command_id)
+        return session_id, command_id, rid, list(island.frames), island.scripts, serve.mcp_results
 
-
-def test_a_chat_turn_streams_in_the_order_the_client_requires(fake, cube_script):
-    fake.login()
-    executed = []
-
-    def on_script(params):
-        executed.append(params)
-        return fake.execute_script_result(params["script"], output="", created=["Cube"])
-
-    with fake.connect_ws() as ws:
-        fake.handshake(ws)
-        session_id, command_id = start_chat(fake, ws, "Add a cube")
-        frames = fake.run_turn(ws, command_id, on_script=on_script)
+    session_id, command_id, rid, frames, executed, results = run(stack, scenario, on_script=created_cube)
 
     # The admission receipt: not completion (turn_transport.py:96-110).
-    receipt = next(f for f in frames if f.get("id") and "result" in f and f["result"].get("state"))
+    receipt = next(f for f in frames if f.get("id") == rid)
     assert receipt["result"]["state"] == "pending"
 
     # turn.started must carry turn_id == command_id and arrive BEFORE command.result
@@ -63,8 +54,8 @@ def test_a_chat_turn_streams_in_the_order_the_client_requires(fake, cube_script)
     assert frames[result_at]["params"] == {**frames[result_at]["params"], "session_id": session_id,
                                            "command_id": command_id, "ok": True}
 
-    # blender.execute_script came after turn.started (the client refuses scripts
-    # outside an active turn: connection_manager.py:342-348) and carried the tool's script.
+    # blender.execute_script came after turn.started (the client refuses scripts outside an active turn:
+    # connection_manager.py:342-348), carried the tool's script, and names this turn: the pane's call ran in the island's turn.
     script_at = index_of(frames, lambda f: f.get("method") == "blender.execute_script")
     assert started < script_at
     params = frames[script_at]["params"]
@@ -73,7 +64,7 @@ def test_a_chat_turn_streams_in_the_order_the_client_requires(fake, cube_script)
     assert params["session_id"] == session_id
     assert params["agent_ctx"]["chat_session_id"] == session_id
     assert params["agent_ctx"]["turn_id"] == command_id
-    assert params["agent_ctx"]["call_id"] == "call_1"
+    assert params["agent_ctx"]["call_id"]
     assert len(executed) == 1
 
     # seq restarts at 0 and is contiguous (turn_events.py:289-301).
@@ -89,10 +80,7 @@ def test_a_chat_turn_streams_in_the_order_the_client_requires(fake, cube_script)
     # The slot stream: every non-typed event has a bubble_id; the final answer landed as content.
     slots = [p for p in payloads if "bubble_id" in p]
     assert slots
-    content = "".join((p.get("content") or {}).get("append", "") for p in slots)
-    content_sets = [p["content"]["set"] for p in slots if "set" in (p.get("content") or {})]
-    assert "Done: the cube is in the scene." in content or any(
-        "Done: the cube is in the scene." in s for s in content_sets)
+    assert "Done: the cube is in the scene." in final_text(slots)
     # A loader was shown and then hidden (one spinner, always: slot_processor.py:312-317).
     loaders = [p["loader"]["visible"] for p in slots if "loader" in p]
     assert loaders and loaders[0] is True and loaders[-1] is False
@@ -104,102 +92,88 @@ def test_a_chat_turn_streams_in_the_order_the_client_requires(fake, cube_script)
     ended = next(f for f in frames if f.get("method") == "agent.turn.ended")
     assert ended["params"] == {"session_id": session_id, "turn_id": command_id, "last_seq": seqs[-1]}
 
-    # The provider saw the tool result on its second call.
-    second = cube_script.requests[1]
-    assert second.messages[-1].role == "user"
-    tool_results = [part for part in second.messages[-1].content if part.get("type") == "tool_result"]
-    assert tool_results and tool_results[0]["tool_call_id"] == "call_1"
-    assert "Cube" in tool_results[0]["content"]
+    # The pane's Hermes got Blender's result back from the tool call.
+    assert results[-1]["isError"] is False and "Cube" in results[-1]["content"][0]["text"]
 
 
-def test_a_failed_script_is_reported_to_the_model_not_swallowed(fake, provider):
-    provider.script.append([ToolCall(id="c1", name="run_blender_python", arguments={"script": "boom("})])
-    provider.script.append([Text("The script failed; I will not retry.")])
-    fake.login()
-    with fake.connect_ws() as ws:
-        fake.handshake(ws)
-        _, command_id = start_chat(fake, ws, "run bad code")
-        frames = fake.run_turn(ws, command_id, on_script=lambda p: fake.execute_script_result(
-            p["script"], success=False, error="SyntaxError: unexpected EOF"))
-    tool_results = [part for part in provider.requests[1].messages[-1].content if part.get("type") == "tool_result"]
-    assert tool_results[0]["is_error"] is True
-    assert "SyntaxError" in tool_results[0]["content"]
-    assert events_of(frames, command_id)[-1]["event"]["status"] == "completed"
+def test_a_failed_script_is_reported_to_the_agent_not_swallowed(stack):
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("mcp", "run_blender_python", {"script": "boom("}), ("say", "The script failed; I will not retry.")])
+        command_id, _ = await chat(island, "run bad code", str(uuid.uuid4()))
+        await island.ended(command_id)
+        return island.events(command_id), serve.mcp_results
+
+    events, results = run(stack, scenario, on_script=lambda p: {"success": False, "error": "SyntaxError: unexpected EOF"})
+    assert results[-1]["isError"] is True and "SyntaxError" in results[-1]["content"][0]["text"]
+    assert events[-1]["status"] == "completed"
 
 
-def test_scene_summary_tool_runs_the_fixed_listing_script(fake, provider):
-    provider.script.append([ToolCall(id="s1", name="scene_summary", arguments={})])
-    provider.script.append([Text("The scene has one object.")])
-    fake.login()
-    with fake.connect_ws() as ws:
-        fake.handshake(ws)
-        _, command_id = start_chat(fake, ws, "what is in the scene?")
-        frames = fake.run_turn(ws, command_id, on_script=lambda p: fake.execute_script_result(
-            p["script"], output='{"objects": [{"name": "Cube", "type": "MESH"}], "materials": []}'))
-    script = next(f for f in frames if f.get("method") == "blender.execute_script")["params"]
+def test_scene_summary_tool_runs_the_fixed_listing_script(stack):
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("mcp", "scene_summary", {}), ("say", "The scene has one object.")])
+        command_id, _ = await chat(island, "what is in the scene?", str(uuid.uuid4()))
+        await island.ended(command_id)
+        return island.scripts, serve.mcp_results
+
+    scripts, results = run(stack, scenario, on_script=lambda p: {
+        "success": True, "output": '{"objects": [{"name": "Cube", "type": "MESH"}], "materials": []}'})
+    script = scripts[-1]
     assert script["tool_name"] == "scene_summary"
     assert "bpy.data.objects" in script["script"] and "bpy.data.materials" in script["script"]
     assert "__RESULT__" in script["script"]  # executor.py:429-431 flattens the __RESULT__ variable
-    tool_results = [part for part in provider.requests[1].messages[-1].content if part.get("type") == "tool_result"]
-    assert "Cube" in tool_results[0]["content"]
+    assert "Cube" in results[-1]["content"][0]["text"]
 
 
-def test_the_provider_receives_the_user_message_and_our_tool_definitions(fake, provider):
-    provider.script.append([Text("Hello.")])
-    fake.login()
-    with fake.connect_ws() as ws:
-        fake.handshake(ws)
-        _, command_id = start_chat(fake, ws, "hi there")
-        fake.run_turn(ws, command_id, on_script=lambda p: {"success": True})
-    request = provider.requests[0]
-    assert request.messages[-1].role == "user" and "hi there" in request.messages[-1].text()
-    assert {"run_blender_python", "scene_summary", "lampway_qa_candidates"} <= {t.name for t in request.tools}
-    assert request.system
+def test_the_pane_receives_the_users_message_and_lampways_tool_definitions(stack):
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Hello.")])
+        command_id, _ = await chat(island, "hi there", str(uuid.uuid4()))
+        await island.ended(command_id)
+        url, bearer = serve.mcp
+        async with httpx.AsyncClient() as http:
+            listed = (await http.post(url, json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
+                                      headers={"Authorization": f"Bearer {bearer}"})).json()
+        return [p["text"] for m, p in serve.calls if m == "prompt.submit"], {t["name"] for t in listed["result"]["tools"]}
+
+    prompts, tools = run(stack, scenario)
+    assert len(prompts) == 1 and prompts[0].rstrip().endswith("hi there")
+    assert {"run_blender_python", "scene_summary", "lampway_qa_candidates"} <= tools
 
 
-def test_attach_replays_events_after_the_cursor_and_status_describes_the_turn(fake, cube_script):
-    fake.login()
-    with fake.connect_ws() as ws:
-        fake.handshake(ws)
-        session_id, command_id = start_chat(fake, ws, "Add a cube")
-        frames = fake.run_turn(ws, command_id, on_script=lambda p: {"success": True})
-        events = events_of(frames, command_id)
-        last_seq = events[-1]["seq"]
+def test_attach_replays_events_after_the_cursor_and_status_describes_the_turn(stack):
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Adding a cube."), ("mcp", "run_blender_python", {"script": CUBE_SCRIPT}), ("say", "Done.")])
+        session_id = str(uuid.uuid4())
+        command_id, _ = await chat(island, "Add a cube", session_id)
+        await island.ended(command_id)
+        events = [f["params"] for f in island.frames if f.get("method") == "agent.turn.event" and f["params"]["turn_id"] == command_id]
+        mark = len(island.frames)
+        rid = await island.send("agent.attach", {"session_id": session_id, "turn_id": command_id, "after_seq": 1})
+        reply = await island.reply(rid)
+        during = island.frames[mark:island.frames.index(reply)]
+        status = await island.reply(await island.send("agent.status", {"session_ids": [session_id]}))
+        state = await island.reply(await island.send("agent.request_status", {"command_id": command_id}))
+        unknown = await island.reply(await island.send("agent.attach", {"session_id": session_id, "turn_id": "never-existed",
+                                                                        "after_seq": -1}))
+        return session_id, command_id, events, during, reply, status, state, unknown
 
-        rid = fake.request(ws, "agent.attach", {"session_id": session_id, "turn_id": command_id,
-                                                "after_seq": 1})
-        replayed, ended_again, reply = [], [], None
-        while reply is None:
-            frame = ws.receive_json()
-            if frame.get("id") == rid:
-                reply = frame
-            elif frame.get("method") == "agent.turn.event":
-                replayed.append(frame["params"])
-            elif frame.get("method") == "agent.turn.ended":
-                ended_again.append(frame["params"])
-            else:
-                raise AssertionError(f"unexpected frame during attach: {frame!r}")
-        assert reply["result"].get("status") != "unavailable" and "code" not in reply["result"]
-        assert [e["seq"] for e in replayed] == list(range(2, last_seq + 1))
-        assert [e["event"] for e in replayed] == [e["event"] for e in events[2:]]
-        # The ended marker is re-sent too, so a client that missed it settles (turn_events.py:276-281).
-        assert ended_again == [{"session_id": session_id, "turn_id": command_id, "last_seq": last_seq}]
+    session_id, command_id, events, during, reply, status, state, unknown = run(stack, scenario)
+    last_seq = events[-1]["seq"]
+    replayed = [f["params"] for f in during if f.get("method") == "agent.turn.event"]
+    ended_again = [f["params"] for f in during if f.get("method") == "agent.turn.ended"]
+    assert not [f for f in during if f.get("method") not in ("agent.turn.event", "agent.turn.ended")], during
+    assert reply["result"].get("status") != "unavailable" and "code" not in reply["result"]
+    assert [e["seq"] for e in replayed] == list(range(2, last_seq + 1))
+    assert [e["event"] for e in replayed] == [e["event"] for e in events[2:]]
+    # The ended marker is re-sent too, so a client that missed it settles (turn_events.py:276-281).
+    assert ended_again == [{"session_id": session_id, "turn_id": command_id, "last_seq": last_seq}]
 
-        rid = fake.request(ws, "agent.status", {"session_ids": [session_id]})
-        status = ws.receive_json()
-        info = status["result"]["turns"][session_id]
-        assert info["turn_id"] == command_id and info["replay_available"] is True
-        assert info["status"] == "ended" and info["active"] is False and info["last_seq"] == last_seq
+    info = status["result"]["turns"][session_id]
+    assert info["turn_id"] == command_id and info["replay_available"] is True
+    assert info["status"] == "ended" and info["active"] is False and info["last_seq"] == last_seq
 
-        rid = fake.request(ws, "agent.request_status", {"command_id": command_id})
-        state = ws.receive_json()
-        assert state["id"] == rid
-        assert state["result"] == {"state": "complete", "result": {**state["result"]["result"], "ok": True}}
-
-        rid = fake.request(ws, "agent.attach", {"session_id": session_id, "turn_id": "never-existed",
-                                                "after_seq": -1})
-        reply = ws.receive_json()
-        assert reply["id"] == rid and reply["result"]["status"] == "unavailable"
+    assert state["result"] == {"state": "complete", "result": {**state["result"]["result"], "ok": True}}
+    assert unknown["result"]["status"] == "unavailable"
 
 
 def test_status_for_an_unknown_session_is_an_empty_turns_map(fake):
@@ -211,19 +185,25 @@ def test_status_for_an_unknown_session_is_an_empty_turns_map(fake):
     assert reply["id"] == rid and reply["result"] == {"turns": {}}
 
 
-def test_a_second_message_in_the_same_session_carries_the_history(fake, provider):
-    provider.script.append([Text("First answer.")])
-    provider.script.append([Text("Second answer.")])
-    fake.login()
-    with fake.connect_ws() as ws:
-        fake.handshake(ws)
-        session_id, c1 = start_chat(fake, ws, "first")
-        fake.run_turn(ws, c1, on_script=lambda p: {"success": True})
-        _, c2 = start_chat(fake, ws, "second", session_id=session_id)
-        fake.run_turn(ws, c2, on_script=lambda p: {"success": True})
-    history = [(m.role, m.text()) for m in provider.requests[1].messages]
-    assert history == [("user", history[0][1]), ("assistant", "First answer."), ("user", history[2][1])]
-    assert "first" in history[0][1] and "second" in history[2][1]
+def test_a_second_message_in_the_same_tab_goes_to_the_same_hermes_session(stack):
+    """The conversation is Hermes's (A0): the tab's second message is a second prompt in the same session of the same pane."""
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "First answer.")])
+        serve.scripts.append([("say", "Second answer.")])
+        session_id = str(uuid.uuid4())
+        c1, _ = await chat(island, "first", session_id)
+        await island.ended(c1)
+        c2, _ = await chat(island, "second", session_id)
+        await island.ended(c2)
+        return units.opened, [(p["session_id"], p["text"]) for m, p in serve.calls if m == "prompt.submit"], serve.only().history, \
+            final_text(island.events(c2))
+
+    opened, prompts, history, second = run(stack, scenario)
+    assert len(opened) == 1, "one pane for the tab"
+    assert len(prompts) == 2 and prompts[0][0] == prompts[1][0], "both prompts went to the same Hermes session"
+    assert [(m["role"], m["text"].rstrip().split("\n")[-1]) for m in history] == [
+        ("user", "first"), ("assistant", "First answer."), ("user", "second"), ("assistant", "Second answer.")]
+    assert second == "Second answer."
 
 
 # Scribble marks (specs/mixar_docs/scribble_marks.md): the Client's agent.chat payload carries ``mark_context`` (scribble_mark/core/payload.build_payload,
@@ -247,14 +227,12 @@ def test_marks_are_described_as_object_names_and_world_points():
     assert MC.describe(None) == "" and MC.describe({"marks": []}) == "" and MC.describe("junk") == ""
 
 
-def test_marks_are_in_the_model_context(fake, provider):
-    provider.script.append([Text("Making it red.")])
-    fake.login()
-    with fake.connect_ws() as ws:
-        fake.handshake(ws)
-        payload = fake.chat_payload("make this red", str(uuid.uuid4()))
-        payload["mark_context"] = MARKS
-        command_id = fake.command(ws, "chat", payload)
-        fake.run_turn(ws, command_id, on_script=lambda p: {"success": True})
-    text = provider.requests[0].messages[-1].text()
+def test_marks_reach_the_pane_with_the_users_words(stack):
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Making it red.")])
+        command_id, _ = await chat(island, "make this red", str(uuid.uuid4()), mark_context=MARKS)
+        await island.ended(command_id)
+        return next(p["text"] for m, p in serve.calls if m == "prompt.submit")
+
+    text = run(stack, scenario)
     assert "make this red" in text and "the user circled `alpha_cube`" in text, text

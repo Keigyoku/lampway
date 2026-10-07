@@ -136,18 +136,25 @@ class Mode1Units:
             return named if os.access(named, os.X_OK) else None
         return shutil.which("node", path=self.environ.get("PATH"))
 
-    def problem(self) -> Optional[str]:
-        """Why no Mode 1 pane can start here, with what to do; None when one can."""
+    def missing(self) -> Optional[tuple]:
+        """Why no Mode 1 pane can start here, as the island's refusal says it: (code, why, the exact fix); None when one can."""
         if not os.access(self.hermes_bin(), os.X_OK):
-            return f"Lampway's Hermes engine has no hermes binary at {self.hermes_bin()}: rebuild it with scripts/lampway/engine_env.py"
+            return ("engine_not_built", f"Lampway's Hermes engine has no hermes binary at {self.hermes_bin()}",
+                    "Rebuild Lampway's pinned Hermes engine: scripts/lampway/engine_env.py")
         tui = self.tui_dir()
         if tui is None or not (tui / "dist" / "entry.js").is_file():
-            return ("Hermes's TUI is not prebuilt for Lampway's engine (no ui-tui/dist/entry.js): rebuild the engine with "
-                    f"scripts/lampway/engine_env.py, or point {TUI_ENV} at a prebuilt ui-tui")
+            return ("engine_not_built", "Hermes's TUI is not prebuilt for Lampway's engine (no ui-tui/dist/entry.js)",
+                    f"Rebuild Lampway's pinned Hermes engine, which prebuilds the TUI: scripts/lampway/engine_env.py (or point {TUI_ENV} "
+                    "at a prebuilt ui-tui)")
         if not self.node():
-            return (f"Lampway Agent's pane runs Hermes's TUI on Node.js, which was not found: install Node.js 22 or 24 (nodejs.org or "
-                    f"your package manager) or point {NODE_ENV} at it. Lampway never downloads it")
+            return ("node_missing", "Lampway Agent's pane runs Hermes's TUI on Node.js, which was not found (Lampway never downloads it)",
+                    f"Install Node.js 22 or 24 (nodejs.org or your package manager), or point {NODE_ENV} at it, then send again")
         return None
+
+    def problem(self) -> Optional[str]:
+        """Why no Mode 1 pane can start here, with what to do; None when one can."""
+        why = self.missing()
+        return f"{why[1]}: {why[2]}" if why else None
 
     # ------------------------------------------------------------------------------------------------- the cockpit's hook
     def prepare(self, *, rid, unit, role, cwd, project_root, direct=(), task=None, name="", unit_label=None) -> dict:

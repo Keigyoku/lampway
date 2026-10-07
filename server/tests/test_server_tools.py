@@ -6,8 +6,7 @@ import pytest
 
 from lampway_server.agent import server_tools as ST
 from lampway_server.agent import tools as T
-from lampway_server.agent.providers.base import Text, ToolCall
-from tests.test_agent_turn import start_chat
+
 
 
 @pytest.fixture
@@ -75,20 +74,16 @@ def test_run_returns_the_drivers_output_and_marks_a_nonzero_exit_as_an_error(roo
     assert ST.run("studio_tripo_state", {}) == ("bin: x\ncredits: 9000\n", False)
 
 
-def test_a_studio_tool_in_a_turn_never_asks_blender_for_a_script(fake, provider, monkeypatch, root):
+def test_a_studio_tool_in_a_turn_never_asks_blender_for_a_script(fake, http, monkeypatch, root):
+    from .serve_support import mode1_turn
     monkeypatch.setattr(ST, "_exec", lambda cmd, env, timeout: (0, "credits: 9000\n"))
-    provider.script.append([Text("Checking Studio."), ToolCall(id="c1", name="studio_tripo_state", arguments={})])
-    provider.script.append([Text("Done.")])
     scripts = []
     fake.login()
-    with fake.connect_ws() as ws:
-        fake.handshake(ws)
-        _, command_id = start_chat(fake, ws, "what is in Studio?")
-        frames = fake.run_turn(ws, command_id, on_script=lambda p: scripts.append(p) or fake.execute_script_result(p["script"]))
+    frames, serve = mode1_turn(monkeypatch, http, fake, [("say", "Checking Studio."), ("mcp", "studio_tripo_state", {}), ("say", "Done.")],
+                               "what is in Studio?", on_script=lambda p: scripts.append(p) or fake.execute_script_result(p["script"]))
     assert scripts == []
     assert any(f.get("method") == "agent.turn.ended" for f in frames)
-    tool_result = [m for m in provider.requests[-1].messages[-1].content if m.get("type") == "tool_result"][0]
-    assert "credits: 9000" in tool_result["content"]
+    assert "credits: 9000" in serve.mcp_results[-1]["content"][0]["text"]
 
 
 # ---- the image backend as a tool (mesh-paint)

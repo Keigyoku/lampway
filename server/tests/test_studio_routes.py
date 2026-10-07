@@ -1,14 +1,10 @@
 """The Studio service through the Client's REST routes and the agent's tools. The Client (the user) can plan, confirm and reject;
 the agent can only plan and read - there is no tool, and no route an agent has a token for, that confirms a spend."""
 
-import json
-import uuid
 
 import pytest
 from starlette.testclient import TestClient
 
-from lampway_server.agent.providers.base import Text, ToolCall
-from lampway_server.agent.providers.mock import ScriptedProvider
 from lampway_server.app import create_app
 from lampway_server.studios.service import StudioService
 
@@ -84,29 +80,28 @@ def test_a_job_file_is_served_by_name_only(settings, studio):
         assert fake.get(f"/app/studio/jobs/{job['id']}/files/..%2Fsecret").status_code == 404
 
 
-def test_the_agent_can_plan_and_read_but_has_no_way_to_confirm(settings, studio):
+def test_the_agent_can_plan_and_read_but_has_no_way_to_confirm(settings, studio, monkeypatch):
+    from .serve_support import mode1_turn
     from lampway_server.agent.tools import TOOLS
     names = {t.name for t in TOOLS}
     assert {"studio_plan", "studio_job", "studio_actions"} <= names
     assert not [n for n in names if "confirm" in n or "approve" in n], "no agent tool confirms a spend"
     svc, ex = studio
-    main = ScriptedProvider([
-        [ToolCall(id="c1", name="studio_plan", arguments={"action": "tripo.mesh", "args": ARGS})],
-        [ToolCall(id="c2", name="studio_plan", arguments={"action": "tripo.mesh", "args": {**ARGS, "polycount": "9000"}})],
-        [Text("The mesh is waiting for the user.")]])
-    app = create_app(settings, provider=main, studio_service=svc)
+    app = create_app(settings, studio_service=svc)
     with TestClient(app, base_url="http://127.0.0.1:8787") as http:
         fake = FakeMixarClient(http, password=settings.user_password)
         fake.login()
-        with fake.connect_ws() as ws:
-            fake.handshake(ws)
-            command_id = fake.command(ws, "chat", fake.chat_payload("make the helmet mesh", str(uuid.uuid4())))
-            frames = fake.run_turn(ws, command_id, on_script=lambda p: {"success": True})
+        frames, serve = mode1_turn(monkeypatch, http, fake, [            # Mode 1's Hermes plans through its MCP endpoint (spec A3, A5)
+            ("mcp", "studio_plan", {"action": "tripo.mesh", "args": ARGS}),
+            ("mcp", "studio_plan", {"action": "tripo.mesh", "args": {**ARGS, "polycount": "9000"}}),
+            ("say", "The mesh is waiting for the user.")], "make the helmet mesh", on_script=lambda p: {"success": True})
         approvals = svc.approvals()
     assert len(approvals) == 1 and approvals[0]["state"] == "pending" and approvals[0]["price"] == 100 and approvals[0]["requested_by"] == "agent"
     assert [c["armed"] for c in ex.calls] == [False], "the agent's plan clicked nothing and spent nothing"
-    final = {}
+    final = []
     for f in frames:
-        for row in ((f.get("params") or {}).get("event", {}).get("steps") or {}).get("items", []) if f.get("method") == "agent.turn.event" else []:
-            final[row["id"]] = row
-    assert [final[i]["status"] for i in ("c1", "c2")] == ["done", "failed"], "a refused plan (a lower polycount) is a failed step"
+        rows = ((f.get("params") or {}).get("event", {}).get("steps") or {}).get("items", []) if f.get("method") == "agent.turn.event" else []
+        final = rows or final
+    assert [(r["label"], r["status"]) for r in final] == [("studio_plan", "done"), ("studio_plan", "failed")], \
+        "a refused plan (a lower polycount) is a failed step"
+    assert [r["isError"] for r in serve.mcp_results] == [False, True]

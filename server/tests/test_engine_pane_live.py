@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Mode 1 live (docs/reports/agent-modes-spec.md A1-A3, E1.3-E1.5): the REAL server with ``LAMPWAY_AGENT_ENGINE=hermes`` and a
-finished pinned build, the Lampway client's own frames, and herdr played but running its panes for real (``live_support``): the
+"""Mode 1 live (docs/reports/agent-modes-spec.md A1-A3, A5, E1.3-E1.5): the REAL server with a finished pinned build (found, so in
+Mode 1's seat), the Lampway client's own frames, and herdr played but running its panes for real (``live_support``): the
 island's first chat opens the unit's pane, whose REAL wrapper (``engine/hermes_pane.py``) starts the REAL pinned ``hermes serve``
 and Hermes's REAL TUI in a pty, and the island attaches to that serve as its second client.
 
@@ -124,8 +124,7 @@ class LiveProvider(ScriptedProvider):
 def live(settings, tmp_path, monkeypatch):
     project = tmp_path / "project"
     project.mkdir()
-    monkeypatch.setenv(W.SWITCH, "hermes")
-    monkeypatch.setenv("LAMPWAY_ENGINES_DIR", str(ENGINES))
+    monkeypatch.setenv("LAMPWAY_ENGINES_DIR", str(ENGINES))           # found, so in the seat: no switch (spec A5)
     monkeypatch.setenv("LAMPWAY_PROJECT_ROOT", str(project))
     monkeypatch.setenv("LAMPWAY_HERMES_TUI_DIR", str(TUI))
     monkeypatch.setenv("LAMPWAY_NODE", NODE)
@@ -133,6 +132,7 @@ def live(settings, tmp_path, monkeypatch):
     strict = EG.Egress(tmp_path / "strict-egress")                       # a fresh install: every route off
     herdr = RunningHerdr()
     monkeypatch.setattr(L, "run", herdr)
+    monkeypatch.setattr(L, "bin_path", lambda: "herdr (played)")
     monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
     cockpit = H.Cockpit(tmp_path / "herdr", project_root=str(project))
     provider = LiveProvider()
@@ -446,8 +446,7 @@ def test_live_on_a_real_herdr_server_the_pane_runs_the_tui_and_survives_a_server
     ``pane run``, ``hermes serve`` and the TUI in it; then a server restart re-adopts the pane (herdr's own ``process-info``)."""
     project = tmp_path / "project"
     project.mkdir()
-    monkeypatch.setenv(W.SWITCH, "hermes")
-    monkeypatch.setenv("LAMPWAY_ENGINES_DIR", str(ENGINES))
+    monkeypatch.setenv("LAMPWAY_ENGINES_DIR", str(ENGINES))           # found, so in the seat: no switch (spec A5)
     monkeypatch.setenv("LAMPWAY_PROJECT_ROOT", str(project))
     monkeypatch.setenv("LAMPWAY_HERMES_TUI_DIR", str(TUI))
     monkeypatch.setenv("LAMPWAY_NODE", NODE)

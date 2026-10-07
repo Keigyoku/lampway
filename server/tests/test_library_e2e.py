@@ -2,11 +2,8 @@
 ``lampway_vault_search`` finds what was imported, an external MCP client finds it with no desktop instance connected, and the Blender-side place tool reads the record
 over ``GET /api/v1/library/assets/{id}``."""
 import json
-import uuid
 
 import pytest
-
-from lampway_server.agent.providers.base import Text, ToolCall
 
 from .test_library_ingest import QUAD, glb_bytes
 
@@ -32,18 +29,15 @@ def test_the_routes_need_the_bearer(http):
     assert http.post("/api/v1/library/query", json={}).status_code == 401
 
 
-def test_an_imported_asset_is_found_by_the_agent_tool(fake, provider, folder):
+def test_an_imported_asset_is_found_by_the_agent_tool(fake, http, folder, monkeypatch):
+    from .serve_support import mode1_turn
     fake.login()
     _import(fake, folder)
-    provider.script.append([ToolCall(id="call_1", name="lampway_vault_search", arguments={"text": "greaves"})])
-    provider.script.append([Text("Found it.")])
-    with fake.connect_ws() as ws:
-        fake.handshake(ws)
-        command_id = fake.command(ws, "chat", fake.chat_payload("find the greaves in my library", str(uuid.uuid4())))
-        fake.run_turn(ws, command_id, on_script=lambda p: fake.execute_script_result(p["script"]))
-    results = [p for p in provider.requests[-1].messages[-1].content if p.get("type") == "tool_result"]
-    assert results and not results[0].get("is_error"), results
-    found = json.loads(results[0]["content"])
+    _, serve = mode1_turn(monkeypatch, http, fake, [("mcp", "lampway_vault_search", {"text": "greaves"}), ("say", "Found it.")],
+                          "find the greaves in my library")
+    result = serve.mcp_results[-1]
+    assert result["isError"] is False, result
+    found = json.loads(result["content"][0]["text"])
     assert [i["name"] for i in found["items"]] == ["bronze_greaves"] and found["items"][0]["kind"] == "mesh"
 
 
