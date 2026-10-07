@@ -49,6 +49,8 @@ python -m pytest -q tests/lampway/test_shipped_metadata.py tests/lampway/test_si
 The docs lane (`lp/docs` at the time of writing) writes the user documentation and the root README and CONTRIBUTING; each lane
 writes its own report; the integration lane lands them. What the product promises is the captain's.
 
+Recovered public release assets retain exact release/file digests, installed-path provenance, original bytes and upstream licence attribution. Do not replace missing authored translations with fabricated content or force original dub timings into fallback schedules.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -60,3 +62,5 @@ writes its own report; the integration lane lands them. What the product promise
 | 2026-10-07 | authoritative external ledger recount | captain: issue 2 AC64 | stale classes and counts could be copied while private source identities leaked into public reports | verify row identity/content, generate live registry counts, retain per-row evidence and gaps privately, publish ordinal-only reconciliation | source-drift, privacy-output and manual-evidence falsifiers |
 | 2026-10-07 | complete issue acceptance inventory | captain: include G23 and G24–G26 | body-only review silently omitted comment criteria and overstated aggregate acceptance | preserve original rows, append comment criteria, source-pin all revisions and qualify absent gate evidence | complete73-row source reconciliation |
 | 2026-10-07 | public network and render contracts | captain: inherited no-red audit | absent private maps and stale names made documentation checks fail despite current implementations | cite current guarded behavior and public modules, preserve certificate/egress/render controls and observed limitations | full network/render test-contract suite |
+
+| 2026-10-07 | original subtitle release recovery | captain: fix missing bundled originals without private transfer | public source omitted eight authored dub tracks and runtime packs contain no subtitles | verify official archive digest and installer file identities, preserve original bytes/timing and source licence | public release recovery hashes and maintained locale validation |

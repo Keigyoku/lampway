@@ -1,0 +1,164 @@
+1
+00:00:00,648 --> 00:00:02,314
+Oi, eu sou o Namit da Mixart.
+
+2
+00:00:02,686 --> 00:00:06,153
+Nos próximos minutos, vou te mostrar
+tudo aqui no seu aplicativo.
+
+3
+00:00:06,743 --> 00:00:08,576
+Esta é a sua janela de visualização.
+
+4
+00:00:08,576 --> 00:00:10,776
+É um espaço três D onde você pode se mover.
+
+5
+00:00:10,776 --> 00:00:15,290
+Arraste com o meio para orbitar, role para o zoom,
+Shift e arraste com o meio para mover.
+
+6
+00:00:15,290 --> 00:00:17,143
+Vá em frente, dê uma volta.
+
+7
+00:00:18,141 --> 00:00:22,452
+Clique em algo para selecionar, G para mover,
+R para girar, S para redimensionar.
+
+8
+00:00:23,736 --> 00:00:25,440
+Aqui estão alguns atalhos que serão úteis.
+
+9
+00:00:26,069 --> 00:00:27,617
+Vê o pequeno ícone lá embaixo?
+
+10
+00:00:28,126 --> 00:00:29,643
+Essa é a Mixy, sua agente.
+
+11
+00:00:30,213 --> 00:00:31,248
+Clique nela para abrir.
+
+12
+00:00:32,203 --> 00:00:33,412
+A Mixy tem abas.
+
+13
+00:00:34,098 --> 00:00:38,864
+Agente, diga o que quer com palavras
+simples e ela faz o trabalho na sua cena.
+
+14
+00:00:39,429 --> 00:00:46,002
+Embora a Agente use modelos generativos como Tripo,
+Meshy, Nano Banana, se quiser mais controle sobre as
+
+15
+00:00:46,002 --> 00:00:52,636
+gerações, vá às abas de três D, Imagem, Vídeo e Modelo
+de Mundo para escolher em uma biblioteca e ajustar
+
+16
+00:00:52,636 --> 00:00:53,105
+parâmetros.
+
+17
+00:00:53,569 --> 00:00:55,804
+Tudo o que você gera vai para a biblioteca.
+
+18
+00:00:56,631 --> 00:00:58,321
+Suas gerações ficam bem aqui.
+
+19
+00:00:59,232 --> 00:01:04,591
+Você pode até vincular sua própria biblioteca para que
+a agente busque seus ativos e os reutilize,
+
+20
+00:01:04,591 --> 00:01:06,080
+economizando seus créditos.
+
+21
+00:01:06,821 --> 00:01:09,146
+No canto superior esquerdo está a Gaveta de Cenas.
+
+22
+00:01:09,629 --> 00:01:15,549
+Cada cena é uma aba com sua própria agente Mixy, assim
+você executa tarefas diferentes lado a lado e alterna
+
+23
+00:01:15,549 --> 00:01:17,014
+entre elas a qualquer momento.
+
+24
+00:01:17,633 --> 00:01:23,652
+Ao terminar o trabalho na cena, você pode ir ao Modo
+Cinema, que permite dirigir a câmera e criar fluxos de
+
+25
+00:01:23,652 --> 00:01:24,499
+trabalho de vídeo.
+
+26
+00:01:24,978 --> 00:01:26,401
+As ideias começam em dois D.
+
+27
+00:01:26,955 --> 00:01:29,863
+Puxe o painel de referências da
+direita ou apenas pressione Til.
+
+28
+00:01:30,865 --> 00:01:33,312
+É uma tela para referências e conceitos.
+
+29
+00:01:33,692 --> 00:01:36,318
+Solte imagens, vídeos ou esboços bem aqui.
+
+30
+00:01:36,933 --> 00:01:40,956
+Você pode até criar gráficos de nós para usar
+modelos generativos, similar ao Comfy U I.
+
+31
+00:01:41,656 --> 00:01:44,092
+Você está agora no Modo Zen, a visão mais simples.
+
+32
+00:01:44,694 --> 00:01:46,861
+Se você conhece o Blender, mude para o Modo Engine.
+
+33
+00:01:47,735 --> 00:01:52,115
+O espaço de trabalho completo do Blender está lá,
+cada painel e atalho que você já usou.
+
+34
+00:01:53,069 --> 00:01:55,676
+A Mixy funciona em ambos, então escolha o que preferir.
+
+35
+00:01:56,408 --> 00:01:57,585
+Vamos voltar para o Modo Zen.
+
+36
+00:01:58,209 --> 00:02:03,462
+Também temos um programa de parceiros criativos onde
+você ganha créditos de inferência e entra para uma
+
+37
+00:02:03,462 --> 00:02:05,913
+comunidade que molda o futuro da I A e do três D.
+
+38
+00:02:06,580 --> 00:02:10,190
+É isso.

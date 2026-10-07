@@ -68,6 +68,8 @@ The build script and the build box belong to the native-build lane (`lp/facelift
 the coordinator's final gate; widening what it allows is the captain's call. Changes to `prepublish_gate.py`, `build_linux.sh`,
 `sync_python.sh` and `lampway` owe their skill an anneal row and a body change in the same commit (`rail/catalog.json` triggers).
 
+The full-run harness reports RED for inherited as well as new failures/errors. Preserve attribution and affirmative exact PASS shrinking, but never treat known-red membership as permission for GREEN. Keep missing/skipped/crashed proof refusals.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -86,3 +88,5 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | 2026-10-07 | interleaved reference warning parsing | actual full client failed-node receipt | ANSI warning text contaminated a known-red identity and manufactured stale/new classifications | strip formatting and separate top-level warning text while preserving bracketed parameters, actual failure IDs and crash refusals | actual FAILED/ERROR/PASSED warning and colored-summary controls |
 | 2026-10-07 | actual UE capture direction | owner-run9f90 raw control failed | positional Rotator arguments set roll instead of pitch and rendered background | explicit rotation keywords and finite component world-forward admission before targets/captures, retaining raw controls and cleanup | UE-shaped positional-order, relative-component direction and no-output controls |
 | 2026-10-07 | raw source FBX bind evidence | actual physical UE bind failed and aggregate receipt omitted transforms | LimbNode-only scale checks missed container ancestors while Blender self-reference hid engine interpretation | preserve raw ancestry, properties and matrices through pinned pure parsing, source checks and private exclusive output without evaluator claims | container100/USF1, malformed/privacy and native unchanged-scene controls |
+
+| 2026-10-07 | inherited failures stay RED | captain: no red checks | baseline-known failures escaped the completion predicate | require zero known/new failures while preserving attribution and exact passing proof | both-suite FAILED/ERROR shrink/no-shrink controls |

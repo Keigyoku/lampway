@@ -3,13 +3,14 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 """THE full test run of the repository: the server suite and the whole client suite (every pytest.ini testpath: tests/, tests/lampway,
-tests/lampway_tools on the real binary, the module test folders), held to the known-red baseline ``tests/known_red.tsv``.
+tests/lampway_tools on the real binary, the module test folders), with failures attributed through ``tests/known_red.tsv``.
 
-    scripts/lampway/test_all.sh                    # both suites, in parallel; exit 0 only when green against the baseline
+    scripts/lampway/test_all.sh                    # both suites, in parallel; exit 0 only with zero failures/errors and verified baseline reconciliation
     scripts/lampway/test_all.sh --only server      # one suite
     scripts/lampway/test_all.sh --shrink-baseline  # also drop baseline lines whose test now passes (the list never grows here)
 
-Green means: no new failure/error, no unverified baseline entry, and no baseline entry with a recorded PASS left in the list.
+Green means: no new or known failure/error, no unverified baseline entry, and no baseline entry with a recorded PASS left in the list.
+The baseline attributes inherited failures; it never exempts them from RED.
 Baseline shrinking requires affirmative exact pytest PASS node IDs; skipped or uncollected entries are never removed.
 Environment: LAMPWAY_BIN (the real binary; without one the tool tests SKIP, which the summary counts), LAMPWAY_TEST_PYTHON (default: this
 interpreter), TMPDIR (the run's temp root), LAMPWAY_TEST_OUT (logs; default $TMPDIR/lampway-test-all)."""
@@ -270,7 +271,7 @@ def main(argv=None) -> int:
     if a.shrink_baseline and j["fixed"]:
         keep = [l for l in BASELINE.read_text(encoding="utf-8").splitlines(keepends=True) if l.startswith("#") or not l.strip() or l.split("\t")[0] not in set(j["fixed"])]
         BASELINE.write_text("".join(keep), encoding="utf-8")
-    green = not j["new"] and (not j["fixed"] or a.shrink_baseline) and not j["unverified"] and not writes and not suite_errors
+    green = not j["new"] and not j["known"] and (not j["fixed"] or a.shrink_baseline) and not j["unverified"] and not writes and not suite_errors
     summary = {"verdict": ("GREEN" if gate[0] in ("gated", "n/a") else "GREEN-UNGATED") if green else "RED", "binary": {"state": gate[0], "detail": gate[1]}, "sha": sha,
                "suites": report, "baseline": len(baseline), "known_red_seen": len(j["known"]), "new_failures": j["new"], "flaky_passed_on_rerun": flaky, "baseline_now_passing": j["fixed"],
                "baseline_unverified": j["unverified"], "suite_errors": suite_errors,

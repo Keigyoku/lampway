@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The one full-suite command judges against the known-red baseline: a new failure is red, a baseline entry that passes is red until removed."""
+"""Every failure is RED; the baseline attributes known failures and shrinks only with affirmative PASS evidence."""
 import importlib.util
 from pathlib import Path
 
@@ -13,9 +13,10 @@ T = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(T)
 
 
-def test_the_baseline_is_well_formed_and_every_line_has_a_class_and_a_reason():
-    b = T.load_baseline()
-    assert b and all(cls in ("env", "inherited", "stale", "broken", "unknown") and reason for cls, reason in b.values())
+@pytest.mark.parametrize("empty", [False, True])
+def test_the_baseline_is_well_formed_and_every_line_has_a_class_and_a_reason(empty):
+    b = {} if empty else T.load_baseline()
+    assert all(cls in ("env", "inherited", "stale", "broken", "unknown") and reason for cls, reason in b.values())
 
 
 def test_parse_reads_ids_and_counts():
@@ -99,6 +100,28 @@ def _mock_runner(tmp_path, monkeypatch, log, suite_rc):
     monkeypatch.setattr(T.subprocess, "Popen", FakeProc)
     monkeypatch.setenv("TMPDIR", str(tmp_path))
     monkeypatch.setenv("LAMPWAY_TEST_OUT", str(tmp_path / "out"))
+
+
+@pytest.mark.parametrize("suite", ["client", "server"])
+@pytest.mark.parametrize("status", ["FAILED", "ERROR"])
+@pytest.mark.parametrize("shrink", [False, True])
+def test_known_failure_is_red_even_when_the_baseline_attributes_it(tmp_path, monkeypatch, suite, status, shrink):
+    node = "tests/a.py::test_inherited[value with [brackets] - spaces]"
+    count = "1 error" if status == "ERROR" else "1 failed"
+    _mock_runner(tmp_path, monkeypatch, f"{status} {node} - inherited defect\n= {count} in 1.0s =\n", 1)
+    identity = ("server/" if suite == "server" else "") + node
+    baseline = tmp_path / "known_red.tsv"
+    original = f"{identity}\tinherited\trecorded defect\n"
+    baseline.write_text(original)
+    monkeypatch.setattr(T, "BASELINE", baseline)
+    monkeypatch.setattr(T, "load_baseline", lambda: {identity: ("inherited", "recorded defect")})
+    assert T.main(["--only", suite] + (["--shrink-baseline"] if shrink else [])) == 1
+    import json
+    summary = json.loads((tmp_path / "out" / "summary.json").read_text())
+    assert summary["verdict"] == "RED"
+    assert summary["known_red_seen"] == 1 and summary["new_failures"] == []
+    assert summary["baseline_now_passing"] == [] and summary["baseline_unverified"] == []
+    assert baseline.read_text() == original
 
 
 @pytest.mark.parametrize("suite_rc", [1, 3])
@@ -344,7 +367,7 @@ def test_a_run_is_judged_on_the_head_and_baseline_it_started_with(tmp_path, monk
     monkeypatch.setattr(T.subprocess, "Popen", FakeProc)
     monkeypatch.setenv("TMPDIR", str(tmp_path))
     monkeypatch.setenv("LAMPWAY_TEST_OUT", str(tmp_path / "out"))
-    assert T.main(["--only", "client"]) == 0
+    assert T.main(["--only", "client"]) == 1
     import json
     summary = json.loads((tmp_path / "out" / "summary.json").read_text())
     assert summary["sha"] == "aaa1111" and summary["head_at_end"] == "bbb2222"
@@ -377,3 +400,8 @@ def test_a_run_leaves_the_callers_environment_unchanged_and_hands_the_suites_the
     assert T.main(["--only", "client"]) == 0
     assert "LAMPWAY_TEST_ALL" not in os.environ
     assert seen and all(e is not None and e.get("LAMPWAY_TEST_ALL") == "1" for e in seen)
+    import json
+    summary = json.loads((tmp_path / "out" / "summary.json").read_text())
+    assert summary["verdict"] == "GREEN" and summary["binary"]["state"] == "gated"
+    assert summary["baseline"] == 0 and summary["known_red_seen"] == 0
+    assert summary["new_failures"] == [] and summary["baseline_unverified"] == []

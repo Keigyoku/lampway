@@ -67,6 +67,8 @@ release build.
   increment changed) and the evidence, then `python3 rail/rail.py closeout --tag <tag>`; run the full suites and the gate on
   the exact commit you will tag; read the reports, not the exit codes alone.
 
+The full reference verdict is RED for every failure or error, including inherited baseline rows. Baselines retain attribution and shrink only from affirmative exact PASS identities; they never exempt failures. A component pass or missing native prerequisite cannot be reported as full-reference GREEN.
+
 ## 5. Evidence
 
 A release report states, for each gate, the command and its result, and names every suite that did not run (and why). A
@@ -85,3 +87,5 @@ the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` di
 | 2026-10-07 | PII finding output redacted | captain: fix the PR privacy failure | the gate retained personal values and commit email domains in public diagnostics; GitHub also generated a personal-email PR merge | redact identifiers, distinguish the exact public provider identity with lookalike and secret controls, preserve merge checks, and resolve provider privacy at its source | planted text and commit identity regressions |
 | 2026-10-07 | native matrix operator classification | complete topology regression publication | executable matrix attributes matched the generic email pattern | prove structured matrix code and retain real-address/owner-pattern controls without allowlist changes or history rewrite | matrix and email planted regressions |
 | 2026-10-07 | explicit PR authored range | captain: issue2 G24 | GitHub synthetic merge committer caused false-positive branch privacy failures | scan event base/head endpoints, refuse unavailable head and retain real bad-email controls without account-setting changes | executed workflow good/bad branch, push and fallback controls |
+
+| 2026-10-07 | strict no-red completion | captain: inherited reds must be fixed | baseline-attributed failures could return GREEN | every known/new failure forces RED while exact PASS shrinking and attribution remain intact | known FAILED/ERROR controls for both suites with and without shrink |
