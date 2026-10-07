@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""L0 triangle totals use one RNA bulk read, preserving n-gon arithmetic."""
+"""L0 triangle totals use RNA collection lengths, preserving n-gon arithmetic."""
 from mixar.modules.lampway_tools.inspect import home
 
 
@@ -17,5 +17,5 @@ class Mesh:
     loops = range(16)
 
 
-def test_exact_bulk_triangle_count():
+def test_exact_constant_time_triangle_count():
     assert home.triangle_count(Mesh()) == 10
