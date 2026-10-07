@@ -66,7 +66,7 @@ def file_in_vault(vault, project_root: Path, receipt: dict, prompt_text=None, *,
     from ..library import provenance as PV
     from ..library.store import LibraryError
     out_dir = Path(project_root) / receipt["out_dir"]
-    sealed = sealed or seal(receipt, out_dir, project_root)
+    sealed = sealed or seal(receipt, out_dir, project_root, cancel=cancel)
     receipt = sealed["receipt"]
     files, name = receipt["files"], receipt["inputs"]["name"]
     outputs, formats = [], []

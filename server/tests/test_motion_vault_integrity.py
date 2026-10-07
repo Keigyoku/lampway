@@ -15,6 +15,8 @@ from lampway_server.library import curate as CU
 from lampway_server.library import provenance as PV
 from lampway_server.library.store import LibraryError
 from lampway_server.motion import receipt as R
+from lampway_server.motion import frames as F
+from lampway_server.motion.cancellation import Cancellation, MotionCancelled
 
 from .fake_motion import FakeCapture
 from .test_motion_graphics import SMALL, a_vault, put_scene, tool
@@ -192,3 +194,59 @@ def test_spool_cleanup_preserves_bytes_referenced_by_retained_evidence(tmp_path,
     assert PV.replay_spool(vault.lib, spool) == {"replayed": 1, "still_failing": 1}
     assert shared.read_bytes() == b"shared checked bytes"
     assert spool.read_text().strip()
+
+
+def _dedup_payload(job):
+    return {"generation": {"action": "motion_graphics", "job_id": job, "params": {"fps": 10}},
+            "outputs": [{"kind": "video", "subtype": "render", "name": "dedup.mp4", "bytes": b"real dedup bytes"}],
+            "output_relations": []}
+
+
+def test_dedup_generation_failure_reports_asset_and_spools_reconciliation(tmp_path, monkeypatch):
+    vault = a_vault(tmp_path)
+    seed = PV.record(vault.lib, _dedup_payload("dedup-seed"))["assets"][0]["id"]
+    original = vault.lib.add_generation
+
+    def fail(*args, **kwargs):
+        raise LibraryError("planted dedup bookkeeping failure")
+
+    monkeypatch.setattr(vault.lib, "add_generation", fail)
+    result = PV.capture(vault.lib, vault.spool, _dedup_payload("dedup-second"))
+    assert not result["ok"] and result["spooled"] and result.get("partial"), result
+    assert [asset["id"] for asset in result["assets"]] == [seed]
+    monkeypatch.setattr(vault.lib, "add_generation", original)
+    assert PV.replay_spool(vault.lib, vault.spool) == {"replayed": 1, "still_failing": 0}
+    assert vault.lib._reader().execute("SELECT count(*) FROM asset").fetchone()[0] == 1
+    assert vault.lib._reader().execute("SELECT count(*) FROM generation WHERE job_id='dedup-second'").fetchone()[0] == 1
+
+
+def test_cancel_after_dedup_put_does_not_admit_generation_mutation(tmp_path, monkeypatch):
+    vault = a_vault(tmp_path)
+    seed = PV.record(vault.lib, _dedup_payload("dedup-seed"))["assets"][0]["id"]
+    cancel = Cancellation()
+    original = vault.lib.put
+
+    def cancel_after_put(spec):
+        result = original(spec)
+        assert result["deduped"]
+        cancel.cancel()
+        return result
+
+    monkeypatch.setattr(vault.lib, "put", cancel_after_put)
+    with pytest.raises(MotionCancelled):
+        PV.capture(vault.lib, vault.spool, _dedup_payload("dedup-cancelled"), cancel=cancel)
+    assert cancel.snapshot_assets() == [{"id": seed, "kind": "video"}]
+    assert vault.lib._reader().execute("SELECT count(*) FROM generation WHERE job_id='dedup-cancelled'").fetchone()[0] == 0
+    assert not vault.spool.exists()
+
+
+def test_cancelled_direct_filing_does_not_open_artifacts(tmp_path, monkeypatch):
+    cancel = Cancellation()
+    cancel.cancel()
+
+    def forbidden_open(*args, **kwargs):
+        pytest.fail("cancelled direct filing must not open artifact files")
+
+    monkeypatch.setattr(F, "_open_scene_file", forbidden_open)
+    with pytest.raises(MotionCancelled):
+        R.file_in_vault(a_vault(tmp_path), tmp_path, {"out_dir": "motion/out/direct", "files": {"mp4": "direct.mp4"}}, cancel=cancel)

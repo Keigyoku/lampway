@@ -134,7 +134,8 @@ def record(lib: AssetLibrary, payload: dict, *, cancel=None) -> dict:
     res = {"ok": True, "assets": [], "generation_ids": [], "relations": [], "unresolved_parents": unresolved}
     missing_all: list = []
     if not outputs:
-        res["generation_ids"].append(lib.add_generation(None, gen))
+        generation_id = cancel.commit_owned(lib.add_generation, None, gen) if cancel is not None else lib.add_generation(None, gen)
+        res["generation_ids"].append(generation_id)
         res["completeness"] = _completeness(g.get("action"), gen, bool(rels))
         return res
     for i, o in enumerate(outputs):
@@ -151,20 +152,23 @@ def record(lib: AssetLibrary, payload: dict, *, cancel=None) -> dict:
             if cancel is not None:
                 cancel.check()
             put = _put_owned(lib, spec, cancel)
+            res["assets"].append({"id": put["id"], "version": put["version"], "created": put["created"], "deduped": put["deduped"]})
+            if put["deduped"]:  # the same bytes were made before: this job's origin is still a fact worth keeping
+                def add_generation():
+                    return lib.add_generation(lib.version_of(put["dedupe_of"]), gen)
+                generation_id = cancel.commit_owned(add_generation) if cancel is not None else add_generation()
+                res["generation_ids"].append(generation_id)
+            elif put["created"]:
+                res["generation_ids"].append(lib._reader().execute("SELECT id FROM generation WHERE version_id=? ORDER BY rowid DESC LIMIT 1", (lib.version_of(put["id"], put["version"]),)).fetchone()[0])
+            for r in rels:
+                res["relations"].append({"src": put["id"], "dst": r["to"], "type": r["type"]})
+            res["completeness"] = _completeness(g.get("action"), gen, bool(rels))
         except Exception as exc:
             if cancel is not None:
                 cancel.check()
             if "output_relations" not in payload:
                 raise
             return {**res, "ok": False, "partial": bool(res["assets"]), "error": str(exc)}
-        res["assets"].append({"id": put["id"], "version": put["version"], "created": put["created"], "deduped": put["deduped"]})
-        if put["deduped"]:                                   # the same bytes were made before: this job's origin is still a fact worth keeping
-            res["generation_ids"].append(lib.add_generation(lib.version_of(put["dedupe_of"]), gen))
-        elif put["created"]:
-            res["generation_ids"].append(lib._reader().execute("SELECT id FROM generation WHERE version_id=? ORDER BY rowid DESC LIMIT 1", (lib.version_of(put["id"], put["version"]),)).fetchone()[0])
-        for r in rels:
-            res["relations"].append({"src": put["id"], "dst": r["to"], "type": r["type"]})
-        res["completeness"] = _completeness(g.get("action"), gen, bool(rels))
     try:
         from . import curate
         for relation in payload.get("output_relations") or []:
