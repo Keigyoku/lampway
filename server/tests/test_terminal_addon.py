@@ -112,6 +112,9 @@ with open(log, "a") as fh:
                          "herdr": {k: v for k, v in os.environ.items() if k.startswith("HERDR_")}}) + "\\n")
 if "cli" in sys.argv and "list" in sys.argv:
     print(json.dumps([{"pane_id": 3}, {"pane_id": 12}]))
+if "cli" in sys.argv and "spawn" in sys.argv:
+    n = sum(1 for line in open(log) if '"spawn"' in line)
+    print(40 + n)
 """
 
 
@@ -147,31 +150,20 @@ def test_user_config_untouched(home, tmp_path, fake_wezterm, monkeypatch):
     # took ~/.local/share/wezterm/pid (the lane's live run, 2026-10-06). Every WezTerm process runs on Lampway's own dirs.
     for key, value in call["dirs"].items():
         assert value and value.startswith(str(home)), (key, value)
-    W.save_instance(home, {"gui_pid": None, "socket": str(W.socket_path(home)), "panes": {"3": {}}})
-    W.send_text(home, str(exe), 3, "x")
+    W.cli(home, str(exe), ["list", "--format", "json"])
     cli_call = json.loads(log.read_text().splitlines()[-1])
     assert "--no-auto-start" in cli_call["argv"], "a CLI call never starts a mux server"
     assert all(v.startswith(str(home)) for v in cli_call["dirs"].values())
 
 
-def test_send_text_refuses_foreign_panes(home, fake_wezterm):
-    exe, log = fake_wezterm
-    W.save_instance(home, {"gui_pid": None, "socket": str(W.socket_path(home)), "panes": {"3": {"herdr_agent_id": "a1"}}})
-    with pytest.raises(W.TerminalRefused, match="pane 12 is not a Lampway pane: nothing was sent"):
-        W.send_text(home, str(exe), 12, "hello")
-    assert not log.exists() or "send-text" not in log.read_text()
-    W.send_text(home, str(exe), 3, "hello")
-    assert "send-text" in log.read_text()
-
-
 def test_reconcile_readopts_and_spawns_nothing(home, fake_wezterm):
     exe, log = fake_wezterm
-    W.save_instance(home, {"gui_pid": os.getpid(), "socket": str(W.socket_path(home)), "panes": {"3": {"herdr_agent_id": "a1"}}})
+    W.save_instance(home, {"gui_pid": os.getpid(), "socket": str(W.socket_path(home))})
     first = W.reconcile(home, str(exe))
     second = W.reconcile(home, str(exe))
-    assert first == second == {"window": "re-adopted", "panes": ["3"], "foreign_panes": ["12"]}
+    assert first == second == {"window": "re-adopted"}
     assert all("spawn" not in json.loads(line)["argv"] for line in log.read_text().splitlines())
-    W.save_instance(home, {"gui_pid": 2 ** 22 + 7, "socket": str(W.socket_path(home)), "panes": {}})
+    W.save_instance(home, {"gui_pid": 2 ** 22 + 7, "socket": str(W.socket_path(home))})
     assert W.reconcile(home, str(exe))["window"] == "gone"
 
 
@@ -180,7 +172,7 @@ def test_remove_only_removes_lampway(home, monkeypatch):
     monkeypatch.setattr(W, "_signal", lambda pid: killed.append(pid))
     vdir = home / "addons" / "wezterm" / "v1"
     vdir.mkdir(parents=True)
-    W.save_instance(home, {"gui_pid": 4242, "socket": str(W.socket_path(home)), "panes": {}})
+    W.save_instance(home, {"gui_pid": 4242, "socket": str(W.socket_path(home))})
     W.remove(home, alive=lambda pid: pid in (4242, 999))
     assert killed == [4242], "only the window Lampway started; a WezTerm of another class (pid 999) is never signalled"
     assert not (home / "addons" / "wezterm").exists()
@@ -287,35 +279,7 @@ def test_an_image_path_in_a_pane_is_a_link_that_shows_it_in_blender():
     assert "^lampway%-image:" in handler and "return false" in handler, "only Lampway's links are taken; every other link opens as before"
 
 
-# ---- the rest of contract 16's surface: the state file the tab bar reads, Focus, Update
-
-SESSIONS = [{"id": "s1", "name": "rig the lamp", "state": "live", "activity": "working"},
-            {"id": "s2", "name": "texture pass", "state": "live", "activity": "waiting"},
-            {"id": "s3", "name": "old task", "state": "ended"},
-            {"id": "s4", "name": "not in the window", "state": "live", "unread": True}]
-
-
-def test_the_state_doc_names_each_lampway_pane_by_its_agent():
-    """Section 5: {panes: {"<wezterm pane id>": {state, name}}, egress: {state, route, size}}; a cue per DESIGN.md 13."""
-    inst = {"panes": {"0": {}, "4": {"herdr_agent_id": "s1"}, "5": {"herdr_agent_id": "s2"}, "6": {"herdr_agent_id": "s3"},
-                      "7": {"herdr_agent_id": "gone"}}}
-    routes = [{"id": "openrouter", "label": "OpenRouter", "enabled": True}, {"id": "fal", "label": "fal.ai", "enabled": False}]
-    doc = W.state_doc(inst, SESSIONS, {"over_the_wire": False, "active": []}, routes)
-    assert doc["panes"] == {"4": {"state": "working", "name": "rig the lamp"}, "5": {"state": "blocked", "name": "texture pass"},
-                            "6": {"state": "done", "name": "old task"}}, "a pane with no agent, or an agent Lampway no longer has, is left out"
-    assert doc["egress"] == {"state": "open", "open": "1 route open"}
-    live = W.state_doc(inst, SESSIONS, {"over_the_wire": True, "active": ["openrouter"]}, routes)["egress"]
-    assert live == {"state": "live", "route": "OpenRouter", "size": ""}
-    assert W.state_doc({}, [], {"over_the_wire": False, "active": []}, [dict(routes[0], enabled=False)])["egress"] == {"state": "idle"}
-
-
-def test_the_state_file_is_written_whole_and_only_when_it_changes(home):
-    doc = {"panes": {"4": {"state": "working", "name": "a"}}, "egress": {"state": "idle"}}
-    assert W.write_state(home, doc) is True
-    assert json.loads((home / "wezterm" / "state.json").read_text()) == doc
-    mtime = (home / "wezterm" / "state.json").stat().st_mtime_ns
-    assert W.write_state(home, doc) is False and (home / "wezterm" / "state.json").stat().st_mtime_ns == mtime
-    assert not list((home / "wezterm").glob("*.tmp"))
+# ---- the rest of contract 16's surface: Focus and Update
 
 
 def _installed(home, version="20240203-110809-5046fc22"):
@@ -341,43 +305,17 @@ def _app(settings, provider, tmp_path, monkeypatch):
     return http, FakeMixarClient
 
 
-def test_the_server_keeps_the_state_file_current(settings, provider, tmp_path, monkeypatch):
-    """The tab bar's cues and the egress status read state.json once a second; the server writes it while the terminal is
-    installed (and never creates the add-on tree when it is not)."""
-    import time as _t
+def test_there_is_no_focus_route(settings, provider, tmp_path, monkeypatch):
+    """The coordinator's audit (W6): no Focus. The routes are Get, Open, Remove and the status."""
     home = tmp_path / "home"
     monkeypatch.setenv("LAMPWAY_HOME", str(home))
     _installed(home)
-    http, _F = _app(settings, provider, tmp_path, monkeypatch)
-    with http:
-        state = home / "wezterm" / "state.json"
-        end = _t.time() + 5
-        while _t.time() < end and not state.exists():
-            _t.sleep(0.1)
-        assert state.exists(), "no state.json within 5 s"
-        assert json.loads(state.read_text())["egress"] == {"state": "idle"}
-    E.set_active(None)
-
-
-def test_focus_activates_a_lampway_pane_and_refuses_any_other(settings, provider, tmp_path, monkeypatch):
-    home = tmp_path / "home"
-    monkeypatch.setenv("LAMPWAY_HOME", str(home))
-    _installed(home)
-    W.save_instance(home, {"gui_pid": 1, "panes": {"4": {"herdr_agent_id": "s1"}}})
-    seen = []
-    monkeypatch.setattr(W, "cli", lambda home_, exe, args, timeout=20: seen.append(args) or "")
     http, FakeMixarClient = _app(settings, provider, tmp_path, monkeypatch)
     with http:
         fake = FakeMixarClient(http, password=settings.user_password)
         fake.login()
-        h = fake.rest_headers()
-        assert http.post("/app/terminal/focus", headers=h, json={"pane": "4"}).status_code == 200
-        r = http.post("/app/terminal/focus", headers=h, json={"pane": "12"})
-        assert r.status_code == 409 and r.json()["detail"] == "pane 12 is not a Lampway pane: nothing was focused"
-        assert http.post("/app/terminal/focus", headers={**h, "X-Lampway-Origin": "agent"}, json={"pane": "4"}).status_code == 403
+        assert http.post("/app/terminal/focus", headers=fake.rest_headers()).status_code in (404, 405)
     E.set_active(None)
-    assert seen == [["activate-pane", "--pane-id", "4"]]
-
 
 def test_status_offers_update_when_the_pin_moved(settings, provider, tmp_path, monkeypatch):
     """Section 6.1: Update fetches the new pinned version beside the old one. The status says which is installed and whether
@@ -392,3 +330,47 @@ def test_status_offers_update_when_the_pin_moved(settings, provider, tmp_path, m
         st = http.get("/app/terminal", headers=fake.rest_headers()).json()
     E.set_active(None)
     assert st["version"] == "20230712-072601-f4abf8fd" and st["update"] is True and st["pin"]["version"] == "20240203-110809-5046fc22"
+
+
+# ---- the captain (2026-10-06): "Our agents live in herdr, herdr has its own workspace, we don't make multiple WezTerm tabs.
+# WezTerm is PURELY a viewport." One window onto Lampway's herdr server; herdr owns the workspace, agents, panes and tabs.
+
+VIEWPORT_VERBS = {"list"}       # the only CLI verb: find the one window (reconcile); nothing is ever sent to it
+
+
+def test_the_launcher_issues_no_tab_or_spawn_command(home, fake_wezterm, tmp_path, monkeypatch):
+    exe, log = fake_wezterm
+    W.write_config(home)
+    W.launch(home, str(exe), herdr_root=home / "herdr", detached=False, bootstrap=["herdr"])
+    W.save_instance(home, dict(W.load_instance(home), gui_pid=os.getpid()))
+    W.reconcile(home, str(exe))
+    calls = [json.loads(line)["argv"] for line in log.read_text().splitlines()]
+    starts = [a for a in calls if "start" in a and "cli" not in a]
+    assert len(starts) == 1, "one window"
+    verbs = {a[a.index("cli") + 4] for a in calls if "cli" in a}      # cli --no-auto-start --class <class> <verb>
+    assert verbs <= VIEWPORT_VERBS, verbs
+    src = Path(W.__file__).read_text(encoding="utf-8")
+    for verb in ("spawn", "new-tab", "set-tab-title", "split-pane", "send-text", "move-pane-to-new-tab", "activate-tab", "activate-pane"):
+        assert f'"{verb}"' not in src, f"wezterm.py names the CLI verb {verb}"
+    assert not hasattr(W, "agent_tabs") and not hasattr(W, "send_text") and not hasattr(W, "write_state")
+    assert not hasattr(W, "focus") and not hasattr(W, "state_doc"), "no Focus, no state: the window is the user's to raise"
+
+
+def test_the_config_has_no_tab_bar_and_mirrors_no_state():
+    lua = (Path(W.__file__).parent / "lampway.wezterm.lua").read_text(encoding="utf-8")
+    assert "config.enable_tab_bar = false" in lua
+    for gone in ("format-tab-title", "update-status", "state.json", "STATE_FILE", "CUES"):
+        assert gone not in lua, gone
+
+
+def test_the_server_writes_no_terminal_state(settings, provider, tmp_path, monkeypatch):
+    """Agent state is herdr's, the cockpit's and the cards': the server writes nothing for WezTerm to draw."""
+    import time as _t
+    home = tmp_path / "home"
+    monkeypatch.setenv("LAMPWAY_HOME", str(home))
+    _installed(home)
+    http, _F = _app(settings, provider, tmp_path, monkeypatch)
+    with http:
+        _t.sleep(2.5)
+    E.set_active(None)
+    assert not (home / "wezterm" / "state.json").exists()

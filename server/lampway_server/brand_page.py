@@ -37,17 +37,38 @@ def face_bytes() -> dict:
     return {name: (BRAND / "fonts" / name).read_bytes() for _family, name, _weight in FACES}
 
 
+def faces_css(faces: dict = None) -> str:
+    """The site's faces as @font-face rules with the woff2 inlined (``faces`` replaces the files: {file name: bytes})."""
+    data = face_bytes() if faces is None else faces
+    return "".join(
+        f"@font-face{{font-family:'{family}';font-style:normal;font-weight:{weight};font-display:block;"
+        f"src:url(data:font/woff2;base64,{base64.b64encode(data[name]).decode('ascii')}) format('woff2')}}"
+        for family, name, weight in FACES if name in data)
+
+
+def tokens_css(light_selector: str = None, night_only: bool = False) -> str:
+    """The tokens as ``--lw-*`` custom properties: Night on :root, Paper when the system asks for light, or (``light_selector``)
+    under that selector instead (the report cards' ``html[data-lw-theme="light"]``); ``night_only`` for a viewfinder whose
+    controls sit over a live picture (the phone camera page)."""
+    css = re.sub(r"/\*.*?\*/", "", TOKENS_CSS.read_text(encoding="utf-8"), flags=re.S)
+    if night_only:
+        return css.split("@media (prefers-color-scheme: light)", 1)[0]
+    if light_selector:
+        night, paper = css.split("@media (prefers-color-scheme: light)", 1)
+        css = night + light_selector + " " + paper.strip()[1:].strip()[:-1].strip().replace(":root ", "", 1)
+    return css
+
+
+def mark_svg() -> str:
+    """The Lampway lockup (crook lantern and wordmark), its own colours for both schemes."""
+    return (BRAND / "lockup.svg").read_text(encoding="utf-8")
+
+
 def _css(faces: dict = None) -> str:
     key = "css" if faces is None else None
     if key and key in _CACHE:
         return _CACHE[key]
-    data = face_bytes() if faces is None else faces
-    font_css = "".join(
-        f"@font-face{{font-family:'{family}';font-style:normal;font-weight:{weight};font-display:block;"
-        f"src:url(data:font/woff2;base64,{base64.b64encode(data[name]).decode('ascii')}) format('woff2')}}"
-        for family, name, weight in FACES if name in data)
-    tokens = re.sub(r"/\*.*?\*/", "", TOKENS_CSS.read_text(encoding="utf-8"), flags=re.S)
-    css = font_css + tokens + _LAYOUT
+    css = faces_css(faces) + tokens_css() + _LAYOUT
     if key:
         _CACHE[key] = css
     return css

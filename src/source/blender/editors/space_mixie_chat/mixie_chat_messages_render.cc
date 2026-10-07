@@ -232,8 +232,15 @@ void mixie_chat_render_messages(const bContext *C,
                                          4.0f * UI_SCALE_FAC;
 
         /* A question or choice waits for the user (facelift contract 04, DESIGN.md 4): lamplight behind the whole
-         * set of choices, and a `line_hi` rule beside it. */
-        {
+         * set of choices, and a `line_hi` rule beside it. An answered question keeps only its expander row
+         * (lampway_tools/answered.py: values "lampway_answered:..."): nothing waits there, so no glow. */
+        bool waiting_choice = false;
+        for (int i = 0; i < layout.slot_action_count; i++) {
+          if (!STRPREFIX(layout.slot_actions[i].value, "lampway_answered:")) {
+            waiting_choice = true;
+          }
+        }
+        if (waiting_choice) {
           float total = 0.0f;
           for (int i = 0; i < layout.slot_action_count; i++) {
             total += layout.slot_actions[i].height + (i ? metrics.bubble_spacing : 0.0f);

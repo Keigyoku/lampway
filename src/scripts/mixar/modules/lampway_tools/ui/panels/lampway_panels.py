@@ -308,7 +308,9 @@ class LAMPWAY_PT_prompts(Panel):
         if len(p.prompt_vars):
             col.prop(p, "prompt_model")
             col.operator("lampway.prompt_preview", icon="VIEWZOOM")
-            col.operator("lampway.prompt_fork", icon="DUPLICATE")
+            row = col.row(align=True)
+            row.operator("lampway.prompt_fork", icon="DUPLICATE")
+            row.operator("lampway.prompt_ab", icon="LAMPWAY_COMPARE")
         if p.prompt_preview:
             col.popover("LAMPWAY_PT_prompt_preview", text=textwrap.shorten(p.prompt_preview, 40, placeholder="..."))
             col.operator("lampway.prompt_use", icon="PLAY")
@@ -359,8 +361,6 @@ class LAMPWAY_PT_cockpit(Panel):
         else:
             trow = term.row(align=True)
             trow.operator("lampway.terminal_open", text="Open", icon="WINDOW")
-            if t.get("window") == "re-adopted":
-                trow.operator("lampway.terminal_focus", text="Focus", icon="RESTRICT_VIEW_OFF")
             trow.operator("lampway.terminal_remove", text="Remove", icon="TRASH")
             if t.get("update"):
                 term.operator("lampway.terminal_get", text=f"Update to {(t.get('pin') or {}).get('version')}", icon="IMPORT")

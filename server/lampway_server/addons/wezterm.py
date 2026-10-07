@@ -1,5 +1,7 @@
 """The Lampway terminal (facelift contract 16): a pinned WezTerm release, downloaded on demand into $LAMPWAY_HOME and
-launched as Lampway's own companion window.
+launched as Lampway's own companion window: ONE viewport onto Lampway's herdr server (the captain, 2026-10-06: "WezTerm is
+PURELY a viewport"). Herdr owns the workspace, the agents, the panes and the tabs; WezTerm opens no tab, spawns nothing, names
+no tab, sends nothing and draws no agent state (the config hides its tab bar). The CLI is used only to find the window.
 
 Download: only through the egress gate's `github` route (refused before any request while it is off), streamed to a
 .part file, its SHA-256 compared with the value pinned in `lampway_terminal.toml` AND with the release's published
@@ -8,7 +10,7 @@ Download: only through the egress gate's `github` route (refused before any requ
 Launch: `wezterm --config-file <Lampway's lua> start --always-new-process --class dev.lampway.terminal`, with Lampway's
 own WEZTERM_UNIX_SOCKET and the isolated herdr environment, detached from Blender. It never reads, writes or includes the
 user's WezTerm config, never addresses the user's WezTerm (every CLI call carries Lampway's class and socket), never
-signals a process it did not start, and never sends text to a pane it did not create."""
+and never signals a process it did not start."""
 
 import hashlib
 import json
@@ -182,43 +184,6 @@ def installed_version(home) -> Optional[str]:
     return cur.read_text(encoding="utf-8").strip() if cur.exists() else None
 
 
-# ------------------------------------------------------------------------------------------------------ the tab bar's state
-# DESIGN.md 13's cue for each cockpit Spark (server/lampway_server/workbench_view.py): waiting on the user reads as blocked
-CUE_OF_SPARK = {"working": "working", "waiting": "blocked", "unread": "unread", "idle": "idle", "ended": "done"}
-
-
-def state_doc(inst: dict, sessions: list, indicator: dict, routes: list) -> dict:
-    """What the config's tab titles and status read (section 5): each Lampway pane that shows an agent, by its cue and name,
-    and whether data leaves the machine."""
-    from ..workbench_view import _spark
-    by_id = {s["id"]: s for s in sessions or []}
-    panes = {}
-    for pane_id, rec in sorted((inst or {}).get("panes", {}).items()):
-        s = by_id.get((rec or {}).get("herdr_agent_id"))
-        if s is not None:
-            panes[str(pane_id)] = {"state": CUE_OF_SPARK.get(_spark(s), "idle"), "name": s.get("name") or s["id"]}
-    labels = {r["id"]: r.get("label") or r["id"] for r in routes or []}
-    if (indicator or {}).get("over_the_wire"):
-        egress = {"state": "live", "route": ", ".join(labels.get(a, a) for a in indicator.get("active") or []), "size": ""}
-    else:
-        n = sum(1 for r in routes or [] if r.get("enabled"))
-        egress = {"state": "open", "open": f"{n} route{'' if n == 1 else 's'} open"} if n else {"state": "idle"}
-    return {"panes": panes, "egress": egress}
-
-
-def write_state(home, doc: dict) -> bool:
-    """Write ``state.json`` whole (a reader never sees half a file); False, and nothing written, when it already says this."""
-    p = _home(home) / "wezterm" / "state.json"
-    text = json.dumps(doc, sort_keys=True)
-    if p.exists() and p.read_text(encoding="utf-8") == text:
-        return False
-    p.parent.mkdir(parents=True, exist_ok=True)
-    tmp = p.with_suffix(".tmp")
-    tmp.write_text(text, encoding="utf-8")
-    tmp.replace(p)
-    return True
-
-
 # ------------------------------------------------------------------------------------------------------ the window
 def socket_path(home) -> Path:
     return _home(home) / "wezterm" / "gui.sock"
@@ -230,7 +195,7 @@ def _instance_path(home) -> Path:
 
 def load_instance(home) -> dict:
     p = _instance_path(home)
-    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"gui_pid": None, "socket": str(socket_path(home)), "panes": {}}
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"gui_pid": None, "socket": str(socket_path(home))}
 
 
 def save_instance(home, inst: dict) -> None:
@@ -310,22 +275,6 @@ def cli(home, exe: str, args: list, timeout: int = 20) -> str:
     return r.stdout
 
 
-def _ours(home, pane_id) -> bool:
-    return str(pane_id) in (load_instance(home).get("panes") or {})
-
-
-def send_text(home, exe: str, pane_id, text: str) -> None:
-    if not _ours(home, pane_id):
-        raise TerminalRefused(f"pane {pane_id} is not a Lampway pane: nothing was sent")
-    cli(home, exe, ["send-text", "--pane-id", str(pane_id), "--no-paste", text])
-
-
-def focus(home, exe: str, pane_id) -> None:
-    if not _ours(home, pane_id):
-        raise TerminalRefused(f"pane {pane_id} is not a Lampway pane: nothing was focused")
-    cli(home, exe, ["activate-pane", "--pane-id", str(pane_id)])
-
-
 def _alive(pid) -> bool:
     if not pid:
         return False
@@ -337,17 +286,15 @@ def _alive(pid) -> bool:
 
 
 def reconcile(home, exe: str) -> dict:
-    """On Lampway's start: re-adopt the window when the recorded pid lives and its CLI answers; spawn nothing, touch no other pane."""
+    """On Lampway's start: re-adopt the window when the recorded pid lives and its CLI answers; spawn nothing, touch nothing."""
     inst = load_instance(home)
-    ours = sorted((inst.get("panes") or {}).keys())
     if not _alive(inst.get("gui_pid")):
-        return {"window": "gone", "panes": ours, "foreign_panes": []}
+        return {"window": "gone"}
     try:
-        listed = json.loads(cli(home, exe, ["list", "--format", "json"]) or "[]")
+        cli(home, exe, ["list", "--format", "json"])
     except (TerminalRefused, ValueError, subprocess.TimeoutExpired):
-        return {"window": "gone", "panes": ours, "foreign_panes": []}
-    ids = sorted({str(p.get("pane_id")) for p in listed})
-    return {"window": "re-adopted", "panes": [p for p in ours if p in ids], "foreign_panes": [p for p in ids if p not in ours]}
+        return {"window": "gone"}
+    return {"window": "re-adopted"}
 
 
 def _signal(pid) -> None:
@@ -371,6 +318,6 @@ def remove(home, alive: Callable = _alive) -> dict:
         _signal(inst["gui_pid"])
         stopped = inst["gui_pid"]
     shutil.rmtree(home / "addons" / "wezterm", ignore_errors=True)
-    inst.update(gui_pid=None, panes={})
+    inst.update(gui_pid=None)
     save_instance(home, inst)
     return {"stopped": stopped, "removed": True}

@@ -7,11 +7,12 @@
     python3 check_wezterm.py --self-test   # plants one offender per check
 
 The config is executed under a stub `wezterm` module with LAMPWAY_HOME pointed at a temp dir, then inspected:
-W1  both colour schemes equal the tokens (foreground, background, cursor, selection, tab bar), and ANSI never uses `wire`.
+W1  both colour schemes equal the tokens (foreground, background, cursor, selection), and ANSI never uses `wire`.
 W2  calm and private: check_for_updates is false (an update check is a network call nobody opted into), no bell, no blink.
-W3  isolation: the file opens nothing but $LAMPWAY_HOME/wezterm/state.json, never names the user's config, refuses to load
-    without LAMPWAY_HOME.
-W4  the tab title for each agent state carries that state's glyph and token colour (read from a planted state.json).
+W3  isolation: the file opens nothing but the image queue under $LAMPWAY_HOME (append), never names the user's config,
+    refuses to load without LAMPWAY_HOME.
+W4  a viewport only (the captain, 2026-10-06): the tab bar is off, and nothing renders a tab title or a status from state.
+W5  the image fallback: a Lampway image link is queued once and swallowed; any other link is left to WezTerm.
 """
 import json
 import os
@@ -23,8 +24,6 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 LUA = os.path.join(HERE, "lampway.wezterm.lua")
 TOKENS = json.load(open(os.path.join(HERE, "tokens.json")))
-CUE = {"idle": "muted_dim", "working": "accent_text", "unread": "agent", "blocked": "accent_text", "paused": "muted",
-       "done": "go", "failed": "stop"}
 
 HARNESS = r"""
 local handlers, out = {}, {}
@@ -53,33 +52,24 @@ if not ok then print('LOADERR\t' .. tostring(cfg)); return end
 local function emit(k, v) print(k .. '\t' .. tostring(v)) end
 for name, sc in pairs(cfg.color_schemes) do
   for _, k in ipairs({'foreground', 'background', 'cursor_bg', 'selection_bg'}) do emit(name .. '.' .. k, sc[k]) end
-  emit(name .. '.tab_bar.active_tab.bg_color', sc.tab_bar.active_tab.bg_color)
   for i, c in ipairs(sc.ansi) do emit(name .. '.ansi.' .. i, c) end
   for i, c in ipairs(sc.brights) do emit(name .. '.brights.' .. i, c) end
 end
 emit('check_for_updates', cfg.check_for_updates); emit('audible_bell', cfg.audible_bell); emit('cursor_blink_rate', cfg.cursor_blink_rate)
-for _, st in ipairs({'idle', 'working', 'unread', 'blocked', 'paused', 'done', 'failed'}) do
-  STATE_NOW = st
-end
 emit('links', #cfg.hyperlink_rules)
 local open_uri = handlers['open-uri']
 emit('openuri.lampway', tostring(open_uri and open_uri(nil, nil, 'lampway-image:/p/a.png')))
 emit('openuri.other', tostring(open_uri and open_uri(nil, nil, 'https://example.invalid/x')))
 local q = io.open(os.getenv('LAMPWAY_HOME') .. '/wezterm/show_in_blender.jsonl', 'r')
 emit('queue', q and q:read('*a'):gsub('\n', '|') or '')
-local f = handlers['format-tab-title']
-for pid, st in pairs({['1'] = 'idle', ['2'] = 'working', ['3'] = 'unread', ['4'] = 'blocked', ['5'] = 'paused', ['6'] = 'done', ['7'] = 'failed'}) do
-  local r = f({ active_pane = { pane_id = tonumber(pid), title = 't' }, is_active = false })
-  emit('tab.' .. st, r[1].Foreground.Color .. ' ' .. r[2].Text)
-end
+emit('tab_bar', tostring(cfg.enable_tab_bar))
+emit('handlers', (handlers['format-tab-title'] and 'format-tab-title ' or '') .. (handlers['update-status'] and 'update-status' or ''))
 """
 
 
 def run(lua_path, with_home=True):
     tmp = tempfile.mkdtemp()
     os.makedirs(os.path.join(tmp, "wezterm"))
-    panes = {str(i): {"state": s, "name": s} for i, s in enumerate(["idle", "working", "unread", "blocked", "paused", "done", "failed"], 1)}
-    json.dump({"panes": panes, "egress": {"state": "idle"}}, open(os.path.join(tmp, "wezterm", "state.json"), "w"))
     h = os.path.join(tmp, "harness.lua")
     open(h, "w").write(HARNESS)
     env = {"PATH": os.environ.get("PATH", "/usr/bin"), "HOME": tmp}
@@ -97,8 +87,7 @@ def check(lua_path):
         return [f"W0: the config does not load: {v['LOADERR']}"]
     c = TOKENS["colour"]
     for name, var in (("Lampway Night", "dark"), ("Lampway Paper", "light")):
-        for k, tok in (("foreground", "text"), ("background", "canvas"), ("cursor_bg", "accent"), ("selection_bg", "accent_bed_hi"),
-                       ("tab_bar.active_tab.bg_color", "surface")):
+        for k, tok in (("foreground", "text"), ("background", "canvas"), ("cursor_bg", "accent"), ("selection_bg", "accent_bed_hi")):
             got = v.get(f"{name}.{k}", "").upper()
             if got != c[tok][var].upper():
                 f.append(f"W1 {name}.{k} = {got}, token {tok} = {c[tok][var]}")
@@ -111,8 +100,8 @@ def check(lua_path):
     if v.get("audible_bell") != "Disabled" or v.get("cursor_blink_rate") != "0":
         f.append("W2 bell or blinking cursor is on (calm by default)")
     opens = re.findall(r"io\.open\(([^,)]+)", src)
-    if opens != ["STATE_FILE", "SHOW_QUEUE"]:
-        f.append(f"W3 the config opens {opens}, only STATE_FILE (read) and SHOW_QUEUE (append) are allowed")
+    if opens != ["SHOW_QUEUE"]:
+        f.append(f"W3 the config opens {opens}, only SHOW_QUEUE (append) is allowed")
     if not re.search(r"local SHOW_QUEUE = home \.\. '/wezterm/show_in_blender\.jsonl'", src) or "io.open(SHOW_QUEUE, 'a')" not in src:
         f.append("W3 the image queue is not Lampway's own append-only file under LAMPWAY_HOME")
     # W5: the image fallback (contract 16, 6.7): a Lampway image link is queued for Blender and nothing else is taken
@@ -123,13 +112,8 @@ def check(lua_path):
         f.append("W3 the config names the user's own WezTerm configuration")
     if "LOADERR" not in run(lua_path, with_home=False):
         f.append("W3 the config loads without LAMPWAY_HOME (it must refuse)")
-    for st, tok in CUE.items():
-        got = v.get(f"tab.{st}", "")
-        if not got.upper().startswith(c[tok]["dark"].upper()):
-            f.append(f"W4 tab title for {st}: {got!r}, want colour {c[tok]['dark']}")
-    glyphs = [v.get(f"tab.{st}", "").split(" ", 1)[-1] for st in CUE]
-    if len(set(glyphs)) != len(glyphs):
-        f.append("W4 two agent states share a tab glyph")
+    if v.get("tab_bar") != "false" or v.get("handlers"):
+        f.append(f"W4 not a viewport: enable_tab_bar = {v.get('tab_bar')}, handlers {v.get('handlers')!r} (no tab bar, no tab title, no status)")
     return f
 
 
@@ -140,8 +124,9 @@ def self_test():
     for label, mut, tag in (
         ("W1 drifted background", src.replace("background = '#0E1016'", "background = '#000000'", 1), "W1"),
         ("W2 update check on", src.replace("config.check_for_updates = false", "config.check_for_updates = true"), "W2"),
-        ("W3 reads the user's config", src.replace("local STATE_FILE", "local _u = io.open(os.getenv('HOME') .. '/.wezterm.lua')\nlocal STATE_FILE"), "W3"),
-        ("W4 two states share a glyph", src.replace("glyph = '✕'", "glyph = '✓'"), "W4"),
+        ("W3 reads the user's config", src.replace("local SHOW_QUEUE", "local _u = io.open(os.getenv('HOME') .. '/.wezterm.lua')\nlocal SHOW_QUEUE"), "W3"),
+        ("W4 a tab bar again", src.replace("config.enable_tab_bar = false", "config.enable_tab_bar = true"), "W4"),
+        ("W4 a tab title from state", src.replace("return config", "wezterm.on('format-tab-title', function(tab) return 'x' end)\nreturn config"), "W4"),
         ("W5 every link taken", src.replace("  if not path then return end\n", "  if not path then return false end\n"), "W5"),
     ):
         p = os.path.join(tempfile.mkdtemp(), "mut.lua")
