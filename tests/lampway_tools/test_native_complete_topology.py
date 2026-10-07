@@ -120,3 +120,51 @@ res(errors)
     got=r.results[-1]
     assert all('rest frames changed' in got[n] for n in ('weights','opening'))
     assert 'no named continuation' in got['unstamped']
+
+
+def test_complete342_oblique_authored_frames_preserve_rotation_precision():
+    """All auxiliary families retain float32 axes without decimal quantization drift."""
+    r=run_script(PRE+BUILD+r'''
+from mixar.modules.lampway_tools.canon_geom import native_topology as NT
+from mixar.modules.lampway_tools.features import rig_tools as RT
+bpy.context.view_layer.objects.active=arm;bpy.ops.object.mode_set(mode='EDIT')
+for i,name in enumerate(sorted(NT.AUXILIARY)):
+    b=arm.data.edit_bones[name]
+    b.tail=b.head+Vector((math.sin(i+.31),math.cos(i*.71+.17),math.sin(i*.37+.83)))*.013
+    b.roll=math.sin(i*.57)*math.pi
+bpy.ops.object.mode_set(mode='OBJECT')
+before={b.name:[list(row) for row in b.matrix_local] for b in arm.data.bones}
+raw=RT.read(arm)['frames']
+result=api.normalize_rigged(armature=arm.name,profile='metahuman',dry_run=False)
+checks={}
+if result.get('ok'):
+    doc=json.loads(arm['lw_canon']);rows={b['name']:b for b in doc['body']['bones']}
+    drift=max(float(np.max(np.abs(np.array(row['frame'])-raw[name]))) for name,row in rows.items())
+    rounded=json.loads(json.dumps(doc))
+    for row in rounded['body']['bones']:row['frame']=np.round(row['frame'],6).tolist()
+    coarse_errors=CA.validate(rounded)
+    falsifiers={}
+    for kind,matrix in [('shear',[[1,.01,0],[0,1,0],[0,0,1]]),('reflection',[[-1,0,0],[0,1,0],[0,0,1]])]:
+        bad=json.loads(json.dumps(doc));bad['body']['bones'][0]['frame']=matrix
+        falsifiers[kind]=CA.validate(bad)
+    segments=W.bone_segments(arm)
+    receipt=json.loads(arm['lw_canon_normalize_receipt'])
+    receipt_hash=__import__('hashlib').sha256(json.dumps(receipt,sort_keys=True,indent=1).encode()).hexdigest()
+    checks={'drift':drift,'drivers':sum(row['along_source']=='authored_helper_frame' for row in rows.values()),
+            'coarse_errors':coarse_errors,'errors':CA.validate(doc),'falsifiers':falsifiers,
+            'correction_count':len(receipt['canonical_frame_corrections']),
+            'receipt_matches':receipt_hash==doc['receipt_sha256'],
+            'segment_count':len(segments),'unchanged':before=={b.name:[list(row) for row in b.matrix_local] for b in arm.data.bones}}
+res({'result':result,'checks':checks})
+''',timeout=300)
+    assert r.rc==0,r.out[-3000:]
+    got=r.results[-1];assert got['result']['ok'],got['result']
+    c=got['checks'];assert c['drivers']==258 and c['segment_count']==342
+    # Only serialized rotations change, within the float32 producer budget;
+    # every authored Blender matrix and the strict document validator remain.
+    from mixar.modules.lampway_tools.canon_geom.rest_frames import FLOAT32_FRAME_BUDGET
+    assert c['drift']<FLOAT32_FRAME_BUDGET and c['unchanged'] and not c['errors']
+    assert c['correction_count']>0 and c['receipt_matches']
+    assert got['result']['canonical_frame_corrections']['count']==c['correction_count']
+    assert any('proper rotation' in e for e in c['coarse_errors'])
+    assert all(any('proper rotation' in e for e in errors) for errors in c['falsifiers'].values())

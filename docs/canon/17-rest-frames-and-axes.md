@@ -58,6 +58,25 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
 - **INV-17.1** One armature, one convention; `mixed` is refused, never exported.
 - **INV-17.2** A frame depends only on joints and the reference skeleton (same inputs, same matrices to 1e-9).
 - **INV-17.3** Rest frames are proper rotations (det +1); a left-handed result refuses.
+
+  Numerical serialization (2026-10-07): Blender's float32
+  `vec_roll_to_mat3_normalized` (`blenkernel/intern/armature.cc`) documents
+  cancellation in its `1/(1+y)` branch, switching formulas below
+  `SAFE_THRESHOLD=6.1e-3`. Actual read-only native diagnostics and the complete342
+  oblique synthetic graph reproduce nonorthogonality beyond the existing
+  `1e-6` document bar despite positive determinant. A canonical document may use
+  the nearest proper polar factor `U @ Vt` for these small errors only. The
+  spectral correction must not exceed `eps(float32)/6.1e-3` (approximately
+  `1.9543e-5`), and every axis correction must remain below the unchanged canon21
+  `0.01deg` bar. This is a conservative producer-derived admission budget, not
+  a universal bound on all accumulated hierarchy errors: larger errors refuse.
+  Already valid frames retain their values; reflection, singularity, nonfinite
+  frames and material shear refuse. Authored scene rest/pose matrices, raw
+  `rig_tools.read`, raw rest fingerprints and `CA.validate` tolerances remain
+  unchanged. Auxiliary endpoints use the same serialized canonical axes.
+  The private armature retains the hash-bound complete normalization receipt
+  in `lw_canon_normalize_receipt`; the tool returns only count and maximum
+  correction metrics. Owner matrix measurements stay outside the repository.
 - **INV-17.4** Joint positions do not move when frames are rewritten (frames and heads are separate writes).
 - **INV-17.5** Never read a limb direction from an imported tail (canon 01).
 

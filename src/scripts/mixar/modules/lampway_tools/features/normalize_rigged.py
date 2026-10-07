@@ -26,6 +26,7 @@ from .. import canon_asset as CA
 from .. import canon_io
 from ..canon_geom.bones import CONTINUATION, MAIN_CHILD, chain_ends, terminal_auxiliary_leaf
 from ..canon_geom import native_topology as NT
+from ..canon_geom.rest_frames import canonical_rest_frame
 from ..rig_tools import core as RC
 from . import common as C
 from . import normalize as NZ
@@ -80,6 +81,17 @@ def _bones(ob, mapped, convention="blender", profile="ue5_body"):
     rig = RT.read(ob)
     names, parents = rig["names"], rig["parents"]
     heads = {n: tuple(rig["heads"][n]) for n in names}
+    # Only the canonical document is orthogonalized. Raw reads, fingerprints,
+    # authored rest/pose matrices and export/readback validation remain intact.
+    canonical_frames, corrections = {}, {}
+    for n in names:
+        try:
+            canonical_frames[n], correction = canonical_rest_frame(rig["frames"][n], CA._proper)
+        except ValueError as error:
+            raise C.FeatureError(f"bone {n}: {error}") from error
+        if correction is not None:
+            corrections[n] = correction
+    rig["canonical_frame_corrections"] = corrections
     # MetaHuman corrective roots fan out to auxiliary drivers. Their authored
     # rest frame/roll is the authority, not an arbitrary continuation child.
     helpers = {}
@@ -89,7 +101,7 @@ def _bones(ob, mapped, convention="blender", profile="ue5_body"):
         for n in names:
             if n in NT.AUXILIARY:
                 b = ob.data.bones[n]
-                direction = np.asarray(rig["frames"][n], float)[:, axis]
+                direction = canonical_frames[n][:, axis]
                 world_length = float((ob.matrix_world.to_3x3() @ b.vector).length)
                 helpers[n] = np.asarray(heads[n]) + direction * world_length
     ends = chain_ends(heads, parents, main_child=dict(CONTINUATION, **MAIN_CHILD), helper_ends=helpers)
@@ -111,7 +123,7 @@ def _bones(ob, mapped, convention="blender", profile="ue5_body"):
         src = "authored_helper_frame" if n in helpers else (
             "leaf_parent_line" if not children or terminal_auxiliary_leaf(n, children) else
             ("child_head" if len(children) == 1 else "named_continuation"))
-        F = np.asarray(rig["frames"][n], float)
+        F = canonical_frames[n]
         out.append({"name": n, "canonical_name": canon.get(n), "parent": parents.get(n), "head_m": [round(float(x), 9) for x in h],
                     "along": [round(float(x), 12) for x in v / L], "along_source": src, "frame": [[round(float(x), 12) for x in r] for r in F],
                     "length_m": round(L, 9), "deform": deform.get(n, False)})
@@ -214,8 +226,13 @@ def run(armature, meshes=None, profile="ue5_body", turn_deg=0.0, dry_run=True):
     if profile == "metahuman":
         body["reference_skeleton"]["bones"] = len(NT.PARENTS)
     receipt = {"schema": "lampway.normalize-receipt/1", "tool": TOOL, "inspect": rec["sha256"]["receipt"], "plan": plan, "applied": applied}
+    receipt["canonical_frame_corrections"] = rig["canonical_frame_corrections"]
     doc = _doc("skeleton", raw_sha, ob.name, _conventions(0.0), _transform(ob), scale, body, receipt)
     ob["lw_canon"] = json.dumps(doc, sort_keys=True)
+    # Full evidence stays with the private armature; MCP receives a bounded
+    # aggregate. The canonical document hashes this exact receipt, and its
+    # rest fingerprint still identifies unmodified raw authored frames.
+    ob["lw_canon_normalize_receipt"] = json.dumps(receipt, sort_keys=True, indent=1)
     ref = {"asset_id": doc["asset_id"], "canonical_sha256": doc["canonical_sha256"]}
     out_meshes = []
     for mob in skinned:
@@ -233,5 +250,9 @@ def run(armature, meshes=None, profile="ue5_body", turn_deg=0.0, dry_run=True):
                     {"schema": "lampway.normalize-receipt/1", "tool": TOOL, "skeleton": ref}, pivot={"rule": "skeleton_root"})
         mob["lw_canon"] = json.dumps(mdoc, sort_keys=True)
         out_meshes.append(mob.name)
+    corrections = list(rig["canonical_frame_corrections"].values())
+    correction_summary = {"count": len(corrections),
+                          "max_spectral_correction": max((c["spectral_correction"] for c in corrections), default=0.0),
+                          "max_axis_correction_deg": max((c["max_axis_correction_deg"] for c in corrections), default=0.0)}
     return {**plan, "dry_run": False, "skeleton": {"asset_id": doc["asset_id"], "canonical_sha256": doc["canonical_sha256"]},
-            "rigged": out_meshes, "applied": applied}
+            "rigged": out_meshes, "applied": applied, "canonical_frame_corrections": correction_summary}
