@@ -33,15 +33,29 @@ CHAT_OPS_PY = (CHAT / "ui/operators/chat_ops.py").read_text(encoding="utf-8")
 TURN_EVENTS_PY = (CHAT / "core/turn_events.py").read_text(encoding="utf-8")
 HISTORY_PY = (CHAT / "core/chat_history.py").read_text(encoding="utf-8")
 FILE_HANDLERS_PY = (CHAT / "core/file_handlers.py").read_text(encoding="utf-8")
+BYOA_PY = (CHAT / "core/byoa_view.py").read_text(encoding="utf-8")
 
 SID = "22222222-2222-4222-8222-222222222222"
 
 
+class Items(list):
+    def add(self):
+        item = SimpleNamespace(label="", value="", style="")
+        self.append(item)
+        return item
+
+    def clear(self):
+        del self[:]
+
+
 class Msgs(list):
     def add(self):
-        m = SimpleNamespace(sender="", text="", delivery_hint="", bubble_id="")
+        m = SimpleNamespace(sender="", text="", content="", delivery_hint="", bubble_id="", action_items=Items(), attachments=Items())
         self.append(m)
         return m
+
+    def remove(self, i):
+        del self[i]
 
     def clear(self):
         del self[:]
@@ -62,6 +76,8 @@ class FakeScene(dict):
         self.mixie_chat_input = ""
         self.lampway_agent_mode = "byoa"
         self.lampway_byoa_pane = "pane1"
+        self.mixie_chat_is_busy = False
+        self.mixie_chat_pending_attachments = Msgs()
         for k, v in kw.items():
             setattr(self, k, v)
 
@@ -213,9 +229,133 @@ def test_a_screen_view_is_one_code_block_bubble_rewritten_only_when_the_screen_c
 def test_an_ended_or_unbound_pane_is_said_once(world):
     scene, seen = world
     for _ in range(2):
-        BV.apply_view({"session_id": SID, "view": "ended", "pane": "pane1", "help": ["resume it from the cockpit"]})
+        BV.apply_view({"session_id": SID, "view": "ended", "pane": "pane1", "help": ["press Resume"], "resumable": True})
     assert [m.text for m in scene.mixie_chat_messages].count(scene.mixie_chat_messages[0].text) == 1
-    assert "resume it from the cockpit" in scene.mixie_chat_messages[0].text
+    assert "press Resume" in scene.mixie_chat_messages[0].text
+
+
+# ------------------------------------------------------------------------------------------------------------- an ended pane (B2)
+def test_an_ended_pane_offers_resume_and_unbind_as_buttons_and_one_without_a_session_id_only_unbind(world):
+    scene, seen = world
+    BV.apply_view({"session_id": SID, "view": "ended", "pane": "pane1", "help": ["press Resume"], "resumable": True})
+    bubble = scene.mixie_chat_messages[-1]
+    assert bubble.bubble_id == "byoa-ended:pane1" and [a.value for a in bubble.action_items] == [BV.RESUME_ACTION, BV.UNBIND_ACTION]
+    assert seen["calls"] == []                                                       # reopening the file only shows: nothing resumes
+    BV.VIEWS.clear()
+    BV.apply_view({"session_id": SID, "view": "ended", "pane": "pane1", "help": ["cannot be resumed"], "resumable": False})
+    assert [m.bubble_id for m in scene.mixie_chat_messages].count("byoa-ended:pane1") == 1             # replaced, not stacked
+    assert [a.value for a in scene.mixie_chat_messages[-1].action_items] == [BV.UNBIND_ACTION]
+
+
+def test_resume_and_unbind_ask_the_server_and_its_answer_rebinds_the_tab_on_the_main_thread(world, monkeypatch):
+    scene, seen = world
+    BV.apply_view({"session_id": SID, "view": "ended", "pane": "pane1", "help": [], "resumable": True})
+    assert BV.resume(scene) is True
+    method, params, cb = seen["calls"][-1]
+    assert method == "agent.byoa.resume" and params["session_id"] == SID
+    assert all(len(m.action_items) == 0 for m in scene.mixie_chat_messages)          # the buttons go once pressed
+    cb({"state": "complete", "result": {"ok": True, "pane": "pane2", "harness": "claude", "resumed": "pane1"}})
+    BV.apply_control({"session_id": SID, "method": "agent.byoa.resume", "ok": True, "pane": "pane2", "harness": "claude"})
+    assert scene.lampway_byoa_pane == "pane2" and scene["lampway_byoa_harness"] == "claude"
+    assert seen["calls"][-1][0] == "agent.byoa.observe"                              # the new pane is watched at once
+    assert BV.unbind(scene) is True and seen["calls"][-1][0] == "agent.byoa.unbind"
+    BV.apply_control({"session_id": SID, "method": "agent.byoa.unbind", "ok": True, "unbound": ["pane2"]})
+    assert scene.lampway_byoa_pane == ""
+    BV.apply_control({"session_id": SID, "method": "agent.byoa.resume", "ok": False, "message": "no session id", "help": ["Unbind it"]})
+    assert "no session id" in scene.mixie_chat_messages[-1].text and scene.lampway_byoa_pane == ""
+
+
+def test_the_answer_travels_the_turn_ingress_and_the_buttons_are_the_users_click():
+    assert "'agent.byoa.control'" in TURN_EVENTS_PY
+    special = (CHAT / "ui/operators/chat_special_ops.py").read_text(encoding="utf-8")
+    assert "byoa_view.execute_pane_action(" in special and "byoa_view.RESUME_ACTION" in special
+    gate = BYOA_PY[BYOA_PY.index("def execute_pane_action"):]
+    assert gate.index("script_running()") < gate.index("resume(scene)")
+
+
+# ------------------------------------------------------------------------------------------------------------- Stop (B4)
+def test_an_observed_turn_lights_running_and_its_end_puts_it_out(world):
+    scene, seen = world
+    TE._consume("agent.turn.started", started())
+    assert scene.mixie_chat_is_busy is True and seen["states"] == []                 # display only: the turn state stays IDLE
+    TE._consume("agent.turn.event", event(0, {"type": "run_status", "run_id": "byoa-pane1-0", "status": "in_progress"}))
+    TE._consume("agent.turn.event", event(1, {"type": "turn_end", "status": "cancelled", "run_id": "byoa-pane1-0", "offset": 9}))
+    assert scene.mixie_chat_is_busy is False and seen["states"] == []
+
+
+def test_an_mcp_operation_keeps_its_own_busy_when_the_observed_turn_ends(world):
+    scene, seen = world
+    TE._consume("agent.turn.started", started())
+    scene.mixie_chat_state = "BUSY"                                                  # the harness's MCP operation holds the tab
+    TE._consume("agent.turn.event", event(0, {"type": "turn_end", "status": "completed", "run_id": "byoa-pane1-0", "offset": 9}))
+    assert scene.mixie_chat_is_busy is True
+
+
+def test_a_screen_shown_pane_is_running_while_herdr_reads_it_working(world, monkeypatch):
+    scene, seen = world
+    monkeypatch.setattr(BV, "_ensure_screen_timer", lambda: None)
+    BV.apply_view({"session_id": SID, "view": "screen", "pane": "pane1", "screen": "> working", "agent_status": "working"})
+    assert scene.mixie_chat_is_busy is True
+    BV.apply_view({"session_id": SID, "view": "screen", "pane": "pane1", "screen": "> done", "agent_status": "idle"})
+    assert scene.mixie_chat_is_busy is False
+
+
+def test_stop_in_your_agent_mode_asks_the_server_to_interrupt_the_pane(world, monkeypatch):
+    scene, seen = world
+    from mixar.modules.lampway_tools import human_gate
+    monkeypatch.setattr(human_gate, "script_running", lambda: False)
+    op = SimpleNamespace(reports=[], report=lambda kind, text: op.reports.append((kind, text)))
+    assert BV.execute_stop(op, SimpleNamespace(scene=scene)) == {'FINISHED'}
+    method, params, cb = seen["calls"][-1]
+    assert method == "agent.byoa.interrupt" and params == {"session_id": SID}
+    cb({"state": "complete", "result": {"ok": False, "code": "pane_refused", "message": "herdr is down", "help": ["Stop it in its own pane"]}})
+    monkeypatch.setattr(human_gate, "script_running", lambda: True)
+    assert BV.execute_stop(op, SimpleNamespace(scene=scene)) == {'CANCELLED'} and "script" in op.reports[-1][1]
+
+
+def test_the_stop_operator_turns_to_the_pane_before_tearing_down_a_mode_1_turn():
+    ops = (CHAT / "ui/operators/session_ops.py").read_text(encoding="utf-8")
+    execute = ops[ops.index("class MIXIE_CHAT_OT_abort_session"):]
+    execute = execute[execute.index("def execute"):]
+    assert execute.index("is_byoa(") < execute.index("cleanup_turn_handler(") and "byoa_view.execute_stop(" in execute
+
+
+# ------------------------------------------------------------------------------------------------------------- images (B4)
+def test_images_go_with_the_text_encoded_as_mode_1_encodes_them(world, monkeypatch):
+    scene, seen = world
+    from mixar.modules.space_mixie_chat.core import image_utils
+    monkeypatch.setattr(image_utils, "encode_attachment_for_upload", lambda path, source: (f"b64:{path}", "image/jpeg"))
+    att = scene.mixie_chat_pending_attachments.add()
+    att.image_path, att.image_source, att.display_name = "/renders/a.png", "FILE", "a.png"
+    model = scene.mixie_chat_pending_attachments.add()
+    model.image_path, model.image_source = "/models/chair.glb", "MODEL_FILE"
+    scene.mixie_chat_input = "what is wrong here?"
+    op = SimpleNamespace(reports=[], report=lambda kind, text: op.reports.append((kind, text)), message_override="")
+    assert BV.execute_send(op, SimpleNamespace(scene=scene)) == {'FINISHED'}
+    method, payload, cb, command_id = seen["commands"][-1]
+    assert payload == {"session_id": SID, "text": "what is wrong here?", "images": [{"data": "b64:/renders/a.png"}]}
+    assert len(scene.mixie_chat_pending_attachments) == 0 and scene.mixie_chat_messages[-1].attachments[0].image_path == "/renders/a.png"
+    assert any("model files" in t for _, t in op.reports)
+
+
+def test_a_harness_that_takes_no_image_is_refused_before_anything_leaves_and_the_attachments_stay(world, monkeypatch):
+    scene, seen = world
+    from mixar.modules.space_mixie_chat.core import agent_mode as AM
+    monkeypatch.setitem(AM.HARNESSES, "rows", [{"id": "cursor", "images": False, "images_note": "Cursor's agent CLI documents no way to take an image"}])
+    scene["lampway_byoa_harness"] = "cursor"
+    att = scene.mixie_chat_pending_attachments.add()
+    att.image_path, att.image_source = "/renders/a.png", "FILE"
+    op = SimpleNamespace(reports=[], report=lambda kind, text: op.reports.append((kind, text)), message_override="look")
+    assert BV.execute_send(op, SimpleNamespace(scene=scene)) == {'CANCELLED'}
+    assert op.reports == [({'ERROR'}, "Cursor's agent CLI documents no way to take an image")]
+    assert seen["commands"] == [] and len(scene.mixie_chat_pending_attachments) == 1
+
+
+def test_the_echo_of_a_send_with_images_is_not_drawn_twice(world):
+    scene, seen = world
+    BV.send(scene, "what is wrong here?", [{"data": "x"}])
+    TE._consume("agent.turn.started", started(user_text="/proj/.lampway/panes/pane1/images/image-1.png what is wrong here?"))
+    assert [m.text for m in scene.mixie_chat_messages if m.sender == "USER"] == ["what is wrong here?"]
 
 
 def test_the_view_rides_the_turn_ingress_and_is_asked_again_on_reconnect_and_file_load():

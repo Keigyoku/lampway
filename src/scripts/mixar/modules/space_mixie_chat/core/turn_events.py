@@ -190,6 +190,10 @@ def _consume(method, params):
         from . import byoa_view
         byoa_view.apply_view(params)
         return
+    if method == 'agent.byoa.control':            # Stop, Resume, Unbind answered (byoa_view.py)
+        from . import byoa_view
+        byoa_view.apply_control(params)
+        return
     if method == 'agent.pane.new_conversation':   # /new in Lampway Agent's pane (agent-modes spec Q15): mode1_pane.py
         from . import mode1_pane
         mode1_pane.apply_new_conversation(params)

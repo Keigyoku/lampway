@@ -287,6 +287,12 @@ class MIXIE_CHAT_OT_abort_session(Operator):
         return False
 
     def execute(self, context):
+        from ...core.agent_mode import is_byoa
+        if is_byoa(context.scene):
+            # Your agent mode (agent-modes spec B4): Stop interrupts the tab's pane with its harness's own keys; the island
+            # stops showing running when the observed turn ends. Nothing of Mode 1's turn state is torn down.
+            from ...core import byoa_view
+            return byoa_view.execute_stop(self, context)
         session = get_session_manager()
         scene = context.scene
         scene_name = scene.name

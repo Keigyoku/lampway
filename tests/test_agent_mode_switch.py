@@ -217,6 +217,18 @@ def test_each_listed_harness_is_a_your_agent_row_and_a_missing_one_is_greyed_wit
     assert codex.enabled is False and "not installed" in codex.label and "npm install" in codex.tip
 
 
+def test_a_harness_that_cannot_reach_lampways_tools_says_so_in_its_row():
+    AM.HARNESSES.update(loaded=True, enabled=True, rows=[
+        {"id": "grok", "label": "Grok", "installed": True, "install": None, "tools": False,
+         "tools_note": "Grok reads MCP servers only from your ~/.grok/config.toml ... Lampway never writes"},
+        {"id": "pi", "label": "Pi", "installed": True, "install": None, "tools": True, "tools_note": ""}])
+    rows = AM.menu_rows(FakeScene())
+    grok = next(r for r in rows if r.harness == "grok")
+    pi = next(r for r in rows if r.harness == "pi")
+    assert grok.label == "Your agent: Grok (no Lampway tools)" and "never writes" in grok.tip and grok.enabled   # still the user's pick
+    assert pi.label == "Your agent: Pi" and "no Lampway tools" not in pi.tip
+
+
 def test_with_the_switch_for_your_own_agents_off_every_harness_is_greyed_and_a_note_says_why():
     AM.HARNESSES.update(loaded=True, enabled=False, rows=[{"id": "claude", "label": "Claude Code", "installed": True, "install": None}])
     rows = AM.menu_rows(FakeScene())

@@ -28,6 +28,7 @@ SCENE_BUSY_HELP = "Let the agent finish, or press Stop in the island, then switc
 SWITCH_FAILED_HELP = "Check the cockpit (Lampway > Agents): the herdr server must be running, your own agents switched on and the harness's route on in Privacy"
 BYOA_OFF = "Your own agents are off: switch them on (LAMPWAY_LOCAL_CLI=1) to run one here"
 MODEL_NOTE = "The model is your agent's own: change it in its pane"
+NO_TOOLS_SUFFIX = " (no Lampway tools)"
 
 Row = namedtuple("Row", "kind label enabled active mode harness tip")
 
@@ -178,9 +179,12 @@ def menu_rows(scene) -> list:
                         "Ask the Lampway server which agent CLIs are installed"))
     for h in HARNESSES["rows"]:
         installed = bool(h.get("installed"))
-        label = f"{LABELS[BYOA]}: {h.get('label') or h.get('id')}" + ("" if installed else " (not installed)")
+        no_tools = h.get("tools") is False                    # the server says this harness cannot reach Lampway's tools from its pane
+        label = (f"{LABELS[BYOA]}: {h.get('label') or h.get('id')}" + ("" if installed else " (not installed)")
+                 + (NO_TOOLS_SUFFIX if installed and no_tools else ""))
+        tip = h.get("install") or (h.get("tools_note") if no_tools else "") or "Your own agent, on its own login, in a pane bound to this tab"
         rows.append(Row("MODE", label, installed and bool(HARNESSES["enabled"]), mode == BYOA and harness == h.get("id"), BYOA,
-                        str(h.get("id") or ""), h.get("install") or "Your own agent, on its own login, in a pane bound to this tab"))
+                        str(h.get("id") or ""), tip))
     if HARNESSES["loaded"] and not HARNESSES["enabled"]:
         rows.append(Row("NOTE", BYOA_OFF, False, False, "", "", ""))
     if HARNESSES.get("error"):
