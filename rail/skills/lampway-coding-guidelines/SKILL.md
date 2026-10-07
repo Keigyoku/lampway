@@ -45,6 +45,10 @@ scripts/lampway/sync_python.sh --bin-dir build/Prod/bin   # a Python-only change
 scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server + app, on a COPY of the file
 ```
 
+- Every build stamps `build/<env>/BUILT_FROM` itself (`scripts/lampway/built_from.sh`, read before the compile, written after
+  it): the bare sha only for a clean, pushed native tree (`src/source`, `src/CMakeLists.txt`, `src/build_files`,
+  `src/release/datafiles`) that held still through the build; otherwise `UNCLEAN <sha>: ...` or `UNPUSHED <sha>`. test_all
+  refuses an UNCLEAN binary by name. Never write the file by hand except to mark a build that predates the stamp.
 - The build runs in an Ubuntu 24.04 box with GCC 14 (the box is named in your brief; one crew per box). `MIXAR_CUDA=0` skips the
   Cycles GPU kernels; never a release choice. A clean build is long and an unchanged rebuild short (BUILD-LAMPWAY.md §3).
 - If `distrobox enter` answers `unable to find user`, the numeric `podman exec --user 1000:1000 -w "$PWD" <box> ...` works.
@@ -86,7 +90,9 @@ need `dir=` (`tests/lampway/test_tmp_hygiene.py` holds that). Both suites keep o
 The reference test environment is `scripts/lampway/test_env.sh` (upstream/ at its pin without LFS, `tests/requirements-test.txt`
 and the server's declared dependency ranges into `LAMPWAY_TEST_PYTHON`); `scripts/lampway/test_all.sh` verifies it first and refuses
 ("run test_env.sh") when anything is missing, and refuses a binary whose `BUILT_FROM` native sources differ from HEAD. Outside test_all,
-tests that need that environment SKIP with the reason and the conftest prints one `ENV-SKIPPED n` line.
+tests that need that environment SKIP with the reason and the conftest prints one `ENV-SKIPPED n` line. The shelf is part of that
+environment, READ ONLY: `LAMPWAY_SHELF_DIR` (and `LAMPWAY_SHELF_SCRATCH`) name the machine's copy, never a path in the repository;
+inside test_all a shelf test that would skip FAILS, and a run that changed any file under the shelf is RED.
 
 No test reads the person's real home: the root `conftest.py` points `HOME`, the `XDG_*` dirs, `LAMPWAY_HOME`, `LAMPWAY_LEGACY_HOME`
 and `LAMPWAY_TEST_ROOT` inside the basetemp for the whole session (the server's conftest does the same for `HOME` and `XDG_*`);
@@ -163,3 +169,5 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | agent contracts out of the install | coordinator: "EXCLUDE agent contract files (AGENTS.md, CLAUDE.md, skills under src/) from the installed app" | the scripts install copied `lampway_tools/AGENTS.md` and `CLAUDE.md` into the app, and the Python sync kept them | the install excludes and removes them, the sync excludes and deletes them; the bullet in section 2 | none |
 | 2026-10-06 | merge of lp/facelift (e6668a6) into lp/wave5 | the integrator's merge: lp/facelift added the agent-contracts bullet to section 2 next to the launcher bullet, which lp/wave5 had rewritten to name three variables | two lanes edited neighbouring lines of section 2 | the section keeps facelift's install bullet and lp/wave5's three-variable launcher bullet | none |
 | 2026-10-06 | merge of lp/wave5 into lp/facelift | the facelift lane's merge: lp/wave5 named LAMPWAY_SECRETS_DIR in the launcher bullet where lp/facelift had added the install bullet above it | two lanes edited neighbouring lines of section 2; the merged section carries the install bullet and the three-variable launcher bullet | section 2 | none |
+| 2026-10-06 | the shelf in the reference environment | coordinator: "make them run in test_all's defined environment (LAMPWAY_SHELF_DIR provided, read only) rather than skipping everywhere" | the placement pins skipped in every suite run, so the only measurement of the MetaHuman-sized cases ran only by hand | test_all requires the shelf's placement fixtures, the conftest fails a shelf skip inside test_all, a run that wrote to the shelf is RED; the paragraph in section 3 | none |
+| 2026-10-06 | BUILT_FROM written by the build | coordinator: "Write BUILT_FROM INTO wt-build/build/Prod/ every time you build ... Make it automatic" | the stamp was a hand step after the build, and it was missed: build/Prod held no BUILT_FROM while the integrator's copy was stamped | build_linux.sh stamps through built_from.sh; test_all reads its UNCLEAN and UNPUSHED marks; the bullet in section 2 | none |

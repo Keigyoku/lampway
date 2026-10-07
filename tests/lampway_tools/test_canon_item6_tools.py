@@ -123,3 +123,29 @@ def test_g10_4_the_pure_true_aspect_fit_and_its_falsifier(goldens):
         c = m[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
         return c[np.ix_((np.arange(size) * c.shape[0] / size).astype(int), (np.arange(size) * c.shape[1] / size).astype(int))]
     assert G.mask_iou(crop_stretch(A), crop_stretch(B)) == pytest.approx(e["iou_crop_and_stretch_to_square"], abs=1e-9)
+
+
+def test_g21_3_the_export_check_reads_each_bones_engine_scale_from_the_file():
+    """canon 21 G21.3: an FBX written with FBX_SCALE_ALL carries UnitScaleFactor 100 - the engine reads every bone 100x - while Blender's
+    importer compensates the factor, so a check on the IMPORTED skeleton reads 1. The check reads each bone node's Lcl Scaling and the
+    file's UnitScaleFactor from the FBX itself and compares them with the reference's (1e-4, Titan bind_mismatch)."""
+    d = run('''
+def rig(name):
+    return armature(name=name, bones=(("root", (0, 0, 0), (0, 0, 0.2), None), ("spine", (0, 0, 0.2), (0, 0, 0.6), "root")))
+def export(ob, path, **kw):
+    for o in bpy.context.view_layer.objects: o.select_set(o is ob)
+    bpy.context.view_layer.objects.active = ob
+    bpy.ops.export_scene.fbx(filepath=os.path.join(root, path), use_selection=True, object_types={"ARMATURE"}, add_leaf_bones=False,
+                             primary_bone_axis="Z", secondary_bone_axis="X", **kw)
+a = rig("rig")
+export(a, "ref.fbx", apply_scale_options="FBX_SCALE_NONE", apply_unit_scale=True)
+export(a, "cm.fbx", apply_scale_options="FBX_SCALE_NONE", apply_unit_scale=True)
+export(a, "x100.fbx", apply_scale_options="FBX_SCALE_ALL")
+ok = api.skeleton_export_check(fbx="cm.fbx", target={"names_from": "ref.fbx"})
+bad = api.skeleton_export_check(fbx="x100.fbx", target={"names_from": "ref.fbx"})
+res({k: {"pass": r.get("pass"), "reasons": r.get("reasons"), "bone_scale": r.get("bone_scale"), "error": r.get("error")} for k, r in (("ok", ok), ("bad", bad))})
+''')
+    ok, bad = d["ok"], d["bad"]
+    assert ok["bone_scale"]["bones_compared"] == 2 and ok["bone_scale"]["over_tolerance"] == [] and not any("bone scale" in r for r in ok["reasons"]), ok
+    assert bad["pass"] is False and any("bone scale" in r for r in bad["reasons"]), bad
+    assert bad["bone_scale"]["worst"] == pytest.approx(100.0) and len(bad["bone_scale"]["over_tolerance"]) == 2, bad

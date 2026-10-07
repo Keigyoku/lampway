@@ -44,17 +44,17 @@ def _meters(approval, spend_view, usd):
     price = float(approval.get("price") or 0.0)
     spent = float(row.get("spent") or 0.0)
     fmt = (lambda v: f"${float(v):.2f}") if usd else _num
-    job_cap, session_cap = row.get("job_cap"), row.get("session_cap")
+    job_cap, day_cap = row.get("job_cap"), row.get("day_cap")
     if job_cap:
         job = {"text": f"this job {fmt(price)} of {fmt(job_cap)}", "used": 0.0, "pending": price / float(job_cap), "used_tone": "muted"}
     else:
         job = {"text": "no per-job cap", "used": 0.0, "pending": 0.0, "used_tone": "muted"}
-    if session_cap:
-        used = spent / float(session_cap)
-        session = {"text": f"session {fmt(spent)} + {fmt(price)} of {fmt(session_cap)}", "used": used,
-                   "pending": price / float(session_cap), "used_tone": "stop" if used > 0.9 else "muted"}
+    if day_cap:
+        used = spent / float(day_cap)
+        session = {"text": f"spent today {fmt(spent)} + {fmt(price)} of {fmt(day_cap)}", "used": used,
+                   "pending": price / float(day_cap), "used_tone": "stop" if used > 0.9 else "muted"}
     else:
-        session = {"text": f"session {fmt(spent)} spent, no cap", "used": 0.0, "pending": 0.0, "used_tone": "muted"}
+        session = {"text": f"spent today {fmt(spent)}, no daily cap", "used": 0.0, "pending": 0.0, "used_tone": "muted"}
     return [job, session]
 
 
@@ -86,7 +86,7 @@ def classify(message: str) -> str:
     m = str(message or "")
     if "per-job cap" in m:
         return "over_job_cap"
-    if "session cap" in m or "day cap" in m:
+    if "today's cap" in m or "day cap" in m or "session cap" in m:          # the server's ruling-5 refusal: "would pass today's cap"
         return "past_cap"
     if m.startswith("the price shown was"):
         return "price_changed"
@@ -103,9 +103,9 @@ def state_row(state: str, approval: dict, message: str) -> dict:
         return {"state": state, "glyph": "LAMPWAY_GATE", "title": "Refused before sending: over the per-job cap", "detail": message,
                 "fixes": ["Raise the per-job cap in Choices", "Plan a smaller job"], "button": ""}
     if state == "past_cap":
-        return {"state": state, "glyph": "LAMPWAY_METER_OVER", "title": "Past the session cap",
-                "detail": message + " (Lampway keeps no day total yet: the cap is this server session's)",
-                "fixes": ["Raise the session cap in Choices", "Start a new session"], "button": ""}
+        return {"state": state, "glyph": "LAMPWAY_METER_OVER", "title": "Past today's cap",
+                "detail": message + " (the day total is saved and resets at local midnight)",
+                "fixes": ["Raise the day cap in Choices", "Wait for tomorrow: the total resets at local midnight"], "button": ""}
     if state == "price_changed":
         m = re.match(r"the price shown was ([0-9.]+)", message)
         new = float(m.group(1)) if m else None
@@ -123,3 +123,23 @@ def state_row(state: str, approval: dict, message: str) -> dict:
                 "detail": "Its receipt was written before the request left; it is never resubmitted", "fixes": ["Show the job"], "button": ""}
     return {"state": "unknown", "glyph": "LAMPWAY_GATE", "title": f"This spend cannot go ahead: {message or 'no reason given'}",
             "detail": message or "no reason given", "fixes": ["Not now"], "button": ""}
+
+
+RULE = {"over_job_cap": "REFUSED", "past_cap": "REFUSED", "expired": "REFUSED", "unknown": "REFUSED", "agent_tried": "AGENT",
+        "spent": "SPENT"}
+
+
+def rule(state: str) -> str:
+    """The card's left rule for a state: accent while it waits (a changed price waits too), stop refused, agent, go spent."""
+    return RULE.get(state, "WAITING")
+
+
+def drawn_rows(card: dict) -> list:
+    """[(element, text)] for the drawn card (layout.mixar_spend, interface_mixar_spend_card.cc): a price packs its kind and
+    a meter its used part, pending part and whether the used part is hot, after \\x1f."""
+    rows = [("TITLE", card["title"]), ("LINE", card["origin"]), ("PRICE", f"{card['price']}\x1f{card['kind']}"),
+            ("LINE", card["source"])]
+    for m in card["meters"]:
+        rows.append(("METER", f"{m['text']}\x1f{m['used']:.4f}\x1f{m['pending']:.4f}\x1f{1 if m['used_tone'] == 'stop' else 0}"))
+    rows.append(("LINE", card["uploads"]))
+    return rows

@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / "src/scripts/mixar/modules/lampway_tools/tool_specs.json"
 #: The feature tools the sidebar offers (their api function names); every batch tool is offered too.
 FEATURES = ("retopo", "uv_unwrap", "segment_mesh", "auto_rig", "mesh_prep", "asset_acceptance", "detail_normals",
-            "image_to_3d", "render_video", "export_piece")
+            "image_to_3d", "render_video", "export_piece", "uv_score", "bake_maps", "material_bake_export", "asset_catalog_export")
 
 
 def specs() -> list:

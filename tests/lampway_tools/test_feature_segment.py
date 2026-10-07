@@ -72,3 +72,27 @@ print("RESULT", json.dumps({"studio": call("segment_mesh", object="body", engine
     assert out["studio"]["needs_approval"] is True and out["studio"]["studio"] == "tripo"
     assert out["bad"]["ok"] is False and "magic" in out["bad"]["error"]
     assert out["no_uv"]["ok"] is False and "UV" in out["no_uv"]["error"]
+
+
+def test_a_split_into_too_many_parts_is_refused_and_small_isolated_shells_can_be_gathered(tmp_path):
+    """Audit F15: shells on DamagedHelmet made about 900 objects in 52 s and later tools slowed. A split above max_parts (default
+    200) is refused before any object is made, with the min_faces that would bring it under; small shells with no neighbour to
+    merge into are gathered into ONE remainder part instead of staying a part each."""
+    r = run(tmp_path, '''
+bm = bmesh.new()
+bmesh.ops.create_icosphere(bm, subdivisions=3, radius=0.5)                        # one big shell (320 faces)
+for i in range(30):                                                               # thirty 6-face chips, each its own shell
+    bmesh.ops.create_cube(bm, size=0.1, matrix=Matrix.Translation((2 + 0.3 * i, 0, 0)))
+me = bpy.data.meshes.new("chips"); bm.to_mesh(me); bm.free()
+link(bpy.data.objects.new("chips", me))
+too_many = call("segment_mesh", object="chips", method="shells", max_parts=10)
+made = "chips_parts" in bpy.data.collections
+gathered = call("segment_mesh", object="chips", method="shells", min_faces=7, max_parts=10)
+print("RESULT", json.dumps({"too_many": too_many, "made": made, "gathered": gathered}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[0]
+    assert d["too_many"]["ok"] is False and "31 parts" in d["too_many"]["error"] and "min_faces" in d["too_many"]["error"], d["too_many"]
+    assert d["made"] is False
+    g = d["gathered"]
+    assert g["ok"] is True and [p["faces"] for p in g["parts"]] == [320, 180], g

@@ -10,9 +10,9 @@ import pytest
 import harness
 
 CASES = {
-    "status_local": {"wire": "local", "spend": "$0.31 of $5.00"},
-    "status_open": {"wire": "2 routes open", "spend": "$0.31 of $5.00", "waiting": "1 waiting for you"},
-    "status_sending": {"wire": "Sending to OpenRouter", "spend": "$0.31 of $5.00", "waiting": "1 waiting for you"},
+    "status_local": {"wire": "local", "spend": "spent today $0.31 of $5.00"},
+    "status_open": {"wire": "2 routes open", "spend": "spent today $0.31 of $5.00", "waiting": "1 waiting for you"},
+    "status_sending": {"wire": "Sending to OpenRouter", "spend": "spent today $0.31 of $5.00", "waiting": "1 waiting for you"},
 }
 
 

@@ -85,8 +85,8 @@ void brand_chip(const rctf &pill)
   MIXAR_THEME_LOAD(value_col, CinemaRowTextOn);
   MIXAR_THEME_LOAD(label_col, CinemaLabel);
   const float wordmark_x = logo.xmax + CINEMA_BRAND_GAP * u;
-  cinema_text_left("mixar", wordmark_x, cy, CINEMA_FONT_VALUE * u, value_col);
-  const float mode_x = wordmark_x + cinema_text_width("mixar", CINEMA_FONT_VALUE * u) +
+  cinema_text_left("Lampway", wordmark_x, cy, CINEMA_FONT_VALUE * u, value_col);
+  const float mode_x = wordmark_x + cinema_text_width("Lampway", CINEMA_FONT_VALUE * u) +
                        CINEMA_BRAND_GAP * u;
   /* The stage tag follows the mode name as a small rounded label, the same
    * recipe the topbar button draws (`mixar_chrome::cinema_tag_*`). The name is

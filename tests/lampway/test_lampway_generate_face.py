@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 EGRESS_ON = {"routes": [{"id": "openrouter", "label": "OpenRouter", "enabled": True, "hosts": ["openrouter.ai"]},
                         {"id": "higgsfield", "label": "Higgsfield", "enabled": True, "hosts": ["higgsfield.ai"]}]}
 EGRESS_OFF = {"routes": [{"id": "openrouter", "label": "OpenRouter", "enabled": False, "hosts": ["openrouter.ai"]}]}
-POLICY = {"click": "above", "above": 0.25, "job_cap": 1.0, "session_cap": 3.0, "spent": 0.31}
+POLICY = {"click": "above", "above": 0.25, "job_cap": 1.0, "day_cap": 3.0, "spent": 0.31}
 
 
 def answer(amount=0.067, kind="estimate", needs_click=False, refused=None, policy=POLICY, provider="openrouter"):
@@ -53,14 +53,29 @@ def test_generate_label_carries_the_number():
     assert "over" in spend["policy"] and "$0.25" in spend["policy"]
 
 
+def test_the_results_row_says_the_last_run_billed_against_its_estimate():
+    """Section 5: the last run's line, from the server's run log; none before the first run, and none while it is silent."""
+    line = "3 images, $0.20 billed against a $0.21 estimate, rated 4"
+    assert G.face("m", dict(answer(0.21), last_run=line), EGRESS_ON)["last_run"] == line
+    assert G.face("m", dict(answer(0.21), last_run=line, last_run_short="$0.20 billed / $0.21 est."), EGRESS_ON)["last_run_short"] == "$0.20 billed / $0.21 est."
+    assert G.face("m", answer(0.21), EGRESS_ON)["last_run"] == ""
+    assert G.face("m", None, EGRESS_ON)["last_run"] == ""
+    pump = (ROOT / "src/scripts/mixar/modules/lampway_tools/ui/generate_pump.py").read_text()
+    strings = pump.split("STRINGS = ")[1].split(")")[0]
+    assert '"last_run"' in strings and '"last_run_short"' in strings, "the pump writes both to wm.lampway_gen_*"
+    native = (ROOT / "src/source/blender/editors/space_agent_bubble/agent_ui_tabmedia_estimate.cc").read_text()
+    assert '"lampway_gen_last_run"' in native and '"lampway_gen_last_run_short"' in native and "face.last_run_short" in native, \
+        "the column draws the line, or its short form when the line does not fit"
+
+
 def test_meters_say_the_job_against_its_cap_and_the_session_against_its_ceiling():
     face = G.face("m", answer(0.067), EGRESS_ON)
     assert face["cap_job"] == "≈ $0.07 of cap $1.00 per job" and face["cap_job_fill"] == pytest.approx(0.067)
     assert face["cap_job_level"] == "ok"
-    assert face["cap_session"] == "session: $0.31 + 0.07 of $3.00" and face["cap_session_fill"] == pytest.approx((0.31 + 0.067) / 3.0)
+    assert face["cap_session"] == "spent today $0.31 + 0.07 of $3.00" and face["cap_session_fill"] == pytest.approx((0.31 + 0.067) / 3.0)
     assert G.face("m", answer(0.85), EGRESS_ON)["cap_job_level"] == "warn"
     assert G.face("m", answer(1.2, refused="openrouter: 1.2 is over the per-job cap of 1"), EGRESS_ON)["cap_job_level"] == "over"
-    assert G.face("m", answer(0.1, policy=dict(POLICY, job_cap=None, session_cap=None)), EGRESS_ON)["cap_job"] == "no per-job cap"
+    assert G.face("m", answer(0.1, policy=dict(POLICY, job_cap=None, day_cap=None)), EGRESS_ON)["cap_job"] == "no per-job cap"
 
 
 def test_route_and_content_say_where_it_goes_and_what_goes():
@@ -213,3 +228,15 @@ def test_the_prompts_panel_leads_with_the_list_and_previews_whole(monkeypatch):
     lines = []
     panels.LAMPWAY_PT_prompt_preview.draw(SimpleNamespace(layout=L(lines)), SimpleNamespace(scene=SimpleNamespace(lampway_tools=p)))
     assert " ".join(e[1] for e in lines if e[0] == "label").split() == preview.split()
+
+
+def test_spend_opens_the_spend_card_for_the_approval_it_caused():
+    """Contract 08: Spend opens contract 13's card. The tab cannot know the approval id before the server makes it: Spend notes
+    the approvals already waiting, and the first new spend approval after it is the one whose card opens, once."""
+    before = [{"id": "old", "state": "pending", "settings": {"unit": "usd"}}]
+    G.await_card(before)
+    assert G.next_card(before) is None
+    later = before + [{"id": "q", "state": "pending", "settings": {"unit": "answer"}},
+                      {"id": "new", "state": "pending", "settings": {"unit": "usd"}, "price": 0.4, "label": "Video"}]
+    assert G.next_card(later)["id"] == "new"
+    assert G.next_card(later) is None, "once"

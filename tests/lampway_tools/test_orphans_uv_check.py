@@ -161,3 +161,19 @@ print("RESULT", json.dumps({"nouv": call("uv_check", object="n", action="measure
 ''')
     assert res["nouv"]["ok"] is False and "lampway_uv_unwrap" in res["nouv"]["error"], res
     assert res["bad"]["ok"] is False and "measure" in res["bad"]["error"], res
+
+
+def test_measure_pages_its_islands_with_the_totals(tmp_path):
+    """Audit F8: uv_check answered 160 KB. measure lists a page of islands (limit, default 50, from offset) with island_count,
+    next_offset, the tiles used and the density over EVERY island; full=true lists them all."""
+    res = _go(tmp_path, '''
+quads("many", [(0.01 * i, 0.0, 0.01 * i + 0.005, 0.005) for i in range(60)])
+canon("many")
+page = call("uv_check", object="many", action="measure")
+rest = call("uv_check", object="many", action="measure", offset=50)
+full = call("uv_check", object="many", action="measure", full=True)
+print("RESULT", json.dumps({"n": len(page["islands"]), "count": page["island_count"], "next": page.get("next_offset"), "tiles": page["udim"]["tiles"],
+                            "rest": len(rest["islands"]), "rest_next": rest.get("next_offset"), "full": len(full["islands"])}))
+''')
+    assert res["n"] == 50 and res["count"] == 60 and res["next"] == 50 and res["tiles"] == [1001], res
+    assert res["rest"] == 10 and res["rest_next"] is None and res["full"] == 60

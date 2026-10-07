@@ -19,9 +19,18 @@ def test_tools_list_marks_spend_and_never_offers_a_confirm(signed):
     assert all("confirm" in t["_meta"]["spend_policy"] for t in tools)
 
 
+class LeasingSocket:
+    """The desktop's lease answers (audit F2: every MCP scene call runs inside mcp.begin_operation / mcp.end_operation)."""
+
+    async def request(self, method, params, timeout=None):
+        if method == "mcp.begin_operation":
+            return {"success": True, "operation_id": params["operation_id"], "session_id": params["session_id"], "scene_name": "Scene"}
+        return {"success": True, "released": True}
+
+
 class FakeHub:
     def __init__(self):
-        self.sockets = {"i1": object()}
+        self.sockets = {"i1": LeasingSocket()}
 
 
 class FakeAgent:

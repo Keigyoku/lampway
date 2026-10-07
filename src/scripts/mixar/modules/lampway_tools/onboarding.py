@@ -2,8 +2,9 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The first run's steps (facelift contract 02, P1): language and keys, where the agent thinks, what may leave this machine, what may your agent do
-(E2, only when the server has Capabilities), spending caps. No bpy, and the walk's logic (``read``, ``next``, ``finish``) imports nothing beyond the
+"""The first run's steps (facelift contract 02, P1): language and keys, what may leave this machine, where the agent thinks, what may your agent do
+(E2, only when the server has Capabilities), spending caps. The routes come before the provider (the audit's F3, the captain's ruling): a plan
+provider needs its route, so it is switched first. No bpy, and the walk's logic (``read``, ``next``, ``finish``) imports nothing beyond the
 standard library: the popup (``ui/onboarding.py``) draws a ``Walk`` and ``server/tests/test_onboarding_walk.py`` loads this file by its path and drives
 one. The words of the capabilities step (``capability_warning``, ``capability_note``) come from ``capabilities_face``, imported where they are used.
 
@@ -11,12 +12,13 @@ Every route starts as the server has it (off on a fresh install) and changes onl
 capability: the walk shows the server's defaults ticked and writes only what the user changed. Nothing leaves the machine during the walk:
 ``finish`` writes the choices to Lampway's own server, and only then."""
 
-STEPS = ("Language and keys", "Where the agent thinks", "What may leave this machine", "Spending caps")
+STEPS = ("Language and keys", "What may leave this machine", "Where the agent thinks", "Spending caps")
 STEP_CAPABILITIES = "What may your agent do?"
-KINDS = ("language", "agent", "routes", "spending")
+KINDS = ("language", "routes", "agent", "spending")
+ROUTES_STEP, PROVIDER_STEP = 2, 3        # fixed: the capabilities step, when there is one, comes after both
 OFFLINE = "Lampway's server is not running: Start it"
-# BUILD_ORDER.md cloud D1 for OpenRouter (dollars). The server keeps a session ledger, not a day one: the D1 "$5 per day" is the session cap.
-DEFAULT_CAPS = {"job_cap": 1.0, "session_cap": 5.0, "above": 0.25}
+# The captain's ruling 5 (2026-10-07): a saved per-day total, $1 per job, $5 per local day, a click above $0.25 (OpenRouter, dollars).
+DEFAULT_CAPS = {"job_cap": 1.0, "day_cap": 5.0, "above": 0.25}
 # The route a main provider needs to think; a provider with none runs on this machine. Labels are the egress route's own.
 # Claude Code and Codex are not here: they run as the user's own agent, not as Lampway's model (agent-modes spec R0).
 PROVIDER_ROUTE = {"anthropic": "claude_plan", "openai": "chatgpt_plan", "chatgpt_plan": "chatgpt_plan", "openrouter": "openrouter"}
@@ -63,7 +65,7 @@ class Walk:
 
     @property
     def kinds(self) -> tuple:
-        """What each step is, in order: the steps of THIS walk (the capabilities step follows the routes when there is one)."""
+        """What each step is, in order: the steps of THIS walk (the capabilities step follows the provider when there is one)."""
         return KINDS[:3] + ("capabilities",) + KINDS[3:] if self.capability_rows is not None else KINDS
 
     @property
@@ -102,7 +104,7 @@ class Walk:
         return face.warning(row) if self.capability_chosen.get(cid) and face.needs_confirm(row) else ""
 
     def capability_note(self, cid: str) -> str:
-        """Under a ticked capability: the route it needs and where it is switched ('' when none is off). A route chosen in step 3 counts at once."""
+        """Under a ticked capability: the route it needs and where it is switched ('' when none is off). A route chosen in step 2 counts at once."""
         if not self.capability_chosen.get(cid):
             return ""
         from . import capabilities_face as face
@@ -113,20 +115,20 @@ class Walk:
         named = [face.route_word(r) for r in (unoffered or off)]
         many = len(named) > 1
         needs = f"Needs the {', '.join(named)} route{'s' if many else ''}"
-        if unoffered:   # step 3 lists the server's routes: one it does not list cannot be switched on from here
+        if unoffered:   # step 2 lists the server's routes: one it does not list cannot be switched on from here
             return f"{needs}, which this setup does not offer yet"
-        return f"{needs}, which {'are' if many else 'is'} off: switch {'them' if many else 'it'} on in step 3"
+        return f"{needs}, which {'are' if many else 'is'} off: switch {'them' if many else 'it'} on in step 2"
 
     def refusal(self):
-        """Step 2's refusal: a provider whose route is off cannot think."""
+        """The provider step's refusal: a provider whose route is off cannot think."""
         route = PROVIDER_ROUTE.get(self.provider)
         if not self.online or route is None or self.chosen.get(route):
             return None
-        return f"{ROUTE_LABEL[route]} needs the {ROUTE_HOST[route]} route: switch it on in step 3, or pick a local provider"
+        return f"{ROUTE_LABEL[route]} needs the {ROUTE_HOST[route]} route: go Back and switch it on, or pick a local provider"
 
     def next(self):
         """Advance one step; a refusal leaves the step where it is and is returned."""
-        if self.step == 2 and (why := self.refusal()):
+        if self.step == PROVIDER_STEP and (why := self.refusal()):
             return why
         self.step = min(self.step + 1, len(self.steps))
         return None

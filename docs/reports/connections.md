@@ -114,8 +114,68 @@ migration's list is open.
   second tool, the CLI check given the unscrubbed environment, PUT echoing its body, receipts without redaction, the video declaration
   removed, the template-first render restored.
 
+## The 2026-10-07 rulings (3, 4, 5, 10; 8 approved)
+
+Recorded in `specs/BUILD_ORDER.md`'s last section ("These recs are fine, make them stick"). Each was RED first; commits `c7fe3c3`,
+`37680e4`, `96a3d87`, the merge of `origin/lp/wave5` at `b3e863a` (`4cbe223`), and this report with the `test_spend_view` update.
+
+| ruling | what the server does now | tests | RED seen |
+|---|---|---|---|
+| 3 | The egress private rule refuses by default. It lets private content through only when the call declares an option (`Resolution.egress_context()` now carries `option`) and the user holds a CH1 acknowledgement for that option, on that option's own route. The send row records `acknowledged: {option, at}`. Revoking refuses again. A call that asks for observe-only (CH1 first release: image, video, Studio, dictation) is still recorded and sent. | `test_egress_private_acknowledged.py` (6 rows) | the grant was not consulted (refused); `egress_context` had no `option` |
+| 4 | Private content to a `:free` model is refused, whether the model comes from the declared option, a declared `model`, or the OpenRouter JSON body. There is no exception for an acknowledgement, a per-asset override or observe-only. Public and synthetic content may go to a `:free` model. The resolver skips a `:free` option for a private job on the same terms, with `enforce_private` on or off, so a resolution never picks what the gate refuses. | the same file (6 rows) | not refused (the OpenRouter route is `conditional`, so ZDR constraints passed it); the resolver picked `:free` |
+| 5 | `SpendPolicy` keeps today's total in `<state>/spend/day.json`. Writes are atomic: tmp + fsync + replace, mode 0600. The total is read again after a restart and resets when the local date changes. The defaults are $1 per job, $5 per day and a click above $0.25. Prefs override them key by key, and `null` removes a cap. `/app/spend` returns `scope: day` and, per provider, `spent_today`, `day_cap` and `text` "spent today $0.30 of $5.00". | `test_spend_day_total.py` (8 rows) | no `path` or clock (TypeError), old defaults, `session_cap` kept, scope `session` |
+| 10 | A dead herdr server, found at reconcile or by the lifespan pass at start, is reported as `not_running` with Start offered. Nothing starts it: `Cockpit.ensure_server` is the only caller of `launcher.start_server`, and the start route is its only caller. The route now refuses `x-lampway-origin: agent` with 403. No agent tool has a start action. | `test_herdr_never_autostarts.py` (3 rows) | the agent-declared start was answered 200 |
+| 8 | **Approved, no change**: agents read Connections status only (`lampway_connections` is read-only; every write is the user's route). | n/a | n/a |
+
+Tests that passed on their first run (the behaviour already held) were mutation-checked. Each mutant was killed, and every revert left an
+empty diff:
+- adding `start_server` to reconcile's dead branch failed 2 tests;
+- dropping the route match in `_acknowledged` failed the own-route row;
+- applying the `:free` refusal to every content class failed the non-private and body rows;
+- an in-memory day failed the 4 persistence rows.
+
+One RED of mine was wrong arithmetic in the test (3.6 + 1.0 is under $5), and the test was fixed. The code was not wrong.
+
+**Judgements to check:**
+- **Ruling 5's defaults apply to OpenRouter only.** It is the provider that spends dollars. Higgsfield, the Studios and Hyper3D spend
+  credits and keep click-always with no cap: a $1 cap read as 1 credit would refuse every Studio job.
+- **`session_cap` is now `day_cap`.** A saved or PUT `session_cap` (the onboarding walk still sends one) is read as `day_cap`.
+  `/app/spend` and the estimate's policy block also repeat `session_cap` = `day_cap`. Without that, the client gauges (`spend_face.py`,
+  `generate_face.py`, `statusbar_state.py` and `ui/choices.py` read `session_cap`) would show "no cap" where there is one. They still
+  label it "session", so **follow-up for the client lane**: read `day_cap` / `text`, then drop the alias.
+- **An unreadable day file refuses a spend**, naming the path. It does not count from zero. This goes beyond the ruling's text, and the
+  reason is that a cap which resets when its file is damaged is not a cap.
+- **Ruling 4 beats the per-asset override.** "Private content is never sent to `:free`" was read literally.
+- **Updated for the superseded contract** (named in `96a3d87`): `test_spend_policy` (defaults, session cap → day cap),
+  `test_generate_estimate` (the policy block), `test_onboarding_walk` (`day_cap`), `test_provider_prefs` (the default). `docs/spend.md`
+  now describes the day cap.
+
 ## Test totals
 
+- **Rulings round** (after merging `origin/lp/wave5` at `b3e863a`):
+  - Then `origin/lp/wave5` moved to `584f47a` and was merged again (`f1a4578`; it touched `app.py`, the WezTerm add-on and the cards). The edits
+    of this round survived it, and 114 scoped tests (the four new files, spend, onboarding, prefs, terminal add-on, tool schema, cards,
+    workbench, brand pages) passed on the merged tree. Rail, `gen_tools --check` and the gate were run again: clean.
+  - **Server suite: 1769 passed, 16 skipped, 1 failed.** The failure was `test_spend_view`, which still asserted the superseded "scope
+    session" contract. It was updated, and the 233 tests of the areas this round touched (spend, estimate, onboarding, provider prefs,
+    herdr, workbench, egress, choices) then passed, with 2 skipped.
+  - Rail `PASS`; `docs/gen_tools.py --check` current; pre-publish gate 0 findings (`--git origin/lp/connections..HEAD --tree server`).
+- **Client suite: not the reference gate.** `test_all.sh` now refuses outside the reference environment (exit 6; the check arrived with
+  the merge). This worktree has three gaps:
+  - no `upstream/`;
+  - no `LAMPWAY_SHELF_DIR` (not given to this lane, and not guessed);
+  - `test_env.sh` would install packages into the tools venv other lanes share (not run).
+
+  So the client suite ran outside `test_all`, with the lane's `LAMPWAY_BIN`, judged against the baseline with `test_all`'s own
+  `parse`/`judge`: 9068 passed, 114 failed, 45 errors, 100 skipped, 17 environment-skipped. 37 ids are outside the baseline, and none
+  is from this lane:
+  - 5 are the live theme, icons and vault-editor tests (the lane's binary predates the facelift lane's latest, as before);
+  - 32 are canon's `test_wave2_*` shelf tests. They are an isolation leak, measured: `tests/lampway/test_test_all.py:194` calls
+    `test_all.main()` in-process, `main` writes `os.environ["LAMPWAY_TEST_ALL"] = "1"`, and nothing restores it. Every shelf test
+    collected after it turns its skip into a failure. Alone, `test_wave2_defect_scan.py` gives 6 skipped; after `test_test_all.py` it
+    gives 1 error. Inside the real `test_all` the flag is already 1, so the gate cannot see this.
+
+    **Fix for its owner**: `monkeypatch.setenv("LAMPWAY_TEST_ALL", "0")` before the call, so the fixture restores it.
 - Final, `scripts/lampway/test_all.sh` at `4a044c5` (after merging `origin/lp/wave5` at `704eba5`; `LAMPWAY_BIN` = the lane's binary): server
   **1591 passed, 10 skipped**; client 8573 passed, 120 failed, 85 skipped, 15 errors; 122 of the 138 baseline entries seen and 16 now passing
   (the `tests/mcp` modules collect in this venv now). 13 ids outside the baseline, none from this lane:

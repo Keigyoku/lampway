@@ -9,7 +9,10 @@
 * Parts that share a seam and one bone form a rigid group; two rigid parts of one shell on different bones OPEN the seam (``seam_opens``), and ``apply`` refuses unless the user accepts a gap.
 * Every part needs a material role from the user or the recipe, never from a render's colour.
 Stages: plan -> weights (a copy ``<piece>_fit``; the source is untouched) -> return (the rest residual against the original shell) -> apply (the seam gate) -> report.
-The body's weights here come from a body OBJECT in the scene (an approximation: the native sidecar sampler is not built); the plan, the laws and the gates are the real thing."""
+The body's weights come from the body PACKAGE's native sidecar (``body``: canon 03 F.6, 07 INV-07.3) - the engine's weights, all
+influences, skinned to the armature's current pose (the fit pose) and sampled region- and normal-constrained; a scene body OBJECT
+(``body_object``) is still accepted and labelled what it is, an approximation. A cloth/leather vertex within PLATE_FADE_M of a
+rigid part takes that part's bone by canon 07 B.5 (rigid_blend, strict): at a seam (the weld tolerance) the bone alone."""
 
 import difflib
 import hashlib
@@ -143,6 +146,7 @@ def plan(piece, armature, roles, bind_overrides, out_dir, root):
 
 
 MATCH_MAX_DISTANCE = 0.5                # m: the reach of a part's match on its own body region (receipt states it)
+PLATE_FADE_M = 0.005                    # canon 07 B.5 / G plate_fade_m: a rigid part's rigidity fades over this from its surface
 MATCH_MAX_ANGLE = 30.0                  # deg, with the flip for single-sided shells (canon 07 B.2)
 
 
@@ -161,6 +165,73 @@ def _body_regions(body, arm, names):
     dom = Wb[T].sum(axis=1).argmax(axis=1)
     has = Wb[T].sum(axis=(1, 2)) > 0
     return Wb, V, T, np.where(has, dom, -1)
+
+
+def _sidecar_regions(package, arm, names, root):
+    """The NATIVE body as triangles with their weights over ``names``: the package's sidecar skinned to the armature's current
+    pose with every influence (canon 05 B: never the GLB's 4), plus the package's sha256 - same shape as _body_regions."""
+    from . import fit_body as _FBODY
+    from . import native_sidecar as NS
+    pkg = Path(package) if Path(package).is_absolute() else Path(root) / package
+    rec = _FBODY.need_weights(str(pkg))
+    try:
+        nb = NS.read(str(pkg / "sidecar.json"))
+        maps = _bone_maps(arm, names)
+        V, _N = NS.skin(nb, {n: maps[i] for i, n in enumerate(names)})
+    except NS.SidecarError as e:
+        raise C.FeatureError(f"the body package's sidecar: {e}")
+    ix = {b: i for i, b in enumerate(names)}
+    Wb = np.zeros((len(V), len(names)))
+    for j, b in enumerate(nb.names):
+        if b in ix:
+            Wb[:, ix[b]] = nb.W[:, j]
+    T = nb.T
+    dom = Wb[T].sum(axis=1).argmax(axis=1)
+    has = Wb[T].sum(axis=(1, 2)) > 0
+    return Wb, V, T, np.where(has, dom, -1), rec["package_sha256"]
+
+
+def _rigid_fade(ob, parts, plan_parts, W, names):
+    """canon 07 B.5: every non-rigid vertex within PLATE_FADE_M of a rigid part's surface blends toward that part's bone
+    (canon_geom.rigid_blend, strict); a distance within the weld tolerance is the seam itself (distance 0: the bone alone).
+    Returns the number of rows changed; two different rigid bones anchoring one vertex are refused by vertex."""
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    by_bone = {}
+    for p, r in plan_parts.items():
+        if r["mode"] == "rigid":
+            by_bone.setdefault(r["bones"][0], set()).update(int(i) for i in parts[p])
+    soft = sorted({int(i) for p, r in plan_parts.items() if r["mode"] != "rigid" for i in parts[p]} - set().union(*by_bone.values())) if by_bone else []
+    if not soft:
+        return 0
+    mw = ob.matrix_world
+    P = [tuple(mw @ v.co) for v in ob.data.vertices]
+    ob.data.calc_loop_triangles()
+    trees = {}
+    for bone, vs in by_bone.items():
+        tris = [tuple(t.vertices) for t in ob.data.loop_triangles if all(v in vs for v in t.vertices)]
+        if tris:
+            trees[bone] = BVHTree.FromPolygons(P, tris)
+    ix = {b: i for i, b in enumerate(names)}
+    changed = 0
+    for i in soft:
+        near = {}
+        for bone, tree in trees.items():
+            hit = tree.find_nearest(Vector(P[i]), PLATE_FADE_M)
+            if hit[0] is not None:
+                near[bone] = 0.0 if hit[3] <= G.WELD_M else float(hit[3])
+        if not near:
+            continue
+        field = {names[j]: float(W[i, j]) for j in np.flatnonzero(W[i] > WT.EPS)}
+        try:
+            w = G.rigid_blend(field, near, PLATE_FADE_M)
+        except ValueError as e:
+            raise C.FeatureError(f"vertex {i} of {ob.name}: {e} - two rigid parts on different bones meet here; rebind one of them")
+        W[i] = 0
+        for b, x in w.items():
+            W[i, ix[b]] = x
+        changed += 1
+    return changed
 
 
 def _allowed_ancestor(bone, allowed, parents):
@@ -233,15 +304,18 @@ def _restrict_part(ob, idx, plan, part, parents, names, Wb, V, T, tri_bone):
     return out / s[:, None]
 
 
-def weights(piece, armature, out_dir, body_object, root):
+def weights(piece, armature, out_dir, body_object, root, body=""):
     state = _load(root, out_dir)
     if "plan" not in state:
         raise C.FeatureError("run stage plan first: the weights follow the plan")
     pl = state["plan"]
     ob = C.need_object(piece)
     arm = C.need_object(armature, "ARMATURE")
-    if not body_object:
-        raise C.FeatureError("name body_object (a skinned body in the scene): the native sidecar sampler is not built, so the body's weights come from an object (an approximation)")
+    if body and body_object:
+        raise C.FeatureError("give body (the fit_body package: its native sidecar) or body_object (a scene body, an approximation), not both")
+    if not body and not body_object:
+        raise C.FeatureError("name body: the fit_body package whose native sidecar holds the engine's weights (canon 07 INV-07.3); "
+                             "a scene body_object is accepted as an approximation")
     parts = _parts(ob)
     bones = {b.name for b in arm.data.bones}
     n = len(ob.data.vertices)
@@ -249,12 +323,22 @@ def weights(piece, armature, out_dir, body_object, root):
     W = np.zeros((n, len(names)))
     ix = {b: i for i, b in enumerate(names)}
     restrict = [p for p, r in pl["parts"].items() if r["mode"] != "rigid"]
+    source, pkg_sha = f"{body_object} (a scene body: an approximation, not the native sidecar)", None
+    if body and not restrict:
+        from . import fit_body as _FBODY
+        pkg_sha = _FBODY.need_weights(str(Path(body) if Path(body).is_absolute() else Path(root) / body))["package_sha256"]
+        source = f"none sampled: every part is rigid (one bone each); the package {body} carries its native sidecar (package {pkg_sha[:12]})"
+    faded = 0
     if restrict:
-        body = C.need_object(body_object)
-        tri_W, tri_V, tri_T, tri_bone = _body_regions(body, arm, names)
+        if body:
+            tri_W, tri_V, tri_T, tri_bone, pkg_sha = _sidecar_regions(body, arm, names, root)
+            source = f"the native sidecar of {body} (package {pkg_sha[:12]})"
+        else:
+            tri_W, tri_V, tri_T, tri_bone = _body_regions(C.need_object(body_object), arm, names)
         parents = {b.name: (b.parent.name if b.parent else None) for b in arm.data.bones}
         for p in restrict:
             W[parts[p]] = _restrict_part(ob, parts[p], pl["parts"][p], p, parents, names, tri_W, tri_V, tri_T, tri_bone)
+        faded = _rigid_fade(ob, parts, pl["parts"], W, names)
     for p, r in pl["parts"].items():
         if r["mode"] == "rigid":
             idx = parts[p]
@@ -269,9 +353,11 @@ def weights(piece, armature, out_dir, body_object, root):
     WT._write(fit, [names[i] for i in keep], W[:, keep])
     mod = fit.modifiers.new("Armature", "ARMATURE")
     mod.object = arm
-    state["weights"] = {"object": fit.name, "body_object": body_object, "pose": _pose_record(arm)}
+    state["weights"] = {"object": fit.name, "body_object": body_object or None, "body": body or None, "body_package_sha256": pkg_sha,
+                        "pose": _pose_record(arm)}
     _save(root, out_dir, state)
-    return {"ok": True, "object": fit.name, "weights_source": f"{body_object} (a scene body: an approximation, not the native sidecar)", "groups": len(keep)}
+    return {"ok": True, "object": fit.name, "weights_source": source, "groups": len(keep), "rigid_fade_m": PLATE_FADE_M, "faded_vertices": faded,
+            "body_package_sha256": pkg_sha}
 
 
 def _pose_record(arm):

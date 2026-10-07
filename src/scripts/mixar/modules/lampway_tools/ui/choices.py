@@ -309,9 +309,9 @@ def _spending(layout):
     for row in (statusbar_state.STATE.get("spend") or {}).get("providers") or []:
         unit = "$" if row.get("unit") == "USD" else ""
         caps = ", ".join(x for x in (f"job cap {unit}{row['job_cap']:g}" if row.get("job_cap") is not None else "",
-                                    f"session cap {unit}{row['session_cap']:g}" if row.get("session_cap") is not None else "") if x) or "no caps"
+                                    f"day cap {unit}{row['day_cap']:g}" if row.get("day_cap") is not None else "") if x) or "no caps"
         ask = {"off": "never asks", "always": "asks before every job", "above": f"asks above {unit}{(row.get('above') or 0):g}"}.get(row.get("click"), row.get("click") or "")
-        layout.label(text=f"{row['provider']}: {ask}; {caps}; spent {unit}{float(row.get('spent') or 0):g} this session")
+        layout.label(text=f"{row['provider']}: {ask}; {caps}; spent today {unit}{float(row.get('spent') or 0):g}")
     layout.operator("lampway.providers_dialog", text="Change spending", icon="PREFERENCES")
 
 

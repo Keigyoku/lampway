@@ -13,4 +13,4 @@ SETTLE_TICKS = 12
 
 
 def setup(bpy):
-    _s["open_card"](bpy, "past_cap", "higgsfield: 18 would pass the session cap of 40 (31.5 already spent; Providers dialog)")
+    _s["open_card"](bpy, "past_cap", "higgsfield: 18 would pass today's cap of 40 (31.5 already spent today, local day; Providers dialog)")

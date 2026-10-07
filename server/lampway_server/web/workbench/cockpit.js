@@ -99,6 +99,23 @@ document.getElementById("input").addEventListener("submit", ev => {
     .then(() => { box.value = ""; refused.hidden = true; poll(); })
     .catch(e => { refused.textContent = String(e.message || e); refused.hidden = false; });
 });
-refresh(); cards();
+async function terminal() {
+  // Contract 16's window is this cockpit's terminal; this page's pane stays the zero-install fallback.
+  const box = document.getElementById("terminal");
+  box.replaceChildren();
+  try {
+    const t = await api("/app/terminal");
+    if (t.installed) {
+      const open = el("button", "", t.window === "re-adopted" ? "The Lampway terminal is open" : "Open in the Lampway terminal");
+      open.disabled = t.window === "re-adopted";
+      open.onclick = () => api("/app/terminal/open", { method: "POST", body: JSON.stringify({}) }).then(terminal);
+      box.append(open);
+    } else {
+      box.append(el("span", "", "The Lampway terminal is not installed: Get it in Blender's Sessions panel"));
+    }
+  } catch (e) { box.append(el("span", "", String(e.message || e))); }
+}
+
+refresh(); cards(); terminal();
 setInterval(refresh, 5000);
 setInterval(poll, 1000);

@@ -20,7 +20,7 @@ A spend that waits for you shows as a card in the **Studios (online)** panel of 
 
 ### The click policy per provider
 
-The **Providers** dialog sets a spend policy per provider (`server/lampway_server/spendpolicy.py`): `click` is `off`, `above` or `always`; `above` is the price over which a click is needed; `job_cap` and `session_cap` are limits in the provider's own unit (dollars for OpenRouter, credits for Higgsfield, the Studios and Hyper3D).
+The **Providers** dialog sets a spend policy per provider (`server/lampway_server/spendpolicy.py`): `click` is `off`, `above` or `always`; `above` is the price over which a click is needed; `job_cap` and `day_cap` are limits in the provider's own unit (dollars for OpenRouter, credits for Higgsfield, the Studios and Hyper3D). The day cap counts a saved total for the local day (`<state>/spend/day.json`, written atomically, kept across restarts, reset at local midnight); an unreadable total refuses a spend rather than starting again from zero. Prefs override the defaults key by key, and `null` removes a cap. A saved `session_cap` is read as `day_cap`. The status bar's `/app/spend` says "spent today $x of $y".
 
 | Provider | Default click | Unit |
 |---|---|---|
@@ -38,7 +38,7 @@ The policy decides **whether** a job waits for you; it never lets anyone else cl
 | OpenRouter session budget | $3 (`LAMPWAY_OPENROUTER_BUDGET_USD`, launcher `--budget`) | main agent, swarm and image backend share one ledger | before the call is sent; past the ceiling every OpenRouter call is refused |
 | OpenRouter `max_tokens` | 4096 per request | each request | always sent |
 | Video job cap | $2 (`video_max_job_usd`) | one video job | before submit, with the ledger's remaining budget |
-| Per-provider job and session caps | unset | the provider's own unit | `SpendPolicy.check` before a spend; refusals name the cap |
+| Per-provider job and day caps | OpenRouter $1 per job and $5 per local day; the credit providers unset | the provider's own unit | `SpendPolicy.check` before a spend; refusals name the cap |
 | Compute job cap | $1 | one compute job's worst case | planning, then the runner |
 | Compute day cap | $5, per local day | all compute jobs | planning, then the runner |
 | Compute click | above $0.25 | a compute job's worst case | submit refuses without `--yes-price` |

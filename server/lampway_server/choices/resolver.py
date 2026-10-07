@@ -79,7 +79,7 @@ class Resolution:
 
     def egress_context(self) -> dict:
         """What the consumer passes to ``egress.context`` so the transport and the choice agree (CHOICES.md 4.1)."""
-        ctx = {"content_class": self.content_class}
+        ctx = {"content_class": self.content_class, "option": self.option}         # the option the egress gate matches an acknowledgement to (ruling 3)
         if self.provider == "openrouter" and self.content_class == "private":
             ctx["constraints"] = {"zdr": True, "data_collection": "deny"}
         return ctx
@@ -132,6 +132,8 @@ def _check(purpose, oid, job, world, doc) -> Optional[tuple]:
     if bound is not None and int(job.needs.get("refs") or 0) > bound:
         return "capability", f"{oid} cannot take {job.needs['refs']} references (at most {bound})"
     # 3 privacy
+    if _content_class(purpose, job) == "private" and (REG.model_of(oid) or "").endswith(":free"):       # ruling 4: never, observe-only included
+        return "privacy", f"private content: {oid} is a :free model, which takes non-private inputs only"
     if _content_class(purpose, job) == "private" and world.enforce_private and not _private_ok(oid, world, doc):
         return "privacy", f"private content: {oid} keeps what it receives ({_retention(oid, world)}): pick a local or ZDR option"
     # 4 connection

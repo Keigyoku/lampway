@@ -34,20 +34,30 @@ def test_continue_names_the_count(n, label):
     assert ob.continue_label(n) == label
 
 
-def test_step_two_refuses_a_provider_whose_route_is_off():
+def test_the_routes_come_before_the_provider():
+    """The audit's F3, ruled by the captain (keep the four steps, fix the order): a plan provider needs its route, so the
+    route switches come first and a fresh install on a plan can always advance."""
+    assert ob.STEPS == ("Language and keys", "What may leave this machine", "Where the agent thinks", "Spending caps")
     w = walk("chatgpt_plan")
-    assert w.next() is None and w.step == 2
-    assert w.next() == "ChatGPT plan needs the chatgpt.com route: switch it on in step 3, or pick a local provider"
-    assert w.step == 2, "the step stays"
+    assert w.next() is None and w.step == 2                       # routes
     w.click_route("chatgpt_plan", True)
-    assert w.next() is None and w.step == 3
+    assert w.next() is None and w.step == 3                       # provider: its route is on
+    assert w.next() is None and w.step == 4
+
+
+def test_the_provider_step_refuses_a_provider_whose_route_is_off():
+    w = walk("chatgpt_plan")
+    w.step = 3
+    assert w.next() == "ChatGPT plan needs the chatgpt.com route: go Back and switch it on, or pick a local provider"
+    assert w.step == 3, "the step stays"
+    w.back()
+    assert w.step == 2, "Back reaches the routes"
     keyed = walk("anthropic")
-    keyed.step = 2
-    assert keyed.next() == "Claude plan needs the api.anthropic.com route: switch it on in step 3, or pick a local provider"
-    for name in ("mock",):
-        free = walk(name)
-        free.step = 2
-        assert free.next() is None
+    keyed.step = 3
+    assert keyed.next() == "Claude plan needs the api.anthropic.com route: go Back and switch it on, or pick a local provider"
+    free = walk("mock")
+    free.step = 3
+    assert free.next() is None
 
 
 def test_offline_continue_saves_only_language_and_keys():
@@ -130,3 +140,13 @@ def test_offline_steps_name_the_stopped_server(ui):
     layout = Recorder()
     ui.draw_step(layout, w, [])
     assert ("label", "Lampway's server is not running: Start it", "ERROR") in layout.log
+
+
+def test_the_caps_step_saves_ruling_5s_day_cap_and_its_defaults():
+    """Ruling 5 (2026-10-07): the cap is a saved per-day total, $1 per job, $5 per day, a click above $0.25. The walk said
+    session_cap and its popup "Per session"; the server read it as day_cap, but the words were wrong."""
+    w = walk()
+    assert w.caps == {"job_cap": 1.0, "day_cap": 5.0, "above": 0.25}
+    from pathlib import Path
+    popup = (Path(ob.__file__).parent / "ui" / "onboarding.py").read_text(encoding="utf-8")
+    assert "session_cap" not in popup and "Per session" not in popup and '"Per day"' in popup

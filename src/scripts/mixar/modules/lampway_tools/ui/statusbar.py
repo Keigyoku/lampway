@@ -66,10 +66,31 @@ def refresh():
         S.update(egress=client.egress(), spend=client.spend(), studio=client.studio(),
                  provider=((client.provider_settings() or {}).get("values") or {}).get("provider") or "")
     except studio_client.StudioError as exc:
-        S.fail(str(exc))
+        S.fail(str(exc), signed_out=isinstance(exc, studio_client.SignedOut))
     sync_animation()
     _sync_route_line()
+    _open_awaited_card()
     _redraw_statusbar()
+
+
+def _open_awaited_card():
+    """A Spend pressed in the island's Image / Video tab opens the spend card of the approval it caused (contracts 08 and 13)."""
+    from mixar.modules.lampway_tools import generate_face
+    ap = generate_face.next_card((S.STATE.get("studio") or {}).get("approvals"))
+    if ap is None or bpy.app.background:
+        return
+    unit = (ap.get("settings") or {}).get("unit") or "credits"
+    wm = bpy.context.window_manager
+    win = next((w for w in wm.windows if w.parent is None), None)
+    if win is None:
+        return
+    area = max(win.screen.areas, key=lambda a: a.width * a.height)
+    try:
+        with bpy.context.temp_override(window=win, area=area):   # a timer has no window of its own: the card opens on the main one
+            bpy.ops.lampway.studio_confirm('INVOKE_DEFAULT', approval_id=ap["id"], price=float(ap.get("price") or 0.0),
+                                           label=ap.get("label") or "", unit=unit)
+    except RuntimeError:
+        pass
 
 
 def _sync_route_line():
@@ -90,7 +111,7 @@ def draw(self, context):
     layout = self.layout
     row = layout.row(align=True)
     if not S.STATE["ok"]:
-        row.label(text="spend unknown: server not running", icon='LAMPWAY_COIN')
+        row.label(text=S.down_line(), icon='LAMPWAY_COIN')
         row.label(text="egress unknown", icon='LAMPWAY_WIRE')
         _plug(row)
         return   # the version is the status bar's own (Blender draws it at the far right)

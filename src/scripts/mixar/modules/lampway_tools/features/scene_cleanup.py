@@ -222,7 +222,19 @@ def _apply(ob, step, merge_distance, ngon_policy, conv, copy):
     return out
 
 
-def scene_cleanup(objects=None, steps=None, merge_distance="auto", ngon_policy="report", convention=None, plan_only=True, copy=True):
+PAGE = 50                # audit F8: a 1,016-object plan answered 351-369 KB; rows come a page at a time, the totals cover every object
+_TOTALS = ("loose_verts", "doubles_at_distance", "non_manifold_edges", "flipped_faces", "ngons")
+
+
+def _paged(rows, limit, offset, full):
+    if full:
+        return rows, None
+    limit, offset = max(1, int(limit)), max(0, int(offset))
+    return rows[offset:offset + limit], (offset + limit if offset + limit < len(rows) else None)
+
+
+def scene_cleanup(objects=None, steps=None, merge_distance="auto", ngon_policy="report", convention=None, plan_only=True, copy=True,
+                  limit=PAGE, offset=0, full=False):
     if ngon_policy not in ("report", "triangulate", "keep"):
         raise C.FeatureError("ngon_policy is report | triangulate | keep")
     chosen = list(STEPS) if steps is None else list(steps)
@@ -234,7 +246,11 @@ def scene_cleanup(objects=None, steps=None, merge_distance="auto", ngon_policy="
         raise C.FeatureError("I cannot invent your naming convention: pass convention (prefix, suffix, lowercase, replace_spaces, strip_numeric_suffix)")
     obs = _targets(objects)
     report = [_report(o, merge_distance) for o in obs]
-    out = {"ok": True, "plan_only": bool(plan_only), "steps": ordered, "report": report, "orphans": _orphans(), "applied": [], "branch": {}}
+    totals = {k: sum(int(r[k]) for r in report) for k in _TOTALS}
+    totals["non_uniform_scale"] = sum(1 for r in report if r["non_uniform_scale"])
+    page, nxt = _paged(report, limit, offset, full)
+    out = {"ok": True, "plan_only": bool(plan_only), "steps": ordered, "object_count": len(report), "totals": totals, "report": page,
+           "next_offset": nxt, "orphans": _orphans(), "applied": [], "branch": {}}
     if plan_only:
         return out
     work = {}
@@ -255,4 +271,9 @@ def scene_cleanup(objects=None, steps=None, merge_distance="auto", ngon_policy="
             res = _apply(b, step, merge_distance, ngon_policy, convention or {}, copy)
             out["applied"].append({"object": b.name, "step": step, **res})
     out["branch"] = {k: b.name for k, b in work.items()}
+    out["applied_totals"] = {st: sum(int(a.get("changed") or 0) for a in out["applied"] if a["step"] == st) for st in ordered}
+    out["applied_count"] = len(out["applied"])
+    out["applied"], out["applied_next_offset"] = _paged(out["applied"], limit, offset, full)
+    if not full and len(out["branch"]) > int(limit):
+        out["branch"] = dict(list(out["branch"].items())[int(offset):int(offset) + int(limit)])
     return out

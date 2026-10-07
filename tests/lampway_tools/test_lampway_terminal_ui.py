@@ -71,3 +71,37 @@ print("RESULT", json.dumps({"res": res, "calls": fake.calls, "log": log}))
     assert d["calls"].count("get") == 1 and "remove" not in d["calls"]
     opened = next(c for c in d["calls"] if isinstance(c, list) and c[0] == "open")
     assert d["res"]["open"] == ["FINISHED"] and opened[0] == "open"   # no window in a headless run: the placement is tested on the host
+
+
+FOCUS = '''
+class Open(FakeClient):
+    def terminal(self):
+        self.calls.append("terminal")
+        return {"installed": True, "window": "re-adopted", "version": "20230712-072601-f4abf8fd", "update": True,
+                "pin": {"version": "20240203-110809-5046fc22", "bytes": 49505472}}
+fake = Open()
+WO.CLIENT_FACTORY = lambda: fake
+WO.refresh_state()
+log = []
+panel = PANELS.LAMPWAY_PT_cockpit
+panel.layout = Rec(log)
+panel.draw(panel, bpy.context)
+res = {"focus_op": hasattr(bpy.types, "LAMPWAY_OT_terminal_focus")}
+kc = bpy.context.window_manager.keyconfigs.addon
+keys = [[km.name, k.idname, k.type, k.ctrl, k.alt, k.shift] for km in (kc.keymaps if kc else []) for k in km.keymap_items
+        if k.idname == "lampway.terminal_open"]
+print("RESULT", json.dumps({"res": res, "calls": fake.calls, "log": log, "keys": keys, "background": bpy.app.background}))
+'''
+
+
+def test_update_and_the_shortcut_and_no_focus(tmp_path):
+    """Update appears when the pin moved past the installed version, and Ctrl Alt T opens the terminal from anywhere in the
+    window. No Focus (the coordinator's audit, W6): the window is a viewport the user raises himself."""
+    r = run(tmp_path, PRE + FOCUS)
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[0]
+    ops = [x for x in d["log"] if x.startswith("op:")]
+    assert not [o for o in ops if "terminal_focus" in o], ops
+    assert "op:lampway.terminal_get|Update to 20240203-110809-5046fc22" in ops, ops
+    assert d["res"]["focus_op"] is False
+    assert ["Window", "lampway.terminal_open", "T", True, True, False] in d["keys"], d["keys"]

@@ -86,6 +86,7 @@ def test_toon_parses_the_drivers_kv_tables_errors_and_help():
     e = toon.parse('error: Unwrap button does not read "Unwrap UV 20"\nhelp[1]:\n  - "Run `state`"\n')
     assert e.error.startswith("Unwrap button") and e.kv == {}
     assert toon.parse("count: 0 of 0 total\nseeds[0]:\n").tables["seeds"] == []
+    assert toon.parse("count: 0 of 0 total\nseeds: []\n").tables["seeds"] == []      # TOON 4's form, which the shelf's axi now prints (audit F9)
 
 
 # ------------------------------------------------------------------ the catalog and its laws

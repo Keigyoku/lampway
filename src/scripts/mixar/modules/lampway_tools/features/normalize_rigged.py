@@ -13,8 +13,8 @@
   `rigged_mesh`, its transform kept when it is not the identity: `skinned_rig_preserved`).
 * Bones: `along` is head -> the head of the continuation child (`canon_geom.chain_ends`; `child_head`, `named_continuation`, or
   `leaf_parent_line` for a last bone), never the imported tail (canon 01 C.1, INV-17.5); `frame` the bone's rest frame in the body frame.
-* Naming: a rig whose bones carry the UE names is mapped to itself (canon 16: UE names ARE the canonical names); rig_inspect's family
-  tables (mixamo, rigify) do not list UE, so it reports every slot missing for a UE-named rig - recorded, not changed here."""
+* Naming: rig_inspect's family table (ue | mixamo | rigify; canon 16) maps the bones to the canonical slots; a rig no table matches is
+  refused (map it first)."""
 
 import hashlib
 import json
@@ -33,18 +33,6 @@ from . import rig_tools as RT
 TOOL, TOOL_VERSION = "lampway_normalize_rigged", "1.0.0"
 UNIT_OF = {f: u for u, f in RT.UNITS.items()}          # the factor rig_inspect measures -> rig_normalize's unit name
 REFERENCE_ID = {"ue5_body": "ue5_manny", "ue5_body_fingers": "ue5_manny", "metahuman": "metahuman_fullbody"}
-
-
-def _naming(rec, names, profile):
-    fam = rec["family"]["name"]
-    if fam is not None:
-        mapped = dict(rec["slots"]["mapped"])
-        return fam, mapped, list(rec["slots"]["missing_required"])
-    req = RC.REQUIRED[profile]
-    present = set(names)
-    if any(s in present for s in req):                   # UE names: the canonical names themselves
-        return "ue", {n: n for n in names if n in present}, [s for s in req if s not in present]
-    return "custom", {}, list(req)
 
 
 def _bones(ob, mapped):
@@ -131,7 +119,10 @@ def run(armature, meshes=None, profile="ue5_body", turn_deg=0.0, dry_run=True):
                              f"{rec['convention']['angles_deg']['max']} deg off head -> next joint): canon 17 refuses a mixed armature; conform it to one "
                              f"convention first (rig_conform)")
     names = [b.name for b in ob.data.bones]
-    family, mapped, missing = _naming(rec, names, profile)
+    family = rec["family"]["name"]
+    if family is None:
+        raise C.FeatureError(f"no naming family matches {ob.name}'s bones ({rec['family'].get('note', 'no table hits')}): map it first (rig_map)")
+    mapped, missing = dict(rec["slots"]["mapped"]), list(rec["slots"]["missing_required"])
     if missing:
         raise C.FeatureError(f"roster incomplete against {profile}: missing {', '.join(missing)} (canon 01 C.6)")
     u = rec["units"]

@@ -6,7 +6,6 @@ import json
 import logging
 import os
 import threading
-from html import escape
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -34,6 +33,7 @@ from .prompts.render import RenderError
 from .assetsearch import AssetIndex
 from .library import rest as library_rest
 from .library.vault import Vault
+from . import brand_page as BP
 from .cards import routes as cards_routes
 from .mcp import LOOPBACK as MCP_LOOPBACK, McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
@@ -44,18 +44,17 @@ _PKCE_FIELDS = ("port", "code_challenge", "code_challenge_method", "state", "sou
 
 
 def render_login_page(fields: dict, error: str = "") -> str:
-    hidden = "".join(
-        f'<input type="hidden" name="{name}" value="{escape(str(fields.get(name, "")), quote=True)}">'
-        for name in _PKCE_FIELDS
-    )
-    notice = f'<p class="error">{escape(error)}</p>' if error else ""
-    return f"""<!doctype html>
-<html><head><meta charset="utf-8"><title>Lampway - sign in</title>
-<style>body{{font-family:sans-serif;max-width:28em;margin:4em auto}} .error{{color:#b00}}</style></head>
-<body><h1>Lampway</h1><p>Sign in to connect the desktop app to this server.</p>{notice}
-<form method="post" action="/app/desktop-login">{hidden}
-<label>Password <input type="password" name="password" autofocus></label>
-<button type="submit">Continue</button></form></body></html>"""
+    hidden = {name: str(fields.get(name, "")) for name in _PKCE_FIELDS}
+    return BP.page(title="Lampway - sign in", tone="error" if error else "info",
+                   headline="Wrong password" if error else "Sign in to Lampway",
+                   line="Sign in to connect the desktop app to this server.",
+                   next_step="Type this server's password again." if error else "",
+                   parts=(BP.form("/app/desktop-login", "Continue", hidden=hidden, password=True),))
+
+
+def html_page(text: str, status_code: int = 200) -> HTMLResponse:
+    """Every page this server renders goes out through here, with the brand pages' CSP (brand_page.CSP)."""
+    return HTMLResponse(text, status_code=status_code, headers={"Content-Security-Policy": BP.CSP, "Cache-Control": "no-store"})
 
 
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
@@ -228,13 +227,13 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
             return JSONResponse({"detail": "code_challenge with method S256 is required"}, status_code=400)
         if not auth.password_required():
             return _loopback_redirect(fields)
-        return HTMLResponse(render_login_page(fields))
+        return html_page(render_login_page(fields))
 
     async def desktop_login_post(request: Request):
         form = parse_qs((await request.body()).decode("utf-8", "replace"))
         fields = {k: v[0] for k, v in form.items()}
         if auth.password_required() and not auth.check_password(auth.email, fields.get("password", "")):
-            return HTMLResponse(render_login_page(fields, error="Wrong password."), status_code=401)
+            return html_page(render_login_page(fields, error="Wrong password."), status_code=401)
         return _loopback_redirect(fields)
 
     async def desktop_token(request: Request):
@@ -258,25 +257,27 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         return JSONResponse(pair)
 
     # ---- Sign in with ChatGPT (plan usage): the local pages. Loopback only; they start and finish the documented OAuth flow
-    def _chatgpt_page(body: str, status_code: int = 200) -> HTMLResponse:
+    _CHATGPT_DETAIL = ("Your ChatGPT Plus or Pro plan pays for this server's agent. Tokens stay in this machine's state directory; "
+                       "nothing is sent anywhere but OpenAI. Image generation is not available on this route.")
+
+    def _chatgpt_parts() -> tuple:
         st = chatgpt.status()
         if st["signed_in"] and st["plan_usage_enabled"]:
-            head = (f'<p><b>Using ChatGPT plan</b> ({escape(st["email"] or "signed in")}). '
-                    f'<a href="{st["manage_usage_url"]}">Manage usage</a></p>'
-                    '<form method="post" action="/app/chatgpt/signout"><button>Sign out</button></form>')
-        elif st["signed_in"]:
-            head = ('<p>Signed in, but ChatGPT plan usage is not enabled for this sign-in. '
-                    '<a href="/app/chatgpt/start">Enable it</a> or use an API key.</p>')
-        else:
-            head = '<form method="post" action="/app/chatgpt/start"><button>Continue with ChatGPT</button></form>'
-        return HTMLResponse(f"""<!doctype html><html><head><meta charset="utf-8"><title>Lampway - ChatGPT plan</title>
-<style>body{{font-family:sans-serif;max-width:34em;margin:4em auto}}</style></head><body><h1>Lampway</h1>
-<h2>ChatGPT plan usage</h2>{body}{head}
-<p style="color:#555">Your ChatGPT Plus or Pro plan pays for this server's agent. Tokens stay in this machine's state directory;
-nothing is sent anywhere but OpenAI. Image generation is not available on this route.</p></body></html>""", status_code=status_code)
+            return (BP.status(f"({st['email'] or 'signed in'}).", strong="Using ChatGPT plan", link=("Manage usage", st["manage_usage_url"])),
+                    BP.form("/app/chatgpt/signout", "Sign out", primary=False))
+        if st["signed_in"]:
+            return (BP.status("Signed in, but ChatGPT plan usage is not enabled for this sign-in: enable it, or use an API key."),
+                    BP.form("/app/chatgpt/start", "Enable ChatGPT plan usage"))
+        return (BP.form("/app/chatgpt/start", "Continue with ChatGPT"),)
+
+    def _chatgpt_page(outcome: str = "", reason: str = "", status_code: int = 200) -> HTMLResponse:
+        if outcome:
+            return html_page(BP.callback("ChatGPT", outcome, reason=reason, parts=_chatgpt_parts()), status_code)
+        return html_page(BP.page(title="Lampway - ChatGPT", headline="ChatGPT plan usage", line=_CHATGPT_DETAIL,
+                                 parts=_chatgpt_parts()), status_code)
 
     async def chatgpt_home(request: Request):
-        return _chatgpt_page("")
+        return _chatgpt_page()
 
     async def chatgpt_start(request: Request):
         """Begins a sign-in attempt, so it is a POST from a loopback page: a sandboxed script's GET or a cross-site
@@ -291,12 +292,12 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         try:
             await asyncio.to_thread(chatgpt.complete_login, query)
         except LoginDeclined as exc:
-            return _chatgpt_page(f"<p>ChatGPT plan use was not authorized ({escape(str(exc))}). You can try again.</p>")
+            return _chatgpt_page("cancelled", str(exc))
         except LoginError as exc:
-            return _chatgpt_page(f"<p class='error'>Sign-in failed: {escape(str(exc))}</p>", status_code=400)
+            return _chatgpt_page(BP.outcome_of(exc), str(exc), status_code=400)
         except Exception as exc:  # noqa: BLE001 - shown to the person at the keyboard, never with a token
-            return _chatgpt_page(f"<p class='error'>Sign-in could not finish: {escape(type(exc).__name__)}</p>", status_code=502)
-        return _chatgpt_page("<p>Signed in.</p>")
+            return _chatgpt_page("error", f"The sign-in could not finish ({type(exc).__name__}).", status_code=502)
+        return _chatgpt_page("ok")
 
     async def chatgpt_status(request: Request):
         """Finding F8: the bearer, and whether the sign-in works - never the email or the client id (the row in Connections shows those, masked)."""
@@ -352,7 +353,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     jobs = JobQueue(default_job_backends(settings) if job_backends is None else job_backends, hub,
                     f"http://{settings.host}:{settings.port}", model_labels={"image_gen": settings.openrouter_image_model},
                     video=video_system, approvals=studio.approvals_store, prompts=prompt_service, registry=job_services if job_services is not None else _local_job_services(settings),
-                    policy=SpendPolicy(lambda: settings.spend_policy), receipts=receipts, provenance=_vault_hooks.job_hook(library, vault.spool),
+                    policy=SpendPolicy(lambda: settings.spend_policy, path=Path(settings.state_dir) / "spend" / "day.json"), receipts=receipts, provenance=_vault_hooks.job_hook(library, vault.spool),
                     chooser=image_chooser if job_backends is None and "image_gen" in default_job_backends(settings) else None)
     video_system.jobs = jobs
     for gate_action in ("higgsfield.job", "higgsfield.question", "service.job", "openrouter.job"):          # the user's click reaches the waiting job through the Studios' confirm
@@ -816,6 +817,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     async def wb_server_start(request: Request):
         if (r := _wb(request)) is not None:
             return r
+        if request.headers.get("x-lampway-origin", "").lower() == "agent":       # ruling 10: only the user's click starts the herdr server
+            return JSONResponse({"detail": "only your click starts the Lampway herdr server"}, status_code=403)
         try:
             return JSONResponse(await asyncio.to_thread(cockpit.ensure_server))
         except _HL.HerdrError as exc:
@@ -862,8 +865,9 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except _WZ.TerminalRefused as exc:
             pin = {"refused": str(exc)}
         state = await asyncio.to_thread(_WZ.reconcile, home, str(exe)) if exe else {"window": "gone", "panes": [], "foreign_panes": []}
+        version = _WZ.installed_version(home) if exe else None
         return JSONResponse({"installed": bool(exe), "binary": str(exe) if exe else None, "pin": {k: pin.get(k) for k in ("version", "bytes", "refused")},
-                             **state})
+                             "version": version, "update": bool(version and pin.get("version") and version != pin["version"]), **state})
 
     async def terminal_get(request: Request):
         if (r := _term_guard(request, True)) is not None:
@@ -884,7 +888,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
             return JSONResponse({"detail": "the Lampway terminal is not installed: Get it first (about 49 MB from github.com)"}, status_code=409)
         body = await _json_body(request)
         try:
-            boot = [_HL.bin_path(), "session", "attach", "lampway"]
+            boot = [_HL.bin_path()]          # plain herdr: attaches to the server its HERDR_* env names (Lampway's)
         except _HL.HerdrError:
             boot = None
         try:
@@ -903,7 +907,10 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
 
     # ---- the cockpit window (facelift contract 10): a static page from this origin only; its data behind the bearer
     _WB_PAGE = Path(__file__).resolve().parent / "web" / "workbench"
-    _WB_STATIC = {"cockpit.js": "text/javascript", "cockpit.css": "text/css", "tokens.css": "text/css"}
+    _WB_STATIC = {"cockpit.js": "text/javascript", "cockpit.css": "text/css", "tokens.css": "text/css",
+                  # the brand's faces and mark, from this origin (no CDN): brand_page.FACES and the lockup
+                  **{name: "font/woff2" for _f, name, _w in BP.FACES}, "lockup.svg": "image/svg+xml"}
+    _WB_FILES = {name: (BP.BRAND / "fonts" / name) for _f, name, _w in BP.FACES} | {"lockup.svg": BP.BRAND / "lockup.svg"}
     _WB_CSP = ("default-src 'self'; connect-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
                "frame-src http://127.0.0.1:* http://localhost:*; base-uri 'none'; form-action 'none'")
 
@@ -914,7 +921,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         name = request.path_params["name"]
         if name not in _WB_STATIC:
             return JSONResponse({"detail": "not found"}, status_code=404)
-        return Response((_WB_PAGE / name).read_bytes(), media_type=_WB_STATIC[name], headers={"Cache-Control": "no-store"})
+        return Response(_WB_FILES.get(name, _WB_PAGE / name).read_bytes(), media_type=_WB_STATIC[name], headers={"Cache-Control": "no-store"})
 
     async def wb_view(request: Request):
         if (r := _wb(request)) is not None:
@@ -1116,18 +1123,21 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     routes.append(Route("/api/v1/uploads/{kind}", upload_media, methods=["POST"]))
 
     # ---- sign in to Higgsfield (its MCP): the local pages, loopback only, the same shape as /app/chatgpt
-    def _hf_page(body: str, status_code: int = 200) -> HTMLResponse:
-        st = hf_auth.status()
-        head = ('<p><b>Signed in to Higgsfield.</b> <form method="post" action="/app/higgsfield/signout"><button>Sign out</button></form>'
-                if st["signed_in"] else '<form method="post" action="/app/higgsfield/start"><button>Continue with Higgsfield</button></form>')
-        return HTMLResponse(f"""<!doctype html><html><head><meta charset="utf-8"><title>Lampway - Higgsfield</title>
-<style>body{{font:16px system-ui;max-width:40em;margin:3em auto;padding:0 1em}} .error{{color:#a00}}</style></head><body>
-<h2>Higgsfield</h2>{body}{head}
-<p style="color:#555">Your Higgsfield subscription pays for generations started from Lampway. Every credit spend waits for your confirmation
-in the Client. Tokens stay in this machine's state directory.</p></body></html>""", status_code=status_code)
+    _HF_DETAIL = ("Your Higgsfield subscription pays for generations started from Lampway. Every credit spend waits for your "
+                  "confirmation in the Client. Tokens stay in this machine's state directory.")
+
+    def _hf_parts() -> tuple:
+        if hf_auth.status()["signed_in"]:
+            return (BP.status("", strong="Signed in to Higgsfield."), BP.form("/app/higgsfield/signout", "Sign out", primary=False))
+        return (BP.form("/app/higgsfield/start", "Continue with Higgsfield"),)
+
+    def _hf_page(outcome: str = "", reason: str = "", status_code: int = 200) -> HTMLResponse:
+        if outcome:
+            return html_page(BP.callback("Higgsfield", outcome, reason=reason, parts=_hf_parts()), status_code)
+        return html_page(BP.page(title="Lampway - Higgsfield", headline="Higgsfield", line=_HF_DETAIL, parts=_hf_parts()), status_code)
 
     async def hf_home(request: Request):
-        return _hf_page("")
+        return _hf_page()
 
     async def hf_start(request: Request):
         if not loopback_origin(request):
@@ -1135,7 +1145,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         try:
             attempt = await asyncio.to_thread(hf_auth.start_login)
         except (HFA.LoginError, HFA.TemporaryAuthError) as exc:
-            return _hf_page(f"<p class='error'>Could not start the sign-in: {escape(str(exc))}</p>", status_code=502)
+            return _hf_page("error", f"Could not start the sign-in: {exc}", status_code=502)
         return RedirectResponse(attempt.url, status_code=302)
 
     async def hf_callback(request: Request):
@@ -1143,12 +1153,12 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         try:
             await asyncio.to_thread(hf_auth.complete_login, query)
         except HFA.LoginDeclined as exc:
-            return _hf_page(f"<p>Higgsfield access was not authorized ({escape(str(exc))}). You can try again.</p>")
+            return _hf_page("cancelled", str(exc))
         except HFA.LoginError as exc:
-            return _hf_page(f"<p class='error'>Sign-in failed: {escape(str(exc))}</p>", status_code=400)
+            return _hf_page(BP.outcome_of(exc), str(exc), status_code=400)
         except Exception as exc:  # noqa: BLE001 - shown to the person at the keyboard, never with a token
-            return _hf_page(f"<p class='error'>Sign-in could not finish: {escape(type(exc).__name__)}</p>", status_code=502)
-        return _hf_page("<p>Signed in.</p>")
+            return _hf_page("error", f"The sign-in could not finish ({type(exc).__name__}).", status_code=502)
+        return _hf_page("ok")
 
     async def hf_status(request: Request):
         if not _bearer_ok(request):                                                      # finding F8
@@ -1380,18 +1390,23 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         return JSONResponse(await asyncio.to_thread(jobs.estimate, str(body.get("service") or ""), str(body.get("model") or ""), params, refs))
 
     async def spend_view(request: Request):
-        """What the status bar's spend gauge reads (facelift contract 03): each provider in its own unit, what this server session spent, and the
-        caps and click rule the Providers dialog set. Read-only. There is no day ledger, so the scope says session."""
+        """What the status bar's spend gauge reads (facelift contract 03): each provider in its own unit, what was spent TODAY (the saved local-day
+        total, ruling 5), the caps and click rule the Providers dialog set, and the line "spent today $x of $y". Read-only."""
         if not _bearer_ok(request):
             return unauthorized()
-        from .spendpolicy import PROVIDERS
+        from .spendpolicy import PROVIDERS, SpendRefused
         policy = jobs.policy
         rows = []
         for p in PROVIDERS:
             cfg = policy._cfg(p)
-            rows.append({"provider": p, "unit": "USD" if p == "openrouter" else "credits", "spent": round(float(policy.spent.get(p, 0.0)), 6),
-                         "session_cap": cfg.get("session_cap"), "job_cap": cfg.get("job_cap"), "click": cfg.get("click", "always"), "above": cfg.get("above")})
-        return JSONResponse({"scope": "session", "providers": rows})
+            try:
+                spent, text = round(policy.spent_today(p), 6), policy.status_text(p)
+            except SpendRefused as exc:
+                spent, text = None, str(exc)
+            rows.append({"provider": p, "unit": "USD" if p == "openrouter" else "credits", "spent": spent, "spent_today": spent, "text": text,
+                         "day_cap": cfg.get("day_cap"), "job_cap": cfg.get("job_cap"), "click": cfg.get("click", "always"),
+                         "above": cfg.get("above")})
+        return JSONResponse({"scope": "day", "providers": rows})
 
     routes += [Route("/app/provider-settings", provider_get, methods=["GET"]), Route("/app/provider-settings", provider_put, methods=["PUT"]),
                Route("/app/spend", spend_view, methods=["GET"]), Route("/app/generate/estimate", generate_estimate, methods=["POST"])]
@@ -1417,12 +1432,12 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
         try:
             await asyncio.to_thread(h3d_auth.complete_login, query)
         except MOA.LoginDeclined as exc:
-            return HTMLResponse(f"<p>Hyper3D access was not authorized ({escape(str(exc))}). You can try again from Connections.</p>")
+            return html_page(BP.callback("Hyper3D", "cancelled", reason=str(exc)))
         except MOA.LoginError as exc:
-            return HTMLResponse(f"<p class='error'>Sign-in failed: {escape(str(exc))}</p>", status_code=400)
+            return html_page(BP.callback("Hyper3D", BP.outcome_of(exc), reason=str(exc)), status_code=400)
         except Exception as exc:  # noqa: BLE001 - shown to the person at the keyboard, never with a token
-            return HTMLResponse(f"<p class='error'>Sign-in could not finish: {escape(type(exc).__name__)}</p>", status_code=502)
-        return HTMLResponse("<p>Signed in to Hyper3D. You can close this tab and go back to Connections.</p>")
+            return html_page(BP.callback("Hyper3D", "error", reason=f"The sign-in could not finish ({type(exc).__name__})."), status_code=502)
+        return html_page(BP.callback("Hyper3D", "ok"))
     routes.append(Route(MOA.HYPER3D.callback_path, h3d_callback, methods=["GET"]))
     from .connections.routes import connection_routes
     routes += connection_routes(lambda: conn_hub, _bearer_ok)

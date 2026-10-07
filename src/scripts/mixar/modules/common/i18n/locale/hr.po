@@ -5159,6 +5159,12 @@ msgstr "Odbaci"
 msgid "Dismiss the error and return to idle"
 msgstr "Odbacuje pogrešku i vraća se u mirovanje"
 
+msgid "Exception"
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
 msgid "UE Look is on: restart Lampway (the launcher starts it with the UE view)"
 msgstr ""
 
@@ -5336,9 +5342,6 @@ msgstr ""
 msgid "Change every view at once"
 msgstr ""
 
-msgid "not built yet: the data modes need their replacement materials"
-msgstr ""
-
 msgid "Sync the cameras, spin, or keep the names blind"
 msgstr ""
 
@@ -5486,6 +5489,18 @@ msgstr ""
 msgid "Tab of the face"
 msgstr ""
 
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
 msgid "ChatGPT plan"
 msgstr ""
 
@@ -5534,25 +5549,13 @@ msgstr ""
 msgid "A stand-in that answers on this machine and thinks nothing"
 msgstr ""
 
-msgid "Continue saves your language and keys only"
-msgstr ""
-
-msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
-msgstr ""
-
-msgid "Every route is off until you switch it on"
-msgstr ""
-
-msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
-msgstr ""
-
 msgid "Click above"
 msgstr ""
 
 msgid "Per job"
 msgstr ""
 
-msgid "Per session"
+msgid "Per day"
 msgstr ""
 
 msgid "On"
@@ -5630,9 +5633,6 @@ msgid "Privacy in the viewport's Lampway sidebar."
 msgstr ""
 
 msgid "The pop-out the status bar's wire chip opens."
-msgstr ""
-
-msgid "spend unknown: server not running"
 msgstr ""
 
 msgid "egress unknown"
@@ -5843,6 +5843,14 @@ msgid "Use the rendered prompt in the Video Gen / Image Gen surface; the job the
 msgstr ""
 
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
+msgstr ""
+
+msgid "A/B"
+msgstr ""
+
+msgid ""
+"A/B: run this version beside the one it was forked from (variant_of) and compare them. Not built yet: it would run two\n"
+"paid generations; this click says so and sends nothing (contract 08, the coordinator's ruling)"
 msgstr ""
 
 msgid "Refresh Studios"
@@ -21449,6 +21457,21 @@ msgstr ""
 msgid "{n} tools called"
 msgstr ""
 
+msgid "{done} of {n} steps done, local"
+msgstr ""
+
+msgid "{n} step done"
+msgstr ""
+
+msgid "{n} steps done"
+msgstr ""
+
+msgid "{n} failed"
+msgstr ""
+
+msgid "local"
+msgstr ""
+
 msgid "Viewport render"
 msgstr ""
 
@@ -27582,6 +27605,9 @@ msgstr "Koraci"
 msgid "Thought for %ds"
 msgstr "Razmišljanje %ds"
 
+msgid "Lampway Agent"
+msgstr ""
+
 msgid "Start Voice Input"
 msgstr "Pokreni glasovni unos"
 
@@ -28506,6 +28532,12 @@ msgstr "Radnja bez ruba"
 msgid "Destructive action"
 msgstr "Destruktivna radnja"
 
+msgid "Accent"
+msgstr "Naglasak"
+
+msgid "The accent fill: a spend that waits for your click (Lampway)"
+msgstr ""
+
 msgid "Option"
 msgstr "Mogućnost"
 
@@ -28522,6 +28554,42 @@ msgid "Non-interactive explanation"
 msgstr "Neinteraktivno objašnjenje"
 
 msgid "Action card with a title and supporting line"
+msgstr ""
+
+msgid "The action, in Fraunces"
+msgstr ""
+
+msgid "\"<number> <unit>\\x1f<kind>\": the price large, its unit and kind"
+msgstr ""
+
+msgid "Meter"
+msgstr ""
+
+msgid "\"<words>\\x1f<used>\\x1f<pending>\\x1f<hot>\": a cap meter"
+msgstr ""
+
+msgid "A secondary line"
+msgstr ""
+
+msgid "Waiting"
+msgstr ""
+
+msgid "Accent: it waits for your click"
+msgstr ""
+
+msgid "Refused"
+msgstr ""
+
+msgid "Stop: refused before sending"
+msgstr ""
+
+msgid "An agent tried to confirm"
+msgstr ""
+
+msgid "Spent"
+msgstr ""
+
+msgid "Go: spent"
 msgstr ""
 
 msgid "Oversized full-contrast heading"
@@ -28559,9 +28627,6 @@ msgstr "Tekst opasnosti"
 
 msgid "Danger-tinted body text for inline errors"
 msgstr "Tekst tijela u boji opasnosti za ugrađene greške"
-
-msgid "Accent"
-msgstr "Naglasak"
 
 msgid "Filled accent button, the one primary action"
 msgstr "Ispunjeni gumb naglaska, jedina primarna radnja"

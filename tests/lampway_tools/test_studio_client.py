@@ -253,15 +253,15 @@ def test_the_providers_dialog_carries_the_spend_policy_per_provider():
     r = run(PROVIDERS + '''
 VIEW["values"]["spend_policy"] = {"openrouter": {"click": "off", "job_cap": 2.0}, "higgsfield": {"click": "always"}, "studios": {"click": "always"}, "hyper3d": {"click": "always"}}
 SAVED.clear()
-bpy.ops.lampway.providers_save("EXEC_DEFAULT", openrouter_click="above", openrouter_above="0.5", openrouter_job_cap="1", openrouter_session_cap="3",
+bpy.ops.lampway.providers_save("EXEC_DEFAULT", openrouter_click="above", openrouter_above="0.5", openrouter_job_cap="1", openrouter_day_cap="3",
                                higgsfield_job_cap="200", studios_click="always")
 bpy.ops.lampway.providers_save("EXEC_DEFAULT", openrouter_job_cap="none")
 try:
-    bpy.ops.lampway.providers_save("EXEC_DEFAULT", hyper3d_session_cap="lots"); bad = None
+    bpy.ops.lampway.providers_save("EXEC_DEFAULT", hyper3d_day_cap="lots"); bad = None
 except RuntimeError as e: bad = str(e)[:160]
 print("RESULT", json.dumps({"saved": SAVED, "bad": bad}))
 ''')
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
-    assert o["saved"][0] == {"spend_policy": {"openrouter": {"click": "above", "above": 0.5, "job_cap": 1.0, "session_cap": 3.0}, "higgsfield": {"job_cap": 200.0}}}, "only what differs is sent"
-    assert o["saved"][1] == {"spend_policy": {"openrouter": {"job_cap": None}}} and "hyper3d_session_cap" in (o["bad"] or "")
+    assert o["saved"][0] == {"spend_policy": {"openrouter": {"click": "above", "above": 0.5, "job_cap": 1.0, "day_cap": 3.0}, "higgsfield": {"job_cap": 200.0}}}, "only what differs is sent"
+    assert o["saved"][1] == {"spend_policy": {"openrouter": {"job_cap": None}}} and "hyper3d_day_cap" in (o["bad"] or "")

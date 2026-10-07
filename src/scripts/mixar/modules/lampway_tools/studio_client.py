@@ -17,6 +17,10 @@ class StudioError(RuntimeError):
     pass
 
 
+class SignedOut(StudioError):
+    """No token, or the server answered 401: it is running and the user is signed out (cloud audit F22)."""
+
+
 def _default_url() -> str:
     from mixar.config.config import get_server_url
     return get_server_url().rstrip("/")
@@ -35,7 +39,7 @@ class StudioClient:
     def _call(self, method, path, body=None, raw=False, timeout=60):
         token = self._token()
         if not token:
-            raise StudioError("not signed in: log in to the Lampway server first")
+            raise SignedOut("not signed in: log in to the Lampway server first")
         base = (self._base or _default_url()).rstrip("/")
         req = urllib.request.Request(base + path, method=method, data=json.dumps(body).encode("utf-8") if body is not None else None,
                                      headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/json"})
@@ -47,6 +51,8 @@ class StudioClient:
                 detail = json.loads(exc.read().decode("utf-8")).get("detail") or ""
             except Exception:  # noqa: BLE001
                 detail = ""
+            if exc.code == 401:
+                raise SignedOut(detail or "signed out: sign in to the Lampway server") from None
             raise StudioError(detail or f"the server answered HTTP {exc.code}") from None
         except (urllib.error.URLError, OSError, ValueError) as exc:
             raise StudioError(f"the server could not be reached: {exc}") from None

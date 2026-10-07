@@ -21,6 +21,7 @@ def test_no_click_needed(tmp_path):
     report, facts = _run("gen_generate", tmp_path)
     assert facts["face"]["estimate"] == "≈ $0.067 est." and facts["face"]["route"] == "openrouter.ai", facts
     assert [g["text"] for g in facts["generate"]] == ["Generate, ≈ $0.07"], facts
+    assert facts["face"]["last_run"] == "3 images, $0.20 billed against a $0.21 estimate, rated 4", "the results row's line reaches the column"
     assert harness.token_failures(report) == [], report["surfaces"]
 
 

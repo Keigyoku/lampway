@@ -149,7 +149,8 @@ def main():
         root = Path(__file__).resolve().parent
         # This entrypoint is named mcp.py; do not shadow the bundled MCP SDK.
         sys.path[:] = [p for p in sys.path if Path(p).resolve() != root]
-        for name, suffix in (("mixar", ""), ("mixar.modules", "modules"),
+        # mixar.config too: its __init__ imports bpy, and mcp_bridge reads only the bpy-free config/brand.py (audit F1).
+        for name, suffix in (("mixar", ""), ("mixar.config", "config"), ("mixar.modules", "modules"),
                 ("mixar.modules.common", "modules/common"),
                 ("mixar.modules.common.ui_control", "modules/common/ui_control"),
                 ("mixar.modules.common.ui_control.core", "modules/common/ui_control/core"),

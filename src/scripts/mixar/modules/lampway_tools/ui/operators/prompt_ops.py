@@ -170,4 +170,24 @@ class LAMPWAY_OT_prompt_rate(_PromptOp):
         return self._done(context, f"rated {p.prompt_job_id}: {p.prompt_rating}/5")
 
 
-classes = [LAMPWAY_OT_prompts_refresh, LAMPWAY_OT_prompt_load, LAMPWAY_OT_prompt_preview, LAMPWAY_OT_prompt_fork, LAMPWAY_OT_prompt_use, LAMPWAY_OT_prompt_rate]
+class LAMPWAY_OT_prompt_ab(_PromptOp):
+    """A/B: run this version beside the one it was forked from (variant_of) and compare them. Not built yet: it would run two
+    paid generations; this click says so and sends nothing (contract 08, the coordinator's ruling)"""
+    bl_idname = "lampway.prompt_ab"
+    bl_label = "A/B"
+
+    def execute(self, context):
+        from mixar.modules.lampway_tools import human_gate
+        if human_gate.script_running():
+            return self._done(context, "A/B is the user's click: a script cannot press it", ok=False)
+        t = studio_state.PROMPTS.get("current")
+        if not t:
+            return self._done(context, "load a template first", ok=False)
+        message = (f"A/B of {t['id']}@{t['version']} would run two paid generations (this version and the one it forks): not "
+                   "built yet. Nothing was sent; run each version from the library instead.")
+        context.scene.lampway_tools.last_message = message
+        self.report({"INFO"}, message)          # said, not an error: the click did what a stub can do
+        return {"CANCELLED"}
+
+
+classes = [LAMPWAY_OT_prompt_ab, LAMPWAY_OT_prompts_refresh, LAMPWAY_OT_prompt_load, LAMPWAY_OT_prompt_preview, LAMPWAY_OT_prompt_fork, LAMPWAY_OT_prompt_use, LAMPWAY_OT_prompt_rate]

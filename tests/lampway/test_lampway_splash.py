@@ -132,11 +132,11 @@ def test_splash_setup_cues_read_the_cache(splash):
     S.update(egress={"routes": [{"id": "openrouter", "label": "OpenRouter", "enabled": True},
                                 {"id": "fal", "label": "fal.ai", "enabled": True}],
                      "indicator": {"over_the_wire": False, "active": []}},
-             spend={"scope": "session", "providers": [{"provider": "openrouter", "unit": "USD", "spent": 0.31,
-                                                       "session_cap": 5.0}]},
+             spend={"scope": "day", "providers": [{"provider": "openrouter", "unit": "USD", "spent": 0.31,
+                                                       "day_cap": 5.0}]},
              studio={"approvals": []})
     layout = Recorder()
     splash.WM_MT_splash.draw(SimpleNamespace(layout=layout), SimpleNamespace())
     texts = layout.texts()
-    assert "server on this machine" in texts and "2 routes open" in texts and "$0.31 of $5.00" in texts
+    assert "server on this machine" in texts and "2 routes open" in texts and "spent today $0.31 of $5.00" in texts
     S.reset()

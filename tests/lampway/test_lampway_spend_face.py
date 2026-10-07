@@ -13,10 +13,10 @@ import pytest
 from mixar.modules.lampway_tools import spend_face as F
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEND = {"scope": "session", "providers": [
-    {"provider": "higgsfield", "unit": "credits", "spent": 31.5, "session_cap": 200.0, "job_cap": 40.0, "click": "always", "above": None},
-    {"provider": "openrouter", "unit": "USD", "spent": 0.31, "session_cap": 3.0, "job_cap": 1.0, "click": "above", "above": 0.25},
-    {"provider": "studios", "unit": "credits", "spent": 0.0, "session_cap": None, "job_cap": None, "click": "always", "above": None}]}
+SPEND = {"scope": "day", "providers": [
+    {"provider": "higgsfield", "unit": "credits", "spent": 31.5, "day_cap": 200.0, "job_cap": 40.0, "click": "always", "above": None},
+    {"provider": "openrouter", "unit": "USD", "spent": 0.31, "day_cap": 3.0, "job_cap": 1.0, "click": "above", "above": 0.25},
+    {"provider": "studios", "unit": "credits", "spent": 0.0, "day_cap": None, "job_cap": None, "click": "always", "above": None}]}
 
 
 def approval(**kw):
@@ -44,18 +44,18 @@ def test_agent_origin_is_shown():
 def test_meters_show_pending_separately():
     job, session = F.card(approval(), SPEND, now=1e9)["meters"]
     assert job["text"] == "this job 18 of 40" and job["used"] == 0.0 and job["pending"] == pytest.approx(18 / 40)
-    assert session["text"] == "session 31.5 + 18 of 200" and session["used"] == pytest.approx(31.5 / 200)
+    assert session["text"] == "spent today 31.5 + 18 of 200" and session["used"] == pytest.approx(31.5 / 200)
     assert session["pending"] == pytest.approx(18 / 200) and session["used_tone"] == "muted"
     hot = F.card(approval(), dict(SPEND, providers=[dict(SPEND["providers"][0], spent=185.0)]), now=1e9)["meters"][1]
     assert hot["used_tone"] == "stop", "over 90 percent the used segment is stop"
     none = F.card(approval(studio="tripo"), SPEND, now=1e9)["meters"]
-    assert [m["text"] for m in none] == ["no per-job cap", "session 0 spent, no cap"]
+    assert [m["text"] for m in none] == ["no per-job cap", "spent today 0, no daily cap"]
 
 
 def test_refusal_states_render_their_fix():
     cases = {
         "openrouter: 1.5 is over the per-job cap of 1 (Providers dialog)": ("over_job_cap", "Refused before sending: over the per-job cap"),
-        "higgsfield: 30 would pass the session cap of 40 (31.5 already spent; Providers dialog)": ("past_cap", "Past the session cap"),
+        "higgsfield: 30 would pass today's cap of 40 (31.5 already spent today, local day; Providers dialog)": ("past_cap", "Past today's cap"),
         "the price shown was 21.0, not 18.0: nothing was confirmed": ("price_changed", "The price changed: the old approval is void"),
         "A script cannot confirm a credit spend: click Confirm in the Studios panel yourself": ("agent_tried", "Agents can plan, never confirm"),
         "approval a1 expired: ask for the plan again so the price is read back fresh": ("expired", "This quote expired"),
@@ -108,3 +108,28 @@ def test_one_card_for_every_source():
     assert F.OPERATOR == "lampway.studio_confirm"
     confirms = sorted({p.name for p in base.rglob("*.py") if "().confirm(" in p.read_text(encoding="utf-8") and p.name != "studio_client.py"})
     assert confirms == ["studio_ops.py"], confirms   # the card's Spend (studio_confirm.execute) and the answer button are the only confirms
+
+
+def test_the_drawn_card_rows():
+    """Contract 13 P1: the rows the C++ card painter draws (layout.mixar_spend), packed the way it reads them."""
+    rows = F.drawn_rows(F.card(approval(), SPEND, now=1e9))
+    assert rows[0] == ("TITLE", "Higgsfield video: a 5-second loop of the lantern, 720p")
+    assert ("PRICE", "18 credits\x1fquoted") in rows
+    meters = [r for r in rows if r[0] == "METER"]
+    assert meters[0] == ("METER", "this job 18 of 40\x1f0.0000\x1f0.4500\x1f0")
+    assert meters[1][1].startswith("spent today 31.5 + 18 of 200\x1f0.1575\x1f0.0900\x1f")
+    assert F.rule("waiting") == "WAITING" and F.rule("over_job_cap") == "REFUSED" and F.rule("agent_tried") == "AGENT"
+    assert F.rule("spent") == "SPENT" and F.rule("price_changed") == "WAITING"
+
+
+def test_the_servers_own_day_cap_refusal_is_read_as_past_the_cap(tmp_path):
+    """Ruling 5 made the server refuse with "would pass today's cap"; the card matched only "session cap" / "day cap", so the real
+    refusal read as unknown. The message here comes from the server's SpendPolicy itself, not a paraphrase."""
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "server"))
+    from lampway_server.spendpolicy import SpendPolicy, SpendRefused
+    policy = SpendPolicy(lambda: {"higgsfield": {"day_cap": 40.0, "click": "always"}})
+    policy.record("higgsfield", 31.5)
+    with pytest.raises(SpendRefused) as exc:
+        policy.check("higgsfield", 30.0)
+    assert F.classify(str(exc.value)) == "past_cap", str(exc.value)

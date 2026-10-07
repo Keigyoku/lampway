@@ -13,3 +13,9 @@ def test_the_waiting_question_lights_its_primary_choice(tmp_path):
     assert report["facts"]["island"], report["facts"]
     assert "primary_choice" in report["surfaces"], report["facts"]
     assert harness.token_failures(report) == [], report["surfaces"]
+
+
+def test_the_turn_carries_its_who_line(tmp_path):
+    """Contract 04: the who line's stamp reaches the renderer (the line itself is drawn over the bubble: Spark, name, route, time)."""
+    report = harness.run_state("chat_who", tmp_path)
+    assert report["facts"]["island"] and report["facts"]["who"] == ["", "14:32\x1fchatgpt.com\x1fChatGPT plan\x1fidle"], report["facts"]

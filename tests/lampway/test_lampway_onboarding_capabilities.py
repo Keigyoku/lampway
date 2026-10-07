@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The first-run walk's step "What may your agent do?" (E2): after routes, with the server's defaults pre-ticked; Finish writes the changes
+"""The first-run walk's step "What may your agent do?" (E2): after the routes and the provider, with the server's defaults pre-ticked; Finish writes the changes
 through ``PUT /app/capabilities/{id}``. Offline the step is skipped and nothing is saved, as for the rest of the walk. The walk
 (``lampway_tools/onboarding.py``) holds no bpy and its logic loads without the package, as server/tests/test_onboarding_walk.py loads it;
 the popup (``ui/onboarding.py``) draws it. The routes-only walk is tests/lampway/test_lampway_onboarding.py."""
@@ -65,11 +65,11 @@ class Door:
 
 
 # ------------------------------------------------------------------------------------------------------------- the steps
-def test_the_step_comes_after_routes_and_before_spending_caps():
+def test_the_step_comes_after_routes_and_the_provider_and_before_spending_caps():
     w = walk()
-    assert w.steps == ("Language and keys", "Where the agent thinks", "What may leave this machine", "What may your agent do?", "Spending caps")
-    assert w.kinds == ("language", "agent", "routes", "capabilities", "spending")
-    assert ob.STEPS[2] == "What may leave this machine" and len(ob.STEPS) == 4, "the routes-only walk is still the walk without it"
+    assert w.steps == ("Language and keys", "What may leave this machine", "Where the agent thinks", "What may your agent do?", "Spending caps")
+    assert w.kinds == ("language", "routes", "agent", "capabilities", "spending")
+    assert ob.STEPS[1] == "What may leave this machine" and len(ob.STEPS) == 4, "the routes-only walk is still the walk without it"
 
 
 def test_the_walk_goes_through_it_and_the_last_step_is_still_spending():
@@ -80,16 +80,16 @@ def test_the_walk_goes_through_it_and_the_last_step_is_still_spending():
         if w.step == len(w.steps):
             break
         assert w.next() is None
-    assert seen == [(1, "language"), (2, "agent"), (3, "routes"), (4, "capabilities"), (5, "spending")]
+    assert seen == [(1, "language"), (2, "routes"), (3, "agent"), (4, "capabilities"), (5, "spending")]
     assert w.next() is None and w.step == 5, "it does not run past the end"
     w.back()
     assert w.kind == "capabilities"
 
 
-def test_the_routes_refusal_still_points_at_step_three():
+def test_the_providers_refusal_still_sends_the_user_back_to_the_routes():
     w = walk("chatgpt_plan", routes=[dict(ROUTES[0], id="chatgpt_plan", label="ChatGPT plan")])
-    w.step = 2
-    assert "switch it on in step 3" in w.next()
+    w.step = 3
+    assert "go Back and switch it on" in w.next()
 
 
 # ------------------------------------------------------------------------------------------------------------- the defaults
@@ -128,9 +128,9 @@ def test_a_ticked_capability_whose_route_is_off_says_which_step_opens_it():
     w = walk()
     assert w.capability_note("image.fal") == "", "unticked: nothing to say"
     w.click_capability("image.fal", True)
-    assert w.capability_note("image.fal") == "Needs the fal route, which is off: switch it on in step 3"
+    assert w.capability_note("image.fal") == "Needs the fal route, which is off: switch it on in step 2"
     w.click_route("fal", True)
-    assert w.capability_note("image.fal") == "", "the route chosen in step 3 counts, before anything is saved"
+    assert w.capability_note("image.fal") == "", "the route chosen in step 2 counts, before anything is saved"
     w.click_capability("web.browse", True)
     assert w.capability_note("web.browse") == "Needs the web (any site) route, which this setup does not offer yet"
 
@@ -313,7 +313,7 @@ def test_a_ticked_risky_capability_shows_its_warning_in_the_step(ui):
     ui.draw_step(lay, w, [], items(w))
     labels = [(e[1], e[2]) for e in lay.log if e[0] == "label"]
     assert ("Commands run on this computer as you.", "ERROR") in labels
-    assert any(t == "Needs the fal route, which is off: switch it on in step 3" for t, _ in labels)
+    assert any(t == "Needs the fal route, which is off: switch it on in step 2" for t, _ in labels)
 
 
 def test_offline_the_step_never_shows_and_the_spending_step_is_the_last(ui):
@@ -363,7 +363,7 @@ def test_a_walk_begun_by_the_popup_pre_ticks_the_servers_defaults(ui, monkeypatc
             return item
 
     wm = SimpleNamespace(lampway_onboarding_routes=Collection(), lampway_onboarding_caps=Collection(), lampway_onboarding_provider="mock",
-                         lampway_onboarding_job_cap=1.0, lampway_onboarding_session_cap=5.0, lampway_onboarding_above=0.25)
+                         lampway_onboarding_job_cap=1.0, lampway_onboarding_day_cap=5.0, lampway_onboarding_above=0.25)
     monkeypatch.setattr(ui, "_door", lambda: OnlineDoor({"capabilities": CAPS}))
     w = ui._begin(SimpleNamespace(window_manager=wm))
     assert [i.cap_id for i in wm.lampway_onboarding_caps] == [r["id"] for r in w.capability_rows]

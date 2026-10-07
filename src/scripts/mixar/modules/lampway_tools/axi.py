@@ -22,14 +22,26 @@ HOME = os.path.expanduser('~')
 NUMERIC = __import__('re').compile(r'^[+-]?[0-9]+(?:\.[0-9]+)?(?:e[+-]?[0-9]+)?$', __import__('re').I)
 
 
+def _num(v):
+    """A TOON 4 canonical number: the shortest round-trip digits, no exponent for 1e-6 <= |v| < 1e21, no trailing zeros, -0 -> 0, a
+    non-finite float -> null (audit F9: `.4g` printed 1234567.0 as 1.235e+06 and the value was lost)."""
+    if isinstance(v, int): return str(v)
+    if v != v or v in (float('inf'), float('-inf')): return 'null'
+    if v == 0: return '0'
+    if 1e-6 <= abs(v) < 1e21:
+        t = format(__import__('decimal').Decimal(repr(v)), 'f')
+        return t.rstrip('0').rstrip('.') if '.' in t else t
+    m, e = repr(v).lower().split('e')
+    return f"{m}e{'+' if int(e) >= 0 else '-'}{abs(int(e))}"
+
+
 def _s(v, delim=','):
     """one TOON primitive per spec v4.1 (tools/TOON-SPEC.md): null/true/false, canonical numbers, and strings quoted per §7.2
     (empty, edge whitespace, true/false/null, numeric-like, : " \\ [ ] { }, control chars, the delimiter, leading - or #)"""
     if v is None: return 'null'
     if isinstance(v, bool): return 'true' if v else 'false'
     if isinstance(v, (int, float)) and not isinstance(v, bool):
-        if isinstance(v, float) and v != v: return 'null'
-        return f'{v:.4g}' if isinstance(v, float) else str(v)
+        return _num(v)
     s = str(v)
     need = (s == '' or s != s.strip(' \t') or s in ('true', 'false', 'null') or NUMERIC.match(s) or any(c in s for c in ':"\\[]{}')
             or any(ord(c) < 32 for c in s) or delim in s or s.startswith(('-', '#')))
@@ -49,7 +61,7 @@ def home(path, description):
 KEY = __import__('re').compile(r'^[A-Za-z_][A-Za-z0-9_.]*$')
 
 
-def _k(k): return k if KEY.match(str(k)) else _s(str(k), delim='\x00') if _s(str(k), delim='\x00').startswith('"') else f'"{k}"'
+def _k(k): return k if KEY.fullmatch(str(k)) else _s(str(k), delim='\x00') if _s(str(k), delim='\x00').startswith('"') else f'"{k}"'
 
 
 def kv(d, indent=''):
@@ -62,7 +74,7 @@ def kv(d, indent=''):
 def table(name, rows, fields, total=None):
     if total is not None: print(f'count: {len(rows)} of {total} total')
     name = _k(name); head = [_k(f) for f in fields]                      # quoted for the header only; rows are read by the raw names
-    if not rows: print(f'{name}[0]:'); return                              # TOON's empty array: a definitive zero (AXI 5)
+    if not rows: print(f'{name}: []'); return                              # TOON 4's empty array, a definitive zero (AXI 5); the legacy name[0]: MUST NOT be emitted
     print(f'{name}[{len(rows)}]{{{",".join(head)}}}:')
     for r in rows: print('  ' + ','.join(_s(r.get(f) if isinstance(r, dict) else r[i]) for i, f in enumerate(fields)))
 

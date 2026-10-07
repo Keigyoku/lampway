@@ -72,6 +72,11 @@ def test_refusal_shows_three_ways():
     off = P.last_refusal([{"t": 3.0, "event": "refused", "route": "heygen", "reason": "route off"}])
     assert off["title"] == "heygen is off" and [w["action"] for w in off["ways"]] == ["route_on"]
     assert P.last_refusal(log[:1]) is None
+    here = card["ways"][1]
+    assert here["action"] == "local" and here["op"] == "lampway.choices_open" and here["group"] == "images", \
+        "Run it here instead opens Choices on the job's kind, where a local option can be put first"
+    video = P.last_refusal([dict(log[1], kind="video")])["ways"][1]
+    assert video["group"] == "video"
 
 
 def test_log_view_never_renders_content():

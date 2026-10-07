@@ -77,3 +77,61 @@ print("RESULT", json.dumps({"a": a, "b": b}))
     o = r.results[0]
     assert o["a"]["ok"] is False and "discards the studio texture" in o["a"]["error"] and "albedo" in o["a"]["error"], o["a"]
     assert o["b"]["ok"] is True, o["b"]
+
+
+SITE = """
+def box(name, lo, hi):
+    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1.0)
+    for v in bm.verts:
+        v.co = Vector([lo[i] + (hi[i] - lo[i]) * (v.co[i] + 0.5) for i in range(3)])
+    me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    return link(bpy.data.objects.new(name, me))
+chest = box("chest", (-0.2, -0.12, 0.9), (0.2, 0.12, 1.5))
+pad = box("pad", (0.2, -0.08, 1.42), (0.32, 0.08, 1.52))
+bm = bmesh.new()
+for o in (chest, pad): bm.from_mesh(o.data)
+me = bpy.data.meshes.new("piece"); bm.to_mesh(me); bm.free()
+piece = link(bpy.data.objects.new("piece", me))
+for o in (chest, pad): bpy.data.objects.remove(o)
+arm = bpy.data.armatures.new("rig"); rig = link(bpy.data.objects.new("rig", arm))
+bpy.context.view_layer.objects.active = rig; bpy.ops.object.mode_set(mode="EDIT")
+s = arm.edit_bones.new("spine_05"); s.head = (0, 0, 1.0); s.tail = (0, 0, 1.3)
+u = arm.edit_bones.new("upperarm_l"); u.head = (0.1, 0, 1.3); u.tail = (0.4, 0, 1.3); u.parent = s
+l = arm.edit_bones.new("lowerarm_l"); l.head = (0.4, 0, 1.3); l.tail = (0.65, 0, 1.3); l.parent = u
+bpy.ops.object.mode_set(mode="OBJECT")
+"""
+
+
+def test_f1_the_site_axis_is_the_posed_bone_line_and_finds_a_cap_that_is_not_at_the_extreme(tmp_path):
+    r = scene(tmp_path, SITE + '''
+typed = call("fit_openings", stage="detect", object="piece", axis=[1, 0, 0])
+site = call("fit_openings", stage="detect", object="piece", armature="rig", site="upperarm_l", pose=POSE)
+pb = bpy.data.objects["rig"].pose.bones["upperarm_l"]; pb.rotation_mode = "XYZ"; pb.rotation_euler = (0, 0, 0.0)
+print("RESULT", json.dumps({"typed": typed, "site": site}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    o = r.results[0]
+    xs = sorted(round(c["plane_origin_m"][0], 3) for c in o["typed"]["candidates"])
+    assert 0.2 not in xs, xs                                  # the falsifier: the extreme rule finds the pad's face (x 0.32), not the arm hole
+    c = o["site"]["candidates"]
+    assert o["site"]["ok"] and len(c) == 1 and abs(c[0]["plane_origin_m"][0] - 0.2) < 1e-6 and c[0]["site"] == "upperarm_l", o["site"]
+    assert c[0]["axis"] == [1.0, 0.0, 0.0] and c[0]["end"] == "site", c[0]
+
+
+def test_f1_the_site_follows_the_pose_not_the_rest(tmp_path):
+    """The arm turned 90 deg in the horizontal plane: its POSED line now leaves the chest through its front or back face, and that is the
+    cap found, on the posed axis (the rest axis +X would have found the flank)."""
+    r = scene(tmp_path, SITE + '''
+pb = bpy.data.objects["rig"].pose.bones["upperarm_l"]; pb.rotation_mode = "XYZ"; pb.rotation_euler = (0, 0, math.radians(-90))
+bpy.context.view_layer.update()
+rig = bpy.data.objects["rig"]
+d = (rig.matrix_world @ rig.pose.bones["lowerarm_l"].head) - (rig.matrix_world @ rig.pose.bones["upperarm_l"].head)
+site = call("fit_openings", stage="detect", object="piece", armature="rig", site="upperarm_l", pose=POSE)
+print("RESULT", json.dumps({"site": site, "dir": list(d.normalized())}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    s, d = r.results[0]["site"], r.results[0]["dir"]
+    assert abs(abs(d[1]) - 1.0) < 1e-6, d                                   # the posed arm points along Y
+    c = s["candidates"]
+    assert s["ok"] and len(c) == 1 and max(abs(a - b) for a, b in zip(c[0]["axis"], d)) < 1e-6, s
+    assert abs(abs(c[0]["plane_origin_m"][1]) - 0.12) < 1e-6 and c[0]["plane_origin_m"][1] * d[1] > 0, c[0]

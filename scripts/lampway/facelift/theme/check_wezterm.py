@@ -7,11 +7,11 @@
     python3 check_wezterm.py --self-test   # plants one offender per check
 
 The config is executed under a stub `wezterm` module with LAMPWAY_HOME pointed at a temp dir, then inspected:
-W1  both colour schemes equal the tokens (foreground, background, cursor, selection, tab bar), and ANSI never uses `wire`.
+W1  both colour schemes equal the tokens (foreground, background, cursor, selection), and ANSI never uses `wire`.
 W2  calm and private: check_for_updates is false (an update check is a network call nobody opted into), no bell, no blink.
-W3  isolation: the file opens nothing but $LAMPWAY_HOME/wezterm/state.json, never names the user's config, refuses to load
-    without LAMPWAY_HOME.
-W4  the tab title for each agent state carries that state's glyph and token colour (read from a planted state.json).
+W3  isolation: the file opens no file at all, never names the user's config, refuses to load without LAMPWAY_HOME.
+W4  a viewport only (the captain, 2026-10-06): the tab bar is off, and nothing renders a tab title or a status from state.
+W5  no link handling of its own (the captain's ruling 11): no hyperlink rules, no open-uri handler, no mouse bindings.
 """
 import json
 import os
@@ -23,15 +23,15 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 LUA = os.path.join(HERE, "lampway.wezterm.lua")
 TOKENS = json.load(open(os.path.join(HERE, "tokens.json")))
-CUE = {"idle": "muted_dim", "working": "accent_text", "unread": "agent", "blocked": "accent_text", "paused": "muted",
-       "done": "go", "failed": "stop"}
 
 HARNESS = r"""
 local handlers, out = {}, {}
 package.preload['wezterm'] = function()
   return { config_builder = function() return {} end, on = function(n, f) handlers[n] = f end,
            font_with_fallback = function(t) return t end, json_parse = function(s) return JSON_DECODE(s) end,
-           format = function(t) return t end }
+           format = function(t) return t end, default_hyperlink_rules = function() return {} end,
+           json_encode = function(t) return '{"path":"' .. t.path .. '"}' end,
+           action = setmetatable({}, { __index = function(_, k) return k end }) }
 end
 -- a tiny JSON decoder for the planted state file (objects, strings only)
 function JSON_DECODE(s)
@@ -51,27 +51,19 @@ if not ok then print('LOADERR\t' .. tostring(cfg)); return end
 local function emit(k, v) print(k .. '\t' .. tostring(v)) end
 for name, sc in pairs(cfg.color_schemes) do
   for _, k in ipairs({'foreground', 'background', 'cursor_bg', 'selection_bg'}) do emit(name .. '.' .. k, sc[k]) end
-  emit(name .. '.tab_bar.active_tab.bg_color', sc.tab_bar.active_tab.bg_color)
   for i, c in ipairs(sc.ansi) do emit(name .. '.ansi.' .. i, c) end
   for i, c in ipairs(sc.brights) do emit(name .. '.brights.' .. i, c) end
 end
 emit('check_for_updates', cfg.check_for_updates); emit('audible_bell', cfg.audible_bell); emit('cursor_blink_rate', cfg.cursor_blink_rate)
-for _, st in ipairs({'idle', 'working', 'unread', 'blocked', 'paused', 'done', 'failed'}) do
-  STATE_NOW = st
-end
-local f = handlers['format-tab-title']
-for pid, st in pairs({['1'] = 'idle', ['2'] = 'working', ['3'] = 'unread', ['4'] = 'blocked', ['5'] = 'paused', ['6'] = 'done', ['7'] = 'failed'}) do
-  local r = f({ active_pane = { pane_id = tonumber(pid), title = 't' }, is_active = false })
-  emit('tab.' .. st, r[1].Foreground.Color .. ' ' .. r[2].Text)
-end
+emit('links', tostring(cfg.hyperlink_rules ~= nil or cfg.mouse_bindings ~= nil or handlers['open-uri'] ~= nil))
+emit('tab_bar', tostring(cfg.enable_tab_bar))
+emit('handlers', (handlers['format-tab-title'] and 'format-tab-title ' or '') .. (handlers['update-status'] and 'update-status' or ''))
 """
 
 
 def run(lua_path, with_home=True):
     tmp = tempfile.mkdtemp()
     os.makedirs(os.path.join(tmp, "wezterm"))
-    panes = {str(i): {"state": s, "name": s} for i, s in enumerate(["idle", "working", "unread", "blocked", "paused", "done", "failed"], 1)}
-    json.dump({"panes": panes, "egress": {"state": "idle"}}, open(os.path.join(tmp, "wezterm", "state.json"), "w"))
     h = os.path.join(tmp, "harness.lua")
     open(h, "w").write(HARNESS)
     env = {"PATH": os.environ.get("PATH", "/usr/bin"), "HOME": tmp}
@@ -89,8 +81,7 @@ def check(lua_path):
         return [f"W0: the config does not load: {v['LOADERR']}"]
     c = TOKENS["colour"]
     for name, var in (("Lampway Night", "dark"), ("Lampway Paper", "light")):
-        for k, tok in (("foreground", "text"), ("background", "canvas"), ("cursor_bg", "accent"), ("selection_bg", "accent_bed_hi"),
-                       ("tab_bar.active_tab.bg_color", "surface")):
+        for k, tok in (("foreground", "text"), ("background", "canvas"), ("cursor_bg", "accent"), ("selection_bg", "accent_bed_hi")):
             got = v.get(f"{name}.{k}", "").upper()
             if got != c[tok][var].upper():
                 f.append(f"W1 {name}.{k} = {got}, token {tok} = {c[tok][var]}")
@@ -103,19 +94,16 @@ def check(lua_path):
     if v.get("audible_bell") != "Disabled" or v.get("cursor_blink_rate") != "0":
         f.append("W2 bell or blinking cursor is on (calm by default)")
     opens = re.findall(r"io\.open\(([^,)]+)", src)
-    if opens != ["STATE_FILE"]:
-        f.append(f"W3 the config opens {opens}, only STATE_FILE is allowed")
+    if opens:
+        f.append(f"W3 the config opens {opens}: it opens no file")
+    if v.get("links") != "false":
+        f.append("W5 the config handles links itself (hyperlink rules, open-uri or mouse bindings): a viewport handles none")
     if re.search(r"\.wezterm\.lua|\.config/wezterm|WEZTERM_CONFIG", src):
         f.append("W3 the config names the user's own WezTerm configuration")
     if "LOADERR" not in run(lua_path, with_home=False):
         f.append("W3 the config loads without LAMPWAY_HOME (it must refuse)")
-    for st, tok in CUE.items():
-        got = v.get(f"tab.{st}", "")
-        if not got.upper().startswith(c[tok]["dark"].upper()):
-            f.append(f"W4 tab title for {st}: {got!r}, want colour {c[tok]['dark']}")
-    glyphs = [v.get(f"tab.{st}", "").split(" ", 1)[-1] for st in CUE]
-    if len(set(glyphs)) != len(glyphs):
-        f.append("W4 two agent states share a tab glyph")
+    if v.get("tab_bar") != "false" or v.get("handlers"):
+        f.append(f"W4 not a viewport: enable_tab_bar = {v.get('tab_bar')}, handlers {v.get('handlers')!r} (no tab bar, no tab title, no status)")
     return f
 
 
@@ -126,8 +114,10 @@ def self_test():
     for label, mut, tag in (
         ("W1 drifted background", src.replace("background = '#0E1016'", "background = '#000000'", 1), "W1"),
         ("W2 update check on", src.replace("config.check_for_updates = false", "config.check_for_updates = true"), "W2"),
-        ("W3 reads the user's config", src.replace("local STATE_FILE", "local _u = io.open(os.getenv('HOME') .. '/.wezterm.lua')\nlocal STATE_FILE"), "W3"),
-        ("W4 two states share a glyph", src.replace("glyph = '✕'", "glyph = '✓'"), "W4"),
+        ("W3 reads the user's config", src.replace("return config", "local _u = io.open(os.getenv('HOME') .. '/.wezterm.lua')\nreturn config"), "W3"),
+        ("W4 a tab bar again", src.replace("config.enable_tab_bar = false", "config.enable_tab_bar = true"), "W4"),
+        ("W4 a tab title from state", src.replace("return config", "wezterm.on('format-tab-title', function(tab) return 'x' end)\nreturn config"), "W4"),
+        ("W5 a link handler again", src.replace("return config", "wezterm.on('open-uri', function() return false end)\nreturn config"), "W5"),
     ):
         p = os.path.join(tempfile.mkdtemp(), "mut.lua")
         open(p, "w", encoding="utf-8").write(mut)

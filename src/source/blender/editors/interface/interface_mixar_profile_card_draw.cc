@@ -39,6 +39,7 @@
 #include "interface_mixar_card_paint.hh"
 #include "interface_mixar_palette.hh"
 #include "interface_mixar_profile_card.hh"
+#include "interface_mixar_spend_card.hh"
 #include "UI_mixar_theme.hh"
 /* Mixar 5.2 port: namespace wrap. */
 namespace blender::ui {
@@ -325,6 +326,9 @@ void UI_mixar_profile_card_draw_element(
   /* Topbar elements are buttons too, but they own their own chrome — check
    * them before the card-button painter claims them. */
   if (UI_mixar_topbar_draw_element(but, rect, element, is_hover, is_active)) {
+    return;
+  }
+  if (UI_mixar_spend_card_draw(but, rect, element)) {
     return;
   }
 

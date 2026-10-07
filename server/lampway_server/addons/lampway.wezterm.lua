@@ -16,14 +16,6 @@ config.color_schemes = {
     scrollbar_thumb = '#3B4252', split = '#2B303D', compose_cursor = '#9EA0F7',
     ansi = { '#0E1016', '#F0766B', '#5BC48F', '#EDB944', '#9EA0F7', '#D58FE0', '#6FC3E8', '#CFCBC2' },
     brights = { '#7D7A73', '#F59A91', '#7FD6A8', '#F6CD6B', '#B9BBFA', '#E2AEEA', '#97D5F0', '#F7F4EE' },
-    tab_bar = {
-      background = '#0E1016',
-      active_tab = { bg_color = '#161922', fg_color = '#F7F4EE' },
-      inactive_tab = { bg_color = '#0E1016', fg_color = '#A9A69D' },
-      inactive_tab_hover = { bg_color = '#1E222D', fg_color = '#ECE8DF' },
-      new_tab = { bg_color = '#0E1016', fg_color = '#7D7A73' },
-      new_tab_hover = { bg_color = '#1E222D', fg_color = '#ECE8DF' },
-    },
   },
   ['Lampway Paper'] = {
     foreground = '#1B1B22', background = '#E4DCCB',
@@ -32,14 +24,6 @@ config.color_schemes = {
     scrollbar_thumb = '#C9BFA9', split = '#DDD5C3', compose_cursor = '#4547B8',
     ansi = { '#1B1B22', '#B3372C', '#1F7A4D', '#8A5A00', '#4547B8', '#8A3A96', '#1F6E8C', '#C9BFA9' },
     brights = { '#5C5A55', '#C9483C', '#2A8F5C', '#A06A00', '#5A5CC8', '#A04AAE', '#2A86A8', '#F7F3EA' },
-    tab_bar = {
-      background = '#E4DCCB',
-      active_tab = { bg_color = '#F7F3EA', fg_color = '#0E1016' },
-      inactive_tab = { bg_color = '#E4DCCB', fg_color = '#5C5A55' },
-      inactive_tab_hover = { bg_color = '#FFFFFF', fg_color = '#1B1B22' },
-      new_tab = { bg_color = '#E4DCCB', fg_color = '#8A877F' },
-      new_tab_hover = { bg_color = '#FFFFFF', fg_color = '#1B1B22' },
-    },
   },
 }
 config.color_scheme = (variant == 'light') and 'Lampway Paper' or 'Lampway Night'
@@ -59,69 +43,10 @@ config.cursor_blink_rate = 0
 config.default_cursor_style = 'SteadyBar'
 config.enable_kitty_graphics = true
 config.window_padding = { left = 14, right = 14, top = 10, bottom = 8 }
-config.use_fancy_tab_bar = false
-config.tab_max_width = 36
-config.hide_tab_bar_if_only_one_tab = false
-config.status_update_interval = 1000
+-- a viewport, nothing more (the captain, 2026-10-06): herdr owns the workspace, the agents, the panes and the tabs, and shows
+-- their state; WezTerm has no tab bar and mirrors nothing
+config.enable_tab_bar = false
 config.unix_domains = {}
 config.ssh_domains = {}
-
--- glance cues (DESIGN.md 13): one glyph per agent state, the token colour; nothing in the tab bar moves
-local CUES = {
-  idle = { glyph = '○', dark = '#7D7A73', light = '#8A877F' },
-  working = { glyph = '◔', dark = '#EDB944', light = '#8A5A00' },
-  unread = { glyph = '●', dark = '#9EA0F7', light = '#4547B8' },
-  blocked = { glyph = '◆', dark = '#EDB944', light = '#8A5A00' },
-  paused = { glyph = '◌', dark = '#A9A69D', light = '#5C5A55' },
-  done = { glyph = '✓', dark = '#5BC48F', light = '#1F7A4D' },
-  failed = { glyph = '✕', dark = '#F0766B', light = '#B3372C' }
-}
-local WIRE_COLOUR = { dark = '#F27BCB', light = '#9C1F7A' }
-local WIRE_BED = { dark = '#3A1A33', light = '#F6DCEB' }
-local MUTED = { dark = '#A9A69D', light = '#5C5A55' }
-local TEXT_HI = { dark = '#F7F4EE', light = '#0E1016' }
-
--- state written by the Lampway server: { panes = { ["<wezterm pane id>"] = { state = 'working', name = '...' } },
---                                        egress = { state = 'idle'|'open'|'live', route = '...', size = '...' } }
-local STATE_FILE = home .. '/wezterm/state.json'
-local cached, cached_at = { panes = {}, egress = { state = 'idle' } }, -1
-local function state()
-  local now = os.time()
-  if now ~= cached_at then
-    cached_at = now
-    local f = io.open(STATE_FILE, 'r')
-    if f then
-      local ok, parsed = pcall(wezterm.json_parse, f:read('*a'))
-      f:close()
-      if ok and type(parsed) == 'table' then cached = parsed end
-    end
-  end
-  return cached
-end
-
-wezterm.on('format-tab-title', function(tab)
-  local pane = tab.active_pane
-  local s = (state().panes or {})[tostring(pane.pane_id)] or {}
-  local cue = CUES[s.state or 'idle'] or CUES.idle
-  local name = s.name or pane.title
-  return {
-    { Foreground = { Color = cue[variant] } }, { Text = ' ' .. cue.glyph .. ' ' },
-    { Foreground = { Color = tab.is_active and TEXT_HI[variant] or MUTED[variant] } }, { Text = name .. ' ' },
-  }
-end)
-
-wezterm.on('update-status', function(window)
-  local e = state().egress or { state = 'idle' }
-  if e.state == 'live' then
-    window:set_right_status(wezterm.format({
-      { Background = { Color = WIRE_BED[variant] } }, { Foreground = { Color = WIRE_COLOUR[variant] } },
-      { Text = ' ⇢ Sending to ' .. (e.route or '?') .. ', ' .. (e.size or '') .. ' ' },
-    }))
-  elseif e.state == 'open' then
-    window:set_right_status(wezterm.format({ { Foreground = { Color = MUTED[variant] } }, { Text = ' ⇢ ' .. (e.open or '') .. ' ' } }))
-  else
-    window:set_right_status(wezterm.format({ { Foreground = { Color = MUTED[variant] } }, { Text = ' local ' } }))
-  end
-end)
 
 return config

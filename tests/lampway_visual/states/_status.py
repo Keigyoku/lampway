@@ -5,9 +5,9 @@
 """Shared by the status bar states: the bar fed from a fake server answer (the refresh timer is stopped, so nothing reaches the network)."""
 
 ROUTES = [{"id": "openrouter", "label": "OpenRouter"}, {"id": "fal", "label": "fal.ai"}]
-SPEND = {"scope": "session", "providers": [
-    {"provider": "openrouter", "unit": "USD", "spent": 0.31, "session_cap": 5.0, "job_cap": 1.0, "click": "above", "above": 0.25},
-    {"provider": "higgsfield", "unit": "credits", "spent": 0.0, "session_cap": None, "job_cap": None, "click": "always", "above": None}]}
+SPEND = {"scope": "day", "providers": [
+    {"provider": "openrouter", "unit": "USD", "spent": 0.31, "day_cap": 5.0, "job_cap": 1.0, "click": "above", "above": 0.25},
+    {"provider": "higgsfield", "unit": "credits", "spent": 0.0, "day_cap": None, "job_cap": None, "click": "always", "above": None}]}
 
 
 def feed(bpy, on, sending, waiting):

@@ -13,6 +13,8 @@ text), the name, the tick, with the server's defaults ticked; a ticked one that 
 ticked one whose route is off says where to switch it.
 Nothing here reaches the network in a draw: the walk is read once, when the dialog opens."""
 
+import textwrap
+
 import bpy
 from bpy.props import BoolProperty, CollectionProperty, EnumProperty, FloatProperty, StringProperty
 from bpy.types import Operator, PropertyGroup
@@ -20,7 +22,23 @@ from bpy.types import Operator, PropertyGroup
 from mixar.modules.lampway_tools import capabilities_face as face
 from mixar.modules.lampway_tools import onboarding as ob
 
-WALK = {"walk": None}
+def n_(msgid):
+    """Marks a message for the catalogue; it is translated where it is drawn."""
+    return msgid
+
+
+def iface_(msgid):
+    out = bpy.app.translations.pgettext_iface(msgid)
+    return out if isinstance(out, str) else msgid      # a stubbed bpy (the unit tests) translates nothing
+
+
+WALK = {"walk": None, "anchor": None}
+WRAP = 60              # characters per body line: the body column holds about 78 at any UI scale (it scales with the text)
+STEP_TEXT = {"agent": n_("The agent thinks with the provider you pick here; nothing is sent until you use it"),
+             "routes": n_("Every route is off until you switch it on"),
+             "capabilities": n_("Your agent can do only what you tick here. Change it any time in Choices and privacy."),
+             "spending": n_("OpenRouter, in dollars: a click above the first amount, never past the caps")}
+OFFLINE_NEXT = n_("Continue saves your language and keys only")
 SHIELD = {"ok": 'LAMPWAY_SHIELD', "conditional": 'LAMPWAY_SHIELD_HALF', "retains": 'LAMPWAY_SHIELD_OPEN', "unknown": 'LAMPWAY_SHIELD_UNKNOWN'}
 PROVIDERS = (("chatgpt_plan", "ChatGPT plan", "Your ChatGPT subscription, signed in from Providers"),
              ("openrouter", "OpenRouter", "Pay per use with your OpenRouter key"),
@@ -59,6 +77,38 @@ def draw_rail(layout, walk):
     for i, name in enumerate(walk.steps, start=1):
         icon = 'LAMPWAY_NODE_LIT' if i < walk.step else 'LAMPWAY_NODE_HALF' if i == walk.step else 'LAMPWAY_NODE'
         col.label(text=name, icon=icon)
+    col.separator()
+    if walk.step > 2:    # Back lives under the steps, never on the bottom row where the step before had Continue (audit F23)
+        col.operator("lampway.onboarding_back", text="Back")
+    else:
+        col.label(text="")
+
+
+def wrapped(layout, text, icon='NONE'):
+    """A sentence as whole lines: a label never cuts it to an ellipsis (audit F23). Translated whole, then wrapped."""
+    for i, line in enumerate(textwrap.wrap(iface_(text), WRAP)):
+        layout.label(text=line, icon=icon if i == 0 else 'NONE', translate=False)
+
+
+def _lines(text) -> int:
+    return len(textwrap.wrap(iface_(text), WRAP))
+
+
+def body_rows(walk) -> int:
+    """The tallest step's rows: every step is padded to it, so the dialog keeps one size and Continue one place (audit F23)."""
+    if not walk.online:
+        return 1 + _lines(ob.OFFLINE) + _lines(OFFLINE_NEXT)
+    refusal = max((_lines(why) for why in [walk.refusal()] if why), default=0)
+    return max(_lines(STEP_TEXT["agent"]) + 1 + max(refusal, 1), _lines(STEP_TEXT["routes"]) + len(walk.routes),
+               _lines(STEP_TEXT["spending"]) + 3, capability_rows(walk))
+
+
+def capability_rows(walk) -> int:
+    """The capabilities step at its tallest (every row ticked, so every warning and route note shown); 0 when the walk has none."""
+    if walk.capability_rows is None:
+        return 0
+    groups = face.groups(walk.capability_rows)
+    return _lines(STEP_TEXT["capabilities"]) + 2 * len(groups) + 3 * sum(len(g["rows"]) for g in groups)
 
 
 def draw_routes(layout, walk, rows):
@@ -72,13 +122,15 @@ def draw_routes(layout, walk, rows):
         row.prop(row_data, "enabled", text="")
 
 
-def draw_capabilities(layout, walk, cap_rows):
-    """One tick per capability, grouped by risk; the warning and the route note sit under the ones that are ticked."""
+def draw_capabilities(layout, walk, cap_rows) -> int:
+    """One tick per capability, grouped by risk; the warning and the route note sit under the ones that are ticked. Returns its rows."""
     items = {r.cap_id: r for r in cap_rows}
-    layout.label(text="Your agent can do only what you tick here. Change it any time in Choices and privacy.")
+    wrapped(layout, STEP_TEXT["capabilities"])
+    drawn = _lines(STEP_TEXT["capabilities"])
     for group in face.groups(walk.capability_rows):
         layout.separator()
         layout.label(text=group["title"])
+        drawn += 2
         for cap in group["rows"]:
             item = items.get(cap["id"])
             if item is None:
@@ -87,36 +139,57 @@ def draw_capabilities(layout, walk, cap_rows):
             row.operator("lampway.onboarding_capability_info", text="", icon='INFO', emboss=False).cap_id = cap["id"]
             row.label(text=cap.get("label") or cap["id"])
             row.prop(item, "enabled", text="")
+            drawn += 1
             for text, icon in ((walk.capability_warning(cap["id"]), 'ERROR'), (walk.capability_note(cap["id"]), 'INFO')):
                 if text:
                     layout.label(text=text, icon=icon)
+                    drawn += 1
+    return drawn
 
 
 def draw_step(layout, walk, rows, cap_rows=()):
     split = layout.split(factor=0.34)
     draw_rail(split.column(), walk)
     body = split.column()
+    drawn = _draw_body(body, walk, rows, cap_rows)
+    for _ in range(body_rows(walk) - drawn):
+        body.label(text="")
+
+
+def _draw_body(body, walk, rows, cap_rows=()) -> int:
+    """Draw the step's body; return how many rows it took."""
     if walk.step >= 2 and not walk.online:
-        body.label(text=ob.OFFLINE, icon='ERROR')
-        body.label(text="Continue saves your language and keys only")
-        return
+        wrapped(body, ob.OFFLINE, icon='ERROR')
+        wrapped(body, OFFLINE_NEXT)
+        return _lines(ob.OFFLINE) + _lines(OFFLINE_NEXT)
     wm = getattr(bpy.context, "window_manager", None)
     kind = walk.kind
     if kind == "agent":
-        body.label(text="The agent thinks with the provider you pick here; nothing is sent until you use it")
+        wrapped(body, STEP_TEXT["agent"])
         body.prop(wm, "lampway_onboarding_provider", text="")
-        if why := walk.refusal():
-            body.label(text=why, icon='ERROR')
-    elif kind == "routes":
-        body.label(text="Every route is off until you switch it on")
+        why = walk.refusal()
+        if why:
+            wrapped(body, why, icon='ERROR')
+        return _lines(STEP_TEXT["agent"]) + 1 + (_lines(why) if why else 0)
+    if kind == "routes":
+        wrapped(body, STEP_TEXT["routes"])
         draw_routes(body, walk, rows)
-    elif kind == "capabilities":
-        draw_capabilities(body, walk, cap_rows)
-    elif kind == "spending":
-        body.label(text="OpenRouter, in dollars: a click above the first amount, never past the caps")
+        return _lines(STEP_TEXT["routes"]) + len(rows)
+    if kind == "capabilities":
+        return draw_capabilities(body, walk, cap_rows)
+    if kind == "spending":
+        wrapped(body, STEP_TEXT["spending"])
         body.prop(wm, "lampway_onboarding_above", text="Click above")
         body.prop(wm, "lampway_onboarding_job_cap", text="Per job")
-        body.prop(wm, "lampway_onboarding_session_cap", text="Per session")
+        body.prop(wm, "lampway_onboarding_day_cap", text="Per day")
+        return _lines(STEP_TEXT["spending"]) + 3
+    return 0
+
+
+def _redraw_all(context):
+    """The step before's dialog must not stay painted behind this one (audit F23)."""
+    for area in [*context.window.screen.areas, *context.window.global_areas]:
+        area.tag_redraw()
 
 
 def _route_switched(self, context):
@@ -138,7 +211,7 @@ def _capability_switched(self, context):
 
 def _caps_changed(self, context):
     if WALK["walk"] is not None:
-        WALK["walk"].caps = {"job_cap": self.lampway_onboarding_job_cap, "session_cap": self.lampway_onboarding_session_cap,
+        WALK["walk"].caps = {"job_cap": self.lampway_onboarding_job_cap, "day_cap": self.lampway_onboarding_day_cap,
                              "above": self.lampway_onboarding_above}
 
 
@@ -182,6 +255,12 @@ class LAMPWAY_OT_onboarding(Operator):
 
     def invoke(self, context, event):
         walk = WALK["walk"] or _begin(context)
+        # every step opens where the first did: one size, one place, so Continue never moves (audit F23)
+        if WALK["anchor"] is None:
+            WALK["anchor"] = (event.mouse_x, event.mouse_y)
+        elif (event.mouse_x, event.mouse_y) != WALK["anchor"]:
+            context.window.cursor_warp(*WALK["anchor"])
+        _redraw_all(context)
         text = walk.continue_label() if walk.step == len(walk.steps) and walk.online else "Continue"
         return context.window_manager.invoke_props_dialog(self, width=640, title=walk.steps[walk.step - 1], confirm_text=text)
 
@@ -189,8 +268,6 @@ class LAMPWAY_OT_onboarding(Operator):
         walk = WALK["walk"]
         if walk is not None:
             draw_step(self.layout, walk, context.window_manager.lampway_onboarding_routes, context.window_manager.lampway_onboarding_caps)
-            if walk.step > 2:
-                self.layout.operator("lampway.onboarding_back", text="Back")
 
     def execute(self, context):
         walk = WALK["walk"]
@@ -207,7 +284,7 @@ class LAMPWAY_OT_onboarding(Operator):
             self.report({'ERROR'}, f"Lampway's server did not take the setup: {exc}")
             return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
         bpy.ops.wm.save_userpref()
-        WALK["walk"] = None
+        WALK.update(walk=None, anchor=None)
         self.report({'INFO'}, "Saved: " + ", ".join(saved))
         return {'FINISHED'}
 
@@ -261,7 +338,7 @@ class LAMPWAY_OT_onboarding_capability_info(Operator):
 
 classes = (LampwayOnboardingRoute, LampwayOnboardingCapability, LAMPWAY_OT_onboarding, LAMPWAY_OT_onboarding_back, LAMPWAY_OT_onboarding_policy,
            LAMPWAY_OT_onboarding_capability_info)
-_PROPS = ("lampway_onboarding_routes", "lampway_onboarding_caps", "lampway_onboarding_provider", "lampway_onboarding_job_cap", "lampway_onboarding_session_cap",
+_PROPS = ("lampway_onboarding_routes", "lampway_onboarding_caps", "lampway_onboarding_provider", "lampway_onboarding_job_cap", "lampway_onboarding_day_cap",
           "lampway_onboarding_above")
 
 
@@ -274,7 +351,7 @@ def register():
     wm.lampway_onboarding_provider = EnumProperty(name="Main agent", items=PROVIDERS, default="chatgpt_plan", update=_provider_picked)
     caps = ob.DEFAULT_CAPS
     wm.lampway_onboarding_job_cap = FloatProperty(name="Per job", default=caps["job_cap"], min=0.0, precision=2, unit='NONE', update=_caps_changed)
-    wm.lampway_onboarding_session_cap = FloatProperty(name="Per session", default=caps["session_cap"], min=0.0, precision=2, update=_caps_changed)
+    wm.lampway_onboarding_day_cap = FloatProperty(name="Per day", default=caps["day_cap"], min=0.0, precision=2, update=_caps_changed)
     wm.lampway_onboarding_above = FloatProperty(name="Click above", default=caps["above"], min=0.0, precision=2, update=_caps_changed)
 
 
@@ -284,4 +361,4 @@ def unregister():
             delattr(bpy.types.WindowManager, name)
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-    WALK["walk"] = None
+    WALK.update(walk=None, anchor=None)

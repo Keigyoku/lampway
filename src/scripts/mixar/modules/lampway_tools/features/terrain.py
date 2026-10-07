@@ -214,7 +214,7 @@ def vegetation(name, biome="meadow", asset_objects=None, water_level_m=None, max
         raise C.FeatureError(f"biome is {' | '.join(BIOMES)}")
     protos = [C.need_object(n, "") for n in (asset_objects or [])]
     if not protos:
-        raise C.FeatureError("give the vegetation assets: asset_objects (objects in the scene, e.g. placed from lampway_asset_search)")
+        raise C.FeatureError("give the vegetation assets: asset_objects (objects in the scene, e.g. placed with lampway_vault_place after lampway_vault_search)")
     if not 1 <= int(max_instances) <= 50000:
         raise C.FeatureError("max_instances is 1..50000 (the viewport freezes past a few tens of thousands)")
     dg = bpy.context.evaluated_depsgraph_get()

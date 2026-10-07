@@ -19,6 +19,11 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | (08) | `agent_ui_tabmedia.cc`, the new `agent_ui_tabmedia_estimate.cc` (CMake list), `agent_ui_tabmedia_intern.hh`, the `PlexMono.woff2` datafile, and `MixarVariant::Accent` in `UI_mixar_types.hh` (included widely: an 830-step rebuild), `interface/mixar/components.cc`, `interface/mixar/style.cc`. |
 | (12) | `userdef_default_theme.c` (Timeline `simulated_frames` leaves the wire colour) and the two theme presets. |
 | (install rule) | `src/source/creator/CMakeLists.txt`: a re-configure and `ninja install` (no compile). |
+| `a60dce8d` (12) | `interface_widgets.cc`: an alert without a bed paints its text in the stop colour. |
+| `1e857173` (13 P1) | the new `interface_mixar_spend_card.cc/.hh` (CMake list), `MixarCardElement` Spend* in `UI_mixar_types.hh` (included widely), `rna_ui_api.cc` (`layout.mixar_spend`, the `ACCENT` variant item). |
+| `0a74414d`, `a21881e4` (04) | `mixie_chat_layout_data.hh`, `mixie_chat_props.cc`, `mixie_chat_ui_widgets.cc` (the who line), `mixie_chat_messages_render.cc`. |
+| `d663255d` (audit F24) | `view3d_director_cinema_top.cc` (the badge's wordmark), `interface_mixar_profile_card.cc` (no referral row). |
+| `a3356f14` (08) | `agent_ui_tabmedia_intern.hh`, `agent_ui_tabmedia_estimate.cc` (the last-run line; bounded string reads). |
 
 ## Status per contract (the lane's order) and per coordinator addition
 
@@ -28,20 +33,24 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | 15 visual harness | done | `b28846b2` |
 | 14 iconography | done (two fixes) | `5f37ee91`, `ba835be1`, `edf0d549` |
 | 03 window chrome | done | `0afc2d19` |
-| 02 splash and onboarding | done | `ce3c9897` |
-| 04 chat face | partial | `6881d79c` |
+| 02 splash and onboarding | done; routes before the provider (ruling 7) | `ce3c9897`, `a8703707` |
+| 04 chat face | done but test 6 (an approved golden) | `6881d79c`, `0a74414d`, `e003f273`, `a21881e4`, `e29f6f49` |
 | 05 parallel agents | done | `c92396d5` |
 | 06 Studios panel (Providers half to Choices) | done | `10233050` |
-| 07 the Way | partial | `faa750b3`, `cf1fc1f7` |
-| 08 generation face | partial | `a86df92f` |
-| 12 privacy face | done (two deviations said) | `0fff1aed` |
-| 13 spend card | P0 done, P1 (drawn card) not | `afa173f9` |
+| 07 the Way | done: every registered batch tool has a typed form (ruling 6) | `faa750b3`, `cf1fc1f7`, `39d8ae9e`, `1ef0caf1` |
+| 08 generation face | done; A/B is a stub that needs the user's click (as ruled) | `a86df92f`, `e7c96c20`, `d02a4e2f`, `a3356f14`, `508a56a7` |
+| 12 privacy face | done (the two shortfalls fixed) | `0fff1aed`, `a60dce8d` |
+| 13 spend card | done (P0 and the drawn P1 card) | `afa173f9`, `1e857173` |
 | Connections window | P0 done | `59279873`, `add28e00` |
 | Choices window (CH8, CH1) | P0 done | `c6002ee9`, `add28e00` |
 | install carries no agent contract | done | `e6668a6b` |
-| 11 model compare | partial (data modes not built) | `3e496b4a` |
-| 10 cockpit window + report cards mounted | done for the page; xterm.js not | `3f33a237` |
-| 16 Lampway terminal | partial (live download and window measured) | `ad44c557` |
+| 11 model compare | done but the header Pick (in the sidebar) | `3e496b4a`, `e430bfb7`, `64a74195` |
+| 10 cockpit window + report cards mounted | done for the page; its terminal is 16's window, not xterm.js | `3f33a237`, `b95d1acc` |
+| 16 Lampway terminal | a viewport only (the captain's correction and ruling 11: no tabs, no state, no Focus, no image link); tests 6, 7, 9, 11 run live | `ad44c557`, `e370a70b`, `dca41dd5`, `b9054b3e`, `fb2935a5`, `ebf357d8`, `1968d9c6`, `fd51779d` |
+| cloud audit F17, F22, F23, F24 | done | `d2b645b9`, `11b9db7c`, `75fed27f`, `b06be59d`, `d663255d` |
+| BUILT_FROM stamped by the build | done | `eeb599d9` |
+| brand pages (every page Lampway serves to a browser) | done, report cards and the phone camera page included | `a257a40e`, `535c17c6`, `08e2da21` |
+| schema ratchet (integration request 9) | done: 702 -> 691 undescribed, 258 -> 240 unbounded | `97879399` |
 | Asset Vault name and drag | done | `d6b543fc` |
 | Zen shortcuts (vault-ui's finding) | done: not a bug, pinned with real input | `8eac47fb` |
 | Lamplight and Workshop (captain's rename) | done | `c272b7c0` |
@@ -751,7 +760,8 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   `PROVENANCE.json`. Launch: `--config-file <Lampway's lua> start --always-new-process --class dev.lampway.terminal
   --workspace lampway`, detached in its own session, the isolated herdr environment, and every directory WezTerm uses
   (HOME, XDG_RUNTIME/DATA/CONFIG/CACHE/STATE) under `$LAMPWAY_HOME/wezterm/`. The CLI always carries the class,
-  `--no-auto-start` and Lampway's own GUI socket; send-text and focus refuse a pane not in the registry; reconcile
+  `--no-auto-start` and Lampway's own GUI socket; [removed later: send-text, focus and the pane registry, see "the
+  viewport correction" below]; reconcile
   re-adopts through the recorded pid and `cli list` and spawns nothing; Remove signals only the process group Lampway
   started. Routes `/app/terminal` (status), `/get`, `/open`, `/remove` behind the bearer, an agent origin refused.
 - **In Blender**: the Sessions panel's "Lampway terminal" box: "not installed (Get downloads about 49 MB from
@@ -762,7 +772,7 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   Copyright (c) 2018-Present Wez Furlong". The real window on the build box's own virtual display: its GUI socket in
   Lampway's runtime directory, `cli list` answering, the bootstrap pane recording `$WEZTERM_PANE` and
   `$WEZTERM_UNIX_SOCKET` (the spec's [UNVERIFIED] that the GUI exports the socket into panes: it does), reconcile
-  re-adopting twice with the same answer, a foreign pane refused.
+  re-adopting twice with the same answer.
 - **Incident, said plainly**: my first live GUI run gave the WezTerm processes the person's HOME. A `cli` call that
   found no window auto-started `wezterm-mux-server`, which locked and wrote `~/.local/share/wezterm/pid` (8 bytes, its
   own pid, 12:11:15) and ran about six minutes until I stopped it by verified PID. It did not touch `~/.wezterm.lua`,
@@ -775,10 +785,10 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   (1, real binary), `tests/lampway/test_lampway_cockpit_face.py::test_the_terminal_opens_beside_blender`.
 - **Not done / found**: the vendored Plex Mono is woff2, which WezTerm 20240203 does not load: the window shows a
   "Configuration Error" pane and falls back (it needs the OFL TTF vendored; no converter here). The bootstrap's
-  `herdr session attach lampway` and one tab per agent (`cli spawn ... herdr agent attach`) are wired but not run live;
+  `herdr session attach lampway` (replaced by plain `herdr`) and [removed later: one tab per agent] were not run live;
   tests 6, 7, 9 and 11 (SIGKILL survival, persistence through herdr, images, the fleet socket) were not run; the
-  Ctrl Alt T key, Focus and Update are not built; the state file the config reads (`state.json`) is not written by the
-  server yet.
+  Ctrl Alt T key and Update were not built then (built later; Focus and the state file were built and then removed: the
+  viewport correction below).
 
 ## After the merge that brought the hub (`d2b142e`: lp/connections is in lp/wave5 now)
 
@@ -811,3 +821,316 @@ after each native push.
 - `build/Prod` built from `7f67890d6de3df3acee1552293cf8308a4ed800e` (pushed, clean tree; `build/Prod/BUILT_FROM`),
   2026-10-06: every contract of this lane as pushed and the `origin/lp/wave5` merge `d2b142e` (lp/connections). The
   visual suite on that build: 31 passed. Commits after it are documentation only.
+
+## The owed partials and the cloud audit (2026-10-06, second round)
+
+Order of work: 16's Plex Mono, 12's shortfalls, 13 P1, 08, 04, 07, 11, 10, the live terminal tests, the audit's F22, F24,
+F17, F23 (added mid-round), 16's remaining surface, 08's results line, 04's header, the build stamp (added mid-round).
+Exploration was by Python and `git grep` scans: the codebase-memory index (`lampway-harden`) is stale and `wt-build` is
+not indexed, so no graph query was used this round.
+
+### 16: Plex Mono as TrueType (`e370a70b`)
+`scripts/dev/brand_art/fonts_ttf.py` decodes the vendored woff2 into `addons/fonts/IBMPlexMono-{Regular,Medium}.ttf`
+(OFL beside them; `--check` is byte-stable, `recalcTimestamp=False`); the add-on copies them into
+`$LAMPWAY_HOME/addons/wezterm/fonts/`. Measured live: the window renders in Plex Mono, no Configuration Error pane.
+
+### 12: the two shortfalls (`a60dce8d`)
+"Allow once" is red TEXT on no bed (`row.emboss='NONE'`; the native REDALERT non-emboss branch paints the text in the
+theme's stop), and "Run it here instead" is an action (`lampway.choices_open` on the kind's group).
+
+### 13 P1: the drawn card (`1e857173`)
+`interface_mixar_spend_card.cc`: `layout.mixar_spend(element=TITLE|PRICE|METER|LINE, text, rule)` tags label rows the
+native painter draws: the action in Fraunces 17, the price in Fraunces up to 40 with its unit in Plex Mono and the kind as
+an outlined chip, the meters with the pending part hatched in the accent (used in stop past 90 percent), and a 4 px left
+rule in the card's state colour on every row. Spend is the accent fill (`MixarVariant::Accent`). Visual:
+`tests/lampway_visual/test_spend_card.py` (card_rule tokens, the ACCENT variant).
+
+### 08: Spend opens the card (`e7c96c20`), and the last run (`d02a4e2f`, `a3356f14`)
+- Spend in the island's Image / Video tab now opens contract 13's card for the approval it caused (the status refresh
+  finds it; `test_spend_in_the_tab_opens_the_card`).
+- Each image or video run records its estimate and count in the run log; `/app/generate/estimate` answers with the
+  last run of its kind, and the column draws it at its foot: "3 images, $0.20 billed against a $0.21 estimate, rated
+  4" ("billed amount not read back (a $0.07 estimate)" when no cost came back; "(no estimate before it)" when none was
+  made). Tests: `test_the_last_run_line_reads_billed_against_its_estimate`, `test_the_estimate_answer_carries_the_last_run_of_its_kind`
+  (a real fake-transport video job end to end), `test_the_results_row_says_the_last_run_billed_against_its_estimate`
+  (RED observed for each).
+- Found while adding the line: the column's string reads used the `char*` RNA getter, which writes the whole string
+  into a fixed buffer; the pump's strings have no `maxlen`, so a long refusal could overrun it. Now bounded by the
+  buffer (`std::string` getter + `BLI_strncpy`). No test reaches it (native, no harness for over-long props): said.
+- **Not done**: the A/B action (no surface submits a `variant_of` run yet); it would submit paid generations, and is
+  the only 08 item left.
+
+### 04: the who line, the step summary, the header parity (`0a74414d`, `e003f273`, `a21881e4`)
+- The first agent message of each turn carries "<HH:MM>\x1f<host>\x1f<plan>\x1f<state>"; the island draws the Spark
+  (accent while the latest turn works, at rest otherwise), "Lampway Agent", the plan chip in the agent's outline
+  ("ChatGPT plan"), the time in Plex Mono, then where the turn came from.
+- The step log collapses to "3 steps done, local", "1 step done, 1 failed, local" or "1 of 3 steps done, local". The
+  spec's "1.5 s" is not claimed: steps carry no timing.
+- **Not done**: the answered question as one line with the other choices in an expander (the choices block is removed
+  when answered and its answer becomes a user message; collapsing needs the answered state kept on the message), the
+  lamp glyph for local steps, test 6 (needs an approved golden).
+
+### 07: typed forms for the batch tools (`39d8ae9e`)
+`server/lampway_server/agent/batch_forms.py`: eight new definitions from each script's own usage line and argparse;
+four of the thirteen already had a typed in-app definition, which the Way now offers (`tool_specs.py` FEATURES, 42
+tools). `render_textured` is not given one: it needs a .blend before `-P`, which `api.run_tool` does not pass.
+
+### 11: the data modes (`e430bfb7`)
+Textured and Base colour / Normal map / ORM on a normalised re-import in the scratch scene (the user's scene
+untouched): emission of the base map, the normal map as Non-Color or the flat (0.5, 0.5, 1.0) that makes a missing bake
+the finding, ORM's G and B. `tests/lampway_tools/test_lampway_compare_modes.py`. Not done: Spin, the header Pick.
+
+### 10: the cockpit page opens 16's window (`b95d1acc`)
+"Open in the Lampway terminal" when the add-on is installed (POST `/app/terminal/open`), else it says it is not
+installed. xterm.js is not vendored: 16's window is the terminal.
+
+### 16: the live tests, in an isolated home (`dca41dd5`, `fb2935a5`)
+`scripts/lampway/live_terminal_check.py`, run inside `lampway-build` on its own Xvfb, every directory under one scratch
+root (`$TMPDIR/lt`: the Lampway home, the herdr root, HOME and every XDG dir; the script refuses to start otherwise);
+the herdr server is Lampway's, started by `setsid` (never a systemd unit); the fleet's herdr is observed through
+`/proc` cmdline and start times only (the box cannot read another process's environ) and, around the run, from the
+host the same way. **A second download** of the pinned release was made for these runs (the first one's files were
+deleted after the first round), through the github route into the scratch home: hosts github.com,
+release-assets.githubusercontent.com, raw.githubusercontent.com; PROVENANCE verified. The scratch home is deleted at the end.
+
+| test | result |
+|---|---|
+| 6: SIGKILL of the launching "Blender" (its whole process group) | window and agent alive (gui pid, agent pid unchanged) |
+| 7: close the window, reopen | agent alive throughout, the same pid after reopening, reconcile "re-adopted" |
+| 9: an inline image through herdr | **no**: iTerm2 and kitty both 0 magenta pixels through herdr (screenshot: the script ran, a blank line), 26 289 without herdr (the control) |
+| 9's fallback | an image path in a pane is a link (`lampway-image:`); Ctrl+click queues it under the Lampway home; Blender's status refresh shows it in an Image Editor (a new window when none). Measured: under herdr a plain click goes to herdr (mouse reporting), Ctrl+click queued the path; with the Ctrl binding removed (mutant) nothing queued |
+| 11: the fleet's herdr | the three fleet servers and the client: same pids and start times before and after (box and host views) |
+| state.json | the tab reads the cue and "probe agent", the right status "Sending to OpenRouter, 2 KB" (judged from the screenshot) |
+
+- The window's first tab is now plain `herdr`. **Disagreement with the brief, measured**: the spec's bootstrap
+  `herdr session attach lampway` addresses a named session in herdr's own state (`~/.config/herdr/sessions/lampway`,
+  under the isolated HOME), not the server the HERDR_* socket env names; in a pty it drew nothing in 6 s, while plain
+  `herdr` drew Lampway's server. `test_open_attaches_the_window_to_lampways_herdr_by_its_socket` (RED observed).
+- Then the rest of 16 (`b9054b3e`): Update appears when the pin moves past the installed version; Ctrl Alt T opens the
+  terminal (Window keymap). [`b9054b3e` also added a server-written `state.json` with tab-title cues and an egress
+  status, and a Focus: all removed by the viewport correction below.]
+
+### Cloud audit (`specs/bugs/2026-10-06-cloud-audit-wave5.md`), re-checked on this branch first
+- **F22** (`11b9db7c`): a 401 or no token reads "signed out"; a refused connection still "server not running"
+  (`test_signed_out_says_signed_out_not_server_down`, RED observed).
+- **F24** (`d663255d`): the Cinema Mode strip's wordmark was a literal "mixar" drawn by `cinema_text_left`; it reads
+  "Lampway". The profile card's "Refer a Friend" row is gone, and the low-credit toast that pointed at it no longer
+  fires. The C++ brand gate (G4) now also flags the bare name handed to a text-drawing call (`DRAWN` in
+  `test_brand_cpp.py`; RED: the whole-tree test failed on the two Cinema lines; the scanner's unit test was written with
+  the rule, so it was mutation-checked instead: with the rule off it fails). Left: the referral service, dialog and
+  operators remain registered but unreachable from the UI; the credits banner's `TARGET_REFER` (no caller draws the
+  banner) is untouched.
+- **F17** (`d2b645b9`): observe's targets carry `label` (the text, else the tooltip) and page with `offset`
+  (`next_offset` while more remain; handles are positions in the whole list). On the startup window: 40 of 55 targets
+  had no text, 10 have no label now. Visual state `observe_labels` (RED observed: no label field).
+- **F23** (`75fed27f`, `b06be59d`): walked by real clicks in the real build (`test_onboarding_steps.py`, RED observed: the
+  step 2 sentence cut to "until you …", Continue jumping from y 397 to y 27, Back directly above it). Now the sentences
+  wrap (translated whole, then wrapped), every step is padded to the tallest step and opens where the first did, so
+  Continue stays put, Back sits under the step rail, and the window is redrawn on each step. Cost, said: with the
+  server's 24 routes every step is as tall as step 3; a scrolling list for the routes would let the dialog shrink.
+  Checked on Xvfb with Mesa (the box has no GPU); the cut was reproduced there too, so it was not a software-GL artefact.
+
+### The build stamp (`eeb599d9`)
+`scripts/lampway/built_from.sh` (state / stamp) and `build_linux.sh` call it: the state is read before the compile and
+the stamp written after it succeeds; a bare sha only for a clean (`src/source`, `src/CMakeLists.txt`,
+`src/build_files`, `src/release/datafiles`, untracked files included), pushed tree that held still; otherwise
+`UNCLEAN <sha>: ...` or `UNPUSHED <sha>`. `test_all.py` refuses an UNCLEAN binary by name and reads `UNPUSHED <sha>` as
+its sha. `tests/lampway_tools/test_build_stamp.py` (5, RED observed; a mutant that never compares start and end fails
+`test_stamp_writes_the_sha_only_when_the_tree_held_still`), `test_test_all.py::test_the_stamp_build_linux_writes_is_read`.
+- **What was in `build/Prod` before, said plainly**: the line below that says `7f67890d` was true at 13:45 and false
+  from 14:34, when I rebuilt `build/Prod` from `e370a70b` with the 12/13/04 native edits still uncommitted (committed at
+  14:36) and deleted `BUILT_FROM` rather than leave the wrong sha. Until this round's stamp the directory had no
+  `BUILT_FROM`; I then wrote it by hand as `UNCLEAN e370a70b...` with that history, before the clean build below.
+
+### Brand pages (the captain's addition: "not a basic white HTML page") (`a257a40e`)
+
+**Inventory**, by searching `HTMLResponse`, `text/html`, `<!doctype`, `webbrowser.open` and `send_response` in the server and
+the app:
+
+| page | served by | now |
+|---|---|---|
+| password sign-in (`/app/desktop-login`), wrong password | Lampway server | template |
+| ChatGPT plan page (`/app/chatgpt`) and its callback (`/auth/callback`): signed in, cancelled, expired / state mismatch, failed | Lampway server (lane connections' module; HTML only changed) | template |
+| Higgsfield page (`/app/higgsfield`) and callback, start failure | Lampway server | template |
+| Hyper3D callback (`/auth/hyper3d/callback`, the generic MCP sign-in; the next studio gets it for free through `brand_page.callback`) | Lampway server | template |
+| the desktop app's loopback after the Lampway sign-in: success, state mismatch (was `text/plain` "state mismatch") | the app (`auth/core/sso.py`) | generated from the template (`sso_pages.py`) |
+| the native loopback (startup sign-in): success, no code | the app (`creator/mixar_local_auth_server.cc`) | generated from the template (`mixar_sso_success_page.h`; its hand-written failure page is gone) |
+| the cockpit page (contract 10) | Lampway server | its own document; now Night and Paper, the site's faces and the lockup from its own origin |
+| report-card pages | Lampway server (`/app/cards/...`) | the cards' own documents from their builder (lane vault-ui), themed by `?theme=`; the frame shell is a bare iframe container: **not restyled** |
+| the virtual camera's phone page | the app's camera server | an app UI, not a status page: **not restyled** |
+| chatgpt.com / auth.openai.com, Clerk (Higgsfield), Hyper3D's sign-in, OpenRouter, billing and help pages the app opens | third parties | **not ours to style** |
+
+- **One template**, `server/lampway_server/brand_page.py` (standard library only): `page()` (title, headline, one line, the
+  next step, a tone badge, small print) and `callback(service, outcome)` for the four states: "Signed in to ChatGPT" /
+  "You can close this tab and return to Lampway."; "ChatGPT sign-in cancelled" (nothing stored, try again from Connections);
+  "This sign-in link has expired" (the state matches no sign-in of ours); "ChatGPT sign-in did not finish" (the reason, then
+  start a fresh sign-in). Markup inside a page comes only from its own `form()` and `status()`: `page()` refuses raw HTML.
+  Text is escaped; no token is ever an argument (the reason is the exception's own sentence).
+- **Brand**: the tokens (`tokens.css`, generated from `tokens.json`, now with Paper under `prefers-color-scheme: light`), the
+  lockup (crook lantern + wordmark, `web/brand/lockup.svg`), Fraunces for the headline and IBM Plex Sans for the text
+  (vendored from the site's subsets, OFL texts beside them, REUSE annotated), all inlined as `data:` URIs: no CDN, no
+  script, nothing requested after a loopback shuts down. Every server page carries `Content-Security-Policy: default-src
+  'none'; style-src 'unsafe-inline'; font-src data:; img-src data:; form-action 'self'; ...`.
+- **The app's pages** are rendered at build time by `scripts/generate_sso_success_page.py` (was a mirror of the Mixar page in
+  Clash Grotesk on white): the faces subset to each page's characters (fontTools, only when writing), so each native page
+  is about 46-50 KB, under the 64 KB MSVC literal limit the script refuses to pass; `--check` compares the markup with
+  the template without needing fontTools.
+- **Tests**: `server/tests/test_brand_pages.py` (28, the scan parametrized per module): no auth or loopback module (app.py, chatgpt_auth, mcp_oauth,
+  higgsfield_auth, connections/*, the app's sso.py and auth.py) holds an HTML literal (the scan's falsifier: it finds the
+  hand-written pages in `c0872d90`'s app.py); every `HTMLResponse` in app.py goes through `html_page` (the cockpit page is
+  the one named exception); each state's headline and next step; the outcome mapping; nothing loaded but `data:` and this
+  origin; escaping; the served pages carry the CSP; the cockpit serves the faces; the generator `--check`.
+  Lane connections' tests pass unchanged (the 139 in the ChatGPT, hardening, SSO, MCP OAuth, Higgsfield auth and connections files, run with the brand and cockpit tests: 174 passed).
+  `tests/lampway_web/test_brand_pages_live.py`: a real headless Chromium renders the 12 pages in Night and Paper (24 captures)
+  through a proxy that is the test's own server (`--proxy-bypass-list=<-loopback>`), and asserts each page made exactly one
+  request (itself) and that its corner is the theme's canvas. Falsifier run: a page with a planted stylesheet and image
+  logged both (`CONNECT cdn.example.invalid:443`, `http://fonts.example.invalid/x.css`). The first version of the harness
+  sent the CSP with each page, which hid exactly that: the browser never asked. It now judges the markup without it.
+  RED observed: Paper failed (the corner stayed Night) before `tokens.css` had its light block. **Not RED-first**: the
+  template and the app.py wiring were written before their tests; the scan's falsifier and the planted-request run stand
+  in for that.
+- **Chromium, said plainly**: no browser is installed on the host or in the box. I copied Playwright's
+  `chrome-headless-shell` (build 1243) from `~/.cache/ms-playwright` into the scratch directory (a read of the cache, once)
+  and run it only from there, with its own HOME, XDG dirs and profile under the test's directory (`LAMPWAY_CHROMIUM`; the
+  test skips without it).
+- Left: the report-card pages and the camera page (above); `release/datafiles/fonts/ClashGrotesk-LICENSE.txt` stays though
+  no page embeds Clash any more.
+
+### Gates at the end of this round
+
+- `test_all.py --only server` at `a257a40e`: **GREEN**, 1660 passed, 16 skipped, rc 0 (55 min; the box's disk is slow:
+  pytest sat in `wait_log_commit`). The same at `c0872d90`: 1632 passed, 16 skipped.
+- `test_all.py --only client` on the `a257a40e` build (gated by its BUILT_FROM): 9044 passed, 78 skipped, the 125
+  known-red baseline seen, and **one new failure**: `tests/network/test_network_sso_callback_server.py` pinned Mixar's page
+  title "Login Successful"; re-pointed to "Signed in to Lampway" (`535c17c6`, test only) and that file re-run alone: 8
+  passed. The full client suite was not re-run after that one-line test change. The run at `c0872d90` had found the canon
+  door's new one-importer gate failing on my image fallback (`213bca4d` fixed it; re-run: 24 passed).
+- Visual suite and the browser captures on the `a257a40e` build: 38 passed (36 visual states, 2 web: 12 pages x Night and
+  Paper). Two visual states were fixed on the way (`c0872d90`): the Way's state now retopologises a 128-face sphere (the
+  canon door refuses a target over 3x the Cube's 6 faces and under 50), and the image fallback's state judges the main
+  window's areas (the island opens its own window, so counting windows was wrong; my first pin of "2 windows" was written
+  without a run and failed).
+- Theme 0, cues 0, WezTerm 0 (self-test 5 of 5, W5 new), tool specs current, tools.md current, i18n `--check` current,
+  `generate_sso_success_page.py --check` current, rail PASS; the PII gate runs at the pre-push hook.
+
+## Which build is in `build/Prod` (this round)
+
+- `build/Prod/BUILT_FROM` = `a257a40e309396457c53b6dc6f358db9ba9c4847`, written by `build_linux.sh` itself (clean native tree,
+  pushed): every native change of this round. Earlier in the round the same script stamped `d18d713d` and `c0872d90`.
+  Commits after `a257a40e` are tests and this report only (no native source).
+
+## The remainder (2026-10-06, the coordinator's last list) and the captain's viewport correction
+
+### 16: WezTerm is purely a viewport (`ebf357d8`) - this supersedes parts of the sections above
+The captain: "No no no no no. Our agent live in herdr, herdr has it's own workspace, we don't make multiple WezTerm tabs.
+WezTerm is PURELY a viewport". I had built one tab per agent (`c89632c2`, from the coordinator's list) and, earlier, the
+server's `state.json` with tab-title cues and an egress status (`b9054b3e`, from the contract). Both are removed:
+- gone: `agent_tabs` (`cli spawn -- herdr agent attach`), `state_doc` / `write_state` and the server's one-second tick,
+  the config's `format-tab-title` / `update-status` handlers and its state file, the pane registry, `send_text`, the dead
+  cue table in `build_theme.py`; the reset of the pane registry on Open;
+- the config sets `enable_tab_bar = false` (so no egress status inside WezTerm either: egress stays in Lampway's status
+  bar and Privacy window); the CLI only lists the one window (reconcile);
+- then the coordinator's audit (W1-W8) of what was already in `lp/wave5`: Focus is removed too (W6, `1968d9c6`: the route,
+  `wezterm.focus`, the Blender operator, its button and the client call), and `c89632c2` is reverted by a normal revert
+  commit (`fd51779d`; its code was already gone, so the revert changes no file and records the decision);
+- what remains: the branded config, the isolated home and socket, the download and verify (Get, Update, Remove), and ONE
+  window that attaches to Lampway's herdr by plain `herdr` (Open, Ctrl Alt T);
+- the Ctrl+click image link (W8): dropped by the captain's ruling 11 (`f854a115`, below);
+- pinned: `test_the_launcher_issues_no_tab_or_spawn_command` (open and reconcile issue one `start` and only `list`; the
+  add-on names no tab, spawn, send or activate verb and has no focus), `test_the_config_has_no_tab_bar_and_mirrors_no_state`,
+  `test_the_server_writes_no_terminal_state`, `test_there_is_no_focus_route` (RED observed for each before its removal); the WezTerm gate's W4 is now
+  "no tab bar, no tab title or status from state" (self-test: a tab bar turned back on, and a tab-title handler, are caught).
+- the record: `specs/client_facelift/16-lampway-wezterm.md` has a new section 0 (the rule, verbatim) and its lines on
+  tabs, cues, the state file, spawn and send-text are marked superseded; `10-herdr-cockpit.md` and `docs/cockpit.md` say
+  viewport only. (The specs folder is not a git repository: the originals are copied to the scratch directory.)
+- Earlier in this file, the live-check row "state.json" describes what was removed (the sentences on send-text, Focus and
+  tabs in the contract 16 section are marked). The live terminal check was not re-run after the removal (it needs a third download of the release);
+  the config change is gated by `check_wezterm.py` under luajit, not by a live window.
+- What the tab work measured, kept as a fact: `herdr agent attach <pane>` refuses a pane with no detected agent
+  (`agent_not_found`).
+
+### 04: the answered question collapses to one line (`e29f6f49`)
+`lampway_tools/answered.py`: when a choice is answered through the island's action operator, the bubble becomes "Which
+glass? Clear, you answered 14:30" and its choices are replaced by one expander row ("2 other choices" / "Hide other
+choices", opening "Other choices: Frosted, Amber"). The expander is handled in the island (value `lampway_answered:`),
+never sent to the agent; the answer itself still goes once. Natively, a bubble whose only rows are the expander gets no
+lamplight and no waiting rule. Tests: `tests/lampway_tools/test_lampway_chat_answered.py` (real binary, fake transport;
+RED observed), `test_an_answered_question_has_no_lamplight` (source; RED observed), the visual state `chat_answered`
+(captured on the `97879399` build: one line, the expander, no glow).
+
+### 11: Spin (`64a74195`)
+The 100 ms poll turns every compare view 2 degrees about the vertical while Spin is on; a manual orbit in one view stops
+Spin and the others follow it. Found on the way: the poll compared `view_matrix`, which Blender recomputes only at the next
+draw, so a rotation set by the poll read back as the user's orbit; it now compares the views' own rotation, location and
+distance (the same lag affected Sync's echo). Visual test `test_compare_spin.py` (RED observed; the "orbit stops it" rule
+mutation-checked: removed, the test fails).
+
+### Brand pages: the report cards and the phone camera page (`08e2da21`)
+- Report cards: `cards/_shared/report.css` is the template's faces and tokens (Night; Paper under the content server's
+  `data-lw-theme="light"`) plus the card layout on `--lw-*` tokens; every page shows the lockup. `test_card_pages_carry_the_brand`
+  (RED observed). The cockpit's card frame shell (a bare iframe container) is unchanged.
+- Phone camera page: the gate's "MIXAR" wordmark is the lockup, Mixar's green is the flame, the faces and Night tokens come
+  from a generated `webapp/brand.css` (Night only: the controls sit over the live picture). `tests/lampway/test_camera_page_brand.py`
+  (RED observed).
+- The generator (`scripts/generate_sso_success_page.py`) now writes the camera's `brand.css` and lockup too, and leaves the
+  sign-in pages alone when their markup is current (the subset fonts are not byte-stable between fontTools runs, so a
+  regeneration would otherwise rewrite the native header and force a rebuild).
+- Browser captures: the card (Night and Paper) and the camera gate render on their canvas with the lockup and every
+  request on their own origin (`test_the_card_pages_and_the_camera_page_are_on_brand_and_stay_on_their_origin`).
+
+### 08: A/B as a stub (`508a56a7`)
+"A/B" beside "Edit as my own" in the prompt library: the user's click says it would run two paid generations and sends
+nothing; a script cannot press it. `tests/lampway_tools/test_lampway_prompt_ab.py` (RED observed).
+
+### Integration request 9: the schema ratchet (`97879399`)
+Every batch form parameter described and every number bounded (bounds taken from each script's defaults with generous
+room); `UNDESCRIBED` 702 -> 691 and `UNBOUNDED_NUMBERS` 258 -> 240 (RED observed by lowering them first).
+
+### Merge
+`origin/lp/wave5` at `631f4631` merged (`f1a8f67a`, no conflict; it brought no native change). The post-merge hook printed
+"unable to read tree (fbe62287...)" while re-pinning `upstream/`; `upstream/` was already at that commit.
+
+## The captain's rulings on the spec audit (2026-10-06)
+
+### Ruling 11: the Ctrl+click image link is dropped (`f854a115`)
+WezTerm is a viewport only. Removed: the config's hyperlink rule, `open-uri` handler and Ctrl+click mouse bindings; the
+queue under `$LAMPWAY_HOME/wezterm/`; the status refresh's drain into the Image Editor; their tests, the visual state
+`terminal_image` and the live check's link step. The WezTerm gate now requires the config to open no file (W3) and to
+handle no link (W5; self-test: a planted `open-uri` handler is caught). RED observed: the config test and the status bar
+test failed on the link and the drain before the removal. Found on the way: my first cut of the drain also removed
+`_open_awaited_card` (08's Spend-to-card), caught by the status bar test and restored from HEAD before the commit; the
+committed diff of `statusbar.py` is the drain alone. Contract 16 section 0 records the ruling.
+
+### Ruling 6: every batch tool keeps a path to the Way (`39d8ae9e`, `1ef0caf1`)
+The audit's 13 batch tools that only the free-text runner reached, and their typed forms now:
+| tool | form |
+|---|---|
+| uv_score, bake_maps, material_bake, asset_catalog_export | the in-app Defs the Way already offers (`lampway_uv_score`, `lampway_bake_maps`, `lampway_material_bake_export`, `lampway_asset_catalog_export`) |
+| clay_view, mesh_paint_set, relief_project, material_masks, uv_patches, patch_holes, robust_weight_transfer, mesh_qa | `agent/batch_forms.py` (`39d8ae9e`; described and bounded in `97879399`) |
+| render_textured | `lampway_render_textured` (`1ef0caf1`): its first field is the .blend, which the runner now opens before the script (`runner.Tool.opens_blend`; the script's usage is `blender -b <blend> -P ...`) |
+Beyond the 13, the runner registers two more with no form: `rtmw_detect` and `proportion_fit`; both get Defs (`1ef0caf1`).
+`server/tests/test_every_batch_tool_has_a_form.py` reads the runner's registry and fails for any tool with no typed form
+(RED observed: it named the three). The three are placed on the Way (render_textured in mesh-paint, proportion_fit in fit,
+rtmw_detect in bind and export); proportion_fit and render_textured carry "partial: a ported runner script; no test runs
+it end to end", which is the truth. `tests/lampway/test_runner_opens_blend.py` pins the blend opening (RED observed).
+
+### Ruling 7: the four-step onboarding stays, the order is fixed (`a8703707`)
+The audit's F3: a plan provider was refused at step 2 until its route was on, and the route switch was step 3. The steps
+are now Language and keys, What may leave this machine, Where the agent thinks, Spending caps; the provider step's refusal
+says "go Back and switch it on". Unit tests and the real-click visual walk updated (RED observed on the order and the
+sentence).
+
+### Gates at the end of the lane (head `bbd01e67`, after merging `origin/lp/wave5` b22, which changed no file)
+
+- `test_all.py --only server` (with `LAMPWAY_SHELF_DIR`, now part of the reference environment): **GREEN**, 1749 passed, 15
+  skipped, rc 0.
+- `test_all.py --only client` on `build/Prod` (BUILT_FROM `978793994b4f`, written by the build; no native source changed
+  since, so the run is gated): **GREEN** against the baseline, 9169 passed, 46 skipped, 107 failed and 15 errors, all 122 in
+  `tests/known_red.tsv`, none new.
+- Visual and browser suites (`tests/lampway_visual`, `tests/lampway_web`), run on their own: 40 passed.
+- Theme 0, cues 0, WezTerm 0 (self-test 6 of 6), tool specs current (45 tools), tools.md current, sign-in pages current,
+  rail PASS; the PII gate at the pre-push hook.
+- `build/Prod` is `978793994b4f4f9c60795f0365c8290c0f778d2d` (pushed, clean native tree, stamped by `build_linux.sh`): it
+  holds 04's answered-question glow rule, the last native change of the lane.
+- Not re-run after the viewport and image-link removals: the live terminal check (a third download of the release would be
+  needed); the WezTerm config is gated under luajit by `check_wezterm.py`.

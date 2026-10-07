@@ -82,7 +82,7 @@ def test_a_vanished_scene_points_the_agent_to_rebinding(monkeypatch):
     monkeypatch.setattr(observe, "main_window", lambda: SimpleNamespace(scene=shown))
     monkeypatch.setattr(service, "bpy", SimpleNamespace(data=SimpleNamespace(scenes=[shown])))
     request = SimpleNamespace(name="mixar_ui_observe", args={}, session="old-doc", owner="o", deadline=0)
-    with pytest.raises(UIError, match="mixar_ui_context\\(session=") as gone:
+    with pytest.raises(UIError, match="lampway_ui_context\\(session=") as gone:
         next(service._run(request))
     assert gone.value.result()["error_type"] == "document_changed"
 

@@ -30,6 +30,8 @@ def setup(bpy):
     a.sender = 'AGENT'
     a.bubble_id = "b1"
     a.content = "Here is the plan."
+    if hasattr(a, "lampway_who"):
+        a.lampway_who = "14:32\x1fchatgpt.com"     # contract 04's who line on the turn's first agent message
     for i, (text, status, price) in enumerate((("Block out the lantern", 'DONE', "local, no cost"),
                                                ("Texture the glass", 'PENDING', "≈ $0.07 est., openrouter.ai"))):
         item = a.todo_items.add()

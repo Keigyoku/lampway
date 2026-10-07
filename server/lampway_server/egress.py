@@ -248,7 +248,28 @@ class Egress:
                 return r.id
         return None
 
-    def begin(self, host: str, method: str, nbytes: int, explicit_route: Optional[str] = None):
+    @staticmethod
+    def _acknowledged(option: Optional[str], route: str) -> Optional[dict]:
+        """Ruling 3 (2026-10-07): the user's CH1 acknowledgement of the option the call declares, when that option's route is this one."""
+        if not option:
+            return None
+        from .choices import active_store
+        from .choices import registry as CREG
+        if CREG.option_facts(option)["route"] != route:
+            return None
+        ack = (active_store().global_doc().get("acknowledgements") or {}).get(option) or {}
+        return {"option": option, "at": ack.get("at")} if ack.get("private") else None
+
+    @staticmethod
+    def _free_model(d: dict, body_model: Optional[str]) -> Optional[str]:
+        """Ruling 4 (2026-10-07): the ``:free`` model this call names, declared (option or model) or carried in the request body."""
+        from .choices import registry as CREG
+        for m in (CREG.model_of(d["option"]) if d.get("option") else None, d.get("model"), body_model):
+            if isinstance(m, str) and m.endswith(":free"):
+                return m
+        return None
+
+    def begin(self, host: str, method: str, nbytes: int, explicit_route: Optional[str] = None, body_model: Optional[str] = None):
         d = _ctx.get()
         route = explicit_route or d.get("route") or self.route_for_host(host)
         base = {"provider": host, "method": method, "kind": d.get("kind", "request"), "bytes": int(nbytes), "asset_ids": list(d.get("asset_ids") or []),
@@ -265,19 +286,26 @@ class Egress:
             self._append({"event": "refused", "route": route, **base, **policy, "reason": "route off"})
             raise EgressRefused(f"{route} is off: switch it on in Privacy to let data leave")
         override = would = False
+        acked = None
         if base["content_class"] == "private" and not self._permissive:
+            if (free := self._free_model(d, body_model)) is not None:        # never: no acknowledgement, override or observe-only lets it through
+                self._append({"event": "refused", "route": route, **base, **policy, "model": free, "reason": "private content to a :free model"})
+                raise EgressRefused(f"this asset is private and {free} is a :free model, which takes non-private inputs only: pick another model")
             ok = spec is not None and (spec.privacy_class == "ok" or (spec.privacy_class == "conditional" and all((d.get("constraints") or {}).get(k) == v for k, v in spec.requires)))
             if not ok:
                 ids = base["asset_ids"]
                 if ids and all(self.overridden(i, route) for i in ids):
                     override = True
+                elif (acked := self._acknowledged(d.get("option"), route)) is not None:     # ruling 3: the user's dated, revocable grant
+                    pass
                 elif d.get("observe_private"):                      # CH1, first release: record what the rule would refuse, refuse nothing yet
                     would = True
                 else:
                     need = ", ".join(f"{k}={v}" for k, v in spec.requires) if spec and spec.requires else "a verified-ephemeral guarantee"
                     self._append({"event": "refused", "route": route, **base, **policy, "reason": "private content"})
                     raise EgressRefused(f"this asset is private and {route} requires {need} (policy: {policy['retention'][:80]}): use a verified route, run it locally, or flip the per-asset override (logged)")
-        self._append({"event": "send", "route": route, **base, **policy, "override": override, **({"would_refuse_private": True} if would else {})})
+        self._append({"event": "send", "route": route, **base, **policy, "override": override, **({"would_refuse_private": True} if would else {}),
+                      **({"acknowledged": acked} if acked else {})})
         with self._lock:
             self._active[route] = self._active.get(route, 0) + 1
             self._last = {"route": route, "t": time.time()}
@@ -323,7 +351,18 @@ def _begin(request: httpx.Request):
     host = (request.url.host or "").lower()
     if m is None or host in LOOPBACK:
         return None
-    return m, m.begin(host, request.method, _nbytes(request))
+    return m, m.begin(host, request.method, _nbytes(request), body_model=_body_model(m, host, request))
+
+
+def _body_model(m, host: str, request: httpx.Request) -> Optional[str]:
+    """The ``model`` an OpenRouter JSON body names (ruling 4 checks it against private content); None for any other request."""
+    if m.route_for_host(host) != "openrouter" or "json" not in request.headers.get("content-type", ""):
+        return None
+    try:
+        model = json.loads(request.content).get("model")
+    except Exception:  # noqa: BLE001  (a streamed or non-object body names no model)
+        return None
+    return model if isinstance(model, str) else None
 
 
 _installed = False

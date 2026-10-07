@@ -606,12 +606,15 @@ class AgentHub:
             return f"Blender could not run the script: {exc}", True
         return format_tool_result(result)
 
-    async def _blender_script(self, socket, *, session_id, chat_session_id, turn_id, call_id, tool_name, script):
+    async def _blender_script(self, socket, *, session_id, chat_session_id, turn_id, call_id, tool_name, script, mcp_operation_id=None):
         """One blender.execute_script round trip. ``session_id`` routes it (a worker's lane scene, or the chat's own scene);
-        ``chat_session_id`` is the agent context the client checks is active."""
+        ``chat_session_id`` is the agent context the client checks is active. An MCP call names the operation that leased the
+        scene (``mcp_operation_id``): the client admits it only under that lease."""
+        agent_ctx = {"chat_session_id": chat_session_id, "turn_id": turn_id, "call_id": call_id}
+        if mcp_operation_id:
+            agent_ctx["mcp_operation_id"] = mcp_operation_id
         return await socket.request("blender.execute_script", {
-            "script": script, "tool_name": tool_name, "session_id": session_id,
-            "agent_ctx": {"chat_session_id": chat_session_id, "turn_id": turn_id, "call_id": call_id},
+            "script": script, "tool_name": tool_name, "session_id": session_id, "agent_ctx": agent_ctx,
         }, timeout=self.script_timeout_s)
 
     async def _run_swarm_tool(self, socket, session, turn, call, stream, bubble_id, steps):

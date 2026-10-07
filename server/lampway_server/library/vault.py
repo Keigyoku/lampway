@@ -124,7 +124,7 @@ class Vault:
         for path, _storage in rows:
             if Path(path).is_file():
                 return Path(path)
-        raise LibraryError(f"no copy of {sha256} is on disk: re-run lampway_asset_library verify")
+        raise LibraryError(f"no copy of {sha256} is on disk: re-run lampway_vault with action verify")
 
     # ---- writes
     def rate(self, asset_id: str, rater: str, origin: str = "user", **kw) -> dict:

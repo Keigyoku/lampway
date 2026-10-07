@@ -69,3 +69,26 @@ class RunLog(Ledger):
                         "mean_cost": round(sum(costs) / len(costs), 4) if costs else None, "gates": gates,
                         "variant_of": next((r["variant_of"] for r in rows if r["variant_of"]), None)})
         return out
+
+    def last_line(self, service: str, short: bool = False) -> Optional[str]:
+        """The results row's line for the last run of this kind (contract 08): what came back, what it was billed against what
+        was estimated before it was sent, and its rating. ``short``: the billed amount against the estimate only, for a narrow
+        column ("$0.20 billed / $0.21 est."). None before the first run."""
+        kind = "video" if service.startswith("video") else "image"
+        rows = [r for r in self.runs() if (r.get("service") or "").startswith(service.split("_")[0])]
+        if not rows:
+            return None
+        r = rows[-1]
+        n = int(r.get("count") or 1)
+        unit = r.get("unit") or "USD"
+        money = (lambda v: f"${v:.2f}") if unit == "USD" else (lambda v: f"{v:g} {unit}")
+        est = r.get("estimate")
+        if short:
+            billed = f"{money(r['cost'])} billed" if isinstance(r.get("cost"), (int, float)) else "not read back"
+            return billed + (f" / {money(est)} est." if isinstance(est, (int, float)) else "")
+        if isinstance(r.get("cost"), (int, float)):
+            billed = f"{money(r['cost'])} billed " + (f"against a {money(est)} estimate" if isinstance(est, (int, float)) else "(no estimate before it)")
+        else:
+            billed = "billed amount not read back" + (f" (a {money(est)} estimate)" if isinstance(est, (int, float)) else "")
+        rated = f"rated {r['rating']}" if r.get("rating") else "not rated yet"
+        return f"{n} {kind}{'' if n == 1 else 's'}, {billed}, {rated}"

@@ -283,16 +283,34 @@ def _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_
     return doc, rbytes
 
 
+_ID_KINDS = ("objects", "meshes", "materials", "images", "textures", "node_groups", "collections", "armatures", "actions", "cameras", "lights",
+             "curves", "shape_keys", "worlds")
+
+
+def _ids():
+    return {(k, x.as_pointer()) for k in _ID_KINDS for x in getattr(bpy.data, k)}
+
+
+def _remove_new(before):
+    """Remove every datablock that did not exist in ``before`` (audit F5): a refused import leaves the file exactly as it was."""
+    new = [x for k in _ID_KINDS for x in getattr(bpy.data, k) if (k, x.as_pointer()) not in before and k != "shape_keys"]
+    if new:
+        bpy.data.batch_remove(new)
+
+
 def run(input, turn_deg=None, plate="", recipe="", generator="", want_scale="any", scale_evidence=None, weld="auto", weld_distance_m=None, root="."):
-    """The tool: a path (imported raw through canon_io, settings pinned per container) or a scene object, normalized in place."""
+    """The tool: a path (imported raw through canon_io, settings pinned per container) or a scene object, normalized in place. A
+    refused FILE leaves nothing behind: every datablock its import brought in (objects, meshes, materials, images, ...) is removed,
+    so a retry lands under the file's own names (audit F5)."""
     ob = bpy.data.objects.get(input) if isinstance(input, str) else None
     if ob is not None:
-        objs, raw, hint = [ob], None, None
-    else:
-        p = Path(root) / input
-        if not p.exists():
-            raise C.FeatureError(f"{input} is neither an object nor a file under the project root")
-        ext = p.suffix.lower().lstrip(".")
+        return _normalize_all([ob], None, None, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root)
+    p = Path(root) / input
+    if not p.exists():
+        raise C.FeatureError(f"{input} is neither an object nor a file under the project root")
+    ext = p.suffix.lower().lstrip(".")
+    before = _ids()
+    try:
         imp = canon_io.import_raw(str(p), **PINNED.get(ext, {}))
         objs = [bpy.data.objects[n] for n in imp["objects"] if bpy.data.objects[n].type == "MESH"]
         if not objs:
@@ -303,6 +321,13 @@ def run(input, turn_deg=None, plate="", recipe="", generator="", want_scale="any
             hint = str(p.resolve().relative_to(Path(root).resolve()))
         except ValueError:
             hint = p.name
+        return _normalize_all(objs, raw, hint, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root)
+    except Exception:
+        _remove_new(before)
+        raise
+
+
+def _normalize_all(objs, raw, hint, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root):
     out, receipts, unchanged = [], [], True
     for o in objs:
         before = o.get("lw_canon")

@@ -255,3 +255,18 @@ class TestGuiQueueShape:
         assert isinstance(req, ExecutionRequest)
         assert (req.request_id, req.session_id, req.agent_ctx) == ("t-3", "scene-3", {"turn_id": "x"})
         assert req.envelope.run_id == "r"
+
+
+def test_a_failed_tool_result_is_logged_with_its_request_id_and_error(monkeypatch):
+    """Audit F20: scene_summary answered success=False and the app log had no line naming the error. Every failure reply is logged
+    once, with the tool, the request id and the error text (or that there was none)."""
+    lines = []
+    monkeypatch.setattr(pump, "logger", SimpleNamespace(warning=lambda msg, *a: lines.append(msg % a), debug=lambda *a, **k: None,
+                                                        exception=lambda *a, **k: None, error=lambda *a, **k: None))
+    req = ExecutionRequest("id-7", "print(1)", tool_name="scene_summary")
+    assert pump.respond(FakeClient(), req, {"success": False, "error": "no active scene", "error_type": "route_failed"})
+    assert pump.respond(FakeClient(), ExecutionRequest("id-8", "x", tool_name="scene_summary"), {"success": False})
+    assert pump.respond(FakeClient(), ExecutionRequest("id-9", "x", tool_name="scene_summary"), {"success": True})
+    assert len(lines) == 2
+    assert "scene_summary" in lines[0] and "id-7" in lines[0] and "no active scene" in lines[0] and "route_failed" in lines[0]
+    assert "id-8" in lines[1] and "no error text" in lines[1]

@@ -21,7 +21,7 @@ from .lbs import SINGULAR_DET_MIN, SingularBlendError, blended, lbs, lbs_inverse
 from .masks import fit_masks_true_aspect, mask_iou
 from .rigid import apply_similarity, rotation_angle_axis, similarity_fit, similarity_receipt
 from .seams import SEAM_OPEN_M, seam_gaps, seam_ledger, segment_crossings
-from .skinweights import ZeroWeightError, band_weights, dress, falloff_weights, inpaint_harmonic, remap_rows, remap_table
+from .skinweights import ZeroWeightError, band_weights, dress, falloff_weights, inpaint_harmonic, remap_rows, remap_table, rigid_blend
 from .uvmeasure import coverage, raster_half_open, uv_island_ids, uv_metrics
 from .views import apply_offsets, calibrate, project, triangulate, triangulate_robust
 
@@ -29,7 +29,7 @@ API_VERSION = 1
 
 __all__ = [
     "API_VERSION", "BODY_FRAME", "BONE_AXIS_EXPORT", "BONE_DIRECTION", "CONTINUATION", "MAIN_CHILD", "SEAM_OPEN_M", "SINGULAR_DET_MIN", "WELD_M",
-    "PseudoNormals", "SingularBlendError", "ZeroWeightError", "band_weights", "dress", "falloff_weights", "inpaint_harmonic",
+    "PseudoNormals", "SingularBlendError", "ZeroWeightError", "band_weights", "dress", "falloff_weights", "inpaint_harmonic", "rigid_blend",
     "fit_masks_true_aspect", "mask_iou", "remap_rows", "remap_table", "seam_gaps", "seam_ledger", "segment_crossings", "apply_offsets", "apply_similarity", "blended", "bone_segments", "boundary_edges",
     "calibrate", "chain_ends", "check_expect", "closest_points", "components", "control_shift", "conventions_block", "coverage",
     "curl_delta", "enclosure_shift", "expand_pose", "finger_axis", "first_hit", "flex_axis", "harmonic_centre", "inner_wall_centre", "lbs",

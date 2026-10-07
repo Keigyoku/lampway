@@ -137,7 +137,8 @@ export_glb(src, "flat.glb"); bpy.data.objects.remove(src)
 out = api.normalize_mesh(input="flat.glb", turn_deg=-90, generator="tripo_studio")
 res({"ok": out.get("ok"), "err": out.get("error"), "left_raw": [("lw_raw" in o, "lw_canon" in o) for o in bpy.data.objects if o.type == "MESH"]})
 ''')
-    assert not d["ok"] and "16 of 24" in d["err"] and d["left_raw"] == [[True, False]]
+    # it used to pin the opposite (the refused import left behind raw, `lw_raw`): audit F5 rules a refusal leaves the scene as it was
+    assert not d["ok"] and "16 of 24" in d["err"] and d["left_raw"] == []
 
 
 def test_a_weld_that_would_merge_more_than_5_percent_is_refused():
@@ -244,3 +245,99 @@ res({"dims": list(ob.dimensions), "scale": list(ob.scale)})
     assert r.rc == 0, r.out[-1500:]
     d = r.results[-1]
     assert d["scale"] == [1.0, 1.0, 1.0] and max(abs(x - 0.6) for x in d["dims"]) < 1e-6, d
+
+
+SCENE_PRINT = r'''
+def scene_print():
+    """every ID datablock the file holds, by kind and name: a refusal must leave this exactly as it was (audit F5)"""
+    kinds = ("objects", "meshes", "materials", "images", "textures", "node_groups", "collections", "armatures", "actions", "cameras", "lights", "curves")
+    return {k: sorted(x.name for x in getattr(bpy.data, k)) for k in kinds}
+def textured(ob):
+    m = bpy.data.materials.new("boxmat"); m.use_nodes = True
+    im = bpy.data.images.new("boxtex", 8, 8); im.filepath_raw = os.path.join(root, "boxtex.png"); im.file_format = "PNG"; im.save()
+    t = m.node_tree.nodes.new("ShaderNodeTexImage"); t.image = im
+    m.node_tree.links.new(t.outputs["Color"], m.node_tree.nodes["Principled BSDF"].inputs["Base Color"])
+    ob.data.materials.append(m)
+    return ob
+'''
+
+
+def test_a_refused_import_leaves_the_scene_exactly_as_it_was_and_a_retry_gets_the_plain_names():
+    """Audit F5 (specs/bugs/2026-10-06-cloud-audit-wave5.md): six refused file normalizations took a scene from 3 to 14 objects and the
+    retries then made `.001` copies. A refused import removes EVERYTHING it brought in - objects, meshes, materials, images - and the
+    scene's datablocks are exactly what they were; the accepted retry then lands under the file's own names."""
+    d = run(SCENE_PRINT + '''
+src = textured(nosed()); export_glb(src, "box.glb")
+for x in (src, ): bpy.data.objects.remove(x)
+for coll in (bpy.data.meshes, bpy.data.materials, bpy.data.images):
+    for x in list(coll):
+        if x.users == 0: coll.remove(x)
+keep = nosed("bystander")                                   # something of the user's that must survive untouched
+before = scene_print()
+refusals = [api.normalize_mesh(input="box.glb") for _ in range(3)]
+after = scene_print()
+ok = api.normalize_mesh(input="box.glb", turn_deg=-90, generator="tripo_studio")
+res({"refused": [r.get("ok") for r in refusals], "errors": [r.get("error") for r in refusals], "before": before, "after": after,
+     "ok": ok.get("ok"), "names": ok.get("objects")})
+''')
+    assert d["refused"] == [False, False, False] and all("frame undecided" in e for e in d["errors"]), d["errors"]
+    diff = {k: (d["before"][k], d["after"][k]) for k in d["before"] if d["before"][k] != d["after"][k]}
+    assert not diff, diff
+    assert d["ok"] and not any(".0" in n for n in d["names"]), d["names"]
+
+
+def test_a_refused_scene_object_is_left_exactly_as_it_was():
+    """The object form of the same rule: a refusal (here the frame undecided, and a weld over the 5 % guard) changes nothing."""
+    d = run(SCENE_PRINT + '''
+import hashlib
+def sig(o):
+    co = [round(c, 9) for v in o.data.vertices for c in v.co]
+    return {"n": len(o.data.vertices), "co": hashlib.sha256(json.dumps(co).encode()).hexdigest(), "mw": [round(x, 9) for r in o.matrix_world for x in r],
+            "props": sorted(o.keys())}
+ob = nosed("mine"); ob.location = (1.0, 2.0, 0.5); bpy.context.view_layer.update()
+before, prints = sig(ob), scene_print()
+a = api.normalize_mesh(input="mine")
+b = api.normalize_mesh(input="mine", turn_deg=-90, generator="tripo_studio", weld_distance_m=0.5)
+res({"a": a.get("ok"), "b": b.get("ok"), "b_err": b.get("error"), "same": sig(ob) == before, "prints": scene_print() == prints})
+''')
+    assert d["a"] is False and d["b"] is False, d
+    assert d["same"] and d["prints"], d
+
+
+def test_a_canonical_object_placed_by_a_pure_translation_stays_canonical_and_a_turn_or_scale_does_not():
+    """Audit F11: at x = 2.2 m uv_check refused a normalized object ("object matrix is not the identity"). The stamp describes the
+    asset's DATA (its frame, metres, geometry); a pure translation is a PLACEMENT of that asset in the scene and the door accepts it,
+    reporting where it stands. A rotation or a scale changes the frame or the scale the stamp claims and is still refused, saying
+    so plainly; an edit of the data is refused as before, placed or not (SCHEMA.md transform, DOOR.md the check)."""
+    d = run('''
+from mathutils import Matrix
+from mixar.modules.lampway_tools import canon_door as CD, canon_io as CIO
+src = nosed(); export_glb(src, "box.glb"); bpy.data.objects.remove(src)
+name = api.normalize_mesh(input="box.glb", turn_deg=-90, generator="tripo_studio")["objects"][0]
+ob = bpy.data.objects[name]
+probe = api.tool(consumes={"object": api.Need(kind=("mesh",), scale=("real", "generator_normalised", "unknown"))})(lambda object: {"ran": object})
+out = {}
+ob.location = (2.2, -0.4, 0.3); bpy.context.view_layer.update()
+out["moved"] = probe(object=name); out["placed_m"] = CIO.facts(ob).get("placement_m")
+out["again"] = api.normalize_mesh(input=name, turn_deg=-90, generator="tripo_studio")
+out["still_there"] = list(ob.location)
+placed = ob.matrix_world.copy()          # the glTF importer leaves rotation_mode QUATERNION: set the matrix, never one channel
+ob.matrix_world = placed @ Matrix.Rotation(math.radians(30), 4, "Z"); bpy.context.view_layer.update()
+out["turned"] = probe(object=name)
+ob.matrix_world = placed @ Matrix.Scale(1.1, 4); bpy.context.view_layer.update()
+out["scaled"] = probe(object=name)
+ob.matrix_world = placed; bpy.context.view_layer.update()
+out["back"] = probe(object=name)
+ob.data.vertices[0].co.z += 0.01; ob.data.update()
+out["edited"] = probe(object=name)
+res(out)
+''')
+    assert d["moved"]["ok"] and d["moved"]["ran"], d["moved"]
+    assert d["placed_m"] == [2.2, -0.4, 0.3] or max(abs(a - b) for a, b in zip(d["placed_m"], [2.2, -0.4, 0.3])) < 1e-6, d["placed_m"]
+    assert d["again"]["ok"] and d["again"]["unchanged"] is True and max(abs(a - b) for a, b in zip(d["still_there"], [2.2, -0.4, 0.3])) < 1e-6, d
+    for k in ("turned", "scaled"):
+        e = d[k]["error"].lower()
+        assert d[k]["ok"] is False and "rotat" in e and "scale" in e and "undo" in e and "placement" in e, (k, d[k])
+        assert not any("scale_to_measure" in h for h in d[k]["help"]), ("a scaled OBJECT is not a scale-STATE refusal", d[k]["help"])
+    assert d["back"]["ok"], d["back"]
+    assert d["edited"]["ok"] is False and "geometry_sha256 differs" in d["edited"]["error"], d["edited"]

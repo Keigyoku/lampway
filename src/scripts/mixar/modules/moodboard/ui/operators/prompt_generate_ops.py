@@ -69,6 +69,10 @@ class MIXIE_OT_moodboard_prompt_generate(Operator):
             self.report({'ERROR'}, refused)
             _pane_message(refused, "LEVEL_ERROR")
             return {'CANCELLED'}
+        if getattr(context.window_manager, "lampway_gen_button_kind", "") == "spend" and \
+                getattr(context.window_manager, "lampway_gen_owner", "") == self.owner_type:
+            from mixar.modules.lampway_tools import statusbar_state
+            generate_face.await_card((statusbar_state.STATE.get("studio") or {}).get("approvals"))   # contract 08: Spend opens the card
         operator_id, props = resolve_prompt_generate(
             context.scene, self.owner_type
         )

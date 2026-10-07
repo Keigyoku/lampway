@@ -10,7 +10,7 @@ where it lands) and must be contained in an allowed root by ``os.path.commonpath
 ``/tmp/rootx``, which a plain prefix test did).
 
 Roots:
-  write   the temp directory, the Lampway home (projects, copies), and the blend file that is open;
+  write   the sandbox's own temp folder (session_tmp), the Lampway home (projects, copies), and the blend file that is open;
   read    the write roots plus the open blend file's directory and Blender's own install.
 ``LAMPWAY_SANDBOX_READ_ROOTS`` / ``LAMPWAY_SANDBOX_WRITE_ROOTS`` (``os.pathsep``-separated) add roots for a setup that
 keeps its pieces elsewhere.
@@ -109,8 +109,21 @@ def _blender_install() -> list:
         return []
 
 
+def session_tmp() -> str:
+    """The sandbox's own temp folder: one per app process, owner-only, inside the system temp directory. A script's
+    ``tempfile.gettempdir()`` names it, and it is the only temp location a script may read or write (audit F19: the whole shared
+    temp directory was open)."""
+    path = os.path.join(tempfile.gettempdir(), f"lampway-agent-{os.getuid() if hasattr(os, 'getuid') else 0}-{os.getpid()}")
+    if not os.path.isdir(path):
+        os.makedirs(path, mode=0o700, exist_ok=True)
+        import atexit
+        import shutil
+        atexit.register(shutil.rmtree, path, True)     # removed with the app process that made it
+    return path
+
+
 def write_roots() -> tuple:
-    roots = [tempfile.gettempdir()] + _lampway_home() + _env_roots("LAMPWAY_SANDBOX_WRITE_ROOTS")
+    roots = [session_tmp()] + _lampway_home() + _env_roots("LAMPWAY_SANDBOX_WRITE_ROOTS")
     return tuple(dict.fromkeys(_realpath(r) for r in roots))
 
 
@@ -297,6 +310,8 @@ def guard_file_method(method, owner=None, name=None):
     kind = _owner_kind(owner)
     if kind is None:
         return method
+    if kind == "text" and name == "write":
+        return method                                  # Text.write(text) appends to the text block: its argument is content, not a path (audit F19)
     if name == "as_module":
         def refused(*args, **kwargs):
             raise SandboxPathError("Text.as_module() is not available in the sandbox: it executes the text block.")

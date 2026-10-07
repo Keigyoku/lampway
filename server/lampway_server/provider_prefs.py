@@ -130,7 +130,8 @@ def check_purposes(v):
 
 
 def check_spend_policy(v):
-    """A partial {provider: {click?, above?, job_cap?, session_cap?}} for openrouter / higgsfield / studios / hyper3d (amounts in the provider's unit: USD, else credits)."""
+    """A partial {provider: {click?, above?, job_cap?, day_cap?}} for openrouter / higgsfield / studios / hyper3d (amounts in the provider's unit: USD, else credits).
+    ``session_cap``, the cap before ruling 5 (2026-10-07) made it a saved day total, is read as ``day_cap``."""
     from .spendpolicy import CLICKS, PROVIDERS
     if not isinstance(v, dict) or not v:
         raise PrefsError(f"must be an object of providers {list(PROVIDERS)}")
@@ -144,7 +145,8 @@ def check_spend_policy(v):
         for key, val in cfg.items():
             if key == "click":
                 row[key] = _enum(CLICKS)(val)
-            elif key in ("above", "job_cap", "session_cap"):
+            elif key in ("above", "job_cap", "day_cap", "session_cap"):
+                key = "day_cap" if key == "session_cap" else key
                 if val is None and key != "above":
                     row[key] = None
                 elif isinstance(val, bool) or not isinstance(val, (int, float)) or not 0 <= val <= 1_000_000:
@@ -152,7 +154,7 @@ def check_spend_policy(v):
                 else:
                     row[key] = float(val)
             else:
-                raise PrefsError(f"{provider}: {key!r} is not a setting (click, above, job_cap, session_cap)")
+                raise PrefsError(f"{provider}: {key!r} is not a setting (click, above, job_cap, day_cap)")
         if row.get("click") == "above" and "above" not in row:
             raise PrefsError(f"{provider}: click above needs `above`, the price over which the user's click is needed")
         out[provider] = row

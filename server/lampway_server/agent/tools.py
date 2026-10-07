@@ -29,9 +29,12 @@ RUN_BLENDER_PYTHON = "run_blender_python"
 SCENE_SUMMARY = "scene_summary"
 ASK_USER = "ask_user"
 
+SCENE_SUMMARY_LIMIT = 100                     # audit F8: 1,016 objects answered 203 KB; a page is bounded, full=true is the caller's choice
 SCENE_SUMMARY_SCRIPT = '''import bpy
+_all = list(bpy.data.objects)
+_page = _all if _FULL else _all[_OFFSET:_OFFSET + _LIMIT]
 _objects = []
-for _o in bpy.data.objects:
+for _o in _page:
     _objects.append({
         "name": _o.name,
         "type": _o.type,
@@ -41,13 +44,17 @@ for _o in bpy.data.objects:
         "materials": [s.material.name for s in _o.material_slots if s.material],
         "hidden": bool(_o.hide_get()) if hasattr(_o, "hide_get") else False,
     })
-_materials = [{"name": _m.name, "users": _m.users} for _m in bpy.data.materials]
+_mats = list(bpy.data.materials)
+_materials = [{"name": _m.name, "users": _m.users} for _m in (_mats if _FULL else _mats[:_LIMIT])]
 _scene = bpy.context.scene
 __RESULT__ = {
     "scene": _scene.name,
     "frame": _scene.frame_current,
-    "object_count": len(_objects),
+    "object_count": len(_all),
+    "offset": 0 if _FULL else _OFFSET,
+    "next_offset": None if _FULL or _OFFSET + _LIMIT >= len(_all) else _OFFSET + _LIMIT,
     "objects": _objects,
+    "material_count": len(_mats),
     "materials": _materials,
     "selected": [o.name for o in bpy.context.selected_objects] if bpy.context.selected_objects else [],
     "active": bpy.context.view_layer.objects.active.name if bpy.context.view_layer.objects.active else None,
@@ -76,9 +83,13 @@ TOOLS = [
         name=SCENE_SUMMARY,
         description=(
             "List the objects (name, type, location, dimensions, parent, materials) and materials "
-            "in the current Blender scene, plus the selection and active object."
+            "in the current Blender scene, plus the selection and active object. A page of `limit` objects (default 100) "
+            "from `offset`, with object_count and next_offset; full=true lists every object."
         ),
-        parameters={"type": "object", "properties": {}, "additionalProperties": False},
+        parameters={"type": "object", "properties": {
+            "limit": {"type": "integer", "minimum": 1, "maximum": 1000, "description": "Objects per page, default 100"},
+            "offset": {"type": "integer", "minimum": 0, "description": "First object of the page, default 0 (next_offset of the previous page)"},
+            "full": {"type": "boolean", "description": "Every object and material, no paging"}}, "additionalProperties": False},
     ),
 ]
 
@@ -121,7 +132,14 @@ def script_for(name: str, arguments: dict) -> str:
             raise UnknownTool("run_blender_python needs a string `script`")
         return script
     if name == SCENE_SUMMARY:
-        return SCENE_SUMMARY_SCRIPT
+        args = arguments if isinstance(arguments, dict) else {}
+        try:
+            limit, offset = int(args.get("limit") or SCENE_SUMMARY_LIMIT), int(args.get("offset") or 0)
+        except (TypeError, ValueError):
+            raise UnknownTool("scene_summary takes integers: limit (1..1000) and offset (>= 0)") from None
+        if not (1 <= limit <= 1000 and offset >= 0):
+            raise UnknownTool("scene_summary takes limit 1..1000 and offset >= 0")
+        return f"_LIMIT, _OFFSET, _FULL = {limit}, {offset}, {bool(args.get('full'))}\n" + SCENE_SUMMARY_SCRIPT
     if name == ASK_USER:
         raise UnknownTool("ask_user is answered by the user, not by Blender")
     if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES or name in wbt.NAMES or name in cpt.NAMES or name in lib_.NAMES or name in crd.NAMES or name in flt.NAMES or name in plt.NAMES or name in cnt.NAMES or name in cht.NAMES or name in capt.NAMES:

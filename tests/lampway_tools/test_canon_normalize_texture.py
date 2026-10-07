@@ -91,3 +91,22 @@ def test_normalize_texture_binds_role_colour_space_and_convention_and_opens_the_
     assert d["door_changed"]["ok"] is False and "colour space 'sRGB'" in d["door_changed"]["error"], d["door_changed"]
     assert d["door_file"]["ok"] is False and "image file changed since it was normalized" in d["door_file"]["error"], d["door_file"]
     assert d["again"]["ok"] and d["again"]["document"]["body"]["colour_space"] == "Non-Color"         # normalizing again restores it
+
+
+def test_a_refused_texture_file_leaves_no_image_behind(tmp_path):
+    """Audit F5, the same class as normalize_mesh: a refused FILE (role unknown, convention undeclared) leaves the file's datablocks
+    exactly as they were - no image loaded and kept, so a later call never reuses a half-normalized one or numbers a copy."""
+    r = run_script(SCRIPT.split("out = {}")[0].replace("ROOT", repr(str(tmp_path / "proj"))) + r'''
+png("mystery.png", 16, 16)
+before = sorted(i.name for i in bpy.data.images)
+a = api.normalize_texture(input="mystery.png")
+b = api.normalize_texture(input="mystery.png", role="normal")
+after = sorted(i.name for i in bpy.data.images)
+ok = api.normalize_texture(input="mystery.png", role="normal", normal_convention="dx")
+print("RESULT " + json.dumps({"a": a.get("ok"), "b": b.get("ok"), "before": before, "after": after, "ok": ok.get("ok"),
+                              "names": sorted(i.name for i in bpy.data.images)}))
+''', timeout=180)
+    assert r.rc == 0, r.out[-2000:]
+    d = r.results[-1]
+    assert d["a"] is False and d["b"] is False and d["after"] == d["before"], d
+    assert d["ok"] and d["names"] == sorted(d["before"] + ["mystery.png"]), d

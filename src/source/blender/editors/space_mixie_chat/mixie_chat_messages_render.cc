@@ -174,6 +174,16 @@ void mixie_chat_render_messages(const bContext *C,
                                   layout.is_user);
       }
 
+      if (!layout.is_user && g_msg_props.lampway_who) {
+        char who[96] = "";
+        if (RNA_property_string_length(&msg_ptr, g_msg_props.lampway_who) < int(sizeof(who))) {
+          RNA_property_string_get(&msg_ptr, g_msg_props.lampway_who, who);
+          /* Above the bubble, in the label band the layout reserves for every message (msg_top counts it). */
+          chat_ui_draw_who_line(who, layout.bubble_x, layout.y_pos + layout.bubble_height + 6.0f * metrics.scale_factor,
+                                &metrics);
+        }
+      }
+
       mixie_chat_render_message_content(layout, &msg_ptr, text_len, text_buffer);
 
       if (layout.is_slot_based && layout.slot_todo_count > 0) {
@@ -222,8 +232,15 @@ void mixie_chat_render_messages(const bContext *C,
                                          4.0f * UI_SCALE_FAC;
 
         /* A question or choice waits for the user (facelift contract 04, DESIGN.md 4): lamplight behind the whole
-         * set of choices, and a `line_hi` rule beside it. */
-        {
+         * set of choices, and a `line_hi` rule beside it. An answered question keeps only its expander row
+         * (lampway_tools/answered.py: values "lampway_answered:..."): nothing waits there, so no glow. */
+        bool waiting_choice = false;
+        for (int i = 0; i < layout.slot_action_count; i++) {
+          if (!STRPREFIX(layout.slot_actions[i].value, "lampway_answered:")) {
+            waiting_choice = true;
+          }
+        }
+        if (waiting_choice) {
           float total = 0.0f;
           for (int i = 0; i < layout.slot_action_count; i++) {
             total += layout.slot_actions[i].height + (i ? metrics.bubble_spacing : 0.0f);

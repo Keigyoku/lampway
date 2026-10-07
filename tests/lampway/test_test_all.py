@@ -76,6 +76,16 @@ def test_a_binary_whose_native_sources_differ_is_refused(tmp_path):
     assert state == "refused" and "native sources" in msg
 
 
+def test_the_stamp_build_linux_writes_is_read(tmp_path):
+    """build_linux.sh stamps "UNPUSHED <sha>" for a commit no remote has (its native sources still decide the gate) and
+    "UNCLEAN <sha>: ..." for a tree that was not the commit: an unclean binary is refused by name, not as an unknown sha."""
+    r, g = _repo(tmp_path)
+    sha = subprocess.run(g + ["rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    assert T.binary_gate(r, _bin(tmp_path / "a", f"UNPUSHED {sha}")) == ("gated", sha)
+    state, msg = T.binary_gate(r, _bin(tmp_path / "b", f"UNCLEAN {sha}: native sources differ from the commit (src/source/a.cc)"))
+    assert state == "refused" and msg.startswith("the binary was built from an unclean tree:") and "src/source/a.cc" in msg, msg
+
+
 def test_a_binary_without_built_from_runs_ungated_and_says_so(tmp_path):
     r, _ = _repo(tmp_path)
     state, msg = T.binary_gate(r, _bin(tmp_path))
@@ -90,12 +100,63 @@ def test_verify_env_names_a_missing_upstream_and_a_missing_package(tmp_path):
     assert any("upstream/" in p for p in problems) and any("surely-not" in p for p in problems)
 
 
+def _shelf(tmp_path):
+    """A stand-in shelf holding the fixtures the reference environment requires (names only, empty files)."""
+    shelf = tmp_path / "shelf"
+    for rel in T.SHELF_FILES:
+        f = shelf / "scratch" / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_bytes(b"")
+    return {"LAMPWAY_SHELF_DIR": str(shelf)}
+
+
+def test_verify_env_names_a_missing_i18n_template(tmp_path):
+    """b19 (2026-10-06): mixar.pot is git-ignored (generated), so a fresh worktree has none and tests/i18n's template check fails
+    while the catalog check skips. The reference environment generates it (test_env.sh); verify_env says when it is missing."""
+    problems = T.verify_env(tmp_path, packages={}, python=None, shelf={})
+    assert any(T.I18N_TEMPLATE in p and "test_env.sh" in p for p in problems), problems
+
+
 def test_verify_env_passes_when_everything_is_there(tmp_path):
+    (tmp_path / T.I18N_TEMPLATE).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / T.I18N_TEMPLATE).write_text("x")
     for rel in T.UPSTREAM_FILES:
         f = tmp_path / rel
         f.parent.mkdir(parents=True, exist_ok=True)
         f.write_text("x")
-    assert T.verify_env(tmp_path, packages={"json": "json"}, python=None) == []
+    assert T.verify_env(tmp_path, packages={"json": "json"}, python=None, shelf=_shelf(tmp_path)) == []
+
+
+def test_verify_env_requires_the_shelf_and_its_placement_fixtures(tmp_path):
+    """the placement pins (tests/lampway_tools/test_wave2_fit_place.py) run in the reference environment: the shelf is part of it,
+    named by LAMPWAY_SHELF_DIR (LAMPWAY_SHELF_SCRATCH when its scratch lives elsewhere); never a path written in the repository."""
+    none = T.verify_env(tmp_path, packages={}, python=None, shelf={})
+    assert any("LAMPWAY_SHELF_DIR" in p for p in none), none
+    env = _shelf(tmp_path)
+    (Path(env["LAMPWAY_SHELF_DIR"]) / "scratch" / T.SHELF_FILES[0]).unlink()
+    gone = T.verify_env(tmp_path, packages={}, python=None, shelf=env)
+    assert any(T.SHELF_FILES[0] in p for p in gone), gone
+    moved = tmp_path / "elsewhere"
+    (Path(env["LAMPWAY_SHELF_DIR"]) / "scratch").rename(moved)
+    assert not any("shelf" in p for p in T.verify_env(tmp_path, packages={}, python=None, shelf=dict(env, LAMPWAY_SHELF_SCRATCH=str(moved))) if T.SHELF_FILES[0] not in p)
+
+
+def test_the_shelf_is_read_only_a_write_during_the_run_is_named(tmp_path):
+    env = _shelf(tmp_path)
+    root = Path(env["LAMPWAY_SHELF_DIR"])
+    before = T.shelf_snapshot(env)
+    assert T.shelf_writes(before, T.shelf_snapshot(env)) == []
+    (root / "scratch" / T.SHELF_FILES[0]).write_bytes(b"changed")
+    (root / "new.txt").write_text("x")
+    assert T.shelf_writes(before, T.shelf_snapshot(env)) == sorted(["new.txt", "scratch/" + T.SHELF_FILES[0]])
+
+
+def test_the_shelf_tests_read_the_variables_the_environment_provides():
+    """every test module that skips on the shelf reads LAMPWAY_SHELF_DIR or LAMPWAY_SHELF_SCRATCH, and SHELF_FILES covers the placement
+    pins' own REAL condition (so a reference environment cannot verify while they would skip)."""
+    src = (ROOT / "tests/lampway_tools/test_wave2_fit_place.py").read_text()
+    for rel in T.SHELF_FILES:
+        assert rel.split("/")[-1] in src, rel
 
 
 def test_the_test_requirements_cover_what_verify_env_checks():
@@ -111,7 +172,7 @@ def test_a_run_is_judged_on_the_head_and_baseline_it_started_with(tmp_path, monk
     started = []
 
     class FakeProc:
-        def __init__(self, cmd, cwd, stdout, stderr, start_new_session):
+        def __init__(self, cmd, cwd, stdout, stderr, start_new_session, env=None):
             started.append(cmd)
             stdout.write("= 1 failed, 2 passed in 1.0s =\nFAILED tests/x.py::t - boom\n")
             stdout.close()
@@ -134,3 +195,32 @@ def test_a_run_is_judged_on_the_head_and_baseline_it_started_with(tmp_path, monk
     import json
     summary = json.loads((tmp_path / "out" / "summary.json").read_text())
     assert summary["sha"] == "aaa1111" and summary["head_at_end"] == "bbb2222"
+
+
+def test_a_run_leaves_the_callers_environment_unchanged_and_hands_the_suites_the_flag(tmp_path, monkeypatch):
+    """main() set os.environ["LAMPWAY_TEST_ALL"] = "1" in its own process: called in-process (as the test above does) it leaked into
+    every later test, and the shelf tests after it errored instead of skipping (measured by order). The flag goes to the suites'
+    environment only."""
+    seen = []
+
+    class FakeProc:
+        def __init__(self, cmd, cwd, stdout, stderr, start_new_session, env=None):
+            seen.append(env)
+            stdout.write("= 2 passed in 1.0s =\n")
+            stdout.close()
+
+        def wait(self):
+            return 0
+
+    monkeypatch.setattr(T, "verify_env", lambda *a, **k: [])
+    monkeypatch.setattr(T, "binary_gate", lambda *a, **k: ("gated", "sha"))
+    monkeypatch.setattr(T, "load_baseline", lambda: {})
+    monkeypatch.setattr(T, "head_sha", lambda root: "aaa1111")
+    monkeypatch.setattr(T.subprocess, "Popen", FakeProc)
+    monkeypatch.delenv("LAMPWAY_TEST_ALL", raising=False)
+    monkeypatch.setenv("TMPDIR", str(tmp_path))
+    monkeypatch.setenv("LAMPWAY_TEST_OUT", str(tmp_path / "out"))
+    import os
+    assert T.main(["--only", "client"]) == 0
+    assert "LAMPWAY_TEST_ALL" not in os.environ
+    assert seen and all(e is not None and e.get("LAMPWAY_TEST_ALL") == "1" for e in seen)

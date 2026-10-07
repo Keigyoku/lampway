@@ -39,8 +39,8 @@ class Recorder:
 
 
 EGRESS_IDLE = {"routes": [{"id": "openrouter", "label": "OpenRouter", "enabled": False}], "indicator": {"over_the_wire": False, "active": [], "last": None}}
-SPEND = {"scope": "session", "providers": [{"provider": "openrouter", "unit": "USD", "spent": 0.31, "session_cap": 5.0, "job_cap": 1.0, "click": "above", "above": 0.25},
-                                           {"provider": "higgsfield", "unit": "credits", "spent": 0.0, "session_cap": None, "job_cap": None, "click": "always", "above": None}]}
+SPEND = {"scope": "day", "providers": [{"provider": "openrouter", "unit": "USD", "spent": 0.31, "day_cap": 5.0, "job_cap": 1.0, "click": "above", "above": 0.25},
+                                           {"provider": "higgsfield", "unit": "credits", "spent": 0.0, "day_cap": None, "job_cap": None, "click": "always", "above": None}]}
 WAITING = {"approvals": [{"id": "a1", "state": "pending", "settings": {"unit": "credits"}}], "jobs": []}
 
 
@@ -68,7 +68,7 @@ def test_statusbar_draw_is_pure(statusbar, monkeypatch):
     statusbar.draw(SimpleNamespace(layout=layout), SimpleNamespace())
     texts = layout.texts()
     assert "1 waiting for you" in texts
-    assert "$0.31 of $5.00" in texts
+    assert "spent today $0.31 of $5.00" in texts
     assert "local" in texts
     assert calls == []
 
@@ -101,14 +101,14 @@ def test_wire_chip_states():
 def test_spend_gauge_steps_and_the_cap_it_falls_under():
     S.update(egress=EGRESS_IDLE, spend=SPEND, studio={})
     text, step, tip = S.spend_line()
-    assert (text, step) == ("$0.31 of $5.00", 1)
-    assert "this server session" in tip and "Providers" in tip
-    near = {"scope": "session", "providers": [dict(SPEND["providers"][0], spent=4.6)]}
+    assert (text, step) == ("spent today $0.31 of $5.00", 1)
+    assert "local-day" in tip and "Providers" in tip and "session" not in tip
+    near = {"scope": "day", "providers": [dict(SPEND["providers"][0], spent=4.6)]}
     S.update(egress=EGRESS_IDLE, spend=near, studio={})
     assert S.spend_line()[1] == 9
-    no_cap = {"scope": "session", "providers": [dict(SPEND["providers"][0], session_cap=None), dict(SPEND["providers"][1], spent=18)]}
+    no_cap = {"scope": "day", "providers": [dict(SPEND["providers"][0], day_cap=None), dict(SPEND["providers"][1], spent=18)]}
     S.update(egress=EGRESS_IDLE, spend=no_cap, studio={})
-    assert S.spend_line()[:2] == ("$0.31 + 18 credits", None)
+    assert S.spend_line()[:2] == ("spent today $0.31 + 18 credits", None)
 
 
 def test_wire_animation_only_while_sending(statusbar, monkeypatch):
@@ -163,3 +163,39 @@ def test_the_plug_beside_the_wire_chip_opens_connections(statusbar):
         statusbar.draw(SimpleNamespace(layout=layout), SimpleNamespace())
         ops = [e[1] for e in layout.log if e[0] == "op"]
         assert "lampway.connections_open" in ops, layout.log
+
+
+def test_signed_out_says_signed_out_not_server_down(statusbar, monkeypatch):
+    """Cloud audit F22 (2026-10-06): a server that answers 401 (/auth/me, or any read) is running; the user is signed out.
+    The bar says "signed out" for a 401 and for no token at all, and keeps "server not running" for a refused connection."""
+    import io
+    import urllib.error
+
+    from mixar.modules.lampway_tools import status_client
+
+    def answer_401(req, timeout=None):
+        raise urllib.error.HTTPError(req.full_url, 401, "Unauthorized", {}, io.BytesIO(b'{"detail": "not authenticated"}'))
+    monkeypatch.setattr(statusbar, "_sync_route_line", lambda: None)
+    monkeypatch.setattr(statusbar, "_open_awaited_card", lambda: None)
+    monkeypatch.setattr(statusbar, "_redraw_statusbar", lambda: None)
+    monkeypatch.setattr(statusbar, "sync_animation", lambda: None)
+    for token, opener in (("tok", answer_401), ("", answer_401)):
+        monkeypatch.setattr(urllib.request, "urlopen", opener)
+        monkeypatch.setattr(statusbar, "CLIENT_FACTORY", lambda: status_client.StatusClient("http://127.0.0.1:9", lambda: token))
+        S.update(egress=EGRESS_IDLE, spend=SPEND, studio=WAITING)
+        statusbar.refresh()
+        layout = Recorder()
+        statusbar.draw(SimpleNamespace(layout=layout), SimpleNamespace())
+        texts = layout.texts()
+        assert "signed out" in texts and not [t for t in texts if "not running" in t or "$0.31" in t], (token, texts)
+    monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout=None: (_ for _ in ()).throw(urllib.error.URLError("refused")))
+    monkeypatch.setattr(statusbar, "CLIENT_FACTORY", lambda: status_client.StatusClient("http://127.0.0.1:9", lambda: "tok"))
+    statusbar.refresh()
+    layout = Recorder()
+    statusbar.draw(SimpleNamespace(layout=layout), SimpleNamespace())
+    assert "spend unknown: server not running" in layout.texts()
+
+
+def test_the_status_refresh_drains_no_terminal_queue(statusbar):
+    """The captain's ruling 11: WezTerm is a viewport only, so Blender reads nothing from it (no image queue)."""
+    assert not hasattr(statusbar, "_show_terminal_images") and not hasattr(statusbar, "_image_editor_show")

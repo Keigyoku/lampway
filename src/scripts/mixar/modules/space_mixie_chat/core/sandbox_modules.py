@@ -228,12 +228,9 @@ def safe_module(module, root: str = None):
 class RestrictedTempfile:
     """Restricted tempfile exposing only gettempdir()."""
 
-    def __init__(self):
-        import tempfile as _tf
-        self._gettempdir = _tf.gettempdir
-
     def gettempdir(self) -> str:
-        return self._gettempdir()
+        from .sandbox_paths import session_tmp
+        return session_tmp()                           # the sandbox's own folder, the only temp location it may use (audit F19)
 
     def __getattr__(self, name):
         raise AttributeError(
