@@ -125,6 +125,11 @@ def apply_new_conversation(params: dict) -> None:
     if is_byoa(scene):
         logger.info("The pane's /new (agent.pane.new_conversation) for a tab in Your agent mode: ignored")
         return
+    # A lost ACK can return after /new (including an unknown request after a server restart).
+    # Its saved callback belongs to the old chat and must never settle against the new transcript.
+    for command_id, (session_id, _) in list(TE._commands.items()):
+        if session_id == sid:
+            TE._commands.pop(command_id, None)
     live = False
     for turn in TE._turns.values():
         if turn.session_id == sid:

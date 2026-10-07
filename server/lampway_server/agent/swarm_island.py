@@ -53,6 +53,20 @@ class SwarmIsland:
         self.cards: dict = {}                  # swarm id -> its Card (the card turn), while the server runs
 
     # ------------------------------------------------------------------------------------------------- where the frames go
+    def _conversation(self, swarm) -> str:
+        """Capture the Mode 1 swarm's origin on its first report, before any worker starts. /new never migrates its cards."""
+        if getattr(swarm, "mode", "runtime") == "byoa":
+            return ""
+        if not hasattr(swarm, "conversation_id"):
+            engine = getattr(self.hub, "engine", None)
+            swarm.conversation_id = (engine.conversation_of(swarm.parent_session) or "") if engine is not None else ""
+        return swarm.conversation_id
+
+    def _current(self, swarm) -> bool:
+        conversation = self._conversation(swarm)
+        engine = getattr(self.hub, "engine", None)
+        return not conversation or (engine is not None and engine.conversation_of(swarm.parent_session) == conversation)
+
     def takes_over(self, swarm) -> bool:
         """A Mode 1 swarm on a server running Lampway Agent's front reports here even when a turn handed it its stream: the turn
         that started it may have ended, and the island turn running NOW (or a card turn) is where the user looks."""
@@ -78,6 +92,16 @@ class SwarmIsland:
         """The swarm's rows (the whole list each time: the slot replaces it); ``final`` once it is collected: the Retry chip when a
         task failed, and the card turn's end."""
         frame = {"todo": rows}
+        if not self._current(swarm):
+            # Its workers and panes keep running, and an existing card journal keeps their rows. Only the old island delivery
+            # is retired; neither a fresh card nor the new conversation's live sink may receive these frames.
+            card = self.cards.get(swarm.id)
+            if card is not None and not card.ended:
+                card.socket = None
+                await self._emit(card, {"bubble_id": card.bubble_id, **frame})
+            if final:
+                await self.finish(swarm)
+            return
         if final and retry_offered(swarm):
             frame["actions"] = [dict(a) for a in RETRY_ACTIONS]
         sink = self._sink(swarm)
@@ -95,6 +119,8 @@ class SwarmIsland:
         card = self.cards.get(swarm.id)
         if card is None or card.ended:
             return
+        if not self._current(swarm):
+            card.socket = None
         card.ended = True
         await self._emit(card, {"type": "turn_end", "status": "completed", "run_id": card.turn.run_id})
         card.turn.status = "ended"
@@ -114,6 +140,7 @@ class SwarmIsland:
         unit = swarm.parent_session
         tid = f"swarm_{swarm.id}_{uuid.uuid4().hex[:8]}"
         turn = Turn(unit, tid, tid)
+        turn.conversation_id = self._conversation(swarm)
         turn.observed = True                           # type: ignore[attr-defined]
         turn.socket = socket                           # type: ignore[attr-defined]
         self.hub._session(unit).turns[tid] = turn
@@ -123,6 +150,8 @@ class SwarmIsland:
             "session_id": unit, "turn_id": tid, "run_id": tid, "observed": True, "swarm": swarm.id,
             "pane": owner[len("pane:"):] if owner.startswith("pane:") else None, "harness": getattr(swarm, "harness_id", None),
             "user_text": ""}
+        if turn.conversation_id:
+            turn.card_start["conversation_id"] = turn.conversation_id
         await self._notify(socket, "agent.turn.started", turn.card_start)
         await self._emit(card, {"type": "run_status", "run_id": tid, "status": "in_progress"})
         return card

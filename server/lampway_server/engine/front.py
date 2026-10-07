@@ -201,6 +201,7 @@ class HermesFront:
         """Run (or continue, ``user_text`` None after the island answered) the unit's Hermes turn for this island turn. Returns the
         turn's status; returns early, the Hermes turn still running, when it stops for a question (``turn.asked``)."""
         link = await self._ensure(session.session_id, open_pane=user_text is not None, label=(context or {}).get("scene_name"))
+        turn.conversation_id = self.conversation_of(session.session_id) or ""
         sink = Sink(socket, session, turn, stream, bubble_id, steps, done=asyncio.get_running_loop().create_future(),
                     asked=asyncio.Event())
         if user_text is not None and self._retry_click(socket, session.session_id, user_text):
@@ -933,6 +934,7 @@ class HermesFront:
             session.last_user = user_text                   # the user's words, typed in the pane
         tid = f"pane_{uuid.uuid4().hex[:12]}"
         turn = Turn(unit, tid, run_id or str(uuid.uuid4()))
+        turn.conversation_id = self.conversation_of(unit) or ""
         turn.socket = socket  # type: ignore[attr-defined]
         turn.detached = socket is None
         turn.task = asyncio.current_task()

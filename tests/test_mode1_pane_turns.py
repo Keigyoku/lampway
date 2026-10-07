@@ -434,3 +434,132 @@ def test_the_socket_hands_the_new_conversation_frame_to_the_turn_ingress():
     dispatch._on_turn_event = lambda method, params: got.append((method, params))
     dispatch._handle_message({"jsonrpc": "2.0", "method": "agent.pane.new_conversation", "params": NEW_CONVERSATION})
     assert got == [("agent.pane.new_conversation", NEW_CONVERSATION)]
+
+
+@pytest.mark.parametrize("retained", ["completed", "card"])
+def test_actual_reconnect_files_missed_new_before_recovering_cards_with_retained_turns(world, monkeypatch, retained):
+    import bpy
+    from mixar.modules.common.agent_rpc import client as rpc
+    from mixar.modules.space_mixie_chat.core import byoa_view, chat_history as CH, turn_resume
+    scene, seen = world
+    scene[CONV] = "20261007_100000_aaaaaa"
+    _old_chat(scene)
+    CH.archive_current(scene)
+    TE._turns["old-delivery"] = TE.Turn(SID, "old-delivery", "old-run", complete=retained == "completed",
+                                       observed=retained == "card", swarm_card=retained == "card")
+    monkeypatch.setattr(bpy.data, "scenes", [scene])
+    monkeypatch.setattr(turn_resume, "check_orphaned_turns", lambda: None)
+    monkeypatch.setattr(byoa_view, "observe_all", lambda: None)
+    callbacks = []
+    monkeypatch.setattr(rpc, "call", lambda method, params, cb: callbacks.append((method, cb)))
+    replay = []
+    monkeypatch.setattr(TE, "_request_replay", lambda turn: replay.append((turn.turn_id, scene[CONV], users(scene))))
+    TE.reconnect()
+    replay.clear()
+    status = [cb for method, cb in callbacks if method == "agent.status"][-1]
+    status({"conversations": {SID: "20261007_110000_bbbbbb"}, "turns": {}, "swarm_cards": {SID: [
+        {"session_id": SID, "turn_id": "new-card", "run_id": "new-card", "swarm": "new", "observed": True,
+         "conversation_id": "20261007_110000_bbbbbb"}]}})
+    assert scene[CONV] == "20261007_100000_aaaaaa" and users(scene) == ["Make a chair"]
+    assert "new-card" not in TE._turns, "the callback cannot mutate the scene or delivery table"
+    TE.drain_session(SID)
+    assert scene[CONV] == "20261007_110000_bbbbbb" and users(scene) == []
+    assert TE._turns["old-delivery"].complete
+    assert replay == [("new-card", "20261007_110000_bbbbbb", [])]
+    rows = CH.list_sessions()
+    assert len(rows) == 1 and rows[0]["session_id"] != SID
+    assert [m["text"] for m in CH.load_session(rows[0]["session_id"])["messages"]] == ["Make a chair", "Done: one chair."]
+
+
+@pytest.mark.parametrize("delivery", ["start", "cards", "status"])
+def test_old_conversation_recovery_cannot_repopulate_a_cold_tabs_new_chat(world, delivery):
+    scene, seen = world
+    scene[CONV] = "current-conversation"
+    old = {"session_id": SID, "turn_id": "old-card", "run_id": "old-card", "swarm": "old",
+           "observed": True, "conversation_id": "old-conversation"}
+    if delivery == "start":
+        TE._consume("agent.turn.started", old)
+    elif delivery == "cards":
+        TE._consume("agent.recovery.cards", {"session_id": SID, "cards": [old]})
+    else:
+        TE._consume("agent.recovery.status", {"session_id": SID, "info": {
+            "turn_id": "old-pane", "run_id": "old-run", "replay_available": True,
+            "conversation_id": "old-conversation"}})
+    assert scene[CONV] == "current-conversation"
+    assert TE._turns == {} and not scene.mixie_chat_messages
+    assert seen["states"] == [] and seen["runs"] == []
+    # The current conversation's newly discovered cards still render.
+    TE._consume("agent.recovery.cards", {"session_id": SID, "cards": [{**old,
+        "turn_id": "current-card", "conversation_id": "current-conversation"}]})
+    assert "current-card" in TE._turns and not TE._turns["current-card"].complete
+
+
+def _pending_real_command(scene, seen, monkeypatch):
+    from mixar.modules.space_mixie_chat.core import turn_transport as TT, rules, queue_processor
+    acks = []
+    monkeypatch.setattr(TT, "command", lambda method, payload, cb, **kw: acks.append(cb))
+    monkeypatch.setattr(rules, "rules_snapshot", lambda sc: {})
+    processor = queue_processor.get_event_processor()
+    monkeypatch.setattr(processor, "handle_command_error", lambda result, sc: seen.setdefault("errors", []).append(result),
+                        raising=False)
+    handler = TT.TurnTransport(scene.name)
+    monkeypatch.setattr(handler, "_scene", lambda: scene)
+    assert handler._send("chat", {"session_id": SID})
+    return handler.last_command_id, acks[0]
+
+
+@pytest.mark.parametrize("delivery", ["direct", "recovered"])
+def test_new_conversation_fences_a_real_old_command_failure_without_touching_the_new_turn(world, monkeypatch, delivery):
+    import bpy
+    from mixar.modules.common.agent_rpc import client as rpc
+    from mixar.modules.space_mixie_chat.core import byoa_view, turn_resume
+    scene, seen = world
+    command_id, ack = _pending_real_command(scene, seen, monkeypatch)
+    TE._commands["other-tab-command"] = ("other-tab", None)
+    callbacks = []
+    if delivery == "recovered":
+        monkeypatch.setattr(bpy.data, "scenes", [scene])
+        monkeypatch.setattr(turn_resume, "check_orphaned_turns", lambda: None)
+        monkeypatch.setattr(byoa_view, "observe_all", lambda: None)
+        monkeypatch.setattr(rpc, "call", lambda method, params, cb: callbacks.append((method, cb)))
+        TE.reconnect()
+    TE._consume("agent.pane.new_conversation", {**NEW_CONVERSATION, "conversation_id": "new-conversation"})
+    TE._consume("agent.turn.started", {**pane_started(), "conversation_id": "new-conversation"})
+    before = (seen["cleared"], list(seen["states"]), list(seen["runs"]), list(scene.mixie_chat_messages))
+    result = {"state": "complete", "result": {"ok": False, "message": "old command failed"}}
+    if delivery == "direct":
+        ack(result)
+    else:
+        [cb for method, cb in callbacks if method == "agent.request_status"][0](result)
+    TE.drain_session(SID)
+    assert command_id not in TE._commands
+    assert TE._commands["other-tab-command"] == ("other-tab", None), "the other tab keeps its pending delivery"
+    assert (seen["cleared"], seen["states"], seen["runs"], list(scene.mixie_chat_messages)) == before
+    assert seen.get("errors", []) == [] and scene.mixie_chat_state == "BUSY" and not TE._turns[TID].complete
+
+
+def test_unknown_old_request_after_restart_checks_conversation_even_without_a_current_turn(world, monkeypatch):
+    import bpy
+    from mixar.modules.common.agent_rpc import client as rpc
+    from mixar.modules.space_mixie_chat.core import byoa_view, chat_history as CH, turn_resume
+    scene, seen = world
+    scene[CONV] = "old-conversation"
+    _old_chat(scene)
+    command_id, ack = _pending_real_command(scene, seen, monkeypatch)
+    monkeypatch.setattr(bpy.data, "scenes", [scene])
+    monkeypatch.setattr(turn_resume, "check_orphaned_turns", lambda: None)
+    monkeypatch.setattr(byoa_view, "observe_all", lambda: None)
+    callbacks = []
+    monkeypatch.setattr(rpc, "call", lambda method, params, cb: callbacks.append((method, cb)))
+    TE.reconnect()
+    [cb for method, cb in callbacks if method == "agent.request_status"][0]({"state": "unknown"})
+    callbacks[-1][1]({"conversations": {SID: "new-conversation"}, "turns": {}})
+    assert scene[CONV] == "old-conversation", "RPC callbacks only queue ordered main-thread work"
+    TE.drain_session(SID)
+    assert scene[CONV] == "new-conversation" and command_id not in TE._commands and users(scene) == []
+    assert len(CH.list_sessions()) == 1 and CH.list_sessions()[0]["session_id"] != SID
+    TE._consume("agent.turn.started", {**pane_started(), "conversation_id": "new-conversation"})
+    before = (seen["cleared"], list(seen["states"]))
+    ack({"state": "complete", "result": {"ok": False, "message": "old failure"}})
+    TE.drain_session(SID)
+    assert (seen["cleared"], seen["states"]) == before and scene.mixie_chat_state == "BUSY"

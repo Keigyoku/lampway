@@ -6,6 +6,7 @@ import pytest
 from test_byoa_island_view import world, started, event, SID  # noqa: F401 - shared client ingress harness
 from mixar.modules.space_mixie_chat.core import byoa_view as BV
 from mixar.modules.space_mixie_chat.core import turn_events as TE
+from mixar.modules.space_mixie_chat.core.chat_history import archive_current as real_archive_current
 
 CARD = "swarm_fake_1234"
 BUBBLE = "swarm-fake-workers"
@@ -173,3 +174,85 @@ def test_a_lost_card_tail_does_not_finalize_or_stop_the_panes_live_turn(world):
     assert scene.mixie_chat_is_busy and BV.ACTIVITY[SID] == "working"
     assert_no_turn_side_effects(scene, seen, saved)
     assert seen["finalized"] == 0
+
+
+
+def test_card_completion_does_not_overwrite_history_with_a_stopped_live_pane(world, monkeypatch, tmp_path):
+    import bpy
+    from types import SimpleNamespace
+    from mixar.modules.space_mixie_chat.core import chat_history as CH
+    scene, seen = world
+    monkeypatch.setattr(CH, "archive_current", real_archive_current)
+    monkeypatch.setattr(CH, "_mixar_home", lambda: str(tmp_path / "home"))
+    monkeypatch.setattr(CH, "DEV_MODE", False)
+    monkeypatch.setattr(bpy.data, "filepath", "")
+
+    def snapshot(msg):
+        # These are the serializer's archive fields, backed by the fake RNA messages.
+        return {"sender": msg.sender, "bubble_id": msg.bubble_id, "text": msg.text, "content": msg.content,
+                "loader_visible": getattr(msg, "loader_visible", False),
+                "action_items": [vars(item).copy() for item in msg.action_items],
+                "step_items": [vars(item).copy() for item in getattr(msg, "step_items", [])]}
+    monkeypatch.setattr(CH, "snapshot_propgroup", snapshot)
+    CH.invalidate_cache()
+    prompt = scene.mixie_chat_messages.add()
+    prompt.sender, prompt.text = "USER", "Earlier completed request"
+    assert real_archive_current(scene)
+    saved = CH.load_session(SID)
+    TE._consume("agent.turn.started", started())
+    live = scene.mixie_chat_messages.add()
+    live.sender, live.bubble_id, live.content = "AGENT", "live-pane", "A partial response"
+    live.loader_visible = True
+    live.step_items = [SimpleNamespace(status="RUNNING", label="Build the chair")]
+    action = live.action_items.add()
+    action.label, action.value = "Answer the question", "answer"
+    start_card()
+    card_event(0, {"type": "run_status", "status": "in_progress"})
+    card_event(1, {"bubble_id": BUBBLE, "todo": ROWS})
+    finish_card()
+    assert CH.load_session(SID) == saved, "card completion must not persist a stopped version of the still-live pane"
+    assert scene.mixie_chat_is_busy and live.loader_visible and live.step_items[0].status == "RUNNING"
+    # The pane's own terminal event remains responsible for the complete transcript.
+    live.content, live.loader_visible, live.step_items[0].status = "Finished the chair", False, "DONE"
+    live.action_items.clear()
+    TE._consume("agent.turn.event", event(0, {"type": "turn_end", "status": "completed", "offset": 900}))
+    persisted = CH.load_session(SID)
+    assert persisted != saved and persisted["messages"][-1]["content"] == "Finished the chair"
+    assert "Stopped" not in str(persisted)
+    CH.invalidate_cache()
+
+
+@pytest.mark.parametrize("active", ["hermes", "screen", "mcp", "other_card"])
+def test_card_archive_waits_for_other_activity_of_its_own_tab(world, active):
+    scene, seen = world
+    if active == "hermes":
+        TE._turns["pane-live"] = TE.Turn(SID, "pane-live", "run-live", pane=True)
+    elif active == "screen":
+        BV.set_working(scene, True)
+    elif active == "mcp":
+        scene.mixie_chat_state = "BUSY"
+    else:
+        TE._turns["other-card"] = TE.Turn(SID, "other-card", "other-card", observed=True, swarm_card=True)
+    start_card()
+    card_event(0, {"type": "turn_end", "status": "completed"})
+    assert TE._turns[CARD].complete
+    assert seen["archived"] == 0, "whole-transcript sanitization waits until this tab's other live work finishes"
+
+
+def test_last_idle_card_archives_after_another_card_finishes(world):
+    scene, seen = world
+    TE._turns["other-card"] = TE.Turn(SID, "other-card", "other-card", observed=True, swarm_card=True)
+    start_card()
+    card_event(0, {"type": "turn_end", "status": "completed"})
+    assert seen["archived"] == 0
+    TE._consume("agent.turn.event", event(0, {"type": "turn_end", "status": "completed"}, "other-card"))
+    assert seen["archived"] == 1 and TE._turns["other-card"].complete
+
+
+def test_idle_card_archives_even_while_another_tab_has_live_work(world):
+    scene, seen = world
+    TE._turns["other-tab"] = TE.Turn("other-session", "other-tab", "other-run", pane=True)
+    BV.ACTIVITY["other-session"] = "working"
+    start_card()
+    card_event(0, {"type": "turn_end", "status": "completed"})
+    assert seen["archived"] == 1 and not TE._turns["other-tab"].complete

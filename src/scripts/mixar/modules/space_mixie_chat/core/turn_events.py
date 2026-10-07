@@ -186,7 +186,22 @@ def _drain():
         return 0.02 if _inbox or _overflow else None
 
 
+def _old_conversation(scene, metadata) -> bool:
+    """Explicit Mode 1 conversation IDs fence old delivery; a first start can teach the tab its ID."""
+    from .agent_mode import is_byoa
+    from .mode1_pane import CONVERSATION_KEY
+    if is_byoa(scene):
+        return False
+    cid = str(metadata.get('conversation_id') or '')
+    known = str(scene.get(CONVERSATION_KEY) or '')
+    return bool(cid and known and cid != known)
+
+
 def _consume(method, params):
+    if method == 'agent.recovery.conversation':
+        from . import mode1_pane
+        mode1_pane.note_conversation(params.get('session_id'), params.get('conversation_id'))
+        return
     if method == 'agent.recovery.cards':
         sid = params.get('session_id')
         if not sid or sid in _blocked:
@@ -217,6 +232,8 @@ def _consume(method, params):
         info = params.get('info') or {}
         tid = info.get('turn_id')
         if scene is None or sid in _blocked:
+            return
+        if _old_conversation(scene, info):
             return
         turn = _turns.get(tid)
         saved = turn_cursor.read(scene, sid, tid)
@@ -271,6 +288,8 @@ def _consume(method, params):
         return
     turn = _turns.get(tid)
     if method == 'agent.turn.started':
+        if _old_conversation(scene, params):
+            return
         from . import mode1_pane
         mode1_pane.remember_conversation(scene, params)   # the Hermes session the tab's pane shows (agent-modes spec Q15)
         if turn is not None:
@@ -434,6 +453,21 @@ def _replay_unavailable(scene, turn):
     turn.complete = True
 
 
+def _queue_status(result, session_ids, recover_sessions):
+    """RPC callback seam: conversation identity precedes every recovered delivery in the same ordered inbox."""
+    for sid, cid in (result.get('conversations') or {}).items():
+        if sid in session_ids:
+            handle_turn_notification('agent.recovery.conversation', {
+                'session_id': sid, 'conversation_id': cid,
+            })
+    for sid, info in (result.get('turns') or {}).items():
+        if sid in recover_sessions:
+            handle_turn_notification('agent.recovery.status', {'session_id': sid, 'info': info})
+    for sid, cards in (result.get('swarm_cards') or {}).items():
+        if sid in session_ids:
+            handle_turn_notification('agent.recovery.cards', {'session_id': sid, 'cards': cards})
+
+
 def reconnect(session_ids=None):
     """Resume every interrupted delivery from its rendered cursor, main thread.
     With ``session_ids``, only those sessions' turns and commands."""
@@ -454,9 +488,7 @@ def reconnect(session_ids=None):
                     'command_id': cid, 'session_id': session_id, **(result.get('result') or {}),
                 })
             def described(value):
-                info = (value.get('turns') or {}).get(session_id, {})
-                if info.get('turn_id'):
-                    handle_turn_notification('agent.recovery.status', {'session_id': session_id, 'info': info})
+                _queue_status(value, {session_id}, {session_id})
             try:
                 call('agent.status', {'session_ids': [session_id]}, described)
             except Exception:
@@ -478,12 +510,7 @@ def reconnect(session_ids=None):
                 scene_recovery.add(sid)
     if ids:
         def status(result):
-            for sid, info in (result.get('turns') or {}).items():
-                if sid in scene_recovery:
-                    handle_turn_notification('agent.recovery.status', {'session_id': sid, 'info': info})
-            for sid, cards in (result.get('swarm_cards') or {}).items():
-                if sid in ids:
-                    handle_turn_notification('agent.recovery.cards', {'session_id': sid, 'cards': cards})
+            _queue_status(result, ids, scene_recovery)
         try:
             call('agent.status', {'session_ids': ids[:32]}, status)
         except Exception:

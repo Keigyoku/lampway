@@ -182,7 +182,7 @@ def test_status_for_an_unknown_session_is_an_empty_turns_map(fake):
         fake.handshake(ws)
         rid = fake.request(ws, "agent.status", {"session_ids": ["nope"]})
         reply = ws.receive_json()
-    assert reply["id"] == rid and reply["result"] == {"turns": {}, "conversations": {}}
+    assert reply["id"] == rid and reply["result"] == {"turns": {}, "conversations": {}, "swarm_cards": {}}
 
 
 def test_a_second_message_in_the_same_tab_goes_to_the_same_hermes_session(stack):

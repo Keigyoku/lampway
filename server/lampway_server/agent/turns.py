@@ -59,6 +59,7 @@ class Turn:
     stream: object = None     # the turn's TurnStream: re-attached to a new socket by agent.attach (A2)
     detached: bool = False    # the client's socket closed while the pane's turn ran: it journals on and waits for agent.attach
     card_start: dict = field(default_factory=dict)  # S3 card metadata, replayed before slots when the client missed its start
+    conversation_id: str = ""  # Mode 1's Hermes conversation; /new retires discovery, not this journal
 
     @property
     def last_seq(self) -> int:
@@ -297,23 +298,28 @@ class AgentHub:
         turns = {}
         swarm_cards = {}
         asked = [str(s) for s in list(params.get("session_ids") or [])[:32] if isinstance(s, str) and s]
+        conversations = await self.engine.conversations(asked) if self.engine is not None else {}
         for session_id in asked:
             session = self.sessions.get(str(session_id))
             if session is None:
                 continue
-            cards = [dict(t.card_start) for t in session.turns.values() if t.card_start]
+            current = conversations.get(session_id, "")
+            cards = [dict(t.card_start) for t in session.turns.values()
+                     if t.card_start and (not t.conversation_id or t.conversation_id == current)]
             if cards:
                 swarm_cards[session.session_id] = cards
             if session.last_turn_id is None:
                 continue
             turn = session.turns[session.last_turn_id]
+            if turn.conversation_id and turn.conversation_id != current:
+                continue
             turns[session.session_id] = {
                 "turn_id": turn.turn_id, "run_id": turn.run_id, "replay_available": True,
                 "status": turn.status, "active": turn.status == "running", "last_seq": turn.last_seq,
+                "conversation_id": turn.conversation_id,
             }
         # The conversation each Mode 1 tab's pane shows (A2, Q15): a client that was away when the pane's /new was followed learns
         # it here, and files the old chat.
-        conversations = await self.engine.conversations(asked) if self.engine is not None else {}
         return {"turns": turns, "conversations": conversations, "swarm_cards": swarm_cards}
 
     async def _attach(self, socket, params):
@@ -321,15 +327,23 @@ class AgentHub:
         turn = session.turns.get(str(params.get("turn_id") or "")) if session else None
         if turn is None:
             return {"status": "unavailable"}
+        if turn.conversation_id:
+            current = await self.engine.conversations([turn.session_id]) if self.engine is not None else {}
+            if current.get(turn.session_id) != turn.conversation_id:
+                return {"status": "unavailable"}  # /new fenced it; never replay or rebind into the unit's new conversation
         if turn.card_start:
             await socket.notify("agent.turn.started", {**turn.card_start, "replay": True})
         after = params.get("after_seq", -1)
         seq = after + 1 if isinstance(after, int) else 0
         while seq < len(turn.events):                         # the journal grows while a detached turn runs: catch up first
+            if turn.conversation_id and self.engine.conversation_of(turn.session_id) != turn.conversation_id:
+                return {"status": "unavailable"}  # /new may have happened during the previous notify's await
             await socket.notify("agent.turn.event", {
                 "session_id": turn.session_id, "turn_id": turn.turn_id, "seq": seq, "event": turn.events[seq],
             })
             seq += 1
+        if turn.conversation_id and self.engine.conversation_of(turn.session_id) != turn.conversation_id:
+            return {"status": "unavailable"}
         if turn.status == "running" and turn.detached and turn.stream is not None:
             # no await between the last replayed event and the rebind: the pane's next event goes to the new socket, in order
             turn.stream.socket = socket
@@ -400,6 +414,7 @@ class AgentHub:
             started = {"session_id": session.session_id, "turn_id": turn.turn_id, "run_id": turn.run_id}
             conversation = self.engine.conversation_of(session.session_id) if self.engine is not None else None
             if conversation:
+                turn.conversation_id = conversation
                 started["conversation_id"] = conversation        # the Hermes session the tab's pane shows (A2, Q15)
             await socket.notify("agent.turn.started", started)
             command.state, command.result = "complete", {"ok": True}

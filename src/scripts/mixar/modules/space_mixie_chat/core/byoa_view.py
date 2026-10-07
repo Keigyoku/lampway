@@ -374,11 +374,12 @@ def apply_swarm_card(scene, turn, payload: dict) -> None:
     """S3's worker cards in either mode. Their status and end belong only to the card, never the pane's activity or cursors.
 
     Card slots already carry the workers' final statuses. Finalizing the entire transcript here would hide a concurrent
-    pane turn's loaders and settle its live steps, so a card end only archives the rendered cards and closes their delivery.
+    pane turn's loaders and settle its live steps. Whole-transcript archiving also sanitizes live state, so it waits until
+    this tab has no other live delivery or pane activity. The pane's own end or the last idle card end archives the transcript.
     """
     kind = payload.get("type")
     if kind in ("turn_end", "resume_unavailable"):
-        if kind == "turn_end":
+        if kind == "turn_end" and _card_archive_ready(scene, turn):
             try:
                 from .chat_history import archive_current
                 archive_current(scene)
@@ -389,6 +390,17 @@ def apply_swarm_card(scene, turn, payload: dict) -> None:
         from .slot_processor import get_slot_processor
         get_slot_processor().apply_event(payload, scene)
     _redraw()
+
+
+def _card_archive_ready(scene, turn) -> bool:
+    """A card must not archive a sanitized, stopped version of another live delivery in the same tab."""
+    from .turn_events import _turns
+    if any(other is not turn and other.session_id == turn.session_id and not other.complete
+           for other in _turns.values()):
+        return False
+    if ACTIVITY.get(turn.session_id) == "working" or getattr(scene, "mixie_chat_is_busy", False) is True:
+        return False
+    return str(getattr(scene, "mixie_chat_state", "") or "").upper() not in ("BUSY", "MODIFYING", "AWAITING_INPUT")
 
 
 # ---------------------------------------------------------------------------------------------------------------- the composer
