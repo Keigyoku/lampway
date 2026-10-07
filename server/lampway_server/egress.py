@@ -89,10 +89,8 @@ LAUNCHES: dict = {
     "library/ingest.py:extract_video": ("local", "ffprobe on a local file"),
     "library/previews.py:video_thumb": ("local", "nice ffmpeg: one thumbnail frame of a library video file"),
     "library/video.py:_run": ("local", "nice ffmpeg/ffprobe on library video files (probe, frame count, loudness, derived strips and panels); every caller in video.py passes an ffmpeg or ffprobe argv"),
-    "motion/encode.py:version": ("local", "ffmpeg -version: a local query (the motion-graphics receipt pins the encoder)"),
+    "motion/cancellation.py:run_owned": ("local", "owned cancellable ffmpeg version query, ffprobe or local metadata stream-copy remux; no network or provider"),
     "motion/encode.py:Encoder.__init__": ("local", "nice ffmpeg reading the captured PNG frames on stdin and writing a local MP4 and WebM"),
-    "motion/encode.py:Encoder.finish": ("local", "ffmpeg stream-copy remux of a local motion render to remove encoder metadata; no re-encoding or network"),
-    "motion/encode.py:probe": ("local", "ffprobe on a local motion-graphics render"),
     "motion/frames.py:Chromium.open": ("local", "the user's headless Chromium (LAMPWAY_CHROMIUM) on a local scene folder: every host maps to NOTFOUND, a dead proxy, "
                                                 "http(s) and ws(s) blocked over the DevTools pipe, every request counted and a non-file one fails the render"),
     "mcp_inventory/probe.py:_stdio": ("local", "starts the user's own configured stdio MCP server and speaks initialize/tools-list over stdin; what that program does is the user's own configuration"),

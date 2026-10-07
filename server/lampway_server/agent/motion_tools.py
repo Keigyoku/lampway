@@ -13,6 +13,7 @@ from .. import motion as M
 from ..motion import encode as E
 from ..motion import frames as F
 from ..motion import receipt as R
+from ..motion.cancellation import Cancellation, MotionCancelled, checkpoint
 from .providers.base import ToolSpec
 
 NAME = "lampway_motion_graphics"
@@ -22,14 +23,14 @@ _S, _I, _N, _B, _O = {"type": "string"}, {"type": "integer"}, {"type": "number"}
 SPEC = ToolSpec(NAME, (
     "Render a video from scene CODE (HTML with Canvas, SVG, CSS or three.js) frame by frame in a headless Chromium (t = i / fps, never real time, in "
     "order from frame 0), encode it to MP4 and WebM, self-check sampled frames (empty frame, text outside title-safe, text under 22 px, contrast, "
-    "text over a figure or card, a mark cut by the edge, and a fresh browser re-rendering from frame 0 to prove the scene is a pure function of t), "
+    "text over a figure or card, a mark cut by the edge, and a fresh browser re-rendering sequentially from frame 0 to compare sampled frame hashes), "
     "write a receipt (code hash, "
-    "every frame's hash, output hashes) under motion/out/<name>-<code8>/, and file an accepted render in the Asset Vault as kind video. Look at "
+    "every frame's hash, output hashes) under motion/out/<name>-<code8>-<unique-run>/, and file an accepted render in the Asset Vault as kind video. Look at "
     "contact.png yourself: some defects only an eye sees. The scene contract: window.__scene = {duration_s, width, height}; await window.__setup() "
     "loads every font and image and reports each; window.__frame(t) sets every animated property from t alone; window.__audit() lists the visible "
     "text and marks. No Date, performance.now, Math.random, requestAnimationFrame, CSS animations or transitions; every file lives in the scene "
     "folder (a network request fails the render). A failing self-check writes the files, returns ok false and files nothing. action verify "
-    "re-renders a receipt and answers reproduced, frames_differing, mp4_equal, webm_equal and engine_matches. Refuses: fps outside 1..60, an odd "
+    "re-renders a receipt and reports reproduced, frame/output equality and engine_matches separately from integrity_matches (checked existing requested-media bytes) and provenance_matches (source, driver and flags). Corrupt or missing media can still reproduce from a trusted receipt; inspect all three statuses. Caller cancellation joins owned workers/processes, blocks new filing and reports committed assets; retained evidence is preserved. Refuses: fps outside 1..60, an odd "
     "or out-of-range size, a duration outside (0, 120], a path outside the project, a missing entry, no headless Chromium (set LAMPWAY_CHROMIUM), "
     "no ffmpeg, a scene without __frame, a setup miss, CSS animations, a page resize. Spends nothing; nothing leaves the machine."),
     {"type": "object", "additionalProperties": False, "required": [], "properties": {
@@ -37,7 +38,7 @@ SPEC = ToolSpec(NAME, (
         "scene": {**_S, "description": "render: the scene folder, project-relative (e.g. motion/scenes/spend-gate)"},
         "html": {**_S, "description": "render: a single-file scene instead of a folder; written to motion/scenes/<name>/index.html first (needs name)"},
         "entry": {**_S, "description": "the scene's HTML entry inside its folder (default index.html)"},
-        "name": {**_S, "description": "kebab-case output name (default: the scene folder's name); outputs go to motion/out/<name>-<code8>/"},
+        "name": {**_S, "description": "kebab-case output name (default: the scene folder's name); outputs go to motion/out/<name>-<code8>-<unique-run>/"},
         "duration_s": {**_N, "exclusiveMinimum": 0, "maximum": 120, "description": "seconds, (0, 120]; default: the scene's own window.__scene.duration_s"},
         "fps": {**_I, "minimum": 1, "maximum": 60, "description": "frames per second, 1..60 (default 30)"},
         "width": {**_I, "minimum": 16, "maximum": 3840, "description": "even, 16..3840 (default 1920)"},
@@ -73,21 +74,33 @@ def _capture():
     return F.Chromium(F.chromium_binary(), config.state_dir() / "motion" / "chromium-home")
 
 
-def _work(vault, root: Path, a: dict, new_capture):
+def _work(vault, root: Path, a: dict, new_capture, cancel=None):
+    checkpoint(cancel)
     if new_capture is None:
         F.chromium_binary()                                                # refuse before anything is written when there is no browser
         new_capture = _capture
     if a["action"] == "verify":
-        return M.verify(root, a, new_capture)
+        return M.verify(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel)
     prompt = _prompt_provenance(a["template"], a["variables"])
     if prompt is not None:
         a = dict(a, template=prompt["template"], variables=prompt["variables"])
     E.require()
-    out = M.render(root, a, new_capture)
+    checkpoint(cancel)
+    bundle = {}
+
+    def handoff(receipt, pinned_out):
+        if receipt["ok"] and a.get("vault", True) is not False and vault is not None:
+            bundle.update(R.seal(receipt, pinned_out, root, cancel=cancel))
+
+    out = M.render(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel, handoff=handoff)
+    checkpoint(cancel)
     filed = {"assets": [], "spooled": False, "filed": False}
     if out["ok"] and a.get("vault", True) is not False and vault is not None:
-        receipt = json.loads((root / out["out_dir"] / "receipt.json").read_text(encoding="utf-8"))
-        filed = R.file_in_vault(vault, root, receipt, prompt_text=prompt["prompt"] if prompt else None)
+        checkpoint(cancel)
+        filed = R.file_in_vault(vault, root, bundle["receipt"], prompt_text=prompt["prompt"] if prompt else None, sealed=bundle, cancel=cancel)
+    if cancel is not None:
+        cancel.record_filing(filed)
+    checkpoint(cancel)
     out["vault"] = filed
     return out
 
@@ -99,8 +112,28 @@ async def call(vault, project_root, name: str, arguments: dict, capture=None) ->
     root = Path(project_root)
     try:
         a = M.inputs(arguments)
-        out = await asyncio.to_thread(_work, vault, root, a, capture)
-    except (M.Refused, F.ChromiumMissing, E.FfmpegMissing, F.SceneError) as exc:
+        cancel = Cancellation()
+        worker = asyncio.create_task(asyncio.to_thread(_work, vault, root, a, capture, cancel))
+        try:
+            out = await asyncio.shield(worker)
+        except asyncio.CancelledError:
+            cancel.cancel()
+            # Shield keeps the thread tracked; repeated caller cancellation cannot abandon its owned cleanup.
+            while not worker.done():
+                try:
+                    await asyncio.shield(worker)
+                except asyncio.CancelledError:
+                    cancel.cancel()
+                except Exception:
+                    break
+            if worker.done():
+                try:
+                    worker.result()
+                except Exception:
+                    pass
+            return json.dumps({"ok": False, "cancelled": True, "error": "motion graphics cancelled",
+                               "vault": cancel.snapshot_filing()}), True
+    except (MotionCancelled, M.Refused, F.ChromiumMissing, E.FfmpegMissing, F.SceneError) as exc:
         return json.dumps({"ok": False, "error": str(exc)}), True
     except Exception as exc:  # noqa: BLE001 - reported to the model
         return json.dumps({"ok": False, "error": f"{type(exc).__name__}: {exc}"}), True

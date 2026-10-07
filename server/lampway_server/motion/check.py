@@ -7,7 +7,9 @@ Per sampled frame: ``empty`` (fail) when under 0.01 % of pixels carry a local lu
 visible text against a ring of pixels around its box under 4.5 (3.0 at 24 px and up) (fail); text overlapping a figure or card box (fail);
 a mark cut by the frame edge (fail). The agent's own look at the contact sheet stays a step: the spike's round-cap dots were seen by eye only."""
 import io
+import hashlib
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -15,6 +17,32 @@ from PIL import Image, ImageDraw
 
 EMPTY, SPARSE = 0.0001, 0.001
 MIN_TEXT_PX = 22
+
+
+def validate_audit(audit, require_arrays=True):
+    """Refuse malformed authored geometry rather than silently bypassing checks."""
+    def number(value):
+        try:
+            return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+        except OverflowError:
+            return False
+
+    if not isinstance(audit, dict):
+        raise ValueError("audit: return an object with text and marks arrays")
+    for key in ("text", "marks"):
+        rows = audit.get(key, [] if not require_arrays else None)
+        if not isinstance(rows, list):
+            raise ValueError(f"audit {key}: return an array")
+        for item in rows:
+            if not isinstance(item, dict) or not isinstance(item.get("sel"), str) or not item["sel"]:
+                raise ValueError(f"audit {key}: each item needs a string sel")
+            box = item.get("box")
+            if not isinstance(box, list) or len(box) != 4 or not all(number(x) for x in box) or box[2] < box[0] or box[3] < box[1]:
+                raise ValueError(f"audit {key}: box must contain four finite ordered pixel coordinates")
+            if key == "text" and (not isinstance(item.get("text"), str) or not number(item.get("font_px")) or item["font_px"] <= 0
+                                  or not number(item.get("opacity")) or not 0 <= item["opacity"] <= 1):
+                raise ValueError("audit text: use string text, positive finite font_px and opacity in 0..1")
+    return audit
 
 
 def frame_stats(png: bytes):
@@ -65,6 +93,7 @@ def text_contrast(im, box, pad=10):
 
 def findings(im, stats: dict, audit: dict, W: int, H: int) -> list:
     """The findings for one sampled frame (each {check, severity, detail}); ``audit`` is the scene's __audit() at this t, or empty."""
+    validate_audit(audit, require_arrays=False)
     f = []
     if stats["detail_share"] < EMPTY:
         f.append({"check": "empty", "severity": "fail", "detail": f"detail share {stats['detail_share'] * 100:.4f}% (< 0.01%): nothing is visible"})
@@ -100,7 +129,7 @@ def findings(im, stats: dict, audit: dict, W: int, H: int) -> list:
     return f
 
 
-def contact_sheet(samples_dir: Path, out_png: Path, tile=(640, 360), cols=3) -> int:
+def contact_sheet(samples_dir: Path, out_png: Path, tile=(640, 360), cols=3, hashes=None) -> int:
     """The sampled frames on one labelled sheet (frame, t, finding count per tile). Returns the tile count."""
     files = sorted(Path(samples_dir).glob("f*.png"))
     tw, th = tile
@@ -112,5 +141,10 @@ def contact_sheet(samples_dir: Path, out_png: Path, tile=(640, 360), cols=3) -> 
         x, y = (k % cols) * tw, (k // cols) * (th + 28)
         sheet.paste(Image.open(f).convert("RGB").resize((tw, th), Image.LANCZOS), (x, y + 28))
         d.text((x + 6, y + 6), f"{f.name}  t={meta['t']:.3f}s  findings={len(meta['findings'])}", fill=(255, 220, 120))
-    sheet.save(out_png)
+    data = io.BytesIO()
+    sheet.save(data, format="PNG")
+    png = data.getvalue()
+    if hashes is not None:
+        hashes["contact"] = hashlib.sha256(png).hexdigest()
+    Path(out_png).write_bytes(png)
     return len(files)

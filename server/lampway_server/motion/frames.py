@@ -28,6 +28,8 @@ import time
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
+from .cancellation import checkpoint, kill_owned, own_process
+
 CHROME_FLAGS = [
     "--headless", "--disable-gpu", "--hide-scrollbars", "--mute-audio", "--no-first-run", "--no-default-browser-check",
     "--disable-background-networking", "--disable-component-update", "--disable-sync", "--disable-extensions",
@@ -57,19 +59,21 @@ def chromium_binary(env=None) -> str:
     return p
 
 
-def sha256_file(p) -> str:
+def sha256_file(p, cancel=None) -> str:
     h = hashlib.sha256()
     with open(p, "rb") as f:
         for b in iter(lambda: f.read(1 << 20), b""):
+            checkpoint(cancel)
             h.update(b)
     return h.hexdigest()
 
 
-def scene_hash(scene_dir) -> tuple:
+def scene_hash(scene_dir, cancel=None) -> tuple:
     """The code hash: sha256 over the sorted ``relpath\\0sha256`` rows of every file of the scene, and those rows."""
     root = Path(scene_dir).resolve()
     rows = []
     for dp, dn, fs in os.walk(root):
+        checkpoint(cancel)
         for name in dn + fs:
             if not (Path(dp) / name).resolve().is_relative_to(root):
                 raise SceneError("file outside the scene folder: remove escaping symlinks")
@@ -79,6 +83,7 @@ def scene_hash(scene_dir) -> tuple:
             with _open_scene_file(Path(p), root) as source:
                 h = hashlib.sha256()
                 for block in iter(lambda: source.read(1 << 20), b""):
+                    checkpoint(cancel)
                     h.update(block)
             rows.append((os.path.relpath(p, root), h.hexdigest()))
     rows.sort()
@@ -119,7 +124,8 @@ def _open_scene_file(path: Path, root: Path):
 class CDP:
     """A minimal synchronous DevTools client over Chromium's debugging pipe (flattened sessions). Every Network.requestWillBeSent URL is kept."""
 
-    def __init__(self, write_fd: int, read_fd: int, timeout: float = 120.0):
+    def __init__(self, write_fd: int, read_fd: int, timeout: float = 120.0, cancel=None):
+        self.cancel = cancel
         self.w, self.r = write_fd, read_fd
         self.timeout, self.n, self.events, self.requests = timeout, 0, [], []
         self._chunks, self._tail = [], b""
@@ -129,6 +135,7 @@ class CDP:
     def _recv(self, timeout: float) -> dict:
         """One NUL-terminated message (a screenshot is megabytes: read in chunks, joined once)."""
         while True:
+            checkpoint(self.cancel)
             if b"\0" in self._tail:
                 msg, _, self._tail = self._tail.partition(b"\0")
                 data, self._chunks = b"".join(self._chunks) + msg, []
@@ -136,9 +143,11 @@ class CDP:
             if self._tail:
                 self._chunks.append(self._tail)
             ready, _, _ = select.select([self.r], [], [], timeout)
+            checkpoint(self.cancel)
             if not ready:
                 raise TimeoutError(f"chromium did not answer within {timeout:g} s")
             self._tail = os.read(self.r, 1 << 20)
+            checkpoint(self.cancel)
             if not self._tail:
                 raise RuntimeError("chromium closed its DevTools pipe")
 
@@ -160,6 +169,7 @@ class CDP:
             self._request_ids.add(key)
 
     def send(self, method: str, params=None, session=None) -> dict:
+        checkpoint(self.cancel)
         self.n += 1
         request_id = self.n
         msg = {"id": request_id, "method": method, "params": params or {}}
@@ -167,7 +177,12 @@ class CDP:
             msg["sessionId"] = session
         data = json.dumps(msg).encode() + b"\0"
         while data:
-            data = data[os.write(self.w, data):]
+            checkpoint(self.cancel)
+            try:
+                data = data[os.write(self.w, data):]
+            except OSError:
+                checkpoint(self.cancel)
+                raise
         while True:
             r = self.responses.pop(request_id, None)
             if r is None:
@@ -191,7 +206,11 @@ class CDP:
         raise TimeoutError(name)
 
     def close(self) -> None:
-        for fd in (self.w, self.r):
+        owned_fds = (self.w, self.r)
+        self.w = self.r = None
+        for fd in owned_fds:
+            if fd is None:
+                continue
             try:
                 os.close(fd)
             except OSError:
@@ -210,6 +229,7 @@ class Chromium:
         self.product = None
         self.scene_root, self.violation = None, None
         self._target_sessions = {}
+        self.cancel, self._unregister = None, None
         self.profile = self.home / f"profile-{os.getpid()}-{time.monotonic_ns()}"
         self._stderr = self.profile.parent / f"{self.profile.name}.stderr"
 
@@ -250,7 +270,11 @@ class Chromium:
                     # Fulfill the checked bytes, never let Chromium reopen the pathname. Verify the opened inode as well
                     # so a path/symlink swap between resolve and open cannot return an outside file.
                     with _open_scene_file(path, self.scene_root) as source:
-                        body = source.read()
+                        chunks = []
+                        for chunk in iter(lambda: source.read(1 << 20), b""):
+                            checkpoint(self.cancel)
+                            chunks.append(chunk)
+                        body = b"".join(chunks)
                 except SceneError as exc:
                     self.violation = str(exc)
                     self.cdp.send("Fetch.failRequest", {"requestId": request_id, "errorReason": "AccessDenied"}, session)
@@ -268,10 +292,12 @@ class Chromium:
                 self.cdp.send("Fetch.failRequest", {"requestId": request_id, "errorReason": "AccessDenied"}, session)
 
     def _check_containment(self):
+        checkpoint(self.cancel)
         if self.violation:
             raise SceneError(self.violation)
 
     def open(self, entry: Path, width: int, height: int) -> None:
+        checkpoint(self.cancel)
         self.scene_root = Path(self.scene_root or Path(entry).parent).resolve()
         if not allowed_file_url(Path(entry).absolute().as_uri(), self.scene_root):
             raise SceneError("entry outside the scene folder")
@@ -287,10 +313,11 @@ class Chromium:
         args = ["bash", "-c", f'exec nice -n 15 "$@" 3<&{hi[0]} 4>&{hi[1]}', "sh", self.binary, *CHROME_FLAGS, f"--user-data-dir={self.profile}",
                 "--remote-debugging-pipe", "about:blank"]
         with open(self._stderr, "wb") as err:
-            self.proc = subprocess.Popen(args, env=env, stdout=subprocess.DEVNULL, stderr=err, pass_fds=tuple(hi))
+            self.proc = own_process(subprocess.Popen(args, env=env, stdout=subprocess.DEVNULL, stderr=err, pass_fds=tuple(hi), start_new_session=True))
         for fd in hi:
             os.close(fd)
-        self.cdp = CDP(w_cmd, r_evt)
+        self._unregister = self.cancel.on_cancel(lambda: kill_owned(self.proc)) if self.cancel is not None else None
+        self.cdp = CDP(w_cmd, r_evt, cancel=self.cancel)
         try:
             self.product = self.cdp.send("Browser.getVersion").get("product")
         except (RuntimeError, TimeoutError) as exc:
@@ -348,6 +375,11 @@ class Chromium:
         result = self.evaluate("typeof window.__audit === 'function' ? window.__audit() : null")
         if not isinstance(result, dict) or not isinstance(result.get("text"), list) or not isinstance(result.get("marks"), list):
             raise SceneError("the scene must define window.__audit() returning text and marks arrays")
+        from .check import validate_audit
+        try:
+            validate_audit(result)
+        except ValueError as exc:
+            raise SceneError(str(exc)) from None
         return result
 
     def requests(self) -> list:
@@ -358,7 +390,7 @@ class Chromium:
             if self.cdp is not None:
                 try:
                     self.cdp.send("Browser.close")
-                except Exception:  # noqa: BLE001 - the process is killed below
+                except Exception:  # noqa: BLE001 - the owned process is stopped below
                     pass
                 self.cdp.close()
         finally:
@@ -366,7 +398,10 @@ class Chromium:
                 try:
                     self.proc.wait(timeout=20)
                 except subprocess.TimeoutExpired:
-                    self.proc.kill()
+                    kill_owned(self.proc)
                     self.proc.wait()
+            if self._unregister is not None:
+                self._unregister()
+                self._unregister = None
             shutil.rmtree(self.profile, ignore_errors=True)
             self._stderr.unlink(missing_ok=True)

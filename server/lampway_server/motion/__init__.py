@@ -15,6 +15,7 @@ import os
 from contextlib import ExitStack
 import io
 import json
+import math
 import re
 import shutil
 import tempfile
@@ -27,6 +28,7 @@ from . import check as C
 from . import encode as E
 from . import frames as F
 from . import receipt as R
+from .cancellation import checkpoint
 
 INPUTS = ("action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples", "template", "variables", "vault", "receipt")
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -44,11 +46,30 @@ def _int(v):
 def inputs(args: dict) -> dict:
     """The validated inputs (section 4): every refusal names its fix. There is no frame range and no shard: a frame rendered out of order differs
     (measured), so the only order is from frame 0."""
-    args = args if isinstance(args, dict) else {}
+    if not isinstance(args, dict):
+        raise Refused("motion arguments must be a JSON object")
+    if any(not isinstance(k, str) for k in args):
+        raise Refused("motion argument names must be strings")
     unknown = sorted(set(args) - set(INPUTS))
     if unknown:
         raise Refused(f"{', '.join(unknown)}: not an input of motion_graphics; frames are rendered in order from frame 0 in one browser (no frame range, "
                       f"no sharding: an out-of-order frame differs, measured); the inputs are {', '.join(INPUTS)}")
+    if any(value is None for value in args.values()):
+        raise Refused("null is not a motion input value: omit optional properties to use defaults")
+    for key in ("action", "scene", "html", "entry", "name", "template", "receipt"):
+        if args.get(key) is not None and (not isinstance(args[key], str) or not args[key].strip()):
+            raise Refused(f"{key}: pass a non-empty string")
+    if "vault" in args and not isinstance(args["vault"], bool):
+        raise Refused("vault: pass true or false")
+    if args.get("variables") is not None:
+        if not isinstance(args["variables"], dict):
+            raise Refused("variables: pass a JSON object")
+        try:
+            _json_value(args["variables"])
+        except (TypeError, ValueError, RecursionError) as exc:
+            raise Refused("variables: pass JSON values with string keys and finite numbers") from exc
+    if args.get("html") is not None and args.get("scene") is not None:
+        raise Refused("pass one scene source: scene or html, not both")
     a = {"action": args.get("action") or "render", "scene": args.get("scene"), "html": args.get("html"), "entry": args.get("entry") or "index.html",
          "name": args.get("name"), "duration_s": args.get("duration_s"), "fps": 30 if args.get("fps") is None else args["fps"],
          "width": 1920 if args.get("width") is None else args["width"], "height": 1080 if args.get("height") is None else args["height"],
@@ -56,8 +77,6 @@ def inputs(args: dict) -> dict:
          "variables": args.get("variables") or None, "vault": args.get("vault", True) is not False, "receipt": args.get("receipt")}
     if a["action"] not in ("render", "verify"):
         raise Refused(f"action {a['action']!r}: pass render or verify")
-    if a["action"] == "verify":
-        return a
     fps, w, h = _int(a["fps"]), _int(a["width"]), _int(a["height"])
     if fps is None or not 1 <= fps <= 60:
         raise Refused(f"fps {a['fps']} out of range 1..60: pass fps between 1 and 60")
@@ -69,10 +88,14 @@ def inputs(args: dict) -> dict:
         raise Refused(f"formats {a['formats']}: pass a non-empty subset of {list(E.FORMATS)}")
     if a["samples"] is not None:
         s = a["samples"]
-        if not isinstance(s, list) or not s or len(s) > MAX_SAMPLES or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and x >= 0 for x in s):
+        if not isinstance(s, list) or not s or len(s) > MAX_SAMPLES or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and (isinstance(x, int) or math.isfinite(x)) and x >= 0 for x in s):
             raise Refused(f"samples: pass 1 to {MAX_SAMPLES} times in seconds (>= 0) to self-check, or none for {DEFAULT_SAMPLES} evenly spaced plus the first and last frame")
     if a["name"] is not None and not (isinstance(a["name"], str) and KEBAB.match(a["name"])):
         raise Refused(f"name {a['name']!r} is not kebab-case: pass a name of a-z, 0-9 and single hyphens")
+    if a["action"] == "verify":
+        if not a["receipt"]:
+            raise Refused("verify needs receipt: pass the receipt.json path")
+        return a
     if a["html"] is not None and not a["name"]:
         raise Refused("html needs a name: pass name (the scene is written to motion/scenes/<name>/index.html)")
     if a["html"] is None and not a["scene"]:
@@ -80,10 +103,25 @@ def inputs(args: dict) -> dict:
     return a
 
 
+def _json_value(value):
+    if isinstance(value, dict):
+        if any(not isinstance(k, str) for k in value):
+            raise TypeError("non-string JSON key")
+        for item in value.values():
+            _json_value(item)
+    elif isinstance(value, list):
+        for item in value:
+            _json_value(item)
+    elif isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError("non-finite JSON number")
+    elif value is not None and not isinstance(value, (str, int, bool)):
+        raise TypeError("not a JSON value")
+
+
 def _duration(d) -> float:
     if isinstance(d, bool) or not isinstance(d, (int, float)) or not 0 < d <= 120:
-        raise Refused(f"duration {d:g} s out of range (0, 120]: split the video or shorten the scene" if isinstance(d, (int, float)) and not isinstance(d, bool)
-                      else f"duration {d!r} out of range (0, 120]: split the video or shorten the scene")
+        raise Refused("duration out of range (0, 120]: pass a finite number and split the video or shorten the scene")
     return float(d)
 
 
@@ -101,14 +139,37 @@ def _scene(root: Path, a: dict) -> tuple:
     if a["html"] is not None:
         rel = f"motion/scenes/{a['name']}"
         d = _jail(root, rel)
-        entry = d / "index.html"
-        if entry.is_symlink():
-            raise Refused("inline scene entry is a symlink: use a regular index.html in the scene folder")
-        data = str(a["html"]).encode("utf-8")
-        if entry.exists() and entry.read_bytes() != data:
-            raise Refused(f"{rel}/index.html exists and differs: pass a new name, or render the folder with scene")
-        d.mkdir(parents=True, exist_ok=True)
-        entry.write_bytes(data)
+        data = a["html"].encode("utf-8")
+        # Pin the scene parent and exclusively create new entries. An equal existing
+        # entry is read through a checked descriptor and never rewritten.
+        with ExitStack() as stack:
+            current = os.open(root.resolve(), os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            stack.callback(os.close, current)
+            try:
+                for part in d.relative_to(root.resolve()).parts:
+                    try:
+                        os.mkdir(part, mode=0o700, dir_fd=current)
+                    except FileExistsError:
+                        pass
+                    current = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=current)
+                    stack.callback(os.close, current)
+                actual = Path(os.readlink(f"/proc/self/fd/{current}"))
+                if not actual.is_relative_to(root.resolve()) or actual != d.resolve():
+                    raise Refused("inline scene directory changed: use real project directories")
+                try:
+                    fd = os.open("index.html", os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=current)
+                except FileExistsError:
+                    pinned = Path(f"/proc/self/fd/{current}/index.html")
+                    if pinned.is_symlink():
+                        raise Refused("inline scene entry is a symlink: use a regular index.html in the scene folder")
+                    with F._open_scene_file(pinned, root.resolve()) as source:
+                        if source.read() != data:
+                            raise Refused(f"{rel}/index.html exists and differs: pass a new name, or render the folder with scene")
+                else:
+                    with os.fdopen(fd, "wb") as target:
+                        target.write(data)
+            except (OSError, F.SceneError):
+                raise Refused("inline scene directory or entry changed: use regular project files") from None
         a = dict(a, entry="index.html")
     else:
         rel = str(a["scene"]).rstrip("/")
@@ -116,12 +177,13 @@ def _scene(root: Path, a: dict) -> tuple:
     entry = d / a["entry"]
     if not d.is_dir() or not entry.is_file() or d not in entry.resolve().parents:
         raise Refused(f"no scene entry {a['entry']} in {rel}: pass entry")
-    return d, entry, rel
+    a["entry"] = entry.resolve().relative_to(d).as_posix()
+    return d, entry, d.relative_to(root.resolve()).as_posix()
 
 
 def _sample_frames(n: int, samples, fps: int) -> list:
     if samples:
-        return sorted({min(n - 1, int(round(float(s) * fps))) for s in samples})
+        return sorted({min(n - 1, int(round(float(s) * fps))) if s < (n - 1) / fps else n - 1 for s in samples})
     return sorted({0, n - 1} | {int(round(k * (n - 1) / (DEFAULT_SAMPLES + 1))) for k in range(1, DEFAULT_SAMPLES + 1)})
 
 
@@ -158,23 +220,28 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> N
         raise Refused("the scene runs CSS animations or transitions (document.getAnimations() is not empty): drive them from __frame(t)")
 
 
-def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None) -> tuple:
+def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None, cancel=None) -> tuple:
     """(differing probe frames, frames rendered, seconds): a fresh browser, frames 0..max(probe) in sequence (the samples' audits at the same frames,
     as the first pass ran them), each probe frame compared exactly with the first pass."""
     t0, differ, requests = time.monotonic(), [], []
+    checkpoint(cancel)
     cap = new_capture()
+    cap.cancel = cancel
     try:
         _ready(cap, entry, W, H, scene_root=scene_root)
         want = set(probe)
         for i in range(max(probe) + 1):
+            checkpoint(cancel)
             png = cap.frame(i / fps)
+            checkpoint(cancel)
             if i in samples:
-                cap.audit()
+                C.validate_audit(cap.audit())
             if i in want and _pixels(png)[1] != rows[i].split()[2]:
                 differ.append(i)
         requests = cap.requests()
     finally:
         cap.close()
+    checkpoint(cancel)
     return differ, max(probe) + 1, round(time.monotonic() - t0, 3), requests
 
 
@@ -206,44 +273,53 @@ def _output_directory(root, parent, prefix, stack):
         raise Refused("output directory changed or contains a symlink: use real project directories") from None
 
 
-def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=None, probe_on=True) -> dict:
+def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=None, probe_on=True, cancel=None, handoff=None) -> dict:
+    checkpoint(cancel)
     with ExitStack() as stack:
-        return _run_pinned(root.resolve(), a, new_capture, out_root.absolute(), threads, engine, probe_on, stack)
+        return _run_pinned(root.resolve(), a, new_capture, out_root.absolute(), threads, engine, probe_on, stack, cancel, handoff)
 
 
-def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine, probe_on, stack) -> dict:
+def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine, probe_on, stack, cancel=None, handoff=None) -> dict:
     """One render: refusals, then the sequential pass, the probe (a fresh browser; not in verify, which is itself the full re-render), the files
     and the receipt. ``engine`` (verify) = the receipt's (chromium, ffmpeg) pair: a different engine stops the run before any frame."""
+    checkpoint(cancel)
     t_start = time.monotonic()
     scene_dir, entry, scene_rel = _scene(root, a)
     E.require()
-    ffmpeg = E.version()
-    code_sha, files = F.scene_hash(scene_dir)
+    ffmpeg = E.version(cancel=cancel)
+    code_sha, files = F.scene_hash(scene_dir, cancel=cancel)
+    checkpoint(cancel)
     name = a["name"] or scene_dir.name
     if not KEBAB.match(name):
         raise Refused(f"name {name!r} (the scene folder's) is not kebab-case: pass name")
     W, H, fps = a["width"], a["height"], a["fps"]
     enc = None
+    checkpoint(cancel)
     capture = new_capture()
+    capture.cancel = cancel
     try:
         _ready(capture, entry, W, H, engine, ffmpeg, scene_root=scene_dir)                       # inside the try: a launch that fails half way is still closed
+        checkpoint(cancel)
         duration = _duration(a["duration_s"] if a["duration_s"] is not None else (capture.scene() or {}).get("duration_s"))
         n = int(round(duration * fps))
         if n < 1:
             raise Refused(f"duration {duration:g} s at {fps} fps is no frame: lengthen the scene")
         samples = set(_sample_frames(n, a["samples"], fps))
         t_setup = time.monotonic() - t_start
+        checkpoint(cancel)
         out, out_rel, out_fd = _output_directory(root, out_root, f"{name}-{code_sha[:8]}-", stack)
         (out / "samples").mkdir()
         paths = {fmt: out / f"{name}.{fmt}" for fmt in E.FORMATS if fmt in a["formats"]}
         argv = E.argv(paths, fps, threads)
-        enc = E.Encoder(argv, pass_fds=(out_fd,))
+        enc = E.Encoder(argv, pass_fds=(out_fd,), cancel=cancel)
         rows, checks, t_cap = [], [], 0.0
         t_loop = time.monotonic()
         for i in range(n):
+            checkpoint(cancel)
             t = i / fps
             c0 = time.monotonic()
             png = capture.frame(t)
+            checkpoint(cancel)
             t_cap += time.monotonic() - c0
             size, pix = _pixels(png)
             if size != (W, H):
@@ -251,7 +327,8 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
             rows.append(R.row(i, t, pix))
             enc.write(png)
             if i in samples:
-                audit = capture.audit() or {}
+                audit = capture.audit()
+                C.validate_audit(audit)
                 im, stats = C.frame_stats(png)
                 found = C.findings(im, stats, audit, W, H)
                 stem = f"f{i:04d}"
@@ -261,6 +338,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         t_render = time.monotonic() - t_loop
         e0 = time.monotonic()
         enc.finish()
+        checkpoint(cancel)
         t_encode_tail = time.monotonic() - e0
         enc = None
         requests = capture.requests()
@@ -270,15 +348,17 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         capture.close()
     probe, differ, probe_frames, t_probe, probe_requests = _probe_frames(n), [], 0, 0.0, []
     if probe_on:                                                           # the scene must be a pure function of t: a fresh browser agrees
-        differ, probe_frames, t_probe, probe_requests = _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=scene_dir)
+        differ, probe_frames, t_probe, probe_requests = _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=scene_dir, cancel=cancel)
+    checkpoint(cancel)
     (out / "frames.sha256").write_text(R.frames_text(rows), encoding="utf-8")
     digest = R.digest(rows)
-    C.contact_sheet(out / "samples", out / "contact.png")
+    artifact_hashes = {}
+    C.contact_sheet(out / "samples", out / "contact.png", hashes=artifact_hashes)
     findings = [{"frame": c["frame"], **f} for c in checks for f in c["findings"]]
     findings += [{"frame": i, "check": "determinism", "severity": "fail", "detail": f"the scene is not a pure function of t: frame {i} differs on a second capture"} for i in differ]
     non_file = list(dict.fromkeys(u for u in requests + probe_requests
                                   if not (u.startswith("data:") or F.allowed_file_url(u, scene_dir))))
-    outputs = {fmt: {"sha256": F.sha256_file(p), "bytes": p.stat().st_size, "probe": E.probe(p, pass_fds=(out_fd,))} for fmt, p in paths.items()}
+    outputs = {fmt: {"sha256": F.sha256_file(p, cancel=cancel), "bytes": p.stat().st_size, "probe": E.probe(p, pass_fds=(out_fd,), cancel=cancel)} for fmt, p in paths.items()}
     wall = time.monotonic() - t_start
     fail = sum(1 for f in findings if f["severity"] == "fail")
     warn = sum(1 for f in findings if f["severity"] == "warn")
@@ -294,7 +374,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         "frames": n, "code_sha256": code_sha, "scene_files": [{"path": p, "sha256": d} for p, d in files],
         "engine": {"chromium": capture.product, "chrome_flags": list(capture.flags), "ffmpeg": ffmpeg,
                    "encoder": {"threads": threads, "args": E.receipt_args(argv)}, "driver_sha256": F.sha256_file(F.__file__)},
-        "frames_sha256_digest": digest, "frame_hash": R.FRAME_HASH,
+        "frames_sha256_digest": digest, "frame_hash": R.FRAME_HASH, "artifact_hashes": artifact_hashes,
         "outputs": outputs,
         "network": {"requests": len(requests), "non_file": non_file},
         "timing_s": {"setup": round(t_setup, 3), "render_loop": round(t_render, 3), "capture": round(t_cap, 3), "encode_tail": round(t_encode_tail, 3),
@@ -305,9 +385,14 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     }
     if non_file:
         receipt["error"] = f"the scene asked for {non_file[0]}: every file must be in the scene folder"
+    checkpoint(cancel)
     if _jail(root, out_rel) != Path(os.readlink(f"/proc/self/fd/{out_fd}")):
         raise Refused("output directory changed: restore the real project output directory")
     (out / "receipt.json").write_text(json.dumps(receipt, indent=1), encoding="utf-8")
+    checkpoint(cancel)
+    if handoff is not None:
+        handoff(receipt, out)
+        checkpoint(cancel)
     return receipt
 
 
@@ -324,46 +409,190 @@ def summary(receipt: dict) -> dict:
     return out
 
 
-def render(project_root, args: dict, new_capture, threads: int = E.THREADS) -> dict:
+def render(project_root, args: dict, new_capture, threads: int = E.THREADS, cancel=None, handoff=None) -> dict:
+    checkpoint(cancel)
     root = Path(project_root).resolve()
     a = inputs(args)
-    return summary(_run(root, a, new_capture, root / "motion" / "out", threads))
+    return summary(_run(root, a, new_capture, root / "motion" / "out", threads, cancel=cancel, handoff=handoff))
 
 
-def verify(project_root, args: dict, new_capture) -> dict:
-    """Re-render a receipt's inputs from frame 0 in a fresh browser; compare every frame hash and both files. A different Chromium or ffmpeg is
-    answered with engine_matches false and no frame comparison."""
+def _receipt_inputs(receipt):
+    """Validate the receipt data verification relies on before launching a renderer."""
+    def require(condition, field):
+        if not condition:
+            raise Refused(f"invalid motion receipt: {field}; use an unchanged receipt from a completed render")
+    def text(value):
+        return isinstance(value, str) and bool(value.strip())
+    def digest(value):
+        return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
+    require(isinstance(receipt, dict), "expected a JSON object")
+    try:
+        _json_value(receipt)
+    except (TypeError, ValueError, RecursionError):
+        raise Refused("invalid motion receipt: use JSON values with finite numbers") from None
+    for field in ("inputs", "engine", "outputs", "files"):
+        require(isinstance(receipt.get(field), dict), field)
+    require(receipt.get("tool") == "motion_graphics", "tool")
+    require(isinstance(receipt.get("ok"), bool), "ok")
+    require(text(receipt.get("out_dir")) and text(receipt.get("run_id")), "output identity")
+    for field in ("code_sha256", "frames_sha256_digest"):
+        require(digest(receipt.get(field)), field)
+    require(receipt.get("frame_hash") == R.FRAME_HASH, "frame_hash")
+    saved = receipt["inputs"]
+    fields = ("scene", "entry", "name", "fps", "width", "height", "duration_s", "formats", "samples")
+    require(all(field in saved for field in fields), "saved inputs")
+    require(all(text(saved[field]) for field in ("scene", "entry", "name")), "saved scene, entry and name")
+    require(saved["duration_s"] is not None, "saved duration_s")
+    try:
+        a = inputs({field: saved[field] for field in fields if saved[field] is not None})
+    except Refused as exc:
+        raise Refused(f"invalid motion receipt inputs: {exc}") from None
+    require(_int(receipt.get("frames")) is not None and receipt["frames"] >= 1, "frames")
+    require(receipt["frames"] == round(a["duration_s"] * a["fps"]), "frame count and duration")
+    engine = receipt["engine"]
+    require(text(engine.get("chromium")) and text(engine.get("ffmpeg")), "engine versions")
+    require(isinstance(engine.get("chrome_flags"), list) and all(isinstance(v, str) for v in engine["chrome_flags"]), "chrome_flags")
+    require(digest(engine.get("driver_sha256")), "driver_sha256")
+    encoder = engine.get("encoder")
+    require(isinstance(encoder, dict), "encoder")
+    require(_int(encoder.get("threads")) is not None and encoder["threads"] > 0, "encoder threads")
+    require(isinstance(encoder.get("args"), list) and all(isinstance(v, str) for v in encoder["args"]), "encoder args")
+    require(set(receipt["outputs"]) == set(a["formats"]), "requested outputs")
+    for fmt in a["formats"]:
+        output = receipt["outputs"][fmt]
+        require(isinstance(output, dict), f"outputs.{fmt}")
+        require(digest(output.get("sha256")), f"outputs.{fmt}.sha256")
+        require(_int(output.get("bytes")) is not None and output["bytes"] > 0, f"outputs.{fmt}.bytes")
+        require(text(receipt["files"].get(fmt)), f"files.{fmt}")
+    inventory = receipt.get("scene_files")
+    require(isinstance(inventory, list) and bool(inventory), "scene_files")
+    rows = []
+    for item in inventory:
+        require(isinstance(item, dict) and text(item.get("path")) and digest(item.get("sha256")), "scene file row")
+        path = Path(item["path"])
+        require(not path.is_absolute() and ".." not in path.parts, "scene file path")
+        rows.append((item["path"], item["sha256"]))
+    require(len({path for path, _ in rows}) == len(rows), "duplicate scene file paths")
+    inventory_digest = hashlib.sha256("".join(f"{path}\0{sha}\n" for path, sha in sorted(rows)).encode()).hexdigest()
+    require(inventory_digest == receipt["code_sha256"], "scene inventory digest")
+    return a
+
+
+def _receipt_frames(root, path, receipt, cancel=None):
+    checkpoint(cancel)
+    with F._open_scene_file(_jail(root, str(path)), root) as source:
+        try:
+            data = source.read().decode("utf-8")
+        except UnicodeError:
+            raise Refused("invalid motion receipt: frames.sha256 must be UTF-8") from None
+    checkpoint(cancel)
+    rows = data.splitlines()
+    if len(rows) != receipt["frames"] or data != R.frames_text(rows) or R.digest(rows) != receipt["frames_sha256_digest"]:
+        raise Refused("invalid motion receipt: frame list count or digest differs; preserve the original frame list")
+    for i, row in enumerate(rows):
+        fields = row.split()
+        if len(fields) != 3 or re.fullmatch(r"[0-9a-f]{64}", fields[2]) is None or row != R.row(i, i / receipt["inputs"]["fps"], fields[2]):
+            raise Refused("invalid motion receipt: malformed frame row; preserve the original frame list")
+    return rows
+
+
+def _verify_media_file(root, path, expected, cancel=None):
+    """Hash checked original bytes and retain inode identity without exposing filesystem metadata."""
+    checkpoint(cancel)
+    try:
+        with F._open_scene_file(_jail(root, path), root) as source:
+            before = os.fstat(source.fileno())
+            sha = hashlib.sha256()
+            for block in iter(lambda: source.read(1 << 20), b""):
+                checkpoint(cancel)
+                sha.update(block)
+            after = os.fstat(source.fileno())
+        checkpoint(cancel)
+        identity = lambda st: (st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns, st.st_ctime_ns)
+        stable = identity(before) == identity(after)
+        matches = stable and sha.hexdigest() == expected["sha256"] and after.st_size == expected["bytes"]
+        return {"matches": matches, "sha256": sha.hexdigest(), "bytes": after.st_size,
+                "error": None if matches else ("changed_during_read" if not stable else "hash_mismatch")}, identity(after)
+    except FileNotFoundError:
+        return {"matches": False, "error": "missing"}, None
+    except (Refused, F.SceneError):
+        return {"matches": False, "error": "outside_project_or_not_regular"}, None
+    except OSError as exc:
+        import errno
+        if exc.errno not in (errno.EACCES, errno.EPERM, errno.ENOTDIR, errno.ELOOP):
+            raise
+        return {"matches": False, "error": "unreadable"}, None
+
+
+def verify(project_root, args: dict, new_capture, cancel=None) -> dict:
+    """Keep recorded reproduction separate from original-media integrity and provenance identity."""
+    checkpoint(cancel)
     root = Path(project_root).resolve()
-    rel = (args or {}).get("receipt")
+    if not isinstance(args, dict):
+        raise Refused("motion arguments must be a JSON object")
+    rel = inputs({**args, "action": "verify"})["receipt"]
     if not rel:
         raise Refused("verify needs receipt: the project-relative path of a render's receipt.json")
     path = _jail(root, rel)
     if not path.is_file():
         raise Refused(f"no receipt at {rel}: pass the receipt.json of a render")
     with F._open_scene_file(path, root) as source:
-        r = json.loads(source.read().decode("utf-8"))
+        try:
+            r = json.loads(source.read().decode("utf-8"))
+        except (ValueError, UnicodeError, RecursionError):
+            raise Refused("invalid motion receipt: expected a valid UTF-8 JSON receipt") from None
+    checkpoint(cancel)
+    a = _receipt_inputs(r)
     original_out = _jail(root, r["out_dir"])
     original_frames = _jail(root, str(original_out / "frames.sha256"))
-    with F._open_scene_file(original_frames, root) as source:
-        old_rows = [line for line in source.read().decode("utf-8").splitlines() if line.strip()]
-    i = r["inputs"]
-    a = inputs({k: i[k] for k in ("scene", "entry", "name", "fps", "width", "height", "duration_s", "formats", "samples")})
+    old_rows = _receipt_frames(root, original_frames, r, cancel)
+    before_media = {fmt: _verify_media_file(root, r["files"][fmt], r["outputs"][fmt], cancel) for fmt in a["formats"]}
+    scene = _jail(root, a["scene"])
+    source_before = F.scene_hash(scene, cancel=cancel)[0]
+    driver_before = F.sha256_file(F.__file__, cancel=cancel)
+    checkpoint(cancel)
+    captures = []
+    def capture_factory():
+        cap = new_capture()
+        captures.append(cap)
+        return cap
     work = root / "motion" / "out" / f".verify-{time.monotonic_ns()}"
+    new, mismatch = None, None
     try:
         try:
-            new = _run(root, a, new_capture, work, int(r["engine"]["encoder"]["threads"]), engine=(r["engine"]["chromium"], r["engine"]["ffmpeg"]),
-                       probe_on=False)
+            new = _run(root, a, capture_factory, work, r["engine"]["encoder"]["threads"], engine=(r["engine"]["chromium"], r["engine"]["ffmpeg"]),
+                       probe_on=False, cancel=cancel)
         except EngineDiffers as exc:
-            return {"reproduced": False, "frames_differing": [], "mp4_equal": False, "webm_equal": False, "engine_matches": False, "error": str(exc)}
-        original_frames = _jail(root, str(root / r["out_dir"] / "frames.sha256"))
-        with F._open_scene_file(original_frames, root) as source:
-            current_rows = [line for line in source.read().decode("utf-8").splitlines() if line.strip()]
-        with F._open_scene_file(_jail(root, str(root / new["out_dir"] / "frames.sha256")), root) as source:
-            new_rows = [line for line in source.read().decode("utf-8").splitlines() if line.strip()]
+            mismatch = str(exc)
+        checkpoint(cancel)
+        current_rows = _receipt_frames(root, root / r["out_dir"] / "frames.sha256", r, cancel)
+        new_rows = _receipt_frames(root, root / new["out_dir"] / "frames.sha256", new, cancel) if new is not None else []
+        integrity = {}
+        for fmt in a["formats"]:
+            before, before_id = before_media[fmt]
+            after, after_id = _verify_media_file(root, r["files"][fmt], r["outputs"][fmt], cancel)
+            changed = before_id != after_id
+            replaced = before_id is not None and (after_id is None or before_id[:2] != after_id[:2])
+            integrity[fmt] = {"matches": before["matches"] and after["matches"] and not changed,
+                              "before": before, "after": after, "changed": changed, "replaced": replaced}
+        source_after = F.scene_hash(scene, cancel=cancel)[0]
+        driver_after = F.sha256_file(F.__file__, cancel=cancel)
+        flags = list(captures[-1].flags) if captures else None
+        provenance = {
+            "source": {"matches": r["code_sha256"] == source_before == source_after and (new is None or new["code_sha256"] == r["code_sha256"]),
+                       "recorded": r["code_sha256"], "before": source_before, "after": source_after},
+            "driver": {"matches": r["engine"]["driver_sha256"] == driver_before == driver_after and (new is None or new["engine"]["driver_sha256"] == r["engine"]["driver_sha256"]),
+                       "recorded": r["engine"]["driver_sha256"], "before": driver_before, "after": driver_after},
+            "flags": {"matches": r["engine"]["chrome_flags"] == flags, "recorded": r["engine"]["chrome_flags"], "current": flags}}
+        checkpoint(cancel)
     finally:
         shutil.rmtree(work, ignore_errors=True)
+    checks = {"integrity_matches": all(item["matches"] for item in integrity.values()), "integrity": integrity,
+              "provenance_matches": mismatch is None and all(item["matches"] for item in provenance.values()), "provenance": provenance}
+    if mismatch is not None:
+        return {"reproduced": False, "frames_differing": [], "mp4_equal": False, "webm_equal": False, "engine_matches": False, "error": mismatch, **checks}
     differ = R.differing(old_rows, new_rows)
     eq = {f"{fmt}_equal": (r["outputs"].get(fmt) or {}).get("sha256") == (new["outputs"].get(fmt) or {}).get("sha256") if fmt in r["outputs"] else None
           for fmt in E.FORMATS}
     reproduced = current_rows == old_rows and not differ and all(v for v in eq.values() if v is not None) and new["frames_sha256_digest"] == r["frames_sha256_digest"]
-    return {"reproduced": reproduced, "frames_differing": differ, **eq, "engine_matches": True, "receipt": rel, "frames": new["frames"]}
+    return {"reproduced": reproduced, "frames_differing": differ, **eq, "engine_matches": True, "receipt": rel, "frames": new["frames"], **checks}

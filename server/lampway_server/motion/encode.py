@@ -10,6 +10,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from .cancellation import checkpoint, kill_owned, own_process, run_owned
+
 THREADS = 4
 NICE = ["nice", "-n", "15"]
 VF = "scale=out_color_matrix=bt709:out_range=tv:flags=bicubic,format=yuv420p,setparams=range=tv:color_primaries=bt709:color_trc=bt709:colorspace=bt709"
@@ -27,9 +29,9 @@ def require() -> None:
         raise FfmpegMissing("ffmpeg not found on PATH: install ffmpeg")
 
 
-def version() -> str:
+def version(cancel=None) -> str:
     """ffmpeg's version line (the receipt pins the engine; verify compares it)."""
-    return subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True).stdout.split("\n")[0]
+    return run_owned(["ffmpeg", "-version"], cancel=cancel, text=True).stdout.split("\n")[0]
 
 
 def argv(paths: dict, fps: int, threads: int = THREADS) -> list:
@@ -52,27 +54,40 @@ def receipt_args(a: list) -> list:
 class Encoder:
     """One ffmpeg process fed frame by frame; ``finish`` closes the pipe and raises on a failed encode."""
 
-    def __init__(self, a: list, pass_fds=()):
+    def __init__(self, a: list, pass_fds=(), cancel=None):
+        checkpoint(cancel)
+        self.cancel = cancel
         self.argv, self.pass_fds = a, tuple(pass_fds)
         self.outputs = [Path(value) for value in a if value.endswith((".mp4", ".webm"))]
-        self.proc = subprocess.Popen(NICE + a, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, pass_fds=self.pass_fds)
+        self.proc = own_process(subprocess.Popen(NICE + a, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, pass_fds=self.pass_fds, start_new_session=True))
+        self._unregister = cancel.on_cancel(lambda: kill_owned(self.proc)) if cancel is not None else None
 
     def write(self, png: bytes) -> None:
+        checkpoint(self.cancel)
         try:
             self.proc.stdin.write(png)
+            checkpoint(self.cancel)
         except BrokenPipeError:
             self.proc.wait()
+            checkpoint(self.cancel)
             raise RuntimeError("encode failed: " + self.proc.stderr.read().decode(errors="replace")[-1200:]) from None
 
     def finish(self) -> None:
+        checkpoint(self.cancel)
         self.proc.stdin.close()
         err = self.proc.stderr.read().decode(errors="replace")
-        if self.proc.wait() != 0:
+        self.proc.stderr.close()
+        returncode = self.proc.wait()
+        checkpoint(self.cancel)
+        if self._unregister is not None:
+            self._unregister()
+            self._unregister = None
+        if returncode != 0:
             raise RuntimeError("encode failed: " + err[-1200:])
         for path in self.outputs:
             # Newer ffmpeg versions add a stream encoder tag after applying metadata options.
             # Older engines remain byte-for-byte unchanged when their output is already clean.
-            tags = probe(path, pass_fds=self.pass_fds)["stream"].get("tags", {})
+            tags = probe(path, pass_fds=self.pass_fds, cancel=self.cancel)["stream"].get("tags", {})
             if any(key.lower() == "encoder" for key in tags):
                 clean = path.with_name(path.stem + ".clean" + path.suffix)
                 command = NICE + ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(path), "-map", "0", "-c", "copy", *_CLEAN]
@@ -80,23 +95,31 @@ class Encoder:
                     command += ["-movflags", "+faststart"]
                 command.append(str(clean))
                 try:
-                    result = subprocess.run(command, capture_output=True, pass_fds=self.pass_fds)
+                    result = run_owned(command, cancel=self.cancel, pass_fds=self.pass_fds)
                     if result.returncode:
                         raise RuntimeError("metadata cleanup failed: " + result.stderr.decode(errors="replace")[-1200:])
-                    if any(key.lower() == "encoder" for key in probe(clean, pass_fds=self.pass_fds)["stream"].get("tags", {})):
+                    if any(key.lower() == "encoder" for key in probe(clean, pass_fds=self.pass_fds, cancel=self.cancel)["stream"].get("tags", {})):
                         raise RuntimeError("metadata cleanup failed: encoder tag remains")
                     clean.replace(path)
                 finally:
                     clean.unlink(missing_ok=True)
 
     def abort(self) -> None:
-        if self.proc.poll() is None:
-            self.proc.kill()
-            self.proc.wait()
+        kill_owned(self.proc)
+        self.proc.wait()
+        if self._unregister is not None:
+            self._unregister()
+            self._unregister = None
+        for pipe in (self.proc.stdin, self.proc.stderr):
+            if pipe is not None:
+                try:
+                    pipe.close()
+                except OSError:
+                    pass
 
 
-def probe(path, pass_fds=()) -> dict:
-    j = json.loads(subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+def probe(path, pass_fds=(), cancel=None) -> dict:
+    j = json.loads(run_owned(["ffprobe", "-v", "error", "-show_entries",
                                    "format=duration,size,bit_rate:stream=codec_name,profile,width,height,pix_fmt,r_frame_rate,nb_frames,color_space,color_range,color_transfer,color_primaries:stream_tags",
-                                   "-of", "json", str(path)], capture_output=True, text=True, pass_fds=tuple(pass_fds)).stdout or "{}")
+                                   "-of", "json", str(path)], cancel=cancel, text=True, pass_fds=tuple(pass_fds)).stdout or "{}")
     return {"format": j.get("format", {}), "stream": (j.get("streams") or [{}])[0]}

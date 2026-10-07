@@ -6,6 +6,7 @@
 that file. Frame hashes are the proof, not output hashes: in the spike a pair whose WebM hashes matched differed in one frame. Paths in a receipt are
 relative (no home paths)."""
 import hashlib
+import json
 from pathlib import Path
 
 FRAME_HASH = "sha256 of the decoded RGB pixels of each captured frame"
@@ -33,27 +34,53 @@ def differing(a: list, b: list) -> list:
     return [i for i in range(n) if (a[i] if i < len(a) else None) != (b[i] if i < len(b) else None)]
 
 
-def file_in_vault(vault, project_root: Path, receipt: dict, prompt_text=None) -> dict:
+def seal(receipt: dict, out: Path, project_root: Path, *, cancel=None) -> dict:
+    """Copy checked render artifacts while its pinned directory is alive; later filing uses only these bytes."""
+    from . import frames as F
+    root = Path(project_root).resolve()
+    trusted = json.loads(json.dumps(receipt))
+    copied = {}
+    for fmt in ("mp4", "webm", "receipt", "contact"):
+        if cancel is not None:
+            cancel.check()
+        if fmt not in trusted["files"]:
+            continue
+        path = Path(out) / Path(trusted["files"][fmt]).name
+        with F._open_scene_file(path, root) as source:
+            data = source.read()
+        if cancel is not None:
+            cancel.check()
+        if fmt in ("mp4", "webm") and hashlib.sha256(data).hexdigest() != trusted["outputs"][fmt]["sha256"]:
+            raise F.SceneError(f"{fmt} changed before Vault sealing: render again")
+        if fmt == "contact" and hashlib.sha256(data).hexdigest() != (trusted.get("artifact_hashes") or {}).get("contact"):
+            raise F.SceneError("contact sheet changed or lacks a trusted generation hash: render again before Vault filing")
+        if fmt == "receipt" and json.loads(data) != trusted:
+            raise F.SceneError("receipt changed before Vault sealing: render again")
+        copied[fmt] = data
+    return {"receipt": trusted, "files": copied}
+
+
+def file_in_vault(vault, project_root: Path, receipt: dict, prompt_text=None, *, sealed=None, cancel=None) -> dict:
     """ONE ``provenance.capture`` call: MP4 (or WebM when alone) is the primary video render, plus the QA receipt and image strip.
-    A second video is variant_of the primary; receipt and contact sheet are derived_from it. ``capture`` never raises and spools when
-    the library is locked; a spooled filing carries no relations (they need the ids)."""
-    from ..library import curate as CU
+    Relationship intents travel with the capture and spool, so replay completes an interrupted filing. Sealed bytes are never reopened."""
     from ..library import provenance as PV
     from ..library.store import LibraryError
     out_dir = Path(project_root) / receipt["out_dir"]
+    sealed = sealed or seal(receipt, out_dir, project_root)
+    receipt = sealed["receipt"]
     files, name = receipt["files"], receipt["inputs"]["name"]
     outputs, formats = [], []
     primary = "mp4" if "mp4" in files else "webm"
     for fmt in ("mp4", "webm"):
         if fmt in files:
-            o = {"path": str(Path(project_root) / files[fmt]), "kind": "video", "name": f"{name}.{fmt}"}
+            o = {"bytes": sealed["files"][fmt], "kind": "video", "name": f"{name}.{fmt}"}
             if fmt == primary:
                 o.update(subtype="render", role="main")
             outputs.append(o)
             formats.append(fmt)
-    outputs.append({"path": str(out_dir / "receipt.json"), "kind": "receipt", "subtype": "qa", "name": f"{name} receipt"})
+    outputs.append({"bytes": sealed["files"]["receipt"], "kind": "receipt", "subtype": "qa", "name": f"{name} receipt"})
     formats.append("receipt")
-    outputs.append({"path": str(Path(project_root) / files["contact"]), "kind": "image", "subtype": "strip", "name": f"{name} contact sheet"})
+    outputs.append({"bytes": sealed["files"]["contact"], "kind": "image", "subtype": "strip", "name": f"{name} contact sheet"})
     formats.append("contact")
     inputs, engine = receipt["inputs"], receipt["engine"]
     template = inputs.get("template") or ""
@@ -67,15 +94,12 @@ def file_in_vault(vault, project_root: Path, receipt: dict, prompt_text=None) ->
         lib = vault.lib
     except LibraryError:
         lib = None
-    res = PV.capture(lib, vault.spool, {"generation": gen, "outputs": outputs, "tool": "motion_graphics"})
+    relationships = [{"src": i, "dst": formats.index(primary), "type": "variant_of" if fmt in ("mp4", "webm") else "derived_from"}
+                     for i, fmt in enumerate(formats) if fmt != primary]
+    if cancel is not None:
+        cancel.check()
+    res = PV.capture(lib, vault.spool, {"generation": gen, "outputs": outputs, "tool": "motion_graphics", "output_relations": relationships}, cancel=cancel)
+    assets = [{"id": a["id"], "kind": o["kind"], "format": f} for a, o, f in zip(res.get("assets", []), outputs, formats)]
     if not res.get("ok"):
-        return {"assets": [], "spooled": bool(res.get("spooled")), "filed": False, "error": res.get("error")}
-    assets = [{"id": a["id"], "kind": o["kind"], "format": f} for a, o, f in zip(res["assets"], outputs, formats)]
-    by = {a["format"]: a["id"] for a in assets}
-    if primary in by:
-        for fmt in ("mp4", "webm"):
-            if fmt in by and fmt != primary:
-                CU.relate(lib, by[fmt], "variant_of", by[primary], by="rule")
-        CU.relate(lib, by["receipt"], "derived_from", by[primary], by="rule")
-        CU.relate(lib, by["contact"], "derived_from", by[primary], by="rule")
+        return {"assets": assets, "spooled": bool(res.get("spooled")), "filed": False, "partial": bool(assets), "error": res.get("error")}
     return {"assets": assets, "spooled": False, "filed": True}
