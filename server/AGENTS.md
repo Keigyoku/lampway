@@ -41,6 +41,11 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    globally and per project; only a user request changes it (`PUT /app/capabilities/{id}` refuses agent and cross-origin callers),
    and an agent only proposes (`lampway_capabilities`). Lampway's tool families are checked at call time by `capabilities.check_tool`
    for the in-app agent and for MCP clients; a capability that needs an egress route is in force only while that route is on.
+   The engine's Hermes config is rendered from the same board (`engine/hermes_config.py`, spec E1.3): the model is the loopback
+   gateway only (`provider: custom`, no other provider, no adopted logins), the ACP toolsets are exactly those of the
+   capabilities in force, every outbound check Hermes lets config switch off is off, context stays Hermes's unless given, and it
+   is never written into the user's own `~/.hermes` (E1.10). `check_advertised` compares the tools the model is sent (visible
+   and deferred behind tool_search) with the choices; an unexpected or unlistable tool refuses the session.
 
 ## Test
 
@@ -50,7 +55,9 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
 .venv/bin/python -m pytest -q tests                            # the whole suite: no Blender, no network, no model
 ```
 
-The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a paid
+`tests/test_engine_hermes_config.py` also runs the built engine (`build/engines/hermes/<tag>/env/bin/hermes-acp`, or
+`$LAMPWAY_HERMES_ENGINE`) against a fake loopback model behind a refusing proxy; without the engine or the ACP SDK those tests
+SKIP, which is not a pass. The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a paid
 or egress path is tested against a fake transport, never a live provider, unless the captain named the spend.
 
 ## Owner
@@ -64,3 +71,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the server's invariants lived only in module docstrings | egress, approval, receipt, MCP, script-literal, herdr and secret invariants stated with their modules; the suite command | captain ruling, 2026-10-05 |
 | 2026-10-07 | capabilities switchboard | captain: "I want it all behind a single interface you can choose WHAT your agent can do" (agent-modes spec E2, Q8 defaults) | nothing recorded what an agent may do; the swarm and every tool family were always on for every agent | invariant 9: the user's switches, call-time checks for the agent and MCP, proposals only from agents, routes still decide egress | captain ruling, 2026-10-06 |
+| 2026-10-07 | engine config from capabilities | coordinator brief: agent-modes spec E1.3 "Nothing is removed; everything is chosen" (captain, 2026-10-06), E1.10, Q3 | with no config the engine offered 23 tools (terminal, browser, execute_code, memory, delegate_task ...), would adopt other apps' logins and tried pypi.org, models.dev, hermes-agent.nousresearch.com and raw.githubusercontent.com | invariant 9 names the rendered Hermes config, its loopback-only model, the never-~/.hermes rule and the start-up check; the Test section names the live engine tests and that their skip is not a pass | none |
