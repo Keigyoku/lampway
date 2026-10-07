@@ -334,6 +334,13 @@ def _execute_dequeued_request(req, status, lane) -> Optional[float]:
         _send_error_response(req.request_id, refusal["error"], refusal["error_type"])
         return _stop_timer_if_idle()
 
+    # A script naming a turn of Lampway Agent's pane runs only while that turn is live in its tab (mode1_pane.py).
+    from .mode1_pane import script_refusal
+    refusal = script_refusal(_request_session_id(req), req.agent_ctx)
+    if refusal is not None:
+        _send_error_response(req.request_id, refusal["error"], refusal["error_type"], req)
+        return _stop_timer_if_idle()
+
     # Safety net: reject scripts that were queued just before load_pre
     # flushed the queue (narrow race window).
     from .session import get_session_manager

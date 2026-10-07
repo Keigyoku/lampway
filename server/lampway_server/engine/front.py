@@ -23,7 +23,7 @@ end. ``AgentHub.engine`` is a ``HermesFront``; the hub keeps the client protocol
 * **a turn the user types in the pane** -> an island turn of its own (``agent.turn.started`` with ``origin: pane``), its user text
   from ``session.history`` (no event carries it, measured);
 * **``/new`` in the pane** closes the session for every client (``sessions.changed``, then ``4001``): the island follows the pane to
-  its new session (spec Q15, proposed);
+  its new session (spec Q15, proposed) and tells the tab's client (``agent.pane.new_conversation``), whose session id stays;
 * **a dropped connection to serve** is re-made, and missed events are caught up with ``session.events.since`` (same replay epoch),
   else from ``session.history``;
 * **the island's socket closing** stops nothing in Hermes: the hub keeps the running turn as a survivor and ``agent.attach``
@@ -463,17 +463,29 @@ class HermesFront:
             return
         newest = max(rows, key=lambda r: float(r.get("started_at") or 0))
         res = await link.client.call("session.resume", {"session_id": newest["session_key"]})
+        if link.live_id != old:
+            return                                           # serve says sessions.changed twice: another check followed it
         link.live_id = str(res.get("session_id") or newest["id"])
         info = link.info
         if info is not None:
             from .units import UnitInfo
             link.info = UnitInfo(info.unit, info.record_id, info.home, info.port, info.token, str(newest["session_key"]))
             await asyncio.to_thread(self.units.record_session, link.info, str(newest["session_key"]))
+        q, link.question, link.carried = link.question, None, []
+        if q is not None:                                    # a question of the closed session: no answer can reach it now
+            self._release_question(link, q)
         sink, link.sink = link.sink, None
         if sink is not None and not sink.pending and sink.done is not None and not sink.done.done():
             await self._end(link, sink, "cancelled", "The pane started a new conversation (/new); this one is in History.")
         link.running = bool(res.get("running"))
         log.info("Lampway Agent's pane for %s moved to a new session; the island follows it", link.unit)
+        # The tab's session id (the unit) stays: only this frame tells its client to start a new chat and file the old one.
+        socket = self.hub.socket_for(link.unit)
+        if socket is not None:
+            try:
+                await socket.notify("agent.pane.new_conversation", {"session_id": link.unit, "origin": "pane"})
+            except Exception:  # noqa: BLE001 - the client went away: it shows the old chat until the next one
+                log.debug("the island could not be told of the pane's /new", exc_info=True)
 
     # ------------------------------------------------------------------------------------------------- serve's events
     async def _on_event(self, link: Link, params: dict) -> None:
