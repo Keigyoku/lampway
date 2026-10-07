@@ -385,6 +385,11 @@ void agent_ui_layout_fit_controls(AgentIslandLayout &layout, const AgentIslandSt
   in.voice_listening = state.voice_listening;
   in.voice_capturing = state.voice_capturing;
   in.voice_status = state.voice_status;
+#ifdef LAMPWAY
+  /* LAMPWAY: M0 mode is a fitted core chip, independent of the model mirror. */
+  in.agent_mode_available = state.agent_mode_available;
+  in.agent_byoa = state.agent_byoa;
+#endif
   in.model_available = state.model_available;
   in.model_label = state.model_label;
   in.translate = [](const char *msgid) -> const char * { return IFACE_(msgid); };
@@ -417,6 +422,10 @@ void agent_ui_layout_fit_controls(AgentIslandLayout &layout, const AgentIslandSt
   place(layout.chip_scribble, fit.width[AGENT_CHIP_SLOT_SCRIBBLE]);
   place(layout.chip_voice, fit.width[AGENT_CHIP_SLOT_VOICE]);
   place(layout.chip_auto, fit.width[AGENT_CHIP_SLOT_AUTO]);
+#ifdef LAMPWAY
+  /* LAMPWAY: mode and model share the row budget and sit beside one another. */
+  place(layout.chip_agent_mode, fit.width[AGENT_CHIP_SLOT_AGENT_MODE]);
+#endif
   place(layout.chip_model, fit.width[AGENT_CHIP_SLOT_MODEL]);
   place(layout.chip_reading, fit.width[AGENT_CHIP_SLOT_READING]);
   place(layout.chip_clear, fit.width[AGENT_CHIP_SLOT_CLEAR]);

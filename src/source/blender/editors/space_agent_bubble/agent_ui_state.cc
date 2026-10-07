@@ -304,6 +304,12 @@ void agent_ui_state_gather(const bContext *C, AgentIslandState *r_state)
           r_state->status_text, IFACE_("Working"), sizeof(r_state->status_text));
     }
     r_state->agent_mode = enum_is(&scene_ptr, "mixie_chat_mode", "AGENT");
+#ifdef LAMPWAY
+    /* LAMPWAY: read only; switching remains the Python operator's guarded click. */
+    r_state->agent_mode_available =
+        RNA_struct_find_property(&scene_ptr, "lampway_agent_mode") != nullptr;
+    r_state->agent_byoa = enum_is(&scene_ptr, "lampway_agent_mode", "byoa");
+#endif
     /* A scene saved before the chat registered the property reads false —
      * the same default the send path uses (core/composer_send.py). */
     r_state->auto_mode = read_bool_prop(&scene_ptr, "mixie_chat_auto_mode");

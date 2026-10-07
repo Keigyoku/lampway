@@ -10,7 +10,7 @@ switch is given the server client, and the menu rows are built from a cache the 
   (``code: scene_busy``). A switch starts a fresh chat session (the old chat goes to History): the two runtimes do not share a
   transcript, and the island says so. The server binds or unbinds the tab's pane first (``POST /app/workbench/mode``); when it
   refuses, nothing changes here.
-- The island's switch is the top of the agent picker the Model chip opens (``MIXIE_CHAT_MT_agent_model``); ``draw_rows`` draws it.
+- The island's separate mode chip opens ``MIXIE_CHAT_MT_agent_mode`` beside the Model chip; ``draw_rows`` draws its cached choices.
 """
 import uuid
 from collections import namedtuple
@@ -170,7 +170,7 @@ def after_new_chat(scene, old_session_id: str, client):
 
 
 def menu_rows(scene) -> list:
-    """The mode rows at the top of the agent picker: Lampway Agent, then one Your agent row per listed harness (a missing one
+    """The separate mode chip's menu rows: Lampway Agent, then one Your agent row per listed harness (a missing one
     greyed with how to install it), or a row that looks for them; in Your agent mode a note stands for the model list."""
     mode, harness = get_mode(scene), _harness(scene)
     rows = [Row("MODE", LABELS[RUNTIME], True, mode == RUNTIME, RUNTIME, "", "Lampway's own agent, on the provider you configured")]
@@ -195,7 +195,7 @@ def menu_rows(scene) -> list:
 
 
 def draw_rows(layout, scene) -> bool:
-    """Draw the mode rows into the picker. True in Your agent mode: the caller leaves the model list out. Reads only the cache."""
+    """Draw the separate mode menu from the cache. Return whether this tab uses Your agent."""
     for row in menu_rows(scene):
         line = layout.row()
         line.enabled = row.enabled

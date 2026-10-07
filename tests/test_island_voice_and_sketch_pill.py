@@ -219,7 +219,7 @@ def test_shed_order_and_ladders_are_the_documented_ones():
     order = CHIP_FIT_HH[CHIP_FIT_HH.index("AGENT_CHIP_SHED_ORDER[] = {") :]
     order = order[: order.index("};")]
     assert re.findall(r"AGENT_CHIP_SLOT_(\w+)", order) == [
-        "VOICE", "AUTO", "SCRIBBLE", "READING", "VOICE"]
+        "VOICE", "AUTO", "SCRIBBLE", "READING", "VOICE", "AGENT_MODE"]
     forms = _function_body(CHIP_FIT_HH, "inline void agent_chip_forms(")
     assert 'in.scribble_armed ? "Done" : "Sketch"' in forms
     assert 'width("Auto", m.switch_w)' in forms

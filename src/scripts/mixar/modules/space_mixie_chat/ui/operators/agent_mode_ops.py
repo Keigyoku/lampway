@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The island's agent-mode switch (agent-modes spec M0): the rows at the top of the agent picker run these.
+"""The island's agent-mode switch (agent-modes spec M0): the separate mode chip's menu runs these.
 
 Switching a tab, and so starting the user's own agent in a pane bound to it, is the user's click: both operators refuse while
 a script runs (``human_gate``: the agent's script, a swarm worker's or the bridge's). The server's half (a version probe of each

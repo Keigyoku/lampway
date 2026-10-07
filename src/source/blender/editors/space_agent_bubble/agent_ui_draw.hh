@@ -106,6 +106,11 @@ struct AgentIslandState {
    * registered — the chip is then not laid out or drawn at all, rather than
    * offering a menu that does not exist yet. `model_byok_active` means the
    * user's own API key overrides the hosted pick, so the chip is inert. */
+#ifdef LAMPWAY
+  /* LAMPWAY: M0's saved scene mode has a separate native chip. */
+  bool agent_mode_available;
+  bool agent_byoa;
+#endif
   bool model_available;
   bool model_byok_active;
   char model_label[96];

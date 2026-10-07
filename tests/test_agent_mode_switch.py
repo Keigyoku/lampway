@@ -4,7 +4,7 @@
 
 - Two saved scene properties: ``Scene.lampway_agent_mode`` (``runtime`` by default, or ``byoa``) and ``Scene.lampway_byoa_pane``
   (the herdr session bound to the tab). Saved, so a tab reopens in the mode it was left in.
-- The island's switch is the top of the agent picker the Model chip opens (``MIXIE_CHAT_MT_agent_model``): "Lampway Agent" and
+- The island's separate mode chip opens ``MIXIE_CHAT_MT_agent_mode`` beside the Model chip: "Lampway Agent" and
   "Your agent: <harness>" for each harness the server lists (``GET /app/workbench/harnesses``). The menu's draw reads a cache and
   never the network; in Your agent mode the model rows give way to a note (the model is the harness's own).
 - Switching is refused while the tab is BUSY, MODIFYING or AWAITING_INPUT, holds an open run, or holds an MCP operation:
@@ -246,11 +246,13 @@ def test_in_your_agent_mode_the_active_row_is_the_harness_and_a_note_replaces_th
     assert any(r.kind == "NOTE" and "model" in r.label.lower() for r in rows)
 
 
-def test_the_picker_draws_the_mode_rows_first_and_skips_the_models_in_your_agent_mode():
+def test_the_separate_mode_picker_draws_choices_and_model_picker_skips_models_in_your_agent_mode():
     draw = next(n for n in ast.walk(ast.parse(MENU_PY)) if isinstance(n, ast.ClassDef) and n.name == "MIXIE_CHAT_MT_agent_model")
     body = ast.get_source_segment(MENU_PY, draw)
-    assert "draw_rows(" in body and body.index("draw_rows(") < body.index("model_menu.build_rows(")
-    assert "if AM.draw_rows(" in body or "if agent_mode.draw_rows(" in body
+    assert "AM.is_byoa(" in body and body.index("AM.is_byoa(") < body.index("model_menu.build_rows(")
+    assert "AM.MODEL_NOTE" in body
+    mode = next(n for n in ast.walk(ast.parse(MENU_PY)) if isinstance(n, ast.ClassDef) and n.name == "MIXIE_CHAT_MT_agent_mode")
+    assert "AM.draw_rows(" in ast.get_source_segment(MENU_PY, mode)
 
 
 def test_no_draw_path_reaches_the_network():

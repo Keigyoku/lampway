@@ -718,6 +718,26 @@ static void agent_bubble_island_controls_bottom(const bContext *C,
                 TIP_("Auto mode: the agent decides open choices itself instead of asking you, "
                      "and lists its decisions in the summary"));
 
+#ifdef LAMPWAY
+  /* LAMPWAY: M0's separate mode switch beside the model picker. The cached Python
+   * menu owns switching and its busy/MCP refusal; drawing makes no server call. */
+  if (state->agent_mode_available && BLI_rctf_size_x(&layout->chip_agent_mode) > 0.0f) {
+    agent_bubble_rect_to_region(region, layout->chip_agent_mode, &bx, &by, &bw, &bh);
+    uiDefMenuBut(
+        block,
+        [](bContext *C, ui::Layout *menu_layout, void * /*arg*/) {
+          MenuType *mt = WM_menutype_find("MIXIE_CHAT_MT_agent_mode", false);
+          if (mt != nullptr) {
+            ui::menutype_draw(C, mt, menu_layout);
+          }
+        },
+        nullptr, "", bx, by, bw, bh,
+        state->agent_byoa ?
+            TIP_("Your agent: choose a harness or switch to Lampway Agent. Conversations stay in History") :
+            TIP_("Lampway Agent: switch to your own agent. Conversations stay in History"));
+  }
+#endif
+
   /* --- Model, right of Auto ---
    * Pops the Python menu that owns the whole picker (catalog projection,
    * preference state, the PUT); C++ only draws the chip and reads the
