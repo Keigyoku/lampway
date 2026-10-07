@@ -13,6 +13,8 @@ jobs:
       PII_OWNER_EMAIL_RE: ${{ secrets.PII_OWNER_EMAIL_RE }}
       PII_OWNER_USER_RE: ${{ secrets.PII_OWNER_USER_RE }}
       PII_OWNER_PATH_RE: ${{ secrets.PII_OWNER_PATH_RE }}
+      PII_SCAN_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+      PII_SCAN_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
@@ -20,9 +22,16 @@ jobs:
         run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg python3-pil
       - name: New commits and their diffs (emails, paths, ids, tokens)
         run: |
-          base="${{ github.event.pull_request.base.sha || github.event.before }}"
-          if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then base=$(git merge-base HEAD origin/main); fi   # a force-push leaves the old tip unknown
-          python3 scripts/lampway/prepublish_gate.py --git "$base..HEAD"
+          scan_base="$PII_SCAN_BASE"
+          scan_head="$PII_SCAN_HEAD"
+          if ! git cat-file -e "$scan_head^{commit}" 2>/dev/null; then
+            echo "error: event head commit is unavailable; refusing a different scan endpoint"
+            exit 1
+          fi
+          if [ -z "$scan_base" ] || [ "$scan_base" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$scan_base^{commit}" 2>/dev/null; then
+            scan_base=$(git merge-base "$scan_head" origin/main)   # a force-push leaves the old tip unknown
+          fi
+          python3 scripts/lampway/prepublish_gate.py --git "$scan_base..$scan_head"
       - name: Media metadata in shipped folders
         run: for d in docs; do [ -d "$d" ] && python3 scripts/lampway/prepublish_gate.py --media "$d"; done; true
       - name: Secrets (gitleaks, whole history of this branch)
