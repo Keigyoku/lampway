@@ -6193,7 +6193,7 @@ msgstr ""
 msgid "Focus the Lampway terminal"
 msgstr ""
 
-msgid "Bring Lampway's agent tab forward in the Lampway terminal (never another WezTerm's pane)"
+msgid "Bring the Lampway terminal forward: the one window onto Lampway's herdr (never another WezTerm)"
 msgstr ""
 
 msgid "Remove the Lampway terminal"

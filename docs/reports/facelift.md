@@ -34,22 +34,23 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | 14 iconography | done (two fixes) | `5f37ee91`, `ba835be1`, `edf0d549` |
 | 03 window chrome | done | `0afc2d19` |
 | 02 splash and onboarding | done | `ce3c9897` |
-| 04 chat face | done but the answered-question collapse and test 6 | `6881d79c`, `0a74414d`, `e003f273`, `a21881e4` |
+| 04 chat face | done but test 6 (an approved golden) | `6881d79c`, `0a74414d`, `e003f273`, `a21881e4`, `e29f6f49` |
 | 05 parallel agents | done | `c92396d5` |
 | 06 Studios panel (Providers half to Choices) | done | `10233050` |
 | 07 the Way | done (every batch tool has a typed form) | `faa750b3`, `cf1fc1f7`, `39d8ae9e` |
-| 08 generation face | done but the A/B action | `a86df92f`, `e7c96c20`, `d02a4e2f`, `a3356f14` |
+| 08 generation face | done; A/B is a stub that needs the user's click (as ruled) | `a86df92f`, `e7c96c20`, `d02a4e2f`, `a3356f14`, `508a56a7` |
 | 12 privacy face | done (the two shortfalls fixed) | `0fff1aed`, `a60dce8d` |
 | 13 spend card | done (P0 and the drawn P1 card) | `afa173f9`, `1e857173` |
 | Connections window | P0 done | `59279873`, `add28e00` |
 | Choices window (CH8, CH1) | P0 done | `c6002ee9`, `add28e00` |
 | install carries no agent contract | done | `e6668a6b` |
-| 11 model compare | done but Spin and the header Pick | `3e496b4a`, `e430bfb7` |
+| 11 model compare | done but the header Pick (in the sidebar) | `3e496b4a`, `e430bfb7`, `64a74195` |
 | 10 cockpit window + report cards mounted | done for the page; its terminal is 16's window, not xterm.js | `3f33a237`, `b95d1acc` |
-| 16 Lampway terminal | done; tests 6, 7, 9, 11 run live (images: the fallback, see 16) | `ad44c557`, `e370a70b`, `dca41dd5`, `b9054b3e`, `fb2935a5` |
+| 16 Lampway terminal | done as a viewport only (the captain's correction); tests 6, 7, 9, 11 run live (images: the fallback) | `ad44c557`, `e370a70b`, `dca41dd5`, `b9054b3e`, `fb2935a5`, `ebf357d8` |
 | cloud audit F17, F22, F23, F24 | done | `d2b645b9`, `11b9db7c`, `75fed27f`, `b06be59d`, `d663255d` |
 | BUILT_FROM stamped by the build | done | `eeb599d9` |
-| brand pages (every page Lampway serves to a browser) | done; report-card and camera pages not restyled | `a257a40e`, `535c17c6` |
+| brand pages (every page Lampway serves to a browser) | done, report cards and the phone camera page included | `a257a40e`, `535c17c6`, `08e2da21` |
+| schema ratchet (integration request 9) | done: 702 -> 691 undescribed, 258 -> 240 unbounded | `97879399` |
 | Asset Vault name and drag | done | `d6b543fc` |
 | Zen shortcuts (vault-ui's finding) | done: not a bug, pinned with real input | `8eac47fb` |
 | Lamplight and Workshop (captain's rename) | done | `c272b7c0` |
@@ -1019,3 +1020,70 @@ the app:
 - `build/Prod/BUILT_FROM` = `a257a40e309396457c53b6dc6f358db9ba9c4847`, written by `build_linux.sh` itself (clean native tree,
   pushed): every native change of this round. Earlier in the round the same script stamped `d18d713d` and `c0872d90`.
   Commits after `a257a40e` are tests and this report only (no native source).
+
+## The remainder (2026-10-06, the coordinator's last list) and the captain's viewport correction
+
+### 16: WezTerm is purely a viewport (`ebf357d8`) - this supersedes parts of the sections above
+The captain: "No no no no no. Our agent live in herdr, herdr has it's own workspace, we don't make multiple WezTerm tabs.
+WezTerm is PURELY a viewport". I had built one tab per agent (`c89632c2`, from the coordinator's list) and, earlier, the
+server's `state.json` with tab-title cues and an egress status (`b9054b3e`, from the contract). Both are removed:
+- gone: `agent_tabs` (`cli spawn -- herdr agent attach`), `state_doc` / `write_state` and the server's one-second tick,
+  the config's `format-tab-title` / `update-status` handlers and its state file, the pane registry, `send_text`, the dead
+  cue table in `build_theme.py`; the reset of the pane registry on Open;
+- the config sets `enable_tab_bar = false`; the CLI only lists the one window and activates its pane (Focus, which now
+  names no pane);
+- kept: the branded config, the isolated home and socket, the single window attaching to herdr by plain `herdr`, Ctrl
+  Alt T, Update, Remove, the Ctrl+click image fallback;
+- pinned: `test_the_launcher_issues_no_tab_or_spawn_command` (open, reconcile and Focus issue one `start` and only `list` /
+  `activate-pane`; the add-on names no tab or spawn verb), `test_the_config_has_no_tab_bar_and_mirrors_no_state`,
+  `test_the_server_writes_no_terminal_state` (RED observed for all three before the removal); the WezTerm gate's W4 is now
+  "no tab bar, no tab title or status from state" (self-test: a tab bar turned back on, and a tab-title handler, are caught).
+- the record: `specs/client_facelift/16-lampway-wezterm.md` has a new section 0 (the rule, verbatim) and its lines on
+  tabs, cues, the state file, spawn and send-text are marked superseded; `10-herdr-cockpit.md` and `docs/cockpit.md` say
+  viewport only. (The specs folder is not a git repository: the originals are copied to the scratch directory.)
+- Earlier in this file, the live-check row "state.json" and the "Focus brings Lampway's tab forward" sentence describe what
+  was removed. The live terminal check was not re-run after the removal (it needs a third download of the release);
+  the config change is gated by `check_wezterm.py` under luajit, not by a live window.
+- What the tab work measured, kept as a fact: `herdr agent attach <pane>` refuses a pane with no detected agent
+  (`agent_not_found`).
+
+### 04: the answered question collapses to one line (`e29f6f49`)
+`lampway_tools/answered.py`: when a choice is answered through the island's action operator, the bubble becomes "Which
+glass? Clear, you answered 14:30" and its choices are replaced by one expander row ("2 other choices" / "Hide other
+choices", opening "Other choices: Frosted, Amber"). The expander is handled in the island (value `lampway_answered:`),
+never sent to the agent; the answer itself still goes once. Natively, a bubble whose only rows are the expander gets no
+lamplight and no waiting rule. Tests: `tests/lampway_tools/test_lampway_chat_answered.py` (real binary, fake transport;
+RED observed), `test_an_answered_question_has_no_lamplight` (source; RED observed), the visual state `chat_answered`
+(captured on the `97879399` build: one line, the expander, no glow).
+
+### 11: Spin (`64a74195`)
+The 100 ms poll turns every compare view 2 degrees about the vertical while Spin is on; a manual orbit in one view stops
+Spin and the others follow it. Found on the way: the poll compared `view_matrix`, which Blender recomputes only at the next
+draw, so a rotation set by the poll read back as the user's orbit; it now compares the views' own rotation, location and
+distance (the same lag affected Sync's echo). Visual test `test_compare_spin.py` (RED observed; the "orbit stops it" rule
+mutation-checked: removed, the test fails).
+
+### Brand pages: the report cards and the phone camera page (`08e2da21`)
+- Report cards: `cards/_shared/report.css` is the template's faces and tokens (Night; Paper under the content server's
+  `data-lw-theme="light"`) plus the card layout on `--lw-*` tokens; every page shows the lockup. `test_card_pages_carry_the_brand`
+  (RED observed). The cockpit's card frame shell (a bare iframe container) is unchanged.
+- Phone camera page: the gate's "MIXAR" wordmark is the lockup, Mixar's green is the flame, the faces and Night tokens come
+  from a generated `webapp/brand.css` (Night only: the controls sit over the live picture). `tests/lampway/test_camera_page_brand.py`
+  (RED observed).
+- The generator (`scripts/generate_sso_success_page.py`) now writes the camera's `brand.css` and lockup too, and leaves the
+  sign-in pages alone when their markup is current (the subset fonts are not byte-stable between fontTools runs, so a
+  regeneration would otherwise rewrite the native header and force a rebuild).
+- Browser captures: the card (Night and Paper) and the camera gate render on their canvas with the lockup and every
+  request on their own origin (`test_the_card_pages_and_the_camera_page_are_on_brand_and_stay_on_their_origin`).
+
+### 08: A/B as a stub (`508a56a7`)
+"A/B" beside "Edit as my own" in the prompt library: the user's click says it would run two paid generations and sends
+nothing; a script cannot press it. `tests/lampway_tools/test_lampway_prompt_ab.py` (RED observed).
+
+### Integration request 9: the schema ratchet (`97879399`)
+Every batch form parameter described and every number bounded (bounds taken from each script's defaults with generous
+room); `UNDESCRIBED` 702 -> 691 and `UNBOUNDED_NUMBERS` 258 -> 240 (RED observed by lowering them first).
+
+### Merge
+`origin/lp/wave5` at `631f4631` merged (`f1a8f67a`, no conflict; it brought no native change). The post-merge hook printed
+"unable to read tree (fbe62287...)" while re-pinning `upstream/`; `upstream/` was already at that commit.
