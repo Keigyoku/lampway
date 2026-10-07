@@ -194,15 +194,17 @@ class SwarmManager:
 
     def worker_brain(self, ctx: SwarmContext) -> PaneBrain:
         """The swarm's one brain (spec S1 as superseded by A): a ``PaneBrain`` on the adapter the unit's mode picks. Refused, with
-        help, when that adapter cannot start a pane (Mode 1's, until A1 is built) or no herdr host is known: never run another way."""
+        help, when no herdr host is known or the adapter cannot start a pane here (Mode 1's, on a server that is not running the
+        Hermes engine): never run another way."""
         try:
             harness = HN.worker_adapter(ctx.mode, ctx.harness)
-            HN.require_launchable(harness)
         except ValueError as exc:
             raise SwarmError(f"refused: swarm_start did not run: {exc}") from None
         if self.cockpit is None:
             raise SwarmError("refused: swarm_start did not run: every worker runs in a pane on Lampway's herdr server, and this "
                              "server has no herdr host")
+        if HN.is_lampway(harness) and getattr(self.cockpit, "mode1", None) is None:
+            raise SwarmError(f"refused: swarm_start did not run: {HN.MODE1_UNAVAILABLE}")
         return PaneBrain(self.cockpit, harness, cwd=ctx.cwd or str(self.cockpit.project_root or "."), project_root=ctx.project_root,
                          bindings=self.bindings)
 

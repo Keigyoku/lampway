@@ -17,7 +17,7 @@ import pytest
 
 from lampway_server.agent.providers.base import Text, ToolCall
 
-from .test_swarm_v3 import played  # noqa: F401  (Lampway's herdr, played, with Mode 1's adapter played)
+from .test_swarm_v3 import played  # noqa: F401  (Lampway's herdr, played; Mode 1's real adapter on a stand-in engine)
 
 pytestmark = pytest.mark.anyio
 
@@ -219,7 +219,7 @@ def test_plan_mode_changes_nothing_before_approval(fake, provider):
 
 
 def test_retry_failed_tasks_reruns_only_failed(settings, played):
-    """The swarm's workers think in panes (spec S1, A5); Mode 1's adapter is played here until it is built (test_swarm_v3)."""
+    """The swarm's workers think in panes (spec S1, A5): Mode 1's real adapter on a stand-in engine (test_swarm_v3)."""
     from starlette.testclient import TestClient
 
     from lampway_server.agent.providers.mock import ScriptedProvider
@@ -240,6 +240,8 @@ def test_retry_failed_tasks_reruns_only_failed(settings, played):
                              [Text("Two of three finished.")],
                              [Text("The retried task finished.")]])
     app = create_app(settings, provider=main, cockpit=cockpit)
+    from .mode1_support import units_for
+    cockpit.mode1 = units_for(cockpit, settings.state_dir, app.state.engine_tokens, engine=cockpit.engine_for_tests)   # A1's real hook
     from lampway_server import capabilities as CAP
     CAP.ACTIVE.set("swarm", enabled=True, by="user")             # the swarm is off until the user switches it on (spec E2, Q8)
     with TestClient(app, base_url="http://127.0.0.1:8787") as http:

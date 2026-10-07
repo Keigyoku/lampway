@@ -3,12 +3,15 @@ the typed append_collection commit, and the Parallel Agents panel is fed by the 
 the fake fleet in fake_harness.py.
 
 Every worker thinks in a pane (``PaneBrain``, spec S1 and A5: no agent without a pane). These tests start the swarm from the in-app
-agent, i.e. in Mode 1, whose worker adapter is ``lampway_hermes`` (A1). That adapter is not built yet, so here a played stand-in
-takes its place in the adapter registry (``PlayedHermes``: herdr starts it the way it starts Claude Code), and ``PanePlayer`` plays
-each worker pane the way a harness would: its tool calls over the pane endpoint, then ``lampway_worker_done``. herdr is played
-(``herdr_support.PaneHerdr``); no binary runs and nothing leaves the machine."""
+agent, i.e. in Mode 1, whose worker adapter is ``lampway_hermes`` (A1): the real adapter and the real ``Mode1Units`` hook, on a
+stand-in engine build (``mode1_support``), so each worker pane gets its real home and config, whose one MCP server is the pane
+endpoint. ``PanePlayer`` plays each worker pane the way its Hermes would: its tool calls over that endpoint (read from the pane's
+config.yaml), then ``lampway_worker_done``. herdr is played (``herdr_support.PaneHerdr``); no binary runs and nothing leaves the
+machine."""
 
 import json
+import shlex
+import sys
 import threading
 import time
 from pathlib import Path
@@ -22,22 +25,11 @@ from lampway_server.app import create_app
 from lampway_server.herdr import harnesses as HN
 from lampway_server.herdr import host as H
 from lampway_server.herdr import launcher as L
-from lampway_server.herdr.harnesses.claude import Claude
 
 from .fake_client import FakeMixarClient
 from .fake_harness import FakeFleet, new_session
 from .herdr_support import PaneHerdr
-
-
-class PlayedHermes(Claude):
-    """A stand-in for Lampway's Hermes pane (agent-modes spec A1), which another lane builds: herdr starts it like Claude Code."""
-    id = "lampway_hermes"
-    label = "Lampway's agent (played)"
-    built = True
-
-    @property
-    def route(self) -> str:
-        return "byoa:claude"
+from .mode1_support import fake_engine, mcp_entry, units_for
 
 
 def marker_play(swarm_id, worker_id):
@@ -75,7 +67,8 @@ class PanePlayer:
 
     def _play(self, rec):
         _, swarm_id, worker_id = rec["swarm_binding"].split(":")
-        entry = json.loads(Path(rec["mcp_config_path"]).read_text())["mcpServers"]["lampway"]
+        url, headers = mcp_entry(rec["home"])                     # the pane's own config.yaml (A1): its one MCP server
+        entry = {"url": url, "headers": headers}
         for step in self.play(swarm_id, worker_id):
             if step[0] == "exit":
                 self.herdr.exit(rec["pane_id"])
@@ -90,15 +83,16 @@ class PanePlayer:
 
 @pytest.fixture
 def played(monkeypatch, tmp_path):
-    """Lampway's herdr, played, with the played Mode 1 adapter in the registry; returns (cockpit, herdr)."""
+    """Lampway's herdr, played; returns (cockpit, herdr). ``run_swarm`` gives the cockpit the real Mode 1 hook on a stand-in engine."""
     from lampway_server.herdr import swarm_brain as SB
     herdr = PaneHerdr()
     monkeypatch.setattr(L, "run", herdr)
     monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
-    monkeypatch.setitem(HN.LAMPWAY_ADAPTERS, "lampway_hermes", PlayedHermes())
     monkeypatch.setattr(SB, "POLL_S", 0.05)
     (tmp_path / "proj").mkdir()
-    return H.Cockpit(tmp_path / "herdr", project_root=str(tmp_path / "proj")), herdr
+    cockpit = H.Cockpit(tmp_path / "herdr", project_root=str(tmp_path / "proj"))
+    cockpit.engine_for_tests = fake_engine(tmp_path / "engines")
+    return cockpit, herdr
 
 
 def tasks(*names):
@@ -116,6 +110,7 @@ def run_swarm(settings, played, names=("a", "b", "c"), *, play=marker_play, conf
     script.append([Text("Done.")])
     provider = ScriptedProvider(script)
     app = create_app(settings, provider=provider, cockpit=cockpit)
+    cockpit.mode1 = units_for(cockpit, settings.state_dir, app.state.engine_tokens, engine=cockpit.engine_for_tests)
     from lampway_server import capabilities as CAP
     CAP.ACTIVE.set("swarm", enabled=True, by="user")             # the swarm is off until the user switches it on (spec E2, Q8)
     with TestClient(app, base_url="http://127.0.0.1:8787") as http:
@@ -152,13 +147,22 @@ def test_the_swarm_feeds_the_parallel_agents_panel_with_a_todo_slot_per_task(set
 
 
 def test_every_worker_is_a_pane_on_the_units_adapter_in_one_tab(settings, played):
-    """Spec S1, A4: Mode 1 picks lampway_hermes; each worker's pane is in its unit's tab, its task on the command line."""
+    """Spec S1, A4: Mode 1 picks lampway_hermes; each worker's pane is in its unit's tab. A1/S2: the pane runs Lampway's wrapper on
+    its own home; its task is in that home (0600) for the server to submit, never on a command line; its one MCP server is the
+    pane endpoint pinned to its binding."""
     fleet, frames, session_id, _cmd, cockpit, herdr, _p = run_swarm(settings, played, ("a", "b"))
     panes = sorted((s for s in cockpit.list_sessions() if s.get("created_by") == "swarm"), key=lambda s: s["swarm_binding"])
     assert [p["agent"] for p in panes] == ["lampway_hermes", "lampway_hermes"]
     assert [(p["unit"], p["role"]) for p in panes] == [(session_id, "worker")] * 2 and len({p["tab_id"] for p in panes}) == 1
     assert [herdr.metadata[p["pane_id"]]["display_agent"] for p in panes] == ["Worker 1 · a", "Worker 2 · b"]
     assert herdr.closed() == [], "a finished worker's pane stays open for the user to read"
+    for p, name in zip(panes, ("a", "b")):
+        run = next(c["args"] for c in herdr.calls if c["args"][:2] == ["pane", "run"] and c["args"][2] == p["pane_id"])
+        assert run[3:] == [shlex.join(HN.get("lampway_hermes").launch(HN.PaneSpec(cwd="/", home=p["home"])))]
+        assert f"QA the piece {name}" not in " ".join(run) and f"QA the piece {name}" in (Path(p["home"]) / "task.txt").read_text()
+        assert Path(p["home"]).parent.name == "workers" and Path(p["home"]).parent.parent.name == session_id
+        url, headers = mcp_entry(p["home"])
+        assert url.endswith("/api/v1/mcp/pane") and headers["X-Mixar-Session-Id"] == p["swarm_binding"]
 
 
 def test_a_brain_reaches_only_its_own_workers_lampway(settings, played):

@@ -7,8 +7,10 @@ engine), OpenCode, Pi, Grok and Cursor. Adding a harness is one module here and 
 island. The cockpit host (``herdr/host.py``) starts every harness pane through these adapters; ``switch`` is the BYOA switch.
 
 Beside the user's harnesses (``ADAPTERS``, Mode 2) the registry holds Lampway's own adapters (``LAMPWAY_ADAPTERS``, Mode 1, spec A0):
-``lampway_hermes``, Lampway's Hermes pane (A1), a stub until it is built. They are never in the user's list and need no BYOA switch.
-The unit's mode picks a swarm worker's adapter (``worker_adapter``, spec S1 as superseded by A).
+``lampway_hermes``, Lampway's Hermes pane (A1). They are never in the user's list, need no BYOA switch and have no byoa route. A
+Lampway adapter's pane starts only on a server whose engine is wired (the cockpit's ``mode1`` hook, ``engine/units.py``); the
+cockpit refuses it with help otherwise. The unit's mode picks a swarm worker's adapter (``worker_adapter``, spec S1 as superseded
+by A).
 """
 import os
 from pathlib import Path
@@ -24,9 +26,8 @@ from .opencode import OpenCode
 from .pi import Pi
 from .switch import TERMS_NOTE, enabled, require_enabled
 
-__all__ = ["ADAPTERS", "LAMPWAY_ADAPTERS", "MODE1_ADAPTER", "Adapter", "Argv", "BOUND_ENV", "DirectServer", "HarnessAdapter", "Installed", "LoginState", "Observer", "PaneSpec", "SERVER_NAME", "SESSION_HEADER", "TERMS_NOTE",
-           "ToolWiring", "enabled", "get", "ids", "listing", "mcp_entry", "mcp_launcher", "require_enabled",
-           "require_launchable", "worker_adapter"]
+__all__ = ["ADAPTERS", "LAMPWAY_ADAPTERS", "MODE1_ADAPTER", "MODE1_UNAVAILABLE", "Adapter", "Argv", "BOUND_ENV", "DirectServer", "HarnessAdapter", "Installed", "LoginState", "Observer", "PaneSpec", "SERVER_NAME", "SESSION_HEADER", "TERMS_NOTE",
+           "ToolWiring", "enabled", "get", "ids", "is_lampway", "listing", "mcp_entry", "mcp_launcher", "require_enabled", "worker_adapter"]
 
 #: The user's own harnesses (Mode 2, spec B1), in the order the island lists them.
 ADAPTERS = {a.id: a for a in (Claude(), Codex(), Hermes(), OpenCode(), Pi(), Grok(), Cursor())}
@@ -61,11 +62,16 @@ def worker_adapter(mode: str, parent_harness=None) -> str:
     return MODE1_ADAPTER
 
 
-def require_launchable(hid: str) -> None:
-    """Refuse, with help, an adapter that cannot start a pane yet (Lampway's own, until built): nothing runs another way."""
-    ad = LAMPWAY_ADAPTERS.get(hid)
-    if ad is not None and not ad.built:
-        raise ValueError(ad.refusal())
+#: Why a Lampway adapter's pane cannot start on this server, with what to do (the cockpit has no ``mode1`` hook).
+MODE1_UNAVAILABLE = ("Lampway Agent runs on Lampway's pinned Hermes engine (agent-modes spec A1), and this server is not running it, "
+                     "so nothing was started: build the engine with scripts/lampway/engine_env.py and start Lampway with "
+                     "LAMPWAY_AGENT_ENGINE=hermes; or switch this scene tab to Your agent in the island's agent menu and ask your "
+                     "own agent")
+
+
+def is_lampway(hid) -> bool:
+    """One of Lampway's own adapters (Mode 1), never a user's harness."""
+    return hid in LAMPWAY_ADAPTERS
 
 
 def listing() -> list:

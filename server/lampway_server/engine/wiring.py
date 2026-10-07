@@ -1,33 +1,35 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The engine in production: Hermes in Mode 1's seat (docs/reports/agent-modes-spec.md E1.2-E1.5, E1.3's start-up check).
+"""The engine in production: Hermes in Mode 1's seat, every agent a pane (docs/reports/agent-modes-spec.md A1-A3, E1.3-E1.5).
 
-``create_app`` calls ``wire`` once. The engine runs Mode 1 only when both hold; otherwise the built-in loop stays, and one log line
-says why:
+``create_app`` calls ``wire`` once. Mode 1 is the Hermes runtime only when both hold; otherwise the built-in loop stays, and one log
+line says why:
 
 * ``LAMPWAY_AGENT_ENGINE=hermes`` is set (the user's or the launcher's choice; nothing turns it on by itself), and
 * a finished build is found: ``$LAMPWAY_ENGINES_DIR`` when it is set (and only there), else ``<repo>/build/engines``, else
-  ``<state_dir>/engines`` (``runtime.find_engine``: the newest ``hermes/*/engine.json``).
+  ``<state_dir>/engines`` (``find_engine``: the newest ``hermes/*/engine.json``, written last by scripts/lampway/engine_env.py).
 
-Selected, the app's lifespan (``start``/``stop``/``tick``) gives the runtime Lampway's two doors and the user's choices:
+Selected, the app's lifespan (``start``/``stop``/``tick``) gives Mode 1's panes Lampway's two doors and the user's choices:
 
-* **the model gateway** (E1.4): ``http://127.0.0.1:<port>/engine/v1`` on this server; each child's key is a fresh
-  ``gateway.Registry`` token for its session (an older one for the same session is revoked first, so a crashed child's key dies
-  with it) and is revoked when the child stops;
-* **the session's MCP endpoint** (E1.6): ``/engine/mcp/<session_id>`` on this server;
-* **the egress proxy** (E1.5): ``engine/proxy.py``, started on loopback in the lifespan with the server's port as the gateway's;
-* **the config** (E1.3): ``hermes_config.write`` from the ACTIVE Capabilities board and project, the terminal backend from the
-  capability's ``options["backend"]`` (what the Client writes). A swarm worker's config (``worker=True``, spec S2) is the same
-  board less what a worker never does (``WORKER_NEVER``); it is kept for a Mode 1 worker's Hermes pane (spec A1), which is not
-  built yet, so nothing writes one today (the engine's hidden workers are gone, A5);
+* **the model gateway** (E1.4): ``http://127.0.0.1:<port>/engine/v1`` on this server; each pane's key is a fresh
+  ``gateway.Registry`` token for its unit (a worker's: its swarm binding), an older one for the same pane revoked first;
+* **the MCP endpoints** (A3, S3): a main pane's ``/engine/mcp/<unit>`` with its per-unit bearer, a worker's the pane endpoint;
+* **the egress proxy** (E1.5): ``engine/proxy.py`` on loopback, on the port it had before a restart when that port is free (the
+  panes outlive the server and keep its address), with the server's port as the gateway's;
+* **the config** (E1.3, A1): ``hermes_config.write`` from the ACTIVE Capabilities board and project, the terminal backend from the
+  capability's ``options["backend"]``; a worker's (``worker=True``, spec S2) is the board less ``WORKER_NEVER``, without clarify;
 * **the start-up check** (E1.3): ``hermes_config.check_advertised`` on each token's first chat request that carries tools, against
-  the board its config was written from; a mismatch refuses that request and every later one of that child (``Registry.first_check``).
+  the board its config was written from; a mismatch refuses that request and every later one of that pane (``Registry.first_check``);
+* **the panes** (A1): ``units.Mode1Units`` is the cockpit's ``mode1`` hook and ``front.HermesFront`` the hub's engine (A2). The
+  start re-adopts every live Lampway pane the cockpit reconciled (its tokens by their digests) and re-attaches to it. Shutdown
+  closes this server's connections and stops the proxy; it never ends a pane or its serve (law 5).
 
 The server must be reachable on loopback (its doors are loopback only): a non-loopback ``LAMPWAY_HOST`` keeps the built-in loop.
 """
 
 import asyncio
 import ipaddress
+import json
 import logging
 import os
 from pathlib import Path
@@ -37,7 +39,6 @@ from .. import capabilities as CAP
 from . import gateway as GW
 from . import hermes_config as HC
 from . import proxy as PX
-from .runtime import EngineRuntime, find_engine
 
 log = logging.getLogger("lampway.engine")
 
@@ -46,9 +47,22 @@ ENGINE_NAME = "hermes"
 REPO_ENGINES = Path(__file__).resolve().parents[3] / "build" / "engines"
 MODEL_ID = "lampway"                     # the id the engine asks the gateway for; the current main provider answers whatever it is
 WILDCARD_BINDS = {"0.0.0.0", "::", ""}
-#: Spec S2: what a swarm worker never does, whatever the parent chose (its tool list also leaves out ``ask_user``).
+PROXY_PORT_FILE = "proxy.port"
+#: Spec S2: what a swarm worker never does, whatever the parent chose (its tool list also leaves out ``ask_user`` and ``clarify``).
 WORKER_NEVER = frozenset({"subagents", "swarm", "schedule", "panes.drive", "computer.use"})
 WORKER_NEVER_FAMILIES = ("messaging.",)
+
+
+def find_engine(engines_dir) -> Optional[dict]:
+    """The newest finished build under ``<engines_dir>/hermes/*/engine.json`` (scripts/lampway/engine_env.py), or None."""
+    base = Path(engines_dir) / "hermes"
+    builds = sorted((p for p in base.glob("*/engine.json") if p.is_file()), key=lambda p: p.stat().st_mtime) if base.is_dir() else []
+    if not builds:
+        return None
+    rec = json.loads(builds[-1].read_text())
+    rec["dir"] = str(builds[-1].parent)
+    rec["entry_path"] = str(builds[-1].parent / rec["entry"])
+    return rec
 
 
 def _loopback_reachable(host: str) -> bool:
@@ -112,7 +126,7 @@ class WorkerBoard:
 
 
 def provider_getter(agent):
-    """The gateway's provider for a session: the current main provider, read at call time. Callable with or without the session id.
+    """The gateway's provider for a pane: the current main provider, read at call time. Callable with or without the session id.
     The engine's hidden swarm workers, which had a provider of their own, are gone (spec A5)."""
     def get(session_id: Optional[str] = None):
         return agent.provider
@@ -125,73 +139,96 @@ class EngineWiring:
         self.settings = settings
         self.agent = agent
         self.registry = registry
-        self.runtime: Optional[EngineRuntime] = None
-        self._boards: dict = {}                          # token digest -> the board its child's config was written from
+        self.front = None                                # front.HermesFront, while the server runs
+        self.units = None                                # units.Mode1Units, the cockpit's mode1 hook
+        self._boards: dict = {}                          # token digest -> (the board its pane's config was written from, asks_user)
         registry.first_check = self.check
 
     @property
     def base(self) -> str:
         return f"http://127.0.0.1:{int(self.settings.port)}"
 
+    def _proxy_port_path(self) -> Path:
+        return Path(self.settings.state_dir) / "agent" / "hermes" / PROXY_PORT_FILE
+
+    def _previous_proxy_port(self) -> int:
+        try:
+            return int(self._proxy_port_path().read_text().strip())
+        except (OSError, ValueError):
+            return 0
+
     # -- the lifespan
     async def start(self) -> None:
-        _, proxy_port = await PX.start(gateway_port=int(self.settings.port))
-        base = self.base
-        self.runtime = EngineRuntime(
-            self.agent, engine=self.engine, state_dir=self.settings.state_dir, gateway_url=f"{base}/engine/v1",
-            model_token_for=self.model_token, model_id=MODEL_ID, mcp_url_for=lambda sid: f"{base}/engine/mcp/{sid}",
-            proxy_url=f"http://127.0.0.1:{proxy_port}", project_root=CAP.project(), config_writer=self.write_config,
-            on_child_stop=self.child_stopped)
-        self.agent.engine = self.runtime
-        log.info("engine: Hermes %s runs Mode 1 (gateway %s/engine/v1, egress proxy on 127.0.0.1:%s)",
-                 self.engine.get("tag", "?"), base, proxy_port)
+        from .front import HermesFront
+        from .units import Mode1Units, write_private
+        previous = self._previous_proxy_port()
+        try:
+            _, proxy_port = await PX.start(port=previous, gateway_port=int(self.settings.port))
+        except OSError:
+            _, proxy_port = await PX.start(gateway_port=int(self.settings.port))
+            if previous:
+                log.warning("engine: the egress proxy's previous port %s is taken; panes started before this restart reach nothing "
+                            "outside Lampway until they are reopened", previous)
+        write_private(self._proxy_port_path(), str(proxy_port))
+        cockpit = getattr(self.agent, "cockpit", None)
+        if cockpit is None:
+            raise RuntimeError("Mode 1 runs in panes on Lampway's herdr server, and this server has no herdr host")
+        self.units = Mode1Units(cockpit=cockpit, engine=self.engine, state_dir=self.settings.state_dir, server_base=self.base,
+                                registry=self.registry, write_config=self.write_config, model_id=MODEL_ID,
+                                proxy_vars=PX.proxy_vars(f"http://127.0.0.1:{proxy_port}"), pane_mcp_url=getattr(cockpit, "pane_mcp_url", None))
+        self.units.loop = asyncio.get_running_loop()
+        self.front = HermesFront(self.agent, self.units)
+        cockpit.mode1 = self.units
+        self.agent.engine = self.front
+        adopted = self.units.adopt()
+        for rec in adopted:
+            digest = rec.get("gateway_token_sha256")
+            if digest:
+                self._boards[digest] = (WorkerBoard(CAP.ACTIVE) if rec.get("role") == "worker" else None, rec.get("role") != "worker")
+        await self.front.adopt(adopted)
+        log.info("engine: Hermes %s runs Mode 1 in panes (gateway %s/engine/v1, egress proxy on 127.0.0.1:%s, %d pane(s) re-adopted)",
+                 self.engine.get("tag", "?"), self.base, proxy_port, len(adopted))
 
     async def stop(self) -> None:
-        rt, self.runtime = self.runtime, None
-        if rt is not None:
-            rt.kill_all()                                  # every child by its recorded PID
+        front, self.front = self.front, None
+        if front is not None:
             try:
-                await asyncio.wait_for(rt.stop(), 15)      # reaps them and revokes their keys
+                await asyncio.wait_for(front.close(), 15)    # this server's connections only: the panes run on (law 5)
             except Exception:  # noqa: BLE001 - shutdown goes on
-                log.debug("engine: stopping the children did not finish", exc_info=True)
-            if self.agent.engine is rt:
+                log.debug("engine: closing the panes' connections did not finish", exc_info=True)
+            if self.agent.engine is front:
                 self.agent.engine = None
+        cockpit = getattr(self.agent, "cockpit", None)
+        if cockpit is not None and getattr(cockpit, "mode1", None) is self.units:
+            cockpit.mode1 = None
         await PX.stop()
 
     async def tick(self) -> None:
-        """The server's 60 s tick: a child with no live turn past ``runtime.IDLE_REAP_S`` is stopped (E1.2)."""
-        if self.runtime is not None:
-            await self.runtime.reap_idle()
+        """The server's 60 s tick. Nothing to reap: every agent is a pane, and a pane ends only by the user (A0, law 5)."""
+        return None
 
-    # -- the runtime's hooks
-    def model_token(self, session_id: str) -> str:
-        self.registry.revoke_session(session_id)          # one live key per session's child
-        return self.registry.issue_token(session_id)
-
-    def child_stopped(self, es) -> None:
-        if es.model_token:
-            self.registry.revoke(es.model_token)
-            self._boards.pop(GW.Registry._digest(es.model_token), None)
-
-    def write_config(self, home, gateway_url, token, model_id, worker: bool = False):
+    # -- the panes' hooks
+    def write_config(self, home, gateway_url, token, model_id, worker: bool = False, mcp_url=None, mcp_headers=None, rendered=None):
         board = CAP.ACTIVE
         if board is None:
             raise HC.Refused("refused: the Capabilities board is not available, so the engine's config cannot be written")
         if worker:
             board = WorkerBoard(board)
-        path = HC.write(home, board, CAP.project(), gateway_url, token, model_id, supports_vision=sees_images(self.agent))
-        self._boards[GW.Registry._digest(token)] = board
+        path = HC.write(home, board, CAP.project(), gateway_url, token, model_id, supports_vision=sees_images(self.agent), rendered=rendered,
+                        mcp_url=mcp_url, mcp_headers=mcp_headers, asks_user=not worker)
+        self._boards[GW.Registry.digest(token)] = (board, not worker)
         return path
 
     def check(self, session_id: str, token: str, tools) -> Optional[str]:
-        board = self._boards.get(GW.Registry._digest(token)) or CAP.ACTIVE
+        board, asks_user = self._boards.get(GW.Registry.digest(token)) or (None, True)
+        board = board or CAP.ACTIVE
         if board is None:
             return "refused: the Capabilities board is not available, so the engine's tools cannot be checked"
-        mismatches = HC.check_advertised(tools, board, CAP.project())
+        mismatches = HC.check_advertised(tools, board, CAP.project(), asks_user=asks_user)
         if not HC.refuses(mismatches):
             return None
         blocking = [m for m in mismatches if m.blocking]
-        log.warning("engine: session %s refused at its start-up check: %s", session_id, ", ".join(m.tool for m in blocking))
+        log.warning("engine: pane %s refused at its start-up check: %s", session_id, ", ".join(m.tool for m in blocking))
         return ("refused: the engine offered tools your Capabilities do not allow, so this session was stopped before the model "
                 "saw them: " + "; ".join(m.why for m in blocking) + ". Lampway's engine config and the pinned engine disagree "
                 "(spec E1.3, E1.8).")

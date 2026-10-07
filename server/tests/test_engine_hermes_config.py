@@ -2,13 +2,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The engine's Hermes config is the user's capability choices (docs/reports/agent-modes-spec.md E1.3, E1.10, E2).
 
-Captain, 2026-10-06: "Nothing is removed; everything is chosen." Lampway writes each engine child's ``HERMES_HOME/config.yaml``
-from Capabilities before start: the model is Lampway's gateway only (``provider: custom``), the ACP platform's toolsets are exactly
-the Hermes toolsets of the capabilities in force, every outbound check Hermes lets config switch off is off, and context stays
-Hermes's (Q3) unless given. On start Lampway compares the tool list the model is sent with the choices and refuses a mismatch.
+Captain, 2026-10-06: "Nothing is removed; everything is chosen." Lampway writes each Mode 1 pane's ``HERMES_HOME/config.yaml``
+from Capabilities before start (spec A1): the model is Lampway's gateway only (``provider: custom``), the serve platform's toolsets
+are exactly the Hermes toolsets of the capabilities in force (plus clarify for a main agent), every outbound check Hermes lets config
+switch off is off, and context stays Hermes's (Q3) unless given. On start Lampway compares the tool list the model is sent with the
+choices and refuses a mismatch.
 
-The unit tests need nothing outside the server. The live tests run the BUILT, pinned engine (``hermes-acp``) with the rendered config
-against a fake OpenAI-compatible model on loopback and a refusing loopback proxy; without the engine or the ACP SDK they SKIP with the
+The unit tests need nothing outside the server. The live tests run the BUILT, pinned engine's ``hermes serve`` with the rendered
+config against a fake OpenAI-compatible model on loopback and a refusing loopback proxy; without the engine they SKIP with the
 reason, which is not a pass.
 """
 
@@ -16,6 +17,7 @@ import asyncio
 import json
 import os
 import re
+import signal
 import stat
 import threading
 import time
@@ -46,7 +48,10 @@ def _render(board, **kw):
 
 
 def _acp(cfg):
-    return cfg["platform_toolsets"]["acp"]
+    """The toolsets of the platform the engine runs on: ``cli``, the one ``hermes serve`` and its TUI read (spec A1;
+    tui_gateway/server.py:1939 at the pin). The ACP platform is gone with the ACP child (A5)."""
+    assert set(cfg["platform_toolsets"]) == {HC.PLATFORM} == {"cli"}
+    return cfg["platform_toolsets"]["cli"]
 
 
 def _walk(node, path=()):
@@ -63,7 +68,7 @@ def _walk(node, path=()):
 # ---------------------------------------------------------------------------------------------------- render: the toolsets
 def test_defaults_turn_on_exactly_the_toolsets_of_the_capabilities_in_force(board):
     cfg = _render(board)
-    assert _acp(cfg) == DEFAULT_TOOLSETS + ["no_mcp"]
+    assert _acp(cfg) == DEFAULT_TOOLSETS + ["clarify"]          # clarify: the island's question (spec A2)
     disabled = set(cfg["agent"]["disabled_toolsets"])
     assert {"terminal", "browser", "code_execution", "memory", "delegation", "file", "web", "cronjob", "computer_use"} <= disabled
     assert not disabled & set(DEFAULT_TOOLSETS)
@@ -80,6 +85,10 @@ def test_terminal_on_adds_the_terminal_toolset_with_the_chosen_backend(board):
     board.set("terminal", enabled=False)
     cfg = _render(board)
     assert "terminal" not in _acp(cfg) and "terminal" in cfg["agent"]["disabled_toolsets"] and "terminal" not in cfg
+    # spec A1: the project root is the terminal's cwd whatever the choice; the backend is chosen only with the capability
+    assert HC.render(board, "/proj", GATEWAY, TOKEN, MODEL)["terminal"] == {"cwd": "/proj"}
+    board.set("terminal", enabled=True)
+    assert HC.render(board, "/proj", GATEWAY, TOKEN, MODEL)["terminal"] == {"cwd": "/proj", "backend": "docker"}
 
 
 def test_terminal_backend_outside_the_capabilitys_options_is_refused(board):
@@ -132,7 +141,7 @@ def test_every_capability_maps_to_its_hermes_toolsets(board):
             if c.default:
                 b.set(c.id, enabled=False)
         b.set(cid, enabled=True)
-        assert _acp(HC.render(b, None, GATEWAY, TOKEN, MODEL, routes_on=lambda r: True)) == [toolset, "no_mcp"], cid
+        assert _acp(HC.render(b, None, GATEWAY, TOKEN, MODEL, routes_on=lambda r: True)) == [toolset, "clarify"], cid
 
 
 def test_the_mapping_and_the_catalogue_agree_both_ways():
@@ -144,15 +153,38 @@ def test_the_mapping_and_the_catalogue_agree_both_ways():
 
 
 def test_lampway_tools_stay_reachable_over_mcp_whatever_the_choices(board):
-    """Lampway's tools arrive as the session's MCP server (ACP new_session); Hermes appends ``mcp-<server>`` to the session's
-    toolsets after the platform list is resolved, so neither the explicit list nor ``no_mcp`` hides them. Only config-declared
-    MCP servers are off, and the config declares none."""
+    """Lampway's tools are the ONE config-declared MCP server, ``lampway`` (spec A1, A3): the unit's endpoint with its bearer. The
+    platform list carries no ``no_mcp`` (which drops config-declared servers, tools_config.py:685-686 at the pin) and no ``mcp-*``
+    toolset is disabled, so the choices never hide Lampway's tools."""
     for c in CAP.CATALOGUE:
         board.set(c.id, enabled=False)
-    cfg = _render(board)
-    assert _acp(cfg) == ["no_mcp"]
-    assert "mcp_servers" not in cfg
+    url = "http://127.0.0.1:8799/engine/mcp/unit-1"
+    cfg = _render(board, mcp_url=url, mcp_headers={"Authorization": "Bearer unit-bearer"})
+    assert _acp(cfg) == ["clarify"] and "no_mcp" not in _acp(cfg)
+    assert cfg["mcp_servers"] == {"lampway": {"url": url, "headers": {"Authorization": "Bearer unit-bearer"}}}
     assert not any(str(t).startswith("mcp") for t in cfg["agent"]["disabled_toolsets"])
+    assert "mcp_servers" not in _render(board), "no endpoint given: no server declared"
+    with pytest.raises(HC.Refused, match="loopback"):
+        _render(board, mcp_url="https://example.invalid/mcp")
+
+
+def test_a_worker_never_asks_the_user_and_reaches_its_own_endpoint(board):
+    """Spec S2/S3: a Mode 1 worker's pane gets no clarify (it reports what it could not do in its summary) and its one MCP server is
+    the pane endpoint, pinned to its binding."""
+    url = "http://127.0.0.1:8799/api/v1/mcp/pane"
+    headers = {"X-Mixar-Session-Id": "swarm:s1:w-1", "Authorization": "Bearer worker-token"}
+    cfg = _render(board, mcp_url=url, mcp_headers=headers, asks_user=False)
+    assert "clarify" not in _acp(cfg) and "clarify" in cfg["agent"]["disabled_toolsets"]
+    assert cfg["mcp_servers"] == {"lampway": {"url": url, "headers": headers}}
+
+
+def test_the_client_surface_toolsets_are_never_on(board):
+    """``hermes serve``'s sessions fold the client surface's toolsets in (``project`` for the TUI, tui_gateway/server.py:1842-1858
+    at the pin): Lampway's pane is no Hermes Desktop, so they are named off."""
+    for c in CAP.CATALOGUE:
+        board.set(c.id, enabled=True)
+    disabled = set(_render(board, routes_on=lambda r: True)["agent"]["disabled_toolsets"])
+    assert {"project", "desktop_ui"} <= disabled
 
 
 # ---------------------------------------------------------------------------------------------------- render: the model and logins
@@ -220,6 +252,9 @@ def test_every_outbound_check_hermes_lets_config_switch_off_is_off(board):
     assert cfg["lsp"]["install_strategy"] == "manual"
     assert cfg["tools"]["connectors"]["enabled"] is False
     assert cfg["models_dev"]["url"].startswith("http://127.0.0.1:8799/")
+    # spec A1, measured on the pinned serve: no Nous guest bootstrap, no guardian model for approvals (the user answers them)
+    assert cfg["nous"] == {"guest": False}
+    assert cfg["approvals"] == {"mode": "manual"}
 
 
 def test_models_dev_url_can_be_given_and_must_be_loopback(board):
@@ -253,7 +288,7 @@ def test_context_is_written_through(board):
 
 
 @pytest.mark.parametrize("ctx", [{"model": {"provider": "openrouter"}}, {"model": {"base_url": "https://x.invalid"}},
-                                 {"platform_toolsets": {"acp": ["terminal"]}}, {"auth": {"adopt_external_logins": True}},
+                                 {"platform_toolsets": {"cli": ["terminal"]}}, {"auth": {"adopt_external_logins": True}},
                                  {"agent": {"disabled_toolsets": []}}, {"tools": {"connectors": {"enabled": True}}},
                                  {"updates": {"check": True}}, {"timeouts": {"mcp": {"tool_call": 5}}}, {"mcp_servers": {"x": {}}}])
 def test_context_cannot_reach_a_choice_or_the_model_route(board, ctx):
@@ -310,6 +345,15 @@ def test_the_check_passes_the_choices_and_lampways_mcp_tools(board):
     tools = [_tool(n) for n in DEFAULT_VISIBLE] + [_tool("mcp__lampway__scene_summary")]
     assert HC.check_advertised(tools, board, None) == []
     assert HC.check_advertised(DEFAULT_VISIBLE, board, None) == []
+
+
+def test_the_check_allows_the_main_agents_clarify_and_refuses_a_workers(board):
+    """Spec A2: the main agent asks the island through Hermes's own ``clarify``; it is allowed, never chosen, so its absence is no
+    mismatch. A worker never asks (S2): its clarify is refused."""
+    assert HC.check_advertised(DEFAULT_VISIBLE + ["clarify"], board, None) == []
+    assert HC.check_advertised(DEFAULT_VISIBLE, board, None) == []
+    found = HC.check_advertised(DEFAULT_VISIBLE + ["clarify"], board, None, asks_user=False)
+    assert [(m.kind, m.tool) for m in found] == [("unexpected", "clarify")] and HC.refuses(found)
 
 
 def test_the_check_refuses_a_tool_the_user_did_not_choose(board):
@@ -374,28 +418,20 @@ def test_a_bridge_whose_deferred_tools_cannot_be_read_refuses(board):
 # ---------------------------------------------------------------------------------------------------- live: the built engine
 def _find_engine():
     """The pinned engine built by scripts/lampway/engine_env.py: $LAMPWAY_HERMES_ENGINE, or build/engines/hermes/<tag>/ in this
-    checkout or a checkout above it (a lane worktree sits inside the main checkout)."""
+    checkout or a checkout above it (a lane worktree sits inside the main checkout). Its ``hermes serve`` is what a Mode 1 pane runs
+    (spec A1)."""
     given = os.environ.get("LAMPWAY_HERMES_ENGINE")
     candidates = [Path(given)] if given else [p / "build" / "engines" / "hermes" / HC.PINNED_TAG for p in Path(__file__).resolve().parents]
     for root in candidates:
-        exe = root / "env" / "bin" / "hermes-acp"
+        exe = root / "env" / "bin" / "hermes"
         if exe.is_file() and os.access(exe, os.X_OK):
             return exe
     return None
 
 
 ENGINE = _find_engine()
-try:
-    import acp  # noqa: F401
-    from acp import connect_to_agent, text_block
-    from acp.schema import HttpHeader, HttpMcpServer
-    ACP_MISSING = None
-except ImportError as exc:  # pragma: no cover - depends on the environment
-    ACP_MISSING = f"the ACP SDK (agent-client-protocol) is not importable: {exc}"
-
-live = pytest.mark.skipif(ENGINE is None or ACP_MISSING is not None,
-                          reason=ACP_MISSING or f"the built engine (build/engines/hermes/{HC.PINNED_TAG}/env/bin/hermes-acp) is missing; "
-                                                "build it with scripts/lampway/engine_env.py or set LAMPWAY_HERMES_ENGINE")
+live = pytest.mark.skipif(ENGINE is None, reason=f"the built engine (build/engines/hermes/{HC.PINNED_TAG}/env/bin/hermes) is missing; "
+                                                 "build it with scripts/lampway/engine_env.py or set LAMPWAY_HERMES_ENGINE")
 
 
 def _handler(record):
@@ -493,44 +529,6 @@ def _host(target):
     return m.group(1) if m else target
 
 
-class _Client:
-    """Lampway's side of ACP for the test: records updates, refuses permissions, offers no file system or terminal."""
-
-    def __init__(self):
-        self.updates = []
-
-    async def request_permission(self, options, session_id, tool_call, **kw):
-        from acp.schema import DeniedOutcome, RequestPermissionResponse
-        return RequestPermissionResponse(outcome=DeniedOutcome(outcome="cancelled"))
-
-    async def session_update(self, session_id, update, **kw):
-        self.updates.append(type(update).__name__)
-
-    async def write_text_file(self, *a, **k):
-        raise RuntimeError("no file system")
-
-    read_text_file = write_text_file
-
-    async def create_terminal(self, *a, **k):
-        raise RuntimeError("no terminal")
-
-    terminal_output = wait_for_terminal_exit = create_terminal
-
-    async def release_terminal(self, *a, **k):
-        return None
-
-    kill_terminal = release_terminal
-
-    async def ext_method(self, method, params):
-        return {}
-
-    async def ext_notification(self, method, params):
-        return None
-
-    def on_connect(self, conn):
-        pass
-
-
 def _serve(handler):
     srv = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
@@ -538,41 +536,75 @@ def _serve(handler):
 
 
 async def _live_turn(root: Path, board, project):
-    """One engine child with the rendered config: initialize, a session with the ``lampway`` MCP server, one prompt. Returns what
-    the fake model, the MCP server and the refusing proxy saw."""
+    """One ``hermes serve`` with the rendered config, as a Mode 1 pane runs it (spec A1): a session, one prompt. Returns what the
+    fake model, the ``lampway`` MCP server and the refusing proxy saw."""
+    from lampway_server.engine.serve_client import ServeClient
+    from .serve_support import free_port
     model_seen, mcp_seen, denied = [], [], []
     model, mcp, proxy = _serve(_fake_model(model_seen)), _serve(_fake_mcp(mcp_seen)), _serve(_refusing_proxy(denied))
-    home, cwd = root / "agent" / "hermes" / "session", root / "project"
+    home, cwd = root / "agent" / "hermes" / "unit", root / "project"
     cwd.mkdir(parents=True)
     gateway = f"http://127.0.0.1:{model.server_address[1]}/engine/v1"
-    HC.write(home, board, project, gateway, TOKEN, MODEL)
+    rendered = {}
+    HC.write(home, board, project, gateway, TOKEN, MODEL, mcp_url=f"http://127.0.0.1:{mcp.server_address[1]}/mcp",
+             mcp_headers={"Authorization": "Bearer engine-mcp-token"}, rendered=rendered)
     via = f"http://127.0.0.1:{proxy.server_address[1]}"
+    port = free_port()
     env = {k: v for k, v in os.environ.items()
            if k in ("PATH", "LANG", "LC_ALL", "TZ") or k.startswith("PYTHON") and k != "PYTHONPATH"}
+    (home / "managed").mkdir(exist_ok=True)
+    (home / "locks").mkdir(exist_ok=True)
     env.update(HERMES_HOME=str(home), HOME=str(root / "home"), TMPDIR=str(root), NO_COLOR="1", HTTPS_PROXY=via, HTTP_PROXY=via,
-               https_proxy=via, http_proxy=via, ALL_PROXY=via, all_proxy=via, NO_PROXY="127.0.0.1,localhost", no_proxy="127.0.0.1,localhost")
+               https_proxy=via, http_proxy=via, ALL_PROXY=via, all_proxy=via, NO_PROXY="127.0.0.1", no_proxy="127.0.0.1",
+               HERMES_MANAGED_DIR=str(home / "managed"), HERMES_GATEWAY_LOCK_DIR=str(home / "locks"),
+               HERMES_DASHBOARD_SESSION_TOKEN="serve-token", HERMES_TUI_WS_ORPHAN_REAP_GRACE_S="0",
+               HERMES_TUI_TOOLSETS=",".join(HC.serve_toolsets(rendered)))
     (root / "home").mkdir()
-    proc = await asyncio.create_subprocess_exec(str(ENGINE), stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
-                                                stderr=asyncio.subprocess.PIPE, env=env, cwd=str(cwd), limit=16 * 1024 * 1024)
+    log = open(root / "serve.log", "w")
+    proc = await asyncio.create_subprocess_exec(str(ENGINE), "serve", "--host", "127.0.0.1", "--port", str(port), stdin=asyncio.subprocess.DEVNULL,
+                                                stdout=log, stderr=log, env=env, cwd=str(cwd), start_new_session=True)
     out = {"error": None}
+    client = None
     try:
-        conn = connect_to_agent(_Client(), proc.stdin, proc.stdout)
-        await asyncio.wait_for(conn.initialize(protocol_version=1), 120)
-        server = HttpMcpServer(type="http", name="lampway", url=f"http://127.0.0.1:{mcp.server_address[1]}/mcp",
-                               headers=[HttpHeader(name="Authorization", value="Bearer engine-mcp-token")])
-        sess = await asyncio.wait_for(conn.new_session(cwd=str(cwd), mcp_servers=[server]), 240)
-        resp = await asyncio.wait_for(conn.prompt(session_id=sess.session_id, prompt=[text_block("Say hello.")]), 180)
-        out["stop_reason"] = resp.stop_reason
+        events = []
+
+        async def on_event(params):
+            events.append(params)
+        deadline = time.monotonic() + 120
+        while True:
+            client = ServeClient(port, "serve-token", on_event=on_event)
+            try:
+                await client.connect()
+                break
+            except Exception:  # noqa: BLE001 - serve still starting
+                await client.close()
+                if time.monotonic() > deadline or proc.returncode is not None:
+                    raise
+                await asyncio.sleep(0.3)
+        created = await client.call("session.create", {"cwd": str(cwd), "cols": 100})
+        await client.call("prompt.submit", {"session_id": created["session_id"], "text": "Say hello."}, timeout=120)
+        end = time.monotonic() + 180
+        while not any(e.get("type") == "message.complete" for e in events):
+            assert time.monotonic() < end, "no message.complete"
+            await asyncio.sleep(0.1)
+        out["status"] = next(e for e in events if e.get("type") == "message.complete")["payload"].get("status")
     except Exception as exc:  # noqa: BLE001 - the test reports it
         out["error"] = repr(exc)
     finally:
-        proc.terminate()
+        if client is not None:
+            await client.close()
         try:
+            os.killpg(proc.pid, signal.SIGTERM)                       # serve's own group, by its recorded pid
             await asyncio.wait_for(proc.wait(), 15)
-        except asyncio.TimeoutError:
-            proc.kill()
+        except (ProcessLookupError, asyncio.TimeoutError):
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
             await proc.wait()
-        out["stderr"] = (await proc.stderr.read()).decode(errors="replace")
+        log.close()
+        out["stderr"] = (root / "serve.log").read_text(errors="replace") + "".join(
+            p.read_text(errors="replace") for p in (home / "logs").glob("*.log"))
         for srv in (model, mcp, proxy):
             srv.shutdown()
     turns = [body for method, _, body in model_seen if method == "POST" and body["stream"]]
@@ -583,7 +615,7 @@ async def _live_turn(root: Path, board, project):
 
 @pytest.fixture(scope="module")
 def live_runs(tmp_path_factory):
-    """The defaults and ``terminal`` on, run side by side (each child takes ~20 s to build its first session)."""
+    """The defaults and ``terminal`` on, run side by side (each serve listens in ~3 s; its first session takes 2-4 s more)."""
     base = tmp_path_factory.mktemp("engine-live")
     boards = {"defaults": CAP.Store(base / "defaults-state"), "terminal": CAP.Store(base / "terminal-state")}
     boards["terminal"].set("terminal", enabled=True)
@@ -593,7 +625,7 @@ def live_runs(tmp_path_factory):
 
     results = dict(zip(boards, asyncio.run(both())))
     for name, res in results.items():
-        print(f"\n[live {name}] stop={res.get('stop_reason')} error={res['error']} denied_hosts={res['denied_hosts']} "
+        print(f"\n[live {name}] status={res.get('status')} error={res['error']} denied_hosts={res['denied_hosts']} "
               f"tools={[t['function']['name'] for t in res['turn_tools'] or []]} mcp={res['mcp_methods']}")
     return boards, results
 
@@ -614,7 +646,7 @@ HERMES_ACTING = re.compile(r"^(terminal|process_manage|browser_.*|execute_code|m
 def test_live_defaults_offer_no_terminal_browser_code_memory_or_delegation(live_runs):
     boards, results = live_runs
     res = results["defaults"]
-    assert res["error"] is None and res["stop_reason"] == "end_turn", res["stderr"][-3000:]
+    assert res["error"] is None and res["status"] == "complete", res["stderr"][-3000:]
     assert res["turn_tools"] is not None, "the fake model never received the turn"
     assert res["turn_auth"] == f"Bearer {TOKEN}"
     reachable = _reachable(res["turn_tools"])
@@ -639,7 +671,7 @@ def test_live_terminal_on_offers_terminal(live_runs):
 @live
 @pytest.mark.timeout(600)
 def test_live_lampways_mcp_tool_is_reachable_under_the_defaults(live_runs):
-    """Lampway's tools reach the engine as the session's MCP server ``lampway`` (ACP new_session). Hermes's tool_search may defer
+    """Lampway's tools reach the engine as the session's MCP server ``lampway`` (config.yaml mcp_servers, spec A1, A3). Hermes's tool_search may defer
     it behind the bridge; it must be visible or listed as deferred, or at least registered."""
     _, results = live_runs
     res = results["defaults"]

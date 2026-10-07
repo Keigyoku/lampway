@@ -4,10 +4,10 @@
 
 The client sends more than the message (``chat_payloads.build_chat_payload``, ``turn_transport._send``): attached images, the
 complete rules snapshot, the context folders it granted, and notes about this turn. The built-in loop read only the message. The
-engine's prompt gets all of it, as ACP content blocks:
+engine's turn gets all of it (spec A2: ``image.attach_bytes`` per image, then ``prompt.submit`` with the text):
 
-* images (``content`` items ``{"type": "image_url", "image_url": {"url": "data:<mime>;base64,..."}}``) -> image blocks (Hermes
-  advertises ``prompt_capabilities.image``, measured 2026-10-07);
+* images (``content`` items ``{"type": "image_url", "image_url": {"url": "data:<mime>;base64,..."}}``) -> ``attachments``, one
+  ``image.attach_bytes {content_base64, filename}`` each before the prompt (measured on the pinned serve, 2026-10-07);
 * the rules snapshot (``{"global": [...], "project": [...]}``, each ``{text, enabled}``) -> a "Your rules" / "Project rules"
   section, sent again only when the enabled set changes for the session (``rules_key`` tracks it);
 * ``folder_context`` (``{"folders": [{name, available, file_count, kinds, notes...}]}``) -> a "Context folders" section;
@@ -88,19 +88,31 @@ def images(payload: dict) -> list:
     return out
 
 
-def prompt_blocks(text: str, payload: Optional[dict], last_rules_key: str = "") -> tuple:
-    """(ACP content blocks, the rules key now in force). Rules ride along only when they changed for this session."""
-    from acp import image_block, text_block
+EXTENSIONS = {"image/png": "png", "image/jpeg": "jpg", "image/jpg": "jpg", "image/webp": "webp", "image/gif": "gif"}
+
+
+def attachments(payload: Optional[dict]) -> list:
+    """(filename, base64) of each attached image, in order: one ``image.attach_bytes`` each before the prompt (spec A2). The name is
+    the client's attachment name when it sent one for that position, else ``image-<n>.<ext>``."""
+    names = [str(n) for n in ((payload or {}).get("attachment_names") or []) if str(n).strip()]
+    out = []
+    for i, (mime, data) in enumerate(images(payload or {})):
+        name = names[i] if i < len(names) else f"image-{i + 1}.{EXTENSIONS.get(mime.lower(), 'png')}"
+        out.append((name, data))
+    return out
+
+
+def prompt_text(text: str, payload: Optional[dict], last_rules_key: str = "") -> tuple:
+    """(the prompt's text, the rules key now in force): the message after R3's sections. Rules ride along only when they changed
+    for this conversation."""
     payload = payload or {}
     parts = []
     key = rules_key(payload.get("rules")) if "rules" in payload else last_rules_key
-    if key and key != last_rules_key:
+    if key and key != last_rules_key and not (key == "none" and not last_rules_key):     # no rules before, none now: nothing to say
         section = rules_section(payload.get("rules"))
         parts.append(section if section else "The user removed every rule: none applies now.")
     for section in (folders_section(payload.get("folder_context")), turn_section(payload)):
         if section:
             parts.append(section)
     body = (text or "").strip()
-    full = ("\n\n".join(parts) + "\n\n---\n\n" + body) if parts else body
-    blocks = [text_block(full)] + [image_block(data, mime) for mime, data in images(payload)]
-    return blocks, key
+    return (("\n\n".join(parts) + "\n\n---\n\n" + body) if parts else body), key

@@ -39,6 +39,9 @@ SWARM_ENTRY = "lampway_swarm"
 PANE_KEY_ENV = "LAMPWAY_PANE_KEY"
 WORKER_TOKEN_ENV = "LAMPWAY_WORKER_TOKEN"
 PANE_KEY_FILE = "pane.key"
+#: Spec A1: what Lampway's own pane's record keeps beyond any pane's (its home, its serve's port, the 0600 file the serve token is in,
+#: the stored session id, and the digests the restarted server adopts its tokens again by). Never a token.
+MODE1_FIELDS = ("home", "port", "token_file", "stored_session_id", "gateway_token_sha256", "mcp_token_sha256")
 
 
 def _sha(text: str) -> str:
@@ -78,6 +81,10 @@ class Cockpit:
         #: so the next worker finds the one before it in its unit's column.
         self._layout = threading.Lock()
         self._opening: dict = {}
+        #: Spec A1: Lampway's own Mode 1 panes (``lampway_hermes``) are prepared by the server's engine (``engine/units.py``):
+        #: ``prepare(**)`` writes the pane's home before herdr is asked and returns the record's fields; ``opened(rec)`` hears
+        #: of the recorded pane; ``abandon(prepared)`` undoes a prepare whose pane never opened. None: no Mode 1 pane can start.
+        self.mode1 = None
 
     # ------------------------------------------------------------------------------------------------- registry
     def _load(self) -> dict:
@@ -134,12 +141,15 @@ class Cockpit:
         ``swarm:<swarm_id>:<worker_id>``; it gets no desktop launcher (whose UI and scene-tab tools reach the user's scene).
         The herdr view (spec A4): a pane bound to a scene tab is its unit's main agent (the unit is that scene session; ``unit_label``
         the scene tab's name, if known); a worker pane names its ``unit`` (its swarm's scene session) and splits into that unit's
-        tab; ``display_agent`` is what herdr's sidebar shows for it."""
-        if agent in HN.LAMPWAY_ADAPTERS:                       # Lampway's own (Mode 1, spec A1): refused with help until it is built
-            try:
-                HN.require_launchable(agent)
-            except ValueError as exc:
-                raise CockpitError(str(exc)) from None
+        tab; ``display_agent`` is what herdr's sidebar shows for it.
+        Lampway's own pane (``lampway_hermes``, spec A1) is a unit's main agent when it names its ``unit`` (never bound to a scene
+        tab: a binding is Mode 2's), or a Mode 1 swarm worker; the engine prepares its home first (``self.mode1``)."""
+        lampway = HN.is_lampway(agent)
+        if lampway:                                            # Lampway's own (Mode 1, spec A1): only on a server running the engine
+            if self.mode1 is None:
+                raise CockpitError(HN.MODE1_UNAVAILABLE)
+            if scene_session_id:
+                raise CockpitError("Lampway's own pane is its unit's main agent by its unit, never bound to a scene tab (binding is Your agent mode)")
         elif agent not in AGENTS:
             raise CockpitError(f"unknown agent {agent!r}: the agents are {', '.join(AGENTS)}")
         name = str(name or "").strip()
@@ -164,7 +174,7 @@ class Cockpit:
             raise CockpitError("only a harness pane can be bound to a scene tab")
         if prompt and (ad is None or resume_id):
             raise CockpitError("only a new harness session takes a first prompt")
-        if prompt:
+        if prompt and not lampway:                             # Lampway's pane takes its task from the server, not its argv (S2)
             try:
                 ad.launch(HN.PaneSpec(cwd=real), task=prompt)
             except ValueError as exc:
@@ -179,10 +189,13 @@ class Cockpit:
             if scene_session_id:
                 raise CockpitError("a worker pane is bound to its worker, never to a scene tab")
         scene = scene_session_id or None
-        role = LY.WORKER if swarm_worker is not None else (LY.MAIN if scene else None)
-        view = (role, (unit or None) if swarm_worker is not None else scene, unit_label, display_agent,
+        main_unit = (unit or None) if lampway and swarm_worker is None else None
+        role = LY.WORKER if swarm_worker is not None else (LY.MAIN if scene or main_unit else None)
+        view = (role, (unit or None) if swarm_worker is not None else (main_unit or scene), unit_label, display_agent,
                 (swarm_worker[0] if swarm_worker is not None else None, planned))
-        with (EG.guard(ad.route, kind="request") if ad else contextlib.nullcontext()):    # B5: logged before herdr is asked; refused with the route off
+        # B5: a user's harness is logged before herdr is asked and refused with its route off. Lampway's own pane has no route
+        # (route None): its model traffic is the gateway's on loopback and every other host goes through the egress proxy (A1).
+        with (EG.guard(ad.route, kind="request") if ad is not None and ad.route else contextlib.nullcontext()):
             return self._create(agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene, prompt, swarm_worker, view)
 
     def _open(self, where, snap, real, env, label) -> dict:
@@ -214,30 +227,41 @@ class Cockpit:
         if api_key and ad is None:
             raise CockpitError("only a harness pane can be billed to an API key")
         rid = uuid.uuid4().hex[:12]
+        lampway = ad is not None and HN.is_lampway(ad.id)
         sid = str(uuid.uuid4()) if ad is not None and ad.picks_session_id and not resume_id else None
-        cfg = str(self.root / "panes" / rid / ad.config_name) if ad is not None and (scene or swarm_worker) else None
+        cfg = str(self.root / "panes" / rid / ad.config_name) if ad is not None and not lampway and (scene or swarm_worker) else None
         direct, key = (), None
         if swarm_worker is not None:                           # S3: the worker's only server; its token never in the registry
             direct = (HN.DirectServer(HN.SERVER_NAME, self.pane_mcp_url, {HN.SESSION_HEADER: swarm_worker[0]}, WORKER_TOKEN_ENV, swarm_worker[1]),)
         elif cfg:
             direct, key = self._swarm_entry(ad, rid)
+        role, unit, unit_label, display_agent, (binding, planned) = view
+        prepared = None
+        if lampway:                                            # A1: the pane's home, config and serve token, before herdr is asked
+            prepared = self.mode1.prepare(rid=rid, unit=unit, role=role, cwd=real, project_root=pr, direct=direct,
+                                          task=prompt, name=name, unit_label=unit_label)
         spec = HN.PaneSpec(cwd=real, project_root=pr, effort=effort, bypass=bool(bypass), session_id=sid, scene_session_id=scene, mcp_config_path=cfg,
-                           launcher=HN.mcp_launcher() if cfg and swarm_worker is None else (), desktop=swarm_worker is None, direct=direct)
+                           launcher=HN.mcp_launcher() if cfg and swarm_worker is None else (), desktop=swarm_worker is None, direct=direct,
+                           home=(prepared or {}).get("home"))
         wiring = ad.lampway_tools(spec) if cfg else None
         if wiring is not None:                                 # B2: the pane's own MCP config, pinned to its scene tab, before anything starts
             self._write_pane_files(wiring.files)
         env = L.pane_env() + (_key_env(ad) if api_key else []) + [x for k, v in (wiring.env if wiring else {}).items() for x in ("--env", f"{k}={v}")]
-        role, unit, unit_label, display_agent, (binding, planned) = view
-        with self._layout:
-            snap = self.snapshot()
-            sessions = self.list_sessions() + list(self._opening.values())
-            ulabel = LY.unit_label(unit, unit_label or (LY.unit_main(unit, sessions, snap) or {}).get("unit_label")) if unit else None
-            label = ulabel if unit else name[:LY.LABEL_MAX]
-            pane = self._open(LY.place(role, unit, label, sessions, snap, swarm=LY.swarm_of(binding), planned=planned), snap, real, env, label)
-            pane_id, opened = pane["pane_id"], time.time()
-            self._opening[pane_id] = {"pane_id": pane_id, "tab_id": pane.get("tab_id"), "unit": unit, "role": role, "unit_label": ulabel,
-                                      "swarm_binding": binding,
-                                      "state": "live", "created_at": opened}
+        try:
+            with self._layout:
+                snap = self.snapshot()
+                sessions = self.list_sessions() + list(self._opening.values())
+                ulabel = LY.unit_label(unit, unit_label or (LY.unit_main(unit, sessions, snap) or {}).get("unit_label")) if unit else None
+                label = ulabel if unit else name[:LY.LABEL_MAX]
+                pane = self._open(LY.place(role, unit, label, sessions, snap, swarm=LY.swarm_of(binding), planned=planned), snap, real, env,
+                                  label)
+                pane_id, opened = pane["pane_id"], time.time()
+                self._opening[pane_id] = {"pane_id": pane_id, "tab_id": pane.get("tab_id"), "unit": unit, "role": role, "unit_label": ulabel,
+                                          "swarm_binding": binding, "state": "live", "created_at": opened}
+        except BaseException:
+            if prepared is not None:
+                self.mode1.abandon(prepared)
+            raise
         try:
             native_id = resume_id
             tokens = []
@@ -248,12 +272,13 @@ class Cockpit:
                 tokens = [os.path.basename(shlex.split(command)[-1])]
             elif ad is not None:
                 native_id = native_id or sid
-                argv = ad.resume(resume_id, spec) if resume_id else ad.launch(spec, task=prompt)
+                argv = ad.resume(resume_id, spec) if resume_id else ad.launch(spec, task=None if lampway else prompt)
                 if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
                     L.run(self.root, ["agent", "start", name[:40], "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
                 else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
-                    L.run(self.root, ["pane", "run", pane_id, *argv])
-                tokens = [ad.binary]
+                    # one shell-quoted command: herdr 0.9.3's `pane run` joins its arguments with spaces, unquoted (measured 2026-10-07)
+                    L.run(self.root, ["pane", "run", pane_id, shlex.join(argv)])
+                tokens = [ad.process_match or ad.binary]
             self._report(pane_id, LY.metadata(ad.id if ad is not None else agent, role, unit_name=ulabel or "", name=name, task=task,
                                               display_agent=display_agent))
             rec = {"id": rid, "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
@@ -261,11 +286,34 @@ class Cockpit:
                    "state": "live", "adopted": True, "agent_sends": False, "created_at": opened, "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by,
                    "api_key": bool(api_key), "harness": ad.id if ad is not None else None, "scene_session_id": scene, "project_root": pr, "mcp_config_path": cfg,
                    "swarm_binding": swarm_worker[0] if swarm_worker is not None else None, "pane_key_sha256": _sha(key) if key else None,
-                   "unit": unit, "role": role, "unit_label": ulabel}
+                   "unit": unit, "role": role, "unit_label": ulabel, **{k: v for k, v in (prepared or {}).items() if k in MODE1_FIELDS}}
             self._update(lambda d: d["sessions"].append(rec))
+        except BaseException:
+            if prepared is not None:
+                self.mode1.abandon(prepared)
+            raise
         finally:
             self._opening.pop(pane_id, None)
+        if prepared is not None:
+            self.mode1.opened(dict(rec))                           # A1: the server creates the pane's session (and a worker's first prompt)
         return rec
+
+    def update_mode1(self, sid: str, **fields) -> dict:
+        """Lampway's own pane's record: only its Mode 1 fields change (the stored session id once the server created or followed it,
+        spec A1, Q15). Never another pane's record, never the pane."""
+        bad = set(fields) - set(MODE1_FIELDS)
+        if bad:
+            raise CockpitError(f"only a Mode 1 pane's own fields change here, not {sorted(bad)}")
+
+        def f(d):
+            for s in d["sessions"]:
+                if s["id"] == sid:
+                    if not HN.is_lampway(s.get("agent")):
+                        raise CockpitError(f"{sid} is not Lampway's own pane")
+                    s.update(fields, updated_at=time.time())
+                    return dict(s)
+            raise CockpitError(f"{sid} is not a Lampway session")
+        return self._update(f)
 
     # ------------------------------------------------------------------------------------------------- binding (spec B2)
     def bind(self, sid: str, scene_session_id, unit_label=None) -> dict:

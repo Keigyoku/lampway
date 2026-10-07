@@ -89,9 +89,17 @@ LAUNCHES: dict = {
     "cards/activity.py:_commits": ("local", "git log on the local repository (the report card's recorded changes)"),
     "job_backends.py:BlenderRun.__call__": ("local", "a niced headless Lampway process for one job, in its own 0700 directory"),
     "job_backends.py:BlenderRun.make_test_glb": ("local", "a niced headless Lampway process that writes a test GLB"),
-    "engine/runtime.py:EngineRuntime._ensure_child": ("local", "starts Lampway's pinned Hermes engine (agent-modes spec E1.2) with a scrubbed environment; its only model endpoint is Lampway's loopback gateway and every proxy variable points at Lampway's egress proxy (E1.5)"),
+    # Mode 1's pane (agent-modes spec A1): the wrapper runs in Lampway's own herdr pane and starts the pinned Hermes. Lampway's own engine
+    # has no route of its own: its only model endpoint is Lampway's loopback gateway, every proxy variable points at Lampway's egress
+    # proxy (E1.5), which decides and logs each host under the user's routes, and the config switches every outbound check off.
+    "engine/hermes_pane.py:Pane.start_serve": ("local", "Lampway's pinned `hermes serve` on 127.0.0.1 in Mode 1's pane, with a scrubbed environment: "
+                                                        "its model is Lampway's loopback gateway and every other host goes through Lampway's egress proxy (A1, E1.5)"),
+    "engine/hermes_pane.py:Pane.run_tui": ("local", "Hermes's own prebuilt TUI in Mode 1's pane, a client of the pane's serve on loopback; "
+                                                    "HERMES_SKIP_NODE_BOOTSTRAP and HERMES_NODE keep it from fetching or building anything (A1)"),
+    "engine/hermes_pane.py:node_problem": ("local", "`node --version` of the Node the server found for Mode 1's TUI: a local version probe"),
     "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets; a herdr call that starts the user's own "
-                                          "agent in a pane (BYOA) runs inside guard(byoa:<harness>) in herdr/host.py Cockpit.create_session"),
+                                          "agent in a pane (BYOA) runs inside guard(byoa:<harness>) in herdr/host.py Cockpit.create_session, "
+                                          "and one that starts Lampway's own Mode 1 pane starts the local wrapper above (route None, A1)"),
     "herdr/launcher.py:_systemd_ok": ("local", "systemctl --user is-system-running: a local query"),
     "herdr/launcher.py:_probe_spawn": ("local", "a harness's own version flag (harnesses/ Adapter.detect) with the scrubbed environment: it prints a "
                                                 "version and sends nothing [UNVERIFIED per harness until each adapter's fixture]"),

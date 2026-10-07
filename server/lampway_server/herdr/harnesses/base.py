@@ -54,6 +54,7 @@ class PaneSpec:
     launcher: tuple = ()               # Lampway's MCP launcher command (argv), resolved by the host
     desktop: bool = True               # the desktop launcher entry (B2); a swarm worker has none (S3)
     direct: tuple = ()                 # DirectServer entries: Lampway's own loopback endpoint, reached with a pane's own bearer (S3)
+    home: Optional[str] = None         # a Lampway adapter's own home under the Lampway state dir (A1), prepared by the server
 
 
 @dataclass(frozen=True)
@@ -142,6 +143,8 @@ class Adapter:
     #: Whether this adapter can write a direct entry (Lampway's own loopback endpoint with a bearer): a swarm worker's only server
     #: and a bound pane's swarm entry (spec S3). [UNVERIFIED per harness until a recorded fixture.]
     direct_ok = False
+    #: What reconcile looks for among the pane's foreground processes (None: the binary's name).
+    process_match: Optional[str] = None
 
     def __init__(self, which=None):
         self._which = which
