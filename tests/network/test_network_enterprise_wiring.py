@@ -101,12 +101,13 @@ def test_login_operator_has_scoped_watchdog_and_keeps_failure_reason():
 def test_enterprise_doc_lists_every_surface():
     doc = _read("docs", "enterprise-network.md")
     for needle in (
-        "api.mixar.app",
-        "www.mixar.app",
+        "127.0.0.1:8787",
+        "lampway.dev",
         "51731",
-        "MIXAR_PROXY_URL",
-        "MIXAR_CA_BUNDLE",
-        "MIXAR_NO_PROXY",
+        "LAMPWAY_PROXY_URL",
+        "LAMPWAY_CA_BUNDLE",
+        "LAMPWAY_EXTRA_CA_CERTS",
+        "LAMPWAY_NO_PROXY",
         "HTTPS_PROXY",
         "NET-TLS",
         "PAC",

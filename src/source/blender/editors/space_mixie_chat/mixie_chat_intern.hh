@@ -128,6 +128,13 @@ void mixie_chat_render_messages(const bContext *C,
                                 PropertyRNA *prop,
                                 const ChatLayoutMetrics &metrics,
                                 const ChatImageStyle &image_style);
+float mixie_chat_message_slide_offset(ARegion *region,
+                                      MixieChatRuntime *rt,
+                                      bool *r_active);
+bool mixie_chat_message_has_slot_content(PointerRNA *msg_ptr);
+void mixie_chat_update_message_cursor(const bContext *C,
+                                      wmWindow *win,
+                                      const MixieChatRuntime *rt);
 void mixie_chat_render_feedback(const bContext *C,
                                 ARegion *region,
                                 PointerRNA *msg_ptr,

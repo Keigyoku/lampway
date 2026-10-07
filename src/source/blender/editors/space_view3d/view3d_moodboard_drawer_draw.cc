@@ -96,7 +96,12 @@ void draw_grip(const float x_right, const float y_centre)
     GPU_scissor(pane.xmin, pane.ymin, clip_w, BLI_rcti_size_y(&pane));
     rctf tab;
     BLI_rctf_rcti_copy(&tab, &pane);
+#ifdef LAMPWAY
+    /* LAMPWAY: the drawer tab shares the Cinema active-pill palette. */
+    MIXAR_THEME_LOAD(outer_green, CinemaPillOnB);
+#else
     MIXAR_THEME_LOAD(outer_green, Selected);
+#endif
     MIXAR_THEME_LOAD(inner_dark, ViewportFill);
     /* Fade across the visible tab, reaching near-black at the panel seam.
      * Only the outer corners round; extending a hidden right cap would leave

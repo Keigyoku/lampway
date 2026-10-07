@@ -33,6 +33,8 @@ explains this rail and belongs to `rail/`'s owner. `docs/canon/` is the algorith
 
 Acceptance audits include the complete current issue body and acceptance-bearing comments. Preserve existing criterion identities, append new criteria, and distinguish historical snapshots from the current denominator. A focused or baseline-relative result never substitutes for a missing aggregate gate receipt.
 
+Network and render contract pages cite current public modules and operator behavior, including loopback, trust verification, render refusal, main-thread restoration and device preference ownership. Missing historical private document maps cannot stand in for public links.
+
 ## Test
 
 ```bash
@@ -57,3 +59,4 @@ writes its own report; the integration lane lands them. What the product promise
 | 2026-10-07 | generated connection catalogue counts | captain: complete issue 2 G13 | the connection guide retained a stale hand-written tool count | generate and check both the tool reference and connection count paragraph from the live registry | generator checks and count falsifiers |
 | 2026-10-07 | authoritative external ledger recount | captain: issue 2 AC64 | stale classes and counts could be copied while private source identities leaked into public reports | verify row identity/content, generate live registry counts, retain per-row evidence and gaps privately, publish ordinal-only reconciliation | source-drift, privacy-output and manual-evidence falsifiers |
 | 2026-10-07 | complete issue acceptance inventory | captain: include G23 and G24–G26 | body-only review silently omitted comment criteria and overstated aggregate acceptance | preserve original rows, append comment criteria, source-pin all revisions and qualify absent gate evidence | complete73-row source reconciliation |
+| 2026-10-07 | public network and render contracts | captain: inherited no-red audit | absent private maps and stale names made documentation checks fail despite current implementations | cite current guarded behavior and public modules, preserve certificate/egress/render controls and observed limitations | full network/render test-contract suite |

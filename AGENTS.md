@@ -151,6 +151,8 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 
 PR privacy workflow scans event `base.sha..head.sha`, never GitHub's synthetic merge identity. An unavailable event head refuses; fallback ancestry uses that same explicit head. Preserve bad-email negative controls and complete tracked REUSE coverage.
 
+The render/device/job contract is documented in [docs/render-job-contract.md](docs/render-job-contract.md); the current enterprise trust, proxy and loopback contract is in [docs/enterprise-network.md](docs/enterprise-network.md). Historical failures remain attributed, but the captain's current completion target is zero failures/errors, including inherited known reds. Coordinate cross-lane fixes and retain exact passing evidence before shrinking a baseline.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -161,3 +163,4 @@ PR privacy workflow scans event `base.sha..head.sha`, never GitHub's synthetic m
 | 2026-10-07 | MCP wrapper contract receipt | captain: scoped MCP wrapper and migration | new transport, observation, schemas and offline data needed reproducible ownership and evidence | document the scoped implementation, generated checks and explicit limits above | scoped contract evidence in docs/reports/mcp-wrapper-migration.md |
 | 2026-10-07 | deferred turn document copies | captain: complete issue 2 F25 | every read-only chat turn wrote a full document snapshot; deferral could lose restore boundaries or typed commits | certify complete read templates, capture before first admitted write, retain pre-turn metadata and mutation restore paths | checkpoint and commit regression receipts |
 | 2026-10-07 | PR event privacy and tracked licence coverage | captain: issue2 G24–G26 | synthetic merge identities were mistaken for branch commits and baseline icon coverage was obscured | scan explicit event endpoints, retain planted email refusals and verify tracked REUSE independently of private untracked files | event-range and whole tracked-tree licence controls |
+| 2026-10-07 | complete no-red ownership | captain: inherited reds must be fixed | baseline-relative greens and missing public network/render docs obscured unfinished integration | assign every failing identity, document current contracts and require combined zeroFAIL/ERROR evidence without weakened guards | exact122-ID inventory and source-backed network/render gates |

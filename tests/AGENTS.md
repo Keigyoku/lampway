@@ -50,8 +50,7 @@ Checkpoint tests measure full document writes across an armed read turn: certifi
 
 Prepublish tests plant both content identifiers and invalid authored commit identities: findings must block and must not echo personal values or email domains.
 
-The standalone suite has failures that predate the rail; measure a change against the integration branch's own run on the
-same commit rather than against zero.
+Historical failures retain source attribution, but the captain now requires zero failures/errors across inherited and new cases. A baseline-relative GREEN is not completion. Remove baseline rows only after exact affirmative passing evidence; keep unresolved input and cross-crew dependencies explicit. Source-location or mock-fixture repairs preserve the original behavioral assertions and corruption plants.
 
 ## Owner
 
@@ -73,3 +72,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-07 | read-turn checkpoint byte falsifiers | captain: complete issue 2 F25 | eager copies paid for reads and a naive skip could disable mutation recovery | pin certified whole scripts, forged-name mutation, once-only admitted writes and retained restore metadata; distinguish mocked proof from GUI lifecycle | checkpoint and typed-commit suites |
 
 | 2026-10-07 | measured hardware GUI mode | issue 2 requires both software and GPU screenshots | the fixture forced software GL and could label fallback as hardware | expose an explicit isolated mode and reject measured software renderers; retain default software coverage | nine mode checks and real software/fallback GUI receipts |
+| 2026-10-07 | inherited failure closure | captain: no red checks going forward | stale source pins and cross-suite mocks hid real incomplete inputs while baselines normalized failures | preserve security/behavior plants, update actual source and active mock identities, and require exact passing evidence for every inherited row | authoritative subtitle source mapping and complete122-ID ownership |

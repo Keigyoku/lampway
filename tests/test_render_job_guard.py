@@ -207,9 +207,7 @@ def test_contract_doc_exists_and_is_linked():
         assert needle in text, needle
     assert "agent_final_render" not in text
     for path in (
-        ".claude/rules/private-docs-map.md",
         "AGENTS.md",
-        "docs/modules/agent-execution.md",
         "src/scripts/mixar/modules/space_mixie_chat/core/main_thread_executor.py",
         "src/scripts/mixar/modules/space_mixie_chat/core/preview_render.py",
         "src/scripts/mixar/modules/space_mixie_chat/core/render_gate.py",
