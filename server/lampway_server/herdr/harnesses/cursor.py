@@ -17,7 +17,7 @@ class Cursor(Adapter):
     label = "Cursor agent"
     binary = "cursor-agent"
     herdr_kind = "cursor"
-    install_hint = "install Cursor's agent CLI (cursor-agent): curl https://cursor.com/install -fsS | bash"
+    install_hint = "install Cursor's agent CLI (cursor-agent) with Cursor's own installer"
     status_argv = ("status", "--format", "json")
     BYPASS = ("--force",)
     task_flag = ()                             # `cursor-agent [prompt...]`: the initial prompt
@@ -30,7 +30,7 @@ class Cursor(Adapter):
                   "Lampway never writes, so this pane cannot reach Lampway's tools; add Lampway's connector there yourself if you "
                   "want them (it is not pinned to a scene tab)")
     FACTS = {
-        "version": "2026.10.01-e373342 installed with Cursor's installer (https://cursor.com/install) into a throwaway HOME; "
+        "version": "2026.10.01-e373342 installed with Cursor's own install script into a throwaway HOME; "
                    "`cursor-agent --version`",
         "argv": "`cursor-agent --help`: `[prompt...]`, `--resume [chatId]`, `-f, --force` (alias --yolo)",
         "status": "`cursor-agent status --format json` signed out: {\"isAuthenticated\": false, ...} and exit 0: the field is the signal",

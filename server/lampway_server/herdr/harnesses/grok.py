@@ -15,7 +15,7 @@ class Grok(Adapter):
     label = "Grok"
     binary = "grok"
     herdr_kind = "grok"
-    install_hint = "install Grok Build's CLI (grok) from xAI: curl -fsSL https://x.ai/cli/install.sh | bash"
+    install_hint = "install Grok Build's CLI (grok) with xAI's own installer (its Grok CLI page)"
     status_argv = None                         # grok has `login` and `logout`, no status command
     picks_session_id = True
     BYPASS = ("--always-approve",)
@@ -27,7 +27,7 @@ class Grok(Adapter):
                   ".mcp.json, which Lampway never writes, so this pane cannot reach Lampway's tools; add Lampway's connector yourself "
                   "with `grok mcp add` if you want them there (it is not pinned to a scene tab)")
     FACTS = {
-        "version": "1.0.46 installed with xAI's installer (https://x.ai/cli/install.sh) into a throwaway HOME; `grok --version` -> "
+        "version": "1.0.46 installed with xAI's own install script into a throwaway HOME; `grok --version` -> "
                    "'grok 1.0.46 (2765805b9442)'",
         "argv": "`grok --help` (1.0.46): `[PROMPT]`, `-s, --session-id <SESSION_ID>` (a new conversation's UUID), `-r, --resume "
                 "[<SESSION_ID_OR_TITLE>]`, `--always-approve`",
