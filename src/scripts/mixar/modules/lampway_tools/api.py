@@ -911,14 +911,15 @@ def model_compare(action="stats", set=None, views=None, size=512, blind=False, p
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def scene_cleanup(objects=None, steps=None, merge_distance="auto", ngon_policy="report", convention=None, plan_only=True, copy=True):
+def scene_cleanup(objects=None, steps=None, merge_distance="auto", ngon_policy="report", convention=None, plan_only=True, copy=True, limit=50, offset=0, full=False):
     """Report first, then clean. plan_only (the default) reads the scene and changes nothing: per object the non-uniform scale, loose vertices, doubled vertices at the merge distance, non-manifold edges (wire,
     boundary, multi-face), flipped faces (found on closed shells with doubles welded, so a double cannot hide a flip), n-gons, material slots (unused, duplicates) and UV layers, plus the scene's orphan data blocks.
     plan_only=false runs the steps IN THE DOCUMENTED ORDER whatever order you list: apply_transforms, loose, merge_by_distance, non_manifold, normals (closed shells only), ngons (policy report | triangulate |
     keep), purge_orphans, naming (needs `convention`: prefix, suffix, lowercase, replace_spaces, strip_numeric_suffix: it will not invent one), materials_uvs (removes unused slots; duplicates are reported).
     merge_distance 'auto' = 1e-4 x the bounding diagonal (scale-aware); a merge that would remove more than 5 % of the vertices stops and says the threshold is wrong. Work happens on `<object>_clean` copies with
     the source hash recorded (copy=false edits in place and refuses shared mesh data). Refused: Edit Mode."""
-    return _F_sc.scene_cleanup(objects, steps, merge_distance, ngon_policy, convention, plan_only, copy)
+    # audit F8: rows come a page at a time (limit, default 50, from offset; object_count, totals and next_offset cover every object); full=true answers all
+    return _F_sc.scene_cleanup(objects, steps, merge_distance, ngon_policy, convention, plan_only, copy, limit, offset, full)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))

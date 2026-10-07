@@ -5,7 +5,7 @@ this test. Lower the numbers when you describe or bound parameters (the test say
 from lampway_server.agent.tools import TOOLS
 
 UNDESCRIBED = 691
-UNBOUNDED_NUMBERS = 241
+UNBOUNDED_NUMBERS = 240
 
 
 def _counts():

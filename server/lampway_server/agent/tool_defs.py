@@ -24,6 +24,8 @@ class P:
     flag: Optional[str] = None             # batch tools: None = positional, else the command-line flag
     repeat: bool = False                   # an array given as one flag per value
     items: Optional[dict] = None           # an array's item schema when the name-based default below does not fit
+    minimum: Optional[float] = None        # a number's bounds (audit F14: an agent should not guess them)
+    maximum: Optional[float] = None
 
 
 @dataclass
@@ -39,6 +41,7 @@ class Def:
         props, req = {}, []
         for p in self.params:
             prop = {"type": p.type, "description": p.desc}
+            prop.update({k: v for k, v in (("minimum", p.minimum), ("maximum", p.maximum)) if v is not None})
             if p.type == "array" and p.items is not None:
                 prop["items"] = dict(p.items)
             elif p.type == "array":

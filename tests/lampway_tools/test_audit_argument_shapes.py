@@ -50,3 +50,21 @@ print("RESULT", json.dumps({"out": out, "layers": [l.info for l in ann.layers] i
     d = r.results[0]
     assert d["out"]["ok"] is False and "qa_setup" in d["out"]["error"], d["out"]
     assert d["layers"] == []
+
+
+def test_a_scene_cleanup_plan_is_a_page_with_totals(tmp_path):
+    """Audit F8: a scene_cleanup plan answered 351-369 KB. The plan is a page of objects (limit, default 50, from offset) with the
+    object count, the next offset and the scene's totals per issue; full=true answers every object."""
+    r = run(tmp_path, '''
+for i in range(60):
+    bpy.ops.mesh.primitive_cube_add(location=(i * 3, 0, 0)); bpy.context.active_object.name = f"c{i:02d}"
+page = call("scene_cleanup")
+rest = call("scene_cleanup", offset=50)
+full = call("scene_cleanup", full=True)
+print("RESULT", json.dumps({"n": len(page["report"]), "count": page.get("object_count"), "next": page.get("next_offset"), "totals": page.get("totals"),
+                            "rest": [x["object"] for x in rest["report"]], "rest_next": rest.get("next_offset"), "full": len(full["report"])}))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[0]
+    assert d["n"] == 50 and d["count"] == 60 and d["next"] == 50 and d["totals"]["ngons"] == 0, d
+    assert d["rest"] == [f"c{i:02d}" for i in range(50, 60)] and d["rest_next"] is None and d["full"] == 60
