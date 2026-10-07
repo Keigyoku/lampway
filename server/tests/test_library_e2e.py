@@ -37,7 +37,9 @@ def test_an_imported_asset_is_found_by_the_agent_tool(fake, http, folder, monkey
                           "find the greaves in my library")
     result = serve.mcp_results[-1]
     assert result["isError"] is False, result
-    found = json.loads(result["content"][0]["text"])
+    from lampway_server.compute.toon_out import decode
+    found = decode(result["content"][0]["text"])
+    assert result["structuredContent"] == found
     assert [i["name"] for i in found["items"]] == ["bronze_greaves"] and found["items"][0]["kind"] == "mesh"
 
 
