@@ -104,6 +104,10 @@ class McpServer:
         name = params.get("name")
         if name not in {t.name for t in offered_tools()}:
             return _error(request_id, INVALID_PARAMS, f"unknown or not offered tool {name!r}")
+        from . import capabilities as CAP
+        refusal = CAP.check_tool(name, params.get("arguments") or {}, origin="mcp:" + (instance_id or "client"))   # spec E2
+        if refusal is not None:
+            return self._result(request_id, refusal, True)
         if name == "lampway_credit_balance":
             return self._result(request_id, json.dumps(self._credit_balance()), False)
         if name in CNT.NAMES:                                       # the same read-only projection the main agent gets

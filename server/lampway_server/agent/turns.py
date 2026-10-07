@@ -23,7 +23,8 @@ from typing import Optional
 
 from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
 from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
-from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, connections_tools, choices_tools, orphan_server_tools, marks_context, questions as Q
+from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, connections_tools, choices_tools, capabilities_tools, orphan_server_tools, marks_context, questions as Q
+from .. import capabilities as CAP
 from . import plan_tools
 from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
 from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
@@ -374,7 +375,8 @@ class AgentHub:
             repaired = pair_tool_calls(session.messages, "this call's result was lost; it may or may not have run")
             if repaired:
                 log.warning("turn %s: %d tool call(s) had no result; closed them before calling the model", turn.turn_id, repaired)
-            request = ModelRequest(system, trim_history(session.messages), list(TOOLS) + SWARM_SPECS, session_id=session.session_id)
+            offered = [t for t in list(TOOLS) + SWARM_SPECS if CAP.tool_offered(t.name)]       # spec E2: what the user lets it do
+            request = ModelRequest(system, trim_history(session.messages), offered, session_id=session.session_id)
             text_parts: list[str] = []
             calls: list[ToolCall] = []
             stop = ""
@@ -482,6 +484,11 @@ class AgentHub:
                         steps=None) -> tuple[str, bool]:
         if call.name == ASK_USER:                                  # only a refused ask_user reaches here: the valid one ends the turn
             return Q.batch_error(call.arguments if isinstance(call.arguments, dict) else {}) or "ask_user could not be shown", True
+        refusal = CAP.check_tool(call.name, call.arguments, origin="agent:main")      # spec E2, checked at call time
+        if refusal is not None:
+            return refusal, True
+        if call.name in capabilities_tools.NAMES:
+            return capabilities_tools.call(call.name, call.arguments, origin="agent:main")
         if server_tools.is_local(call.name):                       # the studio drivers: on this machine, never in Blender
             return await asyncio.to_thread(server_tools.run, call.name, call.arguments)
         if call.name in prompt_tools.NAMES:

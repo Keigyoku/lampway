@@ -237,6 +237,8 @@ def test_retry_failed_tasks_reruns_only_failed(settings):
                              [Text("Two of three finished.")],
                              [Text("The retried task finished.")]])
     app = create_app(settings, provider=main, swarm_provider_factory=factory)
+    from lampway_server import capabilities as CAP
+    CAP.ACTIVE.set("swarm", enabled=True, by="user")             # the swarm is off until the user switches it on (spec E2, Q8)
     with TestClient(app, base_url="http://127.0.0.1:8787") as http:
         fake = FakeMixarClient(http, password=settings.user_password)
         fake.login()

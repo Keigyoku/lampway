@@ -37,6 +37,10 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
 7. **Secrets never reach a log or a file in the repository.** Keys come from the environment or 0600 files the user owns
    (the state directory, a dotenv file the launcher is pointed at); `logredact.py` redacts query secrets and token-shaped strings in every log record.
 8. **Never the upstream service.** No code here calls the upstream backend; the client's stubbed endpoints are answered locally.
+9. **Capabilities are the user's switches** (docs/reports/agent-modes-spec.md E2). `capabilities/` holds what an agent may do,
+   globally and per project; only a user request changes it (`PUT /app/capabilities/{id}` refuses agent and cross-origin callers),
+   and an agent only proposes (`lampway_capabilities`). Lampway's tool families are checked at call time by `capabilities.check_tool`
+   for the in-app agent and for MCP clients; a capability that needs an egress route is in force only while that route is on.
 
 ## Test
 
@@ -59,3 +63,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the server's invariants lived only in module docstrings | egress, approval, receipt, MCP, script-literal, herdr and secret invariants stated with their modules; the suite command | captain ruling, 2026-10-05 |
+| 2026-10-07 | capabilities switchboard | captain: "I want it all behind a single interface you can choose WHAT your agent can do" (agent-modes spec E2, Q8 defaults) | nothing recorded what an agent may do; the swarm and every tool family were always on for every agent | invariant 9: the user's switches, call-time checks for the agent and MCP, proposals only from agents, routes still decide egress | captain ruling, 2026-10-06 |

@@ -33,6 +33,8 @@ def run_swarm(settings, names=("a", "b", "c"), *, worker_factory=worker_provider
         script.append([ToolCall(id="s2", name="swarm_collect", arguments={"swarm_id": "sw1"})])
     script.append([Text("Done.")])
     app = create_app(settings, provider=ScriptedProvider(script), swarm_provider_factory=worker_factory)
+    from lampway_server import capabilities as CAP
+    CAP.ACTIVE.set("swarm", enabled=True, by="user")             # the swarm is off until the user switches it on (spec E2, Q8)
     with TestClient(app, base_url="http://127.0.0.1:8787") as http:
         fake = FakeMixarClient(http, password=settings.user_password)
         fake.login()

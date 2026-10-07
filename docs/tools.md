@@ -11,7 +11,7 @@ server/.venv/bin/python docs/gen_tools.py          # regenerate
 server/.venv/bin/python docs/gen_tools.py --check  # exit 1 when this page is stale
 ```
 
-- **238 tools** in the agent's registry; **189** of them run in Blender and are offered over MCP, plus **2** server-side MCP tools (`lampway_credit_balance`, `lampway_call_status`): **191 tools** over MCP in total.
+- **239 tools** in the agent's registry; **189** of them run in Blender and are offered over MCP, plus **2** server-side MCP tools (`lampway_credit_balance`, `lampway_call_status`): **191 tools** over MCP in total.
 - Studio tools (`studio_*`) spend credits on your accounts and are **never** offered over MCP; the swarm tools and `ask_user` need the agent loop.
 - The `offered` column says whether an external AI app (Claude Code, Codex, Cursor, VS Code, OpenCode, Claude Desktop) can call the tool.
 - Every tool that costs money returns a plan and waits for your click ([spend](spend.md)); no tool can confirm a spend.
@@ -202,6 +202,7 @@ server/.venv/bin/python docs/gen_tools.py --check  # exit 1 when this page is st
 | [`lampway_addon_stage_patch`](#lampway_addon_stage_patch) | yes | Stage a patch to a linked add-on project: files [{path, content}] (content null deletes the file), a message, and expected_revision (the revision addon_read returned: a project that changed... |
 | [`lampway_agent_files`](#lampway_agent_files) | no | The project's instruction files and skills. |
 | [`lampway_apply_part_fixes`](#lampway_apply_part_fixes) | yes | Apply an auditor's part fixes (island or bbox relabels) to a transferred owner map; writes a new map. |
+| [`lampway_capabilities`](#lampway_capabilities) | no | What you may do in Lampway, as the user set it: `list` every capability with whether it is in force and why not, `explain` one, and `propose` turning one on or off with a reason - the user... |
 | [`lampway_cards`](#lampway_cards) | no | Project cards: one card per piece or task with its report pages as tabs, generated from the ledger and the prompt run log. |
 | [`lampway_character_pipeline`](#lampway_character_pipeline) | yes | The character route as thirteen gated stages: 1 reference pack, 2 generate parts (tripo.mesh, a spend), 3 prep and segment, 4 assemble (fit), 5 retopology to the part budgets, 6 UV, 7 bake,... |
 | [`lampway_choices`](#lampway_choices) | yes | What Lampway uses for each purpose (the main agent, plates, retopology, ...): `list` them, `view` one purpose's chain with each option's connection state, route, cost and retention, `explai... |
@@ -2551,6 +2552,18 @@ Inputs:
 - `out_owner_poly` (string, required)
 
 MCP: offered.
+
+#### lampway_capabilities
+
+What you may do in Lampway, as the user set it: `list` every capability with whether it is in force and why not, `explain` one, and `propose` turning one on or off with a reason - the user accepts or declines it. You cannot change a capability yourself. When a tool is refused because its capability is off, propose it instead of working around it.
+
+Inputs:
+- `action` (string, required): list | explain | propose | proposals
+- `id` (string): a capability id (list shows them); explain and propose need it
+- `enabled` (boolean): propose: the state you would like
+- `reason` (string): propose: why, in one sentence the user reads
+
+MCP: not offered.
 
 #### lampway_cards
 
