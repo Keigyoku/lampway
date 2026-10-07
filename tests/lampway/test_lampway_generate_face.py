@@ -57,12 +57,15 @@ def test_the_results_row_says_the_last_run_billed_against_its_estimate():
     """Section 5: the last run's line, from the server's run log; none before the first run, and none while it is silent."""
     line = "3 images, $0.20 billed against a $0.21 estimate, rated 4"
     assert G.face("m", dict(answer(0.21), last_run=line), EGRESS_ON)["last_run"] == line
+    assert G.face("m", dict(answer(0.21), last_run=line, last_run_short="$0.20 billed / $0.21 est."), EGRESS_ON)["last_run_short"] == "$0.20 billed / $0.21 est."
     assert G.face("m", answer(0.21), EGRESS_ON)["last_run"] == ""
     assert G.face("m", None, EGRESS_ON)["last_run"] == ""
     pump = (ROOT / "src/scripts/mixar/modules/lampway_tools/ui/generate_pump.py").read_text()
-    assert '"last_run"' in pump.split("STRINGS = ")[1].split(")")[0], "the pump writes it to wm.lampway_gen_last_run"
+    strings = pump.split("STRINGS = ")[1].split(")")[0]
+    assert '"last_run"' in strings and '"last_run_short"' in strings, "the pump writes both to wm.lampway_gen_*"
     native = (ROOT / "src/source/blender/editors/space_agent_bubble/agent_ui_tabmedia_estimate.cc").read_text()
-    assert '"lampway_gen_last_run"' in native and "face.last_run" in native, "the column draws it"
+    assert '"lampway_gen_last_run"' in native and '"lampway_gen_last_run_short"' in native and "face.last_run_short" in native, \
+        "the column draws the line, or its short form when the line does not fit"
 
 
 def test_meters_say_the_job_against_its_cap_and_the_session_against_its_ceiling():

@@ -23,7 +23,7 @@ CLIENT_FACTORY = lambda: status_client.StatusClient()  # noqa: E731  (tests swap
 DEBOUNCE_S = 0.3
 TICK_S = 0.1
 STRINGS = ("estimate", "estimate_kind", "estimate_tip", "cap_job", "cap_job_level", "cap_session", "route", "content",
-           "button", "button_kind", "policy", "refusal", "last_run")
+           "button", "button_kind", "policy", "refusal", "last_run", "last_run_short")
 FLOATS = ("cap_job_fill", "cap_session_fill")
 PUMP = {"key": None, "changed": 0.0, "asked": None, "answer": None, "inflight": False, "result": None, "owner": ""}
 

@@ -13,12 +13,14 @@ ROUTES = [{"id": "openrouter", "label": "OpenRouter", "hosts": ["openrouter.ai"]
 POLICY = {"click": "above", "above": 0.25, "job_cap": 1.0, "session_cap": 3.0, "spent": 0.31}
 OWNER = "MixieMoodboardTabImageGenProps"
 OUT = {"island": None}
+LAST_RUN = "3 images, $0.20 billed against a $0.21 estimate, rated 4"
 
 
 def answer(amount, needs_click):
     return {"provider": "openrouter", "route": "openrouter", "basis": "1 x $0.07 per image", "policy": dict(POLICY),
             "price": {"kind": "estimate", "amount": amount, "unit": "USD", "source": "about $0.07 per image (measured), not read back",
-                      "basis": "1 x $0.07 per image"}, "needs_click": needs_click, "refused": None}
+                      "basis": "1 x $0.07 per image"}, "needs_click": needs_click, "refused": None,
+            "last_run": LAST_RUN, "last_run_short": "$0.20 billed / $0.21 est."}
 
 
 class FakeClient:
@@ -72,6 +74,6 @@ def facts(bpy, dump):
     ptr = next((w["ptr"] for w in dump.get("windows", []) if isl and w["size"] == [isl.width, isl.height]), None)
     gen = [w for w in dump["widgets"] if w.get("w") == ptr and w.get("op") == "MIXIE_OT_moodboard_prompt_generate"]
     face = {k: getattr(wm, "lampway_gen_" + k, None) for k in ("estimate", "cap_job", "cap_session", "route", "content", "button",
-                                                             "button_kind", "policy", "refusal", "owner")}
+                                                             "button_kind", "policy", "refusal", "owner", "last_run")}
     return dict(OUT, face=face, generate=[{k: w.get(k) for k in ("text", "rect", "enabled", "tip", "mixar_variant") if k in w} for w in gen],
                 estimate_calls=len(FakeClient.calls))
