@@ -263,3 +263,29 @@ path = ["server/tests/fixtures/toon/encode/*.json"]
 precedence = "override"
 SPDX-FileCopyrightText = "2025-PRESENT Johann Schopplich"
 SPDX-License-Identifier = "MIT"
+
+# MCP T3: offline RST generated from Lampway's Blender core and the pinned manual.
+[[annotations]]
+path = "server/lampway_server/blender_docs/data/api/**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2009-2026 Blender Authors"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+[[annotations]]
+path = "server/lampway_server/blender_docs/data/manual/**"
+precedence = "closest"
+SPDX-FileCopyrightText = "Blender Documentation Team"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = "server/lampway_server/blender_docs/data/manifest.json"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "server/lampway_server/blender_docs/data/licenses/**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
