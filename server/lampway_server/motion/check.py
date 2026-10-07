@@ -45,12 +45,13 @@ def text_contrast(im, box, pad=10):
     x0, y0, x1, y1 = max(0, x0), max(0, y0), min(W, x1), min(H, y1)
     if x1 - x0 < 2 or y1 - y0 < 2:
         return None
-    inner = [rel_lum(p) for p in im.crop((x0, y0, x1, y1)).get_flattened_data()]
+    # NumPy's RGB view works across the supported Pillow >=10 range; get_flattened_data is a newer Pillow API.
+    inner = [rel_lum(p) for p in np.asarray(im.crop((x0, y0, x1, y1))).reshape(-1, 3)]
     ring = []
     for bx in ((x0 - pad, y0 - pad, x1 + pad, y0), (x0 - pad, y1, x1 + pad, y1 + pad), (x0 - pad, y0, x0, y1), (x1, y0, x1 + pad, y1)):
         bx = (max(0, bx[0]), max(0, bx[1]), min(W, bx[2]), min(H, bx[3]))
         if bx[2] > bx[0] and bx[3] > bx[1]:
-            ring += [rel_lum(p) for p in im.crop(bx).get_flattened_data()]
+            ring += [rel_lum(p) for p in np.asarray(im.crop(bx)).reshape(-1, 3)]
     if not ring:
         return None
     ring.sort()
