@@ -3,13 +3,15 @@
 
 # Lampway agent modes: the Lampway Agent Runtime and Bring Your Own Agent
 
-Status: **planned** (a proposal with the captain's decisions recorded), 2026-10-06, written against `lp/wave5` at `fd0f108`. Companion to [the MCP wrapper spec](mcp-wrapper-spec.md) (C0–C2, T1–T3), whose
+Status: **partly built, re-architected 2026-10-07** (§A governs; the older sections are read through it), first written
+2026-10-06 against `lp/wave5` at `fd0f108`; `main` took wave5 on 2026-10-07. Companion to [the MCP wrapper spec](mcp-wrapper-spec.md) (C0–C2, T1–T3), whose
 contracts this one depends on. Nothing here is built. Findings F1–F25 come from the stress-test audit of the same day, whose report is not in this repository; each finding a
 contract depends on is restated where it is used. Claims not checked on a running app are marked `[UNVERIFIED]`.
 
 **Direction (captain, 2026-10-06).** Lampway has two agent modes.
-- **Mode 1, the Lampway Agent Runtime.** Upstream Mixar's hosted-backend architecture becomes Lampway's local Agent API: Lampway's
-  own agent loop, driven by an API key or a bare LLM endpoint.
+- **Mode 1, the Lampway Agent Runtime.** Upstream Mixar's hosted-backend architecture becomes Lampway's local Agent API, driven
+  by an API key or a bare LLM endpoint. *Superseded by A:* the runtime is Hermes's (Q7), in a herdr pane (A1); Lampway's own
+  agent loop is removed (A5).
 - **Mode 2, BYOA (Bring Your Own Agent).** The user's own first-party agent CLIs, on the subscriptions they already pay for, run on
   Lampway's persistent herdr server. No third-party piggybacking: everything goes through the vendors' own apps. BYOA gives up the
   Lampway Agent Runtime and inherits the runtime of whichever harness the user runs.
@@ -17,6 +19,160 @@ contract depends on is restated where it is used. Claims not checked on a runnin
 Inputs: the audit of 2026-10-06 (findings F1–F25 of the companion report); three read-only code surveys of the session lifecycle,
 the client↔backend protocol and herdr (summarised in §0); the repository's laws (`AGENTS.md`); the contract template
 (`.claude/skills/lampway-tool-authoring` §1).
+
+## A. The architecture: two modes, every agent in herdr (captain, 2026-10-07)
+
+**This section governs.** It was written after `main` took wave5, and every older section below is read through it. Where one
+disagrees, this one wins, and the older section carries a *Superseded by A* note. The captain's words: "two Agent Modes and the
+Runtime on Mode 1 to be Hermes Runtime. Agents/workers run on either of those modes nothing else, no custom architecture for
+hosting or managing agents beyond wrappers for those. In either mode, all agents spawn into the herdr server. Remove headless
+workers." Then, on the follow-up questions: headless means agents without a pane (workers keep their own headless Blender scene);
+the herdr view should keep context and pane switching to a minimum; and Mode 1 runs Hermes's own TUI in its pane, "we should lose
+nothing, but gain agent persistence".
+
+### A0. The rules
+
+1. **Two modes, no third.**
+   - **Mode 1, Lampway's agent:** the Hermes runtime, pinned (`third_party/hermes-agent`), thinking only through Lampway's model
+     gateway (E1.4).
+   - **Mode 2, your agent:** a harness the user runs (B1), on its own login.
+2. **Every agent is a process in a pane on Lampway's herdr server.** This covers a scene tab's main agent and every swarm
+   worker, in either mode. No agent runs inside Lampway's server, and none runs as a hidden child process. **Removed:**
+   - the built-in agent loop (`turns.py`'s provider loop) as a runtime;
+   - `BuiltinBrain`;
+   - `EngineBrain`'s hidden Hermes children;
+   - `EngineRuntime`'s hidden ACP children.
+3. **Lampway writes wrappers, not agent hosting.** What Lampway's code may do around an agent:
+   - start it in a pane (an adapter, A1 or B1);
+   - give it a model (the gateway) and Lampway's tools (the MCP endpoints);
+   - show it and drive it in the island (A2 for Mode 1, B4 for Mode 2);
+   - lay out its pane (A4).
+
+   The agent's conversation, turns, compression, sessions, retries and persistence are the runtime's.
+4. **What does not change:**
+   - a worker builds in its own headless Blender scene, and the swarm substrate collects the result into the user's scene (S1);
+   - the laws: egress opt-in and logged, spend only on the user's click, write-ahead receipts, controlled decoupling.
+
+### A1. The Hermes pane (Mode 1: main agent and workers)
+
+A Mode 1 agent is a herdr pane that runs Lampway's thin pane wrapper. The wrapper is the `lampway_hermes` adapter in
+`herdr/harnesses/`. It is Lampway-owned: its own home, Lampway's gateway, Lampway's tools. It is not the user's own `hermes`
+adapter, which stays a Mode 2 harness (E1.10).
+
+**What the wrapper does, in order:**
+1. **Starts the backend.** It runs `hermes serve --host 127.0.0.1 --port <P> --skip-build` as its child, with this environment:
+   - `HERMES_HOME=<state>/agent/hermes/<unit>`: the rendered config (E1.3), with `model.base_url` = the gateway and `mcp_servers` =
+     the unit's MCP endpoint (A3);
+   - `HERMES_DASHBOARD_SESSION_TOKEN=<lwh_ token>`: issued by Lampway, never on a command line;
+   - `HERMES_TUI_WS_ORPHAN_REAP_GRACE_S=0`, so a session with no client attached is parked, not reaped;
+   - the egress proxy's variables (E1.5);
+   - no key of the user's (B5).
+2. **Waits** until `/api/ws` accepts.
+3. **Runs Hermes's own Ink TUI in the foreground:**
+   - `HERMES_TUI_GATEWAY_URL=ws://127.0.0.1:<P>/api/ws?token=<token>`;
+   - `HERMES_TUI_CWD=<project root>`;
+   - `HERMES_TUI_RESUME=<session id>` when it reopens one.
+4. **If the TUI exits,** the backend keeps running. The pane says "Press Enter to reopen Hermes", and the TUI reopens only on that
+   keypress (law 5: nothing respawns without a click).
+
+**Persistence (what Mode 1 gains):**
+- The pane, and the backend inside it, survive a crash of Blender or of Lampway's server.
+- Hermes keeps the session (`state.db` under the unit's home).
+- On restart, Lampway's server re-adopts the pane from its record (port, token, session id; the record is 0600) and re-attaches
+  as a client (A2).
+- Closing the pane ends the backend. Its session stays in `state.db`, and reopening it is the user's click, which resumes it
+  by id.
+
+**Build:** `engine_env.py` also prebuilds the TUI bundle (`ui-tui/dist/entry.js`) at build time. At run time `hermes --tui` must
+never run `npm install` (law 2). Node is a run-time dependency of Mode 1, found or refused with help; it is never fetched at run
+time. `[UNVERIFIED until the serve spike reports: exact offline flags and steps]`
+
+### A2. The island is a second front end on the same live session
+
+Lampway's server is a JSON-RPC client of the pane's `hermes serve`, beside the TUI. Hermes fans every event out to every attached
+client (`tui_gateway/transport.py` `FanoutTransport`), and a question goes to every client that asked for server requests, first
+answer wins. So the island and the pane show one conversation, and either one can answer. **Mode 1 loses nothing:**
+
+| The island (client protocol) | `hermes serve` (`/api/ws`) |
+|---|---|
+| attach a scene tab | `client.capabilities {server_requests: true}`, then `session.resume {session_id}`; catch up with `session.events.since(seq)` |
+| `agent.chat` | `image.attach_bytes` per image, then `prompt.submit {session_id, text}`; the text carries R3's context blocks (rules, folders, "This turn") |
+| `agent.chat` while a turn runs (R4, joins the turn) | `/steer <text>` through `slash.exec` |
+| `agent.cancel` | `session.interrupt` |
+| text and reasoning | `message.delta` → `ephemeral.append`; `reasoning.delta` → the reasoning slot |
+| steps | `tool.start` / `tool.complete` → `steps` (label = the Lampway tool name without `mcp__lampway__`) |
+| turn end | `message.complete` → `content.set` + `turn_end` (`complete` → `completed`, `interrupted` → `cancelled`, `error` → `failed`) |
+| a question | server request `clarify` → the island's question (`interrupt_id`, `actions`); the answer is the response frame; `request.cancel` (answered in the pane) closes it |
+| a permission | server request `approval` → the island's permission card; the choice is the response frame |
+| history (R2) | `session.list`, `session.resume` |
+
+Further mapping rules:
+- **A turn the user types in the pane** is shown in the island too. When a turn starts that no island prompt asked for, Lampway
+  opens a turn for it and fills in the user's text from the session's history (`message.complete.persisted_turn`), because
+  Hermes sends no event for a typed prompt.
+- **`/new` in the pane** closes the shared session (the TUI calls `session.close`). Lampway follows the pane to its new session,
+  starts a new island chat and files the old one in History.
+- **A disconnect of the island's socket** detaches nothing in Hermes, since the island is only a client. The next `agent.attach`
+  replays from `session.events.since`.
+
+### A3. Tools reach the scene, whoever started the turn
+
+- Each unit's config names one MCP server: `/engine/mcp/<unit>`, with a per-unit bearer (as built).
+- A tool call is routed to the scene tab bound to the unit, through that tab's current client socket. It needs no island turn,
+  so a turn typed in the pane reaches the scene the same way.
+- With no client connected, the call gets a refusal that says Lampway is not open.
+- Capabilities gate every call (E2), as today.
+- A worker's pane uses the worker endpoint (`/api/v1/mcp/pane`, S3), whatever its mode. Its tools run on the worker's own headless
+  scene, and it finishes with `lampway_worker_done`.
+
+### A4. The herdr view: one unit, one tab, minimal switching
+
+The captain: "A big problem/friction here is context/pane switching. The more we can jam into a single pane without
+overwhelming/losing information the better."
+
+**Layout:**
+- **Workspace:** one, `lampway`, as today.
+- **A unit = one Lampway scene tab's conversation.** Each unit gets one tab, labelled with the scene tab's name. Its root pane is
+  the unit's main agent: the Hermes pane in Mode 1, the bound harness pane in Mode 2.
+- **Workers split into their unit's tab,** not into tabs of their own:
+  - The first worker splits right of the main agent (`pane.split {direction: right, ratio: 0.4}`).
+  - Each further worker splits down inside that column.
+  - The main agent keeps the left 60 %, and every worker is visible beside it without switching tabs. `MAX_WORKERS` (6) keeps
+    the column readable.
+- **Every pane reports what it is,** via `pane.report_metadata`:
+  - `display_agent`: "Lampway · <scene>" or "Worker 3 · <task>";
+  - `title`: the task;
+  - `state_labels`.
+
+  herdr's sidebar then shows every pane's working, blocked and done state at a glance.
+- **The island lists the unit's agents and their states** (the Parallel Agents cards). The user rarely needs herdr at all, and
+  focusing a pane is one click from a card.
+- **A finished worker's pane** stays readable until the unit's next swarm starts. Then Lampway closes the previous run's ended
+  worker panes before it splits new ones. It only ever closes a pane it started that has ended, never a live or unknown one
+  (law 5). This is proposed in **Q13**.
+
+The herdr calls (`pane.split`, `pane.report_metadata`, `pane.zoom`, `pane.resize`) are in herdr's socket API documentation.
+`[UNVERIFIED against an installed herdr: the CLI spelling of each]`
+
+### A5. What goes, what stays
+
+- **Goes:**
+  - `turns.py`'s provider loop (`_agent_loop`, its rounds and its tool dispatch); the hub stays as the client-protocol front end;
+  - `agent/swarm_brains.py`'s `BuiltinBrain` and `model_round`;
+  - `engine/swarm_brain.py` (`EngineBrain`);
+  - `engine/runtime.py`'s ACP children (`EngineRuntime`, `LampwayACPClient`).
+- **Stays:**
+  - the model gateway, the egress proxy, the config renderer (it gains the TUI settings);
+  - Capabilities;
+  - the MCP endpoints and the pane endpoint;
+  - the harness adapters (B1), the binding (B2) and the island view of a Mode 2 pane (B4);
+  - the swarm substrate and `PaneBrain`, which becomes the only worker brain: the adapter decides the mode;
+  - the providers, as the gateway's model doors only.
+- **Tests:**
+  - The hub's protocol tests move off `ScriptedProvider` onto a scripted `/api/ws` peer that speaks the same contract, so they
+    run without a built engine.
+  - The live suite runs the real pinned Hermes through the same wrapper the pane runs.
+  - CI must build the engine (`engine_env.py`), or the live suite skips, and a skip is not a pass.
 
 ## 0. Where the code is today
 
@@ -243,6 +399,8 @@ input and waits; a socket closed mid-turn reports `abandoned`; a finished genera
 
 ## R5. Parked turns
 
+*Superseded by A:* the turn lives in the pane's `hermes serve`, so nothing parks. The island re-attaches as a client (A2).
+
 **Decision (captain, 2026-10-07):** the Hermes runtime keeps the ACP session alive across a client disconnect (E1.7); Lampway does not park turns itself.
 
 **Purpose.** A disconnect stops losing the work in progress.
@@ -327,6 +485,16 @@ are switched off. The rest of this section specifies how. Way 2 (a pinned child 
 (in-process), because it gives the whole runtime while keeping Lampway's laws in Lampway's own process.
 
 ## E1. Hermes in the seat, over ACP
+
+*Superseded by A (captain, 2026-10-07).* Hermes runs its own TUI in a herdr pane, and the island is a second client of the pane's
+`hermes serve` (A1, A2). ACP and the hidden child go. What carries over unchanged:
+- the gateway (E1.4) and the egress proxy (E1.5);
+- the config renderer (E1.3);
+- the MCP endpoint (E1.6, now per unit, A3);
+- the Hermes behaviour measured below.
+
+E1.7's mapping is replaced by A2's table. The ACP build is kept in the history (`engine/runtime.py` up to the A5 removal) as
+the record of what was measured.
 
 **Why ACP.** `hermes acp` speaks the Agent Client Protocol, an open editor–agent standard (VS Code, Zed and JetBrains use it). A
 published spec is a steadier seam than Hermes's internal Python API, which its own guide says is not API. What Hermes's ACP side
@@ -795,6 +963,10 @@ engine in Mode 1, the user's own harness in Mode 2. The parts that make a swarm 
 
 ## S1. One substrate, three brains
 
+*Superseded by A:* one brain. `PaneBrain` runs every worker in a pane. The adapter decides the mode: `lampway_hermes` for Mode 1
+(A1), the parent's harness for Mode 2. `builtin` and `engine` are removed (A5). The substrate and `WorkerJob.call_tool` stand
+as written.
+
 **Contract.** `SwarmManager` keeps the substrate and asks a **worker brain** to think:
 
 ```python
@@ -819,6 +991,14 @@ class WorkerJob:
   user's scene or another worker's scene.
 
 ## S2. Mode 1: engine workers
+
+*Superseded by A:* a Mode 1 worker is a Hermes pane (A1) with these settings:
+- home: `<unit home>/workers/<swarm>-<worker>`;
+- model: the gateway, answered by the `agent.worker` choice;
+- tools: the worker endpoint (S3), not an engine endpoint;
+- its task: submitted as its first prompt.
+
+It finishes with `lampway_worker_done`, exactly as a Mode 2 worker does. The abilities and limits below still apply.
 
 **Contract.**
 - Each worker is one engine session (E1.2) with `HERMES_HOME=<state>/agent/hermes/<session_id>/workers/<worker_id>`. That keeps
@@ -864,6 +1044,9 @@ class WorkerJob:
 - **Egress:** the panes talk to their vendor under the user's account (B5). Lampway gates the start and logs it.
 
 ## S4. Choosing the brain
+
+*Superseded by A:* there is one brain, `PaneBrain`. The unit's mode picks the adapter: `lampway_hermes` in Mode 1, the bound
+pane's harness in Mode 2.
 
 - The tab's mode decides: `runtime` (Mode 1) uses `engine` when the engine runs, else `builtin`; `byoa` (Mode 2) uses `pane`.
 - Until M0's tab property exists, the server decides from the caller: a swarm started by the in-app agent uses `engine` or
@@ -931,7 +1114,28 @@ class WorkerJob:
     - finished worker panes stay open for the user to read;
     - Codex's pane bearer is visible briefly on the herdr client's command line.
 
+12. **Q12 the architecture — decided 2026-10-07:** two modes, Mode 1 on the Hermes runtime, every agent in a herdr pane, wrappers
+    only, no agent without a pane; workers keep their own headless Blender scene (A0).
+13. **Q13 the herdr view — decided 2026-10-07: minimal switching.** One tab per unit; workers split beside the main agent;
+    pane metadata in herdr's sidebar (A4). Proposed and open: closing a unit's ended worker panes when its next swarm starts.
+14. **Q14 Mode 1's pane — decided 2026-10-07:** Hermes's own TUI in the pane, with the island as a second client of the same
+    `hermes serve` session. Nothing is lost, and the agent persists (A1, A2). ACP is retired.
+15. **Q15 `/new` in a Mode 1 pane (proposed):** the island follows the pane to its new session (A2). The other choice is to
+    refuse `/new` in Lampway's pane.
+
 ## 5. Build order
+
+*Superseded by A for what is left to build:*
+1. A1, the `lampway_hermes` adapter and the TUI prebuild.
+2. A2, the island as a `hermes serve` client, with the scripted `/api/ws` peer for tests.
+3. A3, routing tools by unit.
+4. A5's removals, together with S1's one brain.
+5. A4, the layout.
+
+Each lands RED first.
+
+The list below is the original order, for the record.
+
 
 1. **Shared foundation:** F1, R7 and C2 from the companion spec. Without them neither mode reaches the scene from outside a turn.
 2. **Mode 1 correctness:** the R1 pairing invariant, the `ask_user` and pending-question fixes, R0's provider wiring and
