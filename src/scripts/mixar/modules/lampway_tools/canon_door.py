@@ -145,6 +145,6 @@ def refusal(arg, value, reasons, need):
         kind = "rigged_mesh"                                       # lampway_normalize_mesh refuses a skinned mesh: name the right normalizer
     helps = [f"lampway_normalize_{'rigged' if kind == 'rigged_mesh' else kind} input={value}"
              + (" (not built yet: canon R1/R3, lane orphans)" if kind == "rigged_mesh" else "")]
-    if any("scale" in r for r in reasons):
+    if any(r.startswith("scale is ") for r in reasons):                # the scale STATE (satisfies), not an object scaled in the scene
         helps.append("real scale comes from lampway_fit_place (armour) or lampway_scale_to_measure")
     return {"ok": False, "error": f"normalize first: {arg} {value!r} is not canonical: " + "; ".join(reasons), "help": helps}

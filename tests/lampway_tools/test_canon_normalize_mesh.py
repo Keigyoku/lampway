@@ -302,3 +302,42 @@ res({"a": a.get("ok"), "b": b.get("ok"), "b_err": b.get("error"), "same": sig(ob
 ''')
     assert d["a"] is False and d["b"] is False, d
     assert d["same"] and d["prints"], d
+
+
+def test_a_canonical_object_placed_by_a_pure_translation_stays_canonical_and_a_turn_or_scale_does_not():
+    """Audit F11: at x = 2.2 m uv_check refused a normalized object ("object matrix is not the identity"). The stamp describes the
+    asset's DATA (its frame, metres, geometry); a pure translation is a PLACEMENT of that asset in the scene and the door accepts it,
+    reporting where it stands. A rotation or a scale changes the frame or the scale the stamp claims and is still refused, saying
+    so plainly; an edit of the data is refused as before, placed or not (SCHEMA.md transform, DOOR.md the check)."""
+    d = run('''
+from mathutils import Matrix
+from mixar.modules.lampway_tools import canon_door as CD, canon_io as CIO
+src = nosed(); export_glb(src, "box.glb"); bpy.data.objects.remove(src)
+name = api.normalize_mesh(input="box.glb", turn_deg=-90, generator="tripo_studio")["objects"][0]
+ob = bpy.data.objects[name]
+probe = api.tool(consumes={"object": api.Need(kind=("mesh",), scale=("real", "generator_normalised", "unknown"))})(lambda object: {"ran": object})
+out = {}
+ob.location = (2.2, -0.4, 0.3); bpy.context.view_layer.update()
+out["moved"] = probe(object=name); out["placed_m"] = CIO.facts(ob).get("placement_m")
+out["again"] = api.normalize_mesh(input=name, turn_deg=-90, generator="tripo_studio")
+out["still_there"] = list(ob.location)
+placed = ob.matrix_world.copy()          # the glTF importer leaves rotation_mode QUATERNION: set the matrix, never one channel
+ob.matrix_world = placed @ Matrix.Rotation(math.radians(30), 4, "Z"); bpy.context.view_layer.update()
+out["turned"] = probe(object=name)
+ob.matrix_world = placed @ Matrix.Scale(1.1, 4); bpy.context.view_layer.update()
+out["scaled"] = probe(object=name)
+ob.matrix_world = placed; bpy.context.view_layer.update()
+out["back"] = probe(object=name)
+ob.data.vertices[0].co.z += 0.01; ob.data.update()
+out["edited"] = probe(object=name)
+res(out)
+''')
+    assert d["moved"]["ok"] and d["moved"]["ran"], d["moved"]
+    assert d["placed_m"] == [2.2, -0.4, 0.3] or max(abs(a - b) for a, b in zip(d["placed_m"], [2.2, -0.4, 0.3])) < 1e-6, d["placed_m"]
+    assert d["again"]["ok"] and d["again"]["unchanged"] is True and max(abs(a - b) for a, b in zip(d["still_there"], [2.2, -0.4, 0.3])) < 1e-6, d
+    for k in ("turned", "scaled"):
+        e = d[k]["error"].lower()
+        assert d[k]["ok"] is False and "rotat" in e and "scale" in e and "undo" in e and "placement" in e, (k, d[k])
+        assert not any("scale_to_measure" in h for h in d[k]["help"]), ("a scaled OBJECT is not a scale-STATE refusal", d[k]["help"])
+    assert d["back"]["ok"], d["back"]
+    assert d["edited"]["ok"] is False and "geometry_sha256 differs" in d["edited"]["error"], d["edited"]

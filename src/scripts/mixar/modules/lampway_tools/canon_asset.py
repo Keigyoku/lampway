@@ -124,8 +124,12 @@ def check(doc, facts):
     """[str]: the document against facts measured on its datablock now (canon_io.facts): the object matrix applied, the scene in
     metres, the bounds, the geometry hash (a mesh changed since normalization reads as a different hash)."""
     out = []
-    if "object_matrix" in facts and doc["transform"]["applied"] and not np.allclose(facts["object_matrix"], np.eye(4), atol=TOL_M):
-        out.append("the object matrix is not the identity although the document says the transform was applied")
+    if "object_matrix" in facts and doc["transform"]["applied"]:
+        M = np.asarray(facts["object_matrix"], float)
+        if not (np.allclose(M[:3, :3], np.eye(3), atol=TOL_M) and np.allclose(M[3], [0, 0, 0, 1], atol=TOL_M)):
+            out.append("the object matrix rotates or scales the asset since it was normalized: the stamp's frame (front -Y, +Z up) and its "
+                       "scale assume neither. Undo the rotation or the scale (a pure translation is a placement and is accepted), or normalize "
+                       "the raw source again with its turn")
     if "scene_scale_length" in facts and abs(float(facts["scene_scale_length"]) - 1.0) > 1e-9:
         out.append(f"the scene's unit scale_length is {facts['scene_scale_length']}, not 1 (metres)")
     body = doc["body"].get("mesh", doc["body"]) if doc["kind"] == "rigged_mesh" else doc["body"]

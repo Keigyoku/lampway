@@ -43,7 +43,8 @@ def test_asset_place_says_canonical_or_raw_and_checks_the_document_where_it_land
     o = d["origin"]
     assert o["canon"] == [{"object": "Greaves", "state": "canonical", "unmet": []}] and o["door"]["ok"] is True, o
     c = d["cursor"]["canon"][0]
-    assert c["state"] == "canonical" and any("object matrix is not the identity" in u for u in c["unmet"]) and d["cursor"]["door"]["ok"] is False
+    # it pinned the opposite (a canonical asset placed at the cursor read as non-canonical): audit F11 - a pure translation is a placement
+    assert c["state"] == "canonical" and c["unmet"] == [] and d["cursor"]["door"]["ok"] is True, (c, d["cursor"]["door"])
     r = d["raw"]["canon"][0]
     assert r["state"] == "raw" and r["help"] == f"lampway_normalize_mesh input={r['object']}" and d["raw"]["door"]["error"].startswith("normalize first")
     t = d["twin"]["canon"][0]
