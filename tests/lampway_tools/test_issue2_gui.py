@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Real GUI T2 acceptance on a new isolated Xvfb, never an inherited DISPLAY."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import select
@@ -23,6 +24,20 @@ def test_issue2_onboarding_and_native_target_labels(tmp_path, request):
     if not binary or not xvfb:
         pytest.skip('LAMPWAY_VIEW_BIN and isolated Xvfb required; desktop pixels unverified')
     env = prepare_environment(os.environ)
+    checkout = Path(__file__).resolve().parents[2]
+    measured_sources = [
+        'tests/lampway_tools/issue2_gui_fixture.py',
+        'src/scripts/mixar/modules/common/ui_control/core/observe.py',
+        'src/scripts/mixar/modules/mcp_bridge/core/availability.py',
+        'src/scripts/mixar/modules/mcp_bridge/core/connector.py',
+        'src/scripts/mixar/modules/lampway_tools/ui/onboarding.py',
+        'tests/lampway_visual/states/observe_labels.py',
+    ]
+    measured_sources = [path for path in measured_sources if (checkout / path).exists()]
+    env['LAMPWAY_GUI_SOURCE'] = json.dumps({
+        'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=checkout, text=True).strip(),
+        'sha256': {path: hashlib.sha256((checkout / path).read_bytes()).hexdigest() for path in measured_sources},
+    })
     for key in ('HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_STATE_HOME', 'XDG_CACHE_HOME',
                 'XDG_RUNTIME_DIR', 'LAMPWAY_HOME', 'LAMPWAY_LEGACY_HOME', 'TMPDIR'):
         path = tmp_path / key.lower()
@@ -110,13 +125,23 @@ def test_issue2_onboarding_and_native_target_labels(tmp_path, request):
             assert not failure.exists(), failure.read_text() if failure.exists() else ''
             assert (project / 'receipt.json').exists(), output[-8000:]
             receipt = json.loads((project / 'receipt.json').read_text())
+            assert receipt['source'] == json.loads(env['LAMPWAY_GUI_SOURCE'])
             assert receipt['step1']['frame']['width'] > 0
             assert receipt['graphics']['requested_software_gl'] == env['LAMPWAY_VIEW_SOFTWARE_GL']
             validate_renderer(env['LAMPWAY_VIEW_SOFTWARE_GL'], receipt['graphics']['renderer'])
             assert receipt['popup_recovered'] is True
+            connected = receipt['connected_ui_context_after_scene_call']
+            assert connected['server_connected'] is True
+            assert connected['scene_tools'] == 'available' and connected['next_step'] == ''
             assert receipt['browser_opens'] == []
             assert len(receipt['steps']) == 4
             assert all(t['label'].strip() for t in receipt['observed']['targets'])
+            facts = receipt['covering_label_facts']
+            assert facts['empty_label'] == 0 and facts['shown'] == facts['total']
+            assert facts['identity_fallbacks'] > 0 and facts['tip_fallbacks_right']
+            assert facts['pages'][0] + facts['pages'][1] == facts['same_as_every']
+            assert facts['page_handles'] == [['t0', 't1', 't2', 't3', 't4'],
+                                             ['t5', 't6', 't7', 't8', 't9']]
         finally:
             os.close(read_fd)
             server.terminate()

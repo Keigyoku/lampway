@@ -50,24 +50,27 @@ The source candidate above is the exact committed reference. The isolated cloud 
 
 Software mode completed onboarding steps 1–4, Back navigation, local sign-in without an automatic browser launch, modal refusal and ESC recovery. Its receipt records requested software mode `1` and actual renderer `llvmpipe (LLVM 19.1.7, 256 bits)`. The hardware-request negative control records mode `0` with the same renderer and refuses acceptance. These are separate from the required hardware screenshots.
 
-F17 has complete labels for the measured cloud layouts (59 or 60 targets across repeated runs, including 14 without text or tooltip). The issue reports a different original layout with 71 targets and 16 unlabeled controls. That original inventory has not been supplied, so exact original-target verification remains open; do not substitute the cloud count. Retain the complete original observe receipt and compare every formerly unlabeled target after the fix.
+F17 now covers the supplied original inventory: 71 targets, exactly 16 formerly empty labels at `t6`, `t9`–`t14`, `t27`, `t33`, `t36`, `t37`, `t39`, `t41`, `t43`, `t44`, and `t70`. The maintained fixture retains only their non-sensitive native label-source fields and original ordinal handles. All 16 fail under the former text/tooltip-only fallback and pass under the current rule, including the completion-sound operator at `t37` and `Scene.mixie_chat_input` at `t70`. Replaying the complete original native source shapes through `observe.observe` yields 71 nonempty labels, with all existing 55 labels unchanged. This replay binds a fake window and makes no pixel capture; the separate real cloud GUI covers its measured current layout of 59 or 60 targets. The original inventory source SHA-256 is `8f33c17046a5efa2b83fb2e489eeab2b8f1d2b89239755016ce73f3865424919`; its archive SHA-256 is `0c916c9ff3c115dd41100ff4fc88829e78ec373775fa1062acb09124c886e1cc`.
 
 For G14, click every native profile-menu destination in the freshly built candidate: Buy Credits/See Plans and Dashboard must reach the local `/app` landing page; Docs must reach `/app/docs`; Report a Bug must reach `/app/bug-report`. An older executable cannot validate the changed native Docs and Report a Bug call sites.
 
 ## Connected GUI status regression evidence
 
-A retained isolated run at source commit `6331e542727e52d9a67a42a4bb3c12e0cac63e3e` passed in 25.15 seconds. After native File-menu opening, modal refusal, ESC recovery and a successful scene inspection, the public MCP `lampway_ui_context` call reported `server_connected=true`, `scene_tools=available`, and an empty `next_step`. This checks the actual connected relay and public status enrichment, rather than a direct helper call. Restoring the former stale-catalog branch only in the disposable script copy made that same run fail: the server was connected but status incorrectly requested reconnect.
+A retained isolated run at source commit `6331e542727e52d9a67a42a4bb3c12e0cac63e3e` passed in 24.41 seconds. After native File-menu opening, modal refusal, ESC recovery and a successful scene inspection, the public MCP `lampway_ui_context` call reported `server_connected=true`, `scene_tools=available`, and an empty `next_step`. This checks the actual connected relay and public status enrichment, rather than a direct helper call. Restoring the former stale-catalog branch only in the disposable script copy made that same run fail: the server was connected but status incorrectly requested reconnect.
 
 The run records these source SHA-256 values; its fixture has uncommitted acceptance assertions on top of the source candidate:
 
 | Source | SHA-256 |
 |---|---|
-| `tests/lampway_tools/issue2_gui_fixture.py` | `01942187859cb7bbe64480ccc974e8eb2f4621dbad95eb959aace3d34f01a947` |
+| `tests/lampway_tools/issue2_gui_fixture.py` | `e348aaf89bb4119c60e70c4a7b361454cfd02a41f6ec739d50933d968e4e90a5` |
 | `src/scripts/mixar/modules/common/ui_control/core/observe.py` | `ca772b53d2d1a8d7237fb98bd691da05237c5175dcd688bb1576feafc7104f53` |
 | `src/scripts/mixar/modules/mcp_bridge/core/availability.py` | `283e9285b8294ebfee7e8004f22d47a1259e91c82523a3294f5480b899719384` |
 | `src/scripts/mixar/modules/mcp_bridge/core/connector.py` | `f649bb7ae6cf0bfbb904c7ed0def165e3defdcec2c38c8533cfbe9942d28807b` |
 | `src/scripts/mixar/modules/lampway_tools/ui/onboarding.py` | `5ce0b46f075d83bc52e9c5d63879dc70f808b694cb3d1be08709807ff8101868` |
+| `tests/lampway_visual/states/observe_labels.py` | `3cab8d1a1699a2cfad6db10a21e939ecb8924e5a2338df319d91dadcb90d2957` |
 
-The latest connected run observed 59 targets and labeled all of them, including all 14 text/tooltip-free controls. Fourteen maintained native-shape cases each fail under the old text/tooltip-only fallback and pass under the current source rule. These counts do not close verification of the unavailable original 71-target inventory. The older covering visual test now requires zero empty labels across its complete observed inventory and retains pagination checks.
+The latest connected run observed 59 targets and labeled all of them, including all 14 text/tooltip-free controls. Fourteen maintained native-shape cases each fail under the old text/tooltip-only fallback and pass under the current source rule. These current-layout counts are separate from the exact original inventory replay above. The older covering visual test now requires zero empty labels across its complete observed inventory and retains pagination checks. Its actual state facts also ran in this isolated GUI without invoking the legacy installation-sync harness; all current targets were labeled and both pages retained their original order and handles.
 
 Source/link audit passed six tests; local account and landing-route checks passed seven. The handoff tree/media gate reported zero findings. Native rebuilt-menu click proof and GPU-backed screenshots remain local QA requirements.
+
+Exact original-label regression verification passed 84 UI geometry/availability checks. The former label fallback produced 16 failures, one for every supplied original empty target. Complete original-inventory replay passed separately and preserved all 55 previously labeled controls. The original-inventory wait is resolved; rebuilt native menu clicks and hardware screenshots remain separate local QA requirements.

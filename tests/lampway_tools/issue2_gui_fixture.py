@@ -46,7 +46,8 @@ webbrowser.open = lambda url, *args, **kw: browser_opens.append(url) or False
 
 add_config('mcp_enabled', True)
 add_config('mcp_ui_control', True)
-state = {'phase': 0, 'steps': [], 'deadline': time.monotonic() + 95, 'browser_opens': browser_opens}
+state = {'phase': 0, 'steps': [], 'deadline': time.monotonic() + 95, 'browser_opens': browser_opens,
+         'source': json.loads(os.environ['LAMPWAY_GUI_SOURCE'])}
 OWNER = str(uuid.uuid4())
 pending = {}
 
@@ -81,6 +82,27 @@ def submit_scene():
 def submitted():
     assert not pending.get('error'), pending
     return pending.get('result')
+
+
+def submit_connected_context():
+    """Exercise the public MCP status enrichment after a real scene call."""
+    from mixar.modules.mcp_bridge.core.connector import Connector
+    session = bpy.context.scene.mixie_session_id
+    pending.clear()
+    def work():
+        import asyncio
+        from mcp import Client
+        from mixar.modules.mcp_bridge.core import stdio_server
+        async def check():
+            async with Client(stdio_server.create_server(Connector(session=session))) as client:
+                result = await client.call_tool('lampway_ui_context', {})
+                assert not result.is_error, result
+                return result.structured_content['result']
+        try:
+            pending['result'] = asyncio.run(check())
+        except Exception:
+            pending['error'] = traceback.format_exc()
+    threading.Thread(target=work, daemon=True).start()
 
 
 def source(module, relative, override=None):
@@ -147,6 +169,12 @@ def step():
             result, _ = observe.observe('issue2-fixture', {'limit': 200})
             assert result['targets'] and all(t['label'].strip() for t in result['targets']), result
             state['observed'] = result
+            # Run the original covering state's inventory/pagination facts here,
+            # using this no-sync runtime instead of its legacy sync harness.
+            import runpy
+            covering = runpy.run_path(str(Path(__file__).parents[1] /
+                                         'lampway_visual/states/observe_labels.py'))
+            state['covering_label_facts'] = covering['facts'](bpy, None)
             capture('labeled-controls.png')
             from mixar.modules.lampway_tools import onboarding as ob
             source(ob, 'lampway_tools/onboarding.py')
@@ -277,7 +305,16 @@ def step():
             assert not result.get('isError'), result
             assert browser_opens == [], ('automatic browser launch', browser_opens)
             state['popup_recovered'] = True
+            submit_connected_context()
             state['phase'] = 14
+            return 0.1
+        if state['phase'] == 14:
+            context = submitted()
+            if context is None:
+                return 0.1
+            assert context['server_connected'] is True, context
+            assert context['scene_tools'] == 'available' and context['next_step'] == '', context
+            state['connected_ui_context_after_scene_call'] = context
             (ROOT / 'receipt.json').write_text(json.dumps(state, indent=2))
             bpy.context.preferences.view.use_save_prompt = False
             bpy.ops.wm.quit_blender()

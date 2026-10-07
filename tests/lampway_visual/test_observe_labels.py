@@ -9,8 +9,10 @@ import harness
 
 def test_observe_labels_by_tooltip_and_pages_with_offset(tmp_path):
     f = harness.run_state("observe_labels", tmp_path)["facts"]
-    assert f["empty_text"] > 0 and f["empty_label"] < f["empty_text"], f
-    assert f["tip_fallbacks_right"], "label = text, else the tooltip"
+    assert f["empty_text"] > 0 and f["empty_label"] == 0, f
+    assert f["tip_fallbacks_right"], "text and tooltip keep precedence over native identity"
+    assert f["shown"] == f["total"], "label coverage must include the complete current inventory"
+    assert f["identity_fallbacks"] > 0, "cover controls with neither text nor tooltip"
     assert f["offset_schema"] == "ok", f["offset_schema"]
     assert f["offset_echo"] == 5
     assert f["pages"][0] + f["pages"][1] == f["same_as_every"], "page 2 continues page 1, in observe's order"
