@@ -310,8 +310,8 @@ class HermesFront:
     def tool_specs(self, unit: Optional[str] = None) -> list:
         from .. import capabilities as CAP
         from ..agent.swarm import SWARM_SPECS
-        from ..agent.tools import ASK_USER, TOOLS
-        return [t for t in list(TOOLS) + list(SWARM_SPECS) if t.name != ASK_USER and CAP.tool_offered(t.name)]
+        from ..agent.tools import TOOLS
+        return [t for t in list(TOOLS) + list(SWARM_SPECS) if CAP.tool_offered(t.name)]
 
     async def call_tool(self, unit: str, name: str, arguments: dict) -> tuple:
         """One of Lampway's tools from the unit's Hermes, whoever started its turn: on the scene tab's current client socket."""

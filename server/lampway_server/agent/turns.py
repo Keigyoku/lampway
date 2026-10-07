@@ -31,7 +31,7 @@ from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools
 from .. import capabilities as CAP
 from . import plan_tools
 from .swarm import SwarmContext, SwarmManager, is_swarm_tool
-from .tools import ASK_USER, UnknownTool, format_tool_result, script_for
+from .tools import UnknownTool, format_tool_result, script_for
 
 log = logging.getLogger("lampway.agent")
 
@@ -423,8 +423,6 @@ class AgentHub:
 
     async def _run_tool(self, socket, session, turn, call: ToolCall, stream=None, bubble_id=None,
                         steps=None) -> tuple[str, bool]:
-        if call.name == ASK_USER:                                  # offered to no agent: Lampway Agent's questions are Hermes's clarify
-            return "ask_user is not offered: Lampway Agent asks the user with clarify, which the island shows", True
         refusal = CAP.check_tool(call.name, call.arguments, origin="agent:main")      # spec E2, checked at call time
         if refusal is not None:
             return refusal, True

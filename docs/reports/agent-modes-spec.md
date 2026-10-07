@@ -253,7 +253,9 @@ Further mapping rules:
   the real TUI).
 - With no Lampway window connected the call is refused: "Lampway is not open on this scene".
 - Capabilities gate every call at call time (a switched-off family is refused and nothing reaches Blender).
-- `ask_user` is not offered: the island's questions are Hermes's own `clarify` (A2).
+- `ask_user` is not offered: the island's questions are Hermes's own `clarify` (A2). **Decided and built 2026-10-07:** `ask_user`
+  left the registry (no agent was offered it, and a question tool has no use beside `clarify`); the hub, the docs, the generated
+  agent skills and the two canonical skills that said it "needs the agent loop" were updated.
 - Steps come only from serve's `tool.start`/`tool.complete`; the MCP side emits none.
 - The client runs a `blender.execute_script` whose `turn_id` names a pane turn only while it shows that turn, and refuses one it
   dropped or that ended (A2, built 2026-10-07, client).
@@ -325,7 +327,8 @@ overwhelming/losing information the better."
   `LAMPWAY_HERDR_BIN`). The switch to Your agent is named in each, except herdr's: Your agent runs in a herdr pane too. The M0
   `wrong_mode` refusal still comes first. Nothing answers in the engine's place.
 - **Kept:** R0a's plan notice (it was shown on engine turns too), `_run_tool` and the registry, Capabilities, the swarm substrate,
-  BYOA. `ask_user` stays in the registry but is offered to no agent (Hermes asks with `clarify`).
+  BYOA. `ask_user` was kept in the registry, offered to no agent (Hermes asks with `clarify`); it left the registry on
+  2026-10-07 (A3).
 - **Fixed on the way:** a swarm the pane's Hermes starts now runs in the island turn that shows its call, so its todo cards and
   progress reach the Parallel Agents panel; the engine path passed no stream, so they never did.
 - **Checkpoints:** a mark bookmarks nothing (`has_conversation: false`) and a rewind is refused (`rewind_unsupported`), so the

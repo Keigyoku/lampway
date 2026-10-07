@@ -46,8 +46,11 @@ canon page is part of the contract: load `lampway-canon` and build to it.
 - A tool family that runs on the server (studio, video, prompts, ledger, assets, compute) has its own `specs()` module under
   `server/lampway_server/agent/` and is concatenated into `TOOLS` in `agent/tools.py`; `script_for` refuses to send a server-run
   tool to Blender.
-- MCP offers the scene tools, every `DEFS` tool and the server's read-only tools (`mcp.py` `offered_tools`). Studio tools, the
-  swarm and `ask_user` are never offered: they spend on the owner's subscription or need the agent loop.
+- MCP offers external apps the scene tools, every `DEFS` tool and the server's read-only tools (`mcp.py` `offered_tools`). Studio
+  tools are never offered to them (they spend on the owner's subscription) and the swarm only to a Lampway pane bound to a scene
+  tab. Lampway's agent (Mode 1, Hermes in its pane) is offered the whole registry as Capabilities allow through its unit's
+  endpoint (`engine/mcp_endpoint.py`). No tool asks the user: Hermes asks with its own `clarify`, and a question tool would be
+  offered to no agent (`ask_user` left the registry, 2026-10-07).
 
 ## 4. Money, receipts and egress
 
@@ -90,3 +93,4 @@ Provenance: Lampway's `specs/CONTRACT_TEMPLATE.md` (the coordinator's spec shelf
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the procedure for adding a tool existed only across module docstrings and an off-tree contract template | one procedure: contract, client api, server Def and registry, MCP exposure, receipts, egress, spend gate, generated docs, tests on both halves | captain ruling, 2026-10-05 |
 | 2026-10-06 | tool docs held by the rail, not by skill rows | captain: "Those recs are fine" (recommendation 3) | binding every registry file to this skill would owe a body change per tool; nothing held the generated page | no per-tool skill row; the generated page's own --check is a rail leg (catalog `generated`, RAIL-018) | captain ruling, 2026-10-06 |
+| 2026-10-07 | `ask_user` left the registry; who is offered what | coordinator brief, Mode 1 loose end 5 (spec A2, A5) | §3 said studio tools, the swarm and `ask_user` "need the agent loop", which is gone, and did not say that Mode 1's Hermes reaches the whole registry through its own endpoint | §3: external apps, bound panes and Lampway's agent each named with what they are offered; no question tool, Hermes asks with `clarify` | none |

@@ -78,7 +78,7 @@ def test_lampway_tools_belong_to_a_family():
     assert CAP.family_of("lampway_workbench", {"action": "read"}) == "scene.read"
     assert CAP.family_of("scene_summary") == "scene.read"
     assert CAP.family_of("run_blender_python") == "scene.edit"
-    assert CAP.family_of("lampway_capabilities") is None and CAP.family_of("ask_user") is None    # never gated
+    assert CAP.family_of("lampway_capabilities") is None    # never gated (ask_user, once beside it, left the registry: spec A2)
 
 
 def test_the_agent_tool_reads_and_proposes_but_cannot_set(board):

@@ -56,7 +56,7 @@ REPO_ENGINES = Path(__file__).resolve().parents[3] / "build" / "engines"
 MODEL_ID = "lampway"                     # the id the engine asks the gateway for; the current main provider answers whatever it is
 WILDCARD_BINDS = {"0.0.0.0", "::", ""}
 PROXY_PORT_FILE = "proxy.port"
-#: Spec S2: what a swarm worker never does, whatever the parent chose (its tool list also leaves out ``ask_user`` and ``clarify``).
+#: Spec S2: what a swarm worker never does, whatever the parent chose (its tool list also leaves out ``clarify``).
 WORKER_NEVER = frozenset({"subagents", "swarm", "schedule", "panes.drive", "computer.use"})
 WORKER_NEVER_FAMILIES = ("messaging.",)
 

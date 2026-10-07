@@ -264,7 +264,7 @@ def test_models_dev_url_can_be_given_and_must_be_loopback(board):
 
 
 def test_the_mcp_tool_call_timeout_is_hermess_largest_unclamped_value(board):
-    """Lampway's MCP tools run Blender scripts up to 600 s and ask_user holds the call until the user answers. Hermes clamps every
+    """Lampway's MCP tools run Blender scripts up to 600 s and a swarm's collect waits for its workers. Hermes clamps every
     timeout at MAX_SAFE_TIMEOUT_S = 31_536_000 s (agent/deadline.py:38, clamp at :111 at the pin)."""
     assert HC.MCP_TOOL_CALL_TIMEOUT_S == 31_536_000
     assert _render(board)["timeouts"] == {"mcp": {"tool_call": 31_536_000}}

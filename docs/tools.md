@@ -11,8 +11,8 @@ server/.venv/bin/python docs/gen_tools.py          # regenerate
 server/.venv/bin/python docs/gen_tools.py --check  # exit 1 when this page is stale
 ```
 
-- **252 tools** in the agent's registry; **202** of them run in Blender and are offered over MCP, plus **2** server-side MCP tools (`lampway_credit_balance`, `lampway_call_status`): **204 tools** over MCP in total.
-- Studio tools (`studio_*`) spend credits on your accounts and are **never** offered over MCP; `ask_user` needs the agent loop; the swarm tools are offered to no external app, only to your own agent in a Lampway pane bound to a scene tab, with the swarm capability on (its workers are panes too).
+- **251 tools** in the agent's registry; **202** of them run in Blender and are offered over MCP, plus **2** server-side MCP tools (`lampway_credit_balance`, `lampway_call_status`): **204 tools** over MCP in total.
+- Studio tools (`studio_*`) spend credits on your accounts and are **never** offered over MCP; the swarm tools are offered to no external app, only to your own agent in a Lampway pane bound to a scene tab, with the swarm capability on (its workers are panes too). Lampway's agent (Mode 1) is offered the whole registry as your Capabilities allow, through its own endpoint, and asks you questions with Hermes's `clarify`.
 - The `offered` column says whether an external AI app (Claude Code, Codex, Cursor, VS Code, OpenCode, Claude Desktop) can call the tool.
 - Every tool that costs money returns a plan and waits for your click ([spend](spend.md)); no tool can confirm a spend.
 - Paths a tool takes are relative to the project root; a path outside it is refused.
@@ -201,7 +201,6 @@ server/.venv/bin/python docs/gen_tools.py --check  # exit 1 when this page is st
 
 | tool | MCP | what it does |
 |---|---|---|
-| [`ask_user`](#ask_user) | no | Ask the user one question and wait for the answer before going on: a choice to make, a detail the request leaves open, or approval of a plan. |
 | [`lampway_addon_commit`](#lampway_addon_commit) | yes | Commit an approved patch: the Client's transactional commit (rolled back on failing checks), then its checks and install (installed says whether the add-on loaded). |
 | [`lampway_addon_read`](#lampway_addon_read) | yes | Read one file of a Blender add-on project the Client links (its add-on projects folder; by project id or name). |
 | [`lampway_addon_rollback`](#lampway_addon_rollback) | yes | Roll a linked add-on project back past one committed transaction (`to`, the transaction id from addon_commit), refused when the files changed since (the Client's revision check). |
@@ -2587,17 +2586,6 @@ Read-only: the Texture panel's settings and price, and the selected model's Hist
 MCP: not offered.
 
 ### Other
-
-#### ask_user
-
-Ask the user one question and wait for the answer before going on: a choice to make, a detail the request leaves open, or approval of a plan. Give short `options` when the answer is one of a few; leave them out for a free-text answer. For several independent choices, pass `questions` (2 to 4, each with options) instead: the user completes the set before you continue. The turn pauses until the user answers; their answer comes back as this tool's result.
-
-Inputs:
-- `question` (string): The question, in plain language.
-- `options` (array): The choices to offer (2 to 6 short labels), if any.
-- `questions` (array): A batch instead of `question`: 2 to 4 independent questions, each {question, options} (options required), shown as one wizard and answered together; the result is the map {question: answer}.
-
-MCP: not offered.
 
 #### lampway_addon_commit
 

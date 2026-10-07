@@ -21,7 +21,8 @@ AREAS = (("mesh", ("retopo", "uv_", "segment", "mesh_", "scene_", "batch_", "wei
          ("qa", ("qa_", "rebuild", "job_", "status")),
          ("pipeline", ("workflow", "armor", "asset", "ledger", "seed", "plate", "parts_", "proportion", "silhouette", "image", "prompt", "studio", "export_", "view_", "model_")),
          )
-EXCLUDE = (("studio_", "spends credits on the owner's subscription: not offered to external agents (mcp.py)"), ("swarm_", "needs the agent loop (mcp.py)"), ("ask_user", "needs the agent loop (mcp.py)"))
+EXCLUDE = (("studio_", "spends credits on the owner's subscription: not offered to external agents (mcp.py)"),
+           ("swarm_", "offered only to a Lampway pane bound to a scene tab, with the swarm capability on (mcp.py)"))
 LAW_PHRASES = (
     ("server/lampway_server/agent/prompt.py", "Never delete or overwrite the user's source files; the tools write new files."),
     ("server/lampway_server/agent/prompt.py", "Never run a tool that generates, uploads or spends credits unless the user asked for exactly that."),
@@ -87,7 +88,7 @@ def exclusion(name: str) -> Optional[str]:
 def _split(rows):
     inc, exc = [], []
     for r in rows:
-        why = exclusion(r["name"]) or (None if r.get("offered") else "a server-run tool that needs the agent loop's server context: not offered over MCP")
+        why = exclusion(r["name"]) or (None if r.get("offered") else "a server-run tool Lampway Agent calls through its own endpoint: not offered over MCP")
         (exc if why else inc).append((r, why))
     return [r for r, _ in inc], [{"tool": r["name"], "reason": w} for r, w in exc]
 

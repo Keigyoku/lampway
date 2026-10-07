@@ -71,7 +71,7 @@ def addon_commit(project, patch_id):
     svc = get_addon_project_service()
     pid = _project(svc, project)
     if _APPROVED.get(str(patch_id)) != pid:
-        raise C.FeatureError("a patch is committed only after the captain approves it (ask_user, then his click on Approve patch in the Client); "
+        raise C.FeatureError("a patch is committed only after the captain approves it (ask with clarify, then his click on Approve patch in the Client); "
                              f"{patch_id} has no approval")
     try:
         res = _err(svc.commit_patch, pid, str(patch_id))

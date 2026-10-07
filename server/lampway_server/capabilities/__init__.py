@@ -113,8 +113,8 @@ def get(cid: str) -> Capability:
 
 
 # ---------------------------------------------------------------------------------------------------- Lampway's tool families
-#: Tools no switch gates: the agent must always be able to read the board, propose and ask the user.
-UNGATED = {"lampway_capabilities", "ask_user"}
+#: Tools no switch gates: the agent must always be able to read the board and propose (it asks the user with Hermes's clarify).
+UNGATED = {"lampway_capabilities"}
 #: Lampway tools that only read. Everything else that touches the scene is scene.edit.
 READ_TOOLS = {"scene_summary", "lampway_choices", "lampway_connections", "lampway_credit_balance", "lampway_call_status"}
 DRIVE_ACTIONS = {"send", "open", "interrupt", "close"}

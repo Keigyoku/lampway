@@ -28,11 +28,12 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    turns a dead pending into `submission_unknown`, and only the user acknowledges or links it. Files are 0600 in 0700 directories;
    `export_safe` drops signed URLs and secrets before a receipt goes anywhere else.
 4. **MCP offers no spend.** `mcp.py` `offered_tools()` is the scene tools, the `DEFS` tools that are one script in Blender, and the
-   read-only server tools. Studio tools, the swarm and `ask_user` are never offered to external apps, and a `swarm:` session header
+   read-only server tools. Studio tools and the swarm are never offered to external apps, and a `swarm:` session header
    on their route is refused (a binding is not a credential). The engine's own endpoint
    (`engine/mcp_endpoint.py`, `/engine/mcp/<unit>`, spec E1.6, A3) is not an external app: it is the in-app agent's, the Hermes of
    one unit's Mode 1 pane, loopback only and bound to that unit's bearer (in the pane's own 0600 config; the server keeps its digest),
-   and offers the agent's full registry as Capabilities allow less `ask_user` (questions are Hermes's own `clarify`, A2), every call
+   and offers the agent's full registry as Capabilities allow (questions are Hermes's own `clarify`, A2: no question tool is in
+   the registry), every call
    through `AgentHub._run_tool` on the scene tab's CURRENT client socket (`AgentHub.socket_for`), whoever started the turn; with no
    Lampway window connected the call is refused, saying so. It has no confirm path either (law 3).
    The pane endpoint (`/api/v1/mcp/pane`, spec S3) is not an external app either: loopback only, it answers only a pane Lampway
@@ -40,7 +41,7 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    environment, handed to herdr like a per-pane API key (never the registry, which keeps a hash, and never the harness's command
    line). A swarm worker's pane (session header `swarm:<swarm_id>:<worker_id>`, its `PaneBrain`'s token) is offered
    `worker_tools()` as Capabilities allow plus `lampway_worker_done`, every call through its `WorkerJob.call_tool` on its own
-   headless Lampway, never the swarm, the studios, `ask_user` or the workbench. A pane bound to a scene tab (B2; its key) is offered only `swarm_start`, `swarm_status`,
+   headless Lampway, never the swarm, the studios or the workbench. A pane bound to a scene tab (B2; its key) is offered only `swarm_start`, `swarm_status`,
    `swarm_cancel` and `swarm_collect`, only with capability `swarm` in force and the BYOA switch on, for the swarms it started; its
    swarm thinks in panes and lands in its bound tab. No swarm tool spends.
 5. **A tool argument cannot change the script.** `agent/lampway_tools.py` `build_script` passes the arguments as one JSON string
@@ -240,3 +241,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | a tool call waits for its turn; a dead question is closed (A2) | coordinator brief, Mode 1 loose ends 6 and 8 | a tool call made while its pane turn was still being opened ran under a scratch turn id, which the client refuses (`unknown_turn`); a question left open when serve restarted or Hermes started another turn stayed open, so the tab's next chat was sent to a dead request and its card never closed | invariant 11: the bounded wait for the shown turn, the stale question released and its card closed | none |
 | 2026-10-07 | Capabilities switched while a pane runs (E2) | coordinator brief, Mode 1 loose end 1: "the running session must obey the new set before its next tool call" | a pane's config and toolset pin were written once, when it opened, so a capability the user switched on or off mid-session changed nothing in Hermes until the pane was reopened | invariant 9: the listener, the re-render with the pane's own keys, the `.env` pin and serve's two reloads (measured), the gateway's re-check, the turn that waits; the MCP call-time check stays the hard gate | none |
 | 2026-10-07 | Lampway's instructions reach Hermes (A1, R3) | coordinator brief, Mode 1 loose end 4: `SYSTEM_PROMPT` and the per-turn context fed only the generated agent files once the loop was gone | Mode 1's Hermes never read Lampway's guidance on its tools (their `mcp__lampway__` names, clarify, the spend and source-file rules) nor Plan Mode or Auto mode | invariant 9: the guidance as `agent.system_prompt` in a main pane's config (measured: Hermes appends it to its system message), the turn policy in the prompt; `SYSTEM_PROMPT` rewritten for Mode 1 | none |
+| 2026-10-07 | `ask_user` left the registry (A2, A5) | coordinator brief, Mode 1 loose end 5 | `ask_user` stayed in the registry offered to no agent, its refusal special-cased in the hub, and its docs, generated skills and two canonical skills said it "needs the agent loop", which is gone | invariant 4: no question tool in the registry, Hermes asks with `clarify`; the exclusions name their real reasons | none |
