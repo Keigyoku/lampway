@@ -84,6 +84,7 @@ class AgentHub:
     def __init__(self, provider, *, script_timeout_s: float = 600.0, system_prompt: str = SYSTEM_PROMPT,
                  swarm_provider_factory=None, studio=None, video=None, prompts=None, jobs=None, cockpit=None, assets=None):
         self.provider = provider
+        self.engine = None              # engine/runtime.EngineRuntime: Hermes in the seat (spec E1); None = the built-in loop
         self.assets = assets
         self.studio = studio
         self.video = video
@@ -173,8 +174,11 @@ class AgentHub:
                     return {"state": "complete", "result": {"ok": False, "message": refused}}
             else:
                 answer = Q.single_answer(text, answers, action)
-            add_tool_results(session.messages, [{"type": "tool_result", "tool_call_id": pending["call_id"],
-                                                 "content": answer, "is_error": False}])
+            if self.engine is not None and self.engine.has_question(session_id):
+                self.engine.answer(session_id, answer)        # the engine's ask_user call returns it; the running prompt goes on
+            else:
+                add_tool_results(session.messages, [{"type": "tool_result", "tool_call_id": pending["call_id"],
+                                                     "content": answer, "is_error": False}])
             session.pending_question = None
             return self._admit(socket, command_id, session_id, None, plan_mode=pending.get("plan_mode", False), reply=reply)
         if answers:
@@ -196,9 +200,11 @@ class AgentHub:
         turn.task = socket.spawn(self._run_turn(socket, session, turn, command, user_text, previous, marks_text, reply))
         return {"state": "pending"}
 
-    @staticmethod
-    def _close_question(session, answer: str) -> None:
+    def _close_question(self, session, answer: str) -> None:
         pending, session.pending_question = session.pending_question, None
+        engine = self.engine
+        if engine is not None and engine.has_question(session.session_id):
+            engine.answer(session.session_id, answer)
         add_tool_results(session.messages, [{"type": "tool_result", "tool_call_id": pending["call_id"], "content": answer,
                                              "is_error": False}])
 
@@ -316,6 +322,10 @@ class AgentHub:
                 session.messages.append(message)
             if reply is not None:                          # answered here (a cancelled batch): the model is not called again
                 await stream.emit({"bubble_id": bubble_id, "content": {"set": reply}})
+                return
+            if self.engine is not None:                    # spec E1: Hermes runs the conversation over ACP
+                await self.engine.drive(socket, session, turn, stream, bubble_id, steps,
+                                        None if user_text is None else session.messages[-1].text())
                 return
             if user_text is not None and user_text.strip().lower() == Q.CONTINUE_MESSAGE and self.swarm.failed_tasks(session.session_id):
                 await self._retry_failed(socket, session, turn, stream, bubble_id, steps)

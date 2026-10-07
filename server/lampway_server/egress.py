@@ -79,6 +79,7 @@ LAUNCHES: dict = {
     "cards/activity.py:_commits": ("local", "git log on the local repository (the report card's recorded changes)"),
     "job_backends.py:BlenderRun.__call__": ("local", "a niced headless Lampway process for one job, in its own 0700 directory"),
     "job_backends.py:BlenderRun.make_test_glb": ("local", "a niced headless Lampway process that writes a test GLB"),
+    "engine/runtime.py:EngineRuntime._ensure_child": ("local", "starts Lampway's pinned Hermes engine (agent-modes spec E1.2) with a scrubbed environment; its only model endpoint is Lampway's loopback gateway and every proxy variable points at Lampway's egress proxy (E1.5)"),
     "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets"),
     "herdr/launcher.py:_systemd_ok": ("local", "systemctl --user is-system-running: a local query"),
     "job_backends.py:BlenderRun.__call__": ("local", "nice headless Lampway (-b, bridge port 0) running one local mesh job on the uploaded file; no network"),

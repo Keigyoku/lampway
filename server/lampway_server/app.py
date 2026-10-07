@@ -1332,6 +1332,8 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     choice_hook.append(choice_changed)
     routes += choices_routes(_bearer_ok, choice_changed)
     routes += capabilities_routes(_bearer_ok)
+    from .engine.mcp_endpoint import engine_mcp_routes
+    routes += engine_mcp_routes(lambda: agent.engine)                        # spec E1.6: the engine's own MCP endpoint
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager
