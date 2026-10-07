@@ -590,7 +590,8 @@ class Cockpit:
         Lampway-owned directory inside the pane's project root, ``<project root>/.lampway/panes/<id>/images/`` (``.lampway`` is
         Lampway's own folder in a project), 0600 files in 0700 directories. Never outside the project root (the same jail as the
         tools, every path checked after symlinks are resolved), never a name or type the client chose: the bytes must be a PNG,
-        JPEG, GIF or WebP image, and Lampway names the file. Returns the absolute paths, in order."""
+        JPEG, GIF or WebP image, and Lampway names the file. Ownership metadata retains each copy for 30 days; originals and
+        unrecorded legacy files are untouched. Returns the absolute paths, in order."""
         rec = self._get(sid)
         pr = rec.get("project_root") or self.project_root
         if not pr:
@@ -612,6 +613,9 @@ class Cockpit:
             if not real.startswith(root + os.sep):
                 raise CockpitError(f"refusing to write images through {d}: it leads outside the project root")
         os.chmod(target, 0o700)
+        from .image_copies import ImageCopies
+        copies = ImageCopies(self.root)
+        copies.expire(sid, root, time.time())
         out = []
         for data in images:
             path = target / f"image-{time.strftime('%Y%m%d-%H%M%S')}-{secrets.token_hex(4)}.{image_kind(data)}"
@@ -623,7 +627,23 @@ class Cockpit:
                 os.unlink(path)
                 raise CockpitError("refusing an image path outside the project root")
             out.append(real)
+        copies.remember(sid, root, out, time.time())
         return out
+
+    def expire_pane_images(self) -> list:
+        """30-day retention for metadata-owned copies only; originals and unrecorded legacy files stay untouched."""
+        from .image_copies import ImageCopies
+        copies, removed = ImageCopies(self.root), []
+        now = time.time()
+        for rec in self.list_sessions():
+            project_root = rec.get("project_root") or self.project_root
+            if not project_root:
+                continue
+            try:
+                removed.extend(copies.expire(rec["id"], os.path.realpath(project_root), now))
+            except (OSError, ValueError, TypeError):
+                log.warning("pane image ownership metadata unavailable; copies retained")
+        return removed
 
     def resume_bound(self, sid: str, scene_session_id: str, unit_label=None) -> dict:
         """The user's Resume of an ended harness pane bound to a scene tab (agent-modes spec B2; law 5: only the user's click, never
@@ -696,6 +716,7 @@ class Cockpit:
         """The live server is the truth, the registry the map. Never spawns, never kills, idempotent. A re-adopted pane keeps its
         record's ``unit`` and ``role`` and takes herdr's current pane and tab ids, so the layout (spec A4) is re-adopted with it:
         ``units`` maps each unit with a live pane to its tab, its main panes and its workers, in the order they were opened."""
+        self.expire_pane_images()  # retention runs even when herdr has stopped
         out = {"server": "running", "adopted": [], "ended": [], "unadopted": [], "new_panes": 0, "offered": [], "units": {}}
         if not L.server_status(self.root).get("running"):
             out.update(server="not_running", offered=["start", "resume"])
