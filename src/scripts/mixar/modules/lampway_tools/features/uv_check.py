@@ -150,7 +150,7 @@ def _undo():
 
 
 def run(object, action="measure", target_density_px_m=None, texture_size=2048, tolerance=0.15, tile_from=None, tile_to=None, islands=None, dry_run=True,
-        mirror_axis="x", match_tolerance=0.003, res=512, discard_texture=False):
+        mirror_axis="x", match_tolerance=0.003, res=512, discard_texture=False, limit=50, offset=0, full=False):
     ob = C.need_object(object)
     if action not in ACTIONS:
         raise C.FeatureError("action is " + " | ".join(ACTIONS))
@@ -182,7 +182,9 @@ def run(object, action="measure", target_density_px_m=None, texture_size=2048, t
         out = {"object": ob.name, "action": action, "uv_layer": ob.data.uv_layers.active.name, "island_count": len(groups)}
         if action == "measure":
             rows = _island_rows(groups, uvl, mw, size)
-            out["islands"] = rows
+            lim, off = max(1, int(limit)), max(0, int(offset))       # audit F8: a page of islands; the tiles and density below cover every island
+            out["islands"] = rows if full else rows[off:off + lim]
+            out["next_offset"] = None if full or off + lim >= len(rows) else off + lim
             out["texture_size"] = size
             out["udim"] = {"tiles": sorted({t for r in rows for t in r["tiles"]}), "crossing": [r["index"] for r in rows if len(r["tiles"]) > 1]}
             d = np.array([r["density_px_m"] for r in rows if r["density_px_m"]], dtype=np.float64)
