@@ -23,6 +23,8 @@ The normal render performs a second, fresh-browser pass, again sequential from z
 
 Each completed run owns `motion/out/<name>-<code8>-<unique-run>/`. Exclusive run allocation and pinned output directories prevent collisions and tested parent-directory swaps. Export the requested MP4 and/or WebM plus samples, contact sheet, frame list and receipt. Public ToolSpec prose currently omits the unique suffix: this is a documentation/schema synchronization gap, not an alternative path contract.
 
+Implemented export settings: MP4 uses libx264, high profile, slow preset, CRF 18 and faststart; WebM uses libvpx-vp9, CRF 30, zero target bitrate, good deadline, cpu-used 2 and row-mt enabled. Both use yuv420p, BT.709 limited range and fixed default four encoder threads. Metadata and chapters are removed, bitexact flags set, and x264 settings SEI removed. A conditional stream-copy remux removes encoder tags on engines that add them; already-clean outputs retain their bytes. Verification reuses the recorded thread count because MP4 bytes depend on it. These are inspected settings, not cross-engine byte-equality guarantees.
+
 Reproduction requires matching captured frames, frame-list digest and requested new encoded hashes against the trusted receipt, with matching Chromium product and ffmpeg version strings. Engine flags, driver hash, scene inventory and encoder arguments are recorded for diagnosis; current verify does not enforce all of them. It does not check the original video files still exist or match their receipt hashes. Do not label this tamper evidence or existing-artifact integrity verification.
 
 ## 3. Provenance and publication

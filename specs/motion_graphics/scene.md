@@ -35,6 +35,8 @@ This is an interface sketch, not a complete acceptable scene. `__setup()` must l
 
 These checks use sampled pixels and authored geometry. They do not detect all readability, omitted text, poor pacing, layout or animation defects. Review the contact sheet and rendered video separately. Keep sparse-opening and other warnings visible.
 
+For reproduction of the detail gate, resize to half-resolution with bilinear filtering, compute luminance using RGB weights 0.2126/0.7152/0.0722, and measure the share whose summed horizontal/vertical local differences exceed 10 on the 0–255 scale. Overlap selectors are literal authored values: `sel == "figure"` or `sel.startswith("card")`, with the exact text selector exemption `.card .tag`.
+
 ## Template contract
 
 All seven builtins are version `1.0.0`, purpose `motion-graphics`, media `video`. Defaults are `1080p`, `16:9`, `min_text_px=28`; these are authoring guidance, not renderer configuration. Runtime minimum remains 22 px. Five non-TITAN templates use the supplied brand stylesheet's palette; TITAN templates deliberately have no palette variable.
