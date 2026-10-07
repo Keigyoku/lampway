@@ -15,6 +15,8 @@ import bpy
 
 ROOT = Path(os.environ['LAMPWAY_PROJECT_ROOT'])
 OVERLAY = os.environ['LAMPWAY_VIEW_OVERLAY']
+sys.path.insert(0, str(Path(__file__).parent))
+from issue2_graphics import validate_renderer
 sys.path.insert(0, OVERLAY)
 import mixar, mixar.modules
 mixar.__path__.insert(0, OVERLAY + '/mixar')
@@ -120,8 +122,10 @@ def step():
             bpy.context.window.event_simulate(type='ESC', value='PRESS')
             bpy.context.window.event_simulate(type='ESC', value='RELEASE')
             import gpu
-            state['graphics'] = {'renderer': gpu.platform.renderer_get(),
+            state['graphics'] = {'requested_software_gl': os.environ['LAMPWAY_VIEW_SOFTWARE_GL'],
+                                 'renderer': gpu.platform.renderer_get(),
                                  'vendor': gpu.platform.vendor_get(), 'version': gpu.platform.version_get()}
+            validate_renderer(state['graphics']['requested_software_gl'], state['graphics']['renderer'])
             state['phase'] = 0.5
             return 1
         if state['phase'] == 0.5:

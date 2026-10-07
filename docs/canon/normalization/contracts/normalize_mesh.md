@@ -25,6 +25,7 @@ file reads. The agent calls it on a mesh the captain dragged in. The captain see
 {"input": "object name | project path (glb, gltf, fbx, obj, usd, blend)",
  "turn_deg": "number | null (the piece's facing: -90 for a +X-facing import; null = decide by plate or recipe)",
  "plate": "project path of the approved Front plate | null (enables measured facing)",
+ "facing_margin": "number 0..1 | null (explicit minimum best-minus-second silhouette IoU; null uses the canonical setting, refusal if unset)",
  "recipe": "project path | null (a recipe's per-piece turn_deg wins over a guess, never over an explicit turn_deg)",
  "generator": "tripo_studio | tripo_api | meshy | hi3d | hyper3d | hunyuan | trellis | captain_authored | lampway_tool | unknown (default: from the Vault record)",
  "want_scale": "real | any (default any)", "scale_evidence": "{method, value, reference} | null",
@@ -44,8 +45,7 @@ Blender importers through `canon_io.import_raw` (DOOR.md §1); transform apply w
 (`LT/features/scene_cleanup.py:189-197`); topology and UV measurement from `common.mesh_report` (`LT/features/common.py:77-117`)
 and `uv_islands.measure_object` (`LT/features/uv_islands.py:85-121`); geometry hash as `workflows.mesh_hash`
 (`LT/features/workflows.py:37-46`) over canonical positions. **Plate registration** (measured facing): `render.render_view`
-silhouettes at four yaws against the plate mask fitted by bounding box, the IoU rule of `silhouette.py:62-87` (bbox fit is
-correct here: the plate has no camera). Licence: Blender GPL; nothing new.
+silhouettes at four cardinal yaws (0, -90, 90, 180) against the approved Front plate, using the shared `silhouette._render_mask` engine and `canon_geom.fit_masks_true_aspect`/`mask_iou`. The plate loader retains native dimensions, keys alpha or the canon-10 border ring, and never stretches a rectangular plate square before fitting. A unique winner must beat the second by the explicitly supplied or ruled margin; a tie always refuses. Measurement uses a disposable object, scene and image files; the input stays untouched until the frame is accepted. Licence: Blender GPL; nothing new.
 
 ## 7. Model slot
 None. A vision judge never decides a frame.
@@ -72,7 +72,7 @@ rotation), a seam-split UV sphere (each island its own shell), the Boots1 Smart 
 3. `test_weld_unsplits_islands`: the seam-split sphere's `shells` goes from the island count to 1; UV islands unchanged; the receipt counts the merged vertices.
 4. `test_turn_is_recorded_and_reversible`: `axis_map` applied inverse returns the raw positions within 1e-6.
 5. `test_unknown_scale_refused_when_real_wanted` and `test_generator_scale_recorded` (Tripo source -> `generator_normalised`, `longest_side_m` measured).
-6. `test_plate_registration_picks_the_front` on a synthetic L-shaped piece with an asymmetric front; falsifier: a symmetric cube yields "facing ambiguous".
+6. `tests/lampway_tools/test_canon_normalize_facing.py` pins the native plate-registration golden: a synthetic L profile rendered as the approved Front on a rectangular alpha canvas, raw geometry baked +90°, winning turn -90° with best/second IoU and explicit margin in the document and receipt. Falsifier: a symmetric cube ties and yields "facing ambiguous", preserving geometry and all IDs. Unset/out-of-range margins refuse; the nonliteral background uses the shared border-ring key.
 7. `test_idempotent`: normalizing a canonical object changes nothing and returns `unchanged`.
 8. `test_reproducible`: the same raw bytes and decisions give byte-identical `.canon.json` and canonical `.blend` content hash [UNVERIFIED whether .blend writes are byte-stable; if not, the canonical hash covers the payload, SCHEMA.md §3].
 

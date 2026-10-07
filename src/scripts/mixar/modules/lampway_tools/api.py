@@ -1425,17 +1425,17 @@ def normalize_texture(input, role="auto", normal_convention="auto", tiling_real_
 
 
 @tool(consumes={"input": Need(kind=("mesh",), accept_raw=True)})
-def normalize_mesh(input, turn_deg=None, plate="", recipe="", generator="", want_scale="any", scale_evidence=None, weld="auto", weld_distance_m=None):
+def normalize_mesh(input, turn_deg=None, plate="", recipe="", generator="", want_scale="any", scale_evidence=None, weld="auto", weld_distance_m=None, facing_margin=None):
     """A raw mesh (an object, or a file under the project root imported raw) into a CANONICAL mesh (lampway.canonical-asset/1:
     metres, +Z up, front -Y, transform applied, the scale STATE recorded, a generated mesh welded by position, lw_source_face, pivot at
     the bounding box's bottom centre), stamped lw_canon, with a receipt under canon/receipts/. The facing is DECLARED: turn_deg
-    (the piece's turn about Z; -90 for a +X-facing import) or a recipe's turn_deg; it is never guessed (refused: "frame undecided").
+    (the piece's turn about Z; -90 for a +X-facing import) or a recipe's turn_deg. Otherwise an approved Front plate is measured at four cardinal yaws using true-aspect silhouette IoU. facing_margin is the explicit minimum best-minus-second IoU difference in 0..1; None uses the canonical setting, which refuses if unset. Ties and gaps below the margin refuse with scores and a turn_deg fix.
     generator: tripo_studio | tripo_api | meshy | hi3d | hyper3d | hunyuan | trellis | lampway_tool | captain_authored | unknown ...
     (Tripo / Hi3D files are generator_normalised; a generated mesh is welded at weld_distance_m, default 1e-5, refused above 5 %
     merged; weld=never for an authored mesh). want_scale=real needs scale_evidence {method, value, reference}. A skinned mesh is
     refused (normalize_rigged). Normalizing a canonical object again changes nothing (unchanged)."""
     from .features import normalize as _N
-    return _N.run(input, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root=str(_settings().project_root))
+    return _N.run(input, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root=str(_settings().project_root), facing_margin=facing_margin)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))

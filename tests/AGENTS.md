@@ -44,6 +44,8 @@ The MCP-specific binary tests accept `LAMPWAY_INSPECT_BIN` and `LAMPWAY_VIEW_BIN
 
 The inspection integration fixture also verifies main-owned canonical translation and refused-import cleanup through T1 world metrics and counts, using the same isolated current-overlay profile.
 
+The isolated onboarding GUI fixture defaults to software GL. `LAMPWAY_VIEW_SOFTWARE_GL=0` requests hardware: it removes inherited desktop display/software flags, creates a fresh display, records the requested mode and actual renderer, and refuses software fallback. Hardware acceptance requires a measured hardware renderer; a cloud llvmpipe refusal is a negative control, not a GPU pass.
+
 Checkpoint tests measure full document writes across an armed read turn: certified complete scene-summary/OBSERVE wrappers write zero copies; forged read names, arbitrary scripts and admitted typed commits capture once before mutation. Keep pre-turn transcript/new-session/bookmark restoration, scene-renaming, reverted-branch pruning and existing tip/safety/undo regressions. Typed commit admission failures and idempotent replays must not capture. Every file load clears pending metadata before the restore branch while retaining the restored session. Source-structure and fake-`bpy` proofs are reported separately from an isolated GUI mock-provider lifecycle.
 
 Prepublish tests plant both content identifiers and invalid authored commit identities: findings must block and must not echo personal values or email domains.
@@ -69,3 +71,5 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-07 | GUI opt-in startup readiness | exact-head acceptance reached native capture before the connector timer synchronized the saved opt-in | a fixed six-second startup delay raced deferred controller registration | await the observable native/controller snapshot once, retain pixel guards and undo/masking assertions | isolated seed-zero readiness receipt and exact-head aggregate |
 | 2026-10-07 | PII diagnostic negative controls | captain: fix PR privacy exposure | public diagnostic output could reproduce the identifier being blocked | plant content and commit identifiers, assert refusal and complete personal-value redaction | prepublish ten-test pass |
 | 2026-10-07 | read-turn checkpoint byte falsifiers | captain: complete issue 2 F25 | eager copies paid for reads and a naive skip could disable mutation recovery | pin certified whole scripts, forged-name mutation, once-only admitted writes and retained restore metadata; distinguish mocked proof from GUI lifecycle | checkpoint and typed-commit suites |
+
+| 2026-10-07 | measured hardware GUI mode | issue 2 requires both software and GPU screenshots | the fixture forced software GL and could label fallback as hardware | expose an explicit isolated mode and reject measured software renderers; retain default software coverage | nine mode checks and real software/fallback GUI receipts |

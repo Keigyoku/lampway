@@ -482,12 +482,13 @@ DEFS = [
         api="normalize_texture"),
     Def("lampway_normalize_mesh", "A raw mesh (a scene object, or a file under the project root, imported raw) into a CANONICAL mesh (canon: specs/canon/normalization): metres, +Z up, "
         "front -Y, transform applied, the scale state recorded (Tripo / Hi3D generator_normalised; real only with evidence), a generated mesh welded by position (1e-5 m, refused above 5 % merged), "
-        "lw_source_face, pivot at the bounding box's bottom centre; stamped lw_canon with a receipt. The facing is DECLARED by turn_deg (-90 for a +X-facing import) or a recipe; never guessed "
-        "('frame undecided'). A skinned mesh goes to the rig normalizer. Tools that read assets refuse a raw one with 'normalize first'.",
+        "lw_source_face, pivot at the bounding box's bottom centre; stamped lw_canon with a receipt. The facing is declared by turn_deg (-90 for a +X-facing import) or a recipe, "
+        "or measured against an approved Front plate at four cardinal yaws with true-aspect silhouette IoU and an explicit best-minus-second margin. Unset margin or ambiguous facing refuses. A skinned mesh goes to the rig normalizer. Tools that read assets refuse a raw one with 'normalize first'.",
         [P("input", required=True, desc="object name or project path"), P("turn_deg", "number", "the piece's facing turn about Z"), P("plate", desc="approved Front plate (needs the facing margin)"),
          P("recipe", desc="a recipe json with turn_deg"), P("generator", desc="tripo_studio | tripo_api | meshy | hi3d | ... | lampway_tool | captain_authored | unknown"),
          P("want_scale", desc="any (default) | real"), P("scale_evidence", "object", "{method, value, reference} for real scale"), P("weld", desc="auto (default) | never"),
-         P("weld_distance_m", "number", "1e-7..1e-3, default 1e-5")], api="normalize_mesh"),
+         P("weld_distance_m", "number", "1e-7..1e-3, default 1e-5"),
+         P("facing_margin", "number", "Explicit minimum best-minus-second plate silhouette IoU difference, 0..1. Omitted uses the canonical setting and refuses if unset; no numeric default is ruled. Exact ties always refuse.", minimum=0, maximum=1)], api="normalize_mesh"),
     Def("lampway_weight_transfer", "Copy skin weights from a rigged body onto a piece (canon: specs/canon/07-skin-weights.md): the piece's vertices are WELDED by position first (weld_m, default 1e-5 m; 0 for an authored rig) so seam duplicates share one row, then closest-surface matching (distance <= max_distance, default 0.05 m, and normal within max_normal_angle, default 30), then "
         "inpaint every unmatched vertex so armpits and gaps blend. engine algorithmic: a harmonic fill; robust: the SIGGRAPH Asia 2023 biharmonic method in the science python. Source needs vertex groups and "
         "exactly one Armature modifier. Result: a NEW object <object>_wt with the body's groups (capped at limit_groups, default 4). The original is untouched.",

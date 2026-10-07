@@ -36,6 +36,8 @@ binary shape, while actual owner-asset receipts are reported separately.
 
 Canon 08 distinguishes its accepted complete helmet table from still unspecified numerical rows for other kinds. The implementation uses named axes and retains sign falsifiers; the glove engine wiring does not infer mirror labels or substitute a pose model.
 
+The normalize_mesh contract names the native cardinal-facing golden and symmetric tie falsifier. Canon 10 fixes native plate aspect and border-ring keying; the D6 default remains unset until a numeric ruling, while explicit margins exercise the implemented engine.
+
 ## Test
 
 ```bash
@@ -59,3 +61,5 @@ needs it and lands through the integration lane. Statuses, thresholds and the de
 | 2026-10-07 | native topology and corrective-root canon | issue 2 G2/G4 | closed-only intake and continuation-only normalization rejected native shapes | document analytical winding intake and authored corrective frames with regenerated R02 evidence | issue 2 acceptance receipts |
 
 | 2026-10-07 | accepted helmet table | captain requested canon-recommended typed defaults | complete proposal remained stubbed while other numeric rows were absent | record the complete helmet proposal as accepted and keep other absent numerical rows explicit | issue 2 |
+
+| 2026-10-07 | cardinal facing golden | issue 2 AC65 | plate registration had no implementation despite its existing canon engine contract | pin winning rotation and tie refusal against real rendered masks with explicit margin | canon 10 and normalization contract |

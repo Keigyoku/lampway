@@ -52,6 +52,8 @@ Large receipts from `mesh_defect_scan`, `procedural_library`, `rig_game_extract`
 
 AXI renders through the authoritative `common/toon/codec.py`; numpy integer, float and boolean scalars normalize to their native scalar types before TOON formatting. A CLI loading `axi.py` by file path loads that same sibling codec by path when no package namespace exists; it never imports Blender registration or maintains a second codec. Standalone proportion CLI and numpy-table subprocess tests run with Python `-I` to prove this path. Refusals use registry-generated `tool_specs.json` `api_calls` templates (with specific multiview/locality shapes); normalization helpers and proportion CLI next steps name registered tools rather than Python API names or the old tool shelf.
 
+Plate-facing registration uses four cardinal Workbench silhouettes, the shared native-size plate loader, and canon aspect-preserving IoU. Keep the numeric margin explicit or ruled; unset margins and tied winners refuse, and measurements restore temporary IDs and selection before applying a winning turn.
+
 ## Test
 
 ```bash
@@ -89,3 +91,5 @@ page; the canon's open decisions are the captain's.
 
 | 2026-10-07 | shared scalar codec and standalone CLI | issue 2 G1 and full fit-chain intake | numpy constructor repr broke decimal formatting and package-only imports broke standalone proportion workers | normalize explicit numpy scalars in the shared codec; path-loaded AXI loads the same canonical file; prove subprocess isolation and source-file identity | 746 AXI/TOON tests and native 11-stage full-chain receipts |
 | 2026-10-07 | registry-backed refusal next steps | issue 2 G19/F13/G20 | Python API names, obsolete shelf commands and invented normalizers were not callable next tools | generate complete API call-name mapping; validate help names against the live registry, with an unknown-tool plant and native refusal checks | server refusal-template and isolated binary tests |
+
+| 2026-10-07 | measured plate facing | issue 2 AC65 remaining implementation | a supplied margin still unconditionally refused the plate path | reuse cardinal silhouette rendering and true-aspect scoring; preserve unset/ambiguous refusals and transient cleanup | normalize_mesh contract golden |

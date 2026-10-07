@@ -14,13 +14,15 @@ import sys
 
 import pytest
 
+from issue2_graphics import prepare_environment, validate_renderer
+
 
 def test_issue2_onboarding_and_native_target_labels(tmp_path, request):
     binary = os.environ.get('LAMPWAY_VIEW_BIN')
     xvfb = os.environ.get('LAMPWAY_VIEW_XVFB') or shutil.which('Xvfb')
     if not binary or not xvfb:
         pytest.skip('LAMPWAY_VIEW_BIN and isolated Xvfb required; desktop pixels unverified')
-    env = os.environ.copy()
+    env = prepare_environment(os.environ)
     for key in ('HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_STATE_HOME', 'XDG_CACHE_HOME',
                 'XDG_RUNTIME_DIR', 'LAMPWAY_HOME', 'LAMPWAY_LEGACY_HOME', 'TMPDIR'):
         path = tmp_path / key.lower()
@@ -40,7 +42,7 @@ def test_issue2_onboarding_and_native_target_labels(tmp_path, request):
     (project / 'routes.json').write_text(json.dumps(routes))
     env.update(LAMPWAY_PROJECT_ROOT=str(project), LAMPWAY_TEST_ROOT=str(tmp_path),
                LAMPWAY_VIEW_OVERLAY=str(Path(__file__).resolve().parents[2] / 'src/scripts'),
-               LIBGL_ALWAYS_SOFTWARE='1', LAMPWAY_BACKEND_URL='http://127.0.0.1:9', LAMPWAY_BRIDGE_PORT='0')
+               LAMPWAY_BACKEND_URL='http://127.0.0.1:9', LAMPWAY_BRIDGE_PORT='0')
     # The native build can have older installed Python. Merge the current
     # public overlay into a disposable copy rather than syncing that build.
     installed = list(Path(binary).resolve().parent.glob('*/scripts'))
@@ -109,7 +111,8 @@ def test_issue2_onboarding_and_native_target_labels(tmp_path, request):
             assert (project / 'receipt.json').exists(), output[-8000:]
             receipt = json.loads((project / 'receipt.json').read_text())
             assert receipt['step1']['frame']['width'] > 0
-            assert receipt['graphics']['renderer']
+            assert receipt['graphics']['requested_software_gl'] == env['LAMPWAY_VIEW_SOFTWARE_GL']
+            validate_renderer(env['LAMPWAY_VIEW_SOFTWARE_GL'], receipt['graphics']['renderer'])
             assert receipt['popup_recovered'] is True
             assert receipt['browser_opens'] == []
             assert len(receipt['steps']) == 4
