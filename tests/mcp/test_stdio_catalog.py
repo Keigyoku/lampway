@@ -50,20 +50,24 @@ def run(check):
     asyncio.run(main())
 
 
-#: Claude Code keeps only this many characters of server instructions and of
-#: each tool description; the full playbook is the backend's mixar_guide tool.
+#: Claude Code keeps only this many characters of server instructions and
+#: each tool description.
 CLAUDE_CODE_TEXT_CAP = 2048
 
 
 def test_instructions_teach_the_scene_workflow_within_claude_codes_cap():
-    assert len(stdio_server.GUIDE) <= CLAUDE_CODE_TEXT_CAP
-    # Lampway's vocabulary (audit F3: the upstream backend's execute_bpy_script, render_viewport, ... do not exist here)
-    for tool in ("lampway_scene_new", "scene_summary", "run_blender_python", "lampway_status", "lampway_vault_search",
+    assert len(stdio_server.GUIDE.encode()) <= CLAUDE_CODE_TEXT_CAP
+    # Preserve audit F3's scene workflow and safety guidance in the generated
+    # server-owned instructions, alongside C2's new first inspection step.
+    assert "First call lampway_inspect with no arguments" in stdio_server.GUIDE
+    for tool in ("lampway_scene_new", "run_blender_python", "lampway_status", "lampway_vault_search",
                  "lampway_call_status", "lampway_ui_call_status"):
         assert tool in stdio_server.GUIDE
     flat = " ".join(stdio_server.GUIDE.split())
     assert "Ask the user when an open choice matters" in flat and "never use OS-level computer use" in flat
     assert "Nothing offered here spends credits" in flat
+    assert "plan, never confirm" in stdio_server.GUIDE
+    assert "Never delete or overwrite the user's source files" in stdio_server.GUIDE
     from mixar.modules.common.ui_control.core import schema
     assert all(len(tool["description"]) <= CLAUDE_CODE_TEXT_CAP for tool in schema.tools())
 

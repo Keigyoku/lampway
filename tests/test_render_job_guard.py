@@ -273,3 +273,19 @@ def test_sidecar_instance_read_goes_through_the_main_thread():
     end = src.index("def _health()", start)
     block = src[start:end]
     assert "_run_on_main(_read)" in block
+
+
+def test_inspect_passes_render_gate_but_view_is_refused(monkeypatch):
+    from mixar.modules.common.agent_execution.request import ExecutionRequest
+    gate = _render(monkeypatch, 'scene_video')
+    responses = []
+    monkeypatch.setattr(gate.pump, 'respond', lambda client, req, result: responses.append((req.tool_name, result)))
+    _fake_client(monkeypatch)
+    inspect = ExecutionRequest('inspect-1', 'read', tool_name='lampway_inspect')
+    view = ExecutionRequest('view-1', 'focus', tool_name='lampway_view')
+    assert gate.refuse_during_render(inspect) is False
+    assert responses == []
+    assert gate.refuse_during_render(view) is True
+    assert len(responses) == 1
+    assert responses[0][0] == 'lampway_view'
+    assert responses[0][1]['error_type'] == 'render_in_progress'

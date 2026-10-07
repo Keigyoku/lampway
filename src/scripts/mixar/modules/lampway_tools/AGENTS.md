@@ -35,6 +35,7 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
    `egress_client.py`); no tool here opens an outbound connection of its own to a provider.
 8. **Settings resolve environment, then `<lampway home>/settings.json`, then the default** (`settings.py`); the profile lives under
    `LAMPWAY_HOME` and never in the user's stock Blender profile.
+9. **MCP inspection and view routing.** Inspection declares read-only `OBSERVE` and accepts raw geometry; `lampway_view` uses raw object/data consumption because explicit focus unhide can edit visibility. The execution pump suppresses automatic undo only for these two tools; view owns its one explicit unhide undo. Only inspection is exempt from the render read-only gate; evaluated inspection still refuses during a render. Inspection adapts caller-owned evaluated geometry into world metres for the shared defect/orientation interfaces, exact uncapped aggregates and precise BVH/parity relations. UV overlap includes triangles within one island while retaining canonical raster semantics. Native admission checks precede cooperative loops and content hashing; the concrete 2M-triangle/100ms refusal is measured, while arbitrary native modifier evaluation remains indivisible. Open-loop rim presentation rounds the full sum once to four metre decimals across inspection and defect candidates.
 
 ## Test
 
@@ -58,3 +59,5 @@ page; the canon's open decisions are the captain's.
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the client tools' door, jail, refusal shape and human gate were known only from docstrings | the invariants with their modules, the binary-driven suite and its skip rule | captain ruling, 2026-10-05 |
+| 2026-10-07 | MCP wrapper contract receipt | captain: scoped MCP wrapper and migration | new transport, observation, schemas and offline data needed reproducible ownership and evidence | document the scoped implementation, generated checks and explicit limits above | scoped contract evidence in docs/reports/mcp-wrapper-migration.md |
+| 2026-10-07 | complete MCP acceptance after re-audit | captain: finish original C0-C2 and T1-T3 scope | skipped geometry and isolated-only evidence left acceptance gaps | document metric shared interfaces, conservative budgets, source-pin backlinks and cloud GUI falsifiers | measured contract checklist and retained receipts |

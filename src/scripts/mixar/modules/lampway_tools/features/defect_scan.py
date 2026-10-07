@@ -23,8 +23,27 @@ RAY_EPS_FRAC = 1e-4      # the ray origin offset, as a fraction of the bounding-
 MIN_RIM_M = 0.0          # report every open loop; the user's rules decide which are intended
 
 
-def _descriptor(faces, extra=None) -> dict:
-    pts = [v.co for f in faces for v in f.verts] or [Vector()]
+def _rim_length(edges, budget=None):
+    """Canonical boundary length in metres, rounded once after the complete sum.
+
+    Tool candidates and inspection use the same four-decimal metre presentation;
+    rounding through five decimals can move a rim across a half-step (bunny).
+    """
+    length = 0.0
+    for edge in edges:
+        if budget:
+            budget.check()
+        length += edge.calc_length()
+    return round(length, 4)
+
+
+def _descriptor(faces, extra=None, budget=None) -> dict:
+    pts = []
+    for face in faces:
+        if budget:
+            budget.check()
+        pts.extend(v.co for v in face.verts)
+    pts = pts or [Vector()]
     lo = [min(p[i] for p in pts) for i in range(3)]
     hi = [max(p[i] for p in pts) for i in range(3)]
     n = sum((f.normal * f.calc_area() for f in faces), Vector())
@@ -34,13 +53,15 @@ def _descriptor(faces, extra=None) -> dict:
     return d
 
 
-def _components(faces):
+def _components(faces, budget=None):
     """Connected components (by shared edges) of a set of faces."""
     pool, comps = set(faces), []
     while pool:
+        if budget: budget.check()
         seed = pool.pop()
         comp, stack = [seed], [seed]
         while stack:
+            if budget: budget.check()
             f = stack.pop()
             for e in f.edges:
                 for nb in e.link_faces:
@@ -52,12 +73,14 @@ def _components(faces):
     return comps
 
 
-def _shells(bm):
+def _shells(bm, budget=None):
     pool, shells = set(bm.faces), []
     while pool:
+        if budget: budget.check()
         seed = pool.pop()
         shell, stack = [seed], [seed]
         while stack:
+            if budget: budget.check()
             f = stack.pop()
             for e in f.edges:
                 for nb in e.link_faces:
@@ -69,13 +92,15 @@ def _shells(bm):
     return shells
 
 
-def _open_loops(bm):
+def _open_loops(bm, budget=None):
     out, seen = [], set()
     for e in bm.edges:
+        if budget: budget.check()
         if len(e.link_faces) == 1 and e not in seen:
             loop, stack = [], [e]
             seen.add(e)
             while stack:
+                if budget: budget.check()
                 cur = stack.pop()
                 loop.append(cur)
                 for v in cur.verts:
@@ -101,23 +126,48 @@ def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100
     if not len(ob.data.polygons):
         raise C.FeatureError(f"{ob.name} has no faces: nothing to scan; import the piece first")
     bm = bmesh.new()
-    bm.from_mesh(ob.data)
-    bm.transform(ob.matrix_world)
+    try:
+        bm.from_mesh(ob.data)
+        bm.transform(ob.matrix_world)
+        if ob.matrix_world.to_3x3().determinant() < 0:
+            bmesh.ops.reverse_faces(bm, faces=list(bm.faces))
+        bm.faces.ensure_lookup_table()
+        bm.edges.ensure_lookup_table()
+        bm.normal_update()
+        return scan_bmesh(bm, piece=piece or ob.name, kinds=kinds,
+                          thin_threshold_m=thin_threshold_m, max_candidates=max_candidates)
+    finally:
+        bm.free()
+
+
+def scan_bmesh(bm, *, piece="", kinds=None, thin_threshold_m=0.002,
+               max_candidates=None, budget=None):
+    """Read a caller-owned metric bmesh; never resolve an object or alter its data.
+
+    This is the same scanner used by run(), with optional cooperative cancellation.
+    None returns all candidates so inspection aggregates are never capped silently.
+    """
+    kinds = list(kinds or KINDS)
     bm.faces.ensure_lookup_table()
+    bm.faces.index_update()
     bm.edges.ensure_lookup_table()
     found = []
     rays = None
 
     def add(kind, faces, verdict, rule, severity, extra=None):
-        found.append({"kind": kind, "descriptor": _descriptor(faces, extra), "rule_verdict": verdict, "rule": rule, "severity": severity})
+        check()
+        found.append({"kind": kind, "descriptor": _descriptor(faces, extra, budget=budget), "rule_verdict": verdict, "rule": rule, "severity": severity})
 
-    shells = _shells(bm)
+    check = budget.check if budget else lambda: None
+    check()
+    shells = sorted(_shells(bm, budget=budget),
+                    key=lambda group: min(face.index for face in group))
     if "open_loop" in kinds:
-        for loop, faces in _open_loops(bm):
-            rim = sum(e.calc_length() for e in loop)
+        for loop, faces in _open_loops(bm, budget=budget):
+            rim = _rim_length(loop, budget=budget)
             if rim >= MIN_RIM_M:
                 add("open_loop", faces, "ambiguous", "a boundary loop: a hole or an intended opening is the user's call (opening_gasket decides what to do with it)",
-                    "medium", {"rim_length_m": round(rim, 5), "edges": len(loop)})
+                    "medium", {"rim_length_m": rim, "edges": len(loop)})
     if "floating_shell" in kinds and len(shells) > 1:
         big = max(shells, key=len)
         bigv = np.array([v.co[:] for f in big for v in f.verts])
@@ -141,19 +191,22 @@ def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100
             if f.calc_area() < 1e-10:
                 add("degenerate", [f], "delete", "a face with no area", "low")
     if "flipped_shell" in kinds:
-        flipped = {s_["shell"] for s_ in W.shell_orientation(ob) if s_["outward_fraction"] < W.FLIPPED_BELOW}
-        if flipped:
-            plain = _plain(ob)
-            idx = W._shell_faces(plain)                                           # the same shell numbering shell_orientation uses
-            plain.free()
-            for k in sorted(flipped):
-                add("flipped_shell", [bm.faces[i] for i in idx[k]], "ambiguous", "the shell points into itself (an open piece has no volume to tell: this is its outward-ray vote)", "high")
-    if "intersection" in kinds or "thin" in kinds:
+        orientation = W.shell_orientation_bmesh(bm, budget=budget)
+        idx = W._shell_faces(bm, budget=budget)
+        for row in orientation:
+            if row["outward_fraction"] < W.FLIPPED_BELOW:
+                add("flipped_shell", [bm.faces[i] for i in idx[row["shell"]]], "ambiguous", "the shell points into itself (an open piece has no volume to tell: this is its outward-ray vote)", "high")
+    if len(bm.faces) and ("intersection" in kinds or "thin" in kinds):
+        check()
         tree = BVHTree.FromBMesh(bm)
+        check()
         if "intersection" in kinds:
             shell_of = {f.index: k for k, sh in enumerate(shells) for f in sh}
             groups = {}
-            for i, j in tree.overlap(tree):
+            overlaps = tree.overlap(tree)
+            check()
+            for i, j in overlaps:
+                check()
                 if i < j and not ({v for v in bm.faces[i].verts} & {v for v in bm.faces[j].verts}):
                     groups.setdefault(tuple(sorted((shell_of[i], shell_of[j]))), set()).update((i, j))
             for pair, ids in sorted(groups.items()):                                  # one candidate per pair of shells that cross (or per self-crossing shell)
@@ -165,6 +218,7 @@ def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100
             eps = RAY_EPS_FRAC * diag
             cast = hits = 0
             for f in bm.faces:
+                check()
                 c, n = f.calc_center_median(), f.normal
                 hit = tree.ray_cast(c - n * eps, -n)
                 cast += 1
@@ -175,16 +229,16 @@ def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100
             rays = {"faces_cast": cast, "hit": hits, "miss": cast - hits, "hit_fraction": round(hits / max(cast, 1), 4), "epsilon_m": eps, "epsilon_frac_of_diagonal": RAY_EPS_FRAC,
                     "bbox_diagonal_m": round(diag, 6),
                     "note": ("an open mesh: many inward rays escape, so the thin candidates are a lower bound" if hits < 0.9 * max(cast, 1) else "inward rays hit the far wall: the thin scan has coverage")}
-            for comp in _components(thin):
+            for comp in _components(thin, budget=budget):
+                check()
                 add("thin", comp, "ambiguous", f"thinner than {thin_threshold_m} m inward", "medium")
-    bm.free()
     for i, c in enumerate(found):
         c["id"] = f"{c['kind']}-{i}"
     counts = {}
     for c in found:
         counts[c["kind"]] = counts.get(c["kind"], 0) + 1
-    out = found[:int(max_candidates)]
-    res = {"piece": piece or ob.name, "candidates": out, "counts": counts, "truncated": len(found) > len(out), "total": len(found)}
+    out = found if max_candidates is None else found[:int(max_candidates)]
+    res = {"piece": piece, "candidates": out, "counts": counts, "truncated": len(found) > len(out), "total": len(found)}
     if rays is not None:
         res["rays"] = rays
     return res

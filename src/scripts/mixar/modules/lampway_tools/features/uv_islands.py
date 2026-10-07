@@ -34,20 +34,22 @@ def _bm(ob):
     return bm
 
 
-def island_ids(bm, uvl):
+def island_ids(bm, uvl, budget=None):
     """Per face of ``bm`` (index order): a stable island id - canon 13's one definition (canon_geom.uv_island_ids): corners
     joined by (vertex index, UV rounded to 6 places)."""
     F, FUV, UV = [], [], []
     for fc in bm.faces:
+        if budget is not None: budget.check()
         F.append([l.vert.index for l in fc.loops])
         FUV.append(list(range(len(UV), len(UV) + len(fc.loops))))
         UV.extend(l[uvl].uv[:] for l in fc.loops)
-    return uv_island_ids(F, FUV, np.array(UV).reshape(-1, 2))
+    return uv_island_ids(F, FUV, np.array(UV).reshape(-1, 2), budget=budget)
 
 
-def _seam_length(bm, uvl) -> float:
+def _seam_length(bm, uvl, budget=None) -> float:
     seam = 0.0
     for e in bm.edges:
+        if budget is not None: budget.check()
         if len(e.link_faces) != 2:
             continue
         f0, f1 = e.link_faces

@@ -61,16 +61,18 @@ def material_hash(ob) -> str:
     return hashlib.sha256("|".join(s.material.name if s.material else "" for s in ob.material_slots).encode()).hexdigest()
 
 
-def _shell_faces(bm) -> list:
+def _shell_faces(bm, budget=None) -> list:
     """The face indices of each connected shell."""
     bm.faces.ensure_lookup_table()
     seen, shells = set(), []
     for f in bm.faces:
+        if budget: budget.check()
         if f.index in seen:
             continue
         stack, members = [f], []
         seen.add(f.index)
         while stack:
+            if budget: budget.check()
             cur = stack.pop()
             members.append(cur.index)
             for e in cur.edges:
@@ -86,22 +88,40 @@ def shell_orientation(ob, eps=1e-4) -> list:
     """Per connected shell: the fraction of faces whose NORMAL RAY escapes the shell. A right-way-out shell is near 1; a flipped one points into itself
     (near 0) whether it is closed or an OPEN piece, which the signed-volume test cannot see. Limit: a shell with no opposite wall (a half-cylinder)
     has nothing for an inward ray to hit and reads as outward."""
-    from mathutils.bvhtree import BVHTree
     bm = bmesh.new()
-    bm.from_mesh(ob.data)
-    shells = _shell_faces(bm)
+    try:
+        bm.from_mesh(ob.data)
+        return shell_orientation_bmesh(bm, eps=eps)
+    finally:
+        bm.free()
+
+
+def shell_orientation_bmesh(bm, eps=1e-4, budget=None) -> list:
+    """Exact existing outward-ray vote on a caller-owned mesh in its chosen frame.
+
+    No sampling or datablock writes; the caller supplies world metres and reflection-corrected
+    winding when measuring transformed geometry (canon 01 D.4).
+    """
+    from mathutils.bvhtree import BVHTree
+    check = budget.check if budget else lambda: None
+    check()
+    bm.faces.ensure_lookup_table()
+    bm.normal_update()
+    shells = _shell_faces(bm, budget=budget)
     shell_of = {i: k for k, members in enumerate(shells) for i in members}
+    check()
     tree = BVHTree.FromBMesh(bm)
+    check()
     out = []
     for k, members in enumerate(shells):
         inward = 0
         for i in members:
+            check()
             f = bm.faces[i]
             hit = tree.ray_cast(f.calc_center_median() + f.normal * eps, f.normal)
             if hit[0] is not None and shell_of.get(hit[2]) == k:
                 inward += 1
         out.append({"shell": k, "faces": len(members), "outward_fraction": round(1.0 - inward / len(members), 4)})
-    bm.free()
     return out
 
 

@@ -43,9 +43,10 @@ def _tiles(lo, hi) -> list:
     return sorted(1001 + u + 10 * v for u in range(u0, max(u0, u1) + 1) for v in range(v0, max(v0, v1) + 1))
 
 
-def _tris(faces, uvl, mw=None):
+def _tris(faces, uvl, mw=None, budget=None):
     tu, t3 = [], []
     for fc in faces:
+        if budget is not None: budget.check()
         ls = list(fc.loops)
         for k in range(1, len(ls) - 1):
             tu.append([ls[0][uvl].uv[:], ls[k][uvl].uv[:], ls[k + 1][uvl].uv[:]])
@@ -54,10 +55,10 @@ def _tris(faces, uvl, mw=None):
     return np.array(tu, dtype=np.float64).reshape(-1, 3, 2), np.array(t3, dtype=np.float64).reshape(-1, 3, 3)
 
 
-def _island_rows(groups, uvl, mw, size):
+def _island_rows(groups, uvl, mw, size, budget=None):
     rows = []
     for i in sorted(groups):
-        tu, t3 = _tris(groups[i], uvl, mw)
+        tu, t3 = _tris(groups[i], uvl, mw, budget)
         au = float(np.abs((tu[:, 1, 0] - tu[:, 0, 0]) * (tu[:, 2, 1] - tu[:, 0, 1]) - (tu[:, 2, 0] - tu[:, 0, 0]) * (tu[:, 1, 1] - tu[:, 0, 1])).sum() / 2)
         a3 = float(np.linalg.norm(np.cross(t3[:, 1] - t3[:, 0], t3[:, 2] - t3[:, 0]), axis=1).sum() / 2)
         p = tu.reshape(-1, 2)
@@ -68,16 +69,19 @@ def _island_rows(groups, uvl, mw, size):
     return rows
 
 
-def _rasters(groups, uvl, ids, res):
+def _rasters(groups, uvl, ids, res, budget=None, counts=False):
     """{island: {tile: bool mask}} rasterised per tile the island touches."""
     out = {}
     for i in ids:
-        tu, _ = _tris(groups[i], uvl)
+        tu, _ = _tris(groups[i], uvl, budget=budget)
         p = tu.reshape(-1, 2)
         masks = {}
         for t in _tiles(p.min(axis=0), p.max(axis=0)):
             du, dv = (t - 1001) % 10, (t - 1001) // 10
-            masks[t] = UI._raster(tu - np.array([du, dv]), res) > 0
+            if budget is not None: budget.check()
+            from ..canon_geom.uvmeasure import coverage
+            cnt = coverage(tu - np.array([du, dv]), res, budget=budget)
+            masks[t] = cnt if counts else cnt > 0
         out[i] = masks
     return out
 
@@ -91,26 +95,65 @@ def _same_outline(groups, uvl, a, b, tol=1e-4) -> bool:
     return float(max(d.min(axis=1).max(), d.min(axis=0).max())) <= tol
 
 
-def _overlaps(groups, uvl, res):
+def _overlaps(groups, uvl, res, budget=None, summary_only=False):
+    """Canon triangle counts, stored only in each island's occupied tile rectangle.
+
+    Cropping changes storage, never the texel centres or half-open edge rule.
+    Legacy callers receive the same full boolean masks; observation needs only
+    aggregate coverage and avoids materialising one full map per island.
+    """
+    from ..canon_geom.uvmeasure import coverage
     ids = sorted(groups)
-    ras = _rasters(groups, uvl, ids, res)
-    tiles = sorted({t for m in ras.values() for t in m})
-    covered = overlapped = 0
-    pairs = []
-    for t in tiles:
-        cnt = np.zeros((res, res), np.int32)
-        for i in ids:
-            if t in ras[i]:
-                cnt += ras[i][t]
-        covered += int((cnt > 0).sum())
-        overlapped += int((cnt > 1).sum())
-    for ai, a in enumerate(ids):
-        for b in ids[ai + 1:]:
-            if any(t in ras[b] and bool((ras[a][t] & ras[b][t]).any()) for t in ras[a]):
-                pairs.append([a, b])
-    stacked = [p for p in pairs if _same_outline(groups, uvl, *p)]
-    return {"fraction": round(overlapped / max(covered, 1), 6), "pairs": pairs, "stacked": stacked, "accidental": [p for p in pairs if p not in stacked],
-            "res": res}, ras
+    sparse = {}
+    totals = {}
+    for i in ids:
+        tu, _ = _tris(groups[i], uvl, budget=budget)
+        p = tu.reshape(-1, 2)
+        sparse[i] = {}
+        for tile in _tiles(p.min(0), p.max(0)):
+            if budget is not None: budget.check()
+            du,dv = (tile-1001)%10, (tile-1001)//10
+            triangles = tu - np.array([du,dv])
+            xy = triangles.reshape(-1,2)*res
+            lo = np.maximum(np.floor(xy.min(0)).astype(int),0)
+            hi = np.minimum(np.ceil(xy.max(0)).astype(int)+1,res)
+            x0,y0 = lo; x1,y1 = hi
+            if x1<=x0 or y1<=y0: continue
+            cnt = coverage(triangles,res,budget=budget,window=(x0,y0,x1,y1))
+            sparse[i][tile] = (x0,y0,x1,y1,cnt>0)
+            if tile not in totals: totals[tile] = np.zeros((res,res),np.int32)
+            total = totals[tile]
+            total[y0:y1,x0:x1] += cnt
+    covered = sum(int((cnt>0).sum()) for cnt in totals.values())
+    overlapped = sum(int((cnt>1).sum()) for cnt in totals.values())
+    pairs = set()
+    for tile in totals:
+        members = [i for i in ids if tile in sparse[i]]
+        boxes = np.array([sparse[i][tile][:4] for i in members])
+        for ai,a in enumerate(members):
+            if budget is not None: budget.check()
+            ax,ay,ex,ey,am = sparse[a][tile]
+            later = boxes[ai+1:]
+            hits = np.flatnonzero((later[:,0]<ex)&(later[:,2]>ax)&(later[:,1]<ey)&(later[:,3]>ay))
+            for bi in hits+ai+1:
+                b = members[bi]
+                bx,by,fx,fy,bm = sparse[b][tile]
+                x0,y0,x1,y1 = max(ax,bx),max(ay,by),min(ex,fx),min(ey,fy)
+                if (am[y0-ay:y1-ay,x0-ax:x1-ax] & bm[y0-by:y1-by,x0-bx:x1-bx]).any():
+                    pairs.add((a,b))
+    pairs = [list(pair) for pair in sorted(pairs)]
+    stacked = [pair for pair in pairs if _same_outline(groups,uvl,*pair)]
+    ras = {}
+    if not summary_only:
+        for i,tiles in sparse.items():
+            ras[i] = {}
+            for tile,(x0,y0,x1,y1,mask) in tiles.items():
+                full = np.zeros((res,res),bool)
+                full[y0:y1,x0:x1] = mask
+                ras[i][tile] = full
+    return {"fraction": round(overlapped/max(covered,1),6), "pairs": pairs, "stacked": stacked,
+            "accidental": [p for p in pairs if p not in stacked], "res": res,
+            "utilization": float((totals[1001]>0).mean()) if 1001 in totals else 0.}, ras
 
 
 def _mirrored_pairs(groups, vco, axis, tol):
