@@ -88,6 +88,113 @@ def test_quaternion_delta_has_got_times_reference_inverse_order():
     assert row["metrics"]["rotation_deg"] == pytest.approx(120)
 
 
+def test_right_relative_order_and_invariant_differences_are_derived():
+    data = capture()
+    s = math.sqrt(.5)
+    data["tables"]["native"][0]["component"] = transform(q=(s, 0., 0., s), t=(3., 4., 0.))
+    data["tables"]["candidate"][0]["component"] = transform(q=(0., s, 0., s), t=(0., 0., 7.))
+    row = next(r for r in COMPARE.compare_capture(data)["component"] if r["name"] == "root")
+    assert row["quaternion_delta_xyzw"] == pytest.approx([-.5, .5, .5, .5])
+    assert row["quaternion_right_delta_xyzw"] == pytest.approx([-.5, .5, -.5, .5])
+    assert row["rotation_angle_identity_delta_deg"] == pytest.approx(0.)
+    assert row["translation_norm_delta_cm"] == 2.
+
+
+def multiply(a, b):
+    x, y, z, w = a; X, Y, Z, W = b
+    return [w * X + x * W + y * Z - z * Y,
+            w * Y - x * Z + y * W + z * X,
+            w * Z + x * Y - y * X + z * W,
+            w * W - x * X - y * Y - z * Z]
+
+
+def inverse(q):
+    return [-q[0], -q[1], -q[2], q[3]]
+
+
+def rotation(axis, degrees):
+    half = math.radians(degrees) / 2
+    q = [0., 0., 0., math.cos(half)]; q[axis] = math.sin(half)
+    return q
+
+
+def rotate_vector(q, vector):
+    return multiply(multiply(q, [*vector, 0.]), inverse(q))[:3]
+
+
+@pytest.mark.parametrize("side", ["left", "right"])
+def test_noncommuting_common_left_and_right_rotations_have_distinct_relative_deltas(side):
+    data = capture()
+    common = rotation(2, 45)
+    originals = [rotation(0, 75), rotation(1, 40)]
+    for index, q in enumerate(originals):
+        data["tables"]["native"][index]["component"]["quaternion_xyzw"] = q
+        got = multiply(common, q) if side == "left" else multiply(q, common)
+        data["tables"]["candidate"][index]["component"]["quaternion_xyzw"] = got
+    before = copy.deepcopy(data)
+    report = COMPARE.compare_capture(data)
+    assert data == before and not report["pass"]
+    same = "quaternion_delta_xyzw" if side == "left" else "quaternion_right_delta_xyzw"
+    varying = "quaternion_right_delta_xyzw" if side == "left" else "quaternion_delta_xyzw"
+    assert report["component"][0][same] == pytest.approx(common)
+    assert report["component"][1][same] == pytest.approx(common)
+    assert report["component"][0][varying] != pytest.approx(report["component"][1][varying])
+
+
+def test_common_basis_conjugation_preserves_angle_and_translation_norm_without_becoming_a_fix():
+    data = capture()
+    basis = rotation(2, 35)
+    for index, q in enumerate((rotation(0, 75), rotation(1, 40))):
+        t = [2. + index, 3., 4.]
+        data["tables"]["native"][index]["component"] = transform(q=q, t=t)
+        data["tables"]["candidate"][index]["component"] = transform(
+            q=multiply(multiply(basis, q), inverse(basis)), t=rotate_vector(basis, t))
+    report = COMPARE.compare_capture(data)
+    first, second = report["component"]
+    assert first["quaternion_delta_xyzw"] != pytest.approx(second["quaternion_delta_xyzw"])
+    assert first["quaternion_right_delta_xyzw"] != pytest.approx(second["quaternion_right_delta_xyzw"])
+    for row in report["component"]:
+        assert row["rotation_angle_identity_delta_deg"] == pytest.approx(0., abs=1e-10)
+        assert row["translation_norm_delta_cm"] == pytest.approx(0., abs=1e-10)
+        assert row["over_limit"]
+    assert report["component_summary"]["over_limit_count"] == 2 and not report["pass"]
+
+
+def test_perbone_changed_rest_violates_conjugation_invariants():
+    data = capture()
+    data["tables"]["native"][0]["component"] = transform(q=rotation(0, 40), t=(3., 4., 0.))
+    data["tables"]["candidate"][0]["component"] = transform(q=rotation(1, 60), t=(0., 0., 7.))
+    report = COMPARE.compare_capture(data)
+    row = next(r for r in report["component"] if r["name"] == "root")
+    assert row["rotation_angle_identity_delta_deg"] == pytest.approx(20.)
+    assert row["translation_norm_delta_cm"] == 2.
+    assert report["component_summary"]["over_limit_count"] == 1 and not report["pass"]
+
+
+def test_quaternion_sign_equivalence_is_preserved_for_both_relative_orders_and_angle_difference():
+    data = capture()
+    q = rotation(0, 75)
+    for row in data["tables"]["native"]:
+        row["component"]["quaternion_xyzw"] = q
+    for row in data["tables"]["candidate"]:
+        row["component"]["quaternion_xyzw"] = [-v for v in q]
+    report = COMPARE.compare_capture(data)
+    for row in report["component"]:
+        assert row["quaternion_delta_xyzw"] == pytest.approx([0., 0., 0., -1.])
+        assert row["quaternion_right_delta_xyzw"] == pytest.approx([0., 0., 0., -1.])
+        assert row["rotation_angle_identity_delta_deg"] == pytest.approx(0.)
+    assert report["pass"]
+
+
+def test_new_norm_diagnostic_does_not_refuse_equal_finite_large_translations():
+    data = capture()
+    for row in data["tables"]["native"] + data["tables"]["candidate"]:
+        row["component"]["translation_cm"] = [1.7e308, 1.7e308, 1.7e308]
+    report = COMPARE.compare_capture(data)
+    assert report["pass"]
+    assert all(row["translation_norm_delta_cm"] == 0. for row in report["component"])
+
+
 def test_signed_translation_scale_deltas_and_zero_reference_ratio():
     data = capture()
     data["tables"]["native"][0]["component"] = transform(scale=(-2., 0., 3.), t=(2., -3., 5.))

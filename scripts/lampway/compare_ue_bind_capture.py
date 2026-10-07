@@ -112,11 +112,32 @@ def _delta(reference, candidate):
          -gw * ry + gx * rz + gy * rw - gz * rx,
          -gw * rz - gx * ry + gy * rx + gz * rw,
          gw * rw + gx * rx + gy * ry + gz * rz]
+    # Right-relative delta inverse(ref) * got distinguishes a shared bone-axis
+    # correction from a shared component-space left rotation. Neither is
+    # selected or applied by this diagnostic.
+    right = [rw * gx - rx * gw - ry * gz + rz * gy,
+             rw * gy - ry * gw - rz * gx + rx * gz,
+             rw * gz - rz * gw - rx * gy + ry * gx,
+             rw * gw + rx * gx + ry * gy + rz * gz]
+    identity_angle_delta = math.degrees(2 * math.acos(min(1.0, abs(gw)))) - math.degrees(2 * math.acos(min(1.0, abs(rw))))
+    got_norm, ref_norm = math.hypot(*candidate["translation_cm"]), math.hypot(*reference["translation_cm"])
+    if math.isfinite(got_norm) and math.isfinite(ref_norm):
+        norm_delta = got_norm - ref_norm
+    else:
+        # Preserve equal finite vectors even when their individual norms exceed
+        # float range. This diagnostic must not change existing pass semantics.
+        largest_translation = max(abs(v) for v in (*candidate["translation_cm"], *reference["translation_cm"]))
+        norm_delta = largest_translation * (
+            math.hypot(*(v / largest_translation for v in candidate["translation_cm"])) -
+            math.hypot(*(v / largest_translation for v in reference["translation_cm"])))
     angle = math.degrees(2 * math.acos(min(1.0, abs(math.fsum(a * b for a, b in zip((gx, gy, gz, gw), (rx, ry, rz, rw)))))))
     metrics = {"position_cm": math.hypot(*t), "rotation_deg": angle, "scale": max(abs(v) for v in s)}
-    if not all(math.isfinite(v) for v in (*t, *s, *q, *(r for r in ratios if r is not None), *metrics.values())):
+    if not all(math.isfinite(v) for v in (*t, *s, *q, *right, identity_angle_delta, norm_delta,
+                                         *(r for r in ratios if r is not None), *metrics.values())):
         raise ValueError("nonfinite derived comparison")
     return {"translation_delta_cm": t, "quaternion_delta_xyzw": q, "scale_delta": s, "scale_ratio": ratios,
+            "quaternion_right_delta_xyzw": right, "rotation_angle_identity_delta_deg": identity_angle_delta,
+            "translation_norm_delta_cm": norm_delta,
             "metrics": metrics, "over_limit": any(metrics[k] > BARS[k] for k in BARS)}
 
 
@@ -153,6 +174,9 @@ def compare_capture(capture):
     summaries = {space + "_summary": _summary(rows) for space, rows in tables.items()}
     report = {"schema": SCHEMA, "bars": dict(BARS), "spaces": dict(CONVENTIONS["spaces"]),
         "quaternion_delta_convention": "got * inverse(ref), normalized for comparison only, xyzw Hamilton product",
+        "quaternion_right_delta_convention": "inverse(ref) * got, normalized for comparison only, xyzw Hamilton product",
+        "invariant_difference_conventions": {"rotation_angle_identity_delta_deg": "shortest rotation angle(got)-angle(ref); a common orthogonal basis conjugation preserves the angle",
+            "translation_norm_delta_cm": "norm(got)-norm(ref); a common orthogonal coordinate rotation preserves the norm"},
         "native_self_control": self_control, "provenance_hashes": {key: provenance[key] for key in
             ("candidate_fbx_sha256", "native_reference_sha256", "capture_code_sha256")},
         "missing": missing, "extra": extra, "parent_changes": parent_changes, **tables, **summaries,

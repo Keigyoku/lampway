@@ -79,6 +79,8 @@ Canon08 anatomical membership uses actual weighted-bone ancestry to the nearest 
 Provenance: `docs/canon/INDEX.md` and `IMPLEMENTATION_PLAN.md` §3 (the agent skill entries), written 2026-10-05/06 against
 `lp/wave5` at `b806617f` and copied into this repository on 2026-10-06.
 
+Canon21 centimetre export copies cancel the pinned writer unit carrier, admit raw Null/bone scales, and decode only the pinned importer representation without changing rest or mesh data. Preserve operator bounds and bind bars; neither Blender self-reference nor variable left quaternion deltas establishes physical native frame parity.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -88,3 +90,5 @@ Provenance: `docs/canon/INDEX.md` and `IMPLEMENTATION_PLAN.md` §3 (the agent sk
 | 2026-10-06 | the check's dependencies declared | coordinator: "Declare jsonschema (and numpy) as dependencies of whatever imports them at runtime"; they were missing from the tools venv | numpy and jsonschema were named only in an inline CI pip line, so a fresh environment could not run check_canon.py | docs/canon/requirements.txt declares them, the canon workflow installs from it, the skill names the install line, a test ties every canon import to its manifest | coordinator, 2026-10-06 |
 
 | 2026-10-07 | measured pose-region admission | actual chest9f90 reported empty-arm success | exact seed matching lost native descendants and admitted vacuous metrics | follow canon08 actual ancestry/nonempty admission while retaining weighted identities and strict geometry proof grades | descendant and empty-region controls |
+
+| 2026-10-07 | actual unit-carrier and frame diagnosis | owner UE derived342-row capture | Blender self-readback hid scale100 Null ancestry; applying import object scale violated the existing drift guard | Canon21 centimetre export copies cancel the pinned writer unit carrier, admit raw Null/bone scales, and decode only the pinned importer representation without changing rest or mesh data. Preserve operator bounds and bind bars; neither Blender self-reference nor variable left quaternion deltas establishes physical native frame parity. | old-default rawNull100 RED; disposable writer/skin/action/unit-factor and quaternion-order controls |

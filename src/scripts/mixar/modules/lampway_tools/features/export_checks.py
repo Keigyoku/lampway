@@ -26,6 +26,60 @@ FRAME_TOL_DEG = 0.01                    # canon 05 B.7 / Titan bind_mismatch: 0.
 SCALE_TOL = 1e-4                        # Titan bind_mismatch: per-bone scale
 
 
+def fbx_container_scale_failures(path):
+    """Authored nonunit Null ancestors of bones; no guessed engine TRS evaluation.
+
+    UnitScaleFactor and direct LimbNode scale alone miss Blender's scene-root
+    scale100 carrier. Inspect its complete Model ancestry before any importer
+    normalizes units. A declared container must retain identity authored scale.
+    """
+    from io_scene_fbx import parse_fbx
+    raw, _version = parse_fbx.parse(str(path))
+    models, edges = {}, []
+    for block in raw.elems:
+        if block.id == b"Objects":
+            for model in block.elems:
+                if model.id != b"Model" or len(model.props) < 3:
+                    continue
+                ident, name, kind = model.props[:3]
+                if ident in models:
+                    raise C.FeatureError("duplicate FBX Model identity")
+                scale = [1.0, 1.0, 1.0]
+                for properties in model.elems:
+                    if properties.id == b"Properties70":
+                        for prop in properties.elems:
+                            if prop.props and prop.props[0] == b"Lcl Scaling":
+                                scale = [float(v) for v in prop.props[4:7]]
+                if len(scale) != 3 or not np.isfinite(scale).all():
+                    raise C.FeatureError("invalid FBX Model scale")
+                models[ident] = {"name": name.split(b"\x00")[0].decode("utf-8", "replace"),
+                                 "kind": kind, "scale": scale}
+        elif block.id == b"Connections":
+            edges.extend(c.props[1:3] for c in block.elems
+                         if c.id == b"C" and len(c.props) >= 3 and c.props[0] == b"OO")
+    parents = {}
+    for child, parent in edges:
+        # Bone-to-cluster OO links are not Model hierarchy edges.
+        if child in models and (parent in models or parent == 0):
+            if child in parents and parents[child] != parent:
+                raise C.FeatureError("ambiguous FBX Model parent")
+            parents[child] = parent
+    failed = []
+    for ident, bone in models.items():
+        if bone["kind"] != b"LimbNode":
+            continue
+        seen, current = {ident}, parents.get(ident, 0)
+        while current:
+            if current in seen:
+                raise C.FeatureError("cyclic FBX Model ancestry")
+            seen.add(current)
+            ancestor = models[current]
+            if ancestor["kind"] == b"Null" and any(abs(v - 1.0) > SCALE_TOL for v in ancestor["scale"]):
+                failed.append({"bone": bone["name"], "ancestor": ancestor["name"], "scale": ancestor["scale"]})
+            current = parents.get(current, 0)
+    return sorted(failed, key=lambda row: (row["bone"], row["ancestor"]))
+
+
 def fbx_bone_scale(path):
     """{bone: [sx, sy, sz]} as an engine reads them: each LimbNode's Lcl Scaling times the file's UnitScaleFactor (UE converts the file's
     unit into centimetres on every bone). Read from the FBX itself (Blender's parser, no import): the importer compensates the factor,

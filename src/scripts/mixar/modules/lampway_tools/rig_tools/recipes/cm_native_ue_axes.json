@@ -2,6 +2,7 @@
  "expect": {
   "unit_scale_factor": 1.0
  },
+ "export_coordinates": "cm",
  "exporter": {
   "add_leaf_bones": false,
   "apply_scale_options": "FBX_SCALE_NONE",
@@ -25,6 +26,6 @@
   "use_tspace": false
  },
  "name": "cm_native_ue_axes",
- "provenance": "measured 2026-10-06 (Lampway, Blender 5.2 headless): a canon-17 'ue_axes' rig (local X along the limb) exported with primary Y / secondary X (no axis correction) reads back as itself to 2e-5 deg on a 5-bone chain; primary Z / secondary X reads 90 deg off.",
+ "provenance": "measured 2026-10-06 (Lampway, Blender 5.2 headless): a canon-17 'ue_axes' rig (local X along the limb) exported with primary Y / secondary X (no axis correction) reads back as itself to 2e-5 deg on a 5-bone chain; primary Z / secondary X reads 90 deg off. Unit-carrier correction measured 2026-10-07 on disposable synthetic copies: canonical metre coordinates become centimetre coordinates on independent export data; effective global_scale cancels the writer scene-unit factor. Raw Null scale1/UnitScaleFactor1, dimensions/weights/frames preserved; temporary Blender readback decodes only the pinned importer unit carrier after independent raw Null/bone scale admission, without mutating imported geometry or rest data. This does not establish physical native Unreal bind parity.",
  "schema": "lampway.fbx-recipe/1"
 }

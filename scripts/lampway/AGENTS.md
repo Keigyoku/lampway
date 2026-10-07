@@ -72,6 +72,8 @@ The full-run harness reports RED for inherited as well as new failures/errors. P
 
 Physical bind diagnostics capture signed rest transforms locally and return derived deltas, topology and actual import metadata. Never upload original FBX, vertices or weights. Preserve the extra container and independent native reference, verify actual accessor/composition semantics, and keep supplied-data comparisons distinct from physical acceptance.
 
+Derived bind diagnostics include left-relative and right-relative quaternion deltas and rotation/translation invariants. Variable left deltas alone cannot rule out a common right correction or basis conjugation. Keep raw absolute transforms local and all existing pass metrics unchanged.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -94,3 +96,5 @@ Physical bind diagnostics capture signed rest transforms locally and return deri
 | 2026-10-07 | inherited failures stay RED | captain: no red checks | baseline-known failures escaped the completion predicate | require zero known/new failures while preserving attribution and exact passing proof | both-suite FAILED/ERROR shrink/no-shrink controls |
 
 | 2026-10-07 | physical bind capture contract | actual UE343bones/all342binds failed while Blender self-readback passed | signed transforms and actual importer semantics were absent, allowing root/unit speculation | derive private comparison-only reports from validated local captures without geometry, API guesses or correction selection | raw signed scales, quaternion signs, topology and privacy refusal controls |
+
+| 2026-10-07 | actual unit-carrier and frame diagnosis | owner UE derived342-row capture | Blender self-readback hid scale100 Null ancestry; applying import object scale violated the existing drift guard | Derived bind diagnostics include left-relative and right-relative quaternion deltas and rotation/translation invariants. Variable left deltas alone cannot rule out a common right correction or basis conjugation. Keep raw absolute transforms local and all existing pass metrics unchanged. | old-default rawNull100 RED; disposable writer/skin/action/unit-factor and quaternion-order controls |

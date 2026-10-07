@@ -71,6 +71,8 @@ Canonical rest-frame serialization may project only positive-determinant float32
 The canon's authors (the canon and normalization auditors) wrote it; from 2026-10-06 a change is made by the lane whose work
 needs it and lands through the integration lane. Statuses, thresholds and the decisions a page names are the captain's.
 
+Canon21 now separates explicit centimetre export copies, raw identity Null/bone admission and pinned importer representation decoding. The old UnitScaleFactor-only pass cannot hide scale100 ancestry. Preserve unchanged bind bars, actual operator bounds, original source data and pending native frame calibration.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -92,3 +94,5 @@ needs it and lands through the integration lane. Statuses, thresholds and the de
 | 2026-10-07 | current AC65 descriptions and boot height covariance | six-default audit after native-frame repair | stale no-orchestrator/glove/return claims hid implemented engines; absolute knee height changed boot scale when the body moved | distinguish engines from physical defaults, document all six evidence prerequisites and require sole-relative boot height with rerun of older candidates | body-only and both-input translation RED/GREEN; current fit regression receipts |
 
 | 2026-10-07 | nonempty descendant pose regions | actual9f90 vacuous arm receipt | native descendant samples were excluded by exact seed-name membership | document measured ancestry membership and empty-region refusal, retaining thresholds/rays and original-input rerun requirement | weighted descendants and malformed/empty ancestry falsifiers |
+
+| 2026-10-07 | actual unit-carrier and frame diagnosis | owner UE derived342-row capture | Blender self-readback hid scale100 Null ancestry; applying import object scale violated the existing drift guard | Canon21 now separates explicit centimetre export copies, raw identity Null/bone admission and pinned importer representation decoding. The old UnitScaleFactor-only pass cannot hide scale100 ancestry. Preserve unchanged bind bars, actual operator bounds, original source data and pending native frame calibration. | old-default rawNull100 RED; disposable writer/skin/action/unit-factor and quaternion-order controls |

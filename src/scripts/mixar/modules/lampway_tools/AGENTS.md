@@ -100,6 +100,8 @@ Canonical rest-frame serialization may project only positive-determinant float32
 The lane whose contract names the tool writes it and its tests; the integration lane lands it. A tool's engine follows its canon
 page; the canon's open decisions are the captain's.
 
+Engine exports convert metre coordinates on independent centimetre copies and decode only the pinned importer unit carrier. Check raw Null ancestors and direct bone scales before decoding; unchanged bind bars and physical native-reference proof remain mandatory. Never apply a speculative common rotation, mutate source scene units, or hide an authored scale with readback normalization.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -142,3 +144,5 @@ page; the canon's open decisions are the captain's.
 | 2026-10-07 | reference client receipt and object lifetime fixes | actual full-client repros and G23 | compact presentation dropped measured fields, motion import removed its new armature, and total-output assertions depended on path length | retain bounded measurement/hash fields, replace only prior tool-owned objects and bound runner body separately from its log hint | maintained native geometry/motion and long-path regressions |
 
 | 2026-10-07 | nonvacuous anatomical pose sampling | actual chest9f90 returned zero-arm success | exact seed-name membership excluded weighted hand/finger/twist descendants | select nearest actual ancestral region, retain weighted bone rays and refuse empty/invalid ancestry before solving | descendant penetration, empty/ancestry controls and unchanged192sample native golden |
+
+| 2026-10-07 | actual unit-carrier and frame diagnosis | owner UE derived342-row capture | Blender self-readback hid scale100 Null ancestry; applying import object scale violated the existing drift guard | Engine exports convert metre coordinates on independent centimetre copies and decode only the pinned importer unit carrier. Check raw Null ancestors and direct bone scales before decoding; unchanged bind bars and physical native-reference proof remain mandatory. Never apply a speculative common rotation, mutate source scene units, or hide an authored scale with readback normalization. | old-default rawNull100 RED; disposable writer/skin/action/unit-factor and quaternion-order controls |

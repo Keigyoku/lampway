@@ -6,11 +6,11 @@
 argument, read the written file back, and publish it only when every bone matches the reference (the bind_mismatch bars: 0.01 cm, 0.01 deg,
 1e-4 scale). Re-implemented; MB's exporter (no axis or scale arguments, mesh_smooth_type EDGE, batch export deleting the scene) is not ported.
 
-* The read-back reads RAW frames: the file is imported through canon_io with automatic bone orientation off and no axis correction (primary Y,
-  secondary X), which is how an engine reads the bones. Measured 2026-10-06: a canon-17 'blender' rig reads back as UE axes with primary X /
+* The Blender read-back reads RAW frames: the file is imported through canon_io with automatic bone orientation off and no axis correction (primary Y,
+  secondary X). This is not physical engine parity. Measured 2026-10-06: a canon-17 'blender' rig reads back as UE axes with primary X /
   secondary -Y, a 'ue_axes' rig with primary Y / secondary X; the other pair reads 90 deg off while every head matches (G21.2).
-* Blender's importer compensates the file's UnitScaleFactor, so the read-back cannot see the x100 a metre-scaled file gives UE (G21.3): the
-  factor is read from the FBX itself (Blender's own FBX parser) and gated by the recipe's expectation.
+* Raw Null ancestry, direct bone scales and UnitScaleFactor are checked before decoding the pinned Blender importer unit representation.
+  Metre-coordinate legacy recipes can hide an inherited scale100 Null behind Blender readback; centimetre copies avoid that carrier.
 * The reference: "" = the armature itself in engine axes (a 'blender' rig's frames turned X <- Y, Y <- -X); an armature object; or an FBX
   read raw. Root and hierarchy must equal the reference's (one container top bone in the read-back is accepted and named).
 
@@ -18,6 +18,7 @@ A failing file is moved to export/rejected/ and the rows over tolerance are name
 one action exported is made active for the export and the previous one restored."""
 
 import hashlib
+from contextlib import nullcontext
 import json
 import os
 import shutil
@@ -87,7 +88,7 @@ def _deform_parents(ob):
     return out
 
 
-def _table(ob, names=None, turn=None):
+def _table(ob, names=None, turn=None, representation=None):
     out = {}
     for b in ob.data.bones:
         if names is not None and b.name not in names:
@@ -98,7 +99,10 @@ def _table(ob, names=None, turn=None):
         if turn is not None:
             R = R @ turn
         qq = Matrix([list(r) for r in R]).to_quaternion()
-        out[b.name] = {"translation": [x * 100.0 for x in loc], "rotation": [qq.x, qq.y, qq.z, qq.w], "scale": list(s)}
+        to_metres = representation["translation_to_metres"] if representation else 1.0
+        scale_divisor = representation["scale_divisor"] if representation else 1.0
+        out[b.name] = {"translation": [x * to_metres * 100.0 for x in loc], "rotation": [qq.x, qq.y, qq.z, qq.w],
+                       "scale": [x / scale_divisor for x in s]}
     return out
 
 
@@ -162,6 +166,9 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
     if convention not in ("blender", "ue_axes"):
         raise C.FeatureError(f"{ob.name}'s frames are {convention}: one convention per rig (canon 17); run lampway_rig_conform first")
     doc, recipe_path = _recipe(recipe, root, convention)
+    coordinates = doc.get("export_coordinates", "m")
+    if coordinates not in ("m", "cm"):
+        raise C.FeatureError("export_coordinates must explicitly be m or cm")
     constrained = sorted(f"{pb.name} ({c.type.lower()})" for pb in ob.pose.bones for c in pb.constraints)
     if constrained:
         raise C.FeatureError(f"constraints on {', '.join(constrained)}: bake them (lampway_rig_bake) and remove them before exporting")
@@ -212,14 +219,23 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
     layer = [o for o in bpy.context.view_layer.objects if o is not None]
     keep_sel = [o for o in layer if o.select_get()]
     keep_active = bpy.context.view_layer.objects.active
+    from . import rig_export_space as ES
+    carrier = ES.centimetre_copies(ob, mesh_obs, act, ex) if coordinates == "cm" else nullcontext(
+        {"armature": ob, "meshes": mesh_obs, "action": act, "exporter": ex, "receipt": None})
+    space_receipt, effective_exporter, export_mesh_names = None, None, {}
     try:
-        if act is not None:
-            ob.animation_data_create().action = act
-        for o in layer:
-            o.select_set(o is ob or o in mesh_obs)
-        bpy.context.view_layer.objects.active = ob
-        bpy.ops.export_scene.fbx(filepath=str(writing), use_selection=True, bake_anim=act is not None, bake_anim_use_all_actions=False,
-                                 bake_anim_use_nla_strips=False, **ex)
+        with carrier as prepared:
+            export_arm, export_meshes = prepared["armature"], prepared["meshes"]
+            space_receipt = prepared["receipt"]
+            effective_exporter = {**prepared["exporter"], "object_types": sorted(prepared["exporter"]["object_types"])}
+            export_mesh_names = {source.name: copied.name for source, copied in zip(mesh_obs, export_meshes)}
+            if act is not None:
+                export_arm.animation_data_create().action = prepared["action"]
+            for o in bpy.context.view_layer.objects:
+                o.select_set(o is export_arm or o in export_meshes)
+            bpy.context.view_layer.objects.active = export_arm
+            bpy.ops.export_scene.fbx(filepath=str(writing), use_selection=True, bake_anim=act is not None, bake_anim_use_all_actions=False,
+                                     bake_anim_use_nla_strips=False, **prepared["exporter"])
     finally:
         if act is not None:
             ob.animation_data.action = keep
@@ -227,12 +243,23 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
             o.select_set(o in keep_sel)
         bpy.context.view_layer.objects.active = keep_active
     usf = unit_scale_factor(writing)
+    from .export_checks import fbx_container_scale_failures, fbx_bone_scale
+    container_scale_failures = fbx_container_scale_failures(writing)
+    authored_bone_scale_failures = []
+    if coordinates == "cm":
+        authored_bone_scale_failures = sorted(name for name, scale in fbx_bone_scale(writing).items()
+                                            if any(abs(v - 1.0) > 1e-4 for v in scale))
     rec = _import(writing)
+    readback_units = None
     try:
         arms = [bpy.data.objects[n] for n in rec["objects"] if bpy.data.objects[n].type == "ARMATURE"]
         if len(arms) != 1:
             raise C.FeatureError(f"the written FBX reads back {len(arms)} armatures")
-        got = _table(arms[0])
+        if coordinates == "cm" and usf == 1.0 and not container_scale_failures and not authored_bone_scale_failures:
+            # Only an independently admitted identity-scale file can undergo
+            # importer representation normalization; never hide a scaled Null.
+            readback_units = ES.readback_representation(arms[0], [bpy.data.objects[n] for n in rec["objects"]], usf)
+        got = _table(arms[0], representation=readback_units)
         got_parents = {b.name: b.parent.name if b.parent else None for b in arms[0].data.bones}
         container = None
         extra = sorted(set(got) - set(ref_table))
@@ -247,7 +274,7 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
         corner = []
         for m in mesh_obs:
             back = next((bpy.data.objects[n] for n in rec["objects"] if bpy.data.objects[n].type == "MESH"
-                         and bpy.data.objects[n].name.rsplit(".", 1)[0] == m.name), None)
+                         and (n == export_mesh_names[m.name] or n.rsplit(".", 1)[0] == export_mesh_names[m.name])), None)
             if back is None or len(back.data.loops) != len(m.data.loops):
                 corner.append(None)
                 continue
@@ -261,6 +288,11 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
         _discard(rec)
     expect = doc.get("expect", {}).get("unit_scale_factor")
     problems = []
+    if container_scale_failures:
+        problems.append("authored nonunit FBX Null ancestors: " + ", ".join(
+            f"{r['ancestor']} -> {r['bone']} scale {r['scale']}" for r in container_scale_failures[:8]))
+    if authored_bone_scale_failures:
+        problems.append("authored nonunit centimetre bone scales: " + ", ".join(authored_bone_scale_failures[:8]))
     if rows is None:
         problems.append(f"the read-back roster differs: {roster}")
     elif rows["over_tolerance"]:
@@ -268,13 +300,18 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
         problems.append("the read-back is over the bind_mismatch bars on " + ", ".join(
             f"{r['bone']} ({r['position_cm']:.3g} cm, {r['rotation_deg']:.3g} deg, scale {r['scale']:.3g})" for r in worst))
     if expect is not None and (usf is None or abs(usf - float(expect)) > 1e-9):
-        problems.append(f"the file says UnitScaleFactor {usf:g} where the recipe {doc.get('name')} expects {float(expect):g}")
+        problems.append(f"the file says UnitScaleFactor {usf} where the recipe {doc.get('name')} expects {float(expect):g}")
     fbx_sha = hashlib.sha256(writing.read_bytes()).hexdigest()
     summary = {"recipe": {"name": doc.get("name"), "path": str(recipe_path), "exporter": doc["exporter"]}, "convention": convention,
                "recipe_selection": {"requested": recipe or "auto", "measured_convention": convention,
                                     "selected": doc.get("name"), "source": "measured_normalized_frames" if recipe in ("", "auto", None) else "explicit_caller_recipe",
                                     "ue_confirmation": "pending M-RIG-01; Blender raw-frame readback alone does not prove physical Unreal acceptance"},
                "unit_scale_factor": usf, "reference": ref_name, "container_top_bone": container, "animation": anim,
+               "reference_scope": "independent_blender_reference" if reference else "self_roundtrip",
+               "engine_bind_acceptance": "unverified; requires actual native reference capture",
+               "export_space": space_receipt, "effective_exporter": effective_exporter,
+               "readback_representation": readback_units, "container_scale_failures": container_scale_failures,
+               "authored_bone_scale_failures": authored_bone_scale_failures,
                "normals": {"corner_max_deg": max((c for c in corner if c is not None), default=0.0), "unmatched_meshes": corner.count(None)},
                "sha256": {"fbx": fbx_sha, "reference": ref_sha, "armature_rest": RT._fingerprint(ob, RT.read(ob))}}
     if rows is not None:
