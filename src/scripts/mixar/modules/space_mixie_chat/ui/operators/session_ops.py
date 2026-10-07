@@ -301,11 +301,11 @@ class MIXIE_CHAT_OT_abort_session(Operator):
         clear_destination(session.get_session_id(scene))
 
         # 1. Stop agent stream for this scene only
-        cleanup_turn_handler(scene_name)
+        cleanup_turn_handler(scene_name, keep_bound=True)
 
         # 2. Drain queued events for this scene
         from ...core.queue_processor import cleanup_event_queue_for_scene
-        cleanup_event_queue_for_scene(scene_name)
+        cleanup_event_queue_for_scene(scene_name, keep_bound=True)
 
         # 3. Flush THIS session's queued tool scripts (other tabs keep theirs)
         flush_executor_queue(session_id=session.get_session_id(scene) or "")

@@ -153,8 +153,8 @@ class TurnTransport:
             payload['question_ref'] = question_ref
         return self._send('input', payload, user_message)
 
-    def stop_stream(self):
-        turn_events.drop_scene(self.scene_name)
+    def stop_stream(self, *, keep_bound=False):
+        (turn_events.retire_scene if keep_bound else turn_events.drop_scene)(self.scene_name)
         self._running = False
 
     def resume_stream(self, session_id, after_seq=None, auth_token=None):
@@ -208,10 +208,10 @@ def get_turn_handler(scene_name=''):
     return None
 
 
-def cleanup_turn_handler(scene_name):
+def cleanup_turn_handler(scene_name, *, keep_bound=False):
     handler = _handlers.pop(scene_name, None)
     if handler:
-        handler.stop_stream()
+        handler.stop_stream(keep_bound=keep_bound)
 
 
 def cleanup_all_turn_handlers(app_exit=False):

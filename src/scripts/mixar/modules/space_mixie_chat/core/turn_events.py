@@ -33,6 +33,7 @@ _bindings = {}
 _turns = {}
 _commands = {}
 _blocked = set()
+_retired = {}                       # Stop fences these turn IDs, while the scene's unit remains bound for new pane turns.
 _MAX_BYTES = 64 * 1024 * 1024
 _MAX_ITEMS = 512
 _pump = TurnEventPump(lambda: _drain())
@@ -231,7 +232,7 @@ def _consume(method, params):
         scene = _resolve(sid)
         info = params.get('info') or {}
         tid = info.get('turn_id')
-        if scene is None or sid in _blocked:
+        if scene is None or sid in _blocked or tid in _retired.get(sid, ()):
             return
         if _old_conversation(scene, info):
             return
@@ -281,7 +282,7 @@ def _consume(method, params):
                 entry[1](scene, params)
         return
     sid, tid = params.get('session_id'), params.get('turn_id')
-    if not sid or not tid or sid in _blocked:
+    if not sid or not tid or sid in _blocked or tid in _retired.get(sid, ()):
         return
     scene = _resolve(sid)
     if scene is None:
@@ -540,7 +541,42 @@ def drain_session(sid):
             logger.exception('Agent event could not be rendered')
 
 
+def retire_scene(scene_name):
+    """Stop this scene's known and queued turns; keep its unit available to a new turn typed in its pane.
+
+    Retired identities outlive the bounded completed-turn cache. Removing a scene or its conversation instead uses drop_scene.
+    """
+    global _inbox_bytes
+    import bpy
+    scene = bpy.data.scenes.get(scene_name)
+    if scene is None:
+        return
+    sid = getattr(scene, 'mixie_session_id', '')
+    if not sid:
+        return
+    retired = _retired.setdefault(sid, set())
+    with _LOCK:
+        for _method, params, size in _inbox.pop(sid, ()):
+            _inbox_bytes -= size
+            identities = [params, params.get('info') or {}, *(params.get('cards') or [])]
+            for metadata in identities:
+                if isinstance(metadata, dict) and metadata.get('turn_id'):
+                    retired.add(metadata['turn_id'])
+        _overflow.discard(sid)
+    for tid, turn in _turns.items():
+        if turn.session_id == sid:
+            retired.add(tid)
+            turn.complete = True
+            turn.pending.clear()
+    for key, entry in list(_commands.items()):
+        if entry[0] == sid:
+            retired.add(key)
+            _commands.pop(key, None)
+    _blocked.discard(sid)
+
+
 def drop_scene(scene_name):
+    """A scene/conversation teardown additionally blocks future turns until an explicit chat/reopen."""
     import bpy
     scene = bpy.data.scenes.get(scene_name)
     if scene is None:
@@ -573,3 +609,4 @@ def reset():
     _commands.clear()
     _bindings.clear()
     _blocked.clear()
+    _retired.clear()
