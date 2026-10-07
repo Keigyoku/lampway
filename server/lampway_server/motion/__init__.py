@@ -121,7 +121,13 @@ def _json_value(value):
 
 def _duration(d) -> float:
     if isinstance(d, bool) or not isinstance(d, (int, float)) or not 0 < d <= 120:
-        raise Refused("duration out of range (0, 120]: pass a finite number and split the video or shorten the scene")
+        if isinstance(d, (int, float)) and not isinstance(d, bool):
+            try:
+                label = f"{d:g}"
+            except OverflowError:
+                label = "(numeric magnitude exceeds representable seconds)"
+            raise Refused(f"duration {label} s out of range (0, 120]: split the video or shorten the scene")
+        raise Refused(f"duration {d!r} out of range (0, 120]: split the video or shorten the scene")
     return float(d)
 
 
