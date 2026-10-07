@@ -264,21 +264,6 @@ def test_the_terminal_gets_plex_mono_as_truetype(home):
     assert (fonts / "OFL-IBM-Plex-Mono.txt").exists()
 
 
-def test_an_image_path_in_a_pane_is_a_link_that_shows_it_in_blender():
-    """Inline images do not cross herdr (measured live 2026-10-06, iTerm2 and kitty protocols: 0 pixels through herdr, 26 289
-    without it), so contract 16's fallback is the rule: an image path in a pane's output is a link, and a click appends it to a
-    queue under $LAMPWAY_HOME that Blender drains into its Image Editor. Nothing else is opened and nothing leaves the machine."""
-    lua = (Path(W.__file__).parent / "lampway.wezterm.lua").read_text(encoding="utf-8")
-    assert "config.hyperlink_rules = wezterm.default_hyperlink_rules()" in lua
-    assert "format = 'lampway-image:$1'" in lua and "png|jpe?g|exr|webp|tga|tiff?|bmp" in lua
-    assert "wezterm.on('open-uri'" in lua and "home .. '/wezterm/show_in_blender.jsonl'" in lua
-    assert "mods = 'CTRL', mouse_reporting = reporting" in lua and "action = wezterm.action.OpenLinkAtMouseCursor" in lua, \
-        ("herdr reports the mouse, so the link is Ctrl+click in both modes (measured live 2026-10-06 under herdr: a plain click "
-         "did not open it; Ctrl+click did, and did not without this binding)")
-    handler = lua[lua.index("wezterm.on('open-uri'"):]
-    assert "^lampway%-image:" in handler and "return false" in handler, "only Lampway's links are taken; every other link opens as before"
-
-
 # ---- the rest of contract 16's surface: Focus and Update
 
 
@@ -359,7 +344,9 @@ def test_the_launcher_issues_no_tab_or_spawn_command(home, fake_wezterm, tmp_pat
 def test_the_config_has_no_tab_bar_and_mirrors_no_state():
     lua = (Path(W.__file__).parent / "lampway.wezterm.lua").read_text(encoding="utf-8")
     assert "config.enable_tab_bar = false" in lua
-    for gone in ("format-tab-title", "update-status", "state.json", "STATE_FILE", "CUES"):
+    for gone in ("format-tab-title", "update-status", "state.json", "STATE_FILE", "CUES",
+                 # the captain's ruling 11 (2026-10-06): no Ctrl+click image link either - a viewport only
+                 "hyperlink_rules", "open-uri", "mouse_bindings", "show_in_blender", "io.open"):
         assert gone not in lua, gone
 
 

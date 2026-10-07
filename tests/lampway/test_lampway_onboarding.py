@@ -34,20 +34,30 @@ def test_continue_names_the_count(n, label):
     assert ob.continue_label(n) == label
 
 
-def test_step_two_refuses_a_provider_whose_route_is_off():
+def test_the_routes_come_before_the_provider():
+    """The audit's F3, ruled by the captain (keep the four steps, fix the order): a plan provider needs its route, so the
+    route switches come first and a fresh install on a plan can always advance."""
+    assert ob.STEPS == ("Language and keys", "What may leave this machine", "Where the agent thinks", "Spending caps")
     w = walk("chatgpt_plan")
-    assert w.next() is None and w.step == 2
-    assert w.next() == "ChatGPT plan needs the chatgpt.com route: switch it on in step 3, or pick a local provider"
-    assert w.step == 2, "the step stays"
+    assert w.next() is None and w.step == 2                       # routes
     w.click_route("chatgpt_plan", True)
-    assert w.next() is None and w.step == 3
+    assert w.next() is None and w.step == 3                       # provider: its route is on
+    assert w.next() is None and w.step == 4
+
+
+def test_the_provider_step_refuses_a_provider_whose_route_is_off():
+    w = walk("chatgpt_plan")
+    w.step = 3
+    assert w.next() == "ChatGPT plan needs the chatgpt.com route: go Back and switch it on, or pick a local provider"
+    assert w.step == 3, "the step stays"
+    w.back()
+    assert w.step == 2, "Back reaches the routes"
     local = walk("claude_cli")
-    local.step = 2
-    assert local.next() == "Claude plan needs the api.anthropic.com route: switch it on in step 3, or pick a local provider"
-    for name in ("mock",):
-        free = walk(name)
-        free.step = 2
-        assert free.next() is None
+    local.step = 3
+    assert local.next() == "Claude plan needs the api.anthropic.com route: go Back and switch it on, or pick a local provider"
+    free = walk("mock")
+    free.step = 3
+    assert free.next() is None
 
 
 def test_offline_continue_saves_only_language_and_keys():

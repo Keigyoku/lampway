@@ -2,13 +2,14 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The first run's four steps (facelift contract 02, P1): language and keys, where the agent thinks, what may leave this machine, spending
-caps. No bpy and no import beyond the standard library: the popup (``ui/onboarding.py``) draws a ``Walk`` and the server tests drive one.
+"""The first run's four steps (facelift contract 02, P1): language and keys, what may leave this machine, where the agent thinks, spending
+caps. The routes come before the provider (the audit's F3, the captain's ruling): a plan provider needs its route, so it is switched first. No bpy and no import beyond the standard library: the popup (``ui/onboarding.py``) draws a ``Walk`` and the server tests drive one.
 
 Every route starts as the server has it (off on a fresh install) and changes only by the user's click, which is recorded. Nothing leaves the
 machine during the walk: ``finish`` writes the choices to Lampway's own server, and only then."""
 
-STEPS = ("Language and keys", "Where the agent thinks", "What may leave this machine", "Spending caps")
+STEPS = ("Language and keys", "What may leave this machine", "Where the agent thinks", "Spending caps")
+ROUTES_STEP, PROVIDER_STEP, CAPS_STEP = 2, 3, 4
 OFFLINE = "Lampway's server is not running: Start it"
 # BUILD_ORDER.md cloud D1 for OpenRouter (dollars). The server keeps a session ledger, not a day one: the D1 "$5 per day" is the session cap.
 DEFAULT_CAPS = {"job_cap": 1.0, "session_cap": 5.0, "above": 0.25}
@@ -55,15 +56,15 @@ class Walk:
         self.clicks.append((route, bool(on)))
 
     def refusal(self):
-        """Step 2's refusal: a provider whose route is off cannot think."""
+        """The provider step's refusal: a provider whose route is off cannot think."""
         route = PROVIDER_ROUTE.get(self.provider)
         if not self.online or route is None or self.chosen.get(route):
             return None
-        return f"{ROUTE_LABEL[route]} needs the {ROUTE_HOST[route]} route: switch it on in step 3, or pick a local provider"
+        return f"{ROUTE_LABEL[route]} needs the {ROUTE_HOST[route]} route: go Back and switch it on, or pick a local provider"
 
     def next(self):
         """Advance one step; a refusal leaves the step where it is and is returned."""
-        if self.step == 2 and (why := self.refusal()):
+        if self.step == PROVIDER_STEP and (why := self.refusal()):
             return why
         self.step = min(self.step + 1, len(STEPS))
         return None

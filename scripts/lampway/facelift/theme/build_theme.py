@@ -466,31 +466,6 @@ config.enable_tab_bar = false
 config.unix_domains = {{}}
 config.ssh_domains = {{}}
 
--- images (contract 16, section 6.7): inline images do not cross herdr (measured live 2026-10-06, the iTerm2 and kitty
--- protocols both), so an image path in a pane's output is a link; a click appends it to a queue under $LAMPWAY_HOME that
--- Blender drains into its Image Editor. Only Lampway's own links are taken here; every other link opens as before.
-local SHOW_QUEUE = home .. '/wezterm/show_in_blender.jsonl'
-config.hyperlink_rules = wezterm.default_hyperlink_rules()
-table.insert(config.hyperlink_rules, {{ regex = [[(?i)(/[^\\s'"`<>|]+\\.(?:png|jpe?g|exr|webp|tga|tiff?|bmp))\\b]], format = 'lampway-image:$1' }})
--- herdr takes the mouse (its panes report clicks), so a plain click goes to herdr; Ctrl+click opens a link in either mode
-config.mouse_bindings = {{}}
-for _, reporting in ipairs({{ false, true }}) do
-  table.insert(config.mouse_bindings, {{ event = {{ Up = {{ streak = 1, button = 'Left' }} }}, mods = 'CTRL', mouse_reporting = reporting,
-                                        action = wezterm.action.OpenLinkAtMouseCursor }})
-  table.insert(config.mouse_bindings, {{ event = {{ Down = {{ streak = 1, button = 'Left' }} }}, mods = 'CTRL', mouse_reporting = reporting,
-                                        action = wezterm.action.Nop }})
-end
-wezterm.on('open-uri', function(window, pane, uri)
-  local path = uri:match('^lampway%-image:(.+)$')
-  if not path then return end
-  local f = io.open(SHOW_QUEUE, 'a')
-  if f then
-    f:write(wezterm.json_encode({{ path = path, at = os.time() }}) .. '\\n')
-    f:close()
-  end
-  return false
-end)
-
 return config
 """
 
