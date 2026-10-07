@@ -25,6 +25,7 @@ def main(argv):
     result=measure(config,root)
     print(json.dumps({'schema':result['schema'],'jobs':len(result['jobs']),
                       'failed':[r['id'] for r in result['jobs'] if not r['ok']],
+                      'acceptance':{r['id']:r['acceptance'] for r in result['jobs'] if 'acceptance' in r},
                       'out':config.get('out','measurements/decisions.json'),'default_choices_applied':False}))
     return 1 if any(not r['ok'] for r in result['jobs']) else 0
 
