@@ -44,6 +44,31 @@ PANE_KEY_FILE = "pane.key"
 MODE1_FIELDS = ("home", "port", "token_file", "stored_session_id", "gateway_token_sha256", "mcp_token_sha256")
 
 
+#: The island's images into a pane (spec B4): how many go with one message, and how large each may be.
+MAX_PANE_IMAGES = 8
+MAX_PANE_IMAGE_BYTES = 20 << 20
+
+
+def image_kind(data: bytes):
+    """The file type from the bytes themselves (never a client's name or type): png, jpg, gif, webp, or None."""
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "png"
+    if data[:3] == b"\xff\xd8\xff":
+        return "jpg"
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return "gif"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "webp"
+    return None
+
+
+def agent_name(rid: str) -> str:
+    """The name ``agent start`` gives a harness pane's agent: herdr 0.9.3 takes only ``[a-z][a-z0-9_-]{0,31}``, unique among live
+    agents (src/app/agents.rs ``valid_agent_name``; a session's display name such as "Chest fit audit" is refused,
+    ``invalid_agent_name``, measured on the real server). The record's id is unique and short."""
+    return f"lw-{rid}"[:32]
+
+
 def _sha(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -274,7 +299,7 @@ class Cockpit:
                 native_id = native_id or sid
                 argv = ad.resume(resume_id, spec) if resume_id else ad.launch(spec, task=None if lampway else prompt)
                 if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
-                    L.run(self.root, ["agent", "start", name[:40], "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
+                    L.run(self.root, ["agent", "start", agent_name(rid), "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
                 else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
                     # one shell-quoted command: herdr 0.9.3's `pane run` joins its arguments with spaces, unquoted (measured 2026-10-07)
                     L.run(self.root, ["pane", "run", pane_id, shlex.join(argv)])
@@ -540,12 +565,99 @@ class Cockpit:
         if submit:
             L.run(self.root, ["pane", "send-keys", rec["pane_id"], "enter"])
 
-    def interrupt(self, sid: str) -> None:
-        """One Ctrl+C into a live session (the cockpit's interrupt: a user request or the user's click)."""
+    def note_native_id(self, sid: str, native_id: str) -> None:
+        """Record the harness's own session id once it is known (Codex names it in its rollout, spec B2): only an empty one is
+        filled, only the record changes."""
+        def f(d):
+            for s in d["sessions"]:
+                if s["id"] == sid and not s.get("native_id") and s.get("harness") in HN.ADAPTERS:
+                    s.update(native_id=str(native_id), updated_at=time.time())
+        self._update(f)
+
+    def agent_status(self, sid: str) -> str:
+        """herdr's own reading of the pane's agent (``pane get``: idle, working, blocked, done, unknown), for a harness whose session
+        the island shows by its screen. Read only; "unknown" when herdr cannot say."""
+        rec = self._get(sid)
+        try:
+            pane = json.loads(L.run(self.root, ["pane", "get", rec["pane_id"]], timeout=10))["result"]["pane"]
+        except (L.HerdrError, ValueError, KeyError, TypeError):
+            return "unknown"
+        status = str(pane.get("agent_status") or "unknown")
+        return status if status in ("idle", "working", "blocked", "done", "unknown") else "unknown"
+
+    def write_pane_images(self, sid: str, images: list) -> list:
+        """The island's images for one harness pane (agent-modes spec B4), written where the pane's harness can read them: a
+        Lampway-owned directory inside the pane's project root, ``<project root>/.lampway/panes/<id>/images/`` (``.lampway`` is
+        Lampway's own folder in a project), 0600 files in 0700 directories. Never outside the project root (the same jail as the
+        tools, every path checked after symlinks are resolved), never a name or type the client chose: the bytes must be a PNG,
+        JPEG, GIF or WebP image, and Lampway names the file. Returns the absolute paths, in order."""
+        rec = self._get(sid)
+        pr = rec.get("project_root") or self.project_root
+        if not pr:
+            raise CockpitError("this pane has no project root, so there is nowhere inside the project to put the image: nothing was sent")
+        if not images:
+            return []
+        if len(images) > MAX_PANE_IMAGES:
+            raise CockpitError(f"at most {MAX_PANE_IMAGES} images go with one message")
+        for data in images:                                        # every image is checked before anything is written
+            if image_kind(data) is None:
+                raise CockpitError("an attachment is not a PNG, JPEG, GIF or WebP image: nothing was sent")
+            if len(data) > MAX_PANE_IMAGE_BYTES:
+                raise CockpitError(f"an image is larger than {MAX_PANE_IMAGE_BYTES // (1 << 20)} MB: nothing was sent")
+        root = os.path.realpath(pr)
+        target = Path(root) / ".lampway" / "panes" / rec["id"] / "images"
+        for d in (Path(root) / ".lampway", Path(root) / ".lampway" / "panes", Path(root) / ".lampway" / "panes" / rec["id"], target):
+            d.mkdir(mode=0o700, exist_ok=True)
+            real = os.path.realpath(d)
+            if not real.startswith(root + os.sep):
+                raise CockpitError(f"refusing to write images through {d}: it leads outside the project root")
+        os.chmod(target, 0o700)
+        out = []
+        for data in images:
+            path = target / f"image-{time.strftime('%Y%m%d-%H%M%S')}-{secrets.token_hex(4)}.{image_kind(data)}"
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+            with os.fdopen(fd, "wb") as fh:
+                fh.write(data)
+            real = os.path.realpath(path)
+            if not real.startswith(root + os.sep):                      # cannot happen after the checks above; never trusted
+                os.unlink(path)
+                raise CockpitError("refusing an image path outside the project root")
+            out.append(real)
+        return out
+
+    def resume_bound(self, sid: str, scene_session_id: str, unit_label=None) -> dict:
+        """The user's Resume of an ended harness pane bound to a scene tab (agent-modes spec B2; law 5: only the user's click, never
+        automatic). A new pane runs the adapter's resume with the stored native session id, bound to the same tab; the ended record
+        stays in the registry, unbound, so the tab has one pane. The harness's route and the BYOA switch are checked as for any
+        start (``create_session``)."""
+        rec = self._get(sid)
+        ad = HN.ADAPTERS.get(rec.get("harness") or rec.get("agent"))
+        if ad is None:
+            raise CockpitError("only a harness pane can be resumed")
+        if rec.get("state") == "live":
+            raise CockpitError("this pane is still running: nothing to resume")
+        if not rec.get("native_id"):
+            raise CockpitError(f"no {ad.label} session id was recorded for this pane, so it cannot be resumed: start a new one")
+        name = rec.get("name") or f"{ad.label} for a scene tab"
+        new = self.create_session(ad.id, name, rec.get("cwd") or self.project_root or ".", resume_id=rec["native_id"], by="user",
+                                  project_root=rec.get("project_root"), scene_session_id=scene_session_id, unit_label=unit_label,
+                                  effort=rec.get("effort"))
+        self.unbind(sid)
+        return new
+
+    def interrupt(self, sid: str) -> list:
+        """Interrupt a live session's running turn (the cockpit's interrupt and the island's Stop: a user request or the user's
+        click; the callers decide who may). A harness pane gets its adapter's own keys (``interrupt_keys``); anything else one
+        Ctrl+C. Spelled as herdr 0.9.3 takes them (``ctrl+c``; ``ctrl-c`` is refused). Returns the keys sent."""
         rec = self._get(sid)
         if rec["state"] != "live":
             raise CockpitError("the session is not running")
-        L.run(self.root, ["pane", "send-keys", rec["pane_id"], "ctrl-c"])
+        ad = HN.ADAPTERS.get(rec.get("harness") or rec.get("agent"))
+        keys = list(ad.interrupt_keys) if ad is not None else ["ctrl+c"]
+        if not keys:
+            raise CockpitError(f"no way to interrupt {ad.label} is recorded: stop it in its own pane")
+        L.run(self.root, ["pane", "send-keys", rec["pane_id"], *keys])
+        return keys
 
     def close_session(self, sid: str, confirmed=False) -> dict:
         if not confirmed:

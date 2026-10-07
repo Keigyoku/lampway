@@ -7,8 +7,10 @@ its session can be observed. It never reads or writes a file and never starts a 
 own files and herdr's launcher runs every command (the version probe and the login check included). It never opens a harness's
 credential store (spec B0): ``login_state`` asks the harness's own status command, inside the harness's egress route.
 
-Flags and paths the spec marks ``[UNVERIFIED]`` came from vendor documentation, not an installed copy; they stay marked here until
-each adapter's first task, a fixture recorded from a real installed version, confirms them.
+Each adapter's ``FACTS`` names what it rests on and the evidence: the installed copy and version it was checked against (with a
+throwaway HOME, ``--help``/``--version`` and the harness's own offline commands only: no login, no model call), the pinned herdr's
+source, or the vendor's documentation. A fact no installed copy could show (a turn needs an account) stays ``[UNVERIFIED]``
+with the reason. ``tests/test_byoa_harnesses.py`` pins every fact the argv, the wiring and the listing depend on.
 """
 import json
 import os
@@ -71,7 +73,7 @@ class DirectServer:
 
 @dataclass(frozen=True)
 class ToolWiring:
-    kind: str                          # mcp_config_file | mcp_override | extension
+    kind: str                          # mcp_config_file | mcp_override | extension | unavailable
     argv: tuple = ()                   # flags added to the harness's own command line
     env: dict = field(default_factory=dict)      # variables added to the pane's environment
     files: dict = field(default_factory=dict)    # path -> text: the pane's own config, written 0600 by the host before the start
@@ -145,6 +147,21 @@ class Adapter:
     direct_ok = False
     #: What reconcile looks for among the pane's foreground processes (None: the binary's name).
     process_match: Optional[str] = None
+    #: How the island's Stop interrupts this harness's running turn: the keys typed into its pane (herdr 0.9.3's key spelling,
+    #: ``pane send-keys``; ``ctrl+c``, never ``ctrl-c``, which herdr refuses as ``invalid_key``). () = no recorded key: Stop is
+    #: refused with that reason. herdr 0.9.3 has no interrupt command of its own (its CLI reference: ``agent send-keys`` is the
+    #: same keys sent to a named agent).
+    interrupt_keys: tuple = ()
+    #: Whether a prompt typed into the pane can carry an image by its path (the harness attaches a pasted image path, or its file
+    #: tool reads images). False: the island's images are refused with ``images_note``, which says why.
+    takes_image_paths = False
+    images_note = ""
+    #: Whether this pane can reach Lampway's tools through its own per-pane config (a flag, a variable or an extension). False:
+    #: ``tools_note`` says why, and the listing shows it to the user.
+    tools_reachable = True
+    tools_note = ""
+    #: What this adapter rests on, each fact with its evidence (see the module docstring).
+    FACTS: dict = {}
 
     def __init__(self, which=None):
         self._which = which
@@ -180,7 +197,20 @@ class Adapter:
             return LoginState("unknown", str(exc))
         if code is None:
             return LoginState("unknown", f"{self.label}'s status command did not answer")
-        return LoginState("signed_in" if code == 0 else "signed_out", _first_line(out))       # exit status as the signal [UNVERIFIED per harness]
+        return self.read_status(code, out or "")
+
+    def read_status(self, code: int, out: str) -> LoginState:
+        """What the status command's answer means. Default: its exit status. An adapter whose command exits 0 either way reads
+        its output instead (see its FACTS)."""
+        return LoginState("signed_in" if code == 0 else "signed_out", _first_line(out))
+
+    # ------------------------------------------------------------------------------------------------- the island's input
+    def with_images(self, text: str, paths: list) -> str:
+        """The typed prompt carrying the island's images: each image's absolute path first, then the text (a pasted path followed
+        by a caption is how the harnesses that attach pasted images read it). Refused for a harness that takes no image."""
+        if not self.takes_image_paths:
+            raise ValueError(self.images_note or f"{self.label} has no recorded way to take an image in its prompt")
+        return " ".join([*(str(p) for p in paths), (text or "").strip()]).strip()
 
     # ------------------------------------------------------------------------------------------------- argv
     def _args(self, pane: PaneSpec, resume_id: Optional[str]) -> list:
@@ -216,12 +246,14 @@ class Adapter:
 
     # ------------------------------------------------------------------------------------------------- tools and observation
     def lampway_tools(self, pane: PaneSpec) -> ToolWiring:
-        """Default: the pane's own mcpServers file, written for the record; no flag points the harness at it yet [UNVERIFIED]."""
+        """Default, for a harness with no per-pane way in (``tools_reachable`` False): the pane's own mcpServers file is written for
+        the record of its binding, and nothing points the harness at it, because the only places it reads MCP servers from are the
+        user's own config and the project's shared one, which Lampway never writes (``tools_note`` says which, with the evidence)."""
         path = pane.mcp_config_path
-        return ToolWiring("mcp_config_file", (), {}, {path: json.dumps({"mcpServers": {SERVER_NAME: mcp_entry(pane)}}, indent=2)} if path else {},
+        return ToolWiring("unavailable", (), {}, {path: json.dumps({"mcpServers": {SERVER_NAME: mcp_entry(pane)}}, indent=2)} if path else {},
                           tuple(pane.launcher), pane.scene_session_id, False,
-                          f"[UNVERIFIED] no per-pane MCP flag is recorded for {self.label}: the file is written beside the pane, and nothing points "
-                          f"{self.binary} at it until a fixture from an installed version names the flag (the user's own config is never changed)")
+                          self.tools_note or f"no per-pane MCP config is known for {self.label}: the file is written beside the pane for the "
+                          "record, and the user's own config is never changed")
 
     def observe(self, record) -> Optional[Observer]:
         return Observer("screen", None, True, "the pane's screen text (herdr pane read)")

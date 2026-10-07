@@ -1014,6 +1014,35 @@ is a fixture recorded from a real installed version.
 - A source gate shows no adapter opens a harness's credential files.
 - A conformance test runs each installed harness's `detect` and `login_state` without starting a model call.
 
+**Built 2026-10-07: every adapter checked against an installed copy** (`herdr/harnesses/`, each adapter's `FACTS`;
+`tests/test_byoa_harnesses.py`). Each harness was installed into a scratch prefix and run with a throwaway HOME, no proxy and no
+login, only `--help`, `--version` and offline commands; nothing was signed in and no model was called. The table above is
+superseded by this one:
+
+| adapter | checked on | new / resume | Lampway's tools in its pane | Stop | images | island view |
+|---|---|---|---|---|---|---|
+| Claude Code | 2.1.293 (npm) | `--session-id <uuid>` (Lampway's) / `--resume <id>` | `--mcp-config <file>` (variadic: the task goes first) | Esc | path in the prompt | its transcript |
+| Codex CLI | 0.161.0 (npm) | `[PROMPT]` / `resume <id>` | `-c mcp_servers.…` overrides: `codex mcp list --json` parsed exactly the pane's entries | Esc | path in the prompt | its rollout (id recorded once found) |
+| OpenCode | 1.18.35 (npm) | `--prompt` / `--session <id>` | `OPENCODE_CONFIG`: `opencode mcp list` connected the pane's entry | Esc twice | path in the prompt | the screen (its sessions are in its own database) |
+| Pi | 1.0.4 (npm `@earendil-works/pi-coding-agent`) | `--session-id <id>` (Lampway's) / `--session <id>` | Lampway's Pi extension (`-e`): Pi answered `/mcp` with "lampway: connected" | Esc | path in the prompt (its `read` tool reads images) | its session file (`PiMirror`) |
+| Your Hermes | v0.21.5 (Lampway's pinned build, run as a user's would be) | — / `--resume <id>` | none per pane: only `config.yaml` in its home (E1.10) | Ctrl+C | a pasted path is attached | the screen |
+| Grok | 1.0.46 (x.ai installer) | `--session-id <uuid>` (Lampway's) / `--resume <id>` | none per pane: user and project config only | Ctrl+C (its docs: Esc never cancels) | a pasted path becomes an image | the screen |
+| Cursor agent | 2026.10.01-e373342 (cursor.com installer) | `[prompt...]` / `--resume <chatId>` | none per pane: `.cursor/mcp.json` or `~/.cursor/mcp.json` only | Ctrl+C | refused (none documented) | the screen |
+
+- **Pi has MCP.** The spec's "Pi has no MCP by design" was true of the old `@mariozechner/pi-coding-agent`; Pi 1.x has it built
+  in, but reads only `~/.pi/agent/mcp.json` and the trust-gated `.pi/mcp.json`. Lampway's Pi extension
+  (`harnesses/lampway_pi_extension.js`) is a wrapper only: it reads the pane's own 0600 config (`LAMPWAY_PI_MCP`) and calls
+  `pi.registerMcpServer` for that session. `tests/test_byoa_pi_live.py` runs it on a real Pi.
+- **herdr starts all seven itself.** herdr 0.9.3 knows every kind (`agent start --kind claude|codex|opencode|pi|hermes|grok|cursor`).
+  Found while checking: herdr refuses an agent name that is not `[a-z][a-z0-9_-]{0,31}`, and the cockpit passed the session's
+  display name, so every Claude Code, Codex and OpenCode pane failed to start on the real server; the name is now `lw-<record id>`.
+  It refuses `ctrl-c` too (the spelling is `ctrl+c`), which the cockpit's interrupt sent.
+- **Login checks** read each harness's own answer: Claude Code's JSON `loggedIn`, Codex's exit status, OpenCode's credential count
+  (it exits 0 signed out), Cursor's JSON `isAuthenticated`; Pi, Grok and Hermes have no account-wide status command.
+- `[UNVERIFIED]`, because a turn needs an account: each interrupt key on a running turn (the keys come from herdr's detection
+  manifests and the harnesses' own docs and sources), how each attaches a pasted image path, a rollout written by Codex 0.161.0,
+  Pi's records from a real turn, and Grok's `updates.jsonl` (an ACP stream, so Grok is still shown by its screen).
+
 ## B2. Binding a pane to a scene tab
 
 **Purpose.** A BYOA agent works in the tab the user started it from, the way an MCP client pins one scene today.
@@ -1029,6 +1058,17 @@ is a fixture recorded from a real installed version.
 
 **Tests.** A tool call from a bound pane reaches only its tab; closing the tab leaves the pane running and unbound; reopening the
 file re-attaches by `scene_session_id`.
+
+**Built 2026-10-07: Resume or Unbind on .blend open** (`agent/byoa.py`, `herdr/host.py` `resume_bound`; client
+`core/byoa_view.py`; `tests/test_byoa_island_controls.py`, `tests/test_byoa_island_view.py`):
+- A bound pane that is still live is observed again (as before). One that ended is answered `view: ended`, with `resumable` when a
+  native session id was recorded. Claude Code, Pi and Grok are given one by Lampway at the start; Codex's is read from its rollout
+  once found. OpenCode, Cursor and the user's own Hermes choose their own and Lampway cannot see it, so they are not resumable.
+- The island shows one bubble with **Resume** (only when resumable) and **Unbind** buttons. Opening the file only observes:
+  nothing resumes by itself (law 5).
+- `agent.byoa.resume` is the user's click from the user's own socket. It needs the BYOA switch and the harness's route, like any
+  start. A new pane runs the adapter's resume with the stored id, bound to the same tab; the ended record stays in the registry,
+  unbound. `agent.byoa.unbind` drops the ended pane's binding, and nothing is closed.
 
 ## B3. Lifecycle owned by the harness
 
@@ -1066,6 +1106,25 @@ file re-attaches by `scene_session_id`.
 
 **Tests.** A recorded Claude session file renders as bubbles and steps in the island; a pane without a session file shows its screen;
 a user message from the island appears in the pane; the halo is on exactly while an operation is held.
+
+**Built 2026-10-07: Stop, images and Pi's view** (`agent/byoa.py`, `herdr/host.py`, `herdr/observers/mirror.py`; client
+`core/byoa_view.py`, `ui/operators/session_ops.py`; `tests/test_byoa_island_controls.py`, `tests/test_byoa_island_view.py`):
+- **Stop** in a Your agent tab is `agent.byoa.interrupt`; `agent.cancel` for such a tab does the same. The adapter's own interrupt
+  keys are typed into the tab's live pane, from the user's own socket only. While an observed turn runs, or herdr reads a
+  screen-shown pane as `working` (`pane get` `agent_status`), the island lights running through `mixie_chat_is_busy` and shows
+  STOP. The tab's turn state is never touched, so an MCP operation is never blocked. Running goes out when the observed turn ends.
+- **Images.** For a harness that takes an image by its path, the island's images (encoded as Mode 1 encodes them) are written into
+  `<project root>/.lampway/panes/<id>/images/`:
+  - 0600 files in 0700 directories;
+  - the type is read from the bytes (PNG, JPEG, GIF, WebP), and the name is Lampway's;
+  - every directory is checked against the project root after symlinks are resolved.
+
+  Their paths are typed before the text. Cursor is refused before anything leaves, with its reason, and so is an agent's socket.
+- **Pi** is observed from its own session file (`PiMirror`, the installed package's documented record shapes).
+- **Settled with installed copies:**
+  - Claude Code writes its message's `stop_reason` on every main-chain assistant record, never null (record shapes counted in a
+    2.1.292 transcript). The mirror's `end_turn` rule holds.
+  - Codex 0.161.0 still writes rollouts by default: its paginated thread history is a feature under development and off.
 
 ## B5. Egress, environment and consent
 
