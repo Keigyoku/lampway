@@ -196,7 +196,8 @@ async def test_a_tool_outside_the_closed_set_and_a_missing_request_id_are_refuse
         await ops.run("workbench_list", {}, request_id="", request_text="x")
 
 
-async def test_open_applies_the_title_effort_and_bypass_policies(tmp_path):
+async def test_open_applies_the_title_effort_and_bypass_policies(tmp_path, monkeypatch):
+    monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")              # spec B6: the agent's open path needs the same BYOA switch as the cockpit's route
     ops, cp = make(tmp_path)
     r = await ops.run("workbench_open", {"agent": "codex", "name": "Chest fit audit", "effort": "max"}, request_id="r2", request_text="open a codex session for the chest audit")
     assert r["status"] == "completed" and cp.calls[-1] == ("open", "codex", "Chest fit audit", "xhigh", False, "agent")        # max was not asked for: capped

@@ -13,7 +13,7 @@ import importlib.util
 import pytest
 
 from lampway_server import imagegen, provider_prefs
-from lampway_server.agent import cli_adapters
+from lampway_server.herdr import harnesses
 from lampway_server.agent.providers import make_provider
 from lampway_server.choices import registry as REG
 from lampway_server.config import Settings
@@ -50,5 +50,6 @@ def test_an_older_saved_choice_is_set_aside_not_applied(tmp_path):
 
 def test_the_cli_as_endpoint_code_is_gone():
     assert importlib.util.find_spec("lampway_server.agent.providers.codex_app_server") is None
+    assert importlib.util.find_spec("lampway_server.agent.cli_adapters") is None      # its pane switch moved to herdr/harnesses (spec B1)
     for name in ("build_prompt", "parse_answer", "CodexCLIProvider", "ClaudeCLIProvider", "codex_image"):
-        assert not hasattr(cli_adapters, name), name
+        assert not hasattr(harnesses, name), name

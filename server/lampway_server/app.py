@@ -375,7 +375,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except (ValueError, RuntimeError):
             return make_provider(settings, chatgpt_auth=chatgpt)
     agent = AgentHub(provider if provider is not None else _main_provider(),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault,
+                     switch_dir=settings.state_dir)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -903,21 +904,26 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     async def wb_create(request: Request):
         if (r := _wb(request)) is not None:
             return r
-        from .agent import cli_adapters
+        from .herdr import harnesses as _HN
         body = await _json_body(request)
         if body.get("bypass") and os.environ.get("LAMPWAY_ALLOW_BYPASS_ROUTE") != "1":
             return _wb_err("bypass can only be raised by the user's own click in the cockpit: a request cannot lift the permission level", 403)
-        if body.get("agent") in ("claude", "codex", "opencode"):
+        if body.get("api_key") and _wb_origin(request) != "user":
+            return _wb_err("only your click in the cockpit bills a pane to an API key: a request from an agent cannot", 403)
+        if body.get("agent") in _HN.ids():
             try:
-                cli_adapters.require_enabled(settings.state_dir)
+                _HN.require_enabled(settings.state_dir)
             except ValueError as exc:
                 return _wb_err(f"the local CLI switch is off: {exc}", 403)
         try:
             rec = await asyncio.to_thread(cockpit.create_session, body.get("agent"), body.get("name"), body.get("cwd") or str(_project_root()), body.get("task") or "", body.get("effort"),
-                                          False, body.get("resume_id"), body.get("command"), "user")
+                                          False, body.get("resume_id"), body.get("command"), "user", None, bool(body.get("api_key")),
+                                          str(body.get("scene_session_id") or "") or None)
             return JSONResponse(rec)
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
+        except PermissionError as exc:                                               # egress consent: the harness's byoa route is off (spec B5)
+            return _wb_err(exc, 403)
 
     async def wb_screen(request: Request):
         if (r := _wb(request)) is not None:
@@ -927,12 +933,26 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
 
+    def _wb_origin(request: Request) -> str:
+        """Who is typing, decided from the caller and never from ``body.by`` (agent-modes spec B6): a request that declares an agent
+        origin, a cross-origin request, or a token minted for an agent or an MCP client is an agent send; the user's own Client (the
+        cockpit page, the Blender panel) is the user."""
+        from .connections.routes import _cross_origin
+        if any((request.headers.get(h) or "").strip().lower() in ("agent", "mcp") for h in ("x-lampway-origin", "x-mixar-job-origin")):
+            return "agent"
+        if _cross_origin(request):
+            return "agent"
+        claims = auth.verify_access(bearer_token(request) or "") or {}
+        if str(claims.get("origin") or "").lower() in ("agent", "mcp") or str(claims.get("aud") or "").lower() == "mcp":
+            return "agent"
+        return "user"
+
     async def wb_input(request: Request):
         if (r := _wb(request)) is not None:
             return r
         body = await _json_body(request)
         try:
-            await asyncio.to_thread(cockpit.send_input, request.path_params["sid"], str(body.get("text") or ""), bool(body.get("submit", True)), body.get("by") or "agent", body.get("user_typed_at"))
+            await asyncio.to_thread(cockpit.send_input, request.path_params["sid"], str(body.get("text") or ""), bool(body.get("submit", True)), _wb_origin(request), body.get("user_typed_at"))
             return JSONResponse({"sent": True})
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
@@ -944,6 +964,19 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         try:
             return JSONResponse(await asyncio.to_thread(cockpit.close_session, request.path_params["sid"], bool(body.get("confirm"))))
         except (CockpitError, _HL.HerdrError) as exc:
+            return _wb_err(exc)
+
+    async def wb_binding(request: Request):
+        """Bind a harness pane to a scene tab, or unbind it (null): the user's Client only (closing a tab unbinds); the pane itself is
+        never touched (agent-modes spec B2, law 5)."""
+        if (r := _wb(request)) is not None:
+            return r
+        if _wb_origin(request) != "user":
+            return _wb_err("only your Client binds a pane to a scene tab: an agent cannot", 403)
+        body = await _json_body(request)
+        try:
+            return JSONResponse(await asyncio.to_thread(cockpit.bind, request.path_params["sid"], str(body.get("scene_session_id") or "") or None))
+        except CockpitError as exc:
             return _wb_err(exc)
 
     async def wb_agent_sends(request: Request):
@@ -962,7 +995,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
                Route("/app/workbench/server/stop", wb_server_stop, methods=["POST"]), Route("/app/workbench/reconcile", wb_reconcile, methods=["POST"]),
                Route("/app/workbench/sessions", wb_create, methods=["POST"]), Route("/app/workbench/sessions/{sid}/screen", wb_screen, methods=["GET"]),
                Route("/app/workbench/sessions/{sid}/input", wb_input, methods=["POST"]), Route("/app/workbench/sessions/{sid}/close", wb_close, methods=["POST"]),
-               Route("/app/workbench/sessions/{sid}/agent-sends", wb_agent_sends, methods=["POST"])]
+               Route("/app/workbench/sessions/{sid}/agent-sends", wb_agent_sends, methods=["POST"]),
+               Route("/app/workbench/sessions/{sid}/binding", wb_binding, methods=["POST"])]
     routes += [Route("/app/studio", studio_home, methods=["GET"]), Route("/app/studio/plan", studio_plan, methods=["POST"]),
                Route("/app/studio/approvals/{approval_id}/confirm", studio_confirm, methods=["POST"]),
                Route("/app/studio/approvals/{approval_id}/reject", studio_reject, methods=["POST"]),

@@ -37,6 +37,10 @@ class Route:
 
 
 _UNREAD = "unknown (the provider's terms are not read or recorded: decision D9)"
+#: The card of a BYOA route (agent-modes spec B5): starting the user's own agent in a pane is the opt-in; the traffic is the harness's.
+_BYOA_CARD = ("the harness talks to its vendor directly under your account, on your own login and plan; Lampway does not see or log that "
+              "traffic, it only starts the harness (this route gates the start, and each start is a row here)")
+_BYOA_TERMS = "the vendor's own terms for your account apply; Lampway sends nothing to the vendor itself"
 ROUTES = {r.id: r for r in (
     Route("openrouter", "OpenRouter", ("openrouter.ai",), "per model: Lampway sends zdr + data_collection=deny for private content; otherwise the model provider's policy applies",
           "per model: data_collection=deny is sent for private content", "conditional", (("zdr", True), ("data_collection", "deny"))),
@@ -69,6 +73,9 @@ ROUTES = {r.id: r for r in (
     # the agent's own browser (agent-modes spec E1.5, E2): hosts are not fixed, so none are listed; the engine's egress proxy (engine/proxy.py) is
     # the only caller, and only while the web.browse capability is on too. Every host it reaches is a log row of its own.
     Route("web:any", "Any website (the agent's browser)", (), _UNREAD, _UNREAD, "unknown"),
+    *(Route(f"byoa:{hid}", f"Your own {label} in a Lampway pane (BYOA)", (), _BYOA_CARD, _BYOA_TERMS, "unknown") for hid, label in (
+        ("claude", "Claude Code"), ("codex", "Codex CLI"), ("hermes", "Hermes Agent"), ("opencode", "OpenCode"), ("pi", "Pi"),
+        ("grok", "Grok"), ("cursor", "Cursor agent"))),
 )}
 
 # Every process the server starts that is NOT lexically inside ``guard(route)``, with its reason (tests/test_egress_launch_audit.py holds this list to the code):
@@ -83,8 +90,12 @@ LAUNCHES: dict = {
     "job_backends.py:BlenderRun.__call__": ("local", "a niced headless Lampway process for one job, in its own 0700 directory"),
     "job_backends.py:BlenderRun.make_test_glb": ("local", "a niced headless Lampway process that writes a test GLB"),
     "engine/runtime.py:EngineRuntime._ensure_child": ("local", "starts Lampway's pinned Hermes engine (agent-modes spec E1.2) with a scrubbed environment; its only model endpoint is Lampway's loopback gateway and every proxy variable points at Lampway's egress proxy (E1.5)"),
-    "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets"),
+    "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets; a herdr call that starts the user's own "
+                                          "agent in a pane (BYOA) runs inside guard(byoa:<harness>) in herdr/host.py Cockpit.create_session"),
     "herdr/launcher.py:_systemd_ok": ("local", "systemctl --user is-system-running: a local query"),
+    "herdr/launcher.py:_probe_spawn": ("local", "a harness's own version flag (harnesses/ Adapter.detect) with the scrubbed environment: it prints a "
+                                                "version and sends nothing [UNVERIFIED per harness until each adapter's fixture]"),
+    "herdr/launcher.py:_status_spawn": ("callers_guard", "a harness's own login status command; its only caller, login_probe, holds guard(byoa:<harness>)"),
     "job_backends.py:BlenderRun.__call__": ("local", "nice headless Lampway (-b, bridge port 0) running one local mesh job on the uploaded file; no network"),
     "job_backends.py:BlenderRun.make_test_glb": ("local", "nice headless Lampway writing a UV-sphere GLB for the real-run test; no network"),
     "library/ingest.py:extract_video": ("local", "ffprobe on a local file"),

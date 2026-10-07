@@ -26,7 +26,9 @@ Survival was exercised against the real herdr binary: SIGKILL of the agent proce
 
 ## 2. Using it
 
-Prerequisites: `herdr` installed (on `PATH`, at `~/.local/bin/herdr`, or `LAMPWAY_HERDR_BIN`) and run once by you; for Claude Code, Codex or OpenCode panes the switch `LAMPWAY_LOCAL_CLI=1`. Each pane runs the vendor's own binary as you, on its own login; Lampway never reads that login and never sends a model request through it. The cockpit root is `LAMPWAY_HERDR_ROOT`, else `<LAMPWAY_HOME or state dir>/herdr`.
+Prerequisites: `herdr` installed (on `PATH`, at `~/.local/bin/herdr`, or `LAMPWAY_HERDR_BIN`) and run once by you; for a pane running your own agent the switch `LAMPWAY_LOCAL_CLI=1` and that harness's egress route (`byoa:claude`, `byoa:codex`, `byoa:hermes`, `byoa:opencode`, `byoa:pi`, `byoa:grok` or `byoa:cursor`) switched on in Privacy ([privacy](privacy.md)). Each pane runs the vendor's own binary as you, on its own login; Lampway never reads that login and never sends a model request through it. herdr and its panes start without your API keys; a key reaches a pane only when you tick "bill this pane to my API key" for it.
+
+The harnesses come through one adapter each (`server/lampway_server/herdr/harnesses/`, agent-modes spec B1). Claude Code, Codex CLI and OpenCode start exactly as before; Hermes Agent (your own, never Lampway's engine), Pi, Grok and Cursor's `cursor-agent` are wired from their vendors' documentation and not yet from an installed copy, so their flags are marked `[UNVERIFIED]` in the code. The cockpit root is `LAMPWAY_HERDR_ROOT`, else `<LAMPWAY_HOME or state dir>/herdr`.
 
 In the Lampway tab, open **Cockpit (agent sessions)**:
 
@@ -34,13 +36,17 @@ In the Lampway tab, open **Cockpit (agent sessions)**:
 |---|---|
 | Refresh sessions, Reconcile | read the state; re-adopt by the server's truth (nothing is spawned or killed) |
 | **Start the herdr server** | your click; starts Lampway's detached server |
-| **New session** | agent (`claude`, `codex`, `opencode`, `shell`), a name, a first task; effort `medium`, `high`, `xhigh` or `max` |
+| **New session** | agent (`claude`, `codex`, `opencode`, `shell`), a name, a first task; effort `medium`, `high`, `xhigh` or `max` (the server also accepts `hermes`, `pi`, `grok` and `cursor`) |
 | **Read to Text** | the last 70 screen lines of a session into a Blender Text datablock; reading never marks an answer seen |
 | **Cockpit window** | a **read-only** mirror of the session's screen in a Text editor window, refreshed every two seconds |
 | **Send** | types into a session; this is your own send |
 | **Close**, **Stop the herdr server** | end a session or everything, each with a confirm |
 
 Today the window is a text mirror, not a terminal. The routes behind it: `GET /app/workbench`, `POST /app/workbench/server/start|stop`, `/reconcile`, `/sessions`, `/sessions/{id}/screen|input|close|agent-sends`.
+
+**A pane bound to a scene tab.** A harness pane can be bound to the scene tab it was started from (`scene_session_id` on create, or `POST /app/workbench/sessions/{id}/binding`, from your Client only). The pane then gets its own MCP config under the cockpit root (`panes/<id>/`), pointing at Lampway's MCP launcher with `LAMPWAY_BOUND_SESSION` set to that tab, so its tool calls land in that tab; your own user-scope MCP entries are left alone. Claude Code is pointed at the file with `--mcp-config`, Codex with `-c mcp_servers.lampway...` overrides and OpenCode with `OPENCODE_CONFIG`; for the other harnesses the file is written but no flag is known yet. Unbinding (closing the tab) only changes that file and the record: the pane runs on, listed unbound, and a running harness picks up a new binding when it next starts its Lampway server.
+
+**Who is typing** is decided by the server from the caller, never from a field in the request: a request that declares an agent origin, a cross-origin request or an agent's token is an agent send.
 
 **What the agent may do** (the `lampway_workbench` tool): `list` and `read` sessions; `send` only into a session where you switched **agent sends** on (default off), never into a shell session, never while you typed in the last 2.5 seconds; `open` a session with a descriptive title (placeholders refused), effort capped unless you asked for max, never with bypass permissions; `interrupt` and `close` need a request from you. Text read from a screen is reference data, not instructions. A request cannot raise the permission level: bypass can only come from your own click in the cockpit.
 

@@ -82,7 +82,7 @@ class Command:
 
 class AgentHub:
     def __init__(self, provider, *, script_timeout_s: float = 600.0, system_prompt: str = SYSTEM_PROMPT,
-                 swarm_provider_factory=None, studio=None, video=None, prompts=None, jobs=None, cockpit=None, assets=None):
+                 swarm_provider_factory=None, studio=None, video=None, prompts=None, jobs=None, cockpit=None, assets=None, switch_dir=None):
         self.provider = provider
         self.engine = None              # engine/runtime.EngineRuntime: Hermes in the seat (spec E1); None = the built-in loop
         self.assets = assets
@@ -95,7 +95,7 @@ class AgentHub:
         if cockpit is not None:
             from ..ops.registry import AgentOps
             import os as _os
-            self.ops = AgentOps(cockpit, cockpit.root / "ops", cwd=_os.environ.get("LAMPWAY_PROJECT_ROOT") or ".")
+            self.ops = AgentOps(cockpit, cockpit.root / "ops", cwd=_os.environ.get("LAMPWAY_PROJECT_ROOT") or ".", switch_dir=switch_dir)
         self.script_timeout_s = script_timeout_s
         self.system_prompt = system_prompt
         self.sessions: dict[str, Session] = {}

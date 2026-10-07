@@ -24,6 +24,7 @@ A route is one place data can go. The server knows these routes and their hosts;
 | `compute:boat` | Boat cloud CPU boxes | boat.dev | conditional: snapshots off and no environment passed |
 | `compute:modal`, `compute:runpod` | serverless GPU endpoints | their own hosts | unknown |
 | `web:any` | the agent's own browser, for the engine's `web.browse` capability: any host, each one logged (built and tested as the engine's egress proxy; no engine starts it yet) | any website | unknown |
+| `byoa:claude`, `byoa:codex`, `byoa:hermes`, `byoa:opencode`, `byoa:pi`, `byoa:grok`, `byoa:cursor` | starting your own agent CLI in a pane of Lampway's herdr server (Bring Your Own Agent): the harness talks to its vendor directly under your account, and Lampway does not see or log that traffic; the route gates the start and logs it | none from Lampway (the harness reaches its own vendor) | unknown |
 
 "Unknown" is stated honestly: the providers' terms (retention, training) have not been read or recorded for these routes, so Lampway does not claim a policy it has not verified. The panel shows each route's retention and training line as the code has it.
 

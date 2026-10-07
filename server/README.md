@@ -44,7 +44,7 @@ The full list lives in `lampway_server/config.py`; the ones you will touch:
 | `LAMPWAY_PROVIDER` | `mock` | the main provider; see [providers](../docs/providers.md) |
 | `LAMPWAY_ANTHROPIC_MODEL`, `OPENAI_BASE_URL`, `LAMPWAY_OPENAI_MODEL`, `OPENAI_API_KEY`, `LAMPWAY_CHATGPT_MODEL` | see `config.py` | per-provider models and endpoints |
 | `OPENROUTER_API_KEY` or `LAMPWAY_OPENROUTER_KEY_FILE`, `LAMPWAY_OPENROUTER_BUDGET_USD` | none / `3.0` | the OpenRouter key and the session ceiling |
-| `LAMPWAY_LOCAL_CLI` | off | `1` lets the cockpit start your own agent CLIs (Claude Code, Codex, OpenCode) in its panes |
+| `LAMPWAY_LOCAL_CLI` | off | `1` lets the cockpit start your own agent CLIs (Claude Code, Codex, Hermes, OpenCode, Pi, Grok, Cursor) in its panes; each also needs its `byoa:<harness>` egress route on |
 | `LAMPWAY_LOG_LEVEL` | `INFO` | debug logs name methods and ids, never payloads or keys |
 
 Every outbound route is **off** until it is switched on in the Privacy panel ([privacy](../docs/privacy.md)), so a real provider is refused until you do.

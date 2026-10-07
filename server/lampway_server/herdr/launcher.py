@@ -39,11 +39,18 @@ def socket_paths(root) -> tuple:
     return a, b
 
 
+def scrubbed_base() -> dict:
+    """The server's environment with every secret-shaped variable and every Connections name removed (connections.env_for([])):
+    herdr, and so every pane, starts from it (agent-modes spec B5). A key reaches a pane only through the user's per-pane opt-in."""
+    from .. import connections
+    return dict(connections.env_for([]))
+
+
 def env_for(root) -> dict:
-    """The full Lampway environment: every herdr variable under the Lampway root, the fleet's HERDR_* scrubbed. The panes' real login environment is passed separately (pane_env)."""
+    """herdr's environment: the scrubbed base, every herdr variable under the Lampway root, the fleet's HERDR_* scrubbed. The panes' real login environment is passed separately (pane_env)."""
     root = Path(root)
     sock, csock = socket_paths(root)
-    env = {k: v for k, v in os.environ.items() if not k.startswith("HERDR_")}
+    env = {k: v for k, v in scrubbed_base().items() if not k.startswith("HERDR_")}
     home = root / "home"
     (home / ".config" / "herdr").mkdir(parents=True, exist_ok=True)
     env.update(HOME=str(home), XDG_CONFIG_HOME=str(home / ".config"), HERDR_SOCKET_PATH=str(sock), HERDR_CLIENT_SOCKET_PATH=str(csock),
@@ -72,6 +79,38 @@ def _spawn(cmd: list, env: dict, timeout=30, input=None, detached=False):
     if detached:
         return subprocess.Popen(cmd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
     return subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=timeout, input=input)
+
+
+def _probe_spawn(argv: list, env: dict, timeout: float):
+    """A harness's own version flag (harnesses/: Adapter.detect). Local: it prints a version and sends nothing."""
+    return subprocess.run(argv, env=env, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
+
+
+def probe(argv: list, timeout: float = 10) -> tuple:
+    """(exit code, output) of a harness's version flag, run with the scrubbed environment; (None, "") when it cannot run."""
+    try:
+        r = _probe_spawn([str(a) for a in argv], scrubbed_base(), timeout)
+    except (OSError, subprocess.TimeoutExpired):
+        return None, ""
+    return r.returncode, r.stdout or r.stderr or ""
+
+
+def _status_spawn(argv: list, env: dict, timeout: float):
+    """A harness's own login status command (harnesses/: Adapter.login_state). Only ever called inside guard(byoa:<harness>)."""
+    return subprocess.run(argv, env=env, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
+
+
+def login_probe(route: str, argv: list, timeout: float = 20) -> tuple:
+    """(exit code, output) of a harness's own status command, inside its egress route (the harness may ask its vendor): refused
+    with the route off, logged before it starts. It runs with the scrubbed environment and the user's real home, so it reads its own
+    login, which Lampway never does (spec B0)."""
+    from .. import egress as EG
+    with EG.guard(route, kind="request"):
+        try:
+            r = _status_spawn([str(a) for a in argv], scrubbed_base(), timeout)
+        except (OSError, subprocess.TimeoutExpired):
+            return None, ""
+    return r.returncode, r.stdout or r.stderr or ""
 
 
 def run(root, args: list, timeout=30, input=None) -> str:
