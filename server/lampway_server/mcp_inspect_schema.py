@@ -24,6 +24,8 @@ FIELDS = {
     'parts': ['id', 'faces', 'area_m2', 'material', 'bounds', 'centroid'],
     'layers': ['index', 'name', 'type', 'blend', 'opacity', 'enabled', 'channels', 'mask'],
     'islands': ['id', 'faces', 'uv_area', 'density_px_m', 'bounds', 'tiles'],
+    'intersections': ['id', 'kind', 'descriptor', 'severity', 'rule_verdict', 'rule'],
+    'thin_regions': ['id', 'kind', 'descriptor', 'severity', 'rule_verdict', 'rule'],
 }
 DEFAULT_FIELDS = {key: fields[:4] for key, fields in FIELDS.items()}
 DEFAULT_FIELDS['shells'] = ['id', 'faces', 'closed']
@@ -71,6 +73,13 @@ _COLLECTION = _object({'name': _STRING, 'objects': _COUNT, 'hidden': _BOOL,
                        'children': _array({'$ref': '#/$defs/collection'})})
 
 
+_DEFECT = _object({'id': _STRING, 'kind': _STRING, 'severity': _STRING,
+                   'rule_verdict': _STRING, 'rule': _STRING,
+                   'descriptor': _object({'faces': _COUNT, 'area_m2': _NUMBER,
+                       'centroid': _VECTOR, 'bbox': _array(_NUMBER), 'normal': _VECTOR,
+                       'rim_length_m': _NUMBER, 'shells': _array(_COUNT)})})
+
+
 def _view_data(view):
     if view == 'home':
         return _object({'file': _nullable(_STRING), 'unsaved': _BOOL, 'units': {'const': 'm'},
@@ -104,7 +113,8 @@ def _view_data(view):
                                                 'centroid': _object(dict.fromkeys('xyz', _NUMBER)),
                                                 'normal': _object(dict.fromkeys('xyz', _NUMBER))})),
                         'defects': _object({'degenerate': _COUNT, 'isolated_tri': _COUNT, 'flipped_shells': _nullable(_COUNT)}),
-                        'holes_total': _COUNT, 'intersections': _array(_object({})), 'thin_regions': _array(_object({}))})
+                        'holes_total': _COUNT, 'intersections': _array(_DEFECT), 'thin_regions': _array(_DEFECT),
+                        'intersections_total': _COUNT, 'thin_regions_total': _COUNT})
     if view == 'uv':
         return _object({'object': _STRING, 'canon': _CANON, 'layers': _array(_UV_LAYER),
                         'islands': _array(_ISLAND), 'islands_total': _COUNT,
@@ -173,6 +183,22 @@ def view_schema(view):
     if view == 'scene':
         result['$defs'] = {'collection': _COLLECTION}
     return deepcopy(result)
+
+
+def reference_fields(view):
+    """Enumerate the actual per-view list columns, including nested sections."""
+    result = {}
+    def visit(node):
+        for name, child in node.get('properties', {}).items():
+            if child.get('type') == 'array':
+                columns = child.get('items', {}).get('properties', {})
+                if columns:
+                    result[name] = list(columns)
+                visit(child.get('items', {}))
+            else:
+                visit(child)
+    visit(view_schema(view)['properties']['data'])
+    return result
 
 
 def generate_schemas(directory, *, check=False):

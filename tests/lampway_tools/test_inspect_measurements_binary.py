@@ -8,7 +8,7 @@ import subprocess
 import pytest
 
 
-@pytest.mark.parametrize('case', ['uv_flipped', 'uv_seam', 'uv_udim_overlap', 'uv_empty', 'rim_centroid', 'parts_rounding', 'parts_double_rounding', 'uv_degenerate', 'deep_scaled_skipped', 'deep_evaluated_skipped', 'mesh_empty'])
+@pytest.mark.parametrize('case', ['uv_flipped', 'uv_seam', 'uv_udim_overlap', 'uv_empty', 'rim_centroid', 'parts_rounding', 'parts_double_rounding', 'uv_degenerate', 'deep_scaled', 'deep_evaluated', 'object_size_rounding', 'mesh_empty'])
 def test_measurement(case, tmp_path):
     binary = os.environ.get('LAMPWAY_VIEW_BIN')
     if not binary:
@@ -22,7 +22,7 @@ mixar.__path__.insert(0, OVERLAY + '/mixar')
 mixar.modules.__path__.insert(0, OVERLAY + '/mixar/modules')
 from mixar.modules import lampway_tools
 lampway_tools.__path__.insert(0, OVERLAY + '/mixar/modules/lampway_tools')
-from mixar.modules.lampway_tools.inspect import mesh, uv, parts
+from mixar.modules.lampway_tools.inspect import mesh, uv, parts, objects
 assert uv.__file__.startswith(OVERLAY)
 def make(vertices, faces, coordinates=None):
     data=bpy.data.meshes.new('synthetic-data')
@@ -74,18 +74,23 @@ elif case == 'uv_degenerate':
     ob=make([(0,0,0),(0,0,0),(0,0,0)],[(0,1,2)],[(0,0),(0,0),(0,0)])
     result=uv.measure(ob)
     assert result['density']['mean_px_m'] is None and result['flipped_faces']==0,result
-elif case == 'deep_scaled_skipped':
+elif case == 'deep_scaled':
     result=mesh.measure(bpy.data.objects['Cube'],scale=0.01,deep=True)
-    assert result['defects']['flipped_shells'] is None,result
-    assert {row['section'] for row in result['skipped']}=={'flipped_shells','intersections','thin_regions'},result
-elif case == 'deep_evaluated_skipped':
+    assert result['defects']['flipped_shells']==0 and result['skipped']==[],result
+    assert result['intersections']==[] and result['thin_regions']==[],result
+elif case == 'deep_evaluated':
     ob=bpy.data.objects['Cube']
     modifier=ob.modifiers.new('detail','SUBSURF');modifier.levels=1
     evaluated=ob.evaluated_get(bpy.context.evaluated_depsgraph_get())
     result=mesh.measure(evaluated,deep=True)
     assert result['counts']['faces']==24,result
-    assert result['defects']['flipped_shells'] is None,result
-    assert {row['section'] for row in result['skipped']}=={'flipped_shells','intersections','thin_regions'},result
+    assert result['defects']['flipped_shells']==0 and result['skipped']==[],result
+    assert result['intersections']==[] and result['thin_regions']==[],result
+elif case == 'object_size_rounding':
+    ob=make([(0.123449,0,0),(1.123451,0,0),(0.123449,1,0)],[(0,1,2)])
+    bpy.context.view_layer.update()
+    result=objects.row(ob)
+    assert result['size'][0]==1.0,result
 elif case == 'mesh_empty':
     result=mesh.measure(make([],[]),scale=0.01,deep=True)
     assert result['holes']==[] and result['intersections']==[] and result['thin_regions']==[],result

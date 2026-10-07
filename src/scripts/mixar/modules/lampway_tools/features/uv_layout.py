@@ -95,8 +95,8 @@ def align_world(faces, uvl, vco, axis):
 def _signed_area(faces, uvl):
     s = 0.0
     for fc in faces:
-        p = np.array([l[uvl].uv[:] for l in fc.loops])
-        s += 0.5 * float(np.dot(p[:, 0], np.roll(p[:, 1], -1)) - np.dot(p[:, 1], np.roll(p[:, 0], -1)))
+        p = [l[uvl].uv[:] for l in fc.loops]
+        s += 0.5 * sum(a[0]*b[1]-a[1]*b[0] for a,b in zip(p, p[1:]+p[:1]))
     return s
 
 

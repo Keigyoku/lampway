@@ -5,6 +5,15 @@ from pathlib import Path
 import bpy
 
 
+def triangle_count(mesh):
+    """Valid Blender polygons partition loops and each has at least three.
+
+    Summing (polygon loop count - 2) therefore uses two O(1) RNA lengths;
+    degenerate geometry still has its topological triangle count.
+    """
+    return len(mesh.loops) - 2 * len(mesh.polygons)
+
+
 def dashboard(scene):
     objects = list(scene.objects)
     counts = {kind: sum(ob.type == kind.upper().rstrip('S') for ob in objects) for kind in ('meshes', 'lights', 'cameras')}
@@ -14,7 +23,7 @@ def dashboard(scene):
     missing = len(missing_files.main(None).missing_files)
     return {'file': Path(bpy.data.filepath).name or None, 'unsaved': bool(bpy.data.is_dirty or not bpy.data.filepath),
             'units': 'm', 'counts': counts,
-            'tris_total': sum(sum(max(0, len(p.vertices) - 2) for p in ob.data.polygons) for ob in objects if ob.type == 'MESH'),
+            'tris_total': sum(triangle_count(ob.data) for ob in objects if ob.type == 'MESH'),
             'selected': [ob.name for ob in objects if ob.select_get()],
             'active': bpy.context.view_layer.objects.active.name if bpy.context.view_layer.objects.active else None,
             'warnings': [{'kind': 'missing_files', 'count': missing}] if missing else []}

@@ -146,10 +146,13 @@ def main():
         from types import ModuleType
         # Blender normally synthesizes these namespaces during bootstrap.
         # The standalone launcher must not import addon registration (__init__).
+        # config.brand is pure, but config.__init__ loads the bpy-only config;
+        # synthesize that namespace too, solely in this standalone entrypoint.
         root = Path(__file__).resolve().parent
         # This entrypoint is named mcp.py; do not shadow the bundled MCP SDK.
         sys.path[:] = [p for p in sys.path if Path(p).resolve() != root]
-        for name, suffix in (("mixar", ""), ("mixar.modules", "modules"),
+        for name, suffix in (("mixar", ""), ("mixar.config", "config"),
+                ("mixar.modules", "modules"),
                 ("mixar.modules.common", "modules/common"),
                 ("mixar.modules.common.ui_control", "modules/common/ui_control"),
                 ("mixar.modules.common.ui_control.core", "modules/common/ui_control/core"),

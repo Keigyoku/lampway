@@ -4382,5 +4382,39 @@
       "modified_by": "Lampway contributors",
       "modification_date": "2026-10-07"
     }
+  },
+  "provenance": {
+    "source_pin": {
+      "authority": "repository HEAD:upstream",
+      "repository": "https://projects.blender.org/blender/blender.git",
+      "revision": "fbe6228777e7d9afefcd61a413844e790ae75db7",
+      "version": "5.2.0",
+      "url": "https://projects.blender.org/blender/blender/commit/fbe6228777e7d9afefcd61a413844e790ae75db7"
+    },
+    "manual": {
+      "repository": "https://projects.blender.org/blender/blender-manual.git",
+      "revision": "4a3be8f9ed3b66b24913e0a0d491d3429a70ea08",
+      "url": "https://projects.blender.org/blender/blender-manual/commit/4a3be8f9ed3b66b24913e0a0d491d3429a70ea08"
+    },
+    "documentation_links": {
+      "api": {
+        "url": "https://docs.blender.org/api/5.2/",
+        "verification": {
+          "availability": "unverified_access_refused",
+          "http_status": 403,
+          "checked_on": "2026-10-07",
+          "method": "direct HTTPS GET; no runtime retrieval"
+        }
+      },
+      "manual": {
+        "url": "https://docs.blender.org/manual/en/5.2/",
+        "verification": {
+          "availability": "unverified_access_refused",
+          "http_status": 403,
+          "checked_on": "2026-10-07",
+          "method": "direct HTTPS GET; no runtime retrieval"
+        }
+      }
+    }
   }
 }

@@ -35,5 +35,12 @@ class-member lookup by using the existing parser's qualified class path.
 
 Applicable licence texts are bundled in `licenses/`.
 
+The manifest's `provenance` and the documentation tool's home response backlink
+to the repository's authoritative Blender source pin, identified by immutable
+commit and core version. The manual's source revision is recorded separately.
+Official versioned API/manual URLs are derived from that core version; their
+recorded availability is unverified because HTTPS checks returned HTTP 403 on
+2026-10-07. The offline corpus does not retrieve these URLs at runtime.
+
 The GPL licence texts are copied verbatim from the pinned Blender source
 `release/license/spdx/` at the recorded API upstream commit.

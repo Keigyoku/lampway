@@ -212,3 +212,14 @@ def test_random_png_downscales_to_budget():
     png, meta = engine().crop_png(stream.getvalue(), {}, None, 50000)
     assert len(png) == meta['bytes'] <= 50000
     assert meta['width'] < 400 and meta['height'] < 400
+
+
+def test_help_names_output_fields_for_every_action():
+    view = importlib.import_module('mixar.modules.lampway_tools.api_view').view
+    reference = view(action='help')
+    fields = reference.get('fields', {})
+    assert set(fields) == {'home', 'focus', 'screenshot', 'render_still'}
+    assert {'editors', 'active_camera', 'last_capture'} <= set(fields['home'])
+    assert {'object', 'framed_bounds', 'unhidden', 'undo', 'image_path', 'image'} <= set(fields['focus'])
+    assert {'area', 'image_path', 'image'} <= set(fields['screenshot'])
+    assert {'job', 'preset'} <= set(fields['render_still'])

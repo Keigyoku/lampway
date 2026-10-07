@@ -86,6 +86,44 @@ def test_home_reports_real_pinned_versions_and_index_sizes():
     assert result["data"]["index_sizes"]["manual"] > 2300
 
 
+def test_home_backlinks_match_repository_pin_and_report_url_verification():
+    from pathlib import Path
+    import subprocess
+    from lampway_server.blender_docs import index
+    root = Path(__file__).resolve().parents[2]
+    pin = subprocess.check_output(["git", "rev-parse", "HEAD:upstream"], cwd=root, text=True).strip()
+    result, failed = call()
+    assert not failed
+    provenance = result["data"]["provenance"]
+    assert provenance["source_pin"]["revision"] == pin == index.manifest()["upstream_revision"]
+    assert provenance["source_pin"]["version"] == result["data"]["versions"]["core"]
+    assert provenance["source_pin"]["url"].endswith("/commit/" + pin)
+    assert provenance["source_pin"]["authority"] == "repository HEAD:upstream"
+    assert provenance["manual"]["revision"] == index.manifest()["manual_revision"]
+    assert provenance["manual"]["url"].endswith("/commit/" + provenance["manual"]["revision"])
+    links = provenance["documentation_links"]
+    assert links["api"]["url"] == "https://docs.blender.org/api/5.2/"
+    assert links["manual"]["url"] == "https://docs.blender.org/manual/en/5.2/"
+    assert all(link["verification"]["http_status"] == 403 for link in links.values())
+    assert all(link["verification"]["availability"] == "unverified_access_refused" for link in links.values())
+
+
+def test_provenance_derivation_matches_packaged_metadata():
+    from pathlib import Path
+    from lampway_server.blender_docs import index, provenance
+    root = Path(__file__).resolve().parents[2]
+    assert provenance.source_pin(root) == index.manifest()["provenance"]["source_pin"]
+
+
+def test_provenance_derivation_refuses_stale_corpus():
+    from pathlib import Path
+    from lampway_server.blender_docs import index, provenance
+    root = Path(__file__).resolve().parents[2]
+    stale = dict(index.manifest(), upstream_revision="0" * 40)
+    with pytest.raises(ValueError, match="regenerate data"):
+        provenance.update(root, stale)
+
+
 def test_short_doc_has_full_hint_and_wildcard_children_respect_limit():
     result, failed = call(view="get", identifier="bpy.types.Object")
     assert not failed

@@ -125,11 +125,11 @@ T3's exact source requires a manual at a matching release tag. A fresh official
 remote query on 2026-10-07,
 `git ls-remote https://projects.blender.org/blender/blender-manual.git 'refs/tags/*5.2*' 'refs/heads/blender-v5.2-release'`,
 returned only `4a3be8f9ed3b66b24913e0a0d491d3429a70ea08 refs/heads/blender-v5.2-release`
-and no matching tag. The immutable official release-branch pin is accurately
-recorded, but **the matching-release-tag contract remains unmet**. Acceptance
-question: may this exact official release-branch revision substitute for the
-unavailable 5.2 release tag, retaining the pin and provenance until an official
-tag exists? No substitute tag is created or represented as upstream's.
+and no matching manual tag. The immutable official manual release-branch pin is
+accurately recorded. The captain's subsequent clarification makes the repository's
+current Blender source pin authoritative and records the manual revision
+separately; **there is no separate manual-tag approval blocker**. No substitute
+tag is created or represented as upstream's.
 
 The exact T3 test says the data's Blender version equals
 `bpy.app.version_string`. The manifest records that literal branded value as
@@ -140,10 +140,60 @@ Blender core 502/patch 0 and Mixar brand 1/patch 0;
 brand macros; upstream `python/intern/bpy_app.cc` exposes it as the Python
 version string. Thus the branded metadata equality is preserved. **Literal
 core-version equality with the branded runtime string is false** and cannot be
-claimed. If acceptance requires that stronger equality, the captain must decide
-whether the separately recorded runtime and core identities suffice; changing
-the product's native version identity is outside this documentation lane.
+claimed. The captain's clarification accepts separately recording the authoritative
+core pin and branded runtime identity; this work changes neither identity.
 
 Any already-published ordinary commit-email metadata remains an integrator
 historical-action finding. This forward correction does not remove historical
 RST blobs or identities and does not authorize rewriting published history.
+
+## Authoritative build pin and served backlinks
+
+The authoritative build input is `git rev-parse HEAD:upstream`, the same input
+used by `scripts/lampway/build_linux.sh`'s `upstream_pin()`. At this checkpoint it
+is `fbe6228777e7d9afefcd61a413844e790ae75db7`. The official remote query
+`git ls-remote https://projects.blender.org/blender/blender.git refs/tags/v5.2.0`
+returned that exact revision. The pinned header declares core 5.2.0.
+
+The packaging-time module `lampway_server.blender_docs.provenance` derives the
+source revision from `HEAD:upstream`, reads its version header, and reads the
+upstream repository URL from `.gitmodules`. It refuses a corpus whose recorded
+source revision or core version differs from that build pin. It does not choose
+a newer release. Regeneration/check commands are:
+
+```text
+PYTHONPATH=server <server-python> -m lampway_server.blender_docs.provenance --repository .
+PYTHONPATH=server <server-python> -m lampway_server.blender_docs.provenance --repository . --check
+```
+
+The packaged manifest and served home now include `provenance.source_pin`
+(authority, source repository, immutable revision, core version and source
+commit backlink), the separate manual repository/revision/commit backlink, and
+version-derived official API/manual links. Runtime reads these packaged values
+without Git, Blender execution or network retrieval.
+
+The version-derived links are [API 5.2](https://docs.blender.org/api/5.2/)
+and [English manual 5.2](https://docs.blender.org/manual/en/5.2/). On 2026-10-07,
+direct HTTPS GET requests to both returned **HTTP 403**. Their existence/content
+could not be verified from this environment; each served link explicitly records
+`availability: unverified_access_refused`, HTTP status 403 and check date.
+These are version-derived backlinks, not a claim that live pages are available.
+The pinned local corpus continues to serve independently of those URLs.
+
+RED: the served-backlink test failed with missing `provenance` before the change.
+GREEN: documentation tests verify the repository-pin match, deterministic
+provenance derivation, stale-corpus refusal, exact versioned URLs and explicit
+availability status, alongside the existing offline lookups and corpus hashes.
+The final targeted run reported **27 passed in 2.97s**; provenance `--check`
+reported **packaged documentation provenance matches repository build pin**;
+the unchanged corpus publication gate reported **0 findings**; scoped
+`git diff --check` passed.
+
+A local wheel was built with `pip wheel --no-deps --no-build-isolation --no-index`
+and extracted into a temporary directory outside the checkout. In a Python
+isolated subprocess with socket connections and subprocess launches prohibited,
+the extracted package served home provenance, Object.location lookup and Bevel
+Modifier ranking successfully. This verifies that serving the pin/backlinks
+requires neither source checkout, Git, Blender nor a network connection. That
+receipt applies to the tested local package before final report/notice edits;
+final release-wheel identity belongs to integration closeout.

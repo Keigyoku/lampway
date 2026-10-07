@@ -168,11 +168,76 @@
         },
         "intersections": {
           "items": {
-            "properties": {},
+            "properties": {
+              "descriptor": {
+                "properties": {
+                  "area_m2": {
+                    "type": "number"
+                  },
+                  "bbox": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "type": "array"
+                  },
+                  "centroid": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "type": "array"
+                  },
+                  "faces": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "normal": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "type": "array"
+                  },
+                  "rim_length_m": {
+                    "type": "number"
+                  },
+                  "shells": {
+                    "items": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [],
+                "type": "object"
+              },
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "rule": {
+                "type": "string"
+              },
+              "rule_verdict": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string"
+              }
+            },
             "required": [],
             "type": "object"
           },
           "type": "array"
+        },
+        "intersections_total": {
+          "minimum": 0,
+          "type": "integer"
         },
         "manifold": {
           "properties": {
@@ -216,11 +281,76 @@
         },
         "thin_regions": {
           "items": {
-            "properties": {},
+            "properties": {
+              "descriptor": {
+                "properties": {
+                  "area_m2": {
+                    "type": "number"
+                  },
+                  "bbox": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "type": "array"
+                  },
+                  "centroid": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "type": "array"
+                  },
+                  "faces": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "normal": {
+                    "items": {
+                      "type": "number"
+                    },
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "type": "array"
+                  },
+                  "rim_length_m": {
+                    "type": "number"
+                  },
+                  "shells": {
+                    "items": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [],
+                "type": "object"
+              },
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "rule": {
+                "type": "string"
+              },
+              "rule_verdict": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string"
+              }
+            },
             "required": [],
             "type": "object"
           },
           "type": "array"
+        },
+        "thin_regions_total": {
+          "minimum": 0,
+          "type": "integer"
         }
       },
       "required": [],

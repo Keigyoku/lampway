@@ -33,6 +33,10 @@ def view(action=None, object=None, data=None, unhide=False, area='VIEW_3D', shot
                 'arguments': {'action': list(ACTIONS), 'object': 'focus: one of object/data', 'data': 'focus: datablock name',
                               'unhide': False, 'area': 'VIEW_3D or editor UI type or WINDOW', 'shot': True,
                               'max_bytes': '750000; 50000..900000', 'preset': 'current or thumbnail', 'out': 'renders/still.png'},
+                'fields': {'home': ['tool', 'description', 'action', 'scene', 'editors', 'active_camera', 'last_capture', 'help'],
+                           'focus': ['action', 'object', 'area', 'framed_bounds', 'unhidden', 'undo', 'image_path', 'image', 'help'],
+                           'screenshot': ['action', 'area', 'image_path', 'image', 'help'],
+                           'render_still': ['action', 'job', 'preset', 'help']},
                 'refusals': ['hidden', 'no_area', 'render_in_progress', 'path_outside_project', 'ui_control_off', 'capture_busy'],
                 'help': HELP}
     if action == 'focus' and bool(object) == bool(data):

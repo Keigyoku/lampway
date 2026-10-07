@@ -65,7 +65,7 @@ bm.to_mesh(cube.data);bm.free();cube.data.update()
 opened=api.call('inspect',json.dumps({'view':'mesh','name':'Cube'}))
 assert opened['count']==1,opened
 assert opened['data']['holes'][0]['edges']==4,opened
-assert len(opened['skipped'])==1,opened
+assert opened['skipped']==[] and opened['data']['defects']['flipped_shells']==0,opened
 scene_fields=api.call('inspect',json.dumps({'view':'scene','fields':['name']}))
 print('INSPECT_RESULT '+json.dumps({'overlay':api.__file__,'outputs':outputs,'scene_fields':scene_fields}))
 '''.replace('OVERLAY', repr(overlay)))

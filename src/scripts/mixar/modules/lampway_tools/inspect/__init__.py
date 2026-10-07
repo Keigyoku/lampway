@@ -26,6 +26,23 @@ class Budget:
     def __init__(self, milliseconds):
         self.deadline = time.monotonic() + milliseconds / 1000
 
+    @property
+    def remaining(self):
+        return max(0.0, self.deadline - time.monotonic())
+
+    def admit_geometry(self, mesh):
+        """Reserve conservative headroom before indivisible RNA/BMesh/BVH calls.
+
+        Native mesh conversion cannot be interrupted by Python. Counts are O(1)
+        RNA reads; admission precedes even content hashing and evaluated_get.
+        This is a work bound, not a substitute for checks inside Python loops.
+        """
+        self.check()
+        work = (4 * len(mesh.vertices) + 3 * len(mesh.edges)
+                + len(mesh.loops) + 20 * len(mesh.polygons))
+        if work / 3_000_000 > self.remaining:
+            raise BudgetExpired
+
     def check(self):
         if time.monotonic() > self.deadline:
             raise BudgetExpired
@@ -172,7 +189,7 @@ def run(**args):
             result['data'] = (schema.view_schema(name) if view == 'schema' else {
                 'view': name, 'arguments': schema.INPUT_SCHEMA['properties'],
                 'defaults': {key: value['default'] for key, value in schema.INPUT_SCHEMA['properties'].items() if 'default' in value},
-                'fields': schema.FIELDS.get(name, {}),
+                'fields': schema.reference_fields(name),
                 'refusals': ['unknown_argument', 'unknown_field', 'bad_argument', 'not_found', 'wrong_type', 'render_in_progress']})
             result['help'] = [template(name, '<name>') if name in ('object', 'mesh', 'uv', 'parts', 'layers') else template(name)]
         elif view in ('home', 'scene'):
@@ -190,21 +207,15 @@ def run(**args):
             result['count'] = len(result['data']['objects'])
             result['help'] = [template('objects', offset=args.get('offset', 0) + result['count'], **_fixed_filters(args)), template('object', '<name>')]
         elif view == 'relations':
-            from . import objects, relations
-            from itertools import combinations
+            from . import relations
             selected = _objects(scene, args)
-            bounds = {ob.name: objects.bounds(ob.evaluated_get(bpy.context.evaluated_depsgraph_get()) if args.get('evaluated') else ob, scale) for ob in selected}
-            pairs = []
-            for a, b in combinations(selected, 2):
-                budget.check()
-                ba, bb = bounds[a.name], bounds[b.name]
-                pairs.append({'a': a.name, 'b': b.name, **relations.classify([ba['min'], ba['max']], [bb['min'], bb['max']], args.get('tolerance_m', .005))})
+            pairs = relations.measure(selected, scene, args.get('tolerance_m', .005),
+                                      budget=budget, evaluated=args.get('evaluated', False),
+                                      deep=args.get('deep', False))
             pairs.sort(key=lambda row: (row['gap_m'], row['a'], row['b']))
             result['data']['pairs'], result['total'] = _page(pairs, 'relations', args)
             result['count'] = len(result['data']['pairs'])
             result['help'] = [template('relations', offset=args.get('offset', 0) + result['count'], **_fixed_filters(args)), template('object', '<name>')]
-            if args.get('deep'):
-                result['skipped'].append({'object': '', 'section': 'precise_relations', 'reason': 'Precise BVH surface distance is not yet available'})
         elif view == 'file':
             from . import filemeta
             data = filemeta.measure(settings.load().project_root)
@@ -229,24 +240,21 @@ def run(**args):
                     from . import layers
                     data = layers.measure(ob)
                 else:
+                    budget.admit_geometry(ob.data)
                     measured = ob.evaluated_get(bpy.context.evaluated_depsgraph_get()) if args.get('evaluated') else ob
-                    budget.check()
+                    budget.admit_geometry(measured.data)
                     key = cache.key(measured, args.get('evaluated', False), scale,
-                                    [view, args.get('deep', False), args.get('texture_size', 2048), args.get('method', 'shells'), args.get('angle', 40)])
+                                    [view, args.get('deep', False), args.get('texture_size', 2048), args.get('method', 'shells'), args.get('angle', 40)], budget=budget)
                     budget.check()
                     if view == 'mesh':
                         from . import mesh
-                        deep = args.get('deep', False) and not args.get('evaluated') and scale == 1
-                        data = cache.get_or_compute(key, lambda: mesh.measure(measured, scale, deep))
-                        if args.get('deep') and not deep:
-                            result['skipped'].append({'object': ob.name, 'section': 'deep_mesh',
-                                'reason': 'The shared defect engine needs a world-metre evaluated-bmesh measurement interface'})
+                        data = cache.get_or_compute(key, lambda: mesh.measure(measured, scale, args.get('deep', False), budget=budget), budget=budget)
                     elif view == 'uv':
                         from . import uv
-                        data = cache.get_or_compute(key, lambda: uv.measure(measured, scale, args.get('texture_size', 2048)))
+                        data = cache.get_or_compute(key, lambda: uv.measure(measured, scale, args.get('texture_size', 2048), budget=budget), budget=budget)
                     else:
                         from . import parts
-                        data = cache.get_or_compute(key, lambda: parts.measure(measured, scale, args.get('method', 'shells'), args.get('angle', 40)))
+                        data = cache.get_or_compute(key, lambda: parts.measure(measured, scale, args.get('method', 'shells'), args.get('angle', 40), budget=budget), budget=budget)
                 primary = {'mesh': 'holes', 'uv': 'islands', 'parts': 'parts', 'layers': 'layers'}[view]
                 result['skipped'].extend(data.pop('skipped', []))
                 for section, rows in list(data.items()):
@@ -268,7 +276,8 @@ def run(**args):
         budget.check()
     except BudgetExpired:
         result['skipped'].append({'object': args.get('name') or '', 'section': view, 'reason': 'budget_ms exceeded'})
-        result['help'].append(template(view, args.get('name'), budget_ms='<more>'))
+        retry_args = {key: value for key, value in args.items() if key not in ('view', 'name', 'budget_ms')}
+        result['help'].append(template(view, args.get('name'), **retry_args, budget_ms='<more>'))
     except InspectError as exc:
         return {'ok': False, 'error': str(exc), 'code': exc.code, 'help': exc.help}
     except ValueError as exc:

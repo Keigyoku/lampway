@@ -63,7 +63,7 @@ def _run(arguments, view):
         meta = index.manifest()
         data = {"versions": {"blender": meta["blender_version_string"], "core": meta["core_version"]},
                 "index_sizes": meta["file_counts"], "manual_revision": meta["manual_revision"],
-                "manual_pin_kind": meta["manual_pin_kind"]}
+                "manual_pin_kind": meta["manual_pin_kind"], "provenance": meta["provenance"]}
         count = total = 0
     elif view == "help":
         data = {"arguments": PARAMETERS["properties"], "defaults": {"scope": "api", "limit": 10, "context": 0, "full": False},

@@ -17,17 +17,20 @@ from . import common as C
 METHODS = ("shells", "sharp", "uv_islands")
 
 
-def _labels(bm, method, angle, uv_layer):
+def _labels(bm, method, angle, uv_layer, budget=None):
     """face index -> region label, by flood fill across the edges the method lets through."""
+    check = budget.check if budget else lambda: None
     limit = math.radians(angle)
     label = {}
     next_label = 0
     for seed in bm.faces:
+        check()
         if seed.index in label:
             continue
         label[seed.index] = next_label
         stack = [seed]
         while stack:
+            check()
             f = stack.pop()
             for e in f.edges:
                 for g in e.link_faces:
