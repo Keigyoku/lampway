@@ -298,7 +298,7 @@
       ]
      ]
     },
-    "along_error_deg": 1.207e-06,
+    "along_error_deg": 0.0,
     "key": {
      "A": [
       [
@@ -410,7 +410,7 @@
       ]
      ]
     },
-    "along_error_deg": 8.54e-07,
+    "along_error_deg": 0.0,
     "key": {
      "A": [
       [
@@ -522,7 +522,7 @@
       ]
      ]
     },
-    "along_error_deg": 8.54e-07,
+    "along_error_deg": 0.0,
     "key": {
      "A": [
       [
@@ -562,7 +562,7 @@
     "naive_error_deg": 55.699994918
    }
   ],
-  "max_along_error_deg": 1.207e-06
+  "max_along_error_deg": 0.0
  },
  "falsifier": {
   "copy_transforms_pose_space_length_drift_m": 0.03,
