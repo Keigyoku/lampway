@@ -20,6 +20,7 @@ class Codex(Adapter):
     id = "codex"
     label = "Codex CLI"
     binary = "codex"
+    config_name = "mcp.toml"
     herdr_kind = "codex"
     install_hint = "install the Codex CLI (codex) from OpenAI: npm install -g @openai/codex"
     status_argv = ("login", "status")

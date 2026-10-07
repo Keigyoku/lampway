@@ -98,7 +98,7 @@ class Cockpit:
         return json.loads(L.run(self.root, ["api", "snapshot"]))["result"]["snapshot"]
 
     # ------------------------------------------------------------------------------------------------- sessions
-    def create_session(self, agent, name, cwd, task="", effort=None, bypass=False, resume_id=None, command=None, by="user", project_root=None, api_key=False) -> dict:
+    def create_session(self, agent, name, cwd, task="", effort=None, bypass=False, resume_id=None, command=None, by="user", project_root=None, api_key=False, scene_session_id=None) -> dict:
         if agent not in AGENTS:
             raise CockpitError(f"unknown agent {agent!r}: the agents are {', '.join(AGENTS)}")
         name = str(name or "").strip()
@@ -119,15 +119,25 @@ class Cockpit:
         if not L.server_status(self.root).get("running"):
             raise CockpitError("the herdr server is not running: start it from the cockpit first (nothing is launched automatically)")
         ad = HN.ADAPTERS.get(agent)
+        if scene_session_id and ad is None:
+            raise CockpitError("only a harness pane can be bound to a scene tab")
         with (EG.guard(ad.route, kind="request") if ad else contextlib.nullcontext()):    # B5: logged before herdr is asked; refused with the route off
-            return self._create(agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key)
+            return self._create(agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene_session_id or None)
 
-    def _create(self, agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key) -> dict:
+    def _create(self, agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene) -> dict:
         if api_key and ad is None:
             raise CockpitError("only a harness pane can be billed to an API key")
+        rid = uuid.uuid4().hex[:12]
+        sid = str(uuid.uuid4()) if ad is not None and ad.picks_session_id and not resume_id else None
+        cfg = str(self.root / "panes" / rid / ad.config_name) if ad is not None and scene else None
+        spec = HN.PaneSpec(cwd=real, project_root=pr, effort=effort, bypass=bool(bypass), session_id=sid, scene_session_id=scene, mcp_config_path=cfg,
+                           launcher=HN.mcp_launcher() if cfg else ())
+        wiring = ad.lampway_tools(spec) if cfg else None
+        if wiring is not None:                                 # B2: the pane's own MCP config, pinned to its scene tab, before anything starts
+            self._write_pane_files(wiring.files)
         snap = self.snapshot()
         ws = next((w for w in snap["workspaces"] if w.get("label") == WORKSPACE_LABEL), None)
-        env = L.pane_env() + (_key_env(ad) if api_key else [])
+        env = L.pane_env() + (_key_env(ad) if api_key else []) + [x for k, v in (wiring.env if wiring else {}).items() for x in ("--env", f"{k}={v}")]
         if ws is None:
             out = json.loads(L.run(self.root, ["workspace", "create", "--cwd", real, "--label", WORKSPACE_LABEL, "--no-focus", *env]))["result"]
         else:
@@ -142,21 +152,64 @@ class Cockpit:
             L.run(self.root, ["pane", "run", pane_id, *shlex.split(command)])
             tokens = [os.path.basename(shlex.split(command)[-1])]
         elif ad is not None:
-            sid = str(uuid.uuid4()) if ad.picks_session_id and not resume_id else None
             native_id = native_id or sid
-            spec = HN.PaneSpec(cwd=real, project_root=pr, effort=effort, bypass=bool(bypass), session_id=sid)
             argv = ad.resume(resume_id, spec) if resume_id else ad.launch(spec)
             if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
                 L.run(self.root, ["agent", "start", name[:40], "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
             else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
                 L.run(self.root, ["pane", "run", pane_id, *argv])
             tokens = [ad.binary]
-        rec = {"id": uuid.uuid4().hex[:12], "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
+        rec = {"id": rid, "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
                "terminal_id": pane.get("terminal_id"), "workspace_id": pane.get("workspace_id"), "tab_id": pane.get("tab_id"), "native_id": native_id, "command": command, "match": tokens,
                "state": "live", "adopted": True, "agent_sends": False, "created_at": time.time(), "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by,
-               "api_key": bool(api_key)}
+               "api_key": bool(api_key), "harness": ad.id if ad is not None else None, "scene_session_id": scene, "project_root": pr, "mcp_config_path": cfg}
         self._update(lambda d: d["sessions"].append(rec))
         return rec
+
+    # ------------------------------------------------------------------------------------------------- binding (spec B2)
+    def bind(self, sid: str, scene_session_id) -> dict:
+        """Bind a harness pane to a scene tab, or unbind it (None). Only the pane's own config file under the Lampway root changes:
+        the pane itself is never touched (law 5). A running harness reads the new binding when it next starts its Lampway server
+        (a resume does); the record says which tab the pane belongs to from now on."""
+        rec = self._get(sid)
+        ad = HN.ADAPTERS.get(rec.get("agent"))
+        if ad is None:
+            raise CockpitError("only a harness pane can be bound to a scene tab: a shell or a command has no Lampway tools")
+        scene = scene_session_id or None
+        cfg = rec.get("mcp_config_path") or str(self.root / "panes" / sid / ad.config_name)
+        spec = HN.PaneSpec(cwd=rec.get("cwd") or "", project_root=rec.get("project_root"), scene_session_id=scene, mcp_config_path=cfg, launcher=HN.mcp_launcher())
+        self._write_pane_files(ad.lampway_tools(spec).files)
+
+        def f(d):
+            for s in d["sessions"]:
+                if s["id"] == sid:
+                    s.update(scene_session_id=scene, mcp_config_path=cfg, harness=ad.id, updated_at=time.time())
+                    return dict(s)
+        return self._update(f)
+
+    def unbind(self, sid: str) -> dict:
+        """What closing the scene tab calls: the binding ends, the pane runs on and is listed unbound (law 5)."""
+        return self.bind(sid, None)
+
+    def find_by_scene(self, scene_session_id: str) -> list:
+        """The panes bound to a scene tab, live or ended (an ended one keeps its native id for a resume): what reopening a .blend offers."""
+        return [s for s in self.list_sessions() if scene_session_id and s.get("scene_session_id") == scene_session_id]
+
+    def _write_pane_files(self, files: dict) -> None:
+        """A pane's own files, 0600 in a 0700 directory, only under the Lampway root (never the user's own config, never the project)."""
+        root = os.path.realpath(self.root)
+        for path, text in files.items():
+            real = os.path.realpath(path)
+            if not real.startswith(root + os.sep):
+                raise CockpitError(f"refusing to write {path}: a pane's files live under the Lampway root")
+            d = Path(real).parent
+            d.mkdir(mode=0o700, parents=True, exist_ok=True)
+            os.chmod(d, 0o700)
+            tmp = d / f".{Path(real).name}.tmp"
+            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                fh.write(text)
+            os.replace(tmp, real)
 
     def _wait_prompt(self, pane_id: str, timeout: float = 25.0) -> None:
         """A new pane's login shell prints its banner first; a command typed before the prompt is lost. Wait for a prompt-looking last line (the pane must be at an interactive shell prompt)."""

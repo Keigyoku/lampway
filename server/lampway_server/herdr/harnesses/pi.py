@@ -17,6 +17,7 @@ class Pi(Adapter):
     id = "pi"
     label = "Pi"
     binary = "pi"
+    config_name = "lampway-extension.json"
     install_hint = "install Pi (pi): npm install -g @mariozechner/pi-coding-agent"     # [UNVERIFIED] the package name
     status_argv = None                                                                # [UNVERIFIED] no login status command recorded
 

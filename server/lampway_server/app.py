@@ -917,7 +917,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
                 return _wb_err(f"the local CLI switch is off: {exc}", 403)
         try:
             rec = await asyncio.to_thread(cockpit.create_session, body.get("agent"), body.get("name"), body.get("cwd") or str(_project_root()), body.get("task") or "", body.get("effort"),
-                                          False, body.get("resume_id"), body.get("command"), "user", None, bool(body.get("api_key")))
+                                          False, body.get("resume_id"), body.get("command"), "user", None, bool(body.get("api_key")),
+                                          str(body.get("scene_session_id") or "") or None)
             return JSONResponse(rec)
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
@@ -965,6 +966,19 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
 
+    async def wb_binding(request: Request):
+        """Bind a harness pane to a scene tab, or unbind it (null): the user's Client only (closing a tab unbinds); the pane itself is
+        never touched (agent-modes spec B2, law 5)."""
+        if (r := _wb(request)) is not None:
+            return r
+        if _wb_origin(request) != "user":
+            return _wb_err("only your Client binds a pane to a scene tab: an agent cannot", 403)
+        body = await _json_body(request)
+        try:
+            return JSONResponse(await asyncio.to_thread(cockpit.bind, request.path_params["sid"], str(body.get("scene_session_id") or "") or None))
+        except CockpitError as exc:
+            return _wb_err(exc)
+
     async def wb_agent_sends(request: Request):
         if (r := _wb(request)) is not None:
             return r
@@ -981,7 +995,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
                Route("/app/workbench/server/stop", wb_server_stop, methods=["POST"]), Route("/app/workbench/reconcile", wb_reconcile, methods=["POST"]),
                Route("/app/workbench/sessions", wb_create, methods=["POST"]), Route("/app/workbench/sessions/{sid}/screen", wb_screen, methods=["GET"]),
                Route("/app/workbench/sessions/{sid}/input", wb_input, methods=["POST"]), Route("/app/workbench/sessions/{sid}/close", wb_close, methods=["POST"]),
-               Route("/app/workbench/sessions/{sid}/agent-sends", wb_agent_sends, methods=["POST"])]
+               Route("/app/workbench/sessions/{sid}/agent-sends", wb_agent_sends, methods=["POST"]),
+               Route("/app/workbench/sessions/{sid}/binding", wb_binding, methods=["POST"])]
     routes += [Route("/app/studio", studio_home, methods=["GET"]), Route("/app/studio/plan", studio_plan, methods=["POST"]),
                Route("/app/studio/approvals/{approval_id}/confirm", studio_confirm, methods=["POST"]),
                Route("/app/studio/approvals/{approval_id}/reject", studio_reject, methods=["POST"]),

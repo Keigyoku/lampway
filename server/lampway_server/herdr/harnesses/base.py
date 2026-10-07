@@ -107,6 +107,7 @@ class Adapter:
     status_argv: Optional[tuple] = None       # the harness's own login status command; None = none recorded, nothing runs
     api_key_connections: tuple = ()           # the Connections entries a pane receives only with the user's per-pane opt-in (B5)
     picks_session_id = False                  # Lampway chooses the native id of a new session (Claude Code's --session-id)
+    config_name = "mcp.json"                  # the pane's own config file name, under <herdr root>/panes/<session id>/ (B2)
     BYPASS: tuple = ()
 
     def __init__(self, which=None):

@@ -18,6 +18,7 @@ class OpenCode(Adapter):
     id = "opencode"
     label = "OpenCode"
     binary = "opencode"
+    config_name = "opencode.json"
     herdr_kind = "opencode"
     install_hint = "install OpenCode (opencode): npm install -g opencode-ai"          # [UNVERIFIED] the package name
     status_argv = ("auth", "list")                                                     # [UNVERIFIED] lists providers; exit status only
