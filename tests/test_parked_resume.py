@@ -136,7 +136,7 @@ def test_send_continue_restores_input_on_failure(monkeypatch):
 
 # --- the ask/resume loop ------------------------------------------------------
 
-def test_ask_fires_only_first_auto_eligible_once(monkeypatch):
+def test_ask_fires_each_auto_eligible_session_once(monkeypatch):
     reports = {
         "s1": {"has_parked": True, "auto_eligible": False, "open_count": 9},
         "s2": {"has_parked": True, "auto_eligible": True, "open_count": 2},
@@ -150,11 +150,13 @@ def test_ask_fires_only_first_auto_eligible_once(monkeypatch):
     import mixar.modules.space_mixie_chat.core.main_thread_executor as mte
     monkeypatch.setattr(mte, "run_on_main_thread", lambda fn: fn())
 
-    PR._ask("https://api.test", "tok",
-            [("Scene One", "s1"), ("Scene Two", "s2"), ("Scene Three", "s3")])
-    # s1 parked but too big (backend not eligible) -> skipped silently;
-    # s2 first eligible -> ONE fire; s3 never re-streamed in the same event.
-    assert fired == [("Scene Two", 2)]
+    candidates = [("Scene One", "s1"), ("Scene Two", "s2"), ("Scene Three", "s3")]
+    PR._ask("https://api.test", "tok", candidates)
+    # Each eligible tab resumes its own session. The ineligible tab is left
+    # alone, and a transport flap cannot send either continuation twice.
+    assert fired == [("Scene Two", 2), ("Scene Three", 1)]
+    PR._ask("https://api.test", "tok", candidates)
+    assert fired == [("Scene Two", 2), ("Scene Three", 1)]
 
 
 def test_ask_refuses_second_auto_resume_for_same_session(monkeypatch):
