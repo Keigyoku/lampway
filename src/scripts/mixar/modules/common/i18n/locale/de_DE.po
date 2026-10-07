@@ -1829,6 +1829,12 @@ msgstr "Ihr Schlüssel: {name}"
 msgid "Saving agent model… Please wait before sending or changing models."
 msgstr "Agentenmodell wird gespeichert… Bitte warten Sie, bevor Sie senden oder das Modell wechseln."
 
+msgid "Agent Mode"
+msgstr ""
+
+msgid "Choose Lampway Agent or your own installed harness for this scene tab."
+msgstr ""
+
 msgid "Agent Model"
 msgstr "Agentenmodell"
 
@@ -1898,12 +1904,6 @@ msgstr "Führen Sie den Mixar-Agenten über Ihren eigenen Anbieter aus – solan
 msgid "Current Configuration"
 msgstr "Aktuelle Konfiguration"
 
-msgid "Account"
-msgstr "Konto"
-
-msgid "ChatGPT subscription"
-msgstr "ChatGPT-Abonnement"
-
 msgid "API Key"
 msgstr "API-Schlüssel"
 
@@ -1927,27 +1927,6 @@ msgstr "Wählen Sie ein Modell, das Tool-/Funktionsaufrufe unterstützt – der 
 
 msgid "Any slug from openrouter.ai/models, e.g. anthropic/claude-opus-4.8."
 msgstr "Beliebiger Slug von openrouter.ai/models, z. B. anthropic/claude-opus-4.8."
-
-msgid "Load from ~/.codex/auth.json"
-msgstr "Aus ~/.codex/auth.json laden"
-
-msgid "…or paste it manually"
-msgstr "…oder manuell einfügen"
-
-msgid "{count} characters pasted"
-msgstr "{count} Zeichen eingefügt"
-
-msgid "Empty — paste your auth.json"
-msgstr "Leer – fügen Sie Ihre auth.json ein"
-
-msgid "Run  codex login  in your terminal, then load or paste the full"
-msgstr "Führen Sie  codex login  im Terminal aus, laden Sie dann den vollständigen Inhalt"
-
-msgid "contents of ~/.codex/auth.json (the paste button reads your clipboard)."
-msgstr "von ~/.codex/auth.json oder fügen Sie ihn ein (die Schaltfläche „Einfügen“ liest Ihre Zwischenablage)."
-
-msgid "Uses your ChatGPT subscription — Lampway credits are not charged."
-msgstr "Nutzt Ihr ChatGPT-Abonnement – es werden keine Mixar-Credits berechnet."
 
 msgid "Couldn't apply your changes"
 msgstr "Ihre Änderungen konnten nicht übernommen werden"
@@ -2054,41 +2033,8 @@ msgstr "Wählen Sie ein Modell für diesen Anbieter und geben Sie einen API-Schl
 msgid "Model slug and API key are required."
 msgstr "Modell-Slug und API-Schlüssel sind erforderlich."
 
-msgid "Choose a Codex model and load your auth.json bundle."
-msgstr "Wählen Sie ein Codex-Modell und laden Sie Ihr auth.json-Bundle."
-
 msgid "Save failed."
 msgstr "Speichern fehlgeschlagen."
-
-msgid "Read ~/.codex/auth.json from this machine into the field"
-msgstr "Liest ~/.codex/auth.json von diesem Rechner in das Feld ein"
-
-msgid "~/.codex/auth.json not found — run `codex login` first"
-msgstr "~/.codex/auth.json nicht gefunden – führen Sie zuerst `codex login` aus"
-
-msgid "Could not read ~/.codex/auth.json"
-msgstr "~/.codex/auth.json konnte nicht gelesen werden"
-
-msgid "~/.codex/auth.json is empty"
-msgstr "~/.codex/auth.json ist leer"
-
-msgid "auth.json is too large for this field and was truncated — it will not save correctly"
-msgstr "auth.json ist zu groß für dieses Feld und wurde gekürzt – sie wird nicht korrekt gespeichert"
-
-msgid "Loaded auth.json"
-msgstr "auth.json geladen"
-
-msgid "Paste auth.json"
-msgstr "auth.json einfügen"
-
-msgid "Paste your ~/.codex/auth.json from the clipboard into the field"
-msgstr "Fügt Ihre ~/.codex/auth.json aus der Zwischenablage in das Feld ein"
-
-msgid "Clipboard is empty"
-msgstr "Zwischenablage ist leer"
-
-msgid "Pasted auth.json is too large for this field and was truncated — it will not save correctly"
-msgstr "Die eingefügte auth.json ist zu groß für dieses Feld und wurde gekürzt – sie wird nicht korrekt gespeichert"
 
 msgid "Remove"
 msgstr "Entfernen"
@@ -2161,12 +2107,6 @@ msgstr "Ihr API-Schlüssel wird verschlüsselt gespeichert und nur für Anfragen
 
 msgid "Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)"
 msgstr "Beliebiger Modell-Slug von openrouter.ai/models (z. B. anthropic/claude-opus-4.8)"
-
-msgid "Codex auth.json"
-msgstr ""
-
-msgid "Contents of ~/.codex/auth.json (run `codex login` first)"
-msgstr "Inhalt von ~/.codex/auth.json (führen Sie zuerst `codex login` aus)"
 
 msgid "Local mode"
 msgstr "Lokaler Modus"
@@ -2731,6 +2671,12 @@ msgstr ""
 
 msgid "Scroll Notification"
 msgstr "Benachrichtigung scrollen"
+
+msgid "Matrix"
+msgstr ""
+
+msgid "Euler"
+msgstr ""
 
 msgid "Wavefront (.obj)"
 msgstr ""
@@ -5237,6 +5183,84 @@ msgstr ""
 msgid "Pill note pending"
 msgstr ""
 
+msgid "Switch capability"
+msgstr ""
+
+msgid "Turn a capability on or off. One that runs code or acts outside Lampway shows what it allows first, and its button turns it on"
+msgstr ""
+
+msgid "The confirm row's own button"
+msgstr ""
+
+msgid "Not now"
+msgstr ""
+
+msgid "Close the confirm row: the capability stays off"
+msgstr ""
+
+msgid "Approval"
+msgstr ""
+
+msgid "Choose when the agent asks you before it uses this capability"
+msgstr ""
+
+msgid "Option"
+msgstr "Option"
+
+msgid "Choose an option of this capability, such as where commands run"
+msgstr ""
+
+msgid "This project only"
+msgstr ""
+
+msgid "Make the changes you click here apply to this project only"
+msgstr ""
+
+msgid "This file has no Lampway project: changes here apply to every project"
+msgstr ""
+
+msgid "Accept"
+msgstr ""
+
+msgid "Accept what the agent proposed: the change is made, for this project or for all of them"
+msgstr ""
+
+msgid "Decline"
+msgstr ""
+
+msgid "Decline what the agent proposed; nothing changes. The card is hidden on this screen: the server keeps no record of a decline"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Read the capabilities again"
+msgstr ""
+
+msgid "Turn on"
+msgstr ""
+
+msgid "Accept for this project"
+msgstr ""
+
+msgid "Accept for all projects"
+msgstr ""
+
+msgid "This Lampway server has no Capabilities yet: update it, then Refresh"
+msgstr ""
+
+msgid "Reading capabilities..."
+msgstr ""
+
+msgid "This server lists no capabilities"
+msgstr ""
+
+msgid "Lampway's server is not running: start it, then Refresh"
+msgstr ""
+
+msgid "Changes you make here apply to this project only"
+msgstr ""
+
 msgid "Route"
 msgstr ""
 
@@ -5264,22 +5288,13 @@ msgstr ""
 msgid "Allow (or take back) private content to an option whose provider may keep it; logged by the server"
 msgstr ""
 
-msgid "Accept"
-msgstr ""
-
 msgid "Accept what the agent proposed"
-msgstr ""
-
-msgid "Decline"
 msgstr ""
 
 msgid "Decline what the agent proposed; nothing changes"
 msgstr ""
 
 msgid "Show this purpose"
-msgstr ""
-
-msgid "Refresh"
 msgstr ""
 
 msgid "Read the choices again"
@@ -5306,6 +5321,9 @@ msgstr ""
 msgid "Spending"
 msgstr ""
 
+msgid "Capabilities"
+msgstr ""
+
 msgid "Spending: what may spend without your click, and the caps"
 msgstr ""
 
@@ -5313,12 +5331,6 @@ msgid "Change spending"
 msgstr ""
 
 msgid "Choose a purpose on the left"
-msgstr ""
-
-msgid "Accept for this project"
-msgstr ""
-
-msgid "Accept for all projects"
 msgstr ""
 
 msgid "The chain: the first option that can run serves it"
@@ -5331,9 +5343,6 @@ msgid "This Lampway server has no Choices yet: the Providers dialog still sets t
 msgstr ""
 
 msgid "Providers"
-msgstr ""
-
-msgid "Lampway's server is not running: start it, then Refresh"
 msgstr ""
 
 msgid "Open a compare set in its own window: one view per model, one camera"
@@ -5495,6 +5504,9 @@ msgstr ""
 msgid "Every route is off until you switch it on"
 msgstr ""
 
+msgid "Your agent can do only what you tick here. Change it any time in Choices and privacy."
+msgstr ""
+
 msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
 msgstr ""
 
@@ -5505,18 +5517,6 @@ msgid "ChatGPT plan"
 msgstr ""
 
 msgid "Your ChatGPT subscription, signed in from Providers"
-msgstr ""
-
-msgid "Codex CLI"
-msgstr ""
-
-msgid "The Codex command line on this machine, on your ChatGPT plan"
-msgstr ""
-
-msgid "Claude Code"
-msgstr ""
-
-msgid "The Claude command line on this machine, on your Claude plan"
 msgstr ""
 
 msgid "OpenRouter"
@@ -5535,12 +5535,6 @@ msgid "OpenAI API key"
 msgstr ""
 
 msgid "Pay per use with your OpenAI key"
-msgstr ""
-
-msgid "Codex app server"
-msgstr ""
-
-msgid "The Codex app server on this machine, on your ChatGPT plan"
 msgstr ""
 
 msgid "No agent"
@@ -5564,6 +5558,9 @@ msgstr "An"
 msgid "Let data go over this route"
 msgstr ""
 
+msgid "Let your agent do this"
+msgstr ""
+
 msgid "Lampway setup"
 msgstr ""
 
@@ -5579,6 +5576,12 @@ msgstr ""
 msgid "What this route keeps and whether it trains on what you send"
 msgstr ""
 
+msgid "What it does"
+msgstr ""
+
+msgid "What this capability lets your agent do"
+msgstr ""
+
 msgid "Main agent"
 msgstr ""
 
@@ -5588,12 +5591,6 @@ msgstr ""
 msgid ""
 "Switch a route. Every route is off until you switch it on, and on takes two clicks of yours: this one opens the\n"
 "confirm row, its button lets data leave"
-msgstr ""
-
-msgid "The confirm row's own button"
-msgstr ""
-
-msgid "Not now"
 msgstr ""
 
 msgid "Close the confirm row: the route stays off"
@@ -5621,6 +5618,9 @@ msgid "Off"
 msgstr "Aus"
 
 msgid "Let it leave"
+msgstr ""
+
+msgid "Capabilities: what may your agent do?"
 msgstr ""
 
 msgid "What left, and what was refused"
@@ -5984,7 +5984,7 @@ msgstr ""
 msgid "Images"
 msgstr "Bilder"
 
-msgid "Image backend: tripo, codex_cli or openrouter"
+msgid "Image backend: tripo or openrouter"
 msgstr ""
 
 msgid "Image model"
@@ -6132,6 +6132,9 @@ msgid "New session"
 msgstr ""
 
 msgid "Open a new agent session in the cockpit (your own CLI login)"
+msgstr ""
+
+msgid "Claude Code"
 msgstr ""
 
 msgid "Codex"
@@ -21205,6 +21208,24 @@ msgstr "Benutzer-ID für die Anmeldung bei Lampway Agent Chat"
 msgid "Agent expects: {formats}"
 msgstr "Agent erwartet: {formats}"
 
+msgid "could not be delivered"
+msgstr "konnte nicht zugestellt werden"
+
+msgid "Resume"
+msgstr ""
+
+msgid "Unbind"
+msgstr ""
+
+msgid "An attached image could not be read, so nothing was sent"
+msgstr ""
+
+msgid "Not connected to Lampway's server: your agent's pane was not stopped"
+msgstr ""
+
+msgid "Not connected to Lampway's server"
+msgstr ""
+
 msgid "*Stopped*"
 msgstr "*Gestoppt*"
 
@@ -21259,11 +21280,11 @@ msgstr "Runden {first}–{last} erneut angewendet"
 msgid "queued"
 msgstr "eingereiht"
 
-msgid "Restoring a checkpoint…"
-msgstr "Checkpoint wird wiederhergestellt…"
-
 msgid "Agent is not connected"
 msgstr "Agent ist nicht verbunden"
+
+msgid "Restoring a checkpoint…"
+msgstr "Checkpoint wird wiederhergestellt…"
 
 msgid "Failed to send input"
 msgstr "Eingabe konnte nicht gesendet werden"
@@ -21652,9 +21673,6 @@ msgstr "Neu beginnen"
 msgid "delivery uncertain"
 msgstr "Zustellung ungewiss"
 
-msgid "could not be delivered"
-msgstr "konnte nicht zugestellt werden"
-
 msgid "Voice input unavailable."
 msgstr "Spracheingabe nicht verfügbar."
 
@@ -21782,6 +21800,30 @@ msgstr "Wählt eine Datei zum Importieren, ohne deren Pfad an das Backend zu sen
 
 msgid "Comma-separated extensions from the interrupt context (shown as a hint; never narrows the picker)"
 msgstr "Durch Kommas getrennte Dateiendungen aus dem Unterbrechungskontext (als Hinweis angezeigt; schränkt die Auswahl nie ein)"
+
+msgid "Switch Agent"
+msgstr ""
+
+msgid "Switch this scene tab between Lampway Agent and your own agent. The conversation does not carry across"
+msgstr ""
+
+msgid "Lampway Agent"
+msgstr ""
+
+msgid "Your agent"
+msgstr ""
+
+msgid "Starting your agent…"
+msgstr ""
+
+msgid "Switching to Lampway Agent…"
+msgstr ""
+
+msgid "Find Your Agents"
+msgstr ""
+
+msgid "Ask the Lampway server which agent CLIs are installed on this machine"
+msgstr ""
 
 msgid "Agent Preview Render"
 msgstr "Agent-Vorschau-Rendering"
@@ -23185,6 +23227,21 @@ msgstr "Automodus"
 
 msgid "The agent decides every open choice itself instead of asking you, and lists its decisions in the summary"
 msgstr "Der Agent trifft jede offene Entscheidung selbst, statt Sie zu fragen, und listet seine Entscheidungen in der Zusammenfassung auf"
+
+msgid "Who this scene tab talks to: Lampway's own agent, or your own agent in a pane bound to the tab"
+msgstr ""
+
+msgid "Lampway's own agent, on the provider you configured"
+msgstr ""
+
+msgid "Your own agent CLI, on its own login, in a pane bound to this tab"
+msgstr ""
+
+msgid "Your Agent's Pane"
+msgstr ""
+
+msgid "The cockpit session (a pane on Lampway's herdr server) bound to this tab in Your agent mode"
+msgstr ""
 
 msgid "True when the agent is processing a request (BUSY state)"
 msgstr "Wahr, wenn der Agent eine Anfrage verarbeitet (Zustand BUSY)"
@@ -26420,6 +26477,12 @@ msgstr "Automatikmodus ist aktiv: Der Agent entscheidet offene Fragen selbst und
 msgid "Auto mode: the agent decides open choices itself instead of asking you, and lists its decisions in the summary"
 msgstr "Automatikmodus: Der Agent entscheidet offene Fragen selbst, statt Sie zu fragen, und listet seine Entscheidungen in der Zusammenfassung auf"
 
+msgid "Your agent: choose a harness or switch to Lampway Agent. Conversations stay in History"
+msgstr ""
+
+msgid "Lampway Agent: switch to your own agent. Conversations stay in History"
+msgstr ""
+
 msgid "Your own API key is in use, and it decides the model. Open this menu and pick \"Change or remove my API key\" to choose a hosted model again"
 msgstr "Ihr eigener API-Schlüssel wird verwendet und bestimmt das Modell. Öffnen Sie dieses Menü und wählen Sie „API-Schlüssel ändern oder entfernen“, um wieder ein gehostetes Modell auszuwählen"
 
@@ -27605,9 +27668,6 @@ msgstr "Schritte"
 msgid "Thought for %ds"
 msgstr "%d s nachgedacht"
 
-msgid "Lampway Agent"
-msgstr ""
-
 msgid "Start Voice Input"
 msgstr "Spracheingabe starten"
 
@@ -28537,9 +28597,6 @@ msgstr "Akzent"
 
 msgid "The accent fill: a spend that waits for your click (Lampway)"
 msgstr ""
-
-msgid "Option"
-msgstr "Option"
 
 msgid "Unselected popup choice"
 msgstr "Nicht ausgewählte Popup-Option"
