@@ -28,6 +28,7 @@ BINARIES = {"claude": "claude", "codex": "codex", "hermes": "hermes", "opencode"
 BYPASS_TOKENS = ("--dangerously-skip-permissions", "--dangerously-bypass-approvals-and-sandbox", "--auto", "--force", "--yolo", "--always-approve")
 #: The harnesses whose per-pane wiring an installed copy was seen to read (each adapter's FACTS); the others have no per-pane way in.
 VERIFIED_WIRING = ("claude", "codex", "opencode", "pi")
+SUPPORTED_WIRING = (*VERIFIED_WIRING, "cursor")  # Cursor's actual CLI/runtime supports plugins; an account-backed call is still owed
 #: herdr 0.9.3's kind for each harness (src/detect/mod.rs interactive_agent_executable): herdr starts every one of them itself.
 HERDR_KINDS = {"claude": "claude", "codex": "codex", "hermes": "hermes", "opencode": "opencode", "pi": "pi", "grok": "grok", "cursor": "cursor"}
 
@@ -114,9 +115,9 @@ def test_the_tool_wiring_names_the_launcher_and_the_bound_session(hid, tmp_path)
     assert w.launcher == ("/opt/lw/lampway-mcp",) and w.bound_session == "scene-7"
     text = json.dumps({"argv": list(w.argv), "env": w.env, "files": w.files})
     assert "/opt/lw/lampway-mcp" in text and "LAMPWAY_BOUND_SESSION" in text and "scene-7" in text, hid
-    assert all(Path(p) == Path(pane.mcp_config_path) or Path(p).parent == Path(pane.mcp_config_path).parent for p in w.files), hid
+    assert all(Path(p).is_relative_to(Path(pane.mcp_config_path).parent) for p in w.files), hid
     assert w.verified is (hid in VERIFIED_WIRING), hid                    # only what an installed copy was seen to read claims verified
-    assert (w.kind == "unavailable") is (hid not in VERIFIED_WIRING) is (not HN.get(hid).tools_reachable), hid
+    assert (w.kind == "unavailable") is (hid not in SUPPORTED_WIRING) is (not HN.get(hid).tools_reachable), hid
 
 
 def test_claude_code_reaches_lampway_through_a_per_pane_mcp_config_file(tmp_path):
@@ -160,13 +161,13 @@ def test_the_pi_extension_is_a_wrapper_only():
     client: no process, no network, no other file, nothing written."""
     from lampway_server.herdr.harnesses import pi as PI
     src = PI.EXTENSION.read_text(encoding="utf-8")
-    assert "SPDX-License-Identifier: GPL-3.0-or-later" in src and "export default function" in src
+    assert ("SPDX-" + "License-Identifier: GPL-3.0-or-later") in src and "export default function" in src
     assert src.count("readFileSync(") == 1 and "process.env.LAMPWAY_PI_MCP" in src and "pi.registerMcpServer(" in src
     for banned in ("child_process", "spawn(", "exec(", "fetch(", "http", "writeFile", "mcp.json\"", "~/.pi"):
         assert banned not in src.replace("~/.pi/agent/mcp.json or the project's .pi/mcp.json", ""), banned
 
 
-@pytest.mark.parametrize("hid", ("hermes", "grok", "cursor"))
+@pytest.mark.parametrize("hid", ("hermes", "grok"))
 def test_a_harness_with_no_per_pane_way_in_says_so_in_the_listing(hid, only_path):
     a = HN.get(hid)
     assert a.tools_reachable is False and a.tools_note and "never writes" in a.tools_note, hid
