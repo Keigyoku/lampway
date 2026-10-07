@@ -90,6 +90,9 @@ class FakeModel:
                                             "choices": [{"index": 0, "message": {"role": "assistant", "content": "Title"},
                                                          "finish_reason": "stop"}]})
                 step = model.plan.pop(0) if model.plan else ("say", "(no more steps)")
+                if step[0] == "hold":                                      # ("hold", event, step): answer only once the test says
+                    step[1].wait(120)
+                    step = step[2]
                 if step[0] == "native":                                    # one of Hermes's own tools, called directly
                     delta = {"role": "assistant", "tool_calls": [{"index": 0, "id": f"call_{len(model.seen)}", "type": "function",
                                                                   "function": {"name": step[1], "arguments": json.dumps(step[2])}}]}
@@ -340,3 +343,75 @@ def test_rules_folders_and_an_image_reach_the_engines_model(stack):
     sent = [s for s in model.seen if s["stream"]][0]["text"]
     assert "Always use metric units." in sent and "refs: 1 files" in sent and "front.png" in sent
     assert png[:24] in sent, "the attached image reached the model"
+
+
+def test_the_engines_turn_survives_the_client_and_ends_on_its_new_socket(stack):
+    """E1.7/R5 (captain: Mode 1 durability is the engine's): closing the client's socket does not cancel the engine's turn. The
+    Blender call in flight fails and the model is told; the client re-attaches on a new socket, replays what it missed, and the
+    turn's next Blender call and its end arrive there."""
+    gate = threading.Event()
+    model = FakeModel([("call", "run_blender_python", {"script": "import bpy"}),
+                       ("hold", gate, ("call", "scene_summary", {})), ("say", "Done after the reconnect.")])
+    stack["attach"](model)
+    hub = stack["app"].state.agent
+    fake = _login(stack["base"], stack["settings"])
+    ws_url = stack["base"].replace("http://", "ws://") + f"/api/agent/ws/{fake.instance_id}"
+    headers = {"Authorization": f"Bearer {fake.access_token}", "x-telemetry-consent": "1", "X-Mixar-Locale": "en_US"}
+    sid, command_id = str(uuid.uuid4()), str(uuid.uuid4())
+
+    async def connect():
+        ws = await websockets.connect(ws_url, additional_headers=headers, open_timeout=10, max_size=None)
+        await ws.send(json.dumps(fake.handshake_frame()))
+        json.loads(await asyncio.wait_for(ws.recv(), 10))
+        return ws
+
+    async def go():
+        try:
+            ws = await connect()
+            await ws.send(json.dumps({"jsonrpc": "2.0", "id": "r1", "method": "agent.chat",
+                                      "params": {"command_id": command_id, "payload": fake.chat_payload("Make a chair", sid)}}))
+            last_seq = -1
+            while True:
+                frame = json.loads(await asyncio.wait_for(ws.recv(), 120))
+                if frame.get("method") == "agent.turn.event":
+                    last_seq = frame["params"]["seq"]
+                if frame.get("method") == "blender.execute_script" and frame.get("id"):
+                    break                                                # the client goes away with Blender's call unanswered
+            await ws.close()
+            deadline = time.monotonic() + 30
+            while not getattr(hub.sessions[sid].current, "detached", False):
+                assert hub.sessions[sid].current is not None, "the turn ended when the client's socket closed"
+                assert time.monotonic() < deadline, "the server never noticed the client left"
+                await asyncio.sleep(0.05)
+            ws = await connect()
+            await ws.send(json.dumps({"jsonrpc": "2.0", "id": "a1", "method": "agent.attach",
+                                      "params": {"session_id": sid, "turn_id": command_id, "after_seq": last_seq}}))
+            frames, scripts = [], []
+            deadline = time.monotonic() + 120
+            while True:
+                frame = json.loads(await asyncio.wait_for(ws.recv(), max(1, deadline - time.monotonic())))
+                frames.append(frame)
+                if frame.get("id") == "a1":
+                    gate.set()                                           # attached: now let the engine's model go on
+                if frame.get("method") == "blender.execute_script" and frame.get("id"):
+                    scripts.append(frame["params"]["script"])
+                    await ws.send(json.dumps({"jsonrpc": "2.0", "id": frame["id"], "result": SCENE}))
+                if frame.get("method") == "agent.turn.ended" and frame["params"].get("turn_id") == command_id:
+                    await ws.close()
+                    return frames, scripts, last_seq
+        finally:
+            gate.set()
+            if hub.engine is not None:
+                hub.engine.kill_all()
+
+    frames, scripts, last_seq = asyncio.run(go())
+    attach = next(f for f in frames if f.get("id") == "a1")
+    assert attach["result"]["status"] == "ok"
+    seqs = [f["params"]["seq"] for f in frames if f.get("method") == "agent.turn.event"]
+    assert seqs == list(range(last_seq + 1, last_seq + 1 + len(seqs))), "the new socket got every missed event, once, in order"
+    events = [f["params"]["event"] for f in frames if f.get("method") == "agent.turn.event"]
+    assert scripts, "the turn's next Blender call went to the client's new socket"
+    final = [e for e in events if (e.get("content") or {}).get("set")]
+    assert final and final[-1]["content"]["set"] == "Done after the reconnect."
+    assert events[-1]["type"] == "turn_end" and events[-1]["status"] == "completed", "the turn was not cancelled"
+    assert model.tool_results and len(model.tool_results) >= 2, "the model was told about the lost call and saw the next result"

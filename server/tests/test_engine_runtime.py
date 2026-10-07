@@ -60,3 +60,35 @@ def test_the_engine_endpoint_needs_its_sessions_token_and_offers_the_users_tools
     ok = rpc({"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "scene_summary", "arguments": {}}}).json()
     assert ok["result"] == {"content": [{"type": "text", "text": "pong"}], "isError": False}
     assert rt.calls == [("s1", "scene_summary", {})]
+
+
+def test_a_closed_socket_detaches_an_engine_turn_and_still_cancels_a_built_in_one(settings, provider):
+    """E1.7/R5: the hub names the engine's running turn as a survivor of its client's socket (ws.py then leaves it running) and
+    marks it detached; with no engine in the seat the turn is cancelled as before."""
+    import asyncio
+    from types import SimpleNamespace
+
+    from lampway_server.agent.turns import Session, Turn
+    from lampway_server.app import create_app
+
+    hub = create_app(settings, provider=provider).state.agent
+
+    async def go(engine_running):
+        hub.engine = SimpleNamespace(is_running=lambda sid: engine_running) if engine_running is not None else None
+        sock = object()
+        session = Session("s1")
+        turn = Turn("s1", "t1", "r1")
+        turn.task = asyncio.get_running_loop().create_task(asyncio.sleep(30))
+        turn.socket = sock
+        session.current = turn
+        hub.sessions["s1"] = session
+        survivors = hub.socket_closed(sock)
+        await asyncio.sleep(0)
+        out = (survivors, turn.detached, turn.task.cancelled())
+        turn.task.cancel()
+        return out, turn.task
+
+    (survivors, detached, cancelled), task = asyncio.run(go(True))
+    assert survivors == {task} and detached and not cancelled
+    (survivors, detached, cancelled), _ = asyncio.run(go(None))
+    assert survivors == set() and not detached and cancelled

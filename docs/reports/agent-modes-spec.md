@@ -423,7 +423,7 @@ allows the gateway plus the hosts of the routes the enabled capabilities need (E
 | `checkpoint.mark` / `rewind` | `fork_session` at the mark / switch to the fork | `[UNVERIFIED]` that fork can target an earlier message; if not, rewind replays the kept prefix into a new session |
 | `agent.attach`, `agent.status` | the live turn's events while it runs; afterwards `load_session`, which replays the conversation as `session/update` notifications `[UNVERIFIED for Hermes]` | no Lampway journal (captain, 2026-10-07) |
 | `agent.history_sync` (R2) | `list_sessions`, then `load_session` per session | Hermes's `state.db` is the conversation record |
-| parked turns (R5) | the ACP session survives a client disconnect; on reconnect the turn resumes or ends `abandoned` | Lampway stops cancelling on socket close |
+| parked turns (R5) | the ACP session survives a client disconnect; on reconnect the turn resumes or ends `abandoned` | Lampway stops cancelling on socket close. Built 2026-10-07: the hub marks the engine's running turn detached and names it a survivor, so `ws.py` leaves it running; its events journal on; a Blender call in flight fails and the model is told; `agent.attach` replays what was missed and rebinds the turn and the engine's tool calls to the new socket (`test_engine_conformance.py`). Not yet: `abandoned` for a turn no client re-attaches to |
 
 *E1.8 Conformance and pin bumps.*
 - An engine-conformance suite drives a real `hermes acp` from the pinned tree against the gateway's `mock` provider, which plays

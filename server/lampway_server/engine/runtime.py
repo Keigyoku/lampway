@@ -397,6 +397,12 @@ class EngineRuntime:
             return RequestPermissionResponse(outcome=DeniedOutcome(outcome="cancelled"))
         return RequestPermissionResponse(outcome=AllowedOutcome(outcome="selected", option_id=option_id))
 
+    def reattach(self, session_id: str, socket) -> None:
+        """The client came back on a new socket (agent.attach): the running prompt's tool calls go to it."""
+        es = self.sessions.get(session_id)
+        if es is not None and es.sink is not None:
+            es.sink.socket = socket
+
     def has_question(self, session_id: str) -> bool:
         es = self.sessions.get(session_id)
         return es is not None and es.question is not None and not es.question.done()

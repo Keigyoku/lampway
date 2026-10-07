@@ -55,6 +55,8 @@ class Turn:
     plan_mode: bool = False
     asked: bool = False       # ended on an ask_user question: the run stays in progress until the answer
     context: dict = field(default_factory=dict)   # what the client sent beside the message (R3): images, rules, folders, notes
+    stream: object = None     # the turn's TurnStream: an engine turn re-attaches it to a new socket (E1.7, R5)
+    detached: bool = False    # the client's socket closed while the engine's turn ran: it journals on and waits for agent.attach
 
     @property
     def last_seq(self) -> int:
@@ -141,12 +143,21 @@ class AgentHub:
             return
         await socket.reply(request_id, result)
 
-    def socket_closed(self, socket):
+    def socket_closed(self, socket) -> set:
+        """The client's socket closed. Returns the turn tasks that outlive it (the socket cancels the rest)."""
         self.swarm.socket_closed(socket)
+        survivors = set()
         for session in self.sessions.values():
             turn = session.current
             if turn is not None and turn.task is not None and getattr(turn, "socket", None) is socket:
+                if self.engine is not None and self.engine.is_running(session.session_id):
+                    # E1.7/R5 under the captain's ruling: the engine's turn survives the client; it journals on and the client
+                    # re-attaches with agent.attach. A Blender call in flight fails (the socket is gone) and the model is told.
+                    turn.detached = True
+                    survivors.add(turn.task)
+                    continue
                 turn.task.cancel()
+        return survivors
 
     # ------------------------------------------------------------ commands
     def _session(self, session_id: str) -> Session:
@@ -260,11 +271,19 @@ class AgentHub:
         if turn is None:
             return {"status": "unavailable"}
         after = params.get("after_seq", -1)
-        after = after if isinstance(after, int) else -1
-        for seq in range(after + 1, len(turn.events)):
+        seq = after + 1 if isinstance(after, int) else 0
+        while seq < len(turn.events):                         # the journal grows while a detached engine turn runs: catch up first
             await socket.notify("agent.turn.event", {
                 "session_id": turn.session_id, "turn_id": turn.turn_id, "seq": seq, "event": turn.events[seq],
             })
+            seq += 1
+        if turn.status == "running" and turn.detached and turn.stream is not None:
+            # no await between the last replayed event and the rebind: the engine's next event goes to the new socket, in order
+            turn.stream.socket = socket
+            turn.socket = socket  # type: ignore[attr-defined]
+            turn.detached = False
+            if self.engine is not None:
+                self.engine.reattach(session.session_id, socket)
         if turn.status != "running":
             await socket.notify("agent.turn.ended", {
                 "session_id": turn.session_id, "turn_id": turn.turn_id, "last_seq": turn.last_seq,
@@ -319,6 +338,7 @@ class AgentHub:
             except (asyncio.CancelledError, Exception):  # noqa: BLE001
                 pass
         stream = TurnStream(socket, turn)
+        turn.stream = stream
         bubble_id = f"{turn.turn_id}:agent"
         steps: list[dict] = []
         status = "completed"
@@ -361,6 +381,7 @@ class AgentHub:
             await self._finish(socket, session, turn, stream, bubble_id, steps, status)
 
     async def _finish(self, socket, session, turn, stream, bubble_id, steps, status):
+        socket = getattr(turn.stream, "socket", None) or socket          # a re-attached engine turn ends on the client's new socket
         log.debug("turn %s finishing as %s", turn.turn_id, status)
         pending = session.pending_question if turn.asked else None
         reason = ("cancelled: the user stopped the turn before this call finished" if status == "cancelled" else
@@ -620,9 +641,14 @@ class TurnStream:
         payload = copy.deepcopy(payload)
         seq = len(self.turn.events)
         self.turn.events.append(payload)
-        await self.socket.notify("agent.turn.event", {
-            "session_id": self.turn.session_id, "turn_id": self.turn.turn_id, "seq": seq, "event": payload,
-        })
+        try:
+            await self.socket.notify("agent.turn.event", {
+                "session_id": self.turn.session_id, "turn_id": self.turn.turn_id, "seq": seq, "event": payload,
+            })
+        except Exception:  # noqa: BLE001
+            if not self.turn.detached:
+                raise
+            log.debug("turn %s is detached: event %d journalled for agent.attach", self.turn.turn_id, seq)
 
     async def emit_quietly(self, payload: dict):
         try:

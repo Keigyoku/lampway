@@ -91,13 +91,13 @@ class AgentSocket:
             pass
         finally:
             self.hub.unregister(self)
+            survivors = self.agent.socket_closed(self) if self.agent is not None else set()
             for task in list(self._tasks):
-                task.cancel()
+                if task not in survivors:               # an engine turn outlives its client (E1.7/R5); everything else stops
+                    task.cancel()
             for future in self._pending.values():
                 if not future.done():
                     future.set_exception(ConnectionError("client disconnected"))
-            if self.agent is not None:
-                self.agent.socket_closed(self)
 
     async def _dispatch(self, raw: str):
         try:
