@@ -25,6 +25,7 @@ import numpy as np
 from .. import canon_asset as CA
 from .. import canon_io
 from ..canon_geom.bones import CONTINUATION, MAIN_CHILD, chain_ends, terminal_auxiliary_leaf
+from ..canon_geom import native_topology as NT
 from ..rig_tools import core as RC
 from . import common as C
 from . import normalize as NZ
@@ -52,12 +53,27 @@ def canonical_helper_ends(ob):
     if RT._fingerprint(ob, rig) != doc["body"]["rest_pose"]["sha256"]:
         raise C.FeatureError(f"{ob.name}: the normalized corrective rest frames changed; re-run normalize_rigged")
     out = {}
+    NT.audit(rig["parents"])
     for row in rows:
         name = row["name"]
-        if "_correctiveRoot_" not in name or name not in rig["heads"]:
-            raise C.FeatureError(f"{name}: authored helper endpoints are only for normalized MetaHuman corrective roots")
+        if name not in NT.AUXILIARY or name not in rig["heads"]:
+            raise C.FeatureError(f"{name}: authored helper endpoints require a verified native auxiliary role")
         out[name] = np.asarray(row["head_m"], float) + np.asarray(row["along"], float) * row["length_m"]
     return out
+
+
+def require_complete_native(ob):
+    """A partial normalized native profile cannot become a full body/export."""
+    stamp = ob.get("lw_canon")
+    if not stamp:
+        return
+    doc = json.loads(stamp)
+    if doc.get("body", {}).get("reference_skeleton", {}).get("id") != REFERENCE_ID["metahuman"]:
+        return
+    roster = NT.audit(RT.read(ob)["parents"])
+    if not roster["complete"] or not doc["body"]["roster"]["complete"]:
+        raise C.FeatureError(f"{ob.name}: native full-body reference is incomplete; missing {', '.join(roster['missing'])}")
+    canonical_helper_ends(ob)
 
 
 def _bones(ob, mapped, convention="blender", profile="ue5_body"):
@@ -68,9 +84,10 @@ def _bones(ob, mapped, convention="blender", profile="ue5_body"):
     # rest frame/roll is the authority, not an arbitrary continuation child.
     helpers = {}
     if profile == "metahuman":
+        NT.audit(parents)
         axis = 1 if convention == "blender" else 0
         for n in names:
-            if "_correctiveRoot_" in n:
+            if n in NT.AUXILIARY:
                 b = ob.data.bones[n]
                 direction = np.asarray(rig["frames"][n], float)[:, axis]
                 world_length = float((ob.matrix_world.to_3x3() @ b.vector).length)
@@ -151,6 +168,7 @@ def run(armature, meshes=None, profile="ue5_body", turn_deg=0.0, dry_run=True):
     if profile not in RC.REQUIRED:
         raise C.FeatureError(f"profile is one of {', '.join(RC.REQUIRED)}")
     ob = RT._armature(armature)
+    native_roster = NT.audit({b.name: b.parent.name if b.parent else None for b in ob.data.bones}) if profile == "metahuman" else None
     rec = RT.inspect(armature, profile=profile)
     conv = rec["convention"]["class"]
     if conv not in ("blender", "ue_axes"):
@@ -175,6 +193,8 @@ def run(armature, meshes=None, profile="ue5_body", turn_deg=0.0, dry_run=True):
         skinned = [bpy.data.objects[n] for n in meshes]
     plan = {"armature": ob.name, "convention": conv, "family": family, "unit": unit, "unit_factor": u["factor"],
             "object_scale": u["object_scale"], "ratio_to_reference": u["ratio_to_reference"], "meshes": sorted(m.name for m in skinned)}
+    if native_roster is not None:
+        plan["native_roster"] = native_roster
     if dry_run:
         return {**plan, "dry_run": True, "how": "dry_run=false applies the unit and object scale (rig_normalize) and stamps the documents"}
     applied = None
@@ -189,8 +209,10 @@ def run(armature, meshes=None, profile="ue5_body", turn_deg=0.0, dry_run=True):
             "convention": conv, "rest_pose": {"name": "rest", "sha256": RT._fingerprint(ob, rig)},
             "naming": {"family": family, "map_sha256": CA.digest(json.dumps(mapped, sort_keys=True).encode()),
                        "unmapped": sorted(n for n in names if n not in set(mapped.values()))},
-            "roster": {"complete": True, "missing": []}, "root": {"name": root, "at_origin": bool(np.linalg.norm(rig["heads"][root]) < 1e-6)},
+            "roster": NT.audit(rig["parents"]) if profile == "metahuman" else {"complete": True, "missing": []}, "root": {"name": root, "at_origin": bool(np.linalg.norm(rig["heads"][root]) < 1e-6)},
             "bones": bones, "non_uniform_bone_scale": False}
+    if profile == "metahuman":
+        body["reference_skeleton"]["bones"] = len(NT.PARENTS)
     receipt = {"schema": "lampway.normalize-receipt/1", "tool": TOOL, "inspect": rec["sha256"]["receipt"], "plan": plan, "applied": applied}
     doc = _doc("skeleton", raw_sha, ob.name, _conventions(0.0), _transform(ob), scale, body, receipt)
     ob["lw_canon"] = json.dumps(doc, sort_keys=True)

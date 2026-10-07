@@ -22,6 +22,7 @@ from mathutils import Matrix
 
 from . import common as C
 from ..rig_tools import core as RC
+from ..canon_geom.native_topology import AUXILIARY
 
 MANNY = Path(__file__).resolve().parents[1] / "rig_convert" / "recipes" / "anim-profile-manny.json"
 STAMP = "lw_rig_inspect"
@@ -105,7 +106,8 @@ def _single_child(rig):
 def convention_angles(rig):
     """{bone: angle of its local Y to its head -> single child line}, limb bones only: UE's ik_* bones copy their target's (or the root's)
     frame and point at nothing, so they say nothing about the rig's convention."""
-    return {b: RC.along_axis_angle(rig["frames"][b], rig["heads"][b], rig["heads"][c]) for b, c in _single_child(rig).items() if b not in RC.IK_TARGETS}
+    return {b: RC.along_axis_angle(rig["frames"][b], rig["heads"][b], rig["heads"][c]) for b, c in _single_child(rig).items()
+            if b not in RC.IK_TARGETS and b not in AUXILIARY}
 
 
 def inspect(armature, reference="", family="auto", profile="ue5_body"):

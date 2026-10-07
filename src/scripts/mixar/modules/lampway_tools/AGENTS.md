@@ -79,7 +79,7 @@ python -m pytest -q tests                                   # the standalone sui
 `scripts/lampway/sync_python.sh` before every run, so a Python change needs no rebuild. The server half of each tool is tested in
 `server/tests/test_lampway_tools.py`.
 
-Native terminal finger03 joints with only exact same-finger/same-side bulge/half drivers use the canonical0.8 parent-line leaf endpoint, including one-driver cases. Unknown terminal children refuse; normalized stamps and shared weighting endpoints use the same predicate.
+Audit the complete measured342-edge native profile before mutation. Anatomical core terminals use canonical parent-line endpoints; exact verified auxiliaries preserve authored frames and are excluded from anatomical convention classification. Share validated/fingerprint-bound endpoints with weighting and posed openings; unknown/reparented edges refuse. Missing native rows are explicit and cannot publish a full body/export.
 
 ## Owner
 
@@ -120,3 +120,5 @@ page; the canon's open decisions are the captain's.
 | 2026-10-07 | low-match weight-transfer diagnostics | issue 2 G10 and native placed/unplaced calibration | inpainting concealed approximately three-percent direct matching on an unplaced piece | warn below the documented majority-match threshold, name placement, validate overrides before output and compare unrounded fractions without gating export | native placed/unplaced and strict-boundary RED/GREEN tests |
 
 | 2026-10-07 | terminal finger helper-only leaf continuity | actual c4e91 native pinky03 fanout refusal | two helpers refused and a single helper silently became the bone direction | Native terminal finger03 joints with only exact same-finger/same-side bulge/half drivers use the canonical0.8 parent-line leaf endpoint, including one-driver cases. Unknown terminal children refuse; normalized stamps and shared weighting endpoints use the same predicate. | native terminal one/two-driver RED and all-ten-joint GREEN with unknown-child falsifiers |
+
+| 2026-10-07 | complete native topology roles and consumers | actual terminal half-driver refusal and full342graph receipt | serial continuation additions missed auxiliary chains, convention classification measured drivers and core minimum claimed full roster | Audit the complete measured342-edge native profile before mutation. Anatomical core terminals use canonical parent-line endpoints; exact verified auxiliaries preserve authored frames and are excluded from anatomical convention classification. Share validated/fingerprint-bound endpoints with weighting and posed openings; unknown/reparented edges refuse. Missing native rows are explicit and cannot publish a full body/export. | complete342native RED/GREEN, unknown/reparented/stale controls and partial-publication refusals |

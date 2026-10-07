@@ -98,7 +98,8 @@ def detect(ob, axis, min_area_frac=0.01):
 
 def site_axis(armature, site):
     """(head, unit axis) of the POSED bone ``site``: its head and the line to the head of its next joint (canon 01 C.1 / 06 B.1)."""
-    from ..canon_geom.bones import chain_ends
+    from ..canon_geom.bones import chain_ends, CONTINUATION
+    from .normalize_rigged import canonical_helper_ends
     rig = C.need_object(armature, "ARMATURE")
     if site not in rig.pose.bones:
         raise C.FeatureError(f"no bone {site!r} in {armature!r}: the site is a bone of the posed body (upperarm_l, neck_01, calf_l, ...)")
@@ -106,7 +107,14 @@ def site_axis(armature, site):
     W = rig.matrix_world
     heads = {pb.name: tuple(W @ pb.head) for pb in rig.pose.bones}
     parents = {pb.name: pb.parent.name if pb.parent else None for pb in rig.pose.bones}
-    end = chain_ends(heads, parents)[site]
+    # Validate the rest stamp before transporting authored driver endpoints into
+    # the pose. Drivers do not become anatomical directions at any pose.
+    rest_helpers = canonical_helper_ends(rig)
+    helpers = {}
+    for name, end in rest_helpers.items():
+        local = W.inverted() @ Vector(end)
+        helpers[name] = tuple(W @ rig.pose.bones[name].matrix @ rig.data.bones[name].matrix_local.inverted() @ local)
+    end = chain_ends(heads, parents, main_child=CONTINUATION, helper_ends=helpers)[site]
     h = Vector(heads[site])
     d = Vector(end) - h
     if d.length < 1e-9:

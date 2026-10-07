@@ -198,8 +198,8 @@ for side,sign in (('l',1),('r',-1)):
             name=f'{finger}_{joint:02d}_{side}';J[name]=(sign*(.40+.025*joint),.015*(i-2),.60)
             P[name]=f'{finger}_{joint-1:02d}_{side}' if joint>1 else f'hand_{side}'
 J['upperarm_correctiveRoot_l']=J['upperarm_l'];P['upperarm_correctiveRoot_l']='upperarm_l'
-for tag,dy in (('front',-.02),('back',.02)):
-    name='upperarm_corrective_'+tag+'_l';J[name]=(.13,dy,.86);P[name]='upperarm_correctiveRoot_l'
+for tag,dy in (('fwd',-.02),('bck',.02)):
+    name='upperarm_'+tag+'_l';J[name]=(.13,dy,.86);P[name]='upperarm_correctiveRoot_l'
 arm=build('mh_rig')
 bpy.context.view_layer.objects.active=arm;bpy.ops.object.mode_set(mode='EDIT');arm.data.edit_bones['upperarm_correctiveRoot_l'].roll=math.radians(120);bpy.ops.object.mode_set(mode='OBJECT')
 r=call('normalize_rigged',armature=arm.name,profile='metahuman',dry_run=False);assert r.get('ok'),r

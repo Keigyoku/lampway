@@ -153,6 +153,8 @@ def _reference(reference, ob, convention, root):
 
 def export_ue(armature, out, root, meshes=None, actions=None, reference="", recipe="auto", readback=True):
     ob = RT._armature(armature)
+    from .normalize_rigged import require_complete_native
+    require_complete_native(ob)
     RT._inspected(ob)
     if not readback:
         raise C.FeatureError("readback=false is refused: no export without a read-back of every bone (canon 21 INV-21.1)")

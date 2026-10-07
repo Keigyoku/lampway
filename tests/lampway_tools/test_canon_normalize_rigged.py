@@ -143,8 +143,8 @@ for side, sign in (("l", 1), ("r", -1)):
             P[name] = f"{finger}_{joint - 1:02d}_{side}" if joint > 1 else f"hand_{side}"
 J["upperarm_correctiveRoot_l"] = J["upperarm_l"]
 P["upperarm_correctiveRoot_l"] = "upperarm_l"
-for tag, dy in (("front", -0.02), ("back", 0.02)):
-    name = "upperarm_corrective_" + tag + "_l"
+for tag, dy in (("fwd", -0.02), ("bck", 0.02)):
+    name = "upperarm_" + tag + "_l"
     J[name] = (0.13, dy, 0.86); P[name] = "upperarm_correctiveRoot_l"
 arm = build("mh_rig")
 bpy.context.view_layer.objects.active = arm; bpy.ops.object.mode_set(mode="EDIT")

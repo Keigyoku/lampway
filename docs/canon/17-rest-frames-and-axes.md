@@ -35,14 +35,7 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
 3. **Leaves** (head, hand, foot, ball, finger _03, twist bones): along from the reference bone's along-axis transported by the
    parent's rotation (a leaf has no child joint); a foot's along is ankle -> ball, its up the ground normal; a twist bone takes
    its parent's frame (twist bones rotate about the parent's along-axis only).
-4. **MetaHuman corrective roots.** A `metahuman` profile bone named
-   `<region>_correctiveRoot_<side>` fans out to corrective drivers rather than a
-   continuation joint. Preserve its authored rest frame and roll; its analytical
-   along-axis is that frame's Y (`blender`) or X (`ue_axes`), with authored length.
-   Record `along_source=authored_helper_frame`. Never choose an arbitrary child or
-   rewrite corrective axes to a parent's roll. An unrecognized branching bone
-   without a named continuation still refuses. R02 includes a fan-out with 120°
-   authored roll, and the binary normalizer test applies the MetaHuman profile.
+4. **Native auxiliary branches.** The measured342-edge MetaHuman profile explicitly distinguishes anatomical core joints, peripheral toe chains and258 authored auxiliary drivers. Corrective roots, finger half/bulge/palm/side drivers and twist/corrective drivers are not anatomical continuation joints. Preserve every verified auxiliary's authored rest frame and roll; analytical along is that frame's Y (`blender`) or X (`ue_axes`), with authored world length, recorded as `along_source=authored_helper_frame`. Validate exact names and parent edges; unknown/reparented rows refuse before mutation. Convention classification measures anatomical joint chains, excluding those exact auxiliary roles. A normalized helper endpoint requires the validated document and unchanged rest fingerprint; posed consumers transport that endpoint through the current pose rather than re-aiming it at an auxiliary child. R02's120° fan-out falsifier remains, supplemented by the complete342graph native regression.
 5. **Fingers.** Along = joint -> next joint; the BEND axis is the knuckle line: the unit vector index_01 -> pinky_01 (left/right
    signed), orthogonalised against along (Titan `proc_body.finger_axis`; memory gltf-bone-tail-is-not-direction). The thumb's bend
    axis is the normal of its own plane (thumb_01, thumb_02, thumb_03), oriented toward the palm. MB instead asks the person

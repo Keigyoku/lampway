@@ -93,6 +93,8 @@ def build(armature, mesh, glb, native_asset, uproject, sidecar, out, root):
     if not armature:
         raise C.FeatureError("name the armature object whose bones are the body's joints")
     arm = C.need_object(armature, "ARMATURE")
+    from .normalize_rigged import require_complete_native
+    require_complete_native(arm)
     joints = _joints(arm)
     side = None
     if sidecar:

@@ -130,8 +130,10 @@ def plan(object, armature):
     rigid = dom_n / total >= 0.9
     reason = (f"{dom_n / total:.0%} of the vertices are nearest to {dom}: one bone, a rigid piece" if rigid else
               f"the geometry spans {', '.join(span)} ({', '.join(f'{b} {n / total:.0%}' for b, n in ranked[:4])}): bones that rotate against each other, so it must deform")
+    stamp = arm.get("lw_canon")
+    roster = json.loads(stamp).get("body", {}).get("roster") if stamp else None
     return {"ok": True, "recommendation": "rigid" if rigid else "deforming", "bone": dom if rigid else None, "bones": span if not rigid else [dom], "joint_span": len(span), "reason": reason,
-            "histogram": hist}
+            "histogram": hist, "canonical_roster": roster}
 
 
 # ------------------------------------------------------------------------------------------------------------------ cleanup

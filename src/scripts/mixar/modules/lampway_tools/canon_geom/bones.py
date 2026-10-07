@@ -14,6 +14,7 @@ import math
 import numpy as np
 
 from .axes import cross, unit
+from .native_topology import terminal_children
 
 MAIN_CHILD = {"pelvis": "spine_01", "spine_05": "neck_01", "hand_l": "middle_01_l", "hand_r": "middle_01_r"}
 LEAF = 0.8
@@ -42,8 +43,7 @@ TERMINAL_AUXILIARIES = {
 
 def terminal_auxiliary_leaf(bone, children):
     """Recognized terminal03 helper-only branch; unknown children never qualify."""
-    allowed = TERMINAL_AUXILIARIES.get(bone)
-    return bool(allowed and children and set(children).issubset(allowed))
+    return terminal_children(bone, children)
 
 
 def _descends(bone, ancestor, parents):
@@ -74,7 +74,7 @@ def chain_ends(heads, parents, leaf=LEAF, main_child=None, helper_ends=None):
             continue
         k = kids.get(b, [])
         terminal = terminal_auxiliary_leaf(b, k)
-        if b in TERMINAL_AUXILIARIES and k and not terminal:
+        if (b in TERMINAL_AUXILIARIES or b in ("ball_l", "ball_r")) and k and not terminal:
             raise ValueError(f"bone {b!r} has unrecognized terminal children {', '.join(sorted(k))}")
         if terminal or not k:
             p = parents.get(b)
