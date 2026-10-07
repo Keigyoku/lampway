@@ -46,7 +46,7 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | install carries no agent contract | done | `e6668a6b` |
 | 11 model compare | done but the header Pick (in the sidebar) | `3e496b4a`, `e430bfb7`, `64a74195` |
 | 10 cockpit window + report cards mounted | done for the page; its terminal is 16's window, not xterm.js | `3f33a237`, `b95d1acc` |
-| 16 Lampway terminal | done as a viewport only (the captain's correction); tests 6, 7, 9, 11 run live (images: the fallback) | `ad44c557`, `e370a70b`, `dca41dd5`, `b9054b3e`, `fb2935a5`, `ebf357d8` |
+| 16 Lampway terminal | a viewport only (the captain's correction; no tabs, no state, no Focus); tests 6, 7, 9, 11 run live; the image link waits on the captain | `ad44c557`, `e370a70b`, `dca41dd5`, `b9054b3e`, `fb2935a5`, `ebf357d8`, `1968d9c6`, `fd51779d` |
 | cloud audit F17, F22, F23, F24 | done | `d2b645b9`, `11b9db7c`, `75fed27f`, `b06be59d`, `d663255d` |
 | BUILT_FROM stamped by the build | done | `eeb599d9` |
 | brand pages (every page Lampway serves to a browser) | done, report cards and the phone camera page included | `a257a40e`, `535c17c6`, `08e2da21` |
@@ -760,7 +760,8 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   `PROVENANCE.json`. Launch: `--config-file <Lampway's lua> start --always-new-process --class dev.lampway.terminal
   --workspace lampway`, detached in its own session, the isolated herdr environment, and every directory WezTerm uses
   (HOME, XDG_RUNTIME/DATA/CONFIG/CACHE/STATE) under `$LAMPWAY_HOME/wezterm/`. The CLI always carries the class,
-  `--no-auto-start` and Lampway's own GUI socket; send-text and focus refuse a pane not in the registry; reconcile
+  `--no-auto-start` and Lampway's own GUI socket; [removed later: send-text, focus and the pane registry, see "the
+  viewport correction" below]; reconcile
   re-adopts through the recorded pid and `cli list` and spawns nothing; Remove signals only the process group Lampway
   started. Routes `/app/terminal` (status), `/get`, `/open`, `/remove` behind the bearer, an agent origin refused.
 - **In Blender**: the Sessions panel's "Lampway terminal" box: "not installed (Get downloads about 49 MB from
@@ -771,7 +772,7 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   Copyright (c) 2018-Present Wez Furlong". The real window on the build box's own virtual display: its GUI socket in
   Lampway's runtime directory, `cli list` answering, the bootstrap pane recording `$WEZTERM_PANE` and
   `$WEZTERM_UNIX_SOCKET` (the spec's [UNVERIFIED] that the GUI exports the socket into panes: it does), reconcile
-  re-adopting twice with the same answer, a foreign pane refused.
+  re-adopting twice with the same answer.
 - **Incident, said plainly**: my first live GUI run gave the WezTerm processes the person's HOME. A `cli` call that
   found no window auto-started `wezterm-mux-server`, which locked and wrote `~/.local/share/wezterm/pid` (8 bytes, its
   own pid, 12:11:15) and ran about six minutes until I stopped it by verified PID. It did not touch `~/.wezterm.lua`,
@@ -784,10 +785,10 @@ stand-ins (vault-ui's real operators are in the build since the merge) and drags
   (1, real binary), `tests/lampway/test_lampway_cockpit_face.py::test_the_terminal_opens_beside_blender`.
 - **Not done / found**: the vendored Plex Mono is woff2, which WezTerm 20240203 does not load: the window shows a
   "Configuration Error" pane and falls back (it needs the OFL TTF vendored; no converter here). The bootstrap's
-  `herdr session attach lampway` and one tab per agent (`cli spawn ... herdr agent attach`) are wired but not run live;
+  `herdr session attach lampway` (replaced by plain `herdr`) and [removed later: one tab per agent] were not run live;
   tests 6, 7, 9 and 11 (SIGKILL survival, persistence through herdr, images, the fleet socket) were not run; the
-  Ctrl Alt T key, Focus and Update are not built; the state file the config reads (`state.json`) is not written by the
-  server yet.
+  Ctrl Alt T key and Update were not built then (built later; Focus and the state file were built and then removed: the
+  viewport correction below).
 
 ## After the merge that brought the hub (`d2b142e`: lp/connections is in lp/wave5 now)
 
@@ -905,12 +906,9 @@ release-assets.githubusercontent.com, raw.githubusercontent.com; PROVENANCE veri
   `herdr session attach lampway` addresses a named session in herdr's own state (`~/.config/herdr/sessions/lampway`,
   under the isolated HOME), not the server the HERDR_* socket env names; in a pty it drew nothing in 6 s, while plain
   `herdr` drew Lampway's server. `test_open_attaches_the_window_to_lampways_herdr_by_its_socket` (RED observed).
-- Then the rest of 16 (`b9054b3e`): the server keeps `$LAMPWAY_HOME/wezterm/state.json` current once a second while the
-  terminal is installed (written whole, only on change: each Lampway pane's agent cue and name, the egress state);
-  Focus (`/app/terminal/focus`, refuses a pane not in the registry, the user's click only); Update appears when the pin
-  moves past the installed version; Ctrl Alt T opens the terminal (Window keymap). RED observed for each.
-- Not done: one tab per agent (`cli spawn ... herdr agent attach <id>`): the window shows herdr's own UI with every
-  agent in it; raising the OS window on Focus (X11 by class) is not attempted.
+- Then the rest of 16 (`b9054b3e`): Update appears when the pin moves past the installed version; Ctrl Alt T opens the
+  terminal (Window keymap). [`b9054b3e` also added a server-written `state.json` with tab-title cues and an egress
+  status, and a Focus: all removed by the viewport correction below.]
 
 ### Cloud audit (`specs/bugs/2026-10-06-cloud-audit-wave5.md`), re-checked on this branch first
 - **F22** (`11b9db7c`): a 401 or no token reads "signed out"; a refused connection still "server not running"
@@ -1030,19 +1028,23 @@ server's `state.json` with tab-title cues and an egress status (`b9054b3e`, from
 - gone: `agent_tabs` (`cli spawn -- herdr agent attach`), `state_doc` / `write_state` and the server's one-second tick,
   the config's `format-tab-title` / `update-status` handlers and its state file, the pane registry, `send_text`, the dead
   cue table in `build_theme.py`; the reset of the pane registry on Open;
-- the config sets `enable_tab_bar = false`; the CLI only lists the one window and activates its pane (Focus, which now
-  names no pane);
-- kept: the branded config, the isolated home and socket, the single window attaching to herdr by plain `herdr`, Ctrl
-  Alt T, Update, Remove, the Ctrl+click image fallback;
-- pinned: `test_the_launcher_issues_no_tab_or_spawn_command` (open, reconcile and Focus issue one `start` and only `list` /
-  `activate-pane`; the add-on names no tab or spawn verb), `test_the_config_has_no_tab_bar_and_mirrors_no_state`,
-  `test_the_server_writes_no_terminal_state` (RED observed for all three before the removal); the WezTerm gate's W4 is now
+- the config sets `enable_tab_bar = false` (so no egress status inside WezTerm either: egress stays in Lampway's status
+  bar and Privacy window); the CLI only lists the one window (reconcile);
+- then the coordinator's audit (W1-W8) of what was already in `lp/wave5`: Focus is removed too (W6, `1968d9c6`: the route,
+  `wezterm.focus`, the Blender operator, its button and the client call), and `c89632c2` is reverted by a normal revert
+  commit (`fd51779d`; its code was already gone, so the revert changes no file and records the decision);
+- what remains: the branded config, the isolated home and socket, the download and verify (Get, Update, Remove), and ONE
+  window that attaches to Lampway's herdr by plain `herdr` (Open, Ctrl Alt T);
+- pending the captain's decision (W8, he never asked for it): the Ctrl+click image link; left in place, not extended;
+- pinned: `test_the_launcher_issues_no_tab_or_spawn_command` (open and reconcile issue one `start` and only `list`; the
+  add-on names no tab, spawn, send or activate verb and has no focus), `test_the_config_has_no_tab_bar_and_mirrors_no_state`,
+  `test_the_server_writes_no_terminal_state`, `test_there_is_no_focus_route` (RED observed for each before its removal); the WezTerm gate's W4 is now
   "no tab bar, no tab title or status from state" (self-test: a tab bar turned back on, and a tab-title handler, are caught).
 - the record: `specs/client_facelift/16-lampway-wezterm.md` has a new section 0 (the rule, verbatim) and its lines on
   tabs, cues, the state file, spawn and send-text are marked superseded; `10-herdr-cockpit.md` and `docs/cockpit.md` say
   viewport only. (The specs folder is not a git repository: the originals are copied to the scratch directory.)
-- Earlier in this file, the live-check row "state.json" and the "Focus brings Lampway's tab forward" sentence describe what
-  was removed. The live terminal check was not re-run after the removal (it needs a third download of the release);
+- Earlier in this file, the live-check row "state.json" describes what was removed (the sentences on send-text, Focus and
+  tabs in the contract 16 section are marked). The live terminal check was not re-run after the removal (it needs a third download of the release);
   the config change is gated by `check_wezterm.py` under luajit, not by a live window.
 - What the tab work measured, kept as a fact: `herdr agent attach <pane>` refuses a pane with no detected agent
   (`agent_not_found`).

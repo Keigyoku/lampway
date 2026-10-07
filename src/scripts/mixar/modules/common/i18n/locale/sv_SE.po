@@ -6190,12 +6190,6 @@ msgstr ""
 msgid "Open the Lampway terminal beside Blender: one tab per agent of Lampway's herdr server (Ctrl Alt T)"
 msgstr ""
 
-msgid "Focus the Lampway terminal"
-msgstr ""
-
-msgid "Bring the Lampway terminal forward: the one window onto Lampway's herdr (never another WezTerm)"
-msgstr ""
-
 msgid "Remove the Lampway terminal"
 msgstr ""
 

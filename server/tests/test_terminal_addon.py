@@ -350,7 +350,7 @@ def test_the_launcher_issues_no_tab_or_spawn_command(home, fake_wezterm, tmp_pat
     verbs = {a[a.index("cli") + 4] for a in calls if "cli" in a}      # cli --no-auto-start --class <class> <verb>
     assert verbs <= VIEWPORT_VERBS, verbs
     src = Path(W.__file__).read_text(encoding="utf-8")
-    for verb in ("spawn", "new-tab", "set-tab-title", "split-pane", "send-text", "move-pane-to-new-tab", "activate-tab"):
+    for verb in ("spawn", "new-tab", "set-tab-title", "split-pane", "send-text", "move-pane-to-new-tab", "activate-tab", "activate-pane"):
         assert f'"{verb}"' not in src, f"wezterm.py names the CLI verb {verb}"
     assert not hasattr(W, "agent_tabs") and not hasattr(W, "send_text") and not hasattr(W, "write_state")
     assert not hasattr(W, "focus") and not hasattr(W, "state_doc"), "no Focus, no state: the window is the user's to raise"
