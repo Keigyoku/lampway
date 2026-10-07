@@ -98,3 +98,103 @@ def test_public_provider_identity_does_not_exempt_secret_content(tmp_path):
                        capture_output=True, text=True)
     assert p.returncode == 1 and "openrouter-key" in p.stdout
     assert secret not in p.stdout
+
+
+def _gate_module():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('prepublish_gate_matrix_tests', GATE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _committed_matrix_line():
+    source = ROOT / 'tests/lampway_tools/test_native_complete_topology.py'
+    return next(line for line in source.read_text().splitlines()
+                if line.strip().startswith('expected=(arm.matrix_world'))
+
+
+def test_actual_committed_matrix_payload_is_not_an_email(tmp_path):
+    gate = _gate_module()
+    line = _committed_matrix_line()
+    assert line.count('@') == 2
+    # This line is executable code inside a multiline native-runner payload.
+    (tmp_path / 'native.py').write_text("run('''\n" + line + "\n''')\n")
+    assert gate.scan_tree(tmp_path) == []
+
+
+@pytest.mark.parametrize('form', ['quoted', 'comment', 'non_python', 'invalid_python'])
+def test_matrix_spelling_is_not_exempted_without_executable_python_syntax(tmp_path, form):
+    gate = _gate_module()
+    line = _committed_matrix_line().strip()
+    path = tmp_path / ('plant.txt' if form == 'non_python' else 'plant.py')
+    if form == 'quoted':
+        line = 'value = ' + repr(line)
+    elif form == 'comment':
+        line = '# ' + line
+    elif form == 'invalid_python':
+        line = 'incomplete( ' + line
+    path.write_text(line + '\n')
+    assert any(f[1] == 'any-email' for f in gate.scan_tree(tmp_path))
+
+
+def test_matrix_exception_is_match_specific_and_keeps_owner_email_rules(tmp_path):
+    import re
+    gate = _gate_module()
+    line = _committed_matrix_line().strip()
+    mail = 'privacy-fixture' + '@' + 'gmail.com'
+    (tmp_path / 'mixed.py').write_text(line + '; contact = ' + repr(mail) + '\n')
+    findings = gate.scan_tree(tmp_path)
+    assert sum(f[1] == 'any-email' for f in findings) == 1
+    assert all(mail not in str(f) for f in findings)
+    (tmp_path / 'mixed.py').write_text(line + '\n')
+    gate.CP.append(('owner-email', 'HIGH', re.compile(r'matrix_world' + '@' + r'arm\.pose')))
+    assert any(f[1] == 'owner-email' for f in gate.scan_tree(tmp_path))
+
+
+def test_scan_line_defaults_to_strict_and_handles_unicode_columns():
+    gate = _gate_module()
+    line = _committed_matrix_line().strip()
+    assert any(f[0] == 'any-email' for f in gate.scan_line(line))
+    assert gate.scan_line("label='é'; " + line, source_path='native.py') == []
+    mail = 'reference-fixture' + '@' + 'gmail.com'
+    assert any(f[0] == 'any-email' for f in gate.scan_line('value = ' + repr(mail), source_path='native.py'))
+
+
+def test_git_added_python_payload_uses_syntax_but_message_and_other_files_stay_strict(tmp_path, monkeypatch):
+    gate = _gate_module()
+    git = ['git', '-C', str(tmp_path)]
+    subprocess.run(git + ['init', '-q'], check=True)
+    line = _committed_matrix_line()
+    (tmp_path / 'native.py').write_text("run('''\n" + line + "\n''')\n")
+    subprocess.run(git + ['add', 'native.py'], check=True)
+    identity = ['-c', 'user.name=Synthetic provider', '-c', 'user.email=noreply' + '@' + 'github.com']
+    subprocess.run(git + identity + ['commit', '-qm', 'matrix syntax fixture'], check=True)
+    result = subprocess.run([sys.executable, str(GATE), '--git', 'HEAD'], cwd=tmp_path, capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout
+    (tmp_path / 'native.txt').write_text(line + '\n')
+    subprocess.run(git + ['add', 'native.txt'], check=True)
+    subprocess.run(git + identity + ['commit', '-qm', line.strip()], check=True)
+    result = subprocess.run([sys.executable, str(GATE), '--git', 'HEAD~1..HEAD'], cwd=tmp_path, capture_output=True, text=True)
+    assert result.returncode == 1 and result.stdout.count('any-email') == 2, result.stdout
+    monkeypatch.chdir(tmp_path)
+    assert sum(f[1] == 'any-email' for f in gate.scan_git('HEAD~1..HEAD')) == 4
+
+
+def test_bare_email_and_matrix_lookalikes_are_not_proven_native_operands():
+    gate = _gate_module()
+    bare = 'contact = jane' + '@' + 'private.example'
+    lookalike = 'value = jane.matrix_world' + '@' + 'private.example'
+    different_receiver = 'value = arm.matrix_world' + '@' + "other.pose.bones['root'].head"
+    for line in (bare, lookalike, different_receiver):
+        assert any(f[0] == 'any-email' for f in gate.scan_line(line, source_path='plant.py'))
+
+
+def test_python_lines_without_at_skip_ast_parsing_and_keep_other_rules(monkeypatch):
+    gate = _gate_module()
+    def unexpected_parse(*args, **kwargs):
+        raise AssertionError('A line without @ must not invoke the Python parser')
+    monkeypatch.setattr(gate.ast, 'parse', unexpected_parse)
+    assert gate.scan_line('value = 1', source_path='native.py') == []
+    home = '/home/' + 'privacy-fixture/private-project'
+    assert any(f[0] == 'home-path' for f in gate.scan_line('path = ' + repr(home), source_path='native.py'))

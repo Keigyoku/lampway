@@ -18,7 +18,7 @@ Secret VALUES are never printed: a match shows its first 4 characters then ***.
 Personal identifiers are fully redacted, including commit email domains.
 Allow a known-fake value by adding its exact text to scripts/lampway/pii_allow.txt (one per line, # comments), with the reason.
 """
-import fnmatch, os, re, subprocess, sys, json, tempfile
+import ast, fnmatch, io, os, re, subprocess, sys, json, tempfile, tokenize
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OWNER = [s for s in os.environ.get("PII_OWNER_TERMS", "").split(",") if s]  # extra terms: names, handles, hostnames
@@ -57,11 +57,66 @@ if os.path.exists(ap):
 def mask(s):
     return s[:4] + "***"
 
-def scan_line(line):
+def _native_matrix_operands(node):
+    """Recognize Blender world-matrix multiplication of the same rig's bone head.
+
+    MatMult syntax alone is insufficient: an unquoted email can also parse as
+    name @ domain.attribute. Require the native pose-bone operand structure.
+    """
+    left, right = node.left, node.right
+    if not (isinstance(left, ast.Attribute) and left.attr == "matrix_world"
+            and isinstance(right, ast.Attribute) and right.attr == "head"
+            and isinstance(right.value, ast.Subscript)):
+        return False
+    bones = right.value.value
+    if not (isinstance(bones, ast.Attribute) and bones.attr == "bones"
+            and isinstance(bones.value, ast.Attribute) and bones.value.attr == "pose"):
+        return False
+    return ast.dump(left.value) == ast.dump(bones.value.value)
+
+
+def _python_matrix_at_columns(line):
+    """Prove individual @ tokens are matrix operators in executable line syntax.
+
+    Native-runner payloads contain indented Python inside multiline strings, so
+    parse the line as a fragment. Quoted values, comments and incomplete syntax
+    have no proven operator and remain subject to the email rule.
+    """
+    if "@" not in line or len(line.splitlines()) > 1:
+        return set()
+    offset = len(line) - len(line.lstrip(" \t"))
+    code = line[offset:]
+    try:
+        tree = ast.parse(code)
+        operators = [node for node in ast.walk(tree)
+                     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.MatMult)
+                     and _native_matrix_operands(node)]
+        columns = set()
+        for token in tokenize.generate_tokens(io.StringIO(code).readline):
+            if token.type != tokenize.OP or token.string != "@":
+                continue
+            # AST columns are UTF-8 bytes; tokenizer columns are characters.
+            start = (token.start[0], len(code[:token.start[1]].encode("utf-8")))
+            end = (token.end[0], len(code[:token.end[1]].encode("utf-8")))
+            if any((node.left.end_lineno, node.left.end_col_offset) <= start
+                   and end <= (node.right.lineno, node.right.col_offset)
+                   for node in operators):
+                columns.add(offset + token.start[1])
+        return columns
+    except (SyntaxError, ValueError, tokenize.TokenError, UnicodeError):
+        return set()
+
+
+def scan_line(line, source_path=None):
+    # The default remains strict for commit messages and callers without a path.
+    matrix_columns = (_python_matrix_at_columns(line)
+                      if source_path and os.fspath(source_path).lower().endswith(".py") else set())
     out = []
     for pid, sev, rx in CP:
         for m in rx.finditer(line):
             v = m.group(0)
+            if pid == "any-email" and m.start() + v.index("@") in matrix_columns:
+                continue
             if any(a and (a in v or a in line) for a in ALLOW):
                 continue
             out.append((pid, sev, mask(v) if sev == "CRITICAL" else "[redacted]"))
@@ -80,7 +135,7 @@ def scan_tree(root):
                     continue
                 with open(p, encoding="utf-8", errors="strict") as fh:
                     for n, line in enumerate(fh, 1):
-                        for pid, sev, shown in scan_line(line):
+                        for pid, sev, shown in scan_line(line, source_path=p):
                             findings.append((sev, pid, f"{os.path.relpath(p, root)}:{n}", shown))
             except (UnicodeDecodeError, OSError):
                 continue
@@ -151,7 +206,7 @@ def scan_git(rng):
         elif line.startswith("+++ "):
             fil = line[6:]
         elif line.startswith("+") and fil and not fil.startswith(("src/scripts/mixar/modules/common/i18n/locale/", "scripts/lampway/prepublish_gate.py", "scripts/lampway/pii_allow.txt")):   # the gate's own patterns and allow-list are not findings
-            for pid, sev, shown in scan_line(line[1:]):
+            for pid, sev, shown in scan_line(line[1:], source_path=fil):
                 findings.append((sev, pid, f"{cur} {fil}", shown))
     return findings
 

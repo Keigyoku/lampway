@@ -17,6 +17,8 @@ wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) a
 
 `measure_fit_decisions.py` runs in an explicitly supplied disposable scene and project config, never saving the blend or selecting defaults. Receipts/views remain under the project root; failed jobs produce a nonzero exit.
 
+Body-relative fit captures require explicit world-metre body context, fixed camera bounds and caller clearance limits. Keep execution success separate from all-vertex clearance acceptance; sampled diagnostics and isolated silhouettes cannot select physical defaults.
+
 ## Invariants
 
 1. **AXI refusals.** A refusal prints `error: <why>` and a `help[N]:` list of next commands on stdout and exits 1; an unknown flag
@@ -29,6 +31,8 @@ wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) a
 4. **The pre-publish gate holds no owner value.** The maintainer's patterns come from `PII_OWNER_*_RE` variables (a 0600
    `pii_owner.env` in the shared git directory locally, repository secrets in CI). `pii_allow.txt` holds only known-fake values,
    each with its reason on its line. Secrets are printed as their first four characters only; personal identifiers and commit email domains are fully redacted.
+A Python matrix expression is executable code rather than a contact address only when the scanner proves its operator and structured operands. Quoted strings, comments, bare email-shaped expressions and owner-specific patterns remain blocking; no value/domain allowlist is added for code.
+
 5. **The gate proves itself.** `prepublish_gate.py --self-test` plants one offender of each kind and fails if any goes unseen; a
    change to the patterns lands with its plant.
 
@@ -54,3 +58,5 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the scripts' refusal shape, secret handling and the gate's outside-the-tree patterns were known only from their headers | the five invariants, the test commands, and the scripts bound to their skills as rail triggers | captain ruling, 2026-10-05 |
 | 2026-10-07 | PII diagnostics privacy | captain: fix PR privacy exposure | findings echoed identifiers and email domains into public logs | fully redact personal values while retaining every blocking rule and planted offender | prepublish privacy regression tests |
 | 2026-10-07 | measured fit decision paths | captain: measure issue2 AC65 before defaults | configurable algorithm gaps and unmeasured proposals obscured required choices | `measure_fit_decisions.py` runs in an explicitly supplied disposable scene and project config, never saving the blend or selecting defaults. Receipts/views remain under the project root; failed jobs produce a nonzero exit. | native decision-pack fixture |
+| 2026-10-07 | matrix code false positive | complete native topology regression push | adjacent matrix operator and structured bone attributes looked like an email | prove the Python operator and operands while retaining quoted, comment, bare-address and owner-pattern controls | planted matrix and email regressions |
+| 2026-10-07 | body-relative decision receipts | captain: AC65 measured boot handoff | isolated cropped silhouettes and sampled counts hid actual body placement and implied acceptance | require explicit body context, fixed world bounds and limits; report all-vertex clearance separately with opening-band refusal and no default promotion | native body-context placement and threshold falsifiers |
