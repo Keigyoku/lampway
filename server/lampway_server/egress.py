@@ -91,6 +91,7 @@ LAUNCHES: dict = {
     "library/video.py:_run": ("local", "nice ffmpeg/ffprobe on library video files (probe, frame count, loudness, derived strips and panels); every caller in video.py passes an ffmpeg or ffprobe argv"),
     "motion/encode.py:version": ("local", "ffmpeg -version: a local query (the motion-graphics receipt pins the encoder)"),
     "motion/encode.py:Encoder.__init__": ("local", "nice ffmpeg reading the captured PNG frames on stdin and writing a local MP4 and WebM"),
+    "motion/encode.py:Encoder.finish": ("local", "ffmpeg stream-copy remux of a local motion render to remove encoder metadata; no re-encoding or network"),
     "motion/encode.py:probe": ("local", "ffprobe on a local motion-graphics render"),
     "motion/frames.py:Chromium.open": ("local", "the user's headless Chromium (LAMPWAY_CHROMIUM) on a local scene folder: every host maps to NOTFOUND, a dead proxy, "
                                                 "http(s) and ws(s) blocked over the DevTools pipe, every request counted and a non-file one fails the render"),

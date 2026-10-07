@@ -58,3 +58,85 @@ def test_inline_scene_cannot_overwrite_external_entry_symlink(tmp_path):
         M.render(root, {"html": "keep", "name": "inline", **SMALL}, FakeCapture)
     assert outside.stat().st_mtime_ns == before, "refusal must precede writing through the symlink"
     assert outside.read_text() == "keep"
+
+
+def test_probe_only_network_request_fails_render(tmp_path):
+    made = []
+    def fresh():
+        cap = FakeCapture(requests=() if not made else ["https://example.invalid/probe"])
+        made.append(cap)
+        return cap
+    scene = put_scene(tmp_path, "probe-egress", "<!doctype html>")
+    result = M.render(tmp_path, {"scene": scene, **SMALL, "formats": ["mp4"]}, fresh)
+    assert not result["ok"]
+    assert result["network"]["non_file"] == ["https://example.invalid/probe"]
+
+
+def test_untrusted_capture_outside_file_request_cannot_pass_network_gate(tmp_path):
+    outside = tmp_path / "outside.txt"
+    outside.write_text("synthetic")
+    scene = put_scene(tmp_path, "file-egress", "<!doctype html>")
+    result = M.render(tmp_path, {"scene": scene, **SMALL, "formats": ["mp4"]},
+                      lambda: FakeCapture(requests=[outside.as_uri()]))
+    assert not result["ok"]
+    assert result["network"]["non_file"] == [outside.as_uri()]
+
+
+def test_missing_audit_refused_before_output_creation(tmp_path):
+    class MissingAudit(FakeCapture):
+        def has_audit(self):
+            return False
+    scene = put_scene(tmp_path, "no-audit", "<!doctype html>")
+    with pytest.raises(M.Refused, match="__audit"):
+        M.render(tmp_path, {"scene": scene, **SMALL}, MissingAudit)
+    assert not (tmp_path / "motion/out").exists()
+
+
+def test_output_parent_swap_cannot_write_outside_project(tmp_path, monkeypatch):
+    root, outside = tmp_path / "project", tmp_path / "outside"
+    outside.mkdir()
+    scene = put_scene(root, "raced", "<!doctype html>")
+    original = M.tempfile.mkdtemp
+    def swap(*args, **kwargs):
+        parent = root / "motion/out"
+        parent.rmdir()
+        parent.symlink_to(outside, target_is_directory=True)
+        return original(*args, **kwargs)
+    monkeypatch.setattr(M.tempfile, "mkdtemp", swap)
+    with pytest.raises(M.Refused, match="outside|symlink|changed"):
+        M.render(root, {"scene": scene, **SMALL, "formats": ["mp4"]}, FakeCapture)
+    assert not list(outside.rglob("*"))
+
+
+def test_verify_refuses_receipt_frame_path_outside_project(tmp_path):
+    import json
+    root, outside = tmp_path / "project", tmp_path / "outside"
+    outside.mkdir()
+    scene = put_scene(root, "verify-jail", "<!doctype html>")
+    result = M.render(root, {"scene": scene, **SMALL, "formats": ["mp4"]}, FakeCapture)
+    directory = root / result["out_dir"]
+    (outside / "frames.sha256").write_bytes((directory / "frames.sha256").read_bytes())
+    receipt_path = directory / "receipt.json"
+    receipt = json.loads(receipt_path.read_text())
+    receipt["out_dir"] = str(outside)
+    receipt_path.write_text(json.dumps(receipt))
+    with pytest.raises(M.Refused, match="outside"):
+        M.verify(root, {"receipt": str(receipt_path.relative_to(root))}, FakeCapture)
+
+
+def test_verify_detects_frame_file_swapped_during_rerender(tmp_path, monkeypatch):
+    root, outside = tmp_path / "project", tmp_path / "outside"
+    outside.mkdir()
+    scene = put_scene(root, "verify-race", "<!doctype html>")
+    result = M.render(root, {"scene": scene, **SMALL, "formats": ["mp4"]}, FakeCapture)
+    frames = root / result["out_dir"] / "frames.sha256"
+    external = outside / "frames.sha256"
+    external.write_bytes(frames.read_bytes())
+    original = M.E.Encoder
+    def swap(*args, **kwargs):
+        frames.unlink()
+        frames.symlink_to(external)
+        return original(*args, **kwargs)
+    monkeypatch.setattr(M.E, "Encoder", swap)
+    with pytest.raises(M.Refused, match="outside"):
+        M.verify(root, {"receipt": result["out_dir"] + "/receipt.json"}, FakeCapture)

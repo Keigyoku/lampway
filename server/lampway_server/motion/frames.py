@@ -224,6 +224,10 @@ class Chromium:
         if method == "Target.attachedToTarget":
             child = params["sessionId"]
             self._target_sessions[params["targetInfo"]["targetId"]] = child
+            if params["targetInfo"]["type"] == "browser_ui":
+                # Browser-owned chrome UI is not a scene loader. Resume without granting scene access.
+                self.cdp.send("Runtime.runIfWaitingForDebugger", session=child)
+                return
             if params["targetInfo"]["type"] not in ("page", "iframe"):
                 # Worker targets do not expose Fetch. Keep them paused and close rather than allow an unguarded loader.
                 self.violation = "worker may read files outside the scene folder: use the main-page scene driver"

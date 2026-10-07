@@ -11,6 +11,8 @@ receipt to ``<project>/motion/out/<name>-<code8>-<unique-run>/``. ``verify(proje
 fresh browser and compares every frame hash and both files. A refusal raises ``Refused`` with the fix in its text; a failing self-check is not a refusal (the files
 are written and ``ok`` is false)."""
 import hashlib
+import os
+from contextlib import ExitStack
 import io
 import json
 import re
@@ -29,7 +31,6 @@ from . import receipt as R
 INPUTS = ("action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples", "template", "variables", "vault", "receipt")
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_SAMPLES, PROBE_FRAMES, DEFAULT_SAMPLES = 24, 8, 10
-NETWORK_OK = ("file:", "data:")
 
 
 class Refused(ValueError):
@@ -147,6 +148,8 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> N
         raise EngineDiffers(f"cannot reproduce: the engine differs (receipt: {there[k]}, here: {here[k]})")
     if not capture.has_frame():
         raise Refused("the scene does not define window.__frame: see the scene contract in motion_graphics.md section 4")
+    if hasattr(capture, "has_audit") and not capture.has_audit():
+        raise Refused("the scene does not define window.__audit: return text and marks arrays (motion_graphics.md section 4)")
     ready = capture.setup() or {}
     misses = [f.get("font") for f in ready.get("fonts") or [] if not f.get("ok")] + [i.get("src") for i in ready.get("images") or [] if not i.get("ok")]
     if misses:
@@ -158,7 +161,7 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> N
 def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None) -> tuple:
     """(differing probe frames, frames rendered, seconds): a fresh browser, frames 0..max(probe) in sequence (the samples' audits at the same frames,
     as the first pass ran them), each probe frame compared exactly with the first pass."""
-    t0, differ = time.monotonic(), []
+    t0, differ, requests = time.monotonic(), [], []
     cap = new_capture()
     try:
         _ready(cap, entry, W, H, scene_root=scene_root)
@@ -169,12 +172,46 @@ def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None)
                 cap.audit()
             if i in want and _pixels(png)[1] != rows[i].split()[2]:
                 differ.append(i)
+        requests = cap.requests()
     finally:
         cap.close()
-    return differ, max(probe) + 1, round(time.monotonic() - t0, 3)
+    return differ, max(probe) + 1, round(time.monotonic() - t0, 3), requests
+
+
+def _output_directory(root, parent, prefix, stack):
+    """Pin every ancestor and the new directory; render through fds rather than raceable pathnames."""
+    root = root.resolve()
+    relative = parent.absolute().relative_to(root)
+    current = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    stack.callback(os.close, current)
+    try:
+        for part in relative.parts:
+            try:
+                os.mkdir(part, mode=0o700, dir_fd=current)
+            except FileExistsError:
+                pass
+            current = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=current)
+            stack.callback(os.close, current)
+        # mkdtemp has exclusive creation; its parent descriptor survives any pathname swap.
+        stable_parent = Path(f"/proc/self/fd/{current}")
+        created = Path(tempfile.mkdtemp(prefix=prefix, dir=stable_parent))
+        descriptor = os.open(created.name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=current)
+        stack.callback(os.close, descriptor)
+        logical = parent / created.name
+        actual = Path(os.readlink(f"/proc/self/fd/{descriptor}"))
+        if not actual.is_relative_to(root) or logical.resolve() != actual:
+            raise Refused("output directory changed or is outside the project: use real project directories")
+        return Path(f"/proc/self/fd/{descriptor}"), logical.relative_to(root).as_posix(), descriptor
+    except OSError:
+        raise Refused("output directory changed or contains a symlink: use real project directories") from None
 
 
 def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=None, probe_on=True) -> dict:
+    with ExitStack() as stack:
+        return _run_pinned(root.resolve(), a, new_capture, out_root.absolute(), threads, engine, probe_on, stack)
+
+
+def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine, probe_on, stack) -> dict:
     """One render: refusals, then the sequential pass, the probe (a fresh browser; not in verify, which is itself the full re-render), the files
     and the receipt. ``engine`` (verify) = the receipt's (chromium, ffmpeg) pair: a different engine stops the run before any frame."""
     t_start = time.monotonic()
@@ -196,21 +233,11 @@ def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=
             raise Refused(f"duration {duration:g} s at {fps} fps is no frame: lengthen the scene")
         samples = set(_sample_frames(n, a["samples"], fps))
         t_setup = time.monotonic() - t_start
-        # Never reuse a published directory: even identical requests own different runs.
-        # Reject symlink ancestors before creating the exclusive, unpredictable directory.
-        _jail(root, str(out_root))
-        for parent in (out_root, *out_root.parents):
-            if parent == root:
-                break
-            if parent.is_symlink():
-                raise Refused("output directory contains a symlink: use a real directory under the project root")
-        out_root.mkdir(parents=True, exist_ok=True)
-        out = Path(tempfile.mkdtemp(prefix=f"{name}-{code_sha[:8]}-", dir=out_root))
-        out_rel = out.relative_to(root).as_posix()
+        out, out_rel, out_fd = _output_directory(root, out_root, f"{name}-{code_sha[:8]}-", stack)
         (out / "samples").mkdir()
         paths = {fmt: out / f"{name}.{fmt}" for fmt in E.FORMATS if fmt in a["formats"]}
         argv = E.argv(paths, fps, threads)
-        enc = E.Encoder(argv)
+        enc = E.Encoder(argv, pass_fds=(out_fd,))
         rows, checks, t_cap = [], [], 0.0
         t_loop = time.monotonic()
         for i in range(n):
@@ -241,21 +268,22 @@ def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=
         if enc is not None:
             enc.abort()
         capture.close()
-    probe, differ, probe_frames, t_probe = _probe_frames(n), [], 0, 0.0
+    probe, differ, probe_frames, t_probe, probe_requests = _probe_frames(n), [], 0, 0.0, []
     if probe_on:                                                           # the scene must be a pure function of t: a fresh browser agrees
-        differ, probe_frames, t_probe = _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=scene_dir)
+        differ, probe_frames, t_probe, probe_requests = _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=scene_dir)
     (out / "frames.sha256").write_text(R.frames_text(rows), encoding="utf-8")
     digest = R.digest(rows)
     C.contact_sheet(out / "samples", out / "contact.png")
     findings = [{"frame": c["frame"], **f} for c in checks for f in c["findings"]]
     findings += [{"frame": i, "check": "determinism", "severity": "fail", "detail": f"the scene is not a pure function of t: frame {i} differs on a second capture"} for i in differ]
-    non_file = [u for u in requests if not u.startswith(NETWORK_OK)]
-    outputs = {fmt: {"sha256": F.sha256_file(p), "bytes": p.stat().st_size, "probe": E.probe(p)} for fmt, p in paths.items()}
+    non_file = list(dict.fromkeys(u for u in requests + probe_requests
+                                  if not (u.startswith("data:") or F.allowed_file_url(u, scene_dir))))
+    outputs = {fmt: {"sha256": F.sha256_file(p), "bytes": p.stat().st_size, "probe": E.probe(p, pass_fds=(out_fd,))} for fmt, p in paths.items()}
     wall = time.monotonic() - t_start
     fail = sum(1 for f in findings if f["severity"] == "fail")
     warn = sum(1 for f in findings if f["severity"] == "warn")
     ok = fail == 0 and not non_file
-    run_id = f"mg-{out.name}"
+    run_id = f"mg-{Path(out_rel).name}"
     files_out = {fmt: f"{out_rel}/{p.name}" for fmt, p in paths.items()}
     files_out.update(contact=f"{out_rel}/contact.png", receipt=f"{out_rel}/receipt.json", frames=f"{out_rel}/frames.sha256")
     receipt = {
@@ -277,6 +305,8 @@ def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=
     }
     if non_file:
         receipt["error"] = f"the scene asked for {non_file[0]}: every file must be in the scene folder"
+    if _jail(root, out_rel) != Path(os.readlink(f"/proc/self/fd/{out_fd}")):
+        raise Refused("output directory changed: restore the real project output directory")
     (out / "receipt.json").write_text(json.dumps(receipt, indent=1), encoding="utf-8")
     return receipt
 
@@ -295,7 +325,7 @@ def summary(receipt: dict) -> dict:
 
 
 def render(project_root, args: dict, new_capture, threads: int = E.THREADS) -> dict:
-    root = Path(project_root)
+    root = Path(project_root).resolve()
     a = inputs(args)
     return summary(_run(root, a, new_capture, root / "motion" / "out", threads))
 
@@ -303,14 +333,19 @@ def render(project_root, args: dict, new_capture, threads: int = E.THREADS) -> d
 def verify(project_root, args: dict, new_capture) -> dict:
     """Re-render a receipt's inputs from frame 0 in a fresh browser; compare every frame hash and both files. A different Chromium or ffmpeg is
     answered with engine_matches false and no frame comparison."""
-    root = Path(project_root)
+    root = Path(project_root).resolve()
     rel = (args or {}).get("receipt")
     if not rel:
         raise Refused("verify needs receipt: the project-relative path of a render's receipt.json")
     path = _jail(root, rel)
     if not path.is_file():
         raise Refused(f"no receipt at {rel}: pass the receipt.json of a render")
-    r = json.loads(path.read_text(encoding="utf-8"))
+    with F._open_scene_file(path, root) as source:
+        r = json.loads(source.read().decode("utf-8"))
+    original_out = _jail(root, r["out_dir"])
+    original_frames = _jail(root, str(original_out / "frames.sha256"))
+    with F._open_scene_file(original_frames, root) as source:
+        old_rows = [line for line in source.read().decode("utf-8").splitlines() if line.strip()]
     i = r["inputs"]
     a = inputs({k: i[k] for k in ("scene", "entry", "name", "fps", "width", "height", "duration_s", "formats", "samples")})
     work = root / "motion" / "out" / f".verify-{time.monotonic_ns()}"
@@ -320,12 +355,15 @@ def verify(project_root, args: dict, new_capture) -> dict:
                        probe_on=False)
         except EngineDiffers as exc:
             return {"reproduced": False, "frames_differing": [], "mp4_equal": False, "webm_equal": False, "engine_matches": False, "error": str(exc)}
-        old_rows = R.read_rows(root / r["out_dir"] / "frames.sha256")
-        new_rows = R.read_rows(root / new["out_dir"] / "frames.sha256")
+        original_frames = _jail(root, str(root / r["out_dir"] / "frames.sha256"))
+        with F._open_scene_file(original_frames, root) as source:
+            current_rows = [line for line in source.read().decode("utf-8").splitlines() if line.strip()]
+        with F._open_scene_file(_jail(root, str(root / new["out_dir"] / "frames.sha256")), root) as source:
+            new_rows = [line for line in source.read().decode("utf-8").splitlines() if line.strip()]
     finally:
         shutil.rmtree(work, ignore_errors=True)
     differ = R.differing(old_rows, new_rows)
     eq = {f"{fmt}_equal": (r["outputs"].get(fmt) or {}).get("sha256") == (new["outputs"].get(fmt) or {}).get("sha256") if fmt in r["outputs"] else None
           for fmt in E.FORMATS}
-    reproduced = not differ and all(v for v in eq.values() if v is not None) and new["frames_sha256_digest"] == r["frames_sha256_digest"]
+    reproduced = current_rows == old_rows and not differ and all(v for v in eq.values() if v is not None) and new["frames_sha256_digest"] == r["frames_sha256_digest"]
     return {"reproduced": reproduced, "frames_differing": differ, **eq, "engine_matches": True, "receipt": rel, "frames": new["frames"]}

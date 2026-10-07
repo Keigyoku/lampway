@@ -121,3 +121,14 @@ def test_popup_cannot_load_outside_file(browser, tmp_path):
         browser.open(entry, 32, 32)
         browser.setup()
         browser.frame(0)
+
+
+def test_browser_owned_ui_target_does_not_enable_scene_access(tmp_path):
+    from types import SimpleNamespace
+    calls = []
+    cap = F.Chromium("not-launched", tmp_path)
+    cap.cdp = SimpleNamespace(send=lambda method, params=None, session=None: calls.append((method, params, session)))
+    cap._event({"method": "Target.attachedToTarget", "params": {
+        "sessionId": "browser-ui", "targetInfo": {"targetId": "ui", "type": "browser_ui"}}})
+    assert cap.violation is None
+    assert calls == [("Runtime.runIfWaitingForDebugger", None, "browser-ui")]
