@@ -293,6 +293,38 @@ def test_live_a_capability_switched_while_the_pane_runs_is_obeyed_from_the_next_
     assert len([r for r in live["cockpit"].list_sessions() if r.get("unit") == unit]) == 1, "the same pane"
 
 
+# ---------------------------------------------------------------------------------------------------- R2: the archive from Hermes's sessions
+def test_live_the_clients_archive_is_served_from_the_panes_hermes_session(live):
+    """``agent.history_sync`` answers from the pane's real serve (``session.list``, ``session.history``): the turn's user text and
+    the reply, in order, each record hashed as the client checks; acknowledged, nothing is sent again."""
+    import hashlib
+    unit = f"scene-{uuid.uuid4().hex[:6]}"
+
+    async def scenario(stack, island):
+        cid, _ = await chat(island, "SCENE: what is in my scene?", unit)
+        await island.ended(cid, timeout=240)
+        rid = await island.send("agent.history_sync", {"acknowledgements": [], "session_ids": [unit]})
+        first = (await island.reply(rid))["result"]
+        p = first["sessions"][0]
+        ack = {"session_id": unit, "epoch": p["epoch"], "seq": p["records"][-1]["seq"]}
+        rid = await island.send("agent.history_sync", {"acknowledgements": [ack], "session_ids": [unit]})
+        return first, (await island.reply(rid))["result"]
+
+    first, again = run(live, scenario)
+    assert first["version"] == 1 and first["owner_id"] == "lampway-local" and len(first["sessions"]) == 1
+    p = first["sessions"][0]
+    rows = [(r["record"]["payload"]["role"], r["record"]["payload"]["text"]) for r in p["records"]]
+    assert rows[0] == ("user", "SCENE: what is in my scene?") and rows[-1] == ("assistant", "There is one cube."), rows
+    assert [r["seq"] for r in p["records"]] == list(range(1, len(rows) + 1))
+    for r in p["records"]:
+        raw = json.dumps(r["record"], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+        assert r["event_id"] == hashlib.sha256(raw).hexdigest()
+    rec = pane_of(live, unit)
+    assert {r["record"]["run_id"] for r in p["records"]} == {rec["stored_session_id"]}
+    assert again["sessions"] == [], "acknowledged: nothing is sent again"
+    assert (Path(rec["home"]) / "archive.json").is_file(), "the delivery state lives in the unit's home"
+
+
 # ---------------------------------------------------------------------------------------------------- A2: questions, permissions, steer
 def test_live_a_question_a_permission_and_a_steer_from_the_island(live):
     unit = f"scene-{uuid.uuid4().hex[:6]}"

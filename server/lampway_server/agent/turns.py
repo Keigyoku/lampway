@@ -126,13 +126,15 @@ class AgentHub:
             "agent.feedback": self._feedback,
             "agent.checkpoint.mark": self._checkpoint_mark,
             "agent.checkpoint.rewind": self._checkpoint_rewind,
+            "agent.history_sync": self._history_sync,
             "agent.byoa.observe": self.byoa.observe,
             "agent.byoa.send": self.byoa.send,
         }.get(method)
         if handler is None:
             await socket.send_error(request_id, METHOD_NOT_FOUND, f"Method not found: {method}")
             return
-        self._note_socket(socket, params)
+        if method != "agent.history_sync":                 # the archive names every session the client keeps, not its open tabs
+            self._note_socket(socket, params)
         try:
             result = await handler(socket, params)
         except InvalidParams as exc:
@@ -320,6 +322,14 @@ class AgentHub:
                 "session_id": turn.session_id, "turn_id": turn.turn_id, "last_seq": turn.last_seq,
             })
         return {"status": "ok", "last_seq": turn.last_seq}
+
+    async def _history_sync(self, socket, params):
+        """The client's agent archive (spec R2): served from the units' Hermes sessions; with no engine there is none (and the
+        handshake does not advertise it)."""
+        if self.engine is None:
+            from ..engine.history import OWNER_ID, VERSION
+            return {"version": VERSION, "owner_id": OWNER_ID, "sessions": []}
+        return await self.engine.history_sync(params)
 
     async def _request_status(self, socket, params):
         command = self.commands.get(str(params.get("command_id") or ""))

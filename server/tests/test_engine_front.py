@@ -300,8 +300,8 @@ def test_a_question_left_open_when_serve_restarted_is_closed_by_the_next_pane_tu
         await serve.restart()
         for _ in range(200):
             link = front.links["scene-1"]
-            if link.client is not None and not link.client.closed.is_set() and link.epoch == serve.epoch:
-                break
+            if link.client is not None and not link.client.closed.is_set() and link.live_id == serve.only().live_id:
+                break                                                    # re-attached to the restarted session
             await asyncio.sleep(0.05)
         await serve.pane_prompt(serve.only(), "make a chair instead", [("say", "A chair.")])
         started = await island.wait(lambda f: f.get("method") == "agent.turn.started" and f["params"].get("origin") == "pane")
@@ -467,6 +467,25 @@ def test_after_slash_new_the_islands_next_chat_is_a_prompt_in_the_new_session_no
     assert old_answers == [], "nothing answered the closed session's question"
     assert history and history[0]["text"] == "Again" and final_text(events) == "Fresh start."
     assert pending is None
+
+
+def test_after_slash_new_the_new_sessions_events_reach_the_island_however_long_the_old_one_was(stack):
+    """serve numbers a session's events from 1 (``seq``, per session): after following the pane to its new session, the island
+    must not take the new session's first events for ones it already saw in the old, longer one."""
+    async def scenario(serve, units, island, front):
+        for i in range(3):
+            serve.scripts.append([("say", f"Old reply number {i} with several words in it.")])
+            cid, _ = await chat(island, f"old {i}", "scene-1")
+            await island.ended(cid)
+        await serve.pane_new(serve.only())
+        await island.wait(lambda f: f.get("method") == "agent.pane.new_conversation")
+        serve.scripts.append([("say", "Fresh start.")])
+        cid2, _ = await chat(island, "Again", "scene-1")
+        await island.ended(cid2, timeout=20)
+        return island.events(cid2)
+
+    events = run(stack, scenario)
+    assert final_text(events) == "Fresh start." and events[-1]["status"] == "completed"
 
 
 # ---------------------------------------------------------------------------------------------------- refusals before a turn

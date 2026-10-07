@@ -116,6 +116,10 @@ class FakeServe:
     def by_stored(self, stored) -> FSession:
         return next((s for s in self.sessions.values() if s.stored_id == stored and not s.closed), None)
 
+    def stored(self, stored) -> FSession:
+        """Any session by its stored id, closed or not (state.db keeps a closed session; resuming it makes it live again)."""
+        return next((s for s in self.sessions.values() if s.stored_id == stored), None)
+
     def only(self) -> FSession:
         live = [s for s in self.sessions.values() if not s.closed]
         assert len(live) == 1, live
@@ -285,6 +289,9 @@ class FakeServe:
             return {"session_id": s.live_id, "stored_session_id": s.stored_id, "message_count": 0, "messages": []}
         if method == "session.resume":
             s = self.by_stored(params.get("session_id"))
+            if s is None and self.stored(params.get("session_id")) is not None:
+                s = self.stored(params.get("session_id"))          # a closed session resumed from state.db
+                s.closed = False
             if s is None:
                 raise LookupError
             s.clients.add(ws)
@@ -329,6 +336,15 @@ class FakeServe:
         if method == "session.status":
             s = self._live(params)
             return {"output": f"Session ID: {s.stored_id}"}
+        if method == "session.list":
+            return {"sessions": [{"id": s.stored_id, "title": "", "preview": "", "started_at": s.started_at,
+                                  "message_count": len(s.history), "source": "tui"}
+                                 for s in sorted(self.sessions.values(), key=lambda x: -x.started_at)]}
+        if method == "session.close":
+            s = self._live(params)
+            s.closed = True
+            s.clients.clear()
+            return {"closed": True}
         if method == "reload.env":
             return {"updated": 1}
         if method == "reload.mcp":

@@ -139,6 +139,7 @@ class HermesFront:
         self.hub = hub
         self.units = units
         self.links: dict = {}
+        self.feed = None                                     # history.Feed: the client's archive (R2), made on its first poll
 
     # ------------------------------------------------------------------------------------------------- the hub's side
     def _link(self, unit: str) -> Link:
@@ -302,6 +303,22 @@ class HermesFront:
                 link = self._link(rec["unit"])
                 if link.watcher is None or link.watcher.done():
                     link.watcher = asyncio.ensure_future(self._reconnect(link, first=True))
+
+    # ------------------------------------------------------------------------------------------------- the archive (R2)
+    async def history_sync(self, params: dict) -> dict:
+        """``agent.history_sync``: the client's archive, from the units' Hermes sessions (``history.Feed``)."""
+        if self.feed is None:
+            from .history import Feed
+            self.feed = Feed(self)
+        return await self.feed.sync(params)
+
+    async def archive_link(self, unit: str) -> Optional[Link]:
+        """The unit's connection to its pane's serve, when this server holds one (a chat or a restart's adoption made it); the
+        archive never opens a pane and never waits for a serve to start."""
+        link = self.links.get(unit)
+        if link is None or link.client is None or link.client.closed.is_set() or not link.live_id:
+            return None
+        return link
 
     # ------------------------------------------------------------------------------------------------- tools (A3)
     def session_for_token(self, unit: str, token: str):
@@ -497,6 +514,7 @@ class HermesFront:
         if link.live_id != old:
             return                                           # serve says sessions.changed twice: another check followed it
         link.live_id = str(res.get("session_id") or newest["id"])
+        link.last_seq = -1                                   # serve numbers each session's events from 1
         info = link.info
         if info is not None:
             from .units import UnitInfo
@@ -521,17 +539,17 @@ class HermesFront:
     # ------------------------------------------------------------------------------------------------- serve's events
     async def _on_event(self, link: Link, params: dict) -> None:
         kind = params.get("type")
-        seq = params.get("seq")
-        if isinstance(seq, int):
-            if seq <= link.last_seq:
-                return
-            link.last_seq = seq
         if kind == "sessions.changed":
             if link.live_id:                                 # not while the connection is still resuming its session
                 asyncio.ensure_future(self._check_session(link))
             return
         if params.get("session_id") and params.get("session_id") != link.live_id:
-            return
+            return                                           # another session's (its seq counts its own events)
+        seq = params.get("seq")
+        if isinstance(seq, int):
+            if seq <= link.last_seq:
+                return
+            link.last_seq = seq
         payload = params.get("payload") or {}
         if kind == "message.start":
             link.running = True

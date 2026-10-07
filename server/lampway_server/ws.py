@@ -22,7 +22,13 @@ INVALID_PARAMS = -32602
 INTERNAL_ERROR = -32603
 NOT_AUTHENTICATED = -32004
 
-SERVER_CAPABILITIES = ["agent_history_v1", "agent_history_v2"]
+#: What the handshake advertises, only when served: ``agent_history_v1`` is served from the units' Hermes sessions while the engine
+#: runs Mode 1 (spec R2, ``engine/history.py``); ``agent_history_v2`` (images fetched over HTTP) is not, since no route serves them.
+ARCHIVE_CAPABILITY = "agent_history_v1"
+
+
+def server_capabilities(agent) -> list:
+    return [ARCHIVE_CAPABILITY] if agent is not None and getattr(agent, "engine", None) is not None else []
 
 
 def bearer_from(websocket: WebSocket) -> Optional[str]:
@@ -201,7 +207,7 @@ class AgentSocket:
         self.role = str(params.get("role") or "")
         self.parent_instance_id = str(params.get("parent_instance_id") or "")
         self.handshake_done = True
-        return {"success": True, "agent_ws_v1": True, "server_capabilities": list(SERVER_CAPABILITIES)}
+        return {"success": True, "agent_ws_v1": True, "server_capabilities": server_capabilities(self.agent)}
 
     async def _ping(self, params):
         return {}

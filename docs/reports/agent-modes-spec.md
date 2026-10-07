@@ -513,6 +513,27 @@ and the pending question is cleared (fails today). Retention moves an old sessio
 **Tests.** A recorded client sync against R1's store yields the same events the live stream sent; an unadvertised capability is
 never answered with −32601 (the client's silent stop).
 
+**Built 2026-10-07** (`engine/history.py`, `HermesFront.history_sync`, `AgentHub._history_sync`, `ws.server_capabilities`):
+- `agent.history_sync` (version 1) is served from the unit's `hermes serve`: the session the pane shows (`session.history` on the
+  live session, read again only after a new event) and, first, a previous session of the unit that still has records the client
+  never acknowledged (`session.list`; resumed from `state.db`, read, closed again), one packet per unit per poll. A tab with no
+  live pane this server is connected to has nothing to send.
+- Each message (user, assistant, tool rows, in order; measured row shape: `{role, text, timestamp, row_id}`, a tool row with
+  `name`, `context`, `tool_call_id`) is one record `{version: 1, run_id: <Hermes session id>, task_id: "main", kind: "message",
+  payload: {id, role, text, ...}}` at its 1-based position, `event_id` the sha256 of the client's canonical JSON.
+- Lampway stores no conversation. Its delivery state is the acknowledged prefix's length and digest per Hermes session
+  (`archive.json`, 0600 in the unit's home). An epoch is one Hermes session and rewrite: a history that no longer starts with the
+  acknowledged prefix (Hermes's undo, a checkpoint rewind) gets a new epoch and is sent again whole, which the client records as
+  an epoch change, never a replay conflict. The owner id is one constant (`lampway-local`: one local account).
+- The handshake advertises `agent_history_v1` only while the engine runs Mode 1, never `agent_history_v2` (no image route; no
+  record carries an image). `agent.history_read` is the client's own answer to a server's request; Lampway sends none (Hermes keeps
+  its own memory).
+- Tests: `test_engine_history.py` (the scripted serve), the live `test_engine_pane_live.py` archive test on the real serve, and the
+  client's `tests/test_agent_history_hermes.py`, which writes the server's packets with the client's own store.
+- Found on the way: serve numbers each session's events from 1, so after following the pane's `/new` the island dropped the new
+  session's first events as already seen; the count now starts again on a follow, and other sessions' events are ignored before
+  their `seq` is counted.
+
 ## R3. Context the client sends, read and used
 
 **Purpose.** Everything the user attaches or configures reaches the model.
