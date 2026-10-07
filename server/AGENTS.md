@@ -55,8 +55,16 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    (`pane_env`) and, when the user ticked it for that pane, its own vendor's API key. Starting a harness runs inside
    `egress.guard("byoa:<harness>")`: refused with the route off, logged before herdr is asked (spec B5).
    Every harness pane starts through its adapter in `herdr/harnesses/` (spec B1): an adapter only describes (binary, argv, wiring,
-   observation), never opens a harness's credential files, reads or writes a file or starts a process; its version probe and login
-   check run through the launcher, the login check inside the harness's route; no adapter emits a bypass flag without the user's tick.
+   observation, interrupt keys, whether it takes an image path), never opens a harness's credential files, reads or writes a file or
+   starts a process; its version probe and login check run through the launcher, the login check inside the harness's route; no
+   adapter emits a bypass flag without the user's tick. Each adapter's `FACTS` names the installed copy and command each fact was
+   checked with (throwaway HOME, `--help`/`--version` and offline commands only: no login, no model call); what only a turn could
+   show stays `[UNVERIFIED]` there. herdr 0.9.3 starts every user harness itself (`agent start --kind`), under the agent name
+   `host.agent_name` (`lw-<record id>`: herdr takes only `[a-z][a-z0-9_-]{0,31}`), and keys are herdr's spelling (`ctrl+c`, never
+   `ctrl-c`); the played herdrs refuse what the real one refuses (`tests/herdr_support.py` `herdr_refusal`). A harness with no
+   per-pane way to Lampway's tools (the user's own Hermes, Grok, Cursor: they read MCP servers only from the user's own or the
+   project's shared config) says so in the listing (`tools: false` with the reason); Pi reaches them through Lampway's own Pi
+   extension (`harnesses/lampway_pi_extension.js`, a wrapper only: it hands the pane's own 0600 config to Pi's MCP client).
    A harness pane bound to a scene tab (spec B2) gets its own MCP config, 0600 under `<herdr root>/panes/<id>/`, pointing at Lampway's
    launcher with `LAMPWAY_BOUND_SESSION`; nothing is written outside the Lampway root. Binding and unbinding change only that file and
    the record, never the pane; only the user's Client binds (`POST /app/workbench/sessions/{id}/binding` refuses agent callers).
@@ -104,7 +112,15 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    streams it as observed turns in Mode 1's frames; history before the first observation is never replayed unless the client names
    its offset; a harness without a readable file is shown by its screen, and the user's own Hermes home is never read (E1.10).
    `agent.byoa.send` finds the pane from the binding, decides who typed from the socket, and holds an agent's send in the 2.5 s
-   quiet window after the user's own.
+   quiet window after the user's own. Its images (the user's socket only) go to a harness that takes an image by its path: written
+   by `Cockpit.write_pane_images` into `<project root>/.lampway/panes/<id>/images/`, the one place a pane's file lands outside the
+   Lampway root, because the harness must read it inside its workspace (0600 in 0700 directories, the type decided from the bytes,
+   the name Lampway's, every directory checked against the project root after symlinks); the paths go before the text. A harness
+   that takes none is refused with its reason (`images_unsupported`). The island's Stop (`agent.byoa.interrupt`, and `agent.cancel`
+   for a tab in Your agent mode) types the adapter's own interrupt keys into the tab's live pane, from the user's socket only. An
+   ended pane is offered to the user: `agent.byoa.resume` starts the adapter's resume with the stored native id in a new pane bound
+   to the tab (the ended record kept, unbound; Codex's id is recorded from its rollout), `agent.byoa.unbind` lets the tab go; both
+   from the user's socket only, neither ever automatic (law 5). A screen-shown pane reports herdr's own `agent_status`.
 7. **Secrets never reach a log or a file in the repository.** Keys come from the environment or 0600 files the user owns
    (the state directory, a dotenv file the launcher is pointed at); `logredact.py` redacts query secrets and token-shaped strings in every log record.
 8. **Never the upstream service.** No code here calls the upstream backend; the client's stubbed endpoints are answered locally.
@@ -189,7 +205,9 @@ herdr is played by `tests/herdr_support.py` `PaneHerdr` (tabs, splits, reported 
 option it does not know), and driven for real, where a herdr is found (`launcher.bin_path`: `LAMPWAY_HERDR_BIN`, then the pinned
 build from `scripts/lampway/herdr_env.py`, then PATH or `~/.local/bin/herdr`), by `tests/test_herdr_cockpit.py`,
 `test_herdr_launcher.py`, `test_herdr_layout_live.py` and the real-herdr case of `test_engine_pane_live.py`; without it those SKIP,
-and a skip is not a pass. The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 on the real
+and a skip is not a pass. `tests/test_byoa_pi_live.py` runs Lampway's Pi extension on a real Pi (`LAMPWAY_PI_BIN`, else `pi` on
+PATH; throwaway HOME, no provider, offline); without one it SKIPS. The island's controls for a Your agent tab (Stop, images,
+Resume, Unbind) are `tests/test_byoa_island_controls.py`. The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 on the real
 `lampway_hermes` adapter and `Mode1Units` over a stand-in engine build (`tests/mode1_support.py`), and play each worker pane over
 the pane endpoint its rendered config names.
 
@@ -224,3 +242,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | merge: Mode 1 in a pane (A1-A3) beside the verified herdr layout and the herdr pin | coordinator integration of the A1-A3 lane | both sides rewrote the Test section's herdr sentence and the host's placement; the lane's still called the layout's shapes `[UNVERIFIED]` | the Test section keeps the lane's Mode 1 tests and the verified, pinned herdr sentence (the real-herdr case of `test_engine_pane_live.py` named); the host keeps the lane's Mode 1 unit with the swarm's `planned` column | none |
 | 2026-10-07 | Mode 1 only on Hermes: Lampway's built-in agent loop removed (A5) | captain, 2026-10-07: "two Agent Modes and the Runtime on Mode 1 to be Hermes Runtime. Agents/workers run on either of those modes nothing else"; coordinator brief for the last server lane (agent-modes spec A5) | `turns.py` still ran its own provider loop (rounds, history trimming, the pairing repair, Plan Mode's prompt, the Retry chip) whenever `LAMPWAY_AGENT_ENGINE` was unset or no engine was built, so Mode 1 silently ran a third runtime; the swarm's todo cards never reached the island on the engine path; a checkpoint rewind claimed to forget turns Hermes still had | invariant 10: the engine is in the seat whenever it is built, no switch; invariant 11: Mode 1 only on Hermes, the refusals with no engine, Node or herdr, the swarm in the island turn, checkpoints say Hermes keeps the conversation; the intro and the Test section: the hub's protocol tests on the scripted serve, no turn through a provider, `test_mode1_only_hermes.py`, the conftest's engine discovery | captain ruling, 2026-10-07 |
 | 2026-10-07 | the island told of the pane's `/new` (A2, Q15) | coordinator brief for the client lane: the island starts a new chat when the pane's `/new` moves it | the server followed the pane silently: with no island turn running the client got no frame at all (the tab's session id, the unit, does not change), serve's two `sessions.changed` could follow twice, and a question of the closed session stayed open, so the island's next chat was sent to it as an answer | invariant 11: one `agent.pane.new_conversation` to the tab's current socket after the follow, which releases the closed session's question; a second follow that finds the link already moved does nothing | none |
+| 2026-10-07 | Mode 2 finished: Stop, images, Resume/Unbind, adapters checked against installed copies, the Pi extension (B1, B2, B4) | coordinator brief for the Mode 2 lane: "nothing stays hidden or half-built" (captain); agent-modes spec B1, B2, B4, Q4, Q5 | every Claude Code, Codex and OpenCode pane failed to start on the real herdr 0.9.3 (`agent start` was given the display name: `invalid_agent_name`) and the cockpit's interrupt sent `ctrl-c` (`invalid_key`); the island's Stop did nothing in Your agent mode; images were refused; an ended pane could only be resumed from the cockpit; Hermes, Pi, Grok and Cursor were wired from vendor docs, Pi as having no MCP | invariant 6: the adapters' FACTS and what they may describe, herdr's agent names and key spelling with the strict played herdrs, the listing's tools note, the Pi extension, images in `<project root>/.lampway/panes/`, Stop, Resume and Unbind from the user's socket only; the Test section names the live Pi test and the controls suite | none |
