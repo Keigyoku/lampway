@@ -128,7 +128,12 @@ def fake_wezterm(tmp_path, monkeypatch):
     return exe, log
 
 
-def test_user_config_untouched(home, tmp_path, fake_wezterm, monkeypatch):
+@pytest.mark.parametrize("long_home", [False, True])
+def test_user_config_untouched(home, tmp_path, fake_wezterm, monkeypatch, long_home):
+    if long_home:
+        home = home.joinpath(*(["a_very_long_directory_name"] * 4))
+        home.mkdir(parents=True)
+        monkeypatch.setenv("LAMPWAY_HOME", str(home))
     user = tmp_path / "user_home"
     (user / ".config" / "wezterm").mkdir(parents=True)
     (user / ".wezterm.lua").write_text("return {font_size = 99}\n")
@@ -145,7 +150,10 @@ def test_user_config_untouched(home, tmp_path, fake_wezterm, monkeypatch):
     assert argv[:2] == ["--config-file", str(home / "wezterm" / "lampway.wezterm.lua")]
     assert "--always-new-process" in argv and "--class" in argv and argv[argv.index("--class") + 1] == "dev.lampway.terminal"
     assert call["socket"] == str(W.socket_path(home)), "Lampway's own WEZTERM_UNIX_SOCKET, never the user's"
-    assert call["herdr"]["HERDR_SOCKET_PATH"].startswith(str(home / "herdr")) or call["herdr"]["HERDR_SOCKET_PATH"].startswith("/run/user/")
+    from lampway_server.herdr import launcher as L
+    assert call["herdr"]["HERDR_SOCKET_PATH"] == str(L.socket_paths(home / "herdr")[0])
+    assert len(call["herdr"]["HERDR_SOCKET_PATH"]) < L.SOCK_LIMIT
+    assert Path(call["herdr"]["HERDR_CONFIG_PATH"]).is_relative_to(home / "herdr")
     # Lampway's WezTerm never sees the person's WezTerm state: a CLI call that found no window once auto-started a mux server that
     # took ~/.local/share/wezterm/pid (the lane's live run, 2026-10-06). Every WezTerm process runs on Lampway's own dirs.
     for key, value in call["dirs"].items():

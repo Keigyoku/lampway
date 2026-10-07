@@ -52,6 +52,8 @@ Glove and pose DOF input schemas expose the recursive joint-axis grammar, fixed 
 
 The identity ratchet covers every agent tool and MCP-only server tool. It validates finite JSON Schema before traversing properties, alternatives, definitions, tuple items, conditional and additional-value schemas. Local UI schemas have a separate zero-debt gate using the same recursive walker. Refusal coverage checks actual server branches and recursively inspects actual isolated Blender receipts, including batch dispatch; generated batch templates identify the registered external tool and required arguments. Catalogue policy metadata stays concise because initialize already carries the complete policy.
 
+The refusal-name source scan excludes test directories only beneath each configured scan root. A checkout or fixture beneath an ancestor named `tests` must still scan production sources and detect planted unregistered names.
+
 ## Test
 
 ```bash
@@ -62,6 +64,8 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
 
 The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a paid
 or egress path is tested against a fake transport, never a live provider, unless the captain named the spend.
+
+Terminal isolation tests verify unchanged user configuration and exact launcher-derived sockets for short and long Lampway roots. A valid short runtime socket fallback must not be rejected by an unrelated hard-coded path prefix.
 
 ## Owner
 
@@ -91,3 +95,5 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | strict issue 2 target and recursive receipt audit | literal AC46/52/56 audit | a required piece name was not an object target and nested receipt arrays escaped full-detail pagination | require the actual object with an optional configuration selector, validate remaining argument shapes before work, and paginate nested tables with complete path totals | strict native and server RED/GREEN receipts |
 
 | 2026-10-07 | strict whole-registry and runtime refusal audit | literal AC35-38/45 | pose inputs had the wrong schema, MCP-only and local schemas escaped debt checks, malformed nested schemas hid numbers, and batch refusals gave unusable calls | validate both DOF interfaces, include server-only and local registries, check finite schema and recursive runtime help, and generate batch call templates | schema loophole RED controls; 117 server, 37 client and seven real Blender refusal checks |
+| 2026-10-07 | refusal scan root-relative test exclusion | exact-head full server audit | an absolute ancestor named tests silently excluded production sources and defeated the planted unknown-name control | exclude only test descendants of each scan root and retain production scanning beneath tests-named checkout ancestors | existing planted refusal plus ancestor and nested-test controls RED then GREEN |
+| 2026-10-07 | terminal long-root verification | exact-head server aggregate | a valid short runtime socket fallback failed the old path-prefix assertion | verify exact launcher-owned routing, short socket length and private configuration with both root lengths | user-configuration RED/GREEN short/long controls |
