@@ -171,8 +171,8 @@ class AgentHub:
                     return {"state": "complete", "result": {"ok": False, "message": refused}}
             else:
                 answer = Q.single_answer(text, answers, action)
-            session.messages.append(Message("user", [{"type": "tool_result", "tool_call_id": pending["call_id"],
-                                                      "content": answer, "is_error": False}]))
+            add_tool_results(session.messages, [{"type": "tool_result", "tool_call_id": pending["call_id"],
+                                                 "content": answer, "is_error": False}])
             session.pending_question = None
             return self._admit(socket, command_id, session_id, None, plan_mode=pending.get("plan_mode", False), reply=reply)
         if answers:
@@ -181,6 +181,9 @@ class AgentHub:
 
     def _admit(self, socket, command_id, session_id, user_text, plan_mode=False, marks_text="", reply=None):
         session = self._session(session_id)
+        if user_text is not None and session.pending_question is not None:
+            # A new message instead of an answer: the question's call is closed here, so it never stays open (R1 pairing).
+            self._close_question(session, "The user did not answer this question; they sent a new message instead.")
         command = self.commands[command_id] = Command(command_id, session_id)
         turn = Turn(session_id, command_id, str(uuid.uuid4()), plan_mode=plan_mode)
         turn.socket = socket  # type: ignore[attr-defined]
@@ -191,6 +194,12 @@ class AgentHub:
         turn.task = socket.spawn(self._run_turn(socket, session, turn, command, user_text, previous, marks_text, reply))
         return {"state": "pending"}
 
+    @staticmethod
+    def _close_question(session, answer: str) -> None:
+        pending, session.pending_question = session.pending_question, None
+        add_tool_results(session.messages, [{"type": "tool_result", "tool_call_id": pending["call_id"], "content": answer,
+                                             "is_error": False}])
+
     async def _cancel(self, socket, params):
         command_id, payload = _command_parts(params)
         session = self.sessions.get(str(payload.get("session_id") or ""))
@@ -199,6 +208,9 @@ class AgentHub:
             log.debug("cancelling turn %s", session.current.turn_id)
             cancelled = session.current.task.cancel()
             self.swarm.cancel_session(session.session_id)
+        elif session is not None and session.pending_question is not None:
+            self._close_question(session, "The user cancelled instead of answering this question.")
+            cancelled = True
         log.debug("cancel for session %s -> %s", payload.get("session_id"), cancelled)
         return {"state": "complete", "result": {"ok": True, "cancelled": cancelled}}
 
@@ -318,6 +330,11 @@ class AgentHub:
 
     async def _finish(self, socket, session, turn, stream, bubble_id, steps, status):
         log.debug("turn %s finishing as %s", turn.turn_id, status)
+        pending = session.pending_question if turn.asked else None
+        reason = ("cancelled: the user stopped the turn before this call finished" if status == "cancelled" else
+                  "not run: the turn stopped to ask the user a question; call it again after the answer if it is still needed"
+                  if pending else "not run: the turn ended before this call finished")
+        pair_tool_calls(session.messages, reason, keep_open={pending["call_id"]} if pending else ())
         try:
             if steps:
                 for step in steps:
@@ -342,6 +359,9 @@ class AgentHub:
     async def _agent_loop(self, socket, session, turn, stream, bubble_id, steps):
         system = self.system_prompt + (PLAN_MODE_PROMPT if turn.plan_mode else "")
         for _round in range(MAX_ROUNDS):
+            repaired = pair_tool_calls(session.messages, "this call's result was lost; it may or may not have run")
+            if repaired:
+                log.warning("turn %s: %d tool call(s) had no result; closed them before calling the model", turn.turn_id, repaired)
             request = ModelRequest(system, trim_history(session.messages), list(TOOLS) + SWARM_SPECS, session_id=session.session_id)
             text_parts: list[str] = []
             calls: list[ToolCall] = []
@@ -372,16 +392,21 @@ class AgentHub:
                 await self._ask(session, turn, stream, bubble_id, text, question)
                 return
             results = []
-            for call in calls:
-                steps.append({"id": call.id, "kind": "tool", "label": call.name, "target": "",
-                              "detail": _detail(call), "status": "running"})
-                await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
-                content, is_error = await self._run_tool(socket, session, turn, call, stream, bubble_id, steps)
-                steps[-1]["status"] = "failed" if is_error else "done"
-                await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
-                results.append({"type": "tool_result", "tool_call_id": call.id, "content": clip_result(content),
-                                "is_error": is_error})
-            session.messages.append(Message("user", results))
+            try:
+                for call in calls:
+                    steps.append({"id": call.id, "kind": "tool", "label": call.name, "target": "",
+                                  "detail": _detail(call), "status": "running"})
+                    await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
+                    content, is_error = await self._run_tool(socket, session, turn, call, stream, bubble_id, steps)
+                    steps[-1]["status"] = "failed" if is_error else "done"
+                    await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
+                    results.append({"type": "tool_result", "tool_call_id": call.id, "content": clip_result(content),
+                                    "is_error": is_error})
+            finally:
+                # Kept even when the turn is cancelled part-way: the calls that ran keep their real results, and _finish
+                # closes the rest (R1 pairing).
+                if results:
+                    session.messages.append(Message("user", results))
         log.warning("turn %s hit the %d-round tool cap", turn.turn_id, MAX_ROUNDS)
         await stream.emit({"bubble_id": bubble_id, "content": {"set": (
             f"I stopped after {MAX_ROUNDS} rounds of tool calls without finishing. Tell me to continue, or give me a narrower task.")}})
@@ -587,6 +612,43 @@ def trim_history(messages: list, budget: int = HISTORY_BUDGET) -> list:
             parts.append(p)
         out.append(Message(m.role, parts))
     return out
+
+
+def pair_tool_calls(messages: list, reason: str, keep_open=()) -> int:
+    """The pairing invariant (agent-modes spec R1): give every assistant tool call that has no result one, in the message right
+    after it, as the providers' APIs require. A missing result becomes ``{"cancelled": true, "reason": reason}`` (an error, so the
+    model does not read it as done); ``keep_open`` names calls still waiting legitimately (a pending question). Changes
+    ``messages`` in place and returns how many results it added; a paired history is left as it is."""
+    added = 0
+    i = 0
+    while i < len(messages):
+        m = messages[i]
+        ids = [p["id"] for p in m.content if p.get("type") == "tool_call"] if m.role == "assistant" else []
+        nxt = messages[i + 1] if i + 1 < len(messages) else None
+        holds_results = nxt is not None and nxt.role == "user" and any(p.get("type") == "tool_result" for p in nxt.content)
+        answered = {p.get("tool_call_id") for p in nxt.content} if holds_results else set()
+        missing = [c for c in ids if c not in answered and c not in keep_open]
+        if missing:
+            parts = [{"type": "tool_result", "tool_call_id": c, "content": json.dumps({"cancelled": True, "reason": reason}),
+                      "is_error": True} for c in missing]
+            if holds_results:
+                order = {c: n for n, c in enumerate(ids)}
+                nxt.content = sorted(nxt.content + parts, key=lambda p: order.get(p.get("tool_call_id"), len(order)))
+            else:
+                messages.insert(i + 1, Message("user", parts))
+            added += len(missing)
+        i += 1
+    return added
+
+
+def add_tool_results(messages: list, parts: list) -> None:
+    """Append tool results to the results message that ends the history (the one answering the last assistant's calls), or
+    start one: a call answered later (a question) still lands beside its siblings' results."""
+    last = messages[-1] if messages else None
+    if last is not None and last.role == "user" and last.content and all(p.get("type") == "tool_result" for p in last.content):
+        last.content.extend(parts)
+    else:
+        messages.append(Message("user", list(parts)))
 
 
 def empty_reply_note(stop: str, tool_calls: int) -> str:
