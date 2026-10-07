@@ -9,7 +9,7 @@ island. The cockpit host (``herdr/host.py``) starts every harness pane through t
 import os
 from pathlib import Path
 
-from .base import BOUND_ENV, SERVER_NAME, Adapter, Argv, HarnessAdapter, Installed, LoginState, Observer, PaneSpec, ToolWiring, mcp_entry
+from .base import BOUND_ENV, SERVER_NAME, SESSION_HEADER, Adapter, Argv, DirectServer, HarnessAdapter, Installed, LoginState, Observer, PaneSpec, ToolWiring, mcp_entry
 from .claude import Claude
 from .codex import Codex
 from .cursor import Cursor
@@ -19,7 +19,7 @@ from .opencode import OpenCode
 from .pi import Pi
 from .switch import TERMS_NOTE, enabled, require_enabled
 
-__all__ = ["ADAPTERS", "Adapter", "Argv", "BOUND_ENV", "HarnessAdapter", "Installed", "LoginState", "Observer", "PaneSpec", "SERVER_NAME", "TERMS_NOTE",
+__all__ = ["ADAPTERS", "Adapter", "Argv", "BOUND_ENV", "DirectServer", "HarnessAdapter", "Installed", "LoginState", "Observer", "PaneSpec", "SERVER_NAME", "SESSION_HEADER", "TERMS_NOTE",
            "ToolWiring", "enabled", "get", "ids", "listing", "mcp_entry", "mcp_launcher", "require_enabled"]
 
 ADAPTERS = {a.id: a for a in (Claude(), Codex(), Hermes(), OpenCode(), Pi(), Grok(), Cursor())}

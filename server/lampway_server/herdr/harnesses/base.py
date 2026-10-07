@@ -24,6 +24,8 @@ Argv = list
 SERVER_NAME = "lampway"
 #: The variable the pane's MCP launcher reads to pin its scene tab (spec B2).
 BOUND_ENV = "LAMPWAY_BOUND_SESSION"
+#: The header a direct entry pins its binding with (a swarm worker's ``swarm:<swarm_id>:<worker_id>``, spec S3).
+SESSION_HEADER = "X-Mixar-Session-Id"
 
 
 @dataclass(frozen=True)
@@ -50,6 +52,20 @@ class PaneSpec:
     scene_session_id: Optional[str] = None   # the scene tab the pane is bound to (B2); None = unbound
     mcp_config_path: Optional[str] = None    # where this pane's own MCP config lives (written by the host, under the Lampway root)
     launcher: tuple = ()               # Lampway's MCP launcher command (argv), resolved by the host
+    desktop: bool = True               # the desktop launcher entry (B2); a swarm worker has none (S3)
+    direct: tuple = ()                 # DirectServer entries: Lampway's own loopback endpoint, reached with a pane's own bearer (S3)
+
+
+@dataclass(frozen=True)
+class DirectServer:
+    """One MCP entry that reaches Lampway's server directly on loopback with this pane's own bearer (spec S3): a swarm worker's
+    only server, or a bound pane's swarm entry. The bearer lives in the pane's own 0600 config file, or in its environment
+    (``token_env``) for a harness whose entry is on its command line."""
+    name: str
+    url: str
+    headers: dict
+    token_env: str
+    token: str
 
 
 @dataclass(frozen=True)
@@ -79,7 +95,7 @@ class HarnessAdapter(Protocol):
 
     def detect(self) -> Optional[Installed]: ...                    # binary on PATH, version; None = not installed (install_hint says how)
     def login_state(self) -> LoginState: ...                         # from the harness's own status command; never reads its files
-    def launch(self, pane: PaneSpec) -> Argv: ...                    # a new session in the project root, bound to a scene tab (B2)
+    def launch(self, pane: PaneSpec, task: Optional[str] = None) -> Argv: ...   # a new session in the project root, bound to a scene tab (B2); task: S3
     def resume(self, native_id: str, pane: PaneSpec) -> Argv: ...
     def lampway_tools(self, pane: PaneSpec) -> ToolWiring: ...       # a per-pane MCP config file and flag, or an extension for a harness without MCP
     def observe(self, record) -> Optional[Observer]: ...             # how the island reads the session (B4)
@@ -96,6 +112,16 @@ def mcp_entry(pane: PaneSpec) -> dict:
     return {"command": cmd[0], "args": cmd[1:], "env": {BOUND_ENV: pane.scene_session_id or ""}}
 
 
+def bearer_headers(server: "DirectServer") -> dict:
+    """A direct entry's headers with its bearer, for a harness that reads them from the pane's own 0600 file."""
+    return {**server.headers, "Authorization": f"Bearer {server.token}"}
+
+
+def direct_binding(pane: PaneSpec) -> Optional[str]:
+    """What a direct entry pins: a swarm worker's ``swarm:<swarm_id>:<worker_id>`` (its session header), when there is one."""
+    return next((d.headers.get(SESSION_HEADER) for d in pane.direct if d.headers.get(SESSION_HEADER)), None)
+
+
 class Adapter:
     """The behaviour every adapter shares. A subclass names its binary, its flags and its wiring."""
     id = ""
@@ -109,6 +135,13 @@ class Adapter:
     picks_session_id = False                  # Lampway chooses the native id of a new session (Claude Code's --session-id)
     config_name = "mcp.json"                  # the pane's own config file name, under <herdr root>/panes/<session id>/ (B2)
     BYPASS: tuple = ()
+    #: How a task reaches a new session on its command line (spec S3): None = it cannot; () = the first positional argument;
+    #: otherwise the flag that precedes it. Only a harness herdr starts itself (``herdr_kind``) takes one: a command typed into a
+    #: shell by ``pane run`` never carries a model-written task.
+    task_flag: Optional[tuple] = None
+    #: Whether this adapter can write a direct entry (Lampway's own loopback endpoint with a bearer): a swarm worker's only server
+    #: and a bound pane's swarm entry (spec S3). [UNVERIFIED per harness until a recorded fixture.]
+    direct_ok = False
 
     def __init__(self, which=None):
         self._which = which
@@ -154,10 +187,20 @@ class Adapter:
         return ["--resume", native_id]
 
     def _wired(self, pane: PaneSpec) -> list:
-        return list(self.lampway_tools(pane).argv) if pane.scene_session_id and pane.mcp_config_path else []
+        return list(self.lampway_tools(pane).argv) if (pane.scene_session_id or pane.direct) and pane.mcp_config_path else []
 
-    def launch(self, pane: PaneSpec) -> Argv:
-        return [self.binary, *self._args(pane, None), *self._wired(pane)]
+    def _task(self, task: Optional[str]) -> list:
+        if not task:
+            return []
+        if self.task_flag is None or not self.herdr_kind:
+            raise ValueError(f"{self.label} cannot be given a task on its command line: no recorded way to pass one, or herdr "
+                             "would type it into a shell; a swarm worker needs a harness herdr starts itself")
+        return [*self.task_flag, task]
+
+    def launch(self, pane: PaneSpec, task: Optional[str] = None) -> Argv:
+        """A new session; ``task`` (spec S3) is its first prompt, placed before the wiring flags (a variadic flag such as
+        Claude Code's ``--mcp-config`` would otherwise swallow it)."""
+        return [self.binary, *self._args(pane, None), *self._task(task), *self._wired(pane)]
 
     def resume(self, native_id: str, pane: PaneSpec) -> Argv:
         return [self.binary, *self._args(pane, native_id), *self._wired(pane)]

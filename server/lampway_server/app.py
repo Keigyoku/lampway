@@ -35,7 +35,7 @@ from .assetsearch import AssetIndex
 from .library import rest as library_rest
 from .library.vault import Vault
 from .cards import routes as cards_routes
-from .mcp import McpServer, parse as mcp_parse
+from .mcp import LOOPBACK as MCP_LOOPBACK, McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub, bearer_from
 from starlette.responses import Response
@@ -462,7 +462,11 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
             return JSONResponse({"detail": f"material generation failed: {type(exc).__name__}"}, status_code=502)
         return JSONResponse(material.as_dict())
 
-    mcp = McpServer(hub, agent, ledger=Ledger(Ledger_default_path()), caps=lambda: {"video_max_job_usd": settings.video_max_job_usd})
+    from .herdr import harnesses as _HN
+    mcp = McpServer(hub, agent, ledger=Ledger(Ledger_default_path()), caps=lambda: {"video_max_job_usd": settings.video_max_job_usd},
+                    byoa_enabled=lambda: _HN.enabled(settings.state_dir))
+    if getattr(cockpit, "pane_mcp_url", False) is None:      # spec S3: where a pane's own entries reach this server (loopback)
+        cockpit.pane_mcp_url = f"http://127.0.0.1:{settings.port}/api/v1/mcp/pane"
 
     def _metadata(value):
         """The form's ``metadata`` JSON list, or None when it is not a list of objects."""
@@ -554,6 +558,23 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         reply = await mcp.handle(message, request.headers.get("x-mixar-instance-id", ""), request.headers.get("x-mixar-session-id", ""))
         return Response(status_code=202) if reply is None else JSONResponse(reply)
 
+    async def mcp_pane_route(request: Request):
+        """One MCP JSON-RPC message from a pane Lampway started (mcp.py, spec S3): a swarm worker's pane or a bound BYOA pane's swarm
+        entry. Loopback only; the bearer is the pane's own token or key, never the user's login."""
+        if (request.client.host if request.client else "") not in MCP_LOOPBACK:
+            return JSONResponse({"detail": "loopback only"}, status_code=403)
+        auth = request.headers.get("authorization") or ""
+        caller = await asyncio.to_thread(mcp.pane_caller, auth[7:].strip() if auth.lower().startswith("bearer ") else "",
+                                         request.headers.get("x-mixar-session-id", ""))
+        if caller is None:
+            return JSONResponse({"detail": "not a pane Lampway started: this endpoint takes only a pane's own key or a worker's own token"},
+                                status_code=401)
+        message, failure = mcp_parse(await request.body())
+        if failure is not None:
+            return JSONResponse(failure)
+        reply = await mcp.handle_pane(message, caller)
+        return Response(status_code=202) if reply is None else JSONResponse(reply)
+
     async def mcp_eligibility(request: Request):
         """200 only when this desktop instance has a live agent socket; a 404 with another detail than "Not Found" is what the
         client maps to "desktop not connected"."""
@@ -577,6 +598,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         *library_rest.routes(vault, _bearer_ok),
         *cards_routes.routes(_bearer_ok, api_port=settings.port),
         Route("/api/v1/mcp", mcp_route, methods=["POST"]),
+        Route("/api/v1/mcp/pane", mcp_pane_route, methods=["POST"]),
         Route("/api/v1/mcp-desktop/eligibility", mcp_eligibility, methods=["GET"]),
         Route("/api/v1/matgen", matgen_route, methods=["POST"]),
         Route("/api/v1/job-queue/jobs", job_submit, methods=["POST"]),

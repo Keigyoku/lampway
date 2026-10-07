@@ -88,6 +88,8 @@ class SwarmContext:
     run_id: str = ""
     progress: Callable[[str], None] = lambda text: None
     emit_todo: Optional[Callable[[list], Awaitable]] = None      # the chat's todo slot: the Parallel Agents cards
+    # spec S4: the caller's brain, when the caller decides (a bound BYOA pane's swarm thinks in panes); None = ``brain_for``
+    brain: Optional[Callable[[], object]] = None
 
 
 @dataclass
@@ -367,7 +369,7 @@ class SwarmManager:
         """The substrate (spec S1): spawn, bind, reset and seed this worker's own Lampway, let the swarm's brain think, then stage.
         The brain's only door to a scene is the job's ``call_tool``, which runs on this worker's Lampway."""
         harness, run = swarm.harness, swarm.run
-        brain = self.brain_for(ctx)
+        brain = ctx.brain() if ctx.brain is not None else self.brain_for(ctx)      # one swarm, one kind of brain (spec S4)
 
         async def call_tool(name: str, arguments: dict) -> tuple:
             content, is_error = await self._worker_tool(swarm, worker, ctx, ToolCall(id=f"{worker.id}-{uuid.uuid4().hex[:8]}",

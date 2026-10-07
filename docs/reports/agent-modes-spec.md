@@ -840,14 +840,24 @@ class WorkerJob:
 **Contract.**
 - **Where:** each worker is a pane on Lampway's herdr server running the same harness as the parent pane, by default (**Q10**),
   through its adapter (B1). It is started under that harness's `byoa:<harness>` route (B5) and the user's own login.
-- **Its scene:** the pane is bound (B2) to its worker's headless Lampway, not to a scene tab. Its per-pane MCP config carries
-  `LAMPWAY_BOUND_SESSION=swarm:<swarm_id>:<worker_id>`. The server resolves that binding to the worker's harness handle, so the
-  pane's Lampway tools run on the worker's scene through `WorkerJob.call_tool`.
+- **Its scene (as built, 2026-10-07):** the worker pane does not go through the client's MCP launcher. It talks straight to
+  Lampway's loopback pane endpoint, `POST /api/v1/mcp/pane`. Its config has one server: header
+  `X-Mixar-Session-Id: swarm:<swarm_id>:<worker_id>` and a per-worker bearer, kept by the server only as a digest and revoked when
+  the worker ends. The endpoint offers that worker's `worker_tools()` and `lampway_worker_done`, every call through
+  `WorkerJob.call_tool`, so the tools run on the worker's own headless Lampway.
+  - **Why not through the launcher:** the client's relay forwards only a UUID scene-tab session header
+    (`mcp_bridge/core/relay.py`). The launcher's tool list carries no session header. And it serves the desktop's UI and scene-tab
+    tools, which could rebind a worker onto the user's scene.
+  - A `swarm:` header on the external route is refused (**Q11**).
 - **Its task:** the adapter's `launch(task=...)` with `worker_system_prompt` plus the task prompt.
 - **Done:** the pane's harness calls the worker-only MCP tool `lampway_worker_done(summary)`. That stages the result and finishes
   the brain. A pane that exits without it fails the task.
 - **Swarm tools for a BYOA parent:** `swarm_start`, `swarm_status`, `swarm_cancel` and `swarm_collect` are offered over MCP only to
-  a **bound BYOA pane** whose tab is in Mode 2 (M0), with capability `swarm` on. External MCP apps that are not Lampway panes still
+  a **bound BYOA pane** whose tab is in Mode 2 (M0), with capability `swarm` on.
+  - **As built:** a bound pane's config gains a `lampway_swarm` entry on the same pane endpoint, with a per-pane key. The cockpit
+    keeps only the key's digest.
+  - That entry reaches only the swarms its own pane started.
+  - Its commits land in the pane's bound tab. External MCP apps that are not Lampway panes still
   never get them (invariant 4). No swarm tool spends.
 - **Visibility:** worker panes show in the cockpit like any pane. Closing a worker pane cancels its task; it never kills a pane the
   swarm did not start (law 5).
@@ -914,6 +924,12 @@ class WorkerJob:
 
 10. **Q10 Mode 2 worker harness (proposed default).** A BYOA swarm's workers run the same harness as the parent pane. The other
     choice is to let the parent name a harness per task. Built with the default; open for the captain.
+
+11. **Q11 Mode 2 swarm binding (built, open).** The pane bearers go on a direct loopback endpoint instead of the client launcher
+    (S3, "as built"). Also open:
+    - the worker timeout, 1800 s as a placeholder;
+    - finished worker panes stay open for the user to read;
+    - Codex's pane bearer is visible briefly on the herdr client's command line.
 
 ## 5. Build order
 
