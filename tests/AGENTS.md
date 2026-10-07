@@ -59,6 +59,8 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 
 Native compile-definition regressions pin the target, option scope, creation order and concrete guarded consumers. Retain missing, wrong-target, public, unconditional and before-target corruption controls. Report source checks separately from actual ON/OFF compile commands and physical menu/palette acceptance.
 
+Scanner regression fixtures remain self-contained when the security guard is shared across lanes. Preserve byte-exact reproductions with immutable source provenance, not dependencies on unrelated native tests; retain every planted security assertion.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -76,3 +78,5 @@ Native compile-definition regressions pin the target, option scope, creation ord
 | 2026-10-07 | measured hardware GUI mode | issue 2 requires both software and GPU screenshots | the fixture forced software GL and could label fallback as hardware | expose an explicit isolated mode and reject measured software renderers; retain default software coverage | nine mode checks and real software/fallback GUI receipts |
 | 2026-10-07 | inherited failure closure | captain: no red checks going forward | stale source pins and cross-suite mocks hid real incomplete inputs while baselines normalized failures | preserve security/behavior plants, update actual source and active mock identities, and require exact passing evidence for every inherited row | authoritative subtitle source mapping and complete122-ID ownership |
 | 2026-10-07 | target-owned fork compile definitions | captain: physical AC34 wrong native operators | source-only guarded strings passed while consumers compiled the upstream branch | test concrete target ownership and planted option/scope regressions; require build and physical receipts | editor macro compilation contracts |
+
+| 2026-10-07 | portable matrix scanner reproduction | PR4 publication dependency | scanner controls read an unrelated native-topology test absent from its lane | retain the exact reproduction as a local literal with immutable commit/blob provenance and unchanged security assertions | self-contained20scanner controls |
