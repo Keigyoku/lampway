@@ -3,9 +3,11 @@
 
 # Canon 04 — Bind at the fit pose, return to rest (the exact inverse of linear blend skinning)
 
-Status: **CANONICAL maths; GAP in both implementations** (Lampway has no return; Titan's return uses the wrong inverse).
-Implemented by: LT `features/fit_bind.py` stage `return` (reports a residual only); Titan `tools/equipment_fitpose.py:69-85`
-(`return_maps`, `bind_return`).
+Status: **CANONICAL maths; implemented in Lampway** (exact blended-transform inverse,
+singular-blend refusal and native Blender round-trip tests). The audited Titan
+return uses the wrong inverse.
+Implemented by: LT `features/fit_bind.py` stage `return`; audited Titan
+`tools/equipment_fitpose.py:69-85` (`return_maps`, `bind_return`).
 
 ## A. Problem
 
@@ -77,11 +79,13 @@ different inverse; the return must invert the model the ENGINE evaluates. The UE
 
 ## F. Implementation gap
 
-- LT `features/fit_bind.py:188-206` (`return_report`) computes a similarity residual of each metal part's evaluated REST mesh
-  against the original; it performs no return (the module docstring :11 says so). The bound object is the piece AS PLACED
-  (rest = placement), so a fit made at a posed body cannot leave in the native rest today.
-- Titan `equipment_fitpose.py:74-85` implements the blend of inverses (B "wrong").
-- Neither implementation refuses singular blends.
+- LT `features/fit_bind.py` `return_report` creates a new rest object using the
+  exact inverse of the blended transform, refuses singular vertices and a
+  changed fit pose, and measures forward skinning through Blender itself.
+  `tests/lampway_tools/test_canon_item4_tools.py` covers the exact return, the
+  wrong-inverse falsifier, singular blends and changed-pose refusal.
+- The audited Titan `equipment_fitpose.py:74-85` implements the blend of
+  inverses (B "wrong"); that historical finding is not a Lampway gap.
 
 ## G. Agent-facing tool contract — `lampway_fit_bind stage=return`
 

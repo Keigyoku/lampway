@@ -156,19 +156,31 @@ MetaTailor reference observations (black box, 2026-10-06) are in `goldens/metata
 counter-example for INV-03.2: a landmark warp left rigid caps at 0.44–5.32 mm RMS, scale 0.94–1.71. GMT.8: an already
 placed, clear piece passed through unchanged.
 
-## F. Implementation gap (Lampway `b806617f`)
+## F. Current implementation and remaining gaps (2026-10-07)
 
-1. **No orchestrator runs the order.** LT `pipeline/armor_piece.py` plans and records the 15 runbook steps but "does not run
-   the sub-tools" (`<specs>/STATUS.md`), and the fit phase is outside it.
-2. **Placement leaves rotation uncorrected.** LT `pipeline/fit_place.py:161-163` refuses a gauntlet more than 25 deg off the
-   forearm but applies NO turn for 0–25 deg (`_similarity`, :50-51, is scale + translation only); step 5 (rigid per-segment pose
-   correction) has no tool anywhere in Lampway.
-3. **No soft-part conform in Lampway.** The cage and wrap live only in Titan (`equipment_cage.py`, `equip-adjust.py`).
-4. **Pose solve only for the chest** (LT `posing.py:21-29`); helmet/waist/boots/gauntlets answer `needs_decision`.
-5. **Glove pose/bind not built** (LT `pipeline/fit_glove.py:70-76`).
-6. **The weights come from a scene body object, not the native sidecar** (LT `features/fit_bind.py:146,185`).
-7. **Bind-and-return is not built** (LT `features/fit_bind.py:188-206` reports a rest residual only); Titan's version uses the
-   wrong inverse (canon 04).
+1. `api.fit` delegates the canonical order through `pipeline/fit_order.py`, records
+   receipts, checks predecessor stages and uses the package's native sidecar.
+   `test_canon_item13_fit.py` pins the gates; `test_canon_item13_fit_e2e.py` runs
+   the real stages on synthetic and seam-split body packages. This is distinct
+   from the older planning-only `armor_piece` runbook.
+2. `pipeline/fit_place.py` applies rigid gauntlet axis correction, pinned by
+   `test_canon_item5_place.py`. General per-segment `pose_correct` remains a
+   measured caller-supplied receipt, rather than a separate correction engine.
+3. Soft-part conform remains unbuilt. The composite skips it for all-rigid
+   roles; soft parts require the still-open deformer decision.
+4. `posing.py` has complete chest and accepted helmet tables. Waist, boots and
+   gauntlets run supplied DOFs or bounded measurement candidates; their default
+   numerical tables remain unruled (canon08).
+5. Independent labelled gloves use the shared pose and bind engines through
+   `pipeline/fit_glove.py`, pinned by `test_wave3_glove_state.py`. Default
+   gauntlet DOFs remain unruled; automatic mirror relabelling is separate and
+   does not prevent an independently labelled glove from running.
+6. `features/fit_bind.py` samples the native sidecar at the fit pose when a body
+   package is supplied. Its explicit scene-body alternative is reported as such;
+   the composite requires the native package path.
+7. Bind-and-return uses the exact inverse of each vertex's blended transform,
+   checks the sampled pose hash and refuses singular blends. Canon04 and
+   `test_canon_item4_tools.py` retain the blend-of-inverses falsifier.
 
 ## G. Agent-facing tool contract — `lampway_fit` (composite)
 

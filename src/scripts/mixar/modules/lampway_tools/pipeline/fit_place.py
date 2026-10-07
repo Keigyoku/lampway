@@ -205,7 +205,7 @@ def _boots(bV, bT, J, V, T, C, anchor, sides):
         pw, pd, pp = S.section(V, pt, np.zeros(3), S.Z, S.X, lo + 0.6 * h)
         ft = sub[sub[:, 2] < lo + 0.04 * h]
         pfl = ft[:, 1].max() - ft[:, 1].min()
-        scale = {"width": (bw + 2 * C) / pw, "height": (k_[2] + C) / h, "foot": (fl + 2 * C) / pfl}
+        scale = {"width": (bw + 2 * C) / pw, "height": (k_[2] - foot[:, 2].min() + C) / h, "foot": (fl + 2 * C) / pfl}
         rows.append({"side": sfx, "scales": scale, "bp": S.centre(bp), "pp": _inner_centre(V, pt, lo + 0.6 * h, pp), "sole_body": float(foot[:, 2].min()), "sole_piece": float(lo),
                      "foot_y_body": float((foot[:, 1].max() + foot[:, 1].min()) / 2), "foot_y_piece": float((ft[:, 1].max() + ft[:, 1].min()) / 2)})
     s = float(np.mean([r["scales"][anchor] for r in rows]))

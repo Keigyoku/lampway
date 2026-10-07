@@ -76,22 +76,27 @@ every later point back to the piece's own frame (canon 08 blockers, region regen
 | G09.6 asymmetric pair | `tests/lampway_tools/test_canon_pair_scale.py`, actual tubes with one side uniformly1.5× larger | measured scales differ >0.1; triangle/vertex identities retained; inverse error <1e-9m; native scene matches output <1e-6m | unconditional averaging cannot express independent scales |
 | G09.5 boots | no `scale_anchor` | REFUSED naming the three anchors | a default anchor |
 
-## F. Implementation gap (Lampway `b806617f`)
+## F. Current implementation and remaining gaps (2026-10-07)
 
-1. LT `pipeline/sections.py:36-39` `centre` (percentile extents of ALL section points) drives helmet/waist/boots placement
-   (`fit_place.py:64,82,111`); the gauntlet uses the mean of the section points (`fit_place.py:164`). Both are all-vertex measures
-   (G09.1 falsifier). The chest path (`place_piece.py`) uses first hits from the centre — the inner wall — and is correct.
-2. Rotation not applied for gauntlets (0–25 deg left; `fit_place.py:161-168`, `_similarity` :50-51).
-3. Absolute constants: waist torso filter `|x| < 0.27` (`fit_place.py:71`), boots foot `z < 0.04` (`:98`), gauntlet arm `|x| > 0.25`
-   (`:132`).
+1. `pipeline/fit_place.py` centres measured sections through inner-wall harmonic
+   enclosure. `test_canon_item5_place.py` retains the all-vertex-centre falsifier.
+2. Gauntlet residual axis correction is a proper rigid rotation, covered by the
+   same suite's tilted-bracer test.
+3. Regions follow nearest anatomical bone segments rather than absolute x/z
+   filters. The boot sole band's origin is its measured sole, and height-anchor
+   scale is knee-to-sole length; translating the body or both inputs preserves
+   scale and translates the placed result (`test_boot_height_translation.py`).
+   The sole band still has an absolute 4cm thickness, explicitly uncalibrated
+   against joint scale. This correction does not select a default boot anchor.
 4. Pairs: explicit `pair_scale_group=common|per_side` paths are implemented. Per-side placement records vertex ids and one proper similarity per separated side, with an exact inverse; cross-centre triangles refuse. The native scene API validates all groups before writing any vertex. Omitted mode preserves the historical calculation and records `pair_scale_needs_decision=true`; D4 has no canonical default.
-5. No source-part check before placement.
+5. The composite `fit` intake checks source-part fidelity before placement.
+   Standalone placement requires its caller to preserve that precondition.
 
 ## G. Agent-facing tool contract — `lampway_fit_place`
 
 ```json
 {"kind": "chest|helmet|waist|boots|gauntlets", "piece": "piece.npz", "body": "fit_body package dir", "turn": -90,
- "clear_mm": 15, "pair_scale_group": "common|per_side (explicit; default unruled)", "scale_anchor": "width|height|foot|girth (boots: REQUIRED)", "sides": "both|l|r", "out": "placed.npz"}
+ "clear_mm": 15, "pair_scale_group": "common|per_side (explicit; default unruled)", "scale_anchor": "width|height|foot (boots: REQUIRED)", "sides": "both|l|r", "out": "placed.npz"}
 ```
 Refusals: boots without an anchor; a side with < 50 triangles; axis more than 25 deg off its bone without `rotate: true`; a gauntlet
 whose finger end is up; a piece failing the source-part check; body package without joints. Receipt: meta above +

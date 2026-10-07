@@ -43,6 +43,14 @@ Canon 08 distinguishes its accepted complete helmet table from still unspecified
 
 The normalize_mesh contract names the native cardinal-facing golden and symmetric tie falsifier. Canon 10 fixes native plate aspect and border-ring keying; the D6 default remains unset until a numeric ruling, while explicit margins exercise the implemented engine.
 
+Current fit descriptions distinguish implemented composite order, independent
+glove engines, the accepted helmet pose table and exact bind-return from the
+still-unruled AC65 physical defaults. `AC65-DECISION-AUDIT.md` names all six
+measurement prerequisites without inventing a numerical ruling. Boot height
+anchors measure knee-to-sole length; body-only and both-input translation tests
+retain the original sole-at-zero result. Re-run earlier height candidates on the
+corrected source before using them to recommend an anchor.
+
 ## Test
 
 ```bash
@@ -79,3 +87,4 @@ needs it and lands through the integration lane. Statuses, thresholds and the de
 
 | 2026-10-07 | complete native topology roles and consumers | actual terminal half-driver refusal and full342graph receipt | serial continuation additions missed auxiliary chains, convention classification measured drivers and core minimum claimed full roster | Audit the complete measured342-edge native profile before mutation. Anatomical core terminals use canonical parent-line endpoints; exact verified auxiliaries preserve authored frames and are excluded from anatomical convention classification. Share validated/fingerprint-bound endpoints with weighting and posed openings; unknown/reparented edges refuse. Missing native rows are explicit and cannot publish a full body/export. | complete342native RED/GREEN, unknown/reparented/stale controls and partial-publication refusals |
 | 2026-10-07 | bounded native rest-frame serialization | actual complete-rig proper-rotation failure | independently normalized float32 columns retained cancellation error beyond the strict validator | Canonical rest-frame serialization may project only positive-determinant float32 producer errors within the documented spectral admission budget and unchanged axis bar. Retain valid values, strict CA validation, raw reads/fingerprints and authored matrices; refuse material shear/reflection and retain the hashed full private receipt with bounded public correction metrics. | actual three-frame external receipt, complete342 oblique graph and material-error falsifiers |
+| 2026-10-07 | current AC65 descriptions and boot height covariance | six-default audit after native-frame repair | stale no-orchestrator/glove/return claims hid implemented engines; absolute knee height changed boot scale when the body moved | distinguish engines from physical defaults, document all six evidence prerequisites and require sole-relative boot height with rerun of older candidates | body-only and both-input translation RED/GREEN; current fit regression receipts |
