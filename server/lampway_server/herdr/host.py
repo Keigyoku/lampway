@@ -1,5 +1,6 @@
 """The cockpit's session host: a durable registry of the agent sessions Lampway created in ITS OWN herdr server, and a reconcile that treats the live server as the truth (see the package
 docstring for the invariants). Every herdr call goes through launcher.run; nothing here spawns a process or stops anything implicitly."""
+import contextlib
 import json
 import os
 import re
@@ -9,6 +10,7 @@ import time
 import uuid
 from pathlib import Path
 
+from .. import egress as EG
 from . import launcher as L
 
 AGENTS = ("claude", "codex", "opencode", "shell", "command")
@@ -20,8 +22,30 @@ _CTRL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]|\x1b\[[0-9;?]*[ -/]*[@-~]"
 _LOCK = threading.Lock()
 
 
+#: The egress route that gates starting each harness (agent-modes spec B5): the harness talks to its vendor directly; the start is the opt-in.
+HARNESS_ROUTES = {"claude": "byoa:claude", "codex": "byoa:codex", "opencode": "byoa:opencode"}
+#: The Connections entries whose key a pane receives when the user ticks "bill this pane to my API key" (B5); none otherwise.
+API_KEY_CONNECTIONS = {"claude": ("anthropic",)}
+
+
 class CockpitError(ValueError):
     pass
+
+
+def _key_env(agent) -> list:
+    """['--env', 'NAME=value', ...] for the user's per-pane API-key opt-in: only the keys of this harness's own vendor."""
+    from .. import connections
+    out = []
+    for cid in API_KEY_CONNECTIONS.get(agent, ()):
+        try:
+            values = connections.credential(cid).env()
+        except Exception:  # noqa: BLE001 - not connected: the pane runs on the harness's own login
+            continue
+        for k, v in values.items():
+            out += ["--env", f"{k}={v}"]
+    if not out:
+        raise CockpitError(f"no API key is connected for {agent}: connect one in Connections, or start the pane on the harness's own login")
+    return out
 
 
 def agent_args(agent, effort=None, bypass=False, resume_id=None, session_id=None) -> list:
@@ -103,7 +127,7 @@ class Cockpit:
         return json.loads(L.run(self.root, ["api", "snapshot"]))["result"]["snapshot"]
 
     # ------------------------------------------------------------------------------------------------- sessions
-    def create_session(self, agent, name, cwd, task="", effort=None, bypass=False, resume_id=None, command=None, by="user", project_root=None) -> dict:
+    def create_session(self, agent, name, cwd, task="", effort=None, bypass=False, resume_id=None, command=None, by="user", project_root=None, api_key=False) -> dict:
         if agent not in AGENTS:
             raise CockpitError(f"unknown agent {agent!r}: the agents are {', '.join(AGENTS)}")
         name = str(name or "").strip()
@@ -119,11 +143,18 @@ class Cockpit:
             raise CockpitError("the folder must be inside the project root")
         if agent == "command" and not command:
             raise CockpitError("a command session needs the command")
+        if api_key and by != "user":
+            raise CockpitError("only the user can bill a pane to an API key, with their own click in the cockpit: an agent never can")
         if not L.server_status(self.root).get("running"):
             raise CockpitError("the herdr server is not running: start it from the cockpit first (nothing is launched automatically)")
+        route = HARNESS_ROUTES.get(agent)
+        with (EG.guard(route, kind="request") if route else contextlib.nullcontext()):    # B5: logged before herdr is asked; refused with the route off
+            return self._create(agent, name, real, task, effort, bypass, resume_id, command, by, api_key)
+
+    def _create(self, agent, name, real, task, effort, bypass, resume_id, command, by, api_key) -> dict:
         snap = self.snapshot()
         ws = next((w for w in snap["workspaces"] if w.get("label") == WORKSPACE_LABEL), None)
-        env = L.pane_env()
+        env = L.pane_env() + (_key_env(agent) if api_key else [])
         if ws is None:
             out = json.loads(L.run(self.root, ["workspace", "create", "--cwd", real, "--label", WORKSPACE_LABEL, "--no-focus", *env]))["result"]
         else:
@@ -144,7 +175,8 @@ class Cockpit:
             tokens = [agent]
         rec = {"id": uuid.uuid4().hex[:12], "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
                "terminal_id": pane.get("terminal_id"), "workspace_id": pane.get("workspace_id"), "tab_id": pane.get("tab_id"), "native_id": native_id, "command": command, "match": tokens,
-               "state": "live", "adopted": True, "agent_sends": False, "created_at": time.time(), "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by}
+               "state": "live", "adopted": True, "agent_sends": False, "created_at": time.time(), "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by,
+               "api_key": bool(api_key)}
         self._update(lambda d: d["sessions"].append(rec))
         return rec
 

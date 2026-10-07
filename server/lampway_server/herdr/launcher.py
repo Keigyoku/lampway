@@ -39,11 +39,18 @@ def socket_paths(root) -> tuple:
     return a, b
 
 
+def scrubbed_base() -> dict:
+    """The server's environment with every secret-shaped variable and every Connections name removed (connections.env_for([])):
+    herdr, and so every pane, starts from it (agent-modes spec B5). A key reaches a pane only through the user's per-pane opt-in."""
+    from .. import connections
+    return dict(connections.env_for([]))
+
+
 def env_for(root) -> dict:
-    """The full Lampway environment: every herdr variable under the Lampway root, the fleet's HERDR_* scrubbed. The panes' real login environment is passed separately (pane_env)."""
+    """herdr's environment: the scrubbed base, every herdr variable under the Lampway root, the fleet's HERDR_* scrubbed. The panes' real login environment is passed separately (pane_env)."""
     root = Path(root)
     sock, csock = socket_paths(root)
-    env = {k: v for k, v in os.environ.items() if not k.startswith("HERDR_")}
+    env = {k: v for k, v in scrubbed_base().items() if not k.startswith("HERDR_")}
     home = root / "home"
     (home / ".config" / "herdr").mkdir(parents=True, exist_ok=True)
     env.update(HOME=str(home), XDG_CONFIG_HOME=str(home / ".config"), HERDR_SOCKET_PATH=str(sock), HERDR_CLIENT_SOCKET_PATH=str(csock),

@@ -23,6 +23,7 @@ A route is one place data can go. The server knows these routes and their hosts;
 | `model_download` | a plain GET of public model weights (Hugging Face) | huggingface.co and its CDNs | ok: no content is sent, the host sees your IP address and the file you asked for |
 | `compute:boat` | Boat cloud CPU boxes | boat.dev | conditional: snapshots off and no environment passed |
 | `compute:modal`, `compute:runpod` | serverless GPU endpoints | their own hosts | unknown |
+| `byoa:claude`, `byoa:codex`, `byoa:hermes`, `byoa:opencode`, `byoa:pi`, `byoa:grok`, `byoa:cursor` | starting your own agent CLI in a pane of Lampway's herdr server (Bring Your Own Agent): the harness talks to its vendor directly under your account, and Lampway does not see or log that traffic; the route gates the start and logs it | none from Lampway (the harness reaches its own vendor) | unknown |
 
 "Unknown" is stated honestly: the providers' terms (retention, training) have not been read or recorded for these routes, so Lampway does not claim a policy it has not verified. The panel shows each route's retention and training line as the code has it.
 

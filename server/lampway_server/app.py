@@ -908,6 +908,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         body = await _json_body(request)
         if body.get("bypass") and os.environ.get("LAMPWAY_ALLOW_BYPASS_ROUTE") != "1":
             return _wb_err("bypass can only be raised by the user's own click in the cockpit: a request cannot lift the permission level", 403)
+        if body.get("api_key") and _wb_origin(request) != "user":
+            return _wb_err("only your click in the cockpit bills a pane to an API key: a request from an agent cannot", 403)
         if body.get("agent") in ("claude", "codex", "opencode"):
             try:
                 cli_adapters.require_enabled(settings.state_dir)
@@ -915,10 +917,12 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
                 return _wb_err(f"the local CLI switch is off: {exc}", 403)
         try:
             rec = await asyncio.to_thread(cockpit.create_session, body.get("agent"), body.get("name"), body.get("cwd") or str(_project_root()), body.get("task") or "", body.get("effort"),
-                                          False, body.get("resume_id"), body.get("command"), "user")
+                                          False, body.get("resume_id"), body.get("command"), "user", None, bool(body.get("api_key")))
             return JSONResponse(rec)
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
+        except PermissionError as exc:                                               # egress consent: the harness's byoa route is off (spec B5)
+            return _wb_err(exc, 403)
 
     async def wb_screen(request: Request):
         if (r := _wb(request)) is not None:
