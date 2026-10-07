@@ -70,7 +70,7 @@ Here are some ways to run scripts directly in Blender:
 
   .. code-block:: sh
 
-     blender --python /home/me/my_script.py
+     blender --python /path/to/my_script.py
 
 
 To run as modules:

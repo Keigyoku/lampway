@@ -15,7 +15,16 @@ The manual comes from the official
 `blender-v5.2-release` commit `4a3be8f9ed3b66b24913e0a0d491d3429a70ea08`.
 The official repository had no matching 5.2 release tag at acquisition; this
 immutable release-branch commit is the pin. Manual documentation is copyright
-Blender Documentation Team, CC-BY-SA-4.0. RST files retain their original contents.
+Blender Documentation Team, CC-BY-SA-4.0.
+
+Three packaged RST files are modified derivatives made by Lampway contributors
+on 2026-10-07: the API script-path example uses a generic absolute path; the
+manual authentication example uses an explicit access-token placeholder; and
+the manual Git remote example uses a placeholder for the SSH URL obtained by
+the preceding instruction. All other RST files retain their original contents.
+`manifest.json` lists each derivative's source path and revision, original
+SHA256, packaged SHA256, replacement and transformation. These example-only
+changes preserve the documented operations and the source licences above.
 
 Parser, search and API lookup helpers come from
 [Blender Lab MCP](https://projects.blender.org/lab/blender_mcp), v1.0.3, commit

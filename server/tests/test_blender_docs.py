@@ -114,6 +114,45 @@ def test_all_bundled_rst_match_pinned_manifest():
     assert actual == manifest["files_sha256"]
 
 
+def test_publication_derivatives_preserve_provenance_and_documented_operations():
+    from lampway_server.blender_docs import index
+    import hashlib
+    manifest = index.manifest()
+    derivatives = manifest.get("publication_derivatives", {})
+    assert len(derivatives) == 3, "publication derivatives need original and packaged provenance"
+    for path, provenance in derivatives.items():
+        content = (index.DATA / path).read_bytes()
+        assert provenance["packaged_sha256"] == hashlib.sha256(content).hexdigest()
+        assert provenance["packaged_sha256"] == manifest["files_sha256"][path]
+        assert provenance["upstream_original_sha256"] != provenance["packaged_sha256"]
+        assert len(provenance["upstream_original_sha256"]) == 64
+        assert provenance["changed_lines"] == 1
+        assert provenance["source_revision"] == manifest[
+            "upstream_revision" if path.startswith("api/") else "manual_revision"]
+    token_page, failed = call(view="get", scope="manual", full=True,
+                             identifier="advanced/extensions/creating_repository/dynamic_repository")
+    assert not failed
+    assert 'Authorization: Bearer <ACCESS-TOKEN>' in token_page["data"]["doc"]
+    fork_page, failed = call(view="get", scope="manual", full=True,
+                            identifier="contribute/manual/getting_started/local_editing/pull_requests")
+    assert not failed
+    assert 'git remote add me <SSH-REMOTE-URL>' in fork_page["data"]["doc"]
+    assert 'Click *SSH* to see the correct URL' in fork_page["data"]["doc"]
+    api_page, failed = call(view="get", identifier="info_overview", full=True)
+    assert not failed
+    assert 'blender --python /path/to/my_script.py' in api_page["data"]["doc"]
+
+
+def test_documentation_search_still_finds_modified_pages():
+    searches = [("Authorization header", "manual", "advanced/extensions/creating_repository/dynamic_repository"),
+                ("personal fork", "manual", "contribute/manual/getting_started/local_editing/pull_requests"),
+                ("run scripts directly", "api", "info_overview")]
+    for query, scope, identifier in searches:
+        result, failed = call(view="search", query=query, scope=scope, limit=50)
+        assert not failed
+        assert identifier in {row["identifier"] for row in result["data"]["results"]}
+
+
 def test_in_app_dispatch_keeps_json_and_never_asks_blender(monkeypatch):
     import json
     from lampway_server.agent.turns import AgentHub

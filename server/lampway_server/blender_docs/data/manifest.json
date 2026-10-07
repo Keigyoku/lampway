@@ -1980,7 +1980,7 @@
     "api/info_gotchas_meshes.rst": "ce97f9acd857f3b0f5b6fd1dd41732e034c6a8e2464b663fc3aa1b60a4560fbc",
     "api/info_gotchas_operators.rst": "047bf92610eaf5061d81cc64eb50213317f38f32e232c90faea82b6c4ca8c37d",
     "api/info_gotchas_threading.rst": "f2a4964f20b5529e01003f1ec9be551f294764d4aa596752908a94470c63022b",
-    "api/info_overview.rst": "30a085b2329dd64a433713975bdd640bff5bad7dc855e37d98f5749738ba18a2",
+    "api/info_overview.rst": "9f908f0b2a2f0ba7a446f78c5311d56984981d1895ead758d19863c644e402e9",
     "api/info_quickstart.rst": "ed66db78f0f8e383f9882e19439be596d415b9012b6c296df7d68cffea456c88",
     "api/info_tips_and_tricks.rst": "db64bcb1f91e86667149d5d1573fc06127a9960759c09ecb2574d46e81797e30",
     "api/mathutils.bvhtree.rst": "fb01cf98c039a019ed6e45bce4457cf5cb4d82005ac3ef1704fb4a0e0c7269cb",
@@ -2022,7 +2022,7 @@
     "manual/advanced/command_line/render.rst": "65f58282359f101b6b163d4ae68587fd3cde686843db3f370e921a20d731873f",
     "manual/advanced/deploying_blender.rst": "3dda542fb6ac7bd85049242159edff8a7a504dbb81a20a54375a0e76313c94ba",
     "manual/advanced/extensions/addons.rst": "5d03c3f929d567521f082573a6cbcfd8c6740b5709db2b58e3e1f0b3181dbd63",
-    "manual/advanced/extensions/creating_repository/dynamic_repository.rst": "1da1caf58fa09886e5da137436180c9149c91b72f17b3b3389ab48066ba8739b",
+    "manual/advanced/extensions/creating_repository/dynamic_repository.rst": "843e81588ee7f28d3e00bd0f9c88efc101cde93f4fc2b92ab08501fd623164cf",
     "manual/advanced/extensions/creating_repository/index.rst": "3b6afc180a74c7b70a1a4e4b556fa7aa03f1f30520926ed2119fd116854fcfc9",
     "manual/advanced/extensions/creating_repository/static_repository.rst": "d16482add77822acd40aac93bf2ce46b7dd1f9f01ce55e31661d5ef061843859",
     "manual/advanced/extensions/getting_started.rst": "e27a704553bdd95b1581bd8f2cbafdb26fffa1473e931ba185335d832eb16d58",
@@ -2384,7 +2384,7 @@
     "manual/contribute/manual/getting_started/local_editing/install/linux.rst": "1e06b750c931fad2748bc08352973fd2489c5669bf4affc047df7fa2cb08d1d5",
     "manual/contribute/manual/getting_started/local_editing/install/macos.rst": "c36e2c94ea50564ee7f01727e38adcfd57ae8a28e05d5fd1bd5fb374c774779f",
     "manual/contribute/manual/getting_started/local_editing/install/windows.rst": "4f26b022ff59d1cf76f6e6e2fece3834d0113b6f5b88ad0a2bc1c467c74fb4de",
-    "manual/contribute/manual/getting_started/local_editing/pull_requests.rst": "825df49ec3811946e3cdff6a47f44da5899150493b16e8632d4c5575cd47957b",
+    "manual/contribute/manual/getting_started/local_editing/pull_requests.rst": "f589e54bf6aa30017d63860692680a1e71f6d90a08936db58ac3504d63754beb",
     "manual/contribute/manual/getting_started/online_editing.rst": "52a538bb7a52b800f65b31b8a7890e2a405c841d3220672ab7c01c23b52abc8c",
     "manual/contribute/manual/guides/commit_guide.rst": "607bf31751e1ace0dab6bb858dc92835e25747969078d1653f16cdd668031844",
     "manual/contribute/manual/guides/icons.rst": "beafc9753e6971601786f92b95b4c0e12d268f8ca41978f027116e7393f71b7b",
@@ -4347,5 +4347,40 @@
     "manual/video_editing/setup/index.rst": "be1cb207505428a27bc321676f8752f9e38070c78adb261387d58e1abeccba7e",
     "manual/video_editing/storyboarding/app_template.rst": "b0a43c8849948a326ade9f2fc4ffc5dcc45c6f5a865912ced53e7a623c278934",
     "manual/video_editing/storyboarding/index.rst": "b6f72a91ea72998102bdf3bd8eab03d896f5891ac5753c7da5478ff815d63759"
+  },
+  "publication_derivatives": {
+    "manual/advanced/extensions/creating_repository/dynamic_repository.rst": {
+      "upstream_original_sha256": "1da1caf58fa09886e5da137436180c9149c91b72f17b3b3389ab48066ba8739b",
+      "packaged_sha256": "843e81588ee7f28d3e00bd0f9c88efc101cde93f4fc2b92ab08501fd623164cf",
+      "source_revision": "4a3be8f9ed3b66b24913e0a0d491d3429a70ea08",
+      "source_path": "manual/advanced/extensions/creating_repository/dynamic_repository.rst",
+      "changed_lines": 1,
+      "transformation": "replace illustrative bearer credential with explicit access-token placeholder",
+      "replacement": "<ACCESS-TOKEN>",
+      "modified_by": "Lampway contributors",
+      "modification_date": "2026-10-07"
+    },
+    "manual/contribute/manual/getting_started/local_editing/pull_requests.rst": {
+      "upstream_original_sha256": "825df49ec3811946e3cdff6a47f44da5899150493b16e8632d4c5575cd47957b",
+      "packaged_sha256": "f589e54bf6aa30017d63860692680a1e71f6d90a08936db58ac3504d63754beb",
+      "source_revision": "4a3be8f9ed3b66b24913e0a0d491d3429a70ea08",
+      "source_path": "manual/contribute/manual/getting_started/local_editing/pull_requests.rst",
+      "changed_lines": 1,
+      "transformation": "replace illustrative SSH remote with placeholder for URL obtained using the documented SSH button",
+      "replacement": "<SSH-REMOTE-URL>",
+      "modified_by": "Lampway contributors",
+      "modification_date": "2026-10-07"
+    },
+    "api/info_overview.rst": {
+      "upstream_original_sha256": "30a085b2329dd64a433713975bdd640bff5bad7dc855e37d98f5749738ba18a2",
+      "packaged_sha256": "9f908f0b2a2f0ba7a446f78c5311d56984981d1895ead758d19863c644e402e9",
+      "source_revision": "fbe6228777e7d9afefcd61a413844e790ae75db7",
+      "source_path": "doc/python_api/rst/info_overview.rst",
+      "changed_lines": 1,
+      "transformation": "replace illustrative personal home with generic absolute script path",
+      "replacement": "/path/to/my_script.py",
+      "modified_by": "Lampway contributors",
+      "modification_date": "2026-10-07"
+    }
   }
 }

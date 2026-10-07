@@ -88,3 +88,62 @@ No push, merge, deployment or publication was performed. The final full server,
 rail, generated documentation and exact-head checks belong to lane closeout;
 the targeted result above is not a claim that the repository's baseline suites
 are all green.
+
+## Publication derivatives and original-contract re-audit (2026-10-07)
+
+The unchanged pre-publish gate initially reported three findings in this lane's
+bundled RST: one illustrative bearer credential, one Git SSH remote matching the
+email detector, and one API script example containing a personal home path.
+These are now explicit placeholders or a generic absolute path. The original
+documents' headings, RST directives, identifiers and surrounding explanations
+are retained. The manual's Fork instructions still explain obtaining the SSH
+URL; the authentication example still shows the Authorization header; the API
+example still runs a Python script using an absolute path.
+
+The manifest's `publication_derivatives` records each of the three upstream
+original hashes, packaged hashes, source revisions and paths, transformation,
+replacement, modifier and date. Existing `files_sha256` entries now describe
+packaged bytes. The shipped notice marks the adaptations; GPL-2.0-or-later API
+and CC-BY-SA-4.0 manual attribution/licence texts are preserved. No gate,
+allow-list, exemption, security setting or git history changed.
+All three original hashes were independently checked against their source
+files: API `doc/python_api/rst/info_overview.rst` in pinned upstream, and both
+manual files under `manual/` in the official checkout at the manifest revision.
+
+RED before changing the data:
+`<server-python> -m pytest -o addopts= -q tests/test_blender_docs.py -k 'publication_derivatives or modified_pages'`
+reported **1 failed, 1 passed**, failing because derivative provenance was absent.
+GREEN: `<server-python> -m pytest -o addopts= -q tests/test_blender_docs.py`
+reported **24 passed in 2.71s**. It checks all 4,327 packaged hashes, derivative
+metadata and operations, modified-page search discoverability, Object.location
+lookup and Bevel Modifier ranking. The unchanged command
+`python3 scripts/lampway/prepublish_gate.py --tree server/lampway_server/blender_docs`
+now reports **0 findings**. These results supersede the earlier corpus bytes;
+the earlier wheel hash above does not identify the current sanitized package.
+
+T3's exact source requires a manual at a matching release tag. A fresh official
+remote query on 2026-10-07,
+`git ls-remote https://projects.blender.org/blender/blender-manual.git 'refs/tags/*5.2*' 'refs/heads/blender-v5.2-release'`,
+returned only `4a3be8f9ed3b66b24913e0a0d491d3429a70ea08 refs/heads/blender-v5.2-release`
+and no matching tag. The immutable official release-branch pin is accurately
+recorded, but **the matching-release-tag contract remains unmet**. Acceptance
+question: may this exact official release-branch revision substitute for the
+unavailable 5.2 release tag, retaining the pin and provenance until an official
+tag exists? No substitute tag is created or represented as upstream's.
+
+The exact T3 test says the data's Blender version equals
+`bpy.app.version_string`. The manifest records that literal branded value as
+`blender_version_string: 0.1.0`, separately from `core_version: 5.2.0`.
+The native overlay confirms the distinction: `BKE_blender_version.h` declares
+Blender core 502/patch 0 and Mixar brand 1/patch 0;
+`blenkernel/intern/blender.cc` formats `BKE_blender_version_string()` from the
+brand macros; upstream `python/intern/bpy_app.cc` exposes it as the Python
+version string. Thus the branded metadata equality is preserved. **Literal
+core-version equality with the branded runtime string is false** and cannot be
+claimed. If acceptance requires that stronger equality, the captain must decide
+whether the separately recorded runtime and core identities suffice; changing
+the product's native version identity is outside this documentation lane.
+
+Any already-published ordinary commit-email metadata remains an integrator
+historical-action finding. This forward correction does not remove historical
+RST blobs or identities and does not authorize rewriting published history.

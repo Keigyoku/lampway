@@ -44,4 +44,4 @@ This is passed to the servers via an Authorization header:
 
    curl -i https://extensions.blender.org/api/v1/extensions/ \
         -H "Accept: application/json" \
-        -H "Authorization: Bearer abc29832befb92983423abcaef93001"
+        -H "Authorization: Bearer <ACCESS-TOKEN>"

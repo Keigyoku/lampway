@@ -31,7 +31,7 @@ Fork
 #. Now you will have to add your personal fork as a remote in your local git repository.
    Click *SSH* to see the correct URL, and then add it like this::
 
-      git remote add me git@git.blender.org:<USERNAME>/blender-manual.git
+      git remote add me <SSH-REMOTE-URL>
 
 .. note::
 
