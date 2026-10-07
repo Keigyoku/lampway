@@ -72,3 +72,77 @@ def test_plan_counts_actual_renderer_calls_without_claiming_runtime():
     result = C.plan(request)
     assert result['cube_rows'] == 32768 and result['scene_captures'] == 32780
     assert result['writes'] is False and 'unmeasured' in result['runtime_estimate']
+
+
+class UEVector4:
+    def __init__(self, x, y, z, w):
+        self.x, self.y, self.z, self.w = x, y, z, w
+
+    def __str__(self):
+        return '<Struct Vector4 (0x%x) %r>' % (id(self), [self.x, self.y, self.z, self.w])
+
+
+class UEPostProcess:
+    def __init__(self, **values):
+        self.values = values
+
+    def get_editor_property(self, key):
+        return True if key.startswith('override_') else self.values[key]
+
+
+def test_real_ue_shaped_vector_readbacks_compare_values_not_wrapper_addresses():
+    wanted = UEVector4(1, 1, 1, 1)
+    got = UEVector4(1, 1, 1, 1)
+    assert str(wanted) != str(got)
+    settings = C.postprocess_readback(UEPostProcess(color_saturation=got), {'color_saturation': wanted})
+    assert settings == {'color_saturation': [1.0, 1.0, 1.0, 1.0]}
+    assert '0x' not in json.dumps(settings)
+
+
+@pytest.mark.parametrize('components', [(1, 1, 1, 0.9), (float('nan'), 1, 1, 1),
+                                        (1, float('inf'), 1, 1)])
+def test_vector_mismatch_or_nonfinite_component_is_refused(components):
+    with pytest.raises(ValueError, match='actual postprocess differs'):
+        C.postprocess_readback(UEPostProcess(color_gain=UEVector4(*components)),
+                              {'color_gain': UEVector4(1, 1, 1, 1)})
+
+
+def test_vector_float_readback_tolerance_is_preserved():
+    result = C.postprocess_readback(UEPostProcess(color_gain=UEVector4(1 + 1e-7, 1, 1, 1)),
+                                   {'color_gain': UEVector4(1, 1, 1, 1)})
+    assert result['color_gain'][0] == 1 + 1e-7
+
+
+@pytest.mark.parametrize('got,wanted', [(float('nan'), 1), (1, float('nan')),
+                                      (float('inf'), 1), (0.1, 0), ('1', 1), (1, True)])
+def test_scalar_nonfinite_or_typed_mismatch_is_refused(got, wanted):
+    with pytest.raises(ValueError, match='actual postprocess differs'):
+        C.postprocess_readback(UEPostProcess(white_tint=got), {'white_tint': wanted})
+
+
+class UEExposureMethod:
+    def __init__(self, value):
+        self.value = value
+
+    def __eq__(self, other):
+        return type(self) is type(other) and self.value == other.value
+
+    def __str__(self):
+        return '<Enum AutoExposureMethod (0x%x)>' % id(self)
+
+
+UEExposureMethod.AEM_MANUAL = UEExposureMethod(2)
+UEExposureMethod.AEM_HISTOGRAM = UEExposureMethod(1)
+
+
+def test_enum_readback_uses_typed_value_equality_and_stable_member_receipt():
+    result = C.postprocess_readback(UEPostProcess(auto_exposure_method=UEExposureMethod(2)),
+                                   {'auto_exposure_method': UEExposureMethod.AEM_MANUAL})
+    assert result == {'auto_exposure_method': {'enum_type': 'UEExposureMethod', 'members': ['AEM_MANUAL']}}
+    assert '0x' not in json.dumps(result)
+    with pytest.raises(ValueError, match='actual postprocess differs'):
+        C.postprocess_readback(UEPostProcess(auto_exposure_method=UEExposureMethod.AEM_HISTOGRAM),
+                              {'auto_exposure_method': UEExposureMethod.AEM_MANUAL})
+    with pytest.raises(ValueError, match='actual postprocess differs'):
+        C.postprocess_readback(UEPostProcess(auto_exposure_method=2),
+                              {'auto_exposure_method': UEExposureMethod.AEM_MANUAL})

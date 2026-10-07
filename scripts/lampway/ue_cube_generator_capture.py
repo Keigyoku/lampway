@@ -83,6 +83,49 @@ def write_outputs(root, request, engine, rows, settings, controls):
     return target, sidecar
 
 
+def _postprocess_value(got, wanted, key):
+    """Compare typed UE values; wrapper display strings may contain addresses."""
+    mismatch = 'actual postprocess differs: ' + key
+    if all(hasattr(wanted, axis) for axis in ('x', 'y', 'z', 'w')):
+        if type(got) is not type(wanted):
+            raise ValueError(mismatch)
+        values = []
+        for axis in ('x', 'y', 'z', 'w'):
+            observed, expected = float(getattr(got, axis)), float(getattr(wanted, axis))
+            if not (math.isfinite(observed) and math.isfinite(expected)) or abs(observed - expected) > 1e-5:
+                raise ValueError(mismatch)
+            values.append(observed)
+        return values
+    if isinstance(wanted, bool):
+        if not isinstance(got, bool) or got != wanted:
+            raise ValueError(mismatch)
+        return got
+    if isinstance(wanted, (int, float)):
+        if not isinstance(got, (int, float)) or isinstance(got, bool):
+            raise ValueError(mismatch)
+        if not (math.isfinite(float(got)) and math.isfinite(float(wanted))) or abs(float(got) - float(wanted)) > 1e-5:
+            raise ValueError(mismatch)
+        return got
+    # Native EnumBase values compare semantically. Find their typed class members
+    # rather than serializing the display string or assuming an undocumented .value API.
+    if type(got) is not type(wanted) or got != wanted:
+        raise ValueError(mismatch)
+    members = [name for name in dir(type(wanted)) if name.isupper()
+               and getattr(type(wanted), name) == wanted]
+    if not members:
+        raise ValueError('unsupported postprocess value type: ' + key)
+    return {'enum_type': type(got).__name__, 'members': sorted(members)}
+
+
+def postprocess_readback(actual, fields):
+    settings = {}
+    for key, wanted in fields.items():
+        if not actual.get_editor_property('override_' + key):
+            raise ValueError('actual postprocess override missing: ' + key)
+        settings[key] = _postprocess_value(actual.get_editor_property(key), wanted, key)
+    return settings
+
+
 def plan(request):
     size = request['profile']['project']['cvars']['r.LUT.Size']
     count = sum(1 for _ in grid(size, request['shaper']))
@@ -158,19 +201,7 @@ def capture(ue):
         component.set_editor_property('post_process_settings', pp)
         component.set_editor_property('post_process_blend_weight', 1.0)
         actual = component.get_editor_property('post_process_settings')
-        settings = {}
-        for key, wanted in fields.items():
-            got = actual.get_editor_property(key)
-            if not actual.get_editor_property('override_' + key):
-                raise ValueError('actual postprocess override missing: ' + key)
-            if isinstance(wanted, (int, float, bool)):
-                if abs(float(got) - float(wanted)) > 1e-5:
-                    raise ValueError('actual postprocess differs: ' + key)
-                settings[key] = got
-            else:
-                if str(got) != str(wanted):
-                    raise ValueError('actual postprocess differs: ' + key)
-                settings[key] = str(got)
+        settings = postprocess_readback(actual, fields)
         target = ue.RenderingLibrary.create_render_target2d(world, 8, 8, ue.TextureRenderTargetFormat.RTF_RGBA8)
         raw_target = ue.RenderingLibrary.create_render_target2d(world, 8, 8, ue.TextureRenderTargetFormat.RTF_RGBA16F)
 
