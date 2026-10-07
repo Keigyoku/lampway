@@ -281,12 +281,27 @@ def test_g12_laws_preserve_whole_source_bullets():
 
 
 def test_g12_initialize_cap_omits_whole_bullets(monkeypatch):
+    original = list(GEN.MCP_WORKFLOW)
     extra = 'A complete bullet containing ' + ('é' * 1500) + ' must stay whole.'
-    monkeypatch.setattr(GEN, 'MCP_WORKFLOW', GEN.MCP_WORKFLOW + [extra])
-    text = GEN.mcp_instructions()
+    after = 'After the oversized guidance, this complete short sentence still fits.'
+    workflow = original + [extra, after]
+    monkeypatch.setattr(GEN, 'MCP_WORKFLOW', workflow)
+    # Expose every workflow command: a missing first bullet cannot make this assertion vacuous.
+    offered = set().union(*(GEN._mcp_command_names(line) for line in workflow))
+    if os.environ.get('LAMPWAY_G12_MUTANT'):
+        generate = GEN.mcp_instructions
+        def broken(*args, **kwargs):
+            text = generate(*args, **kwargs)
+            if os.environ['LAMPWAY_G12_MUTANT'] == 'partial':
+                return text.replace(original[0], original[0].split(';')[0])
+            return (text + '\n' + extra).encode()[:2048].decode('utf-8', errors='ignore')
+        monkeypatch.setattr(GEN, 'mcp_instructions', broken)
+    text = GEN.mcp_instructions(local_tool_names=offered)
+    emitted = text.splitlines()
     assert len(text.encode()) <= 2048
     assert 'A complete bullet' not in text
-    assert all(line in GEN.MCP_WORKFLOW for line in text.splitlines() if line.startswith('Each connection'))
+    assert all(line in emitted for line in original), emitted
+    assert after in emitted, emitted
     assert "only the user confirms, from the Client." in text
 
 

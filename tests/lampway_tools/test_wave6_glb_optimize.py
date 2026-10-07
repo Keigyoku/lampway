@@ -84,11 +84,35 @@ def test_default_cube_context_and_failed_import_leave_all_ids_unchanged(tmp_path
     from issue2_native import run_issue_case
     run_issue_case(tmp_path, '''
 from mixar.modules.lampway_tools.features import glb_optimize as G
+if os.environ.get('LAMPWAY_REVERT_GLB_CONTEXT'):
+    import inspect
+    source_code=inspect.getsource(G._import)
+    start=source_code.index('        with bpy.context.temp_override')
+    end=source_code.index('        new =',start)
+    exec(source_code[:start]+'        canon_io.import_raw(path)'+chr(10)+source_code[end:],G.__dict__)
+if os.environ.get('LAMPWAY_REVERT_GLB_CLEANUP'):
+    G._cleanup=lambda scene,new:None
+    canon_io.remove_new_ids=lambda before:None
 source=os.path.join(root,'default.glb')
+cube=bpy.data.objects['Cube'];assert any(c.name=='Collection' for c in cube.users_collection)
+bpy.ops.object.select_all(action='DESELECT');cube.select_set(True);bpy.context.view_layer.objects.active=cube
 bpy.ops.export_scene.gltf(filepath=source,export_format='GLB')
+assert bpy.context.view_layer.objects.active is cube
 before=ids()
 r=call('glb_optimize',glb='default.glb',out='optimized.glb',mesh_compression='none')
 assert r.get('ok'),r
+# A context regression can export an empty document while returning ok.
+# Check actual source/output payloads before considering scene cleanup.
+import struct
+from pathlib import Path
+def mesh_vertex_counts(path):
+    raw=Path(path).read_bytes();size,kind=struct.unpack_from('<II',raw,12)
+    assert kind==0x4e4f534a
+    document=json.loads(raw[20:20+size].decode('utf8'))
+    return [document['accessors'][primitive['attributes']['POSITION']]['count']
+            for mesh in document.get('meshes',[]) for primitive in mesh['primitives']]
+source_counts=mesh_vertex_counts(source)
+assert source_counts and mesh_vertex_counts(os.path.join(root,'optimized.glb'))==source_counts
 assert ids()==before,(ids(),before)
 original=canon_io.import_raw
 def partial_failure(*args,**kw):

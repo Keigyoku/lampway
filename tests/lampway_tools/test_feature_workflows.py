@@ -72,6 +72,12 @@ def test_retopo_uv_lod_weight_chain_records_original_source_and_passes_identity(
     from issue2_native import run_issue_case
     run_issue_case(tmp_path, '''
 from mixar.modules.lampway_tools.features import workflows as W
+# A per-stage control removes the actual stamp call; inherited metadata must not hide its loss.
+if os.environ.get('LAMPWAY_REVERT_SOURCE_STAMP'):
+    import importlib
+    stage=os.environ['LAMPWAY_REVERT_SOURCE_STAMP']
+    module=importlib.import_module('mixar.modules.lampway_tools.features.'+stage)
+    module.stamp_source=lambda output,source:None
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 source=sphere('approved',4)
 r=call('normalize_mesh',input=source.name,turn_deg=0);assert r.get('ok'),r
@@ -90,8 +96,10 @@ body=lod.copy();body.data=lod.data.copy();body.name='nativebody';bpy.context.sce
 g=body.vertex_groups.new(name='root');g.add(list(range(len(body.data.vertices))),1,'REPLACE');m=body.modifiers.new('Armature','ARMATURE');m.object=rig
 r=call('weight_transfer',object=lod.name,source=body.name);assert r.get('ok'),r
 wt=bpy.data.objects[r['object']]
-for ob in (ret,uv,lod,wt):
+for ob,parent in ((ret,source),(uv,ret),(lod,uv),(wt,lod)):
     assert ob.get('lw_source_hash')==digest,(ob.name,dict(ob.items()))
+    assert ob.get('lw_parent')==parent.name,(ob.name,parent.name,dict(ob.items()))
+    assert ob.get('lw_parent_hash')==W.mesh_hash(parent),(ob.name,parent.name,dict(ob.items()))
     r=call('asset_acceptance',object=ob.name,reference=source.name,tolerance=.1)
     assert r.get('ok') and r['gates']['identity']['pass'],r
 assert call('asset_acceptance',object=uv.name,reference=source.name,tolerance=.1)['accepted'],r
@@ -158,8 +166,10 @@ assert sum(wt['influence_histogram'].values())+wt['unweighted_vertices']==len(lo
 outputs=[bpy.data.objects[r['object']],uv,lod,bpy.data.objects[wt['object']]]
 assert len({o.as_pointer() for o in [source,*outputs,body]})==6,'each stage must create an independent object'
 acceptance=[]
-for ob in outputs:
+for ob,parent in zip(outputs,[source,outputs[0],uv,lod]):
     assert ob.get('lw_source_hash')==digest,(ob.name,dict(ob.items()))
+    assert ob.get('lw_parent')==parent.name,(ob.name,parent.name,dict(ob.items()))
+    assert ob.get('lw_parent_hash')==W.mesh_hash(parent),(ob.name,parent.name,dict(ob.items()))
     accepted=call('asset_acceptance',object=ob.name,reference=source.name)
     assert accepted.get('ok') and accepted['accepted'],accepted
     acceptance.append(accepted)
