@@ -33,11 +33,11 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | 15 visual harness | done | `b28846b2` |
 | 14 iconography | done (two fixes) | `5f37ee91`, `ba835be1`, `edf0d549` |
 | 03 window chrome | done | `0afc2d19` |
-| 02 splash and onboarding | done | `ce3c9897` |
+| 02 splash and onboarding | done; routes before the provider (ruling 7) | `ce3c9897`, `a8703707` |
 | 04 chat face | done but test 6 (an approved golden) | `6881d79c`, `0a74414d`, `e003f273`, `a21881e4`, `e29f6f49` |
 | 05 parallel agents | done | `c92396d5` |
 | 06 Studios panel (Providers half to Choices) | done | `10233050` |
-| 07 the Way | done (every batch tool has a typed form) | `faa750b3`, `cf1fc1f7`, `39d8ae9e` |
+| 07 the Way | done: every registered batch tool has a typed form (ruling 6) | `faa750b3`, `cf1fc1f7`, `39d8ae9e`, `1ef0caf1` |
 | 08 generation face | done; A/B is a stub that needs the user's click (as ruled) | `a86df92f`, `e7c96c20`, `d02a4e2f`, `a3356f14`, `508a56a7` |
 | 12 privacy face | done (the two shortfalls fixed) | `0fff1aed`, `a60dce8d` |
 | 13 spend card | done (P0 and the drawn P1 card) | `afa173f9`, `1e857173` |
@@ -46,7 +46,7 @@ Worktree `wt-build` (owns the native build tree and the `lampway-build` box). Co
 | install carries no agent contract | done | `e6668a6b` |
 | 11 model compare | done but the header Pick (in the sidebar) | `3e496b4a`, `e430bfb7`, `64a74195` |
 | 10 cockpit window + report cards mounted | done for the page; its terminal is 16's window, not xterm.js | `3f33a237`, `b95d1acc` |
-| 16 Lampway terminal | a viewport only (the captain's correction; no tabs, no state, no Focus); tests 6, 7, 9, 11 run live; the image link waits on the captain | `ad44c557`, `e370a70b`, `dca41dd5`, `b9054b3e`, `fb2935a5`, `ebf357d8`, `1968d9c6`, `fd51779d` |
+| 16 Lampway terminal | a viewport only (the captain's correction and ruling 11: no tabs, no state, no Focus, no image link); tests 6, 7, 9, 11 run live | `ad44c557`, `e370a70b`, `dca41dd5`, `b9054b3e`, `fb2935a5`, `ebf357d8`, `1968d9c6`, `fd51779d` |
 | cloud audit F17, F22, F23, F24 | done | `d2b645b9`, `11b9db7c`, `75fed27f`, `b06be59d`, `d663255d` |
 | BUILT_FROM stamped by the build | done | `eeb599d9` |
 | brand pages (every page Lampway serves to a browser) | done, report cards and the phone camera page included | `a257a40e`, `535c17c6`, `08e2da21` |
@@ -1035,7 +1035,7 @@ server's `state.json` with tab-title cues and an egress status (`b9054b3e`, from
   commit (`fd51779d`; its code was already gone, so the revert changes no file and records the decision);
 - what remains: the branded config, the isolated home and socket, the download and verify (Get, Update, Remove), and ONE
   window that attaches to Lampway's herdr by plain `herdr` (Open, Ctrl Alt T);
-- pending the captain's decision (W8, he never asked for it): the Ctrl+click image link; left in place, not extended;
+- the Ctrl+click image link (W8): dropped by the captain's ruling 11 (`f854a115`, below);
 - pinned: `test_the_launcher_issues_no_tab_or_spawn_command` (open and reconcile issue one `start` and only `list`; the
   add-on names no tab, spawn, send or activate verb and has no focus), `test_the_config_has_no_tab_bar_and_mirrors_no_state`,
   `test_the_server_writes_no_terminal_state`, `test_there_is_no_focus_route` (RED observed for each before its removal); the WezTerm gate's W4 is now
@@ -1089,3 +1089,33 @@ room); `UNDESCRIBED` 702 -> 691 and `UNBOUNDED_NUMBERS` 258 -> 240 (RED observed
 ### Merge
 `origin/lp/wave5` at `631f4631` merged (`f1a8f67a`, no conflict; it brought no native change). The post-merge hook printed
 "unable to read tree (fbe62287...)" while re-pinning `upstream/`; `upstream/` was already at that commit.
+
+## The captain's rulings on the spec audit (2026-10-06)
+
+### Ruling 11: the Ctrl+click image link is dropped (`f854a115`)
+WezTerm is a viewport only. Removed: the config's hyperlink rule, `open-uri` handler and Ctrl+click mouse bindings; the
+queue under `$LAMPWAY_HOME/wezterm/`; the status refresh's drain into the Image Editor; their tests, the visual state
+`terminal_image` and the live check's link step. The WezTerm gate now requires the config to open no file (W3) and to
+handle no link (W5; self-test: a planted `open-uri` handler is caught). RED observed: the config test and the status bar
+test failed on the link and the drain before the removal. Found on the way: my first cut of the drain also removed
+`_open_awaited_card` (08's Spend-to-card), caught by the status bar test and restored from HEAD before the commit; the
+committed diff of `statusbar.py` is the drain alone. Contract 16 section 0 records the ruling.
+
+### Ruling 6: every batch tool keeps a path to the Way (`39d8ae9e`, `1ef0caf1`)
+The audit's 13 batch tools that only the free-text runner reached, and their typed forms now:
+| tool | form |
+|---|---|
+| uv_score, bake_maps, material_bake, asset_catalog_export | the in-app Defs the Way already offers (`lampway_uv_score`, `lampway_bake_maps`, `lampway_material_bake_export`, `lampway_asset_catalog_export`) |
+| clay_view, mesh_paint_set, relief_project, material_masks, uv_patches, patch_holes, robust_weight_transfer, mesh_qa | `agent/batch_forms.py` (`39d8ae9e`; described and bounded in `97879399`) |
+| render_textured | `lampway_render_textured` (`1ef0caf1`): its first field is the .blend, which the runner now opens before the script (`runner.Tool.opens_blend`; the script's usage is `blender -b <blend> -P ...`) |
+Beyond the 13, the runner registers two more with no form: `rtmw_detect` and `proportion_fit`; both get Defs (`1ef0caf1`).
+`server/tests/test_every_batch_tool_has_a_form.py` reads the runner's registry and fails for any tool with no typed form
+(RED observed: it named the three). The three are placed on the Way (render_textured in mesh-paint, proportion_fit in fit,
+rtmw_detect in bind and export); proportion_fit and render_textured carry "partial: a ported runner script; no test runs
+it end to end", which is the truth. `tests/lampway/test_runner_opens_blend.py` pins the blend opening (RED observed).
+
+### Ruling 7: the four-step onboarding stays, the order is fixed (`a8703707`)
+The audit's F3: a plan provider was refused at step 2 until its route was on, and the route switch was step 3. The steps
+are now Language and keys, What may leave this machine, Where the agent thinks, Spending caps; the provider step's refusal
+says "go Back and switch it on". Unit tests and the real-click visual walk updated (RED observed on the order and the
+sentence).
