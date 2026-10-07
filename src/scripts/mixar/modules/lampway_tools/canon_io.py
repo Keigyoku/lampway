@@ -110,12 +110,14 @@ def load_library(path, **kw):
     return bpy.data.libraries.load(os.fspath(path), **kw)
 
 
-def geometry_sha256(ob):
-    """sha256 over the mesh's world-space vertex positions (float32 little-endian) and its face loops: what a door recomputes."""
+def geometry_sha256(ob, space="world"):
+    """sha256 over the mesh's vertex positions (float32 little-endian) and its face loops. ``space="world"`` (the default, what the
+    normalizer stamps: its object matrix is then the identity, so world IS data) or ``"data"`` (the mesh's own coordinates: what a
+    door recomputes, so a pure translation - a placement - leaves it equal; audit F11)."""
     me = ob.data
     co = np.empty(len(me.vertices) * 3, dtype=np.float64)
     me.vertices.foreach_get("co", co)
-    m = np.array(ob.matrix_world)
+    m = np.array(ob.matrix_world) if space == "world" else np.eye(4)
     P = (co.reshape(-1, 3) @ m[:3, :3].T + m[:3, 3]).astype("<f4")
     loops = np.empty(len(me.loops), dtype=np.int64)
     me.loops.foreach_get("vertex_index", loops)
@@ -128,16 +130,18 @@ def geometry_sha256(ob):
 
 
 def facts(ob):
-    """What a door re-measures on a datablock now: {object_matrix, scene_scale_length, bbox_min_m, bbox_max_m, geometry_sha256}."""
-    out = {"object_matrix": [list(r) for r in ob.matrix_world], "scene_scale_length": float(bpy.context.scene.unit_settings.scale_length)}
+    """What a door re-measures on a datablock now: {object_matrix, placement_m, scene_scale_length, bbox_min_m, bbox_max_m,
+    geometry_sha256}. The bounds and the hash are the mesh's DATA (its own coordinates): the stamp describes the asset, and a pure
+    translation of the object is its placement in the scene (``placement_m``), not a change of the asset (audit F11)."""
+    m = np.array(ob.matrix_world)
+    out = {"object_matrix": m.tolist(), "placement_m": m[:3, 3].tolist(), "scene_scale_length": float(bpy.context.scene.unit_settings.scale_length)}
     if ob.type == "MESH":
         me = ob.data
         co = np.empty(len(me.vertices) * 3, dtype=np.float64)
         me.vertices.foreach_get("co", co)
-        m = np.array(ob.matrix_world)
-        P = co.reshape(-1, 3) @ m[:3, :3].T + m[:3, 3]
+        P = co.reshape(-1, 3)
         out.update(bbox_min_m=P.min(0).tolist() if len(P) else [0, 0, 0], bbox_max_m=P.max(0).tolist() if len(P) else [0, 0, 0],
-                   geometry_sha256=geometry_sha256(ob))
+                   geometry_sha256=geometry_sha256(ob, space="data"))
     return out
 
 

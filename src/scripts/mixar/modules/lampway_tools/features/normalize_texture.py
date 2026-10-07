@@ -103,6 +103,18 @@ def facts(img):
 
 
 def run(input, role="auto", normal_convention="auto", tiling_real_world_m=None, source_naming="none", root="."):
+    """A refused FILE leaves no image behind (audit F5): an image this call loaded is removed when it refuses."""
+    before = {i.as_pointer() for i in bpy.data.images}
+    try:
+        return _run(input, role, normal_convention, tiling_real_world_m, source_naming, root)
+    except Exception:
+        new = [i for i in bpy.data.images if i.as_pointer() not in before]
+        if new:
+            bpy.data.batch_remove(new)
+        raise
+
+
+def _run(input, role, normal_convention, tiling_real_world_m, source_naming, root):
     if source_naming not in SOURCES:
         raise C.FeatureError(f"source_naming {source_naming!r} is one of {', '.join(SOURCES)}")
     if role != "auto" and role not in ROLES:
