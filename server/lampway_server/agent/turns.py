@@ -563,8 +563,8 @@ class AgentHub:
         async def emit_todo(rows):
             await stream.emit_quietly({"bubble_id": bubble_id, "todo": rows})
 
-        # The unit's mode picks the workers' adapter (spec S1 as superseded by A): a tab in Your agent mode runs them on its bound
-        # pane's harness; otherwise Mode 1, Lampway's Hermes pane.
+        # Retain the parent's mode/pane for result delivery and Retry context.
+        # SwarmManager separately resolves the saved worker mode and service.
         mode = self.byoa.mode_of(session.session_id)
         pane = self.byoa.pane_for(session.session_id) if mode == "byoa" else None
         ctx = SwarmContext(socket=socket, session_id=session.session_id, turn_id=turn.turn_id, call_id=call.id,
