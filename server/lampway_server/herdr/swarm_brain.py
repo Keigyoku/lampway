@@ -141,7 +141,7 @@ class PaneBrain:
             self.cockpit.create_session, self.harness, f"{job.worker.name} ({job.meta.get('swarm_id')} {wid})", self.cwd,
             task=f"{job.worker.name}: {job.worker.prompt.strip()[:160]}", by="swarm", project_root=self.project_root,
             prompt=task_text(job), swarm_worker=(name, token), unit=job.meta.get("session_id"),
-            display_agent=f"Worker {wid.rsplit('-', 1)[-1]} · {job.worker.name}"))
+            display_agent=f"Worker {wid.rsplit('-', 1)[-1]} · {job.worker.name}", planned=job.meta.get("workers")))
         try:
             rec = await asyncio.shield(opening)
         except asyncio.CancelledError:

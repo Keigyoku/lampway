@@ -69,13 +69,16 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    The herdr view (spec A4, `herdr/layout.py`): a unit is one scene tab's conversation (its scene session id). A pane bound to a
    tab (created bound, or bound later) is its unit's `main` agent and opens in a tab of its own labelled with the scene's name
    (the Client's `name` on the mode route), else a short id; a worker pane splits into its unit's tab, the first right of the
-   main pane (ratio 0.4), each further one down from the last worker pane still in herdr, placements serialized in the host so
-   workers opened at once still form one column; a unit with no main pane gets one tab for its workers; an ad-hoc pane keeps a
+   main pane, which keeps 60 % (herdr's split ratio is the share the split pane keeps), each further one down from the last
+   worker pane still in herdr; a swarm passes its worker count (`planned`), so its own workers share the column evenly (each
+   split keeps 1/(its workers still to come)), and a worker of another swarm halves the last pane; placements serialized in the
+   host so workers opened at once still form one column; a unit with no main pane gets one tab for its workers; an ad-hoc pane keeps a
    tab of its own; a herdr that refuses the split gets the pane in a tab. Every pane reports `display_agent`, `title` and
    `state_labels` (`pane.report_metadata`), best effort: a failure is logged, never a failed start. Each record carries `unit`,
    `role` (`main` | `worker`) and `unit_label`; reconcile re-adopts them with herdr's current pane and tab ids, lists `units`,
-   and never closes an unknown pane. The herdr CLI argv shapes live only in `herdr/layout.py`; `pane split` and
-   `pane report-metadata` are `[UNVERIFIED]` against an installed herdr.
+   and never closes an unknown pane. The herdr CLI argv shapes live only in `herdr/layout.py`, checked against herdr 0.9.3
+   (its CLI reference and a live server): `pane split <pane> --direction … --ratio …` answers `result.pane` with its `tab_id`;
+   `pane report-metadata` takes one `--state-label STATUS=TEXT` per status and refuses any option it does not know.
    A scene tab's agent mode (spec M0) is known from the chat payload's `agent_mode` and from that binding table (`agent/byoa.py`):
    a Mode 1 `agent.chat` or `agent.input` into a tab in Your agent mode is refused with `code: wrong_mode` before any turn starts.
    Only the user's Client switches a tab (`POST /app/workbench/mode` binds or unbinds, never touching a pane; agent callers refused).
@@ -129,8 +132,10 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
 SKIP, which is not a pass. `tests/test_engine_wiring_live.py` and `tests/test_engine_conformance.py` run the built engine in the real
 server (`LAMPWAY_ENGINES_DIR=<a dir holding hermes/<tag>/engine.json>`); the same rule holds for their skips. The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a paid
 or egress path is tested against a fake transport, never a live provider, unless the captain named the spend.
-herdr is played by `tests/herdr_support.py` `PaneHerdr` (tabs, splits, reported metadata; it parses exactly the `[UNVERIFIED]`
-shapes `herdr/layout.py` writes). The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 with a played
+herdr is played by `tests/herdr_support.py` `PaneHerdr` (tabs, splits, reported metadata; like herdr 0.9.3 it refuses a metadata
+option it does not know), and driven for real, where herdr is installed (`LAMPWAY_HERDR_BIN`, PATH or `~/.local/bin/herdr`), by
+`tests/test_herdr_cockpit.py`, `test_herdr_launcher.py` and `test_herdr_layout_live.py`; without it those SKIP, and a skip is
+not a pass. The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 with a played
 stand-in for `lampway_hermes` in the adapter registry and play each worker pane over the pane endpoint, until A1's adapter exists.
 
 ## Owner
@@ -158,3 +163,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | one agent mode per scene tab and the BYOA island view (M0, B4, server side) | coordinator brief: agent-modes spec M0, B4, captain's E1.10 rule | nothing told the server a tab was in Your agent mode, so a Mode 1 turn could run in a tab a pane drives; the observers were wired to nothing and the island could not show or type into a bound pane | invariant 6 names the two sources of a tab's mode and the `wrong_mode` refusal, the user-only mode route, the read-only observed stream with its replay rule and screen fallback, and the socket-decided origin of the island's sends | none |
 | 2026-10-07 | merge: M0/B4 beside the swarm's pane workers (S3) | coordinator integration of the M0/B4 crew's branch | both branches extended invariant 6 (how a worker pane starts; how a tab's mode is known and observed) and the conflict could have dropped one | invariant 6 keeps both paragraphs; a Your agent tab's refusal comes before the engine's join-the-turn | none |
 | 2026-10-07 | one worker brain and the herdr view (S1, A4, A5) | captain, 2026-10-07: two modes only, every agent a process in a pane on Lampway's herdr server, wrappers only; coordinator brief for the lane (agent-modes spec A0, A4, A5, S1) | swarm workers could think inside the server (`BuiltinBrain`) or as hidden Hermes children (`EngineBrain`, `EngineRuntime.run_worker`); herdr opened one tab per pane, so a swarm meant one tab per worker; nothing reported what a pane is, and a record did not know its unit; concurrent worker starts each saw an empty column | invariant 6: `PaneBrain` the one brain, the mode picks the adapter, Mode 1's `lampway_hermes` a stub refused with the A1 help; the unit/tab/split layout, metadata best effort, `unit`/`role` re-adopted by reconcile, the argv shapes in `herdr/layout.py` with split and report-metadata `[UNVERIFIED]`; invariant 10 drops the hidden workers; the Test section names the played herdr and the played Mode 1 adapter | captain ruling, 2026-10-07 |
+| 2026-10-07 | the herdr view checked against the real herdr | captain: "You can download the herdr binary" (herdr 0.9.3 built from herdrdev/herdr) | the layout's argv shapes were unverified: `pane report-metadata --state-labels <json>` is refused by herdr ("unknown option"), so every pane's metadata report failed; herdr's split ratio is the share the split pane keeps, so 0.4 left the main agent 40 %, not 60 %; each further worker halved the last pane, so six workers ended at 1/32 of the column | invariant 6: the verified shapes, the main agent's 60 %, the even column from the swarm's worker count; the Test section names the live herdr tests and the strict played herdr | none |

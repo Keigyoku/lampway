@@ -401,7 +401,7 @@ class SwarmManager:
             return content, is_error
 
         job = WorkerJob(worker, worker_system_prompt(worker), worker_tools(), call_tool, ctx.progress,
-                        {"swarm_id": swarm.id, "session_id": ctx.session_id, "turn_id": ctx.turn_id})
+                        {"swarm_id": swarm.id, "session_id": ctx.session_id, "turn_id": ctx.turn_id, "workers": len(swarm.workers)})
         try:
             worker.connection_id = await harness.spawn_worker()
             worker.handle = await harness.bind_task(run, self._task_id(swarm, worker), worker.connection_id)

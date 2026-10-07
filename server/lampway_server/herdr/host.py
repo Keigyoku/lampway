@@ -127,7 +127,8 @@ class Cockpit:
 
     # ------------------------------------------------------------------------------------------------- sessions
     def create_session(self, agent, name, cwd, task="", effort=None, bypass=False, resume_id=None, command=None, by="user", project_root=None, api_key=False, scene_session_id=None,
-                       prompt=None, swarm_worker=None, unit=None, unit_label=None, display_agent=None) -> dict:
+                       prompt=None, swarm_worker=None, unit=None, unit_label=None, display_agent=None,
+                       planned=None) -> dict:
         """``prompt``: the new session's first prompt, on the harness's own command line (spec S3). ``swarm_worker``: (binding, token)
         for a swarm's worker pane: its only Lampway server is the pane endpoint, reached with that token as its bearer and pinned to
         ``swarm:<swarm_id>:<worker_id>``; it gets no desktop launcher (whose UI and scene-tab tools reach the user's scene).
@@ -179,7 +180,8 @@ class Cockpit:
                 raise CockpitError("a worker pane is bound to its worker, never to a scene tab")
         scene = scene_session_id or None
         role = LY.WORKER if swarm_worker is not None else (LY.MAIN if scene else None)
-        view = (role, (unit or None) if swarm_worker is not None else scene, unit_label, display_agent)
+        view = (role, (unit or None) if swarm_worker is not None else scene, unit_label, display_agent,
+                (swarm_worker[0] if swarm_worker is not None else None, planned))
         with (EG.guard(ad.route, kind="request") if ad else contextlib.nullcontext()):    # B5: logged before herdr is asked; refused with the route off
             return self._create(agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene, prompt, swarm_worker, view)
 
@@ -208,7 +210,7 @@ class Cockpit:
             log.warning("herdr did not take pane %s's metadata (%s): the pane runs on without it", pane_id, exc)
 
     def _create(self, agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene, prompt=None, swarm_worker=None,
-                view=(None, None, None, None)) -> dict:
+                view=(None, None, None, None, (None, None))) -> dict:
         if api_key and ad is None:
             raise CockpitError("only a harness pane can be billed to an API key")
         rid = uuid.uuid4().hex[:12]
@@ -225,15 +227,16 @@ class Cockpit:
         if wiring is not None:                                 # B2: the pane's own MCP config, pinned to its scene tab, before anything starts
             self._write_pane_files(wiring.files)
         env = L.pane_env() + (_key_env(ad) if api_key else []) + [x for k, v in (wiring.env if wiring else {}).items() for x in ("--env", f"{k}={v}")]
-        role, unit, unit_label, display_agent = view
+        role, unit, unit_label, display_agent, (binding, planned) = view
         with self._layout:
             snap = self.snapshot()
             sessions = self.list_sessions() + list(self._opening.values())
             ulabel = LY.unit_label(unit, unit_label or (LY.unit_main(unit, sessions, snap) or {}).get("unit_label")) if unit else None
             label = ulabel if unit else name[:LY.LABEL_MAX]
-            pane = self._open(LY.place(role, unit, label, sessions, snap), snap, real, env, label)
+            pane = self._open(LY.place(role, unit, label, sessions, snap, swarm=LY.swarm_of(binding), planned=planned), snap, real, env, label)
             pane_id, opened = pane["pane_id"], time.time()
             self._opening[pane_id] = {"pane_id": pane_id, "tab_id": pane.get("tab_id"), "unit": unit, "role": role, "unit_label": ulabel,
+                                      "swarm_binding": binding,
                                       "state": "live", "created_at": opened}
         try:
             native_id = resume_id

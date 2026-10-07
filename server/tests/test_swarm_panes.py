@@ -430,3 +430,15 @@ def test_a_codex_worker_reads_its_token_from_its_pane_environment_never_its_comm
     assert "tok-secret-value" not in json.dumps(argv) and w.env == {"LAMPWAY_WORKER_TOKEN": "tok-secret-value"}
     assert f'mcp_servers.lampway.url="{PANE_URL}"' in argv and 'mcp_servers.lampway.bearer_token_env_var="LAMPWAY_WORKER_TOKEN"' in argv
     assert not [a for a in argv if "mcp_servers.lampway.command" in a], "no desktop launcher for a worker"
+
+
+def test_a_swarm_tells_herdr_its_size_so_its_workers_share_the_column_evenly(rig):
+    """Spec A4: the swarm's worker count reaches the layout; three workers keep 1/3, then 1/2, of what they split: a third each."""
+    rig.bind_parent()
+    sid = rig.parent_json("swarm_start", {"tasks": tasks("boots", "belt", "gloves")})["swarm_id"]
+    panes = wait_for(lambda: len(rig.worker_panes()) == 3 and rig.worker_panes())
+    assert panes, "one pane per task was never opened"
+    splits = [rig.herdr.splits[p["pane_id"]] for p in sorted(panes, key=lambda p: int(p["pane_id"][1:]))]
+    assert [s["direction"] for s in splits] == ["right", "down", "down"]
+    assert [round(s["ratio"], 3) for s in splits] == [0.6, 0.333, 0.5], "the main agent keeps 60 %, the workers a third each"
+    assert all(p["swarm_binding"].startswith(f"swarm:{sid}:") for p in panes)

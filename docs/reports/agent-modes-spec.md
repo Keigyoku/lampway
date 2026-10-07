@@ -169,8 +169,10 @@ overwhelming/losing information the better."
 - **A unit = one Lampway scene tab's conversation.** Each unit gets one tab, labelled with the scene tab's name. Its root pane is
   the unit's main agent: the Hermes pane in Mode 1, the bound harness pane in Mode 2.
 - **Workers split into their unit's tab,** not into tabs of their own:
-  - The first worker splits right of the main agent (`pane.split {direction: right, ratio: 0.4}`).
-  - Each further worker splits down inside that column.
+  - The first worker splits right of the main agent (`pane split <main> --direction right --ratio 0.6`; herdr's ratio is the
+    share the split pane keeps).
+  - Each further worker splits down inside that column. A swarm passes its worker count, so its workers share the column
+    evenly.
   - The main agent keeps the left 60 %, and every worker is visible beside it without switching tabs. `MAX_WORKERS` (6) keeps
     the column readable.
 - **Every pane reports what it is,** via `pane.report_metadata`:
@@ -185,8 +187,10 @@ overwhelming/losing information the better."
   worker panes before it splits new ones. It only ever closes a pane it started that has ended, never a live or unknown one
   (law 5). This is proposed in **Q13**.
 
-The herdr calls (`pane.split`, `pane.report_metadata`, `pane.zoom`, `pane.resize`) are in herdr's socket API documentation.
-`[UNVERIFIED against an installed herdr: the CLI spelling of each]`
+**Built 2026-10-07 and checked against the real herdr 0.9.3,** built from `herdrdev/herdr`:
+- the CLI spellings come from herdr's CLI reference;
+- the ratio's meaning comes from its source (`split_node`: the first child is the split pane) and a live server;
+- `tests/test_herdr_layout_live.py` drives the real binary.
 
 ### A5. What goes, what stays
 

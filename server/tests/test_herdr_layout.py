@@ -4,14 +4,16 @@
 
 * A unit is one Lampway scene tab's conversation, keyed by its scene session id. Its main agent's pane opens in a tab of its own,
   labelled with the scene tab's name (else a short id).
-* A swarm worker's pane splits into its unit's tab: the first worker right of the main agent (ratio 0.4), each further worker
+* A swarm worker's pane splits into its unit's tab: the first worker right of the main agent (herdr's ratio is the share the split
+  pane KEEPS, measured on herdr 0.9.3: 0.6 leaves the main agent 60 %), each further worker
   down from the last worker pane. A unit with no main pane yet gets one tab for its workers.
 * A pane with no unit (an ad-hoc pane the user starts from the cockpit) keeps its own tab.
 * Every pane Lampway starts reports what it is (``pane.report_metadata``); a failure to report never fails a start.
 * The record of each pane names its ``unit`` and ``role``, so a reconcile after a restart re-adopts the layout; it never closes a
   pane (law 5).
 
-herdr is played (``herdr_support.PaneHerdr``); its CLI spellings of split and report-metadata are [UNVERIFIED]."""
+herdr is played (``herdr_support.PaneHerdr``), as strict about its options as herdr 0.9.3; ``test_herdr_layout_live.py`` drives the
+real binary."""
 import logging
 import threading
 
@@ -53,11 +55,11 @@ def main(cockpit, scene=SCENE, label="Chest fit"):
                                   scene_session_id=scene, unit_label=label)
 
 
-def worker(cockpit, n, unit=SCENE, swarm="sw1", task="boots"):
+def worker(cockpit, n, unit=SCENE, swarm="sw1", task="boots", planned=None):
     return cockpit.create_session("claude", f"{task} ({swarm} worker-{n})", cockpit.project_root,
                                   task=f"{task}: model the {task} piece and name it {task}_part", by="swarm",
                                   prompt=f"You are worker-{n}. Model the {task}.", swarm_worker=(f"swarm:{swarm}:worker-{n}", f"tok-{n}"),
-                                  unit=unit, display_agent=f"Worker {n} · {task}")
+                                  unit=unit, display_agent=f"Worker {n} · {task}", planned=planned)
 
 
 def test_an_adhoc_pane_keeps_a_tab_of_its_own_and_reports_what_it_is(cockpit, herdr):
@@ -90,7 +92,7 @@ def test_workers_split_into_their_units_tab_in_order(cockpit, herdr):
     tabs_before = len(herdr.tabs)
     w1, w2, w3 = worker(cockpit, 1), worker(cockpit, 2, task="belt"), worker(cockpit, 3, task="gloves")
     assert len(herdr.tabs) == tabs_before, "a worker never opens a tab of its own while its unit has one"
-    assert herdr.splits[w1["pane_id"]] == {"of": root["pane_id"], "direction": "right", "ratio": 0.4}
+    assert herdr.splits[w1["pane_id"]] == {"of": root["pane_id"], "direction": "right", "ratio": 0.6}, "the main agent keeps 60 %"
     assert herdr.splits[w2["pane_id"]]["of"] == w1["pane_id"] and herdr.splits[w2["pane_id"]]["direction"] == "down"
     assert herdr.splits[w3["pane_id"]]["of"] == w2["pane_id"] and herdr.splits[w3["pane_id"]]["direction"] == "down"
     assert herdr.tabs[root["tab_id"]]["panes"] == [root["pane_id"], w1["pane_id"], w2["pane_id"], w3["pane_id"]]
@@ -104,6 +106,19 @@ def test_workers_split_into_their_units_tab_in_order(cockpit, herdr):
     w4 = worker(cockpit, 1, swarm="sw2", task="cape")                    # the unit's next swarm: down the same column
     assert herdr.splits[w4["pane_id"]] == {"of": w3["pane_id"], "direction": "down", "ratio": 0.5}
     assert herdr.closed() == [], "a finished run's worker panes stay as they are (Q13 is not decided)"
+
+
+def test_a_swarm_that_says_how_many_workers_it_has_gets_an_even_column(cockpit, herdr):
+    """Each split keeps 1/(the workers still to come) for the pane it splits, so every worker ends with the same share: 1/3 each."""
+    root = main(cockpit)
+    w1, w2, w3 = (worker(cockpit, n, task=t, planned=3) for n, t in ((1, "boots"), (2, "belt"), (3, "gloves")))
+    assert herdr.splits[w1["pane_id"]] == {"of": root["pane_id"], "direction": "right", "ratio": 0.6}
+    assert herdr.splits[w2["pane_id"]]["of"] == w1["pane_id"] and herdr.splits[w2["pane_id"]]["ratio"] == pytest.approx(1 / 3, abs=1e-4)
+    assert herdr.splits[w3["pane_id"]]["of"] == w2["pane_id"] and herdr.splits[w3["pane_id"]]["ratio"] == pytest.approx(1 / 2, abs=1e-4)
+    w4 = worker(cockpit, 1, swarm="sw2", task="cape", planned=2)        # the unit's next swarm: its first worker halves the column's last
+    assert herdr.splits[w4["pane_id"]] == {"of": w3["pane_id"], "direction": "down", "ratio": 0.5}
+    w5 = worker(cockpit, 2, swarm="sw2", task="hood", planned=2)
+    assert herdr.splits[w5["pane_id"]]["ratio"] == pytest.approx(1 / 2, abs=1e-4)
 
 
 def test_workers_opened_at_once_still_stand_in_one_column(cockpit, herdr):
@@ -174,7 +189,7 @@ def test_binding_a_pane_makes_it_its_units_main_and_unbinding_lets_it_go_without
     bound = cockpit.bind(pane["id"], SCENE)
     assert (bound["unit"], bound["role"]) == (SCENE, "main")
     w1 = worker(cockpit, 1)
-    assert herdr.splits[w1["pane_id"]] == {"of": pane["pane_id"], "direction": "right", "ratio": 0.4}
+    assert herdr.splits[w1["pane_id"]] == {"of": pane["pane_id"], "direction": "right", "ratio": 0.6}
     before = len(herdr.calls)
     out = cockpit.unbind(pane["id"])
     assert (out["unit"], out["role"]) == (None, None) and len(herdr.calls) == before, "unbinding never touches a pane"

@@ -92,14 +92,21 @@ def wait_for(cond, timeout=15.0, step=0.1):
     return cond()
 
 
+#: ``herdr pane report-metadata``'s options and the statuses a ``--state-label STATUS=TEXT`` may name (herdr 0.9.3 CLI reference).
+METADATA_OPTIONS = {"--source", "--agent", "--applies-to-source", "--title", "--clear-title", "--display-agent", "--clear-display-agent",
+                    "--state-label", "--clear-state-labels", "--token", "--clear-token", "--seq", "--ttl-ms"}
+METADATA_STATES = {"idle", "working", "blocked", "done", "unknown"}
+
+
 class PaneHerdr:
     """herdr, played (no binary runs). Every command is recorded with the egress rows written before it. It keeps herdr's layout:
     one ``lampway`` workspace, its tabs, and the panes of each tab in order. Panes appear on ``workspace create``, ``tab create`` and
     ``pane split``; run what ``agent start`` (or ``pane run``) named; answer ``process-info`` while they live; and vanish on
     ``pane close`` or ``exit`` (the harness quit). ``pane report-metadata`` is stored per pane.
 
-    The CLI spellings of ``pane split`` and ``pane report-metadata`` are [UNVERIFIED] against an installed herdr (agent-modes spec
-    A4): this fake parses exactly the shapes ``herdr/layout.py`` writes, so a change of spelling there is a change here too.
+    The CLI spellings of ``pane split`` and ``pane report-metadata`` are herdr's own (checked against herdr 0.9.3, its CLI
+    reference and a live server; ``test_herdr_layout_live.py`` drives the real one): like herdr, this fake refuses an option it does
+    not know, so a misspelling in ``herdr/layout.py`` fails here too.
     ``fail`` names verbs (``"split"``, ``"report-metadata"``) the played herdr refuses, as an older herdr would."""
 
     def __init__(self, egress=None):
@@ -156,9 +163,19 @@ class PaneHerdr:
                     raise L.HerdrError("unknown subcommand 'report-metadata'")
                 if args[2] not in self.panes:
                     raise L.HerdrError(f"no such pane {args[2]}")
+                labels, i = {}, 3
+                while i < len(args):                     # herdr's options (CLI reference, pane report-metadata); anything else is refused
+                    if args[i] not in METADATA_OPTIONS:
+                        raise L.HerdrError(f"unknown option: {args[i]}")
+                    if args[i] == "--state-label":
+                        status, _, text = args[i + 1].partition("=")
+                        if status not in METADATA_STATES:
+                            raise L.HerdrError(f"invalid state label status: {status}")
+                        labels[status] = text
+                    i += 1 if args[i].startswith("--clear-") else 2
                 self.metadata[args[2]] = {"source": self._flag(args, "--source"), "agent": self._flag(args, "--agent"),
                                           "display_agent": self._flag(args, "--display-agent"), "title": self._flag(args, "--title"),
-                                          "state_labels": json.loads(self._flag(args, "--state-labels", "null"))}
+                                          "state_labels": labels}
                 return ""
             if args[:2] == ["pane", "read"]:
                 return "user@box:~$ "
