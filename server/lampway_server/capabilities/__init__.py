@@ -6,11 +6,14 @@ Captain, 2026-10-06: "I want it all behind a single interface you can choose WHA
 choose Routes." Nothing is removed from the harness; every ability is a row here, and the user switches it.
 
 * The catalogue (``CATALOGUE``) is the spec's table: the engine's abilities, Lampway's own tool families and the user's MCP servers.
-  ``messaging.*`` and ``mcp.*`` are families: ``get("messaging.telegram")`` is that family's row for one platform.
+  ``messaging.*`` and ``mcp.*`` are families: ``get("messaging.telegram")`` is that family's row for one platform. Switching the
+  family row is the default for every member with no setting of its own: ``setting`` reads, per scope (global, then project),
+  the family and then the member, so a member's own choice wins over its family's in the same scope.
 * State: ``<state_dir>/capabilities.json`` (0600) holds the user's choices, globally and per project (a project wins, as in
   Choices). Every change, refused change and refused use is a row in ``<state_dir>/capabilities/log.jsonl``.
 * Only the user's click changes a capability (``by="user"``). An agent reads the board and proposes a change
-  (``lampway_capabilities``); the proposal waits for the user.
+  (``lampway_capabilities``); the proposal waits for the user, who accepts or declines it (``decide``). A project's own setting
+  is dropped with ``clear``, back to the global value.
 * Law 2 is unchanged: a capability that needs egress routes is in force only while each of its routes is on. A route that does
   not exist yet (``web_search``, ``msg:<platform>``) is off; ``web:any`` exists (spec E1.5, ``engine/proxy.py`` enforces both it and
   ``web.browse`` for the engine's network).
@@ -176,9 +179,11 @@ class Store:
         cap = get(cid)
         doc = self._doc()
         out = {"enabled": cap.default, "approval": cap.approval, "options": {}, "scope": "default"}
+        family = f"{cid.partition('.')[0]}.*" if cid not in _BY_ID else None    # a member falls back to its family's switch
         for scope, layer in (("global", doc["global"]), ("project", doc["projects"].get(project or "", {}))):
-            if cid in layer:
-                out.update({k: v for k, v in layer[cid].items() if k in ("enabled", "approval", "options")}, scope=scope)
+            for key in ((family, cid) if family else (cid,)):                  # within a scope, the member's own beats the family
+                if key in layer:
+                    out.update({k: v for k, v in layer[key].items() if k in ("enabled", "approval", "options")}, scope=scope)
         return out
 
     def effective(self, cid: str, project: Optional[str] = None, routes_on: Optional[Callable] = None) -> tuple:
@@ -240,6 +245,54 @@ class Store:
             self._save(doc)
         self._append({"id": cid, "event": "proposed", "by": origin, "pid": pid})
         return pid
+
+    def decide(self, pid: str, action: str, *, project: Optional[str] = None, by: str = "user") -> dict:
+        """The user's answer to an agent's proposal: ``accept`` applies its change (globally, or to ``project``) and marks it
+        accepted; ``decline`` marks it declined. Either way it leaves the open list. Only the user decides, and only once."""
+        if by != "user":
+            self._append({"pid": pid, "event": "refused_decision", "by": by})
+            raise Refused(AGENT_WRITE, 403)
+        if action not in ("accept", "decline"):
+            raise Refused("action is accept or decline")
+        with self._lock:
+            doc = self._doc()
+            prop = next((p for p in doc["proposals"] if p.get("pid") == pid and p.get("state") == "open"), None)
+            if prop is None:
+                raise Refused(f"no open proposal {pid!r}", 404)
+            change = prop.get("change") or {}
+            if action == "accept":
+                cid = prop["id"]
+                get(cid)
+                layer = doc["projects"].setdefault(project, {}) if project else doc["global"]
+                entry = layer.setdefault(cid, {})
+                for key in ("enabled", "approval", "options"):
+                    if key in change:
+                        if key == "approval" and change[key] not in APPROVALS:
+                            raise Refused(f"approval is one of {', '.join(APPROVALS)}")
+                        entry[key] = bool(change[key]) if key == "enabled" else change[key]
+            prop.update(state="accepted" if action == "accept" else "declined", decided_t=time.time(), decided_project=project)
+            self._save(doc)
+        self._append({"id": prop["id"], "event": prop["state"], "by": by, "pid": pid, "project": project,
+                      **({"enabled": change.get("enabled")} if action == "accept" and "enabled" in change else {})})
+        return {k: prop[k] for k in ("pid", "id", "change", "reason", "state")}
+
+    def clear(self, cid: str, project: Optional[str], *, by: str = "user") -> dict:
+        """Drop ``project``'s own setting for ``cid``: the project goes back to the global value (or the default)."""
+        get(cid)
+        if by != "user":
+            self._append({"id": cid, "event": "refused_change", "by": by})
+            raise Refused(AGENT_WRITE, 403)
+        if not project:
+            raise Refused("clearing is per project: name the project whose override goes")
+        with self._lock:
+            doc = self._doc()
+            layer = doc["projects"].get(project) or {}
+            had = layer.pop(cid, None) is not None
+            if not layer:
+                doc["projects"].pop(project, None)
+            self._save(doc)
+        self._append({"id": cid, "event": "cleared", "by": by, "project": project, "had_override": had})
+        return self.setting(cid, project)
 
     def note_refused_use(self, cid: str, tool: str, origin: str, why: str) -> None:
         self._append({"id": cid, "event": "refused_use", "by": origin, "tool": tool, "why": why})

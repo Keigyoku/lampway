@@ -132,3 +132,106 @@ def test_an_mcp_call_into_a_family_that_is_off_is_refused_with_its_name(fake, ht
                                                           "Accept": "application/json, text/event-stream"}).json()
     result = reply["result"]
     assert result["isError"] and "scene.edit" in result["content"][0]["text"]
+
+
+# ---------------------------------------------------------------------------------------------------- E2 follow-ups the Client needs
+def _propose(board, cid="web.search", enabled=True):
+    return board.propose("agent", cid, {"enabled": enabled}, "find a reference")
+
+
+def _states(board):
+    return [(p["pid"], p["state"]) for p in json.loads((board.state_dir / "capabilities.json").read_text())["proposals"]]
+
+
+def test_accepting_a_proposal_applies_it_and_takes_it_off_the_list(board):
+    pid = _propose(board, "swarm")
+    assert not board.effective("swarm")[0]
+    board.decide(pid, "accept", by="user")
+    assert board.effective("swarm") == (True, "") and board.proposals() == []
+    assert _states(board) == [(pid, "accepted")]
+
+
+def test_declining_a_proposal_changes_nothing_and_takes_it_off_the_list(board):
+    pid = _propose(board, "swarm")
+    board.decide(pid, "decline", by="user")
+    assert not board.effective("swarm")[0] and board.proposals() == []
+    assert _states(board) == [(pid, "declined")]
+
+
+def test_an_accepted_proposal_can_be_scoped_to_a_project(board):
+    pid = _propose(board, "swarm")
+    board.decide(pid, "accept", project="/projects/chair", by="user")
+    assert board.effective("swarm", project="/projects/chair")[0] and not board.effective("swarm")[0]
+
+
+def test_only_the_user_decides_a_proposal_and_only_once(board):
+    pid = _propose(board, "swarm")
+    with pytest.raises(CAP.Refused) as refused:
+        board.decide(pid, "accept", by="agent")
+    assert refused.value.status == 403 and not board.effective("swarm")[0] and [p["pid"] for p in board.proposals()] == [pid]
+    with pytest.raises(CAP.Refused) as bad:
+        board.decide(pid, "maybe", by="user")
+    assert bad.value.status == 400
+    board.decide(pid, "decline", by="user")
+    with pytest.raises(CAP.Refused) as again:
+        board.decide(pid, "accept", by="user")
+    assert again.value.status == 404 and not board.effective("swarm")[0]
+    with pytest.raises(CAP.Refused) as unknown:
+        board.decide("cap_nope", "accept", by="user")
+    assert unknown.value.status == 404
+
+
+def test_clearing_a_project_override_goes_back_to_the_global_value(board):
+    board.set("swarm", enabled=True, by="user")
+    board.set("swarm", enabled=False, project="/projects/chair", by="user")
+    with pytest.raises(CAP.Refused) as refused:
+        board.clear("swarm", "/projects/chair", by="agent")
+    assert refused.value.status == 403 and not board.effective("swarm", project="/projects/chair")[0]
+    board.clear("swarm", "/projects/chair", by="user")
+    assert board.effective("swarm", project="/projects/chair")[0]
+    assert board.setting("swarm", "/projects/chair")["scope"] == "global"
+    with pytest.raises(CAP.Refused) as no_project:
+        board.clear("swarm", "", by="user")
+    assert no_project.value.status == 400
+
+
+def test_a_family_switch_is_the_default_for_every_member_without_its_own(board):
+    on = lambda route: True  # noqa: E731
+    assert not board.effective("messaging.telegram", routes_on=on)[0]
+    board.set("messaging.*", enabled=True, by="user")
+    assert board.effective("messaging.telegram", routes_on=on) == (True, "")
+    assert board.setting("messaging.discord")["enabled"] is True and board.setting("messaging.discord")["scope"] == "global"
+    board.set("messaging.discord", enabled=False, by="user")                  # a member's own setting wins over its family
+    assert not board.effective("messaging.discord", routes_on=on)[0] and board.effective("messaging.telegram", routes_on=on)[0]
+    board.set("mcp.*", enabled=True, project="/projects/chair", by="user")      # a family's project switch, for that project only
+    assert board.effective("mcp.github", project="/projects/chair")[0] and not board.effective("mcp.github")[0]
+    assert not board.effective("messaging.telegram", routes_on=lambda route: False)[0]   # law 2: the member's route still decides
+
+
+def test_the_rest_routes_decide_proposals_and_clear_overrides_for_the_user_only(fake, http):
+    fake.login()
+    board = CAP.ACTIVE
+    pid = board.propose("agent", "swarm", {"enabled": True}, "split the work")
+    for headers in ({"X-Lampway-Origin": "agent"}, {"Origin": "https://evil.example"}):
+        refused = fake.post(f"/app/capabilities/proposals/{pid}", json={"action": "accept"}, headers=headers)
+        assert refused.status_code == 403
+    assert [p["pid"] for p in fake.get("/app/capabilities").json()["proposals"]] == [pid]
+    assert fake.post(f"/app/capabilities/proposals/{pid}", json={"action": "later"}).status_code == 400
+    assert fake.post("/app/capabilities/proposals/cap_nope", json={"action": "accept"}).status_code == 404
+    done = fake.post(f"/app/capabilities/proposals/{pid}", json={"action": "accept"})
+    assert done.status_code == 200 and done.json()["state"] == "accepted"
+    listed = fake.get("/app/capabilities").json()
+    assert listed["proposals"] == [] and next(r for r in listed["capabilities"] if r["id"] == "swarm")["enabled"] is True
+    pid2 = board.propose("agent", "panes.drive", {"enabled": True}, "type into my pane")
+    declined = fake.post(f"/app/capabilities/proposals/{pid2}", json={"action": "decline"})
+    assert declined.status_code == 200 and declined.json()["state"] == "declined" and not board.effective("panes.drive")[0]
+
+    assert fake.put("/app/capabilities/swarm", json={"enabled": False, "project": "/projects/chair"}).status_code == 200
+    assert fake.delete("/app/capabilities/swarm", params={"project": "/projects/chair"},
+                       headers={"X-Lampway-Origin": "agent"}).status_code == 403
+    assert not board.effective("swarm", "/projects/chair")[0]
+    assert fake.delete("/app/capabilities/swarm").status_code == 400                          # a project is required
+    assert fake.delete("/app/capabilities/teleport", params={"project": "/projects/chair"}).status_code == 404
+    cleared = fake.delete("/app/capabilities/swarm", params={"project": "/projects/chair"})
+    assert cleared.status_code == 200 and cleared.json()["enabled"] is True and cleared.json()["scope"] == "global"
+    assert board.effective("swarm", "/projects/chair")[0]
