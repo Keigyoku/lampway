@@ -148,6 +148,8 @@ chip and the first-turn notice appear for this provider only; an image attachmen
 
 ## R1. Durable sessions
 
+**Decision (captain, 2026-10-07):** Mode 1 durability is the Hermes runtime's. Its sessions (`state.db`, `load_session`, `resume_session`, `fork_session`, `list_sessions`) are the conversation record; Lampway builds no store of its own and maps the client's calls onto them (E1.7). What stays Lampway's from this section is the pairing invariant (built 2026-10-07, `turns.py`), which the current loop needs until E1 replaces it, and which the E1.8 suite checks on Hermes.
+
 **Purpose.** A conversation survives a server restart, a crash and an app restart, and the agent keeps its memory of the chat.
 
 **Contract.**
@@ -173,6 +175,8 @@ and the pending question is cleared (fails today). Retention moves an old sessio
 `unavailable`. A history written by the old code with an orphan call is repaired on load.
 
 ## R2. The archive the client already asks for
+
+**Decision (captain, 2026-10-07):** served from Hermes's sessions (E1.7), not from a Lampway journal. Until then the handshake stops advertising what it does not serve.
 
 **Purpose.** Fill the client's agent archive (`common/agent_history`), or stop claiming to.
 
@@ -238,6 +242,8 @@ past the budget and the pinned summary survives a restart.
 input and waits; a socket closed mid-turn reports `abandoned`; a finished generation produces a message in the right session.
 
 ## R5. Parked turns
+
+**Decision (captain, 2026-10-07):** the Hermes runtime keeps the ACP session alive across a client disconnect (E1.7); Lampway does not park turns itself.
 
 **Purpose.** A disconnect stops losing the work in progress.
 
@@ -415,8 +421,8 @@ allows the gateway plus the hosts of the routes the enabled capabilities need (E
 | `plan` | `todo` slot | |
 | stop reason | `turn_end` (`completed`, `cancelled`, `max_tokens` with the cut-off note) | |
 | `checkpoint.mark` / `rewind` | `fork_session` at the mark / switch to the fork | `[UNVERIFIED]` that fork can target an earlier message; if not, rewind replays the kept prefix into a new session |
-| `agent.attach`, `agent.status` | served from Lampway's event journal (R1) | Hermes is not asked |
-| `agent.history_sync` (R2) | served from the journal | Hermes's `state.db` is the conversation record; the journal is the client-visible record |
+| `agent.attach`, `agent.status` | the live turn's events while it runs; afterwards `load_session`, which replays the conversation as `session/update` notifications `[UNVERIFIED for Hermes]` | no Lampway journal (captain, 2026-10-07) |
+| `agent.history_sync` (R2) | `list_sessions`, then `load_session` per session | Hermes's `state.db` is the conversation record |
 | parked turns (R5) | the ACP session survives a client disconnect; on reconnect the turn resumes or ends `abandoned` | Lampway stops cancelling on socket close |
 
 *E1.8 Conformance and pin bumps.*
@@ -555,11 +561,30 @@ no row, so nothing reaches an agent unlisted.
 - A live run in a built app, with the audit's harness, of one turn per client feature: text, tool, question, permission, steer,
   cancel, rewind, and reconnect mid-turn.
 
-**Open for verification before building** `[UNVERIFIED]`:
+**Measured 2026-10-07** (pinned `v2026.9.24`, `hermes-acp` driven by the ACP SDK `agent-client-protocol==0.9.0` from Lampway's side,
+against a fake OpenAI-compatible model on loopback, with every proxy variable pointed at a refusing loopback proxy):
+- **Install:** Hermes refuses wheel and sdist builds by design; `uv sync --frozen --extra acp --no-dev` on the source checkout works,
+  on Python 3.13 (the project allows 3.11–3.14). The environment is 141 MB.
+- **Timing:** `initialize` 1.7 s; the first `new_session` 19 s (cold: agent construction); a one-line `prompt` 0.8 s.
+- **MCP over ACP:** Hermes advertises `mcp_capabilities: {http: false, sse: false}`. So Lampway passes its tools as a **stdio** MCP
+  server (a small Lampway command that relays to the engine endpoint, E1.6), not as an HTTP one.
+- **Default tools:** with no toolset config, the ACP session offered 23 tools, including `terminal`, `execute_code`, `browser_*`,
+  `web_search`, `memory`, `delegate_task` and `skill_manage`. E1.3's config from Capabilities is therefore required before
+  any real use.
+- **Model calls:**
+  - `GET /api/v1/models` at the origin of `base_url`, once without the token;
+  - the streamed turn;
+  - a second, non-streamed call with no tools (a title or summary).
+  The gateway (E1.4) serves all three.
+- **Egress attempts with nothing configured:** `pypi.org`, `models.dev`, `hermes-agent.nousresearch.com`,
+  `raw.githubusercontent.com`. All were refused by the proxy, and the turn still completed. E1.5's deny-and-log is the control;
+  E1.3 should also switch these checks off where Hermes allows it.
+
+**Still open** `[UNVERIFIED]`:
 - per-process session isolation;
 - `fork_session` targeting an earlier message;
+- `load_session` replaying history as notifications;
 - whether Hermes's `anthropic_messages` mode accepts a custom base URL;
-- whether any update or metrics path runs on `hermes acp` despite the config;
 - memory use per child.
 
 ---
@@ -783,9 +808,8 @@ These come before any BYOA UI work.
    - the engine MCP endpoint with `ask_user` (E1.6);
    - the ACP mapping (E1.7), with the conformance suite first (E1.8).
 
-   R1's journal, R2 and R5 are built on top of it. R3 and R4 become mostly mapping work, because Hermes supplies compression,
-   steering and sessions.
-4. **Mode 1 durability:** R1 store and restart, then R2 history, then R5 parked turns.
+   R3 and R4 become mostly mapping work, because Hermes supplies compression, steering and sessions.
+4. **Mode 1 durability:** none of Lampway's own: it is the Hermes runtime's (captain, 2026-10-07). R1, R2 and R5 are mapped in E1.7.
 5. **Mode 1 context:** R3, then R4.
 6. **BYOA:** B6 hardening and B5 egress/env, then B1 adapters and B2 binding, then B4 island view.
 7. **M0** mode switch in the island, once both modes run end to end.
