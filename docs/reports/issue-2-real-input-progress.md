@@ -61,3 +61,11 @@ The current 64-control GUI run and original 71-control inventory are distinct
 proofs. The chest experiment does not approve a plate or a facing default.
 Unreal/MetaTailor parity and the complete normalization/default-export chain
 remain open.
+
+## Validated successor receipts
+
+The actual8fde3d9b original342-bone rig now passes inspection, mapping, conform, hidden-visibility restoration, applied normalization and default Blender export/read-back. The22 bounded frame corrections retain strict validation;342bones compare with no over-tolerance rows under unchanged0.01cm/0.01degree/0.0001scale bars. The genuine6331 native build has no native-source difference from the current candidate. Bundle computed SHA256: `aa25e790b84886c3baad7152a6c09ab627ee8945febea8427adb21f029fc91b9`; no expected sender checksum was supplied. AC15/24 close at this attributed snapshot. Physical UE import and the complete place→pose→bind→weights→validate→export body chain remain open.
+
+The hardware PNG transfer has seven hash/byte/dimension-verified1280×900 images, including all four onboarding steps and Back-to-step3. Visual review confirms replacement panels and the bottom action row. Six recorded UI/fixture hashes match current source; this is actuala0cb76dd Python on a genuine6331 native build, with explicit source equivalence rather than a latest-head rerun claim. Together with retained software-GL images, this closesAC51. Hardware bundle computed SHA256: `e1cefbd900ada9f2ab8ace5d734eb226b34b2d929e37e50dc5660b7fbc6cbdf7`; no expected sender checksum was supplied. Images and path-bearing manifests remain private.
+
+Both actual UE capability probes pass their one-marker/exit/script-hash checks on5.8.2-56702186. The primary recordsLUT32, shaper0, ACES2 andAA4; the supplemental has no missing APIs. These are surface checks, not shader compilation, native-shaper provenance or captured-cube acceptance. The local MetaTailor synthetic offline import/fit succeeds without private geometry or changed host network settings; export remains unperformed after local automatic review blocked use of its limited free-tier allowance.
