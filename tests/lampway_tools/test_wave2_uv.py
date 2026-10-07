@@ -174,3 +174,29 @@ print("RESULT", json.dumps({"a": a, "b": b}))
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
     assert "no UV layer on nouv: run lampway_uv_unwrap first" in o["a"]["error"] and "not a power of two" in o["b"]["error"]
+
+
+def test_an_atlas_outside_the_scored_tile_and_a_seam_split_mesh_say_why_they_read_zero(tmp_path):
+    """Audit F10: DamagedHelmet's UVs sit in v -1..0, so utilization read 0.0 with no reason, and seam_m read 0 for every glTF import
+    (the importer splits vertices along the UV seams, so no edge is shared across a seam). The row now carries the UV bounds and
+    says both things."""
+    r = run(tmp_path, PLANE + '''
+below = plane("below", uv=lambda u, v: (u * 0.9, v * 0.9 - 1.0))
+bm = bmesh.new(); bm.from_mesh(below.data); bmesh.ops.split_edges(bm, edges=[e for e in bm.edges if not e.is_boundary][:6]); bm.to_mesh(below.data); bm.free()
+res = call("uv_score", objects=["below"])
+print("RESULT", json.dumps(res))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    row = r.results[0]["rows"][0]
+    assert row["utilization"] == 0.0 and row["uv_bounds"][1] == pytest.approx(-1.0, abs=1e-6)
+    notes = " ".join(row["warnings"])
+    assert "0..1 tile" in notes and "split" in notes, row["warnings"]
+
+
+def test_a_plain_open_plane_inside_the_tile_carries_no_warning(tmp_path):
+    r = run(tmp_path, PLANE + '''
+plane("good", uv=lambda u, v: (u * 0.9, v * 0.9))
+print("RESULT", json.dumps(call("uv_score", objects=["good"])))
+''')
+    assert r.rc == 0, r.out[-2500:]
+    assert r.results[0]["rows"][0]["warnings"] == []
