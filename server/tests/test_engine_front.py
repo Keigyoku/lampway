@@ -400,6 +400,47 @@ def test_slash_new_in_the_pane_is_followed_by_the_island(stack):
     assert final_text(events) == "Fresh start." and history[0]["text"] == "Again"
 
 
+def test_slash_new_in_the_pane_tells_the_tabs_client_once_so_the_island_starts_a_new_chat(stack):
+    """Q15, the client's half needs a frame: the tab's session id (the unit) does not change, so nothing else tells the island
+    that the pane's conversation is a new one. ``agent.pane.new_conversation`` goes to the tab's current socket, once, even
+    though serve announces ``sessions.changed`` twice (closed, then created)."""
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Hi.")])
+        cid, _ = await chat(island, "Hello", "scene-1")
+        await island.ended(cid)
+        new = await serve.pane_new(serve.only())
+        frame = await island.wait(lambda f: f.get("method") == "agent.pane.new_conversation")
+        for _ in range(20):                                              # a second follow would notify again: give it time
+            await asyncio.sleep(0.05)
+        frames = [f for f in island.frames if f.get("method") == "agent.pane.new_conversation"]
+        return frame["params"], len(frames), front.links["scene-1"].live_id, new
+
+    params, count, live, new = run(stack, scenario)
+    assert params == {"session_id": "scene-1", "origin": "pane"}
+    assert count == 1 and live == new.live_id
+
+
+def test_after_slash_new_the_islands_next_chat_is_a_prompt_in_the_new_session_not_an_answer_to_the_old_question(stack):
+    """The island's question card belonged to the closed session: once the pane's ``/new`` is followed, the tab's next chat is a
+    new prompt (the client has filed the old chat with its card), never a response to a request of a session that is gone."""
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("clarify", "Round or square table?", ["Round", "Square"]), ("say", "Round it is.")])
+        cid, _ = await chat(island, "Make a table", "scene-1")
+        await island.ended(cid)
+        old = serve.only()
+        new = await serve.pane_new(old)
+        await island.wait(lambda f: f.get("method") == "agent.pane.new_conversation")
+        serve.scripts.append([("say", "Fresh start.")])
+        cid2, _ = await chat(island, "Again", "scene-1")
+        await island.ended(cid2, timeout=20)
+        return island.events(cid2), new.history, old.answers, stack.app.state.agent.sessions["scene-1"].pending_question
+
+    events, history, old_answers, pending = run(stack, scenario)
+    assert old_answers == [], "nothing answered the closed session's question"
+    assert history and history[0]["text"] == "Again" and final_text(events) == "Fresh start."
+    assert pending is None
+
+
 # ---------------------------------------------------------------------------------------------------- refusals before a turn
 def test_a_tab_in_your_agent_mode_is_refused_first_and_nothing_opens(stack):
     async def scenario(serve, units, island, front):
