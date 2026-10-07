@@ -1119,3 +1119,18 @@ The audit's F3: a plan provider was refused at step 2 until its route was on, an
 are now Language and keys, What may leave this machine, Where the agent thinks, Spending caps; the provider step's refusal
 says "go Back and switch it on". Unit tests and the real-click visual walk updated (RED observed on the order and the
 sentence).
+
+### Gates at the end of the lane (head `bbd01e67`, after merging `origin/lp/wave5` b22, which changed no file)
+
+- `test_all.py --only server` (with `LAMPWAY_SHELF_DIR`, now part of the reference environment): **GREEN**, 1749 passed, 15
+  skipped, rc 0.
+- `test_all.py --only client` on `build/Prod` (BUILT_FROM `978793994b4f`, written by the build; no native source changed
+  since, so the run is gated): **GREEN** against the baseline, 9169 passed, 46 skipped, 107 failed and 15 errors, all 122 in
+  `tests/known_red.tsv`, none new.
+- Visual and browser suites (`tests/lampway_visual`, `tests/lampway_web`), run on their own: 40 passed.
+- Theme 0, cues 0, WezTerm 0 (self-test 6 of 6), tool specs current (45 tools), tools.md current, sign-in pages current,
+  rail PASS; the PII gate at the pre-push hook.
+- `build/Prod` is `978793994b4f4f9c60795f0365c8290c0f778d2d` (pushed, clean native tree, stamped by `build_linux.sh`): it
+  holds 04's answered-question glow rule, the last native change of the lane.
+- Not re-run after the viewport and image-link removals: the live terminal check (a third download of the release would be
+  needed); the WezTerm config is gated under luajit by `check_wezterm.py`.
