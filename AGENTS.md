@@ -86,6 +86,7 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `scripts/unix/`, `scripts/windows/`, `cmake/` | upstream's build machinery, with Lampway's options (`LAMPWAY`, `MIXAR_CUDA`) |
 | `tests/` | the standalone client suites, the brand and fork gates, the binary-driven tool tests, the rail's tests |
 | `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
+| `specs/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
 
 ## Facts carried from the upstream guide (verified against this tree)
@@ -136,6 +137,8 @@ a law, this file. Each child states its invariants, its test commands and its ow
 
 ## Maintaining this file
 
+Motion contracts live in [`specs/motion_graphics/motion_graphics.md`](specs/motion_graphics/motion_graphics.md). Updating a specification does not certify its implementation; retain the distinction between observed behavior, open requirements and captain decisions, and carry exact-head evidence.
+
 Keep it for what almost every session needs; point at the file or command that owns a detail. Prefer rewriting an entry to
 appending a sibling. A change here owes an anneal row in the same commit, like every rail.
 
@@ -154,3 +157,4 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 | 2026-10-05 | rail adoption: this file replaces the upstream guide | captain: "make the DOE x DOX AGENTS rail for Lampway, examples of it are in Vellum and Titan" | the root guide was upstream's, named its closed backend and a private doc map, and no file carried Lampway's laws | the laws with their gates, the DOX chain, the skill and child indexes (both checked against the tree), the verified facts kept from the upstream guide | captain ruling, 2026-10-05 |
 | 2026-10-06 | the 500-line rule settled; the rail in the hook | captain: "Those recs are fine" | the file limit was recorded as an open decision; the rail's place in the push was CI only | the limit is a guideline (the coding skill §4b); the laws' rail line names the pre-push quick check | captain ruling, 2026-10-06 |
 | 2026-10-06 | the canon indexed | coordinator: "GO for rail row 1" | the canon lived off-tree, outside every index | docs/canon in the repository map, the Child DOX Index and the canon skill's row | captain ruling, 2026-10-06 |
+| 2026-10-07 | formal motion contracts indexed | captain authorizes writing the previously unwritten specs | implementation citations had no repository specification and could overstate acceptance | index the new contracts and require explicit behavior, gap and decision status with exact-head evidence | captain ruling, 2026-10-07 |
