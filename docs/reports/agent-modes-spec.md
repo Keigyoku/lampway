@@ -81,7 +81,8 @@ R0–R8.
 - `PUT /api/v1/agent/byok` drives the provider: `provider`, `model` and `base_url` are stored in Connections and Choices and the
   factory (`providers/__init__.py:make_provider`) reads them. `provider="local"` (what the client's `local_models` sends,
   `orchestrator.py:228`) maps to `openai_compatible`.
-- A loopback or RFC1918 `base_url` is a local route; any other host is an egress route the user switches on (law 2).
+- A loopback `base_url` is local; any other host, a LAN box included, belongs to the `custom_llm` egress route, which the user
+  switches on (law 2). Built 2026-10-07, stricter than this spec's first draft, which counted RFC1918 hosts as local.
 - The model list comes from the endpoint (`GET {base_url}/v1/models`) with an ETag, falling back to the configured model.
 - **Retired from Mode 1's chains:** `claude_cli`, `codex_cli`, `codex_app_server` and `codex_image` (the CLI-as-endpoint providers
   in `cli_adapters.py` and `providers/codex_app_server.py`), from `agent.main`, `agent.worker`, `agent.vision_judge`,

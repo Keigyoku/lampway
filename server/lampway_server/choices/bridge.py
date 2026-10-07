@@ -150,6 +150,9 @@ def _apply(s: Settings, pid: str, entry: dict) -> set:
         if provider == "openai" and params.get("model"):
             s.openai_model = params["model"]
             out.add("openai_model")
+        if provider == "openai" and params.get("base_url"):
+            s.openai_base_url = str(params["base_url"])
+            out.add("openai_base_url")
     elif pid == "agent.worker":
         if prov == "claude_cli":
             s.swarm_provider, out = "claude_cli", {"swarm_provider"}

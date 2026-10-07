@@ -166,6 +166,15 @@ def _local_job_services(settings: Settings):
     return JB.default_registry(work=work)
 
 
+def _register_endpoint_host(base_url: str) -> None:
+    """Law 2 for the user's own OpenAI-compatible endpoint: loopback is local; any other host (a LAN box included) belongs to the
+    custom_llm route, which is off until the user opts in."""
+    from urllib.parse import urlsplit
+    from . import egress as _EG
+    if not str(base_url).startswith(("http://127.0.0.1", "http://localhost", "http://[::1]")) and _EG.ACTIVE is not None:
+        _EG.ACTIVE.register_host("custom_llm", urlsplit(str(base_url)).hostname or "")
+
+
 def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None,
                handwriting_reader=None, connections_transport=None) -> Starlette:
     from . import egress as _EG
@@ -174,9 +183,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     elif _EG.ACTIVE is None:
         _EG.set_active(_EG.Egress(settings.state_dir))                              # production: strict, every route off until the user opts in
     _EG.install()
-    if not str(settings.openai_base_url).startswith(("http://127.0.0.1", "http://localhost", "http://[::1]")):
-        from urllib.parse import urlsplit
-        _EG.ACTIVE.register_host("custom_llm", urlsplit(settings.openai_base_url).hostname or "")
+    _register_endpoint_host(settings.openai_base_url)
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     provider_prefs.apply_saved(settings, provider_prefs.load(settings.state_dir))   # the saved provider choices apply where the environment is silent (an env var is the session's override)
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
@@ -1314,7 +1321,8 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
                 logging.getLogger("lampway.choices").warning("the main agent's choice could not be built: %s", exc)
                 return
             agent.provider = new_main
-        for k in ("provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model", "swarm_provider",
+        _register_endpoint_host(trial.openai_base_url)                # a remote endpoint is the custom_llm route's, off until opted in
+        for k in ("provider", "anthropic_model", "openai_model", "openai_base_url", "chatgpt_model", "chatgpt_effort", "openrouter_model", "swarm_provider",
                   "claude_swarm_model", "chatgpt_swarm_model", "openrouter_swarm_model", "image_backend", "image_purposes", "video_purposes"):
             setattr(settings, k, getattr(trial, k))
         settings.sources.update({k: v for k, v in trial.sources.items() if v == "choices"})
