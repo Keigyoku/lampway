@@ -80,25 +80,44 @@ def _compare_areas():
     return out
 
 
+SPIN_DEG_PER_TICK = 2.0      # a turntable: 20 degrees a second at the 100 ms poll
+
+
+def _state(views):
+    # the view's own fields, not view_matrix: the matrix is recomputed at the next draw, so a rotation set here would read
+    # back as a stale matrix and look like the user's orbit
+    return [(tuple(round(v, 6) for v in r.view_rotation), tuple(round(v, 6) for v in r.view_location), round(r.view_distance, 6))
+            for _a, r in views]
+
+
 def _sync():
-    if not STATE["sync"] or not STATE["areas"]:
-        return 0.1 if STATE["areas"] else None
-    views = []
-    for _w, area in _compare_areas():
-        r3d = area.spaces.active.region_3d
-        views.append((area, r3d))
-    current = [(tuple(map(tuple, r.view_matrix)), round(r.view_distance, 6)) for _a, r in views]
+    """The 100 ms poll (mrmak/05 6.6): a view the user moved is copied to the others (Sync), and that manual orbit turns
+    Spin off; with Spin on and nothing moved, every view turns about the world's vertical by the same step."""
+    if not STATE["areas"]:
+        return None
+    if not STATE["sync"] and not STATE["spin"]:
+        return 0.1
+    views = [(area, area.spaces.active.region_3d) for _w, area in _compare_areas()]
+    current = _state(views)
+    moved = None
     if STATE["last"] is not None and len(current) == len(STATE["last"]):
         moved = next((k for k, (cur, old) in enumerate(zip(current, STATE["last"])) if cur != old), None)
-        if moved is not None:
+    if moved is not None:
+        STATE["spin"] = False                              # a manual orbit stops the turntable
+        if STATE["sync"]:
             src = views[moved][1]
             for k, (_a, r) in enumerate(views):
                 if k != moved:
                     r.view_rotation = src.view_rotation.copy()
                     r.view_location = src.view_location.copy()
                     r.view_distance = src.view_distance
-            current = [(tuple(map(tuple, r.view_matrix)), round(r.view_distance, 6)) for _a, r in views]
-    STATE["last"] = current
+    elif STATE["spin"]:
+        import math
+        from mathutils import Quaternion
+        turn = Quaternion((0.0, 0.0, 1.0), math.radians(SPIN_DEG_PER_TICK))
+        for _a, r in views:
+            r.view_rotation = (r.view_rotation @ turn).normalized()
+    STATE["last"] = _state(views)
     return 0.1
 
 

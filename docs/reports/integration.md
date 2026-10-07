@@ -119,6 +119,39 @@ The MCP wrapper (C0-C2, T1-T3) and the agent modes stay with the cloud crew.
 | F24 Mixar leftovers in custom-drawn text | fixed by lp/facelift | d663255d | merged in b20 |
 | F25 a 45 MB checkpoint per turn | deferred | - | upstream's turn-checkpoint design (a whole-file copy before every message, deduplicated by hash). Skipping a "read-only" turn needs a change detector the module itself says is blind to direct bpy.data writes, so a wrong skip would make a revert restore the wrong state. Recommended: a decision on incremental checkpoints, not a patch here |
 
+### Claims of the captain's words in the tree (coordinator item, spec audit)
+`canon_judge.py:29` said "the captain named a threshold for fields without a cross-check"; he did not (the threshold came from a
+coordinator brief). It now says the threshold is a named pref, unset, `needs_decision`. Every other comment, docstring, doc and
+test line in the tree that attributes words or a ruling to the captain (`git grep` for "captain" + named / said / ruled / ruling /
+words / approved / decided / asked / wants / chose / agreed / confirmed, the generated .claude/.agents copies counted once) was
+checked against specs/BUILD_ORDER.md:
+- matched: the compute CLI's quote (D2), the Asset Vault name and `lampway_vault_*` (Wave 5b answer 3), the herdr invariants
+  (isolation, controlled decoupling, reconcile: the Mr. Mak section), the UE Look cube on the UE side ("Go with option 1"), the
+  Manny bone table, rail row 7 (pre-rail merges listed), the 2026-10-06 rulings in docs/canon/REPORT.md, the MetaTailor approval,
+  and the rail-adoption and "Those recs are fine" anneal rows.
+- NOT in BUILD_ORDER.md (each names an older source; I cannot match them there):
+  - `server/lampway_server/library/rules/terms.json:122` "the captain's ruling: the V3 turnarounds are the appearance authority";
+  - `src/scripts/mixar/modules/lampway_tools/pipeline/relief_tiles.py:8` the captain: "Go for the crops" (a shelf SPIKE header, 2026-10-04);
+  - `docs/canon/03-fit-and-deform.md:120` captain ruled "regenerate it" (2026-09-25);
+  - `src/scripts/mixar/modules/lampway_tools/features/motion_generate.py:38` "the captain's words rank first with the names".
+  These come from the Titan shelf's own history (ported headers and the canon's memory rows), which BUILD_ORDER.md does not quote.
+
+### The captain's rulings on the spec audit (BUILD_ORDER.md, 2026-10-07) at the b23 tip
+| ruling | holds at b23? | pinned by |
+|---|---|---|
+| 1 moodboard prompts public | unchanged, as ruled | (left as built) |
+| 2 typed judge off by default, user turns it on per field | yes | `tests/lampway_tools/test_canon_judge.py::test_the_judge_is_off_on_a_fresh_profile_and_stays_off_after_its_goldens_pass` (a mutant that auto-enables fails it) |
+| 3 "default no" is a default, unblockable by a dated, revocable acknowledgement | owner lp/connections; not yet merged as a ruling change | the acknowledgement mechanics: `server/tests/test_choices_store.py::test_acknowledgements_are_dated_and_revocable` (it does not pin the ruling's default-not-never) |
+| 4 `:free` models for non-private inputs only | owner lp/connections; no ruling test at the tip | - |
+| 5 spend caps a saved per-day total, $1 / $5 / click above $0.25 | owner lp/connections; no ruling test at the tip | the compute day cap rolls over at local midnight (`server/tests/test_compute.py::test_the_day_cap_sums_jobs_and_rolls_over_at_local_midnight`), not the ruling's profile defaults |
+| 6 typed forms for the 13 tools without a UI path | yes (agent/batch_forms.py, every parameter described and bounded) | the schema ratchet (`server/tests/test_tool_schema_ratchet.py`) holds the descriptions and bounds; no test names the 13 |
+| 7 the four-step onboarding stays, order fixed | as built | `tests/lampway/test_lampway_onboarding.py` (its steps; no test names the order) |
+| 8 agents read Connections status only | yes | `server/tests/test_connections_status_tool.py` (no write action, an allow-list projection) |
+| 9 own embeddings model later | n/a | - |
+| 10 a dead herdr server restarts only on the user's click | owner lp/connections; no ruling test at the tip | - |
+| 11 WezTerm's Ctrl+click image link dropped | NO: `lampway.wezterm.lua` (both copies) still carries the lampway-image hyperlink rule, the Ctrl+click bindings and the open-uri queue | owner lp/facelift |
+| 12 the UE cube is data from the user's side | yes | `tests/lampway_tools/test_uelook_cube.py` |
+
 ## Merges
 
 All merges are `--no-ff` into lp/wave5, of PUSHED refs only (an earlier merge of a lane's unpushed local tip, `57b6d2e8` of lp/vault-ui, was amended by the lane afterwards and came back as add/add conflicts; that draft commit stays in lp/wave5's history).
@@ -142,6 +175,8 @@ All merges are `--no-ff` into lp/wave5, of PUSHED refs only (an earlier merge of
 | b19 (8add5ed0: F1, F2) | none (the audit's F1 and F2 on b18) | - | first run KILLED: my dev tests synced their scripts into the same binary while it ran (blender_run syncs the tree under test into the binary's bundled scripts before every script), so its client results were not this tree's; dev runs now use their own copy, `blender-lanes/integration-dev/Prod`. Re-run in a separate gate worktree (`wt-intgate`): RED, 1 new failure and 1 flaky. New: `tests/i18n/test_catalogs_shipped.py::test_template_is_current` - mixar.pot is git-ignored, so a fresh worktree has none; every earlier batch ran in wt-wave5, where a local `make i18n_update` had left one, so the coordinator's fresh-worktree gate would have failed it too. Fixed in 1f403bfb (test_env.sh writes it; verify_env names it). Flaky: test_ui_stdio's 5 s initialize (now 30 s). Server 1630 passed / 11 skipped; client 8995 passed, 111 failed + 15 errors; binary gated (e6668a6b); not pushed |
 | b20 (990127ae) | canon (dfde9d1b), facelift (d18d713d, then c0872d90: both built; its audit fixes F17, F22, F23, F24), the audit fixes F3-F21 | the coding-guidelines anneal table: both parents' new rows kept (canon's shelf row, facelift's BUILT_FROM row); docs/tools.md regenerated; the schema ratchet records facelift's batch forms (Requests, item 9) | binary GATED (BUILT_FROM c0872d90; HEAD's native paths equal it); the shelf in the environment (LAMPWAY_SHELF_DIR). RED, 3 new: canon's one-importer door met facelift's new status bar (two bpy.data.images.load), the bake-export test pinned F13's old message, and the Choices shadow test pinned the forbidden `differences[0]:`. Fixed: ba52ac14 (then facelift's own 213bca4 replaced the status-bar glue), cdaabd9c. Server 1724 passed; client 9091 passed, 109 failed + 15 errors; not pushed |
 | b21 (cdaabd9c) | canon (7522cc06), facelift (213bca4d, its status-bar canon_io fix; its newer a257a40e changes native code and has no build: held) | canon's one new undescribed parameter described (lampway_fit_source_check.piece), docs/tools.md regenerated; a phrase naming the shelf's scratch folder tripped the PII gate's owner-path rule in an unpushed commit: the six unpushed commits holding it were replayed with it reworded (scratch/scrub_replay.py; lane commits keep their ids) | binary GATED (BUILT_FROM c0872d90 = HEAD's native paths); the shelf in the environment; rail 0; PII 0 (tree and range); no @RUN_TMP@. test_all GREEN, gated (exit 0), run in the separate gate worktree after test_env.sh: server 1725 passed / 10 skipped; client 9124 passed, 107 failed + 15 errors = the 122 known-red; env-skipped 0; 58.8 min. Carries the audit's F1 and F2. PUSHED with this log |
+| b22 (b3e863a7) | facelift (1ee8dea4, built: BUILT_FROM a257a40e, the brand pages and its contracts; no tab work in that span) | none (clean) | binary GATED (a257a40e = HEAD's native paths); test_all GREEN, gated (exit 0): server 1753 passed / 10 skipped; client 9124 passed, 107 failed + 15 errors = the 122 known-red; 55.9 min. PUSHED as b3e863a7 |
+| b23 (8f9b8a9c) | facelift (5a035fd0: WezTerm purely a viewport - the tab renderer and its gate, the tab feed, the Focus button and send_text removed, the tab spawner c89632c2 reverted; the batch forms described and bounded; built: BUILT_FROM 97879399, the same native sources), the captain's ruling 2 (59ff871f), the canon_judge attribution fix | none (clean); the schema ratchet came back paid down by the facelift lane (691 / 240) | binary GATED (97879399); check_wezterm 0 findings and its self-test catches a tab bar and a tab title from state; test_all GREEN, gated (exit 0): server 1753 passed / 10 skipped; client 9131 passed, 107 failed + 15 errors = the 122 known-red; env-skipped 0; 56.2 min. PUSHED with this log |
 
 
 

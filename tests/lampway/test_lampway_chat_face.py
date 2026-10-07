@@ -182,3 +182,12 @@ def test_the_step_log_collapses_to_what_happened_and_where():
     assert SF.format_steps_summary(["READ", "COMMAND"], statuses=["DONE", "FAILED"]) == "1 step done, 1 failed, local"
     assert SF.format_steps_summary(["READ", "COMMAND", "TOOL"], statuses=["DONE", "RUNNING", "PENDING"]) == "1 of 3 steps done, local"
     assert SF.format_steps_summary(["READ"]) == "1 tool called", "a caller without statuses keeps the old words"
+
+
+def test_an_answered_question_has_no_lamplight():
+    """Contract 04: lamplight means a decision waits for your hand. An answered question's only row is its expander
+    (lampway_tools/answered.py PREFIX), so the island draws no lamplight and no waiting rule behind it."""
+    from mixar.modules.lampway_tools import answered
+    native = (ROOT / "src/source/blender/editors/space_mixie_chat/mixie_chat_messages_render.cc").read_text()
+    block = native[native.index("A question or choice waits for the user"):native.index("for (int i = 0; i < layout.slot_action_count; i++) {\n          ActionSlotData &action")]
+    assert f'"{answered.PREFIX}"' in block and "chat_ui_draw_lamplight" in block, "the waiting glow is skipped for an answered bubble"

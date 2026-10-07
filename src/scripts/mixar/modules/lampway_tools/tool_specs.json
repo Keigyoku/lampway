@@ -954,7 +954,7 @@
     {
      "name": "out_dir",
      "type": "string",
-     "desc": "",
+     "desc": "Where the masks are written, default the projection's directory",
      "required": false,
      "flag": null,
      "repeat": false
@@ -962,7 +962,7 @@
     {
      "name": "mesh_npz",
      "type": "string",
-     "desc": "",
+     "desc": "The piece's mesh (npz): turns on the shell vote within metal parts",
      "required": false,
      "flag": null,
      "repeat": false
@@ -1066,7 +1066,7 @@
     {
      "name": "mesh",
      "type": "string",
-     "desc": "",
+     "desc": "The parts mesh (fbx)",
      "required": true,
      "flag": null,
      "repeat": false
@@ -1082,7 +1082,7 @@
     {
      "name": "recipe",
      "type": "string",
-     "desc": "",
+     "desc": "The parts recipe (json)",
      "required": true,
      "flag": null,
      "repeat": false
@@ -1098,7 +1098,7 @@
     {
      "name": "turn",
      "type": "number",
-     "desc": "Turn about Z, default 0",
+     "desc": "Turn about Z in degrees, default 0",
      "required": false,
      "flag": "--turn",
      "repeat": false
@@ -1106,7 +1106,7 @@
     {
      "name": "min_perimeter",
      "type": "number",
-     "desc": "Smallest loop perimeter, default 0.15",
+     "desc": "Smallest loop perimeter in metres, default 0.15",
      "required": false,
      "flag": "--min-perimeter",
      "repeat": false
@@ -1114,7 +1114,7 @@
     {
      "name": "max_shell_tris",
      "type": "integer",
-     "desc": "Largest floating shell, default 400",
+     "desc": "Largest floating shell in triangles, default 400",
      "required": false,
      "flag": "--max-shell-tris",
      "repeat": false
@@ -1122,7 +1122,7 @@
     {
      "name": "float_mm",
      "type": "number",
-     "desc": "Floating distance, default 3",
+     "desc": "Floating distance in mm, default 3",
      "required": false,
      "flag": "--float-mm",
      "repeat": false
@@ -1130,7 +1130,7 @@
     {
      "name": "delete_polys",
      "type": "string",
-     "desc": "",
+     "desc": "deletions.json: {\"polys\": [...]} faces already ruled deleted, removed before the analysis",
      "required": false,
      "flag": "--delete-polys",
      "repeat": false
@@ -1186,7 +1186,7 @@
     {
      "name": "mesh",
      "type": "string",
-     "desc": "",
+     "desc": "The parts mesh (fbx)",
      "required": true,
      "flag": null,
      "repeat": false
@@ -1202,7 +1202,7 @@
     {
      "name": "recipe",
      "type": "string",
-     "desc": "",
+     "desc": "The parts recipe (json)",
      "required": true,
      "flag": null,
      "repeat": false
@@ -1234,7 +1234,7 @@
     {
      "name": "deletions",
      "type": "string",
-     "desc": "",
+     "desc": "deletions.json: {\"polys\": [...]} faces ruled deleted (original indices), \"refill\" the ones to cover again",
      "required": false,
      "flag": "--deletions",
      "repeat": false
@@ -1242,7 +1242,7 @@
     {
      "name": "session",
      "type": "string",
-     "desc": "",
+     "desc": "Read only this QA session's rulings",
      "required": false,
      "flag": "--session",
      "repeat": false
@@ -1250,7 +1250,7 @@
     {
      "name": "turn",
      "type": "number",
-     "desc": "Turn about Z, default -90",
+     "desc": "Turn about Z in degrees, default -90",
      "required": false,
      "flag": "--turn",
      "repeat": false
@@ -1258,7 +1258,7 @@
     {
      "name": "edge_cm",
      "type": "number",
-     "desc": "Patch edge length, default 1.5",
+     "desc": "Patch edge length in cm, default 1.5",
      "required": false,
      "flag": "--edge-cm",
      "repeat": false
@@ -1274,7 +1274,7 @@
     {
      "name": "match_mm",
      "type": "number",
-     "desc": "Match distance, default 2",
+     "desc": "Match distance in mm, default 2",
      "required": false,
      "flag": "--match-mm",
      "repeat": false
@@ -1290,7 +1290,7 @@
     {
      "name": "bridge_cm",
      "type": "number",
-     "desc": "Bridge length, default 6",
+     "desc": "Bridge length in cm, default 6",
      "required": false,
      "flag": "--bridge-cm",
      "repeat": false
@@ -1642,7 +1642,7 @@
     {
      "name": "out_dir",
      "type": "string",
-     "desc": "",
+     "desc": "Where the height map is written",
      "required": true,
      "flag": null,
      "repeat": false
@@ -1650,7 +1650,7 @@
     {
      "name": "res",
      "type": "integer",
-     "desc": "Atlas size",
+     "desc": "Atlas size, default 2048",
      "required": false,
      "flag": null,
      "repeat": false
@@ -1666,7 +1666,7 @@
     {
      "name": "preblur_px",
      "type": "number",
-     "desc": "Blur before projecting",
+     "desc": "Blur before projecting, in pixels",
      "required": false,
      "flag": null,
      "repeat": false
@@ -2026,7 +2026,7 @@
     {
      "name": "out_npz",
      "type": "string",
-     "desc": "",
+     "desc": "The weights written (npz)",
      "required": true,
      "flag": null,
      "repeat": false
@@ -2298,7 +2298,7 @@
     {
      "name": "angle",
      "type": "number",
-     "desc": "Smart UV angle, default 66",
+     "desc": "Smart UV angle in degrees, default 66",
      "required": false,
      "flag": "--angle",
      "repeat": false
