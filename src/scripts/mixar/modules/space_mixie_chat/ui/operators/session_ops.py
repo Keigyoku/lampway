@@ -210,6 +210,20 @@ class MIXIE_CHAT_OT_new_session(Operator):
             session.clear_session_id(scene)
             session.set_state(scene, SessionState.OFFLINE)
 
+        # Your agent mode (agent-modes spec M0, B2): the tab keeps its pane, handed to the new chat session; the pane's binding
+        # follows the tab's session id. The user's own click, so the server is asked here (a short REST call).
+        try:
+            from ...core.agent_mode import after_new_chat
+            from mixar.modules.lampway_tools.workbench_client import WorkbenchClient
+            handed = after_new_chat(scene, old_session_id, WorkbenchClient())
+            if handed is not None and not handed.get("ok"):
+                self.report({'WARNING'}, f"Your agent's pane stays with the old chat: {handed.get('error')}")
+            elif handed is not None:
+                from ...core.byoa_view import observe
+                observe(scene)
+        except Exception as e:  # noqa: BLE001 - a New Chat never fails over the pane
+            logger.debug(f"BYOA pane hand-over skipped: {e}")
+
         # The old session is gone — sweep any agentlane:* workspace scenes it
         # leaked (their backend removal scripts were dropped as stale).
         try:

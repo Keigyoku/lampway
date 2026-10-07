@@ -232,6 +232,11 @@ def delete_session(session_id: str) -> bool:
     return existed
 
 
+def _agent_mode(scene) -> str:
+    from .agent_mode import get_mode
+    return get_mode(scene)
+
+
 def archive_current(scene) -> bool:
     """Archive the scene's live chat to disk (upsert by session_id).
 
@@ -273,6 +278,9 @@ def archive_current(scene) -> bool:
         "archived_at": now,
         "message_count": len(snapshot),
         "messages": snapshot,
+        # Which agent the chat was with (agent-modes spec M0, B4): a Your agent chat is the observed transcript of the
+        # harness's own session file, which stays the source of truth.
+        "agent_mode": _agent_mode(scene),
     }
     try:
         _atomic_write_json(_record_path(session_id), record)

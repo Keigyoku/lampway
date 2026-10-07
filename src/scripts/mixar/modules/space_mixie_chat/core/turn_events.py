@@ -47,6 +47,7 @@ class Turn:
     pending: dict = field(default_factory=dict)
     complete: bool = False
     recovering: bool = False
+    observed: bool = False    # a BYOA pane's own transcript (byoa_view.py): rendered, never the tab's turn state
 
 
 def arm():
@@ -184,6 +185,10 @@ def _drain():
 
 
 def _consume(method, params):
+    if method == 'agent.byoa.view':
+        from . import byoa_view
+        byoa_view.apply_view(params)
+        return
     if method == 'agent.recovery.status':
         sid = params.get('session_id')
         scene = _resolve(sid)
@@ -247,6 +252,20 @@ def _consume(method, params):
         if turn is not None:
             turn.recovering = bool(params.get('replay'))
             return
+        if params.get('observed'):
+            # A Your agent tab's pane, observed (agent-modes spec B4): only a tab in that mode takes it, and it never
+            # becomes the tab's turn (no BUSY, no run, no executor turn), so an MCP operation on the tab is left alone.
+            from .agent_mode import is_byoa
+            if not is_byoa(scene):
+                return
+            if len(_turns) >= 64:
+                completed = next((key for key, value in _turns.items() if value.complete), None)
+                if completed:
+                    _turns.pop(completed)
+            _turns[tid] = Turn(sid, tid, str(params.get('run_id') or ''), observed=True)
+            from . import byoa_view
+            byoa_view.begin_observed_turn(scene, params)
+            return
         from .session import get_session_manager
         session = get_session_manager()
         run_id = str(params.get('run_id') or '')
@@ -283,6 +302,10 @@ def _consume(method, params):
     if not isinstance(payload, dict):
         return
     if payload.get('type') == 'resume_unavailable':
+        if turn.observed:
+            from . import byoa_view
+            byoa_view.apply_observed(scene, turn, payload)
+            return
         _replay_unavailable(scene, turn)
         return
     seq = params.get('seq', payload.get('seq'))
@@ -299,7 +322,8 @@ def _consume(method, params):
         _apply(scene, turn, event)
         turn.pending.pop(next_seq)
         turn.cursor = next_seq  # Advance only after successful rendering.
-        turn_cursor.save(scene, turn)
+        if not turn.observed:   # an observed turn keeps its own cursor (byoa_view.CURSOR_KEY), never Mode 1's
+            turn_cursor.save(scene, turn)
         if turn.complete:
             turn.pending.clear()
             break
@@ -308,6 +332,10 @@ def _consume(method, params):
 
 
 def _apply(scene, turn, payload):
+    if turn.observed:
+        from . import byoa_view
+        byoa_view.apply_observed(scene, turn, payload)
+        return
     from .queue_processor import get_event_processor
     processor = get_event_processor()
     if payload.get('type') == 'turn_end':
@@ -421,6 +449,11 @@ def reconnect(session_ids=None):
 
     from .turn_resume import check_orphaned_turns
     check_orphaned_turns()
+    try:   # every tab in Your agent mode asks for its pane's view again on the new socket (agent-modes spec B4)
+        from . import byoa_view
+        byoa_view.observe_all()
+    except Exception:  # noqa: BLE001 - the view never blocks recovery
+        logger.debug('BYOA view recovery skipped', exc_info=True)
 
 
 def drop_scene(scene_name):

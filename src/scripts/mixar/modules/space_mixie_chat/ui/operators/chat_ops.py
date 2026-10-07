@@ -106,6 +106,11 @@ class MIXIE_CHAT_OT_send_message(Operator):
         return allowed
 
     def execute(self, context):
+        # Your agent mode (agent-modes spec M0, B4): the text goes to the tab's own pane, not to Lampway's provider.
+        from ...core.agent_mode import is_byoa
+        if is_byoa(context.scene):
+            from ...core import byoa_view
+            return byoa_view.execute_send(self, context)
         # Facelift contract 04: with the agent's provider route off in Privacy, refuse here, before the server is asked.
         from mixar.modules.lampway_tools import chat_route
         refused = chat_route.refusal(context)
