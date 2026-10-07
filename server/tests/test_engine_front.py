@@ -98,10 +98,25 @@ def test_r3_rules_and_an_image_reach_the_pane_as_an_attachment_then_the_prompt(s
 
     serve = run(stack, scenario)
     order = [m for m, _ in serve.calls if m in ("image.attach_bytes", "prompt.submit")]
+    assert "Plan Mode is on" not in next(p for m, p in serve.calls if m == "prompt.submit")["text"]
     assert order == ["image.attach_bytes", "prompt.submit"], "the image is attached before the prompt"
     assert serve.only().images == [("front.png", PNG)]
     text = next(p for m, p in serve.calls if m == "prompt.submit")["text"]
     assert "Always use metric units." in text and text.rstrip().endswith("Model the chair.")
+
+
+def test_the_clients_turn_policy_reaches_the_pane_with_the_message(stack):
+    """Plan Mode, Auto mode and the asset-match threshold the client sends beside the message reach the pane's Hermes in the
+    prompt's "This turn" section (they fed only the removed loop before)."""
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Here is the plan.")])
+        cid, _ = await chat(island, "Make a table.", "scene-1", plan_required=True,
+                            user_preferences={"asset_match_threshold": 0.7})
+        await island.ended(cid)
+        return next(p for m, p in serve.calls if m == "prompt.submit")["text"]
+
+    text = run(stack, scenario)
+    assert "Plan Mode is on" in text and "0.7" in text and text.rstrip().endswith("Make a table.")
 
 
 # ---------------------------------------------------------------------------------------------------- steer and cancel

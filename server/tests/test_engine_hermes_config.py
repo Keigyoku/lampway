@@ -331,6 +331,17 @@ def test_write_never_touches_the_users_own_hermes(board, tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------------------------------- the start-up check
+def test_lampways_instructions_are_hermess_own_system_prompt_setting(board):
+    """Lampway's guidance on its tools reaches Mode 1's Hermes through ``agent.system_prompt`` (hermes_cli/personality.py
+    ``resolve_ephemeral_system_prompt``, read when serve builds a session, tui_gateway/server.py:2384, and appended to the system
+    message of every model call, agent/chat_completion_helpers.py:2176): no file in the user's project, no replaced identity."""
+    cfg = _render(board, instructions="Use Lampway's tools.")
+    assert cfg["agent"]["system_prompt"] == "Use Lampway's tools." and cfg["agent"]["disabled_toolsets"]
+    assert "system_prompt" not in _render(board)["agent"], "nothing given, nothing written"
+    with pytest.raises(HC.Refused, match="context may set only"):
+        _render(board, context={"agent": {"system_prompt": "x"}})
+
+
 def test_the_written_config_reads_back_as_the_dict_it_was_rendered_from(board, tmp_path):
     """A pane's config is re-rendered when the user switches a capability while it runs (spec E2): the server reads back its own
     file for the pane's keys (it keeps only their digests), so ``read`` must give exactly what ``render`` gave."""
@@ -340,7 +351,8 @@ def test_the_written_config_reads_back_as_the_dict_it_was_rendered_from(board, t
     rendered = {}
     HC.write(tmp_path / "h", board, "/proj ect", GATEWAY, TOKEN, MODEL, mcp_url="http://127.0.0.1:8799/engine/mcp/u 1",
              mcp_headers={"Authorization": "Bearer b\"q", "X-Mixar-Session-Id": "swarm:s:w"}, rendered=rendered,
-             routes_on=lambda r: True, supports_vision=True, context={"compression": {"threshold": 0.5, "enabled": True}})
+             routes_on=lambda r: True, supports_vision=True, context={"compression": {"threshold": 0.5, "enabled": True}},
+             instructions="Line one.\nLine \"two\": yes, no, true.")
     assert HC.read(tmp_path / "h") == rendered
     assert HC.from_yaml(HC.to_yaml({"a": {}, "b": [], "c": [{"x": [1, 2.5, None]}], "d": -1.5e-07, "e": "on"})) == \
         {"a": {}, "b": [], "c": [{"x": [1, 2.5, None]}], "d": -1.5e-07, "e": "on"}

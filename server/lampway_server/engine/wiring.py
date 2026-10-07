@@ -22,7 +22,8 @@ Selected, the app's lifespan (``start``/``stop``/``tick``) gives Mode 1's panes 
 * **the egress proxy** (E1.5): ``engine/proxy.py`` on loopback, on the port it had before a restart when that port is free (the
   panes outlive the server and keep its address), with the server's port as the gateway's;
 * **the config** (E1.3, A1): ``hermes_config.write`` from the ACTIVE Capabilities board and project, the terminal backend from the
-  capability's ``options["backend"]``; a worker's (``worker=True``, spec S2) is the board less ``WORKER_NEVER``, without clarify;
+  capability's ``options["backend"]``, and Lampway's guidance on its tools (``agent/prompt.py``) as Hermes's ``agent.system_prompt``;
+  a worker's (``worker=True``, spec S2) is the board less ``WORKER_NEVER``, without clarify, its prompt the one its task carries;
 * **the start-up check** (E1.3): ``hermes_config.check_advertised`` on each token's first chat request that carries tools, against
   the board its config was written from; a mismatch refuses that request and every later one of that pane (``Registry.first_check``);
 * **a Capabilities change while panes run** (E2): ``capabilities.subscribe`` -> ``Mode1Units.capabilities_changed``: every live
@@ -234,8 +235,10 @@ class EngineWiring:
             raise HC.Refused("refused: the Capabilities board is not available, so the engine's config cannot be written")
         if worker:
             board = WorkerBoard(board)
+        from ..agent.prompt import SYSTEM_PROMPT
         path = HC.write(home, board, CAP.project(), gateway_url, token, model_id, supports_vision=sees_images(self.agent), rendered=rendered,
-                        mcp_url=mcp_url, mcp_headers=mcp_headers, asks_user=not worker)
+                        mcp_url=mcp_url, mcp_headers=mcp_headers, asks_user=not worker,
+                        instructions=None if worker else SYSTEM_PROMPT)     # a worker's prompt comes with its task (S3)
         self._boards[GW.Registry.digest(token)] = (board, not worker)
         return path
 

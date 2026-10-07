@@ -209,7 +209,8 @@ class AgentHub:
         marks = marks_context.describe(payload.get("mark_context"))          # the Scribble marks ride WITH the words
         return await self._message(socket, command_id, session_id, message + ("\n\n" + marks if marks else ""),
                                    {k: payload[k] for k in ("content", "rules", "folder_context", "project_context",
-                                                            "attachment_names", "imported_object_names") if k in payload})
+                                                            "attachment_names", "imported_object_names", "plan_required",
+                                                            "auto_mode", "user_preferences") if k in payload})
 
     async def _message(self, socket, command_id, session_id, text: str, context: Optional[dict] = None):
         """The user's words for the unit's Hermes: they join a running turn (R4), else open a turn (A2) once the pane may be reached."""

@@ -216,6 +216,10 @@ def test_live_the_first_chat_opens_the_real_pane_and_a_tool_turn_runs_through_it
     assert scripts and scripts[0]["session_id"] == unit, "the tool reached the scene tab's Blender"
     turns = [r for r in live["provider"].requests if r.tools]
     assert turns and (FULL in {t.name for t in turns[0].tools} or "tool_call" in {t.name for t in turns[0].tools})
+    # Lampway's guidance on its tools reaches the model: Hermes appends the config's agent.system_prompt to its system message
+    from lampway_server.agent.prompt import SYSTEM_PROMPT
+    assert SYSTEM_PROMPT.splitlines()[0] in turns[0].system and "mcp__lampway__" in turns[0].system, turns[0].system[-2000:]
+    assert turns[0].system.startswith("You are Hermes Agent"), "Hermes's own identity stays"
     # the pane: Lampway's wrapper in a pane of the unit's own tab, its record without a secret, its session in the home
     home = Path(rec["home"])
     token = (home / "serve.token").read_text()
@@ -234,7 +238,8 @@ def test_live_the_first_chat_opens_the_real_pane_and_a_tool_turn_runs_through_it
     bearer = re.search(r'^      Authorization: "Bearer ([^"]+)"$', text, re.M).group(1)
     assert gw_token.startswith("lwe_")
     assert text == HC.to_yaml(HC.render(CAP.ACTIVE, str(live["project"]), f"{stack.base}/engine/v1", gw_token, W.MODEL_ID,
-                                        mcp_url=f"{stack.base}/engine/mcp/{unit}", mcp_headers={"Authorization": f"Bearer {bearer}"})), \
+                                        mcp_url=f"{stack.base}/engine/mcp/{unit}", mcp_headers={"Authorization": f"Bearer {bearer}"},
+                                        instructions=SYSTEM_PROMPT)), \
         "the pane's config is exactly what hermes_config renders from the active board"
     assert (home / "managed").is_dir() and not any((home / "managed").iterdir())
     cache = home / "models_dev_cache.json"                               # if Hermes read models.dev, it read it from the gateway

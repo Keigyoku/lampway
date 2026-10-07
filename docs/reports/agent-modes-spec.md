@@ -147,6 +147,18 @@ and never fetched at run time.
   build with `LAMPWAY_HERMES_TUI_DIR` pointing at the spike's prebuilt `ui-tui`.
 - **Opening a pane is the user's chat.** An ended pane is reopened (resuming its stored session) by the user's next chat in that
   tab. This treats the chat as the click law 5 asks for: a decision for the captain.
+- **Lampway's instructions reach Hermes (built 2026-10-07).** With the loop gone, `agent/prompt.py`'s guidance fed only the
+  generated agent files. The pinned Hermes offers four channels: a project context file (`HERMES.md`/`AGENTS.md` in the cwd,
+  which would write into the user's project), `SOUL.md` in the home (replaces Hermes's identity), a plugin's
+  `register_system_prompt_section` (code in the home), and the config's `agent.system_prompt` (hermes_cli/personality.py
+  `resolve_ephemeral_system_prompt`, read when serve builds a session, appended after Hermes's own prompt on every model call,
+  agent/chat_completion_helpers.py:2175-2177). Lampway uses the last, the least invasive: a main pane's config carries
+  `SYSTEM_PROMPT` (rewritten for Mode 1: the `mcp__lampway__` names behind `tool_search`, `clarify`, Capabilities, the spend
+  and source-file rules); a worker's pane gets its prompt with its task (S3). Measured: the scripted model's system message
+  starts "You are Hermes Agent" and carries the guidance (`test_engine_pane_live.py`). The client's turn policy rides in the
+  prompt's "This turn" section (R3): Plan Mode (plan, then `clarify` with Approve/Revise), Auto mode (ask nothing this turn),
+  the asset-match threshold. `[UNVERIFIED]`, read in the source only: a user's `/personality` in the pane takes the slot instead
+  (Hermes prefers a personality), until Lampway writes the config again.
 
 ### A2. The island is a second front end on the same live session
 

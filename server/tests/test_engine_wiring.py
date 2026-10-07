@@ -283,6 +283,20 @@ def test_after_a_live_capability_change_the_next_request_with_tools_is_checked_a
     assert len(seen) == 3, "the refused re-check did not latch; the pass settled it"
 
 
+def test_a_main_panes_config_carries_lampways_instructions_and_a_workers_does_not(engine_app, tmp_path):
+    """Lampway's guidance on its tools (``agent/prompt.py``) reaches the unit's Hermes as its ``agent.system_prompt``; a swarm
+    worker's pane gets its own system prompt with its task (``herdr/swarm_brain.py``), so none here."""
+    from lampway_server.agent.prompt import SYSTEM_PROMPT
+    with TestClient(engine_app, base_url=BASE):
+        wiring = engine_app.state.engine_wiring
+        wiring.write_config(tmp_path / "m", f"{BASE}/engine/v1", "lwe_m", "lampway")
+        wiring.write_config(tmp_path / "w", f"{BASE}/engine/v1", "lwe_w", "lampway", worker=True)
+    main, worker = HC.read(tmp_path / "m"), HC.read(tmp_path / "w")
+    assert main["agent"]["system_prompt"] == SYSTEM_PROMPT
+    assert "mcp__lampway__" in SYSTEM_PROMPT and "clarify" in SYSTEM_PROMPT and "ask_user" not in SYSTEM_PROMPT
+    assert "system_prompt" not in worker["agent"]
+
+
 def test_the_wiring_check_uses_check_advertised_against_the_board_the_config_came_from(engine_app, tmp_path):
     with TestClient(engine_app, base_url=BASE):
         wiring = engine_app.state.engine_wiring

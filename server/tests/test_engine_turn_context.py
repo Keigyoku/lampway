@@ -46,3 +46,15 @@ def test_an_empty_rules_snapshot_on_a_first_turn_says_nothing():
     """The client sends ``{"project": [], "global": []}`` when there are no rules: nothing was removed, so nothing is said."""
     text, key = TC.prompt_text("hello", {"rules": {"project": [], "global": []}})
     assert text == "hello" and key == "none"
+
+
+def test_the_turns_own_policy_rides_with_the_message():
+    """The client's turn policy reached only the removed loop (Plan Mode's prompt; R3, R4): plan first, never ask, and the user's
+    asset-match threshold now ride in the turn's "This turn" section, so Lampway Agent's Hermes reads them."""
+    text, _ = TC.prompt_text("Make a table.", {"plan_required": True, "auto_mode": True,
+                                               "user_preferences": {"asset_match_threshold": 0.8}})
+    assert "Plan Mode is on" in text and "clarify" in text and "Approve" in text
+    assert "Auto mode is on" in text and "0.8" in text
+    assert text.rstrip().endswith("Make a table.")
+    plain, _ = TC.prompt_text("Make a table.", {"plan_required": False, "auto_mode": False})
+    assert plain == "Make a table."
