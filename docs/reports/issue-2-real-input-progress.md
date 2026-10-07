@@ -33,9 +33,31 @@ No bone exceeded the bars. This export followed a normalization refusal, so it
 does not establish the successful normalization/default-export chain required by
 AC15 and AC24, or physical Unreal parity.
 
-The terminal-finger correction is published separately at
-[`a0cb76dd`](https://github.com/Keigyoku/lampway/commit/a0cb76dd6d025a9d3bf84612eaab89d2c8be10b4).
-Its native regressions cover one- and two-helper terminal branches and reject
-unknown children. The owner-local rerun is required. The delivered 342 read-back
-rows contain measurements, not parent/child topology; a complete topology audit
-must use the actual roster rather than infer relationships from names.
+The terminal-finger correction at
+[`a0cb76dd`](https://github.com/Keigyoku/lampway/commit/a0cb76dd6d025a9d3bf84612eaab89d2c8be10b4)
+was rerun on the copied original. Normalization advanced to the auxiliary
+`pinky_03_half_l` branch, then refused its children `pinky_02_dip_l` and
+`pinky_03_in_l`. Default export still passed the 342-bone read-back. AC15 remains
+incomplete; individual terminal corrections do not establish full-rig support.
+
+The complete 342-bone parent/child/deform topology has now been delivered as
+metadata without geometry or weights. Its source archive SHA256 is
+`88eae37c86ea250eb459bf22c2edbda5c2fc7f6aa3a7e87109829b8851972fa3`.
+A complete helper-chain policy and topology regression are in progress.
+
+The subsequent owner-local receipt archive SHA256 is
+`ce13643bad433705fad5a7296da88d033612a15359fdbb5c9f3a1d3536822f39`.
+It records Python candidate `a0cb76dd6d025a9d3bf84612eaab89d2c8be10b4`
+over native build `6331e542727e52d9a67a42a4bb3c12e0cac63e3e`:
+
+| Check | Observed result and limit |
+|---|---|
+| Hardware UI | Passed onboarding and Back navigation, 64 current visible labels, paging, modal refusal/ESC recovery and connected scene tools on NVIDIA RTX 4070 Ti SUPER with driver 615.71.09 |
+| Application exit | Blender exited 0; the isolated gamescope compositor separately crashed with teardown status -11 |
+| Actual chest frame parity | Raw input with experimental -90-degree facing and normalized input with zero residual facing produced identical ratios, deviations, placement and tight-front scores |
+| Input integrity | All ten original input hashes remained unchanged |
+
+The current 64-control GUI run and original 71-control inventory are distinct
+proofs. The chest experiment does not approve a plate or a facing default.
+Unreal/MetaTailor parity and the complete normalization/default-export chain
+remain open.
