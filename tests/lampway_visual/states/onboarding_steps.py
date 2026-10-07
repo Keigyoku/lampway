@@ -18,7 +18,7 @@ ROUTES += [{"id": "openrouter", "label": "OpenRouter", "enabled": False, "hosts"
             "retention": "per model", "training": "per model"},
            {"id": "chatgpt_plan", "label": "ChatGPT plan", "enabled": False, "hosts": ["chatgpt.com"], "privacy_class": "unknown",
             "retention": "unknown", "training": "unknown"}]
-WORDS = {2: "The agent thinks with the provider", 3: "Every route is off until", 4: "OpenRouter, in dollars"}
+WORDS = {2: "Every route is off until", 3: "The agent thinks with the provider", 4: "OpenRouter, in dollars"}   # routes before the provider (F3)
 
 
 def _popup(bpy):

@@ -29,9 +29,9 @@ def iface_(msgid):
 
 WALK = {"walk": None, "anchor": None}
 WRAP = 60              # characters per body line: the body column holds about 78 at any UI scale (it scales with the text)
-STEP_TEXT = {2: n_("The agent thinks with the provider you pick here; nothing is sent until you use it"),
-             3: n_("Every route is off until you switch it on"),
-             4: n_("OpenRouter, in dollars: a click above the first amount, never past the caps")}
+STEP_TEXT = {ob.PROVIDER_STEP: n_("The agent thinks with the provider you pick here; nothing is sent until you use it"),
+             ob.ROUTES_STEP: n_("Every route is off until you switch it on"),
+             ob.CAPS_STEP: n_("OpenRouter, in dollars: a click above the first amount, never past the caps")}
 OFFLINE_NEXT = n_("Continue saves your language and keys only")
 SHIELD = {"ok": 'LAMPWAY_SHIELD', "conditional": 'LAMPWAY_SHIELD_HALF', "retains": 'LAMPWAY_SHIELD_OPEN', "unknown": 'LAMPWAY_SHIELD_UNKNOWN'}
 PROVIDERS = (("chatgpt_plan", "ChatGPT plan", "Your ChatGPT subscription, signed in from Providers"),
@@ -90,7 +90,7 @@ def body_rows(walk) -> int:
     if not walk.online:
         return 1 + _lines(ob.OFFLINE) + _lines(OFFLINE_NEXT)
     refusal = max((_lines(why) for why in [walk.refusal()] if why), default=0)
-    return max(_lines(STEP_TEXT[2]) + 1 + max(refusal, 1), _lines(STEP_TEXT[3]) + len(walk.routes), _lines(STEP_TEXT[4]) + 3)
+    return max(_lines(STEP_TEXT[ob.PROVIDER_STEP]) + 1 + max(refusal, 1), _lines(STEP_TEXT[ob.ROUTES_STEP]) + len(walk.routes), _lines(STEP_TEXT[ob.CAPS_STEP]) + 3)
 
 
 def draw_routes(layout, walk, rows):
@@ -120,23 +120,23 @@ def _draw_body(body, walk, rows) -> int:
         wrapped(body, OFFLINE_NEXT)
         return _lines(ob.OFFLINE) + _lines(OFFLINE_NEXT)
     wm = getattr(bpy.context, "window_manager", None)
-    if walk.step == 2:
-        wrapped(body, STEP_TEXT[2])
+    if walk.step == ob.PROVIDER_STEP:
+        wrapped(body, STEP_TEXT[ob.PROVIDER_STEP])
         body.prop(wm, "lampway_onboarding_provider", text="")
         why = walk.refusal()
         if why:
             wrapped(body, why, icon='ERROR')
-        return _lines(STEP_TEXT[2]) + 1 + (_lines(why) if why else 0)
-    if walk.step == 3:
-        wrapped(body, STEP_TEXT[3])
+        return _lines(STEP_TEXT[ob.PROVIDER_STEP]) + 1 + (_lines(why) if why else 0)
+    if walk.step == ob.ROUTES_STEP:
+        wrapped(body, STEP_TEXT[ob.ROUTES_STEP])
         draw_routes(body, walk, rows)
-        return _lines(STEP_TEXT[3]) + len(rows)
-    if walk.step == 4:
-        wrapped(body, STEP_TEXT[4])
+        return _lines(STEP_TEXT[ob.ROUTES_STEP]) + len(rows)
+    if walk.step == ob.CAPS_STEP:
+        wrapped(body, STEP_TEXT[ob.CAPS_STEP])
         body.prop(wm, "lampway_onboarding_above", text="Click above")
         body.prop(wm, "lampway_onboarding_job_cap", text="Per job")
         body.prop(wm, "lampway_onboarding_session_cap", text="Per session")
-        return _lines(STEP_TEXT[4]) + 3
+        return _lines(STEP_TEXT[ob.CAPS_STEP]) + 3
     return 0
 
 
