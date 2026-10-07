@@ -60,13 +60,18 @@ A Mode 1 agent is a herdr pane that runs Lampway's thin pane wrapper. The wrappe
 adapter, which stays a Mode 2 harness (E1.10).
 
 **What the wrapper does, in order:**
-1. **Starts the backend.** It runs `hermes serve --host 127.0.0.1 --port <P> --skip-build` as its child, with this environment:
+1. **Starts the backend.** It runs `hermes serve --host 127.0.0.1 --port <P>` as its child. `serve` is always headless and
+   never builds a web UI, so `--skip-build` is not needed (`main_dashboard.py:959-960`). The environment:
    - `HERMES_HOME=<state>/agent/hermes/<unit>`: the rendered config (E1.3), with `model.base_url` = the gateway and `mcp_servers` =
      the unit's MCP endpoint (A3);
    - `HERMES_DASHBOARD_SESSION_TOKEN=<lwh_ token>`: issued by Lampway, never on a command line;
    - `HERMES_TUI_WS_ORPHAN_REAP_GRACE_S=0`, so a session with no client attached is parked, not reaped;
+   - `HERMES_GATEWAY_LOCK_DIR=<unit home>/locks`. Hermes allows one `serve` per OS user: its rendezvous lives in
+     `~/.local/state/hermes/gateway-locks`, and a second serve with a typed port exits 78 (`main_dashboard.py:847-853`). That
+     would collide with the next unit and with the user's own Hermes (measured).
    - the egress proxy's variables (E1.5);
-   - no key of the user's (B5).
+   - no key of the user's (B5);
+   - never `HERMES_DESKTOP=1`, which together with the token makes serve act as a Desktop child.
 2. **Waits** until `/api/ws` accepts.
 3. **Runs Hermes's own Ink TUI in the foreground:**
    - `HERMES_TUI_GATEWAY_URL=ws://127.0.0.1:<P>/api/ws?token=<token>`;
@@ -74,6 +79,26 @@ adapter, which stays a Mode 2 harness (E1.10).
    - `HERMES_TUI_RESUME=<session id>` when it reopens one.
 4. **If the TUI exits,** the backend keeps running. The pane says "Press Enter to reopen Hermes", and the TUI reopens only on that
    keypress (law 5: nothing respawns without a click).
+
+**The rendered config (E1.3) gains** what keeps serve offline. Measured: zero external requests across serve, every turn and
+the TUI, against a refusing proxy.
+- `updates.check: false`, `model_catalog.enabled: false`, `nous.guest: false`.
+- `models_dev.url`: the gateway's tokenless mirror.
+- `security.allow_lazy_installs: false`. Without it, serve's free-tier bootstrap runs `uv pip install boto3` into the engine
+  environment through the proxy, and building the first session installs `edge-tts`.
+- `approvals.mode: manual`. The default, `smart`, asks a guardian model.
+- `terminal.cwd`: the project root.
+- `model.supports_vision` (R3).
+
+**Measured on the pinned build (spike, 2026-10-07):**
+- serve listens in 3.1 s (2.5–3.0 s warm);
+- the first session is ready 2.1–4.4 s after `session.create`;
+- the TUI shows a resumed transcript in 1.3–1.4 s;
+- after SIGKILL, serve is listening again in 2.5 s, and resuming a session by id takes 0.1–0.8 s with its history intact. The live
+  id and the replay epoch change. A turn killed mid-stream keeps its user row but loses the partial reply.
+
+**A user's own Hermes can stop Lampway's serve:** `hermes serve --stop` and `hermes update` find serve processes by command line
+and SIGTERM them (`subcommands/dashboard.py:39-45`). The pane wrapper says so and reopens only on the user's click.
 
 **Persistence (what Mode 1 gains):**
 - The pane, and the backend inside it, survive a crash of Blender or of Lampway's server.
@@ -83,9 +108,15 @@ adapter, which stays a Mode 2 harness (E1.10).
 - Closing the pane ends the backend. Its session stays in `state.db`, and reopening it is the user's click, which resumes it
   by id.
 
-**Build:** `engine_env.py` also prebuilds the TUI bundle (`ui-tui/dist/entry.js`) at build time. At run time `hermes --tui` must
-never run `npm install` (law 2). Node is a run-time dependency of Mode 1, found or refused with help; it is never fetched at run
-time. `[UNVERIFIED until the serve spike reports: exact offline flags and steps]`
+**Build:** `engine_env.py` also prebuilds the TUI at build time, in the engine's own copy of the source, so the pinned tree is
+never written to:
+- install: `npm ci --workspace ui-tui --include=dev --no-audit --no-fund` against the root `package-lock.json` (an npm
+  workspace): 163 packages, 7.3 s online; `--offline` from a populated cache, 5.0 s;
+- build: `npm run build` in `ui-tui` (esbuild, 0.5 s) gives a self-contained `dist/entry.js` of 3.6 MB.
+
+The wrapper then points `HERMES_TUI_DIR` at it, and the prebuilt bundle is used as it is (`main_tui_launch.py:556-560`), so at
+run time `hermes --tui` never runs npm (law 2). Node (22 measured) is a run-time dependency of Mode 1, found or refused with help,
+and never fetched at run time.
 
 ### A2. The island is a second front end on the same live session
 
@@ -102,16 +133,19 @@ answer wins. So the island and the pane show one conversation, and either one ca
 | text and reasoning | `message.delta` → `ephemeral.append`; `reasoning.delta` → the reasoning slot |
 | steps | `tool.start` / `tool.complete` → `steps` (label = the Lampway tool name without `mcp__lampway__`) |
 | turn end | `message.complete` → `content.set` + `turn_end` (`complete` → `completed`, `interrupted` → `cancelled`, `error` → `failed`) |
-| a question | server request `clarify` → the island's question (`interrupt_id`, `actions`); the answer is the response frame; `request.cancel` (answered in the pane) closes it |
-| a permission | server request `approval` → the island's permission card; the choice is the response frame |
+| a question | server request `clarify {question, choices}` → the island's question (`interrupt_id`, `actions`); the answer is the response frame `{answer}`. Both front ends get the request and the first answer wins, but the other is sent no `request.cancel` (measured), so Lampway closes the island's card when the turn moves on (`tool.complete` for `clarify`) |
+| a permission | server request `approval {command, request_id, choices: once/session/always/deny}` → the island's permission card; the choice is the response frame `{choice}`; it closes on the turn moving on, as above |
 | history (R2) | `session.list`, `session.resume` |
 
 Further mapping rules:
-- **A turn the user types in the pane** is shown in the island too. When a turn starts that no island prompt asked for, Lampway
-  opens a turn for it and fills in the user's text from the session's history (`message.complete.persisted_turn`), because
-  Hermes sends no event for a typed prompt.
-- **`/new` in the pane** closes the shared session (the TUI calls `session.close`). Lampway follows the pane to its new session,
-  starts a new island chat and files the old one in History.
+- **A turn the user types in the pane** is shown in the island too. Hermes sends no event that carries the typed prompt:
+  `message.start` has no payload, and `session.events.since` does not hold it either (measured). So when a turn starts that no
+  island prompt asked for, Lampway opens a turn for it and reads the user's text from `session.history`.
+- **`/new` in the pane** asks the user to confirm, then closes the shared session for every client (the TUI calls
+  `session.close`). The island receives `sessions.changed`, and then `4001 session not found` (measured). Lampway follows the pane to its new session
+  (Q15), starts a new island chat and files the old one in History.
+- **Catching up:** `session.events.since {last_seen}` replays the missed events, `message.complete` included. Its ring holds 512
+  events per session (`event_replay.py:28`); past that it answers `truncated`, and `session.history` fills in.
 - **A disconnect of the island's socket** detaches nothing in Hermes, since the island is only a client. The next `agent.attach`
   replays from `session.events.since`.
 
