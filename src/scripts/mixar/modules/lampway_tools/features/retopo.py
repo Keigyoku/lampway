@@ -105,8 +105,76 @@ class _EngineFailed(C.FeatureError):
     pass
 
 
+WELD_M = 1e-5            # canon_geom.WELD_M: the parts are welded back along their shared boundary by position
+
+
+def _per_part(src, target_faces, symmetry, preserve_sharp, attribute):
+    """canon 12 B.1 / INV-12.3: each part (an INT face attribute) remeshed ALONE by QuadriFlow with its boundary preserved, the result
+    labelled with its part, then the parts joined and welded by position: no face can span two parts."""
+    me = src.data
+    if attribute not in me.attributes or me.attributes[attribute].domain != "FACE" or me.attributes[attribute].data_type != "INT":
+        raise C.FeatureError(f"per_part needs the part map: an INT face attribute {attribute!r} on {src.name} (segment_mesh writes one); "
+                             f"a whole-shell remesh crosses the cuts between parts (canon 12 INV-12.3)")
+    labels = [d.value for d in me.attributes[attribute].data]
+    area = {}
+    for poly, lab in zip(me.polygons, labels):
+        area[lab] = area.get(lab, 0.0) + poly.area
+    total = sum(area.values()) or 1.0
+    pieces, report = [], {}
+    try:
+        for lab in sorted(area):
+            c = src.copy()
+            c.data = me.copy()
+            bpy.context.scene.collection.objects.link(c)
+            pieces.append(c)
+            bm = bmesh.new()
+            bm.from_mesh(c.data)
+            lay = bm.faces.layers.int[attribute]
+            bmesh.ops.delete(bm, geom=[f for f in bm.faces if f[lay] != lab], context="FACES")
+            bm.to_mesh(c.data)
+            bm.free()
+            n0 = len(c.data.polygons)
+            C.activate(c)
+            goal = max(50, int(round(target_faces * area[lab] / total)))
+            try:
+                ran = bpy.ops.object.quadriflow_remesh(mode="FACES", target_faces=goal, use_mesh_symmetry=bool(symmetry), use_preserve_sharp=bool(preserve_sharp),
+                                                       use_preserve_boundary=True, seed=0)
+            except RuntimeError as exc:
+                raise C.FeatureError(f"part {lab}: QuadriFlow refused it ({str(exc).strip()[:160]}): fix the part (lampway_mesh_prep); per_part has no "
+                                     f"voxel fallback (the voxel remesh closes a part's boundary)") from None
+            if "FINISHED" not in ran or not any(len(q.vertices) == 4 for q in c.data.polygons):
+                raise C.FeatureError(f"part {lab}: QuadriFlow returned {sorted(ran)} and left it as it was ({n0} faces); per_part has no voxel fallback")
+            a = c.data.attributes.get(attribute) or c.data.attributes.new(attribute, "INT", "FACE")
+            a.data.foreach_set("value", [lab] * len(c.data.polygons))
+            report[str(lab)] = {"faces": len(c.data.polygons), "target": goal, "source_faces": n0}
+        new = pieces[0]
+        if len(pieces) > 1:
+            C.activate(new)                                   # activate deselects everything: select the other parts after it
+            for o in pieces[1:]:
+                o.select_set(True)
+            bpy.ops.object.join()
+        pieces = [new]
+    except Exception:
+        for o in pieces:
+            if o.name in bpy.data.objects:
+                bpy.data.objects.remove(o)
+        bpy.context.view_layer.objects.active = src
+        raise
+    new.name = src.name + "_retopo"
+    bm = bmesh.new()
+    bm.from_mesh(new.data)
+    n0 = len(bm.verts)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=WELD_M)
+    welded = n0 - len(bm.verts)
+    bm.to_mesh(new.data)
+    bm.free()
+    new.data.update()
+    return new, {"attribute": attribute, "parts": report, "welded_boundary_vertices": welded}
+
+
 def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic", symmetry=False, keep_original_visible=True, adaptivity=1.0, anisotropy=1.0, sharp_edge=90.0,
-           smooth_normal=0.0, edge_scaling=1.0, timeout=900, fallback=False, hard_surface=False, engine_bin="", root="", nice=15, preserve_sharp=True):
+           smooth_normal=0.0, edge_scaling=1.0, timeout=900, fallback=False, hard_surface=False, engine_bin="", root="", nice=15, preserve_sharp=True,
+           per_part=False, part_attribute="part"):
     if engine != "algorithmic":
         return C.studio_slot("retopo", engine)
     if method not in ("quadriflow", "voxel", "autoremesher"):
@@ -125,6 +193,15 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
     src = C.need_object(object)
     if target_faces > 3 * len(src.data.polygons):                       # canon INV-12.5, every method
         raise C.FeatureError(f"target {target_faces} exceeds 3x the source ({len(src.data.polygons)}): a remesher cannot invent detail")
+    if per_part:
+        if method != "quadriflow":
+            raise C.FeatureError("per_part remeshes with QuadriFlow (each part's boundary preserved); the voxel and AutoRemesher paths do not keep a boundary")
+        new, pp = _per_part(src, target_faces, symmetry, preserve_sharp, part_attribute)
+        bpy.context.view_layer.update()
+        if not keep_original_visible:
+            src.hide_set(True)
+        return {"object": new.name, "source": src.name, "method": "quadriflow", "requested_method": method, "target_faces": target_faces,
+                "preserve_sharp": bool(preserve_sharp), "per_part": pp, "report": C.mesh_report(new, ref=src), "source_faces": len(src.data.polygons)}
     new = C.duplicate(src, "_retopo")
     used = method
     extra = {}

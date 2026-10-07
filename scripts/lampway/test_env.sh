@@ -9,7 +9,10 @@
 #      pinned commit); otherwise a shallow fetch of that one commit from the submodule's URL.
 #   2. the test interpreter (LAMPWAY_TEST_PYTHON, default python3) gets tests/requirements-test.txt and the server's declared dependency
 #      ranges (dependencies + extras test, local-embeddings). Nothing is installed editable.
-#   3. test_all.py --verify-env must then pass.
+#   3. the shelf, READ ONLY: export LAMPWAY_SHELF_DIR (and LAMPWAY_SHELF_SCRATCH when its scratch is not <shelf>/scratch) to the machine's
+#      copy of the owner's recorded fixtures; test_all requires its placement fixtures (test_all.py SHELF_FILES), fails a shelf test that
+#      would skip, and fails a run that wrote to it. The path is the machine's: it is never written in the repository.
+#   4. test_all.py --verify-env must then pass.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PY="${LAMPWAY_TEST_PYTHON:-python3}"

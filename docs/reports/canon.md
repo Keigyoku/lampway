@@ -565,6 +565,119 @@ tables are mixamo and rigify only, and UE names are canon 16's canonical names. 
 Not built: turning an armature (rest and actions), `normalize_clip` (canon R4 / Titan `animation_canon`, now in the tree through
 orphans' O36), converting the skeleton-argument tools' doors (side_label_check, mirror_pair, ...) now that skeleton documents exist.
 
+## This pass (2026-10-06, after the coordinator's "CONTINUE on the items that are NOT blocked by a decision")
+
+Item 14 and every `needs_decision` value were left as they were.
+
+### Build rule: a BUILT_FROM-stamped binary (DEVIATION from the instruction's source)
+The instruction was to reflink-copy the facelift lane's clean build at 7f67890d, `wt-build/build/Prod`, "which carries
+`BUILT_FROM`". It does not: `wt-build/build/Prod/BUILT_FROM` is absent (checked twice in this pass, the second time at the end;
+`wt-build` HEAD is now d663255d, and its build was re-made from that lane's working tree after 7f67890d). A copy of it would have
+run UNGATED. I copied instead the integration build, `cp -a --reflink=always integration/Prod blender-lanes/canon/Prod`, which
+carries `BUILT_FROM e6668a6bbcdecbfb8643d5b2f809aebb6386be77`; `test_all.binary_gate` reads it as **gated** against lp/canon's
+HEAD (its native paths are unchanged since e6668a6). If the coordinator wants the 7f67890d build specifically, it has to be
+re-stamped or rebuilt first.
+
+### rig_inspect: a UE-named rig is the `ue` family (9c48650e)
+`rig_tools/families/ue.json` (new): canon 16's note that UE names ARE the canonical slots, so the table maps each of the 71 slots
+to itself. RED (`test_rig_inspect_reads_a_ue_named_rig_as_the_ue_family_with_its_roster_complete`): family `None`, 0 mapped.
+GREEN: family `ue`, roster complete. N5's workaround in `features/normalize_rigged.py` (`_naming`) removed: it now reads
+`rec["family"]["name"]` and refuses a rig whose family is `None` ("map it first (rig_map)").
+
+### The shelf tests run in test_all's environment (7d8d04cf)
+`scripts/lampway/test_all.py`: `verify_env` requires `LAMPWAY_SHELF_DIR` with the two fixtures the placement tests read
+(`proportion/audit/body.npz`, `proportion/piece_selftest/helmet.npz`); the run snapshots the shelf (size, mtime_ns per file, and
+the scratch dir if it lives outside) before and after the client suite, and any write makes the run red (`shelf_writes`).
+`test_env.sh` documents the shelf as step 3. The root `conftest.py` turns a shelf skip into a FAILURE inside test_all (a test that
+reads `LAMPWAY_SHELF_DIR`/`SCRATCH` and skips with a reason naming the shelf), so "skipped everywhere" cannot recur silently.
+Measured on the real shelf: verify-env ready; 84 shelf tests pass with `LAMPWAY_TEST_ALL=1`, 0 skips; the snapshot reads 159,632
+files in 4.8 s and found no writes. The rail's RAIL-013 required an anneal row and a body change in
+`rail/skills/lampway-coding-guidelines/SKILL.md` for the conftest change (amended into that unpushed commit).
+
+### Item 6: innermost-layer gap, hideable, per-bone scale (8286302b, ddfe69f9)
+- `garment_clearance gap_classes={group: class}` (canon 15 B.5): per pose and class the gap's p50/p90 over the piece's INNERMOST
+  vertices only - a vertex whose segment to its nearest skin point crosses another piece surface is excluded and counted
+  (`excluded_outer`). RED: a medallion on a plate read as the gap. Mutation: dropping the innermost rule fails it.
+- `hideable_regions={name: [bones]}` (B.6): per region (the body triangles dominated by those bones' groups, rendered alone) and
+  standard view, the share of its projected skin the armour covers (ray cast, projected-area weights, self-occlusion by the
+  region's own skin); hideable when every view that shows the region is >= 98 %. Mutation: removing self-occlusion makes the
+  two-legs case read 50 % where the truth is 0 - killed.
+- `skeleton_export_check` (canon 21 G21.3): each bone's ENGINE scale is read from the FBX itself - LimbNode `Lcl Scaling` x
+  `UnitScaleFactor` (`export_checks.fbx_bone_scale`) - and compared with the reference (`SCALE_TOL = 1e-4`); reason "bone scale(s)
+  differ". RED: the check passed a 100x file. Mutation: ignoring UnitScaleFactor - killed.
+- Not built from row 6: relative pose-clearance heights.
+
+### Item 10: per-part remesh (01dd5524; tool_specs regenerated in 4487e1d9)
+`retopo per_part=true part_attribute="part"` (canon 12 B.1, INV-12.3, G12.3; QuadriFlow only): each label of the INT face attribute
+is remeshed alone with its boundary preserved, labelled, joined and welded back at `WELD_M = 1e-5`. On C03 the whole-shell remesh
+puts 23 faces across the cut; per-part 0, parts [0, 1], no stray faces. My first GREEN was false: `C.activate` deselects
+everything, so the join kept only part 0 and "0 spanning faces" was true of half a mesh; the test now also checks the face count
+and the strays. Mutation: skipping the split gives 33 spanning faces - killed. I left `tool_specs.json` stale in 01dd5524 (the
+retopo Def gained two parameters); found by `tool_specs.py --check` in this pass and regenerated in its own commit.
+
+### Item 11: site axes from the posed body (4e94d6f3)
+`fit_openings armature=<rig> site=<bone>` (canon 06 B.1, F.1): the axis is the POSED bone's line from its head to its next joint
+(`chain_ends`, never the tail), and the cap is the first cluster that line runs into (`detect_site`), extreme or not - a shoulder pad
+beyond the arm hole no longer hides it. A site needs `pose`. Mutation: the rest bone instead of the posed one - killed by the
+"site follows the pose" test.
+
+### Item 13: the `lampway_fit` orchestrator (DONE for the order, roles, body, texture and receipt; see "not built")
+`pipeline/fit_order.py` + `api.fit` (door: `NONE` - each stage's tool passes its own door) + server Def `lampway_fit`. The order of
+canon 03 B (intake, proportion, match, place, pose_correct, pose, openings, conform, bind, weights, validate, export), each arrow
+a refusal that names every missing stage with its tool and the first one as the next command. Each stage calls its tool through
+`api.call` with the caller's `args` (normalize_mesh, run_tool piece_ratios, fit_place, fit_pose, fit_openings detect, fit_bind
+plan / weights, fit_validate measure, fit_export) and appends {stage, tool, inputs_sha256, receipt_sha256, decider, at} to
+`<piece>/fit/fit.json`; a failing tool records nothing. Contract refusals (canon 03 G): a part without a role, or an unknown role
+(G03.3); `match` without `captain_seen: true` and the render's sha256; `conform` with a metal part (INV-03.2), and for soft parts
+"not built: decision 03-H2" (conform is NOT APPLICABLE when no part is cloth or leather); no `body` package at intake, or one that
+fails `fit_body verify` (its package_sha256 recorded); `weights` without the package's native sidecar (`fit_body verb=weights`)
+or with a different package_sha256; a geometry stage (pose_correct, openings, conform) after a texture recorded in the piece's
+armor_piece run (step 13) without `texture_discard_ack`. Receipt `{piece, stage, ok, receipt_path, sha256, next, limits_status}`;
+`status` adds the body and why each later stage is refused.
+
+- RED: the module did not exist (ImportError at collection); then the contract additions RED with `run() got an unexpected keyword
+  argument 'body'` (10 failed, 1 passed).
+- GREEN: 12 passed, 11 against a recording fake caller and one through the REAL binary (api.fit -> api.call -> fit_body verify and
+  normalize_mesh, which stamped the piece; bind before pose refused naming `lampway_fit_pose`; a piece name escaping the root
+  refused).
+- Mutations, each killed by its own test only: the order gate off (G03.2), unroled parts defaulted to metal (G03.3), the texture
+  gate off, the sidecar check replaced by a plain verify, the captain's sign-off ignored, a metal part allowed into conform; and in
+  the tool, the root check on `piece` removed (the real-binary test fails).
+- A stale-bytecode trap hit me here: the "metal part into conform" mutant (`if metal:` -> `if False:`, same length, same second)
+  left its .pyc behind after the source was restored, and the next run failed on the RESTORED code. Cleared `__pycache__`; 12
+  pass. Every mutant result above was read from its own run, before that.
+- **Consequence of the sidecar refusal (canon 03 G, applied as written):** `fit_bind weights` today reads a scene body object
+  (canon 03 F.6: the native sidecar sampler is not built), so through `lampway_fit` the `weights` stage refuses every body package
+  that has no native sidecar - and so do validate and export after it. The individual tools still run. The reversal seam is the one
+  `if stage == "weights":` block in `fit_order.run` and `test_weights_need_the_body_packages_native_sidecar`.
+- Not built: the source-part check (the detached-glove guard, canon 03 G; also open under item 5); the body package's "closed, head
+  included" check; G03.1 and G03.4 (both chain-level goldens; G03.1 needs the place -> bind -> return -> validate chain on C03
+  through real tools, and both are also item 14's goldens) - they are not run here, not passed.
+
+### Merge and generated files at this pass's boundary
+`origin/lp/wave5` at 06138974 merged (abc06826; never a rebase). One conflict, in the generated
+`.agents/skills/LAMPWAY-RAIL.generated.json`: resolved by `rail/rail.py sync` (the result equals my side, wave5 had not changed the
+skill). `docs/tools.md` regenerated after the merge (898180a2: lampway_fit and lampway_normalize_rigged were missing);
+`tool_specs.py --check` current; the rail PASS; `docs/canon/check_canon.py` PASS (C 35, R 32, schema 3/7, determinism).
+
+### Gates at this push (898180a2)
+`scripts/lampway/test_all.sh` with the reference environment (`--verify-env`: ready, shelf fixtures present): **GREEN, gated**
+(binary `BUILT_FROM e6668a6`). Server 1627 passed, 10 skipped, 0 failed; client 9050 passed, 110 failed + 15 errors = the 125
+of the baseline, 73 skipped, 0 env-skipped; new failures none; flaky none; shelf snapshot before and after the client suite, no
+writes (and a shelf skip would have been a failure); 49.5 minutes under heavy disk pressure (another lane's test_all ran beside it).
+
+### Disclosures for this pass (2)
+- **The graph could not be used.** `index_repository` on this worktree failed: the worker log says "CBM index worker could not start:
+  a pre-coordination or unverified CBM generation is active". No indexed project is this tree (`lampway-tools-wt` is a sibling
+  worktree; `search_code` there found no `fit_openings`, which exists here). I located edit sites with Read on known paths and
+  `git show` of my own commits, and used `sed -n` with a pattern on three files (fit_body.py, the report, test_all.py) to print a
+  function or section - a search by another name, said here plainly. To recover the shelf and interpreter paths of the previous
+  run I scanned my own session transcript with a python regex.
+- A duplicate server suite I started (beside the door tests) sat in disk wait (`wait_log_commit`) for 12 minutes; I killed it by its
+  verified PID, since test_all runs the same suite. No result was taken from it.
+- The stale-bytecode trap (item 13 above): one run failed on restored code; the cause was found and cleared before any result
+  was recorded.
+
 ## Status at the end of this pass (lp/canon)
 | plan item | state | what is not built |
 |---|---|---|
@@ -573,18 +686,20 @@ orphans' O36), converting the skeleton-argument tools' doors (side_label_check, 
 | 3 weights | DONE (brief scope) | dress / plate / fade / seam-band profiles in fit_bind |
 | 4 bind and return | DONE | - |
 | 5 placement | DONE: inner wall, rotation, joint-relative regions | the source-part check (B.7); the sole band's thickness is still absolute (needs_decision) |
-| 6 the rest of 15/21/14/12/10/13 | PARTIAL | clearance's innermost-layer gap and hideable; per-bone scale in the export check; relative pose-clearance heights |
+| 6 the rest of 15/21/14/12/10/13 | DONE except one: innermost-layer gap, hideable, per-bone scale from the FBX | relative pose-clearance heights |
 | 7 pose solve | DONE: engine, chest table, tool | G08.4 (shelf inputs); hands (B.5); blockers in the piece frame (B.6); the other kinds (captain's ranges) |
 | 8 UV | DONE | xatlas option |
 | 9 bake | DONE: ray, measured auto cage, 16-bit GL + DX flip, attach flip, hit mask, bake.json | bake groups; hash dirs |
-| 10 retopo | DONE: two-sided deviation, explicit fallback, preserve-sharp, 3x refusal | per-part remesh (no part-map carrier on the object) |
-| 11 openings | DONE: the section containing the axis point, material textures | site axes from the posed body (the pose engine now exists) |
+| 10 retopo | DONE: two-sided deviation, explicit fallback, preserve-sharp, 3x refusal, per-part remesh (QuadriFlow) | per-part for the other methods |
+| 11 openings | DONE: the section containing the axis point, material textures, site axes from the posed body | - |
 | 12 joints from views | DONE on keypoints_json, centring, calibration | the detector (decision 11-H1), view rendering, the video variant |
-| 13 lampway_fit orchestrator | NOT BUILT | - |
+| 13 lampway_fit orchestrator | DONE: order gates (G03.2), role gate (G03.3), fit.json, body package, sidecar at weights, texture gate, receipt | source-part check; "closed body" check; G03.1 / G03.4 not run |
 | 14 soft-part conform | BLOCKED on decision 03-H2 | - |
 | N0-N4 | DONE (Vault placement after the wave5 merge) | the strict `put` (a raw version is stored raw, not refused) |
 | door additions A/B/C | DONE (A: orphans' form adopted and hardened) | the material normalizer; image FILE paths at the door |
 | N5 normalize_rigged | DONE (rigs facing -Y) | turning a rig; normalize_clip; the skeleton-argument tools' doors |
+| rig_inspect: UE-named rigs | DONE (`ue` family table; N5's workaround removed) | - |
+| shelf tests inside test_all | DONE (LAMPWAY_SHELF_DIR required, read-only enforced, a shelf skip is a failure) | - |
 | typed judge | DONE as a slot | no judge model installed; accuracy per field: none measured |
 | canon finding: UE export axes | RESOLVED in canon (R08), default unchanged | the UE confirmation M-RIG-01 |
 

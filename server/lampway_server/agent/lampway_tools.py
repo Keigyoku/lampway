@@ -231,7 +231,9 @@ DEFS = [
         P("adaptivity", "number", "autoremesher: 0..1"), P("anisotropy", "number", "autoremesher: 0..1"), P("sharp_edge", "number", "autoremesher: 30..180 degrees"),
         P("smooth_normal", "number", "autoremesher: 0..180 degrees"), P("edge_scaling", "number", "autoremesher: 1..4"), P("timeout", "integer", "autoremesher: 10..3600 s"),
         P("fallback", "boolean", "quadriflow / autoremesher: use the voxel remesh when the engine fails or leaves the mesh unchanged (else refused)"), P("hard_surface", "boolean", "autoremesher: hard-surface model type"),
-        P("preserve_sharp", "boolean", "quadriflow: keep sharp (hard-surface) edges, default true")], api="retopo"),
+        P("preserve_sharp", "boolean", "quadriflow: keep sharp (hard-surface) edges, default true"),
+        P("per_part", "boolean", "quadriflow: remesh each part alone (boundary kept, welded back): no face spans two parts"),
+        P("part_attribute", desc="the INT face attribute holding the parts, default part")], api="retopo"),
     Def("lampway_uv_unwrap", "UV unwrap: a NEW mesh `<object>_uv` with a packed layout (method smart | angle | conformal; seams at edges "
         "sharper than angle_limit) and a measured report (islands, coverage, overlap by rasterising, texel-density spread, the "
         "density achieved at texture_size). The original keeps its UVs; inspect the checker before texturing. engine=studio:tripo "
@@ -444,7 +446,19 @@ DEFS = [
         "Refused: an unskinned body, a piece more than 0.5 m away (run place_piece first), an open body without body_open_band_m (canon: specs/canon/15-clearance-penetration.md).",
         [P("piece", required=True), P("body", required=True), P("armature", required=True), P("pose_set", desc="rest (default) | wiki8 | a list of poses"),
          P("clearance_target_m", "number", "0..0.1, default 0.015"), P("classes", "object", "{vertex group: target metres}"),
-         P("body_open_band_m", "number", "an OPEN body (boundary edges) is refused without it: vertices within this band of the opening stay unsigned (canon 15)")], api="garment_clearance"),
+         P("body_open_band_m", "number", "an OPEN body (boundary edges) is refused without it: vertices within this band of the opening stay unsigned (canon 15)"),
+         P("gap_classes", "object", "{vertex group: class}: the gap on the piece's innermost layer per class (p50, p90; canon 15 B.5)"),
+         P("hideable_regions", "object", "{name: [bones]}: per region the armour's cover per standard view and hideable (>= 98 %, canon 15 B.6)")], api="garment_clearance"),
+    Def("lampway_fit", "The fit of one piece in canon 03's ORDER (specs/canon/03-fit-and-deform.md): intake -> proportion -> match -> place -> pose_correct -> pose -> openings -> conform -> "
+        "bind -> weights -> validate -> export, each arrow a refusal that names the next command. Each stage runs its tool with `args` (that tool's own arguments) and appends {stage, tool, inputs "
+        "sha256, receipt sha256, decider} to <piece>/fit/fit.json. intake: `roles` for every part in args.parts (the captain's or the recipe's, never a render's colour) and `body` (a fit_body package, "
+        "verified); match: the captain's sign-off, args {captain_seen: true, render_sha256}; pose_correct: args {segments}; conform: metal refused, soft parts wait on decision 03-H2; weights: the "
+        "body's native sidecar. A geometry stage after a recorded texture needs texture_discard_ack. status: done, next, and why each later stage is refused.",
+        [P("stage", desc="status (default) | intake | proportion | match | place | pose_correct | pose | openings | conform | bind | weights | validate | export"),
+         P("piece", required=True, desc="the piece's folder under the project root"), P("kind", desc="chest | helmet | waist | boots | gauntlets | cloak | skirt"),
+         P("roles", "object", "{part: metal | leather | cloth | embroidery} (intake)"), P("args", "object", "the stage tool's own arguments"),
+         P("body", desc="intake: the fit_body package dir"), P("decider", desc="agent (default) | captain"),
+         P("texture_discard_ack", "boolean", "a geometry stage after a recorded texture discards it")], api="fit"),
     Def("lampway_fit_validate", "Measure a bound piece through poses against its ORIGINAL shell and judge it (canon: specs/canon/05-fit-validation.md). measure: `bound` (an Armature-modified piece), `original` "
         "(the pre-fit source shell, REQUIRED: a baked rest hides the distortion; same vertex count), `poses` (named poses such as rest, wrist_r_plus30, elbow_r_70, curl_r_full, or [{name, bones: [{bone, axis: up | "
         "forward | lateral | {line: [a, b]} | {perp: [a, b], to}, deg}], expect: {joint, along | closer_to, min_cm}} | {name, curl: {side, fraction}} | {name, bone, rotate} (Euler stress set)]), `roles` {part: metal | "
@@ -457,7 +471,8 @@ DEFS = [
          P("armature", desc="default: the piece's Armature modifier"), P("validation", desc="judge: a validation dict or file")], api="fit_validate"),
     Def("lampway_skeleton_export_check", "Check an armature in the scene or an FBX under the project root (exactly one) against a reference skeleton (target.names_from: a reference FBX). Reports leaf bones (`*_end`: "
         "export with add_leaf_bones off), missing and extra bones, parents that differ, the root, the unit scale (height ratio to the reference: a 100x export reads 100), the up axis and rest_vs_frame (bones posed with no "
-        "animation: the bind pose was taken from a posed scene), with pass and reasons.",
+        "animation: the bind pose was taken from a posed scene), each bone's frame against the reference (0.01 deg) and each bone's engine scale read from the "
+        "FBX itself (Lcl Scaling x the file's UnitScaleFactor: a metres file reads 100x in UE; 1e-4), with pass and reasons.",
         [P("armature", desc="armature object name"), P("fbx", desc="an FBX path (alternative)"), P("target", "object", "{names_from: a reference FBX}"), P("expect_unit_scale", "number", "default 1"),
          P("allow_extra_bones", "boolean", "default false")], api="skeleton_export_check"),
     Def("lampway_engine_import_check", "Static check of an exported package (a folder with an FBX and Textures/) against the engine's import rules: FBX header version (Unreal 7400+; FBX 2020.2 = 7700), mesh names and "

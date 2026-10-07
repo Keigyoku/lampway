@@ -708,16 +708,19 @@ from .features import workflows as _F_wf                   # noqa: E402
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic", symmetry=False, adaptivity=1.0, anisotropy=1.0, sharp_edge=90.0, smooth_normal=0.0, edge_scaling=1.0,
-           timeout=900, fallback=False, hard_surface=False, preserve_sharp=True):
+           timeout=900, fallback=False, hard_surface=False, preserve_sharp=True, per_part=False, part_attribute="part"):
     """A new all-quad mesh ``<object>_retopo`` near ``target_faces`` (QuadriFlow, voxel fallback, or AutoRemesher) with a measured report; the original is untouched. method=autoremesher runs the Qt-free
     lampway-quadremesh configured by the settings key autoremesher_bin (never an argument: the app downloads nothing) niced in its own process group with a timeout: adaptivity 0..1, anisotropy 0..1, sharp_edge
     30..180 degrees, smooth_normal 0..180, edge_scaling 1..4, timeout 10..3600 s; refused: symmetry, a target above 3x the source, an engine that exits non-zero (its last 20 log lines; fallback=true uses the
     voxel remesh instead), and a QuadriFlow run that leaves the mesh unchanged (CANCELLED on a non-manifold input; fallback=true uses the
     voxel remesh and says so in ``note``). QuadriFlow keeps sharp (hard-surface) edges unless preserve_sharp=false; any method refuses
-    a target above 3x the source. The result has no UV layer. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
+    a target above 3x the source. per_part=true remeshes each part of the INT face attribute part_attribute (default "part") alone with its
+    boundary preserved and welds the parts back by position: no face spans two parts, every face keeps its part (canon 12 INV-12.3).
+    The result has no UV layer. ``engine="studio:tripo"`` answers with the action and price for approval and clicks nothing."""
     s = _settings()
     return _F_retopo.retopo(object, target_faces, method, engine, symmetry, True, adaptivity, anisotropy, sharp_edge, smooth_normal, edge_scaling, timeout, fallback, hard_surface,
-                            str(s.autoremesher_bin or ""), str(s.project_root), s.nice, preserve_sharp=preserve_sharp)
+                            str(s.autoremesher_bin or ""), str(s.project_root), s.nice, preserve_sharp=preserve_sharp, per_part=per_part,
+                            part_attribute=part_attribute)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
@@ -1124,14 +1127,15 @@ def _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out):
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_openings(stage, object, axis=None, plane_origin=None, limb="", pose=None, answers=None, flange_mm=None, lip_mm=4.0, clearance_mm=15.0, piece="", captain_words="",
-                 texture_discard_ack=False, depths_mm=None, size=384):
+                 texture_discard_ack=False, depths_mm=None, size=384, armature="", site=""):
     """The openings decision at fit: every cap a seed put across a limb, neck or waist opening gets keep | gasket | delete, logged append-only in <piece>/fit/decisions.jsonl. detect: the capped
     sites along `axis` (pointing out of the piece); propose: proposals only (the user rules); apply: answers {"OP000": "gasket"}. A GASKET cuts the POSED limb's cross-section (`limb`, an
     object) plus clearance_mm (5..40, default 15) into the cap plane and forms a COLLAR - a tubular flange into the piece whose free edge rolls outward into a lip (an exhaust/intake manifold
     port, not a raw hole); its depth `flange_mm` (2..60) is the user's number: without it apply answers needs_decision, and `variants` builds and renders three depths (depths_mm) to pick.
-    Needs `pose` (the fit_pose result): never the rest pose. Result `<object>_openings`; the source is untouched. Discards a studio texture (texture_discard_ack). keep changes no geometry."""
+    Needs `pose` (the fit_pose result): never the rest pose. armature + site (a bone: upperarm_l, neck_01, ...) instead of axis: the site's
+    axis is the POSED bone's line to its next joint, and the cap is the first cluster that line runs into (canon 06 B.1), extreme or not. Result `<object>_openings`; the source is untouched. Discards a studio texture (texture_discard_ack). keep changes no geometry."""
     from .features import opening as _OP
-    return _OP.run(stage, object, str(_settings().project_root), axis, plane_origin, limb, pose, answers, flange_mm, lip_mm, clearance_mm, piece, captain_words, texture_discard_ack, depths_mm, size)
+    return _OP.run(stage, object, str(_settings().project_root), axis, plane_origin, limb, pose, answers, flange_mm, lip_mm, clearance_mm, piece, captain_words, texture_discard_ack, depths_mm, size, armature, site)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
@@ -1371,15 +1375,19 @@ def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, fl
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def garment_clearance(piece, body, armature, pose_set="rest", clearance_target_m=0.015, classes=None, body_open_band_m=None):
+def garment_clearance(piece, body, armature, pose_set="rest", clearance_target_m=0.015, classes=None, body_open_band_m=None, gap_classes=None,
+                      hideable_regions=None):
     """How far a piece sits from the body in rest and named poses: the signed distance of every piece vertex to the body posed by `armature` (positive outside, negative inside). pose_set is 'rest', 'wiki8'
     (the eight stress poses) or a list [{name, bone, rotate: [x, y, z degrees]} | {name, bones: [{bone, rotate}]}]; the poses are reset afterwards. Per pose: min_clearance_m, penetrating_vertices, max_depth_m,
     worst_region [x, y, z] and the body triangles that block most; `pass` when every vertex clears its target (clearance_target_m, default 0.015, or the target of the piece's vertex group named in
     `classes` {group: metres}: rigid and cloth parts differ). Also pass_pose_count and closest_pose. Refused: a body with no Armature modifier (the body needs an armature) and a piece more than 0.5 m
     from the body (run place_piece first). Canon 15: the sign is the angle-weighted pseudonormal's (never one face normal); an OPEN body (a headless
-    body mesh) is refused unless body_open_band_m declares the band round its opening whose vertices stay unsigned (unsigned_near_opening)."""
+    body mesh) is refused unless body_open_band_m declares the band round its opening whose vertices stay unsigned (unsigned_near_opening).
+    gap_classes {vertex group: class} adds per pose the gap on the piece's INNERMOST layer per class (p50_m, p90_m; points whose line to the
+    skin crosses another piece surface excluded, counted as excluded_outer); hideable_regions {name: [bones]} adds per region the armour's
+    cover of the region's projected skin per standard view (enclosed_pct_by_view) and hideable (every view >= 98 %)."""
     from .features import clearance as _CL
-    return _CL.run(piece, body, armature, pose_set, clearance_target_m, classes, body_open_band_m)
+    return _CL.run(piece, body, armature, pose_set, clearance_target_m, classes, body_open_band_m, gap_classes, hideable_regions)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
@@ -1507,6 +1515,26 @@ def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None
     if stage in ("pose", "bind", "report"):
         return _FG.not_built(stage)
     raise ValueError("stage is labels | pose | bind | report")
+
+
+@tool(consumes=NONE("an orchestrator: each stage's tool passes its own door with the stage's arguments"))
+def fit(stage="status", piece="", kind="", roles=None, args=None, body="", decider="agent", texture_discard_ack=False):
+    """The fit of one piece in canon 03's ORDER (docs/canon/03-fit-and-deform.md B, G): intake -> proportion -> match -> place ->
+    pose_correct -> pose -> openings -> conform -> bind -> weights -> validate -> export, each arrow a refusal. Each stage
+    delegates to its tool with `args` (the tool's own arguments: normalize_mesh, run_tool piece_ratios, fit_place, fit_pose,
+    fit_openings, fit_bind plan / weights, fit_validate, fit_export) and appends {stage, tool, inputs_sha256, receipt_sha256,
+    decider} to <piece>/fit/fit.json. intake records each part's role (`roles` {part: metal | leather | cloth | embroidery}, for
+    every part in args.parts: the captain's or the recipe's, never the render's colour) and verifies `body` (a fit_body package);
+    match is the captain's sign-off (args {captain_seen: true, render_sha256}); pose_correct records the measured rigid
+    correction per segment (args {segments}); conform refuses metal and is not built (decision 03-H2); weights needs the body
+    package's native sidecar. A geometry stage after a recorded texture needs texture_discard_ack. status: stages done, the next
+    one, and why each later one is refused."""
+    from .pipeline import fit_order as _FO
+    if not piece:
+        raise ValueError("piece is required (the folder under the project root that holds <piece>/fit/fit.json)")
+    _p(piece)                                                       # refused outside the project root
+    return _FO.run(stage, piece, str(_settings().project_root), lambda t, a: call(t, json.dumps(a)), kind, roles, args, decider, body,
+                   bool(texture_discard_ack))
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))

@@ -90,12 +90,54 @@ def test_verify_env_names_a_missing_upstream_and_a_missing_package(tmp_path):
     assert any("upstream/" in p for p in problems) and any("surely-not" in p for p in problems)
 
 
+def _shelf(tmp_path):
+    """A stand-in shelf holding the fixtures the reference environment requires (names only, empty files)."""
+    shelf = tmp_path / "shelf"
+    for rel in T.SHELF_FILES:
+        f = shelf / "scratch" / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_bytes(b"")
+    return {"LAMPWAY_SHELF_DIR": str(shelf)}
+
+
 def test_verify_env_passes_when_everything_is_there(tmp_path):
     for rel in T.UPSTREAM_FILES:
         f = tmp_path / rel
         f.parent.mkdir(parents=True, exist_ok=True)
         f.write_text("x")
-    assert T.verify_env(tmp_path, packages={"json": "json"}, python=None) == []
+    assert T.verify_env(tmp_path, packages={"json": "json"}, python=None, shelf=_shelf(tmp_path)) == []
+
+
+def test_verify_env_requires_the_shelf_and_its_placement_fixtures(tmp_path):
+    """the placement pins (tests/lampway_tools/test_wave2_fit_place.py) run in the reference environment: the shelf is part of it,
+    named by LAMPWAY_SHELF_DIR (LAMPWAY_SHELF_SCRATCH when its scratch lives elsewhere); never a path written in the repository."""
+    none = T.verify_env(tmp_path, packages={}, python=None, shelf={})
+    assert any("LAMPWAY_SHELF_DIR" in p for p in none), none
+    env = _shelf(tmp_path)
+    (Path(env["LAMPWAY_SHELF_DIR"]) / "scratch" / T.SHELF_FILES[0]).unlink()
+    gone = T.verify_env(tmp_path, packages={}, python=None, shelf=env)
+    assert any(T.SHELF_FILES[0] in p for p in gone), gone
+    moved = tmp_path / "elsewhere"
+    (Path(env["LAMPWAY_SHELF_DIR"]) / "scratch").rename(moved)
+    assert not any("shelf" in p for p in T.verify_env(tmp_path, packages={}, python=None, shelf=dict(env, LAMPWAY_SHELF_SCRATCH=str(moved))) if T.SHELF_FILES[0] not in p)
+
+
+def test_the_shelf_is_read_only_a_write_during_the_run_is_named(tmp_path):
+    env = _shelf(tmp_path)
+    root = Path(env["LAMPWAY_SHELF_DIR"])
+    before = T.shelf_snapshot(env)
+    assert T.shelf_writes(before, T.shelf_snapshot(env)) == []
+    (root / "scratch" / T.SHELF_FILES[0]).write_bytes(b"changed")
+    (root / "new.txt").write_text("x")
+    assert T.shelf_writes(before, T.shelf_snapshot(env)) == sorted(["new.txt", "scratch/" + T.SHELF_FILES[0]])
+
+
+def test_the_shelf_tests_read_the_variables_the_environment_provides():
+    """every test module that skips on the shelf reads LAMPWAY_SHELF_DIR or LAMPWAY_SHELF_SCRATCH, and SHELF_FILES covers the placement
+    pins' own REAL condition (so a reference environment cannot verify while they would skip)."""
+    src = (ROOT / "tests/lampway_tools/test_wave2_fit_place.py").read_text()
+    for rel in T.SHELF_FILES:
+        assert rel.split("/")[-1] in src, rel
 
 
 def test_the_test_requirements_cover_what_verify_env_checks():

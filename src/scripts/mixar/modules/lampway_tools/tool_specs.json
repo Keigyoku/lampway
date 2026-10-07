@@ -1358,6 +1358,22 @@
      "required": false,
      "flag": null,
      "repeat": false
+    },
+    {
+     "name": "per_part",
+     "type": "boolean",
+     "desc": "quadriflow: remesh each part alone (boundary kept, welded back): no face spans two parts",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "part_attribute",
+     "type": "string",
+     "desc": "the INT face attribute holding the parts, default part",
+     "required": false,
+     "flag": null,
+     "repeat": false
     }
    ]
   },
