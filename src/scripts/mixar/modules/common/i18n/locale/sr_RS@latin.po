@@ -7172,6 +7172,14 @@ msgstr ""
 msgid "Rate a finished generation 1 to 5 (the user's judgement tunes the wording)"
 msgstr ""
 
+msgid "A/B"
+msgstr ""
+
+msgid ""
+"A/B: run this version beside the one it was forked from (variant_of) and compare them. Not built yet: it would run two\n"
+"paid generations; this click says so and sends nothing (contract 08, the coordinator's ruling)"
+msgstr ""
+
 msgid "Refresh Studios"
 msgstr ""
 
