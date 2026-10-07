@@ -15,7 +15,7 @@ the record of what ran.
 * ``pose_correct`` has no tool in Lampway (canon 03 F.2): the stage records the measured rigid correction per segment the caller passes.
 * ``conform`` refuses a metal part (INV-03.2) and is otherwise not built: the soft-part deformer waits on the captain's decision 03-H2.
 * ``intake`` needs ``body``, a fit_body package: verified there (its package_sha256 recorded), refused unless the package records a
-  CLOSED body with its HEAD included; and it runs the SOURCE-PART CHECK first (lampway_fit_source_check: ``args.source`` the same
+  body with its HEAD included by generalized winding, permitting measured native openings; and it runs the SOURCE-PART CHECK first (lampway_fit_source_check: ``args.source`` the same
   mesh before any weld or fit, ``args.rigid_groups`` optional), refusing a detached part before anything is normalized.
 * ``bind`` is fit_bind's plan; ``weights`` is fit_bind weights FROM THE PACKAGE (its native sidecar: fit_body verb=weights, the same
   package_sha256) and then fit_bind return (canon 03 B.9: bound at the fit pose, returned to rest); ``validate`` is fit_validate
@@ -132,11 +132,11 @@ def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent
         if st.get("closed") is None:
             return _refuse("intake: the body package records no closed/head state: rebuild it with its mesh (lampway_fit_body verb=build mesh=<body>)",
                            "lampway_fit_body verb=build")
-        if not st.get("closed"):
-            return _refuse(f"intake: the body package's mesh is not closed ({st.get('boundary_edges')} boundary edges): fit only on the closed native body, "
-                           "head included (canon 03 G); signs near an opening are not measurements", "lampway_fit_body verb=build")
+        if not st.get("closed") and not st.get("native_openings_accepted"):
+            return _refuse(f"intake: the body package's mesh is not closed ({st.get('boundary_edges')} welded boundary edges; raw {st.get('raw_boundary_edges')}; welded non-manifold {st.get('non_manifold_edges')}; raw non-manifold {st.get('raw_non_manifold_edges')}): rebuild the native body with its mesh, "
+                           "head included by generalized winding (canon 03 G); an unverified opening is not accepted", "lampway_fit_body verb=build")
         if not st.get("head_included"):
-            return _refuse("intake: the body package's head is not included (its head joint is not inside the closed body): the native FullBody with its "
+            return _refuse("intake: the body package's head is not included (its head joint is not inside the body by generalized winding): the native FullBody with its "
                            "head (canon 03 A, G)", "lampway_fit_body verb=build")
         source = args.pop("source", None)
         groups = args.pop("rigid_groups", None)

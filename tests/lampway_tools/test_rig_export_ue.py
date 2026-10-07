@@ -140,3 +140,27 @@ print("RESULT", json.dumps({"rb": rb, "rx": rx}))
     for k, deg in (("rb", " 120 deg"), ("rx", " 90 deg")):
         e = r.results[0][k]
         assert e["ok"] is False and "export/rejected/" in e["error"] and deg in e["error"], e
+
+
+def test_corrective_fanout_with_authored_roll_reads_every_bone_and_keeps_rejection_gate(tmp_path):
+    r = run(tmp_path, CHAIN + '''
+arm = chain("corrective")
+bpy.context.view_layer.objects.active = arm; bpy.ops.object.mode_set(mode="EDIT")
+h = arm.data.edit_bones.new("upperarm_correctiveRoot_l")
+h.head = J[1]; h.tail = Vector(J[1]) + Vector((0, 0, 0.04)); h.roll = math.radians(120)
+h.parent = arm.data.edit_bones["b1"]
+for tag, sign in (("front", -1), ("back", 1)):
+    e = arm.data.edit_bones.new("upperarm_corrective_" + tag + "_l")
+    e.head = Vector(J[1]) + Vector((0.01, sign * 0.02, 0.01)); e.tail = e.head + Vector((0, 0, 0.03)); e.parent = h
+bpy.ops.object.mode_set(mode="OBJECT")
+call("rig_inspect", armature="corrective")
+ok = call("rig_export_ue", armature="corrective", out="export/corrective.fbx", recipe=os.path.join(RECIPES, "cm_native_blender_convention.json"))
+bad = call("rig_export_ue", armature="corrective", out="export/corrective_bad.fbx", recipe=os.path.join(RECIPES, "cm_native_ue_axes.json"))
+print("RESULT", json.dumps({"ok": ok, "bad": bad, "rejected": os.path.isfile(os.path.join(root, "export/rejected/corrective_bad.fbx"))}))
+''', timeout=600)
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[0]
+    assert d["ok"]["ok"] and d["ok"]["verdict"] == "PASS", d["ok"]
+    assert d["ok"]["readback"]["bones_compared"] == 8
+    assert d["ok"]["readback"]["worst_rotation_deg"] < 0.01
+    assert not d["bad"]["ok"] and d["rejected"]

@@ -131,3 +131,36 @@ res({"family": i["family"]["name"], "missing": i["slots"]["missing_required"], "
     assert r.rc == 0, r.out[-2000:]
     d = r.results[-1]
     assert d["family"] == "ue" and d["missing"] == [] and d["mapped"] >= 17, d
+
+
+def test_metahuman_corrective_root_with_multiple_children_keeps_authored_frame_on_apply():
+    r = run_script(PRE + RIG + '''
+for side, sign in (("l", 1), ("r", -1)):
+    for i, finger in enumerate(("thumb", "index", "middle", "ring", "pinky")):
+        for joint in (1, 2, 3):
+            name = f"{finger}_{joint:02d}_{side}"
+            J[name] = (sign * (0.40 + 0.025 * joint), 0.015 * (i - 2), 0.60)
+            P[name] = f"{finger}_{joint - 1:02d}_{side}" if joint > 1 else f"hand_{side}"
+J["upperarm_correctiveRoot_l"] = J["upperarm_l"]
+P["upperarm_correctiveRoot_l"] = "upperarm_l"
+for tag, dy in (("front", -0.02), ("back", 0.02)):
+    name = "upperarm_corrective_" + tag + "_l"
+    J[name] = (0.13, dy, 0.86); P[name] = "upperarm_correctiveRoot_l"
+arm = build("mh_rig")
+bpy.context.view_layer.objects.active = arm; bpy.ops.object.mode_set(mode="EDIT")
+arm.data.edit_bones["upperarm_correctiveRoot_l"].roll = math.radians(120)
+bpy.ops.object.mode_set(mode="OBJECT")
+frame = [list(row) for row in arm.data.bones["upperarm_correctiveRoot_l"].matrix_local.to_3x3()]
+r = api.normalize_rigged(armature="mh_rig", profile="metahuman", dry_run=False)
+doc = json.loads(arm["lw_canon"]) if "lw_canon" in arm.keys() else {}
+bones = {b["name"]: b for b in doc.get("body", {}).get("bones", [])}
+res({"result": r, "corrective": bones.get("upperarm_correctiveRoot_l"), "frame": frame,
+     "errors": CA.validate(doc) if doc else ["no document"]})
+''', timeout=300)
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[-1]
+    assert d["result"]["ok"], d["result"]
+    assert d["errors"] == []
+    assert d["corrective"]["along_source"] == "authored_helper_frame"
+    import numpy as np
+    assert np.allclose(d["corrective"]["frame"], d["frame"], atol=1e-9)

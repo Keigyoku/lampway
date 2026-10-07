@@ -33,6 +33,15 @@ free" (memory three-input-fit-pipeline): placement, scale and pose are consequen
    ─► 11 validate (poses + controls) ─► 12 export (Z/X bone axes, cm) ─► 13 motion acceptance filmed in UE
 ```
 
+The native body may contain authored facial openings. Body-package topology is
+measured using analytical position identities at 1e-5 m, reporting raw and welded
+boundary/non-manifold counts. This does not weld or publish the authored geometry,
+and native weight vertex ids stay unchanged. Generalized winding (canon 15) tests
+head inclusion on the original triangles regardless of watertightness; a measured
+head winding >0.5 permits native openings at intake. `closed=false` remains true
+in the receipt, rather than being mislabeled. Headless/unverified packages still
+refuse. Signed measurements near openings retain canon 15's declared-band rule.
+
 1. **Intake.** Turn to the body frame (`turn_deg` recorded), keep every salvageable part (memory salvage-parts-piece-by-piece),
    record each part's role. Material comes from the captain's word or the recipe, never from a render's colour (memory
    gauntlet-upper-arm-is-cloth). Pieces are generated per item; a paired piece (gauntlets, boots) from front+back views only
@@ -173,7 +182,7 @@ placed, clear piece passed through unchanged.
 - Each stage delegates to its canon tool and appends to `<piece>/fit/fit.json` (stage, inputs' sha256, receipt sha256, decider).
 - **Refusals (each names the next command):** a stage before its predecessors; a geometry stage after a texture without
   `texture_discard_ack`; any part without a role; a metal part routed to `conform`; a body package that is not native, not
-  closed (head included) or lacks the weight sidecar; a piece whose source-part check (one similarity per rigid group, residual
+  missing its head (generalized winding ≤0.5), has unverified openings or lacks the weight sidecar; a piece whose source-part check (one similarity per rigid group, residual
   < 0.5 mm) fails (the detached-glove guard); `match` not signed off (`captain_seen: true` with the render hash) before `place`
   results are used by `bind`.
 - Receipt: `{piece, stage, ok, receipt_path, sha256, next: ["lampway_fit stage=..."], limits_status}`.

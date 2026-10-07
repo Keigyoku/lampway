@@ -108,6 +108,11 @@ def r02():
         ang_y[a] = R.along_axis_angle(Fy, ARM[a], ARM[b], "y")
         ang_x[a] = R.along_axis_angle(Fx, ARM[a], ARM[b], "y")
     mixed = [ang_y["upperarm_l"], ang_x["lowerarm_l"], ang_y["hand_l"]]
+    helper_frame = R.rot("y", 120.0)
+    helper = {"name": "upperarm_correctiveRoot_l", "parent": "upperarm_l",
+              "children": ["upperarm_corrective_front_l", "upperarm_corrective_back_l"],
+              "authored_frame": helper_frame, "frame": R.corrective_root_frame(helper_frame),
+              "along_source": "authored_helper_frame"}
     # falsifier: the same joints, two input rolls, Damped Track on Y: the output keeps the input roll
     a, b = names[0], names[1]
     base = R.frame_from(ARM[a], ARM[b], UP, along="y")
@@ -117,10 +122,11 @@ def r02():
     dt0 = R.damped_track(start, "y", np.array(ARM[b]) - np.array(ARM[a]))
     dt1 = R.damped_track(start_rolled, "y", np.array(ARM[b]) - np.array(ARM[a]))
     return {"input": {"joints": ARM, "chain": names, "up_hint": UP},
-            "expected": {"frames_blender": frames_y, "frames_ue_axes": frames_x, "angle_blender_deg": ang_y, "angle_ue_axes_deg": ang_x,
+            "expected": {"corrective_root": helper, "frames_blender": frames_y, "frames_ue_axes": frames_x, "angle_blender_deg": ang_y, "angle_ue_axes_deg": ang_x,
                          "class_blender": R.classify_convention(list(ang_y.values())), "class_ue_axes": R.classify_convention(list(ang_x.values())),
                          "class_mixed": R.classify_convention(mixed)},
-            "falsifier": {"damped_track_roll_difference_deg": R.angle_deg(dt0, dt1), "frame_from_roll_difference_deg": 0.0}}
+            "falsifier": {"damped_track_roll_difference_deg": R.angle_deg(dt0, dt1), "frame_from_roll_difference_deg": 0.0,
+                          "corrective_parent_frame_error_deg": R.angle_deg(helper_frame, np.eye(3))}}
 
 
 # ----------------------------------------------------------------------------- R03 apply object scale

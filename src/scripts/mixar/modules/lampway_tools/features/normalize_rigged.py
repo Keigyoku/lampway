@@ -35,11 +35,22 @@ UNIT_OF = {f: u for u, f in RT.UNITS.items()}          # the factor rig_inspect 
 REFERENCE_ID = {"ue5_body": "ue5_manny", "ue5_body_fingers": "ue5_manny", "metahuman": "metahuman_fullbody"}
 
 
-def _bones(ob, mapped):
+def _bones(ob, mapped, convention="blender", profile="ue5_body"):
     rig = RT.read(ob)
     names, parents = rig["names"], rig["parents"]
     heads = {n: tuple(rig["heads"][n]) for n in names}
-    ends = chain_ends(heads, parents, main_child=dict(CONTINUATION, **MAIN_CHILD))
+    # MetaHuman corrective roots fan out to auxiliary drivers. Their authored
+    # rest frame/roll is the authority, not an arbitrary continuation child.
+    helpers = {}
+    if profile == "metahuman":
+        axis = 1 if convention == "blender" else 0
+        for n in names:
+            if "_correctiveRoot_" in n:
+                b = ob.data.bones[n]
+                direction = np.asarray(rig["frames"][n], float)[:, axis]
+                world_length = float((ob.matrix_world.to_3x3() @ b.vector).length)
+                helpers[n] = np.asarray(heads[n]) + direction * world_length
+    ends = chain_ends(heads, parents, main_child=dict(CONTINUATION, **MAIN_CHILD), helper_ends=helpers)
     kids = {}
     for n in names:
         if parents.get(n) is not None:
@@ -54,7 +65,7 @@ def _bones(ob, mapped):
         L = float(np.linalg.norm(v))
         if L < 1e-9:
             raise C.FeatureError(f"bone {n}: its next joint is at its own head (zero length): a skeleton cannot carry it")
-        src = "child_head" if len(kids.get(n, [])) == 1 else ("named_continuation" if kids.get(n) else "leaf_parent_line")
+        src = "authored_helper_frame" if n in helpers else ("child_head" if len(kids.get(n, [])) == 1 else ("named_continuation" if kids.get(n) else "leaf_parent_line"))
         F = np.asarray(rig["frames"][n], float)
         out.append({"name": n, "canonical_name": canon.get(n), "parent": parents.get(n), "head_m": [round(float(x), 9) for x in h],
                     "along": [round(float(x), 12) for x in v / L], "along_source": src, "frame": [[round(float(x), 12) for x in r] for r in F],
@@ -141,7 +152,7 @@ def run(armature, meshes=None, profile="ue5_body", turn_deg=0.0, dry_run=True):
     applied = None
     if unit != "m" or not np.allclose(ob.scale, 1.0):
         applied = RT.normalize(armature, unit=unit, apply_scale=True, dry_run=False)
-    bones, rig = _bones(ob, mapped)
+    bones, rig = _bones(ob, mapped, conv, profile)
     raw_sha = rec["sha256"]["input"]
     root = sorted(b.name for b in ob.data.bones if b.parent is None)[0]
     scale = {"state": "real", "decision": "measured", "factor_applied": float(u["factor"]), "uniform": True,

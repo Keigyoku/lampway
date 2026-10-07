@@ -35,20 +35,28 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
 3. **Leaves** (head, hand, foot, ball, finger _03, twist bones): along from the reference bone's along-axis transported by the
    parent's rotation (a leaf has no child joint); a foot's along is ankle -> ball, its up the ground normal; a twist bone takes
    its parent's frame (twist bones rotate about the parent's along-axis only).
-4. **Fingers.** Along = joint -> next joint; the BEND axis is the knuckle line: the unit vector index_01 -> pinky_01 (left/right
+4. **MetaHuman corrective roots.** A `metahuman` profile bone named
+   `<region>_correctiveRoot_<side>` fans out to corrective drivers rather than a
+   continuation joint. Preserve its authored rest frame and roll; its analytical
+   along-axis is that frame's Y (`blender`) or X (`ue_axes`), with authored length.
+   Record `along_source=authored_helper_frame`. Never choose an arbitrary child or
+   rewrite corrective axes to a parent's roll. An unrecognized branching bone
+   without a named continuation still refuses. R02 includes a fan-out with 120°
+   authored roll, and the binary normalizer test applies the MetaHuman profile.
+5. **Fingers.** Along = joint -> next joint; the BEND axis is the knuckle line: the unit vector index_01 -> pinky_01 (left/right
    signed), orthogonalised against along (Titan `proc_body.finger_axis`; memory gltf-bone-tail-is-not-direction). The thumb's bend
    axis is the normal of its own plane (thumb_01, thumb_02, thumb_03), oriented toward the palm. MB instead asks the person
    which SOURCE axis runs along each finger (booleans `my_boolStand_x/xn/z/zn/zt/znt/xt/xnt`, `handfingerfix.py:1226-2148`) or
    rotates helper bones by fixed T-pose/A-pose quaternions (`CreateRig.py:297-300`, `:379-382`); both are replaced by the
    measured rule.
-5. **Orientation transfer from the reference ("head rotation fix").** MB `FixHeadRot.py:36-49` copies every bone's WORLD rotation
+6. **Orientation transfer from the reference ("head rotation fix").** MB `FixHeadRot.py:36-49` copies every bone's WORLD rotation
    from the reference rig and applies it as rest: correct only when the source limb points like the reference's. The canon
    transports the reference frame (step 2), so a raised arm keeps its own direction and the reference's roll relative to it.
-6. **No track-then-apply.** MB orients chains with Damped Track / Locked Track constraints and Apply Pose as Rest
+7. **No track-then-apply.** MB orients chains with Damped Track / Locked Track constraints and Apply Pose as Rest
    (`CreateRig.py:7334-7625`, `:10255-10388`): the minimal rotation keeps whatever roll came in, so two sources differing only
    in roll leave with frames 40 deg apart (R02 falsifier); GRT's `apply_all_bone_constraints_and_pose` (`Utility_Functions.py:71-82`)
    bakes constraint results the same way. The canon computes frames in closed form and writes them as rest matrices.
-7. **Free-hand offsets are parameters.** MB's per-bone Euler offsets (spine Z offsets `my_string41..49`, clavicle Y/Z
+8. **Free-hand offsets are parameters.** MB's per-bone Euler offsets (spine Z offsets `my_string41..49`, clavicle Y/Z
    `my_string50..53`, `MagicBoneTop_Panel.py:5645-5661`; applied `CreateRig.py:10458-10739`) become named, recorded parameters of
    the frame rule, refused when not in the map receipt.
 
@@ -76,6 +84,7 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
 |---|---|---|---|
 | G17.1 frames | 4 arm joints, up hint +Z | the stored matrices for `blender` and `ue_axes`, angles 0 / 90 deg | — |
 | G17.2 classify | the three bones, one mixed set | `blender`, `ue_axes`, `mixed` | an exporter that accepts `mixed` |
+| G17.4 corrective fan-out | two corrective children, no continuation, authored roll 120° | authored frame/roll unchanged | choosing a child or copying the parent frame |
 | G17.3 roll | the same joints, input rolls 0 and 40 deg | identical frames from the rule | Damped Track keeps the roll: 40.0 deg apart |
 
 ## F. Implementation gap

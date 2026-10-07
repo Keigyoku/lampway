@@ -37,10 +37,12 @@ def _descends(bone, ancestor, parents):
     return False
 
 
-def chain_ends(heads, parents, leaf=LEAF, main_child=None):
+def chain_ends(heads, parents, leaf=LEAF, main_child=None, helper_ends=None):
     """{bone: end point}: the child's head (the named continuation where there are several - a direct child, or a deeper
     descendant such as MetaHuman's middle_01 under middle_metacarpal), or - a last bone - the parent's line continued by
-    ``leaf``. Several children and no named continuation is refused."""
+    ``leaf``. Several children and no named continuation is refused unless the caller supplies
+    a canon-17 authored corrective helper endpoint in ``helper_ends``."""
+    helpers = helper_ends or {}
     main = MAIN_CHILD if main_child is None else main_child
     kids = {}
     for b, p in parents.items():
@@ -48,6 +50,9 @@ def chain_ends(heads, parents, leaf=LEAF, main_child=None):
             kids.setdefault(p, []).append(b)
     out = {}
     for b, h in heads.items():
+        if b in helpers:
+            out[b] = tuple(helpers[b])
+            continue
         k = kids.get(b, [])
         if len(k) == 1:
             out[b] = tuple(heads[k[0]])

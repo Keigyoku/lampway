@@ -32,6 +32,18 @@ def unit(v):
         raise ValueError("zero-length vector")
     return v / n
 
+def corrective_root_frame(authored):
+    """Canon 17: a MetaHuman corrective fan-out retains its authored axes/roll.
+
+    These helpers have no skeletal continuation joint. Choosing one corrective
+    child's direction would rewrite the rig's authored corrective basis.
+    """
+    F = np.asarray(authored, float)
+    if F.shape != (3, 3) or not np.allclose(F.T @ F, np.eye(3), atol=1e-9) or np.linalg.det(F) <= 0:
+        raise ValueError("corrective root frame must be a proper rotation")
+    return F.copy()
+
+
 # ----------------------------------------------------------------------------- R01 skeleton mapping (canon 16)
 
 def detect_family(names, tables):

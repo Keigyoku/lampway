@@ -28,6 +28,12 @@ work.
 5. **No large binaries and no owner assets.** The goldens are synthetic; the MetaTailor exports stay out of git and
    `goldens/metatailor/README.md` records their SHA-256. A number measured on one of the captain's pieces is cited, not committed.
 
+Canon 03 records analytical seam topology and generalized winding for native
+openings; Canon 17 records authored MetaHuman corrective fan-out frames. R02's
+regenerated corrective golden preserves 120° roll and retains the existing frame
+and retarget falsifiers. The applied normalizer is verified on the corresponding
+binary shape, while actual owner-asset receipts are reported separately.
+
 ## Test
 
 ```bash
@@ -47,3 +53,5 @@ needs it and lands through the integration lane. Statuses, thresholds and the de
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-06 | canon into the repository | coordinator: "GO for rail row 1" (the captain's recommendation 1) | the canon lived on an off-tree shelf, so agents had no tracked page to load and nothing kept its goldens honest | the canon copied to docs/canon as the source of truth, its invariants stated, `check_canon.py` and its self-test in CI | captain ruling, 2026-10-06 |
+
+| 2026-10-07 | native topology and corrective-root canon | issue 2 G2/G4 | closed-only intake and continuation-only normalization rejected native shapes | document analytical winding intake and authored corrective frames with regenerated R02 evidence | issue 2 acceptance receipts |

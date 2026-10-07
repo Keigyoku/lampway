@@ -10,8 +10,9 @@ recomputes every hash. Only the project-native body is accepted (never a GLB cop
 
 The sidecar is READ at build (features/native_sidecar: titan.native-weight-sidecar/1, the engine's weights): a file that is not the
 engine's weights, or one weighted to a bone the package's skeleton lacks, is refused before anything is written; the receipt records
-its summary. The receipt also records the body mesh's state for the fit order (canon 03 G): ``closed`` (no boundary edge) and
-``head_included`` (the ``head`` joint lies inside the closed body: winding number > 0.5)."""
+its summary. The receipt also records the body mesh's state for the fit order (canon 03 G): ``closed`` on position-welded analysis topology and
+``head_included`` by generalized winding number > 0.5, including native facial openings.
+Authored source vertices and native weight identities are never welded in the package."""
 
 import hashlib
 import json
@@ -57,6 +58,33 @@ def _joints(arm_ob):
     return out
 
 
+
+def _topology_counts(T):
+    T = np.asarray(T, int).reshape(-1, 3)
+    edges = np.sort(np.concatenate((T[:, [0, 1]], T[:, [1, 2]], T[:, [2, 0]])), axis=1)
+    _, counts = np.unique(edges, axis=0, return_counts=True)
+    return int((counts == 1).sum()), int((counts > 2).sum())
+
+
+def body_state(V, T, head):
+    """Analyze seam identities only; preserve source arrays for native weights.
+
+    Canon 01 D's 1e-5m positional identity joins UV-split render vertices for
+    topology measurement. Jacobson's generalized winding tolerates native
+    openings without pretending they are closed or inventing a cap.
+    """
+    raw_boundary, raw_nonmanifold = _topology_counts(T)
+    welded = G.weld_keys(V, tol=1e-5)[T]
+    boundary, nonmanifold = _topology_counts(welded)
+    winding = float(G.winding_numbers(V, T, np.array([head["head"]]))[0]) if head is not None else None
+    included = winding is not None and winding > 0.5
+    return {"closed": boundary == 0, "boundary_edges": boundary, "non_manifold_edges": nonmanifold,
+            "raw_boundary_edges": raw_boundary, "raw_non_manifold_edges": raw_nonmanifold,
+            "topology_weld_m": 1e-5, "head_included": included, "head_joint": head and head["name"],
+            "head_winding": winding, "inside_method": "generalized_winding_number",
+            "native_openings_accepted": boundary > 0 and included}
+
+
 def build(armature, mesh, glb, native_asset, uproject, sidecar, out, root):
     if native_asset and not str(native_asset).startswith(NATIVE_PREFIX):
         raise C.FeatureError(f"fit only against the project-native body ({NATIVE_PREFIX}...): {native_asset} is not under it")
@@ -93,10 +121,8 @@ def build(armature, mesh, glb, native_asset, uproject, sidecar, out, root):
         T = np.array([t.vertices[:] for t in ob.data.loop_triangles])
         np.savez(tmp / "body.npz", V=V, T=T, names=np.array([j["name"] for j in joints]), J=np.array([j["head"] for j in joints]))
         verts = len(V)
-        open_edges = int(G.boundary_edges(T))
         head = next((j for j in joints if j["name"] == "head"), None)
-        inside = bool(head is not None and open_edges == 0 and G.winding_numbers(V, T, np.array([head["head"]]))[0] > 0.5)
-        state = {"closed": open_edges == 0, "boundary_edges": open_edges, "head_included": inside, "head_joint": head and head["name"]}
+        state = body_state(V, T, head)
     if glb:
         src = Path(root) / glb if not Path(glb).is_absolute() else Path(glb)
         if not src.exists():

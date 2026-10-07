@@ -73,6 +73,17 @@ def r02():
     check("R02", "falsifier: track-then-apply keeps the incoming roll", abs(diff - f["damped_track_roll_difference_deg"]) < 1e-6 and diff > 1.0, f"{diff:.1f} deg")
 
 
+    helper = e["corrective_root"]
+    kept = R.corrective_root_frame(helper["authored_frame"])
+    check("R02", "corrective fan-out keeps its authored 120-degree roll without a continuation",
+          close(kept, helper["frame"]) and close(kept, helper["authored_frame"]) and len(helper["children"]) == 2,
+          helper["along_source"])
+    copied_parent_error = R.angle_deg(kept, np.eye(3))
+    check("R02", "falsifier: copying the parent frame loses the corrective root roll",
+          abs(copied_parent_error - f["corrective_parent_frame_error_deg"]) < 1e-6 and copied_parent_error > 100.0,
+          f"{copied_parent_error:.1f} deg")
+
+
 def r03():
     c = case("R03_apply_scale")
     i, e, f = c["input"], c["expected"], c["falsifier"]
