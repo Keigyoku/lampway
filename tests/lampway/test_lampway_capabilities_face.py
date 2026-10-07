@@ -98,6 +98,13 @@ def test_the_approval_setting_names_each_choice_and_marks_the_current():
     assert [c["label"] for c in v["approval"]["choices"]] == ["Never asks", "Asks every time", "Asks once per session"]
 
 
+@pytest.mark.parametrize("risk, shown", [("reads", False), ("spends_plan", False), ("writes_project", True), ("runs_code", True),
+                                          ("reaches_internet", True), ("acts_outside", True)])
+def test_the_approval_setting_is_offered_where_an_action_can_be_asked_about(risk, shown):
+    """Reading and planning are never asked about (a spend is the studio gate's, law 3); an action that writes, runs, reaches out or acts is."""
+    assert F.line(row("x", risk=risk, enabled=True))["approval"]["shown"] is shown
+
+
 def test_options_default_to_the_first_and_show_the_chosen_one():
     v = F.line(row("terminal", enabled=True, **TERMINAL))
     assert v["options"]["key"] == "backend" and v["options"]["label"] == "Where commands run"

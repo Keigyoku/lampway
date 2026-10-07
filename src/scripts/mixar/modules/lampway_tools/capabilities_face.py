@@ -15,11 +15,14 @@ cached GET /app/capabilities answer (``capabilities_state``), so a draw never wa
 A row is the server's: ``id label does risk enabled in_force why_not approval options chosen_options scope default routes``. Only those
 keys are read."""
 
+PAGE_ID = "capabilities"   # the Choices window's row for this page (ui/choices.py), and what lampway.choices_open takes as its purpose
+
 # The server's order (capabilities/__init__.py RISKS), named in the words a person uses.
 RISK_ORDER = ("reads", "writes_project", "runs_code", "reaches_internet", "acts_outside", "spends_plan")
 RISK_TITLE = {"reads": "Looks only", "writes_project": "Changes your project", "runs_code": "Runs code",
               "reaches_internet": "Reaches the internet", "acts_outside": "Acts outside Lampway", "spends_plan": "Plans paid work"}
 WARNED = ("runs_code", "acts_outside")
+NOT_ASKED = ("reads", "spends_plan")   # reading is not asked about, and a spend is the studio gate's (law 3), never this setting's
 APPROVAL_LABEL = (("none", "Never asks"), ("ask_each_time", "Asks every time"), ("ask_once_per_session", "Asks once per session"))
 # What an option is called on the page, and the key the Client writes it under (the server keeps ``options`` as the Client sends it).
 OPTION_KEY = {"terminal": "backend"}
@@ -104,7 +107,7 @@ def line(row: dict) -> dict:
             "word": {"on": "On", "off": "Off", "waiting": "Waiting for a route"}[state], "enabled": enabled,
             "scope_tag": "this project" if row.get("scope") == "project" else "",
             "routes": routes, "route_note": note, "route_fix": dict(ROUTES_FIX) if note else None,
-            "approval": {"current": approval, "choices": [{"value": v, "label": w, "on": v == approval} for v, w in APPROVAL_LABEL]},
+            "approval": {"shown": row.get("risk") not in NOT_ASKED, "current": approval, "choices": [{"value": v, "label": w, "on": v == approval} for v, w in APPROVAL_LABEL]},
             "options": options}
 
 
