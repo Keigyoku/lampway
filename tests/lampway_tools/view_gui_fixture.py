@@ -6,6 +6,7 @@ import sys
 import json
 import traceback
 import os
+import time
 from pathlib import Path
 OVERLAY = os.environ['LAMPWAY_VIEW_OVERLAY']
 sys.path.insert(0, OVERLAY)
@@ -18,6 +19,7 @@ from mixar.modules.lampway_tools import api, api_view, jobs
 assert api.__file__.startswith(OVERLAY), api.__file__
 from mixar.modules.lampway_tools.view import runtime
 from mixar.modules.common.ui_control.core import observe
+from mixar.modules.mcp_bridge.core import runtime as connector
 from mixar.config.config import add_config
 from PIL import Image
 ROOT = Path(os.environ['LAMPWAY_PROJECT_ROOT'])
@@ -39,7 +41,8 @@ bpy.utils.register_class(T2_PT_secret)
 def secret_header(self, context):
     self.layout.prop(context.scene, 't2_password', text='')
 bpy.types.VIEW3D_HT_header.prepend(secret_header)
-state = {'stage': -1, 'captures': [], 'renders': []}
+state = {'stage': -2, 'captures': [], 'renders': [], 'startup_waits': 0}
+startup_deadline = time.monotonic() + 30
 
 def fail():
     traceback.print_exc()
@@ -88,6 +91,27 @@ def step():
     try:
         window = bpy.context.window
         area = next((a for a in window.screen.areas if a.type in ('VIEW_3D', 'IMAGE_EDITOR', 'NODE_EDITOR')))
+        if state['stage'] == -2:
+            # Saving this disposable profile's opt-in does not synchronously
+            # initialize the native gate. Let the normal connector timer apply
+            # it after deferred properties and controller receipts are ready.
+            snapshot = connector.snapshot()
+            ready = (snapshot.get('ui_contract') == 'mixar_ui_v1'
+                     and snapshot.get('ui_control') is True
+                     and snapshot.get('ui_controller_ready', True) is True)
+            if not ready:
+                state['startup_waits'] += 1
+                assert time.monotonic() < startup_deadline, (
+                    'Disposable UI opt-in did not finish native/controller startup within 30s',
+                    {key: snapshot.get(key) for key in
+                     ('ui_contract', 'ui_control', 'ui_controller_ready')},
+                    {'configured_mcp': connector.enabled(),
+                     'configured_pixels': connector.ui_control_enabled()})
+                return 0.1
+            state['ui_control_ready'] = {key: snapshot.get(key) for key in
+                                         ('ui_contract', 'ui_control', 'ui_controller_ready')}
+            state['stage'] = -1
+            return 0.05
         if state['stage'] == -1:
             window.event_simulate(type='ESC', value='PRESS')
             window.event_simulate(type='ESC', value='RELEASE')
