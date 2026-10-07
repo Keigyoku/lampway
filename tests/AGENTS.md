@@ -57,6 +57,8 @@ Historical failures retain source attribution, but the captain now requires zero
 Each lane owns the tests of its contracts; the fork gates in `tests/lampway` and the rail's tests change only with the gate they
 pin. A test's intent is changed only with the captain's word when it encodes one of his rulings.
 
+Native compile-definition regressions pin the target, option scope, creation order and concrete guarded consumers. Retain missing, wrong-target, public, unconditional and before-target corruption controls. Report source checks separately from actual ON/OFF compile commands and physical menu/palette acceptance.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -73,3 +75,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 
 | 2026-10-07 | measured hardware GUI mode | issue 2 requires both software and GPU screenshots | the fixture forced software GL and could label fallback as hardware | expose an explicit isolated mode and reject measured software renderers; retain default software coverage | nine mode checks and real software/fallback GUI receipts |
 | 2026-10-07 | inherited failure closure | captain: no red checks going forward | stale source pins and cross-suite mocks hid real incomplete inputs while baselines normalized failures | preserve security/behavior plants, update actual source and active mock identities, and require exact passing evidence for every inherited row | authoritative subtitle source mapping and complete122-ID ownership |
+| 2026-10-07 | target-owned fork compile definitions | captain: physical AC34 wrong native operators | source-only guarded strings passed while consumers compiled the upstream branch | test concrete target ownership and planted option/scope regressions; require build and physical receipts | editor macro compilation contracts |

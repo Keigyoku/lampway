@@ -47,9 +47,12 @@ The native build tree and the build box belong to the native-build lane (`lp/fac
 native change goes through that lane or is raised as a decision. Divergence from upstream is the captain's call when it is not
 a brand, host or login patch.
 
+Native targets with fork-only consumers own a conditional `PRIVATE LAMPWAY` compile definition after target creation. A cache flag or creator-local definition does not enable sibling editor libraries. Verify the actual consumer compile command after buildbox reconfiguration; retain the upstream branch for OFF builds. Source gates cannot replace native build or physical operator evidence.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the fork-patch conventions lived in one report and the tests that pin them | the guard-and-marker rule, the login and host invariants, the build owner and the three grades of native evidence | captain ruling, 2026-10-05 |
 | 2026-10-07 | native inherited UI maintenance | captain: resolve inherited reds | oversized modules and stale palette/source pins obscured current UI and capture contracts | preserve helper bodies during bounded extraction, use guarded shared palette roles and retain live theme/capture lifetime checks | source corruption controls plus required separate build-box compile |
+| 2026-10-07 | compiled profile and viewport fork guards | captain: physical AC34 reported upstream URL operators | creator-local LAMPWAY definitions did not propagate to interface or viewport targets | each guarded editor owns its conditional private definition, with actual compile-command and physical verification | ON/OFF target guards and corruption controls |
