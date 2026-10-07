@@ -13,7 +13,7 @@ import bpy
 from bpy.types import Operator
 
 from mixar.modules.lampway_tools import statusbar_state as S
-from mixar.modules.lampway_tools import status_client, studio_client
+from mixar.modules.lampway_tools import canon_io, status_client, studio_client
 
 CLIENT_FACTORY = lambda: status_client.StatusClient()  # noqa: E731  (tests swap it)
 REDUCE_MOTION = {"on": False}
@@ -106,10 +106,10 @@ def _show_terminal_images() -> dict:
             continue
         if path in out["loaded"]:
             continue
-        bpy.data.images.load(path, check_existing=True)
+        canon_io.load_image(path, check_existing=True)          # the canon door: one importer (canon_io) stamps what came in raw
         out["loaded"].append(path)
     if out["loaded"] and not bpy.app.background:
-        out["shown_in"] = _image_editor_show(bpy.data.images.load(out["loaded"][-1], check_existing=True))
+        out["shown_in"] = _image_editor_show(canon_io.load_image(out["loaded"][-1], check_existing=True))
     return out
 
 
