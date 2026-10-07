@@ -142,3 +142,25 @@ class ChatGPTPlanProvider:
         if results:
             return results
         return [{"type": "message", "role": "user", "content": [{"type": "input_text", "text": message.text()}]}]
+
+
+#: The disclosure the developer guidance asks for, shown on the model chip and once per session in the transcript (spec R0a).
+PLAN_NOTICE = "Using your ChatGPT plan"
+
+
+async def list_models(auth, *, base_url: str = BASE_URL, transport=None, timeout: float = 15.0) -> list:
+    """[{id, label}] of the models the route lists for this account: ``GET /v1/models`` with the access token, keeping only
+    entries whose ``visibility`` is ``list`` (spec R0a). The entry keys (``slug`` or ``id``, ``display_name``) follow the research
+    of 2026-10-06 and are [UNVERIFIED] against a live account; the live suite (test_chatgpt_live.py) checks the call answers."""
+    token = await auth.access_token()
+    async with httpx.AsyncClient(transport=transport, timeout=timeout) as client:
+        response = await client.get(f"{base_url.rstrip('/')}/models", headers={"Authorization": f"Bearer {token}"})
+    response.raise_for_status()
+    out = []
+    for entry in (response.json() or {}).get("models") or []:
+        if not isinstance(entry, dict) or entry.get("visibility") != "list":
+            continue
+        mid = str(entry.get("slug") or entry.get("id") or "")
+        if mid:
+            out.append({"id": mid, "label": str(entry.get("display_name") or mid)})
+    return out

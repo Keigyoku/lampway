@@ -68,6 +68,7 @@ class Session:
     current: Optional[Turn] = None
     pending_question: Optional[dict] = None   # {interrupt_id, call_id, question} while an ask_user waits for its answer
     bookmarks: dict = field(default_factory=dict)   # checkpoint request_id -> len(messages) at the mark
+    plan_notice_shown: bool = False                 # the ChatGPT-plan disclosure was shown in this session's transcript (R0a)
 
 
 @dataclass
@@ -304,6 +305,7 @@ class AgentHub:
                 "session_id": session.session_id, "command_id": turn.turn_id, "ok": True,
             })
             await stream.emit({"type": "run_status", "run_id": turn.run_id, "status": "in_progress"})
+            await self._plan_notice(session, turn, stream)
             await stream.emit({"bubble_id": bubble_id,
                                "loader": {"visible": True, "texts": ["Thinking..."], "rotate_ms": 2000}})
             if user_text is not None:                      # None: resuming after an ask_user answer
@@ -355,6 +357,16 @@ class AgentHub:
         finally:
             if session.current is turn:
                 session.current = None
+
+    async def _plan_notice(self, session, turn, stream):
+        """Spec R0a: the first turn of a session that runs on the user's ChatGPT plan says so once, in its own small bubble."""
+        if session.plan_notice_shown or getattr(self.provider, "name", "") != "chatgpt_plan":
+            return
+        from .providers.chatgpt_plan import PLAN_NOTICE, USAGE_URL
+        session.plan_notice_shown = True
+        await stream.emit({"bubble_id": f"{turn.turn_id}:plan", "content": {"set": (
+            f"{PLAN_NOTICE}: Lampway's agent sends this conversation to OpenAI with your ChatGPT sign-in, and it counts toward "
+            f"your plan's usage ({USAGE_URL}).")}})
 
     async def _agent_loop(self, socket, session, turn, stream, bubble_id, steps):
         system = self.system_prompt + (PLAN_MODE_PROMPT if turn.plan_mode else "")

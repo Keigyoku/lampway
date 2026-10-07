@@ -77,6 +77,9 @@ def _preference_items(settings) -> list:
             continue
         prov, _, model = entry["preferred"].partition(":")
         label = next((m["label"] for p in models_catalog(settings)["providers"] if p["id"] == prov for m in p["models"] if m["id"] == model), model or prov)
+        if prov == "chatgpt_plan":                                # spec R0a: the chip says whose usage the agent spends
+            from .agent.providers.chatgpt_plan import PLAN_NOTICE
+            label = f"{label} · {PLAN_NOTICE}"
         out.append({"role": role, "provider": prov, "model": model, "label": label, "thinking_level": (entry.get("params") or {}).get("thinking_level"),
                     "eligible": True})
     return out
