@@ -298,6 +298,57 @@ def archive_current(scene) -> bool:
     return True
 
 
+def refile(session_id: str, new_id: str) -> bool:
+    """Move an archived chat to ``new_id``: its record, its media (paths rewritten) and its index row. The tab keeps
+    ``session_id`` for a new chat (``mode1_pane``: ``/new`` in Lampway Agent's pane, whose unit is that id), so the old chat stays
+    in History instead of being overwritten by the new one's upserts. True when a record moved."""
+    if not session_id or not new_id or session_id == new_id:
+        return False
+    record = load_session(session_id)
+    if not isinstance(record, dict):
+        return False
+    old_dir, new_dir = media_dir(session_id), media_dir(new_id)
+    moved_media = False
+    if os.path.isdir(old_dir) and not os.path.exists(new_dir):
+        try:
+            os.makedirs(os.path.dirname(new_dir), exist_ok=True)
+            os.replace(old_dir, new_dir)
+            moved_media = True
+        except OSError as e:
+            logger.warning(f"Chat media of {session_id[:8]} kept in place: {e}")
+
+    def _moved(value):
+        if moved_media and isinstance(value, str) and value.startswith(old_dir + os.sep):
+            return new_dir + value[len(old_dir):]
+        return value
+
+    for msg in record.get("messages") or []:
+        for att in msg.get("attachments") or []:
+            if isinstance(att, dict) and "image_path" in att:
+                att["image_path"] = _moved(att["image_path"])
+        for img in msg.get("image_items") or []:
+            if isinstance(img, dict):
+                for key in ("local_path", "thumbnail_url", "url"):
+                    if key in img:
+                        img[key] = _moved(img[key])
+    record["session_id"] = new_id
+    try:
+        _atomic_write_json(_record_path(new_id), record)
+    except (OSError, TypeError, ValueError) as e:
+        logger.error(f"Failed to refile chat session {session_id[:8]}: {e}")
+        return False
+    index = _load_index()
+    index.pop(session_id, None)
+    index[new_id] = _meta_from_record(record)
+    try:
+        os.remove(_record_path(session_id))
+    except OSError:
+        pass
+    _write_index(index)
+    logger.info(f"Refiled chat session {session_id[:8]} as {new_id[:8]}")
+    return True
+
+
 def restore_into_scene(scene, record: dict) -> int:
     """Replace the scene's live chat with an archived record.
 

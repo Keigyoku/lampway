@@ -190,16 +190,35 @@ Further mapping rules:
   pane.)". A step still running when the turn stopped for a question (a command awaiting approval) is carried into the
   continuation turn.
 - A turn typed in the pane is `agent.turn.started {origin: "pane", user_text}` (the text from `session.history`, or the resume
-  answer's `inflight.user` after a reconnect). **For the client lane:** the current client takes a turn it did not start only
-  as a wakeup of an open run or as an observed BYOA turn, so it drops this frame when the run is closed: it needs to accept
-  `origin: pane` turns in a Mode 1 tab `[UNVERIFIED in the client]`.
+  answer's `inflight.user` after a reconnect).
 - `/new` (Q15, as proposed): on `sessions.changed`, `session.status` of the island's session; on `4001`, `session.active_list`,
-  the newest other session is resumed and the unit's record and `session.json` follow it. Starting a new island chat and filing
-  the old one in History is the client's half, not built.
+  the newest other session is resumed and the unit's record and `session.json` follow it, once (serve says `sessions.changed`
+  twice), the closed session's question is released (the island's next chat is a prompt, not an answer to it), and the tab's
+  current client is told: `agent.pane.new_conversation {session_id, origin: "pane"}` (the tab's session id, the unit, does not
+  change, so nothing else would tell it).
 - Reconnect: the same replay epoch replays `session.events.since`; a new epoch or `truncated` settles a waited-on turn from
   `session.history`.
 - Measured in the live suite: Hermes marks the first `clarify` choice "(Recommended)" and the island shows it as sent; the TUI's
   `/quit` closes only its socket (the session stays live).
+
+**Built 2026-10-07 (client)** (`space_mixie_chat/core/mode1_pane.py`, `turn_events.py`, the script gate in
+`main_thread_executor.py` and `connection_manager.py`, `refile` in `chat_history.py` and `checkpoint_store.py`;
+`tests/test_mode1_pane_turns.py`; `space_mixie_chat/ARCHITECTURE.md`):
+- **A turn typed in the pane is the tab's turn, as an island turn:** the user's bubble from `user_text`, the run, BUSY, the
+  executor's undo turn, the cursor, the slots, the end and the History upsert. Only a Mode 1 tab not in a turn of its own takes it;
+  a Your agent tab, a BUSY or MODIFYING tab (an island send in flight, an MCP lease) or one with a live turn ignores it with a log
+  line. The rest of a turn whose question the pane answered joins the open run as before, without a user bubble. A pane turn takes
+  no checkpoint.
+- **Its Blender calls** pass the island turn's gates and one more, on the main thread: a script naming a `pane_` turn runs only
+  while that turn is live in its own tab (after the tab's queued frames are rendered, since the script can overtake its turn's
+  start); an unknown or ended one is refused (`unknown_turn`) and nothing runs. A swarm worker's script, which carries its parent's
+  turn id on an `agent:` route, keeps its own gates.
+- **`/new`:** on `agent.pane.new_conversation` the old turns are fenced, their queued scripts answered, the old chat filed in
+  History under a new id with its media and its checkpoint timeline, the island emptied for the same session id, and one line
+  says the pane started a new conversation.
+- `[UNVERIFIED]` in a running app: the first-hand look of a pane turn in the island, Stop and an island steer during one, an undo
+  after one, `/new` with images in the old chat, and a reopened filed chat. The server lane's own note: `call_tool` gives a scratch
+  turn id to a call made while the pane turn is still being opened (`Sink.pending`); the client refuses that call (unknown turn).
 
 ### A3. Tools reach the scene, whoever started the turn
 
@@ -220,7 +239,8 @@ Further mapping rules:
 - Capabilities gate every call at call time (a switched-off family is refused and nothing reaches Blender).
 - `ask_user` is not offered: the island's questions are Hermes's own `clarify` (A2).
 - Steps come only from serve's `tool.start`/`tool.complete`; the MCP side emits none.
-- `[UNVERIFIED]`: that the current client runs a `blender.execute_script` whose `turn_id` names a pane turn it dropped (see A2).
+- The client runs a `blender.execute_script` whose `turn_id` names a pane turn only while it shows that turn, and refuses one it
+  dropped or that ended (A2, built 2026-10-07, client).
 
 ### A4. The herdr view: one unit, one tab, minimal switching
 

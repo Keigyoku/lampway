@@ -48,6 +48,7 @@ class Turn:
     complete: bool = False
     recovering: bool = False
     observed: bool = False    # a BYOA pane's own transcript (byoa_view.py): rendered, never the tab's turn state
+    pane: bool = False        # a turn Lampway Agent's pane started (mode1_pane.py): the tab's turn, like an island turn
 
 
 def arm():
@@ -189,6 +190,10 @@ def _consume(method, params):
         from . import byoa_view
         byoa_view.apply_view(params)
         return
+    if method == 'agent.pane.new_conversation':   # /new in Lampway Agent's pane (agent-modes spec Q15): mode1_pane.py
+        from . import mode1_pane
+        mode1_pane.apply_new_conversation(params)
+        return
     if method == 'agent.recovery.status':
         sid = params.get('session_id')
         scene = _resolve(sid)
@@ -271,7 +276,15 @@ def _consume(method, params):
         run_id = str(params.get('run_id') or '')
         expected = tid in _commands
         wakeup = session.run_open(scene) and run_id == getattr(scene, 'mixie_run_id', '')
-        if not expected and not wakeup:
+        typed = not expected and not wakeup and params.get('origin') == 'pane'
+        if typed:
+            # A turn typed in Lampway Agent's pane (agent-modes spec A2): the tab's turn, like an island turn (mode1_pane.py).
+            from . import mode1_pane
+            why = mode1_pane.refusal(scene, sid, tid)
+            if why:
+                logger.info('Lampway Agent pane turn %s ignored: %s', tid, why)
+                return
+        elif not expected and not wakeup:
             return  # Late start from a revoked/previous run.
         # Bounded history retains completed cursors for duplicate suppression.
         if len(_turns) >= 64:
@@ -283,11 +296,14 @@ def _consume(method, params):
         saved = turn_cursor.read(scene, sid, tid)
         turn = _turns[tid] = Turn(sid, tid, run_id,
                                   cursor=int(saved.get('cursor', -1)),
-                                  complete=bool(saved.get('complete', False)))
+                                  complete=bool(saved.get('complete', False)),
+                                  pane=params.get('origin') == 'pane' or str(tid).startswith('pane_'))
         if turn.complete:
             session.set_run(scene, saved.get('run_id', ''), bool(saved.get('run_open')))
             session.set_state(scene, SessionState[saved.get('state', 'IDLE')])
             return
+        if typed:
+            mode1_pane.add_prompt(scene, params)
         _begin_scene_turn(scene, run_id)
         return
     if turn is None or turn.complete:
@@ -454,6 +470,21 @@ def reconnect(session_ids=None):
         byoa_view.observe_all()
     except Exception:  # noqa: BLE001 - the view never blocks recovery
         logger.debug('BYOA view recovery skipped', exc_info=True)
+
+
+def drain_session(sid):
+    """Render every frame already queued for one tab, in order. Main thread (mode1_pane.script_refusal: a script must not
+    overtake its own turn's start)."""
+    global _inbox_bytes
+    with _LOCK:
+        items = list(_inbox.pop(sid, ()))
+        for item in items:
+            _inbox_bytes -= item[2]
+    for method, params, _size in items:
+        try:
+            _consume(method, params)
+        except Exception:
+            logger.exception('Agent event could not be rendered')
 
 
 def drop_scene(scene_name):
