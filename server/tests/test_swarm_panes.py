@@ -432,6 +432,46 @@ def test_a_codex_worker_reads_its_token_from_its_pane_environment_never_its_comm
     assert not [a for a in argv if "mcp_servers.lampway.command" in a], "no desktop launcher for a worker"
 
 
+def test_the_units_next_swarm_closes_the_previous_runs_ended_worker_panes_before_it_splits_new_ones(rig):
+    """Spec A4, Q13 (built 2026-10-07; the captain: nothing hidden, finish it). A finished worker's pane stays readable until its
+    unit's next swarm starts; then the swarm closes the previous run's ended worker panes of that unit, and only those, before it
+    splits new ones, so the new run's first worker stands right of the main pane again. It says which panes it closed."""
+    scratch = rig.cockpit.create_session("claude", "Someone else's pane", str(rig.cockpit.project_root), by="user")
+    rig.bind_parent()
+    first = rig.parent_json("swarm_start", {"tasks": tasks("boots", "belt")})
+    old = wait_for(lambda: len(rig.worker_panes()) == 2 and rig.worker_panes())
+    assert old and first.get("closed_panes") == []
+    for rec in old:
+        rig.worker_call(rec, "lampway_worker_done", {"summary": "made nothing"})
+    rig.parent_json("swarm_collect", {"swarm_id": first["swarm_id"]})
+    assert rig.herdr.closed() == [], "a finished worker's pane stays readable until the unit's next swarm"
+    second = rig.parent_json("swarm_start", {"tasks": tasks("gloves")})
+    assert sorted(rig.herdr.closed()) == sorted(r["pane_id"] for r in old)
+    assert sorted(c["id"] for c in second["closed_panes"]) == sorted(r["id"] for r in old)
+    new = wait_for(lambda: [r for r in rig.worker_panes() if r["swarm_binding"].startswith(f"swarm:{second['swarm_id']}:")])
+    assert new, "the next swarm's worker pane never opened"
+    assert rig.herdr.splits[new[0]["pane_id"]] == {"of": rig.parent["pane_id"], "direction": "right", "ratio": 0.6}, \
+        "the next run starts a fresh column from the main pane"
+    assert rig.parent["pane_id"] in rig.herdr.panes and scratch["pane_id"] in rig.herdr.panes, "never the main pane or a pane it did not start"
+    ended = {r["id"]: r for r in rig.cockpit.list_sessions()}
+    assert all(ended[r["id"]]["state"] == "ended" for r in old)
+
+
+def test_a_worker_still_working_is_not_closed_by_its_units_next_swarm(rig):
+    rig.bind_parent()
+    first = rig.parent_json("swarm_start", {"tasks": tasks("boots", "belt")})
+    old = wait_for(lambda: len(rig.worker_panes()) == 2 and rig.worker_panes())
+    done = next(p for p in old if p["swarm_binding"].endswith(":worker-1"))
+    busy = next(p for p in old if p["swarm_binding"].endswith(":worker-2"))
+    rig.worker_call(done, "lampway_worker_done", {"summary": "made nothing"})
+    assert wait_for(lambda: rig.status(first["swarm_id"])["worker-1"]["status"] == "staged")
+    second = rig.parent_json("swarm_start", {"tasks": tasks("gloves")})
+    assert rig.herdr.closed() == [done["pane_id"]] and [c["id"] for c in second["closed_panes"]] == [done["id"]]
+    assert busy["pane_id"] in rig.herdr.panes, "a live worker's pane is never closed"
+    new = wait_for(lambda: [r for r in rig.worker_panes() if r["swarm_binding"].startswith(f"swarm:{second['swarm_id']}:")])
+    assert new and rig.herdr.splits[new[0]["pane_id"]]["of"] == busy["pane_id"], "the column goes on below the worker still working"
+
+
 def test_a_swarm_tells_herdr_its_size_so_its_workers_share_the_column_evenly(rig):
     """Spec A4: the swarm's worker count reaches the layout; three workers keep 1/3, then 1/2, of what they split: a third each."""
     rig.bind_parent()

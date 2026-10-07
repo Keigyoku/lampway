@@ -82,12 +82,19 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    gateway on loopback and every other host goes through the egress proxy. Opening a unit's pane is the user's own chat
    (`HermesFront.precheck` refuses an agent's socket and never starts herdr); a restart re-adopts every live Lampway pane, its
    tokens by their digests (`Mode1Units.adopt`), and the server's shutdown ends no pane. The swarm ends only a pane whose record names it and that worker (`Cockpit.end_swarm_pane`): on cancel, failure or
-   timeout; a finished worker's pane stays open (closing ended ones at the next swarm, Q13, is not decided).
+   timeout; a finished worker's pane stays open for the user to read until its unit's next swarm (spec Q13): that swarm's start,
+   after its run is activated and before any worker splits, closes the unit's ENDED worker panes (`Cockpit.close_ended_workers`,
+   serialized with the placements). Closed is only a pane whose record says Lampway opened it as a swarm worker of THAT unit and
+   that herdr still shows for the record's terminal, and only once its worker has ended: the record is ended, or its binding is not
+   live in this server (`WorkerBindings.is_live`: done, revoked, or from before a restart), or herdr's process info shows its
+   harness gone (a pane herdr cannot inspect stays). Never a main pane, another unit's, an ad-hoc or unknown pane, or a working
+   worker's; the record ends with the reason, a Mode 1 worker's gateway key is revoked with it, and `swarm_start` returns what
+   it closed (`closed_panes`).
    The herdr view (spec A4, `herdr/layout.py`): a unit is one scene tab's conversation (its scene session id). A pane bound to a
    tab (created bound, or bound later) is its unit's `main` agent and opens in a tab of its own labelled with the scene's name
    (the Client's `name` on the mode route), else a short id; a worker pane splits into its unit's tab, the first right of the
    main pane, which keeps 60 % (herdr's split ratio is the share the split pane keeps), each further one down from the last
-   worker pane still in herdr; a swarm passes its worker count (`planned`), so its own workers share the column evenly (each
+   worker pane still in herdr (after Q13's closing, a unit's next run starts a fresh column right of the main pane); a swarm passes its worker count (`planned`), so its own workers share the column evenly (each
    split keeps 1/(its workers still to come)), and a worker of another swarm halves the last pane; placements serialized in the
    host so workers opened at once still form one column; a unit with no main pane gets one tab for its workers; an ad-hoc pane keeps a
    tab of its own; a herdr that refuses the split gets the pane in a tab. Every pane reports `display_agent`, `title` and
@@ -173,7 +180,8 @@ paid or egress path is tested against a fake transport, never a live provider, u
 herdr is played by `tests/herdr_support.py` `PaneHerdr` (tabs, splits, reported metadata; like herdr 0.9.3 it refuses a metadata
 option it does not know), and driven for real, where a herdr is found (`launcher.bin_path`: `LAMPWAY_HERDR_BIN`, then the pinned
 build from `scripts/lampway/herdr_env.py`, then PATH or `~/.local/bin/herdr`), by `tests/test_herdr_cockpit.py`,
-`test_herdr_launcher.py`, `test_herdr_layout_live.py` and the real-herdr case of `test_engine_pane_live.py`; without it those SKIP,
+`test_herdr_launcher.py`, `test_herdr_layout_live.py` (the unit's column, and Q13's closing of finished worker panes before the
+next run splits right of the main pane again) and the real-herdr case of `test_engine_pane_live.py`; without it those SKIP,
 and a skip is not a pass. The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 on the real
 `lampway_hermes` adapter and `Mode1Units` over a stand-in engine build (`tests/mode1_support.py`), and play each worker pane over
 the pane endpoint its rendered config names.
@@ -208,3 +216,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | Mode 1 in a pane: the Hermes pane, the island as its client, tools by unit (A1, A2, A3) | captain, 2026-10-07: Mode 1 runs Hermes's own TUI in its pane, the island loses nothing and gains persistence; coordinator brief for the lane (agent-modes spec A1-A3, E1.3-E1.6, S3) | Mode 1 ran as a hidden `hermes acp` child per tab (`EngineRuntime`, `LampwayACPClient`), killed with the server; `lampway_hermes` was a stub; the engine endpoint needed an island turn, so nothing typed in a pane could reach the scene; the config named the ACP platform and `no_mcp` | invariant 4: `/engine/mcp/<unit>` on the tab's current socket, no `ask_user`, refused with no window open; invariant 6: Mode 1's pane, its home, its record fields, no route, the user's chat as the only opener, re-adoption; invariant 9: the `cli` platform, clarify, the pinned toolsets, manual approvals; invariant 10: per-pane tokens adopted by digest, `/api/show`, the proxy's kept port, a shutdown that ends no pane; invariant 11 new: the island as serve's client; the Test section names the fake serve and the live pane suite | captain ruling, 2026-10-07 |
 | 2026-10-07 | merge: Mode 1 in a pane (A1-A3) beside the verified herdr layout and the herdr pin | coordinator integration of the A1-A3 lane | both sides rewrote the Test section's herdr sentence and the host's placement; the lane's still called the layout's shapes `[UNVERIFIED]` | the Test section keeps the lane's Mode 1 tests and the verified, pinned herdr sentence (the real-herdr case of `test_engine_pane_live.py` named); the host keeps the lane's Mode 1 unit with the swarm's `planned` column | none |
 | 2026-10-07 | Mode 1 workers think on the worker choice (S2) | captain, 2026-10-07: "nothing hidden, finish it"; coordinator brief for the swarm lane (agent-modes spec S2 as superseded by A) | the gateway answered every pane, a Mode 1 worker's included, with the main agent's provider, so the `agent.worker` choice was never used and the A1-A3 lane left it `[UNVERIFIED decision]` | invariant 10: the main pane on the main provider, a worker's pane (its token's swarm binding) on the `agent.worker` choice built at its first call and kept, the `follow:agent.main` default, a choice that cannot be built an OpenAI-style error | captain ruling, 2026-10-07 |
+| 2026-10-07 | Q13 built: a unit's next swarm closes its ended worker panes | captain, 2026-10-07: "nothing hidden, finish it"; agent-modes spec A4, Q13 as recommended | a finished worker's pane stayed open with no end, so every further run of the unit went on down the old column, halving the last pane, beside panes that could no longer reach any scene | invariant 6: what "ended" means (record, binding, herdr's process info), what is never closed, the close before the first split, the fresh column, the revoked Mode 1 key, `closed_panes`; the Test section names the live case | captain ruling, 2026-10-07 |

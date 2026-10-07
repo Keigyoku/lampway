@@ -260,6 +260,7 @@ class SwarmManager:
         brain = self.worker_brain(ctx)                 # before anything runs: a refused mode activates no run and spawns no worker
         harness = self.harness_for(ctx.socket)
         run = await harness.activate(ctx.run_id or str(uuid.uuid4()), ctx.session_id)
+        closed = await self._close_ended_panes(ctx)    # spec Q13: the unit's previous runs' ended worker panes, before any split
         self._seq += 1
         swarm_id = f"sw{self._seq}"
         workers = [Worker(f"worker-{n}", name, prompt, objects) for n, (name, prompt, objects) in enumerate(clean, 1)]
@@ -269,7 +270,23 @@ class SwarmManager:
         for worker in workers:
             worker.task = asyncio.create_task(self._run_worker(swarm, worker, ctx))
         ctx.progress(f"{len(workers)} workers starting")
-        return {"swarm_id": swarm_id, "workers": [w.public() for w in workers]}
+        return {"swarm_id": swarm_id, "workers": [w.public() for w in workers], "closed_panes": closed}
+
+    async def _close_ended_panes(self, ctx: SwarmContext) -> list:
+        """Spec A4, Q13 (built 2026-10-07): a finished worker's pane stays readable until its unit's next swarm; this is that
+        moment. The cockpit closes only panes Lampway opened as this unit's workers whose worker has ended
+        (``Cockpit.close_ended_workers``), so the new run's first worker splits right of the main pane again. Best effort: a
+        herdr that cannot be asked closes nothing and the swarm goes on. Returns what was closed (the agent is told)."""
+        if self.cockpit is None or not ctx.session_id or not hasattr(self.cockpit, "close_ended_workers"):
+            return []
+        try:
+            closed = await asyncio.to_thread(self.cockpit.close_ended_workers, ctx.session_id, self.bindings.is_live)
+        except Exception as exc:  # noqa: BLE001 - herdr gone or refusing: nothing is closed, the swarm goes on
+            log.warning("the unit's ended worker panes were not closed: %s", exc)
+            return []
+        if closed:
+            ctx.progress(f"closed {len(closed)} finished worker pane(s) of the previous run")
+        return [{"id": c["id"], "name": c.get("name"), "why": c.get("why")} for c in closed]
 
     async def _status(self, arguments, ctx) -> dict:
         swarm = self._get(arguments)

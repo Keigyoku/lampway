@@ -405,6 +405,74 @@ class Cockpit:
                     s.update(state="ended", ended_at=time.time(), end_reason=why, updated_at=time.time())
         self._update(f)
 
+    def close_ended_workers(self, unit, live) -> list:
+        """Spec A4, Q13 (built 2026-10-07): what a unit's next swarm calls before it splits its own workers. A finished worker's
+        pane stays readable until then; now the previous runs' ENDED worker panes of this unit are closed, so the new run starts a
+        fresh column right of the main pane. ``live(binding)`` is the swarm's own table: True while that worker's binding is live.
+
+        A pane is closed only when ALL of these hold, each from Lampway's own record and herdr's live server:
+        * its record says Lampway opened it as a swarm worker (``created_by`` swarm, ``role`` worker, a ``swarm_binding``) of THIS
+          unit; never a main pane, another unit's pane, an ad-hoc pane, or a pane no record names (law 5);
+        * herdr still shows that pane for the terminal the record names (a pane id herdr gave another terminal is unknown);
+        * its worker has ENDED: the record is ended (the swarm ended it, or reconcile found its harness gone), or its binding is
+          not live in this server (``lampway_worker_done`` finished it; a failure, cancel or timeout revoked it; a server restart
+          dropped it, so the pane can no longer reach any scene), or herdr's process info shows its harness no longer runs.
+          A pane herdr cannot inspect is not proof of an end: it stays.
+        Returns ``[{id, name, pane_id, why}]`` for the panes closed; their records end with the reason. Serialized with the
+        placements (one at a time), so a swarm opening workers at the same moment never splits a pane being closed."""
+        if not unit or not L.server_status(self.root).get("running"):
+            return []
+        out = []
+        with self._layout:
+            snap = self.snapshot()
+            by_term = {p.get("terminal_id"): p for p in snap.get("panes") or [] if p.get("terminal_id")}
+            by_id = {p["pane_id"]: p for p in snap.get("panes") or []}
+            for rec in self.list_sessions():
+                binding = rec.get("swarm_binding")
+                if rec.get("created_by") != "swarm" or rec.get("role") != LY.WORKER or rec.get("unit") != unit or not binding:
+                    continue
+                pane = by_term.get(rec["terminal_id"]) if rec.get("terminal_id") else by_id.get(rec.get("pane_id"))
+                if pane is None:                                # already gone from herdr: nothing to close
+                    continue
+                why = self._worker_ended(rec, pane, binding, live)
+                if not why:
+                    continue
+                try:
+                    L.run(self.root, ["pane", "close", pane["pane_id"]])
+                except L.HerdrError as exc:
+                    log.warning("could not close the ended worker pane %s (%s): it stays", pane["pane_id"], exc)
+                    continue
+                self._closed_ended(rec["id"], why)
+                if HN.is_lampway(rec.get("agent")) and self.mode1 is not None and hasattr(self.mode1, "forget"):
+                    self.mode1.forget(rec)                  # a Mode 1 worker's gateway key ends with its pane
+                out.append({"id": rec["id"], "name": rec.get("name"), "pane_id": pane["pane_id"], "why": why})
+        return out
+
+    def _worker_ended(self, rec: dict, pane: dict, binding: str, live) -> str:
+        """Why a worker pane's worker has ended, or "" while it may still be working (see ``close_ended_workers``)."""
+        if rec.get("state") == "ended":
+            return rec.get("end_reason") or "its worker ended"
+        if not live(binding):
+            return "its worker finished (its binding is done or revoked, so the pane can no longer reach a scene)"
+        try:
+            info = json.loads(L.run(self.root, ["pane", "process-info", "--pane", pane["pane_id"]]))["result"]["process_info"]
+        except (L.HerdrError, ValueError, KeyError, TypeError):
+            return ""
+        cmd = " ".join(p.get("cmdline", "") for p in info.get("foreground_processes", []))
+        if rec.get("match") and not any(t in cmd for t in rec["match"]):
+            return "its harness is no longer running (the pane is at a shell prompt)"
+        return ""
+
+    def _closed_ended(self, sid: str, why: str) -> None:
+        def f(d):
+            for s in d["sessions"]:
+                if s["id"] == sid:
+                    now = time.time()
+                    if s.get("state") != "ended":
+                        s.update(state="ended", ended_at=now)
+                    s.update(end_reason=f"closed when its unit's next swarm started (Q13): {why}", closed_at=now, updated_at=now)
+        self._update(f)
+
     def unbind(self, sid: str) -> dict:
         """What closing the scene tab calls: the binding ends, the pane runs on and is listed unbound (law 5)."""
         return self.bind(sid, None)

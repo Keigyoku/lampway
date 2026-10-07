@@ -21,7 +21,8 @@ The swarm's substrate (``agent/swarm.py``) spawns, binds, resets and seeds the w
 * waits until the worker calls ``lampway_worker_done(summary)`` (answered by ``mcp.py``), and returns the summary. A pane that exits
   first, or a worker that runs past ``PANE_WORKER_TIMEOUT_S``, fails the task;
 * on cancel or failure closes only the pane it opened (``Cockpit.end_swarm_pane`` refuses any other: law 5). A finished worker's pane
-  stays open for the user to read; its binding is revoked, so it can no longer reach the worker.
+  stays open for the user to read until its unit's next swarm starts, which closes it (Q13, ``Cockpit.close_ended_workers``); its
+  binding is revoked, so it can no longer reach the worker.
 
 Every tool call of the pane runs through ``job.call_tool``, i.e. on this worker's headless Lampway, never the user's scene.
 """
@@ -113,6 +114,11 @@ class WorkerBindings:
         b = self._by_name.get(name)
         if b is not None and b.live:
             b.state = "revoked"
+
+    def is_live(self, name: str) -> bool:
+        """Whether ``name`` is a live worker binding of THIS server (one it never issued, e.g. before a restart, is not)."""
+        b = self._by_name.get(name or "")
+        return b is not None and b.live
 
 
 class PaneBrain:

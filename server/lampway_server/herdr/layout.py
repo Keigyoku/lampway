@@ -8,7 +8,8 @@
 * **A swarm worker's** pane splits into its unit's tab: the first worker right of the main agent, which keeps 60 %, each further
   worker down from the last worker pane, so the main agent keeps the left and the workers stand in one column beside it. A swarm
   that says how many workers it has (``planned``) gets an even column: each split keeps 1/(its workers still to come) for the pane
-  it splits. A unit whose main pane is not there gets one tab for its workers.
+  it splits. A unit whose main pane is not there gets one tab for its workers. A finished worker's pane stays readable until its
+  unit's next swarm, which closes the previous runs' ended worker panes before it splits (Q13): a fresh column each run.
 * **A pane with no unit** (an ad-hoc pane the user starts from the cockpit) keeps a tab of its own.
 * **Every pane Lampway starts reports what it is** (``pane.report_metadata``), best effort.
 
@@ -121,7 +122,9 @@ def swarm_of(binding: Optional[str]) -> Optional[str]:
 def place(role: Optional[str], unit: Optional[str], label: str, sessions: list, snap: dict, swarm: Optional[str] = None,
           planned: Optional[int] = None) -> Placement:
     """Where a new pane goes. ``label`` is the tab label for a pane that opens a tab (a main pane's unit label, an ad-hoc pane's
-    name). Only panes herdr still shows count: a finished worker's pane that is still open stays in the column (Q13 is not built)."""
+    name). Only panes herdr still shows count. A unit's next swarm first closes the previous runs' ended worker panes (Q13,
+    ``Cockpit.close_ended_workers``), so its first worker finds an empty column and splits right of the main pane again; a worker
+    still working stays, and the new workers go on down its column."""
     if not any(w.get("label") == WORKSPACE_LABEL for w in snap.get("workspaces") or []):
         return Placement("workspace")
     if role != WORKER or not unit:

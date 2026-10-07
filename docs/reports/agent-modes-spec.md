@@ -248,7 +248,29 @@ overwhelming/losing information the better."
   focusing a pane is one click from a card.
 - **A finished worker's pane** stays readable until the unit's next swarm starts. Then Lampway closes the previous run's ended
   worker panes before it splits new ones. It only ever closes a pane it started that has ended, never a live or unknown one
-  (law 5). This is proposed in **Q13**.
+  (law 5). Decided in **Q13**.
+
+**Built 2026-10-07: the next swarm's fresh column (Q13)** (`Cockpit.close_ended_workers`, `SwarmManager._close_ended_panes`):
+- **When:** a unit's `swarm_start`, after its run is activated and before any worker pane splits; serialized with the
+  placements, so a swarm opening workers at the same moment never splits a pane being closed.
+- **What may close:** only a pane whose record says Lampway opened it as a swarm worker (`created_by` swarm, `role` worker, a
+  swarm binding) of that unit, and only while herdr still shows it for the terminal the record names (a pane id herdr gave
+  another terminal is unknown and stays).
+- **"Ended" means one of:**
+  - the record is ended (the swarm ended it on cancel, failure or timeout, or reconcile found its harness gone);
+  - its binding is not live in this server: `lampway_worker_done` finished it, a failure, cancel or timeout revoked it, or a
+    server restart dropped it, so the pane can no longer reach any scene;
+  - herdr's process info shows the worker's harness no longer runs (the pane is at a shell prompt).
+
+  A pane herdr cannot inspect is no proof of an end: it stays.
+- **Never closed:** the unit's main pane, another unit's panes, an ad-hoc pane, a pane no record names, a worker still working.
+- **After:** the record ends with the reason ("closed when its unit's next swarm started"); a Mode 1 worker's gateway key is
+  revoked with its pane; `swarm_start` returns what it closed (`closed_panes`), so the agent is told. With the column empty, the
+  run's first worker splits right of the main pane, which keeps 60 % again; a worker still working stays, and the new workers go
+  on down its column.
+- **Tested:** played herdr (`tests/test_herdr_layout.py`, `tests/test_swarm_panes.py`) and the real herdr 0.9.3
+  (`tests/test_herdr_layout_live.py`: two finished workers closed, the main pane, another unit's worker and an unknown pane kept,
+  the next worker right of the main pane at 60 %).
 
 **Built 2026-10-07 and checked against the real herdr 0.9.3,** built from `herdrdev/herdr`:
 - the CLI spellings come from herdr's CLI reference;
@@ -1223,13 +1245,14 @@ pane's harness in Mode 2.
 11. **Q11 Mode 2 swarm binding (built, open).** The pane bearers go on a direct loopback endpoint instead of the client launcher
     (S3, "as built"). Also open:
     - the worker timeout, 1800 s as a placeholder;
-    - finished worker panes stay open for the user to read;
+    - finished worker panes stay open for the user to read (until the unit's next swarm closes them, Q13, built 2026-10-07);
     - Codex's pane bearer is visible briefly on the herdr client's command line.
 
 12. **Q12 the architecture — decided 2026-10-07:** two modes, Mode 1 on the Hermes runtime, every agent in a herdr pane, wrappers
     only, no agent without a pane; workers keep their own headless Blender scene (A0).
 13. **Q13 the herdr view — decided 2026-10-07: minimal switching.** One tab per unit; workers split beside the main agent;
-    pane metadata in herdr's sidebar (A4). Proposed and open: closing a unit's ended worker panes when its next swarm starts.
+    pane metadata in herdr's sidebar (A4). Closing a unit's ended worker panes when its next swarm starts: decided as
+    recommended, built 2026-10-07; the captain: nothing hidden, finish it (A4).
 14. **Q14 Mode 1's pane — decided 2026-10-07:** Hermes's own TUI in the pane, with the island as a second client of the same
     `hermes serve` session. Nothing is lost, and the agent persists (A1, A2). ACP is retired.
 15. **Q15 `/new` in a Mode 1 pane (proposed):** the island follows the pane to its new session (A2). The other choice is to
