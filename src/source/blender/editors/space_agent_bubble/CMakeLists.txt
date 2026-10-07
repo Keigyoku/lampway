@@ -129,5 +129,10 @@ set(LIB
 
 blender_add_lib(bf_editor_space_agent_bubble "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
+# LAMPWAY: mode-chip guards belong to this target; creator definitions are local.
+if(LAMPWAY)
+  target_compile_definitions(bf_editor_space_agent_bubble PRIVATE LAMPWAY)
+endif()
+
 # RNA_prototypes.hh
 add_dependencies(bf_editor_space_agent_bubble bf_rna)
