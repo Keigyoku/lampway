@@ -138,6 +138,7 @@ def public_report(audit):
               '# Authorized ledger recount', '',
               f"Source SHA256: `{audit['source_sha256']}`. {audit['row_count']} original contract rows, in source order. Private identities and evidence remain in the authorized external ledger.", '',
               f"Generated registry counts: {audit['registry_counts']['agent_tools']} agent tools; {audit['registry_counts']['mcp_tools']} MCP tools.", '',
+              'Audited implementation commit: `' + audit.get('implementation_head', 'not recorded') + '`. Per-file hashes retained privately identify the measured source; later worktree changes are excluded.', '',
               'Historical verdict counts: ' + json.dumps(audit['historical_verdict_counts'], sort_keys=True) + '.', '',
               'Rewritten status counts: ' + json.dumps(audit['rewritten_status_counts'], sort_keys=True) + '.', '',
               'Each row records current named tools and cited/manual module hashes privately. Classification comes from its manual specification/code/test reconciliation, never from module or registry presence; rows without that review remain UNVERIFIED. Historical OK is not current acceptance. BUILT means implemented and tested within its retained scope; the per-row gap/verification record remains authoritative for live or full-contract claims. A route hit, refusal or sweep alone does not close a live contract. Additional shelf/runbook/reference tables are outside the original 231-row denominator and remain unchanged in the private source.', '',

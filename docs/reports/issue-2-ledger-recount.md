@@ -7,6 +7,8 @@ Source SHA256: `1e292f69d4ccbea1b6a1dd966c131829bb5ae9711953940140539ef3a8fe4b1d
 
 Generated registry counts: 254 agent tools; 207 MCP tools.
 
+Audited implementation commit: `da135c8dc017bc83b545c2e66397018f2c301d24`. Per-file hashes retained privately identify the measured source; later worktree changes are excluded.
+
 Historical verdict counts: {"FAILS-LIVE": 3, "OK": 137, "PART-WRONG": 2, "UNVERIFIED": 1, "WRONG": 88}.
 
 Rewritten status counts: {"BUILT": 54, "FOLDED": 15, "PARTIAL": 161, "WAITING": 1}.
