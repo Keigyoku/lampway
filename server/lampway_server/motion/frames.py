@@ -6,17 +6,20 @@
 niced, with its own HOME, XDG dirs, TZ=UTC and a fresh profile, opens ONE page at the requested size (DPR 1) with the network blocked, loads the
 scene's ``file://`` entry and then, per frame, evaluates ``__frame(t)`` and captures the surface. Frames are asked for in order from frame 0 in
 one browser (measured: a frame rendered out of order differs in 4 of 24 cases), and two flags are load-bearing for determinism:
-``--disable-partial-raster`` (without it 1 frame of 390 differed between runs) and the network kill (an unresolvable host map and a dead proxy)."""
+``--disable-partial-raster`` (without it 1 frame of 390 differed between runs) and the network kill (an unresolvable host map and a dead proxy).
+
+The protocol runs over ``--remote-debugging-pipe`` (fd 3 in, fd 4 out, NUL-delimited JSON), not a websocket: the server opens no network door
+the egress hook cannot see (tests/test_egress.py) and the browser listens on no port another local process could attach to."""
 import base64
+import fcntl
 import hashlib
 import json
 import os
+import select
 import shutil
 import subprocess
 import time
 from pathlib import Path
-
-from websockets.sync.client import connect
 
 CHROME_FLAGS = [
     "--headless", "--disable-gpu", "--hide-scrollbars", "--mute-audio", "--no-first-run", "--no-default-browser-check",
@@ -72,11 +75,28 @@ class SceneError(RuntimeError):
 
 
 class CDP:
-    """A minimal synchronous DevTools client over the browser websocket (flattened sessions). Every Network.requestWillBeSent URL is kept."""
+    """A minimal synchronous DevTools client over Chromium's debugging pipe (flattened sessions). Every Network.requestWillBeSent URL is kept."""
 
-    def __init__(self, url: str, timeout: float = 120.0):
-        self.ws = connect(url, max_size=None, open_timeout=30, close_timeout=5)
+    def __init__(self, write_fd: int, read_fd: int, timeout: float = 120.0):
+        self.w, self.r = write_fd, read_fd
         self.timeout, self.n, self.events, self.requests = timeout, 0, [], []
+        self._chunks, self._tail = [], b""
+
+    def _recv(self, timeout: float) -> dict:
+        """One NUL-terminated message (a screenshot is megabytes: read in chunks, joined once)."""
+        while True:
+            if b"\0" in self._tail:
+                msg, _, self._tail = self._tail.partition(b"\0")
+                data, self._chunks = b"".join(self._chunks) + msg, []
+                return json.loads(data)
+            if self._tail:
+                self._chunks.append(self._tail)
+            ready, _, _ = select.select([self.r], [], [], timeout)
+            if not ready:
+                raise TimeoutError(f"chromium did not answer within {timeout:g} s")
+            self._tail = os.read(self.r, 1 << 20)
+            if not self._tail:
+                raise RuntimeError("chromium closed its DevTools pipe")
 
     def _keep(self, msg: dict) -> None:
         if msg.get("method") == "Network.requestWillBeSent":
@@ -89,9 +109,11 @@ class CDP:
         msg = {"id": self.n, "method": method, "params": params or {}}
         if session:
             msg["sessionId"] = session
-        self.ws.send(json.dumps(msg))
+        data = json.dumps(msg).encode() + b"\0"
+        while data:
+            data = data[os.write(self.w, data):]
         while True:
-            r = json.loads(self.ws.recv(timeout=self.timeout))
+            r = self._recv(self.timeout)
             if r.get("id") == self.n:
                 if "error" in r:
                     raise RuntimeError(f"{method}: {r['error']}")
@@ -104,17 +126,18 @@ class CDP:
                 return self.events.pop(i)
         t0 = time.monotonic()
         while time.monotonic() - t0 < timeout:
-            e = json.loads(self.ws.recv(timeout=timeout))
+            e = self._recv(timeout)
             if e.get("method") == name:
                 return e
             self._keep(e)
         raise TimeoutError(name)
 
     def close(self) -> None:
-        try:
-            self.ws.close()
-        except Exception:  # noqa: BLE001 - the browser is going away
-            pass
+        for fd in (self.w, self.r):
+            try:
+                os.close(fd)
+            except OSError:
+                pass
 
 
 class Chromium:
@@ -128,17 +151,29 @@ class Chromium:
         self.proc = self.cdp = self.session = None
         self.product = None
         self.profile = self.home / f"profile-{os.getpid()}-{time.monotonic_ns()}"
+        self._stderr = self.profile.parent / f"{self.profile.name}.stderr"
 
     def open(self, entry: Path, width: int, height: int) -> None:
         self.home.mkdir(parents=True, exist_ok=True)
         self.profile.mkdir(parents=True)
         env = {"HOME": str(self.home), "XDG_CONFIG_HOME": str(self.home / ".config"), "XDG_CACHE_HOME": str(self.home / ".cache"),
                "XDG_DATA_HOME": str(self.home / ".local" / "share"), "PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "TZ": "UTC", "FONTCONFIG_PATH": "/etc/fonts"}
-        args = ["nice", "-n", "15", self.binary, *CHROME_FLAGS, f"--user-data-dir={self.profile}", "--remote-debugging-port=0", "about:blank"]
-        self.proc = subprocess.Popen(args, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        url = self._endpoint()
-        self.cdp = CDP(url)
-        self.product = self.cdp.send("Browser.getVersion").get("product")
+        r_cmd, w_cmd = os.pipe()                                          # we write commands, the browser reads them on its fd 3
+        r_evt, w_evt = os.pipe()                                          # the browser writes answers and events on its fd 4, we read them
+        hi = [fcntl.fcntl(fd, fcntl.F_DUPFD_CLOEXEC, 10) for fd in (r_cmd, w_evt)]      # above 4, so the shell's 3<& and 4>& cannot collide
+        for fd in (r_cmd, w_evt):
+            os.close(fd)
+        args = ["sh", "-c", f'exec nice -n 15 "$@" 3<&{hi[0]} 4>&{hi[1]}', "sh", self.binary, *CHROME_FLAGS, f"--user-data-dir={self.profile}",
+                "--remote-debugging-pipe", "about:blank"]
+        with open(self._stderr, "wb") as err:
+            self.proc = subprocess.Popen(args, env=env, stdout=subprocess.DEVNULL, stderr=err, pass_fds=tuple(hi))
+        for fd in hi:
+            os.close(fd)
+        self.cdp = CDP(w_cmd, r_evt)
+        try:
+            self.product = self.cdp.send("Browser.getVersion").get("product")
+        except (RuntimeError, TimeoutError) as exc:
+            raise RuntimeError(f"chromium did not start ({exc}): " + self._stderr.read_text(errors="replace")[-800:]) from None
         tgt = self.cdp.send("Target.createTarget", {"url": "about:blank", "width": width, "height": height})
         s = self.session = self.cdp.send("Target.attachToTarget", {"targetId": tgt["targetId"], "flatten": True})["sessionId"]
         self.cdp.send("Page.enable", session=s)
@@ -148,18 +183,6 @@ class Chromium:
         self.cdp.send("Emulation.setTimezoneOverride", {"timezoneId": "UTC"}, s)
         self.cdp.send("Page.navigate", {"url": Path(entry).resolve().as_uri()}, s)
         self.cdp.wait_event("Page.loadEventFired")
-
-    def _endpoint(self) -> str:
-        port_file = self.profile / "DevToolsActivePort"
-        for _ in range(400):
-            if port_file.exists():
-                lines = port_file.read_text().split()
-                if len(lines) >= 2:
-                    return f"ws://127.0.0.1:{lines[0]}{lines[1]}"
-            if self.proc.poll() is not None:
-                raise RuntimeError("chromium exited at launch: " + self.proc.stderr.read().decode(errors="replace")[-800:])
-            time.sleep(0.05)
-        raise RuntimeError("chromium did not open its DevTools endpoint in 20 s")
 
     def evaluate(self, expr: str, await_promise: bool = False):
         r = self.cdp.send("Runtime.evaluate", {"expression": expr, "awaitPromise": await_promise, "returnByValue": True}, self.session)
@@ -206,3 +229,4 @@ class Chromium:
                     self.proc.kill()
                     self.proc.wait()
             shutil.rmtree(self.profile, ignore_errors=True)
+            self._stderr.unlink(missing_ok=True)
