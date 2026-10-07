@@ -80,18 +80,20 @@ def find_engine(engines_dir) -> Optional[dict]:
     return rec
 
 
-def child_env(home: Path, proxy_url: Optional[str], base_env=None) -> dict:
+def child_env(home: Path, proxy_url: Optional[str], base_env=None, gateway_host: str = "127.0.0.1") -> dict:
     """The engine child's environment: the server's, with every secret-shaped variable removed (Hermes holds no key), its own
-    HERMES_HOME and HOME inside it (never the user's ~/.hermes), and every proxy variable at Lampway's proxy. Loopback stays
-    direct so the gateway and the MCP endpoint are reachable."""
+    HERMES_HOME and HOME inside it (never the user's ~/.hermes), and the proxy variables from ``proxy.proxy_vars`` (the one source):
+    every proxy variable at Lampway's proxy, ``NO_PROXY`` the gateway's loopback host only, so the gateway and the MCP endpoint
+    are reached directly. ``HERMES_MANAGED_DIR`` is an empty directory in the home, created here: without it a system
+    ``/etc/hermes`` managed scope would override the config Lampway writes (hermes_cli/managed_scope.py at the pin)."""
+    from .proxy import proxy_vars
     env = {k: v for k, v in (os.environ if base_env is None else base_env).items()
            if not any(t in k.upper() for t in SCRUB) and not k.upper().startswith(("HERMES_", "OPENAI_", "ANTHROPIC_", "OPENROUTER_"))
            and k.upper() not in ("HTTPS_PROXY", "HTTP_PROXY", "ALL_PROXY", "NO_PROXY")}
-    env.update(HERMES_HOME=str(home), HOME=str(home / "home"), NO_COLOR="1", PYTHONUNBUFFERED="1")
-    if proxy_url:
-        for k in ("HTTPS_PROXY", "HTTP_PROXY", "ALL_PROXY", "https_proxy", "http_proxy", "all_proxy"):
-            env[k] = proxy_url
-    env["NO_PROXY"] = env["no_proxy"] = "127.0.0.1,localhost,::1"
+    managed = Path(home) / "managed"
+    managed.mkdir(parents=True, exist_ok=True, mode=0o700)
+    env.update(HERMES_HOME=str(home), HOME=str(home / "home"), HERMES_MANAGED_DIR=str(managed), NO_COLOR="1", PYTHONUNBUFFERED="1")
+    env.update(proxy_vars(proxy_url, gateway_host))
     return env
 
 
@@ -185,7 +187,8 @@ class EngineRuntime:
     """One engine child per scene session, driven over ACP; the AgentHub calls ``drive`` instead of its own model loop."""
 
     def __init__(self, hub, *, engine: dict, state_dir, gateway_url: str, model_token_for, model_id: str = "lampway",
-                 mcp_url_for, proxy_url: Optional[str] = None, project_root: Optional[str] = None, config_writer=None):
+                 mcp_url_for, proxy_url: Optional[str] = None, project_root: Optional[str] = None, config_writer=None,
+                 on_child_stop=None):
         self.hub = hub
         self.engine = engine
         self.state_dir = Path(state_dir)
@@ -196,6 +199,7 @@ class EngineRuntime:
         self.proxy_url = proxy_url
         self.project_root = project_root or os.environ.get("LAMPWAY_PROJECT_ROOT") or os.getcwd()
         self.config_writer = config_writer                # (home, gateway_url, token, model_id) -> None; E1.3
+        self.on_child_stop = on_child_stop                # (EngineSession) -> None, after a child stops (the gateway token is revoked)
         self.sessions: dict[str, EngineSession] = {}
 
     # ------------------------------------------------------------------ children (E1.2)
@@ -262,6 +266,11 @@ class EngineRuntime:
                 except asyncio.TimeoutError:
                     es.proc.kill()
             es.proc, es.conn = None, None
+            if self.on_child_stop is not None:
+                try:
+                    self.on_child_stop(es)
+                except Exception:  # noqa: BLE001 - a listener never keeps a child alive
+                    log.debug("engine child-stop listener failed", exc_info=True)
 
     def kill_all(self) -> None:
         """Server shutdown from any thread or loop: every engine child gets SIGTERM by its recorded PID (never a pattern kill)."""

@@ -1371,7 +1371,9 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     from .engine import gateway as ENG                                          # spec E1.4: the engine's one model endpoint, on loopback
     engine_tokens = ENG.Registry()
     ENG.set_active(engine_tokens)
-    routes += ENG.gateway_routes(engine_tokens, lambda: agent.provider)
+    from .engine import wiring as ENGW                                          # spec E1: Hermes in Mode 1's seat when chosen and built
+    engine_wiring = ENGW.wire(settings, agent, engine_tokens)
+    routes += ENG.gateway_routes(engine_tokens, ENGW.provider_getter(agent))
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager
@@ -1388,6 +1390,11 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
 
         render_stop = threading.Event()
         render_thread = renderer.start(render_stop) if renderer is not None else None     # one worker thread: due previews, then thumbnails nobody asked for yet
+        if engine_wiring is not None:
+            try:
+                await engine_wiring.start()                        # the egress proxy on loopback, then the runtime in the seat
+            except Exception:  # noqa: BLE001 - the built-in loop keeps the seat
+                logging.getLogger("lampway.engine").warning("the engine could not start; the built-in loop runs", exc_info=True)
 
         async def tick():
             while True:
@@ -1396,6 +1403,11 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
                     await jobs.recover()
                 except Exception:  # noqa: BLE001
                     pass
+                if engine_wiring is not None:
+                    try:
+                        await engine_wiring.tick()                 # idle engine children are reaped (E1.2)
+                    except Exception:  # noqa: BLE001
+                        logging.getLogger("lampway.engine").warning("the engine reap failed", exc_info=True)
                 try:
                     await asyncio.to_thread(conn_hub.poll)          # C2: reads only, routes on, used in the last day, every 30 min
                 except Exception:  # noqa: BLE001
@@ -1405,6 +1417,8 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
             yield
         finally:
             task.cancel()
+            if engine_wiring is not None:
+                await engine_wiring.stop()                         # every engine child, then the proxy
             render_stop.set()
             if render_thread is not None:
                 render_thread.join(10)                                # a preview in flight finishes before its library closes
@@ -1419,6 +1433,7 @@ in the Client. Tokens stay in this machine's state directory.</p></body></html>"
     app.state.store = store
     app.state.provider = provider
     app.state.engine_tokens = engine_tokens
+    app.state.engine_wiring = engine_wiring
     app.state.chatgpt = chatgpt
     app.state.video = video_system
     app.state.jobs = jobs

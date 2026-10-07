@@ -314,12 +314,24 @@ async def stop() -> None:
         await proxy.stop()
 
 
-def child_env(proxy_port: int, gateway_host: str = "127.0.0.1", proxy_host: str = "127.0.0.1") -> dict:
-    """The proxy variables for the engine child: every library that honours one is pointed at the proxy, and ``NO_PROXY`` names only the
-    gateway's loopback host (measured with the pinned Hermes: with NO_PROXY=127.0.0.1,localhost it reached the model directly)."""
-    url = f"http://{proxy_host}:{int(proxy_port)}"
+PROXY_VARS = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY")
+
+
+def proxy_vars(proxy_url: Optional[str], gateway_host: str = "127.0.0.1") -> dict:
+    """The engine child's proxy variables, the ONE source of truth (``runtime.child_env`` uses it): every library that honours one is
+    pointed at the proxy, and ``NO_PROXY`` names only the gateway's loopback host, so the gateway and the session's MCP endpoint (both
+    on Lampway's own server) are reached directly (measured with the pinned Hermes: with NO_PROXY=127.0.0.1,localhost it reached the
+    model directly). Without a proxy URL only ``NO_PROXY`` is set."""
+    if not _is_loopback_host(str(gateway_host).lower().strip("[]")):
+        raise ValueError("NO_PROXY names the gateway's loopback host only")
     env = {}
-    for name in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"):
-        env[name] = env[name.lower()] = url
-    env["NO_PROXY"] = env["no_proxy"] = gateway_host
+    if proxy_url:
+        for name in PROXY_VARS[:3]:
+            env[name] = env[name.lower()] = str(proxy_url)
+    env["NO_PROXY"] = env["no_proxy"] = str(gateway_host)
     return env
+
+
+def child_env(proxy_port: int, gateway_host: str = "127.0.0.1", proxy_host: str = "127.0.0.1") -> dict:
+    """``proxy_vars`` for a proxy on ``proxy_host:proxy_port``."""
+    return proxy_vars(f"http://{proxy_host}:{int(proxy_port)}", gateway_host)

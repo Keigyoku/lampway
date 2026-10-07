@@ -38,6 +38,12 @@ def _project_root_in_tmp(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _built_in_loop_unless_asked(monkeypatch):
+    """A developer's ``LAMPWAY_AGENT_ENGINE=hermes`` never flips the suite's apps to the engine; a test that wants it sets it."""
+    monkeypatch.delenv("LAMPWAY_AGENT_ENGINE", raising=False)
+
+
+@pytest.fixture(autouse=True)
 def _egress_permissive(tmp_path):
     """The egress hook is installed for the whole test run with a PERMISSIVE manager (every route on, unmapped hosts allowed, log in the test's tmp): existing provider tests drive fake transports at
     invented hosts. tests/test_egress.py swaps in a strict manager to test the gate itself."""
