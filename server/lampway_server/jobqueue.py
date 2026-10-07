@@ -233,8 +233,9 @@ class JobQueue:
             basis = f"no price is known for {service}"
         amount = price["amount"] if price else None
         cfg = self.policy._cfg(provider)
-        refused = None
+        refused = spent_today = None
         try:
+            spent_today = round(self.policy.spent_today(provider), 6)
             self.policy.check(provider, amount)
         except Exception as exc:  # noqa: BLE001 - SpendRefused: said in the tab, never sent
             refused = str(exc)
@@ -242,8 +243,8 @@ class JobQueue:
         last_short = self.prompts.runlog.last_line(service, short=True) if self.prompts is not None else None
         return {"service": service, "model": model, "provider": provider, "route": provider, "price": price, "basis": basis, "last_run": last_run,
                 "last_run_short": last_short,
-                "policy": {"click": cfg.get("click", "always"), "above": cfg.get("above"), "job_cap": cfg.get("job_cap"), "session_cap": cfg.get("session_cap"),
-                           "spent": round(float(self.policy.spent.get(provider, 0.0)), 6)},
+                "policy": {"click": cfg.get("click", "always"), "above": cfg.get("above"), "job_cap": cfg.get("job_cap"), "day_cap": cfg.get("day_cap"),
+                           "session_cap": cfg.get("day_cap"), "spent": spent_today},          # session_cap: day_cap again, for a client not yet on the day keys
                 "needs_click": self.policy.needs_click(provider, amount), "refused": refused}
 
     _RECEIPT_STATUS = {"planned": "PENDING", "submission_pending": "POLLING", "submitted": "POLLING", "running": "POLLING", "submission_unknown": "PENDING", "completed": "POLLING",
