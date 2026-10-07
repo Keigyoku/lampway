@@ -255,6 +255,59 @@ def test_a_tool_called_in_a_pane_typed_turn_reaches_the_scene_through_the_tabs_c
     assert final_text(events) == "One cube."
 
 
+def test_a_tool_call_that_overtakes_its_pane_turn_waits_for_it_and_runs_under_its_turn_id(stack):
+    """The pane turn is still being opened (its text read from a slow history) when Hermes's tool call reaches the endpoint: the call
+    waits for the turn the island shows, so its script names that turn (the client refuses any other pane id as unknown_turn)."""
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Hi.")])
+        cid, _ = await chat(island, "Hello", "scene-1")
+        await island.ended(cid)
+        serve.history_delay = 1.0
+        await serve.pane_prompt(serve.only(), "what is in the scene?", [("mcp", "scene_summary", {}), ("say", "One cube.")])
+        started = await island.wait(lambda f: f.get("method") == "agent.turn.started" and f["params"].get("origin") == "pane")
+        await island.ended(started["params"]["turn_id"])
+        return started["params"], island.scripts, serve.mcp_results, island.events(started["params"]["turn_id"])
+
+    started, scripts, results, events = run(stack, scenario)
+    assert results and results[-1]["isError"] is False
+    assert scripts and scripts[-1]["agent_ctx"]["turn_id"] == started["turn_id"], (scripts[-1]["agent_ctx"], started)
+    assert final_text(events) == "One cube."
+
+
+def test_a_question_left_open_when_serve_restarted_is_closed_by_the_next_pane_turn_and_the_next_chat_is_a_prompt(stack):
+    """The island asked (clarify), then serve restarted: its request died with it. A turn the user then types in the pane is a new
+    run; the old card is closed in it, the question is released, and the tab's next chat is a new prompt, not an answer."""
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("clarify", "Round or square table?", ["Round", "Square"]), ("say", "Round it is.")])
+        cid, _ = await chat(island, "Make a table", "scene-1")
+        await island.ended(cid)
+        q = next(e for e in island.events(cid) if e.get("interrupt_id"))
+        await serve.restart()
+        for _ in range(200):
+            link = front.links["scene-1"]
+            if link.client is not None and not link.client.closed.is_set() and link.epoch == serve.epoch:
+                break
+            await asyncio.sleep(0.05)
+        await serve.pane_prompt(serve.only(), "make a chair instead", [("say", "A chair.")])
+        started = await island.wait(lambda f: f.get("method") == "agent.turn.started" and f["params"].get("origin") == "pane")
+        tid = started["params"]["turn_id"]
+        await island.ended(tid)
+        pending = stack.app.state.agent.sessions["scene-1"].pending_question
+        serve.scripts.append([("say", "Fresh.")])
+        cid3, _ = await chat(island, "Now a lamp", "scene-1")
+        await island.ended(cid3)
+        return q, island.events(cid)[0]["run_id"], started["params"], island.events(tid), pending, [m for m, _ in serve.calls], \
+            island.events(cid3)
+
+    q, asked_run, started, events, pending, methods, last = run(stack, scenario)
+    assert started["run_id"] != asked_run and started["user_text"] == "make a chair instead"
+    close = [e for e in events if e.get("bubble_id") == q["bubble_id"]]
+    assert close and close[-1]["input_type"] == "" and close[-1]["actions"] == [], events
+    assert "Round or square table?" in close[-1]["content"]["set"]
+    assert pending is None, "the dead question was released"
+    assert methods[-1] == "prompt.submit" and final_text(last) == "Fresh.", "the next chat was a prompt"
+
+
 def test_with_no_lampway_window_a_tool_call_is_refused_saying_lampway_is_not_open(stack):
     async def scenario(serve, units, island, front):
         serve.scripts.append([("say", "Hi.")])

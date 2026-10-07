@@ -217,8 +217,12 @@ Further mapping rules:
   History under a new id with its media and its checkpoint timeline, the island emptied for the same session id, and one line
   says the pane started a new conversation.
 - `[UNVERIFIED]` in a running app: the first-hand look of a pane turn in the island, Stop and an island steer during one, an undo
-  after one, `/new` with images in the old chat, and a reopened filed chat. The server lane's own note: `call_tool` gives a scratch
-  turn id to a call made while the pane turn is still being opened (`Sink.pending`); the client refuses that call (unknown turn).
+  after one, `/new` with images in the old chat, and a reopened filed chat.
+- **Built 2026-10-07 (server, loose ends):** a tool call that overtakes its pane turn (the turn still being opened, `Sink.pending`,
+  or serve's `message.start` not yet read) waits for the island turn that shows it, up to 20 s (`front.TURN_WAIT_S`), so its
+  script names the turn the client shows; before, it ran under a scratch id the client refused (`unknown_turn`). A question
+  nobody can answer any more (Hermes started another turn, or serve restarted and its request died with it) is released, so the
+  tab's next chat is a prompt, and its card is closed in the next turn the island shows ("Not answered").
 
 ### A3. Tools reach the scene, whoever started the turn
 

@@ -54,6 +54,8 @@ APPROVAL_LABELS = {"once": "Allow once", "session": "Allow for this session", "a
 RECONNECT_S = (0.5, 1, 2, 5, 10, 30)
 KNOWN_CONNECT_S = 15.0            # a recorded pane's serve answers at once; one that does not may have ended with its pane
 ANSWERED_ELSEWHERE = "(Answered in Lampway Agent's pane.)"
+NOT_ANSWERED = "(Not answered: Lampway Agent went on to a new turn.)"
+TURN_WAIT_S = 20.0                # how long a tool call waits for the island turn that shows it (``_shown_turn``)
 
 
 @dataclass
@@ -102,6 +104,7 @@ class Link:
     watcher: Optional[asyncio.Task] = None
     closing: bool = False
     carried: list = field(default_factory=list)   # steps still running when the turn stopped for a question
+    stale: Optional["Question"] = None            # a question nobody can answer now, its card still open in the island
 
 
 def tool_name(payload: dict) -> str:
@@ -199,6 +202,8 @@ class HermesFront:
                 return "completed"
         else:
             link.sink = sink
+            if link.stale is not None:
+                await self._close_stale(link, sink)
             try:
                 for name, data in TC.attachments(context):
                     await link.client.call("image.attach_bytes", {"session_id": link.live_id, "content_base64": data, "filename": name})
@@ -314,7 +319,7 @@ class HermesFront:
             return ("refused: Lampway is not open on this scene (no Lampway window is connected to this conversation), so its "
                     "tools cannot reach the scene. Ask the user to open the .blend in Lampway, then try again."), True
         link = self.links.get(unit)
-        sink = link.sink if link is not None and link.sink is not None and not link.sink.pending else None
+        sink = await self._shown_turn(link)
         session = sink.session if sink is not None else self.hub._session(unit)
         turn = sink.turn if sink is not None else Turn(unit, f"pane_{uuid.uuid4().hex[:12]}", "")
         call = ToolCall(id=f"eng_{uuid.uuid4().hex[:12]}", name=name, arguments=arguments if isinstance(arguments, dict) else {})
@@ -323,6 +328,27 @@ class HermesFront:
         content, is_error = await self.hub._run_tool(socket, session, turn, call, *((sink.stream, sink.bubble_id, sink.steps)
                                                                                     if sink is not None else (None, None, None)))
         return clip_result(content), is_error
+
+    async def _shown_turn(self, link: Optional[Link]) -> Optional[Sink]:
+        """The island turn that shows the Hermes turn making this call. A call can overtake its turn: the pane turn is still being
+        opened (its user text read from the history, its start sent to the client) or the island's answer has not been admitted
+        yet (``Sink.pending``), or serve's ``message.start`` is still on its way. The call waits for that turn, up to
+        ``TURN_WAIT_S``, so it runs under the turn id the client shows (a scratch id is refused there as ``unknown_turn``). Only a
+        call no turn ever owns gets a scratch turn."""
+        if link is None:
+            return None
+        deadline = asyncio.get_running_loop().time() + TURN_WAIT_S
+        while True:
+            sink = link.sink
+            if sink is not None and not sink.pending:
+                return sink
+            if sink is None and link.absorb > 0:
+                return None                                  # the user stopped the island's turn: no turn will show this call
+            if asyncio.get_running_loop().time() >= deadline:
+                log.warning("a tool call from Lampway Agent's pane for %s found no turn shown in the island within %.0fs", link.unit,
+                            TURN_WAIT_S)
+                return None
+            await asyncio.sleep(0.05)
 
     # ------------------------------------------------------------------------------------------------- the connection
     async def _ensure(self, unit: str, open_pane: bool = False, label=None) -> Link:
@@ -357,6 +383,8 @@ class HermesFront:
         client = await connect_when_up(info, on_event=on_event, on_request=on_request, timeout=timeout or START_TIMEOUT_S)
         same_epoch = bool(link.epoch) and link.epoch == client.epoch
         link.client, link.epoch = client, client.epoch
+        if not same_epoch:
+            self._stale_question(link)                      # serve restarted: its waiting request died with it
         res = await client.call("session.resume", {"session_id": info.stored_id})
         link.live_id = str(res.get("session_id") or "")
         running = bool(res.get("running"))
@@ -504,6 +532,7 @@ class HermesFront:
         payload = params.get("payload") or {}
         if kind == "message.start":
             link.running = True
+            self._stale_question(link)                      # a new Hermes turn: a question still open belongs to an earlier one
             if link.island_prompts > 0:
                 link.island_prompts -= 1
             elif link.sink is None:
@@ -648,6 +677,27 @@ class HermesFront:
         if session is not None and (session.pending_question or {}).get("interrupt_id") == q.interrupt_id:
             session.pending_question = None
 
+    def _stale_question(self, link: Link) -> None:
+        """The island's question can no longer be answered: Hermes started another turn, or serve restarted and its request died
+        with it. It is released (the tab's next chat is a prompt, never an answer to a request nobody waits on), and its card is
+        closed in the turn that shows Hermes now, else in the next one the island shows (``_close_stale``)."""
+        q, link.question = link.question, None
+        if q is None or q.answered:
+            return
+        self._release_question(link, q)
+        if not q.bubble_id:
+            return                                          # never shown: nothing to close
+        link.stale = q
+        sink = link.sink
+        if sink is not None and not sink.pending:
+            asyncio.ensure_future(self._close_stale(link, sink))
+
+    async def _close_stale(self, link: Link, sink: Sink) -> None:
+        q, link.stale = link.stale, None
+        if q is not None:
+            await sink.stream.emit_quietly({"bubble_id": q.bubble_id, "input_type": "", "actions": [],
+                                            "content": {"set": f"{q.body}\n\n{NOT_ANSWERED}"}})
+
     # ------------------------------------------------------------------------------------------------- the pane's own turns
     def _open_pane_turn(self, link: Link, user_text: Optional[str] = None, run_id: str = "", close: Optional[Question] = None) -> None:
         """An island turn for a Hermes turn the island did not start: typed in the pane (its user text from the history), or the
@@ -692,6 +742,8 @@ class HermesFront:
             if close is not None:
                 await stream.emit_quietly({"bubble_id": close.bubble_id, "input_type": "", "actions": [],
                                            "content": {"set": f"{close.body}\n\n{ANSWERED_ELSEWHERE}"}})
+            if link.stale is not None:
+                await self._close_stale(link, sink)
             await stream.emit_quietly({"bubble_id": bubble_id, "loader": {"visible": True, "texts": ["Thinking..."], "rotate_ms": 2000}})
             if link.sink is held:
                 self._bind(link, sink)

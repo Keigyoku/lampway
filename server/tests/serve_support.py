@@ -76,6 +76,7 @@ class FakeServe:
         self.mcp = None                          # (url, bearer) of Lampway's endpoint for this unit
         self.mcp_results: list = []
         self.mcp_post = None                     # (url, body, headers) -> reply, when Lampway runs under a TestClient (ServeThread)
+        self.history_delay = 0.0                 # seconds session.history takes (a slow read, so a call can overtake its turn)
         self._srq: dict = {}
         self.port = None
         self.server = None
@@ -314,6 +315,8 @@ class FakeServe:
             return {"status": "interrupted"}
         if method == "session.history":
             s = self._live(params)
+            if self.history_delay:
+                await asyncio.sleep(self.history_delay)
             return {"count": len(s.history), "messages": list(s.history)}
         if method == "session.events.since":
             s = self._live(params)
