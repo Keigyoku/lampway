@@ -29,14 +29,13 @@ from ..brand import AGENT_COLLECTION
 from . import lampway_tools as lt
 from . import vault_tools
 from .harness import Harness, HarnessError, export_script, import_script, reset_script, stage_script
+from .swarm_brains import MAX_WORKER_ROUNDS, MODEL_ROUND_TIMEOUT_S, BuiltinBrain, WorkerJob  # noqa: F401  (re-exported for tests)
 from .providers.base import Message, ModelRequest, Text, ToolCall, ToolSpec
 from .tools import RUN_BLENDER_PYTHON, SCENE_SUMMARY, TOOLS, UnknownTool, format_tool_result, script_for
 
 log = logging.getLogger("lampway.swarm")
 
 MAX_WORKERS = 6
-MAX_WORKER_ROUNDS = 24
-MODEL_ROUND_TIMEOUT_S = 300.0      # one model call (a headless CLI process can wedge); the worker fails, the others go on
 _RESULT_CLIP = 6000
 _CALL_LOG_MAX = 40
 _CALL_LOG_CHARS = 600
@@ -172,6 +171,9 @@ class SwarmManager:
     def __init__(self, provider_factory: Callable[[str], object], run_script: RunScript, *, max_workers: int = MAX_WORKERS,
                  script_timeout_s: float = 600.0):
         self.provider_factory = provider_factory
+        # spec S4: what thinks in this swarm's workers; ctx -> a WorkerBrain. The hub sets it from the tab's mode.
+        self.brain_for: Callable[[SwarmContext], object] = lambda ctx: BuiltinBrain(self.provider_factory,
+                                                                                     round_timeout_s=MODEL_ROUND_TIMEOUT_S)
         self.run_script = run_script
         self.max_workers = max_workers
         self.script_timeout_s = script_timeout_s
@@ -362,12 +364,20 @@ class SwarmManager:
 
     # ------------------------------------------------------------ one worker
     async def _run_worker(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
+        """The substrate (spec S1): spawn, bind, reset and seed this worker's own Lampway, let the swarm's brain think, then stage.
+        The brain's only door to a scene is the job's ``call_tool``, which runs on this worker's Lampway."""
         harness, run = swarm.harness, swarm.run
-        provider = self.provider_factory(worker.id)
-        worker.choice = getattr(provider, "choice", None)
-        system = worker_system_prompt(worker)
-        tools = worker_tools()
-        messages = [Message.user_text(worker.prompt)]
+        brain = self.brain_for(ctx)
+
+        async def call_tool(name: str, arguments: dict) -> tuple:
+            content, is_error = await self._worker_tool(swarm, worker, ctx, ToolCall(id=f"{worker.id}-{uuid.uuid4().hex[:8]}",
+                                                                                     name=name, arguments=arguments or {}))
+            worker.tool_calls += 1
+            ctx.progress(f"{worker.id} ({worker.name}): {worker.tool_calls} tool calls, {len(worker.created)} objects")
+            return content, is_error
+
+        job = WorkerJob(worker, worker_system_prompt(worker), worker_tools(), call_tool, ctx.progress,
+                        {"swarm_id": swarm.id, "session_id": ctx.session_id, "turn_id": ctx.turn_id})
         try:
             worker.connection_id = await harness.spawn_worker()
             worker.handle = await harness.bind_task(run, self._task_id(swarm, worker), worker.connection_id)
@@ -379,34 +389,25 @@ class SwarmManager:
                 raise RuntimeError(f"{worker.id} could not clear its scene: {_clip_json(reset)}")
             if worker.objects:
                 await self._seed(swarm, worker, ctx)
-            for _round in range(MAX_WORKER_ROUNDS):
-                text, calls = await self._model_round(provider, ModelRequest(system, list(messages), tools))
-                messages.append(Message("assistant", ([{"type": "text", "text": text}] if text else []) + [
-                    {"type": "tool_call", "id": c.id, "name": c.name, "arguments": c.arguments} for c in calls]))
-                if not calls:
-                    if not text.strip() and worker.tool_calls == 0:      # nothing said, nothing done: not a finished task
-                        raise RuntimeError("the model returned an empty response")
-                    worker.summary = text.strip() or "(no summary)"
-                    await self._stage(swarm, worker, ctx)
-                    worker.status = "staged"
-                    ctx.progress(f"{worker.id} ({worker.name}) finished")
-                    return
-                results = []
-                for call in calls:
-                    content, is_error = await self._worker_tool(swarm, worker, ctx, call)
-                    worker.tool_calls += 1
-                    results.append({"type": "tool_result", "tool_call_id": call.id, "content": content, "is_error": is_error})
-                messages.append(Message("user", results))
-                ctx.progress(f"{worker.id} ({worker.name}): {worker.tool_calls} tool calls, {len(worker.created)} objects")
-            raise RuntimeError("stopped after too many tool calls")
+            worker.summary = await brain.run(job) or "(no summary)"
+            await self._stage(swarm, worker, ctx)
+            worker.status = "staged"
+            ctx.progress(f"{worker.id} ({worker.name}) finished")
         except asyncio.CancelledError:
             worker.status = "cancelled"
-            await self._todo(swarm)
+            try:
+                await brain.stop(job)
+            finally:
+                await self._todo(swarm)
             raise
         except Exception as exc:  # noqa: BLE001 - one worker's failure must not end the others
             worker.status = "failed"
             worker.error = (f"{exc.error_type}: {exc}" if isinstance(exc, HarnessError) and exc.error_type else str(exc))[:500]
             log.warning("%s failed: %s", worker.id, worker.error)
+            try:
+                await brain.stop(job)
+            except Exception:  # noqa: BLE001
+                log.debug("%s: the brain did not stop cleanly", worker.id, exc_info=True)
         finally:
             if worker.status in ("failed", "cancelled"):
                 if worker.handle is not None:
@@ -417,18 +418,7 @@ class SwarmManager:
 
     @staticmethod
     async def _model_round(provider, request) -> tuple[str, list]:
-        async def one():
-            text_parts, calls = [], []
-            async for event in provider.stream(request):
-                if isinstance(event, Text):
-                    text_parts.append(event.text)
-                elif isinstance(event, ToolCall):
-                    calls.append(event)
-            return "".join(text_parts), calls
-        try:
-            return await asyncio.wait_for(one(), MODEL_ROUND_TIMEOUT_S)
-        except asyncio.TimeoutError:
-            raise RuntimeError(f"the model did not answer within {MODEL_ROUND_TIMEOUT_S:.0f}s") from None
+        return await BuiltinBrain.model_round(provider, request, MODEL_ROUND_TIMEOUT_S)
 
     async def _seed(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
         """Copy the worker's input objects from the user's scene into its own: the parent stages them, the worker loads them."""

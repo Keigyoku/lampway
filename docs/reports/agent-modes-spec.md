@@ -771,6 +771,121 @@ These come before any BYOA UI work.
 
 ---
 
+# The swarm on the Mode system (S)
+
+**Direction (captain, 2026-10-07).** "Make the spec and contract to put the Swarm V3 on the same Mode system. Mode 1 or Mode 2", and
+build it in the same work.
+
+**Purpose.** A swarm runs in the mode of the scene tab that starts it (M0). Its workers think the way that mode thinks: Lampway's
+engine in Mode 1, the user's own harness in Mode 2. The parts that make a swarm safe stay one implementation for both.
+
+## S0. Where the swarm is today
+
+- `agent/swarm.py` (`SwarmManager`, `SWARM_SPECS`): `swarm_start`, `swarm_status`, `swarm_cancel`, `swarm_collect`, at most 6
+  workers.
+- Each worker is a headless Lampway process spawned through the parent's sandbox supervisor and bound to one task with a v3
+  envelope (`agent/harness.py`: `spawn_worker`, `bind_task`, `run_script` on the worker's constant routing session, `revoke`,
+  `shutdown_worker`).
+- The worker's scene is reset; its input objects are copied in through a staged artifact. Its result is staged, then committed
+  into the user's scene with the typed `append_collection` under the client's epoch, fence and document checks. A refused commit
+  fails that task only.
+- The model loop inside each worker is Lampway's built-in loop (`_run_worker`), on `make_swarm_provider` (Choices `agent.worker`).
+- The swarm tools are offered to the in-app agent only, gated by capability `swarm` (E2, off by default). They are not offered to
+  external MCP apps (server invariant 4).
+
+## S1. One substrate, three brains
+
+**Contract.** `SwarmManager` keeps the substrate and asks a **worker brain** to think:
+
+```python
+class WorkerBrain(Protocol):
+    kind: str                                             # "builtin" | "engine" | "pane"
+    async def run(self, job: WorkerJob) -> str            # returns the worker's summary; raises to fail the task
+    async def stop(self, job: WorkerJob) -> None          # cancel: the swarm also revokes and shuts the worker down
+
+@dataclass
+class WorkerJob:
+    worker: Worker            # id, name, prompt, objects, status, created, calls
+    system: str               # worker_system_prompt(worker)
+    tools: list               # worker_tools(): Blender and Lampway tools, never the swarm, the studios, ask_user or panes
+    call_tool: Callable       # (name, arguments) -> (text, is_error): runs on THIS worker's headless Lampway (harness.run_script)
+    progress: Callable        # one line to the parent's turn
+```
+
+- **Substrate (both modes):** spawn, bind, reset, seed, stage, collect, commit, revoke, shutdown, the `todo` rows and the
+  Parallel Agents cards. These do not change.
+- **`builtin` brain:** today's loop. It stays until the E1.8 suite removes the built-in engine.
+- **`call_tool` is the only door to a worker's scene.** Every brain's tool calls go through it, so a worker can never reach the
+  user's scene or another worker's scene.
+
+## S2. Mode 1: engine workers
+
+**Contract.**
+- Each worker is one engine session (E1.2) with `HERMES_HOME=<state>/agent/hermes/<session_id>/workers/<worker_id>`. That keeps
+  each worker's conversation in Hermes, beside its parent's (R6 under the captain's durability ruling).
+- **Model:** the gateway (E1.4), answered by the `agent.worker` choice (Choices), not by the main agent's provider. The gateway
+  token says which.
+- **Tools:** the worker's own MCP endpoint, `/engine/mcp/<session_id>:<worker_id>`. It lists only `worker_tools()`, as
+  `Capabilities` allow, and every call runs through `WorkerJob.call_tool`.
+- **Abilities:** the worker's config is the parent's capability choices minus everything that would let a worker act outside its
+  task: `subagents`, `swarm`, `schedule`, `messaging.*`, `panes.drive`, `computer.use`. A worker never asks the user a question
+  (`ask_user` is not offered); it reports what it could not do in its summary.
+- **Instructions:** `worker_system_prompt(worker)` goes in as the first prompt's preamble. ACP has no system-prompt field.
+- **Summary:** the worker's last agent message is its summary. A cancelled or failed prompt fails the task (the substrate's rules).
+- **Limits:** the same `MAX_WORKERS` (6). A worker's prompt is bounded by the swarm's own timeout; Hermes's own turn limits apply
+  inside it.
+
+## S3. Mode 2: pane workers
+
+**Contract.**
+- **Where:** each worker is a pane on Lampway's herdr server running the same harness as the parent pane, by default (**Q10**),
+  through its adapter (B1). It is started under that harness's `byoa:<harness>` route (B5) and the user's own login.
+- **Its scene:** the pane is bound (B2) to its worker's headless Lampway, not to a scene tab. Its per-pane MCP config carries
+  `LAMPWAY_BOUND_SESSION=swarm:<swarm_id>:<worker_id>`. The server resolves that binding to the worker's harness handle, so the
+  pane's Lampway tools run on the worker's scene through `WorkerJob.call_tool`.
+- **Its task:** the adapter's `launch(task=...)` with `worker_system_prompt` plus the task prompt.
+- **Done:** the pane's harness calls the worker-only MCP tool `lampway_worker_done(summary)`. That stages the result and finishes
+  the brain. A pane that exits without it fails the task.
+- **Swarm tools for a BYOA parent:** `swarm_start`, `swarm_status`, `swarm_cancel` and `swarm_collect` are offered over MCP only to
+  a **bound BYOA pane** whose tab is in Mode 2 (M0), with capability `swarm` on. External MCP apps that are not Lampway panes still
+  never get them (invariant 4). No swarm tool spends.
+- **Visibility:** worker panes show in the cockpit like any pane. Closing a worker pane cancels its task; it never kills a pane the
+  swarm did not start (law 5).
+- **Egress:** the panes talk to their vendor under the user's account (B5). Lampway gates the start and logs it.
+
+## S4. Choosing the brain
+
+- The tab's mode decides: `runtime` (Mode 1) uses `engine` when the engine runs, else `builtin`; `byoa` (Mode 2) uses `pane`.
+- Until M0's tab property exists, the server decides from the caller: a swarm started by the in-app agent uses `engine` or
+  `builtin`; one started by a bound BYOA pane over MCP uses `pane`.
+- A swarm never mixes brains.
+
+## S5. Tests (RED first)
+
+- The substrate is unchanged: the existing `test_swarm_v3.py` passes on the `builtin` brain.
+- A brain's tool call reaches only its worker's headless Lampway (the harness envelope names that worker), never the parent's scene.
+- **Mode 1:**
+  - with the real pinned engine and a scripted loopback model (as in E1.8), a two-worker swarm runs each worker in its own engine
+    session;
+  - each worker's tool call lands on its own worker connection;
+  - both results are committed by `swarm_collect`;
+  - the gateway answered the workers on the `agent.worker` choice.
+- **Mode 2:**
+  - with fake harness binaries (no vendor binary in tests), `swarm_start` from a bound pane opens one pane per task under the
+    harness's route;
+  - each pane's MCP config is bound to its worker;
+  - `lampway_worker_done` stages and finishes the task;
+  - a pane that exits without it fails the task;
+  - an external MCP app is still refused the swarm tools.
+- `ask_user`, `swarm_*` and `lampway_workbench` are absent from every worker's tool list in both modes.
+
+## S6. What stays out
+
+- A Mode 1 worker never uses Hermes's own `delegate_task`; Lampway's swarm is the one parallel mechanism (E1.6).
+- A Mode 2 worker's own subagents are the harness's business; Lampway sees only its MCP calls.
+
+---
+
 ## 4. Questions and decisions
 
 1. **Q1 `chatgpt_plan` — decided 2026-10-06: both.** Sign in with ChatGPT in Mode 1 (R0a), and Codex CLI as a BYOA harness (B1).
@@ -796,6 +911,9 @@ These come before any BYOA UI work.
    different products (E1.10):
    - **Lampway's pinned Hermes:** thinks only through Lampway's providers.
    - **A user's own Hermes:** runs under BYOA with whatever the user configured in it.
+
+10. **Q10 Mode 2 worker harness (proposed default).** A BYOA swarm's workers run the same harness as the parent pane. The other
+    choice is to let the parent name a harness per task. Built with the default; open for the captain.
 
 ## 5. Build order
 
