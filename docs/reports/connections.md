@@ -153,6 +153,9 @@ One RED of mine was wrong arithmetic in the test (3.6 + 1.0 is under $5), and th
 ## Test totals
 
 - **Rulings round** (after merging `origin/lp/wave5` at `b3e863a`):
+  - Then `origin/lp/wave5` moved to `584f47a` and was merged again (`f1a4578`; it touched `app.py`, the WezTerm add-on and the cards). The edits
+    of this round survived it, and 114 scoped tests (the four new files, spend, onboarding, prefs, terminal add-on, tool schema, cards,
+    workbench, brand pages) passed on the merged tree. Rail, `gen_tools --check` and the gate were run again: clean.
   - **Server suite: 1769 passed, 16 skipped, 1 failed.** The failure was `test_spend_view`, which still asserted the superseded "scope
     session" contract. It was updated, and the 233 tests of the areas this round touched (spend, estimate, onboarding, provider prefs,
     herdr, workbench, egress, choices) then passed, with 2 skipped.
