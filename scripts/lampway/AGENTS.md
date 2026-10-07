@@ -11,7 +11,8 @@ verification-mode: deterministic
 
 Lampway's own operator scripts: `build_linux.sh` (clone to runnable app in the build box), `lampway` (the one command: server plus
 app on a copy of a file), `sync_python.sh` (a Python-only change into an installed build), `prepublish_gate.py` with
-`pii_allow.txt` (what may never be published), `engine_env.py` (the pinned Hermes engine environment, agent-modes spec E1.1). Upstream's build machinery stays in `scripts/unix/` and `scripts/windows/`; these
+`pii_allow.txt` (what may never be published), `engine_env.py` (the pinned Hermes engine environment, agent-modes spec E1.1, and
+the prebuilt Hermes TUI a Mode 1 pane runs, A1). Upstream's build machinery stays in `scripts/unix/` and `scripts/windows/`; these
 wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) and the `lampway-release` skill (the gate).
 
 ## Invariants
@@ -28,6 +29,10 @@ wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) a
    each with its reason on its line. Secrets are printed as their first four characters only.
 5. **The gate proves itself.** `prepublish_gate.py --self-test` plants one offender of each kind and fails if any goes unseen; a
    change to the patterns lands with its plant.
+6. **The engine build is finished or absent.** `engine_env.py` builds in a copy of the pinned source (never in `third_party/`):
+   `uv sync --frozen --extra mcp`, then the TUI (`npm ci --workspace ui-tui` at the copy's root, `npm run build` in its `ui-tui`),
+   and writes `engine.json` (naming `hermes` and `tui`) LAST, so a directory without it is an unfinished build the server ignores.
+   `--plan` lists the npm steps, `--check-deps` names a missing `uv`, `git`, `node` or `npm`; nothing at run time fetches or builds.
 
 ## Test
 
@@ -50,3 +55,4 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the scripts' refusal shape, secret handling and the gate's outside-the-tree patterns were known only from their headers | the five invariants, the test commands, and the scripts bound to their skills as rail triggers | captain ruling, 2026-10-05 |
 | 2026-10-07 | the engine environment script | captain: Hermes Agent's runtime in Mode 1's seat (agent-modes spec Q7, E1.1) | the pinned engine had no build step, and Hermes refuses wheel builds | `engine_env.py` in the scripts list, in the AXI shape, with its test in the test command | captain ruling, 2026-10-06 |
+| 2026-10-07 | the TUI prebuild and the end of ACP (agent-modes spec A1, A5) | captain, 2026-10-07: Mode 1 runs Hermes's own TUI in its pane; coordinator brief for the A1-A3 lane | the engine build had the `acp` extra and an `hermes-acp` entry nothing will use, and no TUI: `hermes --tui` would have run npm at run time | invariant 6: `--extra mcp` only, the TUI prebuilt in the engine's own copy, `engine.json` naming `hermes` and `tui` written last, `--plan` and `--check-deps` naming the npm steps and Node | captain ruling, 2026-10-07 |
