@@ -67,7 +67,7 @@ def test_silent_peer_does_not_block_real_callback(server):
     assert code == "abc123"
     assert elapsed < 5, f"real callback starved behind a silent peer ({elapsed:.1f}s)"
     assert replies and replies[0].startswith(b"HTTP/1.0 200")
-    assert b"Login Successful" in replies[0]
+    assert b"Signed in to Lampway" in replies[0]      # the brand template's success page (was Mixar's "Login Successful")
 
 
 def test_deadline_is_honored_with_only_a_silent_peer(server):
