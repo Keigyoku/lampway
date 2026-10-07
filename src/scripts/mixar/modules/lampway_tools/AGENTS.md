@@ -35,6 +35,11 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
    `egress_client.py`); no tool here opens an outbound connection of its own to a provider.
 8. **Settings resolve environment, then `<lampway home>/settings.json`, then the default** (`settings.py`); the profile lives under
    `LAMPWAY_HOME` and never in the user's stock Blender profile.
+9. **What an agent may do is the user's click, and the Client holds no default of its own.** A capability is switched, its approval or
+   options changed and an agent's proposal accepted only by the user's click (`ui/capabilities.py` through `capabilities_client.py`,
+   every write behind `human_gate`; the first-run walk's step in `onboarding.py` writes only what the user ticked differently from the
+   server's own defaults). Turning on one that runs code or acts outside Lampway shows its plain warning first. The page reads a cache
+   (`capabilities_state`) filled by a worker thread; a draw never reaches the network, and the page never switches a route.
 
 ## Test
 
@@ -58,3 +63,4 @@ page; the canon's open decisions are the captain's.
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the client tools' door, jail, refusal shape and human gate were known only from docstrings | the invariants with their modules, the binary-driven suite and its skip rule | captain ruling, 2026-10-05 |
+| 2026-10-07 | the Capabilities page and the walk's step (E2, client half) | coordinator: "the client (Blender UI) half of Capabilities" after the server's switchboard (e837e5c) | invariant 7 named routes only: nothing said who may switch what an agent can do, so a new page could have given a script, or a Client-side default, that say | invariant 9: the user's click through `ui/capabilities.py` behind `human_gate`, the walk writing only the user's differences from the server's defaults, a draw reading a cache that a worker thread fills | none |
