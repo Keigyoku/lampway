@@ -1,9 +1,12 @@
 """The cockpit's session host: a durable registry of the agent sessions Lampway created in ITS OWN herdr server, and a reconcile that treats the live server as the truth (see the package
 docstring for the invariants). Every herdr call goes through launcher.run; nothing here spawns a process or stops anything implicitly."""
 import contextlib
+import hashlib
+import hmac
 import json
 import os
 import re
+import secrets
 import shlex
 import threading
 import time
@@ -22,6 +25,16 @@ WORKSPACE_LABEL = "lampway"
 USER_TYPING_GRACE_S = 2.5
 _CTRL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]|\x1b\[[0-9;?]*[ -/]*[@-~]")
 _LOCK = threading.Lock()
+#: Spec S3. A bound pane's swarm entry (the swarm tools, on Lampway's own loopback endpoint with the pane's key as its bearer),
+#: and the variables a harness whose entries are on its command line reads the bearer from.
+SWARM_ENTRY = "lampway_swarm"
+PANE_KEY_ENV = "LAMPWAY_PANE_KEY"
+WORKER_TOKEN_ENV = "LAMPWAY_WORKER_TOKEN"
+PANE_KEY_FILE = "pane.key"
+
+
+def _sha(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 class CockpitError(ValueError):
@@ -50,6 +63,9 @@ class Cockpit:
         self.root.mkdir(parents=True, exist_ok=True)
         self.project_root = str(project_root) if project_root else None
         self.path = self.root / "sessions.json"
+        #: Lampway's own loopback MCP endpoint for panes (``/api/v1/mcp/pane``), set by the server (spec S3). None: no swarm entry
+        #: is written for a bound pane and no worker pane can be opened.
+        self.pane_mcp_url = None
 
     # ------------------------------------------------------------------------------------------------- registry
     def _load(self) -> dict:
@@ -98,7 +114,11 @@ class Cockpit:
         return json.loads(L.run(self.root, ["api", "snapshot"]))["result"]["snapshot"]
 
     # ------------------------------------------------------------------------------------------------- sessions
-    def create_session(self, agent, name, cwd, task="", effort=None, bypass=False, resume_id=None, command=None, by="user", project_root=None, api_key=False, scene_session_id=None) -> dict:
+    def create_session(self, agent, name, cwd, task="", effort=None, bypass=False, resume_id=None, command=None, by="user", project_root=None, api_key=False, scene_session_id=None,
+                       prompt=None, swarm_worker=None) -> dict:
+        """``prompt``: the new session's first prompt, on the harness's own command line (spec S3). ``swarm_worker``: (binding, token)
+        for a swarm's worker pane: its only Lampway server is the pane endpoint, reached with that token as its bearer and pinned to
+        ``swarm:<swarm_id>:<worker_id>``; it gets no desktop launcher (whose UI and scene-tab tools reach the user's scene)."""
         if agent not in AGENTS:
             raise CockpitError(f"unknown agent {agent!r}: the agents are {', '.join(AGENTS)}")
         name = str(name or "").strip()
@@ -121,17 +141,38 @@ class Cockpit:
         ad = HN.ADAPTERS.get(agent)
         if scene_session_id and ad is None:
             raise CockpitError("only a harness pane can be bound to a scene tab")
+        if prompt and (ad is None or resume_id):
+            raise CockpitError("only a new harness session takes a first prompt")
+        if prompt:
+            try:
+                ad.launch(HN.PaneSpec(cwd=real), task=prompt)
+            except ValueError as exc:
+                raise CockpitError(str(exc)) from None
+        if swarm_worker is not None:
+            if by != "swarm":
+                raise CockpitError("only a swarm opens a worker pane")
+            if ad is None or not ad.direct_ok:
+                raise CockpitError(f"{agent} cannot run a swarm worker yet: no recorded way to point it at Lampway's own endpoint")
+            if not self.pane_mcp_url:
+                raise CockpitError("the server's pane endpoint is not known here: no worker pane can be opened")
+            if scene_session_id:
+                raise CockpitError("a worker pane is bound to its worker, never to a scene tab")
         with (EG.guard(ad.route, kind="request") if ad else contextlib.nullcontext()):    # B5: logged before herdr is asked; refused with the route off
-            return self._create(agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene_session_id or None)
+            return self._create(agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene_session_id or None, prompt, swarm_worker)
 
-    def _create(self, agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene) -> dict:
+    def _create(self, agent, ad, name, real, pr, task, effort, bypass, resume_id, command, by, api_key, scene, prompt=None, swarm_worker=None) -> dict:
         if api_key and ad is None:
             raise CockpitError("only a harness pane can be billed to an API key")
         rid = uuid.uuid4().hex[:12]
         sid = str(uuid.uuid4()) if ad is not None and ad.picks_session_id and not resume_id else None
-        cfg = str(self.root / "panes" / rid / ad.config_name) if ad is not None and scene else None
+        cfg = str(self.root / "panes" / rid / ad.config_name) if ad is not None and (scene or swarm_worker) else None
+        direct, key = (), None
+        if swarm_worker is not None:                           # S3: the worker's only server; its token never in the registry
+            direct = (HN.DirectServer(HN.SERVER_NAME, self.pane_mcp_url, {HN.SESSION_HEADER: swarm_worker[0]}, WORKER_TOKEN_ENV, swarm_worker[1]),)
+        elif cfg:
+            direct, key = self._swarm_entry(ad, rid)
         spec = HN.PaneSpec(cwd=real, project_root=pr, effort=effort, bypass=bool(bypass), session_id=sid, scene_session_id=scene, mcp_config_path=cfg,
-                           launcher=HN.mcp_launcher() if cfg else ())
+                           launcher=HN.mcp_launcher() if cfg and swarm_worker is None else (), desktop=swarm_worker is None, direct=direct)
         wiring = ad.lampway_tools(spec) if cfg else None
         if wiring is not None:                                 # B2: the pane's own MCP config, pinned to its scene tab, before anything starts
             self._write_pane_files(wiring.files)
@@ -153,7 +194,7 @@ class Cockpit:
             tokens = [os.path.basename(shlex.split(command)[-1])]
         elif ad is not None:
             native_id = native_id or sid
-            argv = ad.resume(resume_id, spec) if resume_id else ad.launch(spec)
+            argv = ad.resume(resume_id, spec) if resume_id else ad.launch(spec, task=prompt)
             if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
                 L.run(self.root, ["agent", "start", name[:40], "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
             else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
@@ -162,7 +203,8 @@ class Cockpit:
         rec = {"id": rid, "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
                "terminal_id": pane.get("terminal_id"), "workspace_id": pane.get("workspace_id"), "tab_id": pane.get("tab_id"), "native_id": native_id, "command": command, "match": tokens,
                "state": "live", "adopted": True, "agent_sends": False, "created_at": time.time(), "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by,
-               "api_key": bool(api_key), "harness": ad.id if ad is not None else None, "scene_session_id": scene, "project_root": pr, "mcp_config_path": cfg}
+               "api_key": bool(api_key), "harness": ad.id if ad is not None else None, "scene_session_id": scene, "project_root": pr, "mcp_config_path": cfg,
+               "swarm_binding": swarm_worker[0] if swarm_worker is not None else None, "pane_key_sha256": _sha(key) if key else None}
         self._update(lambda d: d["sessions"].append(rec))
         return rec
 
@@ -175,17 +217,81 @@ class Cockpit:
         ad = HN.ADAPTERS.get(rec.get("agent"))
         if ad is None:
             raise CockpitError("only a harness pane can be bound to a scene tab: a shell or a command has no Lampway tools")
+        if rec.get("swarm_binding"):
+            raise CockpitError("a swarm worker's pane is bound to its worker: it cannot be bound to a scene tab")
         scene = scene_session_id or None
         cfg = rec.get("mcp_config_path") or str(self.root / "panes" / sid / ad.config_name)
-        spec = HN.PaneSpec(cwd=rec.get("cwd") or "", project_root=rec.get("project_root"), scene_session_id=scene, mcp_config_path=cfg, launcher=HN.mcp_launcher())
+        direct, key = self._swarm_entry(ad, sid)                # the pane keeps its key across bindings: the running harness holds it
+        spec = HN.PaneSpec(cwd=rec.get("cwd") or "", project_root=rec.get("project_root"), scene_session_id=scene, mcp_config_path=cfg, launcher=HN.mcp_launcher(),
+                           direct=direct)
         self._write_pane_files(ad.lampway_tools(spec).files)
 
         def f(d):
             for s in d["sessions"]:
                 if s["id"] == sid:
                     s.update(scene_session_id=scene, mcp_config_path=cfg, harness=ad.id, updated_at=time.time())
+                    if key:
+                        s["pane_key_sha256"] = _sha(key)
                     return dict(s)
         return self._update(f)
+
+    # ------------------------------------------------------------------------------------------------- the swarm's panes (spec S3)
+    def _swarm_entry(self, ad, rid: str) -> tuple:
+        """A bound pane's swarm entry and its key: Lampway's pane endpoint with the pane's own key as its bearer. The key lives only in
+        the pane's own files (0600, under the Lampway root); the registry keeps its sha256. None when the endpoint is not known or the
+        harness has no recorded way to reach it."""
+        if not self.pane_mcp_url or ad is None or not ad.direct_ok:
+            return (), None
+        path = self.root / "panes" / rid / PANE_KEY_FILE
+        try:
+            key = path.read_text(encoding="utf-8").strip()
+        except OSError:
+            key = ""
+        if not key:
+            key = secrets.token_urlsafe(32)
+            self._write_pane_files({str(path): key})
+        return (HN.DirectServer(SWARM_ENTRY, self.pane_mcp_url, {}, PANE_KEY_ENV, key),), key
+
+    def pane_for_key(self, key: str):
+        """The live harness pane this key was minted for, or None: what proves an MCP call comes from a pane Lampway started."""
+        if not key:
+            return None
+        digest = _sha(key)
+        for s in self.list_sessions():
+            known = s.get("pane_key_sha256") or ""
+            if known and hmac.compare_digest(known, digest) and s.get("state") != "ended" and not s.get("swarm_binding"):
+                return s
+        return None
+
+    def pane_alive(self, sid: str) -> tuple:
+        """(alive, why not) for one session, judged like reconcile but without writing anything."""
+        rec = self._get(sid)
+        if rec.get("state") == "ended":
+            return False, rec.get("end_reason") or "the session ended"
+        snap = self.snapshot()
+        pane = self._find_pane(rec, snap["panes"])
+        if pane is None:
+            return False, "its pane is gone from the server"
+        why = self._agent_gone(rec, pane)
+        return not why, why
+
+    def end_swarm_pane(self, sid: str, binding: str, why: str, close: bool) -> None:
+        """A swarm ends a worker pane it opened: closes it (cancel, timeout) or records that it exited. It refuses any pane it did
+        not open (law 5): the record must be the swarm's, for exactly this worker."""
+        rec = self._get(sid)
+        if rec.get("created_by") != "swarm" or not binding or rec.get("swarm_binding") != binding:
+            raise CockpitError(f"{sid} was not opened by the swarm for {binding}: the swarm never closes a pane it did not start")
+        if close:
+            try:
+                L.run(self.root, ["pane", "close", rec["pane_id"]])
+            except L.HerdrError:
+                pass
+
+        def f(d):
+            for s in d["sessions"]:
+                if s["id"] == sid and s.get("state") != "ended":
+                    s.update(state="ended", ended_at=time.time(), end_reason=why, updated_at=time.time())
+        self._update(f)
 
     def unbind(self, sid: str) -> dict:
         """What closing the scene tab calls: the binding ends, the pane runs on and is listed unbound (law 5)."""
@@ -278,6 +384,22 @@ class Cockpit:
         return {"closed": sid}
 
     # ------------------------------------------------------------------------------------------------- reconcile
+    @staticmethod
+    def _find_pane(rec, snap_panes):
+        by_term = {p.get("terminal_id"): p for p in snap_panes if p.get("terminal_id")}
+        return by_term.get(rec.get("terminal_id")) or next((p for p in snap_panes if p["pane_id"] == rec["pane_id"]), None)
+
+    def _agent_gone(self, rec, pane) -> str:
+        """Why the session's agent is not running in its pane, or "" while it is."""
+        try:
+            info = json.loads(L.run(self.root, ["pane", "process-info", "--pane", pane["pane_id"]]))["result"]["process_info"]
+        except (L.HerdrError, ValueError):
+            return "its pane could not be inspected"
+        cmd = " ".join(p.get("cmdline", "") for p in info.get("foreground_processes", []))
+        if rec.get("match") and not any(t in cmd for t in rec["match"]):
+            return "the agent process is no longer running (the pane is at a shell prompt)"
+        return ""
+
     def reconcile(self) -> dict:
         """The live server is the truth, the registry the map. Never spawns, never kills, idempotent."""
         out = {"server": "running", "adopted": [], "ended": [], "unadopted": [], "new_panes": 0, "offered": []}
@@ -295,14 +417,8 @@ class Cockpit:
             if pane is None:
                 return None, "its pane is gone from the server"
             claimed.add(pane["pane_id"])
-            try:
-                info = json.loads(L.run(self.root, ["pane", "process-info", "--pane", pane["pane_id"]]))["result"]["process_info"]
-            except (L.HerdrError, ValueError):
-                return None, "its pane could not be inspected"
-            cmd = " ".join(p.get("cmdline", "") for p in info.get("foreground_processes", []))
-            if rec.get("match") and not any(t in cmd for t in rec["match"]):
-                return None, "the agent process is no longer running (the pane is at a shell prompt)"
-            return pane, ""
+            why = self._agent_gone(rec, pane)
+            return (None, why) if why else (pane, "")
 
         def f(d):
             for rec in d["sessions"]:

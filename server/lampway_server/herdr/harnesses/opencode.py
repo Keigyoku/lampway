@@ -8,7 +8,7 @@ the user's own file; a per-pane file through the variable keeps the binding per 
 """
 import json
 
-from .base import BOUND_ENV, SERVER_NAME, Adapter, Observer, ToolWiring
+from .base import BOUND_ENV, SERVER_NAME, Adapter, Observer, ToolWiring, bearer_headers, direct_binding
 
 #: OpenCode stops listing a server's tools after 5 s by default; the launcher may first have to start Lampway (the Client's setup).
 TOOLS_TIMEOUT_MS = 60_000
@@ -23,17 +23,22 @@ class OpenCode(Adapter):
     install_hint = "install OpenCode (opencode): npm install -g opencode-ai"          # [UNVERIFIED] the package name
     status_argv = ("auth", "list")                                                     # [UNVERIFIED] lists providers; exit status only
     BYPASS = ("--auto",)
+    task_flag = ("--prompt",)                                                          # [UNVERIFIED] the TUI's first prompt
+    direct_ok = True                                                                   # a "remote" entry: url, headers [UNVERIFIED]
 
     def _args(self, pane, resume_id):
         return (["--session", resume_id] if resume_id else []) + self._bypass(pane)
 
     def lampway_tools(self, pane):
         cmd = list(pane.launcher) or ["lampway-mcp"]
-        body = json.dumps({"$schema": "https://opencode.ai/config.json", "mcp": {SERVER_NAME: {
-            "type": "local", "command": cmd, "enabled": True, "timeout": TOOLS_TIMEOUT_MS, "environment": {BOUND_ENV: pane.scene_session_id or ""}}}}, indent=2)
+        servers = {SERVER_NAME: {"type": "local", "command": cmd, "enabled": True, "timeout": TOOLS_TIMEOUT_MS,
+                                 "environment": {BOUND_ENV: pane.scene_session_id or ""}}} if pane.desktop else {}
+        for d in pane.direct:                                                          # spec S3: the bearer in this 0600 file only
+            servers[d.name] = {"type": "remote", "url": d.url, "enabled": True, "timeout": TOOLS_TIMEOUT_MS, "headers": bearer_headers(d)}
+        body = json.dumps({"$schema": "https://opencode.ai/config.json", "mcp": servers}, indent=2)
         path = pane.mcp_config_path
         return ToolWiring("mcp_config_file", (), {"OPENCODE_CONFIG": path} if path else {}, {path: body} if path else {}, tuple(pane.launcher),
-                          pane.scene_session_id, False, "[UNVERIFIED] OPENCODE_CONFIG names this pane's own config file; the project's opencode.json is left alone")
+                          pane.scene_session_id or direct_binding(pane), False, "[UNVERIFIED] OPENCODE_CONFIG names this pane's own config file; the project's opencode.json is left alone")
 
     def observe(self, record):
         return Observer("screen", None, True, "OpenCode keeps no session file Lampway reads: the pane's screen")

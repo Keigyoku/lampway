@@ -5,7 +5,9 @@ INVARIANTS (the captain's rulings, 2026-10-05):
      HERDR_CLIENT_SOCKET_PATH and HERDR_CONFIG_PATH under the Lampway root, scrubs every inherited HERDR_* variable, and refuses to run otherwise. Only launcher.py spawns processes.
   2. CONTROLLED DECOUPLING. The herdr server and its agent panes survive Blender crashing, SIGKILL, being closed, an add-on unregister, and the Lampway server restarting or crashing.
      The server is launched detached (a transient systemd user unit when available, else its own session), never as a child that dies with Blender. Nothing here stops a pane or the server
-     implicitly: only an explicit user action in the cockpit (with a confirm), or an agent finishing on its own.
+     implicitly: only an explicit user action in the cockpit (with a confirm), or an agent finishing on its own. The one exception is the swarm's own:
+     a swarm closes a worker pane IT opened (its record names that swarm and worker) when the task is cancelled, fails or times out
+     (agent-modes spec S3, ``Cockpit.end_swarm_pane``); it can never close any other pane.
   3. RECONCILE ON START. The live server is the truth and the session registry is the map. Live pane + record: re-adopt. Live pane, no record: show as "unadopted", never kill it. Record, no
      pane (or the agent process gone): mark ended, keep the transcript for resume, never respawn silently. Server not running: report it and offer start / resume as user actions; never
      auto-relaunch agents without a click. Reconcile is idempotent: a second run changes nothing and never double-spawns.

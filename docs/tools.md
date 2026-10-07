@@ -12,7 +12,7 @@ server/.venv/bin/python docs/gen_tools.py --check  # exit 1 when this page is st
 ```
 
 - **239 tools** in the agent's registry; **189** of them run in Blender and are offered over MCP, plus **2** server-side MCP tools (`lampway_credit_balance`, `lampway_call_status`): **191 tools** over MCP in total.
-- Studio tools (`studio_*`) spend credits on your accounts and are **never** offered over MCP; the swarm tools and `ask_user` need the agent loop.
+- Studio tools (`studio_*`) spend credits on your accounts and are **never** offered over MCP; `ask_user` needs the agent loop; the swarm tools are offered to no external app, only to your own agent in a Lampway pane bound to a scene tab, with the swarm capability on (its workers are panes too).
 - The `offered` column says whether an external AI app (Claude Code, Codex, Cursor, VS Code, OpenCode, Claude Desktop) can call the tool.
 - Every tool that costs money returns a plan and waits for your click ([spend](spend.md)); no tool can confirm a spend.
 - Paths a tool takes are relative to the project root; a path outside it is refused.

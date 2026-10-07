@@ -1,0 +1,186 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+"""The pane brain: a swarm worker that thinks in a pane on Lampway's herdr server (docs/reports/agent-modes-spec.md S3).
+
+The swarm's substrate (``agent/swarm.py``) spawns, binds, resets and seeds the worker's own headless Lampway, then hands this brain a
+``WorkerJob``. The brain:
+
+* opens ONE pane through the parent pane's harness adapter (Q10: the same harness), under that harness's ``byoa:<harness>`` route
+  (B5, inside ``Cockpit.create_session``), with the task (``job.system`` plus the task prompt) on the harness's own command line;
+* binds the pane to ``swarm:<swarm_id>:<worker_id>``: its own MCP config (B2's mechanism: 0600 under the Lampway root) has ONE
+  Lampway server, the pane endpoint ``/api/v1/mcp/pane``, with that binding as its session header and a per-worker token as its
+  bearer. The token is minted here, exists only in the pane's config (or its environment) and in this process's memory as a hash,
+  and is the proof that a call comes from the pane the swarm opened. The pane gets no desktop launcher: the launcher serves the
+  desktop's own UI and scene-tab tools (``mcp_bridge`` ``schema.tools()``; ``lampway_scene_switch`` re-binds a connection to a real
+  scene tab), which would reach the user's scene;
+* waits until the worker calls ``lampway_worker_done(summary)`` (answered by ``mcp.py``), and returns the summary. A pane that exits
+  first, or a worker that runs past ``PANE_WORKER_TIMEOUT_S``, fails the task;
+* on cancel or failure closes only the pane it opened (``Cockpit.end_swarm_pane`` refuses any other: law 5). A finished worker's pane
+  stays open for the user to read; its binding is revoked, so it can no longer reach the worker.
+
+Every tool call of the pane runs through ``job.call_tool``, i.e. on this worker's headless Lampway, never the user's scene.
+"""
+
+import asyncio
+import hashlib
+import hmac
+import logging
+import secrets
+from dataclasses import dataclass, field
+from typing import Optional
+
+from ..agent.providers.base import ToolSpec
+
+log = logging.getLogger("lampway.swarm.panes")
+
+#: How long a pane worker may run before its task fails (a threshold the captain may set; the in-app worker's limit is its rounds).
+PANE_WORKER_TIMEOUT_S = 1800.0
+#: How often the brain looks at its pane while it waits for ``lampway_worker_done``.
+POLL_S = 2.0
+#: Consecutive looks that find the harness gone before the task fails (one look can land between two foreground processes).
+MISSES = 2
+
+WORKER_DONE = ToolSpec(
+    "lampway_worker_done",
+    "Finish your task: call it ONCE, when your work in your own scene is complete, with one plain sentence saying what you made "
+    "(name the objects). Everything you made is then brought into the user's scene. Until you call it your work is not collected; "
+    "after it you can no longer use Lampway's tools.",
+    {"type": "object", "additionalProperties": False, "required": ["summary"],
+     "properties": {"summary": {"type": "string", "description": "One sentence: what you made, naming the objects."}}})
+
+DONE_INSTRUCTION = ("You work through the Lampway MCP server of this session; its tools act on YOUR scene only. When your task is "
+                    "done, call the Lampway tool lampway_worker_done with your one sentence as `summary`: that is how your work reaches "
+                    "the user. Do not ask the user anything; if something cannot be done, say so in the summary.")
+
+
+def task_text(job) -> str:
+    """What the pane starts with (spec S3): the worker's system prompt, how it finishes, then its task."""
+    return f"{job.system}\n{DONE_INSTRUCTION}\n\nYour task:\n{job.worker.prompt}"
+
+
+def _sha(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+@dataclass
+class WorkerBinding:
+    """One worker pane's binding: ``swarm:<swarm_id>:<worker_id>`` and the job its calls run through."""
+    name: str
+    token_sha: str
+    job: object
+    done: asyncio.Future = field(repr=False)
+    state: str = "live"                      # live | done | revoked
+
+    @property
+    def live(self) -> bool:
+        return self.state == "live"
+
+
+class WorkerBindings:
+    """The live and past worker bindings of this server, by name. Only the token's hash is kept."""
+
+    def __init__(self):
+        self._by_name: dict = {}
+
+    def issue(self, name: str, job) -> tuple:
+        """A fresh token for ``name``: returns (binding, token). A name is issued once; a second issue is a bug, refused."""
+        if name in self._by_name and self._by_name[name].live:
+            raise ValueError(f"{name} is already bound to a live worker pane")
+        token = secrets.token_urlsafe(32)
+        binding = WorkerBinding(name, _sha(token), job, asyncio.get_running_loop().create_future())
+        self._by_name[name] = binding
+        return binding, token
+
+    def resolve(self, name: str, token: str) -> Optional[WorkerBinding]:
+        """The binding a call names, only when its bearer is that binding's own token (live or not: a finished worker is told so)."""
+        b = self._by_name.get(name or "")
+        if b is None or not token or not hmac.compare_digest(b.token_sha, _sha(token)):
+            return None
+        return b
+
+    @staticmethod
+    def finish(binding: WorkerBinding, summary: str) -> None:
+        if binding.live and not binding.done.done():
+            binding.done.set_result(summary)
+        binding.state = "done"
+
+    def revoke(self, name: str) -> None:
+        b = self._by_name.get(name)
+        if b is not None and b.live:
+            b.state = "revoked"
+
+
+class PaneBrain:
+    """``WorkerBrain`` kind ``pane`` (spec S1, S3): the worker is a pane running the parent pane's harness."""
+    kind = "pane"
+
+    def __init__(self, cockpit, harness: str, *, cwd: str, project_root: Optional[str], bindings: WorkerBindings):
+        self.cockpit = cockpit
+        self.harness = harness
+        self.cwd = cwd
+        self.project_root = project_root
+        self.bindings = bindings
+        self._panes: dict = {}               # worker id -> (cockpit session id, binding name)
+        self._exited: dict = {}              # worker id -> why its pane is gone (nothing to close)
+
+    @staticmethod
+    def binding_name(job) -> str:
+        return f"swarm:{job.meta.get('swarm_id')}:{job.worker.id}"
+
+    async def run(self, job) -> str:
+        wid, name = job.worker.id, self.binding_name(job)
+        binding, token = self.bindings.issue(name, job)
+        loop = asyncio.get_running_loop()
+        opening = asyncio.ensure_future(asyncio.to_thread(
+            self.cockpit.create_session, self.harness, f"{job.worker.name} ({job.meta.get('swarm_id')} {wid})", self.cwd,
+            task=f"{job.worker.name}: {job.worker.prompt.strip()[:160]}", by="swarm", project_root=self.project_root,
+            prompt=task_text(job), swarm_worker=(name, token)))
+        try:
+            rec = await asyncio.shield(opening)
+        except asyncio.CancelledError:
+            self.bindings.revoke(name)
+
+            def close_late(f):                # cancelled while herdr was opening it: close the pane once it exists
+                if not f.cancelled() and f.exception() is None:
+                    loop.run_in_executor(None, self.cockpit.end_swarm_pane, f.result()["id"], name,
+                                         "closed by its swarm: the task was cancelled", True)
+            opening.add_done_callback(close_late)
+            raise
+        except Exception as exc:  # noqa: BLE001 - the route off, herdr not running, a harness that cannot run a worker
+            self.bindings.revoke(name)
+            raise RuntimeError(f"{wid}'s pane could not start: {exc}") from None
+        self._panes[wid] = (rec["id"], name)
+        job.progress(f"{wid} ({job.worker.name}): working in pane {rec['name']}")
+        timeout_s = PANE_WORKER_TIMEOUT_S
+        deadline, misses = loop.time() + timeout_s, 0
+        try:
+            while True:
+                try:
+                    return await asyncio.wait_for(asyncio.shield(binding.done), POLL_S)
+                except asyncio.TimeoutError:
+                    pass
+                alive, why = await asyncio.to_thread(self.cockpit.pane_alive, rec["id"])
+                misses = 0 if alive else misses + 1
+                if misses >= MISSES:
+                    self._exited[wid] = why
+                    raise RuntimeError(f"{wid}'s pane exited without calling lampway_worker_done ({why})")
+                if loop.time() >= deadline:
+                    raise RuntimeError(f"{wid} did not finish within {timeout_s:.0f}s: its pane never called lampway_worker_done")
+        finally:
+            self.bindings.revoke(name)       # done or not: the pane can no longer reach the worker's scene
+
+    async def stop(self, job) -> None:
+        """Cancel or failure: close the pane this brain opened, and only it (law 5)."""
+        wid = job.worker.id
+        self.bindings.revoke(self.binding_name(job))
+        opened = self._panes.get(wid)
+        if opened is None:
+            return
+        sid, name = opened
+        exited = self._exited.get(wid)
+        why = f"its pane exited ({exited})" if exited else ("closed by its swarm: the task was cancelled" if job.worker.status == "cancelled"
+                                                           else "closed by its swarm: the task failed")
+        try:
+            await asyncio.to_thread(self.cockpit.end_swarm_pane, sid, name, why, exited is None)
+        except Exception:  # noqa: BLE001 - herdr gone: the record is reconciled at the next start
+            log.debug("%s: could not end its pane %s", wid, sid, exc_info=True)

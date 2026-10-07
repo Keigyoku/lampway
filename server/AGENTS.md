@@ -27,10 +27,19 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    turns a dead pending into `submission_unknown`, and only the user acknowledges or links it. Files are 0600 in 0700 directories;
    `export_safe` drops signed URLs and secrets before a receipt goes anywhere else.
 4. **MCP offers no spend.** `mcp.py` `offered_tools()` is the scene tools, the `DEFS` tools that are one script in Blender, and the
-   read-only server tools. Studio tools, the swarm and `ask_user` are never offered to external apps. The engine's own endpoint
+   read-only server tools. Studio tools, the swarm and `ask_user` are never offered to external apps, and a `swarm:` session header
+   on their route is refused (a binding is not a credential). The engine's own endpoint
    (`engine/mcp_endpoint.py`, `/engine/mcp/<session_id>`, spec E1.6) is not an external app: it is the in-app agent, loopback only
    and bound to one session's token, and offers the agent's full registry as Capabilities allow, every call through
    `AgentHub._run_tool`; it has no confirm path either (law 3).
+   The pane endpoint (`/api/v1/mcp/pane`, spec S3) is not an external app either: loopback only, it answers only a pane Lampway
+   started on its own herdr server, proven by that pane's own bearer, which lives only in the pane's own 0600 config or its
+   environment, handed to herdr like a per-pane API key (never the registry, which keeps a hash, and never the harness's command
+   line). A swarm worker's pane (session header `swarm:<swarm_id>:<worker_id>`, its `PaneBrain`'s token) is offered
+   `worker_tools()` as Capabilities allow plus `lampway_worker_done`, every call through its `WorkerJob.call_tool` on its own
+   headless Lampway, never the swarm, the studios, `ask_user` or the workbench. A pane bound to a scene tab (B2; its key) is offered only `swarm_start`, `swarm_status`,
+   `swarm_cancel` and `swarm_collect`, only with capability `swarm` in force and the BYOA switch on, for the swarms it started; its
+   swarm thinks in panes and lands in its bound tab. No swarm tool spends.
 5. **A tool argument cannot change the script.** `agent/lampway_tools.py` `build_script` passes the arguments as one JSON string
    literal into `api.call`; unknown arguments are dropped and a missing required one is refused before Blender is asked.
 6. **Isolation and controlled decoupling (herdr).** Every herdr invocation goes through `herdr/launcher.py` with HOME, XDG and
@@ -48,6 +57,10 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    A harness pane bound to a scene tab (spec B2) gets its own MCP config, 0600 under `<herdr root>/panes/<id>/`, pointing at Lampway's
    launcher with `LAMPWAY_BOUND_SESSION`; nothing is written outside the Lampway root. Binding and unbinding change only that file and
    the record, never the pane; only the user's Client binds (`POST /app/workbench/sessions/{id}/binding` refuses agent callers).
+   A swarm worker's pane (spec S3, `herdr/swarm_brain.py`) starts through the parent pane's adapter under the same route, with its
+   task on the harness's own command line (only where herdr starts the harness itself, never typed into a shell) and no desktop
+   launcher (its UI and scene-tab tools reach the user's scene); it cannot be bound to a tab. The swarm ends only a pane whose record
+   names it and that worker (`Cockpit.end_swarm_pane`): on cancel, failure or timeout; a finished worker's pane stays open.
 7. **Secrets never reach a log or a file in the repository.** Keys come from the environment or 0600 files the user owns
    (the state directory, a dotenv file the launcher is pointed at); `logredact.py` redacts query secrets and token-shaped strings in every log record.
 8. **Never the upstream service.** No code here calls the upstream backend; the client's stubbed endpoints are answered locally.
@@ -100,3 +113,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | BYOA egress and pane environment (B5) | agent-modes spec B5, law 2 | herdr launches were classed "local" and passed no gate; herdr and its panes inherited the server's full environment, API keys included | one `byoa:<harness>` route per harness, off by default, guarding each start; herdr from the scrubbed base; keys only by the user's per-pane opt-in; invariant 6 says so | captain ruling, 2026-10-06 |
 | 2026-10-07 | harness adapter interface (BYOA B1) | agent-modes spec B1, captain's Q5 and Q6 (2026-10-06): seven starting adapters, the old CLI switch repurposed | each harness was a branch in `host.agent_args`, the BYOA switch lived in the retired `agent/cli_adapters.py`, and nothing described how a harness is detected, wired or observed | `herdr/harnesses/` with the Protocol and seven adapters, the switch moved there, the host starts panes through them; invariant 6 states what an adapter may not do, held by a source gate | captain ruling, 2026-10-06 |
 | 2026-10-07 | a pane bound to a scene tab (BYOA B2, server side) | agent-modes spec B2, law 5 | panes reached Lampway only through a user-scope connector, with no tab binding, and the session record had no harness, scene or config fields | the record carries harness, native id, scene session, project root and config path; a per-pane MCP config pinned by LAMPWAY_BOUND_SESSION; bind and unbind never touch the pane; invariant 6 says so | captain ruling, 2026-10-06 |
+| 2026-10-07 | the swarm in Mode 2: pane workers and the pane endpoint (S3) | coordinator brief: agent-modes spec S3, S4, S5 (captain, 2026-10-07: "put the Swarm V3 on the same Mode system") | invariant 4 kept the swarm from every MCP caller, a bound BYOA pane included; the client's launcher would hand a worker pane the desktop's UI and scene-tab tools, and the relay forwards only a UUID session header, so a `swarm:` binding could neither reach the server nor be told apart | invariant 4 names the pane endpoint, its two callers and their bearers, and the refused `swarm:` header on the external route; invariant 6 names how a worker pane starts and that the swarm ends only its own panes | none |

@@ -9,7 +9,7 @@ import json
 import os
 
 from ..observers.native import claude_transcript
-from .base import Adapter, Observer, SERVER_NAME, ToolWiring, mcp_entry
+from .base import Adapter, Observer, SERVER_NAME, ToolWiring, bearer_headers, direct_binding, mcp_entry
 
 
 class Claude(Adapter):
@@ -22,6 +22,8 @@ class Claude(Adapter):
     api_key_connections = ("anthropic",)
     picks_session_id = True
     BYPASS = ("--dangerously-skip-permissions",)
+    task_flag = ()                            # `claude "<prompt>"`: an interactive session that starts with it [UNVERIFIED by fixture]
+    direct_ok = True                          # an mcpServers entry {"type": "http", "url", "headers"} [UNVERIFIED by fixture]
 
     def _args(self, pane, resume_id):
         a = ["--resume", resume_id] if resume_id else (["--session-id", pane.session_id] if pane.session_id else [])
@@ -32,9 +34,12 @@ class Claude(Adapter):
 
     def lampway_tools(self, pane):
         path = pane.mcp_config_path
-        body = json.dumps({"mcpServers": {SERVER_NAME: mcp_entry(pane)}}, indent=2)
+        servers = {SERVER_NAME: mcp_entry(pane)} if pane.desktop else {}
+        for d in pane.direct:                 # spec S3: Lampway's own endpoint, the bearer in this 0600 file only
+            servers[d.name] = {"type": "http", "url": d.url, "headers": bearer_headers(d)}
+        body = json.dumps({"mcpServers": servers}, indent=2)
         return ToolWiring("mcp_config_file", ("--mcp-config", path) if path else (), {}, {path: body} if path else {}, tuple(pane.launcher),
-                          pane.scene_session_id, False,
+                          pane.scene_session_id or direct_binding(pane), False,
                           "[UNVERIFIED flag] --mcp-config <file> adds this pane's own server entry; the user's own user-scope entries are left alone")
 
     def observe(self, record):

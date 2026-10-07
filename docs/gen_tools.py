@@ -61,7 +61,8 @@ def render() -> str:
         "",
         f"- **{len(rows)} tools** in the agent's registry; **{n_off}** of them run in Blender and are offered over MCP, plus **{len(SERVER_TOOLS)}** server-side MCP tools "
         f"({', '.join('`' + t.name + '`' for t in SERVER_TOOLS)}): **{len(offered)} tools** over MCP in total.",
-        "- Studio tools (`studio_*`) spend credits on your accounts and are **never** offered over MCP; the swarm tools and `ask_user` need the agent loop.",
+        "- Studio tools (`studio_*`) spend credits on your accounts and are **never** offered over MCP; `ask_user` needs the agent loop; the swarm tools are offered "
+        "to no external app, only to your own agent in a Lampway pane bound to a scene tab, with the swarm capability on (its workers are panes too).",
         "- The `offered` column says whether an external AI app (Claude Code, Codex, Cursor, VS Code, OpenCode, Claude Desktop) can call the tool.",
         "- Every tool that costs money returns a plan and waits for your click ([spend](spend.md)); no tool can confirm a spend.",
         "- Paths a tool takes are relative to the project root; a path outside it is refused.",
