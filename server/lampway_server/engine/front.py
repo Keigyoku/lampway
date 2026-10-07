@@ -1,0 +1,695 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+"""The island is a second client of the pane's ``hermes serve`` (docs/reports/agent-modes-spec.md A2, A3): the hub's Mode 1 front
+end. ``AgentHub.engine`` is a ``HermesFront``; the hub keeps the client protocol (``agent.chat/input/cancel/attach``, the
+``TurnStream`` journal) and this module maps it onto the unit's serve, as A2's table says:
+
+* **a scene tab's first ``agent.chat``** opens the unit's pane when it has none (``Mode1Units.open``; only the user's own Client
+  may, ``precheck``), then this server attaches as a client: ``client.capabilities {server_requests}``, ``session.resume`` of the
+  stored session;
+* **``agent.chat``** -> ``image.attach_bytes`` per image, then ``prompt.submit`` with R3's context blocks (``turn_context``);
+* **a chat while a turn runs** -> ``session.steer`` (the hub answers ``{ok: true, joined: true}``, R4);
+* **``agent.cancel``** -> ``session.interrupt``;
+* **events** -> the turn's slots: ``message.delta`` and ``reasoning.delta`` -> ``ephemeral.append``; ``tool.start`` /
+  ``tool.complete`` -> ``steps`` (the label is the Lampway tool's name without ``mcp__lampway__``; Hermes's own bridge tools are
+  not steps); ``message.complete`` -> ``content.set`` and the turn's end (``complete`` -> ``completed``, ``interrupted`` ->
+  ``cancelled``, ``error`` -> ``failed``);
+* **``clarify``** (a server request) -> the island's question (``interrupt_id``, ``actions``); ``agent.input`` answers it with
+  ``{answer}``. **``approval``** -> the island's permission card (``input_type: approval``); the answer is ``{choice}``. Both reach
+  every client and the first answer wins with NO ``request.cancel`` to the others, so when the turn moves on without the island's
+  answer (the pane answered), the island's card is closed and the turn goes on in the island;
+* **a turn the user types in the pane** -> an island turn of its own (``agent.turn.started`` with ``origin: pane``), its user text
+  from ``session.history`` (no event carries it, measured);
+* **``/new`` in the pane** closes the session for every client (``sessions.changed``, then ``4001``): the island follows the pane to
+  its new session (spec Q15, proposed);
+* **a dropped connection to serve** is re-made, and missed events are caught up with ``session.events.since`` (same replay epoch),
+  else from ``session.history``;
+* **the island's socket closing** stops nothing in Hermes: the hub keeps the running turn as a survivor and ``agent.attach``
+  replays its journal.
+
+**A3: tools reach the scene whoever started the turn.** ``/engine/mcp/<unit>`` (``mcp_endpoint.py``) calls ``call_tool``: the call
+runs through ``AgentHub._run_tool`` (Capabilities at call time, E2) on the scene tab's CURRENT client socket (``hub.socket_for``),
+with or without an island turn; with no client connected it is refused ("Lampway is not open"). Its step comes from serve's
+``tool.start``/``tool.complete``, never from the MCP side.
+"""
+
+import asyncio
+import logging
+import uuid
+from dataclasses import dataclass, field
+from typing import Optional
+
+from . import turn_context as TC
+from .serve_client import SESSION_NOT_FOUND, ServeClient, ServeClosed, ServeError
+
+log = logging.getLogger("lampway.engine.front")
+
+MCP_PREFIX = "mcp__lampway__"
+#: Hermes's own plumbing, not the agent's work: no step rows (the clarify call is the island's question instead).
+HIDDEN_TOOLS = frozenset({"tool_search", "tool_describe", "clarify"})
+STATUS = {"complete": "completed", "interrupted": "cancelled", "error": "failed"}
+APPROVAL_LABELS = {"once": "Allow once", "session": "Allow for this session", "always": "Always allow", "deny": "Deny"}
+RECONNECT_S = (0.5, 1, 2, 5, 10, 30)
+KNOWN_CONNECT_S = 15.0            # a recorded pane's serve answers at once; one that does not may have ended with its pane
+ANSWERED_ELSEWHERE = "(Answered in Lampway Agent's pane.)"
+
+
+@dataclass
+class Sink:
+    """Where a running Hermes turn's events go: an island turn. ``pending``: the turn is being opened, events wait in ``buffer``."""
+    socket: object = None
+    session: object = None
+    turn: object = None
+    stream: object = None
+    bubble_id: str = ""
+    steps: list = field(default_factory=list)
+    text: list = field(default_factory=list)
+    done: Optional[asyncio.Future] = None
+    asked: Optional[asyncio.Event] = None
+    pending: bool = False
+    buffer: list = field(default_factory=list)
+
+
+@dataclass
+class Question:
+    request_id: str
+    kind: str                         # clarify | approval
+    interrupt_id: str
+    body: str
+    choices: list
+    bubble_id: str = ""
+    run_id: str = ""
+    answered: bool = False            # by the island
+
+
+@dataclass
+class Link:
+    unit: str
+    info: object = None               # units.UnitInfo
+    client: Optional[ServeClient] = None
+    live_id: str = ""
+    epoch: str = ""
+    last_seq: int = -1
+    running: bool = False
+    sink: Optional[Sink] = None
+    island_prompts: int = 0           # prompts the island submitted whose message.start has not come
+    absorb: int = 0                   # turn ends nobody shows (a cancelled island turn)
+    question: Optional[Question] = None
+    rules_key: str = ""
+    lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    watcher: Optional[asyncio.Task] = None
+    closing: bool = False
+    carried: list = field(default_factory=list)   # steps still running when the turn stopped for a question
+
+
+def tool_name(payload: dict) -> str:
+    """The real tool's name: a deferred MCP tool's ``tool.start`` already carries it; a failed bridge call names it in its labels."""
+    name = str(payload.get("name") or "")
+    if name == "tool_call":
+        label = next((lb.get("name") for lb in payload.get("labels") or [] if isinstance(lb, dict) and lb.get("name")), None)
+        name = label or str((payload.get("args") or {}).get("name") or name)
+    return name
+
+
+def step_label(name: str) -> str:
+    return name[len(MCP_PREFIX):] if name.startswith(MCP_PREFIX) else name
+
+
+def failed(payload: dict) -> bool:
+    result = payload.get("result")
+    return bool(payload.get("error")) or (isinstance(result, dict) and bool(result.get("error")))
+
+
+def approval_choice(text: str, choices: list) -> str:
+    """The island's answer to a permission card: a choice id, a choice's label, else deny."""
+    text = str(text or "").strip().lower()
+    for c in choices:
+        if text in (str(c).lower(), APPROVAL_LABELS.get(str(c), "").lower()):
+            return str(c)
+    return "deny"
+
+
+class HermesFront:
+    def __init__(self, hub, units):
+        self.hub = hub
+        self.units = units
+        self.links: dict = {}
+
+    # ------------------------------------------------------------------------------------------------- the hub's side
+    def _link(self, unit: str) -> Link:
+        link = self.links.get(unit)
+        if link is None:
+            link = self.links[unit] = Link(unit)
+        return link
+
+    def is_running(self, session_id: str) -> bool:
+        link = self.links.get(session_id)
+        return link is not None and link.running
+
+    def connected(self, session_id: str) -> bool:
+        link = self.links.get(session_id)
+        return link is not None and link.client is not None and not link.client.closed.is_set()
+
+    async def precheck(self, socket, session_id: str) -> Optional[dict]:
+        """Before a Mode 1 turn is admitted: a refusal (the client's ``{ok: false}`` shape) when the unit has no pane and none may be
+        opened, else None. Opening Lampway Agent's pane is the user's own chat (law 5 and the human gate: an agent's socket never
+        opens one), on a running herdr server the user started (it is never started implicitly)."""
+        if self.connected(session_id) or await asyncio.to_thread(self.units.known, session_id) is not None:
+            return None
+        from ..agent.byoa import origin_of
+        if origin_of(socket) != "user":
+            return _refusal("agent_origin", "Only your own message in Lampway opens Lampway Agent's pane; an agent cannot.",
+                            ["Ask from the island of the scene tab"])
+        why = self.units.problem()
+        if why:
+            return _refusal("engine_unavailable", why, ["scripts/lampway/engine_env.py --check-deps"])
+        from ..herdr import launcher as L
+        running = await asyncio.to_thread(lambda: bool(L.server_status(self.units.cockpit.root).get("running")))
+        if not running:
+            return _refusal("herdr_not_running", "Lampway Agent runs in a pane on Lampway's herdr server, which is not running, so "
+                            "this message was not sent.", ["Start the herdr server from the cockpit (Lampway > Agents), then send again"])
+        return None
+
+    async def drive(self, socket, session, turn, stream, bubble_id, steps, user_text: Optional[str], context=None) -> str:
+        """Run (or continue, ``user_text`` None after the island answered) the unit's Hermes turn for this island turn. Returns the
+        turn's status; returns early, the Hermes turn still running, when it stops for a question (``turn.asked``)."""
+        link = await self._ensure(session.session_id, open_pane=user_text is not None, label=(context or {}).get("scene_name"))
+        sink = Sink(socket, session, turn, stream, bubble_id, steps, done=asyncio.get_running_loop().create_future(),
+                    asked=asyncio.Event())
+        if user_text is None:
+            held = link.sink
+            if held is not None and held.pending:          # events after the island's answer, held for this turn
+                self._bind(link, sink)
+                await self._flush(link, held)
+            elif link.running:
+                self._bind(link, sink)
+            else:
+                return "completed"
+        else:
+            link.sink = sink
+            try:
+                for name, data in TC.attachments(context):
+                    await link.client.call("image.attach_bytes", {"session_id": link.live_id, "content_base64": data, "filename": name})
+                text, link.rules_key = TC.prompt_text(user_text, context, link.rules_key)
+                link.island_prompts += 1
+                try:
+                    await link.client.call("prompt.submit", {"session_id": link.live_id, "text": text})
+                except BaseException:
+                    link.island_prompts -= 1
+                    raise
+            except BaseException:
+                if link.sink is sink:
+                    link.sink = None
+                raise
+        return await self._wait(link, sink)
+
+    async def _wait(self, link: Link, sink: Sink) -> str:
+        asked = asyncio.ensure_future(sink.asked.wait())
+        try:
+            await asyncio.wait({sink.done, asked}, return_when=asyncio.FIRST_COMPLETED)
+        except asyncio.CancelledError:
+            asked.cancel()
+            if link.sink is sink:
+                link.sink = None
+            if link.running:                                # agent.cancel: Hermes stops; its end is nobody's now
+                link.absorb += 1
+                asyncio.ensure_future(self._interrupt(link))
+            raise
+        asked.cancel()
+        if sink.done.done():
+            return sink.done.result()
+        return "completed"                                  # a question: the hub ends the island turn as in progress
+
+    async def steer(self, session_id: str, text: str) -> None:
+        link = self.links[session_id]
+        await link.client.call("session.steer", {"session_id": link.live_id, "text": text.strip()})
+
+    async def interrupt(self, session_id: str) -> bool:
+        link = self.links.get(session_id)
+        if link is None or not link.running:
+            return False
+        await self._interrupt(link)
+        return True
+
+    async def _interrupt(self, link: Link) -> None:
+        try:
+            await link.client.call("session.interrupt", {"session_id": link.live_id}, timeout=15)
+        except Exception:  # noqa: BLE001 - serve gone: nothing to stop
+            log.debug("session.interrupt failed", exc_info=True)
+
+    def has_question(self, session_id: str) -> bool:
+        link = self.links.get(session_id)
+        return link is not None and link.question is not None and not link.question.answered
+
+    def answer(self, session_id: str, text: str) -> None:
+        """The island's answer: the response frame to serve's request. The turn's next events wait for the island's continuation turn
+        (the hub admits it right after this)."""
+        link = self.links.get(session_id)
+        q = link.question if link is not None else None
+        if q is None or q.answered:
+            return
+        q.answered = True
+        link.question = None
+        result = {"answer": str(text)} if q.kind == "clarify" else {"choice": approval_choice(text, q.choices)}
+        if link.sink is None:
+            link.sink = Sink(pending=True)
+        asyncio.ensure_future(self._respond(link, q, result))
+
+    async def _respond(self, link: Link, q: Question, result: dict) -> None:
+        try:
+            await link.client.respond(q.request_id, result)
+        except Exception:  # noqa: BLE001 - serve gone: the pane answers instead, or the turn ends with it
+            log.warning("the island's answer could not reach Lampway Agent's pane", exc_info=True)
+
+    def reattach(self, session_id: str, socket) -> None:
+        link = self.links.get(session_id)
+        if link is not None and link.sink is not None and not link.sink.pending:
+            link.sink.socket = socket
+
+    async def close(self) -> None:
+        """Server shutdown: this server's connections close; every pane and its serve run on (law 5)."""
+        for link in list(self.links.values()):
+            link.closing = True
+            if link.watcher is not None:
+                link.watcher.cancel()
+            if link.client is not None:
+                await link.client.close()
+
+    async def adopt(self, recs: list) -> None:
+        """After a restart: re-attach to every live main pane, so a turn typed in it reaches the island again."""
+        for rec in recs:
+            if rec.get("role") == "main" and rec.get("unit"):
+                link = self._link(rec["unit"])
+                if link.watcher is None or link.watcher.done():
+                    link.watcher = asyncio.ensure_future(self._reconnect(link, first=True))
+
+    # ------------------------------------------------------------------------------------------------- tools (A3)
+    def session_for_token(self, unit: str, token: str):
+        return unit if self.units.check_mcp(unit, token) else None
+
+    def tool_specs(self, unit: Optional[str] = None) -> list:
+        from .. import capabilities as CAP
+        from ..agent.swarm import SWARM_SPECS
+        from ..agent.tools import ASK_USER, TOOLS
+        return [t for t in list(TOOLS) + list(SWARM_SPECS) if t.name != ASK_USER and CAP.tool_offered(t.name)]
+
+    async def call_tool(self, unit: str, name: str, arguments: dict) -> tuple:
+        """One of Lampway's tools from the unit's Hermes, whoever started its turn: on the scene tab's current client socket."""
+        from ..agent.providers.base import ToolCall
+        from ..agent.turns import Turn, clip_result
+        socket = self.hub.socket_for(unit)
+        if socket is None:
+            return ("refused: Lampway is not open on this scene (no Lampway window is connected to this conversation), so its "
+                    "tools cannot reach the scene. Ask the user to open the .blend in Lampway, then try again."), True
+        link = self.links.get(unit)
+        sink = link.sink if link is not None and link.sink is not None and not link.sink.pending else None
+        session = sink.session if sink is not None else self.hub._session(unit)
+        turn = sink.turn if sink is not None else Turn(unit, f"pane_{uuid.uuid4().hex[:12]}", "")
+        call = ToolCall(id=f"eng_{uuid.uuid4().hex[:12]}", name=name, arguments=arguments if isinstance(arguments, dict) else {})
+        content, is_error = await self.hub._run_tool(socket, session, turn, call, None, None, None)
+        return clip_result(content), is_error
+
+    # ------------------------------------------------------------------------------------------------- the connection
+    async def _ensure(self, unit: str, open_pane: bool = False, label=None) -> Link:
+        link = self._link(unit)
+        async with link.lock:
+            if link.client is not None and not link.client.closed.is_set():
+                return link
+            info = await asyncio.to_thread(self.units.known, unit)
+            if info is not None:
+                try:
+                    await self._connect(link, info, timeout=KNOWN_CONNECT_S)
+                    return link
+                except Exception:  # noqa: BLE001 - its serve does not answer: is the pane still there?
+                    if await asyncio.to_thread(self.units.alive, info):
+                        raise
+                    info = None                          # the pane ended: the user's chat opens a new one (it resumes the session)
+            if not open_pane:
+                raise RuntimeError("Lampway Agent's pane is not open for this scene tab")
+            info = await self.units.open(unit, label)
+            await self._connect(link, info)
+            return link
+
+    async def _connect(self, link: Link, info, timeout: Optional[float] = None) -> None:
+        from .units import START_TIMEOUT_S, connect_when_up
+        link.info = info
+
+        async def on_event(params):
+            await self._on_event(link, params)
+
+        async def on_request(frame):
+            await self._on_request(link, frame)
+        client = await connect_when_up(info, on_event=on_event, on_request=on_request, timeout=timeout or START_TIMEOUT_S)
+        same_epoch = bool(link.epoch) and link.epoch == client.epoch
+        link.client, link.epoch = client, client.epoch
+        res = await client.call("session.resume", {"session_id": info.stored_id})
+        link.live_id = str(res.get("session_id") or "")
+        running = bool(res.get("running"))
+        if same_epoch and link.last_seq >= 0:
+            await self._catch_up(link, running)
+        else:
+            link.last_seq = -1
+            await self._settle(link, running, res)
+        if link.watcher is None or link.watcher.done():
+            link.watcher = asyncio.ensure_future(self._watch(link, client))
+
+    async def _watch(self, link: Link, client: ServeClient) -> None:
+        await client.closed.wait()
+        if link.client is client and not link.closing:
+            link.client = None
+            await self._reconnect(link)
+
+    async def _reconnect(self, link: Link, first: bool = False) -> None:
+        """Re-make a dropped connection while the pane lives (and, after a restart, the first one)."""
+        for n in range(10_000):
+            if link.closing:
+                return
+            if not first or n:
+                await asyncio.sleep(RECONNECT_S[min(n, len(RECONNECT_S) - 1)])
+            info = await asyncio.to_thread(self.units.known, link.unit)
+            if info is None:
+                return                                       # the pane ended: the next chat opens one
+            try:
+                async with link.lock:
+                    if link.client is not None and not link.client.closed.is_set():
+                        return
+                    link.watcher = None
+                    await self._connect(link, info, timeout=KNOWN_CONNECT_S)
+                return
+            except Exception:  # noqa: BLE001 - serve not up yet (restarting) or the pane gone
+                if n >= len(RECONNECT_S) and not await asyncio.to_thread(self.units.alive, info):
+                    log.info("Lampway Agent's pane for %s is gone; the next chat opens a new one", link.unit)
+                    return
+
+    async def _catch_up(self, link: Link, running: bool) -> None:
+        """Missed events, from serve's replay ring; past it (``truncated``), the history fills in."""
+        try:
+            res = await link.client.call("session.events.since", {"session_id": link.live_id, "last_seen": link.last_seq})
+        except ServeError:
+            res = {"truncated": True}
+        if res.get("truncated"):
+            await self._settle(link, running, {})
+            return
+        for ev in res.get("events") or []:
+            await self._on_event(link, ev)
+
+    async def _settle(self, link: Link, running: bool, resumed: dict) -> None:
+        """No replay (a new epoch, or past the ring): a turn the island waits on that is over takes its end from the history; a turn
+        running that nobody shows becomes the pane's own island turn."""
+        link.running = running
+        sink = link.sink
+        if not running and sink is not None and not sink.pending and sink.done is not None and not sink.done.done():
+            text, ended = await self._last_reply(link)
+            await self._end(link, sink, "completed" if ended else "failed",
+                            text or "The turn ended while Lampway was away from it, and its reply was not kept.")
+        elif running and sink is None:
+            user = str(((resumed or {}).get("inflight") or {}).get("user") or "")
+            self._open_pane_turn(link, user_text=user)
+
+    async def _last_reply(self, link: Link) -> tuple:
+        try:
+            msgs = (await link.client.call("session.history", {"session_id": link.live_id})).get("messages") or []
+        except Exception:  # noqa: BLE001
+            return "", False
+        last_user = max((i for i, m in enumerate(msgs) if m.get("role") == "user"), default=-1)
+        after = [m for m in msgs[last_user + 1:] if m.get("role") == "assistant" and m.get("text")]
+        return (str(after[-1]["text"]), True) if after else ("", False)
+
+    async def _last_user_text(self, link: Link) -> str:
+        try:
+            msgs = (await link.client.call("session.history", {"session_id": link.live_id})).get("messages") or []
+        except Exception:  # noqa: BLE001
+            return ""
+        return next((str(m.get("text") or "") for m in reversed(msgs) if m.get("role") == "user"), "")
+
+    async def _check_session(self, link: Link) -> None:
+        """``sessions.changed``: when the island's session is closed (``/new`` in the pane), follow the pane (Q15)."""
+        live = link.live_id
+        if not live or link.client is None:
+            return
+        try:
+            await link.client.call("session.status", {"session_id": live})
+            return
+        except ServeError as exc:
+            if exc.code != SESSION_NOT_FOUND:
+                return
+        except (ServeClosed, asyncio.TimeoutError):
+            return
+        await self._follow(link)
+
+    async def _follow(self, link: Link) -> None:
+        old = link.live_id
+        try:
+            rows = (await link.client.call("session.active_list", {})).get("sessions") or []
+        except Exception:  # noqa: BLE001
+            return
+        rows = [r for r in rows if r.get("id") != old and r.get("session_key")]
+        if not rows:
+            return
+        newest = max(rows, key=lambda r: float(r.get("started_at") or 0))
+        res = await link.client.call("session.resume", {"session_id": newest["session_key"]})
+        link.live_id = str(res.get("session_id") or newest["id"])
+        info = link.info
+        if info is not None:
+            from .units import UnitInfo
+            link.info = UnitInfo(info.unit, info.record_id, info.home, info.port, info.token, str(newest["session_key"]))
+            await asyncio.to_thread(self.units.record_session, link.info, str(newest["session_key"]))
+        sink, link.sink = link.sink, None
+        if sink is not None and not sink.pending and sink.done is not None and not sink.done.done():
+            await self._end(link, sink, "cancelled", "The pane started a new conversation (/new); this one is in History.")
+        link.running = bool(res.get("running"))
+        log.info("Lampway Agent's pane for %s moved to a new session; the island follows it", link.unit)
+
+    # ------------------------------------------------------------------------------------------------- serve's events
+    async def _on_event(self, link: Link, params: dict) -> None:
+        kind = params.get("type")
+        seq = params.get("seq")
+        if isinstance(seq, int):
+            if seq <= link.last_seq:
+                return
+            link.last_seq = seq
+        if kind == "sessions.changed":
+            if link.live_id:                                 # not while the connection is still resuming its session
+                asyncio.ensure_future(self._check_session(link))
+            return
+        if params.get("session_id") and params.get("session_id") != link.live_id:
+            return
+        payload = params.get("payload") or {}
+        if kind == "message.start":
+            link.running = True
+            if link.island_prompts > 0:
+                link.island_prompts -= 1
+            elif link.sink is None:
+                self._open_pane_turn(link)                  # a turn typed in the pane (A2)
+            return
+        if kind not in ("message.delta", "reasoning.delta", "tool.start", "tool.complete", "message.complete", "error"):
+            return
+        q = link.question
+        if q is not None and not q.answered and kind != "error":
+            # The turn moved on without the island's answer: the pane answered. No request.cancel comes (measured): close the
+            # island's card and show the rest of the turn in the island.
+            link.question = None
+            self._release_question(link, q)
+            if link.sink is None:
+                self._open_pane_turn(link, run_id=q.run_id, close=q)
+        if kind == "message.complete":
+            link.running = False
+            if link.absorb > 0 and link.sink is None:
+                link.absorb -= 1
+                return
+        sink = link.sink
+        if sink is None:
+            return
+        if sink.pending:
+            sink.buffer.append(("event", params))
+            return
+        await self._apply(link, sink, kind, payload)
+
+    async def _apply(self, link: Link, sink: Sink, kind: str, payload: dict) -> None:
+        emit = sink.stream.emit_quietly
+        if kind in ("message.delta", "reasoning.delta"):
+            text = str(payload.get("text") or "")
+            if text:
+                if kind == "message.delta":
+                    sink.text.append(text)
+                await emit({"bubble_id": sink.bubble_id, "ephemeral": {"append": text}})
+        elif kind == "tool.start":
+            name = tool_name(payload)
+            if name in HIDDEN_TOOLS:
+                return
+            sink.steps.append({"id": str(payload.get("tool_id") or uuid.uuid4().hex[:8]), "kind": "tool", "label": step_label(name),
+                               "target": "", "detail": "", "status": "running"})
+            await emit({"bubble_id": sink.bubble_id, "steps": {"items": list(sink.steps)}})
+        elif kind == "tool.complete":
+            tid = str(payload.get("tool_id") or "")
+            for step in sink.steps:
+                if step["id"] == tid and step["status"] == "running":
+                    step["status"] = "failed" if failed(payload) else "done"
+                    await emit({"bubble_id": sink.bubble_id, "steps": {"items": list(sink.steps)}})
+                    break
+        elif kind == "error":
+            message = str(payload.get("message") or payload.get("error") or "")
+            if message:
+                await emit({"type": "error", "message": f"Lampway Agent: {message}"})
+        elif kind == "message.complete":
+            status = STATUS.get(str(payload.get("status") or "complete"), "completed")
+            text = str(payload.get("text") or "").strip() or "".join(sink.text).strip()
+            if status == "failed" and not text:
+                text = "The agent's turn failed in Hermes; its pane shows why."
+            await self._end(link, sink, status, text)
+
+    async def _end(self, link: Link, sink: Sink, status: str, text: str) -> None:
+        if link.sink is sink:
+            link.sink = None
+        if text:
+            await sink.stream.emit_quietly({"bubble_id": sink.bubble_id, "content": {"set": text}})
+        if sink.done is not None and not sink.done.done():
+            sink.done.set_result(status)
+
+    async def _flush(self, link: Link, held: Sink) -> None:
+        sink = link.sink
+        for what, item in held.buffer:
+            if link.sink is not sink:
+                return
+            if what == "event":
+                await self._apply(link, sink, item.get("type"), item.get("payload") or {})
+            else:
+                await self._ask(link, sink, item)
+
+    # ------------------------------------------------------------------------------------------------- serve's requests
+    async def _on_request(self, link: Link, frame: dict) -> None:
+        method = frame.get("method")
+        params = frame.get("params") or {}
+        if method not in ("clarify", "approval"):
+            return                                           # the pane's own (secrets, sudo, ...): the TUI answers them
+        if params.get("session_id") and params.get("session_id") != link.live_id:
+            return
+        if method == "clarify":
+            choices = [str(c) for c in params.get("choices") or [] if str(c).strip()][:6]
+            body = str(params.get("question") or "").strip() or "Which do you want?"
+        else:
+            choices = [str(c) for c in params.get("choices") or ["once", "deny"]]
+            command = str(params.get("command") or params.get("description") or "this")
+            why = str(params.get("description") or "").strip()
+            body = f"Allow the agent to run this?\n\n{command}" + (f"\n\n({why})" if why and why != command else "")
+        q = Question(str(frame.get("id")), method, f"q_{uuid.uuid4().hex[:12]}", body, choices)
+        link.question = q
+        sink = link.sink
+        if sink is None:
+            self._open_pane_turn(link)
+            sink = link.sink
+        if sink.pending:
+            sink.buffer.append(("request", q))
+            return
+        await self._ask(link, sink, q)
+
+    async def _ask(self, link: Link, sink: Sink, q: Question) -> None:
+        """The island's question card on this turn's bubble; the hub routes the answer (``agent.input``) to ``answer``."""
+        if q.answered or link.question is not q:
+            return
+        text = "".join(sink.text).strip()
+        body = f"{text}\n\n{q.body}" if text else q.body
+        q.body, q.bubble_id, q.run_id = body, sink.bubble_id, sink.turn.run_id
+        sink.session.pending_question = {"interrupt_id": q.interrupt_id, "call_id": q.request_id, "question": q.body,
+                                         "plan_mode": False, "engine": q.kind}
+        sink.turn.asked = True
+        event = {"bubble_id": sink.bubble_id, "content": {"set": body}, "interrupt_id": q.interrupt_id}
+        if q.kind == "clarify":
+            event["input_type"] = "choice" if q.choices else "text"
+            if q.choices:
+                event["actions"] = [{"label": c, "value": c, "style": "primary" if i == 0 else "default"} for i, c in enumerate(q.choices)]
+        else:
+            event["input_type"] = "approval"
+            event["actions"] = [{"label": APPROVAL_LABELS.get(c, c), "value": c, "style": "danger" if c == "deny" else
+                                 ("primary" if i == 0 else "default")} for i, c in enumerate(q.choices)]
+        sink.text.clear()
+        await sink.stream.emit_quietly(event)
+        # The tool waiting on this answer (a command needing approval) completes in the continuation turn: its step goes along.
+        link.carried = [dict(s) for s in sink.steps if s["status"] == "running"]
+        if link.sink is sink:
+            link.sink = None                                 # the rest of the turn is the answer's continuation turn
+        sink.asked.set()
+
+    @staticmethod
+    def _bind(link: Link, sink: Sink) -> None:
+        """This island turn shows the running Hermes turn from now on, with the steps still running from before its question."""
+        sink.steps.extend(link.carried)
+        link.carried = []
+        link.sink = sink
+
+    def _release_question(self, link: Link, q: Question) -> None:
+        session = self.hub.sessions.get(link.unit)
+        if session is not None and (session.pending_question or {}).get("interrupt_id") == q.interrupt_id:
+            session.pending_question = None
+
+    # ------------------------------------------------------------------------------------------------- the pane's own turns
+    def _open_pane_turn(self, link: Link, user_text: Optional[str] = None, run_id: str = "", close: Optional[Question] = None) -> None:
+        """An island turn for a Hermes turn the island did not start: typed in the pane (its user text from the history), or the
+        rest of a turn whose question the pane answered (the same run, so the island takes it as its continuation)."""
+        held = Sink(pending=True)
+        link.sink = held
+        asyncio.ensure_future(self._pane_turn(link, held, user_text, run_id, close))
+
+    async def _pane_turn(self, link: Link, held: Sink, user_text: Optional[str], run_id: str, close: Optional[Question]) -> None:
+        from ..agent.turns import Turn, TurnStream
+        hub = self.hub
+        unit = link.unit
+        if user_text is None and close is None:
+            user_text = await self._last_user_text(link)
+        socket = hub.socket_for(unit)
+        session = hub._session(unit)
+        tid = f"pane_{uuid.uuid4().hex[:12]}"
+        turn = Turn(unit, tid, run_id or str(uuid.uuid4()))
+        turn.socket = socket  # type: ignore[attr-defined]
+        turn.detached = socket is None
+        turn.task = asyncio.current_task()
+        stream = TurnStream(socket, turn)
+        turn.stream = stream
+        session.turns[tid] = turn
+        session.last_turn_id = tid
+        previous, session.current = session.current, turn
+        bubble_id = f"{tid}:agent"
+        steps: list = []
+        sink = Sink(socket, session, turn, stream, bubble_id, steps, done=asyncio.get_running_loop().create_future(),
+                    asked=asyncio.Event())
+        status = "completed"
+        try:
+            if socket is not None:
+                try:
+                    await socket.notify("agent.turn.started", {"session_id": unit, "turn_id": tid, "run_id": turn.run_id,
+                                                               "origin": "pane", "user_text": user_text or ""})
+                except Exception:  # noqa: BLE001 - the client went away: the journal keeps the turn for attach
+                    turn.detached = True
+            await stream.emit_quietly({"type": "run_status", "run_id": turn.run_id, "status": "in_progress"})
+            if close is not None:
+                await stream.emit_quietly({"bubble_id": close.bubble_id, "input_type": "", "actions": [],
+                                           "content": {"set": f"{close.body}\n\n{ANSWERED_ELSEWHERE}"}})
+            await stream.emit_quietly({"bubble_id": bubble_id, "loader": {"visible": True, "texts": ["Thinking..."], "rotate_ms": 2000}})
+            if link.sink is held:
+                self._bind(link, sink)
+                await self._flush(link, held)
+            elif not held.buffer:
+                sink.done.set_result("completed")
+            status = await self._wait(link, sink)
+        except asyncio.CancelledError:
+            status = "cancelled"
+        except Exception:  # noqa: BLE001 - the turn must end for the client
+            log.exception("the pane's turn %s could not be shown", tid)
+            status = "failed"
+        finally:
+            if session.current is turn and previous is not None and previous.status == "running":
+                session.current = previous
+            await hub._finish(turn.stream.socket if turn.stream.socket is not None else _NoSocket(), session, turn, stream,
+                              bubble_id, steps, status)
+
+
+class _NoSocket:
+    async def notify(self, method, params):
+        raise ConnectionError("no client")
+
+
+def _refusal(code: str, message: str, help_: list) -> dict:
+    return {"state": "complete", "result": {"ok": False, "code": code, "status_code": 409, "message": message, "help": help_}}
+
+
+__all__ = ["HermesFront", "Link", "Question", "Sink", "approval_choice", "step_label", "tool_name"]

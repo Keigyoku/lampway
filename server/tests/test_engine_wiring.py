@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The engine in production (docs/reports/agent-modes-spec.md E1.2-E1.5, E1.3's start-up check): how ``create_app`` puts Hermes in
-Mode 1's seat. No engine runs here (a fake build record is enough to select one); the live turn is test_engine_wiring_live.py."""
+"""The engine in production (docs/reports/agent-modes-spec.md A1-A3, E1.3-E1.5, E1.3's start-up check): how ``create_app`` puts
+Hermes in Mode 1's seat, every agent a pane. No engine runs here (a stand-in build is enough to select one); the live turns are
+test_engine_pane_live.py."""
 
 import asyncio
 import json
@@ -18,17 +19,28 @@ from lampway_server.app import create_app
 from lampway_server.engine import gateway as GW
 from lampway_server.engine import hermes_config as HC
 from lampway_server.engine import proxy as PX
-from lampway_server.engine import runtime as R
 from lampway_server.engine import wiring as W
+from lampway_server.engine.front import HermesFront
+from lampway_server.engine.units import Mode1Units
+
+from .mode1_support import fake_engine, mcp_entry
 
 BASE = "http://127.0.0.1:8787"
 
 
 def fake_build(root: Path) -> Path:
-    build = root / "hermes" / "v0-test"
-    build.mkdir(parents=True)
-    (build / "engine.json").write_text(json.dumps({"engine": "hermes", "tag": "v0-test", "entry": "env/bin/hermes-acp", "source": "src"}))
+    fake_engine(root)
     return root
+
+
+def test_find_engine_reads_only_finished_builds(tmp_path):
+    assert W.find_engine(tmp_path) is None
+    unfinished = tmp_path / "hermes" / "v1"
+    unfinished.mkdir(parents=True)
+    assert W.find_engine(tmp_path) is None
+    (unfinished / "engine.json").write_text('{"engine": "hermes", "tag": "v1", "entry": "env/bin/hermes", "source": "src"}')
+    found = W.find_engine(tmp_path)
+    assert found["tag"] == "v1" and found["entry_path"] == str(unfinished / "env/bin/hermes")
 
 
 @pytest.fixture
@@ -80,50 +92,75 @@ def test_a_server_not_reachable_on_loopback_keeps_the_built_in_loop(no_repo_buil
 # ---------------------------------------------------------------------------------------------------- the app with the engine selected
 @pytest.fixture
 def engine_app(no_repo_build, settings, provider, tmp_path, monkeypatch):
+    import sys
     monkeypatch.setenv(W.SWITCH, "hermes")
     monkeypatch.setenv("LAMPWAY_ENGINES_DIR", str(fake_build(tmp_path / "engines")))
+    monkeypatch.setenv("LAMPWAY_NODE", sys.executable)                     # a stand-in Node: nothing runs it here
     return create_app(settings, provider=provider)
 
 
-def test_the_lifespan_starts_the_proxy_and_the_runtime_and_stops_them(engine_app, monkeypatch):
+def test_the_lifespan_starts_the_proxy_and_the_panes_front_and_stops_them_ending_no_pane(engine_app, monkeypatch):
     killed = []
-    monkeypatch.setattr(R.EngineRuntime, "kill_all", lambda self: killed.append(self))
+    import os
+    monkeypatch.setattr(os, "kill", lambda pid, sig: killed.append(pid))
+    monkeypatch.setattr(os, "killpg", lambda pid, sig: killed.append(pid))
     assert engine_app.state.engine_wiring is not None and engine_app.state.agent.engine is None
+    cockpit = engine_app.state.agent.cockpit
     with TestClient(engine_app, base_url=BASE):
-        rt = engine_app.state.agent.engine
-        assert isinstance(rt, R.EngineRuntime)
-        assert rt.gateway_url == f"{BASE}/engine/v1" and rt.mcp_url_for("s1") == f"{BASE}/engine/mcp/s1"
-        assert rt.proxy_url.startswith("http://127.0.0.1:") and PX._DEFAULT is not None
-        assert PX._DEFAULT.gateway_ports == {8787}
-        assert rt.config_writer is not None and rt.engine["tag"] == "v0-test"
-    assert killed == [rt] and PX._DEFAULT is None
+        front, wiring = engine_app.state.agent.engine, engine_app.state.engine_wiring
+        assert isinstance(front, HermesFront) and isinstance(front.units, Mode1Units) and cockpit.mode1 is front.units
+        assert front.units.gateway_url == f"{BASE}/engine/v1" and front.units.base == BASE
+        assert PX._DEFAULT is not None and PX._DEFAULT.gateway_ports == {8787}
+        port = PX._DEFAULT._server.sockets[0].getsockname()[1]
+        assert front.units.proxy_vars["HTTPS_PROXY"] == f"http://127.0.0.1:{port}" and front.units.proxy_vars["NO_PROXY"] == "127.0.0.1"
+        assert front.units.engine["tag"] == "v0-test"
+    assert engine_app.state.agent.engine is None and cockpit.mode1 is None and PX._DEFAULT is None
+    assert killed == [], "shutdown ends no pane and no serve: they outlive the server (law 5, A1)"
 
 
-def test_a_childs_model_token_is_the_gateways_and_is_revoked_when_the_child_stops(engine_app):
+def test_the_proxy_keeps_its_port_across_a_restart_so_panes_that_outlived_the_server_still_reach_it(engine_app, settings):
     with TestClient(engine_app, base_url=BASE):
-        rt, reg = engine_app.state.agent.engine, engine_app.state.engine_tokens
-        first = rt.model_token_for("s1")
-        assert reg.session_for(first) == "s1"
-        second = rt.model_token_for("s1")                       # a restarted child: the dead one's token goes
-        assert reg.session_for(first) is None and reg.session_for(second) == "s1"
-        es = rt._session("s1")
-        es.model_token, es.proc = second, SimpleNamespace(returncode=0)
-        asyncio.run(rt.stop("s1"))
-        assert reg.session_for(second) is None
+        first = PX._DEFAULT._server.sockets[0].getsockname()[1]
+    again = create_app(settings)
+    again.state.engine_wiring = W.EngineWiring(engine_app.state.engine_wiring.engine, settings=settings, agent=again.state.agent,
+                                               registry=again.state.engine_tokens)
+    asyncio.run(_start_stop(again.state.engine_wiring))
+    assert again.state.engine_wiring.proxy_port_seen == first
 
 
-def test_the_childs_config_is_written_from_the_active_board_and_the_clients_backend_option(engine_app, tmp_path):
+async def _start_stop(wiring):
+    await wiring.start()
+    wiring.proxy_port_seen = PX._DEFAULT._server.sockets[0].getsockname()[1]
+    await wiring.stop()
+
+
+def test_a_panes_model_token_is_the_gateways_and_dies_when_its_prepare_is_abandoned(engine_app):
+    with TestClient(engine_app, base_url=BASE):
+        units, reg = engine_app.state.agent.engine.units, engine_app.state.engine_tokens
+        first = units.prepare(rid="r1", unit="s1", role="main", cwd="/proj", project_root="/proj")
+        token = next(ln.split('"')[1] for ln in (Path(first["home"]) / "config.yaml").read_text().splitlines() if ln.startswith("  api_key:"))
+        assert reg.session_for(token) == "s1" and token.startswith("lwe_")
+        second = units.prepare(rid="r2", unit="s1", role="main", cwd="/proj", project_root="/proj")      # a reopened pane
+        token2 = second["_gateway_token"]
+        assert reg.session_for(token) is None and reg.session_for(token2) == "s1", "one live key per pane"
+        units.abandon(second)
+        assert reg.session_for(token2) is None
+
+
+def test_the_panes_config_is_written_from_the_active_board_and_the_clients_backend_option(engine_app, tmp_path):
     from .fake_client import FakeMixarClient
     with TestClient(engine_app, base_url=BASE) as http:
         fake = FakeMixarClient(http, password="correct-horse")
         fake.login()
         assert fake.put("/app/capabilities/terminal", json={"enabled": True, "options": {"backend": "docker"}}).status_code == 200
-        rt = engine_app.state.agent.engine
+        wiring = engine_app.state.engine_wiring
         home = tmp_path / "state" / "agent" / "hermes" / "s1"
-        rt.config_writer(home, rt.gateway_url, "lwe_tok", "lampway")
+        wiring.write_config(home, f"{BASE}/engine/v1", "lwe_tok", "lampway", mcp_url=f"{BASE}/engine/mcp/s1",
+                            mcp_headers={"Authorization": "Bearer b"})
         text = (home / "config.yaml").read_text()
     assert 'backend: "docker"' in text and '- "terminal"' in text and f'base_url: "{BASE}/engine/v1"' in text
     assert f'url: "{BASE}/engine/v1/models-dev.json"' in text
+    assert mcp_entry(home) == (f"{BASE}/engine/mcp/s1", {"Authorization": "Bearer b"})
 
 
 def test_a_worker_config_drops_what_a_worker_may_never_do(engine_app, tmp_path):
@@ -131,10 +168,10 @@ def test_a_worker_config_drops_what_a_worker_may_never_do(engine_app, tmp_path):
         board = CAP.ACTIVE
         for cid in ("subagents", "schedule", "computer.use", "memory", "swarm", "panes.drive", "messaging.*"):
             board.set(cid, enabled=True, by="user")
-        rt = engine_app.state.agent.engine
+        wiring = engine_app.state.engine_wiring
         scene, worker = tmp_path / "scene", tmp_path / "worker"
-        rt.config_writer(scene, rt.gateway_url, "lwe_a", "lampway")
-        rt.config_writer(worker, rt.gateway_url, "lwe_b", "lampway", worker=True)
+        wiring.write_config(scene, f"{BASE}/engine/v1", "lwe_a", "lampway")
+        wiring.write_config(worker, f"{BASE}/engine/v1", "lwe_b", "lampway", worker=True)
         s, w = (scene / "config.yaml").read_text(), (worker / "config.yaml").read_text()
         view = W.WorkerBoard(board)
         assert not any(view.effective(c)[0] for c in ("subagents", "swarm", "schedule", "panes.drive", "computer.use",
@@ -143,16 +180,20 @@ def test_a_worker_config_drops_what_a_worker_may_never_do(engine_app, tmp_path):
     for toolset in ("delegation", "cronjob", "computer_use"):
         assert f'- "{toolset}"' in s.split("disabled_toolsets")[0] and f'- "{toolset}"' not in w.split("disabled_toolsets")[0]
     assert '- "memory"' in w.split("disabled_toolsets")[0]
+    assert '- "clarify"' in s.split("disabled_toolsets")[0] and '- "clarify"' not in w.split("disabled_toolsets")[0], \
+        "a worker never asks the user (S2)"
 
 
-# ---------------------------------------------------------------------------------------------------- one child environment
-def test_one_child_environment_with_an_empty_managed_dir_and_loopback_only_no_proxy(tmp_path):
-    env = R.child_env(tmp_path / "h", "http://127.0.0.1:9999", base_env={"PATH": "/usr/bin", "HERMES_MANAGED_DIR": "/etc/hermes"})
-    managed = Path(env["HERMES_MANAGED_DIR"])
-    assert managed.is_dir() and not any(managed.iterdir()) and managed.parent == tmp_path / "h"
-    assert env["NO_PROXY"] == env["no_proxy"] == "127.0.0.1"
-    proxy_vars = PX.child_env(9999)
-    assert {k: env[k] for k in proxy_vars} == proxy_vars                       # one source of truth for the proxy variables
+# ---------------------------------------------------------------------------------------------------- one pane environment
+def test_a_panes_proxy_variables_are_the_proxys_one_source(engine_app, tmp_path):
+    with TestClient(engine_app, base_url=BASE):
+        units = engine_app.state.agent.engine.units
+        prepared = units.prepare(rid="r1", unit="s1", role="main", cwd="/proj", project_root="/proj")
+        spec = json.loads((Path(prepared["home"]) / "pane.json").read_text())
+        port = PX._DEFAULT._server.sockets[0].getsockname()[1]
+        assert spec["env"] == PX.child_env(port), "one source of truth for the proxy variables: NO_PROXY the gateway's loopback host"
+        managed = Path(prepared["home"]) / "managed"
+        assert managed.is_dir() and not any(managed.iterdir()), "an empty managed dir: no /etc/hermes overrides the config"
 
 
 # ---------------------------------------------------------------------------------------------------- the gateway's two additions
@@ -213,25 +254,25 @@ def test_the_first_chat_with_tools_is_checked_and_a_mismatch_refuses_the_session
               headers={"Authorization": f"Bearer {ok_token}"})
     assert len(seen) == 2                                                  # only the first request with tools is checked
 
-
 def test_the_wiring_check_uses_check_advertised_against_the_board_the_config_came_from(engine_app, tmp_path):
     with TestClient(engine_app, base_url=BASE):
         wiring = engine_app.state.engine_wiring
-        rt = engine_app.state.agent.engine
-        rt.config_writer(tmp_path / "h", rt.gateway_url, "lwe_x", "lampway")
+        wiring.write_config(tmp_path / "h", f"{BASE}/engine/v1", "lwe_x", "lampway")
         allowed = [_tool(n) for n in sorted(HC.expected_tools(CAP.ACTIVE, CAP.project()))] + [_tool("mcp__lampway__scene_summary")]
         assert wiring.check("s1", "lwe_x", allowed) is None
+        assert wiring.check("s1", "lwe_x", allowed + [_tool("clarify")]) is None, "a main agent asks the island (A2)"
         refusal = wiring.check("s1", "lwe_x", allowed + [_tool("terminal")])
         assert refusal and "terminal" in refusal and "Capabilities" in refusal
         CAP.ACTIVE.set("subagents", enabled=True, by="user")
-        rt.config_writer(tmp_path / "w", rt.gateway_url, "lwe_w", "lampway", worker=True)
+        wiring.write_config(tmp_path / "w", f"{BASE}/engine/v1", "lwe_w", "lampway", worker=True)
         assert "delegate_task" in wiring.check("w1", "lwe_w", allowed + [_tool("delegate_task")])
-        assert wiring.check("s1", "lwe_other", allowed + [_tool("delegate_task")]) is None   # a scene child: subagents is chosen
+        assert "clarify" in wiring.check("w1", "lwe_w", allowed + [_tool("clarify")]), "a worker never asks (S2)"
+        assert wiring.check("s1", "lwe_other", allowed + [_tool("delegate_task")]) is None   # a scene pane: subagents is chosen
 
 
 def test_the_gateway_is_answered_by_the_current_main_provider(settings, provider):
-    """The engine's hidden swarm workers, with a provider of their own, are gone (spec A5): every engine child is answered by the
-    current main provider, whatever its session."""
+    """The engine's hidden swarm workers, with a provider of their own, are gone (spec A5): every pane is answered by the current
+    main provider, whatever its session."""
     agent = SimpleNamespace(provider=provider, engine=None)
     get = W.provider_getter(agent)
     assert get() is provider and get("s1") is provider
@@ -242,18 +283,15 @@ def test_the_gateway_is_answered_by_the_current_main_provider(settings, provider
     assert get("s1") is other, "the provider is read at call time, not captured"
 
 
-def test_idle_children_are_reaped_on_the_tick(engine_app):
+def test_the_tick_ends_no_pane(engine_app, monkeypatch):
+    """Nothing is reaped: every agent is a pane, and a pane ends only by the user (A0, law 5)."""
     with TestClient(engine_app, base_url=BASE):
-        rt = engine_app.state.agent.engine
-        reaped = []
-
-        async def reap_idle(now=None):
-            reaped.append(now)
-            return 0
-
-        rt.reap_idle = reap_idle
+        cockpit = engine_app.state.agent.cockpit
+        asked = []
+        monkeypatch.setattr(cockpit, "close_session", lambda *a, **k: asked.append(a))
+        monkeypatch.setattr(cockpit, "end_swarm_pane", lambda *a, **k: asked.append(a))
         asyncio.run(engine_app.state.engine_wiring.tick())
-    assert reaped == [None]
+    assert asked == []
 
 
 def test_the_engine_config_says_whether_the_model_sees_images(settings, provider):

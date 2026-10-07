@@ -1,20 +1,24 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The engine's Hermes config, from the user's capability choices (docs/reports/agent-modes-spec.md E1.3, E1.10, E2).
+"""The engine's Hermes config, from the user's capability choices (docs/reports/agent-modes-spec.md E1.3, E1.10, E2, A1).
 
-Captain, 2026-10-06: "Nothing is removed; everything is chosen." Each engine child (``hermes acp``, one per scene tab, E1.2) runs
-with ``HERMES_HOME=<state_dir>/agent/hermes/<session_id>``; before it starts, Lampway writes that home's ``config.yaml`` here:
+Captain, 2026-10-06: "Nothing is removed; everything is chosen." Each Mode 1 pane (``hermes serve`` plus Hermes's own TUI, spec A1)
+runs with ``HERMES_HOME=<state_dir>/agent/hermes/<unit>`` (a worker's under ``<unit>/workers/``); before it starts, Lampway writes
+that home's ``config.yaml`` here:
 
 * **The model is Lampway's gateway only** (E1.3, E1.4, E1.10): ``model.provider: custom`` with the gateway's loopback ``base_url``,
   the per-process token as ``api_key`` and the model id as ``default``; no other provider, no fallback chain, no ``auth.json``,
   and Hermes's adoption of other apps' logins (Codex CLI, Claude Code) switched off.
-* **The ACP platform's toolsets are exactly the Hermes toolsets of the capabilities in force** (``platform_toolsets.acp``), every
-  other known Hermes toolset is named in ``agent.disabled_toolsets`` as well, and memory, skill writing and the curator follow
-  their capabilities. Lampway's own tools are not Hermes toolsets: they arrive as the session's MCP server (ACP ``new_session``),
-  which Hermes adds as ``mcp-<server>`` after the platform list is resolved, so they stay enabled whatever the choices.
-* **Every outbound check Hermes lets config switch off is off** (update checks, telemetry, the remote model catalog, lazy
-  installs, language-server installs, the Nous tool gateway's connectors); models.dev, which has no off switch, is pointed at
-  the gateway. What config cannot switch off, the engine's egress proxy (E1.5) still refuses.
+* **The serve platform's toolsets are exactly the Hermes toolsets of the capabilities in force** (``platform_toolsets.cli``: the
+  key ``hermes serve`` and its TUI read, tui_gateway/server.py:1939 at the pin), plus ``clarify`` for a main agent (its questions
+  are the island's, spec A2; a worker never asks, S2). Every other known Hermes toolset, and the client-surface toolsets serve
+  folds in for a GUI, are named in ``agent.disabled_toolsets`` as well; memory, skill writing and the curator follow their
+  capabilities. Lampway's own tools are the ONE config-declared MCP server, ``lampway`` (the unit's ``/engine/mcp/<unit>``, or a
+  worker's pane endpoint, with its bearer), which no choice hides.
+* **Every outbound check Hermes lets config switch off is off** (update checks, telemetry, the remote model catalog, the Nous guest
+  bootstrap, lazy installs, language-server installs, the Nous tool gateway's connectors); models.dev, which has no off switch, is
+  pointed at the gateway; approvals are the user's (``manual``), never a guardian model's. What config cannot switch off, the
+  engine's egress proxy (E1.5) still refuses (measured 2026-10-07 on the pinned serve: zero external requests).
 * **Context is Hermes's** (captain, Q3): compression, the context engine and tool search stay at Hermes's defaults unless the
   caller passes ``context``, which is written through (but can never reach the model route or a choice).
 
@@ -91,9 +95,19 @@ KNOWN_TOOLSETS = ("web", "browser", "terminal", "file", "code_execution", "visio
                   "tts", "skills", "todo", "kanban", "memory", "context_engine", "session_search", "connections", "clarify",
                   "delegation", "cronjob", "homeassistant", "spotify", "discord", "discord_admin", "yuanbao", "computer_use")
 
+#: The platform ``hermes serve`` resolves a session's toolsets on (tui_gateway/server.py:1939 ``_get_platform_tools(cfg, "cli")``).
+PLATFORM = "cli"
+#: The client-surface toolsets serve folds into a session whatever its config (tui_gateway/server.py:1842-1858, toolsets.py:74
+#: ``CLIENT_SURFACE_TOOLSETS``): GUI-only, never Lampway's pane.
+SURFACE_TOOLSETS = ("project", "desktop_ui")
+#: The main agent's question tool (toolsets.py:159): its call reaches every attached client as a ``clarify`` server request, the
+#: island's question (spec A2). Allowed for a main agent, never chosen, so its absence is no mismatch; a worker never asks (S2).
+ASK_TOOLSET = "clarify"
+ASK_TOOLS = ("clarify",)
+
 #: Hermes's largest timeout before it clamps: agent/deadline.py:38 ``MAX_SAFE_TIMEOUT_S`` (one year), applied by
 #: ``clamp_timeout`` at :111 to every ``timeouts.*`` value (``resolve_timeout``, :138-163). Lampway's MCP tools run Blender
-#: scripts for up to 600 s and ``ask_user`` holds its call until the user answers, so the call timeout is that bound.
+#: scripts for up to 600 s and a swarm's collect waits for its workers, so the call timeout is that bound.
 MCP_TOOL_CALL_TIMEOUT_S = 31_536_000
 
 #: The tool_search bridge (tools/tool_search_catalog.py:18-21). Its tools reach only deferred tools, which its description lists.
@@ -180,18 +194,22 @@ def _deep_merge(base, override):
 
 def render(capabilities, project, gateway_base_url, gateway_token, model_id, *, context: Optional[dict] = None,
            routes_on: Optional[Callable] = None, models_dev_url: Optional[str] = None,
-           supports_vision: Optional[bool] = None) -> dict:
-    """The engine child's ``config.yaml`` as a dict. ``capabilities`` is the board (``capabilities.Store``), ``project`` the
-    project whose choices apply, ``routes_on`` the egress routes' state (default: the active egress manager)."""
+           supports_vision: Optional[bool] = None, mcp_url: Optional[str] = None, mcp_headers: Optional[dict] = None,
+           asks_user: bool = True) -> dict:
+    """The Mode 1 pane's ``config.yaml`` as a dict. ``capabilities`` is the board (``capabilities.Store``), ``project`` the
+    project whose choices apply, ``routes_on`` the egress routes' state (default: the active egress manager). ``mcp_url`` and
+    ``mcp_headers`` are Lampway's one MCP server for this pane (the unit's endpoint, or a worker's pane endpoint, with its bearer);
+    ``asks_user`` is False for a swarm worker, which never asks (spec S2)."""
     base_url = _loopback_url(gateway_base_url, "model gateway")
     if not gateway_token or not str(gateway_token).strip():
         raise Refused("refused: the engine needs its per-process gateway token")
     if not model_id or not str(model_id).strip():
         raise Refused("refused: the engine needs a model id")
     md_url = _loopback_url(models_dev_url, "models.dev mirror") if models_dev_url else base_url.rstrip("/") + "/models-dev.json"
+    lampway_mcp = _loopback_url(mcp_url, "Lampway MCP endpoint") if mcp_url else None
 
     in_force = _in_force(capabilities, project, routes_on)
-    toolsets = _toolsets(in_force)
+    toolsets = _toolsets(in_force) + ([ASK_TOOLSET] if asks_user else [])
     memory = "memory" in in_force
     skills_write = "skills.write" in in_force
 
@@ -206,11 +224,12 @@ def render(capabilities, project, gateway_base_url, gateway_token, model_id, *, 
         # config_defaults.py:1718-1726: never borrow the Codex CLI or Claude Code logins (E1.10, B0).
         "auth": {"adopt_external_logins": False},
         # tools_config.py:576-633 ``_get_platform_tools``: an explicit list of configurable keys is the whole set
-        # (``_explicit_toolsets``, :506-521); ``no_mcp`` (:685-686) leaves out config-declared MCP servers. The session's own
-        # MCP servers are appended after (acp_adapter/session.py:103-107, acp_adapter/server.py:449-452).
-        "platform_toolsets": {"acp": toolsets + ["no_mcp"]},
-        # tools_config.py:622-629 and model_tools.py:334-339: subtracted last, at tool granularity.
-        "agent": {"disabled_toolsets": sorted(set(KNOWN_TOOLSETS) - set(toolsets))},
+        # (``_explicit_toolsets``, :506-521); serve reads the ``cli`` platform (tui_gateway/server.py:1939) with the
+        # config-declared MCP servers included, so no ``no_mcp`` (:685-686): Lampway's own server is declared below.
+        "platform_toolsets": {PLATFORM: toolsets},
+        # tools_config.py:622-629 and model_tools.py:334-339: subtracted last, at tool granularity; the client-surface toolsets
+        # serve folds in (tui_gateway/server.py:1842-1858) are subtracted the same way.
+        "agent": {"disabled_toolsets": sorted((set(KNOWN_TOOLSETS) | set(SURFACE_TOOLSETS)) - set(toolsets))},
         # config_defaults.py:1289-1305, read by agent/agent_init.py:1259-1296: the built-in store and the user profile follow
         # ``memory``; no external memory provider.
         "memory": {"memory_enabled": memory, "user_profile_enabled": memory, "provider": ""},
@@ -237,13 +256,25 @@ def render(capabilities, project, gateway_base_url, gateway_token, model_id, *, 
         "security": {"allow_lazy_installs": False},
         # config_defaults.py:2373-2375: language-server installs through npm, go or pip.
         "lsp": {"install_strategy": "manual"},
+        # config_defaults.py:2625: the Nous free-tier guest bootstrap (measured: serve installs boto3 and edge-tts for it).
+        "nous": {"guest": False},
+        # config_defaults.py:1642-1657: the default ``smart`` asks a guardian model; ``manual`` asks the user, in the pane and
+        # the island (spec A2: an ``approval`` server request to every client, first answer wins).
+        "approvals": {"mode": "manual"},
     }
+    terminal = {"cwd": str(project)} if project else {}               # config_defaults.py:284: the agent's working directory (A1)
     if "terminal" in in_force:
         # config_defaults.py:277-278: the terminal backend is the capability's option (E2).
         chosen = (capabilities.setting("terminal", project).get("options") or {}).get("backend", "local")
         if chosen not in CAP.get("terminal").options:
             raise Refused(f"refused: the terminal backend is one of {', '.join(CAP.get('terminal').options)}, not {chosen!r}")
-        cfg["terminal"] = {"backend": chosen}
+        terminal["backend"] = chosen
+    if terminal:
+        cfg["terminal"] = terminal
+    if lampway_mcp:
+        # Lampway's tools (spec A3): the one MCP server this pane declares, reached on loopback with its own bearer. Hermes names
+        # its tools mcp__lampway__<tool> and may defer them behind tool_search (measured 2026-10-07).
+        cfg["mcp_servers"] = {"lampway": {"url": lampway_mcp, "headers": {str(k): str(v) for k, v in (mcp_headers or {}).items()}}}
     _merge_context(cfg, context)
     return cfg
 
@@ -312,13 +343,25 @@ def _users_hermes_home() -> Path:
     return Path.home().expanduser().resolve() / ".hermes"
 
 
-def write(home_dir, capabilities, project, gateway_base_url, gateway_token, model_id, **kw) -> Path:
-    """Write ``<home_dir>/config.yaml`` (0600) in a 0700 home and return its path. Never the user's own Hermes (E1.10)."""
+def serve_toolsets(config: dict) -> list:
+    """The serve session's whole toolset list, for ``HERMES_TUI_TOOLSETS``: the chosen platform toolsets and Lampway's MCP server.
+    Measured on the pinned serve (2026-10-07): it folds the client-surface toolset ``project`` (``desktop_project``) into every TUI
+    session after ``agent.disabled_toolsets`` is applied, which the start-up check then refuses; an operator pin replaces that
+    fold-in (tui_gateway/server.py:1906-1930 ``_load_enabled_toolsets``). The MCP server is named so its tools stay in."""
+    return list(config["platform_toolsets"][PLATFORM]) + sorted(config.get("mcp_servers") or {})
+
+
+def write(home_dir, capabilities, project, gateway_base_url, gateway_token, model_id, *, rendered: Optional[dict] = None, **kw) -> Path:
+    """Write ``<home_dir>/config.yaml`` (0600) in a 0700 home and return its path. Never the user's own Hermes (E1.10).
+    ``rendered``, when given, receives the config as a dict (``serve_toolsets`` reads it)."""
     home = Path(home_dir).expanduser().resolve()
     theirs = _users_hermes_home()
     if home == theirs or theirs in home.parents:
         raise Refused(f"refused: {home} is the user's own Hermes home; Lampway's engine never reads or writes it (E1.10)")
-    text = to_yaml(render(capabilities, project, gateway_base_url, gateway_token, model_id, **kw))
+    config = render(capabilities, project, gateway_base_url, gateway_token, model_id, **kw)
+    if rendered is not None:
+        rendered.update(config)
+    text = to_yaml(config)
     home.mkdir(parents=True, exist_ok=True, mode=0o700)
     home.chmod(0o700)
     path, tmp = home / "config.yaml", home / ".config.yaml.lampway-tmp"
@@ -394,17 +437,20 @@ def deferred_listing(tools) -> tuple:
     return names, frozenset(groups)
 
 
-def check_advertised(tools, capabilities, project, *, mcp_servers=("lampway",), routes_on: Optional[Callable] = None) -> list:
+def check_advertised(tools, capabilities, project, *, mcp_servers=("lampway",), routes_on: Optional[Callable] = None,
+                     asks_user: bool = True) -> list:
     """E1.3's start-up check. ``tools`` is the tool list the model is sent (OpenAI tool dicts, or bare names when no bridge is
-    involved). Returns the mismatches; ``refuses(...)`` says whether the session must be refused."""
+    involved). Returns the mismatches; ``refuses(...)`` says whether the session must be refused. ``asks_user``: a main agent's
+    ``clarify`` is allowed (never chosen, so never missing); a worker's is refused (spec S2)."""
     tools = list(tools)
     allowed = frozenset(expected_tools(capabilities, project, routes_on))
+    asking = frozenset(ASK_TOOLS) if asks_user else frozenset()
     prefixes = tuple(f"mcp__{s}__" for s in mcp_servers)
     visible = [_name(t) for t in tools]
     out = []
 
     def judge(name: str, where: str) -> None:
-        if name in allowed or name.startswith(prefixes):
+        if name in allowed or name in asking or name.startswith(prefixes):
             return
         out.append(Mismatch("unexpected", name, f"{name} ({where}) is not allowed by the capabilities in force"))
 

@@ -29,9 +29,11 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
 4. **MCP offers no spend.** `mcp.py` `offered_tools()` is the scene tools, the `DEFS` tools that are one script in Blender, and the
    read-only server tools. Studio tools, the swarm and `ask_user` are never offered to external apps, and a `swarm:` session header
    on their route is refused (a binding is not a credential). The engine's own endpoint
-   (`engine/mcp_endpoint.py`, `/engine/mcp/<session_id>`, spec E1.6) is not an external app: it is the in-app agent, loopback only
-   and bound to one session's token, and offers the agent's full registry as Capabilities allow, every call through
-   `AgentHub._run_tool`; it has no confirm path either (law 3).
+   (`engine/mcp_endpoint.py`, `/engine/mcp/<unit>`, spec E1.6, A3) is not an external app: it is the in-app agent's, the Hermes of
+   one unit's Mode 1 pane, loopback only and bound to that unit's bearer (in the pane's own 0600 config; the server keeps its digest),
+   and offers the agent's full registry as Capabilities allow less `ask_user` (questions are Hermes's own `clarify`, A2), every call
+   through `AgentHub._run_tool` on the scene tab's CURRENT client socket (`AgentHub.socket_for`), whoever started the turn; with no
+   Lampway window connected the call is refused, saying so. It has no confirm path either (law 3).
    The pane endpoint (`/api/v1/mcp/pane`, spec S3) is not an external app either: loopback only, it answers only a pane Lampway
    started on its own herdr server, proven by that pane's own bearer, which lives only in the pane's own 0600 config or its
    environment, handed to herdr like a per-pane API key (never the registry, which keeps a hash, and never the harness's command
@@ -61,10 +63,25 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    no worker thinks inside this server or as a hidden child), and the unit's mode picks the adapter its pane starts through
    (`harnesses.worker_adapter`, decided in `SwarmManager.worker_brain` before any run is activated): Mode 2 (a bound pane, or a tab
    in Your agent mode) the parent pane's harness under its route; Mode 1 `lampway_hermes` (`harnesses.LAMPWAY_ADAPTERS`, Lampway's
-   own, never in the user's list), a stub until A1 is built, so a Mode 1 `swarm_start` is refused with the A1 help and nothing
-   runs another way. A worker's pane has its task on the harness's own command line (only where herdr starts the harness itself,
-   never typed into a shell) and no desktop launcher (its UI and scene-tab tools reach the user's scene); it cannot be bound to a
-   tab. The swarm ends only a pane whose record names it and that worker (`Cockpit.end_swarm_pane`): on cancel, failure or
+   own, never in the user's list), whose pane starts only on a server running the engine (the cockpit's `mode1` hook), so
+   elsewhere a Mode 1 `swarm_start` is refused with that help and nothing runs another way. A Mode 2 worker's pane has its task on
+   the harness's own command line (only where herdr starts the harness itself, never typed into a shell); a Mode 1 worker's task is
+   in its home (0600) and the server submits it as its session's first prompt (S2). No worker pane has a desktop launcher (its UI
+   and scene-tab tools reach the user's scene); it cannot be bound to a tab.
+   **Mode 1's pane (spec A1, `engine/units.py`, `engine/hermes_pane.py`, `herdr/harnesses/lampway_hermes.py`).** A unit's main
+   agent and every Mode 1 worker is a `lampway_hermes` pane running Lampway's stdlib-only wrapper by path with the server's own
+   interpreter; the wrapper starts the pinned `hermes serve` (its own session, a per-unit lock dir, orphan grace 0, the pinned
+   toolset list, never `HERMES_DESKTOP`) and Hermes's own prebuilt TUI in the foreground (`HERMES_NODE`,
+   `HERMES_SKIP_NODE_BOOTSTRAP=1`: Node is found, never fetched), and reopens the TUI or restarts a stopped serve only on the user's
+   Enter. Before herdr is asked, `Mode1Units.prepare` writes the home `<state>/agent/hermes/<unit>` (a worker's under
+   `workers/`): `config.yaml` and `serve.token` (0600) and a `pane.json` with no secret. The argv is the wrapper and the home only,
+   one shell-quoted string for `pane run` (herdr joins its arguments unquoted); no token is ever on a command line, in herdr's argv
+   or in a record. The record keeps `home`, `port`, `token_file`, `stored_session_id` and the two tokens' digests (`MODE1_FIELDS`;
+   only `Cockpit.update_mode1` changes them), never `scene_session_id` (binding is Mode 2's; `ByoaView.bound` counts only a user's
+   harness). It has no egress route of its own (`route` None; the launch is `local` in `egress.LAUNCHES`): its model is the
+   gateway on loopback and every other host goes through the egress proxy. Opening a unit's pane is the user's own chat
+   (`HermesFront.precheck` refuses an agent's socket and never starts herdr); a restart re-adopts every live Lampway pane, its
+   tokens by their digests (`Mode1Units.adopt`), and the server's shutdown ends no pane. The swarm ends only a pane whose record names it and that worker (`Cockpit.end_swarm_pane`): on cancel, failure or
    timeout; a finished worker's pane stays open (closing ended ones at the next swarm, Q13, is not decided).
    The herdr view (spec A4, `herdr/layout.py`): a unit is one scene tab's conversation (its scene session id). A pane bound to a
    tab (created bound, or bound later) is its unit's `main` agent and opens in a tab of its own labelled with the scene's name
@@ -94,13 +111,17 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    own, scope by scope (`Store.setting`). Lampway's tool families are checked at call time by `capabilities.check_tool`
    for the in-app agent and for MCP clients; a capability that needs an egress route is in force only while that route is on.
    The engine's Hermes config is rendered from the same board (`engine/hermes_config.py`, spec E1.3): the model is the loopback
-   gateway only (`provider: custom`, no other provider, no adopted logins), the ACP toolsets are exactly those of the
-   capabilities in force, every outbound check Hermes lets config switch off is off, context stays Hermes's unless given, and it
-   is never written into the user's own `~/.hermes` (E1.10). `check_advertised` compares the tools the model is sent (visible
-   and deferred behind tool_search) with the choices; an unexpected or unlistable tool refuses the session.
-10. **The engine has two doors, both on loopback and both Lampway's** (docs/reports/agent-modes-spec.md E1.4, E1.5). `engine/gateway.py`
-    is the engine child's only model endpoint: loopback clients, a per-process bearer (`Registry.issue_token`, in memory, redacted by
-    `logredact.py`), answered by the current main provider and never by another; a provider's failure is an OpenAI-style error, not a retry.
+   gateway only (`provider: custom`, no other provider, no adopted logins), the serve platform's toolsets (`platform_toolsets.cli`,
+   pinned again by `HERMES_TUI_TOOLSETS`) are exactly those of the capabilities in force plus `clarify` for a main agent (never a
+   worker's), Lampway's one MCP server is declared with its bearer, every outbound check Hermes lets config switch off is off
+   (the Nous guest bootstrap and lazy installs included), approvals are `manual` (the user's, never a guardian model's), context
+   stays Hermes's unless given, and it is never written into the user's own `~/.hermes` (E1.10). `check_advertised` compares the
+   tools the model is sent (visible and deferred behind tool_search) with the choices; an unexpected or unlistable tool refuses
+   the session.
+10. **The engine has two doors, both on loopback and both Lampway's** (docs/reports/agent-modes-spec.md E1.4, E1.5, A1). `engine/gateway.py`
+    is the Mode 1 panes' only model endpoint: loopback clients, a per-pane bearer (`Registry.issue_token`, in memory as a digest,
+    adopted again by its digest after a restart, redacted by `logredact.py`), answered by the current main provider and never by
+    another; a provider's failure is an OpenAI-style error, not a retry; serve's Ollama probe (`POST /api/show`) gets a harmless 404.
     `engine/proxy.py` is its only way out: bound to loopback, it decides before it connects (the gateway's port; a host whose route is on
     and whose capability is in force; any host only with `web:any` and `web.browse`), writes a log row for every refusal and sends an allowed
     connection through `Egress.begin`. It is the one module that opens an outbound stream outside the httpx hook
@@ -108,13 +129,22 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     (`/engine/v1/models-dev.json`, loopback only, the model's name and window, no secret), because Hermes fetches it with no key.
     `engine/wiring.py` puts the engine in the seat only when `LAMPWAY_AGENT_ENGINE=hermes` and a finished build is found
     (`$LAMPWAY_ENGINES_DIR`, else `<repo>/build/engines`, else `<state_dir>/engines`), the server is on loopback, and says why in one
-    log line otherwise. Then the lifespan starts the proxy, each child gets a fresh gateway token (revoked when it stops), its config
-    from `hermes_config.write` and the active board (`worker=True`, the board less `WORKER_NEVER`, is kept for a Mode 1 worker's
-    Hermes pane, A1; the engine's hidden worker children are gone, A5, and the gateway answers every child with the main
-    provider), and one environment
-    (`runtime.child_env` with `proxy.proxy_vars`: `NO_PROXY` the gateway's loopback host only, `HERMES_MANAGED_DIR` an empty
-    directory in its home so no system `/etc/hermes` overrides the config); `check_advertised` runs on each token's first request
-    with tools and a mismatch refuses that child's requests; shutdown kills every child by PID, then stops the proxy.
+    log line otherwise. Then the lifespan starts the proxy (on its previous port when free, so panes that outlived the server still
+    reach it), makes `units.Mode1Units` the cockpit's `mode1` hook and `front.HermesFront` the hub's engine, and re-adopts the live
+    Lampway panes. Each pane gets a fresh gateway token (an older one for the same pane revoked), its config from
+    `hermes_config.write` and the active board (`worker=True`, the board less `WORKER_NEVER` and without clarify, for a Mode 1
+    worker's pane; the gateway answers every pane with the main provider), and one environment from the wrapper (`proxy.proxy_vars`
+    through `pane.json`: `NO_PROXY` the gateway's loopback host only, `HERMES_MANAGED_DIR` an empty directory in its home so no
+    system `/etc/hermes` overrides the config); `check_advertised` runs on each token's first request with tools and a mismatch
+    refuses that pane's requests. Shutdown closes this server's connections to the panes and stops the proxy; it ends no pane.
+11. **The island is a client of the pane, never its host** (spec A2, `engine/front.py`, `engine/serve_client.py`). Mode 1's front
+    end speaks serve's JSON-RPC on `ws://127.0.0.1:<port>/api/ws` (loopback only, never through a proxy) beside the TUI: `agent.chat`
+    is `image.attach_bytes` per image then `prompt.submit` with R3's blocks; a chat while a turn runs is `session.steer`;
+    `agent.cancel` is `session.interrupt`; serve's events are the turn's slots; `clarify` and `approval` server requests are the
+    island's question and permission cards, closed by the island itself when the pane answers first (no `request.cancel` comes); a
+    turn typed in the pane is an island turn (`agent.turn.started` with `origin: pane`); `/new` in the pane is followed; a dropped
+    connection catches up from `session.events.since` (else the history); the island's socket closing stops nothing in Hermes.
+    The M0 `wrong_mode` refusal comes first, before any of it.
 
 ## Test
 
@@ -124,14 +154,20 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
 .venv/bin/python -m pytest -q tests                            # the whole suite: no Blender, no network, no model
 ```
 
-`tests/test_engine_hermes_config.py` also runs the built engine (`build/engines/hermes/<tag>/env/bin/hermes-acp`, or
-`$LAMPWAY_HERMES_ENGINE`) against a fake loopback model behind a refusing proxy; without the engine or the ACP SDK those tests
-SKIP, which is not a pass. `tests/test_engine_wiring_live.py` and `tests/test_engine_conformance.py` run the built engine in the real
-server (`LAMPWAY_ENGINES_DIR=<a dir holding hermes/<tag>/engine.json>`); the same rule holds for their skips. The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a paid
-or egress path is tested against a fake transport, never a live provider, unless the captain named the spend.
+Mode 1 without an engine: `tests/test_engine_front.py` drives the hub's front end against `tests/serve_support.py` `FakeServe`, a
+scripted `/api/ws` peer speaking the contract measured on the pinned serve, with the real server on a real port and the client's
+own frames; `tests/test_engine_pane.py` holds the adapter, the wrapper (against a stand-in `hermes`), `Mode1Units` and the unit's
+endpoint. Live: `tests/test_engine_hermes_config.py` runs the built engine's `hermes serve` (`build/engines/hermes/<tag>/env/bin/hermes`,
+or `$LAMPWAY_HERMES_ENGINE`) against a fake loopback model behind a refusing proxy; `tests/test_engine_pane_live.py` runs the real
+server with `LAMPWAY_AGENT_ENGINE=hermes`, the real wrapper, serve and TUI in a pty (herdr played but running its panes for real,
+`tests/live_support.py`) and once on a real herdr server; it needs the build (`LAMPWAY_ENGINES_DIR`), its prebuilt TUI
+(`engine.json` `tui` or `LAMPWAY_HERMES_TUI_DIR`) and Node (`LAMPWAY_NODE` or PATH). Without them those tests SKIP, which is not a
+pass. The suite drives the real client's frames through a fake client. A behaviour change lands with its failing test first; a
+paid or egress path is tested against a fake transport, never a live provider, unless the captain named the spend.
 herdr is played by `tests/herdr_support.py` `PaneHerdr` (tabs, splits, reported metadata; it parses exactly the `[UNVERIFIED]`
-shapes `herdr/layout.py` writes). The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 with a played
-stand-in for `lampway_hermes` in the adapter registry and play each worker pane over the pane endpoint, until A1's adapter exists.
+shapes `herdr/layout.py` writes). The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 on the real
+`lampway_hermes` adapter and `Mode1Units` over a stand-in engine build (`tests/mode1_support.py`), and play each worker pane over
+the pane endpoint its rendered config names.
 
 ## Owner
 
@@ -158,3 +194,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | one agent mode per scene tab and the BYOA island view (M0, B4, server side) | coordinator brief: agent-modes spec M0, B4, captain's E1.10 rule | nothing told the server a tab was in Your agent mode, so a Mode 1 turn could run in a tab a pane drives; the observers were wired to nothing and the island could not show or type into a bound pane | invariant 6 names the two sources of a tab's mode and the `wrong_mode` refusal, the user-only mode route, the read-only observed stream with its replay rule and screen fallback, and the socket-decided origin of the island's sends | none |
 | 2026-10-07 | merge: M0/B4 beside the swarm's pane workers (S3) | coordinator integration of the M0/B4 crew's branch | both branches extended invariant 6 (how a worker pane starts; how a tab's mode is known and observed) and the conflict could have dropped one | invariant 6 keeps both paragraphs; a Your agent tab's refusal comes before the engine's join-the-turn | none |
 | 2026-10-07 | one worker brain and the herdr view (S1, A4, A5) | captain, 2026-10-07: two modes only, every agent a process in a pane on Lampway's herdr server, wrappers only; coordinator brief for the lane (agent-modes spec A0, A4, A5, S1) | swarm workers could think inside the server (`BuiltinBrain`) or as hidden Hermes children (`EngineBrain`, `EngineRuntime.run_worker`); herdr opened one tab per pane, so a swarm meant one tab per worker; nothing reported what a pane is, and a record did not know its unit; concurrent worker starts each saw an empty column | invariant 6: `PaneBrain` the one brain, the mode picks the adapter, Mode 1's `lampway_hermes` a stub refused with the A1 help; the unit/tab/split layout, metadata best effort, `unit`/`role` re-adopted by reconcile, the argv shapes in `herdr/layout.py` with split and report-metadata `[UNVERIFIED]`; invariant 10 drops the hidden workers; the Test section names the played herdr and the played Mode 1 adapter | captain ruling, 2026-10-07 |
+| 2026-10-07 | Mode 1 in a pane: the Hermes pane, the island as its client, tools by unit (A1, A2, A3) | captain, 2026-10-07: Mode 1 runs Hermes's own TUI in its pane, the island loses nothing and gains persistence; coordinator brief for the lane (agent-modes spec A1-A3, E1.3-E1.6, S3) | Mode 1 ran as a hidden `hermes acp` child per tab (`EngineRuntime`, `LampwayACPClient`), killed with the server; `lampway_hermes` was a stub; the engine endpoint needed an island turn, so nothing typed in a pane could reach the scene; the config named the ACP platform and `no_mcp` | invariant 4: `/engine/mcp/<unit>` on the tab's current socket, no `ask_user`, refused with no window open; invariant 6: Mode 1's pane, its home, its record fields, no route, the user's chat as the only opener, re-adoption; invariant 9: the `cli` platform, clarify, the pinned toolsets, manual approvals; invariant 10: per-pane tokens adopted by digest, `/api/show`, the proxy's kept port, a shutdown that ends no pane; invariant 11 new: the island as serve's client; the Test section names the fake serve and the live pane suite | captain ruling, 2026-10-07 |

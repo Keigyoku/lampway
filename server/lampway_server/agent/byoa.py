@@ -130,8 +130,8 @@ class ByoaView:
         find = getattr(self._cockpit(), "find_by_scene", None)
         if not session_id or find is None:
             return []
-        try:
-            return [r for r in find(session_id) if r.get("harness")]
+        try:                                            # a user's harness only: Lampway's own pane is Mode 1's (spec A1), never a binding
+            return [r for r in find(session_id) if r.get("harness") in HN.ADAPTERS]
         except Exception:  # noqa: BLE001 - an unreadable table is no binding
             log.debug("binding table unreadable", exc_info=True)
             return []

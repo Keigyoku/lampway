@@ -87,7 +87,8 @@ class AgentHub:
     def __init__(self, provider, *, script_timeout_s: float = 600.0, system_prompt: str = SYSTEM_PROMPT,
                  swarm_provider_factory=None, studio=None, video=None, prompts=None, jobs=None, cockpit=None, assets=None, switch_dir=None):
         self.provider = provider
-        self.engine = None              # engine/runtime.EngineRuntime: Hermes in the seat (spec E1); None = the built-in loop
+        self.engine = None              # engine/front.HermesFront: Mode 1 is the unit's Hermes pane (spec A1, A2); None = the built-in loop
+        self.client_sockets: dict = {}  # scene session id -> the user's Client socket that last spoke for it (spec A3: where tools go)
         self.assets = assets
         self.studio = studio
         self.video = video
@@ -131,6 +132,7 @@ class AgentHub:
         if handler is None:
             await socket.send_error(request_id, METHOD_NOT_FOUND, f"Method not found: {method}")
             return
+        self._note_socket(socket, params)
         try:
             result = await handler(socket, params)
         except InvalidParams as exc:
@@ -138,16 +140,33 @@ class AgentHub:
             return
         await socket.reply(request_id, result)
 
+    def _note_socket(self, socket, params: dict) -> None:
+        """The scene tabs this Client socket speaks for (spec A3): a tool call from a unit's Hermes, whoever started its turn, goes
+        to the socket that last spoke for that tab. A headless worker's socket (it says its role) is never a tab's."""
+        if getattr(socket, "role", ""):
+            return
+        payload = params.get("payload") if isinstance(params.get("payload"), dict) else params
+        ids = [payload.get("session_id"), params.get("session_id")] + list(params.get("session_ids") or [])[:32]
+        for sid in ids:
+            if isinstance(sid, str) and sid:
+                self.client_sockets[sid] = socket
+
+    def socket_for(self, session_id: str):
+        """The scene tab's current Client socket, or None when no Lampway window speaks for it."""
+        return self.client_sockets.get(session_id)
+
     def socket_closed(self, socket) -> set:
         """The client's socket closed. Returns the turn tasks that outlive it (the socket cancels the rest)."""
+        for sid in [s for s, sock in self.client_sockets.items() if sock is socket]:
+            del self.client_sockets[sid]
         self.swarm.socket_closed(socket)
         survivors = set()
         for session in self.sessions.values():
             turn = session.current
             if turn is not None and turn.task is not None and getattr(turn, "socket", None) is socket:
                 if self.engine is not None and self.engine.is_running(session.session_id):
-                    # E1.7/R5 under the captain's ruling: the engine's turn survives the client; it journals on and the client
-                    # re-attaches with agent.attach. A Blender call in flight fails (the socket is gone) and the model is told.
+                    # Spec A2: the island is only a client of the pane's Hermes, whose turn goes on; it journals on here and the
+                    # client re-attaches with agent.attach. A Blender call in flight fails (the socket is gone) and the model is told.
                     turn.detached = True
                     survivors.add(turn.task)
                     continue
@@ -169,11 +188,19 @@ class AgentHub:
             raise InvalidParams("payload.session_id and payload.message are required")
         if (refused := self.byoa.refusal(session_id, payload)) is not None:     # spec M0: the tab is in Your agent mode
             return refused
+        if self.engine is not None and self.engine.has_question(session_id) and message.strip():
+            # A new message while the pane's Hermes waits on the island's question: the message is the answer (a permission card
+            # takes it as deny unless it names a choice), and the turn goes on in this command's turn (spec A2).
+            self._session(session_id).pending_question = None
+            self.engine.answer(session_id, message)
+            return self._admit(socket, command_id, session_id, None)
         if self.engine is not None and self.engine.is_running(session_id) and message.strip():
             # R4: a message during the engine's turn joins it (the client's queued bubble settles on this ok); no new turn.
             marks = marks_context.describe(payload.get("mark_context"))
             await self.engine.steer(session_id, message + ("\n\n" + marks if marks else ""))
             return {"state": "complete", "result": {"ok": True, "joined": True}}
+        if self.engine is not None and (refused := await self.engine.precheck(socket, session_id)) is not None:
+            return refused                                  # spec A1: no pane for this tab, and this message may not open one
         return self._admit(socket, command_id, session_id, message, plan_mode=bool(payload.get("plan_required")),
                            marks_text=marks_context.describe(payload.get("mark_context")),
                            context={k: payload[k] for k in ("content", "rules", "folder_context", "project_context",
@@ -248,6 +275,8 @@ class AgentHub:
         elif session is not None and session.pending_question is not None:
             self._close_question(session, "The user cancelled instead of answering this question.")
             cancelled = True
+        elif self.engine is not None and self.engine.is_running(str(payload.get("session_id") or "")):
+            cancelled = await self.engine.interrupt(str(payload.get("session_id") or ""))     # spec A2: session.interrupt
         log.debug("cancel for session %s -> %s", payload.get("session_id"), cancelled)
         return {"state": "complete", "result": {"ok": True, "cancelled": cancelled}}
 
@@ -361,9 +390,9 @@ class AgentHub:
             if reply is not None:                          # answered here (a cancelled batch): the model is not called again
                 await stream.emit({"bubble_id": bubble_id, "content": {"set": reply}})
                 return
-            if self.engine is not None:                    # spec E1: Hermes runs the conversation over ACP
-                await self.engine.drive(socket, session, turn, stream, bubble_id, steps,
-                                        None if user_text is None else session.messages[-1].text(), context=turn.context)
+            if self.engine is not None:                    # spec A2: the unit's Hermes pane runs the conversation
+                status = await self.engine.drive(socket, session, turn, stream, bubble_id, steps,
+                                                 None if user_text is None else session.messages[-1].text(), context=turn.context) or status
                 return
             if user_text is not None and user_text.strip().lower() == Q.CONTINUE_MESSAGE and self.swarm.failed_tasks(session.session_id):
                 await self._retry_failed(socket, session, turn, stream, bubble_id, steps)

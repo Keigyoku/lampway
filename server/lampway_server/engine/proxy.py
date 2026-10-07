@@ -318,7 +318,7 @@ PROXY_VARS = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY")
 
 
 def proxy_vars(proxy_url: Optional[str], gateway_host: str = "127.0.0.1") -> dict:
-    """The engine child's proxy variables, the ONE source of truth (``runtime.child_env`` uses it): every library that honours one is
+    """The engine child's proxy variables, the ONE source of truth (a Mode 1 pane's ``pane.json`` carries it, spec A1): every library that honours one is
     pointed at the proxy, and ``NO_PROXY`` names only the gateway's loopback host, so the gateway and the session's MCP endpoint (both
     on Lampway's own server) are reached directly (measured with the pinned Hermes: with NO_PROXY=127.0.0.1,localhost it reached the
     model directly). Without a proxy URL only ``NO_PROXY`` is set."""

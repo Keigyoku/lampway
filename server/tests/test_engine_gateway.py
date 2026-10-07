@@ -122,6 +122,33 @@ def test_the_models_call_the_engine_makes_at_the_origin_is_answered_too_and_401_
     assert gw.c.get("/engine/v1/models").status_code == 401
 
 
+def test_the_ollama_probe_at_the_origin_is_answered_harmlessly_and_never_reaches_the_provider(gw):
+    """Measured on the pinned ``hermes serve`` (spec A1): a custom endpoint also receives ``POST /api/show`` at the origin of its
+    base_url, an Ollama model probe, with or without the key. The gateway answers it itself: an OpenAI-style 404 that names no
+    model, so Hermes falls back to its own defaults. Loopback only, like every gateway route."""
+    for headers in ({}, gw.h):
+        r = gw.c.post("/api/show", json={"model": "lampway"}, headers=headers)
+        assert r.status_code == 404 and r.json()["error"]["code"] == "not_ollama", r.text
+    with client_for(gw.app, "203.0.113.9") as other:
+        assert other.post("/api/show", json={"model": "lampway"}).status_code == 403
+    assert gw.provider.requests == []
+
+
+def test_a_panes_token_is_adopted_again_after_a_restart_by_its_digest_only():
+    """Spec A1 (persistence): a Mode 1 pane outlives the server, and its config still holds the token it was given. The restarted
+    server adopts that token again from the digest it kept in the unit's own record (never the token), so the pane thinks on."""
+    first = GW.Registry()
+    token = first.issue_token("unit-1")
+    digest = GW.Registry.digest(token)
+    assert token not in digest and len(digest) == 64
+    again = GW.Registry()
+    assert again.session_for(token) is None
+    again.adopt_digest("unit-1", digest)
+    assert again.session_for(token) == "unit-1" and token not in repr(again)
+    again.revoke_session("unit-1")
+    assert again.session_for(token) is None
+
+
 def test_a_provider_that_knows_its_context_window_says_so(gw):
     gw.app.state.agent.provider = SimpleNamespace(name="x", model="m", context_length=131072, stream=gw.provider.stream)
     assert gw.c.get("/engine/v1/models", headers=gw.h).json()["data"][0]["context_length"] == 131072

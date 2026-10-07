@@ -6,8 +6,9 @@ process in a pane on Lampway's herdr server; no agent runs without a pane.
 * ``BuiltinBrain`` (Lampway's own loop), ``EngineBrain`` (hidden Hermes children) and the brain choice are gone; ``PaneBrain`` is
   the only brain.
 * The unit's mode picks the worker's adapter: Mode 2 (a bound pane, or a tab in Your agent mode) the parent pane's harness;
-  Mode 1 ``lampway_hermes``, Lampway's own Hermes pane (A1). That adapter is registered but not built: it refuses to launch, so a
-  swarm started in Mode 1 is refused with the A1 help before anything runs, never run another way."""
+  Mode 1 ``lampway_hermes``, Lampway's own Hermes pane (A1). Its pane starts only on a server running the Hermes engine (the
+  cockpit's ``mode1`` hook); elsewhere a swarm started in Mode 1 is refused with that help before anything runs, never run another
+  way. ``EngineRuntime``'s hidden ACP children are gone too (A5): every Mode 1 agent is that pane."""
 import asyncio
 import importlib.util
 import re
@@ -26,19 +27,20 @@ from .fake_client import FakeMixarClient
 from .fake_harness import FakeFleet, new_session
 from .herdr_support import PaneHerdr
 
-A1 = "Lampway's Hermes pane (agent-modes spec A1) is not built yet"
+A1 = "Lampway Agent runs on Lampway's pinned Hermes engine (agent-modes spec A1), and this server is not running it"
 
 
 def test_there_is_one_worker_brain_and_no_agent_without_a_pane():
-    from lampway_server.engine import runtime as RT
     for gone in ("BuiltinBrain", "model_round", "MAX_WORKER_ROUNDS", "MODEL_ROUND_TIMEOUT_S"):
         assert not hasattr(SB, gone), f"{gone} is Lampway's own worker loop: removed (spec A5)"
     assert hasattr(SB, "WorkerJob"), "the job, its call_tool door and the brain's protocol stay"
     assert not hasattr(SwarmManager(run_script=None), "brain_for"), "no brain choice: the mode picks the adapter, not the brain"
     assert importlib.util.find_spec("lampway_server.engine.swarm_brain") is None, "EngineBrain's hidden Hermes children are gone"
-    for gone in ("run_worker", "provider_for"):
-        assert not hasattr(RT.EngineRuntime, gone), f"EngineRuntime.{gone} served only the engine's hidden workers"
-    assert not {"tool_router", "collector", "worker"} & set(RT.EngineSession.__dataclass_fields__)
+    assert importlib.util.find_spec("lampway_server.engine.runtime") is None, "EngineRuntime's hidden ACP children are gone (A5)"
+    from pathlib import Path
+    import lampway_server
+    src = "\n".join(p.read_text() for p in Path(lampway_server.__file__).parent.rglob("*.py"))
+    assert "from acp" not in src and "import acp" not in src, "nothing in the server speaks ACP"
 
 
 def test_the_units_mode_picks_the_workers_adapter():
@@ -50,16 +52,12 @@ def test_the_units_mode_picks_the_workers_adapter():
         HN.worker_adapter("byoa", None)
 
 
-def test_lampway_hermes_is_registered_as_a_stub_that_refuses_to_launch(tmp_path, monkeypatch):
+def test_lampway_hermes_is_registered_and_refused_with_help_where_the_engine_is_not_running(tmp_path, monkeypatch):
     ad = HN.get("lampway_hermes")
     assert ad.id == "lampway_hermes" and "lampway_hermes" in HN.LAMPWAY_ADAPTERS
     assert "lampway_hermes" not in HN.ids() and "lampway_hermes" not in [r["id"] for r in HN.listing()], \
         "Lampway's own agent is never in the user's Your agent list"
-    with pytest.raises(ValueError, match=re.escape(A1)):
-        ad.launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing")
-    with pytest.raises(ValueError, match=re.escape(A1)):
-        HN.require_launchable("lampway_hermes")
-    HN.require_launchable("claude")                                        # a user's harness is not refused here
+    assert ad.launch(HN.PaneSpec(cwd=str(tmp_path), home=str(tmp_path / "h")), task="Do the thing")[-2:] == ["--home", str(tmp_path / "h")]
     calls = []
     monkeypatch.setattr(L, "run", lambda root, args, **k: calls.append(args) or "")
     monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
@@ -78,6 +76,9 @@ def test_the_swarm_manager_builds_a_pane_brain_on_the_units_adapter(tmp_path):
     assert isinstance(brain, PaneBrain) and brain.kind == "pane" and brain.harness == "codex" and brain.bindings is mgr.bindings
     with pytest.raises(SwarmError, match=re.escape(A1)):
         mgr.worker_brain(SwarmContext(socket=None, session_id="scene-1", turn_id="t", call_id="c"))     # Mode 1 by default
+    mgr.cockpit.mode1 = object()                                           # a server running the engine
+    mode1 = mgr.worker_brain(SwarmContext(socket=None, session_id="scene-1", turn_id="t", call_id="c"))
+    assert isinstance(mode1, PaneBrain) and mode1.harness == "lampway_hermes"
 
 
 def test_a_mode1_swarm_start_is_refused_with_the_a1_help_before_anything_runs(tmp_path):

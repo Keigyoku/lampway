@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The engine's model gateway (docs/reports/agent-modes-spec.md E1.4): an OpenAI-compatible endpoint on the existing server, loopback
-clients only, for the pinned Hermes child (``hermes acp``) and for nobody else.
+clients only, for the pinned Hermes of Lampway's own Mode 1 panes (``hermes serve``, spec A1) and for nobody else.
 
 * ``POST /engine/v1/chat/completions`` (streaming SSE and plain JSON) and ``GET /engine/v1/models``; the models list is also answered at
   ``GET /api/v1/models``, because the pinned Hermes asks the ORIGIN of its base_url for it (measured by the coordinator, 2026-10-07).
@@ -47,6 +47,7 @@ PREFIX = "lwe_"                                   # the shape logredact.py redac
 CHAT_PATH = "/engine/v1/chat/completions"
 MODELS_PATHS = ("/engine/v1/models", "/api/v1/models")
 MODELS_DEV_PATH = "/engine/v1/models-dev.json"   # hermes_config points ``models_dev.url`` here (E1.3)
+OLLAMA_PROBE_PATH = "/api/show"                   # the pinned serve's Ollama probe at the base_url's origin (A1): a harmless 404
 IMAGE_NOTE = "[image omitted: the engine gateway carries text only]"
 
 
@@ -69,11 +70,23 @@ class Registry:
     def _digest(token: str) -> str:
         return hashlib.sha256(str(token).encode("utf-8")).hexdigest()
 
+    #: The digest a pane's record keeps instead of its token (spec A1: the pane outlives the server).
+    digest = _digest
+
     def issue_token(self, session_id: str) -> str:
         token = PREFIX + secrets.token_urlsafe(32)
         with self._lock:
             self._sessions[self._digest(token)] = str(session_id)
         return token
+
+    def adopt_digest(self, session_id: str, digest: str) -> None:
+        """A token this server issued before a restart, known again by its digest: the Mode 1 pane that holds it (in its own 0600
+        config) outlived the server and is re-adopted with its record (spec A1). The token itself is never read back."""
+        if not isinstance(digest, str) or len(digest) != 64:
+            raise ValueError("a token digest is a sha256 hex string")
+        with self._lock:
+            self._sessions[digest] = str(session_id)
+            self._checked.pop(digest, None)
 
     def revoke(self, token: str) -> bool:
         with self._lock:
@@ -361,8 +374,9 @@ def _bearer(request: Request) -> str:
 def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
     """The gateway's routes. ``provider_getter()`` returns the current main provider at call time (a Choices change swaps it). A
     getter that takes an argument gets the token's session id, so a session can be answered on another choice than the main one.
-    ``wiring.provider_getter`` answers every session with the main provider since the engine's hidden swarm workers went (spec A5);
-    a Mode 1 worker's Hermes pane (A1) is not built yet."""
+    ``wiring.provider_getter`` answers every pane with the main provider since the engine's hidden swarm workers went (spec A5): a
+    Mode 1 worker's Hermes pane (A1) too, whose token is keyed by its swarm binding. [UNVERIFIED decision] S2's ``agent.worker``
+    choice for workers is not wired here."""
     import inspect
     try:
         takes_session = len(inspect.signature(provider_getter).parameters) >= 1
@@ -474,5 +488,14 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
 
         return StreamingResponse(sse(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
+    async def ollama_probe(request: Request):
+        """``POST /api/show`` at the origin of the engine's base_url: the pinned ``hermes serve`` probes a custom endpoint for an
+        Ollama model card, with or without the key (measured 2026-10-07, spec A1). Answered here, harmlessly: an OpenAI-style 404
+        naming no model, so Hermes keeps its own defaults. The provider is never asked."""
+        if not _loopback_client(request):
+            return JSONResponse(error_body("the engine gateway answers loopback clients only", type="permission_error", code="not_loopback"), status_code=403)
+        return JSONResponse(error_body("this is Lampway's engine gateway, not an Ollama server", type="invalid_request_error",
+                                       code="not_ollama"), status_code=404)
+
     return ([Route(CHAT_PATH, chat, methods=["POST"])] + [Route(p, models, methods=["GET"]) for p in MODELS_PATHS]
-            + [Route(MODELS_DEV_PATH, models_dev, methods=["GET"])])
+            + [Route(MODELS_DEV_PATH, models_dev, methods=["GET"]), Route(OLLAMA_PROBE_PATH, ollama_probe, methods=["POST"])])

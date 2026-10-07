@@ -1,11 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The engine's MCP endpoint (docs/reports/agent-modes-spec.md E1.6): ``POST /engine/mcp/<session_id>``, MCP over streamable HTTP
-answered with plain JSON, for the one Hermes child of that scene session.
+"""The engine's MCP endpoint (docs/reports/agent-modes-spec.md E1.6, A3): ``POST /engine/mcp/<unit>``, MCP over streamable HTTP
+answered with plain JSON, for the Hermes of one unit's Mode 1 pane (a unit is a scene tab's conversation, its scene session id).
 
-* Loopback only, and only with that session's bearer token (issued when the child starts; never logged).
-* ``tools/list`` is the agent's full registry as the user's Capabilities allow (not the external-app subset ``mcp.py`` offers),
-  plus ``ask_user``; ``tools/call`` runs through ``EngineRuntime.call_tool``, i.e. ``AgentHub._run_tool`` with its gates.
+* Loopback only, and only with that unit's bearer token (minted when its pane is prepared, kept in the pane's 0600 config, known
+  here only by its digest; never logged).
+* ``tools/list`` is the agent's full registry as the user's Capabilities allow (not the external-app subset ``mcp.py`` offers);
+  questions are Hermes's own ``clarify``, the island's question (A2), so ``ask_user`` is not offered. ``tools/call`` runs through
+  ``HermesFront.call_tool``, i.e. ``AgentHub._run_tool`` with its gates, on the scene tab's CURRENT client socket, whoever started
+  the turn (the island or the pane); with no Lampway window connected the call is refused, saying so.
 * Replies are JSON today. The captain decided the engine gets TOON (2026-10-06); that arrives with the companion spec's C0
   encoder and C1 envelope, which another crew builds, through ``format_result`` here.
 """
