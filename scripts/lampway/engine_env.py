@@ -79,7 +79,7 @@ def resolve() -> dict:
 def missing_deps() -> list:
     out = []
     if shutil.which("uv") is None:
-        out.append("uv (https://docs.astral.sh/uv/): the engine environment is built from Hermes's own uv.lock")
+        out.append("uv (Astral's Python package manager): the engine environment is built from Hermes's own uv.lock")
     if shutil.which("git") is None:
         out.append("git")
     return out
