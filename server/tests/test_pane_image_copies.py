@@ -133,3 +133,45 @@ def test_metadata_cannot_name_a_file_outside_the_owned_image_directory(pane):
     manifest.write_text(json.dumps(saved))
     clock[0] += 31 * DAY
     assert cockpit.expire_pane_images() == [] and original.read_bytes() == PNG and image.exists()
+
+
+def test_copy_expiry_survives_registry_record_removal_without_claiming_legacy_files(pane):
+    cockpit, project, clock = pane
+    original = project / "original.png"
+    original.write_bytes(PNG)
+    image = Path(cockpit.write_pane_images("pane-one", [original.read_bytes()])[0])
+    legacy = image.parent / "legacy.png"
+    legacy.write_bytes(PNG)
+    cockpit._save({"version": 1, "sessions": []})
+    clock[0] += 30 * DAY
+    assert cockpit.expire_pane_images() == [str(image)]
+    assert not image.exists() and original.read_bytes() == PNG and legacy.read_bytes() == PNG
+    assert cockpit.expire_pane_images() == []
+
+
+@pytest.mark.parametrize("link", ["panes", "session", "manifest"])
+def test_orphan_manifest_discovery_never_follows_symlinks(pane, link):
+    cockpit, project, clock = pane
+    image = Path(cockpit.write_pane_images("pane-one", [PNG])[0])
+    manifest = cockpit.root / "panes" / "pane-one" / "image-copies.json"
+    source = {"panes": cockpit.root / "panes", "session": manifest.parent, "manifest": manifest}[link]
+    moved = cockpit.root / "moved-metadata"
+    source.rename(moved)
+    source.symlink_to(moved, target_is_directory=link != "manifest")
+    cockpit._save({"version": 1, "sessions": []})
+    clock[0] += 31 * DAY
+    assert cockpit.expire_pane_images() == [] and image.read_bytes() == PNG
+
+
+def test_orphan_expiry_never_follows_a_replaced_project_ancestor(pane):
+    cockpit, project, clock = pane
+    container = project / "container"
+    nested = container / "nested"
+    nested.mkdir(parents=True)
+    cockpit._save({"version": 1, "sessions": [{"id": "pane-one", "project_root": str(nested)}]})
+    image = Path(cockpit.write_pane_images("pane-one", [PNG])[0])
+    container.rename(project / "moved-container")
+    container.symlink_to(project / "moved-container", target_is_directory=True)
+    cockpit._save({"version": 1, "sessions": []})
+    clock[0] += 31 * DAY
+    assert cockpit.expire_pane_images() == [] and image.read_bytes() == PNG

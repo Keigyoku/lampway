@@ -2,11 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Private ownership receipts for project-local pane image copies, retained for 30 days.
 
-No directory scan discovers ownership. Only files this server recorded at creation can expire.
+Private per-session manifests outlive the pane registry; only files recorded at creation can expire.
+Project image directories never establish ownership.
 """
 import contextlib
 import hashlib
 import json
+import logging
 import math
 import os
 from pathlib import Path
@@ -17,15 +19,17 @@ import threading
 
 RETENTION_SECONDS = 30 * 86400
 _LOCK = threading.RLock()
+log = logging.getLogger("lampway.herdr")
 _NAMES = re.compile(r"image-\d{8}-\d{6}-[0-9a-f]{8}\.(png|jpg|gif|webp)\Z")
 
 
 @contextlib.contextmanager
 def _directory(root, parts):
     """Open each directory without following links; the resulting fd pins the deletion directory."""
-    fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    absolute = Path(os.path.abspath(root))
+    fd = os.open(absolute.anchor, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
-        for part in parts:
+        for part in (*absolute.parts[1:], *parts):
             nxt = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
             os.close(fd)
             fd = nxt
@@ -51,9 +55,13 @@ class ImageCopies:
         return parent / "image-copies.json"
 
     def _load(self, sid):
-        path = self._manifest(sid)
+        self._manifest(sid)  # validate the session name and reject linked metadata directories
         try:
-            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+            with _directory(self.root, ("panes", sid)) as directory:
+                fd = os.open("image-copies.json", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+                if not stat.S_ISREG(os.fstat(fd).st_mode):
+                    os.close(fd)
+                    raise ValueError("image ownership metadata is not a regular file")
         except FileNotFoundError:
             return {"version": 1, "session_id": sid, "files": []}
         with os.fdopen(fd) as fh:
@@ -92,6 +100,23 @@ class ImageCopies:
                                       "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
             self._save(sid, data)
 
+    def expire_all(self, now):
+        """Reconcile private manifests even after a pane leaves the registry; never scan project image directories."""
+        removed = []
+        with _LOCK:
+            try:
+                with _directory(self.root, ("panes",)) as directory:
+                    sessions = sorted(name for name in os.listdir(directory)
+                                      if stat.S_ISDIR(os.stat(name, dir_fd=directory, follow_symlinks=False).st_mode))
+            except OSError:
+                return removed
+            for sid in sessions:
+                try:
+                    removed.extend(self.expire(sid, None, now))
+                except (OSError, ValueError, TypeError):
+                    log.warning("pane image ownership metadata unavailable; copies retained")
+        return removed
+
     def expire(self, sid, project_root, now):
         """Delete expired copies only when identity and bytes still prove ownership; leave replacements untouched."""
         with _LOCK:
@@ -107,10 +132,16 @@ class ImageCopies:
                     keep.append(row)
                     continue
                 name = row.get("name", "")
-                if not isinstance(name, str) or not _NAMES.fullmatch(name) or row.get("project_root") != str(project_root):
+                owned_root = row.get("project_root")
+                if (not isinstance(name, str) or not _NAMES.fullmatch(name)
+                        or not isinstance(owned_root, str) or not os.path.isabs(owned_root)
+                        or os.path.normpath(owned_root) != owned_root):
+                    continue
+                if project_root is not None and owned_root != str(project_root):
+                    keep.append(row)
                     continue
                 try:
-                    with _directory(project_root, (".lampway", "panes", sid, "images")) as directory:
+                    with _directory(owned_root, (".lampway", "panes", sid, "images")) as directory:
                         fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
                         with os.fdopen(fd, "rb") as fh:
                             st = os.fstat(fh.fileno())
@@ -122,7 +153,7 @@ class ImageCopies:
                             if (current.st_dev, current.st_ino, current.st_nlink) != (st.st_dev, st.st_ino, 1):
                                 continue
                             os.unlink(name, dir_fd=directory)
-                            removed.append(str(Path(project_root) / ".lampway" / "panes" / sid / "images" / name))
+                            removed.append(str(Path(owned_root) / ".lampway" / "panes" / sid / "images" / name))
                 except FileNotFoundError:
                     pass
                 except OSError:

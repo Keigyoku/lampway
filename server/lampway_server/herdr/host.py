@@ -633,17 +633,7 @@ class Cockpit:
     def expire_pane_images(self) -> list:
         """30-day retention for metadata-owned copies only; originals and unrecorded legacy files stay untouched."""
         from .image_copies import ImageCopies
-        copies, removed = ImageCopies(self.root), []
-        now = time.time()
-        for rec in self.list_sessions():
-            project_root = rec.get("project_root") or self.project_root
-            if not project_root:
-                continue
-            try:
-                removed.extend(copies.expire(rec["id"], os.path.realpath(project_root), now))
-            except (OSError, ValueError, TypeError):
-                log.warning("pane image ownership metadata unavailable; copies retained")
-        return removed
+        return ImageCopies(self.root).expire_all(time.time())
 
     def resume_bound(self, sid: str, scene_session_id: str, unit_label=None) -> dict:
         """The user's Resume of an ended harness pane bound to a scene tab (agent-modes spec B2; law 5: only the user's click, never
