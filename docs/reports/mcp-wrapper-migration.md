@@ -7,7 +7,7 @@ Implementation source: the complete supplied MCP section (C0–C2, T1–T3), 27,
 
 Execution base: remote `lp/wave5`, fetched and independently verified at `287c9d63f5b8d0ed15a3bfcdfecad69d4961db26`. Original branch: `lp/mcp-wrapper-migration`; its published checkpoint `bc0a721` is preserved. The captain authorized a successor branch, `lp/mcp-wrapper-migration-main-20261007`, replayed onto fetched main `290ddd3a3a08ccc646ff4e3faa73326c09e1c154` on 2026-10-07. The initial pinned workspace commit was not used. No deployment, user desktop operation, provider spend or production asset change was performed. Later acceptance runs use isolated factory profiles and Xvfb. The captain subsequently authorized publishing this scoped branch at commit boundaries; remote SHA verification receipts are retained outside the tree. The integrator owns updates from `lp/wave5`; this lane never force-pushes.
 
-Captain decisions: read-only OBSERVE declaration; one existing opt-in gates all pixels; TOON 4.3; pinned documentation ships with the server. In-app results remain JSON. Audit, Agent Mode migration and frontend sections are outside this lane.
+Captain decisions: read-only OBSERVE declaration; one existing opt-in gates all pixels; TOON 4.3; pinned documentation ships with the server. In-app results remain JSON. This report records the original MCP contract scope. The captain subsequently authorized all 65 acceptance criteria in [issue 2](https://github.com/Keigyoku/lampway/issues/2) on the same PR; their current implementation and proof are tracked in [the strict acceptance audit](issue-2-acceptance.md). The separate Vellum frontend migration remains assigned elsewhere.
 
 | Contract | Implementation and evidence | Acceptance and verification |
 |---|---|---|
