@@ -175,3 +175,21 @@ def test_orphan_expiry_never_follows_a_replaced_project_ancestor(pane):
     cockpit._save({"version": 1, "sessions": []})
     clock[0] += 31 * DAY
     assert cockpit.expire_pane_images() == [] and image.read_bytes() == PNG
+
+
+def test_oversized_metadata_timestamp_retains_copy_and_receipt_without_breaking_reconcile(pane, monkeypatch):
+    from lampway_server.herdr import launcher
+    cockpit, project, clock = pane
+    original = project / "original.png"
+    original.write_bytes(PNG)
+    image = Path(cockpit.write_pane_images("pane-one", [original.read_bytes()])[0])
+    manifest = cockpit.root / "panes" / "pane-one" / "image-copies.json"
+    saved = json.loads(manifest.read_text())
+    saved["files"][0]["created_at"] = 10**400
+    manifest.write_text(json.dumps(saved))
+    clock[0] += 31 * DAY
+    assert cockpit.expire_pane_images() == []
+    assert image.read_bytes() == original.read_bytes() == PNG
+    assert json.loads(manifest.read_text()) == saved, "invalid timestamps must retain the ownership receipt too"
+    monkeypatch.setattr(launcher, "server_status", lambda root: {"running": False})
+    assert cockpit.reconcile()["server"] == "not_running"

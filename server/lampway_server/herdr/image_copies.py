@@ -126,7 +126,12 @@ class ImageCopies:
                 if not isinstance(row, dict):
                     continue
                 created = row.get("created_at")
-                if not isinstance(created, (int, float)) or not math.isfinite(created):
+                try:
+                    valid_timestamp = isinstance(created, (int, float)) and math.isfinite(created)
+                except OverflowError:
+                    valid_timestamp = False
+                if not valid_timestamp:
+                    keep.append(row)  # corrupt timing cannot expire a copy or discard its ownership receipt
                     continue
                 if now - created < RETENTION_SECONDS:
                     keep.append(row)

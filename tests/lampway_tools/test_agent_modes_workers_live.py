@@ -237,7 +237,7 @@ def test_two_real_mode1_workers_collect_into_real_parent_blender(tmp_path, monke
                 os.killpg(process.pid, signal.SIGKILL); process.wait(timeout=15)
         # A failed parent turn can leave its setsid worker children alive. Only
         # stop PIDs recorded by this fixture's real sandbox supervisor.
-        if client is not None:
+        if client is not None and (client_root / 'status.json').exists():
             saved = json.loads((client_root / 'status.json').read_text())
             for child in saved.get('worker_processes', {}).values():
                 pid = child['pid']
