@@ -118,6 +118,36 @@ The wrapper then points `HERMES_TUI_DIR` at it, and the prebuilt bundle is used 
 run time `hermes --tui` never runs npm (law 2). Node (22 measured) is a run-time dependency of Mode 1, found or refused with help,
 and never fetched at run time.
 
+**Built 2026-10-07** (`herdr/harnesses/lampway_hermes.py`, `engine/hermes_pane.py`, `engine/units.py`, `engine/wiring.py`;
+`scripts/lampway/engine_env.py`):
+- **The adapter** describes only: the argv is the server's interpreter running the stdlib-only wrapper by path, plus
+  `--home <unit home>`. No task and no token is on it. It has no egress route (`route` None): Mode 1 is Lampway's own engine, whose
+  model traffic is the gateway's on loopback and whose every other host goes through the egress proxy; the wrapper's launches are
+  declared `local` in `egress.LAUNCHES`. Decision recorded: no `byoa:` route for Mode 1.
+- **The home** is written before herdr is asked (the cockpit's `mode1` hook): `config.yaml` and `serve.token` 0600, `pane.json` with
+  no secret, a worker's `task.txt`. The record keeps `home`, `port`, `token_file`, `stored_session_id` and the two tokens' digests.
+  The server creates the pane's session (`session.create` in the project root, written to `session.json`) and submits a worker's
+  task as its first prompt; the wrapper resumes that session in the TUI. A worker's home is `<unit home>/workers/<swarm>-<worker>`
+  and its one MCP server is the pane endpoint (S3).
+- **The wrapper** follows the four steps above; Enter reopens the TUI, or restarts a serve the user's own `hermes serve --stop`
+  stopped; closing the pane (SIGHUP) ends serve by its process group.
+- **Measured while building:**
+  - serve folds the TUI surface's `project` toolset (`desktop_project`) into every session after `agent.disabled_toolsets` is
+    applied, which the start-up check refused. The wrapper therefore pins the toolsets with `HERMES_TUI_TOOLSETS` (the chosen
+    toolsets, `clarify`, and the `lampway` server), which replaces the fold-in.
+  - herdr 0.9.3's `pane run` joins its arguments with spaces, unquoted. Every typed command is now one shell-quoted string.
+  - Without `HERMES_NODE` and `HERMES_SKIP_NODE_BOOTSTRAP=1`, `hermes --tui` would run Hermes's node bootstrap (a download) when
+    node or npm is not on PATH.
+- **Persistence, live-tested:** after a server restart, reconcile re-adopts the pane, its gateway and MCP tokens are adopted
+  again by their digests, and the egress proxy takes its previous port back when free. The conversation goes on in the same
+  Hermes session, with no new pane. Live-tested both on played herdr running real ptys and on a real herdr 0.9.3 server.
+- **The prebuild:** `engine_env.py` drops the `acp` extra, prebuilds the TUI in the engine's own copy, and records `hermes` and
+  `tui` in `engine.json`, written last. `[UNVERIFIED]`: the script's full run end to end. This worktree has no Hermes checkout;
+  its npm steps are the ones measured in the spike and its order is pinned by a played build. The live suite ran on the existing
+  build with `LAMPWAY_HERMES_TUI_DIR` pointing at the spike's prebuilt `ui-tui`.
+- **Opening a pane is the user's chat.** An ended pane is reopened (resuming its stored session) by the user's next chat in that
+  tab. This treats the chat as the click law 5 asks for: a decision for the captain.
+
 ### A2. The island is a second front end on the same live session
 
 Lampway's server is a JSON-RPC client of the pane's `hermes serve`, beside the TUI. Hermes fans every event out to every attached
@@ -149,6 +179,28 @@ Further mapping rules:
 - **A disconnect of the island's socket** detaches nothing in Hermes, since the island is only a client. The next `agent.attach`
   replays from `session.events.since`.
 
+**Built 2026-10-07** (`engine/front.py` `HermesFront`, `engine/serve_client.py`; `EngineRuntime` and `LampwayACPClient` removed):
+- The table above, as written. The first `agent.chat` of a scene session opens the unit's pane (`Mode1Units.open`) only from the
+  user's own Client socket (an agent's socket is refused, `agent_origin`), and only on a herdr server the user started (refused,
+  `herdr_not_running`; Lampway never starts it). The M0 `wrong_mode` refusal still comes first.
+- A chat sent while the pane's Hermes waits on the island's question is that question's answer (a permission card takes it as
+  deny unless it names a choice).
+- The island's card closes when the turn moves on without its answer; the rest of the turn is shown as an island turn of the
+  same run (a wakeup the current client accepts), whose first event re-sets the card's bubble with "(Answered in Lampway Agent's
+  pane.)". A step still running when the turn stopped for a question (a command awaiting approval) is carried into the
+  continuation turn.
+- A turn typed in the pane is `agent.turn.started {origin: "pane", user_text}` (the text from `session.history`, or the resume
+  answer's `inflight.user` after a reconnect). **For the client lane:** the current client takes a turn it did not start only
+  as a wakeup of an open run or as an observed BYOA turn, so it drops this frame when the run is closed: it needs to accept
+  `origin: pane` turns in a Mode 1 tab `[UNVERIFIED in the client]`.
+- `/new` (Q15, as proposed): on `sessions.changed`, `session.status` of the island's session; on `4001`, `session.active_list`,
+  the newest other session is resumed and the unit's record and `session.json` follow it. Starting a new island chat and filing
+  the old one in History is the client's half, not built.
+- Reconnect: the same replay epoch replays `session.events.since`; a new epoch or `truncated` settles a waited-on turn from
+  `session.history`.
+- Measured in the live suite: Hermes marks the first `clarify` choice "(Recommended)" and the island shows it as sent; the TUI's
+  `/quit` closes only its socket (the session stays live).
+
 ### A3. Tools reach the scene, whoever started the turn
 
 - Each unit's config names one MCP server: `/engine/mcp/<unit>`, with a per-unit bearer (as built).
@@ -158,6 +210,17 @@ Further mapping rules:
 - Capabilities gate every call (E2), as today.
 - A worker's pane uses the worker endpoint (`/api/v1/mcp/pane`, S3), whatever its mode. Its tools run on the worker's own headless
   scene, and it finishes with `lampway_worker_done`.
+
+**Built 2026-10-07** (`engine/mcp_endpoint.py`, `engine/front.py` `call_tool`, `AgentHub.socket_for`):
+- `/engine/mcp/<unit>` takes the unit's bearer (the pane's 0600 config holds it; the server keeps its digest and adopts it again
+  after a restart). A call runs through `AgentHub._run_tool` on the socket that last spoke for that scene tab, with the island's
+  turn when one runs, else a scratch turn; a call made in a pane-typed turn reaches Blender the same way (live-tested by typing in
+  the real TUI).
+- With no Lampway window connected the call is refused: "Lampway is not open on this scene".
+- Capabilities gate every call at call time (a switched-off family is refused and nothing reaches Blender).
+- `ask_user` is not offered: the island's questions are Hermes's own `clarify` (A2).
+- Steps come only from serve's `tool.start`/`tool.complete`; the MCP side emits none.
+- `[UNVERIFIED]`: that the current client runs a `blender.execute_script` whose `turn_id` names a pane turn it dropped (see A2).
 
 ### A4. The herdr view: one unit, one tab, minimal switching
 
@@ -1160,9 +1223,9 @@ pane's harness in Mode 2.
 ## 5. Build order
 
 *Superseded by A for what is left to build:*
-1. A1, the `lampway_hermes` adapter and the TUI prebuild.
-2. A2, the island as a `hermes serve` client, with the scripted `/api/ws` peer for tests.
-3. A3, routing tools by unit.
+1. A1, the `lampway_hermes` adapter and the TUI prebuild. Built 2026-10-07 (A1).
+2. A2, the island as a `hermes serve` client, with the scripted `/api/ws` peer for tests. Built 2026-10-07 (A2).
+3. A3, routing tools by unit. Built 2026-10-07 (A3).
 4. A5's removals, together with S1's one brain.
 5. A4, the layout.
 
