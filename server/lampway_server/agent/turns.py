@@ -31,7 +31,7 @@ from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools
 from .. import capabilities as CAP
 from . import plan_tools
 from .swarm import SwarmContext, SwarmManager, is_swarm_tool
-from .tools import ASK_USER, UnknownTool, format_tool_result, script_for
+from .tools import UnknownTool, format_tool_result, script_for
 
 log = logging.getLogger("lampway.agent")
 
@@ -127,6 +127,7 @@ class AgentHub:
             "agent.feedback": self._feedback,
             "agent.checkpoint.mark": self._checkpoint_mark,
             "agent.checkpoint.rewind": self._checkpoint_rewind,
+            "agent.history_sync": self._history_sync,
             "agent.byoa.observe": self.byoa.observe,
             "agent.byoa.send": self.byoa.send,
             "agent.byoa.interrupt": self.byoa.interrupt,
@@ -136,7 +137,8 @@ class AgentHub:
         if handler is None:
             await socket.send_error(request_id, METHOD_NOT_FOUND, f"Method not found: {method}")
             return
-        self._note_socket(socket, params)
+        if method != "agent.history_sync":                 # the archive names every session the client keeps, not its open tabs
+            self._note_socket(socket, params)
         try:
             result = await handler(socket, params)
         except InvalidParams as exc:
@@ -213,7 +215,8 @@ class AgentHub:
         marks = marks_context.describe(payload.get("mark_context"))          # the Scribble marks ride WITH the words
         return await self._message(socket, command_id, session_id, message + ("\n\n" + marks if marks else ""),
                                    {k: payload[k] for k in ("content", "rules", "folder_context", "project_context",
-                                                            "attachment_names", "imported_object_names") if k in payload})
+                                                            "attachment_names", "imported_object_names", "plan_required",
+                                                            "auto_mode", "user_preferences") if k in payload})
 
     async def _message(self, socket, command_id, session_id, text: str, context: Optional[dict] = None):
         """The user's words for the unit's Hermes: they join a running turn (R4), else open a turn (A2) once the pane may be reached."""
@@ -291,7 +294,8 @@ class AgentHub:
 
     async def _status(self, socket, params):
         turns = {}
-        for session_id in list(params.get("session_ids") or [])[:32]:
+        asked = [str(s) for s in list(params.get("session_ids") or [])[:32] if isinstance(s, str) and s]
+        for session_id in asked:
             session = self.sessions.get(str(session_id))
             if session is None or session.last_turn_id is None:
                 continue
@@ -300,7 +304,10 @@ class AgentHub:
                 "turn_id": turn.turn_id, "run_id": turn.run_id, "replay_available": True,
                 "status": turn.status, "active": turn.status == "running", "last_seq": turn.last_seq,
             }
-        return {"turns": turns}
+        # The conversation each Mode 1 tab's pane shows (A2, Q15): a client that was away when the pane's /new was followed learns
+        # it here, and files the old chat.
+        conversations = await self.engine.conversations(asked) if self.engine is not None else {}
+        return {"turns": turns, "conversations": conversations}
 
     async def _attach(self, socket, params):
         session = self.sessions.get(str(params.get("session_id") or ""))
@@ -327,6 +334,14 @@ class AgentHub:
             })
         return {"status": "ok", "last_seq": turn.last_seq}
 
+    async def _history_sync(self, socket, params):
+        """The client's agent archive (spec R2): served from the units' Hermes sessions; with no engine there is none (and the
+        handshake does not advertise it)."""
+        if self.engine is None:
+            from ..engine.history import OWNER_ID, VERSION
+            return {"version": VERSION, "owner_id": OWNER_ID, "sessions": []}
+        return await self.engine.history_sync(params)
+
     async def _request_status(self, socket, params):
         command = self.commands.get(str(params.get("command_id") or ""))
         if command is None:
@@ -340,18 +355,23 @@ class AgentHub:
         return {"status": "success"}
 
     async def _checkpoint_mark(self, socket, params):
-        """The client bookmarks the conversation after a scene snapshot (turn_checkpoints.py). Mode 1's conversation is Hermes's, in
-        its pane (A0): nothing is bookmarked here, and the reply says so."""
-        _command_parts(params)
-        return {"ok": True, "has_conversation": False}
+        """The client bookmarks the conversation after a scene snapshot (turn_checkpoints.py): the point Hermes's session is at,
+        under the client's id (``HermesFront.checkpoint_mark``). With no pane to reach, nothing is bookmarked, and the reply says
+        so."""
+        _, payload = _command_parts(params)
+        sid, rid = str(payload.get("session_id") or ""), str(payload.get("request_id") or "")
+        marked = self.engine is not None and bool(sid and rid) and await self.engine.checkpoint_mark(sid, rid)
+        return {"ok": True, "has_conversation": bool(marked)}
 
     async def _checkpoint_rewind(self, socket, params):
-        """The client restored a scene checkpoint and asks for the conversation to follow. Hermes keeps Mode 1's conversation and
-        Lampway does not rewind it, so the reply refuses, saying so (checkpoint_backend.py then tells the user the agent may still
-        remember the undone turns)."""
-        _command_parts(params)
-        return {"ok": False, "code": "rewind_unsupported",
-                "message": "Lampway Agent's conversation is kept by Hermes in its pane, and Lampway does not rewind it"}
+        """The client restored a scene checkpoint and asks for the conversation to follow: Hermes's session drops the undone turns
+        (``HermesFront.checkpoint_rewind``, serve's ``session.undo``), or the reply refuses, saying why (checkpoint_backend.py
+        then tells the user the agent may still remember them)."""
+        _, payload = _command_parts(params)
+        if self.engine is None:
+            return {"ok": False, "code": "rewind_unavailable",
+                    "message": "Lampway Agent is not running on this server, so there is no conversation to rewind"}
+        return await self.engine.checkpoint_rewind(str(payload.get("session_id") or ""), str(payload.get("request_id") or ""))
 
     # ------------------------------------------------------------ the turn
     async def _run_turn(self, socket, session: Session, turn: Turn, command: Command, user_text: Optional[str],
@@ -368,9 +388,11 @@ class AgentHub:
         steps: list[dict] = []
         status = "completed"
         try:
-            await socket.notify("agent.turn.started", {
-                "session_id": session.session_id, "turn_id": turn.turn_id, "run_id": turn.run_id,
-            })
+            started = {"session_id": session.session_id, "turn_id": turn.turn_id, "run_id": turn.run_id}
+            conversation = self.engine.conversation_of(session.session_id) if self.engine is not None else None
+            if conversation:
+                started["conversation_id"] = conversation        # the Hermes session the tab's pane shows (A2, Q15)
+            await socket.notify("agent.turn.started", started)
             command.state, command.result = "complete", {"ok": True}
             await socket.notify("agent.command.result", {
                 "session_id": session.session_id, "command_id": turn.turn_id, "ok": True,
@@ -429,8 +451,6 @@ class AgentHub:
 
     async def _run_tool(self, socket, session, turn, call: ToolCall, stream=None, bubble_id=None,
                         steps=None) -> tuple[str, bool]:
-        if call.name == ASK_USER:                                  # offered to no agent: Lampway Agent's questions are Hermes's clarify
-            return "ask_user is not offered: Lampway Agent asks the user with clarify, which the island shows", True
         refusal = CAP.check_tool(call.name, call.arguments, origin="agent:main")      # spec E2, checked at call time
         if refusal is not None:
             return refusal, True

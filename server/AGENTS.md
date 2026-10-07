@@ -28,11 +28,12 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    turns a dead pending into `submission_unknown`, and only the user acknowledges or links it. Files are 0600 in 0700 directories;
    `export_safe` drops signed URLs and secrets before a receipt goes anywhere else.
 4. **MCP offers no spend.** `mcp.py` `offered_tools()` is the scene tools, the `DEFS` tools that are one script in Blender, and the
-   read-only server tools. Studio tools, the swarm and `ask_user` are never offered to external apps, and a `swarm:` session header
+   read-only server tools. Studio tools and the swarm are never offered to external apps, and a `swarm:` session header
    on their route is refused (a binding is not a credential). The engine's own endpoint
    (`engine/mcp_endpoint.py`, `/engine/mcp/<unit>`, spec E1.6, A3) is not an external app: it is the in-app agent's, the Hermes of
    one unit's Mode 1 pane, loopback only and bound to that unit's bearer (in the pane's own 0600 config; the server keeps its digest),
-   and offers the agent's full registry as Capabilities allow less `ask_user` (questions are Hermes's own `clarify`, A2), every call
+   and offers the agent's full registry as Capabilities allow (questions are Hermes's own `clarify`, A2: no question tool is in
+   the registry), every call
    through `AgentHub._run_tool` on the scene tab's CURRENT client socket (`AgentHub.socket_for`), whoever started the turn; with no
    Lampway window connected the call is refused, saying so. It has no confirm path either (law 3).
    The pane endpoint (`/api/v1/mcp/pane`, spec S3) is not an external app either: loopback only, it answers only a pane Lampway
@@ -40,7 +41,7 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    environment, handed to herdr like a per-pane API key (never the registry, which keeps a hash, and never the harness's command
    line). A swarm worker's pane (session header `swarm:<swarm_id>:<worker_id>`, its `PaneBrain`'s token) is offered
    `worker_tools()` as Capabilities allow plus `lampway_worker_done`, every call through its `WorkerJob.call_tool` on its own
-   headless Lampway, never the swarm, the studios, `ask_user` or the workbench. A pane bound to a scene tab (B2; its key) is offered only `swarm_start`, `swarm_status`,
+   headless Lampway, never the swarm, the studios or the workbench. A pane bound to a scene tab (B2; its key) is offered only `swarm_start`, `swarm_status`,
    `swarm_cancel` and `swarm_collect`, only with capability `swarm` in force and the BYOA switch on, for the swarms it started
    (`Swarm.owner`, a Retry of them included); its swarm thinks in panes and lands in its bound tab. No swarm tool spends.
 5. **A tool argument cannot change the script.** `agent/lampway_tools.py` `build_script` passes the arguments as one JSON string
@@ -152,9 +153,19 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    pinned again by `HERMES_TUI_TOOLSETS`) are exactly those of the capabilities in force plus `clarify` for a main agent (never a
    worker's), Lampway's one MCP server is declared with its bearer, every outbound check Hermes lets config switch off is off
    (the Nous guest bootstrap and lazy installs included), approvals are `manual` (the user's, never a guardian model's), context
-   stays Hermes's unless given, and it is never written into the user's own `~/.hermes` (E1.10). `check_advertised` compares the
+   stays Hermes's unless given, and it is never written into the user's own `~/.hermes` (E1.10). A main pane's config carries
+   Lampway's guidance on its tools (`agent/prompt.py` `SYSTEM_PROMPT`) as Hermes's own `agent.system_prompt`, which Hermes
+   appends to its system message (its identity kept; nothing written into the user's project); a worker's prompt comes with its
+   task. The client's turn policy (Plan Mode, Auto mode, the asset-match threshold) rides in the prompt's "This turn" section
+   (`engine/turn_context.py`). `check_advertised` compares the
    tools the model is sent (visible and deferred behind tool_search) with the choices; an unexpected or unlistable tool refuses
-   the session.
+   the session. A change of what is in force while panes run (a switch, an accepted proposal, a cleared override, a route on
+   or off: `capabilities.notify_changed`) reaches every live Lampway pane before its next tool call (`Mode1Units.refresh_all`):
+   its config is re-rendered with the keys it holds, the toolset pin is rewritten in its home's `.env` (0600,
+   `HERMES_TUI_TOOLSETS` only, no secret), its serve is asked for `reload.env` and `reload.mcp` (every live session's tools
+   rebuilt, the conversation kept: measured on the pinned serve), and the gateway checks that pane's next tool list again
+   (`Registry.recheck`; a refused re-check refuses that request only); a turn about to start waits for it. The MCP endpoint's
+   call-time check stays the hard gate for Lampway's own tools.
 10. **The engine has two doors, both on loopback and both Lampway's** (docs/reports/agent-modes-spec.md E1.4, E1.5, A1). `engine/gateway.py`
     is the Mode 1 panes' only model endpoint: loopback clients, a per-pane bearer (`Registry.issue_token`, in memory as a digest,
     adopted again by its digest after a restart, redacted by `logredact.py`); a unit's main pane is answered by the current main
@@ -188,8 +199,22 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     island's question and permission cards, closed by the island itself when the pane answers first (no `request.cancel` comes); a
     turn typed in the pane is an island turn (`agent.turn.started` with `origin: pane`); `/new` in the pane is followed, once, its
     closed session's question released, and the tab's current client told (`agent.pane.new_conversation {session_id, origin:
-    pane}`; the tab's session id stays the unit's); a dropped connection catches up from `session.events.since` (else the
-    history); the island's socket closing stops nothing in Hermes.
+    pane, conversation_id}`; the tab's session id stays the unit's; a client that was away learns each Mode 1 tab's current
+    conversation from `agent.status`'s `conversations`, and `agent.turn.started` names it too); before attaching, serve's live
+    sessions (`session.active_list`) say which one the pane shows, so a `/new` while this server was away is followed (the
+    record too) and no closed session is reopened; a dropped connection catches up from `session.events.since` (else the
+    history); the island's socket closing stops nothing in Hermes. A tool call that overtakes its turn (the pane turn still being
+    opened, the island's answer not yet admitted) waits for the island turn that shows it, up to `TURN_WAIT_S`, so its script
+    names the turn the client shows; a question nobody can answer any more (Hermes started another turn, or serve restarted and
+    its request died) is released and its card closed in the next turn the island shows.
+    The client's archive (`agent.history_sync`, version 1, spec R2) is served from the units' Hermes sessions through the
+    connections this server holds (`engine/history.py` `Feed`: `session.list`, `session.history`; a previous session with
+    records never acknowledged is resumed, read and closed again); each message is a record hashed as the client checks, one
+    epoch per Hermes session and rewrite. Lampway keeps no conversation: only the acknowledged prefix's length and digest per
+    session (`archive.json`, 0600 in the unit's home), and a history that no longer starts with it is sent again under a new
+    epoch. The handshake advertises `agent_history_v1` only while the engine runs Mode 1, and never `agent_history_v2` (no
+    image route). Events of any session but the one the island shows are ignored before their `seq` is counted (serve numbers
+    each session's events from 1), and following the pane's `/new` starts the count again.
     The M0 `wrong_mode` refusal comes first, before any of it.
     **Mode 1 runs only on Hermes (spec A0, A5).** The hub has no provider loop, no transcript of its own and no rounds: the
     providers are the gateway's doors only (it is their one caller for Mode 1), and Hermes keeps the conversation. With no engine on
@@ -197,8 +222,12 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     `wiring.py` found, its fix and the switch to Your agent (`AgentHub.engine_refusal`); `HermesFront.precheck` refuses a missing
     hermes binary or prebuilt TUI (`engine_not_built`), Node.js (`node_missing`) and herdr (`herdr_not_built`, its build command)
     before a pane is asked for. Nothing answers in the engine's place. A swarm the pane's Hermes starts runs in the island turn that
-    shows its call, so its todo cards and progress reach the Parallel Agents panel. A checkpoint mark bookmarks nothing
-    (`has_conversation: false`) and a rewind is refused (`rewind_unsupported`): Lampway does not rewind Hermes's conversation.
+    shows its call, so its todo cards and progress reach the Parallel Agents panel. Checkpoints follow Hermes's conversation:
+    before each island turn and on `agent.checkpoint.mark` the island bookmarks the point Hermes's session is at (its user turns,
+    the last one's identity; `checkpoints.json`, 0600 in the unit's home) under the client's id, and `agent.checkpoint.rewind`
+    calls serve's `session.undo` (one user turn, durable in `state.db`, measured) until the session is back at the bookmark. A
+    rewind forward (Hermes cannot bring undone turns back), into a conversation the pane left, or while a turn runs is refused,
+    saying so; with no pane connected nothing is bookmarked (`has_conversation: false`).
 
 ## Test
 
@@ -212,7 +241,9 @@ Mode 1 without an engine: the hub's client-protocol tests (`test_engine_front.py
 `test_questions_checkpoints.py`, `test_modes_m0.py`, the swarm's and the tools' turns) drive Mode 1 against `tests/serve_support.py`
 `FakeServe`, a scripted `/api/ws` peer speaking the contract measured on the pinned serve, with the client's own frames: the real
 server on a real port (`stack`, `run`), or under a TestClient (`ServeThread`, `mode1_turn`, the pane's MCP calls through it). No
-test drives a turn through a provider: `ScriptedProvider` is the gateway's door (`test_engine_gateway.py`, the live suite).
+test drives a turn through a provider: `ScriptedProvider` is the gateway's door (`test_engine_gateway.py`, the live suite). The
+`mock` provider (`LAMPWAY_PROVIDER=mock`, the quick start) answers Hermes behind the gateway with Lampway's tools by the names
+Hermes offers them, never one it did not; the live suite runs it against the pinned serve.
 `tests/test_mode1_only_hermes.py` holds the refusals with no engine, no herdr and no Node, and that the loop is gone. The suite's
 conftest keeps engine discovery off (`LAMPWAY_ENGINES_DIR`, the repository's build) unless a test names its build.
 `tests/test_engine_pane.py` holds the adapter, the wrapper (against a stand-in `hermes`), `Mode1Units` and the unit's
@@ -272,3 +303,12 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | Parallel Agents cards and Retry for every swarm | captain, 2026-10-07: "nothing hidden, finish it"; agent-modes spec S1, S3 and the M0/B4 and S1 lane reports | the cards were emitted only by a swarm started inside a built-in hub turn: a swarm a bound Mode 2 pane started over MCP, or one Lampway Agent's Hermes pane started over its engine endpoint, emitted none, and Retry lived only in the built-in loop | invariant 6: where every swarm reports (the stream it was handed, the live Mode 1 island turn, else a card turn of its own), the user-only Retry and what the agent is told; invariant 4: a pane's swarms by `Swarm.owner`; invariant 10: which of the environment, the dialog and `agent.worker` wins for the workers (one answer); the Test section names the cards suite | captain ruling, 2026-10-07 |
 | 2026-10-07 | Mode 2 finished: Stop, images, Resume/Unbind, adapters checked against installed copies, the Pi extension (B1, B2, B4) | coordinator brief for the Mode 2 lane: "nothing stays hidden or half-built" (captain); agent-modes spec B1, B2, B4, Q4, Q5 | every Claude Code, Codex and OpenCode pane failed to start on the real herdr 0.9.3 (`agent start` was given the display name: `invalid_agent_name`) and the cockpit's interrupt sent `ctrl-c` (`invalid_key`); the island's Stop did nothing in Your agent mode; images were refused; an ended pane could only be resumed from the cockpit; Hermes, Pi, Grok and Cursor were wired from vendor docs, Pi as having no MCP | invariant 6: the adapters' FACTS and what they may describe, herdr's agent names and key spelling with the strict played herdrs, the listing's tools note, the Pi extension, images in `<project root>/.lampway/panes/`, Stop, Resume and Unbind from the user's socket only; the Test section names the live Pi test and the controls suite | none |
 | 2026-10-07 | merge: Mode 2 finished beside the swarm's cards and Retry | coordinator integration of the Mode 2 lane | both lanes rewrote the Test section's herdr sentence and `byoa.py` (Retry from a bound pane's cards; Stop, images, Resume, Unbind) | the Test section names both lanes' tests; `ByoaView` keeps Retry and the island's controls | none |
+| 2026-10-07 | a tool call waits for its turn; a dead question is closed (A2) | coordinator brief, Mode 1 loose ends 6 and 8 | a tool call made while its pane turn was still being opened ran under a scratch turn id, which the client refuses (`unknown_turn`); a question left open when serve restarted or Hermes started another turn stayed open, so the tab's next chat was sent to a dead request and its card never closed | invariant 11: the bounded wait for the shown turn, the stale question released and its card closed | none |
+| 2026-10-07 | Capabilities switched while a pane runs (E2) | coordinator brief, Mode 1 loose end 1: "the running session must obey the new set before its next tool call" | a pane's config and toolset pin were written once, when it opened, so a capability the user switched on or off mid-session changed nothing in Hermes until the pane was reopened | invariant 9: the listener, the re-render with the pane's own keys, the `.env` pin and serve's two reloads (measured), the gateway's re-check, the turn that waits; the MCP call-time check stays the hard gate | none |
+| 2026-10-07 | Lampway's instructions reach Hermes (A1, R3) | coordinator brief, Mode 1 loose end 4: `SYSTEM_PROMPT` and the per-turn context fed only the generated agent files once the loop was gone | Mode 1's Hermes never read Lampway's guidance on its tools (their `mcp__lampway__` names, clarify, the spend and source-file rules) nor Plan Mode or Auto mode | invariant 9: the guidance as `agent.system_prompt` in a main pane's config (measured: Hermes appends it to its system message), the turn policy in the prompt; `SYSTEM_PROMPT` rewritten for Mode 1 | none |
+| 2026-10-07 | `ask_user` left the registry (A2, A5) | coordinator brief, Mode 1 loose end 5 | `ask_user` stayed in the registry offered to no agent, its refusal special-cased in the hub, and its docs, generated skills and two canonical skills said it "needs the agent loop", which is gone | invariant 4: no question tool in the registry, Hermes asks with `clarify`; the exclusions name their real reasons | none |
+| 2026-10-07 | the archive from Hermes's sessions (R2) | coordinator brief, Mode 1 loose end 2: "Hermes's state.db under the unit's home is the conversation record; Lampway builds no store of its own" | the handshake advertised `agent_history_v1` and `v2` while `agent.history_sync` answered method-not-found; after the pane's `/new` the new session's first events were dropped as already seen (serve numbers each session's events from 1) | invariant 11: the archive served from serve's `session.list`/`session.history`, delivery state only, the epoch per session and rewrite, the handshake's one capability; events filtered by session before their seq counts, the count reset on a follow | none |
+| 2026-10-07 | a checkpoint rewind is Hermes's undo (A5) | coordinator brief, Mode 1 loose end 3: "a rewind really drops the undone turns from Hermes's conversation" | a mark bookmarked nothing and every rewind was refused (`rewind_unsupported`), so a restored scene always left the agent remembering the undone turns | invariant 11: bookmarks of Hermes's session point (count and identity of its user turns), the rewind by serve's `session.undo`, the refusals that say what Hermes cannot do | none |
+| 2026-10-07 | `/new` while Lampway was away (A2, Q15) | coordinator brief, Mode 1 loose end 7: the frame reaches only a connected client | a client that was closed missed `agent.pane.new_conversation` and kept showing the old chat; a server restarted after the pane's `/new` resumed the closed session from the record, so the island and the pane showed different conversations | invariant 11: `agent.status` `conversations`, `conversation_id` in the turn start and the frame, the attach that follows the pane's live session and the record | none |
+| 2026-10-07 | the quick start's mock provider answers Hermes (A5) | coordinator brief, Mode 1 loose end 9: "make the quick start honest" | the mock was written for the removed loop: it called `scene_summary` and `run_blender_python` by names Hermes does not offer, and a tool call on Hermes's title request, so `--provider mock` only showed that the pane starts | the Test section: the mock behind the gateway, by Hermes's names (MCP prefix or the bridge), text only with no tools, live-tested | none |
+| 2026-10-07 | merge: Mode 1's loose ends beside the swarm and Mode 2 lanes | coordinator integration of the Mode 1 completion lane | both sides rewrote invariant 4's worker sentence (the swarm lane: a pane's swarms by `Swarm.owner`, Retry included; this lane: `ask_user` left the registry) | invariant 4 keeps both; `Mode1Units` keeps Q13's `forget` and the live Capabilities refresh; every anneal row kept | none |

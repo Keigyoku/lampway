@@ -145,6 +145,54 @@ def test_no_tui_or_no_node_is_refused_with_what_to_do_and_nothing_is_fetched(mod
     assert not [c for c in mode1.herdr.calls if c["args"][:2] == ["pane", "run"]]
 
 
+def _env_pin(home) -> list:
+    line = next(ln for ln in (Path(home) / ".env").read_text().splitlines() if ln.startswith("HERMES_TUI_TOOLSETS="))
+    return line.split("=", 1)[1].split(",")
+
+
+def test_a_capability_switched_while_the_pane_runs_reaches_its_serve_before_the_next_turn(mode1):
+    """Spec E2: the running session obeys the new set before its next tool call. Measured on the pinned serve (2026-10-07): the
+    toolsets come from the ``HERMES_TUI_TOOLSETS`` pin, which serve reads from the home's ``.env`` (``reload.env``), and
+    ``reload.mcp`` rebuilds every live session's tool list from it, keeping the conversation. So the server re-renders the
+    pane's config (same keys), rewrites the pin, asks serve for both reloads, and has the gateway check the next tool list."""
+    from lampway_server import capabilities as CAP
+    from .serve_support import FakeServe
+    rec = mode1.cockpit.create_session("lampway_hermes", "Lampway Agent for a tab", str(mode1.cockpit.project_root), by="user", unit="u1")
+    home = Path(rec["home"])
+    before = (home / "config.yaml").read_text()
+    assert "terminal" not in _env_pin(home) and "clarify" in _env_pin(home) and "lampway" in _env_pin(home)
+    rechecked = []
+    mode1.registry.recheck = rechecked.append
+
+    async def go():
+        serve = await FakeServe(token=(home / "serve.token").read_text()).start(port=rec["port"])
+        mode1.units.loop = asyncio.get_running_loop()
+        CAP.subscribe(mode1.units.capabilities_changed)
+        try:
+            CAP.ACTIVE.set("terminal", enabled=True, by="user")
+            for _ in range(200):
+                if "reload.mcp" in [m for m, _ in serve.calls]:
+                    break
+                await asyncio.sleep(0.05)
+            await mode1.units.settled()
+            return list(serve.calls)
+        finally:
+            CAP.unsubscribe(mode1.units.capabilities_changed)
+            await serve.stop()
+
+    calls = asyncio.run(go())
+    after = (home / "config.yaml").read_text()
+    assert "terminal" in _env_pin(home) and '- "terminal"' in after.split("disabled_toolsets")[0]
+    keys = [ln for ln in before.splitlines() if "api_key" in ln or "Authorization" in ln or "url:" in ln]
+    assert keys and keys == [ln for ln in after.splitlines() if "api_key" in ln or "Authorization" in ln or "url:" in ln], \
+        "the pane keeps its gateway token, its MCP bearer and its doors"
+    assert json.loads((home / "pane.json").read_text())["toolsets"] == _env_pin(home)
+    assert stat.S_IMODE((home / ".env").stat().st_mode) == 0o600
+    assert [m for m, _ in calls if m.startswith("reload.")] == ["reload.env", "reload.mcp"], calls
+    assert dict(calls)["reload.mcp"].get("confirm") is True
+    assert rechecked == [rec["gateway_token_sha256"]], "the gateway checks the pane's next tool list against the new board"
+
+
 def test_only_a_mode1_panes_own_fields_change_through_update_mode1(mode1):
     rec = mode1.cockpit.create_session("lampway_hermes", "Lampway Agent for a tab", str(mode1.cockpit.project_root), by="user", unit="u1")
     assert mode1.cockpit.update_mode1(rec["id"], stored_session_id="20261007_x")["stored_session_id"] == "20261007_x"

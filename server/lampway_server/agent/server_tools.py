@@ -1,6 +1,6 @@
 """Server-side agent tools: the studio drivers.
 
-They never go through Blender. The agent loop runs them here, as a subprocess under the browser python (the one with
+They never go through Blender. The hub's tool door (``AgentHub._run_tool``) runs them here, as a subprocess under the browser python (the one with
 patchright, ``LAMPWAY_PYTHON_BROWSER``), against the owner's logged-in tool browser. Safe by default: read-only commands,
 and image/mesh generation run as a DRY RUN (every setting set and read back, nothing clicked) unless the call says
 ``dry_run: false``; a real generation additionally needs the owner's ``LAMPWAY_STUDIO_ARMED=1`` in THIS server's

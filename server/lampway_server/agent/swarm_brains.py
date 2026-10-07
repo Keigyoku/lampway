@@ -20,7 +20,7 @@ from typing import Awaitable, Callable, Protocol
 class WorkerJob:
     worker: object                                            # swarm.Worker: id, name, prompt, objects, status, created, calls
     system: str                                               # worker_system_prompt(worker)
-    tools: list                                               # worker_tools(): never the swarm, the studios, ask_user or panes
+    tools: list                                               # worker_tools(): never the swarm, the studios or panes
     call_tool: Callable[[str, dict], Awaitable[tuple]]       # (name, arguments) -> (text, is_error) on this worker's Lampway
     progress: Callable[[str], None] = lambda text: None
     meta: dict = field(default_factory=dict)                  # the swarm id, the parent session (the unit) and turn

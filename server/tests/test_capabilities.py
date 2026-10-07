@@ -78,7 +78,7 @@ def test_lampway_tools_belong_to_a_family():
     assert CAP.family_of("lampway_workbench", {"action": "read"}) == "scene.read"
     assert CAP.family_of("scene_summary") == "scene.read"
     assert CAP.family_of("run_blender_python") == "scene.edit"
-    assert CAP.family_of("lampway_capabilities") is None and CAP.family_of("ask_user") is None    # never gated
+    assert CAP.family_of("lampway_capabilities") is None    # never gated (ask_user, once beside it, left the registry: spec A2)
 
 
 def test_the_agent_tool_reads_and_proposes_but_cannot_set(board):
@@ -242,3 +242,28 @@ def test_the_rest_routes_decide_proposals_and_clear_overrides_for_the_user_only(
     cleared = fake.delete("/app/capabilities/swarm", params={"project": "/projects/chair"})
     assert cleared.status_code == 200 and cleared.json()["enabled"] is True and cleared.json()["scope"] == "global"
     assert board.effective("swarm", "/projects/chair")[0]
+
+
+def test_every_change_of_what_is_in_force_is_announced_to_the_listeners(board, tmp_path):
+    """A running Mode 1 pane must obey a switch before its next tool call (spec E2): the engine listens for every change of the
+    board (the user's switch, an accepted proposal, a cleared override) and for a route turned on or off, which brings a
+    capability needing it into or out of force. A refused change is no change."""
+    from lampway_server import egress as EG
+    heard = []
+
+    def listener():
+        heard.append("changed")
+    CAP.subscribe(listener)
+    try:
+        board.set("terminal", enabled=True, by="user")
+        pid = board.propose("agent:main", "memory", {"enabled": True}, "to remember the user's units")
+        board.decide(pid, "accept")
+        board.set("swarm", enabled=False, project="/p", by="user")
+        board.clear("swarm", "/p")
+        with pytest.raises(CAP.Refused):
+            board.set("swarm", enabled=True, by="agent")
+        EG.Egress(tmp_path / "eg").set_route("web:any", True)
+    finally:
+        CAP.unsubscribe(listener)
+    board.set("terminal", enabled=False, by="user")
+    assert heard == ["changed"] * 5, "set, accept, set, clear and a route: five; a refused change and an unsubscribed one: none"

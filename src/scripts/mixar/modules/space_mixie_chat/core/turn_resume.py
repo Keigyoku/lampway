@@ -95,6 +95,7 @@ def check_orphaned_turns() -> None:
             return
 
         def _on_status(result):
+            note_conversations(result)
             try:
                 turns = (result or {}).get("turns") or {}
             except Exception:
@@ -128,6 +129,30 @@ def check_orphaned_turns() -> None:
         )
     except Exception:
         logger.exception("check_orphaned_turns failed (non-fatal)")
+
+
+def note_conversations(result) -> None:
+    """``agent.status``'s ``conversations`` (Mode 1, agent-modes spec Q15): each tab's pane conversation goes to
+    ``mode1_pane.note_conversation`` on the main thread, which files the old chat when the pane's ``/new`` happened while Lampway
+    was away. Safe on any thread."""
+    try:
+        conversations = (result or {}).get("conversations") or {}
+        items = [(str(sid), str(cid)) for sid, cid in conversations.items() if sid and cid]
+    except Exception:
+        return
+    if not items:
+        return
+    from .main_thread_executor import run_on_main_thread
+    from . import mode1_pane
+
+    def _note():
+        for sid, cid in items:
+            try:
+                mode1_pane.note_conversation(sid, cid)
+            except Exception:
+                logger.exception("the pane conversation of session %s could not be checked", sid[:8])
+
+    run_on_main_thread(_note)
 
 
 def _status_of(info: dict) -> str:

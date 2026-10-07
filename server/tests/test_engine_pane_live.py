@@ -97,6 +97,9 @@ class LiveProvider(ScriptedProvider):
             await asyncio.to_thread(self.release.wait, 120)              # the tool ran; the answer waits for the test
         if results:
             seen = str(results[-1].get("content") or "")
+            if "TERM" in last:
+                yield Text(f"Terminal said: {seen[:200]}")
+                return
             if "ASK" in last:
                 choice = "Round" if "Round" in seen else "Square" if "Square" in seen else "?"
                 yield Text(f"You chose {choice}.")
@@ -114,6 +117,14 @@ class LiveProvider(ScriptedProvider):
             call = ("clarify", {"question": "Round or square table?", "choices": ["Round", "Square"]})
         elif "APPROVE" in last:
             call = ("terminal", {"command": f"rm -rf {self.target}"})
+        elif "TERM" in last:
+            reach = set(names) | set(HC.deferred_listing([{"type": "function", "function": {"name": t.name, "description": t.description}}
+                                                          for t in request.tools])[0])
+            if "terminal" not in reach:
+                yield Text("No terminal here.")
+                return
+            call = ("terminal", {"command": "echo lampway-live-$((6*7))"}) if "terminal" in names else \
+                ("tool_call", {"calls": [{"name": "terminal", "arguments": {"command": "echo lampway-live-$((6*7))"}}]})
         if call is None:
             yield Text("Hello from the gateway." if "rules" not in last.lower() else "Noted the rules.")
             return
@@ -205,6 +216,10 @@ def test_live_the_first_chat_opens_the_real_pane_and_a_tool_turn_runs_through_it
     assert scripts and scripts[0]["session_id"] == unit, "the tool reached the scene tab's Blender"
     turns = [r for r in live["provider"].requests if r.tools]
     assert turns and (FULL in {t.name for t in turns[0].tools} or "tool_call" in {t.name for t in turns[0].tools})
+    # Lampway's guidance on its tools reaches the model: Hermes appends the config's agent.system_prompt to its system message
+    from lampway_server.agent.prompt import SYSTEM_PROMPT
+    assert SYSTEM_PROMPT.splitlines()[0] in turns[0].system and "mcp__lampway__" in turns[0].system, turns[0].system[-2000:]
+    assert turns[0].system.startswith("You are Hermes Agent"), "Hermes's own identity stays"
     # the pane: Lampway's wrapper in a pane of the unit's own tab, its record without a secret, its session in the home
     home = Path(rec["home"])
     token = (home / "serve.token").read_text()
@@ -223,7 +238,8 @@ def test_live_the_first_chat_opens_the_real_pane_and_a_tool_turn_runs_through_it
     bearer = re.search(r'^      Authorization: "Bearer ([^"]+)"$', text, re.M).group(1)
     assert gw_token.startswith("lwe_")
     assert text == HC.to_yaml(HC.render(CAP.ACTIVE, str(live["project"]), f"{stack.base}/engine/v1", gw_token, W.MODEL_ID,
-                                        mcp_url=f"{stack.base}/engine/mcp/{unit}", mcp_headers={"Authorization": f"Bearer {bearer}"})), \
+                                        mcp_url=f"{stack.base}/engine/mcp/{unit}", mcp_headers={"Authorization": f"Bearer {bearer}"},
+                                        instructions=SYSTEM_PROMPT)), \
         "the pane's config is exactly what hermes_config renders from the active board"
     assert (home / "managed").is_dir() and not any((home / "managed").iterdir())
     cache = home / "models_dev_cache.json"                               # if Hermes read models.dev, it read it from the gateway
@@ -234,6 +250,132 @@ def test_live_the_first_chat_opens_the_real_pane_and_a_tool_turn_runs_through_it
     rows = live["strict"].log()
     assert not [r for r in rows if r.get("event") == "send"], rows
     print(f"\n[live pane] hosts the pane tried and the proxy refused: {sorted({r['provider'] for r in rows if r.get('via') == 'engine_proxy'})}")
+
+
+# ---------------------------------------------------------------------------------------------------- E2: a switch reaches the running pane
+def test_live_a_capability_switched_while_the_pane_runs_is_obeyed_from_the_next_turn_in_the_same_conversation(live):
+    """The user switches ``terminal`` on in Choices and privacy while Lampway Agent's pane runs: the next turn's model request offers
+    it and a command runs; switched off again, it is gone from the next request. The conversation is the same Hermes session
+    throughout (no new pane, the first turn's words still in the request)."""
+    import httpx
+    unit = f"scene-{uuid.uuid4().hex[:6]}"
+
+    async def scenario(stack, island):
+        auth = {"Authorization": f"Bearer {island.fake.access_token}"}
+        cid, _ = await chat(island, "Hello before the switch", unit)
+        await island.ended(cid, timeout=240)
+        async with httpx.AsyncClient(base_url=stack.base, headers=auth) as http:
+            put = await http.put("/app/capabilities/terminal", json={"enabled": True})
+            assert put.status_code == 200, put.text
+            n_on = len(live["provider"].requests)
+            cid2, _ = await chat(island, "TERM: run the echo", unit)
+            await island.ended(cid2, timeout=240)
+            on = (live["provider"].requests[n_on:], island.events(cid2))
+            put = await http.put("/app/capabilities/terminal", json={"enabled": False})
+            assert put.status_code == 200, put.text
+            n_off = len(live["provider"].requests)
+            cid3, _ = await chat(island, "TERM: try again", unit)
+            await island.ended(cid3, timeout=240)
+            off = (live["provider"].requests[n_off:], island.events(cid3))
+        return on, off
+
+    (on_reqs, on_events), (off_reqs, off_events) = run(live, scenario)
+
+    def reach(reqs):
+        r = next(r for r in reqs if r.tools)
+        return {t.name for t in r.tools} | set(HC.deferred_listing([{"type": "function", "function": {"name": t.name, "description":
+                                                                                                         t.description}} for t in r.tools])[0])
+    assert "terminal" in reach(on_reqs), "switched on: offered from the next turn"
+    assert "lampway-live-42" in (final_text(on_events) or ""), on_events
+    assert "terminal" not in reach(off_reqs), "switched off: gone from the next turn"
+    assert final_text(off_events) == "No terminal here."
+    assert any("Hello before the switch" in m.text() for m in next(r for r in off_reqs if r.tools).messages), "the same conversation"
+    assert len([r for r in live["cockpit"].list_sessions() if r.get("unit") == unit]) == 1, "the same pane"
+
+
+# ---------------------------------------------------------------------------------------------------- R2: the archive from Hermes's sessions
+def test_live_the_clients_archive_is_served_from_the_panes_hermes_session(live):
+    """``agent.history_sync`` answers from the pane's real serve (``session.list``, ``session.history``): the turn's user text and
+    the reply, in order, each record hashed as the client checks; acknowledged, nothing is sent again."""
+    import hashlib
+    unit = f"scene-{uuid.uuid4().hex[:6]}"
+
+    async def scenario(stack, island):
+        cid, _ = await chat(island, "SCENE: what is in my scene?", unit)
+        await island.ended(cid, timeout=240)
+        rid = await island.send("agent.history_sync", {"acknowledgements": [], "session_ids": [unit]})
+        first = (await island.reply(rid))["result"]
+        p = first["sessions"][0]
+        ack = {"session_id": unit, "epoch": p["epoch"], "seq": p["records"][-1]["seq"]}
+        rid = await island.send("agent.history_sync", {"acknowledgements": [ack], "session_ids": [unit]})
+        return first, (await island.reply(rid))["result"]
+
+    first, again = run(live, scenario)
+    assert first["version"] == 1 and first["owner_id"] == "lampway-local" and len(first["sessions"]) == 1
+    p = first["sessions"][0]
+    rows = [(r["record"]["payload"]["role"], r["record"]["payload"]["text"]) for r in p["records"]]
+    assert rows[0] == ("user", "SCENE: what is in my scene?") and rows[-1] == ("assistant", "There is one cube."), rows
+    assert [r["seq"] for r in p["records"]] == list(range(1, len(rows) + 1))
+    for r in p["records"]:
+        raw = json.dumps(r["record"], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+        assert r["event_id"] == hashlib.sha256(raw).hexdigest()
+    rec = pane_of(live, unit)
+    assert {r["record"]["run_id"] for r in p["records"]} == {rec["stored_session_id"]}
+    assert again["sessions"] == [], "acknowledged: nothing is sent again"
+    assert (Path(rec["home"]) / "archive.json").is_file(), "the delivery state lives in the unit's home"
+
+
+# ---------------------------------------------------------------------------------------------------- checkpoints: a rewind is Hermes's undo
+def test_live_a_checkpoint_rewind_drops_the_undone_turns_from_the_panes_hermes_conversation(live):
+    """The scene went back to before the second turn: serve's ``session.undo`` drops it from Hermes's session, so the next turn's
+    model request carries the first turn's words and not the second's; the tip's bookmark cannot bring them back."""
+    unit = f"scene-{uuid.uuid4().hex[:6]}"
+
+    async def scenario(stack, island):
+        cid1, _ = await chat(island, "Hello first turn", unit)
+        await island.ended(cid1, timeout=240)
+        cid2, _ = await chat(island, "Hello second turn", unit)
+        await island.ended(cid2, timeout=240)
+        _, rid = await island.command("agent.checkpoint.mark", {"session_id": unit, "request_id": "tip"})
+        tip = (await island.reply(rid))["result"]
+        _, rid = await island.command("agent.checkpoint.rewind", {"session_id": unit, "request_id": cid2})
+        back = (await island.reply(rid))["result"]
+        n = len(live["provider"].requests)
+        cid3, _ = await chat(island, "Hello third turn", unit)
+        await island.ended(cid3, timeout=240)
+        _, rid = await island.command("agent.checkpoint.rewind", {"session_id": unit, "request_id": "tip"})
+        forward = (await island.reply(rid))["result"]
+        return tip, back, live["provider"].requests[n:], forward
+
+    tip, back, reqs, forward = run(live, scenario)
+    assert tip == {"ok": True, "has_conversation": True}
+    assert back == {"ok": True, "has_conversation": True, "removed_turns": 1}, back
+    words = "\n".join(m.text() for r in reqs if r.tools for m in r.messages)
+    assert "Hello first turn" in words and "Hello third turn" in words and "Hello second turn" not in words
+    assert forward["ok"] is False and forward["code"] == "rewind_forward", forward
+
+
+# ---------------------------------------------------------------------------------------------------- the quick start's mock provider
+def test_live_the_mock_provider_answers_hermes_through_the_gateway_and_reaches_the_scene(live):
+    """``--provider mock`` (the quick start): behind the gateway it drives the pane's real Hermes with the tool names Hermes offers,
+    so a question gets the scene's summary from Blender and a ``py:`` message runs its script in the scene."""
+    from lampway_server.agent.providers.mock import MockProvider
+    unit = f"scene-{uuid.uuid4().hex[:6]}"
+    app = create_app(live["settings"], provider=MockProvider(), egress=live["strict"], cockpit=live["cockpit"])
+
+    async def scenario(stack, island):
+        cid, _ = await chat(island, "What is in my scene?", unit)
+        await island.ended(cid, timeout=240)
+        first = (island.events(cid), list(island.scripts))
+        cid2, _ = await chat(island, "py: import bpy\n__RESULT__ = {'cubes': 1}", unit)
+        await island.ended(cid2, timeout=240)
+        return first, (island.events(cid2), list(island.scripts))
+
+    (events, scripts), (events2, scripts2) = run(live, scenario, app=app)
+    assert events[-1]["status"] == "completed" and "Scene summary from Blender" in (final_text(events) or ""), events
+    assert scripts and scripts[0]["session_id"] == unit and "bpy.data.objects" in scripts[0]["script"]
+    assert events2[-1]["status"] == "completed" and "Ran your script" in (final_text(events2) or ""), events2
+    assert len(scripts2) == len(scripts) + 1 and "__RESULT__ = {'cubes': 1}" in scripts2[-1]["script"]
 
 
 # ---------------------------------------------------------------------------------------------------- A2: questions, permissions, steer

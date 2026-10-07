@@ -4,6 +4,7 @@ files itself. Arguments reach the script as a JSON string literal, so no argumen
 
 import ast
 import json
+from pathlib import Path
 
 import pytest
 
@@ -86,6 +87,16 @@ def test_a_mislabel_target_map_keeps_its_keys():
 def test_the_rebuild_tool_says_it_is_a_background_job():
     spec = next(t for t in T.TOOLS if t.name == "lampway_rebuild")
     assert "background" in spec.description.lower() and "lampway_job_status" in spec.description
+
+
+def test_ask_user_is_not_in_the_registry_hermes_asks_with_clarify():
+    """Mode 1's questions are Hermes's own ``clarify`` (spec A2) and no agent was offered ``ask_user`` (A3, A5): it left the
+    registry, so nothing lists it, documents it or routes it; a call by that name is an unknown tool."""
+    assert "ask_user" not in T.TOOL_NAMES and not hasattr(T, "ASK_USER")
+    with pytest.raises(T.UnknownTool, match="unknown tool"):
+        T.script_for("ask_user", {"question": "?"})
+    docs = (Path(__file__).resolve().parents[2] / "docs" / "tools.md").read_text()
+    assert "ask_user" not in docs and "agent loop" not in docs
 
 
 def test_the_system_prompt_names_the_workflow():

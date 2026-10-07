@@ -23,9 +23,13 @@ Selected, the app's lifespan (``start``/``stop``/``tick``) gives Mode 1's panes 
 * **the egress proxy** (E1.5): ``engine/proxy.py`` on loopback, on the port it had before a restart when that port is free (the
   panes outlive the server and keep its address), with the server's port as the gateway's;
 * **the config** (E1.3, A1): ``hermes_config.write`` from the ACTIVE Capabilities board and project, the terminal backend from the
-  capability's ``options["backend"]``; a worker's (``worker=True``, spec S2) is the board less ``WORKER_NEVER``, without clarify;
+  capability's ``options["backend"]``, and Lampway's guidance on its tools (``agent/prompt.py``) as Hermes's ``agent.system_prompt``;
+  a worker's (``worker=True``, spec S2) is the board less ``WORKER_NEVER``, without clarify, its prompt the one its task carries;
 * **the start-up check** (E1.3): ``hermes_config.check_advertised`` on each token's first chat request that carries tools, against
   the board its config was written from; a mismatch refuses that request and every later one of that pane (``Registry.first_check``);
+* **a Capabilities change while panes run** (E2): ``capabilities.subscribe`` -> ``Mode1Units.capabilities_changed``: every live
+  Lampway pane's config and toolset pin are re-rendered, its serve reloads them (``reload.env``, ``reload.mcp``; the conversation is
+  kept), and the gateway checks its next tool list again (``Registry.recheck``); a turn about to start waits for that refresh;
 * **the panes** (A1): ``units.Mode1Units`` is the cockpit's ``mode1`` hook and ``front.HermesFront`` the hub's engine (A2). The
   start re-adopts every live Lampway pane the cockpit reconciled (its tokens by their digests) and re-attaches to it. Shutdown
   closes this server's connections and stops the proxy; it never ends a pane or its serve (law 5).
@@ -53,7 +57,7 @@ REPO_ENGINES = Path(__file__).resolve().parents[3] / "build" / "engines"
 MODEL_ID = "lampway"                     # the id the engine asks the gateway for; the current main provider answers whatever it is
 WILDCARD_BINDS = {"0.0.0.0", "::", ""}
 PROXY_PORT_FILE = "proxy.port"
-#: Spec S2: what a swarm worker never does, whatever the parent chose (its tool list also leaves out ``ask_user`` and ``clarify``).
+#: Spec S2: what a swarm worker never does, whatever the parent chose (its tool list also leaves out ``clarify``).
 WORKER_NEVER = frozenset({"subagents", "swarm", "schedule", "panes.drive", "computer.use"})
 WORKER_NEVER_FAMILIES = ("messaging.",)
 
@@ -228,6 +232,7 @@ class EngineWiring:
         self.front = HermesFront(self.agent, self.units)
         cockpit.mode1 = self.units
         self.agent.engine = self.front
+        CAP.subscribe(self.units.capabilities_changed)      # spec E2: a switch reaches every running pane before its next tool call
         adopted = self.units.adopt()
         for rec in adopted:
             digest = rec.get("gateway_token_sha256")
@@ -238,6 +243,8 @@ class EngineWiring:
                  self.engine.get("tag", "?"), self.base, proxy_port, len(adopted))
 
     async def stop(self) -> None:
+        if self.units is not None:
+            CAP.unsubscribe(self.units.capabilities_changed)
         front, self.front = self.front, None
         if front is not None:
             try:
@@ -262,8 +269,10 @@ class EngineWiring:
             raise HC.Refused("refused: the Capabilities board is not available, so the engine's config cannot be written")
         if worker:
             board = WorkerBoard(board)
+        from ..agent.prompt import SYSTEM_PROMPT
         path = HC.write(home, board, CAP.project(), gateway_url, token, model_id, supports_vision=sees_images(self.agent), rendered=rendered,
-                        mcp_url=mcp_url, mcp_headers=mcp_headers, asks_user=not worker)
+                        mcp_url=mcp_url, mcp_headers=mcp_headers, asks_user=not worker,
+                        instructions=None if worker else SYSTEM_PROMPT)     # a worker's prompt comes with its task (S3)
         self._boards[GW.Registry.digest(token)] = (board, not worker)
         return path
 

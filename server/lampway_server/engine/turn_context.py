@@ -11,7 +11,9 @@ engine's turn gets all of it (spec A2: ``image.attach_bytes`` per image, then ``
 * the rules snapshot (``{"global": [...], "project": [...]}``, each ``{text, enabled}``) -> a "Your rules" / "Project rules"
   section, sent again only when the enabled set changes for the session (``rules_key`` tracks it);
 * ``folder_context`` (``{"folders": [{name, available, file_count, kinds, notes...}]}``) -> a "Context folders" section;
-* ``project_context``, ``attachment_names``, ``imported_object_names`` -> a short "This turn" section.
+* ``project_context``, ``attachment_names``, ``imported_object_names`` -> a short "This turn" section, with the turn's policy:
+  ``plan_required`` (Plan Mode: plan, then ``clarify`` Approve/Revise), ``auto_mode`` (ask nothing this turn) and
+  ``user_preferences.asset_match_threshold``.
 
 Context management (what is kept, compressed, summarised) is Hermes's (captain's Q3); this module only says what the user sent.
 """
@@ -66,8 +68,30 @@ def folders_section(folder_context) -> str:
     return "\n".join(lines)
 
 
-def turn_section(payload: dict) -> str:
+PLAN_MODE = ("Plan Mode is on. Before changing anything in the scene: inspect what is there, write the plan as a short numbered list "
+             "of the steps you will take (what each creates or changes, named by object), then ask with `clarify`, the plan as the "
+             "question and the choices \"Approve\" and \"Revise\". Change nothing until the user approves; if they ask for changes, "
+             "revise the plan and ask again. Once approved, carry the plan out and report what you did.")
+AUTO_MODE = ("Auto mode is on: do not ask the user anything this turn (no `clarify`); make the reasonable choice yourself and say "
+             "which one you made.")
+
+
+def policy_lines(payload: dict) -> list:
+    """The client's turn policy (R3, R4): Plan Mode, Auto mode, and the preferences the asset tools take."""
     lines = []
+    if payload.get("plan_required"):
+        lines.append(PLAN_MODE)
+    if payload.get("auto_mode"):
+        lines.append(AUTO_MODE)
+    prefs = payload.get("user_preferences") if isinstance(payload.get("user_preferences"), dict) else {}
+    threshold = prefs.get("asset_match_threshold")
+    if isinstance(threshold, (int, float)) and not isinstance(threshold, bool):
+        lines.append(f"Asset match threshold: {threshold} (pass it to the asset tools that take one).")
+    return lines
+
+
+def turn_section(payload: dict) -> str:
+    lines = policy_lines(payload)
     if payload.get("attachment_names"):
         lines.append("Images attached in Lampway: " + ", ".join(map(str, payload["attachment_names"])))
     if payload.get("imported_object_names"):

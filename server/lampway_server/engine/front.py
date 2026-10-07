@@ -41,9 +41,11 @@ with or without an island turn; with no client connected it is refused ("Lampway
 """
 
 import asyncio
+import json
 import logging
 import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
 
 from . import turn_context as TC
@@ -59,6 +61,11 @@ APPROVAL_LABELS = {"once": "Allow once", "session": "Allow for this session", "a
 RECONNECT_S = (0.5, 1, 2, 5, 10, 30)
 KNOWN_CONNECT_S = 15.0            # a recorded pane's serve answers at once; one that does not may have ended with its pane
 ANSWERED_ELSEWHERE = "(Answered in Lampway Agent's pane.)"
+NOT_ANSWERED = "(Not answered: Lampway Agent went on to a new turn.)"
+TURN_WAIT_S = 20.0                # how long a tool call waits for the island turn that shows it (``_shown_turn``)
+MARKS_FILE = "checkpoints.json"   # the unit's checkpoint bookmarks (0600 in its home): request id -> {session, user turns}
+MAX_MARKS = 500
+BUSY = 4009                       # serve's "session busy" (session.undo while a turn runs)
 
 
 @dataclass
@@ -107,6 +114,8 @@ class Link:
     watcher: Optional[asyncio.Task] = None
     closing: bool = False
     carried: list = field(default_factory=list)   # steps still running when the turn stopped for a question
+    stale: Optional["Question"] = None            # a question nobody can answer now, its card still open in the island
+    marks: Optional[dict] = None                  # checkpoint bookmarks: request id -> {session, turns} (``checkpoints.json``)
 
 
 def tool_name(payload: dict) -> str:
@@ -141,6 +150,7 @@ class HermesFront:
         self.hub = hub
         self.units = units
         self.links: dict = {}
+        self.feed = None                                     # history.Feed: the client's archive (R2), made on its first poll
 
     # ------------------------------------------------------------------------------------------------- the hub's side
     def _link(self, unit: str) -> Link:
@@ -213,6 +223,12 @@ class HermesFront:
                 return "completed"
         else:
             link.sink = sink
+            if link.stale is not None:
+                await self._close_stale(link, sink)
+            settled = getattr(self.units, "settled", None)
+            if settled is not None:
+                await settled()                             # a Capabilities change in flight reaches the pane first (E2)
+            await self._bookmark(link, turn.turn_id)        # the client's checkpoint before this turn is bound to its command id
             try:
                 for name, data in TC.attachments(context):
                     await link.client.call("image.attach_bytes", {"session_id": link.live_id, "content_base64": data, "filename": name})
@@ -346,6 +362,112 @@ class HermesFront:
                 if link.watcher is None or link.watcher.done():
                     link.watcher = asyncio.ensure_future(self._reconnect(link, first=True))
 
+    # ------------------------------------------------------------------------------------------------- the archive (R2)
+    async def history_sync(self, params: dict) -> dict:
+        """``agent.history_sync``: the client's archive, from the units' Hermes sessions (``history.Feed``)."""
+        if self.feed is None:
+            from .history import Feed
+            self.feed = Feed(self)
+        return await self.feed.sync(params)
+
+    async def archive_link(self, unit: str) -> Optional[Link]:
+        """The unit's connection to its pane's serve, when this server holds one (a chat or a restart's adoption made it); the
+        archive never opens a pane and never waits for a serve to start."""
+        link = self.links.get(unit)
+        if link is None or link.client is None or link.client.closed.is_set() or not link.live_id:
+            return None
+        return link
+
+    # ------------------------------------------------------------------------------------------------- checkpoints
+    async def checkpoint_mark(self, session_id: str, request_id: str) -> bool:
+        """``agent.checkpoint.mark``: the conversation's point now (the user turns Hermes's session holds) under the client's id."""
+        link = await self.archive_link(session_id)
+        return link is not None and await self._bookmark(link, request_id)
+
+    async def checkpoint_rewind(self, session_id: str, request_id: str) -> dict:
+        """``agent.checkpoint.rewind``: the scene went back to a bookmark, and Hermes's conversation follows it. serve's
+        ``session.undo`` drops the last user turn and what followed, durably (``state.db``), and refuses while a turn runs
+        (measured 2026-10-07); it is called until the session holds the bookmark's user turns, counted again after each undo.
+        Hermes cannot bring undone turns back, so a rewind forward is refused, saying so, as is one into a conversation the pane
+        left (``/new``) and one while the agent works."""
+        link = await self.archive_link(session_id)
+        if link is None:
+            return _rewind_refusal("rewind_unavailable", "Lampway Agent's pane is not connected to Lampway now, so its conversation "
+                                   "could not be rewound")
+        mark = self._marks(link).get(str(request_id))
+        if mark is None:
+            return _rewind_refusal("rewind_unknown", "Lampway has no bookmark of Lampway Agent's conversation for that checkpoint")
+        if mark.get("session") != (link.info.stored_id if link.info is not None else None):
+            return _rewind_refusal("rewind_other_conversation", "that checkpoint belongs to an earlier conversation of Lampway Agent's "
+                                   "pane (it started a new one since), which stays as it was")
+        if link.running:
+            return _rewind_refusal("rewind_busy", "Lampway Agent is working on a turn; stop it, then restore the checkpoint again")
+        want = int(mark.get("turns") or 0)
+        users = await self._user_rows(link)
+        have = len(users)
+        if have < want or (want and _turn_key(users[want - 1]) != mark.get("last")):
+            # Fewer turns than the bookmark, or its last turn is not there any more (undone, then the conversation went on):
+            # the turns this checkpoint holds were undone, and Hermes cannot bring them back.
+            return _rewind_refusal("rewind_forward", "Hermes cannot bring back turns it already undid, so Lampway Agent does not "
+                                   "remember the turns this checkpoint restores")
+        start = have
+        while have > want:
+            try:
+                removed = int((await link.client.call("session.undo", {"session_id": link.live_id})).get("removed") or 0)
+            except ServeError as exc:
+                if exc.code == BUSY:
+                    return _rewind_refusal("rewind_busy", "Lampway Agent started a turn; stop it, then restore the checkpoint again")
+                raise
+            if removed <= 0:
+                break
+            have = len(await self._user_rows(link))
+        if self.feed is not None:
+            self.feed.forget(link.unit)                      # the archive reads the shortened history at its next poll
+        log.info("Lampway Agent's conversation for %s rewound by %d turn(s) to a checkpoint", link.unit, start - have)
+        return {"ok": True, "has_conversation": True, "removed_turns": start - have}
+
+    async def _user_rows(self, link: Link) -> list:
+        msgs = (await link.client.call("session.history", {"session_id": link.live_id})).get("messages") or []
+        return [m for m in msgs if m.get("role") == "user"]
+
+    def _marks(self, link: Link) -> dict:
+        if link.marks is None:
+            link.marks = {}
+            path = self._marks_path(link)
+            if path is not None:
+                try:
+                    link.marks = dict(json.loads(path.read_text(encoding="utf-8")))
+                except (OSError, ValueError, TypeError):
+                    link.marks = {}
+        return link.marks
+
+    @staticmethod
+    def _marks_path(link: Link):
+        home = getattr(link.info, "home", None) if link.info is not None else None
+        return Path(home) / MARKS_FILE if home else None
+
+    async def _bookmark(self, link: Link, request_id: str) -> bool:
+        if not request_id or link.client is None:
+            return False
+        try:
+            users = await self._user_rows(link)
+        except Exception:  # noqa: BLE001 - a bookmark never stops a turn
+            log.debug("the checkpoint bookmark %s could not be taken", request_id, exc_info=True)
+            return False
+        marks = self._marks(link)
+        marks[str(request_id)] = {"session": link.info.stored_id if link.info is not None else None, "turns": len(users),
+                                  "last": _turn_key(users[-1]) if users else ""}
+        while len(marks) > MAX_MARKS:
+            marks.pop(next(iter(marks)))
+        path = self._marks_path(link)
+        if path is not None:
+            from .units import write_private
+            try:
+                await asyncio.to_thread(write_private, path, json.dumps(marks))
+            except OSError:
+                log.warning("the checkpoint bookmarks of %s could not be saved", link.unit)
+        return True
+
     # ------------------------------------------------------------------------------------------------- tools (A3)
     def session_for_token(self, unit: str, token: str):
         return unit if self.units.check_mcp(unit, token) else None
@@ -353,8 +475,8 @@ class HermesFront:
     def tool_specs(self, unit: Optional[str] = None) -> list:
         from .. import capabilities as CAP
         from ..agent.swarm import SWARM_SPECS
-        from ..agent.tools import ASK_USER, TOOLS
-        return [t for t in list(TOOLS) + list(SWARM_SPECS) if t.name != ASK_USER and CAP.tool_offered(t.name)]
+        from ..agent.tools import TOOLS
+        return [t for t in list(TOOLS) + list(SWARM_SPECS) if CAP.tool_offered(t.name)]
 
     async def call_tool(self, unit: str, name: str, arguments: dict) -> tuple:
         """One of Lampway's tools from the unit's Hermes, whoever started its turn: on the scene tab's current client socket."""
@@ -365,7 +487,7 @@ class HermesFront:
             return ("refused: Lampway is not open on this scene (no Lampway window is connected to this conversation), so its "
                     "tools cannot reach the scene. Ask the user to open the .blend in Lampway, then try again."), True
         link = self.links.get(unit)
-        sink = link.sink if link is not None and link.sink is not None and not link.sink.pending else None
+        sink = await self._shown_turn(link)
         session = sink.session if sink is not None else self.hub._session(unit)
         turn = sink.turn if sink is not None else Turn(unit, f"pane_{uuid.uuid4().hex[:12]}", "")
         call = ToolCall(id=f"eng_{uuid.uuid4().hex[:12]}", name=name, arguments=arguments if isinstance(arguments, dict) else {})
@@ -374,6 +496,27 @@ class HermesFront:
         content, is_error = await self.hub._run_tool(socket, session, turn, call, *((sink.stream, sink.bubble_id, sink.steps)
                                                                                     if sink is not None else (None, None, None)))
         return clip_result(content), is_error
+
+    async def _shown_turn(self, link: Optional[Link]) -> Optional[Sink]:
+        """The island turn that shows the Hermes turn making this call. A call can overtake its turn: the pane turn is still being
+        opened (its user text read from the history, its start sent to the client) or the island's answer has not been admitted
+        yet (``Sink.pending``), or serve's ``message.start`` is still on its way. The call waits for that turn, up to
+        ``TURN_WAIT_S``, so it runs under the turn id the client shows (a scratch id is refused there as ``unknown_turn``). Only a
+        call no turn ever owns gets a scratch turn."""
+        if link is None:
+            return None
+        deadline = asyncio.get_running_loop().time() + TURN_WAIT_S
+        while True:
+            sink = link.sink
+            if sink is not None and not sink.pending:
+                return sink
+            if sink is None and link.absorb > 0:
+                return None                                  # the user stopped the island's turn: no turn will show this call
+            if asyncio.get_running_loop().time() >= deadline:
+                log.warning("a tool call from Lampway Agent's pane for %s found no turn shown in the island within %.0fs", link.unit,
+                            TURN_WAIT_S)
+                return None
+            await asyncio.sleep(0.05)
 
     # ------------------------------------------------------------------------------------------------- the connection
     async def _ensure(self, unit: str, open_pane: bool = False, label=None) -> Link:
@@ -408,6 +551,10 @@ class HermesFront:
         client = await connect_when_up(info, on_event=on_event, on_request=on_request, timeout=timeout or START_TIMEOUT_S)
         same_epoch = bool(link.epoch) and link.epoch == client.epoch
         link.client, link.epoch = client, client.epoch
+        if not same_epoch:
+            self._stale_question(link)                      # serve restarted: its waiting request died with it
+        moved = await self._moved_while_away(link, client)
+        info = link.info
         res = await client.call("session.resume", {"session_id": info.stored_id})
         link.live_id = str(res.get("session_id") or "")
         running = bool(res.get("running"))
@@ -416,6 +563,8 @@ class HermesFront:
         else:
             link.last_seq = -1
             await self._settle(link, running, res)
+        if moved:
+            await self._tell_new_conversation(link)
         if link.watcher is None or link.watcher.done():
             link.watcher = asyncio.ensure_future(self._watch(link, client))
 
@@ -517,6 +666,7 @@ class HermesFront:
         if link.live_id != old:
             return                                           # serve says sessions.changed twice: another check followed it
         link.live_id = str(res.get("session_id") or newest["id"])
+        link.last_seq = -1                                   # serve numbers each session's events from 1
         info = link.info
         if info is not None:
             from .units import UnitInfo
@@ -530,31 +680,74 @@ class HermesFront:
             await self._end(link, sink, "cancelled", "The pane started a new conversation (/new); this one is in History.")
         link.running = bool(res.get("running"))
         log.info("Lampway Agent's pane for %s moved to a new session; the island follows it", link.unit)
-        # The tab's session id (the unit) stays: only this frame tells its client to start a new chat and file the old one.
+        await self._tell_new_conversation(link)
+
+    async def _tell_new_conversation(self, link: Link) -> None:
+        """The tab's session id (the unit) stays: only this frame tells its current client to start a new chat and file the old one.
+        A client that is not connected learns it from ``agent.status`` (``conversations``) when it comes back."""
         socket = self.hub.socket_for(link.unit)
-        if socket is not None:
-            try:
-                await socket.notify("agent.pane.new_conversation", {"session_id": link.unit, "origin": "pane"})
-            except Exception:  # noqa: BLE001 - the client went away: it shows the old chat until the next one
-                log.debug("the island could not be told of the pane's /new", exc_info=True)
+        if socket is None:
+            return
+        try:
+            await socket.notify("agent.pane.new_conversation", {"session_id": link.unit, "origin": "pane",
+                                                                "conversation_id": self.conversation_of(link.unit)})
+        except Exception:  # noqa: BLE001 - the client went away: agent.status tells it when it comes back
+            log.debug("the island could not be told of the pane's /new", exc_info=True)
+
+    async def _moved_while_away(self, link: Link, client: ServeClient) -> bool:
+        """Before attaching: the pane's ``/new`` while this server was away (or not connected) left the record naming the closed
+        session. serve's live sessions say which one the pane shows; the record follows it, and no closed session is reopened."""
+        info = link.info
+        try:
+            rows = (await client.call("session.active_list", {})).get("sessions") or []
+        except Exception:  # noqa: BLE001 - an older serve: attach to the recorded session
+            return False
+        rows = [r for r in rows if r.get("session_key")]
+        if info is None or not rows or info.stored_id in {str(r["session_key"]) for r in rows}:
+            return False
+        newest = str(max(rows, key=lambda r: float(r.get("started_at") or 0))["session_key"])
+        from .units import UnitInfo
+        link.info = UnitInfo(info.unit, info.record_id, info.home, info.port, info.token, newest)
+        await asyncio.to_thread(self.units.record_session, link.info, newest)
+        link.last_seq = -1
+        log.info("Lampway Agent's pane for %s moved to a new session while Lampway was away; the island follows it", link.unit)
+        return True
+
+    def conversation_of(self, unit: str) -> Optional[str]:
+        """The Hermes session the unit's pane shows, as this server knows it (its connection)."""
+        link = self.links.get(unit)
+        return str(link.info.stored_id) if link is not None and link.info is not None and link.info.stored_id else None
+
+    async def conversations(self, session_ids) -> dict:
+        """``agent.status``'s ``conversations``: each Mode 1 tab's current conversation, from the connection or the pane's record."""
+        out = {}
+        for sid in session_ids:
+            cid = self.conversation_of(sid)
+            if cid is None:
+                info = await asyncio.to_thread(self.units.known, sid)
+                cid = str(info.stored_id) if info is not None and info.stored_id else None
+            if cid:
+                out[sid] = cid
+        return out
 
     # ------------------------------------------------------------------------------------------------- serve's events
     async def _on_event(self, link: Link, params: dict) -> None:
         kind = params.get("type")
-        seq = params.get("seq")
-        if isinstance(seq, int):
-            if seq <= link.last_seq:
-                return
-            link.last_seq = seq
         if kind == "sessions.changed":
             if link.live_id:                                 # not while the connection is still resuming its session
                 asyncio.ensure_future(self._check_session(link))
             return
         if params.get("session_id") and params.get("session_id") != link.live_id:
-            return
+            return                                           # another session's (its seq counts its own events)
+        seq = params.get("seq")
+        if isinstance(seq, int):
+            if seq <= link.last_seq:
+                return
+            link.last_seq = seq
         payload = params.get("payload") or {}
         if kind == "message.start":
             link.running = True
+            self._stale_question(link)                      # a new Hermes turn: a question still open belongs to an earlier one
             if link.island_prompts > 0:
                 link.island_prompts -= 1
             elif link.sink is None:
@@ -699,6 +892,27 @@ class HermesFront:
         if session is not None and (session.pending_question or {}).get("interrupt_id") == q.interrupt_id:
             session.pending_question = None
 
+    def _stale_question(self, link: Link) -> None:
+        """The island's question can no longer be answered: Hermes started another turn, or serve restarted and its request died
+        with it. It is released (the tab's next chat is a prompt, never an answer to a request nobody waits on), and its card is
+        closed in the turn that shows Hermes now, else in the next one the island shows (``_close_stale``)."""
+        q, link.question = link.question, None
+        if q is None or q.answered:
+            return
+        self._release_question(link, q)
+        if not q.bubble_id:
+            return                                          # never shown: nothing to close
+        link.stale = q
+        sink = link.sink
+        if sink is not None and not sink.pending:
+            asyncio.ensure_future(self._close_stale(link, sink))
+
+    async def _close_stale(self, link: Link, sink: Sink) -> None:
+        q, link.stale = link.stale, None
+        if q is not None:
+            await sink.stream.emit_quietly({"bubble_id": q.bubble_id, "input_type": "", "actions": [],
+                                            "content": {"set": f"{q.body}\n\n{NOT_ANSWERED}"}})
+
     # ------------------------------------------------------------------------------------------------- the pane's own turns
     def _open_pane_turn(self, link: Link, user_text: Optional[str] = None, run_id: str = "", close: Optional[Question] = None) -> None:
         """An island turn for a Hermes turn the island did not start: typed in the pane (its user text from the history), or the
@@ -736,13 +950,16 @@ class HermesFront:
             if socket is not None:
                 try:
                     await socket.notify("agent.turn.started", {"session_id": unit, "turn_id": tid, "run_id": turn.run_id,
-                                                               "origin": "pane", "user_text": user_text or ""})
+                                                               "origin": "pane", "user_text": user_text or "",
+                                                               "conversation_id": self.conversation_of(unit)})
                 except Exception:  # noqa: BLE001 - the client went away: the journal keeps the turn for attach
                     turn.detached = True
             await stream.emit_quietly({"type": "run_status", "run_id": turn.run_id, "status": "in_progress"})
             if close is not None:
                 await stream.emit_quietly({"bubble_id": close.bubble_id, "input_type": "", "actions": [],
                                            "content": {"set": f"{close.body}\n\n{ANSWERED_ELSEWHERE}"}})
+            if link.stale is not None:
+                await self._close_stale(link, sink)
             await stream.emit_quietly({"bubble_id": bubble_id, "loader": {"visible": True, "texts": ["Thinking..."], "rotate_ms": 2000}})
             if link.sink is held:
                 self._bind(link, sink)
@@ -765,6 +982,16 @@ class HermesFront:
 class _NoSocket:
     async def notify(self, method, params):
         raise ConnectionError("no client")
+
+
+def _turn_key(message: dict) -> str:
+    """Which user turn this is: its durable row id and its words (a row id alone may be given again after an undo)."""
+    import hashlib
+    return hashlib.sha256(f"{message.get('row_id')}:{message.get('text')}".encode("utf-8")).hexdigest()[:24]
+
+
+def _rewind_refusal(code: str, message: str) -> dict:
+    return {"ok": False, "code": code, "message": message}
 
 
 def _refusal(code: str, message: str, help_: list) -> dict:

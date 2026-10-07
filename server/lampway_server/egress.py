@@ -179,6 +179,8 @@ class Egress:
             p = self._prefs()
             p["routes"][route] = {"enabled": bool(on)}
             self._save(p)
+        from . import capabilities as _CAP
+        _CAP.notify_changed()          # a capability that needs this route comes into or out of force (spec E2)
         return {"route": route, "enabled": bool(on)}
 
     def register_host(self, route: str, host: str) -> None:

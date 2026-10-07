@@ -264,7 +264,7 @@ def test_models_dev_url_can_be_given_and_must_be_loopback(board):
 
 
 def test_the_mcp_tool_call_timeout_is_hermess_largest_unclamped_value(board):
-    """Lampway's MCP tools run Blender scripts up to 600 s and ask_user holds the call until the user answers. Hermes clamps every
+    """Lampway's MCP tools run Blender scripts up to 600 s and a swarm's collect waits for its workers. Hermes clamps every
     timeout at MAX_SAFE_TIMEOUT_S = 31_536_000 s (agent/deadline.py:38, clamp at :111 at the pin)."""
     assert HC.MCP_TOOL_CALL_TIMEOUT_S == 31_536_000
     assert _render(board)["timeouts"] == {"mcp": {"tool_call": 31_536_000}}
@@ -308,7 +308,10 @@ def test_write_makes_a_0600_config_in_a_0700_home_that_reads_back(board, tmp_pat
     home.chmod(0o755)
     HC.write(home, board, None, GATEWAY, TOKEN, MODEL)
     assert stat.S_IMODE(home.stat().st_mode) == 0o700
-    assert [p.name for p in home.iterdir()] == ["config.yaml"]
+    # the config and the toolset pin serve reloads live (spec E2), both 0600, and no temporary file left
+    assert sorted(p.name for p in home.iterdir()) == [".env", "config.yaml"]
+    assert stat.S_IMODE((home / ".env").stat().st_mode) == 0o600
+    assert (home / ".env").read_text() == "HERMES_TUI_TOOLSETS=" + ",".join(HC.serve_toolsets(HC.read(home))) + "\n"
 
 
 def test_yaml_round_trips_awkward_strings():
@@ -328,6 +331,33 @@ def test_write_never_touches_the_users_own_hermes(board, tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------------------------------- the start-up check
+def test_lampways_instructions_are_hermess_own_system_prompt_setting(board):
+    """Lampway's guidance on its tools reaches Mode 1's Hermes through ``agent.system_prompt`` (hermes_cli/personality.py
+    ``resolve_ephemeral_system_prompt``, read when serve builds a session, tui_gateway/server.py:2384, and appended to the system
+    message of every model call, agent/chat_completion_helpers.py:2176): no file in the user's project, no replaced identity."""
+    cfg = _render(board, instructions="Use Lampway's tools.")
+    assert cfg["agent"]["system_prompt"] == "Use Lampway's tools." and cfg["agent"]["disabled_toolsets"]
+    assert "system_prompt" not in _render(board)["agent"], "nothing given, nothing written"
+    with pytest.raises(HC.Refused, match="context may set only"):
+        _render(board, context={"agent": {"system_prompt": "x"}})
+
+
+def test_the_written_config_reads_back_as_the_dict_it_was_rendered_from(board, tmp_path):
+    """A pane's config is re-rendered when the user switches a capability while it runs (spec E2): the server reads back its own
+    file for the pane's keys (it keeps only their digests), so ``read`` must give exactly what ``render`` gave."""
+    for c in CAP.CATALOGUE:
+        board.set(c.id, enabled=True)
+    board.set("terminal", options={"backend": "docker"})
+    rendered = {}
+    HC.write(tmp_path / "h", board, "/proj ect", GATEWAY, TOKEN, MODEL, mcp_url="http://127.0.0.1:8799/engine/mcp/u 1",
+             mcp_headers={"Authorization": "Bearer b\"q", "X-Mixar-Session-Id": "swarm:s:w"}, rendered=rendered,
+             routes_on=lambda r: True, supports_vision=True, context={"compression": {"threshold": 0.5, "enabled": True}},
+             instructions="Line one.\nLine \"two\": yes, no, true.")
+    assert HC.read(tmp_path / "h") == rendered
+    assert HC.from_yaml(HC.to_yaml({"a": {}, "b": [], "c": [{"x": [1, 2.5, None]}], "d": -1.5e-07, "e": "on"})) == \
+        {"a": {}, "b": [], "c": [{"x": [1, 2.5, None]}], "d": -1.5e-07, "e": "on"}
+
+
 def _tool(name, description=""):
     return {"type": "function", "function": {"name": name, "description": description, "parameters": {"type": "object"}}}
 

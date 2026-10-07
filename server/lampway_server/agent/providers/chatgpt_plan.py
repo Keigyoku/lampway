@@ -9,7 +9,7 @@
 * a stream counts as success only after ``response.completed``; ``response.failed`` stops inference with its exact error code
   and the documented recovery, and nothing falls back to another billing path.
 
-Used only by the agent loop for the signed-in user's own chat turns: there is no endpoint that forwards arbitrary requests to
+Used only as the model gateway's door for the signed-in user's own Mode 1 turns (spec A5): there is no endpoint that forwards arbitrary requests to
 this route (the terms forbid general-purpose access for other tools).
 """
 

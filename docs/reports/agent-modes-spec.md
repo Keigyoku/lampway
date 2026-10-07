@@ -147,6 +147,18 @@ and never fetched at run time.
   build with `LAMPWAY_HERMES_TUI_DIR` pointing at the spike's prebuilt `ui-tui`.
 - **Opening a pane is the user's chat.** An ended pane is reopened (resuming its stored session) by the user's next chat in that
   tab. This treats the chat as the click law 5 asks for: a decision for the captain.
+- **Lampway's instructions reach Hermes (built 2026-10-07).** With the loop gone, `agent/prompt.py`'s guidance fed only the
+  generated agent files. The pinned Hermes offers four channels: a project context file (`HERMES.md`/`AGENTS.md` in the cwd,
+  which would write into the user's project), `SOUL.md` in the home (replaces Hermes's identity), a plugin's
+  `register_system_prompt_section` (code in the home), and the config's `agent.system_prompt` (hermes_cli/personality.py
+  `resolve_ephemeral_system_prompt`, read when serve builds a session, appended after Hermes's own prompt on every model call,
+  agent/chat_completion_helpers.py:2175-2177). Lampway uses the last, the least invasive: a main pane's config carries
+  `SYSTEM_PROMPT` (rewritten for Mode 1: the `mcp__lampway__` names behind `tool_search`, `clarify`, Capabilities, the spend
+  and source-file rules); a worker's pane gets its prompt with its task (S3). Measured: the scripted model's system message
+  starts "You are Hermes Agent" and carries the guidance (`test_engine_pane_live.py`). The client's turn policy rides in the
+  prompt's "This turn" section (R3): Plan Mode (plan, then `clarify` with Approve/Revise), Auto mode (ask nothing this turn),
+  the asset-match threshold. `[UNVERIFIED]`, read in the source only: a user's `/personality` in the pane takes the slot instead
+  (Hermes prefers a personality), until Lampway writes the config again.
 
 ### A2. The island is a second front end on the same live session
 
@@ -216,9 +228,21 @@ Further mapping rules:
 - **`/new`:** on `agent.pane.new_conversation` the old turns are fenced, their queued scripts answered, the old chat filed in
   History under a new id with its media and its checkpoint timeline, the island emptied for the same session id, and one line
   says the pane started a new conversation.
+- **`/new` while Lampway was away (built 2026-10-07):** the frame reaches only a connected client. The server names the pane's
+  conversation (the Hermes session id) in `agent.turn.started` and `agent.pane.new_conversation` (`conversation_id`) and, per
+  Mode 1 tab, in `agent.status`'s new `conversations` map; the client keeps the last one it saw as a scene ID property
+  (`mixie_pane_conversation`, saved with the file) and, on the reconnect's status, files the old chat when the pane shows another
+  (`mode1_pane.note_conversation`, the same filing as the frame; a turn's start only records). On the server, attaching to a pane
+  first asks serve's live sessions (`session.active_list`): a `/new` while Lampway's server was down left the record naming the
+  closed session, so the island and the record follow the live one instead of reopening the old conversation, and a connected
+  client is sent the frame. `[UNVERIFIED]` in a running app: a reopened `.blend` saved before the `/new`.
 - `[UNVERIFIED]` in a running app: the first-hand look of a pane turn in the island, Stop and an island steer during one, an undo
-  after one, `/new` with images in the old chat, and a reopened filed chat. The server lane's own note: `call_tool` gives a scratch
-  turn id to a call made while the pane turn is still being opened (`Sink.pending`); the client refuses that call (unknown turn).
+  after one, `/new` with images in the old chat, and a reopened filed chat.
+- **Built 2026-10-07 (server, loose ends):** a tool call that overtakes its pane turn (the turn still being opened, `Sink.pending`,
+  or serve's `message.start` not yet read) waits for the island turn that shows it, up to 20 s (`front.TURN_WAIT_S`), so its
+  script names the turn the client shows; before, it ran under a scratch id the client refused (`unknown_turn`). A question
+  nobody can answer any more (Hermes started another turn, or serve restarted and its request died with it) is released, so the
+  tab's next chat is a prompt, and its card is closed in the next turn the island shows ("Not answered").
 
 ### A3. Tools reach the scene, whoever started the turn
 
@@ -237,7 +261,9 @@ Further mapping rules:
   the real TUI).
 - With no Lampway window connected the call is refused: "Lampway is not open on this scene".
 - Capabilities gate every call at call time (a switched-off family is refused and nothing reaches Blender).
-- `ask_user` is not offered: the island's questions are Hermes's own `clarify` (A2).
+- `ask_user` is not offered: the island's questions are Hermes's own `clarify` (A2). **Decided and built 2026-10-07:** `ask_user`
+  left the registry (no agent was offered it, and a question tool has no use beside `clarify`); the hub, the docs, the generated
+  agent skills and the two canonical skills that said it "needs the agent loop" were updated.
 - Steps come only from serve's `tool.start`/`tool.complete`; the MCP side emits none.
 - The client runs a `blender.execute_script` whose `turn_id` names a pane turn only while it shows that turn, and refuses one it
   dropped or that ended (A2, built 2026-10-07, client).
@@ -331,16 +357,39 @@ overwhelming/losing information the better."
   `LAMPWAY_HERDR_BIN`). The switch to Your agent is named in each, except herdr's: Your agent runs in a herdr pane too. The M0
   `wrong_mode` refusal still comes first. Nothing answers in the engine's place.
 - **Kept:** R0a's plan notice (it was shown on engine turns too), `_run_tool` and the registry, Capabilities, the swarm substrate,
-  BYOA. `ask_user` stays in the registry but is offered to no agent (Hermes asks with `clarify`).
+  BYOA. `ask_user` was kept in the registry, offered to no agent (Hermes asks with `clarify`); it left the registry on
+  2026-10-07 (A3).
 - **Fixed on the way:** a swarm the pane's Hermes starts now runs in the island turn that shows its call, so its todo cards and
   progress reach the Parallel Agents panel; the engine path passed no stream, so they never did.
 - **Checkpoints:** a mark bookmarks nothing (`has_conversation: false`) and a rewind is refused (`rewind_unsupported`), so the
   client tells the user the agent still remembers the undone turns, where the hub used to claim it forgot them. Rewinding through
-  serve's `session.undo` or `session.branch` is proposed, not measured: a decision for the captain.
+  serve's `session.undo` or `session.branch` is proposed, not measured: a decision for the captain. *Superseded, built
+  2026-10-07:*
+  - **Measured on the pinned serve:** `session.undo {session_id}` drops the last user turn and everything after it, answers
+    `{removed: <messages>}`, refuses while a turn runs (`4009`), and is durable: after serve was killed and resumed, the session
+    and the next model request lack the undone turns. `session.branch {session_id, count}` copies the visible user and assistant
+    rows (tool rows dropped) into a new stored session; it does not change the live one, so it is not a rewind.
+  - **Mapped:** the client binds the snapshot before turn N to that turn's command id and marks the tip before a jump. The
+    island bookmarks Hermes's point under those ids (before each island turn's prompt, and on `agent.checkpoint.mark`): the user
+    turns the session holds and the identity of the last one (its row id and words), in `checkpoints.json` (0600, the unit's
+    home). `agent.checkpoint.rewind` calls `session.undo` until the session holds the bookmark's turns, counting again after
+    each undo, and answers `{ok: true, has_conversation: true, removed_turns}`.
+  - **What differs from the upstream backend's fork:** Hermes's undo is destructive. A rewind forward (to the tip after going
+    back, or to a bookmark whose last turn was undone and replaced) cannot bring the turns back and is refused
+    (`rewind_forward`); so is a rewind into a conversation the pane left with `/new` (`rewind_other_conversation`, the old one is
+    left as it was), one while the agent works (`rewind_busy`) and one with no pane connected (`rewind_unavailable`). The client
+    then shows "the conversation could not be rewound" with Lampway's reason; its fixed tail ("may still remember the undone
+    turns") is the client's own wording. A turn typed in the pane takes no checkpoint (A2), and an undo is at user-turn
+    granularity: a rewind to a checkpoint inside a turn (an answer to a question) keeps that turn. `[UNVERIFIED]`: whether the
+    TUI's transcript drops the undone turns at once (Hermes sends no event for another client's undo that Lampway saw).
+  - Tests: `test_questions_checkpoints.py` (the scripted serve), the live `test_engine_pane_live.py` rewind on the real serve.
 - **Tests:** the hub's protocol tests run on the scripted serve (`tests/serve_support.py`: `FakeServe`, `stack`/`run` on a real port,
   `ServeThread`/`mode1_turn` under a TestClient); the tests whose subject was the loop itself were deleted.
 - `[UNVERIFIED]`: the `mock` provider (written for the loop) has not been run against Hermes, whose tool names it does not use; CI
-  does not build the engine yet.
+  does not build the engine yet. *The mock, built 2026-10-07:* it now answers Hermes behind the gateway: Lampway's tools by the
+  names Hermes offers (`mcp__lampway__<tool>`, or the `tool_call` bridge when deferred), never one the request did not offer, text
+  only for a request with no tools (Hermes's title call). Live-tested on the pinned serve: a question gets the scene's summary
+  from Blender, a `py:` message runs its script in the scene. CI still does not build the engine.
 
 ## 0. Where the code is today
 
@@ -515,6 +564,27 @@ and the pending question is cleared (fails today). Retention moves an old sessio
 
 **Tests.** A recorded client sync against R1's store yields the same events the live stream sent; an unadvertised capability is
 never answered with −32601 (the client's silent stop).
+
+**Built 2026-10-07** (`engine/history.py`, `HermesFront.history_sync`, `AgentHub._history_sync`, `ws.server_capabilities`):
+- `agent.history_sync` (version 1) is served from the unit's `hermes serve`: the session the pane shows (`session.history` on the
+  live session, read again only after a new event) and, first, a previous session of the unit that still has records the client
+  never acknowledged (`session.list`; resumed from `state.db`, read, closed again), one packet per unit per poll. A tab with no
+  live pane this server is connected to has nothing to send.
+- Each message (user, assistant, tool rows, in order; measured row shape: `{role, text, timestamp, row_id}`, a tool row with
+  `name`, `context`, `tool_call_id`) is one record `{version: 1, run_id: <Hermes session id>, task_id: "main", kind: "message",
+  payload: {id, role, text, ...}}` at its 1-based position, `event_id` the sha256 of the client's canonical JSON.
+- Lampway stores no conversation. Its delivery state is the acknowledged prefix's length and digest per Hermes session
+  (`archive.json`, 0600 in the unit's home). An epoch is one Hermes session and rewrite: a history that no longer starts with the
+  acknowledged prefix (Hermes's undo, a checkpoint rewind) gets a new epoch and is sent again whole, which the client records as
+  an epoch change, never a replay conflict. The owner id is one constant (`lampway-local`: one local account).
+- The handshake advertises `agent_history_v1` only while the engine runs Mode 1, never `agent_history_v2` (no image route; no
+  record carries an image). `agent.history_read` is the client's own answer to a server's request; Lampway sends none (Hermes keeps
+  its own memory).
+- Tests: `test_engine_history.py` (the scripted serve), the live `test_engine_pane_live.py` archive test on the real serve, and the
+  client's `tests/test_agent_history_hermes.py`, which writes the server's packets with the client's own store.
+- Found on the way: serve numbers each session's events from 1, so after following the pane's `/new` the island dropped the new
+  session's first events as already seen; the count now starts again on a follow, and other sessions' events are ignored before
+  their `seq` is counted.
 
 ## R3. Context the client sends, read and used
 
@@ -915,6 +985,26 @@ against a fake OpenAI-compatible model on loopback, with every proxy variable po
 - **Egress attempts with nothing configured:** `pypi.org`, `models.dev`, `hermes-agent.nousresearch.com`,
   `raw.githubusercontent.com`. All were refused by the proxy, and the turn still completed. E1.5's deny-and-log is the control;
   E1.3 should also switch these checks off where Hermes allows it.
+
+**Built 2026-10-07: a switch reaches the running pane** (`capabilities.subscribe`, `engine/units.py` `refresh_all`,
+`engine/hermes_config.py` `read`/`env_text`, `gateway.Registry.recheck`). Measured on the pinned serve (v2026.9.24, a scripted
+model on loopback, one session, its conversation counted at each step):
+- rewriting `config.yaml` alone changes nothing in a live session; `reload.mcp {confirm: true}` alone changes nothing either,
+  because the session's toolsets come from the `HERMES_TUI_TOOLSETS` pin, read from the process environment;
+- serve loads the home's `.env` over its environment at start and again on `reload.env`; with the pin in `.env`, `reload.env`
+  then `reload.mcp` gives every live session the new tool list (terminal on, off, on again), the conversation intact (14
+  messages after seven turns) and the TUI still attached; `session.close` + `session.resume` also works but closes the session
+  under the TUI ("type /resume"), so it is not used;
+- Hermes builds the memory store with the session: `memory` switched on mid-session offers its tool, which answers "Memory is
+  not available" until the session is next built (a new conversation, or serve restarted). Switched off, the tool is gone at
+  once.
+
+So Lampway re-renders each live pane's config with the keys it already holds, writes the pin to `.env` (0600, no secret), asks
+its serve for both reloads, and has the gateway check that pane's next tool list against the new board (a refused re-check
+refuses that request only, since one built before the reload may carry the old list). A turn about to start waits for the
+refresh. A route turned on or off is a change too. The MCP endpoint's call-time check stays the hard gate for Lampway's tools.
+Live-tested: `terminal` switched on through `PUT /app/capabilities/terminal` runs a command in the next turn, switched off is gone
+from the next request, in the same pane and conversation (`test_engine_pane_live.py`).
 
 **Still open** `[UNVERIFIED]`:
 - per-process session isolation;

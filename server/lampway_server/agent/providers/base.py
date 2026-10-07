@@ -21,7 +21,7 @@ class ToolCall:
 @dataclass
 class Stop:
     """Why the model stopped, when it was NOT the ordinary end (``length``, ``content_filter``, an error subtype...).
-    Providers yield it last, only for those; the agent loop uses it to explain an empty reply instead of ending the turn silently."""
+    Providers yield it last, only for those; the model gateway turns it into the finish reason the engine is told."""
     reason: str
 
 

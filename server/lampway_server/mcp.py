@@ -5,15 +5,15 @@ app instance named by ``X-Mixar-Instance-Id`` and the scene session named by ``X
 round trip inside an MCP operation (``mcp.begin_operation`` leases the scene, the script carries its ``mcp_operation_id``,
 ``mcp.end_operation`` releases it), the client's condition for admitting a script from an external app. Offered: the scene tools, the Lampway tools that are one script in Blender, and the Asset Vault family
 (``lampway_vault_*``, run here on the server with the external client's authority: read and curate, never spend, never enrol a folder).
-NOT offered: the studio tools (they spend credits on the owner's subscription), the swarm and ``ask_user`` (they need the agent loop).
+NOT offered: the studio tools (they spend credits on the owner's subscription) and the swarm (only a Lampway pane bound to a scene tab
+starts one, below). The other server-run tools are Lampway Agent's (Mode 1, through its unit's endpoint, ``engine/mcp_endpoint.py``).
 
 The pane endpoint (``POST /api/v1/mcp/pane``, docs/reports/agent-modes-spec.md S3) is not for external apps. Loopback only, it
 answers only a pane Lampway started on its own herdr server, proven by that pane's own bearer, which lives only in the pane's own
 MCP config (0600 under the Lampway root):
   * a **swarm worker pane** (session header ``swarm:<swarm_id>:<worker_id>``, bearer = that worker's token, minted by its
     ``PaneBrain``): offered ``worker_tools()`` as Capabilities allow, plus ``lampway_worker_done``; every call runs through the
-    worker's ``WorkerJob.call_tool``, on the worker's own headless Lampway. Never the swarm, the studios, ``ask_user`` or the
-    workbench;
+    worker's ``WorkerJob.call_tool``, on the worker's own headless Lampway. Never the swarm, the studios or the workbench;
   * a **bound BYOA pane** (B2; bearer = the pane's key, its sha256 in the cockpit's record): offered only ``swarm_start``,
     ``swarm_status``, ``swarm_cancel`` and ``swarm_collect``, only with capability ``swarm`` in force and the BYOA switch on. Its
     swarm is Mode 2's: its workers are panes on the pane's own harness (``PaneBrain``, the one brain; the unit's mode picks the

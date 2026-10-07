@@ -80,9 +80,12 @@ def test_the_island_attaches_as_a_client_that_takes_questions_and_submits_the_us
     serve, units = run(stack, scenario)
     methods = [m for m, _ in serve.calls]
     assert units.opened == ["scene-1"], "the user's first chat opened the unit's pane, once"
-    assert methods[:3] == ["client.capabilities", "session.resume", "prompt.submit"], methods
+    # session.active_list before attaching: the session the pane shows now (a /new while Lampway was away is followed);
+    # session.history before the prompt: the checkpoint bookmark of this turn (the user turns Hermes's session holds)
+    assert methods[:5] == ["client.capabilities", "session.active_list", "session.resume", "session.history", "prompt.submit"], \
+        methods
     assert serve.calls[0][1] == {"server_requests": True}
-    assert serve.calls[2][1]["text"] == "Hello there"
+    assert serve.calls[4][1]["text"] == "Hello there"
 
 
 def test_r3_rules_and_an_image_reach_the_pane_as_an_attachment_then_the_prompt(stack):
@@ -98,10 +101,25 @@ def test_r3_rules_and_an_image_reach_the_pane_as_an_attachment_then_the_prompt(s
 
     serve = run(stack, scenario)
     order = [m for m, _ in serve.calls if m in ("image.attach_bytes", "prompt.submit")]
+    assert "Plan Mode is on" not in next(p for m, p in serve.calls if m == "prompt.submit")["text"]
     assert order == ["image.attach_bytes", "prompt.submit"], "the image is attached before the prompt"
     assert serve.only().images == [("front.png", PNG)]
     text = next(p for m, p in serve.calls if m == "prompt.submit")["text"]
     assert "Always use metric units." in text and text.rstrip().endswith("Model the chair.")
+
+
+def test_the_clients_turn_policy_reaches_the_pane_with_the_message(stack):
+    """Plan Mode, Auto mode and the asset-match threshold the client sends beside the message reach the pane's Hermes in the
+    prompt's "This turn" section (they fed only the removed loop before)."""
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Here is the plan.")])
+        cid, _ = await chat(island, "Make a table.", "scene-1", plan_required=True,
+                            user_preferences={"asset_match_threshold": 0.7})
+        await island.ended(cid)
+        return next(p for m, p in serve.calls if m == "prompt.submit")["text"]
+
+    text = run(stack, scenario)
+    assert "Plan Mode is on" in text and "0.7" in text and text.rstrip().endswith("Make a table.")
 
 
 # ---------------------------------------------------------------------------------------------------- steer and cancel
@@ -255,6 +273,59 @@ def test_a_tool_called_in_a_pane_typed_turn_reaches_the_scene_through_the_tabs_c
     assert final_text(events) == "One cube."
 
 
+def test_a_tool_call_that_overtakes_its_pane_turn_waits_for_it_and_runs_under_its_turn_id(stack):
+    """The pane turn is still being opened (its text read from a slow history) when Hermes's tool call reaches the endpoint: the call
+    waits for the turn the island shows, so its script names that turn (the client refuses any other pane id as unknown_turn)."""
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Hi.")])
+        cid, _ = await chat(island, "Hello", "scene-1")
+        await island.ended(cid)
+        serve.history_delay = 1.0
+        await serve.pane_prompt(serve.only(), "what is in the scene?", [("mcp", "scene_summary", {}), ("say", "One cube.")])
+        started = await island.wait(lambda f: f.get("method") == "agent.turn.started" and f["params"].get("origin") == "pane")
+        await island.ended(started["params"]["turn_id"])
+        return started["params"], island.scripts, serve.mcp_results, island.events(started["params"]["turn_id"])
+
+    started, scripts, results, events = run(stack, scenario)
+    assert results and results[-1]["isError"] is False
+    assert scripts and scripts[-1]["agent_ctx"]["turn_id"] == started["turn_id"], (scripts[-1]["agent_ctx"], started)
+    assert final_text(events) == "One cube."
+
+
+def test_a_question_left_open_when_serve_restarted_is_closed_by_the_next_pane_turn_and_the_next_chat_is_a_prompt(stack):
+    """The island asked (clarify), then serve restarted: its request died with it. A turn the user then types in the pane is a new
+    run; the old card is closed in it, the question is released, and the tab's next chat is a new prompt, not an answer."""
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("clarify", "Round or square table?", ["Round", "Square"]), ("say", "Round it is.")])
+        cid, _ = await chat(island, "Make a table", "scene-1")
+        await island.ended(cid)
+        q = next(e for e in island.events(cid) if e.get("interrupt_id"))
+        await serve.restart()
+        for _ in range(200):
+            link = front.links["scene-1"]
+            if link.client is not None and not link.client.closed.is_set() and link.live_id == serve.only().live_id:
+                break                                                    # re-attached to the restarted session
+            await asyncio.sleep(0.05)
+        await serve.pane_prompt(serve.only(), "make a chair instead", [("say", "A chair.")])
+        started = await island.wait(lambda f: f.get("method") == "agent.turn.started" and f["params"].get("origin") == "pane")
+        tid = started["params"]["turn_id"]
+        await island.ended(tid)
+        pending = stack.app.state.agent.sessions["scene-1"].pending_question
+        serve.scripts.append([("say", "Fresh.")])
+        cid3, _ = await chat(island, "Now a lamp", "scene-1")
+        await island.ended(cid3)
+        return q, island.events(cid)[0]["run_id"], started["params"], island.events(tid), pending, [m for m, _ in serve.calls], \
+            island.events(cid3)
+
+    q, asked_run, started, events, pending, methods, last = run(stack, scenario)
+    assert started["run_id"] != asked_run and started["user_text"] == "make a chair instead"
+    close = [e for e in events if e.get("bubble_id") == q["bubble_id"]]
+    assert close and close[-1]["input_type"] == "" and close[-1]["actions"] == [], events
+    assert "Round or square table?" in close[-1]["content"]["set"]
+    assert pending is None, "the dead question was released"
+    assert methods[-1] == "prompt.submit" and final_text(last) == "Fresh.", "the next chat was a prompt"
+
+
 def test_with_no_lampway_window_a_tool_call_is_refused_saying_lampway_is_not_open(stack):
     async def scenario(serve, units, island, front):
         serve.scripts.append([("say", "Hi.")])
@@ -376,7 +447,7 @@ def test_slash_new_in_the_pane_tells_the_tabs_client_once_so_the_island_starts_a
         return frame["params"], len(frames), front.links["scene-1"].live_id, new
 
     params, count, live, new = run(stack, scenario)
-    assert params == {"session_id": "scene-1", "origin": "pane"}
+    assert params == {"session_id": "scene-1", "origin": "pane", "conversation_id": new.stored_id}
     assert count == 1 and live == new.live_id
 
 
@@ -438,6 +509,88 @@ def test_retry_from_the_cards_reruns_the_failed_tasks_in_the_island_turn_then_te
     bubble = next(e["bubble_id"] for e in events if "todo" in e)
     assert [e["todo"] for e in events if "todo" in e] == [[{"id": "sw2:worker-1", "text": "belt: Model the belt", "status": "DONE"}]]
     assert final_text(events) == "The belt is in your scene now." and any(e.get("bubble_id") == bubble and "content" in e for e in events)
+
+
+def test_after_slash_new_the_new_sessions_events_reach_the_island_however_long_the_old_one_was(stack):
+    """serve numbers a session's events from 1 (``seq``, per session): after following the pane to its new session, the island
+    must not take the new session's first events for ones it already saw in the old, longer one."""
+    async def scenario(serve, units, island, front):
+        for i in range(3):
+            serve.scripts.append([("say", f"Old reply number {i} with several words in it.")])
+            cid, _ = await chat(island, f"old {i}", "scene-1")
+            await island.ended(cid)
+        await serve.pane_new(serve.only())
+        await island.wait(lambda f: f.get("method") == "agent.pane.new_conversation")
+        serve.scripts.append([("say", "Fresh start.")])
+        cid2, _ = await chat(island, "Again", "scene-1")
+        await island.ended(cid2, timeout=20)
+        return island.events(cid2)
+
+    events = run(stack, scenario)
+    assert final_text(events) == "Fresh start." and events[-1]["status"] == "completed"
+
+
+def test_a_client_that_reconnects_after_the_panes_new_learns_the_conversation_from_agent_status(stack):
+    """``/new`` while no Lampway window was connected: the frame reached nobody. ``agent.status`` names each Mode 1 tab's current
+    conversation (the Hermes session its pane shows), so the reconnecting client can file the old chat."""
+    async def scenario(serve, units, island, front):
+        for text in ("Hello", "Again"):
+            serve.scripts.append([("say", "Hi.")])
+            cid, _ = await chat(island, text, "scene-1")
+            await island.ended(cid)
+        old = serve.only()
+        rid = await island.send("agent.status", {"session_ids": ["scene-1", "no-pane-tab"]})
+        before = (await island.reply(rid))["result"]
+        await island.close()
+        new = await serve.pane_new(old)
+        for _ in range(100):
+            if front.links["scene-1"].live_id == new.live_id:
+                break
+            await asyncio.sleep(0.05)
+        again = await Island(stack.base, stack.settings).connect()
+        rid = await again.send("agent.status", {"session_ids": ["scene-1"]})
+        after = (await again.reply(rid))["result"]
+        started = [f["params"] for f in island.frames if f.get("method") == "agent.turn.started"]
+        await again.close()
+        return before, after, old, new, started
+
+    before, after, old, new, started = run(stack, scenario)
+    assert before["conversations"] == {"scene-1": old.stored_id}, "a tab with no pane names none"
+    assert after["conversations"] == {"scene-1": new.stored_id}
+    assert started[-1]["conversation_id"] == old.stored_id, "a turn's start names its conversation (once the pane is attached)"
+
+
+def test_a_server_that_comes_back_after_the_panes_new_follows_the_pane_to_its_new_session(stack):
+    """``/new`` while Lampway's server was down: the pane's record still names the old session. On re-adoption the island attaches
+    to the session the pane shows now (``session.active_list``), and the record follows, before any old session is resumed."""
+    from lampway_server.engine.front import HermesFront
+
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Hi.")])
+        cid, _ = await chat(island, "Hello", "scene-1")
+        await island.ended(cid)
+        old = serve.only()
+        link = front.links["scene-1"]
+        link.closing = True                                              # this server goes away
+        await link.client.close()
+        new = await serve.pane_new(old)
+        hub = stack.app.state.agent
+        again = HermesFront(hub, units)                                  # the restarted server's front, the same record
+        hub.engine = again
+        await again.adopt([{"role": "main", "unit": "scene-1"}])
+        for _ in range(100):
+            if again.links["scene-1"].live_id:
+                break
+            await asyncio.sleep(0.05)
+        resumed = [p.get("session_id") for m, p in serve.calls if m == "session.resume"]
+        result = again.links["scene-1"].live_id, units.infos["scene-1"].stored_id, resumed[-1], old.closed
+        for lk in again.links.values():
+            lk.closing = True
+        return result, old, new
+
+    (live, stored, last_resumed, old_closed), old, new = run(stack, scenario)
+    assert live == new.live_id and stored == new.stored_id, "followed, and the record names the new session"
+    assert last_resumed == new.stored_id and old_closed, "the old conversation was not reopened"
 
 
 # ---------------------------------------------------------------------------------------------------- refusals before a turn

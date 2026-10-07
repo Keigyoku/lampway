@@ -8,6 +8,8 @@ and an island client that speaks the Lampway client's frames.
 client); ``prompt.submit`` -> ``{status: streaming}``, then the turn's events ``{method: event, params: {type, session_id, payload,
 seq}}`` with a per-session seq, ``message.start`` without a payload, ``message.complete {text, status}``; ``image.attach_bytes``;
 ``session.steer``; ``session.interrupt`` -> the running turn completes ``interrupted``; ``session.history`` (``{role, text, row_id}``);
+``session.undo`` (drops the last user turn and what followed, ``4009`` while a turn runs); ``session.list``, ``session.close``;
+``reload.env`` / ``reload.mcp``;
 ``session.events.since`` from a bounded ring (``truncated`` past it); ``session.status`` / ``session.active_list``; server requests
 ``clarify`` and ``approval`` to EVERY attached client that asked for them, first answer wins, no ``request.cancel`` to the others;
 ``/new`` from another client closes the session for everyone (``sessions.changed``, then ``4001``).
@@ -37,6 +39,10 @@ import websockets
 from lampway_server.engine.units import UnitInfo
 
 RING = 512
+
+
+class BusyError(Exception):
+    """serve's 4009: the session runs a turn (``session.undo`` refuses then, measured)."""
 
 
 def free_port():
@@ -76,6 +82,7 @@ class FakeServe:
         self.mcp = None                          # (url, bearer) of Lampway's endpoint for this unit
         self.mcp_results: list = []
         self.mcp_post = None                     # (url, body, headers) -> reply, when Lampway runs under a TestClient (ServeThread)
+        self.history_delay = 0.0                 # seconds session.history takes (a slow read, so a call can overtake its turn)
         self._srq: dict = {}
         self.port = None
         self.server = None
@@ -114,6 +121,10 @@ class FakeServe:
 
     def by_stored(self, stored) -> FSession:
         return next((s for s in self.sessions.values() if s.stored_id == stored and not s.closed), None)
+
+    def stored(self, stored) -> FSession:
+        """Any session by its stored id, closed or not (state.db keeps a closed session; resuming it makes it live again)."""
+        return next((s for s in self.sessions.values() if s.stored_id == stored), None)
 
     def only(self) -> FSession:
         live = [s for s in self.sessions.values() if not s.closed]
@@ -255,6 +266,8 @@ class FakeServe:
                     out = {"jsonrpc": "2.0", "id": frame["id"], "result": result}
                 except LookupError:
                     out = {"jsonrpc": "2.0", "id": frame["id"], "error": {"code": 4001, "message": "session not found"}}
+                except BusyError:
+                    out = {"jsonrpc": "2.0", "id": frame["id"], "error": {"code": 4009, "message": "session busy: undo"}}
                 except NotImplementedError:
                     out = {"jsonrpc": "2.0", "id": frame["id"], "error": {"code": -32601, "message": "method not found"}}
                 await ws.send(json.dumps(out))
@@ -284,6 +297,9 @@ class FakeServe:
             return {"session_id": s.live_id, "stored_session_id": s.stored_id, "message_count": 0, "messages": []}
         if method == "session.resume":
             s = self.by_stored(params.get("session_id"))
+            if s is None and self.stored(params.get("session_id")) is not None:
+                s = self.stored(params.get("session_id"))          # a closed session resumed from state.db
+                s.closed = False
             if s is None:
                 raise LookupError
             s.clients.add(ws)
@@ -314,6 +330,8 @@ class FakeServe:
             return {"status": "interrupted"}
         if method == "session.history":
             s = self._live(params)
+            if self.history_delay:
+                await asyncio.sleep(self.history_delay)
             return {"count": len(s.history), "messages": list(s.history)}
         if method == "session.events.since":
             s = self._live(params)
@@ -326,6 +344,29 @@ class FakeServe:
         if method == "session.status":
             s = self._live(params)
             return {"output": f"Session ID: {s.stored_id}"}
+        if method == "session.undo":
+            s = self._live(params)
+            if s.task is not None and not s.task.done():
+                raise BusyError
+            users = [i for i, m in enumerate(s.history) if m["role"] == "user"]
+            if not users:
+                return {"removed": 0}
+            removed = len(s.history) - users[-1]
+            del s.history[users[-1]:]
+            return {"removed": removed}
+        if method == "session.list":
+            return {"sessions": [{"id": s.stored_id, "title": "", "preview": "", "started_at": s.started_at,
+                                  "message_count": len(s.history), "source": "tui"}
+                                 for s in sorted(self.sessions.values(), key=lambda x: -x.started_at)]}
+        if method == "session.close":
+            s = self._live(params)
+            s.closed = True
+            s.clients.clear()
+            return {"closed": True}
+        if method == "reload.env":
+            return {"updated": 1}
+        if method == "reload.mcp":
+            return {"status": "reloaded", "loaded_rev": "test"}
         if method == "session.active_list":
             return {"sessions": [{"id": s.live_id, "session_key": s.stored_id, "started_at": s.started_at,
                                   "status": "working" if s.task is not None else "idle"} for s in self.sessions.values() if not s.closed]}

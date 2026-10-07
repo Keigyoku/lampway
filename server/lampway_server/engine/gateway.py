@@ -63,6 +63,7 @@ class Registry:
         #: carries tools (the tool list the model is sent); its verdict stands for the token's life (engine/wiring.py sets it).
         self.first_check: Optional[Callable] = None
         self._checked: dict = {}                           # sha256 hex of the token -> None (passed) or the refusal text
+        self._rechecks: set = set()                        # digests whose pane's tools changed live: checked again, never latched refused
 
     def __repr__(self) -> str:
         return f"Registry({len(self._sessions)} tokens)"
@@ -92,6 +93,7 @@ class Registry:
     def revoke(self, token: str) -> bool:
         with self._lock:
             self._checked.pop(self._digest(token), None)
+            self._rechecks.discard(self._digest(token))
             return self._sessions.pop(self._digest(token), None) is not None
 
     def revoke_session(self, session_id: str) -> int:
@@ -100,6 +102,7 @@ class Registry:
             for d in gone:
                 del self._sessions[d]
                 self._checked.pop(d, None)
+                self._rechecks.discard(d)
         return len(gone)
 
     def check_first(self, token: str, session_id: str, tools) -> Optional[str]:
@@ -119,8 +122,21 @@ class Registry:
             verdict = f"refused: the engine's tools could not be checked against your Capabilities ({type(exc).__name__})"
         with self._lock:
             if digest in self._sessions:
+                if digest in self._rechecks and verdict is not None:
+                    # A re-check after a live change refuses only this request: one built before the pane's reload may still carry
+                    # the old list. The next request is checked again; a pass settles it.
+                    return verdict
+                self._rechecks.discard(digest)
                 self._checked[digest] = verdict
         return verdict
+
+    def recheck(self, digest: str) -> None:
+        """The user's Capabilities changed and the pane holding this token reloaded its tools (spec E2): its next request with
+        tools is checked again, against the board now in force. A pane refused at its start-up check stays refused."""
+        with self._lock:
+            if digest in self._sessions and self._checked.get(digest, "") is None:
+                self._checked.pop(digest, None)
+                self._rechecks.add(digest)
 
     def session_for(self, token: str) -> Optional[str]:
         if not token:

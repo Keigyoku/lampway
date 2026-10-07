@@ -255,6 +255,48 @@ def test_the_first_chat_with_tools_is_checked_and_a_mismatch_refuses_the_session
               headers={"Authorization": f"Bearer {ok_token}"})
     assert len(seen) == 2                                                  # only the first request with tools is checked
 
+
+def test_after_a_live_capability_change_the_next_request_with_tools_is_checked_again_without_latching_a_refusal(gw):
+    """A switch the running pane obeys (spec E2) changes the tools it sends: the gateway checks its next request with tools again,
+    against the new board. A mismatch then refuses that request only (one built before the pane's reload may still carry the old
+    list); the next one is checked again, and a pass settles it."""
+    seen = []
+    allowed = {"terminal": False}
+
+    def check(session_id, token, tools):
+        names = [t["function"]["name"] for t in tools]
+        seen.append(names)
+        return "refused: terminal is not allowed" if "terminal" in names and not allowed["terminal"] else None
+
+    gw.reg.first_check = check
+    token = gw.reg.issue_token("s1")
+    h = {"Authorization": f"Bearer {token}"}
+    msgs = [{"role": "user", "content": "hi"}]
+    gw.provider.script = [[Text("one")], [Text("two")], [Text("three")]]
+    assert gw.c.post("/engine/v1/chat/completions", json={"messages": msgs, "tools": [_tool("vision_analyze")]}, headers=h).status_code == 200
+    gw.reg.recheck(GW.Registry.digest(token))                             # the user switched terminal on; the pane reloaded
+    stale = gw.c.post("/engine/v1/chat/completions", json={"messages": msgs, "tools": [_tool("terminal")]}, headers=h)
+    assert stale.status_code == 400, "checked again against the board in force"
+    allowed["terminal"] = True
+    assert gw.c.post("/engine/v1/chat/completions", json={"messages": msgs, "tools": [_tool("terminal")]}, headers=h).status_code == 200
+    assert gw.c.post("/engine/v1/chat/completions", json={"messages": msgs, "tools": [_tool("terminal")]}, headers=h).status_code == 200
+    assert len(seen) == 3, "the refused re-check did not latch; the pass settled it"
+
+
+def test_a_main_panes_config_carries_lampways_instructions_and_a_workers_does_not(engine_app, tmp_path):
+    """Lampway's guidance on its tools (``agent/prompt.py``) reaches the unit's Hermes as its ``agent.system_prompt``; a swarm
+    worker's pane gets its own system prompt with its task (``herdr/swarm_brain.py``), so none here."""
+    from lampway_server.agent.prompt import SYSTEM_PROMPT
+    with TestClient(engine_app, base_url=BASE):
+        wiring = engine_app.state.engine_wiring
+        wiring.write_config(tmp_path / "m", f"{BASE}/engine/v1", "lwe_m", "lampway")
+        wiring.write_config(tmp_path / "w", f"{BASE}/engine/v1", "lwe_w", "lampway", worker=True)
+    main, worker = HC.read(tmp_path / "m"), HC.read(tmp_path / "w")
+    assert main["agent"]["system_prompt"] == SYSTEM_PROMPT
+    assert "mcp__lampway__" in SYSTEM_PROMPT and "clarify" in SYSTEM_PROMPT and "ask_user" not in SYSTEM_PROMPT
+    assert "system_prompt" not in worker["agent"]
+
+
 def test_the_wiring_check_uses_check_advertised_against_the_board_the_config_came_from(engine_app, tmp_path):
     with TestClient(engine_app, base_url=BASE):
         wiring = engine_app.state.engine_wiring
