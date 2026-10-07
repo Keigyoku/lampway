@@ -25,6 +25,12 @@ CONTINUATION = dict({f"{a}_{s}": f"{b}_{s}" for s in ("l", "r") for a, b in (("c
                                                                               ("lowerarm", "hand"), ("thigh", "calf"), ("calf", "foot"),
                                                                               ("foot", "ball"))},
                     spine_03="neck_01", neck_01="neck_02", neck_02="head", **MAIN_CHILD)
+# Native MetaHuman metacarpals may also parent a *_metacarpal_slide helper.
+# The finger's first joint is the anatomical continuation, never that driver.
+CONTINUATION.update({f"{finger}_metacarpal_{side}": f"{finger}_01_{side}"
+                     for side in ("l", "r") for finger in ("thumb", "index", "middle", "ring", "pinky")})
+CONTINUATION.update({f"{finger}_{joint:02d}_{side}": f"{finger}_{joint+1:02d}_{side}"
+                     for side in ("l", "r") for finger in ("thumb", "index", "middle", "ring", "pinky") for joint in (1, 2)})
 
 
 def _descends(bone, ancestor, parents):

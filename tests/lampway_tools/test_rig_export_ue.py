@@ -126,14 +126,14 @@ print("RESULT", json.dumps({"mixed": mixed, "cold": cold, "constrained": constra
     assert o["files"] == [], "every refusal happens before anything is written"
 
 
-def test_titan_cm_native_is_the_default_and_is_refused_by_the_read_back_on_both_canon17_conventions(tmp_path):
+def test_explicit_titan_cm_native_is_refused_by_the_read_back_on_both_canon17_conventions(tmp_path):
     """A measured fact recorded as a test (2026-10-06): TITAN's pair (primary Z / secondary X), right in Unreal for the native MetaHuman as its
     Blender import laid it, is refused by the raw-frame read-back on a canon-17 rig of either convention (120 deg off on a 'blender' rig,
     90 deg on a 'ue_axes' one). The gate refuses; nothing is
     published. If this test starts passing, the read-back changed: re-measure before trusting either recipe."""
     r = run(tmp_path, CHAIN + '''
 b = chain("cb", "y"); x = chain("cx", "x"); call("rig_inspect", armature="cb"); call("rig_inspect", armature="cx")
-rb = call("rig_export_ue", armature="cb", out="export/b.fbx"); rx = call("rig_export_ue", armature="cx", out="export/x.fbx")
+rb = call("rig_export_ue", armature="cb", out="export/b.fbx", recipe="titan_cm_native"); rx = call("rig_export_ue", armature="cx", out="export/x.fbx", recipe="titan_cm_native")
 print("RESULT", json.dumps({"rb": rb, "rx": rx}))
 ''', timeout=600)
     assert r.rc == 0, r.out[-3000:]

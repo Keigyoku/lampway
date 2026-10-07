@@ -92,3 +92,5 @@ nine pre-pipeline FBXs all measured 0.99951171875 Blender units longest dimensio
 
 No tool. Every canon tool's receipt carries a `conventions` block: `{frame, units, turn_deg, bone_direction: "head->child head",
 bone_axis_export: "Z/X", weld_m, source_frame}`. A tool that cannot fill a field refuses with the field's name.
+
+Native MetaHuman metacarpals continue to their named finger01 joints beside slide drivers; finger01 continues to02 and02 to03 beside half/dip helpers. Terminal03 is not assigned an unmeasured continuation. `tests/lampway_tools/test_native_metacarpal_normalize.py` pins this fanout with actual bone geometry.

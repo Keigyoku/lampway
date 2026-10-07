@@ -35,8 +35,7 @@ meshes and actions. Output: an FBX, and a read-back receipt comparing every bone
    2026-10-06), and it is the pair a rig needs that entered Blender from an engine FBX imported with Z / X - a ROUND TRIP, which is
    how Titan's MetaHuman body was measured. Blender's real FBX writer was driven through all three pairs and wrote `R_bone @ M`
    for every bone (Lampway `tests/lampway_tools/test_canon_r08_export_axes.py`; the transposed map is 180 deg off, so the direction
-   is pinned). Lampway's default recipe `titan_cm_native` (Z / X) is therefore refused by the read-back on any canon-17 rig, and it
-   STAYS the default, refusing, until the engine side is confirmed (ue_parity MEASUREMENT_PLAN `M-RIG-01`: the R08 recipes on the
+   is pinned). The explicit recipe `titan_cm_native` (Z / X) is refused by the read-back on canon-17 rigs. Issue2's default-chain requirement supersedes leaving it as the default: `auto` selects X/-Y for measured normalized `blender` frames and Y/X for `ue_axes`, records the choice and keeps every readback bar. Physical engine confirmation is still required (ue_parity MEASUREMENT_PLAN `M-RIG-01`: the R08 recipes on the
    native body in Unreal 5.8). Use the convention's own recipe and let the read-back decide.
 3. **Hierarchy and root follow the reference.** The native MetaHuman has a real `root` bone; its armature container imports as
    one more top bone (`NewMetaHumanCharacter_FullBody`, parent of `root`, identity, scale 1 — accepted, recorded). GRT and MB
@@ -101,8 +100,7 @@ worst_position_cm, worst_rotation_deg, worst_scale, over_tolerance}, sha256: {fb
 1. Whether Lampway exports with GRT/MB's `root`-object convention for third-party (non-MetaHuman) targets at all, or only the
    native body's hierarchy.
 2. The default export recipe once `M-RIG-01` has run in Unreal: the canon-17 convention's own pair (R08: X / -Y for `blender`,
-   Y / X for `ue_axes`) or Titan's Z / X for rigs that entered Blender from an engine FBX. Until then the default stays
-   `titan_cm_native` and refuses canon-17 rigs by its read-back.
+   Y / X for `ue_axes`) or Titan's Z / X for rigs that entered Blender from an engine FBX. Issue2 supersedes the former refused-default policy: `auto` selects from measured normalized frames now, retains explicit Titan and unchanged readback bars, and records physical `M-RIG-01` acceptance as pending.
 3. The read-back's rotation tolerance inside Blender: 0.01 deg (Titan's `bind_mismatch`, measured in UNREAL) is below what a
    Blender edit bone holds for an arbitrary frame (max 0.112 deg, 17 % of 400 random frames over 0.01 deg, 2026-10-06, no FBX
    involved); the cause is not identified (the errors are not clustered at the roll singularity, the bone's Y near -Z). A Blender

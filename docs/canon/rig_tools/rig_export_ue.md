@@ -22,13 +22,11 @@ ported; GRT has no exporter (its export rig is the armature object named `root`,
 
 ```json
 {"armature": "object", "meshes": ["objects"], "actions": ["names"], "reference": "reference FBX | fit_body package",
- "recipe": "titan_cm_native | <recipe.json>", "out": "export/<name>.fbx", "readback": true, "allow_container_top_bone": true}
+ "recipe": "auto | titan_cm_native | cm_native_blender_convention | cm_native_ue_axes | <recipe.json>", "out": "export/<name>.fbx", "readback": true, "allow_container_top_bone": true}
 ```
-`titan_cm_native` = cm-native FBX (`UnitScaleFactor 1`, `FBX_SCALE_NONE` + `apply_unit_scale`), primary bone axis Z, secondary
-X, deform only, no leaf bones, baked actions only. It is the DEFAULT and it refuses every canon-17 rig at the read-back (120 deg
-off `blender`, 90 deg off `ue_axes`; golden R08): Z / X is the round trip of a rig imported from the engine with Z / X. The
-convention's own pairs are X / -Y (`blender`) and Y / X (`ue_axes`), same cm-native scaling; the default changes only after
-ue_parity `M-RIG-01` confirms them in Unreal (canon 21 H.2). A recipe file states every exporter argument; nothing is left to defaults.
+`auto` is the default: select from the armature's measured normalized convention, never its name. A `blender` rig uses X / -Y; a `ue_axes` rig uses Y / X, both with cm-native scaling (`UnitScaleFactor1`, `FBX_SCALE_NONE` + `apply_unit_scale`). The receipt records requested recipe, measured convention, selected recipe and source. Explicit `titan_cm_native` retains legacy engine-native Z / X; on canon-17 rigs its raw-frame readback still refuses120°/90° mismatches.
+
+Issue2's actual default-chain failure requirement supersedes the earlier policy of leaving an inevitably refused recipe as default. This changes recipe selection, not acceptance bars: every bone still meets0.01cm /0.01° /1e-4 scale. Physical Unreal `M-RIG-01` confirmation remains mandatory and pending; a Blender PASS does not claim it. Mixed frames still refuse and must be conformed. Shipped recipe names resolve directly; explicit recipe files state every exporter argument.
 Refusals: `mixed` convention (canon 17); root or hierarchy differing from the reference (the container top bone accepted and
 named); leaf bones; a vertex group naming a bone the reference lacks; constraints present; a read-back row over tolerance
 (rows listed, the file moved to `export/rejected/`); an existing different `out`.

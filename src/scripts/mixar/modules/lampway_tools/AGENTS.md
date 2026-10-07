@@ -15,6 +15,9 @@ pure); `meshqa/`, `rebuild.py`, `meshpaint.py`, `jobs.py`, `runner.py` and the `
 server. This directory ships inside the app (everything under `src/scripts` is installed), so nothing here may be a scratch file,
 a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the algorithms: the `lampway-canon` skill.
 
+
+Native MetaHuman metacarpals follow their named finger01 continuation beside slide helpers. Rig export defaults follow measured normalized frames with recorded recipe selection; explicit Titan stays available and every raw-frame readback bar stays unchanged. Physical UE M-RIG-01 confirmation remains separate and required.
+
 ## Invariants
 
 1. **One door.** The agent's scripts reach a tool only through `api.call(name, payload)`, and only names registered by `@tool`
@@ -93,3 +96,5 @@ page; the canon's open decisions are the captain's.
 | 2026-10-07 | registry-backed refusal next steps | issue 2 G19/F13/G20 | Python API names, obsolete shelf commands and invented normalizers were not callable next tools | generate complete API call-name mapping; validate help names against the live registry, with an unknown-tool plant and native refusal checks | server refusal-template and isolated binary tests |
 
 | 2026-10-07 | measured plate facing | issue 2 AC65 remaining implementation | a supplied margin still unconditionally refused the plate path | reuse cardinal silhouette rendering and true-aspect scoring; preserve unset/ambiguous refusals and transient cleanup | normalize_mesh contract golden |
+
+| 2026-10-07 | native MetaHuman normalization and export defaults | actual owner G4/G5 failures and issue2 default-chain instruction | metacarpal slide fanout lacked continuation and default recipe always rejected normalized frames | Native MetaHuman metacarpals follow their named finger01 continuation beside slide helpers. Rig export defaults follow measured normalized frames with recorded recipe selection; explicit Titan stays available and every raw-frame readback bar stays unchanged. Physical UE M-RIG-01 confirmation remains separate and required. | native metacarpal and both-convention export RED/GREEN; UE proof remains pending |

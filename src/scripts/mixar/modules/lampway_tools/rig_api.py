@@ -59,7 +59,7 @@ def rig_readback(fbx, reference):
 
 @_export
 @tool(consumes=RIG_RAW)
-def rig_export_ue(armature, out, meshes=None, actions=None, reference="", recipe="titan_cm_native", readback=True):
+def rig_export_ue(armature, out, meshes=None, actions=None, reference="", recipe="auto", readback=True):
     """Write the FBX with a recipe that states every exporter argument, read it back raw (automatic bone orientation off, no axis correction)
     and publish it only when every bone matches the reference at the bind_mismatch bars; the file's UnitScaleFactor read from the FBX and gated;
     a failing file moved to export/rejected/."""

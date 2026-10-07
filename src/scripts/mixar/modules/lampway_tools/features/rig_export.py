@@ -40,9 +40,14 @@ RAW_IMPORT = {"automatic_bone_orientation": False, "primary_bone_axis": "Y", "se
 ENGINE_FROM_BLENDER = np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])   # X_e = Y_b, Y_e = -X_b, Z_e = Z_b
 
 
-def _recipe(recipe, root):
-    if recipe in ("", "titan_cm_native"):
-        p = RECIPES / "titan_cm_native.json"
+def _recipe(recipe, root, convention=None):
+    if recipe in ("", "auto", None):
+        names = {"blender": "cm_native_blender_convention", "ue_axes": "cm_native_ue_axes"}
+        if convention not in names:
+            raise C.FeatureError("auto recipe needs a measured normalized blender or ue_axes convention; conform first")
+        p = RECIPES / (names[convention] + ".json")
+    elif recipe in ("titan_cm_native", "cm_native_blender_convention", "cm_native_ue_axes"):
+        p = RECIPES / (recipe + ".json")
     else:
         p = Path(recipe) if os.path.isabs(recipe) else Path(root, recipe)
     if not p.is_file():
@@ -146,15 +151,15 @@ def _reference(reference, ob, convention, root):
     return _table(ref), par, ref.name, RT._fingerprint(ref, RT.read(ref)), None
 
 
-def export_ue(armature, out, root, meshes=None, actions=None, reference="", recipe="titan_cm_native", readback=True):
+def export_ue(armature, out, root, meshes=None, actions=None, reference="", recipe="auto", readback=True):
     ob = RT._armature(armature)
     RT._inspected(ob)
-    doc, recipe_path = _recipe(recipe, root)
     if not readback:
         raise C.FeatureError("readback=false is refused: no export without a read-back of every bone (canon 21 INV-21.1)")
     convention = _convention(ob)
     if convention not in ("blender", "ue_axes"):
         raise C.FeatureError(f"{ob.name}'s frames are {convention}: one convention per rig (canon 17); run lampway_rig_conform first")
+    doc, recipe_path = _recipe(recipe, root, convention)
     constrained = sorted(f"{pb.name} ({c.type.lower()})" for pb in ob.pose.bones for c in pb.constraints)
     if constrained:
         raise C.FeatureError(f"constraints on {', '.join(constrained)}: bake them (lampway_rig_bake) and remove them before exporting")
@@ -264,6 +269,9 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
         problems.append(f"the file says UnitScaleFactor {usf:g} where the recipe {doc.get('name')} expects {float(expect):g}")
     fbx_sha = hashlib.sha256(writing.read_bytes()).hexdigest()
     summary = {"recipe": {"name": doc.get("name"), "path": str(recipe_path), "exporter": doc["exporter"]}, "convention": convention,
+               "recipe_selection": {"requested": recipe or "auto", "measured_convention": convention,
+                                    "selected": doc.get("name"), "source": "measured_normalized_frames" if recipe in ("", "auto", None) else "explicit_caller_recipe",
+                                    "ue_confirmation": "pending M-RIG-01; Blender raw-frame readback alone does not prove physical Unreal acceptance"},
                "unit_scale_factor": usf, "reference": ref_name, "container_top_bone": container, "animation": anim,
                "normals": {"corner_max_deg": max((c for c in corner if c is not None), default=0.0), "unmatched_meshes": corner.count(None)},
                "sha256": {"fbx": fbx_sha, "reference": ref_sha, "armature_rest": RT._fingerprint(ob, RT.read(ob))}}

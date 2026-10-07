@@ -93,7 +93,7 @@ RIG_DEFS = [
          P("dry_run", "boolean", "default true: return the plan")],
         api="rig_conform"),
     Def("lampway_rig_export_ue", "Write the FBX the engine reads and prove it bone by bone (canon 21): the recipe states EVERY exporter argument "
-        "(titan_cm_native, the default: centimetre-native, FBX_SCALE_NONE + apply_unit_scale, primary Z / secondary X, deform only, no leaf bones; "
+        "(auto, the default: measured normalized blender frames select X/-Y and ue_axes frames select Y/X; explicit titan_cm_native retains legacy Z/X. All are centimetre-native, FBX_SCALE_NONE + apply_unit_scale, deform only, no leaf bones; "
         "or a recipe JSON - shipped: cm_native_blender_convention (primary X / secondary -Y, measured for a rig with local Y along the limb) and "
         "cm_native_ue_axes (primary Y / secondary X, for X along)); the written file is imported back RAW (automatic bone orientation off, no axis "
         "correction) and every bone compared with the reference at the bind_mismatch bars (0.01 cm, 0.01 deg, 1e-4 scale); the file's own "
@@ -105,7 +105,7 @@ RIG_DEFS = [
         "normals, UnitScaleFactor and the sha256 of the file, the reference and the armature's rest." + _PATHS,
         [P("armature", required=True), P("out", required=True, desc="e.g. export/<name>.fbx"), P("meshes", "array", "mesh objects; default every mesh it deforms"),
          P("actions", "array", "at most one action name (one clip per file)"), P("reference", desc="empty (the armature in engine axes) | armature | <reference>.fbx"),
-         P("recipe", desc="titan_cm_native (default) | a recipe JSON path"), P("readback", "boolean", "must stay true")],
+         P("recipe", desc="auto (default, measured normalized frame convention) | titan_cm_native (explicit legacy engine-native Z/X) | cm_native_blender_convention | cm_native_ue_axes | a recipe JSON path"), P("readback", "boolean", "must stay true")],
         api="rig_export_ue"),
     Def("lampway_rig_fit_template", "Rig the fitted example at its OWN joints, the rig step of the three-input pipeline (canon 20; TITAN rig-axi's "
         "design): joints from a titan.rig-joints/1 file MEASURED on the example (its example_sha256 must equal the example's: the scene mesh's "
