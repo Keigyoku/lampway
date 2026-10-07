@@ -13,8 +13,9 @@ they are typed judgement, and fast inference of it").
 * A deterministic CROSS-CHECK, where one exists (facing vs the plate silhouettes, the bone map vs chain lengths and hierarchy, a role vs
   pixel statistics), decides: disagreement refuses and records both. Without one the value is accepted only at or above the
   ``confidence_threshold`` setting - which nobody has numbered yet, so it refuses.
-* OFF by default (``enabled``): on only once a judge's goldens beat refusal - and refusal is never wrong, so a judge that is ever wrong
-  does not beat it. Routing when a judge exists: local first (the Vault's bundled models), else a ZDR or plan route, never ``:free``,
+* OFF by default, per field (``enabled``). The USER turns a field on after seeing its measured accuracy (``golden``: a judge that is
+  ever wrong does not beat refusal, which is never wrong); it NEVER turns on automatically, not even when its goldens pass (the
+  captain's ruling 2, 2026-10-07). Routing when a judge exists: local first (the Vault's bundled models), else a ZDR or plan route, never ``:free``,
   through egress consent, resolved as the Choices purpose ``normalize.judge`` once that hub lands. No judge model is installed today:
   the Vault's CLIP is an image tower only (no text tower for zero-shot) and its weights are a user's fetch away."""
 
@@ -24,11 +25,27 @@ from pathlib import Path
 
 FIELDS = ("facing", "side", "texture_role", "bone_map", "piece_kind")
 FACTS = ("units", "axes", "transform", "weld", "scale", "colour_space", "bone_direction")
-SETTINGS = {
-    "enabled": {"value": False, "why": "on only once its goldens beat refusal (never wrong), field by field"},
-    "confidence_threshold": {"value": None, "needs_decision": True, "why": "a named pref, unset: the confidence a judged field without a cross-check needs (no number has been decided; needs_decision)"},
-    "purpose": {"value": "normalize.judge", "why": "the Choices hub purpose once it lands; until then no route is configured"},
-}
+
+
+def fresh_settings() -> dict:
+    """The settings a fresh profile has: every field off."""
+    return {
+        "enabled": {"value": {f: False for f in FIELDS}, "why": "off per field until the USER turns it on after seeing its measured accuracy; never automatic"},
+        "confidence_threshold": {"value": None, "needs_decision": True, "why": "a named pref, unset: the confidence a judged field without a cross-check needs (no number has been decided; needs_decision)"},
+        "purpose": {"value": "normalize.judge", "why": "the Choices hub purpose once it lands; until then no route is configured"},
+    }
+
+
+SETTINGS = fresh_settings()
+
+
+def enable(field, report, by):
+    """The user turns ``field`` on, having seen ``report`` (its own golden measurement). Nothing else ever enables a field."""
+    if by != "user":
+        raise PermissionError("only the user turns the judge on, field by field, after seeing its measured accuracy")
+    if field not in FIELDS or not isinstance(report, dict) or report.get("field") != field:
+        raise ValueError(f"turn {field!r} on with its own golden report (golden(judge, {field!r}, cases))")
+    SETTINGS["enabled"]["value"][field] = True
 
 
 class SchemaError(ValueError):
@@ -97,9 +114,10 @@ def decide(judgment, cross_check=None, threshold=None):
     return out
 
 
-def active():
-    """The judge the normalizer consults, or None (the slot is off, or no judge is installed)."""
-    if not SETTINGS["enabled"]["value"]:
+def active(field=None):
+    """The judge the normalizer consults for ``field``, or None (the field is off, or no judge is installed)."""
+    on = SETTINGS["enabled"]["value"]
+    if not (on.get(field) if field else any(on.values())):
         return None
     return None                                                        # no judge model is installed yet (see the module docstring)
 

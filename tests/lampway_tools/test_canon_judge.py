@@ -62,7 +62,7 @@ def test_without_a_cross_check_the_threshold_decides_and_an_unset_threshold_refu
 def test_the_receipt_pins_the_model_and_the_slot_is_off_by_default():
     j = J.ask(Fake({"a": "-Y"}), "facing", {"case": "a"})
     assert j["model_id"] == "fake-judge" and j["model_version"] == "1" and j["latency_ms"] >= 0
-    assert J.SETTINGS["enabled"]["value"] is False and J.active() is None
+    assert not any(J.SETTINGS["enabled"]["value"].values()) and J.active() is None
 
 
 def test_the_golden_harness_measures_accuracy_repeatability_and_latency_against_refusal():
@@ -70,3 +70,20 @@ def test_the_golden_harness_measures_accuracy_repeatability_and_latency_against_
     r = J.golden(Fake({"a": "+X", "b": "-Y", "c": "-X"}), "facing", cases, repeats=3)
     assert r["accuracy"] == pytest.approx(2 / 3) and r["refusal_accuracy"] == 0.0 and r["repeatable"] is True
     assert r["beats_refusal"] is False and r["wrong"] == 1 and r["latency_ms"]["max"] >= 0      # refusal is never wrong: one wrong answer loses
+
+
+def test_the_judge_is_off_on_a_fresh_profile_and_stays_off_after_its_goldens_pass(monkeypatch):
+    """The captain's ruling 2 (2026-10-07): the typed judge is OFF by default; the USER turns it on per field after seeing its
+    measured accuracy; it never turns on automatically - not even when its goldens beat refusal."""
+    monkeypatch.setattr(J, "SETTINGS", J.fresh_settings())
+    assert all(v is False for v in J.SETTINGS["enabled"]["value"].values()) and set(J.SETTINGS["enabled"]["value"]) == set(J.FIELDS)
+    assert all(J.active(f) is None for f in J.FIELDS)
+    report = J.golden(Fake({"a": "+X", "b": "-Y"}), "facing", [{"case": "a", "want": "+X"}, {"case": "b", "want": "-Y"}], repeats=2)
+    assert report["beats_refusal"] is True
+    assert J.SETTINGS["enabled"]["value"]["facing"] is False and J.active("facing") is None
+    with pytest.raises(PermissionError):
+        J.enable("facing", report, by="agent")                    # only the user turns a field on
+    with pytest.raises(ValueError):
+        J.enable("side", report, by="user")                       # a field is turned on with ITS OWN measured report
+    J.enable("facing", report, by="user")
+    assert J.SETTINGS["enabled"]["value"] == {f: f == "facing" for f in J.FIELDS}
