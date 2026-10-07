@@ -307,3 +307,57 @@ def test_a_mode1_swarm_handed_a_turns_stream_follows_the_island_not_the_turn_tha
     started, events, ended = card_turn(mode1.fleet, sid, UNIT)
     assert started is not None and [r["status"] for r in todos(events)[-1]] == ["DONE"] and ended is not None
     assert dead == [], "the ended turn's stream is not where the island looks"
+
+
+@pytest.mark.parametrize("finished", [False, True])
+@pytest.mark.parametrize("hermes_running", [False, True])
+def test_card_recovery_discovers_its_start_and_replays_it_without_replacing_the_hermes_turn(finished, hermes_running):
+    """A fresh client missed the entire start; card discovery is independent of the scene's current agent turn."""
+    import asyncio
+    from types import SimpleNamespace
+    from lampway_server.agent.turns import AgentHub, Turn
+    from lampway_server.agent.swarm_island import SwarmIsland
+
+    class Socket:
+        def __init__(self):
+            self.frames = []
+
+        async def notify(self, method, params):
+            self.frames.append((method, params))
+
+    async def exercise():
+        hub = AgentHub(None)
+        first, restored = Socket(), Socket()
+        hub.client_sockets[UNIT] = first
+        session = hub._session(UNIT)
+        hermes = Turn(UNIT, "t-hermes", "run-hermes") if hermes_running else None
+        if hermes is not None:
+            session.current = hermes
+            session.turns[hermes.turn_id] = hermes
+            session.last_turn_id = hermes.turn_id
+        island = SwarmIsland(hub)
+        swarm = SimpleNamespace(id="fake-recovery", parent_session=UNIT, mode="byoa", owner="pane:parent",
+                                harness_id="claude", collected=False, retried=False)
+        rows = [{"id": "fake-recovery:worker-1", "text": "Build a chair", "status": "IN_PROGRESS"}]
+        await island.report(swarm, rows)
+        if finished:
+            await island.report(swarm, [{**rows[0], "status": "DONE"}], final=True)
+        original = next(params for method, params in first.frames if method == "agent.turn.started")
+        status = await hub._status(restored, {"session_ids": [UNIT]})
+        if hermes is not None:
+            assert status["turns"][UNIT]["turn_id"] == hermes.turn_id
+        else:
+            assert status["turns"] == {}
+        assert status.get("swarm_cards", {}).get(UNIT) == [original], "status must discover cards separately from the agent turn"
+        assert session.current is hermes and session.last_turn_id == (hermes.turn_id if hermes else None)
+        assert not (await hub._status(restored, {"session_ids": ["another-unit"]})).get("swarm_cards"), "only the asked unit"
+        result = await hub._attach(restored, {"session_id": UNIT, "turn_id": original["turn_id"], "after_seq": -1})
+        assert result["status"] == "ok"
+        assert restored.frames[0] == ("agent.turn.started", {**original, "replay": True}), "start metadata must precede replay slots"
+        replayed = [p["event"] for method, p in restored.frames if method == "agent.turn.event"]
+        assert replayed == session.turns[original["turn_id"]].events
+        assert any(method == "agent.turn.ended" for method, _ in restored.frames) is finished
+        unrelated = Socket()
+        assert await hub._attach(unrelated, {"session_id": "another-unit", "turn_id": original["turn_id"]}) == {"status": "unavailable"}
+        assert unrelated.frames == [], "another unit's session cannot attach the card"
+    asyncio.run(exercise())

@@ -15,8 +15,9 @@ those frames, to the island of its UNIT's scene tab (the swarm's parent session)
   opened on the scene tab's current Client socket (``AgentHub.socket_for``, else the socket the swarm's harness drives): an observed
   turn (``agent.turn.started`` with ``observed: true``, the ``swarm`` id and the parent ``pane``, no user text), its ``run_status``,
   the ``todo`` rows on one bubble, and at the end the Retry chip when a task failed, ``turn_end`` (no ``offset``: the pane's own
-  transcript cursor is not touched) and ``agent.turn.ended``. A Your agent tab renders an observed turn's slots as Mode 1's; a
-  Lampway Agent tab today takes only its own turns and their wakeups (for the client lane: accept a ``swarm`` card turn there too).
+  transcript cursor is not touched) and ``agent.turn.ended``. The client takes a ``swarm`` card turn in either mode, independently
+  of the pane's activity and scene turn. ``agent.status`` lists its start under ``swarm_cards``; ``agent.attach`` reannounces that
+  metadata before replay slots, so an island that missed the start can recover the same card bubble.
 
 The turn is journalled in the hub's session like any other, so ``agent.attach`` replays it. Nothing here starts, stops or retries
 anything: the swarm (``SwarmManager``) reports, and a Retry is the user's own click (``SwarmManager.retry``).
@@ -118,10 +119,11 @@ class SwarmIsland:
         self.hub._session(unit).turns[tid] = turn
         card = self.cards[swarm.id] = Card(turn, socket, f"swarm-{swarm.id}-{uuid.uuid4().hex[:8]}")
         owner = str(getattr(swarm, "owner", "") or "")
-        await self._notify(socket, "agent.turn.started", {
+        turn.card_start = {
             "session_id": unit, "turn_id": tid, "run_id": tid, "observed": True, "swarm": swarm.id,
             "pane": owner[len("pane:"):] if owner.startswith("pane:") else None, "harness": getattr(swarm, "harness_id", None),
-            "user_text": ""})
+            "user_text": ""}
+        await self._notify(socket, "agent.turn.started", turn.card_start)
         await self._emit(card, {"type": "run_status", "run_id": tid, "status": "in_progress"})
         return card
 

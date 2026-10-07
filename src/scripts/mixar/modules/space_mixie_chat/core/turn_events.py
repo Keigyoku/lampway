@@ -47,8 +47,9 @@ class Turn:
     pending: dict = field(default_factory=dict)
     complete: bool = False
     recovering: bool = False
-    observed: bool = False    # a BYOA pane's own transcript (byoa_view.py): rendered, never the tab's turn state
+    observed: bool = False    # pane transcript or independent swarm cards (byoa_view.py), never the tab's turn state
     pane: bool = False        # a turn Lampway Agent's pane started (mode1_pane.py): the tab's turn, like an island turn
+    swarm_card: bool = False  # S3's independent worker cards: neither a scene turn nor the pane's activity
 
 
 def arm():
@@ -186,6 +187,18 @@ def _drain():
 
 
 def _consume(method, params):
+    if method == 'agent.recovery.cards':
+        sid = params.get('session_id')
+        if not sid or sid in _blocked:
+            return
+        for started in params.get('cards') or []:
+            if not isinstance(started, dict) or started.get('session_id') != sid or not started.get('swarm'):
+                continue
+            _consume('agent.turn.started', {**started, 'observed': True, 'replay': True})
+            turn = _turns.get(started.get('turn_id'))
+            if turn is not None and turn.swarm_card and not turn.complete:
+                _request_replay(turn)
+        return
     if method == 'agent.byoa.view':
         from . import byoa_view
         byoa_view.apply_view(params)
@@ -264,18 +277,20 @@ def _consume(method, params):
             turn.recovering = bool(params.get('replay'))
             return
         if params.get('observed'):
-            # A Your agent tab's pane, observed (agent-modes spec B4): only a tab in that mode takes it, and it never
-            # becomes the tab's turn (no BUSY, no run, no executor turn), so an MCP operation on the tab is left alone.
+            # B4's pane transcript belongs to Your agent mode; S3's swarm cards render in either mode.
+            # Neither takes the tab's turn (no BUSY, no run, no executor turn).
             from .agent_mode import is_byoa
-            if not is_byoa(scene):
+            swarm_card = bool(params.get('swarm'))
+            if not swarm_card and not is_byoa(scene):
                 return
             if len(_turns) >= 64:
                 completed = next((key for key, value in _turns.items() if value.complete), None)
                 if completed:
                     _turns.pop(completed)
-            _turns[tid] = Turn(sid, tid, str(params.get('run_id') or ''), observed=True)
+            _turns[tid] = Turn(sid, tid, str(params.get('run_id') or ''), observed=True, swarm_card=swarm_card)
             from . import byoa_view
-            byoa_view.begin_observed_turn(scene, params)
+            if not swarm_card:
+                byoa_view.begin_observed_turn(scene, params)
             return
         from .session import get_session_manager
         session = get_session_manager()
@@ -453,17 +468,22 @@ def reconnect(session_ids=None):
     import bpy
     from mixar.modules.common.agent_rpc.client import call
     from .session import get_session_manager
-    ids = []
+    ids, scene_recovery = [], set()
     for scene in bpy.data.scenes:
         sid = getattr(scene, 'mixie_session_id', '')
-        if sid and sid not in _blocked and (get_session_manager().run_open(scene)
-                                           or turn_cursor.read(scene, sid)):
+        if (sid and sid not in _blocked and (wanted is None or sid in wanted)):
             bind(scene)
             ids.append(sid)
+            if get_session_manager().run_open(scene) or turn_cursor.read(scene, sid):
+                scene_recovery.add(sid)
     if ids:
         def status(result):
             for sid, info in (result.get('turns') or {}).items():
-                handle_turn_notification('agent.recovery.status', {'session_id': sid, 'info': info})
+                if sid in scene_recovery:
+                    handle_turn_notification('agent.recovery.status', {'session_id': sid, 'info': info})
+            for sid, cards in (result.get('swarm_cards') or {}).items():
+                if sid in ids:
+                    handle_turn_notification('agent.recovery.cards', {'session_id': sid, 'cards': cards})
         try:
             call('agent.status', {'session_ids': ids[:32]}, status)
         except Exception:

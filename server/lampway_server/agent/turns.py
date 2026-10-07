@@ -58,6 +58,7 @@ class Turn:
     context: dict = field(default_factory=dict)   # what the client sent beside the message (R3): images, rules, folders, notes
     stream: object = None     # the turn's TurnStream: re-attached to a new socket by agent.attach (A2)
     detached: bool = False    # the client's socket closed while the pane's turn ran: it journals on and waits for agent.attach
+    card_start: dict = field(default_factory=dict)  # S3 card metadata, replayed before slots when the client missed its start
 
     @property
     def last_seq(self) -> int:
@@ -294,10 +295,16 @@ class AgentHub:
 
     async def _status(self, socket, params):
         turns = {}
+        swarm_cards = {}
         asked = [str(s) for s in list(params.get("session_ids") or [])[:32] if isinstance(s, str) and s]
         for session_id in asked:
             session = self.sessions.get(str(session_id))
-            if session is None or session.last_turn_id is None:
+            if session is None:
+                continue
+            cards = [dict(t.card_start) for t in session.turns.values() if t.card_start]
+            if cards:
+                swarm_cards[session.session_id] = cards
+            if session.last_turn_id is None:
                 continue
             turn = session.turns[session.last_turn_id]
             turns[session.session_id] = {
@@ -307,13 +314,15 @@ class AgentHub:
         # The conversation each Mode 1 tab's pane shows (A2, Q15): a client that was away when the pane's /new was followed learns
         # it here, and files the old chat.
         conversations = await self.engine.conversations(asked) if self.engine is not None else {}
-        return {"turns": turns, "conversations": conversations}
+        return {"turns": turns, "conversations": conversations, "swarm_cards": swarm_cards}
 
     async def _attach(self, socket, params):
         session = self.sessions.get(str(params.get("session_id") or ""))
         turn = session.turns.get(str(params.get("turn_id") or "")) if session else None
         if turn is None:
             return {"status": "unavailable"}
+        if turn.card_start:
+            await socket.notify("agent.turn.started", {**turn.card_start, "replay": True})
         after = params.get("after_seq", -1)
         seq = after + 1 if isinstance(after, int) else 0
         while seq < len(turn.events):                         # the journal grows while a detached turn runs: catch up first

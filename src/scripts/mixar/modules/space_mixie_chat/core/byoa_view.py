@@ -333,6 +333,9 @@ def begin_observed_turn(scene, params: dict) -> None:
 
 def apply_observed(scene, turn, payload: dict) -> None:
     """One observed payload, on the main thread. Slots render as Mode 1's do; nothing here sets the tab's state or run."""
+    if turn.swarm_card:
+        apply_swarm_card(scene, turn, payload)
+        return
     kind = payload.get("type")
     if kind == "turn_end":
         from .slot_processor import finalize_turn
@@ -364,6 +367,27 @@ def apply_observed(scene, turn, payload: dict) -> None:
     elif kind == "error":
         from .message_helpers import add_agent_message
         add_agent_message(scene, str(payload.get("message") or "Your agent's view reported an error."))
+    _redraw()
+
+
+def apply_swarm_card(scene, turn, payload: dict) -> None:
+    """S3's worker cards in either mode. Their status and end belong only to the card, never the pane's activity or cursors.
+
+    Card slots already carry the workers' final statuses. Finalizing the entire transcript here would hide a concurrent
+    pane turn's loaders and settle its live steps, so a card end only archives the rendered cards and closes their delivery.
+    """
+    kind = payload.get("type")
+    if kind in ("turn_end", "resume_unavailable"):
+        if kind == "turn_end":
+            try:
+                from .chat_history import archive_current
+                archive_current(scene)
+            except Exception:  # noqa: BLE001 - the archive never blocks the cards
+                logger.debug("swarm card archive skipped", exc_info=True)
+        turn.complete = True
+    elif "bubble_id" in payload:
+        from .slot_processor import get_slot_processor
+        get_slot_processor().apply_event(payload, scene)
     _redraw()
 
 
