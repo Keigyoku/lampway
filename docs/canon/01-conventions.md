@@ -93,4 +93,6 @@ nine pre-pipeline FBXs all measured 0.99951171875 Blender units longest dimensio
 No tool. Every canon tool's receipt carries a `conventions` block: `{frame, units, turn_deg, bone_direction: "head->child head",
 bone_axis_export: "Z/X", weld_m, source_frame}`. A tool that cannot fill a field refuses with the field's name.
 
-Native MetaHuman metacarpals continue to their named finger01 joints beside slide drivers; finger01 continues to02 and02 to03 beside half/dip helpers. Terminal03 is not assigned an unmeasured continuation. `tests/lampway_tools/test_native_metacarpal_normalize.py` pins this fanout with actual bone geometry.
+Native MetaHuman metacarpals continue to their named finger01 joints beside slide drivers; finger01 continues to02 and02 to03 beside half/dip helpers. Terminal03 with only its exact same-finger/same-side bulge/half children is an anatomical leaf: continue its parent line by0.8, including a single auxiliary child. Any other terminal child is refused, never chosen as a continuation. `tests/lampway_tools/test_native_metacarpal_normalize.py` pins this fanout with actual bone geometry.
+
+`tests/lampway_tools/test_native_terminal_fingers.py` pins all ten terminal joints, one/two auxiliary children, unchanged authored frames, shared weighting endpoints and unknown-child falsifiers. The actual native receipt exposed pinky03 bulge/half fanout; the complete342-name roster confirms these auxiliary names. Full parent/child roster verification remains a separate owner receipt.

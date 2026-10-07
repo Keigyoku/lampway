@@ -79,6 +79,8 @@ python -m pytest -q tests                                   # the standalone sui
 `scripts/lampway/sync_python.sh` before every run, so a Python change needs no rebuild. The server half of each tool is tested in
 `server/tests/test_lampway_tools.py`.
 
+Native terminal finger03 joints with only exact same-finger/same-side bulge/half drivers use the canonical0.8 parent-line leaf endpoint, including one-driver cases. Unknown terminal children refuse; normalized stamps and shared weighting endpoints use the same predicate.
+
 ## Owner
 
 The lane whose contract names the tool writes it and its tests; the integration lane lands it. A tool's engine follows its canon
@@ -116,3 +118,5 @@ page; the canon's open decisions are the captain's.
 | 2026-10-07 | measured fit decision paths | captain: measure issue2 AC65 before defaults | configurable algorithm gaps and unmeasured proposals obscured required choices | Measure unruled fit defaults before recommending them. Explicit pair modes retain side identities/inverse maps; finger search curls TO canon targets including thumb. The decision measurement runner reports and renders candidates without modifying canon settings; experimental tables require caller sign expectations and thresholds. | native pair, hand and measurement-pack tests |
 
 | 2026-10-07 | low-match weight-transfer diagnostics | issue 2 G10 and native placed/unplaced calibration | inpainting concealed approximately three-percent direct matching on an unplaced piece | warn below the documented majority-match threshold, name placement, validate overrides before output and compare unrounded fractions without gating export | native placed/unplaced and strict-boundary RED/GREEN tests |
+
+| 2026-10-07 | terminal finger helper-only leaf continuity | actual c4e91 native pinky03 fanout refusal | two helpers refused and a single helper silently became the bone direction | Native terminal finger03 joints with only exact same-finger/same-side bulge/half drivers use the canonical0.8 parent-line leaf endpoint, including one-driver cases. Unknown terminal children refuse; normalized stamps and shared weighting endpoints use the same predicate. | native terminal one/two-driver RED and all-ten-joint GREEN with unknown-child falsifiers |

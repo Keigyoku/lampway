@@ -24,7 +24,7 @@ import numpy as np
 
 from .. import canon_asset as CA
 from .. import canon_io
-from ..canon_geom.bones import CONTINUATION, MAIN_CHILD, chain_ends
+from ..canon_geom.bones import CONTINUATION, MAIN_CHILD, chain_ends, terminal_auxiliary_leaf
 from ..rig_tools import core as RC
 from . import common as C
 from . import normalize as NZ
@@ -90,7 +90,10 @@ def _bones(ob, mapped, convention="blender", profile="ue5_body"):
         L = float(np.linalg.norm(v))
         if L < 1e-9:
             raise C.FeatureError(f"bone {n}: its next joint is at its own head (zero length): a skeleton cannot carry it")
-        src = "authored_helper_frame" if n in helpers else ("child_head" if len(kids.get(n, [])) == 1 else ("named_continuation" if kids.get(n) else "leaf_parent_line"))
+        children = kids.get(n, [])
+        src = "authored_helper_frame" if n in helpers else (
+            "leaf_parent_line" if not children or terminal_auxiliary_leaf(n, children) else
+            ("child_head" if len(children) == 1 else "named_continuation"))
         F = np.asarray(rig["frames"][n], float)
         out.append({"name": n, "canonical_name": canon.get(n), "parent": parents.get(n), "head_m": [round(float(x), 9) for x in h],
                     "along": [round(float(x), 12) for x in v / L], "along_source": src, "frame": [[round(float(x), 12) for x in r] for r in F],

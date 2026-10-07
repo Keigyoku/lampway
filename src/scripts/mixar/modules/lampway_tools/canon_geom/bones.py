@@ -32,6 +32,19 @@ CONTINUATION.update({f"{finger}_metacarpal_{side}": f"{finger}_01_{side}"
 CONTINUATION.update({f"{finger}_{joint:02d}_{side}": f"{finger}_{joint+1:02d}_{side}"
                      for side in ("l", "r") for finger in ("thumb", "index", "middle", "ring", "pinky") for joint in (1, 2)})
 
+# Actual native MetaHuman terminal joints carry bulge/half drivers beside no
+# anatomical continuation. Only these exact names qualify for the leaf rule.
+TERMINAL_AUXILIARIES = {
+    f"{finger}_03_{side}": frozenset(f"{finger}_03_{tag}_{side}" for tag in ("bulge", "half"))
+    for side in ("l", "r") for finger in ("thumb", "index", "middle", "ring", "pinky")
+}
+
+
+def terminal_auxiliary_leaf(bone, children):
+    """Recognized terminal03 helper-only branch; unknown children never qualify."""
+    allowed = TERMINAL_AUXILIARIES.get(bone)
+    return bool(allowed and children and set(children).issubset(allowed))
+
 
 def _descends(bone, ancestor, parents):
     seen = set()
@@ -60,18 +73,21 @@ def chain_ends(heads, parents, leaf=LEAF, main_child=None, helper_ends=None):
             out[b] = tuple(helpers[b])
             continue
         k = kids.get(b, [])
-        if len(k) == 1:
+        terminal = terminal_auxiliary_leaf(b, k)
+        if b in TERMINAL_AUXILIARIES and k and not terminal:
+            raise ValueError(f"bone {b!r} has unrecognized terminal children {', '.join(sorted(k))}")
+        if terminal or not k:
+            p = parents.get(b)
+            if p is None or p not in heads:
+                raise ValueError(f"bone {b!r} has neither a child nor a parent to continue")
+            out[b] = tuple(x + leaf * (x - y) for x, y in zip(h, heads[p]))
+        elif len(k) == 1:
             out[b] = tuple(heads[k[0]])
         elif k:
             m = main.get(b)
             if m not in heads or not _descends(m, b, parents):
                 raise ValueError(f"bone {b!r} has children {', '.join(sorted(k))} and no named continuation")
             out[b] = tuple(heads[m])
-        else:
-            p = parents.get(b)
-            if p is None or p not in heads:
-                raise ValueError(f"bone {b!r} has neither a child nor a parent to continue")
-            out[b] = tuple(x + leaf * (x - y) for x, y in zip(h, heads[p]))
     return out
 
 
